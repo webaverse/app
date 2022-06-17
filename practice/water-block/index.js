@@ -12,6 +12,7 @@ export default () => {
     const {renderer, camera, scene, rootScene} = useInternals();
     const renderSettings = useRenderSettings();
     const textureLoader = new THREE.TextureLoader();
+    const bubbleTexture1 = textureLoader.load(`${baseUrl}/textures/Bubble1.png`);
     const waterNormalTexture1 = textureLoader.load(`${baseUrl}/textures/waterNormal2.png`);
     waterNormalTexture1.wrapS = waterNormalTexture1.wrapT = THREE.RepeatWrapping;
     const waterNormalTexture2 = textureLoader.load(`${baseUrl}/textures/waterNormal3.png`);
@@ -314,7 +315,7 @@ export default () => {
         });
       
     }
-    //######################################################################## mask ########################################################################
+     
     {
         
         // const color = 0xFF0000;
@@ -406,6 +407,238 @@ export default () => {
             else{
                 if(renderSettings.findRenderSettings(scene))
                     renderSettings.findRenderSettings(scene).fog.density = 0;
+            }
+            app.updateMatrixWorld();
+        
+        });
+    }
+    //################################################################ bubble ###########################################################
+    {
+        const particleCount = 40;
+        const group=new THREE.Group();
+        let info = {
+            velocity: [particleCount],
+            offset: [particleCount],
+        }
+        
+        const _getGeometry = geometry => {
+            //console.log(geometry)
+            const geometry2 = new THREE.BufferGeometry();
+            ['position', 'normal', 'uv'].forEach(k => {
+            geometry2.setAttribute(k, geometry.attributes[k]);
+            });
+            geometry2.setIndex(geometry.index);
+            
+            const positions = new Float32Array(particleCount * 3);
+            const positionsAttribute = new THREE.InstancedBufferAttribute(positions, 3);
+            geometry2.setAttribute('positions', positionsAttribute);
+
+            const color = new Float32Array(particleCount * 3);
+            const colorAttribute = new THREE.InstancedBufferAttribute(color, 3);
+            geometry2.setAttribute('color', colorAttribute);
+            // const quaternions = new Float32Array(particleCount * 4);
+            // for (let i = 0; i < particleCount; i++) {
+            //   identityQuaternion.toArray(quaternions, i * 4);
+            // }
+            // const quaternionsAttribute = new THREE.InstancedBufferAttribute(quaternions, 4);
+            // geometry2.setAttribute('quaternions', quaternionsAttribute);
+
+            const scales = new Float32Array(particleCount);
+            const scalesAttribute = new THREE.InstancedBufferAttribute(scales, 1);
+            geometry2.setAttribute('scales', scalesAttribute);
+
+            const opacityAttribute = new THREE.InstancedBufferAttribute(new Float32Array(particleCount), 1);
+            opacityAttribute.setUsage(THREE.DynamicDrawUsage);
+            geometry2.setAttribute('opacity', opacityAttribute);
+
+            const startTimeAttribute = new THREE.InstancedBufferAttribute(new Float32Array(particleCount), 1);
+            startTimeAttribute.setUsage(THREE.DynamicDrawUsage);
+            geometry2.setAttribute('startTime', startTimeAttribute);
+        
+            
+            const offset = new Float32Array(particleCount * 2);
+            const offsetAttribute = new THREE.InstancedBufferAttribute(offset, 2);
+            geometry2.setAttribute('offset', offsetAttribute);
+            
+
+            return geometry2;
+        };
+
+        const material= new THREE.ShaderMaterial({
+            uniforms: {
+                uTime: {
+                    value: 0,
+                },
+                cameraBillboardQuaternion: {
+                    value: new THREE.Quaternion(),
+                },
+                bubbleTexture1: {
+                    value: bubbleTexture1,
+                },
+            },
+            vertexShader: `\
+                
+                ${THREE.ShaderChunk.common}
+                ${THREE.ShaderChunk.logdepthbuf_pars_vertex}
+            
+                
+                uniform float uTime;
+                uniform vec4 cameraBillboardQuaternion;
+                
+                
+                varying vec2 vUv;
+                varying vec3 vPos;
+                varying vec3 vColor;
+                varying float vOpacity;
+                varying vec2 vOffset;
+                
+
+                attribute vec3 positions;
+                attribute vec3 color;
+                attribute float scales;
+                attribute float opacity;
+                attribute vec2 offset;
+                
+
+                vec3 rotateVecQuat(vec3 position, vec4 q) {
+                    vec3 v = position.xyz;
+                    return v + 2.0 * cross(q.xyz, cross(q.xyz, v) + q.w * v);
+                }
+                void main() {
+                    vUv = uv;
+                    vPos = position;
+                    // vOpacity = opacity;
+                    // vColor = color;
+                    vOffset = offset;
+                    vec3 pos = position;
+                    pos = rotateVecQuat(pos, cameraBillboardQuaternion);
+                    pos*=scales;
+                    pos+=positions;
+                    //pos = qtransform(pos, quaternions);
+                    //pos.y=cos(uTime/100.);
+                    vec4 modelPosition = modelMatrix * vec4(pos, 1.0);
+                    vec4 viewPosition = viewMatrix * modelPosition;
+                    vec4 projectionPosition = projectionMatrix * viewPosition;
+            
+                    gl_Position = projectionPosition;
+                    ${THREE.ShaderChunk.logdepthbuf_vertex}
+                }
+            `,
+            fragmentShader: `\
+                ${THREE.ShaderChunk.logdepthbuf_pars_fragment}
+                uniform float uTime;
+                uniform sampler2D bubbleTexture1;
+                varying vec2 vUv;
+                varying vec3 vPos;
+                varying vec3 vColor;
+                varying float vOpacity;
+                varying vec2 vOffset;
+
+                void main() {
+                    vec4 bubble = texture2D(
+                                    bubbleTexture1,
+                                    vec2(
+                                        vUv.x / 6. + vOffset.x,
+                                        vUv.y / 5. + vOffset.y
+                                    )
+                    );
+                    gl_FragColor = bubble;
+                    gl_FragColor.a *= 0.5;
+                ${THREE.ShaderChunk.logdepthbuf_fragment}
+                }
+            `,
+            side: THREE.DoubleSide,
+            transparent: true,
+            blending: THREE.AdditiveBlending,
+            depthWrite: false,
+            //blending: 1,
+
+        });
+        let mesh = null;
+        function addInstancedMesh() {
+            const geometry2 = new THREE.PlaneGeometry( .025, .025 );
+            const geometry = _getGeometry(geometry2);
+            mesh = new THREE.InstancedMesh(geometry, material, particleCount);
+            const positionsAttribute = mesh.geometry.getAttribute('positions');
+            for (let i = 0; i < particleCount; i++) {
+                positionsAttribute.setXYZ(i, localPlayer.position.x + Math.random() * 5, localPlayer.position.y + Math.random() * 5, localPlayer.position.z + Math.random() * 5);
+                info.velocity[i] = new THREE.Vector3();
+                
+            }
+            positionsAttribute.needsUpdate = true;
+            // group.add(mesh);
+            // app.add(group);
+            app.add(mesh);
+        }
+        addInstancedMesh();
+            
+        const bubblePos = new THREE.Vector3();
+        const headPos = new THREE.Vector3();
+        const localVector = new THREE.Vector3();
+        useFrame(({timestamp}) => {
+            if (mesh && localPlayer.avatar) {
+                const currentSpeed = localVector.set(localPlayer.avatar.velocity.x, 0, localPlayer.avatar.velocity.z).length();
+                //console.log(Math.floor(currentSpeed * 10 + 1))
+                const opacityAttribute = mesh.geometry.getAttribute('opacity');
+                const offsetAttribute = mesh.geometry.getAttribute('offset');
+                const positionsAttribute = mesh.geometry.getAttribute('positions');
+                const scalesAttribute = mesh.geometry.getAttribute('scales');
+                const startTimeAttribute = mesh.geometry.getAttribute('startTime');
+                const colorAttribute = mesh.geometry.getAttribute('color');
+                for (let i = 0; i < Math.floor(currentSpeed * 10 + 1) * 5; i++){
+                    bubblePos.set(positionsAttribute.getX(i), positionsAttribute.getY(i), positionsAttribute.getZ(i));
+                    if(scalesAttribute.getX(i) > 1.5 || startTimeAttribute.getX(i) > 100 ){
+                        headPos.setFromMatrixPosition(localPlayer.avatar.modelBoneOutputs.Head.matrixWorld);
+                        positionsAttribute.setXYZ(i, headPos.x + (Math.random() - 0.5) * 0.2, headPos.y + (Math.random() - 0.5) * 0.2, headPos.z + (Math.random() - 0.5) * 0.2);
+                        info.velocity[i].x = 0;
+                        info.velocity[i].y = 0.005 + Math.random() * 0.005;
+                        info.velocity[i].z = 0;
+
+                        info.offset[i] = Math.floor(Math.random() * 29);
+                        startTimeAttribute.setX(i, 0);
+                        scalesAttribute.setX(i, Math.random());
+                    }
+                    
+                }
+                for (let i = 0; i < particleCount; i++){
+                    
+                    positionsAttribute.setXYZ(  i, 
+                                                positionsAttribute.getX(i)+info.velocity[i].x,
+                                                positionsAttribute.getY(i)+info.velocity[i].y,
+                                                positionsAttribute.getZ(i)+info.velocity[i].z
+                    );
+                    
+                    startTimeAttribute.setX(i, startTimeAttribute.getX(i) + 1);
+                    if(startTimeAttribute.getX(i) % 2 === 0)
+                        info.offset[i] += 1;
+                    if(info.offset[i] >= 30){
+                        info.offset[i] = 0;
+                    }
+                    offsetAttribute.setXY(i, (5 / 6) - Math.floor(info.offset[i] / 6) * (1. / 6.), Math.floor(info.offset[i] % 5) * 0.2);
+                    scalesAttribute.setX(i, scalesAttribute.getX(i) + 0.01);
+                    if(positionsAttribute.getY(i) > waterSurfacePos.y - 0.05 || !localPlayer.hasAction('swim') || startTimeAttribute.getX(i) > 100){
+                        scalesAttribute.setX(i, 0);
+                    }
+                }
+                
+                
+
+                
+                
+                mesh.instanceMatrix.needsUpdate = true;
+                positionsAttribute.needsUpdate = true;
+                opacityAttribute.needsUpdate = true;
+                scalesAttribute.needsUpdate = true;
+                startTimeAttribute.needsUpdate = true;
+                offsetAttribute.needsUpdate = true;
+                colorAttribute.needsUpdate = true;
+                
+                
+                mesh.material.uniforms.uTime.value=timestamp/1000;
+                mesh.material.uniforms.cameraBillboardQuaternion.value.copy(camera.quaternion);
+                
+                
+
             }
             app.updateMatrixWorld();
         
