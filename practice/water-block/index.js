@@ -13,6 +13,9 @@ export default () => {
     const renderSettings = useRenderSettings();
     const textureLoader = new THREE.TextureLoader();
     const bubbleTexture1 = textureLoader.load(`${baseUrl}/textures/Bubble3.png`);
+    const noiseCircleTexture = textureLoader.load(`${baseUrl}/textures/noiseCircle.png`);
+
+
     const waterNormalTexture1 = textureLoader.load(`${baseUrl}/textures/waterNormal2.png`);
     waterNormalTexture1.wrapS = waterNormalTexture1.wrapT = THREE.RepeatWrapping;
     const waterNormalTexture2 = textureLoader.load(`${baseUrl}/textures/waterNormal3.png`);
@@ -35,7 +38,8 @@ export default () => {
     let floatOnWater = false;
     let cameraDir = new THREE.Vector3();
     let playerDir = new THREE.Vector3();
-    
+    const playerHeadPos = new THREE.Vector3();
+    let currentSpeed = 0;
     //############################################################# trace camera direction ########################################################################
     {
         const localVector = new THREE.Vector3();
@@ -48,6 +52,11 @@ export default () => {
             localVector2.set(0, 0, -1);
             playerDir = localVector2.applyQuaternion( localPlayer.quaternion );
             playerDir.normalize();
+            if(localPlayer.avatar){
+                currentSpeed = localVector.set(localPlayer.avatar.velocity.x, 0, localPlayer.avatar.velocity.z).length();
+                playerHeadPos.setFromMatrixPosition(localPlayer.avatar.modelBoneOutputs.Head.matrixWorld);
+            }
+                
             
         });
     }
@@ -281,7 +290,7 @@ export default () => {
             `,
             side: THREE.DoubleSide,
             transparent: true,
-            //depthWrite: false,
+            depthWrite: false,
             //blending: THREE.AdditiveBlending,
 
         
@@ -291,22 +300,7 @@ export default () => {
         water.rotation.x = -Math.PI / 2;
         water.position.y = 3;
 
-        const collisionPointGeometry = new THREE.SphereGeometry( 0.1, 32, 16 );
-        const collisionPointMaterial = new THREE.MeshBasicMaterial( { color: 0xffff00 } );
-        const collisionPoint = new THREE.Mesh( collisionPointGeometry, collisionPointMaterial );
-        app.add( collisionPoint );
-        
-        
         useFrame(({timestamp}) => {
-            if(localPlayer.avatar){
-                if(contactWater){
-                    collisionPoint.position.copy(waterSurfacePos);
-                }
-                else if(!contactWater){
-                    collisionPoint.position.y = -5000;
-                }
-                
-            }
             waterMaterial.uniforms.uTime.value = timestamp / 1000;
             waterMaterial.uniforms.playerPosition.value.copy(localPlayer.position);
             waterMaterial.uniforms.playerDirection.value.copy(playerDir);
@@ -315,7 +309,7 @@ export default () => {
         });
       
     }
-     
+     //#################################################################### underwater mask ###################################################################
     {
         
         // const color = 0xFF0000;
@@ -573,11 +567,13 @@ export default () => {
         addInstancedMesh();
             
         const bubblePos = new THREE.Vector3();
-        const headPos = new THREE.Vector3();
+        
         const localVector = new THREE.Vector3();
+        let maxEmmit = 5;
+        let lastEmmitTime = 0;
         useFrame(({timestamp}) => {
             if (mesh && localPlayer.avatar) {
-                const currentSpeed = localVector.set(localPlayer.avatar.velocity.x, 0, localPlayer.avatar.velocity.z).length();
+                let currentEmmit = 0;
                 //console.log(Math.floor(currentSpeed * 10 + 1))
                 const opacityAttribute = mesh.geometry.getAttribute('opacity');
                 const offsetAttribute = mesh.geometry.getAttribute('offset');
@@ -585,30 +581,53 @@ export default () => {
                 const scalesAttribute = mesh.geometry.getAttribute('scales');
                 const startTimeAttribute = mesh.geometry.getAttribute('startTime');
                 const colorAttribute = mesh.geometry.getAttribute('color');
-                for (let i = 0; i < Math.floor(currentSpeed * 10 + 1) * 5; i++){
-                    bubblePos.set(positionsAttribute.getX(i), positionsAttribute.getY(i), positionsAttribute.getZ(i));
-                    if(scalesAttribute.getX(i) > 1.5 || startTimeAttribute.getX(i) > 100 ){
-                        headPos.setFromMatrixPosition(localPlayer.avatar.modelBoneOutputs.Head.matrixWorld);
-                        if(currentSpeed > 0.1){
-                            headPos.x -= playerDir.x * localPlayer.avatar.height * 0.5;
-                            headPos.z -= playerDir.z * localPlayer.avatar.height * 0.5;
+                if(timestamp - lastEmmitTime > 100){
+                    for (let i = 0; i < Math.floor(currentSpeed * 10 + 1) * 5; i++){
+                        bubblePos.set(positionsAttribute.getX(i), positionsAttribute.getY(i), positionsAttribute.getZ(i));
+                        if(scalesAttribute.getX(i) > 1.5 || startTimeAttribute.getX(i) > 100 ){
+                            
+                            if(currentSpeed > 0.1){
+                                playerHeadPos.x += (Math.random() - 0.5) * 0.5;
+                                playerHeadPos.y + (Math.random() - 0.5) * 0.2;
+                                playerHeadPos.z += (Math.random() - 0.5) * 0.5;
+                                info.velocity[i].x = -playerDir.x * 0.01;
+                                info.velocity[i].y = 0.0025 + Math.random() * 0.0025;
+                                info.velocity[i].z = -playerDir.z * 0.01;
+                            }
+                            else{
+                                playerHeadPos.x += -playerDir.x * 0.25;
+                                playerHeadPos.z += -playerDir.z * 0.25;
+                                playerHeadPos.x += (Math.random() - 0.5) * 0.5;
+                                playerHeadPos.z += (Math.random() - 0.5) * 0.5;
+                                playerHeadPos.y -= localPlayer.avatar.height * 0.6;
+                                playerHeadPos.y += (Math.random()) * 0.2
+                                info.velocity[i].x = 0;
+                                info.velocity[i].y = 0.0025 + Math.random() * 0.0025;
+                                info.velocity[i].z = 0;
+                                
+                            }
+                            positionsAttribute.setXYZ(i, playerHeadPos.x , playerHeadPos.y, playerHeadPos.z);
+                            
+                            
+                            
+    
+                            info.offset[i] = Math.floor(Math.random() * 29);
+                            startTimeAttribute.setX(i, 0);
+                            scalesAttribute.setX(i, Math.random());
+                            currentEmmit++;
                         }
-                        else{
-                            headPos.y -= localPlayer.avatar.height * 0.2;
+                        if(currentEmmit > maxEmmit){
+                            lastEmmitTime = timestamp;
+                            break;
                         }
-                        positionsAttribute.setXYZ(i, headPos.x + (Math.random() - 0.5) * 0.2, headPos.y + (Math.random() - 0.5) * 0.2, headPos.z + (Math.random() - 0.5) * 0.2);
-                        info.velocity[i].x = -playerDir.x * 0.01 * currentSpeed;
-                        info.velocity[i].y = 0.005 + Math.random() * 0.005;
-                        info.velocity[i].z = -playerDir.z * 0.01 * currentSpeed;
-
-                        info.offset[i] = Math.floor(Math.random() * 29);
-                        startTimeAttribute.setX(i, 0);
-                        scalesAttribute.setX(i, Math.random());
+                        
                     }
-                    
                 }
+                
                 for (let i = 0; i < particleCount; i++){
-                    
+                    if(positionsAttribute.getY(i) >= waterSurfacePos.y - 0.01){
+                        info.velocity[i].y = 0;
+                    }
                     positionsAttribute.setXYZ(  i, 
                                                 positionsAttribute.getX(i)+info.velocity[i].x,
                                                 positionsAttribute.getY(i)+info.velocity[i].y,
@@ -622,8 +641,9 @@ export default () => {
                         info.offset[i] = 0;
                     }
                     offsetAttribute.setXY(i, (5 / 6) - Math.floor(info.offset[i] / 6) * (1. / 6.), Math.floor(info.offset[i] % 5) * 0.2);
-                    scalesAttribute.setX(i, scalesAttribute.getX(i) + 0.01);
-                    if(positionsAttribute.getY(i) > waterSurfacePos.y - 0.05 || !localPlayer.hasAction('swim') || startTimeAttribute.getX(i) > 100){
+                    if(scalesAttribute.getX(i) > 0)
+                        scalesAttribute.setX(i, scalesAttribute.getX(i) + 0.01);
+                    if(startTimeAttribute.getX(i) > 150 || positionsAttribute.getY(i) > waterSurfacePos.y){
                         scalesAttribute.setX(i, 0);
                     }
                 }
@@ -641,6 +661,247 @@ export default () => {
                 colorAttribute.needsUpdate = true;
                 
                 
+                mesh.material.uniforms.uTime.value=timestamp/1000;
+                mesh.material.uniforms.cameraBillboardQuaternion.value.copy(camera.quaternion);
+                
+                
+
+            }
+            app.updateMatrixWorld();
+        
+        });
+    }
+
+    //################################################################ half circle follow player ###########################################################
+    {
+        const particleCount = 40;
+        const group=new THREE.Group();
+        let info = {
+            velocity: [particleCount],
+            offset: [particleCount],
+        }
+        const identityQuaternion = new THREE.Quaternion();
+        const _getGeometry = geometry => {
+            //console.log(geometry)
+            const geometry2 = new THREE.BufferGeometry();
+            ['position', 'normal', 'uv'].forEach(k => {
+            geometry2.setAttribute(k, geometry.attributes[k]);
+            });
+            geometry2.setIndex(geometry.index);
+            
+            const positions = new Float32Array(particleCount * 3);
+            const positionsAttribute = new THREE.InstancedBufferAttribute(positions, 3);
+            geometry2.setAttribute('positions', positionsAttribute);
+
+            const color = new Float32Array(particleCount * 3);
+            const colorAttribute = new THREE.InstancedBufferAttribute(color, 3);
+            geometry2.setAttribute('color', colorAttribute);
+            const quaternions = new Float32Array(particleCount * 4);
+            for (let i = 0; i < particleCount; i++) {
+              identityQuaternion.toArray(quaternions, i * 4);
+            }
+            const quaternionsAttribute = new THREE.InstancedBufferAttribute(quaternions, 4);
+            geometry2.setAttribute('quaternions', quaternionsAttribute);
+
+            const scales = new Float32Array(particleCount);
+            const scalesAttribute = new THREE.InstancedBufferAttribute(scales, 1);
+            geometry2.setAttribute('scales', scalesAttribute);
+
+            const opacityAttribute = new THREE.InstancedBufferAttribute(new Float32Array(particleCount), 1);
+            opacityAttribute.setUsage(THREE.DynamicDrawUsage);
+            geometry2.setAttribute('opacity', opacityAttribute);
+
+            const startTimeAttribute = new THREE.InstancedBufferAttribute(new Float32Array(particleCount), 1);
+            startTimeAttribute.setUsage(THREE.DynamicDrawUsage);
+            geometry2.setAttribute('startTime', startTimeAttribute);
+        
+            
+            const offset = new Float32Array(particleCount * 2);
+            const offsetAttribute = new THREE.InstancedBufferAttribute(offset, 2);
+            geometry2.setAttribute('offset', offsetAttribute);
+
+            const playerRotation = new Float32Array(particleCount);
+            const playerRotAttribute = new THREE.InstancedBufferAttribute(playerRotation, 1);
+            geometry2.setAttribute('playerRotation', playerRotAttribute);
+
+            const textureRotation = new Float32Array(particleCount);
+            const textureRotAttribute = new THREE.InstancedBufferAttribute(textureRotation, 1);
+            geometry2.setAttribute('textureRotation', textureRotAttribute);
+            
+
+            return geometry2;
+        };
+
+        const material= new THREE.ShaderMaterial({
+            uniforms: {
+                uTime: {
+                    value: 0,
+                },
+                cameraBillboardQuaternion: {
+                    value: new THREE.Quaternion(),
+                },
+                noiseCircleTexture: {
+                    value: noiseCircleTexture,
+                },
+            },
+            vertexShader: `\
+                
+                ${THREE.ShaderChunk.common}
+                ${THREE.ShaderChunk.logdepthbuf_pars_vertex}
+            
+                
+                uniform float uTime;
+                uniform vec4 cameraBillboardQuaternion;
+                
+                
+                varying vec2 vUv;
+                varying vec3 vPos;
+                varying vec3 vColor;
+                varying float vOpacity;
+                varying vec2 vOffset;
+                varying float vTextureRotation;
+                
+
+                attribute vec3 positions;
+                attribute vec4 quaternions;
+                attribute vec3 color;
+                attribute float scales;
+                attribute float opacity;
+                attribute vec2 offset;
+                attribute float playerRotation;
+                attribute float textureRotation;
+                
+                
+
+                vec3 rotateVecQuat(vec3 position, vec4 q) {
+                    vec3 v = position.xyz;
+                    return v + 2.0 * cross(q.xyz, cross(q.xyz, v) + q.w * v);
+                }
+                void main() {
+                    mat3 rotY = mat3(cos(playerRotation), 0.0, -sin(playerRotation), 0.0, 1.0, 0.0, sin(playerRotation), 0.0, cos(playerRotation));
+                    vUv = uv;
+                    vPos = position;
+                    vTextureRotation = textureRotation;
+                    // vOpacity = opacity;
+                    // vColor = color;
+                    vOffset = offset;
+                    vec3 pos = position;
+                    pos = rotateVecQuat(pos, quaternions);
+                    pos*= -rotY;
+                    pos*=scales;
+                    pos+=positions;
+                    //pos = qtransform(pos, quaternions);
+                    //pos.y=cos(uTime/100.);
+                    vec4 modelPosition = modelMatrix * vec4(pos, 1.0);
+                    vec4 viewPosition = viewMatrix * modelPosition;
+                    vec4 projectionPosition = projectionMatrix * viewPosition;
+            
+                    gl_Position = projectionPosition;
+                    ${THREE.ShaderChunk.logdepthbuf_vertex}
+                }
+            `,
+            fragmentShader: `\
+                ${THREE.ShaderChunk.logdepthbuf_pars_fragment}
+                uniform float uTime;
+                uniform sampler2D noiseCircleTexture;
+                varying vec2 vUv;
+                varying vec3 vPos;
+                varying vec3 vColor;
+                varying float vOpacity;
+                varying vec2 vOffset;
+                varying float vTextureRotation;
+
+                #define PI 3.1415926
+
+                void main() {
+                    float mid = 0.5;
+                    vec2 rotated = vec2(cos(vTextureRotation*PI) * (vUv.x - mid) - sin(vTextureRotation*PI) * (vUv.y - mid) + mid,
+                                cos(vTextureRotation*PI) * (vUv.y - mid) + sin(vTextureRotation*PI) * (vUv.x - mid) + mid);
+                    vec4 circle = texture2D(
+                                    noiseCircleTexture,
+                                    rotated
+                    );
+
+                    gl_FragColor = circle;
+                    if(vUv.y<0.35){
+                        gl_FragColor.a=0.;
+                    }
+                ${THREE.ShaderChunk.logdepthbuf_fragment}
+                }
+            `,
+            side: THREE.DoubleSide,
+            transparent: true,
+            blending: THREE.AdditiveBlending,
+            depthWrite: false,
+            //blending: 1,
+
+        });
+        let mesh = null;
+        let quaternion = new THREE.Quaternion();
+        function addInstancedMesh() {
+            const geometry2 = new THREE.PlaneGeometry( .5, .6 );
+            const geometry = _getGeometry(geometry2);
+            mesh = new THREE.InstancedMesh(geometry, material, particleCount);
+            
+            const quaternionsAttribute = mesh.geometry.getAttribute('quaternions');
+            for (let i = 0; i < particleCount; i++) {
+                quaternion.setFromAxisAngle(new THREE.Vector3(1,0,0),-Math.PI/2);
+                quaternionsAttribute.setXYZW(i,quaternion.x,quaternion.y,quaternion.z,quaternion.w);
+            }
+            quaternionsAttribute.needsUpdate = true;
+            
+            //app.add(mesh);
+        }
+        addInstancedMesh();
+            
+        const localVector = new THREE.Vector3();
+        let lastEmmitTime = 0;
+        useFrame(({timestamp}) => {
+            if (mesh && localPlayer.avatar) {
+                const currentSpeed = localVector.set(localPlayer.avatar.velocity.x, 0, localPlayer.avatar.velocity.z).length();
+                const opacityAttribute = mesh.geometry.getAttribute('opacity');
+                const offsetAttribute = mesh.geometry.getAttribute('offset');
+                const positionsAttribute = mesh.geometry.getAttribute('positions');
+                const scalesAttribute = mesh.geometry.getAttribute('scales');
+                const startTimeAttribute = mesh.geometry.getAttribute('startTime');
+                const colorAttribute = mesh.geometry.getAttribute('color');
+                const playerRotationAttribute = mesh.geometry.getAttribute('playerRotation');
+                const textureRotationAttribute = mesh.geometry.getAttribute('textureRotation');
+                if(currentSpeed > 0.1 && timestamp - lastEmmitTime > 100){
+                    for (let i = 0; i < particleCount; i++){
+                        if(scalesAttribute.getX(i) <= 0){
+                            if(localPlayer.rotation.x!==0){
+                                playerRotationAttribute.setX(i, Math.PI + localPlayer.rotation.y);
+                            }
+                            else{
+                                playerRotationAttribute.setX(i, -localPlayer.rotation.y);
+                            }
+                            textureRotationAttribute.setX(i, Math.random() * 2);
+                            positionsAttribute.setXYZ(i, localPlayer.position.x + playerDir.x * 0.2, waterSurfacePos.y + 0.001, localPlayer.position.z + playerDir.z * 0.2);
+                            scalesAttribute.setX(i, 0.1);
+                            lastEmmitTime = timestamp;
+                            break;
+                        }
+                        
+                    }
+                }
+                for (let i = 0; i < particleCount; i++){
+                    
+                    if(scalesAttribute.getX(i) >= 0.1)
+                        scalesAttribute.setX(i, scalesAttribute.getX(i) + 0.03);
+                    if(scalesAttribute.getX(i) > 1.5){
+                        scalesAttribute.setX(i, 0);
+                    }
+                }
+                mesh.instanceMatrix.needsUpdate = true;
+                positionsAttribute.needsUpdate = true;
+                opacityAttribute.needsUpdate = true;
+                scalesAttribute.needsUpdate = true;
+                startTimeAttribute.needsUpdate = true;
+                offsetAttribute.needsUpdate = true;
+                colorAttribute.needsUpdate = true;
+                playerRotationAttribute.needsUpdate = true;
+                textureRotationAttribute.needsUpdate = true;
                 mesh.material.uniforms.uTime.value=timestamp/1000;
                 mesh.material.uniforms.cameraBillboardQuaternion.value.copy(camera.quaternion);
                 
