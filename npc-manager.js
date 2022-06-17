@@ -138,7 +138,6 @@ class NpcManager extends EventTarget {
         app.addEventListener('hittrackeradded', hittrackeradd);
 
         const activate = () => {
-          // debugger
           if (targetSpec?.object !== localPlayer) {
             targetSpec = {
               type: 'follow',
@@ -158,7 +157,6 @@ class NpcManager extends EventTarget {
           if (npcPlayer && physicsManager.getPhysicsEnabled()) {
             const {timestamp, timeDiff} = e.data;
 
-            // console.log(!!targetSpec);
             npcPlayer.activated = !!targetSpec;
 
             if (targetSpec) {
