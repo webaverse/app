@@ -1,9 +1,8 @@
 // import * as THREE from 'three';
 import {makeId} from './util.js';
-import {defaultChunkSize} from './constants.js';
+import {defaultChunkSize,defaultWorldSeed} from './constants.js';
 // import metaversefile from 'metaversefile';
 // import { terrainVertex, terrainFragment } from './shaders/terrainShader.js';
-// import physics from './physics-manager.js';
 import {GeometryAllocator} from './instancing.js';
 
 // const localVector = new THREE.Vector3();
@@ -13,11 +12,12 @@ const numWorkers = 4;
 class DcWorkerManager {
   constructor({
     chunkSize = defaultChunkSize,
-    // seed = defaultWorldSeed,
-    seed = Math.floor(Math.random() * 0xFFFFFF),
+    seed = defaultWorldSeed,
+    // seed = Math.floor(Math.random() * 0xFFFFFF),
   } = {}) {
     this.chunkSize = chunkSize;
     this.seed = seed;
+    // console.log(seed);
 
     this.workers = [];
     this.nextWorker = 0;
