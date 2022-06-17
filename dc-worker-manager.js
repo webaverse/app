@@ -132,6 +132,14 @@ class DcWorkerManager {
     });
     return result;
   }
+  async generateChunkRenderable(chunkPosition, lodArray) {
+    const worker = this.getNextWorker();
+    const result = await worker.request('generateChunkRenderable', {
+      chunkPosition: chunkPosition.toArray(),
+      lodArray,
+    });
+    return result;
+  }
   async getHeightfieldRange(x, z, w, h, lod) {
     const worker = this.getNextWorker();
     const result = await worker.request('getHeightfieldRange', {

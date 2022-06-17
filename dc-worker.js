@@ -123,6 +123,30 @@ const _handleMethod = ({
         return null;
       }
     }
+    case 'generateChunkRenderable': {
+      const {chunkPosition, lodArray} = args;
+      localVector.fromArray(chunkPosition)
+        .multiplyScalar(chunkWorldSize);
+      const meshData = dc.createChunkMeshDualContouring(localVector.x, localVector.y, localVector.z, lodArray);
+      const meshData2 = _cloneMeshData(meshData);
+      meshData && dc.free(meshData.bufferAddress);
+
+      if (meshData2) {
+        const lod = lodArray[0];
+        meshData2.skylights = dc.getChunkSkylight(localVector.x, localVector.y, localVector.z, lod);
+        meshData2.aos = dc.getChunkAo(localVector.x, localVector.y, localVector.z, lod);
+
+        // console.log('got aos skylights', meshData.aos, meshData.skylights);
+
+        const spec = {
+          result: meshData2,
+          transfers: [meshData2.arrayBuffer, meshData2.skylights.buffer, meshData2.aos.buffer],
+        };
+        return spec;
+      } else {
+        return null;
+      }
+    }
     case 'getHeightfieldRange': {
       const {x, z, w, h, lod} = args;
       const heights = dc.getHeightfieldRange(x, z, w, h, lod);
