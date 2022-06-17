@@ -240,6 +240,43 @@ w.getHeightfieldRange = (x, z, w, h, lod) => {
     allocator.freeAll();
   }
 };
+w.getChunkSkylight = (x, y, z, lod) => {
+  const allocator = new Allocator(Module);
+
+  // const gridPoints = chunkSize + 3 + lod;
+  const skylights = allocator.alloc(Uint8Array, chunkSize * chunkSize * chunkSize);
+
+  try {
+    Module._getChunkSkylight(
+      x,
+      y,
+      z,
+      lod,
+      skylights.byteOffset
+    );
+    return skylights.slice();
+  } finally {
+    allocator.freeAll();
+  }
+};
+w.getChunkAo = (x, y, z, lod) => {
+  const allocator = new Allocator(Module);
+
+  const aos = allocator.alloc(Uint8Array, chunkSize * chunkSize * chunkSize);
+
+  try {
+    Module._getChunkAo(
+      x,
+      y,
+      z,
+      lod,
+      aos.byteOffset
+    );
+    return aos.slice();
+  } finally {
+    allocator.freeAll();
+  }
+};
 w.getSkylightFieldRange = (x, y, z, w, h, d, lod) => {
   const allocator = new Allocator(Module);
 
