@@ -42,7 +42,7 @@ class CharacterPhysics {
 
     this.velocity = new THREE.Vector3();
     this.lastGrounded = null;
-    this.lastcharacterControllerY = null;
+    this.lastCharacterControllerY = null;
     this.sitOffset = new THREE.Vector3();
    
     this.lastPistolUse = false;
@@ -90,7 +90,7 @@ class CharacterPhysics {
         const jumpTime = this.player.actionInterpolants.jump.get();
         // console.log(jumpTime);
         // localVector3.y = jumpTime < 333 ? window.jumpStepValue : -window.jumpStepValue;
-        localVector3.y = Math.sin(jumpTime * (Math.PI / flatGroundJumpAirTime)) * jumpHeight + jumpAction.startPositionY - this.lastcharacterControllerY;
+        localVector3.y = Math.sin(jumpTime * (Math.PI / flatGroundJumpAirTime)) * jumpHeight + jumpAction.startPositionY - this.lastCharacterControllerY;
         // localVector3.y += this.player.avatar.height * 0.5;
         // console.log(localVector3.y);
         // console.log(jumpAction.startPositionY);
@@ -234,7 +234,7 @@ class CharacterPhysics {
       } */
 
       this.lastGrounded = grounded;
-      this.lastcharacterControllerY = this.player.characterController.position.y;
+      this.lastCharacterControllerY = this.player.characterController.position.y;
     }
   }
   /* dampen the velocity to make physical sense for the current avatar state */
