@@ -382,6 +382,8 @@ export const loadPromise = (async () => {
     grab_left: {animation: animations.index['grab_left.fbx'], speedFactor: 1.2},
     grab_right: {animation: animations.index['grab_right.fbx'], speedFactor: 1.2},
     pick_up: {animation: animations.index['pick_up.fbx'], speedFactor: 1},
+    come_with: {animation: animations.index['come_with.fbx'], speedFactor: 1},
+    hello: {animation: animations.index['hello.fbx'], speedFactor: 1},
   };
   window.activateAnimations = activateAnimations;
   narutoRunAnimations = {

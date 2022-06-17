@@ -113,8 +113,11 @@ const _getCurrentGrabAnimation = () => {
   const localPlayer = getLocalPlayer();
 
   const wearComponent = grabUseMesh.targetApp.getComponent('wear');
+  // debugger
   if (wearComponent && wearComponent.grabAnimation === 'pick_up') {
     currentAnimation = wearComponent.grabAnimation;
+  } else if (grabUseMesh.targetApp.appType === 'npc') {
+    currentAnimation = Math.random() < 0.5 ? 'come_with' : 'hello';
   } else {
     const grabUseMeshPosition = grabUseMesh.position;
     let currentDistance = 100;
@@ -518,6 +521,7 @@ const _gameUpdate = (timestamp, timeDiff) => {
         // console.log('got collision', physicsId, object);
         const physicsObject = metaversefileApi.getPhysicsObjectByPhysicsId(physicsId);
         if (object && !_isWear(object) && physicsObject) {
+          // debugger
           grabUseMesh.position.setFromMatrixPosition(physicsObject.physicsMesh.matrixWorld);
           grabUseMesh.quaternion.copy(camera.quaternion);
           grabUseMesh.updateMatrixWorld();
@@ -526,6 +530,8 @@ const _gameUpdate = (timestamp, timeDiff) => {
           grabUseMesh.setComponent('value', localPlayer.actionInterpolants.activate.getNormalized());
           
           grabUseMesh.visible = true;
+
+          // if (object.appType === 'npc')
         }
       }
     }
