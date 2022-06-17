@@ -133,13 +133,23 @@ const _handleMethod = ({
       };
       return spec;
     }
+    case 'getSkylightFieldRange': {
+      const {x, y, z, w, h, d, lod} = args;
+      const skylights = dc.getSkylightFieldRange(x, y, z, w, h, d, lod);
+
+      const spec = {
+        result: skylights,
+        transfers: [skylights.buffer],
+      };
+      return spec;
+    }
     case 'getAoFieldRange': {
-      const {x, z, w, h, lod} = args;
-      const aos = dc.getAoFieldRange(x, z, w, h, lod);
+      const {x, y, z, w, h, d, lod} = args;
+      const aos = dc.getAoFieldRange(x, y, z, w, h, d, lod);
 
       const spec = {
         result: aos,
-        transfers: [heights.buffer],
+        transfers: [aos.buffer],
       };
       return spec;
     }
