@@ -132,6 +132,14 @@ class DcWorkerManager {
     });
     return result;
   }
+  async generateChunkRenderable(chunkPosition, lodArray) {
+    const worker = this.getNextWorker();
+    const result = await worker.request('generateChunkRenderable', {
+      chunkPosition: chunkPosition.toArray(),
+      lodArray,
+    });
+    return result;
+  }
   async getHeightfieldRange(x, z, w, h, lod) {
     const worker = this.getNextWorker();
     const result = await worker.request('getHeightfieldRange', {
@@ -139,6 +147,19 @@ class DcWorkerManager {
       z,
       w,
       h,
+      lod
+    });
+    return result;
+  }
+  async getSkylightFieldRange(x, y, z, w, h, d, lod) {
+    const worker = this.getNextWorker();
+    const result = await worker.request('getSkylightFieldRange', {
+      x,
+      y,
+      z,
+      w,
+      h,
+      d,
       lod
     });
     return result;

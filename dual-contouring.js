@@ -43,7 +43,8 @@ const cubeDamage = damageFn => (
     const positionsTypedArray = allocator.alloc(Float32Array, numPositions * 3);
     const numPositionsTypedArray = allocator.alloc(Uint32Array, 1);
     numPositionsTypedArray[0] = numPositions;
-    const gridPoints = chunkSize + 3;
+    const lod = 1;
+    const gridPoints = chunkSize + 3 + lod;
     const damageBufferSize = gridPoints * gridPoints * gridPoints;
     const damageBuffersTypedArray = allocator.alloc(Float32Array, numPositions * gridPoints * gridPoints * gridPoints);
 
@@ -93,7 +94,8 @@ const sphereDamage = damageFn => (
     const positionsTypedArray = allocator.alloc(Float32Array, numPositions * 3);
     const numPositionsTypedArray = allocator.alloc(Uint32Array, 1);
     numPositionsTypedArray[0] = numPositions;
-    const gridPoints = chunkSize + 3;
+    const lod = 1;
+    const gridPoints = chunkSize + 3 + lod;
     const damageBufferSize = gridPoints * gridPoints * gridPoints;
     const damageBuffersTypedArray = allocator.alloc(Float32Array, numPositions * gridPoints * gridPoints * gridPoints);
 
@@ -109,8 +111,8 @@ const sphereDamage = damageFn => (
       numPositions = numPositionsTypedArray[0];
       const chunks = Array(numPositions);
       for (let i = 0; i < numPositions; i++) {
-        const position = positionsTypedArray.slice(i * 3, i * 3 + 3);
-        const damageBuffer = damageBuffersTypedArray.slice(i * damageBufferSize, i * damageBufferSize + damageBufferSize);
+        const position = positionsTypedArray.slice(i * 3, (i + 1) * 3);
+        const damageBuffer = damageBuffersTypedArray.slice(i * damageBufferSize, (i + 1) * damageBufferSize);
         chunks[i] = {
           position,
           damageBuffer,
@@ -234,6 +236,64 @@ w.getHeightfieldRange = (x, z, w, h, lod) => {
       heights.byteOffset
     );
     return heights.slice();
+  } finally {
+    allocator.freeAll();
+  }
+};
+w.getChunkSkylight = (x, y, z, lod) => {
+  const allocator = new Allocator(Module);
+
+  // const gridPoints = chunkSize + 3 + lod;
+  const skylights = allocator.alloc(Uint8Array, chunkSize * chunkSize * chunkSize);
+
+  try {
+    Module._getChunkSkylight(
+      x,
+      y,
+      z,
+      lod,
+      skylights.byteOffset
+    );
+    return skylights.slice();
+  } finally {
+    allocator.freeAll();
+  }
+};
+w.getChunkAo = (x, y, z, lod) => {
+  const allocator = new Allocator(Module);
+
+  const aos = allocator.alloc(Uint8Array, chunkSize * chunkSize * chunkSize);
+
+  try {
+    Module._getChunkAo(
+      x,
+      y,
+      z,
+      lod,
+      aos.byteOffset
+    );
+    return aos.slice();
+  } finally {
+    allocator.freeAll();
+  }
+};
+w.getSkylightFieldRange = (x, y, z, w, h, d, lod) => {
+  const allocator = new Allocator(Module);
+
+  const skylights = allocator.alloc(Uint8Array, w * h * d);
+
+  try {
+    Module._getSkylightFieldRange(
+      x,
+      y,
+      z,
+      w,
+      h,
+      d,
+      lod,
+      skylights.byteOffset
+    );
+    return skylights.slice();
   } finally {
     allocator.freeAll();
   }
