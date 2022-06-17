@@ -119,7 +119,8 @@ const _getCurrentGrabAnimation = () => {
   } else if (grabUseMesh.targetApp.appType === 'npc') {
     // console.log('npc activated', grabUseMesh.targetApp.npcPlayer.activated);
     if (grabUseMesh.targetApp.npcPlayer.activated) {
-      currentAnimation = 'hello'; // used as bye
+      // currentAnimation = 'hello'; // used as bye
+      currentAnimation = '$none'; // special animation name
     } else {
       currentAnimation = 'come_with';
     }
