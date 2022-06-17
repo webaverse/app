@@ -660,7 +660,9 @@ export const _createAnimation = avatar => {
   // avatar.animTree = avatar.overwriteNode;
   //
 
-  const handleAnimationEnd = event => {
+  const handleAnimationEnd = (motion, trigger) => {
+    // console.log(motion.name, trigger);
+    // if (motion === avatar.jumpMotion) debugger
     if ([
       avatar.useMotiono.drink,
       avatar.useMotiono.combo,
@@ -668,7 +670,7 @@ export const _createAnimation = avatar => {
       avatar.useMotiono.swordSideSlashStep,
       avatar.useMotiono.swordTopDownSlash,
       avatar.useMotiono.swordTopDownSlashStep,
-    ].includes(event.motion)) {
+    ].includes(motion)) {
       // console.log('animationEnd', event.motion.name);
       game.handleAnimationEnd();
     }
@@ -676,7 +678,7 @@ export const _createAnimation = avatar => {
 
   avatar.mixer.addEventListener('finished', event => {
     // console.log('finished', event.motion.name, !!avatar.useEnvelopeState); // todo: why `bow draw.fbx` trigger `finished` event at app init.
-    handleAnimationEnd(event);
+    handleAnimationEnd(event.motion, 'finished');
     // if ([
     //   avatar.useMotiono.combo,
     //   avatar.useMotiono.swordSideSlash,
@@ -704,16 +706,16 @@ export const _createAnimation = avatar => {
   //   // handleAnimationEnd(event);
   // });
   // avatar.actionsNode.addEventListener('switch', event => { // handle situations such as sword attacks stopped by jump
-  //   // handleAnimationEnd(event);
-  //   if (![
-  //     avatar.useMotiono.combo,
-  //     avatar.useMotiono.swordSideSlash,
-  //     avatar.useMotiono.swordSideSlashStep,
-  //     avatar.useMotiono.swordTopDownSlash,
-  //     avatar.useMotiono.swordTopDownSlashStep,
-  //   ].includes(event.to)) {
-  //     game.handleAnimationEnd();
-  //   }
+  //   handleAnimationEnd(event.from, 'switch');
+  //   // if (![
+  //   //   avatar.useMotiono.combo,
+  //   //   avatar.useMotiono.swordSideSlash,
+  //   //   avatar.useMotiono.swordSideSlashStep,
+  //   //   avatar.useMotiono.swordTopDownSlash,
+  //   //   avatar.useMotiono.swordTopDownSlashStep,
+  //   // ].includes(event.to)) {
+  //   //   game.handleAnimationEnd();
+  //   // }
   // });
 };
 
@@ -800,7 +802,7 @@ export const _updateAnimation = avatar => {
     avatar.actionsNode.crossFadeTo(0.2, avatar.defaultNode);
   }
   if (avatar.useEnd) {
-    // console.log('useEnd');
+    console.log('useEnd');
     avatar.actionsNode.crossFadeTo(0.2, avatar.defaultNode);
   }
   if (avatar.useComboEnd) {
@@ -855,6 +857,7 @@ export const _updateAnimation = avatar => {
   // if (avatar.jumpStart) avatar.jumpNode.factor = 1;
 
   if (avatar.jumpStart) {
+    console.log('jumpStart');
     // debugger
     avatar.jumpMotion.play();
     avatar.actionsNode.crossFadeTo(0.2, avatar.jumpMotion);
