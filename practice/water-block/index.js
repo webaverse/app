@@ -12,7 +12,7 @@ export default () => {
     const {renderer, camera, scene, rootScene} = useInternals();
     const renderSettings = useRenderSettings();
     const textureLoader = new THREE.TextureLoader();
-    const bubbleTexture1 = textureLoader.load(`${baseUrl}/textures/Bubble1.png`);
+    const bubbleTexture1 = textureLoader.load(`${baseUrl}/textures/Bubble3.png`);
     const waterNormalTexture1 = textureLoader.load(`${baseUrl}/textures/waterNormal2.png`);
     waterNormalTexture1.wrapS = waterNormalTexture1.wrapT = THREE.RepeatWrapping;
     const waterNormalTexture2 = textureLoader.load(`${baseUrl}/textures/waterNormal3.png`);
@@ -23,7 +23,7 @@ export default () => {
     waterDerivativeHeightTexture.wrapS = waterDerivativeHeightTexture.wrapT = THREE.RepeatWrapping;
     const waterNormalTexture = textureLoader.load(`${baseUrl}/textures/water-normal.png`);
     waterNormalTexture.wrapS = waterNormalTexture.wrapT = THREE.RepeatWrapping;
-    const waterNoiseTexture = textureLoader.load(`${baseUrl}/textures/water.png`);
+    const waterNoiseTexture = textureLoader.load(`${baseUrl}/textures/perlin-noise.jpg`);
     waterNoiseTexture.wrapS = waterNoiseTexture.wrapT = THREE.RepeatWrapping;
     const flowmapTexture = textureLoader.load(`${baseUrl}/textures/flowmap.png`);
     flowmapTexture.wrapS = flowmapTexture.wrapT = THREE.RepeatWrapping;
@@ -46,7 +46,7 @@ export default () => {
             cameraDir.normalize();
 
             localVector2.set(0, 0, -1);
-            playerDir = localVector.applyQuaternion( localPlayer.quaternion );
+            playerDir = localVector2.applyQuaternion( localPlayer.quaternion );
             playerDir.normalize();
             
         });
@@ -149,7 +149,7 @@ export default () => {
                 },
                 uSpeed: {
                     type: "f",
-                    value: 0.8
+                    value: 0.5
                 },
                 uFlowStrength: {
                     type: "f",
@@ -240,16 +240,16 @@ export default () => {
                     return dh;
                 }
         
-                float shineDamper = 50.;
-                float reflectivity = 0.45;
+                float shineDamper = 150.;
+                float reflectivity = 0.12;
                 void main() {
                    
                     vec4 worldPosition = modelMatrix * vec4( vPos, 1.0 );
                     vec3 sunToPlayer = normalize(sunPosition - playerPosition); 
-                    vec3 worldToEye = vec3(playerPosition.x + sunToPlayer.x * 10., playerPosition.y, playerPosition.z + sunToPlayer.z * 10.)-worldPosition.xyz;
+                    vec3 worldToEye = vec3(playerPosition.x + sunToPlayer.x * 100., playerPosition.y, playerPosition.z + sunToPlayer.z * 100.)-worldPosition.xyz;
                     
                     vec3 eyeDirection = normalize( worldToEye );
-                    vec2 uv = worldPosition.xz * 0.05;
+                    vec2 uv = worldPosition.xz * 0.01;
 
                     vec2 flowmap = texture2D(flowmapTexture, uv / 5.).rg * 2. - 1.;
                     flowmap *= uFlowStrength;
@@ -259,8 +259,8 @@ export default () => {
                     vec3 uvwA = FlowUVW(uv, flowmap, jump, uFlowOffset, uTiling, time, false);
                     vec3 uvwB = FlowUVW(uv, flowmap, jump, uFlowOffset, uTiling, time, true);
 
-                    vec3 dhA = UnpackDerivativeHeight(texture2D(waterDerivativeHeightTexture, uvwA.xy)) * uvwA.z * 1.5;
-                    vec3 dhB = UnpackDerivativeHeight(texture2D(waterDerivativeHeightTexture, uvwB.xy)) * uvwB.z * 1.5;
+                    vec3 dhA = UnpackDerivativeHeight(texture2D(waterDerivativeHeightTexture, uvwA.xy * 0.5)) * uvwA.z * 1.5;
+                    vec3 dhB = UnpackDerivativeHeight(texture2D(waterDerivativeHeightTexture, uvwB.xy * 0.5)) * uvwB.z * 1.5;
                     vec3 surfaceNormal = normalize(vec3(-(dhA.xy + dhB.xy), 1.));
 
                     vec3 fromSunVector = worldPosition.xyz - (sunPosition + playerPosition);
@@ -274,7 +274,7 @@ export default () => {
 
                     
 
-                    gl_FragColor = (texA + texB + vec4(0., 0.7, 0.9, 0.)) * vec4(0., 0.3, 0.6, 0.8);
+                    gl_FragColor = (texA + texB) * vec4(0.1, 0.15, 0.2, 0.7);
                     gl_FragColor += vec4( specularHighlight, 0.0 );
                     ${THREE.ShaderChunk.logdepthbuf_fragment}
                 }
@@ -377,7 +377,7 @@ export default () => {
                 
 
                 void main() {
-                    gl_FragColor = vec4(0.0, 0.3, 0.6, 0.3);
+                    gl_FragColor = vec4(0.1, 0.15, 0.2, 0.3);
                     if(!contactWater || vPos.y > cameraWaterSurfacePos.y)
                         gl_FragColor.a = 0.;
                 ${THREE.ShaderChunk.logdepthbuf_fragment}
@@ -556,7 +556,7 @@ export default () => {
         });
         let mesh = null;
         function addInstancedMesh() {
-            const geometry2 = new THREE.PlaneGeometry( .025, .025 );
+            const geometry2 = new THREE.PlaneGeometry( .02, .02 );
             const geometry = _getGeometry(geometry2);
             mesh = new THREE.InstancedMesh(geometry, material, particleCount);
             const positionsAttribute = mesh.geometry.getAttribute('positions');
@@ -589,10 +589,17 @@ export default () => {
                     bubblePos.set(positionsAttribute.getX(i), positionsAttribute.getY(i), positionsAttribute.getZ(i));
                     if(scalesAttribute.getX(i) > 1.5 || startTimeAttribute.getX(i) > 100 ){
                         headPos.setFromMatrixPosition(localPlayer.avatar.modelBoneOutputs.Head.matrixWorld);
+                        if(currentSpeed > 0.1){
+                            headPos.x -= playerDir.x * localPlayer.avatar.height * 0.5;
+                            headPos.z -= playerDir.z * localPlayer.avatar.height * 0.5;
+                        }
+                        else{
+                            headPos.y -= localPlayer.avatar.height * 0.2;
+                        }
                         positionsAttribute.setXYZ(i, headPos.x + (Math.random() - 0.5) * 0.2, headPos.y + (Math.random() - 0.5) * 0.2, headPos.z + (Math.random() - 0.5) * 0.2);
-                        info.velocity[i].x = 0;
+                        info.velocity[i].x = -playerDir.x * 0.01 * currentSpeed;
                         info.velocity[i].y = 0.005 + Math.random() * 0.005;
-                        info.velocity[i].z = 0;
+                        info.velocity[i].z = -playerDir.z * 0.01 * currentSpeed;
 
                         info.offset[i] = Math.floor(Math.random() * 29);
                         startTimeAttribute.setX(i, 0);
