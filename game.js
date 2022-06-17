@@ -117,7 +117,12 @@ const _getCurrentGrabAnimation = () => {
   if (wearComponent && wearComponent.grabAnimation === 'pick_up') {
     currentAnimation = wearComponent.grabAnimation;
   } else if (grabUseMesh.targetApp.appType === 'npc') {
-    currentAnimation = Math.random() < 0.5 ? 'come_with' : 'hello';
+    // console.log('npc activated', grabUseMesh.targetApp.npcPlayer.activated);
+    if (grabUseMesh.targetApp.npcPlayer.activated) {
+      currentAnimation = 'hello'; // used as bye
+    } else {
+      currentAnimation = 'come_with';
+    }
   } else {
     const grabUseMeshPosition = grabUseMesh.position;
     let currentDistance = 100;

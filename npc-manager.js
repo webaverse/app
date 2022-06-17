@@ -138,6 +138,7 @@ class NpcManager extends EventTarget {
         app.addEventListener('hittrackeradded', hittrackeradd);
 
         const activate = () => {
+          // debugger
           if (targetSpec?.object !== localPlayer) {
             targetSpec = {
               type: 'follow',
@@ -156,7 +157,10 @@ class NpcManager extends EventTarget {
         const frame = e => {
           if (npcPlayer && physicsManager.getPhysicsEnabled()) {
             const {timestamp, timeDiff} = e.data;
-            
+
+            // console.log(!!targetSpec);
+            npcPlayer.activated = !!targetSpec;
+
             if (targetSpec) {
               const target = targetSpec.object;
               const v = localVector.setFromMatrixPosition(target.matrixWorld)

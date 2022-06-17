@@ -1013,6 +1013,8 @@ class LocalPlayer extends UninterpolatedPlayer {
     this.characterFx = new CharacterFx(this);
     this.characterHitter = new CharacterHitter(this);
     this.characterBehavior = new CharacterBehavior(this);
+
+    this.activated = false; // for npc player.
   }
   async setPlayerSpec(playerSpec) {
     const p = this.setAvatarUrl(playerSpec.avatarUrl);
