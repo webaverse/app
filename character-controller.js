@@ -503,6 +503,7 @@ const controlActionTypes = [
   'crouch',
   'fly',
   'sit',
+  'use',
 ];
 class StatePlayer extends PlayerBase {
   constructor({

@@ -1423,7 +1423,7 @@ class GameManager extends EventTarget {
     if (flyAction) {
       localPlayer.removeAction('fly');
       if (!localPlayer.characterPhysics.lastGrounded) {
-        localPlayer.addAction({type: 'jump'});
+        localPlayer.setControlAction({type: 'jump'});
       }
     } else {
       const flyAction = {
@@ -1515,7 +1515,7 @@ class GameManager extends EventTarget {
         trigger:trigger
         // time: 0,
       };
-      localPlayer.addAction(newJumpAction);
+      localPlayer.setControlAction(newJumpAction);
     }
   }
   jump(trigger) {

@@ -148,6 +148,7 @@ export function applyPlayerActionsToAvatar(player, rig) {
       }
     }
     rig.useState = useAction?.animation;
+    // console.log(JSON.stringify(rig.useState));
     // start/end event
     rig.useStart = false;
     rig.useEnd = false;

@@ -301,7 +301,7 @@ export default class Webaverse extends EventTarget {
       performanceTracker.startFrame();
 
       // if (window.isDebugger) debugger
-      // console.log('animate');
+      console.log('-animate');
       window.domInfo.innerHTML = '';
       // console.log(window.localPlayer?.getAction('use')?.animationCombo);
 
