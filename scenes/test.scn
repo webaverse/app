@@ -19,7 +19,7 @@
     {
       "position": [
         0,
-        0,
+        3,
         -3
       ],
       "quaternion": [
@@ -56,7 +56,7 @@
       "type": "application/npc",
       "content": {
         "name": "Ann",
-        "avatarUrl": "/avatars/Drake_hacker_v8_Guilty.vrm",
+        "avatarUrl": "/avatars/meebit.vrm",
         "voice": "Maud Pie",
         "bio": "13/F Lisk Witch (black mage). She is 100% quirky and is always creating crazy new potions. She has a dark streak and is known to torment her teachers when they give her bad grades.",
         "wear": [
