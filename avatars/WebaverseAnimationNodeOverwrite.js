@@ -44,10 +44,11 @@ class WebaverseAnimationNodeOverwrite extends WebaverseAnimationNode {
     }
 
     // do blend
-    const result = []; // todo: use value directly?
+    // const result = []; // todo: use value directly?
     const value0 = this.mixer.doBlend(this.children[0], spec);
     const value1 = this.mixer.doBlend(this.children[1], spec);
-    WebaverseAnimationMixer.copyArray(result, value0);
+    // WebaverseAnimationMixer.copyArray(result, value0);
+    const result = value0;
     let isOverwrite = false;
     for (let i = 0; i < this.filters.length; i++) {
       const filter = this.filters[i];

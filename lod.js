@@ -87,13 +87,6 @@ export class LodChunkTracker extends EventTarget {
 
     // if we moved across a chunk boundary, update needed chunks
     if (!currentCoord.equals(this.lastUpdateCoord)) {
-      // dispatch event
-      this.dispatchEvent(new MessageEvent('coordupdate', {
-        data: {
-          coord: currentCoord,
-        },
-      }));
-
       // add LOD0 chunks
       const neededChunks = [];
       const seenMins = new Set();
@@ -123,6 +116,14 @@ export class LodChunkTracker extends EventTarget {
             .add(localVector3.set(1, 1, 1))
         );
       }
+
+      // dispatch event
+      this.dispatchEvent(new MessageEvent('coordupdate', {
+        data: {
+          coord: currentCoord,
+          min2xCoord: min2xMin,
+        },
+      }));
 
       // collect 1x chunks inside the 2x chunks
       for (const chunkPosition2x of mins2x) {

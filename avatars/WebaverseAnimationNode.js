@@ -51,7 +51,8 @@ class WebaverseAnimationNode extends EventDispatcher {
     // }
 
     // do blend
-    const result = []; // todo: resultBuffer ( refer to threejs );
+    // const result = []; // todo: resultBuffer ( refer to threejs );
+    let result;
     // let result;
     let nodeIndex = 0;
     let currentWeight = 0;
@@ -65,7 +66,8 @@ class WebaverseAnimationNode extends EventDispatcher {
         // }
         if (nodeIndex === 0) {
           // result = value; // todo: will change original data?
-          WebaverseAnimationMixer.copyArray(result, value);
+          // WebaverseAnimationMixer.copyArray(result, value);
+          result = value;
 
           nodeIndex++;
           currentWeight = childNode.weight;
