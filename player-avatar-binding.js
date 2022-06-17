@@ -89,8 +89,8 @@ export function applyPlayerActionsToAvatar(player, rig) {
   // const chargeJumpAnimation = chargeJump ? chargeJump.animation : '';
   // const standCharge = player.getAction('standCharge');
   // const standChargeAnimation = standCharge ? standCharge.animation : '';
-  const fallLoop = player.getAction('fallLoop');
-  // const fallLoopAnimation = fallLoop ? fallLoop.animation : '';
+  const fallLoopAction = player.getAction('fallLoop');
+  // const fallLoopAnimation = fallLoopAction ? fallLoopAction.animation : '';
   const hurtAction = player.getAction('hurt');
   // const swordSideSlash = player.getAction('swordSideSlash');
   // const swordSideSlashAnimation = swordSideSlash ? swordSideSlash.animation : '';
@@ -185,7 +185,7 @@ export function applyPlayerActionsToAvatar(player, rig) {
   // rig.standChargeState = !!standCharge;
   rig.fallLoopTime = player.actionInterpolants.fallLoop.get();
   // rig.fallLoopAnimation = fallLoopAnimation;
-  rig.fallLoopState = !!fallLoop;
+  rig.fallLoopState = !!fallLoopAction;
   // rig.swordSideSlashTime = player.actionInterpolants.swordSideSlash.get();
   // rig.swordSideSlashAnimation = swordSideSlashAnimation;
   // rig.swordSideSlashState = !!swordSideSlash;

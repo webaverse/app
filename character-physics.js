@@ -42,7 +42,7 @@ class CharacterPhysics {
 
     this.velocity = new THREE.Vector3();
     this.lastGrounded = null;
-    this.lastcharacterControllerY = null;
+    this.lastCharacterControllerY = null;
     this.sitOffset = new THREE.Vector3();
    
     this.lastPistolUse = false;
@@ -88,7 +88,7 @@ class CharacterPhysics {
       const jumpAction = this.player.getAction('jump');
       if (jumpAction?.trigger === 'jump') {
         const jumpTime = this.player.actionInterpolants.jump.get();
-        localVector3.y = Math.sin(jumpTime * (Math.PI / flatGroundJumpAirTime)) * jumpHeight + jumpAction.startPositionY - this.lastcharacterControllerY;
+        localVector3.y = Math.sin(jumpTime * (Math.PI / flatGroundJumpAirTime)) * jumpHeight + jumpAction.startPositionY - this.lastCharacterControllerY;
         if (jumpTime >= flatGroundJumpAirTime) {
           localPlayer.setControlAction({type: 'fallLoop'});
         }
@@ -228,7 +228,7 @@ class CharacterPhysics {
       } */
 
       this.lastGrounded = grounded;
-      this.lastcharacterControllerY = this.player.characterController.position.y; // todo: typo
+      this.lastCharacterControllerY = this.player.characterController.position.y;
     }
   }
   /* dampen the velocity to make physical sense for the current avatar state */
