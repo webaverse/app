@@ -330,7 +330,9 @@ export default class Webaverse extends EventTarget {
         particleSystemManager.update(timestamp, timeDiffCapped);
 
         // Update app owners
-        world.update(timestamp, timeDiffCapped, frame);
+
+        world.appManager.tick(timestamp, timeDiffCapped, frame);
+        world.appManager.update(timestamp, timeDiffCapped, frame);
 
         localPlayer.appManager.tick(timestamp, timeDiff, frame);
         localPlayer.update(timestamp, timeDiffCapped, frame);

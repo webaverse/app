@@ -61,8 +61,6 @@ export class World {
       app.hitTracker.unbind();
       app.parent.remove(app);
     });
-
-    logger.log('World created');
   }
 
   isConnected() { return !!this.wsrtc; }
@@ -72,7 +70,6 @@ export class World {
   // called by enterWorld() in universe.js
   // This is called in single player mode instead of connectRoom
   connectState(state) {
-    logger.log('world.connectState');
     state.setResolvePriority(1);
     playersManager.bindState(state.getArray(playersMapName));
 
@@ -83,6 +80,15 @@ export class World {
 
     this.appManager.bindState(appsArray);
 
+    // Handy debug function to see the state
+    // Delete this eventually. For now press escape to see world state
+    document.addEventListener('keydown', event => {
+      if (event.key === 'Escape') {
+        console.log(state.getArray('world'));
+        console.log(state.getArray('players'));
+        console.log(scene);
+      }
+    });
 
     const localPlayer = getLocalPlayer();
     localPlayer.bindState(state.getArray(playersMapName));
@@ -92,7 +98,6 @@ export class World {
   // This is called when a user joins a multiplayer room
   // either from single player or directly from a link
   async connectRoom(u, state = new Z.Doc()) {
-    logger.log('world.connectRoom')
     // Players cannot be initialized until the physx worker is loaded
     // Otherwise you will receive allocation errors because the module instance is undefined
     await physx.waitForLoad();
@@ -120,7 +125,6 @@ export class World {
 
     // This is called when the websocket connection opens, i.e. server is connectedw
     const open = e => {
-      logger.log('wsrtc.open');
       this.wsrtc.removeEventListener('open', open);
       // Clear the last world state
       const worldMap = state.getMap(worldMapName);
@@ -133,8 +137,8 @@ export class World {
       // Bind the new state
       this.appManager.bindState(appsArray);
 
+      // Called by WSRTC when the connection is initialized
       const init = e => {
-        logger.log('wsrtc.init');
         this.wsrtc.removeEventListener('init', init);
         localPlayer.bindState(state.getArray(playersMapName));
 
@@ -152,15 +156,10 @@ export class World {
     return this.wsrtc;
   }
 
+  // called by enterWorld() in universe.js, to make sure we aren't already connected
   disconnectRoom() {
-    logger.log('world.disconnectRoom');
     if (this.wsrtc && this.wsrtc.state === 'open') this.wsrtc.close();
     this.wsrtc = null;
-  }
-
-  update(timestamp, timeDiffCapped, frame) {
-    this.appManager.tick(timestamp, timeDiffCapped, frame);
-    this.appManager.update(timestamp, timeDiffCapped, frame);
   }
 }
 

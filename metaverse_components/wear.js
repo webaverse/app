@@ -192,16 +192,6 @@ export default (app, component) => {
     }
   });
 
-  const _unwear = e => {
-    if (wearSpec) {
-      // const physicsObjects = app.getPhysicsObjects();
-      // for (const physicsObject of physicsObjects) {
-      //   physicsManager.enableActor(physicsObject);
-      // }
-      wearSpec = null;
-      modelBones = null;
-    }
-  };
 
   const resettransform = e => {
     if (e.player) {
@@ -220,7 +210,16 @@ export default (app, component) => {
     }
   };
 
-  app.addEventListener('resettransform', resettransform);
+  const _unwear = e => {
+    if (wearSpec) {
+      // const physicsObjects = app.getPhysicsObjects();
+      // for (const physicsObject of physicsObjects) {
+      //   physicsManager.enableActor(physicsObject);
+      // }
+      wearSpec = null;
+      modelBones = null;
+    }
+  };
 
   const _copyBoneAttachment = spec => {
     const {boneAttachment = 'hips', position, quaternion, scale} = spec;
@@ -371,8 +370,7 @@ export default (app, component) => {
 
   return {
     remove() {
-      // console.log('wear component remove');
-      app.removeEventListener('wearupdate', wearupdate);
+      console.log('wear component remove');
       app.removeEventListener('resettransform', resettransform);
       metaversefile.clearFrame(frame);
 

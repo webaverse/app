@@ -12,7 +12,6 @@ import {initialPosY} from './constants.js';
 import {parseQuery} from './util.js';
 import metaversefile from 'metaversefile';
 import sceneNames from './scenes/scenes.json';
-import logger from './logger.js';
 class Universe extends EventTarget {
   constructor() {
     super();
@@ -27,8 +26,6 @@ class Universe extends EventTarget {
   }
 
   async enterWorld(worldSpec) {
-    logger.log('enterWorld', worldSpec);
-
     world.disconnectRoom();
 
     const localPlayer = metaversefile.useLocalPlayer();
@@ -82,7 +79,6 @@ class Universe extends EventTarget {
       this.sceneLoadedPromise = null;
     };
     await _doLoad();
-    logger.log('Connected to world');
     localPlayer.characterPhysics.reset();
     physicsManager.setPhysicsEnabled(true);
     localPlayer.updatePhysics(0, 0);
@@ -93,12 +89,10 @@ class Universe extends EventTarget {
   }
 
   async reload() {
-    logger.log('universe.reload')
     await this.enterWorld(this.currentWorld);
   }
 
   async pushUrl(u) {
-    logger.log('universe.pushUrl', u)
     history.pushState({}, '', u);
     window.dispatchEvent(new MessageEvent('pushstate'));
     await this.handleUrlUpdate();

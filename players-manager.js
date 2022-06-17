@@ -9,8 +9,6 @@ import metaversefileApi from 'metaversefile';
 import logger from './logger.js';
 class PlayersManager {
   constructor() {
-    logger.log('PlayersManager created');
-
     this.playersArray = null;
 
     this.remotePlayers = new Map();
@@ -24,7 +22,6 @@ class PlayersManager {
   }
 
   unbindState() {
-    logger.log('Unbind state called on playersManager');
     if (!this.playersArray) return logger.warn('unbindState function called but playersArray was null');
     // console.log('unbind player observers', lastPlayers, new Error().stack);
     const playerSpecs = this.playersArray.toJSON();
@@ -49,7 +46,6 @@ class PlayersManager {
   }
 
   bindState(nextPlayersArray) {
-    logger.log('Bind state called on playersManager');
     this.unbindState();
 
     this.playersArray = nextPlayersArray;
@@ -59,7 +55,6 @@ class PlayersManager {
 
     const playersObserveFn = e => {
       const {added, deleted, delta, keys} = e.changes;
-      logger.log('playersObserveFn change', e.changes);
       for (const item of added.values()) {
         let playerMap = item.content.type;
         if (playerMap.constructor === Object) {
