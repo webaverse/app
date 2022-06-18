@@ -61,10 +61,8 @@ export default e => {
   useFrame(() => {
     if (!textMesh || !app.player) return;
     app.updateMatrixWorld();
-    if (!lastPosition.equals(app.position)) {
       app.position.set(app.player.position.x, app.player.position.y + height, app.player.position.z);
       lastPosition.copy(app.position);
-    }
     // app and camera are both THREE.Object3D type
     // write a function the makes app face camera
     const appToCamera = new THREE.Vector3().subVectors(camera.position, app.position);
