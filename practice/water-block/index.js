@@ -603,7 +603,7 @@ export default () => {
                 if(timestamp - lastEmmitTime > 100){
                     for (let i = 0; i < Math.floor(currentSpeed * 10 + 1) * 5; i++){
                         bubblePos.set(positionsAttribute.getX(i), positionsAttribute.getY(i), positionsAttribute.getZ(i));
-                        if(scalesAttribute.getX(i) <= 0 ){
+                        if(scalesAttribute.getX(i) <= 0 && contactWater){
                             
                             if(currentSpeed > 0.1){
                                 // playerHeadPos.x += -playerDir.x * 0.25;
@@ -611,9 +611,9 @@ export default () => {
                                 playerHeadPos.x += (Math.random() - 0.5) * 0.5;
                                 playerHeadPos.y + (Math.random() - 0.5) * 0.2;
                                 playerHeadPos.z += (Math.random() - 0.5) * 0.5;
-                                info.velocity[i].x = -playerDir.x * 0.01;
+                                info.velocity[i].x = -playerDir.x * 0.005;
                                 info.velocity[i].y = 0.0025 + Math.random() * 0.0025;
-                                info.velocity[i].z = -playerDir.z * 0.01;
+                                info.velocity[i].z = -playerDir.z * 0.005;
                             }
                             else{
                                 playerHeadPos.x += -playerDir.x * 0.25;
@@ -633,7 +633,7 @@ export default () => {
                             
     
                             info.offset[i] = Math.floor(Math.random() * 29);
-                            info.lastTime[i] = (50 + Math.random() * 100);
+                            info.lastTime[i] = (50 + Math.random() * 50);
                             startTimeAttribute.setX(i, 0);
                             scalesAttribute.setX(i, Math.random());
                             currentEmmit++;
@@ -669,10 +669,6 @@ export default () => {
                         scalesAttribute.setX(i, 0);
                     }
                 }
-                
-                
-
-                
                 
                 mesh.instanceMatrix.needsUpdate = true;
                 positionsAttribute.needsUpdate = true;
@@ -1275,7 +1271,7 @@ export default () => {
                     
     
                 }
-                if(timestamp - lastEmmitTime > 150*Math.pow((1.1-currentSpeed),0.3)  && currentSpeed>0.005 && localPlayer.hasAction('swim')){
+                if(timestamp - lastEmmitTime > 150 * Math.pow((1.1-currentSpeed),0.3)  && currentSpeed>0.005 && localPlayer.hasAction('swim')){
                     if(localPlayer.getAction('swim').onSurface){
                         if(localPlayer.rotation.x!==0){
                             playerRotationAttribute.setX(currentIndex,Math.PI+localPlayer.rotation.y);
@@ -1478,7 +1474,6 @@ export default () => {
        
         let currentIndex=0;
         let lastEmmitTime=0;
-        let localVector = new THREE.Vector3();
         useFrame(({timestamp}) => {
             
             if(currentIndex>=particleCount){
@@ -1499,12 +1494,17 @@ export default () => {
                     
     
                 }
-                if(timestamp - lastEmmitTime > 300*Math.pow((1.1-currentSpeed),0.3)  && currentSpeed>0.2 && localPlayer.hasAction('swim')){
+                if(timestamp - lastEmmitTime > 250 * Math.pow((1.1 - currentSpeed), 0.3)  && currentSpeed>0.2 && localPlayer.hasAction('swim')){
                     if(localPlayer.getAction('swim').onSurface){
                         brokenAttribute.setX(currentIndex,0.3+0.2*Math.random());
                         scalesAttribute.setX(currentIndex,1.2+Math.random()*0.1);
                         opacityAttribute.setX(currentIndex,0.15);
-                        positionsAttribute.setXYZ(currentIndex,localPlayer.position.x-0.2*playerDir.x, waterSurfacePos.y, localPlayer.position.z-0.2*playerDir.z);
+                        positionsAttribute.setXYZ(
+                            currentIndex,
+                            localPlayer.position.x - 0.2 * playerDir.x + (Math.random() - 0.5) * 0.1, 
+                            waterSurfacePos.y, 
+                            localPlayer.position.z - 0.2 * playerDir.z + (Math.random() - 0.5) * 0.1
+                        );
                         currentIndex++;
                         lastEmmitTime=timestamp;
                     }
