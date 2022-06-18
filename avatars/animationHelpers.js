@@ -416,14 +416,15 @@ export const loadPromise = (async () => {
       narutoRunAnimations.narutoRun.interpolants[k].evaluate = t => down10QuaternionArray;
     });
   }
+  _createAnimation();
 })().catch(err => {
   console.log('load avatar animations error', err);
 });
 
 const animSystem = {};
 
-export const _createAnimation = avatar => {
-  animSystem.mixer = new WebaverseAnimationMixer(avatar);
+export const _createAnimation = () => {
+  animSystem.mixer = new WebaverseAnimationMixer();
 
   // WebaverseAnimationMotions ---
   // LoopRepeat
@@ -732,7 +733,6 @@ export const _createAnimation = avatar => {
 
 export const _updateAnimation = avatar => {
   const timeS = performance.now() / 1000;
-  const {mixer} = avatar;
 
   // test
   // console.log(avatar.actionsNode.activeNode.name);
@@ -902,7 +902,7 @@ export const _updateAnimation = avatar => {
 
   if (avatar.useComboStart) {
     // console.log('useComboStart');
-    const useAnimationName = animSystem.useAnimationCombo[avatar.useAnimationIndex];
+    const useAnimationName = avatar.useAnimationCombo[avatar.useAnimationIndex];
     animSystem.useMotiono[useAnimationName].play();
     animSystem.actionsNode.crossFadeTo(0.2, animSystem.useMotiono[useAnimationName]);
   }
@@ -944,7 +944,7 @@ export const _updateAnimation = avatar => {
 
   //
 
-  mixer.update(timeS, animSystem.animTree);
+  animSystem.mixer.update(timeS, animSystem.animTree, avatar);
 };
 
 export {

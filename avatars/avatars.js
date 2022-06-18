@@ -48,7 +48,7 @@ import {
 import {easing} from '../math-utils.js';
 import metaversefile from 'metaversefile';
 
-import { getFirstPersonCurves, getClosest2AnimationAngles, loadPromise, _findArmature, _getLerpFn, _createAnimation, _updateAnimation } from './animationHelpers.js'
+import { getFirstPersonCurves, getClosest2AnimationAngles, loadPromise, _findArmature, _getLerpFn, _updateAnimation } from './animationHelpers.js'
 
 import { animationMappingConfig } from './AnimationMapping.js';
 import Emoter from './Emoter.js'
@@ -971,10 +971,6 @@ class Avatar {
     this.lastEyeTargetTime = -Infinity;
 
     this.manuallySetMouth=false;
-
-    //
-
-    _createAnimation(this);
   }
   static bindAvatar(object) {
     const model = object.scene;

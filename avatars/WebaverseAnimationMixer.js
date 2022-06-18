@@ -19,10 +19,9 @@ Vector3.lerpFlat = (dst, dstOffset, src0, srcOffset0, src1, srcOffset1, alpha) =
   dst[dstOffset + 2] = z0 + (z1 - z0) * alpha;
 };
 class WebaverseAnimationMixer extends EventDispatcher {
-  constructor(avatar) {
+  constructor() {
     super();
     this.isWebaverseAnimationMixer = true;
-    this.avatar = avatar;
     this.motion = null;
     this.motions = [];
     this.nodes = [];
@@ -96,9 +95,9 @@ class WebaverseAnimationMixer extends EventDispatcher {
     }
   }
 
-  update(timeS, animTree) {
+  update(timeS, animTree, avatar) {
     WebaverseAnimationMixer.timeS = timeS;
-    for (const spec of this.avatar.animationMappings) {
+    for (const spec of avatar.animationMappings) {
       const {
         animationTrackName: k,
         dst,
@@ -123,12 +122,12 @@ class WebaverseAnimationMixer extends EventDispatcher {
 
       // ignore all animation position except y
       if (isPosition) {
-        if (!this.avatar.jumpState && !this.avatar.flyState) {
+        if (!avatar.jumpState && !avatar.flyState) {
           // animations position is height-relative
-          dst.y *= this.avatar.height; // XXX avatar could be made perfect by measuring from foot to hips instead
+          dst.y *= avatar.height; // XXX avatar could be made perfect by measuring from foot to hips instead
         } else {
           // force height in the jump case to overide the animation
-          dst.y = this.avatar.height * 0.55;
+          dst.y = avatar.height * 0.55;
         }
       }
     }
