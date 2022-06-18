@@ -420,308 +420,310 @@ export const loadPromise = (async () => {
   console.log('load avatar animations error', err);
 });
 
+const animSystem = {};
+
 export const _createAnimation = avatar => {
-  avatar.mixer = new WebaverseAnimationMixer(avatar);
+  animSystem.mixer = new WebaverseAnimationMixer(avatar);
 
   // WebaverseAnimationMotions ---
   // LoopRepeat
-  avatar.idleMotion = avatar.mixer.createMotion(animations.index['idle.fbx']);
+  animSystem.idleMotion = animSystem.mixer.createMotion(animations.index['idle.fbx']);
 
-  avatar.walkForwardMotion = avatar.mixer.createMotion(animations.index['walking.fbx']);
-  avatar.walkBackwardMotion = avatar.mixer.createMotion(animations.index['walking backwards.fbx']);
-  avatar.walkLeftMotion = avatar.mixer.createMotion(animations.index['left strafe walking.fbx']);
-  avatar.walkRightMotion = avatar.mixer.createMotion(animations.index['right strafe walking.fbx']);
-  avatar.walkLeftMirrorMotion = avatar.mixer.createMotion(animations.index['right strafe walking reverse.fbx']);
-  avatar.walkRightMirrorMotion = avatar.mixer.createMotion(animations.index['left strafe walking reverse.fbx']);
+  animSystem.walkForwardMotion = animSystem.mixer.createMotion(animations.index['walking.fbx']);
+  animSystem.walkBackwardMotion = animSystem.mixer.createMotion(animations.index['walking backwards.fbx']);
+  animSystem.walkLeftMotion = animSystem.mixer.createMotion(animations.index['left strafe walking.fbx']);
+  animSystem.walkRightMotion = animSystem.mixer.createMotion(animations.index['right strafe walking.fbx']);
+  animSystem.walkLeftMirrorMotion = animSystem.mixer.createMotion(animations.index['right strafe walking reverse.fbx']);
+  animSystem.walkRightMirrorMotion = animSystem.mixer.createMotion(animations.index['left strafe walking reverse.fbx']);
 
-  avatar.runForwardMotion = avatar.mixer.createMotion(animations.index['Fast Run.fbx']);
-  avatar.runBackwardMotion = avatar.mixer.createMotion(animations.index['running backwards.fbx']);
-  avatar.runLeftMotion = avatar.mixer.createMotion(animations.index['left strafe.fbx']);
-  avatar.runRightMotion = avatar.mixer.createMotion(animations.index['right strafe.fbx']);
-  avatar.runLeftMirrorMotion = avatar.mixer.createMotion(animations.index['right strafe reverse.fbx']);
-  avatar.runRightMirrorMotion = avatar.mixer.createMotion(animations.index['left strafe reverse.fbx']);
+  animSystem.runForwardMotion = animSystem.mixer.createMotion(animations.index['Fast Run.fbx']);
+  animSystem.runBackwardMotion = animSystem.mixer.createMotion(animations.index['running backwards.fbx']);
+  animSystem.runLeftMotion = animSystem.mixer.createMotion(animations.index['left strafe.fbx']);
+  animSystem.runRightMotion = animSystem.mixer.createMotion(animations.index['right strafe.fbx']);
+  animSystem.runLeftMirrorMotion = animSystem.mixer.createMotion(animations.index['right strafe reverse.fbx']);
+  animSystem.runRightMirrorMotion = animSystem.mixer.createMotion(animations.index['left strafe reverse.fbx']);
 
-  avatar.crouchForwardMotion = avatar.mixer.createMotion(animations.index['Sneaking Forward.fbx']);
-  avatar.crouchBackwardMotion = avatar.mixer.createMotion(animations.index['Sneaking Forward reverse.fbx']);
-  avatar.crouchLeftMotion = avatar.mixer.createMotion(animations.index['Crouched Sneaking Left.fbx']);
-  avatar.crouchRightMotion = avatar.mixer.createMotion(animations.index['Crouched Sneaking Right.fbx']);
-  avatar.crouchLeftMirrorMotion = avatar.mixer.createMotion(animations.index['Crouched Sneaking Right reverse.fbx']);
-  avatar.crouchRightMirrorMotion = avatar.mixer.createMotion(animations.index['Crouched Sneaking Left reverse.fbx']);
+  animSystem.crouchForwardMotion = animSystem.mixer.createMotion(animations.index['Sneaking Forward.fbx']);
+  animSystem.crouchBackwardMotion = animSystem.mixer.createMotion(animations.index['Sneaking Forward reverse.fbx']);
+  animSystem.crouchLeftMotion = animSystem.mixer.createMotion(animations.index['Crouched Sneaking Left.fbx']);
+  animSystem.crouchRightMotion = animSystem.mixer.createMotion(animations.index['Crouched Sneaking Right.fbx']);
+  animSystem.crouchLeftMirrorMotion = animSystem.mixer.createMotion(animations.index['Crouched Sneaking Right reverse.fbx']);
+  animSystem.crouchRightMirrorMotion = animSystem.mixer.createMotion(animations.index['Crouched Sneaking Left reverse.fbx']);
 
-  avatar.bowForwardMotion = avatar.mixer.createMotion(animations.index['Standing Aim Walk Forward.fbx']);
-  avatar.bowBackwardMotion = avatar.mixer.createMotion(animations.index['Standing Aim Walk Forward reverse.fbx']);
-  avatar.bowLeftMotion = avatar.mixer.createMotion(animations.index['Standing Aim Walk Left.fbx']);
-  avatar.bowRightMotion = avatar.mixer.createMotion(animations.index['Standing Aim Walk Right.fbx']);
-  avatar.bowLeftMirrorMotion = avatar.mixer.createMotion(animations.index['Standing Aim Walk Right reverse.fbx']);
-  avatar.bowRightMirrorMotion = avatar.mixer.createMotion(animations.index['Standing Aim Walk Left reverse.fbx']);
+  animSystem.bowForwardMotion = animSystem.mixer.createMotion(animations.index['Standing Aim Walk Forward.fbx']);
+  animSystem.bowBackwardMotion = animSystem.mixer.createMotion(animations.index['Standing Aim Walk Forward reverse.fbx']);
+  animSystem.bowLeftMotion = animSystem.mixer.createMotion(animations.index['Standing Aim Walk Left.fbx']);
+  animSystem.bowRightMotion = animSystem.mixer.createMotion(animations.index['Standing Aim Walk Right.fbx']);
+  animSystem.bowLeftMirrorMotion = animSystem.mixer.createMotion(animations.index['Standing Aim Walk Right reverse.fbx']);
+  animSystem.bowRightMirrorMotion = animSystem.mixer.createMotion(animations.index['Standing Aim Walk Left reverse.fbx']);
 
-  avatar.crouchIdleMotion = avatar.mixer.createMotion(animations.index['Crouch Idle.fbx']);
-  // avatar.flyMotion = avatar.mixer.createMotion(floatAnimation);
-  avatar.flyIdleMotion = avatar.mixer.createMotion(animations.index['fly_idle.fbx']);
-  avatar.flyDodgeForwardMotion = avatar.mixer.createMotion(animations.index['fly_dodge_forward.fbx']);
-  avatar.flyDodgeBackwardMotion = avatar.mixer.createMotion(animations.index['fly_dodge_backward.fbx']);
-  avatar.flyDodgeLeftMotion = avatar.mixer.createMotion(animations.index['fly_dodge_left.fbx']);
-  avatar.flyDodgeRightMotion = avatar.mixer.createMotion(animations.index['fly_dodge_right.fbx']);
-  avatar.flyDashMotion = avatar.mixer.createMotion(animations.index['fly_dash_forward.fbx']);
-  avatar.narutoRunMotion = avatar.mixer.createMotion(narutoRunAnimations[defaultNarutoRunAnimation]);
+  animSystem.crouchIdleMotion = animSystem.mixer.createMotion(animations.index['Crouch Idle.fbx']);
+  // animSystem.flyMotion = animSystem.mixer.createMotion(floatAnimation);
+  animSystem.flyIdleMotion = animSystem.mixer.createMotion(animations.index['fly_idle.fbx']);
+  animSystem.flyDodgeForwardMotion = animSystem.mixer.createMotion(animations.index['fly_dodge_forward.fbx']);
+  animSystem.flyDodgeBackwardMotion = animSystem.mixer.createMotion(animations.index['fly_dodge_backward.fbx']);
+  animSystem.flyDodgeLeftMotion = animSystem.mixer.createMotion(animations.index['fly_dodge_left.fbx']);
+  animSystem.flyDodgeRightMotion = animSystem.mixer.createMotion(animations.index['fly_dodge_right.fbx']);
+  animSystem.flyDashMotion = animSystem.mixer.createMotion(animations.index['fly_dash_forward.fbx']);
+  animSystem.narutoRunMotion = animSystem.mixer.createMotion(narutoRunAnimations[defaultNarutoRunAnimation]);
 
-  avatar.useMotiono = {};
+  animSystem.useMotiono = {};
   for (const k in useAnimations) {
     const animation = useAnimations[k];
     if (animation) {
-      avatar.useMotiono[k] = avatar.mixer.createMotion(animation);
+      animSystem.useMotiono[k] = animSystem.mixer.createMotion(animation);
     }
   }
-  // avatar.useMotiono.bowIdle2 = avatar.mixer.createMotion(avatar.useMotiono.bowIdle.animation); // duplicate bowIdle motion, used for different parents
-  avatar.useMotiono.drink.loop = LoopOnce; avatar.useMotiono.drink.stop();
-  avatar.useMotiono.combo.loop = LoopOnce; avatar.useMotiono.combo.stop();
+  // animSystem.useMotiono.bowIdle2 = animSystem.mixer.createMotion(animSystem.useMotiono.bowIdle.animation); // duplicate bowIdle motion, used for different parents
+  animSystem.useMotiono.drink.loop = LoopOnce; animSystem.useMotiono.drink.stop();
+  animSystem.useMotiono.combo.loop = LoopOnce; animSystem.useMotiono.combo.stop();
   // combo
-  avatar.useMotiono.swordSideSlash.loop = LoopOnce; avatar.useMotiono.swordSideSlash.stop();
-  avatar.useMotiono.swordSideSlashStep.loop = LoopOnce; avatar.useMotiono.swordSideSlashStep.stop();
-  avatar.useMotiono.swordTopDownSlash.loop = LoopOnce; avatar.useMotiono.swordTopDownSlash.stop();
-  avatar.useMotiono.swordTopDownSlashStep.loop = LoopOnce; avatar.useMotiono.swordTopDownSlashStep.stop();
+  animSystem.useMotiono.swordSideSlash.loop = LoopOnce; animSystem.useMotiono.swordSideSlash.stop();
+  animSystem.useMotiono.swordSideSlashStep.loop = LoopOnce; animSystem.useMotiono.swordSideSlashStep.stop();
+  animSystem.useMotiono.swordTopDownSlash.loop = LoopOnce; animSystem.useMotiono.swordTopDownSlash.stop();
+  animSystem.useMotiono.swordTopDownSlashStep.loop = LoopOnce; animSystem.useMotiono.swordTopDownSlashStep.stop();
   // envelope
-  avatar.useMotiono.bowDraw.loop = LoopOnce; avatar.useMotiono.bowDraw.stop();
-  // avatar.useMotiono.bowIdle.loop = LoopOnce; avatar.useMotiono.bowIdle.stop();
-  avatar.useMotiono.bowLoose.loop = LoopOnce; avatar.useMotiono.bowLoose.stop();
+  animSystem.useMotiono.bowDraw.loop = LoopOnce; animSystem.useMotiono.bowDraw.stop();
+  // animSystem.useMotiono.bowIdle.loop = LoopOnce; animSystem.useMotiono.bowIdle.stop();
+  animSystem.useMotiono.bowLoose.loop = LoopOnce; animSystem.useMotiono.bowLoose.stop();
   // sit
-  avatar.sitMotiono = {};
+  animSystem.sitMotiono = {};
   for (const k in sitAnimations) {
     const animation = sitAnimations[k];
     if (animation) {
-      avatar.sitMotiono[k] = avatar.mixer.createMotion(animation);
-      avatar.sitMotiono[k].loop = LoopOnce; avatar.sitMotiono[k].stop();
+      animSystem.sitMotiono[k] = animSystem.mixer.createMotion(animation);
+      animSystem.sitMotiono[k].loop = LoopOnce; animSystem.sitMotiono[k].stop();
     }
   }
   // emote
-  avatar.emoteMotiono = {};
+  animSystem.emoteMotiono = {};
   for (const k in emoteAnimations) {
     const animation = emoteAnimations[k];
     if (animation) {
-      avatar.emoteMotiono[k] = avatar.mixer.createMotion(animation);
-      avatar.emoteMotiono[k].loop = LoopOnce; avatar.emoteMotiono[k].stop();
+      animSystem.emoteMotiono[k] = animSystem.mixer.createMotion(animation);
+      animSystem.emoteMotiono[k].loop = LoopOnce; animSystem.emoteMotiono[k].stop();
     }
   }
   // dance
-  avatar.danceMotiono = {};
+  animSystem.danceMotiono = {};
   for (const k in danceAnimations) {
     const animation = danceAnimations[k];
     if (animation) {
-      avatar.danceMotiono[k] = avatar.mixer.createMotion(animation);
-      // avatar.danceMotiono[k].loop = LoopOnce; avatar.danceMotiono[k].stop();
+      animSystem.danceMotiono[k] = animSystem.mixer.createMotion(animation);
+      // animSystem.danceMotiono[k].loop = LoopOnce; animSystem.danceMotiono[k].stop();
     }
   }
 
   // LoopOnce
-  avatar.jumpMotion = avatar.mixer.createMotion(jumpAnimation);
-  // avatar.jumpMotion = avatar.mixer.createMotion(animations.index['t-pose_rot.fbx']);
-  avatar.jumpMotion.loop = LoopOnce;
-  avatar.jumpMotion.stop();
-  // avatar.jumpMotion.weight = 999999; // can't Infinity
-  avatar.jumpMotion.timeBias = 0.7;
-  avatar.jumpMotion.speed = 1 / 0.6;
+  animSystem.jumpMotion = animSystem.mixer.createMotion(jumpAnimation);
+  // animSystem.jumpMotion = animSystem.mixer.createMotion(animations.index['t-pose_rot.fbx']);
+  animSystem.jumpMotion.loop = LoopOnce;
+  animSystem.jumpMotion.stop();
+  // animSystem.jumpMotion.weight = 999999; // can't Infinity
+  animSystem.jumpMotion.timeBias = 0.7;
+  animSystem.jumpMotion.speed = 1 / 0.6;
 
-  avatar.activateMotion = avatar.mixer.createMotion(activateAnimations.grab_forward.animation); // todo: handle activateAnimations.grab_forward.speedFactor
-  // avatar.activateMotion = avatar.mixer.createMotion(animations.index['t-pose_rot.fbx']);
-  avatar.activateMotion.loop = LoopOnce;
-  avatar.activateMotion.stop();
+  animSystem.activateMotion = animSystem.mixer.createMotion(activateAnimations.grab_forward.animation); // todo: handle activateAnimations.grab_forward.speedFactor
+  // animSystem.activateMotion = animSystem.mixer.createMotion(animations.index['t-pose_rot.fbx']);
+  animSystem.activateMotion.loop = LoopOnce;
+  animSystem.activateMotion.stop();
 
-  // avatar.useComboMotion = avatar.mixer.createMotion(useAnimations.swordSideSlash);
-  // avatar.useComboMotion.loop = LoopOnce;
-  // avatar.useComboMotion.stop();
+  // animSystem.useComboMotion = animSystem.mixer.createMotion(useAnimations.swordSideSlash);
+  // animSystem.useComboMotion.loop = LoopOnce;
+  // animSystem.useComboMotion.stop();
 
   // AnimNodes ---
   // todo: in order to reuse motions, need set children weights in node.
-  avatar.walkNode = avatar.mixer.createNode(WebaverseAnimationNodeBlendList, 'walk'); // todo: mixer.createNode
-  avatar.walkNode.addChild(avatar.walkForwardMotion);
-  avatar.walkNode.addChild(avatar.walkBackwardMotion);
-  avatar.walkNode.addChild(avatar.walkLeftMotion);
-  avatar.walkNode.addChild(avatar.walkRightMotion);
-  avatar.walkNode.addChild(avatar.walkLeftMirrorMotion);
-  avatar.walkNode.addChild(avatar.walkRightMirrorMotion);
+  animSystem.walkNode = animSystem.mixer.createNode(WebaverseAnimationNodeBlendList, 'walk'); // todo: mixer.createNode
+  animSystem.walkNode.addChild(animSystem.walkForwardMotion);
+  animSystem.walkNode.addChild(animSystem.walkBackwardMotion);
+  animSystem.walkNode.addChild(animSystem.walkLeftMotion);
+  animSystem.walkNode.addChild(animSystem.walkRightMotion);
+  animSystem.walkNode.addChild(animSystem.walkLeftMirrorMotion);
+  animSystem.walkNode.addChild(animSystem.walkRightMirrorMotion);
 
-  avatar.runNode = avatar.mixer.createNode(WebaverseAnimationNodeBlendList, 'run');
-  avatar.runNode.addChild(avatar.runForwardMotion);
-  avatar.runNode.addChild(avatar.runBackwardMotion);
-  avatar.runNode.addChild(avatar.runLeftMotion);
-  avatar.runNode.addChild(avatar.runRightMotion);
-  avatar.runNode.addChild(avatar.runLeftMirrorMotion);
-  avatar.runNode.addChild(avatar.runRightMirrorMotion);
+  animSystem.runNode = animSystem.mixer.createNode(WebaverseAnimationNodeBlendList, 'run');
+  animSystem.runNode.addChild(animSystem.runForwardMotion);
+  animSystem.runNode.addChild(animSystem.runBackwardMotion);
+  animSystem.runNode.addChild(animSystem.runLeftMotion);
+  animSystem.runNode.addChild(animSystem.runRightMotion);
+  animSystem.runNode.addChild(animSystem.runLeftMirrorMotion);
+  animSystem.runNode.addChild(animSystem.runRightMirrorMotion);
 
-  avatar.crouchNode = avatar.mixer.createNode(WebaverseAnimationNodeBlendList, 'crouch');
-  avatar.crouchNode.addChild(avatar.crouchForwardMotion);
-  avatar.crouchNode.addChild(avatar.crouchBackwardMotion);
-  avatar.crouchNode.addChild(avatar.crouchLeftMotion);
-  avatar.crouchNode.addChild(avatar.crouchRightMotion);
-  avatar.crouchNode.addChild(avatar.crouchLeftMirrorMotion);
-  avatar.crouchNode.addChild(avatar.crouchRightMirrorMotion);
+  animSystem.crouchNode = animSystem.mixer.createNode(WebaverseAnimationNodeBlendList, 'crouch');
+  animSystem.crouchNode.addChild(animSystem.crouchForwardMotion);
+  animSystem.crouchNode.addChild(animSystem.crouchBackwardMotion);
+  animSystem.crouchNode.addChild(animSystem.crouchLeftMotion);
+  animSystem.crouchNode.addChild(animSystem.crouchRightMotion);
+  animSystem.crouchNode.addChild(animSystem.crouchLeftMirrorMotion);
+  animSystem.crouchNode.addChild(animSystem.crouchRightMirrorMotion);
 
-  avatar.bowNode = avatar.mixer.createNode(WebaverseAnimationNodeBlendList, 'bow');
-  avatar.bowNode.addChild(avatar.bowForwardMotion);
-  avatar.bowNode.addChild(avatar.bowBackwardMotion);
-  avatar.bowNode.addChild(avatar.bowLeftMotion);
-  avatar.bowNode.addChild(avatar.bowRightMotion);
-  avatar.bowNode.addChild(avatar.bowLeftMirrorMotion);
-  avatar.bowNode.addChild(avatar.bowRightMirrorMotion);
+  animSystem.bowNode = animSystem.mixer.createNode(WebaverseAnimationNodeBlendList, 'bow');
+  animSystem.bowNode.addChild(animSystem.bowForwardMotion);
+  animSystem.bowNode.addChild(animSystem.bowBackwardMotion);
+  animSystem.bowNode.addChild(animSystem.bowLeftMotion);
+  animSystem.bowNode.addChild(animSystem.bowRightMotion);
+  animSystem.bowNode.addChild(animSystem.bowLeftMirrorMotion);
+  animSystem.bowNode.addChild(animSystem.bowRightMirrorMotion);
 
-  avatar.walkRunNode = avatar.mixer.createNode(WebaverseAnimationNodeBlend2, 'walkRun');
-  avatar.walkRunNode.addChild(avatar.walkNode);
-  avatar.walkRunNode.addChild(avatar.runNode);
+  animSystem.walkRunNode = animSystem.mixer.createNode(WebaverseAnimationNodeBlend2, 'walkRun');
+  animSystem.walkRunNode.addChild(animSystem.walkNode);
+  animSystem.walkRunNode.addChild(animSystem.runNode);
 
-  avatar._7wayWalkRunNode = avatar.mixer.createNode(WebaverseAnimationNodeBlend2, '_7wayWalkRunNode');
-  avatar._7wayWalkRunNode.addChild(avatar.idleMotion);
-  avatar._7wayWalkRunNode.addChild(avatar.walkRunNode);
+  animSystem._7wayWalkRunNode = animSystem.mixer.createNode(WebaverseAnimationNodeBlend2, '_7wayWalkRunNode');
+  animSystem._7wayWalkRunNode.addChild(animSystem.idleMotion);
+  animSystem._7wayWalkRunNode.addChild(animSystem.walkRunNode);
 
-  avatar._7wayCrouchNode = avatar.mixer.createNode(WebaverseAnimationNodeBlend2, '_7wayCrouchNode');
-  avatar._7wayCrouchNode.addChild(avatar.crouchIdleMotion);
-  avatar._7wayCrouchNode.addChild(avatar.crouchNode);
+  animSystem._7wayCrouchNode = animSystem.mixer.createNode(WebaverseAnimationNodeBlend2, '_7wayCrouchNode');
+  animSystem._7wayCrouchNode.addChild(animSystem.crouchIdleMotion);
+  animSystem._7wayCrouchNode.addChild(animSystem.crouchNode);
 
-  avatar._7wayBowNode = avatar.mixer.createNode(WebaverseAnimationNodeBlend2, '_7wayBowNode');
-  // avatar._7wayBowNode.addChild(avatar.useMotiono.bowIdle2);
-  avatar._7wayBowNode.addChild(avatar.useMotiono.bowIdle);
-  avatar._7wayBowNode.addChild(avatar.bowNode);
+  animSystem._7wayBowNode = animSystem.mixer.createNode(WebaverseAnimationNodeBlend2, '_7wayBowNode');
+  // animSystem._7wayBowNode.addChild(animSystem.useMotiono.bowIdle2);
+  animSystem._7wayBowNode.addChild(animSystem.useMotiono.bowIdle);
+  animSystem._7wayBowNode.addChild(animSystem.bowNode);
 
-  avatar.bowDrawLooseNodoe = avatar.mixer.createNode(WebaverseAnimationNodeBlend2, 'bowDrawLoose');
-  avatar.bowDrawLooseNodoe.addChild(avatar.useMotiono.bowDraw);
-  avatar.bowDrawLooseNodoe.addChild(avatar.useMotiono.bowLoose);
+  animSystem.bowDrawLooseNodoe = animSystem.mixer.createNode(WebaverseAnimationNodeBlend2, 'bowDrawLoose');
+  animSystem.bowDrawLooseNodoe.addChild(animSystem.useMotiono.bowDraw);
+  animSystem.bowDrawLooseNodoe.addChild(animSystem.useMotiono.bowLoose);
 
-  avatar.bowIdleDrawLooseNode = avatar.mixer.createNode(WebaverseAnimationNodeOverwrite, 'bowIdleDrawLoose', {filters: ['isTop']});
-  avatar.bowIdleDrawLooseNode.addChild(avatar._7wayBowNode);
-  avatar.bowIdleDrawLooseNode.addChild(avatar.bowDrawLooseNodoe);
+  animSystem.bowIdleDrawLooseNode = animSystem.mixer.createNode(WebaverseAnimationNodeOverwrite, 'bowIdleDrawLoose', {filters: ['isTop']});
+  animSystem.bowIdleDrawLooseNode.addChild(animSystem._7wayBowNode);
+  animSystem.bowIdleDrawLooseNode.addChild(animSystem.bowDrawLooseNodoe);
 
-  avatar._7wayWalkRunBowNode = avatar.mixer.createNode(WebaverseAnimationNodeBlend2, '_7wayWalkRunBow');
-  avatar._7wayWalkRunBowNode.addChild(avatar._7wayWalkRunNode);
-  // avatar._7wayWalkRunBowNode.addChild(avatar._7wayBowNode);
-  avatar._7wayWalkRunBowNode.addChild(avatar.bowIdleDrawLooseNode);
+  animSystem._7wayWalkRunBowNode = animSystem.mixer.createNode(WebaverseAnimationNodeBlend2, '_7wayWalkRunBow');
+  animSystem._7wayWalkRunBowNode.addChild(animSystem._7wayWalkRunNode);
+  // animSystem._7wayWalkRunBowNode.addChild(animSystem._7wayBowNode);
+  animSystem._7wayWalkRunBowNode.addChild(animSystem.bowIdleDrawLooseNode);
 
-  avatar.defaultNode = avatar.mixer.createNode(WebaverseAnimationNodeBlend2, 'defaultNode');
-  avatar.defaultNode.addChild(avatar._7wayWalkRunBowNode);
-  avatar.defaultNode.addChild(avatar._7wayCrouchNode);
+  animSystem.defaultNode = animSystem.mixer.createNode(WebaverseAnimationNodeBlend2, 'defaultNode');
+  animSystem.defaultNode.addChild(animSystem._7wayWalkRunBowNode);
+  animSystem.defaultNode.addChild(animSystem._7wayCrouchNode);
 
-  avatar.flyForwardNode = avatar.mixer.createNode(WebaverseAnimationNodeBlend2, 'flyForwardNode');
-  avatar.flyForwardNode.addChild(avatar.flyDodgeForwardMotion);
-  avatar.flyForwardNode.addChild(avatar.flyDashMotion);
+  animSystem.flyForwardNode = animSystem.mixer.createNode(WebaverseAnimationNodeBlend2, 'flyForwardNode');
+  animSystem.flyForwardNode.addChild(animSystem.flyDodgeForwardMotion);
+  animSystem.flyForwardNode.addChild(animSystem.flyDashMotion);
 
-  avatar.flyNode = avatar.mixer.createNode(WebaverseAnimationNodeBlendList, 'flyNode');
-  avatar.flyNode.addChild(avatar.flyForwardNode);
-  avatar.flyNode.addChild(avatar.flyDodgeBackwardMotion);
-  avatar.flyNode.addChild(avatar.flyDodgeLeftMotion);
-  avatar.flyNode.addChild(avatar.flyDodgeRightMotion);
+  animSystem.flyNode = animSystem.mixer.createNode(WebaverseAnimationNodeBlendList, 'flyNode');
+  animSystem.flyNode.addChild(animSystem.flyForwardNode);
+  animSystem.flyNode.addChild(animSystem.flyDodgeBackwardMotion);
+  animSystem.flyNode.addChild(animSystem.flyDodgeLeftMotion);
+  animSystem.flyNode.addChild(animSystem.flyDodgeRightMotion);
 
-  avatar._7wayFlyNode = avatar.mixer.createNode(WebaverseAnimationNodeBlend2, '_7wayFlyNode');
-  avatar._7wayFlyNode.addChild(avatar.flyIdleMotion);
-  avatar._7wayFlyNode.addChild(avatar.flyNode);
+  animSystem._7wayFlyNode = animSystem.mixer.createNode(WebaverseAnimationNodeBlend2, '_7wayFlyNode');
+  animSystem._7wayFlyNode.addChild(animSystem.flyIdleMotion);
+  animSystem._7wayFlyNode.addChild(animSystem.flyNode);
 
-  avatar.actionsNode = avatar.mixer.createNode(WebaverseAnimationNodeUnitary, 'actions');
-  avatar.actionsNode.addChild(avatar.defaultNode);
-  avatar.actionsNode.addChild(avatar.jumpMotion);
-  avatar.actionsNode.addChild(avatar._7wayFlyNode);
-  avatar.actionsNode.addChild(avatar.activateMotion);
-  avatar.actionsNode.addChild(avatar.narutoRunMotion);
+  animSystem.actionsNode = animSystem.mixer.createNode(WebaverseAnimationNodeUnitary, 'actions');
+  animSystem.actionsNode.addChild(animSystem.defaultNode);
+  animSystem.actionsNode.addChild(animSystem.jumpMotion);
+  animSystem.actionsNode.addChild(animSystem._7wayFlyNode);
+  animSystem.actionsNode.addChild(animSystem.activateMotion);
+  animSystem.actionsNode.addChild(animSystem.narutoRunMotion);
   // useMotiono
-  avatar.actionsNode.addChild(avatar.useMotiono.drink);
+  animSystem.actionsNode.addChild(animSystem.useMotiono.drink);
   // sword
-  avatar.actionsNode.addChild(avatar.useMotiono.combo);
+  animSystem.actionsNode.addChild(animSystem.useMotiono.combo);
   // silsword combo
-  avatar.actionsNode.addChild(avatar.useMotiono.swordSideSlash);
-  avatar.actionsNode.addChild(avatar.useMotiono.swordSideSlashStep);
-  avatar.actionsNode.addChild(avatar.useMotiono.swordTopDownSlash);
-  avatar.actionsNode.addChild(avatar.useMotiono.swordTopDownSlashStep);
+  animSystem.actionsNode.addChild(animSystem.useMotiono.swordSideSlash);
+  animSystem.actionsNode.addChild(animSystem.useMotiono.swordSideSlashStep);
+  animSystem.actionsNode.addChild(animSystem.useMotiono.swordTopDownSlash);
+  animSystem.actionsNode.addChild(animSystem.useMotiono.swordTopDownSlashStep);
   // envolope
-  // avatar.actionsNode.addChild(avatar.useMotiono.bowDraw);
-  // avatar.actionsNode.addChild(avatar.useMotiono.bowIdle); // ~~todo: bowIdle weight conflict with _7wayBowNode's bowIdle~~
-  // avatar.actionsNode.addChild(avatar.useMotiono.bowLoose);
+  // animSystem.actionsNode.addChild(animSystem.useMotiono.bowDraw);
+  // animSystem.actionsNode.addChild(animSystem.useMotiono.bowIdle); // ~~todo: bowIdle weight conflict with _7wayBowNode's bowIdle~~
+  // animSystem.actionsNode.addChild(animSystem.useMotiono.bowLoose);
   // sit
-  for (const k in avatar.sitMotiono) {
-    const motion = avatar.sitMotiono[k];
-    avatar.actionsNode.addChild(motion);
+  for (const k in animSystem.sitMotiono) {
+    const motion = animSystem.sitMotiono[k];
+    animSystem.actionsNode.addChild(motion);
   }
   // emote
-  for (const k in avatar.emoteMotiono) {
-    const motion = avatar.emoteMotiono[k];
-    avatar.actionsNode.addChild(motion);
+  for (const k in animSystem.emoteMotiono) {
+    const motion = animSystem.emoteMotiono[k];
+    animSystem.actionsNode.addChild(motion);
   }
   // dance
-  for (const k in avatar.danceMotiono) {
-    const motion = avatar.danceMotiono[k];
-    avatar.actionsNode.addChild(motion);
+  for (const k in animSystem.danceMotiono) {
+    const motion = animSystem.danceMotiono[k];
+    animSystem.actionsNode.addChild(motion);
   }
 
-  // avatar.jumpNode = avatar.mixer.createNode(WebaverseAnimationNodeBlend2, 'jump');
-  // avatar.jumpNode.addChild(avatar.defaultNode);
-  // avatar.jumpNode.addChild(avatar.jumpMotion);
+  // animSystem.jumpNode = animSystem.mixer.createNode(WebaverseAnimationNodeBlend2, 'jump');
+  // animSystem.jumpNode.addChild(animSystem.defaultNode);
+  // animSystem.jumpNode.addChild(animSystem.jumpMotion);
 
-  // avatar.flyNode = avatar.mixer.createNode(WebaverseAnimationNodeBlend2, 'fly');
-  // avatar.flyNode.addChild(avatar.jumpNode);
-  // avatar.flyNode.addChild(avatar.flyMotion);
+  // animSystem.flyNode = animSystem.mixer.createNode(WebaverseAnimationNodeBlend2, 'fly');
+  // animSystem.flyNode.addChild(animSystem.jumpNode);
+  // animSystem.flyNode.addChild(animSystem.flyMotion);
 
-  avatar.animTree = avatar.actionsNode; // todo: set whole tree here with separate names.
+  animSystem.animTree = animSystem.actionsNode; // todo: set whole tree here with separate names.
   // test
-  // avatar.animTree = avatar.bowNode;
-  // avatar.animTree = avatar.useMotiono.bowLoose; avatar.useMotiono.bowLoose.loop = LoopRepeat; avatar.useMotiono.bowLoose.play();
-  // avatar.animTree = avatar.useMotiono.bowIdle; avatar.useMotiono.bowIdle.loop = LoopRepeat; avatar.useMotiono.bowIdle.play();
-  // avatar.animTree = avatar.useMotiono.bowDraw; avatar.useMotiono.bowDraw.loop = LoopRepeat; avatar.useMotiono.bowDraw.play();
-  // avatar.overwriteNode = avatar.mixer.createNode(WebaverseAnimationNodeOverwrite, 'overwrite');
-  // avatar.overwriteNode.addChild(avatar.crouchForwardMotion);
-  // avatar.overwriteNode.addChild(avatar.runForwardMotion);
-  // avatar.animTree = avatar.crouchForwardMotion;
-  // avatar.animTree = avatar.runForwardMotion;
-  // avatar.animTree = avatar.overwriteNode;
+  // animSystem.animTree = animSystem.bowNode;
+  // animSystem.animTree = animSystem.useMotiono.bowLoose; animSystem.useMotiono.bowLoose.loop = LoopRepeat; animSystem.useMotiono.bowLoose.play();
+  // animSystem.animTree = animSystem.useMotiono.bowIdle; animSystem.useMotiono.bowIdle.loop = LoopRepeat; animSystem.useMotiono.bowIdle.play();
+  // animSystem.animTree = animSystem.useMotiono.bowDraw; animSystem.useMotiono.bowDraw.loop = LoopRepeat; animSystem.useMotiono.bowDraw.play();
+  // animSystem.overwriteNode = animSystem.mixer.createNode(WebaverseAnimationNodeOverwrite, 'overwrite');
+  // animSystem.overwriteNode.addChild(animSystem.crouchForwardMotion);
+  // animSystem.overwriteNode.addChild(animSystem.runForwardMotion);
+  // animSystem.animTree = animSystem.crouchForwardMotion;
+  // animSystem.animTree = animSystem.runForwardMotion;
+  // animSystem.animTree = animSystem.overwriteNode;
   //
 
   const handleAnimationEnd = (motion, trigger) => {
     // console.log(motion.name, trigger);
-    // if (motion === avatar.jumpMotion) debugger
+    // if (motion === animSystem.jumpMotion) debugger
     if ([
-      avatar.useMotiono.drink,
-      avatar.useMotiono.combo,
-      avatar.useMotiono.swordSideSlash,
-      avatar.useMotiono.swordSideSlashStep,
-      avatar.useMotiono.swordTopDownSlash,
-      avatar.useMotiono.swordTopDownSlashStep,
+      animSystem.useMotiono.drink,
+      animSystem.useMotiono.combo,
+      animSystem.useMotiono.swordSideSlash,
+      animSystem.useMotiono.swordSideSlashStep,
+      animSystem.useMotiono.swordTopDownSlash,
+      animSystem.useMotiono.swordTopDownSlashStep,
     ].includes(motion)) {
       // console.log('animationEnd', event.motion.name);
       game.handleAnimationEnd();
     }
   };
 
-  avatar.mixer.addEventListener('finished', event => {
-    // console.log('finished', event.motion.name, !!avatar.useEnvelopeState); // todo: why `bow draw.fbx` trigger `finished` event at app init.
+  animSystem.mixer.addEventListener('finished', event => {
+    // console.log('finished', event.motion.name, !!animSystem.useEnvelopeState); // todo: why `bow draw.fbx` trigger `finished` event at app init.
     handleAnimationEnd(event.motion, 'finished');
     // if ([
-    //   avatar.useMotiono.combo,
-    //   avatar.useMotiono.swordSideSlash,
-    //   avatar.useMotiono.swordSideSlashStep,
-    //   avatar.useMotiono.swordTopDownSlash,
-    //   avatar.useMotiono.swordTopDownSlashStep,
+    //   animSystem.useMotiono.combo,
+    //   animSystem.useMotiono.swordSideSlash,
+    //   animSystem.useMotiono.swordSideSlashStep,
+    //   animSystem.useMotiono.swordTopDownSlash,
+    //   animSystem.useMotiono.swordTopDownSlashStep,
     // ].includes(event.motion)) {
     //   // console.log('animationEnd', event.motion.name);
     //   game.handleAnimationEnd();
     // }
 
-    if (avatar.useEnvelopeState && event.motion === avatar.useMotiono.bowDraw) {
-      // avatar.actionsNode.crossFadeTo(0.2, avatar.useMotiono.bowIdle);
-      // avatar.actionsNode.crossFadeTo(0.2, avatar.defaultNode);
-      // avatar.bowIdleDrawLooseNode.factor = 0;
-      avatar.bowIdleDrawLooseNode.crossFade(0.2, 0);
+    if (animSystem.useEnvelopeState && event.motion === animSystem.useMotiono.bowDraw) {
+      // animSystem.actionsNode.crossFadeTo(0.2, animSystem.useMotiono.bowIdle);
+      // animSystem.actionsNode.crossFadeTo(0.2, animSystem.defaultNode);
+      // animSystem.bowIdleDrawLooseNode.factor = 0;
+      animSystem.bowIdleDrawLooseNode.crossFade(0.2, 0);
     }
-    if (event.motion === avatar.useMotiono.bowLoose) {
-      // avatar.actionsNode.crossFadeTo(0.2, avatar.defaultNode);
-      avatar._7wayWalkRunBowNode.crossFade(0.2, 0);
+    if (event.motion === animSystem.useMotiono.bowLoose) {
+      // animSystem.actionsNode.crossFadeTo(0.2, animSystem.defaultNode);
+      animSystem._7wayWalkRunBowNode.crossFade(0.2, 0);
     }
   });
-  // avatar.mixer.addEventListener('stopped', event => { // handle situations such as sword attacks stopped by jump
+  // animSystem.mixer.addEventListener('stopped', event => { // handle situations such as sword attacks stopped by jump
   //   // console.log('stopped', event.motion.name);
   //   // handleAnimationEnd(event);
   // });
-  // avatar.actionsNode.addEventListener('switch', event => { // handle situations such as sword attacks stopped by jump
+  // animSystem.actionsNode.addEventListener('switch', event => { // handle situations such as sword attacks stopped by jump
   //   handleAnimationEnd(event.from, 'switch');
   //   // if (![
-  //   //   avatar.useMotiono.combo,
-  //   //   avatar.useMotiono.swordSideSlash,
-  //   //   avatar.useMotiono.swordSideSlashStep,
-  //   //   avatar.useMotiono.swordTopDownSlash,
-  //   //   avatar.useMotiono.swordTopDownSlashStep,
+  //   //   animSystem.useMotiono.combo,
+  //   //   animSystem.useMotiono.swordSideSlash,
+  //   //   animSystem.useMotiono.swordSideSlashStep,
+  //   //   animSystem.useMotiono.swordTopDownSlash,
+  //   //   animSystem.useMotiono.swordTopDownSlashStep,
   //   // ].includes(event.to)) {
   //   //   game.handleAnimationEnd();
   //   // }
@@ -743,206 +745,206 @@ export const _updateAnimation = avatar => {
   // const mirror = Math.abs(angle) > (Math.PI / 2 + 0.01); // todo: smooth mirror changing
   const mirrorFactorReverse = 1 - avatar.mirrorFactor;
 
-  avatar.walkForwardMotion.weight = forwardFactor;
-  avatar.walkBackwardMotion.weight = backwardFactor;
-  avatar.walkLeftMotion.weight = mirrorFactorReverse * leftFactor;
-  avatar.walkLeftMirrorMotion.weight = avatar.mirrorFactor * leftFactor;
-  avatar.walkRightMotion.weight = mirrorFactorReverse * rightFactor;
-  avatar.walkRightMirrorMotion.weight = avatar.mirrorFactor * rightFactor;
+  animSystem.walkForwardMotion.weight = forwardFactor;
+  animSystem.walkBackwardMotion.weight = backwardFactor;
+  animSystem.walkLeftMotion.weight = mirrorFactorReverse * leftFactor;
+  animSystem.walkLeftMirrorMotion.weight = avatar.mirrorFactor * leftFactor;
+  animSystem.walkRightMotion.weight = mirrorFactorReverse * rightFactor;
+  animSystem.walkRightMirrorMotion.weight = avatar.mirrorFactor * rightFactor;
 
-  window.domInfo.innerHTML += `<div style="display:;">forward: --- ${window.logNum(avatar.walkForwardMotion.weight)}</div>`;
-  window.domInfo.innerHTML += `<div style="display:;">backward: --- ${window.logNum(avatar.walkBackwardMotion.weight)}</div>`;
-  window.domInfo.innerHTML += `<div style="display:;">left: --- ${window.logNum(avatar.walkLeftMotion.weight)}</div>`;
-  window.domInfo.innerHTML += `<div style="display:;">right: --- ${window.logNum(avatar.walkRightMotion.weight)}</div>`;
-  window.domInfo.innerHTML += `<div style="display:;">leftMirror: --- ${window.logNum(avatar.walkLeftMirrorMotion.weight)}</div>`;
-  window.domInfo.innerHTML += `<div style="display:;">rightMirror: --- ${window.logNum(avatar.walkRightMirrorMotion.weight)}</div>`;
+  window.domInfo.innerHTML += `<div style="display:;">forward: --- ${window.logNum(animSystem.walkForwardMotion.weight)}</div>`;
+  window.domInfo.innerHTML += `<div style="display:;">backward: --- ${window.logNum(animSystem.walkBackwardMotion.weight)}</div>`;
+  window.domInfo.innerHTML += `<div style="display:;">left: --- ${window.logNum(animSystem.walkLeftMotion.weight)}</div>`;
+  window.domInfo.innerHTML += `<div style="display:;">right: --- ${window.logNum(animSystem.walkRightMotion.weight)}</div>`;
+  window.domInfo.innerHTML += `<div style="display:;">leftMirror: --- ${window.logNum(animSystem.walkLeftMirrorMotion.weight)}</div>`;
+  window.domInfo.innerHTML += `<div style="display:;">rightMirror: --- ${window.logNum(animSystem.walkRightMirrorMotion.weight)}</div>`;
 
-  avatar.runForwardMotion.weight = forwardFactor;
-  avatar.runBackwardMotion.weight = backwardFactor;
-  avatar.runLeftMotion.weight = mirrorFactorReverse * leftFactor;
-  avatar.runLeftMirrorMotion.weight = avatar.mirrorFactor * leftFactor;
-  avatar.runRightMotion.weight = mirrorFactorReverse * rightFactor;
-  avatar.runRightMirrorMotion.weight = avatar.mirrorFactor * rightFactor;
+  animSystem.runForwardMotion.weight = forwardFactor;
+  animSystem.runBackwardMotion.weight = backwardFactor;
+  animSystem.runLeftMotion.weight = mirrorFactorReverse * leftFactor;
+  animSystem.runLeftMirrorMotion.weight = avatar.mirrorFactor * leftFactor;
+  animSystem.runRightMotion.weight = mirrorFactorReverse * rightFactor;
+  animSystem.runRightMirrorMotion.weight = avatar.mirrorFactor * rightFactor;
 
-  avatar.crouchForwardMotion.weight = forwardFactor;
-  avatar.crouchBackwardMotion.weight = backwardFactor;
-  avatar.crouchLeftMotion.weight = mirrorFactorReverse * leftFactor;
-  avatar.crouchLeftMirrorMotion.weight = avatar.mirrorFactor * leftFactor;
-  avatar.crouchRightMotion.weight = mirrorFactorReverse * rightFactor;
-  avatar.crouchRightMirrorMotion.weight = avatar.mirrorFactor * rightFactor;
+  animSystem.crouchForwardMotion.weight = forwardFactor;
+  animSystem.crouchBackwardMotion.weight = backwardFactor;
+  animSystem.crouchLeftMotion.weight = mirrorFactorReverse * leftFactor;
+  animSystem.crouchLeftMirrorMotion.weight = avatar.mirrorFactor * leftFactor;
+  animSystem.crouchRightMotion.weight = mirrorFactorReverse * rightFactor;
+  animSystem.crouchRightMirrorMotion.weight = avatar.mirrorFactor * rightFactor;
 
-  avatar.bowForwardMotion.weight = forwardFactor;
-  avatar.bowBackwardMotion.weight = backwardFactor;
-  avatar.bowLeftMotion.weight = mirrorFactorReverse * leftFactor;
-  avatar.bowLeftMirrorMotion.weight = avatar.mirrorFactor * leftFactor;
-  avatar.bowRightMotion.weight = mirrorFactorReverse * rightFactor;
-  avatar.bowRightMirrorMotion.weight = avatar.mirrorFactor * rightFactor;
+  animSystem.bowForwardMotion.weight = forwardFactor;
+  animSystem.bowBackwardMotion.weight = backwardFactor;
+  animSystem.bowLeftMotion.weight = mirrorFactorReverse * leftFactor;
+  animSystem.bowLeftMirrorMotion.weight = avatar.mirrorFactor * leftFactor;
+  animSystem.bowRightMotion.weight = mirrorFactorReverse * rightFactor;
+  animSystem.bowRightMirrorMotion.weight = avatar.mirrorFactor * rightFactor;
 
-  avatar.flyForwardNode.weight = forwardFactor;
-  avatar.flyDodgeBackwardMotion.weight = backwardFactor;
-  avatar.flyDodgeLeftMotion.weight = leftFactor;
-  avatar.flyDodgeRightMotion.weight = rightFactor;
+  animSystem.flyForwardNode.weight = forwardFactor;
+  animSystem.flyDodgeBackwardMotion.weight = backwardFactor;
+  animSystem.flyDodgeLeftMotion.weight = leftFactor;
+  animSystem.flyDodgeRightMotion.weight = rightFactor;
 
-  // avatar._7wayWalkRunBowNode.factor = avatar.useEnvelopeState ? 1 : 0;
-  // avatar._7wayWalkRunBowNode.factor = avatar.useEnvelopeFactor;
-  // console.log(avatar._7wayWalkRunBowNode.factor);
+  // animSystem._7wayWalkRunBowNode.factor = avatar.useEnvelopeState ? 1 : 0;
+  // animSystem._7wayWalkRunBowNode.factor = avatar.useEnvelopeFactor;
+  // console.log(animSystem._7wayWalkRunBowNode.factor);
 
-  avatar.walkRunNode.factor = avatar.moveFactors.walkRunFactor;
-  avatar._7wayWalkRunNode.factor = avatar.moveFactors.idleWalkFactor;
-  avatar._7wayCrouchNode.factor = avatar.moveFactors.idleWalkFactor;
-  avatar._7wayBowNode.factor = avatar.moveFactors.idleWalkFactor;
-  avatar._7wayFlyNode.factor = avatar.moveFactors.walkRunFactor;
-  avatar.defaultNode.factor = avatar.moveFactors.crouchFactor;
-  avatar.flyForwardNode.factor = avatar.flyDashFactor;
+  animSystem.walkRunNode.factor = avatar.moveFactors.walkRunFactor;
+  animSystem._7wayWalkRunNode.factor = avatar.moveFactors.idleWalkFactor;
+  animSystem._7wayCrouchNode.factor = avatar.moveFactors.idleWalkFactor;
+  animSystem._7wayBowNode.factor = avatar.moveFactors.idleWalkFactor;
+  animSystem._7wayFlyNode.factor = avatar.moveFactors.walkRunFactor;
+  animSystem.defaultNode.factor = avatar.moveFactors.crouchFactor;
+  animSystem.flyForwardNode.factor = avatar.flyDashFactor;
 
   // action end event ---
 
-  if (avatar.narutoRunEnd) avatar.actionsNode.crossFadeTo(0.2, avatar.defaultNode);
-  // if (avatar.jumpEnd) avatar.jumpMotion.stop();
-  // if (avatar.jumpEnd) avatar.jumpNode.factor = 0;
+  if (avatar.narutoRunEnd) animSystem.actionsNode.crossFadeTo(0.2, animSystem.defaultNode);
+  // if (avatar.jumpEnd) animSystem.jumpMotion.stop();
+  // if (avatar.jumpEnd) animSystem.jumpNode.factor = 0;
   if (avatar.jumpEnd) {
     // debugger
-    // avatar.jumpMotion.stop(); // don't need
+    // animSystem.jumpMotion.stop(); // don't need
     if (avatar.narutoRunState) {
-      avatar.actionsNode.crossFadeTo(0.2, avatar.narutoRunMotion);
+      animSystem.actionsNode.crossFadeTo(0.2, animSystem.narutoRunMotion);
     } else {
-      avatar.actionsNode.crossFadeTo(0.2, avatar.defaultNode);
+      animSystem.actionsNode.crossFadeTo(0.2, animSystem.defaultNode);
     }
   }
   if (avatar.flyEnd) {
     // debugger
-    avatar.actionsNode.crossFadeTo(0.2, avatar.defaultNode);
+    animSystem.actionsNode.crossFadeTo(0.2, animSystem.defaultNode);
   }
   if (avatar.activateEnd) {
-    // avatar.activateMotion.stop(); // don't need
-    avatar.actionsNode.crossFadeTo(0.2, avatar.defaultNode);
+    // animSystem.activateMotion.stop(); // don't need
+    animSystem.actionsNode.crossFadeTo(0.2, animSystem.defaultNode);
   }
   if (avatar.useEnd) {
     console.log('useEnd');
-    avatar.actionsNode.crossFadeTo(0.2, avatar.defaultNode);
+    animSystem.actionsNode.crossFadeTo(0.2, animSystem.defaultNode);
   }
   if (avatar.useComboEnd) {
-    avatar.actionsNode.crossFadeTo(0.2, avatar.defaultNode);
+    animSystem.actionsNode.crossFadeTo(0.2, animSystem.defaultNode);
   }
   // if (avatar.useEnvelopeEnd) {
   //   // console.log('useEnvelopeEnd');
-  //   // if (avatar.actionsNode.activeNode === avatar.useMotiono.bowIdle) { // todo: useAnimationEnvelope[1]
-  //   if (avatar.actionsNode.activeNode === avatar.defaultNode) {
-  //     avatar.useMotiono.bowLoose.play();
-  //     avatar.actionsNode.crossFadeTo(0, avatar.useMotiono.bowLoose); // todo: useAnimationEnvelope[2] // todo: 0.2 transition
+  //   // if (animSystem.actionsNode.activeNode === animSystem.useMotiono.bowIdle) { // todo: useAnimationEnvelope[1]
+  //   if (animSystem.actionsNode.activeNode === animSystem.defaultNode) {
+  //     animSystem.useMotiono.bowLoose.play();
+  //     animSystem.actionsNode.crossFadeTo(0, animSystem.useMotiono.bowLoose); // todo: useAnimationEnvelope[2] // todo: 0.2 transition
   //   } else {
-  //     avatar.actionsNode.crossFadeTo(0.2, avatar.defaultNode);
+  //     animSystem.actionsNode.crossFadeTo(0.2, animSystem.defaultNode);
   //   }
   // }
   if (avatar.useEnvelopeEnd) {
     // console.log('useEnvelopeEnd');
-    // if (avatar.actionsNode.activeNode === avatar.useMotiono.bowIdle) { // todo: useAnimationEnvelope[1]
-    // if (avatar.actionsNode.activeNode === avatar.defaultNode) {
-    avatar.useMotiono.bowLoose.play();
-    // avatar.actionsNode.crossFadeTo(0, avatar.useMotiono.bowLoose); // todo: useAnimationEnvelope[2] // todo: 0.2 transition
-    // avatar.bowDrawLooseNodoe.crossFade(0.2, 1);
-    avatar.bowDrawLooseNodoe.factor = 1;
-    avatar.bowIdleDrawLooseNode.crossFade(0.2, 1);
+    // if (animSystem.actionsNode.activeNode === animSystem.useMotiono.bowIdle) { // todo: useAnimationEnvelope[1]
+    // if (animSystem.actionsNode.activeNode === animSystem.defaultNode) {
+    animSystem.useMotiono.bowLoose.play();
+    // animSystem.actionsNode.crossFadeTo(0, animSystem.useMotiono.bowLoose); // todo: useAnimationEnvelope[2] // todo: 0.2 transition
+    // animSystem.bowDrawLooseNodoe.crossFade(0.2, 1);
+    animSystem.bowDrawLooseNodoe.factor = 1;
+    animSystem.bowIdleDrawLooseNode.crossFade(0.2, 1);
     // } else {
-    //   avatar.actionsNode.crossFadeTo(0.2, avatar.defaultNode);
+    //   animSystem.actionsNode.crossFadeTo(0.2, animSystem.defaultNode);
     // }
   }
   if (avatar.sitEnd) {
-    avatar.actionsNode.crossFadeTo(0.2, avatar.defaultNode);
+    animSystem.actionsNode.crossFadeTo(0.2, animSystem.defaultNode);
   }
   if (avatar.emoteEnd) {
-    avatar.actionsNode.crossFadeTo(0.2, avatar.defaultNode);
+    animSystem.actionsNode.crossFadeTo(0.2, animSystem.defaultNode);
   }
   if (avatar.danceEnd) {
-    avatar.actionsNode.crossFadeTo(0.2, avatar.defaultNode);
+    animSystem.actionsNode.crossFadeTo(0.2, animSystem.defaultNode);
   }
   // console.log(avatar.useComboStart, avatar.useComboEnd);
 
   // action start event ---
 
-  if (avatar.narutoRunStart) avatar.actionsNode.crossFadeTo(0.2, avatar.narutoRunMotion);
+  if (avatar.narutoRunStart) animSystem.actionsNode.crossFadeTo(0.2, animSystem.narutoRunMotion);
 
   // jump
-  // avatar.jumpMotion.time = avatar.jumpTime / 1000;
-  // const jumpFactor = MathUtils.clamp(avatar.jumpMotion.time / 0.2, 0, 1);
-  // avatar.defaultNode.weight = 1 - jumpFactor;
-  // avatar.jumpMotion.weight = jumpFactor;
+  // animSystem.jumpMotion.time = avatar.jumpTime / 1000;
+  // const jumpFactor = MathUtils.clamp(animSystem.jumpMotion.time / 0.2, 0, 1);
+  // animSystem.defaultNode.weight = 1 - jumpFactor;
+  // animSystem.jumpMotion.weight = jumpFactor;
 
-  // if (avatar.jumpStart) avatar.jumpMotion.play();
+  // if (avatar.jumpStart) animSystem.jumpMotion.play();
 
-  // if (avatar.jumpStart) avatar.jumpNode.factor = 1;
+  // if (avatar.jumpStart) animSystem.jumpNode.factor = 1;
 
   if (avatar.jumpStart) {
     console.log('jumpStart');
     // debugger
-    avatar.jumpMotion.play();
-    avatar.actionsNode.crossFadeTo(0.2, avatar.jumpMotion);
+    animSystem.jumpMotion.play();
+    animSystem.actionsNode.crossFadeTo(0.2, animSystem.jumpMotion);
   }
-  // if (avatar === window.avatar) console.log(Math.floor(avatar.jumpMotion.time));
+  // if (avatar === window.avatar) console.log(Math.floor(animSystem.jumpMotion.time));
 
   if (avatar.flyStart) {
     // debugger
-    avatar.actionsNode.crossFadeTo(0.2, avatar._7wayFlyNode);
+    animSystem.actionsNode.crossFadeTo(0.2, animSystem._7wayFlyNode);
   }
 
   if (avatar.activateStart) {
     // console.log('activateStart');
-    avatar.activateMotion.play();
-    avatar.actionsNode.crossFadeTo(0.2, avatar.activateMotion);
+    animSystem.activateMotion.play();
+    animSystem.actionsNode.crossFadeTo(0.2, animSystem.activateMotion);
   }
 
   if (avatar.useStart) {
     // console.log('useStart');
     const useAnimationName = avatar.useAnimation;
-    avatar.useMotiono[useAnimationName].play();
-    avatar.actionsNode.crossFadeTo(0.2, avatar.useMotiono[useAnimationName]);
+    animSystem.useMotiono[useAnimationName].play();
+    animSystem.actionsNode.crossFadeTo(0.2, animSystem.useMotiono[useAnimationName]);
   }
 
   if (avatar.useComboStart) {
     // console.log('useComboStart');
-    const useAnimationName = avatar.useAnimationCombo[avatar.useAnimationIndex];
-    avatar.useMotiono[useAnimationName].play();
-    avatar.actionsNode.crossFadeTo(0.2, avatar.useMotiono[useAnimationName]);
+    const useAnimationName = animSystem.useAnimationCombo[avatar.useAnimationIndex];
+    animSystem.useMotiono[useAnimationName].play();
+    animSystem.actionsNode.crossFadeTo(0.2, animSystem.useMotiono[useAnimationName]);
   }
 
-  // avatar.useMotiono.bowIdle.weight = 0;
+  // animSystem.useMotiono.bowIdle.weight = 0;
 
   // if (avatar.useEnvelopeStart) {
   //   // console.log('useEnvelopeStart');
   //   const useAnimationName = avatar.useAnimationEnvelope[0];
-  //   avatar.useMotiono[useAnimationName].play();
-  //   avatar.actionsNode.crossFadeTo(0.2, avatar.useMotiono[useAnimationName]);
+  //   animSystem.useMotiono[useAnimationName].play();
+  //   animSystem.actionsNode.crossFadeTo(0.2, animSystem.useMotiono[useAnimationName]);
   // }
 
   if (avatar.useEnvelopeStart) {
     // console.log('useEnvelopeStart');
     // const useAnimationName = avatar.useAnimationEnvelope[0];
-    avatar.useMotiono.bowDraw.play();
-    avatar.bowDrawLooseNodoe.factor = 0;
-    avatar.bowIdleDrawLooseNode.factor = 1;
-    avatar._7wayWalkRunBowNode.crossFade(0.2, 1);
+    animSystem.useMotiono.bowDraw.play();
+    animSystem.bowDrawLooseNodoe.factor = 0;
+    animSystem.bowIdleDrawLooseNode.factor = 1;
+    animSystem._7wayWalkRunBowNode.crossFade(0.2, 1);
   }
   // sit
   if (avatar.sitStart) {
-    avatar.sitMotiono[avatar.sitAnimation || defaultSitAnimation].play();
-    avatar.actionsNode.crossFadeTo(0.2, avatar.sitMotiono[avatar.sitAnimation || defaultSitAnimation]);
+    animSystem.sitMotiono[avatar.sitAnimation || defaultSitAnimation].play();
+    animSystem.actionsNode.crossFadeTo(0.2, animSystem.sitMotiono[avatar.sitAnimation || defaultSitAnimation]);
   }
   // emote
   if (avatar.emoteStart) {
-    avatar.emoteMotiono[avatar.emoteAnimation || defaultEmoteAnimation].play();
-    avatar.actionsNode.crossFadeTo(0.2, avatar.emoteMotiono[avatar.emoteAnimation || defaultEmoteAnimation]);
+    animSystem.emoteMotiono[avatar.emoteAnimation || defaultEmoteAnimation].play();
+    animSystem.actionsNode.crossFadeTo(0.2, animSystem.emoteMotiono[avatar.emoteAnimation || defaultEmoteAnimation]);
   }
   // dance
   if (avatar.danceStart) {
-    // avatar.danceMotiono[avatar.danceAnimation || defaultDanceAnimation].play();
-    avatar.actionsNode.crossFadeTo(0.2, avatar.danceMotiono[avatar.danceAnimation || defaultDanceAnimation]);
+    // animSystem.danceMotiono[avatar.danceAnimation || defaultDanceAnimation].play();
+    animSystem.actionsNode.crossFadeTo(0.2, animSystem.danceMotiono[avatar.danceAnimation || defaultDanceAnimation]);
   }
 
   // window.domInfo.innerHTML += `<div style="display:;">useComboStart: --- ${window.logNum(avatar.useComboStart)}</div>`;
 
   //
 
-  mixer.update(timeS, avatar.animTree);
+  mixer.update(timeS, animSystem.animTree);
 };
 
 export {
