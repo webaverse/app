@@ -331,16 +331,15 @@ export default class Webaverse extends EventTarget {
 
         // Update app owners
 
-        world.appManager.tick(timestamp, timeDiffCapped, frame);
-        world.appManager.update(timestamp, timeDiffCapped, frame);
 
-        localPlayer.appManager.tick(timestamp, timeDiff, frame);
         localPlayer.update(timestamp, timeDiffCapped, frame);
 
         for (const remotePlayer of playersManager.remotePlayers.values()) {
           remotePlayer.update(timestamp, timeDiff);
         }
+        world.appManager.tick(timestamp, timeDiffCapped, frame);
 
+        world.appManager.update(timestamp, timeDiffCapped, frame);
         // After game loop, update camera pose
         cameraManager.updatePost(timestamp, timeDiffCapped);
         const session = renderer.xr.getSession();
