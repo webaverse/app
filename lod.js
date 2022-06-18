@@ -55,9 +55,8 @@ export class LodChunk extends THREE.Vector3 {
     this.items = [];
     this.physicsObjects = [];
   }
-  equals(chunk) {
-    return super.equals(chunk) &&
-      this.lodArray.length === chunk.lodArray.length && this.lodArray.every((lod, i) => lod === chunk.lodArray[i]);
+  lodArrayEquals(chunk) {
+    return this.lodArray.length === chunk.lodArray.length && this.lodArray.every((lod, i) => lod === chunk.lodArray[i]);
   }
 }
 export class LodChunkTracker extends EventTarget {
@@ -140,16 +139,17 @@ export class LodChunkTracker extends EventTarget {
               vm::ivec3(1, 1, 0),
               vm::ivec3(0, 1, 1),
               vm::ivec3(1, 1, 1), */
-              const lodArray = /* this.numLods > 1 ? [
+              const lodArray = [
                 1,
-                (chunkPosition1x.x + 1 < min2xMax.x) ? 1 : 2,
-                (chunkPosition1x.z + 1 < min2xMax.z) ? 1 : 2,
-                (chunkPosition1x.x + 1 < min2xMax.x && chunkPosition1x.z + 1 < min2xMax.z) ? 1 : 2,
-                (chunkPosition1x.y + 1 < min2xMax.y) ? 1 : 2,
-                (chunkPosition1x.x + 1 < min2xMax.x && chunkPosition1x.y + 1 < min2xMax.y) ? 1 : 2,
-                (chunkPosition1x.y + 1 < min2xMax.y && chunkPosition1x.z + 1 < min2xMax.z) ? 1 : 2,
-                (chunkPosition1x.x + 1 < min2xMax.x && chunkPosition1x.y + 1 < min2xMax.y && chunkPosition1x.z + 1 < min2xMax.z) ? 1 : 2,
-              ] : */ Array(8).fill(1);
+                (chunkPosition1x.x < min2xMax.x) ? 1 : 2,
+                (chunkPosition1x.z < min2xMax.z) ? 1 : 2,
+                (chunkPosition1x.x < min2xMax.x && chunkPosition1x.z < min2xMax.z) ? 1 : 2,
+                (chunkPosition1x.y < min2xMax.y) ? 1 : 2,
+                (chunkPosition1x.x < min2xMax.x && chunkPosition1x.y < min2xMax.y) ? 1 : 2,
+                (chunkPosition1x.y < min2xMax.y && chunkPosition1x.z < min2xMax.z) ? 1 : 2,
+                (chunkPosition1x.x < min2xMax.x && chunkPosition1x.y < min2xMax.y && chunkPosition1x.z < min2xMax.z) ? 1 : 2,
+              ];
+              // console.log('got lod array', lodArray, chunkPosition1x.toArray(), min2xMax.toArray());
               const chunk = new LodChunk(chunkPosition1x.x, chunkPosition1x.y, chunkPosition1x.z, lodArray);
               neededChunks.push(chunk);
             }
@@ -167,11 +167,11 @@ export class LodChunkTracker extends EventTarget {
         }
       }
       for (const chunk of neededChunks) {
-        const matchingExistingChunk = this.chunks.find(ec => ec.equals(chunk));
-        if (matchingExistingChunk) {
-          if (matchingExistingChunk.lod !== chunk.lod) {
+        const matchingChunk = this.chunks.find(ec => ec.equals(chunk));
+        if (matchingChunk) {
+          if (!matchingChunk.lodArrayEquals(chunk)) {
             reloddedChunks.push({
-              oldChunk: matchingExistingChunk,
+              oldChunk: matchingChunk,
               newChunk: chunk,
             });
           }
@@ -182,12 +182,19 @@ export class LodChunkTracker extends EventTarget {
 
       for (const removedChunk of removedChunks) {
         this.generator.disposeChunk(removedChunk);
-        const index = this.chunks.indexOf(removedChunk);
-        this.chunks.splice(index, 1);
+        this.chunks.splice(this.chunks.indexOf(removedChunk), 1);
       }
       for (const addedChunk of addedChunks) {
         this.generator.generateChunk(addedChunk);
         this.chunks.push(addedChunk);
+      }
+      if (this.generator.relodChunk) {
+        for (const reloddedChunk of reloddedChunks) {
+          const {oldChunk, newChunk} = reloddedChunk;
+          this.generator.relodChunk(oldChunk, newChunk);
+          this.chunks.splice(this.chunks.indexOf(oldChunk), 1);
+          this.chunks.push(newChunk);
+        }
       }
     
       this.lastUpdateCoord.copy(currentCoord);
