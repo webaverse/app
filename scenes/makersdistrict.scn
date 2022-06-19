@@ -110,7 +110,20 @@
         },
         {
             "position": [
-                -8,
+                0,
+                0,
+                0
+            ],
+            "scale": [
+                1,
+                1,
+                1
+            ],
+            "start_url": "https://madjin.github.io/m3tapod/"
+        },
+        {
+            "position": [
+                -16,
                 0.05,
                 6
             ],
@@ -122,20 +135,54 @@
             ],
             "start_url": "https://m3-org.github.io/tubby-pet/yellowcupid/"
         },
-            {
-      "position": [
-        2,
-        0.5,
-        10
-      ],
-      "quaternion": [
-        0,
-        0,
-        0,
-        1
-      ],
-      "start_url": "https://webaverse.github.io/hovercraft/"
-    },
+        {
+            "position": [
+                -6,
+                0.1,
+                16
+            ],
+            "quaternion": [
+                0,
+                0,
+                0,
+                1
+            ],
+            "physics": true,
+            "start_url": "https://madjin.github.io/quest-home/home.glb",
+            "dynamic": false
+        },
+        {
+            "position": [
+                -28.781,
+                0.296,
+                24
+            ],
+            "quaternion": [
+                0,
+                0.9923128993796854,
+                0,
+                0.12375423113850474
+            ],
+            "physics": true,
+            "start_url": "https://ipfs.webaverse.com/QmVZA32qhUTec6WmuWJDbxpup8rTVZhpAPFrTkfj6BRHmF/homespace-baked.glb",
+            "dynamic": false
+        },
+        {
+            "position": [
+                -15,
+                0.196,
+                -11
+            ],
+            "quaternion": [
+                0,
+                0.7071067811865475,
+                0,
+                0.7071067811865475
+            ],
+            "physics": true,
+            "start_url": "https://m3-org.github.io/assets/booths/gm3/gm3gallery.glb",
+            "dynamic": false
+        },
         {
             "position": [
                 -18.5,
@@ -162,9 +209,17 @@
         },
         {
             "position": [
-                -6.5,
+                0,
+                0,
+                0
+            ],
+            "start_url": "https://madjin.github.io/weba-modules/audio/index.js"
+        },
+        {
+            "position": [
+                -12.5,
                 0.21,
-                -6
+                -10
             ],
             "quaternion": [
                 0,
@@ -188,7 +243,7 @@
             "position": [
                 -4,
                 0.19,
-                4
+                16
             ],
             "quaternion": [
                 0,
@@ -210,9 +265,9 @@
         },
         {
             "position": [
-                -5,
-                0.0,
-                -5
+                -19,
+                0.19,
+                -10
             ],
             "quaternion": [
                 0,
@@ -277,9 +332,9 @@
         },
         {
             "position": [
-                -2.0,
+                -61.788,
                 0,
-                2
+                5
             ],
             "quaternion": [
                 0,
@@ -298,9 +353,72 @@
         },
         {
             "position": [
-                2.0,
+                -19.261,
                 0,
-                -2.0
+                18.5
+            ],
+            "quaternion": [
+                0,
+                0.9997997398600729,
+                0,
+                -0.020012000792790446
+            ],
+            "scale": [
+                1.0000000000000695,
+                0.9999999999999889,
+                1.0000000000000695
+            ],
+            "physics": true,
+            "start_url": "https://ipfs.webaverse.com/Qma9C1wDVso8sed4uL3C2y1dL3sQvtiYsJoyBSc8hvhQiL/vk4.glb",
+            "dynamic": false
+        },
+        {
+            "position": [
+                -38.882957458496094,
+                0,
+                16.049686431884766
+            ],
+            "quaternion": [
+                0.003845355188104723,
+                0.5282842389156767,
+                0.0022305761112600326,
+                0.8490559467355339
+            ],
+            "scale": [
+                0.9999999999999779,
+                0.9999999999998482,
+                0.9999999999999962
+            ],
+            "physics": true,
+            "start_url": "https://ipfs.webaverse.com/Qme5fkTeDKY9H1ZaQw8dcysfbhB6yopQsekUH27TUzB9GZ/standard.glb",
+            "dynamic": false
+        },
+        {
+            "position": [
+                -22.886,
+                0.094,
+                -8.128
+            ],
+            "quaternion": [
+                0,
+                -0.6790689289946173,
+                0,
+                0.7340745123446961
+            ],
+            "scale": [
+                1,
+                1,
+                1
+            ],
+            "physics": true,
+            "start_url": "https://ipfs.webaverse.com/QmY39P1tpK29DVVsAvvCccXdv3JFvyVE8dhuT6gomehYPL/defaultbooth.glb",
+            "dynamic": false
+        },
+        {
+            "position": [
+                4.359,
+                0,
+                -8.153
             ],
             "quaternion": [
                 0,

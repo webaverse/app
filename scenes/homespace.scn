@@ -3,7 +3,7 @@
   {
     "type": "application/spawnpoint",
     "content": {
-      "position": [0, 75, 0],
+      "position": [0, 1, 0],
       "quaternion": [0, 0, 0, 1]
     }
   },
@@ -90,9 +90,9 @@
                     "maxDistance": 5
                 },
                 "bloom": {
-                    "strength": 0.7,
-                    "radius": 0.3,
-                    "threshold": 0.95
+                    "strength": 0.5,
+                    "radius": 0.5,
+                    "threshold": 1.0
                 },
                 "dof": {
                     "focus": 6,
@@ -104,7 +104,7 @@
     {
       "position": [
         0,
-        0,
+        -100,
         0
       ],
       "start_url": "https://webaverse.github.io/street-base/"
@@ -112,7 +112,7 @@
     {
       "position": [
         0,
-        0,
+        -100,
         0
       ],
       "start_url": "https://webaverse.github.io/street/index.js"
@@ -128,7 +128,7 @@
     {
       "position": [
         0,
-        74,
+        0,
         0
       ],
       "quaternion": [
@@ -138,6 +138,48 @@
         0.7071067811865475
       ],
       "start_url": "https://webaverse.github.io/homespace_new/"
+    },
+        {
+      "position": [
+        -4,
+        0,
+        0
+      ],
+      "quaternion": [
+        0,
+        0,
+        0,
+        1
+      ],
+      "start_url": "https://webaverse.github.io/hovercraft/"
+    },
+        {
+      "position": [
+        4,
+        0,
+        0
+      ],
+      "quaternion": [
+        0,
+        0.7071067811865475,
+        0,
+        0.7071067811865475
+      ],
+      "start_url": "https://webaverse.github.io/fox/"
+    },
+        {
+      "position": [
+        4,
+        0.5,
+        -2
+      ],
+      "quaternion": [
+        0,
+        0,
+        0,
+        1
+      ],
+      "start_url": "https://webaverse.github.io/silsword/"
     }
   ]
 }
