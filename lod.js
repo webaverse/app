@@ -219,8 +219,14 @@ export class LodChunkTracker extends EventTarget {
   }
   destroy() {
     for (const chunk of this.chunks) {
-      this.generator.disposeChunk(chunk);
+      this.dispatchEvent(new MessageEvent('chunkremove', {
+        data: {
+          chunk,
+        },
+      }));
     }
     this.chunks.length = 0;
+
+    // this.dispatchEvent(new MessageEvent('destroy'));
   }
 }
