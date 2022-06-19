@@ -138,10 +138,14 @@ class AppManager extends EventTarget {
     this.appsArray = nextAppsArray;
   }
   // Called on the remote player on construction
-  loadApps() {
+  async loadApps() {
     for (let i = 0; i < this.appsArray.length; i++) {
       const trackedApp = this.appsArray.get(i, Z.Map);
-      this.importTrackedApp(trackedApp);
+      const app = await this.importTrackedApp(trackedApp);
+
+      if(!app) return console.error("App not found", app);
+      if(!trackedApp) return console.error("App not found", trackedApp);
+      this.bindTrackedApp(trackedApp, app);
     }
   }
   // Bind the tracked app to start listening for events
@@ -176,7 +180,6 @@ class AppManager extends EventTarget {
     }
   }
   bindEvents() {
-
     const resize = (e) => {
       this.resize(e);
     };
@@ -278,6 +281,7 @@ class AppManager extends EventTarget {
       }
 
       p.accept(app);
+      return app;
     } catch (err) {
       p.reject(err);
     } finally {
@@ -455,8 +459,6 @@ class AppManager extends EventTarget {
   }
 
   removeApp(app) {
-    logger.log('appManager.removeApp', app, new Error().stack);
-
     const index = this.apps.indexOf(app);
     // if (app.getComponent("wear") && this.callBackFn) {
     //   this.callBackFn(app, "wear", "remove");
@@ -611,7 +613,6 @@ class AppManager extends EventTarget {
   // called by local player, remote players and world update()
   update() {
     if (!this.appsArray) return console.warn("Can't push app updates because appsArray is null")
-
     const self = this;
     this.appsArray.doc.transact(() => {
       for (const app of self.apps) {
@@ -683,8 +684,8 @@ class AppManager extends EventTarget {
           };
           _updatePhysicsObjects();
 
-          app.lastMatrix.copy(app.matrix);
           app.updateMatrix();
+          app.lastMatrix.copy(app.matrix);
         }
       }
     }, "push");

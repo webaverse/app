@@ -458,7 +458,7 @@ class Player extends THREE.Object3D {
       _initPhysics();
 
       const wearComponent = app.getComponent('wear');
-      const holdAnimation = wearComponent? wearComponent.holdAnimation : null;
+      const holdAnimation = wearComponent ? wearComponent.holdAnimation : null;
       const _addAction = () => {
         this.addAction({
           type: 'wear',
@@ -478,9 +478,9 @@ class Player extends THREE.Object3D {
     dropDirection = null,
   } = {}) {
     logger.log("unwear called on", app)
-      const wearActionIndex = this.findActionIndex(({type, instanceId}) => {
-        return type === 'wear' && instanceId === app.instanceId;
-      });
+    const wearActionIndex = this.findActionIndex(({ type, instanceId }) => {
+      return type === 'wear' && instanceId === app.instanceId;
+    });
 
     console.log('unwear called wearActionIndex', wearActionIndex)
 
@@ -497,13 +497,13 @@ class Player extends THREE.Object3D {
         );
       }
     };
-    _deinitPhysics();    
+    _deinitPhysics();
     if (wearActionIndex !== -1) {
       const wearAction = this.getActionsState().get(wearActionIndex);
       const loadoutIndex = wearAction.loadoutIndex;
       console.log('unwear called wearActionIndex !== -1', wearActionIndex !== -1)
 
-      if(app.getComponent("wear") && !app.getComponent("sit") && !app.getComponent("pet")) {
+      if (app.getComponent("wear") && !app.getComponent("sit") && !app.getComponent("pet")) {
         const _setAppTransform = () => {
           if (dropStartPosition && dropDirection) {
             const physicsObjects = app.getPhysicsObjects();
@@ -564,7 +564,7 @@ class Player extends THREE.Object3D {
           if (destroy) {
             this.appManager.removeApp(app);
           } else {
-            if(!this.isLocalPlayer){
+            if (!this.isLocalPlayer) {
               console.error("Going to do stuff on remote player that affects state")
             }
             this.appManager.transplantApp(app, world.appManager);
@@ -716,7 +716,7 @@ class Player extends THREE.Object3D {
 
     const instanceId = this.getAvatarState().get("instanceId") ?? "";
 
-    if(this.avatar){
+    if (this.avatar) {
       this.appManager.removeApp(this.avatar.app);
       this.avatar?.app?.parent?.remove(this.avatar.app);
     }
@@ -905,7 +905,7 @@ class Player extends THREE.Object3D {
 // Created in players.js and npc-manager.js respectively
 class LocalPlayer extends Player {
   constructor(opts) {
-    super({...opts, isLocalPlayer: !opts.npc});
+    super({ ...opts, isLocalPlayer: !opts.npc });
 
     this.isLocalPlayer = !opts.npc;
     this.isNpcPlayer = !!opts.npc;
@@ -944,6 +944,28 @@ class LocalPlayer extends Player {
     };
   }
 
+  init() {
+    this.characterPhysics.reset();
+    this.updatePhysics(0, 0);
+    const packedTransform = new Float32Array(8);
+    const pack3 = (v, i) => {
+      packedTransform[i] = v.x;
+      packedTransform[i + 1] = v.y;
+      packedTransform[i + 2] = v.z;
+    };
+    const pack4 = (v, i) => {
+      packedTransform[i] = v.x;
+      packedTransform[i + 1] = v.y;
+      packedTransform[i + 2] = v.z;
+      packedTransform[i + 3] = v.w;
+    };
+    pack3(this.position, 0);
+    pack4(this.quaternion, 3);
+    packedTransform[7] = 0;
+
+    this.playerMap.set("transform", packedTransform);
+  }
+
   updateInterpolation(timestamp, timeDiff) {
     for (const actionInterpolant of this.actionInterpolantsArray) {
       actionInterpolant.update(timestamp, timeDiff);
@@ -968,26 +990,26 @@ class LocalPlayer extends Player {
     return this.appManager.getAppByInstanceId(instanceId);
   }
   async setAvatarApp(app) {
-    if(this.isLocalPlayer){
-    world.appManager.transplantApp(app, this.appManager);
-    this.setAvatarAppInternal(app);
-  } else {
-    console.log("Handling setAvatarApp for remote player")
-  }
+    if (this.isLocalPlayer) {
+      world.appManager.transplantApp(app, this.appManager);
+      this.setAvatarAppInternal(app);
+    } else {
+      console.log("Handling setAvatarApp for remote player")
+    }
   }
 
   setAvatarAppInternal(app) {
     if (!app) return console.error("app is ", app)
-      console.log("Setting setAvatarAppInternal on remote player")
+    console.log("Setting setAvatarAppInternal on remote player")
     const self = this;
-      const avatar = self.getAvatarState();
-      const oldInstanceId = avatar.get("instanceId");
-      this.playersArray.doc.transact(function tx() {
+    const avatar = self.getAvatarState();
+    const oldInstanceId = avatar.get("instanceId");
+    this.playersArray.doc.transact(function tx() {
       if (oldInstanceId) {
         self.appManager.removeTrackedAppInternal(oldInstanceId);
       }
 
-      if(app.instanceId && oldInstanceId !== app.instanceId) {
+      if (app.instanceId && oldInstanceId !== app.instanceId) {
         avatar.set("instanceId", app.instanceId ?? "");
       } else {
         console.warn("Trying to set avatar app to same instanceId as before");
@@ -1023,7 +1045,7 @@ class LocalPlayer extends Player {
       self.playerMap.set('name', self.name);
       self.playerMap.set('bio', self.bio);
 
-      const packedTransform = new Float32Array(11);
+      const packedTransform = new Float32Array(8);
       const pack3 = (v, i) => {
         packedTransform[i] = v.x;
         packedTransform[i + 1] = v.y;
@@ -1037,7 +1059,7 @@ class LocalPlayer extends Player {
       };
       pack3(self.position, 0);
       pack4(self.quaternion, 3);
-      pack3(self.scale, 7);
+      packedTransform[7] = 0;
 
       self.playerMap.set("transform", packedTransform);
       const avatar = self.getAvatarState();
@@ -1175,16 +1197,15 @@ class LocalPlayer extends Player {
 
     const timeDiffS = timeDiff / 1000;
 
-    const actions = this.getActionsState();
-    this.characterSfx.update(timestamp, timeDiffS, actions);
+    this.characterSfx.update(timestamp, timeDiffS, this.getActionsState());
     this.characterFx.update(timestamp, timeDiffS);
     this.characterHitter.update(timestamp, timeDiffS);
     this.characterBehavior.update(timestamp, timeDiffS);
 
     this.avatar.update(timestamp, timeDiff, true);
 
-    this.appManager.update();
     this.pushPlayerUpdates(timeDiff);
+    this.appManager.update();
   }
   /* teleportTo = (() => {
     const localVector = new THREE.Vector3();
@@ -1317,9 +1338,64 @@ class RemotePlayer extends Player {
       position: this.positionInterpolant.get(),
       quaternion: this.quaternionInterpolant.get(),
     };
-    this.appManager.loadApps();
-    this.syncAvatar();
-    this.hasReceivedData = false;
+    (async () => {
+
+      await this.appManager.loadApps();
+      await this.syncAvatar();
+
+      const transform = this.playerMap.get("transform");
+      console.log("remoteTimeDiff", remoteTimeDiff);
+      console.log("transform is", transform);
+      this.position.fromArray(transform, 0);
+
+      this.characterPhysics.setPosition(this.position);
+
+      this.quaternion.fromArray(transform, 3);
+
+      this.positionInterpolant?.snapshot(remoteTimeDiff);
+      this.quaternionInterpolant?.snapshot(remoteTimeDiff);
+
+      for (const actionBinaryInterpolant of this
+        .actionBinaryInterpolantsArray) {
+        actionBinaryInterpolant.snapshot(remoteTimeDiff);
+      }
+
+      this.avatar.setVelocity(
+        remoteTimeDiff,
+        this.position,
+        this.position,
+        this.quaternion
+      );
+
+      const nextActions = Array.from(this.getActionsState());
+
+      for (const nextAction of nextActions) {
+        if (
+          !lastActions.some(
+            (lastAction) => lastAction.actionId === nextAction.actionId
+          )
+        ) {
+          this.dispatchEvent({
+            type: 'actionadd',
+            action: nextAction,
+          });
+        }
+      }
+
+      for (const lastAction of lastActions) {
+        if (
+          !nextActions.some(
+            (nextAction) => nextAction.actionId === lastAction.actionId
+          )
+        ) {
+          this.dispatchEvent({
+            type: 'actionremove',
+            action: lastAction,
+          });
+          // console.log('remove action', lastAction);
+        }
+      }
+    })();
   }
   // The audio worker handles hups and incoming voices
   // This includes the microphone from the owner of this instance
@@ -1358,12 +1434,11 @@ class RemotePlayer extends Player {
   }
   update(timestamp, timeDiff) {
     if (!this.avatar) return logger.warn("Can't update remote player, avatar is null");
-    if (!this.hasReceivedData) return logger.warn("Skipping update, haven't received movement from the user yet");
 
     const _updateInterpolation = () => {
       this.positionInterpolant.update(timeDiff);
       this.quaternionInterpolant.update(timeDiff);
-  
+
       for (const actionBinaryInterpolant of this.actionBinaryInterpolantsArray) {
         actionBinaryInterpolant.update(timeDiff);
       }
@@ -1378,8 +1453,10 @@ class RemotePlayer extends Player {
     applyPlayerToAvatar(this, null, this.avatar, mirrors);
 
     const timeDiffS = timeDiff / 1000;
-    this.characterSfx?.update(timestamp, timeDiffS);
-    this.characterFx?.update(timestamp, timeDiffS);
+    this.characterSfx.update(timestamp, timeDiffS, this.getActionsState());
+    this.characterFx.update(timestamp, timeDiffS);
+    this.characterHitter.update(timestamp, timeDiffS);
+    this.characterBehavior.update(timestamp, timeDiffS);
 
     this.avatar.update(timestamp, timeDiff, false);
   }
@@ -1411,7 +1488,7 @@ class RemotePlayer extends Player {
         this.playerId = e.changes.keys.get('playerId');
       }
 
-      if(this.isLocalPlayer) return;
+      if (this.isLocalPlayer) return;
 
       if (e.changes.keys.get('voiceSpec') || e.added?.keys?.get('voiceSpec')) {
         const voiceSpec = e.changes.keys.get('voiceSpec');
@@ -1429,7 +1506,6 @@ class RemotePlayer extends Player {
       if (e.changes.keys.has("transform")) {
         const transform = this.playerMap.get("transform");
         if (transform) {
-          this.hasReceivedData = true;
           const remoteTimeDiff = transform[7];
           lastPosition.copy(this.position);
           this.position.fromArray(transform, 0);

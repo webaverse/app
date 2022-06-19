@@ -247,7 +247,7 @@ class CharacterFx {
     };
     _updateSonicBoomMesh();
     const _updateNameplate = () => {
-      if(!this.nameplate && !this.isLocalPlayer){
+      if(!this.nameplate){
         (async () => {
         this.nameplate = metaversefile.createApp();
         this.nameplate.player = this.player;
@@ -255,6 +255,7 @@ class CharacterFx {
           const m = modules['nameplate'];
           await this.nameplate.addModule(m);
           sceneLowPriority.add(this.nameplate);
+          console.log("Added nameplate")
         })();
       }
     };
