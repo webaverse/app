@@ -17,6 +17,9 @@ class ProcGenInstance {
     });
     this.trackers = [];
   }
+  setRange(range) {
+    this.dcWorkerManager.setRange(range);
+  }
   getChunkTracker({
     numLods = 1,
     trackY = false,
