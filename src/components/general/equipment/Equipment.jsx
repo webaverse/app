@@ -36,8 +36,8 @@ const objects = {
       level: 6,
     },
     {
-      name: 'Dragon',
-      start_url: 'https://webaverse.github.io/dragon-mount/',
+      name: 'Hovercraft',
+      start_url: 'https://webaverse.github.io/hovercraft/',
       level: 5,
     },
     {
@@ -45,6 +45,11 @@ const objects = {
       start_url: 'https://webaverse.github.io/bow/',
       level: 9,
     },
+    {
+      name: 'Fox',
+      start_url: 'https://webaverse.github.io/fox/',
+      level: 9,
+    }
     /* {
             name: 'Silk',
             start_url: './metaverse_modules/silk/',
