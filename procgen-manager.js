@@ -16,10 +16,11 @@ class ProcGenInstance {
       seed,
       instance,
     });
-    // this.trackers = [];
+    this.range = null;
   }
   setRange(range) {
     this.dcWorkerManager.setRange(range);
+    this.range = range.clone();
   }
   getChunkTracker({
     numLods = 1,
@@ -33,18 +34,11 @@ class ProcGenInstance {
       trackY,
       relod,
     });
-    /* this.trackers.push(tracker);
-    tracker.addEventListener('destroy', e => {
-      this.trackers.splice(this.trackers.indexOf(tracker), 1);
-    }); */
+    if (this.range) {
+      tracker.setRange(this.range);
+    }
     return tracker;
   }
-  /* update() {
-    const localPlayer = getLocalPlayer();
-    for (const tracker of this.trackers) {
-      tracker.update(localPlayer.position);
-    }
-  } */
 }
 
 class ProcGenManager {

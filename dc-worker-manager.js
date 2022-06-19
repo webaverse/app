@@ -136,7 +136,10 @@ export class DcWorkerManager {
     await Promise.all(this.workers.map(worker => {
       return worker.request('setRange', {
         instance: this.instance,
-        range,
+        range: [
+          range.min.toArray(),
+          range.max.toArray(),
+        ],
       });
     }));
   }
