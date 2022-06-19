@@ -269,7 +269,7 @@ export class DcWorkerManager {
     });
     return result;
   }
-  static GeometryAllocator = GeometryAllocator;
+  // static GeometryAllocator = GeometryAllocator;
 }
 // const dcWorkerManager = new DcWorkerManager();
 // import * as THREE from 'three';
