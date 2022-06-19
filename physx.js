@@ -2180,6 +2180,31 @@ const physxWorker = (() => {
     }
   }
 
+  w.addAnimationPhysics = (physics, sampleValues) => {
+    const allocator = new Allocator(moduleInstance);
+
+    const sampleValuesTypedArray = allocator.alloc(Float32Array, sampleValues.length);
+    sampleValuesTypedArray.set(sampleValues);
+    // debugger
+    console.log(sampleValuesTypedArray);
+
+    moduleInstance._addAnimationPhysics(
+      physics,
+      sampleValuesTypedArray.byteOffset,
+    )
+
+    // allocator.freeAll(); // can't free sampleValuesTypedArray, need persist in wasm for later use.
+  }
+
+  w.evaluateAnimationPhysics = (physics, t) => {
+    const value = moduleInstance._evaluateAnimationPhysics(
+      physics,
+      t,
+    )
+
+    return value;
+  }
+
   return w;
 })()
 
