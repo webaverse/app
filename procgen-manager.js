@@ -15,6 +15,7 @@ class ProcGenInstance {
       seed,
       instance,
     });
+    this.trackers = [];
   }
   getChunkTracker({
     numLods = 1,
@@ -27,6 +28,10 @@ class ProcGenInstance {
       numLods,
       trackY,
       relod,
+    });
+    this.trackers.push(tracker);
+    tracker.addEventListener('destroy', e => {
+      this.trackers.splice(this.trackers.indexOf(tracker), 1);
     });
     return tracker;
   }
