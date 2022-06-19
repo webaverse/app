@@ -133,12 +133,12 @@ export class DcWorkerManager {
     return worker;
   }
   async setRange(range) {
-    const worker = this.getNextWorker();
-    const result = await worker.request('setRange', {
-      instance: this.instance,
-      range,
-    });
-    return result;
+    await Promise.all(this.workers.map(worker => {
+      return worker.request('setRange', {
+        instance: this.instance,
+        range,
+      });
+    }));
   }
   async generateChunk(chunkPosition, lodArray) {
     const worker = this.getNextWorker();
