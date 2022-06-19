@@ -12,6 +12,7 @@ import {initialPosY} from './constants.js';
 import {parseQuery} from './util.js';
 import metaversefile from 'metaversefile';
 import sceneNames from './scenes/scenes.json';
+import logger from './logger.js';
 class Universe extends EventTarget {
   constructor() {
     super();
@@ -79,9 +80,9 @@ class Universe extends EventTarget {
       this.sceneLoadedPromise = null;
     };
     await _doLoad();
+    localPlayer.characterPhysics.reset();
     physicsManager.setPhysicsEnabled(true);
-
-    localPlayer.init();
+    localPlayer.updatePhysics(0, 0);
 
     this.currentWorld = worldSpec;
 
@@ -89,10 +90,12 @@ class Universe extends EventTarget {
   }
 
   async reload() {
+    logger.log('universe.reload')
     await this.enterWorld(this.currentWorld);
   }
 
   async pushUrl(u) {
+    logger.log('universe.pushUrl', u)
     history.pushState({}, '', u);
     window.dispatchEvent(new MessageEvent('pushstate'));
     await this.handleUrlUpdate();

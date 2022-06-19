@@ -562,9 +562,6 @@ class Player extends THREE.Object3D {
           if (destroy) {
             this.appManager.removeApp(app);
           } else {
-            if (!this.isLocalPlayer) {
-              console.error("Going to do stuff on remote player that affects state")
-            }
             this.appManager.transplantApp(app, world.appManager);
           }
         } else {
@@ -620,37 +617,27 @@ class Player extends THREE.Object3D {
     const actions = this.getActionsState();
     let lastActions = actions.toJSON();
     const observeActionsFn = (e) => {
-      const nextActions = Array.from(this.getActionsState());
+      console.log("actions", e);
+      const { added, deleted } = e.changes;
 
-      for (const nextAction of nextActions) {
-        if (
-          !lastActions.some(
-            (lastAction) => lastAction.actionId === nextAction.actionId
-          )
-        ) {
-          this.dispatchEvent({
-            type: 'actionadd',
-            action: nextAction,
-          });
+      for (const item of added.values()) {
+        let action = item.content.type;
+        console.log("action added", action)
+        this.dispatchEvent({
+          type: 'actionadd',
+          action: action,
+        });
         }
-      }
 
-      for (const lastAction of lastActions) {
-        if (
-          !nextActions.some(
-            (nextAction) => nextAction.actionId === lastAction.actionId
-          )
-        ) {
+        for (const item of deleted.values()) {
+          let action = item.content.type;
+          console.log("action removed", action)
           this.dispatchEvent({
             type: 'actionremove',
-            action: lastAction,
+            action: action,
           });
-          // console.log('remove action', lastAction);
         }
-      }
-      // console.log('actions changed');
-      lastActions = nextActions;
-    };
+      };
     actions.observe(observeActionsFn);
     this.unbindFns.push(actions.unobserve.bind(actions, observeActionsFn));
 
@@ -940,28 +927,6 @@ class LocalPlayer extends Player {
       position: this.position,
       quaternion: this.quaternion,
     };
-  }
-
-  init() {
-    // this.characterPhysics.reset();
-    // this.updatePhysics(0, 0);
-    const packedTransform = new Float32Array(8);
-    const pack3 = (v, i) => {
-      packedTransform[i] = v.x;
-      packedTransform[i + 1] = v.y;
-      packedTransform[i + 2] = v.z;
-    };
-    const pack4 = (v, i) => {
-      packedTransform[i] = v.x;
-      packedTransform[i + 1] = v.y;
-      packedTransform[i + 2] = v.z;
-      packedTransform[i + 3] = v.w;
-    };
-    pack3(this.position, 0);
-    pack4(this.quaternion, 3);
-    packedTransform[7] = 0;
-
-    this.playerMap.set("transform", packedTransform);
   }
 
   updateInterpolation(timestamp, timeDiff) {
@@ -1357,9 +1322,6 @@ class RemotePlayer extends Player {
 
     const transform = this.playerMap.get("transform");
     this.position.fromArray(transform, 0);
-
-    this.characterPhysics.setPosition(this.position);
-
     this.quaternion.fromArray(transform, 3);
 
     const nextActions = Array.from(this.getActionsState());
@@ -1458,10 +1420,6 @@ class RemotePlayer extends Player {
     loadPhysxCharacterController.call(this);
 
     const observePlayerFn = (e) => {
-      if (e.changes.keys.get('playerId')) {
-        this.playerId = e.changes.keys.get('playerId');
-      }
-
       if (this.isLocalPlayer) return;
 
       if (e.changes.keys.get('voiceSpec') || e.added?.keys?.get('voiceSpec')) {
@@ -1504,7 +1462,13 @@ class RemotePlayer extends Player {
               this.quaternion
             );
           }
+        } else {
+          console.log("e", e)
         }
+
+        
+
+        
       }
     };
 

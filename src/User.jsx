@@ -1,32 +1,31 @@
-import React, { useState, useEffect, useContext } from 'react';
 import classnames from 'classnames';
-
-import { discordClientId } from '../constants';
+import React, { useContext, useEffect, useState } from 'react';
+import * as sounds from '../sounds.js';
 import { parseQuery } from '../util.js';
-
+import { AppContext } from './components/app';
 // import Modal from './components/modal';
 import WebaWallet from './components/wallet';
-
-import blockchainManager from '../blockchain-manager.js';
-import { AppContext } from './components/app';
-
-import styles from './User.module.css';
-
-import * as sounds from '../sounds.js';
 import Chains from './components/web3/chains';
+import styles from './User.module.css';
 
 //
 
-export const User = ({ setLoginFrom }) => {
-    const { state, setState, account } = useContext( AppContext );
-    const [ensName, setEnsName] = useState('');
-    const [avatarUrl, setAvatarUrl] = useState('');
-    const [ loggingIn, setLoggingIn ] = useState(false);
-    const [ loginError, setLoginError ] = useState(null);
-    const [ autoLoginRequestMade, setAutoLoginRequestMade ] = useState(false);
-    const { currentAddress, connectWallet, logoutWallet, errorMessage, wrongChain } = account;
+export const User = ({setLoginFrom}) => {
+  const {state, setState, account, chain} = useContext(AppContext);
+  const [ensName, setEnsName] = useState('');
+  const [avatarUrl, setAvatarUrl] = useState('');
+  const [loggingIn, setLoggingIn] = useState(false);
+  const [loginError, setLoginError] = useState(null);
+  const [autoLoginRequestMade, setAutoLoginRequestMade] = useState(false);
+  const {isConnected, currentAddress, connectWallet, errorMessage, wrongChain, getAccounts, getAccountDetails} = account;
+  const {selectedChain} = chain;
+  const [address, setAddress] = useState();
+  async function _setAddress(address) {
+    await handleAddress(address);
+    setAddress(address);
+  }
 
-    /* const showModal = ( event ) => {
+  /* const showModal = ( event ) => {
 
         event.preventDefault();
         // setShow( ! show );
@@ -35,256 +34,203 @@ export const User = ({ setLoginFrom }) => {
 
     }; */
 
-    const openUserPanel = e => {
+  const openUserPanel = e => {
+    setState({openedPanel: 'UserPanel'});
+  };
 
-        setState({ openedPanel: 'UserPanel' });
-    
-    };
+  const handleCancelBtnClick = () => {
+    setState({openedPanel: null});
 
-    const handleCancelBtnClick = () => {
+    sounds.playSoundName('menuBack');
+  };
 
-        setState({ openedPanel: null });
+  async function handleAddress(address) {
+    const {name, avatar} = await getAccountDetails();
 
-        sounds.playSoundName('menuBack');
+    if (name) setEnsName(name);
+    if (avatar) setAvatarUrl(avatar);
+  }
 
-    };
+  useEffect(() => {
+    if (!currentAddress) return;
+    handleAddress(currentAddress);
+  }, [currentAddress, selectedChain]);
 
-    useEffect(()=>{
+  const metaMaskLogin = async event => {
+    event.preventDefault();
+    event.stopPropagation();
 
-        if(!currentAddress) return;
-
-        async function handleAddress() {
-            const ensName = await blockchainManager.getEnsName(currentAddress);
-            setEnsName(ensName);
-
-            if(!ensName) return;
-            const avatarUrl = await blockchainManager.getAvatarUrl(currentAddress);
-            setAvatarUrl(avatarUrl);
-        }
-
-        handleAddress();
-
-    }, [currentAddress])
-
-    const metaMaskLogin = async ( event ) => {
-
-        event.preventDefault();
-        event.stopPropagation();
-
-        /* if ( address ) {
+    /* if ( address ) {
 
             setState({ openedPanel: ( state.openedPanel === 'UserPanel' ? null : 'UserPanel' ) });
 
         } else { */
 
-            if ( ! loggingIn ) {
+    if (!loggingIn) {
+      setLoggingIn(true);
 
-                setLoggingIn( true );
+      try {
+        const address = await connectWallet();
+        setLoginFrom('metamask');
+        // setShow(false);
+        // setLoginFrom('metamask');
+      } catch (err) {
+        console.warn(err);
+      } finally {
+        setState({openedPanel: null});
 
-                try {
+        setLoggingIn(false);
+      }
+    }
 
-                    const address = await connectWallet();
-                    setLoginFrom('metamask');
-                    // setShow(false);
-                    // setLoginFrom('metamask');
+    // }
+  };
 
-                } catch (err) {
+  useEffect(() => {
+    const {error, code, id, play, realmId} = parseQuery(window.location.search);
 
-                    console.warn(err);
+    //
 
-                } finally {
-                    setState({ openedPanel: null });
+    const discordAutoLogin = async () => {
+      const {address, error} = await WebaWallet.loginDiscord(code, id);
 
-                    setLoggingIn(false);
+      if (address) {
+        await _setAddress(address);
+        // setAddress( address );
+        setLoginFrom('discord');
+        // setShow( false );
+      } else if (error) {
+        setLoginError(String(error).toLocaleUpperCase());
+      }
 
-                }
-
-            }
-
-        // }
-
+      window.history.pushState({}, '', window.location.origin);
+      setLoggingIn(false);
     };
-    
-    useEffect( () => {
 
-        const { error, code, id, play, realmId } = parseQuery( window.location.search );
+    const metamaskAutoLogin = async () => {
+      const address = await getAccounts();
 
-        //
+      if (address) {
+        setLoginFrom('metamask');
+      } else if (error) {
+        setLoginError(String(error).toLocaleUpperCase());
+      }
+    };
 
-        const discordAutoLogin = async () => {
-            console.warn("Skipping discord auto login")
-            // const { address, error } = await WebaWallet.loginDiscord( code, id );
+    //
+    if (!autoLoginRequestMade) {
+      setAutoLoginRequestMade(true);
 
-            // if ( address ) {
+      if (code) {
+        setLoggingIn(true);
 
-            //     // setAddress( address );
-            //     setLoginFrom( 'discord' );
-            //     // setShow( false );
-
-            // } else if ( error ) {
-
-            //     setLoginError( String( error ).toLocaleUpperCase() );
-
-            // }
-
-            // window.history.pushState( {}, '', window.location.origin );
-            // setLoggingIn( false );
-
-        };
-
-        const metamaskAutoLogin = async () => {
-
-            const address = await connectWallet();
-
-            if ( currentAddress ) {
-
-                setLoginFrom( 'metamask' );
-
-            } else if ( error ) {
-
-                setLoginError( String( error ).toLocaleUpperCase() );
-
-            }
-
-        };
-
-        //
-        if ( ! autoLoginRequestMade ) {
-            setAutoLoginRequestMade( true );
-
-            if ( code ) {
-
-                setLoggingIn( true );
-
-                if ( WebaWallet.launched ) {
-
-                    discordAutoLogin();
-
-                } else {
-
-                    WebaWallet.waitForLaunch().then( discordAutoLogin );
-
-                }
-
-            } else {
-
-                if ( WebaWallet.launched ) {
-
-                    metamaskAutoLogin();
-
-                } else {
-
-                    WebaWallet.waitForLaunch().then( metamaskAutoLogin );
-
-                }
-
-            }
-
+        if (WebaWallet.launched) {
+          discordAutoLogin();
+        } else {
+          WebaWallet.waitForLaunch().then(discordAutoLogin);
         }
+      } else {
+        if (WebaWallet.launched) {
+          metamaskAutoLogin();
+        } else {
+          WebaWallet.waitForLaunch().then(metamaskAutoLogin);
+        }
+      }
+    }
+  }, [currentAddress]);
 
-    }, [ currentAddress ] );
+  //
 
-    //
+  const _triggerClickSound = () => {
+    sounds.playSoundName('menuClick');
+  };
 
-    const _triggerClickSound = () => {
+  //
 
-        sounds.playSoundName('menuClick');
+  const open = state.openedPanel === 'LoginPanel';
+  const loggedIn = isConnected;
 
-    };
-    
-    //
+  //
 
-    const open = state.openedPanel === 'LoginPanel';
-    const loggedIn = !!currentAddress;
+  return (
+    <div
+      className={ classnames(
+        styles.user,
+        open ? styles.open : null,
+        loggedIn ? styles.loggedIn : null,
+        loggingIn ? styles.loggingIn : null,
+      ) }
+    >
+      <div className={styles.keyWrap} onClick={e => {
+        e.preventDefault();
+        e.stopPropagation();
 
-    //
+        if (!loggedIn) {
+          if (!open) {
+            setState({openedPanel: 'LoginPanel'});
+          } else {
+            setState({openedPanel: null});
+          }
 
-    return (
+          sounds.playSoundName('menuNext');
+        }
+      }} onMouseEnter={e => {
+        _triggerClickSound();
+      }}>
+        <div className={styles.key}>
+          <div className={styles.bow}>
+            <img className={styles.icon} src="./images/log-in.svg" />
+          </div>
+          <div className={styles.blade}>
+            <div className={styles.background} />
+            <div className={styles.text}>ログイン Log in</div>
+          </div>
+        </div>
+      </div>
+
+      <div className={styles.loggingInPlaceholder}>Logging in</div>
+
+      <div
+        className={styles.userWrap}
+      >
+        {loggedIn && <Chains />}
         <div
-            className={ classnames(
-                styles.user,
-                open ? styles.open : null,
-                loggedIn ? styles.loggedIn : null,
-                loggingIn ? styles.loggingIn : null,
-            ) }
+          className={styles.userBar}
+          onClick={openUserPanel}
         >
-            <div className={styles.keyWrap} onClick={e => {
-                e.preventDefault();
-                e.stopPropagation();
-
-                if (!loggedIn) {
-
-                    if ( !open ) {
-
-                        setState({openedPanel: 'LoginPanel' });
-
-                    } else {
-                        setState({ openedPanel: null });
-                    }
-
-                    sounds.playSoundName('menuNext');
-
-                }
-            }} onMouseEnter={e => {
-                
-                _triggerClickSound();
-            
-            }}>
-                <div className={styles.key}>
-                    <div className={styles.bow}>
-                        <img className={styles.icon} src="./images/log-in.svg" />
-                    </div>
-                    <div className={styles.blade}>
-                        <div className={styles.background} />
-                        <div className={styles.text}>ログイン Log in</div>
-                    </div>
-                </div>
+          {avatarUrl ? (
+            <div className={styles.avatarUrl}>
+              <img className={styles.img} src={avatarUrl} crossOrigin='Anonymous' />
             </div>
+          ) : null}
+          <div
+            className={[styles.address, avatarUrl ? styles.avatarPadRight : undefined].join(' ')}
+          >{ensName || address || currentAddress || ''} <img className={styles.verifiedIcon} src="./images/verified.svg" /></div>
+        </div>
+        <div className={styles.logoutBtn}
+          onClick={e => {
+            e.preventDefault();
+            e.stopPropagation();
+            WebaWallet.logout();
+            _setAddress(null);
+          }}
+        >Logout</div>
+      </div>
 
-            <div className={styles.loggingInPlaceholder}>Logging in</div>
-
-            <div
-                className={styles.userWrap}
-            >
-                {loggedIn && <Chains />}
-                <div
-                    className={styles.userBar}
-                    onClick={openUserPanel}
-                >
-                    {avatarUrl ? (
-                        <div
-                            className={styles.avatarUrl}
-                        >
-                            <img className={styles.img} src={avatarUrl} crossOrigin='Anonymous' />
-                        </div>
-                    ) : null}
-                    <div
-                        className={styles.address}
-                    >{ensName || currentAddress || ''} <img className={styles.verifiedIcon} src="./images/verified.svg" /></div>
-                </div>
-                <div className={styles.logoutBtn}
-                    onClick={e => {
-                        e.preventDefault();
-                        e.stopPropagation();
-                        WebaWallet.logout();
-                        logoutWallet();
-                    }}
-                >Logout</div>
-            </div>
-
-            <div className={ classnames(
-                styles.userLoginMethodsModal,
-                open ? styles.opened : null,
-            ) } >
-                <div className={ styles.title } >
-                    <span>Log in</span>
-                    {/* <div className={ styles.background } /> */}
-                </div>
-                <div className={ styles.methodBtn } onClick={ metaMaskLogin } onMouseEnter={ _triggerClickSound } >
-                    <img src="images/metamask.png" alt="metamask" width="28px" />
-                    <span className={ styles.methodBtnText } >MetaMask</span>
-                </div>
-                {/* <a
+      <div className={ classnames(
+        styles.userLoginMethodsModal,
+        open ? styles.opened : null,
+      ) } >
+        <div className={ styles.title } >
+          <span>Log in</span>
+          {/* <div className={ styles.background } /> */}
+        </div>
+        <div className={ styles.methodBtn } onClick={ metaMaskLogin } onMouseEnter={ _triggerClickSound } >
+          <img src="images/metamask.png" alt="metamask" width="28px" />
+          <span className={ styles.methodBtnText } >MetaMask</span>
+        </div>
+      </div>
+      {/* <a
                     href={ `https://discord.com/api/oauth2/authorize?client_id=${ discordClientId }&redirect_uri=${ window.location.origin }%2Flogin&response_type=code&scope=identify` }
                     onMouseEnter={ _triggerClickSound }
                 >
@@ -292,7 +238,7 @@ export const User = ({ setLoginFrom }) => {
                         <img src="images/discord.png" alt="discord" width="28px" />
                         <span className={ styles.methodBtnText } >Discord</span>
                     </div>
-                </a> */}
+                </a>
                 <div className={ styles.methodBtn } onClick={ handleCancelBtnClick } onMouseEnter={ _triggerClickSound } >
                     <span className={ styles.methodBtnText } >Cancel</span>
                 </div>
@@ -300,7 +246,7 @@ export const User = ({ setLoginFrom }) => {
 
             {/* <Modal onClose={ showModal } show={open && !loggingIn}>
                 <div className={styles.login_options}>
-                
+
                     <div className={styles.loginDiv}>
                         <div className={styles.loginBtn} onClick={ metaMaskLogin }>
                             <div className={styles.loginBtnText}>
@@ -319,7 +265,6 @@ export const User = ({ setLoginFrom }) => {
                     </div>
                 </div>
             </Modal> */}
-        </div>
-    );
-
+    </div>
+  );
 };

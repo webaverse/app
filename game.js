@@ -785,6 +785,7 @@ const _gameUpdate = (timestamp, timeDiff) => {
         if (!highlightedPhysicsObject) return
 
         let isGrabbed = false
+        //TODO: check remote player's grab
         const remotePlayers = useRemotePlayers();
         for (const player of remotePlayers) {
           const grabActions = Array.from(player.getActionsState()).filter(

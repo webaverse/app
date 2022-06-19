@@ -235,7 +235,7 @@ class CharacterFx {
 
     this.lastSSS = isSSS;
     const _updateSonicBoomMesh = () => {
-      if ( !this.sonicBoom ) {
+      if ( !this.sonicBoom  && !this.player.isNpcPlayer ) {
         this.sonicBoom = metaversefile.createApp();
         (async () => {
           const {modules} = metaversefile.useDefaultModules();
@@ -247,7 +247,7 @@ class CharacterFx {
     };
     _updateSonicBoomMesh();
     const _updateNameplate = () => {
-      if(!this.nameplate){
+      if(!this.nameplate && !this.player.isNpcPlayer){
         (async () => {
         this.nameplate = metaversefile.createApp();
         this.nameplate.player = this.player;
