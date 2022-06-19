@@ -375,7 +375,6 @@ class Player extends THREE.Object3D {
 
   wear(app, { loadoutIndex = -1 } = {}) {
     logger.log("Wear called on", app)
-    if (this.isLocalPlayer) {
       const _getNextLoadoutIndex = () => {
         let nextLoadoutIndex = -1;
         const usedIndexes = Array(8).fill(false);
@@ -395,7 +394,6 @@ class Player extends THREE.Object3D {
       if (loadoutIndex === -1) {
         loadoutIndex = _getNextLoadoutIndex();
       }
-    }
 
     const _initPhysics = () => {
       const physicsObjects = app.getPhysicsObjects();
@@ -412,7 +410,7 @@ class Player extends THREE.Object3D {
     };
     _initPhysics();
 
-    if (this.isLocalPlayer && loadoutIndex >= 0 && loadoutIndex < numLoadoutSlots) {
+    if (loadoutIndex >= 0 && loadoutIndex < numLoadoutSlots) {
       const _removeOldApp = () => {
         const actions = this.getActionsState();
         let oldLoadoutAction = null;
@@ -945,8 +943,8 @@ class LocalPlayer extends Player {
   }
 
   init() {
-    this.characterPhysics.reset();
-    this.updatePhysics(0, 0);
+    // this.characterPhysics.reset();
+    // this.updatePhysics(0, 0);
     const packedTransform = new Float32Array(8);
     const pack3 = (v, i) => {
       packedTransform[i] = v.x;
@@ -1338,64 +1336,40 @@ class RemotePlayer extends Player {
       position: this.positionInterpolant.get(),
       quaternion: this.quaternionInterpolant.get(),
     };
-    (async () => {
+   this.initRemotePlayer();
+  }
 
-      await this.appManager.loadApps();
-      await this.syncAvatar();
+  async initRemotePlayer(){
+      // Called on the remote player on construction
+    for (let i = 0; i < this.appManager.appsArray.length; i++) {
+      const trackedApp = this.appManager.appsArray.get(i, Z.Map);
+      const app = await this.appManager.importTrackedApp(trackedApp);
 
-      const transform = this.playerMap.get("transform");
-      console.log("remoteTimeDiff", remoteTimeDiff);
-      console.log("transform is", transform);
-      this.position.fromArray(transform, 0);
-
-      this.characterPhysics.setPosition(this.position);
-
-      this.quaternion.fromArray(transform, 3);
-
-      this.positionInterpolant?.snapshot(remoteTimeDiff);
-      this.quaternionInterpolant?.snapshot(remoteTimeDiff);
-
-      for (const actionBinaryInterpolant of this
-        .actionBinaryInterpolantsArray) {
-        actionBinaryInterpolant.snapshot(remoteTimeDiff);
+      if(!app) return console.error("App not found", app);
+      if(!trackedApp) return console.error("App not found", trackedApp);
+      this.appManager.bindTrackedApp(trackedApp, app);
+      if (app.getComponent("wear")) {
+        this.wear(app);
       }
+    }
 
-      this.avatar.setVelocity(
-        remoteTimeDiff,
-        this.position,
-        this.position,
-        this.quaternion
-      );
+    await this.syncAvatar();
 
-      const nextActions = Array.from(this.getActionsState());
+    const transform = this.playerMap.get("transform");
+    this.position.fromArray(transform, 0);
 
-      for (const nextAction of nextActions) {
-        if (
-          !lastActions.some(
-            (lastAction) => lastAction.actionId === nextAction.actionId
-          )
-        ) {
-          this.dispatchEvent({
-            type: 'actionadd',
-            action: nextAction,
-          });
-        }
+    this.characterPhysics.setPosition(this.position);
+
+    this.quaternion.fromArray(transform, 3);
+
+    const nextActions = Array.from(this.getActionsState());
+
+    for (const nextAction of nextActions) {
+        this.dispatchEvent({
+          type: 'actionadd',
+          action: nextAction,
+        });
       }
-
-      for (const lastAction of lastActions) {
-        if (
-          !nextActions.some(
-            (nextAction) => nextAction.actionId === lastAction.actionId
-          )
-        ) {
-          this.dispatchEvent({
-            type: 'actionremove',
-            action: lastAction,
-          });
-          // console.log('remove action', lastAction);
-        }
-      }
-    })();
   }
   // The audio worker handles hups and incoming voices
   // This includes the microphone from the owner of this instance

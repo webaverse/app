@@ -127,7 +127,7 @@ class AppManager extends EventTarget {
         if (!app) {
           const trackedApp = this.getOrCreateTrackedApp(instanceId);
           this.importTrackedApp(trackedApp);
-        } else {
+        } else if(!this.isLocalPlayer) {
           const trackedApp = this.getOrCreateTrackedApp(instanceId);
           this.bindTrackedApp(trackedApp, app);
         }
@@ -137,29 +137,20 @@ class AppManager extends EventTarget {
     this.unbindStateFn = nextAppsArray.unobserve.bind(nextAppsArray, observeAppsFn);
     this.appsArray = nextAppsArray;
   }
-  // Called on the remote player on construction
-  async loadApps() {
-    for (let i = 0; i < this.appsArray.length; i++) {
-      const trackedApp = this.appsArray.get(i, Z.Map);
-      const app = await this.importTrackedApp(trackedApp);
 
-      if(!app) return console.error("App not found", app);
-      if(!trackedApp) return console.error("App not found", trackedApp);
-      this.bindTrackedApp(trackedApp, app);
-    }
-  }
   // Bind the tracked app to start listening for events
   // Especially transform updates
   bindTrackedApp(trackedApp, app) {
+    if(this.isLocalPlayer) return console.error("Cannot bind tracked app, local player is app owner");
     logger.log('appManager.bindTrackedApp', trackedApp, app)
     this.unbindTrackedApp(trackedApp.instanceId);
     const observeTrackedAppFn = (e) => {
-      if (!this.isLocalPlayer && e.changes.keys.has("transform")) {
-        const transform = trackedApp.get("transform");
-          app.position.fromArray(transform, 0);
-          app.quaternion.fromArray(transform, 3);
-          app.scale.fromArray(transform, 7);
-      }
+      // if (e.changes.keys.has("transform")) {
+      //   const transform = trackedApp.get("transform");
+      //     app.position.fromArray(transform, 0);
+      //     app.quaternion.fromArray(transform, 3);
+      //     app.scale.fromArray(transform, 7);
+      // }
     };
     trackedApp.observe(observeTrackedAppFn);
 
@@ -189,7 +180,7 @@ class AppManager extends EventTarget {
     };
   }
   // Called when a new app is added to the app manager in observeAppsFn
-  // Also called explicitly by loadApps on remote player at init
+  // Also called explicitly by initRemotePlayer on remote player at init
   async importTrackedApp(trackedApp) {
     logger.log('appManager.importTrackedApp', trackedApp)
     const trackedAppBinding = trackedApp.toJSON();
