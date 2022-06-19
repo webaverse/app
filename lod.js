@@ -5,6 +5,8 @@ const localVector = new THREE.Vector3();
 const localVector2 = new THREE.Vector3();
 const localVector3 = new THREE.Vector3();
 
+const onesLodsArray = new Array(8).fill(1);
+
 /*
 note: the nunber of lods at each level can be computed with this function:
 
@@ -77,6 +79,59 @@ export class LodChunkTracker extends EventTarget {
     this.chunks = [];
     this.lastUpdateCoord = new THREE.Vector3(NaN, NaN, NaN);
   }
+  setRange(range) {
+    this.range = range;
+
+    (async () => {
+      await Promise.resolve(); // wait for next tick to emit chunk events
+
+      const _removeOldChunks = () => {
+        for (const chunk of this.chunks) {
+          this.dispatchEvent(new MessageEvent('chunkremove', {
+            data: {
+              chunk,
+            },
+          }));
+        }
+        this.chunks.length = 0;
+      };
+      _removeOldChunks();
+
+      const _addRangeChunks = () => {
+        const minChunkX = Math.floor(this.range.min.x / this.chunkSize);
+        const minChunkY = (this.trackY ? Math.floor(this.range.min.y / this.chunkSize) : 0);
+        const minChunkZ = Math.floor(this.range.min.z / this.chunkSize);
+
+        const maxChunkX = Math.floor(this.range.max.x / this.chunkSize);
+        const maxChunkY = this.trackY ? Math.floor(this.range.max.y / this.chunkSize) : 0;
+        const maxChunkZ = Math.floor(this.range.max.z / this.chunkSize);
+
+        /* console.log(
+          'got range',
+          this.range.min.toArray(),
+          this.range.max.toArray(),
+          minChunkX, minChunkY, minChunkZ,
+          maxChunkX, maxChunkY, maxChunkZ,
+        ); */
+
+        for (let y = minChunkY; y < maxChunkY; y++) {
+          for (let z = minChunkZ; z < maxChunkZ; z++) {
+            for (let x = minChunkX; x < maxChunkX; x++) {
+              // console.log('add chunk', x, y, z);
+              const chunk = new LodChunk(x, y, z, onesLodsArray);
+              this.dispatchEvent(new MessageEvent('chunkadd', {
+                data: {
+                  chunk,
+                },
+              }));
+              this.chunks.push(chunk);
+            }
+          }
+        }
+      };
+      _addRangeChunks();
+    })();
+  }
   #getCurrentCoord(position, target) {
     const cx = Math.floor(position.x / this.chunkSize);
     const cy = this.trackY ? Math.floor(position.y / this.chunkSize) : 0;
@@ -84,6 +139,8 @@ export class LodChunkTracker extends EventTarget {
     return target.set(cx, cy, cz);
   }
   update(position) {
+    if (this.range) throw new Error('lod tracker has range and cannot be updated manually');
+
     const currentCoord = this.#getCurrentCoord(position, localVector);
 
     // if we moved across a chunk boundary, update needed chunks
