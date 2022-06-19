@@ -1019,11 +1019,7 @@ class MobGenerator {
   constructor({
     procGenInstance = null,
     appUrls = [],
-  } = {}, parent) {
-    this.parent = parent;
-
-    //
-
+  } = {}) {
     // this.mobModules = {};
 
     this.object = new THREE.Object3D();
@@ -1132,13 +1128,31 @@ class Mobber {
   } = {}) {
     this.compiled = false;
     
-    this.generator = new MobGenerator({
+    const generator = new MobGenerator({
       procGenInstance,
       appUrls,
-    }, this);
-    this.tracker = new LodChunkTracker(this.generator, {
-      chunkWorldSize,
     });
+    this.generator = generator;
+    /* this.tracker = new LodChunkTracker(this.generator, {
+      chunkWorldSize,
+    }); */
+    const numLods = 1;
+    const tracker = procGenInstance.getChunkTracker({
+      numLods,
+      // trackY: true,
+      // relod: true,
+    });
+    const chunkadd = e => {
+      const {chunk} = e.data;
+      generator.generateChunk(chunk);
+    };
+    tracker.addEventListener('chunkadd', chunkadd);
+    const chunkremove = e => {
+      const {chunk} = e.data;
+      generator.disposeChunk(chunk);
+    };
+    tracker.addEventListener('chunkremove', chunkremove);
+    this.tracker = tracker;
 
     this.compiled = false;
     this.waitForLoad().then(() => {
