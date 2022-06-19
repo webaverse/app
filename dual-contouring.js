@@ -90,6 +90,14 @@ w.eraseCubeDamage = function() {
   return cubeDamage(Module._eraseCubeDamage.bind(Module)).apply(this, arguments);
 };
 
+w.setRange = function(inst, range) {
+  Module._setRange(
+    inst,
+    range[0][0], range[0][1], range[0][2],
+    range[1][0], range[1][1], range[1][2]
+  );
+};
+
 const sphereDamage = damageFn => (
   inst,
   x, y, z,

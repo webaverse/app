@@ -125,6 +125,11 @@ const _handleMethod = ({
         return false;
       }
     }
+    case 'setRange': {
+      const {instance: instanceKey, range} = args;
+      const instance = instances.get(instanceKey);
+      dc.setRange(instance, range);
+    }
     case 'generateChunk': {
       const {instance: instanceKey, chunkPosition, lodArray} = args;
       const instance = instances.get(instanceKey);
