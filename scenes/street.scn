@@ -35,6 +35,22 @@
             "physics": true,
             "start_url": "https://madjin.github.io/desert/desert.glb",
             "dynamic": false
+        },
+            {
+      "position": [0, 0, 0],
+      "start_url": "../metaverse_modules/spawner/",
+      "components": [
+        {
+          "key": "appUrls",
+          "value": [
+            "https://webaverse.github.io/silkworm-biter/",
+            "https://webaverse.github.io/silkworm-bloater/",
+            "https://webaverse.github.io/silkworm-queen/",
+            "https://webaverse.github.io/silkworm-runner/",
+            "https://webaverse.github.io/silkworm-slasher/"
+          ]
         }
+      ]
+    }
     ]
 }

@@ -150,7 +150,7 @@ function makeId(length) {
     }
   })();
   const initialRoomState = (() => {
-    const s = fs.readFileSync('./scenes/makersdistrict.scn', 'utf8');
+    const s = fs.readFileSync('./scenes/homespace.scn', 'utf8');
     const j = JSON.parse(s);
     const {objects} = j;
     
@@ -177,9 +177,7 @@ function makeId(length) {
     }
     return result;
   })();
-  const initialRoomNames = [
-    './scenes/makersdistrict.scn',
-  ];
+  const initialRoomNames = [];
   wsrtc.bindServer(wsServer, {
     initialRoomState,
     initialRoomNames,
