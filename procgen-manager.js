@@ -2,6 +2,7 @@ import {murmurhash3} from './procgen/procgen.js';
 import {DcWorkerManager} from './dc-worker-manager.js';
 import {LodChunkTracker} from './lod.js';
 import {defaultChunkSize} from './constants.js';
+// import {getLocalPlayer} from './players.js';
 
 class ProcGenInstance {
   constructor(instance, {
@@ -15,7 +16,7 @@ class ProcGenInstance {
       seed,
       instance,
     });
-    this.trackers = [];
+    // this.trackers = [];
   }
   setRange(range) {
     this.dcWorkerManager.setRange(range);
@@ -32,12 +33,18 @@ class ProcGenInstance {
       trackY,
       relod,
     });
-    this.trackers.push(tracker);
+    /* this.trackers.push(tracker);
     tracker.addEventListener('destroy', e => {
       this.trackers.splice(this.trackers.indexOf(tracker), 1);
-    });
+    }); */
     return tracker;
   }
+  /* update() {
+    const localPlayer = getLocalPlayer();
+    for (const tracker of this.trackers) {
+      tracker.update(localPlayer.position);
+    }
+  } */
 }
 
 class ProcGenManager {
@@ -57,6 +64,11 @@ class ProcGenManager {
     }
     return instance;
   }
+  /* update() {
+    for (const instance of this.instances.values()) {
+      instance.update();
+    }
+  } */
 }
 const procGenManager = new ProcGenManager();
 export default procGenManager;
