@@ -423,7 +423,8 @@ export const loadPromise = (async () => {
 export const _applyAnimation = (avatar, now, moveFactors) => {
   // const runSpeed = 0.5;
   const angle = avatar.getAngle();
-  const timeSeconds = (now - avatar.lastLandStartTime) / 1000 + 0.8; // in order to align landing 2.fbx with walk/run
+  const timeSeconds = now / 1000;
+  const landTimeSeconds = timeSeconds - avatar.lastLandStartTime / 1000 + 0.8; // in order to align landing 2.fbx with walk/run
   const {idleWalkFactor, walkRunFactor, crouchFactor} = moveFactors;
 
   /* const _getAnimationKey = crouchState => {
@@ -502,11 +503,11 @@ export const _applyAnimation = (avatar, now, moveFactors) => {
     // WALK
     // normal horizontal walk blend
     {
-      const t1 = timeSeconds % horizontalWalkAnimationAngles[0].animation.duration;
+      const t1 = landTimeSeconds % horizontalWalkAnimationAngles[0].animation.duration;
       const src1 = horizontalWalkAnimationAngles[0].animation.interpolants[k];
       const v1 = src1.evaluate(t1);
 
-      const t2 = timeSeconds % horizontalWalkAnimationAngles[1].animation.duration;
+      const t2 = landTimeSeconds % horizontalWalkAnimationAngles[1].animation.duration;
       const src2 = horizontalWalkAnimationAngles[1].animation.interpolants[k];
       const v2 = src2.evaluate(t2);
 
@@ -520,11 +521,11 @@ export const _applyAnimation = (avatar, now, moveFactors) => {
 
     // mirror horizontal blend (backwards walk)
     {
-      const t1 = timeSeconds % horizontalWalkAnimationAnglesMirror[0].animation.duration;
+      const t1 = landTimeSeconds % horizontalWalkAnimationAnglesMirror[0].animation.duration;
       const src1 = horizontalWalkAnimationAnglesMirror[0].animation.interpolants[k];
       const v1 = src1.evaluate(t1);
 
-      const t2 = timeSeconds % horizontalWalkAnimationAnglesMirror[1].animation.duration;
+      const t2 = landTimeSeconds % horizontalWalkAnimationAnglesMirror[1].animation.duration;
       const src2 = horizontalWalkAnimationAnglesMirror[1].animation.interpolants[k];
       const v2 = src2.evaluate(t2);
 
@@ -547,11 +548,11 @@ export const _applyAnimation = (avatar, now, moveFactors) => {
     // RUN
     // normal horizontal run blend
     {
-      const t1 = timeSeconds % horizontalRunAnimationAngles[0].animation.duration;
+      const t1 = landTimeSeconds % horizontalRunAnimationAngles[0].animation.duration;
       const src1 = horizontalRunAnimationAngles[0].animation.interpolants[k];
       const v1 = src1.evaluate(t1);
 
-      const t2 = timeSeconds % horizontalRunAnimationAngles[1].animation.duration;
+      const t2 = landTimeSeconds % horizontalRunAnimationAngles[1].animation.duration;
       const src2 = horizontalRunAnimationAngles[1].animation.interpolants[k];
       const v2 = src2.evaluate(t2);
 
@@ -565,11 +566,11 @@ export const _applyAnimation = (avatar, now, moveFactors) => {
 
     // mirror horizontal blend (backwards run)
     {
-      const t1 = timeSeconds % horizontalRunAnimationAnglesMirror[0].animation.duration;
+      const t1 = landTimeSeconds % horizontalRunAnimationAnglesMirror[0].animation.duration;
       const src1 = horizontalRunAnimationAnglesMirror[0].animation.interpolants[k];
       const v1 = src1.evaluate(t1);
 
-      const t2 = timeSeconds % horizontalRunAnimationAnglesMirror[1].animation.duration;
+      const t2 = landTimeSeconds % horizontalRunAnimationAnglesMirror[1].animation.duration;
       const src2 = horizontalRunAnimationAnglesMirror[1].animation.interpolants[k];
       const v2 = src2.evaluate(t2);
 
@@ -636,7 +637,7 @@ export const _applyAnimation = (avatar, now, moveFactors) => {
   /* // walk sound effect
     {
       const soundManager = metaversefile.useSoundManager();
-      const currAniTime = timeSeconds % idleAnimation.duration;
+      const currAniTime = landTimeSeconds % idleAnimation.duration;
 
       if (currentSpeed > 0.1) {
         if (key === 'walk') {
