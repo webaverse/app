@@ -13,26 +13,29 @@ import {AppManager} from './app-manager.js';
 // import {chatManager} from './chat-manager.js';
 // import {getState, setState} from './state.js';
 // import {makeId} from './util.js';
-import {scene, sceneHighPriority, sceneLowPriority} from './renderer.js';
-import metaversefileApi from 'metaversefile';
+import {scene, sceneHighPriority, sceneLowPriority, sceneLowerPriority, sceneLowestPriority} from './renderer.js';
+// import metaversefileApi from 'metaversefile';
 import {appsMapName, playersMapName} from './constants.js';
 import {playersManager} from './players-manager.js';
-import * as metaverseModules from './metaverse-modules.js';
-import {createParticleSystem} from './particle-system.js';
-import * as sounds from './sounds.js';
+import {getLocalPlayer} from './players.js';
+// import * as metaverseModules from './metaverse-modules.js';
+// import {createParticleSystem} from './particle-system.js';
+// import * as sounds from './sounds.js';
+// import loreAI from './ai/lore/lore-ai.js';
 
-const localEuler = new THREE.Euler();
+// const localEuler = new THREE.Euler();
 
 // world
 export const world = {};
+world.winds = [];
 
 const appManager = new AppManager({
   appsMap: null,
 });
 world.appManager = appManager;
 
-world.particleSystem = createParticleSystem();
-scene.add(world.particleSystem);
+// world.particleSystem = createParticleSystem();
+// scene.add(world.particleSystem);
 
 // multiplayer
 let wsrtc = null;
@@ -62,7 +65,7 @@ world.connectState = state => {
   
   playersManager.bindState(state.getArray(playersMapName));
   
-  const localPlayer = metaversefileApi.useLocalPlayer();
+  const localPlayer = getLocalPlayer();
   localPlayer.bindState(state.getArray(playersMapName));
   
   // note: here we should load up the apps in the state since it won't happen automatically.
@@ -72,10 +75,11 @@ world.isConnected = () => !!wsrtc;
 world.connectRoom = async u => {
   // await WSRTC.waitForReady();
   
+  const localPlayer = getLocalPlayer();
+
   world.appManager.unbindState();
   world.appManager.clear();
 
-  const localPlayer = metaversefileApi.useLocalPlayer();
   const state = new Z.Doc();
   state.setResolvePriority(1);
   wsrtc = new WSRTC(u, {
@@ -131,8 +135,8 @@ world.connectRoom = async u => {
       extra.states[5] = rig.useAnimation;
       extra.states[6] = rig.sitState;
       extra.states[7] = rig.sitAnimation;
-      extra.states[8] = rig.danceState;
-      extra.states[9] = rig.danceTime;
+      // extra.states[8] = rig.danceState;
+      extra.states[9] = rig.danceFactor;
       extra.states[10] = rig.danceAnimation;
       extra.states[11] = rig.throwState;
       extra.states[12] = rig.throwTime;
@@ -278,6 +282,12 @@ const _getBindSceneForRenderPriority = renderPriority => {
     case 'low': {
       return sceneLowPriority;
     }
+    case 'lower': {
+      return sceneLowerPriority;
+    }
+    case 'lowest': {
+      return sceneLowestPriority;
+    }
     /* case 'postPerspectiveScene': {
       return postScenePerspective;
     }
@@ -290,103 +300,32 @@ const _getBindSceneForRenderPriority = renderPriority => {
   }
 };
 const _bindHitTracker = app => {
-  const bindScene = _getBindSceneForRenderPriority(app.getComponent('renderPriority'));
-  
   const hitTracker = hpManager.makeHitTracker();
-  bindScene.add(hitTracker);
-  hitTracker.add(app);
-  app.hitTracker = hitTracker;
+  hitTracker.bind(app);
+  app.dispatchEvent({type: 'hittrackeradded'});
 
-  const frame = e => {
-    const {timeDiff} = e.data;
-    hitTracker.update(timeDiff);
-  };
-  world.appManager.addEventListener('frame', frame);
   const die = () => {
     world.appManager.removeTrackedApp(app.instanceId);
   };
-  app.addEventListener('die', die); 
-  
-  const cleanup = () => {
-    // console.log('cleanup hit trakcer parent', hitTracker.parent, app.parent);
-    bindScene.remove(hitTracker);
-    world.appManager.removeEventListener('frame', frame);
-    app.removeEventListener('die', die);
-  };
-  
-  app.hit = (_hit => function(damage, opts = {}) {
-    const result = hitTracker.hit(damage);
-    const {hit, died} = result;
-    if (hit) {
-      const {collisionId, hitPosition, hitDirection, hitQuaternion, willDie} = opts;
-      if (willDie) {
-        hpManager.triggerDamageAnimation(collisionId);
-        
-        const soundFiles = sounds.getSoundFiles();
-        const enemyDeathSound = soundFiles.enemyDeath[Math.floor(Math.random() * soundFiles.enemyDeath.length)];
-        sounds.playSound(enemyDeathSound);
-      }
-
-      {
-        const damageMeshApp = metaversefileApi.createApp();
-        (async () => {
-          await metaverseModules.waitForLoad();
-          const {modules} = metaversefileApi.useDefaultModules();
-          const m = modules['damageMesh'];
-          await damageMeshApp.addModule(m);
-        })();
-        damageMeshApp.position.copy(hitPosition);
-        localEuler.setFromQuaternion(hitQuaternion, 'YXZ');
-        localEuler.x = 0;
-        localEuler.z = 0;
-        damageMeshApp.quaternion.setFromEuler(localEuler);
-        damageMeshApp.updateMatrixWorld();
-        scene.add(damageMeshApp);
-      }
-      
-      app.dispatchEvent({
-        type: 'hit',
-        collisionId,
-        hitPosition,
-        hitDirection,
-        hitQuaternion,
-        willDie,
-        hp: hitTracker.hp,
-        totalHp: hitTracker.totalHp,
-      });
-    }
-    if (died) {
-      app.dispatchEvent({
-        type: 'die',
-        // position: cylinderMesh.position,
-        // quaternion: cylinderMesh.quaternion,
-      });
-    }
-    return result;
-  })(app.hit);
-  app.willDieFrom = damage => (hitTracker.hp - damage) <= 0;
-  app.unbindHitTracker = () => {
-    cleanup();
-    delete app.hitTracker;
-    delete app.hit;
-    delete app.willDieFrom;
-  };
+  app.addEventListener('die', die);
 };
 appManager.addEventListener('appadd', e => {
   const app = e.data;
+  const bindScene = _getBindSceneForRenderPriority(app.getComponent('renderPriority'));
+  bindScene.add(app);
+
   _bindHitTracker(app);
 });
 appManager.addEventListener('trackedappmigrate', async e => {
   const {app, sourceAppManager, destinationAppManager} = e.data;
   if (this === sourceAppManager) {
-    app.unbindHitTracker();
-    app.unbindHitTracker = null;
+    app.hitTracker.unbind();
   } else if (this === destinationAppManager) {
     _bindHitTracker(app);
   }
 });
 appManager.addEventListener('appremove', async e => {
   const app = e.data;
-  app.unbindHitTracker();
-  app.unbindHitTracker = null;
+  app.hitTracker.unbind();
+  app.parent.remove(app);
 });

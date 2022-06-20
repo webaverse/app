@@ -12,6 +12,9 @@ import wsrtc from 'wsrtc/wsrtc-server.mjs';
 import metaversefile from 'metaversefile/plugins/rollup.js';
 import glob from 'glob';
 
+const SERVER_ADDR = '0.0.0.0';
+const SERVER_NAME = 'local.webaverse.com';
+
 Error.stackTraceLimit = 300;
 const cwd = process.cwd();
 
@@ -90,7 +93,7 @@ function proxyReq(u, res) {
   proxyReq.end();
 }
 
-const _proxyUrl = (req, res, u) => {
+/* const _proxyUrl = (req, res, u) => {
   const proxyReq = /https/.test(u) ? https.request(u) : http.request(u);
   proxyReq.on('response', proxyRes => {
     for (const header in proxyRes.headers) {
@@ -105,7 +108,7 @@ const _proxyUrl = (req, res, u) => {
     res.end();
   });
   proxyReq.end();
-};
+}; */
 
 (async () => {
   const app = express();
@@ -200,12 +203,12 @@ const _proxyUrl = (req, res, u) => {
   }
 
   await new Promise((accept, reject) => {
-    httpServer.listen(port, '0.0.0.0', () => {
+    httpServer.listen(port, SERVER_ADDR, () => {
       accept();
     });
     httpServer.on('error', reject);
   });
-  console.log(`  > Local: http${isHttps ? 's' : ''}://localhost:${port}/`);
+  console.log(`  > Local: http${isHttps ? 's' : ''}://${SERVER_NAME}:${port}/`);
 
   const wsServer = (() => {
     if (isHttps) {
@@ -249,10 +252,10 @@ const _proxyUrl = (req, res, u) => {
     initialRoomNames,
   });
   await new Promise((accept, reject) => {
-    wsServer.listen(wsPort, '0.0.0.0', () => {
+    wsServer.listen(wsPort, SERVER_ADDR, () => {
       accept();
     });
     wsServer.on('error', reject);
   });
-  console.log(`  > World: ws${isHttps ? 's' : ''}://localhost:${wsPort}/`);
+  console.log(`  > World: ws${isHttps ? 's' : ''}://${SERVER_NAME}:${wsPort}/`);
 })();

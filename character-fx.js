@@ -91,7 +91,8 @@ class CharacterFx {
     // this.lastWalkTime = 0;
 
     this.kiMesh = null;
-    this.sonicBoomMesh = null;
+    this.sonicBoom = null;
+    this.healEffect = null;
     this.hairMeshes = null;
     this.lastSSS = false;
   }
@@ -106,6 +107,7 @@ class CharacterFx {
     const isPowerup = !!powerupAction && powerupAction.animation === 'powerup';
     const sssAction = this.player.getAction('sss');
     const isSSS = !!sssAction;
+
 
     const _initHairMeshes = () => {
       this.hairMeshes = [];
@@ -218,7 +220,6 @@ class CharacterFx {
       if (isPowerup && !this.kiMesh) {
         this.kiMesh = metaversefile.createApp();
         (async () => {
-          await metaverseModules.waitForLoad();
           const {modules} = metaversefile.useDefaultModules();
           const m = modules['ki'];
           await this.kiMesh.addModule(m);
@@ -233,10 +234,9 @@ class CharacterFx {
 
     this.lastSSS = isSSS;
     const _updateSonicBoomMesh = () => {
-      if (!this.sonicBoom) {
+      if (this.player.isLocalPlayer && !this.sonicBoom) {
         this.sonicBoom = metaversefile.createApp();
         (async () => {
-          await metaverseModules.waitForLoad();
           const {modules} = metaversefile.useDefaultModules();
           const m = modules['sonicBoom'];
           await this.sonicBoom.addModule(m);
@@ -245,15 +245,42 @@ class CharacterFx {
       }
     };
     _updateSonicBoomMesh();
+    const _updateHealEffectMesh = () => {
+      
+      if(this.player.hasAction('cure')){
+        if (!this.healEffect) {
+          this.healEffect = metaversefile.createApp();
+          (async () => {
+            const {modules} = metaversefile.useDefaultModules();
+            const m = modules['healEffect'];
+            await this.healEffect.addModule(m);
+            this.healEffect.playEffect(this.player);
+            this.player.removeAction('cure')
+          })();
+          sceneLowPriority.add(this.healEffect);
+        }
+        else{
+          this.healEffect.playEffect(this.player);
+          this.player.removeAction('cure')
+        }
+        
+      }
+
+    };
+    _updateHealEffectMesh();
   }
   destroy() {
     if (this.kiMesh) {
       sceneLowPriority.remove(this.kiMesh);
       this.kiMesh = null;
     }
-    if (this.sonicBoomMesh) {
-      sceneLowPriority.remove(this.sonicBoomMesh);
-      this.sonicBoomMesh = null;
+    if (this.sonicBoom) {
+      sceneLowPriority.remove(this.sonicBoom);
+      this.sonicBoom = null;
+    }
+    if (this.healEffect) {
+      sceneLowPriority.remove(this.healEffect);
+      this.healEffect = null;
     }
   }
 }

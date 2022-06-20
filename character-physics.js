@@ -34,6 +34,7 @@ const upVector = new THREE.Vector3(0, 1, 0);
 const leftHandOffset = new THREE.Vector3(0.2, -0.2, -0.4);
 const rightHandOffset = new THREE.Vector3(-0.2, -0.2, -0.4);
 const z22Quaternion = new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 0, 1), -Math.PI/8);
+const groundStickOffset = 0.03;
 
 class CharacterPhysics {
   constructor(player) {
@@ -91,7 +92,25 @@ class CharacterPhysics {
         this.player.characterController.position
       );
       // const collided = flags !== 0;
-      const grounded = !!(flags & 0x1); 
+      let grounded = !!(flags & 0x1); 
+
+      if (!grounded && !this.player.getAction('jump') && !this.player.getAction('fly')) { // prevent jump when go down slope
+        const oldY = this.player.characterController.position.y;
+        const flags = physicsManager.moveCharacterController(
+          this.player.characterController,
+          localVector3.set(0, -groundStickOffset, 0),
+          minDist,
+          0,
+          localVector4,
+        );
+        const newGrounded = !!(flags & 0x1); 
+        if (newGrounded) {
+          grounded = true;
+          this.player.characterController.position.copy(localVector4);
+        } else {
+          this.player.characterController.position.y = oldY;
+        }
+      }
 
       this.player.characterController.updateMatrixWorld();
       this.player.characterController.matrixWorld.decompose(localVector, localQuaternion, localVector2);
@@ -285,7 +304,7 @@ class CharacterPhysics {
       // const isPlayingEnvelopeIkAnimation = !!useAction && useAction.ik === 'bow';
       const isHandEnabled = (isSession || (isPlayerAiming && isObjectAimable)) /* && !isPlayingEnvelopeIkAnimation */;
       for (let i = 0; i < 2; i++) {
-        const isExpectedHandIndex = i === ((aimComponent?.ikHand === 'left') ? 1 : 0);
+        const isExpectedHandIndex = i === ((aimComponent?.ikHand === 'left') ? 1 : (aimComponent?.ikHand === 'right') ? 0 : null);
         const enabled = isHandEnabled && isExpectedHandIndex;
         this.player.hands[i].enabled = enabled;
       }

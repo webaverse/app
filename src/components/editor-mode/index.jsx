@@ -1,7 +1,9 @@
 
 import React from 'react';
 
+import { MagicMenu } from './magic-menu';
 import { SceneMenu } from './scene-menu';
+import { Inspector } from './inspector';
 
 //
 
@@ -20,6 +22,8 @@ export const EditorMode = ({ selectedScene, setSelectedScene, selectedRoom, setS
                 selectedRoom={ selectedRoom }
                 setSelectedRoom={ setSelectedRoom }
             />
+            <MagicMenu />
+            <Inspector />
         </div>
     );
 

@@ -1,0 +1,279 @@
+{
+  "objects": [
+{
+      "type": "application/spawnpoint",
+      "content": {
+        "position": [76.93,2,77.7]
+      }
+    },
+  {
+      "type": "application/light",
+      "content": {
+        "lightType": "ambient",
+        "args": [[255, 255, 255], 0.5]
+      }
+    },
+    {
+      "type": "application/light",
+      "content": {
+        "lightType": "directional",
+        "args": [[255, 255, 255], 5],
+        "position": [1, 2, 3],
+        "shadow": [150, 5120, 0.1, 10000, -0.0001]
+      }
+    },{
+      
+      "position": [
+        0,
+        0,
+        0
+      ],
+      "quaternion": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "scale": [
+        100,
+        100,
+        100
+      ],
+      
+      "start_url": "https://webaverse.github.io/sky-milkyway/"
+    },
+    
+
+    {
+      "position": [
+        202,
+        3,
+        115.5
+      ],
+      "quaternion": [
+        0,
+        0.7071067811865475,
+        0,
+        0.7071067811865475
+      ],
+      "scale": [
+        2,
+        2,
+        2
+      ],
+      "physics": false,
+      "start_url": "https://webaverse.github.io/hauntedspace/",
+      "dynamic": true
+    },
+    
+
+    {
+      "position": [
+        71,
+        0.15,
+        65
+      ],
+      "quaternion": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "scale": [
+        0.03,
+        0.03,
+        0.03
+      ],
+      "physics": false,
+      "start_url": "https://webaverse.github.io/huntersrest/",
+      "dynamic": true
+    },
+    
+
+    {
+      "position": [
+        2,
+        43.5,
+        67
+      ],
+      "quaternion": [
+        0,
+        -0.7071067811865475,
+        0,
+        0.7071067811865475
+        
+      ],
+      "scale": [
+        2,
+        2,
+        2
+      ],
+      "physics": false,
+      "start_url": "https://webaverse.github.io/factory/",
+      "dynamic": true
+    },
+    {
+      "position": [
+        -76,
+        7,
+        100
+      ],
+      "quaternion": [
+	0,
+        0,
+        0,
+        0
+        
+      ],
+      "scale": [
+        1,
+        1,
+        1
+      ],
+      "physics": false,
+      "start_url": "https://webaverse.github.io/spacestation/",
+      "dynamic": true
+    },
+
+    {
+      "position": [
+        68,
+        0,
+        101
+      ],
+      "quaternion": [
+	0,
+        0.7071067811865475,
+        0,
+        0.7071067811865475
+        
+      ],
+      "scale": [
+        21.8,
+        5.6,
+        100
+      ],
+      "physics": false,
+      "start_url": "https://webaverse.github.io/Greywalkway/",
+      "dynamic": true
+    },
+
+    {
+      "position": [
+        140,
+        4.5,
+        62.3
+      ],
+      "quaternion": [
+	0,
+        0,
+        0,
+        0
+        
+      ],
+      "scale": [
+        0.1,
+        0.1,
+        0.1
+      ],
+      "physics": false,
+      "start_url": "https://webaverse.github.io/stationsci-fi/",
+      "dynamic": true
+    },
+
+    {
+      "position": [
+        166,
+        25.5,
+        148
+      ],
+      "quaternion": [
+	0,
+        0.7071067811865475,
+        0,
+        0.7071067811865475
+        
+      ],
+      "scale": [
+        3,
+        5,
+        5
+      ],
+      "physics": false,
+      "start_url": "https://webaverse.github.io/sci-fi-portal/",
+      "dynamic": true
+    },
+
+    {
+      "position": [
+        5,
+        -63,
+        145
+      ],
+      "quaternion": [
+	0,
+        0.7071067811865475,
+        0,
+        0.7071067811865475
+        
+      ],
+      "scale": [
+        2,
+        2,
+        2
+      ],
+      "physics": false,
+      "start_url": "https://webaverse.github.io/dumanifestin/",
+      "dynamic": true
+    },
+
+    {
+      "position": [
+        55,
+        26,
+        134
+      ],
+      "quaternion": [
+	0,
+        0,
+        0,
+        0
+        
+      ],
+      "scale": [
+        7,
+        7,
+        7
+      ],
+      "physics": false,
+      "start_url": "https://alisaad673.github.io/Spaceship/",
+      "dynamic": true
+    },
+
+    {
+      "position": [
+        91.8,
+        26,
+        134
+      ],
+      "quaternion": [
+	0,
+        0,
+        0,
+        0
+        
+      ],
+      "scale": [
+        7,
+        7,
+        7
+      ],
+      "physics": false,
+      "start_url": "https://alisaad673.github.io/Spaceship2/",
+      "dynamic": true
+    }
+
+
+
+]
+}

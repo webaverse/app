@@ -2,28 +2,31 @@ import * as THREE from 'three';
 import React, { useState, useEffect, useRef, useContext } from 'react';
 import classnames from 'classnames';
 import metaversefile from 'metaversefile';
-const {useLocalPlayer, useLoreAIScene, useSceneCruncher} = metaversefile;
+const {useLocalPlayer, useLoreAIScene, useParticleSystem} = metaversefile;
 // import {world} from '../../../../world.js';
 // import webaverse from '../../../../webaverse.js';
 import {registerIoEventHandler, unregisterIoEventHandler} from '../io-handler';
 import {MiniHup} from '../../../MiniHup.jsx';
 // import {RpgText} from '../../../RpgText.jsx';
-import {getRenderer, rootScene, scene} from '../../../../renderer.js';
+import {getRenderer, rootScene, scene, sceneLowPriority} from '../../../../renderer.js';
 import game from '../../../../game.js';
 import {world} from '../../../../world.js';
 import universe from '../../../../universe.js';
 import cameraManager from '../../../../camera-manager.js';
+import story from '../../../../story.js';
+import {snapshotMapChunk} from '../../../../scene-cruncher.js';
 import {Text} from 'troika-three-text';
 // import alea from '../../../../alea.js';
 // import easing from '../../../../easing.js';
+import musicManager from '../../../../music-manager.js';
 import {chatManager} from '../../../../chat-manager.js';
 import {
   makeRng,
-  numBlocksPerChunk,
+  // numBlocksPerChunk,
   voxelPixelSize,
   chunkWorldSize,
   placeNames,
-  MapBlock,
+  // MapBlock,
   createMapChunk,
   createMapChunkMesh,
 } from '../../../../procgen/procgen.js';
@@ -37,6 +40,7 @@ const localVectorX = new THREE.Vector3();
 const localVectorX2 = new THREE.Vector3();
 const localVector2D = new THREE.Vector2();
 const localQuaternion = new THREE.Quaternion();
+const localEuler = new THREE.Euler();
 const localVector4D = new THREE.Vector4();
 const localMatrix = new THREE.Matrix4();
 const localMatrix2 = new THREE.Matrix4();
@@ -197,7 +201,29 @@ export const MapGen = () => {
     const [lastSelectTime, setLastSelectTime] = useState(-Infinity);
     const [chunkCache, setChunkCache] = useState(new Map());
     const [text, setText] = useState('');
+    const [firedropMeshApp, setFiredropMeshApp] = useState(null);
+    const [haloMeshApp, setHaloMeshApp] = useState(null);
+    const [silksMeshApp, setSilksMeshApp] = useState(null);
+    const [cometMeshApp, setCometMeshApp] = useState(null);
+    const [flareMeshApp, setFlareMeshApp] = useState(null);
+    const [magicMeshApp, setMagicMeshApp] = useState(null);
+    const [limitMeshApp, setLimitMeshApp] = useState(null);
     const canvasRef = useRef();
+
+    //
+
+    const open = state.openedPanel === 'MapGenPanel';
+    const selectedObjectName = selectedObject ? selectedObject.name : '';
+
+    //
+    
+    useEffect(() => {
+        if (open) {
+            musicManager.playCurrentMusicName('overworld', {
+                repeat: true,
+            });
+        } else { musicManager.stopCurrentMusic(); }
+    }, [open]);
 
     //
 
@@ -282,7 +308,7 @@ export const MapGen = () => {
         (async () => {
           const localPlayer = useLocalPlayer();
           const aiScene = useLoreAIScene();
-          const comment = await aiScene.generateComment(selectedChunk.name);
+          const comment = await aiScene.generateLocationComment(selectedChunk.name);
           const message = `${selectedChunk.name}. ${comment}`;
           const preloadedMessage = localPlayer.voicer.preloadMessage(message);
           await chatManager.waitForVoiceTurn(() => {
@@ -294,17 +320,6 @@ export const MapGen = () => {
       }
     };
 
-    /* useEffect(() => {
-      if (text) {
-        const timeout = setTimeout(() => {
-          setText('');
-        }, 5000);
-        return () => {
-          clearTimeout(timeout);
-        };
-      }
-    }, [text]); */
-
     // open
     useEffect( () => {
 
@@ -312,28 +327,199 @@ export const MapGen = () => {
 
             if (game.inputFocused()) return true;
 
-            switch ( event.which ) {
+              switch ( event.which ) {
+
+                case 74: { // J
+
+                  if (!firedropMeshApp) {
+                    const localPlayer = useLocalPlayer();
+                    const position = localPlayer.position.clone()
+                      .add(new THREE.Vector3(0, 0, -3).applyQuaternion(localPlayer.quaternion));
+
+                    const firedropMeshApp = metaversefile.createApp({
+                      position,
+                    });
+                    (async () => {
+                      const {modules} = metaversefile.useDefaultModules();
+                      const m = modules['firedrop'];
+                      await firedropMeshApp.addModule(m);
+                    })();
+                    scene.add(firedropMeshApp);
+
+                    setFiredropMeshApp(firedropMeshApp);
+                  } else {
+                    firedropMeshApp.parent.remove(firedropMeshApp);
+                    firedropMeshApp.destroy();
+
+                    setFiredropMeshApp(null);
+                  }
+
+                  return false;
+                }
+
+                case 75: { // K
+
+                  if (!haloMeshApp) {
+                    const haloMeshApp = metaversefile.createApp();
+                    (async () => {
+                      const {modules} = metaversefile.useDefaultModules();
+                      const m = modules['halo'];
+                      await haloMeshApp.addModule(m);
+                    })();
+                    scene.add(haloMeshApp);
+
+                    setHaloMeshApp(haloMeshApp);
+                  } else {
+                    haloMeshApp.parent.remove(haloMeshApp);
+                    haloMeshApp.destroy();
+
+                    setHaloMeshApp(null);
+                  }
+
+                  return false;
+                }
 
                 case 76: { // L
                 
-                    (async () => {
-                      const chunkWorldSize = 64;
-                      const chunkWorldResolution = 2048;
-                      const chunkWorldDepthResolution = 64;
-                  
-                      const sceneCruncher = useSceneCruncher();
-                      const localPlayer = useLocalPlayer();
-                      const mesh = await sceneCruncher.snapshotMapChunk(
-                        rootScene,
-                        localPlayer.position,
-                        chunkWorldSize,
-                        chunkWorldResolution,
-                        chunkWorldDepthResolution
-                      );
-                      scene.add(mesh);
-                    })();
+                    if (!silksMeshApp) {
+                      const silksMeshApp = metaversefile.createApp();
+                      (async () => {
+                        const {modules} = metaversefile.useDefaultModules();
+                        const m = modules['silks'];
+                        await silksMeshApp.addModule(m);
+                      })();
+                      scene.add(silksMeshApp);
+
+                      setSilksMeshApp(silksMeshApp);
+                    } else {
+                      silksMeshApp.parent.remove(silksMeshApp);
+                      silksMeshApp.destroy();
+
+                      setSilksMeshApp(null);
+                    }
         
                     return false;
+
+                }
+
+                case 80: { // P
+                
+                  if (!cometMeshApp) {
+                    const cometMeshApp = metaversefile.createApp();
+                    (async () => {
+                      const {modules} = metaversefile.useDefaultModules();
+                      const m = modules['comet'];
+                      await cometMeshApp.addModule(m);
+                    })();
+                    scene.add(cometMeshApp);
+                    const localPlayer = useLocalPlayer();
+                    cometMeshApp.position.copy(localPlayer.position)
+                      .add(new THREE.Vector3(0, 3, -3).applyQuaternion(localPlayer.quaternion));
+                    localEuler.setFromQuaternion(localPlayer.quaternion, 'YXZ');
+                    localEuler.x = 0;
+                    localEuler.z = 0;
+                    cometMeshApp.quaternion.setFromEuler(localEuler);
+                    cometMeshApp.updateMatrixWorld();
+
+                    setCometMeshApp(cometMeshApp);
+                  } else {
+                    cometMeshApp.parent.remove(cometMeshApp);
+                    cometMeshApp.destroy();
+
+                    setCometMeshApp(null);
+                  }
+      
+                  return false;
+
+              }
+
+                case 186: { // ;
+
+                  if (!flareMeshApp) {
+                    const flareMeshApp = metaversefile.createApp();
+                    (async () => {
+                      const {modules} = metaversefile.useDefaultModules();
+                      const m = modules['flare'];
+                      await flareMeshApp.addModule(m);
+                    })();
+                    scene.add(flareMeshApp);
+
+                    setFlareMeshApp(flareMeshApp);
+                  } else {
+                    flareMeshApp.parent.remove(flareMeshApp);
+                    flareMeshApp.destroy();
+
+                    setFlareMeshApp(null);
+                  }
+                
+                  return false;
+
+                }
+                case 222: { // '
+
+                  (async () => {
+                    const chunkWorldSize = new THREE.Vector3(64, 64, 64);
+                    const chunkWorldResolution = new THREE.Vector2(2048, 2048);
+                    const chunkWorldDepthResolution = new THREE.Vector2(256, 256);
+                
+                    const localPlayer = useLocalPlayer();
+                    const mesh = snapshotMapChunk(
+                      rootScene,
+                      localPlayer.position,
+                      chunkWorldSize,
+                      chunkWorldResolution,
+                      chunkWorldDepthResolution
+                    );
+                    scene.add(mesh);
+                  })();
+                
+                  return false;
+
+                }
+
+                case 188: { // ,
+
+                  if (!magicMeshApp) {
+                    const magicMeshApp = metaversefile.createApp();
+                    (async () => {
+                      const {modules} = metaversefile.useDefaultModules();
+                      const m = modules['magic'];
+                      await magicMeshApp.addModule(m);
+                    })();
+                    sceneLowPriority.add(magicMeshApp);
+
+                    setMagicMeshApp(magicMeshApp);
+                  } else {
+                    magicMeshApp.parent.remove(magicMeshApp);
+                    magicMeshApp.destroy();
+
+                    setMagicMeshApp(null);
+                  }
+
+                  return false;
+
+                }
+
+                case 190: { // .
+
+                  if (!limitMeshApp) {
+                    const limitMeshApp = metaversefile.createApp();
+                    (async () => {
+                      const {modules} = metaversefile.useDefaultModules();
+                      const m = modules['limit'];
+                      await limitMeshApp.addModule(m);
+                    })();
+                    sceneLowPriority.add(limitMeshApp);
+
+                    setLimitMeshApp(limitMeshApp);
+                  } else {
+                    limitMeshApp.parent.remove(limitMeshApp);
+                    limitMeshApp.destroy();
+
+                    setLimitMeshApp(null);
+                  }
+
+                  return false;
 
                 }
 
@@ -365,6 +551,13 @@ export const MapGen = () => {
 
                 }
 
+                case 219: { // [
+
+                  story.startCinematicIntro();
+                
+                  return false;
+                }
+
             }
 
             return true;
@@ -379,7 +572,7 @@ export const MapGen = () => {
 
         };
 
-    }, [ state.openedPanel ]);
+    }, [ state.openedPanel, firedropMeshApp, haloMeshApp, silksMeshApp, cometMeshApp, flareMeshApp, magicMeshApp, limitMeshApp ]);
 
     // resize
     useEffect(() => {
@@ -577,9 +770,9 @@ export const MapGen = () => {
       }
     }
 
-    const selectedObjectName = selectedObject ? selectedObject.name : '';
+    //
 
-    return state.openedPanel === 'MapGenPanel' ? (
+    return open ? (
         <div className={styles.mapGen} onClick={ stopPropagation }>
             <div className={classnames(styles.sidebar, selectedObject ? styles.open : null)}>
                 <h1>{selectedObjectName}</h1>

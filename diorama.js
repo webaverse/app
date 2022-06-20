@@ -5,12 +5,13 @@ import * as BufferGeometryUtils from 'three/examples/jsm/utils/BufferGeometryUti
 // import {fitCameraToBoundingBox} from './util.js';
 import {Text} from 'troika-three-text';
 // import {defaultDioramaSize} from './constants.js';
-import {planeGeometry, gradients} from './background-fx/common.js';
+import {fullscreenGeometry, gradients} from './background-fx/common.js';
 import {OutlineBgFxMesh} from './background-fx/OutlineBgFx.js';
 import {NoiseBgFxMesh} from './background-fx/NoiseBgFx.js';
 import {PoisonBgFxMesh} from './background-fx/PoisonBgFx.js';
 import {SmokeBgFxMesh} from './background-fx/SmokeBgFx.js';
 import {GlyphBgFxMesh} from './background-fx/GlyphBgFx.js';
+import {DotsBgFxMesh} from './background-fx/DotsBgFx.js';
 import {LightningBgFxMesh} from './background-fx/LightningBgFx.js';
 import {RadialBgFxMesh} from './background-fx/RadialBgFx.js';
 import {GrassBgFxMesh} from './background-fx/GrassBgFx.js';
@@ -279,7 +280,7 @@ const labelMesh = (() => {
     }
     g.setAttribute('color', new THREE.BufferAttribute(colors, 3));
   };
-  const g1 = planeGeometry.clone()
+  const g1 = fullscreenGeometry.clone()
     .applyMatrix4(
       new THREE.Matrix4()
         .makeShear(0, 0, sk1, 0, 0, 0)
@@ -293,7 +294,7 @@ const labelMesh = (() => {
         .makeTranslation(p1.x, p1.y, p1.z)
     );
   _decorateGeometry(g1, new THREE.Color(0xFFFFFF), speed1);
-  const g2 = planeGeometry.clone()
+  const g2 = fullscreenGeometry.clone()
     .applyMatrix4(
       new THREE.Matrix4()
         .makeShear(0, 0, sk2, 0, 0, 0)
@@ -344,6 +345,7 @@ const poisonMesh = new PoisonBgFxMesh();
 const noiseMesh = new NoiseBgFxMesh();
 const smokeMesh = new SmokeBgFxMesh();
 const glyphMesh = new GlyphBgFxMesh();
+const dotsMesh = new DotsBgFxMesh();
 const textObject = (() => {
   const o = new THREE.Object3D();
   
@@ -436,6 +438,7 @@ sideScene.add(poisonMesh);
 sideScene.add(noiseMesh);
 sideScene.add(smokeMesh);
 sideScene.add(glyphMesh);
+sideScene.add(dotsMesh);
 sideScene.add(outlineMesh);
 sideScene.add(labelMesh);
 sideScene.add(textObject);
@@ -491,7 +494,9 @@ const createPlayerDiorama = ({
   lightningBackground = false,
   radialBackground = false,
   glyphBackground = false,
+  dotsBackground = false,
   autoCamera = true,
+  detached = false,
 } = {}) => {
   // _ensureSideSceneCompiled();
 
@@ -528,6 +533,21 @@ const createPlayerDiorama = ({
       canvas.ctx = ctx;
 
       canvases.push(canvas);
+
+      this.updateAspect();
+    },
+    setSize(width, height) {
+      this.width = width;
+      this.height = height;
+
+      this.updateAspect();
+    },
+    updateAspect() {
+      const newAspect = this.width / this.height;
+      if (sideCamera.aspect !== newAspect) {
+        sideCamera.aspect = newAspect;
+        sideCamera.updateProjectionMatrix();
+      }
     },
     removeCanvas(canvas) {
       const index = canvases.indexOf(canvas);
@@ -544,6 +564,7 @@ const createPlayerDiorama = ({
         lightningBackground,
         radialBackground,
         glyphBackground,
+        dotsBackground,
       };
       grassBackground = false;
       poisonBackground = false;
@@ -552,6 +573,7 @@ const createPlayerDiorama = ({
       lightningBackground = false;
       radialBackground = false;
       glyphBackground = false;
+      dotsBackground = false;
       if (oldValues.grassBackground) {
         poisonBackground = true;
       } else if (oldValues.poisonBackground) {
@@ -596,12 +618,12 @@ const createPlayerDiorama = ({
 
       const renderer = getRenderer();
       const size = renderer.getSize(localVector2D);
-      // a Vector2 representing the largest power of two less than or equal to the current canvas size
+      /* // a Vector2 representing the largest power of two less than or equal to the current canvas size
       const sizePowerOfTwo = localVector2D2.set(
         Math.pow(2, Math.floor(Math.log(size.x) / Math.log(2))),
         Math.pow(2, Math.floor(Math.log(size.y) / Math.log(2))),
-      );
-      if (sizePowerOfTwo.x < this.width || sizePowerOfTwo.y < this.height) {
+      ); */
+      if (size.x < this.width || size.y < this.height) {
         console.warn('renderer is too small');
         return;
       }
@@ -660,7 +682,7 @@ const createPlayerDiorama = ({
 
           sideCamera.position.copy(targetPosition)
             .add(
-              localVector2.copy(cameraOffset)
+              localVector2.set(cameraOffset.x, 0, cameraOffset.z)
                 .applyQuaternion(targetQuaternion)
             );
           sideCamera.quaternion.setFromRotationMatrix(
@@ -669,6 +691,10 @@ const createPlayerDiorama = ({
               targetPosition,
               localVector3.set(0, 1, 0)
             )
+          );
+          sideCamera.position.add(
+            localVector2.set(0, cameraOffset.y, 0)
+              .applyQuaternion(targetQuaternion)
           );
           sideCamera.updateMatrixWorld();
         }
@@ -749,6 +775,15 @@ const createPlayerDiorama = ({
           }
         };
         _renderGlyph();
+        const _renderDots = () => {
+          if (dotsBackground) {
+            dotsMesh.update(timeOffset, timeDiff, this.width, this.height);
+            dotsMesh.visible = true;
+          } else {
+            dotsMesh.visible = false;
+          }
+        };
+        _renderDots();
         const _renderOutline = () => {
           if (outline) {
             outlineMesh.update(timeOffset, timeDiff, this.width, this.height, outlineRenderTarget.texture);
@@ -814,9 +849,10 @@ const createPlayerDiorama = ({
       renderer.setClearColor(oldClearColor, oldClearAlpha);
     },
     destroy() {
-      dioramas.splice(dioramas.indexOf(diorama), 1);
-
-      // postProcessing.removeEventListener('update', recompile);
+      const index = dioramas.indexOf(diorama);
+      if (index !== -1) {
+        dioramas.splice(index, 1);
+      }
     },
   };
 
@@ -839,7 +875,9 @@ const createPlayerDiorama = ({
     player.addEventListener('avatarchange', avatarchange);
   } */
 
-  dioramas.push(diorama);
+  if (!detached) {
+    dioramas.push(diorama);
+  }
   return diorama;
 };
 

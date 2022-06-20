@@ -17,7 +17,10 @@ import hpManager from './hp-manager.js';
 import {playersManager} from './players-manager.js';
 import minimapManager from './minimap.js';
 import postProcessing from './post-processing.js';
+import particleSystemManager from './particle-system.js';
 import loadoutManager from './loadout-manager.js';
+import questManager from './quest-manager.js';
+import mobManager from './mob-manager.js';
 import {
   getRenderer,
   scene,
@@ -38,6 +41,12 @@ import performanceTracker from './performance-tracker.js';
 import renderSettingsManager from './rendersettings-manager.js';
 import metaversefileApi from 'metaversefile';
 import WebaWallet from './src/components/wallet.js';
+// import domRenderEngine from './dom-renderer.jsx';
+import musicManager from './music-manager.js';
+import physxWorkerManager from './physx-worker-manager.js';
+import story from './story.js';
+import zTargeting from './z-targeting.js';
+import raycastManager from './raycast-manager.js';
 
 const localVector = new THREE.Vector3();
 const localVector2 = new THREE.Vector3();
@@ -58,33 +67,30 @@ const sessionOpts = {
 
 const frameEvent = new MessageEvent('frame', {
   data: {
-    now: 0,
+    timestamp: 0,
     timeDiff: 0,
-    // lastTimestamp: 0,
   },
 });
-const _pushRenderSettings = () => {
-  const renderSettings = renderSettingsManager.findRenderSettings(rootScene);
-  renderSettingsManager.applyRenderSettingsToSceneAndPostProcessing(renderSettings, rootScene, postProcessing);
-
-  return () => {
-    renderSettingsManager.applyRenderSettingsToSceneAndPostProcessing(null, rootScene, postProcessing);
-  }
-};
 
 export default class Webaverse extends EventTarget {
   constructor() {
     super();
 
+    story.listenHack();
+
     this.loadPromise = (async () => {
       await Promise.all([
         physx.waitForLoad(),
         Avatar.waitForLoad(),
+        physxWorkerManager.waitForLoad(),
         audioManager.waitForLoad(),
         sounds.waitForLoad(),
+        zTargeting.waitForLoad(),
+        particleSystemManager.waitForLoad(),
         transformControls.waitForLoad(),
         metaverseModules.waitForLoad(),
         voices.waitForLoad(),
+        musicManager.waitForLoad(),
         WebaWallet.waitForLoad(),
       ]);
     })();
@@ -266,9 +272,9 @@ export default class Webaverse extends EventTarget {
     // console.log('frame 1');
 
     const renderer = getRenderer();
-    frameEvent.data.now = timestamp;
+    frameEvent.data.timestamp = timestamp;
     frameEvent.data.timeDiff = timeDiff;
-    this.dispatchEvent(frameEvent);
+    game.dispatchEvent(frameEvent);
 
     getComposer().render();
 
@@ -309,14 +315,18 @@ export default class Webaverse extends EventTarget {
           }
 
           transformControls.update();
+          raycastManager.update(timestamp, timeDiffCapped);
           game.update(timestamp, timeDiffCapped);
           
           localPlayer.updateAvatar(timestamp, timeDiffCapped);
-          playersManager.update(timestamp, timeDiffCapped);
+          playersManager.updateRemotePlayers(timestamp, timeDiffCapped);
           
           world.appManager.tick(timestamp, timeDiffCapped, frame);
 
+          mobManager.update(timestamp, timeDiffCapped);
           hpManager.update(timestamp, timeDiffCapped);
+          questManager.update(timestamp, timeDiffCapped);
+          particleSystemManager.update(timestamp, timeDiffCapped);
 
           cameraManager.updatePost(timestamp, timeDiffCapped);
           ioManager.updatePost();
@@ -344,7 +354,9 @@ export default class Webaverse extends EventTarget {
         loadoutManager.update(timestamp, timeDiffCapped);
 
         {
-          const popRenderSettings = _pushRenderSettings();
+          const popRenderSettings = renderSettingsManager.push(rootScene, undefined, {
+            postProcessing,
+          });
 
           performanceTracker.setGpuPrefix('');
           this.render(timestamp, timeDiffCapped);
@@ -368,41 +380,41 @@ const _startHacks = webaverse => {
   const vpdAnimations = Avatar.getAnimations().filter(animation => animation.name.endsWith('.vpd'));
 
   // let playerDiorama = null;
-  const lastEmoteKey = {
+  const lastEmotionKey = {
     key: -1,
     timestamp: 0,
   };
-  let emoteIndex = -1;
+  let emotionIndex = -1;
   let poseAnimationIndex = -1;
-  const _emoteKey = key => {
+  const _emotionKey = key => {
     const timestamp = performance.now();
-    if ((timestamp - lastEmoteKey.timestamp) < 1000) {
-      const key1 = lastEmoteKey.key;
+    if ((timestamp - lastEmotionKey.timestamp) < 1000) {
+      const key1 = lastEmotionKey.key;
       const key2 = key;
-      emoteIndex = (key1 * 10) + key2;
+      emotionIndex = (key1 * 10) + key2;
       
-      lastEmoteKey.key = -1;
-      lastEmoteKey.timestamp = 0;
+      lastEmotionKey.key = -1;
+      lastEmotionKey.timestamp = 0;
     } else {
-      lastEmoteKey.key = key;
-      lastEmoteKey.timestamp = timestamp;
+      lastEmotionKey.key = key;
+      lastEmotionKey.timestamp = timestamp;
     }
   };
-  const _updateEmote = () => {
-    const oldEmoteActionIndex = localPlayer.findActionIndex(action => action.type === 'emote' && /^emotion-/.test(action.emotion));
-    if (oldEmoteActionIndex !== -1) {
-      localPlayer.removeActionIndex(oldEmoteActionIndex);
+  const _updateFacePose = () => {
+    const oldFacePoseActionIndex = localPlayer.findActionIndex(action => action.type === 'facepose' && /^emotion-/.test(action.emotion));
+    if (oldFacePoseActionIndex !== -1) {
+      localPlayer.removeActionIndex(oldFacePoseActionIndex);
     }
-    if (emoteIndex !== -1) {
+    if (emotionIndex !== -1) {
       const emoteAction = {
-        type: 'emote',
-        emotion: `emotion-${emoteIndex}`,
+        type: 'facepose',
+        emotion: `emotion-${emotionIndex}`,
         value: 1,
       };
       localPlayer.addAction(emoteAction);
     }
   };
-  const _updatePoseAnimation = () => {
+  const _updatePose = () => {
     localPlayer.removeAction('pose');
     if (poseAnimationIndex !== -1) {
       const animation = vpdAnimations[poseAnimationIndex];
@@ -529,21 +541,22 @@ const _startHacks = webaverse => {
     }
   }; */
   webaverse.titleCardHack = false;
+  // let haloMeshApp = null;
   window.addEventListener('keydown', e => {
     if (e.which === 46) { // .
-      emoteIndex = -1;
-      _updateEmote();
+      emotionIndex = -1;
+      _updateFacePose();
     } else if (e.which === 107) { // +
       poseAnimationIndex++;
       poseAnimationIndex = Math.min(Math.max(poseAnimationIndex, -1), vpdAnimations.length - 1);
-      _updatePoseAnimation();
+      _updatePose();
     
       // _ensureMikuModel();
       // _updateMikuModel();
     } else if (e.which === 109) { // -
       poseAnimationIndex--;
       poseAnimationIndex = Math.min(Math.max(poseAnimationIndex, -1), vpdAnimations.length - 1);
-      _updatePoseAnimation();
+      _updatePose();
 
       // _ensureMikuModel();
       // _updateMikuModel();
@@ -558,8 +571,8 @@ const _startHacks = webaverse => {
       const match = e.code.match(/^Numpad([0-9])$/);
       if (match) {
         const key = parseInt(match[1], 10);
-        _emoteKey(key);
-        _updateEmote();
+        _emotionKey(key);
+        _updateFacePose();
       }
     }
   });

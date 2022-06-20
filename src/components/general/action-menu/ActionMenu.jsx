@@ -33,6 +33,12 @@ export const ActionMenu = () => {
 
     };
 
+    const handleCameraBtnClick = () => {
+
+        // todo
+
+    };
+
     const handleModeBtnClick = () => {
 
         // todo
@@ -69,9 +75,13 @@ export const ActionMenu = () => {
                 <img src="images/webpencil.svg" className={ classnames( styles.background, styles.blue ) } />
                 <span className={ styles.text } >設定 Settings</span>
             </div>
-            <div className={ classnames( styles.btn, styles.mode ) } onClick={ handleModeBtnClick } >
+            <div className={ classnames( styles.btn, styles.mode ) } onClick={ handleCameraBtnClick } >
                 <img src="images/webpencil.svg" className={ classnames( styles.background, styles.blue ) } />
                 <span className={ styles.text } >モード Mode</span>
+            </div>
+            <div className={ classnames( styles.btn, styles.mode ) } onClick={ handleModeBtnClick } >
+                <img src="images/webpencil.svg" className={ classnames( styles.background, styles.blue ) } />
+                <span className={ styles.text } >隠れる Hide</span>
             </div>
             <div className={ classnames( styles.btn, styles.vr, xrSupported ? null : styles.disabled ) } onClick={ handleVRBtnClick } >
                 <img src="images/webpencil.svg" className={ classnames( styles.background, styles.blue ) } />

@@ -1,18 +1,19 @@
 import * as THREE from 'three';
 import * as BufferGeometryUtils from 'three/examples/jsm/utils/BufferGeometryUtils.js';
 // import atlaspack from './atlaspack.js';
-import { getAddressFromMnemonic } from './blockchain.js';
-import {playersMapName, tokensHost, storageHost, accountsHost, loginEndpoint, audioTimeoutTime} from './constants.js';
+import {playersMapName, tokensHost, storageHost, /*accountsHost, loginEndpoint,*/ audioTimeoutTime} from './constants.js';
+// import { getRenderer } from './renderer.js';
+import {IdAllocator} from './id-allocator';
 
 const localVector = new THREE.Vector3();
 const localVector2 = new THREE.Vector3();
 const localVector3 = new THREE.Vector3();
 const localVector4 = new THREE.Vector3();
 const localVector5 = new THREE.Vector3();
-const localVector6 = new THREE.Vector3();
-const localQuaternion = new THREE.Quaternion();
-const localQuaternion2 = new THREE.Quaternion();
-const localQuaternion3 = new THREE.Quaternion();
+// const localVector6 = new THREE.Vector3();
+// const localQuaternion = new THREE.Quaternion();
+// const localQuaternion2 = new THREE.Quaternion();
+// const localQuaternion3 = new THREE.Quaternion();
 const localMatrix = new THREE.Matrix4();
 const localMatrix2 = new THREE.Matrix4();
 
@@ -97,8 +98,8 @@ export function makePromise() {
   return p;
 }
 
-let nextMeshId = 0;
-export const getNextMeshId = () => ++nextMeshId;
+// const meshIdAllcator = new IdAllocator();
+// export const getNextMeshId = meshIdAllcator.alloc.bind(meshIdAllcator);
 
 export function clone(o) {
   return JSON.parse(JSON.stringify(o));
@@ -334,17 +335,19 @@ export function mergeMeshes(meshes, geometries, textures) {
   return mesh;
 }
 
-let nextPhysicsId = 0;
+/* let nextPhysicsId = 0;
 export function getNextPhysicsId() {
   return ++nextPhysicsId;
-}
+} */
+const physicsIdAllcator = new IdAllocator();
+export const getNextPhysicsId = physicsIdAllcator.alloc.bind(physicsIdAllcator);
+export const freePhysicsId = physicsIdAllcator.free.bind(physicsIdAllcator);
 
 export function convertMeshToPhysicsMesh(topMesh) {
   const oldParent = topMesh.parent;
   oldParent && oldParent.remove(topMesh);
 
   topMesh.updateMatrixWorld();
-  // localMatrix.copy(topMesh.matrix).invert();
 
   const meshes = [];
   topMesh.traverse(o => {
@@ -355,10 +358,6 @@ export function convertMeshToPhysicsMesh(topMesh) {
   const newGeometries = meshes.map(mesh => {
     const {geometry} = mesh;
     const newGeometry = new THREE.BufferGeometry();
-    /* if (mesh.isSkinnedMesh) {
-      console.log('compile skinned mesh', mesh);
-    } */
-    // localMatrix2.multiplyMatrices(localMatrix, mesh.isSkinnedMesh ? topMesh.matrixWorld : mesh.matrixWorld);
     if (mesh.isSkinnedMesh) {
       localMatrix2.identity();
     } else {
@@ -395,21 +394,25 @@ export function convertMeshToPhysicsMesh(topMesh) {
     oldParent.add(topMesh);
     topMesh.updateMatrixWorld();
   }
+  let physicsMesh;
   if (newGeometries.length > 0) {
     const newGeometry = BufferGeometryUtils.mergeBufferGeometries(newGeometries);
-    const physicsMesh = new THREE.Mesh(newGeometry);
-    /* physicsMesh.position.copy(topMesh.position);
-    physicsMesh.quaternion.copy(topMesh.quaternion);
-    physicsMesh.scale.copy(topMesh.scale);
-    physicsMesh.matrix.copy(topMesh.matrix);
-    physicsMesh.matrixWorld.copy(topMesh.matrixWorld); */
-    physicsMesh.visible = false;
-    return physicsMesh;
+    physicsMesh = new THREE.Mesh(newGeometry);
   } else {
-    const physicsMesh = new THREE.Mesh();
-    physicsMesh.visible = false;
-    return physicsMesh;
+    physicsMesh = new THREE.Mesh();
   }
+  physicsMesh.visible = false;
+
+  if (topMesh.parent) {
+    topMesh.parent.matrixWorld.decompose(
+      physicsMesh.position,
+      physicsMesh.quaternion,
+      physicsMesh.scale
+    )
+    physicsMesh.updateMatrixWorld()
+  }
+
+  return physicsMesh;
   
 }
 
@@ -590,7 +593,7 @@ export function makeId(length) {
   return result;
 }
 
-async function contentIdToStorageUrl(id) {
+/* async function contentIdToStorageUrl(id) {
   if (typeof id === 'number') {
     const hash = await contracts.mainnetsidechain.NFT.methods.getHash(id + '').call();
     return `${storageHost}/${hash}`;
@@ -599,38 +602,16 @@ async function contentIdToStorageUrl(id) {
   } else {
     return null;
   }
-}
-
-async function pullUserObject(loginToken) {
-  const address = getAddressFromMnemonic(loginToken.mnemonic);
-  const res = await fetch(`${accountsHost}/${address}`);
-  var result = await res.json();
-  result.mnemonic = loginToken.mnemonic;
-  return result;
-}
-
-export const handleDiscordLogin = async (code, id) => {
-  if (!code) {
-    return;
-  }
-  try{
-    let res = await fetch(loginEndpoint + `?discordid=${encodeURIComponent(id)}&discordcode=${encodeURIComponent(code)}&redirect_uri=${window.location.origin}/login`, {
-      method: 'POST',
-    });
-    res = await res.json();
-    if (!res.error) {
-      return await pullUserObject(res);
-    } else {
-      //console.warn('Unable to login ', res.error);
-      return res;
-    }
-  }catch(e){
-    
-  }
-};
+} */
 
 export function mod(a, n) {
   return (a % n + n) % n;
+}
+
+export const modUv = uv => {
+  uv.x = mod(uv.x, 1);
+  uv.y = mod(uv.y, 1);
+  return uv;
 }
 
 export function angleDifference(angle1, angle2) {
@@ -809,168 +790,208 @@ export const proxifyUrl = u => {
     return u;
   }
 };
+export const createRelativeUrl = (u, baseUrl) => {
+  if (/^(?:[\.\/]|([a-z0-9]+):\/\/)/i.test(u)) {
+    return u;
+  } else {
+    if (!/([a-z0-9]+):\/\//i.test(baseUrl)) {
+      baseUrl = new URL(baseUrl, window.location.href).href;
+    }
+    return new URL(u, baseUrl).href;
+  }
+};
+export const getDropUrl = o => {
+  let u = null;
+  if (typeof o?.start_url === 'string') {
+    u = o.start_url;
+  /* } else if (typeof j?.asset_contract?.address === 'string') {
+    const {token_id, asset_contract} = j;
+    const {address} = asset_contract;
+    
+    if (contractNames[address]) {
+      u = `/@proxy/` + encodeURI(`eth://${address}/${token_id}`);
+    } else {
+      console.log('got j', j);
+      const {traits} = j;
+      // cryptovoxels wearables
+      const voxTrait = traits.find(t => t.trait_type === 'vox'); // XXX move to a loader
+      if (voxTrait) {
+        const {value} = voxTrait;
+        u = proxifyUrl(value) + '?type=vox';
+      } else {
+        const {token_metadata} = j;
+        // console.log('proxify', token_metadata);
+        const res = await fetch(proxifyUrl(token_metadata), {
+          mode: 'cors',
+        });
+        const j2 = await res.json();
+        // console.log('got metadata', j2);
+        
+        // dcl wearables
+        if (j2.id?.startsWith('urn:decentraland:')) {
+          // 'urn:decentraland:ethereum:collections-v1:mch_collection:mch_enemy_upper_body'
+          const res = await fetch(`https://peer-lb.decentraland.org/lambdas/collections/wearables?wearableId=${j2.id}`, { // XXX move to a loader
+            mode: 'cors',
+          });
+          const j3 = await res.json();
+          const {wearables} = j3;
+          const wearable = wearables[0];
+          const representation = wearable.data.representations[0];
+          const {mainFile, contents} = representation;
+          const file = contents.find(f => f.key === mainFile);
+          const match = mainFile.match(/\.([a-z0-9]+)$/i);
+          const type = match && match[1];
+          // console.log('got wearable', {mainFile, contents, file, type});
+          u = '/@proxy/' + encodeURI(file.url) + (type ? ('?type=' + type) : '');
+        } else {
+          // avatar
+          const {avatar_url, asset} = j2;
+          const avatarUrl = avatar_url || asset;
+          if (avatarUrl) {
+            u = '/@proxy/' + encodeURI(avatarUrl) + '?type=vrm';
+          } else {
+            // default
+            const {image} = j2;
+            u = '/@proxy/' + encodeURI(image);
+          }
+        }
+      }
+    } */
+  }
+  return u;
+};
+export const handleDropJsonItem = async item => {
+  if (item?.kind === 'string') {
+    const s = await new Promise((accept, reject) => {
+      item.getAsString(accept);
+    });
+    const j = jsonParse(s);
+    if (j) {
+      const u = getDropUrl(j);
+      return u;
+    } /* else {
+      console.warn('not uploading unknown json object', j);
+      // return null;
+    } */
+  }
+  return null;
+};
 export const handleUpload = async (
   item,
   {
     onProgress = null,
   } = {}
 ) => {
-  console.log('uploading...');
+  console.log('uploading...', item);
   
-  const _uploadObject = async item => {
-    let u;
-    
-    if (item instanceof FileList) {
-      const formData = new FormData();
+  const _handleFileList = async item => {
+    const formData = new FormData();
 
+    formData.append(
+      '',
+      new Blob([], {
+        type: 'application/x-directory',
+      }),
+      ''
+    );
+
+    const files = item;
+    for (let i = 0; i < files.length; i++) {
+      const file = files[i];
+      formData.append(file.name, file, file.name);
+    }
+
+    const hashes = await doUpload(`https://ipfs.webaverse.com/`, formData, {
+      onProgress,
+    });
+
+    const rootDirectory = hashes.find(h => h.name === '');
+    const rootDirectoryHash = rootDirectory.hash;
+    return `https://ipfs.webaverse.com/ipfs/${rootDirectoryHash}/`;
+  };
+  const _handleString = item => handleDropJsonItem(item);
+  const _handleDirectory = async entry => {
+    const formData = new FormData();
+        
+    const rootEntry = entry;
+    const _recurse = async entry => {
+      function getFullPath(entry) {
+        return entry.fullPath.slice(rootEntry.fullPath.length);
+      }
+      const fullPath = getFullPath(entry);
+      // console.log('directory full path', entry.fullPath, rootEntry.fullPath, fullPath);
       formData.append(
-        '',
+        fullPath,
         new Blob([], {
           type: 'application/x-directory',
         }),
-        ''
+        fullPath
       );
-
-      const files = item;
-      for (let i = 0; i < files.length; i++) {
-        const file = files[i];
-        formData.append(file.name, file, file.name);
-      }
-
-      const hashes = await doUpload(`https://ipfs.webaverse.com/`, formData, {
-        onProgress,
-      });
-
-      const rootDirectory = hashes.find(h => h.name === '');
-      const rootDirectoryHash = rootDirectory.hash;
-      u = `https://ipfs.webaverse.com/ipfs/${rootDirectoryHash}/`;
-      // console.log(u);
-    } else {
-      const file = item.getAsFile();
-      const entry = item.webkitGetAsEntry();
       
-      if (item.kind === 'string') {
-        const s = await new Promise((accept, reject) => {
-          item.getAsString(accept);
-        });
-        const j = JSON.parse(s);
-        const {token_id, asset_contract} = j;
-        const {address} = asset_contract;
-        
-        if (contractNames[address]) {
-          u = `/@proxy/` + encodeURI(`eth://${address}/${token_id}`);
-        } else {
-          console.log('got j', j);
-          const {traits} = j;
-          // cryptovoxels wearables
-          const voxTrait = traits.find(t => t.trait_type === 'vox'); // XXX move to a loader
-          if (voxTrait) {
-            const {value} = voxTrait;
-            u = proxifyUrl(value) + '?type=vox';
-          } else {
-            const {token_metadata} = j;
-            // console.log('proxify', token_metadata);
-            const res = await fetch(proxifyUrl(token_metadata), {
-              mode: 'cors',
-            });
-            const j2 = await res.json();
-            // console.log('got metadata', j2);
-            
-            // dcl wearables
-            if (j2.id?.startsWith('urn:decentraland:')) {
-              // 'urn:decentraland:ethereum:collections-v1:mch_collection:mch_enemy_upper_body'
-              const res = await fetch(`https://peer-lb.decentraland.org/lambdas/collections/wearables?wearableId=${j2.id}`, { // XXX move to a loader
-                mode: 'cors',
-              });
-              const j3 = await res.json();
-              const {wearables} = j3;
-              const wearable = wearables[0];
-              const representation = wearable.data.representations[0];
-              const {mainFile, contents} = representation;
-              const file = contents.find(f => f.key === mainFile);
-              const match = mainFile.match(/\.([a-z0-9]+)$/i);
-              const type = match && match[1];
-              // console.log('got wearable', {mainFile, contents, file, type});
-              u = '/@proxy/' + encodeURI(file.url) + (type ? ('?type=' + type) : '');
+      const reader = entry.createReader();
+      async function readEntries() {
+        const entries = await new Promise((accept, reject) => {
+          reader.readEntries(entries => {
+            if (entries.length > 0) {
+              accept(entries);
             } else {
-              // avatar
-              const {avatar_url, asset} = j2;
-              const avatarUrl = avatar_url || asset;
-              if (avatarUrl) {
-                u = '/@proxy/' + encodeURI(avatarUrl) + '?type=vrm';
-              } else {
-                // default
-                const {image} = j2;
-                u = '/@proxy/' + encodeURI(image);
-              }
+              accept(null);
             }
+          }, reject);
+        });
+        return entries;
+      }
+      let entriesArray;
+      while (entriesArray = await readEntries()) {
+        for (const entry of entriesArray) {
+          if (entry.isFile) {
+            const file = await new Promise((accept, reject) => {
+              entry.file(accept, reject);
+            });
+            const fullPath = getFullPath(entry);
+
+            formData.append(fullPath, file, fullPath);
+          } else if (entry.isDirectory) {
+            await _recurse(entry);
           }
         }
-      } else if (entry.isDirectory) {
-        const formData = new FormData();
-        
-        const rootEntry = entry;
-        const _recurse = async entry => {
-          function getFullPath(entry) {
-            return entry.fullPath.slice(rootEntry.fullPath.length);
-          }
-          const fullPath = getFullPath(entry);
-          // console.log('directory full path', entry.fullPath, rootEntry.fullPath, fullPath);
-          formData.append(
-            fullPath,
-            new Blob([], {
-              type: 'application/x-directory',
-            }),
-            fullPath
-          );
-          
-          const reader = entry.createReader();
-          async function readEntries() {
-            const entries = await new Promise((accept, reject) => {
-              reader.readEntries(entries => {
-                if (entries.length > 0) {
-                  accept(entries);
-                } else {
-                  accept(null);
-                }
-              }, reject);
-            });
-            return entries;
-          }
-          let entriesArray;
-          while (entriesArray = await readEntries()) {
-            for (const entry of entriesArray) {
-              if (entry.isFile) {
-                const file = await new Promise((accept, reject) => {
-                  entry.file(accept, reject);
-                });
-                const fullPath = getFullPath(entry);
+      } 
+    };
+    await _recurse(rootEntry);
 
-                formData.append(fullPath, file, fullPath);
-              } else if (entry.isDirectory) {
-                await _recurse(entry);
-              }
-            }
-          } 
-        };
-        await _recurse(rootEntry);
+    const hashes = await doUpload(`https://ipfs.webaverse.com/`, formData, {
+      onProgress,
+    });
 
-        const hashes = await doUpload(`https://ipfs.webaverse.com/`, formData, {
-          onProgress,
-        });
+    const rootDirectory = hashes.find(h => h.name === '');
+    const rootDirectoryHash = rootDirectory.hash;
+    return `https://ipfs.webaverse.com/ipfs/${rootDirectoryHash}/`;
+  };
+  const _handleFile = async file => {
+    const j = await doUpload(`https://ipfs.webaverse.com/`, file, {
+      onProgress,
+    });
+    const {hash} = j;
+    const {name} = file;
 
-        const rootDirectory = hashes.find(h => h.name === '');
-        const rootDirectoryHash = rootDirectory.hash;
-        u = `https://ipfs.webaverse.com/ipfs/${rootDirectoryHash}/`;
-        console.log(u);
+    return `${storageHost}/${hash}/${name}`;
+  };
+  const _uploadObject = async item => {
+    let u = null;
+    
+    if (item instanceof FileList) {
+      u = _handleFileList(item);
+    } else {
+      if (item.kind === 'string') {
+        u = await _handleString(item);
       } else {
-        const j = await doUpload(`https://ipfs.webaverse.com/`, file, {
-          onProgress,
-        });
-        const {hash} = j;
-        const {name} = file;
-
-        u = `${storageHost}/${hash}/${name}`;
+        const entry = item.webkitGetAsEntry();
+        if (entry.isDirectory) {
+          u = await _handleDirectory(entry);
+        } else {
+          const file = item.getAsFile();
+          u = await _handleFile(file);
+        }
       }
     }
     return u;
@@ -989,3 +1010,156 @@ export const loadImage = u => new Promise((resolve, reject) => {
   img.crossOrigin = 'Anonymous';
   img.src = u;
 });
+export const drawImageContain = (ctx, img) => {
+  const imgWidth = img.width;
+  const imgHeight = img.height;
+  const canvasWidth = ctx.canvas.width;
+  const canvasHeight = ctx.canvas.height;
+  const imgAspect = imgWidth / imgHeight;
+  const canvasAspect = canvasWidth / canvasHeight;
+  let x, y, width, height;
+  if (imgAspect > canvasAspect) {
+    // image is wider than canvas
+    width = canvasWidth;
+    height = width / imgAspect;
+    x = 0;
+    y = (canvasHeight - height) / 2;
+  } else {
+    // image is taller than canvas
+    height = canvasHeight;
+    width = height * imgAspect;
+    x = (canvasWidth - width) / 2;
+    y = 0;
+  }
+  ctx.drawImage(img, x, y, width, height);
+};
+export const imageToCanvas = (img, w, h) => {
+  const canvas = document.createElement('canvas');
+  canvas.width = w;
+  canvas.height = h;
+  const ctx = canvas.getContext('2d');
+  drawImageContain(ctx, img);
+  return canvas;
+};
+
+export const isTransferable = o => {
+  const ctor = o?.constructor;
+  return ctor === MessagePort ||
+    ctor === ImageBitmap ||
+    ctor === ImageData ||
+    // ctor === AudioData ||
+    // ctor === OffscreenCanvas ||
+    ctor === ArrayBuffer ||
+    ctor === Uint8Array ||
+    ctor === Int8Array ||
+    ctor === Uint16Array ||
+    ctor === Int16Array ||
+    ctor === Uint32Array ||
+    ctor === Int32Array ||
+    ctor === Float32Array ||
+    ctor === Float64Array;
+};
+export const getTransferables = o => {
+  const result = [];
+  const _recurse = o => {
+    if (Array.isArray(o)) {
+      for (const e of o) {
+        _recurse(e);
+      }
+    } else if (o && typeof o === 'object') {
+      if (isTransferable(o)) {
+        result.push(o);
+      } else {
+        for (const k in o) {
+          _recurse(o[k]);
+        }
+      }
+    }
+  };
+  _recurse(o);
+  return result;
+};
+export const selectVoice = (voicer) => {
+  const weightedRandom = (weights) => {
+    let totalWeight = 0;
+    for (let i = 0; i < weights.length; i++) {
+      totalWeight += weights[i];
+    }
+  
+    let random = Math.random() * totalWeight;
+    for (let i = 0; i < weights.length; i++) {
+      if (random < weights[i]) {
+        return i;
+      }
+      random -= weights[i];
+    }
+  
+    return -1;
+  }
+  // the weight of each voice is proportional to the inverse of the number of times it has been used
+  const maxNonce = voicer.reduce((max, voice) => Math.max(max, voice.nonce), 0);
+  const weights = voicer.map(({nonce}) => {
+    return 1 - (nonce / (maxNonce + 1));
+  });
+  const selectionIndex = weightedRandom(weights);
+  const voiceSpec = voicer[selectionIndex];
+  voiceSpec.nonce++;
+  while (voicer.every(voice => voice.nonce > 0)) {
+    for (const voiceSpec of voicer) {
+      voiceSpec.nonce--;
+    }
+  }
+  return voiceSpec;
+};
+export const splitLinesToWidth = (() => {
+  let tempCanvas = null;
+  const _getTempCanvas = () => {
+    if (tempCanvas === null) {
+      tempCanvas = document.createElement('canvas');
+      tempCanvas.width = 0;
+      tempCanvas.height = 0;
+    }
+    return tempCanvas;
+  };
+  
+  return (text, font, maxWidth) => {
+    const canvas = _getTempCanvas();
+    const ctx = canvas.getContext('2d');
+    ctx.font = font;
+
+    let lines = [];
+    const words = text.split(' ');
+
+    // We'll be constantly removing words from our words array to build our lines. Once we're out of words, we can stop
+    while (words.length > 0) {
+      let tmp = words[0]; // Capture the current word, in case we need to re-add it to array
+      let line = words.shift(); // Start our line with the first word available to us
+
+      // Now we'll continue adding words to our line until we've exceeded our budget
+      while (words.length && ctx.measureText(line).width < maxWidth) {
+        tmp = words[0];
+        line += ' ' + words.shift();
+      }
+
+      // If the line is too long, remove the last word and replace it in words array.
+      // This will happen on all but the last line, as we anticipate exceeding the length to break out of our second while loop
+      if (ctx.measureText(line).width > maxWidth) {
+        const lastSpaceIndex = line.lastIndexOf(' ');
+        if (lastSpaceIndex !== -1) {
+          line = line.substring(0, lastSpaceIndex);
+          words.unshift(tmp);
+        } else {
+          const part1 = line.substring(0, 12) + '-';
+          const part2 = line.substring(12);
+          line = part1;
+          words.push(part2);
+        }
+      }
+
+      // Push the finshed line into the array
+      lines.push(line);
+    }
+
+    return lines;
+  };
+})();
