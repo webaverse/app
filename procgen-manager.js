@@ -2,6 +2,7 @@ import {murmurhash3} from './procgen/procgen.js';
 import {DcWorkerManager} from './dc-worker-manager.js';
 import {LodChunkTracker} from './lod.js';
 import {LightMapper} from './light-mapper.js';
+import {HeightfieldMapper} from './heightfield-mapper.js';
 import {defaultChunkSize} from './constants.js';
 // import {getLocalPlayer} from './players.js';
 
@@ -54,6 +55,16 @@ class ProcGenInstance {
       });
     }
     return this.lightmapper;
+  }
+  getHeightfieldMapper() {
+    if (!this.heightfieldMapper) {
+      const {chunkSize} = this;
+      this.heightfieldMapper = new HeightfieldMapper({
+        chunkSize,
+        terrainSize,
+      });
+    }
+    return this.heightfieldMapper;
   }
 }
 
