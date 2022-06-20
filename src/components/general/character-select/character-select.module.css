@@ -92,8 +92,25 @@
   object-fit: contain;
 }
 
+.characterSelect .list .item .imgContainer {
+  position: relative;
+}
+
+.disabled {
+  width: 25px;
+  position: absolute;
+  z-index: 1;
+  left: 10px;
+  top: 10px;
+}
+
 .characterSelect .list .item .name {
   font-family: 'PlazaRegular';
   font-size: 20px;
   letter-spacing: 0.5px;
+}
+
+.characterSelect .cryptoavatars {
+  margin-left: 50px;
+  display: flex;
 }
