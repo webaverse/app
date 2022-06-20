@@ -74,7 +74,7 @@ const _handleMethod = ({
   // console.log('worker handle method', method, args);
 
   const _injectDamages = (chunks, instance) => {
-    console.log("Instance : " + instance);
+    // console.log("Instance : " + instance);
     // inject the damage to peer workers
     const method = 'injectDamages';
     const args = {
