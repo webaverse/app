@@ -922,7 +922,7 @@ export const _applyAnimation = (avatar, now, moveFactors) => {
         } = spec;
 
         const fallLoopAnimation = animations.index['falling.fbx'];
-        const t2 = (avatar.fallLoopTime / 1000) ;
+        const t2 = (avatar.fallLoopTime / 1000);
         const src2 = fallLoopAnimation.interpolants[k];
         const v2 = src2.evaluate(t2);
 
