@@ -2180,29 +2180,45 @@ const physxWorker = (() => {
     }
   }
 
-  w.addAnimationPhysics = (physics, sampleValues) => {
+  w.addAnimationPhysics = (physics, parameterPositions, sampleValues, valueSize) => {
     const allocator = new Allocator(moduleInstance);
+
+    const parameterPositionsTypedArray = allocator.alloc(Float32Array, parameterPositions.length);
+    parameterPositionsTypedArray.set(parameterPositions);
 
     const sampleValuesTypedArray = allocator.alloc(Float32Array, sampleValues.length);
     sampleValuesTypedArray.set(sampleValues);
-    // debugger
-    console.log(sampleValuesTypedArray);
 
     moduleInstance._addAnimationPhysics(
       physics,
+      parameterPositionsTypedArray.byteOffset,
       sampleValuesTypedArray.byteOffset,
+      valueSize,
     )
 
     // allocator.freeAll(); // can't free sampleValuesTypedArray, need persist in wasm for later use.
   }
 
   w.evaluateAnimationPhysics = (physics, t) => {
-    const value = moduleInstance._evaluateAnimationPhysics(
+    const outputBufferOffset = moduleInstance._evaluateAnimationPhysics(
       physics,
       t,
     )
 
-    return value;
+    let head = outputBufferOffset / Float32Array.BYTES_PER_ELEMENT;
+
+    let tail = head + 1;
+    const a = moduleInstance.HEAPF32.slice(head, tail);
+
+    head = tail;
+    tail = head + 1;
+    const b = moduleInstance.HEAPF32.slice(head, tail);
+
+    head = tail;
+    tail = head + 1;
+    const c = moduleInstance.HEAPF32.slice(head, tail);
+
+    return [a, b, c];
   }
 
   return w;
