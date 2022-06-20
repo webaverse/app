@@ -2191,7 +2191,9 @@ const physxWorker = (() => {
 
     moduleInstance._addAnimationPhysics(
       physics,
+      parameterPositions.length,
       parameterPositionsTypedArray.byteOffset,
+      sampleValues.length,
       sampleValuesTypedArray.byteOffset,
       valueSize,
     )
@@ -2206,19 +2208,22 @@ const physxWorker = (() => {
     )
 
     let head = outputBufferOffset / Float32Array.BYTES_PER_ELEMENT;
-
     let tail = head + 1;
-    const a = moduleInstance.HEAPF32.slice(head, tail);
+    const a = moduleInstance.HEAPF32[head];
 
     head = tail;
     tail = head + 1;
-    const b = moduleInstance.HEAPF32.slice(head, tail);
+    const b = moduleInstance.HEAPF32[head];
 
     head = tail;
     tail = head + 1;
-    const c = moduleInstance.HEAPF32.slice(head, tail);
+    const c = moduleInstance.HEAPF32[head];
 
-    return [a, b, c];
+    head = tail;
+    tail = head + 1;
+    const test = moduleInstance.HEAPF32[head];
+
+    return [a, b, c, test];
   }
 
   return w;
