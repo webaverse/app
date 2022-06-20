@@ -47,20 +47,22 @@ class ProcGenInstance {
   }
   getLightMapper() {
     if (!this.lightmapper) {
-      const {chunkSize} = this;
+      const {chunkSize, range} = this;
       this.lightmapper = new LightMapper({
         chunkSize,
         terrainSize,
+        range,
       });
     }
     return this.lightmapper;
   }
   getHeightfieldMapper() {
     if (!this.lightmapper) {
-      const {chunkSize} = this;
+      const {chunkSize, range} = this;
       this.heightfieldMapper = new HeightfieldMapper({
         chunkSize,
         terrainSize,
+        range,
       });
     }
     return this.heightfieldMapper;

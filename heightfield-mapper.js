@@ -42,9 +42,11 @@ export class HeightfieldMapper {
   constructor({
     chunkSize,
     terrainSize,
+    range,
   }) {
     this.chunkSize = chunkSize;
     this.terrainSize = terrainSize;
+    this.range = range;
 
     this.heightfieldRenderTarget = _makeHeightfieldRenderTarget(terrainSize, terrainSize);
     this.heightfieldFourTapRenderTarget = _makeHeightfieldRenderTarget(terrainSize, terrainSize);
@@ -186,12 +188,25 @@ export class HeightfieldMapper {
       scene.mesh = fourTapQuadMesh;
       return scene;
     })();
+
+    if (range) {
+      this.#setRange(range);
+    }
   }
-  updateCoord(min2xCoord, target) {
+  #setRange = (() => {
+    const localVector = new THREE.Vector3();
+    return function(range) {
+      localVector.copy(range.min)
+        .divideScalar(this.chunkSize);
+      this.updateCoord(localVector);
+    };
+  })();
+  updateCoord(min2xCoord, target = null) {
     const oldHeightfieldPosition = localVector2D.copy(this.heightfieldMinPosition);
     const newHeightfieldPosition = localVector2D2.set(min2xCoord.x, min2xCoord.z)
       .multiplyScalar(this.chunkSize);
-    const delta = target.copy(newHeightfieldPosition)
+
+    const delta = target && target.copy(newHeightfieldPosition)
       .sub(oldHeightfieldPosition);
 
     // update scenes
