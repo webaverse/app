@@ -40,10 +40,13 @@ npm install # Install dependencies
 ```
 
 ## Quickstart
-Provided you followed the instructions above, starting the application is as easy as
-
+Provided you followed the instructions above, starting the application is as easy as:
 ```sh
+# Run in development
 npm run dev
+
+# OR deploy to production
+npm run prod
 ```
 
 Once the server has started up, you can visit https://localhost:3000
