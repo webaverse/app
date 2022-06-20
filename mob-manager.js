@@ -1,5 +1,4 @@
 import * as THREE from 'three';
-// import * as BufferGeometryUtils from 'three/examples/jsm/utils/BufferGeometryUtils.js';
 import * as SkeletonUtils from 'three/examples/jsm/utils/SkeletonUtils.js';
 import metaversefile from 'metaversefile';
 import {getLocalPlayer} from './players.js';
@@ -12,7 +11,6 @@ import dropManager from './drop-manager.js';
 import loaders from './loaders.js';
 import {InstancedBatchedMesh, InstancedGeometryAllocator} from './instancing.js';
 import {createTextureAtlas} from './atlasing.js';
-import dcWorkerManager from './dc-worker-manager.js';
 
 const localVector = new THREE.Vector3();
 const localVector2 = new THREE.Vector3();
@@ -521,6 +519,7 @@ class InstancedSkeleton extends THREE.Skeleton {
 
 class MobBatchedMesh extends InstancedBatchedMesh {
   constructor({
+    procGenInstance,
     glbs = [],
     meshes = [],
     // rootBones = [],
@@ -740,6 +739,8 @@ gl_Position = projectionMatrix * mvPosition;
     super(geometry, material, allocator);
     this.frustumCulled = false;
 
+    this.procGenInstance = procGenInstance;
+
     {
       this.isSkinnedMesh = true;
 
@@ -795,7 +796,7 @@ gl_Position = projectionMatrix * mvPosition;
 
       const _getMobData = async chunk => {
         const lod = 1;
-        return await dcWorkerManager.createMobSplat(chunk.x * chunkWorldSize, chunk.z * chunkWorldSize, lod);
+        return await this.procGenInstance.dcWorkerManager.createMobSplat(chunk.x * chunkWorldSize, chunk.z * chunkWorldSize, lod);
       };
       const mobData = await _getMobData(chunk);
       // mobData.instances.length > 0 && console.log('got mob data', mobData, chunk); // XXX
@@ -1016,12 +1017,9 @@ gl_Position = projectionMatrix * mvPosition;
 
 class MobGenerator {
   constructor({
+    procGenInstance = null,
     appUrls = [],
-  } = {}, parent) {
-    this.parent = parent;
-
-    //
-
+  } = {}) {
     // this.mobModules = {};
 
     this.object = new THREE.Object3D();
@@ -1077,6 +1075,7 @@ class MobGenerator {
 
       // make batched mesh
       const mobBatchedMesh = new MobBatchedMesh({
+        procGenInstance,
         glbs,
         meshes: skinnedMeshes,
         // rootBones,
@@ -1124,16 +1123,36 @@ class MobGenerator {
 
 class Mobber {
   constructor({
+    procGenInstance,
     appUrls = [],
   } = {}) {
     this.compiled = false;
     
-    this.generator = new MobGenerator({
+    const generator = new MobGenerator({
+      procGenInstance,
       appUrls,
-    }, this);
-    this.tracker = new LodChunkTracker(this.generator, {
-      chunkWorldSize,
     });
+    this.generator = generator;
+    /* this.tracker = new LodChunkTracker(this.generator, {
+      chunkWorldSize,
+    }); */
+    const numLods = 1;
+    const tracker = procGenInstance.getChunkTracker({
+      numLods,
+      // trackY: true,
+      // relod: true,
+    });
+    const chunkadd = e => {
+      const {chunk} = e.data;
+      generator.generateChunk(chunk);
+    };
+    tracker.addEventListener('chunkadd', chunkadd);
+    const chunkremove = e => {
+      const {chunk} = e.data;
+      generator.disposeChunk(chunk);
+    };
+    tracker.addEventListener('chunkremove', chunkremove);
+    this.tracker = tracker;
 
     this.compiled = false;
     this.waitForLoad().then(() => {
