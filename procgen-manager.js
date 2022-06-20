@@ -1,8 +1,13 @@
 import {murmurhash3} from './procgen/procgen.js';
 import {DcWorkerManager} from './dc-worker-manager.js';
 import {LodChunkTracker} from './lod.js';
+import {LightMapper} from './light-mapper.js';
 import {defaultChunkSize} from './constants.js';
 // import {getLocalPlayer} from './players.js';
+
+const chunkSize = defaultChunkSize;
+const terrainWidthInChunks = 4;
+const terrainSize = chunkSize * terrainWidthInChunks;
 
 class ProcGenInstance {
   constructor(instance, {
@@ -17,6 +22,8 @@ class ProcGenInstance {
       instance,
     });
     this.range = null;
+
+    this.lightmapper = null;
   }
   setRange(range) {
     this.dcWorkerManager.setRange(range);
@@ -38,6 +45,16 @@ class ProcGenInstance {
       tracker.setRange(this.range);
     }
     return tracker;
+  }
+  getLightMapper() {
+    if (!this.lightmapper) {
+      const {chunkSize} = this;
+      this.lightmapper = new LightMapper({
+        chunkSize,
+        terrainSize,
+      });
+    }
+    return this.lightmapper;
   }
 }
 
