@@ -191,7 +191,6 @@ export class LightMapper {
       .sub(newPosition);
 
     if (!deltaNegative.equals(zeroVector)) {
-      console.log('update');
       const position = deltaNegative;
       const sourceBox = localBox.set(
         localVector3.set(0, 0, 0),
