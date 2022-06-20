@@ -4,7 +4,6 @@ import {LodChunkTracker} from './lod.js';
 import {LightMapper} from './light-mapper.js';
 import {HeightfieldMapper} from './heightfield-mapper.js';
 import {defaultChunkSize} from './constants.js';
-// import {getLocalPlayer} from './players.js';
 
 const chunkSize = defaultChunkSize;
 const terrainWidthInChunks = 4;
@@ -87,11 +86,6 @@ class ProcGenManager {
     }
     return instance;
   }
-  /* update() {
-    for (const instance of this.instances.values()) {
-      instance.update();
-    }
-  } */
 }
 const procGenManager = new ProcGenManager();
 export default procGenManager;
