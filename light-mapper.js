@@ -123,9 +123,11 @@ export class LightMapper {
   constructor({
     chunkSize,
     terrainSize,
+    range,
   }) {
     this.chunkSize = chunkSize;
     this.terrainSize = terrainSize;
+    this.range = range; // XXX support this
 
     const skylightData = new Uint8Array(terrainSize * terrainSize * terrainSize);
     const skylightTex = new THREE.DataTexture3D(skylightData, terrainSize, terrainSize, terrainSize);
