@@ -73,11 +73,13 @@ const _handleMethod = ({
 }) => {
   // console.log('worker handle method', method, args);
 
-  const _injectDamages = chunks => {
+  const _injectDamages = (chunks, instance) => {
+    // console.log("Instance : " + instance);
     // inject the damage to peer workers
     const method = 'injectDamages';
     const args = {
       chunks,
+      instance
     };
     for (const port of ports) {
       // console.log('got port', port);
@@ -134,7 +136,7 @@ const _handleMethod = ({
     case 'generateChunk': {
       const {instance: instanceKey, chunkPosition, lodArray} = args;
       const instance = instances.get(instanceKey);
-      if (!instance) throw new Error('instance not found');
+      if (!instance) throw new Error('generateChunk : instance not found');
       localVector.fromArray(chunkPosition)
         .multiplyScalar(chunkWorldSize);
       const meshData = dc.createChunkMeshDualContouring(instance, localVector.x, localVector.y, localVector.z, lodArray);
@@ -154,7 +156,7 @@ const _handleMethod = ({
     case 'generateChunkRenderable': {
       const {instance: instanceKey, chunkPosition, lodArray} = args;
       const instance = instances.get(instanceKey);
-      if (!instance) throw new Error('instance not found');
+      if (!instance) throw new Error('generateChunkRenderable : instance not found');
       localVector.fromArray(chunkPosition)
         .multiplyScalar(chunkWorldSize);
       const meshData = dc.createChunkMeshDualContouring(instance, localVector.x, localVector.y, localVector.z, lodArray);
@@ -180,7 +182,7 @@ const _handleMethod = ({
     case 'getHeightfieldRange': {
       const {instance: instanceKey, x, z, w, h, lod} = args;
       const instance = instances.get(instanceKey);
-      if (!instance) throw new Error('instance not found');
+      if (!instance) throw new Error('getHeightfieldRange : instance not found');
       const heights = dc.getHeightfieldRange(instance, x, z, w, h, lod);
 
       const spec = {
@@ -192,7 +194,7 @@ const _handleMethod = ({
     case 'getSkylightFieldRange': {
       const {instance: instanceKey, x, y, z, w, h, d, lod} = args;
       const instance = instances.get(instanceKey);
-      if (!instance) throw new Error('instance not found');
+      if (!instance) throw new Error('getSkylightFieldRange : instance not found');
       const skylights = dc.getSkylightFieldRange(instance, x, y, z, w, h, d, lod);
 
       const spec = {
@@ -204,7 +206,7 @@ const _handleMethod = ({
     case 'getAoFieldRange': {
       const {instance: instanceKey, x, y, z, w, h, d, lod} = args;
       const instance = instances.get(instanceKey);
-      if (!instance) throw new Error('instance not found');
+      if (!instance) throw new Error('getAoFieldRange : instance not found');
       const aos = dc.getAoFieldRange(instance, x, y, z, w, h, d, lod);
 
       const spec = {
@@ -216,7 +218,7 @@ const _handleMethod = ({
     case 'createGrassSplat': {
       const {instance: instanceKey, x, z, lod} = args;
       const instance = instances.get(instanceKey);
-      if (!instance) throw new Error('instance not found');
+      if (!instance) throw new Error('createGrassSplat : instance not found');
       const {
         ps,
         qs,
@@ -236,7 +238,7 @@ const _handleMethod = ({
     case 'createVegetationSplat': {
       const {instance: instanceKey, x, z, lod} = args;
       const instance = instances.get(instanceKey);
-      if (!instance) throw new Error('instance not found');
+      if (!instance) throw new Error('createVegetationSplat : instance not found');
       const {
         ps,
         qs,
@@ -256,7 +258,7 @@ const _handleMethod = ({
     case 'createMobSplat': {
       const {instance: instanceKey, x, z, lod} = args;
       const instance = instances.get(instanceKey);
-      if (!instance) throw new Error('instance not found');
+      if (!instance) throw new Error('createMobSplat : instance not found');
       const {
         ps,
         qs,
@@ -276,7 +278,7 @@ const _handleMethod = ({
     case 'drawCubeDamage': {
       const {instance: instanceKey, position, quaternion, scale} = args;
       const instance = instances.get(instanceKey);
-      if (!instance) throw new Error('instance not found');
+      if (!instance) throw new Error('drawCubeDamage : instance not found');
       // console.log('dc worker draw cube damage', {position, quaternion, scale});
       const chunks = dc.drawCubeDamage(
         instance,
@@ -287,7 +289,7 @@ const _handleMethod = ({
       // console.log('draw cube damage chunks', chunks);
 
       if (chunks) {
-        _injectDamages(chunks);
+        _injectDamages(chunks, instanceKey);
         return {
           result: _chunksToResult(chunks),
           transfers: [],
@@ -299,7 +301,7 @@ const _handleMethod = ({
     case 'eraseCubeDamage': {
       const {instance: instanceKey, position, quaternion, scale} = args;
       const instance = instances.get(instanceKey);
-      if (!instance) throw new Error('instance not found');
+      if (!instance) throw new Error('eraseCubeDamage : instance not found');
       const chunks = dc.drawCubeDamage(
         instance,
         position[0], position[1], position[2],
@@ -308,7 +310,7 @@ const _handleMethod = ({
       );
 
       if (chunks) {
-        _injectDamages(chunks);
+        _injectDamages(chunks, instanceKey);
         return {
           result: _chunksToResult(chunks),
           transfers: [],
@@ -320,7 +322,7 @@ const _handleMethod = ({
     case 'drawSphereDamage': {
       const {instance: instanceKey, position, radius} = args;
       const instance = instances.get(instanceKey);
-      if (!instance) throw new Error('instance not found');
+      if (!instance) throw new Error('drawSphereDamage : instance not found');
       const chunks = dc.drawSphereDamage(
         instance,
         position[0], position[1], position[2],
@@ -328,7 +330,7 @@ const _handleMethod = ({
       );
 
       if (chunks) {
-        _injectDamages(chunks);
+        _injectDamages(chunks, instanceKey);
         return {
           result: _chunksToResult(chunks),
           transfers: [],
@@ -340,7 +342,7 @@ const _handleMethod = ({
     case 'eraseSphereDamage': {
       const {instance: instanceKey, position, radius} = args;
       const instance = instances.get(instanceKey);
-      if (!instance) throw new Error('instance not found');
+      if (!instance) throw new Error('eraseSphereDamage : instance not found');
       const chunks = dc.eraseSphereDamage(
         instance,
         position[0], position[1], position[2],
@@ -348,7 +350,7 @@ const _handleMethod = ({
       );
 
       if (chunks) {
-        _injectDamages(chunks);
+        _injectDamages(chunks, instanceKey);
         return {
           result: _chunksToResult(chunks),
           transfers: [],
@@ -359,8 +361,9 @@ const _handleMethod = ({
     }
     case 'injectDamages': {
       const {instance: instanceKey, chunks} = args;
+      // console.log(instanceKey);
       const instance = instances.get(instanceKey);
-      if (!instance) throw new Error('instance not found');
+      if (!instance) throw new Error('injectDamages : instance not found');
       for (const chunk of chunks) {
         const {position, damageBuffer} = chunk;
         // console.log('worker inject damage 1', {position, damageBuffer});

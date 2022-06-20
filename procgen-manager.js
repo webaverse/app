@@ -2,8 +2,8 @@ import {murmurhash3} from './procgen/procgen.js';
 import {DcWorkerManager} from './dc-worker-manager.js';
 import {LodChunkTracker} from './lod.js';
 import {LightMapper} from './light-mapper.js';
+import {HeightfieldMapper} from './heightfield-mapper.js';
 import {defaultChunkSize} from './constants.js';
-// import {getLocalPlayer} from './players.js';
 
 const chunkSize = defaultChunkSize;
 const terrainWidthInChunks = 4;
@@ -12,6 +12,7 @@ const terrainSize = chunkSize * terrainWidthInChunks;
 class ProcGenInstance {
   constructor(instance, {
     chunkSize,
+    range,
   }) {
     this.chunkSize = chunkSize;
 
@@ -21,40 +22,50 @@ class ProcGenInstance {
       seed,
       instance,
     });
-    this.range = null;
+    this.range = range;
 
     this.lightmapper = null;
-  }
-  setRange(range) {
-    this.dcWorkerManager.setRange(range);
-    this.range = range.clone();
+
+    if (range) {
+      this.dcWorkerManager.setRange(range);
+    }
   }
   getChunkTracker({
     numLods = 1,
     trackY = false,
     relod = false,
   } = {}) {
-    const {chunkSize} = this;
+    const {chunkSize, range} = this;
     const tracker = new LodChunkTracker({
       chunkSize,
       numLods,
       trackY,
       relod,
+      range,
     });
-    if (this.range) {
-      tracker.setRange(this.range);
-    }
     return tracker;
   }
   getLightMapper() {
     if (!this.lightmapper) {
-      const {chunkSize} = this;
+      const {chunkSize, range} = this;
       this.lightmapper = new LightMapper({
         chunkSize,
         terrainSize,
+        range,
       });
     }
     return this.lightmapper;
+  }
+  getHeightfieldMapper() {
+    if (!this.lightmapper) {
+      const {chunkSize, range} = this;
+      this.heightfieldMapper = new HeightfieldMapper({
+        chunkSize,
+        terrainSize,
+        range,
+      });
+    }
+    return this.heightfieldMapper;
   }
 }
 
@@ -65,21 +76,18 @@ class ProcGenManager {
     this.instances = new Map();
     this.chunkSize = chunkSize;
   }
-  getInstance(key) {
+  getInstance(key, range) {
     let instance = this.instances.get(key);
     if (!instance) {
+      const {chunkSize} = this;
       instance = new ProcGenInstance(key, {
-        chunkSize: this.chunkSize,
+        chunkSize,
+        range,
       });
       this.instances.set(key, instance);
     }
     return instance;
   }
-  /* update() {
-    for (const instance of this.instances.values()) {
-      instance.update();
-    }
-  } */
 }
 const procGenManager = new ProcGenManager();
 export default procGenManager;
