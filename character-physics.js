@@ -96,7 +96,7 @@ class CharacterPhysics {
         // console.log(jumpAction.startPositionY);
         // console.log(Math.sin(jumpTime * (Math.PI / flatGroundJumpAirTime)) * 2);
         if (jumpTime >= flatGroundJumpAirTime) {
-          localPlayer.setControlAction({type: 'fallLoop'});
+          this.player.setControlAction({type: 'fallLoop'});
         }
       }
         
