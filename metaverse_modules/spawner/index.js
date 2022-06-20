@@ -21,33 +21,34 @@ export default e => {
     );
   }
 
-  const procGenInstance = procGenManager.getInstance(seed, range);
+  let mobber = null;
+  e.waitUntil((async () => {
+    let live = true;
+    useCleanup(() => {
+      live = false;
+    });
 
-  const mobber = mobManager.createMobber({
-    procGenInstance,
-    appUrls: appUrls,
-  });
-  /* (async () => {
-    await Promise.all(appUrls.map(async appUrl => {
-      await mobber.addMobModule(appUrl);
-    }));
-    mobber.compile();
-  })(); */
+    const mobData = await mobManager.loadData(appUrls);
+    if (!live) return;
 
-  e.waitUntil(mobber.waitForLoad());
+    const procGenInstance = procGenManager.getInstance(seed, range);
+    mobber = mobManager.createMobber({
+      procGenInstance,
+      mobData,
+    });
 
-  const chunks = mobber.getChunks();
-  app.add(chunks);
-  chunks.updateMatrixWorld();
-  // console.log('spawner add app chunks', {app, chunks});
+    const chunks = mobber.getChunks();
+    app.add(chunks);
+    chunks.updateMatrixWorld();
+  })());
 
   useFrame(({timestamp, timeDiff}) => {
-    mobber.update(timestamp, timeDiff);
+    mobber && mobber.update(timestamp, timeDiff);
   });
 
   useCleanup(() => {
     scene.remove(chunks);
-    mobber.destroy();
+    mobber && mobber.destroy();
   });
 
   return app;
