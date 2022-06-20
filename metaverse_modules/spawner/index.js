@@ -8,6 +8,8 @@ export default e => {
   const scene = useScene();
   const procGenManager = useProcGenManager();
 
+  app.name = 'spawner';
+
   const appUrls = app.getComponent('appUrls') ?? [];
 
   const procGenInstance = procGenManager.getInstance(null);
