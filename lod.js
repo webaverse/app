@@ -114,6 +114,17 @@ export class LodChunkTracker extends EventTarget {
     };
     _removeOldChunks(); */
 
+    const _emitCoordUpdate = () => {
+      const coord = localVector.copy(range.min)
+        .divideScalar(this.chunkSize);
+      this.dispatchEvent(new MessageEvent('coordupdate', {
+        data: {
+          coord,
+        },
+      }));
+    };
+    _emitCoordUpdate();
+
     const _addRangeChunks = () => {
       const minChunkX = Math.floor(range.min.x / this.chunkSize);
       const minChunkY = this.trackY ? Math.floor(range.min.y / this.chunkSize) : 0;
@@ -191,8 +202,7 @@ export class LodChunkTracker extends EventTarget {
       // dispatch event
       this.dispatchEvent(new MessageEvent('coordupdate', {
         data: {
-          coord: currentCoord,
-          min2xCoord: min2xMin,
+          coord: min2xMin,
         },
       }));
 
