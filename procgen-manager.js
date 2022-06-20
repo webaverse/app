@@ -57,7 +57,7 @@ class ProcGenInstance {
     return this.lightmapper;
   }
   getHeightfieldMapper() {
-    if (!this.heightfieldMapper) {
+    if (!this.lightmapper) {
       const {chunkSize} = this;
       this.heightfieldMapper = new HeightfieldMapper({
         chunkSize,
