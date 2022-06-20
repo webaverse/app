@@ -226,12 +226,11 @@ class Conversation extends EventTarget {
 
     // say the option
     this.addLocalPlayerMessage(option.message, 'option');
-    //------------------- Convai ---------------------
+    
     // Triggerring emote for player executing option
     if (option.emote !== 'normal') {
       triggerEmote(option.emote, this.localPlayer);
     }
-    //------------------------------------------------
 
     // clear options
     this.#setOptions(null);
