@@ -5,7 +5,7 @@ import {ethers, BigNumber} from 'ethers';
 import {
   CONTRACTS,
 } from './web3-constants.js';
-import {FTABI, NFTABI} from '../abis/contract.jsx';
+import {FTABI, NFTABI, WebaverseABI} from '../abis/contract.jsx';
 import {ChainContext} from './chainProvider.jsx';
 
 const FILE_ADDRESS = 'https://ipfs.webaverse.com/';
@@ -23,13 +23,16 @@ const FILE_ADDRESS = 'https://ipfs.webaverse.com/';
 
 export default function useNFTContract(currentAccount) {
   const {selectedChain} = useContext(ChainContext);
+  const [WebaversecontractAddress, setWebaversecontractAddress] = useState(null);
   const [NFTcontractAddress, setNFTcontractAddress] = useState(null);
   const [FTcontractAddress, setFTcontractAddress] = useState(null);
 
   useEffect(() => {
     try {
+      const WebaversecontractAddress = CONTRACTS[selectedChain.contract_name].webaverse;
       const NFTcontractAddress = CONTRACTS[selectedChain.contract_name].NFT;
       const FTcontractAddress = CONTRACTS[selectedChain.contract_name].FT;
+      setWebaversecontractAddress(NFTcontractAddress);
       setNFTcontractAddress(NFTcontractAddress);
       setFTcontractAddress(FTcontractAddress);
     } catch (error) {
@@ -46,9 +49,9 @@ export default function useNFTContract(currentAccount) {
     return provider.getSigner(currentAccount);
   }
 
-  const getContract = async () => {
+  const getContract = async () => { //NFTcontract
     const simpleRpcProvider = new ethers.providers.StaticJsonRpcProvider(selectedChain.rpcUrls[0]);
-    const contract = new ethers.Contract(NFTcontractAddress, NFTABI, simpleRpcProvider);
+    const contract = new ethers.Contract(NFTcontractAddress, WebaverseABI, simpleRpcProvider);
     return contract;
   };
 
@@ -73,18 +76,20 @@ export default function useNFTContract(currentAccount) {
         avatarURI = '';
       }
 
+      const Webaversecontract = new ethers.Contract(WebaversecontractAddress, NFTABI, signer);
       const NFTcontract = new ethers.Contract(NFTcontractAddress, NFTABI, signer);
       const FTcontract = new ethers.Contract(FTcontractAddress, FTABI, signer);
-      const Bigmintfee = await NFTcontract.mintFee();
+      const Bigmintfee = await Webaversecontract.mintFee();
       const mintfee = BigNumber.from(Bigmintfee).toNumber();
+      console.log("mintfee", mintfee)
 
       if (mintfee > 0) { // webaverse side chain mintfee != 0
         const FTapprovetx = await FTcontract.approve(NFTcontractAddress, mintfee); // mintfee = 10 default
         const FTapproveres = await FTapprovetx.wait();
         if (FTapproveres.transactionHash) {
           try {
-            const NFTmintres = await NFTcontract.mint(currentAccount, hash, name, ext, imageURI, avatarURI, description, 1);
-            callback(NFTmintres);
+            const Webaversemintres = await Webaversecontract.mint(currentAccount, 1, hash, "");
+            callback(Webaversemintres);
           } catch (err) {
             setError(err.message);
           }
@@ -92,8 +97,9 @@ export default function useNFTContract(currentAccount) {
         }
       } else { // mintfee = 0 for Polygon not webaverse sidechain
         try {
-          const NFTmintres = await NFTcontract.mint(currentAccount, hash, name, ext, imageURI, avatarURI, description, 1);
-          callback(NFTmintres);
+          const Webaversemintres = await Webaversecontract.mint(currentAccount, 1, hash, "");
+        //   const Webaversemintres = await Webaversecontract.mint(currentAccount, hash, name, ext, imageURI, avatarURI, description, 1);
+          callback(Webaversemintres);
         } catch (err) {
           setError('Mint Failed');
           setMinting(false);
@@ -113,14 +119,14 @@ export default function useNFTContract(currentAccount) {
 
   async function getTokenIdsOf() {
     const contract = await getContract();
-    const tokenIdsOf = await contract.getTokenIdsOf(currentAccount);
+    const tokenIdsOf = await contract.getTokenIdsByOwner(currentAccount);
     return tokenIdsOf;
   }
 
   async function getToken(tokenId) {
     const contract = await getContract();
     if (contract) {
-      return await contract.tokenURI(tokenId);
+      return await contract.uri(tokenId);
     } else {
       return {};
     }
