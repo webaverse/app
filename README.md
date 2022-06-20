@@ -8,8 +8,7 @@
         <img src="https://img.shields.io/twitter/follow/webaverse?style=social&logo=twitter"
             alt="follow on Twitter"></a>
 </p>
-
-![Banner](docs/banner.jpeg)
+<img src="docs/banner.jpeg" width=100% />
 
 # Welcome To Webaverse
 Webaverse is an open source web3 metaverse game engine that anyone can host. It runs in the browser, utilizes open tools and standards like ThreeJS and NodeJS and is super easy to use.
@@ -26,7 +25,7 @@ This repository holds all of the code for the core engine, server and front-end 
 - Runtime support for user uploads and custom apps
 - Completely self-hostable
 
-![Banner](docs/rotation.gif)
+<img src="docs/rotation.gif" width=100% />
 
 # Installation
 Everything you need to get started with building on Webaverse is contained in this repo. 
