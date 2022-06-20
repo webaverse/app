@@ -1266,7 +1266,7 @@ export const _applyAnimation = (avatar, now, moveFactors) => {
       isPosition,
     } = spec;
 
-    if (walkRunFactor === 0) {
+    if (idleWalkFactor === 0) {
       const landTimeS = avatar.landTime / 1000;
       const landingAnimation = animations.index['landing.fbx'];
       const landFactor = landTimeS / landingAnimation.duration;
