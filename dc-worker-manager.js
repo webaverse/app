@@ -10,18 +10,22 @@ import {GeometryAllocator} from './instancing.js';
 
 const numWorkers = 4;
 
-class DcWorkerManager {
+export class DcWorkerManager {
   constructor({
-    chunkSize = defaultChunkSize,
-    // seed = defaultWorldSeed,
-    seed = Math.floor(Math.random() * 0xFFFFFF),
+    chunkSize,
+    seed,
+    instance,
   } = {}) {
     this.chunkSize = chunkSize;
     this.seed = seed;
+    this.instance = instance;
 
     this.workers = [];
     this.nextWorker = 0;
     this.loadPromise = null;
+
+    // trigger load
+    this.waitForLoad();
   }
   waitForLoad() {
     if (!this.loadPromise) {
@@ -106,11 +110,15 @@ class DcWorkerManager {
         // initialize
         // note: deliberately don't wait for this; let it start in the background
         Promise.all(workers.map(async worker => {
-          // set chunk size
-          await worker.request('initialize', {
-            chunkSize: this.chunkSize,
-            seed: this.seed,
-          });
+          await Promise.all([
+            worker.request('initialize', {
+              chunkSize: this.chunkSize,
+              seed: this.seed,
+            }),
+            worker.request('ensureInstance', {
+              instance: this.instance,
+            }),
+          ]);
         }));
 
         this.workers = workers;
@@ -124,17 +132,42 @@ class DcWorkerManager {
     this.nextWorker = (this.nextWorker + 1) % workers.length;
     return worker;
   }
+  async setRange(range) {
+    await Promise.all(this.workers.map(worker => {
+      return worker.request('setRange', {
+        instance: this.instance,
+        range: [
+          range.min.toArray(),
+          range.max.toArray(),
+        ],
+      });
+    }));
+  }
   async generateChunk(chunkPosition, lodArray) {
     const worker = this.getNextWorker();
     const result = await worker.request('generateChunk', {
+      instance: this.instance,
       chunkPosition: chunkPosition.toArray(),
       lodArray,
     });
     return result;
   }
+  async generateChunkRenderable(chunkPosition, lodArray, {
+    signal
+  }) {
+    const worker = this.getNextWorker();
+    const result = await worker.request('generateChunkRenderable', {
+      instance: this.instance,
+      chunkPosition: chunkPosition.toArray(),
+      lodArray,
+    });
+    signal.throwIfAborted();
+    return result;
+  }
   async getHeightfieldRange(x, z, w, h, lod) {
     const worker = this.getNextWorker();
     const result = await worker.request('getHeightfieldRange', {
+      instance: this.instance,
       x,
       z,
       w,
@@ -146,6 +179,7 @@ class DcWorkerManager {
   async getSkylightFieldRange(x, y, z, w, h, d, lod) {
     const worker = this.getNextWorker();
     const result = await worker.request('getSkylightFieldRange', {
+      instance: this.instance,
       x,
       y,
       z,
@@ -159,6 +193,7 @@ class DcWorkerManager {
   async getAoFieldRange(x, y, z, w, h, d, lod) {
     const worker = this.getNextWorker();
     const result = await worker.request('getAoFieldRange', {
+      instance: this.instance,
       x,
       y,
       z,
@@ -172,6 +207,7 @@ class DcWorkerManager {
   async createGrassSplat(x, z, lod) {
     const worker = this.getNextWorker();
     const result = await worker.request('createGrassSplat', {
+      instance: this.instance,
       x,
       z,
       lod
@@ -181,6 +217,7 @@ class DcWorkerManager {
   async createVegetationSplat(x, z, lod) {
     const worker = this.getNextWorker();
     const result = await worker.request('createVegetationSplat', {
+      instance: this.instance,
       x,
       z,
       lod
@@ -190,6 +227,7 @@ class DcWorkerManager {
   async createMobSplat(x, z, lod) {
     const worker = this.getNextWorker();
     const result = await worker.request('createMobSplat', {
+      instance: this.instance,
       x,
       z,
       lod
@@ -199,6 +237,7 @@ class DcWorkerManager {
   async drawCubeDamage(position, quaternion, scale) {
     const worker = this.getNextWorker();
     const result = await worker.request('drawCubeDamage', {
+      instance: this.instance,
       position: position.toArray(),
       quaternion: quaternion.toArray(),
       scale: scale.toArray(),
@@ -208,6 +247,7 @@ class DcWorkerManager {
   async eraseCubeDamage(position, quaterion, scale) {
     const worker = this.getNextWorker();
     const result = await worker.request('eraseCubeDamage', {
+      instance: this.instance,
       position: position.toArray(),
       quaternion: quaternion.toArray(),
       scale: scale.toArray(),
@@ -217,6 +257,7 @@ class DcWorkerManager {
   async drawSphereDamage(position, radius) {
     const worker = this.getNextWorker();
     const result = await worker.request('drawSphereDamage', {
+      instance: this.instance,
       position: position.toArray(),
       radius,
     });
@@ -225,13 +266,14 @@ class DcWorkerManager {
   async eraseSphereDamage(position, radius) {
     const worker = this.getNextWorker();
     const result = await worker.request('eraseSphereDamage', {
+      instance: this.instance,
       position: position.toArray(),
       radius,
     });
     return result;
   }
-  static GeometryAllocator = GeometryAllocator;
+  // static GeometryAllocator = GeometryAllocator;
 }
-const dcWorkerManager = new DcWorkerManager();
+// const dcWorkerManager = new DcWorkerManager();
 // import * as THREE from 'three';
-export default dcWorkerManager;
+// export default dcWorkerManager;

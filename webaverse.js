@@ -43,7 +43,6 @@ import renderSettingsManager from './rendersettings-manager.js';
 import metaversefileApi from 'metaversefile';
 import WebaWallet from './src/components/wallet.js';
 import musicManager from './music-manager.js';
-import dcWorkerManager from './dc-worker-manager.js';
 import story from './story.js';
 import zTargeting from './z-targeting.js';
 import raycastManager from './raycast-manager.js';
@@ -92,7 +91,6 @@ export default class Webaverse extends EventTarget {
         metaverseModules.waitForLoad(),
         voices.waitForLoad(),
         musicManager.waitForLoad(),
-        dcWorkerManager.waitForLoad(),
         WebaWallet.waitForLoad(),
       ]);
     })();
