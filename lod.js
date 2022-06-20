@@ -68,6 +68,7 @@ export class LodChunkTracker extends EventTarget {
     numLods = 1,
     trackY = false,
     relod = false,
+    range = null,
   } = {}) {
     super();
 
@@ -75,62 +76,72 @@ export class LodChunkTracker extends EventTarget {
     this.numLods = numLods;
     this.trackY = trackY;
     this.relod = relod;
+    this.range = range;
 
     this.chunks = [];
     this.lastUpdateCoord = new THREE.Vector3(NaN, NaN, NaN);
+    // this.updated = false;
+
+    if (range) {
+      this.#setRange(range);
+    }
   }
-  setRange(range) {
-    this.range = range;
+  /* emitEvents(chunkadd) {
+    if (this.updated) {
+      console.log('emitting chunks', this.chunks.length);
+      for (const chunk of this.chunks) {
+        const e = new MessageEvent('chunkadd', {
+          data: {
+            chunk,
+          },
+        });
+        chunkadd(e);
+      }
+    }
+  } */
+  async #setRange(range) {
+    await Promise.resolve(); // wait for next tick to emit chunk events
 
-    (async () => {
-      await Promise.resolve(); // wait for next tick to emit chunk events
+    /* const _removeOldChunks = () => {
+      for (const chunk of this.chunks) {
+        this.dispatchEvent(new MessageEvent('chunkremove', {
+          data: {
+            chunk,
+          },
+        }));
+      }
+      this.chunks.length = 0;
+    };
+    _removeOldChunks(); */
 
-      const _removeOldChunks = () => {
-        for (const chunk of this.chunks) {
-          this.dispatchEvent(new MessageEvent('chunkremove', {
-            data: {
-              chunk,
-            },
-          }));
-        }
-        this.chunks.length = 0;
-      };
-      _removeOldChunks();
+    const _addRangeChunks = () => {
+      const minChunkX = Math.floor(range.min.x / this.chunkSize);
+      const minChunkY = this.trackY ? Math.floor(range.min.y / this.chunkSize) : 0;
+      const minChunkZ = Math.floor(range.min.z / this.chunkSize);
 
-      const _addRangeChunks = () => {
-        const minChunkX = Math.floor(this.range.min.x / this.chunkSize);
-        const minChunkY = (this.trackY ? Math.floor(this.range.min.y / this.chunkSize) : 0);
-        const minChunkZ = Math.floor(this.range.min.z / this.chunkSize);
+      const maxChunkX = Math.floor(range.max.x / this.chunkSize);
+      const maxChunkY = this.trackY ? Math.floor(range.max.y / this.chunkSize) : 1;
+      const maxChunkZ = Math.floor(range.max.z / this.chunkSize);
 
-        const maxChunkX = Math.floor(this.range.max.x / this.chunkSize);
-        const maxChunkY = this.trackY ? Math.floor(this.range.max.y / this.chunkSize) : 0;
-        const maxChunkZ = Math.floor(this.range.max.z / this.chunkSize);
-
-        /* console.log(
-          'got range',
-          this.range.min.toArray(),
-          this.range.max.toArray(),
-          minChunkX, minChunkY, minChunkZ,
-          maxChunkX, maxChunkY, maxChunkZ,
-        ); */
-
-        for (let y = minChunkY; y < maxChunkY; y++) {
-          for (let z = minChunkZ; z < maxChunkZ; z++) {
-            for (let x = minChunkX; x < maxChunkX; x++) {
-              // console.log('add chunk', x, y, z);
-              const chunk = new LodChunk(x, y, z, onesLodsArray);
-              this.dispatchEvent(new MessageEvent('chunkadd', {
-                data: {
-                  chunk,
-                },
-              }));
-              this.chunks.push(chunk);
-            }
+      for (let y = minChunkY; y < maxChunkY; y++) {
+        for (let z = minChunkZ; z < maxChunkZ; z++) {
+          for (let x = minChunkX; x < maxChunkX; x++) {
+            const chunk = new LodChunk(x, y, z, onesLodsArray);
+            this.dispatchEvent(new MessageEvent('chunkadd', {
+              data: {
+                chunk,
+              },
+            }));
+            this.chunks.push(chunk);
           }
         }
-      };
-      _addRangeChunks();
-    })();
+      }
+    };
+    _addRangeChunks();
+
+    /* if (!this.updated) {
+      this.updated = true;
+    } */
   }
   #getCurrentCoord(position, target) {
     const cx = Math.floor(position.x / this.chunkSize);
@@ -272,6 +283,9 @@ export class LodChunkTracker extends EventTarget {
       }
     
       this.lastUpdateCoord.copy(currentCoord);
+      /* if (!this.updated) {
+        this.updated = true;
+      } */
     }
   }
   destroy() {

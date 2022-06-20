@@ -12,6 +12,7 @@ const terrainSize = chunkSize * terrainWidthInChunks;
 class ProcGenInstance {
   constructor(instance, {
     chunkSize,
+    range,
   }) {
     this.chunkSize = chunkSize;
 
@@ -21,29 +22,27 @@ class ProcGenInstance {
       seed,
       instance,
     });
-    this.range = null;
+    this.range = range;
 
     this.lightmapper = null;
-  }
-  setRange(range) {
-    this.dcWorkerManager.setRange(range);
-    this.range = range.clone();
+
+    if (range) {
+      this.dcWorkerManager.setRange(range);
+    }
   }
   getChunkTracker({
     numLods = 1,
     trackY = false,
     relod = false,
   } = {}) {
-    const {chunkSize} = this;
+    const {chunkSize, range} = this;
     const tracker = new LodChunkTracker({
       chunkSize,
       numLods,
       trackY,
       relod,
+      range,
     });
-    if (this.range) {
-      tracker.setRange(this.range);
-    }
     return tracker;
   }
   getLightMapper() {
@@ -65,11 +64,13 @@ class ProcGenManager {
     this.instances = new Map();
     this.chunkSize = chunkSize;
   }
-  getInstance(key) {
+  getInstance(key, range) {
     let instance = this.instances.get(key);
     if (!instance) {
+      const {chunkSize} = this;
       instance = new ProcGenInstance(key, {
-        chunkSize: this.chunkSize,
+        chunkSize,
+        range,
       });
       this.instances.set(key, instance);
     }
