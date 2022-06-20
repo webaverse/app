@@ -18,19 +18,19 @@ export default (app, component) => {
   let walkAction = null;
   let runAction = null;
   let rootBone = null;
-  
+
   const petComponent = component;
   const _makePetMixer = () => {
-    let petMixer, idleAction;
-    
+    let idleAction;
+
     let firstMesh = null;
     app.glb.scene.traverse(o => {
       if (firstMesh === null && o.isMesh) {
         firstMesh = o;
       }
     });
-    petMixer = new THREE.AnimationMixer(firstMesh);
-    
+    const petMixer = new THREE.AnimationMixer(firstMesh);
+
     const idleAnimation = petComponent.idleAnimation ? app.glb.animations.find(a => a.name === petComponent.idleAnimation) : null;
     if (idleAnimation) {
       idleAction = petMixer.clipAction(idleAnimation);
@@ -38,7 +38,7 @@ export default (app, component) => {
     } else {
       idleAction = null;
     }
-    
+
     return {
       petMixer,
       idleAction,
@@ -52,22 +52,27 @@ export default (app, component) => {
 
   const _unwear = () => {
     if (petSpec) {
+      console.log('calling unwear on pet');
       petSpec = null;
       petMixer.stopAllAction();
       walkAction = null;
       runAction = null;
       rootBone = null;
-      
+
       const m = _makePetMixer();
       petMixer = m.petMixer;
       idleAction = m.idleAction;
+    } else {
+      console.warn('unhandled wear on pet');
     }
   };
+
   app.addEventListener('wearupdate', e => {
+    console.log(' pet wearupdate is', e);
     if (e.wear) {
       if (app.glb) {
         const {animations} = app.glb;
-        
+
         petSpec = app.getComponent('pet');
         if (petSpec) {
           const walkAnimation = (petSpec.walkAnimation && petSpec.walkAnimation !== petSpec.idleAnimation) ? animations.find(a => a.name === petSpec.walkAnimation) : null;
@@ -87,25 +92,23 @@ export default (app, component) => {
     }
   });
 
-  
-
   const _getCurrentPlayer = () => {
     const localPlayer = useLocalPlayer();
-    let currentPlayer = null
+    let currentPlayer = null;
     const remotePlayers = useRemotePlayers();
     const players = [localPlayer]
-      .concat(remotePlayers)
+      .concat(remotePlayers);
     for (const player of players) {
       const wearActionIndex = player.findActionIndex(action => {
         return action.type === 'wear' && action.instanceId === app.instanceId;
       });
       if (wearActionIndex !== -1) {
-        currentPlayer = player
+        currentPlayer = player;
       }
     }
-    return currentPlayer
+    return currentPlayer;
   };
-  
+
   const smoothVelocity = new THREE.Vector3();
   const lastLookQuaternion = new THREE.Quaternion();
   const _getAppDistance = () => {
@@ -158,7 +161,7 @@ export default (app, component) => {
               }
             } */
             smoothVelocity.lerp(moveDelta, 0.3);
-            
+
             const walkSpeed = 0.01;
             const runSpeed = 0.03;
             const currentSpeed = smoothVelocity.length();
@@ -187,7 +190,7 @@ export default (app, component) => {
       }
     };
     _updateAnimation();
-    
+
     const _updateLook = () => {
       const lookComponent = app.getComponent('look');
       if (lookComponent && app.glb && _getCurrentPlayer()) {
@@ -207,7 +210,7 @@ export default (app, component) => {
             if (!bone.originalWorldScale) {
               bone.originalWorldScale = bone.getWorldScale(new THREE.Vector3());
             }
-            
+
             if (!bone.quaternion.equals(lastLookQuaternion)) {
               const localPlayer = _getCurrentPlayer();
               const {position, quaternion} = localPlayer;
@@ -215,14 +218,14 @@ export default (app, component) => {
                 localMatrix.lookAt(
                   position,
                   bone.getWorldPosition(localVector),
-                  localVector2.set(0, 1, 0)
-                )
+                  localVector2.set(0, 1, 0),
+                ),
               ).premultiply(localQuaternion.copy(app.quaternion).invert());
               localEuler.setFromQuaternion(localQuaternion2, 'YXZ');
-              localEuler.y = Math.min(Math.max(localEuler.y, -Math.PI*0.5), Math.PI*0.5);
+              localEuler.y = Math.min(Math.max(localEuler.y, -Math.PI * 0.5), Math.PI * 0.5);
               localQuaternion2.setFromEuler(localEuler)
                 .premultiply(app.quaternion);
-              
+
               bone.matrixWorld.decompose(localVector, localQuaternion, localVector2);
               localQuaternion.copy(localQuaternion2)
                 .multiply(localQuaternion3.copy(bone.originalQuaternion).invert())
@@ -240,14 +243,14 @@ export default (app, component) => {
     };
     _updateLook();
   });
-  
+
   useActivate(() => {
     app.wear();
   });
-  
+
   useCleanup(() => {
     _unwear();
   });
-  
+
   return app;
 };

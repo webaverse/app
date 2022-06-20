@@ -1117,11 +1117,11 @@ class LocalPlayer extends Player {
   packed = new Float32Array(8);
   lastTimestamp = NaN;
   lastMatrix = new THREE.Matrix4();
+  packed = new Float32Array(8);
   pushPlayerUpdates(timeDiff) {
+    if(this.hasAction('sit')) return;
     if (this.lastMatrix.equals(this.matrixWorld)) return;
     this.lastMatrix.copy(this.matrixWorld);
-
-    this.packed = new Float32Array(8);
     const pack3 = (v, i) => {
       this.packed[i] = v.x;
       this.packed[i + 1] = v.y;
@@ -1137,10 +1137,7 @@ class LocalPlayer extends Player {
     pack4(this.quaternion, 3);
     this.packed[7] = timeDiff;
 
-    const self = this;
-    this.playersArray.doc.transact(function tx() {
-      self.playerMap.set("transform", self.packed);
-    })
+    this.playerMap.set("transform", this.packed);
   }
   updatePhysics(timestamp, timeDiff) {
     if (this.avatar) {
@@ -1168,7 +1165,7 @@ class LocalPlayer extends Player {
     this.avatar.update(timestamp, timeDiff, true);
 
     this.pushPlayerUpdates(timeDiff);
-    this.appManager.update();
+    this.appManager.update(timeDiff);
   }
   /* teleportTo = (() => {
     const localVector = new THREE.Vector3();
@@ -1370,6 +1367,7 @@ class RemotePlayer extends Player {
   }
   update(timestamp, timeDiff) {
     if (!this.avatar) return logger.warn("Can't update remote player, avatar is null");
+    if (this.hasAction("sit")) return
 
     const _updateInterpolation = () => {
       this.positionInterpolant.update(timeDiff);
@@ -1437,7 +1435,8 @@ class RemotePlayer extends Player {
 
       if (e.changes.keys.has("transform")) {
         const transform = this.playerMap.get("transform");
-        if (transform) {
+        if(this.hasAction('sit')) console.log("skipping transform update");
+        else if (transform) {
           const remoteTimeDiff = transform[7];
           lastPosition.copy(this.position);
           this.position.fromArray(transform, 0);

@@ -13,6 +13,7 @@ import metaversefile from "metaversefile";
 import * as metaverseModules from "./metaverse-modules.js";
 import { jsonParse } from "./util.js";
 import logger from "./logger.js";
+import { applyPlayerToAvatar } from './player-avatar-binding.js';
 
 const localVector = new THREE.Vector3();
 const localVector2 = new THREE.Vector3();
@@ -92,7 +93,7 @@ class AppManager extends EventTarget {
         const app = this.getAppByInstanceId(instanceId);
         const peerOwnerAppManager = this.getPeerOwnerAppManager(instanceId);
 
-        if (peerOwnerAppManager && peerOwnerAppManager !== this) {
+        if (app && peerOwnerAppManager && peerOwnerAppManager !== this) {
           if (!peerOwnerAppManager.apps.includes(app)) {
             peerOwnerAppManager.apps.push(app);
           }
@@ -152,12 +153,65 @@ class AppManager extends EventTarget {
     if(this.isLocalPlayer) return console.error("Cannot bind tracked app, local player is app owner");
     logger.log('appManager.bindTrackedApp', trackedApp, app)
     this.unbindTrackedApp(trackedApp.instanceId);
+    const player = metaversefile.getPlayerByInstanceId(app.instanceId);
+    const lastPosition = new THREE.Vector3();
+    const sitPosition = new THREE.Vector3();
     const observeTrackedAppFn = (e) => {
       if (e.changes.keys.has("transform")) {
         const transform = trackedApp.get("transform");
           app.position.fromArray(transform, 0);
           app.quaternion.fromArray(transform, 3);
           app.scale.fromArray(transform, 7);
+          app.updateMatrixWorld();
+          if(player){
+          if (app.getComponent("sit")) {
+            const timeDiff = transform[10];
+            const sitComponent = app.getComponent("sit");
+            console.log("handling sit", sitComponent);
+
+            const sitOffset = sitComponent.sitOffset;
+            sitPosition.fromArray(sitOffset);
+            sitPosition.applyQuaternion(app.quaternion);
+
+            player.position.copy(app.position).add(sitPosition);
+
+            player.quaternion.copy(app.quaternion);
+
+            player.positionInterpolant?.snapshot(timeDiff);
+            player.quaternionInterpolant?.snapshot(timeDiff);
+
+            for (const actionBinaryInterpolant of player
+              .actionBinaryInterpolantsArray) {
+              actionBinaryInterpolant.snapshot(timeDiff);
+            }
+            for (const actionInterpolant of player.actionInterpolantsArray) {
+              actionInterpolant.update(timeDiff);
+            }
+  
+            player.characterPhysics.setPosition(player.position);
+    
+              player.avatar.setVelocity(
+                timeDiff / 1000,
+                lastPosition,
+                player.position,
+                player.quaternion
+              );
+
+              lastPosition.copy(player.position);
+
+              applyPlayerToAvatar(player, null, player.avatar, []);
+                const timestamp = performance.now();
+              const timeDiffS = timeDiff / 1000;
+              player.characterSfx.update(timestamp, timeDiffS, player.getActionsState());
+              player.characterFx.update(timestamp, timeDiffS);
+              player.characterHitter.update(timestamp, timeDiffS);
+              player.characterBehavior.update(timestamp, timeDiffS);
+          
+              player.avatar.update(timestamp, timeDiff, false);
+            // 
+            // 
+          }
+        }
       } else {
         console.log("tracked app key change", e)
       }
@@ -603,31 +657,23 @@ class AppManager extends EventTarget {
   hasApp(app) {
     return this.apps.includes(app);
   }
-  packed = new Float32Array(10);
-
-  isAppGrabbed(instanceId) {
-    const localPlayer = getLocalPlayer();
-    const grabAction = localPlayer.findAction(action => action.type === 'grab');
-    return grabAction ? grabAction.instanceId == instanceId : false
-  }
+  packed = new Float32Array(11);
 
   // called by local player, remote players and world update()
-  update() {
+  update(timeDiff) {
     if (!this.appsArray) return console.warn("Can't push app updates because appsArray is null")
     const self = this;
-    this.appsArray.doc.transact(() => {
       for (const app of self.apps) {
         const trackedApp = self.getTrackedApp(app.instanceId);
         if (!app.matrix.equals(app.lastMatrix)) {
           const _updateTrackedApp = () => {
             if (trackedApp) {
+              app.updateMatrixWorld();
               app.matrixWorld.decompose(
                 localVector,
                 localQuaternion,
                 localVector2
               );
-
-              app.updateMatrixWorld();
               const packed = self.packed;
               const pack3 = (v, i) => {
                 packed[i] = v.x;
@@ -643,15 +689,18 @@ class AppManager extends EventTarget {
               pack3(localVector, 0);
               pack4(localQuaternion, 3);
               pack3(localVector2, 7);
+              packed[10] = timeDiff;
               trackedApp.set("transform", packed);
+              console.log("updating")
             } else {
               console.warn("App is not a tracked app, not sending out transform")
             }
           };
-
-          if (this.isAppGrabbed(app.instanceId)) {
+          const localPlayer = getLocalPlayer();
+          if(localPlayer.hasAction('sit') || localPlayer.hasAction('pet ') || localPlayer.hasAction('grab')) {
             _updateTrackedApp();
           }
+
 
           const _updatePhysicsObjects = () => {
             // update attached physics objects with a relative transform
@@ -689,7 +738,6 @@ class AppManager extends EventTarget {
           app.lastMatrix.copy(app.matrix);
         }
       }
-    }, "push");
   }
   exportJSON() {
     const objects = [];
