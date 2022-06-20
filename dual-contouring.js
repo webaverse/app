@@ -26,12 +26,18 @@ w.free = address => {
 };
 
 let chunkSize = defaultChunkSize;
+// let inst = null;
 w.initialize = (newChunkSize, seed) => {
   Module._initialize(newChunkSize, seed);
   chunkSize = newChunkSize;
+  // inst = Module._createInstance();
 };
 
+w.createInstance = () => Module._createInstance();
+w.destroyInstance = instance => Module._destroyInstance(instance);
+
 const cubeDamage = damageFn => (
+  inst,
   x, y, z,
   qx, qy, qz, qw,
   sx, sy, sz,
@@ -43,11 +49,13 @@ const cubeDamage = damageFn => (
     const positionsTypedArray = allocator.alloc(Float32Array, numPositions * 3);
     const numPositionsTypedArray = allocator.alloc(Uint32Array, 1);
     numPositionsTypedArray[0] = numPositions;
-    const gridPoints = chunkSize + 3;
+    const lod = 1;
+    const gridPoints = chunkSize + 3 + lod;
     const damageBufferSize = gridPoints * gridPoints * gridPoints;
     const damageBuffersTypedArray = allocator.alloc(Float32Array, numPositions * gridPoints * gridPoints * gridPoints);
 
     const drew = damageFn(
+      inst,
       x, y, z,
       qx, qy, qz, qw,
       sx, sy, sz,
@@ -82,7 +90,16 @@ w.eraseCubeDamage = function() {
   return cubeDamage(Module._eraseCubeDamage.bind(Module)).apply(this, arguments);
 };
 
+w.setRange = function(inst, range) {
+  Module._setRange(
+    inst,
+    range[0][0], range[0][1], range[0][2],
+    range[1][0], range[1][1], range[1][2]
+  );
+};
+
 const sphereDamage = damageFn => (
+  inst,
   x, y, z,
   radius,
 ) => {
@@ -93,11 +110,13 @@ const sphereDamage = damageFn => (
     const positionsTypedArray = allocator.alloc(Float32Array, numPositions * 3);
     const numPositionsTypedArray = allocator.alloc(Uint32Array, 1);
     numPositionsTypedArray[0] = numPositions;
-    const gridPoints = chunkSize + 3;
+    const lod = 1;
+    const gridPoints = chunkSize + 3 + lod;
     const damageBufferSize = gridPoints * gridPoints * gridPoints;
     const damageBuffersTypedArray = allocator.alloc(Float32Array, numPositions * gridPoints * gridPoints * gridPoints);
 
     const drew = damageFn(
+      inst,
       x, y, z,
       radius,
       positionsTypedArray.byteOffset,
@@ -109,8 +128,8 @@ const sphereDamage = damageFn => (
       numPositions = numPositionsTypedArray[0];
       const chunks = Array(numPositions);
       for (let i = 0; i < numPositions; i++) {
-        const position = positionsTypedArray.slice(i * 3, i * 3 + 3);
-        const damageBuffer = damageBuffersTypedArray.slice(i * damageBufferSize, i * damageBufferSize + damageBufferSize);
+        const position = positionsTypedArray.slice(i * 3, (i + 1) * 3);
+        const damageBuffer = damageBuffersTypedArray.slice(i * damageBufferSize, (i + 1) * damageBufferSize);
         chunks[i] = {
           position,
           damageBuffer,
@@ -131,7 +150,7 @@ w.eraseSphereDamage = function() {
   return sphereDamage(Module._eraseSphereDamage.bind(Module)).apply(this, arguments);
 };
 
-w.injectDamage = function(x, y, z, damageBuffer) {
+w.injectDamage = function(inst, x, y, z, damageBuffer) {
   const allocator = new Allocator(Module);
 
   const damageBufferTypedArray = allocator.alloc(Float32Array, damageBuffer.length);
@@ -139,6 +158,7 @@ w.injectDamage = function(x, y, z, damageBuffer) {
 
   try {
     Module._injectDamage(
+      inst,
       x, y, z,
       damageBufferTypedArray.byteOffset,
     );
@@ -147,17 +167,14 @@ w.injectDamage = function(x, y, z, damageBuffer) {
   }
 };
 
-w.clearChunkRootDualContouring = (x, y, z) => {
-  Module._clearChunkRootDualContouring(x, y, z)
-}
-
-w.createChunkMeshDualContouring = (x, y, z, lods) => {
+w.createChunkMeshDualContouring = (inst, x, y, z, lods) => {
   const allocator = new Allocator(Module);
 
   const lodArray = allocator.alloc(Int32Array, 8);
   lodArray.set(lods);
 
   const outputBufferOffset = Module._createChunkMeshDualContouring(
+    inst,
     x, y, z,
     lodArray.byteOffset,
   );
@@ -219,17 +236,16 @@ w.createChunkMeshDualContouring = (x, y, z, lods) => {
   }
 };
 
-w.getHeightfieldRange = (x, z, w, h, lod) => {
+w.getHeightfieldRange = (inst, x, z, w, h, lod) => {
   const allocator = new Allocator(Module);
 
   const heights = allocator.alloc(Float32Array, w * h);
 
   try {
     Module._getHeightfieldRange(
-      x,
-      z,
-      w,
-      h,
+      inst,
+      x, z,
+      w, h,
       lod,
       heights.byteOffset
     );
@@ -238,19 +254,69 @@ w.getHeightfieldRange = (x, z, w, h, lod) => {
     allocator.freeAll();
   }
 };
-w.getAoFieldRange = (x, y, z, w, h, d, lod) => {
+w.getChunkSkylight = (inst, x, y, z, lod) => {
+  const allocator = new Allocator(Module);
+
+  // const gridPoints = chunkSize + 3 + lod;
+  const skylights = allocator.alloc(Uint8Array, chunkSize * chunkSize * chunkSize);
+
+  try {
+    Module._getChunkSkylight(
+      inst,
+      x, y, z,
+      lod,
+      skylights.byteOffset
+    );
+    return skylights.slice();
+  } finally {
+    allocator.freeAll();
+  }
+};
+w.getChunkAo = (inst, x, y, z, lod) => {
+  const allocator = new Allocator(Module);
+
+  const aos = allocator.alloc(Uint8Array, chunkSize * chunkSize * chunkSize);
+
+  try {
+    Module._getChunkAo(
+      inst,
+      x, y, z,
+      lod,
+      aos.byteOffset
+    );
+    return aos.slice();
+  } finally {
+    allocator.freeAll();
+  }
+};
+w.getSkylightFieldRange = (inst, x, y, z, w, h, d, lod) => {
+  const allocator = new Allocator(Module);
+
+  const skylights = allocator.alloc(Uint8Array, w * h * d);
+
+  try {
+    Module._getSkylightFieldRange(
+      inst,
+      x, y, z,
+      w, h, d,
+      lod,
+      skylights.byteOffset
+    );
+    return skylights.slice();
+  } finally {
+    allocator.freeAll();
+  }
+};
+w.getAoFieldRange = (inst, x, y, z, w, h, d, lod) => {
   const allocator = new Allocator(Module);
 
   const aos = allocator.alloc(Uint8Array, w * h * d);
 
   try {
     Module._getAoFieldRange(
-      x,
-      y,
-      z,
-      w,
-      h,
-      d,
+      inst,
+      x, y, z,
+      w, h, d,
       lod,
       aos.byteOffset
     );
@@ -260,7 +326,7 @@ w.getAoFieldRange = (x, y, z, w, h, d, lod) => {
   }
 };
 
-w.createGrassSplat = (x, z, lod) => {
+w.createGrassSplat = (inst, x, z, lod) => {
   const allocator = new Allocator(Module);
 
   const allocSize = 64 * 1024;
@@ -271,8 +337,8 @@ w.createGrassSplat = (x, z, lod) => {
 
   try {
     Module._createGrassSplat(
-      x,
-      z,
+      inst,
+      x, z,
       lod,
       ps.byteOffset,
       qs.byteOffset,
@@ -289,7 +355,7 @@ w.createGrassSplat = (x, z, lod) => {
     allocator.freeAll();
   }
 };
-w.createVegetationSplat = (x, z, lod) => {
+w.createVegetationSplat = (inst, x, z, lod) => {
   const allocator = new Allocator(Module);
 
   const allocSize = 64 * 1024;
@@ -300,8 +366,8 @@ w.createVegetationSplat = (x, z, lod) => {
 
   try {
     Module._createVegetationSplat(
-      x,
-      z,
+      inst,
+      x, z,
       lod,
       ps.byteOffset,
       qs.byteOffset,
@@ -318,7 +384,7 @@ w.createVegetationSplat = (x, z, lod) => {
     allocator.freeAll();
   }
 };
-w.createMobSplat = (x, z, lod) => {
+w.createMobSplat = (inst, x, z, lod) => {
   const allocator = new Allocator(Module);
 
   const allocSize = 64 * 1024;
@@ -329,8 +395,8 @@ w.createMobSplat = (x, z, lod) => {
 
   try {
     Module._createMobSplat(
-      x,
-      z,
+      inst,
+      x, z,
       lod,
       ps.byteOffset,
       qs.byteOffset,
