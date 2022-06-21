@@ -25,11 +25,11 @@ export default e => {
           "key": "appUrls",
           "value": [
             "https://webaverse.github.io/ghost/",
-            "https://webaverse.github.io/silkworm-biter",
-            "https://webaverse.github.io/silkworm-bloater",
-            "https://webaverse.github.io/silkworm-queen",
-            "https://webaverse.github.io/silkworm-runner",
-            "https://webaverse.github.io/silkworm-slasher"
+            "https://webaverse.github.io/silkworm-biter/",
+            "https://webaverse.github.io/silkworm-bloater/",
+            "https://webaverse.github.io/silkworm-queen/",
+            "https://webaverse.github.io/silkworm-runner/",
+            "https://webaverse.github.io/silkworm-slasher/"
           ],
         },
       ],
