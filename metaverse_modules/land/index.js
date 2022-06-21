@@ -10,13 +10,13 @@ export default e => {
 
   const landApps = [
     {
-      "start_url": "../../dual-contouring-terrain/"
+      "start_url": "https://webaverse.github.io/dual-contouring-terrain/"
     },
     {
-      "start_url": "../../silk-grass/"
+      "start_url": "https://webaverse.github.io/silk-grass/"
     },
     {
-      "start_url": "../../plants/"
+      "start_url": "https://webaverse.github.io/plants/"
     },
     {
       "start_url": "/metaverse_modules/spawner/",
@@ -24,12 +24,12 @@ export default e => {
         {
           "key": "appUrls",
           "value": [
-            "../../ghost/",
-            "../../silkworm-biter",
-            "../../silkworm-bloater",
-            "../../silkworm-queen",
-            "../../silkworm-runner",
-            "../../silkworm-slasher"
+            "https://webaverse.github.io/ghost/",
+            "https://webaverse.github.io/silkworm-biter",
+            "https://webaverse.github.io/silkworm-bloater",
+            "https://webaverse.github.io/silkworm-queen",
+            "https://webaverse.github.io/silkworm-runner",
+            "https://webaverse.github.io/silkworm-slasher"
           ],
         },
       ],
