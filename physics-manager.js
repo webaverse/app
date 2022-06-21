@@ -664,6 +664,8 @@ physicsManager.sweepConvexShape = (
 };
 
 const _updatePhysicsObjects = updatesOut => {
+  // if (window.isDebugger) debugger
+  // if (updatesOut.length > 0) debugger
   for (const updateOut of updatesOut) {
     const { id, position, quaternion, collided, grounded } = updateOut
     const physicsObject = metaversefileApi.getPhysicsObjectByPhysicsId(id)
