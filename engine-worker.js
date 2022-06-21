@@ -2,6 +2,14 @@ import {
   bindCanvas,
 } from './renderer.js';
 
+window.addEventListener('message', e => {
+  const method = e.data?.method;
+  if (method === 'initializeEngine') {
+    const {port} = e.data;
+    _bindPort(port);
+  }
+});
+
 const isTransferable = o => {
   const ctor = o?.constructor;
   return ctor === MessagePort ||
@@ -46,9 +54,8 @@ async function import2(s) {
     if (s.startsWith(prefix)) {
       s = s.slice(prefix.length);
     }
-    s = `/@proxy/${s}`;
+    s = `/@proxy/${encodeURI(s)}`;
   }
-  // console.log('do import', s);
   try {
     const m = await import(s);
     return m;
@@ -58,20 +65,9 @@ async function import2(s) {
   }
 }
 
-const canvas = document.getElementById('canvas');
-window.innerWidth = canvas.width;
-window.innerHeight = canvas.height;
-window.devicePixelRatio = 1;
-bindCanvas(canvas);
-
-const match = location.hash.match(/^#id=(.+)$/);
-const id = match ? match[1] : null;
-if (id) {
-  const messageChannel = new MessageChannel();
-  const port = messageChannel.port1;
+const _bindPort = port => {
   const handlers = new Map();
   port.addEventListener('message', async e => {
-    // console.log('engine worker got port message', e);
     const {method, id} = e.data;
     const respond = (error = null, result = null, transfers = []) => {
       port.postMessage({
@@ -96,7 +92,7 @@ if (id) {
               handlers.set(handlerId, fn);
               result = 'ok';
             } else {
-              console.warn('bad module', module)
+              console.warn('engine worker bad module', module);
               throw new Error('engine worker module default export is not a function');
             }
           } catch(err) {
@@ -110,9 +106,9 @@ if (id) {
           const {handlerId, args} = e.data;
           const handler = handlers.get(handlerId);
           if (handler) {
-            let error = null;
-            let result = null;
-            let transfers = [];
+            let error;
+            let result;
+            let transfers;
             try {
               result = await handler.apply(null, args);
               transfers = getTransferables(result);
@@ -131,16 +127,21 @@ if (id) {
           break;
         }
       }
-      // console.log('got message', e.data);
     }
   });
   port.start();
+};
 
-  window.parent.postMessage({
-    method: 'engineReady',
-    id,
-    port: messageChannel.port2,
-  }, '*', [messageChannel.port2]);
+const canvas = document.getElementById('canvas');
+window.innerWidth = canvas.width;
+window.innerHeight = canvas.height;
+window.devicePixelRatio = 1;
+bindCanvas(canvas);
+
+const match = location.hash.match(/^#id=(.+)$/);
+const id = match ? match[1] : null;
+if (id) {
+  // nothing
 } else {
   throw new Error('no id in engine worker');
 }

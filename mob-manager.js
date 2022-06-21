@@ -4,7 +4,7 @@ import metaversefile from 'metaversefile';
 import {getLocalPlayer} from './players.js';
 import physicsManager from './physics-manager.js';
 import hpManager from './hp-manager.js';
-import {LodChunkTracker} from './lod.js';
+// import {LodChunkTracker} from './lod.js';
 import {alea} from './procgen/procgen.js';
 import {createRelativeUrl} from './util.js';
 import dropManager from './drop-manager.js';
@@ -505,25 +505,19 @@ class InstancedSkeleton extends THREE.Skeleton {
       }
     }
 
-    // console.log('needs update');
     boneTexture.needsUpdate = true;
-    /* boneTexture.onUpdate = () => {
-      // console.log('update');
-      boneTexture.onUpdate = null;
-    }; */
-
-    // window.boneTexture = this.boneTexture;
-
 	}
 }
 
 class MobBatchedMesh extends InstancedBatchedMesh {
   constructor({
     procGenInstance,
-    glbs = [],
-    meshes = [],
-    // rootBones = [],
-  } = {}) {
+    mobData,
+  }) {
+    const {
+      glbs,
+      skinnedMeshes: meshes,
+    } = mobData;
     const {
       // atlas,
       // atlasImages,
@@ -533,13 +527,6 @@ class MobBatchedMesh extends InstancedBatchedMesh {
       attributes: ['position', 'normal', 'uv', 'skinIndex', 'skinWeight'],
       textures: ['map', 'normalMap', 'roughnessMap', 'metalnessMap'],
     });
-
-    /* console.log('got atlas', {
-      atlas,
-      atlasImages,
-      atlasTextures,
-      geometries,
-    }); */
 
     // allocator
 
@@ -590,16 +577,6 @@ class MobBatchedMesh extends InstancedBatchedMesh {
           value: attributeTextures.q,
           needsUpdate: true,
         };
-        /* shader.uniforms.boneTexture = {
-          value: attributeTextures.boneTexture,
-          needsUpdate: true,
-        };
-        shader.uniforms.boneTextureSize = {
-          value: attributeTextures.boneTexture.image.width,
-          needsUpdate: true,
-        }; */
-
-        // window.boneTexture = attributeTextures.boneTexture; // XXX
 
         // skin vertex
 
@@ -1015,79 +992,69 @@ gl_Position = projectionMatrix * mvPosition;
   }
 }
 
-class MobGenerator {
+class MobsCompiledData {
   constructor({
     procGenInstance = null,
     appUrls = [],
   } = {}) {
-    // this.mobModules = {};
-
-    this.object = new THREE.Object3D();
-    this.object.name = 'mob-chunks';
+    this.glbs = null;
+    this.skinnedMeshes = null;
 
     this.loadPromise = (async () => {
       // lod mob modules
       const glbs = await Promise.all(appUrls.map(async u => {
         const m = await metaversefile.import(u);
-        // this.mobModules[u] = m; // XXX will not be needed when there is instancing support
 
         // load glb
         const glb = await (async () => {
           const mobJsonUrl = m.srcUrl;
           const res = await fetch(mobJsonUrl);
           const j = await res.json();
-          // console.log('got j', j, j.start_url);
 
           return await new Promise((accept, reject) => {
             const mobUrl = createRelativeUrl(j.mobUrl, mobJsonUrl);
-            // console.log('mob url', mobUrl, j.mobUrl, mobJsonUrl);
             loaders.gltfLoader.load(mobUrl, accept, function onProgress() {}, reject);
           });
         })();
         return glb;
       }));
-      // window.glbs = glbs;
       const skinnedMeshSpecs = glbs.map(glb => {
         const mesh = _findMesh(glb.scene);
-        
-        /* if (!rootBone) {
-          console.warn('no root bone', glb);
-          debugger;
-        } */
 
         return {
           glb,
           mesh,
-          // rootBone,
         };
       });
       const skinnedMeshes = skinnedMeshSpecs.map(spec => spec.mesh);
-      // const rootBones = skinnedMeshSpecs.map(spec => spec.rootBone);
 
-      // window.skinnedMeshes = skinnedMeshes;
-      
-      // apply transform to geometry
-      /* for (const {glb, mesh} of skinnedMeshSpecs) {
-        glb.scene.updateMatrixWorld();
-        const {geometry} = mesh;
-        geometry.applyMatrix(mesh.matrixWorld);
-      } */
-
-      // make batched mesh
-      const mobBatchedMesh = new MobBatchedMesh({
-        procGenInstance,
-        glbs,
-        meshes: skinnedMeshes,
-        // rootBones,
-      });
-      this.object.add(mobBatchedMesh);
-      this.mobBatchedMesh = mobBatchedMesh;
-
-      this.compiled = true;
+      this.glbs = glbs;
+      this.skinnedMeshes = skinnedMeshes;
     })();
   }
   waitForLoad() {
     return this.loadPromise;
+  }
+}
+
+class MobGenerator {
+  constructor({
+    procGenInstance,
+    mobData,
+  }) {
+    // this.procGenInstance = procGenInstance;
+    // this.mobData = mobData;
+
+    this.object = new THREE.Object3D();
+    this.object.name = 'mob-chunks';
+
+    // make batched mesh
+    const mobBatchedMesh = new MobBatchedMesh({
+      procGenInstance,
+      mobData,
+    });
+    this.object.add(mobBatchedMesh);
+    this.mobBatchedMesh = mobBatchedMesh;
   }
   getMobModuleNames() {
     return Object.keys(this.mobModules).sort();
@@ -1112,9 +1079,7 @@ class MobGenerator {
     chunk.binding = null;
   }
   update(timestamp, timeDiff) {
-    if (this.mobBatchedMesh) {
-      this.mobBatchedMesh.update(timestamp, timeDiff);
-    }
+    this.mobBatchedMesh.update(timestamp, timeDiff);
   }
   destroy() {
     // nothing; the owning lod tracker disposes of our contents
@@ -1124,13 +1089,14 @@ class MobGenerator {
 class Mobber {
   constructor({
     procGenInstance,
-    appUrls = [],
-  } = {}) {
-    this.compiled = false;
+    mobData,
+  }) {
+    this.procGenInstance = procGenInstance;
+    this.mobData = mobData;
     
     const generator = new MobGenerator({
       procGenInstance,
-      appUrls,
+      mobData,
     });
     this.generator = generator;
     /* this.tracker = new LodChunkTracker(this.generator, {
@@ -1143,8 +1109,8 @@ class Mobber {
       // relod: true,
     });
     const chunkadd = e => {
-      const {chunk} = e.data;
-      generator.generateChunk(chunk);
+      const {chunk, waitUntil} = e.data;
+      waitUntil(generator.generateChunk(chunk));
     };
     tracker.addEventListener('chunkadd', chunkadd);
     const chunkremove = e => {
@@ -1153,14 +1119,13 @@ class Mobber {
     };
     tracker.addEventListener('chunkremove', chunkremove);
     this.tracker = tracker;
-
-    this.compiled = false;
-    this.waitForLoad().then(() => {
-      this.compiled = true;
-    });
   }
-  waitForLoad() {
-    return this.generator.waitForLoad();
+  async waitForUpdate() {
+    await new Promise((accept, reject) => {
+      this.tracker.addEventListener('update', () => {
+        accept();
+      });
+    });
   }
   /* async addMobModule(srcUrl) {
     const m = await metaversefile.import(srcUrl);
@@ -1173,16 +1138,13 @@ class Mobber {
     return this.generator.object;
   }
   update(timestamp, timeDiff) {
-    if (this.compiled) {
-      const localPlayer = getLocalPlayer();
-      this.tracker.update(localPlayer.position);
-      this.generator.update(timestamp, timeDiff);
-    }
+    const localPlayer = getLocalPlayer();
+    !this.procGenInstance.range && this.tracker.update(localPlayer.position);
+    this.generator.update(timestamp, timeDiff);
   }
   destroy() {
     this.tracker.destroy();
     this.generator.destroy();
-    // scene.remove(this.object);
   }
 }
 
@@ -1191,14 +1153,27 @@ class MobManager {
     this.mobbers = [];
     this.mobs = [];
   }
-  createMobber(opts) {
-    const mobber = new Mobber(opts);
+  createMobber({
+    procGenInstance,
+    mobData,
+  }) {
+    const mobber = new Mobber({
+      procGenInstance,
+      mobData,
+    });
     this.mobbers.push(mobber);
     return mobber;
   }
   destroyMobber(mobber) {
     mobber.destroy();
     this.mobbers.splice(this.mobbers.indexOf(mobber), 1);
+  }
+  async loadData(appUrls) {
+    const mobData = new MobsCompiledData({
+      appUrls,
+    });
+    await mobData.waitForLoad();
+    return mobData;
   }
   addMobApp(app, srcUrl) {
     if (app.appType !== 'mob') {
@@ -1231,9 +1206,11 @@ class MobManager {
     return results;
   }
   update(timestamp, timeDiff) {
-    for (const mobber of this.mobbers) {
+    // mobber is updated by the app that created it
+    /* for (const mobber of this.mobbers) {
       mobber.update(timestamp, timeDiff);
-    }
+    } */
+
     for (const mob of this.mobs) {
       mob.update(timestamp, timeDiff);
     }

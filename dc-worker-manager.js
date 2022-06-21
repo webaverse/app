@@ -1,24 +1,19 @@
 // import * as THREE from 'three';
 import {makeId} from './util.js';
-import {defaultChunkSize} from './constants.js';
-// import metaversefile from 'metaversefile';
-// import { terrainVertex, terrainFragment } from './shaders/terrainShader.js';
-// import physics from './physics-manager.js';
-import {GeometryAllocator} from './instancing.js';
 
-// const localVector = new THREE.Vector3();
-
-const numWorkers = 4;
+const defaultNumDcWorkers = 4;
 
 export class DcWorkerManager {
   constructor({
     chunkSize,
     seed,
     instance,
+    numWorkers = defaultNumDcWorkers,
   } = {}) {
     this.chunkSize = chunkSize;
     this.seed = seed;
     this.instance = instance;
+    this.numWorkers = numWorkers;
 
     this.workers = [];
     this.nextWorker = 0;
@@ -31,8 +26,8 @@ export class DcWorkerManager {
     if (!this.loadPromise) {
       this.loadPromise = (async () => {
         // create workers
-        const workers = Array(numWorkers);
-        for (let i = 0; i < numWorkers; i++) {
+        const workers = Array(this.numWorkers);
+        for (let i = 0; i < this.numWorkers; i++) {
           const worker = new Worker('./dc-worker.js?import', {
             type: 'module',
           });
@@ -73,8 +68,8 @@ export class DcWorkerManager {
 
         // connect ports
         const _makePorts = () => {
-          const result = Array(numWorkers);
-          for (let i = 0; i < numWorkers; i++) {
+          const result = Array(this.numWorkers);
+          for (let i = 0; i < this.numWorkers; i++) {
             const messageChannel = new MessageChannel();
             result[i] = [
               messageChannel.port1,
@@ -83,10 +78,10 @@ export class DcWorkerManager {
           }
           return result;
         };
-        for (let i = 0; i < numWorkers; i++) {
+        for (let i = 0; i < this.numWorkers; i++) {
           const worker1 = workers[i];
           const ports = _makePorts();
-          for (let j = 0; j < numWorkers; j++) {
+          for (let j = 0; j < this.numWorkers; j++) {
             if (i !== j) {
               const worker2 = workers[j];
               const [port1, port2] = ports[j];
@@ -150,6 +145,7 @@ export class DcWorkerManager {
       chunkPosition: chunkPosition.toArray(),
       lodArray,
     });
+    signal.throwIfAborted();
     return result;
   }
   async generateChunkRenderable(chunkPosition, lodArray, {
@@ -244,7 +240,7 @@ export class DcWorkerManager {
     });
     return result;
   }
-  async eraseCubeDamage(position, quaterion, scale) {
+  async eraseCubeDamage(position, quaternion, scale) {
     const worker = this.getNextWorker();
     const result = await worker.request('eraseCubeDamage', {
       instance: this.instance,
@@ -272,8 +268,4 @@ export class DcWorkerManager {
     });
     return result;
   }
-  // static GeometryAllocator = GeometryAllocator;
 }
-// const dcWorkerManager = new DcWorkerManager();
-// import * as THREE from 'three';
-// export default dcWorkerManager;

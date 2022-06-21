@@ -1,56 +1,230 @@
 {
-    "objects": [
-        {
-            "type": "application/light",
-            "content": {
-                "lightType": "ambient",
-                "args": [
-                    [
-                        245,
-                        245,
-                        222
-                    ],
-                    1
-                ]
-            }
-        },
-        {
-            "position": [
-                0,
-                0,
-                0,
-                1
-            ],
-            "quaternion": [
-                0,
-                0,
-                0,
-                1
-            ],
-            "scale": [
-                1,
-                0.8,
-                1
-            ],
-            "physics": true,
-            "start_url": "https://madjin.github.io/desert/desert.glb",
-            "dynamic": false
-        },
-            {
-      "position": [0, 0, 0],
-      "start_url": "../metaverse_modules/spawner/",
-      "components": [
-        {
-          "key": "appUrls",
-          "value": [
-            "https://webaverse.github.io/silkworm-biter/",
-            "https://webaverse.github.io/silkworm-bloater/",
-            "https://webaverse.github.io/silkworm-queen/",
-            "https://webaverse.github.io/silkworm-runner/",
-            "https://webaverse.github.io/silkworm-slasher/"
-          ]
-        }
-      ]
+  "objects": [
+    {
+      "type": "application/light",
+      "content": {
+        "lightType": "ambient",
+        "args": [[255, 255, 255], 2]
+      }
+    },
+    {
+      "type": "application/light",
+      "content": {
+        "lightType": "directional",
+        "args": [[255, 255, 255], 2],
+        "position": [1, 2, 3]
+      }
+    },
+    {
+      "type": "application/wind",
+      "content": {
+        "windType": "directional",
+        "direction": [-1, 0, 0],
+        "windForce": 0.5,
+        "noiseScale": 1,
+        "windFrequency": 1
+      }
+    },
+    {
+      "position": [
+        0,
+        0,
+        0
+      ],
+      "start_url": "https://webaverse.github.io/street-base/"
+    },
+    {
+      "position": [
+        0,
+        0,
+        0
+      ],
+      "start_url": "https://webaverse.github.io/street/"
+    },
+    {
+      "position": [
+        -20,
+        30,
+        -30
+      ],
+      "start_url": "https://webaverse.github.io/floating-island/"
+    },
+    {
+      "position": [
+        0,
+        0,
+        0
+      ],
+      "start_url": "https://webaverse.github.io/skybox/"
+    },
+    {
+      "position": [
+        0,
+        0,
+        -2
+      ],
+      "start_url": "https://webaverse.github.io/mirror/"
+    },
+    {
+      "position": [
+        -10,
+        0,
+        -30
+      ],
+      "start_url": "https://avaer.github.io/shield/index.js"
+    },
+    {
+      "position": [
+        4,
+        0,
+        1
+      ],
+      "quaternion": [
+        0,
+        0.7071067811865475,
+        0,
+        0.7071067811865475
+      ],
+      "type": "application/npc",
+      "content": {
+        "name": "Ann",
+        "avatarUrl": "/avatars/ann.vrm",
+        "voice": "Maud Pie",
+        "bio": "13/F Lisk Witch (black mage). She is 100% quirky and is always creating crazy new potions. She has a dark streak and is known to torment her teachers when they give her bad grades.",
+        "wear": [
+          {
+            "start_url": "https://webaverse.github.io/character-stats-banner/"
+          }
+        ]
+      }
+    },
+    {
+      "position": [
+        2,
+        1,
+        0
+      ],
+      "quaternion": [
+        0,
+        -0.7071067811865475,
+        0,
+        0.7071067811865475
+      ],
+      "scale": [
+        2,
+        2,
+        2
+      ],
+      "physics": false,
+      "start_url": "https://avaer.github.io/sakura/index.glbb",
+      "dynamic": true
+    },
+    {
+      "position": [
+        2,
+        1,
+        -6
+      ],
+      "quaternion": [
+        0,
+        -0.7071067811865475,
+        0,
+        0.7071067811865475
+      ],
+      "physics": false,
+      "start_url": "https://avaer.github.io/rainbow-dash/",
+      "dynamic": true
+    },
+    {
+      "position": [
+        -13,
+        0,
+        0
+      ],
+      "quaternion": [
+        0,
+        0.7071067811865475,
+        0,
+        0.7071067811865475
+      ],
+      "start_url": "https://webaverse.github.io/homespace/.metaversefile"
+    },
+    {
+      "position": [
+        8,
+        -2,
+        -5
+      ],
+      "quaternion": [
+        0,
+        -0.7071067811865475,
+        0,
+        0.7071067811865475
+      ],
+      "start_url": "https://webaverse.github.io/street-assets/station.glb",
+      "physics_url": "https://webaverse.github.io/street-assets/station.bin"
+    },
+    {
+      "position": [
+        0,
+        0,
+        0
+      ],
+      "quaternion": [
+        0,
+        0,
+        0,
+        1
+      ],
+      "start_url": "https://webaverse.github.io/stacks/index.js"
+    },
+    {
+      "position": [
+        0,
+        0,
+        0
+      ],
+      "quaternion": [
+        0,
+        0,
+        0,
+        1
+      ],
+      "start_url": "https://webaverse.github.io/parcels/index.js"
+    },
+    {
+      "position": [-9, 0, -1],
+      "quaternion": [0, 0.7071067811865475, 0, 0.7071067811865476],
+      "start_url": "https://webaverse.github.io/chest/"
+    },
+    {
+      "position": [-2, 1, -1],
+      "quaternion": [0, 0, 0, 1],
+      "start_url": "https://avaer.github.io/poster/.metaversefile"
+    },
+    {
+      "position": [-5, 4, -6],
+      "quaternion": [
+        0,
+        0.7071067811865475,
+        0,
+        0.7071067811865475
+      ],
+      "start_url": "https://avaer.github.io/physicscube/"
+    },
+    {
+      "position": [-2, 1, 1],
+      "quaternion": [0, 0.7071067811865475, 0, 0.7071067811865476],
+      "start_url": "https://webaverse.github.io/sword/"
+    },
+    {
+      "position": [-2, 1, 2],
+      "quaternion": [0, 0.7071067811865475, 0, 0.7071067811865476],
+      "start_url": "https://webaverse.github.io/helm/"
+    },
+    {
+      "position": [0, -60, 0],
+      "start_url": "../metaverse_modules/land/"
     }
     ]
 }
