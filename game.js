@@ -1492,9 +1492,7 @@ class GameManager extends EventTarget {
       }
     }
 
-    const jumpAction = localPlayer.getAction('jump');
-    const flyAction = localPlayer.getAction('fly');
-    if (!jumpAction && !flyAction) {
+    if (!localPlayer.hasAction('jump') && !localPlayer.hasAction('fly') && !localPlayer.hasAction('fallLoop')) {
       const newJumpAction = {
         type: 'jump',
         trigger:trigger,

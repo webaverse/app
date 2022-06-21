@@ -1235,16 +1235,18 @@ export const _applyAnimation = (avatar, now, moveFactors) => {
     } = spec;
 
     if (idleWalkFactor === 0) {
+      const animationSpeed = 0.75;
       const landTimeS = avatar.landTime / 1000;
       const landingAnimation = animations.index['landing.fbx'];
-      const landFactor = landTimeS / landingAnimation.duration;
+      const landingAnimationDuration = landingAnimation.duration / animationSpeed;
+      const landFactor = landTimeS / landingAnimationDuration;
 
       if (landFactor > 0 && landFactor <= 1) {
-        const t2 = landTimeS;
+        const t2 = landTimeS * animationSpeed;
         const src2 = landingAnimation.interpolants[k];
         const v2 = src2.evaluate(t2);
 
-        let lerpFactor = (landingAnimation.duration - landTimeS) / 0.05; // 0.05 = 3 frames
+        let lerpFactor = (landingAnimationDuration - landTimeS) / 0.05; // 0.05 = 3 frames
         lerpFactor = MathUtils.clamp(lerpFactor, 0, 1);
 
         if (!isPosition) {
@@ -1257,19 +1259,21 @@ export const _applyAnimation = (avatar, now, moveFactors) => {
         }
       }
     } else {
+      const animationSpeed = 0.9;
       const landTimeS = avatar.landTime / 1000;
       const landingAnimation = animations.index['landing 2.fbx'];
-      const landFactor = landTimeS / landingAnimation.duration;
+      const landingAnimationDuration = landingAnimation.duration / animationSpeed;
+      const landFactor = landTimeS / landingAnimationDuration;
 
       if (landFactor > 0 && landFactor <= 1) {
-        const t2 = landTimeS;
+        const t2 = landTimeS * animationSpeed;
         const src2 = landingAnimation.interpolants[k];
         const v2 = src2.evaluate(t2);
 
         let lerpFactor = landTimeS / 0.15;
         lerpFactor = MathUtils.clamp(lerpFactor, 0, 1);
 
-        let lerpFactor2 = (landingAnimation.duration - landTimeS) / 0.15;
+        let lerpFactor2 = (landingAnimationDuration - landTimeS) / 0.15;
         lerpFactor2 = MathUtils.clamp(lerpFactor2, 0, 1);
 
         lerpFactor = Math.min(lerpFactor, lerpFactor2);
