@@ -45,6 +45,7 @@ import {
 const localVector = new Vector3();
 const localVector2 = new Vector3();
 const localVector3 = new Vector3();
+const localVector4 = new Vector3();
 
 const localQuaternion = new Quaternion();
 const localQuaternion2 = new Quaternion();
@@ -1262,19 +1263,26 @@ export const _applyAnimation = (avatar, now, moveFactors, timeDiffS) => {
       const src3 = animations.index['Swimming.fbx'].interpolants[k];
       const v3 = src3.evaluate(avatar.swimAnimTime % animations.index['Swimming.fbx'].duration);
 
+      const src4 = animations.index['freestyle.fbx'].interpolants[k];
+      const v4 = src4.evaluate(avatar.swimAnimTime * 0.7 % animations.index['freestyle.fbx'].duration);
+
       const f = MathUtils.clamp(swimTimeS / 0.2, 0, 1);
       // if (isPosition) console.log(f);
 
       if (!isPosition) {
-        localQuaternion.fromArray(v2);
-        localQuaternion2.fromArray(v3);
-        localQuaternion.slerp(localQuaternion2, idleWalkFactor);
-        dst.slerp(localQuaternion, f);
+        localQuaternion2.fromArray(v2);
+        localQuaternion3.fromArray(v3);
+        localQuaternion4.fromArray(v4);
+        localQuaternion3.slerp(localQuaternion4, walkRunFactor);
+        localQuaternion2.slerp(localQuaternion3, idleWalkFactor);
+        dst.slerp(localQuaternion2, f);
       } else {
-        localVector.fromArray(v2);
-        localVector2.fromArray(v3);
-        localVector.lerp(localVector2, idleWalkFactor);
-        dst.lerp(localVector, f);
+        localVector2.fromArray(v2);
+        localVector3.fromArray(v3);
+        localVector4.fromArray(v4);
+        localVector3.lerp(localVector4, walkRunFactor);
+        localVector2.lerp(localVector3, idleWalkFactor);
+        dst.lerp(localVector2, f);
       }
     }
   };
