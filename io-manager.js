@@ -153,9 +153,9 @@ const _updateIo = timeDiff => {
             keysDirection.set(dx, 0, dy);
             ioManager.currentWalked = true;
           }
-          if (buttonsSrc[4].pressed && !ioManager.lastButtons[4]) {
-            _handleLoadout()
-          }
+          // if (buttonsSrc[4].pressed && !ioManager.lastButtons[4]) {
+          //   _handleLoadout()
+          // }
           ioManager.currentWeaponGrabs[1] = buttons[1] > 0.5;
         } else if (handedness === 'right') {
           const _applyRotation = r => {
@@ -203,13 +203,13 @@ const _updateIo = timeDiff => {
             game.menuActivateDown();
           }
 
-          if (buttonsSrc[5].pressed && !ioManager.lastButtons[5]) {
+          if (buttons[5] >= 0.5 && !ioManager.lastButtons[5]) {
             game.dropSelectedApp();
           }
 
-          if (buttonsSrc[4].pressed && !ioManager.lastButtons[4]) {
-            _handleLoadout()
-          }
+          // if (buttonsSrc[4].pressed && !ioManager.lastButtons[4]) {
+          //   _handleLoadout()
+          // }
 
         }
 
