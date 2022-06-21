@@ -38,6 +38,7 @@ export default e => {
   const passComponents = [];
   const seed = app.getComponent('seed');
   const range = app.getComponent('range');
+  const wait = app.getComponent('wait') ?? false;
   if (seed !== undefined) {
     passComponents.push({
       "key": "seed",
@@ -50,20 +51,29 @@ export default e => {
       "value": range,
     });
   }
+  if (wait) {
+    passComponents.push({
+      "key": "wait",
+      "value": true,
+    });
+  }
 
   const subApps = [];
-  /*e.waitUntil(*/(async () => {
+  const loadPromise = (async () => {
     await Promise.all(landApps.map(async spec => {
       const {start_url, components} = spec;
       const components2 = (components ?? []).concat(passComponents);
       const subApp = await metaversefile.createAppAsync({
         start_url,
-        components: components2,
         parent: app,
+        components: components2,
       });
       subApps.push(subApp);
     }));
-  })()//);
+  })();
+  if (wait) {
+    e.waitUntil(loadPromise);
+  }
 
   app.getPhysicsObjects = () => {
     const result = [];
