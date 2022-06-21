@@ -16,17 +16,10 @@ class OffscreenEngine {
     this.iframe = iframe;
     this.live = true;
 
-    const setport = new Promise((resolve, reject) => {
-      const message = (e) => {
-        if (e.data?.method === 'engineReady' && e.data.id === id && e.data.port instanceof MessagePort){
-          window.removeEventListener('message', message);
-          resolve(e.data.port);
-        }
-      };
-      window.addEventListener('message', message);
-    });
+    const messageChannel = new MessageChannel();
+    const {port1, port2} = messageChannel;
 
-    const loading = new Promise((resolve, reject) => {
+    const iframeLoadPromise = new Promise((resolve, reject) => {
       iframe.onload = () => {
         resolve();
         iframe.onload = null;
@@ -35,13 +28,22 @@ class OffscreenEngine {
       iframe.onerror = reject;
     });
 
-    this.loadPromise = Promise.all([loading, setport]);
+    this.loadPromise = (async () => {
+      await iframeLoadPromise;
+
+      iframe.contentWindow.postMessage({
+        method: 'initializeEngine',
+        port: port2,
+      }, '*', [port2]);
+
+      return port1;
+    })();
 
     iframe.src = `${inappPreviewHost}/engine.html#id=${id}`;
     document.body.appendChild(iframe);
   }
   waitForLoad() {
-    return this.loadPromise.then(([, port]) => {
+    return this.loadPromise.then(port => {
       this.port = port;
       this.port.start();
       return port;
