@@ -228,8 +228,9 @@ const _updateIo = timeDiff => {
     }
     
     if (localPlayer.hasAction('fly')) {
-      keysDirectionLocal.applyQuaternion(camera.quaternion);
+      keysDirectionGlobal.copy(keysDirectionLocal).applyQuaternion(camera.quaternion);
       _updateVertical(keysDirectionLocal);
+      _updateVertical(keysDirectionGlobal);
     } else {
       const cameraEuler = camera.rotation.clone();
       cameraEuler.x = 0;
