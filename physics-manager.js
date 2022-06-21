@@ -107,7 +107,9 @@ physicsManager.addCapsuleGeometry = (
   return physicsObject
 }
 
-physicsManager.addBoxGeometry = (position, quaternion, size, dynamic) => {
+physicsManager.addBoxGeometry = (position, quaternion, size, dynamic,
+  groupId = -1 // if not equal to -1, this BoxGeometry will not collide with CharacterController.
+) => {
   const physicsId = getNextPhysicsId()
   physx.physxWorker.addBoxGeometryPhysics(
     physx.physics,
@@ -115,7 +117,8 @@ physicsManager.addBoxGeometry = (position, quaternion, size, dynamic) => {
     quaternion,
     size,
     physicsId,
-    dynamic
+    dynamic,
+    groupId
   )
 
   const physicsObject = _makePhysicsObject(

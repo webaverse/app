@@ -2022,7 +2022,8 @@ const physxWorker = (() => {
     quaternion,
     size,
     id,
-    dynamic
+    dynamic,
+    groupId = -1 // if not equal to -1, this BoxGeometry will not collide with CharacterController.
   ) => {
     const allocator = new Allocator(moduleInstance)
     const p = allocator.alloc(Float32Array, 3)
@@ -2042,7 +2043,8 @@ const physxWorker = (() => {
       s.byteOffset,
       id,
       materialAddress,
-      +dynamic
+      +dynamic,
+      groupId
     )
     allocator.freeAll()
   }
