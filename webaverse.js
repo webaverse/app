@@ -47,6 +47,7 @@ import physxWorkerManager from './physx-worker-manager.js';
 import story from './story.js';
 import zTargeting from './z-targeting.js';
 import raycastManager from './raycast-manager.js';
+import xrManager from './xr-manager.js';
 
 const localVector = new THREE.Vector3();
 const localVector2 = new THREE.Vector3();
@@ -306,12 +307,12 @@ export default class Webaverse extends EventTarget {
         performanceTracker.setGpuPrefix('pre');
         const _pre = () => {
           ioManager.update(timeDiffCapped);
-          // this.injectRigInput();
           
           const localPlayer = metaversefileApi.useLocalPlayer();
           if (this.contentLoaded && physicsManager.getPhysicsEnabled()) {
             physicsManager.simulatePhysics(timeDiffCapped);
             localPlayer.updatePhysics(timestamp, timeDiffCapped);
+            xrManager.injectRigInput(frame);
           }
 
           transformControls.update();
