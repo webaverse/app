@@ -68,6 +68,8 @@ class PhysicsWorkerManager {
     return this.loadPromise;
   }
   async cookGeometry(mesh) {
+    await this.waitForLoad();
+
     const {workers} = this;
     const worker = workers[this.nextWorker];
     this.nextWorker = (this.nextWorker + 1) % workers.length;
@@ -79,6 +81,8 @@ class PhysicsWorkerManager {
     return result;
   }
   async cookConvexGeometry(mesh) {
+    await this.waitForLoad();
+    
     const {workers} = this;
     const worker = workers[this.nextWorker];
     this.nextWorker = (this.nextWorker + 1) % workers.length;
