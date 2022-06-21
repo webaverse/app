@@ -47,8 +47,11 @@ export default e => {
   });
 
   useCleanup(() => {
-    scene.remove(chunks);
-    mobber && mobber.destroy();
+    if (mobber) {
+      const chunks = mobber.getChunks();
+      scene.remove(chunks);
+      mobber.destroy();
+    }
   });
 
   return app;
