@@ -2044,7 +2044,7 @@ const physxWorker = (() => {
       id,
       materialAddress,
       +dynamic,
-      groupId
+      // groupId // test
     )
     allocator.freeAll()
   }
