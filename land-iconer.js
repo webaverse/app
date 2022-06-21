@@ -9,8 +9,11 @@ const useLandScreenshotter = (() => {
         import * as THREE from 'three';
         import metaversefile from './metaversefile-api.js';
         import {screenshotLandApp} from './land-screenshotter.js';
+        import physx from './physx.js';
         `,
         async function(seed, range, width, height) {
+          await physx.waitForLoad();
+
           const start_url = '/metaverse_modules/land/';
           const components = [
             {

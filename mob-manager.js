@@ -4,7 +4,7 @@ import metaversefile from 'metaversefile';
 import {getLocalPlayer} from './players.js';
 import physicsManager from './physics-manager.js';
 import hpManager from './hp-manager.js';
-import {LodChunkTracker} from './lod.js';
+// import {LodChunkTracker} from './lod.js';
 import {alea} from './procgen/procgen.js';
 import {createRelativeUrl} from './util.js';
 import dropManager from './drop-manager.js';
@@ -1108,8 +1108,8 @@ class Mobber {
       // relod: true,
     });
     const chunkadd = e => {
-      const {chunk} = e.data;
-      generator.generateChunk(chunk);
+      const {chunk, waitUntil} = e.data;
+      waitUntil(generator.generateChunk(chunk));
     };
     tracker.addEventListener('chunkadd', chunkadd);
     const chunkremove = e => {
@@ -1118,6 +1118,13 @@ class Mobber {
     };
     tracker.addEventListener('chunkremove', chunkremove);
     this.tracker = tracker;
+  }
+  async waitForUpdate() {
+    await new Promise((accept, reject) => {
+      this.tracker.addEventListener('update', () => {
+        accept();
+      });
+    });
   }
   /* async addMobModule(srcUrl) {
     const m = await metaversefile.import(srcUrl);
