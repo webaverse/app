@@ -67,6 +67,7 @@ let animations;
 let animationStepIndices;
 // let animationsBaseModel;
 let jumpAnimation;
+let fallLoopAnimation;
 let floatAnimation;
 let useAnimations;
 let aimAnimations;
@@ -313,6 +314,7 @@ export const loadPromise = (async () => {
   // swordTopDownSlash = animations.find(a => a.isSwordTopDownSlash)
 
   jumpAnimation = animations.find(a => a.isJump);
+  fallLoopAnimation = animations.index['falling.fbx'];
   // sittingAnimation = animations.find(a => a.isSitting);
   floatAnimation = animations.find(a => a.isFloat);
   // rifleAnimation = animations.find(a => a.isRifle);
@@ -921,7 +923,6 @@ export const _applyAnimation = (avatar, now, moveFactors) => {
           isPosition,
         } = spec;
 
-        const fallLoopAnimation = animations.index['falling.fbx'];
         const t2 = (avatar.fallLoopTime / 1000);
         const src2 = fallLoopAnimation.interpolants[k];
         const v2 = src2.evaluate(t2);
@@ -1279,20 +1280,20 @@ export const _applyAnimation = (avatar, now, moveFactors) => {
         const src2 = landingAnimation.interpolants[k];
         const v2 = src2.evaluate(t2);
 
-        let lerpFactor = (landingAnimationDuration - landTimeS) / 0.05; // 0.05 = 3 frames
-        lerpFactor = MathUtils.clamp(lerpFactor, 0, 1);
+        let f = (landingAnimationDuration - landTimeS) / 0.05; // 0.05 = 3 frames
+        f = MathUtils.clamp(f, 0, 1);
 
         if (!isPosition) {
           localQuaternion.fromArray(v2);
-          dst.slerp(localQuaternion, lerpFactor);
+          dst.slerp(localQuaternion, f);
         } else {
           localVector.fromArray(v2);
           _clearXZ(localVector, isPosition);
-          dst.lerp(localVector, lerpFactor);
+          dst.lerp(localVector, f);
         }
       }
     } else {
-      const animationSpeed = 0.9;
+      const animationSpeed = 0.95;
       const landTimeS = avatar.landTime / 1000;
       const landingAnimation = animations.index['landing 2.fbx'];
       const landingAnimationDuration = landingAnimation.duration / animationSpeed;
@@ -1303,21 +1304,27 @@ export const _applyAnimation = (avatar, now, moveFactors) => {
         const src2 = landingAnimation.interpolants[k];
         const v2 = src2.evaluate(t2);
 
-        let lerpFactor = landTimeS / 0.15;
-        lerpFactor = MathUtils.clamp(lerpFactor, 0, 1);
+        const t3 = landTimeS * animationSpeed;
+        const src3 = fallLoopAnimation.interpolants[k];
+        const v3 = src3.evaluate(t3);
 
-        let lerpFactor2 = (landingAnimationDuration - landTimeS) / 0.15;
-        lerpFactor2 = MathUtils.clamp(lerpFactor2, 0, 1);
+        let f3 = landTimeS / 0.1;
+        f3 = MathUtils.clamp(f3, 0, 1);
 
-        lerpFactor = Math.min(lerpFactor, lerpFactor2);
+        let f2 = (landingAnimationDuration - landTimeS) / 0.15;
+        f2 = MathUtils.clamp(f2, 0, 1);
 
         if (!isPosition) {
-          localQuaternion.fromArray(v2);
-          dst.slerp(localQuaternion, lerpFactor);
+          localQuaternion3.fromArray(v3);
+          localQuaternion2.fromArray(v2);
+          localQuaternion3.slerp(localQuaternion2, f3);
+          dst.slerp(localQuaternion3, f2);
         } else {
-          localVector.fromArray(v2);
-          _clearXZ(localVector, isPosition);
-          dst.lerp(localVector, lerpFactor);
+          localVector3.fromArray(v3);
+          localVector2.fromArray(v2);
+          localVector3.lerp(localVector2, f3);
+          dst.lerp(localVector3, f2);
+          _clearXZ(dst, isPosition);
         }
       }
     }
