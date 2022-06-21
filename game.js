@@ -1522,9 +1522,13 @@ class GameManager extends EventTarget {
 
   }
   isMovingBackward() {
-    // const localPlayer = getLocalPlayer();
-    return ioManager.keysDirectionLocal.z > 0 && this.isAiming();
-    // return localPlayer.avatar.direction.z > 0.1; // If check > 0 will cause glitch when move left/right;
+    const localPlayer = getLocalPlayer();
+    return ioManager.keysDirectionLocal.z > 0 && this.isAiming() && !localPlayer.hasAction('narutoRun');
+    /*
+      return localPlayer.avatar.direction.z > 0.1;
+      // If check > 0 will cause glitch when move left/right.
+      // Has a little lag after release backward key.
+    */
   }
   isAiming() {
     const localPlayer = getLocalPlayer();
