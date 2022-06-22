@@ -1279,6 +1279,7 @@ export const _applyAnimation = (avatar, now, moveFactors, timeDiffS) => {
       } else {
         localVector2.fromArray(v2);
         localVector3.fromArray(v3);
+        localVector3.y += 0.21; // align Swimming.fbx's height to freestyle.fbx
         localVector4.fromArray(v4);
         localVector3.lerp(localVector4, walkRunFactor);
         localVector2.lerp(localVector3, idleWalkFactor);
