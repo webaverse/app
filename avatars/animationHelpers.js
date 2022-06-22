@@ -818,6 +818,26 @@ export const _applyAnimation = (avatar, now, moveFactors) => {
         }
       };
     }
+
+    if (avatar.fallLoopState) {
+      return spec => {
+        const {
+          animationTrackName: k,
+          dst,
+          // isTop,
+          isPosition,
+        } = spec;
+
+        const t2 = (avatar.fallLoopTime / 1000);
+        const src2 = fallLoopAnimation.interpolants[k];
+        const v2 = src2.evaluate(t2);
+
+        dst.fromArray(v2);
+
+        _clearXZ(dst, isPosition);
+      };
+    }
+
     if (avatar.sitState) {
       return spec => {
         const {
@@ -914,24 +934,6 @@ export const _applyAnimation = (avatar, now, moveFactors) => {
       };
     }
 
-    if (avatar.fallLoopState) {
-      return spec => {
-        const {
-          animationTrackName: k,
-          dst,
-          // isTop,
-          isPosition,
-        } = spec;
-
-        const t2 = (avatar.fallLoopTime / 1000);
-        const src2 = fallLoopAnimation.interpolants[k];
-        const v2 = src2.evaluate(t2);
-
-        dst.fromArray(v2);
-
-        _clearXZ(dst, isPosition);
-      };
-    }
     if (
       avatar.useAnimation ||
       avatar.useAnimationCombo.length > 0 ||
