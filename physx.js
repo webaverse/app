@@ -2210,21 +2210,21 @@ const physxWorker = (() => {
 
     let head = outputBufferOffset / Float32Array.BYTES_PER_ELEMENT;
     let tail = head + 1;
-    const a = moduleInstance.HEAPF32[head];
+    const x = moduleInstance.HEAPF32[head];
 
     head = tail;
     tail = head + 1;
-    const b = moduleInstance.HEAPF32[head];
+    const y = moduleInstance.HEAPF32[head];
 
     head = tail;
     tail = head + 1;
-    const c = moduleInstance.HEAPF32[head];
+    const z = moduleInstance.HEAPF32[head];
 
     head = tail;
     tail = head + 1;
-    const test = moduleInstance.HEAPF32[head];
+    const w = moduleInstance.HEAPF32[head];
 
-    return [a, b, c, test];
+    return [x, y, z, w];
   }
 
   return w;

@@ -1,5 +1,6 @@
 import {LoopOnce, LoopRepeat} from 'three';
 import {WebaverseAnimationMixer} from './WebaverseAnimationMixer';
+import physx from '../physx.js';
 
 class WebaverseAnimationMotion {
   constructor(mixer, animation) {
@@ -32,7 +33,10 @@ class WebaverseAnimationMotion {
       animationTrackName: k,
       isFirstBone,
       isLastBone,
+      index,
     } = spec;
+
+    if (window.isDebugger) debugger;
 
     if (isFirstBone) {
       this.time = WebaverseAnimationMixer.timeS - this.startTime;
@@ -41,11 +45,12 @@ class WebaverseAnimationMotion {
     }
 
     const animation = this.animation;
-    const src = animation.interpolants[k];
+    // const src = animation.interpolants[k];
     let value;
     if (this.loop === LoopOnce) {
       const evaluateTimeS = this.time / this.speed + this.timeBias;
-      value = src.evaluate(evaluateTimeS);
+      // value = src.evaluate(evaluateTimeS);
+      value = physx.physxWorker.evaluateAnimationPhysics(physx.physics, index, evaluateTimeS);
       if (isLastBone && this.weight > 0 && !this.isFinished && evaluateTimeS >= this.animation.duration) {
         // console.log('finished', this.name);
         this.mixer.dispatchEvent({
@@ -56,7 +61,9 @@ class WebaverseAnimationMotion {
         this.isFinished = true;
       }
     } else {
-      value = src.evaluate((WebaverseAnimationMixer.timeS / this.speed + this.timeBias) % animation.duration);
+      const evaluateTimeS = (WebaverseAnimationMixer.timeS / this.speed + this.timeBias) % animation.duration;
+      // value = src.evaluate(evaluateTimeS);
+      value = physx.physxWorker.evaluateAnimationPhysics(physx.physics, index, evaluateTimeS);
     }
 
     if (this.lastWeight > 0 && this.weight <= 0) {

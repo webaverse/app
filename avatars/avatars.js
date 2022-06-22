@@ -784,6 +784,7 @@ class Avatar {
       Left_toe: this.legsManager.leftLeg.toe,
       Right_toe: this.legsManager.rightLeg.toe,
 	  };
+    window.modelBoneOutputs = this.modelBoneOutputs;
 
     this.debugMesh = null;
 
@@ -887,6 +888,7 @@ class Avatar {
       const isPosition = /\.position$/.test(animationMapping.animationTrackName);
       animationMapping.dst = this.modelBoneOutputs[animationMapping.boneName][isPosition ? 'position' : 'quaternion'];
       animationMapping.lerpFn = _getLerpFn(isPosition);
+      animationMapping.index = i;
       animationMapping.isFirstBone = i === 0;
       animationMapping.isLastBone = i === animationMappingConfig.length - 1;
       return animationMapping;

@@ -6,6 +6,7 @@ import {easing} from '../math-utils.js';
 import loaders from '../loaders.js';
 import {zbdecode} from 'zjs/encoding.mjs';
 import {WebaverseAnimationMixer} from './WebaverseAnimationMixer.js';
+import physx from '../physx.js';
 
 import {
 //   getSkinnedMeshes,
@@ -421,6 +422,20 @@ export const loadPromise = (async () => {
 });
 
 export const _createAnimation = avatar => {
+  const walkForwardAnimation = animations.index['walking.fbx'];
+  // let index = 0;
+  for (const k in walkForwardAnimation.interpolants) {
+    debugger
+    const interpolant = walkForwardAnimation.interpolants[k];
+    physx.physxWorker.addInterpolantPhysics( // todo: only need addInterpolantPhysics once globally
+      physx.physics,
+      interpolant.parameterPositions,
+      interpolant.sampleValues,
+      interpolant.valueSize,
+    );
+    // index++;
+  }
+
   avatar.mixer = new WebaverseAnimationMixer(avatar);
 
   // WebaverseAnimationMotions ---
@@ -655,8 +670,9 @@ export const _createAnimation = avatar => {
   // avatar.flyNode.addChild(avatar.jumpNode);
   // avatar.flyNode.addChild(avatar.flyMotion);
 
-  avatar.animTree = avatar.actionsNode; // todo: set whole tree here with separate names.
+  // avatar.animTree = avatar.actionsNode; // todo: set whole tree here with separate names.
   // test
+  avatar.animTree = avatar.walkForwardMotion;
   // avatar.animTree = avatar.bowNode;
   // avatar.animTree = avatar.useMotiono.bowLoose; avatar.useMotiono.bowLoose.loop = LoopRepeat; avatar.useMotiono.bowLoose.play();
   // avatar.animTree = avatar.useMotiono.bowIdle; avatar.useMotiono.bowIdle.loop = LoopRepeat; avatar.useMotiono.bowIdle.play();
