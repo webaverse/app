@@ -58,6 +58,7 @@ import procGenManager from './procgen-manager.js';
 import cardsManager from './cards-manager.js';
 import * as instancing from './instancing.js';
 import * as atlasing from './atlasing.js';
+import game from './game.js';
 
 const localVector2D = new THREE.Vector2();
 
@@ -394,6 +395,9 @@ metaversefile.setApi({
   },
   useCamera() {
     return camera;
+  },
+  useGame() {
+    return game;
   },
   /* usePostOrthographicScene() {
     return postSceneOrthographic;

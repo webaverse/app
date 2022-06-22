@@ -12,7 +12,6 @@ import {applyVelocity} from './util.js';
 import {getRenderer, camera} from './renderer.js';
 // import physx from './physx.js';
 import metaversefileApi from 'metaversefile';
-import game from './game.js';
 
 const localVector = new THREE.Vector3();
 const localVector2 = new THREE.Vector3();
@@ -144,6 +143,7 @@ class CharacterPhysics {
         const _ensureJumpAction = () => {
           if (!jumpAction) {
             // console.log('add jump action: character-physics.js');
+            const game = metaversefileApi.useGame();
             const newJumpAction = {
               type: 'jump',
               time: 0,
