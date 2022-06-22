@@ -11,15 +11,6 @@ const ports = [];
 
 const _cloneTerrainMeshData = (meshData) => {
   if (meshData) {
-    /* return {
-      arrayBuffer: new ArrayBuffer(1),
-      positions: meshData.positions.slice(),
-      normals: meshData.normals.slice(),
-      biomes: meshData.biomes.slice(),
-      biomesWeights: meshData.biomesWeights.slice(),
-      indices: meshData.indices.slice(),
-    }; */
-
     const sizeRequired = meshData.positions.length * meshData.positions.constructor.BYTES_PER_ELEMENT +
       meshData.normals.length * meshData.normals.constructor.BYTES_PER_ELEMENT +
       meshData.biomes.length * meshData.biomes.constructor.BYTES_PER_ELEMENT +
