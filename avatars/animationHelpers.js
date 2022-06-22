@@ -1277,10 +1277,13 @@ export const _applyAnimation = (avatar, now, moveFactors, timeDiffS) => {
         localQuaternion2.slerp(localQuaternion3, idleWalkFactor);
         dst.slerp(localQuaternion2, f);
       } else {
+        const liftSwims = 0.05; // lift swims height, prevent head sink in water
         localVector2.fromArray(v2);
         localVector3.fromArray(v3);
         localVector3.y += 0.21; // align Swimming.fbx's height to freestyle.fbx
+        localVector3.y += liftSwims;
         localVector4.fromArray(v4);
+        localVector4.y += liftSwims;
         localVector3.lerp(localVector4, walkRunFactor);
         localVector2.lerp(localVector3, idleWalkFactor);
         dst.lerp(localVector2, f);
