@@ -381,16 +381,16 @@ const _startHacks = webaverse => {
   const localPlayer = metaversefileApi.useLocalPlayer();
   const vpdAnimations = Avatar.getAnimations().filter(animation => animation.name.endsWith('.vpd'));
 
-  window.localPlayer = localPlayer;
-  window.THREE = THREE;
-  window.physicsManager = physicsManager;
-  window.physx = physx;
-  window.metaversefileApi = metaversefileApi;
-  window.rootScene = rootScene;
-  window.loadoutManager = loadoutManager;
-  window.game = game;
-  window.cameraManager = cameraManager;
-  window.ioManager = ioManager;
+  // window.localPlayer = localPlayer;
+  // window.THREE = THREE;
+  // window.physicsManager = physicsManager;
+  // window.physx = physx;
+  // window.metaversefileApi = metaversefileApi;
+  // window.rootScene = rootScene;
+  // window.loadoutManager = loadoutManager;
+  // window.game = game;
+  // window.cameraManager = cameraManager;
+  // window.ioManager = ioManager;
 
   // let playerDiorama = null;
   const lastEmotionKey = {
