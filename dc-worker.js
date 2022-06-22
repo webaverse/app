@@ -1,7 +1,7 @@
 import * as THREE from 'three';
 import dc from './dual-contouring.js';
-import {makePromise} from './util.js'
-import {defaultChunkSize} from './constants.js';
+import { makePromise } from './util.js';
+import { defaultChunkSize } from './constants.js';
 
 const chunkWorldSize = defaultChunkSize;
 
@@ -23,7 +23,6 @@ const _cloneTerrainMeshData = (meshData) => {
     const sizeRequired = meshData.positions.length * meshData.positions.constructor.BYTES_PER_ELEMENT +
       meshData.normals.length * meshData.normals.constructor.BYTES_PER_ELEMENT +
       meshData.biomes.length * meshData.biomes.constructor.BYTES_PER_ELEMENT +
-      meshData.biomesWeights.length * meshData.biomesWeights.constructor.BYTES_PER_ELEMENT +
       meshData.indices.length * meshData.indices.constructor.BYTES_PER_ELEMENT;
     const arrayBuffer = new ArrayBuffer(sizeRequired);
     let index = 0;
@@ -40,10 +39,6 @@ const _cloneTerrainMeshData = (meshData) => {
     biomes.set(meshData.biomes);
     index += meshData.biomes.length * meshData.biomes.constructor.BYTES_PER_ELEMENT;
     
-    const biomesWeights = new meshData.biomesWeights.constructor(arrayBuffer, index, meshData.biomesWeights.length);
-    biomesWeights.set(meshData.biomesWeights);
-    index += meshData.biomesWeights.length * meshData.biomesWeights.constructor.BYTES_PER_ELEMENT;
-    
     const indices = new meshData.indices.constructor(arrayBuffer, index, meshData.indices.length);
     indices.set(meshData.indices);
     index += meshData.indices.length * meshData.indices.constructor.BYTES_PER_ELEMENT;
@@ -54,7 +49,6 @@ const _cloneTerrainMeshData = (meshData) => {
       positions,
       normals,
       biomes,
-      biomesWeights,
       indices,
     };
   } else {
@@ -113,10 +107,7 @@ const instances = new Map();
 let loaded = false;
 let running = false;
 let queue = [];
-const _handleMethod = ({
-  method,
-  args,
-}) => {
+const _handleMethod = ({ method, args }) => {
   // console.log('worker handle method', method, args);
 
   const _injectDamages = (chunks, instance) => {
@@ -125,7 +116,7 @@ const _handleMethod = ({
     const method = 'injectDamages';
     const args = {
       chunks,
-      instance
+      instance,
     };
     for (const port of ports) {
       // console.log('got port', port);
@@ -135,16 +126,17 @@ const _handleMethod = ({
       });
     }
   };
-  const _chunksToResult = chunks => chunks.map(({position}) => ({position}));
+  const _chunksToResult = (chunks) =>
+    chunks.map(({ position }) => ({ position }));
 
   switch (method) {
     case 'initialize': {
-      const {chunkSize, seed} = args;
+      const { chunkSize, seed } = args;
       return dc.initialize(chunkSize, seed);
     }
     case 'port': {
-      const {port} = args;
-      port.onmessage = e => {
+      const { port } = args;
+      port.onmessage = (e) => {
         _handleMessage({
           data: e.data,
           port,
@@ -154,7 +146,8 @@ const _handleMethod = ({
       return;
     }
     case 'ensureInstance': {
-      const {instance: instanceKey} = args;
+      const { instance: instanceKey } = args;
+      // console.log(instanceKey);
       let instance = instances.get(instanceKey);
       if (!instance) {
         instance = dc.createInstance();
@@ -163,7 +156,7 @@ const _handleMethod = ({
       return true;
     }
     case 'deleteInstance': {
-      const {instance: instanceKey} = args;
+      const { instance: instanceKey } = args;
       const instance = instances.get(instanceKey);
       if (instance) {
         dc.deleteInstance(instance);
@@ -174,7 +167,7 @@ const _handleMethod = ({
       }
     }
     case 'setRange': {
-      const {instance: instanceKey, range} = args;
+      const { instance: instanceKey, range } = args;
       const instance = instances.get(instanceKey);
       dc.setRange(instance, range);
       return true;
@@ -210,15 +203,9 @@ const _handleMethod = ({
       meshData && dc.free(meshData.bufferAddress);
 
       if (meshData2) {
-        const lod = lodArray[0];
-        meshData2.skylights = dc.getChunkSkylight(instance, localVector.x, localVector.y, localVector.z, lod);
-        meshData2.aos = dc.getChunkAo(instance, localVector.x, localVector.y, localVector.z, lod);
-
-        // console.log('got aos skylights', meshData.aos, meshData.skylights);
-
         const spec = {
           result: meshData2,
-          transfers: [meshData2.arrayBuffer, meshData2.skylights.buffer, meshData2.aos.buffer],
+          transfers: [meshData2.arrayBuffer],
         };
         return spec;
       } else {
@@ -246,9 +233,10 @@ const _handleMethod = ({
       }
     }
     case 'getHeightfieldRange': {
-      const {instance: instanceKey, x, z, w, h, lod} = args;
+      const { instance: instanceKey, x, z, w, h, lod } = args;
       const instance = instances.get(instanceKey);
-      if (!instance) throw new Error('getHeightfieldRange : instance not found');
+      if (!instance)
+        throw new Error('getHeightfieldRange : instance not found');
       const heights = dc.getHeightfieldRange(instance, x, z, w, h, lod);
 
       const spec = {
@@ -258,10 +246,20 @@ const _handleMethod = ({
       return spec;
     }
     case 'getSkylightFieldRange': {
-      const {instance: instanceKey, x, y, z, w, h, d, lod} = args;
+      const { instance: instanceKey, x, y, z, w, h, d, lod } = args;
       const instance = instances.get(instanceKey);
-      if (!instance) throw new Error('getSkylightFieldRange : instance not found');
-      const skylights = dc.getSkylightFieldRange(instance, x, y, z, w, h, d, lod);
+      if (!instance)
+        throw new Error('getSkylightFieldRange : instance not found');
+      const skylights = dc.getSkylightFieldRange(
+        instance,
+        x,
+        y,
+        z,
+        w,
+        h,
+        d,
+        lod
+      );
 
       const spec = {
         result: skylights,
@@ -270,7 +268,7 @@ const _handleMethod = ({
       return spec;
     }
     case 'getAoFieldRange': {
-      const {instance: instanceKey, x, y, z, w, h, d, lod} = args;
+      const { instance: instanceKey, x, y, z, w, h, d, lod } = args;
       const instance = instances.get(instanceKey);
       if (!instance) throw new Error('getAoFieldRange : instance not found');
       const aos = dc.getAoFieldRange(instance, x, y, z, w, h, d, lod);
@@ -282,7 +280,7 @@ const _handleMethod = ({
       return spec;
     }
     case 'createGrassSplat': {
-      const {instance: instanceKey, x, z, lod} = args;
+      const { instance: instanceKey, x, z, lod } = args;
       const instance = instances.get(instanceKey);
       if (!instance) throw new Error('createGrassSplat : instance not found');
       const {
@@ -302,9 +300,10 @@ const _handleMethod = ({
       return spec;
     }
     case 'createVegetationSplat': {
-      const {instance: instanceKey, x, z, lod} = args;
+      const { instance: instanceKey, x, z, lod } = args;
       const instance = instances.get(instanceKey);
-      if (!instance) throw new Error('createVegetationSplat : instance not found');
+      if (!instance)
+        throw new Error('createVegetationSplat : instance not found');
       const {
         ps,
         qs,
@@ -322,7 +321,7 @@ const _handleMethod = ({
       return spec;
     }
     case 'createMobSplat': {
-      const {instance: instanceKey, x, z, lod} = args;
+      const { instance: instanceKey, x, z, lod } = args;
       const instance = instances.get(instanceKey);
       if (!instance) throw new Error('createMobSplat : instance not found');
       const {
@@ -342,15 +341,22 @@ const _handleMethod = ({
       return spec;
     }
     case 'drawCubeDamage': {
-      const {instance: instanceKey, position, quaternion, scale} = args;
+      const { instance: instanceKey, position, quaternion, scale } = args;
       const instance = instances.get(instanceKey);
       if (!instance) throw new Error('drawCubeDamage : instance not found');
       // console.log('dc worker draw cube damage', {position, quaternion, scale});
       const chunks = dc.drawCubeDamage(
         instance,
-        position[0], position[1], position[2],
-        quaternion[0], quaternion[1], quaternion[2], quaternion[3],
-        scale[0], scale[1], scale[2],
+        position[0],
+        position[1],
+        position[2],
+        quaternion[0],
+        quaternion[1],
+        quaternion[2],
+        quaternion[3],
+        scale[0],
+        scale[1],
+        scale[2]
       );
       // console.log('draw cube damage chunks', chunks);
 
@@ -365,14 +371,21 @@ const _handleMethod = ({
       }
     }
     case 'eraseCubeDamage': {
-      const {instance: instanceKey, position, quaternion, scale} = args;
+      const { instance: instanceKey, position, quaternion, scale } = args;
       const instance = instances.get(instanceKey);
       if (!instance) throw new Error('eraseCubeDamage : instance not found');
       const chunks = dc.drawCubeDamage(
         instance,
-        position[0], position[1], position[2],
-        quaternion[0], quaternion[1], quaternion[2], quaternion[3],
-        scale[0], scale[1], scale[2],
+        position[0],
+        position[1],
+        position[2],
+        quaternion[0],
+        quaternion[1],
+        quaternion[2],
+        quaternion[3],
+        scale[0],
+        scale[1],
+        scale[2]
       );
 
       if (chunks) {
@@ -386,13 +399,15 @@ const _handleMethod = ({
       }
     }
     case 'drawSphereDamage': {
-      const {instance: instanceKey, position, radius} = args;
+      const { instance: instanceKey, position, radius } = args;
       const instance = instances.get(instanceKey);
       if (!instance) throw new Error('drawSphereDamage : instance not found');
       const chunks = dc.drawSphereDamage(
         instance,
-        position[0], position[1], position[2],
-        radius,
+        position[0],
+        position[1],
+        position[2],
+        radius
       );
 
       if (chunks) {
@@ -406,13 +421,15 @@ const _handleMethod = ({
       }
     }
     case 'eraseSphereDamage': {
-      const {instance: instanceKey, position, radius} = args;
+      const { instance: instanceKey, position, radius } = args;
       const instance = instances.get(instanceKey);
       if (!instance) throw new Error('eraseSphereDamage : instance not found');
       const chunks = dc.eraseSphereDamage(
         instance,
-        position[0], position[1], position[2],
-        radius,
+        position[0],
+        position[1],
+        position[2],
+        radius
       );
 
       if (chunks) {
@@ -426,14 +443,20 @@ const _handleMethod = ({
       }
     }
     case 'injectDamages': {
-      const {instance: instanceKey, chunks} = args;
+      const { instance: instanceKey, chunks } = args;
       // console.log(instanceKey);
       const instance = instances.get(instanceKey);
       if (!instance) throw new Error('injectDamages : instance not found');
       for (const chunk of chunks) {
-        const {position, damageBuffer} = chunk;
+        const { position, damageBuffer } = chunk;
         // console.log('worker inject damage 1', {position, damageBuffer});
-        dc.injectDamage(instance, position[0], position[1], position[2], damageBuffer);
+        dc.injectDamage(
+          instance,
+          position[0],
+          position[1],
+          position[2],
+          damageBuffer
+        );
         // console.log('worker inject damage 2', {position, damageBuffer});
       }
       return null;
@@ -443,17 +466,14 @@ const _handleMethod = ({
     }
   }
 };
-const _handleMessage = async e => {
+const _handleMessage = async (e) => {
   if (loaded && !running) {
-    const {
-      data,
-      port,
-    } = e;
-    
+    const { data, port } = e;
+
     {
       running = true;
 
-      const {requestId} = data;
+      const { requestId } = data;
       const p = makePromise();
       try {
         const spec = await _handleMethod(data);
@@ -463,19 +483,25 @@ const _handleMessage = async e => {
       }
 
       if (requestId) {
-        p.then(spec => {
-          const {result = null, transfers = []} = spec ?? {};
-          port.postMessage({
-            method: 'response',
-            requestId,
-            result,
-          }, transfers);
-        }, err => {
-          port.postMessage({
-            requestId,
-            error: err.message,
-          });
-        });
+        p.then(
+          (spec) => {
+            const { result = null, transfers = [] } = spec ?? {};
+            port.postMessage(
+              {
+                method: 'response',
+                requestId,
+                result,
+              },
+              transfers
+            );
+          },
+          (err) => {
+            port.postMessage({
+              requestId,
+              error: err.message,
+            });
+          }
+        );
       }
 
       running = false;
@@ -488,7 +514,7 @@ const _handleMessage = async e => {
     queue.push(e);
   }
 };
-self.onmessage = e => {
+self.onmessage = (e) => {
   _handleMessage({
     data: e.data,
     port: self,
