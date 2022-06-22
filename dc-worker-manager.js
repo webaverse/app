@@ -300,18 +300,28 @@ export class DcWorkerManager {
       chunkPosition.z * this.chunkSize * this.chunkSize
     }`;
     return await navigator.locks.request(chunkId, async (lock) => {
-      console.log('Lock : ' + lock.name);
       const worker = this.getNextWorker();
       const result = await worker.request('drawSphereDamage', {
         instance: this.instance,
         position: position.toArray(),
         radius,
       });
-      console.log('UnLock : ' + lock.name);
       return result;
     });
   }
   async eraseSphereDamage(position, radius) {
+    const chunkPosition = chunkMinForPosition(
+      position.x,
+      position.y,
+      position.z,
+      this.chunkSize
+    );
+    const chunkId = `chunk:${
+      chunkPosition.x +
+      chunkPosition.y * this.chunkSize +
+      chunkPosition.z * this.chunkSize * this.chunkSize
+    }`;
+    return await navigator.locks.request(chunkId, async (lock) => {
     const worker = this.getNextWorker();
     const result = await worker.request('eraseSphereDamage', {
       instance: this.instance,
@@ -319,5 +329,5 @@ export class DcWorkerManager {
       radius,
     });
     return result;
-  }
+  });}
 }
