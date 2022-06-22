@@ -200,9 +200,29 @@ const _handleMethod = ({ method, args }) => {
       meshData && dc.free(meshData.bufferAddress);
 
       if (meshData2) {
+        const lod = lodArray[0];
+        meshData2.skylights = dc.getChunkSkylight(
+          instance,
+          localVector.x,
+          localVector.y,
+          localVector.z,
+          lod
+        );
+        meshData2.aos = dc.getChunkAo(
+          instance,
+          localVector.x,
+          localVector.y,
+          localVector.z,
+          lod
+        );
+
         const spec = {
           result: meshData2,
-          transfers: [meshData2.arrayBuffer],
+          transfers: [
+            meshData2.arrayBuffer,
+            meshData2.skylights.buffer,
+            meshData2.aos.buffer,
+          ],
         };
         return spec;
       } else {
