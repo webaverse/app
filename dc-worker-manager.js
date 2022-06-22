@@ -1,7 +1,7 @@
 // import * as THREE from 'three';
 import { chunkMinForPosition, makeId } from './util.js';
 
-const defaultNumDcWorkers = 1;
+const defaultNumDcWorkers = 4;
 
 export class DcWorkerManager {
   constructor({
@@ -142,47 +142,38 @@ export class DcWorkerManager {
       })
     );
   }
-  async generateChunk(chunkPosition, lodArray) {
-    const chunkId = `chunk:${
-      chunkPosition.x +
-      chunkPosition.y * this.chunkSize +
-      chunkPosition.z * this.chunkSize * this.chunkSize
-    }`;
-    return await navigator.locks.request(
-      chunkId,
-      { signal: signal },
-      async (lock) => {
-        const worker = this.getNextWorker();
-        const result = await worker.request('generateChunk', {
-          instance: this.instance,
-          chunkPosition: chunkPosition.toArray(),
-          lodArray,
-        });
-        return result;
-      }
-    );
+  async generateTerrainChunk(chunkPosition, lodArray) {
+    const worker = this.getNextWorker();
+    const result = await worker.request('generateTerrainChunk', {
+      instance: this.instance,
+      chunkPosition: chunkPosition.toArray(),
+      lodArray,
+    });
+    return result;
   }
-  async generateChunkRenderable(chunkPosition, lodArray, { signal }) {
-    const chunkId = `chunk:${
-      chunkPosition.x +
-      chunkPosition.y * this.chunkSize +
-      chunkPosition.z * this.chunkSize * this.chunkSize
-    }`;
-    return await navigator.locks.request(
-      chunkId,
-      { signal: signal },
-      async (lock) => {
-        // console.log(lock);
-        const worker = this.getNextWorker();
-        const result = worker.request('generateChunkRenderable', {
-          instance: this.instance,
-          chunkPosition: chunkPosition.toArray(),
-          lodArray,
-        });
-        signal.throwIfAborted();
-        return result;
-      }
-    );
+  async generateTerrainChunkRenderable(chunkPosition, lodArray, {
+    signal
+  }) {
+    const worker = this.getNextWorker();
+    const result = await worker.request('generateTerrainChunkRenderable', {
+      instance: this.instance,
+      chunkPosition: chunkPosition.toArray(),
+      lodArray,
+    });
+    signal.throwIfAborted();
+    return result;
+  }
+  async generateLiquidChunk(chunkPosition, lodArray, {
+    signal
+  }) {
+    const worker = this.getNextWorker();
+    const result = await worker.request('generateLiquidChunk', {
+      instance: this.instance,
+      chunkPosition: chunkPosition.toArray(),
+      lodArray,
+    });
+    signal.throwIfAborted();
+    return result;
   }
   async getHeightfieldRange(x, z, w, h, lod) {
     const worker = this.getNextWorker();

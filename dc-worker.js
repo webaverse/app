@@ -20,63 +20,28 @@ const _cloneTerrainMeshData = (meshData) => {
       indices: meshData.indices.slice(),
     }; */
 
-    const sizeRequired =
-      meshData.positions.length *
-        meshData.positions.constructor.BYTES_PER_ELEMENT +
+    const sizeRequired = meshData.positions.length * meshData.positions.constructor.BYTES_PER_ELEMENT +
       meshData.normals.length * meshData.normals.constructor.BYTES_PER_ELEMENT +
       meshData.biomes.length * meshData.biomes.constructor.BYTES_PER_ELEMENT +
-      meshData.biomesWeights.length *
-        meshData.biomesWeights.constructor.BYTES_PER_ELEMENT +
       meshData.indices.length * meshData.indices.constructor.BYTES_PER_ELEMENT;
     const arrayBuffer = new ArrayBuffer(sizeRequired);
     let index = 0;
 
-    const positions = new meshData.positions.constructor(
-      arrayBuffer,
-      index,
-      meshData.positions.length
-    );
+    const positions = new meshData.positions.constructor(arrayBuffer, index, meshData.positions.length);
     positions.set(meshData.positions);
-    index +=
-      meshData.positions.length *
-      meshData.positions.constructor.BYTES_PER_ELEMENT;
-
-    const normals = new meshData.normals.constructor(
-      arrayBuffer,
-      index,
-      meshData.normals.length
-    );
+    index += meshData.positions.length * meshData.positions.constructor.BYTES_PER_ELEMENT;
+    
+    const normals = new meshData.normals.constructor(arrayBuffer, index, meshData.normals.length);
     normals.set(meshData.normals);
-    index +=
-      meshData.normals.length * meshData.normals.constructor.BYTES_PER_ELEMENT;
-
-    const biomes = new meshData.biomes.constructor(
-      arrayBuffer,
-      index,
-      meshData.biomes.length
-    );
+    index += meshData.normals.length * meshData.normals.constructor.BYTES_PER_ELEMENT;
+    
+    const biomes = new meshData.biomes.constructor(arrayBuffer, index, meshData.biomes.length);
     biomes.set(meshData.biomes);
-    index +=
-      meshData.biomes.length * meshData.biomes.constructor.BYTES_PER_ELEMENT;
-
-    const biomesWeights = new meshData.biomesWeights.constructor(
-      arrayBuffer,
-      index,
-      meshData.biomesWeights.length
-    );
-    biomesWeights.set(meshData.biomesWeights);
-    index +=
-      meshData.biomesWeights.length *
-      meshData.biomesWeights.constructor.BYTES_PER_ELEMENT;
-
-    const indices = new meshData.indices.constructor(
-      arrayBuffer,
-      index,
-      meshData.indices.length
-    );
+    index += meshData.biomes.length * meshData.biomes.constructor.BYTES_PER_ELEMENT;
+    
+    const indices = new meshData.indices.constructor(arrayBuffer, index, meshData.indices.length);
     indices.set(meshData.indices);
-    index +=
-      meshData.indices.length * meshData.indices.constructor.BYTES_PER_ELEMENT;
+    index += meshData.indices.length * meshData.indices.constructor.BYTES_PER_ELEMENT;
 
     return {
       // bufferAddress: arrayBuffer.byteOffset,
@@ -84,7 +49,6 @@ const _cloneTerrainMeshData = (meshData) => {
       positions,
       normals,
       biomes,
-      biomesWeights,
       indices,
     };
   } else {
@@ -208,19 +172,14 @@ const _handleMethod = ({ method, args }) => {
       dc.setRange(instance, range);
       return true;
     }
-    case 'generateChunk': {
-      const { instance: instanceKey, chunkPosition, lodArray } = args;
+    case 'generateTerrainChunk': {
+      const {instance: instanceKey, chunkPosition, lodArray} = args;
       const instance = instances.get(instanceKey);
-      if (!instance) throw new Error('generateChunk : instance not found');
-      localVector.fromArray(chunkPosition).multiplyScalar(chunkWorldSize);
-      const meshData = dc.createChunkMeshDualContouring(
-        instance,
-        localVector.x,
-        localVector.y,
-        localVector.z,
-        lodArray
-      );
-      const meshData2 = _cloneMeshData(meshData);
+      if (!instance) throw new Error('generateTerrainChunk : instance not found');
+      localVector.fromArray(chunkPosition)
+        .multiplyScalar(chunkWorldSize);
+      const meshData = dc.createChunkMeshDualContouring(instance, localVector.x, localVector.y, localVector.z, lodArray);
+      const meshData2 = _cloneTerrainMeshData(meshData);
       meshData && dc.free(meshData.bufferAddress);
 
       if (meshData2) {
@@ -233,53 +192,25 @@ const _handleMethod = ({ method, args }) => {
         return null;
       }
     }
-    case 'generateChunkRenderable': {
-      const { instance: instanceKey, chunkPosition, lodArray } = args;
-        const instance = instances.get(instanceKey);
-        if (!instance)
-          throw new Error('generateChunkRenderable : instance not found');
-        localVector.fromArray(chunkPosition).multiplyScalar(chunkWorldSize);
-        const meshData = dc.createChunkMeshDualContouring(
-          instance,
-          localVector.x,
-          localVector.y,
-          localVector.z,
-          lodArray
-        );
-        const meshData2 = _cloneMeshData(meshData);
-        meshData && dc.free(meshData.bufferAddress);
+    case 'generateTerrainChunkRenderable': {
+      const {instance: instanceKey, chunkPosition, lodArray} = args;
+      const instance = instances.get(instanceKey);
+      if (!instance) throw new Error('generateTerrainChunkRenderable : instance not found');
+      localVector.fromArray(chunkPosition)
+        .multiplyScalar(chunkWorldSize);
+      const meshData = dc.createTerrainChunkMesh(instance, localVector.x, localVector.y, localVector.z, lodArray);
+      const meshData2 = _cloneTerrainMeshData(meshData);
+      meshData && dc.free(meshData.bufferAddress);
 
-        if (meshData2) {
-          const lod = lodArray[0];
-          meshData2.skylights = dc.getChunkSkylight(
-            instance,
-            localVector.x,
-            localVector.y,
-            localVector.z,
-            lod
-          );
-          meshData2.aos = dc.getChunkAo(
-            instance,
-            localVector.x,
-            localVector.y,
-            localVector.z,
-            lod
-          );
-
-          // console.log('got aos skylights', meshData.aos, meshData.skylights);
-
-          const spec = {
-            result: meshData2,
-            transfers: [
-              meshData2.arrayBuffer,
-              meshData2.skylights.buffer,
-              meshData2.aos.buffer,
-            ],
-          };
-          return spec;
-        } else {
-          return null;
-        }
+      if (meshData2) {
+        const spec = {
+          result: meshData2,
+          transfers: [meshData2.arrayBuffer],
+        };
+        return spec;
+      } else {
+        return null;
+      }
     }
     case 'generateLiquidChunk': {
       const {instance: instanceKey, chunkPosition, lodArray} = args;
