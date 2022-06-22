@@ -654,6 +654,10 @@ export function chunkMinForPosition(x, y, z, chunkSize) {
   return localVector6;
 }
 
+export function getLockChunkId(chunkPosition) {
+  return `chunk:${chunkPosition.x}, ${chunkPosition.y}, ${chunkPosition.z}}`;
+}
+
 /* async function contentIdToStorageUrl(id) {
   if (typeof id === 'number') {
     const hash = await contracts.mainnetsidechain.NFT.methods.getHash(id + '').call();

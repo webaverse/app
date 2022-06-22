@@ -1,5 +1,5 @@
 // import * as THREE from 'three';
-import { chunkMinForPosition, makeId } from './util.js';
+import { chunkMinForPosition, getLockChunkId, makeId } from './util.js';
 
 const defaultNumDcWorkers = 4;
 
@@ -143,7 +143,7 @@ export class DcWorkerManager {
     );
   }
   async generateTerrainChunk(chunkPosition, lodArray) {
-    const chunkId = `chunk:${chunkPosition.x}, ${chunkPosition.y}, ${chunkPosition.z}}`;
+    const chunkId = getLockChunkId(chunkPosition);
     return await navigator.locks.request(
       chunkId,
       async (lock) => {
@@ -160,7 +160,7 @@ export class DcWorkerManager {
   async generateTerrainChunkRenderable(chunkPosition, lodArray, {
     signal
   }) {
-    const chunkId = `chunk:${chunkPosition.x}, ${chunkPosition.y}, ${chunkPosition.z}}`;
+    const chunkId = getLockChunkId(chunkPosition);
     return await navigator.locks.request(
       chunkId,
       { signal: signal },
@@ -286,7 +286,7 @@ export class DcWorkerManager {
       position.z,
       this.chunkSize
     );
-    const chunkId = `chunk:${chunkPosition.x}, ${chunkPosition.y}, ${chunkPosition.z}}`;
+    const chunkId = getLockChunkId(chunkPosition);
     return await navigator.locks.request(chunkId, async (lock) => {
       const worker = this.getNextWorker();
       const result = await worker.request('drawSphereDamage', {
@@ -304,7 +304,7 @@ export class DcWorkerManager {
       position.z,
       this.chunkSize
     );
-    const chunkId = `chunk:${chunkPosition.x}, ${chunkPosition.y}, ${chunkPosition.z}}`;
+    const chunkId = getLockChunkId(chunkPosition);
     return await navigator.locks.request(chunkId, async (lock) => {
     const worker = this.getNextWorker();
     const result = await worker.request('eraseSphereDamage', {
