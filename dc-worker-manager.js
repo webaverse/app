@@ -144,38 +144,31 @@ export class DcWorkerManager {
   }
   async generateTerrainChunk(chunkPosition, lodArray) {
     const chunkId = getLockChunkId(chunkPosition);
-    return await navigator.locks.request(
-      chunkId,
-      async (lock) => {
-        const worker = this.getNextWorker();
-        const result = await worker.request('generateTerrainChunk', {
-          instance: this.instance,
-          chunkPosition: chunkPosition.toArray(),
-          lodArray,
-        });
-        return result;
-      }
-    );
+    return await navigator.locks.request(chunkId, async lock => {
+      const worker = this.getNextWorker();
+      const result = await worker.request('generateTerrainChunk', {
+        instance: this.instance,
+        chunkPosition: chunkPosition.toArray(),
+        lodArray,
+      });
+      result.throwIfAborted();
+      return result;
+    });
   }
   async generateTerrainChunkRenderable(chunkPosition, lodArray, {
     signal
   }) {
     const chunkId = getLockChunkId(chunkPosition);
-    return await navigator.locks.request(
-      chunkId,
-      { signal: signal },
-      async (lock) => {
-        // console.log(lock);
-        const worker = this.getNextWorker();
-        const result = worker.request('generateTerrainChunkRenderable', {
-          instance: this.instance,
-          chunkPosition: chunkPosition.toArray(),
-          lodArray,
-        });
-        signal.throwIfAborted();
-        return result;
-      }
-    );
+    return await navigator.locks.request(chunkId, {signal}, async lock => {
+      const worker = this.getNextWorker();
+      const result = await worker.request('generateTerrainChunkRenderable', {
+        instance: this.instance,
+        chunkPosition: chunkPosition.toArray(),
+        lodArray,
+      });
+      signal.throwIfAborted();
+      return result;
+    });
   }
   async generateLiquidChunk(chunkPosition, lodArray, {
     signal
@@ -287,7 +280,7 @@ export class DcWorkerManager {
       this.chunkSize
     );
     const chunkId = getLockChunkId(chunkPosition);
-    return await navigator.locks.request(chunkId, async (lock) => {
+    return await navigator.locks.request(chunkId, async lock => {
       const worker = this.getNextWorker();
       const result = await worker.request('drawSphereDamage', {
         instance: this.instance,
@@ -305,13 +298,14 @@ export class DcWorkerManager {
       this.chunkSize
     );
     const chunkId = getLockChunkId(chunkPosition);
-    return await navigator.locks.request(chunkId, async (lock) => {
-    const worker = this.getNextWorker();
-    const result = await worker.request('eraseSphereDamage', {
-      instance: this.instance,
-      position: position.toArray(),
-      radius,
+    return await navigator.locks.request(chunkId, async lock => {
+      const worker = this.getNextWorker();
+      const result = await worker.request('eraseSphereDamage', {
+        instance: this.instance,
+        position: position.toArray(),
+        radius,
+      });
+      return result;
     });
-    return result;
-  });}
+  }
 }
