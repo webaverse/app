@@ -1910,7 +1910,6 @@ class Avatar {
     if (true && this === window.localPlayer.avatar) {
       /*
         <div style="display:;">keysDirection: --- ${false&&window.logVector3(window.ioManager?.keysDirection)}</div>
-        <div style="display:;">actions: --- ${localPlayer.getActionsArray().map(n=>n.type)}</div>
         <div style="display:;">avatar.direction: --- ${window.logVector3(this.direction)}</div>
         <div style="display:;">velocity: --- ${window.logVector3(localPlayer.characterPhysics.velocity)} - ${window.logNum(localPlayer.characterPhysics.velocity.length())}</div>
         <div style="display:;">angle: --- ${window.logNum(this.getAngle())}</div>
@@ -1969,7 +1968,8 @@ class Avatar {
         <div s  tyle="display:;">blendList: --- ${this.blendList?.map(applyFn=>applyFn.name.slice('applyFn'.length))}</div>
       */
        window.domInfo.innerHTML = `
-       <div s  tyle="display:;">hipsY: --- ${window.logVector3(window.modelBoneOutputs.Hips.getWorldPosition(localVector))}</div>
+        <div style="display:;">actions: --- ${localPlayer.getActionsArray().map(n=>n.type)}</div>
+        <div s  tyle="display:;">hipsY: --- ${window.logVector3(window.modelBoneOutputs.Hips.getWorldPosition(localVector))}</div>
       `
     }
     _applyAnimation(this, now, moveFactors, timeDiffS);
