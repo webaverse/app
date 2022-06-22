@@ -138,20 +138,32 @@ export class DcWorkerManager {
       });
     }));
   }
-  async generateChunk(chunkPosition, lodArray) {
+  async generateTerrainChunk(chunkPosition, lodArray) {
     const worker = this.getNextWorker();
-    const result = await worker.request('generateChunk', {
+    const result = await worker.request('generateTerrainChunk', {
       instance: this.instance,
       chunkPosition: chunkPosition.toArray(),
       lodArray,
     });
     return result;
   }
-  async generateChunkRenderable(chunkPosition, lodArray, {
+  async generateTerrainChunkRenderable(chunkPosition, lodArray, {
     signal
   }) {
     const worker = this.getNextWorker();
-    const result = await worker.request('generateChunkRenderable', {
+    const result = await worker.request('generateTerrainChunkRenderable', {
+      instance: this.instance,
+      chunkPosition: chunkPosition.toArray(),
+      lodArray,
+    });
+    signal.throwIfAborted();
+    return result;
+  }
+  async generateLiquidChunk(chunkPosition, lodArray, {
+    signal
+  }) {
+    const worker = this.getNextWorker();
+    const result = await worker.request('generateLiquidChunk', {
       instance: this.instance,
       chunkPosition: chunkPosition.toArray(),
       lodArray,
