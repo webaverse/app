@@ -20,7 +20,7 @@
     { "position": [ 5, 0, 0 ], "quaternion": [0, 1, 0, 0], "scale": [1, 1, 1], "start_url": "http://localhost/lib/webaverse_resource/ramp/" },
     { "position": [ 10, 2, 0 ], "quaternion": [0, 1, 0, 0], "scale": [1, 1, 1], "start_url": "http://localhost/lib/webaverse_resource/ramp/" },
     
-    { "position": [ 0, 0, 0 ], "start_url": "http://localhost/lib/webaverse_resource/atmospheric-sky/" },
-    { "position": [ 0, 0, 0 ], "start_url": "http://localhost/lib/webaverse_resource/block/" }
+    { "position": [ 0, 0, 0 ], "scale": [100, 100, 100], "start_url": "http://localhost/lib/webaverse_resource/atmospheric-sky/" },
+    { "position": [ 0, 0, 0 ], "scale": [100, 100, 100], "start_url": "http://localhost/lib/webaverse_resource/block/" }
   ]
 }
