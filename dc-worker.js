@@ -14,6 +14,7 @@ const _cloneTerrainMeshData = (meshData) => {
     const sizeRequired = meshData.positions.length * meshData.positions.constructor.BYTES_PER_ELEMENT +
       meshData.normals.length * meshData.normals.constructor.BYTES_PER_ELEMENT +
       meshData.biomes.length * meshData.biomes.constructor.BYTES_PER_ELEMENT +
+      meshData.biomesWeights.length * meshData.biomesWeights.constructor.BYTES_PER_ELEMENT +
       meshData.indices.length * meshData.indices.constructor.BYTES_PER_ELEMENT;
     const arrayBuffer = new ArrayBuffer(sizeRequired);
     let index = 0;
@@ -29,6 +30,10 @@ const _cloneTerrainMeshData = (meshData) => {
     const biomes = new meshData.biomes.constructor(arrayBuffer, index, meshData.biomes.length);
     biomes.set(meshData.biomes);
     index += meshData.biomes.length * meshData.biomes.constructor.BYTES_PER_ELEMENT;
+
+    const biomesWeights = new meshData.biomesWeights.constructor(arrayBuffer, index, meshData.biomesWeights.length);
+    biomesWeights.set(meshData.biomesWeights);
+    index += meshData.biomesWeights.length * meshData.biomesWeights.constructor.BYTES_PER_ELEMENT;
     
     const indices = new meshData.indices.constructor(arrayBuffer, index, meshData.indices.length);
     indices.set(meshData.indices);
@@ -40,6 +45,7 @@ const _cloneTerrainMeshData = (meshData) => {
       positions,
       normals,
       biomes,
+      biomesWeights,
       indices,
     };
   } else {
