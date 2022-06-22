@@ -138,13 +138,11 @@ const LandItem = ({
     onDoubleClick,
     highlight,
 }) => {
-    // console.log('render land item 1', object);
     const size = 500;
     const canvasRef = useRef();
     useEffect(() => {
         const canvas = canvasRef.current;
         if (canvas) {
-            // console.log('render land item 1', object, canvas);
             (async () => {
                 const {
                     seed,
@@ -156,14 +154,12 @@ const LandItem = ({
                     width: size,
                     height: size,
                 });
-                // console.log('render land item 2', {object, imageBitmap}, canvas);
-                // console.log('try to screenshot land item', canvas, imageBitmap);
              
                 const ctx = canvas.getContext('2d');
                 ctx.drawImage(imageBitmap, 0, 0, canvas.width, canvas.height);
             })();
         }
-    }, [canvasRef.current]);
+    }, [canvasRef]);
 
     return (
         <div
