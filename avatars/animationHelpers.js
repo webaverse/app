@@ -1340,12 +1340,15 @@ export const _applyAnimation = (avatar, now, moveFactors, timeDiffS) => {
 
     // ignore all animation position except y
     if (isPosition) {
-      if (!avatar.jumpState) {
+      if (avatar.swimState) {
         // animations position is height-relative
         dst.y *= avatar.height; // XXX avatar could be made perfect by measuring from foot to hips instead
-      } else {
+      } else if (avatar.jumpState) {
         // force height in the jump case to overide the animation
         dst.y = avatar.height * 0.55;
+      } else {
+        // animations position is height-relative
+        dst.y *= avatar.height; // XXX avatar could be made perfect by measuring from foot to hips instead
       }
     }
   }
