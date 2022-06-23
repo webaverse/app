@@ -7,6 +7,8 @@ const localVector3 = new THREE.Vector3();
 
 const onesLodsArray = new Array(8).fill(1);
 
+const nop = () => {};
+
 /*
 note: the nunber of lods at each level can be computed with this function:
 
@@ -51,6 +53,7 @@ export class LodChunk extends THREE.Vector3 {
   constructor(x, y, z, lodArray) {
     
     super(x, y, z);
+    this.lod = lodArray[0];
     this.lodArray = lodArray;
 
     this.name = `chunk:${this.x}:${this.z}`;
@@ -80,7 +83,6 @@ export class LodChunkTracker extends EventTarget {
 
     this.chunks = [];
     this.lastUpdateCoord = new THREE.Vector3(NaN, NaN, NaN);
-    // this.updated = false;
 
     if (range) {
       this.#setRange(range);
@@ -102,6 +104,11 @@ export class LodChunkTracker extends EventTarget {
   async #setRange(range) {
     await Promise.resolve(); // wait for next tick to emit chunk events
 
+    const waitPromises = [];
+    const waitUntil = p => {
+      waitPromises.push(p);
+    };
+
     /* const _removeOldChunks = () => {
       for (const chunk of this.chunks) {
         this.dispatchEvent(new MessageEvent('chunkremove', {
@@ -113,6 +120,18 @@ export class LodChunkTracker extends EventTarget {
       this.chunks.length = 0;
     };
     _removeOldChunks(); */
+
+    const _emitCoordUpdate = () => {
+      const coord = localVector.copy(range.min)
+        .divideScalar(this.chunkSize);
+      this.dispatchEvent(new MessageEvent('coordupdate', {
+        data: {
+          coord,
+          waitUntil,
+        },
+      }));
+    };
+    _emitCoordUpdate();
 
     const _addRangeChunks = () => {
       const minChunkX = Math.floor(range.min.x / this.chunkSize);
@@ -130,6 +149,7 @@ export class LodChunkTracker extends EventTarget {
             this.dispatchEvent(new MessageEvent('chunkadd', {
               data: {
                 chunk,
+                waitUntil,
               },
             }));
             this.chunks.push(chunk);
@@ -139,9 +159,10 @@ export class LodChunkTracker extends EventTarget {
     };
     _addRangeChunks();
 
-    /* if (!this.updated) {
-      this.updated = true;
-    } */
+    (async () => {
+      await Promise.all(waitPromises);
+      this.dispatchEvent(new MessageEvent('update'));
+    })();
   }
   #getCurrentCoord(position, target) {
     const cx = Math.floor(position.x / this.chunkSize);
@@ -151,6 +172,11 @@ export class LodChunkTracker extends EventTarget {
   }
   update(position) {
     if (this.range) throw new Error('lod tracker has range and cannot be updated manually');
+
+    const waitPromises = [];
+    const waitUntil = p => {
+      waitPromises.push(p);
+    };
 
     const currentCoord = this.#getCurrentCoord(position, localVector);
 
@@ -191,8 +217,8 @@ export class LodChunkTracker extends EventTarget {
       // dispatch event
       this.dispatchEvent(new MessageEvent('coordupdate', {
         data: {
-          coord: currentCoord,
-          min2xCoord: min2xMin,
+          coord: min2xMin,
+          waitUntil,
         },
       }));
 
@@ -256,6 +282,7 @@ export class LodChunkTracker extends EventTarget {
         this.dispatchEvent(new MessageEvent('chunkremove', {
           data: {
             chunk: removedChunk,
+            waitUntil,
           },
         }));
         this.chunks.splice(this.chunks.indexOf(removedChunk), 1);
@@ -264,6 +291,7 @@ export class LodChunkTracker extends EventTarget {
         this.dispatchEvent(new MessageEvent('chunkadd', {
           data: {
             chunk: addedChunk,
+            waitUntil,
           },
         }));
         this.chunks.push(addedChunk);
@@ -275,6 +303,7 @@ export class LodChunkTracker extends EventTarget {
             data: {
               oldChunk,
               newChunk,
+              waitUntil,
             },
           }));
           this.chunks.splice(this.chunks.indexOf(oldChunk), 1);
@@ -283,9 +312,11 @@ export class LodChunkTracker extends EventTarget {
       }
     
       this.lastUpdateCoord.copy(currentCoord);
-      /* if (!this.updated) {
-        this.updated = true;
-      } */
+
+      (async () => {
+        await Promise.all(waitPromises);
+        this.dispatchEvent(new MessageEvent('update'));
+      })();
     }
   }
   destroy() {
@@ -293,6 +324,7 @@ export class LodChunkTracker extends EventTarget {
       this.dispatchEvent(new MessageEvent('chunkremove', {
         data: {
           chunk,
+          waitUntil: nop,
         },
       }));
     }

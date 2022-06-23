@@ -119,12 +119,14 @@ const _copyArray3dWithin = (array, dstSize, dstPosition, sourceBox) => {
 
 //
 
-export class LightMapper {
+export class LightMapper extends EventTarget {
   constructor({
     chunkSize,
     terrainSize,
     range,
   }) {
+    super();
+
     this.chunkSize = chunkSize;
     this.terrainSize = terrainSize;
     this.range = range; // XXX support this
@@ -226,10 +228,16 @@ export class LightMapper {
       _writeTex3dWithin(this.aoTex, this.lightTexSize, position, sourceBox);
 
       this.lightBasePosition.copy(newPosition);
-      
-      return true;
-    } else {
+
+      this.dispatchEvent(new MessageEvent('update', {
+        data: {
+          coord: newPosition,
+        },
+      }));
+
+      // return true;
+    } /* else {
       return false;
-    }
+    } */
   }
 }

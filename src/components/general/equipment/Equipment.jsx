@@ -4,8 +4,8 @@ import styles from './equipment.module.css';
 import { AppContext } from '../../app';
 import { MegaHotBox } from '../../play-mode/mega-hotbox';
 import { CachedLoader } from '../../../CachedLoader.jsx';
-// import {EquipmentPopover} from '../../play-mode/equipment-popover';
-import { Spritesheet } from '../spritesheet';
+import { Spritesheet } from '../spritesheet/';
+import { createLandIcon } from '../../../../land-iconer.js';
 import game from '../../../../game.js';
 import { transparentPngUrl } from '../../../../constants.js';
 import * as sounds from '../../../../sounds.js';
@@ -61,10 +61,22 @@ const objects = {
         }, */
     ],
 };
+const landTokenObjects = [
+    {
+        name: 'Metaveris',
+        start_url: '/metaverse_components/land/',
+        description: 'Starting parcel',
+        seed: 'lol',
+        range: [
+            [-32, 0, -32],
+            [32, 128, 32]
+        ],
+    },
+];
 
 //
 
-const EquipmentItem = ({
+const ObjectItem = ({
     object,
     enabled,
     hovered,
@@ -79,7 +91,7 @@ const EquipmentItem = ({
     return (
         <div
             className={classnames(
-                styles.item,
+                styles.object,
                 hovered ? styles.hovered : null,
                 selected ? styles.selected : null,
                 highlight ? styles.highlighted : null,
@@ -114,6 +126,69 @@ const EquipmentItem = ({
     );
 };
 
+const LandItem = ({
+    object,
+    enabled,
+    hovered,
+    selected,
+    // loading,
+    onMouseEnter,
+    onMouseDown,
+    onDragStart,
+    onDoubleClick,
+    highlight,
+}) => {
+    const size = 200;
+    const pixelRatio = window.devicePixelRatio;
+    const canvasRef = useRef();
+    useEffect(() => {
+        const canvas = canvasRef.current;
+        if (canvas) {
+            (async () => {
+                const {
+                    seed,
+                    range,
+                } = object;
+                const imageBitmap = await createLandIcon({
+                    seed,
+                    range,
+                    width: size * pixelRatio,
+                    height: size * pixelRatio,
+                });
+             
+                const ctx = canvas.getContext('2d');
+                ctx.drawImage(imageBitmap, 0, 0, canvas.width, canvas.height);
+            })();
+        }
+    }, [canvasRef]);
+
+    return (
+        <div
+            className={classnames(
+                styles.land,
+                hovered ? styles.hovered : null,
+                selected ? styles.selected : null,
+                highlight ? styles.highlighted : null,
+            )}
+            draggable
+            onMouseEnter={onMouseEnter}
+            onMouseDown={onMouseDown}
+            onDragStart={onDragStart}
+            onDoubleClick={onDoubleClick}
+            // ref={ref}
+        >
+
+            <canvas
+                className={styles.canvas}
+                width={size}
+                height={size}
+                ref={canvasRef}
+            />
+
+        </div>
+    );
+};
+
 const EquipmentItems = ({
     leftText,
     rightText,
@@ -128,6 +203,7 @@ const EquipmentItems = ({
     menuLeft,
     menuRight,
     highlights,
+    ItemClass,
 }) => {
     return (<div className={styles.menu}>
         <div className={classnames(styles.wing, styles.left)} onClick={menuLeft}>
@@ -161,7 +237,7 @@ const EquipmentItems = ({
                     </div>
                     <ul className={styles.list}>
                         {tokens.map((object, i) =>
-                            <EquipmentItem
+                            <ItemClass
                                 object={object}
                                 enabled={open}
                                 hovered={object === hoverObject}
@@ -338,6 +414,7 @@ export const Equipment = () => {
                         menuLeft={menuLeft}
                         menuRight={menuRight}
                         highlights={true}
+                        ItemClass={ObjectItem}
                     />
                     <EquipmentItems
                         leftText="Inventory"
@@ -362,6 +439,7 @@ export const Equipment = () => {
                         menuLeft={menuLeft}
                         menuRight={menuRight}
                         highlights={false}
+                        ItemClass={ObjectItem}
                     />
                     <EquipmentItems
                         leftText="Season"
@@ -382,14 +460,15 @@ export const Equipment = () => {
                         menuLeft={menuLeft}
                         menuRight={menuRight}
                         highlights={false}
+                        ItemClass={ObjectItem}
                     />
                     <EquipmentItems
                         leftText="Account"
                         rightText="Inventory"
                         sections={[
                             {
-                                name: 'Land',
-                                tokens: [],
+                                name: 'Public',
+                                tokens: landTokenObjects,
                             },
                         ]}
                         hoverObject={hoverObject}
@@ -402,6 +481,7 @@ export const Equipment = () => {
                         menuLeft={menuLeft}
                         menuRight={menuRight}
                         highlights={false}
+                        ItemClass={LandItem}
                     />
                 </div>
             </div>

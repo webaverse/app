@@ -7,10 +7,14 @@ import {defaultChunkSize} from './constants.js';
 
 // const localVector = new THREE.Vector3();
 
-const numWorkers = 2;
+const defaultNumPhysicsWorkers = 2;
 
 class PhysicsWorkerManager {
-  constructor() {
+  constructor({
+    numWorkers = defaultNumPhysicsWorkers,
+  } = {}) {
+    this.numWorkers = numWorkers;
+
     this.workers = [];
     this.nextWorker = 0;
     this.loadPromise = null;
@@ -19,8 +23,8 @@ class PhysicsWorkerManager {
     if (!this.loadPromise) {
       this.loadPromise = (async () => {
         // create workers
-        const workers = Array(numWorkers);
-        for (let i = 0; i < numWorkers; i++) {
+        const workers = Array(this.numWorkers);
+        for (let i = 0; i < this.numWorkers; i++) {
           const worker = new Worker('./physx-worker.js?import', {
             type: 'module',
           });
@@ -64,6 +68,8 @@ class PhysicsWorkerManager {
     return this.loadPromise;
   }
   async cookGeometry(mesh) {
+    await this.waitForLoad();
+
     const {workers} = this;
     const worker = workers[this.nextWorker];
     this.nextWorker = (this.nextWorker + 1) % workers.length;
@@ -75,6 +81,8 @@ class PhysicsWorkerManager {
     return result;
   }
   async cookConvexGeometry(mesh) {
+    await this.waitForLoad();
+    
     const {workers} = this;
     const worker = workers[this.nextWorker];
     this.nextWorker = (this.nextWorker + 1) % workers.length;
