@@ -76,5 +76,5 @@ export class LockManager {
     }
   }
 }
-const locks = new LockManager();
-export default locks;
+// const locks = new LockManager();
+// export default locks;
