@@ -1,3 +1,6 @@
+/* this file implements the top-level world procedural generation context.
+it starts the workers and routes calls for the procgen system. */
+
 import {murmurhash3} from './procgen/procgen.js';
 import {DcWorkerManager} from './dc-worker-manager.js';
 import {LodChunkTracker} from './lod.js';
