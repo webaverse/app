@@ -175,7 +175,11 @@ class XRManager extends EventTarget {
       rightGamepadEnabled = false;
     }
 
-    if(localPlayer.avatar) {
+    if(localPlayer.avatar && session) {
+      const xrCamera = renderer.xr.getCamera(camera);
+      let newVec = new THREE.Vector3();
+      //newVec.set(localPlayer.position.x, xrCamera.position.y, localPlayer.position.z);
+      //console.log(localPlayer.position.y, xrCamera.position.y);
       localPlayer.avatar.setLocalAvatarPose([
         [localPlayer.position.toArray(), localPlayer.quaternion.toArray()],
         [leftGamepadPosition, leftGamepadQuaternion, leftGamepadPointer, leftGamepadGrip, leftGamepadEnabled],

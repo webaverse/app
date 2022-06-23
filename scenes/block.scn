@@ -43,6 +43,14 @@
       "position": [
         0,
         0,
+        -6
+      ],
+      "start_url": "https://webaverse.github.io/mirror/"
+    },
+    {
+      "position": [
+        0,
+        0,
         0
       ],
       "physics": true,
