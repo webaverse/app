@@ -244,34 +244,18 @@ const _updateIo = timeDiff => {
 
       const localPlayer = metaversefile.useLocalPlayer();
 
-      if(ioManager.currentWalked) {
-        if (keysDirection.length() > 0 && physicsManager.getPhysicsEnabled()) {
-          keysDirection.applyQuaternion(camera.quaternion);
-          keysDirection.y = 0;
-          localPlayer.characterPhysics.applyWasd(
-            keysDirection.normalize()
-              .multiplyScalar(game.getSpeed() * timeDiff)
-          );
-          keysDirection.set(0, 0, 0);
-  
-          const avatarHeight = localPlayer.avatar ? localPlayer.avatar.height : 0;
-          const originalPosition = localPlayer.position.clone();
-  
-          localMatrix.copy(xrCamera.matrix)
-            .premultiply(dolly.matrix)
-            .decompose(localVector, localQuaternion, localVector2);
-            
-          dolly.matrix
-            .premultiply(localMatrix.makeTranslation(originalPosition.x - localVector.x, originalPosition.y - localVector.y, originalPosition.z - localVector.z))
-            .premultiply(localMatrix.makeTranslation(0, 0.1, 0))
-            .decompose(dolly.position, dolly.quaternion, dolly.scale);    
-          dolly.updateMatrixWorld();  
-        }
-      }
-      else {
-        localPlayer.characterPhysics.setPosition(xrCamera.position);
+      if (keysDirection.length() > 0 && physicsManager.getPhysicsEnabled()) {
+        keysDirection.applyQuaternion(camera.quaternion);
+        keysDirection.y = 0;
+        localPlayer.characterPhysics.applyWasd(
+          keysDirection.normalize()
+            .multiplyScalar(game.getSpeed() * timeDiff)
+        );
+        keysDirection.set(0, 0, 0);
+
+        const avatarHeight = localPlayer.avatar ? localPlayer.avatar.height : 0;
         const originalPosition = localPlayer.position.clone();
-  
+
         localMatrix.copy(xrCamera.matrix)
           .premultiply(dolly.matrix)
           .decompose(localVector, localQuaternion, localVector2);
@@ -280,7 +264,14 @@ const _updateIo = timeDiff => {
           .premultiply(localMatrix.makeTranslation(originalPosition.x - localVector.x, originalPosition.y - localVector.y, originalPosition.z - localVector.z))
           .premultiply(localMatrix.makeTranslation(0, 0.1, 0))
           .decompose(dolly.position, dolly.quaternion, dolly.scale);    
-        dolly.updateMatrixWorld();
+        dolly.updateMatrixWorld();  
+      }
+      else {
+        localMatrix.copy(xrCamera.matrix)
+          .premultiply(dolly.matrix)
+          .decompose(localVector, localQuaternion, localVector2);
+
+        localPlayer.characterPhysics.setPosition(new THREE.Vector3(localVector.x, localPlayer.position.y, localVector.z)); // free-walk hack until kneel/crouch is fixed
       }
     }
   } else {
