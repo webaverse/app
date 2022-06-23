@@ -1,6 +1,6 @@
 // import * as THREE from 'three';
 import {chunkMinForPosition, getLockChunkId, makeId} from './util.js';
-import locks from './lock-manager.js';
+import {LockManager} from './lock-manager.js';
 
 const defaultNumDcWorkers = 4;
 
@@ -18,6 +18,7 @@ export class DcWorkerManager {
 
     this.workers = [];
     this.nextWorker = 0;
+    this.locks = new LockManager();
     this.loadPromise = null;
 
     // trigger load
@@ -145,7 +146,7 @@ export class DcWorkerManager {
   }
   async generateTerrainChunk(chunkPosition, lodArray) {
     const chunkId = getLockChunkId(chunkPosition);
-    return await locks.request(chunkId, async lock => {
+    return await this.locks.request(chunkId, async lock => {
       const worker = this.getNextWorker();
       const result = await worker.request('generateTerrainChunk', {
         instance: this.instance,
@@ -160,7 +161,7 @@ export class DcWorkerManager {
     signal
   }) {
     const chunkId = getLockChunkId(chunkPosition);
-    return await locks.request(chunkId, {signal}, async lock => {
+    return await this.locks.request(chunkId, {signal}, async lock => {
       const worker = this.getNextWorker();
       const result = await worker.request('generateTerrainChunkRenderable', {
         instance: this.instance,
@@ -281,7 +282,7 @@ export class DcWorkerManager {
       this.chunkSize
     );
     const chunkId = getLockChunkId(chunkPosition);
-    return await locks.request(chunkId, async lock => {
+    return await this.locks.request(chunkId, async lock => {
       const worker = this.getNextWorker();
       const result = await worker.request('drawSphereDamage', {
         instance: this.instance,
@@ -299,7 +300,7 @@ export class DcWorkerManager {
       this.chunkSize
     );
     const chunkId = getLockChunkId(chunkPosition);
-    return await locks.request(chunkId, async lock => {
+    return await this.locks.request(chunkId, async lock => {
       const worker = this.getNextWorker();
       const result = await worker.request('eraseSphereDamage', {
         instance: this.instance,
