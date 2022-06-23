@@ -28,6 +28,7 @@ class ProcGenInstance {
     this.range = range;
 
     this.lightmapper = null;
+    this.heightfieldMapper = null;
 
     if (range) {
       this.dcWorkerManager.setClipRange(range);
@@ -60,7 +61,7 @@ class ProcGenInstance {
     return this.lightmapper;
   }
   getHeightfieldMapper() {
-    if (!this.lightmapper) {
+    if (!this.heightfieldMapper) {
       const {chunkSize, range} = this;
       this.heightfieldMapper = new HeightfieldMapper({
         chunkSize,
