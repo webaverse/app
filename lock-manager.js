@@ -65,6 +65,7 @@ export class LockManager {
     } catch (err) {
       error = err;
     } finally {
+      await Promise.resolve(); // return before unlocking
       lock.unlock();
     }
 
