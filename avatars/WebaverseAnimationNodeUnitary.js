@@ -58,7 +58,7 @@ class WebaverseAnimationNodeUnitary extends WebaverseAnimationNode {
     return result;
   }
 
-  crossFadeTo(duration, targetNode) {
+  crossFadeTo(duration, targetNode) { // todo: rename to crossFade.
     if (targetNode === this.activeNode) return;
     this.isCrossFade = true;
     this.crossFadeDuration = duration;

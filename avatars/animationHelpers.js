@@ -853,8 +853,8 @@ export const _updateAnimation = avatar => {
     // debugger
     // avatar.actionsNode.crossFadeTo(0.2, avatar.defaultNode);
 
-    avatar.walkFlyNode.factor = 0;
-    // avatar.actionsNode.crossFade(0.2, 0);
+    // avatar.walkFlyNode.factor = 0;
+    avatar.walkFlyNode.crossFade(1, 0);
   }
   if (avatar.activateEnd) {
     // avatar.activateMotion.stop(); // don't need
@@ -928,8 +928,8 @@ export const _updateAnimation = avatar => {
     // debugger
     // avatar.actionsNode.crossFadeTo(0.2, avatar._7wayFlyNode);
 
-    avatar.walkFlyNode.factor = 1;
-    // avatar.actionsNode.crossFade(0.2, 1);
+    // avatar.walkFlyNode.factor = 1;
+    avatar.walkFlyNode.crossFade(1, 1);
   }
 
   if (avatar.activateStart) {

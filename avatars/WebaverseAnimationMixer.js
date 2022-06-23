@@ -123,15 +123,19 @@ class WebaverseAnimationMixer extends EventDispatcher {
       // _blendFly(spec);
       // _blendActivateAction(spec);
 
-      // ignore all animation position except y
+      // // ignore all animation position except y
+      // if (isPosition) {
+      //   if (!this.avatar.jumpState && !this.avatar.flyState) {
+      //     // animations position is height-relative
+      //     dst.y *= this.avatar.height; // XXX avatar could be made perfect by measuring from foot to hips instead
+      //   } else {
+      //     // force height in the jump case to overide the animation
+      //     dst.y = this.avatar.height * 0.55;
+      //   }
+      // }
+
       if (isPosition) {
-        if (!this.avatar.jumpState && !this.avatar.flyState) {
-          // animations position is height-relative
-          dst.y *= this.avatar.height; // XXX avatar could be made perfect by measuring from foot to hips instead
-        } else {
-          // force height in the jump case to overide the animation
-          dst.y = this.avatar.height * 0.55;
-        }
+        dst.y *= this.avatar.height; // XXX avatar could be made perfect by measuring from foot to hips instead
       }
     }
   }
