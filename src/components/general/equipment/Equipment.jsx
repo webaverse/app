@@ -138,7 +138,8 @@ const LandItem = ({
     onDoubleClick,
     highlight,
 }) => {
-    const size = 500;
+    const size = 200;
+    const pixelRatio = window.devicePixelRatio;
     const canvasRef = useRef();
     useEffect(() => {
         const canvas = canvasRef.current;
@@ -151,8 +152,8 @@ const LandItem = ({
                 const imageBitmap = await createLandIcon({
                     seed,
                     range,
-                    width: size,
-                    height: size,
+                    width: size * pixelRatio,
+                    height: size * pixelRatio,
                 });
              
                 const ctx = canvas.getContext('2d');
