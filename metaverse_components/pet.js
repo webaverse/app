@@ -18,6 +18,7 @@ export default (app, component) => {
   let walkAction = null;
   let runAction = null;
   let rootBone = null;
+  let localPlayer;
 
   const petComponent = component;
   const _makePetMixer = () => {
@@ -52,7 +53,6 @@ export default (app, component) => {
 
   const _unwear = () => {
     if (petSpec) {
-      console.log('calling unwear on pet');
       petSpec = null;
       petMixer.stopAllAction();
       walkAction = null;
@@ -65,11 +65,13 @@ export default (app, component) => {
     } else {
       console.warn('unhandled wear on pet');
     }
+    localPlayer = null;
   };
 
   app.addEventListener('wearupdate', e => {
-    console.log(' pet wearupdate is', e);
     if (e.wear) {
+      localPlayer = metaversefile.getPlayerByInstanceId(app.instanceId);
+
       if (app.glb) {
         const {animations} = app.glb;
 
@@ -92,27 +94,9 @@ export default (app, component) => {
     }
   });
 
-  const _getCurrentPlayer = () => {
-    const localPlayer = useLocalPlayer();
-    let currentPlayer = null;
-    const remotePlayers = useRemotePlayers();
-    const players = [localPlayer]
-      .concat(remotePlayers);
-    for (const player of players) {
-      const wearActionIndex = player.findActionIndex(action => {
-        return action.type === 'wear' && action.instanceId === app.instanceId;
-      });
-      if (wearActionIndex !== -1) {
-        currentPlayer = player;
-      }
-    }
-    return currentPlayer;
-  };
-
   const smoothVelocity = new THREE.Vector3();
   const lastLookQuaternion = new THREE.Quaternion();
   const _getAppDistance = () => {
-    const localPlayer = _getCurrentPlayer();
     const position = localVector.copy(localPlayer.position);
     position.y = 0;
     const distance = app.position.distanceTo(position);
@@ -123,21 +107,19 @@ export default (app, component) => {
   useFrame(({timestamp, timeDiff}) => {
     // components
     const _updateAnimation = () => {
-      // const petComponent = app.getComponent('pet');
       if (petComponent) {
         if (rootBone) {
           rootBone.quaternion.copy(rootBone.originalQuaternion);
           rootBone.updateMatrixWorld();
         }
-        if (petMixer && _getCurrentPlayer()) { // animated pet
-          if (petSpec) { // activated pet
+        if (petMixer) { // animated pet
+          if (petSpec && localPlayer) { // activated pet
             const speed = 0.0014;
 
             const distance = _getAppDistance();
             const moveDelta = localVector;
             moveDelta.setScalar(0);
             if (_isFar(distance)) { // handle rounding errors
-              const localPlayer = _getCurrentPlayer();
               const position = localPlayer.position.clone();
               position.y = 0;
               const direction = position.clone()
@@ -185,7 +167,7 @@ export default (app, component) => {
           }
           const deltaSeconds = timeDiff / 1000;
           petMixer.update(deltaSeconds);
-          petMixer.getRoot().parent.updateMatrixWorld();
+          app.updateMatrixWorld();
         }
       }
     };
@@ -193,7 +175,7 @@ export default (app, component) => {
 
     const _updateLook = () => {
       const lookComponent = app.getComponent('look');
-      if (lookComponent && app.glb && _getCurrentPlayer()) {
+      if (lookComponent && app.glb && localPlayer) {
         let skinnedMesh = null;
         app.glb.scene.traverse(o => {
           if (skinnedMesh === null && o.isSkinnedMesh) {
@@ -202,7 +184,7 @@ export default (app, component) => {
         });
         if (skinnedMesh) {
           const bone = skinnedMesh.skeleton.bones.find(bone => bone.name === lookComponent.rootBone);
-          if (bone && _getCurrentPlayer()) {
+          if (bone && localPlayer) {
             rootBone = bone;
             if (!bone.originalQuaternion) {
               bone.originalQuaternion = bone.quaternion.clone();
@@ -212,7 +194,6 @@ export default (app, component) => {
             }
 
             if (!bone.quaternion.equals(lastLookQuaternion)) {
-              const localPlayer = _getCurrentPlayer();
               const {position, quaternion} = localPlayer;
               localQuaternion2.setFromRotationMatrix(
                 localMatrix.lookAt(

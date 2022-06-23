@@ -90,12 +90,10 @@ class Universe extends EventTarget {
   }
 
   async reload() {
-    logger.log('universe.reload')
     await this.enterWorld(this.currentWorld);
   }
 
   async pushUrl(u) {
-    logger.log('universe.pushUrl', u)
     history.pushState({}, '', u);
     window.dispatchEvent(new MessageEvent('pushstate'));
     await this.handleUrlUpdate();

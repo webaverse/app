@@ -353,7 +353,12 @@ class Player extends THREE.Object3D {
   getCrouchFactor() {
     return 1 - 0.4 * this.actionInterpolants.crouch.getNormalized();
   }
-
+  updatePhysics(timestamp, timeDiff) {
+    if (this.avatar) {
+      const timeDiffS = timeDiff / 1000;
+      this.characterPhysics.update(timestamp, timeDiffS);
+    }
+  }
   handleWearUpdate(app, wear, loadoutIndex = -1, isAppUpdate = false, isPlayerUpdate = true) {
     const param = {
       type: "wearupdate",
@@ -374,7 +379,6 @@ class Player extends THREE.Object3D {
   }
 
   wear(app, { loadoutIndex = -1 } = {}) {
-    logger.log("Wear called on", app)
       const _getNextLoadoutIndex = () => {
         let nextLoadoutIndex = -1;
         const usedIndexes = Array(8).fill(false);
@@ -475,13 +479,9 @@ class Player extends THREE.Object3D {
     dropStartPosition = null,
     dropDirection = null,
   } = {}) {
-    logger.log("unwear called on", app)
     const wearActionIndex = this.findActionIndex(({ type, instanceId }) => {
       return type === 'wear' && instanceId === app.instanceId;
     });
-
-    console.log('unwear called wearActionIndex', wearActionIndex)
-
     const _deinitPhysics = () => {
       const physicsObjects = app.getPhysicsObjects();
       for (const physicsObject of physicsObjects) {
@@ -499,8 +499,6 @@ class Player extends THREE.Object3D {
     if (wearActionIndex !== -1) {
       const wearAction = this.getActionsState().get(wearActionIndex);
       const loadoutIndex = wearAction.loadoutIndex;
-      console.log('unwear called wearActionIndex !== -1', wearActionIndex !== -1)
-
       if (app.getComponent("wear") && !app.getComponent("sit") && !app.getComponent("pet")) {
         const _setAppTransform = () => {
           if (dropStartPosition && dropDirection) {
@@ -556,8 +554,6 @@ class Player extends THREE.Object3D {
 
       const _removeApp = () => {
         this.removeActionIndex(wearActionIndex);
-        console.log('unwear called _removeApp', app.instanceId)
-
         if (this.appManager.hasTrackedApp(app.instanceId)) {
           if (destroy) {
             this.appManager.removeApp(app);
@@ -565,13 +561,7 @@ class Player extends THREE.Object3D {
             this.appManager.transplantApp(app, world.appManager);
           }
         } else {
-          console.warn(
-            "need to transplant unowned app",
-            app,
-            this.appManager,
-            world.appManager
-          );
-          // debugger;
+          logger.warn("need to transplant unowned app", app, this.appManager, world.appManager);
         }
       };
       _removeApp();
@@ -615,14 +605,11 @@ class Player extends THREE.Object3D {
     this.attachState(oldState);
 
     const actions = this.getActionsState();
-    let lastActions = actions.toJSON();
     const observeActionsFn = (e) => {
-      console.log("actions", e);
       const { added, deleted } = e.changes;
 
       for (const item of added.values()) {
         let action = item.content.type;
-        console.log("action added", action)
         this.dispatchEvent({
           type: 'actionadd',
           action: action,
@@ -631,7 +618,6 @@ class Player extends THREE.Object3D {
 
         for (const item of deleted.values()) {
           let action = item.content.type;
-          console.log("action removed", action)
           this.dispatchEvent({
             type: 'actionremove',
             action: action,
@@ -719,7 +705,7 @@ class Player extends THREE.Object3D {
           avatar = null;
         }
 
-        if (!cancelFn.isLive()) return console.log("canceling the function");
+        if (!cancelFn.isLive()) return logger.warn("canceling the function");
         this.avatar = avatar;
         loadPhysxCharacterController.call(this);
 
@@ -953,17 +939,13 @@ class LocalPlayer extends Player {
     return this.appManager.getAppByInstanceId(instanceId);
   }
   async setAvatarApp(app) {
-    if (this.isLocalPlayer) {
-      world.appManager.transplantApp(app, this.appManager);
-      this.setAvatarAppInternal(app);
-    } else {
-      console.log("Handling setAvatarApp for remote player")
-    }
+    if (!this.isLocalPlayer) return logger.warn("Calling setAvatarApp for remote player");
+    world.appManager.transplantApp(app, this.appManager);
+    this.setAvatarAppInternal(app);
   }
 
   setAvatarAppInternal(app) {
     if (!app) return console.error("app is ", app)
-    console.log("Setting setAvatarAppInternal on remote player")
     const self = this;
     const avatar = self.getAvatarState();
     const oldInstanceId = avatar.get("instanceId");
@@ -975,13 +957,13 @@ class LocalPlayer extends Player {
       if (app.instanceId && oldInstanceId !== app.instanceId) {
         avatar.set("instanceId", app.instanceId ?? "");
       } else {
-        console.warn("Trying to set avatar app to same instanceId as before");
+        logger.warn("Trying to set avatar app to same instanceId as before");
       }
     });
   }
   setMicMediaStream(mediaStream) {
     if (!this.avatar)
-      return console.log("Can't set mic media stream, no avatar");
+      return logger.warn("Can't set mic media stream, no avatar");
     if (this.microphoneMediaStream) {
       this.microphoneMediaStream.disconnect();
       this.microphoneMediaStream = null;
@@ -1119,7 +1101,6 @@ class LocalPlayer extends Player {
   lastMatrix = new THREE.Matrix4();
   packed = new Float32Array(8);
   pushPlayerUpdates(timeDiff) {
-    if(this.hasAction('sit')) return;
     if (this.lastMatrix.equals(this.matrixWorld)) return;
     this.lastMatrix.copy(this.matrixWorld);
     const pack3 = (v, i) => {
@@ -1139,17 +1120,10 @@ class LocalPlayer extends Player {
 
     this.playerMap.set("transform", this.packed);
   }
-  updatePhysics(timestamp, timeDiff) {
-    if (this.avatar) {
-      const timeDiffS = timeDiff / 1000;
-      this.characterPhysics.update(timestamp, timeDiffS);
-    }
-  }
   update(timestamp, timeDiff, frame) {
     if (!this.avatar) {
       return logger.warn("Not updating local player, no avatar")
     }
-
     const session = _getSession();
     const mirrors = metaversefile.getMirrors();
     applyPlayerToAvatar(this, session, this.avatar, mirrors);
@@ -1367,8 +1341,6 @@ class RemotePlayer extends Player {
   }
   update(timestamp, timeDiff) {
     if (!this.avatar) return logger.warn("Can't update remote player, avatar is null");
-    if (this.hasAction("sit")) return
-
     const _updateInterpolation = () => {
       this.positionInterpolant.update(timeDiff);
       this.quaternionInterpolant.update(timeDiff);
@@ -1435,10 +1407,9 @@ class RemotePlayer extends Player {
 
       if (e.changes.keys.has("transform")) {
         const transform = this.playerMap.get("transform");
-        if(this.hasAction('sit')) console.log("skipping transform update");
-        else if (transform) {
+        if (transform) {
           const remoteTimeDiff = transform[7];
-          lastPosition.copy(this.position);
+          
           this.position.fromArray(transform, 0);
 
           if (this.avatar) this.characterPhysics.setPosition(this.position);
@@ -1461,13 +1432,14 @@ class RemotePlayer extends Player {
               this.quaternion
             );
           }
+
+          this.characterPhysics.applyAvatarPhysicsDetail(true, true, performance.now(), remoteTimeDiff / 1000);
+
+          lastPosition.copy(this.position);
+
         } else {
-          console.log("e", e)
+          logger.warn("Unhandled event", e)
         }
-
-        
-
-        
       }
     };
 
