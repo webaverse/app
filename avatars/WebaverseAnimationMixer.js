@@ -111,10 +111,10 @@ class WebaverseAnimationMixer extends EventDispatcher {
       const result = this.doBlend(animTree, spec);
 
       if (isPosition) { // _clearXZ
-        result[0] = 0;
-        result[2] = 0;
+        // result[0] = 0;
+        // result[2] = 0;
 
-        result[1] = 1; // test
+        // result[1] = 1; // test
       }
 
       dst.fromArray(result);

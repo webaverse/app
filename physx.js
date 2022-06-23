@@ -2183,6 +2183,14 @@ const physxWorker = (() => {
   w.addInterpolantPhysics = (physics, parameterPositions, sampleValues, valueSize) => {
     const allocator = new Allocator(moduleInstance);
 
+    if (valueSize === 3) {
+      //
+    } else if (valueSize === 4) {
+      //
+    } else {
+      debugger
+    }
+
     const parameterPositionsTypedArray = allocator.alloc(Float32Array, parameterPositions.length);
     parameterPositionsTypedArray.set(parameterPositions);
 
@@ -2195,7 +2203,7 @@ const physxWorker = (() => {
       parameterPositionsTypedArray.byteOffset,
       sampleValues.length,
       sampleValuesTypedArray.byteOffset,
-      valueSize,
+      valueSize, // only support 3 (vector) and 4 (quaternion)
     )
 
     // allocator.freeAll(); // can't free sampleValuesTypedArray, need persist in wasm for later use.
@@ -2210,6 +2218,10 @@ const physxWorker = (() => {
 
     let head = outputBufferOffset / Float32Array.BYTES_PER_ELEMENT;
     let tail = head + 1;
+    const valueSize = moduleInstance.HEAPF32[head];
+
+    head = tail;
+    tail = head + 1;
     const x = moduleInstance.HEAPF32[head];
 
     head = tail;
@@ -2220,11 +2232,17 @@ const physxWorker = (() => {
     tail = head + 1;
     const z = moduleInstance.HEAPF32[head];
 
-    head = tail;
-    tail = head + 1;
-    const w = moduleInstance.HEAPF32[head];
+    if (valueSize === 3) {
+      return [x, y, z];
+    } else if (valueSize === 4) {
+      head = tail;
+      tail = head + 1;
+      const w = moduleInstance.HEAPF32[head];
 
-    return [x, y, z, w];
+      return [x, y, z, w];
+    } else {
+      debugger
+    }
   }
 
   return w;

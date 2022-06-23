@@ -425,7 +425,7 @@ export const _createAnimation = avatar => {
   const walkForwardAnimation = animations.index['walking.fbx'];
   // let index = 0;
   for (const k in walkForwardAnimation.interpolants) {
-    debugger
+    // debugger
     const interpolant = walkForwardAnimation.interpolants[k];
     physx.physxWorker.addInterpolantPhysics( // todo: only need addInterpolantPhysics once globally
       physx.physics,
