@@ -38,7 +38,7 @@ export const screenshotLandApp = async ({
   width = 300,
   height = 300,
   clearColor = 0xFFFFFF,
-  clearAlpha = 1,
+  clearAlpha = 0,
 } = {}) => {
   const renderer = getRenderer();
   const size = renderer.getSize(localVector2D);
