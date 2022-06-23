@@ -71,14 +71,15 @@ export const screenshotLandApp = async ({
         .add(range.max)
         .divideScalar(2);
       const xzSize = Math.max(rangeSize.x, rangeSize.z);
-      lookPoint.y = xzSize;
+      // lookPoint.y = xzSize;
       // rangeSize.y = 0;
       sideCamera.position.copy(lookPoint)
         .add(
           localVector3.set(zoomFactor * rangeSize.x, 0, zoomFactor * rangeSize.z)
         );
+      lookPoint.y = xzSize;
       sideCamera.lookAt(lookPoint);
-      sideCamera.position.y = xzSize * 3/4;
+      sideCamera.position.y = xzSize * 3 / 4;
       // fitCameraToBoundingBox(sideCamera, range, 1.2);
       sideCamera.updateMatrixWorld();
       
