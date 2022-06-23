@@ -13,6 +13,7 @@ class WebaverseAnimationMotion {
 
     this.mixer = mixer;
     this.animation = animation;
+    this.animationIndex = NaN;
     this.name = this.animation.name;
     this.weight = 1; // todo: move to WebaverseAnimationNode?
     this.lastWeight = null;
@@ -51,7 +52,7 @@ class WebaverseAnimationMotion {
     if (this.loop === LoopOnce) {
       const evaluateTimeS = this.time / this.speed + this.timeBias;
       // value = src.evaluate(evaluateTimeS);
-      value = physx.physxWorker.evaluateAnimationPhysics(physx.physics, index, evaluateTimeS);
+      value = physx.physxWorker.evaluateAnimationPhysics(physx.physics, this.animationIndex, index, evaluateTimeS);
       if (isLastBone && this.weight > 0 && !this.isFinished && evaluateTimeS >= this.animation.duration) {
         // console.log('finished', this.name);
         this.mixer.dispatchEvent({
@@ -64,7 +65,7 @@ class WebaverseAnimationMotion {
     } else {
       const evaluateTimeS = (WebaverseAnimationMixer.timeS / this.speed + this.timeBias) % animation.duration;
       // value = src.evaluate(evaluateTimeS);
-      value = physx.physxWorker.evaluateAnimationPhysics(physx.physics, index, evaluateTimeS);
+      value = physx.physxWorker.evaluateAnimationPhysics(physx.physics, this.animationIndex, index, evaluateTimeS);
     }
 
     if (this.lastWeight > 0 && this.weight <= 0) {

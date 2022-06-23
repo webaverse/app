@@ -2180,7 +2180,7 @@ const physxWorker = (() => {
     }
   }
 
-  w.addInterpolantPhysics = (physics, parameterPositions, sampleValues, valueSize) => {
+  w.addInterpolantPhysics = (physics, animationIndex, parameterPositions, sampleValues, valueSize) => {
     const allocator = new Allocator(moduleInstance);
 
     if (valueSize === 3) {
@@ -2199,6 +2199,7 @@ const physxWorker = (() => {
 
     moduleInstance._addInterpolantPhysics(
       physics,
+      animationIndex,
       parameterPositions.length,
       parameterPositionsTypedArray.byteOffset,
       sampleValues.length,
@@ -2209,9 +2210,10 @@ const physxWorker = (() => {
     // allocator.freeAll(); // can't free sampleValuesTypedArray, need persist in wasm for later use.
   }
 
-  w.evaluateAnimationPhysics = (physics, interpolantIndex, t) => {
+  w.evaluateAnimationPhysics = (physics, animationIndex, interpolantIndex, t) => {
     const outputBufferOffset = moduleInstance._evaluateAnimationPhysics(
       physics,
+      animationIndex,
       interpolantIndex,
       t,
     )

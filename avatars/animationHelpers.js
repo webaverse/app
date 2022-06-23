@@ -429,6 +429,22 @@ export const _createAnimation = avatar => {
     const interpolant = walkForwardAnimation.interpolants[k];
     physx.physxWorker.addInterpolantPhysics( // todo: only need addInterpolantPhysics once globally
       physx.physics,
+      0,
+      interpolant.parameterPositions,
+      interpolant.sampleValues,
+      interpolant.valueSize,
+    );
+    // index++;
+  }
+
+  const flyAnimation = animations.index['treading water.fbx'];
+  // let index = 0;
+  for (const k in flyAnimation.interpolants) {
+    // debugger
+    const interpolant = flyAnimation.interpolants[k];
+    physx.physxWorker.addInterpolantPhysics( // todo: only need addInterpolantPhysics once globally
+      physx.physics,
+      1,
       interpolant.parameterPositions,
       interpolant.sampleValues,
       interpolant.valueSize,
@@ -471,7 +487,7 @@ export const _createAnimation = avatar => {
   avatar.bowRightMirrorMotion = avatar.mixer.createMotion(animations.index['Standing Aim Walk Left reverse.fbx']);
 
   avatar.crouchIdleMotion = avatar.mixer.createMotion(animations.index['Crouch Idle.fbx']);
-  // avatar.flyMotion = avatar.mixer.createMotion(floatAnimation);
+  avatar.flyMotion = avatar.mixer.createMotion(floatAnimation);
   avatar.flyIdleMotion = avatar.mixer.createMotion(animations.index['fly_idle.fbx']);
   avatar.flyDodgeForwardMotion = avatar.mixer.createMotion(animations.index['fly_dodge_forward.fbx']);
   avatar.flyDodgeBackwardMotion = avatar.mixer.createMotion(animations.index['fly_dodge_backward.fbx']);
@@ -671,8 +687,14 @@ export const _createAnimation = avatar => {
   // avatar.flyNode.addChild(avatar.flyMotion);
 
   // avatar.animTree = avatar.actionsNode; // todo: set whole tree here with separate names.
-  // test
-  avatar.animTree = avatar.walkForwardMotion;
+
+  // test ----------------------------------------------------------------------------------------------------------
+  avatar.walkFlyNode = avatar.mixer.createNode(WebaverseAnimationNodeBlend2, 'walkFlyNode');
+  avatar.walkFlyNode.addChild(avatar.walkForwardMotion); avatar.walkForwardMotion.animationIndex = 0;
+  avatar.walkFlyNode.addChild(avatar.flyMotion); avatar.flyMotion.animationIndex = 1;
+
+  avatar.animTree = avatar.walkFlyNode;
+
   // avatar.animTree = avatar.bowNode;
   // avatar.animTree = avatar.useMotiono.bowLoose; avatar.useMotiono.bowLoose.loop = LoopRepeat; avatar.useMotiono.bowLoose.play();
   // avatar.animTree = avatar.useMotiono.bowIdle; avatar.useMotiono.bowIdle.loop = LoopRepeat; avatar.useMotiono.bowIdle.play();
@@ -684,6 +706,7 @@ export const _createAnimation = avatar => {
   // avatar.animTree = avatar.runForwardMotion;
   // avatar.animTree = avatar.overwriteNode;
   //
+  // test end ----------------------------------------------------------------------------------------------------------
 
   const handleAnimationEnd = (motion, trigger) => {
     // console.log(motion.name, trigger);
@@ -824,10 +847,14 @@ export const _updateAnimation = avatar => {
     } else {
       avatar.actionsNode.crossFadeTo(0.2, avatar.defaultNode);
     }
+    // avatar.walkJumpNode.factor = 0;
   }
   if (avatar.flyEnd) {
     // debugger
-    avatar.actionsNode.crossFadeTo(0.2, avatar.defaultNode);
+    // avatar.actionsNode.crossFadeTo(0.2, avatar.defaultNode);
+
+    avatar.walkFlyNode.factor = 0;
+    // avatar.actionsNode.crossFade(0.2, 0);
   }
   if (avatar.activateEnd) {
     // avatar.activateMotion.stop(); // don't need
@@ -889,16 +916,20 @@ export const _updateAnimation = avatar => {
   // if (avatar.jumpStart) avatar.jumpNode.factor = 1;
 
   if (avatar.jumpStart) {
-    console.log('jumpStart');
+    // console.log('jumpStart');
     // debugger
     avatar.jumpMotion.play();
     avatar.actionsNode.crossFadeTo(0.2, avatar.jumpMotion);
+    // avatar.walkJumpNode.factor = 1;
   }
   // if (avatar === window.avatar) console.log(Math.floor(avatar.jumpMotion.time));
 
   if (avatar.flyStart) {
     // debugger
-    avatar.actionsNode.crossFadeTo(0.2, avatar._7wayFlyNode);
+    // avatar.actionsNode.crossFadeTo(0.2, avatar._7wayFlyNode);
+
+    avatar.walkFlyNode.factor = 1;
+    // avatar.actionsNode.crossFade(0.2, 1);
   }
 
   if (avatar.activateStart) {
