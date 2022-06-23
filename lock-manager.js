@@ -12,7 +12,7 @@ export class Lock extends EventTarget {
     this.running = false;
     this.queue = [];
   }
-  async lock({signal = null} = {}) {
+  async lock({signal} = {}) {
     if (this.running) {
       const p = makePromise();
       this.queue.push(p);
@@ -46,7 +46,7 @@ export class LockManager {
   constructor() {
     this.locks = new Map();
   }
-  async request(key, {signal = null}, fn = null) {
+  async request(key, {signal} = {}, fn) {
     let lock = this.locks.get(key);
     if (!lock) {
       lock = new Lock();
@@ -61,7 +61,7 @@ export class LockManager {
 
     let result, error;
     try {
-      result = fn && (await fn(lock));
+      result = fn !== undefined ? (await fn(lock)) : fn;
     } catch (err) {
       error = err;
     } finally {
