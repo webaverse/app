@@ -37,6 +37,7 @@ class WebaverseAnimationMotion {
     } = spec;
 
     if (window.isDebugger) debugger;
+    // if (k === 'mixamorigRightHandThumb1.quaternion') debugger
 
     if (isFirstBone) {
       this.time = WebaverseAnimationMixer.timeS - this.startTime;
