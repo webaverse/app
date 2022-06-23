@@ -149,7 +149,7 @@ class AppManager extends EventTarget {
   // Especially transform updates
   bindTrackedApp(trackedApp, app) {
     if(this.isLocalPlayer) return logger.warn("Cannot bind tracked app, local player is app owner");
-    if(this.trackedAppBound(instanceId)) this.unbindTrackedApp(trackedApp.instanceId);
+    if(this.trackedAppBound(trackedApp.instanceId)) this.unbindTrackedApp(trackedApp.instanceId);
     const player = metaversefile.getPlayerByInstanceId(app.instanceId);
     const lastPosition = new THREE.Vector3();
     const sitPosition = new THREE.Vector3();
