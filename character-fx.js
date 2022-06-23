@@ -256,7 +256,6 @@ class CharacterFx {
           const m = modules['nameplate'];
           await this.nameplate.addModule(m);
           sceneLowPriority.add(this.nameplate);
-          console.log("Added nameplate")
         })();
       }
     };

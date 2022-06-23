@@ -60,7 +60,6 @@ class Universe extends EventTarget {
           const p = loadOverworld(x1, y1);
           promises.push(p);
         } else {
-          console.log('create from src', src);
           const p = metaversefile.createAppAsync({
             start_url: src,
           });
@@ -90,12 +89,10 @@ class Universe extends EventTarget {
   }
 
   async reload() {
-    logger.log('universe.reload')
     await this.enterWorld(this.currentWorld);
   }
 
   async pushUrl(u) {
-    logger.log('universe.pushUrl', u)
     history.pushState({}, '', u);
     window.dispatchEvent(new MessageEvent('pushstate'));
     await this.handleUrlUpdate();
