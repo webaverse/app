@@ -69,8 +69,8 @@ const landTokenObjects = [
         seed: 'lol',
         range: [
             [-32, 0, -32],
-            [32, 64, 32]
-        ]
+            [32, 128, 32]
+        ],
     },
 ];
 
