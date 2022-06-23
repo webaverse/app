@@ -90,8 +90,8 @@ w.eraseCubeDamage = function() {
   return cubeDamage(Module._eraseCubeDamage.bind(Module)).apply(this, arguments);
 };
 
-w.setRange = function(inst, range) {
-  Module._setRange(
+w.setClipRange = function(inst, range) {
+  Module._setClipRange(
     inst,
     range[0][0], range[0][1], range[0][2],
     range[1][0], range[1][1], range[1][2]

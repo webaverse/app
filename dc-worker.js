@@ -163,10 +163,10 @@ const _handleMethod = ({ method, args }) => {
         return false;
       }
     }
-    case 'setRange': {
-      const { instance: instanceKey, range } = args;
+    case 'setClipRange': {
+      const {instance: instanceKey, range} = args;
       const instance = instances.get(instanceKey);
-      dc.setRange(instance, range);
+      dc.setClipRange(instance, range);
       return true;
     }
     case 'generateTerrainChunk': {

@@ -134,10 +134,10 @@ export class DcWorkerManager {
     this.nextWorker = (this.nextWorker + 1) % workers.length;
     return worker;
   }
-  async setRange(range) {
+  async setClipRange(range) {
     await Promise.all(
       this.workers.map((worker) => {
-        return worker.request('setRange', {
+        return worker.request('setClipRange', {
           instance: this.instance,
           range: [range.min.toArray(), range.max.toArray()],
         });

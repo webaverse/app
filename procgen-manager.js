@@ -27,7 +27,7 @@ class ProcGenInstance {
     this.lightmapper = null;
 
     if (range) {
-      this.dcWorkerManager.setRange(range);
+      this.dcWorkerManager.setClipRange(range);
     }
   }
   getChunkTracker({
