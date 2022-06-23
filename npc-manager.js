@@ -2,11 +2,12 @@ import * as THREE from 'three';
 import Avatar from './avatars/avatars.js';
 import physicsManager from './physics-manager.js';
 import {LocalPlayer} from './character-controller.js';
-import {getLocalPlayer} from './players.js';
+import {getLocalPlayer, remotePlayers} from './players.js';
 import * as voices from './voices.js';
 import {world} from './world.js';
 import {chatManager} from './chat-manager.js';
 import {createRelativeUrl} from './util.js';
+import { triggerEmote } from './src/components/general/character/Poses.jsx';
 
 const localVector = new THREE.Vector3();
 
@@ -230,6 +231,9 @@ class NpcManager extends EventTarget {
           console.log('got character say', e.data);
           const {message, emote, action, object, target} = e.data;
           chatManager.addPlayerMessage(npcPlayer, message);
+          if (emote !== 'none') {
+            triggerEmote(emote, npcPlayer);
+          }
           if (emote === 'supersaiyan' || action === 'supersaiyan' || /supersaiyan/i.test(object) || /supersaiyan/i.test(target)) {
             const newSssAction = {
               type: 'sss',
