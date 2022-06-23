@@ -53,7 +53,8 @@ import particleSystemManager from './particle-system.js';
 import domRenderEngine from './dom-renderer.jsx';
 import dropManager from './drop-manager.js';
 import hitManager from './character-hitter.js';
-import dcWorkerManager from './dc-worker-manager.js';
+// import dcWorkerManager from './dc-worker-manager.js';
+import procGenManager from './procgen-manager.js';
 import cardsManager from './cards-manager.js';
 import * as instancing from './instancing.js';
 import * as atlasing from './atlasing.js';
@@ -1222,8 +1223,8 @@ export default () => {
   useHitManager() {
     return hitManager;
   },
-  useDcWorkerManager() {
-    return dcWorkerManager;
+  useProcGenManager() {
+    return procGenManager;
   },
   useCardsManager() {
     return cardsManager;

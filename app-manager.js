@@ -149,7 +149,7 @@ class AppManager extends EventTarget {
   // Especially transform updates
   bindTrackedApp(trackedApp, app) {
     if(this.isLocalPlayer) return logger.warn("Cannot bind tracked app, local player is app owner");
-    this.unbindTrackedApp(trackedApp.instanceId);
+    if(this.trackedAppBound(instanceId)) this.unbindTrackedApp(trackedApp.instanceId);
     const player = metaversefile.getPlayerByInstanceId(app.instanceId);
     const lastPosition = new THREE.Vector3();
     const sitPosition = new THREE.Vector3();
@@ -213,7 +213,7 @@ class AppManager extends EventTarget {
           //}
         }
       } else {
-        console.log("tracked app key change", e)
+        logger.warn("tracked app key change", e)
       }
     };
     trackedApp.observe(observeTrackedAppFn);
@@ -224,14 +224,14 @@ class AppManager extends EventTarget {
       trackedApp.unobserve.bind(trackedApp, observeTrackedAppFn)
     );
   }
+  trackedAppBound (instanceId) {
+    return !!this.trackedAppUnobserveMap.get(instanceId)
+  }
   unbindTrackedApp(instanceId) {
     const fn = this.trackedAppUnobserveMap.get(instanceId);
-    if (fn) {
-      this.trackedAppUnobserveMap.delete(instanceId);
-      fn();
-    } else {
-      logger.warn("tracked app was not bound:", instanceId);
-    }
+    if (!fn) return logger.warn("tracked app was not bound:", instanceId);
+    this.trackedAppUnobserveMap.delete(instanceId);
+    fn();
   }
   bindEvents() {
     const resize = (e) => {
