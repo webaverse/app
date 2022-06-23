@@ -2,7 +2,7 @@
 this manager provides music preloading, selection, and playing.
 */
 
-import WSRTC from 'wsrtc/wsrtc';
+import WSRTC from 'wsrtc/wsrtc.js';
 import {defaultMusicVolume} from './constants.js';
 
 class Music {

@@ -1,7 +1,5 @@
 {
-  "name": "damage-mesh",
+  "name": "nameplate",
   "start_url": "index.js",
-  "components": {
-    "activate": true
-  }
+  "components": {}
 }
