@@ -306,7 +306,7 @@ export default class Webaverse extends EventTarget {
         timestamp = timestamp ?? performance.now();
         const timeDiff = timestamp - lastTimestamp;
         lastTimestamp = timestamp;
-        const timeDiffCapped = Math.min(Math.max(timeDiff, 0), 100);
+        const timeDiffCapped = Math.min(Math.max(timeDiff, 0), 500);
 
         performanceTracker.setGpuPrefix('pre');
         const localPlayer = metaversefileApi.useLocalPlayer();
