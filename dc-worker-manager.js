@@ -168,7 +168,7 @@ export class DcWorkerManager {
         chunkPosition: chunkPosition.toArray(),
         lodArray,
       });
-      signal.throwIfAborted();
+      // signal.throwIfAborted();
       return result;
     });
   }
@@ -181,7 +181,7 @@ export class DcWorkerManager {
       chunkPosition: chunkPosition.toArray(),
       lodArray,
     });
-    signal.throwIfAborted();
+    // signal.throwIfAborted();
     return result;
   }
   async getHeightfieldRange(x, z, w, h, lod) {
