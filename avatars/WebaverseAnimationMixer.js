@@ -97,6 +97,33 @@ class WebaverseAnimationMixer extends EventDispatcher {
   }
 
   update(timeS, animTree) {
+    const values = physx.physxWorker.getAnimationValuesPhysics(physx.physics, animations.index["walking.fbx"].index, timeS % animations.index["walking.fbx"].duration);
+    let index = 0;
+    for (const spec of this.avatar.animationMappings) {
+      const {
+        animationTrackName: k,
+        dst,
+        // isTop,
+        isPosition,
+      } = spec;
+
+      const result = values[index];
+
+      if (isPosition) { // _clearXZ
+        result[0] = 0;
+        result[2] = 0;
+      }
+
+      dst.fromArray(result);
+
+      if (isPosition) {
+        dst.y *= this.avatar.height; // XXX avatar could be made perfect by measuring from foot to hips instead
+      }
+
+      index++;
+    }
+    return;
+
     WebaverseAnimationMixer.timeS = timeS;
     for (const spec of this.avatar.animationMappings) {
       const {
