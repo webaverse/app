@@ -769,10 +769,10 @@ export const _createAnimation = avatar => {
   // avatar.flyNode.addChild(avatar.jumpNode);
   // avatar.flyNode.addChild(avatar.flyMotion);
 
-  // avatar.animTree = avatar.actionsNode; // todo: set whole tree here with separate names.
+  avatar.animTree = avatar.actionsNode; // todo: set whole tree here with separate names.
 
   // test ----------------------------------------------------------------------------------------------------------
-  avatar.animTree = avatar.crouchIdleMotion;
+  // avatar.animTree = avatar.crouchIdleMotion;
 
   //
 
