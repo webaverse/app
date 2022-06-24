@@ -2225,8 +2225,8 @@ const physxWorker = (() => {
 
     // allocator.freeAll(); // can't free sampleValuesTypedArray, need persist in wasm for later use.
   }
-  w.evaluateAnimationPhysics = (physics, animationIndex, interpolantIndex, t) => {
-    const outputBufferOffset = moduleInstance._evaluateAnimationPhysics(
+  w.evaluateInterpolantPhysics = (physics, animationIndex, interpolantIndex, t) => {
+    const outputBufferOffset = moduleInstance._evaluateInterpolantPhysics(
       physics,
       animationIndex,
       interpolantIndex,
@@ -2260,6 +2260,63 @@ const physxWorker = (() => {
     } else {
       debugger
     }
+  }
+  w.getAnimationValuesPhysics = (physics, animationIndex, t) => {
+    const outputBufferOffsetMain = moduleInstance._getAnimationValuesPhysics(
+      physics,
+      animationIndex,
+      t,
+    )
+    debugger
+
+    let headMain = outputBufferOffsetMain / Float32Array.BYTES_PER_ELEMENT;
+    let tailMain = headMain + 1;
+    const outputBufferOffset0 = moduleInstance.HEAPU32[headMain];
+
+    let head0 = outputBufferOffset0 / Float32Array.BYTES_PER_ELEMENT;
+    let tail0 = head0 + 1;
+    const valueSize0 = moduleInstance.HEAPF32[head0];
+
+    head0 = tail0;
+    tail0 = head0 + 1;
+    const x0 = moduleInstance.HEAPF32[head0];
+
+    head0 = tail0;
+    tail0 = head0 + 1;
+    const y0 = moduleInstance.HEAPF32[head0];
+
+    head0 = tail0;
+    tail0 = head0 + 1;
+    const z0 = moduleInstance.HEAPF32[head0];
+
+    //
+
+    headMain = tailMain;
+    tailMain = headMain + 1;
+    const outputBufferOffset1 = moduleInstance.HEAPU32[headMain];
+
+    let head1 = outputBufferOffset1 / Float32Array.BYTES_PER_ELEMENT;
+    let tail1 = head1 + 1;
+    const valueSize1 = moduleInstance.HEAPF32[head1];
+
+    head1 = tail1;
+    tail1 = head1 + 1;
+    const x1 = moduleInstance.HEAPF32[head1];
+
+    head1 = tail1;
+    tail1 = head1 + 1;
+    const y1 = moduleInstance.HEAPF32[head1];
+
+    head1 = tail1;
+    tail1 = head1 + 1;
+    const z1 = moduleInstance.HEAPF32[head1];
+
+    // 
+
+    return [
+      [x0, y0, z0],
+      [x1, y1, z1],
+    ]
   }
 
   return w;
