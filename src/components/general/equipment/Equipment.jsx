@@ -287,20 +287,30 @@ export const Equipment = () => {
   const { selectedChain, supportedChain } = useContext(ChainContext)
   const {getTokens} = useNFTContract(account.currentAddress);
 
-  useEffect(async () => {
+  useEffect(() => {
     if (!supportedChain) {
         setInventoryObject([]);
         return;
     }
-    const tokens = await getTokens();
-    const inventoryItems = tokens.map((token, i) => {
-      return {
-        name: token.name,
-        start_url: token.url,
-        level: 1,
-      };
-    });
-    setInventoryObject(inventoryItems);
+
+    async function setupInventory() {
+      const tokens = await getTokens();
+      const inventoryItems = tokens.map((token, i) => {
+        return {
+          name: token.name,
+          start_url: token.url,
+          level: 1,
+        };
+      });
+      setInventoryObject(inventoryItems);
+    }
+
+    setupInventory().catch((error)=> {
+      console.log(error);
+      setInventoryObject([]);
+    })
+
+
   }, [state.openedPanel, selectedChain]);
 
   const refsMap = (() => {
@@ -649,7 +659,6 @@ export const Equipment = () => {
           <div className={styles.bar} />
         </div>
       </div>
-
       <MegaHotBox
         open={open}
         spritesheet={spritesheet}
