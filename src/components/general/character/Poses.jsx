@@ -7,13 +7,15 @@ import styles from './poses.module.css';
 import metaversefile from 'metaversefile';
 import { emoteAnimations } from '../../../../avatars/animationHelpers.js';
 import emotes from './emotes.json';
+import fallbackEmotes from "./fallback_emotes.json";
 
 //The trigger emote function is modified to trigger for the required player.
 
 let emoteTimeout = null;
 export const triggerEmote = (emoteName, player = null) => {
     const emoteHardName = emoteName.replace(/Soft$/, '');
-    const emote = emotes.find(emote => emote.name === emoteHardName);
+    const emoteFinalName = fallbackEmotes[emoteHardName] || emoteHardName;
+    const emote = emotes.find(emote => emote.name === emoteFinalName);
     if (emote === undefined){
         return;
     }
@@ -30,16 +32,16 @@ export const triggerEmote = (emoteName, player = null) => {
     // add new emote
     const newAction = {
         type: 'emote',
-        animation: emoteName,
+        animation: emoteFinalName,
     };
     player.addAction(newAction);
 
     setFacePoseValue(emotion, 1);
 
-    const emoteAnimation = emoteAnimations[emoteName];
+    const emoteAnimation = emoteAnimations[emoteFinalName];
     const emoteAnimationDuration = emoteAnimation.duration;
     emoteTimeout = setTimeout(() => {
-        const actionIndex = player.findActionIndex(action => action.type === 'emote' && action.animation === emoteName);
+        const actionIndex = player.findActionIndex(action => action.type === 'emote' && action.animation === emoteFinalName);
         player.removeActionIndex(actionIndex);
 
         setFacePoseValue(emotion, 0);
