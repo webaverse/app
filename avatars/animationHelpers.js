@@ -422,40 +422,59 @@ export const loadPromise = (async () => {
 });
 
 export const _createAnimation = avatar => {
-  const walkForwardAnimation = animations.index['idle.fbx'];
-  // let index = 0;
-  physx.physxWorker.addAnimationPhysics(physx.physics);
-  for (const k in walkForwardAnimation.interpolants) {
-    // console.log('idle', k);
-    const interpolant = walkForwardAnimation.interpolants[k];
-    // debugger
-    physx.physxWorker.addInterpolantPhysics( // todo: only need addInterpolantPhysics once globally
-      physx.physics,
-      0,
-      interpolant.parameterPositions,
-      interpolant.sampleValues,
-      interpolant.valueSize,
-    );
-    // index++;
+  // const walkForwardAnimation = animations.index['walking.fbx'];
+  // // let index = 0;
+  // physx.physxWorker.addAnimationPhysics(physx.physics);
+  // for (const k in walkForwardAnimation.interpolants) {
+  //   // console.log('idle', k);
+  //   const interpolant = walkForwardAnimation.interpolants[k];
+  //   // debugger
+  //   physx.physxWorker.addInterpolantPhysics( // todo: only need addInterpolantPhysics once globally
+  //     physx.physics,
+  //     0,
+  //     interpolant.parameterPositions,
+  //     interpolant.sampleValues,
+  //     interpolant.valueSize,
+  //   );
+  //   // index++;
+  // }
+
+  // const flyAnimation = animations.index['treading water.fbx'];
+  // // let index = 0;
+  // physx.physxWorker.addAnimationPhysics(physx.physics);
+  // for (const k in flyAnimation.interpolants) {
+  //   // debugger
+  //   const interpolant = flyAnimation.interpolants[k];
+  //   physx.physxWorker.addInterpolantPhysics( // todo: only need addInterpolantPhysics once globally
+  //     physx.physics,
+  //     1,
+  //     interpolant.parameterPositions,
+  //     interpolant.sampleValues,
+  //     interpolant.valueSize,
+  //   );
+  //   // index++;
+  // }
+
+  let animationIndex = 0;
+  for (const fileName in animations.index) {
+    const animation = animations.index[fileName];
+    animation.index = animationIndex;
+    physx.physxWorker.addAnimationPhysics(physx.physics);
+    for (const k in animation.interpolants) {
+      // debugger
+      const interpolant = animation.interpolants[k];
+      physx.physxWorker.addInterpolantPhysics( // todo: only need addInterpolantPhysics once globally
+        physx.physics,
+        animation.index,
+        interpolant.parameterPositions,
+        interpolant.sampleValues,
+        interpolant.valueSize,
+      );
+    }
+    animationIndex++;
   }
 
-  const flyAnimation = animations.index['treading water.fbx'];
-  // let index = 0;
-  physx.physxWorker.addAnimationPhysics(physx.physics);
-  for (const k in flyAnimation.interpolants) {
-    // debugger
-    const interpolant = flyAnimation.interpolants[k];
-    physx.physxWorker.addInterpolantPhysics( // todo: only need addInterpolantPhysics once globally
-      physx.physics,
-      1,
-      interpolant.parameterPositions,
-      interpolant.sampleValues,
-      interpolant.valueSize,
-    );
-    // index++;
-  }
-
-  /* index order
+  /* interpolant index order, sample as AnimationMapping.js
     0 mixamorigHips.position
     1 mixamorigHips.quaternion
     2 mixamorigSpine.quaternion
@@ -517,8 +536,7 @@ export const _createAnimation = avatar => {
   // LoopRepeat
   avatar.idleMotion = avatar.mixer.createMotion(animations.index['idle.fbx']);
 
-  // avatar.walkForwardMotion = avatar.mixer.createMotion(animations.index['walking.fbx']);
-  avatar.walkForwardMotion = avatar.mixer.createMotion(walkForwardAnimation);
+  avatar.walkForwardMotion = avatar.mixer.createMotion(animations.index['walking.fbx']);
   avatar.walkBackwardMotion = avatar.mixer.createMotion(animations.index['walking backwards.fbx']);
   avatar.walkLeftMotion = avatar.mixer.createMotion(animations.index['left strafe walking.fbx']);
   avatar.walkRightMotion = avatar.mixer.createMotion(animations.index['right strafe walking.fbx']);
@@ -750,11 +768,11 @@ export const _createAnimation = avatar => {
 
   // test ----------------------------------------------------------------------------------------------------------
   avatar.walkFlyNode = avatar.mixer.createNode(WebaverseAnimationNodeBlend2, 'walkFlyNode');
-  avatar.walkFlyNode.addChild(avatar.walkForwardMotion); avatar.walkForwardMotion.animationIndex = 0;
-  avatar.walkFlyNode.addChild(avatar.flyMotion); avatar.flyMotion.animationIndex = 1;
+  avatar.walkFlyNode.addChild(avatar.walkForwardMotion);
+  avatar.walkFlyNode.addChild(avatar.flyMotion);
 
-  // avatar.animTree = avatar.walkFlyNode;
-  avatar.animTree = avatar.walkForwardMotion;
+  avatar.animTree = avatar.walkFlyNode;
+  // avatar.animTree = avatar.walkForwardMotion;
 
   // avatar.animTree = avatar.bowNode;
   // avatar.animTree = avatar.useMotiono.bowLoose; avatar.useMotiono.bowLoose.loop = LoopRepeat; avatar.useMotiono.bowLoose.play();
