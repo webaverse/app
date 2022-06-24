@@ -305,7 +305,8 @@ class CharacterPhysics {
       const isHandEnabled = (isSession || (isPlayerAiming && isObjectAimable)) /* && !isPlayingEnvelopeIkAnimation */;
       for (let i = 0; i < 2; i++) {
         const isExpectedHandIndex = i === ((aimComponent?.ikHand === 'left') ? 1 : (aimComponent?.ikHand === 'right') ? 0 : null);
-        const enabled = ((isSession && isHandEnabled) || (isHandEnabled && isExpectedHandIndex));
+        const gamepadEnabled = isSession && this.player.avatar.inputs.leftGamepad.enabled && this.player.avatar.inputs.rightGamepad.enabled ? true : false;
+        const enabled = ((isSession && gamepadEnabled) || (isHandEnabled && isExpectedHandIndex));
         this.player.hands[i].enabled = enabled;
       }
     };
