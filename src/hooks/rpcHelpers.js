@@ -66,6 +66,8 @@ export async function addRPCToWallet({
       blockExplorerUrls,
       iconUrls,
     }],
+  }).catch(error => {
+    console.warn('cant add RPC to wallet', error);
   });
 
   return rpc;
@@ -75,6 +77,8 @@ export async function getConnectedAccounts() {
   const {ethereum} = window;
   const accounts = await ethereum.request({
     method: RPC_METHODS.ACCOUNTS,
+  }).catch(error => {
+    console.warn('cant get connected accounts', error);
   });
   return accounts;
 }
@@ -83,6 +87,8 @@ export async function requestAccounts() {
   const {ethereum} = window;
   const accounts = await ethereum.request({
     method: RPC_METHODS.REQUEST_ACCOUNTS,
+  }).catch(error => {
+    console.warn('cant request accounts', error);
   });
   return accounts;
 }
@@ -91,6 +97,8 @@ export async function getChainId() {
   const {ethereum} = window;
   const chainId = await ethereum.request({
     method: RPC_METHODS.CHAIN_ID,
+  }).catch(error => {
+    console.warn('cant get chain id', error);
   });
   return chainId;
 }
@@ -100,5 +108,7 @@ export async function switchChain(chainId) {
   return await ethereum.request({
     method: RPC_METHODS.SWITCH_CHAIN,
     params: [{chainId}],
+  }).catch(error => {
+    console.warn('cant switch chain', error);
   });
 }
