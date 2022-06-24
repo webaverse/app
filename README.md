@@ -73,7 +73,7 @@ npm run dev
 npm run prod
 ```
 
-Once the server has started up, you can visit: https://local.webaverse.com:3000
+Once the server has started up, you can visit `https://local.webaverse.com:3000` in development or `https://local.webaverse.com` in production.
 
 ## Let's build it together!
 
