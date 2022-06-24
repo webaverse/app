@@ -36,6 +36,8 @@ const sessionOpts = {
   ],
 };
 
+const gamepadMaxDistance = 1.5;
+
 class XRManager extends EventTarget {
   constructor() {
     super();
@@ -109,7 +111,7 @@ class XRManager extends EventTarget {
         }
         leftGamepadPosition = localVector2.toArray(localArray);
         leftGamepadQuaternion = localQuaternion2.toArray(localArray2);
-
+        
         const {gamepad} = inputSources[0];
         if (gamepad && gamepad.buttons.length >= 2) {
           const {buttons} = gamepad;
@@ -165,6 +167,11 @@ class XRManager extends EventTarget {
       leftGamepadGrip = 0;
       leftGamepadEnabled = false;
     }
+    else {
+      if(localVector.fromArray(leftGamepadPosition).distanceTo(localPlayer.position) > gamepadMaxDistance) {
+        leftGamepadEnabled = false;
+      }
+    }
     if (!rightGamepadPosition) {
       rightGamepadPosition = localVector2.copy(localVector)
         .add(localVector3.copy(rightHandOffset).multiplyScalar(handOffsetScale).applyQuaternion(localQuaternion))
@@ -174,14 +181,25 @@ class XRManager extends EventTarget {
       rightGamepadGrip = 0;
       rightGamepadEnabled = false;
     }
+    else {
+      if(localVector.fromArray(rightGamepadPosition).distanceTo(localPlayer.position) > gamepadMaxDistance) {
+        rightGamepadEnabled = false;
+      }
+    }
 
     if(localPlayer.avatar && session) {
       const xrCamera = renderer.xr.getCamera(camera);
       let newVec = new THREE.Vector3();
-      //newVec.set(localPlayer.position.x, xrCamera.position.y, localPlayer.position.z);
+
+      localMatrix.copy(xrCamera.matrix)
+        .premultiply(dolly.matrix)
+        .decompose(localVector, localQuaternion, localVector2);
+
+      //newVec.set(localPlayer.position.x, localVector.y, localPlayer.position.z);
       //console.log(localPlayer.position.y, xrCamera.position.y);
+      
       localPlayer.avatar.setLocalAvatarPose([
-        [localPlayer.position.toArray(), localPlayer.quaternion.toArray()],
+        [localVector.toArray(), localQuaternion.toArray()],
         [leftGamepadPosition, leftGamepadQuaternion, leftGamepadPointer, leftGamepadGrip, leftGamepadEnabled],
         [rightGamepadPosition, rightGamepadQuaternion, rightGamepadPointer, rightGamepadGrip, rightGamepadEnabled],
       ]);
