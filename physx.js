@@ -2180,9 +2180,18 @@ const physxWorker = (() => {
     }
   }
 
+  w.addAnimationMappingPhysics = (physics, isPosition, index, isFirstBone, isLastBone) => {
+    moduleInstance._addAnimationMappingPhysics(
+      physics, isPosition, index, isFirstBone, isLastBone
+    )
+  }
+  // w.createAnimationMixerPhysics = (physics) => {
+  //   const pointer = moduleInstance._createAnimationMixerPhysics(
+  //     physics,
+  //   )
+  //   return pointer;
+  // }
   w.addAnimationPhysics = (physics) => {
-    const allocator = new Allocator(moduleInstance);
-
     moduleInstance._addAnimationPhysics(
       physics,
     )

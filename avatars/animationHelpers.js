@@ -424,6 +424,16 @@ export const loadPromise = (async () => {
 
 export const _createAnimation = avatar => {
   if (!createdWasmAnimations) {
+    for (const spec of avatar.animationMappings) {
+      physx.physxWorker.addAnimationMappingPhysics(
+        physx.physics,
+        spec.isPosition,
+        spec.index,
+        spec.isFirstBone,
+        spec.isLastBone,
+      );
+    }
+
     // const walkForwardAnimation = animations.index['walking.fbx'];
     // // let index = 0;
     // physx.physxWorker.addAnimationPhysics(physx.physics);
@@ -457,7 +467,7 @@ export const _createAnimation = avatar => {
     //   // index++;
     // }
 
-    debugger;
+    // debugger;
 
     let animationIndex = 0;
     for (const fileName in animations.index) {
