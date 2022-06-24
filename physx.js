@@ -2267,80 +2267,25 @@ const physxWorker = (() => {
       animationIndex,
       t,
     )
-    // debugger
-
-    let value0;
-
-    let headMain = outputBufferOffsetMain / Float32Array.BYTES_PER_ELEMENT;
-    let tailMain = headMain + 1;
-    const outputBufferOffset0 = moduleInstance.HEAPU32[headMain];
-
-    let head0 = outputBufferOffset0 / Float32Array.BYTES_PER_ELEMENT;
-    let tail0 = head0 + 1;
-    const valueSize0 = moduleInstance.HEAPF32[head0];
-
-    head0 = tail0;
-    tail0 = head0 + 1;
-    const x0 = moduleInstance.HEAPF32[head0];
-
-    head0 = tail0;
-    tail0 = head0 + 1;
-    const y0 = moduleInstance.HEAPF32[head0];
-
-    head0 = tail0;
-    tail0 = head0 + 1;
-    const z0 = moduleInstance.HEAPF32[head0];
-
-    if (valueSize0 === 3) {
-      value0 = [x0, y0, z0];
-    } else if (valueSize0 === 4) {
-      head0 = tail0;
-      tail0 = head0 + 1;
-      const w0 = moduleInstance.HEAPF32[head0];
-
-      value0 = [x0, y0, z0, w0];
+    const values = [];
+    const headMain = outputBufferOffsetMain / Float32Array.BYTES_PER_ELEMENT;
+    for (let i = 0; i < 53; i++) {
+      let value;
+      const outputBufferOffset = moduleInstance.HEAPU32[headMain + i];
+      const head = outputBufferOffset / Float32Array.BYTES_PER_ELEMENT;
+      const valueSize = moduleInstance.HEAPF32[head];
+      const x = moduleInstance.HEAPF32[head + 1];
+      const y = moduleInstance.HEAPF32[head + 2];
+      const z = moduleInstance.HEAPF32[head + 3];
+      if (valueSize === 3) {
+        value = [x, y, z];
+      } else if (valueSize === 4) {
+        const w = moduleInstance.HEAPF32[head + 4];
+        value = [x, y, z, w];
+      }
+      values.push(value);
     }
-
-    //
-
-    let value1;
-
-    headMain = tailMain;
-    tailMain = headMain + 1;
-    const outputBufferOffset1 = moduleInstance.HEAPU32[headMain];
-
-    let head1 = outputBufferOffset1 / Float32Array.BYTES_PER_ELEMENT;
-    let tail1 = head1 + 1;
-    const valueSize1 = moduleInstance.HEAPF32[head1];
-
-    head1 = tail1;
-    tail1 = head1 + 1;
-    const x1 = moduleInstance.HEAPF32[head1];
-
-    head1 = tail1;
-    tail1 = head1 + 1;
-    const y1 = moduleInstance.HEAPF32[head1];
-
-    head1 = tail1;
-    tail1 = head1 + 1;
-    const z1 = moduleInstance.HEAPF32[head1];
-
-    if (valueSize1 === 3) {
-      value1 = [x1, y1, z1];
-    } else if (valueSize1 === 4) {
-      head1 = tail1;
-      tail1 = head1 + 1;
-      const w1 = moduleInstance.HEAPF32[head1];
-
-      value1 = [x1, y1, z1, w1];
-    }
-
-    //
-
-    return [
-      value0,
-      value1,
-    ]
+    return values;
   }
 
   return w;
