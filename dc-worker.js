@@ -249,7 +249,18 @@ const _handleMethod = ({ method, args }) => {
         return null;
       }
     }
-    case 'getHeightfieldRange': {
+    case 'getChunkHeightfield': {
+      const {instance: instanceKey, x, z, lod} = args;
+      const instance = instances.get(instanceKey);
+      if (!instance) throw new Error('getChunkHeightfield : instance not found');
+      const heightfield = dc.getChunkHeightfield(instance, x, z, lod);
+      const spec = {
+        result: heightfield,
+        transfers: [heightfield.buffer],
+      };
+      return spec;
+    }
+    /* case 'getHeightfieldRange': {
       const { instance: instanceKey, x, z, w, h, lod } = args;
       const instance = instances.get(instanceKey);
       if (!instance)
@@ -295,7 +306,7 @@ const _handleMethod = ({ method, args }) => {
         transfers: [aos.buffer],
       };
       return spec;
-    }
+    } */
     case 'createGrassSplat': {
       const { instance: instanceKey, x, z, lod } = args;
       const instance = instances.get(instanceKey);

@@ -304,7 +304,24 @@ w.createLiquidChunkMesh = (inst, x, y, z, lods) => {
 
 //
 
-w.getHeightfieldRange = (inst, x, z, w, h, lod) => {
+w.getChunkHeightfield = (inst, x, z, lod) => {
+  const allocator = new Allocator(Module);
+
+  const heights = allocator.alloc(Float32Array, chunkSize * chunkSize);
+
+  try {
+    Module._getChunkHeightfield(
+      inst,
+      x, z,
+      lod,
+      heights.byteOffset
+    );
+    return heights.slice();
+  } finally {
+    allocator.freeAll();
+  }
+};
+/* w.getHeightfieldRange = (inst, x, z, w, h, lod) => {
   const allocator = new Allocator(Module);
 
   const heights = allocator.alloc(Float32Array, w * h);
@@ -321,7 +338,7 @@ w.getHeightfieldRange = (inst, x, z, w, h, lod) => {
   } finally {
     allocator.freeAll();
   }
-};
+}; */
 w.getChunkSkylight = (inst, x, y, z, lod) => {
   const allocator = new Allocator(Module);
 
@@ -357,7 +374,7 @@ w.getChunkAo = (inst, x, y, z, lod) => {
     allocator.freeAll();
   }
 };
-w.getSkylightFieldRange = (inst, x, y, z, w, h, d, lod) => {
+/* w.getSkylightFieldRange = (inst, x, y, z, w, h, d, lod) => {
   const allocator = new Allocator(Module);
 
   const skylights = allocator.alloc(Uint8Array, w * h * d);
@@ -392,7 +409,7 @@ w.getAoFieldRange = (inst, x, y, z, w, h, d, lod) => {
   } finally {
     allocator.freeAll();
   }
-};
+}; */
 
 w.createGrassSplat = (inst, x, z, lod) => {
   const allocator = new Allocator(Module);

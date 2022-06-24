@@ -184,7 +184,16 @@ export class DcWorkerManager {
     signal.throwIfAborted();
     return result;
   }
-  async getHeightfieldRange(x, z, w, h, lod) {
+  async getChunkHeightfield(x, z, lod) {
+    const worker = this.getNextWorker();
+    const result = await worker.request('getChunkHeightfield', {
+      instance: this.instance,
+      x, z,
+      lod,
+    });
+    return result;
+  }
+  /* async getHeightfieldRange(x, z, w, h, lod) {
     const worker = this.getNextWorker();
     const result = await worker.request('getHeightfieldRange', {
       instance: this.instance,
@@ -223,7 +232,7 @@ export class DcWorkerManager {
       lod,
     });
     return result;
-  }
+  } */
   async createGrassSplat(x, z, lod) {
     const worker = this.getNextWorker();
     const result = await worker.request('createGrassSplat', {
