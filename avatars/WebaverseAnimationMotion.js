@@ -65,7 +65,7 @@ class WebaverseAnimationMotion {
       const evaluateTimeS = (WebaverseAnimationMixer.timeS / this.speed + this.timeBias) % animation.duration;
       // value = src.evaluate(evaluateTimeS);
       // if (k === 'mixamorigHips.position') console.log(this.animation.name, evaluateTimeS); // todo: why walking.fbx & treading water.fbx when avatar.walkFlyNode.factor === 0
-      if (k === 'mixamorigHips.position') console.log(this.animation.name); // todo: why walking.fbx & treading water.fbx when avatar.walkFlyNode.factor === 0
+      // if (k === 'mixamorigHips.position') console.log(this.animation.name); // todo: why walking.fbx & treading water.fbx when avatar.walkFlyNode.factor === 0
       // if (k === 'mixamorigHips.position') debugger; // todo: why walking.fbx & treading water.fbx when avatar.walkFlyNode.factor === 0
       value = physx.physxWorker.evaluateAnimationPhysics(physx.physics, this.animation.index, index, evaluateTimeS);
     }
