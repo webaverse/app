@@ -460,7 +460,12 @@ export const _createAnimation = avatar => {
     const animation = animations.index[fileName];
     animation.index = animationIndex;
     physx.physxWorker.addAnimationPhysics(physx.physics);
-    for (const k in animation.interpolants) {
+    // for (const k in animation.interpolants) { // maybe wrong interpolant index order
+    for (const spec of avatar.animationMappings) { // correct interpolant index order
+      const {
+        animationTrackName: k,
+      } = spec;
+
       // debugger
       const interpolant = animation.interpolants[k];
       physx.physxWorker.addInterpolantPhysics( // todo: only need addInterpolantPhysics once globally
@@ -764,9 +769,13 @@ export const _createAnimation = avatar => {
   // avatar.flyNode.addChild(avatar.jumpNode);
   // avatar.flyNode.addChild(avatar.flyMotion);
 
-  avatar.animTree = avatar.actionsNode; // todo: set whole tree here with separate names.
+  // avatar.animTree = avatar.actionsNode; // todo: set whole tree here with separate names.
 
   // test ----------------------------------------------------------------------------------------------------------
+  avatar.animTree = avatar.crouchIdleMotion;
+
+  //
+
   // avatar.walkFlyNode = avatar.mixer.createNode(WebaverseAnimationNodeBlend2, 'walkFlyNode');
   // avatar.walkFlyNode.addChild(avatar.walkForwardMotion);
   // avatar.walkFlyNode.addChild(avatar.flyMotion);
