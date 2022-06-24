@@ -73,18 +73,7 @@ npm run dev
 npm run prod
 ```
 
-Once the server has started up, you can visit https://localhost:3000
-
-##### Local Development With HTTPS
-
-<img align=right style='margin: 1em' src="/docs/https.png" width=20% />
-Your browser might throw an error if you don't have your certificates set up properly.
-
-You can ignore it and continue by clicking "Advanced" in Chromium, or by typing 'thisisunsafe' directly into the window if you are on Chrome.
-
-##### Better HTTPS Development Using Hosts File
-
-A better option is to modify your hosts file. Instructions on how to do that are located [here](https://docs.webaverse.com/docs/engineering/setup-custom-host)
+Once the server has started up, you can visit: https://local.webaverse.com:3000
 
 ## Let's build it together!
 
