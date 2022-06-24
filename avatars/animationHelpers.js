@@ -764,14 +764,17 @@ export const _createAnimation = avatar => {
   // avatar.flyNode.addChild(avatar.jumpNode);
   // avatar.flyNode.addChild(avatar.flyMotion);
 
-  // avatar.animTree = avatar.actionsNode; // todo: set whole tree here with separate names.
+  avatar.animTree = avatar.actionsNode; // todo: set whole tree here with separate names.
 
   // test ----------------------------------------------------------------------------------------------------------
-  avatar.walkFlyNode = avatar.mixer.createNode(WebaverseAnimationNodeBlend2, 'walkFlyNode');
-  avatar.walkFlyNode.addChild(avatar.walkForwardMotion);
-  avatar.walkFlyNode.addChild(avatar.flyMotion);
+  // avatar.walkFlyNode = avatar.mixer.createNode(WebaverseAnimationNodeBlend2, 'walkFlyNode');
+  // avatar.walkFlyNode.addChild(avatar.walkForwardMotion);
+  // avatar.walkFlyNode.addChild(avatar.flyMotion);
 
-  avatar.animTree = avatar.walkFlyNode;
+  // avatar.animTree = avatar.walkFlyNode;
+
+  //
+
   // avatar.animTree = avatar.walkForwardMotion;
 
   // avatar.animTree = avatar.bowNode;
@@ -930,10 +933,10 @@ export const _updateAnimation = avatar => {
   }
   if (avatar.flyEnd) {
     // debugger
-    // avatar.actionsNode.crossFadeTo(0.2, avatar.defaultNode);
+    avatar.actionsNode.crossFadeTo(0.2, avatar.defaultNode);
 
     // avatar.walkFlyNode.factor = 0;
-    avatar.walkFlyNode.crossFade(1, 0);
+    // avatar.walkFlyNode.crossFade(1, 0);
   }
   if (avatar.activateEnd) {
     // avatar.activateMotion.stop(); // don't need
@@ -1005,10 +1008,10 @@ export const _updateAnimation = avatar => {
 
   if (avatar.flyStart) {
     // debugger
-    // avatar.actionsNode.crossFadeTo(0.2, avatar._7wayFlyNode);
+    avatar.actionsNode.crossFadeTo(0.2, avatar._7wayFlyNode);
 
     // avatar.walkFlyNode.factor = 1;
-    avatar.walkFlyNode.crossFade(1, 1);
+    // avatar.walkFlyNode.crossFade(1, 1);
   }
 
   if (avatar.activateStart) {
