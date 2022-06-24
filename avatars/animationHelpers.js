@@ -422,11 +422,13 @@ export const loadPromise = (async () => {
 });
 
 export const _createAnimation = avatar => {
-  const walkForwardAnimation = animations.index['walking.fbx'];
+  const walkForwardAnimation = animations.index['idle.fbx'];
   // let index = 0;
+  physx.physxWorker.addAnimationPhysics(physx.physics);
   for (const k in walkForwardAnimation.interpolants) {
-    // debugger
+    // console.log('idle', k);
     const interpolant = walkForwardAnimation.interpolants[k];
+    // debugger
     physx.physxWorker.addInterpolantPhysics( // todo: only need addInterpolantPhysics once globally
       physx.physics,
       0,
@@ -439,6 +441,7 @@ export const _createAnimation = avatar => {
 
   const flyAnimation = animations.index['treading water.fbx'];
   // let index = 0;
+  physx.physxWorker.addAnimationPhysics(physx.physics);
   for (const k in flyAnimation.interpolants) {
     // debugger
     const interpolant = flyAnimation.interpolants[k];
@@ -452,13 +455,70 @@ export const _createAnimation = avatar => {
     // index++;
   }
 
+  /* index order
+    0 mixamorigHips.position
+    1 mixamorigHips.quaternion
+    2 mixamorigSpine.quaternion
+    3 mixamorigSpine1.quaternion
+    4 mixamorigSpine2.quaternion
+    5 mixamorigNeck.quaternion
+    6 mixamorigHead.quaternion
+    7 mixamorigLeftShoulder.quaternion
+    8 mixamorigLeftArm.quaternion
+    9 mixamorigLeftForeArm.quaternion
+    10 mixamorigLeftHand.quaternion
+    11 mixamorigLeftHandMiddle1.quaternion
+    12 mixamorigLeftHandMiddle2.quaternion
+    13 mixamorigLeftHandMiddle3.quaternion
+    14 mixamorigLeftHandThumb1.quaternion
+    15 mixamorigLeftHandThumb2.quaternion
+    16 mixamorigLeftHandThumb3.quaternion
+    17 mixamorigLeftHandIndex1.quaternion
+    18 mixamorigLeftHandIndex2.quaternion
+    19 mixamorigLeftHandIndex3.quaternion
+    20 mixamorigLeftHandRing1.quaternion
+    21 mixamorigLeftHandRing2.quaternion
+    22 mixamorigLeftHandRing3.quaternion
+    23 mixamorigLeftHandPinky1.quaternion
+    24 mixamorigLeftHandPinky2.quaternion
+    25 mixamorigLeftHandPinky3.quaternion
+    26 mixamorigRightShoulder.quaternion
+    27 mixamorigRightArm.quaternion
+    28 mixamorigRightForeArm.quaternion
+    29 mixamorigRightHand.quaternion
+    30 mixamorigRightHandMiddle1.quaternion
+    31 mixamorigRightHandMiddle2.quaternion
+    32 mixamorigRightHandMiddle3.quaternion
+    33 mixamorigRightHandThumb1.quaternion
+    34 mixamorigRightHandThumb2.quaternion
+    35 mixamorigRightHandThumb3.quaternion
+    36 mixamorigRightHandIndex1.quaternion
+    37 mixamorigRightHandIndex2.quaternion
+    38 mixamorigRightHandIndex3.quaternion
+    39 mixamorigRightHandRing1.quaternion
+    40 mixamorigRightHandRing2.quaternion
+    41 mixamorigRightHandRing3.quaternion
+    42 mixamorigRightHandPinky1.quaternion
+    43 mixamorigRightHandPinky2.quaternion
+    44 mixamorigRightHandPinky3.quaternion
+    45 mixamorigRightUpLeg.quaternion
+    46 mixamorigRightLeg.quaternion
+    47 mixamorigRightFoot.quaternion
+    48 mixamorigRightToeBase.quaternion
+    49 mixamorigLeftUpLeg.quaternion
+    50 mixamorigLeftLeg.quaternion
+    51 mixamorigLeftFoot.quaternion
+    52 mixamorigLeftToeBase.quaternion
+  */
+
   avatar.mixer = new WebaverseAnimationMixer(avatar);
 
   // WebaverseAnimationMotions ---
   // LoopRepeat
   avatar.idleMotion = avatar.mixer.createMotion(animations.index['idle.fbx']);
 
-  avatar.walkForwardMotion = avatar.mixer.createMotion(animations.index['walking.fbx']);
+  // avatar.walkForwardMotion = avatar.mixer.createMotion(animations.index['walking.fbx']);
+  avatar.walkForwardMotion = avatar.mixer.createMotion(walkForwardAnimation);
   avatar.walkBackwardMotion = avatar.mixer.createMotion(animations.index['walking backwards.fbx']);
   avatar.walkLeftMotion = avatar.mixer.createMotion(animations.index['left strafe walking.fbx']);
   avatar.walkRightMotion = avatar.mixer.createMotion(animations.index['right strafe walking.fbx']);
@@ -693,7 +753,8 @@ export const _createAnimation = avatar => {
   avatar.walkFlyNode.addChild(avatar.walkForwardMotion); avatar.walkForwardMotion.animationIndex = 0;
   avatar.walkFlyNode.addChild(avatar.flyMotion); avatar.flyMotion.animationIndex = 1;
 
-  avatar.animTree = avatar.walkFlyNode;
+  // avatar.animTree = avatar.walkFlyNode;
+  avatar.animTree = avatar.walkForwardMotion;
 
   // avatar.animTree = avatar.bowNode;
   // avatar.animTree = avatar.useMotiono.bowLoose; avatar.useMotiono.bowLoose.loop = LoopRepeat; avatar.useMotiono.bowLoose.play();

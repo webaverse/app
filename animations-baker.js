@@ -145,6 +145,8 @@ const {CharsetEncoder} = require('three/examples/js/libs/mmdparser.js');
     return mmdAnimation;
   };
 
+  const trackNames = ['mixamorigHips.position', 'mixamorigHips.quaternion', 'mixamorigSpine.quaternion', 'mixamorigSpine1.quaternion', 'mixamorigSpine2.quaternion', 'mixamorigNeck.quaternion', 'mixamorigHead.quaternion', 'mixamorigLeftShoulder.quaternion', 'mixamorigLeftArm.quaternion', 'mixamorigLeftForeArm.quaternion', 'mixamorigLeftHand.quaternion', 'mixamorigLeftHandMiddle1.quaternion', 'mixamorigLeftHandMiddle2.quaternion', 'mixamorigLeftHandMiddle3.quaternion', 'mixamorigLeftHandThumb1.quaternion', 'mixamorigLeftHandThumb2.quaternion', 'mixamorigLeftHandThumb3.quaternion', 'mixamorigLeftHandIndex1.quaternion', 'mixamorigLeftHandIndex2.quaternion', 'mixamorigLeftHandIndex3.quaternion', 'mixamorigLeftHandRing1.quaternion', 'mixamorigLeftHandRing2.quaternion', 'mixamorigLeftHandRing3.quaternion', 'mixamorigLeftHandPinky1.quaternion', 'mixamorigLeftHandPinky2.quaternion', 'mixamorigLeftHandPinky3.quaternion', 'mixamorigRightShoulder.quaternion', 'mixamorigRightArm.quaternion', 'mixamorigRightForeArm.quaternion', 'mixamorigRightHand.quaternion', 'mixamorigRightHandMiddle1.quaternion', 'mixamorigRightHandMiddle2.quaternion', 'mixamorigRightHandMiddle3.quaternion', 'mixamorigRightHandThumb1.quaternion', 'mixamorigRightHandThumb2.quaternion', 'mixamorigRightHandThumb3.quaternion', 'mixamorigRightHandIndex1.quaternion', 'mixamorigRightHandIndex2.quaternion', 'mixamorigRightHandIndex3.quaternion', 'mixamorigRightHandRing1.quaternion', 'mixamorigRightHandRing2.quaternion', 'mixamorigRightHandRing3.quaternion', 'mixamorigRightHandPinky1.quaternion', 'mixamorigRightHandPinky2.quaternion', 'mixamorigRightHandPinky3.quaternion', 'mixamorigRightUpLeg.quaternion', 'mixamorigRightLeg.quaternion', 'mixamorigRightFoot.quaternion', 'mixamorigRightToeBase.quaternion', 'mixamorigLeftUpLeg.quaternion', 'mixamorigLeftLeg.quaternion', 'mixamorigLeftFoot.quaternion', 'mixamorigLeftToeBase.quaternion']
+
   const baker = async (uriPath = '', fbxFileNames, vpdFileNames, outFile) => {
     const animations = [];
 
@@ -244,6 +246,8 @@ const {CharsetEncoder} = require('three/examples/js/libs/mmdparser.js');
       const animation = o.animations[0];
       animation.name = name.slice('animations/'.length);
       animation.object = o;
+
+      animation.tracks = animation.tracks.filter(track => trackNames.includes(track.name)); // Filter out unused tracks, required by indices based wasm animation system.
 
       // scale position tracks by height
       for (const track of animation.tracks) {

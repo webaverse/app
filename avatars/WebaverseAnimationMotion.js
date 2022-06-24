@@ -65,6 +65,7 @@ class WebaverseAnimationMotion {
     } else {
       const evaluateTimeS = (WebaverseAnimationMixer.timeS / this.speed + this.timeBias) % animation.duration;
       // value = src.evaluate(evaluateTimeS);
+      if (k === 'mixamorigHips.position') console.log(this.animation.name, evaluateTimeS); // todo: why walking.fbx & treading water.fbx when avatar.walkFlyNode.factor === 0
       value = physx.physxWorker.evaluateAnimationPhysics(physx.physics, this.animationIndex, index, evaluateTimeS);
     }
 
