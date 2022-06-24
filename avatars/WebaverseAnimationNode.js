@@ -58,12 +58,15 @@ class WebaverseAnimationNode extends EventDispatcher {
     let currentWeight = 0;
     for (let i = 0; i < this.children.length; i++) {
       const childNode = this.children[i];
-      const value = this.mixer.doBlend(childNode, spec);
+      // const value = this.mixer.doBlend(childNode, spec); // put here can trigger `stopped` event.
       // if (childNode.weight > 0 && (isTop || boneName === 'Hips')) {
       if (childNode.weight > 0) {
         // if (childNode === window.avatar?.useMotiono?.bowDraw) {
         //   if (!isTop) continue;
         // }
+
+        const value = this.mixer.doBlend(childNode, spec); // put here can't trigger `stopped` event.
+
         if (nodeIndex === 0) {
           // result = value; // todo: will change original data?
           // WebaverseAnimationMixer.copyArray(result, value);

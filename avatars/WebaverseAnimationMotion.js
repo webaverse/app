@@ -15,7 +15,7 @@ class WebaverseAnimationMotion {
     this.animation = animation;
     this.name = this.animation.name;
     this.weight = 1; // todo: move to WebaverseAnimationNode?
-    this.lastWeight = null;
+    // this.lastWeight = null;
     this.timeBias = 0;
     this.speed = 1;
     this.isFinished = false;
@@ -65,16 +65,18 @@ class WebaverseAnimationMotion {
       const evaluateTimeS = (WebaverseAnimationMixer.timeS / this.speed + this.timeBias) % animation.duration;
       // value = src.evaluate(evaluateTimeS);
       // if (k === 'mixamorigHips.position') console.log(this.animation.name, evaluateTimeS); // todo: why walking.fbx & treading water.fbx when avatar.walkFlyNode.factor === 0
+      if (k === 'mixamorigHips.position') console.log(this.animation.name); // todo: why walking.fbx & treading water.fbx when avatar.walkFlyNode.factor === 0
+      // if (k === 'mixamorigHips.position') debugger; // todo: why walking.fbx & treading water.fbx when avatar.walkFlyNode.factor === 0
       value = physx.physxWorker.evaluateAnimationPhysics(physx.physics, this.animation.index, index, evaluateTimeS);
     }
 
-    if (this.lastWeight > 0 && this.weight <= 0) {
-      this.mixer.dispatchEvent({
-        type: 'stopped',
-        motion: this,
-      });
-    }
-    this.lastWeight = this.weight;
+    // if (this.lastWeight > 0 && this.weight <= 0) {
+    //   this.mixer.dispatchEvent({
+    //     type: 'stopped',
+    //     motion: this,
+    //   });
+    // }
+    // this.lastWeight = this.weight;
 
     return value;
   }
