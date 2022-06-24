@@ -224,20 +224,7 @@
     },
     {
       "position": [0, -60, 0],
-      "start_url": "../metaverse_modules/spawner/",
-      "components": [
-        {
-          "key": "appUrls",
-          "value": [
-            "https://webaverse.github.io/ghost/",
-            "https://webaverse.github.io/silkworm-biter/",
-            "https://webaverse.github.io/silkworm-bloater/",
-            "https://webaverse.github.io/silkworm-queen/",
-            "https://webaverse.github.io/silkworm-runner/",
-            "https://webaverse.github.io/silkworm-slasher/"
-          ]
-        }
-      ]
+      "start_url": "../metaverse_modules/land/"
     }
   ]
 }
