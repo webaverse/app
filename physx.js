@@ -2267,7 +2267,9 @@ const physxWorker = (() => {
       animationIndex,
       t,
     )
-    debugger
+    // debugger
+
+    let value0;
 
     let headMain = outputBufferOffsetMain / Float32Array.BYTES_PER_ELEMENT;
     let tailMain = headMain + 1;
@@ -2289,7 +2291,19 @@ const physxWorker = (() => {
     tail0 = head0 + 1;
     const z0 = moduleInstance.HEAPF32[head0];
 
+    if (valueSize0 === 3) {
+      value0 = [x0, y0, z0];
+    } else if (valueSize0 === 4) {
+      head0 = tail0;
+      tail0 = head0 + 1;
+      const w0 = moduleInstance.HEAPF32[head0];
+
+      value0 = [x0, y0, z0, w0];
+    }
+
     //
+
+    let value1;
 
     headMain = tailMain;
     tailMain = headMain + 1;
@@ -2311,11 +2325,21 @@ const physxWorker = (() => {
     tail1 = head1 + 1;
     const z1 = moduleInstance.HEAPF32[head1];
 
-    // 
+    if (valueSize1 === 3) {
+      value1 = [x1, y1, z1];
+    } else if (valueSize1 === 4) {
+      head1 = tail1;
+      tail1 = head1 + 1;
+      const w1 = moduleInstance.HEAPF32[head1];
+
+      value1 = [x1, y1, z1, w1];
+    }
+
+    //
 
     return [
-      [x0, y0, z0],
-      [x1, y1, z1],
+      value0,
+      value1,
     ]
   }
 
