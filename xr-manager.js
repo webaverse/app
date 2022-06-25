@@ -189,20 +189,25 @@ class XRManager extends EventTarget {
 
     if(localPlayer.avatar && session) {
       const xrCamera = renderer.xr.getCamera(camera);
-      let newVec = new THREE.Vector3();
-
+      
       localMatrix.copy(xrCamera.matrix)
         .premultiply(dolly.matrix)
         .decompose(localVector, localQuaternion, localVector2);
 
-      //newVec.set(localPlayer.position.x, localVector.y, localPlayer.position.z);
-      //console.log(localPlayer.position.y, xrCamera.position.y);
-      
-      localPlayer.avatar.setLocalAvatarPose([
-        [localVector.toArray(), localQuaternion.toArray()],
-        [leftGamepadPosition, leftGamepadQuaternion, leftGamepadPointer, leftGamepadGrip, leftGamepadEnabled],
-        [rightGamepadPosition, rightGamepadQuaternion, rightGamepadPointer, rightGamepadGrip, rightGamepadEnabled],
-      ]);
+      localPlayer.avatar.inputs.hmd.position.copy(localVector);
+      localPlayer.avatar.inputs.hmd.quaternion.copy(localQuaternion);
+
+      localPlayer.avatar.inputs.leftGamepad.position.fromArray(leftGamepadPosition);
+      localPlayer.avatar.inputs.leftGamepad.quaternion.fromArray(leftGamepadQuaternion);
+      localPlayer.avatar.inputs.leftGamepad.pointer = leftGamepadPointer;
+      localPlayer.avatar.inputs.leftGamepad.grip = leftGamepadGrip;
+      localPlayer.avatar.inputs.leftGamepad.enabled = leftGamepadEnabled;
+
+      localPlayer.avatar.inputs.rightGamepad.position.fromArray(rightGamepadPosition);
+      localPlayer.avatar.inputs.rightGamepad.quaternion.fromArray(rightGamepadQuaternion);
+      localPlayer.avatar.inputs.rightGamepad.pointer = rightGamepadPointer;
+      localPlayer.avatar.inputs.rightGamepad.grip = rightGamepadGrip;
+      localPlayer.avatar.inputs.rightGamepad.enabled = rightGamepadEnabled;
     }
   }
 };

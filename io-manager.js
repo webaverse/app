@@ -228,6 +228,12 @@ const _updateIo = timeDiff => {
           }
           game.selectLoadout(ioManager.currentLoadout);
         };
+
+        for (let i = 0; i < buttonsSrc.length; i++) { // Gamepad mapping debug
+          if(buttonsSrc[i].value > 0.5) {
+            console.log(i, handedness);
+          }
+        }
   
         ioManager.lastAxes[index][0] = axes[0];
         ioManager.lastAxes[index][1] = axes[1];
@@ -249,6 +255,7 @@ const _updateIo = timeDiff => {
       }
 
       if (_inMovement() && physicsManager.getPhysicsEnabled()) {
+        // Joystick VR movement
         if(keysDirection.length() > 0) {
           keysDirection.applyQuaternion(camera.quaternion);
           keysDirection.y = 0;
@@ -270,6 +277,7 @@ const _updateIo = timeDiff => {
           .decompose(dolly.position, dolly.quaternion, dolly.scale);    
       }
       else {
+        // Free VR movement
         localMatrix.copy(xrCamera.matrix)
           .premultiply(dolly.matrix)
           .decompose(localVector, localQuaternion, localVector2);
