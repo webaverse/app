@@ -10,7 +10,7 @@ const localEuler = new THREE.Euler();
 const localMatrix = new THREE.Matrix4();
 
 export default (app, component) => {
-  const {useFrame, useCleanup, useLocalPlayer, useActivate} = metaversefile;
+  const {useFrame, useCleanup, useActivate} = metaversefile;
 
   let petSpec = null;
   let petMixer = null;
@@ -18,7 +18,7 @@ export default (app, component) => {
   let walkAction = null;
   let runAction = null;
   let rootBone = null;
-  let localPlayer;
+  let player;
 
   const petComponent = component;
   const _makePetMixer = () => {
@@ -65,12 +65,12 @@ export default (app, component) => {
     } else {
       console.warn('unhandled wear on pet');
     }
-    localPlayer = null;
+    player = null;
   };
 
   app.addEventListener('wearupdate', e => {
     if (e.wear) {
-      localPlayer = metaversefile.getPlayerByInstanceId(app.instanceId);
+      player = metaversefile.getPlayerByInstanceId(app.instanceId);
 
       if (app.glb) {
         const {animations} = app.glb;
@@ -97,7 +97,7 @@ export default (app, component) => {
   const smoothVelocity = new THREE.Vector3();
   const lastLookQuaternion = new THREE.Quaternion();
   const _getAppDistance = () => {
-    const position = localVector.copy(localPlayer.position);
+    const position = localVector.copy(player.position);
     position.y = 0;
     const distance = app.position.distanceTo(position);
     return distance;
@@ -113,14 +113,14 @@ export default (app, component) => {
           rootBone.updateMatrixWorld();
         }
         if (petMixer) { // animated pet
-          if (petSpec && localPlayer) { // activated pet
+          if (petSpec && player) { // activated pet
             const speed = 0.0014;
 
             const distance = _getAppDistance();
             const moveDelta = localVector;
             moveDelta.setScalar(0);
             if (_isFar(distance)) { // handle rounding errors
-              const position = localPlayer.position.clone();
+              const position = player.position.clone();
               position.y = 0;
               const direction = position.clone()
                 .sub(app.position)
@@ -175,7 +175,7 @@ export default (app, component) => {
 
     const _updateLook = () => {
       const lookComponent = app.getComponent('look');
-      if (lookComponent && app.glb && localPlayer) {
+      if (lookComponent && app.glb && player) {
         let skinnedMesh = null;
         app.glb.scene.traverse(o => {
           if (skinnedMesh === null && o.isSkinnedMesh) {
@@ -184,7 +184,7 @@ export default (app, component) => {
         });
         if (skinnedMesh) {
           const bone = skinnedMesh.skeleton.bones.find(bone => bone.name === lookComponent.rootBone);
-          if (bone && localPlayer) {
+          if (bone && player) {
             rootBone = bone;
             if (!bone.originalQuaternion) {
               bone.originalQuaternion = bone.quaternion.clone();
@@ -194,7 +194,7 @@ export default (app, component) => {
             }
 
             if (!bone.quaternion.equals(lastLookQuaternion)) {
-              const {position, quaternion} = localPlayer;
+              const {position, quaternion} = player;
               localQuaternion2.setFromRotationMatrix(
                 localMatrix.lookAt(
                   position,
