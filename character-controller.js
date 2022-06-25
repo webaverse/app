@@ -568,13 +568,6 @@ class Player extends THREE.Object3D {
     } else {
       this.handleWearUpdate(app, false, -1, true, true)
     }
-
-    app.dispatchEvent({
-      type: "resettransform",
-      app: app,
-      player: this,
-    });
-
   }
   isBound() {
     return !!this.playersArray;

@@ -10,7 +10,7 @@ const localEuler = new THREE.Euler();
 const localMatrix = new THREE.Matrix4();
 
 export default (app, component) => {
-  const {useFrame, useCleanup, useLocalPlayer, useRemotePlayers, useActivate} = metaversefile;
+  const {useFrame, useCleanup, useLocalPlayer, useActivate} = metaversefile;
 
   let petSpec = null;
   let petMixer = null;

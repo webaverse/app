@@ -203,25 +203,6 @@ export default (app, component) => {
     }
   };
 
-  const resettransform = e => {
-    if (e.player) {
-      player = e.player;
-      const avatarHeight = e.player.avatar ? e.player.avatar.height : 0;
-      e.app.position
-        .copy(e.player.position)
-        .add(
-          localVector
-            .set(0, -avatarHeight + 0.5, -1.0)
-            .applyQuaternion(e.player.quaternion),
-        );
-      e.app.quaternion.identity();
-      e.app.scale.set(1, 1, 1);
-      e.app.updateMatrixWorld();
-    }
-  };
-
-  app.addEventListener('resettransform', resettransform);
-
   const _copyBoneAttachment = spec => {
     const {boneAttachment = 'hips', position, quaternion, scale} = spec;
     const boneAttachments = Array.isArray(boneAttachment) ? boneAttachment : [boneAttachment];
@@ -373,7 +354,6 @@ export default (app, component) => {
     remove() {
       // console.log('wear component remove');
       app.removeEventListener('wearupdate', wearupdate);
-      app.removeEventListener('resettransform', resettransform);
       metaversefile.clearFrame(frame);
 
       _unwear();

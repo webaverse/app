@@ -1,5 +1,6 @@
 /* this is the character physics implementation.
 it sets up and ticks the physics loop for our local character */
+
 import * as THREE from 'three';
 // import cameraManager from './camera-manager.js';
 // import {getPlayerCrouchFactor} from './character-controller.js';
@@ -174,7 +175,7 @@ class CharacterPhysics {
           }
         }
       } else {
-        // Vehicle code
+        //Outdated vehicle code
         this.velocity.y = 0;
 
         const sitAction = this.player.getAction('sit');
@@ -184,8 +185,7 @@ class CharacterPhysics {
 
         const sitComponent = controlledApp.getComponent('sit');
 
-        // NOTE: This works, but is probably not very performant for more than a few riders
-        // TODO: Optimize this
+        // TODO: Optimize this. Probably not very performant for more than a few riders
         let rideMesh = null;
         controlledApp.glb.scene.traverse(o => {
           if (rideMesh === null && o.isSkinnedMesh) {
@@ -194,7 +194,6 @@ class CharacterPhysics {
         });
 
         // NOTE: We had a problem with sending the entire bone in the message buffer, so we're just sending the bone name
-        // Make sure this is compatible with all metaversefiles
         const sitPos = sitComponent.sitBone ? rideMesh.skeleton.bones.find(bone => bone.name === sitComponent.sitBone) : controlledApp;
 
         const {
