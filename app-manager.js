@@ -6,13 +6,12 @@ each "app owner" (world, local player, remote players) has an app manager
 import * as THREE from "three";
 import * as Z from "zjs";
 
-import { makePromise, getRandomString } from "./util.js";
+import {makePromise, getRandomString} from "./util.js";
 import physicsManager from "./physics-manager.js";
-import { getLocalPlayer } from './players.js';
+import {getLocalPlayer} from './players.js';
 import metaversefile from "metaversefile";
 import * as metaverseModules from "./metaverse-modules.js";
-import { jsonParse } from "./util.js";
-import { applyPlayerToAvatar } from './player-avatar-binding.js';
+import {jsonParse} from "./util.js";
 
 const localVector = new THREE.Vector3();
 const localVector2 = new THREE.Vector3();
