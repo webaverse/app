@@ -549,6 +549,11 @@ export const _createAnimation = avatar => {
       52 mixamorigLeftToeBase.quaternion
     */
 
+    physx.physxWorker.createAnimationMixerPhysics(
+      physx.physics,
+      0,
+    );
+
     createdWasmAnimations = true;
   }
 

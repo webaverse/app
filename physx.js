@@ -2180,6 +2180,36 @@ const physxWorker = (() => {
     }
   }
 
+  w.createAnimationMixerPhysics = (physics, avatarId) => {
+    return moduleInstance._createAnimationMixerPhysics(
+      physics, avatarId,
+    )
+  }
+  w.updateAnimationMixerPhysics = (physics, timeS) => {
+    const outputBufferOffsetMain = moduleInstance._updateAnimationMixerPhysics(
+      physics,
+      timeS,
+    )
+    const values = [];
+    const headMain = outputBufferOffsetMain / Float32Array.BYTES_PER_ELEMENT;
+    for (let i = 0; i < 53; i++) {
+      let value;
+      const outputBufferOffset = moduleInstance.HEAPU32[headMain + i];
+      const head = outputBufferOffset / Float32Array.BYTES_PER_ELEMENT;
+      const valueSize = moduleInstance.HEAPF32[head];
+      const x = moduleInstance.HEAPF32[head + 1];
+      const y = moduleInstance.HEAPF32[head + 2];
+      const z = moduleInstance.HEAPF32[head + 3];
+      if (valueSize === 3) {
+        value = [x, y, z];
+      } else if (valueSize === 4) {
+        const w = moduleInstance.HEAPF32[head + 4];
+        value = [x, y, z, w];
+      }
+      values.push(value);
+    }
+    return values;
+  }
   w.addAnimationMappingPhysics = (physics, isPosition, index, isFirstBone, isLastBone) => {
     moduleInstance._addAnimationMappingPhysics(
       physics, isPosition, index, isFirstBone, isLastBone
