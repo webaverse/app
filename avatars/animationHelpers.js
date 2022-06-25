@@ -1227,13 +1227,13 @@ export const _applyAnimation = (avatar, now, moveFactors) => {
       lerpFn,
     } = spec;
 
-    if (avatar.activateTime > 0) {
-      const localPlayer = metaversefile.useLocalPlayer();
-
+    const localPlayer = metaversefile.useLocalPlayer();
+    if (localPlayer.hasAction('activate') && avatar.activateTime > 0) {
       let defaultAnimation = 'grab_forward';
 
       const activateAction = localPlayer.getAction('activate');
-      if (activateAction && activateAction.animationName) {
+
+      if (activateAction.animationName) {
         defaultAnimation = activateAction.animationName;
       }
 
