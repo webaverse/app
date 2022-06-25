@@ -39,7 +39,6 @@ const CharacterHup = function(props) {
         // console.log('got diorama', diorama);
         diorama.resetCanvases();
         diorama.addCanvas(canvas);
-        console.log('Using diorama for player', player)
       } else {
         avatar = player.avatar.model;
         diorama = dioramaManager.createPlayerDiorama({
@@ -83,7 +82,7 @@ const CharacterHup = function(props) {
   useEffect(() => {
     // console.log('effect 3', hup);
     function voicestart(e) {
-      console.log('voice start', hup.fullText, e.data, e.data.fullText);
+      // console.log('voice start', hup.fullText, e.data, e.data.fullText);
       setLocalOpen(true);
       setFullText(e.data.fullText);
     }
@@ -129,7 +128,7 @@ const CharacterHup = function(props) {
       <div className={styles.name}>
         <div className={styles.bar} />
         <h1>{hup.playerName}</h1>
-        <h2>Lv. 11</h2>
+        <h2>Lv. 9</h2>
         {/* <div className={styles.stats}>
           <div className={styles.stat}>
             <h3>HP</h3>
@@ -159,7 +158,6 @@ export default function CharacterHups({
       // console.log('new hups', newHups);
       setHups(newHups);
     }
-
 
     function hupremove(e) {
       const oldHup = e.data.hup;

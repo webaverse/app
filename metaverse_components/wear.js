@@ -54,11 +54,7 @@ export default (app, component) => {
           if (wearSpec.skinnedMesh) {
             let skinnedMesh = null;
             app.glb.scene.traverse(o => {
-              if (
-                skinnedMesh === null &&
-                o.isSkinnedMesh &&
-                o.name === wearSpec.skinnedMesh
-              ) {
+              if (skinnedMesh === null && o.isSkinnedMesh && o.name === wearSpec.skinnedMesh) {
                 skinnedMesh = o;
               }
             });
@@ -132,9 +128,7 @@ export default (app, component) => {
                 const humanBones = [];
                 for (const k in boneNodeMapping) {
                   const boneName = boneNodeMapping[k];
-                  const boneNodeIndex = nodes.findIndex(
-                    node => node.name === boneName,
-                  );
+                  const boneNodeIndex = nodes.findIndex(node => node.name === boneName);
                   if (boneNodeIndex !== -1) {
                     const boneSpec = {
                       bone: k,
@@ -143,13 +137,7 @@ export default (app, component) => {
                     };
                     humanBones.push(boneSpec);
                   } else {
-                    console.log(
-                      'failed to find bone',
-                      boneNodeMapping,
-                      k,
-                      nodes,
-                      boneNodeIndex,
-                    );
+                    console.log('failed to find bone', boneNodeMapping, k, nodes, boneNodeIndex);
                   }
                 }
                 if (!app.glb.parser.json.extensions) {
@@ -279,9 +267,7 @@ export default (app, component) => {
           ? animations.find(a => a.name === appAimAction.appAnimation)
           : null;
         if (appAnimation && !appAimAnimationMixers) {
-          const clip = animations.find(
-            a => a.name === appAimAction.appAnimation,
-          );
+          const clip = animations.find(a => a.name === appAimAction.appAnimation);
           if (clip) {
             appAimAnimationMixers = [];
             app.glb.scene.traverse(o => {

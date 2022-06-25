@@ -218,7 +218,6 @@ class CharacterSfx {
       }
       
     };
-
     _handleStep();
 
     const _handleNarutoRun = () => {
