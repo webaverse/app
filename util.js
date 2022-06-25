@@ -943,16 +943,6 @@ export const handleDropJsonItem = async (item) => {
   }
   return null;
 };
-
-export const handleBlobUpload = async (name, blob, progress) => {
-  const formData = new FormData();
-  formData.append(name, blob, name);
-  const hashes = await doUpload(`https://ipfs.webaverse.com/`, formData, progress);
-
-  const rootDirectoryHash = hashes.length > 0 ? hashes[0].hash : null;
-  return `https://ipfs.webaverse.com/ipfs/${rootDirectoryHash}/`;
-};
-
 export const handleUpload = async (item, { onProgress = null } = {}) => {
   console.log('uploading...', item);
 
@@ -1177,7 +1167,6 @@ export const selectVoice = (voicer) => {
     return 1 - nonce / (maxNonce + 1);
   });
   const selectionIndex = weightedRandom(weights);
-  if (voicer.length === 0) return console.warn("Couldn't play voice, voicer is empty")
   const voiceSpec = voicer[selectionIndex];
   voiceSpec.nonce++;
   while (voicer.every((voice) => voice.nonce > 0)) {
