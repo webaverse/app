@@ -95,15 +95,7 @@ class CharacterSfx {
       return;
     }
 
-    const actions = this.player.getActionsState();
-
-    //check current actions has sit action
-    let hasSitAction = false
-    for (const action of actions) { 
-      if (action.type === 'sit') {
-        hasSitAction = true
-      }
-    }
+    const hasSitAction = this.player.hasAction('sit');
 
     const timeSeconds = timestamp/1000;
     const currentSpeed = localVector.set(this.player.avatar.velocity.x, 0, this.player.avatar.velocity.z).length();
