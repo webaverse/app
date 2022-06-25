@@ -1,9 +1,9 @@
 /*
 this file is responsible for maintaining player state that is network-replicated.
 */
-import { WsAudioDecoder } from "wsrtc/ws-codec.js";
-import { ensureAudioContext, getAudioContext } from "wsrtc/ws-audio-context.js";
-import { getAudioDataBuffer } from "wsrtc/ws-util.js";
+import { WsAudioDecoder } from 'wsrtc/ws-codec.js';
+import { ensureAudioContext, getAudioContext } from 'wsrtc/ws-audio-context.js';
+import { getAudioDataBuffer } from 'wsrtc/ws-util.js';
 
 import * as THREE from 'three';
 import * as Z from 'zjs';
