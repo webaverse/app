@@ -5,7 +5,6 @@ import Avatar from '../avatars/avatars.js';
 import {loadAudioBuffer, makePromise, selectVoice} from '../util.js';
 import {chatTextSpeed} from '../constants.js';
 
-
 class VoicePack {
   constructor(files, audioBuffer) {
     this.syllableFiles = files.filter(({name}) => /\/[0-9]+\.wav$/.test(name));
@@ -29,6 +28,7 @@ class VoicePack {
       };
     });
   }
+
   static async load({
     audioUrl,
     indexUrl,
@@ -40,12 +40,12 @@ class VoicePack {
     ] = await Promise.all([
       (async () => {
         const res = await fetch(indexUrl);
-        let j = await res.json();
+        const j = await res.json();
         return j;
       })(),
       loadAudioBuffer(audioContext, audioUrl),
     ]);
-    
+
     const voicePack = new VoicePack(files, audioBuffer);
     return voicePack;
   }
@@ -70,20 +70,24 @@ class VoicePackVoicer {
     this.audioTimeout = null;
     this.endTimeout = null;
   }
+
   clearTimeouts() {
     clearTimeout(this.audioTimeout);
     this.audioTimeout = null;
     clearTimeout(this.endTimeout);
     this.endTimeout = null;
   }
+
   resetStart() {
     this.startTime = -1;
     this.charactersSinceStart = 0;
   }
+
   preloadMessage(text) {
     // voice pack does not need loading
     return text;
   }
+
   start(text) {
     this.clearTimeouts();
 
@@ -126,6 +130,7 @@ class VoicePackVoicer {
 
     return p;
   }
+
   stop() {
     this.clearTimeouts();
   }

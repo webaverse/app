@@ -112,7 +112,7 @@ class SSAOPass extends Pass {
 			vertexShader: SSAOShader.vertexShader,
 			fragmentShader: SSAOShader.fragmentShader,
 			blending: NoBlending,
-			encoding: sRGBEncoding,
+			// encoding: sRGBEncoding, // commented out, otherwise throws warning that it doesn't expect
 		} );
 
 		this.ssaoMaterial.uniforms[ 'tDiffuse' ].value = this.beautyRenderTarget.texture;

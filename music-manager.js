@@ -94,8 +94,7 @@ const musicSpecs = [
   },
 ];
 class MusicManager {
-  constructor(audioContext) {
-    this.audioContext = audioContext;
+  constructor(audioContext = WSRTC.getAudioContext()) {
     this.musics = musicSpecs.map(spec => new Music(spec, audioContext));
     this.loadPromise = Promise.all(this.musics.map(music => music.waitForLoad()))
       .then(() => {});
@@ -142,5 +141,5 @@ class MusicManager {
     return this.loadPromise;
   }
 }
-const musicManager = new MusicManager(WSRTC.getAudioContext());
+const musicManager = new MusicManager();
 export default musicManager;

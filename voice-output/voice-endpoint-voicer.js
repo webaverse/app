@@ -17,6 +17,7 @@ class PreloadMessage {
     this.isPreloadMessage = true;
     this.loadPromise = VoiceEndpointVoicer.loadAudioBuffer(this.voiceEndpointUrl, this.text);
   }
+
   waitForLoad() {
     return this.loadPromise;
   }
@@ -32,18 +33,21 @@ class VoiceEndpointVoicer {
     this.cancel = null;
     this.endPromise = null;
   }
+
   static preloadMessage(voiceEndpointUrl, text) {
     return new PreloadMessage(voiceEndpointUrl, text);
   }
+
   preloadMessage(text) {
     return VoiceEndpointVoicer.preloadMessage(this.voiceEndpoint.url.toString(), text);
   }
+
   static async loadAudioBuffer(voiceEndpointUrl, text) {
     // console.log('load audio buffer', voiceEndpointUrl, text);
     try {
       const u = new URL(voiceEndpointUrl);
       u.searchParams.set('s', text);
-      const res = await fetch(u/*, {
+      const res = await fetch(u, /*, {
         mode: 'cors',
       } */);
       const arrayBuffer = await res.arrayBuffer();
@@ -51,11 +55,11 @@ class VoiceEndpointVoicer {
       const audioContext = Avatar.getAudioContext();
       const audioBuffer = await audioContext.decodeAudioData(arrayBuffer);
       return audioBuffer;
-    } catch(err) {
-      console.warn('epic fail', err);
-      debugger;
+    } catch (err) {
+      throw new Error('Failed to load the audio buffer', err);
     }
   }
+
   /* async loadAudioBuffer(text) {
     return VoiceEndpointVoicer.loadAudioBuffer(this.voiceEndpoint.url, text);
   } */
@@ -98,40 +102,48 @@ class VoiceEndpointVoicer {
           console.log('bail on audio buffer');
           return;
         }
+        try {
+          const audioContext = Avatar.getAudioContext();
+          const audioBufferSourceNode = audioContext.createBufferSource();
+          audioBufferSourceNode.buffer = audioBuffer;
+          const ended = () => {
+            this.cancel = null;
+            this.running = false;
 
-        const audioContext = Avatar.getAudioContext();
-        const audioBufferSourceNode = audioContext.createBufferSource();
-        audioBufferSourceNode.buffer = audioBuffer;
-        const ended = () => {
-          this.cancel = null;
-          this.running = false;
-
-          if (this.queue.length > 0) {
-            const text = this.queue.shift();
-            this.start(text);
-          } else {
-            _next();
+            if (this.queue.length > 0) {
+              const text = this.queue.shift();
+              this.start(text);
+            } else {
+              _next();
+            }
+          };
+          audioBufferSourceNode.addEventListener('ended', ended, {once: true});
+          if (!this.player.avatar.audioWorker) {
+            this.player.avatar.setAudioEnabled(true);
           }
-        };
-        audioBufferSourceNode.addEventListener('ended', ended, {once: true});
-        if (!this.player.avatar.microphoneWorker) {
-          this.player.avatar.setAudioEnabled(true);
+          audioBufferSourceNode.connect(this.player.avatar.getAudioInput());
+          audioBufferSourceNode.start();
+
+          cancelFns.push(() => {
+            audioBufferSourceNode.removeEventListener('ended', ended);
+
+            audioBufferSourceNode.stop();
+            audioBufferSourceNode.disconnect();
+          });
+        } catch (error) {
+          console.log('Voice endpoint voicer error', error);
+          const {endPromise} = this;
+          this.stop();
+          this.endPromise = null;
+          endPromise.accept();
         }
-        audioBufferSourceNode.connect(this.player.avatar.getAudioInput());
-        audioBufferSourceNode.start();
-
-        cancelFns.push(() => {
-          audioBufferSourceNode.removeEventListener('ended', ended);
-
-          audioBufferSourceNode.stop();
-          audioBufferSourceNode.disconnect();
-        });
       })();
     } else {
       this.queue.push(text);
     }
     return this.endPromise;
   }
+
   stop() {
     // this.live = false;
     this.queue.length = 0;
@@ -142,7 +154,7 @@ class VoiceEndpointVoicer {
     this.running = false;
   }
 }
-const getVoiceEndpointUrl = (voiceId) => `${voiceEndpointBaseUrl}?voice=${encodeURIComponent(voiceId)}`;
+const getVoiceEndpointUrl = voiceId => `${voiceEndpointBaseUrl}?voice=${encodeURIComponent(voiceId)}`;
 
 export {
   VoiceEndpoint,

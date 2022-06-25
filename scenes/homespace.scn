@@ -1,0 +1,185 @@
+{
+  "objects": [
+  {
+    "type": "application/spawnpoint",
+    "content": {
+      "position": [0, 1, 0],
+      "quaternion": [0, 0, 0, 1]
+    }
+  },
+        {
+            "type": "application/light",
+            "content": {
+                "lightType": "ambient",
+                "args": [
+                    [
+                        245,
+                        245,
+                        222
+                    ],
+                    1
+                ]
+            }
+        },
+        {
+            "type": "application/light",
+            "content": {
+                "lightType": "directional",
+                "args": [
+                    [
+                        255,
+                        255,
+                        255
+                    ],
+                    0.7
+                ],
+                "position": [
+                    22,
+                    177,
+                    360
+                ],
+                "shadow": [
+                    150,
+                    5120,
+                    0,
+                    10000,
+                    -0.0001
+                ]
+            }
+        },
+        {
+            "type": "application/wind",
+            "content": {
+                "windType": "directional",
+                "direction": [
+                    0.5,
+                    0,
+                    0.2
+                ],
+                "windForce": 0.5,
+                "noiseScale": 1,
+                "windFrequency": 1
+            }
+        },
+        {
+            "type": "application/rendersettings",
+            "content": {
+                "fog": {
+                    "fogType": "exp",
+                    "args": [
+                        [
+                            78,
+                            87,
+                            72
+                        ],
+                        0.01
+                    ]
+                },
+                "hdr": {
+                    "adaptive": true,
+                    "resolution": 256,
+                    "adaptionRate": 100,
+                    "maxLuminance": 10,
+                    "minLuminance": 0,
+                    "middleGrey": 3
+                },
+                "ssao": {
+                    "kernelSize": 512,
+                    "kernelRadius": 16,
+                    "minDistance": 0.001,
+                    "maxDistance": 5
+                },
+                "bloom": {
+                    "strength": 0.5,
+                    "radius": 0.5,
+                    "threshold": 1.0
+                },
+                "dof": {
+                    "focus": 6,
+                    "aperture": 0.0001,
+                    "maxblur": 0.01
+                }
+            }
+        },
+    {
+      "position": [
+        0,
+        -100,
+        0
+      ],
+      "start_url": "https://webaverse.github.io/street-base/"
+    },
+    {
+      "position": [
+        0,
+        -100,
+        0
+      ],
+      "start_url": "https://webaverse.github.io/street/index.js"
+    },
+    {
+      "position": [
+        0,
+        0,
+        0
+      ],
+      "start_url": "https://webaverse.github.io/skybox-anime/"
+    },
+    {
+      "position": [
+        0,
+        0,
+        0
+      ],
+      "quaternion": [
+        0,
+        0.7071067811865475,
+        0,
+        0.7071067811865475
+      ],
+      "start_url": "https://webaverse.github.io/homespace_new/"
+    },
+        {
+      "position": [
+        -4,
+        0,
+        0
+      ],
+      "quaternion": [
+        0,
+        0,
+        0,
+        1
+      ],
+      "start_url": "https://webaverse.github.io/hovercraft/"
+    },
+        {
+      "position": [
+        4,
+        0,
+        0
+      ],
+      "quaternion": [
+        0,
+        0.7071067811865475,
+        0,
+        0.7071067811865475
+      ],
+      "start_url": "https://webaverse.github.io/fox/"
+    },
+        {
+      "position": [
+        4,
+        0.5,
+        -2
+      ],
+      "quaternion": [
+        0,
+        0,
+        0,
+        1
+      ],
+      "start_url": "https://webaverse.github.io/silsword/"
+    }
+  ]
+}

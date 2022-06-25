@@ -98,7 +98,7 @@ class VoiceInput extends EventTarget {
         .replace(/celia|sylvia|sileo|cilia|tilia|zilia/gi, 'Scillia'); */
       console.log('speech:', [final_transcript]);
       if (final_transcript) {
-        chatManager.addMessage(final_transcript, {
+        chatManager.addLocalPlayerMessage(final_transcript, {
           timeout: 3000,
         });
       }

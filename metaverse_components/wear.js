@@ -2,10 +2,11 @@ import * as THREE from 'three';
 import metaversefile from 'metaversefile';
 import Avatar from '../avatars/avatars.js';
 // import {world} from '../world.js';
-import physicsManager from '../physics-manager.js';
+// import physicsManager from '../physics-manager.js';
 // import {glowMaterial} from '../shaders.js';
 // import easing from '../easing.js';
 import npcManager from '../npc-manager.js';
+// import { AppManager } from "../app-manager.js";
 // import {rarityColors} from '../constants.js';
 
 const localVector = new THREE.Vector3();
@@ -21,47 +22,53 @@ const identityVector = new THREE.Vector3();
 
 export default (app, component) => {
   const {useActivate} = metaversefile;
-  
+
   let wearSpec = null;
   let modelBones = null;
   let appAimAnimationMixers = null;
   let player = null;
 
   const initialScale = app.scale.clone();
-
-  // const localPlayer = metaversefile.useLocalPlayer();
+  // const initialQuaternion = new THREE.Quaternion();
 
   const wearupdate = e => {
-    if (e.wear) {
+    if (e.player) {
       player = e.player;
-
+    } else {
+      throw new Error('Trying to call wearupdate, but no player', e);
+    }
+    if (e.wear) {
       wearSpec = app.getComponent('wear');
       initialScale.copy(app.scale);
       // console.log('wear activate', app, wearSpec, e);
       if (wearSpec) {
         // const {app, wearSpec} = e.data;
         // console.log('got wear spec', [wearSpec.skinnedMesh, app.glb]);
-        
-        const physicsObjects = app.getPhysicsObjects();
-        for (const physicsObject of physicsObjects) {
-          physicsManager.disableActor(physicsObject);
-        }
-        
+
+        // const physicsObjects = app.getPhysicsObjects();
+        // for (const physicsObject of physicsObjects) {
+        //   physicsManager.disableActor(physicsObject);
+        // }
+
         if (app.glb) {
           if (wearSpec.skinnedMesh) {
             let skinnedMesh = null;
             app.glb.scene.traverse(o => {
-              if (skinnedMesh === null && o.isSkinnedMesh && o.name === wearSpec.skinnedMesh) {
+              if (
+                skinnedMesh === null &&
+                o.isSkinnedMesh &&
+                o.name === wearSpec.skinnedMesh
+              ) {
                 skinnedMesh = o;
               }
             });
             if (skinnedMesh && player.avatar) {
               app.position.set(0, 0, 0);
-              app.quaternion.identity(); //.setFromAxisAngle(new THREE.Vector3(0, 1, 0), Math.PI);
-              app.scale.copy(initialScale)//.multiplyScalar(wearableScale);
+              app.quaternion.identity(); // .setFromAxisAngle(new THREE.Vector3(0, 1, 0), Math.PI);
+              app.scale.copy(initialScale);// .multiplyScalar(wearableScale);
               app.updateMatrix();
               app.matrixWorld.copy(app.matrix);
-              
+
               // this adds pseudo-VRM onto our GLB assuming a mixamo rig
               // used for the glb wearable skinning feature
               const _mixamoRigToFakeVRMHack = () => {
@@ -125,7 +132,9 @@ export default (app, component) => {
                 const humanBones = [];
                 for (const k in boneNodeMapping) {
                   const boneName = boneNodeMapping[k];
-                  const boneNodeIndex = nodes.findIndex(node => node.name === boneName);
+                  const boneNodeIndex = nodes.findIndex(
+                    node => node.name === boneName,
+                  );
                   if (boneNodeIndex !== -1) {
                     const boneSpec = {
                       bone: k,
@@ -134,7 +143,13 @@ export default (app, component) => {
                     };
                     humanBones.push(boneSpec);
                   } else {
-                    console.log('failed to find bone', boneNodeMapping, k, nodes, boneNodeIndex);
+                    console.log(
+                      'failed to find bone',
+                      boneNodeMapping,
+                      k,
+                      nodes,
+                      boneNodeIndex,
+                    );
                   }
                 }
                 if (!app.glb.parser.json.extensions) {
@@ -147,18 +162,17 @@ export default (app, component) => {
                 };
               };
               _mixamoRigToFakeVRMHack();
+              _mixamoRigToFakeVRMHack();
               const bindSpec = Avatar.bindAvatar(app.glb);
-  
+
               // skeleton = bindSpec.skeleton;
               modelBones = bindSpec.modelBones;
             }
           }
-          
-          // app.wear();
         }
       }
     } else {
-      _unwear();
+      _unwear(e);
     }
   };
   app.addEventListener('wearupdate', wearupdate);
@@ -178,20 +192,35 @@ export default (app, component) => {
     }
   });
 
-  const _unwear = () => {
+  const _unwear = e => {
     if (wearSpec) {
-      const physicsObjects = app.getPhysicsObjects();
-      for (const physicsObject of physicsObjects) {
-        physicsManager.enableActor(physicsObject);
-      }
-
-      app.scale.copy(initialScale);
-      app.updateMatrixWorld();
-
+      // const physicsObjects = app.getPhysicsObjects();
+      // for (const physicsObject of physicsObjects) {
+      //   physicsManager.enableActor(physicsObject);
+      // }
       wearSpec = null;
       modelBones = null;
     }
   };
+
+  const resettransform = e => {
+    if (e.player) {
+      player = e.player;
+      const avatarHeight = e.player.avatar ? e.player.avatar.height : 0;
+      e.app.position
+        .copy(e.player.position)
+        .add(
+          localVector
+            .set(0, -avatarHeight + 0.5, -1.0)
+            .applyQuaternion(e.player.quaternion),
+        );
+      e.app.quaternion.identity();
+      e.app.scale.set(1, 1, 1);
+      e.app.updateMatrixWorld();
+    }
+  };
+
+  app.addEventListener('resettransform', resettransform);
 
   const _copyBoneAttachment = spec => {
     const {boneAttachment = 'hips', position, quaternion, scale} = spec;
@@ -239,7 +268,7 @@ export default (app, component) => {
         localVector2.copy(upVector).normalize(),
       ));
 
-      localMatrix.lookAt(eyeVector, targetVector, upVector)
+      localMatrix.lookAt(eyeVector, targetVector, upVector);
       app.quaternion.setFromRotationMatrix(localMatrix);
       app.quaternion.multiply(playerQuaternion);
     }
@@ -265,15 +294,19 @@ export default (app, component) => {
           .find(action => action.type === 'aim' && action.instanceId === instanceId);
         const {animations} = app.glb;
 
-        const appAnimation = appAimAction?.appAnimation ? animations.find(a => a.name === appAimAction.appAnimation) : null;
+        const appAnimation = appAimAction?.appAnimation
+          ? animations.find(a => a.name === appAimAction.appAnimation)
+          : null;
         if (appAnimation && !appAimAnimationMixers) {
-          const clip = animations.find(a => a.name === appAimAction.appAnimation);
+          const clip = animations.find(
+            a => a.name === appAimAction.appAnimation,
+          );
           if (clip) {
             appAimAnimationMixers = [];
             app.glb.scene.traverse(o => {
               if (o.isMesh) {
                 const mixer = new THREE.AnimationMixer(o);
-                
+
                 const action = mixer.clipAction(clip);
                 action.setLoop(0, 0);
                 action.play();
@@ -339,8 +372,8 @@ export default (app, component) => {
   return {
     remove() {
       // console.log('wear component remove');
-
       app.removeEventListener('wearupdate', wearupdate);
+      app.removeEventListener('resettransform', resettransform);
       metaversefile.clearFrame(frame);
 
       _unwear();
