@@ -26,11 +26,9 @@ w.free = address => {
 };
 
 let chunkSize = defaultChunkSize;
-// let inst = null;
 w.initialize = (newChunkSize, seed) => {
   Module._initialize(newChunkSize, seed);
   chunkSize = newChunkSize;
-  // inst = Module._createInstance();
 };
 
 w.createInstance = () => Module._createInstance();
