@@ -425,8 +425,7 @@ export const loadPromise = (async () => {
 export const _createAnimation = avatar => {
   if (!createdWasmAnimations) {
     for (const spec of avatar.animationMappings) {
-      physx.physxWorker.addAnimationMappingPhysics(
-        physx.physics,
+      physx.physxWorker.createAnimationMapping(
         spec.isPosition,
         spec.index,
         spec.isFirstBone,
@@ -436,13 +435,12 @@ export const _createAnimation = avatar => {
 
     // const walkForwardAnimation = animations.index['walking.fbx'];
     // // let index = 0;
-    // physx.physxWorker.addAnimationPhysics(physx.physics);
+    // physx.physxWorker.createAnimation();
     // for (const k in walkForwardAnimation.interpolants) {
     //   // console.log('idle', k);
     //   const interpolant = walkForwardAnimation.interpolants[k];
     //   // debugger
-    //   physx.physxWorker.addInterpolantPhysics( // todo: only need addInterpolantPhysics once globally
-    //     physx.physics,
+    //   physx.physxWorker.createInterpolant( // todo: only need createInterpolant once globally
     //     0,
     //     interpolant.parameterPositions,
     //     interpolant.sampleValues,
@@ -453,12 +451,11 @@ export const _createAnimation = avatar => {
 
     // const flyAnimation = animations.index['treading water.fbx'];
     // // let index = 0;
-    // physx.physxWorker.addAnimationPhysics(physx.physics);
+    // physx.physxWorker.createAnimation();
     // for (const k in flyAnimation.interpolants) {
     //   // debugger
     //   const interpolant = flyAnimation.interpolants[k];
-    //   physx.physxWorker.addInterpolantPhysics( // todo: only need addInterpolantPhysics once globally
-    //     physx.physics,
+    //   physx.physxWorker.createInterpolant( // todo: only need createInterpolant once globally
     //     1,
     //     interpolant.parameterPositions,
     //     interpolant.sampleValues,
@@ -473,7 +470,7 @@ export const _createAnimation = avatar => {
     for (const fileName in animations.index) {
       const animation = animations.index[fileName];
       animation.index = animationIndex;
-      physx.physxWorker.addAnimationPhysics(physx.physics);
+      physx.physxWorker.createAnimation();
       // for (const k in animation.interpolants) { // maybe wrong interpolant index order
       for (const spec of avatar.animationMappings) { // correct interpolant index order
         const {
@@ -482,8 +479,7 @@ export const _createAnimation = avatar => {
 
         // debugger
         const interpolant = animation.interpolants[k];
-        physx.physxWorker.addInterpolantPhysics( // todo: only need addInterpolantPhysics once globally
-          physx.physics,
+        physx.physxWorker.createInterpolant( // todo: only need createInterpolant once globally
           animation.index,
           interpolant.parameterPositions,
           interpolant.sampleValues,
@@ -549,8 +545,7 @@ export const _createAnimation = avatar => {
       52 mixamorigLeftToeBase.quaternion
     */
 
-    physx.physxWorker.createAnimationMixerPhysics(
-      physx.physics,
+    physx.physxWorker.createAnimationMixer(
       0,
     );
 

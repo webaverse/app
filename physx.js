@@ -2180,14 +2180,15 @@ const physxWorker = (() => {
     }
   }
 
-  w.createAnimationMixerPhysics = (physics, avatarId) => {
-    return moduleInstance._createAnimationMixerPhysics(
-      physics, avatarId,
+  // AnimationSystem
+
+  w.createAnimationMixer = (avatarId) => {
+    return moduleInstance._createAnimationMixer(
+      avatarId,
     )
   }
-  w.updateAnimationMixerPhysics = (physics, timeS) => {
-    const outputBufferOffsetMain = moduleInstance._updateAnimationMixerPhysics(
-      physics,
+  w.updateAnimationMixer = (timeS) => {
+    const outputBufferOffsetMain = moduleInstance._updateAnimationMixer(
       timeS,
     )
     const values = [];
@@ -2210,23 +2211,21 @@ const physxWorker = (() => {
     }
     return values;
   }
-  w.addAnimationMappingPhysics = (physics, isPosition, index, isFirstBone, isLastBone) => {
-    moduleInstance._addAnimationMappingPhysics(
-      physics, isPosition, index, isFirstBone, isLastBone
+  w.createAnimationMapping = (isPosition, index, isFirstBone, isLastBone) => {
+    moduleInstance._createAnimationMapping(
+      isPosition, index, isFirstBone, isLastBone
     )
   }
-  // w.createAnimationMixerPhysics = (physics) => {
-  //   const pointer = moduleInstance._createAnimationMixerPhysics(
-  //     physics,
+  // w.createAnimationMixer = () => {
+  //   const pointer = moduleInstance._createAnimationMixer(
   //   )
   //   return pointer;
   // }
-  w.addAnimationPhysics = (physics) => {
-    moduleInstance._addAnimationPhysics(
-      physics,
+  w.createAnimation = () => {
+    moduleInstance._createAnimation(
     )
   }
-  w.addInterpolantPhysics = (physics, animationIndex, parameterPositions, sampleValues, valueSize) => {
+  w.createInterpolant = (animationIndex, parameterPositions, sampleValues, valueSize) => {
     const allocator = new Allocator(moduleInstance);
 
     if (valueSize === 3) {
@@ -2243,8 +2242,7 @@ const physxWorker = (() => {
     const sampleValuesTypedArray = allocator.alloc(Float32Array, sampleValues.length);
     sampleValuesTypedArray.set(sampleValues);
 
-    moduleInstance._addInterpolantPhysics(
-      physics,
+    moduleInstance._createInterpolant(
       animationIndex,
       parameterPositions.length,
       parameterPositionsTypedArray.byteOffset,
@@ -2255,9 +2253,8 @@ const physxWorker = (() => {
 
     // allocator.freeAll(); // can't free sampleValuesTypedArray, need persist in wasm for later use.
   }
-  w.evaluateInterpolantPhysics = (physics, animationIndex, interpolantIndex, t) => {
-    const outputBufferOffset = moduleInstance._evaluateInterpolantPhysics(
-      physics,
+  w.evaluateInterpolant = (animationIndex, interpolantIndex, t) => {
+    const outputBufferOffset = moduleInstance._evaluateInterpolant(
       animationIndex,
       interpolantIndex,
       t,
@@ -2291,9 +2288,8 @@ const physxWorker = (() => {
       debugger
     }
   }
-  w.getAnimationValuesPhysics = (physics, animationIndex, t) => {
-    const outputBufferOffsetMain = moduleInstance._getAnimationValuesPhysics(
-      physics,
+  w.getAnimationValues = (animationIndex, t) => {
+    const outputBufferOffsetMain = moduleInstance._getAnimationValues(
       animationIndex,
       t,
     )
@@ -2317,6 +2313,8 @@ const physxWorker = (() => {
     }
     return values;
   }
+
+  // End AnimationSystem
 
   return w;
 })()

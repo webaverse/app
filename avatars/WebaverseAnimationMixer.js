@@ -97,10 +97,10 @@ class WebaverseAnimationMixer extends EventDispatcher {
   }
 
   update(timeS, animTree) {
-    // const values = window.physx.physxWorker.getAnimationValuesPhysics(window.physx.physics, window.animations.index['walking.fbx'].index, timeS % window.animations.index['walking.fbx'].duration);
+    // const values = window.physx.physxWorker.getAnimationValues(window.animations.index['walking.fbx'].index, timeS % window.animations.index['walking.fbx'].duration);
     const t = timeS % window.avatar.flyMotion.animation.duration;
     // console.log(t);
-    const values = window.physx.physxWorker.updateAnimationMixerPhysics(window.physx.physics, t);
+    const values = window.physx.physxWorker.updateAnimationMixer(t);
     let index = 0;
     for (const spec of this.avatar.animationMappings) {
       const {
