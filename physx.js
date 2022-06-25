@@ -2187,9 +2187,9 @@ const physxWorker = (() => {
       avatarId,
     )
   }
-  w.updateAnimationMixer = (timeS) => {
+  w.updateAnimationMixer = (timeS, f = 0.5) => {
     const outputBufferOffsetMain = moduleInstance._updateAnimationMixer(
-      timeS,
+      timeS, f,
     )
     const values = [];
     const headMain = outputBufferOffsetMain / Float32Array.BYTES_PER_ELEMENT;
