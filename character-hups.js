@@ -156,7 +156,6 @@ class CharacterHups extends EventTarget {
     });
     player.addEventListener('actionremove', e => {
       const {action} = e;
-      if (!action) return console.warn("action remove didn't have an actionId", e)
       const {actionId} = action;
       // console.log('action remove', action);
 
