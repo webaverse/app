@@ -723,7 +723,6 @@ const _gameUpdate = (timestamp, timeDiff) => {
     if (pickUpAction) {
       const {instanceId} = pickUpAction;
       const app = metaversefileApi.getAppByInstanceId(instanceId);
-      if(!app){ return console.error ("App not found when picking up`")}
 
       const _removeApp = () => {
         if (app.parent) {
@@ -774,35 +773,34 @@ const _gameUpdate = (timestamp, timeDiff) => {
   const _handlePhysicsHighlight = () => {
     highlightedPhysicsObject = null;
     if (gameManager.editMode) {
-      const {position, quaternion} = renderer.xr.getSession() ? localPlayer.leftHand : camera;
+      const { position, quaternion } = renderer.xr.getSession() ? localPlayer.leftHand : camera;
 
       const collision = physx.physxWorker.raycastPhysics(physx.physics, position, quaternion);
       if (collision) {
         const physicsId = collision.objectId;
         highlightedPhysicsObject =
           metaversefileApi.getAppByPhysicsId(physicsId);
-        
-        if (!highlightedPhysicsObject) return
 
-        let isGrabbed = false
-        //TODO: check remote player's grab
-        const remotePlayers = useRemotePlayers();
-        for (const player of remotePlayers) {
-          const grabActions = Array.from(player.getActionsState()).filter(
-            (action) => action.type === "grab"
-          );
-          for (const grabAction of grabActions) {
-            const instanceId = grabAction.instanceId;
-            if (instanceId == highlightedPhysicsObject.instanceId) {
-              isGrabbed = true
+        if (highlightedPhysicsObject) {
+          let isGrabbed = false
+          const remotePlayers = useRemotePlayers();
+          for (const player of remotePlayers) {
+            const grabActions = Array.from(player.getActionsState()).filter(
+              (action) => action.type === "grab"
+            );
+            for (const grabAction of grabActions) {
+              const instanceId = grabAction.instanceId;
+              if (instanceId == highlightedPhysicsObject.instanceId) {
+                isGrabbed = true
+              }
             }
           }
-        }
-        if (isGrabbed) {
-          highlightedPhysicsObject = null
-          highlightedPhysicsId = 0;
-        } else {
-          highlightedPhysicsId = physicsId;
+          if (isGrabbed) {
+            highlightedPhysicsObject = null
+            highlightedPhysicsId = 0;
+          } else {
+            highlightedPhysicsId = physicsId;
+          }
         }
       }
     }
