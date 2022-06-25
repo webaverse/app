@@ -1429,11 +1429,8 @@ class Avatar {
       .divideScalar(timeDiffS)
       .multiplyScalar(0.1);
     localEuler.setFromQuaternion(currentQuaternion, 'YXZ');
-    localEuler.x = 0;
-    localEuler.z = 0;
-    localEuler.y += Math.PI;
-    localEuler2.set(-localEuler.x, -localEuler.y, -localEuler.z, localEuler.order);
-    positionDiff.applyEuler(localEuler2);
+    localEuler.set(0, -(localEuler.y + Math.PI), 0);
+    positionDiff.applyEuler(localEuler);
     this.velocity.copy(positionDiff).add(this.lastVelocity).divideScalar(2);
     this.lastVelocity.copy(this.velocity)
     this.direction.copy(positionDiff).normalize();
@@ -1496,7 +1493,7 @@ class Avatar {
     }
   }
 
-  update(timestamp, timeDiff, updateHmdPosition) {
+  update(timestamp, timeDiff) {
     const now = timestamp;
     const timeDiffS = timeDiff / 1000;
 
@@ -1914,8 +1911,10 @@ class Avatar {
     }
 
 
-    if (updateHmdPosition)
+    if (this.isLocalPlayer) {
       _updateHmdPosition();
+    }
+
     _applyAnimation(this, now, moveFactors);
 
     if (this.poseAnimation) {
@@ -1989,7 +1988,7 @@ class Avatar {
     return !!this.audioWorker;
   }
   isMicrophoneEnabled() {
-    return this.localPlayer && !!this.microphoneWorker;
+    return !!this.microphoneWorker;
   }
   setAudioEnabled(enabled) {
     // cleanup
@@ -2069,8 +2068,11 @@ class Avatar {
       this.volume = -1;
     }
   }
-  getAudioInput(useMicrophone = false) {
-    return this.isLocalPlayer && useMicrophone ? this.microphoneWorker.getInput() : this.audioWorker.getInput();
+  getAudioInput() {
+    return this.audioWorker.getInput();
+  }
+  getMicrophoneInput(){
+    return this.isLocalPlayer && this.microphoneWorker.getInput();
   }
   decapitate() {
     if (!this.decapitated) {
@@ -2128,7 +2130,7 @@ class Avatar {
   } */
 
   destroy() {
-    // this.setAudioEnabled(false);
+    this.setAudioEnabled(false);
   }
 }
 Avatar.waitForLoad = () => loadPromise;
