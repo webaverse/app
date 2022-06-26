@@ -470,7 +470,7 @@ export const _createAnimation = avatar => {
     for (const fileName in animations.index) {
       const animation = animations.index[fileName];
       animation.index = animationIndex;
-      physx.physxWorker.createAnimation();
+      physx.physxWorker.createAnimation(animation.duration);
       // for (const k in animation.interpolants) { // maybe wrong interpolant index order
       for (const spec of avatar.animationMappings) { // correct interpolant index order
         const {

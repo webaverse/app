@@ -2221,8 +2221,9 @@ const physxWorker = (() => {
   //   )
   //   return pointer;
   // }
-  w.createAnimation = () => {
+  w.createAnimation = (duration) => {
     moduleInstance._createAnimation(
+      duration,
     )
   }
   w.createInterpolant = (animationIndex, parameterPositions, sampleValues, valueSize) => {
