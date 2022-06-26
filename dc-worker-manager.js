@@ -2,7 +2,7 @@
 import {chunkMinForPosition, getLockChunkId, makeId} from './util.js';
 import {LockManager} from './lock-manager.js';
 
-const defaultNumDcWorkers = 4;
+const defaultNumDcWorkers = 1;
 
 export class DcWorkerManager {
   constructor({
@@ -291,7 +291,7 @@ export class DcWorkerManager {
       this.chunkSize
     );
     const chunkId = getLockChunkId(chunkPosition);
-    return await this.locks.request(chunkId, async lock => {
+    // return await this.locks.request(chunkId, async lock => {
       const worker = this.getNextWorker();
       const result = await worker.request('drawSphereDamage', {
         instance: this.instance,
@@ -299,7 +299,25 @@ export class DcWorkerManager {
         radius,
       });
       return result;
-    });
+    // });
+  }
+  async addSphereAddition(position, radius) {
+    const chunkPosition = chunkMinForPosition(
+      position.x,
+      position.y,
+      position.z,
+      this.chunkSize
+    );
+    const chunkId = getLockChunkId(chunkPosition);
+    // return await this.locks.request(chunkId, async lock => {
+      const worker = this.getNextWorker();
+      const result = await worker.request('drawSphereAddition', {
+        instance: this.instance,
+        position: position.toArray(),
+        radius,
+      });
+      return result;
+    // });
   }
   async eraseSphereDamage(position, radius) {
     const chunkPosition = chunkMinForPosition(
@@ -309,7 +327,7 @@ export class DcWorkerManager {
       this.chunkSize
     );
     const chunkId = getLockChunkId(chunkPosition);
-    return await this.locks.request(chunkId, async lock => {
+    // return await this.locks.request(chunkId, async lock => {
       const worker = this.getNextWorker();
       const result = await worker.request('eraseSphereDamage', {
         instance: this.instance,
@@ -317,6 +335,6 @@ export class DcWorkerManager {
         radius,
       });
       return result;
-    });
+    // });
   }
 }

@@ -123,6 +123,22 @@ const _handleMethod = ({ method, args }) => {
       });
     }
   };
+  const _injectAdditions = (chunks, instance) => {
+    // console.log("Instance : " + instance);
+    // inject the damage to peer workers
+    const method = 'injectAdditions';
+    const args = {
+      chunks,
+      instance,
+    };
+    for (const port of ports) {
+      // console.log('got port', port);
+      port.postMessage({
+        method,
+        args,
+      });
+    }
+  };
   const _chunksToResult = (chunks) =>
     chunks.map(({ position }) => ({ position }));
 
@@ -440,6 +456,28 @@ const _handleMethod = ({ method, args }) => {
 
       if (chunks) {
         _injectDamages(chunks, instanceKey);
+        return {
+          result: _chunksToResult(chunks),
+          transfers: [],
+        };
+      } else {
+        return null;
+      }
+    }
+    case 'drawSphereAddition': {
+      const { instance: instanceKey, position, radius } = args;
+      const instance = instances.get(instanceKey);
+      if (!instance) throw new Error('drawSphereAddition : instance not found');
+      const chunks = dc.drawSphereAddition(
+        instance,
+        position[0],
+        position[1],
+        position[2],
+        radius
+      );
+
+      if (chunks) {
+        _injectAdditions(chunks, instanceKey);
         return {
           result: _chunksToResult(chunks),
           transfers: [],

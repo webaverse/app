@@ -146,6 +146,9 @@ const sphereDamage = damageFn => (
 w.drawSphereDamage = function() {
   return sphereDamage(Module._drawSphereDamage.bind(Module)).apply(this, arguments);
 };
+w.drawSphereAddition = function() {
+  return sphereDamage(Module._drawSphereAddition.bind(Module)).apply(this, arguments);
+};
 w.eraseSphereDamage = function() {
   return sphereDamage(Module._eraseSphereDamage.bind(Module)).apply(this, arguments);
 };
