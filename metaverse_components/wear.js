@@ -35,7 +35,7 @@ export default (app, component) => {
     if (e.player) {
       player = e.player;
     } else {
-      throw new Error('Trying to call wearupdate, but no player', e);
+      player = metaversefile.useLocalPlayer();
     }
     if (e.wear) {
       wearSpec = app.getComponent('wear');

@@ -11,6 +11,8 @@ import {playersManager} from './players-manager.js';
 import physx from './physx.js';
 import physxWorkerManager from './physx-worker-manager.js';
 
+import logger from './logger.js';
+
 const _getBindSceneForRenderPriority = renderPriority => {
   switch (renderPriority) {
     case 'high': {
@@ -78,6 +80,16 @@ export class World {
 
     this.appManager.bindState(appsArray);
 
+    // Handy debug function to see the state
+    // Delete this eventually. For now press escape to see world state
+    document.addEventListener('keydown', event => {
+      if (event.key === 'Escape') {
+        console.log(state.getArray('world'));
+        console.log(state.getArray('players'));
+        console.log(scene);
+      }
+    });
+
     const localPlayer = getLocalPlayer();
     localPlayer.bindState(state.getArray(playersMapName));
   }
@@ -99,6 +111,16 @@ export class World {
     this.wsrtc = new WSRTC(u, {
       localPlayer,
       crdtState: state,
+    });
+
+    // Handy debug function to see the state
+    // Delete this eventually. For now press escape to see world state
+    document.addEventListener('keydown', event => {
+      if (event.key === 'Escape') {
+        console.log(state.getArray('world'));
+        console.log(state.getArray('players'));
+        console.log(scene);
+      }
     });
 
     // This is called when the websocket connection opens, i.e. server is connectedw
