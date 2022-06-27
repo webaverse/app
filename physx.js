@@ -29,6 +29,7 @@ physx.waitForLoad =  () => {
     loadPromise = (async () => {
       await Module.waitForLoad();
       moduleInstance = Module;
+      window.moduleInstance = moduleInstance;
       const scratchStackSize = 1024 * 1024;
       scratchStack = new ScratchStack(moduleInstance, scratchStackSize);
       physx.physics = physxWorker.makePhysics();
