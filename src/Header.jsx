@@ -25,7 +25,7 @@ export default function Header() {
 
     const { state, setState, selectedApp } = useContext( AppContext );
     const localPlayer = metaversefile.useLocalPlayer();
-    const _getWearActions = () => localPlayer.getActionsArray().filter(action => action.type === 'wear');
+    const _getWearActions = () => localPlayer.isBound() && localPlayer.getActionsArray().filter(action => action.type === 'wear');
 
     const dioramaCanvasRef = useRef();
     const panelsRef = useRef();

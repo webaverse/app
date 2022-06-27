@@ -46,6 +46,7 @@ import musicManager from './music-manager.js';
 import story from './story.js';
 import zTargeting from './z-targeting.js';
 import raycastManager from './raycast-manager.js';
+import universe from './universe.js';
 
 const localVector = new THREE.Vector3();
 const localVector2 = new THREE.Vector3();
@@ -385,6 +386,16 @@ export default class Webaverse extends EventTarget {
 
 // import {MMDLoader} from 'three/examples/jsm/loaders/MMDLoader.js';
 const _startHacks = webaverse => {
+  // Handy debug function to see the state
+  // Delete this eventually. For now press escape to see world state
+  document.addEventListener('keydown', event => {
+    if (event.key === 'Escape') {
+      console.log(universe.state.getArray('world'));
+      console.log(universe.state.getArray('players'));
+      console.log(universe.scene);
+    }
+  });
+
   const localPlayer = metaversefileApi.useLocalPlayer();
   const vpdAnimations = Avatar.getAnimations().filter(animation => animation.name.endsWith('.vpd'));
 

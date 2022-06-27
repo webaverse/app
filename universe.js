@@ -22,7 +22,6 @@ import {playersManager} from './players-manager.js';
 import physx from './physx.js';
 import physxWorkerManager from './physx-worker-manager.js';
 
-
 class Universe extends EventTarget {
   constructor() {
     super();
@@ -31,17 +30,16 @@ class Universe extends EventTarget {
     this.currentWorld = null;
     this.sceneLoadedPromise = null;
   }
+
   getWorldsHost() {
     return window.location.protocol + '//' + window.location.hostname + ':' +
       ((window.location.port ? parseInt(window.location.port, 10) : (window.location.protocol === 'https:' ? 443 : 80)) + 1) + '/worlds/';
   }
+
   async enterWorld(worldSpec) {
     this.disconnectRoom();
-    
+
     const localPlayer = metaversefile.useLocalPlayer();
-    /* localPlayer.teleportTo(new THREE.Vector3(0, 1.5, 0), camera.quaternion, {
-      relation: 'float',
-    }); */
     localPlayer.position.set(0, initialPosY, 0);
     localPlayer.characterPhysics.reset();
     localPlayer.updateMatrixWorld();
@@ -57,7 +55,7 @@ class Universe extends EventTarget {
       if (!room) {
         const state = new Z.Doc();
         this.connectState(state);
-        
+
         let match;
         if (src === undefined) {
           promises.push(metaversefile.createAppAsync({
@@ -83,7 +81,7 @@ class Universe extends EventTarget {
         })();
         promises.push(p);
       }
-      
+
       this.sceneLoadedPromise = Promise.all(promises)
         .then(() => {});
       await this.sceneLoadedPromise;
@@ -99,21 +97,26 @@ class Universe extends EventTarget {
 
     this.dispatchEvent(new MessageEvent('worldload'));
   }
+
   async reload() {
     await this.enterWorld(this.currentWorld);
   }
+
   async pushUrl(u) {
     history.pushState({}, '', u);
     window.dispatchEvent(new MessageEvent('pushstate'));
     await this.handleUrlUpdate();
   }
+
   async handleUrlUpdate() {
     const q = parseQuery(location.search);
     await this.enterWorld(q);
   }
+
   isSceneLoaded() {
     return !this.sceneLoadedPromise;
   }
+
   async waitForSceneLoaded() {
     if (this.sceneLoadedPromise) {
       await this.sceneLoadedPromise;
@@ -121,9 +124,9 @@ class Universe extends EventTarget {
       if (this.currentWorld) {
         // nothing
       } else {
-        await new Promise((accept, reject) => {
+        await new Promise((resolve) => {
           this.addEventListener('worldload', e => {
-            accept();
+            resolve();
           }, {once: true});
         });
       }
@@ -137,6 +140,7 @@ class Universe extends EventTarget {
   // called by enterWorld() in universe.js
   // This is called in single player mode instead of connectRoom
   connectState(state) {
+    this.state = state;
     state.setResolvePriority(1);
     playersManager.bindState(state.getArray(playersMapName));
 
@@ -150,46 +154,32 @@ class Universe extends EventTarget {
   // This is called when a user joins a multiplayer room
   // either from single player or directly from a link
   async connectRoom(u, state = new Z.Doc()) {
+    this.state = state;
     state.setResolvePriority(1);
     // Players cannot be initialized until the physx worker is loaded
     // Otherwise you will receive allocation errors because the module instance is undefined
     await physx.waitForLoad();
     await physxWorkerManager.waitForLoad();
-        // Create a new instance of the websocket rtc client
+    // Create a new instance of the websocket rtc client
     // This comes from webaverse/wsrtc/wsrtc.js
     const localPlayer = getLocalPlayer();
+    playersManager.bindState(state.getArray(playersMapName));
 
     this.wsrtc = new WSRTC(u, {
       localPlayer,
       crdtState: state,
     });
 
-    playersManager.bindState(state.getArray(playersMapName));
     world.init(state);
     localPlayer.init(state);
-
-
-
-    // Handy debug function to see the state
-    // Delete this eventually. For now press escape to see world state
-    document.addEventListener('keydown', event => {
-      if (event.key === 'Escape') {
-        console.log(state.getArray('world'));
-        console.log(state.getArray('players'));
-        console.log(scene);
-      }
-    });
 
     // This is called when the websocket connection opens, i.e. server is connectedw
     const open = e => {
       this.wsrtc.removeEventListener('open', open);
 
-
-
       // Called by WSRTC when the connection is initialized
       const init = e => {
         this.wsrtc.removeEventListener('init', init);
-
 
         this.wsrtc.addEventListener('audio', e => {
           const player = playersManager.remotePlayersByInteger.get(e.data.playerId);
