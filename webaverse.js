@@ -46,7 +46,6 @@ import musicManager from './music-manager.js';
 import story from './story.js';
 import zTargeting from './z-targeting.js';
 import raycastManager from './raycast-manager.js';
-import {defaultPlayerSpec} from './constants';
 
 const localVector = new THREE.Vector3();
 const localVector2 = new THREE.Vector3();
@@ -379,8 +378,6 @@ export default class Webaverse extends EventTarget {
 
     _startHacks(this);
 
-    const localPlayer = metaversefileApi.useLocalPlayer();
-    await localPlayer.setPlayerSpec(defaultPlayerSpec);
     const renderer = getRenderer();
     renderer.setAnimationLoop(animate);
   }
