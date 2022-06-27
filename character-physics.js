@@ -46,6 +46,32 @@ class CharacterPhysics {
     this.lastPistolUse = false;
     this.lastPistolUseStartTime = -Infinity;
   }
+  loadCharacterController(player) {
+    const heightFactor = 1.6;
+    const baseRadius = 0.3;
+    const avatarHeight = player.avatar.height;
+    const radius = (baseRadius / heightFactor) * avatarHeight;
+    const height = avatarHeight - radius * 2;
+  
+    const contactOffset = (0.1 / heightFactor) * avatarHeight;
+    const stepOffset = (0.5 / heightFactor) * avatarHeight;
+  
+    const position = player.position
+      .clone()
+      .add(new THREE.Vector3(0, -avatarHeight / 2, 0));
+  
+    if (player.characterController) {
+      physicsManager.destroyCharacterController(player.characterController);
+      player.characterController = null;
+    }
+    player.characterController = physicsManager.createCharacterController(
+      radius - contactOffset,
+      height,
+      contactOffset,
+      stepOffset,
+      position,
+    );
+  }
   setPosition(p) {
     localVector.copy(p);
     localVector.y -= this.player.avatar.height * 0.5;
