@@ -265,14 +265,14 @@ export const User = ({ setLoginFrom }) => {
                         className={[styles.address, avatarUrl ? styles.avatarPadRight : undefined].join(' ')}
                     >{ensName || address || currentAddress || ''} <img className={styles.verifiedIcon} src="./images/verified.svg" /></div>
                 </div>
-                <div className={styles.logoutBtn}
+                {/* <div className={styles.logoutBtn}
                     onClick={e => {
                         e.preventDefault();
                         e.stopPropagation();
                         WebaWallet.logout();
                         _setAddress(null);
                     }}
-                >Logout</div>
+                >Logout</div> */}
             </div>
 
             <div className={ classnames(
