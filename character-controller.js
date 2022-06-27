@@ -25,6 +25,7 @@ import {
   avatarInterpolationFrameRate,
   avatarInterpolationTimeDelay,
   avatarInterpolationNumFrames,
+  defaultPlayerSpec,
   // groundFriction,
   // defaultVoicePackName,
   voiceEndpointBaseUrl,
@@ -203,8 +204,6 @@ class Player extends THREE.Object3D {
       });
     }
     _prepareAppManager();
-
-    this.bindState(playersArray);
   }
   findAction(fn) {
     const actions = this.getActionsState();
@@ -588,6 +587,24 @@ class Player extends THREE.Object3D {
 
     this.playersArray = nextPlayersArray;
 
+    let index = -1;
+    for (let i = 0; i < this.playersArray.length; i++) {
+      const player = this.playersArray.get(i, Z.Map);
+      if (player.get('playerId') === this.playerId) {
+        index = i;
+        break;
+      }
+    }
+
+    if (index !== -1) {
+      this.playerMap = this.playersArray.get(index, Z.Map);
+    } else {
+      console.warn(
+        "binding to nonexistent player object",
+        this.playersArray.toJSON()
+      );
+    }
+
     // note: leave the old state as is
     // it is the host's responsibility to garbage collect us when we disconnect.
     this.attachState(oldState);
@@ -767,7 +784,7 @@ class Player extends THREE.Object3D {
     return this.isBound() ? Array.from(this.getActionsState()) : [];
   }
   getAvatarState() {
-    let avatarMap = this.playerMap.has(avatarMapName)
+    let avatarMap = this.playerMap?.has(avatarMapName)
       ? this.playerMap.get(avatarMapName, Z.Map)
       : null;
     if (!avatarMap) {
@@ -905,6 +922,13 @@ class LocalPlayer extends Player {
       position: this.position,
       quaternion: this.quaternion,
     };
+  }
+
+  init(state){
+    this.bindState(state.getArray(playersMapName));
+    if (!this.avatar) {
+      this.setPlayerSpec(defaultPlayerSpec);
+    }
   }
 
   updateInterpolation(timestamp, timeDiff) {
@@ -1167,6 +1191,7 @@ class LocalPlayer extends Player {
 class RemotePlayer extends Player {
   constructor(opts) {
     super(opts);
+    this.bindState(opts.playersArray);
 
     this.audioWorkletNode = null;
     this.audioWorkerLoaded = false;
@@ -1332,30 +1357,9 @@ class RemotePlayer extends Player {
     this.avatar.update(timestamp, timeDiff);
   }
   attachState(oldState) {
-    let index = -1;
-    for (let i = 0; i < this.playersArray.length; i++) {
-      const player = this.playersArray.get(i, Z.Map);
-      if (player.get('playerId') === this.playerId) {
-        index = i;
-        break;
-      }
-    }
-
-    if (index !== -1) {
-      this.playerMap = this.playersArray.get(index, Z.Map);
-    } else {
-      console.warn(
-        "binding to nonexistent player object",
-        this.playersArray.toJSON()
-      );
-    }
-
     const lastPosition = new THREE.Vector3();
     let lastTime = performance.now();
-
     const observePlayerFn = (e) => {
-      if (this.isLocalPlayer) return;
-
       if (e.changes.keys.get('voiceSpec') || e.added?.keys?.get('voiceSpec')) {
         const voiceSpec = e.changes.keys.get('voiceSpec');
         const json = JSON.parse(voiceSpec.value);

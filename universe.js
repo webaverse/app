@@ -8,14 +8,25 @@ import * as Z from 'zjs';
 import {world} from './world.js';
 import physicsManager from './physics-manager.js';
 import {loadOverworld} from './overworld.js';
-import {initialPosY} from './constants.js';
 import {parseQuery} from './util.js';
 import metaversefile from 'metaversefile';
 import sceneNames from './scenes/scenes.json';
 
+import WSRTC from 'wsrtc/wsrtc.js';
+import {getLocalPlayer, remotePlayers} from './players.js';
+
+import {scene, sceneHighPriority, sceneLowPriority, sceneLowerPriority, sceneLowestPriority} from './renderer.js';
+import {appsMapName, initialPosY, worldMapName, playersMapName} from './constants.js';
+import {playersManager} from './players-manager.js';
+
+import physx from './physx.js';
+import physxWorkerManager from './physx-worker-manager.js';
+
+
 class Universe extends EventTarget {
   constructor() {
     super();
+    this.wsrtc = null;
 
     this.currentWorld = null;
     this.sceneLoadedPromise = null;
@@ -25,7 +36,7 @@ class Universe extends EventTarget {
       ((window.location.port ? parseInt(window.location.port, 10) : (window.location.protocol === 'https:' ? 443 : 80)) + 1) + '/worlds/';
   }
   async enterWorld(worldSpec) {
-    world.disconnectRoom();
+    this.disconnectRoom();
     
     const localPlayer = metaversefile.useLocalPlayer();
     /* localPlayer.teleportTo(new THREE.Vector3(0, 1.5, 0), camera.quaternion, {
@@ -45,7 +56,7 @@ class Universe extends EventTarget {
       const {src, room} = worldSpec;
       if (!room) {
         const state = new Z.Doc();
-        world.connectState(state);
+        this.connectState(state);
         
         let match;
         if (src === undefined) {
@@ -68,7 +79,7 @@ class Universe extends EventTarget {
       } else {
         const p = (async () => {
           const roomUrl = this.getWorldsHost() + room;
-          await world.connectRoom(roomUrl);
+          await this.connectRoom(roomUrl);
         })();
         promises.push(p);
       }
@@ -117,6 +128,87 @@ class Universe extends EventTarget {
         });
       }
     }
+  }
+
+  isConnected() { return !!this.wsrtc; }
+
+  getConnection() { return this.wsrtc; }
+
+  // called by enterWorld() in universe.js
+  // This is called in single player mode instead of connectRoom
+  connectState(state) {
+    state.setResolvePriority(1);
+    playersManager.bindState(state.getArray(playersMapName));
+
+    world.init(state);
+
+    const localPlayer = getLocalPlayer();
+    localPlayer.init(state);
+  }
+
+  // called by enterWorld() in universe.js
+  // This is called when a user joins a multiplayer room
+  // either from single player or directly from a link
+  async connectRoom(u, state = new Z.Doc()) {
+    state.setResolvePriority(1);
+    // Players cannot be initialized until the physx worker is loaded
+    // Otherwise you will receive allocation errors because the module instance is undefined
+    await physx.waitForLoad();
+    await physxWorkerManager.waitForLoad();
+        // Create a new instance of the websocket rtc client
+    // This comes from webaverse/wsrtc/wsrtc.js
+    const localPlayer = getLocalPlayer();
+
+    this.wsrtc = new WSRTC(u, {
+      localPlayer,
+      crdtState: state,
+    });
+
+    playersManager.bindState(state.getArray(playersMapName));
+    world.init(state);
+    localPlayer.init(state);
+
+
+
+    // Handy debug function to see the state
+    // Delete this eventually. For now press escape to see world state
+    document.addEventListener('keydown', event => {
+      if (event.key === 'Escape') {
+        console.log(state.getArray('world'));
+        console.log(state.getArray('players'));
+        console.log(scene);
+      }
+    });
+
+    // This is called when the websocket connection opens, i.e. server is connectedw
+    const open = e => {
+      this.wsrtc.removeEventListener('open', open);
+
+
+
+      // Called by WSRTC when the connection is initialized
+      const init = e => {
+        this.wsrtc.removeEventListener('init', init);
+
+
+        this.wsrtc.addEventListener('audio', e => {
+          const player = playersManager.remotePlayersByInteger.get(e.data.playerId);
+          player.processAudioData(e.data);
+        });
+      };
+
+      this.wsrtc.addEventListener('init', init);
+    };
+
+    this.wsrtc.addEventListener('open', open);
+
+    return this.wsrtc;
+  }
+
+  // called by enterWorld() in universe.js, to make sure we aren't already connected
+  disconnectRoom() {
+    if (this.wsrtc && this.wsrtc.state === 'open') this.wsrtc.close();
+    this.wsrtc = null;
   }
 }
 const universe = new Universe();
