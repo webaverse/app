@@ -559,6 +559,8 @@ class Avatar {
     this.eyeballTargetPlane = new THREE.Plane();
     this.eyeballTargetEnabled = false;
 
+    this.lastVelocity = new THREE.Vector3();
+
     if (options.hair) {
       this.springBoneManager = new VRMSpringBoneImporter().import(object);
     } else {
@@ -1421,12 +1423,13 @@ class Avatar {
       }
     }
   }
-  lastVelocity = new THREE.Vector3();
   setVelocity(timeDiffS, lastPosition, currentPosition, currentQuaternion) {
     // Set the velocity, which will be considered by the animation controller
     const positionDiff = localVector.copy(lastPosition)
       .sub(currentPosition)
-      .divideScalar(timeDiffS)
+      .divideScalar(Math.max(timeDiffS, 0.001))
+      // P a divide by 0 in the event of a stack of velocity inputs that have the same time
+      // This only happens if frame rate drops to 0 and we are calculating time on client
       .multiplyScalar(0.1);
     localEuler.setFromQuaternion(currentQuaternion, 'YXZ');
     localEuler.set(0, -(localEuler.y + Math.PI), 0);
@@ -1498,7 +1501,6 @@ class Avatar {
     const timeDiffS = timeDiff / 1000;
 
     const currentSpeed = localVector.set(this.velocity.x, 0, this.velocity.z).length();
-
     const moveFactors = {};
     moveFactors.idleWalkFactor = Math.min(Math.max((currentSpeed - idleFactorSpeed) / (walkFactorSpeed - idleFactorSpeed), 0), 1);
     moveFactors.walkRunFactor = Math.min(Math.max((currentSpeed - walkFactorSpeed) / (runFactorSpeed - walkFactorSpeed), 0), 1);
@@ -1515,7 +1517,6 @@ class Avatar {
       // However, for remote players, we can get invalid velocity values, so we want to calculate velocity externally
       const currentPosition = this.inputs.hmd.position;
       const currentQuaternion = this.inputs.hmd.quaternion;
-
       this.setVelocity(timeDiffS, this.lastPosition, currentPosition, currentQuaternion);
 
       this.lastPosition.copy(currentPosition);
