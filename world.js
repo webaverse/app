@@ -11,8 +11,6 @@ import {playersManager} from './players-manager.js';
 import physx from './physx.js';
 import physxWorkerManager from './physx-worker-manager.js';
 
-import logger from './logger.js';
-
 const _getBindSceneForRenderPriority = renderPriority => {
   switch (renderPriority) {
     case 'high': {
