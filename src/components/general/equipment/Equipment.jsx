@@ -62,7 +62,7 @@ const objects = {
     ],
 };
 const landTokenObjects = [
-    {
+    /* {
         name: 'Metaveris',
         start_url: '/metaverse_components/land/',
         description: 'Starting parcel',
@@ -71,7 +71,7 @@ const landTokenObjects = [
             [-32, 0, -32],
             [32, 128, 32]
         ],
-    },
+    }, */
 ];
 
 //
