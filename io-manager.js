@@ -153,6 +153,20 @@ const _updateIo = timeDiff => {
             keysDirection.set(dx, 0, dy);
             ioManager.currentWalked = true;
           }
+
+          if (
+            buttons[3] >= 0.5 && ioManager.lastButtons[index][3] < 0.5 &&
+            !game.isJumping() &&
+            !game.isSitting()
+          ) {
+            game.toggleCrouch();
+          }
+
+          if (
+            buttons[4] >= 0.5 && ioManager.lastButtons[index][4] < 0.5) {
+            game.toggleFly();
+          }
+
           // if (buttonsSrc[4].pressed && !ioManager.lastButtons[4]) {
           //   _handleLoadout()
           // }
@@ -258,7 +272,9 @@ const _updateIo = timeDiff => {
         // Joystick VR movement
         if(keysDirection.length() > 0) {
           keysDirection.applyQuaternion(camera.quaternion);
-          keysDirection.y = 0;
+          if(!localPlayer.hasAction('fly')) {
+            keysDirection.y = 0;
+          }
           localPlayer.characterPhysics.applyWasd(
             keysDirection.normalize()
               .multiplyScalar(game.getSpeed() * timeDiff)
