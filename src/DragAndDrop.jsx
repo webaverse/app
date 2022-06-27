@@ -324,8 +324,19 @@ const DragAndDrop = () => {
       <div className={classnames(style.currentApp, currentApp ? style.open : null)} onClick={_currentAppClick}>
         <h1 className={style.heading}>Upload object</h1>
         <div className={style.body}>
-          <div style={{position:'relative'}}>
-            {currentApp && APP_3D_TYPES.includes(currentApp.appType) && <button style={{position: 'absolute', top:0, right:0}} onClick={createPreview}>Take Preview</button>}
+          <div style={{position: 'relative'}}>
+            {currentApp && APP_3D_TYPES.includes(currentApp.appType) && <button style={{
+              border: '2px',
+              borderColor: 'white',
+              background: 'black',
+              color: 'white',
+              position: 'absolute',
+              left: '0px',
+              bottom: '0px',
+              width: 'calc(100% - 20px)',
+              padding: '10px',
+              cursor: 'pointer',
+            }} onClick={createPreview}>Create New Thumbnail</button>}
             <ObjectPreview
               ref={canvasRef}
               object={currentApp}
