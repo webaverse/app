@@ -2314,6 +2314,17 @@ const physxWorker = (() => {
     }
     return values;
   }
+  w.changeWeight = (animationIndex, weight) => {
+    const outputBufferOffset = moduleInstance._changeWeight(
+      animationIndex,
+      weight,
+    )
+
+    return outputBufferOffset;
+    const head = outputBufferOffset / Float32Array.BYTES_PER_ELEMENT;
+    const testWeight = moduleInstance.HEAPF32[head];
+    return testWeight;
+  }
 
   // End AnimationSystem
 
