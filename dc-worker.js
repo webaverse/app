@@ -237,7 +237,7 @@ const _handleMethod = async ({method, args}) => {
       if (!instance) throw new Error('generateLiquidChunk : instance not found');
       localVector.fromArray(chunkPosition)
         .multiplyScalar(chunkWorldSize);
-      const meshData = dc.createLiquidChunkMesh(instance, localVector.x, localVector.y, localVector.z, lodArray);
+      const meshData = await dc.createLiquidChunkMeshAsync(instance, localVector.x, localVector.y, localVector.z, lodArray);
       const meshData2 = _cloneLiquidMeshData(meshData);
       meshData && dc.free(meshData.bufferAddress);
 
@@ -255,7 +255,7 @@ const _handleMethod = async ({method, args}) => {
       const {instance: instanceKey, x, z, lod} = args;
       const instance = instances.get(instanceKey);
       if (!instance) throw new Error('getChunkHeightfield : instance not found');
-      const heightfield = dc.getChunkHeightfield(instance, x, z, lod);
+      const heightfield = await dc.getChunkHeightfieldAsync(instance, x, z, lod);
       const spec = {
         result: heightfield,
         transfers: [heightfield.buffer],
@@ -317,7 +317,7 @@ const _handleMethod = async ({method, args}) => {
         ps,
         qs,
         instances: instancesResult,
-      } = dc.createGrassSplat(instance, x, z, lod);
+      } = await dc.createGrassSplatAsync(instance, x, z, lod);
 
       const spec = {
         result: {
@@ -338,7 +338,7 @@ const _handleMethod = async ({method, args}) => {
         ps,
         qs,
         instances: instancesResult,
-      } = dc.createVegetationSplat(instance, x, z, lod);
+      } = await dc.createVegetationSplatAsync(instance, x, z, lod);
 
       const spec = {
         result: {
@@ -358,7 +358,7 @@ const _handleMethod = async ({method, args}) => {
         ps,
         qs,
         instances: instancesResult,
-      } = dc.createMobSplat(instance, x, z, lod);
+      } = await dc.createMobSplatAsync(instance, x, z, lod);
 
       const spec = {
         result: {
