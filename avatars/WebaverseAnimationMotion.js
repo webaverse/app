@@ -1,6 +1,6 @@
 import {LoopOnce, LoopRepeat} from 'three';
 import {WebaverseAnimationMixer} from './WebaverseAnimationMixer';
-import physx from '../physx.js';
+// import physx from '../physx.js';
 
 class WebaverseAnimationMotion {
   constructor(mixer, animation) {
@@ -51,7 +51,7 @@ class WebaverseAnimationMotion {
     if (this.loop === LoopOnce) {
       const evaluateTimeS = this.time / this.speed + this.timeBias;
       // value = src.evaluate(evaluateTimeS);
-      value = physx.physxWorker.evaluateInterpolant(this.animation.index, index, evaluateTimeS);
+      // value = physx.physxWorker.evaluateInterpolant(this.animation.index, index, evaluateTimeS);
       if (isLastBone && this.weight > 0 && !this.isFinished && evaluateTimeS >= this.animation.duration) {
         // console.log('finished', this.name);
         this.mixer.dispatchEvent({
@@ -67,7 +67,7 @@ class WebaverseAnimationMotion {
       // if (k === 'mixamorigHips.position') console.log(this.animation.name, evaluateTimeS); // todo: why walking.fbx & treading water.fbx when avatar.walkFlyNode.factor === 0
       // if (k === 'mixamorigHips.position') console.log(this.animation.name); // todo: why walking.fbx & treading water.fbx when avatar.walkFlyNode.factor === 0
       // if (k === 'mixamorigHips.position') debugger; // todo: why walking.fbx & treading water.fbx when avatar.walkFlyNode.factor === 0
-      value = physx.physxWorker.evaluateInterpolant(this.animation.index, index, evaluateTimeS);
+      // value = physx.physxWorker.evaluateInterpolant(this.animation.index, index, evaluateTimeS);
     }
 
     // if (this.lastWeight > 0 && this.weight <= 0) {
