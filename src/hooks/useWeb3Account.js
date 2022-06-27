@@ -9,7 +9,6 @@ import {
 import {ethers} from 'ethers';
 
 
-
 const ACCOUNT_DATA = {
   EMAIL: 'email',
   AVATAR: 'avatar',
@@ -19,15 +18,15 @@ export default function useWeb3Account(currentChain = DEFAULT_CHAIN) {
   const [accounts, setAccounts] = useState([]);
   const [currentAddress, setCurrentAddress] = useState('');
   const [errorMessage, setErrorMessage] = useState([]);
-  const [isConnected, setIsConnected] = useState(false);
 
   useEffect(() => {
     async function checkForAccounts() {
-      const accounts = await requestAccounts();
-      if (accounts.length > 0) {
+      const provider = getProvider();
+      const connectedAccounts = await provider.listAccounts();
+      if (connectedAccounts.length > 0) {
+        const accounts = await requestAccounts();
         setAccounts(accounts);
         setCurrentAddress(accounts[0]);
-        setIsConnected(true);
       }
     }
     checkForAccounts();
@@ -111,6 +110,8 @@ export default function useWeb3Account(currentChain = DEFAULT_CHAIN) {
       }
     };
   }, [currentAddress]);
+
+  const isConnected = Boolean(currentAddress);
 
   return {
     accounts,
