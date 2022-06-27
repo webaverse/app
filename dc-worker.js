@@ -104,7 +104,7 @@ const instances = new Map();
 let loaded = false;
 let running = false;
 let queue = [];
-const _handleMethod = ({ method, args }) => {
+const _handleMethod = async ({method, args}) => {
   // console.log('worker handle method', method, args);
 
   const _injectDamages = (chunks, instance) => {
@@ -128,8 +128,8 @@ const _handleMethod = ({ method, args }) => {
 
   switch (method) {
     case 'initialize': {
-      const { chunkSize, seed } = args;
-      return dc.initialize(chunkSize, seed);
+      const {chunkSize, seed, numThreads} = args;
+      return dc.initialize(chunkSize, seed, numThreads);
     }
     case 'port': {
       const { port } = args;
