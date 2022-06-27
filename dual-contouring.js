@@ -1,33 +1,22 @@
-import Module from './public/bin/dc.js'
+import Module from './public/dc.module.js'
 import {Allocator} from './geometry-util.js';
+import {makePromise} from './util.js';
 import {defaultChunkSize} from './constants.js';
+import placeNames from './procgen/placeNames.js';
 
-// const localVector = new THREE.Vector3()
-// const localVector2 = new THREE.Vector3()
-// const localQuaternion = new THREE.Quaternion()
-// const capsuleUpQuaternion = new THREE.Quaternion().setFromAxisAngle(
-//   new THREE.Vector3(0, 0, 1),
-//   Math.PI / 2
-// )
-// const textEncoder = new TextEncoder();
-// const textDecoder = new TextDecoder();
+const cbs = new Map();
 
 const w = {};
 
 w.waitForLoad = Module.waitForLoad;
 
-/* let loaded = false;
-Module.waitForLoad().then(() => {
-  loaded = true;
-}); */
 w.free = address => {
-  // console.log('try momdule free', Module, loaded);
   Module._doFree(address);
 };
 
 let chunkSize = defaultChunkSize;
-w.initialize = (newChunkSize, seed) => {
-  Module._initialize(newChunkSize, seed);
+w.initialize = (newChunkSize, seed, numThreads) => {
+  Module._initialize(newChunkSize, seed, numThreads);
   chunkSize = newChunkSize;
 };
 
@@ -211,19 +200,29 @@ const _parseTerrainVertexBuffer = (arrayBuffer, bufferAddress) => {
     indices,
   };
 };
-w.createTerrainChunkMesh = (inst, x, y, z, lods) => {
+w.createTerrainChunkMeshAsync = async (inst, x, y, z, lods) => {
   const allocator = new Allocator(Module);
 
   const lodArray = allocator.alloc(Int32Array, 8);
   lodArray.set(lods);
 
-  const outputBufferOffset = Module._createTerrainChunkMesh(
+  const taskId = Module._createTerrainChunkMeshAsync(
     inst,
     x, y, z,
     lodArray.byteOffset,
   );
+  const p = makePromise();
+  cbs.set(taskId, p);
 
   allocator.freeAll();
+
+  // console.log('got async task id', taskId);
+  const outputBufferOffset = await p;
+  // console.log('got async task result', taskId, outputBufferOffset);
+
+  /* await new Promise((accept, reject) => {
+    // XXX hang
+  }); */
 
   if (outputBufferOffset) {
     const result = _parseTerrainVertexBuffer(
@@ -337,36 +336,46 @@ w.getChunkHeightfield = (inst, x, z, lod) => {
     allocator.freeAll();
   }
 }; */
-w.getChunkSkylight = (inst, x, y, z, lod) => {
+w.getChunkSkylightAsync = async (inst, x, y, z, lod) => {
   const allocator = new Allocator(Module);
 
   // const gridPoints = chunkSize + 3 + lod;
   const skylights = allocator.alloc(Uint8Array, chunkSize * chunkSize * chunkSize);
 
   try {
-    Module._getChunkSkylight(
+    const taskId = Module._getChunkSkylightAsync(
       inst,
       x, y, z,
       lod,
       skylights.byteOffset
     );
+
+    const p = makePromise();
+    cbs.set(taskId, p);
+    await p;
+
     return skylights.slice();
   } finally {
     allocator.freeAll();
   }
 };
-w.getChunkAo = (inst, x, y, z, lod) => {
+w.getChunkAoAsync = async (inst, x, y, z, lod) => {
   const allocator = new Allocator(Module);
 
   const aos = allocator.alloc(Uint8Array, chunkSize * chunkSize * chunkSize);
 
   try {
-    Module._getChunkAo(
+    const taskId = Module._getChunkAoAsync(
       inst,
       x, y, z,
       lod,
       aos.byteOffset
     );
+
+    const p = makePromise();
+    cbs.set(taskId, p);
+    await p;
+
     return aos.slice();
   } finally {
     allocator.freeAll();
@@ -496,5 +505,17 @@ w.createMobSplat = (inst, x, z, lod) => {
     allocator.freeAll();
   }
 };
+
+globalThis.addEventListener('result', e => {
+  // console.log('got result', e.data, import.meta);
+  const {id, result} = e.data;
+  const p = cbs.get(id);
+  if (p) {
+    p.accept(result);
+  } else {
+    cbs.delete(id);
+    console.warn('failed to find promise for id', e.data.id);
+  }
+});
 
 export default w;

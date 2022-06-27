@@ -175,7 +175,7 @@ const _handleMethod = ({ method, args }) => {
       if (!instance) throw new Error('generateTerrainChunk : instance not found');
       localVector.fromArray(chunkPosition)
         .multiplyScalar(chunkWorldSize);
-      const meshData = dc.createChunkMeshDualContouring(instance, localVector.x, localVector.y, localVector.z, lodArray);
+      const meshData = await dc.createTerrainChunkMeshAsync(instance, localVector.x, localVector.y, localVector.z, lodArray);
       const meshData2 = _cloneTerrainMeshData(meshData);
       meshData && dc.free(meshData.bufferAddress);
 
@@ -195,20 +195,22 @@ const _handleMethod = ({ method, args }) => {
       if (!instance) throw new Error('generateTerrainChunkRenderable : instance not found');
       localVector.fromArray(chunkPosition)
         .multiplyScalar(chunkWorldSize);
-      const meshData = dc.createTerrainChunkMesh(instance, localVector.x, localVector.y, localVector.z, lodArray);
+      const meshData = await dc.createTerrainChunkMeshAsync(instance, localVector.x, localVector.y, localVector.z, lodArray);
+      // console.log('got mesh data result 1', meshData);
       const meshData2 = _cloneTerrainMeshData(meshData);
+      // console.log('got mesh data result 2', meshData2);
       meshData && dc.free(meshData.bufferAddress);
 
       if (meshData2) {
         const lod = lodArray[0];
-        meshData2.skylights = dc.getChunkSkylight(
+        meshData2.skylights = await dc.getChunkSkylightAsync(
           instance,
           localVector.x,
           localVector.y,
           localVector.z,
           lod
         );
-        meshData2.aos = dc.getChunkAo(
+        meshData2.aos = await dc.getChunkAoAsync(
           instance,
           localVector.x,
           localVector.y,
