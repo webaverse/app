@@ -2,7 +2,7 @@ import Module from './public/dc.module.js'
 import {Allocator} from './geometry-util.js';
 import {makePromise} from './util.js';
 import {defaultChunkSize} from './constants.js';
-import placeNames from './procgen/placeNames.js';
+// import placeNames from './procgen/placeNames.js';
 
 const cbs = new Map();
 
@@ -15,8 +15,8 @@ w.free = address => {
 };
 
 let chunkSize = defaultChunkSize;
-w.initialize = (newChunkSize, seed, numThreads) => {
-  Module._initialize(newChunkSize, seed, numThreads);
+w.initialize = (newChunkSize, seed) => {
+  Module._initialize(newChunkSize, seed);
   chunkSize = newChunkSize;
 };
 
