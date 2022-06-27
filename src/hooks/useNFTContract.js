@@ -1,5 +1,4 @@
 import {useEffect, useState, useContext} from 'react';
-import {Buffer} from 'buffer';
 import {ethers, BigNumber} from 'ethers';
 
 import {
@@ -7,8 +6,8 @@ import {
 } from './web3-constants.js';
 import {FTABI, NFTABI, WebaverseABI} from '../abis/contract.jsx';
 import {ChainContext} from './chainProvider.jsx';
-import {getRandomString, handleUpload, handleBlobUpload} from '../../util.js';
-import {GenericLoadingMessage, LoadingIndicator, registerLoad} from '../LoadingBox.jsx';
+import {handleBlobUpload} from '../../util.js';
+import {registerLoad} from '../LoadingBox.jsx';
 
 const FILE_ADDRESS = 'https://ipfs.webaverse.com/ipfs/';
 
@@ -29,10 +28,13 @@ export default function useNFTContract(currentAccount) {
   const [NFTcontractAddress, setNFTcontractAddress] = useState(null);
   const [FTcontractAddress, setFTcontractAddress] = useState(null);
 
+  const [minting, setMinting] = useState(false);
+  const [showWallet, setShowWallet] = useState(false);
+  const [error, setError] = useState('');
+
   useEffect(() => {
     try {
       const WebaversecontractAddress = CONTRACTS[selectedChain.contract_name].Webaverse;
-      console.log("a",WebaverseABI)
       const NFTcontractAddress = CONTRACTS[selectedChain.contract_name].NFT;
       const FTcontractAddress = CONTRACTS[selectedChain.contract_name].FT;
       setWebaversecontractAddress(WebaversecontractAddress);
@@ -43,9 +45,7 @@ export default function useNFTContract(currentAccount) {
     }
   }, [selectedChain]);
 
-  const [minting, setMinting] = useState(false);
-  const [showWallet, setShowWallet] = useState(false);
-  const [error, setError] = useState('');
+
 
   async function getSigner() {
     var provider = new ethers.providers.Web3Provider(window.ethereum);
@@ -80,8 +80,8 @@ export default function useNFTContract(currentAccount) {
         metadata = {
             name,
             description,
-            image : imageURI,
-            animation_url : avatarURI
+            image: imageURI,
+            animation_url: avatarURI
         }
 
       } else { // image object
@@ -89,16 +89,15 @@ export default function useNFTContract(currentAccount) {
         avatarURI = '';
 
         metadata = {
-            name,
-            description,
-            image : imageURI
+          name,
+          description,
+          image: imageURI
         }
       }
-      /////////////////// upload metadata(.json) into ipfs //////////////////
-      console.log("metadata", JSON.stringify(metadata))
+
       const type = 'upload';
       let load = null;
-      //const json_hash = await handleBlobUpload(metadataFileName, JSON.stringify(metadata) )
+      // const json_hash = await handleBlobUpload(metadataFileName, JSON.stringify(metadata) )
       // handleBlobUpload
       // new Blob([JSON.stringify(metadata)], {type: 'text/plain'});
       const json_hash = await handleBlobUpload(metadataFileName, new Blob([JSON.stringify(metadata)], {type: 'text/plain'}), {
@@ -116,18 +115,14 @@ export default function useNFTContract(currentAccount) {
       if (load) {
         load.end();
       }
-      console.log("json_hash", json_hash)
-      const metadatahash = json_hash.split(FILE_ADDRESS)[1].split('/')[0];
-      console.log("metadatahash",metadatahash)
-      ///////////////////////////////////////////////////////////////////////
 
+      const metadatahash = json_hash.split(FILE_ADDRESS)[1].split('/')[0];
       const Webaversecontract = new ethers.Contract(WebaversecontractAddress, WebaverseABI, signer);
-      const NFTcontract = new ethers.Contract(NFTcontractAddress, NFTABI, signer);
+      // const NFTcontract = new ethers.Contract(NFTcontractAddress, NFTABI, signer);
       const FTcontract = new ethers.Contract(FTcontractAddress, FTABI, signer);
-      console.log("webave", Webaversecontract)
+
       const Bigmintfee = await Webaversecontract.mintFee();
       const mintfee = BigNumber.from(Bigmintfee).toNumber();
-      console.log("mintfee", mintfee)
 
       if (mintfee > 0) { // webaverse side chain mintfee != 0
         const FTapprovetx = await FTcontract.approve(NFTcontractAddress, mintfee); // mintfee = 10 default
@@ -137,27 +132,23 @@ export default function useNFTContract(currentAccount) {
             const Webaversemintres = await Webaversecontract.mint(currentAccount, 1, metadatahash, "0x");
             callback(Webaversemintres);
           } catch (err) {
-            console.log(err)
-            setError(err.message);
+            console.log(err);
+            setError('Mint Failed');
           }
-          setMinting(false);
         }
       } else { // mintfee = 0 for Polygon not webaverse sidechain
         try {
           const Webaversemintres = await Webaversecontract.mint(currentAccount, 1, metadatahash, "0x");
-
           callback(Webaversemintres);
         } catch (err) {
-          console.log(err)
-
+          console.log(err);
           setError('Mint Failed');
-          setMinting(false);
         }
       }
-    } catch (error) {
-      console.log(error)
-
-      setError(error.message);
+      setMinting(false);
+    } catch (err) {
+      console.log(err);
+      setError('Mint Failed');
       setMinting(false);
     }
   }
