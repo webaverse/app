@@ -3,7 +3,6 @@ import {chunkMinForPosition, getLockChunkId, makeId} from './util.js';
 import {LockManager} from './lock-manager.js';
 
 const defaultNumDcWorkers = 1;
-const defaultNumDcThreads = 10;
 
 export class DcWorkerManager {
   constructor({
@@ -11,13 +10,11 @@ export class DcWorkerManager {
     seed,
     instance,
     numWorkers = defaultNumDcWorkers,
-    numThreads = defaultNumDcThreads,
   } = {}) {
     this.chunkSize = chunkSize;
     this.seed = seed;
     this.instance = instance;
     this.numWorkers = numWorkers;
-    this.numThreads = numThreads;
 
     this.workers = [];
     this.nextWorker = 0;
@@ -118,7 +115,6 @@ export class DcWorkerManager {
               worker.request('initialize', {
                 chunkSize: this.chunkSize,
                 seed: this.seed,
-                numThreads: this.numThreads,
               }),
               worker.request('ensureInstance', {
                 instance: this.instance,
