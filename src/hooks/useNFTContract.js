@@ -34,14 +34,19 @@ export default function useNFTContract(currentAccount) {
 
   useEffect(() => {
     try {
-      const WebaversecontractAddress = CONTRACTS[selectedChain.contract_name].Webaverse;
-      const NFTcontractAddress = CONTRACTS[selectedChain.contract_name].NFT;
-      const FTcontractAddress = CONTRACTS[selectedChain.contract_name].FT;
-      setWebaversecontractAddress(WebaversecontractAddress);
-      setNFTcontractAddress(NFTcontractAddress);
-      setFTcontractAddress(FTcontractAddress);
+      if(CONTRACTS[selectedChain.contract_name]) {
+        const WebaversecontractAddress = CONTRACTS[selectedChain.contract_name].Webaverse;
+        const NFTcontractAddress = CONTRACTS[selectedChain.contract_name].NFT;
+        const FTcontractAddress = CONTRACTS[selectedChain.contract_name].FT;
+        setWebaversecontractAddress(WebaversecontractAddress);
+        setNFTcontractAddress(NFTcontractAddress);
+        setFTcontractAddress(FTcontractAddress);
+      } else {
+        throw new Error('unsupported chain');
+      }
+
     } catch (error) {
-      console.log(error);
+      console.warn('tried to use contract for unsupported chain');
     }
   }, [selectedChain]);
 
@@ -132,7 +137,7 @@ export default function useNFTContract(currentAccount) {
             const Webaversemintres = await Webaversecontract.mint(currentAccount, 1, metadatahash, "0x");
             callback(Webaversemintres);
           } catch (err) {
-            console.log(err);
+            console.warn('minting to webaverse contract failed');
             setError('Mint Failed');
           }
         }
@@ -141,13 +146,13 @@ export default function useNFTContract(currentAccount) {
           const Webaversemintres = await Webaversecontract.mint(currentAccount, 1, metadatahash, "0x");
           callback(Webaversemintres);
         } catch (err) {
-          console.log(err);
+          console.warn('minting to webaverse contract failed');
           setError('Mint Failed');
         }
       }
       setMinting(false);
     } catch (err) {
-      console.log(err);
+      console.warn('minting to webaverse contract failed');
       setError('Mint Failed');
       setMinting(false);
     }
