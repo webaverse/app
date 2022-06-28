@@ -91,7 +91,6 @@ const ObjectItem = ({
     onDoubleClick,
     highlight,
 }) => {
-  console.log("object", object.start_url)
     return (
         <div
             className={classnames(
@@ -291,34 +290,36 @@ export const Equipment = () => {
 
     const selectedMenuIndex = mod(faceIndex, 4);
     
-  useEffect(() => {
-    if (!supportedChain) {
-        setInventoryObject([]);
-        return;
-    }
-
-    async function setupInventory() {
-      const tokens = await getTokens();
-      const inventoryItems = tokens.map((token, i) => {
-        return {
-          name: token.name,
-          start_url: token.url,
-          level: 1,
-        };
-      });
-      console.log("dfdf", inventoryItems)
-      setInventoryObject(inventoryItems);
-    }
-
-    setupInventory().catch((error)=> {
-      console.log(error);
-      setInventoryObject([]);
-    })
-
-
-  }, [state.openedPanel, selectedChain]);
-
     const open = state.openedPanel === 'CharacterPanel';
+
+  useEffect(() => {
+    if(open) {
+        if (!supportedChain) {
+            setInventoryObject([]);
+            return;
+        }
+
+        async function setupInventory() {
+        const tokens = await getTokens();
+        const inventoryItems = tokens.map((token, i) => {
+            return {
+            name: token.name,
+            start_url: token.url,
+            level: 1,
+            };
+        });
+        setInventoryObject(inventoryItems);
+        }
+
+        setupInventory().catch((error)=> {
+        console.warn('unable to retrieve inventory')
+        setInventoryObject([]);
+        });
+    }
+
+  }, [open, state.openedPanel, selectedChain]);
+
+    
 
     const onMouseEnter = object => () => {
         setHoverObject(object);
