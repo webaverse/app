@@ -2223,8 +2223,30 @@ const physxWorker = (() => {
   //   return pointer;
   // }
   w.createAnimation = (duration) => {
-    moduleInstance._createAnimation(
+    const pointer = moduleInstance._createAnimation(
       duration,
+    )
+    return pointer;
+  }
+  w.createMotion = (animation) => {
+    const pointer = moduleInstance._createMotion(
+      animation,
+    )
+    return pointer;
+  }
+  w.createNode = () => {
+    const pointer = moduleInstance._createNode(
+    )
+    return pointer;
+  }
+  w.addChild = (parentPointer, childPointer) => {
+    moduleInstance._addChild(
+      parentPointer, childPointer,
+    )
+  }
+  w.setAnimTree = (nodePointer) => {
+    moduleInstance._setAnimTree(
+      nodePointer,
     )
   }
   w.createInterpolant = (animationIndex, parameterPositions, sampleValues, valueSize) => {
@@ -2315,9 +2337,9 @@ const physxWorker = (() => {
     }
     return values;
   }
-  w.changeWeight = (animationIndex, weight) => {
+  w.changeWeight = (animation, weight) => {
     const outputBufferOffset = moduleInstance._changeWeight(
-      animationIndex,
+      animation,
       weight,
     )
 

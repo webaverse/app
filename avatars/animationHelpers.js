@@ -470,7 +470,8 @@ export const _createAnimation = avatar => {
     for (const fileName in animations.index) {
       const animation = animations.index[fileName];
       animation.index = animationIndex;
-      physx.physxWorker.createAnimation(animation.duration);
+      const animationPointer = physx.physxWorker.createAnimation(animation.duration);
+      animation.pointer = animationPointer;
       // for (const k in animation.interpolants) { // maybe wrong interpolant index order
       for (const spec of avatar.animationMappings) { // correct interpolant index order
         const {
@@ -480,7 +481,7 @@ export const _createAnimation = avatar => {
         // debugger
         const interpolant = animation.interpolants[k];
         physx.physxWorker.createInterpolant( // todo: only need createInterpolant once globally
-          animation.index,
+          animation.index, // todo: use pointer instead of index.
           interpolant.parameterPositions,
           interpolant.sampleValues,
           interpolant.valueSize,
@@ -548,6 +549,37 @@ export const _createAnimation = avatar => {
     physx.physxWorker.createAnimationMixer(
       0,
     );
+
+    //
+
+    // const walkFlyNodePointer = physx.physxWorker.createNode();
+    // physx.physxWorker.addChild(walkFlyNodePointer, animations.index["walking.fbx"].pointer);
+    // physx.physxWorker.addChild(walkFlyNodePointer, animations.index["treading water.fbx"].pointer);
+
+    // const crouchNodePointer = physx.physxWorker.createNode();
+    // physx.physxWorker.addChild(crouchNodePointer, walkFlyNodePointer);
+    // physx.physxWorker.addChild(crouchNodePointer, animations.index["Crouch Idle.fbx"].pointer);
+
+    // // physx.physxWorker.setAnimTree(crouchNodePointer);
+    // physx.physxWorker.setAnimTree(walkFlyNodePointer);
+    // debugger
+
+    //
+
+    debugger
+    window.walkMotion = physx.physxWorker.createMotion(animations.index["walking.fbx"].pointer); // 96
+    window.flyMotion = physx.physxWorker.createMotion(animations.index["treading water.fbx"].pointer); // 92
+    window.crouchMotion = physx.physxWorker.createMotion(animations.index["Crouch Idle.fbx"].pointer); // 9
+
+    window.walkFlyNode = physx.physxWorker.createNode();
+    physx.physxWorker.addChild(walkFlyNode, walkMotion);
+    physx.physxWorker.addChild(walkFlyNode, flyMotion);
+
+    window.crouchNode = physx.physxWorker.createNode();
+    physx.physxWorker.addChild(crouchNode, walkFlyNode);
+    physx.physxWorker.addChild(crouchNode, crouchMotion);
+
+    physx.physxWorker.setAnimTree(crouchNode);
 
     createdWasmAnimations = true;
   }
