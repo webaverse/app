@@ -51,8 +51,8 @@ User documentation is <a href="https://webaverse.notion.site/User-Docs-3a36b223e
 
 ## Installation
 
-**Important note:** This repo uses Git submodules.
-You need to install with the **--recurse-submodules** flag or installation will not work. Copy the code below to clone the repository if you aren't sure.
+**Important note before you clone this repo:** This repo uses Git submodules.
+You need to install with the `--recurse-submodules` flag or installation will not work. Copy the code below to clone the repository if you aren't sure.
 
 ```sh
 git clone --recurse-submodules https://github.com/webaverse/app.git
@@ -61,19 +61,18 @@ git pull --recurse-submodules # Pull recursively
 npm install # Install dependencies
 ```
 
+##### Note for Windows Users
+We recommend that you use Windows Subsystem for Linux to run Webaverse. This [video](https://www.youtube.com/watch?v=5RTSlby-l9w) shows you how you can set up WSL. Once you've installed it, run `wsl` in your terminal to enter Ubuntu, and then run Webaverse from there.
+
 ## Quickstart
 
-Provided you followed the instructions above, starting the application is as easy as:
+Starting the application is as easy as:
 
 ```sh
-# Run in development
-npm run dev
-
-# OR deploy to production
 npm run prod
 ```
 
-Once the server has started up, you can visit `https://local.webaverse.com:3000` in development or `https://local.webaverse.com` in production.
+Once the server has started up, you can visit `https://local.webaverse.com` 
 
 ## Let's build it together!
 
