@@ -10,8 +10,11 @@ import game from '../../../../game.js';
 import { transparentPngUrl } from '../../../../constants.js';
 import * as sounds from '../../../../sounds.js';
 import { mod } from '../../../../util.js';
+import useNFTContract from '../../../hooks/useNFTContract';
+import { ChainContext } from '../../../hooks/chainProvider';
 import dropManager from '../../../../drop-manager';
 import cardsManager from '../../../../cards-manager.js';
+
 
 //
 
@@ -69,8 +72,8 @@ const landTokenObjects = [
         seed: 'lol',
         range: [
             [-32, 0, -32],
-            [32, 64, 32]
-        ]
+            [32, 128, 32]
+        ],
     },
 ];
 
@@ -88,6 +91,7 @@ const ObjectItem = ({
     onDoubleClick,
     highlight,
 }) => {
+  console.log("object", object.start_url)
     return (
         <div
             className={classnames(
@@ -138,7 +142,8 @@ const LandItem = ({
     onDoubleClick,
     highlight,
 }) => {
-    const size = 500;
+    const size = 200;
+    const pixelRatio = window.devicePixelRatio;
     const canvasRef = useRef();
     useEffect(() => {
         const canvas = canvasRef.current;
@@ -151,8 +156,8 @@ const LandItem = ({
                 const imageBitmap = await createLandIcon({
                     seed,
                     range,
-                    width: size,
-                    height: size,
+                    width: size * pixelRatio,
+                    height: size * pixelRatio,
                 });
              
                 const ctx = canvas.getContext('2d');
@@ -259,11 +264,14 @@ const EquipmentItems = ({
 };
 
 export const Equipment = () => {
-    const { state, setState } = useContext( AppContext );
+    const { state, setState, account } = useContext( AppContext );
     const [ hoverObject, setHoverObject ] = useState(null);
     const [ selectObject, setSelectObject ] = useState(null);
     // const [ spritesheet, setSpritesheet ] = useState(null);
+    const [inventoryObject, setInventoryObject] = useState([]);
     const [ faceIndex, setFaceIndex ] = useState(1);
+    const { selectedChain, supportedChain } = useContext(ChainContext)
+    const {getTokens} = useNFTContract(account.currentAddress);
     const [ claims, setClaims ] = useState([]);
     const [ cachedLoader, setCachedLoader ] = useState(() => new CachedLoader({
         async loadFn(url, value, {signal}) {            
@@ -282,6 +290,33 @@ export const Equipment = () => {
     const [ imageBitmap, setImageBitmap ] = useState(null);
 
     const selectedMenuIndex = mod(faceIndex, 4);
+    
+  useEffect(() => {
+    if (!supportedChain) {
+        setInventoryObject([]);
+        return;
+    }
+
+    async function setupInventory() {
+      const tokens = await getTokens();
+      const inventoryItems = tokens.map((token, i) => {
+        return {
+          name: token.name,
+          start_url: token.url,
+          level: 1,
+        };
+      });
+      console.log("dfdf", inventoryItems)
+      setInventoryObject(inventoryItems);
+    }
+
+    setupInventory().catch((error)=> {
+      console.log(error);
+      setInventoryObject([]);
+    })
+
+
+  }, [state.openedPanel, selectedChain]);
 
     const open = state.openedPanel === 'CharacterPanel';
 
@@ -402,6 +437,10 @@ export const Equipment = () => {
                                 name: 'Inventory',
                                 tokens: claims,
                             },
+                            {
+                              name: 'Drag & Drop',
+                              tokens: inventoryObject,
+                          },
                         ]}
                         hoverObject={hoverObject}
                         selectObject={selectObject}

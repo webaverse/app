@@ -90,8 +90,8 @@ w.eraseCubeDamage = function() {
   return cubeDamage(Module._eraseCubeDamage.bind(Module)).apply(this, arguments);
 };
 
-w.setRange = function(inst, range) {
-  Module._setRange(
+w.setClipRange = function(inst, range) {
+  Module._setClipRange(
     inst,
     range[0][0], range[0][1], range[0][2],
     range[1][0], range[1][1], range[1][2]
@@ -167,13 +167,59 @@ w.injectDamage = function(inst, x, y, z, damageBuffer) {
   }
 };
 
-w.createChunkMeshDualContouring = (inst, x, y, z, lods) => {
+//
+
+const _parseTerrainVertexBuffer = (arrayBuffer, bufferAddress) => {
+  const dataView = new DataView(arrayBuffer, bufferAddress);
+
+  let index = 0;
+
+  // positions
+  const numPositions = dataView.getUint32(index, true);
+  index += Uint32Array.BYTES_PER_ELEMENT;
+  const positions = new Float32Array(arrayBuffer, bufferAddress + index, numPositions * 3);
+  index += Float32Array.BYTES_PER_ELEMENT * numPositions * 3;
+
+  // normals
+  const numNormals = dataView.getUint32(index, true);
+  index += Uint32Array.BYTES_PER_ELEMENT;
+  const normals = new Float32Array(arrayBuffer, bufferAddress + index, numNormals * 3);
+  index += Float32Array.BYTES_PER_ELEMENT * numNormals * 3;
+
+  // biomes
+  const numBiomes = dataView.getUint32(index, true);
+  index += Uint32Array.BYTES_PER_ELEMENT;
+  const biomes = new Int32Array(arrayBuffer, bufferAddress + index, numBiomes * 4);
+  index += Int32Array.BYTES_PER_ELEMENT * numBiomes * 4;
+
+  // biome weights
+  const numBiomesWeights = dataView.getUint32(index, true);
+  index += Uint32Array.BYTES_PER_ELEMENT;
+  const biomesWeights = new Float32Array(arrayBuffer, bufferAddress + index, numBiomesWeights * 4);
+  index += Float32Array.BYTES_PER_ELEMENT * numBiomesWeights * 4;
+
+  // indices
+  const numIndices = dataView.getUint32(index, true);
+  index += Uint32Array.BYTES_PER_ELEMENT;
+  const indices = new Uint32Array(arrayBuffer, bufferAddress + index, numIndices);
+  index += Uint32Array.BYTES_PER_ELEMENT * numIndices;
+
+  return {
+    bufferAddress,
+    positions,
+    normals,
+    biomes,
+    biomesWeights,
+    indices,
+  };
+};
+w.createTerrainChunkMesh = (inst, x, y, z, lods) => {
   const allocator = new Allocator(Module);
 
   const lodArray = allocator.alloc(Int32Array, 8);
   lodArray.set(lods);
 
-  const outputBufferOffset = Module._createChunkMeshDualContouring(
+  const outputBufferOffset = Module._createTerrainChunkMesh(
     inst,
     x, y, z,
     lodArray.byteOffset,
@@ -182,51 +228,7 @@ w.createChunkMeshDualContouring = (inst, x, y, z, lods) => {
   allocator.freeAll();
 
   if (outputBufferOffset) {
-    const _parseVertexBuffer = (arrayBuffer, bufferAddress) => {
-      const dataView = new DataView(arrayBuffer, bufferAddress);
-
-      let index = 0;
-
-      // positions
-      const numPositions = dataView.getUint32(index, true);
-      index += Uint32Array.BYTES_PER_ELEMENT;
-      const positions = new Float32Array(arrayBuffer, bufferAddress + index, numPositions * 3);
-      index += Float32Array.BYTES_PER_ELEMENT * numPositions * 3;
-
-      // normals
-      const numNormals = dataView.getUint32(index, true);
-      index += Uint32Array.BYTES_PER_ELEMENT;
-      const normals = new Float32Array(arrayBuffer, bufferAddress + index, numNormals * 3);
-      index += Float32Array.BYTES_PER_ELEMENT * numNormals * 3;
-
-      // biomes
-      const numBiomes = dataView.getUint32(index, true);
-      index += Uint32Array.BYTES_PER_ELEMENT;
-      const biomes = new Int32Array(arrayBuffer, bufferAddress + index, numBiomes * 4);
-      index += Int32Array.BYTES_PER_ELEMENT * numBiomes * 4;
-
-      // biome weights
-      const numBiomesWeights = dataView.getUint32(index, true);
-      index += Uint32Array.BYTES_PER_ELEMENT;
-      const biomesWeights = new Float32Array(arrayBuffer, bufferAddress + index, numBiomesWeights * 4);
-      index += Float32Array.BYTES_PER_ELEMENT * numBiomesWeights * 4;
-
-      // indices
-      const numIndices = dataView.getUint32(index, true);
-      index += Uint32Array.BYTES_PER_ELEMENT;
-      const indices = new Uint32Array(arrayBuffer, bufferAddress + index, numIndices);
-      index += Uint32Array.BYTES_PER_ELEMENT * numIndices;
-
-      return {
-        bufferAddress,
-        positions,
-        normals,
-        biomes,
-        biomesWeights,
-        indices,
-      };
-    };
-    const result = _parseVertexBuffer(
+    const result = _parseTerrainVertexBuffer(
       Module.HEAP8.buffer,
       Module.HEAP8.byteOffset + outputBufferOffset
     );
@@ -236,7 +238,90 @@ w.createChunkMeshDualContouring = (inst, x, y, z, lods) => {
   }
 };
 
-w.getHeightfieldRange = (inst, x, z, w, h, lod) => {
+//
+
+const _parseLiquidVertexBuffer = (arrayBuffer, bufferAddress) => {
+  const dataView = new DataView(arrayBuffer, bufferAddress);
+
+  let index = 0;
+
+  // positions
+  const numPositions = dataView.getUint32(index, true);
+  index += Uint32Array.BYTES_PER_ELEMENT;
+  const positions = new Float32Array(arrayBuffer, bufferAddress + index, numPositions * 3);
+  index += Float32Array.BYTES_PER_ELEMENT * numPositions * 3;
+
+  // normals
+  const numNormals = dataView.getUint32(index, true);
+  index += Uint32Array.BYTES_PER_ELEMENT;
+  const normals = new Float32Array(arrayBuffer, bufferAddress + index, numNormals * 3);
+  index += Float32Array.BYTES_PER_ELEMENT * numNormals * 3;
+
+  // biomes
+  const numBiomes = dataView.getUint32(index, true);
+  index += Uint32Array.BYTES_PER_ELEMENT;
+  const biomes = new Int32Array(arrayBuffer, bufferAddress + index, numBiomes);
+  index += Int32Array.BYTES_PER_ELEMENT * numBiomes;
+
+  // indices
+  const numIndices = dataView.getUint32(index, true);
+  index += Uint32Array.BYTES_PER_ELEMENT;
+  const indices = new Uint32Array(arrayBuffer, bufferAddress + index, numIndices);
+  index += Uint32Array.BYTES_PER_ELEMENT * numIndices;
+
+  return {
+    bufferAddress,
+    positions,
+    normals,
+    biomes,
+    indices,
+  };
+};
+w.createLiquidChunkMesh = (inst, x, y, z, lods) => {
+  const allocator = new Allocator(Module);
+
+  const lodArray = allocator.alloc(Int32Array, 8);
+  lodArray.set(lods);
+
+  const outputBufferOffset = Module._createLiquidChunkMesh(
+    inst,
+    x, y, z,
+    lodArray.byteOffset,
+  );
+
+  allocator.freeAll();
+
+  if (outputBufferOffset) {
+    const result = _parseLiquidVertexBuffer(
+      Module.HEAP8.buffer,
+      Module.HEAP8.byteOffset + outputBufferOffset
+    );
+    return result;
+  } else {
+    return null;
+  }
+};
+
+//
+
+w.getChunkHeightfield = (inst, x, z, lod) => {
+  const allocator = new Allocator(Module);
+
+  const heights = allocator.alloc(Float32Array, chunkSize * chunkSize);
+
+  try {
+    Module._getChunkHeightfield(
+      inst,
+      x, z,
+      lod,
+      heights.byteOffset
+    );
+    return heights.slice();
+  } finally {
+    allocator.freeAll();
+  }
+};
+/* w.getHeightfieldRange = (inst, x, z, w, h, lod) => {
   const allocator = new Allocator(Module);
 
   const heights = allocator.alloc(Float32Array, w * h);
@@ -253,7 +338,7 @@ w.getHeightfieldRange = (inst, x, z, w, h, lod) => {
   } finally {
     allocator.freeAll();
   }
-};
+}; */
 w.getChunkSkylight = (inst, x, y, z, lod) => {
   const allocator = new Allocator(Module);
 
@@ -289,7 +374,7 @@ w.getChunkAo = (inst, x, y, z, lod) => {
     allocator.freeAll();
   }
 };
-w.getSkylightFieldRange = (inst, x, y, z, w, h, d, lod) => {
+/* w.getSkylightFieldRange = (inst, x, y, z, w, h, d, lod) => {
   const allocator = new Allocator(Module);
 
   const skylights = allocator.alloc(Uint8Array, w * h * d);
@@ -324,7 +409,7 @@ w.getAoFieldRange = (inst, x, y, z, w, h, d, lod) => {
   } finally {
     allocator.freeAll();
   }
-};
+}; */
 
 w.createGrassSplat = (inst, x, z, lod) => {
   const allocator = new Allocator(Module);

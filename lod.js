@@ -53,6 +53,7 @@ export class LodChunk extends THREE.Vector3 {
   constructor(x, y, z, lodArray) {
     
     super(x, y, z);
+    this.lod = lodArray[0];
     this.lodArray = lodArray;
 
     this.name = `chunk:${this.x}:${this.z}`;

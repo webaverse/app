@@ -4,12 +4,13 @@ import {getRenderer} from './renderer.js';
 //
 
 const fov = 30;
-const zoomFactor = 1.9;
+const zoomFactor = 2.5;
 
 //
 
 const localVector = new THREE.Vector3();
 const localVector2 = new THREE.Vector3();
+const localVector3 = new THREE.Vector3();
 const localVector2D = new THREE.Vector2();
 const localVector4D = new THREE.Vector4();
 const localColor = new THREE.Color();
@@ -37,7 +38,7 @@ export const screenshotLandApp = async ({
   width = 300,
   height = 300,
   clearColor = 0xFFFFFF,
-  clearAlpha = 1,
+  clearAlpha = 0,
 } = {}) => {
   const renderer = getRenderer();
   const size = renderer.getSize(localVector2D);
@@ -65,22 +66,21 @@ export const screenshotLandApp = async ({
 
     // render
     const _render = () => {
-      // const angle = (i / numFrames) * Math.PI * 2;
       const rangeSize = range.getSize(localVector);
-      sideCamera.position.copy(range.min)
+      const lookPoint = localVector2.copy(range.min)
         .add(range.max)
-        .divideScalar(2)
+        .divideScalar(2);
+      const xzSize = Math.max(rangeSize.x, rangeSize.z);
+      lookPoint.y = xzSize;
+      // rangeSize.y = 0;
+      sideCamera.position.copy(lookPoint)
         .add(
-          localVector2.set(zoomFactor, zoomFactor, zoomFactor)
-            .multiply(rangeSize)
+          localVector3.set(zoomFactor * rangeSize.x, 0, zoomFactor * rangeSize.z)
         );
-      sideCamera.lookAt(
-        localVector2.copy(range.min)
-          .add(range.max)
-          .divideScalar(2)
-      );
-      // sideCamera.position.y -= zoomFactor * rangeSize.y * 0.07;
-      // console.log('got size', localVector2.toArray().join(','));
+      // lookPoint.y = xzSize;
+      sideCamera.lookAt(lookPoint);
+      // sideCamera.position.y -= xzSize / 4;
+      sideCamera.position.y = xzSize * 3 / 4;
       // fitCameraToBoundingBox(sideCamera, range, 1.2);
       sideCamera.updateMatrixWorld();
       

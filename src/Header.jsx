@@ -23,21 +23,20 @@ import styles from './Header.module.css';
 
 export default function Header() {
 
-    const { state, setState, selectedApp } = useContext( AppContext );
+    const { state, setState, selectedApp, account } = useContext( AppContext );
     const localPlayer = metaversefile.useLocalPlayer();
     const _getWearActions = () => localPlayer.getActionsArray().filter(action => action.type === 'wear');
 
     const dioramaCanvasRef = useRef();
     const panelsRef = useRef();
 
-    const [address, setAddress] = useState('');
     const [nfts, setNfts] = useState(null);
     // const [apps, setApps] = useState(world.appManager.getApps().slice());
     // const [claims, setClaims] = useState([]);
     // const [dragging, setDragging] = useState(false);
     const [loginFrom, setLoginFrom] = useState('');
     const [wearActions, setWearActions] = useState(_getWearActions());
-
+    const address = account.currentAddress;
     //
 
     const stopPropagation = ( event ) => {
@@ -265,11 +264,7 @@ export default function Header() {
             <StoryTime />
             {/* <div className={styles.inner}> */}
                 <AvatarIcon />
-                <User
-                    address={address}
-                    setAddress={setAddress}
-                    setLoginFrom={setLoginFrom}
-                />
+                <User setLoginFrom={setLoginFrom} />
                 <div className={styles.tabs}>
                     <Character
                         panelsRef={panelsRef}
