@@ -2340,6 +2340,11 @@ const physxWorker = (() => {
     }
     return values;
   }
+  w.crossFade = (parentNode, duration, targetNode) => {
+    moduleInstance._crossFade(
+      parentNode, duration, targetNode,
+    )
+  }
   w.changeWeight = (node, weight) => {
     moduleInstance._changeWeight(
       node,
