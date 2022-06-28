@@ -59,6 +59,9 @@ ioManager.currentWalked = false;
 ioManager.lastCtrlKey = false;
 ioManager.currentLoadout = 0;
 
+ioManager.holsters = [[0,0,-1], [-1,0,0], [1,0,0]]; // temporary
+ioManager.lastEquiped = null;
+
 ioManager.keys = {
   up: false,
   down: false,
@@ -226,6 +229,22 @@ const _updateIo = timeDiff => {
           //   console.log("reload page"); 
           // }
 
+        }
+
+        const _handleHolster = (gamepad) => {
+          for (let i = 0; i < ioManager.holsters.length; i++) {
+            const relativePos = gamepad.position.clone();
+            if(!ioManager.lastEquiped && relativePos.distanceTo(ioManager.holsters[i] < 0.5)) {
+              const selectedApp = loadoutManager.getSelectedApp();
+              selectedApp.position.set(ioManager.holsters[i]);
+              selectedApp.updateMatrixWorld();
+              ioManager.lastEquiped = selectedApp;
+            }
+            else if (ioManager.lastEquiped && relativePos.distanceTo(ioManager.holsters[i] > 0.5)) {
+              ioManager.lastEquiped = null;
+            }
+            
+          }
         }
 
         const _handleLoadout = () => {
