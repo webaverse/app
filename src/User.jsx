@@ -1,9 +1,9 @@
 import React, { useState, useEffect, useContext } from 'react';
 import classnames from 'classnames';
 
-import * as ceramicApi from '../ceramic.js';
 import { discordClientId } from '../constants';
 import { parseQuery } from '../util.js';
+
 // import Modal from './components/modal';
 import WebaWallet from './components/wallet';
 
@@ -13,19 +13,25 @@ import { AppContext } from './components/app';
 import styles from './User.module.css';
 
 import * as sounds from '../sounds.js';
+import Chains from './components/web3/chains';
 
 //
 
-export const User = ({ address, setAddress, setLoginFrom }) => {
+export const User = ({ setLoginFrom }) => {
 
-    const { state, setState } = useContext( AppContext );
+    const { state, setState, account, chain } = useContext( AppContext );
     const [ensName, setEnsName] = useState('');
     const [avatarUrl, setAvatarUrl] = useState('');
     const [ loggingIn, setLoggingIn ] = useState(false);
     const [ loginError, setLoginError ] = useState(null);
     const [ autoLoginRequestMade, setAutoLoginRequestMade ] = useState(false);
-
-    //
+    const { isConnected, currentAddress, connectWallet, errorMessage, wrongChain, getAccounts, getAccountDetails } = account;
+    const { selectedChain } = chain;
+    const [address, setAddress] = useState();
+    async function _setAddress(address) {
+        await handleAddress(address);
+        setAddress(address);
+    }
 
     /* const showModal = ( event ) => {
 
@@ -50,32 +56,18 @@ export const User = ({ address, setAddress, setLoginFrom }) => {
 
     };
 
-    const _setAddress = async address => {
-        
-        if (address) {
-            // let live = true;
-            // (async () => {
-                const ensName = await blockchainManager.getEnsName(address);
-                // if (!live) return;
-                setEnsName(ensName);
+    async function handleAddress(address) {
+        const {name, avatar} = await getAccountDetails();
 
-                if ( ensName ) {
-                    const avatarUrl = await blockchainManager.getAvatarUrl(ensName);
-                    // if (!live) return;
-                    setAvatarUrl(avatarUrl);
-                }
-            // })();
+        if(name) setEnsName(name);
+        if(avatar) setAvatarUrl(avatar);
 
-            /* return () => {
-                live = false;
-            }; */
+    }
 
-            // console.log('render name', {address, ensName, avatarUrl});
-        }
-
-        setAddress(address);
-    
-    };
+    useEffect(()=>{
+        if(!currentAddress) return;
+        handleAddress(currentAddress);
+    }, [currentAddress, selectedChain])
 
     const metaMaskLogin = async ( event ) => {
 
@@ -94,8 +86,7 @@ export const User = ({ address, setAddress, setLoginFrom }) => {
 
                 try {
 
-                    const { address, profile } = await ceramicApi.login();
-                    await _setAddress(address);
+                    const address = await connectWallet();
                     setLoginFrom('metamask');
                     // setShow(false);
                     // setLoginFrom('metamask');
@@ -117,7 +108,7 @@ export const User = ({ address, setAddress, setLoginFrom }) => {
         // }
 
     };
-
+    
     useEffect( () => {
 
         const { error, code, id, play, realmId } = parseQuery( window.location.search );
@@ -148,13 +139,11 @@ export const User = ({ address, setAddress, setLoginFrom }) => {
 
         const metamaskAutoLogin = async () => {
 
-            const { address } = await WebaWallet.autoLogin();
+            const address = await getAccounts();
 
             if ( address ) {
 
-                await _setAddress( address );
                 setLoginFrom( 'metamask' );
-                // setShow( false );
 
             } else if ( error ) {
 
@@ -165,9 +154,7 @@ export const User = ({ address, setAddress, setLoginFrom }) => {
         };
 
         //
-
         if ( ! autoLoginRequestMade ) {
-
             setAutoLoginRequestMade( true );
 
             if ( code ) {
@@ -200,7 +187,7 @@ export const User = ({ address, setAddress, setLoginFrom }) => {
 
         }
 
-    }, [ address ] );
+    }, [ currentAddress ] );
 
     //
 
@@ -213,7 +200,7 @@ export const User = ({ address, setAddress, setLoginFrom }) => {
     //
 
     const open = state.openedPanel === 'LoginPanel';
-    const loggedIn = !!address;
+    const loggedIn = isConnected;
 
     //
 
@@ -263,30 +250,29 @@ export const User = ({ address, setAddress, setLoginFrom }) => {
 
             <div
                 className={styles.userWrap}
-            >
+            >   
+                {loggedIn && <Chains />}
                 <div
                     className={styles.userBar}
                     onClick={openUserPanel}
                 >
                     {avatarUrl ? (
-                        <div
-                            className={styles.avatarUrl}
-                        >
+                        <div className={styles.avatarUrl}>
                             <img className={styles.img} src={avatarUrl} crossOrigin='Anonymous' />
                         </div>
                     ) : null}
                     <div
-                        className={styles.address}
-                    >{ensName || address || ''} <img className={styles.verifiedIcon} src="./images/verified.svg" /></div>
+                        className={[styles.address, avatarUrl ? styles.avatarPadRight : undefined].join(' ')}
+                    >{ensName || address || currentAddress || ''} <img className={styles.verifiedIcon} src="./images/verified.svg" /></div>
                 </div>
-                <div className={styles.logoutBtn}
+                {/* <div className={styles.logoutBtn}
                     onClick={e => {
                         e.preventDefault();
                         e.stopPropagation();
                         WebaWallet.logout();
                         _setAddress(null);
                     }}
-                >Logout</div>
+                >Logout</div> */}
             </div>
 
             <div className={ classnames(
@@ -301,7 +287,8 @@ export const User = ({ address, setAddress, setLoginFrom }) => {
                     <img src="images/metamask.png" alt="metamask" width="28px" />
                     <span className={ styles.methodBtnText } >MetaMask</span>
                 </div>
-                <a
+            </div>
+                {/* <a
                     href={ `https://discord.com/api/oauth2/authorize?client_id=${ discordClientId }&redirect_uri=${ window.location.origin }%2Flogin&response_type=code&scope=identify` }
                     onMouseEnter={ _triggerClickSound }
                 >
