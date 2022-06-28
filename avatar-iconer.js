@@ -80,9 +80,6 @@ class AvatarIconer extends EventTarget {
         return emotionCanvases;
       }
     ]);
-
-    const avatarApp = player.getAvatarApp();
-    this.renderAvatarApp(avatarApp);
   }
   async renderAvatarApp(srcAvatarApp) {
     const lastEnabled = this.enabled;
