@@ -40,8 +40,6 @@ class Universe extends EventTarget {
     localPlayer.position.set(0, initialPosY, 0);
     localPlayer.characterPhysics.reset();
     localPlayer.updateMatrixWorld();
-    // physicsManager.setPhysicsEnabled(true);
-    // localPlayer.updatePhysics(0, 0);
     physicsManager.setPhysicsEnabled(false);
 
     const _doLoad = async () => {
@@ -86,7 +84,6 @@ class Universe extends EventTarget {
 
     localPlayer.characterPhysics.reset();
     physicsManager.setPhysicsEnabled(true);
-    localPlayer.updatePhysics(0, 0);
 
     this.currentWorld = worldSpec;
 
@@ -175,7 +172,7 @@ class Universe extends EventTarget {
       crdtState: state,
     });
 
-    // This is called when the websocket connection opens, i.e. server is connectedw
+    // This is called when the websocket connection opens, i.e. server is connected
     const open = e => {
       this.wsrtc.removeEventListener('open', open);
 

@@ -315,7 +315,6 @@ export default class Webaverse extends EventTarget {
         // Update physics
         if (physicsManager.getPhysicsEnabled()) {
           physicsManager.simulatePhysics(timeDiffCapped);
-          localPlayer.updatePhysics(timestamp, timeDiff);
         }
         raycastManager.update(timestamp, timeDiffCapped);
 
@@ -328,9 +327,6 @@ export default class Webaverse extends EventTarget {
         particleSystemManager.update(timestamp, timeDiffCapped);
 
         // Update app owners
-
-        localPlayer.appManager.tick(timestamp, timeDiffCapped, frame);
-
         localPlayer.update(timestamp, timeDiffCapped, frame);
 
         for (const remotePlayer of playersManager.remotePlayers.values()) {

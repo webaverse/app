@@ -94,53 +94,33 @@ class AppManager extends EventTarget {
     const observeAppsFn = e => {
       const {added, deleted} = e.changes;
 
-      console.log("e.changes are", e.changes)
-
       for (const item of deleted.values()) {
+        console.log('item delete is', item, 'on', this.owner);
         const appMap = item.content.type;
         const instanceId = appMap.get('instanceId');
         const app = this.getAppByInstanceId(instanceId);
-        const peerOwnerAppManager = this.getPeerOwnerAppManager(instanceId);
-
-        if (app && peerOwnerAppManager) {
-          if (!peerOwnerAppManager.apps.includes(app)) {
-            peerOwnerAppManager.apps.push(app);
-          }
-          if ((app.getComponent('wear') || app.getComponent('pet'))) {
-            peerOwnerAppManager.callBackFn(app, 'wear', 'add');
-          }
-        }
+        if (!app) throw new Error('no app');
         const index = this.apps.indexOf(app);
         if (index !== -1) {
           this.apps.splice(index, 1);
+          console.log('this.apps.splice(index, 1);');
         }
-        if ((app.getComponent('wear') || app.getComponent('pet')) && this.callBackFn) {
-          this.callBackFn(app, 'wear', 'remove');
+        if ((app.getComponent('wear') || app.getComponent('pet')) && this.owner.unwear) {
+          this.owner.unwear(app);
+          console.log('this.owner.unwear(app);');
         }
       }
 
       // Handle new apps added to the app manager
       for (const item of added.values()) {
-        let appMap = item.content.type;
-        if (appMap.constructor === Object) {
-          for (let i = 0; i < this.appsArray.length; i++) {
-            const localAppMap = this.appsArray.get(i, Z.Map); // force to be a map
-            if (localAppMap.binding === item.content.type) {
-              appMap = localAppMap;
-              break;
-            }
-          }
-        }
+        console.log('item added is', item, 'on', this.owner);
+
+        const appMap = item.content.type;
 
         const instanceId = appMap.get('instanceId');
-        const app = this.apps.find(app => app.instanceId === instanceId);
-        if (!app) {
+
           const trackedApp = this.getOrCreateTrackedApp(instanceId);
           this.importTrackedApp(trackedApp);
-        } else if (!this.owner.isLocalPlayer) {
-          const trackedApp = this.getOrCreateTrackedApp(instanceId);
-          this.bindTrackedApp(trackedApp, app);
-        }
       }
     };
     nextAppsArray.observe(observeAppsFn);
@@ -164,7 +144,7 @@ class AppManager extends EventTarget {
     if (this.trackedAppBound(trackedApp.instanceId)) throw new Error('Tracked app is already bound');
     let observeTrackedAppFn;
     if (this.owner.isLocalPlayer) {
-      observeTrackedAppFn = e => {}
+      observeTrackedAppFn = e => {};
     } else {
       observeTrackedAppFn = e => {
         if (e.changes.keys.has('transform')) {
@@ -236,7 +216,7 @@ class AppManager extends EventTarget {
   // Also called explicitly by loadApps on remote player at init
   async importTrackedApp(trackedApp) {
     const trackedAppBinding = trackedApp.toJSON();
-    const { instanceId, contentId, transform, components } = trackedAppBinding;
+    const {instanceId, contentId, transform, components} = trackedAppBinding;
 
     const p = makePromise();
     p.instanceId = instanceId;
@@ -318,7 +298,7 @@ class AppManager extends EventTarget {
         return app;
       }
     }
-
+    console.error('Creating new tracked app');
     const appMap = new Z.Map();
     this.appsArray.push([appMap]);
     return appMap;
@@ -391,24 +371,21 @@ class AppManager extends EventTarget {
       this.unbindTrackedApp(instanceId);
     }
 
-    const srcTrackedApp = this.getOrCreateTrackedApp(instanceId);
+    const srcTrackedApp = this.getTrackedApp(instanceId);
 
     const contentId = srcTrackedApp.get('contentId');
     const transform = srcTrackedApp.get('transform');
     const components = srcTrackedApp.get('components');
 
-    // TODO: remove me
-    if (!transform) throw new Error('Transform is null, maybe okay but wtf');
-
     app.position.fromArray(transform);
     app.quaternion.fromArray(transform, 3);
     app.scale.fromArray(transform, 7);
-    
+
     const self = this;
     this.appsArray.doc.transact(() => {
       self.removeTrackedApp(instanceId);
 
-      const trackedApp = self.getOrCreateTrackedApp(instanceId);
+      const trackedApp = dstAppManager.getOrCreateTrackedApp(instanceId);
       trackedApp.set('instanceId', instanceId);
       trackedApp.set('contentId', contentId);
       trackedApp.set('transform', transform);
@@ -449,7 +426,7 @@ class AppManager extends EventTarget {
   getAppByInstanceId(instanceId) {
     return this.apps.find(app => app.instanceId === instanceId);
   }
-  
+
   getAppByPhysicsId(physicsId) {
     for (const app of this.apps) {
       if (
@@ -597,19 +574,20 @@ class AppManager extends EventTarget {
   // Remove all apps from the manager -- can't do this if bound
   clear() {
     if (this.isBound()) throw new Error('cannot clear world while it is bound');
-      const apps = this.apps.slice();
-      for (const app of apps) {
-        this.removeApp(app);
-      }
-      this.dispatchEvent(new MessageEvent('clear'));
+    const apps = this.apps.slice();
+    for (const app of apps) {
+      this.removeApp(app);
+    }
+    this.dispatchEvent(new MessageEvent('clear'));
   }
+
   // Called when the character controller or world is destroyed
   destroy() {
     if (this.isBound()) throw new Error('Cannot destroy bound app manager');
 
     const index = appManagers.indexOf(this);
     if (index > -1) throw new Error('App manager has already been removed');
-  
+
     this.clear();
     appManagers.splice(index, 1);
   }

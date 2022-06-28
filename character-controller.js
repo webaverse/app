@@ -1151,6 +1151,10 @@ class LocalPlayer extends NetworkPlayer {
   update(timestamp, timeDiff, frame) {
     if (!this.avatar) return console.warn('Not updating local player, no avatar');
     if (!this.playersArray) return console.warn('Not updating local player, not inited');
+
+    this.updatePhysics(timestamp, timeDiff);
+    this.appManager.tick(timestamp, timeDiff, frame);
+
     const session = this.getSession();
     const mirrors = metaversefile.getMirrors();
     applyPlayerToAvatar(this, session, this.avatar, mirrors);
