@@ -69,7 +69,7 @@ We recommend that you use Windows Subsystem for Linux to run Webaverse. This [vi
 Starting the application is as easy as:
 
 ```sh
-npm run prod
+npm run start
 ```
 
 Once the server has started up, you can visit `https://local.webaverse.com` 
