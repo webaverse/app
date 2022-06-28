@@ -2242,14 +2242,14 @@ const physxWorker = (() => {
     )
     return pointer;
   }
-  w.addChild = (parentPointer, childPointer) => {
+  w.addChild = (parentNode, childNode) => { // input: pointers of nodes
     moduleInstance._addChild(
-      parentPointer, childPointer,
+      parentNode, childNode,
     )
   }
-  w.setAnimTree = (nodePointer) => {
+  w.setAnimTree = (node) => { // input: pointer of node
     moduleInstance._setAnimTree(
-      nodePointer,
+      node,
     )
   }
   w.createInterpolant = (animationIndex, parameterPositions, sampleValues, valueSize) => {
