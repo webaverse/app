@@ -11,12 +11,12 @@ import styles from '../Header.module.css';
 
 //
 
-export const Tokens = ({userOpen, loginFrom, hacks, address}) => {
+export const Tokens = ({userOpen, loginFrom, hacks}) => {
 
-    const { state } = useContext( AppContext );
+    const { state, account } = useContext( AppContext );
     const [nftPreviews, setNftPreviews] = useState({});
     const [nfts, setNfts] = useState(null);
-    const [fetchPromises, setFetchPromises] = useState([]);
+    const { currentAddress } = account;
 
     //
 
