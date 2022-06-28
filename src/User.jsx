@@ -5,7 +5,7 @@ import { discordClientId } from '../constants';
 import { parseQuery } from '../util.js';
 
 // import Modal from './components/modal';
-import WebaWallet from './components/wallet';
+// import WebaWallet from './components/wallet';
 
 import blockchainManager from '../blockchain-manager.js';
 import { AppContext } from './components/app';
@@ -115,27 +115,27 @@ export const User = ({ setLoginFrom }) => {
 
         //
 
-        const discordAutoLogin = async () => {
+        // const discordAutoLogin = async () => {
 
-            const { address, error } = await WebaWallet.loginDiscord( code, id );
+        //     const { address, error } = await WebaWallet.loginDiscord( code, id );
 
-            if ( address ) {
+        //     if ( address ) {
 
-                await _setAddress( address );
-                // setAddress( address );
-                setLoginFrom( 'discord' );
-                // setShow( false );
+        //         await _setAddress( address );
+        //         // setAddress( address );
+        //         setLoginFrom( 'discord' );
+        //         // setShow( false );
 
-            } else if ( error ) {
+        //     } else if ( error ) {
 
-                setLoginError( String( error ).toLocaleUpperCase() );
+        //         setLoginError( String( error ).toLocaleUpperCase() );
 
-            }
+        //     }
 
-            window.history.pushState( {}, '', window.location.origin );
-            setLoggingIn( false );
+        //     window.history.pushState( {}, '', window.location.origin );
+        //     setLoggingIn( false );
 
-        };
+        // };
 
         const metamaskAutoLogin = async () => {
 
@@ -154,38 +154,38 @@ export const User = ({ setLoginFrom }) => {
         };
 
         //
-        if ( ! autoLoginRequestMade ) {
-            setAutoLoginRequestMade( true );
+        // if ( ! autoLoginRequestMade ) {
+        //     setAutoLoginRequestMade( true );
 
-            if ( code ) {
+        //     if ( code ) {
 
-                setLoggingIn( true );
+        //         setLoggingIn( true );
 
-                if ( WebaWallet.launched ) {
+        //         if ( WebaWallet.launched ) {
 
-                    discordAutoLogin();
+        //             discordAutoLogin();
 
-                } else {
+        //         } else {
 
-                    WebaWallet.waitForLaunch().then( discordAutoLogin );
+        //             WebaWallet.waitForLaunch().then( discordAutoLogin );
 
-                }
+        //         }
 
-            } else {
+        //     } else {
 
-                if ( WebaWallet.launched ) {
+        //         if ( WebaWallet.launched ) {
 
-                    metamaskAutoLogin();
+        //             metamaskAutoLogin();
 
-                } else {
+        //         } else {
 
-                    WebaWallet.waitForLaunch().then( metamaskAutoLogin );
+        //             WebaWallet.waitForLaunch().then( metamaskAutoLogin );
 
-                }
+        //         }
 
-            }
+        //     }
 
-        }
+        // }
 
     }, [ currentAddress ] );
 
