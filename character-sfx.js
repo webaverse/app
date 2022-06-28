@@ -89,12 +89,14 @@ class CharacterSfx {
         player.removeEventListener('wearupdate', wearupdate);
       };
     }
+
+    this.currentStep = null;
   }
   update(timestamp, timeDiffS) {
     if (!this.player.avatar) {
       return;
     }
-    
+    this.animationStepIndices = Avatar.getAnimationStepIndices();
     const timeSeconds = timestamp/1000;
     const currentSpeed = localVector.set(this.player.avatar.velocity.x, 0, this.player.avatar.velocity.z).length();
     
@@ -179,7 +181,7 @@ class CharacterSfx {
                 /* for (const a of candidateAudios) {
                   !a.paused && a.pause();
                 } */
-                
+                this.currentStep = 'left';
                 const audioSpec = candidateAudios[Math.floor(Math.random() * candidateAudios.length)];
                 sounds.playSound(audioSpec);
               }
@@ -192,7 +194,7 @@ class CharacterSfx {
                 /* for (const a of candidateAudios) {
                   !a.paused && a.pause();
                 } */
-
+                this.currentStep = 'right';
                 const audioSpec = candidateAudios[Math.floor(Math.random() * candidateAudios.length)];
                 sounds.playSound(audioSpec);
               }
