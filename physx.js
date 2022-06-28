@@ -7,6 +7,7 @@ import * as THREE from 'three';
 // import { getRenderer } from './renderer.js'
 import Module from './public/bin/geometry.js';
 import {Allocator, ScratchStack} from './geometry-util.js';
+import { AnimationNodeType } from './constants.js';
 
 const localVector = new THREE.Vector3()
 const localVector2 = new THREE.Vector3()
@@ -2234,8 +2235,10 @@ const physxWorker = (() => {
     )
     return pointer;
   }
-  w.createNode = () => {
+  w.createNode = (type = AnimationNodeType.LIST) => {
+    // debugger
     const pointer = moduleInstance._createNode(
+      type,
     )
     return pointer;
   }
@@ -2337,16 +2340,27 @@ const physxWorker = (() => {
     }
     return values;
   }
-  w.changeWeight = (animation, weight) => {
-    const outputBufferOffset = moduleInstance._changeWeight(
-      animation,
+  w.changeWeight = (node, weight) => {
+    moduleInstance._changeWeight(
+      node,
       weight,
     )
-
-    return outputBufferOffset;
-    const head = outputBufferOffset / Float32Array.BYTES_PER_ELEMENT;
-    const testWeight = moduleInstance.HEAPF32[head];
-    return testWeight;
+  }
+  w.changeFactor = (node, factor) => {
+    moduleInstance._changeFactor(
+      node,
+      factor,
+    )
+  }
+  w.getWeight = (node) => {
+    return moduleInstance._getWeight(
+      node,
+    )
+  }
+  w.getFactor = (node) => {
+    return moduleInstance._getFactor(
+      node,
+    )
   }
 
   // End AnimationSystem

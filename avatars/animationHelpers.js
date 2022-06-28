@@ -39,6 +39,7 @@ import {
   crouchMaxTime,
   // useMaxTime,
   aimMaxTime,
+  AnimationNodeType,
   // avatarInterpolationFrameRate,
   // avatarInterpolationTimeDelay,
   // avatarInterpolationNumFrames,
@@ -571,11 +572,11 @@ export const _createAnimation = avatar => {
     window.flyMotion = physx.physxWorker.createMotion(animations.index["treading water.fbx"].pointer); // 92
     window.crouchMotion = physx.physxWorker.createMotion(animations.index["Crouch Idle.fbx"].pointer); // 9
 
-    window.walkFlyNode = physx.physxWorker.createNode();
+    window.walkFlyNode = physx.physxWorker.createNode(AnimationNodeType.TWO);
     physx.physxWorker.addChild(walkFlyNode, walkMotion);
     physx.physxWorker.addChild(walkFlyNode, flyMotion);
 
-    window.crouchNode = physx.physxWorker.createNode();
+    window.crouchNode = physx.physxWorker.createNode(AnimationNodeType.TWO);
     physx.physxWorker.addChild(crouchNode, walkFlyNode);
     physx.physxWorker.addChild(crouchNode, crouchMotion);
 
