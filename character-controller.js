@@ -7,7 +7,7 @@ import {getAudioDataBuffer} from 'wsrtc/ws-util.js';
 
 import * as THREE from 'three';
 import * as Z from 'zjs';
-import {getRenderer, scene, camera, dolly} from './renderer.js';
+import {getRenderer, scene, camera} from './renderer.js';
 import physicsManager from './physics-manager.js';
 import {world} from './world.js';
 import physx from './physx.js';
@@ -22,7 +22,6 @@ import {
   activateMaxTime,
   // useMaxTime,
   aimTransitionMaxTime,
-  avatarInterpolationFrameRate,
   avatarInterpolationTimeDelay,
   avatarInterpolationNumFrames,
   defaultPlayerSpec,
@@ -39,7 +38,7 @@ import {CharacterHitter} from './character-hitter.js';
 import {CharacterBehavior} from './character-behavior.js';
 import {CharacterFx} from './character-fx.js';
 import {VoicePack, VoicePackVoicer} from './voice-output/voice-pack-voicer.js';
-import {VoiceEndpoint, VoiceEndpointVoicer, getVoiceEndpointUrl} from './voice-output/voice-endpoint-voicer.js';
+import {VoiceEndpoint, VoiceEndpointVoicer} from './voice-output/voice-endpoint-voicer.js';
 import {BinaryInterpolant, BiActionInterpolant, UniActionInterpolant, InfiniteActionInterpolant, PositionInterpolant, QuaternionInterpolant} from './interpolants.js';
 import {applyPlayerToAvatar, makeAvatar} from './player-avatar-binding.js';
 import {
@@ -73,38 +72,6 @@ function makeCancelFn() {
   };
 }
 
-
-/* function loadPhysxAuxCharacterCapsule() {
-  const avatarHeight = this.avatar.height;
-  const radius = baseRadius/heightFactor * avatarHeight;
-  const height = avatarHeight - radius*2;
-  const halfHeight = height/2;
-
-  const position = this.position.clone()
-    .add(new THREE.Vector3(0, -avatarHeight/2, 0));
-  const physicsMaterial = new THREE.Vector3(0, 0, 0);
-
-  const physicsObject = physicsManager.addCapsuleGeometry(
-    position,
-    localQuaternion.copy(this.quaternion)
-      .premultiply(
-        localQuaternion2.setFromAxisAngle(
-          localVector.set(0, 0, 1),
-          Math.PI/2
-        )
-      ),
-    radius,
-    halfHeight,
-    physicsMaterial,
-    true
-  );
-  physicsObject.name = 'characterCapsuleAux';
-  physicsManager.setGravityEnabled(physicsObject, false);
-  physicsManager.setLinearLockFlags(physicsObject.physicsId, false, false, false);
-  physicsManager.setAngularLockFlags(physicsObject.physicsId, false, false, false);
-  this.physicsObject = physicsObject;
-} */
-
 class Hand extends THREE.Object3D {
   constructor() {
     super();
@@ -117,8 +84,7 @@ class Hand extends THREE.Object3D {
 class Player extends THREE.Object3D {
   constructor({
     name = defaultPlayerName,
-    playerId = makeId(5), // random 5-digit string, must be unique per player in room
-    isLocalPlayer = false, // set true by local player
+    playerId = makeId(5) // random 5-digit string, must be unique per player in room
   } = {}) {
     super();
     this.playerId = playerId;
@@ -155,18 +121,6 @@ class Player extends THREE.Object3D {
       this.leftHand,
       this.rightHand,
     ];
-
-    // Add listener functions to this object
-    // Any time an app is added, make sure it's also added to the scene
-    this.appManager = new AppManager(isLocalPlayer);
-    this.appManager.addEventListener('appadd', e => {
-      const app = e.data;
-      scene.add(app);
-    });
-    this.appManager.addEventListener('appremove', e => {
-      const app = e.data;
-      app.parent && app.parent.remove(app);
-    });
   }
 
   // General functions
@@ -717,7 +671,7 @@ class Player extends THREE.Object3D {
             if (!cancelFn.isLive()) return;
             _setNextAvatarApp(nextAvatarApp);
           } else {
-            throw new Error('Cannot set avatar to null', app);
+            throw new Error('Cannot set avatar to null');
           }
         }
       }
@@ -772,6 +726,7 @@ class NetworkPlayer extends Player {
   constructor(opts) {
     super(opts);
     this.playersArray = null;
+    this.transform = new Float32Array(7);
   }
 
   // State binding
@@ -799,10 +754,9 @@ class NetworkPlayer extends Player {
           self.playerMap.set('name', self.name);
           self.playerMap.set('bio', self.bio);
 
-          const transform = new Float32Array(8);
+          const transform = self.transform;
           self.position.toArray(transform);
           self.quaternion.toArray(transform, 3);
-
           self.playerMap.set('transform', transform);
 
           const avatar = self.getAvatarState();
@@ -963,6 +917,7 @@ class NetworkPlayer extends Player {
     };
     _bindAvatar();
 
+    if (this.appManager.isBound()) this.appManager.unbindState();
     this.appManager.bindState(this.getAppsState());
   }
 
@@ -1000,7 +955,7 @@ class NetworkPlayer extends Player {
 // Called from in players.js and npc-manager.js
 class LocalPlayer extends NetworkPlayer {
   constructor(opts) {
-    super({...opts, isLocalPlayer: !opts.npc});
+    super(opts);
 
     this.microphoneMediaStream = null;
 
@@ -1009,7 +964,6 @@ class LocalPlayer extends NetworkPlayer {
 
     this.lastTimestamp = NaN;
     this.lastMatrix = new THREE.Matrix4();
-    this.transform = new Float32Array(7);
 
     this.avatarBinding = {
       position: this.position,
@@ -1041,11 +995,24 @@ class LocalPlayer extends NetworkPlayer {
     this.actionInterpolantsArray = Object.keys(this.actionInterpolants).map(
       k => this.actionInterpolants[k],
     );
+
+    // Add listener functions to this object
+    // Any time an app is added, make sure it's also added to the scene
+    this.appManager = new AppManager(this);
+    this.appManager.addEventListener('appadd', e => {
+      const app = e.data;
+      scene.add(app);
+    });
+    this.appManager.addEventListener('appremove', e => {
+      const app = e.data;
+      app.parent && app.parent.remove(app);
+    });
   }
 
   // Initialization
   // Must be called before the player can interact with the world
   init(state) {
+    if (this.isBound()) this.unbindState();
     this.bindState(state.getArray(playersMapName));
     if (!this.avatar) {
       this.setPlayerSpec(defaultPlayerSpec);
@@ -1100,7 +1067,7 @@ class LocalPlayer extends NetworkPlayer {
     const oldInstanceId = avatar.get('instanceId');
     this.playersArray.doc.transact(function tx() {
       if (oldInstanceId) {
-        self.appManager.removeTrackedAppInternal(oldInstanceId);
+        self.appManager.removeTrackedApp(oldInstanceId);
       }
 
       if (app.instanceId && oldInstanceId !== app.instanceId) {
@@ -1202,17 +1169,14 @@ class LocalPlayer extends NetworkPlayer {
     this.avatar.update(timestamp, timeDiff);
     this.appManager.update(timeDiff);
 
-    const _pushPlayerUpdates = () => {
-      if (this.lastMatrix.equals(this.matrixWorld)) return;
-      this.lastMatrix.copy(this.matrixWorld);
-
+    // Push updates to the network
+    if (!this.lastMatrix.equals(this.matrixWorld)) {
       this.position.toArray(this.transform);
       this.quaternion.toArray(this.transform, 3);
-
       this.playerMap.set('transform', this.transform);
-    };
 
-    _pushPlayerUpdates();
+      this.lastMatrix.copy(this.matrixWorld);
+    }
   }
 
   updatePhysics(timestamp, timeDiff) {
@@ -1292,13 +1256,27 @@ class RemotePlayer extends NetworkPlayer {
       };
 
       this.actionInterpolantsArray = Object.keys(this.actionInterpolants).map(k => this.actionInterpolants[k]);
+
+      this.avatarBinding = {
+        position: this.positionInterpolant.get(),
+        quaternion: this.quaternionInterpolant.get(),
+      };
     };
     _setupInterpolation();
 
-    this.avatarBinding = {
-      position: this.positionInterpolant.get(),
-      quaternion: this.quaternionInterpolant.get(),
-    };
+    const _setupEventListeners = () => {
+      this.appManager = new AppManager(this);
+      this.appManager.addEventListener('appadd', e => {
+        const app = e.data;
+        scene.add(app);
+      });
+      this.appManager.addEventListener('appremove', e => {
+        const app = e.data;
+        app.parent && app.parent.remove(app);
+      });
+    }
+
+    _setupEventListeners();
 
     const _syncPlayer = async () => {
       // Get all tracked apps from player's apps array and bind them

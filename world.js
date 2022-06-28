@@ -2,7 +2,7 @@ import * as Z from 'zjs/z.mjs';
 import hpManager from './hp-manager.js';
 import {AppManager} from './app-manager.js';
 import {scene, sceneHighPriority, sceneLowPriority, sceneLowerPriority, sceneLowestPriority} from './renderer.js';
-import {appsMapName, worldMapName, playersMapName} from './constants.js';
+import {appsMapName, worldMapName} from './constants.js';
 const _getBindSceneForRenderPriority = renderPriority => {
   switch (renderPriority) {
     case 'high': {
@@ -26,8 +26,8 @@ const _getBindSceneForRenderPriority = renderPriority => {
 // Handles the world and objects in it, has an app manager just like a player
 export class World {
   constructor() {
-    this.appManager = new AppManager(false);
-    this.winds = [];
+    this.winds = []; // hold list of wind objects, accessed by metaversefile API
+    this.appManager = new AppManager(this);
     // This handles adding apps to the world scene
     this.appManager.addEventListener('appadd', e => {
       const app = e.data;
@@ -53,11 +53,12 @@ export class World {
   }
 
   init(state) {
-    this.appManager.unbindState();
-    this.appManager.clear();
+    if (this.appManager.isBound()) {
+      this.appManager.unbindState();
+      this.appManager.clear();
+    }
     const worldMap = state.getMap(worldMapName);
     const appsArray = worldMap.get(appsMapName, Z.Array);
-
     this.appManager.bindState(appsArray);
   }
 }

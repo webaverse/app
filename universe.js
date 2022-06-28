@@ -5,20 +5,17 @@ responsibilities include loading the world on url change.
 
 // import * as THREE from 'three';
 import * as Z from 'zjs';
+import WSRTC from 'wsrtc/wsrtc.js';
+import metaversefile from 'metaversefile';
+
+import sceneNames from './scenes/scenes.json';
 import {world} from './world.js';
 import physicsManager from './physics-manager.js';
 import {loadOverworld} from './overworld.js';
 import {parseQuery} from './util.js';
-import metaversefile from 'metaversefile';
-import sceneNames from './scenes/scenes.json';
-
-import WSRTC from 'wsrtc/wsrtc.js';
-import {getLocalPlayer, remotePlayers} from './players.js';
-
-import {scene, sceneHighPriority, sceneLowPriority, sceneLowerPriority, sceneLowestPriority} from './renderer.js';
-import {appsMapName, initialPosY, worldMapName, playersMapName} from './constants.js';
+import {getLocalPlayer} from './players.js';
+import {initialPosY, playersMapName} from './constants.js';
 import {playersManager} from './players-manager.js';
-
 import physx from './physx.js';
 import physxWorkerManager from './physx-worker-manager.js';
 
@@ -37,7 +34,7 @@ class Universe extends EventTarget {
   }
 
   async enterWorld(worldSpec) {
-    this.disconnectRoom();
+    if (this.isConnected) this.disconnectRoom();
 
     const localPlayer = metaversefile.useLocalPlayer();
     localPlayer.position.set(0, initialPosY, 0);
@@ -48,8 +45,6 @@ class Universe extends EventTarget {
     physicsManager.setPhysicsEnabled(false);
 
     const _doLoad = async () => {
-      // world.clear();
-
       const promises = [];
       const {src, room} = worldSpec;
       if (!room) {
@@ -142,6 +137,10 @@ class Universe extends EventTarget {
   connectState(state) {
     this.state = state;
     state.setResolvePriority(1);
+
+    if (playersManager.isBound()) {
+      playersManager.unbind();
+    }
     playersManager.bindState(state.getArray(playersMapName));
 
     world.init(state);
@@ -156,22 +155,25 @@ class Universe extends EventTarget {
   async connectRoom(u, state = new Z.Doc()) {
     this.state = state;
     state.setResolvePriority(1);
+
     // Players cannot be initialized until the physx worker is loaded
     // Otherwise you will receive allocation errors because the module instance is undefined
     await physx.waitForLoad();
     await physxWorkerManager.waitForLoad();
-    // Create a new instance of the websocket rtc client
-    // This comes from webaverse/wsrtc/wsrtc.js
+
     const localPlayer = getLocalPlayer();
+
+    if (playersManager.isBound()) {
+      playersManager.unbind();
+    }
     playersManager.bindState(state.getArray(playersMapName));
 
+    // Create a new instance of the websocket rtc client
+    // This comes from webaverse/wsrtc/wsrtc.js
     this.wsrtc = new WSRTC(u, {
       localPlayer,
       crdtState: state,
     });
-
-    world.init(state);
-    localPlayer.init(state);
 
     // This is called when the websocket connection opens, i.e. server is connectedw
     const open = e => {
@@ -180,6 +182,9 @@ class Universe extends EventTarget {
       // Called by WSRTC when the connection is initialized
       const init = e => {
         this.wsrtc.removeEventListener('init', init);
+
+        world.init(state);
+        localPlayer.init(state);
 
         this.wsrtc.addEventListener('audio', e => {
           const player = playersManager.remotePlayersByInteger.get(e.data.playerId);
