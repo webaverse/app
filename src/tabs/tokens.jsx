@@ -27,7 +27,7 @@ export const Tokens = ({loginFrom, hacks}) => {
               { headers: { "X-API-KEY": "6a7ceb45f3c44c84be65779ad2907046" } }
             ).then((res) => res.json())
               .then(({ assets }) => setNfts(assets))
-              .catch(() => console.warn('could not connect to opensea'));
+              .catch(() => console.warn('could not connect to opensea. the api key may have expired'));
           }
           queryOpensea();
         }
