@@ -123,7 +123,7 @@ class Player extends THREE.Object3D {
     ];
   }
 
-  // General functions
+  // General methods
 
   setSpawnPoint(position, quaternion) {
     this.position.copy(position);
@@ -173,7 +173,7 @@ class Player extends THREE.Object3D {
     );
   }
 
-  // Actions
+  // Action methods
   // Anything a player does is an action, i.e. wearing, swinging, jumping, sitting
   // Actions are synced to the player map and handled over the network
 
@@ -317,7 +317,7 @@ class Player extends THREE.Object3D {
     return Array.from(this.getActionsState());
   }
 
-  // Voice
+  // Voice methods
   // Players speak using a realistic text-to-speech service ("endpoint") or gobblygook ("pack")
   // Endpoint voices play whenever a player chats or engages in dialogue
   // Hups and sounds are also covered in the voice pack
@@ -340,7 +340,7 @@ class Player extends THREE.Object3D {
     if (!voiceId) return console.error('voice Id is null');
     const self = this;
     const url = `${voiceEndpointBaseUrl}?voice=${encodeURIComponent(voiceId)}`;
-    this.playersArray.doc.transact(function tx() {
+    this.playersArray.doc.transact(() => {
       let oldVoiceSpec = self.playerMap.get('voiceSpec');
       if (oldVoiceSpec) {
         oldVoiceSpec = JSON.parse(oldVoiceSpec);
@@ -350,7 +350,7 @@ class Player extends THREE.Object3D {
         const voiceSpec = JSON.stringify({audioUrl: self.voicePack?.audioUrl, indexUrl: self.voicePack?.indexUrl, endpointUrl: url});
         self.playerMap.set('voiceSpec', voiceSpec);
       }
-    });
+    }, 'push');
     this.loadVoiceEndpoint(url);
   }
 
@@ -405,7 +405,7 @@ class Player extends THREE.Object3D {
       wear,
     };
 
-    if (loadoutIndex != -1) {
+    if (loadoutIndex !== -1) {
       param.loadoutIndex = loadoutIndex;
     }
 
@@ -664,15 +664,7 @@ class Player extends THREE.Object3D {
           world.appManager.transplantApp(nextAvatarApp, this.appManager);
           _setNextAvatarApp(nextAvatarApp);
         } else {
-          // add next app from currently loading apps
-          const addPromise = this.appManager.pendingAddPromises.get(instanceId);
-          if (addPromise) {
-            const nextAvatarApp = await addPromise;
-            if (!cancelFn.isLive()) return;
-            _setNextAvatarApp(nextAvatarApp);
-          } else {
-            throw new Error('Cannot set avatar to null');
-          }
+          throw new Error('Cannot set avatar to null');
         }
       }
     }
@@ -686,7 +678,10 @@ class Player extends THREE.Object3D {
       : null;
     if (!avatarMap) {
       avatarMap = new Z.Map();
-      this.playerMap.set(avatarMapName, avatarMap);
+      const self = this;
+      this.playersArray.doc.transact(() => {
+        self.playerMap.set(avatarMapName, avatarMap);
+      }, 'push')
     }
     return avatarMap;
   }
@@ -697,7 +692,10 @@ class Player extends THREE.Object3D {
       : null;
     if (!appsArray) {
       appsArray = new Z.Array();
-      this.playerMap.set(appsMapName, appsArray);
+      const self = this;
+      this.playersArray.doc.transact(() => {
+        this.playerMap.set(appsMapName, appsArray);
+      }, 'push');
     }
     return appsArray;
   }
@@ -720,8 +718,11 @@ class Player extends THREE.Object3D {
 }
 
 // Networked player base
-// Adds network functionality via specifically state binding
 // Local and remote players inherit from this
+// Adds network functionality via state binding
+// State is synced with ZJS and WSRTC
+// Whenever changes are set on the zjs doc, WSRTC sends to other players
+// When messages are received, change events are handled by observer functions
 class NetworkPlayer extends Player {
   constructor(opts) {
     super(opts);
@@ -729,11 +730,6 @@ class NetworkPlayer extends Player {
     this.transform = new Float32Array(7);
   }
 
-  // State binding
-  // State is synced with ZJS and WSRTC
-  // zjs follows the observer pattern where bound state is observed for changes
-  // Whenever changes are set, WSRTC sends to other players
-  // When messages are received, change events are sent to listeners
   bindState(nextPlayersArray) {
     // Grab the current state while unbinding it
     const oldState = this.unbindState();
@@ -748,7 +744,7 @@ class NetworkPlayer extends Player {
         const {instanceId} = oldAvatar;
 
         const self = this;
-        this.playersArray.doc.transact(function tx() {
+        this.playersArray.doc.transact(() => {
           self.playerMap = new Z.Map();
           self.playerMap.set('playerId', self.playerId);
           self.playerMap.set('name', self.name);
@@ -761,6 +757,7 @@ class NetworkPlayer extends Player {
 
           const avatar = self.getAvatarState();
           avatar.set('instanceId', instanceId ?? '');
+          self.syncAvatar();
 
           const actions = self.getActionsState();
           for (const oldAction of oldActions) {
@@ -778,7 +775,7 @@ class NetworkPlayer extends Player {
           }
 
           self.playersArray.push([self.playerMap]);
-        });
+        }, 'push');
       } else {
         // Handle remote player state binding
         // Local player map is a child of playersArray, we need to bind to it
@@ -805,7 +802,9 @@ class NetworkPlayer extends Player {
         let lastTime = performance.now();
 
         // Called any time the player map is changed
-        const observePlayerFn = e => {
+        const observePlayerFn = (e, origin) => {
+          if (origin === 'push') return; // ignore self
+          else throw new Error("wtf")
           if (e.changes.keys.get('name')) {
             this.name = e.changes.keys.get('name');
           }
@@ -866,7 +865,8 @@ class NetworkPlayer extends Player {
     // Bind actions
     const _bindActions = () => {
       const actions = this.getActionsState();
-      const observeActionsFn = e => {
+      const observeActionsFn = (e, origin) => {
+        if (origin === 'push') return; // ignore self
         const {added, deleted} = e.changes;
 
         for (const item of added.values()) {
@@ -895,7 +895,8 @@ class NetworkPlayer extends Player {
     const _bindAvatar = () => {
       const avatar = this.getAvatarState();
 
-      const observeAvatarFn = async e => {
+      const observeAvatarFn = async (e, origin) => {
+        if (origin === 'push') return; // ignore self
         let lastAvatarInstanceId = '';
         const instanceId = avatar.get('instanceId') ?? '';
         if (lastAvatarInstanceId !== instanceId) {
@@ -921,7 +922,6 @@ class NetworkPlayer extends Player {
     this.appManager.bindState(this.getAppsState());
   }
 
-  // Unbind the current observers, either to remove the player or rebind to another room
   unbindState() {
     // Detatch current state
     const oldActions = this.playersArray ? this.getActionsState() : new Z.Array();
@@ -1002,6 +1002,7 @@ class LocalPlayer extends NetworkPlayer {
     this.appManager.addEventListener('appadd', e => {
       const app = e.data;
       scene.add(app);
+      console.log("app add", new Error().stack);
     });
     this.appManager.addEventListener('appremove', e => {
       const app = e.data;
@@ -1061,21 +1062,22 @@ class LocalPlayer extends NetworkPlayer {
   }
 
   setAvatarAppInternal(app) {
-    if (!app) return console.error('app is ', app);
     const self = this;
     const avatar = self.getAvatarState();
     const oldInstanceId = avatar.get('instanceId');
-    this.playersArray.doc.transact(function tx() {
+    this.playersArray.doc.transact(() => {
       if (oldInstanceId) {
         self.appManager.removeTrackedApp(oldInstanceId);
       }
 
       if (app.instanceId && oldInstanceId !== app.instanceId) {
-        avatar.set('instanceId', app.instanceId ?? '');
+        this.playersArray.doc.transact(() => {
+          avatar.set('instanceId', app.instanceId);
+        }, 'push');
       } else {
         console.warn('Trying to set avatar app to same instanceId as before');
       }
-    });
+    }, 'push');
   }
 
   // Action handling
@@ -1151,19 +1153,21 @@ class LocalPlayer extends NetworkPlayer {
   update(timestamp, timeDiff, frame) {
     if (!this.avatar) return console.warn('Not updating local player, no avatar');
     if (!this.playersArray) return console.warn('Not updating local player, not inited');
+    const timeDiffS = timeDiff / 1000;
 
-    this.updatePhysics(timestamp, timeDiff);
+    this.characterPhysics.update(timestamp, timeDiffS);
+
     this.appManager.tick(timestamp, timeDiff, frame);
+
+    for (const actionInterpolant of this.actionInterpolantsArray) {
+      actionInterpolant.update(timeDiff);
+    }
+
 
     const session = this.getSession();
     const mirrors = metaversefile.getMirrors();
     applyPlayerToAvatar(this, session, this.avatar, mirrors);
 
-    for (const actionInterpolant of this.actionInterpolantsArray) {
-      actionInterpolant.update(timestamp, timeDiff);
-    }
-
-    const timeDiffS = timeDiff / 1000;
 
     this.characterSfx.update(timestamp, timeDiffS);
     this.characterFx.update(timestamp, timeDiffS);
@@ -1177,15 +1181,13 @@ class LocalPlayer extends NetworkPlayer {
     if (!this.lastMatrix.equals(this.matrixWorld)) {
       this.position.toArray(this.transform);
       this.quaternion.toArray(this.transform, 3);
-      this.playerMap.set('transform', this.transform);
+      const self = this;
+      this.playersArray.doc.transact(() => {
+        self.playerMap.set('transform', self.transform);
+      }, 'push');
 
       this.lastMatrix.copy(this.matrixWorld);
     }
-  }
-
-  updatePhysics(timestamp, timeDiff) {
-    const timeDiffS = timeDiff / 1000;
-    this.characterPhysics.update(timestamp, timeDiffS);
   }
 }
 
@@ -1273,6 +1275,8 @@ class RemotePlayer extends NetworkPlayer {
       this.appManager.addEventListener('appadd', e => {
         const app = e.data;
         scene.add(app);
+        console.log("app add", new Error().stack);
+
       });
       this.appManager.addEventListener('appremove', e => {
         const app = e.data;
