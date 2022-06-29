@@ -1021,19 +1021,21 @@ class LocalPlayer extends NetworkPlayer {
   }
 
   setMicMediaStream(mediaStream) {
-    if (!this.avatar) { return console.warn("Can't set mic media stream, no avatar"); }
+    if (!this.avatar) throw new Error("Can't set mic media stream, no avatar");
     if (this.microphoneMediaStream) {
       this.microphoneMediaStream.disconnect();
       this.microphoneMediaStream = null;
     }
     if (mediaStream) {
-      this.avatar.setAudioEnabled(true, this);
+      this.avatar.setMicrophoneEnabled(true);
       const audioContext = Avatar.getAudioContext();
       const mediaStreamSource = audioContext.createMediaStreamSource(mediaStream);
 
       mediaStreamSource.connect(this.avatar.getMicrophoneInput(true));
 
       this.microphoneMediaStream = mediaStreamSource;
+    } else {
+      this.avatar.setMicrophoneEnabled(false);
     }
   }
 

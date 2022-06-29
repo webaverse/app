@@ -136,7 +136,7 @@ class Universe extends EventTarget {
     state.setResolvePriority(1);
 
     if (playersManager.isBound()) {
-      playersManager.unbind();
+      playersManager.unbindState();
     }
     playersManager.bindState(state.getArray(playersMapName));
 
@@ -161,7 +161,7 @@ class Universe extends EventTarget {
     const localPlayer = getLocalPlayer();
 
     if (playersManager.isBound()) {
-      playersManager.unbind();
+      playersManager.unbindState();
     }
     playersManager.bindState(state.getArray(playersMapName));
 

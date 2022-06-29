@@ -1,13 +1,13 @@
 import * as THREE from 'three';
-import {VRMSpringBoneImporter} from '@pixiv/three-vrm/lib/three-vrm.module.js';
-import {fixSkeletonZForward} from './vrarmik/SkeletonUtils.js';
+import { VRMSpringBoneImporter } from '@pixiv/three-vrm/lib/three-vrm.module.js';
+import { fixSkeletonZForward } from './vrarmik/SkeletonUtils.js';
 import PoseManager from './vrarmik/PoseManager.js';
 import ShoulderTransforms from './vrarmik/ShoulderTransforms.js';
 import LegsManager from './vrarmik/LegsManager.js';
-import {scene, camera} from '../renderer.js';
+import { scene, camera } from '../renderer.js';
 import MicrophoneWorker from './microphone-worker.js';
-import {AudioRecognizer} from '../audio-recognizer.js';
-import {getAudioContext} from 'wsrtc/ws-audio-context.js';
+import { AudioRecognizer } from '../audio-recognizer.js';
+import { getAudioContext } from 'wsrtc/ws-audio-context.js';
 import {
   // angleDifference,
   // getVelocityDampingFactor,
@@ -1985,11 +1985,63 @@ class Avatar {
       this.debugMesh.visible = debug.enabled;
     }
   }
-  isAudioEnabled() {
-    return !!this.audioWorker;
+  ensureAudioRecognizer() {
+    if (!this.audioRecognizer) {
+      const audioContext = getAudioContext();
+      this.audioRecognizer = new AudioRecognizer({
+        sampleRate: audioContext.sampleRate,
+      });
+    }
+  }
+  setMicrophoneEnabled(enabled) {
+    // cleanup
+    if (this.microphoneWorker) {
+      this.microphoneWorker.close();
+      this.microphoneWorker = null;
+    }
+
+    // setup
+    if (enabled) {
+      this.ensureAudioRecognizer();
+      this.volume = 0;
+
+      const audioContext = getAudioContext();
+      if (audioContext.state === 'suspended') {
+        (async () => {
+          await audioContext.resume();
+        })();
+      }
+
+      this.audioRecognizer.addEventListener('result', e => {
+        this.vowels.set(e.data);
+      });
+
+      this.microphoneWorker = new MicrophoneWorker({
+        audioContext,
+        muted: true,
+        emitVolume: true,
+        emitBuffer: true,
+      });
+
+      const _localVolume = e => {
+        this.volume = this.volume * 0.8 + e.data * 0.2;
+      }
+
+      const _localBuffer = e => {
+        this.audioRecognizer.send(e.data);
+      }
+
+      this.microphoneWorker.addEventListener('volume', _localVolume);
+      this.microphoneWorker.addEventListener('buffer', _localBuffer);
+    } else {
+      this.volume = -1;
+    }
   }
   isMicrophoneEnabled() {
     return !!this.microphoneWorker;
+  }
+  getMicrophoneInput() {
+    return this.isLocalPlayer && this.microphoneWorker.getInput();
   }
   setAudioEnabled(enabled) {
     // cleanup
@@ -1997,17 +2049,10 @@ class Avatar {
       this.audioWorker.close();
       this.audioWorker = null;
     }
-    if (this.microphoneWorker) {
-      this.microphoneWorker.close();
-      this.microphoneWorker = null;
-    }
-    if (this.audioRecognizer) {
-      this.audioRecognizer.destroy();
-      this.audioRecognizer = null;
-    }
 
     // setup
     if (enabled) {
+      this.ensureAudioRecognizer();
       this.volume = 0;
 
       const audioContext = getAudioContext();
@@ -2028,10 +2073,6 @@ class Avatar {
         this.audioRecognizer.send(e.data);
       }
 
-      this.audioRecognizer = new AudioRecognizer({
-        sampleRate: audioContext.sampleRate,
-      });
-
       this.audioRecognizer.addEventListener('result', e => {
         this.vowels.set(e.data);
       });
@@ -2045,35 +2086,15 @@ class Avatar {
 
       this.audioWorker.addEventListener('volume', _volume);
       this.audioWorker.addEventListener('buffer', _buffer);
-
-      if (this.isLocalPlayer) {
-        this.microphoneWorker = new MicrophoneWorker({
-          audioContext,
-          muted: true,
-          emitVolume: true,
-          emitBuffer: true,
-        });
-
-        const _localVolume = e => {
-            this.volume = this.volume * 0.8 + e.data * 0.2;
-        }
-  
-        const _localBuffer = e => {
-          this.audioRecognizer.send(e.data);
-        }
-
-        this.microphoneWorker.addEventListener('volume', _localVolume);
-        this.microphoneWorker.addEventListener('buffer', _localBuffer);
-      }
     } else {
       this.volume = -1;
     }
   }
+  isAudioEnabled() {
+    return !!this.audioWorker;
+  }
   getAudioInput() {
     return this.audioWorker.getInput();
-  }
-  getMicrophoneInput(){
-    return this.isLocalPlayer && this.microphoneWorker.getInput();
   }
   decapitate() {
     if (!this.decapitated) {
