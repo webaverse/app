@@ -567,30 +567,57 @@ export const _createAnimation = avatar => {
 
     //
 
-    debugger
-    window.walkMotion = physx.physxWorker.createMotion(animations.index["walking.fbx"].pointer); // 96
-    window.flyMotion = physx.physxWorker.createMotion(animations.index["treading water.fbx"].pointer); // 92
-    window.crouchMotion = physx.physxWorker.createMotion(animations.index["Crouch Idle.fbx"].pointer); // 9
+    // debugger
+    // window.walkMotion = physx.physxWorker.createMotion(animations.index["walking.fbx"].pointer); // 96
+    // window.flyMotion = physx.physxWorker.createMotion(animations.index["treading water.fbx"].pointer); // 92
+    // window.crouchMotion = physx.physxWorker.createMotion(animations.index["Crouch Idle.fbx"].pointer); // 9
 
-    window.walkFlyNode = physx.physxWorker.createNode(AnimationNodeType.TWO);
-    physx.physxWorker.addChild(walkFlyNode, walkMotion);
-    physx.physxWorker.addChild(walkFlyNode, flyMotion);
+    // window.walkFlyNode = physx.physxWorker.createNode(AnimationNodeType.TWO);
+    // physx.physxWorker.addChild(walkFlyNode, walkMotion);
+    // physx.physxWorker.addChild(walkFlyNode, flyMotion);
 
-    // window.crouchNode = physx.physxWorker.createNode(AnimationNodeType.TWO);
-    // physx.physxWorker.addChild(crouchNode, walkFlyNode);
-    // physx.physxWorker.addChild(crouchNode, crouchMotion);
+    // // window.crouchNode = physx.physxWorker.createNode(AnimationNodeType.TWO);
+    // // physx.physxWorker.addChild(crouchNode, walkFlyNode);
+    // // physx.physxWorker.addChild(crouchNode, crouchMotion);
 
-    // window.actionsNode = physx.physxWorker.createNode(AnimationNodeType.UNITARY);
-    // physx.physxWorker.addChild(actionsNode, walkMotion);
-    // physx.physxWorker.addChild(actionsNode, flyMotion);
-    // physx.physxWorker.addChild(actionsNode, crouchMotion);
+    // // window.actionsNode = physx.physxWorker.createNode(AnimationNodeType.UNITARY);
+    // // physx.physxWorker.addChild(actionsNode, walkMotion);
+    // // physx.physxWorker.addChild(actionsNode, flyMotion);
+    // // physx.physxWorker.addChild(actionsNode, crouchMotion);
 
-    physx.physxWorker.setAnimTree(walkFlyNode);
+    // physx.physxWorker.setAnimTree(walkFlyNode);
+
+    // create motions -------------------------------------------------------------
+    avatar.idleMotion = physx.physxWorker.createMotion(animations.index['idle.fbx'].pointer);
+
+    avatar.walkForwardMotion = physx.physxWorker.createMotion(animations.index['walking.fbx'].pointer);
+    avatar.walkBackwardMotion = physx.physxWorker.createMotion(animations.index['walking backwards.fbx'].pointer);
+    avatar.walkLeftMotion = physx.physxWorker.createMotion(animations.index['left strafe walking.fbx'].pointer);
+    avatar.walkRightMotion = physx.physxWorker.createMotion(animations.index['right strafe walking.fbx'].pointer);
+    avatar.walkLeftMirrorMotion = physx.physxWorker.createMotion(animations.index['right strafe walking reverse.fbx'].pointer);
+    avatar.walkRightMirrorMotion = physx.physxWorker.createMotion(animations.index['left strafe walking reverse.fbx'].pointer);
+
+    // create nodes -------------------------------------------------------------
+
+    // avatar.walkNode = avatar.mixer.createNode(WebaverseAnimationNodeBlendList, 'walk');
+    avatar.walkNode = physx.physxWorker.createNode(AnimationNodeType.LIST);
+    physx.physxWorker.addChild(avatar.walkNode, avatar.walkForwardMotion);
+    physx.physxWorker.addChild(avatar.walkNode, avatar.walkBackwardMotion);
+    physx.physxWorker.addChild(avatar.walkNode, avatar.walkLeftMotion);
+    physx.physxWorker.addChild(avatar.walkNode, avatar.walkRightMotion);
+    physx.physxWorker.addChild(avatar.walkNode, avatar.walkLeftMirrorMotion);
+    physx.physxWorker.addChild(avatar.walkNode, avatar.walkRightMirrorMotion);
+
+    physx.physxWorker.setAnimTree(avatar.walkNode);
+
+    // --------------------------------------------------------------------------
 
     createdWasmAnimations = true;
   }
 
-  avatar.mixer = new WebaverseAnimationMixer(avatar);
+  avatar.mixer = new WebaverseAnimationMixer(avatar); // todo: Del
+
+  return;
 
   // WebaverseAnimationMotions ---
   // LoopRepeat
@@ -927,6 +954,17 @@ export const _updateAnimation = avatar => {
   const rightFactor = 1 - MathUtils.clamp(Math.abs(angle - -Math.PI / 2) / (Math.PI / 2), 0, 1);
   // const mirror = Math.abs(angle) > (Math.PI / 2 + 0.01); // todo: smooth mirror changing
   const mirrorFactorReverse = 1 - avatar.mirrorFactor;
+
+  mixer.update(timeS, avatar.animTree); // todo: Del
+
+  physx.physxWorker.changeWeight(avatar.walkForwardMotion, forwardFactor);
+  physx.physxWorker.changeWeight(avatar.walkBackwardMotion, backwardFactor);
+  physx.physxWorker.changeWeight(avatar.walkLeftMotion, mirrorFactorReverse * leftFactor);
+  physx.physxWorker.changeWeight(avatar.walkLeftMirrorMotion, avatar.mirrorFactor * leftFactor);
+  physx.physxWorker.changeWeight(avatar.walkRightMotion, mirrorFactorReverse * rightFactor);
+  physx.physxWorker.changeWeight(avatar.walkRightMirrorMotion, avatar.mirrorFactor * rightFactor);
+
+  return;
 
   avatar.walkForwardMotion.weight = forwardFactor;
   avatar.walkBackwardMotion.weight = backwardFactor;
