@@ -572,20 +572,20 @@ export const _createAnimation = avatar => {
     window.flyMotion = physx.physxWorker.createMotion(animations.index["treading water.fbx"].pointer); // 92
     window.crouchMotion = physx.physxWorker.createMotion(animations.index["Crouch Idle.fbx"].pointer); // 9
 
-    // window.walkFlyNode = physx.physxWorker.createNode(AnimationNodeType.TWO);
-    // physx.physxWorker.addChild(walkFlyNode, walkMotion);
-    // physx.physxWorker.addChild(walkFlyNode, flyMotion);
+    window.walkFlyNode = physx.physxWorker.createNode(AnimationNodeType.TWO);
+    physx.physxWorker.addChild(walkFlyNode, walkMotion);
+    physx.physxWorker.addChild(walkFlyNode, flyMotion);
 
     // window.crouchNode = physx.physxWorker.createNode(AnimationNodeType.TWO);
     // physx.physxWorker.addChild(crouchNode, walkFlyNode);
     // physx.physxWorker.addChild(crouchNode, crouchMotion);
 
-    window.actionsNode = physx.physxWorker.createNode(AnimationNodeType.UNITARY);
-    physx.physxWorker.addChild(actionsNode, walkMotion);
-    physx.physxWorker.addChild(actionsNode, flyMotion);
-    physx.physxWorker.addChild(actionsNode, crouchMotion);
+    // window.actionsNode = physx.physxWorker.createNode(AnimationNodeType.UNITARY);
+    // physx.physxWorker.addChild(actionsNode, walkMotion);
+    // physx.physxWorker.addChild(actionsNode, flyMotion);
+    // physx.physxWorker.addChild(actionsNode, crouchMotion);
 
-    physx.physxWorker.setAnimTree(actionsNode);
+    physx.physxWorker.setAnimTree(walkFlyNode);
 
     createdWasmAnimations = true;
   }

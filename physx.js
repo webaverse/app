@@ -2340,8 +2340,13 @@ const physxWorker = (() => {
     }
     return values;
   }
-  w.crossFade = (parentNode, duration, targetNode) => {
-    moduleInstance._crossFade(
+  w.crossFadeTwo = (parentNode, duration, targetFactor) => {
+    moduleInstance._crossFadeTwo(
+      parentNode, duration, targetFactor,
+    )
+  }
+  w.crossFadeUnitary = (parentNode, duration, targetNode) => {
+    moduleInstance._crossFadeUnitary(
       parentNode, duration, targetNode,
     )
   }
