@@ -102,7 +102,7 @@ class WebaverseAnimationMixer extends EventDispatcher {
     // console.log(t);
     // console.log(timeS);
     const values = window.physx.physxWorker.updateAnimationMixer(timeS, window.f);
-    debugger
+    // debugger
     let index = 0;
     for (const spec of this.avatar.animationMappings) {
       const {

@@ -2350,13 +2350,13 @@ const physxWorker = (() => {
       parentNode, duration, targetNode,
     )
   }
-  w.changeWeight = (node, weight) => { // todo: renmae: setWeight()
+  w.changeWeight = (node, weight) => { // todo: renmae: setWeight() // todo: general setProp/Attribute().
     moduleInstance._changeWeight(
       node,
       weight,
     )
   }
-  w.changeFactor = (node, factor) => {
+  w.changeFactor = (node, factor) => { // todo: general setProp/Attribute().
     moduleInstance._changeFactor(
       node,
       factor,

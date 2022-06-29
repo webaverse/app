@@ -604,6 +604,30 @@ export const _createAnimation = avatar => {
     avatar.runLeftMirrorMotion = physx.physxWorker.createMotion(animations.index['right strafe reverse.fbx'].pointer);
     avatar.runRightMirrorMotion = physx.physxWorker.createMotion(animations.index['left strafe reverse.fbx'].pointer);
 
+    avatar.crouchForwardMotion = physx.physxWorker.createMotion(animations.index['Sneaking Forward.fbx'].pointer);
+    avatar.crouchBackwardMotion = physx.physxWorker.createMotion(animations.index['Sneaking Forward reverse.fbx'].pointer);
+    avatar.crouchLeftMotion = physx.physxWorker.createMotion(animations.index['Crouched Sneaking Left.fbx'].pointer);
+    avatar.crouchRightMotion = physx.physxWorker.createMotion(animations.index['Crouched Sneaking Right.fbx'].pointer);
+    avatar.crouchLeftMirrorMotion = physx.physxWorker.createMotion(animations.index['Crouched Sneaking Right reverse.fbx'].pointer);
+    avatar.crouchRightMirrorMotion = physx.physxWorker.createMotion(animations.index['Crouched Sneaking Left reverse.fbx'].pointer);
+
+    avatar.bowForwardMotion = physx.physxWorker.createMotion(animations.index['Standing Aim Walk Forward.fbx'].pointer);
+    avatar.bowBackwardMotion = physx.physxWorker.createMotion(animations.index['Standing Aim Walk Forward reverse.fbx'].pointer);
+    avatar.bowLeftMotion = physx.physxWorker.createMotion(animations.index['Standing Aim Walk Left.fbx'].pointer);
+    avatar.bowRightMotion = physx.physxWorker.createMotion(animations.index['Standing Aim Walk Right.fbx'].pointer);
+    avatar.bowLeftMirrorMotion = physx.physxWorker.createMotion(animations.index['Standing Aim Walk Right reverse.fbx'].pointer);
+    avatar.bowRightMirrorMotion = physx.physxWorker.createMotion(animations.index['Standing Aim Walk Left reverse.fbx'].pointer);
+
+    avatar.crouchIdleMotion = physx.physxWorker.createMotion(animations.index['Crouch Idle.fbx'].pointer);
+    avatar.flyMotion = physx.physxWorker.createMotion(floatAnimation.pointer);
+    avatar.flyIdleMotion = physx.physxWorker.createMotion(animations.index['fly_idle.fbx'].pointer);
+    avatar.flyDodgeForwardMotion = physx.physxWorker.createMotion(animations.index['fly_dodge_forward.fbx'].pointer);
+    avatar.flyDodgeBackwardMotion = physx.physxWorker.createMotion(animations.index['fly_dodge_backward.fbx'].pointer);
+    avatar.flyDodgeLeftMotion = physx.physxWorker.createMotion(animations.index['fly_dodge_left.fbx'].pointer);
+    avatar.flyDodgeRightMotion = physx.physxWorker.createMotion(animations.index['fly_dodge_right.fbx'].pointer);
+    avatar.flyDashMotion = physx.physxWorker.createMotion(animations.index['fly_dash_forward.fbx'].pointer);
+    avatar.narutoRunMotion = physx.physxWorker.createMotion(narutoRunAnimations[defaultNarutoRunAnimation].pointer);
+
     // create nodes -------------------------------------------------------------
 
     // avatar.walkNode = avatar.mixer.createNode(WebaverseAnimationNodeBlendList, 'walk');
@@ -623,11 +647,40 @@ export const _createAnimation = avatar => {
     physx.physxWorker.addChild(avatar.runNode, avatar.runLeftMirrorMotion);
     physx.physxWorker.addChild(avatar.runNode, avatar.runRightMirrorMotion);
 
+    avatar.crouchNode = physx.physxWorker.createNode(AnimationNodeType.LIST);
+    physx.physxWorker.addChild(avatar.crouchNode, avatar.crouchForwardMotion);
+    physx.physxWorker.addChild(avatar.crouchNode, avatar.crouchBackwardMotion);
+    physx.physxWorker.addChild(avatar.crouchNode, avatar.crouchLeftMotion);
+    physx.physxWorker.addChild(avatar.crouchNode, avatar.crouchRightMotion);
+    physx.physxWorker.addChild(avatar.crouchNode, avatar.crouchLeftMirrorMotion);
+    physx.physxWorker.addChild(avatar.crouchNode, avatar.crouchRightMirrorMotion);
+
+    avatar.bowNode = physx.physxWorker.createNode(AnimationNodeType.LIST);
+    physx.physxWorker.addChild(avatar.bowNode, avatar.bowForwardMotion);
+    physx.physxWorker.addChild(avatar.bowNode, avatar.bowBackwardMotion);
+    physx.physxWorker.addChild(avatar.bowNode, avatar.bowLeftMotion);
+    physx.physxWorker.addChild(avatar.bowNode, avatar.bowRightMotion);
+    physx.physxWorker.addChild(avatar.bowNode, avatar.bowLeftMirrorMotion);
+    physx.physxWorker.addChild(avatar.bowNode, avatar.bowRightMirrorMotion);
+
     avatar.walkRunNode = physx.physxWorker.createNode(AnimationNodeType.TWO);
     physx.physxWorker.addChild(avatar.walkRunNode, avatar.walkNode);
     physx.physxWorker.addChild(avatar.walkRunNode, avatar.runNode);
 
-    physx.physxWorker.setAnimTree(avatar.walkRunNode);
+    avatar._7wayWalkRunNode = physx.physxWorker.createNode(AnimationNodeType.TWO);
+    physx.physxWorker.addChild(avatar._7wayWalkRunNode, avatar.idleMotion);
+    physx.physxWorker.addChild(avatar._7wayWalkRunNode, avatar.walkRunNode);
+
+    avatar._7wayCrouchNode = physx.physxWorker.createNode(AnimationNodeType.TWO);
+    physx.physxWorker.addChild(avatar._7wayCrouchNode, avatar.crouchIdleMotion);
+    physx.physxWorker.addChild(avatar._7wayCrouchNode, avatar.crouchNode);
+
+    avatar.defaultNode = physx.physxWorker.createNode(AnimationNodeType.TWO);
+    // avatar.defaultNode.addChild(avatar._7wayWalkRunBowNode);
+    physx.physxWorker.addChild(avatar.defaultNode, avatar._7wayWalkRunNode);
+    physx.physxWorker.addChild(avatar.defaultNode, avatar._7wayCrouchNode);
+
+    physx.physxWorker.setAnimTree(avatar.defaultNode);
 
     // --------------------------------------------------------------------------
 
@@ -640,45 +693,6 @@ export const _createAnimation = avatar => {
 
   // WebaverseAnimationMotions ---
   // LoopRepeat
-  avatar.idleMotion = avatar.mixer.createMotion(animations.index['idle.fbx']);
-
-  avatar.walkForwardMotion = avatar.mixer.createMotion(animations.index['walking.fbx']);
-  avatar.walkBackwardMotion = avatar.mixer.createMotion(animations.index['walking backwards.fbx']);
-  avatar.walkLeftMotion = avatar.mixer.createMotion(animations.index['left strafe walking.fbx']);
-  avatar.walkRightMotion = avatar.mixer.createMotion(animations.index['right strafe walking.fbx']);
-  avatar.walkLeftMirrorMotion = avatar.mixer.createMotion(animations.index['right strafe walking reverse.fbx']);
-  avatar.walkRightMirrorMotion = avatar.mixer.createMotion(animations.index['left strafe walking reverse.fbx']);
-
-  avatar.runForwardMotion = avatar.mixer.createMotion(animations.index['Fast Run.fbx']);
-  avatar.runBackwardMotion = avatar.mixer.createMotion(animations.index['running backwards.fbx']);
-  avatar.runLeftMotion = avatar.mixer.createMotion(animations.index['left strafe.fbx']);
-  avatar.runRightMotion = avatar.mixer.createMotion(animations.index['right strafe.fbx']);
-  avatar.runLeftMirrorMotion = avatar.mixer.createMotion(animations.index['right strafe reverse.fbx']);
-  avatar.runRightMirrorMotion = avatar.mixer.createMotion(animations.index['left strafe reverse.fbx']);
-
-  avatar.crouchForwardMotion = avatar.mixer.createMotion(animations.index['Sneaking Forward.fbx']);
-  avatar.crouchBackwardMotion = avatar.mixer.createMotion(animations.index['Sneaking Forward reverse.fbx']);
-  avatar.crouchLeftMotion = avatar.mixer.createMotion(animations.index['Crouched Sneaking Left.fbx']);
-  avatar.crouchRightMotion = avatar.mixer.createMotion(animations.index['Crouched Sneaking Right.fbx']);
-  avatar.crouchLeftMirrorMotion = avatar.mixer.createMotion(animations.index['Crouched Sneaking Right reverse.fbx']);
-  avatar.crouchRightMirrorMotion = avatar.mixer.createMotion(animations.index['Crouched Sneaking Left reverse.fbx']);
-
-  avatar.bowForwardMotion = avatar.mixer.createMotion(animations.index['Standing Aim Walk Forward.fbx']);
-  avatar.bowBackwardMotion = avatar.mixer.createMotion(animations.index['Standing Aim Walk Forward reverse.fbx']);
-  avatar.bowLeftMotion = avatar.mixer.createMotion(animations.index['Standing Aim Walk Left.fbx']);
-  avatar.bowRightMotion = avatar.mixer.createMotion(animations.index['Standing Aim Walk Right.fbx']);
-  avatar.bowLeftMirrorMotion = avatar.mixer.createMotion(animations.index['Standing Aim Walk Right reverse.fbx']);
-  avatar.bowRightMirrorMotion = avatar.mixer.createMotion(animations.index['Standing Aim Walk Left reverse.fbx']);
-
-  avatar.crouchIdleMotion = avatar.mixer.createMotion(animations.index['Crouch Idle.fbx']);
-  avatar.flyMotion = avatar.mixer.createMotion(floatAnimation);
-  avatar.flyIdleMotion = avatar.mixer.createMotion(animations.index['fly_idle.fbx']);
-  avatar.flyDodgeForwardMotion = avatar.mixer.createMotion(animations.index['fly_dodge_forward.fbx']);
-  avatar.flyDodgeBackwardMotion = avatar.mixer.createMotion(animations.index['fly_dodge_backward.fbx']);
-  avatar.flyDodgeLeftMotion = avatar.mixer.createMotion(animations.index['fly_dodge_left.fbx']);
-  avatar.flyDodgeRightMotion = avatar.mixer.createMotion(animations.index['fly_dodge_right.fbx']);
-  avatar.flyDashMotion = avatar.mixer.createMotion(animations.index['fly_dash_forward.fbx']);
-  avatar.narutoRunMotion = avatar.mixer.createMotion(narutoRunAnimations[defaultNarutoRunAnimation]);
 
   avatar.useMotiono = {};
   for (const k in useAnimations) {
@@ -747,49 +761,6 @@ export const _createAnimation = avatar => {
 
   // AnimNodes ---
   // todo: in order to reuse motions, need set children weights in node.
-  avatar.walkNode = avatar.mixer.createNode(WebaverseAnimationNodeBlendList, 'walk'); // todo: mixer.createNode
-  avatar.walkNode.addChild(avatar.walkForwardMotion);
-  avatar.walkNode.addChild(avatar.walkBackwardMotion);
-  avatar.walkNode.addChild(avatar.walkLeftMotion);
-  avatar.walkNode.addChild(avatar.walkRightMotion);
-  avatar.walkNode.addChild(avatar.walkLeftMirrorMotion);
-  avatar.walkNode.addChild(avatar.walkRightMirrorMotion);
-
-  avatar.runNode = avatar.mixer.createNode(WebaverseAnimationNodeBlendList, 'run');
-  avatar.runNode.addChild(avatar.runForwardMotion);
-  avatar.runNode.addChild(avatar.runBackwardMotion);
-  avatar.runNode.addChild(avatar.runLeftMotion);
-  avatar.runNode.addChild(avatar.runRightMotion);
-  avatar.runNode.addChild(avatar.runLeftMirrorMotion);
-  avatar.runNode.addChild(avatar.runRightMirrorMotion);
-
-  avatar.crouchNode = avatar.mixer.createNode(WebaverseAnimationNodeBlendList, 'crouch');
-  avatar.crouchNode.addChild(avatar.crouchForwardMotion);
-  avatar.crouchNode.addChild(avatar.crouchBackwardMotion);
-  avatar.crouchNode.addChild(avatar.crouchLeftMotion);
-  avatar.crouchNode.addChild(avatar.crouchRightMotion);
-  avatar.crouchNode.addChild(avatar.crouchLeftMirrorMotion);
-  avatar.crouchNode.addChild(avatar.crouchRightMirrorMotion);
-
-  avatar.bowNode = avatar.mixer.createNode(WebaverseAnimationNodeBlendList, 'bow');
-  avatar.bowNode.addChild(avatar.bowForwardMotion);
-  avatar.bowNode.addChild(avatar.bowBackwardMotion);
-  avatar.bowNode.addChild(avatar.bowLeftMotion);
-  avatar.bowNode.addChild(avatar.bowRightMotion);
-  avatar.bowNode.addChild(avatar.bowLeftMirrorMotion);
-  avatar.bowNode.addChild(avatar.bowRightMirrorMotion);
-
-  avatar.walkRunNode = avatar.mixer.createNode(WebaverseAnimationNodeBlend2, 'walkRun');
-  avatar.walkRunNode.addChild(avatar.walkNode);
-  avatar.walkRunNode.addChild(avatar.runNode);
-
-  avatar._7wayWalkRunNode = avatar.mixer.createNode(WebaverseAnimationNodeBlend2, '_7wayWalkRunNode');
-  avatar._7wayWalkRunNode.addChild(avatar.idleMotion);
-  avatar._7wayWalkRunNode.addChild(avatar.walkRunNode);
-
-  avatar._7wayCrouchNode = avatar.mixer.createNode(WebaverseAnimationNodeBlend2, '_7wayCrouchNode');
-  avatar._7wayCrouchNode.addChild(avatar.crouchIdleMotion);
-  avatar._7wayCrouchNode.addChild(avatar.crouchNode);
 
   avatar._7wayBowNode = avatar.mixer.createNode(WebaverseAnimationNodeBlend2, '_7wayBowNode');
   // avatar._7wayBowNode.addChild(avatar.useMotiono.bowIdle2);
@@ -808,10 +779,6 @@ export const _createAnimation = avatar => {
   avatar._7wayWalkRunBowNode.addChild(avatar._7wayWalkRunNode);
   // avatar._7wayWalkRunBowNode.addChild(avatar._7wayBowNode);
   avatar._7wayWalkRunBowNode.addChild(avatar.bowIdleDrawLooseNode);
-
-  avatar.defaultNode = avatar.mixer.createNode(WebaverseAnimationNodeBlend2, 'defaultNode');
-  avatar.defaultNode.addChild(avatar._7wayWalkRunBowNode);
-  avatar.defaultNode.addChild(avatar._7wayCrouchNode);
 
   avatar.flyForwardNode = avatar.mixer.createNode(WebaverseAnimationNodeBlend2, 'flyForwardNode');
   avatar.flyForwardNode.addChild(avatar.flyDodgeForwardMotion);
@@ -990,37 +957,19 @@ export const _updateAnimation = avatar => {
   physx.physxWorker.changeWeight(avatar.runRightMotion, mirrorFactorReverse * rightFactor);
   physx.physxWorker.changeWeight(avatar.runRightMirrorMotion, avatar.mirrorFactor * rightFactor);
 
+  physx.physxWorker.changeWeight(avatar.crouchForwardMotion, forwardFactor);
+  physx.physxWorker.changeWeight(avatar.crouchBackwardMotion, backwardFactor);
+  physx.physxWorker.changeWeight(avatar.crouchLeftMotion, mirrorFactorReverse * leftFactor);
+  physx.physxWorker.changeWeight(avatar.crouchLeftMirrorMotion, avatar.mirrorFactor * leftFactor);
+  physx.physxWorker.changeWeight(avatar.crouchRightMotion, mirrorFactorReverse * rightFactor);
+  physx.physxWorker.changeWeight(avatar.crouchRightMirrorMotion, avatar.mirrorFactor * rightFactor);
+
   physx.physxWorker.changeFactor(avatar.walkRunNode, avatar.moveFactors.walkRunFactor);
+  physx.physxWorker.changeFactor(avatar._7wayWalkRunNode, avatar.moveFactors.idleWalkFactor);
+  physx.physxWorker.changeFactor(avatar._7wayCrouchNode, avatar.moveFactors.idleWalkFactor);
+  physx.physxWorker.changeFactor(avatar.defaultNode, avatar.moveFactors.crouchFactor);
 
   return;
-
-  avatar.walkForwardMotion.weight = forwardFactor;
-  avatar.walkBackwardMotion.weight = backwardFactor;
-  avatar.walkLeftMotion.weight = mirrorFactorReverse * leftFactor;
-  avatar.walkLeftMirrorMotion.weight = avatar.mirrorFactor * leftFactor;
-  avatar.walkRightMotion.weight = mirrorFactorReverse * rightFactor;
-  avatar.walkRightMirrorMotion.weight = avatar.mirrorFactor * rightFactor;
-
-  window.domInfo.innerHTML += `<div style="display:;">forward: --- ${window.logNum(avatar.walkForwardMotion.weight)}</div>`;
-  window.domInfo.innerHTML += `<div style="display:;">backward: --- ${window.logNum(avatar.walkBackwardMotion.weight)}</div>`;
-  window.domInfo.innerHTML += `<div style="display:;">left: --- ${window.logNum(avatar.walkLeftMotion.weight)}</div>`;
-  window.domInfo.innerHTML += `<div style="display:;">right: --- ${window.logNum(avatar.walkRightMotion.weight)}</div>`;
-  window.domInfo.innerHTML += `<div style="display:;">leftMirror: --- ${window.logNum(avatar.walkLeftMirrorMotion.weight)}</div>`;
-  window.domInfo.innerHTML += `<div style="display:;">rightMirror: --- ${window.logNum(avatar.walkRightMirrorMotion.weight)}</div>`;
-
-  avatar.runForwardMotion.weight = forwardFactor;
-  avatar.runBackwardMotion.weight = backwardFactor;
-  avatar.runLeftMotion.weight = mirrorFactorReverse * leftFactor;
-  avatar.runLeftMirrorMotion.weight = avatar.mirrorFactor * leftFactor;
-  avatar.runRightMotion.weight = mirrorFactorReverse * rightFactor;
-  avatar.runRightMirrorMotion.weight = avatar.mirrorFactor * rightFactor;
-
-  avatar.crouchForwardMotion.weight = forwardFactor;
-  avatar.crouchBackwardMotion.weight = backwardFactor;
-  avatar.crouchLeftMotion.weight = mirrorFactorReverse * leftFactor;
-  avatar.crouchLeftMirrorMotion.weight = avatar.mirrorFactor * leftFactor;
-  avatar.crouchRightMotion.weight = mirrorFactorReverse * rightFactor;
-  avatar.crouchRightMirrorMotion.weight = avatar.mirrorFactor * rightFactor;
 
   avatar.bowForwardMotion.weight = forwardFactor;
   avatar.bowBackwardMotion.weight = backwardFactor;
@@ -1038,12 +987,8 @@ export const _updateAnimation = avatar => {
   // avatar._7wayWalkRunBowNode.factor = avatar.useEnvelopeFactor;
   // console.log(avatar._7wayWalkRunBowNode.factor);
 
-  avatar.walkRunNode.factor = avatar.moveFactors.walkRunFactor;
-  avatar._7wayWalkRunNode.factor = avatar.moveFactors.idleWalkFactor;
-  avatar._7wayCrouchNode.factor = avatar.moveFactors.idleWalkFactor;
   avatar._7wayBowNode.factor = avatar.moveFactors.idleWalkFactor;
   avatar._7wayFlyNode.factor = avatar.moveFactors.walkRunFactor;
-  avatar.defaultNode.factor = avatar.moveFactors.crouchFactor;
   avatar.flyForwardNode.factor = avatar.flyDashFactor;
 
   // action end event ---
