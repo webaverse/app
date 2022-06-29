@@ -1,12 +1,12 @@
 // import * as THREE from 'three';
-import React, {useState, useEffect, useRef} from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import classnames from 'classnames';
 import dioramaManager from '../diorama.js';
-import {RpgText} from './RpgText.jsx';
+import { RpgText } from './RpgText.jsx';
 import styles from './CharacterHups.module.css';
 // import metaversefile from 'metaversefile';
 // const {useLocalPlayer} = metaversefile;
-import {chatTextSpeed} from '../constants.js';
+import { chatTextSpeed } from '../constants.js';
 
 // const localVector = new THREE.Vector3();
 // const localVector2 = new THREE.Vector3();
@@ -16,8 +16,8 @@ const pixelRatio = window.devicePixelRatio;
 
 const chatDioramas = new WeakMap();
 
-const CharacterHup = function(props) {
-  const {hup, index, hups, setHups} = props;
+const CharacterHup = function (props) {
+  const { hup, index, hups, setHups } = props;
 
   const canvasRef = useRef();
   const hupRef = useRef();
@@ -45,6 +45,7 @@ const CharacterHup = function(props) {
             player.avatar.model,
           ],
           grassBackground: true,
+          //cameraOffset: new THREE.Vector3(-0.8, 0.2, -0.4),
         });
         diorama.addCanvas(canvas);
         chatDioramas.set(player, diorama);
@@ -121,8 +122,8 @@ const CharacterHup = function(props) {
       ref={hupRef}
     >
       <canvas
-        width={defaultHupSize*pixelRatio}
-        height={defaultHupSize*pixelRatio}
+        width={defaultHupSize * pixelRatio}
+        height={defaultHupSize * pixelRatio}
         ref={canvasRef}
       />
       <div className={styles.name}>

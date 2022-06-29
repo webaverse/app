@@ -1,11 +1,12 @@
+/* eslint-disable */
 import * as THREE from 'three';
-import React, {useState, useEffect, useRef} from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import classnames from 'classnames';
 // import dioramaManager from '../diorama.js';
 // import game from '../game.js';
 import dioramaManager from '../diorama.js';
 // import {NpcPlayer} from '../character-controller.js';
-import {world} from '../world.js';
+import { world } from '../world.js';
 import styles from './MegaHup.module.css';
 // import {RpgText} from './RpgText.jsx';
 // import {chatTextSpeed} from '../constants.js';
@@ -15,9 +16,10 @@ import styles from './MegaHup.module.css';
 
 const width = 400;
 
-const MegaHup = function({
+const MegaHup = function ({
   open = false,
   npcPlayer = null,
+  manageScaleView = 1,
 }) {
   const [height, setHeight] = useState(window.innerHeight);
   const canvasRef = useRef();
@@ -43,7 +45,7 @@ const MegaHup = function({
           objects: [
             npcPlayer.avatar.model,
           ],
-          cameraOffset: new THREE.Vector3(-0.8, 0, -0.4),
+          cameraOffset: new THREE.Vector3(-0.8 * manageScaleView, 0 * manageScaleView, -0.4 * manageScaleView),
           // label: true,
           // outline: true,
           // grassBackground: true,
@@ -55,7 +57,7 @@ const MegaHup = function({
       }
 
       const frame = e => {
-        const {timestamp, timeDiff} = e.data;
+        const { timestamp, timeDiff } = e.data;
         if (diorama) {
           diorama.update(timestamp, timeDiff);
         }
@@ -66,7 +68,8 @@ const MegaHup = function({
         diorama.setSize(width, window.innerHeight);
       };
       window.addEventListener('resize', resize);
-
+      console.log("creating diorama from MegaHup")
+      console.log(diorama)
       return () => {
         if (diorama) {
           diorama.removeCanvas(canvas);

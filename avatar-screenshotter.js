@@ -73,9 +73,9 @@ export const screenshotPlayer = async ({
   player.quaternion.identity();
   player.scale.set(1, 1, 1);
   player.updateMatrixWorld();
-  
+
   let now = 0;
-  const timeDiff = 1000/FPS;
+  const timeDiff = 1000 / FPS;
 
   const _setTransform = () => {
     player.position.y = player.avatar.height;
@@ -100,7 +100,7 @@ export const screenshotPlayer = async ({
     }
   };
   const _preAnimate = () => {
-    for (let i = 0; i < FPS*2; i++) {
+    for (let i = 0; i < FPS * 2; i++) {
       _animate(now, timeDiff);
     };
   };
@@ -141,6 +141,7 @@ export const screenshotPlayer = async ({
     // grassBackground: true,
     // glyphBackground: true,
     detached: true,
+    avatarScreenshoting: true,
   });
   diorama.addCanvas(writeCanvas);
   diorama.setClearColor(0xFFFFFF, 1);

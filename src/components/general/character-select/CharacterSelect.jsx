@@ -1,4 +1,4 @@
-
+/* eslint-disable */
 import React, { forwardRef, useEffect, useState, useRef, useContext } from 'react';
 import classnames from 'classnames';
 import metaversefile from 'metaversefile';
@@ -10,7 +10,7 @@ import { world } from '../../../../world.js';
 import { NpcPlayer } from '../../../../character-controller.js';
 import { loadCryptoAvatarsCharacters } from './cryptoavatars-loader.js';
 import { getMainnetAddress } from '../../../../blockchain.js';
-
+import * as THREE from 'three';
 //
 
 const userTokenCharacters = Array(7);
@@ -123,6 +123,7 @@ export const CharacterSelect = () => {
     const [caItemsPerPage, setCaItemsPerPage] = useState(5);
     const [caCollection, setCaCollection] = useState("0xc1def47cf1e15ee8c2a92f4e0e968372880d18d1")
     const [caOwnership, setCaOwnership] = useState(null);
+    const [scaleViewValue, setScaleViewValue] = useState(1);
 
     const refsMap = (() => {
         const map = new Map();
@@ -183,6 +184,17 @@ export const CharacterSelect = () => {
                     if (!live) return;
                 }
 
+                if (targetCharacter.avatarUrl.includes("usercollection")) {
+                    console.log(npcPlayer.avatar)
+                    let box = new THREE.Box3().setFromObject(npcPlayer.avatar.model)
+                    let size = box.getSize(new THREE.Vector3()).length();
+                    const scalar = 0.9;
+                    setScaleViewValue(size * scalar);
+                }
+                else {
+                    setScaleViewValue(1);
+                }
+
                 setNpcPlayer(npcPlayer);
             })();
 
@@ -233,7 +245,8 @@ export const CharacterSelect = () => {
         }
     };
     const onClick = character => e => {
-        const canBeUsed = character.canBeUsed === undefined || character.canBeUsed;
+        //const canBeUsed = character.canBeUsed === undefined || character.canBeUsed;
+        const canBeUsed = true;
         if (character && npcPlayer && canBeUsed) {
             setSelectCharacter(character);
 
@@ -401,6 +414,7 @@ export const CharacterSelect = () => {
             <MegaHup
                 open={opened}
                 npcPlayer={opened ? npcPlayer : null}
+                manageScaleView={scaleViewValue}
             />
         </div>
     );
