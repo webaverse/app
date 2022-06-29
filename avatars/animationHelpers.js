@@ -597,6 +597,13 @@ export const _createAnimation = avatar => {
     avatar.walkLeftMirrorMotion = physx.physxWorker.createMotion(animations.index['right strafe walking reverse.fbx'].pointer);
     avatar.walkRightMirrorMotion = physx.physxWorker.createMotion(animations.index['left strafe walking reverse.fbx'].pointer);
 
+    avatar.runForwardMotion = physx.physxWorker.createMotion(animations.index['Fast Run.fbx'].pointer);
+    avatar.runBackwardMotion = physx.physxWorker.createMotion(animations.index['running backwards.fbx'].pointer);
+    avatar.runLeftMotion = physx.physxWorker.createMotion(animations.index['left strafe.fbx'].pointer);
+    avatar.runRightMotion = physx.physxWorker.createMotion(animations.index['right strafe.fbx'].pointer);
+    avatar.runLeftMirrorMotion = physx.physxWorker.createMotion(animations.index['right strafe reverse.fbx'].pointer);
+    avatar.runRightMirrorMotion = physx.physxWorker.createMotion(animations.index['left strafe reverse.fbx'].pointer);
+
     // create nodes -------------------------------------------------------------
 
     // avatar.walkNode = avatar.mixer.createNode(WebaverseAnimationNodeBlendList, 'walk');
@@ -608,7 +615,19 @@ export const _createAnimation = avatar => {
     physx.physxWorker.addChild(avatar.walkNode, avatar.walkLeftMirrorMotion);
     physx.physxWorker.addChild(avatar.walkNode, avatar.walkRightMirrorMotion);
 
-    physx.physxWorker.setAnimTree(avatar.walkNode);
+    avatar.runNode = physx.physxWorker.createNode(AnimationNodeType.LIST);
+    physx.physxWorker.addChild(avatar.runNode, avatar.runForwardMotion);
+    physx.physxWorker.addChild(avatar.runNode, avatar.runBackwardMotion);
+    physx.physxWorker.addChild(avatar.runNode, avatar.runLeftMotion);
+    physx.physxWorker.addChild(avatar.runNode, avatar.runRightMotion);
+    physx.physxWorker.addChild(avatar.runNode, avatar.runLeftMirrorMotion);
+    physx.physxWorker.addChild(avatar.runNode, avatar.runRightMirrorMotion);
+
+    avatar.walkRunNode = physx.physxWorker.createNode(AnimationNodeType.TWO);
+    physx.physxWorker.addChild(avatar.walkRunNode, avatar.walkNode);
+    physx.physxWorker.addChild(avatar.walkRunNode, avatar.runNode);
+
+    physx.physxWorker.setAnimTree(avatar.walkRunNode);
 
     // --------------------------------------------------------------------------
 
@@ -963,6 +982,15 @@ export const _updateAnimation = avatar => {
   physx.physxWorker.changeWeight(avatar.walkLeftMirrorMotion, avatar.mirrorFactor * leftFactor);
   physx.physxWorker.changeWeight(avatar.walkRightMotion, mirrorFactorReverse * rightFactor);
   physx.physxWorker.changeWeight(avatar.walkRightMirrorMotion, avatar.mirrorFactor * rightFactor);
+
+  physx.physxWorker.changeWeight(avatar.runForwardMotion, forwardFactor);
+  physx.physxWorker.changeWeight(avatar.runBackwardMotion, backwardFactor);
+  physx.physxWorker.changeWeight(avatar.runLeftMotion, mirrorFactorReverse * leftFactor);
+  physx.physxWorker.changeWeight(avatar.runLeftMirrorMotion, avatar.mirrorFactor * leftFactor);
+  physx.physxWorker.changeWeight(avatar.runRightMotion, mirrorFactorReverse * rightFactor);
+  physx.physxWorker.changeWeight(avatar.runRightMirrorMotion, avatar.mirrorFactor * rightFactor);
+
+  physx.physxWorker.changeFactor(avatar.walkRunNode, avatar.moveFactors.walkRunFactor);
 
   return;
 
