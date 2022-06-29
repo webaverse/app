@@ -1,36 +1,23 @@
-import Module from './public/bin/dc.js'
+import Module from './public/dc.module.js'
 import {Allocator} from './geometry-util.js';
+import {makePromise} from './util.js';
 import {defaultChunkSize} from './constants.js';
+// import placeNames from './procgen/placeNames.js';
 
-// const localVector = new THREE.Vector3()
-// const localVector2 = new THREE.Vector3()
-// const localQuaternion = new THREE.Quaternion()
-// const capsuleUpQuaternion = new THREE.Quaternion().setFromAxisAngle(
-//   new THREE.Vector3(0, 0, 1),
-//   Math.PI / 2
-// )
-// const textEncoder = new TextEncoder();
-// const textDecoder = new TextDecoder();
+const cbs = new Map();
 
 const w = {};
 
 w.waitForLoad = Module.waitForLoad;
 
-/* let loaded = false;
-Module.waitForLoad().then(() => {
-  loaded = true;
-}); */
 w.free = address => {
-  // console.log('try momdule free', Module, loaded);
   Module._doFree(address);
 };
 
 let chunkSize = defaultChunkSize;
-// let inst = null;
 w.initialize = (newChunkSize, seed) => {
   Module._initialize(newChunkSize, seed);
   chunkSize = newChunkSize;
-  // inst = Module._createInstance();
 };
 
 w.createInstance = () => Module._createInstance();
@@ -213,19 +200,29 @@ const _parseTerrainVertexBuffer = (arrayBuffer, bufferAddress) => {
     indices,
   };
 };
-w.createTerrainChunkMesh = (inst, x, y, z, lods) => {
+w.createTerrainChunkMeshAsync = async (inst, x, y, z, lods) => {
   const allocator = new Allocator(Module);
 
   const lodArray = allocator.alloc(Int32Array, 8);
   lodArray.set(lods);
 
-  const outputBufferOffset = Module._createTerrainChunkMesh(
+  const taskId = Module._createTerrainChunkMeshAsync(
     inst,
     x, y, z,
     lodArray.byteOffset,
   );
+  const p = makePromise();
+  cbs.set(taskId, p);
 
   allocator.freeAll();
+
+  // console.log('got async task id', taskId);
+  const outputBufferOffset = await p;
+  // console.log('got async task result', taskId, outputBufferOffset);
+
+  /* await new Promise((accept, reject) => {
+    // XXX hang
+  }); */
 
   if (outputBufferOffset) {
     const result = _parseTerrainVertexBuffer(
@@ -277,17 +274,21 @@ const _parseLiquidVertexBuffer = (arrayBuffer, bufferAddress) => {
     indices,
   };
 };
-w.createLiquidChunkMesh = (inst, x, y, z, lods) => {
+w.createLiquidChunkMeshAsync = async (inst, x, y, z, lods) => {
   const allocator = new Allocator(Module);
 
   const lodArray = allocator.alloc(Int32Array, 8);
   lodArray.set(lods);
 
-  const outputBufferOffset = Module._createLiquidChunkMesh(
+  const taskId = Module._createLiquidChunkMeshAsync(
     inst,
     x, y, z,
     lodArray.byteOffset,
   );
+
+  const p = makePromise();
+  cbs.set(taskId, p);
+  const outputBufferOffset = await p;
 
   allocator.freeAll();
 
@@ -304,18 +305,23 @@ w.createLiquidChunkMesh = (inst, x, y, z, lods) => {
 
 //
 
-w.getChunkHeightfield = (inst, x, z, lod) => {
+w.getChunkHeightfieldAsync = async (inst, x, z, lod) => {
   const allocator = new Allocator(Module);
 
   const heights = allocator.alloc(Float32Array, chunkSize * chunkSize);
 
   try {
-    Module._getChunkHeightfield(
+    const taskId = Module._getChunkHeightfieldAsync(
       inst,
       x, z,
       lod,
       heights.byteOffset
     );
+
+    const p = makePromise();
+    cbs.set(taskId, p);
+    await p;
+
     return heights.slice();
   } finally {
     allocator.freeAll();
@@ -339,36 +345,46 @@ w.getChunkHeightfield = (inst, x, z, lod) => {
     allocator.freeAll();
   }
 }; */
-w.getChunkSkylight = (inst, x, y, z, lod) => {
+w.getChunkSkylightAsync = async (inst, x, y, z, lod) => {
   const allocator = new Allocator(Module);
 
   // const gridPoints = chunkSize + 3 + lod;
   const skylights = allocator.alloc(Uint8Array, chunkSize * chunkSize * chunkSize);
 
   try {
-    Module._getChunkSkylight(
+    const taskId = Module._getChunkSkylightAsync(
       inst,
       x, y, z,
       lod,
       skylights.byteOffset
     );
+
+    const p = makePromise();
+    cbs.set(taskId, p);
+    await p;
+
     return skylights.slice();
   } finally {
     allocator.freeAll();
   }
 };
-w.getChunkAo = (inst, x, y, z, lod) => {
+w.getChunkAoAsync = async (inst, x, y, z, lod) => {
   const allocator = new Allocator(Module);
 
   const aos = allocator.alloc(Uint8Array, chunkSize * chunkSize * chunkSize);
 
   try {
-    Module._getChunkAo(
+    const taskId = Module._getChunkAoAsync(
       inst,
       x, y, z,
       lod,
       aos.byteOffset
     );
+
+    const p = makePromise();
+    cbs.set(taskId, p);
+    await p;
+
     return aos.slice();
   } finally {
     allocator.freeAll();
@@ -411,7 +427,7 @@ w.getAoFieldRange = (inst, x, y, z, w, h, d, lod) => {
   }
 }; */
 
-w.createGrassSplat = (inst, x, z, lod) => {
+w.createGrassSplatAsync = async (inst, x, z, lod) => {
   const allocator = new Allocator(Module);
 
   const allocSize = 64 * 1024;
@@ -421,7 +437,7 @@ w.createGrassSplat = (inst, x, z, lod) => {
   const count = allocator.alloc(Uint32Array, 1);
 
   try {
-    Module._createGrassSplat(
+    const taskId = Module._createGrassSplatAsync(
       inst,
       x, z,
       lod,
@@ -430,6 +446,11 @@ w.createGrassSplat = (inst, x, z, lod) => {
       instances.byteOffset,
       count.byteOffset
     );
+
+    const p = makePromise();
+    cbs.set(taskId, p);
+    await p;
+
     const numElements = count[0];
     return {
       ps: ps.slice(0, numElements * 3),
@@ -440,7 +461,7 @@ w.createGrassSplat = (inst, x, z, lod) => {
     allocator.freeAll();
   }
 };
-w.createVegetationSplat = (inst, x, z, lod) => {
+w.createVegetationSplatAsync = async (inst, x, z, lod) => {
   const allocator = new Allocator(Module);
 
   const allocSize = 64 * 1024;
@@ -450,7 +471,7 @@ w.createVegetationSplat = (inst, x, z, lod) => {
   const count = allocator.alloc(Uint32Array, 1);
 
   try {
-    Module._createVegetationSplat(
+    const taskId = Module._createVegetationSplatAsync(
       inst,
       x, z,
       lod,
@@ -459,6 +480,11 @@ w.createVegetationSplat = (inst, x, z, lod) => {
       instances.byteOffset,
       count.byteOffset
     );
+
+    const p = makePromise();
+    cbs.set(taskId, p);
+    await p;
+
     const numElements = count[0];
     return {
       ps: ps.slice(0, numElements * 3),
@@ -469,7 +495,7 @@ w.createVegetationSplat = (inst, x, z, lod) => {
     allocator.freeAll();
   }
 };
-w.createMobSplat = (inst, x, z, lod) => {
+w.createMobSplatAsync = async (inst, x, z, lod) => {
   const allocator = new Allocator(Module);
 
   const allocSize = 64 * 1024;
@@ -479,7 +505,7 @@ w.createMobSplat = (inst, x, z, lod) => {
   const count = allocator.alloc(Uint32Array, 1);
 
   try {
-    Module._createMobSplat(
+    const taskId = Module._createMobSplatAsync(
       inst,
       x, z,
       lod,
@@ -488,6 +514,11 @@ w.createMobSplat = (inst, x, z, lod) => {
       instances.byteOffset,
       count.byteOffset
     );
+
+    const p = makePromise();
+    cbs.set(taskId, p);
+    await p;
+
     const numElements = count[0];
     return {
       ps: ps.slice(0, numElements * 3),
@@ -498,5 +529,17 @@ w.createMobSplat = (inst, x, z, lod) => {
     allocator.freeAll();
   }
 };
+
+globalThis.addEventListener('result', e => {
+  // console.log('got result', e.data, import.meta);
+  const {id, result} = e.data;
+  const p = cbs.get(id);
+  if (p) {
+    p.accept(result);
+  } else {
+    cbs.delete(id);
+    console.warn('failed to find promise for id', e.data.id);
+  }
+});
 
 export default w;

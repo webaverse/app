@@ -104,7 +104,7 @@ const instances = new Map();
 let loaded = false;
 let running = false;
 let queue = [];
-const _handleMethod = ({ method, args }) => {
+const _handleMethod = async ({method, args}) => {
   // console.log('worker handle method', method, args);
 
   const _injectDamages = (chunks, instance) => {
@@ -128,8 +128,8 @@ const _handleMethod = ({ method, args }) => {
 
   switch (method) {
     case 'initialize': {
-      const { chunkSize, seed } = args;
-      return dc.initialize(chunkSize, seed);
+      const {chunkSize, seed, numThreads} = args;
+      return dc.initialize(chunkSize, seed, numThreads);
     }
     case 'port': {
       const { port } = args;
@@ -175,7 +175,7 @@ const _handleMethod = ({ method, args }) => {
       if (!instance) throw new Error('generateTerrainChunk : instance not found');
       localVector.fromArray(chunkPosition)
         .multiplyScalar(chunkWorldSize);
-      const meshData = dc.createChunkMeshDualContouring(instance, localVector.x, localVector.y, localVector.z, lodArray);
+      const meshData = await dc.createTerrainChunkMeshAsync(instance, localVector.x, localVector.y, localVector.z, lodArray);
       const meshData2 = _cloneTerrainMeshData(meshData);
       meshData && dc.free(meshData.bufferAddress);
 
@@ -195,20 +195,22 @@ const _handleMethod = ({ method, args }) => {
       if (!instance) throw new Error('generateTerrainChunkRenderable : instance not found');
       localVector.fromArray(chunkPosition)
         .multiplyScalar(chunkWorldSize);
-      const meshData = dc.createTerrainChunkMesh(instance, localVector.x, localVector.y, localVector.z, lodArray);
+      const meshData = await dc.createTerrainChunkMeshAsync(instance, localVector.x, localVector.y, localVector.z, lodArray);
+      // console.log('got mesh data result 1', meshData);
       const meshData2 = _cloneTerrainMeshData(meshData);
+      // console.log('got mesh data result 2', meshData2);
       meshData && dc.free(meshData.bufferAddress);
 
       if (meshData2) {
         const lod = lodArray[0];
-        meshData2.skylights = dc.getChunkSkylight(
+        meshData2.skylights = await dc.getChunkSkylightAsync(
           instance,
           localVector.x,
           localVector.y,
           localVector.z,
           lod
         );
-        meshData2.aos = dc.getChunkAo(
+        meshData2.aos = await dc.getChunkAoAsync(
           instance,
           localVector.x,
           localVector.y,
@@ -235,7 +237,7 @@ const _handleMethod = ({ method, args }) => {
       if (!instance) throw new Error('generateLiquidChunk : instance not found');
       localVector.fromArray(chunkPosition)
         .multiplyScalar(chunkWorldSize);
-      const meshData = dc.createLiquidChunkMesh(instance, localVector.x, localVector.y, localVector.z, lodArray);
+      const meshData = await dc.createLiquidChunkMeshAsync(instance, localVector.x, localVector.y, localVector.z, lodArray);
       const meshData2 = _cloneLiquidMeshData(meshData);
       meshData && dc.free(meshData.bufferAddress);
 
@@ -253,7 +255,7 @@ const _handleMethod = ({ method, args }) => {
       const {instance: instanceKey, x, z, lod} = args;
       const instance = instances.get(instanceKey);
       if (!instance) throw new Error('getChunkHeightfield : instance not found');
-      const heightfield = dc.getChunkHeightfield(instance, x, z, lod);
+      const heightfield = await dc.getChunkHeightfieldAsync(instance, x, z, lod);
       const spec = {
         result: heightfield,
         transfers: [heightfield.buffer],
@@ -315,7 +317,7 @@ const _handleMethod = ({ method, args }) => {
         ps,
         qs,
         instances: instancesResult,
-      } = dc.createGrassSplat(instance, x, z, lod);
+      } = await dc.createGrassSplatAsync(instance, x, z, lod);
 
       const spec = {
         result: {
@@ -336,7 +338,7 @@ const _handleMethod = ({ method, args }) => {
         ps,
         qs,
         instances: instancesResult,
-      } = dc.createVegetationSplat(instance, x, z, lod);
+      } = await dc.createVegetationSplatAsync(instance, x, z, lod);
 
       const spec = {
         result: {
@@ -356,7 +358,7 @@ const _handleMethod = ({ method, args }) => {
         ps,
         qs,
         instances: instancesResult,
-      } = dc.createMobSplat(instance, x, z, lod);
+      } = await dc.createMobSplatAsync(instance, x, z, lod);
 
       const spec = {
         result: {

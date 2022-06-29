@@ -2,7 +2,7 @@
 import {chunkMinForPosition, getLockChunkId, makeId} from './util.js';
 import {LockManager} from './lock-manager.js';
 
-const defaultNumDcWorkers = 4;
+const defaultNumDcWorkers = 1;
 
 export class DcWorkerManager {
   constructor({
