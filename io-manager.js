@@ -59,7 +59,6 @@ ioManager.currentWalked = false;
 ioManager.lastCtrlKey = false;
 ioManager.currentLoadout = 0;
 
-ioManager.holsters = [[0,0,-1], [-1,0,0], [1,0,0]]; // temporary
 ioManager.lastEquiped = null;
 
 ioManager.keys = {
@@ -231,22 +230,6 @@ const _updateIo = timeDiff => {
 
         }
 
-        const _handleHolster = (gamepad) => {
-          for (let i = 0; i < ioManager.holsters.length; i++) {
-            const relativePos = gamepad.position.clone();
-            if(!ioManager.lastEquiped && relativePos.distanceTo(ioManager.holsters[i] < 0.5)) {
-              const selectedApp = loadoutManager.getSelectedApp();
-              selectedApp.position.set(ioManager.holsters[i]);
-              selectedApp.updateMatrixWorld();
-              ioManager.lastEquiped = selectedApp;
-            }
-            else if (ioManager.lastEquiped && relativePos.distanceTo(ioManager.holsters[i] > 0.5)) {
-              ioManager.lastEquiped = null;
-            }
-            
-          }
-        }
-
         const _handleLoadout = () => {
           const selectedApp = loadoutManager.getSelectedApp();
           if(handedness === "left") {
@@ -308,8 +291,7 @@ const _updateIo = timeDiff => {
           
         dolly.matrix
           .premultiply(localMatrix.makeTranslation(originalPosition.x - localVector.x, originalPosition.y - localVector.y, originalPosition.z - localVector.z))
-          .premultiply(localMatrix.makeTranslation(0, 0.1, 0))
-          .decompose(dolly.position, dolly.quaternion, dolly.scale);    
+          .decompose(dolly.position, dolly.quaternion, dolly.scale);
       }
       else {
         // Free VR movement
