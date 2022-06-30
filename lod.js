@@ -221,9 +221,9 @@ export class LodChunkTracker extends EventTarget {
             .add(localVector3.set(1, 1, 1))
         );
       }
-      /* const min1xSize = min1xMax.clone()
+      const min1xSize = min1xMax.clone()
         .sub(min1xMin)
-        .add(localVector2.set(1, 1, 1)); */
+        .add(localVector2.set(1, 1, 1));
 
       // dispatch event
       this.dispatchEvent(new MessageEvent('coordupdate', {
@@ -260,26 +260,11 @@ export class LodChunkTracker extends EventTarget {
                   (chunkPosition1x.y < min1xMax.y && chunkPosition1x.z < min1xMax.z) ? 1 : 2,
                   (chunkPosition1x.x < min1xMax.x && chunkPosition1x.y < min1xMax.y && chunkPosition1x.z < min1xMax.z) ? 1 : 2,
                 ];
-                // console.log('got lod array', lodArray, chunkPosition1x.toArray(), min1xMax.toArray());
                 const chunk = new LodChunk(chunkPosition1x.x, chunkPosition1x.y, chunkPosition1x.z, lod, lodArray);
                 neededChunkSpecs.push({
                   chunk,
                   replacesChunks: [],
                 });
-                /* const oldChunk = this.chunks.find(chunk2 => chunk2.equals(chunk));
-                if (oldChunk) {
-                  if (!oldChunk.lodEquals(chunk)) {
-                    neededChunkSpecs.push({
-                      chunk,
-                      replacesChunks: [oldChunk],
-                    });
-                  }
-                } else {
-                  neededChunkSpecs.push({
-                    chunk,
-                    replacesChunks: [],
-                  });
-                } */
               }
             }
           }
@@ -290,8 +275,8 @@ export class LodChunkTracker extends EventTarget {
       // window.min1xMin = min1xMin;
       // window.min1xMax = min1xMax;
 
-      /* // lod2
-      if (this.numLods >= 2) {
+      // lod2
+      /* if (this.numLods >= 2) {
         const lod = 2;
         const min2xTileSize = min1xSize.clone().divideScalar(2);
         const min2xMin = min1xMin.clone().sub(min2xTileSize);
@@ -308,9 +293,6 @@ export class LodChunkTracker extends EventTarget {
                 y,
                 z
               );
-              const dx = x - min2xMin.x;
-              const dy = y - min2xMin.y * maxDcy;
-              const dz = z - min2xMin.z;
               
               const replacesChunks = [];
               for (let dy2 = 0; dy2 < 2; dy2++) {
@@ -337,7 +319,6 @@ export class LodChunkTracker extends EventTarget {
               // vm::ivec3(1, 1, 0),
               // vm::ivec3(0, 1, 1),
               // vm::ivec3(1, 1, 1),
-
               const lodArray = [
                 2,
                 (chunkPosition2x.x < min2xMax.x) ? 2 : 4,
