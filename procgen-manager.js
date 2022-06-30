@@ -38,6 +38,7 @@ class ProcGenInstance {
     numLods = 1,
     trackY = false,
     relod = false,
+    debug = false,
   } = {}) {
     const {chunkSize, range} = this;
     const tracker = new LodChunkTracker({
@@ -46,6 +47,7 @@ class ProcGenInstance {
       trackY,
       relod,
       range,
+      debug,
     });
     return tracker;
   }
