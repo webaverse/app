@@ -311,6 +311,7 @@ const {CharsetEncoder} = require('three/examples/js/libs/mmdparser.js');
       'Crouched Sneaking Left reverse.fbx',
       'Crouched Sneaking Right reverse.fbx',
       'naruto run.fbx',
+      'freestyle.fbx',
     ];
     const animationStepIndices = walkAnimationNames.map(walkAnimationName => {
       const animation = animations.find(a => a.name === walkAnimationName);
