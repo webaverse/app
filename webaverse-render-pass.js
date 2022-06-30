@@ -34,27 +34,9 @@ class WebaverseRenderPass extends Pass {
     this.onBeforeRender && this.onBeforeRender();
 
     if(getRenderer().xr.getSession()) {
-      // render
-      if (this.internalDepthPass) {
-        this.internalDepthPass.renderToScreen = false;
-        this.internalDepthPass.render(renderer, renderTarget, readBuffer, deltaTime, maskActive);
-      }
-      if (this.internalRenderPass) {
-        this.internalRenderPass.renderToScreen = this.renderToScreen;
-        this.internalRenderPass.render(renderer, renderTarget, readBuffer, deltaTime, maskActive);
-      } else {
-        
-        // renderer.clear();
-        // renderer.render(scene, camera);
-        // renderer.clear();
-        // renderer.render(sceneHighPriority, camera);
-        // renderer.clear();
-        // renderer.render(sceneLowPriority, camera);
-        //console.log(renderTarget);
-        renderer.clear();
-        renderer.setRenderTarget( renderer.getRenderTarget() );
-        renderer.render(rootScene, camera);
-      }
+      renderer.clear();
+      renderer.setRenderTarget( renderer.getRenderTarget() );
+      renderer.render(rootScene, camera);
     } 
     else {
       // render

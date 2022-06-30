@@ -194,7 +194,7 @@ class XRManager extends EventTarget {
         .premultiply(dolly.matrix)
         .decompose(localVector, localQuaternion, localVector2);
 
-      localPlayer.avatar.inputs.hmd.position.copy(localVector);
+      localPlayer.avatar.inputs.hmd.position.copy(localVector.add(new THREE.Vector3(0,0,0.1).applyQuaternion(localQuaternion)));
       localPlayer.avatar.inputs.hmd.quaternion.copy(localQuaternion);
 
       localPlayer.avatar.inputs.leftGamepad.position.fromArray(leftGamepadPosition);
