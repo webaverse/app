@@ -145,8 +145,8 @@ export class DcWorkerManager {
     );
   }
   async generateTerrainChunk(chunkPosition, lodArray) {
-    const chunkId = getLockChunkId(chunkPosition);
-    return await this.locks.request(chunkId, async lock => {
+    // const chunkId = getLockChunkId(chunkPosition);
+    // return await this.locks.request(chunkId, async lock => {
       const worker = this.getNextWorker();
       const result = await worker.request('generateTerrainChunk', {
         instance: this.instance,
@@ -155,7 +155,7 @@ export class DcWorkerManager {
       });
       result.throwIfAborted();
       return result;
-    });
+    // });
   }
   async generateTerrainChunkRenderable(chunkPosition, lodArray, {
     signal
