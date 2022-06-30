@@ -107,7 +107,7 @@ let queue = [];
 const _handleMethod = async ({method, args}) => {
   // console.log('worker handle method', method, args);
 
-  const _injectDamages = (chunks, instance) => {
+  /* const _injectDamages = (chunks, instance) => {
     // console.log("Instance : " + instance);
     // inject the damage to peer workers
     const method = 'injectDamages';
@@ -122,16 +122,15 @@ const _handleMethod = async ({method, args}) => {
         args,
       });
     }
-  };
-  const _chunksToResult = (chunks) =>
-    chunks.map(({ position }) => ({ position }));
+  }; */
+  const _chunksToResult = chunks => chunks.map(({ position }) => ({ position }));
 
   switch (method) {
     case 'initialize': {
       const {chunkSize, seed, numThreads} = args;
       return dc.initialize(chunkSize, seed, numThreads);
     }
-    case 'port': {
+    /* case 'port': {
       const { port } = args;
       port.onmessage = (e) => {
         _handleMessage({
@@ -141,7 +140,7 @@ const _handleMethod = async ({method, args}) => {
       };
       ports.push(port);
       return;
-    }
+    } */
     case 'ensureInstance': {
       const { instance: instanceKey } = args;
       // console.log(instanceKey);
@@ -170,6 +169,7 @@ const _handleMethod = async ({method, args}) => {
       return true;
     }
     case 'generateTerrainChunk': {
+
       const {instance: instanceKey, chunkPosition, lodArray} = args;
       const instance = instances.get(instanceKey);
       if (!instance) throw new Error('generateTerrainChunk : instance not found');
@@ -195,7 +195,9 @@ const _handleMethod = async ({method, args}) => {
       if (!instance) throw new Error('generateTerrainChunkRenderable : instance not found');
       localVector.fromArray(chunkPosition)
         .multiplyScalar(chunkWorldSize);
+      // console.log('generate renderable 1');
       const meshData = await dc.createTerrainChunkMeshAsync(instance, localVector.x, localVector.y, localVector.z, lodArray);
+      // console.log('generate renderable 2');
       // console.log('got mesh data result 1', meshData);
       const meshData2 = _cloneTerrainMeshData(meshData);
       // console.log('got mesh data result 2', meshData2);
@@ -472,7 +474,7 @@ const _handleMethod = async ({method, args}) => {
         return null;
       }
     }
-    case 'injectDamages': {
+    /* case 'injectDamages': {
       const { instance: instanceKey, chunks } = args;
       // console.log(instanceKey);
       const instance = instances.get(instanceKey);
@@ -490,75 +492,63 @@ const _handleMethod = async ({method, args}) => {
         // console.log('worker inject damage 2', {position, damageBuffer});
       }
       return null;
-    }
+    } */
     default: {
       throw new Error(`unknown method: ${method}`);
     }
   }
 };
-const _handleMessage = async (e) => {
-  if (loaded && !running) {
-    const { data, port } = e;
+const _handleMessage = async m => {
+  const { data, port } = m;
+  const { requestId } = data;
+  const p = makePromise();
+  // try {
+    const spec = await _handleMethod(data);
+    p.accept(spec);
+  // } catch (err) {
+  //   p.reject(err);
+  // }
 
-    {
-      running = true;
-
-      const { requestId } = data;
-      const p = makePromise();
-      try {
-        const spec = await _handleMethod(data);
-        p.accept(spec);
-      } catch (err) {
-        p.reject(err);
-      }
-
-      if (requestId) {
-        p.then(
-          (spec) => {
-            const { result = null, transfers = [] } = spec ?? {};
-            port.postMessage(
-              {
-                method: 'response',
-                requestId,
-                result,
-              },
-              transfers
-            );
+  if (requestId) {
+    p.then(
+      (spec) => {
+        const { result = null, transfers = [] } = spec ?? {};
+        port.postMessage(
+          {
+            method: 'response',
+            requestId,
+            result,
           },
-          (err) => {
-            port.postMessage({
-              requestId,
-              error: err.message,
-            });
-          }
+          transfers
         );
+      },
+      (err) => {
+        port.postMessage({
+          requestId,
+          error: err.message,
+        });
       }
-
-      running = false;
-    }
-    // next
-    if (queue.length > 0) {
-      _handleMessage(queue.shift());
-    }
-  } else {
-    queue.push(e);
+    );
   }
 };
 self.onmessage = (e) => {
-  _handleMessage({
+  const m = {
     data: e.data,
     port: self,
-  });
+  };
+  if (loaded) {
+    _handleMessage(m);
+  } else {
+    queue.push(m);
+  }
 };
 
 (async () => {
-  // console.log('worker waitForLoad 1');
   await dc.waitForLoad();
-  // console.log('worker waitForLoad 2');
 
   loaded = true;
-  // console.log('worker initial messages', queue.slice());
-  if (queue.length > 0) {
-    _handleMessage(queue.shift());
+  for (let i = 0; i < queue.length; i++) {
+    _handleMessage(queue[i]);
   }
+  queue.length = 0;
 })();
