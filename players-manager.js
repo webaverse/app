@@ -27,7 +27,9 @@ class PlayersManager {
 
     const localPlayer = metaversefileApi.useLocalPlayer();
 
-    const playersObserveFn = e => {
+    const playersObserveFn = (e, origin) => {
+      if (origin === 'push') return; // ignore data push from local player
+      return console.warn("Local player");
       const {added, deleted} = e.changes;
       for (const item of added.values()) {
         const playerMap = item.content.type;
@@ -44,6 +46,10 @@ class PlayersManager {
       }
 
       for (const item of deleted.values()) {
+        if (item === 0) {
+          console.warn('Received init message, ignore');
+          continue;
+        }
         const playerMap = item.content.type;
         const playerId = playerMap.get('playerId');
 

@@ -310,8 +310,9 @@ export default class Webaverse extends EventTarget {
         const localPlayer = metaversefileApi.useLocalPlayer();
 
         // Update user input
-        ioManager.update(timeDiffCapped);
-
+        if (localPlayer.isBound()) {
+          ioManager.update(timeDiffCapped);
+        
         // Update physics
         if (physicsManager.getPhysicsEnabled()) {
           physicsManager.simulatePhysics(timeDiffCapped);
@@ -348,7 +349,7 @@ export default class Webaverse extends EventTarget {
 
         // Clean up input
         ioManager.updatePost();
-
+      }
         // render scenes
         performanceTracker.setGpuPrefix('diorama');
         dioramaManager.update(timestamp, timeDiffCapped);
@@ -388,7 +389,7 @@ const _startHacks = webaverse => {
     if (event.key === 'Escape') {
       console.log(universe.state.getArray('world'));
       console.log(universe.state.getArray('players'));
-      console.log(universe.scene);
+      console.log(scene);
     }
   });
 

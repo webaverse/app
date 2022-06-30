@@ -84,7 +84,7 @@ class Hand extends THREE.Object3D {
 class Player extends THREE.Object3D {
   constructor({
     name = defaultPlayerName,
-    playerId = makeId(5) // random 5-digit string, must be unique per player in room
+    playerId = makeId(5), // random 5-digit string, must be unique per player in room
   } = {}) {
     super();
     this.playerId = playerId;
@@ -202,7 +202,11 @@ class Player extends THREE.Object3D {
   addAction(action) {
     action = clone(action);
     action.actionId = makeId(5);
-    this.getActionsState().push([action]);
+
+    const actionState = this.getActionsState();
+    this.playersArray.doc.transact(() => {
+      actionState.push([action]);
+    }, 'push');
 
     return action;
   }
@@ -210,17 +214,22 @@ class Player extends THREE.Object3D {
   removeAction(type) {
     const actions = this.getActionsState();
     let i = 0;
-    for (const action of actions) {
-      if (action.type === type) {
-        actions.delete(i);
-        break;
+    this.playersArray.doc.transact(() => {
+      for (const action of actions) {
+        if (action.type === type) {
+          actions.delete(i);
+          break;
+        }
+        i++;
       }
-      i++;
-    }
+    }, 'push');
   }
 
   removeActionIndex(index) {
-    this.getActionsState().delete(index);
+    const actions = this.getActionsState();
+    this.playersArray.doc.transact(() => {
+      actions.delete(index);
+    }, 'push');
   }
 
   clearActions() {
@@ -414,6 +423,7 @@ class Player extends THREE.Object3D {
   }
 
   wear(app, {loadoutIndex = -1} = {}) {
+    console.log("wear called")
     const _getNextLoadoutIndex = () => {
       let nextLoadoutIndex = -1;
       const usedIndexes = Array(8).fill(false);
@@ -515,6 +525,8 @@ class Player extends THREE.Object3D {
     dropStartPosition = null,
     dropDirection = null,
   } = {}) {
+    console.log("unwear called")
+
     const wearActionIndex = this.findActionIndex(({type, instanceId}) => {
       return type === 'wear' && instanceId === app.instanceId;
     });
@@ -617,9 +629,9 @@ class Player extends THREE.Object3D {
 
     const instanceId = this.getAvatarState().get('instanceId') ?? '';
 
-    if (this.avatar) {
+    if (this.avatar && this.avatar.app) {
+      this.avatar.app.parent.remove(this.avatar.app);
       this.appManager.removeApp(this.avatar.app);
-      this.avatar?.app?.parent?.remove(this.avatar.app);
     }
 
     const _setNextAvatarApp = app => {
@@ -681,7 +693,7 @@ class Player extends THREE.Object3D {
       const self = this;
       this.playersArray.doc.transact(() => {
         self.playerMap.set(avatarMapName, avatarMap);
-      }, 'push')
+      }, 'push');
     }
     return avatarMap;
   }
@@ -756,8 +768,10 @@ class NetworkPlayer extends Player {
           self.playerMap.set('transform', transform);
 
           const avatar = self.getAvatarState();
-          avatar.set('instanceId', instanceId ?? '');
-          self.syncAvatar();
+          if (instanceId !== avatar.get('instanceId')) {
+            avatar.set('instanceId', instanceId ?? '');
+            self.syncAvatar();
+          }
 
           const actions = self.getActionsState();
           for (const oldAction of oldActions) {
@@ -804,7 +818,8 @@ class NetworkPlayer extends Player {
         // Called any time the player map is changed
         const observePlayerFn = (e, origin) => {
           if (origin === 'push') return; // ignore self
-          else throw new Error("wtf")
+          
+          else throw new Error('wtf');
           if (e.changes.keys.get('name')) {
             this.name = e.changes.keys.get('name');
           }
@@ -1002,7 +1017,7 @@ class LocalPlayer extends NetworkPlayer {
     this.appManager.addEventListener('appadd', e => {
       const app = e.data;
       scene.add(app);
-      console.log("app add", new Error().stack);
+      console.log('app add', new Error().stack);
     });
     this.appManager.addEventListener('appremove', e => {
       const app = e.data;
@@ -1073,9 +1088,7 @@ class LocalPlayer extends NetworkPlayer {
       }
 
       if (app.instanceId && oldInstanceId !== app.instanceId) {
-        this.playersArray.doc.transact(() => {
-          avatar.set('instanceId', app.instanceId);
-        }, 'push');
+        avatar.set('instanceId', app.instanceId);
       } else {
         console.warn('Trying to set avatar app to same instanceId as before');
       }
@@ -1165,11 +1178,9 @@ class LocalPlayer extends NetworkPlayer {
       actionInterpolant.update(timeDiff);
     }
 
-
     const session = this.getSession();
     const mirrors = metaversefile.getMirrors();
     applyPlayerToAvatar(this, session, this.avatar, mirrors);
-
 
     this.characterSfx.update(timestamp, timeDiffS);
     this.characterFx.update(timestamp, timeDiffS);
@@ -1277,14 +1288,13 @@ class RemotePlayer extends NetworkPlayer {
       this.appManager.addEventListener('appadd', e => {
         const app = e.data;
         scene.add(app);
-        console.log("app add", new Error().stack);
-
+        console.log('app add', new Error().stack);
       });
       this.appManager.addEventListener('appremove', e => {
         const app = e.data;
         app.parent && app.parent.remove(app);
       });
-    }
+    };
 
     _setupEventListeners();
 
