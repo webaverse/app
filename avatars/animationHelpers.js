@@ -639,6 +639,60 @@ export const _createAnimation = avatar => {
     physx.physxWorker.setLoop(avatar.activateMotion, AnimationLoopType.LoopOnce);
     physx.physxWorker.stop(avatar.activateMotion);
 
+    avatar.useMotiono = {};
+    for (const k in useAnimations) {
+      const animation = useAnimations[k];
+      if (animation) {
+        avatar.useMotiono[k] = physx.physxWorker.createMotion(animation.pointer);
+      }
+    }
+    physx.physxWorker.setLoop(avatar.useMotiono.drink, AnimationLoopType.LoopOnce);
+    physx.physxWorker.stop(avatar.useMotiono.drink);
+    physx.physxWorker.setLoop(avatar.useMotiono.combo, AnimationLoopType.LoopOnce);
+    physx.physxWorker.stop(avatar.useMotiono.combo);
+    // combo
+    physx.physxWorker.setLoop(avatar.useMotiono.swordSideSlash, AnimationLoopType.LoopOnce);
+    physx.physxWorker.stop(avatar.useMotiono.swordSideSlash);
+    physx.physxWorker.setLoop(avatar.useMotiono.swordSideSlashStep, AnimationLoopType.LoopOnce);
+    physx.physxWorker.stop(avatar.useMotiono.swordSideSlashStep);
+    physx.physxWorker.setLoop(avatar.useMotiono.swordTopDownSlash, AnimationLoopType.LoopOnce);
+    physx.physxWorker.stop(avatar.useMotiono.swordTopDownSlash);
+    physx.physxWorker.setLoop(avatar.useMotiono.swordTopDownSlashStep, AnimationLoopType.LoopOnce);
+    physx.physxWorker.stop(avatar.useMotiono.swordTopDownSlashStep);
+    // envelope
+    physx.physxWorker.setLoop(avatar.useMotiono.bowDraw, AnimationLoopType.LoopOnce);
+    physx.physxWorker.stop(avatar.useMotiono.bowDraw);
+    physx.physxWorker.setLoop(avatar.useMotiono.bowLoose, AnimationLoopType.LoopOnce);
+    physx.physxWorker.stop(avatar.useMotiono.bowLoose);
+    // sit
+    avatar.sitMotiono = {};
+    for (const k in sitAnimations) {
+      const animation = sitAnimations[k];
+      if (animation) {
+        avatar.sitMotiono[k] = physx.physxWorker.createMotion(animation.pointer);
+        physx.physxWorker.setLoop(avatar.sitMotiono[k], AnimationLoopType.LoopOnce);
+        physx.physxWorker.stop(avatar.sitMotiono[k]);
+      }
+    }
+    // emote
+    avatar.emoteMotiono = {};
+    for (const k in emoteAnimations) {
+      const animation = emoteAnimations[k];
+      if (animation) {
+        avatar.emoteMotiono[k] = physx.physxWorker.createMotion(animation.pointer);
+        physx.physxWorker.setLoop(avatar.emoteMotiono[k], AnimationLoopType.LoopOnce);
+        physx.physxWorker.stop(avatar.emoteMotiono[k]);
+      }
+    }
+    // dance
+    avatar.danceMotiono = {};
+    for (const k in danceAnimations) {
+      const animation = danceAnimations[k];
+      if (animation) {
+        avatar.danceMotiono[k] = physx.physxWorker.createMotion(animation.pointer);
+      }
+    }
+
     // create nodes -------------------------------------------------------------
 
     // avatar.walkNode = avatar.mixer.createNode(WebaverseAnimationNodeBlendList, 'walk');
@@ -711,15 +765,48 @@ export const _createAnimation = avatar => {
     physx.physxWorker.addChild(avatar.actionsNode, avatar._7wayFlyNode);
     physx.physxWorker.addChild(avatar.actionsNode, avatar.narutoRunMotion);
     physx.physxWorker.addChild(avatar.actionsNode, avatar.activateMotion);
-    // // useMotiono
-    // avatar.actionsNode.addChild(avatar.useMotiono.drink);
+    // useMotiono
+    physx.physxWorker.addChild(avatar.actionsNode, avatar.useMotiono.drink);
     // // sword
-    // avatar.actionsNode.addChild(avatar.useMotiono.combo);
+    physx.physxWorker.addChild(avatar.actionsNode, avatar.useMotiono.combo);
     // // silsword combo
-    // avatar.actionsNode.addChild(avatar.useMotiono.swordSideSlash);
-    // avatar.actionsNode.addChild(avatar.useMotiono.swordSideSlashStep);
-    // avatar.actionsNode.addChild(avatar.useMotiono.swordTopDownSlash);
-    // avatar.actionsNode.addChild(avatar.useMotiono.swordTopDownSlashStep);
+    physx.physxWorker.addChild(avatar.actionsNode, avatar.useMotiono.swordSideSlash);
+    physx.physxWorker.addChild(avatar.actionsNode, avatar.useMotiono.swordSideSlashStep);
+    physx.physxWorker.addChild(avatar.actionsNode, avatar.useMotiono.swordTopDownSlash);
+    physx.physxWorker.addChild(avatar.actionsNode, avatar.useMotiono.swordTopDownSlashStep);
+
+    avatar._7wayBowNode = physx.physxWorker.createNode(AnimationNodeType.TWO);
+    physx.physxWorker.addChild(avatar._7wayBowNode, avatar.useMotiono.bowIdle);
+    physx.physxWorker.addChild(avatar._7wayBowNode, avatar.bowNode);
+
+    avatar.bowDrawLooseNodoe = physx.physxWorker.createNode(AnimationNodeType.TWO);
+    physx.physxWorker.addChild(avatar.bowDrawLooseNodoe, avatar.useMotiono.bowDraw);
+    physx.physxWorker.addChild(avatar.bowDrawLooseNodoe, avatar.useMotiono.bowLoose);
+
+    // avatar.bowIdleDrawLooseNode = avatar.mixer.createNode(WebaverseAnimationNodeOverwrite, 'bowIdleDrawLoose', {filters: ['isTop']});
+    avatar.bowIdleDrawLooseNode = physx.physxWorker.createNode(AnimationNodeType.TWO); // todo: NodeType.Overwrite
+    physx.physxWorker.addChild(avatar.bowIdleDrawLooseNode, avatar._7wayBowNode);
+    physx.physxWorker.addChild(avatar.bowIdleDrawLooseNode, avatar.bowDrawLooseNodoe);
+
+    avatar._7wayWalkRunBowNode = physx.physxWorker.createNode(AnimationNodeType.TWO);
+    physx.physxWorker.addChild(avatar._7wayWalkRunBowNode, avatar._7wayWalkRunNode);
+    physx.physxWorker.addChild(avatar._7wayWalkRunBowNode, avatar.bowIdleDrawLooseNode);
+
+    // sit
+    for (const k in avatar.sitMotiono) {
+      const motion = avatar.sitMotiono[k];
+      physx.physxWorker.addChild(avatar.actionsNode, motion);
+    }
+    // emote
+    for (const k in avatar.emoteMotiono) {
+      const motion = avatar.emoteMotiono[k];
+      physx.physxWorker.addChild(avatar.actionsNode, motion);
+    }
+    // dance
+    for (const k in avatar.danceMotiono) {
+      const motion = avatar.danceMotiono[k];
+      physx.physxWorker.addChild(avatar.actionsNode, motion);
+    }
 
     //
 
@@ -737,85 +824,9 @@ export const _createAnimation = avatar => {
   // WebaverseAnimationMotions ---
   // LoopRepeat
 
-  avatar.useMotiono = {};
-  for (const k in useAnimations) {
-    const animation = useAnimations[k];
-    if (animation) {
-      avatar.useMotiono[k] = avatar.mixer.createMotion(animation);
-    }
-  }
-  avatar.useMotiono.drink.loop = LoopOnce; avatar.useMotiono.drink.stop();
-  avatar.useMotiono.combo.loop = LoopOnce; avatar.useMotiono.combo.stop();
-  // combo
-  avatar.useMotiono.swordSideSlash.loop = LoopOnce; avatar.useMotiono.swordSideSlash.stop();
-  avatar.useMotiono.swordSideSlashStep.loop = LoopOnce; avatar.useMotiono.swordSideSlashStep.stop();
-  avatar.useMotiono.swordTopDownSlash.loop = LoopOnce; avatar.useMotiono.swordTopDownSlash.stop();
-  avatar.useMotiono.swordTopDownSlashStep.loop = LoopOnce; avatar.useMotiono.swordTopDownSlashStep.stop();
-  // envelope
-  avatar.useMotiono.bowDraw.loop = LoopOnce; avatar.useMotiono.bowDraw.stop();
-  avatar.useMotiono.bowLoose.loop = LoopOnce; avatar.useMotiono.bowLoose.stop();
-  // sit
-  avatar.sitMotiono = {};
-  for (const k in sitAnimations) {
-    const animation = sitAnimations[k];
-    if (animation) {
-      avatar.sitMotiono[k] = avatar.mixer.createMotion(animation);
-      avatar.sitMotiono[k].loop = LoopOnce; avatar.sitMotiono[k].stop();
-    }
-  }
-  // emote
-  avatar.emoteMotiono = {};
-  for (const k in emoteAnimations) {
-    const animation = emoteAnimations[k];
-    if (animation) {
-      avatar.emoteMotiono[k] = avatar.mixer.createMotion(animation);
-      avatar.emoteMotiono[k].loop = LoopOnce; avatar.emoteMotiono[k].stop();
-    }
-  }
-  // dance
-  avatar.danceMotiono = {};
-  for (const k in danceAnimations) {
-    const animation = danceAnimations[k];
-    if (animation) {
-      avatar.danceMotiono[k] = avatar.mixer.createMotion(animation);
-    }
-  }
-
   // LoopOnce
 
   // AnimNodes ---
-
-  avatar._7wayBowNode = avatar.mixer.createNode(WebaverseAnimationNodeBlend2, '_7wayBowNode');
-  avatar._7wayBowNode.addChild(avatar.useMotiono.bowIdle);
-  avatar._7wayBowNode.addChild(avatar.bowNode);
-
-  avatar.bowDrawLooseNodoe = avatar.mixer.createNode(WebaverseAnimationNodeBlend2, 'bowDrawLoose');
-  avatar.bowDrawLooseNodoe.addChild(avatar.useMotiono.bowDraw);
-  avatar.bowDrawLooseNodoe.addChild(avatar.useMotiono.bowLoose);
-
-  avatar.bowIdleDrawLooseNode = avatar.mixer.createNode(WebaverseAnimationNodeOverwrite, 'bowIdleDrawLoose', {filters: ['isTop']});
-  avatar.bowIdleDrawLooseNode.addChild(avatar._7wayBowNode);
-  avatar.bowIdleDrawLooseNode.addChild(avatar.bowDrawLooseNodoe);
-
-  avatar._7wayWalkRunBowNode = avatar.mixer.createNode(WebaverseAnimationNodeBlend2, '_7wayWalkRunBow');
-  avatar._7wayWalkRunBowNode.addChild(avatar._7wayWalkRunNode);
-  avatar._7wayWalkRunBowNode.addChild(avatar.bowIdleDrawLooseNode);
-
-  // sit
-  for (const k in avatar.sitMotiono) {
-    const motion = avatar.sitMotiono[k];
-    avatar.actionsNode.addChild(motion);
-  }
-  // emote
-  for (const k in avatar.emoteMotiono) {
-    const motion = avatar.emoteMotiono[k];
-    avatar.actionsNode.addChild(motion);
-  }
-  // dance
-  for (const k in avatar.danceMotiono) {
-    const motion = avatar.danceMotiono[k];
-    avatar.actionsNode.addChild(motion);
-  }
 
   avatar.animTree = avatar.actionsNode; // todo: set whole tree here with separate names.
 
@@ -909,7 +920,34 @@ export const _updateAnimation = avatar => {
   }
 
   if (avatar.narutoRunEnd) physx.physxWorker.crossFadeUnitary(avatar.actionsNode, 0.2, avatar.defaultNode);
+
   if (avatar.activateEnd) {
+    physx.physxWorker.crossFadeUnitary(avatar.actionsNode, 0.2, avatar.defaultNode);
+  }
+
+  if (avatar.useEnd) {
+    physx.physxWorker.crossFadeUnitary(avatar.actionsNode, 0.2, avatar.defaultNode);
+  }
+
+  if (avatar.useComboEnd) {
+    physx.physxWorker.crossFadeUnitary(avatar.actionsNode, 0.2, avatar.defaultNode);
+  }
+
+  if (avatar.useEnvelopeEnd) {
+    physx.physxWorker.play(avatar.useMotiono.bowLoose);
+    physx.physxWorker.changeFactor(avatar.bowDrawLooseNodoe, 1);
+    physx.physxWorker.crossFadeTwo(avatar.bowIdleDrawLooseNode, 0.2, 1);
+  }
+
+  if (avatar.sitEnd) {
+    physx.physxWorker.crossFadeUnitary(avatar.actionsNode, 0.2, avatar.defaultNode);
+  }
+
+  if (avatar.emoteEnd) {
+    physx.physxWorker.crossFadeUnitary(avatar.actionsNode, 0.2, avatar.defaultNode);
+  }
+
+  if (avatar.danceEnd) {
     physx.physxWorker.crossFadeUnitary(avatar.actionsNode, 0.2, avatar.defaultNode);
   }
 
@@ -931,6 +969,45 @@ export const _updateAnimation = avatar => {
 
   if (avatar.narutoRunStart) physx.physxWorker.crossFadeUnitary(avatar.actionsNode, 0.2, avatar.narutoRunMotion);
 
+  // sword
+  if (avatar.useStart) {
+    const useAnimationName = avatar.useAnimation;
+    physx.physxWorker.play(avatar.useMotiono[useAnimationName]);
+    physx.physxWorker.crossFadeUnitary(avatar.actionsNode, 0.2, avatar.useMotiono[useAnimationName]);
+  }
+
+  // silsword
+  if (avatar.useComboStart) {
+    const useAnimationName = avatar.useAnimationCombo[avatar.useAnimationIndex];
+    physx.physxWorker.play(avatar.useMotiono[useAnimationName]);
+    physx.physxWorker.crossFadeUnitary(avatar.actionsNode, 0.2, avatar.useMotiono[useAnimationName]);
+  }
+
+  // bow
+  if (avatar.useEnvelopeStart) {
+    physx.physxWorker.play(avatar.useMotiono.bowDraw);
+    physx.physxWorker.changeFactor(avatar.bowDrawLooseNodoe, 0);
+    physx.physxWorker.changeFactor(avatar.bowIdleDrawLooseNode, 1);
+    physx.physxWorker.crossFadeTwo(avatar._7wayWalkRunBowNode, 0.2, 1);
+  }
+
+  // sit
+  if (avatar.sitStart) {
+    physx.physxWorker.play(avatar.sitMotiono[avatar.sitAnimation || defaultSitAnimation]);
+    physx.physxWorker.crossFadeUnitary(avatar.actionsNode, 0.2, avatar.sitMotiono[avatar.sitAnimation || defaultSitAnimation]);
+  }
+
+  // emote
+  if (avatar.emoteStart) {
+    physx.physxWorker.play(avatar.emoteMotiono[avatar.emoteAnimation || defaultEmoteAnimation]);
+    physx.physxWorker.crossFadeUnitary(avatar.actionsNode, 0.2, avatar.emoteMotiono[avatar.emoteAnimation || defaultEmoteAnimation]);
+  }
+
+  // dance
+  if (avatar.danceStart) {
+    physx.physxWorker.crossFadeUnitary(avatar.actionsNode, 0.2, avatar.danceMotiono[avatar.danceAnimation || defaultDanceAnimation]);
+  }
+
   return;
 
   avatar.bowForwardMotion.weight = forwardFactor;
@@ -943,61 +1020,7 @@ export const _updateAnimation = avatar => {
   avatar._7wayBowNode.factor = avatar.moveFactors.idleWalkFactor;
 
   // action end event ---
-  if (avatar.useEnd) {
-    console.log('useEnd');
-    avatar.actionsNode.crossFadeTo(0.2, avatar.defaultNode);
-  }
-  if (avatar.useComboEnd) {
-    avatar.actionsNode.crossFadeTo(0.2, avatar.defaultNode);
-  }
-  if (avatar.useEnvelopeEnd) {
-    avatar.useMotiono.bowLoose.play();
-    avatar.bowDrawLooseNodoe.factor = 1;
-    avatar.bowIdleDrawLooseNode.crossFade(0.2, 1);
-  }
-  if (avatar.sitEnd) {
-    avatar.actionsNode.crossFadeTo(0.2, avatar.defaultNode);
-  }
-  if (avatar.emoteEnd) {
-    avatar.actionsNode.crossFadeTo(0.2, avatar.defaultNode);
-  }
-  if (avatar.danceEnd) {
-    avatar.actionsNode.crossFadeTo(0.2, avatar.defaultNode);
-  }
   // action start event ---
-
-  if (avatar.useStart) {
-    const useAnimationName = avatar.useAnimation;
-    avatar.useMotiono[useAnimationName].play();
-    avatar.actionsNode.crossFadeTo(0.2, avatar.useMotiono[useAnimationName]);
-  }
-
-  if (avatar.useComboStart) {
-    const useAnimationName = avatar.useAnimationCombo[avatar.useAnimationIndex];
-    avatar.useMotiono[useAnimationName].play();
-    avatar.actionsNode.crossFadeTo(0.2, avatar.useMotiono[useAnimationName]);
-  }
-
-  if (avatar.useEnvelopeStart) {
-    avatar.useMotiono.bowDraw.play();
-    avatar.bowDrawLooseNodoe.factor = 0;
-    avatar.bowIdleDrawLooseNode.factor = 1;
-    avatar._7wayWalkRunBowNode.crossFade(0.2, 1);
-  }
-  // sit
-  if (avatar.sitStart) {
-    avatar.sitMotiono[avatar.sitAnimation || defaultSitAnimation].play();
-    avatar.actionsNode.crossFadeTo(0.2, avatar.sitMotiono[avatar.sitAnimation || defaultSitAnimation]);
-  }
-  // emote
-  if (avatar.emoteStart) {
-    avatar.emoteMotiono[avatar.emoteAnimation || defaultEmoteAnimation].play();
-    avatar.actionsNode.crossFadeTo(0.2, avatar.emoteMotiono[avatar.emoteAnimation || defaultEmoteAnimation]);
-  }
-  // dance
-  if (avatar.danceStart) {
-    avatar.actionsNode.crossFadeTo(0.2, avatar.danceMotiono[avatar.danceAnimation || defaultDanceAnimation]);
-  }
 
   //
 
