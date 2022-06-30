@@ -68,7 +68,7 @@ export class DcWorkerManager {
           workers[i] = worker;
         }
 
-        // connect ports
+        /* // connect ports
         const _makePorts = () => {
           const result = Array(this.numWorkers);
           for (let i = 0; i < this.numWorkers; i++) {
@@ -105,7 +105,7 @@ export class DcWorkerManager {
               );
             }
           }
-        }
+        } */
 
         // initialize
         // note: deliberately don't wait for this; let it start in the background
