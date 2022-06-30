@@ -344,8 +344,9 @@ export class LodChunkTracker extends EventTarget {
       // lod1
       {
         const lod = 1;
+        const maxDy = this.trackY ? 1 : 0;
         for (const chunkPosition2x of mins1x) {
-          for (let dy = 0; dy < 2; dy++) {
+          for (let dy = 0; dy <= maxDy; dy++) {
             for (let dz = 0; dz < 2; dz++) {
               for (let dx = 0; dx < 2; dx++) {
                 const chunkPosition1x = localVector2.copy(chunkPosition2x)
