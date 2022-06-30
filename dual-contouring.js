@@ -535,10 +535,10 @@ globalThis.addEventListener('result', e => {
   const {id, result} = e.data;
   const p = cbs.get(id);
   if (p) {
+    cbs.delete(id);
     p.accept(result);
   } else {
-    cbs.delete(id);
-    console.warn('failed to find promise for id', e.data.id);
+    console.warn('failed to find promise for id', e.data);
   }
 });
 
