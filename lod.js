@@ -1,4 +1,5 @@
 import * as THREE from 'three';
+import {scene} from './renderer.js';
 import {defaultChunkSize} from './constants.js';
 
 const localVector = new THREE.Vector3();
@@ -6,6 +7,8 @@ const localVector2 = new THREE.Vector3();
 const localVector3 = new THREE.Vector3();
 const localVector4 = new THREE.Vector3();
 const localVector5 = new THREE.Vector3();
+const localQuaternion = new THREE.Quaternion();
+const localMatrix = new THREE.Matrix4();
 
 const onesLodsArray = new Array(8).fill(1);
 
@@ -80,6 +83,7 @@ export class LodChunkTracker extends EventTarget {
     trackY = false,
     relod = false,
     range = null,
+    debug = false,
   } = {}) {
     super();
 
@@ -88,12 +92,116 @@ export class LodChunkTracker extends EventTarget {
     this.trackY = trackY;
     this.relod = relod;
     this.range = range;
+    this.debug = debug;
 
     this.chunks = [];
     this.lastUpdateCoord = new THREE.Vector3(NaN, NaN, NaN);
 
     if (range) {
       this.#setRange(range);
+    }
+
+    if (debug) {      
+      const maxChunks = 512;
+      const instancedCubeGeometry = new THREE.InstancedBufferGeometry();
+      {
+        const cubeGeometry = new THREE.BoxBufferGeometry(1, 1, 1);
+        for (const k in cubeGeometry.attributes) {
+          instancedCubeGeometry.setAttribute(k, cubeGeometry.attributes[k]);
+        }
+        instancedCubeGeometry.setIndex(cubeGeometry.index);
+      }
+      const redMaterial = new THREE.MeshBasicMaterial({
+        color: 0xFFFFFF,
+        transparent: true,
+        opacity: 0.1,
+      });
+      const debugMesh = new THREE.InstancedMesh(instancedCubeGeometry, redMaterial, maxChunks);
+      debugMesh.count = 0;
+      debugMesh.frustumCulled = false;
+      scene.add(debugMesh);
+      // window.debugMesh = debugMesh;
+
+      {
+        const localVector = new THREE.Vector3();
+        const localVector2 = new THREE.Vector3();
+        const localVector3 = new THREE.Vector3();
+        const localQuaternion = new THREE.Quaternion();
+        const localMatrix = new THREE.Matrix4();
+        const localColor = new THREE.Color();
+
+        const chunks = [];
+        const _getChunkColorHex = chunk => {
+          if (chunk.lod === 1) {
+            return 0xFF0000;
+          } else if (chunk.lod === 2) {
+            return 0x00FF00;
+          } else {
+            return 0x0;
+          }
+        };
+        const _flushChunks = () => {
+          // console.log('update', chunks.length);
+          for (let i = 0; i < chunks.length; i++) {
+            const chunk = chunks[i];
+            localMatrix.compose(
+              localVector.copy(chunk)
+                .multiplyScalar(this.chunkSize)
+                .add(localVector2.set(0, -60, 0)),
+              localQuaternion.identity(),
+              localVector3.set(1, 1, 1)
+                .multiplyScalar(this.chunkSize * 0.9)
+            );
+            localColor.setHex(_getChunkColorHex(chunk));
+            debugMesh.setMatrixAt(i, localMatrix);
+            debugMesh.setColorAt(i, localColor);
+            // console.log('render chunk', chunk);
+          }
+          debugMesh.instanceMatrix.needsUpdate = true;
+          debugMesh.instanceColor.needsUpdate = true;
+          debugMesh.count = chunks.length;
+        };
+        this.addEventListener('chunkadd', e => {
+          try {
+            // console.log('got chunk add', e.data);
+            const {chunk} = e.data;
+            chunks.push(chunk);
+            _flushChunks();
+          } catch(err) {
+            console.warn(err);
+          }
+        });
+        this.addEventListener('chunkremove', e => {
+          try {
+            const {chunk} = e.data;
+            const index = chunks.indexOf(chunk);
+            if (index === -1) {
+              debugger;
+            }
+            chunks.splice(index, 1);
+            _flushChunks();
+          } catch(err) {
+            console.warn(err);
+          }
+        });
+        this.addEventListener('chunkrelod', e => {
+          try {
+            // console.log('relod', e.data);
+            const {newChunk, oldChunks} = e.data;
+            for (const oldChunk of oldChunks) {
+              const index = chunks.indexOf(oldChunk);
+              if (index === -1) {
+                debugger;
+              }
+              chunks.splice(index, 1);
+            }
+            chunks.push(newChunk);
+            _flushChunks();
+          } catch(err) {
+            console.warn(err);
+          }
+        });
+      }
     }
   }
   /* emitEvents(chunkadd) {
