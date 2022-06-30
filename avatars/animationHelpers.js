@@ -40,6 +40,7 @@ import {
   // useMaxTime,
   aimMaxTime,
   AnimationNodeType,
+  AnimationLoopType,
   // avatarInterpolationFrameRate,
   // avatarInterpolationTimeDelay,
   // avatarInterpolationNumFrames,
@@ -628,6 +629,12 @@ export const _createAnimation = avatar => {
     avatar.flyDashMotion = physx.physxWorker.createMotion(animations.index['fly_dash_forward.fbx'].pointer);
     avatar.narutoRunMotion = physx.physxWorker.createMotion(narutoRunAnimations[defaultNarutoRunAnimation].pointer);
 
+    avatar.jumpMotion = physx.physxWorker.createMotion(jumpAnimation.pointer);
+    physx.physxWorker.setLoop(avatar.jumpMotion, AnimationLoopType.LoopOnce);
+    physx.physxWorker.stop(avatar.jumpMotion);
+    physx.physxWorker.setTimeBias(avatar.jumpMotion, 0.7);
+    physx.physxWorker.setSpeed(avatar.jumpMotion, 1 / 0.6);
+
     // create nodes -------------------------------------------------------------
 
     // avatar.walkNode = avatar.mixer.createNode(WebaverseAnimationNodeBlendList, 'walk');
@@ -696,7 +703,7 @@ export const _createAnimation = avatar => {
 
     avatar.actionsNode = physx.physxWorker.createNode(AnimationNodeType.UNITARY);
     physx.physxWorker.addChild(avatar.actionsNode, avatar.defaultNode);
-    // avatar.actionsNode.addChild(avatar.jumpMotion);
+    physx.physxWorker.addChild(avatar.actionsNode, avatar.jumpMotion);
     physx.physxWorker.addChild(avatar.actionsNode, avatar._7wayFlyNode);
     // avatar.actionsNode.addChild(avatar.activateMotion);
     // avatar.actionsNode.addChild(avatar.narutoRunMotion);
@@ -774,13 +781,6 @@ export const _createAnimation = avatar => {
   }
 
   // LoopOnce
-  avatar.jumpMotion = avatar.mixer.createMotion(jumpAnimation);
-  // avatar.jumpMotion = avatar.mixer.createMotion(animations.index['t-pose_rot.fbx']);
-  avatar.jumpMotion.loop = LoopOnce;
-  avatar.jumpMotion.stop();
-  // avatar.jumpMotion.weight = 999999; // can't Infinity
-  avatar.jumpMotion.timeBias = 0.7;
-  avatar.jumpMotion.speed = 1 / 0.6;
 
   avatar.activateMotion = avatar.mixer.createMotion(activateAnimations.grab_forward.animation); // todo: handle activateAnimations.grab_forward.speedFactor
   // avatar.activateMotion = avatar.mixer.createMotion(animations.index['t-pose_rot.fbx']);
@@ -985,11 +985,23 @@ export const _updateAnimation = avatar => {
   if (avatar.flyEnd) {
     physx.physxWorker.crossFadeUnitary(avatar.actionsNode, 0.2, avatar.defaultNode);
   }
+  if (avatar.jumpEnd) {
+    if (avatar.narutoRunState) {
+      physx.physxWorker.crossFadeUnitary(avatar.actionsNode, 0.2, avatar.narutoRunMotion);
+    } else {
+      physx.physxWorker.crossFadeUnitary(avatar.actionsNode, 0.2, avatar.defaultNode);
+    }
+  }
 
   // action start event --------------------------------------------
 
   if (avatar.flyStart) {
     physx.physxWorker.crossFadeUnitary(avatar.actionsNode, 0.2, avatar._7wayFlyNode);
+  }
+
+  if (avatar.jumpStart) {
+    physx.physxWorker.play(avatar.jumpMotion);
+    physx.physxWorker.crossFadeUnitary(avatar.actionsNode, 0.2, avatar.jumpMotion);
   }
 
   return;
@@ -1012,16 +1024,6 @@ export const _updateAnimation = avatar => {
   if (avatar.narutoRunEnd) avatar.actionsNode.crossFadeTo(0.2, avatar.defaultNode);
   // if (avatar.jumpEnd) avatar.jumpMotion.stop();
   // if (avatar.jumpEnd) avatar.jumpNode.factor = 0;
-  if (avatar.jumpEnd) {
-    // debugger
-    // avatar.jumpMotion.stop(); // don't need
-    if (avatar.narutoRunState) {
-      avatar.actionsNode.crossFadeTo(0.2, avatar.narutoRunMotion);
-    } else {
-      avatar.actionsNode.crossFadeTo(0.2, avatar.defaultNode);
-    }
-    // avatar.walkJumpNode.factor = 0;
-  }
   if (avatar.activateEnd) {
     // avatar.activateMotion.stop(); // don't need
     avatar.actionsNode.crossFadeTo(0.2, avatar.defaultNode);
@@ -1080,14 +1082,6 @@ export const _updateAnimation = avatar => {
   // if (avatar.jumpStart) avatar.jumpMotion.play();
 
   // if (avatar.jumpStart) avatar.jumpNode.factor = 1;
-
-  if (avatar.jumpStart) {
-    // console.log('jumpStart');
-    // debugger
-    avatar.jumpMotion.play();
-    avatar.actionsNode.crossFadeTo(0.2, avatar.jumpMotion);
-    // avatar.walkJumpNode.factor = 1;
-  }
   // if (avatar === window.avatar) console.log(Math.floor(avatar.jumpMotion.time));
 
   if (avatar.activateStart) {

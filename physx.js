@@ -2372,6 +2372,11 @@ const physxWorker = (() => {
       node,
     )
   }
+  w.play = (motion) => moduleInstance._play(motion);
+  w.stop = (motion) => moduleInstance._stop(motion);
+  w.setTimeBias = (motion, timeBias) => moduleInstance._setTimeBias(motion, timeBias);
+  w.setSpeed = (motion, speed) => moduleInstance._setSpeed(motion, speed);
+  w.setLoop = (motion, loopType) => moduleInstance._setLoop(motion, loopType);
 
   // End AnimationSystem
 

@@ -158,3 +158,9 @@ export const AnimationNodeType = {
   UNITARY: 3,
   OVERWRITE: 4,
 };
+
+export const AnimationLoopType = {
+  LoopOnce: 2200,
+  LoopRepeat: 2201,
+  LoopPingPong: 2202,
+};
