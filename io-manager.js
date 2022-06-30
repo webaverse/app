@@ -59,6 +59,8 @@ ioManager.currentWalked = false;
 ioManager.lastCtrlKey = false;
 ioManager.currentLoadout = 0;
 
+ioManager.lastEquiped = null;
+
 ioManager.keys = {
   up: false,
   down: false,
@@ -289,8 +291,7 @@ const _updateIo = timeDiff => {
           
         dolly.matrix
           .premultiply(localMatrix.makeTranslation(originalPosition.x - localVector.x, originalPosition.y - localVector.y, originalPosition.z - localVector.z))
-          .premultiply(localMatrix.makeTranslation(0, 0.1, 0))
-          .decompose(dolly.position, dolly.quaternion, dolly.scale);    
+          .decompose(dolly.position, dolly.quaternion, dolly.scale);
       }
       else {
         // Free VR movement
