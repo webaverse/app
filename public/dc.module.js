@@ -342,7 +342,7 @@ function updateGlobalBufferAndViews(buf) {
  Module["HEAPF64"] = HEAPF64 = new Float64Array(buf);
 }
 
-var INITIAL_MEMORY = Module["INITIAL_MEMORY"] || 2147483648;
+var INITIAL_MEMORY = Module["INITIAL_MEMORY"] || 1073741824;
 
 if (ENVIRONMENT_IS_PTHREAD) {
  wasmMemory = Module["wasmMemory"];
@@ -623,28 +623,19 @@ var tempDouble;
 var tempI64;
 
 var ASM_CONSTS = {
- 32276: () => {
-  console.log("NaN detected in location");
- },
- 32321: () => {
-  console.log("NaN detected in data");
- },
- 32362: ($0, $1, $2, $3, $4, $5, $6) => {
-  console.log("liquid density nan", "water=", $0, "chunk=", $1, $2, $3, ", worldPosition=", $4, $5, $6);
- },
- 32469: () => {
+ 32004: () => {
   printf("Error! The provided voxel has no vertex data!\n");
  },
- 32532: () => {
+ 32067: () => {
   printf("Error! The provided voxel has no vertex data!\n");
  },
- 32595: () => {
+ 32130: () => {
   console.log("task queue destructor");
  },
- 32637: () => {
+ 32172: () => {
   globalThis.requestStartTime = performance.now();
  },
- 32690: ($0, $1) => {
+ 32225: ($0, $1) => {
   const id = $0;
   const result = $1;
   if (!globalThis.resultEvent) {
