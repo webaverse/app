@@ -2264,10 +2264,21 @@ const physxWorker = (() => {
     )
     return pointer;
   }
+  window.nodeReferenceCount = {}; // test
   w.addChild = (parentNode, childNode) => { // input: pointers of nodes
+
+    if (!parentNode) debugger
+    if (!childNode) debugger
+
     moduleInstance._addChild(
       parentNode, childNode,
     )
+
+    if (window.nodeReferenceCount[childNode]) {
+      window.nodeReferenceCount[childNode]++
+    } else {
+      window.nodeReferenceCount[childNode] = 1;
+    }
   }
   w.setAnimTree = (node) => { // input: pointer of node
     moduleInstance._setAnimTree(
