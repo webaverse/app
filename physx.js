@@ -2211,6 +2211,23 @@ const physxWorker = (() => {
       }
       values.push(value);
     }
+
+    let outputBufferOffset = moduleInstance.HEAPU32[headMain + 53];
+    let head = outputBufferOffset / Float32Array.BYTES_PER_ELEMENT;
+    const finishedFlag = moduleInstance.HEAPF32[head];
+    values.push(finishedFlag);
+
+    outputBufferOffset = moduleInstance.HEAPU32[headMain + 54];
+    head = outputBufferOffset / Float32Array.BYTES_PER_ELEMENT;
+    const finishedAnimationIndex = moduleInstance.HEAPF32[head];
+    values.push(finishedAnimationIndex);
+
+    // console.log(finishedFlag);
+    // if (finishedFlag) {
+    //   console.log(finishedAnimationIndex);
+    //   debugger
+    // }
+
     return values;
   }
   w.createAnimationMapping = (isPosition, index, isFirstBone, isLastBone) => {
@@ -2223,33 +2240,41 @@ const physxWorker = (() => {
   //   )
   //   return pointer;
   // }
-  w.createAnimation = (duration) => {
+  w.createAnimation = (duration, index) => {
     const pointer = moduleInstance._createAnimation(
       duration,
     )
-    return pointer;
+    return {
+      index,
+      pointer,
+    };
   }
   w.createMotion = (animation) => {
     const pointer = moduleInstance._createMotion(
-      animation,
+      animation.pointer,
     )
-    return pointer;
+    return {
+      index: animation.index,
+      pointer,
+    };
   }
   w.createNode = (type = AnimationNodeType.LIST) => {
     // debugger
     const pointer = moduleInstance._createNode(
       type,
     )
-    return pointer;
+    return {
+      pointer
+    };
   }
   w.addChild = (parentNode, childNode) => { // input: pointers of nodes
     moduleInstance._addChild(
-      parentNode, childNode,
+      parentNode.pointer, childNode.pointer,
     )
   }
   w.setAnimTree = (node) => { // input: pointer of node
     moduleInstance._setAnimTree(
-      node,
+      node.pointer,
     )
   }
   w.createInterpolant = (animationIndex, parameterPositions, sampleValues, valueSize) => {
@@ -2342,41 +2367,41 @@ const physxWorker = (() => {
   }
   w.crossFadeTwo = (parentNode, duration, targetFactor) => {
     moduleInstance._crossFadeTwo(
-      parentNode, duration, targetFactor,
+      parentNode.pointer, duration, targetFactor,
     )
   }
   w.crossFadeUnitary = (parentNode, duration, targetNode) => {
     moduleInstance._crossFadeUnitary(
-      parentNode, duration, targetNode,
+      parentNode.pointer, duration, targetNode.pointer,
     )
   }
   w.changeWeight = (node, weight) => { // todo: renmae: setWeight() // todo: general setProp/Attribute().
     moduleInstance._changeWeight(
-      node,
+      node.pointer,
       weight,
     )
   }
   w.changeFactor = (node, factor) => { // todo: general setProp/Attribute().
     moduleInstance._changeFactor(
-      node,
+      node.pointer,
       factor,
     )
   }
   w.getWeight = (node) => {
     return moduleInstance._getWeight(
-      node,
+      node.pointer,
     )
   }
   w.getFactor = (node) => {
     return moduleInstance._getFactor(
-      node,
+      node.pointer,
     )
   }
-  w.play = (motion) => moduleInstance._play(motion);
-  w.stop = (motion) => moduleInstance._stop(motion);
-  w.setTimeBias = (motion, timeBias) => moduleInstance._setTimeBias(motion, timeBias);
-  w.setSpeed = (motion, speed) => moduleInstance._setSpeed(motion, speed);
-  w.setLoop = (motion, loopType) => moduleInstance._setLoop(motion, loopType);
+  w.play = (motion) => moduleInstance._play(motion.pointer);
+  w.stop = (motion) => moduleInstance._stop(motion.pointer);
+  w.setTimeBias = (motion, timeBias) => moduleInstance._setTimeBias(motion.pointer, timeBias);
+  w.setSpeed = (motion, speed) => moduleInstance._setSpeed(motion.pointer, speed);
+  w.setLoop = (motion, loopType) => moduleInstance._setLoop(motion.pointer, loopType);
 
   // End AnimationSystem
 

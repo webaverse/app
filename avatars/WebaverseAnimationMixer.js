@@ -127,6 +127,16 @@ class WebaverseAnimationMixer extends EventDispatcher {
 
       index++;
     }
+
+    const finishedFlag = values[53];
+    if (finishedFlag) {
+      const motionIndex = values[54];
+      this.dispatchEvent({
+        type: 'finished',
+        motionIndex: motionIndex,
+      });
+    }
+
     return;
 
     WebaverseAnimationMixer.timeS = timeS;
