@@ -306,25 +306,26 @@ w.createLiquidChunkMeshAsync = async (inst, x, y, z, lods) => {
 //
 
 w.getChunkHeightfieldAsync = async (inst, x, z, lod) => {
-  const allocator = new Allocator(Module);
+  // const allocator = new Allocator(Module);
 
-  const heights = allocator.alloc(Float32Array, chunkSize * chunkSize);
+  // const heights = allocator.alloc(Float32Array, chunkSize * chunkSize);
 
   try {
     const taskId = Module._getChunkHeightfieldAsync(
       inst,
       x, z,
-      lod,
-      heights.byteOffset
+      lod
     );
 
     const p = makePromise();
     cbs.set(taskId, p);
-    await p;
+    const heights = await p;
 
-    return heights.slice();
+    const heights2 = new Float32Array(Module.HEAPU8.buffer, heights, chunkSize * chunkSize).slice();
+    Module._doFree(heights);
+    return heights2;
   } finally {
-    allocator.freeAll();
+    // allocator.freeAll();
   }
 };
 /* w.getHeightfieldRange = (inst, x, z, w, h, lod) => {
@@ -346,48 +347,50 @@ w.getChunkHeightfieldAsync = async (inst, x, z, lod) => {
   }
 }; */
 w.getChunkSkylightAsync = async (inst, x, y, z, lod) => {
-  const allocator = new Allocator(Module);
+  // const allocator = new Allocator(Module);
 
   // const gridPoints = chunkSize + 3 + lod;
-  const skylights = allocator.alloc(Uint8Array, chunkSize * chunkSize * chunkSize);
+  // const skylights = allocator.alloc(Uint8Array, chunkSize * chunkSize * chunkSize);
 
   try {
     const taskId = Module._getChunkSkylightAsync(
       inst,
       x, y, z,
-      lod,
-      skylights.byteOffset
+      lod
     );
 
     const p = makePromise();
     cbs.set(taskId, p);
-    await p;
+    const skylights = await p;
 
-    return skylights.slice();
+    const skylights2 = new Uint8Array(Module.HEAPU8.buffer, skylights, chunkSize * chunkSize * chunkSize).slice();
+    Module._doFree(skylights);
+    return skylights2;
   } finally {
-    allocator.freeAll();
+    // allocator.freeAll();
   }
 };
 w.getChunkAoAsync = async (inst, x, y, z, lod) => {
-  const allocator = new Allocator(Module);
+  // const allocator = new Allocator(Module);
 
-  const aos = allocator.alloc(Uint8Array, chunkSize * chunkSize * chunkSize);
+  // const aos = allocator.alloc(Uint8Array, chunkSize * chunkSize * chunkSize);
 
   try {
     const taskId = Module._getChunkAoAsync(
       inst,
       x, y, z,
-      lod,
-      aos.byteOffset
+      lod
     );
 
     const p = makePromise();
     cbs.set(taskId, p);
-    await p;
+    const aos = await p;
 
-    return aos.slice();
+    const aos2 = new Uint8Array(Module.HEAPU8.buffer, aos, chunkSize * chunkSize * chunkSize).slice();
+    Module._doFree(aos);
+    return aos2;
   } finally {
-    allocator.freeAll();
+    // allocator.freeAll();
   }
 };
 /* w.getSkylightFieldRange = (inst, x, y, z, w, h, d, lod) => {
@@ -428,107 +431,138 @@ w.getAoFieldRange = (inst, x, y, z, w, h, d, lod) => {
 }; */
 
 w.createGrassSplatAsync = async (inst, x, z, lod) => {
-  const allocator = new Allocator(Module);
+  // const allocator = new Allocator(Module);
 
-  const allocSize = 64 * 1024;
-  const ps = allocator.alloc(Float32Array, allocSize * 3);
-  const qs = allocator.alloc(Float32Array, allocSize * 4);
-  const instances = allocator.alloc(Float32Array, allocSize);
-  const count = allocator.alloc(Uint32Array, 1);
+  // const allocSize = 64 * 1024;
+  // const ps = allocator.alloc(Float32Array, allocSize * 3);
+  // const qs = allocator.alloc(Float32Array, allocSize * 4);
+  // const instances = allocator.alloc(Float32Array, allocSize);
+  // const count = allocator.alloc(Uint32Array, 1);
 
   try {
     const taskId = Module._createGrassSplatAsync(
       inst,
       x, z,
-      lod,
-      ps.byteOffset,
-      qs.byteOffset,
-      instances.byteOffset,
-      count.byteOffset
+      lod
     );
 
     const p = makePromise();
     cbs.set(taskId, p);
-    await p;
+    const result = await p;
+    const pqi = _parsePQI(result);
+    // console.log('got result 1', _parsePQI(result));
+    Module._doFree(result);
+    return pqi;
 
-    const numElements = count[0];
+    /* const numElements = count[0];
     return {
       ps: ps.slice(0, numElements * 3),
       qs: qs.slice(0, numElements * 4),
       instances: instances.slice(0, numElements),
-    };
+    }; */
   } finally {
-    allocator.freeAll();
+    // allocator.freeAll();
   }
 };
 w.createVegetationSplatAsync = async (inst, x, z, lod) => {
-  const allocator = new Allocator(Module);
+  // const allocator = new Allocator(Module);
 
-  const allocSize = 64 * 1024;
-  const ps = allocator.alloc(Float32Array, allocSize * 3);
-  const qs = allocator.alloc(Float32Array, allocSize * 4);
-  const instances = allocator.alloc(Float32Array, allocSize);
-  const count = allocator.alloc(Uint32Array, 1);
+  // const allocSize = 64 * 1024;
+  // const ps = allocator.alloc(Float32Array, allocSize * 3);
+  // const qs = allocator.alloc(Float32Array, allocSize * 4);
+  // const instances = allocator.alloc(Float32Array, allocSize);
+  // const count = allocator.alloc(Uint32Array, 1);
 
   try {
     const taskId = Module._createVegetationSplatAsync(
       inst,
       x, z,
-      lod,
-      ps.byteOffset,
-      qs.byteOffset,
-      instances.byteOffset,
-      count.byteOffset
+      lod
     );
 
     const p = makePromise();
     cbs.set(taskId, p);
-    await p;
+    const result = await p;
 
-    const numElements = count[0];
+    const pqi = _parsePQI(result);
+    // console.log('got result 2', _parsePQI(result));
+    Module._doFree(result);
+    return pqi;
+    /* const numElements = count[0];
     return {
       ps: ps.slice(0, numElements * 3),
       qs: qs.slice(0, numElements * 4),
       instances: instances.slice(0, numElements),
-    };
+    }; */
   } finally {
-    allocator.freeAll();
+    // allocator.freeAll();
   }
 };
 w.createMobSplatAsync = async (inst, x, z, lod) => {
-  const allocator = new Allocator(Module);
+  // const allocator = new Allocator(Module);
 
-  const allocSize = 64 * 1024;
+  /* const allocSize = 64 * 1024;
   const ps = allocator.alloc(Float32Array, allocSize * 3);
   const qs = allocator.alloc(Float32Array, allocSize * 4);
   const instances = allocator.alloc(Float32Array, allocSize);
-  const count = allocator.alloc(Uint32Array, 1);
+  const count = allocator.alloc(Uint32Array, 1); */
 
   try {
     const taskId = Module._createMobSplatAsync(
       inst,
       x, z,
-      lod,
-      ps.byteOffset,
-      qs.byteOffset,
-      instances.byteOffset,
-      count.byteOffset
+      lod
     );
 
     const p = makePromise();
     cbs.set(taskId, p);
-    await p;
+    const result = await p;
+    const pqi = _parsePQI(result);
+    // console.log('got result 3', _parsePQI(result));
+    Module._doFree(result);
+    return pqi;
 
-    const numElements = count[0];
+    /* const numElements = count[0];
     return {
       ps: ps.slice(0, numElements * 3),
       qs: qs.slice(0, numElements * 4),
       instances: instances.slice(0, numElements),
-    };
+    }; */
   } finally {
-    allocator.freeAll();
+    // allocator.freeAll();
   }
 };
+// _parsePQI parses ps, qs, instances from a buffer
+// the buffer contains 6 entries:
+// ps size (uint32_t)
+// ps data (float32_t) * size
+// qs size (uint32_t)
+// qs data (float32_t) * size
+// instances size (uint32_t)
+// instances data (float32_t) * size
+function _parsePQI(addr) {
+  const dataView = new DataView(Module.HEAPU8.buffer, addr);
+
+  let index = 0;
+  const psSize = dataView.getUint32(index, true);
+  index += Uint32Array.BYTES_PER_ELEMENT;
+  const ps = new Float32Array(dataView.buffer, dataView.byteOffset + index, psSize).slice();
+  index += psSize * Float32Array.BYTES_PER_ELEMENT;
+  const qsSize = dataView.getUint32(index, true);
+  index += Uint32Array.BYTES_PER_ELEMENT;
+  const qs = new Float32Array(dataView.buffer, dataView.byteOffset + index, qsSize).slice();
+  index += qsSize * Float32Array.BYTES_PER_ELEMENT;
+  const instancesSize = dataView.getUint32(index, true);
+  index += Uint32Array.BYTES_PER_ELEMENT;
+  const instances = new Float32Array(dataView.buffer, dataView.byteOffset + index, instancesSize).slice();
+  index += instancesSize * Float32Array.BYTES_PER_ELEMENT;
+
+  return {
+    ps,
+    qs,
+    instances,
+  };
+}
 
 globalThis.addEventListener('result', e => {
   // console.log('got result', e.data, import.meta);
