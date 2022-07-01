@@ -1,36 +1,23 @@
-import Module from './public/bin/dc.js'
+import Module from './public/dc.module.js'
 import {Allocator} from './geometry-util.js';
+import {makePromise} from './util.js';
 import {defaultChunkSize} from './constants.js';
+// import placeNames from './procgen/placeNames.js';
 
-// const localVector = new THREE.Vector3()
-// const localVector2 = new THREE.Vector3()
-// const localQuaternion = new THREE.Quaternion()
-// const capsuleUpQuaternion = new THREE.Quaternion().setFromAxisAngle(
-//   new THREE.Vector3(0, 0, 1),
-//   Math.PI / 2
-// )
-// const textEncoder = new TextEncoder();
-// const textDecoder = new TextDecoder();
+const cbs = new Map();
 
 const w = {};
 
 w.waitForLoad = Module.waitForLoad;
 
-/* let loaded = false;
-Module.waitForLoad().then(() => {
-  loaded = true;
-}); */
 w.free = address => {
-  // console.log('try momdule free', Module, loaded);
   Module._doFree(address);
 };
 
 let chunkSize = defaultChunkSize;
-// let inst = null;
 w.initialize = (newChunkSize, seed) => {
   Module._initialize(newChunkSize, seed);
   chunkSize = newChunkSize;
-  // inst = Module._createInstance();
 };
 
 w.createInstance = () => Module._createInstance();
@@ -213,19 +200,29 @@ const _parseTerrainVertexBuffer = (arrayBuffer, bufferAddress) => {
     indices,
   };
 };
-w.createTerrainChunkMesh = (inst, x, y, z, lods) => {
+w.createTerrainChunkMeshAsync = async (inst, x, y, z, lods) => {
   const allocator = new Allocator(Module);
 
   const lodArray = allocator.alloc(Int32Array, 8);
   lodArray.set(lods);
 
-  const outputBufferOffset = Module._createTerrainChunkMesh(
+  const taskId = Module._createTerrainChunkMeshAsync(
     inst,
     x, y, z,
     lodArray.byteOffset,
   );
+  const p = makePromise();
+  cbs.set(taskId, p);
 
   allocator.freeAll();
+
+  // console.log('got async task id', taskId);
+  const outputBufferOffset = await p;
+  // console.log('got async task result', taskId, outputBufferOffset);
+
+  /* await new Promise((accept, reject) => {
+    // XXX hang
+  }); */
 
   if (outputBufferOffset) {
     const result = _parseTerrainVertexBuffer(
@@ -277,17 +274,21 @@ const _parseLiquidVertexBuffer = (arrayBuffer, bufferAddress) => {
     indices,
   };
 };
-w.createLiquidChunkMesh = (inst, x, y, z, lods) => {
+w.createLiquidChunkMeshAsync = async (inst, x, y, z, lods) => {
   const allocator = new Allocator(Module);
 
   const lodArray = allocator.alloc(Int32Array, 8);
   lodArray.set(lods);
 
-  const outputBufferOffset = Module._createLiquidChunkMesh(
+  const taskId = Module._createLiquidChunkMeshAsync(
     inst,
     x, y, z,
     lodArray.byteOffset,
   );
+
+  const p = makePromise();
+  cbs.set(taskId, p);
+  const outputBufferOffset = await p;
 
   allocator.freeAll();
 
@@ -304,7 +305,30 @@ w.createLiquidChunkMesh = (inst, x, y, z, lods) => {
 
 //
 
-w.getHeightfieldRange = (inst, x, z, w, h, lod) => {
+w.getChunkHeightfieldAsync = async (inst, x, z, lod) => {
+  // const allocator = new Allocator(Module);
+
+  // const heights = allocator.alloc(Float32Array, chunkSize * chunkSize);
+
+  try {
+    const taskId = Module._getChunkHeightfieldAsync(
+      inst,
+      x, z,
+      lod
+    );
+
+    const p = makePromise();
+    cbs.set(taskId, p);
+    const heights = await p;
+
+    const heights2 = new Float32Array(Module.HEAPU8.buffer, heights, chunkSize * chunkSize).slice();
+    Module._doFree(heights);
+    return heights2;
+  } finally {
+    // allocator.freeAll();
+  }
+};
+/* w.getHeightfieldRange = (inst, x, z, w, h, lod) => {
   const allocator = new Allocator(Module);
 
   const heights = allocator.alloc(Float32Array, w * h);
@@ -321,43 +345,55 @@ w.getHeightfieldRange = (inst, x, z, w, h, lod) => {
   } finally {
     allocator.freeAll();
   }
-};
-w.getChunkSkylight = (inst, x, y, z, lod) => {
-  const allocator = new Allocator(Module);
+}; */
+w.getChunkSkylightAsync = async (inst, x, y, z, lod) => {
+  // const allocator = new Allocator(Module);
 
   // const gridPoints = chunkSize + 3 + lod;
-  const skylights = allocator.alloc(Uint8Array, chunkSize * chunkSize * chunkSize);
+  // const skylights = allocator.alloc(Uint8Array, chunkSize * chunkSize * chunkSize);
 
   try {
-    Module._getChunkSkylight(
+    const taskId = Module._getChunkSkylightAsync(
       inst,
       x, y, z,
-      lod,
-      skylights.byteOffset
+      lod
     );
-    return skylights.slice();
+
+    const p = makePromise();
+    cbs.set(taskId, p);
+    const skylights = await p;
+
+    const skylights2 = new Uint8Array(Module.HEAPU8.buffer, skylights, chunkSize * chunkSize * chunkSize).slice();
+    Module._doFree(skylights);
+    return skylights2;
   } finally {
-    allocator.freeAll();
+    // allocator.freeAll();
   }
 };
-w.getChunkAo = (inst, x, y, z, lod) => {
-  const allocator = new Allocator(Module);
+w.getChunkAoAsync = async (inst, x, y, z, lod) => {
+  // const allocator = new Allocator(Module);
 
-  const aos = allocator.alloc(Uint8Array, chunkSize * chunkSize * chunkSize);
+  // const aos = allocator.alloc(Uint8Array, chunkSize * chunkSize * chunkSize);
 
   try {
-    Module._getChunkAo(
+    const taskId = Module._getChunkAoAsync(
       inst,
       x, y, z,
-      lod,
-      aos.byteOffset
+      lod
     );
-    return aos.slice();
+
+    const p = makePromise();
+    cbs.set(taskId, p);
+    const aos = await p;
+
+    const aos2 = new Uint8Array(Module.HEAPU8.buffer, aos, chunkSize * chunkSize * chunkSize).slice();
+    Module._doFree(aos);
+    return aos2;
   } finally {
-    allocator.freeAll();
+    // allocator.freeAll();
   }
 };
-w.getSkylightFieldRange = (inst, x, y, z, w, h, d, lod) => {
+/* w.getSkylightFieldRange = (inst, x, y, z, w, h, d, lod) => {
   const allocator = new Allocator(Module);
 
   const skylights = allocator.alloc(Uint8Array, w * h * d);
@@ -392,94 +428,152 @@ w.getAoFieldRange = (inst, x, y, z, w, h, d, lod) => {
   } finally {
     allocator.freeAll();
   }
-};
+}; */
 
-w.createGrassSplat = (inst, x, z, lod) => {
-  const allocator = new Allocator(Module);
+w.createGrassSplatAsync = async (inst, x, z, lod) => {
+  // const allocator = new Allocator(Module);
 
-  const allocSize = 64 * 1024;
-  const ps = allocator.alloc(Float32Array, allocSize * 3);
-  const qs = allocator.alloc(Float32Array, allocSize * 4);
-  const instances = allocator.alloc(Float32Array, allocSize);
-  const count = allocator.alloc(Uint32Array, 1);
+  // const allocSize = 64 * 1024;
+  // const ps = allocator.alloc(Float32Array, allocSize * 3);
+  // const qs = allocator.alloc(Float32Array, allocSize * 4);
+  // const instances = allocator.alloc(Float32Array, allocSize);
+  // const count = allocator.alloc(Uint32Array, 1);
 
   try {
-    Module._createGrassSplat(
+    const taskId = Module._createGrassSplatAsync(
       inst,
       x, z,
-      lod,
-      ps.byteOffset,
-      qs.byteOffset,
-      instances.byteOffset,
-      count.byteOffset
+      lod
     );
-    const numElements = count[0];
+
+    const p = makePromise();
+    cbs.set(taskId, p);
+    const result = await p;
+    const pqi = _parsePQI(result);
+    // console.log('got result 1', _parsePQI(result));
+    Module._doFree(result);
+    return pqi;
+
+    /* const numElements = count[0];
     return {
       ps: ps.slice(0, numElements * 3),
       qs: qs.slice(0, numElements * 4),
       instances: instances.slice(0, numElements),
-    };
+    }; */
   } finally {
-    allocator.freeAll();
+    // allocator.freeAll();
   }
 };
-w.createVegetationSplat = (inst, x, z, lod) => {
-  const allocator = new Allocator(Module);
+w.createVegetationSplatAsync = async (inst, x, z, lod) => {
+  // const allocator = new Allocator(Module);
 
-  const allocSize = 64 * 1024;
-  const ps = allocator.alloc(Float32Array, allocSize * 3);
-  const qs = allocator.alloc(Float32Array, allocSize * 4);
-  const instances = allocator.alloc(Float32Array, allocSize);
-  const count = allocator.alloc(Uint32Array, 1);
+  // const allocSize = 64 * 1024;
+  // const ps = allocator.alloc(Float32Array, allocSize * 3);
+  // const qs = allocator.alloc(Float32Array, allocSize * 4);
+  // const instances = allocator.alloc(Float32Array, allocSize);
+  // const count = allocator.alloc(Uint32Array, 1);
 
   try {
-    Module._createVegetationSplat(
+    const taskId = Module._createVegetationSplatAsync(
       inst,
       x, z,
-      lod,
-      ps.byteOffset,
-      qs.byteOffset,
-      instances.byteOffset,
-      count.byteOffset
+      lod
     );
-    const numElements = count[0];
+
+    const p = makePromise();
+    cbs.set(taskId, p);
+    const result = await p;
+
+    const pqi = _parsePQI(result);
+    // console.log('got result 2', _parsePQI(result));
+    Module._doFree(result);
+    return pqi;
+    /* const numElements = count[0];
     return {
       ps: ps.slice(0, numElements * 3),
       qs: qs.slice(0, numElements * 4),
       instances: instances.slice(0, numElements),
-    };
+    }; */
   } finally {
-    allocator.freeAll();
+    // allocator.freeAll();
   }
 };
-w.createMobSplat = (inst, x, z, lod) => {
-  const allocator = new Allocator(Module);
+w.createMobSplatAsync = async (inst, x, z, lod) => {
+  // const allocator = new Allocator(Module);
 
-  const allocSize = 64 * 1024;
+  /* const allocSize = 64 * 1024;
   const ps = allocator.alloc(Float32Array, allocSize * 3);
   const qs = allocator.alloc(Float32Array, allocSize * 4);
   const instances = allocator.alloc(Float32Array, allocSize);
-  const count = allocator.alloc(Uint32Array, 1);
+  const count = allocator.alloc(Uint32Array, 1); */
 
   try {
-    Module._createMobSplat(
+    const taskId = Module._createMobSplatAsync(
       inst,
       x, z,
-      lod,
-      ps.byteOffset,
-      qs.byteOffset,
-      instances.byteOffset,
-      count.byteOffset
+      lod
     );
-    const numElements = count[0];
+
+    const p = makePromise();
+    cbs.set(taskId, p);
+    const result = await p;
+    const pqi = _parsePQI(result);
+    // console.log('got result 3', _parsePQI(result));
+    Module._doFree(result);
+    return pqi;
+
+    /* const numElements = count[0];
     return {
       ps: ps.slice(0, numElements * 3),
       qs: qs.slice(0, numElements * 4),
       instances: instances.slice(0, numElements),
-    };
+    }; */
   } finally {
-    allocator.freeAll();
+    // allocator.freeAll();
   }
 };
+// _parsePQI parses ps, qs, instances from a buffer
+// the buffer contains 6 entries:
+// ps size (uint32_t)
+// ps data (float32_t) * size
+// qs size (uint32_t)
+// qs data (float32_t) * size
+// instances size (uint32_t)
+// instances data (float32_t) * size
+function _parsePQI(addr) {
+  const dataView = new DataView(Module.HEAPU8.buffer, addr);
+
+  let index = 0;
+  const psSize = dataView.getUint32(index, true);
+  index += Uint32Array.BYTES_PER_ELEMENT;
+  const ps = new Float32Array(dataView.buffer, dataView.byteOffset + index, psSize).slice();
+  index += psSize * Float32Array.BYTES_PER_ELEMENT;
+  const qsSize = dataView.getUint32(index, true);
+  index += Uint32Array.BYTES_PER_ELEMENT;
+  const qs = new Float32Array(dataView.buffer, dataView.byteOffset + index, qsSize).slice();
+  index += qsSize * Float32Array.BYTES_PER_ELEMENT;
+  const instancesSize = dataView.getUint32(index, true);
+  index += Uint32Array.BYTES_PER_ELEMENT;
+  const instances = new Float32Array(dataView.buffer, dataView.byteOffset + index, instancesSize).slice();
+  index += instancesSize * Float32Array.BYTES_PER_ELEMENT;
+
+  return {
+    ps,
+    qs,
+    instances,
+  };
+}
+
+globalThis.addEventListener('result', e => {
+  // console.log('got result', e.data, import.meta);
+  const {id, result} = e.data;
+  const p = cbs.get(id);
+  if (p) {
+    cbs.delete(id);
+    p.accept(result);
+  } else {
+    console.warn('failed to find promise for id', e.data);
+  }
+});
 
 export default w;
