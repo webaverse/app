@@ -577,9 +577,9 @@ export const _createAnimation = avatar => {
     // physx.physxWorker.addChild(walkFlyNode, walkMotion);
     // physx.physxWorker.addChild(walkFlyNode, flyMotion);
 
-    // // window.crouchNode = physx.physxWorker.createNode(AnimationNodeType.TWO);
-    // // physx.physxWorker.addChild(crouchNode, walkFlyNode);
-    // // physx.physxWorker.addChild(crouchNode, crouchMotion);
+    // // window._8DirectionsCrouchNode = physx.physxWorker.createNode(AnimationNodeType.TWO);
+    // // physx.physxWorker.addChild(_8DirectionsCrouchNode, walkFlyNode);
+    // // physx.physxWorker.addChild(_8DirectionsCrouchNode, crouchMotion);
 
     // // window.actionsNode = physx.physxWorker.createNode(AnimationNodeType.UNITARY);
     // // physx.physxWorker.addChild(actionsNode, walkMotion);
@@ -695,74 +695,74 @@ export const _createAnimation = avatar => {
 
     // create nodes -------------------------------------------------------------
 
-    // avatar.walkNode = avatar.mixer.createNode(WebaverseAnimationNodeBlendList, 'walk');
-    avatar.walkNode = physx.physxWorker.createNode(AnimationNodeType.LIST);
-    physx.physxWorker.addChild(avatar.walkNode, avatar.walkForwardMotion);
-    physx.physxWorker.addChild(avatar.walkNode, avatar.walkBackwardMotion);
-    physx.physxWorker.addChild(avatar.walkNode, avatar.walkLeftMotion);
-    physx.physxWorker.addChild(avatar.walkNode, avatar.walkRightMotion);
-    physx.physxWorker.addChild(avatar.walkNode, avatar.walkLeftMirrorMotion);
-    physx.physxWorker.addChild(avatar.walkNode, avatar.walkRightMirrorMotion);
+    // avatar._8DirectionsWalkNode = avatar.mixer.createNode(WebaverseAnimationNodeBlendList, 'walk');
+    avatar._8DirectionsWalkNode = physx.physxWorker.createNode(AnimationNodeType.LIST);
+    physx.physxWorker.addChild(avatar._8DirectionsWalkNode, avatar.walkForwardMotion);
+    physx.physxWorker.addChild(avatar._8DirectionsWalkNode, avatar.walkBackwardMotion);
+    physx.physxWorker.addChild(avatar._8DirectionsWalkNode, avatar.walkLeftMotion);
+    physx.physxWorker.addChild(avatar._8DirectionsWalkNode, avatar.walkRightMotion);
+    physx.physxWorker.addChild(avatar._8DirectionsWalkNode, avatar.walkLeftMirrorMotion);
+    physx.physxWorker.addChild(avatar._8DirectionsWalkNode, avatar.walkRightMirrorMotion);
 
-    avatar.runNode = physx.physxWorker.createNode(AnimationNodeType.LIST);
-    physx.physxWorker.addChild(avatar.runNode, avatar.runForwardMotion);
-    physx.physxWorker.addChild(avatar.runNode, avatar.runBackwardMotion);
-    physx.physxWorker.addChild(avatar.runNode, avatar.runLeftMotion);
-    physx.physxWorker.addChild(avatar.runNode, avatar.runRightMotion);
-    physx.physxWorker.addChild(avatar.runNode, avatar.runLeftMirrorMotion);
-    physx.physxWorker.addChild(avatar.runNode, avatar.runRightMirrorMotion);
+    avatar._8DirectionsRunNode = physx.physxWorker.createNode(AnimationNodeType.LIST);
+    physx.physxWorker.addChild(avatar._8DirectionsRunNode, avatar.runForwardMotion);
+    physx.physxWorker.addChild(avatar._8DirectionsRunNode, avatar.runBackwardMotion);
+    physx.physxWorker.addChild(avatar._8DirectionsRunNode, avatar.runLeftMotion);
+    physx.physxWorker.addChild(avatar._8DirectionsRunNode, avatar.runRightMotion);
+    physx.physxWorker.addChild(avatar._8DirectionsRunNode, avatar.runLeftMirrorMotion);
+    physx.physxWorker.addChild(avatar._8DirectionsRunNode, avatar.runRightMirrorMotion);
 
-    avatar.crouchNode = physx.physxWorker.createNode(AnimationNodeType.LIST);
-    physx.physxWorker.addChild(avatar.crouchNode, avatar.crouchForwardMotion);
-    physx.physxWorker.addChild(avatar.crouchNode, avatar.crouchBackwardMotion);
-    physx.physxWorker.addChild(avatar.crouchNode, avatar.crouchLeftMotion);
-    physx.physxWorker.addChild(avatar.crouchNode, avatar.crouchRightMotion);
-    physx.physxWorker.addChild(avatar.crouchNode, avatar.crouchLeftMirrorMotion);
-    physx.physxWorker.addChild(avatar.crouchNode, avatar.crouchRightMirrorMotion);
+    avatar._8DirectionsCrouchNode = physx.physxWorker.createNode(AnimationNodeType.LIST);
+    physx.physxWorker.addChild(avatar._8DirectionsCrouchNode, avatar.crouchForwardMotion);
+    physx.physxWorker.addChild(avatar._8DirectionsCrouchNode, avatar.crouchBackwardMotion);
+    physx.physxWorker.addChild(avatar._8DirectionsCrouchNode, avatar.crouchLeftMotion);
+    physx.physxWorker.addChild(avatar._8DirectionsCrouchNode, avatar.crouchRightMotion);
+    physx.physxWorker.addChild(avatar._8DirectionsCrouchNode, avatar.crouchLeftMirrorMotion);
+    physx.physxWorker.addChild(avatar._8DirectionsCrouchNode, avatar.crouchRightMirrorMotion);
 
-    avatar.bowNode = physx.physxWorker.createNode(AnimationNodeType.LIST);
-    physx.physxWorker.addChild(avatar.bowNode, avatar.bowForwardMotion);
-    physx.physxWorker.addChild(avatar.bowNode, avatar.bowBackwardMotion);
-    physx.physxWorker.addChild(avatar.bowNode, avatar.bowLeftMotion);
-    physx.physxWorker.addChild(avatar.bowNode, avatar.bowRightMotion);
-    physx.physxWorker.addChild(avatar.bowNode, avatar.bowLeftMirrorMotion);
-    physx.physxWorker.addChild(avatar.bowNode, avatar.bowRightMirrorMotion);
+    avatar._8DirectionsBowNode = physx.physxWorker.createNode(AnimationNodeType.LIST);
+    physx.physxWorker.addChild(avatar._8DirectionsBowNode, avatar.bowForwardMotion);
+    physx.physxWorker.addChild(avatar._8DirectionsBowNode, avatar.bowBackwardMotion);
+    physx.physxWorker.addChild(avatar._8DirectionsBowNode, avatar.bowLeftMotion);
+    physx.physxWorker.addChild(avatar._8DirectionsBowNode, avatar.bowRightMotion);
+    physx.physxWorker.addChild(avatar._8DirectionsBowNode, avatar.bowLeftMirrorMotion);
+    physx.physxWorker.addChild(avatar._8DirectionsBowNode, avatar.bowRightMirrorMotion);
 
-    avatar.walkRunNode = physx.physxWorker.createNode(AnimationNodeType.TWO);
-    physx.physxWorker.addChild(avatar.walkRunNode, avatar.walkNode);
-    physx.physxWorker.addChild(avatar.walkRunNode, avatar.runNode);
+    avatar._8DirectionsWalkRunNode = physx.physxWorker.createNode(AnimationNodeType.TWO);
+    physx.physxWorker.addChild(avatar._8DirectionsWalkRunNode, avatar._8DirectionsWalkNode);
+    physx.physxWorker.addChild(avatar._8DirectionsWalkRunNode, avatar._8DirectionsRunNode);
 
-    avatar._7wayWalkRunNode = physx.physxWorker.createNode(AnimationNodeType.TWO);
-    physx.physxWorker.addChild(avatar._7wayWalkRunNode, avatar.idleMotion);
-    physx.physxWorker.addChild(avatar._7wayWalkRunNode, avatar.walkRunNode);
+    avatar.idle8DWalkRunNode = physx.physxWorker.createNode(AnimationNodeType.TWO);
+    physx.physxWorker.addChild(avatar.idle8DWalkRunNode, avatar.idleMotion);
+    physx.physxWorker.addChild(avatar.idle8DWalkRunNode, avatar._8DirectionsWalkRunNode);
 
-    avatar._7wayCrouchNode = physx.physxWorker.createNode(AnimationNodeType.TWO);
-    physx.physxWorker.addChild(avatar._7wayCrouchNode, avatar.crouchIdleMotion);
-    physx.physxWorker.addChild(avatar._7wayCrouchNode, avatar.crouchNode);
+    avatar.idle8DCrouchNode = physx.physxWorker.createNode(AnimationNodeType.TWO);
+    physx.physxWorker.addChild(avatar.idle8DCrouchNode, avatar.crouchIdleMotion);
+    physx.physxWorker.addChild(avatar.idle8DCrouchNode, avatar._8DirectionsCrouchNode);
 
     avatar.defaultNode = physx.physxWorker.createNode(AnimationNodeType.TWO);
-    // avatar.defaultNode.addChild(avatar._7wayWalkRunBowNode);
-    physx.physxWorker.addChild(avatar.defaultNode, avatar._7wayWalkRunNode);
-    physx.physxWorker.addChild(avatar.defaultNode, avatar._7wayCrouchNode);
+    // avatar.defaultNode.addChild(avatar.idle8DWalkRun_BowIdle8DDrawLooseNode);
+    physx.physxWorker.addChild(avatar.defaultNode, avatar.idle8DWalkRunNode);
+    physx.physxWorker.addChild(avatar.defaultNode, avatar.idle8DCrouchNode);
 
     avatar.flyForwardNode = physx.physxWorker.createNode(AnimationNodeType.TWO);
     physx.physxWorker.addChild(avatar.flyForwardNode, avatar.flyDodgeForwardMotion);
     physx.physxWorker.addChild(avatar.flyForwardNode, avatar.flyDashMotion);
 
-    avatar.flyNode = physx.physxWorker.createNode(AnimationNodeType.LIST);
-    physx.physxWorker.addChild(avatar.flyNode, avatar.flyForwardNode);
-    physx.physxWorker.addChild(avatar.flyNode, avatar.flyDodgeBackwardMotion);
-    physx.physxWorker.addChild(avatar.flyNode, avatar.flyDodgeLeftMotion);
-    physx.physxWorker.addChild(avatar.flyNode, avatar.flyDodgeRightMotion);
+    avatar._8DirectionsFlyNode = physx.physxWorker.createNode(AnimationNodeType.LIST);
+    physx.physxWorker.addChild(avatar._8DirectionsFlyNode, avatar.flyForwardNode);
+    physx.physxWorker.addChild(avatar._8DirectionsFlyNode, avatar.flyDodgeBackwardMotion);
+    physx.physxWorker.addChild(avatar._8DirectionsFlyNode, avatar.flyDodgeLeftMotion);
+    physx.physxWorker.addChild(avatar._8DirectionsFlyNode, avatar.flyDodgeRightMotion);
 
-    avatar._7wayFlyNode = physx.physxWorker.createNode(AnimationNodeType.TWO);
-    physx.physxWorker.addChild(avatar._7wayFlyNode, avatar.flyIdleMotion);
-    physx.physxWorker.addChild(avatar._7wayFlyNode, avatar.flyNode);
+    avatar.idle8DFlyNode = physx.physxWorker.createNode(AnimationNodeType.TWO);
+    physx.physxWorker.addChild(avatar.idle8DFlyNode, avatar.flyIdleMotion);
+    physx.physxWorker.addChild(avatar.idle8DFlyNode, avatar._8DirectionsFlyNode);
 
     avatar.actionsNode = physx.physxWorker.createNode(AnimationNodeType.UNITARY);
     physx.physxWorker.addChild(avatar.actionsNode, avatar.defaultNode);
     physx.physxWorker.addChild(avatar.actionsNode, avatar.jumpMotion);
-    physx.physxWorker.addChild(avatar.actionsNode, avatar._7wayFlyNode);
+    physx.physxWorker.addChild(avatar.actionsNode, avatar.idle8DFlyNode);
     physx.physxWorker.addChild(avatar.actionsNode, avatar.narutoRunMotion);
     physx.physxWorker.addChild(avatar.actionsNode, avatar.activateMotion);
     // useMotiono
@@ -775,22 +775,22 @@ export const _createAnimation = avatar => {
     physx.physxWorker.addChild(avatar.actionsNode, avatar.useMotiono.swordTopDownSlash);
     physx.physxWorker.addChild(avatar.actionsNode, avatar.useMotiono.swordTopDownSlashStep);
 
-    avatar._7wayBowNode = physx.physxWorker.createNode(AnimationNodeType.TWO);
-    physx.physxWorker.addChild(avatar._7wayBowNode, avatar.useMotiono.bowIdle);
-    physx.physxWorker.addChild(avatar._7wayBowNode, avatar.bowNode);
+    avatar.idle8DBowNode = physx.physxWorker.createNode(AnimationNodeType.TWO);
+    physx.physxWorker.addChild(avatar.idle8DBowNode, avatar.useMotiono.bowIdle);
+    physx.physxWorker.addChild(avatar.idle8DBowNode, avatar._8DirectionsBowNode);
 
     avatar.bowDrawLooseNodoe = physx.physxWorker.createNode(AnimationNodeType.TWO);
     physx.physxWorker.addChild(avatar.bowDrawLooseNodoe, avatar.useMotiono.bowDraw);
     physx.physxWorker.addChild(avatar.bowDrawLooseNodoe, avatar.useMotiono.bowLoose);
 
-    // avatar.bowIdleDrawLooseNode = avatar.mixer.createNode(WebaverseAnimationNodeOverwrite, 'bowIdleDrawLoose', {filters: ['isTop']});
-    avatar.bowIdleDrawLooseNode = physx.physxWorker.createNode(AnimationNodeType.TWO); // todo: NodeType.Overwrite
-    physx.physxWorker.addChild(avatar.bowIdleDrawLooseNode, avatar._7wayBowNode);
-    physx.physxWorker.addChild(avatar.bowIdleDrawLooseNode, avatar.bowDrawLooseNodoe);
+    // avatar.bowIdle8DDrawLooseNode = avatar.mixer.createNode(WebaverseAnimationNodeOverwrite, 'bowIdleDrawLoose', {filters: ['isTop']});
+    avatar.bowIdle8DDrawLooseNode = physx.physxWorker.createNode(AnimationNodeType.TWO); // todo: NodeType.Overwrite
+    physx.physxWorker.addChild(avatar.bowIdle8DDrawLooseNode, avatar.idle8DBowNode);
+    physx.physxWorker.addChild(avatar.bowIdle8DDrawLooseNode, avatar.bowDrawLooseNodoe);
 
-    avatar._7wayWalkRunBowNode = physx.physxWorker.createNode(AnimationNodeType.TWO);
-    physx.physxWorker.addChild(avatar._7wayWalkRunBowNode, avatar._7wayWalkRunNode);
-    physx.physxWorker.addChild(avatar._7wayWalkRunBowNode, avatar.bowIdleDrawLooseNode);
+    avatar.idle8DWalkRun_BowIdle8DDrawLooseNode = physx.physxWorker.createNode(AnimationNodeType.TWO);
+    physx.physxWorker.addChild(avatar.idle8DWalkRun_BowIdle8DDrawLooseNode, avatar.idle8DWalkRunNode);
+    physx.physxWorker.addChild(avatar.idle8DWalkRun_BowIdle8DDrawLooseNode, avatar.bowIdle8DDrawLooseNode);
 
     // sit
     for (const k in avatar.sitMotiono) {
@@ -814,8 +814,8 @@ export const _createAnimation = avatar => {
     // test ------
     // physx.physxWorker.setAnimTree(avatar.useMotiono.bowDraw);
     // physx.physxWorker.setAnimTree(avatar.bowDrawLooseNodoe);
-    // physx.physxWorker.setAnimTree(avatar.bowIdleDrawLooseNode);
-    // physx.physxWorker.setAnimTree(avatar._7wayWalkRunBowNode);
+    // physx.physxWorker.setAnimTree(avatar.bowIdle8DDrawLooseNode);
+    // physx.physxWorker.setAnimTree(avatar.idle8DWalkRun_BowIdle8DDrawLooseNode);
     // end test ------
 
     // --------------------------------------------------------------------------
@@ -843,10 +843,10 @@ export const _createAnimation = avatar => {
     handleAnimationEnd(event.motion, 'finished');
 
     if (avatar.useEnvelopeState && event.motion === avatar.useMotiono.bowDraw) {
-      avatar.bowIdleDrawLooseNode.crossFade(0.2, 0);
+      avatar.bowIdle8DDrawLooseNode.crossFade(0.2, 0);
     }
     if (event.motion === avatar.useMotiono.bowLoose) {
-      avatar._7wayWalkRunBowNode.crossFade(0.2, 0);
+      avatar.idle8DWalkRun_BowIdle8DDrawLooseNode.crossFade(0.2, 0);
     }
   });
 
@@ -900,9 +900,9 @@ export const _updateAnimation = avatar => {
   physx.physxWorker.setWeight(avatar.crouchRightMotion, mirrorFactorReverse * rightFactor);
   physx.physxWorker.setWeight(avatar.crouchRightMirrorMotion, avatar.mirrorFactor * rightFactor);
 
-  physx.physxWorker.setFactor(avatar.walkRunNode, avatar.moveFactors.walkRunFactor);
-  physx.physxWorker.setFactor(avatar._7wayWalkRunNode, avatar.moveFactors.idleWalkFactor);
-  physx.physxWorker.setFactor(avatar._7wayCrouchNode, avatar.moveFactors.idleWalkFactor);
+  physx.physxWorker.setFactor(avatar._8DirectionsWalkRunNode, avatar.moveFactors.walkRunFactor);
+  physx.physxWorker.setFactor(avatar.idle8DWalkRunNode, avatar.moveFactors.idleWalkFactor);
+  physx.physxWorker.setFactor(avatar.idle8DCrouchNode, avatar.moveFactors.idleWalkFactor);
   physx.physxWorker.setFactor(avatar.defaultNode, avatar.moveFactors.crouchFactor);
 
   physx.physxWorker.setWeight(avatar.flyForwardNode, forwardFactor);
@@ -910,7 +910,7 @@ export const _updateAnimation = avatar => {
   physx.physxWorker.setWeight(avatar.flyDodgeLeftMotion, leftFactor);
   physx.physxWorker.setWeight(avatar.flyDodgeRightMotion, rightFactor);
 
-  physx.physxWorker.setFactor(avatar._7wayFlyNode, avatar.moveFactors.walkRunFactor);
+  physx.physxWorker.setFactor(avatar.idle8DFlyNode, avatar.moveFactors.walkRunFactor);
   physx.physxWorker.setFactor(avatar.flyForwardNode, avatar.flyDashFactor);
 
   // action end event --------------------------------------------
@@ -943,7 +943,7 @@ export const _updateAnimation = avatar => {
   if (avatar.useEnvelopeEnd) {
     physx.physxWorker.play(avatar.useMotiono.bowLoose);
     physx.physxWorker.setFactor(avatar.bowDrawLooseNodoe, 1);
-    physx.physxWorker.crossFadeTwo(avatar.bowIdleDrawLooseNode, 0.2, 1);
+    physx.physxWorker.crossFadeTwo(avatar.bowIdle8DDrawLooseNode, 0.2, 1);
   }
 
   if (avatar.sitEnd) {
@@ -961,7 +961,7 @@ export const _updateAnimation = avatar => {
   // action start event --------------------------------------------
 
   if (avatar.flyStart) {
-    physx.physxWorker.crossFadeUnitary(avatar.actionsNode, 0.2, avatar._7wayFlyNode);
+    physx.physxWorker.crossFadeUnitary(avatar.actionsNode, 0.2, avatar.idle8DFlyNode);
   }
 
   if (avatar.jumpStart) {
@@ -995,8 +995,8 @@ export const _updateAnimation = avatar => {
     // console.log('useEnvelopeStart')
     physx.physxWorker.play(avatar.useMotiono.bowDraw);
     physx.physxWorker.setFactor(avatar.bowDrawLooseNodoe, 0);
-    physx.physxWorker.setFactor(avatar.bowIdleDrawLooseNode, 1);
-    physx.physxWorker.crossFadeTwo(avatar._7wayWalkRunBowNode, 0.2, 1);
+    physx.physxWorker.setFactor(avatar.bowIdle8DDrawLooseNode, 1);
+    physx.physxWorker.crossFadeTwo(avatar.idle8DWalkRun_BowIdle8DDrawLooseNode, 0.2, 1);
   }
 
   // sit
@@ -1025,7 +1025,7 @@ export const _updateAnimation = avatar => {
   avatar.bowRightMotion.weight = mirrorFactorReverse * rightFactor;
   avatar.bowRightMirrorMotion.weight = avatar.mirrorFactor * rightFactor;
 
-  avatar._7wayBowNode.factor = avatar.moveFactors.idleWalkFactor;
+  avatar.idle8DBowNode.factor = avatar.moveFactors.idleWalkFactor;
 
   // action end event ---
   // action start event ---
