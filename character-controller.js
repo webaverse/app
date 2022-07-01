@@ -204,32 +204,26 @@ class Player extends THREE.Object3D {
     action.actionId = makeId(5);
 
     const actionState = this.getActionsState();
-    this.playersArray.doc.transact(() => {
       actionState.push([action]);
-    }, 'push');
-
     return action;
   }
 
   removeAction(type) {
     const actions = this.getActionsState();
     let i = 0;
-    this.playersArray.doc.transact(() => {
       for (const action of actions) {
         if (action.type === type) {
+          console.log("trying to delete action", action);
           actions.delete(i);
           break;
         }
         i++;
       }
-    }, 'push');
   }
 
   removeActionIndex(index) {
     const actions = this.getActionsState();
-    this.playersArray.doc.transact(() => {
       actions.delete(index);
-    }, 'push');
   }
 
   clearActions() {
@@ -359,7 +353,7 @@ class Player extends THREE.Object3D {
         const voiceSpec = JSON.stringify({audioUrl: self.voicePack?.audioUrl, indexUrl: self.voicePack?.indexUrl, endpointUrl: url});
         self.playerMap.set('voiceSpec', voiceSpec);
       }
-    }, 'push');
+    });
     this.loadVoiceEndpoint(url);
   }
 
@@ -423,7 +417,7 @@ class Player extends THREE.Object3D {
   }
 
   wear(app, {loadoutIndex = -1} = {}) {
-    console.log("wear called")
+    console.log('wear called');
     const _getNextLoadoutIndex = () => {
       let nextLoadoutIndex = -1;
       const usedIndexes = Array(8).fill(false);
@@ -525,7 +519,7 @@ class Player extends THREE.Object3D {
     dropStartPosition = null,
     dropDirection = null,
   } = {}) {
-    console.log("unwear called")
+    console.log('unwear called');
 
     const wearActionIndex = this.findActionIndex(({type, instanceId}) => {
       return type === 'wear' && instanceId === app.instanceId;
@@ -665,6 +659,7 @@ class Player extends THREE.Object3D {
     };
 
     if (instanceId) {
+      console.log("instance id is", instanceId)
       // add next app from player app manager
       const nextAvatarApp = this.appManager.getAppByInstanceId(instanceId);
       if (nextAvatarApp) {
@@ -693,7 +688,7 @@ class Player extends THREE.Object3D {
       const self = this;
       this.playersArray.doc.transact(() => {
         self.playerMap.set(avatarMapName, avatarMap);
-      }, 'push');
+      });
     }
     return avatarMap;
   }
@@ -707,7 +702,7 @@ class Player extends THREE.Object3D {
       const self = this;
       this.playersArray.doc.transact(() => {
         this.playerMap.set(appsMapName, appsArray);
-      }, 'push');
+      });
     }
     return appsArray;
   }
@@ -789,7 +784,7 @@ class NetworkPlayer extends Player {
           }
 
           self.playersArray.push([self.playerMap]);
-        }, 'push');
+        });
       } else {
         // Handle remote player state binding
         // Local player map is a child of playersArray, we need to bind to it
@@ -817,9 +812,7 @@ class NetworkPlayer extends Player {
 
         // Called any time the player map is changed
         const observePlayerFn = (e, origin) => {
-          if (origin === 'push') return; // ignore self
-          
-          else throw new Error('wtf');
+          if (this.isLocalPlayer) return console.warn('Local player skipping observePlayerFn');
           if (e.changes.keys.get('name')) {
             this.name = e.changes.keys.get('name');
           }
@@ -876,42 +869,41 @@ class NetworkPlayer extends Player {
     };
 
     _bindPlayer();
+    if (!this.isLocalPlayer) {
+      // Bind actions
+      const _bindActions = () => {
+        const actions = this.getActionsState();
+        const observeActionsFn = (e, origin) => {
+          if (this.isLocalPlayer) return console.warn('Local player skipping observeActionsFn');
+          const {added, deleted} = e.changes;
 
-    // Bind actions
-    const _bindActions = () => {
-      const actions = this.getActionsState();
-      const observeActionsFn = (e, origin) => {
-        if (origin === 'push') return; // ignore self
-        const {added, deleted} = e.changes;
+          for (const item of added.values()) {
+            const action = item.content.type;
+            this.dispatchEvent({
+              type: 'actionadd',
+              action: action,
+            });
+          }
 
-        for (const item of added.values()) {
-          const action = item.content.type;
-          this.dispatchEvent({
-            type: 'actionadd',
-            action: action,
-          });
-        }
-
-        for (const item of deleted.values()) {
-          const action = item.content.type;
-          this.dispatchEvent({
-            type: 'actionremove',
-            action: action,
-          });
-        }
+          for (const item of deleted.values()) {
+            const action = item.content.type;
+            this.dispatchEvent({
+              type: 'actionremove',
+              action: action,
+            });
+          }
+        };
+        actions.observe(observeActionsFn);
+        this.unbindFns.push(actions.unobserve.bind(actions, observeActionsFn));
       };
-      actions.observe(observeActionsFn);
-      this.unbindFns.push(actions.unobserve.bind(actions, observeActionsFn));
-    };
 
-    _bindActions();
-
+      _bindActions();
+    }
     // Bind avatar
     const _bindAvatar = () => {
       const avatar = this.getAvatarState();
 
       const observeAvatarFn = async (e, origin) => {
-        if (origin === 'push') return; // ignore self
         let lastAvatarInstanceId = '';
         const instanceId = avatar.get('instanceId') ?? '';
         if (lastAvatarInstanceId !== instanceId) {
@@ -1092,7 +1084,7 @@ class LocalPlayer extends NetworkPlayer {
       } else {
         console.warn('Trying to set avatar app to same instanceId as before');
       }
-    }, 'push');
+    });
   }
 
   // Action handling
@@ -1197,7 +1189,7 @@ class LocalPlayer extends NetworkPlayer {
       const self = this;
       this.playersArray.doc.transact(() => {
         self.playerMap.set('transform', self.transform);
-      }, 'push');
+      });
 
       this.lastMatrix.copy(this.matrixWorld);
     }
@@ -1210,6 +1202,8 @@ class LocalPlayer extends NetworkPlayer {
 class RemotePlayer extends NetworkPlayer {
   constructor(opts) {
     super(opts);
+    console.log("New remote player", opts)
+    this.appManager = new AppManager(this);
     this.bindState(opts.playersArray);
 
     this.audioWorkletNode = null;
@@ -1284,7 +1278,6 @@ class RemotePlayer extends NetworkPlayer {
     _setupInterpolation();
 
     const _setupEventListeners = () => {
-      this.appManager = new AppManager(this);
       this.appManager.addEventListener('appadd', e => {
         const app = e.data;
         scene.add(app);
@@ -1367,7 +1360,7 @@ class RemotePlayer extends NetworkPlayer {
 
   // Called every frame by the main loop in webaverse.js
   update(timestamp, timeDiff) {
-    if (!this.avatar) throw new Error("Can't update remote player, avatar is null");
+    if (!this.avatar) return; // throw new Error("Can't update remote player, avatar is null");
 
     const _updateInterpolation = () => {
       this.positionInterpolant.update(timeDiff);

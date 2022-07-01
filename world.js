@@ -52,14 +52,26 @@ export class World {
     });
   }
 
-  init(state) {
-    if (this.appManager.isBound()) {
-      this.appManager.unbindState();
-      this.appManager.clear();
-    }
-    const worldMap = state.getMap(worldMapName);
-    const appsArray = worldMap.get(appsMapName, Z.Array);
+  async init(state) {
+    console.log("state is", state);
+
+    const appsArray = state.get(appsMapName, Z.Array);
+    console.log("world is", appsArray);
+
     this.appManager.bindState(appsArray);
+    console.log("appsArray is", appsArray);
+    for (let i = 0; i < this.appManager.appsArray.length; i++) {
+      const trackedApp = this.appManager.appsArray.get(i, Z.Map);
+      const app = await this.appManager.importTrackedApp(trackedApp);
+
+      this.appManager.bindTrackedApp(trackedApp, app);
+    }
+    // console.log("this.appManager.appsArray is", this.appManager.appsArray)
+    // for (let i = 0; i < this.appManager.appsArray.length; i++) {
+    //   const trackedApp = this.appManager.appsArray.get(i, Z.Map);
+    //   const app = await this.appManager.appManager.importTrackedApp(trackedApp);
+    //   this.appManager.bindTrackedApp(trackedApp, app);
+    // }
   }
 }
 

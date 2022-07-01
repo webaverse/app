@@ -138,6 +138,10 @@ class Universe extends EventTarget {
     if (playersManager.isBound()) {
       playersManager.unbindState();
     }
+    if (world.appManager.isBound()) {
+      world.appManager.unbindState();
+      world.appManager.clear();
+    }
     playersManager.bindState(state.getArray(playersMapName));
 
     world.init(state);
@@ -159,11 +163,14 @@ class Universe extends EventTarget {
     await physxWorkerManager.waitForLoad();
 
     const localPlayer = getLocalPlayer();
+    if (world.appManager.isBound()) {
+      world.appManager.unbindState();
+      world.appManager.clear();
+    }
 
     if (playersManager.isBound()) {
       playersManager.unbindState();
     }
-    playersManager.bindState(state.getArray(playersMapName));
 
     // Create a new instance of the websocket rtc client
     // This comes from webaverse/wsrtc/wsrtc.js
@@ -172,6 +179,8 @@ class Universe extends EventTarget {
       crdtState: state,
     });
 
+
+
     // This is called when the websocket connection opens, i.e. server is connected
     const open = e => {
       this.wsrtc.removeEventListener('open', open);
@@ -179,9 +188,11 @@ class Universe extends EventTarget {
       // Called by WSRTC when the connection is initialized
       const init = e => {
         this.wsrtc.removeEventListener('init', init);
+        playersManager.bindState(state.getArray(playersMapName));
 
-        world.init(state);
         localPlayer.init(state);
+        world.init(state);
+
 
         this.wsrtc.addEventListener('audio', e => {
           const player = playersManager.remotePlayersByInteger.get(e.data.playerId);
