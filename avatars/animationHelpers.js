@@ -472,8 +472,8 @@ export const _createAnimation = avatar => {
     for (const fileName in animations.index) {
       const animation = animations.index[fileName];
       animation.index = animationIndex;
-      const physxAnimation = physx.physxWorker.createAnimation(animation.duration, animationIndex);
-      animation.pointer = physxAnimation.pointer;
+      const animationPointer = physx.physxWorker.createAnimation(animation.duration);
+      animation.pointer = animationPointer;
       // for (const k in animation.interpolants) { // maybe wrong interpolant index order
       for (const spec of avatar.animationMappings) { // correct interpolant index order
         const {
@@ -569,9 +569,9 @@ export const _createAnimation = avatar => {
     //
 
     // debugger
-    // window.walkMotion = physx.physxWorker.createMotion(animations.index["walking.fbx"]); // 96
-    // window.flyMotion = physx.physxWorker.createMotion(animations.index["treading water.fbx"]); // 92
-    // window.crouchMotion = physx.physxWorker.createMotion(animations.index["Crouch Idle.fbx"]); // 9
+    // window.walkMotion = physx.physxWorker.createMotion(animations.index["walking.fbx"].pointer); // 96
+    // window.flyMotion = physx.physxWorker.createMotion(animations.index["treading water.fbx"].pointer); // 92
+    // window.crouchMotion = physx.physxWorker.createMotion(animations.index["Crouch Idle.fbx"].pointer); // 9
 
     // window.walkFlyNode = physx.physxWorker.createNode(AnimationNodeType.TWO);
     // physx.physxWorker.addChild(walkFlyNode, walkMotion);
@@ -589,53 +589,53 @@ export const _createAnimation = avatar => {
     // physx.physxWorker.setAnimTree(walkFlyNode);
 
     // create motions -------------------------------------------------------------
-    avatar.idleMotion = physx.physxWorker.createMotion(animations.index['idle.fbx']);
+    avatar.idleMotion = physx.physxWorker.createMotion(animations.index['idle.fbx'].pointer);
 
-    avatar.walkForwardMotion = physx.physxWorker.createMotion(animations.index['walking.fbx']);
-    avatar.walkBackwardMotion = physx.physxWorker.createMotion(animations.index['walking backwards.fbx']);
-    avatar.walkLeftMotion = physx.physxWorker.createMotion(animations.index['left strafe walking.fbx']);
-    avatar.walkRightMotion = physx.physxWorker.createMotion(animations.index['right strafe walking.fbx']);
-    avatar.walkLeftMirrorMotion = physx.physxWorker.createMotion(animations.index['right strafe walking reverse.fbx']);
-    avatar.walkRightMirrorMotion = physx.physxWorker.createMotion(animations.index['left strafe walking reverse.fbx']);
+    avatar.walkForwardMotion = physx.physxWorker.createMotion(animations.index['walking.fbx'].pointer);
+    avatar.walkBackwardMotion = physx.physxWorker.createMotion(animations.index['walking backwards.fbx'].pointer);
+    avatar.walkLeftMotion = physx.physxWorker.createMotion(animations.index['left strafe walking.fbx'].pointer);
+    avatar.walkRightMotion = physx.physxWorker.createMotion(animations.index['right strafe walking.fbx'].pointer);
+    avatar.walkLeftMirrorMotion = physx.physxWorker.createMotion(animations.index['right strafe walking reverse.fbx'].pointer);
+    avatar.walkRightMirrorMotion = physx.physxWorker.createMotion(animations.index['left strafe walking reverse.fbx'].pointer);
 
-    avatar.runForwardMotion = physx.physxWorker.createMotion(animations.index['Fast Run.fbx']);
-    avatar.runBackwardMotion = physx.physxWorker.createMotion(animations.index['running backwards.fbx']);
-    avatar.runLeftMotion = physx.physxWorker.createMotion(animations.index['left strafe.fbx']);
-    avatar.runRightMotion = physx.physxWorker.createMotion(animations.index['right strafe.fbx']);
-    avatar.runLeftMirrorMotion = physx.physxWorker.createMotion(animations.index['right strafe reverse.fbx']);
-    avatar.runRightMirrorMotion = physx.physxWorker.createMotion(animations.index['left strafe reverse.fbx']);
+    avatar.runForwardMotion = physx.physxWorker.createMotion(animations.index['Fast Run.fbx'].pointer);
+    avatar.runBackwardMotion = physx.physxWorker.createMotion(animations.index['running backwards.fbx'].pointer);
+    avatar.runLeftMotion = physx.physxWorker.createMotion(animations.index['left strafe.fbx'].pointer);
+    avatar.runRightMotion = physx.physxWorker.createMotion(animations.index['right strafe.fbx'].pointer);
+    avatar.runLeftMirrorMotion = physx.physxWorker.createMotion(animations.index['right strafe reverse.fbx'].pointer);
+    avatar.runRightMirrorMotion = physx.physxWorker.createMotion(animations.index['left strafe reverse.fbx'].pointer);
 
-    avatar.crouchForwardMotion = physx.physxWorker.createMotion(animations.index['Sneaking Forward.fbx']);
-    avatar.crouchBackwardMotion = physx.physxWorker.createMotion(animations.index['Sneaking Forward reverse.fbx']);
-    avatar.crouchLeftMotion = physx.physxWorker.createMotion(animations.index['Crouched Sneaking Left.fbx']);
-    avatar.crouchRightMotion = physx.physxWorker.createMotion(animations.index['Crouched Sneaking Right.fbx']);
-    avatar.crouchLeftMirrorMotion = physx.physxWorker.createMotion(animations.index['Crouched Sneaking Right reverse.fbx']);
-    avatar.crouchRightMirrorMotion = physx.physxWorker.createMotion(animations.index['Crouched Sneaking Left reverse.fbx']);
+    avatar.crouchForwardMotion = physx.physxWorker.createMotion(animations.index['Sneaking Forward.fbx'].pointer);
+    avatar.crouchBackwardMotion = physx.physxWorker.createMotion(animations.index['Sneaking Forward reverse.fbx'].pointer);
+    avatar.crouchLeftMotion = physx.physxWorker.createMotion(animations.index['Crouched Sneaking Left.fbx'].pointer);
+    avatar.crouchRightMotion = physx.physxWorker.createMotion(animations.index['Crouched Sneaking Right.fbx'].pointer);
+    avatar.crouchLeftMirrorMotion = physx.physxWorker.createMotion(animations.index['Crouched Sneaking Right reverse.fbx'].pointer);
+    avatar.crouchRightMirrorMotion = physx.physxWorker.createMotion(animations.index['Crouched Sneaking Left reverse.fbx'].pointer);
 
-    avatar.bowForwardMotion = physx.physxWorker.createMotion(animations.index['Standing Aim Walk Forward.fbx']);
-    avatar.bowBackwardMotion = physx.physxWorker.createMotion(animations.index['Standing Aim Walk Forward reverse.fbx']);
-    avatar.bowLeftMotion = physx.physxWorker.createMotion(animations.index['Standing Aim Walk Left.fbx']);
-    avatar.bowRightMotion = physx.physxWorker.createMotion(animations.index['Standing Aim Walk Right.fbx']);
-    avatar.bowLeftMirrorMotion = physx.physxWorker.createMotion(animations.index['Standing Aim Walk Right reverse.fbx']);
-    avatar.bowRightMirrorMotion = physx.physxWorker.createMotion(animations.index['Standing Aim Walk Left reverse.fbx']);
+    avatar.bowForwardMotion = physx.physxWorker.createMotion(animations.index['Standing Aim Walk Forward.fbx'].pointer);
+    avatar.bowBackwardMotion = physx.physxWorker.createMotion(animations.index['Standing Aim Walk Forward reverse.fbx'].pointer);
+    avatar.bowLeftMotion = physx.physxWorker.createMotion(animations.index['Standing Aim Walk Left.fbx'].pointer);
+    avatar.bowRightMotion = physx.physxWorker.createMotion(animations.index['Standing Aim Walk Right.fbx'].pointer);
+    avatar.bowLeftMirrorMotion = physx.physxWorker.createMotion(animations.index['Standing Aim Walk Right reverse.fbx'].pointer);
+    avatar.bowRightMirrorMotion = physx.physxWorker.createMotion(animations.index['Standing Aim Walk Left reverse.fbx'].pointer);
 
-    avatar.crouchIdleMotion = physx.physxWorker.createMotion(animations.index['Crouch Idle.fbx']);
-    avatar.flyMotion = physx.physxWorker.createMotion(floatAnimation);
-    avatar.flyIdleMotion = physx.physxWorker.createMotion(animations.index['fly_idle.fbx']);
-    avatar.flyDodgeForwardMotion = physx.physxWorker.createMotion(animations.index['fly_dodge_forward.fbx']);
-    avatar.flyDodgeBackwardMotion = physx.physxWorker.createMotion(animations.index['fly_dodge_backward.fbx']);
-    avatar.flyDodgeLeftMotion = physx.physxWorker.createMotion(animations.index['fly_dodge_left.fbx']);
-    avatar.flyDodgeRightMotion = physx.physxWorker.createMotion(animations.index['fly_dodge_right.fbx']);
-    avatar.flyDashMotion = physx.physxWorker.createMotion(animations.index['fly_dash_forward.fbx']);
-    avatar.narutoRunMotion = physx.physxWorker.createMotion(narutoRunAnimations[defaultNarutoRunAnimation]);
+    avatar.crouchIdleMotion = physx.physxWorker.createMotion(animations.index['Crouch Idle.fbx'].pointer);
+    avatar.flyMotion = physx.physxWorker.createMotion(floatAnimation.pointer);
+    avatar.flyIdleMotion = physx.physxWorker.createMotion(animations.index['fly_idle.fbx'].pointer);
+    avatar.flyDodgeForwardMotion = physx.physxWorker.createMotion(animations.index['fly_dodge_forward.fbx'].pointer);
+    avatar.flyDodgeBackwardMotion = physx.physxWorker.createMotion(animations.index['fly_dodge_backward.fbx'].pointer);
+    avatar.flyDodgeLeftMotion = physx.physxWorker.createMotion(animations.index['fly_dodge_left.fbx'].pointer);
+    avatar.flyDodgeRightMotion = physx.physxWorker.createMotion(animations.index['fly_dodge_right.fbx'].pointer);
+    avatar.flyDashMotion = physx.physxWorker.createMotion(animations.index['fly_dash_forward.fbx'].pointer);
+    avatar.narutoRunMotion = physx.physxWorker.createMotion(narutoRunAnimations[defaultNarutoRunAnimation].pointer);
 
-    avatar.jumpMotion = physx.physxWorker.createMotion(jumpAnimation);
+    avatar.jumpMotion = physx.physxWorker.createMotion(jumpAnimation.pointer);
     physx.physxWorker.setLoop(avatar.jumpMotion, AnimationLoopType.LoopOnce);
     physx.physxWorker.stop(avatar.jumpMotion);
     physx.physxWorker.setTimeBias(avatar.jumpMotion, 0.7);
     physx.physxWorker.setSpeed(avatar.jumpMotion, 1 / 0.6);
 
-    avatar.activateMotion = physx.physxWorker.createMotion(activateAnimations.grab_forward.animation); // todo: handle activateAnimations.grab_forward.speedFactor
+    avatar.activateMotion = physx.physxWorker.createMotion(activateAnimations.grab_forward.animation.pointer); // todo: handle activateAnimations.grab_forward.speedFactor
     physx.physxWorker.setLoop(avatar.activateMotion, AnimationLoopType.LoopOnce);
     physx.physxWorker.stop(avatar.activateMotion);
 
@@ -643,7 +643,7 @@ export const _createAnimation = avatar => {
     for (const k in useAnimations) {
       const animation = useAnimations[k];
       if (animation) {
-        avatar.useMotiono[k] = physx.physxWorker.createMotion(animation);
+        avatar.useMotiono[k] = physx.physxWorker.createMotion(animation.pointer);
       }
     }
     physx.physxWorker.setLoop(avatar.useMotiono.drink, AnimationLoopType.LoopOnce);
@@ -669,7 +669,7 @@ export const _createAnimation = avatar => {
     for (const k in sitAnimations) {
       const animation = sitAnimations[k];
       if (animation) {
-        avatar.sitMotiono[k] = physx.physxWorker.createMotion(animation);
+        avatar.sitMotiono[k] = physx.physxWorker.createMotion(animation.pointer);
         physx.physxWorker.setLoop(avatar.sitMotiono[k], AnimationLoopType.LoopOnce);
         physx.physxWorker.stop(avatar.sitMotiono[k]);
       }
@@ -679,7 +679,7 @@ export const _createAnimation = avatar => {
     for (const k in emoteAnimations) {
       const animation = emoteAnimations[k];
       if (animation) {
-        avatar.emoteMotiono[k] = physx.physxWorker.createMotion(animation);
+        avatar.emoteMotiono[k] = physx.physxWorker.createMotion(animation.pointer);
         physx.physxWorker.setLoop(avatar.emoteMotiono[k], AnimationLoopType.LoopOnce);
         physx.physxWorker.stop(avatar.emoteMotiono[k]);
       }
@@ -689,7 +689,7 @@ export const _createAnimation = avatar => {
     for (const k in danceAnimations) {
       const animation = danceAnimations[k];
       if (animation) {
-        avatar.danceMotiono[k] = physx.physxWorker.createMotion(animation);
+        avatar.danceMotiono[k] = physx.physxWorker.createMotion(animation.pointer);
       }
     }
 
@@ -819,41 +819,27 @@ export const _createAnimation = avatar => {
 
   avatar.mixer = new WebaverseAnimationMixer(avatar); // todo: Del
 
-  const checkMotionIndex = (motions, motionIndex) => {
-    let result = false;
-    for (let i = 0; i < motions.length; i++) {
-      const motion = motions[i];
-      if (motion.index === motionIndex) {
-        result = true;
-        break;
-      }
-    }
-    return result;
-  }
-
-  const handleAnimationEnd = (motionIndex, trigger) => {
-    if (checkMotionIndex([
+  const handleAnimationEnd = (motion, trigger) => {
+    if ([
       avatar.useMotiono.drink,
       avatar.useMotiono.combo,
       avatar.useMotiono.swordSideSlash,
       avatar.useMotiono.swordSideSlashStep,
       avatar.useMotiono.swordTopDownSlash,
       avatar.useMotiono.swordTopDownSlashStep,
-    ], motionIndex)) {
+    ].includes(motion)) {
       game.handleAnimationEnd();
     }
   };
 
   avatar.mixer.addEventListener('finished', event => {
     debugger
-    handleAnimationEnd(event.motionIndex, 'finished');
+    handleAnimationEnd(event.motion, 'finished');
 
-    // if (avatar.useEnvelopeState && event.motionIndex === avatar.useMotiono.bowDraw) {
-    if (avatar.useEnvelopeState && checkMotionIndex([avatar.useMotiono.bowDraw], event.motionIndex)) {
+    if (avatar.useEnvelopeState && event.motion === avatar.useMotiono.bowDraw) {
       avatar.bowIdleDrawLooseNode.crossFade(0.2, 0);
     }
-    // if (event.motionIndex === avatar.useMotiono.bowLoose) {
-    if (checkMotionIndex([avatar.useMotiono.bowLoose], event.motionIndex)) {
+    if (event.motion === avatar.useMotiono.bowLoose) {
       avatar._7wayWalkRunBowNode.crossFade(0.2, 0);
     }
   });

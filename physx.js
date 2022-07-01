@@ -2193,6 +2193,8 @@ const physxWorker = (() => {
     const outputBufferOffsetMain = moduleInstance._updateAnimationMixer(
       timeS, f,
     )
+    // console.log(outputBufferOffsetMain)
+    // debugger
     const values = [];
     const headMain = outputBufferOffsetMain / Float32Array.BYTES_PER_ELEMENT;
     for (let i = 0; i < 53; i++) {
@@ -2217,10 +2219,13 @@ const physxWorker = (() => {
     const finishedFlag = moduleInstance.HEAPF32[head];
     values.push(finishedFlag);
 
+    // if (finishedFlag) debugger
     outputBufferOffset = moduleInstance.HEAPU32[headMain + 54];
-    head = outputBufferOffset / Float32Array.BYTES_PER_ELEMENT;
-    const finishedAnimationIndex = moduleInstance.HEAPF32[head];
-    values.push(finishedAnimationIndex);
+    // head = outputBufferOffset / Float32Array.BYTES_PER_ELEMENT;
+    // const finishedAnimationIndex = moduleInstance.HEAPF32[head];
+    // values.push(finishedAnimationIndex);
+    const motion = outputBufferOffset; // = motion's pointer
+    values.push(motion);
 
     // console.log(finishedFlag);
     // if (finishedFlag) {
@@ -2240,41 +2245,33 @@ const physxWorker = (() => {
   //   )
   //   return pointer;
   // }
-  w.createAnimation = (duration, index) => {
+  w.createAnimation = (duration) => {
     const pointer = moduleInstance._createAnimation(
       duration,
     )
-    return {
-      index,
-      pointer,
-    };
+    return pointer;
   }
   w.createMotion = (animation) => {
     const pointer = moduleInstance._createMotion(
-      animation.pointer,
+      animation,
     )
-    return {
-      index: animation.index,
-      pointer,
-    };
+    return pointer;
   }
   w.createNode = (type = AnimationNodeType.LIST) => {
     // debugger
     const pointer = moduleInstance._createNode(
       type,
     )
-    return {
-      pointer
-    };
+    return pointer;
   }
   w.addChild = (parentNode, childNode) => { // input: pointers of nodes
     moduleInstance._addChild(
-      parentNode.pointer, childNode.pointer,
+      parentNode, childNode,
     )
   }
   w.setAnimTree = (node) => { // input: pointer of node
     moduleInstance._setAnimTree(
-      node.pointer,
+      node,
     )
   }
   w.createInterpolant = (animationIndex, parameterPositions, sampleValues, valueSize) => {
@@ -2367,41 +2364,41 @@ const physxWorker = (() => {
   }
   w.crossFadeTwo = (parentNode, duration, targetFactor) => {
     moduleInstance._crossFadeTwo(
-      parentNode.pointer, duration, targetFactor,
+      parentNode, duration, targetFactor,
     )
   }
   w.crossFadeUnitary = (parentNode, duration, targetNode) => {
     moduleInstance._crossFadeUnitary(
-      parentNode.pointer, duration, targetNode.pointer,
+      parentNode, duration, targetNode,
     )
   }
   w.changeWeight = (node, weight) => { // todo: renmae: setWeight() // todo: general setProp/Attribute().
     moduleInstance._changeWeight(
-      node.pointer,
+      node,
       weight,
     )
   }
   w.changeFactor = (node, factor) => { // todo: general setProp/Attribute().
     moduleInstance._changeFactor(
-      node.pointer,
+      node,
       factor,
     )
   }
   w.getWeight = (node) => {
     return moduleInstance._getWeight(
-      node.pointer,
+      node,
     )
   }
   w.getFactor = (node) => {
     return moduleInstance._getFactor(
-      node.pointer,
+      node,
     )
   }
-  w.play = (motion) => moduleInstance._play(motion.pointer);
-  w.stop = (motion) => moduleInstance._stop(motion.pointer);
-  w.setTimeBias = (motion, timeBias) => moduleInstance._setTimeBias(motion.pointer, timeBias);
-  w.setSpeed = (motion, speed) => moduleInstance._setSpeed(motion.pointer, speed);
-  w.setLoop = (motion, loopType) => moduleInstance._setLoop(motion.pointer, loopType);
+  w.play = (motion) => moduleInstance._play(motion);
+  w.stop = (motion) => moduleInstance._stop(motion);
+  w.setTimeBias = (motion, timeBias) => moduleInstance._setTimeBias(motion, timeBias);
+  w.setSpeed = (motion, speed) => moduleInstance._setSpeed(motion, speed);
+  w.setLoop = (motion, loopType) => moduleInstance._setLoop(motion, loopType);
 
   // End AnimationSystem
 

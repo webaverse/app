@@ -130,10 +130,10 @@ class WebaverseAnimationMixer extends EventDispatcher {
 
     const finishedFlag = values[53];
     if (finishedFlag) {
-      const motionIndex = values[54];
+      const motion = values[54];
       this.dispatchEvent({
         type: 'finished',
-        motionIndex: motionIndex,
+        motion,
       });
     }
 
