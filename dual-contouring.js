@@ -564,9 +564,7 @@ function _parsePQI(addr) {
   };
 }
 
-globalThis.addEventListener('result', e => {
-  // console.log('got result', e.data, import.meta);
-  const {id, result} = e.data;
+globalThis.handleResult = (id, result) => {
   const p = cbs.get(id);
   if (p) {
     cbs.delete(id);
@@ -574,6 +572,6 @@ globalThis.addEventListener('result', e => {
   } else {
     console.warn('failed to find promise for id', e.data);
   }
-});
+};
 
 export default w;
