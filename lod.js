@@ -172,17 +172,17 @@ export class LodChunkTracker extends EventTarget {
           }
         });
         this.addEventListener('chunkremove', e => {
-          try {
+          // try {
             const {chunk} = e.data;
             const index = chunks.indexOf(chunk);
-            if (index === -1) {
+            /* if (index === -1) {
               debugger;
-            }
+            } */
             chunks.splice(index, 1);
             _flushChunks();
-          } catch(err) {
+          /* } catch(err) {
             console.warn(err);
-          }
+          } */
         });
         this.addEventListener('chunkrelod', e => {
           try {
@@ -190,9 +190,9 @@ export class LodChunkTracker extends EventTarget {
             const {newChunk, oldChunks} = e.data;
             for (const oldChunk of oldChunks) {
               const index = chunks.indexOf(oldChunk);
-              if (index === -1) {
+              /* if (index === -1) {
                 debugger;
-              }
+              } */
               chunks.splice(index, 1);
             }
             chunks.push(newChunk);
@@ -531,6 +531,8 @@ export class LodChunkTracker extends EventTarget {
         }
       }
 
+      // emit updates
+      // remove
       for (const removedChunk of removedChunks) {
         this.dispatchEvent(new MessageEvent('chunkremove', {
           data: {
@@ -540,15 +542,15 @@ export class LodChunkTracker extends EventTarget {
         }));
         this.chunks.splice(this.chunks.indexOf(removedChunk), 1);
       }
-      for (const addedChunk of addedChunks) {
-        this.dispatchEvent(new MessageEvent('chunkadd', {
-          data: {
-            chunk: addedChunk,
-            waitUntil,
-          },
-        }));
-        this.chunks.push(addedChunk);
-      }
+
+      // coord
+      this.lastUpdateCoord.copy(currentCoord);
+      (async () => {
+        await Promise.all(waitPromises);
+        this.dispatchEvent(new MessageEvent('update'));
+      })();
+
+      // relod
       if (this.relod) {
         for (const reloddedChunk of reloddedChunks) {
           const {oldChunks, newChunk} = reloddedChunk;
@@ -565,13 +567,17 @@ export class LodChunkTracker extends EventTarget {
           this.chunks.push(newChunk);
         }
       }
-    
-      this.lastUpdateCoord.copy(currentCoord);
 
-      (async () => {
-        await Promise.all(waitPromises);
-        this.dispatchEvent(new MessageEvent('update'));
-      })();
+      // add
+      for (const addedChunk of addedChunks) {
+        this.dispatchEvent(new MessageEvent('chunkadd', {
+          data: {
+            chunk: addedChunk,
+            waitUntil,
+          },
+        }));
+        this.chunks.push(addedChunk);
+      }
     }
   }
   destroy() {
