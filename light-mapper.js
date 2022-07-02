@@ -278,10 +278,18 @@ export class LightMapper extends EventTarget {
     } else {
       // chunk out of lighting range
     }
+
+    this.dispatchEvent(new MessageEvent('chunkupdate', {
+      data: {
+        chunk,
+        // skylights,
+        // ao,
+      },
+    }));
   }
-  updateCoord(min2xCoord) {
+  updateCoord(min1xCoord) {
     const lastPosition = this.lightBasePosition;
-    const newPosition = localVector.copy(min2xCoord)
+    const newPosition = localVector.copy(min1xCoord)
       .multiplyScalar(this.chunkSize);
     const deltaNegative = localVector2.copy(lastPosition)
       .sub(newPosition);
@@ -321,7 +329,7 @@ export class LightMapper extends EventTarget {
 
       this.lightBasePosition.copy(newPosition);
 
-      this.dispatchEvent(new MessageEvent('update', {
+      this.dispatchEvent(new MessageEvent('coordupdate', {
         data: {
           coord: newPosition,
         },
