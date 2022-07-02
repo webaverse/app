@@ -2313,66 +2313,66 @@ const physxWorker = (() => {
 
     // allocator.freeAll(); // can't free sampleValuesTypedArray, need persist in wasm for later use.
   }
-  w.evaluateInterpolant = (animationIndex, interpolantIndex, t) => {
-    const outputBufferOffset = moduleInstance._evaluateInterpolant(
-      animationIndex,
-      interpolantIndex,
-      t,
-    )
+  // w.evaluateInterpolant = (animationIndex, interpolantIndex, t) => {
+  //   const outputBufferOffset = moduleInstance._evaluateInterpolant(
+  //     animationIndex,
+  //     interpolantIndex,
+  //     t,
+  //   )
 
-    let head = outputBufferOffset / Float32Array.BYTES_PER_ELEMENT;
-    let tail = head + 1;
-    const valueSize = moduleInstance.HEAPF32[head];
+  //   let head = outputBufferOffset / Float32Array.BYTES_PER_ELEMENT;
+  //   let tail = head + 1;
+  //   const valueSize = moduleInstance.HEAPF32[head];
 
-    head = tail;
-    tail = head + 1;
-    const x = moduleInstance.HEAPF32[head];
+  //   head = tail;
+  //   tail = head + 1;
+  //   const x = moduleInstance.HEAPF32[head];
 
-    head = tail;
-    tail = head + 1;
-    const y = moduleInstance.HEAPF32[head];
+  //   head = tail;
+  //   tail = head + 1;
+  //   const y = moduleInstance.HEAPF32[head];
 
-    head = tail;
-    tail = head + 1;
-    const z = moduleInstance.HEAPF32[head];
+  //   head = tail;
+  //   tail = head + 1;
+  //   const z = moduleInstance.HEAPF32[head];
 
-    if (valueSize === 3) {
-      return [x, y, z];
-    } else if (valueSize === 4) {
-      head = tail;
-      tail = head + 1;
-      const w = moduleInstance.HEAPF32[head];
+  //   if (valueSize === 3) {
+  //     return [x, y, z];
+  //   } else if (valueSize === 4) {
+  //     head = tail;
+  //     tail = head + 1;
+  //     const w = moduleInstance.HEAPF32[head];
 
-      return [x, y, z, w];
-    } else {
-      debugger
-    }
-  }
-  w.getAnimationValues = (animationIndex, t) => {
-    const outputBufferOffsetMain = moduleInstance._getAnimationValues(
-      animationIndex,
-      t,
-    )
-    const values = [];
-    const headMain = outputBufferOffsetMain / Float32Array.BYTES_PER_ELEMENT;
-    for (let i = 0; i < 53; i++) {
-      let value;
-      const outputBufferOffset = moduleInstance.HEAPU32[headMain + i];
-      const head = outputBufferOffset / Float32Array.BYTES_PER_ELEMENT;
-      const valueSize = moduleInstance.HEAPF32[head];
-      const x = moduleInstance.HEAPF32[head + 1];
-      const y = moduleInstance.HEAPF32[head + 2];
-      const z = moduleInstance.HEAPF32[head + 3];
-      if (valueSize === 3) {
-        value = [x, y, z];
-      } else if (valueSize === 4) {
-        const w = moduleInstance.HEAPF32[head + 4];
-        value = [x, y, z, w];
-      }
-      values.push(value);
-    }
-    return values;
-  }
+  //     return [x, y, z, w];
+  //   } else {
+  //     debugger
+  //   }
+  // }
+  // w.getAnimationValues = (animationIndex, t) => {
+  //   const outputBufferOffsetMain = moduleInstance._getAnimationValues(
+  //     animationIndex,
+  //     t,
+  //   )
+  //   const values = [];
+  //   const headMain = outputBufferOffsetMain / Float32Array.BYTES_PER_ELEMENT;
+  //   for (let i = 0; i < 53; i++) {
+  //     let value;
+  //     const outputBufferOffset = moduleInstance.HEAPU32[headMain + i];
+  //     const head = outputBufferOffset / Float32Array.BYTES_PER_ELEMENT;
+  //     const valueSize = moduleInstance.HEAPF32[head];
+  //     const x = moduleInstance.HEAPF32[head + 1];
+  //     const y = moduleInstance.HEAPF32[head + 2];
+  //     const z = moduleInstance.HEAPF32[head + 3];
+  //     if (valueSize === 3) {
+  //       value = [x, y, z];
+  //     } else if (valueSize === 4) {
+  //       const w = moduleInstance.HEAPF32[head + 4];
+  //       value = [x, y, z, w];
+  //     }
+  //     values.push(value);
+  //   }
+  //   return values;
+  // }
   w.crossFadeTwo = (parentNode, duration, targetFactor) => {
     moduleInstance._crossFadeTwo(
       parentNode, duration, targetFactor,
