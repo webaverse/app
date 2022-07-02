@@ -2184,9 +2184,8 @@ const physxWorker = (() => {
 
   // AnimationSystem
 
-  w.createAnimationMixer = (avatarId) => {
+  w.createAnimationMixer = () => {
     return moduleInstance._createAnimationMixer(
-      avatarId,
     )
   }
   w.updateAnimationMixer = (timeS) => {
@@ -2280,9 +2279,9 @@ const physxWorker = (() => {
       window.nodeReferenceCount[childNode] = 1;
     }
   }
-  w.setAnimTree = (node) => { // input: pointer of node
-    moduleInstance._setAnimTree(
-      node,
+  w.setRootNode = (mixer, node) => { // input: pointer of node
+    moduleInstance._setRootNode(
+      mixer, node,
     )
   }
   w.createInterpolant = (animationIndex, parameterPositions, sampleValues, valueSize) => {

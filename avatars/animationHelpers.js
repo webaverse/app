@@ -449,9 +449,7 @@ export const _createAnimation = avatar => {
       animationIndex++;
     }
 
-    physx.physxWorker.createAnimationMixer(
-      0,
-    );
+    avatar.mixer = physx.physxWorker.createAnimationMixer();
 
     // create motions -------------------------------------------------------------
     avatar.idleMotion = physx.physxWorker.createMotion(animations.index['idle.fbx'].pointer);
@@ -674,12 +672,12 @@ export const _createAnimation = avatar => {
 
     //
 
-    physx.physxWorker.setAnimTree(avatar.actionsNodeUnitary);
+    physx.physxWorker.setRootNode(avatar.mixer, avatar.actionsNodeUnitary);
     // test ------
-    // physx.physxWorker.setAnimTree(avatar.useMotiono.bowDraw);
-    // physx.physxWorker.setAnimTree(avatar.bowDrawLooseNodoeTwo);
-    // physx.physxWorker.setAnimTree(avatar.bowIdle8DDrawLooseNodeOverwrite);
-    // physx.physxWorker.setAnimTree(avatar.idle8DWalkRun_BowIdle8DDrawLooseNodeTwo);
+    // physx.physxWorker.setRootNode(avatar.mixer, avatar.useMotiono.bowDraw);
+    // physx.physxWorker.setRootNode(avatar.mixer, avatar.bowDrawLooseNodoeTwo);
+    // physx.physxWorker.setRootNode(avatar.mixer, avatar.bowIdle8DDrawLooseNodeOverwrite);
+    // physx.physxWorker.setRootNode(avatar.mixer, avatar.idle8DWalkRun_BowIdle8DDrawLooseNodeTwo);
     // end test ------
 
     // --------------------------------------------------------------------------
