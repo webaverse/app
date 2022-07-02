@@ -422,6 +422,8 @@ export const _createAnimation = avatar => {
         spec.index,
         spec.isFirstBone,
         spec.isLastBone,
+        spec.isTop,
+        spec.isArm,
       );
     }
 
@@ -625,14 +627,15 @@ export const _createAnimation = avatar => {
     physx.physxWorker.addChild(avatar.bowDrawLooseNodoeTwo, avatar.useMotiono.bowDraw);
     physx.physxWorker.addChild(avatar.bowDrawLooseNodoeTwo, avatar.useMotiono.bowLoose);
 
-    // avatar.bowIdle8DDrawLooseNodeTwo = avatar.mixer.createNode(WebaverseAnimationNodeOverwrite, 'bowIdleDrawLoose', {filters: ['isTop']});
-    avatar.bowIdle8DDrawLooseNodeTwo = physx.physxWorker.createNode(AnimationNodeType.TWO); // todo: NodeType.Overwrite
-    physx.physxWorker.addChild(avatar.bowIdle8DDrawLooseNodeTwo, avatar.idle8DBowNodeTwo);
-    physx.physxWorker.addChild(avatar.bowIdle8DDrawLooseNodeTwo, avatar.bowDrawLooseNodoeTwo);
+    // avatar.bowIdle8DDrawLooseNodeOverwrite = avatar.mixer.createNode(WebaverseAnimationNodeOverwrite, 'bowIdleDrawLoose', {filters: ['isTop']}); // js version
+    // avatar.bowIdle8DDrawLooseNodeOverwrite = physx.physxWorker.createNode(AnimationNodeType.TWO); // ~~todo: NodeType.Overwrite~~
+    avatar.bowIdle8DDrawLooseNodeOverwrite = physx.physxWorker.createNode(AnimationNodeType.OVERWRITE); // todo: Selectable filters.
+    physx.physxWorker.addChild(avatar.bowIdle8DDrawLooseNodeOverwrite, avatar.idle8DBowNodeTwo);
+    physx.physxWorker.addChild(avatar.bowIdle8DDrawLooseNodeOverwrite, avatar.bowDrawLooseNodoeTwo);
 
     avatar.idle8DWalkRun_BowIdle8DDrawLooseNodeTwo = physx.physxWorker.createNode(AnimationNodeType.TWO);
     physx.physxWorker.addChild(avatar.idle8DWalkRun_BowIdle8DDrawLooseNodeTwo, avatar.idle8DWalkRunNodeTwo);
-    physx.physxWorker.addChild(avatar.idle8DWalkRun_BowIdle8DDrawLooseNodeTwo, avatar.bowIdle8DDrawLooseNodeTwo);
+    physx.physxWorker.addChild(avatar.idle8DWalkRun_BowIdle8DDrawLooseNodeTwo, avatar.bowIdle8DDrawLooseNodeOverwrite);
 
     avatar.defaultNodeTwo = physx.physxWorker.createNode(AnimationNodeType.TWO);
     physx.physxWorker.addChild(avatar.defaultNodeTwo, avatar.idle8DWalkRun_BowIdle8DDrawLooseNodeTwo);
@@ -676,7 +679,7 @@ export const _createAnimation = avatar => {
     // test ------
     // physx.physxWorker.setAnimTree(avatar.useMotiono.bowDraw);
     // physx.physxWorker.setAnimTree(avatar.bowDrawLooseNodoeTwo);
-    // physx.physxWorker.setAnimTree(avatar.bowIdle8DDrawLooseNodeTwo);
+    // physx.physxWorker.setAnimTree(avatar.bowIdle8DDrawLooseNodeOverwrite);
     // physx.physxWorker.setAnimTree(avatar.idle8DWalkRun_BowIdle8DDrawLooseNodeTwo);
     // end test ------
 
@@ -701,11 +704,12 @@ export const _createAnimation = avatar => {
   };
 
   avatar.mixer.addEventListener('finished', event => {
-    // debugger
+    // debugger;
+    console.log('finished');
     handleAnimationEnd(event.motion, 'finished');
 
     if (avatar.useEnvelopeState && event.motion === avatar.useMotiono.bowDraw) {
-      physx.physxWorker.crossFadeTwo(avatar.bowIdle8DDrawLooseNodeTwo, 0.2, 0);
+      physx.physxWorker.crossFadeTwo(avatar.bowIdle8DDrawLooseNodeOverwrite, 0.2, 0);
     }
     if (event.motion === avatar.useMotiono.bowLoose) {
       physx.physxWorker.crossFadeTwo(avatar.idle8DWalkRun_BowIdle8DDrawLooseNodeTwo, 0.2, 0);
@@ -800,9 +804,10 @@ export const _updateAnimation = avatar => {
   }
 
   if (avatar.useEnvelopeEnd) {
+    console.log('useEnvelopeEnd');
     physx.physxWorker.play(avatar.useMotiono.bowLoose);
     physx.physxWorker.setFactor(avatar.bowDrawLooseNodoeTwo, 1);
-    physx.physxWorker.crossFadeTwo(avatar.bowIdle8DDrawLooseNodeTwo, 0.2, 1);
+    physx.physxWorker.crossFadeTwo(avatar.bowIdle8DDrawLooseNodeOverwrite, 0.2, 1);
   }
 
   if (avatar.sitEnd) {
@@ -854,7 +859,7 @@ export const _updateAnimation = avatar => {
     console.log('useEnvelopeStart');
     physx.physxWorker.play(avatar.useMotiono.bowDraw);
     physx.physxWorker.setFactor(avatar.bowDrawLooseNodoeTwo, 0);
-    physx.physxWorker.setFactor(avatar.bowIdle8DDrawLooseNodeTwo, 1);
+    physx.physxWorker.setFactor(avatar.bowIdle8DDrawLooseNodeOverwrite, 1);
     physx.physxWorker.crossFadeTwo(avatar.idle8DWalkRun_BowIdle8DDrawLooseNodeTwo, 0.2, 1);
   }
 

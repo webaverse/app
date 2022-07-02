@@ -2235,9 +2235,9 @@ const physxWorker = (() => {
 
     return values;
   }
-  w.createAnimationMapping = (isPosition, index, isFirstBone, isLastBone) => {
+  w.createAnimationMapping = (isPosition, index, isFirstBone, isLastBone, isTop, isArm) => {
     moduleInstance._createAnimationMapping(
-      isPosition, index, isFirstBone, isLastBone
+      isPosition, index, isFirstBone, isLastBone, isTop, isArm
     )
   }
   // w.createAnimationMixer = () => {
