@@ -1,11 +1,10 @@
 import {Vector3, Quaternion, AnimationClip, LoopOnce, MathUtils, LoopRepeat} from 'three';
-import metaversefile from 'metaversefile';
+// import metaversefile from 'metaversefile';
 import {/* VRMSpringBoneImporter, VRMLookAtApplyer, */ VRMCurveMapper} from '@pixiv/three-vrm/lib/three-vrm.module.js';
 // import easing from '../easing.js';
 import {easing} from '../math-utils.js';
 import loaders from '../loaders.js';
 import {zbdecode} from 'zjs/encoding.mjs';
-import {WebaverseAnimationMixer} from './WebaverseAnimationMixer.js';
 import physx from '../physx.js';
 
 import {
@@ -685,41 +684,17 @@ export const _createAnimation = avatar => {
 
     // --------------------------------------------------------------------------
 
+    // avatar.mixer.addEventListener('finished', event => {
+    // });
+
+    //
+
     createdWasmAnimations = true;
   }
-
-  avatar.mixer = new WebaverseAnimationMixer(avatar); // todo: Del
-
-  const handleAnimationEnd = (motion, trigger) => {
-    if ([
-      avatar.useMotiono.drink,
-      avatar.useMotiono.combo,
-      avatar.useMotiono.swordSideSlash,
-      avatar.useMotiono.swordSideSlashStep,
-      avatar.useMotiono.swordTopDownSlash,
-      avatar.useMotiono.swordTopDownSlashStep,
-    ].includes(motion)) {
-      game.handleAnimationEnd();
-    }
-  };
-
-  avatar.mixer.addEventListener('finished', event => {
-    // debugger;
-    console.log('finished');
-    handleAnimationEnd(event.motion, 'finished');
-
-    if (avatar.useEnvelopeState && event.motion === avatar.useMotiono.bowDraw) {
-      physx.physxWorker.crossFadeTwo(avatar.bowIdle8DDrawLooseNodeOverwrite, 0.2, 0);
-    }
-    if (event.motion === avatar.useMotiono.bowLoose) {
-      physx.physxWorker.crossFadeTwo(avatar.idle8DWalkRun_BowIdle8DDrawLooseNodeTwo, 0.2, 0);
-    }
-  });
 };
 
 export const _updateAnimation = avatar => {
   const timeS = performance.now() / 1000;
-  const {mixer} = avatar;
 
   const angle = avatar.getAngle();
   const forwardFactor = 1 - MathUtils.clamp(Math.abs(angle) / (Math.PI / 2), 0, 1);
@@ -731,8 +706,6 @@ export const _updateAnimation = avatar => {
   const mirrorRightFactor = avatar.mirrorFactor * rightFactor;
   const mirrorLeftFactorReverse = mirrorFactorReverse * leftFactor;
   const mirrorRightFactorReverse = mirrorFactorReverse * rightFactor;
-
-  mixer.update(timeS, avatar.animTree); // todo: Del
 
   physx.physxWorker.setWeight(avatar.walkForwardMotion, forwardFactor);
   physx.physxWorker.setWeight(avatar.walkBackwardMotion, backwardFactor);
@@ -878,6 +851,68 @@ export const _updateAnimation = avatar => {
   // dance
   if (avatar.danceStart) {
     physx.physxWorker.crossFadeUnitary(avatar.actionsNodeUnitary, 0.2, avatar.danceMotiono[avatar.danceAnimation || defaultDanceAnimation]);
+  }
+
+  // do update
+  const values = window.physx.physxWorker.updateAnimationMixer(timeS);
+  // debugger
+  let index = 0;
+  for (const spec of avatar.animationMappings) {
+    const {
+      // animationTrackName: k,
+      dst,
+      // isTop,
+      isPosition,
+    } = spec;
+
+    const result = values[index];
+
+    if (isPosition) { // _clearXZ
+      result[0] = 0;
+      result[2] = 0;
+    }
+
+    dst.fromArray(result);
+
+    if (isPosition) {
+      dst.y *= avatar.height; // XXX avatar could be made perfect by measuring from foot to hips instead
+    }
+
+    index++;
+  }
+
+  // finished event
+  const finishedFlag = values[53];
+  if (finishedFlag) {
+    const motion = values[54];
+    // this.dispatchEvent({
+    //   type: 'finished',
+    //   motion,
+    // });
+    // debugger;
+    console.log('finished');
+
+    const handleAnimationEnd = (motion, trigger) => {
+      if ([
+        avatar.useMotiono.drink,
+        avatar.useMotiono.combo,
+        avatar.useMotiono.swordSideSlash,
+        avatar.useMotiono.swordSideSlashStep,
+        avatar.useMotiono.swordTopDownSlash,
+        avatar.useMotiono.swordTopDownSlashStep,
+      ].includes(motion)) {
+        game.handleAnimationEnd();
+      }
+    };
+
+    handleAnimationEnd(motion, 'finished');
+
+    if (avatar.useEnvelopeState && motion === avatar.useMotiono.bowDraw) {
+      physx.physxWorker.crossFadeTwo(avatar.bowIdle8DDrawLooseNodeOverwrite, 0.2, 0);
+    }
+    if (motion === avatar.useMotiono.bowLoose) {
+      physx.physxWorker.crossFadeTwo(avatar.idle8DWalkRun_BowIdle8DDrawLooseNodeTwo, 0.2, 0);
+    }
   }
 };
 

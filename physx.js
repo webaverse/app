@@ -2189,9 +2189,9 @@ const physxWorker = (() => {
       avatarId,
     )
   }
-  w.updateAnimationMixer = (timeS, f = 0.5) => {
+  w.updateAnimationMixer = (timeS) => {
     const outputBufferOffsetMain = moduleInstance._updateAnimationMixer(
-      timeS, f,
+      timeS,
     )
     // console.log(outputBufferOffsetMain)
     // debugger
