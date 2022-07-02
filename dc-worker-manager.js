@@ -284,14 +284,14 @@ export class DcWorkerManager {
     return result;
   }
   async drawSphereDamage(position, radius) {
-    const chunkPosition = chunkMinForPosition(
-      position.x,
-      position.y,
-      position.z,
-      this.chunkSize
-    );
-    const chunkId = getLockChunkId(chunkPosition);
-    return await this.locks.request(chunkId, async lock => {
+    // const chunkPosition = chunkMinForPosition(
+    //   position.x,
+    //   position.y,
+    //   position.z,
+    //   this.chunkSize
+    // );
+    // const chunkId = getLockChunkId(chunkPosition);
+    // return await this.locks.request(chunkId, async lock => {
       const worker = this.getNextWorker();
       const result = await worker.request('drawSphereDamage', {
         instance: this.instance,
@@ -299,7 +299,7 @@ export class DcWorkerManager {
         radius,
       });
       return result;
-    });
+    // });
   }
   async eraseSphereDamage(position, radius) {
     const chunkPosition = chunkMinForPosition(
