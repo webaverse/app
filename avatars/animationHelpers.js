@@ -852,7 +852,7 @@ export const _updateAnimation = avatar => {
   }
 
   // do update
-  const values = window.physx.physxWorker.updateAnimationMixer(timeS);
+  const values = window.physx.physxWorker.updateAnimationMixer(avatar.mixer, timeS);
   // debugger
   let index = 0;
   for (const spec of avatar.animationMappings) {
@@ -881,6 +881,7 @@ export const _updateAnimation = avatar => {
 
   // finished event
   const finishedFlag = values[53];
+  // console.log(finishedFlag)
   if (finishedFlag) {
     const motion = values[54];
     // this.dispatchEvent({
