@@ -92,7 +92,7 @@ export class LodChunkTracker extends EventTarget {
     this.trackY = trackY;
     this.relod = relod;
     this.range = range;
-    this.debug = debug;
+    // this.debug = debug;
 
     this.chunks = [];
     this.lastUpdateCoord = new THREE.Vector3(NaN, NaN, NaN);
