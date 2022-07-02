@@ -391,12 +391,9 @@ export class LodChunkTracker extends EventTarget {
         const min2xMin = min1xMin.clone().sub(min2xTileSize);
         const min2xMax = min1xMin.clone().add(min1xSize).add(min2xTileSize);
         
-        // for (let dy = minDcy; dy <= maxDcy; dy += 2) {
-        //   for (let dz = -1; dz <= 1; dz += 2) {
-        //     for (let dx = -1; dx <= 1; dx += 2) {
-        for (let y = min2xMin.y * maxDcy; y <= min2xMax.y * maxDcy; y += min1xSize.y) {
-          for (let z = min2xMin.z; z <= min2xMax.z; z += min2xTileSize.z + min1xSize.z) {
-            for (let x = min2xMin.x; x <= min2xMax.x; x += min2xTileSize.x + min1xSize.x) {
+        for (let y = min2xMin.y * maxDcy; y <= min2xMax.y * maxDcy; y += min2xTileSize.y) {
+          for (let z = min2xMin.z; z <= min2xMax.z; z += min2xTileSize.z) {
+            for (let x = min2xMin.x; x <= min2xMax.x; x += min2xTileSize.x) {
               const chunkPosition2x = localVector3.set(
                 x,
                 y,
