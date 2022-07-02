@@ -2250,9 +2250,9 @@ const physxWorker = (() => {
     )
     return pointer;
   }
-  w.createMotion = (animation) => {
+  w.createMotion = (mixer, animation) => {
     const pointer = moduleInstance._createMotion(
-      animation,
+      mixer, animation,
     )
     return pointer;
   }
