@@ -45,23 +45,13 @@ import {
   // avatarInterpolationTimeDelay,
   // avatarInterpolationNumFrames,
 } from '../constants.js';
-import {WebaverseAnimationNode} from './WebaverseAnimationNode.js';
-import {WebaverseAnimationNodeBlend2} from './WebaverseAnimationNodeBlend2.js';
-import {WebaverseAnimationNodeBlendList} from './WebaverseAnimationNodeBlendList.js';
-import {WebaverseAnimationNodeUnitary} from './WebaverseAnimationNodeUnitary.js';
-import {WebaverseAnimationNodeOverwrite} from './WebaverseAnimationNodeOverwrite.js';
 import game from '../game.js';
 
 const localVector = new Vector3();
 const localVector2 = new Vector3();
-const localVector3 = new Vector3();
 
 const localQuaternion = new Quaternion();
 const localQuaternion2 = new Quaternion();
-const localQuaternion3 = new Quaternion();
-const localQuaternion4 = new Quaternion();
-const localQuaternion5 = new Quaternion();
-const localQuaternion6 = new Quaternion();
 
 const identityQuaternion = new Quaternion();
 
@@ -435,39 +425,6 @@ export const _createAnimation = avatar => {
       );
     }
 
-    // const walkForwardAnimation = animations.index['walking.fbx'];
-    // // let index = 0;
-    // physx.physxWorker.createAnimation();
-    // for (const k in walkForwardAnimation.interpolants) {
-    //   // console.log('idle', k);
-    //   const interpolant = walkForwardAnimation.interpolants[k];
-    //   // debugger
-    //   physx.physxWorker.createInterpolant( // todo: only need createInterpolant once globally
-    //     0,
-    //     interpolant.parameterPositions,
-    //     interpolant.sampleValues,
-    //     interpolant.valueSize,
-    //   );
-    //   // index++;
-    // }
-
-    // const flyAnimation = animations.index['treading water.fbx'];
-    // // let index = 0;
-    // physx.physxWorker.createAnimation();
-    // for (const k in flyAnimation.interpolants) {
-    //   // debugger
-    //   const interpolant = flyAnimation.interpolants[k];
-    //   physx.physxWorker.createInterpolant( // todo: only need createInterpolant once globally
-    //     1,
-    //     interpolant.parameterPositions,
-    //     interpolant.sampleValues,
-    //     interpolant.valueSize,
-    //   );
-    //   // index++;
-    // }
-
-    // debugger;
-
     let animationIndex = 0;
     for (const fileName in animations.index) {
       const animation = animations.index[fileName];
@@ -480,7 +437,6 @@ export const _createAnimation = avatar => {
           animationTrackName: k,
         } = spec;
 
-        // debugger
         const interpolant = animation.interpolants[k];
         physx.physxWorker.createInterpolant( // todo: only need createInterpolant once globally
           animation.index, // todo: use pointer instead of index.
@@ -492,101 +448,9 @@ export const _createAnimation = avatar => {
       animationIndex++;
     }
 
-    /* interpolant index order, sample as AnimationMapping.js
-      0 mixamorigHips.position
-      1 mixamorigHips.quaternion
-      2 mixamorigSpine.quaternion
-      3 mixamorigSpine1.quaternion
-      4 mixamorigSpine2.quaternion
-      5 mixamorigNeck.quaternion
-      6 mixamorigHead.quaternion
-      7 mixamorigLeftShoulder.quaternion
-      8 mixamorigLeftArm.quaternion
-      9 mixamorigLeftForeArm.quaternion
-      10 mixamorigLeftHand.quaternion
-      11 mixamorigLeftHandMiddle1.quaternion
-      12 mixamorigLeftHandMiddle2.quaternion
-      13 mixamorigLeftHandMiddle3.quaternion
-      14 mixamorigLeftHandThumb1.quaternion
-      15 mixamorigLeftHandThumb2.quaternion
-      16 mixamorigLeftHandThumb3.quaternion
-      17 mixamorigLeftHandIndex1.quaternion
-      18 mixamorigLeftHandIndex2.quaternion
-      19 mixamorigLeftHandIndex3.quaternion
-      20 mixamorigLeftHandRing1.quaternion
-      21 mixamorigLeftHandRing2.quaternion
-      22 mixamorigLeftHandRing3.quaternion
-      23 mixamorigLeftHandPinky1.quaternion
-      24 mixamorigLeftHandPinky2.quaternion
-      25 mixamorigLeftHandPinky3.quaternion
-      26 mixamorigRightShoulder.quaternion
-      27 mixamorigRightArm.quaternion
-      28 mixamorigRightForeArm.quaternion
-      29 mixamorigRightHand.quaternion
-      30 mixamorigRightHandMiddle1.quaternion
-      31 mixamorigRightHandMiddle2.quaternion
-      32 mixamorigRightHandMiddle3.quaternion
-      33 mixamorigRightHandThumb1.quaternion
-      34 mixamorigRightHandThumb2.quaternion
-      35 mixamorigRightHandThumb3.quaternion
-      36 mixamorigRightHandIndex1.quaternion
-      37 mixamorigRightHandIndex2.quaternion
-      38 mixamorigRightHandIndex3.quaternion
-      39 mixamorigRightHandRing1.quaternion
-      40 mixamorigRightHandRing2.quaternion
-      41 mixamorigRightHandRing3.quaternion
-      42 mixamorigRightHandPinky1.quaternion
-      43 mixamorigRightHandPinky2.quaternion
-      44 mixamorigRightHandPinky3.quaternion
-      45 mixamorigRightUpLeg.quaternion
-      46 mixamorigRightLeg.quaternion
-      47 mixamorigRightFoot.quaternion
-      48 mixamorigRightToeBase.quaternion
-      49 mixamorigLeftUpLeg.quaternion
-      50 mixamorigLeftLeg.quaternion
-      51 mixamorigLeftFoot.quaternion
-      52 mixamorigLeftToeBase.quaternion
-    */
-
     physx.physxWorker.createAnimationMixer(
       0,
     );
-
-    //
-
-    // const walkFlyNodePointer = physx.physxWorker.createNode();
-    // physx.physxWorker.addChild(walkFlyNodePointer, animations.index["walking.fbx"]);
-    // physx.physxWorker.addChild(walkFlyNodePointer, animations.index["treading water.fbx"]);
-
-    // const crouchNodePointer = physx.physxWorker.createNode();
-    // physx.physxWorker.addChild(crouchNodePointer, walkFlyNodePointer);
-    // physx.physxWorker.addChild(crouchNodePointer, animations.index["Crouch Idle.fbx"]);
-
-    // // physx.physxWorker.setAnimTree(crouchNodePointer);
-    // physx.physxWorker.setAnimTree(walkFlyNodePointer);
-    // debugger
-
-    //
-
-    // debugger
-    // window.walkMotion = physx.physxWorker.createMotion(animations.index["walking.fbx"].pointer); // 96
-    // window.flyMotion = physx.physxWorker.createMotion(animations.index["treading water.fbx"].pointer); // 92
-    // window.crouchMotion = physx.physxWorker.createMotion(animations.index["Crouch Idle.fbx"].pointer); // 9
-
-    // window.walkFlyNode = physx.physxWorker.createNode(AnimationNodeType.TWO);
-    // physx.physxWorker.addChild(walkFlyNode, walkMotion);
-    // physx.physxWorker.addChild(walkFlyNode, flyMotion);
-
-    // // window._8DirectionsCrouchNodeList = physx.physxWorker.createNode(AnimationNodeType.TWO);
-    // // physx.physxWorker.addChild(_8DirectionsCrouchNodeList, walkFlyNode);
-    // // physx.physxWorker.addChild(_8DirectionsCrouchNodeList, crouchMotion);
-
-    // // window.actionsNodeUnitary = physx.physxWorker.createNode(AnimationNodeType.UNITARY);
-    // // physx.physxWorker.addChild(actionsNodeUnitary, walkMotion);
-    // // physx.physxWorker.addChild(actionsNodeUnitary, flyMotion);
-    // // physx.physxWorker.addChild(actionsNodeUnitary, crouchMotion);
-
-    // physx.physxWorker.setAnimTree(walkFlyNode);
 
     // create motions -------------------------------------------------------------
     avatar.idleMotion = physx.physxWorker.createMotion(animations.index['idle.fbx'].pointer);
@@ -695,7 +559,6 @@ export const _createAnimation = avatar => {
 
     // create nodes -------------------------------------------------------------
 
-    // avatar._8DirectionsWalkNodeList = avatar.mixer.createNode(WebaverseAnimationNodeBlendList, 'walk');
     avatar._8DirectionsWalkNodeList = physx.physxWorker.createNode(AnimationNodeType.LIST);
     physx.physxWorker.addChild(avatar._8DirectionsWalkNodeList, avatar.walkForwardMotion);
     physx.physxWorker.addChild(avatar._8DirectionsWalkNodeList, avatar.walkBackwardMotion);
@@ -773,7 +636,6 @@ export const _createAnimation = avatar => {
 
     avatar.defaultNodeTwo = physx.physxWorker.createNode(AnimationNodeType.TWO);
     physx.physxWorker.addChild(avatar.defaultNodeTwo, avatar.idle8DWalkRun_BowIdle8DDrawLooseNodeTwo);
-    // physx.physxWorker.addChild(avatar.defaultNodeTwo, avatar.idle8DWalkRunNodeTwo);
     physx.physxWorker.addChild(avatar.defaultNodeTwo, avatar.idle8DCrouchNodeTwo);
 
     avatar.actionsNodeUnitary = physx.physxWorker.createNode(AnimationNodeType.UNITARY);
@@ -855,15 +717,11 @@ export const _updateAnimation = avatar => {
   const timeS = performance.now() / 1000;
   const {mixer} = avatar;
 
-  // test
-  // console.log(avatar.actionsNodeUnitary.activeNode.name);
-
   const angle = avatar.getAngle();
   const forwardFactor = 1 - MathUtils.clamp(Math.abs(angle) / (Math.PI / 2), 0, 1);
   const backwardFactor = 1 - MathUtils.clamp((Math.PI - Math.abs(angle)) / (Math.PI / 2), 0, 1);
   const leftFactor = 1 - MathUtils.clamp(Math.abs(angle - Math.PI / 2) / (Math.PI / 2), 0, 1);
   const rightFactor = 1 - MathUtils.clamp(Math.abs(angle - -Math.PI / 2) / (Math.PI / 2), 0, 1);
-  // const mirror = Math.abs(angle) > (Math.PI / 2 + 0.01); // todo: smooth mirror changing
   const mirrorFactorReverse = 1 - avatar.mirrorFactor;
   const mirrorLeftFactor = avatar.mirrorFactor * leftFactor;
   const mirrorRightFactor = avatar.mirrorFactor * rightFactor;
