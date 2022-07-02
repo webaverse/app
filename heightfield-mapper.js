@@ -18,7 +18,6 @@ const fullscreenVertexShader = `\
 //
 
 const localVector2D = new THREE.Vector2();
-const localVector2D2 = new THREE.Vector2();
 
 //
 
