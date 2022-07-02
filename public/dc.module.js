@@ -629,20 +629,21 @@ var ASM_CONSTS = {
  32046: () => {
   globalThis.requestStartTime = performance.now();
  },
- 32099: ($0, $1) => {
-  const id = $0;
-  const result = $1;
-  if (!globalThis.resultEvent) {
-   globalThis.resultEvent = new MessageEvent("result", {
-    data: {
-     id: 0,
-     result: 0
-    }
-   });
-  }
-  globalThis.resultEvent.data.id = id;
-  globalThis.resultEvent.data.result = result;
-  globalThis.dispatchEvent(globalThis.resultEvent);
+ 32099: () => {
+  const resultEvent = new MessageEvent("result", {
+   data: {
+    id: 0,
+    result: 0
+   }
+  });
+  globalThis.handleResult = (id, result) => {
+   resultEvent.data.id = id;
+   resultEvent.data.result = result;
+   globalThis.dispatchEvent(resultEvent);
+  };
+ },
+ 32331: ($0, $1) => {
+  handleResult($0, $1);
  }
 };
 
@@ -3904,29 +3905,29 @@ var asmLibraryArg = {
  "e": ___cxa_allocate_exception,
  "d": ___cxa_throw,
  "z": ___emscripten_init_main_thread_js,
- "i": ___emscripten_thread_cleanup,
+ "j": ___emscripten_thread_cleanup,
  "y": ___pthread_create_js,
  "t": __emscripten_default_pthread_stack_size,
  "s": __emscripten_notify_task_queue,
  "r": __emscripten_set_offscreencanvas_size,
  "c": _abort,
- "q": _emscripten_asm_const_async_on_main_thread,
+ "h": _emscripten_asm_const_async_on_main_thread,
  "g": _emscripten_asm_const_int,
  "f": _emscripten_check_blocking_allowed,
  "b": _emscripten_get_now,
- "p": _emscripten_memcpy_big,
- "o": _emscripten_receive_on_main_thread_js,
- "n": _emscripten_resize_heap,
- "m": _emscripten_unwind_to_js_event_loop,
+ "q": _emscripten_memcpy_big,
+ "p": _emscripten_receive_on_main_thread_js,
+ "o": _emscripten_resize_heap,
+ "n": _emscripten_unwind_to_js_event_loop,
  "x": _environ_get,
  "w": _environ_sizes_get,
- "l": _exit,
+ "m": _exit,
  "v": _fd_close,
  "u": _fd_read,
- "k": _fd_seek,
- "h": _fd_write,
+ "l": _fd_seek,
+ "i": _fd_write,
  "a": wasmMemory,
- "j": _strftime_l
+ "k": _strftime_l
 };
 
 var asm = createWasm();
