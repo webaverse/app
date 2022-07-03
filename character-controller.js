@@ -960,19 +960,19 @@ class LocalPlayer extends NetworkPlayer {
       }
     });
   }
+
   setMicMediaStream(mediaStream) {
-    if (!this.avatar)
-      return console.warn("Can't set mic media stream, no avatar");
+    if (!this.avatar) {return console.warn("Can't set mic media stream, no avatar");
     if (this.microphoneMediaStream) {
       this.microphoneMediaStream.disconnect();
       this.microphoneMediaStream = null;
     }
     if (mediaStream) {
-      this.avatar.setAudioEnabled(true, this);
+      this.avatar.setMicrophoneEnabled(true, this);
       const audioContext = Avatar.getAudioContext();
       const mediaStreamSource = audioContext.createMediaStreamSource(mediaStream);
 
-      mediaStreamSource.connect(this.avatar.getAudioInput(true));
+      mediaStreamSource.connect(this.avatar.getMicrophoneInput(true));
 
       this.microphoneMediaStream = mediaStreamSource;
     }
@@ -1369,9 +1369,9 @@ class RemotePlayer extends NetworkPlayer {
         const voiceSpec = e.changes.keys.get('voiceSpec');
         const json = JSON.parse(voiceSpec.value);
         if (json.endpointUrl)
-          this.loadVoiceEndpoint(json.endpointUrl);
+          {this.loadVoiceEndpoint(json.endpointUrl);}
         if (json.audioUrl && json.indexUrl)
-          this.loadVoicePack({audioUrl: json.audioUrl, indexUrl: json.indexUrl});
+          {this.loadVoicePack({audioUrl: json.audioUrl, indexUrl: json.indexUrl});}
       }
 
       if (e.changes.keys.get('name')) {
