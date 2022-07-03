@@ -815,6 +815,7 @@ class NetworkPlayer extends Player {
 
         for (const item of deleted.values()) {
           let action = item.content.type;
+          if(!action) return console.warn("action is null")
           this.dispatchEvent({
             type: 'actionremove',
             action: action,

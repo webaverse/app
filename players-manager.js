@@ -19,8 +19,7 @@ class PlayersManager {
   }
 
   unbindState() {
-    if (!this.playersArray) return console.warn('unbindState function called but playersArray was null');
-    // console.log('unbind player observers', lastPlayers, new Error().stack);
+    if (!this.playersArray) return; // console.warn('unbindState function called but playersArray was null');
     const playerSpecs = this.playersArray.toJSON();
     const nonLocalPlayerSpecs = playerSpecs.filter(p => {
       return p.playerId !== getLocalPlayer().playerId;

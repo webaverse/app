@@ -72,8 +72,8 @@ class AppManager extends EventTarget {
   }
   // Remove all the apps from remote players before calling unbindState
   unbindState() {
-    if (!this.unbindStateFn) return console.warn("unbindState called but not bound");
-    this.unbindStateFn();
+    // if (!this.unbindStateFn) return console.warn("unbindState called but not bound");
+    if (this.unbindStateFn) this.unbindStateFn();
     this.appsArray = null;
     this.unbindStateFn = null;
   }
