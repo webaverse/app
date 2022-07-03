@@ -24,8 +24,9 @@ export const Tokens = ({loginFrom, hacks}) => {
           async function queryOpensea() {
             fetch(
               `https://api.opensea.io/api/v1/assets?owner=${currentAddress}&limit=${50}`,
-              { headers: { "X-API-KEY": "6a7ceb45f3c44c84be65779ad2907046" } }
-            ).then((res) => res.json())
+             // { headers: { "X-API-KEY": "6a7ceb45f3c44c84be65779ad2907046" } }
+            // WARNING: without opensea api key this API is rate-limited
+             ).then((res) => res.json())
               .then(({ assets }) => setNfts(assets))
               .catch(() => console.warn('could not connect to opensea. the api key may have expired'));
           }
