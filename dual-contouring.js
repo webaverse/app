@@ -114,7 +114,6 @@ const sphereDamage = damageFn => (
           position,
         };
       }
-      console.log(chunks);
       return chunks;
     } else {
       return null;
