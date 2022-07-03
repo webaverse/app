@@ -436,13 +436,6 @@ class Player extends THREE.Object3D {
       const _transplantNewApp = () => {
         if (world.appManager.hasTrackedApp(app.instanceId)) {
           world.appManager.transplantApp(app, this.appManager);
-        } else {
-          console.warn(
-            'need to transplant unowned app',
-            app,
-            world.appManager,
-            this.appManager
-          );
         }
       };
       _transplantNewApp();
@@ -557,8 +550,6 @@ class Player extends THREE.Object3D {
           } else {
             this.appManager.transplantApp(app, world.appManager);
           }
-        } else {
-          console.warn('need to transplant unowned app', app, this.appManager, world.appManager);
         }
       };
       _removeApp();
@@ -1089,7 +1080,7 @@ class LocalPlayer extends NetworkPlayer {
     camera.updateMatrixWorld();
   } */
   pushPlayerUpdates(timeDiff) {
-    if (this.lastMatrix.equals(this.matrixWorld)) return;
+    // if (this.lastMatrix.equals(this.matrixWorld)) return;
     this.lastMatrix.copy(this.matrixWorld);
     this.position.toArray(this.transform);
     this.quaternion.toArray(this.transform, 3);

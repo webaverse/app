@@ -138,7 +138,6 @@ class AppManager extends EventTarget {
   }
   // Called on the remote player on construction
   async loadApps() {
-    if(this.isLocalPlayer) return console.warn("Trying to call loadApps on local player");
     for (let i = 0; i < this.appsArray.length; i++) {
       const trackedApp = this.appsArray.get(i, Z.Map);
       const app = await this.importTrackedApp(trackedApp);
@@ -150,9 +149,6 @@ class AppManager extends EventTarget {
   bindTrackedApp(trackedApp, app) {
     if(this.isLocalPlayer) return console.warn("Cannot bind tracked app, local player is app owner");
     if(this.trackedAppBound(trackedApp.instanceId)) this.unbindTrackedApp(trackedApp.instanceId);
-    const player = metaversefile.getPlayerByInstanceId(app.instanceId);
-    const lastPosition = new THREE.Vector3();
-    const sitPosition = new THREE.Vector3();
     const observeTrackedAppFn = (e) => {
       if (e.changes.keys.has("transform")) {
         const transform = trackedApp.get("transform");
@@ -160,69 +156,12 @@ class AppManager extends EventTarget {
           app.quaternion.fromArray(transform, 3);
           app.scale.fromArray(transform, 7);
           app.updateMatrixWorld();
-          if(player){
-            // TODO: We want to update the player position from the app so that it stays in sync
-            // Right now, when we are sitting on a vehicle we get stutter since they are updating at different times
-            // The player also has interpolation, so the best-case scenario is that it smoothly lags behind the vehicle on remote clients
-          // if (app.getComponent("sit")) {
-          //   const timeDiff = transform[10];
-          //   const sitComponent = app.getComponent("sit");
-          //   console.log("handling sit", sitComponent);
-
-          //   const sitOffset = sitComponent.sitOffset;
-          //   sitPosition.fromArray(sitOffset);
-          //   sitPosition.applyQuaternion(app.quaternion);
-
-          //   player.position.copy(app.position).add(sitPosition);
-
-          //   player.quaternion.copy(app.quaternion);
-
-          //   player.positionInterpolant?.snapshot(timeDiff);
-          //   player.quaternionInterpolant?.snapshot(timeDiff);
-
-          //   for (const actionBinaryInterpolant of player
-          //     .actionBinaryInterpolantsArray) {
-          //     actionBinaryInterpolant.snapshot(timeDiff);
-          //   }
-          //   for (const actionInterpolant of player.actionInterpolantsArray) {
-          //     actionInterpolant.update(timeDiff);
-          //   }
-  
-          //   player.characterPhysics.setPosition(player.position);
-    
-          //     player.avatar.setVelocity(
-          //       timeDiff / 1000,
-          //       lastPosition,
-          //       player.position,
-          //       player.quaternion
-          //     );
-
-          //     lastPosition.copy(player.position);
-
-          //     applyPlayerToAvatar(player, null, player.avatar, []);
-          //       const timestamp = performance.now();
-          //     const timeDiffS = timeDiff / 1000;
-          //     player.characterSfx.update(timestamp, timeDiffS, player.getActionsState());
-          //     player.characterFx.update(timestamp, timeDiffS);
-          //     player.characterHitter.update(timestamp, timeDiffS);
-          //     player.characterBehavior.update(timestamp, timeDiffS);
-          
-          //     player.avatar.update(timestamp, timeDiff, false);
-            // 
-            // 
-          //}
-        }
-      } else {
-        console.warn("tracked app key change", e)
       }
     };
     trackedApp.observe(observeTrackedAppFn);
 
     const instanceId = trackedApp.get("instanceId");
-    this.trackedAppUnobserveMap.set(
-      instanceId,
-      trackedApp.unobserve.bind(trackedApp, observeTrackedAppFn)
-    );
+    this.trackedAppUnobserveMap.set(instanceId, trackedApp.unobserve.bind(trackedApp, observeTrackedAppFn));
   }
   trackedAppBound (instanceId) {
     return !!this.trackedAppUnobserveMap.get(instanceId)
