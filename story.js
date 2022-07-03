@@ -23,6 +23,7 @@ import {chatManager} from './chat-manager.js';
 import {mod} from './util.js';
 import {getLocalPlayer} from './players.js';
 import {alea} from './procgen/procgen.js';
+import {triggerEmote} from './src/components/general/character/Poses.jsx';
 
 const localVector2D = new THREE.Vector2();
 
@@ -95,7 +96,7 @@ class Conversation extends EventTarget {
       }
     }); */
   }
-  addLocalPlayerMessage(text, type = 'chat') {
+  addLocalPlayerMessage(text, emote, type = 'chat') {
     const message = {
       type,
       player: this.localPlayer,
@@ -116,7 +117,7 @@ class Conversation extends EventTarget {
 
     cameraManager.setDynamicTarget(this.localPlayer.avatar.modelBones.Head, this.remotePlayer?.avatar.modelBones.Head);
   }
-  addRemotePlayerMessage(text, type = 'chat') {
+  addRemotePlayerMessage(text, emote, type = 'chat') {
     const message = {
       type,
       player: this.remotePlayer,
@@ -136,6 +137,10 @@ class Conversation extends EventTarget {
     })();
 
     cameraManager.setDynamicTarget(this.remotePlayer.avatar.modelBones.Head, this.localPlayer.avatar.modelBones.Head);
+    // Triggerring emote for remote player on based on chatResponse.
+    if (emote !== 'normal') {
+      triggerEmote(emote, this.remotePlayer);
+    }
   }
   async wrapProgress(fn) {
     if (!this.progressing) {
@@ -163,7 +168,7 @@ class Conversation extends EventTarget {
       } = await aiScene.generateChatMessage(this.messages, this.remotePlayer.name);
       
       if (!this.messages.some(m => m.text === comment && m.player === this.remotePlayer)) {
-        this.addRemotePlayerMessage(comment);
+        this.addRemotePlayerMessage(comment, emote);
         done && this.finish();
       } else {
         this.finish();
@@ -215,8 +220,13 @@ class Conversation extends EventTarget {
     }
 
     // say the option
-    this.addLocalPlayerMessage(option, 'option');
+    this.addLocalPlayerMessage(option.message, 'option');
     
+    // Triggerring emote for player executing option
+    if (option.emote !== 'normal') {
+      triggerEmote(option.emote, this.localPlayer);
+    }
+
     // clear options
     this.#setOptions(null);
     this.#setOption(option);

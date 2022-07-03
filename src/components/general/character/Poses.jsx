@@ -7,18 +7,21 @@ import styles from './poses.module.css';
 import metaversefile from 'metaversefile';
 import {emoteAnimations} from '../../../../avatars/animationHelpers.js';
 import emotes from './emotes.json';
+import fallbackEmotes from './fallback_emotes.json';
 
 //
 
 let emoteTimeout = null;
-export const triggerEmote = emoteName => {
+export const triggerEmote = (emoteName, player = null) => {
   const emoteHardName = emoteName.replace(/Soft$/, '');
-  const emote = emotes.find(emote => emote.name === emoteHardName);
+  const emoteFinalName = fallbackEmotes[emoteHardName] || emoteHardName;
+  const emote = emotes.find(emote => emote.name === emoteFinalName);
   const {emotion} = emote;
-  
+
+  player = !player ? metaversefile.useLocalPlayer() : player;
+
   // clear old emote
-  const localPlayer = metaversefile.useLocalPlayer();
-  localPlayer.removeAction('emote');
+  player.removeAction('emote');
   if (emoteTimeout) {
     clearTimeout(emoteTimeout);
     emoteTimeout = null;
@@ -27,20 +30,19 @@ export const triggerEmote = emoteName => {
   // add new emote
   const newAction = {
     type: 'emote',
-    animation: emoteName,
+    animation: emoteFinalName,
   };
-  localPlayer.addAction(newAction);
-
+  player.addAction(newAction);
   setFacePoseValue(emotion, 1);
 
   const emoteAnimation = emoteAnimations[emoteName];
   const emoteAnimationDuration = emoteAnimation.duration;
   emoteTimeout = setTimeout(() => {
-    const actionIndex = localPlayer.findActionIndex(action => action.type === 'emote' && action.animation === emoteName);
-    localPlayer.removeActionIndex(actionIndex);
+    const actionIndex = player.findActionIndex(action => action.type === 'emote' && action.animation === emoteFinalName);
+    player.removeActionIndex(actionIndex);
 
     setFacePoseValue(emotion, 0);
-    
+
     emoteTimeout = null;
   }, emoteAnimationDuration * 1000);
 };
