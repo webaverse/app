@@ -148,7 +148,6 @@ class Player extends THREE.Object3D {
   constructor({
     name = defaultPlayerName,
     playerId = makeId(5),
-    playersArray = new Z.Doc().getArray(playersMapName),
     isLocalPlayer = false
   } = {}) {
     super();
@@ -166,7 +165,6 @@ class Player extends THREE.Object3D {
 
     this.voicePack = null;
     this.voiceEndpoint = null;
-    this.microphoneMediaStream = null;
 
     this.eyeballTarget = new THREE.Vector3();
     this.eyeballTargetEnabled = false;
@@ -205,8 +203,6 @@ class Player extends THREE.Object3D {
       });
     }
     _prepareAppManager();
-
-    this.bindState(playersArray);
   }
   findAction(fn) {
     const actions = this.getActionsState();
@@ -774,6 +770,11 @@ class Player extends THREE.Object3D {
 }
 
 class NetworkPlayer extends Player {
+  constructor(opts){
+    super(opts);
+    const playersArray = opts.playersArray ?? new Z.Doc().getArray(playersMapName)
+    this.bindState(playersArray);
+  }
   isBound() {
     return !!this.playersArray;
   }
@@ -881,6 +882,8 @@ class LocalPlayer extends NetworkPlayer {
     this.lastTimestamp = NaN;
     this.lastMatrix = new THREE.Matrix4();
     this.transform = new Float32Array(8);
+
+    this.microphoneMediaStream = null;
 
     this.bio = defaultPlayerBio;
     this.actionInterpolants = {
