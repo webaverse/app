@@ -222,13 +222,7 @@ w.createTerrainChunkMeshAsync = async (inst, x, y, z, lods) => {
 
   allocator.freeAll();
 
-  // console.log('got async task id', taskId);
   const outputBufferOffset = await p;
-  // console.log('got async task result', taskId, outputBufferOffset);
-
-  /* await new Promise((accept, reject) => {
-    // XXX hang
-  }); */
 
   if (outputBufferOffset) {
     const result = _parseTerrainVertexBuffer(
