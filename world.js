@@ -73,8 +73,7 @@ export class World {
 
     this.appManager.unbindState();
     this.appManager.clear();
-    const worldMap = state.getMap(worldMapName);
-    const appsArray = worldMap.get(appsMapName, Z.Array);
+    const appsArray = state.get(appsMapName, Z.Array);
 
     this.appManager.bindState(appsArray);
 
@@ -125,8 +124,7 @@ export class World {
     const open = e => {
       this.wsrtc.removeEventListener('open', open);
       // Clear the last world state
-      const worldMap = state.getMap(worldMapName);
-      const appsArray = worldMap.get(appsMapName, Z.Array);
+      const appsArray = state.get(appsMapName, Z.Array);
       playersManager.bindState(state.getArray(playersMapName));
 
       // Unbind the world state to clear existing apps

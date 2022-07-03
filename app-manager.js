@@ -28,6 +28,8 @@ class AppManager extends EventTarget {
     this.apps = [];
     this.isLocalPlayer = isLocalPlayer;
 
+    this.transform = new Float32Array(10);
+
     this.pendingAddPromises = new Map();
     this.unbindStateFn = null;
     this.trackedAppUnobserveMap = new Map();
@@ -436,23 +438,10 @@ class AppManager extends EventTarget {
   ) {
     const self = this;
     this.appsArray.doc.transact(function tx() {
-      const transform = new Float32Array(11);
-
-      const pack3 = (v, i) => {
-        transform[i] = v.x;
-        transform[i + 1] = v.y;
-        transform[i + 2] = v.z;
-      };
-      const pack4 = (v, i) => {
-        transform[i] = v.x;
-        transform[i + 1] = v.y;
-        transform[i + 2] = v.z;
-        transform[i + 3] = v.w;
-      };
-
-      pack3(position, 0);
-      pack4(quaternion, 3);
-      pack3(scale, 7);
+      const transform = new Float32Array(10);
+      position.toArray(transform);
+      quaternion.toArray(transform, 3);
+      scale.toArray(transform, 7);
 
       self.addTrackedAppInternal(instanceId, contentId, transform, components);
     });
@@ -548,23 +537,12 @@ class AppManager extends EventTarget {
     let transform = srcTrackedApp.get("transform");
     const components = srcTrackedApp.get("components");
 
-    if (!transform) transform = new Float32Array(11);
+    if (!transform) transform = new Float32Array(10);
 
-    const pack3 = (v, i) => {
-      transform[i] = v.x;
-      transform[i + 1] = v.y;
-      transform[i + 2] = v.z;
-    };
-    const pack4 = (v, i) => {
-      transform[i] = v.x;
-      transform[i + 1] = v.y;
-      transform[i + 2] = v.z;
-      transform[i + 3] = v.w;
-    };
+    app.position.toArray(transform);
+    app.quaternion.toArray(transform, 3);
+    app.scale.toArray(transform, 7);
 
-    pack3(app.position, 0);
-    pack4(app.quaternion, 3);
-    pack3(app.scale, 7);
     const self = this;
     this.appsArray.doc.transact(() => {
       self.removeTrackedAppInternal(instanceId);
@@ -587,37 +565,19 @@ class AppManager extends EventTarget {
     const instanceId = app.instanceId;
     const components = app.components.slice();
 
-    const transform = new Float32Array(11);
+    const transform = new Float32Array(10);
+    app.position.toArray(transform);
+    app.quaternion.toArray(transform, 3);
+    app.scale.toArray(transform, 7);
 
-    const pack3 = (v, i) => {
-      transform[i] = v.x;
-      transform[i + 1] = v.y;
-      transform[i + 2] = v.z;
-    };
-    const pack4 = (v, i) => {
-      transform[i] = v.x;
-      transform[i + 1] = v.y;
-      transform[i + 2] = v.z;
-      transform[i + 3] = v.w;
-    };
-
-    pack3(app.position, 0);
-    pack4(app.quaternion, 3);
-    pack3(app.scale, 7);
     const self = this;
     this.appsArray.doc.transact(() => {
-      dstTrackedApp = self.addTrackedAppInternal(
-        instanceId,
-        contentId,
-        transform,
-        components
-      );
+      dstTrackedApp = self.addTrackedAppInternal(instanceId, contentId, transform, components);
     });
   }
   hasApp(app) {
     return this.apps.includes(app);
   }
-  packed = new Float32Array(11);
 
   // called by local player, remote players and world update()
   update(timeDiff) {
@@ -634,24 +594,11 @@ class AppManager extends EventTarget {
                 localQuaternion,
                 localVector2
               );
-              const packed = self.packed;
-              const pack3 = (v, i) => {
-                packed[i] = v.x;
-                packed[i + 1] = v.y;
-                packed[i + 2] = v.z;
-              };
-              const pack4 = (v, i) => {
-                packed[i] = v.x;
-                packed[i + 1] = v.y;
-                packed[i + 2] = v.z;
-                packed[i + 3] = v.w;
-              };
-              pack3(localVector, 0);
-              pack4(localQuaternion, 3);
-              pack3(localVector2, 7);
-              packed[10] = timeDiff;
-              trackedApp.set("transform", packed);
-              console.log("updating")
+              const transform = self.transform;
+              localVector.toArray(transform, 0);
+              localVector.toArray(transform, 3);
+              localVector.toArray(transform, 7);
+              trackedApp.set('transform', transform)
             } else {
               console.warn("App is not a tracked app, not sending out transform")
             }
