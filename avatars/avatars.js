@@ -69,8 +69,8 @@ const localVector3 = new THREE.Vector3();
 
 const localQuaternion = new THREE.Quaternion();
 const localQuaternion2 = new THREE.Quaternion();
-// const localQuaternion3 = new THREE.Quaternion();
-// const localQuaternion4 = new THREE.Quaternion();
+const localQuaternion3 = new THREE.Quaternion();
+const localQuaternion4 = new THREE.Quaternion();
 // const localQuaternion5 = new THREE.Quaternion();
 // const localQuaternion6 = new THREE.Quaternion();
 const localEuler = new THREE.Euler(0, 0, 0, 'YXZ');
@@ -2004,6 +2004,9 @@ class Avatar {
                 }
               }
             };
+          }
+        }
+      }
 
 
             const _updateSubAvatars = () => {
@@ -2110,6 +2113,7 @@ class Avatar {
 
             this.modelBoneOutputs.Root.updateMatrixWorld();
 
+            if(this.arPose){
             // update head
             const q = new THREE.Quaternion().setFromEuler(
               new THREE.Euler(
@@ -2150,8 +2154,6 @@ class Avatar {
             this.modelBoneOutputs.Eye_L.quaternion.identity();
             this.modelBoneOutputs.Eye_R.quaternion.identity();
           }
-        }
-      }
       Avatar.applyModelBoneOutputs(
         this,
         this.foundModelBones,

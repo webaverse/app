@@ -1,6 +1,6 @@
 import * as THREE from 'three';
 // import metaversefile from "metaversefile";
-import * as Kalidokit from 'kalidokit/src/index.js';
+import * as Kalidokit from 'kalidokit';
 // import {calcLegs} from 'kalidokit/src/PoseSolver/calcLegs.js';
 // import {Holistic} from '@mediapipe/holistic/holistic';
 // import {Camera} from '@mediapipe/camera_utils/camera_utils';
@@ -1424,6 +1424,7 @@ class FaceTracker extends EventTarget {
     // avatar.inputs.hmd.position.y = avatar.height;
     
     const idleAvatar = _makeFakeAvatar();
+    console.log("newAvatar is", newAvatar)
     _copyAvatarBonePositions(idleAvatar, newAvatar.modelBones);
     _setAvatarToIdlePose(idleAvatar);
     this.idleAvatar = idleAvatar;

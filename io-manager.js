@@ -25,6 +25,7 @@ import transformControls from './transform-controls.js';
 import storyManager from './story.js';
 // import domRenderer from './dom-renderer.jsx';
 import raycastManager from './raycast-manager.js';
+import {FaceTracker} from './face-tracking.js';
 
 const localVector = new THREE.Vector3();
 // const localVector2 = new THREE.Vector3();
@@ -865,6 +866,35 @@ ioManager.bindInput = () => {
   }, {
     passive: false,
   }); */
+  ioManager.getFaceTracker = () => faceTracker;
+  ioManager.getFaceTracking = () => !!faceTracker;
+  const _syncAvatar = async app => {
+    const avatarClone = await app.clone();
+    delete(avatarClone.avatar);
+    console.log('face tracker set avatar', avatarClone);
+    await faceTracker.setAvatar(avatarClone);
+  };
+  const localPlayer = metaversefile.useLocalPlayer();
+  ioManager.setFaceTracking = enable => {
+    console.log('set face tracking', enable, !!faceTracker);
+    if (enable && !faceTracker) {
+      faceTracker = new FaceTracker();
+
+      if (localPlayer.avatar) {
+        _syncAvatar(localPlayer.avatar.app);
+      }
+    } else if (!enable && !!faceTracker) {
+      faceTracker.destroy();
+      faceTracker = null;
+    }
+  };
+  // console.log('listen for avatar change');
+  localPlayer.addEventListener('avatarupdate', e => {
+    // onsole.log('got avatar change', e, !!faceTracker);
+    if (faceTracker) {
+      _syncAvatar(e.app);
+    }
+  })
 };
 
 export default ioManager;
