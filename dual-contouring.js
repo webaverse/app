@@ -6,6 +6,12 @@ import {defaultChunkSize} from './constants.js';
 
 const cbs = new Map();
 
+const align = (v, N) => {
+  const r = v % N;
+  return r === 0 ? v : v - r + N;
+};
+const align4 = v => align(v, 4);
+
 const w = {};
 
 w.waitForLoad = Module.waitForLoad;
