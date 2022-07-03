@@ -962,7 +962,7 @@ class LocalPlayer extends NetworkPlayer {
   }
 
   setMicMediaStream(mediaStream) {
-    if (!this.avatar) {return console.warn("Can't set mic media stream, no avatar");
+    if (!this.avatar) return console.warn("Can't set mic media stream, no avatar");
     if (this.microphoneMediaStream) {
       this.microphoneMediaStream.disconnect();
       this.microphoneMediaStream = null;
