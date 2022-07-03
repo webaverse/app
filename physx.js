@@ -2044,7 +2044,7 @@ const physxWorker = (() => {
       id,
       materialAddress,
       +dynamic,
-      // groupId // !!!!!! Fix wrong filter, not collide with CharacterController bug. But will cause physicsCube fly high when start. !!!!!!
+      groupId // !!!!!! Fix wrong filter, not collide with CharacterController bug. But will cause physicsCube fly high when start. !!!!!!
     )
     allocator.freeAll()
   }
