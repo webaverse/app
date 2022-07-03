@@ -870,9 +870,8 @@ class LocalPlayer extends NetworkPlayer {
     this.isNpcPlayer = !!opts.npc;
     this.detached = !!opts.detached;
 
-    this.lastTimestamp = NaN;
     this.lastMatrix = new THREE.Matrix4();
-    this.transform = new Float32Array(8);
+    this.transform = new Float32Array(7);
 
     this.microphoneMediaStream = null;
 
@@ -984,10 +983,9 @@ class LocalPlayer extends NetworkPlayer {
       self.playerMap.set('name', self.name);
       self.playerMap.set('bio', self.bio);
 
-      const transform = new Float32Array(8);
+      const transform = new Float32Array(7);
       self.position.toArray(transform);
       self.quaternion.toArray(transform, 3);
-      transform[7] = 0;
 
       self.playerMap.set('transform', transform);
       const avatar = self.getAvatarState();
@@ -1084,7 +1082,6 @@ class LocalPlayer extends NetworkPlayer {
     this.lastMatrix.copy(this.matrixWorld);
     this.position.toArray(this.transform);
     this.quaternion.toArray(this.transform, 3);
-    this.transform[7] = timeDiff;
 
     this.playerMap.set('transform', this.transform);
   }
@@ -1356,7 +1353,7 @@ class RemotePlayer extends NetworkPlayer {
     const lastPosition = new THREE.Vector3();
 
     loadPhysxCharacterController.call(this);
-
+    let lastTimestamp = performance.now();
     const observePlayerFn = (e) => {
       if (this.isLocalPlayer) return;
 
@@ -1376,32 +1373,33 @@ class RemotePlayer extends NetworkPlayer {
       if (e.changes.keys.has('transform')) {
         const transform = this.playerMap.get('transform');
         if (transform) {
-          const remoteTimeDiff = transform[7];
-          
+          const newTimestamp = performance.now();
+          const timeDiff = newTimestamp - lastTimestamp;
+          lastTimestamp = newTimestamp;
           this.position.fromArray(transform, 0);
 
           if (this.avatar) this.characterPhysics.setPosition(this.position);
 
           this.quaternion.fromArray(transform, 3);
 
-          this.positionInterpolant?.snapshot(remoteTimeDiff);
-          this.quaternionInterpolant?.snapshot(remoteTimeDiff);
+          this.positionInterpolant?.snapshot(timeDiff);
+          this.quaternionInterpolant?.snapshot(timeDiff);
 
           for (const actionBinaryInterpolant of this
             .actionBinaryInterpolantsArray) {
-            actionBinaryInterpolant.snapshot(remoteTimeDiff);
+            actionBinaryInterpolant.snapshot(timeDiff);
           }
 
           if (this.avatar) {
             this.avatar.setVelocity(
-              remoteTimeDiff / 1000,
+              timeDiff / 1000,
               lastPosition,
               this.position,
               this.quaternion
             );
           }
 
-          this.characterPhysics.applyAvatarPhysicsDetail(true, true, performance.now(), remoteTimeDiff / 1000);
+          this.characterPhysics.applyAvatarPhysicsDetail(true, true, performance.now(), timeDiff / 1000);
 
           lastPosition.copy(this.position);
 
