@@ -392,7 +392,6 @@ const _handleMethod = async ({method, args}) => {
       // console.log('draw cube damage chunks', chunks);
 
       if (chunks) {
-        _injectDamages(chunks, instanceKey);
         return {
           result: _chunksToResult(chunks),
           transfers: [],
@@ -420,7 +419,6 @@ const _handleMethod = async ({method, args}) => {
       );
 
       if (chunks) {
-        _injectDamages(chunks, instanceKey);
         return {
           result: _chunksToResult(chunks),
           transfers: [],
@@ -442,7 +440,6 @@ const _handleMethod = async ({method, args}) => {
       );
 
       if (chunks) {
-        _injectDamages(chunks, instanceKey);
         return {
           result: _chunksToResult(chunks),
           transfers: [],
@@ -464,7 +461,6 @@ const _handleMethod = async ({method, args}) => {
       );
 
       if (chunks) {
-        _injectDamages(chunks, instanceKey);
         return {
           result: _chunksToResult(chunks),
           transfers: [],
