@@ -193,11 +193,10 @@ const _handleMethod = async ({method, args}) => {
       const {instance: instanceKey, chunkPosition, lodArray} = args;
       const instance = instances.get(instanceKey);
       if (!instance) throw new Error('generateTerrainChunkRenderable : instance not found');
-      localVector.fromArray(chunkPosition)
+      const position = new THREE.Vector3().fromArray(chunkPosition)
         .multiplyScalar(chunkWorldSize);
-      // console.log('generate renderable 1');
-      const meshData = await dc.createTerrainChunkMeshAsync(instance, localVector.x, localVector.y, localVector.z, lodArray);
-      // console.log('generate renderable 2');
+      // console.log('got position', position.toArray().join(','));
+      const meshData = await dc.createTerrainChunkMeshAsync(instance, position.x, position.y, position.z, lodArray);
       // console.log('got mesh data result 1', meshData);
       const meshData2 = _cloneTerrainMeshData(meshData);
       // console.log('got mesh data result 2', meshData2);
@@ -207,16 +206,16 @@ const _handleMethod = async ({method, args}) => {
         const lod = lodArray[0];
         meshData2.skylights = await dc.getChunkSkylightAsync(
           instance,
-          localVector.x,
-          localVector.y,
-          localVector.z,
+          position.x,
+          position.y,
+          position.z,
           lod
         );
         meshData2.aos = await dc.getChunkAoAsync(
           instance,
-          localVector.x,
-          localVector.y,
-          localVector.z,
+          position.x,
+          position.y,
+          position.z,
           lod
         );
 

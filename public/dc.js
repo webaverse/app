@@ -342,7 +342,7 @@ function updateGlobalBufferAndViews(buf) {
  Module["HEAPF64"] = HEAPF64 = new Float64Array(buf);
 }
 
-var INITIAL_MEMORY = Module["INITIAL_MEMORY"] || 1073741824;
+var INITIAL_MEMORY = Module["INITIAL_MEMORY"] || 536870912;
 
 if (ENVIRONMENT_IS_PTHREAD) {
  wasmMemory = Module["wasmMemory"];
@@ -624,31 +624,13 @@ var tempI64;
 
 var ASM_CONSTS = {
  32004: () => {
-  printf("Error! The provided voxel has no vertex data!\n");
- },
- 32067: () => {
-  printf("Error! The provided voxel has no vertex data!\n");
- },
- 32130: () => {
   console.log("task queue destructor");
  },
- 32172: () => {
+ 32046: () => {
   globalThis.requestStartTime = performance.now();
  },
- 32225: ($0, $1) => {
-  const id = $0;
-  const result = $1;
-  if (!globalThis.resultEvent) {
-   globalThis.resultEvent = new MessageEvent("result", {
-    data: {
-     id: 0,
-     result: 0
-    }
-   });
-  }
-  globalThis.resultEvent.data.id = id;
-  globalThis.resultEvent.data.result = result;
-  globalThis.dispatchEvent(globalThis.resultEvent);
+ 32099: ($0, $1) => {
+  handleResult($0, $1);
  }
 };
 
@@ -3907,19 +3889,19 @@ function intArrayFromString(stringy, dontAddNull, length) {
 }
 
 var asmLibraryArg = {
- "f": ___cxa_allocate_exception,
- "e": ___cxa_throw,
+ "e": ___cxa_allocate_exception,
+ "d": ___cxa_throw,
  "z": ___emscripten_init_main_thread_js,
  "i": ___emscripten_thread_cleanup,
  "y": ___pthread_create_js,
  "t": __emscripten_default_pthread_stack_size,
  "s": __emscripten_notify_task_queue,
  "r": __emscripten_set_offscreencanvas_size,
- "b": _abort,
+ "c": _abort,
  "q": _emscripten_asm_const_async_on_main_thread,
- "d": _emscripten_asm_const_int,
- "g": _emscripten_check_blocking_allowed,
- "c": _emscripten_get_now,
+ "g": _emscripten_asm_const_int,
+ "f": _emscripten_check_blocking_allowed,
+ "b": _emscripten_get_now,
  "p": _emscripten_memcpy_big,
  "o": _emscripten_receive_on_main_thread_js,
  "n": _emscripten_resize_heap,

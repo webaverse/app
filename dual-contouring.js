@@ -310,7 +310,7 @@ w.getChunkHeightfieldAsync = async (inst, x, z, lod) => {
 
   // const heights = allocator.alloc(Float32Array, chunkSize * chunkSize);
 
-  try {
+  // try {
     const taskId = Module._getChunkHeightfieldAsync(
       inst,
       x, z,
@@ -324,9 +324,9 @@ w.getChunkHeightfieldAsync = async (inst, x, z, lod) => {
     const heights2 = new Float32Array(Module.HEAPU8.buffer, heights, chunkSize * chunkSize).slice();
     Module._doFree(heights);
     return heights2;
-  } finally {
+  /* } finally {
     // allocator.freeAll();
-  }
+  } */
 };
 /* w.getHeightfieldRange = (inst, x, z, w, h, lod) => {
   const allocator = new Allocator(Module);
@@ -352,7 +352,7 @@ w.getChunkSkylightAsync = async (inst, x, y, z, lod) => {
   // const gridPoints = chunkSize + 3 + lod;
   // const skylights = allocator.alloc(Uint8Array, chunkSize * chunkSize * chunkSize);
 
-  try {
+  // try {
     const taskId = Module._getChunkSkylightAsync(
       inst,
       x, y, z,
@@ -366,16 +366,16 @@ w.getChunkSkylightAsync = async (inst, x, y, z, lod) => {
     const skylights2 = new Uint8Array(Module.HEAPU8.buffer, skylights, chunkSize * chunkSize * chunkSize).slice();
     Module._doFree(skylights);
     return skylights2;
-  } finally {
+  /* } finally {
     // allocator.freeAll();
-  }
+  } */
 };
 w.getChunkAoAsync = async (inst, x, y, z, lod) => {
   // const allocator = new Allocator(Module);
 
   // const aos = allocator.alloc(Uint8Array, chunkSize * chunkSize * chunkSize);
 
-  try {
+  // try {
     const taskId = Module._getChunkAoAsync(
       inst,
       x, y, z,
@@ -389,9 +389,9 @@ w.getChunkAoAsync = async (inst, x, y, z, lod) => {
     const aos2 = new Uint8Array(Module.HEAPU8.buffer, aos, chunkSize * chunkSize * chunkSize).slice();
     Module._doFree(aos);
     return aos2;
-  } finally {
+  /* } finally {
     // allocator.freeAll();
-  }
+  } */
 };
 /* w.getSkylightFieldRange = (inst, x, y, z, w, h, d, lod) => {
   const allocator = new Allocator(Module);
@@ -439,7 +439,7 @@ w.createGrassSplatAsync = async (inst, x, z, lod) => {
   // const instances = allocator.alloc(Float32Array, allocSize);
   // const count = allocator.alloc(Uint32Array, 1);
 
-  try {
+  // try {
     const taskId = Module._createGrassSplatAsync(
       inst,
       x, z,
@@ -460,9 +460,9 @@ w.createGrassSplatAsync = async (inst, x, z, lod) => {
       qs: qs.slice(0, numElements * 4),
       instances: instances.slice(0, numElements),
     }; */
-  } finally {
+  /* } finally {
     // allocator.freeAll();
-  }
+  } */
 };
 w.createVegetationSplatAsync = async (inst, x, z, lod) => {
   // const allocator = new Allocator(Module);
@@ -473,7 +473,7 @@ w.createVegetationSplatAsync = async (inst, x, z, lod) => {
   // const instances = allocator.alloc(Float32Array, allocSize);
   // const count = allocator.alloc(Uint32Array, 1);
 
-  try {
+  // try {
     const taskId = Module._createVegetationSplatAsync(
       inst,
       x, z,
@@ -494,9 +494,9 @@ w.createVegetationSplatAsync = async (inst, x, z, lod) => {
       qs: qs.slice(0, numElements * 4),
       instances: instances.slice(0, numElements),
     }; */
-  } finally {
+  /* } finally {
     // allocator.freeAll();
-  }
+  } */
 };
 w.createMobSplatAsync = async (inst, x, z, lod) => {
   // const allocator = new Allocator(Module);
@@ -507,7 +507,7 @@ w.createMobSplatAsync = async (inst, x, z, lod) => {
   const instances = allocator.alloc(Float32Array, allocSize);
   const count = allocator.alloc(Uint32Array, 1); */
 
-  try {
+  // try {
     const taskId = Module._createMobSplatAsync(
       inst,
       x, z,
@@ -528,9 +528,9 @@ w.createMobSplatAsync = async (inst, x, z, lod) => {
       qs: qs.slice(0, numElements * 4),
       instances: instances.slice(0, numElements),
     }; */
-  } finally {
+  /* } finally {
     // allocator.freeAll();
-  }
+  } */
 };
 // _parsePQI parses ps, qs, instances from a buffer
 // the buffer contains 6 entries:
@@ -564,9 +564,7 @@ function _parsePQI(addr) {
   };
 }
 
-globalThis.addEventListener('result', e => {
-  // console.log('got result', e.data, import.meta);
-  const {id, result} = e.data;
+globalThis.handleResult = (id, result) => {
   const p = cbs.get(id);
   if (p) {
     cbs.delete(id);
@@ -574,6 +572,6 @@ globalThis.addEventListener('result', e => {
   } else {
     console.warn('failed to find promise for id', e.data);
   }
-});
+};
 
 export default w;

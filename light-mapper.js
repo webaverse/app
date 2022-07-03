@@ -1,5 +1,6 @@
 import * as THREE from 'three';
-import {getRenderer} from './renderer.js';
+import {getRenderer, scene} from './renderer.js';
+import {WebaverseShaderMaterial} from './materials.js';
 
 const localVector = new THREE.Vector3();
 const localVector2 = new THREE.Vector3();
@@ -124,12 +125,14 @@ export class LightMapper extends EventTarget {
     chunkSize,
     terrainSize,
     range,
+    debug,
   }) {
     super();
 
     this.chunkSize = chunkSize;
     this.terrainSize = terrainSize;
-    this.range = range; // XXX support this
+    this.range = range;
+    // this.debug = debug;
 
     const skylightData = new Uint8Array(terrainSize * terrainSize * terrainSize);
     const skylightTex = new THREE.DataTexture3D(skylightData, terrainSize, terrainSize, terrainSize);
@@ -163,6 +166,95 @@ export class LightMapper extends EventTarget {
       -terrainSize / 2
     );
     this.lightTexSize = new THREE.Vector3(terrainSize, terrainSize, terrainSize);
+
+    if (debug) {
+      const maxInstances = terrainSize * terrainSize * terrainSize;
+      const instancedCubeGeometry = new THREE.InstancedBufferGeometry();
+      {
+        const cubeGeometry = new THREE.BoxBufferGeometry(0.8, 0.8, 0.8);
+        for (const k in cubeGeometry.attributes) {
+          instancedCubeGeometry.setAttribute(k, cubeGeometry.attributes[k]);
+        }
+        instancedCubeGeometry.setIndex(cubeGeometry.index);
+      }
+      const debugMaterial = new WebaverseShaderMaterial({
+        uniforms: {
+          uSkylightTex: {
+            value: this.skylightTex,
+            needsUpdate: true,
+          },
+          uAoTex: {
+            value: this.aoTex,
+            needsUpdate: true,
+          },
+        },
+        vertexShader: `\
+          varying vec3 vNormal;
+          varying vec3 vUv;
+          
+          const float terrainSize = ${terrainSize.toFixed(8)};
+          
+          void main() {
+            float instance = float(gl_InstanceID);
+            float x = mod(instance, terrainSize);
+            instance = (instance - x) / terrainSize;
+            float y = mod(instance, terrainSize);
+            instance = (instance - y) / terrainSize;
+            float z = instance;
+
+            vec3 offset = vec3(x, y, z);
+            vUv = offset / terrainSize;
+
+            gl_Position = projectionMatrix * modelViewMatrix * vec4(position + offset, 1.0);
+
+            vNormal = normalMatrix * normal;
+          }
+        `,
+        fragmentShader: `\
+          precision highp sampler3D;
+        
+          uniform sampler3D uSkylightTex;
+          uniform sampler3D uAoTex;
+
+          varying vec3 vNormal;
+          varying vec3 vUv;
+
+          const float terrainSize = ${terrainSize.toFixed(8)};
+
+          void main() {
+            float skylight = texture(uSkylightTex, vUv).r;
+            float ao = texture(uAoTex, vUv).r;
+
+            float c = 1. - (skylight * 255. / 8.);
+
+            if (c > 0.0) {
+              gl_FragColor = vec4(vNormal, c);
+            } else {
+              discard;
+            }
+          }
+        `,
+        // color: 0xFFFFFF,
+        transparent: true,
+        // opacity: 0.1,
+      });
+      const debugMesh = new THREE.InstancedMesh(instancedCubeGeometry, debugMaterial, maxInstances);
+      const heightOffset = -60;
+      // debugMesh.position.y += heightOffset;
+      // debugMesh.updateMatrixWorld();
+      // debugMesh.count = 0;
+      debugMesh.frustumCulled = false;
+      scene.add(debugMesh);
+
+      this.addEventListener('coordupdate', e => {
+        const {coord} = e.data;
+        // console.log('coord update', coord.toArray().join(','));
+        debugMesh.position.copy(coord)
+          // .multiplyScalar(terrainSize);
+        debugMesh.position.y += heightOffset;
+        debugMesh.updateMatrixWorld();
+      });
+    }
   }
   drawChunk(chunk, {
     skylights,
@@ -186,10 +278,18 @@ export class LightMapper extends EventTarget {
     } else {
       // chunk out of lighting range
     }
+
+    this.dispatchEvent(new MessageEvent('chunkupdate', {
+      data: {
+        chunk,
+        // skylights,
+        // ao,
+      },
+    }));
   }
-  updateCoord(min2xCoord) {
+  updateCoord(min1xCoord) {
     const lastPosition = this.lightBasePosition;
-    const newPosition = localVector.copy(min2xCoord)
+    const newPosition = localVector.copy(min1xCoord)
       .multiplyScalar(this.chunkSize);
     const deltaNegative = localVector2.copy(lastPosition)
       .sub(newPosition);
@@ -229,7 +329,7 @@ export class LightMapper extends EventTarget {
 
       this.lightBasePosition.copy(newPosition);
 
-      this.dispatchEvent(new MessageEvent('update', {
+      this.dispatchEvent(new MessageEvent('coordupdate', {
         data: {
           coord: newPosition,
         },
