@@ -2256,10 +2256,10 @@ const physxWorker = (() => {
     )
     return pointer;
   }
-  w.createNode = (type = AnimationNodeType.LIST) => {
+  w.createNode = (mixer, type = AnimationNodeType.LIST) => {
     // debugger
     const pointer = moduleInstance._createNode(
-      type,
+      mixer, type,
     )
     return pointer;
   }
