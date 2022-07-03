@@ -97,31 +97,24 @@ const sphereDamage = damageFn => (
     const positionsTypedArray = allocator.alloc(Float32Array, numPositions * 3);
     const numPositionsTypedArray = allocator.alloc(Uint32Array, 1);
     numPositionsTypedArray[0] = numPositions;
-    const lod = 1;
-    const gridPoints = chunkSize + 3 + lod;
-    const damageBufferSize = gridPoints * gridPoints * gridPoints;
-    const damageBuffersTypedArray = allocator.alloc(Float32Array, numPositions * gridPoints * gridPoints * gridPoints);
-
     const drew = damageFn(
       inst,
       x, y, z,
       radius,
       positionsTypedArray.byteOffset,
-      numPositionsTypedArray.byteOffset,
-      damageBuffersTypedArray.byteOffset,
+      numPositionsTypedArray.byteOffset
     );
 
-    if (drew) {
+    if (drew) {      
       numPositions = numPositionsTypedArray[0];
       const chunks = Array(numPositions);
       for (let i = 0; i < numPositions; i++) {
         const position = positionsTypedArray.slice(i * 3, (i + 1) * 3);
-        const damageBuffer = damageBuffersTypedArray.slice(i * damageBufferSize, (i + 1) * damageBufferSize);
         chunks[i] = {
           position,
-          damageBuffer,
         };
       }
+      console.log(chunks);
       return chunks;
     } else {
       return null;
