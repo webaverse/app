@@ -24,6 +24,8 @@ class VoiceInput extends EventTarget {
     const wsrtc = universe.getConnection();
     if (wsrtc) {
       wsrtc.enableMic(this.mediaStream);
+    } else {
+      throw new Error('Unable to connect microphone');
     }
 
     this.dispatchEvent(new MessageEvent('micchange', {
@@ -91,7 +93,7 @@ class VoiceInput extends EventTarget {
       // document.querySelector("#status").style.display = "block";
     }; */
     localSpeechRecognition.onerror = e => {
-      console.log('speech recognition error', e);
+      console.error('speech recognition error', e);
     };
     localSpeechRecognition.onend = () => {
       /* final_transcript = final_transcript

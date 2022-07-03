@@ -187,6 +187,7 @@ class Universe extends EventTarget {
           const player = playersManager.remotePlayersByInteger.get(e.data.playerId);
           player.processAudioData(e.data);
         });
+        console.log("Inited WSRTC")
       };
 
       this.wsrtc.addEventListener('init', init);
