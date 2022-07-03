@@ -1,69 +1,63 @@
-// import * as THREE from 'three';
-// import hpManager from './hp-manager.js';
+import * as THREE from 'three';
 import metaversefile from 'metaversefile';
-const {useApp, createApp, useHpManager} = metaversefile;
+const {useApp, useProcGenManager, useMobManager, useFrame, useScene, useCleanup} = metaversefile;
 
-export default () => {
+export default e => {
   const app = useApp();
-  const hpManager = useHpManager();
+  const mobManager = useMobManager();
+  const scene = useScene();
+  const procGenManager = useProcGenManager();
 
-  const spawnUrl = app.getComponent('spawnUrl') ?? '';
+  app.name = 'spawner';
 
-  const range = app.getComponent('range') ?? 3;
-  const r = () => -range + Math.random() * 2 * range;
-  const maxMobs = 10;
+  const appUrls = app.getComponent('appUrls') ?? [];
 
-  let subApps = [];
-  (async () => {
-    const m = await metaversefile.import(spawnUrl);
-    
-    const promises = [];
-    for (let i = 0; i < maxMobs; i++) {
-      promises.push((async () => {
-        const subApp = createApp();
-        subApp.name = `spawn-${m.name}-${i}`;
+  const seed = app.getComponent('seed') ?? null;
+  let range = app.getComponent('range') ?? null;
+  const wait = app.getComponent('wait') ?? false;
+  if (range) {
+    range = new THREE.Box3(
+      new THREE.Vector3(range[0][0], range[0][1], range[0][2]),
+      new THREE.Vector3(range[1][0], range[1][1], range[1][2])
+    );
+  }
 
-        subApp.position.set(
-          r(),
-          0, // r(),
-          r()
-        );
-        subApp.quaternion.copy(app.quaternion);
-        app.add(subApp);
-        subApp.updateMatrixWorld();
+  let mobber = null;
+  e.waitUntil((async () => {
+    let live = true;
+    useCleanup(() => {
+      live = false;
+    });
 
-        await subApp.addModule(m);
+    const mobData = await mobManager.loadData(appUrls);
+    if (!live) return;
 
-        const hitTracker = hpManager.makeHitTracker();
-        hitTracker.bind(subApp);
-        hitTracker.addEventListener('die', () => {
-          hitTracker.unbind(subApp);
-          app.remove(subApp);
-        });
+    const procGenInstance = procGenManager.getInstance(seed, range);
+    mobber = mobManager.createMobber({
+      procGenInstance,
+      mobData,
+    });
 
-        return subApp;
-      })());
+    const chunks = mobber.getChunks();
+    app.add(chunks);
+    chunks.updateMatrixWorld();
+
+    if (wait) {
+      await mobber.waitForUpdate();
     }
-    subApps = await Promise.all(promises);
-  })();
+  })());
 
-  app.getPhysicsObjects = () => {
-    const result = [];
-    for (const subApp of subApps) {
-      result.push.apply(result, subApp.getPhysicsObjects());
+  useFrame(({timestamp, timeDiff}) => {
+    mobber && mobber.update(timestamp, timeDiff);
+  });
+
+  useCleanup(() => {
+    if (mobber) {
+      const chunks = mobber.getChunks();
+      scene.remove(chunks);
+      mobber.destroy();
     }
-    return result;
-  };
-  app.hit = (damage, opts) => {
-    const {physicsObject} = opts;
-    for (const subApp of subApps) {
-      const physicsObjects = subApp.getPhysicsObjects();
-      if (physicsObjects.includes(physicsObject)) {
-        subApp.hit(damage, opts);
-        break;
-      }
-    }
-  };
+  });
 
   return app;
 };

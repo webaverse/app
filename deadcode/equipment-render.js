@@ -63,14 +63,14 @@ class EquipmentRender {
 
     let avatar = null;
     const localPlayer = metaversefile.useLocalPlayer();
-    localPlayer.addEventListener('avatarupdate', e => {
+    localPlayer.addEventListener('avatarupdate', async e => {
       if (avatar) {
         avatar.parent.remove(avatar);
         avatar = null;
       }
       
       if (e.app) {
-        const newAvatar = e.app.clone();
+        const newAvatar = await e.app.clone();
 
         newAvatar.position.set(0, 0, 0);
         newAvatar.rotation.set(0, 0, 0);

@@ -145,7 +145,7 @@
 
 /* */
 
-.item {
+.object {
   --size: 80px;
   
   display: flex;
@@ -155,8 +155,8 @@
   cursor: pointer;
   user-select: none;
 }
-.item .background,
-.item .highlight
+.object .background,
+.object .highlight
 {
   position: absolute;
   width: var(--size);
@@ -164,53 +164,70 @@
   border-radius: 1000px;
   transform-origin: 50% 50%;
 }
-.item .background {
+.object .background {
   background-color: #111;
 }
-.item .highlight {
+.object .highlight {
   background-color: #FFF;
   transform: scale(0, 0);
   transition: transform 0.3s cubic-bezier(0, 1, 0, 1);
 }
-.item:hover .highlight,
-.item.selected .highlight
+.object:hover .highlight,
+.object.selected .highlight
 {
   transform: none;
 }
-.item:active .highlight,
-.item:active .background
+.object:active .highlight,
+.object:active .background
 {
   transform: scale(0.9, 0.9);
 }
-.item.selected .highlight {
+.object.selected .highlight {
   background-image: radial-gradient(#7e57c2, #512da8);
 }
-.item .canvas,
-.item .name,
-.item .level {
+.object.highlighted {
+  background-image: linear-gradient(to bottom, #ff7043, #e64a19);
+}
+.object.highlighted .background {
+  background-color: #7e57c2;
+}
+.object .canvas,
+.object .name,
+.object .level {
   pointer-events: none;
 }
-.item .canvas {
+.object .canvas {
   position: relative;
   width: var(--size);
   height: var(--size);
 }
-.item .row {
+.object .row {
   display: flex;
   align-items: baseline;
 }
-.item .name,
-.item .level
+.object .name,
+.object .level
 {
   font-family: 'PlazaRegular';
 }
-.item .name {
+.object .name {
   margin-right: auto;
   font-size: 18px;
 }
-.item .level {
+.object .level {
   font-size: 13px;
   color: #666;
+}
+
+/* */
+
+.land {
+  
+}
+.land .canvas {
+  --size: 300px;
+  width: var(--size);
+  height: var(--size);
 }
 
 /* */
