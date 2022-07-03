@@ -1,15 +1,15 @@
 /*
 this file is responsible for maintaining player state that is network-replicated.
 */
-import { WsAudioDecoder } from 'wsrtc/ws-codec.js';
-import { ensureAudioContext, getAudioContext } from 'wsrtc/ws-audio-context.js';
-import { getAudioDataBuffer } from 'wsrtc/ws-util.js';
+import {WsAudioDecoder} from 'wsrtc/ws-codec.js';
+import {ensureAudioContext, getAudioContext} from 'wsrtc/ws-audio-context.js';
+import {getAudioDataBuffer} from 'wsrtc/ws-util.js';
 
 import * as THREE from 'three';
 import * as Z from 'zjs';
-import { getRenderer, scene, camera, dolly } from './renderer.js';
+import {getRenderer, scene, camera, dolly} from './renderer.js';
 import physicsManager from './physics-manager.js';
-import { world } from './world.js';
+import {world} from './world.js';
 import physx from './physx.js';
 import Avatar from './avatars/avatars.js';
 import metaversefile from 'metaversefile';
@@ -22,7 +22,6 @@ import {
   activateMaxTime,
   // useMaxTime,
   aimTransitionMaxTime,
-  avatarInterpolationFrameRate,
   avatarInterpolationTimeDelay,
   avatarInterpolationNumFrames,
   // groundFriction,
@@ -30,24 +29,24 @@ import {
   voiceEndpointBaseUrl,
   numLoadoutSlots,
 } from './constants.js';
-import { AppManager } from './app-manager.js';
-import { CharacterPhysics } from './character-physics.js';
-import { CharacterHups } from './character-hups.js';
-import { CharacterSfx } from './character-sfx.js';
-import { CharacterHitter } from './character-hitter.js';
-import { CharacterBehavior } from './character-behavior.js';
-import { CharacterFx } from './character-fx.js';
-import { VoicePack, VoicePackVoicer } from './voice-output/voice-pack-voicer.js';
-import { VoiceEndpoint, VoiceEndpointVoicer, getVoiceEndpointUrl } from './voice-output/voice-endpoint-voicer.js';
-import { BinaryInterpolant, BiActionInterpolant, UniActionInterpolant, InfiniteActionInterpolant, PositionInterpolant, QuaternionInterpolant } from './interpolants.js';
-import { applyPlayerToAvatar, makeAvatar } from './player-avatar-binding.js';
+import {AppManager} from './app-manager.js';
+import {CharacterPhysics} from './character-physics.js';
+import {CharacterHups} from './character-hups.js';
+import {CharacterSfx} from './character-sfx.js';
+import {CharacterHitter} from './character-hitter.js';
+import {CharacterBehavior} from './character-behavior.js';
+import {CharacterFx} from './character-fx.js';
+import {VoicePack, VoicePackVoicer} from './voice-output/voice-pack-voicer.js';
+import {VoiceEndpoint, VoiceEndpointVoicer} from './voice-output/voice-endpoint-voicer.js';
+import {BinaryInterpolant, BiActionInterpolant, UniActionInterpolant, InfiniteActionInterpolant, PositionInterpolant, QuaternionInterpolant} from './interpolants.js';
+import {applyPlayerToAvatar, makeAvatar} from './player-avatar-binding.js';
 import {
   defaultPlayerName,
   defaultPlayerBio,
 } from './ai/lore/lore-model.js';
-import { murmurhash3 } from './procgen/murmurhash3.js';
+import {murmurhash3} from './procgen/murmurhash3.js';
 import musicManager from './music-manager.js';
-import { makeId, clone } from './util.js';
+import {makeId, clone} from './util.js';
 import overrides from './overrides.js';
 
 const localVector = new THREE.Vector3();
@@ -278,16 +277,16 @@ class Player extends THREE.Object3D {
     }
     return false;
   }
-  async setVoicePack({ audioUrl, indexUrl }) {
+  async setVoicePack({audioUrl, indexUrl}) {
     const self = this;
     // this.playersArray.doc.transact(function tx() {
-    const voiceSpec = JSON.stringify({ audioUrl, indexUrl, endpointUrl: self.voiceEndpoint ? self.voiceEndpoint.url : '' });
+    const voiceSpec = JSON.stringify({audioUrl, indexUrl, endpointUrl: self.voiceEndpoint ? self.voiceEndpoint.url : ''});
     self.playerMap.set('voiceSpec', voiceSpec);
     // });
-    this.loadVoicePack({ audioUrl, indexUrl })
+    this.loadVoicePack({audioUrl, indexUrl})
   }
 
-  async loadVoicePack({ audioUrl, indexUrl }) {
+  async loadVoicePack({audioUrl, indexUrl}) {
     this.voicePack = await VoicePack.load({
       audioUrl,
       indexUrl,
@@ -303,10 +302,10 @@ class Player extends THREE.Object3D {
       let oldVoiceSpec = self.playerMap.get('voiceSpec');
       if (oldVoiceSpec) {
         oldVoiceSpec = JSON.parse(oldVoiceSpec);
-        const voiceSpec = JSON.stringify({ audioUrl: oldVoiceSpec.audioUrl, indexUrl: oldVoiceSpec.indexUrl, endpointUrl: url });
+        const voiceSpec = JSON.stringify({audioUrl: oldVoiceSpec.audioUrl, indexUrl: oldVoiceSpec.indexUrl, endpointUrl: url});
         self.playerMap.set('voiceSpec', voiceSpec);
       } else {
-        const voiceSpec = JSON.stringify({ audioUrl: self.voicePack?.audioUrl, indexUrl: self.voicePack?.indexUrl, endpointUrl: url })
+        const voiceSpec = JSON.stringify({audioUrl: self.voicePack?.audioUrl, indexUrl: self.voicePack?.indexUrl, endpointUrl: url})
         self.playerMap.set('voiceSpec', voiceSpec);
       }
     });
@@ -329,7 +328,7 @@ class Player extends THREE.Object3D {
   updateVoicer() {
     const voice = this.getVoice();
     if (voice instanceof VoicePack) {
-      const { syllableFiles, audioBuffer } = voice;
+      const {syllableFiles, audioBuffer} = voice;
       this.voicer = new VoicePackVoicer(syllableFiles, audioBuffer, this);
     } else if (voice instanceof VoiceEndpoint) {
       this.voicer = new VoiceEndpointVoicer(voice, this);
@@ -380,7 +379,7 @@ class Player extends THREE.Object3D {
     }
   }
 
-  wear(app, { loadoutIndex = -1 } = {}) {
+  wear(app, {loadoutIndex = -1} = {}) {
       const _getNextLoadoutIndex = () => {
         let nextLoadoutIndex = -1;
         const usedIndexes = Array(8).fill(false);
@@ -481,7 +480,7 @@ class Player extends THREE.Object3D {
     dropStartPosition = null,
     dropDirection = null,
   } = {}) {
-    const wearActionIndex = this.findActionIndex(({ type, instanceId }) => {
+    const wearActionIndex = this.findActionIndex(({type, instanceId}) => {
       return type === 'wear' && instanceId === app.instanceId;
     });
     const _deinitPhysics = () => {
@@ -571,96 +570,6 @@ class Player extends THREE.Object3D {
     } else {
       this.handleWearUpdate(app, false, -1, true, true)
     }
-  }
-  isBound() {
-    return !!this.playersArray;
-  }
-  unbindState() {
-    this.playersArray = null;
-    this.playerMap = null;
-    if (!this.unbindFns) return;
-    for (const unbindFn of this.unbindFns) {
-      unbindFn();
-    }
-    this.unbindFns.length = 0;
-  }
-  bindState(nextPlayersArray) {
-    // latch old state
-    const oldState = this.detachState();
-
-    // unbind
-    this.unbindState();
-    this.appManager.unbindState();
-
-    this.playersArray = nextPlayersArray;
-    if (!this.playersArray) return console.warn('this.playersArray is null')
-
-    // note: leave the old state as is
-    // it is the host's responsibility to garbage collect us when we disconnect.
-    this.attachState(oldState);
-
-    const actions = this.getActionsState();
-    const observeActionsFn = (e) => {
-      const { added, deleted } = e.changes;
-
-      for (const item of added.values()) {
-        let action = item.content.type;
-        this.dispatchEvent({
-          type: 'actionadd',
-          action: action,
-        });
-        }
-
-        for (const item of deleted.values()) {
-          let action = item.content.type;
-          this.dispatchEvent({
-            type: 'actionremove',
-            action: action,
-          });
-        }
-      };
-    actions.observe(observeActionsFn);
-    this.unbindFns.push(actions.unobserve.bind(actions, observeActionsFn));
-
-    const avatar = this.getAvatarState();
-
-    const observeAvatarFn = async (e) => {
-      let lastAvatarInstanceId = '';
-      const instanceId = avatar.get('instanceId') ?? '';
-      if (lastAvatarInstanceId !== instanceId) {
-        lastAvatarInstanceId = instanceId;
-        this.syncAvatar();
-      }
-    };
-    avatar.observe(observeAvatarFn);
-    this.unbindFns.push(avatar.unobserve.bind(avatar, observeAvatarFn));
-
-    const _cancelSyncAvatar = () => {
-      if (this.syncAvatarCancelFn) {
-        this.syncAvatarCancelFn();
-        this.syncAvatarCancelFn = null;
-      }
-    };
-    this.unbindFns.push(_cancelSyncAvatar);
-  }
-  detachState() {
-    const oldActions = this.playersArray
-      ? this.getActionsState()
-      : new Z.Array();
-    const oldAvatar = (
-      this.playersArray ? this.getAvatarState() : new Z.Map()
-    ).toJSON();
-    const oldApps = (
-      this.playersArray ? this.getAppsState() : new Z.Array()
-    ).toJSON();
-
-    // XXX need to unbind listeners when calling this
-
-    return {
-      oldActions,
-      oldAvatar,
-      oldApps,
-    };
   }
   // serializers
   getPosition() {
@@ -864,12 +773,105 @@ class Player extends THREE.Object3D {
   }
 }
 
+class NetworkPlayer extends Player {
+  isBound() {
+    return !!this.playersArray;
+  }
+  unbindState() {
+    this.playersArray = null;
+    this.playerMap = null;
+    if (!this.unbindFns) return;
+    for (const unbindFn of this.unbindFns) {
+      unbindFn();
+    }
+    this.unbindFns.length = 0;
+  }
+  bindState(nextPlayersArray) {
+    // latch old state
+    const oldState = this.detachState();
+
+    // unbind
+    this.unbindState();
+    this.appManager.unbindState();
+
+    this.playersArray = nextPlayersArray;
+    if (!this.playersArray) return console.warn('this.playersArray is null')
+
+    // note: leave the old state as is
+    // it is the host's responsibility to garbage collect us when we disconnect.
+    this.attachState(oldState);
+
+    const actions = this.getActionsState();
+    const observeActionsFn = (e) => {
+      const {added, deleted} = e.changes;
+
+      for (const item of added.values()) {
+        let action = item.content.type;
+        this.dispatchEvent({
+          type: 'actionadd',
+          action: action,
+        });
+        }
+
+        for (const item of deleted.values()) {
+          let action = item.content.type;
+          this.dispatchEvent({
+            type: 'actionremove',
+            action: action,
+          });
+        }
+      };
+    actions.observe(observeActionsFn);
+    this.unbindFns.push(actions.unobserve.bind(actions, observeActionsFn));
+
+    const avatar = this.getAvatarState();
+
+    const observeAvatarFn = async (e) => {
+      let lastAvatarInstanceId = '';
+      const instanceId = avatar.get('instanceId') ?? '';
+      if (lastAvatarInstanceId !== instanceId) {
+        lastAvatarInstanceId = instanceId;
+        this.syncAvatar();
+      }
+    };
+    avatar.observe(observeAvatarFn);
+    this.unbindFns.push(avatar.unobserve.bind(avatar, observeAvatarFn));
+
+    const _cancelSyncAvatar = () => {
+      if (this.syncAvatarCancelFn) {
+        this.syncAvatarCancelFn();
+        this.syncAvatarCancelFn = null;
+      }
+    };
+    this.unbindFns.push(_cancelSyncAvatar);
+  }
+  detachState() {
+    const oldActions = this.playersArray
+      ? this.getActionsState()
+      : new Z.Array();
+    const oldAvatar = (
+      this.playersArray ? this.getAvatarState() : new Z.Map()
+    ).toJSON();
+    const oldApps = (
+      this.playersArray ? this.getAppsState() : new Z.Array()
+    ).toJSON();
+
+    // XXX need to unbind listeners when calling this
+
+    return {
+      oldActions,
+      oldAvatar,
+      oldApps,
+    };
+  }
+}
+
 // Any player being simulated on the client is a local player
 // This includes the local player, as well as non-agent NPCs
 // Created in players.js and npc-manager.js respectively
-class LocalPlayer extends Player {
+class LocalPlayer extends NetworkPlayer {
   constructor(opts) {
-    super({ ...opts, isLocalPlayer: !opts.npc });
+    super({...opts, isLocalPlayer: !opts.npc});
 
     this.isLocalPlayer = !opts.npc;
     this.isNpcPlayer = !!opts.npc;
@@ -977,8 +979,8 @@ class LocalPlayer extends Player {
   }
 
   attachState(oldState) {
-    const { oldActions, oldAvatar, oldApps } = oldState;
-    const { instanceId } = oldAvatar;
+    const {oldActions, oldAvatar, oldApps} = oldState;
+    const {instanceId} = oldAvatar;
 
     const self = this;
     this.playersArray.doc.transact(function tx() {
@@ -1017,7 +1019,7 @@ class LocalPlayer extends Player {
     this.appManager.bindState(this.getAppsState());
   }
   grab(app, hand = 'left') {
-    const { position, quaternion } = _getSession() ?
+    const {position, quaternion} = _getSession() ?
       this[hand === 'left' ? 'leftHand' : 'rightHand']
       :
       camera;
@@ -1169,7 +1171,7 @@ class LocalPlayer extends Player {
 
 // Any player simulated on another machine that is not this client
 // Created by the players-manager class
-class RemotePlayer extends Player {
+class RemotePlayer extends NetworkPlayer {
   constructor(opts) {
     super(opts);
 
@@ -1369,7 +1371,7 @@ class RemotePlayer extends Player {
         if (json.endpointUrl)
           this.loadVoiceEndpoint(json.endpointUrl);
         if (json.audioUrl && json.indexUrl)
-          this.loadVoicePack({ audioUrl: json.audioUrl, indexUrl: json.indexUrl });
+          this.loadVoicePack({audioUrl: json.audioUrl, indexUrl: json.indexUrl});
       }
 
       if (e.changes.keys.get('name')) {
