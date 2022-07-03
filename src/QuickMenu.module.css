@@ -1,0 +1,27 @@
+.quickMenu {
+  --size: 500px;
+
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  pointer-events: none;
+}
+.quickMenu .container {
+  position: relative;
+  width: var(--size);
+  height: var(--size);
+}
+
+.quickMenu .canvas {
+  width: var(--size);
+  height: var(--size);
+  transition: transform 0.3s cubic-bezier(0, 1, 0, 1);
+}
+.quickMenu:not(.open) .canvas {
+  transform: scale(0, 0);
+}

@@ -1,0 +1,53 @@
+
+.hotBox {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+}
+
+.hotBox .box {
+    position: relative;
+    width: 60px;
+    height: 60px;
+    margin-right: 2px;
+    /* background: radial-gradient( #222, #000 );
+    border: 2px solid #000; */
+    /* transition: all cubic-bezier( 0, 1, 0, 1 ) 0.3s; */
+}
+
+.hotBox .label {
+    position: relative;
+    display: flex;
+    margin: 5px auto;
+    justify-content: center;
+    align-items: center;
+    width: 20px;
+    height: 20px;
+    background-color: #666;
+    border-radius: 3px;
+    color: #FFFFFF80;
+    user-select: none;
+}
+.hotBox:not(.selected) .label {
+    opacity: 0.3;
+}
+.hotBox .background {
+    position: absolute;
+    top: 2px;
+    left: 2px;
+    bottom: 2px;
+    right: 2px;
+    background-color: #000;
+    border-radius: 2px;
+}
+.hotBox .text {
+  position: relative;
+}
+
+.hotBox .hotbox {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 60px;
+    height: 60px;
+}

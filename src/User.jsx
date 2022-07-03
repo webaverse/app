@@ -1,263 +1,342 @@
-
-import React, {useState, Component, useRef, useEffect} from 'react';
+import React, { useState, useEffect, useContext } from 'react';
 import classnames from 'classnames';
-import styles from './Header.module.css';
+
 import * as ceramicApi from '../ceramic.js';
-// import styles from './User.module.css';
-import {storageHost, accountsHost, tokensHost, loginEndpoint, discordClientId, walletHost} from '../constants';
-import {contracts, getAddressFromMnemonic} from '../blockchain.js';
-import {jsonParse, parseQuery, handleDiscordLogin} from '../util.js';
-import Modal from "./components/modal";
+import { discordClientId } from '../constants';
+import { parseQuery } from '../util.js';
+// import Modal from './components/modal';
+import WebaWallet from './components/wallet';
 
-const User = ({address, setAddress, open, setOpen, toggleOpen}) => {
+import blockchainManager from '../blockchain-manager.js';
+import { AppContext } from './components/app';
 
-  const [show, setShow] = useState(false);
+import styles from './User.module.css';
 
-  const showModal = async e => {
-    e.preventDefault();
-    setShow(!show);
-  } 
+import * as sounds from '../sounds.js';
 
-  const [loggingIn, setLoggingIn] = useState(false);
-  const [loginButtons, setLoginButtons] = useState(false);
+//
 
-  const [discordUrl, setDiscordUrl] = useState('');
-  const [loginError, setLoginError] = useState(null);
+export const User = ({ address, setAddress, setLoginFrom }) => {
 
-  var iframe = null;
-  var walletMessenger = null;
+    const { state, setState } = useContext( AppContext );
+    const [ensName, setEnsName] = useState('');
+    const [avatarUrl, setAvatarUrl] = useState('');
+    const [ loggingIn, setLoggingIn ] = useState(false);
+    const [ loginError, setLoginError ] = useState(null);
+    const [ autoLoginRequestMade, setAutoLoginRequestMade ] = useState(false);
 
-  // popup code for getting user's password
+    //
 
-  // var popUp = null;
-  // const openPopup = async (mnemonic) => {
-  //   popUp = window.open(walletHost, '', "height=800,width=600");
+    /* const showModal = ( event ) => {
 
-  //   var f = function(event){
-  //     if (event.origin !== walletHost)
-  //       return;
+        event.preventDefault();
+        // setShow( ! show );
+
+        setState({ openedPanel: 'LoginPanel' });
+
+    }; */
+
+    const openUserPanel = e => {
+
+        setState({ openedPanel: 'UserPanel' });
     
-  //     if(event.data == 'received') {
-  //       sendMessage(mnemonic);
-  //       window.removeEventListener("message", f, false);
-  //     }      
-  //   }
-  //   window.addEventListener("message", f);
+    };
 
-  // }
+    const handleCancelBtnClick = () => {
 
-  // const sendMessage = async (mnemonic) => {
+        setState({ openedPanel: null });
 
-  //   popUp.postMessage(JSON.stringify({'p_mnemonic': mnemonic}), walletHost);
+        sounds.playSoundName('menuBack');
 
-  //   var f = function(event){
-  //     if (event.origin !== walletHost)
-  //     return;
-  
-  //     if(event.data.mnemonic && event.data.Success) {
-  //       sessionStorage.setItem("mnemonic", event.data.mnemonic);
-  //       window.removeEventListener("message", f, false);
-  //       popUp.close();
-  //     }   
-  //   }
-  //   window.addEventListener("message", f);
-  // }
+    };
 
-  const fetchWalletData = async (key) => {
-    iframe = window.open(walletHost, 'wallet')
+    const _setAddress = async address => {
+        
+        if (address) {
+            // let live = true;
+            // (async () => {
+                const ensName = await blockchainManager.getEnsName(address);
+                // if (!live) return;
+                setEnsName(ensName);
 
-    var f = function(event){
-      if (`${event.origin}/weba-wallet` !== walletHost)
-      return;
+                if ( ensName ) {
+                    const avatarUrl = await blockchainManager.getAvatarUrl(ensName);
+                    // if (!live) return;
+                    setAvatarUrl(avatarUrl);
+                }
+            // })();
 
-      if(event.data == 'received') {
-        getKeys(key);
-        window.removeEventListener("message", f, false);
-      } 
-    }
-    window.addEventListener("message", f);
-  }
+            /* return () => {
+                live = false;
+            }; */
 
-  const getKeys = async (key) => {
-    if(key) {
-      iframe.postMessage(JSON.stringify({action: 'getKey', key: key}), walletHost);
-    }
-    else {
-      iframe.postMessage(JSON.stringify({action: 'getAllKeys'}), walletHost);
-    }
-
-    var f = function(event){
-
-      if (`${event.origin}/weba-wallet` !== walletHost)
-      return;
-  
-      if(event.data.privateKey) {
-        const address = getAddressFromMnemonic(event.data.privateKey);
-        if(address) {
-          setAddress(address);
+            // console.log('render name', {address, ensName, avatarUrl});
         }
-        window.removeEventListener("message", f, false);
-        iframe.close();
-      }
-      else {
-        window.removeEventListener("message", f, false);
-        iframe.close();
-      }
-    }
-    window.addEventListener("message", f);
-  }
 
-  // function for sending data to wallet
-  const sendDataToWallet = async (key, value) => {
+        setAddress(address);
+    
+    };
 
-    walletMessenger = window.open(walletHost, 'walletMessenger')
+    const metaMaskLogin = async ( event ) => {
 
-    var f = function(event){
-      if (`${event.origin}/weba-wallet` !== walletHost)
-        return;
+        event.preventDefault();
+        event.stopPropagation();
 
-      if(event.data == 'received') {
-        sendData(key, value);
-        window.removeEventListener("message", f, false);
-      }
-    }
-    window.addEventListener("message", f);
-  }
+        /* if ( address ) {
 
-  const sendData = async (key, value) => {
-    var message = JSON.stringify({'action': 'storeKey', 'key': key, 'value': value});
-    walletMessenger.postMessage(message, walletHost);
+            setState({ openedPanel: ( state.openedPanel === 'UserPanel' ? null : 'UserPanel' ) });
 
-    var f = function(event){
-      if (`${event.origin}/weba-wallet` !== walletHost)
-        return;
+        } else { */
 
-      window.removeEventListener("message", f, false);
-      walletMessenger.close();
-      }
-      window.addEventListener("message", f);
-  }
+            if ( ! loggingIn ) {
 
-  const metaMaskLogin = async e => {
-    e.preventDefault();
-    e.stopPropagation(); 
-    if (address) {
-      toggleOpen('user');
-    } else {
-      if (!loggingIn) {
-        setLoggingIn(true);
-        try {
+                setLoggingIn( true );
 
-          const {address, profile} = await ceramicApi.login();
-          setAddress(address);
-          setShow(false);
+                try {
 
-        } catch (err) {
-          console.warn(err);
-        } finally {
-          setLoggingIn(false);
-        }
-      }
-    }
-  }
+                    const { address, profile } = await ceramicApi.login();
+                    await _setAddress(address);
+                    setLoginFrom('metamask');
+                    // setShow(false);
+                    // setLoginFrom('metamask');
 
-  const discordLogin = async e => {
-    e.preventDefault();
-    e.stopPropagation();
-    setLoginButtons(false);
-  } 
-  
-  useEffect(async () => {
+                } catch (err) {
 
-      const {
-        error,
-        error_description,
-        code,
-        id,
-        play,
-        realmId,
-        twitter: arrivingFromTwitter,
-      } = typeof window !== 'undefined' ? parseQuery(window.location.search) : {};
-      if(code) {
-        const {address, error, mnemonic} = await handleDiscordLogin(code, id);
-        if(address) {
-          setAddress(address);
-          sendDataToWallet('privateKey', mnemonic)
-          setShow(false);
-        }
-        else {
-          setLoginError(String(error).toLocaleUpperCase());
-        }
-      }
-      else {
-        fetchWalletData('privateKey');
-      }
-  }, [address, setAddress]);
+                    console.warn(err);
 
+                } finally {
 
-  return (
-    <div>
-       <iframe name="wallet" width="0" height="0"></iframe>
-       <iframe name="walletMessenger" width="0" height="0"></iframe>
-      <div className={classnames(styles.user, loggingIn ? styles.loggingIn : null)}
-        onClick={async e => {
-          e.preventDefault();
-          e.stopPropagation();
-          if (address) {
-            toggleOpen('user');
-          }else{
-            setLoginButtons(true);
-            setOpen(null);
-            setOpen('login');
-          }
-        }}>
-        <img src="images/soul.png" className={styles.icon} />
-        <div className={styles.name} onClick={e => { showModal(e); }}>
-          {loggingIn ? 'Logging in... ' : (address || (loginError || 'Log in'))}  
+                    setState({ openedPanel: null });
 
-        </div>
-      </div>
-      { address ?
-        <div className={styles.logoutBtn}
-        onClick={e => {
-         sessionStorage.removeItem('mnemonic');
-         setAddress(null)
-        }}
-        >Logout</div>
-       : ''
-      }
-      {
-        open == 'login'
-          ? <div className={styles.login_options}>
-            {
-              loginButtons ? <>
-                <Modal onClose={ showModal } show={show}>
-                  <div className={styles.loginDiv}>
-                    <div className={styles.loginBtn} onClick={ metaMaskLogin }>
-                      <div className={styles.loginBtnText}>
-                      <img className={styles.loginBtnImg} src="images/metamask.png" alt="metamask" width="28px"/>
-                      <span>MetaMask</span>
-                      </div>
-                     </div>
-                    <a href={`https://discord.com/api/oauth2/authorize?client_id=${discordClientId}&redirect_uri=${window.location.origin}%2Flogin&response_type=code&scope=identify`}>
-                      <div className={styles.loginBtn} style={{marginTop: '10px'}}>
-                      <div className={styles.loginBtnText}>
-                      <img className={styles.loginBtnImg} src="images/discord-dark.png" alt="discord" width="28px"/>
-                      <span>Discord</span>
-                      </div>
-                      </div>
-                    </a>
-                  </div>
-                </Modal>
-                </> : ''
+                    setLoggingIn(false);
+
+                }
+
             }
-          </div>
-          : <div></div>}
 
-    </div>
-  );
+        // }
+
+    };
+
+    useEffect( () => {
+
+        const { error, code, id, play, realmId } = parseQuery( window.location.search );
+
+        //
+
+        const discordAutoLogin = async () => {
+
+            const { address, error } = await WebaWallet.loginDiscord( code, id );
+
+            if ( address ) {
+
+                await _setAddress( address );
+                // setAddress( address );
+                setLoginFrom( 'discord' );
+                // setShow( false );
+
+            } else if ( error ) {
+
+                setLoginError( String( error ).toLocaleUpperCase() );
+
+            }
+
+            window.history.pushState( {}, '', window.location.origin );
+            setLoggingIn( false );
+
+        };
+
+        const metamaskAutoLogin = async () => {
+
+            const { address } = await WebaWallet.autoLogin();
+
+            if ( address ) {
+
+                await _setAddress( address );
+                setLoginFrom( 'metamask' );
+                // setShow( false );
+
+            } else if ( error ) {
+
+                setLoginError( String( error ).toLocaleUpperCase() );
+
+            }
+
+        };
+
+        //
+
+        if ( ! autoLoginRequestMade ) {
+
+            setAutoLoginRequestMade( true );
+
+            if ( code ) {
+
+                setLoggingIn( true );
+
+                if ( WebaWallet.launched ) {
+
+                    discordAutoLogin();
+
+                } else {
+
+                    WebaWallet.waitForLaunch().then( discordAutoLogin );
+
+                }
+
+            } else {
+
+                if ( WebaWallet.launched ) {
+
+                    metamaskAutoLogin();
+
+                } else {
+
+                    WebaWallet.waitForLaunch().then( metamaskAutoLogin );
+
+                }
+
+            }
+
+        }
+
+    }, [ address ] );
+
+    //
+
+    const _triggerClickSound = () => {
+
+        sounds.playSoundName('menuClick');
+
+    };
+    
+    //
+
+    const open = state.openedPanel === 'LoginPanel';
+    const loggedIn = !!address;
+
+    //
+
+    return (
+        <div
+            className={ classnames(
+                styles.user,
+                open ? styles.open : null,
+                loggedIn ? styles.loggedIn : null,
+                loggingIn ? styles.loggingIn : null,
+            ) }
+        >
+            <div className={styles.keyWrap} onClick={e => {
+                e.preventDefault();
+                e.stopPropagation();
+
+                if (!loggedIn) {
+
+                    if ( !open ) {
+
+                        setState({ openedPanel: 'LoginPanel' });
+
+                    } else {
+                        setState({ openedPanel: null });
+                    }
+
+                    sounds.playSoundName('menuNext');
+
+                }
+            }} onMouseEnter={e => {
+                
+                _triggerClickSound();
+            
+            }}>
+                <div className={styles.key}>
+                    <div className={styles.bow}>
+                        <img className={styles.icon} src="./images/log-in.svg" />
+                    </div>
+                    <div className={styles.blade}>
+                        <div className={styles.background} />
+                        <div className={styles.text}>ログイン Log in</div>
+                    </div>
+                </div>
+            </div>
+
+            <div className={styles.loggingInPlaceholder}>Logging in</div>
+
+            <div
+                className={styles.userWrap}
+            >
+                <div
+                    className={styles.userBar}
+                    onClick={openUserPanel}
+                >
+                    {avatarUrl ? (
+                        <div
+                            className={styles.avatarUrl}
+                        >
+                            <img className={styles.img} src={avatarUrl} crossOrigin='Anonymous' />
+                        </div>
+                    ) : null}
+                    <div
+                        className={styles.address}
+                    >{ensName || address || ''} <img className={styles.verifiedIcon} src="./images/verified.svg" /></div>
+                </div>
+                <div className={styles.logoutBtn}
+                    onClick={e => {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        WebaWallet.logout();
+                        _setAddress(null);
+                    }}
+                >Logout</div>
+            </div>
+
+            <div className={ classnames(
+                styles.userLoginMethodsModal,
+                open ? styles.opened : null,
+            ) } >
+                <div className={ styles.title } >
+                    <span>Log in</span>
+                    {/* <div className={ styles.background } /> */}
+                </div>
+                <div className={ styles.methodBtn } onClick={ metaMaskLogin } onMouseEnter={ _triggerClickSound } >
+                    <img src="images/metamask.png" alt="metamask" width="28px" />
+                    <span className={ styles.methodBtnText } >MetaMask</span>
+                </div>
+                <a
+                    href={ `https://discord.com/api/oauth2/authorize?client_id=${ discordClientId }&redirect_uri=${ window.location.origin }%2Flogin&response_type=code&scope=identify` }
+                    onMouseEnter={ _triggerClickSound }
+                >
+                    <div className={ styles.methodBtn } >
+                        <img src="images/discord.png" alt="discord" width="28px" />
+                        <span className={ styles.methodBtnText } >Discord</span>
+                    </div>
+                </a>
+                <div className={ styles.methodBtn } onClick={ handleCancelBtnClick } onMouseEnter={ _triggerClickSound } >
+                    <span className={ styles.methodBtnText } >Cancel</span>
+                </div>
+            </div>
+
+            {/* <Modal onClose={ showModal } show={open && !loggingIn}>
+                <div className={styles.login_options}>
+                
+                    <div className={styles.loginDiv}>
+                        <div className={styles.loginBtn} onClick={ metaMaskLogin }>
+                            <div className={styles.loginBtnText}>
+                                <img className={styles.loginBtnImg} src="images/metamask.png" alt="metamask" width="28px"/>
+                                <span>MetaMask</span>
+                            </div>
+                        </div>
+                        <a href={`https://discord.com/api/oauth2/authorize?client_id=${discordClientId}&redirect_uri=${window.location.origin}%2Flogin&response_type=code&scope=identify`}>
+                            <div className={styles.loginBtn} style={{marginTop: '10px'}}>
+                                <div className={styles.loginBtnText}>
+                                    <img className={styles.loginBtnImg} src="images/discord-dark.png" alt="discord" width="28px"/>
+                                    <span>Discord</span>
+                                </div>
+                            </div>
+                        </a>
+                    </div>
+                </div>
+            </Modal> */}
+        </div>
+    );
+
 };
-
-
-
-export default User;

@@ -1,0 +1,12 @@
+{
+  "objects": [
+    {
+      "position": [
+        0,
+        0,
+        0
+      ],
+      "start_url": "../metaverse_modules/default-scene/"
+    }
+  ]
+}

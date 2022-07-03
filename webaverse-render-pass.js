@@ -15,12 +15,15 @@ class WebaverseRenderPass extends Pass {
     this.needsSwap = true;
     this.clear = true;
 
+    this.internalDepthPass = null;
     this.internalRenderPass = null;
     this.onBeforeRender = null;
     this.onAfterRender = null;
   }
-  setSize( width, height ) {
-    
+  setSize(width, height) {
+    if (this.internalDepthPass) {
+      this.internalDepthPass.setSize(width, height);
+    }
     if (this.internalRenderPass) {
       this.internalRenderPass.setSize(width,height);
     }
@@ -30,15 +33,10 @@ class WebaverseRenderPass extends Pass {
     this.onBeforeRender && this.onBeforeRender();
     
     // render
-    sceneHighPriority.traverse(o => {
-      o.isLowPriority = false;
-    });
-    scene.traverse(o => {
-      o.isLowPriority = false;
-    });
-    sceneLowPriority.traverse(o => {
-      o.isLowPriority = true;
-    });
+    if (this.internalDepthPass) {
+      this.internalDepthPass.renderToScreen = false;
+      this.internalDepthPass.render(renderer, renderTarget, readBuffer, deltaTime, maskActive);
+    }
     if (this.internalRenderPass) {
       this.internalRenderPass.renderToScreen = this.renderToScreen;
       this.internalRenderPass.render(renderer, renderTarget, readBuffer, deltaTime, maskActive);

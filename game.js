@@ -1,33 +1,29 @@
 /*
 this file contains the main game logic tying together the managers.
 general game logic goes here.
+usually, code starts here and is migrated to an appropriate manager.
 */
 
 import * as THREE from 'three';
-// import {GLTFLoader} from 'three/examples/jsm/loaders/GLTFLoader.js';
 import * as BufferGeometryUtils from 'three/examples/jsm/utils/BufferGeometryUtils.js';
 import physx from './physx.js';
 import cameraManager from './camera-manager.js';
-// import uiManager from './ui-manager.js';
 import ioManager from './io-manager.js';
-// import {loginManager} from './login.js';
-import physicsManager from './physics-manager.js';
+import dioramaManager from './diorama.js';
 import {world} from './world.js';
-import * as universe from './universe.js';
 import {buildMaterial, highlightMaterial, selectMaterial, hoverMaterial, hoverEquipmentMaterial} from './shaders.js';
-import {teleportMeshes} from './teleport.js';
-import {getPlayerCrouchFactor} from './character-controller.js';
-import {getRenderer, scene, sceneLowPriority, camera} from './renderer.js';
-import {snapPosition} from './util.js';
-import {maxGrabDistance, storageHost, minFov, maxFov} from './constants.js';
-import easing from './easing.js';
+import {getRenderer, sceneLowPriority, camera} from './renderer.js';
+import {downloadFile, snapPosition, getDropUrl, handleDropJsonItem} from './util.js';
+import {maxGrabDistance, throwReleaseTime, storageHost, minFov, maxFov, throwAnimationDuration} from './constants.js';
 import metaversefileApi from './metaversefile-api.js';
-import metaversefileConstants from 'metaversefile/constants.module.js';
 import * as metaverseModules from './metaverse-modules.js';
-import soundManager from './sound-manager.js';
-
-
-const {contractNames} = metaversefileConstants;
+import loadoutManager from './loadout-manager.js';
+import * as sounds from './sounds.js';
+import {getLocalPlayer, setLocalPlayer} from './players.js';
+import npcManager from './npc-manager.js';
+import raycastManager from './raycast-manager.js';
+import zTargeting from './z-targeting.js';
+import Avatar from './avatars/avatars.js';
 
 const localVector = new THREE.Vector3();
 const localVector2 = new THREE.Vector3();
@@ -35,26 +31,27 @@ const localVector3 = new THREE.Vector3();
 const localVector4 = new THREE.Vector3();
 const localVector5 = new THREE.Vector3();
 const localVector6 = new THREE.Vector3();
-const localVector2D = new THREE.Vector2();
+// const localVector2D = new THREE.Vector2();
 const localQuaternion = new THREE.Quaternion();
 const localQuaternion2 = new THREE.Quaternion();
 const localQuaternion3 = new THREE.Quaternion();
+const localEuler = new THREE.Euler();
 const localMatrix = new THREE.Matrix4();
 const localMatrix2 = new THREE.Matrix4();
 const localMatrix3 = new THREE.Matrix4();
 // const localBox = new THREE.Box3();
 const localRay = new THREE.Ray();
-const localRaycaster = new THREE.Raycaster();
 
-const oneVector = new THREE.Vector3(1, 1, 1);
-const leftHandOffset = new THREE.Vector3(0.2, -0.2, -0.4);
-const rightHandOffset = new THREE.Vector3(-0.2, -0.2, -0.4);
+let isMouseUp = false;
 
-const cubicBezier = easing(0, 1, 0, 1);
+// const zeroVector = new THREE.Vector3(0, 0, 0);
+// const oneVector = new THREE.Vector3(1, 1, 1);
+// const cubicBezier = easing(0, 1, 0, 1);
+// let redMesh = null;
 
 const _getGrabAction = i => {
   const targetHand = i === 0 ? 'left' : 'right';
-  const localPlayer = metaversefileApi.useLocalPlayer();
+  const localPlayer = getLocalPlayer();
   const grabAction = localPlayer.findAction(action => action.type === 'grab' && action.hand === targetHand);
   return grabAction;
 };
@@ -110,6 +107,74 @@ function updateGrabbedObject(o, grabMatrix, offsetMatrix, {collisionEnabled, han
     handSnap,
   };
 }
+
+const _getCurrentGrabAnimation = () => {
+  let currentAnimation = '';
+  const localPlayer = getLocalPlayer();
+
+  const wearComponent = grabUseMesh.targetApp.getComponent('wear');
+  if (wearComponent && wearComponent.grabAnimation === 'pick_up') {
+    currentAnimation = wearComponent.grabAnimation;
+  } else {
+    const grabUseMeshPosition = grabUseMesh.position;
+    let currentDistance = 100;
+
+    // Forward
+    {
+      localVector.set(0, -0.5, -0.5).applyQuaternion(localPlayer.quaternion)
+        .add(localPlayer.position);
+      const distance = grabUseMeshPosition.distanceTo(localVector);
+      currentDistance = distance;
+      currentAnimation = 'grab_forward';
+    }
+
+    // Down
+    {
+      localVector.set(0, -1.2, -0.5).applyQuaternion(localPlayer.quaternion)
+        .add(localPlayer.position);
+      const distance = grabUseMeshPosition.distanceTo(localVector);
+      if (distance < currentDistance) {
+        currentDistance = distance;
+        currentAnimation = 'grab_down';
+      }
+    }
+
+    // Up
+    {
+      localVector.set(0, 0.0, -0.5).applyQuaternion(localPlayer.quaternion)
+        .add(localPlayer.position);
+      const distance = grabUseMeshPosition.distanceTo(localVector);
+      if (distance < currentDistance) {
+        currentDistance = distance;
+        currentAnimation = 'grab_up';
+      }
+    }
+
+    // Left
+    {
+      localVector.set(-0.8, -0.5, -0.5).applyQuaternion(localPlayer.quaternion)
+        .add(localPlayer.position);
+      const distance = grabUseMeshPosition.distanceTo(localVector);
+      if (distance < currentDistance) {
+        currentDistance = distance;
+        currentAnimation = 'grab_left';
+      }
+    }
+    
+    // Right
+    {
+      localVector.set(0.8, -0.5, -0.5).applyQuaternion(localPlayer.quaternion)
+        .add(localPlayer.position);
+      const distance = grabUseMeshPosition.distanceTo(localVector);
+      if (distance < currentDistance) {
+        currentDistance = distance;
+        currentAnimation = 'grab_right';
+      }
+    }
+  }
+
+  return currentAnimation;
+};
 
 const _makeTargetMesh = (() => {
   const targetMeshGeometry = (() => {
@@ -179,12 +244,10 @@ const _makeTargetMesh = (() => {
     const material = new THREE.ShaderMaterial({
       uniforms: {
         uHighlight: {
-          type: 'f',
           value: 0,
           needsUpdate: true,
         },
         uTime: {
-          type: 'f',
           value: 0,
           needsUpdate: true,
         },
@@ -244,15 +307,7 @@ sceneLowPriority.add(mouseDomEquipmentHoverPhysicsMesh);
 let mouseDomEquipmentHoverObject = null;
 let mouseDomEquipmentHoverPhysicsId = 0;
 
-let selectedLoadoutIndex = -1;
-let selectedLoadoutObject = null;
-const _selectLoadout = index => {
-  if (index !== selectedLoadoutIndex) {
-    selectedLoadoutIndex = index;
-  } else {
-    selectedLoadoutIndex = -1;
-  }
-};
+// let selectedLoadoutIndex = -1;
 
 const _use = () => {
   if (gameManager.getMenu() === 3) {
@@ -295,7 +350,7 @@ const _use = () => {
 const _delete = () => {
   const grabbedObject = _getGrabbedObject(0);
   if (grabbedObject) {
-    const localPlayer = metaversefileApi.useLocalPlayer();
+    const localPlayer = getLocalPlayer();
     localPlayer.ungrab();
     
     world.appManager.removeTrackedApp(grabbedObject.instanceId);
@@ -313,9 +368,9 @@ const _delete = () => {
     gameManager.setMouseSelectedObject(null);
   }
 };
-const _click = () => {
+const _click = e => {
   if (_getGrabbedObject(0)) {
-    const localPlayer = metaversefileApi.useLocalPlayer();
+    const localPlayer = getLocalPlayer();
     localPlayer.ungrab();
   } else {
     if (highlightedPhysicsObject) {
@@ -323,244 +378,79 @@ const _click = () => {
     }
   }
 };
-let lastPistolUseStartTime = -Infinity;
+let lastUseIndex = 0;
+const _getNextUseIndex = animationCombo => {
+  if (Array.isArray(animationCombo)) {
+    return (lastUseIndex++) % animationCombo.length;
+  } else {
+    return 0;
+  }
+}
 const _startUse = () => {
-  const localPlayer = metaversefileApi.useLocalPlayer();
-  const wearApps = Array.from(localPlayer.getActionsState())
-    .filter(action => action.type === 'wear')
-    .map(({instanceId}) => metaversefileApi.getAppByInstanceId(instanceId));
-  for (const wearApp of wearApps) {
+  const wearApp = loadoutManager.getSelectedApp();
+  if (wearApp) {
     const useComponent = wearApp.getComponent('use');
     if (useComponent) {
+      const localPlayer = getLocalPlayer();
       const useAction = localPlayer.getAction('use');
       if (!useAction) {
         const {instanceId} = wearApp;
-        const {subtype, boneAttachment, animation, position, quaternion, scale} = useComponent;
+        const {boneAttachment, animation, animationCombo, animationEnvelope, ik, behavior, position, quaternion, scale} = useComponent;
+        const index = _getNextUseIndex(animationCombo);
         const newUseAction = {
           type: 'use',
-          subtype,
-          // time: 0,
           instanceId,
           animation,
+          animationCombo,
+          animationEnvelope,
+          ik,
+          behavior,
           boneAttachment,
+          index,
           position,
           quaternion,
           scale,
         };
+        // console.log('new use action', newUseAction, useComponent, {animation, animationCombo, animationEnvelope});
         localPlayer.addAction(newUseAction);
-        
-        if (subtype === 'pistol') {
-          lastPistolUseStartTime = performance.now();
-        }
 
         wearApp.use();
       }
-      break;
     }
   }
 };
 const _endUse = () => {
-  const localPlayer = metaversefileApi.useLocalPlayer();
-  localPlayer.removeAction('use');
+  const localPlayer = getLocalPlayer();
+  const useAction = localPlayer.getAction('use');
+  if (useAction) {
+    const app = metaversefileApi.getAppByInstanceId(useAction.instanceId);
+    app.dispatchEvent({
+      type: 'use',
+      use: false,
+    });
+    localPlayer.removeAction('use');
+  }
 };
 const _mousedown = () => {
   _startUse();
 };
 const _mouseup = () => {
-  _endUse();
-};
-
-const _uploadFile = async (u, f) => {
-  const res = await fetch(u, {
-    method: 'POST',
-    body: f,
-  });
-  const j = await res.json();
-  const {hash} = j;
-  const {name} = f;
-  return {
-    name,
-    hash,
-  };
-};
-const _proxifyUrl = u => {
-  const match = u.match(/^([a-z0-9]+):\/\/([a-z0-9\-\.]+)(.+)$/i);
-  if (match) {
-    return 'https://' + match[1] + '-' + match[2].replace(/\-/g, '--').replace(/\./g, '-') + '.proxy.webaverse.com' + match[3];
-  } else {
-    return u;
-  }
-};
-const _handleUpload = async (item, transform = null) => {
-  console.log('uploading...');
-  
-  const _uploadObject = async item => {
-    let u;
-    
-    const file = item.getAsFile();
-    const entry = item.webkitGetAsEntry();
-    
-    if (item.kind === 'string') {
-      const s = await new Promise((accept, reject) => {
-        item.getAsString(accept);
-      });
-      const j = JSON.parse(s);
-      const {token_id, asset_contract} = j;
-      const {address} = asset_contract;
-      
-      if (contractNames[address]) {
-        u = `/@proxy/` + encodeURI(`eth://${address}/${token_id}`);
-      } else {
-        console.log('got j', j);
-        const {traits} = j;
-        // cryptovoxels wearables
-        const voxTrait = traits.find(t => t.trait_type === 'vox'); // XXX move to a loader
-        if (voxTrait) {
-          const {value} = voxTrait;
-          u = _proxifyUrl(value) + '?type=vox';
-        } else {
-          const {token_metadata} = j;
-          // console.log('proxify', token_metadata);
-          const res = await fetch(_proxifyUrl(token_metadata), {
-            mode: 'cors',
-          });
-          const j2 = await res.json();
-          // console.log('got metadata', j2);
-          
-          // dcl wearables
-          if (j2.id?.startsWith('urn:decentraland:')) {
-            // 'urn:decentraland:ethereum:collections-v1:mch_collection:mch_enemy_upper_body'
-            const res = await fetch(`https://peer-lb.decentraland.org/lambdas/collections/wearables?wearableId=${j2.id}`, { // XXX move to a loader
-              mode: 'cors',
-            });
-            const j3 = await res.json();
-            const {wearables} = j3;
-            const wearable = wearables[0];
-            const representation = wearable.data.representations[0];
-            const {mainFile, contents} = representation;
-            const file = contents.find(f => f.key === mainFile);
-            const match = mainFile.match(/\.([a-z0-9]+)$/i);
-            const type = match && match[1];
-            // console.log('got wearable', {mainFile, contents, file, type});
-            u = '/@proxy/' + encodeURI(file.url) + (type ? ('?type=' + type) : '');
-          } else {
-            // avatar
-            const {avatar_url, asset} = j2;
-            const avatarUrl = avatar_url || asset;
-            if (avatarUrl) {
-              u = '/@proxy/' + encodeURI(avatarUrl) + '?type=vrm';
-            } else {
-              // default
-              const {image} = j2;
-              u = '/@proxy/' + encodeURI(image);
-            }
-          }
-        }
-      }
-    } else if (entry.isDirectory) {
-      const formData = new FormData();
-      
-      const rootEntry = entry;
-      const _recurse = async entry => {
-        function getFullPath(entry) {
-          return entry.fullPath.slice(rootEntry.fullPath.length);
-        }
-        const fullPath = getFullPath(entry);
-        console.log('directory full path', entry.fullPath, rootEntry.fullPath, fullPath);
-        formData.append(
-          fullPath,
-          new Blob([], {
-            type: 'application/x-directory',
-          }),
-          fullPath
-        );
-        
-        const reader = entry.createReader();
-        async function readEntries() {
-          const entries = await new Promise((accept, reject) => {
-            reader.readEntries(entries => {
-              if (entries.length > 0) {
-                accept(entries);
-              } else {
-                accept(null);
-              }
-            }, reject);
-          });
-          return entries;
-        }
-        let entriesArray;
-        while (entriesArray = await readEntries()) {
-          for (const entry of entriesArray) {
-            if (entry.isFile) {
-              const file = await new Promise((accept, reject) => {
-                entry.file(accept, reject);
-              });
-              const fullPath = getFullPath(entry);
-              console.log('file full path', entry.fullPath, rootEntry.fullPath, fullPath);
-
-              formData.append(fullPath, file, fullPath);
-            } else if (entry.isDirectory) {
-              await _recurse(entry);
-            }
-          }
-        } 
-      };
-      await _recurse(rootEntry);
-
-      const uploadFilesRes = await fetch(`https://ipfs.webaverse.com/`, {
-        method: 'POST',
-        body: formData,
-      });
-      const hashes = await uploadFilesRes.json();
-
-      const rootDirectory = hashes.find(h => h.name === '');
-      const rootDirectoryHash = rootDirectory.hash;
-      u = `https://ipfs.webaverse.com/ipfs/${rootDirectoryHash}/`;
-      console.log(u);
-    } else {
-      const {name, hash} = await _uploadFile(`https://ipfs.webaverse.com/`, file);
-
-      u = `${storageHost}/${hash}/${name}`;
-    }
-    return u;
-  };
-  const u = await _uploadObject(item);
-  
-  console.log('upload complete:', u);
-
-  if (!transform) {
-    const {leftHand: {position, quaternion}} = metaversefileApi.useLocalPlayer();
-    const position2 = position.clone()
-      .add(localVector2.set(0, 0, -1).applyQuaternion(quaternion));
-    const quaternion2 = quaternion.clone();
-    transform = {
-      position: position2,
-      quaternion: quaternion2,
-    };
-  }
-  const {position, quaternion} = transform;
-  
-  world.appManager.addTrackedApp(u, position, quaternion, oneVector);
-};
-/* const bindUploadFileInput = uploadFileInput => {
-  bindUploadFileButton(uploadFileInput, _handleUpload);
-}; */
-
-const _upload = () => {
-  const uploadFileInput = document.getElementById('upload-file-input');
-  uploadFileInput.click();
+  isMouseUp = true;
 };
 
 const _grab = object => {
-  const localPlayer = metaversefileApi.useLocalPlayer();
+  const localPlayer = getLocalPlayer();
   localPlayer.grab(object);
   
   gameManager.gridSnap = 0;
   gameManager.editMode = false;
 };
 
+const hitRadius = 1;
+const hitHeight = 0.2;
+const hitHalfHeight = hitHeight * 0.5;
 const hitboxOffsetDistance = 0.3;
-const cylinderMesh = (() => {
+/* const cylinderMesh = (() => {
   const radius = 1;
   const height = 0.2;
   const halfHeight = height/2;
@@ -573,7 +463,7 @@ const cylinderMesh = (() => {
   cylinderMesh.radius = radius;
   cylinderMesh.halfHeight = halfHeight;
   return cylinderMesh;
-})();
+})(); */
 
 let grabUseMesh = null;
 const _gameInit = () => {
@@ -584,88 +474,19 @@ const _gameInit = () => {
     const m = modules['button'];
     await grabUseMesh.addModule(m);
   })();
-  grabUseMesh.target = null;
+  grabUseMesh.targetApp = null;
+  grabUseMesh.targetPhysicsId = -1;
   sceneLowPriority.add(grabUseMesh);
 };
 Promise.resolve()
   .then(_gameInit);
 
-let lastDraggingRight = false;
-let dragRightSpec = null;
-let fovFactor = 0;
 let lastActivated = false;
+let lastThrowing = false;
 const _gameUpdate = (timestamp, timeDiff) => {
   const now = timestamp;
   const renderer = getRenderer();
-  
-  const localPlayer = metaversefileApi.useLocalPlayer();
-  
-  const _updateFakeHands = () => {
-    const session = renderer.xr.getSession();
-    if (!session) {
-      localMatrix.copy(localPlayer.matrixWorld)
-        .decompose(localVector, localQuaternion, localVector2);
-
-      const avatarHeight = localPlayer.avatar ? localPlayer.avatar.height : 0;
-      const handOffsetScale = localPlayer.avatar ? avatarHeight / 1.5 : 1;
-      {
-        const leftGamepadPosition = localVector2.copy(localVector)
-          .add(localVector3.copy(leftHandOffset).multiplyScalar(handOffsetScale).applyQuaternion(localQuaternion));
-        const leftGamepadQuaternion = localQuaternion;
-        const leftGamepadPointer = 0;
-        const leftGamepadGrip = 0;
-        const leftGamepadEnabled = false;
-        
-        localPlayer.leftHand.position.copy(leftGamepadPosition);
-        localPlayer.leftHand.quaternion.copy(leftGamepadQuaternion);
-      }
-      {
-        const rightGamepadPosition = localVector2.copy(localVector)
-          .add(localVector3.copy(rightHandOffset).multiplyScalar(handOffsetScale).applyQuaternion(localQuaternion));
-        const rightGamepadQuaternion = localQuaternion;
-        const rightGamepadPointer = 0;
-        const rightGamepadGrip = 0;
-        const rightGamepadEnabled = false;
-
-        localPlayer.rightHand.position.copy(rightGamepadPosition);
-        localPlayer.rightHand.quaternion.copy(rightGamepadQuaternion);
-      }
-      
-      if (lastPistolUseStartTime >= 0) {
-        const lastUseTimeDiff = timestamp - lastPistolUseStartTime;
-        const kickbackTime = 300;
-        const kickbackExponent = 0.05;
-        const f = Math.min(Math.max(lastUseTimeDiff / kickbackTime, 0), 1);
-        const v = Math.sin(Math.pow(f, kickbackExponent) * Math.PI);
-        const fakeArmLength = 0.2;
-        localQuaternion.setFromRotationMatrix(
-          localMatrix.lookAt(
-            localVector.copy(localPlayer.leftHand.position),
-            localVector2.copy(localPlayer.leftHand.position)
-              .add(
-                localVector3.set(0, 1, -1)
-                  .applyQuaternion(localPlayer.leftHand.quaternion)
-              ),
-            localVector3.set(0, 0, 1)
-              .applyQuaternion(localPlayer.leftHand.quaternion)
-          )
-        )// .multiply(localPlayer.leftHand.quaternion);
-        
-        localPlayer.leftHand.position.sub(
-          localVector.set(0, 0, -fakeArmLength)
-            .applyQuaternion(localPlayer.leftHand.quaternion)
-        );
-        
-        localPlayer.leftHand.quaternion.slerp(localQuaternion, v);
-        
-        localPlayer.leftHand.position.add(
-          localVector.set(0, 0, -fakeArmLength)
-            .applyQuaternion(localPlayer.leftHand.quaternion)
-        );
-      }
-    }
-  };
-  _updateFakeHands();
+  const localPlayer = getLocalPlayer();
 
   const _handlePush = () => {
     if (gameManager.canPush()) {
@@ -679,91 +500,122 @@ const _gameUpdate = (timestamp, timeDiff) => {
   _handlePush();
 
   const _updateGrab = () => {
-    // moveMesh.visible = false;
-
+    const renderer = getRenderer();
     const _isWear = o => localPlayer.findAction(action => action.type === 'wear' && action.instanceId === o.instanceId);
+
+    grabUseMesh.visible = false;
+    if (!gameManager.editMode) {
+      const avatarHeight = localPlayer.avatar ? localPlayer.avatar.height : 0;
+      localVector.copy(localPlayer.position)
+        .add(localVector2.set(0, avatarHeight * (1 - localPlayer.getCrouchFactor()) * 0.5, -0.3).applyQuaternion(localPlayer.quaternion));
+        
+      const radius = 1;
+      const halfHeight = 0.1;
+      const collision = physx.physxWorker.getCollisionObjectPhysics(physx.physics, radius, halfHeight, localVector, localPlayer.quaternion);
+      if (collision) {
+        const physicsId = collision.objectId;
+        const object = metaversefileApi.getAppByPhysicsId(physicsId);
+        // console.log('got collision', physicsId, object);
+        const physicsObject = metaversefileApi.getPhysicsObjectByPhysicsId(physicsId);
+        if (object && !_isWear(object) && physicsObject) {
+          grabUseMesh.position.setFromMatrixPosition(physicsObject.physicsMesh.matrixWorld);
+          grabUseMesh.quaternion.copy(camera.quaternion);
+          grabUseMesh.updateMatrixWorld();
+          grabUseMesh.targetApp = object;
+          grabUseMesh.targetPhysicsId = physicsId;
+          grabUseMesh.setComponent('value', localPlayer.actionInterpolants.activate.getNormalized());
+          
+          grabUseMesh.visible = true;
+        }
+      }
+    }
 
     for (let i = 0; i < 2; i++) {
       const grabAction = _getGrabAction(i);
       const grabbedObject = _getGrabbedObject(i);
       if (grabbedObject && !_isWear(grabbedObject)) {
-        const {position, quaternion} = localPlayer.hands[i];
+        const {position, quaternion} = renderer.xr.getSession() ? localPlayer[hand === 'left' ? 'leftHand' : 'rightHand'] : camera;
         localMatrix.compose(position, quaternion, localVector.set(1, 1, 1));
-        
         grabbedObject.updateMatrixWorld();
 
-        /* const {handSnap} = */updateGrabbedObject(grabbedObject, localMatrix, localMatrix3.fromArray(grabAction.matrix), {
+        updateGrabbedObject(grabbedObject, localMatrix, localMatrix3.fromArray(grabAction.matrix), {
           collisionEnabled: true,
           handSnapEnabled: true,
           physx,
           gridSnap: gameManager.getGridSnap(),
         });
 
-        grabbedObject.updateMatrixWorld();
-        
-        grabUseMesh.position.copy(camera.position)
-          .add(
-            localVector.copy(grabbedObject.position)
-              .sub(camera.position)
-              .normalize()
-              .multiplyScalar(3)
-          );
-        grabUseMesh.quaternion.copy(camera.quaternion);
-        grabUseMesh.updateMatrixWorld();
-        // grabUseMesh.visible = true;
-        grabUseMesh.target = grabbedObject;
         grabUseMesh.setComponent('value', localPlayer.actionInterpolants.activate.getNormalized());
-      }
-    }
-    grabUseMesh.visible = false;
-    if (!gameManager.editMode) {
-      const avatarHeight = localPlayer.avatar ? localPlayer.avatar.height : 0;
-      localVector.copy(localPlayer.position)
-        .add(localVector2.set(0, avatarHeight * (1 - getPlayerCrouchFactor(localPlayer)) * 0.5, -0.3).applyQuaternion(localPlayer.quaternion));
-        
-      const radius = 1;
-      const halfHeight = 0.1;
-      const collision = physx.physxWorker.collidePhysics(physx.physics, radius, halfHeight, localVector, localPlayer.quaternion, 1);
-      if (collision) {
-        const physicsId = collision.objectId;
-        const object = metaversefileApi.getAppByPhysicsId(physicsId);
-        if (object && !_isWear(object)) {
-          object.getWorldPosition(grabUseMesh.position);
-          grabUseMesh.quaternion.copy(camera.quaternion);
-          // grabUseMesh.scale.copy(grabbedObject.scale);
-          grabUseMesh.updateMatrixWorld();
-          grabUseMesh.visible = true;
-          grabUseMesh.target = object;
-          grabUseMesh.setComponent('value', localPlayer.actionInterpolants.activate.getNormalized());
-        }
       }
     }
   };
   _updateGrab();
 
+  zTargeting.update(timestamp, timeDiff);
+
+  const _handlePickUp = () => {
+    const pickUpAction = localPlayer.getAction('pickUp');
+    if (pickUpAction) {
+      const {instanceId} = pickUpAction;
+      const app = metaversefileApi.getAppByInstanceId(instanceId);
+
+      const _removeApp = () => {
+        if (app.parent) {
+          app.oldParent = app.parent;
+          app.parent.remove(app);
+        }
+      };
+      const _addApp = () => {
+        app.oldParent.add(app);
+        app.oldParent = null;
+      };
+
+      _removeApp();
+
+      const animations = Avatar.getAnimations();
+      const pickUpZeldaAnimation = animations.find(a => a.name === 'pick_up_zelda.fbx');
+      const pickUpTime = localPlayer.actionInterpolants.pickUp.get();
+      const pickUpTimeS = pickUpTime / 1000;
+      if (pickUpTimeS < pickUpZeldaAnimation.duration) {
+        // still playing the pick up animation
+      } else {
+        // idling
+
+        _addApp();
+
+        const handsAveragePosition = localVector.setFromMatrixPosition(localPlayer.avatar.modelBones.Left_wrist.matrixWorld)
+          .add(localVector2.setFromMatrixPosition(localPlayer.avatar.modelBones.Right_wrist.matrixWorld))
+          .divideScalar(2)
+          .add(localVector2.set(0, 0.2, 0));
+        app.position.copy(handsAveragePosition);
+        localEuler.setFromQuaternion(localPlayer.quaternion, 'YXZ');
+        localEuler.x = 0;
+        localEuler.y += Math.PI;
+        localEuler.z = 0;
+        app.quaternion.setFromEuler(localEuler);
+        app.updateMatrixWorld();
+
+        // console.log('got pickUpTime', pickUpTime, animations);
+        // debugger;
+      }
+    } /* else {
+
+    } */
+    ioManager.setMovementEnabled(!pickUpAction);
+  }
+  _handlePickUp();
+
   const _handlePhysicsHighlight = () => {
     highlightedPhysicsObject = null;
 
     if (gameManager.editMode) {
-      /* const grabbedObject = _getGrabbedObject(0);
-      const grabbedPhysicsIds = (grabbedObject && grabbedObject.getPhysicsIds) ? grabbedObject.getPhysicsIds() : [];
-      for (const physicsId of grabbedPhysicsIds) {
-        // physx.physxWorker.disableGeometryPhysics(physx.physics, physicsId);
-        physx.physxWorker.disableGeometryQueriesPhysics(physx.physics, physicsId);
-      } */
-
-      const {position, quaternion} = renderer.xr.getSession() ? metaversefileApi.useLocalPlayer().leftHand : camera;
+      const {position, quaternion} = renderer.xr.getSession() ? localPlayer.leftHand : camera;
       const collision = physx.physxWorker.raycastPhysics(physx.physics, position, quaternion);
       if (collision) {
         const physicsId = collision.objectId;
         highlightedPhysicsObject = metaversefileApi.getAppByPhysicsId(physicsId);
         highlightedPhysicsId = physicsId;
       }
-
-      /* for (const physicsId of grabbedPhysicsIds) {
-        // physx.physxWorker.enableGeometryPhysics(physx.physics, physicsId);
-        physx.physxWorker.enableGeometryQueriesPhysics(physx.physics, physicsId);
-      } */
     }
   };
   _handlePhysicsHighlight();
@@ -776,15 +628,13 @@ const _gameUpdate = (timestamp, timeDiff) => {
 
       highlightedPhysicsObject.updateMatrixWorld();
 
-      const physicsObject = /*window.lolPhysicsObject ||*/ metaversefileApi.getPhysicsObjectByPhysicsId(physicsId);
-      if(physicsObject) {
+      const physicsObject = metaversefileApi.getPhysicsObjectByPhysicsId(physicsId);
+      if (physicsObject) {
         const {physicsMesh} = physicsObject;
         highlightPhysicsMesh.geometry = physicsMesh.geometry;
-        // highlightPhysicsMesh.matrix.copy(physicsObject.matrix);
         highlightPhysicsMesh.matrixWorld.copy(physicsMesh.matrixWorld)
           .decompose(highlightPhysicsMesh.position, highlightPhysicsMesh.quaternion, highlightPhysicsMesh.scale);
-        // highlightPhysicsMesh.updateMatrixWorld();
-        // window.highlightPhysicsMesh = highlightPhysicsMesh;
+
         highlightPhysicsMesh.material.uniforms.uTime.value = (now%1500)/1500;
         highlightPhysicsMesh.material.uniforms.uTime.needsUpdate = true;
         highlightPhysicsMesh.material.uniforms.uColor.value.setHex(buildMaterial.uniforms.uColor.value.getHex());
@@ -799,12 +649,10 @@ const _gameUpdate = (timestamp, timeDiff) => {
   const _updateMouseHighlight = () => {
     mouseHighlightPhysicsMesh.visible = false;
 
-    const h = mouseHoverObject;
-    if (h && !gameManager.dragging) {
-      const physicsId = mouseHoverPhysicsId;
-
-      const physicsObject = metaversefileApi.getPhysicsObjectByPhysicsId(physicsId);
-      if (physicsObject) {
+    if (gameManager.hoverEnabled) {
+      const collision = raycastManager.getCollision();
+      if (collision) {
+        const {physicsObject/*, physicsId*/} = collision;
         const {physicsMesh} = physicsObject;
         mouseHighlightPhysicsMesh.geometry = physicsMesh.geometry;
         localMatrix2.copy(physicsMesh.matrixWorld)
@@ -812,8 +660,9 @@ const _gameUpdate = (timestamp, timeDiff) => {
           .decompose(mouseHighlightPhysicsMesh.position, mouseHighlightPhysicsMesh.quaternion, mouseHighlightPhysicsMesh.scale);
         mouseHighlightPhysicsMesh.material.uniforms.uTime.value = (now%1500)/1500;
         mouseHighlightPhysicsMesh.material.uniforms.uTime.needsUpdate = true;
-        mouseHighlightPhysicsMesh.visible = true;
         mouseHighlightPhysicsMesh.updateMatrixWorld();
+
+        mouseHighlightPhysicsMesh.visible = true;
       }
     }
   };
@@ -830,7 +679,6 @@ const _gameUpdate = (timestamp, timeDiff) => {
       if (physicsObject) {
         const {physicsMesh} = physicsObject;
         mouseSelectPhysicsMesh.geometry = physicsMesh.geometry;
-        // window.geometry = mouseSelectPhysicsMesh.geometry;
         
         // update matrix
         {
@@ -903,15 +751,14 @@ const _gameUpdate = (timestamp, timeDiff) => {
   };
   _updateMouseDomEquipmentHover();
 
-  const _handleTeleport = () => {
+  /* const _handleTeleport = () => {
     if (localPlayer.avatar) {
       teleportMeshes[1].update(localPlayer.avatar.inputs.leftGamepad.position, localPlayer.avatar.inputs.leftGamepad.quaternion, ioManager.currentTeleport, (p, q) => physx.physxWorker.raycastPhysics(physx.physics, p, q), (position, quaternion) => {
-        const localPlayer = metaversefileApi.useLocalPlayer();
         localPlayer.teleportTo(position, quaternion);
       });
     }
   };
-  _handleTeleport();
+  _handleTeleport(); */
 
   const _handleClosestObject = () => {
     const apps = world.appManager.apps;
@@ -942,7 +789,7 @@ const _gameUpdate = (timestamp, timeDiff) => {
             closestObject = closestDistanceSpec.object;
           }
         } else {
-          if ((!!localPlayer.avatar && /*controlsManager.isPossessed() &&*/ cameraManager.getMode()) === 'firstperson' || gameManager.dragging) {
+          if ((!!localPlayer.avatar && /*controlsManager.isPossessed() &&*/ cameraManager.getMode()) === 'firstperson' /*|| gameManager.dragging*/) {
             localRay.set(
               camera.position,
               localVector.set(0, 0, -1)
@@ -1017,7 +864,7 @@ const _gameUpdate = (timestamp, timeDiff) => {
   };
   _handleUsableObject();
   
-  const _updateDrags = () => {
+  /* const _updateDrags = () => {
     const {draggingRight} = gameManager;
     if (draggingRight !== lastDraggingRight) {
       if (draggingRight) {
@@ -1040,115 +887,153 @@ const _gameUpdate = (timestamp, timeDiff) => {
     }
     lastDraggingRight = draggingRight;
   };
-  _updateDrags();
+  _updateDrags(); */
   
-  const _updateUses = () => {
-    const localPlayer = metaversefileApi.useLocalPlayer();
+  const _updateActivate = () => {
     const v = localPlayer.actionInterpolants.activate.getNormalized();
     const currentActivated = v >= 1;
     
     if (currentActivated && !lastActivated) {
-      if (grabUseMesh.target) {
-        grabUseMesh.target.activate();
+      if (grabUseMesh.targetApp) {
+        grabUseMesh.targetApp.activate({
+          physicsId: grabUseMesh.targetPhysicsId,
+        });
       }
       localPlayer.removeAction('activate');
     }
     lastActivated = currentActivated;
   };
-  _updateUses();
-  
-  const _updateHits = () => {
-    const localPlayer = metaversefileApi.useLocalPlayer();
-  
-    cylinderMesh.position.copy(localPlayer.position)
-      .add(localVector.set(0, 0, -hitboxOffsetDistance).applyQuaternion(localPlayer.quaternion));
-    cylinderMesh.quaternion.copy(localPlayer.quaternion);
-    // cylinderMesh.startPosition.copy(localPlayer.position);
-    cylinderMesh.updateMatrixWorld();
+  _updateActivate();
+
+  const _updateThirdPerson = () => {
+    const firstPerson = cameraManager.getMode() === 'firstperson';
+    if (firstPerson !== lastFirstPerson) {
+      _setFirstPersonAction(firstPerson);
+      lastFirstPerson = firstPerson;
+    }
+  };
+  _updateThirdPerson();
+
+  const _updateThrow = () => {
     const useAction = localPlayer.getAction('use');
-    if (useAction && useAction.animation === 'combo') {
-      const collision = physx.physxWorker.collidePhysics(physx.physics, cylinderMesh.radius, cylinderMesh.halfHeight, cylinderMesh.position, cylinderMesh.quaternion, 1);
-      if (collision) {
-        const collisionId = collision.objectId;
-        const object = metaversefileApi.getAppByPhysicsId(collisionId);// || world.getNpcFromPhysicsId(collisionId);
-        if (object) {
-          // const worldPosition = object.getWorldPosition(localVector);
-          const damage = typeof useAction.damage === 'number' ? useAction.damage : 30;
-          object.hit(damage, {
-            collisionId,
-          });
+    if (useAction && useAction.behavior === 'throw') {
+      const v = localPlayer.actionInterpolants.use.get() / throwReleaseTime;
+      const currentThrowing = v >= 1;
+
+      if (currentThrowing && !lastThrowing) {
+        // console.log('got throw action', useAction, localPlayer);
+
+        const app = metaversefileApi.getAppByInstanceId(useAction.instanceId);
+        localPlayer.unwear(app, {
+          dropStartPosition: localVector.copy(localPlayer.position)
+            .add(localVector2.set(0, 0.5, -1).applyQuaternion(localPlayer.quaternion)),
+          dropDirection: localVector2.set(0, 0.2, -1).normalize().applyQuaternion(localPlayer.quaternion),
+        });
+      }
+      lastThrowing = currentThrowing;
+    }
+  };
+  _updateThrow();
+
+  const _updateBehavior = () => {
+    const useAction = localPlayer.getAction('use');
+    if (useAction) {
+      const _handleSword = () => {
+        localVector.copy(localPlayer.position)
+          .add(localVector2.set(0, 0, -hitboxOffsetDistance).applyQuaternion(localPlayer.quaternion));
+
+        localPlayer.characterHitter.attemptHit({
+          type: 'sword',
+          args: {
+            hitRadius,
+            hitHalfHeight,
+            position: localVector,
+            quaternion: localPlayer.quaternion,
+          },
+          timestamp,
+        });
+      };
+
+      switch (useAction.behavior) {
+        case 'sword': {
+          _handleSword();
+          break;
+        }
+        default: {
+          break;
         }
       }
     }
   };
-  _updateHits();
+  _updateBehavior();
   
-  const _updateEyes = () => {
+  const _updateMouseLook = () => {
     if (localPlayer.avatar) {
-      if (!document.pointerLockElement && lastMouseEvent) {
+      if (mouseSelectedObject && mouseSelectedPosition) {
+        // console.log('got', mouseSelectedObject.position.toArray().join(','));
+        localPlayer.avatar.eyeTarget.copy(mouseSelectedPosition);
+        localPlayer.avatar.eyeTargetInverted = true;
+        localPlayer.avatar.eyeTargetEnabled = true;
+      } else if (!cameraManager.pointerLockElement && !cameraManager.target && lastMouseEvent) {
         const renderer = getRenderer();
         const size = renderer.getSize(localVector);
         
         localPlayer.avatar.eyeTarget.set(-(lastMouseEvent.clientX/size.x-0.5), (lastMouseEvent.clientY/size.y-0.5), 1)
           .unproject(camera);
+        localPlayer.avatar.eyeTargetInverted = false;
+        localPlayer.avatar.eyeTargetEnabled = true;
+      } else if (zTargeting?.focusTargetReticle?.position) {
+        localPlayer.avatar.eyeTarget.copy(zTargeting.focusTargetReticle.position);
+        localPlayer.avatar.eyeTargetInverted = true;
         localPlayer.avatar.eyeTargetEnabled = true;
       } else {
         localPlayer.avatar.eyeTargetEnabled = false;
       }
     }
   };
-  _updateEyes();
-  
-  const updateFov = () => {
-    if (!renderer.xr.getSession()) {
-      const fovInTime = 3;
-      const fovOutTime = 0.3;
-      
-      const narutoRun = localPlayer.getAction('narutoRun');
-      if (narutoRun) {
-        if (ioManager.lastNonzeroDirectionVector.z < 0) {    
-          fovFactor += timeDiff / 1000 / fovInTime;
-        } else {
-          fovFactor -= timeDiff / 1000 / fovInTime;
-        }
-      } else {
-        fovFactor -= timeDiff / 1000 / fovOutTime;
-      }
-      fovFactor = Math.min(Math.max(fovFactor, 0), 1);
-
-      camera.fov = minFov + Math.pow(fovFactor, 0.75) * (maxFov - minFov);
-      camera.updateProjectionMatrix();
-    }
-  };
-  updateFov();
+  _updateMouseLook();
 
   const crosshairEl = document.getElementById('crosshair');
   if (crosshairEl) {
-    const visible = !!document.pointerLockElement &&
-      (['camera', 'firstperson', 'thirdperson'].includes(cameraManager.getMode()) || metaversefileApi.useLocalPlayer().hasAction('aim')) &&
+    const visible = !!cameraManager.pointerLockElement &&
+      (['camera', 'firstperson', 'thirdperson'].includes(cameraManager.getMode()) || localPlayer.hasAction('aim')) &&
       !_getGrabbedObject(0);
     crosshairEl.style.visibility = visible ? null : 'hidden';
   }
+
+  const _updateUse = () => {
+    const useAction = localPlayer.getAction('use');
+    if (useAction) {
+      if (useAction.animation === 'pickUpThrow') {
+        const useTime = localPlayer.actionInterpolants.use.get();
+        if (useTime / 1000 >= throwAnimationDuration) {
+          _endUse();
+        }
+      } else if (isMouseUp) {
+        _endUse();
+      }
+
+    }
+    isMouseUp = false;
+  };
+  _updateUse();
 };
 const _pushAppUpdates = () => {
   world.appManager.pushAppUpdates();
   
-  const localPlayer = metaversefileApi.useLocalPlayer();
-  localPlayer.appManager.pushAppUpdates();
-  
-  const remotePlayers = metaversefileApi.useRemotePlayers();
+  const remotePlayers = metaversefileApi.useRemotePlayers(); // Might have to be removed too
   for (const remotePlayer of remotePlayers) {
     remotePlayer.appManager.pushAppUpdates();
   }
 };
 const _pushPlayerUpdates = () => {
-  const localPlayer = metaversefileApi.useLocalPlayer();
+  const localPlayer = getLocalPlayer();
   localPlayer.pushPlayerUpdates();
 };
 
 const rotationSnap = Math.PI/6;
 
-const metaverseUi = {
+/* const metaverseUi = {
   makeArrowLoader() {
     const app = metaversefileApi.createApp();
     (async () => {
@@ -1159,166 +1044,149 @@ const metaverseUi = {
     })();
     return app;
   },
-};
-window.addEventListener('dragover', e => {
-  e.preventDefault();
-});
-window.addEventListener('drop', async e => {
-  e.preventDefault();
-  
-  const renderer = getRenderer();
-  const rect = renderer.domElement.getBoundingClientRect();
-  localVector2D.set(
-    ( e.clientX / rect.width ) * 2 - 1,
-    - ( e.clientY / rect.height ) * 2 + 1
-  );
-  localRaycaster.setFromCamera(localVector2D, camera);
-  const dropZOffset = 2;
-  const position = localRaycaster.ray.origin.clone()
-    .add(
-      localVector2.set(0, 0, -dropZOffset)
-        .applyQuaternion(
-          localQuaternion
-            .setFromRotationMatrix(localMatrix.lookAt(
-              localVector3.set(0, 0, 0),
-              localRaycaster.ray.direction,
-              localVector4.set(0, 1, 0)
-            ))
-        )
-    );
-  const quaternion = camera.quaternion.clone();
-  
-  let arrowLoader = metaverseUi.makeArrowLoader();
-  arrowLoader.position.copy(position);
-  arrowLoader.quaternion.copy(quaternion);
-  scene.add(arrowLoader);
-  arrowLoader.updateMatrixWorld();
-  const items = Array.from(e.dataTransfer.items);
-  await Promise.all(items.map(async item => {
-    await _handleUpload(item, {
-      position,
-      quaternion,
-    });
-  }));
-  
-  if (arrowLoader) {
-    scene.remove(arrowLoader);
-    arrowLoader.destroy();
-  }
-});
+}; */
 
 const _bindPointerLock = () => {
-  document.addEventListener('pointerlockchange', () => {
+  cameraManager.addEventListener('pointerlockchange', e => {
+    const {pointerLockElement} = e.data;
+
     gameManager.setMouseHoverObject(null);
-    if (!document.pointerLockElement) {
+    if (!pointerLockElement) {
       gameManager.editMode = false;
     }
   });
 };
 _bindPointerLock();
 
-/* let lastLocalPlayerPosition;
-let lastLocalPlayerQuaternion;
-const _bindLocalPlayerTeleport = () => {
-  const localPlayer = metaversefileApi.useLocalPlayer();
-  lastLocalPlayerPosition = localPlayer.position.clone();
-  lastLocalPlayerQuaternion = localPlayer.quaternion.clone();
-  world.appManager.addEventListener('preframe', e => {
-    if (
-      !localPlayer.position.equals(lastLocalPlayerPosition) ||
-      !localPlayer.quaternion.equals(lastLocalPlayerQuaternion)
-    ) {
-      localPlayer.teleportTo(localPlayer.position, localPlayer.quaternion, {
-        relation: 'head',
-      });
+const _setFirstPersonAction = firstPerson => {
+  const localPlayer = getLocalPlayer();
+  if (firstPerson) {
+    if (!localPlayer.hasAction('firstperson')) {
+      const aimAction = {
+        type: 'firstperson',
+      };
+      localPlayer.addAction(aimAction);
     }
-  });
+  } else {
+    localPlayer.removeAction('firstperson');
+  }
 };
-_bindLocalPlayerTeleport(); */
+let lastFirstPerson = cameraManager.getMode() === 'firstperson';
+_setFirstPersonAction(lastFirstPerson);
+/* cameraManager.addEventListener('modechange', e => {
+  // XXX need to do this in the frame loop instead
+  const {mode} = e.data;
+  const firstPerson = mode === 'firstperson';
+  _setFirstPersonAction(firstPerson);
+}); */
 
 let lastMouseEvent = null;
-const gameManager = {
-  menuOpen: 0,
-  gridSnap: 0,
-  editMode: false,
-  dragging: false,
-  draggingRight: false,
-  contextMenu: false,
-  contextMenuObject: null,
-  inventoryHack: false,
-  closestObject: null,
-  usableObject: null,
-  hoverEnabled: false,
+class GameManager extends EventTarget {
+  constructor() {
+    super();
+
+    this.menuOpen = 0;
+    this.gridSnap = 0;
+    this.editMode = false;
+    // this.dragging = false;
+    // this.draggingRight = false;
+    this.contextMenu = false;
+    this.contextMenuObject = null;
+    this.inventoryHack = false;
+    this.closestObject = null;
+    this.usableObject = null;
+    this.hoverEnabled = false;
+  }
   getMenu() {
     return this.menuOpen;
-  },
+  }
   setMenu(newOpen) {
     this.menuOpen = newOpen;
     if (newOpen) {
       _selectItem(0);
     }
-  },
+  }
   menuVertical(offset) {
     if (this.menuOpen) {
       _selectItemDelta(offset);
     }
-  },
+  }
   menuHorizontal(offset) {
     if (this.menuOpen) {
       _selectTabDelta(offset);
     }
-  },
+  }
   setContextMenu(contextMenu) {
     this.contextMenu = contextMenu;
-  },
+  }
   getContextMenuObject() {
     return this.contextMenuObject;
-  },
+  }
   setContextMenuObject(contextMenuObject) {
     this.contextMenuObject = contextMenuObject;
-  },
+  }
   menuUse() {
     _use();
-  },
+  }
   menuDelete() {
     _delete();
-  },
-  menuClick() {
-    _click();
-  },
+  }
+  menuClick(e) {
+    _click(e);
+  }
   menuMouseDown() {
     _mousedown();
-  },
+  }
   menuMouseUp() {
     _mouseup();
-  },
+  }
   menuAim() {
-    const localPlayer = metaversefileApi.useLocalPlayer();
+    const localPlayer = getLocalPlayer();
     if (!localPlayer.hasAction('aim')) {
+      const wearApp = loadoutManager.getSelectedApp();
+      const wearAimApp = (() => {
+        if (wearApp) {
+          const aimComponent = wearApp.getComponent('aim');
+          if (aimComponent) {
+            return wearApp;
+          }
+        }
+        return null;
+      })();
+      const wearAimComponent = wearAimApp?.getComponent('aim');
+
+      const {instanceId} = wearAimApp ?? {};
+      const {appAnimation, playerAnimation, boneAttachment, position, quaternion, scale} = wearAimComponent ?? {};
       const aimAction = {
         type: 'aim',
+        instanceId,
+        appAnimation,
+        playerAnimation,
+        boneAttachment,
+        position,
+        quaternion,
+        scale,
       };
       localPlayer.addAction(aimAction);
     }
-  },
+  }
   menuUnaim() {
-    const localPlayer = metaversefileApi.useLocalPlayer();
+    const localPlayer = getLocalPlayer();
     const aimAction = localPlayer.getAction('aim');
     if (aimAction) {
       localPlayer.removeAction('aim');
     }
-  },
-  menuDragdown(e) {
-    this.dragging = true;
-    
-    world.appManager.dispatchEvent(new MessageEvent('dragchange', {
-      data: {
-        dragging: this.dragging,
-      },
-    }));
-  },
-  menuDrag(e) {
-    const {movementX, movementY} = e;
+  }
+  menuMiddleDown() {
+    zTargeting.handleDown();
+
+    // zTargetCenter
+    // zTargetObject
+    // zTargetEnemy
+    // zTargetCancel
+  }
+  menuMiddle() {
+    /* const {movementX, movementY} = e;
     if (Math.abs(movementX) < 100 && Math.abs(movementY) < 100) { // hack around a Chrome bug
       camera.position.add(localVector.copy(cameraManager.getCameraOffset()).applyQuaternion(camera.quaternion));
   
@@ -1330,52 +1198,82 @@ const gameManager = {
       camera.position.sub(localVector.copy(cameraManager.getCameraOffset()).applyQuaternion(camera.quaternion));
 
       camera.updateMatrixWorld();
-    }
-  },
-  menuDragup() {
-    this.dragging = false;
+    } */
+  }
+  menuMiddleUp() {
+    zTargeting.handleUp();
+
+    // this.dragging = false;
     
-    world.appManager.dispatchEvent(new MessageEvent('dragchange', {
+    /* world.appManager.dispatchEvent(new MessageEvent('dragchange', {
       data: {
         dragging: this.dragging,
       },
-    }));
-  },
+    })); */
+  }
+  menuMiddleToggle() {
+    zTargeting.toggle();
+  }
   menuDragdownRight(e) {
-    this.draggingRight = true;
-  },
-  menuDragRight(e) {
     // this.draggingRight = true;
-  },
+  }
+  menuDragRight(e) {
+    // nothing
+  }
   menuDragupRight() {
-    this.draggingRight = false;
-  },
+    // this.draggingRight = false;
+  }
   menuKey(c) {
     menuMesh.key(c);
-  },
+  }
   menuSelectAll() {
     menuMesh.selectAll();
-  },
+  }
   menuPaste(s) {
     menuMesh.paste(s);
-  },
+  }
+  inputFocused() {
+    return !!document.activeElement && ['INPUT', 'TEXTAREA'].includes(document.activeElement.nodeName);
+  }
   canGrab() {
     return !!highlightedObject /*&& !editedObject*/;
-  },
+  }
   canRotate() {
     return !!_getGrabbedObject(0);
     // return !!world.appManager.grabbedObjects[0];
-  },
+  }
   menuRotate(direction) {
     const object = _getGrabbedObject(0);
     object.savedRotation.y -= direction * rotationSnap;
-  },
+  }
+  dropSelectedApp() {
+    const app = loadoutManager.getSelectedApp();
+    if (app) {
+      const localPlayer = getLocalPlayer();
+      localPlayer.unwear(app, {
+        /* dropStartPosition: localVector.copy(localPlayer.position)
+          .add(localVector2.set(0, 0.5, -1).applyQuaternion(localPlayer.quaternion)),
+        dropDirection: zeroVector, */
+      });
+    }
+  }
+  deleteSelectedApp() {
+    if (this.selectedIndex !== -1) {
+      const app = loadoutManager.getSelectedApp();
+      if (app) {
+        const localPlayer = getLocalPlayer();
+        localPlayer.unwear(app, {
+          destroy: true,
+        });
+      }
+    }
+  }
   canPush() {
     return !!_getGrabbedObject(0);
     // return !!world.appManager.grabbedObjects[0] /*|| (editedObject && editedObject.isBuild)*/;
-  },
+  }
   menuPush(direction) {
-    const localPlayer = metaversefileApi.useLocalPlayer();
+    const localPlayer = getLocalPlayer();
     const grabAction = localPlayer.findAction(action => action.type === 'grab' && action.hand === 'left');
     if (grabAction) {
       const matrix = localMatrix.fromArray(grabAction.matrix);
@@ -1388,7 +1286,7 @@ const gameManager = {
     } else {
       console.warn('trying to push with no grab object');
     }
-  },
+  }
   menuGridSnap() {
     if (this.gridSnap === 0) {
       this.gridSnap = 32;
@@ -1398,72 +1296,114 @@ const gameManager = {
       this.gridSnap = 0;
     }
     // gridSnapEl.innerText = this.gridSnap > 0 ? (this.gridSnap + '') : 'off';
-  },
+  }
   getGridSnap() {
     if (this.gridSnap === 0) {
       return 0;
     } else {
       return 4/this.gridSnap;
     }
-  },
+  }
+
   menuVDown() {
+    const localPlayer = getLocalPlayer();
     if (_getGrabbedObject(0)) {
       this.menuGridSnap();
     } else {
-      const localPlayer = metaversefileApi.useLocalPlayer();
-      const action = localPlayer.getAction('dance');
-      if (!action) {
-        const newAction = {
-          type: 'dance',
-          animation: 'dansu',
-          // time: 0,
-        };
-        localPlayer.addAction(newAction);
-      }
+      localPlayer.removeAction('dance');
+
+      const newAction = {
+        type: 'dance',
+        animation: 'dansu',
+      };
+      localPlayer.addAction(newAction);
     }
-  },
-  menuVUp(e) {
-    const localPlayer = metaversefileApi.useLocalPlayer();
+  }
+  menuVUp() {
+    const localPlayer = getLocalPlayer();
     localPlayer.removeAction('dance');
-  },
-  menuBDown(e) {
-    if (e.ctrlKey) {
-      universe.reload();
-    }
-  },
-  menuBUp() {
-    // physicsManager.setThrowState(null);
-  },
-  menuDoubleShift() {
-    const localPlayer = metaversefileApi.useLocalPlayer();
-    const narutoRunAction = localPlayer.getAction('narutoRun');
-    if (!narutoRunAction) {
-      const newNarutoRunAction = {
-        type: 'narutoRun',
+  }
+
+  menuBDown() {
+    const localPlayer = getLocalPlayer();
+    const sssAction = localPlayer.getAction('sss');
+    if (!sssAction) {
+      const newSssAction = {
+        type: 'sss',
+      };
+      localPlayer.addAction(newSssAction);
+
+      sounds.playSoundName('limitBreak');
+
+      localPlayer.removeAction('dance');
+      const newDanceAction = {
+        type: 'dance',
+        animation: 'powerup',
         // time: 0,
       };
-      localPlayer.addAction(newNarutoRunAction);
+      localPlayer.addAction(newDanceAction);
+    } else {
+      localPlayer.removeAction('sss');
+      localPlayer.removeAction('dance');
     }
-  },
-  menuUnDoubleShift() {
-    const localPlayer = metaversefileApi.useLocalPlayer();
+
+    /* if (e.ctrlKey) {
+      universe.reload();
+    } */
+  }
+  menuBUp() {
+    const localPlayer = getLocalPlayer();
+    localPlayer.removeAction('dance');
+    
+    // physicsManager.setThrowState(null);
+  }
+
+  menuDoubleTap() {
+    if (!this.isCrouched()) {
+      const localPlayer = getLocalPlayer();
+      const narutoRunAction = localPlayer.getAction('narutoRun');
+      if (!narutoRunAction) {
+        const newNarutoRunAction = {
+          type: 'narutoRun',
+          // time: 0,
+        };
+        localPlayer.addAction(newNarutoRunAction);
+      }
+    }
+  }
+  menuUnDoubleTap() {
+    const localPlayer = getLocalPlayer();
     const narutoRunAction = localPlayer.getAction('narutoRun');
     if (narutoRunAction) {
       localPlayer.removeAction('narutoRun');
     }
-  },
-  toggleDebug(debugMode) {
-    if(debugMode) {
-      document.getElementById('statsBox').style.display = 'none';
-    } else {
-      document.getElementById('statsBox').style.display = 'block';
+  }
+  menuSwitchCharacter() {
+    sounds.playSoundName('menuReady');
+
+    const npc = npcManager.npcs[0];
+    if (npc) {
+      // console.log('check npc', npc);
+      
+      const localPlayer = getLocalPlayer();
+      localPlayer.isLocalPlayer = false;
+      localPlayer.isNpcPlayer = true;
+
+      npc.isLocalPlayer = true;
+      npc.isNpcPlayer = false;
+
+      const npcIndex = npcManager.npcs.indexOf(npc);
+      npcManager.npcs[npcIndex] = localPlayer;
+
+      setLocalPlayer(npc);
     }
-  },
+  }
   isFlying() {
-    return metaversefileApi.useLocalPlayer().hasAction('fly');
-  },
+    const localPlayer = getLocalPlayer();
+    return localPlayer.hasAction('fly');
+  }
   toggleFly() {
-    const localPlayer = metaversefileApi.useLocalPlayer();
+    const localPlayer = getLocalPlayer();
     const flyAction = localPlayer.getAction('fly');
     if (flyAction) {
       localPlayer.removeAction('fly');
@@ -1474,12 +1414,13 @@ const gameManager = {
       };
       localPlayer.setControlAction(flyAction);
     }
-  },
+  }
   isCrouched() {
-    return metaversefileApi.useLocalPlayer().hasAction('crouch');
-  },
+    const localPlayer = getLocalPlayer();
+    return localPlayer.hasAction('crouch');
+  }
   toggleCrouch() {
-    const localPlayer = metaversefileApi.useLocalPlayer();
+    const localPlayer = getLocalPlayer();
     let crouchAction = localPlayer.getAction('crouch');
     if (crouchAction) {
       localPlayer.removeAction('crouch');
@@ -1489,73 +1430,55 @@ const gameManager = {
       };
       localPlayer.addAction(crouchAction);
     }
-  },
+  }
+  async handleDropJsonItemToPlayer(item, index) {
+    const u = await handleDropJsonItem(item);
+    return await this.handleDropUrlToPlayer(u, index);
+  }
+  async handleDropJsonToPlayer(j, index) {
+    const u = getDropUrl(j);
+    return await this.handleDropUrlToPlayer(u, index);
+  }
+  async handleDropUrlToPlayer(u, index) {
+    const app = await metaversefileApi.createAppAsync({
+      start_url: u,
+    });
+    world.appManager.importApp(app);
+    app.activate();
+    // XXX set to index
+  }
   selectLoadout(index) {
-    _selectLoadout(index);
-  },
+    loadoutManager.setSelectedIndex(index);
+  }
   canToggleAxis() {
     return false; // !!world.appManager.grabbedObjects[0]; // || (editedObject && editedObject.isBuild);
-  },
+  }
   toggleAxis() {
     console.log('toggle axis');
-  },
+  }
   async toggleEditMode() {
     this.editMode = !this.editMode;
     // console.log('got edit mode', this.editMode);
     if (this.editMode) {
-      if (!document.pointerLockElement) {
+      if (!cameraManager.pointerLockElement) {
         await cameraManager.requestPointerLock();
       }
       if (this.mouseSelectedObject) {
         this.setMouseSelectedObject(null);
       }
       if (_getGrabbedObject(0)) {
-        const localPlayer = metaversefileApi.useLocalPlayer();
+        const localPlayer = getLocalPlayer();
         localPlayer.ungrab();
       } 
     }
-  },
-  menuUpload: _upload,
-  addLocalEmote(index) {
-    const localPlayer = metaversefileApi.useLocalPlayer();
-    if (localPlayer.avatar) {
-      const timestamp = performance.now();
-      const startTimestamp = timestamp;
-      const aTimestamp = startTimestamp + 300;
-      const bTimestamp = aTimestamp + 1000;
-      const endTimestamp = bTimestamp + 300;
-      
-      const emote = {
-        index,
-        value: 0,
-      };
-      localPlayer.avatar.emotes.push(emote);
-      const _finish = () => {
-        localPlayer.avatar.emotes.splice(localPlayer.avatar.emotes.indexOf(emote), 1);
-        world.appManager.removeEventListener('frame', frame);
-      };
-      const frame = e => {
-        const {timestamp} = e.data;
-        if (timestamp < aTimestamp) {
-          emote.value = cubicBezier((timestamp - startTimestamp) / (aTimestamp - startTimestamp));
-        } else if (timestamp < bTimestamp) {
-          emote.value = 1;
-        } else if (timestamp < endTimestamp) {
-          emote.value = 1 - cubicBezier((timestamp - bTimestamp) / (endTimestamp - bTimestamp));
-        } else {
-          _finish();
-        }
-      };
-      world.appManager.addEventListener('frame', frame);
-    }
-  },
+  }
   isJumping() {
-    return metaversefileApi.useLocalPlayer().hasAction('jump');
-  },
-  ensureJump() {
-    const localPlayer = metaversefileApi.useLocalPlayer();
-    const jumpAction = localPlayer.getAction('jump');
-    
+    const localPlayer = getLocalPlayer();
+    return localPlayer.hasAction('jump');
+  }
+  ensureJump(trigger) {
+    const localPlayer = getLocalPlayer();
+
     const wearActions = Array.from(localPlayer.getActionsState()).filter(action => action.type === 'wear');
     for (const wearAction of wearActions) {
       const instanceId = wearAction.instanceId;
@@ -1566,42 +1489,54 @@ const gameManager = {
       }
     }
 
+    const jumpAction = localPlayer.getAction('jump');
     if (!jumpAction) {
       const newJumpAction = {
         type: 'jump',
+        trigger:trigger
         // time: 0,
       };
       localPlayer.addAction(newJumpAction);
     }
-  },
-  jump() {
-    this.ensureJump();
-    const localPlayer = metaversefileApi.useLocalPlayer();
-    localPlayer.characterPhysics.velocity.y += 5;
-    soundManager.play('jump');
-  },
+  }
+  jump(trigger) {
+    // add jump action
+    this.ensureJump(trigger);
+
+    // update velocity
+    const localPlayer = getLocalPlayer();
+    localPlayer.characterPhysics.velocity.y += 6;
+    
+    // play sound
+    // soundManager.play('jump');
+
+  }
   isMovingBackward() {
-    return ioManager.keysDirection.z > 0 && this.isAiming();
-  },
+    const localPlayer = getLocalPlayer();
+    // return ioManager.keysDirection.z > 0 && this.isAiming();
+    return localPlayer.avatar.direction.z > 0.1; // If check > 0 will cause glitch when move left/right;
+  }
   isAiming() {
-    return metaversefileApi.useLocalPlayer().hasAction('aim');
-  },
+    const localPlayer = getLocalPlayer();
+    return localPlayer.hasAction('aim');
+  }
   isSitting() {
-    return metaversefileApi.useLocalPlayer().hasAction('sit');
-  },
+    const localPlayer = getLocalPlayer();
+    return localPlayer.hasAction('sit');
+  }
   getMouseHoverObject() {
     return mouseHoverObject;
-  },
+  }
   getMouseHoverPhysicsId() {
     return mouseHoverPhysicsId;
-  },
+  }
   getMouseHoverPosition() {
     return mouseHoverPosition;
-  },
+  }
   setHoverEnabled(hoverEnabled) {
     this.hoverEnabled = hoverEnabled;
-  },
-  setMouseHoverObject(o, physicsId, position) {
+  }
+  setMouseHoverObject(o, physicsId, position) { // XXX must be triggered
     mouseHoverObject = o;
     mouseHoverPhysicsId = physicsId;
     if (mouseHoverObject && position) {
@@ -1618,16 +1553,16 @@ const gameManager = {
         position: mouseHoverPosition,
       },
     }));
-  },
+  }
   getMouseSelectedObject() {
     return mouseSelectedObject;
-  },
+  }
   getMouseSelectedPhysicsId() {
     return mouseSelectedPhysicsId;
-  },
+  }
   getMouseSelectedPosition() {
     return mouseSelectedPosition;
-  },
+  }
   setMouseSelectedObject(o, physicsId, position) {
     mouseSelectedObject = o;
     mouseSelectedPhysicsId = physicsId;
@@ -1644,25 +1579,25 @@ const gameManager = {
         position: mouseSelectedPosition,
       },
     }));
-  },
+  }
   getMouseDomHoverObject() {
     return mouseDomHoverObject;
-  },
+  }
   setMouseDomHoverObject(o, physicsId) {
     mouseDomHoverObject = o;
     mouseDomHoverPhysicsId = physicsId;
-  },
+  }
   getMouseDomEquipmentHoverObject(o, physicsId) {
     return mouseDomEquipmentHoverObject;
-  },
+  }
   setMouseDomEquipmentHoverObject(o, physicsId) {
     mouseDomEquipmentHoverObject = o;
     mouseDomEquipmentHoverPhysicsId = physicsId;
-  },
+  }
   getSpeed() {
     let speed = 0;
     
-    const walkSpeed = 0.1;
+    const walkSpeed = 0.075;
     const flySpeed = walkSpeed * 2;
     const defaultCrouchSpeed = walkSpeed * 0.7;
     const isCrouched = gameManager.isCrouched();
@@ -1676,7 +1611,7 @@ const gameManager = {
     }
     
     const sprintMultiplier = (ioManager.keys.shift && !isCrouched) ?
-      (ioManager.keys.doubleShift ? 20 : 3)
+      (ioManager.keys.doubleTap ? 20 : 3)
     :
       1;
     speed *= sprintMultiplier;
@@ -1685,54 +1620,76 @@ const gameManager = {
     speed *= backwardMultiplier;
     
     return speed;
-  },
+  }
   getClosestObject() {
     return gameManager.closestObject;
-  },
+  }
   getUsableObject() {
     return gameManager.usableObject;
-  },
-  getLastMouseEvent() {
-    return lastMouseEvent;
-  },
-  setLastMouseEvent(e) {
-    if (!lastMouseEvent) {
-      lastMouseEvent = {
-        clientX: 0,
-        clientY: 0,
-        inside: false,
-      };
-    }
-    if (e) {
-      lastMouseEvent.clientX = e.clientX;
-      lastMouseEvent.clientY = e.clientY;
-      lastMouseEvent.inside = true;
-    } else {
-      lastMouseEvent.inside = false;
-    }
-  },
+  }
   getDragRightSpec() {
     return dragRightSpec;
-  },
+  }
   menuActivateDown() {
     if (grabUseMesh.visible) {
-      const localPlayer = metaversefileApi.useLocalPlayer();
+      const localPlayer = getLocalPlayer();
       const activateAction = localPlayer.getAction('activate');
       if (!activateAction) {
+        const animationName = _getCurrentGrabAnimation();
         const newActivateAction = {
           type: 'activate',
-          // time: 0,
+          animationName,
         };
         localPlayer.addAction(newActivateAction);
       }
     }
-  },
+  }
   menuActivateUp() {
-    const localPlayer = metaversefileApi.useLocalPlayer();
+    const localPlayer = getLocalPlayer();
     localPlayer.removeAction('activate');
-  },
-  update: _gameUpdate,
-  pushAppUpdates: _pushAppUpdates,
-  pushPlayerUpdates: _pushPlayerUpdates,
-};
+  }
+  setAvatarQuality(quality) {
+    const localPlayer = getLocalPlayer();
+    localPlayer.avatar.setQuality(quality);
+  }
+  playerDiorama = null;
+  bindDioramaCanvas() {
+    // await rendererWaitForLoad();
+
+    const localPlayer = getLocalPlayer();
+    this.playerDiorama = dioramaManager.createPlayerDiorama({
+      target: localPlayer,
+      // label: true,
+      outline: true,
+      grassBackground: true,
+      // glyphBackground: true,
+    });
+
+    localPlayer.addEventListener('avatarchange', e => {
+      this.playerDiorama.setObjects([
+        e.avatar.model,
+      ]);
+    });
+  }
+  /* loadVoicePack(voicePack) {
+    return localPlayer.loadVoicePack(voicePack);
+  } */
+  setVoiceEndpoint(voiceId) {
+    const localPlayer = getLocalPlayer();
+    return localPlayer.setVoiceEndpoint(voiceId);
+  }
+  saveScene() {
+    const scene = world.appManager.exportJSON();
+    const s = JSON.stringify(scene, null, 2);
+    const blob = new Blob([s], {
+      type: 'application/json',
+    });
+    downloadFile(blob, 'scene.json');
+    // console.log('got scene', scene);
+  }
+  update = _gameUpdate;
+  pushAppUpdates = _pushAppUpdates;
+  pushPlayerUpdates = _pushPlayerUpdates;
+}
+const gameManager = new GameManager();
 export default gameManager;

@@ -48,7 +48,7 @@ export class UniActionInterpolant extends ScalarInterpolant {
 // infinite linear; goes forward only
 export class InfiniteActionInterpolant extends ScalarInterpolant {
   constructor(fn, minValue) {
-    super(fn, minValue);
+    super(fn, minValue, Infinity);
   }
   update(timeDiff) {
     if (this.fn()) {

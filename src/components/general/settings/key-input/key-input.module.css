@@ -1,0 +1,17 @@
+
+.keyInput {
+    display: block;
+    width: 140px;
+    padding: 8px 20px;
+    border: 1px solid #aaa;
+    border-radius: 5px;
+    text-align: center;
+    text-transform: uppercase;
+    cursor: pointer;
+    color: #fff;
+    font-size: 12px;
+}
+
+.active {
+    color: #ff0;
+}

@@ -1,92 +1,55 @@
 .loginDiv {
-  width: 100%;
-  margin: 10px 0;
-  text-align: -webkit-center;
+    width: 100%;
+    margin: 10px 0;
+    text-align: -webkit-center;
 }
 
 .loginBtnText {
-  display: inline-block;
-  transform: skewX(20deg);
-}
+    display: inline-block;
+    transform: skewX(20deg);
+  }
 
 .loginBtnImg {
-  vertical-align: middle;
-  margin: 0 10px;
-}
+    vertical-align: middle;
+    margin: 0 10px;
+  }
 
 .loginBtn {
-  transform: skewX(-20deg);
-  background: rgb(0, 168, 252);
-  color: rgb(0, 0, 0);
-  padding: 0.5em;
-  width: 10em;
-  text-align: left;
-  cursor: pointer;
+    transform: skewX(-20deg);
+    background: rgb(0, 168, 252);
+    color: rgb(0, 0, 0);
+    padding: 0.5em;
+    width: 10em;
+    text-align: left;
+    cursor: pointer;
 }
 
 .logoutBtn {
-  position: absolute;
-  right: 0;
-  background: black;
-  color: white;
-  padding: 6px;
-  font-size: 14px;
-  cursor: pointer;
+    position: absolute;
+    right: 0;
+    background: black;
+    color: white;
+    padding: 6px;
+    font-size: 14px;
+    cursor: pointer;
 }
 
 .logoutBtn:hover {
-  background: #ef5350;
-  color: white;
+    background: #ef5350;
+    color: white;
 }
 
 body {
   --header-height: 50px;
 }
 
-.header {
-  position: fixed;
-	display: flex;
-	width: 100%;
-	height: var(--header-height);
-  top: 0;
-  flex-direction: column;
-  user-select: none;
-  z-index: 2;
-}
-
-.header.subheader {
-  z-index: 1;
-}
-
-.header > .row {
-  display: flex;
-  width: inherit;
-  height: inherit;
-  align-items: center;
-}
-
-.header .logo {
-  height: 100%;
-	margin-right: auto;
-  padding: 0 10px;
-  user-select: none;
-}
-.header .logo img {
-  pointer-events: none;
-}
-.header .logo:hover img {
-  transform: scale(1.4);
-}
-
-.header .image {
-  width: var(--header-height);
-  height: var(--header-height);
-}
-
 .header .tab {
   position: fixed;
-  top: 50px;
   transition: transform 0.3s cubic-bezier(0, 1, 0, 1);
+}
+.header .tab.top.left {
+  top: 50px;
+  height: 40px;
 }
 .header .tab .label {
   position: relative;
@@ -112,7 +75,7 @@ body {
   display: flex;
   width: 400px;
   height: 100vh;
-  overflow: hidden;
+  /* overflow: hidden; */
 }
 .header .tab .panelsLogin {
   position: fixed;
@@ -130,13 +93,57 @@ body {
 }
 .header .panel-header {
   display: flex;
-  padding: 0 10px;
+  position: relative;
+  margin-bottom: 5px;
+  /* padding: 0 10px; */
 }
-.header .tab.top.left .panel-header {
-  margin-top: 20px;
+.header .panel-header > .panel-section {
+  display: flex;
+  flex: 1;
+}
+.header .panel-header > .panel-section.name {
+  position: absolute;
+  justify-content: center;
+  font-family: 'WinchesterCaps';
+  top: -30px;
+  left: -25px;
+  width: 50%;
+  height: 85px;
+  letter-spacing: 3px;
+  font-size: 16px;
+}
+.header .panel-header > .panel-section.main-stats {
+  display: flex;
+  width: 215px;
+  height: 50px;
+  flex: none;
+  font-family: 'WinchesterCaps';
+  font-size: 13px;
+  letter-spacing: 1px;
+  align-items: center;
+}
+.header .panel-header > .panel-section.name::before {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  background-image: linear-gradient(to bottom,#222222, #000000);
+  transform: skew(-30deg);
+  content: '';
+}
+.header .panel-header > .panel-section.name h1 {
+  position: relative;
+}
+.header .panel-header > .panel-section > .panel-row {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  /* justify-content: flex-start; */
+  align-items: flex-start;
 }
 .header .tab.top.right .panel-header {
-  margin-top: 40px;
+  margin-top: 60px;
 }
 .header .panel-header .button {
   cursor: pointer;
@@ -151,7 +158,9 @@ body {
 .header .panel-header .button:hover .img {
   filter: invert(62%) sepia(59%) saturate(344%) hue-rotate(73deg) brightness(94%) contrast(90%);
 }
-.header .panel-header  h1 {
+.header h1,
+.header h2
+{
   display: flex;
   margin: 0;
   padding-bottom: 5px;
@@ -159,6 +168,137 @@ body {
   text-overflow: ellipsis;
   overflow: hidden;
   align-items: center;
+}
+.header p
+{
+  display: block;
+  height: 190px;
+  border-radius: 10px;
+  background-color: #333;
+  box-shadow: inset 0 10px 20px -10px #111;
+  /* background-image: linear-gradient(to bottom,#222222, #000000 20px); */
+  margin: 20px 30px;
+  padding: 20px;
+  /* font-family: 'PlazaRegular'; */
+  /* font-family: 'WinchesterCaps'; */
+  font-size: 20px;
+  /* letter-spacing: 3px; */
+}
+.header p b,
+.header p span
+{
+  display: block;
+  text-align: left;
+}
+.header p b {
+  margin-bottom: 10px;
+  font-size: 28px;
+}
+
+@keyframes gloob {
+  from {
+    filter: brightness(150%);
+    transform: scale(1.2, 1.2);
+  }
+  to {
+    filter: none;
+    transform: none;
+  }
+}
+@keyframes gloob2 {
+  from {
+    transform: scale(1.2, 1.2);
+  }
+  to {
+    transform: none;
+  }
+}
+@keyframes pulse {
+  from {
+    filter: invert(71%) sepia(12%) saturate(1550%) hue-rotate(73deg) brightness(91%) contrast(85%);
+
+  }
+  to {
+    filter: none;
+    transform: none;
+  }
+}
+@keyframes zoom {
+  from {
+
+  }
+  to {
+    transform: none;
+  }
+}
+
+.mint-button {
+  position: relative;
+  display: flex;
+  margin: 0 30px;
+  padding: 8px;
+  /* border: 2px solid rgba(0, 0, 0, 0.1); */
+  border: 0;
+  justify-content: center;
+  align-items: center;
+  /* font-family: 'WinchesterCaps'; */
+  font-family: 'PlazaRegular';
+  font-size: 20px;
+  letter-spacing: 2px;
+  color: #FFF;
+  cursor: pointer;
+  user-select: none;
+}
+.mint-button span {
+  position: relative;
+}
+.mint-button .button-background {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  animation-name: pulse;
+  animation-duration: 0.3s;
+  animation-direction: alternate;
+  animation-iteration-count: infinite;
+  animation-timing-function: ease-in;
+}
+.mint-button .button-background {
+  background-image: linear-gradient(to bottom, #4776E6, #8E54E9);
+  /* border-image: linear-gradient(to bottom, #4776E6, #8E54E9); */
+}
+.mint-button span {
+  animation-name: zoom;
+  animation-duration: 0.3s;
+  animation-direction: alternate;
+  animation-iteration-count: infinite;
+  animation-timing-function: ease-in;
+}
+
+.header input[type=range] {
+  margin: 0 30px;
+}
+input[type=range] {
+  -webkit-appearance: none; /* Hides the slider so that custom slider can be made */
+  /* width: 100%; // Specific width is required for Firefox. */
+  /* background: #333; /* Otherwise white in Chrome */
+  /* box-shadow: inset 0 -1px #000; /* Otherwise thick black border */
+  background: repeating-linear-gradient(to right, #333, #333 110px, #666 110px, #666 115px);
+}
+input[type=range]::-webkit-slider-thumb {
+  -webkit-appearance: none;
+}
+input[type=range]::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  border: 1px solid #000000;
+  height: 36px;
+  width: 16px;
+  border-radius: 3px;
+  background: #ffffff;
+  cursor: pointer;
+  margin-top: -14px; /* You need to specify a margin in Chrome, but in Firefox and IE it is automatic */
+  box-shadow: 1px 1px 1px #000000, 0px 0px 1px #0d0d0d; /* Add cool effects */
 }
 .header .panel-subheader {
   display: flex;
@@ -196,12 +336,17 @@ body {
   top: -50px;
   left: -400px;
 }
-.header .tab.top.right .panels {
+.header .tab.top.right .panels
+{
   top: -100px;
   left: 100%;
   height: 100vh;
   overflow-y: scroll;
   overflow-x: hidden;
+}
+.header .tab.top.right.index-1 .panels {
+  top: -155px;
+  overflow: visible;
 }
 .header .tab .objects .object {
   position: relative;
@@ -254,7 +399,7 @@ body {
 .header .tab.open .panels {
   background-color: #000;
   color: #FFF;
-  padding-top: 36px;
+  /* padding-top: 36px; */
 }
 .header .tab.top.left.open {
   transform: translateX(400px);
@@ -298,6 +443,9 @@ body {
 }
 .header .tab.top.right.open {
   transform: translateX(-400px);
+}
+.header .tab.top.right.index-1.open {
+  transform: translateX(-400px) translateY(55px);
 }
 .header .tab .label .background {
   position: absolute;
@@ -346,6 +494,9 @@ body {
 .header .tab.bottom.right.open .background {
   transform: translateX(50px);
 }
+.header .tab.top.right.index-1 {
+  transform: translateY(55px);
+}
 .header .tab.bottom.left:not(.disabled):hover .background,
 .header .tab.bottom.left.open .background {
   transform: rotateZ(180deg) translateX(50px);
@@ -385,232 +536,6 @@ body {
   opacity: 0.5;
 }
 
-.header .user {
-	position: relative;
-	display: flex;
-	height: 100%;
-	align-items: center;
-	cursor: pointer;
-	user-select: none;
-}
-
-.header .user:hover .name {
-	transform: translateX(-30px);
-  background-color: #ef5350;
-}
-.header .user:hover .name::before {
-	border-right-color: #ef5350;
-}
-.header .user:hover::before {
-	width: 100%;
-}
-.header .user:active .name {
-	background-color: #283593;
-}
-.header .user:active .name::before {
-	border-right-color: #283593;
-}
-
-.header .user:active .icon {
-  transform: scale(1.2);
-}
-.header .user .icon {
-	position: relative;
-  height: 70px;
-	margin-left: 20px;
-	margin-right: 60px;
-	background-color: #FFF;
-	border-radius: 100px;
-	border: 2px solid #333;
-}
-
-.header .user .name {
-	position: relative;
-	display: flex;
-	height: 80px;
-	margin-right: -30px;
-	padding: 0 10px;
-	padding-right: 40px;
-	padding-top: 30px;
-	margin-bottom: auto;
-	background-color: #000;
-	color: #FFF;
-	align-items: center;
-}
-.header .user .name,
-.header .user .name::before
-{
-	transition: all 2s cubic-bezier(0, 1, 0, 1);
-}
-.header .user .name::before {
-	position: absolute;
-	top: 0;
-	left: -80px;
-  border-width: 0;
-	border-right-width: 80px;
-	border-bottom-width: 80px;
-	border-color: transparent;
-	border-style: solid;
-	border-right-color: #000;
-	content: '';
-}
-.header .user::before {
-	position: absolute;
-	top: 0;
-	bottom: 0;
-	left: 0;
-	width: 0;
-	background-color: #000;
-	transition: width 0.5s cubic-bezier(0, 1, 0, 1);
-	content: '';
-}
-.header .avatar {
-  width: 100%;
-  padding: 10px;
-  height: 200px;
-}
-
-.location {
-  position: relative;
-  display: flex;
-  height: 100%;
-  flex-direction: column;
-  overflow: visible;
-}
-.location .row {
-  display: flex;
-  height: 100%;
-}
-.location .rooms {
-  position: absolute;
-  top: 50px;
-  display: flex;
-  width: 100%;
-  background-color: #000;
-  flex-direction: column;
-}
-.location .rooms .room {
-  display: flex;
-  padding: 10px;
-  color: #FFF;
-  cursor: pointer;
-}
-.location .rooms .room:hover {
-  background-color: #42a5f5;
-}
-.location .rooms .room .image {
-  margin-right: 10px;
-  user-drag: none;
-  -webkit-user-drag: none;
-}
-.location .rooms .room .name {
-  margin-right: auto;
-  font-size: 16px;
-}
-.location .rooms .button {
-  padding: 10px;
-  background: linear-gradient(to right, #673ab7, #512da8);
-  border-radius: 5px;
-  color: #FFF;
-  cursor: pointer;
-}
-.location .rooms .button.warning {
-  background: linear-gradient(to right, #ff416c, #ff4b2b);
-}
-.location .rooms .button:hover {
-  filter: brightness(0.7);
-}
-.location .rooms .create {
-  padding: 10px;
-  margin-right: auto;
-}
-.location .rooms .delete {
-  display: flex;
-}
-.location .input-wrap {
-  position: relative;
-  height: 100%;
-  width: 300px;
-  background-color: #000;
-  font-family: monospace;
-  overflow: hidden;
-}
-.location .input-wrap .background {
-  position: absolute;
-  top: 0;
-  bottom: 0;
-  left: 0;
-  right: 0;
-  height: 100%;
-  transform: translateX(-100%);
-  transition: transform 1s cubic-bezier(0, 1, 0, 1);
-}
-.location .input-wrap .input {
-  position: relative;
-  height: inherit;
-  width: inherit;
-  padding: 10px;
-  background-color: transparent;
-  border: 0;
-  color: #FFF;
-  font-family: monospace;
-  font-size: 15px;
-  outline: none;
-  z-index: 1;
-  transition: color 1s cubic-bezier(0, 1, 0, 1);
-}
-.location .input-wrap .input:focus {
-  color: #000;
-}
-.location .input-wrap .input:focus + .background {
-  transform: none;
-}
-.location .button-wrap {
-  position: relative;
-  display: flex;
-  height: 100%;
-  cursor: pointer;
-}
-.location .button-wrap:active .button {
-  transform: scale(0.7);
-  transition: none;
-}
-.location .button {
-  outline: none;
-  transition: transform 0.3s cubic-bezier(0, 1, 0, 1);
-}
-.location .button,
-.location .button.disabled:hover
-{
-  display: flex;
-  height: 100%;
-  border: 0;
-  background-color: #9ccc65;
-  align-items: center;
-}
-.location .button:hover {
-  background-color: #7cb342;
-}
-.location .button.primary:not(.disabled),
-.location .button.primary:hover
-{
-  background: linear-gradient(to right, #ff416c, #ff4b2b);
-} 
-.location .button.disabled {
-  background-color: #888;
-}
-.location .button img {
-  width: 30px; 
-  height: 30px;
-}
-.location .button:not(.disabled) img {
-  filter: invert(1);
-}
-
-.location .button .hidden {
-  display: none;
-}
-
 .sidebar {
   position: absolute;
   top: 0;
@@ -621,7 +546,7 @@ body {
   background-color: #FFF;
   transform: translateX(400px);
   overflow: auto;
-  z-index: 1;
+  z-index: 3;
   transition: transform 0.3s cubic-bezier(0, 1, 0, 1);
 }
 .sidebar.open {
@@ -668,141 +593,6 @@ body {
   font-size: 13px;
 }
 
-.equipment {
-  position: relative;
-  display: flex;
-  align-items: center;
-  background-color: #222;
-  overflow: hidden;
-  cursor: pointer;
-}
-.equipment:hover .background {
-  transform: translateX(-220px) !important;
-}
-.equipment .background {
-  position: absolute;
-  height: 70px;
-  transform: translateX(-560px) !important;
-  transition: transform 0.2s cubic-bezier(0, 1, 0, 1);
-  object-fit: cover;
-  pointer-events: none;
-  z-index: 1;
-}
-.equipment .icon {
-  position: relative;
-  width: 70px;
-  height: 70px;
-  padding: 10px;
-  object-fit: contain;
-  z-index: 1;
-}
-.equipment .name {
-  position: relative;
-  margin-right: auto;
-  font-size: 20px;
-  z-index: 1;
-}
-.equipment .button {
-  position: relative;
-  display: flex;
-  width: 70px;
-  height: 70px;
-  background-color: transparent;
-  border: 0;
-  justify-content: center;
-  align-items: center;
-  cursor: inherit;
-  z-index: 1;
-}
-.equipment .button > img {
-  width: 30px;
-  height: 30px;
-  filter: invert(0.3);
-  visibility: hidden;
-}
-.equipment .background2 {
-  position: absolute;
-  top: 0;
-  bottom: 0;
-  left: 0;
-  right: 0;
-  pointer-events: none;
-}
-.equipment .button:hover > img {
-  filter: none;
-}
-.equipment:hover .button > img {
-   visibility: visible;
-}
-.equipment .button:hover + .background2 {
-  background-color: #ef5350;
-}
-.equipment .button:active + .background2 {
-  background-color: #b71c1c;
-  transition: none;
-}
-
-.ar-ui {
-  position: absolute;
-  bottom: 0;
-  right: 0;
-  z-index: 1;
-}
-.ar-ui .switches {
-  display: flex;
-}
-.ar-ui .switches .switch {
-  margin-bottom: 2px;
-  margin-right: 2px;
-  padding: 5px;
-  background-color: #111;
-  color: #FFF;
-  cursor: pointer;
-  user-select: none;
-}
-.ar-ui .switches .switch:last-child {
-  margin-left: auto;
-}
-.ar-ui .switches .switch:hover,
-.ar-ui .switches .switch.enabled
-{
-  background-color: #1e88e5;
-}
-.ar-ui .switches .switch:active {
-  background-color: #1565c0;
-}
-.ar-ui .content,
-.ar-ui .content-placeholder
-{
-  display: flex;
-}
-.ar-ui .content:not(.visible),
-.ar-ui .content-placeholder:not(.visible)
-{
-  display: none;
-}
-.ar-ui .content .avatar-canvas,
-.ar-ui .content .camera-canvas,
-.ar-ui .content-placeholder
-{
-  width: 426px;
-  height: 320px;
-}
-.ar-ui .content .avatar-canvas,
-.ar-ui .content .camera-canvas
-{  
-  transform: rotateY(180deg);
-}
-.ar-ui .content-placeholder {
-  background-color: #000;
-  color: #FFF;
-  justify-content: center;
-  align-items: center;
-}
-.ar-ui .content-placeholder h1 {
-  margin: 0;
-}
-
 .login_options {
   background: black;
   color: white;
@@ -830,4 +620,15 @@ body {
 
 .discord_text {
   margin-left: 10px;
+}
+
+/* */
+
+.tabs {
+  display: flex;
+  position: fixed;
+  z-index: 3;
+}
+.tabs > div {
+  pointer-events: all;
 }

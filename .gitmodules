@@ -7,3 +7,9 @@
 [submodule "packages/totum"]
 	path = packages/totum
 	url = https://github.com/webaverse/totum.git
+[submodule "packages/three-vrm"]
+	path = packages/three-vrm
+	url = https://github.com/webaverse/three-vrm
+[submodule "packages/three"]
+	path = packages/three
+	url = https://github.com/webaverse/three

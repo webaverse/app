@@ -34,7 +34,7 @@ class CapsuleGeometry extends THREE.BufferGeometry {
     thetaLength = thetaLength !== undefined ? thetaLength : 2.0 * Math.PI;
 
     // Alpha is the angle such that Math.PI/2 - alpha is the cone part angle.
-    var alpha = Math.acos((radiusBottom-radiusTop)/height);
+    var alpha = height !== 0 ? Math.acos((radiusBottom-radiusTop)/height) : Math.PI;
     var eqRadii = (radiusTop-radiusBottom === 0);
 
     var vertexCount = calculateVertexCount();
@@ -60,9 +60,9 @@ class CapsuleGeometry extends THREE.BufferGeometry {
     // build geometry
 
     this.setIndex( indices );
-    this.addAttribute( 'position', vertices );
-    this.addAttribute( 'normal', normals );
-    this.addAttribute( 'uv', uvs );
+    this.setAttribute( 'position', vertices );
+    this.setAttribute( 'normal', normals );
+    this.setAttribute( 'uv', uvs );
 
     // helper functions
 
@@ -276,7 +276,12 @@ class CapsuleGeometry extends THREE.BufferGeometry {
         }
 
     }
-  }
+
+    this.applyMatrix4(new THREE.Matrix4().makeRotationFromQuaternion(
+        new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 0, 1), Math.PI*0.5)
+    ));
+    
+   }
 }
 CapsuleGeometry.fromPoints = function(pointA, pointB, radiusA, radiusB, radialSegments, heightSegments, capsTopSegments, capsBottomSegments, thetaStart, thetaLength ) {
 

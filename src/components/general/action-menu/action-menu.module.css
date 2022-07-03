@@ -1,0 +1,83 @@
+
+.actionMenu {
+    position: absolute;
+    top: 55px;
+    right: 0px;
+}
+
+.btn {
+    position: relative;
+    margin-top: 10px;
+    height: 41px;
+    opacity: 1;
+    cursor: pointer;
+    transition: opacity 200ms ease;
+    background-size: 100% 100%;
+    color: #fff;
+    line-height: 41px;
+    padding-left: 10px;
+    padding-right: 9px;
+    text-align: left;
+    font-size: 16px;
+    user-select: none;
+    overflow: hidden;
+    transition: color 1s cubic-bezier(0, 1, 0, 1), transform 0.3s cubic-bezier(0, 1, 0, 1);
+    background-color: #000;
+}
+
+.btn.wpOpened {
+    transform: translate( -350px, 0px );
+}
+
+.btn .text {
+    position: relative;
+}
+
+.btn .key {
+    position: relative;
+    z-index: 1;
+}
+
+.btn .background {
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    height: 100%;
+    transition: transform 1s cubic-bezier(0, 1, 0, 1);
+}
+
+.btn .background {
+    right: 0;
+    transform: translateX(-100%);
+}
+
+.btn .background.blue {
+    filter: invert(50%) sepia(99%) saturate(514%) hue-rotate(177deg) brightness(99%) contrast(94%);
+}
+
+.btn:not(.disabled):hover .background,
+.btn.wpOpened .background {
+    transform: translateX(50px);
+}
+
+.btn:not(.disabled):hover .text, .btn:not(.disabled):hover .key, .btn.wpOpened .text, .btn.wpOpened .key {
+    color: #000;
+    border-color: #000;
+}
+
+.key {
+    margin: 0 10px;
+    padding: 3px;
+    border: 2px solid #CCC;
+    border-radius: 3px;
+    font-size: 13px;
+    transition: border-color 1s cubic-bezier(0, 1, 0, 1);
+}
+
+.btn.vr {
+    font-size: 13px;
+}
+
+.btn.vr.disabled {
+    opacity: 0.6;
+}

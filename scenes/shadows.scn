@@ -47,7 +47,7 @@
           "threshold": 0.8
         }
       }
-    },    
+    },
     {
       "position": [
         0,
@@ -66,20 +66,6 @@
     },
     {
       "position": [
-        -2,
-        -0.15,
-        10
-      ],
-      "quaternion": [
-        0,
-        1,
-        0,
-        0
-      ],
-      "start_url": "https://webaverse.github.io/sprite-avatar/"
-    },
-    {
-      "position": [
         -1,
         -0.15,
         10
@@ -90,7 +76,7 @@
         0,
         1
       ],
-      "start_url": "https://webaverse.github.io/app/public/avatars/scillia.vrm",
+      "start_url": "https://webaverse.github.io/mirror/",
       "dynamic": true
     },
     {

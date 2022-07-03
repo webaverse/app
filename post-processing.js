@@ -3,97 +3,77 @@ this file implements post processing.
 */
 
 import * as THREE from 'three';
-import {Pass} from 'three/examples/jsm/postprocessing/Pass.js';
+// import {Pass} from 'three/examples/jsm/postprocessing/Pass.js';
 import {ShaderPass} from 'three/examples/jsm/postprocessing/ShaderPass.js';
 import {UnrealBloomPass} from 'three/examples/jsm/postprocessing/UnrealBloomPass.js';
 import {AdaptiveToneMappingPass} from 'three/examples/jsm/postprocessing/AdaptiveToneMappingPass.js';
 // import {BloomPass} from 'three/examples/jsm/postprocessing/BloomPass.js';
 // import {AfterimagePass} from 'three/examples/jsm/postprocessing/AfterimagePass.js';
-import {BokehPass} from 'three/examples/jsm/postprocessing/BokehPass.js';
+import {BokehPass} from './BokehPass.js';
 import {SSAOPass} from './SSAOPass.js';
-import {RenderPass} from './RenderPass';
+// import {RenderPass} from './RenderPass.js';
+import {DepthPass} from './DepthPass.js';
+// import {SwirlPass} from './SwirlPass.js';
 import {
   getRenderer,
   getComposer,
   rootScene,
-  postScene,
+  sceneHighPriority,
+  scene,
+  sceneLowPriority,
+  // postSceneOrthographic,
+  // postScenePerspective,
   camera,
+  // orthographicCamera,
 } from './renderer.js';
 // import {rigManager} from './rig.js';
-import {world} from './world.js';
+// import {getRandomString} from './util.js';
 import cameraManager from './camera-manager.js';
 import {WebaverseRenderPass} from './webaverse-render-pass.js';
+import renderSettingsManager from './rendersettings-manager.js';
 import metaversefileApi from 'metaversefile';
 // import {parseQuery} from './util.js';
+// import * as sounds from './sounds.js';
+// import musicManager from './music-manager.js';
 
 // const hqDefault = parseQuery(window.location.search)['hq'] === '1';
 
 // const localVector = new THREE.Vector3();
 const localVector2D = new THREE.Vector2();
 
-/* const testSpec = {
-  "background": {
-    "color": [0, 0, 0]
-  },
-  "fog": {
-    "fogType": "exp",
-    "args": [[255, 255, 255], 0.01]
-  },
-  "ssao": {
-    "kernelRadius": 16,
-    "minDistance": 0.005,
-    "maxDistance": 0.1
-  },
-  "dof": {
-    "focus": 3.0,
-    "aperture": 0.00002,
-    "maxblur": 0.005
-  },
-  "hdr": {
-    "adaptive": true,
-    "resolution": 256,
-    "adaptionRate": 100,
-    "maxLuminance": 10,
-    "minLuminance": 0,
-    "middleGrey": 3
-  },
-  "bloom": {
-    "strength": 0.2,
-    "radius": 0.5,
-    "threshold": 0.8
-  }
-}; */
+const regularScenes = [
+  sceneHighPriority,
+  scene,
+];
 
-function bindCanvas() {
-  /* const renderer = getRenderer();
-  const size = renderer.getSize(new THREE.Vector2())
-    .multiplyScalar(renderer.getPixelRatio()); */
-  
-  setPasses(null);
-
-  /* document.addEventListener('keydown', e => { // XXX move to io manager
-    if (e.key === 'h') {
-      webaverseRenderPass.internalRenderPass = webaverseRenderPass.internalRenderPass ? null : ssaoRenderPass;
-    } else if (e.key === 'j') {
-      bokehPass.enabled = !bokehPass.enabled;
-    } else if (e.key === 'k') {
-      adaptToneMappingPass.enabled = !adaptToneMappingPass.enabled;
-    } else if (e.key === 'l') {
-      unrealBloomPass.enabled = !unrealBloomPass.enabled;
-    }
-  }); */
-}
-
-function makeSsaoRenderPass({
-  kernelRadius = 16,
-  minDistance = 0.005,
-  maxDistance = 0.1,
-}) {
+function makeDepthPass({ssao, hdr}) {
   const renderer = getRenderer();
   const size = renderer.getSize(localVector2D)
     .multiplyScalar(renderer.getPixelRatio());
 
-  const ssaoRenderPass = new SSAOPass(rootScene, camera, size.x, size.y);
+  const depthPass = new DepthPass(regularScenes, camera, {
+    width: size.x,
+    height: size.y,
+    onBeforeRenderScene(scene) {
+      return renderSettingsManager.push(rootScene, scene);
+    },
+  });
+  depthPass.needsSwap = false;
+  // depthPass.enabled = hqDefault;
+  return depthPass;
+}
+function makeSsaoRenderPass({
+  kernelSize = 8,
+  kernelRadius = 16,
+  minDistance = 0.005,
+  maxDistance = 0.1,
+}, depthPass) {
+  const renderer = getRenderer();
+  const size = renderer.getSize(localVector2D)
+    .multiplyScalar(renderer.getPixelRatio());
+
+  const ssaoRenderPass = new SSAOPass(rootScene, camera, size.x, size.y, depthPass);
+  ssaoRenderPass.kernelSize = kernelSize;
   ssaoRenderPass.kernelRadius = kernelRadius;
   ssaoRenderPass.minDistance = minDistance;
   ssaoRenderPass.maxDistance = maxDistance;
@@ -104,7 +84,7 @@ function makeDofPass({
   focus = 3.0,
   aperture = 0.00002,
   maxblur = 0.005,
-}) {
+}, depthPass) {
   const renderer = getRenderer();
   const size = renderer.getSize(localVector2D)
     .multiplyScalar(renderer.getPixelRatio());
@@ -115,7 +95,7 @@ function makeDofPass({
     maxblur,
     width: size.x,
     height: size.y,
-  });
+  }, depthPass);
   bokehPass.needsSwap = true;
   // bokehPass.enabled = hqDefault;
   return bokehPass;
@@ -163,14 +143,14 @@ function makeEncodingPass() {
         value: null,
       },
     },
-    vertexShader: `
+    vertexShader: `\
       varying vec2 vUv;
       void main() {
         vUv = uv;
         gl_Position = projectionMatrix * modelViewMatrix * vec4( position, 1.0 );
       }
     `,
-    fragmentShader: `
+    fragmentShader: `\
       uniform sampler2D tDiffuse;
       varying vec2 vUv;
       void main() {
@@ -188,8 +168,11 @@ function makeEncodingPass() {
 }
 
 const webaverseRenderPass = new WebaverseRenderPass();
-const _isDecapitated = () => (/^(?:camera|firstperson)$/.test(cameraManager.getMode()) || !!getRenderer().xr.getSession());
-webaverseRenderPass.onBeforeRender = () => {
+const _isDecapitated = () => (
+  (/^(?:camera|firstperson)$/.test(cameraManager.getMode()) && !cameraManager.target) ||
+  !!getRenderer().xr.getSession()
+);
+webaverseRenderPass.onBeforeRender = (a, b, c) => {
   // ensure lights attached
   // scene.add(world.lights);
   
@@ -217,57 +200,92 @@ webaverseRenderPass.onAfterRender = () => {
   }
 };
 const encodingPass = makeEncodingPass();
-function setPasses(rendersettings) {
-  const composer = getComposer();
-  const oldPasses = composer.passes.slice();
-  for (let i = oldPasses.length - 1; i >= 0; i--) {
-    const oldPass = oldPasses[i];
-    composer.removePass(oldPass);
-  }
-  
-  composer.addPass(webaverseRenderPass);
-  
-  if (rendersettings) {
-    const {ssao, dof, hdr, bloom, enablePostScene} = rendersettings;
-    // console.log('got', ssao, dof, hdr, bloom);
-    
-    if (ssao) {
-      const ssaoRenderPass = makeSsaoRenderPass(ssao);
-      webaverseRenderPass.internalRenderPass = ssaoRenderPass;
-      
-      // const webaverseRenderPass = new WebaverseRenderPass(ssaoRenderPass);
-      // composer.addPass(webaverseRenderPass);
-    }
-    if (dof) {
-      const dofPass = makeDofPass(dof);
-      composer.addPass(dofPass);
-    }
-    if (hdr) {
-      const hdrPass = makeHdrPass(hdr);
-      composer.addPass(hdrPass);
-    }
-    if (bloom) {
-      const bloomPass = makeBloomPass(bloom);
-      composer.addPass(bloomPass);
-    }
-    if(enablePostScene) {
-      const postRenderPass = new RenderPass(postScene, camera);
-      composer.addPass(postRenderPass);
-    }
-  }
-  
-  composer.addPass(encodingPass);
-  
-  window.passes = composer.passes;
-}
 
-export {
-  // WebaverseRenderPass,
-  bindCanvas,
-  // makeSsaoRenderPass,
-  // makeDofPass,
-  // makeHdrPass,
-  // makeBloomPass,
-  // makeEncodingPass,
-  setPasses,
-};
+class PostProcessing extends EventTarget {
+  constructor() {
+    super();
+
+    this.defaultPasses = [
+      webaverseRenderPass,
+      encodingPass,
+    ];
+    this.defaultPasses.initialized = false;
+    this.defaultPasses.depthPass = null;
+    this.defaultPasses.ssaoPass = null;
+    this.defaultPasses.swirlPass = null;
+  }
+  bindCanvas() {
+    this.setPasses(null);
+  }
+  makePasses(rendersettings) {
+    const passes = [];
+    // passes.id = getRandomString(5);
+    passes.initialized = false;
+    passes.depthPass = null;
+    passes.ssaoPass = null;
+    passes.swirlPass = null;
+
+    passes.push(webaverseRenderPass);
+    
+    if (rendersettings) {
+      const {ssao, dof, hdr, bloom, postPostProcessScene, swirl} = rendersettings;
+      
+      if (ssao || dof) {
+        passes.depthPass = makeDepthPass({ssao, dof});
+      }
+      if (ssao) {
+        passes.ssaoPass = makeSsaoRenderPass(ssao, passes.depthPass);
+      }
+      if (dof) {
+        const dofPass = makeDofPass(dof, passes.depthPass);
+        passes.push(dofPass);
+      }
+      if (hdr) {
+        const hdrPass = makeHdrPass(hdr);
+        passes.push(hdrPass);
+      }
+      if (bloom) {
+        const bloomPass = makeBloomPass(bloom);
+        passes.push(bloomPass);
+      }
+      if (swirl) {
+        const swirlPass = makeSwirlPass();
+        passes.push(swirlPass);
+      }
+      if (postPostProcessScene) {
+        const {postPerspectiveScene, postOrthographicScene} = postPostProcessScene;
+        if (postPerspectiveScene) {
+          const postRenderPass = new RenderPass(postScenePerspective, camera);
+          passes.push(postRenderPass);
+        }
+        if (postOrthographicScene) {
+          const postRenderPass = new RenderPass(postSceneOrthographic, orthographicCamera);
+          passes.push(postRenderPass);
+        }
+      }
+    }
+    
+    passes.push(encodingPass);
+
+    return passes;
+  }
+  setPasses(passes) {
+    const composer = getComposer();
+
+    composer.passes = passes || this.defaultPasses;
+    if (!composer.passes.initialized) {
+      const w = composer._width * composer._pixelRatio;
+      const h = composer._height * composer._pixelRatio;
+      for (const pass of composer.passes) {
+        pass.setSize(w, h);
+      }
+      composer.passes.initialized = true;
+    }
+    webaverseRenderPass.internalRenderPass = composer.passes.ssaoPass;
+    webaverseRenderPass.internalDepthPass = composer.passes.depthPass;
+
+    // this.dispatchEvent(new MessageEvent('update'));
+  }
+}
+const postProcessing = new PostProcessing();
+export default postProcessing;
