@@ -137,7 +137,7 @@ w.eraseSphereDamage = function() {
   return sphereDamage(Module._eraseSphereDamage.bind(Module)).apply(this, arguments);
 };
 
-w.injectDamage = function(inst, x, y, z, damageBuffer) {
+/* w.injectDamage = function(inst, x, y, z, damageBuffer) {
   const allocator = new Allocator(Module);
 
   const damageBufferTypedArray = allocator.alloc(Float32Array, damageBuffer.length);
@@ -152,7 +152,7 @@ w.injectDamage = function(inst, x, y, z, damageBuffer) {
   } finally {
     allocator.freeAll();
   }
-};
+}; */
 
 //
 
