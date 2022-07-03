@@ -16,7 +16,7 @@
       }
     },
 
-    { "position": [ 5, 3, -5 ], "start_url": "http://localhost/lib/webaverse_resource/physicscube/" },
+    { "position": [ 0, 0.5, -3 ], "start_url": "http://localhost/lib/webaverse_resource/triggercube/" },
     { "position": [ 0, 0, 0 ], "start_url": "http://localhost/lib/webaverse_resource/block/" }
   ]
 }

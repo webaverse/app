@@ -586,6 +586,11 @@ physicsManager.setCharacterControllerPosition = (
   )
   return result
 }
+physicsManager.setTrigger = (id) => {
+  return physx.physxWorker.setTriggerPhysics(
+    physx.physics, id,
+  )
+}
 /* physicsManager.getTransforms = physicsObjects => {
   //console.log(physicsObjects, "phyobjssss");
   const objs = physx.physxWorker.getTransformPhysics(physx.physics, physicsObjects);
