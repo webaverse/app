@@ -1,7 +1,6 @@
 import React, { useState, useEffect, useContext } from 'react';
 import classnames from 'classnames';
 
-import * as ceramicApi from '../ceramic.js';
 import { discordClientId } from '../constants';
 import { parseQuery } from '../util.js';
 // import Modal from './components/modal';
@@ -94,9 +93,9 @@ export const User = ({ address, setAddress, setLoginFrom }) => {
 
                 try {
 
-                    const { address, profile } = await ceramicApi.login();
-                    await _setAddress(address);
-                    setLoginFrom('metamask');
+                    // const { address, profile } = await ceramicApi.login();
+                    // await _setAddress(address);
+                    // setLoginFrom('metamask');
                     // setShow(false);
                     // setLoginFrom('metamask');
 

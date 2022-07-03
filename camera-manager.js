@@ -2,14 +2,13 @@ import * as THREE from 'three';
 import {getRenderer, camera, scene} from './renderer.js';
 // import * as notifications from './notifications.js';
 import physicsManager from './physics-manager.js';
-import {shakeAnimationSpeed} from './constants.js';
-import Simplex from './simplex-noise.js';
+import {shakeAnimationSpeed, minFov, maxFov, midFov} from './constants.js';
+import Simplex from './lib/simplex-noise.js';
 import {getLocalPlayer} from './players.js';
 // import alea from './alea.js';
 // import * as sounds from './sounds.js';
-import {minFov, maxFov, midFov} from './constants.js';
 // import { updateRaycasterFromMouseEvent } from './util.js';
-import easing from './easing.js';
+import easing from './lib/easing.js';
 
 const cubicBezier = easing(0, 1, 0, 1);
 const cubicBezier2 = easing(0.5, 0, 0.5, 1);

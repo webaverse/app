@@ -9,7 +9,7 @@ import {
   MapChunk,
   createMapChunk,
 } from './map-gen.js';
-import easing from '../easing.js';
+import easing from '../lib/easing.js';
 import {WebaverseShaderMaterial} from '../materials.js';
 
 const cubicBezier = easing(0, 1, 0, 1);

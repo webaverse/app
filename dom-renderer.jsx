@@ -1,7 +1,7 @@
 import * as THREE from 'three';
 
 // import {sceneLowerPriority} from './renderer.js';
-import easing from './easing.js';
+import easing from './lib/easing.js';
 import physicsManager from './physics-manager.js';
 
 const cubicBezier = easing(0, 1, 0, 1);

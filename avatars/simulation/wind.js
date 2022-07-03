@@ -1,5 +1,5 @@
 import * as THREE from 'three';
-import Simplex from '../../simplex-noise.js';
+import Simplex from '../../lib/simplex-noise.js';
 import metaversefile from 'metaversefile';
 
 const simplex = new Simplex();      

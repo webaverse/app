@@ -3,7 +3,7 @@ import metaversefile from 'metaversefile';
 import {world} from '../world.js';
 import physicsManager from '../physics-manager.js';
 import {glowMaterial} from '../shaders.js';
-import easing from '../easing.js';
+import easing from '../lib/easing.js';
 import {rarityColors} from '../constants.js';
 import storyManager from '../story.js';
 

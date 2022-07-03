@@ -4,7 +4,7 @@ this file contains the story beat triggers (battles, victory, game over, etc.)
 
 import * as THREE from 'three';
 import metaversefile from 'metaversefile';
-import {SwirlPass} from './SwirlPass.js';
+import {SwirlPass} from './postprocessing/SwirlPass.js';
 import {
   getRenderer,
   getComposer,

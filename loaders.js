@@ -9,8 +9,8 @@ import {KTX2Loader} from 'three/examples/jsm/loaders/KTX2Loader.js';
 import {MeshoptDecoder} from 'three/examples/jsm/libs/meshopt_decoder.module.js';
 import {getRenderer} from './renderer.js';
 import {ShadertoyLoader} from './shadertoy.js';
-import {GIFLoader} from './GIFLoader.js';
-import {VOXLoader} from './VOXLoader.js';
+import {GIFLoader} from './lib/GIFLoader.js';
+import {VOXLoader} from './lib/VOXLoader.js';
 import {memoize} from './util.js';
 
 const _dracoLoader = memoize(() => {

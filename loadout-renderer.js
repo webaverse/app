@@ -1,7 +1,7 @@
 import * as THREE from 'three';
 // import {world} from './world.js';
 import {getRenderer} from './renderer.js';
-import easing from './easing.js';
+import easing from './lib/easing.js';
 // import {createObjectSprite} from './object-spriter.js';
 
 const cubicBezier = easing(0, 1, 0, 1);

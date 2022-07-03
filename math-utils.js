@@ -1,4 +1,4 @@
-import easing from './easing.js';
+import easing from './lib/easing.js';
 
 export {
   easing,
