@@ -703,6 +703,12 @@ physicsManager.simulatePhysics = (timeDiff) => {
     _updatePhysicsObjects(updatesOut);
   }
 }
+physicsManager.getTriggerEvent = () => {
+  const triggerCount = physx.physxWorker.getTriggerEventPhysics(
+    physx.physics,
+  )
+  return triggerCount;
+}
 
 physicsManager.marchingCubes = (dims, potential, shift, scale) =>
   physx.physxWorker.marchingCubes(dims, potential, shift, scale)

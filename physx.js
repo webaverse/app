@@ -32,6 +32,7 @@ physx.waitForLoad =  () => {
       window.moduleInstance = moduleInstance;
       const scratchStackSize = 1024 * 1024;
       scratchStack = new ScratchStack(moduleInstance, scratchStackSize);
+      window.scratchStack = scratchStack;
       physx.physics = physxWorker.makePhysics();
 
       // console.log('module called run', Module.calledRun);
@@ -578,6 +579,12 @@ const physxWorker = (() => {
     } */
 
     return newUpdates
+  }
+  w.getTriggerEventPhysics = (physics) => {
+    const triggerCount = moduleInstance._getTriggerEventPhysics(
+      physics,
+    )
+    return triggerCount;
   }
 
   w.createMaterial = (physics, mat) => {
