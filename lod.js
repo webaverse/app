@@ -359,7 +359,7 @@ export class LodChunkTracker extends EventTarget {
                 // vm::ivec3(1, 1, 0),
                 // vm::ivec3(0, 1, 1),
                 // vm::ivec3(1, 1, 1),
-                const lodArray = [
+                /* const lodArray = [
                   1,
                   (chunkPosition1x.x < min1xMax.x) ? 1 : 2,
                   (chunkPosition1x.z < min1xMax.z) ? 1 : 2,
@@ -368,7 +368,8 @@ export class LodChunkTracker extends EventTarget {
                   (chunkPosition1x.x < min1xMax.x && chunkPosition1x.y < min1xMax.y) ? 1 : 2,
                   (chunkPosition1x.y < min1xMax.y && chunkPosition1x.z < min1xMax.z) ? 1 : 2,
                   (chunkPosition1x.x < min1xMax.x && chunkPosition1x.y < min1xMax.y && chunkPosition1x.z < min1xMax.z) ? 1 : 2,
-                ];
+                ]; */
+                const lodArray = Array(8).fill(1);
                 const chunk = new LodChunk(chunkPosition1x.x, chunkPosition1x.y, chunkPosition1x.z, lod, lodArray);
                 neededChunkSpecs.push({
                   chunk,
