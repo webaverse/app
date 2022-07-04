@@ -13,9 +13,13 @@ const _cloneTerrainMeshData = (meshData) => {
   if (meshData) {
     const sizeRequired = meshData.positions.length * meshData.positions.constructor.BYTES_PER_ELEMENT +
       meshData.normals.length * meshData.normals.constructor.BYTES_PER_ELEMENT +
-      meshData.biomes.length * meshData.biomes.constructor.BYTES_PER_ELEMENT +
+      // meshData.biomes.length * meshData.biomes.constructor.BYTES_PER_ELEMENT +
       meshData.biomesWeights.length * meshData.biomesWeights.constructor.BYTES_PER_ELEMENT +
-      meshData.indices.length * meshData.indices.constructor.BYTES_PER_ELEMENT;
+      meshData.biomesUvs1.length * meshData.biomesUvs1.constructor.BYTES_PER_ELEMENT +
+      meshData.biomesUvs2.length * meshData.biomesUvs2.constructor.BYTES_PER_ELEMENT +
+      meshData.indices.length * meshData.indices.constructor.BYTES_PER_ELEMENT +
+      meshData.skylights.length * meshData.skylights.constructor.BYTES_PER_ELEMENT +
+      meshData.aos.length * meshData.aos.constructor.BYTES_PER_ELEMENT;
     const arrayBuffer = new ArrayBuffer(sizeRequired);
     let index = 0;
 
@@ -27,26 +31,46 @@ const _cloneTerrainMeshData = (meshData) => {
     normals.set(meshData.normals);
     index += meshData.normals.length * meshData.normals.constructor.BYTES_PER_ELEMENT;
     
-    const biomes = new meshData.biomes.constructor(arrayBuffer, index, meshData.biomes.length);
-    biomes.set(meshData.biomes);
-    index += meshData.biomes.length * meshData.biomes.constructor.BYTES_PER_ELEMENT;
+    // const biomes = new meshData.biomes.constructor(arrayBuffer, index, meshData.biomes.length);
+    // biomes.set(meshData.biomes);
+    // index += meshData.biomes.length * meshData.biomes.constructor.BYTES_PER_ELEMENT;
 
     const biomesWeights = new meshData.biomesWeights.constructor(arrayBuffer, index, meshData.biomesWeights.length);
     biomesWeights.set(meshData.biomesWeights);
     index += meshData.biomesWeights.length * meshData.biomesWeights.constructor.BYTES_PER_ELEMENT;
     
+    const biomesUvs1 = new meshData.biomesUvs1.constructor(arrayBuffer, index, meshData.biomesUvs1.length);
+    biomesUvs1.set(meshData.biomesUvs1);
+    index += meshData.biomesUvs1.length * meshData.biomesUvs1.constructor.BYTES_PER_ELEMENT;
+
+    const biomesUvs2 = new meshData.biomesUvs2.constructor(arrayBuffer, index, meshData.biomesUvs2.length);
+    biomesUvs2.set(meshData.biomesUvs2);
+    index += meshData.biomesUvs2.length * meshData.biomesUvs2.constructor.BYTES_PER_ELEMENT;
+
     const indices = new meshData.indices.constructor(arrayBuffer, index, meshData.indices.length);
     indices.set(meshData.indices);
     index += meshData.indices.length * meshData.indices.constructor.BYTES_PER_ELEMENT;
+
+    const skylights = new meshData.skylights.constructor(arrayBuffer, index, meshData.skylights.length);
+    skylights.set(meshData.skylights);
+    index += meshData.skylights.length * meshData.skylights.constructor.BYTES_PER_ELEMENT;
+
+    const aos = new meshData.aos.constructor(arrayBuffer, index, meshData.aos.length);
+    aos.set(meshData.aos);
+    index += meshData.aos.length * meshData.aos.constructor.BYTES_PER_ELEMENT;
 
     return {
       // bufferAddress: arrayBuffer.byteOffset,
       arrayBuffer,
       positions,
       normals,
-      biomes,
+      // biomes,
       biomesWeights,
+      biomesUvs1,
+      biomesUvs2,
       indices,
+      skylights,
+      aos,
     };
   } else {
     return null;
