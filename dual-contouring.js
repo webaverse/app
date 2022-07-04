@@ -6,6 +6,12 @@ import {defaultChunkSize} from './constants.js';
 
 const cbs = new Map();
 
+const align = (v, N) => {
+  const r = v % N;
+  return r === 0 ? v : v - r + N;
+};
+const align4 = v => align(v, 4);
+
 const w = {};
 
 w.waitForLoad = Module.waitForLoad;
@@ -97,29 +103,21 @@ const sphereDamage = damageFn => (
     const positionsTypedArray = allocator.alloc(Float32Array, numPositions * 3);
     const numPositionsTypedArray = allocator.alloc(Uint32Array, 1);
     numPositionsTypedArray[0] = numPositions;
-    const lod = 1;
-    const gridPoints = chunkSize + 3 + lod;
-    const damageBufferSize = gridPoints * gridPoints * gridPoints;
-    const damageBuffersTypedArray = allocator.alloc(Float32Array, numPositions * gridPoints * gridPoints * gridPoints);
-
     const drew = damageFn(
       inst,
       x, y, z,
       radius,
       positionsTypedArray.byteOffset,
-      numPositionsTypedArray.byteOffset,
-      damageBuffersTypedArray.byteOffset,
+      numPositionsTypedArray.byteOffset
     );
 
-    if (drew) {
+    if (drew) {      
       numPositions = numPositionsTypedArray[0];
       const chunks = Array(numPositions);
       for (let i = 0; i < numPositions; i++) {
         const position = positionsTypedArray.slice(i * 3, (i + 1) * 3);
-        const damageBuffer = damageBuffersTypedArray.slice(i * damageBufferSize, (i + 1) * damageBufferSize);
         chunks[i] = {
           position,
-          damageBuffer,
         };
       }
       return chunks;
@@ -137,7 +135,7 @@ w.eraseSphereDamage = function() {
   return sphereDamage(Module._eraseSphereDamage.bind(Module)).apply(this, arguments);
 };
 
-w.injectDamage = function(inst, x, y, z, damageBuffer) {
+/* w.injectDamage = function(inst, x, y, z, damageBuffer) {
   const allocator = new Allocator(Module);
 
   const damageBufferTypedArray = allocator.alloc(Float32Array, damageBuffer.length);
@@ -152,7 +150,7 @@ w.injectDamage = function(inst, x, y, z, damageBuffer) {
   } finally {
     allocator.freeAll();
   }
-};
+}; */
 
 //
 
@@ -179,11 +177,23 @@ const _parseTerrainVertexBuffer = (arrayBuffer, bufferAddress) => {
   const biomes = new Int32Array(arrayBuffer, bufferAddress + index, numBiomes * 4);
   index += Int32Array.BYTES_PER_ELEMENT * numBiomes * 4;
 
-  // biome weights
+  // biomes weights
   const numBiomesWeights = dataView.getUint32(index, true);
   index += Uint32Array.BYTES_PER_ELEMENT;
   const biomesWeights = new Float32Array(arrayBuffer, bufferAddress + index, numBiomesWeights * 4);
   index += Float32Array.BYTES_PER_ELEMENT * numBiomesWeights * 4;
+
+  // biomes uvs 1
+  const numBiomesUvs1 = dataView.getUint32(index, true);
+  index += Uint32Array.BYTES_PER_ELEMENT;
+  const biomesUvs1 = new Float32Array(arrayBuffer, bufferAddress + index, numBiomesUvs1 * 4);
+  index += Float32Array.BYTES_PER_ELEMENT * numBiomesUvs1 * 4;
+
+  // biomes uvs 2
+  const numBiomesUvs2 = dataView.getUint32(index, true);
+  index += Uint32Array.BYTES_PER_ELEMENT;
+  const biomesUvs2 = new Float32Array(arrayBuffer, bufferAddress + index, numBiomesUvs2 * 4);
+  index += Float32Array.BYTES_PER_ELEMENT * numBiomesUvs2 * 4;
 
   // indices
   const numIndices = dataView.getUint32(index, true);
@@ -191,13 +201,31 @@ const _parseTerrainVertexBuffer = (arrayBuffer, bufferAddress) => {
   const indices = new Uint32Array(arrayBuffer, bufferAddress + index, numIndices);
   index += Uint32Array.BYTES_PER_ELEMENT * numIndices;
 
+  // skylights
+  const numSkylights = dataView.getUint32(index, true);
+  index += Uint32Array.BYTES_PER_ELEMENT;
+  const skylights = new Uint8Array(arrayBuffer, bufferAddress + index, numSkylights);
+  index += Uint8Array.BYTES_PER_ELEMENT * numSkylights;
+  index = align4(index);
+
+  // aos
+  const numAos = dataView.getUint32(index, true);
+  index += Uint32Array.BYTES_PER_ELEMENT;
+  const aos = new Uint8Array(arrayBuffer, bufferAddress + index, numAos);
+  index += Uint8Array.BYTES_PER_ELEMENT * numAos;
+  index = align4(index);
+
   return {
     bufferAddress,
     positions,
     normals,
     biomes,
     biomesWeights,
+    biomesUvs1,
+    biomesUvs2,
     indices,
+    skylights,
+    aos,
   };
 };
 w.createTerrainChunkMeshAsync = async (inst, x, y, z, lods) => {
@@ -216,13 +244,7 @@ w.createTerrainChunkMeshAsync = async (inst, x, y, z, lods) => {
 
   allocator.freeAll();
 
-  // console.log('got async task id', taskId);
   const outputBufferOffset = await p;
-  // console.log('got async task result', taskId, outputBufferOffset);
-
-  /* await new Promise((accept, reject) => {
-    // XXX hang
-  }); */
 
   if (outputBufferOffset) {
     const result = _parseTerrainVertexBuffer(
