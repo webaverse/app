@@ -298,10 +298,6 @@ export default class Webaverse extends EventTarget {
     const animate = (timestamp, frame) => {
       performanceTracker.startFrame();
 
-      // if (window.isDebugger) debugger
-
-      // if (window.localPlayer?.avatar?.jumpTime !== 0) console.log(window.localPlayer?.avatar?.jumpTime);
-
       const _frame = () => {
         timestamp = timestamp ?? performance.now();
         const timeDiff = timestamp - lastTimestamp;
@@ -315,7 +311,7 @@ export default class Webaverse extends EventTarget {
           const localPlayer = metaversefileApi.useLocalPlayer();
           if (this.contentLoaded && physicsManager.getPhysicsEnabled()) {
             physicsManager.simulatePhysics(timeDiffCapped);
-            const triggerCount = physicsManager.getTriggerEvent();
+            physicsManager.getTriggerEvent();
             localPlayer.updatePhysics(timestamp, timeDiffCapped);
           }
 
@@ -383,20 +379,6 @@ export default class Webaverse extends EventTarget {
 const _startHacks = webaverse => {
   const localPlayer = metaversefileApi.useLocalPlayer();
   const vpdAnimations = Avatar.getAnimations().filter(animation => animation.name.endsWith('.vpd'));
-
-  window.localPlayer = localPlayer;
-  window.THREE = THREE;
-  window.physicsManager = physicsManager;
-  window.physx = physx;
-  window.metaversefileApi = metaversefileApi;
-  window.rootScene = rootScene;
-  window.loadoutManager = loadoutManager;
-  window.game = game;
-  window.cameraManager = cameraManager;
-  window.camera = camera;
-  window.ioManager = ioManager;
-
-  window.isDebugger = false;
 
   // let playerDiorama = null;
   const lastEmotionKey = {

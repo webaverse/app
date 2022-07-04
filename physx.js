@@ -30,10 +30,8 @@ physx.waitForLoad =  () => {
     loadPromise = (async () => {
       await Module.waitForLoad();
       moduleInstance = Module;
-      window.moduleInstance = moduleInstance;
       const scratchStackSize = 1024 * 1024;
       scratchStack = new ScratchStack(moduleInstance, scratchStackSize);
-      window.scratchStack = scratchStack;
       physx.physics = physxWorker.makePhysics();
 
       // console.log('module called run', Module.calledRun);
@@ -581,19 +579,18 @@ const physxWorker = (() => {
 
     return newUpdates
   }
+  w.setTriggerPhysics = (physics, id) => {
+    return moduleInstance._setTriggerPhysics(
+      physics, id,
+    )
+  }
   w.getTriggerEventPhysics = (physics) => {
     const triggerCount = moduleInstance._getTriggerEventPhysics(
       physics,
       scratchStack.ptr,
     )
     if (triggerCount > 0) {
-      // console.log('triggerCount', triggerCount);
       for (let i = 0; i < triggerCount; i++) {
-        // console.log(
-        //   'status:', scratchStack.u32[i * 3 + 0],
-        //   'triggerActorId:', scratchStack.u32[i * 3 + 1],
-        //   'otherActorId:', scratchStack.u32[i * 3 + 2],
-        // )
         const status = scratchStack.u32[i * 3 + 0];
         const triggerPhysicsId = scratchStack.u32[i * 3 + 1];
         const otherPhysicsId = scratchStack.u32[i * 3 + 2];
@@ -2083,7 +2080,7 @@ const physxWorker = (() => {
       id,
       materialAddress,
       +dynamic,
-      groupId // !!!!!! Fix wrong filter, not collide with CharacterController bug. But will cause physicsCube fly high when start. !!!!!!
+      groupId,
     )
     allocator.freeAll()
   }
@@ -2170,11 +2167,6 @@ const physxWorker = (() => {
       p.byteOffset
     )
     allocator.freeAll()
-  }
-  w.setTriggerPhysics = (physics, id) => {
-    return moduleInstance._setTriggerPhysics(
-      physics, id,
-    )
   }
 
   //
