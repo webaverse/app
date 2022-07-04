@@ -583,7 +583,18 @@ const physxWorker = (() => {
   w.getTriggerEventPhysics = (physics) => {
     const triggerCount = moduleInstance._getTriggerEventPhysics(
       physics,
+      scratchStack.ptr,
     )
+    if (triggerCount > 0) {
+      console.log('triggerCount', triggerCount);
+      for (let i = 0; i < triggerCount; i++) {
+        console.log(
+          'status:', scratchStack.u32[i * 3 + 0],
+          'triggerActorId:', scratchStack.u32[i * 3 + 1],
+          'otherActorId:', scratchStack.u32[i * 3 + 2],
+        )
+      }
+    }
     return triggerCount;
   }
 

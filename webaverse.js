@@ -316,7 +316,6 @@ export default class Webaverse extends EventTarget {
           if (this.contentLoaded && physicsManager.getPhysicsEnabled()) {
             physicsManager.simulatePhysics(timeDiffCapped);
             const triggerCount = physicsManager.getTriggerEvent();
-            if (triggerCount) console.log('triggerCount', triggerCount);
             localPlayer.updatePhysics(timestamp, timeDiffCapped);
           }
 
