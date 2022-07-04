@@ -586,11 +586,6 @@ physicsManager.setCharacterControllerPosition = (
   )
   return result
 }
-physicsManager.setTrigger = (id) => {
-  return physx.physxWorker.setTriggerPhysics(
-    physx.physics, id,
-  )
-}
 /* physicsManager.getTransforms = physicsObjects => {
   //console.log(physicsObjects, "phyobjssss");
   const objs = physx.physxWorker.getTransformPhysics(physx.physics, physicsObjects);
@@ -700,6 +695,11 @@ physicsManager.simulatePhysics = (timeDiff) => {
     // physicsUpdates.length = 0
     _updatePhysicsObjects(updatesOut);
   }
+}
+physicsManager.setTrigger = (id) => {
+  return physx.physxWorker.setTriggerPhysics(
+    physx.physics, id,
+  )
 }
 physicsManager.getTriggerEvent = () => {
   const triggerCount = physx.physxWorker.getTriggerEventPhysics(
