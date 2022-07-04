@@ -604,7 +604,7 @@ w.createMobSplatAsync = async (inst, taskId, x, z, lod) => {
 // instances data (float32_t) * size
 
 w.cancelTask = async (inst, taskId) => {
-  console.log('cancel task', inst, taskId);
+  // console.log('cancel task', inst, taskId);
   Module._cancelTask(inst, taskId);
 };
 
@@ -615,7 +615,6 @@ globalThis.handleResult = (id, result) => {
     p.accept(result);
   } else {
     console.warn('failed to find promise for id', id, result);
-    debugger;
   }
 };
 
