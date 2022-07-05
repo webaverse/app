@@ -21,6 +21,9 @@ sceneNames.forEach( ( name ) => {
 
 });
 
+const _makeName = (N = 8) =>
+  (Math.random().toString(36) + '00000000000000000').slice(2, N + 2);
+
 //
 
 export const SceneMenu = ({ multiplayerConnected, selectedScene, setSelectedScene, selectedRoom, setSelectedRoom }) => {
@@ -32,7 +35,7 @@ export const SceneMenu = ({ multiplayerConnected, selectedScene, setSelectedScen
     const [ speechEnabled, setSpeechEnabled ] = useState( false );
     const [ sceneInputName, setSceneInputName ] = useState( selectedScene );
     const [ scenesList, setScenesList ] = useState( origSceneList );
-
+    const roomName = _makeName();
     //
 
     const refreshRooms = async () => {
@@ -96,32 +99,25 @@ export const SceneMenu = ({ multiplayerConnected, selectedScene, setSelectedScen
     };
 
     const handleRoomCreateBtnClick = async () => {
-
-        alert( 'todo' );
-        // const roomName = _makeName();
-        // const data = null; // Z.encodeStateAsUpdate( world.getState( true ) );
-
-        // const res = await fetch( universe.getWorldsHost() + roomName, { method: 'POST', body: data } );
-
-        // if ( res.ok ) {
-
-        //     refreshRooms();
-        //     setSelectedRoom( roomName );
-        //     universe.pushUrl( `/?src=${ encodeURIComponent( sceneName ) }&room=${ roomName }` );
-
-        //     /* this.parent.sendMessage([
-        //         MESSAGE.ROOMSTATE,
-        //         data,
-        //     ]); */
-
-        // } else {
-
-        //     const text = await res.text();
-        //     console.warn( 'error creating room', res.status, text );
-
-        // }
-
-    };
+        const sceneName = selectedScene.trim();
+        const data = null; // Z.encodeStateAsUpdate( world.getState( true ) );
+    
+        const res = await fetch(universe.getWorldsHost() + roomName, {
+          method: 'POST',
+          body: data,
+        });
+    
+        if (res.ok) {
+          refreshRooms();
+          setSelectedRoom(roomName);
+          universe.pushUrl(
+            `/?src=${encodeURIComponent(sceneName)}&room=${roomName}`,
+          );
+        } else {
+          const text = await res.text();
+          console.warn('error creating room', res.status, text);
+        }
+      };
 
     const handleRoomSelect = ( room ) => {
 
@@ -313,7 +309,7 @@ export const SceneMenu = ({ multiplayerConnected, selectedScene, setSelectedScen
                         </div>
                         {
                             rooms.map( ( room, i ) => (
-                                <div className={ styles.room } onClick={ ( e ) => { handleRoomSelect( e, room ) } } key={ i } >
+                                <div className={ styles.room } onClick={ ( e ) => { handleRoomSelect( room ) } } key={ i } >
                                     <img className={ styles.image } src="images/world.jpg" />
                                     <div className={ styles.name } >{ room.name }</div>
                                     <div className={ styles.delete } >
