@@ -1920,8 +1920,6 @@ class Avatar {
         <div style="display:;">jumpState: --- ${this.jumpState}</div>
         <div style="display:;">jumpTime: --- ${Math.floor(this.jumpTime)}</div>
         <div style="display:;">idleFactor: --- ${moveFactors.idleFactor?.toFixed(2)}</div>
-        <div style="display:;">swimState: --- ${this.swimState}</div>
-        <div style="display:;">swimTime: --- ${Math.floor(this.swimTime)}</div>
         <div style="display:;">flyState: --- ${this.flyState}</div>
         <div style="display:;">flyTime: --- ${Math.floor(this.flyTime)}</div>
         <div style="display:;">flyFactor: --- ${moveFactors.flyFactor?.toFixed(2)}</div>
@@ -1970,6 +1968,8 @@ class Avatar {
        window.domInfo.innerHTML = `
         <div style="display:;">actions: --- ${localPlayer.getActionsArray().map(n=>n.type)}</div>
         <div s  tyle="display:;">hipsY: --- ${window.logVector3(window.modelBoneOutputs.Hips.getWorldPosition(localVector))}</div>
+        <div style="display:;">swimState: --- ${this.swimState}</div>
+        <div style="display:;">swimTime: --- ${Math.floor(this.swimTime)}</div>
       `
     }
     _applyAnimation(this, now, moveFactors, timeDiffS);
