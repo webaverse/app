@@ -958,6 +958,7 @@ class Avatar {
     // this.aimDirection = new THREE.Vector3();
     this.hurtTime = NaN;
     this.hurtAnimation = null;
+    this.movementsTime = 0;
 
     // internal state
     this.lastPosition = new THREE.Vector3();
@@ -1908,6 +1909,7 @@ class Avatar {
 
     _updateHmdPosition();
     if (true && this === window.localPlayer.avatar) {
+      const ioManager = metaversefile.useIoManager();
       /*
         <div style="display:;">keysDirection: --- ${false&&window.logVector3(window.ioManager?.keysDirection)}</div>
         <div style="display:;">avatar.direction: --- ${window.logVector3(this.direction)}</div>
@@ -1970,6 +1972,8 @@ class Avatar {
         <div s  tyle="display:;">hipsY: --- ${window.logVector3(window.modelBoneOutputs.Hips.getWorldPosition(localVector))}</div>
         <div style="display:;">swimState: --- ${this.swimState}</div>
         <div style="display:;">swimTime: --- ${Math.floor(this.swimTime)}</div>
+        <div style="display:;">movementsTime: --- ${Math.floor(this.movementsTime)}</div>
+        <div style="display:;">keys: --- ${Object.values(ioManager.keys)}</div>
       `
     }
     _applyAnimation(this, now, moveFactors, timeDiffS);
