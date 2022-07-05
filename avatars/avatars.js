@@ -1966,6 +1966,7 @@ class Avatar {
         <div style="display:;">narutoRunTime: --- ${Math.floor(this.narutoRunTime)}</div>
         <div style="display:;">blendList.length: --- ${this.blendList?.length}</div>
         <div s  tyle="display:;">blendList: --- ${this.blendList?.map(applyFn=>applyFn.name.slice('applyFn'.length))}</div>
+        <div style="display:;">keys: --- ${Object.values(ioManager.keys)}</div>
       */
        window.domInfo.innerHTML = `
         <div style="display:;">actions: --- ${localPlayer.getActionsArray().map(n=>n.type)}</div>
@@ -1973,7 +1974,6 @@ class Avatar {
         <div style="display:;">swimState: --- ${this.swimState}</div>
         <div style="display:;">swimTime: --- ${Math.floor(this.swimTime)}</div>
         <div style="display:;">movementsTime: --- ${Math.floor(this.movementsTime)}</div>
-        <div style="display:;">keys: --- ${Object.values(ioManager.keys)}</div>
       `
     }
     _applyAnimation(this, now, moveFactors, timeDiffS);
