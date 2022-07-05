@@ -23,10 +23,13 @@ class OctreeNode {
 
     this.children = Array(8).fill(null);
   }
-  containsNode(p) {
-    return p.min.x >= this.min.x && p.min.x < this.min.x + this.lod &&
-      p.min.y >= this.min.y && p.min.y < this.min.y + this.lod &&
-      p.min.z >= this.min.z && p.min.z < this.min.z + this.lod;
+  containsPoint(p) {
+    return p.x >= this.min.x && p.x < this.min.x + this.lod &&
+      p.y >= this.min.y && p.y < this.min.y + this.lod &&
+      p.z >= this.min.z && p.z < this.min.z + this.lod;
+  }
+  containsNode(node) {
+    return this.containsPoint(node.min);
   }
   equalsNode(p) {
     return p.min.x === this.min.x && p.min.y === this.min.y && p.min.z === this.min.z &&
@@ -39,6 +42,7 @@ const _toUint32 = value => {
   return tempUint32Array[0];
 } */
 const _octreeNodeMinHash = (min, lod) => `${min.x},${min.y},${min.z}:${lod}`;
+const _getLeafNodeFromPoint = (leafNodes, p) => leafNodes.find(node => node.containsPoint(p));
 const constructOctreeForLeaf = (position, lod1Range, maxLod) => {
   const nodeMap = new Map();
   
@@ -68,7 +72,6 @@ const constructOctreeForLeaf = (position, lod1Range, maxLod) => {
         for (let dz = 0; dz < 2; dz++) {
            const childIndex = dx + 2 * (dy + 2 * dz);
            if (parentNode.children[childIndex] === null) {
-              console.log('got node', parentNode, parentNode.children[childIndex], childIndex);
               parentNode.children[childIndex] = _createNode(
                 lodMin.clone().add(
                   new THREE.Vector3(dx, dy, dz).multiplyScalar(lod / 2)
@@ -212,9 +215,6 @@ const constructOctreeForLeaf = (position, lod1Range, maxLod) => {
     }
   }
 
-  // get the leaf node that contains a point
-  const _getLeafNodeFromPoint = point => leafNodes.find(node => node.containsPoint(point));
-
   // assign lodArray for each node based on the minimum lod of the target point in the world
   // vm::ivec3(0, 0, 0),
   // vm::ivec3(1, 0, 0),
@@ -235,7 +235,7 @@ const constructOctreeForLeaf = (position, lod1Range, maxLod) => {
       new THREE.Vector3(0, 1, 1),
       new THREE.Vector3(1, 1, 1),
     ].map(offset => {
-      const containingLeafNode = _getLeafNodeFromPoint(node.min.clone().add(offset.clone().multiplyScalar(node.lod)));
+      const containingLeafNode = _getLeafNodeFromPoint(leafNodes, node.min.clone().add(offset.clone().multiplyScalar(node.lod)));
       if (containingLeafNode) {
         return containingLeafNode.lod;
       } else {
@@ -257,17 +257,22 @@ const _makeEmptyOctree = () => {
     leafNodes: [],
   };
 };
-class Task extends EventEmitter {
-  constructor() {
+class Task extends EventTarget {
+  constructor(maxLodNode) {
     super();
+
+    this.maxLodNode = maxLodNode;
+    
+    this.newNodes = [];
+    this.oldNodes = [];
 
     this.abortController = new AbortController();
     this.signal = this.abortController.signal;
     
-    this.isTask = true;
+    // this.isTask = true;
   }
 }
-class AddTask extends Task {
+/* class AddTask extends Task {
   constructor(newNode, oldNodes) {
     super();
     
@@ -285,37 +290,56 @@ class RemoveTask extends Task {
 
     this.isRemoveTask = true;
   }
-}
+} */
 const diffOctrees = (newOctree, oldOctree) => {
-  const tasks = [];
-  // add new node tasks that replace the old ones
+  // map from min lod hash to task containing new nodes and old nodes
+  const taskMap = new Map();
+
+  const _getMaxLodNode = min => {
+    const newLeafNode = _getLeafNodeFromPoint(newOctree.leafNodes, min);
+    const oldLeafNode = _getLeafNodeFromPoint(oldOctree.leafNodes, min);
+    if (newLeafNode && oldLeafNode) {
+      return newLeafNode.lod > oldLeafNode.lod ? newLeafNode : oldLeafNode;
+    } else if (newLeafNode) {
+      return newLeafNode;
+    } else {
+      return oldLeafNode;
+    }
+  };
   for (const newNode of newOctree.leafNodes) {
-    const matchingOldNodes = oldOctree.leafNodes.filter(oldNode => {
-      return newNode.containsNode(oldNode);
-    });
-    // add the task to the queue, as long as it's not the same exact task spec as we already had
-    if (!(matchingOldNodes.length === 1 && matchingOldNodes[0].equalsNode(newNode))) {
-      const task = new AddTask(newNode, matchingOldNodes);
-      tasks.push(task);
+    const maxLodNode = _getMaxLodNode(newNode.min);
+    const hash = _octreeNodeMinHash(maxLodNode.min, maxLodNode.lod);
+    let task = taskMap.get(hash);
+    if (!task) {
+      task = new Task(maxLodNode);
+      taskMap.set(hash, task);
     }
+    task.newNodes.push(newNode);
   }
-  // remove old node tasks that are not in the new octree at all
   for (const oldNode of oldOctree.leafNodes) {
-    // if no new node contains this old node, then it's a remove task
-    if (!newOctree.leafNodes.some(newNode => {
-      return newNode.containsNode(oldNode);
-    })) {
-      const task = new RemoveTask(oldNode);
-      tasks.push(task);
+    const maxLodNode = _getMaxLodNode(oldNode.min);
+    const hash = _octreeNodeMinHash(maxLodNode.min, maxLodNode.lod);
+    let task = taskMap.get(hash);
+    if (!task) {
+      task = new Task(maxLodNode);
+      taskMap.set(hash, task);
     }
+    task.oldNodes.push(oldNode);
   }
+
+  let tasks = Array.from(taskMap.values());
+  tasks = tasks.filter(task => {
+    return !(task.newNodes.length === task.oldNodes.length && task.newNodes.every(newNode => {
+      return task.oldNodes.some(oldNode => oldNode.nodeEquals(newNode));
+    }));
+  });
   return tasks;
 };
-// sort tasks by distance to world position
+// sort tasks by distance to world position of the central max lod node
 const sortTasks = (tasks, worldPosition) => {
   const taskDistances = tasks.map(task => {
-    const distance = localVector.copy(task.newNode.min)
-      .add(localVector2.setScalar(task.newNode.lod / 2))
+    const distance = localVector.copy(task.maxLodNode.min)
+      .add(localVector2.setScalar(task.maxLodNode.lod / 2))
       .distanceToSquared(worldPosition);
     return {
       task,
@@ -456,7 +480,6 @@ export class LodChunkTracker extends EventTarget {
           }
         };
         const _flushChunks = () => {
-          // console.log('update', chunks.length);
           for (let i = 0; i < chunks.length; i++) {
             const chunk = chunks[i];
             localMatrix.compose(
@@ -470,15 +493,13 @@ export class LodChunkTracker extends EventTarget {
             localColor.setHex(_getChunkColorHex(chunk));
             debugMesh.setMatrixAt(i, localMatrix);
             debugMesh.setColorAt(i, localColor);
-            // console.log('render chunk', chunk);
           }
           debugMesh.instanceMatrix.needsUpdate = true;
           debugMesh.instanceColor.needsUpdate = true;
           debugMesh.count = chunks.length;
         };
-        this.addEventListener('chunkadd', e => {
+        /* this.addEventListener('chunkadd', e => {
           try {
-            // console.log('got chunk add', e.data);
             const {chunk} = e.data;
             chunks.push(chunk);
             _flushChunks();
@@ -487,34 +508,20 @@ export class LodChunkTracker extends EventTarget {
           }
         });
         this.addEventListener('chunkremove', e => {
-          // try {
-            const {chunk} = e.data;
-            const index = chunks.indexOf(chunk);
-            /* if (index === -1) {
-              debugger;
-            } */
-            chunks.splice(index, 1);
-            _flushChunks();
-          /* } catch(err) {
-            console.warn(err);
-          } */
-        });
+          const {chunk} = e.data;
+          const index = chunks.indexOf(chunk);
+          chunks.splice(index, 1);
+          _flushChunks();
+        }); */
         this.addEventListener('chunkrelod', e => {
-          try {
-            // console.log('relod', e.data);
-            const {newChunk, oldChunks} = e.data;
-            for (const oldChunk of oldChunks) {
-              const index = chunks.indexOf(oldChunk);
-              /* if (index === -1) {
-                debugger;
-              } */
-              chunks.splice(index, 1);
-            }
-            chunks.push(newChunk);
-            _flushChunks();
-          } catch(err) {
-            console.warn(err);
+          // XXX fix this
+          /* const {newChunk, oldChunks} = e.data;
+          for (const oldChunk of oldChunks) {
+            const index = chunks.indexOf(oldChunk);
+            chunks.splice(index, 1);
           }
+          chunks.push(newChunk);
+          _flushChunks(); */
         });
       }
     }
@@ -619,7 +626,7 @@ export class LodChunkTracker extends EventTarget {
 
       const tasks = diffOctrees(octree, lastOctree);
       sortTasks(tasks, camera.position);
-      // console.log('got octree diff', currentCoord.toArray().join(','), octree, tasks);
+      console.log('got octree diff', currentCoord.toArray().join(','), octree, tasks);
       lastOctree = octree;
 
       for (const task of tasks) {
