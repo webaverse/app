@@ -32,6 +32,7 @@ import cameraManager from './camera-manager.js';
 import {WebaverseRenderPass} from './webaverse-render-pass.js';
 import renderSettingsManager from './rendersettings-manager.js';
 import metaversefileApi from 'metaversefile';
+import { XROutputPass } from './XROutputPass.js';
 // import {parseQuery} from './util.js';
 // import * as sounds from './sounds.js';
 // import musicManager from './music-manager.js';
@@ -166,6 +167,12 @@ function makeEncodingPass() {
   // encodingPass.enabled = false;
   return encodingPass;
 }
+function makeXROutputPass() {
+  const xrOutputPass = new XROutputPass();
+
+  xrOutputPass.needsSwap = false;
+  return xrOutputPass;
+}
 
 const webaverseRenderPass = new WebaverseRenderPass();
 const _isDecapitated = () => (
@@ -200,6 +207,7 @@ webaverseRenderPass.onAfterRender = () => {
   }
 };
 const encodingPass = makeEncodingPass();
+webaverseRenderPass.internalXROutputPass = makeXROutputPass();
 
 class PostProcessing extends EventTarget {
   constructor() {
@@ -266,6 +274,7 @@ class PostProcessing extends EventTarget {
     }
     
     passes.push(encodingPass);
+    //passes.push(xrOutputPass);
 
     return passes;
   }
