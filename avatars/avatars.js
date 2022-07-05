@@ -784,6 +784,7 @@ class Avatar {
       Left_toe: this.legsManager.leftLeg.toe,
       Right_toe: this.legsManager.rightLeg.toe,
 	  };
+    window.modelBoneOutputs = this.modelBoneOutputs;
 
     this.debugMesh = null;
 
@@ -889,6 +890,7 @@ class Avatar {
       animationMapping.lerpFn = _getLerpFn(isPosition);
       return animationMapping;
     });
+    window.animationMappings = this.animationMappings;
 
     this.blinker = new Blinker();
     this.nodder = new Nodder();
