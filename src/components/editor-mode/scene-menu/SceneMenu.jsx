@@ -32,6 +32,7 @@ export const SceneMenu = ({ multiplayerConnected, selectedScene, setSelectedScen
     const [ speechEnabled, setSpeechEnabled ] = useState( false );
     const [ sceneInputName, setSceneInputName ] = useState( selectedScene );
     const [ scenesList, setScenesList ] = useState( origSceneList );
+
     //
 
     const refreshRooms = async () => {
