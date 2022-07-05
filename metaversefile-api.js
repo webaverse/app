@@ -57,6 +57,7 @@ import dcWorkerManager from './dc-worker-manager.js';
 import cardsManager from './cards-manager.js';
 import * as instancing from './instancing.js';
 import * as atlasing from './atlasing.js';
+import ioManager from './io-manager.js';
 
 const localVector2D = new THREE.Vector2();
 
