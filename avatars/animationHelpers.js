@@ -1231,7 +1231,8 @@ export const _applyAnimation = (avatar, now, moveFactors, timeDiffS) => {
       const swimTimeS = avatar.swimTime / 1000;
       if (isFirstBone) {
         const swimSpeed = 1 + idleWalkFactor + walkRunFactor;
-        avatar.swimAnimTime += timeDiffS * swimSpeed;
+        // avatar.swimAnimTime += timeDiffS * swimSpeed;
+        avatar.swimAnimTime = avatar.movementsTime / 1000 * swimSpeed;
       }
 
       const src2 = floatAnimation.interpolants[k];

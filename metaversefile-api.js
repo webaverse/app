@@ -772,6 +772,9 @@ metaversefile.setApi({
   useHpManager() {
     return hpManager;
   },
+  useIoManager() {
+    return ioManager;
+  },
   useProcGen() {
     return procgen;
   },
