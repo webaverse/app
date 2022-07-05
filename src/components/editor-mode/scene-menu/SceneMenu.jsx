@@ -21,9 +21,6 @@ sceneNames.forEach( ( name ) => {
 
 });
 
-const _makeName = (N = 8) =>
-  (Math.random().toString(36) + '00000000000000000').slice(2, N + 2);
-
 //
 
 export const SceneMenu = ({ multiplayerConnected, selectedScene, setSelectedScene, selectedRoom, setSelectedRoom }) => {
@@ -35,7 +32,6 @@ export const SceneMenu = ({ multiplayerConnected, selectedScene, setSelectedScen
     const [ speechEnabled, setSpeechEnabled ] = useState( false );
     const [ sceneInputName, setSceneInputName ] = useState( selectedScene );
     const [ scenesList, setScenesList ] = useState( origSceneList );
-    const roomName = _makeName();
     //
 
     const refreshRooms = async () => {
@@ -101,7 +97,9 @@ export const SceneMenu = ({ multiplayerConnected, selectedScene, setSelectedScen
     const handleRoomCreateBtnClick = async () => {
         const sceneName = selectedScene.trim();
         const data = null; // Z.encodeStateAsUpdate( world.getState( true ) );
-    
+
+        const roomName = (Math.random().toString(36) + '00000000000000000').slice(2, 10);
+
         const res = await fetch(universe.getWorldsHost() + roomName, {
           method: 'POST',
           body: data,
