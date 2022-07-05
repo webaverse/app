@@ -1252,20 +1252,21 @@ export const _applyAnimation = (avatar, now, moveFactors, timeDiffS) => {
 
     if (avatar.swimState) {
       const swimTimeS = avatar.swimTime / 1000;
-      if (isFirstBone) {
-        const swimSpeed = 1 + idleWalkFactor + walkRunFactor;
-        // avatar.swimAnimTime += timeDiffS * swimSpeed;
-        avatar.swimAnimTime = avatar.movementsTime / 1000 * swimSpeed;
-      }
+      const movementsTimeS = avatar.movementsTime / 1000;
+      // if (isFirstBone) {
+      //   // const swimSpeed = 1 + idleWalkFactor + walkRunFactor;
+      //   // avatar.swimAnimTime += timeDiffS * swimSpeed;
+      //   // avatar.swimAnimTime = avatar.movementsTime / 1000 * swimSpeed;
+      // }
 
       const src2 = floatAnimation.interpolants[k];
       const v2 = src2.evaluate(swimTimeS % floatAnimation.duration);
 
       const src3 = animations.index['Swimming.fbx'].interpolants[k];
-      const v3 = src3.evaluate(avatar.swimAnimTime % animations.index['Swimming.fbx'].duration);
+      const v3 = src3.evaluate(movementsTimeS * 2 % animations.index['Swimming.fbx'].duration);
 
       const src4 = animations.index['freestyle.fbx'].interpolants[k];
-      const v4 = src4.evaluate(avatar.swimAnimTime * 0.7 % animations.index['freestyle.fbx'].duration);
+      const v4 = src4.evaluate(movementsTimeS * 3 * 0.7 % animations.index['freestyle.fbx'].duration);
 
       const f = MathUtils.clamp(swimTimeS / 0.2, 0, 1);
       // if (isPosition) console.log(f);
