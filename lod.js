@@ -43,12 +43,11 @@ const _toUint32 = value => {
 } */
 const _octreeNodeMinHash = (min, lod) => `${min.x},${min.y},${min.z}:${lod}`;
 const _getLeafNodeFromPoint = (leafNodes, p) => leafNodes.find(node => node.containsPoint(p));
-const constructOctreeForLeaf = (position, lod1Range, maxLod) => {
+const constructOctreeForLeaf = (position, sampleRange, lod1Range, maxLod) => {
   const nodeMap = new Map();
   
   const _createNode = (min, lod, isLeaf = lod === 1) => {
     const node = new OctreeNode(min, lod, isLeaf);
-    // node.stack = new Error().stack;
     const hash = _octreeNodeMinHash(min, lod);
     if (nodeMap.has(hash)) {
       throw new Error(`Node already exists: ${hash}`);
@@ -109,12 +108,12 @@ const constructOctreeForLeaf = (position, lod1Range, maxLod) => {
     return rootNode;
   };
 
-  // build base leaf nodes
+  // sample base leaf nodes to generate octree upwards
   for (let dx = -1; dx <= 1; dx++) {
     for (let dy = -1; dy <= 1; dy++) {
       for (let dz = -1; dz <= 1; dz++) {
         const leafPosition = position.clone().add(
-          new THREE.Vector3(dx, dy, dz).multiplyScalar(lod1Range)
+          new THREE.Vector3(dx, dy, dz).multiplyScalar(sampleRange)
         );
         leafPosition.x = Math.floor(leafPosition.x);
         leafPosition.y = Math.floor(leafPosition.y);
@@ -151,7 +150,6 @@ const constructOctreeForLeaf = (position, lod1Range, maxLod) => {
       }
     }
   };
-
   const rangeMin = position.clone()
     .sub(new THREE.Vector3(lod1Range, lod1Range, lod1Range));
   const rangeMax = position.clone()
@@ -330,7 +328,7 @@ const diffOctrees = (newOctree, oldOctree) => {
   let tasks = Array.from(taskMap.values());
   tasks = tasks.filter(task => {
     return !(task.newNodes.length === task.oldNodes.length && task.newNodes.every(newNode => {
-      return task.oldNodes.some(oldNode => oldNode.nodeEquals(newNode));
+      return task.oldNodes.some(oldNode => oldNode.equalsNode(newNode));
     }));
   });
   return tasks;
@@ -621,12 +619,14 @@ export class LodChunkTracker extends EventTarget {
 
     // if we moved across a chunk boundary, update needed chunks
     if (!currentCoord.equals(this.lastUpdateCoord)) {
-      const octree = constructOctreeForLeaf(currentCoord, 1, 32);
+      const octree = constructOctreeForLeaf(currentCoord, 5, 1, 32);
       // console.log('got octree', currentCoord.toArray().join(','), octree);
 
       const tasks = diffOctrees(octree, lastOctree);
       sortTasks(tasks, camera.position);
-      console.log('got octree diff', currentCoord.toArray().join(','), octree, tasks);
+      if (tasks.length > 0) {
+        console.log('got octree diff', currentCoord.toArray().join(','), octree, tasks);
+      }
       lastOctree = octree;
 
       for (const task of tasks) {
