@@ -27,14 +27,19 @@ const bubbleTexture1 = textureLoader.load(`${baseUrl}/textures/Bubble3.png`);
 const noiseCircleTexture = textureLoader.load(`${baseUrl}/textures/noiseCircle.png`);
 const noiseTexture = textureLoader.load(`${baseUrl}/textures/perlin-noise.jpg`);
 const noiseTexture2 = textureLoader.load(`${baseUrl}/textures/noise.jpg`);
+const voronoiNoiseTexture = textureLoader.load(`${baseUrl}/textures/voronoiNoise.jpg`);
+voronoiNoiseTexture.wrapS = voronoiNoiseTexture.wrapT = THREE.RepeatWrapping;
 const noiseMap = textureLoader.load(`${baseUrl}/textures/noise.jpg`);
 noiseMap.wrapS = noiseMap.wrapT = THREE.RepeatWrapping;
 const noiseMap3 = textureLoader.load(`${baseUrl}/textures/noise3.png`);
+const maskTexture = textureLoader.load(`${baseUrl}/textures/mask.png`);
 const splashTexture = textureLoader.load(`${baseUrl}/textures/splash1.png`);
 const splashTexture2 = textureLoader.load(`${baseUrl}/textures/splash2.png`);
 const splashTexture4 = textureLoader.load(`${baseUrl}/textures/splash.png`);
 const rippleTexture = textureLoader.load(`${baseUrl}/textures/ripple3.png`);
 rippleTexture.wrapS = rippleTexture.wrapT = THREE.RepeatWrapping;
+const rippleTexture2 = textureLoader.load(`${baseUrl}/textures/ripple2.png`);
+rippleTexture2.wrapS = rippleTexture2.wrapT = THREE.RepeatWrapping;
 
 const waterNormalTexture1 = textureLoader.load(`${baseUrl}/textures/waterNormal2.png`);
 waterNormalTexture1.wrapS = waterNormalTexture1.wrapT = THREE.RepeatWrapping;
@@ -2302,7 +2307,7 @@ export default (e) => {
                         info.velocity[i].divideScalar(5);
                         info.acc[i] = -0.001 - currentSpeed * 0.0015;
                         scalesAttribute.setX(i, 1.5 + Math.random() * 3.5);
-                        brokenAttribute.setX(i, 0.25 + Math.random() * 0.25);
+                        brokenAttribute.setX(i, 0.3 + Math.random() * 0.2);
                         textureRotationAttribute.setX(i, Math.random() * 2);
                         currentEmmit++;
                     }
@@ -4016,285 +4021,470 @@ export default (e) => {
       
       });
   }
-  //######################################################################  3 layers ripple ######################################################################
-  {
-      const identityQuaternion = new THREE.Quaternion();
-      const count = 3;
+  //###################################################################### ripple ######################################################################
+ {
+    let splashMesh;
+    const group = new THREE.Group();
+    (async () => {
+        const u = `${baseUrl}/assets/ripple.glb`;
+        const splashMeshApp = await new Promise((accept, reject) => {
+            const {gltfLoader} = useLoaders();
+            gltfLoader.load(u, accept, function onprogress() {}, reject);
+            
+        });
+        group.add(splashMeshApp.scene)
+        app.add(group);
+        splashMesh = splashMeshApp.scene.children[0];
+        splashMesh.material= new THREE.ShaderMaterial({
+            uniforms: {
+                uTime: {
+                    value: 0,
+                },
+                vBroken: {
+                    value: 0,
+                },
+                vTextureRotation:{
+                    value:0
+                },
+                rippleTexture:{
+                    value: rippleTexture2
+                },
+                maskTexture:{
+                    value: maskTexture
+                },
+                voronoiNoiseTexture:{
+                    value:voronoiNoiseTexture
+                },
+                waterSurfacePos:{
+                    value: new THREE.Vector3()
+                },
+                playerPos:{
+                    value: new THREE.Vector3()
+                },
+                noiseMap:{
+                    value: noiseMap
+                },
+            },
+            vertexShader: `\
+                
+                ${THREE.ShaderChunk.common}
+                ${THREE.ShaderChunk.logdepthbuf_pars_vertex}
+            
+            
+                uniform float uTime;
+        
+                varying vec2 vUv;
+                varying vec3 vPos;
+                varying vec3 vPos2;
+            
+                void main() {
+                    vUv=uv;
+                    vPos2=position;
+                    vec4 modelPosition = modelMatrix * vec4(position, 1.0);
+                    vec4 viewPosition = viewMatrix * modelPosition;
+                    vec4 projectionPosition = projectionMatrix * viewPosition;
+            
+                    gl_Position = projectionPosition;
+                    vPos = modelPosition.xyz;
+                    ${THREE.ShaderChunk.logdepthbuf_vertex}
+                }
+            `,
+            fragmentShader: `\
+                ${THREE.ShaderChunk.logdepthbuf_pars_fragment}
+                uniform float uTime;
+                uniform float vTextureRotation;
+                uniform float vBroken;
 
-      
-      const _getRippleGeometry = geometry => {
-          const geometry2 = new THREE.BufferGeometry();
-          ['position', 'normal', 'uv'].forEach(k => {
-            geometry2.setAttribute(k, geometry.attributes[k]);
-          });
-          geometry2.setIndex(geometry.index);
-          
-          const positions = new Float32Array(count * 3);
-          const positionsAttribute = new THREE.InstancedBufferAttribute(positions, 3);
-          geometry2.setAttribute('positions', positionsAttribute);
-          const quaternions = new Float32Array(count * 4);
-          for (let i = 0; i < count; i++) {
-            identityQuaternion.toArray(quaternions, i * 4);
-          }
-          const quaternionsAttribute = new THREE.InstancedBufferAttribute(quaternions, 4);
-          geometry2.setAttribute('quaternions', quaternionsAttribute);
+                uniform sampler2D rippleTexture;
+                uniform sampler2D noiseMap;
+                uniform sampler2D maskTexture;
+                uniform sampler2D voronoiNoiseTexture;
+                
+                uniform vec3 waterSurfacePos;
+                uniform vec3 playerPos;
+                
+                
+                varying vec2 vUv;
+                varying vec3 vPos;
+                varying vec3 vPos2;
+                #define PI 3.1415926
 
-          // const startTimes = new Float32Array(count);
-          // const startTimesAttribute = new THREE.InstancedBufferAttribute(startTimes, 1);
-          // geometry2.setAttribute('startTimes', startTimesAttribute);
+                void main() {
+                    vec2 mainUv = vec2(
+                                        vUv.x , 
+                                        vUv.y - uTime / 1.
+                                    ); 
+                    vec4 voronoiNoise = texture2D(
+                                        voronoiNoiseTexture,
+                                        mainUv
+                    );
 
-          const scales = new Float32Array(count);
-          const scaleAttribute = new THREE.InstancedBufferAttribute(scales, 1);
-          geometry2.setAttribute('scales', scaleAttribute);
-      
-          return geometry2;
-      };
-
-      //######################################################################### material #########################################################################
-      const rippleMaterial = new THREE.ShaderMaterial({
-          uniforms: {
-              uTime: {
-                  value: 0,
-              },
-              opacity: {
-                  value: 0,
-              },
-              uBroken: {
-                  value: 0,
-              },
-              perlinnoise:{
-                  value: rippleTexture
-              },
-              noiseMap:{
-                  value: noiseMap
-              }
-          },
-          vertexShader: `\
-              
-              ${THREE.ShaderChunk.common}
-              ${THREE.ShaderChunk.logdepthbuf_pars_vertex}
-          
-          
-              uniform float uTime;
-      
-              varying vec2 vUv;
-              varying vec3 vPos;
-              attribute vec3 positions;
-              attribute float scales;
-              attribute vec4 quaternions;
-
-              vec3 qtransform(vec3 v, vec4 q) { 
-                return v + 2.0*cross(cross(v, q.xyz ) + q.w*v, q.xyz);
-              }
-          
-              void main() {
-              vUv=uv;
-              vPos=position;
-              vec3 pos = position;
-              pos+=positions;
-              pos*=scales;
-              pos = qtransform(pos, quaternions);
-              //pos.y=cos(uTime/100.);
-              vec4 modelPosition = modelMatrix * vec4(pos, 1.0);
-              vec4 viewPosition = viewMatrix * modelPosition;
-              vec4 projectionPosition = projectionMatrix * viewPosition;
-      
-              gl_Position = projectionPosition;
-              ${THREE.ShaderChunk.logdepthbuf_vertex}
-              }
-          `,
-          fragmentShader: `\
-              ${THREE.ShaderChunk.logdepthbuf_pars_fragment}
-              uniform float uTime;
-              uniform float opacity;
-              uniform float uBroken;
-              varying vec2 vUv;
-              varying vec3 vPos;
-              uniform sampler2D perlinnoise;
-              uniform sampler2D noiseMap;
-              
-              
-              
-              
-              
-              void main() {
-                  vec3 ripple = texture2D(
-                      perlinnoise,
-                      mod(1.*vec2(5.*vUv.x,2.*vUv.y-uTime*5. ),1.)
-                  ).rgb; 
-
-                  vec3 noise = texture2D(
-                      noiseMap,
-                      mod(1.*vec2(2.*vUv.x,2.*vUv.y-uTime*5. ),1.)
-                  ).rgb;
-                  
-
-
-                  gl_FragColor = vec4(ripple.rgb,1.0);
-                  
-                  if(gl_FragColor.r >= 0.65){
-                     gl_FragColor =  vec4(1.,1.,1.,1.);
-                  }else{
-                      gl_FragColor = vec4(0.,0.,1.,0.);
-                  }
-                  float broken = abs( sin( pow(1.0 - vUv.y,1.) ) ) - noise.g;
-                  if ( broken < 0.0001 ) discard;
-                  gl_FragColor.a*=opacity;
-                  if(uTime>0.48)
-                      gl_FragColor.a=0.;
-
-                  if(gl_FragColor.a > 0.){
-                        gl_FragColor = vec4(0.9, 0.9, 0.9, 1.0);
-                  }
-                  else{
+                    vec2 distortionUv = mix(vUv, mainUv + voronoiNoise.rg, 0.3);
+                        
+                    
+                    vec4 ripple = texture2D(
+                                    rippleTexture,
+                                    (distortionUv + mainUv) / 2.
+                    );
+                    vec4 noise = texture2D(
+                                    noiseMap,
+                                    (distortionUv + mainUv) / 2.
+                    );
+                    if(ripple.a > 0.5){
+                        gl_FragColor = ripple;
+                    }
+                    else{
                         discard;
-                  }
+                    }
+                   
+                    // if(vPos.y < waterSurfacePos.y){
+                    //     discard;
+                    // }
+                    
+
+                    float broken = abs( sin( 1.0 - vBroken ) ) - noise.g;
+                    if ( broken < 0.0001 ) discard;
+                    gl_FragColor.rgb *= 0.8;
+                    
+                ${THREE.ShaderChunk.logdepthbuf_fragment}
+                }
+            `,
+            side: THREE.DoubleSide,
+            transparent: true,
+            // depthWrite: false,
+            blending: THREE.AdditiveBlending,
+        });
+    })();
+    
+    let playEffectSw=0;
+    useFrame(({timestamp}) => {
+        if (contactWater){
+            if(playEffectSw === 0 && waterSurfacePos.y < localPlayer.position.y)
+                playEffectSw = 1;
+        }
+        else{
+            if(playEffectSw === 2)
+                playEffectSw = 0;
+        }
+       
+        if (splashMesh) {
+            
+            // splashMesh.scale.z += 0.006;
+            // splashMesh.scale.y += 0.006;
+            // splashMesh.position.y -= 0.01;
+            // if(splashMesh.scale.z < 0.3)
+            //     splashMesh.material.uniforms.vBroken.value = splashMesh.material.uniforms.vBroken.value - 0.02;
+            // else{
+            //     if(splashMesh.material.uniforms.vBroken.value < 1)
+            //         splashMesh.material.uniforms.vBroken.value = splashMesh.material.uniforms.vBroken.value + 0.02;
+            // }
+            if(playEffectSw === 1){
+                group.position.copy(localPlayer.position);
+                group.position.y = waterSurfacePos.y + 0.02;
+                splashMesh.material.uniforms.vBroken.value = 0;
+                splashMesh.scale.set(0.2, 1, 0.2);
+                splashMesh.material.uniforms.uTime.value = 120;
+            }
+            let falling = fallindSpeed > 10 ? 10 : fallindSpeed;
+            if(splashMesh.material.uniforms.vBroken.value < 1){
+                if(splashMesh.scale.x > 0.15 * (1 + falling * 0.1))
+                    splashMesh.material.uniforms.vBroken.value = splashMesh.material.uniforms.vBroken.value + 0.008;
+                splashMesh.scale.x += 0.007 * (1 + falling * 0.1);
+                // splashMesh.scale.y += 0.01;
+                splashMesh.scale.z += 0.007 * (1 + falling * 0.1);
+            }
+                
+            
+            if(playEffectSw === 1){
+                playEffectSw = 2;
+            }
+            splashMesh.material.uniforms.uTime.value += 0.015;
+            group.updateMatrixWorld();
+
+        }
+        
+        
+    });
+  }
+  //######################################################################  3 layers ripple ######################################################################
+//   {
+//       const identityQuaternion = new THREE.Quaternion();
+//       const count = 3;
+
+      
+//       const _getRippleGeometry = geometry => {
+//           const geometry2 = new THREE.BufferGeometry();
+//           ['position', 'normal', 'uv'].forEach(k => {
+//             geometry2.setAttribute(k, geometry.attributes[k]);
+//           });
+//           geometry2.setIndex(geometry.index);
+          
+//           const positions = new Float32Array(count * 3);
+//           const positionsAttribute = new THREE.InstancedBufferAttribute(positions, 3);
+//           geometry2.setAttribute('positions', positionsAttribute);
+//           const quaternions = new Float32Array(count * 4);
+//           for (let i = 0; i < count; i++) {
+//             identityQuaternion.toArray(quaternions, i * 4);
+//           }
+//           const quaternionsAttribute = new THREE.InstancedBufferAttribute(quaternions, 4);
+//           geometry2.setAttribute('quaternions', quaternionsAttribute);
+
+//           // const startTimes = new Float32Array(count);
+//           // const startTimesAttribute = new THREE.InstancedBufferAttribute(startTimes, 1);
+//           // geometry2.setAttribute('startTimes', startTimesAttribute);
+
+//           const scales = new Float32Array(count);
+//           const scaleAttribute = new THREE.InstancedBufferAttribute(scales, 1);
+//           geometry2.setAttribute('scales', scaleAttribute);
+      
+//           return geometry2;
+//       };
+
+//       //######################################################################### material #########################################################################
+//       const rippleMaterial = new THREE.ShaderMaterial({
+//           uniforms: {
+//               uTime: {
+//                   value: 0,
+//               },
+//               opacity: {
+//                   value: 0,
+//               },
+//               uBroken: {
+//                   value: 0,
+//               },
+//               perlinnoise:{
+//                   value: rippleTexture
+//               },
+//               noiseMap:{
+//                   value: noiseMap
+//               }
+//           },
+//           vertexShader: `\
+              
+//               ${THREE.ShaderChunk.common}
+//               ${THREE.ShaderChunk.logdepthbuf_pars_vertex}
+          
+          
+//               uniform float uTime;
+      
+//               varying vec2 vUv;
+//               varying vec3 vPos;
+//               attribute vec3 positions;
+//               attribute float scales;
+//               attribute vec4 quaternions;
+
+//               vec3 qtransform(vec3 v, vec4 q) { 
+//                 return v + 2.0*cross(cross(v, q.xyz ) + q.w*v, q.xyz);
+//               }
+          
+//               void main() {
+//               vUv=uv;
+//               vPos=position;
+//               vec3 pos = position;
+//               pos+=positions;
+//               pos*=scales;
+//               pos = qtransform(pos, quaternions);
+//               //pos.y=cos(uTime/100.);
+//               vec4 modelPosition = modelMatrix * vec4(pos, 1.0);
+//               vec4 viewPosition = viewMatrix * modelPosition;
+//               vec4 projectionPosition = projectionMatrix * viewPosition;
+      
+//               gl_Position = projectionPosition;
+//               ${THREE.ShaderChunk.logdepthbuf_vertex}
+//               }
+//           `,
+//           fragmentShader: `\
+//               ${THREE.ShaderChunk.logdepthbuf_pars_fragment}
+//               uniform float uTime;
+//               uniform float opacity;
+//               uniform float uBroken;
+//               varying vec2 vUv;
+//               varying vec3 vPos;
+//               uniform sampler2D perlinnoise;
+//               uniform sampler2D noiseMap;
+              
+              
+              
+              
+              
+//               void main() {
+//                   vec3 ripple = texture2D(
+//                       perlinnoise,
+//                       mod(1.*vec2(5.*vUv.x,2.*vUv.y-uTime*5. ),1.)
+//                   ).rgb; 
+
+//                   vec3 noise = texture2D(
+//                       noiseMap,
+//                       mod(1.*vec2(2.*vUv.x,2.*vUv.y-uTime*5. ),1.)
+//                   ).rgb;
                   
-                  //gl_FragColor=vec4(1.0,1.0,0.,1.0);
-              ${THREE.ShaderChunk.logdepthbuf_fragment}
-              }
-          `,
-          side: THREE.DoubleSide,
-          transparent: true,
-        //   depthWrite: false,
-        //   blending: THREE.AdditiveBlending,
-          
-      });
 
 
-      let rippleApp;
-      let group = new THREE.Group();
-      (async () => {
-          const u = `${baseUrl}/assets/torus2.glb`;
-          rippleApp = await new Promise((accept, reject) => {
-              const {gltfLoader} = useLoaders();
-              gltfLoader.load(u, accept, function onprogress() {}, reject);
-              
-          });
-          rippleApp.scene.traverse(o => {
-              if (o.isMesh) {
-                addInstancedMesh(o.geometry);
-              }
-          });
-          
-          
-      })();
+//                   gl_FragColor = vec4(ripple.rgb,1.0);
+                  
+//                   if(gl_FragColor.r >= 0.65){
+//                      gl_FragColor =  vec4(1.,1.,1.,1.);
+//                   }else{
+//                       gl_FragColor = vec4(0.,0.,1.,0.);
+//                   }
+//                   float broken = abs( sin( pow(1.0 - vUv.y,1.) ) ) - noise.g;
+//                   if ( broken < 0.0001 ) discard;
+//                   gl_FragColor.a*=opacity;
+//                   if(uTime>0.48)
+//                       gl_FragColor.a=0.;
 
-      let quaternion = new THREE.Quaternion();
-      let euler = new THREE.Euler();
-      let mesh=null;
-      const addInstancedMesh=(rippleGeometry)=>{
-          const geometry = _getRippleGeometry(rippleGeometry);
-          mesh = new THREE.InstancedMesh(
-              geometry,
-              rippleMaterial,
-              count
-          );
-          group.add(mesh);
-          app.add(group);
-          const positionsAttribute = mesh.geometry.getAttribute('positions');
-          const scalesAttribute = mesh.geometry.getAttribute('scales');
-          const quaternionsAttribute = mesh.geometry.getAttribute('quaternions');
-          for (let i = 0; i < count; i++) {
+//                   if(gl_FragColor.a > 0.){
+//                         gl_FragColor = vec4(0.9, 0.9, 0.9, 1.0);
+//                   }
+//                   else{
+//                         discard;
+//                   }
+                  
+//                   //gl_FragColor=vec4(1.0,1.0,0.,1.0);
+//               ${THREE.ShaderChunk.logdepthbuf_fragment}
+//               }
+//           `,
+//           side: THREE.DoubleSide,
+//           transparent: true,
+//         //   depthWrite: false,
+//         //   blending: THREE.AdditiveBlending,
+          
+//       });
+
+
+//       let rippleApp;
+//       let group = new THREE.Group();
+//       (async () => {
+//           const u = `${baseUrl}/assets/torus2.glb`;
+//           rippleApp = await new Promise((accept, reject) => {
+//               const {gltfLoader} = useLoaders();
+//               gltfLoader.load(u, accept, function onprogress() {}, reject);
               
-              let randScale = 0.5+0.4*i*(Math.random());
-              let randPos = 0.15*(Math.random());
-              positionsAttribute.setXYZ(i, randPos, (Math.random()-0.5)*0.5, randPos);
-              scalesAttribute.setX(i, randScale);
+//           });
+//           rippleApp.scene.traverse(o => {
+//               if (o.isMesh) {
+//                 addInstancedMesh(o.geometry);
+//               }
+//           });
+          
+          
+//       })();
+
+//       let quaternion = new THREE.Quaternion();
+//       let euler = new THREE.Euler();
+//       let mesh=null;
+//       const addInstancedMesh=(rippleGeometry)=>{
+//           const geometry = _getRippleGeometry(rippleGeometry);
+//           mesh = new THREE.InstancedMesh(
+//               geometry,
+//               rippleMaterial,
+//               count
+//           );
+//           group.add(mesh);
+//           app.add(group);
+//           const positionsAttribute = mesh.geometry.getAttribute('positions');
+//           const scalesAttribute = mesh.geometry.getAttribute('scales');
+//           const quaternionsAttribute = mesh.geometry.getAttribute('quaternions');
+//           for (let i = 0; i < count; i++) {
               
-              euler.x=(Math.random()-0.5)*0.25;
-              euler.y=(Math.random()-0.5);
-              euler.z=(Math.random()-0.5)*0.25;
+//               let randScale = 0.5+0.4*i*(Math.random());
+//               let randPos = 0.15*(Math.random());
+//               positionsAttribute.setXYZ(i, randPos, (Math.random()-0.5)*0.5, randPos);
+//               scalesAttribute.setX(i, randScale);
+              
+//               euler.x=(Math.random()-0.5)*0.25;
+//               euler.y=(Math.random()-0.5);
+//               euler.z=(Math.random()-0.5)*0.25;
               
               
-              quaternion.setFromEuler(euler);
-              quaternionsAttribute.setXYZW(i,quaternion.x,quaternion.y,quaternion.z,quaternion.w);
+//               quaternion.setFromEuler(euler);
+//               quaternionsAttribute.setXYZW(i,quaternion.x,quaternion.y,quaternion.z,quaternion.w);
               
              
-          }
-          positionsAttribute.needsUpdate = true;
-          scalesAttribute.needsUpdate = true;
-          quaternionsAttribute.needsUpdate = true;
-      }
+//           }
+//           positionsAttribute.needsUpdate = true;
+//           scalesAttribute.needsUpdate = true;
+//           quaternionsAttribute.needsUpdate = true;
+//       }
 
-      app.updateMatrixWorld();
+//       app.updateMatrixWorld();
 
       
-      let playEffectSw=0;
-      useFrame(({timestamp}) => {
-          if (contactWater ){
-              if(playEffectSw === 0 && waterSurfacePos.y < localPlayer.position.y)
-                  playEffectSw = 1;
-          }
-          else{
-              if(playEffectSw === 2)
-                  playEffectSw = 0;
-          }
-          if (mesh) {
-              const positionsAttribute = mesh.geometry.getAttribute('positions');
-              const scalesAttribute = mesh.geometry.getAttribute('scales');
-              const quaternionsAttribute = mesh.geometry.getAttribute('quaternions');
-              let falling = fallindSpeed > 10 ? 10 : fallindSpeed;
-              for (let i = 0; i < count; i++) {
-                  if(playEffectSw === 1){
+//       let playEffectSw=0;
+//       useFrame(({timestamp}) => {
+//           if (contactWater ){
+//               if(playEffectSw === 0 && waterSurfacePos.y < localPlayer.position.y)
+//                   playEffectSw = 1;
+//           }
+//           else{
+//               if(playEffectSw === 2)
+//                   playEffectSw = 0;
+//           }
+//           if (mesh) {
+//               const positionsAttribute = mesh.geometry.getAttribute('positions');
+//               const scalesAttribute = mesh.geometry.getAttribute('scales');
+//               const quaternionsAttribute = mesh.geometry.getAttribute('quaternions');
+//               let falling = fallindSpeed > 10 ? 10 : fallindSpeed;
+//               for (let i = 0; i < count; i++) {
+//                   if(playEffectSw === 1){
                       
-                      let randScale = (0.3 * (falling / 10) * (i + 1)) / 3;
-                      scalesAttribute.setX(i, randScale * 2);
-                      if(fallindSpeed <= 6){
-                          if(i !== 2){
-                              scalesAttribute.setX(i, 0);
-                          }
-                      }
+//                       let randScale = (0.3 * (falling / 10) * (i + 1)) / 3;
+//                       scalesAttribute.setX(i, randScale * 2);
+//                       if(fallindSpeed <= 6){
+//                           if(i !== 2){
+//                               scalesAttribute.setX(i, 0);
+//                           }
+//                       }
                       
-                      positionsAttribute.setXYZ(i, 0, (Math.random()-0.5)*0.1, 0);
-                      
-                      
-                      euler.x=(Math.random()-0.5)*0.05;
-                      euler.y=(Math.random()-0.5);
-                      euler.z=(Math.random()-0.5)*0.05;
+//                       positionsAttribute.setXYZ(i, 0, (Math.random()-0.5)*0.1, 0);
                       
                       
-                      quaternion.setFromEuler(euler);
-                      quaternionsAttribute.setXYZW(i,quaternion.x,quaternion.y,quaternion.z,quaternion.w);
-                  }
-                  if(scalesAttribute.getX(i) > 0)
-                      scalesAttribute.setX(i, scalesAttribute.getX(i) + 0.01 * (i + 1) * 0.25);
+//                       euler.x=(Math.random()-0.5)*0.05;
+//                       euler.y=(Math.random()-0.5);
+//                       euler.z=(Math.random()-0.5)*0.05;
+                      
+                      
+//                       quaternion.setFromEuler(euler);
+//                       quaternionsAttribute.setXYZW(i,quaternion.x,quaternion.y,quaternion.z,quaternion.w);
+//                   }
+//                   if(scalesAttribute.getX(i) > 0)
+//                       scalesAttribute.setX(i, scalesAttribute.getX(i) + 0.01 * (i + 1) * 0.25);
   
-              }
-              positionsAttribute.needsUpdate = true;
-              scalesAttribute.needsUpdate = true;
-              quaternionsAttribute.needsUpdate = true;
-          }
+//               }
+//               positionsAttribute.needsUpdate = true;
+//               scalesAttribute.needsUpdate = true;
+//               quaternionsAttribute.needsUpdate = true;
+//           }
 
          
          
           
-          if(playEffectSw === 1){
-              group.position.copy(localPlayer.position);
-              rippleMaterial.uniforms.uTime.value=0.35;
-              rippleMaterial.uniforms.opacity.value = 1;
-              playEffectSw = 2;
-          }
+//           if(playEffectSw === 1){
+//               group.position.copy(localPlayer.position);
+//               rippleMaterial.uniforms.uTime.value=0.35;
+//               rippleMaterial.uniforms.opacity.value = 1;
+//               playEffectSw = 2;
+//           }
           
           
           
-          if(rippleMaterial.uniforms.uTime.value>0.43)
-              rippleMaterial.uniforms.opacity.value-=0.05;
+//           if(rippleMaterial.uniforms.uTime.value>0.43)
+//               rippleMaterial.uniforms.opacity.value-=0.05;
               
          
-          rippleMaterial.uniforms.uTime.value += 0.0025 
+//           rippleMaterial.uniforms.uTime.value += 0.0025 
           
           
           
           
-          // if (localPlayer.avatar) {
-          //     group.position.y -= localPlayer.avatar.height;
-          //     group.position.y += 0.65;
-          // }
-          group.position.y = waterSurfacePos.y - 0.05;
-          app.updateMatrixWorld();
-      });
-    }
+//           // if (localPlayer.avatar) {
+//           //     group.position.y -= localPlayer.avatar.height;
+//           //     group.position.y += 0.65;
+//           // }
+//           group.position.y = waterSurfacePos.y - 0.05;
+//           app.updateMatrixWorld();
+//       });
+//     }
   
 
   return app;
