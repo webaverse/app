@@ -38,9 +38,6 @@ const numGenerateTries = 5;
 const temperature = 1;
 const top_p = 1;
 
-// Initializing the action generation URL from ConvAI
-const actionGenerationURl = `https://test.convai.com/getActions`
-
 class AICharacter extends EventTarget {
   constructor({
     name = defaultPlayerName,
@@ -67,7 +64,6 @@ class AIScene {
   constructor({
     localPlayer,
     generateFn,
-    getActionsFn
   }) {
     this.settings = [];
     this.objects = [];
@@ -77,10 +73,6 @@ class AIScene {
     ];
     this.messages = [];
     this.generateFn = generateFn;
-
-    // Defining the initial action list and initializing the action-generation function
-    this.actions = ['follow', 'moveto', 'pickup', 'grab', 'drop', 'jumps', 'attack', 'stop'];
-    this.getActionsFn = getActionsFn;
 
     const _waitForFrame = () => new Promise(resolve => {
       requestAnimationFrame(() => {
@@ -225,23 +217,6 @@ class AIScene {
     let response = await this.generateFn(prompt, stop);
     // console.log('got lore', {prompt, response});
     response = postProcessResponse(response, this.characters, dstCharacter);
-    // Getting corresponding actions from the API call.
-    // Actions responses are console logged for now to be later parsed based on the desired format
-    let parsedResponse = parseLoreResponses(response)[0]
-
-    for(let i=0;i<this.characters.length;i++){
-      if(this.characters[i].name === parsedResponse.name){
-        parsedResponse.character = this.characters[i];
-        break;
-      }
-    }
-    this.messages.push(parsedResponse);
-    let tempActions = await this.getActionsFn(
-      this.actions,
-      this.objects, 
-      this.characters, 
-      this.messages);
-    console.log("Corresponding Actions: ", tempActions.split("\n"));
     return response;
   }
   async generateLocationComment(name, dstCharacter = null) {
@@ -387,40 +362,6 @@ class LoreAI {
   setEndpoint(endpointFn) {
     this.endpointFn = endpointFn;
   }
-  // Setting up an async function to call the AconvAI action generation endpoint
-  async generateActions(
-    actions,
-    objects,
-    characters,
-    messages
-  ){
-    const query = {};
-    query.actionList = actions;
-    query.objectList = objects;
-    query.characterList = characters;
-    query.conversationLogs = messages;
-
-    console.log("ConvAi Request Body: ", query);
-    let response = await fetch(
-      actionGenerationURl,
-      {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(query),
-      }
-    ).then((response) => 
-      response.json()
-    ).then((response) => {
-      console.log("ConvAI Response: ", response);
-      return response['response'];
-    })
-    .catch((error) =>{
-      console.log("ConvAI API call error: ", error)
-    })
-    return response;
-  }
   async setEndpointUrl(url) {
     if (url) {
       const endpointFn = async query => {
@@ -451,14 +392,6 @@ class LoreAI {
           // top_p,
         });
       },
-      getActionsFn: (actions, objects, characters, messages) => {
-        return this.generateActions(
-          actions,
-          objects,
-          characters,
-          messages
-        )
-      }
     });
   }
 };
