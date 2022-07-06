@@ -463,7 +463,8 @@ export class LodChunkTracker extends EventTarget {
       const maxChunks = 512;
       const instancedCubeGeometry = new THREE.InstancedBufferGeometry();
       {
-        const cubeGeometry = new THREE.BoxBufferGeometry(1, 1, 1);
+        const cubeGeometry = new THREE.BoxBufferGeometry(1, 1, 1)
+          .translate(0.5, 0.5, 0.5);
         for (const k in cubeGeometry.attributes) {
           instancedCubeGeometry.setAttribute(k, cubeGeometry.attributes[k]);
         }
@@ -471,8 +472,9 @@ export class LodChunkTracker extends EventTarget {
       }
       const redMaterial = new THREE.MeshBasicMaterial({
         color: 0xFFFFFF,
-        transparent: true,
-        opacity: 0.1,
+        // transparent: true,
+        // opacity: 0.1,
+        wireframe: true,
       });
       const debugMesh = new THREE.InstancedMesh(instancedCubeGeometry, redMaterial, maxChunks);
       debugMesh.count = 0;
@@ -492,30 +494,38 @@ export class LodChunkTracker extends EventTarget {
         const _getChunkColorHex = chunk => {
           if (chunk.lod === 1) {
             return 0xFF0000;
+            // return 0;
           } else if (chunk.lod === 2) {
             return 0x00FF00;
+          } else if (chunk.lod === 4) {
+            return 0x0000FF;
           } else {
             return 0x0;
           }
         };
         const _flushChunks = () => {
+          debugMesh.count = 0;
           for (let i = 0; i < chunks.length; i++) {
             const chunk = chunks[i];
-            localMatrix.compose(
-              localVector.copy(chunk)
-                .multiplyScalar(this.chunkSize)
-                .add(localVector2.set(0, -60, 0)),
-              localQuaternion.identity(),
-              localVector3.set(1, 1, 1)
-                .multiplyScalar(this.chunkSize * 0.9)
-            );
-            localColor.setHex(_getChunkColorHex(chunk));
-            debugMesh.setMatrixAt(i, localMatrix);
-            debugMesh.setColorAt(i, localColor);
+            // if (chunk.lod === 2) {
+              localMatrix.compose(
+                localVector.copy(chunk.min)
+                  .multiplyScalar(this.chunkSize)
+                  .add(localVector2.set(0, -60, 0)),
+                localQuaternion.identity(),
+                localVector3.set(1, 1, 1)
+                  .multiplyScalar(chunk.lod * this.chunkSize * 0.9)
+              );
+              localColor.setHex(_getChunkColorHex(chunk));
+              // console.log('got color', localColor.toArray(), _getChunkColorHex(chunk));
+              debugMesh.setMatrixAt(debugMesh.count, localMatrix);
+              debugMesh.setColorAt(debugMesh.count, localColor);
+              debugMesh.count++;
+            // }
           }
           debugMesh.instanceMatrix.needsUpdate = true;
-          debugMesh.instanceColor.needsUpdate = true;
-          debugMesh.count = chunks.length;
+          debugMesh.instanceColor && (debugMesh.instanceColor.needsUpdate = true);
+          // debugMesh.count = chunks.length;
         };
         /* this.addEventListener('chunkadd', e => {
           try {
@@ -533,7 +543,16 @@ export class LodChunkTracker extends EventTarget {
           _flushChunks();
         }); */
         this.addEventListener('chunkrelod', e => {
-          // XXX fix this
+          const {task} = e.data;
+          let {newNodes, oldNodes} = task;
+          // newNodes = newNodes.filter(n => n.lod <= 2);
+          // oldNodes = oldNodes.filter(n => n.lod <= 2);
+          chunks.push(...newNodes);
+          for (const oldNode of oldNodes) {
+            const index = chunks.findIndex(chunk => chunk.equalsNode(oldNode));
+            chunks.splice(index, 1);
+          }
+          _flushChunks();
           /* const {newChunk, oldChunks} = e.data;
           for (const oldChunk of oldChunks) {
             const index = chunks.indexOf(oldChunk);
