@@ -464,6 +464,7 @@ class Avatar {
     this.skinnedMeshes = skinnedMeshes;
     this.skeleton = skeleton;
     this.modelBones = modelBones;
+    window.modelBones = this.modelBones;
     this.foundModelBones = foundModelBones;
     this.flipZ = flipZ;
     this.flipY = flipY;
@@ -979,6 +980,7 @@ class Avatar {
     const skeleton = getSkeleton(object);
     // const boneMap = makeBoneMap(object);
     const tailBones = getTailBones(object);
+    debugger
     const modelBones = getModelBones(object);
     
     /* const retargetedAnimations = animations
@@ -2146,6 +2148,7 @@ class Avatar {
     this.setAudioEnabled(false);
   }
 }
+window.Avatar = Avatar;
 Avatar.waitForLoad = () => loadPromise;
 Avatar.getAnimations = () => animations;
 Avatar.getAnimationStepIndices = () => animationStepIndices;
