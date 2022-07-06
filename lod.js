@@ -49,7 +49,7 @@ const _toUint32 = value => {
 } */
 const _octreeNodeMinHash = (min, lod) => `${min.x},${min.y},${min.z}:${lod}`;
 const _getLeafNodeFromPoint = (leafNodes, p) => leafNodes.find(node => node.containsPoint(p));
-const constructOctreeForLeaf = (position, sampleRange, lod1Range, maxLod) => {
+const constructOctreeForLeaf = (position, lod1Range, maxLod) => {
   const nodeMap = new Map();
   
   const _getNode = (min, lod) => {
@@ -614,7 +614,7 @@ export class LodChunkTracker extends EventTarget {
     return target.set(cx, cy, cz);
   }
   updateCoord(currentCoord) {
-    const octree = constructOctreeForLeaf(currentCoord, 5, 2, 32);
+    const octree = constructOctreeForLeaf(currentCoord, 2, 2 ** (this.numLods - 1));
 
     const newLeafNodes = octree.leafNodes;
     let {newTasks, keepTasks} = diffLeafNodes(newLeafNodes, lastLeafNodes);
