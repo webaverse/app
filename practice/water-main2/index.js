@@ -2291,9 +2291,9 @@ export default (e) => {
                 let currentEmmit = 0;
                 for(let i = 0; i < particleCount; i++){
                     if(brokenAttribute.getX(i) >= 1){
-                        info.velocity[i].x = localVector2.x * (Math.random() - 0.5) * 0.2 + playerDir.x * 0.025;
+                        info.velocity[i].x = localVector2.x * (Math.random() - 0.5) * 0.2 + playerDir.x * 0.1;
                         info.velocity[i].y = 0.08 + Math.random() * 0.05;
-                        info.velocity[i].z = localVector2.z * (Math.random() - 0.5) * 0.2 + playerDir.z * 0.025;
+                        info.velocity[i].z = localVector2.z * (Math.random() - 0.5) * 0.2 + playerDir.z * 0.1;
                         positionsAttribute.setXYZ(  i, 
                                                     localPlayer.position.x + info.velocity[i].x * 0.5 + playerDir.x * 0.65,
                                                     waterSurfacePos.y - 0.1 * Math.random(),
@@ -2302,7 +2302,7 @@ export default (e) => {
                         info.velocity[i].divideScalar(5);
                         info.acc[i] = -0.001 - currentSpeed * 0.0015;
                         scalesAttribute.setX(i, 1.5 + Math.random() * 3.5);
-                        brokenAttribute.setX(i, 0.2 + Math.random() * 0.2);
+                        brokenAttribute.setX(i, 0.25 + Math.random() * 0.25);
                         textureRotationAttribute.setX(i, Math.random() * 2);
                         currentEmmit++;
                     }

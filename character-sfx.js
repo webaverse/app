@@ -80,8 +80,6 @@ class CharacterSfx {
     this.oldNarutoRunSound = null;
     this.lastEmote = null;
 
-    this.alreadySetSwimSprintSpeed = false;
-
     if (this.player.isLocalPlayer) {
       const wearupdate = e => {
         sounds.playSoundName(e.wear ? 'itemEquip' : 'itemUnequip');
@@ -212,34 +210,6 @@ class CharacterSfx {
       
     };
     _handleStep();
-    if(this.player.hasAction('swim')){
-      if(this.player.getAction('swim').animationType === 'breaststroke'){
-      }
-      else{
-        const localSoundFiles = (() => {
-          
-         return soundFiles.run;
-         
-        })();
-        const candidateAudios = localSoundFiles
-          if(!this.alreadySetSwimSprintSpeed && this.player.actionInterpolants.movements.get() * 3  % (1466.6666666666666  ) >= 900  ){
-              //console.log('left hand')
-              this.alreadySetSwimSprintSpeed = true;
-              const audioSpec = candidateAudios[Math.floor(Math.random() * candidateAudios.length)];
-                sounds.playSound(audioSpec);
-          }
-          else if(this.alreadySetSwimSprintSpeed && this.player.actionInterpolants.movements.get() * 3  % (1466.6666666666666  ) < 900 ){
-              //console.log('right hand')
-              this.alreadySetSwimSprintSpeed = false;
-              const audioSpec = candidateAudios[Math.floor(Math.random() * candidateAudios.length)];
-                sounds.playSound(audioSpec);
-          }
-          // this.player.getAction('swim').swimDamping = 0;
-          // alreadySetSwimSprintSpeed = false;
-      }
-      
-    }
-    
 
     const _handleNarutoRun = () => {
       
