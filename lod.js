@@ -52,6 +52,10 @@ const _getLeafNodeFromPoint = (leafNodes, p) => leafNodes.find(node => node.cont
 const constructOctreeForLeaf = (position, sampleRange, lod1Range, maxLod) => {
   const nodeMap = new Map();
   
+  const _getNode = (min, lod) => {
+    const hash = _octreeNodeMinHash(min, lod);
+    return nodeMap.get(hash);
+  };
   const _createNode = (min, lod, isLeaf = lod === 1) => {
     const node = new OctreeNode(min, lod, isLeaf);
     const hash = _octreeNodeMinHash(min, lod);
@@ -61,14 +65,7 @@ const constructOctreeForLeaf = (position, sampleRange, lod1Range, maxLod) => {
     nodeMap.set(hash, node);
     return node;
   };
-  const _getNode = (min, lod) => {
-    const hash = _octreeNodeMinHash(min, lod);
-    let node = nodeMap.get(hash);
-    if (!node) {
-      node = _createNode(min, lod);
-    }
-    return node;
-  };
+  const _getOrCreateNode = (min, lod) => _getNode(min, lod) ?? _createNode(min, lod);
   const _ensureChildren = parentNode => {
     const lodMin = parentNode.min;
     const lod = parentNode.lod;
@@ -91,7 +88,7 @@ const constructOctreeForLeaf = (position, sampleRange, lod1Range, maxLod) => {
     }
   };
   const _constructTreeUpwards = leafPosition => {
-    let rootNode = _getNode(leafPosition, 1);
+    let rootNode = _getOrCreateNode(leafPosition, 1);
     for (let lod = 2; lod <= maxLod; lod *= 2) {
       const lodMin = rootNode.min.clone();
       lodMin.x = Math.floor(lodMin.x / lod) * lod;
@@ -103,7 +100,7 @@ const constructOctreeForLeaf = (position, sampleRange, lod1Range, maxLod) => {
         (rootNode.min.y < lodCenter.y ? 0 : 2) +
         (rootNode.min.z < lodCenter.z ? 0 : 4);
 
-      const parentNode = _getNode(lodMin, lod);
+      const parentNode = _getOrCreateNode(lodMin, lod);
       parentNode.isLeaf = false;
       if (parentNode.children[childIndex] === null) { // children not set yet
         parentNode.children[childIndex] = rootNode;
