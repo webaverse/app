@@ -1099,11 +1099,11 @@ export default (e) => {
                 
             }
             else{
-                if(alreadySetSwimSprintSpeed && localPlayer.actionInterpolants.movements.get() % (1466.6666666666666 / 3 ) <= 900  / 3){
+                if(alreadySetSwimSprintSpeed && localPlayer.actionInterpolants.movements.get() % (1466.6666666666666 / 2 ) <= 900  / 2){
                     console.log('left hand')
                     alreadySetSwimSprintSpeed = false;
                 }
-                else if(!alreadySetSwimSprintSpeed && localPlayer.actionInterpolants.movements.get() % (1466.6666666666666 / 3 ) > 900 / 3 ){
+                else if(!alreadySetSwimSprintSpeed && localPlayer.actionInterpolants.movements.get() % (1466.6666666666666 / 2 ) > 900 / 2 ){
                     console.log('right hand')
                     alreadySetSwimSprintSpeed = true;
                 }

@@ -1244,7 +1244,7 @@ export const _applyAnimation = (avatar, now, moveFactors, timeDiffS) => {
       const v3 = src3.evaluate(movementsTimeS * 2 % animations.index['Swimming.fbx'].duration);
 
       const src4 = animations.index['freestyle.fbx'].interpolants[k];
-      const v4 = src4.evaluate(movementsTimeS * 3 * 0.7 % animations.index['freestyle.fbx'].duration);
+      const v4 = src4.evaluate(movementsTimeS * 2 % animations.index['freestyle.fbx'].duration);
 
       const f = MathUtils.clamp(swimTimeS / 0.2, 0, 1);
       // if (isPosition) console.log(f);
