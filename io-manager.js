@@ -225,7 +225,7 @@ const _updateIo = timeDiff => {
       cameraManager.lastNonzeroDirectionVector.copy(keysDirection);
     }
     
-    if (localPlayer.hasAction('fly')) {
+    if (localPlayer.hasAction('fly') || localPlayer.hasAction('swim')) {
       keysDirection.applyQuaternion(camera.quaternion);
       _updateVertical(keysDirection);
     } else {

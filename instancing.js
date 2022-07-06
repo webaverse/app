@@ -202,9 +202,10 @@ export class GeometryAllocator {
     this.positionFreeList.free(geometryBinding.positionFreeListEntry);
     this.indexFreeList.free(geometryBinding.indexFreeListEntry);
   }
-  getDrawSpec(camera, drawStarts, drawCounts) {
+  getDrawSpec(camera, drawStarts, drawCounts, ds) {
     drawStarts.length = 0;
     drawCounts.length = 0;
+    ds.length = 0;
 
     if (this.boundingType) {
       const projScreenMatrix = localMatrix.multiplyMatrices(camera.projectionMatrix, camera.matrixWorldInverse);
@@ -216,7 +217,7 @@ export class GeometryAllocator {
         return (i) => {
           localSphere.center.fromArray(this.boundingData, i * 4);
           localSphere.radius = this.boundingData[i * 4 + 3];
-          return localFrustum.intersectsSphere(localSphere);
+          return localFrustum.intersectsSphere(localSphere) ? localSphere.center.distanceTo(camera.position) : false;
         };
       } else if (this.boundingType === 'box') {
         return (i) => {
@@ -229,10 +230,17 @@ export class GeometryAllocator {
       }
     })();
     for (let i = 0; i < this.numDraws; i++) {
-      if (testBoundingFn(i)) {
-        drawStarts.push(this.drawStarts[i]);
-        drawCounts.push(this.drawCounts[i]);
+      let test = testBoundingFn(i);
+      if (test) {
+        ds.push({distance: test, index: i})
       }
+    }
+    ds.sort((a, b) => {
+        return b.distance - a.distance;
+    });
+    for(let i = 0; i < ds.length; i++){
+      drawStarts.push(this.drawStarts[ds[i].index]);
+      drawCounts.push(this.drawCounts[ds[i].index]);
     }
   }
 }
@@ -636,8 +644,8 @@ export class BatchedMesh extends THREE.Mesh {
     this.isBatchedMesh = true;
     this.allocator = allocator;
   }
-	getDrawSpec(camera, drawStarts, drawCounts) {
-    this.allocator.getDrawSpec(camera, drawStarts, drawCounts);
+	getDrawSpec(camera, drawStarts, drawCounts, ds) {
+    this.allocator.getDrawSpec(camera, drawStarts, drawCounts, ds);
   }
 }
 

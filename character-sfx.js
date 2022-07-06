@@ -89,6 +89,8 @@ class CharacterSfx {
         player.removeEventListener('wearupdate', wearupdate);
       };
     }
+
+    this.currentStep = null;
   }
   update(timestamp, timeDiffS) {
     if (!this.player.avatar) {
@@ -123,7 +125,7 @@ class CharacterSfx {
 
     // step
     const _handleStep = () => {
-      if (idleWalkFactor > 0.7 && !this.player.avatar.jumpState && !this.player.avatar.flyState) {
+      if (idleWalkFactor > 0.7 && !this.player.avatar.jumpState && !this.player.avatar.flyState && !this.player.hasAction('swim')) {
         const isRunning = walkRunFactor > 0.5;
         const isCrouching = crouchFactor > 0.5;
         const isNarutoRun = this.player.avatar.narutoRunState;
@@ -179,7 +181,7 @@ class CharacterSfx {
                 /* for (const a of candidateAudios) {
                   !a.paused && a.pause();
                 } */
-                
+                this.currentStep = 'left';
                 const audioSpec = candidateAudios[Math.floor(Math.random() * candidateAudios.length)];
                 sounds.playSound(audioSpec);
               }
@@ -192,7 +194,7 @@ class CharacterSfx {
                 /* for (const a of candidateAudios) {
                   !a.paused && a.pause();
                 } */
-
+                this.currentStep = 'right';
                 const audioSpec = candidateAudios[Math.floor(Math.random() * candidateAudios.length)];
                 sounds.playSound(audioSpec);
               }

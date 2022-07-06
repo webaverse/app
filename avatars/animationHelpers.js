@@ -1,4 +1,4 @@
-import {Vector3, Quaternion, AnimationClip} from 'three';
+import {Vector3, Quaternion, AnimationClip, MathUtils} from 'three';
 import metaversefile from 'metaversefile';
 import {/* VRMSpringBoneImporter, VRMLookAtApplyer, */ VRMCurveMapper} from '@pixiv/three-vrm/lib/three-vrm.module.js';
 // import easing from '../easing.js';
@@ -45,6 +45,7 @@ import {
 const localVector = new Vector3();
 const localVector2 = new Vector3();
 const localVector3 = new Vector3();
+const localVector4 = new Vector3();
 
 const localQuaternion = new Quaternion();
 const localQuaternion2 = new Quaternion();
@@ -407,7 +408,7 @@ export const loadPromise = (async () => {
   console.log('load avatar animations error', err);
 });
 
-export const _applyAnimation = (avatar, now, moveFactors) => {
+export const _applyAnimation = (avatar, now, moveFactors, timeDiffS) => {
   // const runSpeed = 0.5;
   const angle = avatar.getAngle();
   const timeSeconds = now / 1000;
@@ -1219,6 +1220,58 @@ export const _applyAnimation = (avatar, now, moveFactors) => {
     }
   };
 
+  const _blendSwim = spec => {
+    const {
+      animationTrackName: k,
+      dst,
+      isPosition,
+      isFirstBone,
+    } = spec;
+
+    if (avatar.swimState) {
+      const swimTimeS = avatar.swimTime / 1000;
+      const movementsTimeS = avatar.movementsTime / 1000;
+      // if (isFirstBone) {
+      //   // const swimSpeed = 1 + idleWalkFactor + walkRunFactor;
+      //   // avatar.swimAnimTime += timeDiffS * swimSpeed;
+      //   // avatar.swimAnimTime = avatar.movementsTime / 1000 * swimSpeed;
+      // }
+
+      const src2 = floatAnimation.interpolants[k];
+      const v2 = src2.evaluate(swimTimeS % floatAnimation.duration);
+
+      const src3 = animations.index['Swimming.fbx'].interpolants[k];
+      const v3 = src3.evaluate(movementsTimeS * 2 % animations.index['Swimming.fbx'].duration);
+
+      const src4 = animations.index['freestyle.fbx'].interpolants[k];
+      const v4 = src4.evaluate(movementsTimeS * 3 * 0.7 % animations.index['freestyle.fbx'].duration);
+
+      const f = MathUtils.clamp(swimTimeS / 0.2, 0, 1);
+      // if (isPosition) console.log(f);
+
+      if (!isPosition) {
+        localQuaternion2.fromArray(v2);
+        localQuaternion3.fromArray(v3);
+        localQuaternion4.fromArray(v4);
+        // localQuaternion3.slerp(localQuaternion4, walkRunFactor); // can't use walkRunFactor here, otherwise "Impulsive breaststroke swim animation" will turn into "freestyle animation" when speed is fast.
+        localQuaternion3.slerp(localQuaternion4, avatar.sprintFactor);
+        localQuaternion2.slerp(localQuaternion3, idleWalkFactor);
+        dst.slerp(localQuaternion2, f);
+      } else {
+        const liftSwims = 0.05; // lift swims height, prevent head sink in water
+        localVector2.fromArray(v2);
+        localVector3.fromArray(v3);
+        localVector3.y += 0.21; // align Swimming.fbx's height to freestyle.fbx
+        localVector3.y += liftSwims;
+        localVector4.fromArray(v4);
+        localVector4.y += liftSwims;
+        // localVector3.lerp(localVector4, walkRunFactor);
+        localVector3.lerp(localVector4, avatar.sprintFactor);
+        localVector2.lerp(localVector3, idleWalkFactor);
+        dst.lerp(localVector2, f);
+      }
+    }
+  };
   const _blendActivateAction = spec => {
     const {
       animationTrackName: k,
@@ -1264,15 +1317,19 @@ export const _applyAnimation = (avatar, now, moveFactors) => {
     applyFn(spec);
     _blendFly(spec);
     _blendActivateAction(spec);
+    _blendSwim(spec);
 
     // ignore all animation position except y
     if (isPosition) {
-      if (!avatar.jumpState) {
+      if (avatar.swimState) {
         // animations position is height-relative
         dst.y *= avatar.height; // XXX avatar could be made perfect by measuring from foot to hips instead
-      } else {
+      } else if (avatar.jumpState) {
         // force height in the jump case to overide the animation
         dst.y = avatar.height * 0.55;
+      } else {
+        // animations position is height-relative
+        dst.y *= avatar.height; // XXX avatar could be made perfect by measuring from foot to hips instead
       }
     }
   }

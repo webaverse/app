@@ -882,11 +882,13 @@ class Avatar {
       this.setBottomEnabled(!!options.bottom);
     }
 
-    this.animationMappings = animationMappingConfig.map(animationMapping => {
+    this.animationMappings = animationMappingConfig.map((animationMapping, i) => {
       animationMapping = animationMapping.clone();
       const isPosition = /\.position$/.test(animationMapping.animationTrackName);
       animationMapping.dst = this.modelBoneOutputs[animationMapping.boneName][isPosition ? 'position' : 'quaternion'];
       animationMapping.lerpFn = _getLerpFn(isPosition);
+      animationMapping.isFirstBone = i === 0;
+      animationMapping.isLastBone = i === animationMappingConfig.length - 1;
       return animationMapping;
     });
 
@@ -901,6 +903,8 @@ class Avatar {
     this.jumpTime = NaN;
     this.flyState = false;
     this.flyTime = NaN;
+    this.swimTime = NaN;
+    this.swimAnimTime = 0;
 
     this.useTime = NaN;
     this.useAnimation = null;
@@ -955,6 +959,9 @@ class Avatar {
     this.hurtAnimation = null;
 
     // internal state
+    this.movementsTime = 0;
+    this.sprintTime = 0;
+    this.sprintFactor = 0;
     this.lastPosition = new THREE.Vector3();
     this.velocity = new THREE.Vector3();
     this.lastMoveTime = 0;
@@ -1490,6 +1497,7 @@ class Avatar {
     this.aimRightFactorReverse = 1 - this.aimRightFactor;
     this.aimLeftFactor = this.aimLeftTransitionTime / aimTransitionMaxTime;
     this.aimLeftFactorReverse = 1 - this.aimLeftFactor;
+    this.sprintFactor = Math.min(Math.max(this.sprintTime / crouchMaxTime, 0), 1);
 
     const _updateHmdPosition = () => {
       const currentPosition = this.inputs.hmd.position;
@@ -1902,7 +1910,7 @@ class Avatar {
     
 
     _updateHmdPosition();
-    _applyAnimation(this, now, moveFactors);
+    _applyAnimation(this, now, moveFactors, timeDiffS);
 
     if (this.poseAnimation) {
       _overwritePose(this.poseAnimation);

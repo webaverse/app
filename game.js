@@ -1419,6 +1419,10 @@ class GameManager extends EventTarget {
     const localPlayer = getLocalPlayer();
     return localPlayer.hasAction('crouch');
   }
+  isSwimming() {
+    const localPlayer = getLocalPlayer();
+    return localPlayer.hasAction('swim');
+  }
   toggleCrouch() {
     const localPlayer = getLocalPlayer();
     let crouchAction = localPlayer.getAction('crouch');
@@ -1601,6 +1605,7 @@ class GameManager extends EventTarget {
     const flySpeed = walkSpeed * 2;
     const defaultCrouchSpeed = walkSpeed * 0.7;
     const isCrouched = gameManager.isCrouched();
+    const isSwimming = gameManager.isSwimming();
     const isMovingBackward = gameManager.isMovingBackward();
     if (isCrouched && !isMovingBackward) {
       speed = defaultCrouchSpeed;
@@ -1610,10 +1615,14 @@ class GameManager extends EventTarget {
       speed = walkSpeed;
     }
     
-    const sprintMultiplier = (ioManager.keys.shift && !isCrouched) ?
+    let sprintMultiplier = (ioManager.keys.shift && !isCrouched) ?
       (ioManager.keys.doubleTap ? 20 : 3)
     :
-      1;
+    (isSwimming ? 5 : 1);
+    if(isSwimming && !ioManager.keys.shift){
+      const localPlayer = getLocalPlayer();
+      sprintMultiplier = sprintMultiplier - localPlayer.getAction('swim').swimStartSprintTime < 1 ? 1 : sprintMultiplier - localPlayer.getAction('swim').swimStartSprintTime;
+    }
     speed *= sprintMultiplier;
     
     const backwardMultiplier = isMovingBackward ? 0.7 : 1;
