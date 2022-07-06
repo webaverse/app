@@ -116,13 +116,10 @@ const constructOctreeForLeaf = (position, sampleRange, lod1Range, maxLod) => {
     .sub(new THREE.Vector3(lod1Range, lod1Range, lod1Range));
   const rangeMax = position.clone()
     .add(new THREE.Vector3(lod1Range, lod1Range, lod1Range));
-  // console.log('got position', position.toArray().join(','), rangeMin.toArray().join(','), rangeMax.toArray().join(','));
   for (let dx = rangeMin.x; dx <= rangeMax.x; dx++) {
     for (let dy = rangeMin.y; dy <= rangeMax.y; dy++) {
       for (let dz = rangeMin.z; dz <= rangeMax.z; dz++) {
-        const leafPosition = position.clone().add(
-          new THREE.Vector3(dx, dy, dz)
-        );
+        const leafPosition = new THREE.Vector3(dx, dy, dz);
         leafPosition.x = Math.floor(leafPosition.x);
         leafPosition.y = Math.floor(leafPosition.y);
         leafPosition.z = Math.floor(leafPosition.z);
