@@ -488,7 +488,6 @@ export class LodChunkTracker extends EventTarget {
         const _getChunkColorHex = chunk => {
           if (chunk.lod === 1) {
             return 0xFF0000;
-            // return 0;
           } else if (chunk.lod === 2) {
             return 0x00FF00;
           } else if (chunk.lod === 4) {
@@ -539,8 +538,6 @@ export class LodChunkTracker extends EventTarget {
         this.addEventListener('chunkrelod', e => {
           const {task} = e.data;
           let {newNodes, oldNodes} = task;
-          // newNodes = newNodes.filter(n => n.lod <= 2);
-          // oldNodes = oldNodes.filter(n => n.lod <= 2);
           chunks.push(...newNodes);
           for (const oldNode of oldNodes) {
             const index = chunks.findIndex(chunk => chunk.equalsNode(oldNode));
@@ -558,19 +555,6 @@ export class LodChunkTracker extends EventTarget {
       }
     }
   }
-  /* emitEvents(chunkadd) {
-    if (this.updated) {
-      console.log('emitting chunks', this.chunks.length);
-      for (const chunk of this.chunks) {
-        const e = new MessageEvent('chunkadd', {
-          data: {
-            chunk,
-          },
-        });
-        chunkadd(e);
-      }
-    }
-  } */
   async #setRange(range) {
     await Promise.resolve(); // wait for next tick to emit chunk events
 
@@ -578,18 +562,6 @@ export class LodChunkTracker extends EventTarget {
     const waitUntil = p => {
       waitPromises.push(p);
     };
-
-    /* const _removeOldChunks = () => {
-      for (const chunk of this.chunks) {
-        this.dispatchEvent(new MessageEvent('chunkremove', {
-          data: {
-            chunk,
-          },
-        }));
-      }
-      this.chunks.length = 0;
-    };
-    _removeOldChunks(); */
 
     const _emitCoordUpdate = () => {
       const coord = localVector.copy(range.min)
