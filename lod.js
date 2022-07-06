@@ -1,12 +1,13 @@
 import * as THREE from 'three';
 import {scene, camera} from './renderer.js';
 import {defaultChunkSize} from './constants.js';
+import {abortError} from './lock-manager.js';
 
 const localVector = new THREE.Vector3();
 const localVector2 = new THREE.Vector3();
 const localVector3 = new THREE.Vector3();
-const localVector4 = new THREE.Vector3();
-const localVector5 = new THREE.Vector3();
+// const localVector4 = new THREE.Vector3();
+// const localVector5 = new THREE.Vector3();
 // const localQuaternion = new THREE.Quaternion();
 // const localMatrix = new THREE.Matrix4();
 
@@ -14,8 +15,10 @@ const onesLodsArray = new Array(8).fill(1);
 
 const nop = () => {};
 
-class OctreeNode {
+class OctreeNode extends EventTarget {
   constructor(min, lod, isLeaf) {
+    super();
+    
     this.min = min;
     this.lod = lod;
     this.isLeaf = isLeaf;
@@ -34,6 +37,9 @@ class OctreeNode {
   equalsNode(p) {
     return p.min.x === this.min.x && p.min.y === this.min.y && p.min.z === this.min.z &&
       p.lodArray.every((lod, i) => lod === this.lodArray[i]);
+  }
+  destroy() {
+    this.dispatchEvent(new MessageEvent('destroy'));
   }
 }
 /* const tempUint32Array = new Uint32Array(1);
@@ -109,11 +115,16 @@ const constructOctreeForLeaf = (position, sampleRange, lod1Range, maxLod) => {
   };
 
   // sample base leaf nodes to generate octree upwards
-  for (let dx = -1; dx <= 1; dx++) {
-    for (let dy = -1; dy <= 1; dy++) {
-      for (let dz = -1; dz <= 1; dz++) {
+  const rangeMin = position.clone()
+    .sub(new THREE.Vector3(lod1Range, lod1Range, lod1Range));
+  const rangeMax = position.clone()
+    .add(new THREE.Vector3(lod1Range, lod1Range, lod1Range));
+  // console.log('got position', position.toArray().join(','), rangeMin.toArray().join(','), rangeMax.toArray().join(','));
+  for (let dx = rangeMin.x; dx <= rangeMax.x; dx++) {
+    for (let dy = rangeMin.y; dy <= rangeMax.y; dy++) {
+      for (let dz = rangeMin.z; dz <= rangeMax.z; dz++) {
         const leafPosition = position.clone().add(
-          new THREE.Vector3(dx, dy, dz).multiplyScalar(sampleRange)
+          new THREE.Vector3(dx, dy, dz)
         );
         leafPosition.x = Math.floor(leafPosition.x);
         leafPosition.y = Math.floor(leafPosition.y);
@@ -123,7 +134,7 @@ const constructOctreeForLeaf = (position, sampleRange, lod1Range, maxLod) => {
     }
   }
 
-  // fill in missing children that are in the lod1Range
+  /* // fill in missing children that are in the lod1Range
   const _ensureChildrenDownToLod1 = node => {
     const lodMin = node.min;
     const lod = node.lod;
@@ -150,10 +161,6 @@ const constructOctreeForLeaf = (position, sampleRange, lod1Range, maxLod) => {
       }
     }
   };
-  const rangeMin = position.clone()
-    .sub(new THREE.Vector3(lod1Range, lod1Range, lod1Range));
-  const rangeMax = position.clone()
-    .add(new THREE.Vector3(lod1Range, lod1Range, lod1Range));
   for (let node of nodeMap.values()) {
     if (
       node.min.x >= rangeMin.x && node.min.x < rangeMax.x &&
@@ -162,7 +169,7 @@ const constructOctreeForLeaf = (position, sampleRange, lod1Range, maxLod) => {
     ) {
       _ensureChildrenDownToLod1(node);
     }
-  }
+  } */
 
   const rootNodes = [];
   for (const node of nodeMap.values()) {
@@ -198,17 +205,15 @@ const constructOctreeForLeaf = (position, sampleRange, lod1Range, maxLod) => {
   }
 
   // sanity check that no leaf node contains another leaf node
-  {
-    for (const leafNode of leafNodes) {
-      for (const childNode of leafNode.children) {
-        if (childNode?.isLeaf) {
-          throw new Error(`Leaf node contains another leaf node 1: ${leafNode.min.toArray().join(',')}`);
-        }
+  for (const leafNode of leafNodes) {
+    for (const childNode of leafNode.children) {
+      if (childNode?.isLeaf) {
+        throw new Error(`Leaf node contains another leaf node 1: ${leafNode.min.toArray().join(',')}`);
       }
-      for (const leafNode2 of leafNodes) {
-        if (leafNode !== leafNode2 && leafNode.containsNode(leafNode2)) {
-          throw new Error(`Leaf node contains another leaf node 2: ${leafNode.min.toArray().join(',')}`);
-        }
+    }
+    for (const leafNode2 of leafNodes) {
+      if (leafNode !== leafNode2 && leafNode.containsNode(leafNode2)) {
+        throw new Error(`Leaf node contains another leaf node 2: ${leafNode.min.toArray().join(',')}`);
       }
     }
   }
@@ -266,36 +271,36 @@ class Task extends EventTarget {
 
     this.abortController = new AbortController();
     this.signal = this.abortController.signal;
-    
+
+    // this.committed = false;
     // this.isTask = true;
   }
-}
-/* class AddTask extends Task {
-  constructor(newNode, oldNodes) {
-    super();
-    
-    this.newNode = newNode;
-    this.oldNodes = oldNodes;
-
-    this.isAddTask = true;
+  equals(t) {
+    return this.maxLodNode.equalsNode(t.maxLodNode);
+    /* return this.newNodes.length === this.oldNodes.length && this.newNodes.every(node => {
+      return t.newNodes.some(node2 => node.equals(node2));
+    }) && this.oldNodes.every(node => {
+      return t.oldNodes.some(node2 => node.equals(node2));
+    }); */
+    // return this.maxLodNode === t.maxLodNode;
   }
-}
-class RemoveTask extends Task {
-  constructor(oldNode) {
-    super();
-    
-    this.oldNode = oldNode;
-
-    this.isRemoveTask = true;
+  /* commit() {
+    this.committed = true;
+  } */
+  cancel() {
+    this.abortController.abort(abortError);
   }
-} */
-const diffOctrees = (newOctree, oldOctree) => {
+  /* getLiveNodes() {
+    return this.committed ? this.newNodes : this.oldNodes;
+  } */
+}
+const diffLeafNodes = (newLeafNodes, oldLeafNodes) => {
   // map from min lod hash to task containing new nodes and old nodes
   const taskMap = new Map();
 
   const _getMaxLodNode = min => {
-    const newLeafNode = _getLeafNodeFromPoint(newOctree.leafNodes, min);
-    const oldLeafNode = _getLeafNodeFromPoint(oldOctree.leafNodes, min);
+    const newLeafNode = _getLeafNodeFromPoint(newLeafNodes, min);
+    const oldLeafNode = _getLeafNodeFromPoint(oldLeafNodes, min);
     if (newLeafNode && oldLeafNode) {
       return newLeafNode.lod > oldLeafNode.lod ? newLeafNode : oldLeafNode;
     } else if (newLeafNode) {
@@ -304,7 +309,7 @@ const diffOctrees = (newOctree, oldOctree) => {
       return oldLeafNode;
     }
   };
-  for (const newNode of newOctree.leafNodes) {
+  for (const newNode of newLeafNodes) {
     const maxLodNode = _getMaxLodNode(newNode.min);
     const hash = _octreeNodeMinHash(maxLodNode.min, maxLodNode.lod);
     let task = taskMap.get(hash);
@@ -314,7 +319,7 @@ const diffOctrees = (newOctree, oldOctree) => {
     }
     task.newNodes.push(newNode);
   }
-  for (const oldNode of oldOctree.leafNodes) {
+  for (const oldNode of oldLeafNodes) {
     const maxLodNode = _getMaxLodNode(oldNode.min);
     const hash = _octreeNodeMinHash(maxLodNode.min, maxLodNode.lod);
     let task = taskMap.get(hash);
@@ -326,18 +331,33 @@ const diffOctrees = (newOctree, oldOctree) => {
   }
 
   let tasks = Array.from(taskMap.values());
-  tasks = tasks.filter(task => {
+  const newTasks = [];
+  const keepTasks = [];
+  for (const task of tasks) {
+    const isNopTask = task.newNodes.length === task.oldNodes.length && task.newNodes.every(newNode => {
+      return task.oldNodes.some(oldNode => oldNode.equalsNode(newNode));
+    });
+    if (isNopTask) {
+      keepTasks.push(task);
+    } else {
+      newTasks.push(task);
+    }
+  }
+  /* tasks = tasks.filter(task => {
     return !(task.newNodes.length === task.oldNodes.length && task.newNodes.every(newNode => {
       return task.oldNodes.some(oldNode => oldNode.equalsNode(newNode));
     }));
-  });
-  return tasks;
+  }); */
+  return {
+    newTasks,
+    keepTasks,
+  }
 };
 // sort tasks by distance to world position of the central max lod node
 const sortTasks = (tasks, worldPosition) => {
   const taskDistances = tasks.map(task => {
-    const distance = localVector.copy(task.maxLodNode.min)
-      .add(localVector2.setScalar(task.maxLodNode.lod / 2))
+    const distance = localVector2.copy(task.maxLodNode.min)
+      .add(localVector3.setScalar(task.maxLodNode.lod / 2))
       .distanceToSquared(worldPosition);
     return {
       task,
@@ -390,7 +410,8 @@ using these results
 - the tri budget can be scaled linearly with the results
 - the chunk size can be changed to increase the view distance while decreasing the density, while keeping the tri budget the same
 */
-let lastOctree = _makeEmptyOctree();
+let lastLeafNodes = [];
+let lastTasks = [];
 export class LodChunk extends THREE.Vector3 {
   constructor(x, y, z, lod, lodArray) {
     
@@ -610,32 +631,106 @@ export class LodChunkTracker extends EventTarget {
   update(position) {
     if (this.range) throw new Error('lod tracker has range and cannot be updated manually');
 
-    const waitPromises = [];
+    /* const waitPromises = [];
     const waitUntil = p => {
       waitPromises.push(p);
-    };
+    }; */
 
-    const currentCoord = this.#getCurrentCoord(position, localVector);
+    const currentCoord = this.#getCurrentCoord(position, localVector).clone();
 
     // if we moved across a chunk boundary, update needed chunks
     if (!currentCoord.equals(this.lastUpdateCoord)) {
-      const octree = constructOctreeForLeaf(currentCoord, 5, 1, 32);
+      const octree = constructOctreeForLeaf(currentCoord, 5, 2, 32);
       // console.log('got octree', currentCoord.toArray().join(','), octree);
 
-      const tasks = diffOctrees(octree, lastOctree);
-      sortTasks(tasks, camera.position);
-      if (tasks.length > 0) {
-        console.log('got octree diff', currentCoord.toArray().join(','), octree, tasks);
-      }
-      lastOctree = octree;
+      // console.log('update coord', position.toArray().join(','), currentCoord.toArray().join(','));
 
-      for (const task of tasks) {
-        this.dispatchEvent(new MessageEvent('chunkrelod', {
-          data: {
-            task,
-          },
-        }));
+      /* for (const task of lastTasks) {
+        task.cancel();
       }
+      const oldLeafNodes = (() => {
+        const result = [];
+        for (const task of lastTasks) {
+          const taskLeafNodes = task.getLiveNodes();
+          result.push(...taskLeafNodes);
+        }
+        return result;
+      })(); */
+      // const newLeafNodes = octree.leafNodes.filter(node => node.lod <= 2);
+      const newLeafNodes = octree.leafNodes;
+      let {newTasks, keepTasks} = diffLeafNodes(newLeafNodes, lastLeafNodes);
+      // newTasks = newTasks.filter(task => task.newNodes.every(node => node.lod <= 3)); // XXX hack
+      sortTasks(newTasks, camera.position);
+
+      // cancel all non-keep tasks
+      for (const task of lastTasks) {
+        if (!keepTasks.some(keepTask => keepTask.equals(task))) {
+          task.cancel();
+        }
+      }
+      lastTasks = newTasks.concat(keepTasks);
+
+      /* if (newTasks.length > 0) {
+        const min = new THREE.Vector3(Infinity, Infinity, Infinity);
+        const max = new THREE.Vector3(-Infinity, -Infinity, -Infinity);
+        for (const newLeafNode of newLeafNodes) {
+          min.min(newLeafNode.min);
+          max.max(newLeafNode.min.clone().add(new THREE.Vector3(1, 1, 1).multiplyScalar(newLeafNode.lod)));
+        }
+        console.log('new leaf nodes', min.toArray().join(','), max.toArray().join(','), newLeafNodes.map(node => node.min.toArray().join(',')));
+      } */
+
+      // cancel all old tasks that are being overwritten by the new ones
+      /* liveTasks = liveTasks.filter(oldTask => {
+        if (newTasks.some(newTask => newTask.maxLodNode.containsNode(oldTask.maxLodNode))) {
+          // console.log('delete old task', oldTask);
+          // XXX this should destroy old nodes
+          oldTask.cancel();
+          return false;
+        } else {
+          return true;
+        }
+      }); */
+
+      /* const addedTasks = [];
+      const removedTasks = [];
+      for (const newTask of newTasks) {
+        if (!lastTasks.some(task => task.equals(newTask))) {
+          addedTasks.push(newTask);
+        }
+      }
+      for (const oldTask of lastTasks) {
+        if (!newTasks.some(task => task.equals(oldTask))) {
+          removedTasks.push(oldTask);
+        }
+      }
+
+      if (removedTasks.length > 0) {
+        console.log('removed tasks', {addedTasks, removedTasks, newTasks, lastTasks});
+        debugger;
+      }
+
+      if (addedTasks.length > 0) {
+        console.log('got octree diff', currentCoord.toArray().join(','), {octree, addedTasks, removedTasks, newLeafNodes, lastLeafNodes});
+      }
+
+      for (const removedTask of removedTasks) {
+        removedTask.cancel();
+      } */
+      for (const newTask of newTasks) {
+        // console.log('dispatch new task', newTask);
+        // if (newTask.maxLodNode.lod <= 2) {
+          this.dispatchEvent(new MessageEvent('chunkrelod', {
+            data: {
+              task: newTask,
+            },
+          }));
+        // }
+      }
+      // liveTasks.push(...newTasks);
+
+      lastLeafNodes = newLeafNodes;
+      // lastTasks = newTasks;
 
       /* const neededChunks = neededChunkSpecs.map(({chunk}) => chunk);
 
@@ -712,6 +807,7 @@ export class LodChunkTracker extends EventTarget {
         }));
         this.chunks.push(addedChunk);
       } */
+      this.lastUpdateCoord.copy(currentCoord);
     }
   }
   destroy() {
