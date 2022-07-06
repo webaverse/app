@@ -248,6 +248,28 @@ const constructOctreeForLeaf = (position, lod1Range, maxLod) => {
     rootNodes,
     lod1Nodes,
     leafNodes,
+    remapNodes(nodes) {
+      for (let i = 0; i < nodes.length; i++) {
+        const node = nodes[i];
+        const hash = _octreeNodeMinHash(node.min, node.lod);
+        const otherNode = nodeMap.get(hash);
+        if (otherNode) {
+          nodes[i] = otherNode;
+        }
+      }
+    },
+    getOutrangedNodes(nodes) {
+      const remainderNodes = [];
+      for (let i = 0; i < nodes.length; i++) {
+        const node = nodes[i];
+        const hash = _octreeNodeMinHash(node.min, node.lod);
+        const otherNode = nodeMap.get(hash);
+        if (!otherNode) {
+          remainderNodes.push(node);
+        }
+      }
+      return remainderNodes;
+    },
   };
 };
 const _makeEmptyOctree = () => {
