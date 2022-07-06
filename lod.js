@@ -613,185 +613,49 @@ export class LodChunkTracker extends EventTarget {
     const cz = Math.floor(position.z / this.chunkSize);
     return target.set(cx, cy, cz);
   }
+  updateCoord(currentCoord) {
+    const octree = constructOctreeForLeaf(currentCoord, 5, 2, 32);
+
+    const newLeafNodes = octree.leafNodes;
+    let {newTasks, keepTasks} = diffLeafNodes(newLeafNodes, lastLeafNodes);
+    sortTasks(newTasks, camera.position);
+
+    // cancel all non-keep tasks
+    for (const task of lastTasks) {
+      if (!keepTasks.some(keepTask => keepTask.equals(task))) {
+        task.cancel();
+      }
+    }
+    lastTasks = newTasks.concat(keepTasks);
+
+    /* if (newTasks.length > 0) {
+      const min = new THREE.Vector3(Infinity, Infinity, Infinity);
+      const max = new THREE.Vector3(-Infinity, -Infinity, -Infinity);
+      for (const newLeafNode of newLeafNodes) {
+        min.min(newLeafNode.min);
+        max.max(newLeafNode.min.clone().add(new THREE.Vector3(1, 1, 1).multiplyScalar(newLeafNode.lod)));
+      }
+      console.log('new leaf nodes', min.toArray().join(','), max.toArray().join(','), newLeafNodes.map(node => node.min.toArray().join(',')));
+    } */
+
+    for (const newTask of newTasks) {
+      this.dispatchEvent(new MessageEvent('chunkrelod', {
+        data: {
+          task: newTask,
+        },
+      }));
+    }
+
+    lastLeafNodes = newLeafNodes;
+  }
   update(position) {
     if (this.range) throw new Error('lod tracker has range and cannot be updated manually');
-
-    /* const waitPromises = [];
-    const waitUntil = p => {
-      waitPromises.push(p);
-    }; */
 
     const currentCoord = this.#getCurrentCoord(position, localVector).clone();
 
     // if we moved across a chunk boundary, update needed chunks
-    if (!currentCoord.equals(this.lastUpdateCoord)) {
-      const octree = constructOctreeForLeaf(currentCoord, 5, 2, 32);
-      // console.log('got octree', currentCoord.toArray().join(','), octree);
-
-      // console.log('update coord', position.toArray().join(','), currentCoord.toArray().join(','));
-
-      /* for (const task of lastTasks) {
-        task.cancel();
-      }
-      const oldLeafNodes = (() => {
-        const result = [];
-        for (const task of lastTasks) {
-          const taskLeafNodes = task.getLiveNodes();
-          result.push(...taskLeafNodes);
-        }
-        return result;
-      })(); */
-      // const newLeafNodes = octree.leafNodes.filter(node => node.lod <= 2);
-      const newLeafNodes = octree.leafNodes;
-      let {newTasks, keepTasks} = diffLeafNodes(newLeafNodes, lastLeafNodes);
-      // newTasks = newTasks.filter(task => task.newNodes.every(node => node.lod <= 3)); // XXX hack
-      sortTasks(newTasks, camera.position);
-
-      // cancel all non-keep tasks
-      for (const task of lastTasks) {
-        if (!keepTasks.some(keepTask => keepTask.equals(task))) {
-          task.cancel();
-        }
-      }
-      lastTasks = newTasks.concat(keepTasks);
-
-      /* if (newTasks.length > 0) {
-        const min = new THREE.Vector3(Infinity, Infinity, Infinity);
-        const max = new THREE.Vector3(-Infinity, -Infinity, -Infinity);
-        for (const newLeafNode of newLeafNodes) {
-          min.min(newLeafNode.min);
-          max.max(newLeafNode.min.clone().add(new THREE.Vector3(1, 1, 1).multiplyScalar(newLeafNode.lod)));
-        }
-        console.log('new leaf nodes', min.toArray().join(','), max.toArray().join(','), newLeafNodes.map(node => node.min.toArray().join(',')));
-      } */
-
-      // cancel all old tasks that are being overwritten by the new ones
-      /* liveTasks = liveTasks.filter(oldTask => {
-        if (newTasks.some(newTask => newTask.maxLodNode.containsNode(oldTask.maxLodNode))) {
-          // console.log('delete old task', oldTask);
-          // XXX this should destroy old nodes
-          oldTask.cancel();
-          return false;
-        } else {
-          return true;
-        }
-      }); */
-
-      /* const addedTasks = [];
-      const removedTasks = [];
-      for (const newTask of newTasks) {
-        if (!lastTasks.some(task => task.equals(newTask))) {
-          addedTasks.push(newTask);
-        }
-      }
-      for (const oldTask of lastTasks) {
-        if (!newTasks.some(task => task.equals(oldTask))) {
-          removedTasks.push(oldTask);
-        }
-      }
-
-      if (removedTasks.length > 0) {
-        console.log('removed tasks', {addedTasks, removedTasks, newTasks, lastTasks});
-        debugger;
-      }
-
-      if (addedTasks.length > 0) {
-        console.log('got octree diff', currentCoord.toArray().join(','), {octree, addedTasks, removedTasks, newLeafNodes, lastLeafNodes});
-      }
-
-      for (const removedTask of removedTasks) {
-        removedTask.cancel();
-      } */
-      for (const newTask of newTasks) {
-        // console.log('dispatch new task', newTask);
-        // if (newTask.maxLodNode.lod <= 2) {
-          this.dispatchEvent(new MessageEvent('chunkrelod', {
-            data: {
-              task: newTask,
-            },
-          }));
-        // }
-      }
-      // liveTasks.push(...newTasks);
-
-      lastLeafNodes = newLeafNodes;
-      // lastTasks = newTasks;
-
-      /* const neededChunks = neededChunkSpecs.map(({chunk}) => chunk);
-
-      const addedChunks = [];
-      const removedChunks = [];
-      const reloddedChunks = [];
-      for (const chunk of this.chunks) {
-        const matchingNeededChunk = neededChunks.find(nc => nc.containsPoint(chunk));
-        if (!matchingNeededChunk) {
-          // console.log('remove chunk', chunk);
-          removedChunks.push(chunk);
-        }
-      }
-      for (const chunkSpec of neededChunkSpecs) {
-        const {chunk} = chunkSpec;
-        const matchingChunks = this.chunks.filter(chunk2 => chunk.containsPoint(chunk2));
-        const isExactMatch = matchingChunks.length === 1 && matchingChunks[0].lod === chunk.lod;
-        if (isExactMatch) {
-          // nothing
-        } else if (matchingChunks.length > 0) {
-          reloddedChunks.push({
-            oldChunks: matchingChunks,
-            newChunk: chunk,
-          });
-        } else {
-          addedChunks.push(chunk);
-        }
-      }
-
-      // emit updates
-      // remove
-      for (const removedChunk of removedChunks) {
-        this.dispatchEvent(new MessageEvent('chunkremove', {
-          data: {
-            chunk: removedChunk,
-            waitUntil,
-          },
-        }));
-        this.chunks.splice(this.chunks.indexOf(removedChunk), 1);
-      }
-
-      // coord
-      this.lastUpdateCoord.copy(currentCoord);
-      (async () => {
-        await Promise.all(waitPromises);
-        this.dispatchEvent(new MessageEvent('update'));
-      })();
-
-      // relod
-      if (this.relod) {
-        for (const reloddedChunk of reloddedChunks) {
-          const {oldChunks, newChunk} = reloddedChunk;
-          this.dispatchEvent(new MessageEvent('chunkrelod', {
-            data: {
-              oldChunks,
-              newChunk,
-              waitUntil,
-            },
-          }));
-          for (const oldChunk of oldChunks) {
-            this.chunks.splice(this.chunks.indexOf(oldChunk), 1);
-          }
-          this.chunks.push(newChunk);
-        }
-      }
-
-      // add
-      for (const addedChunk of addedChunks) {
-        this.dispatchEvent(new MessageEvent('chunkadd', {
-          data: {
-            chunk: addedChunk,
-            waitUntil,
-          },
-        }));
-        this.chunks.push(addedChunk);
-      } */
+    if (!currentCoord.equals(this.lastUpdateCoord)) {      
+      this.updateCoord(currentCoord);
       this.lastUpdateCoord.copy(currentCoord);
     }
   }
@@ -805,7 +669,5 @@ export class LodChunkTracker extends EventTarget {
       }));
     }
     this.chunks.length = 0;
-
-    // this.dispatchEvent(new MessageEvent('destroy'));
   }
 }
