@@ -7,6 +7,7 @@ import * as THREE from 'three';
 // import { getRenderer } from './renderer.js'
 import Module from './public/bin/geometry.js';
 import {Allocator, ScratchStack} from './geometry-util.js';
+import metaversefileApi from './metaversefile-api.js';
 
 const localVector = new THREE.Vector3()
 const localVector2 = new THREE.Vector3()
@@ -577,6 +578,41 @@ const physxWorker = (() => {
     } */
 
     return newUpdates
+  }
+  w.setTriggerPhysics = (physics, id) => {
+    return moduleInstance._setTriggerPhysics(
+      physics, id,
+    )
+  }
+  w.getTriggerEventPhysics = (physics) => {
+    const triggerCount = moduleInstance._getTriggerEventPhysics(
+      physics,
+      scratchStack.ptr,
+    )
+    if (triggerCount > 0) {
+      for (let i = 0; i < triggerCount; i++) {
+        const status = scratchStack.u32[i * 3 + 0];
+        const triggerPhysicsId = scratchStack.u32[i * 3 + 1];
+        const otherPhysicsId = scratchStack.u32[i * 3 + 2];
+        const triggerApp = metaversefileApi.getAppByPhysicsId(triggerPhysicsId);
+        const otherApp = metaversefileApi.getAppByPhysicsId(otherPhysicsId);
+        if (triggerApp) {
+          if (status === 4) {
+            triggerApp.dispatchEvent({type: 'triggerin', oppositePhysicsId: otherPhysicsId});
+          } else if (status === 16) {
+            triggerApp.dispatchEvent({type: 'triggerout', oppositePhysicsId: otherPhysicsId});
+          }
+        }
+        if (otherApp) {
+          if (status === 4) {
+            otherApp.dispatchEvent({type: 'triggerin', oppositePhysicsId: triggerPhysicsId});
+          } else if (status === 16) {
+            otherApp.dispatchEvent({type: 'triggerout', oppositePhysicsId: triggerPhysicsId});
+          }
+        }
+      }
+    }
+    return triggerCount;
   }
 
   w.createMaterial = (physics, mat) => {
@@ -2022,7 +2058,8 @@ const physxWorker = (() => {
     quaternion,
     size,
     id,
-    dynamic
+    dynamic,
+    groupId = -1 // if not equal to -1, this BoxGeometry will not collide with CharacterController.
   ) => {
     const allocator = new Allocator(moduleInstance)
     const p = allocator.alloc(Float32Array, 3)
@@ -2042,7 +2079,8 @@ const physxWorker = (() => {
       s.byteOffset,
       id,
       materialAddress,
-      +dynamic
+      +dynamic,
+      groupId,
     )
     allocator.freeAll()
   }

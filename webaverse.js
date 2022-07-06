@@ -311,6 +311,7 @@ export default class Webaverse extends EventTarget {
           const localPlayer = metaversefileApi.useLocalPlayer();
           if (this.contentLoaded && physicsManager.getPhysicsEnabled()) {
             physicsManager.simulatePhysics(timeDiffCapped);
+            physicsManager.getTriggerEvent();
             localPlayer.updatePhysics(timestamp, timeDiffCapped);
           }
 

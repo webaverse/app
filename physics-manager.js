@@ -107,7 +107,9 @@ physicsManager.addCapsuleGeometry = (
   return physicsObject
 }
 
-physicsManager.addBoxGeometry = (position, quaternion, size, dynamic) => {
+physicsManager.addBoxGeometry = (position, quaternion, size, dynamic,
+  groupId = -1 // if not equal to -1, this BoxGeometry will not collide with CharacterController.
+) => {
   const physicsId = getNextPhysicsId()
   physx.physxWorker.addBoxGeometryPhysics(
     physx.physics,
@@ -115,7 +117,8 @@ physicsManager.addBoxGeometry = (position, quaternion, size, dynamic) => {
     quaternion,
     size,
     physicsId,
-    dynamic
+    dynamic,
+    groupId
   )
 
   const physicsObject = _makePhysicsObject(
@@ -692,6 +695,17 @@ physicsManager.simulatePhysics = (timeDiff) => {
     // physicsUpdates.length = 0
     _updatePhysicsObjects(updatesOut);
   }
+}
+physicsManager.setTrigger = (id) => {
+  return physx.physxWorker.setTriggerPhysics(
+    physx.physics, id,
+  )
+}
+physicsManager.getTriggerEvent = () => {
+  const triggerCount = physx.physxWorker.getTriggerEventPhysics(
+    physx.physics,
+  )
+  return triggerCount;
 }
 
 physicsManager.marchingCubes = (dims, potential, shift, scale) =>
