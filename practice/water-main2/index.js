@@ -1084,10 +1084,12 @@ export default (e) => {
           if(localPlayer.hasAction('swim')){
             if(localPlayer.getAction('swim').animationType === 'breaststroke'){
                 if(alreadySetSwimSprintSpeed && localPlayer.actionInterpolants.movements.get() % 1133.3333333333333 <= 500){
+                    // console.log('swim false')
                     alreadySetSwimSprintSpeed = false;
                 }
                 else if(!alreadySetSwimSprintSpeed && localPlayer.actionInterpolants.movements.get() % 1133.3333333333333 > 500){
                     localPlayer.getAction('swim').swimDamping = 1;
+                    // console.log('swim true')
                     alreadySetSwimSprintSpeed = true;
                 }
                 if(localPlayer.getAction('swim').swimDamping < 4){
@@ -1104,7 +1106,7 @@ export default (e) => {
                     alreadySetSwimSprintSpeed = false;
                 }
                 else if(!alreadySetSwimSprintSpeed && localPlayer.actionInterpolants.movements.get() % (1466.6666666666666 / 2 ) > 900 / 2 ){
-                    console.log('right hand')
+                    // console.log('right hand')
                     alreadySetSwimSprintSpeed = true;
                 }
                 localPlayer.getAction('swim').swimDamping = 0;
