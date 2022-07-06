@@ -768,6 +768,7 @@ export const _applyAnimation = (avatar, now, moveFactors) => {
           animationTrackName: k,
           dst,
           // isTop,
+          isPosition,
         } = spec;
 
         // const animation = animations.index['walking.fbx']
@@ -775,6 +776,29 @@ export const _applyAnimation = (avatar, now, moveFactors) => {
         const t2 = timeSeconds / 10;
         const src2 = animation.interpolants[k];
         const v2 = src2.evaluate(t2 % animation.duration);
+
+        if (window.pickaxeApp && isPosition) {
+          /* console_test
+            animations.index["pickaxe_swing.fbx"]
+
+            rootScene.traverse(child=>{
+              if(child.contentId?.includes('pickaxe')) {
+            console.log(child)
+            window.pickaxeApp=child
+              }
+            })
+          */
+          
+          let src2 = animation.interpolants['pickaxe_def.quaternion']
+          let v2 = src2.evaluate(t2 % animation.duration);
+          pickaxeApp.quaternion.fromArray(v2);
+
+          // src2 = animation.interpolants['pickaxe_def.position']
+          // v2 = src2.evaluate(t2 % animation.duration);
+          // pickaxeApp.position.fromArray(v2);
+
+          pickaxeApp.updateMatrixWorld();
+        }
 
         dst.fromArray(v2);
       };
