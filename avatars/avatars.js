@@ -959,6 +959,8 @@ class Avatar {
     this.hurtTime = NaN;
     this.hurtAnimation = null;
     this.movementsTime = 0;
+    this.sprintTime = 0;
+    this.sprintFactor = 0;
 
     // internal state
     this.lastPosition = new THREE.Vector3();
@@ -1496,6 +1498,7 @@ class Avatar {
     this.aimRightFactorReverse = 1 - this.aimRightFactor;
     this.aimLeftFactor = this.aimLeftTransitionTime / aimTransitionMaxTime;
     this.aimLeftFactorReverse = 1 - this.aimLeftFactor;
+    this.sprintFactor = Math.min(Math.max(this.sprintTime / crouchMaxTime, 0), 1);
 
     const _updateHmdPosition = () => {
       const currentPosition = this.inputs.hmd.position;
@@ -1974,6 +1977,8 @@ class Avatar {
         <div style="display:;">swimState: --- ${this.swimState}</div>
         <div style="display:;">swimTime: --- ${Math.floor(this.swimTime)}</div>
         <div style="display:;">movementsTime: --- ${Math.floor(this.movementsTime)}</div>
+        <div style="display:;">sprintTime: --- ${Math.floor(this.sprintTime)}</div>
+        <div style="display:;">sprintFactor: --- ${Math.floor(this.sprintFactor)}</div>
       `
     }
     _applyAnimation(this, now, moveFactors, timeDiffS);

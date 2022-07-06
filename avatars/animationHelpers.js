@@ -1275,7 +1275,8 @@ export const _applyAnimation = (avatar, now, moveFactors, timeDiffS) => {
         localQuaternion2.fromArray(v2);
         localQuaternion3.fromArray(v3);
         localQuaternion4.fromArray(v4);
-        localQuaternion3.slerp(localQuaternion4, walkRunFactor);
+        // localQuaternion3.slerp(localQuaternion4, walkRunFactor); // can't use walkRunFactor here, otherwise "Impulsive breaststroke swim animation" will turn into "freestyle animation" when speed is fast.
+        localQuaternion3.slerp(localQuaternion4, avatar.sprintFactor);
         localQuaternion2.slerp(localQuaternion3, idleWalkFactor);
         dst.slerp(localQuaternion2, f);
       } else {
@@ -1286,7 +1287,8 @@ export const _applyAnimation = (avatar, now, moveFactors, timeDiffS) => {
         localVector3.y += liftSwims;
         localVector4.fromArray(v4);
         localVector4.y += liftSwims;
-        localVector3.lerp(localVector4, walkRunFactor);
+        // localVector3.lerp(localVector4, walkRunFactor);
+        localVector3.lerp(localVector4, avatar.sprintFactor);
         localVector2.lerp(localVector3, idleWalkFactor);
         dst.lerp(localVector2, f);
       }
