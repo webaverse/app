@@ -694,7 +694,7 @@ export class LodChunkTracker extends EventTarget {
     // const newTasks = [];
     // const keepTasks = [];
     // const cancelTasks = [];
-    console.log('check tasks', tasks.length);
+    // console.log('check tasks', tasks.length);
     for (let i = 0; i < tasks.length; i++) {
       const task = tasks[i];
       if (!task.isNop()) {
