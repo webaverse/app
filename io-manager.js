@@ -224,7 +224,14 @@ const _updateIo = timeDiff => {
     } else {
       cameraManager.lastNonzeroDirectionVector.copy(keysDirection);
     }
-    
+    if (localPlayer.hasAction('swim')){
+      if(ioManager.keys.shift && keysDirection.length() > 0){
+        localPlayer.getAction('swim').animationType = 'freestyle';
+      }
+      else{
+        localPlayer.getAction('swim').animationType = 'breaststroke';
+      }
+    }
     if (localPlayer.hasAction('fly') || localPlayer.hasAction('swim')) {
       keysDirection.applyQuaternion(camera.quaternion);
       _updateVertical(keysDirection);
@@ -246,6 +253,7 @@ const _updateIo = timeDiff => {
           .multiplyScalar(game.getSpeed() * timeDiff)
       );
     }
+
   }
 };
 ioManager.update = _updateIo;

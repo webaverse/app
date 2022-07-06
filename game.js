@@ -1614,15 +1614,12 @@ class GameManager extends EventTarget {
     } else {
       speed = walkSpeed;
     }
-    
-    let sprintMultiplier = (ioManager.keys.shift && !isCrouched) ?
+    const localPlayer = getLocalPlayer();
+    const sprintMultiplier = (ioManager.keys.shift && !isCrouched) ?
       (ioManager.keys.doubleTap ? 20 : 3)
     :
-    (isSwimming ? 5 : 1);
-    if(isSwimming && !ioManager.keys.shift){
-      const localPlayer = getLocalPlayer();
-      sprintMultiplier = sprintMultiplier - localPlayer.getAction('swim').swimStartSprintTime < 1 ? 1 : sprintMultiplier - localPlayer.getAction('swim').swimStartSprintTime;
-    }
+    (isSwimming ? 5 - localPlayer.getAction('swim').swimDamping : 1);
+    
     speed *= sprintMultiplier;
     
     const backwardMultiplier = isMovingBackward ? 0.7 : 1;

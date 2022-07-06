@@ -1039,7 +1039,8 @@ export default (e) => {
                       const swimAction = {
                           type: 'swim',
                           onSurface: false,
-                          swimStartSprintTime: 1
+                          swimDamping: 1,
+                          animationType: 'breaststroke'
                       };
                       localPlayer.setControlAction(swimAction);
                   }
@@ -1080,14 +1081,27 @@ export default (e) => {
 
 
           if(localPlayer.hasAction('swim')){
-            if(alreadySetSwimSprintSpeed && localPlayer.actionInterpolants.movements.get() % 1133.3333333333333 <= 500){
+            if(localPlayer.getAction('swim').animationType === 'breaststroke'){
+                if(alreadySetSwimSprintSpeed && localPlayer.actionInterpolants.movements.get() % 1133.3333333333333 <= 500){
+                    alreadySetSwimSprintSpeed = false;
+                }
+                else if(!alreadySetSwimSprintSpeed && localPlayer.actionInterpolants.movements.get() % 1133.3333333333333 > 500){
+                    localPlayer.getAction('swim').swimDamping = 1;
+                    alreadySetSwimSprintSpeed = true;
+                }
+                if(localPlayer.getAction('swim').swimDamping < 4){
+                    localPlayer.getAction('swim').swimDamping *= 1.05;
+                }
+                else{
+                    localPlayer.getAction('swim').swimDamping = 4;
+                }
+                
+            }
+            else{
+                localPlayer.getAction('swim').swimDamping = 0;
                 alreadySetSwimSprintSpeed = false;
             }
-            else if(!alreadySetSwimSprintSpeed && localPlayer.actionInterpolants.movements.get() % 1133.3333333333333 > 500){
-                localPlayer.getAction('swim').swimStartSprintTime = 1;
-                alreadySetSwimSprintSpeed = true;
-            }
-            localPlayer.getAction('swim').swimStartSprintTime *= 1.05;
+            
           }
           
         }
@@ -2198,7 +2212,7 @@ export default (e) => {
                                 rotated
                 );
                 if(splash.r > 0.1){
-                    gl_FragColor = vec4(0.9, 0.9, 0.9, 1.0);
+                    gl_FragColor = vec4(0.75, 0.75, 0.75, 1.0);
                 }
                 else{
                     discard;
@@ -2262,6 +2276,7 @@ export default (e) => {
             if(
                 localPlayer.hasAction('swim')
                 && localPlayer.getAction('swim').onSurface
+                && localPlayer.getAction('swim').animationType === 'breaststroke'
                 && currentSpeed > 0.3
             ){
                 let currentEmmit = 0;
@@ -2278,7 +2293,7 @@ export default (e) => {
                         info.velocity[i].divideScalar(5);
                         info.acc[i] = -0.001 - currentSpeed * 0.0015;
                         scalesAttribute.setX(i, 1.5 + Math.random() * 3.5);
-                        brokenAttribute.setX(i, 0.25 + Math.random() * 0.2);
+                        brokenAttribute.setX(i, 0.15 + Math.random() * 0.2);
                         textureRotationAttribute.setX(i, Math.random() * 2);
                         currentEmmit++;
                     }
@@ -2297,7 +2312,10 @@ export default (e) => {
                 );
                 if(brokenAttribute.getX(i) < 1){
                     //if(info.velocity[i].y < 0)
-                        brokenAttribute.setX(i, brokenAttribute.getX(i) + 0.012 * (1 + currentSpeed));
+                        if(info.velocity[i].y > 0)
+                            brokenAttribute.setX(i, brokenAttribute.getX(i) + 0.012 * (1 + currentSpeed));
+                        else
+                            brokenAttribute.setX(i, brokenAttribute.getX(i) + 0.02 * (1 + currentSpeed));
                         scalesAttribute.setX(i, scalesAttribute.getX(i) + 0.02 * (1 + currentSpeed));
                     // else{
                     //     brokenAttribute.setX(i, brokenAttribute.getX(i) + 0.005);
