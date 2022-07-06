@@ -444,6 +444,7 @@ class WaterMesh extends BatchedMesh {
           localVector2
         );
         this.physicsObjects.push(physicsObject);
+        
 
 
         this.physics.disableGeometryQueries(physicsObject);
@@ -1099,11 +1100,11 @@ export default (e) => {
             }
             else{
                 if(alreadySetSwimSprintSpeed && localPlayer.actionInterpolants.movements.get() % (1466.6666666666666 / 3 ) <= 900  / 3){
-                    console.log('left hand')
+                    // console.log('left hand')
                     alreadySetSwimSprintSpeed = false;
                 }
                 else if(!alreadySetSwimSprintSpeed && localPlayer.actionInterpolants.movements.get() % (1466.6666666666666 / 3 ) > 900 / 3 ){
-                    console.log('right hand')
+                    // console.log('right hand')
                     alreadySetSwimSprintSpeed = true;
                 }
                 localPlayer.getAction('swim').swimDamping = 0;
@@ -2301,7 +2302,7 @@ export default (e) => {
                         info.velocity[i].divideScalar(5);
                         info.acc[i] = -0.001 - currentSpeed * 0.0015;
                         scalesAttribute.setX(i, 1.5 + Math.random() * 3.5);
-                        brokenAttribute.setX(i, 0.15 + Math.random() * 0.2);
+                        brokenAttribute.setX(i, 0.2 + Math.random() * 0.2);
                         textureRotationAttribute.setX(i, Math.random() * 2);
                         currentEmmit++;
                     }
@@ -2701,11 +2702,12 @@ export default (e) => {
     
     let playEffectSw = 0;
     let lastTimePlaySplash = 0;
+    let lastPlayerPositionY = 0;
     useFrame(({timestamp}) => {
         if(!localPlayer.avatar)
             return;
         if (waterSurfacePos.y < localPlayer.position.y && waterSurfacePos.y > localPlayer.position.y - localPlayer.avatar.height * 0.95 && timestamp - lastTimePlaySplash > 150){
-            if(playEffectSw === 0 && Math.abs(localPlayer.characterPhysics.velocity.y) > 2.3 && currentSpeed < 0.1){
+            if(playEffectSw === 0 && Math.abs(localPlayer.characterPhysics.velocity.y) > 2.3 && Math.abs(localPlayer.position.y - lastPlayerPositionY) > 0.05 && currentSpeed < 0.1){
                 playEffectSw = 1;
                 lastTimePlaySplash = timestamp;
             }
@@ -2790,6 +2792,7 @@ export default (e) => {
 
         }
         app.updateMatrixWorld();
+        lastPlayerPositionY = localPlayer.position.y;
     
     });
   }
