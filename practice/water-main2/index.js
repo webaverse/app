@@ -1100,11 +1100,11 @@ export default (e) => {
             }
             else{
                 if(alreadySetSwimSprintSpeed && localPlayer.actionInterpolants.movements.get() % (1466.6666666666666 / 3 ) <= 900  / 3){
-                    // console.log('left hand')
+                    console.log('left hand')
                     alreadySetSwimSprintSpeed = false;
                 }
                 else if(!alreadySetSwimSprintSpeed && localPlayer.actionInterpolants.movements.get() % (1466.6666666666666 / 3 ) > 900 / 3 ){
-                    // console.log('right hand')
+                    console.log('right hand')
                     alreadySetSwimSprintSpeed = true;
                 }
                 localPlayer.getAction('swim').swimDamping = 0;
