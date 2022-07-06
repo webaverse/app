@@ -195,6 +195,7 @@ export function applyPlayerActionsToAvatar(player, rig) {
   rig.hurtAnimation = (hurtAction?.animation) || '';
   rig.hurtTime = player.actionInterpolants.hurt.get();
   rig.movementsTime = player.actionInterpolants.movements.get();
+  rig.movementsTransitionTime = player.actionInterpolants.movementsTransition.get();
   rig.sprintTime = player.actionInterpolants.sprint.get();
 }
 // returns whether eyes were applied

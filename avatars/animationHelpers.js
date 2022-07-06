@@ -1253,9 +1253,12 @@ export const _applyAnimation = (avatar, now, moveFactors, timeDiffS) => {
         localQuaternion2.fromArray(v2);
         localQuaternion3.fromArray(v3);
         localQuaternion4.fromArray(v4);
-        // localQuaternion3.slerp(localQuaternion4, walkRunFactor); // can't use walkRunFactor here, otherwise "Impulsive breaststroke swim animation" will turn into "freestyle animation" when speed is fast.
+        // // can't use idleWalkFactor & walkRunFactor here, otherwise "Impulsive breaststroke swim animation" will turn into "freestyle animation" when speed is fast,
+        // // and will turn into "floating" a little when speed is slow.
+        // localQuaternion3.slerp(localQuaternion4, walkRunFactor);
+        // localQuaternion2.slerp(localQuaternion3, idleWalkFactor);
         localQuaternion3.slerp(localQuaternion4, avatar.sprintFactor);
-        localQuaternion2.slerp(localQuaternion3, idleWalkFactor);
+        localQuaternion2.slerp(localQuaternion3, avatar.movementsTransitionFactor);
         dst.slerp(localQuaternion2, f);
       } else {
         const liftSwims = 0.05; // lift swims height, prevent head sink in water
@@ -1266,8 +1269,9 @@ export const _applyAnimation = (avatar, now, moveFactors, timeDiffS) => {
         localVector4.fromArray(v4);
         localVector4.y += liftSwims;
         // localVector3.lerp(localVector4, walkRunFactor);
+        // localVector2.lerp(localVector3, idleWalkFactor);
         localVector3.lerp(localVector4, avatar.sprintFactor);
-        localVector2.lerp(localVector3, idleWalkFactor);
+        localVector2.lerp(localVector3, avatar.movementsTransitionFactor);
         dst.lerp(localVector2, f);
       }
     }

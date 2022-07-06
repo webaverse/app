@@ -979,6 +979,10 @@ class UninterpolatedPlayer extends StatePlayer {
         const ioManager = metaversefile.useIoManager();
         return  ioManager.keys.up || ioManager.keys.down || ioManager.keys.left || ioManager.keys.right;
       }, 0),
+      movementsTransition: new BiActionInterpolant(() => {
+        const ioManager = metaversefile.useIoManager();
+        return  ioManager.keys.up || ioManager.keys.down || ioManager.keys.left || ioManager.keys.right;
+      }, 0, crouchMaxTime),
       sprint: new BiActionInterpolant(() => {
         const ioManager = metaversefile.useIoManager();
         return  ioManager.keys.shift;
