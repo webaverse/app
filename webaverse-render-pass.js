@@ -42,9 +42,10 @@ class WebaverseRenderPass extends Pass {
       this.internalRenderPass.renderToScreen = this.renderToScreen;
       this.internalRenderPass.render(renderer, renderTarget, readBuffer, deltaTime, maskActive);
     }
-    if (this.internalXROutputPass) {
-      this.internalXROutputPass.render(renderer, renderTarget, readBuffer, deltaTime, maskActive);
-    } else {
+     if (this.internalXROutputPass) {
+       this.internalXROutputPass.render(renderer, renderTarget, readBuffer, deltaTime, maskActive);
+     } 
+    else {
       renderer.setRenderTarget(renderTarget);
       renderer.clear();
       renderer.render(rootScene, camera);

@@ -26,8 +26,12 @@ class XROutputPass extends Pass {
         if(session) {
             const xrLayer = session.renderState.baseLayer;
             const xrFramebuffer = xrLayer.framebuffer;
+            console.log(xrLayer);
 
             const context = renderer.getContext();
+            const oldReadFbo = context.getParameter(context.FRAMEBUFFER_BINDING);
+            const oldDrawFbo = context.getParameter(context.FRAMEBUFFER_BINDING);
+
             context.bindFramebuffer(context.READ_FRAMEBUFFER, renderTarget.__webglFramebuffer);
             context.bindFramebuffer(context.DRAW_FRAMEBUFFER, xrFramebuffer);
             
@@ -35,11 +39,12 @@ class XROutputPass extends Pass {
                 0, 0, renderTarget.height, renderTarget.width,
                 context.COLOR_BUFFER_BIT, context.NEAREST);
 
-            //context.bindFramebuffer(context.FRAMEBUFFER, null);
+            context.bindFramebuffer(context.READ_FRAMEBUFFER, oldReadFbo);
+            context.bindFramebuffer(context.DRAW_FRAMEBUFFER, oldDrawFbo);
 
-            renderer.setRenderTarget(renderTarget);
-            renderer.clear();
-            renderer.render(rootScene, camera);
+            //renderer.setRenderTarget(null);
+            //renderer.clear();
+            //renderer.render(rootScene, camera);
         }
 
 

@@ -13,7 +13,16 @@
         "lightType": "directional",
         "args": [[255, 255, 255], 5],
         "position": [1, 2, 3],
-        "shadow": [150, 5120, 0.1, 10000, -0.0001]
+        "shadow": [50, 4096, 0.1, 1000, 0, 0.2]
+      }
+    },
+    {
+      "type": "application/rendersettings",
+      "content": {
+        "fog": {
+          "fogType": "exp",
+          "args": [[255, 255, 255], 0.005]
+        }
       }
     },
     {
@@ -22,7 +31,7 @@
         0,
         0
       ],
-      "start_url": "https://webaverse.github.io/atmospheric-sky/"
+      "start_url": "https://webaverse.github.io/grid/"
     },
     {
       "position": [
@@ -30,9 +39,7 @@
         0,
         0
       ],
-      "physics": true,
-      "start_url": "https://webaverse.github.io/block/grid.glb",
-      "dynamic": false
+      "start_url": "https://webaverse.github.io/atmospheric-sky/"
     }
   ]
 }

@@ -5,3 +5,5 @@ rtfx
 .next
 dist
 config.json
+scenes/traffic.scn
+scenes/block.scn
