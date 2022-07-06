@@ -668,7 +668,7 @@ export class LodChunkTracker extends EventTarget {
     }, {once: true});
   }
   updateCoord(currentCoord) {
-    console.log('update', currentCoord.toArray().join(','));
+    // console.log('update', currentCoord.toArray().join(','));
 
     const octree = constructOctreeForLeaf(currentCoord, 2, 2 ** (this.numLods - 1));
 
