@@ -957,6 +957,12 @@ class Avatar {
     // this.aimDirection = new THREE.Vector3();
     this.hurtTime = NaN;
     this.hurtAnimation = null;
+<<<<<<< HEAD
+=======
+    this.movementsTime = 0;
+    this.sprintTime = 0;
+    this.sprintFactor = 0;
+>>>>>>> 27fce9846... Add `sprintTime/Factor` and use it to change between breaststroke and freestyle swims.
 
     // internal state
     this.lastPosition = new THREE.Vector3();
@@ -1494,6 +1500,7 @@ class Avatar {
     this.aimRightFactorReverse = 1 - this.aimRightFactor;
     this.aimLeftFactor = this.aimLeftTransitionTime / aimTransitionMaxTime;
     this.aimLeftFactorReverse = 1 - this.aimLeftFactor;
+    this.sprintFactor = Math.min(Math.max(this.sprintTime / crouchMaxTime, 0), 1);
 
     const _updateHmdPosition = () => {
       const currentPosition = this.inputs.hmd.position;
