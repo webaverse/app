@@ -990,7 +990,7 @@ export default (e) => {
 
                 // if(count % 2 !== 0){
                     if(testContact2 === testContact1){
-                        console.log('detect error', testContact2, testContact1);
+                        // console.log('detect error', testContact2, testContact1);
                         contactWater = lastContactWater;
                     }
                     else{
@@ -1098,8 +1098,16 @@ export default (e) => {
                 
             }
             else{
+                if(alreadySetSwimSprintSpeed && localPlayer.actionInterpolants.movements.get() % (1466.6666666666666 / 3 ) <= 900  / 3){
+                    console.log('left hand')
+                    alreadySetSwimSprintSpeed = false;
+                }
+                else if(!alreadySetSwimSprintSpeed && localPlayer.actionInterpolants.movements.get() % (1466.6666666666666 / 3 ) > 900 / 3 ){
+                    console.log('right hand')
+                    alreadySetSwimSprintSpeed = true;
+                }
                 localPlayer.getAction('swim').swimDamping = 0;
-                alreadySetSwimSprintSpeed = false;
+                // alreadySetSwimSprintSpeed = false;
             }
             
           }
