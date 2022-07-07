@@ -11,7 +11,7 @@ const localVector3 = new THREE.Vector3();
 // const localQuaternion = new THREE.Quaternion();
 // const localMatrix = new THREE.Matrix4();
 
-const onesLodsArray = new Array(8).fill(1);
+// const onesLodsArray = new Array(8).fill(1);
 
 const nop = () => {};
 
