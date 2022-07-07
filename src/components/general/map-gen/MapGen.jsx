@@ -23,7 +23,7 @@ import {chatManager} from '../../../../chat-manager.js';
 import {
   makeRng,
   // numBlocksPerChunk,
-  voxelPixelSize,
+  // voxelPixelSize,
   chunkWorldSize,
   placeNames,
   // MapBlock,
@@ -52,6 +52,10 @@ const downQuaternion = new THREE.Quaternion().setFromAxisAngle(
   new THREE.Vector3(1, 0, 0),
   -Math.PI / 2,
 );
+
+//
+
+const voxelPixelSize = 16;
 
 //
 
