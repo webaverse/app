@@ -18,6 +18,16 @@ const distDirectory = 'dist';
 const baseDirectory = 'assets';
 const relativeDistAssets = `./${distDirectory}/${baseDirectory}`;
 let appBuiltOnce = false;
+const dontIncludeFiles = [
+  'build/three.js',
+  'build/three.min.js',
+  'examples/js',
+  'examples/fonts',
+  'LICENSE',
+  'package.json',
+  'README.md',
+  'src',
+];
 
 const entryPoints = [
   {
@@ -65,6 +75,9 @@ const build = () => {
 
     if (packageJSON.files) {
       for (const file of packageJSON.files) {
+        if (dontIncludeFiles.includes(file)) {
+          continue;
+        }
         const fp = path.join(base, _path, file);
         let isFile;
         try {

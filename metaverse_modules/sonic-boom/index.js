@@ -124,7 +124,7 @@ export default () => {
           fog: false,
           lights: false,
         });
-        material.freeze();
+        // material.freeze();
     
         const material2 = new THREE.ShaderMaterial({
           uniforms: {
@@ -229,7 +229,7 @@ export default () => {
           fog: false,
           lights: false,
         });
-        material2.freeze();
+        // material2.freeze();
       
     
         let frontwave=new THREE.Mesh(geometry,material);
@@ -366,7 +366,7 @@ export default () => {
                 fog: false,
                 lights: false,
             });
-            windMaterial.freeze();
+            // windMaterial.freeze();
             // const material = new THREE.MeshBasicMaterial( {color: 0x00ff00} );
             const mesh = new THREE.Mesh(geometry, windMaterial);
             mesh.setRotationFromAxisAngle( new THREE.Vector3( 1, 0, 0 ), -90 * Math.PI / 180 );
@@ -526,7 +526,7 @@ export default () => {
                 fog: false,
                 lights: false,
             });
-            flameMaterial.freeze();
+            // flameMaterial.freeze();
         
             const mesh = new THREE.Mesh(geometry, flameMaterial);
             mesh.setRotationFromAxisAngle( new THREE.Vector3( 1, 0, 0 ), -90 * Math.PI / 180 );
@@ -731,7 +731,7 @@ export default () => {
                 fog: false,
                 lights: false,
             });
-            lightningMaterial.freeze();
+            // lightningMaterial.freeze();
         
             const mesh = new THREE.Mesh(geometry, lightningMaterial);
             mesh.setRotationFromAxisAngle( new THREE.Vector3( 1, 0, 0 ), -90 * Math.PI / 180 );
@@ -946,7 +946,7 @@ export default () => {
           fog: false,
           lights: false,
       });
-      material.freeze();
+    //   material.freeze();
     
       let plane=new THREE.Mesh(planeGeometry,material);
       //app.add(plane);
@@ -1184,7 +1184,7 @@ export default () => {
           fog: false,
           lights: false,
       });
-      material.freeze();
+    //   material.freeze();
     
       let plane=new THREE.Mesh(planeGeometry,material);
       //app.add(plane);
@@ -1406,7 +1406,7 @@ export default () => {
             fog: false,
             lights: false,
         });
-        particlesMaterial.freeze();
+        // particlesMaterial.freeze();
         
 
         const mainBall = new THREE.Points(particlesGeometry, particlesMaterial);
@@ -1596,7 +1596,7 @@ export default () => {
             fog: false,
             lights: false,
         });
-        electricityMaterial.freeze();
+        // electricityMaterial.freeze();
 
         const electricity = new THREE.Mesh(instGeom, electricityMaterial);
         const group = new THREE.Group();
@@ -1787,7 +1787,7 @@ export default () => {
             fog: false,
             lights: false,
         });
-        electricityMaterial.freeze();
+        // electricityMaterial.freeze();
 
         const electricity = new THREE.Mesh(instGeom, electricityMaterial);
         const group = new THREE.Group();
@@ -2274,7 +2274,7 @@ export default () => {
                 fog: false,
                 lights: false,
             });
-            wave.scene.children[0].material.freeze();
+            // wave.scene.children[0].material.freeze();
 
 
         })();
@@ -2390,7 +2390,7 @@ export default () => {
         //dustMaterial.blending= THREE.AdditiveBlending;
         //dustMaterial.side=THREE.DoubleSide;
         //dustMaterial.opacity=0.2;
-        dustMaterial.freeze();
+        // dustMaterial.freeze();
     
         const uniforms = {
             uTime: {
