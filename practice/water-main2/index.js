@@ -1106,7 +1106,7 @@ export default (e) => {
                 }
                 
             }
-            else{
+            else if(localPlayer.getAction('swim').animationType === 'freestyle'){
                 if(alreadySetSwimSprintSpeed && localPlayer.actionInterpolants.movements.get() % (1466.6666666666666 / 2 ) <= 900  / 2){
                     // console.log('left hand')
                     handStrokeStatus = 'left';
@@ -1118,7 +1118,9 @@ export default (e) => {
                     alreadySetSwimSprintSpeed = true;
                 }
                 localPlayer.getAction('swim').swimDamping = 0;
-                // alreadySetSwimSprintSpeed = false;
+            }
+            else{
+                localPlayer.getAction('swim').swimDamping = 4;
             }
             
           }
@@ -1717,6 +1719,7 @@ export default (e) => {
                     gl_FragColor = vec4(0.9, 0.9, 0.9, 1.0);
                 }
                 
+                
             ${THREE.ShaderChunk.logdepthbuf_fragment}
             }
         `,
@@ -2292,11 +2295,12 @@ export default (e) => {
             if(
                 localPlayer.hasAction('swim')
                 && localPlayer.getAction('swim').onSurface
+                && !localPlayer.hasAction('fly')
                 // && localPlayer.getAction('swim').animationType === 'breaststroke'
                 && currentSpeed > 0.3
             ){
                 const splashposition = localPlayer.getAction('swim').animationType === 'breaststroke' ? 0.55 :  0.15;
-                const splashposition2 = localPlayer.getAction('swim').animationType === 'breaststroke' ? 0.05 : 0.2;
+                const splashposition2 = localPlayer.getAction('swim').animationType === 'breaststroke' ? 0.08 : 0.2;
                 let currentEmmit = 0;
                 for(let i = 0; i < particleCount; i++){
                     if(brokenAttribute.getX(i) >= 1){
@@ -2591,6 +2595,7 @@ export default (e) => {
                 handStrokeStatus !== lastStroke
                 && localPlayer.getAction('swim').animationType === 'freestyle'
                 && localPlayer.getAction('swim').onSurface
+                && !localPlayer.hasAction('fly')
             ){
                 if(handStrokeStatus === 'right'){
                     let currentEmmit = 0;
