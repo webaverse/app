@@ -272,13 +272,6 @@ const constructOctreeForLeaf = (position, lod1Range, maxLod) => {
     },
   };
 };
-const _makeEmptyOctree = () => {
-  return {
-    rootNodes: [],
-    lod1Nodes: [],
-    leafNodes: [],
-  };
-};
 class Task extends EventTarget {
   constructor(maxLodNode) {
     super();
