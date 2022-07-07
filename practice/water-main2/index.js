@@ -27,14 +27,19 @@ const bubbleTexture1 = textureLoader.load(`${baseUrl}/textures/Bubble3.png`);
 const noiseCircleTexture = textureLoader.load(`${baseUrl}/textures/noiseCircle.png`);
 const noiseTexture = textureLoader.load(`${baseUrl}/textures/perlin-noise.jpg`);
 const noiseTexture2 = textureLoader.load(`${baseUrl}/textures/noise.jpg`);
+const voronoiNoiseTexture = textureLoader.load(`${baseUrl}/textures/voronoiNoise.jpg`);
+voronoiNoiseTexture.wrapS = voronoiNoiseTexture.wrapT = THREE.RepeatWrapping;
 const noiseMap = textureLoader.load(`${baseUrl}/textures/noise.jpg`);
 noiseMap.wrapS = noiseMap.wrapT = THREE.RepeatWrapping;
 const noiseMap3 = textureLoader.load(`${baseUrl}/textures/noise3.png`);
+const maskTexture = textureLoader.load(`${baseUrl}/textures/mask.png`);
 const splashTexture = textureLoader.load(`${baseUrl}/textures/splash1.png`);
 const splashTexture2 = textureLoader.load(`${baseUrl}/textures/splash2.png`);
 const splashTexture4 = textureLoader.load(`${baseUrl}/textures/splash.png`);
 const rippleTexture = textureLoader.load(`${baseUrl}/textures/ripple3.png`);
 rippleTexture.wrapS = rippleTexture.wrapT = THREE.RepeatWrapping;
+const rippleTexture2 = textureLoader.load(`${baseUrl}/textures/ripple2.png`);
+rippleTexture2.wrapS = rippleTexture2.wrapT = THREE.RepeatWrapping;
 
 const waterNormalTexture1 = textureLoader.load(`${baseUrl}/textures/waterNormal2.png`);
 waterNormalTexture1.wrapS = waterNormalTexture1.wrapT = THREE.RepeatWrapping;
@@ -620,6 +625,7 @@ export default (e) => {
   const waterSurfacePos = new THREE.Vector3(0, 10000, 0);
   const cameraWaterSurfacePos = new THREE.Vector3(0, 10000, 0);
   let contactWater = false;
+  let handStrokeStatus = null;
   //let wholeBelowwWater = false;
   let floatOnWater = false;
   let cameraDir = new THREE.Vector3();
@@ -1086,11 +1092,13 @@ export default (e) => {
                 if(alreadySetSwimSprintSpeed && localPlayer.actionInterpolants.movements.get() % 1133.3333333333333 <= 500){
                     // console.log('swim false')
                     alreadySetSwimSprintSpeed = false;
+                    handStrokeStatus = null;
                 }
                 else if(!alreadySetSwimSprintSpeed && localPlayer.actionInterpolants.movements.get() % 1133.3333333333333 > 500){
                     localPlayer.getAction('swim').swimDamping = 1;
                     // console.log('swim true')
                     alreadySetSwimSprintSpeed = true;
+                    handStrokeStatus = 'right';
                 }
                 if(localPlayer.getAction('swim').swimDamping < 4){
                     localPlayer.getAction('swim').swimDamping *= 1.05;
@@ -1102,11 +1110,13 @@ export default (e) => {
             }
             else{
                 if(alreadySetSwimSprintSpeed && localPlayer.actionInterpolants.movements.get() % (1466.6666666666666 / 2 ) <= 900  / 2){
-                    console.log('left hand')
+                    // console.log('left hand')
+                    handStrokeStatus = 'left';
                     alreadySetSwimSprintSpeed = false;
                 }
                 else if(!alreadySetSwimSprintSpeed && localPlayer.actionInterpolants.movements.get() % (1466.6666666666666 / 2 ) > 900 / 2 ){
                     // console.log('right hand')
+                    handStrokeStatus = 'right';
                     alreadySetSwimSprintSpeed = true;
                 }
                 localPlayer.getAction('swim').swimDamping = 0;
@@ -1387,8 +1397,6 @@ export default (e) => {
     addInstancedMesh();
         
     const bubblePos = new THREE.Vector3();
-    
-    const localVector = new THREE.Vector3();
     let maxEmmit = 5;
     let lastEmmitTime = 0;
     useFrame(({timestamp}) => {
@@ -1402,7 +1410,7 @@ export default (e) => {
             const startTimeAttribute = mesh.geometry.getAttribute('startTime');
             const colorAttribute = mesh.geometry.getAttribute('color');
             if(timestamp - lastEmmitTime > 100 && contactWater){
-                for (let i = 0; i < Math.floor(currentSpeed * 10 + 1) * 5; i++){
+                for (let i = 0; i < (Math.floor(currentSpeed * 10 + 1) * 5)  ; i++){
                     bubblePos.set(positionsAttribute.getX(i), positionsAttribute.getY(i), positionsAttribute.getZ(i));
                     if(scalesAttribute.getX(i) <= 0){
                         
@@ -2044,12 +2052,12 @@ export default (e) => {
                     ||(!localPlayer.hasAction('swim') && contactWater)
                 ){
                     let brokenDegree = currentSpeed > 0.3 ? 0.23 + 0.2 * Math.random() : 0.4 + 0.3 * Math.random();
-                    if(!localPlayer.hasAction('swim')){
-                        brokenDegree *= 1.3;
+                    if(currentSpeed > 0.5){
+                        brokenDegree *= 1.2;
                     }
                     brokenAttribute.setX(currentIndex, brokenDegree);
-                    scalesAttribute.setX(currentIndex,1.2+Math.random()*0.1);
-                    opacityAttribute.setX(currentIndex,0.1);
+                    scalesAttribute.setX(currentIndex, 1.2 + Math.random() * 0.1);
+                    opacityAttribute.setX(currentIndex, 0.1);
                     positionsAttribute.setXYZ(
                         currentIndex,
                         localPlayer.position.x + 0.2 * playerDir.x + (Math.random() - 0.5) * 0.1, 
@@ -2078,7 +2086,7 @@ export default (e) => {
   //################################################################ swimming splash ###########################################################
   {
         
-    const particleCount = 50;
+    const particleCount = 100;
     let info = {
         velocity: [particleCount],
         acc: [particleCount]
@@ -2287,28 +2295,29 @@ export default (e) => {
             if(
                 localPlayer.hasAction('swim')
                 && localPlayer.getAction('swim').onSurface
-                && localPlayer.getAction('swim').animationType === 'breaststroke'
+                // && localPlayer.getAction('swim').animationType === 'breaststroke'
                 && currentSpeed > 0.3
             ){
+                const splashposition = localPlayer.getAction('swim').animationType === 'breaststroke' ? 0.55 : 0.35;
                 let currentEmmit = 0;
                 for(let i = 0; i < particleCount; i++){
                     if(brokenAttribute.getX(i) >= 1){
-                        info.velocity[i].x = localVector2.x * (Math.random() - 0.5) * 0.2 + playerDir.x * 0.025;
+                        info.velocity[i].x = localVector2.x * (Math.random() - 0.5) * 0.2 + playerDir.x * 0.1;
                         info.velocity[i].y = 0.08 + Math.random() * 0.05;
-                        info.velocity[i].z = localVector2.z * (Math.random() - 0.5) * 0.2 + playerDir.z * 0.025;
+                        info.velocity[i].z = localVector2.z * (Math.random() - 0.5) * 0.2 + playerDir.z * 0.1;
                         positionsAttribute.setXYZ(  i, 
-                                                    localPlayer.position.x + info.velocity[i].x * 0.5 + playerDir.x * 0.65,
+                                                    localPlayer.position.x + info.velocity[i].x * 0.5 + playerDir.x * splashposition,
                                                     waterSurfacePos.y - 0.1 * Math.random(),
-                                                    localPlayer.position.z + info.velocity[i].z * 0.5 + playerDir.z * 0.65
+                                                    localPlayer.position.z + info.velocity[i].z * 0.5 + playerDir.z * splashposition
                         );
                         info.velocity[i].divideScalar(5);
                         info.acc[i] = -0.001 - currentSpeed * 0.0015;
                         scalesAttribute.setX(i, 1.5 + Math.random() * 3.5);
-                        brokenAttribute.setX(i, 0.2 + Math.random() * 0.2);
+                        brokenAttribute.setX(i, 0.25 + Math.random() * 0.2);
                         textureRotationAttribute.setX(i, Math.random() * 2);
                         currentEmmit++;
                     }
-                    if(currentEmmit >= 2 * currentSpeed){
+                    if(currentEmmit >= 5){
                         break;
                     }
                 }
@@ -2316,17 +2325,26 @@ export default (e) => {
                 
             }
             for (let i = 0; i < particleCount; i++){
-                positionsAttribute.setXYZ(  i, 
+                if(currentSpeed < 0.2){
+                    positionsAttribute.setXYZ(  i, 
+                                            positionsAttribute.getX(i),
+                                            positionsAttribute.getY(i) + info.velocity[i].y,
+                                            positionsAttribute.getZ(i) 
+                    ); 
+                }
+                else{
+                    positionsAttribute.setXYZ(  i, 
                                             positionsAttribute.getX(i) + info.velocity[i].x,
                                             positionsAttribute.getY(i) + info.velocity[i].y,
                                             positionsAttribute.getZ(i) + info.velocity[i].z
-                );
+                    );
+                }
                 if(brokenAttribute.getX(i) < 1){
                     //if(info.velocity[i].y < 0)
-                        if(info.velocity[i].y > 0)
-                            brokenAttribute.setX(i, brokenAttribute.getX(i) + 0.012 * (1 + currentSpeed));
-                        else
-                            brokenAttribute.setX(i, brokenAttribute.getX(i) + 0.02 * (1 + currentSpeed));
+                        // if(info.velocity[i].y > 0)
+                            brokenAttribute.setX(i, brokenAttribute.getX(i) + 0.016);
+                        // else
+                        //     brokenAttribute.setX(i, brokenAttribute.getX(i) + 0.02 * (1 + currentSpeed));
                         scalesAttribute.setX(i, scalesAttribute.getX(i) + 0.02 * (1 + currentSpeed));
                     // else{
                     //     brokenAttribute.setX(i, brokenAttribute.getX(i) + 0.005);
@@ -2358,166 +2376,329 @@ export default (e) => {
     
     });
   }
- //######################################################################  swim sprint splash ######################################################################
-//  {
-//     let splashMesh;
-//     const group = new THREE.Group();
-//     (async () => {
-//         const u = `${baseUrl}/assets/droplet.glb`;
-//         const splashMeshApp = await new Promise((accept, reject) => {
-//             const {gltfLoader} = useLoaders();
-//             gltfLoader.load(u, accept, function onprogress() {}, reject);
-            
-//         });
-//         group.add(splashMeshApp.scene)
-//         app.add(group);
-//         splashMesh = splashMeshApp.scene.children[0];
-//         splashMeshApp.scene.rotation.x = -Math.PI / 2;
-//         // splashMesh.scale.z = 0.3;
-//         // splashMesh.scale.x = 1.5;
-//         splashMesh.material= new THREE.ShaderMaterial({
-//             uniforms: {
-//                 uTime: {
-//                     value: 0,
-//                 },
-//                 vBroken: {
-//                     value: 0,
-//                 },
-//                 vTextureRotation:{
-//                     value:0
-//                 },
-//                 splashTexture:{
-//                     value: rippleTexture
-//                 },
-//                 waterSurfacePos:{
-//                     value: new THREE.Vector3()
-//                 },
-//                 playerPos:{
-//                     value: new THREE.Vector3()
-//                 },
-//                 noiseMap:{
-//                     value: noiseMap
-//                 },
-//             },
-//             vertexShader: `\
-                
-//                 ${THREE.ShaderChunk.common}
-//                 ${THREE.ShaderChunk.logdepthbuf_pars_vertex}
-            
-            
-//                 uniform float uTime;
+  //################################################################ freestyle swimming splash ###########################################################
+  {
         
-//                 varying vec2 vUv;
-//                 varying vec3 vPos;
-//                 varying vec3 vPos2;
-            
-//                 void main() {
-//                     vUv=uv;
-//                     vPos2=position;
-//                     vec4 modelPosition = modelMatrix * vec4(position, 1.0);
-//                     vec4 viewPosition = viewMatrix * modelPosition;
-//                     vec4 projectionPosition = projectionMatrix * viewPosition;
-            
-//                     gl_Position = projectionPosition;
-//                     vPos = modelPosition.xyz;
-//                     ${THREE.ShaderChunk.logdepthbuf_vertex}
-//                 }
-//             `,
-//             fragmentShader: `\
-//                 ${THREE.ShaderChunk.logdepthbuf_pars_fragment}
-//                 uniform float uTime;
-//                 uniform float vTextureRotation;
-//                 uniform float vBroken;
-
-//                 uniform sampler2D splashTexture;
-//                 uniform sampler2D noiseMap;
-//                 uniform vec3 waterSurfacePos;
-//                 uniform vec3 playerPos;
-                
-                
-//                 varying vec2 vUv;
-//                 varying vec3 vPos;
-//                 varying vec3 vPos2;
-//                 #define PI 3.1415926
-
-//                 void main() {
-//                     float mid = 0.5;
-//                     vec2 rotated = vec2(cos(vTextureRotation*PI) * (vUv.x - mid) * 1.1 - sin(vTextureRotation*PI) * (vUv.y - mid) * 1.1 + mid,
-//                                 cos(vTextureRotation*PI) * (vUv.y - mid) * 1.1 + sin(vTextureRotation*PI) * (vUv.x - mid) * 1.1 + mid);
-//                     vec4 splash = texture2D(
-//                                     splashTexture,
-//                                     vUv
-//                     );
-//                     if(splash.r > 0.1){
-//                         gl_FragColor = vec4(1.0, 1.0, 1.0, 1.0);
-//                     }
-//                     else{
-//                         discard;
-//                     }
-//                     if(vPos.y < waterSurfacePos.y){
-//                         discard;
-//                     }
-//                     float tBroken = vBroken < 0.4 ? 0.4 : vBroken;
-//                     float broken2 = abs( sin( 1.0 - tBroken * (1. - vPos2.z) ) ) - texture2D( noiseMap, vUv ).g;
-//                     if( broken2 < 0.0001){
-//                         discard;
-//                     }
-//                     float broken3 = abs( sin( 1.0 - 0.75  *  vUv.y ) ) - texture2D( noiseMap, vUv ).g;
-//                     if ( broken3 < 0.0001) discard;
-
-//                     float broken = abs( sin( 1.0 - vBroken ) ) - texture2D( noiseMap, vUv ).g;
-//                     if ( broken < 0.0001 ) discard;
-                    
-//                 ${THREE.ShaderChunk.logdepthbuf_fragment}
-//                 }
-//             `,
-//             side: THREE.DoubleSide,
-//             transparent: true,
-//             // depthWrite: false,
-//             // blending: THREE.AdditiveBlending,
-//         });
-//     })();
+    const particleCount = 100;
+    let info = {
+        velocity: [particleCount],
+        acc: [particleCount]
+    }
+    const group = new THREE.Group();
+    //const acc = new THREE.Vector3(0, -0.001, 0);
     
-//     useFrame(({timestamp}) => {
-       
-//         if (splashMesh) {
-//             if(splashMesh.scale.z > 0.5){
-//                 splashMesh.scale.z = 0.1;
-//                 splashMesh.scale.y = 0.2;
-//                 splashMesh.position.y = 0.39765170216560364;
-//                 // splashMesh.scale.x = 1.5;
-//                 splashMesh.material.uniforms.vBroken.value = 0.8;
-//                 splashMesh.material.uniforms.vTextureRotation.value = Math.random() * 2;
-//             }
-//             else{
-//                 splashMesh.scale.z += 0.006;
-//                 splashMesh.scale.y += 0.006;
-//                 splashMesh.position.y -= 0.01;
-//                 if(splashMesh.scale.z < 0.3)
-//                     splashMesh.material.uniforms.vBroken.value = splashMesh.material.uniforms.vBroken.value - 0.02;
-//                 else{
-//                     if(splashMesh.material.uniforms.vBroken.value < 1)
-//                         splashMesh.material.uniforms.vBroken.value = splashMesh.material.uniforms.vBroken.value + 0.02;
-//                 }
-//             }
-            
-//             // splashMesh.scale.x -= 0.01;
-            
-//             group.position.copy(localPlayer.position);
-//             group.position.x += playerDir.x * 0.7;
-//             group.position.z += playerDir.z * 0.7;
-
-//             group.position.y = waterSurfacePos.y + 0.02;
-//             group.rotation.copy(localPlayer.rotation);
-//             splashMesh.material.uniforms.waterSurfacePos.value.copy(waterSurfacePos);
-//             splashMesh.material.uniforms.playerPos.value.set(localPlayer.position.x + playerDir.x, localPlayer.position.y, localPlayer.position.z + playerDir.z);
-            
-
-//         }
+    const _getGeometry = geometry => {
+        //console.log(geometry)
+        const geometry2 = new THREE.BufferGeometry();
+        ['position', 'normal', 'uv'].forEach(k => {
+        geometry2.setAttribute(k, geometry.attributes[k]);
+        });
+        geometry2.setIndex(geometry.index);
         
+        const positions = new Float32Array(particleCount * 3);
+        const positionsAttribute = new THREE.InstancedBufferAttribute(positions, 3);
+        geometry2.setAttribute('positions', positionsAttribute);
+
+        const color = new Float32Array(particleCount * 3);
+        const colorAttribute = new THREE.InstancedBufferAttribute(color, 3);
+        geometry2.setAttribute('color', colorAttribute);
+
+        const brokenAttribute = new THREE.InstancedBufferAttribute(new Float32Array(particleCount), 1);
+        brokenAttribute.setUsage(THREE.DynamicDrawUsage);
+        geometry2.setAttribute('broken', brokenAttribute);
         
-//     });
-//   }
+        // const quaternions = new Float32Array(particleCount * 4);
+        // for (let i = 0; i < particleCount; i++) {
+        //   identityQuaternion.toArray(quaternions, i * 4);
+        // }
+        // const quaternionsAttribute = new THREE.InstancedBufferAttribute(quaternions, 4);
+        // geometry2.setAttribute('quaternions', quaternionsAttribute);
+
+        const scales = new Float32Array(particleCount);
+        const scalesAttribute = new THREE.InstancedBufferAttribute(scales, 1);
+        geometry2.setAttribute('scales', scalesAttribute);
+
+        const opacityAttribute = new THREE.InstancedBufferAttribute(new Float32Array(particleCount), 1);
+        opacityAttribute.setUsage(THREE.DynamicDrawUsage);
+        geometry2.setAttribute('opacity', opacityAttribute);
+
+        const startTimeAttribute = new THREE.InstancedBufferAttribute(new Float32Array(particleCount), 1);
+        startTimeAttribute.setUsage(THREE.DynamicDrawUsage);
+        geometry2.setAttribute('startTime', startTimeAttribute);
+    
+        const textureRotation = new Float32Array(particleCount);
+        const textureRotAttribute = new THREE.InstancedBufferAttribute(textureRotation, 1);
+        geometry2.setAttribute('textureRotation', textureRotAttribute);
+
+        return geometry2;
+    };
+
+    const material= new THREE.ShaderMaterial({
+        uniforms: {
+            uTime: {
+                value: 0,
+            },
+            cameraBillboardQuaternion: {
+                value: new THREE.Quaternion(),
+            },
+            splashTexture: {
+                value: splashTexture2,
+            },
+            waterSurfacePos: {
+                value: new THREE.Vector3(),
+            },
+            noiseMap:{
+                value: noiseMap
+            },
+        },
+        vertexShader: `\
+            
+            ${THREE.ShaderChunk.common}
+            ${THREE.ShaderChunk.logdepthbuf_pars_vertex}
+        
+            
+            uniform float uTime;
+            uniform vec4 cameraBillboardQuaternion;
+            
+            
+            varying vec2 vUv;
+            varying vec3 vPos;
+            varying vec3 vColor;
+            varying float vOpacity;
+            varying float vBroken;
+            varying float vTextureRotation;
+
+            attribute float textureRotation;
+            attribute float broken;
+            attribute vec3 positions;
+            attribute vec3 color;
+            attribute float scales;
+            attribute float opacity;
+            
+            
+
+            vec3 rotateVecQuat(vec3 position, vec4 q) {
+                vec3 v = position.xyz;
+                return v + 2.0 * cross(q.xyz, cross(q.xyz, v) + q.w * v);
+            }
+            void main() {
+                vUv = uv;
+                vBroken = broken;
+                vTextureRotation = textureRotation;  
+                // vOpacity = opacity;
+                // vColor = color;
+                
+                vec3 pos = position;
+                pos = rotateVecQuat(pos, cameraBillboardQuaternion);
+                pos *= scales;
+                pos += positions;
+                
+                vec4 modelPosition = modelMatrix * vec4(pos, 1.0);
+                vec4 viewPosition = viewMatrix * modelPosition;
+                vec4 projectionPosition = projectionMatrix * viewPosition;
+                vPos = modelPosition.xyz;
+                gl_Position = projectionPosition;
+                ${THREE.ShaderChunk.logdepthbuf_vertex}
+            }
+        `,
+        fragmentShader: `\
+            ${THREE.ShaderChunk.logdepthbuf_pars_fragment}
+            uniform float uTime;
+            uniform sampler2D splashTexture;
+            uniform sampler2D noiseMap;
+            uniform vec3 waterSurfacePos;
+            varying vec2 vUv;
+            varying vec3 vPos;
+            varying vec3 vColor;
+            varying float vOpacity;
+            varying float vTextureRotation;
+            varying float vBroken;
+            #define PI 3.1415926
+
+            void main() {
+                float mid = 0.5;
+                vec2 rotated = vec2(cos(vTextureRotation*PI) * (vUv.x - mid) * 1.1 - sin(vTextureRotation*PI) * (vUv.y - mid) * 1.1 + mid,
+                            cos(vTextureRotation*PI) * (vUv.y - mid) * 1.1 + sin(vTextureRotation*PI) * (vUv.x - mid) * 1.1 + mid);
+                vec4 splash = texture2D(
+                                splashTexture,
+                                rotated
+                );
+                if(splash.r > 0.1){
+                    gl_FragColor = vec4(0.75, 0.75, 0.75, 1.0);
+                }
+                else{
+                    discard;
+                }
+                // if(vPos.y < waterSurfacePos.y){
+                //     discard;
+                // }
+                //gl_FragColor.a *= 0.5;
+                float broken = abs( sin( 1.0 - vBroken ) ) - texture2D( noiseMap, rotated * 0.8 ).g;
+                if ( broken < 0.0001 ) discard;
+                
+            ${THREE.ShaderChunk.logdepthbuf_fragment}
+            }
+        `,
+        side: THREE.DoubleSide,
+        transparent: true,
+        //blending: THREE.AdditiveBlending,
+        // depthWrite: false,
+        //blending: 1,
+
+    });
+    let mesh = null;
+    function addInstancedMesh() {
+        const geometry2 = new THREE.PlaneGeometry( 0.1, 0.1 );
+        const geometry = _getGeometry(geometry2);
+        mesh = new THREE.InstancedMesh(geometry, material, particleCount);
+        for(let i = 0; i < particleCount; i++){
+            info.velocity[i] = new THREE.Vector3();
+        }
+        app.add(mesh);
+    }
+    addInstancedMesh();
+        
+    
+    let playEffectSw = 0;
+    const localVector2 = new THREE.Vector3();
+    let rotateY = new THREE.Quaternion();
+    rotateY.setFromAxisAngle(new THREE.Vector3(0, 1, 0), -Math.PI / 2);
+    let lastStroke = null;
+    useFrame(({timestamp}) => {
+        localVector2.set(playerDir.x, playerDir.y, playerDir.z).applyQuaternion(rotateY);
+
+        
+
+        if (contactWater){
+            if(playEffectSw === 0)
+                playEffectSw = 1;
+        }
+        else{
+            if(playEffectSw === 2)
+                playEffectSw = 0;
+        }
+
+        if (mesh) {
+            
+            //console.log(Math.floor(currentSpeed * 10 + 1))
+            const brokenAttribute = mesh.geometry.getAttribute('broken');
+            const opacityAttribute = mesh.geometry.getAttribute('opacity');
+            const positionsAttribute = mesh.geometry.getAttribute('positions');
+            const scalesAttribute = mesh.geometry.getAttribute('scales');
+            const startTimeAttribute = mesh.geometry.getAttribute('startTime');
+            const colorAttribute = mesh.geometry.getAttribute('color');
+            const textureRotationAttribute = mesh.geometry.getAttribute('textureRotation');
+
+            if(
+                handStrokeStatus !== lastStroke
+                && localPlayer.getAction('swim').animationType === 'freestyle'
+                && localPlayer.getAction('swim').onSurface
+            ){
+                if(handStrokeStatus === 'right'){
+                    let currentEmmit = 0;
+                    for(let i = 0; i < particleCount; i++){
+                        if(brokenAttribute.getX(i) >= 1){
+                            info.velocity[i].x = (Math.random() - 0.5) * 0.1 + playerDir.x * 0.35 * (1 + currentSpeed) + localVector2.x * 0.1;
+                            info.velocity[i].y = 0.2 + Math.random() * 0.2;
+                            info.velocity[i].z = (Math.random() - 0.5) * 0.1 + playerDir.z * 0.35 * (1 + currentSpeed) + localVector2.z * 0.1;
+                            positionsAttribute.setXYZ(  i, 
+                                                        localPlayer.position.x + (Math.random() - 0.5) * 0.1 + info.velocity[i].x + playerDir.x * 0.15,
+                                                        waterSurfacePos.y,
+                                                        localPlayer.position.z + (Math.random() - 0.5) * 0.1 + info.velocity[i].z + playerDir.z * 0.15
+                            );
+                            info.velocity[i].divideScalar(10);
+                            info.acc[i] = -0.001 - currentSpeed * 0.0015;
+                            scalesAttribute.setX(i, 1 + Math.random());
+                            brokenAttribute.setX(i, 0.25 + Math.random() * 0.2);
+                            textureRotationAttribute.setX(i, Math.random() * 2);
+                            currentEmmit++;
+                        }
+                        if(currentEmmit >= 50){
+                            break;
+                        }
+                    }
+                    
+                }
+                else if(handStrokeStatus === 'left'){
+                    let currentEmmit = 0;
+                    for(let i = 0; i < particleCount; i++){
+                        if(brokenAttribute.getX(i) >= 1){
+                            info.velocity[i].x = (Math.random() - 0.5) * 0.1 + playerDir.x * 0.35 * (1 + currentSpeed) - localVector2.x * 0.1;
+                            info.velocity[i].y = 0.2 + Math.random() * 0.2;
+                            info.velocity[i].z = (Math.random() - 0.5) * 0.1 + playerDir.z * 0.35 * (1 + currentSpeed)  - localVector2.z * 0.1;
+                            positionsAttribute.setXYZ(  i, 
+                                                        localPlayer.position.x + (Math.random() - 0.5) * 0.1 + info.velocity[i].x + playerDir.x * 0.15,
+                                                        waterSurfacePos.y,
+                                                        localPlayer.position.z + (Math.random() - 0.5) * 0.1 + info.velocity[i].z + playerDir.z * 0.15
+                            );
+                            info.velocity[i].divideScalar(10);
+                            info.acc[i] = -0.001 - currentSpeed * 0.0015;
+                            scalesAttribute.setX(i, 1 + Math.random());
+                            brokenAttribute.setX(i, 0.25 + Math.random() * 0.2);
+                            textureRotationAttribute.setX(i, Math.random() * 2);
+                            currentEmmit++;
+                        }
+                        if(currentEmmit >= 50){
+                            break;
+                        }
+                    }
+                    
+                }
+                    
+                
+            }
+            for (let i = 0; i < particleCount; i++){
+                if(currentSpeed < 0.2){
+                    positionsAttribute.setXYZ(  i, 
+                                            positionsAttribute.getX(i),
+                                            positionsAttribute.getY(i) + info.velocity[i].y,
+                                            positionsAttribute.getZ(i) 
+                    ); 
+                }
+                else{
+                    positionsAttribute.setXYZ(  i, 
+                                            positionsAttribute.getX(i) + info.velocity[i].x,
+                                            positionsAttribute.getY(i) + info.velocity[i].y,
+                                            positionsAttribute.getZ(i) + info.velocity[i].z
+                    );
+                }
+                
+                if(brokenAttribute.getX(i) < 1){
+                    //if(info.velocity[i].y < 0)
+                        brokenAttribute.setX(i, brokenAttribute.getX(i) + 0.016);
+                        scalesAttribute.setX(i, scalesAttribute.getX(i) + 0.01);
+                    // else{
+                    //     brokenAttribute.setX(i, brokenAttribute.getX(i) + 0.005);
+                    // }
+                }
+                info.velocity[i].y += info.acc[i];
+            }
+            
+            
+            mesh.instanceMatrix.needsUpdate = true;
+            brokenAttribute.needsUpdate = true;
+            positionsAttribute.needsUpdate = true;
+            opacityAttribute.needsUpdate = true;
+            scalesAttribute.needsUpdate = true;
+            startTimeAttribute.needsUpdate = true;
+            colorAttribute.needsUpdate = true;
+            textureRotationAttribute.needsUpdate = true;
+            
+            mesh.material.uniforms.uTime.value=timestamp/1000;
+            mesh.material.uniforms.cameraBillboardQuaternion.value.copy(camera.quaternion);
+            mesh.material.uniforms.waterSurfacePos.value.copy(waterSurfacePos);
+
+            if(playEffectSw === 1){
+                playEffectSw = 2;
+            }
+
+        }
+        app.updateMatrixWorld();
+        lastStroke = handStrokeStatus;
+    
+    });
+  }
+ 
 //################################################################ falling and raising splash ###########################################################
 {
         
@@ -4018,286 +4199,897 @@ export default (e) => {
       
       });
   }
-  //######################################################################  3 layers ripple ######################################################################
+  //###################################################################### falling splash in ripple ######################################################################
   {
-      const identityQuaternion = new THREE.Quaternion();
-      const count = 3;
+    const particleCount = 5;
+    const group=new THREE.Group();
 
-      
-      const _getRippleGeometry = geometry => {
-          const geometry2 = new THREE.BufferGeometry();
-          ['position', 'normal', 'uv'].forEach(k => {
-            geometry2.setAttribute(k, geometry.attributes[k]);
-          });
-          geometry2.setIndex(geometry.index);
-          
-          const positions = new Float32Array(count * 3);
-          const positionsAttribute = new THREE.InstancedBufferAttribute(positions, 3);
-          geometry2.setAttribute('positions', positionsAttribute);
-          const quaternions = new Float32Array(count * 4);
-          for (let i = 0; i < count; i++) {
-            identityQuaternion.toArray(quaternions, i * 4);
-          }
-          const quaternionsAttribute = new THREE.InstancedBufferAttribute(quaternions, 4);
-          geometry2.setAttribute('quaternions', quaternionsAttribute);
+    //##################################################### get ripple geometry #####################################################
+    const identityQuaternion = new THREE.Quaternion();
+    const _getRippleGeometry = geometry => {
+        const geometry2 = new THREE.BufferGeometry();
+        ['position', 'normal', 'uv'].forEach(k => {
+          geometry2.setAttribute(k, geometry.attributes[k]);
+        });
+        geometry2.setIndex(geometry.index);
+        
+        const positions = new Float32Array(particleCount * 3);
+        const positionsAttribute = new THREE.InstancedBufferAttribute(positions, 3);
+        geometry2.setAttribute('positions', positionsAttribute);
+        const quaternions = new Float32Array(particleCount * 4);
+        for (let i = 0; i < particleCount; i++) {
+          identityQuaternion.toArray(quaternions, i * 4);
+        }
+        const quaternionsAttribute = new THREE.InstancedBufferAttribute(quaternions, 4);
+        geometry2.setAttribute('quaternions', quaternionsAttribute);
 
-          // const startTimes = new Float32Array(count);
-          // const startTimesAttribute = new THREE.InstancedBufferAttribute(startTimes, 1);
-          // geometry2.setAttribute('startTimes', startTimesAttribute);
+        const waveFreq = new Float32Array(particleCount);
+        const waveFreqAttribute = new THREE.InstancedBufferAttribute(waveFreq, 1);
+        geometry2.setAttribute('waveFreq', waveFreqAttribute);
 
-          const scales = new Float32Array(count);
-          const scaleAttribute = new THREE.InstancedBufferAttribute(scales, 1);
-          geometry2.setAttribute('scales', scaleAttribute);
-      
-          return geometry2;
-      };
+        const opacityAttribute = new THREE.InstancedBufferAttribute(new Float32Array(particleCount), 1);
+        opacityAttribute.setUsage(THREE.DynamicDrawUsage);
+        geometry2.setAttribute('opacity', opacityAttribute);
 
-      //######################################################################### material #########################################################################
-      const rippleMaterial = new THREE.ShaderMaterial({
-          uniforms: {
-              uTime: {
-                  value: 0,
-              },
-              opacity: {
-                  value: 0,
-              },
-              uBroken: {
-                  value: 0,
-              },
-              perlinnoise:{
-                  value: rippleTexture
-              },
-              noiseMap:{
-                  value: noiseMap
-              }
-          },
-          vertexShader: `\
-              
-              ${THREE.ShaderChunk.common}
-              ${THREE.ShaderChunk.logdepthbuf_pars_vertex}
-          
-          
-              uniform float uTime;
-      
-              varying vec2 vUv;
-              varying vec3 vPos;
-              attribute vec3 positions;
-              attribute float scales;
-              attribute vec4 quaternions;
+        const brokenAttribute = new THREE.InstancedBufferAttribute(new Float32Array(particleCount), 1);
+        brokenAttribute.setUsage(THREE.DynamicDrawUsage);
+        geometry2.setAttribute('broken', brokenAttribute);
 
-              vec3 qtransform(vec3 v, vec4 q) { 
-                return v + 2.0*cross(cross(v, q.xyz ) + q.w*v, q.xyz);
-              }
-          
-              void main() {
-              vUv=uv;
-              vPos=position;
-              vec3 pos = position;
-              pos+=positions;
-              pos*=scales;
-              pos = qtransform(pos, quaternions);
-              //pos.y=cos(uTime/100.);
-              vec4 modelPosition = modelMatrix * vec4(pos, 1.0);
-              vec4 viewPosition = viewMatrix * modelPosition;
-              vec4 projectionPosition = projectionMatrix * viewPosition;
-      
-              gl_Position = projectionPosition;
-              ${THREE.ShaderChunk.logdepthbuf_vertex}
-              }
-          `,
-          fragmentShader: `\
-              ${THREE.ShaderChunk.logdepthbuf_pars_fragment}
-              uniform float uTime;
-              uniform float opacity;
-              uniform float uBroken;
-              varying vec2 vUv;
-              varying vec3 vPos;
-              uniform sampler2D perlinnoise;
-              uniform sampler2D noiseMap;
-              
-              
-              
-              
-              
-              void main() {
-                  vec3 ripple = texture2D(
-                      perlinnoise,
-                      mod(1.*vec2(5.*vUv.x,2.*vUv.y-uTime*5. ),1.)
-                  ).rgb; 
+        const scales = new Float32Array(particleCount);
+        const scaleAttribute = new THREE.InstancedBufferAttribute(scales, 1);
+        geometry2.setAttribute('scales', scaleAttribute);
 
-                  vec3 noise = texture2D(
-                      noiseMap,
-                      mod(1.*vec2(2.*vUv.x,2.*vUv.y-uTime*5. ),1.)
-                  ).rgb;
-                  
+        const playerRotation = new Float32Array(particleCount);
+        const playerRotAttribute = new THREE.InstancedBufferAttribute(playerRotation, 1);
+        geometry2.setAttribute('playerRotation', playerRotAttribute);
+
+        const speed = new Float32Array(particleCount);
+        const speedAttribute = new THREE.InstancedBufferAttribute(speed, 1);
+        geometry2.setAttribute('speed', speedAttribute);
+    
+        return geometry2;
+    };
+
+    //##################################################### material #####################################################
+    const splashMaterial = new THREE.ShaderMaterial({
+        uniforms: {
+            uTime: {
+                value: 0,
+            },
+            noiseMap:{
+                value: noiseMap
+            },
+            perlinnoise:{
+                value: splashTexture
+            }
+        },
+        vertexShader: `\
+            
+            ${THREE.ShaderChunk.common}
+            ${THREE.ShaderChunk.logdepthbuf_pars_vertex}
+        
+        
+            uniform float uTime;
+    
+            varying vec2 vUv;
+            varying vec3 vPos;
+            varying float vBroken;
+            varying float vOpacity;
+            varying float vWaveFreq;
+            varying float vSpeed;
+            attribute vec3 positions;
+            attribute float scales;
+            attribute float opacity;
+            attribute float waveFreq;
+            attribute vec4 quaternions;
+            attribute float broken;
+            attribute float speed;
+            attribute float playerRotation;
+            vec3 qtransform(vec3 v, vec4 q) { 
+              return v + 2.0*cross(cross(v, q.xyz ) + q.w*v, q.xyz);
+            }
+        
+            void main() {
+
+                mat3 rotY =
+                    mat3(cos(playerRotation), 0.0, -sin(playerRotation), 0.0, 1.0, 0.0, sin(playerRotation), 0.0, cos(playerRotation));
+                mat3 rotX =
+                    mat3(1.0, 0.0, 0.0, 0.0, cos(PI/2.), sin(PI/2.), 0.0, -sin(PI/2.), cos(PI/2.));
+                
+                mat3 rotZ = mat3(
+                    cos(-PI/2.), sin(-PI/2.), 0.0,
+                    -sin(-PI/2.), cos(-PI/2.), 0.0, 
+                    0.0, 0.0 , 1.0
+                );
+
+            vOpacity=opacity;
+            vBroken=broken;
+            vWaveFreq=waveFreq;
+            vSpeed=speed;
+            vUv=uv;
+            vPos=position;
+            vec3 pos = position;
+            pos = qtransform(pos, quaternions);
+            pos*=rotY;
+            pos*=scales;
+            pos+=positions;
+            //pos*=rotX;
+            
+            
+            
+            vec4 modelPosition = modelMatrix * vec4(pos, 1.0);
+            vec4 viewPosition = viewMatrix * modelPosition;
+            vec4 projectionPosition = projectionMatrix * viewPosition;
+    
+            gl_Position = projectionPosition;
+            ${THREE.ShaderChunk.logdepthbuf_vertex}
+            }
+        `,
+        fragmentShader: `\
+            ${THREE.ShaderChunk.logdepthbuf_pars_fragment}
+            uniform float uTime;
+            varying float vWaveFreq;
+            varying float vBroken;
+            varying float vOpacity;
+            varying float vSpeed;
+            varying vec2 vUv;
+            varying vec3 vPos;
+            uniform sampler2D noiseMap;
+            uniform sampler2D perlinnoise;
+            //#define PI 3.1415926
 
 
-                  gl_FragColor = vec4(ripple.rgb,1.0);
-                  
-                  if(gl_FragColor.r >= 0.65){
-                     gl_FragColor =  vec4(1.,1.,1.,1.);
-                  }else{
-                      gl_FragColor = vec4(0.,0.,1.,0.);
-                  }
-                  float broken = abs( sin( pow(1.0 - vUv.y,1.) ) ) - noise.g;
-                  if ( broken < 0.0001 ) discard;
-                  gl_FragColor.a*=opacity;
-                  if(uTime>0.48)
-                      gl_FragColor.a=0.;
+            void main() {
+                
+                vec4 splash = texture2D(
+                    perlinnoise,
+                    vUv
+                );
+                if(splash.r > 0.1){
+                    gl_FragColor = vec4(0.6, 0.6, 0.6, 1.0);
+                }
+                else{
+                    discard;
+                }
+                
+                // gl_FragColor.a*=vOpacity;
+                
+                
+                //float broken = abs( sin( 1.0 - vBroken ) ) - noise2.g;
+                float broken = abs( sin( 1.0 - vBroken ) ) - texture2D( noiseMap, vUv ).g;
+                if ( broken < 0.0001 ) discard;
+                
+            ${THREE.ShaderChunk.logdepthbuf_fragment}
+            }
+        `,
+        side: THREE.DoubleSide,
+        transparent: true,
+        // depthWrite: false,
+        //blending: THREE.AdditiveBlending,
+        
+    });
+    
+   
 
-                  if(gl_FragColor.a > 0.){
-                        gl_FragColor = vec4(0.9, 0.9, 0.9, 1.0);
-                  }
-                  else{
+    
+
+    //##################################################### object #####################################################
+    let rippleMesh=null;
+    let quaternion = new THREE.Quaternion();
+    
+    const addInstancedMesh2=()=>{
+        const geometry2 = new THREE.PlaneGeometry( 0.5, 0.5 );
+        const geometry =_getRippleGeometry(geometry2)
+        rippleMesh = new THREE.InstancedMesh(
+            geometry,
+            splashMaterial,
+            particleCount
+        );
+        group.add(rippleMesh);
+        app.add(group);
+        const brokenAttribute = rippleMesh.geometry.getAttribute('broken');
+        const quaternionsAttribute = rippleMesh.geometry.getAttribute('quaternions');
+        for (let i = 0; i < particleCount; i++) {
+            quaternion.setFromAxisAngle(new THREE.Vector3(1,0,0),-Math.PI/2);
+            quaternionsAttribute.setXYZW(i,quaternion.x,quaternion.y,quaternion.z,quaternion.w);
+            brokenAttribute.setX(i, 1);
+        }
+        brokenAttribute.needsUpdate = true;
+        quaternionsAttribute.needsUpdate = true;
+    }
+    addInstancedMesh2();
+    app.updateMatrixWorld();
+   
+    let jumpSw=0;
+    useFrame(({timestamp}) => {
+        if (contactWater){
+            if(jumpSw===0)
+                jumpSw=1;
+        }
+        else{
+            if(jumpSw=2)
+                jumpSw=0;
+        }
+       
+        
+        
+        if (rippleMesh) {
+            const opacityAttribute = rippleMesh.geometry.getAttribute('opacity');
+            const brokenAttribute = rippleMesh.geometry.getAttribute('broken');
+            const waveFreqAttribute = rippleMesh.geometry.getAttribute('waveFreq');
+            const positionsAttribute = rippleMesh.geometry.getAttribute('positions');
+            const scalesAttribute = rippleMesh.geometry.getAttribute('scales');
+            const quaternionsAttribute = rippleMesh.geometry.getAttribute('quaternions');
+            const speedAttribute = rippleMesh.geometry.getAttribute('speed');
+            const playerRotationAttribute = rippleMesh.geometry.getAttribute('playerRotation');
+            let falling = fallindSpeed > 10 ? 10 : fallindSpeed; 
+            for (let i = 0; i < particleCount; i++) {
+                if(jumpSw===1){
+                    playerRotationAttribute.setX(i, Math.random() * 2 * Math.PI);
+                    waveFreqAttribute.setX(i, Math.random());
+                    //speedAttribute.setX(i,currentSpeed);
+                    brokenAttribute.setX(i, 0.2 + Math.random() * (1 - falling / 10));
+                    scalesAttribute.setX(i, Math.random() * 0.1);
+                    opacityAttribute.setX(i,0.15);
+                    positionsAttribute.setXYZ(i, (Math.random() - 0.5) * 0.5 * (falling / 10), 0, (Math.random() - 0.5) * 0.5 * (falling / 10));
+                }
+                
+                scalesAttribute.setX(i,scalesAttribute.getX(i) + 0.04);
+                if(brokenAttribute.getX(i)<1)
+                    brokenAttribute.setX(i, brokenAttribute.getX(i) + 0.007);
+                
+
+            }
+            
+            
+            
+            if(jumpSw==1){
+                group.position.copy(localPlayer.position);
+                jumpSw=2;
+            }
+            
+            
+            group.position.y = waterSurfacePos.y + 0.01;
+            positionsAttribute.needsUpdate = true;
+            opacityAttribute.needsUpdate = true;
+            scalesAttribute.needsUpdate = true;
+            speedAttribute.needsUpdate = true;
+            brokenAttribute.needsUpdate = true;
+            waveFreqAttribute.needsUpdate = true;
+            quaternionsAttribute.needsUpdate = true;
+            playerRotationAttribute.needsUpdate = true;
+            rippleMesh.material.uniforms.uTime.value=timestamp/1000;
+
+        }
+        app.updateMatrixWorld();
+        
+    });
+  }
+  //###################################################################### ripple ######################################################################
+ {
+    let splashMesh;
+    const group = new THREE.Group();
+    (async () => {
+        const u = `${baseUrl}/assets/ripple.glb`;
+        const splashMeshApp = await new Promise((accept, reject) => {
+            const {gltfLoader} = useLoaders();
+            gltfLoader.load(u, accept, function onprogress() {}, reject);
+            
+        });
+        group.add(splashMeshApp.scene)
+        app.add(group);
+        splashMesh = splashMeshApp.scene.children[0];
+        splashMesh.scale.set(0, 0, 0);
+        splashMesh.material= new THREE.ShaderMaterial({
+            uniforms: {
+                uTime: {
+                    value: 0,
+                },
+                vBroken: {
+                    value: 0,
+                },
+                vTextureRotation:{
+                    value:0
+                },
+                rippleTexture:{
+                    value: rippleTexture2
+                },
+                maskTexture:{
+                    value: maskTexture
+                },
+                voronoiNoiseTexture:{
+                    value:voronoiNoiseTexture
+                },
+                waterSurfacePos:{
+                    value: new THREE.Vector3()
+                },
+                playerPos:{
+                    value: new THREE.Vector3()
+                },
+                noiseMap:{
+                    value: noiseMap
+                },
+            },
+            vertexShader: `\
+                
+                ${THREE.ShaderChunk.common}
+                ${THREE.ShaderChunk.logdepthbuf_pars_vertex}
+            
+            
+                uniform float uTime;
+        
+                varying vec2 vUv;
+                varying vec3 vPos;
+                varying vec3 vPos2;
+            
+                void main() {
+                    vUv=uv;
+                    vPos2=position;
+                    vec4 modelPosition = modelMatrix * vec4(position, 1.0);
+                    vec4 viewPosition = viewMatrix * modelPosition;
+                    vec4 projectionPosition = projectionMatrix * viewPosition;
+            
+                    gl_Position = projectionPosition;
+                    vPos = modelPosition.xyz;
+                    ${THREE.ShaderChunk.logdepthbuf_vertex}
+                }
+            `,
+            fragmentShader: `\
+                ${THREE.ShaderChunk.logdepthbuf_pars_fragment}
+                uniform float uTime;
+                uniform float vTextureRotation;
+                uniform float vBroken;
+
+                uniform sampler2D rippleTexture;
+                uniform sampler2D noiseMap;
+                uniform sampler2D maskTexture;
+                uniform sampler2D voronoiNoiseTexture;
+                
+                uniform vec3 waterSurfacePos;
+                uniform vec3 playerPos;
+                
+                
+                varying vec2 vUv;
+                varying vec3 vPos;
+                varying vec3 vPos2;
+                #define PI 3.1415926
+
+                void main() {
+                    vec2 mainUv = vec2(
+                                        vUv.x , 
+                                        vUv.y - uTime / 1.
+                                    ); 
+                    vec4 voronoiNoise = texture2D(
+                                        voronoiNoiseTexture,
+                                        mainUv
+                    );
+
+                    vec2 distortionUv = mix(vUv, mainUv + voronoiNoise.rg, 0.3);
+                        
+                    
+                    vec4 ripple = texture2D(
+                                    rippleTexture,
+                                    (distortionUv + mainUv) / 2.
+                    );
+                    vec4 noise = texture2D(
+                                    noiseMap,
+                                    (distortionUv + mainUv) / 2.
+                    );
+                    if(ripple.a > 0.5){
+                        gl_FragColor = ripple;
+                    }
+                    else{
                         discard;
-                  }
+                    }
+                   
+                    // if(vPos.y < waterSurfacePos.y){
+                    //     discard;
+                    // }
+                    
+
+                    float broken = abs( sin( 1.0 - vBroken ) ) - noise.g;
+                    if ( broken < 0.0001 ) discard;
+                    gl_FragColor.rgb *= 0.8;
+                    
+                ${THREE.ShaderChunk.logdepthbuf_fragment}
+                }
+            `,
+            side: THREE.DoubleSide,
+            transparent: true,
+            // depthWrite: false,
+            blending: THREE.AdditiveBlending,
+        });
+    })();
+    
+    let playEffectSw=0;
+    useFrame(({timestamp}) => {
+        if (contactWater){
+            if(playEffectSw === 0 && waterSurfacePos.y < localPlayer.position.y)
+                playEffectSw = 1;
+        }
+        else{
+            if(playEffectSw === 2)
+                playEffectSw = 0;
+        }
+       
+        if (splashMesh) {
+            
+            // splashMesh.scale.z += 0.006;
+            // splashMesh.scale.y += 0.006;
+            // splashMesh.position.y -= 0.01;
+            // if(splashMesh.scale.z < 0.3)
+            //     splashMesh.material.uniforms.vBroken.value = splashMesh.material.uniforms.vBroken.value - 0.02;
+            // else{
+            //     if(splashMesh.material.uniforms.vBroken.value < 1)
+            //         splashMesh.material.uniforms.vBroken.value = splashMesh.material.uniforms.vBroken.value + 0.02;
+            // }
+            if(playEffectSw === 1){
+                group.position.copy(localPlayer.position);
+                group.position.y = waterSurfacePos.y + 0.01;
+                splashMesh.material.uniforms.vBroken.value = 0.1;
+                splashMesh.scale.set(0.2, 1, 0.2);
+                splashMesh.material.uniforms.uTime.value = 120;
+            }
+            let falling = fallindSpeed > 10 ? 10 : fallindSpeed;
+            if(splashMesh.material.uniforms.vBroken.value < 1){
+                if(splashMesh.scale.x > 0.15 * (1 + falling * 0.1))
+                    splashMesh.material.uniforms.vBroken.value = splashMesh.material.uniforms.vBroken.value * 1.025;
+                splashMesh.scale.x += 0.007 * (1 + falling * 0.1);
+                // splashMesh.scale.y += 0.01;
+                splashMesh.scale.z += 0.007 * (1 + falling * 0.1);
+            }
+                
+            
+            if(playEffectSw === 1){
+                playEffectSw = 2;
+            }
+            splashMesh.material.uniforms.uTime.value += 0.015;
+            group.updateMatrixWorld();
+
+        }
+        
+        
+    });
+  }
+  //######################################################################  3 layers ripple ######################################################################
+//   {
+//       const identityQuaternion = new THREE.Quaternion();
+//       const count = 3;
+
+      
+//       const _getRippleGeometry = geometry => {
+//           const geometry2 = new THREE.BufferGeometry();
+//           ['position', 'normal', 'uv'].forEach(k => {
+//             geometry2.setAttribute(k, geometry.attributes[k]);
+//           });
+//           geometry2.setIndex(geometry.index);
+          
+//           const positions = new Float32Array(count * 3);
+//           const positionsAttribute = new THREE.InstancedBufferAttribute(positions, 3);
+//           geometry2.setAttribute('positions', positionsAttribute);
+//           const quaternions = new Float32Array(count * 4);
+//           for (let i = 0; i < count; i++) {
+//             identityQuaternion.toArray(quaternions, i * 4);
+//           }
+//           const quaternionsAttribute = new THREE.InstancedBufferAttribute(quaternions, 4);
+//           geometry2.setAttribute('quaternions', quaternionsAttribute);
+
+//           // const startTimes = new Float32Array(count);
+//           // const startTimesAttribute = new THREE.InstancedBufferAttribute(startTimes, 1);
+//           // geometry2.setAttribute('startTimes', startTimesAttribute);
+
+//           const scales = new Float32Array(count);
+//           const scaleAttribute = new THREE.InstancedBufferAttribute(scales, 1);
+//           geometry2.setAttribute('scales', scaleAttribute);
+      
+//           return geometry2;
+//       };
+
+//       //######################################################################### material #########################################################################
+//       const rippleMaterial = new THREE.ShaderMaterial({
+//           uniforms: {
+//               uTime: {
+//                   value: 0,
+//               },
+//               opacity: {
+//                   value: 0,
+//               },
+//               uBroken: {
+//                   value: 0,
+//               },
+//               perlinnoise:{
+//                   value: rippleTexture
+//               },
+//               noiseMap:{
+//                   value: noiseMap
+//               }
+//           },
+//           vertexShader: `\
+              
+//               ${THREE.ShaderChunk.common}
+//               ${THREE.ShaderChunk.logdepthbuf_pars_vertex}
+          
+          
+//               uniform float uTime;
+      
+//               varying vec2 vUv;
+//               varying vec3 vPos;
+//               attribute vec3 positions;
+//               attribute float scales;
+//               attribute vec4 quaternions;
+
+//               vec3 qtransform(vec3 v, vec4 q) { 
+//                 return v + 2.0*cross(cross(v, q.xyz ) + q.w*v, q.xyz);
+//               }
+          
+//               void main() {
+//               vUv=uv;
+//               vPos=position;
+//               vec3 pos = position;
+//               pos+=positions;
+//               pos*=scales;
+//               pos = qtransform(pos, quaternions);
+//               //pos.y=cos(uTime/100.);
+//               vec4 modelPosition = modelMatrix * vec4(pos, 1.0);
+//               vec4 viewPosition = viewMatrix * modelPosition;
+//               vec4 projectionPosition = projectionMatrix * viewPosition;
+      
+//               gl_Position = projectionPosition;
+//               ${THREE.ShaderChunk.logdepthbuf_vertex}
+//               }
+//           `,
+//           fragmentShader: `\
+//               ${THREE.ShaderChunk.logdepthbuf_pars_fragment}
+//               uniform float uTime;
+//               uniform float opacity;
+//               uniform float uBroken;
+//               varying vec2 vUv;
+//               varying vec3 vPos;
+//               uniform sampler2D perlinnoise;
+//               uniform sampler2D noiseMap;
+              
+              
+              
+              
+              
+//               void main() {
+//                   vec3 ripple = texture2D(
+//                       perlinnoise,
+//                       mod(1.*vec2(5.*vUv.x,2.*vUv.y-uTime*5. ),1.)
+//                   ).rgb; 
+
+//                   vec3 noise = texture2D(
+//                       noiseMap,
+//                       mod(1.*vec2(2.*vUv.x,2.*vUv.y-uTime*5. ),1.)
+//                   ).rgb;
                   
-                  //gl_FragColor=vec4(1.0,1.0,0.,1.0);
-              ${THREE.ShaderChunk.logdepthbuf_fragment}
-              }
-          `,
-          side: THREE.DoubleSide,
-          transparent: true,
-        //   depthWrite: false,
-        //   blending: THREE.AdditiveBlending,
-          
-      });
 
 
-      let rippleApp;
-      let group = new THREE.Group();
-      (async () => {
-          const u = `${baseUrl}/assets/torus2.glb`;
-          rippleApp = await new Promise((accept, reject) => {
-              const {gltfLoader} = useLoaders();
-              gltfLoader.load(u, accept, function onprogress() {}, reject);
-              
-          });
-          rippleApp.scene.traverse(o => {
-              if (o.isMesh) {
-                addInstancedMesh(o.geometry);
-              }
-          });
-          
-          
-      })();
+//                   gl_FragColor = vec4(ripple.rgb,1.0);
+                  
+//                   if(gl_FragColor.r >= 0.65){
+//                      gl_FragColor =  vec4(1.,1.,1.,1.);
+//                   }else{
+//                       gl_FragColor = vec4(0.,0.,1.,0.);
+//                   }
+//                   float broken = abs( sin( pow(1.0 - vUv.y,1.) ) ) - noise.g;
+//                   if ( broken < 0.0001 ) discard;
+//                   gl_FragColor.a*=opacity;
+//                   if(uTime>0.48)
+//                       gl_FragColor.a=0.;
 
-      let quaternion = new THREE.Quaternion();
-      let euler = new THREE.Euler();
-      let mesh=null;
-      const addInstancedMesh=(rippleGeometry)=>{
-          const geometry = _getRippleGeometry(rippleGeometry);
-          mesh = new THREE.InstancedMesh(
-              geometry,
-              rippleMaterial,
-              count
-          );
-          group.add(mesh);
-          app.add(group);
-          const positionsAttribute = mesh.geometry.getAttribute('positions');
-          const scalesAttribute = mesh.geometry.getAttribute('scales');
-          const quaternionsAttribute = mesh.geometry.getAttribute('quaternions');
-          for (let i = 0; i < count; i++) {
+//                   if(gl_FragColor.a > 0.){
+//                         gl_FragColor = vec4(0.9, 0.9, 0.9, 1.0);
+//                   }
+//                   else{
+//                         discard;
+//                   }
+                  
+//                   //gl_FragColor=vec4(1.0,1.0,0.,1.0);
+//               ${THREE.ShaderChunk.logdepthbuf_fragment}
+//               }
+//           `,
+//           side: THREE.DoubleSide,
+//           transparent: true,
+//         //   depthWrite: false,
+//         //   blending: THREE.AdditiveBlending,
+          
+//       });
+
+
+//       let rippleApp;
+//       let group = new THREE.Group();
+//       (async () => {
+//           const u = `${baseUrl}/assets/torus2.glb`;
+//           rippleApp = await new Promise((accept, reject) => {
+//               const {gltfLoader} = useLoaders();
+//               gltfLoader.load(u, accept, function onprogress() {}, reject);
               
-              let randScale = 0.5+0.4*i*(Math.random());
-              let randPos = 0.15*(Math.random());
-              positionsAttribute.setXYZ(i, randPos, (Math.random()-0.5)*0.5, randPos);
-              scalesAttribute.setX(i, randScale);
+//           });
+//           rippleApp.scene.traverse(o => {
+//               if (o.isMesh) {
+//                 addInstancedMesh(o.geometry);
+//               }
+//           });
+          
+          
+//       })();
+
+//       let quaternion = new THREE.Quaternion();
+//       let euler = new THREE.Euler();
+//       let mesh=null;
+//       const addInstancedMesh=(rippleGeometry)=>{
+//           const geometry = _getRippleGeometry(rippleGeometry);
+//           mesh = new THREE.InstancedMesh(
+//               geometry,
+//               rippleMaterial,
+//               count
+//           );
+//           group.add(mesh);
+//           app.add(group);
+//           const positionsAttribute = mesh.geometry.getAttribute('positions');
+//           const scalesAttribute = mesh.geometry.getAttribute('scales');
+//           const quaternionsAttribute = mesh.geometry.getAttribute('quaternions');
+//           for (let i = 0; i < count; i++) {
               
-              euler.x=(Math.random()-0.5)*0.25;
-              euler.y=(Math.random()-0.5);
-              euler.z=(Math.random()-0.5)*0.25;
+//               let randScale = 0.5+0.4*i*(Math.random());
+//               let randPos = 0.15*(Math.random());
+//               positionsAttribute.setXYZ(i, randPos, (Math.random()-0.5)*0.5, randPos);
+//               scalesAttribute.setX(i, randScale);
+              
+//               euler.x=(Math.random()-0.5)*0.25;
+//               euler.y=(Math.random()-0.5);
+//               euler.z=(Math.random()-0.5)*0.25;
               
               
-              quaternion.setFromEuler(euler);
-              quaternionsAttribute.setXYZW(i,quaternion.x,quaternion.y,quaternion.z,quaternion.w);
+//               quaternion.setFromEuler(euler);
+//               quaternionsAttribute.setXYZW(i,quaternion.x,quaternion.y,quaternion.z,quaternion.w);
               
              
-          }
-          positionsAttribute.needsUpdate = true;
-          scalesAttribute.needsUpdate = true;
-          quaternionsAttribute.needsUpdate = true;
-      }
+//           }
+//           positionsAttribute.needsUpdate = true;
+//           scalesAttribute.needsUpdate = true;
+//           quaternionsAttribute.needsUpdate = true;
+//       }
 
-      app.updateMatrixWorld();
+//       app.updateMatrixWorld();
 
       
-      let playEffectSw=0;
-      useFrame(({timestamp}) => {
-          if (contactWater ){
-              if(playEffectSw === 0 && waterSurfacePos.y < localPlayer.position.y)
-                  playEffectSw = 1;
-          }
-          else{
-              if(playEffectSw === 2)
-                  playEffectSw = 0;
-          }
-          if (mesh) {
-              const positionsAttribute = mesh.geometry.getAttribute('positions');
-              const scalesAttribute = mesh.geometry.getAttribute('scales');
-              const quaternionsAttribute = mesh.geometry.getAttribute('quaternions');
-              let falling = fallindSpeed > 10 ? 10 : fallindSpeed;
-              for (let i = 0; i < count; i++) {
-                  if(playEffectSw === 1){
+//       let playEffectSw=0;
+//       useFrame(({timestamp}) => {
+//           if (contactWater ){
+//               if(playEffectSw === 0 && waterSurfacePos.y < localPlayer.position.y)
+//                   playEffectSw = 1;
+//           }
+//           else{
+//               if(playEffectSw === 2)
+//                   playEffectSw = 0;
+//           }
+//           if (mesh) {
+//               const positionsAttribute = mesh.geometry.getAttribute('positions');
+//               const scalesAttribute = mesh.geometry.getAttribute('scales');
+//               const quaternionsAttribute = mesh.geometry.getAttribute('quaternions');
+//               let falling = fallindSpeed > 10 ? 10 : fallindSpeed;
+//               for (let i = 0; i < count; i++) {
+//                   if(playEffectSw === 1){
                       
-                      let randScale = (0.3 * (falling / 10) * (i + 1)) / 3;
-                      scalesAttribute.setX(i, randScale * 2);
-                      if(fallindSpeed <= 6){
-                          if(i !== 2){
-                              scalesAttribute.setX(i, 0);
-                          }
-                      }
+//                       let randScale = (0.3 * (falling / 10) * (i + 1)) / 3;
+//                       scalesAttribute.setX(i, randScale * 2);
+//                       if(fallindSpeed <= 6){
+//                           if(i !== 2){
+//                               scalesAttribute.setX(i, 0);
+//                           }
+//                       }
                       
-                      positionsAttribute.setXYZ(i, 0, (Math.random()-0.5)*0.1, 0);
-                      
-                      
-                      euler.x=(Math.random()-0.5)*0.05;
-                      euler.y=(Math.random()-0.5);
-                      euler.z=(Math.random()-0.5)*0.05;
+//                       positionsAttribute.setXYZ(i, 0, (Math.random()-0.5)*0.1, 0);
                       
                       
-                      quaternion.setFromEuler(euler);
-                      quaternionsAttribute.setXYZW(i,quaternion.x,quaternion.y,quaternion.z,quaternion.w);
-                  }
-                  if(scalesAttribute.getX(i) > 0)
-                      scalesAttribute.setX(i, scalesAttribute.getX(i) + 0.01 * (i + 1) * 0.25);
+//                       euler.x=(Math.random()-0.5)*0.05;
+//                       euler.y=(Math.random()-0.5);
+//                       euler.z=(Math.random()-0.5)*0.05;
+                      
+                      
+//                       quaternion.setFromEuler(euler);
+//                       quaternionsAttribute.setXYZW(i,quaternion.x,quaternion.y,quaternion.z,quaternion.w);
+//                   }
+//                   if(scalesAttribute.getX(i) > 0)
+//                       scalesAttribute.setX(i, scalesAttribute.getX(i) + 0.01 * (i + 1) * 0.25);
   
-              }
-              positionsAttribute.needsUpdate = true;
-              scalesAttribute.needsUpdate = true;
-              quaternionsAttribute.needsUpdate = true;
-          }
+//               }
+//               positionsAttribute.needsUpdate = true;
+//               scalesAttribute.needsUpdate = true;
+//               quaternionsAttribute.needsUpdate = true;
+//           }
 
          
          
           
-          if(playEffectSw === 1){
-              group.position.copy(localPlayer.position);
-              rippleMaterial.uniforms.uTime.value=0.35;
-              rippleMaterial.uniforms.opacity.value = 1;
-              playEffectSw = 2;
-          }
+//           if(playEffectSw === 1){
+//               group.position.copy(localPlayer.position);
+//               rippleMaterial.uniforms.uTime.value=0.35;
+//               rippleMaterial.uniforms.opacity.value = 1;
+//               playEffectSw = 2;
+//           }
           
           
           
-          if(rippleMaterial.uniforms.uTime.value>0.43)
-              rippleMaterial.uniforms.opacity.value-=0.05;
+//           if(rippleMaterial.uniforms.uTime.value>0.43)
+//               rippleMaterial.uniforms.opacity.value-=0.05;
               
          
-          rippleMaterial.uniforms.uTime.value += 0.0025 
+//           rippleMaterial.uniforms.uTime.value += 0.0025 
           
           
           
           
-          // if (localPlayer.avatar) {
-          //     group.position.y -= localPlayer.avatar.height;
-          //     group.position.y += 0.65;
-          // }
-          group.position.y = waterSurfacePos.y - 0.05;
-          app.updateMatrixWorld();
-      });
-    }
-  
+//           // if (localPlayer.avatar) {
+//           //     group.position.y -= localPlayer.avatar.height;
+//           //     group.position.y += 0.65;
+//           // }
+//           group.position.y = waterSurfacePos.y - 0.05;
+//           app.updateMatrixWorld();
+//       });
+//     }
+  //######################################################################  swim sprint splash ######################################################################
+//  {
+//     let splashMesh;
+//     const group = new THREE.Group();
+//     (async () => {
+//         const u = `${baseUrl}/assets/droplet.glb`;
+//         const splashMeshApp = await new Promise((accept, reject) => {
+//             const {gltfLoader} = useLoaders();
+//             gltfLoader.load(u, accept, function onprogress() {}, reject);
+            
+//         });
+//         group.add(splashMeshApp.scene)
+//         app.add(group);
+//         splashMesh = splashMeshApp.scene.children[0];
+//         splashMeshApp.scene.rotation.x = -Math.PI / 2;
+//         // splashMesh.scale.z = 0.3;
+//         // splashMesh.scale.x = 1.5;
+//         splashMesh.material= new THREE.ShaderMaterial({
+//             uniforms: {
+//                 uTime: {
+//                     value: 0,
+//                 },
+//                 vBroken: {
+//                     value: 0,
+//                 },
+//                 vTextureRotation:{
+//                     value:0
+//                 },
+//                 splashTexture:{
+//                     value: rippleTexture
+//                 },
+//                 waterSurfacePos:{
+//                     value: new THREE.Vector3()
+//                 },
+//                 playerPos:{
+//                     value: new THREE.Vector3()
+//                 },
+//                 noiseMap:{
+//                     value: noiseMap
+//                 },
+//             },
+//             vertexShader: `\
+                
+//                 ${THREE.ShaderChunk.common}
+//                 ${THREE.ShaderChunk.logdepthbuf_pars_vertex}
+            
+            
+//                 uniform float uTime;
+        
+//                 varying vec2 vUv;
+//                 varying vec3 vPos;
+//                 varying vec3 vPos2;
+            
+//                 void main() {
+//                     vUv=uv;
+//                     vPos2=position;
+//                     vec4 modelPosition = modelMatrix * vec4(position, 1.0);
+//                     vec4 viewPosition = viewMatrix * modelPosition;
+//                     vec4 projectionPosition = projectionMatrix * viewPosition;
+            
+//                     gl_Position = projectionPosition;
+//                     vPos = modelPosition.xyz;
+//                     ${THREE.ShaderChunk.logdepthbuf_vertex}
+//                 }
+//             `,
+//             fragmentShader: `\
+//                 ${THREE.ShaderChunk.logdepthbuf_pars_fragment}
+//                 uniform float uTime;
+//                 uniform float vTextureRotation;
+//                 uniform float vBroken;
+
+//                 uniform sampler2D splashTexture;
+//                 uniform sampler2D noiseMap;
+//                 uniform vec3 waterSurfacePos;
+//                 uniform vec3 playerPos;
+                
+                
+//                 varying vec2 vUv;
+//                 varying vec3 vPos;
+//                 varying vec3 vPos2;
+//                 #define PI 3.1415926
+
+//                 void main() {
+//                     float mid = 0.5;
+//                     vec2 rotated = vec2(cos(vTextureRotation*PI) * (vUv.x - mid) * 1.1 - sin(vTextureRotation*PI) * (vUv.y - mid) * 1.1 + mid,
+//                                 cos(vTextureRotation*PI) * (vUv.y - mid) * 1.1 + sin(vTextureRotation*PI) * (vUv.x - mid) * 1.1 + mid);
+//                     vec4 splash = texture2D(
+//                                     splashTexture,
+//                                     vUv
+//                     );
+//                     if(splash.r > 0.1){
+//                         gl_FragColor = vec4(1.0, 1.0, 1.0, 1.0);
+//                     }
+//                     else{
+//                         discard;
+//                     }
+//                     if(vPos.y < waterSurfacePos.y){
+//                         discard;
+//                     }
+//                     float tBroken = vBroken < 0.4 ? 0.4 : vBroken;
+//                     float broken2 = abs( sin( 1.0 - tBroken * (1. - vPos2.z) ) ) - texture2D( noiseMap, vUv ).g;
+//                     if( broken2 < 0.0001){
+//                         discard;
+//                     }
+//                     float broken3 = abs( sin( 1.0 - 0.75  *  vUv.y ) ) - texture2D( noiseMap, vUv ).g;
+//                     if ( broken3 < 0.0001) discard;
+
+//                     float broken = abs( sin( 1.0 - vBroken ) ) - texture2D( noiseMap, vUv ).g;
+//                     if ( broken < 0.0001 ) discard;
+                    
+//                 ${THREE.ShaderChunk.logdepthbuf_fragment}
+//                 }
+//             `,
+//             side: THREE.DoubleSide,
+//             transparent: true,
+//             // depthWrite: false,
+//             // blending: THREE.AdditiveBlending,
+//         });
+//     })();
+    
+//     useFrame(({timestamp}) => {
+       
+//         if (splashMesh) {
+//             if(splashMesh.scale.z > 0.5){
+//                 splashMesh.scale.z = 0.1;
+//                 splashMesh.scale.y = 0.2;
+//                 splashMesh.position.y = 0.39765170216560364;
+//                 // splashMesh.scale.x = 1.5;
+//                 splashMesh.material.uniforms.vBroken.value = 0.8;
+//                 splashMesh.material.uniforms.vTextureRotation.value = Math.random() * 2;
+//             }
+//             else{
+//                 splashMesh.scale.z += 0.006;
+//                 splashMesh.scale.y += 0.006;
+//                 splashMesh.position.y -= 0.01;
+//                 if(splashMesh.scale.z < 0.3)
+//                     splashMesh.material.uniforms.vBroken.value = splashMesh.material.uniforms.vBroken.value - 0.02;
+//                 else{
+//                     if(splashMesh.material.uniforms.vBroken.value < 1)
+//                         splashMesh.material.uniforms.vBroken.value = splashMesh.material.uniforms.vBroken.value + 0.02;
+//                 }
+//             }
+            
+//             // splashMesh.scale.x -= 0.01;
+            
+//             group.position.copy(localPlayer.position);
+//             group.position.x += playerDir.x * 0.7;
+//             group.position.z += playerDir.z * 0.7;
+
+//             group.position.y = waterSurfacePos.y + 0.02;
+//             group.rotation.copy(localPlayer.rotation);
+//             splashMesh.material.uniforms.waterSurfacePos.value.copy(waterSurfacePos);
+//             splashMesh.material.uniforms.playerPos.value.set(localPlayer.position.x + playerDir.x, localPlayer.position.y, localPlayer.position.z + playerDir.z);
+            
+
+//         }
+        
+        
+//     });
+//   }
 
   return app;
 };
