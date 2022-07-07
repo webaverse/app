@@ -682,9 +682,9 @@ export class LodChunkTracker extends EventTarget {
     this.lastOctree = octree;
   }
   async waitForLoad() {
-    console.log('wait for live tasks 1', this.liveTasks.length);
+    // console.log('wait for live tasks 1', this.liveTasks.length);
     await Promise.all(this.liveTasks.map(task => task.waitForLoad()));
-    console.log('wait for live tasks 2', this.liveTasks.length);
+    // console.log('wait for live tasks 2', this.liveTasks.length);
   }
   update(position) {
     // if (this.range) throw new Error('lod tracker has range and cannot be updated manually');
