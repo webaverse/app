@@ -793,9 +793,15 @@ export const _applyAnimation = (avatar, now, moveFactors) => {
           let v2 = src2.evaluate(t2 % animation.duration);
           pickaxeApp.quaternion.fromArray(v2);
 
-          // src2 = animation.interpolants['pickaxe_def.position']
+          src2 = animation.interpolants['pickaxe_def.position']
+          v2 = src2.evaluate(t2 % animation.duration);
+          pickaxeApp.position.fromArray(v2);
+          pickaxeApp.position.multiplyScalar(100);
+          pickaxeApp.position.y += 1;
+
+          // src2 = animation.interpolants['pickaxe_def.scale']
           // v2 = src2.evaluate(t2 % animation.duration);
-          // pickaxeApp.position.fromArray(v2);
+          // pickaxeApp.scale.fromArray(v2);
 
           pickaxeApp.updateMatrixWorld();
         }
