@@ -1241,7 +1241,7 @@ export const _applyAnimation = (avatar, now, moveFactors, timeDiffS) => {
       const v2 = src2.evaluate(swimTimeS % floatAnimation.duration);
 
       const src3 = animations.index['Swimming.fbx'].interpolants[k];
-      const v3 = src3.evaluate(movementsTimeS * 2 % animations.index['Swimming.fbx'].duration);
+      const v3 = src3.evaluate(movementsTimeS * 1 % animations.index['Swimming.fbx'].duration);
 
       const src4 = animations.index['freestyle.fbx'].interpolants[k];
       const v4 = src4.evaluate(movementsTimeS * 2 % animations.index['freestyle.fbx'].duration);
