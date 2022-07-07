@@ -228,8 +228,11 @@ const _updateIo = timeDiff => {
       if(ioManager.keys.shift && keysDirection.length() > 0){
         localPlayer.getAction('swim').animationType = 'freestyle';
       }
-      else{
+      else if(!ioManager.keys.shift && keysDirection.length() > 0){
         localPlayer.getAction('swim').animationType = 'breaststroke';
+      }
+      else{
+        localPlayer.getAction('swim').animationType = 'null';
       }
     }
     if (localPlayer.hasAction('fly') || localPlayer.hasAction('swim')) {

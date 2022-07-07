@@ -800,330 +800,331 @@ export default (e) => {
             // let ext = renderer.getContext().getExtension("WEBGL_multi_draw");
             // ext.multiDrawArraysWEBGL(renderer.getContext().TRIANGLES, testA, 0, testB, 0, testA.length);
             
-          let playerIsOnSurface = false;
-          let cameraIsOnSurface = false;
-          let min = null;
-          tempPhysics = null;
-          localVector02.set(localPlayer.position.x, localPlayer.position.y - localPlayer.avatar.height, localPlayer.position.z);
-          for(const physicsId of generator.getPhysicsObjects()){ 
-            if(!playerIsOnSurface){
-                generator.physics.enableGeometryQueries(physicsId);
-                localVector03.set(localPlayer.position.x, localPlayer.position.y, localPlayer.position.z);
-                const result3 = physics.raycast(localVector03, downVector);
-                if(result3){
-                    if(result3.objectId === physicsId.physicsId){
-                        waterSurfacePos.set(result3.point[0], result3.point[1], result3.point[2]);
-                        playerIsOnSurface = true;
-                        if(!playerHighestWaterSurface)
-                            playerHighestWaterSurface = waterSurfacePos.y;
-                        else
-                            playerHighestWaterSurface = playerHighestWaterSurface < waterSurfacePos.y ? waterSurfacePos.y : playerHighestWaterSurface;
-                    }
-                }
-                
-                generator.physics.disableGeometryQueries(physicsId);
-            }
-            if(!cameraIsOnSurface){
-                generator.physics.enableGeometryQueries(physicsId);
-                localVector04.set(camera.position.x + cameraDir.x * 0.2, camera.position.y, camera.position.z + cameraDir.z * 0.2);
-                const result4 = physics.raycast(localVector04, downVector);
-                if(result4){
-                    if(result4.objectId === physicsId.physicsId){
-                        cameraWaterSurfacePos.set(result4.point[0], result4.point[1], result4.point[2]);
-                        cameraIsOnSurface = true;
-                        if(!cameraHighestWaterSurface)
-                            cameraHighestWaterSurface = cameraWaterSurfacePos.y;
-                        else
-                            cameraHighestWaterSurface = cameraHighestWaterSurface < cameraWaterSurfacePos.y ? cameraWaterSurfacePos.y : cameraHighestWaterSurface;
-                    }
-                }
-                generator.physics.disableGeometryQueries(physicsId);
-            }
-            // if(
-            //     physicsId.coord.x === tracker.lastUpdateCoord.x
-            //     && physicsId.coord.y === tracker.lastUpdateCoord.y
-            //     && physicsId.coord.z === tracker.lastUpdateCoord.z
-            // ){
-                //if(physicsId.center.distanceTo(localPlayer.position) <= chunkRadius){
-                for(let i = 0; i < physicsId.positions.length / 3; i++){
-                    tempPos.set(physicsId.positions[i * 3 + 0], physicsId.positions[i * 3 + 1], physicsId.positions[i * 3 + 2]);
-                    if(!min || tempPos.distanceTo(localVector02) < min){
-                        min = tempPos.distanceTo(localVector02);
-                        tempIndex.set(tempPos.x, tempPos.y, tempPos.z);
-                        tempPhysics = physicsId;
-                    }
-                }
-                //}
-            // }
-            
-          }
-  
-          contactWater = false;
-          if(generator.getPhysicsObjects().length < 1){
-            contactWater = lastContactWater;
-          }
-          else if(tempPhysics){
-            generator.physics.enableGeometryQueries(tempPhysics);
-
-
-            
-
-            tempDir.set(tempIndex.x - localPlayer.position.x, tempIndex.y - (localPlayer.position.y - localPlayer.avatar.height), tempIndex.z - localPlayer.position.z);
-            tempDir.normalize();
-
-            const detectDistance = 0.3;
-
-            localVector01.set(tempIndex.x + tempDir.x * detectDistance, tempIndex.y + tempDir.y * detectDistance, tempIndex.z + tempDir.z * detectDistance);
-            localVector05.set(tempIndex.x, tempIndex.y, tempIndex.z);
-            localVector06.copy(localVector01).sub(localVector05);
-
-            localVector07.set(tempIndex.x - tempDir.x * detectDistance, tempIndex.y - tempDir.y * detectDistance, tempIndex.z - tempDir.z * detectDistance);
-        
-            const ds = Math.sqrt(localVector06.x * localVector06.x + localVector06.y * localVector06.y + localVector06.z * localVector06.z) * 2.5;
-            
-            {
-                let result;
-                if(count % 2 === 0){
-                    upVector.crossVectors(localVector01, localVector05);
-                    mx.lookAt(localVector01, localVector05, upVector);
-                    qt.setFromRotationMatrix(mx);
-                    result = generator.physics.raycast(localVector01, qt);
-                    if(result){
-                        if(result.objectId === tempPhysics.physicsId && result.distance <= ds){
-                            testContact1 = true;
+            let playerIsOnSurface = false;
+            let cameraIsOnSurface = false;
+            let min = null;
+            tempPhysics = null;
+            localVector02.set(localPlayer.position.x, localPlayer.position.y - localPlayer.avatar.height, localPlayer.position.z);
+            for(const physicsId of generator.getPhysicsObjects()){ 
+                if(!playerIsOnSurface){
+                    generator.physics.enableGeometryQueries(physicsId);
+                    localVector03.set(localPlayer.position.x, localPlayer.position.y, localPlayer.position.z);
+                    const result3 = physics.raycast(localVector03, downVector);
+                    if(result3){
+                        if(result3.objectId === physicsId.physicsId){
+                            waterSurfacePos.set(result3.point[0], result3.point[1], result3.point[2]);
+                            playerIsOnSurface = true;
+                            if(!playerHighestWaterSurface)
+                                playerHighestWaterSurface = waterSurfacePos.y;
+                            else
+                                playerHighestWaterSurface = playerHighestWaterSurface < waterSurfacePos.y ? waterSurfacePos.y : playerHighestWaterSurface;
                         }
-                        else{
-                            if(result.distance > ds){
-                                testContact1 = false;
+                    }
+                    
+                    generator.physics.disableGeometryQueries(physicsId);
+                }
+                if(!cameraIsOnSurface){
+                    generator.physics.enableGeometryQueries(physicsId);
+                    localVector04.set(camera.position.x + cameraDir.x * 0.2, camera.position.y, camera.position.z + cameraDir.z * 0.2);
+                    const result4 = physics.raycast(localVector04, downVector);
+                    if(result4){
+                        if(result4.objectId === physicsId.physicsId){
+                            cameraWaterSurfacePos.set(result4.point[0], result4.point[1], result4.point[2]);
+                            cameraIsOnSurface = true;
+                            if(!cameraHighestWaterSurface)
+                                cameraHighestWaterSurface = cameraWaterSurfacePos.y;
+                            else
+                                cameraHighestWaterSurface = cameraHighestWaterSurface < cameraWaterSurfacePos.y ? cameraWaterSurfacePos.y : cameraHighestWaterSurface;
+                        }
+                    }
+                    generator.physics.disableGeometryQueries(physicsId);
+                }
+                // if(
+                //     physicsId.coord.x === tracker.lastUpdateCoord.x
+                //     && physicsId.coord.y === tracker.lastUpdateCoord.y
+                //     && physicsId.coord.z === tracker.lastUpdateCoord.z
+                // ){
+                    //if(physicsId.center.distanceTo(localPlayer.position) <= chunkRadius){
+                    for(let i = 0; i < physicsId.positions.length / 3; i++){
+                        tempPos.set(physicsId.positions[i * 3 + 0], physicsId.positions[i * 3 + 1], physicsId.positions[i * 3 + 2]);
+                        if(!min || tempPos.distanceTo(localVector02) < min){
+                            min = tempPos.distanceTo(localVector02);
+                            tempIndex.set(tempPos.x, tempPos.y, tempPos.z);
+                            tempPhysics = physicsId;
+                        }
+                    }
+                    //}
+                // }
+                
+            }
+    
+            contactWater = false;
+            if(generator.getPhysicsObjects().length < 1){
+                contactWater = lastContactWater;
+            }
+            else if(tempPhysics){
+                generator.physics.enableGeometryQueries(tempPhysics);
+
+
+                
+
+                tempDir.set(tempIndex.x - localPlayer.position.x, tempIndex.y - (localPlayer.position.y - localPlayer.avatar.height), tempIndex.z - localPlayer.position.z);
+                tempDir.normalize();
+
+                const detectDistance = 0.3;
+
+                localVector01.set(tempIndex.x + tempDir.x * detectDistance, tempIndex.y + tempDir.y * detectDistance, tempIndex.z + tempDir.z * detectDistance);
+                localVector05.set(tempIndex.x, tempIndex.y, tempIndex.z);
+                localVector06.copy(localVector01).sub(localVector05);
+
+                localVector07.set(tempIndex.x - tempDir.x * detectDistance, tempIndex.y - tempDir.y * detectDistance, tempIndex.z - tempDir.z * detectDistance);
+            
+                const ds = Math.sqrt(localVector06.x * localVector06.x + localVector06.y * localVector06.y + localVector06.z * localVector06.z) * 2.5;
+                
+                {
+                    let result;
+                    if(count % 2 === 0){
+                        upVector.crossVectors(localVector01, localVector05);
+                        mx.lookAt(localVector01, localVector05, upVector);
+                        qt.setFromRotationMatrix(mx);
+                        result = generator.physics.raycast(localVector01, qt);
+                        if(result){
+                            if(result.objectId === tempPhysics.physicsId && result.distance <= ds){
+                                testContact1 = true;
                             }
                             else{
-                                let maxCheck = 10;
-                                let physicsList = [];
-                                for(let i = 0; i < maxCheck; i++){
-                                    if(result.distance <= ds){
-                                        let dummy = metaversefile.getPhysicsObjectByPhysicsId(result.objectId);
-                                        if(dummy){
-                                            physicsList.push(dummy);
-                                        }
-                                        for(const p of physicsList){
-                                            generator.physics.disableGeometryQueries(p);
-                                        }
-                                        result = generator.physics.raycast(localVector01, qt);
-                                        for(const p of physicsList){
-                                            if(metaversefile.getAppByPhysicsId(p.physicsId).name !== 'water')
-                                                generator.physics.enableGeometryQueries(p);
-                                        }
-                                        if(result){
-                                            if(result.objectId === tempPhysics.physicsId && result.distance <= ds){
-                                                testContact1 = true;
-                                                break;
+                                if(result.distance > ds){
+                                    testContact1 = false;
+                                }
+                                else{
+                                    let maxCheck = 10;
+                                    let physicsList = [];
+                                    for(let i = 0; i < maxCheck; i++){
+                                        if(result.distance <= ds){
+                                            let dummy = metaversefile.getPhysicsObjectByPhysicsId(result.objectId);
+                                            if(dummy){
+                                                physicsList.push(dummy);
                                             }
+                                            for(const p of physicsList){
+                                                generator.physics.disableGeometryQueries(p);
+                                            }
+                                            result = generator.physics.raycast(localVector01, qt);
+                                            for(const p of physicsList){
+                                                if(metaversefile.getAppByPhysicsId(p.physicsId).name !== 'water')
+                                                    generator.physics.enableGeometryQueries(p);
+                                            }
+                                            if(result){
+                                                if(result.objectId === tempPhysics.physicsId && result.distance <= ds){
+                                                    testContact1 = true;
+                                                    break;
+                                                }
+                                            }
+                                            else{
+                                                testContact1 = false;
+                                                break;
+                                            } 
                                         }
                                         else{
                                             testContact1 = false;
                                             break;
-                                        } 
-                                    }
-                                    else{
-                                        testContact1 = false;
-                                        break;
-                                    }
-                                    if(i === maxCheck - 1){
-                                        //console.log('no result');
-                                        testContact1 = false;
+                                        }
+                                        if(i === maxCheck - 1){
+                                            //console.log('no result');
+                                            testContact1 = false;
+                                        }
                                     }
                                 }
                             }
                         }
                     }
-                }
-                else{
-                    upVector2.crossVectors(localVector07, localVector05);
-                    mx2.lookAt(localVector07, localVector05, upVector2);
-                    qt2.setFromRotationMatrix(mx2);
-                    result = generator.physics.raycast(localVector07, qt2);
-                    if(result){
-                        if(result.objectId === tempPhysics.physicsId && result.distance <= ds){
-                            testContact2 = true;
-                        }
-                        else{
-                            if(result.distance > ds){
-                                testContact2 = false;
+                    else{
+                        upVector2.crossVectors(localVector07, localVector05);
+                        mx2.lookAt(localVector07, localVector05, upVector2);
+                        qt2.setFromRotationMatrix(mx2);
+                        result = generator.physics.raycast(localVector07, qt2);
+                        if(result){
+                            if(result.objectId === tempPhysics.physicsId && result.distance <= ds){
+                                testContact2 = true;
                             }
                             else{
-                                let maxCheck = 10;
-                                let physicsList = [];
-                                for(let i = 0; i < maxCheck; i++){
-                                    if(result.distance <= ds){
-                                        let dummy = metaversefile.getPhysicsObjectByPhysicsId(result.objectId);
-                                        if(dummy){
-                                            physicsList.push(dummy);
-                                        }
-                                        for(const p of physicsList){
-                                            generator.physics.disableGeometryQueries(p);
-                                        }
-                                        result = generator.physics.raycast(localVector07, qt2);
-                                        for(const p of physicsList){
-                                            if(metaversefile.getAppByPhysicsId(p.physicsId).name !== 'water')
-                                                generator.physics.enableGeometryQueries(p);
-                                        }
-                                        if(result){
-                                            if(result.objectId === tempPhysics.physicsId && result.distance <= ds){
-                                                testContact2 = true;
-                                                break;
+                                if(result.distance > ds){
+                                    testContact2 = false;
+                                }
+                                else{
+                                    let maxCheck = 10;
+                                    let physicsList = [];
+                                    for(let i = 0; i < maxCheck; i++){
+                                        if(result.distance <= ds){
+                                            let dummy = metaversefile.getPhysicsObjectByPhysicsId(result.objectId);
+                                            if(dummy){
+                                                physicsList.push(dummy);
                                             }
+                                            for(const p of physicsList){
+                                                generator.physics.disableGeometryQueries(p);
+                                            }
+                                            result = generator.physics.raycast(localVector07, qt2);
+                                            for(const p of physicsList){
+                                                if(metaversefile.getAppByPhysicsId(p.physicsId).name !== 'water')
+                                                    generator.physics.enableGeometryQueries(p);
+                                            }
+                                            if(result){
+                                                if(result.objectId === tempPhysics.physicsId && result.distance <= ds){
+                                                    testContact2 = true;
+                                                    break;
+                                                }
+                                            }
+                                            else{
+                                                testContact2 = false;
+                                                break;
+                                            } 
                                         }
                                         else{
                                             testContact2 = false;
                                             break;
-                                        } 
-                                    }
-                                    else{
-                                        testContact2 = false;
-                                        break;
-                                    }
-                                    if(i === maxCheck - 1){
-                                        //console.log('no result');
-                                        testContact2 = false;
+                                        }
+                                        if(i === maxCheck - 1){
+                                            //console.log('no result');
+                                            testContact2 = false;
+                                        }
                                     }
                                 }
                             }
                         }
+                        
                     }
-                    
-                }
 
 
 
-                // if(count % 2 !== 0){
-                    if(testContact2 === testContact1){
-                        // console.log('detect error', testContact2, testContact1);
-                        contactWater = lastContactWater;
-                    }
-                    else{
-                        if(testContact1){
-                            contactWater = true;
+                    // if(count % 2 !== 0){
+                        if(testContact2 === testContact1){
+                            console.log('detect error', testContact2, testContact1);
+                            contactWater = lastContactWater;
                         }
                         else{
-                            contactWater = false;
+                            if(testContact1){
+                                contactWater = true;
+                            }
+                            else{
+                                contactWater = false;
+                            }
                         }
-                    }
-                // }
-                // else{
-                //     contactWater = lastContactWater;
-                // }
-                
-                
-                
+                    // }
+                    // else{
+                    //     contactWater = lastContactWater;
+                    // }
+                    
+                    
+                    
 
+                }
+                
+                
+                if(playerIsOnSurface){
+                    if(waterSurfacePos.y > localPlayer.position.y - localPlayer.avatar.height){
+                        //console.log('in2')
+                        contactWater = true;
+                    }
+                    else{
+                        contactWater = false;
+                    }
+                }
+                
+                generator.physics.disableGeometryQueries(tempPhysics);
             }
             
-            
-            if(playerIsOnSurface){
-                if(waterSurfacePos.y > localPlayer.position.y - localPlayer.avatar.height){
-                    //console.log('in2')
-                    contactWater = true;
+    
+            if(!contactWater){
+                if(localPlayer.hasAction('swim')){
+                    //console.log('remove');
+                    localPlayer.removeAction('swim');
+                }
+            }
+            else{
+                if(waterSurfacePos.y >= localPlayer.position.y - localPlayer.avatar.height + localPlayer.avatar.height * 0.8){
+                    if(!localPlayer.hasAction('swim')){
+                        //console.log('add');
+                        const swimAction = {
+                            type: 'swim',
+                            onSurface: false,
+                            swimDamping: 1,
+                            animationType: 'breaststroke'
+                        };
+                        localPlayer.setControlAction(swimAction);
+                    }
+    
+                    if(waterSurfacePos.y < localPlayer.position.y - localPlayer.avatar.height + localPlayer.avatar.height * 0.85){
+                        if(localPlayer.hasAction('swim'))
+                            localPlayer.getAction('swim').onSurface = true;
+                        
+                    }
+                    else{
+                        if(localPlayer.hasAction('swim'))
+                            localPlayer.getAction('swim').onSurface = false;
+                    }
                 }
                 else{
+                    if(localPlayer.hasAction('swim')){
+                        //console.log('remove');
+                        localPlayer.removeAction('swim');
+                    }
+                }
+            }
+            if(!playerIsOnSurface){
+                if(playerHighestWaterSurface)
+                    waterSurfacePos.y = playerHighestWaterSurface; 
+                if(!localPlayer.hasAction('swim')){
                     contactWater = false;
                 }
             }
-            
-            generator.physics.disableGeometryQueries(tempPhysics);
-          }
-          
-  
-          if(!contactWater){
-              if(localPlayer.hasAction('swim')){
-                  //console.log('remove');
-                  localPlayer.removeAction('swim');
-              }
-          }
-          else{
-              if(waterSurfacePos.y >= localPlayer.position.y - localPlayer.avatar.height + localPlayer.avatar.height * 0.8){
-                  if(!localPlayer.hasAction('swim')){
-                      //console.log('add');
-                      const swimAction = {
-                          type: 'swim',
-                          onSurface: false,
-                          swimDamping: 1,
-                          animationType: 'breaststroke'
-                      };
-                      localPlayer.setControlAction(swimAction);
-                  }
-  
-                  if(waterSurfacePos.y < localPlayer.position.y - localPlayer.avatar.height + localPlayer.avatar.height * 0.85){
-                      if(localPlayer.hasAction('swim'))
-                          localPlayer.getAction('swim').onSurface = true;
-                      
-                  }
-                  else{
-                      if(localPlayer.hasAction('swim'))
-                          localPlayer.getAction('swim').onSurface = false;
-                  }
-              }
-              else{
-                  if(localPlayer.hasAction('swim')){
-                      //console.log('remove');
-                      localPlayer.removeAction('swim');
-                  }
-              }
-          }
-          if(!playerIsOnSurface){
-            if(playerHighestWaterSurface)
-                waterSurfacePos.y = playerHighestWaterSurface; 
-            if(!localPlayer.hasAction('swim')){
-                contactWater = false;
+            if(!cameraIsOnSurface){
+                if(cameraHighestWaterSurface)
+                    cameraWaterSurfacePos.y = cameraHighestWaterSurface;
             }
-          }
-          if(!cameraIsOnSurface){
-            if(cameraHighestWaterSurface)
-                cameraWaterSurfacePos.y = cameraHighestWaterSurface;
-          }
-          if(testContact2 !== testContact1)
-            lastContactWater = contactWater;
-          generator.getMeshes()[0].material.uniforms.uTime.value = timestamp / 1000;
-          generator.getMeshes()[0].material.uniforms.playerPosition.value.copy(localPlayer.position);
-          generator.getMeshes()[0].material.uniforms.playerDirection.value.copy(playerDir);
+            if(testContact2 !== testContact1)
+                lastContactWater = contactWater;
+            
 
 
-          if(localPlayer.hasAction('swim')){
-            if(localPlayer.getAction('swim').animationType === 'breaststroke'){
-                if(alreadySetSwimSprintSpeed && localPlayer.actionInterpolants.movements.get() % 1066.6666666666666 <= 433.3333333333333){
-                    // console.log('swim false')
-                    alreadySetSwimSprintSpeed = false;
-                    handStrokeStatus = null;
+            if(localPlayer.hasAction('swim')){
+                if(localPlayer.getAction('swim').animationType === 'breaststroke'){
+                    if(alreadySetSwimSprintSpeed && localPlayer.actionInterpolants.movements.get() % 1066.6666666666666 <= 433.3333333333333){
+                        alreadySetSwimSprintSpeed = false;
+                        handStrokeStatus = null;
+                    }
+                    else if(!alreadySetSwimSprintSpeed && localPlayer.actionInterpolants.movements.get() % 1066.6666666666666 > 433.3333333333333){
+                        localPlayer.getAction('swim').swimDamping = 1;
+                        alreadySetSwimSprintSpeed = true;
+                        handStrokeStatus = 'right';
+                    }
+                    if(localPlayer.getAction('swim').swimDamping < 4){
+                        localPlayer.getAction('swim').swimDamping *= 1.05;
+                    }
+                    else{
+                        localPlayer.getAction('swim').swimDamping = 4;
+                    }
+                    
                 }
-                else if(!alreadySetSwimSprintSpeed && localPlayer.actionInterpolants.movements.get() % 1066.6666666666666 > 433.3333333333333){
-                    localPlayer.getAction('swim').swimDamping = 1;
-                    // console.log('swim true')
-                    alreadySetSwimSprintSpeed = true;
-                    handStrokeStatus = 'right';
-                }
-                if(localPlayer.getAction('swim').swimDamping < 4){
-                    localPlayer.getAction('swim').swimDamping *= 1.05;
+                else if(localPlayer.getAction('swim').animationType === 'freestyle'){
+                    if(alreadySetSwimSprintSpeed && localPlayer.actionInterpolants.movements.get() % (1466.6666666666666 / 2 ) <= 900  / 2){
+                        // console.log('left hand')
+                        handStrokeStatus = 'left';
+                        alreadySetSwimSprintSpeed = false;
+                    }
+                    else if(!alreadySetSwimSprintSpeed && localPlayer.actionInterpolants.movements.get() % (1466.6666666666666 / 2 ) > 900 / 2 ){
+                        // console.log('right hand')
+                        handStrokeStatus = 'right';
+                        alreadySetSwimSprintSpeed = true;
+                    }
+                    localPlayer.getAction('swim').swimDamping = 0;
                 }
                 else{
                     localPlayer.getAction('swim').swimDamping = 4;
                 }
                 
             }
-            else{
-                if(alreadySetSwimSprintSpeed && localPlayer.actionInterpolants.movements.get() % (1466.6666666666666 / 2 ) <= 900  / 2){
-                    // console.log('left hand')
-                    handStrokeStatus = 'left';
-                    alreadySetSwimSprintSpeed = false;
-                }
-                else if(!alreadySetSwimSprintSpeed && localPlayer.actionInterpolants.movements.get() % (1466.6666666666666 / 2 ) > 900 / 2 ){
-                    // console.log('right hand')
-                    handStrokeStatus = 'right';
-                    alreadySetSwimSprintSpeed = true;
-                }
-                localPlayer.getAction('swim').swimDamping = 0;
-                // alreadySetSwimSprintSpeed = false;
-            }
-            
-          }
+            generator.getMeshes()[0].material.uniforms.uTime.value = timestamp / 1000;
+            generator.getMeshes()[0].material.uniforms.playerPosition.value.copy(localPlayer.position);
+            generator.getMeshes()[0].material.uniforms.playerDirection.value.copy(playerDir);
           
         }
       }
@@ -1719,6 +1720,7 @@ export default (e) => {
                     gl_FragColor = vec4(0.9, 0.9, 0.9, 1.0);
                 }
                 
+                
             ${THREE.ShaderChunk.logdepthbuf_fragment}
             }
         `,
@@ -1762,7 +1764,6 @@ export default (e) => {
     let lastEmmitTime=0;
     let localVector = new THREE.Vector3();
     useFrame(({timestamp}) => {
-        
         if(currentIndex>=particleCount){
             currentIndex=0;
         }
@@ -2055,6 +2056,9 @@ export default (e) => {
                     if(currentSpeed > 0.5){
                         brokenDegree *= 1.2;
                     }
+                    if(!localPlayer.hasAction('swim')){
+                        brokenDegree *= 1.1;
+                    }
                     brokenAttribute.setX(currentIndex, brokenDegree);
                     scalesAttribute.setX(currentIndex, 1.2 + Math.random() * 0.1);
                     opacityAttribute.setX(currentIndex, 0.1);
@@ -2295,29 +2299,31 @@ export default (e) => {
             if(
                 localPlayer.hasAction('swim')
                 && localPlayer.getAction('swim').onSurface
+                && !localPlayer.hasAction('fly')
                 // && localPlayer.getAction('swim').animationType === 'breaststroke'
                 && currentSpeed > 0.3
             ){
-                const splashposition = localPlayer.getAction('swim').animationType === 'breaststroke' ? 0.55 : 0.35;
+                const splashposition = localPlayer.getAction('swim').animationType === 'breaststroke' ? 0.55 :  0.15;
+                const splashposition2 = localPlayer.getAction('swim').animationType === 'breaststroke' ? 0.08 : 0.2;
                 let currentEmmit = 0;
                 for(let i = 0; i < particleCount; i++){
                     if(brokenAttribute.getX(i) >= 1){
-                        info.velocity[i].x = localVector2.x * (Math.random() - 0.5) * 0.2 + playerDir.x * 0.1;
-                        info.velocity[i].y = 0.08 + Math.random() * 0.05;
-                        info.velocity[i].z = localVector2.z * (Math.random() - 0.5) * 0.2 + playerDir.z * 0.1;
+                        info.velocity[i].x = localVector2.x * (Math.random() - 0.5) * 0.2 + playerDir.x * splashposition2 * (1 + currentSpeed);
+                        info.velocity[i].y = 0.08 + Math.random() * 0.08;
+                        info.velocity[i].z = localVector2.z * (Math.random() - 0.5) * 0.2 + playerDir.z * splashposition2 * (1 + currentSpeed);
                         positionsAttribute.setXYZ(  i, 
                                                     localPlayer.position.x + info.velocity[i].x * 0.5 + playerDir.x * splashposition,
                                                     waterSurfacePos.y - 0.1 * Math.random(),
                                                     localPlayer.position.z + info.velocity[i].z * 0.5 + playerDir.z * splashposition
                         );
                         info.velocity[i].divideScalar(5);
-                        info.acc[i] = -0.001 - currentSpeed * 0.0015;
-                        scalesAttribute.setX(i, 1.5 + Math.random() * 3.5);
+                        info.acc[i] = -0.0015 - currentSpeed * 0.0015;
+                        scalesAttribute.setX(i, 2 + Math.random() * 2);
                         brokenAttribute.setX(i, 0.25 + Math.random() * 0.2);
                         textureRotationAttribute.setX(i, Math.random() * 2);
                         currentEmmit++;
                     }
-                    if(currentEmmit >= 5){
+                    if(currentEmmit >= 2){
                         break;
                     }
                 }
@@ -2345,7 +2351,7 @@ export default (e) => {
                             brokenAttribute.setX(i, brokenAttribute.getX(i) + 0.016);
                         // else
                         //     brokenAttribute.setX(i, brokenAttribute.getX(i) + 0.02 * (1 + currentSpeed));
-                        scalesAttribute.setX(i, scalesAttribute.getX(i) + 0.02 * (1 + currentSpeed));
+                        scalesAttribute.setX(i, scalesAttribute.getX(i) + 0.01 * (1 + currentSpeed));
                     // else{
                     //     brokenAttribute.setX(i, brokenAttribute.getX(i) + 0.005);
                     // }
@@ -2529,9 +2535,9 @@ export default (e) => {
                 else{
                     discard;
                 }
-                // if(vPos.y < waterSurfacePos.y){
-                //     discard;
-                // }
+                if(vPos.y < waterSurfacePos.y){
+                    discard;
+                }
                 //gl_FragColor.a *= 0.5;
                 float broken = abs( sin( 1.0 - vBroken ) ) - texture2D( noiseMap, rotated * 0.8 ).g;
                 if ( broken < 0.0001 ) discard;
@@ -2593,18 +2599,19 @@ export default (e) => {
                 handStrokeStatus !== lastStroke
                 && localPlayer.getAction('swim').animationType === 'freestyle'
                 && localPlayer.getAction('swim').onSurface
+                && !localPlayer.hasAction('fly')
             ){
                 if(handStrokeStatus === 'right'){
                     let currentEmmit = 0;
                     for(let i = 0; i < particleCount; i++){
                         if(brokenAttribute.getX(i) >= 1){
-                            info.velocity[i].x = (Math.random() - 0.5) * 0.1 + playerDir.x * 0.35 * (1 + currentSpeed) + localVector2.x * 0.1;
-                            info.velocity[i].y = 0.2 + Math.random() * 0.2;
-                            info.velocity[i].z = (Math.random() - 0.5) * 0.1 + playerDir.z * 0.35 * (1 + currentSpeed) + localVector2.z * 0.1;
+                            info.velocity[i].x = (Math.random() - 0.5) * 0.1 + playerDir.x * 0.45 * (1 + currentSpeed) + localVector2.x * 0.1;
+                            info.velocity[i].y = 0.18 + Math.random() * 0.18;
+                            info.velocity[i].z = (Math.random() - 0.5) * 0.1 + playerDir.z * 0.45 * (1 + currentSpeed) + localVector2.z * 0.1;
                             positionsAttribute.setXYZ(  i, 
-                                                        localPlayer.position.x + (Math.random() - 0.5) * 0.1 + info.velocity[i].x + playerDir.x * 0.15,
+                                                        localPlayer.position.x + (Math.random() - 0.5) * 0.1 + info.velocity[i].x - playerDir.x * 0.15,
                                                         waterSurfacePos.y,
-                                                        localPlayer.position.z + (Math.random() - 0.5) * 0.1 + info.velocity[i].z + playerDir.z * 0.15
+                                                        localPlayer.position.z + (Math.random() - 0.5) * 0.1 + info.velocity[i].z - playerDir.z * 0.15
                             );
                             info.velocity[i].divideScalar(10);
                             info.acc[i] = -0.001 - currentSpeed * 0.0015;
@@ -2623,13 +2630,13 @@ export default (e) => {
                     let currentEmmit = 0;
                     for(let i = 0; i < particleCount; i++){
                         if(brokenAttribute.getX(i) >= 1){
-                            info.velocity[i].x = (Math.random() - 0.5) * 0.1 + playerDir.x * 0.35 * (1 + currentSpeed) - localVector2.x * 0.1;
-                            info.velocity[i].y = 0.2 + Math.random() * 0.2;
-                            info.velocity[i].z = (Math.random() - 0.5) * 0.1 + playerDir.z * 0.35 * (1 + currentSpeed)  - localVector2.z * 0.1;
+                            info.velocity[i].x = (Math.random() - 0.5) * 0.1 + playerDir.x * 0.45 * (1 + currentSpeed) - localVector2.x * 0.1;
+                            info.velocity[i].y = 0.18 + Math.random() * 0.18;
+                            info.velocity[i].z = (Math.random() - 0.5) * 0.1 + playerDir.z * 0.45 * (1 + currentSpeed)  - localVector2.z * 0.1;
                             positionsAttribute.setXYZ(  i, 
-                                                        localPlayer.position.x + (Math.random() - 0.5) * 0.1 + info.velocity[i].x + playerDir.x * 0.15,
+                                                        localPlayer.position.x + (Math.random() - 0.5) * 0.1 + info.velocity[i].x - playerDir.x * 0.25,
                                                         waterSurfacePos.y,
-                                                        localPlayer.position.z + (Math.random() - 0.5) * 0.1 + info.velocity[i].z + playerDir.z * 0.15
+                                                        localPlayer.position.z + (Math.random() - 0.5) * 0.1 + info.velocity[i].z - playerDir.z * 0.25
                             );
                             info.velocity[i].divideScalar(10);
                             info.acc[i] = -0.001 - currentSpeed * 0.0015;
@@ -3515,7 +3522,7 @@ export default (e) => {
                       info.velocity[i].divideScalar(5);
                       scalesAttribute.setX(i, 0.8);
                       textureRotationAttribute.setX(i, Math.random() * 2);
-                      brokenAttribute.setX(i, 0.1 + Math.random() * 0.2);
+                      brokenAttribute.setX(i, 0.2 + Math.random() * 0.25);
                       if(secondSplash === 2){
                           secondSplash = 0;
                           secondSplashPos.set(waterSurfacePos.x, waterSurfacePos.y, waterSurfacePos.z);
@@ -4623,7 +4630,7 @@ export default (e) => {
             //     if(splashMesh.material.uniforms.vBroken.value < 1)
             //         splashMesh.material.uniforms.vBroken.value = splashMesh.material.uniforms.vBroken.value + 0.02;
             // }
-            if(playEffectSw === 1){
+            if(playEffectSw === 1 && fallindSpeed > 6){
                 group.position.copy(localPlayer.position);
                 group.position.y = waterSurfacePos.y + 0.01;
                 splashMesh.material.uniforms.vBroken.value = 0.1;
