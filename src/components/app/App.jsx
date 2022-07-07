@@ -276,6 +276,7 @@ export const App = () => {
             onDragEnd={onDragEnd}
             onDragOver={onDragOver}
         >
+            <div style={{position: 'fixed', width: '100%', height: '100%', margin: 0, padding: 0, backgroundColor: 'black', zIndex: -1000 }} />
             <AppContext.Provider value={{ state, setState, app, setSelectedApp, selectedApp }}>
                 <Header setSelectedApp={ setSelectedApp } selectedApp={ selectedApp } />
                 

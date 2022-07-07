@@ -47,6 +47,8 @@ import physxWorkerManager from './physx-worker-manager.js';
 import story from './story.js';
 import zTargeting from './z-targeting.js';
 import raycastManager from './raycast-manager.js';
+import {loadingManager} from './loading-manager';
+import universe from './universe.js';
 
 const localVector = new THREE.Vector3();
 const localVector2 = new THREE.Vector3();
@@ -78,25 +80,31 @@ export default class Webaverse extends EventTarget {
 
     story.listenHack();
 
+    this.isModuleLoaded = false
+
+    const modulePromises = [
+      physx.waitForLoad(),
+      physxWorkerManager.waitForLoad(),
+      Avatar.waitForLoad(),
+      audioManager.waitForLoad(),
+      sounds.waitForLoad(),
+      zTargeting.waitForLoad(),
+      particleSystemManager.waitForLoad(),
+      transformControls.waitForLoad(),
+      metaverseModules.waitForLoad(),
+      voices.waitForLoad(),
+      musicManager.waitForLoad(),
+      WebaWallet.waitForLoad(),
+    ]
+
     this.loadPromise = (async () => {
-      await Promise.all([
-        physx.waitForLoad(),
-        Avatar.waitForLoad(),
-        physxWorkerManager.waitForLoad(),
-        audioManager.waitForLoad(),
-        sounds.waitForLoad(),
-        zTargeting.waitForLoad(),
-        particleSystemManager.waitForLoad(),
-        transformControls.waitForLoad(),
-        metaverseModules.waitForLoad(),
-        voices.waitForLoad(),
-        musicManager.waitForLoad(),
-        WebaWallet.waitForLoad(),
-      ]);
+      await Promise.all(modulePromises);
     })();
+    loadingManager.setModulePromises(modulePromises);
+
     this.contentLoaded = false;
   }
-  
+
   waitForLoad() {
     return this.loadPromise;
   }
@@ -288,7 +296,7 @@ export default class Webaverse extends EventTarget {
     // console.log('frame 2');
   }
   
-  startLoop() {
+  async startLoop() {
     const renderer = getRenderer();
     if (!renderer) {
       throw new Error('must bind canvas first');
@@ -296,6 +304,15 @@ export default class Webaverse extends EventTarget {
     
     let lastTimestamp = performance.now();
     const animate = (timestamp, frame) => {
+      if (!this.isModuleLoaded) {
+        return this.dispatchEvent(new MessageEvent('preframe', {
+          data: {
+            canvas: renderer.domElement,
+            context: renderer.getContext(),
+            timestamp,
+          },
+        }));
+      }
       performanceTracker.startFrame();
 
       const _frame = () => {
@@ -369,6 +386,13 @@ export default class Webaverse extends EventTarget {
       performanceTracker.endFrame();
     }
     renderer.setAnimationLoop(animate);
+
+    loadingManager.startLoading();
+
+    await this.waitForLoad();
+    await universe.waitForSceneLoaded();
+    this.isModuleLoaded = true;
+    loadingManager.requestLoadEnd();
 
     _startHacks(this);
   }

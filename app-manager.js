@@ -6,12 +6,12 @@ you can have as many app managers as you want.
 import * as THREE from 'three';
 import * as Z from 'zjs';
 
-import {makePromise, getRandomString} from './util.js';
+import {makePromise, getRandomString, jsonParse} from './util.js';
 import physicsManager from './physics-manager.js';
 import metaversefile from 'metaversefile';
 import * as metaverseModules from './metaverse-modules.js';
-import {jsonParse} from './util.js';
 import {worldMapName} from './constants.js';
+import { loadingManager } from './loading-manager.js';
 
 const localVector = new THREE.Vector3();
 const localVector2 = new THREE.Vector3();
@@ -205,6 +205,7 @@ class AppManager extends EventTarget {
   }
   bindEvents() {
     this.addEventListener('trackedappadd', async e => {
+      loadingManager.trackedAppAdded();
       const {trackedApp} = e.data;
       const trackedAppBinding = trackedApp.toJSON();
       const {instanceId, contentId, position, quaternion, scale, components} = trackedAppBinding;
@@ -282,8 +283,10 @@ class AppManager extends EventTarget {
 
         this.bindTrackedApp(trackedApp, app);
 
+        loadingManager.trackedAppLoaded()
         p.accept(app);
       } catch (err) {
+        loadingManager.trackedAppLoaded()
         p.reject(err);
       } finally {
         cleanup();

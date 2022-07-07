@@ -35,6 +35,6 @@ export const RenderMirror = ({
   }, [canvasRef, width, enabled]);
 
   return (
-      <canvas className={styles.renderMirror} width={width} height={height} ref={canvasRef} />
+      <canvas className={styles.renderMirror} hidden={!enabled} width={width} height={height} ref={canvasRef} />
   );
 };

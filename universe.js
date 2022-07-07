@@ -12,6 +12,7 @@ import {initialPosY} from './constants.js';
 import {parseQuery} from './util.js';
 import metaversefile from 'metaversefile';
 import sceneNames from './scenes/scenes.json';
+import {loadingManager} from './loading-manager'
 
 class Universe extends EventTarget {
   constructor() {
@@ -92,9 +93,11 @@ class Universe extends EventTarget {
     await this.enterWorld(this.currentWorld);
   }
   async pushUrl(u) {
+    loadingManager.startLoading();
     history.pushState({}, '', u);
     window.dispatchEvent(new MessageEvent('pushstate'));
     await this.handleUrlUpdate();
+    loadingManager.requestLoadEnd();
   }
   async handleUrlUpdate() {
     const q = parseQuery(location.search);
