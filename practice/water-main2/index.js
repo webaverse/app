@@ -2331,7 +2331,7 @@ export default (e) => {
                 && currentSpeed > 0.3
             ){
                 const splashposition = localPlayer.getAction('swim').animationType === 'breaststroke' ? 0.55 :  0.15;
-                const splashposition2 = localPlayer.getAction('swim').animationType === 'breaststroke' ? 0.08 : 0.2;
+                const splashposition2 = localPlayer.getAction('swim').animationType === 'breaststroke' ? 0.07 : 0.2;
                 let currentEmmit = 0;
                 for(let i = 0; i < particleCount; i++){
                     if(brokenAttribute.getX(i) >= 1){
@@ -2346,7 +2346,10 @@ export default (e) => {
                         info.velocity[i].divideScalar(5);
                         info.acc[i] = -0.0015 - currentSpeed * 0.0015;
                         scalesAttribute.setX(i, 2 + Math.random() * 2);
-                        brokenAttribute.setX(i, 0.25 + Math.random() * 0.2);
+                        if(localPlayer.getAction('swim').animationType === 'breaststroke')
+                            brokenAttribute.setX(i, 0.2 + Math.random() * 0.2);
+                        else
+                            brokenAttribute.setX(i, 0.25 + Math.random() * 0.2);
                         textureRotationAttribute.setX(i, Math.random() * 2);
                         currentEmmit++;
                     }
