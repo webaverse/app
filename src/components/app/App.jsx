@@ -19,6 +19,7 @@ import { Settings } from '../general/settings';
 import { WorldObjectsList } from '../general/world-objects-list';
 import { IoHandler, registerIoEventHandler, unregisterIoEventHandler } from '../general/io-handler';
 import { ZoneTitleCard } from '../general/zone-title-card';
+import { Death } from '../general/death';
 import { Quests } from '../play-mode/quests';
 import { MapGen } from '../general/map-gen/MapGen.jsx';
 import { LoadingBox } from '../../LoadingBox.jsx';
@@ -301,6 +302,7 @@ export const App = () => {
                 <QuickMenu />
                 <ZoneTitleCard />
                 <MapGen />
+                <Death />
                 <Quests />
                 <LoadingBox />
                 <FocusBar />

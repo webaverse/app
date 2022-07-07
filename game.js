@@ -488,6 +488,8 @@ const _gameUpdate = (timestamp, timeDiff) => {
   const renderer = getRenderer();
   const localPlayer = getLocalPlayer();
 
+  if (!localPlayer.isAlive) return
+
   const _handlePush = () => {
     if (gameManager.canPush()) {
       if (ioManager.keys.forward) {

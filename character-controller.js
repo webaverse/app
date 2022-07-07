@@ -69,7 +69,7 @@ const _getSession = () => {
 function makeCancelFn() {
   let live = true;
   return {
-    isLive() {
+    isAlive() {
       return live;
     },
     cancel() {
@@ -647,7 +647,7 @@ class StatePlayer extends PlayerBase {
     const _setNextAvatarApp = app => {
       (() => {
         const avatar = switchAvatar(this.avatar, app);
-        if (!cancelFn.isLive()) return;
+        if (!cancelFn.isAlive()) return;
         this.avatar = avatar;
 
         this.dispatchEvent({
@@ -687,7 +687,7 @@ class StatePlayer extends PlayerBase {
           const addPromise = this.appManager.pendingAddPromises.get(instanceId);
           if (addPromise) {
             const nextAvatarApp = await addPromise;
-            if (!cancelFn.isLive()) return;
+            if (!cancelFn.isAlive()) return;
             _setNextAvatarApp(nextAvatarApp);
           } else {
             console.warn('switching avatar to instanceId that does not exist in any app manager', instanceId);
@@ -855,6 +855,12 @@ class StatePlayer extends PlayerBase {
     this.appManager.destroy();
   
     super.destroy();
+  }
+  setAlive(isAlive) {
+    this.isAlive = isAlive;
+    this.avatar.model.visible = isAlive;
+    if(this.characterFx.nameplate) this.characterFx.nameplate.visible = isAlive;
+    this.pushPlayerUpdates();
   }
 }
 class InterpolatedPlayer extends StatePlayer {

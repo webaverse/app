@@ -592,6 +592,13 @@ ioManager.keydown = e => {
       debug.toggle();
       break;
     }
+    case 75: { // K
+      console.log("died")
+      const localPlayer = metaversefile.useLocalPlayer();
+      localPlayer.setAlive(false)
+      ioManager.dispatchEvent(new MessageEvent('death', {data: {isAlive: false}}));
+      break;
+    }
     case 192: { // tilde
       game.toggleEditMode();
       break;
