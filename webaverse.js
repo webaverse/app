@@ -43,7 +43,6 @@ import metaversefileApi from 'metaversefile';
 import WebaWallet from './src/components/wallet.js';
 // import domRenderEngine from './dom-renderer.jsx';
 import musicManager from './music-manager.js';
-import dcWorkerManager from './dc-worker-manager.js';
 import physxWorkerManager from './physx-worker-manager.js';
 import story from './story.js';
 import zTargeting from './z-targeting.js';
@@ -92,7 +91,6 @@ export default class Webaverse extends EventTarget {
         metaverseModules.waitForLoad(),
         voices.waitForLoad(),
         musicManager.waitForLoad(),
-        dcWorkerManager.waitForLoad(),
         WebaWallet.waitForLoad(),
       ]);
     })();
@@ -321,7 +319,7 @@ export default class Webaverse extends EventTarget {
           game.update(timestamp, timeDiffCapped);
           
           localPlayer.updateAvatar(timestamp, timeDiffCapped);
-          playersManager.updateRemotePlayers(timestamp, timeDiffCapped);
+          // playersManager.updateRemotePlayers(timestamp, timeDiffCapped);
           
           world.appManager.tick(timestamp, timeDiffCapped, frame);
 

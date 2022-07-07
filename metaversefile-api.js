@@ -25,7 +25,6 @@ import * as mathUtils from './math-utils.js';
 import JSON6 from 'json-6';
 import * as geometries from './geometries.js';
 import * as materials from './materials.js';
-import * as meshes from './meshes.js';
 import meshLodManager from './mesh-lodder.js';
 import * as avatarCruncher from './avatar-cruncher.js';
 import * as avatarSpriter from './avatar-spriter.js';
@@ -54,9 +53,11 @@ import particleSystemManager from './particle-system.js';
 import domRenderEngine from './dom-renderer.jsx';
 import dropManager from './drop-manager.js';
 import hitManager from './character-hitter.js';
-import dcWorkerManager from './dc-worker-manager.js';
+// import dcWorkerManager from './dc-worker-manager.js';
+import procGenManager from './procgen-manager.js';
 import cardsManager from './cards-manager.js';
-import * as geometryAllocators from './geometry-allocator.js';
+import * as instancing from './instancing.js';
+import * as atlasing from './atlasing.js';
 
 const localVector2D = new THREE.Vector2();
 
@@ -1180,14 +1181,14 @@ export default () => {
   useGeometries() {
     return geometries;
   },
-  useGeometryAllocators() {
-    return geometryAllocators;
+  useInstancing() {
+    return instancing;
+  },
+  useAtlasing() {
+    return atlasing;
   },
   useMaterials() {
     return materials;
-  },
-  useMeshes() {
-    return meshes;
   },
   useJSON6Internal() {
     return JSON6;
@@ -1210,8 +1211,8 @@ export default () => {
   useHitManager() {
     return hitManager;
   },
-  useDcWorkerManager() {
-    return dcWorkerManager;
+  useProcGenManager() {
+    return procGenManager;
   },
   useCardsManager() {
     return cardsManager;
