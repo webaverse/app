@@ -245,6 +245,19 @@ class CharacterFx {
       }
     };
     _updateSonicBoomMesh();
+    const _updateNameplate = () => {
+      if(!this.nameplate && !this.player.isNpcPlayer){
+        (async () => {
+        this.nameplate = metaversefile.createApp();
+        this.nameplate.player = this.player;
+          const {modules} = metaversefile.useDefaultModules();
+          const m = modules['nameplate'];
+          await this.nameplate.addModule(m);
+          sceneLowPriority.add(this.nameplate);
+        })();
+      }
+    };
+    _updateNameplate();
     const _updateHealEffectMesh = () => {
       
       if(this.player.hasAction('cure')){
@@ -277,6 +290,10 @@ class CharacterFx {
     if (this.sonicBoom) {
       sceneLowPriority.remove(this.sonicBoom);
       this.sonicBoom = null;
+    }
+    if (this.nameplate) {
+      sceneLowPriority.remove(this.nameplate);
+      this.nameplate = null;
     }
     if (this.healEffect) {
       sceneLowPriority.remove(this.healEffect);
