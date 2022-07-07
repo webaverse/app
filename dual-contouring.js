@@ -2,15 +2,20 @@ import Module from './public/dc.module.js'
 import {Allocator} from './geometry-util.js';
 import {makePromise} from './util.js';
 import {defaultChunkSize} from './constants.js';
-// import placeNames from './procgen/placeNames.js';
+
+//
 
 const cbs = new Map();
+
+//
 
 const align = (v, N) => {
   const r = v % N;
   return r === 0 ? v : v - r + N;
 };
 const align4 = v => align(v, 4);
+
+//
 
 const w = {};
 
@@ -228,14 +233,19 @@ const _parseTerrainVertexBuffer = (arrayBuffer, bufferAddress) => {
     aos,
   };
 };
-w.createTerrainChunkMeshAsync = async (inst, x, y, z, lods) => {
+w.createTerrainChunkMeshAsync = async (inst, taskId, x, y, z, lods) => {
   const allocator = new Allocator(Module);
 
   const lodArray = allocator.alloc(Int32Array, 8);
   lodArray.set(lods);
 
-  const taskId = Module._createTerrainChunkMeshAsync(
+  if (!taskId) {
+    debugger;
+  }
+
+  Module._createTerrainChunkMeshAsync(
     inst,
+    taskId,
     x, y, z,
     lodArray.byteOffset,
   );
@@ -296,14 +306,15 @@ const _parseLiquidVertexBuffer = (arrayBuffer, bufferAddress) => {
     indices,
   };
 };
-w.createLiquidChunkMeshAsync = async (inst, x, y, z, lods) => {
+w.createLiquidChunkMeshAsync = async (inst, taskId, x, y, z, lods) => {
   const allocator = new Allocator(Module);
 
   const lodArray = allocator.alloc(Int32Array, 8);
   lodArray.set(lods);
 
-  const taskId = Module._createLiquidChunkMeshAsync(
+  Module._createLiquidChunkMeshAsync(
     inst,
+    taskId,
     x, y, z,
     lodArray.byteOffset,
   );
@@ -327,14 +338,15 @@ w.createLiquidChunkMeshAsync = async (inst, x, y, z, lods) => {
 
 //
 
-w.getChunkHeightfieldAsync = async (inst, x, z, lod) => {
+w.getChunkHeightfieldAsync = async (inst, taskId, x, z, lod) => {
   // const allocator = new Allocator(Module);
 
   // const heights = allocator.alloc(Float32Array, chunkSize * chunkSize);
 
   // try {
-    const taskId = Module._getChunkHeightfieldAsync(
+    Module._getChunkHeightfieldAsync(
       inst,
+      taskId,
       x, z,
       lod
     );
@@ -368,15 +380,16 @@ w.getChunkHeightfieldAsync = async (inst, x, z, lod) => {
     allocator.freeAll();
   }
 }; */
-w.getChunkSkylightAsync = async (inst, x, y, z, lod) => {
+w.getChunkSkylightAsync = async (inst, taskId, x, y, z, lod) => {
   // const allocator = new Allocator(Module);
 
   // const gridPoints = chunkSize + 3 + lod;
   // const skylights = allocator.alloc(Uint8Array, chunkSize * chunkSize * chunkSize);
 
   // try {
-    const taskId = Module._getChunkSkylightAsync(
+    Module._getChunkSkylightAsync(
       inst,
+      taskId,
       x, y, z,
       lod
     );
@@ -392,14 +405,15 @@ w.getChunkSkylightAsync = async (inst, x, y, z, lod) => {
     // allocator.freeAll();
   } */
 };
-w.getChunkAoAsync = async (inst, x, y, z, lod) => {
+w.getChunkAoAsync = async (inst, taskId, x, y, z, lod) => {
   // const allocator = new Allocator(Module);
 
   // const aos = allocator.alloc(Uint8Array, chunkSize * chunkSize * chunkSize);
 
   // try {
-    const taskId = Module._getChunkAoAsync(
+    Module._getChunkAoAsync(
       inst,
+      taskId,
       x, y, z,
       lod
     );
@@ -452,7 +466,30 @@ w.getAoFieldRange = (inst, x, y, z, w, h, d, lod) => {
   }
 }; */
 
-w.createGrassSplatAsync = async (inst, x, z, lod) => {
+function _parsePQI(addr) {
+  const dataView = new DataView(Module.HEAPU8.buffer, addr);
+
+  let index = 0;
+  const psSize = dataView.getUint32(index, true);
+  index += Uint32Array.BYTES_PER_ELEMENT;
+  const ps = new Float32Array(dataView.buffer, dataView.byteOffset + index, psSize).slice();
+  index += psSize * Float32Array.BYTES_PER_ELEMENT;
+  const qsSize = dataView.getUint32(index, true);
+  index += Uint32Array.BYTES_PER_ELEMENT;
+  const qs = new Float32Array(dataView.buffer, dataView.byteOffset + index, qsSize).slice();
+  index += qsSize * Float32Array.BYTES_PER_ELEMENT;
+  const instancesSize = dataView.getUint32(index, true);
+  index += Uint32Array.BYTES_PER_ELEMENT;
+  const instances = new Float32Array(dataView.buffer, dataView.byteOffset + index, instancesSize).slice();
+  index += instancesSize * Float32Array.BYTES_PER_ELEMENT;
+
+  return {
+    ps,
+    qs,
+    instances,
+  };
+}
+w.createGrassSplatAsync = async (inst, taskId, x, z, lod) => {
   // const allocator = new Allocator(Module);
 
   // const allocSize = 64 * 1024;
@@ -462,8 +499,9 @@ w.createGrassSplatAsync = async (inst, x, z, lod) => {
   // const count = allocator.alloc(Uint32Array, 1);
 
   // try {
-    const taskId = Module._createGrassSplatAsync(
+    Module._createGrassSplatAsync(
       inst,
+      taskId,
       x, z,
       lod
     );
@@ -486,7 +524,7 @@ w.createGrassSplatAsync = async (inst, x, z, lod) => {
     // allocator.freeAll();
   } */
 };
-w.createVegetationSplatAsync = async (inst, x, z, lod) => {
+w.createVegetationSplatAsync = async (inst, taskId, x, z, lod) => {
   // const allocator = new Allocator(Module);
 
   // const allocSize = 64 * 1024;
@@ -496,8 +534,9 @@ w.createVegetationSplatAsync = async (inst, x, z, lod) => {
   // const count = allocator.alloc(Uint32Array, 1);
 
   // try {
-    const taskId = Module._createVegetationSplatAsync(
+    Module._createVegetationSplatAsync(
       inst,
+      taskId,
       x, z,
       lod
     );
@@ -520,7 +559,7 @@ w.createVegetationSplatAsync = async (inst, x, z, lod) => {
     // allocator.freeAll();
   } */
 };
-w.createMobSplatAsync = async (inst, x, z, lod) => {
+w.createMobSplatAsync = async (inst, taskId, x, z, lod) => {
   // const allocator = new Allocator(Module);
 
   /* const allocSize = 64 * 1024;
@@ -530,8 +569,9 @@ w.createMobSplatAsync = async (inst, x, z, lod) => {
   const count = allocator.alloc(Uint32Array, 1); */
 
   // try {
-    const taskId = Module._createMobSplatAsync(
+    Module._createMobSplatAsync(
       inst,
+      taskId,
       x, z,
       lod
     );
@@ -562,29 +602,11 @@ w.createMobSplatAsync = async (inst, x, z, lod) => {
 // qs data (float32_t) * size
 // instances size (uint32_t)
 // instances data (float32_t) * size
-function _parsePQI(addr) {
-  const dataView = new DataView(Module.HEAPU8.buffer, addr);
 
-  let index = 0;
-  const psSize = dataView.getUint32(index, true);
-  index += Uint32Array.BYTES_PER_ELEMENT;
-  const ps = new Float32Array(dataView.buffer, dataView.byteOffset + index, psSize).slice();
-  index += psSize * Float32Array.BYTES_PER_ELEMENT;
-  const qsSize = dataView.getUint32(index, true);
-  index += Uint32Array.BYTES_PER_ELEMENT;
-  const qs = new Float32Array(dataView.buffer, dataView.byteOffset + index, qsSize).slice();
-  index += qsSize * Float32Array.BYTES_PER_ELEMENT;
-  const instancesSize = dataView.getUint32(index, true);
-  index += Uint32Array.BYTES_PER_ELEMENT;
-  const instances = new Float32Array(dataView.buffer, dataView.byteOffset + index, instancesSize).slice();
-  index += instancesSize * Float32Array.BYTES_PER_ELEMENT;
-
-  return {
-    ps,
-    qs,
-    instances,
-  };
-}
+w.cancelTask = async (inst, taskId) => {
+  // console.log('cancel task', inst, taskId);
+  Module._cancelTask(inst, taskId);
+};
 
 globalThis.handleResult = (id, result) => {
   const p = cbs.get(id);
@@ -592,7 +614,7 @@ globalThis.handleResult = (id, result) => {
     cbs.delete(id);
     p.accept(result);
   } else {
-    console.warn('failed to find promise for id', e.data);
+    console.warn('failed to find promise for id', id, result);
   }
 };
 
