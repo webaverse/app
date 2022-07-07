@@ -772,9 +772,11 @@ export const _applyAnimation = (avatar, now, moveFactors) => {
 
         // const animation = animations.index['walking.fbx']
         const animation = animations.index['pickaxe_swing.fbx']
-        const t2 = timeSeconds / 10;
+        // const tFinal = timeSeconds / 10;
+        const tFinal = window.timeS;
         const src2 = animation.interpolants[k];
-        const v2 = src2.evaluate(t2 % animation.duration);
+        // const v2 = src2.evaluate(t2 % animation.duration);
+        const v2 = src2.evaluate(tFinal);
 
         dst.fromArray(v2);
       };
