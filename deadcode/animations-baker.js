@@ -22,7 +22,7 @@ const {CharsetEncoder} = require('three/examples/js/libs/mmdparser.js');
   globalThis.Request = Request;
   globalThis.Response = Response;
   globalThis.Headers = Headers;
-  const {getHeight, animationBoneToModelBone, modelBoneToAnimationBone} = await import('../avatars/util.mjss');
+  const {getHeight, animationBoneToModelBone, modelBoneToAnimationBone} = await import('../avatars/util.mjs');
   const {zbencode, zbdecode} = await import('zjs/encoding.mjs');
 
   const idleAnimationName = 'idle.fbx';
