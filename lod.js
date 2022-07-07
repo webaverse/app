@@ -300,6 +300,18 @@ class Task extends EventTarget {
       return task.oldNodes.some(oldNode => oldNode.equalsNode(newNode));
     });
   }
+  commit() {
+    this.dispatchEvent(new MessageEvent('finish'));
+  }
+  waitForLoad() {
+    const p = makePromise();
+    this.addEventListener('finish', () => {
+      p.accept();
+    }, {
+      once: true,
+    });
+    return p;
+  }
 }
 const diffLeafNodes = (newLeafNodes, oldLeafNodes) => {
   // map from min lod hash to task containing new nodes and old nodes
