@@ -261,9 +261,9 @@
 .userBar .avatarUrl + .address {
   border-radius: 0;
 }
-.userBar:hover .address {
+/* .userBar:hover .address {
   background-color: #00a8fc;
-}
+} */
 .userBar .verifiedIcon {
   position: relative;
   width: 18px;

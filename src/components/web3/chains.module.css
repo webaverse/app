@@ -11,12 +11,10 @@
   line-height: 1.4;
   pointer-events: all;
   border: 2px solid black;
-  border-right-width: 5px;
 }
 
 .selectedChain {
     padding: 5px 6px 6px 8px;
-    cursor: pointer;
 }
 
 .selectedChain {
@@ -46,6 +44,7 @@
     padding: 0;
 }
 
+
 .chains li button {
     border-radius: 0;
     border: none;
@@ -54,11 +53,17 @@
     cursor: pointer;
     padding: 8px;
     color: white;
+    width: 100%;
 }
+
+.chains li button:hover {
+    background-color: #00a8fc;
+  }
 
 .selected {
     background-color: rgba(255, 255, 255, 0.3);
 }
+
 
 .showChainSelector {
     height: auto;

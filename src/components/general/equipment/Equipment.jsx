@@ -272,6 +272,9 @@ export const Equipment = () => {
     const { selectedChain, supportedChain } = useContext(ChainContext)
     const {getTokens} = useNFTContract(account.currentAddress);
     const [ claims, setClaims ] = useState([]);
+    const [nftPreviews, setNftPreviews] = useState({});
+    const [nfts, setNfts] = useState(null);
+
     const [ cachedLoader, setCachedLoader ] = useState(() => new CachedLoader({
         async loadFn(url, value, {signal}) {            
             const {start_url} = value;
@@ -292,19 +295,34 @@ export const Equipment = () => {
     
     const open = state.openedPanel === 'CharacterPanel';
 
+    useEffect(() => {
+        if (open && account && account.currentAddress) {
+          async function queryOpensea() {
+            fetch(
+              `https://api.opensea.io/api/v1/assets?owner=${account.currentAddress}&limit=${50}`,
+             // { headers: { "X-API-KEY": "6a7ceb45f3c44c84be65779ad2907046" } }
+            // WARNING: without opensea api key this API is rate-limited
+             ).then((res) => res.json())
+              .then(({ assets }) => setNfts(assets))
+              .catch(() => console.warn('could not connect to opensea. the api key may have expired'));
+          }
+          queryOpensea();
+        }
+    }, [open]);
+
   useEffect(() => {
-    if(open) {
+    if(open && nfts) {
         if (!supportedChain) {
             setInventoryObject([]);
             return;
         }
 
         async function setupInventory() {
-        const tokens = await getTokens();
-        const inventoryItems = tokens.map((token, i) => {
+        const inventoryItems = nfts.map((token, i) => {
+            console.log('nft is', token);
             return {
             name: token.name,
-            start_url: token.url,
+            start_url: token.url ?? (token.animation_url !== "" ? token.animation_url : token.collection.banner_image_url),
             level: 1,
             };
         });
@@ -317,7 +335,7 @@ export const Equipment = () => {
         });
     }
 
-  }, [open, state.openedPanel, selectedChain]);
+  }, [open, state.openedPanel, selectedChain, nfts]);
 
     
 
