@@ -704,7 +704,7 @@ export class LodChunkTracker extends EventTarget {
         const overlappingTasks = this.liveTasks.filter(lastTask => task.maxLodNode.containsNode(lastTask.maxLodNode));
         for (const oldTask of overlappingTasks) {
           oldTask.cancel();
-          this.liveTasks.splice(liveTasks.indexOf(oldTask), 1);
+          this.liveTasks.splice(this.liveTasks.indexOf(oldTask), 1);
         }
         this.liveTasks.push(task);
 
