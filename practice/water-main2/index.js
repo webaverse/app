@@ -1087,11 +1087,11 @@ export default (e) => {
 
             if(localPlayer.hasAction('swim')){
                 if(localPlayer.getAction('swim').animationType === 'breaststroke'){
-                    if(alreadySetSwimSprintSpeed && localPlayer.actionInterpolants.movements.get() % 1133.3333333333333 <= 500){
+                    if(alreadySetSwimSprintSpeed && localPlayer.actionInterpolants.movements.get() % 1066.6666666666666 <= 433.3333333333333){
                         alreadySetSwimSprintSpeed = false;
                         handStrokeStatus = null;
                     }
-                    else if(!alreadySetSwimSprintSpeed && localPlayer.actionInterpolants.movements.get() % 1133.3333333333333 > 500){
+                    else if(!alreadySetSwimSprintSpeed && localPlayer.actionInterpolants.movements.get() % 1066.6666666666666 > 433.3333333333333){
                         localPlayer.getAction('swim').swimDamping = 1;
                         alreadySetSwimSprintSpeed = true;
                         handStrokeStatus = 'right';
