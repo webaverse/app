@@ -48,8 +48,8 @@ export const CHAINS = {
     type: CHAIN_TYPE.PRODUCTION,
   },
   RINKBY: {
-    chainName: 'RinkyBy Test Network',
-    name: 'RinkyBy',
+    chainName: 'Rinkeby Test Network',
+    name: 'Rinkeby',
     chainId: '0x4',
     blockExplorerUrls: ['https://rinkeby.etherscan.io'],
     symbol: 'ETH',
