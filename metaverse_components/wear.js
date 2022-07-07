@@ -195,7 +195,23 @@ export default (app, component) => {
 
   const _copyBoneAttachment = spec => {
     const {boneAttachment = 'hips', position, quaternion, scale} = spec;
-    const boneAttachments = Array.isArray(boneAttachment) ? boneAttachment : [boneAttachment];
+    // const boneAttachments = Array.isArray(boneAttachment) ? boneAttachment : [boneAttachment];
+    const boneAttachments = [];
+    if (window.tFinal < 0.5) {
+      boneAttachments[0] = 'rightHand'
+      position[0] = Math.abs(position[0]);
+      quaternion[0]=0
+      quaternion[1]=0.7071067811865476
+      quaternion[2]=0.7071067811865475
+      quaternion[3]=0
+    } else {
+      boneAttachments[0] = 'leftHand'
+      position[0] = Math.abs(position[0]) * -1;
+      quaternion[0]=0.7071067811865475
+      quaternion[1]=0
+      quaternion[2]=0
+      quaternion[3]=0.7071067811865476
+    }
 
     // lerp app's transform to average position/quaternion/scale of boneAttachments.
     let count = 0;
