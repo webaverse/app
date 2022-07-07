@@ -197,7 +197,7 @@ export default (app, component) => {
     const {boneAttachment = 'hips', position, quaternion, scale} = spec;
     // const boneAttachments = Array.isArray(boneAttachment) ? boneAttachment : [boneAttachment];
     const boneAttachments = [];
-    if (window.tFinal < 0.5) {
+    if (window.tFinal < 0.5 || window.tFinal > 1.0666666666666667) {
       boneAttachments[0] = 'rightHand'
       position[0] = Math.abs(position[0]);
       quaternion[0]=0
