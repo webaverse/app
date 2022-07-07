@@ -1760,7 +1760,6 @@ export default (e) => {
     let lastEmmitTime=0;
     let localVector = new THREE.Vector3();
     useFrame(({timestamp}) => {
-        
         if(currentIndex>=particleCount){
             currentIndex=0;
         }
@@ -2296,26 +2295,27 @@ export default (e) => {
                 // && localPlayer.getAction('swim').animationType === 'breaststroke'
                 && currentSpeed > 0.3
             ){
-                const splashposition = localPlayer.getAction('swim').animationType === 'breaststroke' ? 0.55 : 0.35;
+                const splashposition = localPlayer.getAction('swim').animationType === 'breaststroke' ? 0.55 :  0.15;
+                const splashposition2 = localPlayer.getAction('swim').animationType === 'breaststroke' ? 0.05 : 0.2;
                 let currentEmmit = 0;
                 for(let i = 0; i < particleCount; i++){
                     if(brokenAttribute.getX(i) >= 1){
-                        info.velocity[i].x = localVector2.x * (Math.random() - 0.5) * 0.2 + playerDir.x * 0.1;
-                        info.velocity[i].y = 0.08 + Math.random() * 0.05;
-                        info.velocity[i].z = localVector2.z * (Math.random() - 0.5) * 0.2 + playerDir.z * 0.1;
+                        info.velocity[i].x = localVector2.x * (Math.random() - 0.5) * 0.2 + playerDir.x * splashposition2 * (1 + currentSpeed);
+                        info.velocity[i].y = 0.08 + Math.random() * 0.08;
+                        info.velocity[i].z = localVector2.z * (Math.random() - 0.5) * 0.2 + playerDir.z * splashposition2 * (1 + currentSpeed);
                         positionsAttribute.setXYZ(  i, 
                                                     localPlayer.position.x + info.velocity[i].x * 0.5 + playerDir.x * splashposition,
                                                     waterSurfacePos.y - 0.1 * Math.random(),
                                                     localPlayer.position.z + info.velocity[i].z * 0.5 + playerDir.z * splashposition
                         );
                         info.velocity[i].divideScalar(5);
-                        info.acc[i] = -0.001 - currentSpeed * 0.0015;
-                        scalesAttribute.setX(i, 1.5 + Math.random() * 3.5);
+                        info.acc[i] = -0.0015 - currentSpeed * 0.0015;
+                        scalesAttribute.setX(i, 2 + Math.random() * 2);
                         brokenAttribute.setX(i, 0.25 + Math.random() * 0.2);
                         textureRotationAttribute.setX(i, Math.random() * 2);
                         currentEmmit++;
                     }
-                    if(currentEmmit >= 5){
+                    if(currentEmmit >= 2){
                         break;
                     }
                 }
@@ -2343,7 +2343,7 @@ export default (e) => {
                             brokenAttribute.setX(i, brokenAttribute.getX(i) + 0.016);
                         // else
                         //     brokenAttribute.setX(i, brokenAttribute.getX(i) + 0.02 * (1 + currentSpeed));
-                        scalesAttribute.setX(i, scalesAttribute.getX(i) + 0.02 * (1 + currentSpeed));
+                        scalesAttribute.setX(i, scalesAttribute.getX(i) + 0.01 * (1 + currentSpeed));
                     // else{
                     //     brokenAttribute.setX(i, brokenAttribute.getX(i) + 0.005);
                     // }
@@ -2527,9 +2527,9 @@ export default (e) => {
                 else{
                     discard;
                 }
-                // if(vPos.y < waterSurfacePos.y){
-                //     discard;
-                // }
+                if(vPos.y < waterSurfacePos.y){
+                    discard;
+                }
                 //gl_FragColor.a *= 0.5;
                 float broken = abs( sin( 1.0 - vBroken ) ) - texture2D( noiseMap, rotated * 0.8 ).g;
                 if ( broken < 0.0001 ) discard;
@@ -2596,13 +2596,13 @@ export default (e) => {
                     let currentEmmit = 0;
                     for(let i = 0; i < particleCount; i++){
                         if(brokenAttribute.getX(i) >= 1){
-                            info.velocity[i].x = (Math.random() - 0.5) * 0.1 + playerDir.x * 0.35 * (1 + currentSpeed) + localVector2.x * 0.1;
+                            info.velocity[i].x = (Math.random() - 0.5) * 0.1 + playerDir.x * 0.45 * (1 + currentSpeed) + localVector2.x * 0.1;
                             info.velocity[i].y = 0.2 + Math.random() * 0.2;
-                            info.velocity[i].z = (Math.random() - 0.5) * 0.1 + playerDir.z * 0.35 * (1 + currentSpeed) + localVector2.z * 0.1;
+                            info.velocity[i].z = (Math.random() - 0.5) * 0.1 + playerDir.z * 0.45 * (1 + currentSpeed) + localVector2.z * 0.1;
                             positionsAttribute.setXYZ(  i, 
-                                                        localPlayer.position.x + (Math.random() - 0.5) * 0.1 + info.velocity[i].x + playerDir.x * 0.15,
+                                                        localPlayer.position.x + (Math.random() - 0.5) * 0.1 + info.velocity[i].x - playerDir.x * 0.15,
                                                         waterSurfacePos.y,
-                                                        localPlayer.position.z + (Math.random() - 0.5) * 0.1 + info.velocity[i].z + playerDir.z * 0.15
+                                                        localPlayer.position.z + (Math.random() - 0.5) * 0.1 + info.velocity[i].z - playerDir.z * 0.15
                             );
                             info.velocity[i].divideScalar(10);
                             info.acc[i] = -0.001 - currentSpeed * 0.0015;
@@ -2621,13 +2621,13 @@ export default (e) => {
                     let currentEmmit = 0;
                     for(let i = 0; i < particleCount; i++){
                         if(brokenAttribute.getX(i) >= 1){
-                            info.velocity[i].x = (Math.random() - 0.5) * 0.1 + playerDir.x * 0.35 * (1 + currentSpeed) - localVector2.x * 0.1;
+                            info.velocity[i].x = (Math.random() - 0.5) * 0.1 + playerDir.x * 0.45 * (1 + currentSpeed) - localVector2.x * 0.1;
                             info.velocity[i].y = 0.2 + Math.random() * 0.2;
-                            info.velocity[i].z = (Math.random() - 0.5) * 0.1 + playerDir.z * 0.35 * (1 + currentSpeed)  - localVector2.z * 0.1;
+                            info.velocity[i].z = (Math.random() - 0.5) * 0.1 + playerDir.z * 0.45 * (1 + currentSpeed)  - localVector2.z * 0.1;
                             positionsAttribute.setXYZ(  i, 
-                                                        localPlayer.position.x + (Math.random() - 0.5) * 0.1 + info.velocity[i].x + playerDir.x * 0.15,
+                                                        localPlayer.position.x + (Math.random() - 0.5) * 0.1 + info.velocity[i].x - playerDir.x * 0.25,
                                                         waterSurfacePos.y,
-                                                        localPlayer.position.z + (Math.random() - 0.5) * 0.1 + info.velocity[i].z + playerDir.z * 0.15
+                                                        localPlayer.position.z + (Math.random() - 0.5) * 0.1 + info.velocity[i].z - playerDir.z * 0.25
                             );
                             info.velocity[i].divideScalar(10);
                             info.acc[i] = -0.001 - currentSpeed * 0.0015;
