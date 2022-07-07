@@ -4180,15 +4180,15 @@ export default (e) => {
             // }
             if(playEffectSw === 1){
                 group.position.copy(localPlayer.position);
-                group.position.y = waterSurfacePos.y + 0.02;
-                splashMesh.material.uniforms.vBroken.value = 0;
+                group.position.y = waterSurfacePos.y + 0.01;
+                splashMesh.material.uniforms.vBroken.value = 0.1;
                 splashMesh.scale.set(0.2, 1, 0.2);
                 splashMesh.material.uniforms.uTime.value = 120;
             }
             let falling = fallindSpeed > 10 ? 10 : fallindSpeed;
             if(splashMesh.material.uniforms.vBroken.value < 1){
                 if(splashMesh.scale.x > 0.15 * (1 + falling * 0.1))
-                    splashMesh.material.uniforms.vBroken.value = splashMesh.material.uniforms.vBroken.value + 0.008;
+                    splashMesh.material.uniforms.vBroken.value = splashMesh.material.uniforms.vBroken.value * 1.025;
                 splashMesh.scale.x += 0.007 * (1 + falling * 0.1);
                 // splashMesh.scale.y += 0.01;
                 splashMesh.scale.z += 0.007 * (1 + falling * 0.1);
