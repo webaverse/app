@@ -10,53 +10,67 @@ import { AppContext } from '../components/app';
 import styles from '../Header.module.css';
 
 //
+export const Tokens = ({loginFrom, hacks}) => {
 
-export const Tokens = ({userOpen, loginFrom, hacks, address}) => {
-
-    const { state } = useContext( AppContext );
+    const { state, account } = useContext( AppContext );
     const [nftPreviews, setNftPreviews] = useState({});
     const [nfts, setNfts] = useState(null);
-    const [fetchPromises, setFetchPromises] = useState([]);
+    const { currentAddress } = account;
 
+    const open = state.openedPanel === 'UserPanel';
     //
-
-    useEffect( () => {
-
-        if ( address && !nfts && loginFrom ) {
-
-            setNfts([]);
-
-            (async () => {
-
-                if (loginFrom === 'metamask') {
-
-                    const res = await fetch(`https://api.opensea.io/api/v1/assets?owner=${address}&limit=${50}`, { headers: { 'X-API-KEY': '6a7ceb45f3c44c84be65779ad2907046', } });
-                    const j = await res.json();
-                    const {assets} = j;
-                    setNfts(assets);
-
-                } else if (loginFrom === 'discord') {
-
-                    let res = await fetch(`${tokensHost}/${address}`);
-                    res = await res.json();
-
-                    res = res.map(_nft => {
-
-                        /** Modify the response recieved from the API-Backend to match standardise format */
-                        _nft.image_preview_url = _nft.hash;
-                        return _nft;
-
-                    });
-
-                    setNfts(res);
-
-                }
-
-            })();
-
+    useEffect(() => {
+        if (open && currentAddress) {
+          async function queryOpensea() {
+            fetch(
+              `https://api.opensea.io/api/v1/assets?owner=${currentAddress}&limit=${50}`,
+             // { headers: { "X-API-KEY": "6a7ceb45f3c44c84be65779ad2907046" } }
+            // WARNING: without opensea api key this API is rate-limited
+             ).then((res) => res.json())
+              .then(({ assets }) => setNfts(assets))
+              .catch(() => console.warn('could not connect to opensea. the api key may have expired'));
+          }
+          queryOpensea();
         }
+    }, [open, currentAddress]);
 
-    }, [ address, nfts, loginFrom ] );
+    // useEffect( () => {
+
+    //     if ( address && !nfts && loginFrom ) {
+
+    //         setNfts([]);
+
+    //         (async () => {
+
+    //             if (loginFrom === 'metamask') {
+
+    //                 const res = await fetch(`https://api.opensea.io/api/v1/assets?owner=${address}&limit=${50}`, { headers: { 'X-API-KEY': '6a7ceb45f3c44c84be65779ad2907046', } });
+    //                 const j = await res.json();
+    //                 const {assets} = j;
+    //                 setNfts(assets);
+
+    //             } else if (loginFrom === 'discord') {
+
+    //                 let res = await fetch(`${tokensHost}/${address}`);
+    //                 res = await res.json();
+
+    //                 res = res.map(_nft => {
+
+    //                     /** Modify the response recieved from the API-Backend to match standardise format */
+    //                     _nft.image_preview_url = _nft.hash;
+    //                     return _nft;
+
+    //                 });
+
+    //                 setNfts(res);
+
+    //             }
+
+    //         })();
+
+    //     }
+
+    // }, [ address, nfts, loginFrom ] );
 
     useEffect( () => {
 
