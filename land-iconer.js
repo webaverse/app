@@ -11,7 +11,7 @@ const useLandScreenshotter = (() => {
         import {screenshotLandApp} from './land-screenshotter.js';
         import physx from './physx.js';
         `,
-        async function(seed, range, width, height) {
+        async function(seed, renderPosition, lods, minLodRange, clipRange, width, height) {
           await physx.waitForLoad();
 
           const start_url = '/metaverse_modules/land/';
@@ -21,8 +21,20 @@ const useLandScreenshotter = (() => {
               value: seed,
             },
             {
-              key: 'range',
-              value: range,
+              key: 'renderPosition',
+              value: renderPosition,
+            },
+            {
+              key: 'lods',
+              value: lods,
+            },
+            {
+              key: 'minLodRange',
+              value: minLodRange,
+            },
+            {
+              key: 'clipRange',
+              value: clipRange,
             },
             {
               key: 'wait',
@@ -33,13 +45,13 @@ const useLandScreenshotter = (() => {
             start_url,
             components,
           });
-          const rangeBox = new THREE.Box3(
-            new THREE.Vector3(range[0][0], range[0][1], range[0][2]),
-            new THREE.Vector3(range[1][0], range[1][1], range[1][2])
+          const range = new THREE.Box3(
+            new THREE.Vector3().fromArray(clipRange[0]),
+            new THREE.Vector3().fromArray(clipRange[1]),
           );
           const landCanvas = await screenshotLandApp({
             app,
-            range: rangeBox,
+            range,
             width,
             height,
           });
@@ -57,11 +69,14 @@ const useLandScreenshotter = (() => {
 
 export const createLandIcon = async ({
   seed,
-  range,
+  renderPosition,
+  lods,
+  minLodRange,
+  clipRange,
   width,
   height,
 } = {}) => {
   const getLandImage = useLandScreenshotter();
-  const imageBitmap = await getLandImage([seed, range, width, height]);
+  const imageBitmap = await getLandImage([seed, renderPosition, lods, minLodRange, clipRange, width, height]);
   return imageBitmap;
 };
