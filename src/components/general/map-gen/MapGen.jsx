@@ -217,13 +217,13 @@ export const MapGen = () => {
 
     //
     
-    useEffect(() => {
+    /* useEffect(() => {
         if (open) {
             musicManager.playCurrentMusicName('overworld', {
                 repeat: true,
             });
         } else { musicManager.stopCurrentMusic(); }
-    }, [open]);
+    }, [open]); */
 
     //
 
