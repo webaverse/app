@@ -1,6 +1,10 @@
 import metaversefile from 'metaversefile';
 // import { useSyncExternalStore } from 'react';
 import * as THREE from 'three';
+import { EffectComposer } from 'three/examples/jsm/postprocessing/EffectComposer.js';
+import { SSRPass } from 'three/examples/jsm/postprocessing/SSRPass.js';
+import { ShaderPass } from 'three/examples/jsm/postprocessing/ShaderPass.js';
+import { GammaCorrectionShader } from 'three/examples/jsm/shaders/GammaCorrectionShader.js';
 // import { terrainVertex, terrainFragment } from './shaders/terrainShader.js';
 // import biomeSpecs from './biomes.js';
 
@@ -784,7 +788,11 @@ export default (e) => {
     let count = 0;
     let testContact1;
     let testContact2;
-    let alreadySetSwimSprintSpeed = true;
+    let alreadySetSwimSprintSpeed = false;
+
+    let alreadySetComposer = false;
+    let composer;
+    let ssrPass;
     useFrame(({timestamp, timeDiff}) => {
       if (!!tracker && !range) {
         localMatrix
@@ -794,6 +802,25 @@ export default (e) => {
         tracker.update(localVector);
   
         if(generator && localPlayer.avatar){
+            if(!alreadySetComposer){
+                composer = new EffectComposer( renderer );
+                ssrPass = new SSRPass( {
+                    renderer,
+                    scene,
+                    camera,
+                    width: innerWidth,
+                    height: innerHeight,
+                    groundReflector: null,
+                    selects: generator.getMeshes()[0]
+                } );
+
+                composer.addPass( ssrPass );
+                composer.addPass( new ShaderPass( GammaCorrectionShader ) );
+                alreadySetComposer = true;
+            }
+            else{
+                composer.render();
+            }
             // let testA = [], testB = [], testC = [];
             // generator.getMeshes()[0].getDrawSpec(camera, testA, testB, testC);
             // console.log(testA, testB, testC)
