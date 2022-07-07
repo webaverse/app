@@ -953,6 +953,23 @@ class LocalPlayer extends UninterpolatedPlayer {
       const oldInstanceId = avatar.get('instanceId');
       
       avatar.set('instanceId', app.instanceId);
+  
+      if (oldInstanceId) {
+        self.appManager.removeTrackedAppInternal(oldInstanceId);
+      }
+    });
+  }
+  /* importAvatarApp(app, srcAppManager) {
+    srcAppManager.transplantApp(app, this.appManager);
+    this.#setAvatarAppFromOwnAppManager(app);
+  } */
+  #setAvatarAppFromOwnAppManager(app) {
+    const self = this;
+    this.playersArray.doc.transact(function tx() {
+      const avatar = self.getAvatarState();
+      const oldInstanceId = avatar.get('instanceId');
+      
+      avatar.set('instanceId', app.instanceId);
 
       if (oldInstanceId) {
         self.appManager.removeTrackedAppInternal(oldInstanceId);
