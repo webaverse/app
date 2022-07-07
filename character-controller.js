@@ -946,6 +946,8 @@ class LocalPlayer extends UninterpolatedPlayer {
     const instanceId = avatar.get('instanceId');
     return this.appManager.getAppByInstanceId(instanceId);
   }
+  // To-do: Adding this function fixes the character switching broken issue on z-target branch
+  // But this function is also duplicated on master branch.
   setAvatarApp(app) {
     const self = this;
     this.playersArray.doc.transact(function tx() {
