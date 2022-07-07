@@ -198,7 +198,7 @@ export const MapGen = () => {
     const [mouseState, setMouseState] = useState(null);
     const [mapScene, setMapScene] = useState(() => new THREE.Scene());
     const [camera, setCamera] = useState(() => new THREE.OrthographicCamera());
-    const [chunks, setChunks] = useState([]);
+    // const [chunks, setChunks] = useState([]);
     const [hoveredObject, setHoveredObject] = useState(null);
     const [selectedChunk, setSelectedChunk] = useState(null);
     const [selectedObject, setSelectedObject] = useState(null);
@@ -212,6 +212,7 @@ export const MapGen = () => {
     const [flareMeshApp, setFlareMeshApp] = useState(null);
     const [magicMeshApp, setMagicMeshApp] = useState(null);
     const [limitMeshApp, setLimitMeshApp] = useState(null);
+    const [loaded, setLoaded] = useState(false);
     const canvasRef = useRef();
 
     //
@@ -241,7 +242,7 @@ export const MapGen = () => {
       const renderer = getRenderer();
       const pixelRatio = renderer.getPixelRatio();
 
-      camera.position.set(-position.x / voxelPixelSize, 1, -position.z / voxelPixelSize);
+      camera.position.set(-position.x / voxelPixelSize, 100, -position.z / voxelPixelSize);
       camera.quaternion.copy(downQuaternion);
       camera.scale.setScalar(pixelRatio * scale);
       camera.updateMatrixWorld();
@@ -251,10 +252,10 @@ export const MapGen = () => {
       camera.top = (height / voxelPixelSize) / 2;
       camera.bottom = -(height / voxelPixelSize) / 2;
       camera.near = 0;
-      camera.far = 1000;
+      camera.far = 10 * 1000;
       camera.updateProjectionMatrix();
     };
-    const getChunksInRange = () => {
+    /* const getChunksInRange = () => {
       const chunks = [];
       const bottomLeft = localVectorX.set(-1, 1, 0)
         .unproject(camera)
@@ -278,7 +279,7 @@ export const MapGen = () => {
       }
 
       return chunks;
-    };
+    }; */
     const setRaycasterFromEvent = (raycaster, e) => {
       const width = window.innerWidth;
       const height = window.innerHeight;
@@ -633,7 +634,7 @@ export const MapGen = () => {
       return () => {
         document.removeEventListener('mousemove', mouseMove);
       };
-    }, [mouseState, chunks, position.x, position.z, scale]);
+    }, [mouseState, /* chunks, */ position.x, position.z, scale]);
 
     // wheel
     useEffect(() => {
@@ -703,13 +704,57 @@ export const MapGen = () => {
       };
     }, [ state.openedPanel, mouseState, hoveredObject ] );
 
-    // update chunks
+    // initialize terrain
+    useEffect(async () => {
+      if (state.openedPanel === 'MapGenPanel' && !loaded) {
+        // lights
+        const ambientLight = new THREE.AmbientLight(0xffffff, 2);
+        mapScene.add(ambientLight);
+        const directionalLight = new THREE.DirectionalLight(0xffffff, 2);
+        directionalLight.position.set(1, 2, 3);
+        mapScene.add(directionalLight);
+
+        setLoaded(true);
+
+        await Promise.all([
+          (async () => {
+            // street base
+            const streetBaseApp = await metaversefile.createAppAsync({
+              start_url: '../street-base/',
+              components: {
+                seed: 'lol',
+              },
+            });
+            mapScene.add(streetBaseApp);
+            // setStreetBaseApp(streetBaseApp);
+          })(),
+          (async () => {
+            // terrain app
+            const terrainApp = await metaversefile.createAppAsync({
+              start_url: '../metaverse_modules/land/',
+              components: {
+                seed: 'lol',
+                renderPosition: [0, 60, 0],
+                minLodRange: 3,
+                lods: 4,
+              }
+            });
+            // console.log('create terrain app', app);
+            // (0, 0, 0);
+            mapScene.add(terrainApp);
+            // setTerrainApp(app);
+          })(),
+        ]);
+      }
+    }, [state.openedPanel, loaded]);
+
+    // update camera
     useEffect(() => {
-      if ( state.openedPanel === 'MapGenPanel' ) {
+      if (state.openedPanel === 'MapGenPanel') {
         updateCamera();
 
-        const newChunks = getChunksInRange();
-        setChunks(newChunks);
+        // const newChunks = getChunksInRange();
+        // setChunks(newChunks);
       }
     }, [canvasRef, state.openedPanel, width, height, position.x, position.z, scale]);
 
@@ -728,9 +773,9 @@ export const MapGen = () => {
           // push state
           const oldViewport = renderer.getViewport(localVector4D);
 
-          for (const chunk of chunks) {
+          /* for (const chunk of chunks) {
             chunk.update(timestamp, timeDiff);
-          }
+          } */
 
           renderer.setViewport(0, 0, width, height);
           // renderer.setClearColor(0xFF0000, 1);
@@ -748,7 +793,7 @@ export const MapGen = () => {
           world.appManager.removeEventListener('frame', render);
         };
       }
-    }, [canvasRef, state.openedPanel, width, height, chunks, position.x, position.z, scale]);
+    }, [canvasRef, state.openedPanel, width, height, /* chunks, */ position.x, position.z, scale]);
 
     function mouseDown(e) {
       e.preventDefault();
