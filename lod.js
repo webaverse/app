@@ -283,36 +283,17 @@ class Task extends EventTarget {
 
     this.abortController = new AbortController();
     this.signal = this.abortController.signal;
-
-    // this.liveChunks = [];
-
-    // this.committed = false;
-    // this.isTask = true;
   }
   equals(t) {
-    // return this.maxLodNode.equalsNode(t.maxLodNode);
     return this.newNodes.length === this.oldNodes.length && this.newNodes.every(node => {
       return t.newNodes.some(node2 => node.equalsNode(node2));
     }) && this.oldNodes.every(node => {
       return t.oldNodes.some(node2 => node.equalsNode(node2));
     });
-    // return this.maxLodNode === t.maxLodNode;
   }
-  /* commit() {
-    this.committed = true;
-  } */
   cancel() {
     this.abortController.abort(abortError);
-    /* for (const chunk of this.liveChunks) {
-      chunk.destroy();
-    } */
   }
-  /* getLiveNodes() {
-    return this.committed ? this.newNodes : this.oldNodes;
-  } */
-  /* addChunk(chunk) {
-    this.liveChunks.push(chunk);
-  } */
   isNop() {
     const task = this;
     return task.newNodes.length === task.oldNodes.length && task.newNodes.every(newNode => {
