@@ -291,7 +291,7 @@ class Task extends EventTarget {
     this.abortController = new AbortController();
     this.signal = this.abortController.signal;
 
-    this.liveChunks = [];
+    // this.liveChunks = [];
 
     // this.committed = false;
     // this.isTask = true;
@@ -317,9 +317,9 @@ class Task extends EventTarget {
   /* getLiveNodes() {
     return this.committed ? this.newNodes : this.oldNodes;
   } */
-  addChunk(chunk) {
+  /* addChunk(chunk) {
     this.liveChunks.push(chunk);
-  }
+  } */
   isNop() {
     const task = this;
     return task.newNodes.length === task.oldNodes.length && task.newNodes.every(newNode => {
@@ -439,8 +439,8 @@ using these results
 - the tri budget can be scaled linearly with the results
 - the chunk size can be changed to increase the view distance while decreasing the density, while keeping the tri budget the same
 */
-let lastOctree = null;
-let liveTasks = [];
+// let lastOctree = null;
+// let liveTasks = [];
 export class LodChunk extends THREE.Vector3 {
   constructor(x, y, z, lod, lodArray) {
     
@@ -463,9 +463,9 @@ export class LodChunk extends THREE.Vector3 {
       p.z >= this.z && p.z < this.z + this.lod;
   }
 }
-const nodesEqual = (a, b) => {
+/* const nodesEqual = (a, b) => {
   return a.length === b.length && a.every((node, i) => node.equalsNode(b[i]));
-};
+}; */
 export class LodChunkTracker extends EventTarget {
   constructor({
     chunkSize = defaultChunkSize,
@@ -491,7 +491,7 @@ export class LodChunkTracker extends EventTarget {
       this.#setRange(range);
     }
 
-    if (debug) {      
+    if (debug) {
       const maxChunks = 512;
       const instancedCubeGeometry = new THREE.InstancedBufferGeometry();
       {
@@ -598,6 +598,9 @@ export class LodChunkTracker extends EventTarget {
         });
       }
     }
+
+    this.lastOctree = null;
+    this.liveTasks = [];
   }
   async #setRange(range) {
     await Promise.resolve(); // wait for next tick to emit chunk events
@@ -668,11 +671,9 @@ export class LodChunkTracker extends EventTarget {
     }, {once: true});
   }
   updateCoord(currentCoord) {
-    // console.log('update', currentCoord.toArray().join(','));
-
     const octree = constructOctreeForLeaf(currentCoord, 2, 2 ** (this.numLods - 1));
 
-    let tasks = diffLeafNodes(octree.leafNodes, lastOctree ? lastOctree.leafNodes : []);
+    let tasks = diffLeafNodes(octree.leafNodes, this.lastOctree ? this.lastOctree.leafNodes : []);
     sortTasks(tasks, camera.position);
     
     // if (lastOctree) {
@@ -700,12 +701,12 @@ export class LodChunkTracker extends EventTarget {
       if (!task.isNop()) {
         // console.log('push task', {task});
 
-        const overlappingTasks = liveTasks.filter(lastTask => task.maxLodNode.containsNode(lastTask.maxLodNode));
+        const overlappingTasks = this.liveTasks.filter(lastTask => task.maxLodNode.containsNode(lastTask.maxLodNode));
         for (const oldTask of overlappingTasks) {
           oldTask.cancel();
-          liveTasks.splice(liveTasks.indexOf(oldTask), 1);
+          this.liveTasks.splice(liveTasks.indexOf(oldTask), 1);
         }
-        liveTasks.push(task);
+        this.liveTasks.push(task);
 
         /* const lastTask = liveTasks.find(lastTask => lastTask.maxLodNode.equalsNode(task.maxLodNode));
         if (lastTask) {
@@ -779,7 +780,7 @@ export class LodChunkTracker extends EventTarget {
       }
     }
 
-    lastOctree = octree;
+    this.lastOctree = octree;
     // lastTasks = newTasks.concat(keepTasks);
   }
   update(position) {
