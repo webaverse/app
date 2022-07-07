@@ -15,7 +15,7 @@ import {
 	RGBAFormat,
 } from 'three';
 import { Pass, FullScreenQuad } from 'three/examples/jsm/postprocessing/Pass.js';
-import { BokehShader } from './BokehShader.js
+import { BokehShader } from './BokehShader.js';
 
 const oldParentCache = new WeakMap();
 const oldMaterialCache = new WeakMap();
