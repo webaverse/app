@@ -775,7 +775,9 @@ export const _applyAnimation = (avatar, now, moveFactors) => {
         const animation = animations.index['pickaxe_swing.fbx']
         const t2 = timeSeconds / 10;
         const src2 = animation.interpolants[k];
-        const v2 = src2.evaluate(t2 % animation.duration);
+        // const tFinal = t2 % animation.duration;
+        const tFinal = window.timeS;
+        const v2 = src2.evaluate(tFinal);
 
         if (window.pickaxeApp && isPosition) {
           /* console_test
@@ -790,18 +792,22 @@ export const _applyAnimation = (avatar, now, moveFactors) => {
           */
           
           let src2 = animation.interpolants['pickaxe_def.quaternion']
-          let v2 = src2.evaluate(t2 % animation.duration);
-          pickaxeApp.quaternion.fromArray(v2);
+          let v2 = src2.evaluate(tFinal);
+          pickaxeApp.children[0].quaternion.fromArray(v2);
 
           src2 = animation.interpolants['pickaxe_def.position']
-          v2 = src2.evaluate(t2 % animation.duration);
-          pickaxeApp.position.fromArray(v2);
-          pickaxeApp.position.multiplyScalar(100);
-          pickaxeApp.position.y += 1;
+          v2 = src2.evaluate(tFinal);
+          pickaxeApp.children[0].position.fromArray(v2);
+          pickaxeApp.children[0].position.multiplyScalar(100);
+          // pickaxeApp.children[0].position.y += 1;
 
           // src2 = animation.interpolants['pickaxe_def.scale']
-          // v2 = src2.evaluate(t2 % animation.duration);
-          // pickaxeApp.scale.fromArray(v2);
+          // v2 = src2.evaluate(tFinal);
+          // pickaxeApp.children[0].scale.fromArray(v2);
+
+          //
+
+          pickaxeApp.rotation.x = -Math.PI/2
 
           pickaxeApp.updateMatrixWorld();
         }
