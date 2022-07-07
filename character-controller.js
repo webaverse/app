@@ -1038,6 +1038,21 @@ class LocalPlayer extends UninterpolatedPlayer {
     srcAppManager.transplantApp(app, this.appManager);
     this.#setAvatarAppFromOwnAppManager(app);
   } */
+  // To-do: Adding this function fixes the character switching broken issue on z-target branch
+  // But this function is also duplicated on master branch.
+  setAvatarApp(app) {
+    const self = this;
+    this.playersArray.doc.transact(function tx() {
+      const avatar = self.getAvatarState();
+      const oldInstanceId = avatar.get('instanceId');
+      
+      avatar.set('instanceId', app.instanceId);
+  
+      if (oldInstanceId) {
+        self.appManager.removeTrackedAppInternal(oldInstanceId);
+      }
+    });
+  }
   #setAvatarAppFromOwnAppManager(app) {
     const self = this;
     this.playersArray.doc.transact(function tx() {
