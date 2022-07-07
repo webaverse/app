@@ -2602,7 +2602,7 @@ export default (e) => {
                     for(let i = 0; i < particleCount; i++){
                         if(brokenAttribute.getX(i) >= 1){
                             info.velocity[i].x = (Math.random() - 0.5) * 0.1 + playerDir.x * 0.45 * (1 + currentSpeed) + localVector2.x * 0.1;
-                            info.velocity[i].y = 0.2 + Math.random() * 0.2;
+                            info.velocity[i].y = 0.18 + Math.random() * 0.18;
                             info.velocity[i].z = (Math.random() - 0.5) * 0.1 + playerDir.z * 0.45 * (1 + currentSpeed) + localVector2.z * 0.1;
                             positionsAttribute.setXYZ(  i, 
                                                         localPlayer.position.x + (Math.random() - 0.5) * 0.1 + info.velocity[i].x - playerDir.x * 0.15,
@@ -2627,7 +2627,7 @@ export default (e) => {
                     for(let i = 0; i < particleCount; i++){
                         if(brokenAttribute.getX(i) >= 1){
                             info.velocity[i].x = (Math.random() - 0.5) * 0.1 + playerDir.x * 0.45 * (1 + currentSpeed) - localVector2.x * 0.1;
-                            info.velocity[i].y = 0.2 + Math.random() * 0.2;
+                            info.velocity[i].y = 0.18 + Math.random() * 0.18;
                             info.velocity[i].z = (Math.random() - 0.5) * 0.1 + playerDir.z * 0.45 * (1 + currentSpeed)  - localVector2.z * 0.1;
                             positionsAttribute.setXYZ(  i, 
                                                         localPlayer.position.x + (Math.random() - 0.5) * 0.1 + info.velocity[i].x - playerDir.x * 0.25,
