@@ -90,7 +90,7 @@ export const MegaChatBox = ({
                 key={i}
               >
                 <div className={styles.border}/>
-                <div className={styles.value}>{option}</div>
+                <div className={styles.value}>{option.message}</div>
                 <img className={styles.arrow} src="./images/ui/left-red.svg" />
               </div>
             );
