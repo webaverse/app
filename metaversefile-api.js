@@ -994,6 +994,21 @@ export default () => {
   removeTrackedApp(app) {
     return world.appManager.removeTrackedApp.apply(world.appManager, arguments);
   },
+  getPlayerByAppInstanceId(instanceId) {
+    let result = localPlayer.appManager.getAppByInstanceId(instanceId);
+    if (result) {
+      return localPlayer;
+    } else {
+      const remotePlayers = useRemotePlayers();
+      for (const remotePlayer of remotePlayers) {
+        const remoteApp = remotePlayer.appManager.getAppByInstanceId(instanceId);
+        if (remoteApp) {
+          return remotePlayer;
+        }
+      }
+      return null;
+    }
+  },
   getAppByInstanceId(instanceId) {
     // local
     const localPlayer = getLocalPlayer();
