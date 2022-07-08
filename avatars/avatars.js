@@ -18,6 +18,7 @@ import {
   // useMaxTime,
   aimMaxTime,
   aimTransitionMaxTime,
+  backflipUnjumpMaxTime,
   // avatarInterpolationFrameRate,
   // avatarInterpolationTimeDelay,
   // avatarInterpolationNumFrames,
@@ -899,6 +900,7 @@ class Avatar {
     this.direction = new THREE.Vector3();
     this.jumpState = false;
     this.jumpTime = NaN;
+    this.jumpDirection = 'forward';
     this.flyState = false;
     this.flyTime = NaN;
 
@@ -1490,6 +1492,7 @@ class Avatar {
     this.aimRightFactorReverse = 1 - this.aimRightFactor;
     this.aimLeftFactor = this.aimLeftTransitionTime / aimTransitionMaxTime;
     this.aimLeftFactorReverse = 1 - this.aimLeftFactor;
+    this.unjumpFactor = this.unjumpTime / backflipUnjumpMaxTime;
 
     const _updateHmdPosition = () => {
       const currentPosition = this.inputs.hmd.position;

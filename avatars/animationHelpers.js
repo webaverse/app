@@ -37,6 +37,10 @@ import {
   crouchMaxTime,
   // useMaxTime,
   aimMaxTime,
+  backflipSpeed,
+  backflipStartTimeS,
+  backflipUnjumpSpeed,
+  backflipUnjumpStartTimeS,
   // avatarInterpolationFrameRate,
   // avatarInterpolationTimeDelay,
   // avatarInterpolationNumFrames,
@@ -762,14 +766,32 @@ export const _applyAnimation = (avatar, now, moveFactors) => {
           animationTrackName: k,
           dst,
           // isTop,
+          isPosition,
           isArm,
+          lerpFn,
         } = spec;
 
-        const t2 = avatar.jumpTime / 1000 * 0.6 + 0.7;
-        const src2 = jumpAnimation.interpolants[k];
-        const v2 = src2.evaluate(t2);
+        if (avatar.aimState && avatar.jumpDirection === 'backward') {
+          const t2 = avatar.jumpTime / 1000 * backflipSpeed + backflipStartTimeS;
+          const src2 = animations.index['Backflip.fbx'].interpolants[k];
+          const v2 = src2.evaluate(t2);
+          const f = Math.min(Math.max(avatar.jumpTime / 200, 0), 1);
 
-        dst.fromArray(v2);
+          lerpFn
+            .call(
+              dst,
+              localQuaternion.fromArray(v2),
+              f,
+            );
+
+          _clearXZ(dst, isPosition);
+        } else {
+          const t2 = avatar.jumpTime / 1000 * 0.6 + 0.7;
+          const src2 = jumpAnimation.interpolants[k];
+          const v2 = src2.evaluate(t2);
+
+          dst.fromArray(v2);
+        }
 
         if (avatar.holdState && isArm) {
           const holdAnimation = holdAnimations['pick_up_idle'];
@@ -1218,6 +1240,31 @@ export const _applyAnimation = (avatar, now, moveFactors) => {
       }
     }
   };
+  const _blendUnjump = spec => {
+    const {
+      animationTrackName: k,
+      dst,
+      // isTop,
+      isPosition,
+    } = spec;
+
+    if (avatar.unjumpFactor > 0 && avatar.unjumpFactor <= 1) {
+      if (avatar.aimState && avatar.jumpDirection === 'backward') {
+        const t2 = avatar.unjumpTime / 1000 * backflipUnjumpSpeed + backflipUnjumpStartTimeS;
+        const src2 = animations.index['Backflip.fbx'].interpolants[k];
+        const v2 = src2.evaluate(t2);
+
+        if (!isPosition) {
+          localQuaternion.fromArray(v2);
+          dst.slerp(localQuaternion, 1 - avatar.unjumpFactor);
+        } else {
+          localVector.fromArray(v2);
+          _clearXZ(localVector, isPosition);
+          dst.lerp(localVector, 1 - avatar.unjumpFactor);
+        }
+      }
+    }
+  };
 
   const _blendActivateAction = spec => {
     const {
@@ -1262,6 +1309,7 @@ export const _applyAnimation = (avatar, now, moveFactors) => {
     } = spec;
 
     applyFn(spec);
+    _blendUnjump(spec);
     _blendFly(spec);
     _blendActivateAction(spec);
 
