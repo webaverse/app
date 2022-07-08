@@ -710,6 +710,8 @@ export const MapGen = () => {
     // initialize terrain
     useEffect(async () => {
       if (state.openedPanel === 'MapGenPanel' && !loaded) {
+        setLoaded(true);
+        
         // lights
         const ambientLight = new THREE.AmbientLight(0xffffff, 2);
         mapScene.add(ambientLight);
@@ -717,8 +719,7 @@ export const MapGen = () => {
         directionalLight.position.set(1, 2, 3);
         mapScene.add(directionalLight);
 
-        setLoaded(true);
-
+        // apps
         await Promise.all([
           (async () => {
             // street base
@@ -737,9 +738,10 @@ export const MapGen = () => {
               start_url: '../metaverse_modules/land/',
               components: {
                 seed: 'lol',
+                physicsInstance: 'map',
                 renderPosition: [0, 60, 0],
                 minLodRange: 3,
-                lods: 4,
+                lods: 1,
               }
             });
             // console.log('create terrain app', app);
