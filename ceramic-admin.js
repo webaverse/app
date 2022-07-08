@@ -1,13 +1,13 @@
-import {DID} from 'dids';
-import CeramicClient from '@ceramicnetwork/http-client';
-import {IDX} from '@ceramicstudio/idx';
-import {ThreeIdConnect, EthereumAuthProvider} from '@3id/connect';
-import KeyDidResolver from 'key-did-resolver';
-import {Ed25519Provider} from 'key-did-provider-ed25519';
-import ThreeIdResolver from '@ceramicnetwork/3id-did-resolver';
-import {ModelManager} from '@glazed/devtools';
-import {getMainnetAddress} from './blockchain.js';
-import {ceramicNodeUrl} from './constants.js';
+// import {DID} from 'dids';
+// import CeramicClient from '@ceramicnetwork/http-client';
+// import {IDX} from '@ceramicstudio/idx';
+// import {ThreeIdConnect, EthereumAuthProvider} from '@3id/connect';
+// import KeyDidResolver from 'key-did-resolver';
+// import {Ed25519Provider} from 'key-did-provider-ed25519';
+// import ThreeIdResolver from '@ceramicnetwork/3id-did-resolver';
+// import {ModelManager} from '@glazed/devtools';
+// import {getMainnetAddress} from './blockchain.js';
+// import {ceramicNodeUrl} from './constants.js';
 
 const keyString = ``;
 

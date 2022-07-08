@@ -53,9 +53,9 @@ class CharacterPhysics {
     physicsManager.setCharacterControllerPosition(this.player.characterController, localVector);
   }
   /* apply the currently held keys to the character */
-  applyWasd(keysDirection) {
+  applyWasd(keysDirectionGlobal) {
     if (this.player.avatar) {
-      this.velocity.add(keysDirection);
+      this.velocity.add(keysDirectionGlobal);
     }
   }
   applyGravity(timeDiffS) {
@@ -142,9 +142,11 @@ class CharacterPhysics {
         const jumpAction = this.player.getAction('jump');
         const _ensureJumpAction = () => {
           if (!jumpAction) {
+            const game = metaversefileApi.useGame();
             const newJumpAction = {
               type: 'jump',
               time: 0,
+              direction: game.isMovingBackward() ? 'backward' : 'forward',
             };
             this.player.addAction(newJumpAction);
           } else {

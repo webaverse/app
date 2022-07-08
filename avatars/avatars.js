@@ -18,6 +18,7 @@ import {
   // useMaxTime,
   aimMaxTime,
   aimTransitionMaxTime,
+  backflipUnjumpMaxTime,
   // avatarInterpolationFrameRate,
   // avatarInterpolationTimeDelay,
   // avatarInterpolationNumFrames,
@@ -56,13 +57,17 @@ import Blinker from './Blinker.js'
 import Nodder from './Nodder.js'
 import Looker from './Looker.js'
 
+import * as wind from './simulation/wind.js';
+
 
 const localVector = new THREE.Vector3();
 const localVector2 = new THREE.Vector3();
 const localVector3 = new THREE.Vector3();
 // const localVector4 = new THREE.Vector3();
 // const localVector5 = new THREE.Vector3();
-// const localVector6 = new THREE.Vector3();
+// const localVector6 = new THREE.Vector3();     
+
+
 const localQuaternion = new THREE.Quaternion();
 const localQuaternion2 = new THREE.Quaternion();
 // const localQuaternion3 = new THREE.Quaternion();
@@ -896,6 +901,7 @@ class Avatar {
     this.direction = new THREE.Vector3();
     this.jumpState = false;
     this.jumpTime = NaN;
+    this.jumpDirection = 'forward';
     this.flyState = false;
     this.flyTime = NaN;
 
@@ -910,7 +916,9 @@ class Avatar {
     this.sitAnimation = null;
     // this.activateState = false;
     this.activateTime = 0;
+    this.holdState = false;
     this.pickUpState = false;
+    this.pickUpTime = 0;
     // this.danceState = false;
     this.danceFactor = 0;
     this.danceAnimation = null;
@@ -1485,6 +1493,7 @@ class Avatar {
     this.aimRightFactorReverse = 1 - this.aimRightFactor;
     this.aimLeftFactor = this.aimLeftTransitionTime / aimTransitionMaxTime;
     this.aimLeftFactorReverse = 1 - this.aimLeftFactor;
+    this.unjumpFactor = this.unjumpTime / backflipUnjumpMaxTime;
 
     const _updateHmdPosition = () => {
       const currentPosition = this.inputs.hmd.position;
@@ -1947,6 +1956,13 @@ class Avatar {
 
     // this.springBoneTimeStep.update(timeDiff);
     this.springBoneManager && this.springBoneManager.lateUpdate(timeDiffS);
+
+    // update wind in simulation
+    const _updateWind = () =>{
+      const headPosition = localVector.setFromMatrixPosition(this.modelBoneOutputs.Head.matrixWorld);
+      wind.update(timestamp, headPosition, this.springBoneManager)
+    }
+    _updateWind();
 
     // XXX hook these up
     this.nodder.update(now);

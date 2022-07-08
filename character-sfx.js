@@ -367,8 +367,8 @@ class CharacterSfx {
     if (this.player.voicePack) { // ensure voice pack loaded
       let voiceFiles, offset, duration;
       switch (type) {
-        case 'pain': {
-          voiceFiles = this.player.voicePack.actionVoices.filter(f => /pain/i.test(f.name));
+        case 'hurt': {
+          voiceFiles = this.player.voicePack.actionVoices.filter(f => /hurt/i.test(f.name));
           break;
         }
         case 'scream': {

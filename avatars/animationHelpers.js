@@ -37,6 +37,10 @@ import {
   crouchMaxTime,
   // useMaxTime,
   aimMaxTime,
+  backflipSpeed,
+  backflipStartTimeS,
+  backflipUnjumpSpeed,
+  backflipUnjumpStartTimeS,
   // avatarInterpolationFrameRate,
   // avatarInterpolationTimeDelay,
   // avatarInterpolationNumFrames,
@@ -52,6 +56,8 @@ const localQuaternion3 = new Quaternion();
 const localQuaternion4 = new Quaternion();
 const localQuaternion5 = new Quaternion();
 const localQuaternion6 = new Quaternion();
+
+const identityQuaternion = new Quaternion();
 
 let animations;
 let animationStepIndices;
@@ -361,6 +367,9 @@ export const loadPromise = (async () => {
     pickUpIdle: animations.find(a => a.isPickUpIdle),
     pickUpThrow: animations.find(a => a.isPickUpThrow),
     putDown: animations.find(a => a.isPutDown),
+    pickUpZelda: animations.find(a => a.isPickUpZelda),
+    pickUpIdleZelda: animations.find(a => a.isPickUpIdleZelda),
+    putDownZelda: animations.find(a => a.isPutDownZelda),
   };
   /* throwAnimations = {
     throw: animations.find(a => a.isThrow),
@@ -757,13 +766,40 @@ export const _applyAnimation = (avatar, now, moveFactors) => {
           animationTrackName: k,
           dst,
           // isTop,
+          isPosition,
+          isArm,
+          lerpFn,
         } = spec;
 
-        const t2 = avatar.jumpTime / 1000 * 0.6 + 0.7;
-        const src2 = jumpAnimation.interpolants[k];
-        const v2 = src2.evaluate(t2);
+        if (avatar.aimState && avatar.jumpDirection === 'backward') {
+          const t2 = avatar.jumpTime / 1000 * backflipSpeed + backflipStartTimeS;
+          const src2 = animations.index['Backflip.fbx'].interpolants[k];
+          const v2 = src2.evaluate(t2);
+          const f = Math.min(Math.max(avatar.jumpTime / 200, 0), 1);
 
-        dst.fromArray(v2);
+          lerpFn
+            .call(
+              dst,
+              localQuaternion.fromArray(v2),
+              f,
+            );
+
+          _clearXZ(dst, isPosition);
+        } else {
+          const t2 = avatar.jumpTime / 1000 * 0.6 + 0.7;
+          const src2 = jumpAnimation.interpolants[k];
+          const v2 = src2.evaluate(t2);
+
+          dst.fromArray(v2);
+        }
+
+        if (avatar.holdState && isArm) {
+          const holdAnimation = holdAnimations['pick_up_idle'];
+          const src2 = holdAnimation.interpolants[k];
+          const t2 = (now / 1000) % holdAnimation.duration;
+          const v2 = src2.evaluate(t2);
+          dst.fromArray(v2);
+        }
       };
     }
     if (avatar.sitState) {
@@ -1108,14 +1144,16 @@ export const _applyAnimation = (avatar, now, moveFactors) => {
           avatar.useAnimation = '';
         }
       };
-    } else if (avatar.pickUpState) {
+    } else if (avatar.holdState) {
       return spec => {
         const {
           animationTrackName: k,
           dst,
           lerpFn,
+          boneName,
           isTop,
           isPosition,
+          isArm,
         } = spec;
 
         _handleDefault(spec);
@@ -1126,14 +1164,46 @@ export const _applyAnimation = (avatar, now, moveFactors) => {
         const v2 = src2.evaluate(t2);
 
         if (isTop) {
-          if (isPosition) {
+          if (boneName === 'Left_arm' || boneName === 'Right_arm') {
             dst.fromArray(v2);
           } else {
-            dst.premultiply(localQuaternion2.fromArray(v2));
+            if (isArm) {
+              dst
+                .slerp(identityQuaternion, walkRunFactor * 0.7 + crouchFactor * (1 - idleWalkFactor) * 0.5)
+                .premultiply(localQuaternion2.fromArray(v2));
+            } else {
+              dst
+                .premultiply(localQuaternion2.fromArray(v2));
+            }
           }
         }
+      };
+    } else if (avatar.pickUpState) {
+      return spec => {
+        const {
+          animationTrackName: k,
+          dst,
+          /* lerpFn,
+          isTop,
+          isPosition, */
+        } = spec;
 
-        // _clearXZ(dst, isPosition);
+        const pickUpAnimation = pickUpAnimations['pickUpZelda'];
+        const pickUpIdleAnimation = pickUpAnimations['pickUpIdleZelda'];
+
+        const t2 = avatar.pickUpTime / 1000;
+        if (t2 < pickUpAnimation.duration) {
+          const src2 = pickUpAnimation.interpolants[k];
+          const v2 = src2.evaluate(t2);
+
+          dst.fromArray(v2);
+        } else {
+          const t3 = (t2 - pickUpAnimation.duration) % pickUpIdleAnimation.duration;
+          const src2 = pickUpIdleAnimation.interpolants[k];
+          const v2 = src2.evaluate(t3);
+
+          dst.fromArray(v2);
+        }
       };
     }
     return _handleDefault;
@@ -1144,6 +1214,7 @@ export const _applyAnimation = (avatar, now, moveFactors) => {
       animationTrackName: k,
       dst,
       // isTop,
+      isArm,
       lerpFn,
     } = spec;
 
@@ -1159,6 +1230,39 @@ export const _applyAnimation = (avatar, now, moveFactors) => {
           localQuaternion.fromArray(v2),
           f,
         );
+
+      if (avatar.holdState && isArm) {
+        const holdAnimation = holdAnimations['pick_up_idle'];
+        const src2 = holdAnimation.interpolants[k];
+        const t2 = (now / 1000) % holdAnimation.duration;
+        const v2 = src2.evaluate(t2);
+        dst.fromArray(v2);
+      }
+    }
+  };
+  const _blendUnjump = spec => {
+    const {
+      animationTrackName: k,
+      dst,
+      // isTop,
+      isPosition,
+    } = spec;
+
+    if (avatar.unjumpFactor > 0 && avatar.unjumpFactor <= 1) {
+      if (avatar.aimState && avatar.jumpDirection === 'backward') {
+        const t2 = avatar.unjumpTime / 1000 * backflipUnjumpSpeed + backflipUnjumpStartTimeS;
+        const src2 = animations.index['Backflip.fbx'].interpolants[k];
+        const v2 = src2.evaluate(t2);
+
+        if (!isPosition) {
+          localQuaternion.fromArray(v2);
+          dst.slerp(localQuaternion, 1 - avatar.unjumpFactor);
+        } else {
+          localVector.fromArray(v2);
+          _clearXZ(localVector, isPosition);
+          dst.lerp(localVector, 1 - avatar.unjumpFactor);
+        }
+      }
     }
   };
 
@@ -1205,6 +1309,7 @@ export const _applyAnimation = (avatar, now, moveFactors) => {
     } = spec;
 
     applyFn(spec);
+    _blendUnjump(spec);
     _blendFly(spec);
     _blendActivateAction(spec);
 

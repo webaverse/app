@@ -14,9 +14,9 @@ export const rarityColors = {
 };
 
 const chainName = (() => {
-  if (typeof window !== 'undefined' && /^test\./.test(location.hostname)) {
+  if (typeof globalThis !== 'undefined' && /^test\./.test(location.hostname)) {
     return 'testnet';
-  } else if (typeof window !== 'undefined' && /^polygon\./.test(location.hostname)) {
+  } else if (typeof globalThis !== 'undefined' && /^polygon\./.test(location.hostname)) {
     return 'polygon';
   } else {
     return 'mainnet';
@@ -34,13 +34,13 @@ export const polygonVigilKey = `0937c004ab133135c86586b55ca212a6c9ecd224`;
 
 //
 
-const origin = window.location.protocol + '//' + window.location.hostname;
+const origin = globalThis.location.protocol + '//' + globalThis.location.hostname;
 
 let _inappPreviewHost = '';
 
 switch ( origin ) {
     case 'https://local.webaverse.com': {
-        _inappPreviewHost = `https://local.webaverse.online:${window.location.port}`;
+        _inappPreviewHost = `https://local.webaverse.online:${globalThis.location.port}`;
         break;
     }
     case 'https://dev.webaverse.com': {
@@ -91,7 +91,8 @@ export const crouchMaxTime = 200;
 export const activateMaxTime = 750;
 export const useMaxTime = 750;
 export const aimMaxTime = 1000;
-export const throwReleaseTime = 750;
+export const throwReleaseTime = 220;
+export const throwAnimationDuration = 1.4166666269302368;
 export const minFov = 60;
 export const maxFov = 120;
 export const midFov = 90;
@@ -100,6 +101,12 @@ export const groundFriction = 0.28;
 export const airFriction = groundFriction;
 export const flyFriction = 0.5;
 export const aimTransitionMaxTime = 150;
+
+export const backflipSpeed = (59 - 34) / (30 * 0.6);
+export const backflipStartTimeS = 1.1;
+export const backflipUnjumpSpeed = 4.5;
+export const backflipUnjumpStartTimeS = 58 / 30;
+export const backflipUnjumpMaxTime = (100 - 58) / 30 / backflipUnjumpSpeed * 1000;
 
 export const avatarInterpolationFrameRate = 60;
 export const avatarInterpolationTimeDelay = 1000/(avatarInterpolationFrameRate * 0.5);
@@ -123,9 +130,14 @@ export const shakeAnimationSpeed = 30;
 export const hotbarSize = 60;
 export const infoboxSize = 100;
 
+export const startTextureAtlasSize = 512;
+export const maxTextureAtlasSize = 4096;
+
 export const numLoadoutSlots = 8;
 
 export const defaultDioramaSize = 512;
+export const defaultChunkSize = 16;
+export const defaultWorldSeed = 100;
 
 export const defaultVoiceEndpoint = `Sweetie Belle`;
 export const defaultVoicePackName = `ShiShi voice pack`;

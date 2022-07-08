@@ -542,7 +542,7 @@ input[type=range]::-webkit-slider-thumb {
   background-color: #FFF;
   transform: translateX(400px);
   overflow: auto;
-  z-index: 1;
+  z-index: 3;
   transition: transform 0.3s cubic-bezier(0, 1, 0, 1);
 }
 .sidebar.open {
@@ -624,12 +624,7 @@ input[type=range]::-webkit-slider-thumb {
 .tabs {
   display: flex;
   position: fixed;
-  top: 0;
-  bottom: 0;
-  height: 100vh;
-  width: 100vw;
   z-index: 3;
-  pointer-events: none;
 }
 .tabs > div {
   pointer-events: all;

@@ -1,19 +1,17 @@
 import * as THREE from 'three';
-import {MaxRectsPacker} from 'maxrects-packer';
+import * as BufferGeometryUtils from 'three/examples/jsm/utils/BufferGeometryUtils.js';
 import {getLocalPlayer} from './players.js';
 import {alea} from './procgen/procgen.js';
-import {getRenderer} from './renderer.js';
-import {modUv} from './util.js';
 import physicsManager from './physics-manager.js';
 import {defaultMaxId} from './constants.js';
 import {LodChunkTracker} from './lod.js';
-import * as BufferGeometryUtils from 'three/examples/jsm/utils/BufferGeometryUtils.js';
+import {GeometryAllocator} from './instancing.js';
+import {mapWarpedUvs} from './atlasing.js';
+import {ImmediateGLBufferAttribute} from './ImmediateGLBufferAttribute.js';
 
 const bufferSize = 20 * 1024 * 1024;
 const maxNumItems = defaultMaxId;
 const chunkWorldSize = 30;
-const defaultTextureSize = 4096;
-const startAtlasSize = 512;
 const minObjectsPerChunk = 20;
 const maxObjectPerChunk = 50;
 
@@ -30,30 +28,6 @@ const localQuaternion = new THREE.Quaternion();
 const localMatrix = new THREE.Matrix4();
 // const localMatrix2 = new THREE.Matrix4();
 const localMatrix3 = new THREE.Matrix4();
-
-const textureTypes = [
-  'map',
-  'normalMap',
-  'roughnessMap',
-  'metalnessMap',
-  'emissiveMap',
-];
-const _colorCanvas = (canvas, fillStyle) => {
-  const ctx = canvas.getContext('2d');
-  ctx.fillStyle = fillStyle;
-  ctx.fillRect(0, 0, canvas.width, canvas.height);
-};
-const textureInitializers = {
-  normal(canvas) {
-    _colorCanvas(canvas, 'rgb(128, 128, 255)');
-  },
-  roughness(canvas) {
-    _colorCanvas(canvas, 'rgb(255, 255, 255)');
-  },
-  /* metalness(canvas) {
-    _colorCanvas(canvas, 'rgb(0, 0, 0)');
-  }, */
-};
 
 const _diceGeometry = g => {
   const geometryToBeCut = g;
@@ -134,159 +108,10 @@ const _eraseVertices = (geometry, positionStart, positionCount) => {
   for (let i = 0; i < positionCount; i++) {
     geometry.attributes.position.array[positionStart + i] = 0;
   }
-  const popUpdate = ExtendedGLBufferAttribute.pushUpdate();
+  const popUpdate = ImmediateGLBufferAttribute.pushUpdate();
   geometry.attributes.position.update(positionStart, positionCount);
   popUpdate();
 };
-
-class FreeListSlot {
-  constructor(start, count, used) {
-    // array-relative indexing, not item-relative
-    // start++ implies attribute.array[start++]
-    this.start = start;
-    this.count = count;
-    this.used = used;
-  }
-  alloc(size) {
-    if (size < this.count) {
-      // console.log('alloc sub', size, this.count);
-      this.used = true;
-      const newSlot = new FreeListSlot(this.start + size, this.count - size, false);
-      this.count = size;
-      return [
-        this,
-        newSlot,
-      ];
-    } else if (size === this.count) {
-      // console.log('alloc full', size, this.count);
-      this.used = true;
-      return [this];
-    } else {
-      throw new Error('could not allocate from self: ' + size + ' : ' + this.count);
-      return null;
-    }
-  }
-  free() {
-    this.used = false;
-    return [this];
-  }
-}
-
-class FreeList {
-  constructor(size) {
-    this.slots = [
-      new FreeListSlot(0, size, false),
-    ];
-  }
-  findFirstFreeSlotIndexWithSize(size) {
-    for (let i = 0; i < this.slots.length; i++) {
-      const slot = this.slots[i];
-      if (!slot.used && slot.count >= size) {
-        return i;
-      }
-    }
-    return -1;
-  }
-  alloc(size) {
-    if (size > 0) {
-      const index = this.findFirstFreeSlotIndexWithSize(size);
-      if (index !== -1) {
-        const slot = this.slots[index];
-        const replacementArray = slot.alloc(size);
-        this.slots.splice.apply(this.slots, [index, 1].concat(replacementArray));
-        return replacementArray[0];
-      } else {
-        throw new Error('out of memory');
-        return null;
-      }
-    } else {
-      throw new Error('alloc size must be > 0');
-      return null;
-    }
-  }
-  free(slot) {
-    const index = this.slots.indexOf(slot);
-    if (index !== -1) {
-      const replacementArray = slot.free();
-      this.slots.splice.apply(this.slots, [index, 1].concat(replacementArray));
-      // this.#mergeAdjacentSlots();
-    } else {
-      throw new Error('invalid free');
-    }
-  }
-  #mergeAdjacentSlots() {
-    for (let i = this.slots.length - 2; i >= 0; i--) {
-      const slot = this.slots[i];
-      const nextSlot = this.slots[i + 1];
-      if (!slot.used && !nextSlot.used) {
-        slot.count += nextSlot.count;
-        this.slots.splice(i + 1, 1);
-      }
-    }
-  }
-  getGeometryGroups() {
-    const groups = [];
-    for (const slot of this.slots) {
-      if (slot.used) {
-        groups.push({
-          start: slot.start,
-          count: slot.count,
-          materialIndex: 0,
-        });
-      }
-    }
-    return groups;
-  }
-}
-
-class GeometryBinding {
-  constructor(positionFreeListEntry, indexFreeListEntry, geometry) {
-    this.positionFreeListEntry = positionFreeListEntry;
-    this.indexFreeListEntry = indexFreeListEntry;
-    this.geometry = geometry;
-  }
-  getAttributeOffset(name = 'position') {
-    return this.positionFreeListEntry.start / 3 * this.geometry.attributes[name].itemSize;
-  }
-  getIndexOffset() {
-    return this.indexFreeListEntry.start;
-  }
-}
-
-class GeometryAllocator {
-  constructor(attributeSpecs, {
-    bufferSize,
-  }) {
-    {
-      this.geometry = new THREE.BufferGeometry();
-      for (const attributeSpec of attributeSpecs) {
-        const {
-          name,
-          Type,
-          itemSize,
-        } = attributeSpec;
-
-        const array = new Type(bufferSize * itemSize);
-        this.geometry.setAttribute(name, new ExtendedGLBufferAttribute(array, itemSize, false));
-      }
-      const indices = new Uint32Array(bufferSize);
-      this.geometry.setIndex(new ExtendedGLBufferAttribute(indices, 1, true));
-    }
-
-    this.positionFreeList = new FreeList(bufferSize * 3);
-    this.indexFreeList = new FreeList(bufferSize);
-  }
-  alloc(numPositions, numIndices) {
-    const positionFreeListEntry = this.positionFreeList.alloc(numPositions);
-    const indexFreeListEntry = this.indexFreeList.alloc(numIndices);
-    const geometryBinding = new GeometryBinding(positionFreeListEntry, indexFreeListEntry, this.geometry);
-    return geometryBinding;
-  }
-  free(geometryBinding) {
-    this.positionFreeList.free(geometryBinding.positionFreeListEntry);
-    this.indexFreeList.free(geometryBinding.indexFreeListEntry);
-  }
-}
 
 const _getMatrixWorld = (rootMesh, contentMesh, target, positionX, positionZ, rotationY) => {
   return _getMatrix(contentMesh, target, positionX, positionZ, rotationY)
@@ -301,8 +126,8 @@ const _getMatrix = (contentMesh, target, positionX, positionZ, rotationY) => {
 };
 
 const _mapGeometryUvs = (g, geometry, tx, ty, tw, th, canvasSize) => {
-  _mapWarpedUvs(g.attributes.uv, geometry.attributes.uv, 0, tx, ty, tw, th, canvasSize);
-  _mapWarpedUvs(g.attributes.uv2, geometry.attributes.uv2, 0, tx, ty, tw, th, canvasSize);
+  mapWarpedUvs(g.attributes.uv, 0, geometry.attributes.uv, 0, tx, ty, tw, th, canvasSize);
+  mapWarpedUvs(g.attributes.uv2, 0, geometry.attributes.uv2, 0, tx, ty, tw, th, canvasSize);
 };
 const _makeItemMesh = (rootMesh, contentMesh, geometry, material, positionX, positionZ, rotationY) => {
   const cloned = new THREE.Mesh(geometry, material);
@@ -327,24 +152,6 @@ const _mapOffsettedPositions = (g, geometry, dstOffset, positionX, positionZ, ro
       .toArray(geometry.attributes.position.array, localDstOffset);
   }
 };
-const _mapWarpedUvs = (src, dst, dstOffset, tx, ty, tw, th, canvasSize) => {
-  const count = src.count;
-  for (let i = 0; i < count; i++) {
-    const srcIndex = i;
-    const localDstOffset = dstOffset + i * 2;
-
-    localVector2D.fromArray(src.array, srcIndex * 2);
-    modUv(localVector2D);
-    localVector2D
-      .multiply(
-        localVector2D2.set(tw/canvasSize, th/canvasSize)
-      )
-      .add(
-        localVector2D2.set(tx/canvasSize, ty/canvasSize)
-      );
-    localVector2D.toArray(dst.array, localDstOffset);
-  }
-};
 const _mapOffsettedIndices = (g, geometry, dstOffset, positionOffset) => {
   const count = g.index.count;
   const positionIndex = positionOffset / 3;
@@ -352,96 +159,6 @@ const _mapOffsettedIndices = (g, geometry, dstOffset, positionOffset) => {
     geometry.index.array[dstOffset + i] = g.index.array[i] + positionIndex;
   }
 };
-
-class ExtendedGLBufferAttribute extends THREE.GLBufferAttribute {
-  constructor(array, itemSize, isIndex = false) {
-    const Type = array.constructor;
-    let glType;
-    switch (Type) {
-      case Float32Array: {
-        glType = WebGLRenderingContext.FLOAT;
-        break;
-      }
-      case Uint16Array: {
-        glType = WebGLRenderingContext.UNSIGNED_SHORT;
-        break;
-      }
-      case Uint32Array: {
-        glType = WebGLRenderingContext.UNSIGNED_INT;
-        break;
-      }
-      default: {
-        throw new Error(`Unsupported array type: ${Type}`);
-      }
-    }
-    const renderer = getRenderer();
-    const gl = renderer.getContext();
-    const buffer = gl.createBuffer();
-    const target = ExtendedGLBufferAttribute.getTarget(isIndex);
-    gl.bindBuffer(target, buffer);
-    gl.bufferData(target, array.byteLength, gl.STATIC_DRAW);
-    gl.bindBuffer(target, null);
-    super(buffer, glType, itemSize, Type.BYTES_PER_ELEMENT, array.length / itemSize);
-    
-    this.array = array;
-    this.isIndex = isIndex;
-    /* this.updateRange = {
-      offset: 0,
-      count: -1,
-    }; */
-  }
-  static getTarget(isIndex) {
-    return isIndex ? WebGLRenderingContext.ELEMENT_ARRAY_BUFFER : WebGLRenderingContext.ARRAY_BUFFER;
-  }
-  getTarget() {
-    return ExtendedGLBufferAttribute.getTarget(this.isIndex);
-  }
-  static getTargetBinding(isIndex) {
-    return isIndex ? WebGLRenderingContext.ELEMENT_ARRAY_BUFFER_BINDING : WebGLRenderingContext.ARRAY_BUFFER_BINDING;
-  }
-  getTargetBinding() {
-    return ExtendedGLBufferAttribute.getTargetBinding(this.isIndex);
-  }
-  pushed = false;
-  static pushUpdate() {
-    const renderer = getRenderer();
-    const gl = renderer.getContext();
-    
-    const arrayBufferBinding = gl.getParameter(WebGLRenderingContext.ARRAY_BUFFER_BINDING);
-    const elementArrayBufferBinding = gl.getParameter(WebGLRenderingContext.ELEMENT_ARRAY_BUFFER_BINDING);
-    this.pushed = true;
-
-    const popUpdate = () => {
-      gl.bindBuffer(WebGLRenderingContext.ARRAY_BUFFER, arrayBufferBinding);
-      gl.bindBuffer(WebGLRenderingContext.ELEMENT_ARRAY_BUFFER, elementArrayBufferBinding);
-      this.pushed = false;
-    };
-    return popUpdate;
-  }
-  update(offset, count) {
-    let popUpdate = null;
-    if (!ExtendedGLBufferAttribute.pushed) {
-      popUpdate = ExtendedGLBufferAttribute.pushUpdate();
-    }
-   
-    {
-      const renderer = getRenderer();
-      const gl = renderer.getContext();
-      const target = this.getTarget();
-      
-      gl.bindBuffer(target, this.buffer);
-      gl.bufferSubData(
-        target,
-        offset * this.elementSize,
-        this.array,
-        offset,
-        count
-      );
-    }
-
-    popUpdate && popUpdate();
-  }
-}
 
 class LodChunkGenerator {
   constructor(parent) {
@@ -518,11 +235,7 @@ class LodChunkGenerator {
     return this.parent.contentIndex[name];
   }
   #getShapeAddress(name) {
-    const result = this.parent.shapeAddresses[name];
-    /* if (!result) {
-      debugger;
-    } */
-    return result;
+    return this.parent.shapeAddresses[name];
   }
   #getContentMeshIndex(mesh) {
     return this.parent.meshes.indexOf(mesh);
@@ -660,7 +373,7 @@ class LodChunkGenerator {
     const _renderContentsRenderList = (contentMeshes, contentNames, geometry, geometryBinding) => {
       const physicsObjects = [];
 
-      const popUpdate = ExtendedGLBufferAttribute.pushUpdate();
+      const popUpdate = ImmediateGLBufferAttribute.pushUpdate();
       {
         let positionOffset = geometryBinding.getAttributeOffset('position');
         let uvOffset = geometryBinding.getAttributeOffset('uv');
@@ -687,8 +400,8 @@ class LodChunkGenerator {
           {
             _mapOffsettedPositions(g, geometry, positionOffset, positionX, positionZ, rotationY, contentMesh);
             geometry.attributes.normal.array.set(g.attributes.normal.array, positionOffset);
-            _mapWarpedUvs(g.attributes.uv, geometry.attributes.uv, uvOffset, tx, ty, tw, th, canvasSize);
-            _mapWarpedUvs(g.attributes.uv2, geometry.attributes.uv2, uvOffset, tx, ty, tw, th, canvasSize);
+            mapWarpedUvs(g.attributes.uv, 0, geometry.attributes.uv, uvOffset, tx, ty, tw, th, canvasSize);
+            mapWarpedUvs(g.attributes.uv2, 0, geometry.attributes.uv2, uvOffset, tx, ty, tw, th, canvasSize);
             _mapOffsettedIndices(g, geometry, indexOffset, positionOffset);
             geometry.setAttribute('direction', new THREE.BufferAttribute(new Float32Array(g.attributes.position.array.length), 3));
           }
@@ -906,178 +619,27 @@ class MeshLodManager {
       // morphTargetInfluencesArray,
     } = mergeable;
   
-    // compute texture sizes
-    const textureSizes = maps.map((map, i) => {
-      const emissiveMap = emissiveMaps[i];
-      const normalMap = normalMaps[i];
-      const roughnessMap = roughnessMaps[i];
-      const metalnessMap = metalnessMaps[i];
-      
-      const maxSize = new THREE.Vector2(0, 0);
-      if (map) {
-        maxSize.x = Math.max(maxSize.x, map.image.width);
-        maxSize.y = Math.max(maxSize.y, map.image.height);
-      }
-      if (emissiveMap) {
-        maxSize.x = Math.max(maxSize.x, emissiveMap.image.width);
-        maxSize.y = Math.max(maxSize.y, emissiveMap.image.height);
-      }
-      if (normalMap) {
-        maxSize.x = Math.max(maxSize.x, normalMap.image.width);
-        maxSize.y = Math.max(maxSize.y, normalMap.image.height);
-      }
-      if (roughnessMap) {
-        maxSize.x = Math.max(maxSize.x, roughnessMap.image.width);
-        maxSize.y = Math.max(maxSize.y, roughnessMap.image.height);
-      }
-      if (metalnessMap) {
-        maxSize.x = Math.max(maxSize.x, metalnessMap.image.width);
-        maxSize.y = Math.max(maxSize.y, metalnessMap.image.height);
-      }
-      return maxSize;
-    });
-    const textureUuids = maps.map((map, i) => {
-      const emissiveMap = emissiveMaps[i];
-      const normalMap = normalMaps[i];
-      const roughnessMap = roughnessMaps[i];
-      const metalnessMap = metalnessMaps[i];
-
-      const uuids = [];
-      uuids.push(map ? map.uuid : null);
-      uuids.push(emissiveMap ? emissiveMap.uuid : null);
-      uuids.push(normalMap ? normalMap.uuid : null);
-      uuids.push(roughnessMap ? roughnessMap.uuid : null);
-      uuids.push(metalnessMap ? metalnessMap.uuid : null);
-      return uuids.join(':');
-    });
-  
-    // generate atlas layouts
-    const _packAtlases = () => {
-      const _attemptPack = (textureSizes, atlasSize) => {
-        const maxRectsPacker = new MaxRectsPacker(atlasSize, atlasSize, 0);
-        const rectUuidCache = new Map();
-        const rectIndexCache = new Map();
-        textureSizes.forEach((textureSize, index) => {
-          const {x: width, y: height} = textureSize;
-          const hash = textureUuids[index];
-          
-          let rect = rectUuidCache.get(hash);
-          if (!rect) {
-            rect = {
-              width,
-              height,
-              data: {
-                index,
-              },
-            };
-            rectUuidCache.set(hash, rect);
-          }
-          rectIndexCache.set(index, rect);
-        });
-        const rects = Array.from(rectUuidCache.values());
-
-        maxRectsPacker.addArray(rects);
-        let oversized = maxRectsPacker.bins.length > 1;
-        maxRectsPacker.bins.forEach(bin => {
-          bin.rects.forEach(rect => {
-            if (rect.oversized) {
-              oversized = true;
-            }
-          });
-        });
-        if (!oversized) {
-          maxRectsPacker.rectIndexCache = rectIndexCache;
-          return maxRectsPacker;
-        } else {
-          return null;
-        }
-      };
-      
-      const hasTextures = textureSizes.some(textureSize => textureSize.x > 0 || textureSize.y > 0);
-      if (hasTextures) {
-        let atlas;
-        let atlasSize = startAtlasSize;
-        while (!(atlas = _attemptPack(textureSizes, atlasSize))) {
-          atlasSize *= 2;
-        }
-        return atlas;
-      } else {
-        return null;
-      }
+    const textureSpecs = {
+      map: maps,
+      emissiveMap: emissiveMaps,
+      normalMap: normalMaps,
+      roughnessMap: roughnessMaps,
+      metalnessMap: metalnessMaps,
     };
-    const atlas = _packAtlases();
+    const {
+      atlas,
+      atlasImages,
+      atlasTextures,
+    } = generateTextureAtlas(textureSpecs);
+
     this.atlas = atlas;
 
-    // draw atlas images
-    const _drawAtlasImages = atlas => {
-      const _getTexturesKey = textures => textures.map(t => t ? t.uuid : '').join(',');
-      const _drawAtlasImage = (textureType, textures) => {
-        if (atlas && textures.some(t => t !== null)) {
-          const canvasSize = Math.min(atlas.width, defaultTextureSize);
-          const canvasScale = canvasSize / atlas.width;
-
-          const canvas = document.createElement('canvas');
-          canvas.width = canvasSize;
-          canvas.height = canvasSize;
-
-          const initializer = textureInitializers[textureType];
-          if (initializer) {
-            initializer(canvas);
-          }
-
-          const ctx = canvas.getContext('2d');
-          atlas.bins.forEach(bin => {
-            bin.rects.forEach(rect => {
-              const {x, y, width: w, height: h, data: {index}} = rect;
-              const texture = textures[index];
-              if (texture) {
-                const image = texture.image;
-
-                // draw the image in the correct box on the canvas
-                const tx = x * canvasScale;
-                const ty = y * canvasScale;
-                const tw = w * canvasScale;
-                const th = h * canvasScale;
-                ctx.drawImage(image, 0, 0, image.width, image.height, tx, ty, tw, th);
-              }
-            });
-          });
-
-          return canvas;
-        } else {
-          return null;
-        }
-      };
-
-      const atlasImages = {};
-      const atlasImagesMap = new Map(); // cache to alias identical textures
-      for (const textureType of textureTypes) {
-        const textures = mergeable[`${textureType}s`];
-        const key = _getTexturesKey(textures);
-
-        let atlasImage = atlasImagesMap.get(key);
-        if (atlasImage === undefined) { // cache miss
-          atlasImage = _drawAtlasImage(textureType, textures);
-          if (atlasImage !== null) {
-            atlasImage.key = key;
-          }
-          atlasImagesMap.set(key, atlasImage);
-        }
-        atlasImages[textureType] = atlasImage;
-      }
-      return atlasImages;
-    };
-    const atlasImages = _drawAtlasImages(atlas);
-
     const {material} = this;
-    for (const textureType of textureTypes) {
-      const atlasImage = atlasImages[textureType];
-      if (atlasImage) {
-        const texture = new THREE.Texture(atlasImage);
-        texture.flipY = false;
-        texture.encoding = THREE.sRGBEncoding;
-        texture.needsUpdate = true;
-        material[textureType] = texture;
+    const textureNames = Object.keys(textureSpecs);
+    for (const textureName of textureNames) {
+      const texture = atlasTextures[textureName];
+      if (texture) {
+        material[textureName] = texture;
       }
     }
     material.needsUpdate = true;
