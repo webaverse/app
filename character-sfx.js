@@ -94,17 +94,7 @@ class CharacterSfx {
     if (!this.player.avatar) {
       return;
     }
-
-    const actions = this.player.getActionsState();
-
-    //check current actions has sit action
-    let hasSitAction = false
-    for (const action of actions) { 
-      if (action.type === 'sit') {
-        hasSitAction = true
-      }
-    }
-
+    
     const timeSeconds = timestamp/1000;
     const currentSpeed = localVector.set(this.player.avatar.velocity.x, 0, this.player.avatar.velocity.z).length();
     
@@ -133,7 +123,6 @@ class CharacterSfx {
 
     // step
     const _handleStep = () => {
-      if (hasSitAction) return; // prevent footsteps from playing while on a vehicle
       if (idleWalkFactor > 0.7 && !this.player.avatar.jumpState && !this.player.avatar.flyState) {
         const isRunning = walkRunFactor > 0.5;
         const isCrouching = crouchFactor > 0.5;

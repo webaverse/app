@@ -7,7 +7,7 @@ const baseUrl = import.meta.url.replace(/(\/)[^\/\\]*$/, '$1');
 
 export default () => {
   const app = useApp();
-  const localPlayer = app.player;
+  const localPlayer = useLocalPlayer();
   const cameraManager = useCameraManager();
   const {renderer, camera} = useInternals();
   let narutoRunTime=0; 

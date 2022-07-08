@@ -92,7 +92,7 @@ export const screenshotPlayer = async ({
     target.matrixWorld.compose(target.position, target.quaternion, target.scale);
   };
   const _animate = (timestamp, timeDiff) => {
-    player.update(timestamp, timeDiff);
+    player.updateAvatar(timestamp, timeDiff);
   };
 
   // rendering

@@ -1085,7 +1085,7 @@ class LocalPlayer extends NetworkPlayer {
 
     this.playerMap.set('transform', this.transform);
   }
-  update(timestamp, timeDiff, frame) {
+  updateAvatar(timestamp, timeDiff, frame) {
     if (!this.avatar) {
       return console.warn('Not updating local player, no avatar')
     }
@@ -1304,7 +1304,7 @@ class RemotePlayer extends NetworkPlayer {
       this.audioDecoder.decode(data.data);
     }
   }
-  update(timestamp, timeDiff) {
+  updateAvatar(timestamp, timeDiff) {
     if (!this.avatar) return console.warn("Can't update remote player, avatar is null");
     const _updateInterpolation = () => {
       this.positionInterpolant.update(timeDiff);

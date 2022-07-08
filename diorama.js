@@ -675,7 +675,6 @@ const createPlayerDiorama = ({
 
       const _render = () => {
         if (autoCamera) {
-          target.updateMatrixWorld();
           // set up side camera
           target.matrixWorld.decompose(localVector, localQuaternion, localVector2);
           const targetPosition = localVector;
