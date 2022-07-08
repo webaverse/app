@@ -185,9 +185,19 @@ class CharacterPhysics {
 
         const objInstanceId = sitAction.controllingId;
         const controlledApp = metaversefileApi.getAppByInstanceId(objInstanceId);
-        const sitPos = sitAction.controllingBone ? sitAction.controllingBone : controlledApp;
 
         const sitComponent = controlledApp.getComponent('sit');
+
+        // Patch fix to fix vehicles and mounts for now
+        let rideMesh = null;
+        controlledApp.glb.scene.traverse(o => {
+          if (rideMesh === null && o.isSkinnedMesh) {
+            rideMesh = o;
+          }
+        });
+
+        // NOTE: We had a problem with sending the entire bone in the message buffer, so we're just sending the bone name
+        const sitPos = sitComponent.sitBone ? rideMesh.skeleton.bones.find(bone => bone.name === sitComponent.sitBone) : controlledApp;
         const {
           sitOffset = [0, 0, 0],
           // damping,
