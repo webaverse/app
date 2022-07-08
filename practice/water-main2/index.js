@@ -1,10 +1,6 @@
 import metaversefile from 'metaversefile';
 // import { useSyncExternalStore } from 'react';
 import * as THREE from 'three';
-import { EffectComposer } from 'three/examples/jsm/postprocessing/EffectComposer.js';
-import { SSRPass } from 'three/examples/jsm/postprocessing/SSRPass.js';
-import { ShaderPass } from 'three/examples/jsm/postprocessing/ShaderPass.js';
-import { GammaCorrectionShader } from 'three/examples/jsm/shaders/GammaCorrectionShader.js';
 // import { terrainVertex, terrainFragment } from './shaders/terrainShader.js';
 // import biomeSpecs from './biomes.js';
 
@@ -22,8 +18,12 @@ const {
   useProcGenManager,
   useInternals,
   useRenderSettings,
+  useSound
   // useLodder,
 } = metaversefile;
+
+const sounds = useSound();
+const soundFiles = sounds.getSoundFiles();
 
 const baseUrl = import.meta.url.replace(/(\/)[^\/\\]*$/, '$1');
 const textureLoader = new THREE.TextureLoader();
@@ -629,7 +629,6 @@ export default (e) => {
   const waterSurfacePos = new THREE.Vector3(0, 10000, 0);
   const cameraWaterSurfacePos = new THREE.Vector3(0, 10000, 0);
   let contactWater = false;
-  let handStrokeStatus = null;
   //let wholeBelowwWater = false;
   let floatOnWater = false;
   let cameraDir = new THREE.Vector3();
@@ -789,10 +788,8 @@ export default (e) => {
     let testContact1;
     let testContact2;
     let alreadySetSwimSprintSpeed = false;
-
-    let alreadySetComposer = false;
-    let composer;
-    let ssrPass;
+    let lastSwimmingHand = null;
+    
     useFrame(({timestamp, timeDiff}) => {
       if (!!tracker && !range) {
         localMatrix
@@ -802,25 +799,7 @@ export default (e) => {
         tracker.update(localVector);
   
         if(generator && localPlayer.avatar){
-            if(!alreadySetComposer){
-                composer = new EffectComposer( renderer );
-                ssrPass = new SSRPass( {
-                    renderer,
-                    scene,
-                    camera,
-                    width: innerWidth,
-                    height: innerHeight,
-                    groundReflector: null,
-                    selects: generator.getMeshes()[0]
-                } );
-
-                composer.addPass( ssrPass );
-                composer.addPass( new ShaderPass( GammaCorrectionShader ) );
-                alreadySetComposer = true;
-            }
-            else{
-                composer.render();
-            }
+            
             // let testA = [], testB = [], testC = [];
             // generator.getMeshes()[0].getDrawSpec(camera, testA, testB, testC);
             // console.log(testA, testB, testC)
@@ -1114,14 +1093,11 @@ export default (e) => {
 
             if(localPlayer.hasAction('swim')){
                 if(localPlayer.getAction('swim').animationType === 'breaststroke'){
-                    if(alreadySetSwimSprintSpeed && localPlayer.actionInterpolants.movements.get() % 1066.6666666666666 <= 433.3333333333333){
-                        alreadySetSwimSprintSpeed = false;
-                        handStrokeStatus = null;
-                    }
-                    else if(!alreadySetSwimSprintSpeed && localPlayer.actionInterpolants.movements.get() % 1066.6666666666666 > 433.3333333333333){
-                        localPlayer.getAction('swim').swimDamping = 1;
-                        alreadySetSwimSprintSpeed = true;
-                        handStrokeStatus = 'right';
+                    if(lastSwimmingHand !== localPlayer.characterSfx.currentSwimmingHand){
+                        if(localPlayer.characterSfx.currentSwimmingHand !== null){
+                            localPlayer.getAction('swim').swimDamping = 1;
+                        }
+                        lastSwimmingHand = localPlayer.characterSfx.currentSwimmingHand;
                     }
                     if(localPlayer.getAction('swim').swimDamping < 4){
                         localPlayer.getAction('swim').swimDamping *= 1.05;
@@ -1132,16 +1108,6 @@ export default (e) => {
                     
                 }
                 else if(localPlayer.getAction('swim').animationType === 'freestyle'){
-                    if(alreadySetSwimSprintSpeed && localPlayer.actionInterpolants.movements.get() % (1466.6666666666666 / 2 ) <= 900  / 2){
-                        // console.log('left hand')
-                        handStrokeStatus = 'left';
-                        alreadySetSwimSprintSpeed = false;
-                    }
-                    else if(!alreadySetSwimSprintSpeed && localPlayer.actionInterpolants.movements.get() % (1466.6666666666666 / 2 ) > 900 / 2 ){
-                        // console.log('right hand')
-                        handStrokeStatus = 'right';
-                        alreadySetSwimSprintSpeed = true;
-                    }
                     localPlayer.getAction('swim').swimDamping = 0;
                 }
                 else{
@@ -2626,12 +2592,12 @@ export default (e) => {
             const textureRotationAttribute = mesh.geometry.getAttribute('textureRotation');
 
             if(
-                handStrokeStatus !== lastStroke
+                localPlayer.characterSfx.currentSwimmingHand !== lastStroke
                 && localPlayer.getAction('swim').animationType === 'freestyle'
                 && localPlayer.getAction('swim').onSurface
                 && !localPlayer.hasAction('fly')
             ){
-                if(handStrokeStatus === 'right'){
+                if(localPlayer.characterSfx.currentSwimmingHand === 'right'){
                     let currentEmmit = 0;
                     for(let i = 0; i < particleCount; i++){
                         if(brokenAttribute.getX(i) >= 1){
@@ -2656,7 +2622,7 @@ export default (e) => {
                     }
                     
                 }
-                else if(handStrokeStatus === 'left'){
+                else if(localPlayer.characterSfx.currentSwimmingHand === 'left'){
                     let currentEmmit = 0;
                     for(let i = 0; i < particleCount; i++){
                         if(brokenAttribute.getX(i) >= 1){
@@ -2731,7 +2697,7 @@ export default (e) => {
 
         }
         app.updateMatrixWorld();
-        lastStroke = handStrokeStatus;
+        lastStroke = localPlayer.characterSfx.currentSwimmingHand;
     
     });
   }
@@ -4641,8 +4607,14 @@ export default (e) => {
     let playEffectSw=0;
     useFrame(({timestamp}) => {
         if (contactWater){
-            if(playEffectSw === 0 && waterSurfacePos.y < localPlayer.position.y)
+            if(playEffectSw === 0 && waterSurfacePos.y < localPlayer.position.y){
                 playEffectSw = 1;
+                let regex = new RegExp('^water/jump_water[0-9]*.wav$');
+                const candidateAudios = soundFiles.water.filter(f => regex.test(f.name));
+                const audioSpec = candidateAudios[Math.floor(Math.random() * candidateAudios.length)];
+                sounds.playSound(audioSpec);
+            }
+                
         }
         else{
             if(playEffectSw === 2)
