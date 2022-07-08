@@ -18,20 +18,19 @@ export default (app, component) => {
   let walkAction = null;
   let runAction = null;
   let rootBone = null;
-  let localPlayer;
-
+  
   const petComponent = component;
   const _makePetMixer = () => {
-    let idleAction;
-
+    let petMixer, idleAction;
+    
     let firstMesh = null;
     app.glb.scene.traverse(o => {
       if (firstMesh === null && o.isMesh) {
         firstMesh = o;
       }
     });
-    const petMixer = new THREE.AnimationMixer(firstMesh);
-
+    petMixer = new THREE.AnimationMixer(firstMesh);
+    
     const idleAnimation = petComponent.idleAnimation ? app.glb.animations.find(a => a.name === petComponent.idleAnimation) : null;
     if (idleAnimation) {
       idleAction = petMixer.clipAction(idleAnimation);
@@ -39,7 +38,7 @@ export default (app, component) => {
     } else {
       idleAction = null;
     }
-
+    
     return {
       petMixer,
       idleAction,
@@ -58,23 +57,17 @@ export default (app, component) => {
       walkAction = null;
       runAction = null;
       rootBone = null;
-
+      
       const m = _makePetMixer();
       petMixer = m.petMixer;
       idleAction = m.idleAction;
-    } else {
-      console.warn('unhandled wear on pet');
     }
-    localPlayer = null;
   };
-
   app.addEventListener('wearupdate', e => {
     if (e.wear) {
-      localPlayer = metaversefile.getPlayerByInstanceId(app.instanceId);
-
       if (app.glb) {
         const {animations} = app.glb;
-
+        
         petSpec = app.getComponent('pet');
         if (petSpec) {
           const walkAnimation = (petSpec.walkAnimation && petSpec.walkAnimation !== petSpec.idleAnimation) ? animations.find(a => a.name === petSpec.walkAnimation) : null;
@@ -93,10 +86,11 @@ export default (app, component) => {
       _unwear();
     }
   });
-
+  
   const smoothVelocity = new THREE.Vector3();
   const lastLookQuaternion = new THREE.Quaternion();
   const _getAppDistance = () => {
+    const localPlayer = useLocalPlayer();
     const position = localVector.copy(localPlayer.position);
     position.y = 0;
     const distance = app.position.distanceTo(position);
@@ -107,19 +101,21 @@ export default (app, component) => {
   useFrame(({timestamp, timeDiff}) => {
     // components
     const _updateAnimation = () => {
+      // const petComponent = app.getComponent('pet');
       if (petComponent) {
         if (rootBone) {
           rootBone.quaternion.copy(rootBone.originalQuaternion);
           rootBone.updateMatrixWorld();
         }
         if (petMixer) { // animated pet
-          if (petSpec && localPlayer) { // activated pet
+          if (petSpec) { // activated pet
             const speed = 0.0014;
 
             const distance = _getAppDistance();
             const moveDelta = localVector;
             moveDelta.setScalar(0);
             if (_isFar(distance)) { // handle rounding errors
+              const localPlayer = useLocalPlayer();
               const position = localPlayer.position.clone();
               position.y = 0;
               const direction = position.clone()
@@ -143,7 +139,7 @@ export default (app, component) => {
               }
             } */
             smoothVelocity.lerp(moveDelta, 0.3);
-
+            
             const walkSpeed = 0.01;
             const runSpeed = 0.03;
             const currentSpeed = smoothVelocity.length();
@@ -167,15 +163,15 @@ export default (app, component) => {
           }
           const deltaSeconds = timeDiff / 1000;
           petMixer.update(deltaSeconds);
-          app.updateMatrixWorld();
+          petMixer.getRoot().updateMatrixWorld();
         }
       }
     };
     _updateAnimation();
-
+    
     const _updateLook = () => {
       const lookComponent = app.getComponent('look');
-      if (lookComponent && app.glb && localPlayer) {
+      if (lookComponent && app.glb) {
         let skinnedMesh = null;
         app.glb.scene.traverse(o => {
           if (skinnedMesh === null && o.isSkinnedMesh) {
@@ -184,7 +180,7 @@ export default (app, component) => {
         });
         if (skinnedMesh) {
           const bone = skinnedMesh.skeleton.bones.find(bone => bone.name === lookComponent.rootBone);
-          if (bone && localPlayer) {
+          if (bone) {
             rootBone = bone;
             if (!bone.originalQuaternion) {
               bone.originalQuaternion = bone.quaternion.clone();
@@ -192,21 +188,22 @@ export default (app, component) => {
             if (!bone.originalWorldScale) {
               bone.originalWorldScale = bone.getWorldScale(new THREE.Vector3());
             }
-
+            
             if (!bone.quaternion.equals(lastLookQuaternion)) {
+              const localPlayer = useLocalPlayer();
               const {position, quaternion} = localPlayer;
               localQuaternion2.setFromRotationMatrix(
                 localMatrix.lookAt(
                   position,
                   bone.getWorldPosition(localVector),
-                  localVector2.set(0, 1, 0),
-                ),
+                  localVector2.set(0, 1, 0)
+                )
               ).premultiply(localQuaternion.copy(app.quaternion).invert());
               localEuler.setFromQuaternion(localQuaternion2, 'YXZ');
-              localEuler.y = Math.min(Math.max(localEuler.y, -Math.PI * 0.5), Math.PI * 0.5);
+              localEuler.y = Math.min(Math.max(localEuler.y, -Math.PI*0.5), Math.PI*0.5);
               localQuaternion2.setFromEuler(localEuler)
                 .premultiply(app.quaternion);
-
+              
               bone.matrixWorld.decompose(localVector, localQuaternion, localVector2);
               localQuaternion.copy(localQuaternion2)
                 .multiply(localQuaternion3.copy(bone.originalQuaternion).invert())
@@ -224,14 +221,14 @@ export default (app, component) => {
     };
     _updateLook();
   });
-
+  
   useActivate(() => {
     app.wear();
   });
-
+  
   useCleanup(() => {
     _unwear();
   });
-
+  
   return app;
 };

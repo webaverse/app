@@ -4,25 +4,18 @@ responsibilities include loading the world on url change.
 */
 
 // import * as THREE from 'three';
-import metaversefile from 'metaversefile';
-import WSRTC from 'wsrtc/wsrtc.js';
 import * as Z from 'zjs';
-
-import {appsMapName, initialPosY, playersMapName} from './constants.js';
-import {loadOverworld} from './overworld.js';
-import physicsManager from './physics-manager.js';
-import physxWorkerManager from './physx-worker-manager.js';
-import physx from './physx.js';
-import {playersManager} from './players-manager.js';
-import {getLocalPlayer} from './players.js';
-import sceneNames from './scenes/scenes.json';
-import {parseQuery} from './util.js';
 import {world} from './world.js';
+import physicsManager from './physics-manager.js';
+import {loadOverworld} from './overworld.js';
+import {initialPosY} from './constants.js';
+import {parseQuery} from './util.js';
+import metaversefile from 'metaversefile';
+import sceneNames from './scenes/scenes.json';
 
 class Universe extends EventTarget {
   constructor() {
     super();
-    this.wsrtc = null;
 
     this.currentWorld = null;
     this.sceneLoadedPromise = null;
@@ -32,7 +25,7 @@ class Universe extends EventTarget {
       ((window.location.port ? parseInt(window.location.port, 10) : (window.location.protocol === 'https:' ? 443 : 80)) + 1) + '/worlds/';
   }
   async enterWorld(worldSpec) {
-    this.disconnectRoom();
+    world.disconnectRoom();
     
     const localPlayer = metaversefile.useLocalPlayer();
     /* localPlayer.teleportTo(new THREE.Vector3(0, 1.5, 0), camera.quaternion, {
@@ -52,7 +45,7 @@ class Universe extends EventTarget {
       const {src, room} = worldSpec;
       if (!room) {
         const state = new Z.Doc();
-        this.connectState(state);
+        world.connectState(state);
         
         let match;
         if (src === undefined) {
@@ -75,7 +68,7 @@ class Universe extends EventTarget {
       } else {
         const p = (async () => {
           const roomUrl = this.getWorldsHost() + room;
-          await this.connectRoom(roomUrl);
+          await world.connectRoom(roomUrl);
         })();
         promises.push(p);
       }
@@ -124,83 +117,6 @@ class Universe extends EventTarget {
         });
       }
     }
-  }
-
-  isConnected() { return !!this.wsrtc; }
-
-  getConnection() { return this.wsrtc; }
-
-  // called by enterWorld() in universe.js
-  // This is called in single player mode instead of connectRoom
-  connectState(state) {
-    state.setResolvePriority(1);
-    playersManager.bindState(state.getArray(playersMapName));
-
-    world.appManager.unbindState();
-    world.appManager.clear();
-    const appsArray = state.get(appsMapName, Z.Array);
-
-    world.appManager.bindState(appsArray);
-
-    const localPlayer = getLocalPlayer();
-    localPlayer.bindState(state.getArray(playersMapName));
-  }
-
-  // called by enterWorld() in universe.js
-  // This is called when a user joins a multiplayer room
-  // either from single player or directly from a link
-  async connectRoom(u, state = new Z.Doc()) {
-    // Players cannot be initialized until the physx worker is loaded
-    // Otherwise you will receive allocation errors because the module instance is undefined
-    await physx.waitForLoad();
-    await physxWorkerManager.waitForLoad();
-    const localPlayer = getLocalPlayer();
-
-    state.setResolvePriority(1);
-
-    // Create a new instance of the websocket rtc client
-    // This comes from webaverse/wsrtc/wsrtc.js
-    this.wsrtc = new WSRTC(u, {
-      localPlayer,
-      crdtState: state,
-    });
-
-    // This is called when the websocket connection opens, i.e. server is connectedw
-    const open = e => {
-      this.wsrtc.removeEventListener('open', open);
-      // Clear the last world state
-      const appsArray = state.get(appsMapName, Z.Array);
-      playersManager.bindState(state.getArray(playersMapName));
-
-      // Unbind the world state to clear existing apps
-      world.appManager.unbindState();
-      world.appManager.clear();
-      // Bind the new state
-      world.appManager.bindState(appsArray);
-
-      // Called by WSRTC when the connection is initialized
-      const init = e => {
-        this.wsrtc.removeEventListener('init', init);
-        localPlayer.bindState(state.getArray(playersMapName));
-
-        this.wsrtc.addEventListener('audio', e => {
-          const player = playersManager.remotePlayersByInteger.get(e.data.playerId);
-          player.processAudioData(e.data);
-        });
-      };
-
-      this.wsrtc.addEventListener('init', init);
-    };
-
-    this.wsrtc.addEventListener('open', open);
-
-    return this.wsrtc;
-  }
-
-  // called by enterWorld() in universe.js, to make sure we aren't already connected
-  disconnectRoom() {
-    if (this.wsrtc && this.wsrtc.state === 'open') this.wsrtc.close();
-    this.wsrtc = null;
   }
 }
 const universe = new Universe();

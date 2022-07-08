@@ -1506,9 +1506,6 @@ class Avatar {
     this.aimLeftFactorReverse = 1 - this.aimLeftFactor;
 
     const _updateHmdPosition = () => {
-      // Update the HMD position manually
-      // This works totally fine for local player, where we don't need interpolation
-      // However, for remote players, we can get invalid velocity values, so we want to calculate velocity externally
       const currentPosition = this.inputs.hmd.position;
       const currentQuaternion = this.inputs.hmd.quaternion;
       this.setVelocity(timeDiffS, this.lastPosition, currentPosition, currentQuaternion);
