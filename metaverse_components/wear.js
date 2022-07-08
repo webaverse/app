@@ -197,7 +197,8 @@ export default (app, component) => {
     const {boneAttachment = 'hips', position, quaternion, scale} = spec;
 
     let boneAttachments;
-    if (localPlayer.hasAction('use')) {
+    const useAction = localPlayer.getAction('use');
+    if (useAction?.animation === 'pickaxe') {
       const animationTimeS = localPlayer.actionInterpolants.use.get() / 1000 / 5;
       boneAttachments = [];
       if (animationTimeS < 0.5 || animationTimeS > 1.0666666666666667) {
