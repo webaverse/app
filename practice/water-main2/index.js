@@ -812,39 +812,6 @@ export default (e) => {
             tempPhysics = null;
             localVector02.set(localPlayer.position.x, localPlayer.position.y - localPlayer.avatar.height, localPlayer.position.z);
             for(const physicsId of generator.getPhysicsObjects()){ 
-                if(!playerIsOnSurface){
-                    generator.physics.enableGeometryQueries(physicsId);
-                    localVector03.set(localPlayer.position.x, localPlayer.position.y, localPlayer.position.z);
-                    const result3 = physics.raycast(localVector03, downVector);
-                    if(result3){
-                        if(result3.objectId === physicsId.physicsId){
-                            waterSurfacePos.set(result3.point[0], result3.point[1], result3.point[2]);
-                            playerIsOnSurface = true;
-                            if(!playerHighestWaterSurface)
-                                playerHighestWaterSurface = waterSurfacePos.y;
-                            else
-                                playerHighestWaterSurface = playerHighestWaterSurface < waterSurfacePos.y ? waterSurfacePos.y : playerHighestWaterSurface;
-                        }
-                    }
-                    
-                    generator.physics.disableGeometryQueries(physicsId);
-                }
-                if(!cameraIsOnSurface){
-                    generator.physics.enableGeometryQueries(physicsId);
-                    localVector04.set(camera.position.x + cameraDir.x * 0.2, camera.position.y, camera.position.z + cameraDir.z * 0.2);
-                    const result4 = physics.raycast(localVector04, downVector);
-                    if(result4){
-                        if(result4.objectId === physicsId.physicsId){
-                            cameraWaterSurfacePos.set(result4.point[0], result4.point[1], result4.point[2]);
-                            cameraIsOnSurface = true;
-                            if(!cameraHighestWaterSurface)
-                                cameraHighestWaterSurface = cameraWaterSurfacePos.y;
-                            else
-                                cameraHighestWaterSurface = cameraHighestWaterSurface < cameraWaterSurfacePos.y ? cameraWaterSurfacePos.y : cameraHighestWaterSurface;
-                        }
-                    }
-                    generator.physics.disableGeometryQueries(physicsId);
-                }
                 // if(
                 //     physicsId.coord.x === tracker.lastUpdateCoord.x
                 //     && physicsId.coord.y === tracker.lastUpdateCoord.y
@@ -862,6 +829,43 @@ export default (e) => {
                     //}
                 // }
                 
+            }
+            {
+                if(tempPhysics){
+                    generator.physics.enableGeometryQueries(tempPhysics);
+                    localVector03.set(localPlayer.position.x, localPlayer.position.y, localPlayer.position.z);
+                    const result3 = physics.raycast(localVector03, downVector);
+                    if(result3){
+                        if(result3.objectId === tempPhysics.physicsId){
+                            waterSurfacePos.set(result3.point[0], result3.point[1], result3.point[2]);
+                            playerIsOnSurface = true;
+                            if(!playerHighestWaterSurface)
+                                playerHighestWaterSurface = waterSurfacePos.y;
+                            else
+                                playerHighestWaterSurface = playerHighestWaterSurface < waterSurfacePos.y ? waterSurfacePos.y : playerHighestWaterSurface;
+                        }
+                    }
+                    
+                    generator.physics.disableGeometryQueries(tempPhysics);
+                }
+            }
+            {
+                if(tempPhysics){
+                    generator.physics.enableGeometryQueries(tempPhysics);
+                    localVector04.set(camera.position.x + cameraDir.x * 0.2, camera.position.y, camera.position.z + cameraDir.z * 0.2);
+                    const result4 = physics.raycast(localVector04, downVector);
+                    if(result4){
+                        if(result4.objectId === tempPhysics.physicsId){
+                            cameraWaterSurfacePos.set(result4.point[0], result4.point[1], result4.point[2]);
+                            cameraIsOnSurface = true;
+                            if(!cameraHighestWaterSurface)
+                                cameraHighestWaterSurface = cameraWaterSurfacePos.y;
+                            else
+                                cameraHighestWaterSurface = cameraHighestWaterSurface < cameraWaterSurfacePos.y ? cameraWaterSurfacePos.y : cameraHighestWaterSurface;
+                        }
+                    }
+                    generator.physics.disableGeometryQueries(tempPhysics);
+                }
             }
     
             contactWater = false;
@@ -2592,63 +2596,63 @@ export default (e) => {
             const textureRotationAttribute = mesh.geometry.getAttribute('textureRotation');
 
             if(
-                localPlayer.characterSfx.currentSwimmingHand !== lastStroke
+                localPlayer.hasAction('swim')
                 && localPlayer.getAction('swim').animationType === 'freestyle'
                 && localPlayer.getAction('swim').onSurface
                 && !localPlayer.hasAction('fly')
             ){
-                if(localPlayer.characterSfx.currentSwimmingHand === 'right'){
-                    let currentEmmit = 0;
-                    for(let i = 0; i < particleCount; i++){
-                        if(brokenAttribute.getX(i) >= 1){
-                            info.velocity[i].x = (Math.random() - 0.5) * 0.1 + playerDir.x * 0.45 * (1 + currentSpeed) + localVector2.x * 0.1;
-                            info.velocity[i].y = 0.18 + Math.random() * 0.18;
-                            info.velocity[i].z = (Math.random() - 0.5) * 0.1 + playerDir.z * 0.45 * (1 + currentSpeed) + localVector2.z * 0.1;
-                            positionsAttribute.setXYZ(  i, 
-                                                        localPlayer.position.x + (Math.random() - 0.5) * 0.1 + info.velocity[i].x - playerDir.x * 0.15,
-                                                        waterSurfacePos.y,
-                                                        localPlayer.position.z + (Math.random() - 0.5) * 0.1 + info.velocity[i].z - playerDir.z * 0.15
-                            );
-                            info.velocity[i].divideScalar(10);
-                            info.acc[i] = -0.001 - currentSpeed * 0.0015;
-                            scalesAttribute.setX(i, 1 + Math.random());
-                            brokenAttribute.setX(i, 0.25 + Math.random() * 0.2);
-                            textureRotationAttribute.setX(i, Math.random() * 2);
-                            currentEmmit++;
+                if(localPlayer.characterSfx.currentSwimmingHand !== lastStroke){
+                    if(localPlayer.characterSfx.currentSwimmingHand === 'right'){
+                        let currentEmmit = 0;
+                        for(let i = 0; i < particleCount; i++){
+                            if(brokenAttribute.getX(i) >= 1){
+                                info.velocity[i].x = (Math.random() - 0.5) * 0.1 + playerDir.x * 0.45 * (1 + currentSpeed) + localVector2.x * 0.1;
+                                info.velocity[i].y = 0.18 + Math.random() * 0.18;
+                                info.velocity[i].z = (Math.random() - 0.5) * 0.1 + playerDir.z * 0.45 * (1 + currentSpeed) + localVector2.z * 0.1;
+                                positionsAttribute.setXYZ(  i, 
+                                                            localPlayer.position.x + (Math.random() - 0.5) * 0.1 + info.velocity[i].x - playerDir.x * 0.15,
+                                                            waterSurfacePos.y,
+                                                            localPlayer.position.z + (Math.random() - 0.5) * 0.1 + info.velocity[i].z - playerDir.z * 0.15
+                                );
+                                info.velocity[i].divideScalar(10);
+                                info.acc[i] = -0.001 - currentSpeed * 0.0015;
+                                scalesAttribute.setX(i, 1 + Math.random());
+                                brokenAttribute.setX(i, 0.25 + Math.random() * 0.2);
+                                textureRotationAttribute.setX(i, Math.random() * 2);
+                                currentEmmit++;
+                            }
+                            if(currentEmmit >= 50){
+                                break;
+                            }
                         }
-                        if(currentEmmit >= 50){
-                            break;
-                        }
+                        
                     }
-                    
-                }
-                else if(localPlayer.characterSfx.currentSwimmingHand === 'left'){
-                    let currentEmmit = 0;
-                    for(let i = 0; i < particleCount; i++){
-                        if(brokenAttribute.getX(i) >= 1){
-                            info.velocity[i].x = (Math.random() - 0.5) * 0.1 + playerDir.x * 0.45 * (1 + currentSpeed) - localVector2.x * 0.1;
-                            info.velocity[i].y = 0.18 + Math.random() * 0.18;
-                            info.velocity[i].z = (Math.random() - 0.5) * 0.1 + playerDir.z * 0.45 * (1 + currentSpeed)  - localVector2.z * 0.1;
-                            positionsAttribute.setXYZ(  i, 
-                                                        localPlayer.position.x + (Math.random() - 0.5) * 0.1 + info.velocity[i].x - playerDir.x * 0.25,
-                                                        waterSurfacePos.y,
-                                                        localPlayer.position.z + (Math.random() - 0.5) * 0.1 + info.velocity[i].z - playerDir.z * 0.25
-                            );
-                            info.velocity[i].divideScalar(10);
-                            info.acc[i] = -0.001 - currentSpeed * 0.0015;
-                            scalesAttribute.setX(i, 1 + Math.random());
-                            brokenAttribute.setX(i, 0.25 + Math.random() * 0.2);
-                            textureRotationAttribute.setX(i, Math.random() * 2);
-                            currentEmmit++;
+                    else if(localPlayer.characterSfx.currentSwimmingHand === 'left'){
+                        let currentEmmit = 0;
+                        for(let i = 0; i < particleCount; i++){
+                            if(brokenAttribute.getX(i) >= 1){
+                                info.velocity[i].x = (Math.random() - 0.5) * 0.1 + playerDir.x * 0.45 * (1 + currentSpeed) - localVector2.x * 0.1;
+                                info.velocity[i].y = 0.18 + Math.random() * 0.18;
+                                info.velocity[i].z = (Math.random() - 0.5) * 0.1 + playerDir.z * 0.45 * (1 + currentSpeed)  - localVector2.z * 0.1;
+                                positionsAttribute.setXYZ(  i, 
+                                                            localPlayer.position.x + (Math.random() - 0.5) * 0.1 + info.velocity[i].x - playerDir.x * 0.25,
+                                                            waterSurfacePos.y,
+                                                            localPlayer.position.z + (Math.random() - 0.5) * 0.1 + info.velocity[i].z - playerDir.z * 0.25
+                                );
+                                info.velocity[i].divideScalar(10);
+                                info.acc[i] = -0.001 - currentSpeed * 0.0015;
+                                scalesAttribute.setX(i, 1 + Math.random());
+                                brokenAttribute.setX(i, 0.25 + Math.random() * 0.2);
+                                textureRotationAttribute.setX(i, Math.random() * 2);
+                                currentEmmit++;
+                            }
+                            if(currentEmmit >= 50){
+                                break;
+                            }
                         }
-                        if(currentEmmit >= 50){
-                            break;
-                        }
+                        
                     }
-                    
-                }
-                    
-                
+                }  
             }
             for (let i = 0; i < particleCount; i++){
                 if(currentSpeed < 0.2){
@@ -2694,10 +2698,10 @@ export default (e) => {
             if(playEffectSw === 1){
                 playEffectSw = 2;
             }
-
+            lastStroke = localPlayer.characterSfx.currentSwimmingHand;
         }
         app.updateMatrixWorld();
-        lastStroke = localPlayer.characterSfx.currentSwimmingHand;
+        
     
     });
   }
