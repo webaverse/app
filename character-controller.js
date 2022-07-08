@@ -964,6 +964,7 @@ class UninterpolatedPlayer extends StatePlayer {
       crouch: new BiActionInterpolant(() => this.hasAction('crouch'), 0, crouchMaxTime),
       activate: new UniActionInterpolant(() => this.hasAction('activate'), 0, activateMaxTime),
       use: new InfiniteActionInterpolant(() => this.hasAction('use'), 0),
+      // use: new InfiniteActionInterpolant(() => false, 0),
       pickUp: new InfiniteActionInterpolant(() => this.hasAction('pickUp'), 0),
       unuse: new InfiniteActionInterpolant(() => !this.hasAction('use'), 0),
       aim: new InfiniteActionInterpolant(() => this.hasAction('aim'), 0),
