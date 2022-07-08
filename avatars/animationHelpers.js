@@ -320,6 +320,7 @@ export const loadPromise = (async () => {
   };
   useAnimations = mergeAnimations({
     combo: animations.find(a => a.isCombo),
+    pickaxe: animations.find(a => a.isPickaxe),
     slash: animations.find(a => a.isSlash),
     rifle: animations.find(a => a.isRifle),
     pistol: animations.find(a => a.isPistol),
@@ -762,26 +763,26 @@ export const _applyAnimation = (avatar, now, moveFactors) => {
     _getHorizontalBlend(k, lerpFn, isPosition, dst);
   };
   const _getApplyFn = () => {
-    { // play one animation purely.
-      return spec => {
-        const {
-          animationTrackName: k,
-          dst,
-          // isTop,
-        } = spec;
+    // { // play one animation purely.
+    //   return spec => {
+    //     const {
+    //       animationTrackName: k,
+    //       dst,
+    //       // isTop,
+    //     } = spec;
 
-        // const animation = animations.index['walking.fbx']
-        const animation = animations.index['pickaxe_swing.fbx']
-        const t2 = timeSeconds / 10;
-        const tFinal = t2 % animation.duration
-        // const tFinal = window.timeS;
-        window.tFinal = tFinal;
-        const src2 = animation.interpolants[k];
-        const v2 = src2.evaluate(tFinal);
+    //     // const animation = animations.index['walking.fbx']
+    //     const animation = animations.index['pickaxe_swing.fbx']
+    //     const t2 = timeSeconds / 10;
+    //     const tFinal = t2 % animation.duration
+    //     // const tFinal = window.timeS;
+    //     window.tFinal = tFinal;
+    //     const src2 = animation.interpolants[k];
+    //     const v2 = src2.evaluate(tFinal);
 
-        dst.fromArray(v2);
-      };
-    }
+    //     dst.fromArray(v2);
+    //   };
+    // }
     if (avatar.jumpState) {
       return spec => {
         const {
@@ -932,11 +933,12 @@ export const _applyAnimation = (avatar, now, moveFactors) => {
 
         let useAnimation;
         let t2;
-        const useTimeS = avatar.useTime / 1000;
+        const useTimeS = avatar.useTime / 1000 / 10;
         if (avatar.useAnimation) {
           const useAnimationName = avatar.useAnimation;
           useAnimation = useAnimations[useAnimationName];
           t2 = Math.min(useTimeS, useAnimation.duration);
+          window.tFinal = t2; // test
         } else if (avatar.useAnimationCombo.length > 0) {
           const useAnimationName = avatar.useAnimationCombo[avatar.useAnimationIndex];
           useAnimation = useAnimations[useAnimationName];
