@@ -254,7 +254,9 @@ class PostProcessing extends EventTarget {
         passes.ssaoPass = makeSsaoRenderPass(ssao, passes.depthPass);
       }
       if(ssr){
+        passes.depthPass = makeDepthPass({ssr, dof});
         const ssrPass = makeSsrPass(ssr);
+        // ssrPass.output = 4;
         passes.test = (ssrPass);
       }
       if (dof) {

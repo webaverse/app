@@ -1,6 +1,7 @@
 import metaversefile from 'metaversefile';
 // import { useSyncExternalStore } from 'react';
 import * as THREE from 'three';
+import { ReflectorForSSRPass } from 'three/examples/jsm/objects/ReflectorForSSRPass.js';
 // import { terrainVertex, terrainFragment } from './shaders/terrainShader.js';
 // import biomeSpecs from './biomes.js';
 
@@ -791,15 +792,37 @@ export default (e) => {
         if(generator && localPlayer.avatar){
             if(!alreadySetComposer){
                 if(renderSettings.findRenderSettings(scene)){
+                    const geometry2 = new THREE.PlaneBufferGeometry( 100, 100 );
+                    const groundReflector = new ReflectorForSSRPass( geometry2, {
+                        clipBias: 0.0003,
+                        textureWidth: window.innerWidth,
+                        textureHeight: window.innerHeight,
+                        color: 0x888888,
+                        useDepthTexture: true,
+                    } );
+                    groundReflector.material.depthWrite = false;
+                    groundReflector.rotation.x = - Math.PI / 2;
+                    groundReflector.visible = false;
+                    app.add( groundReflector );
+
                     console.log(renderSettings.findRenderSettings(scene));
                     // renderSettings.findRenderSettings(scene).passes.test.selective = true;
                     renderSettings.findRenderSettings(scene).passes.test._selects.push(generator.getMeshes()[0]);
-                    renderSettings.findRenderSettings(scene).passes.test.maxDistance = 0.1;
-                    // renderSettings.findRenderSettings(scene).passes.test.needsSwap = false;
+                    // renderSettings.findRenderSettings(scene).passes.test.maxDistance = 0.03;
+                    // renderSettings.findRenderSettings(scene).passes.test.thickness = 0.01;
+                    // // renderSettings.findRenderSettings(scene).passes.test._infiniteThick = true;
+                    // renderSettings.findRenderSettings(scene).passes.test.opacity = 0.15;
+                    // renderSettings.findRenderSettings(scene).passes.test.groundReflector = groundReflector;
+                    
+                    
+                    // // renderSettings.findRenderSettings(scene).passes.test.needsSwap = false;
+                    // renderSettings.findRenderSettings(scene).passes.test._fresnel = false;
+                    
                     // renderSettings.findRenderSettings(scene).passes.test.clear = false;
                     // renderSettings.findRenderSettings(scene).passes.test.renderToScreen = false;
                     
                     renderSettings.findRenderSettings(scene).passes.push(renderSettings.findRenderSettings(scene).passes.test);
+                    // renderSettings.findRenderSettings(scene).passes.depthPass.enabled = false;
                     // const temp0 = renderSettings.findRenderSettings(scene).passes[0];
                     // const temp1 = renderSettings.findRenderSettings(scene).passes[1];
                     // renderSettings.findRenderSettings(scene).passes.push(temp0);
@@ -5103,6 +5126,5 @@ export default (e) => {
         
 //     });
 //   }
-
   return app;
 };
