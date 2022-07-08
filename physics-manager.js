@@ -223,7 +223,7 @@ class PhysicsScene extends EventTarget {
   }
   cookGeometry(mesh) {
     const physicsMesh = convertMeshToPhysicsMesh(mesh);
-    const buffer = physx.physxWorker.cookGeometryPhysics(this.scene, physicsMesh);
+    const buffer = physx.physxWorker.cookGeometryPhysics(physicsMesh);
     return buffer;
   }
   async cookGeometryAsync(mesh, {
