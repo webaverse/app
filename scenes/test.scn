@@ -15,7 +15,40 @@
         "position": [1, 2, 3]
       }
     },
+    {
+      "type": "application/rendersettings",
+      "content": {
+        "fog": {
+          "fogType": "exp",
+          "args": [[255, 255, 255], 0.01]
+        },
+        "ssao": {
+          "kernelRadius": 16,
+          "minDistance": 0.005,
+          "maxDistance": 0.1
+        },
+        "dof": {
+          "focus": 2.0,
+          "aperture": 0.0001,
+          "maxblur": 0.005
+        },
+        "hdr": {
+          "adaptive": true,
+          "resolution": 256,
+          "adaptionRate": 100,
+          "maxLuminance": 10,
+          "minLuminance": 0,
+          "middleGrey": 3
+        },
+        "bloom": {
+          "strength": 0.1,
+          "radius": 0.5,
+          "threshold": 0.9
+        }
+      }
+    },
 
+    { "position": [ 0, 0, 0 ], "start_url": "http://localhost/lib/webaverse_resource/atmospheric-sky/" },
     { "position": [ 0, 0, 0 ], "start_url": "http://localhost/lib/webaverse_resource/block/" }
   ]
 }
