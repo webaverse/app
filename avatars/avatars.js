@@ -1911,7 +1911,6 @@ class Avatar {
         <div style="display:;">keysDirection: --- ${false&&window.logVector3(window.ioManager?.keysDirection)}</div>
       */
       window.domInfo.innerHTML = `
-      <div style="display:;">tFinal: --- ${window.tFinal}</div>
       `
       /*
         <div style="display:;">actions: --- ${localPlayer.getActionsArray().map(n=>n.type)}</div>

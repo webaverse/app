@@ -776,7 +776,6 @@ export const _applyAnimation = (avatar, now, moveFactors) => {
     //     const t2 = timeSeconds / 10;
     //     const tFinal = t2 % animation.duration
     //     // const tFinal = window.timeS;
-    //     window.tFinal = tFinal;
     //     const src2 = animation.interpolants[k];
     //     const v2 = src2.evaluate(tFinal);
 
@@ -933,12 +932,11 @@ export const _applyAnimation = (avatar, now, moveFactors) => {
 
         let useAnimation;
         let t2;
-        const useTimeS = avatar.useTime / 1000 / 10;
+        const useTimeS = avatar.useTime / 1000 / 5;
         if (avatar.useAnimation) {
           const useAnimationName = avatar.useAnimation;
           useAnimation = useAnimations[useAnimationName];
           t2 = Math.min(useTimeS, useAnimation.duration);
-          window.tFinal = t2; // test
         } else if (avatar.useAnimationCombo.length > 0) {
           const useAnimationName = avatar.useAnimationCombo[avatar.useAnimationIndex];
           useAnimation = useAnimations[useAnimationName];

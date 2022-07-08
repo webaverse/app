@@ -198,8 +198,9 @@ export default (app, component) => {
 
     let boneAttachments;
     if (localPlayer.hasAction('use')) {
+      const animationTimeS = localPlayer.actionInterpolants.use.get() / 1000 / 5;
       boneAttachments = [];
-      if (window.tFinal < 0.5 || window.tFinal > 1.0666666666666667) {
+      if (animationTimeS < 0.5 || animationTimeS > 1.0666666666666667) {
         boneAttachments[0] = 'rightHand'
         position[0] = Math.abs(position[0]);
         quaternion[0]=0
