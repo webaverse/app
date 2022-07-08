@@ -47,6 +47,8 @@ const cameraOffset = new THREE.Vector3();
 let cameraOffsetTargetZ = cameraOffset.z;
 let cameraOffsetLimitZ = Infinity;
 
+const physicsScene = physicsManager.getScene();
+
 // let cameraOffsetZ = cameraOffset.z;
 const rayVectorZero = new THREE.Vector3(0,0,0);
 // const rayVectorUp = new THREE.Vector3(0,1,0);
@@ -577,7 +579,7 @@ class CameraManager extends EventTarget {
           const halfExtents = localVector2.set(0.5, 0.5, 0.1);
           const maxHits = 1;
 
-          const result = physicsManager.sweepBox(
+          const result = physicsScene.sweepBox(
             localVector3.copy(localPlayer.position)
               .add(localVector4.copy(direction).multiplyScalar(backOffset)),
             camera.quaternion,

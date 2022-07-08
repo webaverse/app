@@ -1,6 +1,6 @@
 // import * as THREE from 'three';
 import metaversefile from 'metaversefile';
-const {useApp, useProcGenManager, useCleanup} = metaversefile;
+const {useApp, useCleanup} = metaversefile;
 
 export default e => {
   const app = useApp();
@@ -11,7 +11,7 @@ export default e => {
     {
       "start_url": "https://webaverse.github.io/dual-contouring-terrain/"
     },
-    {
+    /* {
       "start_url": "https://webaverse.github.io/silk-grass/"
     },
     {
@@ -23,43 +23,73 @@ export default e => {
         {
           "key": "appUrls",
           "value": [
-            "https://webaverse.github.io/ghost/",
-            "https://webaverse.github.io/silkworm-biter/",
-            "https://webaverse.github.io/silkworm-bloater/",
-            "https://webaverse.github.io/silkworm-queen/",
-            "https://webaverse.github.io/silkworm-runner/",
-            "https://webaverse.github.io/silkworm-slasher/"
+            "../../ghost/",
+            "../../silkworm-biter/",
+            "../../silkworm-bloater/",
+            "../../silkworm-queen/",
+            "../../silkworm-runner/",
+            "../../silkworm-slasher/"
           ],
         },
       ],
-    },
+    }, */
   ];
   const passComponents = [];
   const seed = app.getComponent('seed');
-  const range = app.getComponent('range');
-  const wait = app.getComponent('wait') ?? false;
-  /* if (range) {
-    range = new THREE.Box3(
-      new THREE.Vector3(range[0][0], range[0][1], range[0][2]),
-      new THREE.Vector3(range[1][0], range[1][1], range[1][2])
-    );
-  } */
+  const clipRange = app.getComponent('clipRange');
+  const physicsInstance = app.getComponent('physicsInstance');
+  const wait = app.getComponent('wait');
+  const debug = app.getComponent('debug');
+
+  const renderPosition = app.getComponent('renderPosition');
+  if (renderPosition !== undefined) {
+    passComponents.push({
+      "key": "renderPosition",
+      "value": renderPosition,
+    });
+  }
+  const minLodRange = app.getComponent('minLodRange');
+  if (minLodRange !== undefined) {
+    passComponents.push({
+      "key": "minLodRange",
+      "value": minLodRange,
+    });
+  }
+  const lods = app.getComponent('lods');
+  if (lods !== undefined) {
+    passComponents.push({
+      "key": "lods",
+      "value": lods,
+    });
+  }
   if (seed !== undefined) {
     passComponents.push({
       "key": "seed",
       "value": seed,
     });
   }
-  if (range !== undefined) {
+  if (clipRange !== undefined) {
     passComponents.push({
-      "key": "range",
-      "value": range,
+      "key": "clipRange",
+      "value": clipRange,
     });
   }
-  if (wait) {
+  if (physicsInstance !== undefined) {
+    passComponents.push({
+      "key": "physicsInstance",
+      "value": physicsInstance,
+    });
+  }
+  if (wait !== undefined) {
     passComponents.push({
       "key": "wait",
-      "value": true,
+      "value": wait,
+    });
+  }
+  if (debug !== undefined) {
+    passComponents.push({
+      "key": "debug",
+      "value": debug,
     });
   }
 

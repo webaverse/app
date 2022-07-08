@@ -13,6 +13,8 @@ import {parseQuery} from './util.js';
 import metaversefile from 'metaversefile';
 import sceneNames from './scenes/scenes.json';
 
+const physicsScene = physicsManager.getScene();
+
 class Universe extends EventTarget {
   constructor() {
     super();
@@ -36,7 +38,7 @@ class Universe extends EventTarget {
     localPlayer.updateMatrixWorld();
     // physicsManager.setPhysicsEnabled(true);
     // localPlayer.updatePhysics(0, 0);
-    physicsManager.setPhysicsEnabled(false);
+    physicsScene.setPhysicsEnabled(false);
 
     const _doLoad = async () => {
       // world.clear();
@@ -81,7 +83,7 @@ class Universe extends EventTarget {
     await _doLoad();
 
     localPlayer.characterPhysics.reset();
-    physicsManager.setPhysicsEnabled(true);
+    physicsScene.setPhysicsEnabled(true);
     localPlayer.updatePhysics(0, 0);
 
     this.currentWorld = worldSpec;

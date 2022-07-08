@@ -563,19 +563,21 @@ metaversefile.setApi({
   useMeshLodder() {
     return meshLodManager;
   },
-  usePhysics() {
+  usePhysics(instance = null) {
     const app = currentAppRender;
     if (app) {
-      const physics = {};
+      const physicsScene = physicsManager.getScene(instance)
+        .clone();
+      /* const physics = {};
       for (const k in physicsManager) {
         physics[k] = physicsManager[k];
-      }
+      } */
       /* const localVector = new THREE.Vector3();
       const localVector2 = new THREE.Vector3();
       const localQuaternion = new THREE.Quaternion();
       const localMatrix = new THREE.Matrix4(); */
       // const localMatrix2 = new THREE.Matrix4();
-      physics.addBoxGeometry = (addBoxGeometry => function(position, quaternion, size, dynamic) {
+      physicsScene.addBoxGeometry = (addBoxGeometry => function(position, quaternion, size, dynamic) {
         /* const basePosition = position;
         const baseQuaternion = quaternion;
         const baseScale = size;
@@ -603,8 +605,8 @@ metaversefile.setApi({
         app.physicsObjects.push(physicsObject);
 
         return physicsObject;
-      })(physics.addBoxGeometry);
-      physics.addCapsuleGeometry = (addCapsuleGeometry => function(position, quaternion, radius, halfHeight, physicsMaterial, dynamic, flags) {
+      })(physicsScene.addBoxGeometry);
+      physicsScene.addCapsuleGeometry = (addCapsuleGeometry => function(position, quaternion, radius, halfHeight, physicsMaterial, dynamic, flags) {
         // const basePosition = position;
         // const baseQuaternion = quaternion;
         // const baseScale = new THREE.Vector3(radius, halfHeight*2, radius)
@@ -645,7 +647,7 @@ metaversefile.setApi({
         // physicsManager.pushUpdate(app, physicsObject);
         //physicsManager.setTransform(physicsObject);
         return physicsObject;
-      })(physics.addCapsuleGeometry);
+      })(physicsScene.addCapsuleGeometry);
       /* physics.addSphereGeometry = (addSphereGeometry => function(position, quaternion, radius, physicsMaterial, ccdEnabled) {
         const basePosition = position;
         const baseQuaternion = quaternion;
@@ -675,7 +677,7 @@ metaversefile.setApi({
         // physicsManager.pushUpdate(app, physicsObject);
         return physicsObject;
       })(physics.addSphereGeometry); */
-      physics.addGeometry = (addGeometry => function(mesh) {
+      physicsScene.addGeometry = (addGeometry => function(mesh) {
         /* const oldParent = mesh.parent;
         
         const parentMesh = new THREE.Object3D();
@@ -700,62 +702,26 @@ metaversefile.setApi({
         // app.add(physicsObject);
         app.physicsObjects.push(physicsObject);
         return physicsObject;
-      })(physics.addGeometry);
-      physics.addCookedGeometry = (addCookedGeometry => function(buffer, position, quaternion, scale) {
+      })(physicsScene.addGeometry);
+      physicsScene.addCookedGeometry = (addCookedGeometry => function(buffer, position, quaternion, scale) {
         const physicsObject = addCookedGeometry.apply(this, arguments);
         // app.add(physicsObject);
         app.physicsObjects.push(physicsObject);
         return physicsObject;
-      })(physics.addCookedGeometry);
-      physics.addConvexGeometry = (addConvexGeometry => function(mesh) {
+      })(physicsScene.addCookedGeometry);
+      physicsScene.addConvexGeometry = (addConvexGeometry => function(mesh) {
         const physicsObject = addConvexGeometry.apply(this, arguments);
         // app.add(physicsObject);
         app.physicsObjects.push(physicsObject);
         return physicsObject;
-      })(physics.addConvexGeometry);
-      physics.addCookedConvexGeometry = (addCookedConvexGeometry => function(buffer, position, quaternion, scale) {
+      })(physicsScene.addConvexGeometry);
+      physicsScene.addCookedConvexGeometry = (addCookedConvexGeometry => function(buffer, position, quaternion, scale) {
         const physicsObject = addCookedConvexGeometry.apply(this, arguments);
         // app.add(physicsObject);
         app.physicsObjects.push(physicsObject);
         return physicsObject;
-      })(physics.addCookedConvexGeometry);
-      /* physics.enablePhysicsObject = (enablePhysicsObject => function(physicsObject) {
-        enablePhysicsObject.call(this, physicsObject);
-      })(physics.enablePhysicsObject);
-      physics.disablePhysicsObject = (disablePhysicsObject => function(physicsObject) {
-        disablePhysicsObject.call(this, physicsObject);
-      })(physics.disablePhysicsObject);
-      physics.enableGeometryQueries = (enableGeometryQueries => function(physicsObject) {
-        enableGeometryQueries.call(this, physicsObject);
-      })(physics.enableGeometryQueries);
-      physics.disableGeometryQueries = (disableGeometryQueries => function(physicsObject) {
-        disableGeometryQueries.call(this, physicsObject);
-      })(physics.disableGeometryQueries); */
-
-      /* physics.setTransform = (setTransform => function(physicsObject) {
-        setTransform.call(this, physicsObject);
-      })(physics.setTransform); */
-      /* physics.getPhysicsTransform = (getPhysicsTransform => function(physicsId) {
-        const transform = getPhysicsTransform.apply(this, arguments);
-        const {position, quaternion} = transform;
-        app.updateMatrixWorld();
-        localMatrix
-          .compose(position, quaternion, localVector2.set(1, 1, 1))
-          .premultiply(localMatrix2.copy(app.matrixWorld).invert())
-          .decompose(position, quaternion, localVector2);
-        return transform;
-      })(physics.getPhysicsTransform);
-      physics.setPhysicsTransform = (setPhysicsTransform => function(physicsId, position, quaternion, scale) {
-        app.updateMatrixWorld();
-        localMatrix
-          .compose(position, quaternion, scale)
-          .premultiply(app.matrixWorld)
-          .decompose(localVector, localQuaternion, localVector2);
-        position = localVector;
-        quaternion = localQuaternion;
-        return setPhysicsTransform.call(this, physicsId, position, quaternion, scale);
-      })(physics.setPhysicsTransform); */
-      physics.removeGeometry = (removeGeometry => function(physicsObject) {
+      })(physicsScene.addCookedConvexGeometry);
+      physicsScene.removeGeometry = (removeGeometry => function(physicsObject) {
         removeGeometry.apply(this, arguments);
         
         const index = app.physicsObjects.indexOf(physicsObject);
@@ -763,9 +729,9 @@ metaversefile.setApi({
           app.remove(physicsObject);
           app.physicsObjects.splice(index);
         }
-      })(physics.removeGeometry);
+      })(physicsScene.removeGeometry);
       
-      return physics;
+      return physicsScene;
     } else {
       throw new Error('usePhysics cannot be called outside of render()');
     }
