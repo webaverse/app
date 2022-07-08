@@ -566,7 +566,8 @@ metaversefile.setApi({
   usePhysics(instance = null) {
     const app = currentAppRender;
     if (app) {
-      const physicsScene = physicsManager.getScene(instance);
+      const physicsScene = physicsManager.getScene(instance)
+        .clone();
       /* const physics = {};
       for (const k in physicsManager) {
         physics[k] = physicsManager[k];

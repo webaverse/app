@@ -358,8 +358,8 @@ class PlayerBase extends THREE.Object3D {
       const _initPhysics = () => {
         const physicsObjects = app.getPhysicsObjects();
         for (const physicsObject of physicsObjects) {
-          physx.physxWorker.disableGeometryQueriesPhysics(physx.physics, physicsObject.physicsId);
-          physx.physxWorker.disableGeometryPhysics(physx.physics, physicsObject.physicsId);
+          physicsScene.disableGeometryQueries(physicsObject.physicsId);
+          physicsScene.disableGeometry(physicsObject.physicsId);
         }
       };
       _initPhysics();
@@ -453,8 +453,8 @@ class PlayerBase extends THREE.Object3D {
       const _deinitPhysics = () => {
         const physicsObjects = app.getPhysicsObjects();
         for (const physicsObject of physicsObjects) {
-          physx.physxWorker.enableGeometryQueriesPhysics(physx.physics, physicsObject.physicsId);
-          physx.physxWorker.enableGeometryPhysics(physx.physics, physicsObject.physicsId);
+          physicsScene.enableGeometryQueries(physicsObject.physicsId);
+          physicsScene.enableGeometry(physicsObject.physicsId);
         }
       };
       _deinitPhysics();
@@ -1127,8 +1127,8 @@ class LocalPlayer extends UninterpolatedPlayer {
     
     const physicsObjects = app.getPhysicsObjects();
     for (const physicsObject of physicsObjects) {
-      //physx.physxWorker.disableGeometryPhysics(physx.physics, physicsObject.physicsId);
-      physx.physxWorker.disableGeometryQueriesPhysics(physx.physics, physicsObject.physicsId);
+      //physicsScene.disableGeometry(physicsObject.physicsId);
+      physicsScene.disableGeometryQueries(physicsObject.physicsId);
     }
 
     app.dispatchEvent({
@@ -1145,7 +1145,7 @@ class LocalPlayer extends UninterpolatedPlayer {
         const app = metaversefile.getAppByInstanceId(action.instanceId);
         const physicsObjects = app.getPhysicsObjects();
         for (const physicsObject of physicsObjects) {
-          physx.physxWorker.enableGeometryQueriesPhysics(physx.physics, physicsObject.physicsId);
+          physicsScene.enableGeometryQueries(physicsObject.physicsId);
         }
         this.removeActionIndex(i + removeOffset);
         removeOffset -= 1;

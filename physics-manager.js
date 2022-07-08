@@ -66,20 +66,40 @@ const _updatePhysicsObjects = updatesOut => {
 };
 
 const physicsUpdates = [];
+const gravity = new THREE.Vector3(0, -9.8, 0);
 class PhysicsScene extends EventTarget {
-  constructor() {
+  constructor(opts) {
     super();
 
-    this.scene = null;
-    this.gravity = new THREE.Vector3(0, -9.8, 0);
-    this.physicsEnabled = true;
+    if (!opts) {
+      this.scene = null;
+      this.physicsEnabled = true;
 
-    (async () => {
-      if (!physx.loaded) {
-        await physx.waitForLoad();
+      this.loadPromise = (async () => {
+        if (!physx.loaded) {
+          await physx.waitForLoad();
+        }
+        const scene = physx.physxWorker.makeScene();
+        this.scene = scene;
+        return scene;
+      })();
+    } else {
+      this.scene = opts.scene;
+      this.physicsEnabled = opts.physicsEnabled;
+      this.loadPromise = opts.loadPromise;
+      if (!this.scene) {
+        this.loadPromise.then(scene => {
+          this.scene = scene;
+        });
       }
-      this.scene = physx.physxWorker.makeScene();
-    })();
+    }
+  }
+  clone() {
+    return new PhysicsScene({
+      scene: this.scene,
+      physicsEnabled: this.physicsEnabled,
+      loadPromise: this.loadPromise,
+    });
   }
   addCapsuleGeometry(
     position,
@@ -532,6 +552,15 @@ class PhysicsScene extends EventTarget {
       maxIter
     )
   }
+  getCollisionObject(radius, halfHeight, p, q) {
+    return physx.physxWorker.getCollisionObjectPhysics(
+      this.scene,
+      radius,
+      halfHeight,
+      p,
+      q
+    )
+  }
   createCharacterController(
     radius,
     height,
@@ -721,7 +750,7 @@ class PhysicsScene extends EventTarget {
     this.physicsEnabled = newPhysicsEnabled;
   }
   getGravity() {
-    return this.gravity;
+    return gravity;
   }
 }
 
@@ -730,9 +759,7 @@ const physicsManager = {
   getScene(instance = null) {
     let scene = this.scenes.get(instance);
     if (!scene) {
-      scene = new PhysicsScene({
-        instance,
-      });
+      scene = new PhysicsScene();
       this.scenes.set(instance, scene);
     }
     return scene;

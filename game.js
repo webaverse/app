@@ -20,6 +20,7 @@ import * as metaverseModules from './metaverse-modules.js';
 import loadoutManager from './loadout-manager.js';
 import * as sounds from './sounds.js';
 import {getLocalPlayer, setLocalPlayer} from './players.js';
+import physicsManager from './physics-manager.js';
 import npcManager from './npc-manager.js';
 import raycastManager from './raycast-manager.js';
 import zTargeting from './z-targeting.js';
@@ -42,6 +43,9 @@ const localMatrix3 = new THREE.Matrix4();
 // const localBox = new THREE.Box3();
 const localRay = new THREE.Ray();
 
+//
+
+const physicsScene = physicsManager.getScene();
 let isMouseUp = false;
 
 // const zeroVector = new THREE.Vector3(0, 0, 0);
@@ -70,13 +74,7 @@ function updateGrabbedObject(o, grabMatrix, offsetMatrix, {collisionEnabled, han
   localMatrix.multiplyMatrices(grabMatrix, offsetMatrix)
     .decompose(localVector5, localQuaternion3, localVector6);
 
-  /* const grabbedObject = _getGrabbedObject(0);
-  const grabbedPhysicsObjects = grabbedObject ? grabbedObject.getPhysicsObjects() : [];
-  for (const physicsObject of grabbedPhysicsObjects) {
-    physx.physxWorker.disableGeometryQueriesPhysics(physx.physics, physicsObject.physicsId);
-  } */
-
-  let collision = collisionEnabled && physx.physxWorker.raycastPhysics(physx.physics, localVector, localQuaternion);
+  let collision = collisionEnabled && physicsScene.raycast(localVector, localQuaternion);
   if (collision) {
     // console.log('got collision', collision);
     const {point} = collision;
@@ -90,10 +88,6 @@ function updateGrabbedObject(o, grabMatrix, offsetMatrix, {collisionEnabled, han
   if (!collision) {
     o.position.copy(localVector5);
   }
-
-  /* for (const physicsObject of grabbedPhysicsObjects) {
-    physx.physxWorker.enableGeometryQueriesPhysics(physx.physics, physicsObject.physicsId);
-  } */
 
   const handSnap = !handSnapEnabled || offset >= maxGrabDistance || !!collision;
   if (handSnap) {
@@ -511,7 +505,7 @@ const _gameUpdate = (timestamp, timeDiff) => {
         
       const radius = 1;
       const halfHeight = 0.1;
-      const collision = physx.physxWorker.getCollisionObjectPhysics(physx.physics, radius, halfHeight, localVector, localPlayer.quaternion);
+      const collision = physicsScene.getCollisionObject(radius, halfHeight, localVector, localPlayer.quaternion);
       if (collision) {
         const physicsId = collision.objectId;
         const object = metaversefileApi.getAppByPhysicsId(physicsId);
@@ -610,7 +604,7 @@ const _gameUpdate = (timestamp, timeDiff) => {
 
     if (gameManager.editMode) {
       const {position, quaternion} = renderer.xr.getSession() ? localPlayer.leftHand : camera;
-      const collision = physx.physxWorker.raycastPhysics(physx.physics, position, quaternion);
+      const collision = physicsScene.raycast(position, quaternion);
       if (collision) {
         const physicsId = collision.objectId;
         highlightedPhysicsObject = metaversefileApi.getAppByPhysicsId(physicsId);
@@ -750,15 +744,6 @@ const _gameUpdate = (timestamp, timeDiff) => {
     }
   };
   _updateMouseDomEquipmentHover();
-
-  /* const _handleTeleport = () => {
-    if (localPlayer.avatar) {
-      teleportMeshes[1].update(localPlayer.avatar.inputs.leftGamepad.position, localPlayer.avatar.inputs.leftGamepad.quaternion, ioManager.currentTeleport, (p, q) => physx.physxWorker.raycastPhysics(physx.physics, p, q), (position, quaternion) => {
-        localPlayer.teleportTo(position, quaternion);
-      });
-    }
-  };
-  _handleTeleport(); */
 
   const _handleClosestObject = () => {
     const apps = world.appManager.apps;
@@ -1458,7 +1443,6 @@ class GameManager extends EventTarget {
   }
   async toggleEditMode() {
     this.editMode = !this.editMode;
-    // console.log('got edit mode', this.editMode);
     if (this.editMode) {
       if (!cameraManager.pointerLockElement) {
         await cameraManager.requestPointerLock();
