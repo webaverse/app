@@ -23,20 +23,21 @@ export default e => {
         {
           "key": "appUrls",
           "value": [
-            "https://webaverse.github.io/ghost/",
-            "https://webaverse.github.io/silkworm-biter/",
-            "https://webaverse.github.io/silkworm-bloater/",
-            "https://webaverse.github.io/silkworm-queen/",
-            "https://webaverse.github.io/silkworm-runner/",
-            "https://webaverse.github.io/silkworm-slasher/"
+            "../../ghost/",
+            "../../silkworm-biter/",
+            "../../silkworm-bloater/",
+            "../../silkworm-queen/",
+            "../../silkworm-runner/",
+            "../../silkworm-slasher/"
           ],
         },
       ],
-    },
+    }, */
   ];
   const passComponents = [];
   const seed = app.getComponent('seed');
   const clipRange = app.getComponent('clipRange');
+  const physicsInstance = app.getComponent('physicsInstance');
   const wait = app.getComponent('wait');
   const debug = app.getComponent('debug');
 
@@ -71,6 +72,12 @@ export default e => {
     passComponents.push({
       "key": "clipRange",
       "value": clipRange,
+    });
+  }
+  if (physicsInstance !== undefined) {
+    passComponents.push({
+      "key": "physicsInstance",
+      "value": physicsInstance,
     });
   }
   if (wait !== undefined) {

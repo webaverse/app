@@ -37,6 +37,10 @@ const useLandScreenshotter = (() => {
               value: clipRange,
             },
             {
+              key: 'physicsInstance',
+              value: false,
+            },
+            {
               key: 'wait',
               value: true,
             },
