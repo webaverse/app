@@ -66,6 +66,9 @@ class Hup extends EventTarget {
         return this.parent.player.voicer.start(preloadedMessage);
       });
     } else {
+      console.warn("No voicer for message", this.fullText);
+      this.fullText += message
+      this.emote = emote ?? null;
       await Promise.resolve();
     }
     // this.parent.player === metaversefile.useLocalPlayer() && console.log('emit voice end');
