@@ -778,6 +778,7 @@ export default (e) => {
     const sphere = new THREE.Mesh( geometry, material );
     app.add( sphere );
     sphere.position.y = 65;
+    sphere.position.z = -10;
     app.updateMatrixWorld();
     
     useFrame(({timestamp, timeDiff}) => {
