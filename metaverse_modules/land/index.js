@@ -93,8 +93,6 @@ export default e => {
     });
   }
 
-  console.log('land components', app.components);
-
   const subApps = [];
   const loadPromise = (async () => {
     await Promise.all(landApps.map(async spec => {
