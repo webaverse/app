@@ -66,6 +66,8 @@ const _getSession = () => {
   return session;
 };
 
+const physicsScene = physicsManager.getScene();
+
 function makeCancelFn() {
   let live = true;
   return {
@@ -91,11 +93,11 @@ function loadPhysxCharacterController() {
     .add(new THREE.Vector3(0, -avatarHeight/2, 0));
 
   if (this.characterController) {
-    physicsManager.destroyCharacterController(this.characterController);
+    physicsScene.destroyCharacterController(this.characterController);
     this.characterController = null;
     // this.characterControllerObject = null;
   }
-  this.characterController = physicsManager.createCharacterController(
+  this.characterController = physicsScene.createCharacterController(
     radius - contactOffset,
     height,
     contactOffset,
@@ -114,7 +116,7 @@ function loadPhysxCharacterController() {
     .add(new THREE.Vector3(0, -avatarHeight/2, 0));
   const physicsMaterial = new THREE.Vector3(0, 0, 0);
 
-  const physicsObject = physicsManager.addCapsuleGeometry(
+  const physicsObject = physicsScene.addCapsuleGeometry(
     position,
     localQuaternion.copy(this.quaternion)
       .premultiply(
@@ -129,9 +131,9 @@ function loadPhysxCharacterController() {
     true
   );
   physicsObject.name = 'characterCapsuleAux';
-  physicsManager.setGravityEnabled(physicsObject, false);
-  physicsManager.setLinearLockFlags(physicsObject.physicsId, false, false, false);
-  physicsManager.setAngularLockFlags(physicsObject.physicsId, false, false, false);
+  physicsScene.setGravityEnabled(physicsObject, false);
+  physicsScene.setLinearLockFlags(physicsObject.physicsId, false, false, false);
+  physicsScene.setAngularLockFlags(physicsObject.physicsId, false, false, false);
   this.physicsObject = physicsObject;
 } */
 
@@ -415,9 +417,9 @@ class PlayerBase extends THREE.Object3D {
             physicsObject.quaternion.copy(this.quaternion);
             physicsObject.updateMatrixWorld();
 
-            physicsManager.setTransform(physicsObject, true);
-            physicsManager.setVelocity(physicsObject, localVector.copy(dropDirection).multiplyScalar(5).add(this.characterPhysics.velocity), true);
-            physicsManager.setAngularVelocity(physicsObject, zeroVector, true);
+            physicsScene.setTransform(physicsObject, true);
+            physicsScene.setVelocity(physicsObject, localVector.copy(dropDirection).multiplyScalar(5).add(this.characterPhysics.velocity), true);
+            physicsScene.setAngularVelocity(physicsObject, zeroVector, true);
 
             app.position.copy(physicsObject.position);
             app.quaternion.copy(physicsObject.quaternion);
@@ -659,7 +661,7 @@ class StatePlayer extends PlayerBase {
         loadPhysxCharacterController.call(this);
         
         if (this.isLocalPlayer) {
-          physicsManager.disableGeometryQueries(this.characterController);
+          physicsScene.disableGeometryQueries(this.characterController);
         }
       })();
       

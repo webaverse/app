@@ -24,6 +24,7 @@ const physx = {};
 let loadPromise = null;
 let moduleInstance = null;
 let scratchStack = null;
+physx.loaded = false;
 physx.waitForLoad =  () => {
   if (!loadPromise) {
     loadPromise = (async () => {
@@ -31,7 +32,8 @@ physx.waitForLoad =  () => {
       moduleInstance = Module;
       const scratchStackSize = 1024 * 1024;
       scratchStack = new ScratchStack(moduleInstance, scratchStackSize);
-      physx.physics = physxWorker.makePhysics();
+
+      physx.loaded = true;
 
       // console.log('module called run', Module.calledRun);
       /* if (Module.calledRun) {
@@ -507,7 +509,7 @@ const physxWorker = (() => {
   w.makeTracker = function() {
     return moduleInstance._makeTracker.apply(moduleInstance, arguments);
   }; */
-  w.makePhysics = () => moduleInstance._makePhysics()
+  w.makeScene = () => moduleInstance._makePhysics()
   w.simulatePhysics = (physics, updates, elapsedTime) => {
     const maxNumUpdates = 256;
     /* if (updates.length > maxNumUpdates) {
