@@ -203,7 +203,7 @@ export const MapGen = () => {
     const [selectedChunk, setSelectedChunk] = useState(null);
     const [selectedObject, setSelectedObject] = useState(null);
     const [lastSelectTime, setLastSelectTime] = useState(-Infinity);
-    const [chunkCache, setChunkCache] = useState(new Map());
+    // const [chunkCache, setChunkCache] = useState(new Map());
     const [text, setText] = useState('');
     const [firedropMeshApp, setFiredropMeshApp] = useState(null);
     const [haloMeshApp, setHaloMeshApp] = useState(null);
