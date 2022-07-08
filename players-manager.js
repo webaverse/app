@@ -88,13 +88,10 @@ class PlayersManager {
           this.remotePlayersByInteger.delete(remotePlayer.playerIdInt);
           remotePlayer.destroy();
         }
-      }
-    };
-    this.playersArray.observe(playersObserveFn);
-    this.unbindStateFn = this.playersArray.unobserve.bind(
-      this.playersArray,
-      playersObserveFn,
-    );
+      };
+      this.playersArray.observe(playersObserveFn);
+      this.unbindStateFn = this.playersArray.unobserve.bind(this.playersArray, playersObserveFn);
+    }
   }
 }
 const playersManager = new PlayersManager();

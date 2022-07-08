@@ -309,49 +309,36 @@ export default class Webaverse extends EventTarget {
         performanceTracker.setGpuPrefix('pre');
         const localPlayer = metaversefileApi.useLocalPlayer();
 
-        // Update user input
-        ioManager.update(timeDiffCapped);
+          transformControls.update();
+          raycastManager.update(timestamp, timeDiffCapped);
+          game.update(timestamp, timeDiffCapped);
+          
+          localPlayer.updateAvatar(timestamp, timeDiffCapped);
+          // playersManager.updateRemotePlayers(timestamp, timeDiffCapped);
+          
+          world.appManager.tick(timestamp, timeDiffCapped, frame);
 
-        // Update physics
-        if (physicsManager.getPhysicsEnabled()) {
-          physicsManager.simulatePhysics(timeDiffCapped);
-          localPlayer.updatePhysics(timestamp, timeDiff);
-        }
-        raycastManager.update(timestamp, timeDiffCapped);
+          mobManager.update(timestamp, timeDiffCapped);
+          hpManager.update(timestamp, timeDiffCapped);
+          questManager.update(timestamp, timeDiffCapped);
+          particleSystemManager.update(timestamp, timeDiffCapped);
 
-        // Update game
-        transformControls.update();
-        game.update(timestamp, timeDiffCapped, frame);
-        mobManager.update(timestamp, timeDiffCapped);
-        hpManager.update(timestamp, timeDiffCapped);
-        questManager.update(timestamp, timeDiffCapped);
-        particleSystemManager.update(timestamp, timeDiffCapped);
+          cameraManager.updatePost(timestamp, timeDiffCapped);
+          ioManager.updatePost();
 
-        // Update app owners
+          game.pushAppUpdates();
+          game.pushPlayerUpdates();
 
-        localPlayer.appManager.tick(timestamp, timeDiffCapped, frame);
-
-        localPlayer.updateAvatar(timestamp, timeDiffCapped, frame);
-
-        for (const remotePlayer of playersManager.remotePlayers.values()) {
-          remotePlayer.updateAvatar(timestamp, timeDiff);
-        }
-
-        world.appManager.tick(timestamp, timeDiffCapped, frame);
-
-        world.appManager.update(timestamp, timeDiffCapped, frame);
-
-        // After game loop, update camera pose
-        cameraManager.updatePost(timestamp, timeDiffCapped);
-        const session = renderer.xr.getSession();
-        const xrCamera = session ? renderer.xr.getCamera(camera) : camera;
-        localMatrix.multiplyMatrices(xrCamera.projectionMatrix, /* localMatrix2.multiplyMatrices( */xrCamera.matrixWorldInverse/*, physx.worldContainer.matrixWorld) */);
-        localMatrix2.copy(xrCamera.matrix)
-          .premultiply(dolly.matrix)
-          .decompose(localVector, localQuaternion, localVector2);
-
-        // Clean up input
-        ioManager.updatePost();
+          const session = renderer.xr.getSession();
+          const xrCamera = session ? renderer.xr.getCamera(camera) : camera;
+          localMatrix.multiplyMatrices(xrCamera.projectionMatrix, /*localMatrix2.multiplyMatrices(*/xrCamera.matrixWorldInverse/*, physx.worldContainer.matrixWorld)*/);
+          localMatrix2.copy(xrCamera.matrix)
+            .premultiply(dolly.matrix)
+            .decompose(localVector, localQuaternion, localVector2);
+          
+          lastTimestamp = timestamp;
+        };
+        _pre();
 
         // render scenes
         performanceTracker.setGpuPrefix('diorama');
