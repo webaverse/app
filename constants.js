@@ -40,7 +40,7 @@ let _inappPreviewHost = '';
 
 switch ( origin ) {
     case 'https://local.webaverse.com': {
-        _inappPreviewHost = `https://local.webaverse.online:${globalThis.location.port}`;
+        _inappPreviewHost = 'https://local.webaverse.com';
         break;
     }
     case 'https://dev.webaverse.com': {
@@ -101,12 +101,6 @@ export const groundFriction = 0.28;
 export const airFriction = groundFriction;
 export const flyFriction = 0.5;
 export const aimTransitionMaxTime = 150;
-
-export const backflipSpeed = (59 - 34) / (30 * 0.6);
-export const backflipStartTimeS = 1.1;
-export const backflipUnjumpSpeed = 4.5;
-export const backflipUnjumpStartTimeS = 58 / 30;
-export const backflipUnjumpMaxTime = (100 - 58) / 30 / backflipUnjumpSpeed * 1000;
 
 export const avatarInterpolationFrameRate = 60;
 export const avatarInterpolationTimeDelay = 1000/(avatarInterpolationFrameRate * 0.5);
