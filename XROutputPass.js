@@ -23,54 +23,64 @@ class XROutputPass extends Pass {
 
         const session = renderer.xr.getSession();
 
+
         if(session) {
             const xrLayer = session.renderState.baseLayer;
             const xrFramebuffer = xrLayer.framebuffer;
-            //  console.log(xrLayer);
+            //console.log(xrLayer);
 
-            // const context = renderer.getContext();
-            // const oldReadFbo = context.getParameter(context.FRAMEBUFFER_BINDING);
-            // const oldDrawFbo = context.getParameter(context.FRAMEBUFFER_BINDING);
+            
 
-            // context.bindFramebuffer(context.READ_FRAMEBUFFER, renderTarget.__webglFramebuffer);
+            
+
+            const context = renderer.getContext();
+
+            console.log(context);
+
+            let framebuffer = renderer.properties.get( renderTarget ).__webglFramebuffer;
+
+            
+
+            context.bindFramebuffer(context.READ_FRAMEBUFFER, framebuffer);
+            
+
+            context.blitFramebuffer(0, 0, renderTarget.height, renderTarget.width,
+                0, 0, renderTarget.height, renderTarget.width,
+                context.COLOR_BUFFER_BIT, context.NEAREST);
+
+            context.bindFramebuffer(context.DRAW_FRAMEBUFFER, xrFramebuffer);
+
+            //console.log(readBuffer, renderTarget);
+            //const oldReadFbo = context.getParameter(context.FRAMEBUFFER_BINDING);
+            //const oldDrawFbo = context.getParameter(context.FRAMEBUFFER_BINDING);
+
+            //context.bindFramebuffer(oldReadFbo, renderTarget.__webglFramebuffer);
+            //console.log(oldReadFbo);
+            // const framebuffer = renderTarget.__webglFramebuffer;
+            // context.bindFramebuffer(context.FRAMEBUFFER, framebuffer);
+            // const data = new Uint8Array(renderTarget.width * renderTarget.height * 4);
+            // context.readPixels(0,0,renderTarget.width,renderTarget.height,context.RGBA,context.UNSIGNED_BYTE,data);
+            // context.bindFramebuffer(context.READ_FRAMEBUFFER, framebuffer);
+            // context.bindFramebuffer(context.DRAW_FRAMEBUFFER, xrFramebuffer);
+            
+            // //console.log(context.READ_FRAMEBUFFER, renderTarget.__webglFramebuffer);
+
 
             // context.blitFramebuffer(0, 0, renderTarget.height, renderTarget.width,
             //     0, 0, renderTarget.height, renderTarget.width,
             //     context.COLOR_BUFFER_BIT, context.NEAREST);
 
-            //     context.bindFramebuffer(context.READ_FRAMEBUFFER, oldReadFbo);
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+            //context.bindFramebuffer(context.READ_FRAMEBUFFER, oldReadFbo);
             
-            // context.bindFramebuffer(context.DRAW_FRAMEBUFFER, xrFramebuffer);
+            
 
-            // context.bindFramebuffer(context.DRAW_FRAMEBUFFER, oldDrawFbo);
+            context.bindFramebuffer(context.DRAW_FRAMEBUFFER, xrFramebuffer);
 
             //renderer.setRenderTarget(renderTarget);
-            renderer.clear();
+            //context.clear(context.COLOR_BUFFER_BIT);
+            //context.bindFramebuffer(context.DRAW_FRAMEBUFFER, oldDrawFbo);
             renderer.render(rootScene, camera);
         }
 
