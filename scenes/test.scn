@@ -30,26 +30,14 @@
           "fogType": "exp",
           "args": [[0, 5, 10], 0]
         },
-        "ssr": {
-          
+        "ssao": {
+          "kernelRadius": 16,
+          "minDistance": 0.005,
+          "maxDistance": 0.1
         }
       }
     },
-    {
-      "position": [
-        0,
-        0,
-        0
-      ],
-      "start_url": "http://localhost/lib/webaverse_resource/aurora-sky/"
-    },
-    {
-      "position": [
-        0,
-        0,
-        0
-      ],
-      "start_url": "/practice/water-main2/"
-    }
+    
+    { "position": [ 0, 0, 0 ], "scale": [1, 1, 1], "start_url": "http://localhost/lib/webaverse_resource/block/grid.glb" }
   ]
 }
