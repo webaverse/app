@@ -1,13 +1,12 @@
 import * as THREE from 'three';
-import { VRMSpringBoneImporter } from '@pixiv/three-vrm/lib/three-vrm.module.js';
-import { fixSkeletonZForward } from './vrarmik/SkeletonUtils.js';
+import {VRMSpringBoneImporter} from '@pixiv/three-vrm/lib/three-vrm.module.js';
+import {fixSkeletonZForward} from './vrarmik/SkeletonUtils.js';
 import PoseManager from './vrarmik/PoseManager.js';
 import ShoulderTransforms from './vrarmik/ShoulderTransforms.js';
 import LegsManager from './vrarmik/LegsManager.js';
-import { scene, camera } from '../renderer.js';
+import {scene, camera} from '../renderer.js';
 import MicrophoneWorker from './microphone-worker.js';
-import { AudioRecognizer } from '../audio-recognizer.js';
-import { getAudioContext } from 'wsrtc/ws-audio-context.js';
+import {AudioRecognizer} from '../audio-recognizer.js';
 import {
   // angleDifference,
   // getVelocityDampingFactor,
@@ -19,6 +18,7 @@ import {
   // useMaxTime,
   aimMaxTime,
   aimTransitionMaxTime,
+  backflipUnjumpMaxTime,
   // avatarInterpolationFrameRate,
   // avatarInterpolationTimeDelay,
   // avatarInterpolationNumFrames,
@@ -46,7 +46,7 @@ import {
   // retargetAnimation,
   // animationBoneToModelBone,
 } from './util.mjs';
-import { easing } from '../math-utils.js';
+import {easing} from '../math-utils.js';
 import metaversefile from 'metaversefile';
 
 import { getFirstPersonCurves, getClosest2AnimationAngles, loadPromise, _findArmature, _getLerpFn, _applyAnimation } from './animationHelpers.js'
@@ -123,10 +123,10 @@ const maxEyeTargetTime = 2000;
 };
 const simplexes = _makeSimplexes(5); */
 
-const upRotation = new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(1, 0, 0), Math.PI * 0.5);
+const upRotation = new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(1, 0, 0), Math.PI*0.5);
 // const downRotation = new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(1, 0, 0), -Math.PI*0.5);
-const leftRotation = new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 1, 0), Math.PI * 0.5);
-const rightRotation = new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 1, 0), -Math.PI * 0.5);
+const leftRotation = new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 1, 0), Math.PI*0.5);
+const rightRotation = new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 1, 0), -Math.PI*0.5);
 
 const upVector = new THREE.Vector3(0, 1, 0);
 
@@ -325,12 +325,12 @@ const _makeDebugMesh = (avatar) => {
 
       (modelBone.parent ?
         modelBone.parent.matrixWorld
-        :
+      :
         localMatrix.identity()
       ).decompose(localVector, localQuaternion, localVector2);
 
       localVector.add(
-        localVector3.set(0, 0, -meshBone.mesh.scale.z * 0.5)
+        localVector3.set(0, 0, -meshBone.mesh.scale.z*0.5)
           .applyQuaternion(modelBone.forwardQuaternion)
           .applyQuaternion(localQuaternion)
       );
@@ -400,7 +400,7 @@ const _makeDebugMesh = (avatar) => {
 
 
 class Avatar {
-  constructor(object, options = {}) {
+	constructor(object, options = {}) {
     if (!object) {
       object = {};
     }
@@ -421,7 +421,6 @@ class Avatar {
       }
       /* if (!o) {
         const scene = new THREE.Scene();
-
         const skinnedMesh = new THREE.Object3D();
         skinnedMesh.isSkinnedMesh = true;
         skinnedMesh.skeleton = null;
@@ -430,11 +429,9 @@ class Avatar {
         };
         skinnedMesh.bind(_importSkeleton(skeletonString));
         scene.add(skinnedMesh);
-
         const hips = _findHips(skinnedMesh.skeleton);
         const armature = _findArmature(hips);
         scene.add(armature);
-
         o = scene;
       } */
       return o;
@@ -446,7 +443,7 @@ class Avatar {
     this.options = options;
 
     this.vrmExtension = object?.parser?.json?.extensions?.VRM;
-    this.firstPersonCurves = getFirstPersonCurves(this.vrmExtension);
+    this.firstPersonCurves = getFirstPersonCurves(this.vrmExtension); 
 
     const {
       skinnedMeshes,
@@ -529,7 +526,7 @@ class Avatar {
       ],
     };
     this.fingerBoneMap = fingerBoneMap;
-
+    
     /* const allHairBones = [];
     const _recurseAllHairBones = bones => {
       for (let i = 0; i < bones.length; i++) {
@@ -551,15 +548,13 @@ class Avatar {
     }).filter(bone => bone);
     // this.allHairBones = allHairBones;
     this.hairBones = hairBones; */
-
+    
     this.eyeTarget = new THREE.Vector3();
     this.eyeTargetInverted = false;
     this.eyeTargetEnabled = false;
     this.eyeballTarget = new THREE.Vector3();
     this.eyeballTargetPlane = new THREE.Plane();
     this.eyeballTargetEnabled = false;
-
-    this.lastVelocity = new THREE.Vector3();
 
     if (options.hair) {
       this.springBoneManager = new VRMSpringBoneImporter().import(object);
@@ -643,9 +638,9 @@ class Avatar {
     this.leftArmLength = this.shoulderTransforms.leftArm.armLength;
     this.rightArmLength = this.shoulderTransforms.rightArm.armLength;
     let indexDistance = modelBones.Left_indexFinger1 ? modelBones.Left_indexFinger1.getWorldPosition(new THREE.Vector3()).distanceTo(modelBones.Left_wrist.getWorldPosition(new THREE.Vector3())) : 0;
-    let handWidth = (modelBones.Left_indexFinger1 && modelBones.Left_littleFinger1) ? modelBones.Left_indexFinger1.getWorldPosition(new THREE.Vector3()).distanceTo(modelBones.Left_littleFinger1.getWorldPosition(new THREE.Vector3())) : 0;
-    this.handOffsetLeft = new THREE.Vector3(handWidth * 0.7, -handWidth * 0.75, indexDistance * 0.5);
-    this.handOffsetRight = new THREE.Vector3(-handWidth * 0.7, -handWidth * 0.75, indexDistance * 0.5);
+    let handWidth = (modelBones.Left_indexFinger1 && modelBones.Left_littleFinger1)? modelBones.Left_indexFinger1.getWorldPosition(new THREE.Vector3()).distanceTo(modelBones.Left_littleFinger1.getWorldPosition(new THREE.Vector3())) : 0;
+    this.handOffsetLeft = new THREE.Vector3(handWidth*0.7, -handWidth*0.75, indexDistance*0.5);
+    this.handOffsetRight = new THREE.Vector3(-handWidth*0.7, -handWidth*0.75, indexDistance*0.5);
     const eyePosition = getEyePosition(this.modelBones);
     this.eyeToHipsOffset = modelBones.Hips.getWorldPosition(new THREE.Vector3()).sub(eyePosition);
 
@@ -656,20 +651,20 @@ class Avatar {
       result.enabled = false;
       return result;
     };
-    this.inputs = {
+		this.inputs = {
       hmd: _makeInput(),
-      leftGamepad: _makeInput(),
-      rightGamepad: _makeInput(),
-    };
+			leftGamepad: _makeInput(),
+			rightGamepad: _makeInput(),
+		};
     this.sdkInputs = {
       hmd: this.poseManager.vrTransforms.head,
-      leftGamepad: this.poseManager.vrTransforms.leftHand,
-      rightGamepad: this.poseManager.vrTransforms.rightHand,
+			leftGamepad: this.poseManager.vrTransforms.leftHand,
+			rightGamepad: this.poseManager.vrTransforms.rightHand,
     };
     this.sdkInputs.hmd.scaleFactor = 1;
     this.lastModelScaleFactor = 1;
-    /* this.outputs = {
-      // eyes: this.shoulderTransforms.eyes,
+		/* this.outputs = {
+			// eyes: this.shoulderTransforms.eyes,
       eyel: this.shoulderTransforms.eyel,
       eyer: this.shoulderTransforms.eyer,
       head: this.shoulderTransforms.head,
@@ -725,23 +720,23 @@ class Avatar {
       rightLittleFinger3: this.shoulderTransforms.leftArm.littleFinger3,
       rightLittleFinger2: this.shoulderTransforms.leftArm.littleFinger2,
       rightLittleFinger1: this.shoulderTransforms.leftArm.littleFinger1,
-    }; */
-    this.modelBoneOutputs = {
+		}; */
+		this.modelBoneOutputs = {
       Root: this.shoulderTransforms.root,
 
-      Hips: this.shoulderTransforms.hips,
-      Spine: this.shoulderTransforms.spine,
-      Chest: this.shoulderTransforms.chest,
-      UpperChest: this.shoulderTransforms.upperChest,
-      Neck: this.shoulderTransforms.neck,
-      Head: this.shoulderTransforms.head,
+	    Hips: this.shoulderTransforms.hips,
+	    Spine: this.shoulderTransforms.spine,
+	    Chest: this.shoulderTransforms.chest,
+	    UpperChest: this.shoulderTransforms.upperChest,
+	    Neck: this.shoulderTransforms.neck,
+	    Head: this.shoulderTransforms.head,
       Eye_L: this.shoulderTransforms.eyel,
       Eye_R: this.shoulderTransforms.eyer,
 
-      Left_shoulder: this.shoulderTransforms.rightShoulderAnchor,
-      Left_arm: this.shoulderTransforms.rightArm.upperArm,
-      Left_elbow: this.shoulderTransforms.rightArm.lowerArm,
-      Left_wrist: this.shoulderTransforms.rightArm.hand,
+	    Left_shoulder: this.shoulderTransforms.rightShoulderAnchor,
+	    Left_arm: this.shoulderTransforms.rightArm.upperArm,
+	    Left_elbow: this.shoulderTransforms.rightArm.lowerArm,
+	    Left_wrist: this.shoulderTransforms.rightArm.hand,
       Left_thumb0: this.shoulderTransforms.rightArm.thumb0,
       Left_thumb1: this.shoulderTransforms.rightArm.thumb1,
       Left_thumb2: this.shoulderTransforms.rightArm.thumb2,
@@ -757,14 +752,14 @@ class Avatar {
       Left_littleFinger1: this.shoulderTransforms.rightArm.littleFinger1,
       Left_littleFinger2: this.shoulderTransforms.rightArm.littleFinger2,
       Left_littleFinger3: this.shoulderTransforms.rightArm.littleFinger3,
-      Left_leg: this.legsManager.rightLeg.upperLeg,
-      Left_knee: this.legsManager.rightLeg.lowerLeg,
-      Left_ankle: this.legsManager.rightLeg.foot,
+	    Left_leg: this.legsManager.rightLeg.upperLeg,
+	    Left_knee: this.legsManager.rightLeg.lowerLeg,
+	    Left_ankle: this.legsManager.rightLeg.foot,
 
-      Right_shoulder: this.shoulderTransforms.leftShoulderAnchor,
-      Right_arm: this.shoulderTransforms.leftArm.upperArm,
-      Right_elbow: this.shoulderTransforms.leftArm.lowerArm,
-      Right_wrist: this.shoulderTransforms.leftArm.hand,
+	    Right_shoulder: this.shoulderTransforms.leftShoulderAnchor,
+	    Right_arm: this.shoulderTransforms.leftArm.upperArm,
+	    Right_elbow: this.shoulderTransforms.leftArm.lowerArm,
+	    Right_wrist: this.shoulderTransforms.leftArm.hand,
       Right_thumb0: this.shoulderTransforms.leftArm.thumb0,
       Right_thumb1: this.shoulderTransforms.leftArm.thumb1,
       Right_thumb2: this.shoulderTransforms.leftArm.thumb2,
@@ -781,12 +776,12 @@ class Avatar {
       Right_littleFinger2: this.shoulderTransforms.leftArm.littleFinger2,
       Right_littleFinger3: this.shoulderTransforms.leftArm.littleFinger3,
 
-      Right_leg: this.legsManager.leftLeg.upperLeg,
-      Right_knee: this.legsManager.leftLeg.lowerLeg,
-      Right_ankle: this.legsManager.leftLeg.foot,
+	    Right_leg: this.legsManager.leftLeg.upperLeg,
+	    Right_knee: this.legsManager.leftLeg.lowerLeg,
+	    Right_ankle: this.legsManager.leftLeg.foot,
       Left_toe: this.legsManager.leftLeg.toe,
       Right_toe: this.legsManager.rightLeg.toe,
-    };
+	  };
 
     this.debugMesh = null;
 
@@ -829,9 +824,9 @@ class Avatar {
           return null;
         }
       }; */
-
+      
       this.skinnedMeshesVisemeMappings = this.skinnedMeshes.map(o => {
-        const { morphTargetDictionary, morphTargetInfluences } = o;
+        const {morphTargetDictionary, morphTargetInfluences} = o;
         if (morphTargetDictionary && morphTargetInfluences) {
           const blinkLeftIndex = _getBlendShapeIndexForPresetName('blink_l');
           const blinkRightIndex = _getBlendShapeIndexForPresetName('blink_r');
@@ -872,9 +867,7 @@ class Avatar {
       this.skinnedMeshesVisemeMappings = [];
     }
 
-    this.audioWorker = null;
     this.microphoneWorker = null;
-
     this.volume = -1;
 
     this.shoulderTransforms.Start();
@@ -904,6 +897,7 @@ class Avatar {
     this.direction = new THREE.Vector3();
     this.jumpState = false;
     this.jumpTime = NaN;
+    this.jumpDirection = 'forward';
     this.flyState = false;
     this.flyTime = NaN;
 
@@ -913,7 +907,7 @@ class Avatar {
     this.useAnimationEnvelope = [];
     this.unuseAnimation = null;
     this.unuseTime = -1;
-
+    
     this.sitState = false;
     this.sitAnimation = null;
     // this.activateState = false;
@@ -972,22 +966,22 @@ class Avatar {
     this.lastNeedsEyeTarget = false;
     this.lastEyeTargetTime = -Infinity;
 
-    this.manuallySetMouth = false;
+    this.manuallySetMouth=false;
   }
   static bindAvatar(object) {
     const model = object.scene;
     model.updateMatrixWorld(true);
-
+    
     const skinnedMeshes = getSkinnedMeshes(object);
     const skeleton = getSkeleton(object);
     // const boneMap = makeBoneMap(object);
     const tailBones = getTailBones(object);
     const modelBones = getModelBones(object);
-
+    
     /* const retargetedAnimations = animations
       .filter(a => a.name === 'idle.fbx')
       .map(a => retargetAnimation(a, animationsBaseModel, object)); */
-
+    
     const foundModelBones = {};
     for (const k in modelBones) {
       const v = modelBones[k];
@@ -996,22 +990,22 @@ class Avatar {
       }
     }
 
-    const armature = _findArmature(modelBones.Root);
+	  const armature = _findArmature(modelBones.Root);
 
     // const eyeDirection = getEyePosition(this.modelBones).sub(Head.getWorldPosition(new Vector3()));
     const leftArmDirection = modelBones.Left_wrist.getWorldPosition(new THREE.Vector3())
       .sub(modelBones.Head.getWorldPosition(new THREE.Vector3()));
-    const flipZ = leftArmDirection.x < 0;//eyeDirection.z < 0;
+	  const flipZ = leftArmDirection.x < 0;//eyeDirection.z < 0;
     const armatureDirection = new THREE.Vector3(0, 1, 0).applyQuaternion(armature.quaternion);
     const flipY = armatureDirection.z < -0.5;
     const legDirection = new THREE.Vector3(0, 0, -1).applyQuaternion(
       modelBones.Left_leg.getWorldQuaternion(new THREE.Quaternion())
         .premultiply(armature.quaternion.clone().invert())
-    );
+      );
     const flipLeg = legDirection.y < 0.5;
-    // console.log('flip', flipZ, flipY, flipLeg);
-    /* this.flipZ = flipZ;
-    this.flipY = flipY;
+	  // console.log('flip', flipZ, flipY, flipLeg);
+	  /* this.flipZ = flipZ;
+	  this.flipY = flipY;
     this.flipLeg = flipLeg; */
 
     const armatureQuaternion = armature.quaternion.clone();
@@ -1065,14 +1059,14 @@ class Avatar {
       return preRotations[boneName];
     };
     if (flipY) {
-      _ensurePrerotation('Hips').premultiply(new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(1, 0, 0), -Math.PI / 2));
+      _ensurePrerotation('Hips').premultiply(new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(1, 0, 0), -Math.PI/2));
     }
     if (flipZ) {
       _ensurePrerotation('Hips').premultiply(new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 1, 0), Math.PI));
     }
     if (flipLeg) {
       ['Left_leg', 'Right_leg'].forEach(k => {
-        _ensurePrerotation(k).premultiply(new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(1, 0, 0), Math.PI / 2));
+        _ensurePrerotation(k).premultiply(new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(1, 0, 0), Math.PI/2));
       });
     }
 
@@ -1092,7 +1086,7 @@ class Avatar {
     const qrArm = flipZ ? modelBones.Left_arm : modelBones.Right_arm;
     const qrElbow = flipZ ? modelBones.Left_elbow : modelBones.Right_elbow;
     const qrWrist = flipZ ? modelBones.Left_wrist : modelBones.Right_wrist;
-    const qr = new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 1, 0), -Math.PI / 2)
+    const qr = new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 1, 0), -Math.PI/2)
       .premultiply(
         new THREE.Quaternion().setFromRotationMatrix(new THREE.Matrix4().lookAt(
           new THREE.Vector3(0, 0, 0),
@@ -1102,7 +1096,7 @@ class Avatar {
           new THREE.Vector3(0, 1, 0),
         ))
       );
-    const qr2 = new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 1, 0), -Math.PI / 2)
+    const qr2 = new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 1, 0), -Math.PI/2)
       .premultiply(
         new THREE.Quaternion().setFromRotationMatrix(new THREE.Matrix4().lookAt(
           new THREE.Vector3(0, 0, 0),
@@ -1115,7 +1109,7 @@ class Avatar {
     const qlArm = flipZ ? modelBones.Right_arm : modelBones.Left_arm;
     const qlElbow = flipZ ? modelBones.Right_elbow : modelBones.Left_elbow;
     const qlWrist = flipZ ? modelBones.Right_wrist : modelBones.Left_wrist;
-    const ql = new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 1, 0), Math.PI / 2)
+    const ql = new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 1, 0), Math.PI/2)
       .premultiply(
         new THREE.Quaternion().setFromRotationMatrix(new THREE.Matrix4().lookAt(
           new THREE.Vector3(0, 0, 0),
@@ -1125,7 +1119,7 @@ class Avatar {
           new THREE.Vector3(0, 1, 0),
         ))
       );
-    const ql2 = new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 1, 0), Math.PI / 2)
+    const ql2 = new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 1, 0), Math.PI/2)
       .premultiply(
         new THREE.Quaternion().setFromRotationMatrix(new THREE.Matrix4().lookAt(
           new THREE.Vector3(0, 0, 0),
@@ -1147,33 +1141,33 @@ class Avatar {
       .multiply(ql.clone())
       .premultiply(ql2.clone().invert());
 
-    _ensurePrerotation('Left_leg').premultiply(new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(1, 0, 0), -Math.PI / 2));
-    _ensurePrerotation('Right_leg').premultiply(new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(1, 0, 0), -Math.PI / 2));
+    _ensurePrerotation('Left_leg').premultiply(new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(1, 0, 0),  -Math.PI/2));
+    _ensurePrerotation('Right_leg').premultiply(new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(1, 0, 0),  -Math.PI/2));
 
     for (const k in preRotations) {
       preRotations[k].invert();
     }
-    fixSkeletonZForward(armature.children[0], {
-      preRotations,
-    });
-    model.traverse(o => {
-      if (o.isSkinnedMesh) {
-        o.bind((o.skeleton.bones.length === skeleton.bones.length && o.skeleton.bones.every((bone, i) => bone === skeleton.bones[i])) ? skeleton : o.skeleton);
-      }
-    });
+	  fixSkeletonZForward(armature.children[0], {
+	    preRotations,
+	  });
+	  model.traverse(o => {
+	    if (o.isSkinnedMesh) {
+	      o.bind((o.skeleton.bones.length === skeleton.bones.length && o.skeleton.bones.every((bone, i) => bone === skeleton.bones[i])) ? skeleton : o.skeleton);
+	    }
+	  });
     if (flipY) {
-      modelBones.Hips.quaternion.premultiply(new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(1, 0, 0), -Math.PI / 2));
+      modelBones.Hips.quaternion.premultiply(new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(1, 0, 0), -Math.PI/2));
     }
-    if (!flipZ) {
-      /* ['Left_arm', 'Right_arm'].forEach((name, i) => {
-        const bone = modelBones[name];
-        if (bone) {
-          bone.quaternion.premultiply(new Quaternion().setFromAxisAngle(new Vector3(0, 0, 1), (i === 0 ? 1 : -1) * Math.PI*0.25));
-        }
-      }); */
-    } else {
-      modelBones.Hips.quaternion.premultiply(new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 1, 0), Math.PI));
-    }
+	  if (!flipZ) {
+	    /* ['Left_arm', 'Right_arm'].forEach((name, i) => {
+		    const bone = modelBones[name];
+		    if (bone) {
+		      bone.quaternion.premultiply(new Quaternion().setFromAxisAngle(new Vector3(0, 0, 1), (i === 0 ? 1 : -1) * Math.PI*0.25));
+		    }
+		  }); */
+		} else {
+		  modelBones.Hips.quaternion.premultiply(new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 1, 0), Math.PI));
+		}
     modelBones.Right_arm.quaternion.premultiply(qr.clone().invert());
     modelBones.Right_elbow.quaternion
       .premultiply(qr)
@@ -1182,12 +1176,12 @@ class Avatar {
     modelBones.Left_elbow.quaternion
       .premultiply(ql)
       .premultiply(ql2.clone().invert());
-    model.updateMatrixWorld(true);
-
+	  model.updateMatrixWorld(true);
+    
     modelBones.Root.traverse(bone => {
       bone.initialQuaternion = bone.quaternion.clone();
     });
-
+    
     return {
       skinnedMeshes,
       skeleton,
@@ -1215,19 +1209,19 @@ class Avatar {
       );
 
       // if (topEnabled) {
-      if (k === 'Left_wrist') {
-        if (avatar.aimLeftFactor > 0) {
-          // modelBone.quaternion.multiply(leftRotation); // center
-          localQuaternion.copy(modelBone.quaternion).multiply(leftRotation)
-          modelBone.quaternion.slerp(localQuaternion, avatar.aimLeftFactor);
+        if (k === 'Left_wrist') {
+          if (avatar.aimLeftFactor > 0) {
+            // modelBone.quaternion.multiply(leftRotation); // center
+            localQuaternion.copy(modelBone.quaternion).multiply(leftRotation)
+            modelBone.quaternion.slerp(localQuaternion, avatar.aimLeftFactor);
+          }
+        } else if (k === 'Right_wrist') {
+          if (avatar.aimRightFactor > 0) {
+            // modelBone.quaternion.multiply(rightRotation); // center
+            localQuaternion.copy(modelBone.quaternion).multiply(rightRotation)
+            modelBone.quaternion.slerp(localQuaternion, avatar.aimRightFactor);
+          }
         }
-      } else if (k === 'Right_wrist') {
-        if (avatar.aimRightFactor > 0) {
-          // modelBone.quaternion.multiply(rightRotation); // center
-          localQuaternion.copy(modelBone.quaternion).multiply(rightRotation)
-          modelBone.quaternion.slerp(localQuaternion, avatar.aimRightFactor);
-        }
-      }
       // }
       if (bottomEnabled) {
         if (k === 'Left_ankle' || k === 'Right_ankle') {
@@ -1390,31 +1384,31 @@ class Avatar {
   async setQuality(quality) {
 
     this.model.visible = false;
-    if (this.crunchedModel) this.crunchedModel.visible = false;
-    if (this.spriteMegaAvatarMesh) this.spriteMegaAvatarMesh.visible = false;
+    if ( this.crunchedModel ) this.crunchedModel.visible = false;
+    if ( this.spriteMegaAvatarMesh ) this.spriteMegaAvatarMesh.visible = false;
 
     switch (quality) {
       case 1: {
         const skinnedMesh = await this.object.cloneVrm();
-        this.spriteMegaAvatarMesh = this.spriteMegaAvatarMesh ?? avatarSpriter.createSpriteMegaMesh(skinnedMesh);
-        scene.add(this.spriteMegaAvatarMesh);
+        this.spriteMegaAvatarMesh = this.spriteMegaAvatarMesh ?? avatarSpriter.createSpriteMegaMesh( skinnedMesh );
+        scene.add( this.spriteMegaAvatarMesh );
         this.spriteMegaAvatarMesh.visible = true;
         break;
       }
       case 2: {
-        this.crunchedModel = this.crunchedModel ?? avatarCruncher.crunchAvatarModel(this.model);
+        this.crunchedModel = this.crunchedModel ?? avatarCruncher.crunchAvatarModel( this.model );
         this.crunchedModel.frustumCulled = false;
-        scene.add(this.crunchedModel);
+        scene.add( this.crunchedModel );
         this.crunchedModel.visible = true;
         break;
       }
       case 3: {
-        console.warn('Quality setting not implemented', quality); // XXX
+        console.log('not implemented'); // XXX
         this.model.visible = true;
         break;
       }
       case 4: {
-        console.warn('Quality setting not implemented', quality); // XXX
+        console.log('not implemented'); // XXX
         this.model.visible = true;
         break;
       }
@@ -1693,7 +1687,7 @@ class Avatar {
             rightEye.updateMatrix();
           }
         }
-        function lookAt(position) {
+        function lookAt( position) {
           calculateTargetEuler.call(this, localEuler, position);
           lookAtEuler.call(this, localEuler);
         }
@@ -1958,7 +1952,7 @@ class Avatar {
     this.springBoneManager && this.springBoneManager.lateUpdate(timeDiffS);
 
     // update wind in simulation
-    const _updateWind = () => {
+    const _updateWind = () =>{
       const headPosition = localVector.setFromMatrixPosition(this.modelBoneOutputs.Head.matrixWorld);
       wind.update(timestamp, headPosition, this.springBoneManager)
     }
@@ -1985,116 +1979,57 @@ class Avatar {
       this.debugMesh.visible = debug.enabled;
     }
   }
-  ensureAudioRecognizer() {
-    if (!this.audioRecognizer) {
-      const audioContext = getAudioContext();
-      this.audioRecognizer = new AudioRecognizer({
-        sampleRate: audioContext.sampleRate,
-      });
-    }
+  isAudioEnabled() {
+    return !!this.microphoneWorker;
   }
-  setMicrophoneEnabled(enabled) {
+  setAudioEnabled(enabled) {
     // cleanup
     if (this.microphoneWorker) {
       this.microphoneWorker.close();
       this.microphoneWorker = null;
     }
+    if (this.audioRecognizer) {
+      this.audioRecognizer.destroy();
+      this.audioRecognizer = null;
+    }
 
     // setup
     if (enabled) {
-      this.ensureAudioRecognizer();
       this.volume = 0;
-
+     
       const audioContext = getAudioContext();
       if (audioContext.state === 'suspended') {
         (async () => {
           await audioContext.resume();
         })();
       }
-
-      this.audioRecognizer.addEventListener('result', e => {
-        this.vowels.set(e.data);
-      });
-
       this.microphoneWorker = new MicrophoneWorker({
-        audioContext,
-        muted: true,
-        emitVolume: true,
-        emitBuffer: true,
-      });
-
-      const _localVolume = e => {
-        this.volume = this.volume * 0.8 + e.data * 0.2;
-      }
-
-      const _localBuffer = e => {
-        this.audioRecognizer.send(e.data);
-      }
-
-      this.microphoneWorker.addEventListener('volume', _localVolume);
-      this.microphoneWorker.addEventListener('buffer', _localBuffer);
-    } else {
-      this.volume = -1;
-    }
-  }
-  isMicrophoneEnabled() {
-    return !!this.microphoneWorker;
-  }
-  getMicrophoneInput() {
-    return this.isLocalPlayer && this.microphoneWorker.getInput();
-  }
-  setAudioEnabled(enabled) {
-    // cleanup
-    if (this.audioWorker) {
-      this.audioWorker.close();
-      this.audioWorker = null;
-    }
-
-    // setup
-    if (enabled) {
-      this.ensureAudioRecognizer();
-      this.volume = 0;
-
-      const audioContext = getAudioContext();
-      if (audioContext.state === 'suspended') {
-        (async () => {
-          await audioContext.resume();
-        })();
-      }
-      const _volume = e => {
-        if (!this.manuallySetMouth) {
-          this.volume = this.volume * 0.8 + e.data * 0.2;
-        } else {
-          console.log("couldn't set mouth because it is being manually set")
-        }
-      }
-
-      const _buffer = e => {
-        this.audioRecognizer.send(e.data);
-      }
-
-      this.audioRecognizer.addEventListener('result', e => {
-        this.vowels.set(e.data);
-      });
-
-      this.audioWorker = new MicrophoneWorker({
         audioContext,
         muted: false,
         emitVolume: true,
         emitBuffer: true,
       });
+      this.microphoneWorker.addEventListener('volume', e => {
+        if(!this.manuallySetMouth){
+          this.volume = this.volume*0.8 + e.data*0.2;
+        }
+      });
+      this.microphoneWorker.addEventListener('buffer', e => {
+        this.audioRecognizer.send(e.data);
+      });
 
-      this.audioWorker.addEventListener('volume', _volume);
-      this.audioWorker.addEventListener('buffer', _buffer);
+      this.audioRecognizer = new AudioRecognizer({
+        sampleRate: audioContext.sampleRate,
+      });
+      this.audioRecognizer.addEventListener('result', e => {
+        this.vowels.set(e.data);
+      });
     } else {
       this.volume = -1;
     }
   }
-  isAudioEnabled() {
-    return !!this.audioWorker;
-  }
   getAudioInput() {
-    return this.audioWorker.getInput();
+    return this.microphoneWorker && this.microphoneWorker.getInput();
   }
   decapitate() {
     if (!this.decapitated) {
@@ -2147,7 +2082,6 @@ class Avatar {
       // audioContext: WSRTC.getAudioContext(),
       // microphoneWorkletUrl: '/avatars/microphone-worklet.js',
     });
-
     audio.play();
   } */
 
@@ -2160,6 +2094,13 @@ Avatar.getAnimations = () => animations;
 Avatar.getAnimationStepIndices = () => animationStepIndices;
 Avatar.getAnimationMappingConfig = () => animationMappingConfig;
 let avatarAudioContext = null;
+const getAudioContext = () => {
+  if (!avatarAudioContext) {
+    console.warn('using default audio context; setAudioContext was not called');
+    setAudioContext(new AudioContext());
+  }
+  return avatarAudioContext;
+};
 Avatar.getAudioContext = getAudioContext;
 const setAudioContext = newAvatarAudioContext => {
   avatarAudioContext = newAvatarAudioContext;

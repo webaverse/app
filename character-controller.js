@@ -1,9 +1,6 @@
 /*
-this file is responsible for maintaining player state that is network-replicated.
+this file is responisible for maintaining player state that is network-replicated.
 */
-import {WsAudioDecoder} from 'wsrtc/ws-codec.js';
-import {ensureAudioContext, getAudioContext} from 'wsrtc/ws-audio-context.js';
-import {getAudioDataBuffer} from 'wsrtc/ws-util.js';
 
 import * as THREE from 'three';
 import * as Z from 'zjs';
@@ -26,7 +23,6 @@ import {
   avatarInterpolationNumFrames,
   // groundFriction,
   // defaultVoicePackName,
-  voiceEndpointBaseUrl,
   numLoadoutSlots,
 } from './constants.js';
 import {AppManager} from './app-manager.js';
@@ -37,9 +33,9 @@ import {CharacterHitter} from './character-hitter.js';
 import {CharacterBehavior} from './character-behavior.js';
 import {CharacterFx} from './character-fx.js';
 import {VoicePack, VoicePackVoicer} from './voice-output/voice-pack-voicer.js';
-import {VoiceEndpoint, VoiceEndpointVoicer} from './voice-output/voice-endpoint-voicer.js';
-import {BinaryInterpolant, BiActionInterpolant, UniActionInterpolant, InfiniteActionInterpolant, PositionInterpolant, QuaternionInterpolant} from './interpolants.js';
-import {applyPlayerToAvatar, makeAvatar} from './player-avatar-binding.js';
+import {VoiceEndpoint, VoiceEndpointVoicer, getVoiceEndpointUrl} from './voice-output/voice-endpoint-voicer.js';
+import {BinaryInterpolant, BiActionInterpolant, UniActionInterpolant, InfiniteActionInterpolant, PositionInterpolant, QuaternionInterpolant, FixedTimeStep} from './interpolants.js';
+import {applyPlayerToAvatar, switchAvatar} from './player-avatar-binding.js';
 import {
   defaultPlayerName,
   defaultPlayerBio,
@@ -82,8 +78,8 @@ const heightFactor = 1.6;
 const baseRadius = 0.3;
 function loadPhysxCharacterController() {
   const avatarHeight = this.avatar?.height || 1;
-  const radius = (baseRadius / heightFactor) * avatarHeight;
-  const height = avatarHeight - radius * 2;
+  const radius = baseRadius/heightFactor * avatarHeight;
+  const height = avatarHeight - radius*2;
 
   const contactOffset = (0.1 / heightFactor) * avatarHeight;
   const stepOffset = (0.5 / heightFactor) * avatarHeight;
@@ -220,7 +216,7 @@ class Player extends THREE.Object3D {
       if (fn(action)) {
         return i;
       }
-      i++;
+      i++
     }
     return -1;
   }
@@ -273,14 +269,6 @@ class Player extends THREE.Object3D {
     }
     return false;
   }
-  async setVoicePack({audioUrl, indexUrl}) {
-    const self = this;
-    // this.playersArray.doc.transact(function tx() {
-    const voiceSpec = JSON.stringify({audioUrl, indexUrl, endpointUrl: self.voiceEndpoint ? self.voiceEndpoint.url : ''});
-    self.playerMap.set('voiceSpec', voiceSpec);
-    // });
-    this.loadVoicePack({audioUrl, indexUrl})
-  }
 
   async loadVoicePack({audioUrl, indexUrl}) {
     this.voicePack = await VoicePack.load({
@@ -291,25 +279,8 @@ class Player extends THREE.Object3D {
   }
 
   setVoiceEndpoint(voiceId) {
-    if (!voiceId) return console.error('voice Id is null')
-    const self = this;
-    const url = `${voiceEndpointBaseUrl}?voice=${encodeURIComponent(voiceId)}`;
-    this.playersArray.doc.transact(function tx() {
-      let oldVoiceSpec = self.playerMap.get('voiceSpec');
-      if (oldVoiceSpec) {
-        oldVoiceSpec = JSON.parse(oldVoiceSpec);
-        const voiceSpec = JSON.stringify({audioUrl: oldVoiceSpec.audioUrl, indexUrl: oldVoiceSpec.indexUrl, endpointUrl: url});
-        self.playerMap.set('voiceSpec', voiceSpec);
-      } else {
-        const voiceSpec = JSON.stringify({audioUrl: self.voicePack?.audioUrl, indexUrl: self.voicePack?.indexUrl, endpointUrl: url})
-        self.playerMap.set('voiceSpec', voiceSpec);
-      }
-    });
-    this.loadVoiceEndpoint(url)
-  }
-
-  loadVoiceEndpoint(url) {
-    if (url) {
+    if (voiceId) {
+      const url = getVoiceEndpointUrl(voiceId);
       this.voiceEndpoint = new VoiceEndpoint(url);
     } else {
       this.voiceEndpoint = null;
@@ -318,8 +289,7 @@ class Player extends THREE.Object3D {
   }
 
   getVoice() {
-    if (!this.voiceEndpoint) console.error('this.voiceEndpoint is null')
-    return this.voiceEndpoint || this.voicePack || console.warn('no voice endpoint set');
+    return this.voiceEndpoint || this.voicePack || null;
   }
   updateVoicer() {
     const voice = this.getVoice();
@@ -955,23 +925,6 @@ class LocalPlayer extends NetworkPlayer {
     });
   }
 
-  setMicMediaStream(mediaStream) {
-    if (!this.avatar) return console.warn("Can't set mic media stream, no avatar");
-    if (this.microphoneMediaStream) {
-      this.microphoneMediaStream.disconnect();
-      this.microphoneMediaStream = null;
-    }
-    if (mediaStream) {
-      this.avatar.setMicrophoneEnabled(true, this);
-      const audioContext = Avatar.getAudioContext();
-      const mediaStreamSource = audioContext.createMediaStreamSource(mediaStream);
-
-      mediaStreamSource.connect(this.avatar.getMicrophoneInput(true));
-
-      this.microphoneMediaStream = mediaStreamSource;
-    }
-  }
-
   attachState(oldState) {
     const {oldActions, oldAvatar, oldApps} = oldState;
     const {instanceId} = oldAvatar;
@@ -1167,9 +1120,7 @@ class RemotePlayer extends NetworkPlayer {
   constructor(opts) {
     super(opts);
 
-    this.audioWorkletNode = null;
-    this.audioWorkerLoaded = false;
-
+    this.isRemotePlayer = true;
     const _setupInterpolation = () => {
       this.positionInterpolant = new PositionInterpolant(
         () => this.getPosition(),
@@ -1269,41 +1220,6 @@ class RemotePlayer extends NetworkPlayer {
         });
       }
   }
-  // The audio worker handles hups and incoming voices
-  // This includes the microphone from the owner of this instance
-  async prepareAudioWorker() {
-    if (!this.audioWorkerLoaded) {
-      this.audioWorkerLoaded = true;
-
-      await ensureAudioContext();
-      const audioContext = getAudioContext();
-
-      this.audioWorkletNode = new AudioWorkletNode(
-        audioContext,
-        'ws-output-worklet'
-      );
-
-      this.audioDecoder = new WsAudioDecoder({
-        output: (data) => {
-          const buffer = getAudioDataBuffer(data);
-          this.audioWorkletNode.port.postMessage(buffer, [buffer.buffer]);
-        },
-      });
-
-      if (!this.avatar.isAudioEnabled()) {
-        this.avatar.setAudioEnabled(true);
-      }
-
-      this.audioWorkletNode.connect(this.avatar.getAudioInput());
-    }
-  }
-  // This is called by WSRTC (in world.js) when it receives new packets for this player
-  processAudioData(data) {
-    this.prepareAudioWorker();
-    if (this.audioWorkletNode) {
-      this.audioDecoder.decode(data.data);
-    }
-  }
   updateAvatar(timestamp, timeDiff) {
     if (!this.avatar) return console.warn("Can't update remote player, avatar is null");
     const _updateInterpolation = () => {
@@ -1344,10 +1260,7 @@ class RemotePlayer extends NetworkPlayer {
     if (index !== -1) {
       this.playerMap = this.playersArray.get(index, Z.Map);
     } else {
-      console.warn(
-        'binding to nonexistent player object',
-        this.playersArray.toJSON()
-      );
+      console.warn('binding to nonexistent player object', this.playersArray.toJSON());
     }
 
     const lastPosition = new THREE.Vector3();
