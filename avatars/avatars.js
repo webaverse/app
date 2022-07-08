@@ -1504,6 +1504,7 @@ class Avatar {
     this.aimRightFactorReverse = 1 - this.aimRightFactor;
     this.aimLeftFactor = this.aimLeftTransitionTime / aimTransitionMaxTime;
     this.aimLeftFactorReverse = 1 - this.aimLeftFactor;
+    this.unjumpFactor = this.unjumpTime / backflipUnjumpMaxTime;
 
     const _updateHmdPosition = () => {
       const currentPosition = this.inputs.hmd.position;

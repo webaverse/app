@@ -1742,9 +1742,10 @@ class GameManager extends EventTarget {
     const jumpAction = localPlayer.getAction('jump');
     if (!jumpAction) {
       const newJumpAction = {
-        type: "jump",
-        trigger: trigger,
+        type: 'jump',
+        trigger:trigger,
         // time: 0,
+        direction: gameManager.isMovingBackward() ? 'backward' : 'forward',
       };
       localPlayer.addAction(newJumpAction);
     }
@@ -1755,8 +1756,12 @@ class GameManager extends EventTarget {
 
     // update velocity
     const localPlayer = getLocalPlayer();
-    localPlayer.characterPhysics.velocity.y += 6;
-
+    if (this.isMovingBackward()) {
+      localPlayer.characterPhysics.velocity.y += 4.1; // flat ground air time: 599.5199999999968
+    } else {
+      localPlayer.characterPhysics.velocity.y += 6;
+    }
+    
     // play sound
     // soundManager.play('jump');
   }
@@ -1775,8 +1780,12 @@ class GameManager extends EventTarget {
   }
   isMovingBackward() {
     const localPlayer = getLocalPlayer();
-    // return ioManager.keysDirection.z > 0 && this.isAiming();
-    return localPlayer.avatar.direction.z > 0.1; // If check > 0 will cause glitch when move left/right;
+    return ioManager.keysDirectionLocal.z > 0 && this.isAiming() && !localPlayer.hasAction('narutoRun');
+    /*
+      return localPlayer.avatar.direction.z > 0.1;
+      // If check > 0 will cause glitch when move left/right.
+      // Has a little lag after release backward key.
+    */
   }
   isAiming() {
     const localPlayer = getLocalPlayer();
