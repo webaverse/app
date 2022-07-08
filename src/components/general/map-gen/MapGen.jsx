@@ -2,7 +2,7 @@ import * as THREE from 'three';
 import React, { useState, useEffect, useRef, useContext } from 'react';
 import classnames from 'classnames';
 import metaversefile from 'metaversefile';
-const {useLocalPlayer, useLoreAIScene, useParticleSystem} = metaversefile;
+const {useLocalPlayer, useLoreAIScene} = metaversefile;
 // import {world} from '../../../../world.js';
 // import webaverse from '../../../../webaverse.js';
 import {registerIoEventHandler, unregisterIoEventHandler} from '../io-handler';
@@ -14,12 +14,15 @@ import {world} from '../../../../world.js';
 import universe from '../../../../universe.js';
 import cameraManager from '../../../../camera-manager.js';
 import story from '../../../../story.js';
+// import raycastManager from '../../../../raycast-manager.js';
 import {snapshotMapChunk} from '../../../../scene-cruncher.js';
 import {Text} from 'troika-three-text';
 // import alea from '../../../../alea.js';
 // import easing from '../../../../easing.js';
 import musicManager from '../../../../music-manager.js';
+import {buildMaterial} from '../../../../shaders.js';
 import {chatManager} from '../../../../chat-manager.js';
+import physicsManager from '../../../../physics-manager.js';
 import {
   makeRng,
   // numBlocksPerChunk,
@@ -33,11 +36,13 @@ import {
 import styles from './map-gen.module.css';
 import { AppContext } from '../../app';
 
+//
+
 const localVector = new THREE.Vector3();
 const localVector2 = new THREE.Vector3();
 // const localVector3 = new THREE.Vector3();
-const localVectorX = new THREE.Vector3();
-const localVectorX2 = new THREE.Vector3();
+// const localVectorX = new THREE.Vector3();
+// const localVectorX2 = new THREE.Vector3();
 const localVector2D = new THREE.Vector2();
 const localQuaternion = new THREE.Quaternion();
 const localEuler = new THREE.Euler();
@@ -48,6 +53,10 @@ const localArray = [];
 // const localColor = new THREE.Color();
 const localRaycaster = new THREE.Raycaster();
 
+//
+
+const fakeGeometry = new THREE.BufferGeometry();
+const forwardDirection = new THREE.Vector3(0, 0, -1);
 const downQuaternion = new THREE.Quaternion().setFromAxisAngle(
   new THREE.Vector3(1, 0, 0),
   -Math.PI / 2,
@@ -55,6 +64,11 @@ const downQuaternion = new THREE.Quaternion().setFromAxisAngle(
 
 //
 
+const seed = 'lol';
+const physicsInstance = 'map';
+const physicsScene = physicsManager.getScene(physicsInstance);
+
+(physicsInstance);
 const voxelPixelSize = 16;
 
 //
@@ -212,6 +226,8 @@ export const MapGen = () => {
     const [flareMeshApp, setFlareMeshApp] = useState(null);
     const [magicMeshApp, setMagicMeshApp] = useState(null);
     const [limitMeshApp, setLimitMeshApp] = useState(null);
+    const [terrainApp, setTerrainApp] = useState(null);
+    const [highlightPhysicsMesh, setHighlightPhysicsMesh] = useState(null);
     const [loaded, setLoaded] = useState(false);
     const canvasRef = useRef();
 
@@ -292,6 +308,8 @@ export const MapGen = () => {
       raycaster.setFromCamera(mouse, camera);
     };
     const selectObject = () => {
+      return; // XXX
+
       const now = performance.now();
       const timeDiff = now - lastSelectTime;
       const newSelectedObject = (selectedObject === hoveredObject && timeDiff > 200) ? null : hoveredObject;
@@ -615,9 +633,37 @@ export const MapGen = () => {
             moved: true,
           });
         } else {
-          setRaycasterFromEvent(localRaycaster, e);
+          if (terrainApp && highlightPhysicsMesh) {
+            setRaycasterFromEvent(localRaycaster, e);
 
-          localArray.length = 0;
+            highlightPhysicsMesh.visible = false;
+
+            localQuaternion.setFromUnitVectors(forwardDirection, localRaycaster.ray.direction);
+            const raycastResult = physicsScene.raycast(localRaycaster.ray.origin, localQuaternion);
+            if (raycastResult) {
+              const physicsId = raycastResult.objectId;
+              const physicsObjects = terrainApp.getPhysicsObjects();
+              const physicsObject = physicsObjects.find(physicsObject => physicsObject.physicsId === physicsId);
+              if (physicsObject) {
+                const {physicsMesh} = physicsObject;
+                // const physicsGeometry = physicsScene.getGeometryForPhysicsId(physicsId);
+                const timestamp = performance.now();
+
+                highlightPhysicsMesh.geometry = physicsMesh.geometry;
+                highlightPhysicsMesh.matrixWorld.copy(physicsMesh.matrixWorld)
+                  .decompose(highlightPhysicsMesh.position, highlightPhysicsMesh.quaternion, highlightPhysicsMesh.scale);
+        
+                highlightPhysicsMesh.material.uniforms.uTime.value = (timestamp%1500)/1500;
+                highlightPhysicsMesh.material.uniforms.uTime.needsUpdate = true;
+                highlightPhysicsMesh.material.uniforms.uColor.value.setHex(buildMaterial.uniforms.uColor.value.getHex());
+                highlightPhysicsMesh.material.uniforms.uColor.needsUpdate = true;
+                highlightPhysicsMesh.visible = true;
+                highlightPhysicsMesh.updateMatrixWorld();
+              }
+            }
+          }
+
+          /* localArray.length = 0;
           const intersections = localRaycaster.intersectObjects(mapScene.children, false, localArray);
           if (intersections.length > 0) {
             const {object} = intersections[0];
@@ -629,7 +675,7 @@ export const MapGen = () => {
             setHoveredObject(object);
           } else {
             setHoveredObject(null);
-          }
+          } */
         }
       }
       // listen on document to handle mouse move outside of window
@@ -719,6 +765,15 @@ export const MapGen = () => {
         directionalLight.position.set(1, 2, 3);
         mapScene.add(directionalLight);
 
+        // highlight physics mesh
+        const highlightPhysicsMesh = new THREE.Mesh(
+          fakeGeometry,
+          buildMaterial.clone()
+        );
+        highlightPhysicsMesh.frustumCulled = false;
+        mapScene.add(highlightPhysicsMesh);
+        setHighlightPhysicsMesh(highlightPhysicsMesh);
+
         // apps
         await Promise.all([
           (async () => {
@@ -737,8 +792,8 @@ export const MapGen = () => {
             const terrainApp = await metaversefile.createAppAsync({
               start_url: '../metaverse_modules/land/',
               components: {
-                seed: 'lol',
-                physicsInstance: 'map',
+                seed,
+                physicsInstance,
                 renderPosition: [0, 60, 0],
                 minLodRange: 3,
                 lods: 1,
@@ -747,7 +802,7 @@ export const MapGen = () => {
             // console.log('create terrain app', app);
             // (0, 0, 0);
             mapScene.add(terrainApp);
-            // setTerrainApp(app);
+            setTerrainApp(terrainApp);
           })(),
         ]);
       }
@@ -773,9 +828,9 @@ export const MapGen = () => {
 
         async function render(e) {
           const {timestamp, timeDiff} = e.data;
-          const renderer = getRenderer();
-          
+
           // push state
+          const renderer = getRenderer();
           const oldViewport = renderer.getViewport(localVector4D);
 
           /* for (const chunk of chunks) {
