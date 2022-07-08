@@ -808,7 +808,7 @@ export default (e) => {
                     console.log(renderSettings.findRenderSettings(scene));
                     // renderSettings.findRenderSettings(scene).passes.test.selective = true;
                     renderSettings.findRenderSettings(scene).passes.test._selects.push(generator.getMeshes()[0]);
-                    // renderSettings.findRenderSettings(scene).passes.test.maxDistance = 0.03;
+                    // renderSettings.findRenderSettings(scene).passes.test.maxDistance = 0.8;
                     // renderSettings.findRenderSettings(scene).passes.test.thickness = 0.01;
                     // // renderSettings.findRenderSettings(scene).passes.test._infiniteThick = true;
                     // renderSettings.findRenderSettings(scene).passes.test.opacity = 0.15;

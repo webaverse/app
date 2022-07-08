@@ -30,8 +30,8 @@ function bindCanvas(c) {
     context,
     antialias: true,
     alpha: true,
-    // rendererExtensionFragDepth: true,
-    // logarithmicDepthBuffer: true,
+    rendererExtensionFragDepth: true,
+    logarithmicDepthBuffer: true,
   });
   
   const {
