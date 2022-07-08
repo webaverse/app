@@ -7,7 +7,6 @@ import * as THREE from 'three';
 import Avatar from './avatars/avatars.js';
 import * as sounds from './sounds.js';
 import physx from './physx.js';
-import physxWorkerManager from './physx-worker-manager.js';
 import ioManager from './io-manager.js';
 import physicsManager from './physics-manager.js';
 import {world} from './world.js';
@@ -42,11 +41,12 @@ import performanceTracker from './performance-tracker.js';
 import renderSettingsManager from './rendersettings-manager.js';
 import metaversefileApi from 'metaversefile';
 import WebaWallet from './src/components/wallet.js';
+// import domRenderEngine from './dom-renderer.jsx';
 import musicManager from './music-manager.js';
+import physxWorkerManager from './physx-worker-manager.js';
 import story from './story.js';
 import zTargeting from './z-targeting.js';
 import raycastManager from './raycast-manager.js';
-import {defaultPlayerSpec} from './constants';
 
 const localVector = new THREE.Vector3();
 const localVector2 = new THREE.Vector3();
@@ -81,8 +81,8 @@ export default class Webaverse extends EventTarget {
     this.loadPromise = (async () => {
       await Promise.all([
         physx.waitForLoad(),
-        physxWorkerManager.waitForLoad(),
         Avatar.waitForLoad(),
+        physxWorkerManager.waitForLoad(),
         audioManager.waitForLoad(),
         sounds.waitForLoad(),
         zTargeting.waitForLoad(),
@@ -94,8 +94,9 @@ export default class Webaverse extends EventTarget {
         WebaWallet.waitForLoad(),
       ]);
     })();
+    this.contentLoaded = false;
   }
-
+  
   waitForLoad() {
     return this.loadPromise;
   }
@@ -103,39 +104,35 @@ export default class Webaverse extends EventTarget {
   getRenderer() {
     return getRenderer();
   }
-
   getScene() {
     return scene;
   }
-
   getSceneHighPriority() {
     return sceneHighPriority;
   }
-
   getSceneLowPriority() {
     return sceneLowPriority;
   }
-
   getCamera() {
     return camera;
   }
-
+  
+  setContentLoaded() {
+    this.contentLoaded = true;
+  }
   bindInput() {
     ioManager.bindInput();
   }
-
   bindInterface() {
     ioManager.bindInterface();
     blockchain.bindInterface();
   }
-
   bindCanvas(c) {
     bindCanvas(c);
     game.bindDioramaCanvas();
-
+    
     postProcessing.bindCanvas();
   }
-
   async isXrSupported() {
     if (navigator.xr) {
       let ok = false;
@@ -149,7 +146,6 @@ export default class Webaverse extends EventTarget {
       return false;
     }
   }
-
   async enterXr() {
     const renderer = getRenderer();
     const session = renderer.xr.getSession();
@@ -157,18 +153,18 @@ export default class Webaverse extends EventTarget {
       let session = null;
       try {
         session = await navigator.xr.requestSession(sessionMode, sessionOpts);
-      } catch (err) {
+      } catch(err) {
         try {
           session = await navigator.xr.requestSession(sessionMode);
-        } catch (err) {
+        } catch(err) {
           console.warn(err);
         }
       }
       if (session) {
-        const onSessionEnded = e => {
+        function onSessionEnded(e) {
           session.removeEventListener('end', onSessionEnded);
           renderer.xr.setSession(null);
-        };
+        }
         session.addEventListener('end', onSessionEnded);
         renderer.xr.setSession(session);
         // renderer.xr.setReferenceSpaceType('local-floor');
@@ -177,7 +173,7 @@ export default class Webaverse extends EventTarget {
       await session.end();
     }
   }
-
+  
   /* injectRigInput() {
     let leftGamepadPosition, leftGamepadQuaternion, leftGamepadPointer, leftGamepadGrip, leftGamepadEnabled;
     let rightGamepadPosition, rightGamepadQuaternion, rightGamepadPointer, rightGamepadGrip, rightGamepadEnabled;
@@ -271,8 +267,10 @@ export default class Webaverse extends EventTarget {
       [rightGamepadPosition, rightGamepadQuaternion, rightGamepadPointer, rightGamepadGrip, rightGamepadEnabled],
     ]);
   } */
-
+  
   render(timestamp, timeDiff) {
+    // console.log('frame 1');
+
     const renderer = getRenderer();
     frameEvent.data.timestamp = timestamp;
     frameEvent.data.timeDiff = timeDiff;
@@ -284,18 +282,18 @@ export default class Webaverse extends EventTarget {
       data: {
         canvas: renderer.domElement,
         context: renderer.getContext(),
-      },
+      }
     }));
+
+    // console.log('frame 2');
   }
-
-  async start(canvas, universe = null) {
-    this.bindInput();
-    this.bindInterface();
-    this.bindCanvas(canvas);
-
-    if (universe) await universe.handleUrlUpdate();
-    await this.waitForLoad();
-
+  
+  startLoop() {
+    const renderer = getRenderer();
+    if (!renderer) {
+      throw new Error('must bind canvas first');
+    }
+    
     let lastTimestamp = performance.now();
     const animate = (timestamp, frame) => {
       performanceTracker.startFrame();
@@ -303,11 +301,18 @@ export default class Webaverse extends EventTarget {
       const _frame = () => {
         timestamp = timestamp ?? performance.now();
         const timeDiff = timestamp - lastTimestamp;
-        lastTimestamp = timestamp;
-        const timeDiffCapped = Math.min(Math.max(timeDiff, 0), 500);
+        const timeDiffCapped = Math.min(Math.max(timeDiff, 0), 100);
 
         performanceTracker.setGpuPrefix('pre');
-        const localPlayer = metaversefileApi.useLocalPlayer();
+        const _pre = () => {
+          ioManager.update(timeDiffCapped);
+          // this.injectRigInput();
+          
+          const localPlayer = metaversefileApi.useLocalPlayer();
+          if (this.contentLoaded && physicsManager.getPhysicsEnabled()) {
+            physicsManager.simulatePhysics(timeDiffCapped);
+            localPlayer.updatePhysics(timestamp, timeDiffCapped);
+          }
 
           transformControls.update();
           raycastManager.update(timestamp, timeDiffCapped);
@@ -362,14 +367,10 @@ export default class Webaverse extends EventTarget {
       _frame();
 
       performanceTracker.endFrame();
-    };
+    }
+    renderer.setAnimationLoop(animate);
 
     _startHacks(this);
-
-    const localPlayer = metaversefileApi.useLocalPlayer();
-    await localPlayer.setPlayerSpec(defaultPlayerSpec);
-    const renderer = getRenderer();
-    renderer.setAnimationLoop(animate);
   }
 }
 
@@ -391,7 +392,7 @@ const _startHacks = webaverse => {
       const key1 = lastEmotionKey.key;
       const key2 = key;
       emotionIndex = (key1 * 10) + key2;
-
+      
       lastEmotionKey.key = -1;
       lastEmotionKey.timestamp = 0;
     } else {
@@ -549,7 +550,7 @@ const _startHacks = webaverse => {
       poseAnimationIndex++;
       poseAnimationIndex = Math.min(Math.max(poseAnimationIndex, -1), vpdAnimations.length - 1);
       _updatePose();
-
+    
       // _ensureMikuModel();
       // _updateMikuModel();
     } else if (e.which === 109) { // -
@@ -564,7 +565,7 @@ const _startHacks = webaverse => {
       webaverse.dispatchEvent(new MessageEvent('titlecardhackchange', {
         data: {
           titleCardHack: webaverse.titleCardHack,
-        },
+        }
       }));
     } else {
       const match = e.code.match(/^Numpad([0-9])$/);
@@ -576,5 +577,3 @@ const _startHacks = webaverse => {
     }
   });
 };
-
-export const webaverse = new Webaverse();
