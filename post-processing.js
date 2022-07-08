@@ -7,6 +7,7 @@ import * as THREE from 'three';
 import {ShaderPass} from 'three/examples/jsm/postprocessing/ShaderPass.js';
 import {UnrealBloomPass} from 'three/examples/jsm/postprocessing/UnrealBloomPass.js';
 import {AdaptiveToneMappingPass} from 'three/examples/jsm/postprocessing/AdaptiveToneMappingPass.js';
+import { SSRPass } from 'three/examples/jsm/postprocessing/SSRPass.js';
 // import {BloomPass} from 'three/examples/jsm/postprocessing/BloomPass.js';
 // import {AfterimagePass} from 'three/examples/jsm/postprocessing/AfterimagePass.js';
 import {BokehPass} from './BokehPass.js';
@@ -136,6 +137,21 @@ function makeBloomPass({
   // unrealBloomPass.enabled = hqDefault;
   return unrealBloomPass;
 }
+function makeSsrPass(ssr) {
+  const renderer = getRenderer();
+  const ssrPass = new SSRPass( {
+      renderer,
+      scene,
+      camera,
+      width: window.innerWidth,
+      height: window.innerHeight,
+      groundReflector: null,
+      selects: []
+  });
+  
+  
+  return ssrPass;
+}
 function makeEncodingPass() {
   const encodingPass = new ShaderPass({
     uniforms: {
@@ -224,17 +240,22 @@ class PostProcessing extends EventTarget {
     passes.depthPass = null;
     passes.ssaoPass = null;
     passes.swirlPass = null;
+    passes.test = null;
 
     passes.push(webaverseRenderPass);
     
     if (rendersettings) {
-      const {ssao, dof, hdr, bloom, postPostProcessScene, swirl} = rendersettings;
+      const {ssao, dof, hdr, bloom, postPostProcessScene, swirl, ssr} = rendersettings;
       
       if (ssao || dof) {
         passes.depthPass = makeDepthPass({ssao, dof});
       }
       if (ssao) {
         passes.ssaoPass = makeSsaoRenderPass(ssao, passes.depthPass);
+      }
+      if(ssr){
+        const ssrPass = makeSsrPass(ssr);
+        passes.test = (ssrPass);
       }
       if (dof) {
         const dofPass = makeDofPass(dof, passes.depthPass);

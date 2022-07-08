@@ -771,6 +771,14 @@ export default (e) => {
     let testContact1;
     let testContact2;
     let lastSwimmingHand = null;
+
+    let alreadySetComposer = false;
+    const geometry = new THREE.SphereGeometry( 5, 32, 16 );
+    const material = new THREE.MeshBasicMaterial( { color: 'yellow' } );
+    const sphere = new THREE.Mesh( geometry, material );
+    app.add( sphere );
+    sphere.position.y = 65;
+    app.updateMatrixWorld();
     
     useFrame(({timestamp, timeDiff}) => {
       if (!!tracker && !range) {
@@ -781,6 +789,26 @@ export default (e) => {
         tracker.update(localVector);
   
         if(generator && localPlayer.avatar){
+            if(!alreadySetComposer){
+                if(renderSettings.findRenderSettings(scene)){
+                    console.log(renderSettings.findRenderSettings(scene));
+                    // renderSettings.findRenderSettings(scene).passes.test.selective = true;
+                    renderSettings.findRenderSettings(scene).passes.test._selects.push(generator.getMeshes()[0]);
+                    renderSettings.findRenderSettings(scene).passes.test.maxDistance = 0.1;
+                    // renderSettings.findRenderSettings(scene).passes.test.needsSwap = false;
+                    // renderSettings.findRenderSettings(scene).passes.test.clear = false;
+                    // renderSettings.findRenderSettings(scene).passes.test.renderToScreen = false;
+                    
+                    renderSettings.findRenderSettings(scene).passes.push(renderSettings.findRenderSettings(scene).passes.test);
+                    // const temp0 = renderSettings.findRenderSettings(scene).passes[0];
+                    // const temp1 = renderSettings.findRenderSettings(scene).passes[1];
+                    // renderSettings.findRenderSettings(scene).passes.push(temp0);
+                    // renderSettings.findRenderSettings(scene).passes.push(temp1);
+                    // renderSettings.findRenderSettings(scene).fog.density = 0.07;
+                    alreadySetComposer = true;
+                }
+            }
+
             let playerIsOnSurface = false;
             let cameraIsOnSurface = false;
             let min = null;
@@ -1156,7 +1184,7 @@ export default (e) => {
             void main() {
                 gl_FragColor = vec4(0.02, 0.1, 0.16, 0.8);
                 if(!contactWater || vPos.y > cameraWaterSurfacePos.y)
-                    gl_FragColor.a = 0.;
+                    discard;
             ${THREE.ShaderChunk.logdepthbuf_fragment}
             }
         `,
@@ -1167,8 +1195,8 @@ export default (e) => {
     });
     const mask = new THREE.Mesh( geometry, material );
     //app.add( mask );
-    camera.add(mask);
-
+    // camera.add(mask);
+    let cameraHasMask = false;
     useFrame(({timestamp}) => {
       
         // mask.position.set(camera.position.x + cameraDir.x * 0.4, camera.position.y, camera.position.z + cameraDir.z * 0.4); 
@@ -1178,12 +1206,25 @@ export default (e) => {
         mask.material.uniforms.cameraWaterSurfacePos.value.copy(cameraWaterSurfacePos);
         mask.material.uniforms.contactWater.value = contactWater;
         if(camera.position.y < cameraWaterSurfacePos.y && contactWater){
-            if(renderSettings.findRenderSettings(scene))
+            if(renderSettings.findRenderSettings(scene)){
                 renderSettings.findRenderSettings(scene).fog.density = 0.07;
+                if(!cameraHasMask){
+                    camera.add(mask);
+                    cameraHasMask = true;
+                }
+            }
+                
         }
         else{
-            if(renderSettings.findRenderSettings(scene))
+            if(renderSettings.findRenderSettings(scene)){
+
                 renderSettings.findRenderSettings(scene).fog.density = 0;
+                if(cameraHasMask){
+                    camera.remove(mask);
+                    cameraHasMask = false;
+                }
+            }
+                
         }
         app.updateMatrixWorld();
     
