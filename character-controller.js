@@ -448,7 +448,7 @@ class PlayerBase extends THREE.Object3D {
           app.updateMatrixWorld();
         }
       };
-      if (!app.getComponent('pet')) {
+      if (!app.getComponent('pet') && !app.getComponent('sit')) {
         _setAppTransform();
       }
 
