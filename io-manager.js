@@ -780,7 +780,7 @@ ioManager.mousedown = e => {
     }
   } else {
     if ((changedButtons & 1) && (e.buttons & 1)) { // left
-      const raycaster = raycastManager.getMouseRaycaster(e, localRaycaster);
+      const raycaster = raycastManager.getMouseRaycaster(e);
       if (raycaster) {
         transformControls.handleMouseDown(raycaster);
       }
