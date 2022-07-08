@@ -1,6 +1,6 @@
 import WSRTC from 'wsrtc/wsrtc.js';
 import {chatManager} from '../chat-manager.js';
-import universe from '../universe.js';
+import {world} from '../world.js';
 import metaversefile from 'metaversefile';
 
 class VoiceInput extends EventTarget {
@@ -21,11 +21,9 @@ class VoiceInput extends EventTarget {
     const localPlayer = metaversefile.useLocalPlayer();
     localPlayer.setMicMediaStream(this.mediaStream);
 
-    const wsrtc = universe.getConnection();
+    const wsrtc = world.getConnection();
     if (wsrtc) {
       wsrtc.enableMic(this.mediaStream);
-    } else {
-      throw new Error('Unable to connect microphone');
     }
 
     this.dispatchEvent(new MessageEvent('micchange', {
@@ -36,7 +34,7 @@ class VoiceInput extends EventTarget {
   }
   disableMic() {
     /* if (this.micEnabled()) */ {
-      const wsrtc = universe.getConnection();
+      const wsrtc = world.getConnection();
       if (wsrtc) {
         wsrtc.disableMic();
       } else {
@@ -93,14 +91,14 @@ class VoiceInput extends EventTarget {
       // document.querySelector("#status").style.display = "block";
     }; */
     localSpeechRecognition.onerror = e => {
-      console.error('speech recognition error', e);
+      console.log('speech recognition error', e);
     };
     localSpeechRecognition.onend = () => {
       /* final_transcript = final_transcript
         .replace(/celia|sylvia|sileo|cilia|tilia|zilia/gi, 'Scillia'); */
       console.log('speech:', [final_transcript]);
       if (final_transcript) {
-        chatManager.addLocalPlayerMessage(final_transcript, {
+        chatManager.addMessage(final_transcript, {
           timeout: 3000,
         });
       }

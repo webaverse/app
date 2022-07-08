@@ -4,6 +4,7 @@ this file implements avatar transformation effects/shaders.
 
 import * as THREE from 'three';
 import metaversefile from 'metaversefile';
+import * as metaverseModules from './metaverse-modules.js';
 import {sceneLowPriority} from './renderer.js';
 
 const localVector = new THREE.Vector3();
@@ -233,31 +234,17 @@ class CharacterFx {
 
     this.lastSSS = isSSS;
     const _updateSonicBoomMesh = () => {
-      if ( !this.sonicBoom  && !this.player.isNpcPlayer ) {
+      if (this.player.isLocalPlayer && !this.sonicBoom) {
         this.sonicBoom = metaversefile.createApp();
-        this.sonicBoom.player = this.player;
         (async () => {
           const {modules} = metaversefile.useDefaultModules();
           const m = modules['sonicBoom'];
           await this.sonicBoom.addModule(m);
-          sceneLowPriority.add(this.sonicBoom);
         })();
+        sceneLowPriority.add(this.sonicBoom);
       }
     };
     _updateSonicBoomMesh();
-    const _updateNameplate = () => {
-      if(!this.nameplate && !this.player.isNpcPlayer){
-        (async () => {
-        this.nameplate = metaversefile.createApp();
-        this.nameplate.player = this.player;
-          const {modules} = metaversefile.useDefaultModules();
-          const m = modules['nameplate'];
-          await this.nameplate.addModule(m);
-          sceneLowPriority.add(this.nameplate);
-        })();
-      }
-    };
-    _updateNameplate();
     const _updateHealEffectMesh = () => {
       
       if(this.player.hasAction('cure')){
@@ -294,10 +281,6 @@ class CharacterFx {
     if (this.healEffect) {
       sceneLowPriority.remove(this.healEffect);
       this.healEffect = null;
-    }
-    if (this.nameplate) {
-      sceneLowPriority.remove(this.nameplate);
-      this.nameplate = null;
     }
   }
 }

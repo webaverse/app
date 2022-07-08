@@ -30,14 +30,19 @@ class ChatManager extends EventTarget {
     this.voiceRunning = false;
     this.voiceQueue = [];
   }
-
-  addPlayerMessage(player, m, {timeout = 3000} = {}) {
-    const match = _getEmotion(m.message);
+  addPlayerMessage(player, message = '', {timeout = 3000} = {}) {
+    const chatId = makeId(5);
+    const match = _getEmotion(message);
     const emotion = match ? match.emotion : null;
     const value = emotion ? 1 : 0;
-
+    const m = {
+      type: 'chat',
+      chatId,
+      playerName: player.name,
+      message,
+    };
     player.addAction(m);
-
+    
     const _addFacePose = () => {
       if (emotion) {
         player.addAction({
@@ -56,44 +61,39 @@ class ChatManager extends EventTarget {
         }
       }
     };
-
+    
+    this.dispatchEvent(new MessageEvent('messageadd', {
+      data: {
+        player,
+        message: m,
+      },
+    }));
+    
     const localTimeout = setTimeout(() => {
       this.removePlayerMessage(player, m);
-
+      
       _removeFacePose();
     }, timeout);
     m.cleanup = () => {
       clearTimeout(localTimeout);
     };
-
+    
     return m;
   }
-
-  addLocalPlayerMessage(message, opts) {
-    const chatId = makeId(5);
+  addMessage(message, opts) {
     const localPlayer = metaversefileApi.useLocalPlayer();
-
-    const m = {
-      type: 'chat',
-      chatId,
-      playerId: localPlayer.playerId,
-      playerName: localPlayer.name,
-      message,
-    };
-
-    return this.addPlayerMessage(localPlayer, m, opts);
+    return this.addPlayerMessage(localPlayer, message, opts);
   }
-
   removePlayerMessage(player, m) {
     m.cleanup();
-
+    
     const actionIndex = player.findActionIndex(action => action.chatId === m.chatId);
     if (actionIndex !== -1) {
       player.removeActionIndex(actionIndex);
     } else {
       console.warn('remove unknown message action 2', m);
     }
-
+    
     this.dispatchEvent(new MessageEvent('messageremove', {
       data: {
         player,
@@ -101,15 +101,13 @@ class ChatManager extends EventTarget {
       },
     }));
   }
-
   removeMessage(m) {
     const localPlayer = metaversefileApi.useLocalPlayer();
     this.removePlayerMessage(localPlayer, m);
   }
-
   async waitForVoiceTurn(fn) {
     // console.log('wait for voice queue', this.voiceRunning, this.voiceQueue.length);
-
+    
     if (!this.voiceRunning) {
       this.voiceRunning = true;
       // console.log('wait 0');

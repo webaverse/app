@@ -66,9 +66,6 @@ class Hup extends EventTarget {
         return this.parent.player.voicer.start(preloadedMessage);
       });
     } else {
-      console.warn("No voicer!")
-      this.fullText += message
-      this.emote = emote ?? null;
       await Promise.resolve();
     }
     // this.parent.player === metaversefile.useLocalPlayer() && console.log('emit voice end');
@@ -156,7 +153,6 @@ class CharacterHups extends EventTarget {
     });
     player.addEventListener('actionremove', e => {
       const {action} = e;
-      if (!action) return console.warn("action remove didn't have an actionId", e)
       const {actionId} = action;
       // console.log('action remove', action);
 
@@ -165,6 +161,15 @@ class CharacterHups extends EventTarget {
         oldHup.unmergeAction(action);
       }
     });
+  }
+  addChatHupAction(text) {
+    this.player.addAction({
+      type: 'chat',
+      text,
+    });
+  }
+  update(timestamp) {
+    // nothing
   }
   destroy() {
     // nothing
