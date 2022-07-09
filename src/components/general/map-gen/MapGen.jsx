@@ -887,7 +887,7 @@ export const MapGen = () => {
             const chunk = terrainApp?.getChunkForPhysicsObject(hoveredPhysicsObject);
             if (chunk) {
               console.log('got chunk', chunk, hoveredPhysicsObject);
-              setSelectedPhysicsObject(hoveredPhysicsObject);
+              setSelectedPhysicsObject(selectedPhysicsObject !== hoveredPhysicsObject ? hoveredPhysicsObject : null);
             } else {
               console.log('did not get chunk', hoveredPhysicsObject);
               setSelectedPhysicsObject(null);
