@@ -48,19 +48,24 @@ const localQuaternion = new THREE.Quaternion();
 const localEuler = new THREE.Euler();
 const localVector4D = new THREE.Vector4();
 const localMatrix = new THREE.Matrix4();
-const localMatrix2 = new THREE.Matrix4();
-const localArray = [];
+// const localMatrix2 = new THREE.Matrix4();
+// const localArray = [];
 // const localColor = new THREE.Color();
 const localRaycaster = new THREE.Raycaster();
+const localPlane = new THREE.Plane();
 
 //
 
 const fakeGeometry = new THREE.BufferGeometry();
 const forwardDirection = new THREE.Vector3(0, 0, -1);
+const oneVector = new THREE.Vector3(1, 1, 1);
+const zeroVector = new THREE.Vector3(0, 0, 0);
+const upVector = new THREE.Vector3(0, 1, 0);
 const downQuaternion = new THREE.Quaternion().setFromAxisAngle(
   new THREE.Vector3(1, 0, 0),
   -Math.PI / 2,
 );
+const renderY = 60;
 
 //
 
@@ -207,11 +212,16 @@ export const MapGen = () => {
     const { state, setState } = useContext( AppContext );
     const [width, setWidth] = useState(window.innerWidth);
     const [height, setHeight] = useState(window.innerHeight); 
-    const [position, setPosition] = useState(new THREE.Vector3(0, 0, 0));
+    const [position, setPosition] = useState(() => new THREE.Vector3(0, 100, 0));
+    const [quaternion, setQuaternion] = useState(() => downQuaternion.clone());
+    // const [target, setTarget] = useState(() => position.clone().add(new THREE.Vector3(0, 0, -10).applyQuaternion(quaternion)));
     const [scale, setScale] = useState(1);
     const [mouseState, setMouseState] = useState(null);
     const [mapScene, setMapScene] = useState(() => new THREE.Scene());
-    const [camera, setCamera] = useState(() => new THREE.OrthographicCamera());
+    const [camera, setCamera] = useState(() => {
+      const camera = new THREE.PerspectiveCamera(45, width / height, 0.1, 10 * 1000);
+      return camera;
+    });
     // const [chunks, setChunks] = useState([]);
     const [hoveredObject, setHoveredObject] = useState(null);
     const [selectedChunk, setSelectedChunk] = useState(null);
@@ -229,6 +239,10 @@ export const MapGen = () => {
     const [terrainApp, setTerrainApp] = useState(null);
     const [highlightPhysicsMesh, setHighlightPhysicsMesh] = useState(null);
     const [loaded, setLoaded] = useState(false);
+
+    const [hoveredPhysicsObject, setHoveredPhysicsObject] = useState(null);
+    const [selectedPhysicsObject, setSelectedPhysicsObject] = useState(null);
+
     const canvasRef = useRef();
 
     //
@@ -256,20 +270,20 @@ export const MapGen = () => {
 
     const updateCamera = () => {
       const renderer = getRenderer();
-      const pixelRatio = renderer.getPixelRatio();
+      // const pixelRatio = renderer.getPixelRatio();
 
-      camera.position.set(-position.x / voxelPixelSize, 100, -position.z / voxelPixelSize);
-      camera.quaternion.copy(downQuaternion);
-      camera.scale.setScalar(pixelRatio * scale);
+      camera.position.copy(position);
+      camera.quaternion.copy(quaternion);
+      // camera.scale.setScalar(pixelRatio * scale);
       camera.updateMatrixWorld();
       
-      camera.left = -(width / voxelPixelSize) / 2;
+      /* camera.left = -(width / voxelPixelSize) / 2;
       camera.right = (width / voxelPixelSize) / 2;
       camera.top = (height / voxelPixelSize) / 2;
       camera.bottom = -(height / voxelPixelSize) / 2;
       camera.near = 0;
       camera.far = 10 * 1000;
-      camera.updateProjectionMatrix();
+      camera.updateProjectionMatrix(); */
     };
     /* const getChunksInRange = () => {
       const chunks = [];
@@ -302,14 +316,12 @@ export const MapGen = () => {
       const renderer = getRenderer();
       const pixelRatio = renderer.getPixelRatio();
       const mouse = localVector2D.set(
-        (e.clientX / pixelRatio / width) * 2 - 1,
-        -(e.clientY / pixelRatio / height) * 2 + 1
+        (e.clientX / width / pixelRatio) * 2 - 1,
+        -(e.clientY / height / pixelRatio) * 2 + 1
       );
       raycaster.setFromCamera(mouse, camera);
     };
     const selectObject = () => {
-      return; // XXX
-
       const now = performance.now();
       const timeDiff = now - lastSelectTime;
       const newSelectedObject = (selectedObject === hoveredObject && timeDiff > 200) ? null : hoveredObject;
@@ -615,24 +627,94 @@ export const MapGen = () => {
     // mousemove
     useEffect(() => {
       function mouseMove(e) {
+        // console.log('mouse move', !!mouseState);
         if (mouseState) {
-          const dx = e.movementX;
-          const dy = e.movementY;
+          const totalX = mouseState.startX - e.clientX;
+          const totalY = mouseState.startY - e.clientY;
 
-          const renderer = getRenderer();
-          const pixelRatio = renderer.getPixelRatio();
-          setPosition(new THREE.Vector3(
-            position.x + dx * scale / pixelRatio,
-            0,
-            position.z + dy * scale / pixelRatio
-          ));
+          // console.log('move button', e.button, e.buttons, e);
+          if (mouseState.buttons & 1) { // left
+            localPlane.setFromNormalAndCoplanarPoint(upVector, localVector.set(0, renderY, 0));
+            
+            const oldEvent = {
+              clientX: mouseState.x,
+              clientY: mouseState.y,
+            };
+            setRaycasterFromEvent(localRaycaster, oldEvent);
+
+            const startIntersectionPoint = localRaycaster.ray.intersectPlane(localPlane, localVector);
+
+            setRaycasterFromEvent(localRaycaster, e);
+            const endIntersectionPoint = localRaycaster.ray.intersectPlane(localPlane, localVector2);
+
+            if (startIntersectionPoint && endIntersectionPoint) {
+              const intersectionDelta = endIntersectionPoint.clone().sub(startIntersectionPoint);
+              const p = position.clone()
+                .sub(intersectionDelta);
+              setPosition(p);
+            }
+
+            /* const p = position.clone()
+              .add(new THREE.Vector3(-dx, dy, 0).applyQuaternion(quaternion));
+            setPosition(p); */
+          } else if (mouseState.buttons & 4) { // middle
+            // setRaycasterFromEvent(localRaycaster, e);
+
+            // const dx = e.movementX;
+            // const dy = e.movementY;
+
+            const {startPosition, startQuaternion, forwardTarget} = mouseState;
+            const offset = startPosition.clone().sub(forwardTarget);
+            // const offsetNegative = offset.clone().negate();
+            /* const target = position.clone()
+              .add(offset.clone().applyQuaternion(quaternion)); */
+            // localEuler.setFromQuaternion(quaternion, 'YXZ');
+            localEuler.setFromQuaternion(startQuaternion, 'YXZ');
+            localEuler.x += -totalY * Math.PI * 2 * 0.001;
+            localEuler.y += -totalX * Math.PI * 2 * 0.001;
+            localQuaternion.setFromEuler(localEuler)
+              // .multiply(startQuaternion);
+
+            const d = startPosition.distanceTo(forwardTarget);
+
+            const p = forwardTarget.clone()
+              .add(
+                new THREE.Vector3(0, 0, d)
+                  .applyQuaternion(localQuaternion)
+              );
+            const q = localQuaternion.clone(); /* new THREE.Quaternion().setFromRotationMatrix(
+              localMatrix.lookAt(
+                p,
+                forwardTarget,
+                upVector
+              )
+            ); */
+            
+            setPosition(p);
+            setQuaternion(q);
+          } else if (mouseState.buttons & 2) { // right
+            /* const p = position.clone();
+            const q = quaternion.clone();
+            
+            setPosition(p);
+            setQuaternion(q); */
+          }
 
           setMouseState({
             x: e.clientX,
             y: e.clientY,
+            // totalX,
+            // totalY,
+            startX: mouseState.startX,
+            startY: mouseState.startY,
+            buttons: mouseState.buttons,
+            startPosition: mouseState.startPosition,
+            startQuaternion: mouseState.startQuaternion,
+            forwardTarget: mouseState.forwardTarget,
             moved: true,
           });
         } else {
+          // console.log('try hit', !!terrainApp, !!highlightPhysicsMesh);
           if (terrainApp && highlightPhysicsMesh) {
             setRaycasterFromEvent(localRaycaster, e);
 
@@ -659,6 +741,8 @@ export const MapGen = () => {
                 highlightPhysicsMesh.material.uniforms.uColor.needsUpdate = true;
                 highlightPhysicsMesh.visible = true;
                 highlightPhysicsMesh.updateMatrixWorld();
+
+                setHoveredPhysicsObject(physicsObject);
               }
             }
           }
@@ -683,40 +767,64 @@ export const MapGen = () => {
       return () => {
         document.removeEventListener('mousemove', mouseMove);
       };
-    }, [mouseState, /* chunks, */ position.x, position.z, scale]);
+    }, [
+      mouseState,
+      /* chunks, */
+      terrainApp,
+      highlightPhysicsMesh,
+      position.x, position.y, position.z,
+      quaternion.x, quaternion.y, quaternion.z, quaternion.w,
+      // target.x, target.y, target.z,
+      scale,
+    ]);
 
     // wheel
     useEffect(() => {
       if ( state.openedPanel === 'MapGenPanel' ) {
         function wheel(e) {
-          setRaycasterFromEvent(localRaycaster, e);
-          localRaycaster.ray.origin.multiplyScalar(voxelPixelSize);
+          if (!mouseState) {
+            setRaycasterFromEvent(localRaycaster, e);
+            // localRaycaster.ray.origin.multiplyScalar(voxelPixelSize);
 
-          const oldScale = scale;
-          const newScale = Math.min(Math.max(scale * (1 + e.deltaY * 0.001), 0.01), 20);
-          const scaleFactor = newScale / oldScale;
+            /* const target = localRaycaster.ray.origin.clone()
+              .add(localRaycaster.ray.direction.clone().multiplyScalar(3)); */
+            
+            const backDirection = localRaycaster.ray.direction.clone()
+              .multiplyScalar(-1);
+            // console.log('got back direction', backDirection.toArray().join(','));
+            const p = position.clone()
+              .add(backDirection.clone().multiplyScalar(e.deltaY * 0.1));
+            setPosition(p);
+
+            /* const oldScale = scale;
+            const newScale = Math.min(Math.max(scale * (1 + e.deltaY * 0.001), 0.01), 20);
+            const scaleFactor = newScale / oldScale;
+            
+            localMatrix.compose(
+              position,
+              downQuaternion,
+              localVector2.setScalar(scaleFactor)
+            )
+              .premultiply(
+                localMatrix2.makeTranslation(localRaycaster.ray.origin.x, 0, localRaycaster.ray.origin.z)
+              )
+              .premultiply(
+                localMatrix2.makeScale(scaleFactor, scaleFactor, scaleFactor)
+              )
+              .premultiply(
+                localMatrix2.makeTranslation(-localRaycaster.ray.origin.x, 0, -localRaycaster.ray.origin.z)
+              )
+              .decompose(localVector, localQuaternion, localVector2);
           
-          localMatrix.compose(
-            position,
-            downQuaternion,
-            localVector2.setScalar(scaleFactor)
-          )
-            .premultiply(
-              localMatrix2.makeTranslation(localRaycaster.ray.origin.x, 0, localRaycaster.ray.origin.z)
-            )
-            .premultiply(
-              localMatrix2.makeScale(scaleFactor, scaleFactor, scaleFactor)
-            )
-            .premultiply(
-              localMatrix2.makeTranslation(-localRaycaster.ray.origin.x, 0, -localRaycaster.ray.origin.z)
-            )
-            .decompose(localVector, localQuaternion, localVector2);
-        
-          setPosition(localVector.clone());
-          setScale(newScale);
-          setMouseState(null);
+            setPosition(localVector.clone());
+            setScale(newScale); */
+
+            setPosition(p);
+            setMouseState(null);
+          }
 
           return false;
+
         }
         registerIoEventHandler('wheel', wheel);
         return () => {
@@ -736,8 +844,17 @@ export const MapGen = () => {
       }
       function mouseUp(e) {
         if ( state.openedPanel === 'MapGenPanel') {
-          if (mouseState && !mouseState.moved && hoveredObject) {
-            selectObject();
+          if (mouseState && !mouseState.moved) {
+            const chunk = terrainApp?.getChunkForPhysicsObject(hoveredPhysicsObject);
+            if (chunk) {
+              console.log('got chunk', chunk, hoveredPhysicsObject);
+
+              setSelectedPhysicsObject(hoveredPhysicsObject);
+            } else {
+              console.log('did not get chunk', hoveredPhysicsObject);
+            }
+            
+            // selectObject();
           }
           setMouseState(null);
           return false;
@@ -794,13 +911,11 @@ export const MapGen = () => {
               components: {
                 seed,
                 physicsInstance,
-                renderPosition: [0, 60, 0],
+                renderPosition: [0, renderY, 0],
                 minLodRange: 3,
                 lods: 1,
               }
             });
-            // console.log('create terrain app', app);
-            // (0, 0, 0);
             mapScene.add(terrainApp);
             setTerrainApp(terrainApp);
           })(),
@@ -816,7 +931,14 @@ export const MapGen = () => {
         // const newChunks = getChunksInRange();
         // setChunks(newChunks);
       }
-    }, [canvasRef, state.openedPanel, width, height, position.x, position.z, scale]);
+    }, [
+      canvasRef,
+      state.openedPanel,
+      width, height,
+      position.x, position.y, position.z,
+      quaternion.x, quaternion.y, quaternion.z, quaternion.w,
+      scale,
+    ]);
 
     // render
     useEffect(() => {
@@ -859,9 +981,23 @@ export const MapGen = () => {
       e.preventDefault();
       e.stopPropagation();
 
+      const startPosition = position.clone();
+      const startQuaternion = quaternion.clone();
+      const forwardTarget = position.clone()
+        .add(new THREE.Vector3(0, 0, -100).applyQuaternion(quaternion)); 
+
+      // console.log('new mouse state');
       setMouseState({
         x: e.clientX,
         y: e.clientY,
+        // totalX: 0,
+        // totalY: 0,
+        startX: e.clientX,
+        startY: e.clientY,
+        buttons: e.buttons,
+        startPosition,
+        startQuaternion,
+        forwardTarget,
         moved: false,
       });
     }
