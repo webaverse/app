@@ -245,7 +245,8 @@ const constructOctreeForLeaf = (position, lod1Range, maxLod) => {
     });
   }
 
-  return {
+  return leafNodes;
+  /* return {
     rootNodes,
     lod1Nodes,
     leafNodes,
@@ -271,7 +272,7 @@ const constructOctreeForLeaf = (position, lod1Range, maxLod) => {
       }
       return remainderNodes;
     },
-  };
+  }; */
 };
 class Task extends EventTarget {
   constructor(maxLodNode) {
@@ -568,9 +569,7 @@ export class LodChunkTracker extends EventTarget {
       }
     }
 
-    this.lastOctree = {
-      leafNodes: [],
-    };
+    this.lastOctreeLeafNodes = [];
     this.liveTasks = [];
   }
   #getCurrentCoord(position, target) {
@@ -590,11 +589,11 @@ export class LodChunkTracker extends EventTarget {
     }, {once: true});
   }
   updateCoord(currentCoord) {
-    const octree = constructOctreeForLeaf(currentCoord, this.minLodRange, 2 ** (this.lods - 1));
+    const octreeLeafNodes = constructOctreeForLeaf(currentCoord, this.minLodRange, 2 ** (this.lods - 1));
 
     let tasks = diffLeafNodes(
-      octree.leafNodes,
-      this.lastOctree.leafNodes,
+      octreeLeafNodes,
+      this.lastOctreeLeafNodes,
     );
 
     const {
@@ -628,7 +627,7 @@ export class LodChunkTracker extends EventTarget {
       }
     }
 
-    this.lastOctree = octree;
+    this.lastOctreeLeafNodes = octreeLeafNodes;
 
     this.dispatchEvent(new MessageEvent('update'));
   }
