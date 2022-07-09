@@ -118,6 +118,14 @@ export default e => {
     }
     return result;
   };
+  app.getChunkForPhysicsObject = physicsObject => {
+    for (const subApp of subApps) {
+      if (subApp.getChunkForPhysicsObject) {
+        return subApp.getChunkForPhysicsObject(physicsObject);
+      }
+    }
+    return null;
+  }
 
   useCleanup(() => {
     for (const subApp of subApps) {
