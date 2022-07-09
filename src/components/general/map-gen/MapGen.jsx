@@ -664,13 +664,13 @@ export const MapGen = () => {
             // const dy = e.movementY;
 
             const {startPosition, startQuaternion, forwardTarget} = mouseState;
-            const offset = startPosition.clone().sub(forwardTarget);
+            // const offset = startPosition.clone().sub(forwardTarget);
             // const offsetNegative = offset.clone().negate();
             /* const target = position.clone()
               .add(offset.clone().applyQuaternion(quaternion)); */
             // localEuler.setFromQuaternion(quaternion, 'YXZ');
             localEuler.setFromQuaternion(startQuaternion, 'YXZ');
-            localEuler.x += -totalY * Math.PI * 2 * 0.001;
+            localEuler.x += totalY * Math.PI * 2 * 0.001;
             localEuler.y += -totalX * Math.PI * 2 * 0.001;
             localQuaternion.setFromEuler(localEuler)
               // .multiply(startQuaternion);
@@ -949,7 +949,7 @@ export const MapGen = () => {
         const ctx = canvas.getContext('2d');
 
         async function render(e) {
-          const {timestamp, timeDiff} = e.data;
+          // const {timestamp, timeDiff} = e.data;
 
           // push state
           const renderer = getRenderer();
@@ -990,8 +990,6 @@ export const MapGen = () => {
       setMouseState({
         x: e.clientX,
         y: e.clientY,
-        // totalX: 0,
-        // totalY: 0,
         startX: e.clientX,
         startY: e.clientY,
         buttons: e.buttons,
