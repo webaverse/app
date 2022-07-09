@@ -1,7 +1,6 @@
 import metaversefile from 'metaversefile';
 // import { useSyncExternalStore } from 'react';
 import * as THREE from 'three';
-import { ReflectorForSSRPass } from 'three/examples/jsm/objects/ReflectorForSSRPass.js';
 // import { terrainVertex, terrainFragment } from './shaders/terrainShader.js';
 // import biomeSpecs from './biomes.js';
 
@@ -300,10 +299,10 @@ class WaterMesh extends BatchedMesh {
 
               
 
-              gl_FragColor = (texA + texB + vec4(0.5, 0.5, 0.5, 0.)) * vec4(0.02, 0.1, 0.16, 0.9);
-              
+              gl_FragColor = (texA + texB + vec4(0.5, 0.5, 0.5, 0.)) * vec4(0.02, 0.1, 0.16, 0.95);
+              gl_FragColor.rgb /= 2.;
               gl_FragColor += vec4( specularHighlight, 0.0 );
-              //gl_FragColor.rgb /= 1.3;
+              
             //   gl_FragColor = vec4(1.0, 0., 0., 0.6);
               ${THREE.ShaderChunk.logdepthbuf_fragment}
           }
@@ -774,6 +773,7 @@ export default (e) => {
     let lastSwimmingHand = null;
 
     let alreadySetComposer = false;
+    let reflectionSsrPass = null;
     
     
     useFrame(({timestamp, timeDiff}) => {
@@ -790,10 +790,17 @@ export default (e) => {
                     for(const pass of renderSettings.findRenderSettings(scene).passes){
                         if(pass.constructor.name === 'SSRPass'){
                             pass._selects.push(generator.getMeshes()[0]);
+                            pass.opacity = 0.5;
+                            pass.maxDistance = 5;
+                            reflectionSsrPass = pass;
+                            console.log(pass)
                         }
                     }
                     alreadySetComposer = true;
                 }
+            }
+            if(reflectionSsrPass){
+                reflectionSsrPass.ssrMaterial.uniforms.uTime.value = timestamp / 1000;
             }
 
             let playerIsOnSurface = false;
