@@ -874,8 +874,18 @@ export const MapGen = () => {
 
     // click
     useEffect(() => {
-      function click(e) {
+      /* function click(e) {
+        console.log('click', e);
         if ( state.openedPanel === 'MapGenPanel' ) {
+          return false;
+        } else {
+          return true;
+        }
+      } */
+      function dblclick(e) {
+        // console.log('dbl click', e);
+        if ( state.openedPanel === 'MapGenPanel' ) {
+          setSelectedPhysicsObject(hoveredPhysicsObject);
           return false;
         } else {
           return true;
@@ -892,8 +902,6 @@ export const MapGen = () => {
               console.log('did not get chunk', hoveredPhysicsObject);
               setSelectedPhysicsObject(null);
             }
-            
-            // selectObject();
           }
           setMouseState(null);
           return false;
@@ -901,13 +909,15 @@ export const MapGen = () => {
           return true;
         }
       }
-      registerIoEventHandler('click', click);
+      // registerIoEventHandler('click', click);
+      registerIoEventHandler('dblclick', dblclick);
       registerIoEventHandler('mouseup', mouseUp);
       return () => {
-        unregisterIoEventHandler('click', click);
+        // unregisterIoEventHandler('click', click);
+        unregisterIoEventHandler('dblclick', dblclick);
         unregisterIoEventHandler('mouseup', mouseUp);
       };
-    }, [ state.openedPanel, mouseState, /*hoveredObject, */ hoveredPhysicsObject ] );
+    }, [ state.openedPanel, terrainApp, mouseState, /*hoveredObject, */ hoveredPhysicsObject, selectedPhysicsObject ] );
 
     // initialize terrain
     useEffect(async () => {
