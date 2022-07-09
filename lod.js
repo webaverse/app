@@ -486,8 +486,6 @@ export class LodChunkTracker extends EventTarget {
       const debugMesh = new THREE.InstancedMesh(instancedCubeGeometry, redMaterial, maxChunks);
       debugMesh.count = 0;
       debugMesh.frustumCulled = false;
-      // scene.add(debugMesh);
-      // window.debugMesh = debugMesh;
       this.debugMesh = debugMesh;
 
       {
@@ -498,8 +496,6 @@ export class LodChunkTracker extends EventTarget {
         const localMatrix = new THREE.Matrix4();
         const localColor = new THREE.Color();
 
-        // const chunks = [];
-        // const removedChunks = [];
         const _getChunkColorHex = chunk => {
           if (chunk.lod === 1) {
             return 0xFF0000;
@@ -515,49 +511,24 @@ export class LodChunkTracker extends EventTarget {
           debugMesh.count = 0;
           for (let i = 0; i < this.chunks.length; i++) {
             const chunk = this.chunks[i];
-            // if (chunk.lod === 2) {
-              localMatrix.compose(
-                localVector.copy(chunk.min)
-                  .multiplyScalar(this.chunkSize),
-                  // .add(localVector2.set(0, -60, 0)),
-                localQuaternion.identity(),
-                localVector3.set(1, 1, 1)
-                  .multiplyScalar(chunk.lod * this.chunkSize * 0.9)
-              );
-              localColor.setHex(_getChunkColorHex(chunk));
-              debugMesh.setMatrixAt(debugMesh.count, localMatrix);
-              debugMesh.setColorAt(debugMesh.count, localColor);
-              debugMesh.count++;
-            // }
+            localMatrix.compose(
+              localVector.copy(chunk.min)
+                .multiplyScalar(this.chunkSize),
+                // .add(localVector2.set(0, -60, 0)),
+              localQuaternion.identity(),
+              localVector3.set(1, 1, 1)
+                .multiplyScalar(chunk.lod * this.chunkSize * 0.9)
+            );
+            localColor.setHex(_getChunkColorHex(chunk));
+            debugMesh.setMatrixAt(debugMesh.count, localMatrix);
+            debugMesh.setColorAt(debugMesh.count, localColor);
+            debugMesh.count++;
           }
           debugMesh.instanceMatrix.needsUpdate = true;
           debugMesh.instanceColor && (debugMesh.instanceColor.needsUpdate = true);
-          // debugMesh.count = chunks.length;
         };
-        /* this.addEventListener('chunkadd', e => {
-          try {
-            const {chunk} = e.data;
-            chunks.push(chunk);
-            _flushChunks();
-          } catch(err) {
-            console.warn(err);
-          }
-        });
-        this.addEventListener('chunkremove', e => {
-          const {chunk} = e.data;
-          const index = chunks.indexOf(chunk);
-          chunks.splice(index, 1);
-          _flushChunks();
-        }); */
         this.addEventListener('update', e => {
           _flushChunks();
-          /* const {newChunk, oldChunks} = e.data;
-          for (const oldChunk of oldChunks) {
-            const index = chunks.indexOf(oldChunk);
-            chunks.splice(index, 1);
-          }
-          chunks.push(newChunk);
-          _flushChunks(); */
         });
       }
     }
@@ -566,15 +537,12 @@ export class LodChunkTracker extends EventTarget {
     this.liveTasks = [];
   }
   #updateChunks(tasks) {
-    // const {task} = e.data;
     for (const task of tasks) {
       if (!task.isNop()) {
         let {newNodes, oldNodes} = task;
         for (const oldNode of oldNodes) {
           const index = this.chunks.findIndex(chunk => chunk.equalsNode(oldNode));
           if (index !== -1) {
-            // const oldChunk = chunks[index];
-            // removedChunks.push(oldChunk);
             this.chunks.splice(index, 1);
           } else {
             debugger;
@@ -605,27 +573,7 @@ export class LodChunkTracker extends EventTarget {
 
     let tasks = diffLeafNodes(octree.leafNodes, this.lastOctree ? this.lastOctree.leafNodes : []);
     sortTasks(tasks, camera.position);
-    
-    // if (lastOctree) {
-      /* for (const task of newTasks) {
-        lastOctree.remapNodes(task.newNodes);
-        lastOctree.remapNodes(task.oldNodes);
-      }
-      for (const task of keepTasks) {
-        lastOctree.remapNodes(task.newNodes);
-        lastOctree.remapNodes(task.oldNodes);
-      } */
-      /* for (const lastTask of lastTasks) {
-        const outrangedNodes = octree.getOutrangedNodes(lastTask.newNodes);
-        for (const node of outrangedNodes) {
-          node.destroy();
-        }
-      } */
-    // }
-    // const newTasks = [];
-    // const keepTasks = [];
-    // const cancelTasks = [];
-    // console.log('check tasks', tasks.length);
+
     for (let i = 0; i < tasks.length; i++) {
       const task = tasks[i];
       if (!task.isNop()) {
@@ -668,8 +616,6 @@ export class LodChunkTracker extends EventTarget {
     // console.log('wait for live tasks 2', this.liveTasks.length);
   }
   update(position) {
-    // if (this.range) throw new Error('lod tracker has range and cannot be updated manually');
-
     const currentCoord = this.#getCurrentCoord(position, localVector).clone();
 
     // if we moved across a chunk boundary, update needed chunks
@@ -678,53 +624,6 @@ export class LodChunkTracker extends EventTarget {
       this.lastUpdateCoord.copy(currentCoord);
     }
   }
-  /* async render(renderSpec) {
-    const waitPromises = [];
-    const waitUntil = p => {
-      waitPromises.push(p);
-    };
-
-    const _emitCoordUpdate = () => {
-      const coord = localVector.copy(range.min)
-        .divideScalar(this.chunkSize);
-      this.dispatchEvent(new MessageEvent('coordupdate', {
-        data: {
-          coord,
-          waitUntil,
-        },
-      }));
-    };
-    _emitCoordUpdate();
-
-    const _addRangeChunks = () => {
-      const minChunkX = Math.floor(range.min.x / this.chunkSize);
-      const minChunkY = this.trackY ? Math.floor(range.min.y / this.chunkSize) : 0;
-      const minChunkZ = Math.floor(range.min.z / this.chunkSize);
-
-      const maxChunkX = Math.floor(range.max.x / this.chunkSize);
-      const maxChunkY = this.trackY ? Math.floor(range.max.y / this.chunkSize) : 1;
-      const maxChunkZ = Math.floor(range.max.z / this.chunkSize);
-
-      const lod = 1;
-      for (let y = minChunkY; y < maxChunkY; y++) {
-        for (let z = minChunkZ; z < maxChunkZ; z++) {
-          for (let x = minChunkX; x < maxChunkX; x++) {
-            const chunk = new LodChunk(x, y, z, lod, onesLodsArray);
-            this.dispatchEvent(new MessageEvent('chunkadd', {
-              data: {
-                chunk,
-                waitUntil,
-              },
-            }));
-            this.chunks.push(chunk);
-          }
-        }
-      }
-    };
-    _addRangeChunks();
-
-    await Promise.all(waitPromises);
-  } */
   destroy() {
     for (const chunk of this.chunks) {
       this.dispatchEvent(new MessageEvent('chunkremove', {
