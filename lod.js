@@ -385,6 +385,36 @@ const sortTasks = (tasks, worldPosition) => {
   });
   return taskDistances.map(taskDistance => taskDistance.task);
 };
+const updateChunks = (oldChunks, tasks) => {
+  const newChunks = oldChunks.slice();
+  
+  for (const task of tasks) {
+    if (!task.isNop()) {
+      let {newNodes, oldNodes} = task;
+      for (const oldNode of oldNodes) {
+        const index = newChunks.findIndex(chunk => chunk.equalsNode(oldNode));
+        if (index !== -1) {
+          newChunks.splice(index, 1);
+        } else {
+          debugger;
+        }
+      }
+      newChunks.push(...newNodes);
+    }
+  }
+
+  const removedChunks = [];
+  for (const oldChunk of removedChunks) {
+    if (!newChunks.some(newChunk => newChunk.min.equals(oldChunk.min))) {
+      removedChunks.push(oldChunk);
+    }
+  }
+
+  return {
+    chunks: newChunks,
+    removedChunks,
+  }
+};
 
 /*
 note: the nunber of lods at each level can be computed with this function:
@@ -536,36 +566,6 @@ export class LodChunkTracker extends EventTarget {
     this.lastOctree = null;
     this.liveTasks = [];
   }
-  #updateChunks(oldChunks, tasks) {
-    const newChunks = oldChunks.slice();
-    
-    for (const task of tasks) {
-      if (!task.isNop()) {
-        let {newNodes, oldNodes} = task;
-        for (const oldNode of oldNodes) {
-          const index = newChunks.findIndex(chunk => chunk.equalsNode(oldNode));
-          if (index !== -1) {
-            newChunks.splice(index, 1);
-          } else {
-            debugger;
-          }
-        }
-        newChunks.push(...newNodes);
-      }
-    }
-
-    const removedChunks = [];
-    for (const oldChunk of removedChunks) {
-      if (!newChunks.some(newChunk => newChunk.min.equals(oldChunk.min))) {
-        removedChunks.push(oldChunk);
-      }
-    }
-
-    return {
-      chunks: newChunks,
-      removedChunks,
-    }
-  }
   #getCurrentCoord(position, target) {
     const cx = Math.floor(position.x / this.chunkSize);
     const cy = this.trackY ? Math.floor(position.y / this.chunkSize) : 0;
@@ -613,7 +613,7 @@ export class LodChunkTracker extends EventTarget {
     const {
       chunks,
       removedChunks,
-    } = this.#updateChunks(this.chunks, tasks);
+    } = updateChunks(this.chunks, tasks);
     this.chunks = chunks;
     // const newChunks = this.chunks.slice();
     for (const oldChunk of removedChunks) {
