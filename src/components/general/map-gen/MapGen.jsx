@@ -1177,6 +1177,7 @@ export const MapGen = () => {
         forwardTarget,
         moved: false,
       });
+      setAnimation(null);
     }
     function goClick(e) {
       e.preventDefault();
