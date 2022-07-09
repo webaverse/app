@@ -536,20 +536,34 @@ export class LodChunkTracker extends EventTarget {
     this.lastOctree = null;
     this.liveTasks = [];
   }
-  #updateChunks(tasks) {
+  #updateChunks(oldChunks, tasks) {
+    const newChunks = oldChunks.slice();
+    
     for (const task of tasks) {
       if (!task.isNop()) {
         let {newNodes, oldNodes} = task;
         for (const oldNode of oldNodes) {
-          const index = this.chunks.findIndex(chunk => chunk.equalsNode(oldNode));
+          const index = newChunks.findIndex(chunk => chunk.equalsNode(oldNode));
           if (index !== -1) {
-            this.chunks.splice(index, 1);
+            newChunks.splice(index, 1);
           } else {
             debugger;
           }
         }
-        this.chunks.push(...newNodes);
+        newChunks.push(...newNodes);
       }
+    }
+
+    const removedChunks = [];
+    for (const oldChunk of removedChunks) {
+      if (!newChunks.some(newChunk => newChunk.min.equals(oldChunk.min))) {
+        removedChunks.push(oldChunk);
+      }
+    }
+
+    return {
+      chunks: newChunks,
+      removedChunks,
     }
   }
   #getCurrentCoord(position, target) {
@@ -596,14 +610,17 @@ export class LodChunkTracker extends EventTarget {
       }
     }
 
-    const oldChunks = this.chunks.slice();
-    this.#updateChunks(tasks);
-
-    const newChunks = this.chunks.slice();
-    for (const oldChunk of oldChunks) {
-      if (!newChunks.some(newChunk => newChunk.min.equals(oldChunk.min))) {
+    const {
+      chunks,
+      removedChunks,
+    } = this.#updateChunks(this.chunks, tasks);
+    this.chunks = chunks;
+    // const newChunks = this.chunks.slice();
+    for (const oldChunk of removedChunks) {
+      this.emitChunkDestroy(oldChunk);
+      /* if (!newChunks.some(newChunk => newChunk.min.equals(oldChunk.min))) {
         this.emitChunkDestroy(oldChunk);
-      }
+      } */
     }
 
     this.lastOctree = octree;
