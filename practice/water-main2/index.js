@@ -299,7 +299,7 @@ class WaterMesh extends BatchedMesh {
 
               
 
-              gl_FragColor = (texA + texB + vec4(0.5, 0.5, 0.5, 0.)) * vec4(0.02, 0.1, 0.16, 0.95);
+              gl_FragColor = (texA + texB + vec4(0.5, 0.5, 0.5, 0.)) * vec4(0.02, 0.1, 0.16, 0.97);
               gl_FragColor.rgb /= 2.;
               gl_FragColor += vec4( specularHighlight, 0.0 );
               
@@ -790,8 +790,9 @@ export default (e) => {
                     for(const pass of renderSettings.findRenderSettings(scene).passes){
                         if(pass.constructor.name === 'SSRPass'){
                             pass._selects.push(generator.getMeshes()[0]);
-                            pass.opacity = 0.5;
+                            pass.opacity = 0.08;
                             pass.maxDistance = 5;
+                            // pass.thickness = 0.5;
                             reflectionSsrPass = pass;
                             console.log(pass)
                         }
@@ -801,6 +802,8 @@ export default (e) => {
             }
             if(reflectionSsrPass){
                 reflectionSsrPass.ssrMaterial.uniforms.uTime.value = timestamp / 1000;
+                reflectionSsrPass.ssrMaterial.uniforms.distortionTexture.value = flowmapTexture;
+                
             }
 
             let playerIsOnSurface = false;
