@@ -93,9 +93,11 @@ class Universe extends EventTarget {
     await this.enterWorld(this.currentWorld);
   }
   async pushUrl(u) {
-    loadingManager.startLoading();
     history.pushState({}, '', u);
     window.dispatchEvent(new MessageEvent('pushstate'));
+    const appCount = await this.estimateLoad()
+    loadingManager.setTotalAppsCount(appCount);
+    loadingManager.startLoading();
     await this.handleUrlUpdate();
     loadingManager.requestLoadEnd();
   }
@@ -119,6 +121,37 @@ class Universe extends EventTarget {
           }, {once: true});
         });
       }
+    }
+  }
+
+  async estimateLoad() {
+    try {
+      const worldSpec = parseQuery(location.search);
+      const {src, room} = worldSpec;
+      let srcUrl = src
+      if (!room) {
+        if (srcUrl === '') {
+          // nothing
+        } else if (srcUrl !== undefined && srcUrl.match(/^weba:\/\/(-?[0-9\.]+),(-?[0-9\.]+)(?:\/|$)/i)) {
+          // nothing
+        } else {
+          //TODO: this is the duplicate function from totum/scn.js
+          if (srcUrl == undefined) srcUrl = './scenes/' + sceneNames[0]
+          const res = await fetch(srcUrl);
+          const j = await res.json();
+          const {objects} = j;
+          return objects
+        }
+      } else {
+        const roomUrl = this.getWorldsHost() + room;
+        const res = await fetch(roomUrl);
+        const data = await res.json();
+        if (data && data.apps) return data.apps
+        return []
+      }
+    } catch (error) {
+      console.error(error)
+      return []
     }
   }
 }
