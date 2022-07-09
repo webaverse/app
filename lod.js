@@ -648,10 +648,12 @@ export class LodChunkTracker extends EventTarget {
   }
   destroy() {
     for (const chunk of this.chunks) {
-      this.dispatchEvent(new MessageEvent('chunkremove', {
+      const task = new Task(chunk);
+      task.oldNodes.push(chunk);
+      
+      this.dispatchEvent(new MessageEvent('chunkrelod', {
         data: {
-          chunk,
-          waitUntil: nop,
+          task,
         },
       }));
     }
