@@ -1,7 +1,7 @@
 import * as THREE from 'three';
 import metaversefile from 'metaversefile';
 import generateStats from './procgen/stats.js';
-
+import { getVoucherFromServer } from './src/hooks/voucherHelpers'
 const r = () => -1 + Math.random() * 2;
 
 class DropManager extends EventTarget {
@@ -10,7 +10,7 @@ class DropManager extends EventTarget {
 
     this.claims = [];
   }
-  createDropApp({
+  async createDropApp({
     start_url,
     components = [],
     type = 'minor', // 'minor', 'major', 'key'
@@ -24,6 +24,18 @@ class DropManager extends EventTarget {
     voucher = 'fakeVoucher', // XXX should really throw if no voucher
   }) {
     // const r = () => (-0.5+Math.random())*2;
+    if(voucher == 'fakeVoucher') voucher = await getVoucherFromServer();
+
+    //     const dropComponent = {
+    //         key: 'drop',
+    //         value: {
+    //             type,
+    //             voucher,
+    //             velocity: velocity.toArray(),
+    //             angularVelocity: angularVelocity.toArray(),
+    //         },
+    //     };
+    // }
     const dropComponent = {
       key: 'drop',
       value: {
@@ -33,8 +45,12 @@ class DropManager extends EventTarget {
         angularVelocity: angularVelocity.toArray(),
       },
     };
+    const newVoucher = {
+        key: 'voucher',
+        value: voucher
+    }
+    components = [...components, newVoucher]
     components.push(dropComponent);
-    
     const trackedApp = metaversefile.addTrackedApp(
       start_url,
       position,
@@ -55,6 +71,7 @@ class DropManager extends EventTarget {
       level,
       voucher,
     };
+    console.log("voucher", voucher)
     this.claims.push(claim);
 
     this.dispatchEvent(new MessageEvent('claimschange', {
@@ -64,6 +81,7 @@ class DropManager extends EventTarget {
     }));
   }
   pickupApp(app) {
+    console.log("app", app)
     this.addClaim(app.name, app.contentId, app.getComponent('voucher'));
   }
   dropToken(contractAddress, tokenId, voucher) {
