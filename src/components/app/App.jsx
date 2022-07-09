@@ -49,7 +49,8 @@ const _startApp = async ( weba, canvas ) => {
     weba.bindCanvas( canvas );
 
     await weba.waitForLoad();
-    universe.handleUrlUpdate();
+    // TODO: move this to webaverse.js
+    // universe.handleUrlUpdate();
     await weba.startLoop();
 
     const localPlayer = metaversefileApi.useLocalPlayer();
