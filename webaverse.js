@@ -84,7 +84,14 @@ export default class Webaverse extends EventTarget {
   }
 
   async init() {
-    const loadAppCount = await universe.estimateLoad()
+    const { count, detail } = await universe.estimateLoad();
+
+    window.dispatchEvent(
+      new MessageEvent("detailChanged", {
+        data: detail,
+      })
+    );
+
     const modulePromises = [
       physx.waitForLoad(),
       physxWorkerManager.waitForLoad(),
@@ -103,7 +110,7 @@ export default class Webaverse extends EventTarget {
       await Promise.all(modulePromises);
     })();
     loadingManager.setModulePromises(modulePromises);
-    loadingManager.setTotalAppsCount(loadAppCount);
+    loadingManager.setTotalAppsCount(count);
   }
 
   waitForLoad() {
