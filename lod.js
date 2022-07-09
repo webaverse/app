@@ -568,18 +568,20 @@ export class LodChunkTracker extends EventTarget {
   #updateChunks(tasks) {
     // const {task} = e.data;
     for (const task of tasks) {
-      let {newNodes, oldNodes} = task;
-      for (const oldNode of oldNodes) {
-        const index = this.chunks.findIndex(chunk => chunk.equalsNode(oldNode));
-        if (index !== -1) {
-          // const oldChunk = chunks[index];
-          // removedChunks.push(oldChunk);
-          this.chunks.splice(index, 1);
-        } else {
-          debugger;
+      if (!task.isNop()) {
+        let {newNodes, oldNodes} = task;
+        for (const oldNode of oldNodes) {
+          const index = this.chunks.findIndex(chunk => chunk.equalsNode(oldNode));
+          if (index !== -1) {
+            // const oldChunk = chunks[index];
+            // removedChunks.push(oldChunk);
+            this.chunks.splice(index, 1);
+          } else {
+            debugger;
+          }
         }
+        this.chunks.push(...newNodes);
       }
-      this.chunks.push(...newNodes);
     }
   }
   #getCurrentCoord(position, target) {
@@ -636,7 +638,6 @@ export class LodChunkTracker extends EventTarget {
       }
     }
 
-    // const oldChunks = this.chunks.slice();
     for (const task of tasks) {
       if (!task.isNop()) {
         this.dispatchEvent(new MessageEvent('chunkrelod', {
@@ -648,8 +649,7 @@ export class LodChunkTracker extends EventTarget {
     }
 
     const oldChunks = this.chunks.slice();
-    const nonNopTasks = tasks.filter(task => !task.isNop());
-    this.#updateChunks(nonNopTasks);
+    this.#updateChunks(tasks);
 
     const newChunks = this.chunks.slice();
     for (const oldChunk of oldChunks) {
