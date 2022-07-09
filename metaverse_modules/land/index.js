@@ -93,17 +93,41 @@ export default e => {
     });
   }
 
+  app.addEventListener('componentsupdate', e => {
+    const {keys} = e;
+    const components = {};
+    for (const key of keys) {
+      components[key] = app.getComponent(key);
+    }
+
+    for (const subApp of subApps) {
+      subApp.setComponents(components);
+    }
+  });
+
   const subApps = [];
   const loadPromise = (async () => {
     await Promise.all(landApps.map(async spec => {
       const {start_url, components} = spec;
       const components2 = (components ?? []).concat(passComponents);
+
+      const keys = [];
+      const componentsupdate = (e) => {
+        keys.push(...e.keys);
+      };
+      app.addEventListener('componentsupdate', componentsupdate);
+      
       const subApp = await metaversefile.createAppAsync({
         start_url,
         parent: app,
         components: components2,
       });
       subApps.push(subApp);
+
+      app.removeEventListener('componentsupdate', componentsupdate);
+      for (const key of keys) {
+        subApp.setComponent(key, app.getComponent(key));
+      }
     }));
   })();
   if (wait) {

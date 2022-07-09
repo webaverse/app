@@ -279,23 +279,35 @@ export const MapGen = () => {
 
     };
 
+    const _updateTerrainApp = () => {
+      if (terrainApp) {
+        const renderPosition = camera.position//.clone()
+          // .add(new THREE.Vector3(0, 0, -16).applyQuaternion(camera.quaternion))
+          .toArray();
+        terrainApp.setComponent('renderPosition', renderPosition);
+      }
+    };
     const setPosition = p => {
       camera.position.copy(p);
       camera.updateMatrixWorld();
+      
+      _updateTerrainApp();
     };
     const setQuaternion = q => {
       camera.quaternion.copy(q);
       camera.updateMatrixWorld();
+    
+      _updateTerrainApp();
     };
     const updateCamera = () => {
       debugger;
       const renderer = getRenderer();
-      const pixelRatio = renderer.getPixelRatio();
+      // const pixelRatio = renderer.getPixelRatio();
 
-      camera.position.copy(position);
-      camera.quaternion.copy(quaternion);
+      setPosition(position);
+      setQuaternion(quaternion);
       // camera.scale.setScalar(pixelRatio * scale);
-      camera.updateMatrixWorld();
+      // camera.updateMatrixWorld();
       
       /* camera.left = -(width / voxelPixelSize) / 2;
       camera.right = (width / voxelPixelSize) / 2;
@@ -1068,11 +1080,15 @@ export const MapGen = () => {
             const now = performance.now();
             const factor = (now - animation.startTime) / (animation.endTime - animation.startTime);
 
-            camera.position.copy(animation.startPosition)
-              .lerp(animation.endPosition, factor);
-            camera.quaternion.copy(animation.startQuaternion)
-              .slerp(animation.endQuaternion, factor);
-            camera.updateMatrixWorld();
+            setPosition(
+              animation.startPosition.clone()
+                .lerp(animation.endPosition, factor)
+            );
+            setQuaternion(
+              animation.startQuaternion.clone()
+                .slerp(animation.endQuaternion, factor)
+            );
+            // camera.updateMatrixWorld();
 
             if (factor >= 1) {
               setAnimation(null);
