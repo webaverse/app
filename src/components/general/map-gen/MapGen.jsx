@@ -237,7 +237,8 @@ export const MapGen = () => {
     const [magicMeshApp, setMagicMeshApp] = useState(null);
     const [limitMeshApp, setLimitMeshApp] = useState(null);
     const [terrainApp, setTerrainApp] = useState(null);
-    const [highlightPhysicsMesh, setHighlightPhysicsMesh] = useState(null);
+    const [hoveredPhysicsMesh, setHighlightPhysicsMesh] = useState(null);
+    const [selectedPhysicsMesh, setSelectedPhysicsMesh] = useState(null);
     const [loaded, setLoaded] = useState(false);
 
     const [hoveredPhysicsObject, setHoveredPhysicsObject] = useState(null);
@@ -721,11 +722,9 @@ export const MapGen = () => {
           let physicsObject = null;
           let hoveredPoint = null;
 
-          // console.log('try hit', !!terrainApp, !!highlightPhysicsMesh);
-          if (terrainApp && highlightPhysicsMesh) {
+          // console.log('try hit', !!terrainApp, !!hoveredPhysicsMesh);
+          if (terrainApp) {
             setRaycasterFromEvent(localRaycaster, e);
-
-            highlightPhysicsMesh.visible = false;
 
             localQuaternion.setFromUnitVectors(forwardDirection, localRaycaster.ray.direction);
             const raycastResult = physicsScene.raycast(localRaycaster.ray.origin, localQuaternion);
@@ -735,20 +734,6 @@ export const MapGen = () => {
               const physicsObjects = terrainApp.getPhysicsObjects();
               physicsObject = physicsObjects.find(physicsObject => physicsObject.physicsId === physicsId);
               if (physicsObject) {
-                const {physicsMesh} = physicsObject;
-                const timestamp = performance.now();
-
-                highlightPhysicsMesh.geometry = physicsMesh.geometry;
-                highlightPhysicsMesh.matrixWorld.copy(physicsMesh.matrixWorld)
-                  .decompose(highlightPhysicsMesh.position, highlightPhysicsMesh.quaternion, highlightPhysicsMesh.scale);
-        
-                highlightPhysicsMesh.material.uniforms.uTime.value = (timestamp%1500)/1500;
-                highlightPhysicsMesh.material.uniforms.uTime.needsUpdate = true;
-                highlightPhysicsMesh.material.uniforms.uColor.value.setHex(buildMaterial.uniforms.uColor.value.getHex());
-                highlightPhysicsMesh.material.uniforms.uColor.needsUpdate = true;
-                highlightPhysicsMesh.visible = true;
-                highlightPhysicsMesh.updateMatrixWorld();
-
                 hoveredPoint = new THREE.Vector3().fromArray(raycastResult.point);
               }
             }
@@ -781,12 +766,56 @@ export const MapGen = () => {
       mouseState,
       /* chunks, */
       terrainApp,
-      highlightPhysicsMesh,
       position.x, position.y, position.z,
       quaternion.x, quaternion.y, quaternion.z, quaternion.w,
       // target.x, target.y, target.z,
       scale,
     ]);
+
+    // physics objects
+    useEffect(() => {
+      if (hoveredPhysicsMesh) {
+        if (hoveredPhysicsObject) {
+          const {physicsMesh} = hoveredPhysicsObject;
+          const timestamp = performance.now();
+
+          hoveredPhysicsMesh.geometry = physicsMesh.geometry;
+          hoveredPhysicsMesh.matrixWorld.copy(physicsMesh.matrixWorld)
+            .decompose(hoveredPhysicsMesh.position, hoveredPhysicsMesh.quaternion, hoveredPhysicsMesh.scale);
+
+          hoveredPhysicsMesh.material.uniforms.uTime.value = (timestamp%1500)/1500;
+          hoveredPhysicsMesh.material.uniforms.uTime.needsUpdate = true;
+          hoveredPhysicsMesh.material.uniforms.uColor.value.setHex(buildMaterial.uniforms.uColor.value.getHex());
+          hoveredPhysicsMesh.material.uniforms.uColor.needsUpdate = true;
+          hoveredPhysicsMesh.visible = true;
+          hoveredPhysicsMesh.updateMatrixWorld();
+        } else {
+          hoveredPhysicsMesh.visible = false;
+        }
+      }
+    }, [hoveredPhysicsMesh, hoveredPhysicsObject]);
+
+    useEffect(() => {
+      if (selectedPhysicsMesh) {
+        if (selectedPhysicsObject) {
+          const {physicsMesh} = selectedPhysicsObject;
+          const timestamp = performance.now();
+
+          selectedPhysicsMesh.geometry = physicsMesh.geometry;
+          selectedPhysicsMesh.matrixWorld.copy(physicsMesh.matrixWorld)
+            .decompose(selectedPhysicsMesh.position, selectedPhysicsMesh.quaternion, selectedPhysicsMesh.scale);
+
+          selectedPhysicsMesh.material.uniforms.uTime.value = (timestamp%1500)/1500;
+          selectedPhysicsMesh.material.uniforms.uTime.needsUpdate = true;
+          selectedPhysicsMesh.material.uniforms.uColor.value.setHex(0x66bb6a);
+          selectedPhysicsMesh.material.uniforms.uColor.needsUpdate = true;
+          selectedPhysicsMesh.visible = true;
+          selectedPhysicsMesh.updateMatrixWorld();
+        } else {
+          selectedPhysicsMesh.visible = false;
+        }
+      }
+    }, [selectedPhysicsMesh, selectedPhysicsObject]);
 
     // wheel
     useEffect(() => {
@@ -892,14 +921,22 @@ export const MapGen = () => {
         directionalLight.position.set(1, 2, 3);
         mapScene.add(directionalLight);
 
-        // highlight physics mesh
-        const highlightPhysicsMesh = new THREE.Mesh(
+        // highlight physics meshes
+        const hoveredPhysicsMesh = new THREE.Mesh(
           fakeGeometry,
           buildMaterial.clone()
         );
-        highlightPhysicsMesh.frustumCulled = false;
-        mapScene.add(highlightPhysicsMesh);
-        setHighlightPhysicsMesh(highlightPhysicsMesh);
+        hoveredPhysicsMesh.frustumCulled = false;
+        mapScene.add(hoveredPhysicsMesh);
+        setHighlightPhysicsMesh(hoveredPhysicsMesh);
+
+        const selectedPhysicsMesh = new THREE.Mesh(
+          fakeGeometry,
+          buildMaterial.clone()
+        );
+        selectedPhysicsMesh.frustumCulled = false;
+        mapScene.add(selectedPhysicsMesh);
+        setSelectedPhysicsMesh(selectedPhysicsMesh);
 
         // apps
         await Promise.all([
