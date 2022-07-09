@@ -202,6 +202,7 @@ export default (app, component) => {
       const leftHandBone = player.avatar.foundModelBones[Avatar.modelBoneRenames['rightHand']];
       leftHandBone.matrixWorld
         .decompose(app.position, localQuaternion, localVector2);
+      // app.position.add(position);
 
       const rightHandBone = player.avatar.foundModelBones[Avatar.modelBoneRenames['leftHand']];
       rightHandBone.matrixWorld
