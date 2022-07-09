@@ -241,6 +241,7 @@ export const MapGen = () => {
     const [loaded, setLoaded] = useState(false);
 
     const [hoveredPhysicsObject, setHoveredPhysicsObject] = useState(null);
+    const [hoveredPoint, setHoveredPoint] = useState(null);
     const [selectedPhysicsObject, setSelectedPhysicsObject] = useState(null);
 
     const canvasRef = useRef();
@@ -633,7 +634,10 @@ export const MapGen = () => {
           const totalY = mouseState.startY - e.clientY;
 
           // console.log('move button', e.button, e.buttons, e);
-          if (mouseState.buttons & 1) { // left
+          if (
+            !!(mouseState.buttons & 1) || // left click
+            (e.shiftKey && !!(mouseState.buttons & 4)) // shift + right click
+          ) {
             localPlane.setFromNormalAndCoplanarPoint(upVector, localVector.set(0, renderY, 0));
             
             const oldEvent = {
@@ -657,7 +661,7 @@ export const MapGen = () => {
             /* const p = position.clone()
               .add(new THREE.Vector3(-dx, dy, 0).applyQuaternion(quaternion));
             setPosition(p); */
-          } else if (mouseState.buttons & 4) { // middle
+          } else if (mouseState.buttons & 4) { // middle click
             // setRaycasterFromEvent(localRaycaster, e);
 
             // const dx = e.movementX;
@@ -671,7 +675,7 @@ export const MapGen = () => {
             // localEuler.setFromQuaternion(quaternion, 'YXZ');
             localEuler.setFromQuaternion(startQuaternion, 'YXZ');
             localEuler.x += totalY * Math.PI * 2 * 0.001;
-            localEuler.y += -totalX * Math.PI * 2 * 0.001;
+            localEuler.y += totalX * Math.PI * 2 * 0.001;
             localQuaternion.setFromEuler(localEuler)
               // .multiply(startQuaternion);
 
@@ -692,7 +696,7 @@ export const MapGen = () => {
             
             setPosition(p);
             setQuaternion(q);
-          } else if (mouseState.buttons & 2) { // right
+          } else if (mouseState.buttons & 2) { // right click
             /* const p = position.clone();
             const q = quaternion.clone();
             
@@ -714,6 +718,9 @@ export const MapGen = () => {
             moved: true,
           });
         } else {
+          let physicsObject = null;
+          let hoveredPoint = null;
+
           // console.log('try hit', !!terrainApp, !!highlightPhysicsMesh);
           if (terrainApp && highlightPhysicsMesh) {
             setRaycasterFromEvent(localRaycaster, e);
@@ -723,12 +730,12 @@ export const MapGen = () => {
             localQuaternion.setFromUnitVectors(forwardDirection, localRaycaster.ray.direction);
             const raycastResult = physicsScene.raycast(localRaycaster.ray.origin, localQuaternion);
             if (raycastResult) {
+              // window.raycastResult = raycastResult;
               const physicsId = raycastResult.objectId;
               const physicsObjects = terrainApp.getPhysicsObjects();
-              const physicsObject = physicsObjects.find(physicsObject => physicsObject.physicsId === physicsId);
+              physicsObject = physicsObjects.find(physicsObject => physicsObject.physicsId === physicsId);
               if (physicsObject) {
                 const {physicsMesh} = physicsObject;
-                // const physicsGeometry = physicsScene.getGeometryForPhysicsId(physicsId);
                 const timestamp = performance.now();
 
                 highlightPhysicsMesh.geometry = physicsMesh.geometry;
@@ -742,10 +749,13 @@ export const MapGen = () => {
                 highlightPhysicsMesh.visible = true;
                 highlightPhysicsMesh.updateMatrixWorld();
 
-                setHoveredPhysicsObject(physicsObject);
+                hoveredPoint = new THREE.Vector3().fromArray(raycastResult.point);
               }
             }
           }
+
+          setHoveredPhysicsObject(physicsObject);
+          setHoveredPoint(hoveredPoint);
 
           /* localArray.length = 0;
           const intersections = localRaycaster.intersectObjects(mapScene.children, false, localArray);
@@ -868,7 +878,7 @@ export const MapGen = () => {
         unregisterIoEventHandler('click', click);
         unregisterIoEventHandler('mouseup', mouseUp);
       };
-    }, [ state.openedPanel, mouseState, hoveredObject ] );
+    }, [ state.openedPanel, mouseState, /*hoveredObject, */ hoveredPhysicsObject ] );
 
     // initialize terrain
     useEffect(async () => {
