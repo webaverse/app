@@ -212,14 +212,17 @@ export const MapGen = () => {
     const { state, setState } = useContext( AppContext );
     const [width, setWidth] = useState(window.innerWidth);
     const [height, setHeight] = useState(window.innerHeight); 
-    const [position, setPosition] = useState(() => new THREE.Vector3(0, 100, 0));
-    const [quaternion, setQuaternion] = useState(() => downQuaternion.clone());
+    // const [position, setPosition] = useState(() => new THREE.Vector3(0, 100, 0));
+    // const [quaternion, setQuaternion] = useState(() => downQuaternion.clone());
     // const [target, setTarget] = useState(() => position.clone().add(new THREE.Vector3(0, 0, -10).applyQuaternion(quaternion)));
-    const [scale, setScale] = useState(1);
+    // const [scale, setScale] = useState(1);
     const [mouseState, setMouseState] = useState(null);
     const [mapScene, setMapScene] = useState(() => new THREE.Scene());
     const [camera, setCamera] = useState(() => {
       const camera = new THREE.PerspectiveCamera(45, width / height, 0.1, 10 * 1000);
+      camera.position.y = 100;
+      camera.quaternion.copy(downQuaternion);
+      camera.updateMatrixWorld();
       return camera;
     });
     // const [chunks, setChunks] = useState([]);
@@ -245,12 +248,18 @@ export const MapGen = () => {
     const [hoveredPoint, setHoveredPoint] = useState(null);
     const [selectedPhysicsObject, setSelectedPhysicsObject] = useState(null);
 
+    const [animation, setAnimation] = useState(null);
+
     const canvasRef = useRef();
 
     //
 
     const open = state.openedPanel === 'MapGenPanel';
     const selectedObjectName = selectedObject ? selectedObject.name : '';
+
+    // const renderer = getRenderer();
+    // const pixelRatio = renderer.getPixelRatio();
+    const pixelRatio = window.devicePixelRatio;
 
     //
     
@@ -270,9 +279,18 @@ export const MapGen = () => {
 
     };
 
+    const setPosition = p => {
+      camera.position.copy(p);
+      camera.updateMatrixWorld();
+    };
+    const setQuaternion = q => {
+      camera.quaternion.copy(q);
+      camera.updateMatrixWorld();
+    };
     const updateCamera = () => {
+      debugger;
       const renderer = getRenderer();
-      // const pixelRatio = renderer.getPixelRatio();
+      const pixelRatio = renderer.getPixelRatio();
 
       camera.position.copy(position);
       camera.quaternion.copy(quaternion);
@@ -318,8 +336,8 @@ export const MapGen = () => {
       const renderer = getRenderer();
       const pixelRatio = renderer.getPixelRatio();
       const mouse = localVector2D.set(
-        (e.clientX / width / pixelRatio) * 2 - 1,
-        -(e.clientY / height / pixelRatio) * 2 + 1
+        (e.clientX / width) * 2 - 1,
+        -(e.clientY / height) * 2 + 1
       );
       raycaster.setFromCamera(mouse, camera);
     };
@@ -654,7 +672,7 @@ export const MapGen = () => {
 
             if (startIntersectionPoint && endIntersectionPoint) {
               const intersectionDelta = endIntersectionPoint.clone().sub(startIntersectionPoint);
-              const p = position.clone()
+              const p = camera.position.clone()
                 .sub(intersectionDelta);
               setPosition(p);
             }
@@ -766,10 +784,10 @@ export const MapGen = () => {
       mouseState,
       /* chunks, */
       terrainApp,
-      position.x, position.y, position.z,
-      quaternion.x, quaternion.y, quaternion.z, quaternion.w,
+      // position.x, position.y, position.z,
+      // quaternion.x, quaternion.y, quaternion.z, quaternion.w,
       // target.x, target.y, target.z,
-      scale,
+      // scale,
     ]);
 
     // physics objects
@@ -831,7 +849,7 @@ export const MapGen = () => {
             const backDirection = localRaycaster.ray.direction.clone()
               .multiplyScalar(-1);
             // console.log('got back direction', backDirection.toArray().join(','));
-            const p = position.clone()
+            const p = camera.position.clone()
               .add(backDirection.clone().multiplyScalar(e.deltaY * 0.1));
             setPosition(p);
 
@@ -870,7 +888,7 @@ export const MapGen = () => {
           unregisterIoEventHandler('wheel', wheel);
         };
       }
-    }, [state.openedPanel, mouseState, position.x, position.z, scale]);
+    }, [state.openedPanel, mouseState]);
 
     // click
     useEffect(() => {
@@ -886,6 +904,46 @@ export const MapGen = () => {
         // console.log('dbl click', e);
         if ( state.openedPanel === 'MapGenPanel' ) {
           setSelectedPhysicsObject(hoveredPhysicsObject);
+
+          if (hoveredPhysicsObject) {
+            const {physicsMesh} = hoveredPhysicsObject;
+            const {geometry} = physicsMesh;
+            const {boundingBox} = geometry;
+
+            // window.hoveredPhysicsObject = hoveredPhysicsObject;
+            
+            const center = boundingBox.getCenter(new THREE.Vector3());
+            const offset = camera.position.clone().sub(center);
+
+            const endPosition = center.clone()
+              .add(
+                offset.clone()
+                  .normalize()
+                  .multiplyScalar(16)
+              );
+            const endQuaternion = new THREE.Quaternion().setFromRotationMatrix(
+              new THREE.Matrix4()
+                .lookAt(
+                  camera.position,
+                  center,
+                  upVector
+                )
+            );
+
+            const now = performance.now();
+            const animation = {
+              startTime: now,
+              endTime: now + 1000,
+              startPosition: camera.position.clone(),
+              startQuaternion: camera.quaternion.clone(),
+              endPosition,
+              endQuaternion,
+            };
+            setAnimation(animation);
+          } else {
+            setAnimation(null);
+          }
+
           return false;
         } else {
           return true;
@@ -896,10 +954,10 @@ export const MapGen = () => {
           if (mouseState && !mouseState.moved) {
             const chunk = terrainApp?.getChunkForPhysicsObject(hoveredPhysicsObject);
             if (chunk) {
-              console.log('got chunk', chunk, hoveredPhysicsObject);
+              // console.log('got chunk', chunk, hoveredPhysicsObject);
               setSelectedPhysicsObject(selectedPhysicsObject !== hoveredPhysicsObject ? hoveredPhysicsObject : null);
             } else {
-              console.log('did not get chunk', hoveredPhysicsObject);
+              // console.log('did not get chunk', hoveredPhysicsObject);
               setSelectedPhysicsObject(null);
             }
           }
@@ -983,7 +1041,7 @@ export const MapGen = () => {
     // update camera
     useEffect(() => {
       if (state.openedPanel === 'MapGenPanel') {
-        updateCamera();
+        // updateCamera();
 
         // const newChunks = getChunksInRange();
         // setChunks(newChunks);
@@ -992,21 +1050,39 @@ export const MapGen = () => {
       canvasRef,
       state.openedPanel,
       width, height,
-      position.x, position.y, position.z,
-      quaternion.x, quaternion.y, quaternion.z, quaternion.w,
-      scale,
+      // position.x, position.y, position.z,
+      // quaternion.x, quaternion.y, quaternion.z, quaternion.w,
+      // scale,
     ]);
 
     // render
     useEffect(() => {
       const canvas = canvasRef.current;
       if (canvas && state.openedPanel === 'MapGenPanel') {
-        updateCamera();
+        // updateCamera();
 
         const ctx = canvas.getContext('2d');
 
-        async function render(e) {
+        function update() {
+          if (animation) {
+            const now = performance.now();
+            const factor = (now - animation.startTime) / (animation.endTime - animation.startTime);
+
+            camera.position.copy(animation.startPosition)
+              .lerp(animation.endPosition, factor);
+            camera.quaternion.copy(animation.startQuaternion)
+              .slerp(animation.endQuaternion, factor);
+            camera.updateMatrixWorld();
+
+            if (factor >= 1) {
+              setAnimation(null);
+            }
+          }
+        }
+        function render(e) {
           // const {timestamp, timeDiff} = e.data;
+
+          update();
 
           // push state
           const renderer = getRenderer();
@@ -1021,7 +1097,7 @@ export const MapGen = () => {
           renderer.clear();
           renderer.render(mapScene, camera);
 
-          ctx.clearRect(0, 0, width, height);
+          ctx.clearRect(0, 0, width * pixelRatio, height * pixelRatio);
           ctx.drawImage(renderer.domElement, 0, 0);
 
           // pop state
@@ -1032,30 +1108,30 @@ export const MapGen = () => {
           world.appManager.removeEventListener('frame', render);
         };
       }
-    }, [canvasRef, state.openedPanel, width, height, /* chunks, */ position.x, position.z, scale]);
+    }, [canvasRef, state.openedPanel, width, height, /* chunks, */ animation]);
 
     function mouseDown(e) {
       e.preventDefault();
       e.stopPropagation();
 
-      const startPosition = position.clone();
-      const startQuaternion = quaternion.clone();
+      const startPosition = camera.position.clone();
+      const startQuaternion = camera.quaternion.clone();
       const forwardTarget = (() => {
         if (hoveredPoint) {
-          const distance = position.distanceTo(hoveredPoint);
-          return position.clone()
-            .add(new THREE.Vector3(0, 0, -distance).applyQuaternion(quaternion));
+          const distance = camera.position.distanceTo(hoveredPoint);
+          return camera.position.clone()
+            .add(new THREE.Vector3(0, 0, -distance).applyQuaternion(camera.quaternion));
         } else {
           localPlane.setFromNormalAndCoplanarPoint(upVector, localVector.set(0, renderY, 0));
           setRaycasterFromEvent(localRaycaster, e);
           const startIntersectionPoint = localRaycaster.ray.intersectPlane(localPlane, localVector);
           if (startIntersectionPoint) {
-            const distance = position.distanceTo(startIntersectionPoint);
-            return position.clone()
-              .add(new THREE.Vector3(0, 0, -distance).applyQuaternion(quaternion));
+            const distance = camera.position.distanceTo(startIntersectionPoint);
+            return camera.position.clone()
+              .add(new THREE.Vector3(0, 0, -distance).applyQuaternion(camera.quaternion));
           } else {
-            return position.clone()
-              .add(new THREE.Vector3(0, 0, -100).applyQuaternion(quaternion));
+            return camera.position.clone()
+              .add(new THREE.Vector3(0, 0, -100).applyQuaternion(camera.quaternion));
           }
         }
       })();
@@ -1106,8 +1182,8 @@ export const MapGen = () => {
                 </div>
             </div>
             <canvas
-                width={width}
-                height={height}
+                width={width * pixelRatio}
+                height={height * pixelRatio}
                 className={styles.canvas}
                 onMouseDown={mouseDown}
                 ref={canvasRef}
