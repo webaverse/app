@@ -1,6 +1,7 @@
 import metaversefile from 'metaversefile';
 // import { useSyncExternalStore } from 'react';
 import * as THREE from 'three';
+import { ReflectorForSSRPass } from 'three/examples/jsm/objects/ReflectorForSSRPass.js';
 // import { terrainVertex, terrainFragment } from './shaders/terrainShader.js';
 // import biomeSpecs from './biomes.js';
 
@@ -773,12 +774,7 @@ export default (e) => {
     let lastSwimmingHand = null;
 
     let alreadySetComposer = false;
-    const geometry = new THREE.SphereGeometry( 5, 32, 16 );
-    const material = new THREE.MeshBasicMaterial( { color: 'yellow' } );
-    const sphere = new THREE.Mesh( geometry, material );
-    app.add( sphere );
-    sphere.position.y = 65;
-    app.updateMatrixWorld();
+    
     
     useFrame(({timestamp, timeDiff}) => {
       if (!!tracker && !range) {
@@ -791,20 +787,11 @@ export default (e) => {
         if(generator && localPlayer.avatar){
             if(!alreadySetComposer){
                 if(renderSettings.findRenderSettings(scene)){
-                    console.log(renderSettings.findRenderSettings(scene));
-                    // renderSettings.findRenderSettings(scene).passes.test.selective = true;
-                    renderSettings.findRenderSettings(scene).passes.test._selects.push(generator.getMeshes()[0]);
-                    renderSettings.findRenderSettings(scene).passes.test.maxDistance = 0.1;
-                    // renderSettings.findRenderSettings(scene).passes.test.needsSwap = false;
-                    // renderSettings.findRenderSettings(scene).passes.test.clear = false;
-                    // renderSettings.findRenderSettings(scene).passes.test.renderToScreen = false;
-                    
-                    renderSettings.findRenderSettings(scene).passes.push(renderSettings.findRenderSettings(scene).passes.test);
-                    // const temp0 = renderSettings.findRenderSettings(scene).passes[0];
-                    // const temp1 = renderSettings.findRenderSettings(scene).passes[1];
-                    // renderSettings.findRenderSettings(scene).passes.push(temp0);
-                    // renderSettings.findRenderSettings(scene).passes.push(temp1);
-                    // renderSettings.findRenderSettings(scene).fog.density = 0.07;
+                    for(const pass of renderSettings.findRenderSettings(scene).passes){
+                        if(pass.constructor.name === 'SSRPass'){
+                            pass._selects.push(generator.getMeshes()[0]);
+                        }
+                    }
                     alreadySetComposer = true;
                 }
             }
@@ -5103,6 +5090,5 @@ export default (e) => {
         
 //     });
 //   }
-
   return app;
 };

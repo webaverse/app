@@ -240,7 +240,6 @@ class PostProcessing extends EventTarget {
     passes.depthPass = null;
     passes.ssaoPass = null;
     passes.swirlPass = null;
-    passes.test = null;
 
     passes.push(webaverseRenderPass);
     
@@ -255,7 +254,7 @@ class PostProcessing extends EventTarget {
       }
       if(ssr){
         const ssrPass = makeSsrPass(ssr);
-        passes.test = (ssrPass);
+        passes.push(ssrPass);
       }
       if (dof) {
         const dofPass = makeDofPass(dof, passes.depthPass);
