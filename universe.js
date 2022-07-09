@@ -95,8 +95,8 @@ class Universe extends EventTarget {
   async pushUrl(u) {
     history.pushState({}, '', u);
     window.dispatchEvent(new MessageEvent('pushstate'));
-    const appCount = await this.estimateLoad()
-    loadingManager.setTotalAppsCount(appCount);
+    const loadAppCount = await this.estimateLoad()
+    loadingManager.setTotalAppsCount(loadAppCount);
     loadingManager.startLoading();
     await this.handleUrlUpdate();
     loadingManager.requestLoadEnd();
@@ -140,18 +140,18 @@ class Universe extends EventTarget {
           const res = await fetch(srcUrl);
           const j = await res.json();
           const {objects} = j;
-          return objects
+          return objects.length
         }
       } else {
         const roomUrl = this.getWorldsHost() + room;
         const res = await fetch(roomUrl);
         const data = await res.json();
-        if (data && data.apps) return data.apps
-        return []
+        if (data && data.apps) return data.apps.length
+        return 0
       }
     } catch (error) {
       console.error(error)
-      return []
+      return 0
     }
   }
 }

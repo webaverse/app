@@ -205,7 +205,7 @@ class AppManager extends EventTarget {
   }
   bindEvents() {
     this.addEventListener('trackedappadd', async e => {
-      loadingManager.trackedAppAdded();
+      // loadingManager.trackedAppAdded();
       const {trackedApp} = e.data;
       const trackedAppBinding = trackedApp.toJSON();
       const {instanceId, contentId, position, quaternion, scale, components} = trackedAppBinding;

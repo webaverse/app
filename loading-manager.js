@@ -29,13 +29,12 @@ class LoadingManager extends EventTarget {
   }
 
   setTotalAppsCount(count) {
-    debugger
     this.totalAppCount = count
   }
 
-  trackedAppAdded() {
-    // if (this.isLoadStarted) this.totalAppCount++;
-  }
+  // trackedAppAdded() {
+  //   if (this.isLoadStarted) this.totalAppCount++;
+  // }
 
   trackedAppLoaded() {
     if (!this.isLoadStarted) return;
