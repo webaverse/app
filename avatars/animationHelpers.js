@@ -932,7 +932,8 @@ export const _applyAnimation = (avatar, now, moveFactors) => {
 
         let useAnimation;
         let t2;
-        const useTimeS = avatar.useTime / 1000 / 5;
+        // const useTimeS = avatar.useTime / 1000 / 5;
+        const useTimeS = window.timeS; // test
         if (avatar.useAnimation) {
           const useAnimationName = avatar.useAnimation;
           useAnimation = useAnimations[useAnimationName];

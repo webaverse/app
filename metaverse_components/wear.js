@@ -202,11 +202,18 @@ export default (app, component) => {
       const leftHandBone = player.avatar.foundModelBones[Avatar.modelBoneRenames['rightHand']];
       leftHandBone.matrixWorld
         .decompose(app.position, localQuaternion, localVector2);
-      // app.position.add(position);
+      if (Array.isArray(position)) {
+        app.position.add(localVector.fromArray(position).applyQuaternion(localQuaternion));
+      }
 
       const rightHandBone = player.avatar.foundModelBones[Avatar.modelBoneRenames['leftHand']];
       rightHandBone.matrixWorld
         .decompose(localVector, localQuaternion, localVector2);
+      if (Array.isArray(position)) {
+        localVector3.fromArray(position)
+        localVector3.x *= -1;
+        localVector.add(localVector3.applyQuaternion(localQuaternion));
+      }
 
       app.lookAt(localVector);
       app.rotateOnAxis(localVector3.set(1, 0, 0), Math.PI * 0.5);
