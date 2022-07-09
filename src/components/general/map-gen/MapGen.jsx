@@ -983,8 +983,25 @@ export const MapGen = () => {
 
       const startPosition = position.clone();
       const startQuaternion = quaternion.clone();
-      const forwardTarget = position.clone()
-        .add(new THREE.Vector3(0, 0, -100).applyQuaternion(quaternion)); 
+      const forwardTarget = (() => {
+        if (hoveredPoint) {
+          const distance = position.distanceTo(hoveredPoint);
+          return position.clone()
+            .add(new THREE.Vector3(0, 0, -distance).applyQuaternion(quaternion));
+        } else {
+          localPlane.setFromNormalAndCoplanarPoint(upVector, localVector.set(0, renderY, 0));
+          setRaycasterFromEvent(localRaycaster, e);
+          const startIntersectionPoint = localRaycaster.ray.intersectPlane(localPlane, localVector);
+          if (startIntersectionPoint) {
+            const distance = position.distanceTo(startIntersectionPoint);
+            return position.clone()
+              .add(new THREE.Vector3(0, 0, -distance).applyQuaternion(quaternion));
+          } else {
+            return position.clone()
+              .add(new THREE.Vector3(0, 0, -100).applyQuaternion(quaternion));
+          }
+        }
+      })();
 
       // console.log('new mouse state');
       setMouseState({
