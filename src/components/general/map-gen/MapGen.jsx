@@ -279,11 +279,14 @@ export const MapGen = () => {
 
     };
 
+    const getRenderPosition = () => {
+      return camera.position.clone()
+        .add(new THREE.Vector3(0, 0, -16).applyQuaternion(camera.quaternion))
+        .toArray();
+    };
     const _updateTerrainApp = () => {
       if (terrainApp) {
-        const renderPosition = camera.position//.clone()
-          // .add(new THREE.Vector3(0, 0, -16).applyQuaternion(camera.quaternion))
-          .toArray();
+        const renderPosition = getRenderPosition();
         terrainApp.setComponent('renderPosition', renderPosition);
       }
     };
@@ -345,8 +348,8 @@ export const MapGen = () => {
     const setRaycasterFromEvent = (raycaster, e) => {
       const width = window.innerWidth;
       const height = window.innerHeight;
-      const renderer = getRenderer();
-      const pixelRatio = renderer.getPixelRatio();
+      // const renderer = getRenderer();
+      // const pixelRatio = renderer.getPixelRatio();
       const mouse = localVector2D.set(
         (e.clientX / width) * 2 - 1,
         -(e.clientY / height) * 2 + 1
@@ -669,7 +672,10 @@ export const MapGen = () => {
             !!(mouseState.buttons & 1) || // left click
             (e.shiftKey && !!(mouseState.buttons & 4)) // shift + right click
           ) {
-            localPlane.setFromNormalAndCoplanarPoint(upVector, localVector.set(0, renderY, 0));
+            const {forwardTarget} = mouseState;
+
+            const backDirection = new THREE.Vector3(0, 0, 1).applyQuaternion(camera.quaternion);
+            localPlane.setFromNormalAndCoplanarPoint(backDirection, forwardTarget);
             
             const oldEvent = {
               clientX: mouseState.x,
@@ -931,8 +937,11 @@ export const MapGen = () => {
               .add(
                 offset.clone()
                   .normalize()
-                  .multiplyScalar(16)
-              );
+                  .multiplyScalar(16 * 2)
+              )
+              /* .add(
+                new THREE.Vector3(0, 16/2, 0)
+              ); */
             const endQuaternion = new THREE.Quaternion().setFromRotationMatrix(
               new THREE.Matrix4()
                 .lookAt(
@@ -943,9 +952,11 @@ export const MapGen = () => {
             );
 
             const now = performance.now();
+            const startTime = now;
+            const endTime = startTime + 1000;
             const animation = {
-              startTime: now,
-              endTime: now + 1000,
+              startTime,
+              endTime,
               startPosition: camera.position.clone(),
               startQuaternion: camera.quaternion.clone(),
               endPosition,
@@ -1038,9 +1049,9 @@ export const MapGen = () => {
               components: {
                 seed,
                 physicsInstance,
-                renderPosition: [0, renderY, 0],
+                renderPosition: getRenderPosition(),
                 minLodRange: 3,
-                lods: 1,
+                lods: 3,
               }
             });
             mapScene.add(terrainApp);
@@ -1130,6 +1141,8 @@ export const MapGen = () => {
       e.preventDefault();
       e.stopPropagation();
 
+      const maxDistance = 100;
+
       const startPosition = camera.position.clone();
       const startQuaternion = camera.quaternion.clone();
       const forwardTarget = (() => {
@@ -1141,13 +1154,13 @@ export const MapGen = () => {
           localPlane.setFromNormalAndCoplanarPoint(upVector, localVector.set(0, renderY, 0));
           setRaycasterFromEvent(localRaycaster, e);
           const startIntersectionPoint = localRaycaster.ray.intersectPlane(localPlane, localVector);
-          if (startIntersectionPoint) {
-            const distance = camera.position.distanceTo(startIntersectionPoint);
+          const distance = startIntersectionPoint ? camera.position.distanceTo(startIntersectionPoint) : Infinity;
+          if (distance < maxDistance) {
             return camera.position.clone()
               .add(new THREE.Vector3(0, 0, -distance).applyQuaternion(camera.quaternion));
           } else {
             return camera.position.clone()
-              .add(new THREE.Vector3(0, 0, -100).applyQuaternion(camera.quaternion));
+              .add(new THREE.Vector3(0, 0, -maxDistance).applyQuaternion(camera.quaternion));
           }
         }
       })();
