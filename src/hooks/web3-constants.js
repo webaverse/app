@@ -19,6 +19,11 @@ export const CONTRACTS = {
     FT: '0x34272c5c67FF76a5B6ff20624796AD961c14E8c8',
     NFT: '0xa625A80263F3CBAB0a1c060e718fFd981194A08e'
   },
+  polygon: {
+    Webaverse: "0x2f95f34d0Ca4219c4b30f1547a9DF49484B32150",
+    FT: "0xb5aa2734C0CC4a6Dbbb0982Dc3D87693e73039bE",
+    NFT: "0xC726C7a45902Be0751f09BfdB5b88DE7d149F468"
+  }
 };
 
 export const CONTRACT_ABIS = _CONTRACT_ABIS;
@@ -129,4 +134,4 @@ export const CHAIN_ID_MAP = Object.keys(CHAINS).reduce((acc, key) => {
 }, {});
 
 export const NETWORK_KEYS = Object.keys(CHAINS);
-export const DEFAULT_CHAIN = CHAINS.MUMBAI;
+export const DEFAULT_CHAIN = CHAINS.POLYGON_MAIN;

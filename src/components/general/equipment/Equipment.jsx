@@ -14,7 +14,7 @@ import useNFTContract from '../../../hooks/useNFTContract';
 import { ChainContext } from '../../../hooks/chainProvider';
 import dropManager from '../../../../drop-manager';
 import cardsManager from '../../../../cards-manager.js';
-
+import { isChainSupported } from '../../../hooks/useChain';
 
 //
 
@@ -270,7 +270,7 @@ export const Equipment = () => {
     const [inventoryObject, setInventoryObject] = useState([]);
     const [ faceIndex, setFaceIndex ] = useState(1);
     const { selectedChain, supportedChain } = useContext(ChainContext)
-    const {getTokens} = useNFTContract(account.currentAddress);
+    const { getTokens, mintfromVoucher } = useNFTContract(account.currentAddress);
     const [ claims, setClaims ] = useState([]);
     const [nftPreviews, setNftPreviews] = useState({});
     const [nfts, setNfts] = useState(null);
@@ -318,12 +318,12 @@ export const Equipment = () => {
         }
 
         async function setupInventory() {
-        const inventoryItems = nfts.map((token, i) => {
-            console.log('nft is', token);
+        const tokens = await getTokens();
+        const inventoryItems = tokens.map((token, i) => {
             return {
             name: token.name,
-            start_url: token.url ?? (token.animation_url !== "" ? token.animation_url : token.collection.banner_image_url),
-            level: 1,
+            start_url: token.url ?? token.animation_url ?? token.collection.banner_image_url,
+            level: token.level ?? 1,
             };
         });
         setInventoryObject(inventoryItems);
@@ -381,6 +381,11 @@ export const Equipment = () => {
     
         sounds.playSoundName('menuNext');
     };
+
+    const mintClaim = (e) => {
+        console.log("mintClaim", e)
+        mintfromVoucher(e);
+    }
     const selectClassName = styles[`select-${selectedMenuIndex}`];
 
     useEffect(() => {
@@ -457,8 +462,8 @@ export const Equipment = () => {
                                 tokens: claims,
                             },
                             {
-                              name: 'Drag & Drop',
-                              tokens: inventoryObject,
+                                name: 'Claimed',
+                                tokens: inventoryObject,
                           },
                         ]}
                         hoverObject={hoverObject}
@@ -575,10 +580,16 @@ export const Equipment = () => {
             <MegaHotBox
                 open={!!selectObject}
                 loading={loading}
+                selectedMenuIndex={selectedMenuIndex}
                 name={selectObject ? selectObject.name : null}
                 description={selectObject ? selectObject.description : null}
                 imageBitmap={imageBitmap}
                 onActivate={onDoubleClick(selectObject)}
+                mintEnabled={isChainSupported(selectedChain) && account.currentAddress}
+                onMint={() => {
+                    mintClaim(selectObject);
+                    console.log("mint object", selectObject)
+                }}
                 onClose={e => {
                     setSelectObject(null);
                 }}
