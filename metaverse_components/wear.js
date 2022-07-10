@@ -199,7 +199,7 @@ export default (app, component) => {
     let boneAttachments;
     const useAction = localPlayer.getAction('use');
     if (useAction?.animation === 'pickaxe') {
-      const animationTimeS = localPlayer.actionInterpolants.use.get() / 1000 / 5;
+      const animationTimeS = localPlayer.actionInterpolants.use.get() / 1000 * window.speed;
       boneAttachments = [];
       if (animationTimeS < 0.5 || animationTimeS > 1.0666666666666667) {
         boneAttachments[0] = 'rightHand'
