@@ -305,6 +305,7 @@ export default (app, component) => {
 
         o3d.lookAt(localVector);
         o3d.rotateOnAxis(localVector3.set(1, 0, 0), Math.PI * 0.5);
+        o3d.rotateOnAxis(localVector3.set(0, 1, 0), Math.PI * 0.25);
       }
       // if (animationTimeS > 1.2999999523162842) { // animations.index["pickaxe_swing.fbx"].duration = 1.2999999523162842
       // } else if (animationTimeS < 0.5 || animationTimeS > 1.0666666666666667) {
