@@ -1233,7 +1233,9 @@ export const _applyAnimation = (avatar, now, moveFactors) => {
       let defaultAnimation = 'grab_forward';
 
       const activateAction = localPlayer.getAction('activate');
-      if (activateAction.animationName) {
+      // activateAction can be null on remote player on the last frame the action is removed
+      // so we null check it before checkout for the animation name
+      if (activateAction && activateAction.animationName) {
         defaultAnimation = activateAction.animationName;
       }
 
