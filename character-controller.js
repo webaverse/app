@@ -66,6 +66,8 @@ const _getSession = () => {
   return session;
 };
 
+const physicsScene = physicsManager.getScene();
+
 function makeCancelFn() {
   let live = true;
   return {
@@ -91,11 +93,11 @@ function loadPhysxCharacterController() {
     .add(new THREE.Vector3(0, -avatarHeight/2, 0));
 
   if (this.characterController) {
-    physicsManager.destroyCharacterController(this.characterController);
+    physicsScene.destroyCharacterController(this.characterController);
     this.characterController = null;
     // this.characterControllerObject = null;
   }
-  this.characterController = physicsManager.createCharacterController(
+  this.characterController = physicsScene.createCharacterController(
     radius - contactOffset,
     height,
     contactOffset,
@@ -114,7 +116,7 @@ function loadPhysxCharacterController() {
     .add(new THREE.Vector3(0, -avatarHeight/2, 0));
   const physicsMaterial = new THREE.Vector3(0, 0, 0);
 
-  const physicsObject = physicsManager.addCapsuleGeometry(
+  const physicsObject = physicsScene.addCapsuleGeometry(
     position,
     localQuaternion.copy(this.quaternion)
       .premultiply(
@@ -129,9 +131,9 @@ function loadPhysxCharacterController() {
     true
   );
   physicsObject.name = 'characterCapsuleAux';
-  physicsManager.setGravityEnabled(physicsObject, false);
-  physicsManager.setLinearLockFlags(physicsObject.physicsId, false, false, false);
-  physicsManager.setAngularLockFlags(physicsObject.physicsId, false, false, false);
+  physicsScene.setGravityEnabled(physicsObject, false);
+  physicsScene.setLinearLockFlags(physicsObject.physicsId, false, false, false);
+  physicsScene.setAngularLockFlags(physicsObject.physicsId, false, false, false);
   this.physicsObject = physicsObject;
 } */
 
@@ -356,8 +358,8 @@ class PlayerBase extends THREE.Object3D {
       const _initPhysics = () => {
         const physicsObjects = app.getPhysicsObjects();
         for (const physicsObject of physicsObjects) {
-          physx.physxWorker.disableGeometryQueriesPhysics(physx.physics, physicsObject.physicsId);
-          physx.physxWorker.disableGeometryPhysics(physx.physics, physicsObject.physicsId);
+          physicsScene.disableGeometryQueries(physicsObject.physicsId);
+          physicsScene.disableGeometry(physicsObject.physicsId);
         }
       };
       _initPhysics();
@@ -415,9 +417,9 @@ class PlayerBase extends THREE.Object3D {
             physicsObject.quaternion.copy(this.quaternion);
             physicsObject.updateMatrixWorld();
 
-            physicsManager.setTransform(physicsObject, true);
-            physicsManager.setVelocity(physicsObject, localVector.copy(dropDirection).multiplyScalar(5).add(this.characterPhysics.velocity), true);
-            physicsManager.setAngularVelocity(physicsObject, zeroVector, true);
+            physicsScene.setTransform(physicsObject, true);
+            physicsScene.setVelocity(physicsObject, localVector.copy(dropDirection).multiplyScalar(5).add(this.characterPhysics.velocity), true);
+            physicsScene.setAngularVelocity(physicsObject, zeroVector, true);
 
             app.position.copy(physicsObject.position);
             app.quaternion.copy(physicsObject.quaternion);
@@ -451,8 +453,8 @@ class PlayerBase extends THREE.Object3D {
       const _deinitPhysics = () => {
         const physicsObjects = app.getPhysicsObjects();
         for (const physicsObject of physicsObjects) {
-          physx.physxWorker.enableGeometryQueriesPhysics(physx.physics, physicsObject.physicsId);
-          physx.physxWorker.enableGeometryPhysics(physx.physics, physicsObject.physicsId);
+          physicsScene.enableGeometryQueries(physicsObject.physicsId);
+          physicsScene.enableGeometry(physicsObject.physicsId);
         }
       };
       _deinitPhysics();
@@ -661,7 +663,7 @@ class StatePlayer extends PlayerBase {
         loadPhysxCharacterController.call(this);
         
         if (this.isLocalPlayer) {
-          physicsManager.disableGeometryQueries(this.characterController);
+          physicsScene.disableGeometryQueries(this.characterController);
         }
       })();
       
@@ -1128,8 +1130,8 @@ class LocalPlayer extends UninterpolatedPlayer {
     
     const physicsObjects = app.getPhysicsObjects();
     for (const physicsObject of physicsObjects) {
-      //physx.physxWorker.disableGeometryPhysics(physx.physics, physicsObject.physicsId);
-      physx.physxWorker.disableGeometryQueriesPhysics(physx.physics, physicsObject.physicsId);
+      //physicsScene.disableGeometry(physicsObject.physicsId);
+      physicsScene.disableGeometryQueries(physicsObject.physicsId);
     }
 
     app.dispatchEvent({
@@ -1146,7 +1148,7 @@ class LocalPlayer extends UninterpolatedPlayer {
         const app = metaversefile.getAppByInstanceId(action.instanceId);
         const physicsObjects = app.getPhysicsObjects();
         for (const physicsObject of physicsObjects) {
-          physx.physxWorker.enableGeometryQueriesPhysics(physx.physics, physicsObject.physicsId);
+          physicsScene.enableGeometryQueries(physicsObject.physicsId);
         }
         this.removeActionIndex(i + removeOffset);
         removeOffset -= 1;

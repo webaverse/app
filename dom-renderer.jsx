@@ -6,6 +6,8 @@ import physicsManager from './physics-manager.js';
 
 const cubicBezier = easing(0, 1, 0, 1);
 
+const physicsScene = physicsManager.getScene();
+
 class DomItem extends THREE.Object3D {
   constructor(position, quaternion, scale, width, height, worldWidth, render) {
     super();
@@ -43,14 +45,14 @@ class DomItem extends THREE.Object3D {
     const hs = new THREE.Vector3(iframeMesh.worldWidth, iframeMesh.worldHeight, 0.01)
       .multiplyScalar(0.5);
     const dynamic = false;
-    const physicsObject = physicsManager.addBoxGeometry(
+    const physicsObject = physicsScene.addBoxGeometry(
       p,
       q,
       hs,
       dynamic
     );
-    physicsManager.disableActor(physicsObject);
-    physicsManager.disableGeometryQueries(physicsObject);
+    physicsScene.disableActor(physicsObject);
+    physicsScene.disableGeometryQueries(physicsObject);
     this.physicsObject = physicsObject;
   }
   startAnimation(enabled, startTime, endTime) {
@@ -92,7 +94,7 @@ class DomItem extends THREE.Object3D {
       this.physicsObject.position.setFromMatrixPosition(this.iframeMesh.matrixWorld);
       this.physicsObject.quaternion.setFromRotationMatrix(this.iframeMesh.matrixWorld);
       this.physicsObject.updateMatrixWorld();
-      physicsManager.setTransform(this.physicsObject);
+      physicsScene.setTransform(this.physicsObject);
 
       this.visible = true;
     } else {
@@ -101,19 +103,19 @@ class DomItem extends THREE.Object3D {
   }
   onBeforeRaycast() {
     if (this.enabled) {
-      physicsManager.enableActor(this.physicsObject);
-      physicsManager.enableGeometryQueries(this.physicsObject);
+      physicsScene.enableActor(this.physicsObject);
+      physicsScene.enableGeometryQueries(this.physicsObject);
     }
   }
   onAfterRaycast() {
     if (this.enabled) {
-      physicsManager.disableActor(this.physicsObject);
-      physicsManager.disableGeometryQueries(this.physicsObject);
+      physicsScene.disableActor(this.physicsObject);
+      physicsScene.disableGeometryQueries(this.physicsObject);
     }
   }
   destroy() {
-    physicsManager.enableActor(this.physicsObject);
-    physicsManager.removeGeometry(this.physicsObject);
+    physicsScene.enableActor(this.physicsObject);
+    physicsScene.removeGeometry(this.physicsObject);
   }
 }
 

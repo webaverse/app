@@ -1,3 +1,6 @@
+/* this file implements the top-level world procedural generation context.
+it starts the workers and routes calls for the procgen system. */
+
 import {murmurhash3} from './procgen/procgen.js';
 import {DcWorkerManager} from './dc-worker-manager.js';
 import {LodChunkTracker} from './lod.js';
@@ -25,24 +28,19 @@ class ProcGenInstance {
     this.range = range;
 
     this.lightmapper = null;
+    this.heightfieldMapper = null;
 
     if (range) {
-      this.dcWorkerManager.setRange(range);
+      this.dcWorkerManager.setClipRange(range);
     }
   }
-  getChunkTracker({
-    numLods = 1,
-    trackY = false,
-    relod = false,
-  } = {}) {
+  getChunkTracker(opts = {}) {
+    const opts2 = structuredClone(opts);
     const {chunkSize, range} = this;
-    const tracker = new LodChunkTracker({
-      chunkSize,
-      numLods,
-      trackY,
-      relod,
-      range,
-    });
+    opts2.chunkSize = chunkSize;
+    opts2.range = range;
+
+    const tracker = new LodChunkTracker(opts2);
     return tracker;
   }
   getLightMapper() {
@@ -57,7 +55,7 @@ class ProcGenInstance {
     return this.lightmapper;
   }
   getHeightfieldMapper() {
-    if (!this.lightmapper) {
+    if (!this.heightfieldMapper) {
       const {chunkSize, range} = this;
       this.heightfieldMapper = new HeightfieldMapper({
         chunkSize,
