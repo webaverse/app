@@ -16,6 +16,9 @@ const localQuaternion = new THREE.Quaternion();
 const localQuaternion2 = new THREE.Quaternion();
 const localEuler = new THREE.Euler();
 const localMatrix = new THREE.Matrix4();
+const localObject = new THREE.Object3D();
+const localObject2 = new THREE.Object3D();
+const localObject3 = new THREE.Object3D();
 
 const identityVector = new THREE.Vector3();
 
@@ -196,7 +199,7 @@ export default (app, component) => {
   const _copyBoneAttachment = spec => {
     const {boneAttachment = 'hips', position, quaternion, scale} = spec;
 
-    const handleBoneAttachments = () => {
+    const handleBoneAttachments = (o3d) => {
       // lerp app's transform to average position/quaternion/scale of boneAttachments.
       let count = 0;
       boneAttachments.forEach((boneAttachment, i) => {
@@ -205,19 +208,19 @@ export default (app, component) => {
         if (bone) {
           if (count === 0) {
             bone.matrixWorld
-              .decompose(app.position, app.quaternion, app.scale);
+              .decompose(o3d.position, o3d.quaternion, o3d.scale);
             count++;
           } else {
             bone.matrixWorld
               .decompose(localVector, localQuaternion, localVector2);
             const t = 1 / (count + 1);
-            app.position.lerp(localVector, t);
-            app.quaternion.slerp(localQuaternion, t);
-            app.scale.lerp(localVector2, t);
+            o3d.position.lerp(localVector, t);
+            o3d.quaternion.slerp(localQuaternion, t);
+            o3d.scale.lerp(localVector2, t);
             count++;
           }
         } else {
-          console.warn('invalid bone attachment', {app, boneAttachment});
+          console.warn('invalid bone attachment', {o3d, boneAttachment});
         }
       });
 
@@ -232,7 +235,7 @@ export default (app, component) => {
         const playerQuaternion = localQuaternion2.setFromEuler(localEuler);
 
         const eyeVector = identityVector;
-        const upVector = localVector3.copy(app.position).sub(hipsPostion).normalize();
+        const upVector = localVector3.copy(o3d.position).sub(hipsPostion).normalize();
         const targetVector = localVector4.set(0, 0, -1);
         targetVector.applyQuaternion(localQuaternion.setFromUnitVectors(
           localVector.set(0, 1, 0),
@@ -240,35 +243,36 @@ export default (app, component) => {
         ));
 
         localMatrix.lookAt(eyeVector, targetVector, upVector)
-        app.quaternion.setFromRotationMatrix(localMatrix);
-        app.quaternion.multiply(playerQuaternion);
+        o3d.quaternion.setFromRotationMatrix(localMatrix);
+        o3d.quaternion.multiply(playerQuaternion);
       }
 
       if (Array.isArray(position)) {
-        app.position.add(localVector.fromArray(position).applyQuaternion(app.quaternion));
+        o3d.position.add(localVector.fromArray(position).applyQuaternion(o3d.quaternion));
       }
       if (Array.isArray(quaternion)) {
-        app.quaternion.multiply(localQuaternion.fromArray(quaternion));
+        o3d.quaternion.multiply(localQuaternion.fromArray(quaternion));
       }
       if (Array.isArray(scale)) {
-        app.scale.multiply(localVector.fromArray(scale));
+        o3d.scale.multiply(localVector.fromArray(scale));
       }
     }
 
     let boneAttachments;
     const useAction = localPlayer.getAction('use');
     if (useAction?.animation === 'pickaxe') {
+      window.pickaxeApp = app;
       const animationTimeS = localPlayer.actionInterpolants.use.get() / 1000 * window.speed;
       boneAttachments = [];
-      if (animationTimeS > 1.2999999523162842) { // animations.index["pickaxe_swing.fbx"].duration = 1.2999999523162842
-        console.log(111);
+      const handleLookAt = (o3d) => {
         boneAttachments.length = 0;
-        window.pickaxeApp = app;
         const leftHandBone = player.avatar.foundModelBones[Avatar.modelBoneRenames['rightHand']];
         leftHandBone.matrixWorld
-          .decompose(app.position, localQuaternion, localVector2);
+          .decompose(o3d.position, localQuaternion, localVector2);
         if (Array.isArray(position)) {
-          app.position.add(localVector.fromArray(position).applyQuaternion(localQuaternion));
+          localVector3.fromArray(position);
+          localVector3.x *= -1;
+          o3d.position.add(localVector3.applyQuaternion(localQuaternion));
         }
 
         const rightHandBone = player.avatar.foundModelBones[Avatar.modelBoneRenames['leftHand']];
@@ -276,34 +280,43 @@ export default (app, component) => {
           .decompose(localVector, localQuaternion, localVector2);
         if (Array.isArray(position)) {
           localVector3.fromArray(position)
-          localVector3.x *= -1;
           localVector.add(localVector3.applyQuaternion(localQuaternion));
         }
 
-        app.lookAt(localVector);
-        app.rotateOnAxis(localVector3.set(1, 0, 0), Math.PI * 0.5);
-      } else if (animationTimeS < 0.5 || animationTimeS > 1.0666666666666667) {
-        console.log(222);
+        o3d.lookAt(localVector);
+        o3d.rotateOnAxis(localVector3.set(1, 0, 0), Math.PI * 0.5);
+      }
+      const handleLeftHand = (o3d) => {
         boneAttachments[0] = 'rightHand'
         position[0] = Math.abs(position[0]);
         quaternion[0]=0.7071067811865475
         quaternion[1]=0
         quaternion[2]=0
         quaternion[3]=0.7071067811865476
-        handleBoneAttachments();
-      } else {
-        console.log(333);
+        handleBoneAttachments(o3d);
+      }
+      const handleRightHand = (o3d) => {
         boneAttachments[0] = 'leftHand'
         position[0] = Math.abs(position[0]) * -1;
         quaternion[0]=0
         quaternion[1]=0.7071067811865476
         quaternion[2]=0.7071067811865475
         quaternion[3]=0
-        handleBoneAttachments();
+        handleBoneAttachments(o3d);
       }
+      // if (animationTimeS > 1.2999999523162842) { // animations.index["pickaxe_swing.fbx"].duration = 1.2999999523162842
+      // } else if (animationTimeS < 0.5 || animationTimeS > 1.0666666666666667) {
+      // } else {
+      // }
+      handleLookAt(localObject);
+      handleLeftHand(localObject2);
+      handleRightHand(localObject3)
+      app.position.copy(localObject.position);
+      app.quaternion.copy(localObject.quaternion);
+      app.scale.copy(localObject.scale);
     } else {
       boneAttachments = Array.isArray(boneAttachment) ? boneAttachment : [boneAttachment];
-      handleBoneAttachments();
+      handleBoneAttachments(app);
     }
 
     app.updateMatrixWorld();
