@@ -18,7 +18,6 @@ const fullscreenVertexShader = `\
 //
 
 const localVector2D = new THREE.Vector2();
-const localVector2D2 = new THREE.Vector2();
 
 //
 
@@ -52,9 +51,7 @@ export class HeightfieldMapper {
     this.heightfieldFourTapRenderTarget = _makeHeightfieldRenderTarget(terrainSize, terrainSize);
     this.heightfieldMinPosition = new THREE.Vector2();
 
-    const heightfieldBase = new THREE.Vector3(-terrainSize / 2, 0, -terrainSize / 2);
-    const heightfieldBase2D = new THREE.Vector2(heightfieldBase.x, heightfieldBase.z);
-    const blankChunkData = new Float32Array(chunkSize * chunkSize);
+    this.blankChunkData = new Float32Array(chunkSize * chunkSize);
 
     this.heightfieldScene = (() => {
       const chunkPlaneGeometry = new THREE.PlaneBufferGeometry(1, 1)
@@ -116,7 +113,7 @@ export class HeightfieldMapper {
       fullscreenQuadMesh3.frustumCulled = false;
       const scene3 = new THREE.Scene();
       scene3.add(fullscreenQuadMesh3);
-      scene3.update = (heightfieldLocalWritePosition, heightfield = blankChunkData) => {
+      scene3.update = (heightfieldLocalWritePosition, heightfield) => {
         fullscreenQuadMesh3.position.copy(heightfieldLocalWritePosition);
         fullscreenQuadMesh3.updateMatrixWorld();
         
@@ -131,8 +128,8 @@ export class HeightfieldMapper {
         heightfieldDrawTexture.image.data.set(heightfield);
         heightfieldDrawTexture.needsUpdate = true;
 
-        // fullscreenMaterial3.uniforms.uHeightfieldDrawTexture.value = heightfieldDrawTexture;
-        // fullscreenMaterial3.uniforms.uHeightfieldDrawTexture.needsUpdate = true;
+        fullscreenMaterial3.uniforms.uHeightfieldDrawTexture.value = heightfieldDrawTexture;
+        fullscreenMaterial3.uniforms.uHeightfieldDrawTexture.needsUpdate = true;
 
         // console.log('got data', fullscreenQuadMesh3.position.x, fullscreenQuadMesh3.position.z, heightfieldDrawTexture.image.data);
 
@@ -153,13 +150,13 @@ export class HeightfieldMapper {
 
         void main() {
           vec2 pos2D = vUv;
-          vec2 posDiff = pos2D - (uHeightfieldBase + uHeightfieldMinPosition) / uHeightfieldSize;
+          vec2 posDiff = pos2D - 0.5 - (uHeightfieldMinPosition) / uHeightfieldSize;
           vec2 uvHeightfield = posDiff;
           uvHeightfield = mod(uvHeightfield, 1.);
           gl_FragColor = texture2D(uHeightfield, uvHeightfield);
         }
       `;
-      const fourTapFullscreenMaterial = new THREE.ShaderMaterial({
+      const fourTapFullscreenMaterial = new WebaverseShaderMaterial({
         uniforms: {
           uHeightfield: {
             value: this.heightfieldRenderTarget.texture,
@@ -167,10 +164,6 @@ export class HeightfieldMapper {
           },
           uHeightfieldSize: {
             value: terrainSize,
-            needsUpdate: true,
-          },
-          uHeightfieldBase: {
-            value: heightfieldBase2D,
             needsUpdate: true,
           },
           uHeightfieldMinPosition: {
@@ -201,13 +194,14 @@ export class HeightfieldMapper {
       this.updateCoord(localVector);
     };
   })();
-  updateCoord(min2xCoord, target = null) {
-    const oldHeightfieldPosition = localVector2D.copy(this.heightfieldMinPosition);
-    const newHeightfieldPosition = localVector2D2.set(min2xCoord.x, min2xCoord.z)
+  updateCoord(min1xCoord, target = null) {
+    // console.log('heightfield update coord', min1xCoord.x, min1xCoord.y, min1xCoord.z, new Error().stack);
+    // const oldHeightfieldPosition = localVector2D.copy(this.heightfieldMinPosition);
+    const newHeightfieldPosition = localVector2D.set(min1xCoord.x, min1xCoord.z)
       .multiplyScalar(this.chunkSize);
 
-    const delta = target && target.copy(newHeightfieldPosition)
-      .sub(oldHeightfieldPosition);
+    // const delta = target && target.copy(newHeightfieldPosition)
+    //   .sub(oldHeightfieldPosition);
 
     // update scenes
     this.heightfieldFourTapScene.mesh.material.uniforms.uHeightfieldMinPosition.value.copy(newHeightfieldPosition);
@@ -215,7 +209,7 @@ export class HeightfieldMapper {
 
     this.heightfieldMinPosition.copy(newHeightfieldPosition);
 
-    return delta;
+    // return delta;
   }
   renderHeightfieldUpdate(worldModPosition, heightfield) {
     const renderer = getRenderer();
@@ -247,7 +241,7 @@ export class HeightfieldMapper {
 
     {
       // update
-      this.heightfieldScene.update(worldModPosition);
+      this.heightfieldScene.update(worldModPosition, this.blankChunkData);
       
       // push state
       const oldRenderTarget = renderer.getRenderTarget();
