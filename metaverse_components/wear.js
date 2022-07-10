@@ -201,7 +201,33 @@ export default (app, component) => {
     if (useAction?.animation === 'pickaxe') {
       const animationTimeS = localPlayer.actionInterpolants.use.get() / 1000 * window.speed;
       boneAttachments = [];
-      if (animationTimeS < 0.5 || animationTimeS > 1.0666666666666667) {
+      if (animationTimeS > 1.2999999523162842) { // animations.index["pickaxe_swing.fbx"].duration = 1.2999999523162842
+        console.log(111);
+        boneAttachments.length = 0;
+        window.pickaxeApp = app;
+        const leftHandBone = player.avatar.foundModelBones[Avatar.modelBoneRenames['rightHand']];
+        leftHandBone.matrixWorld
+          .decompose(app.position, localQuaternion, localVector2);
+        if (Array.isArray(position)) {
+          app.position.add(localVector.fromArray(position).applyQuaternion(localQuaternion));
+        }
+
+        const rightHandBone = player.avatar.foundModelBones[Avatar.modelBoneRenames['leftHand']];
+        rightHandBone.matrixWorld
+          .decompose(localVector, localQuaternion, localVector2);
+        if (Array.isArray(position)) {
+          localVector3.fromArray(position)
+          localVector3.x *= -1;
+          localVector.add(localVector3.applyQuaternion(localQuaternion));
+        }
+
+        app.lookAt(localVector);
+        app.rotateOnAxis(localVector3.set(1, 0, 0), Math.PI * 0.5);
+        app.updateMatrixWorld();
+
+        return;
+      } else if (animationTimeS < 0.5 || animationTimeS > 1.0666666666666667) {
+        console.log(222);
         boneAttachments[0] = 'rightHand'
         position[0] = Math.abs(position[0]);
         quaternion[0]=0.7071067811865475
@@ -209,6 +235,7 @@ export default (app, component) => {
         quaternion[2]=0
         quaternion[3]=0.7071067811865476
       } else {
+        console.log(333);
         boneAttachments[0] = 'leftHand'
         position[0] = Math.abs(position[0]) * -1;
         quaternion[0]=0
