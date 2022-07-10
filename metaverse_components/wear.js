@@ -316,8 +316,8 @@ export default (app, component) => {
 
       let fLR1 = 0.5 - animationTimeS;
       fLR1 /= 0.2;
-      fLR1 = 1 - fLR1;
       fLR1 = MathUtils.clamp(fLR1, 0, 1);
+      fLR1 = 1 - fLR1;
 
       let fLR2 = 1.0666666666666667 - animationTimeS;
       fLR2 /= 0.2;
@@ -325,12 +325,20 @@ export default (app, component) => {
 
       const fLR = Math.min(fLR1, fLR2);
 
+      let fLookAt = 1.2999999523162842 - animationTimeS;
+      fLookAt /= 0.2;
+      fLookAt = MathUtils.clamp(fLookAt, 0, 1);
+      fLookAt = 1 - fLookAt;
+
       app.position.copy(localObject.position)
-        .lerp(localObject2.position, fLR);
+        .lerp(localObject2.position, fLR)
+        .lerp(localObject3.position, fLookAt);
       app.quaternion.copy(localObject.quaternion)
-        .slerp(localObject2.quaternion, fLR);
+        .slerp(localObject2.quaternion, fLR)
+        .slerp(localObject3.quaternion, fLookAt);
       app.scale.copy(localObject.scale)
-        .lerp(localObject2.scale, fLR);
+        .lerp(localObject2.scale, fLR)
+        .lerp(localObject3.scale, fLookAt);
     } else {
       boneAttachments = Array.isArray(boneAttachment) ? boneAttachment : [boneAttachment];
       handleBoneAttachments(app);
