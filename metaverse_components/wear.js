@@ -196,6 +196,65 @@ export default (app, component) => {
   const _copyBoneAttachment = spec => {
     const {boneAttachment = 'hips', position, quaternion, scale} = spec;
 
+    const handleBoneAttachments = () => {
+      // lerp app's transform to average position/quaternion/scale of boneAttachments.
+      let count = 0;
+      boneAttachments.forEach((boneAttachment, i) => {
+        const boneName = Avatar.modelBoneRenames[boneAttachment];
+        const bone = player.avatar.foundModelBones[boneName];
+        if (bone) {
+          if (count === 0) {
+            bone.matrixWorld
+              .decompose(app.position, app.quaternion, app.scale);
+            count++;
+          } else {
+            bone.matrixWorld
+              .decompose(localVector, localQuaternion, localVector2);
+            const t = 1 / (count + 1);
+            app.position.lerp(localVector, t);
+            app.quaternion.slerp(localQuaternion, t);
+            app.scale.lerp(localVector2, t);
+            count++;
+          }
+        } else {
+          console.warn('invalid bone attachment', {app, boneAttachment});
+        }
+      });
+
+      if (quaternion === 'upVectorHipsToPosition') {
+        const hipsPostion = localVector;
+        hipsPostion.setFromMatrixPosition(player.avatar.foundModelBones.Hips.matrixWorld);
+
+        localEuler.order = 'YXZ';
+        localEuler.setFromQuaternion(player.quaternion);
+        localEuler.x = 0;
+        localEuler.z = 0;
+        const playerQuaternion = localQuaternion2.setFromEuler(localEuler);
+
+        const eyeVector = identityVector;
+        const upVector = localVector3.copy(app.position).sub(hipsPostion).normalize();
+        const targetVector = localVector4.set(0, 0, -1);
+        targetVector.applyQuaternion(localQuaternion.setFromUnitVectors(
+          localVector.set(0, 1, 0),
+          localVector2.copy(upVector).normalize(),
+        ));
+
+        localMatrix.lookAt(eyeVector, targetVector, upVector)
+        app.quaternion.setFromRotationMatrix(localMatrix);
+        app.quaternion.multiply(playerQuaternion);
+      }
+
+      if (Array.isArray(position)) {
+        app.position.add(localVector.fromArray(position).applyQuaternion(app.quaternion));
+      }
+      if (Array.isArray(quaternion)) {
+        app.quaternion.multiply(localQuaternion.fromArray(quaternion));
+      }
+      if (Array.isArray(scale)) {
+        app.scale.multiply(localVector.fromArray(scale));
+      }
+    }
+
     let boneAttachments;
     const useAction = localPlayer.getAction('use');
     if (useAction?.animation === 'pickaxe') {
@@ -223,9 +282,6 @@ export default (app, component) => {
 
         app.lookAt(localVector);
         app.rotateOnAxis(localVector3.set(1, 0, 0), Math.PI * 0.5);
-        app.updateMatrixWorld();
-
-        return;
       } else if (animationTimeS < 0.5 || animationTimeS > 1.0666666666666667) {
         console.log(222);
         boneAttachments[0] = 'rightHand'
@@ -234,6 +290,7 @@ export default (app, component) => {
         quaternion[1]=0
         quaternion[2]=0
         quaternion[3]=0.7071067811865476
+        handleBoneAttachments();
       } else {
         console.log(333);
         boneAttachments[0] = 'leftHand'
@@ -242,67 +299,13 @@ export default (app, component) => {
         quaternion[1]=0.7071067811865476
         quaternion[2]=0.7071067811865475
         quaternion[3]=0
+        handleBoneAttachments();
       }
     } else {
       boneAttachments = Array.isArray(boneAttachment) ? boneAttachment : [boneAttachment];
+      handleBoneAttachments();
     }
 
-    // lerp app's transform to average position/quaternion/scale of boneAttachments.
-    let count = 0;
-    boneAttachments.forEach((boneAttachment, i) => {
-      const boneName = Avatar.modelBoneRenames[boneAttachment];
-      const bone = player.avatar.foundModelBones[boneName];
-      if (bone) {
-        if (count === 0) {
-          bone.matrixWorld
-            .decompose(app.position, app.quaternion, app.scale);
-          count++;
-        } else {
-          bone.matrixWorld
-            .decompose(localVector, localQuaternion, localVector2);
-          const t = 1 / (count + 1);
-          app.position.lerp(localVector, t);
-          app.quaternion.slerp(localQuaternion, t);
-          app.scale.lerp(localVector2, t);
-          count++;
-        }
-      } else {
-        console.warn('invalid bone attachment', {app, boneAttachment});
-      }
-    });
-
-    if (quaternion === 'upVectorHipsToPosition') {
-      const hipsPostion = localVector;
-      hipsPostion.setFromMatrixPosition(player.avatar.foundModelBones.Hips.matrixWorld);
-
-      localEuler.order = 'YXZ';
-      localEuler.setFromQuaternion(player.quaternion);
-      localEuler.x = 0;
-      localEuler.z = 0;
-      const playerQuaternion = localQuaternion2.setFromEuler(localEuler);
-
-      const eyeVector = identityVector;
-      const upVector = localVector3.copy(app.position).sub(hipsPostion).normalize();
-      const targetVector = localVector4.set(0, 0, -1);
-      targetVector.applyQuaternion(localQuaternion.setFromUnitVectors(
-        localVector.set(0, 1, 0),
-        localVector2.copy(upVector).normalize(),
-      ));
-
-      localMatrix.lookAt(eyeVector, targetVector, upVector)
-      app.quaternion.setFromRotationMatrix(localMatrix);
-      app.quaternion.multiply(playerQuaternion);
-    }
-
-    if (Array.isArray(position)) {
-      app.position.add(localVector.fromArray(position).applyQuaternion(app.quaternion));
-    }
-    if (Array.isArray(quaternion)) {
-      app.quaternion.multiply(localQuaternion.fromArray(quaternion));
-    }
-    if (Array.isArray(scale)) {
-      app.scale.multiply(localVector.fromArray(scale));
-    }
     app.updateMatrixWorld();
   };
   const frame = metaversefile.useFrame(({timestamp, timeDiff}) => {
