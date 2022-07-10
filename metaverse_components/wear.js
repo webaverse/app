@@ -204,17 +204,17 @@ export default (app, component) => {
       if (animationTimeS < 0.5 || animationTimeS > 1.0666666666666667) {
         boneAttachments[0] = 'rightHand'
         position[0] = Math.abs(position[0]);
-        quaternion[0]=0
-        quaternion[1]=0.7071067811865476
-        quaternion[2]=0.7071067811865475
-        quaternion[3]=0
-      } else {
-        boneAttachments[0] = 'leftHand'
-        position[0] = Math.abs(position[0]) * -1;
         quaternion[0]=0.7071067811865475
         quaternion[1]=0
         quaternion[2]=0
         quaternion[3]=0.7071067811865476
+      } else {
+        boneAttachments[0] = 'leftHand'
+        position[0] = Math.abs(position[0]) * -1;
+        quaternion[0]=0
+        quaternion[1]=0.7071067811865476
+        quaternion[2]=0.7071067811865475
+        quaternion[3]=0
       }
     } else {
       boneAttachments = Array.isArray(boneAttachment) ? boneAttachment : [boneAttachment];
