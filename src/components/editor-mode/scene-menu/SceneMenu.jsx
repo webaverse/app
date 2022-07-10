@@ -32,10 +32,7 @@ export const SceneMenu = ({ multiplayerConnected, selectedScene, setSelectedScen
     const [ speechEnabled, setSpeechEnabled ] = useState( false );
     const [ sceneInputName, setSceneInputName ] = useState( selectedScene );
     const [ scenesList, setScenesList ] = useState( origSceneList );
-<<<<<<< HEAD
 
-=======
->>>>>>> 1e2dfac38... Simplify room name select
     //
 
     const refreshRooms = async () => {
@@ -311,7 +308,7 @@ export const SceneMenu = ({ multiplayerConnected, selectedScene, setSelectedScen
                         </div>
                         {
                             rooms.map( ( room, i ) => (
-                                <div className={ styles.room } onClick={ ( e ) => { handleRoomSelect( e, room ) } } key={ i } >
+                                <div className={ styles.room } onClick={ ( e ) => { handleRoomSelect( room ) } } key={ i } >
                                     <img className={ styles.image } src="images/world.jpg" />
                                     <div className={ styles.name } >{ room.name }</div>
                                     <div className={ styles.delete } >
