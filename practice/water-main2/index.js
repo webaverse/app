@@ -35,6 +35,8 @@ const voronoiNoiseTexture = textureLoader.load(`${baseUrl}/textures/voronoiNoise
 voronoiNoiseTexture.wrapS = voronoiNoiseTexture.wrapT = THREE.RepeatWrapping;
 const noiseMap = textureLoader.load(`${baseUrl}/textures/noise.jpg`);
 noiseMap.wrapS = noiseMap.wrapT = THREE.RepeatWrapping;
+const dudvMap = textureLoader.load(`${baseUrl}/textures/dudvMap.png`);
+dudvMap.wrapS = dudvMap.wrapT = THREE.RepeatWrapping;
 const noiseMap3 = textureLoader.load(`${baseUrl}/textures/noise3.png`);
 const maskTexture = textureLoader.load(`${baseUrl}/textures/mask.png`);
 const splashTexture = textureLoader.load(`${baseUrl}/textures/splash1.png`);
@@ -266,7 +268,7 @@ class WaterMesh extends BatchedMesh {
           }
   
           float shineDamper = 150.;
-          float reflectivity = 0.12;
+          float reflectivity = 0.08;
           void main() {
              
               vec4 worldPosition = modelMatrix * vec4( vPos, 1.0 );
@@ -299,7 +301,7 @@ class WaterMesh extends BatchedMesh {
 
               
 
-              gl_FragColor = (texA + texB + vec4(0.5, 0.5, 0.5, 0.)) * vec4(0.02, 0.1, 0.16, 0.97);
+              gl_FragColor = (texA + texB) * vec4(0.02, 0.1, 0.16, 0.97);
               gl_FragColor.rgb /= 2.;
               gl_FragColor += vec4( specularHighlight, 0.0 );
               
@@ -774,6 +776,14 @@ export default (e) => {
 
     let alreadySetComposer = false;
     let reflectionSsrPass = null;
+
+    const geometry = new THREE.SphereGeometry( 5, 32, 16 );
+    const material = new THREE.MeshBasicMaterial( { color: 0xffff00 } );
+    const sphere = new THREE.Mesh( geometry, material );
+    app.add( sphere );
+    sphere.position.y = 65;
+    sphere.position.x = 3;
+    app.updateMatrixWorld();
     
     
     useFrame(({timestamp, timeDiff}) => {
@@ -791,7 +801,7 @@ export default (e) => {
                         if(pass.constructor.name === 'SSRPass'){
                             pass._selects.push(generator.getMeshes()[0]);
                             pass.opacity = 0.08;
-                            pass.maxDistance = 5;
+                            pass.maxDistance = 10;
                             // pass.thickness = 0.5;
                             reflectionSsrPass = pass;
                             console.log(pass)
@@ -802,7 +812,7 @@ export default (e) => {
             }
             if(reflectionSsrPass){
                 reflectionSsrPass.ssrMaterial.uniforms.uTime.value = timestamp / 1000;
-                reflectionSsrPass.ssrMaterial.uniforms.distortionTexture.value = flowmapTexture;
+                reflectionSsrPass.ssrMaterial.uniforms.distortionTexture.value = dudvMap;
                 
             }
 
@@ -1179,7 +1189,7 @@ export default (e) => {
             
 
             void main() {
-                gl_FragColor = vec4(0.02, 0.1, 0.16, 0.8);
+                gl_FragColor = vec4(0.01, 0.05, 0.08, 0.9);
                 if(!contactWater || vPos.y > cameraWaterSurfacePos.y)
                     discard;
             ${THREE.ShaderChunk.logdepthbuf_fragment}
@@ -1202,26 +1212,27 @@ export default (e) => {
         mask.material.uniforms.uTime.value = timestamp / 1000;
         mask.material.uniforms.cameraWaterSurfacePos.value.copy(cameraWaterSurfacePos);
         mask.material.uniforms.contactWater.value = contactWater;
-        if(camera.position.y < cameraWaterSurfacePos.y && contactWater){
+        if(camera.position.y + 0.03 < cameraWaterSurfacePos.y && contactWater){
             if(renderSettings.findRenderSettings(scene)){
                 renderSettings.findRenderSettings(scene).fog.density = 0.07;
-                if(!cameraHasMask){
-                    camera.add(mask);
-                    cameraHasMask = true;
-                }
             }
-                
         }
         else{
             if(renderSettings.findRenderSettings(scene)){
-
                 renderSettings.findRenderSettings(scene).fog.density = 0;
-                if(cameraHasMask){
-                    camera.remove(mask);
-                    cameraHasMask = false;
-                }
-            }
-                
+            }    
+        }
+        if(camera.position.y - 0.1 < cameraWaterSurfacePos.y && contactWater){
+            if(!cameraHasMask){
+                camera.add(mask);
+                cameraHasMask = true;
+            } 
+        }
+        else{   
+            if(cameraHasMask){
+                camera.remove(mask);
+                cameraHasMask = false;
+            }  
         }
         app.updateMatrixWorld();
     
@@ -3510,9 +3521,9 @@ export default (e) => {
                       info.velocity[i].y = 0.15 * Math.random();
                       info.velocity[i].z = Math.cos(i) * .1 + (Math.random() - 0.5) * 0.01;
                       positionsAttribute.setXYZ(  i, 
-                                                  waterSurfacePos.x + info.velocity[i].x,
+                                                  localPlayer.position.x + info.velocity[i].x,
                                                   waterSurfacePos.y + 0.1 * Math.random(),
-                                                  waterSurfacePos.z + info.velocity[i].z
+                                                  localPlayer.position.z + info.velocity[i].z
                       );
                       info.velocity[i].divideScalar(5);
                       scalesAttribute.setX(i, 0.8);
@@ -3520,7 +3531,7 @@ export default (e) => {
                       brokenAttribute.setX(i, 0.2 + Math.random() * 0.25);
                       if(secondSplash === 2){
                           secondSplash = 0;
-                          secondSplashPos.set(waterSurfacePos.x, waterSurfacePos.y, waterSurfacePos.z);
+                          secondSplashPos.set(localPlayer.position.x, waterSurfacePos.y, localPlayer.position.z);
                       }
                   }
                   if(scalesAttribute.getX(i) >= 0.8 &&  scalesAttribute.getX(i) < 2.5){
@@ -3988,7 +3999,7 @@ export default (e) => {
       let matrix = new THREE.Matrix4();
   
       function addInstancedMesh() {
-          dropletMesh = new THREE.InstancedMesh(new THREE.PlaneGeometry(0.1, 0.1), new THREE.MeshBasicMaterial({map:splashTexture4, color: 0xffffff, transparent:true, opacity:1, alphaTest: 0.1}), particleCount);
+          dropletMesh = new THREE.InstancedMesh(new THREE.PlaneGeometry(0.1, 0.1), new THREE.MeshBasicMaterial({map:splashTexture4, color: 0xffffff, transparent:true, opacity:1, alphaTest: 0.5}), particleCount);
           dropletgroup.add(dropletMesh);
           app.add(dropletgroup);
           setInstancedMeshPositions(dropletMesh);
@@ -4661,6 +4672,7 @@ export default (e) => {
         
     });
   }
+  
   //######################################################################  3 layers ripple ######################################################################
 //   {
 //       const identityQuaternion = new THREE.Quaternion();
