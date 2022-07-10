@@ -6,6 +6,8 @@ import physicsManager from '../physics-manager.js';
 // import {glowMaterial} from '../shaders.js';
 // import easing from '../easing.js';
 import npcManager from '../npc-manager.js';
+import { MathUtils } from 'three';
+import { lerp } from 'three/src/math/MathUtils';
 // import {rarityColors} from '../constants.js';
 
 const localVector = new THREE.Vector3();
@@ -264,6 +266,24 @@ export default (app, component) => {
       window.pickaxeApp = app;
       const animationTimeS = localPlayer.actionInterpolants.use.get() / 1000 * window.speed;
       boneAttachments = [];
+      const handleLeftHand = (o3d) => {
+        boneAttachments[0] = 'rightHand'
+        position[0] = Math.abs(position[0]);
+        quaternion[0]=0.7071067811865475
+        quaternion[1]=0
+        quaternion[2]=0
+        quaternion[3]=0.7071067811865476
+        handleBoneAttachments(o3d);
+      }
+      const handleRightHand = (o3d) => {
+        boneAttachments[0] = 'leftHand'
+        position[0] = Math.abs(position[0]) * -1;
+        quaternion[0]=0
+        quaternion[1]=0.7071067811865476
+        quaternion[2]=0.7071067811865475
+        quaternion[3]=0
+        handleBoneAttachments(o3d);
+      }
       const handleLookAt = (o3d) => {
         boneAttachments.length = 0;
         const leftHandBone = player.avatar.foundModelBones[Avatar.modelBoneRenames['rightHand']];
@@ -286,34 +306,31 @@ export default (app, component) => {
         o3d.lookAt(localVector);
         o3d.rotateOnAxis(localVector3.set(1, 0, 0), Math.PI * 0.5);
       }
-      const handleLeftHand = (o3d) => {
-        boneAttachments[0] = 'rightHand'
-        position[0] = Math.abs(position[0]);
-        quaternion[0]=0.7071067811865475
-        quaternion[1]=0
-        quaternion[2]=0
-        quaternion[3]=0.7071067811865476
-        handleBoneAttachments(o3d);
-      }
-      const handleRightHand = (o3d) => {
-        boneAttachments[0] = 'leftHand'
-        position[0] = Math.abs(position[0]) * -1;
-        quaternion[0]=0
-        quaternion[1]=0.7071067811865476
-        quaternion[2]=0.7071067811865475
-        quaternion[3]=0
-        handleBoneAttachments(o3d);
-      }
       // if (animationTimeS > 1.2999999523162842) { // animations.index["pickaxe_swing.fbx"].duration = 1.2999999523162842
       // } else if (animationTimeS < 0.5 || animationTimeS > 1.0666666666666667) {
       // } else {
       // }
-      handleLookAt(localObject);
-      handleLeftHand(localObject2);
-      handleRightHand(localObject3)
-      app.position.copy(localObject.position);
-      app.quaternion.copy(localObject.quaternion);
-      app.scale.copy(localObject.scale);
+      handleLeftHand(localObject);
+      handleRightHand(localObject2)
+      handleLookAt(localObject3);
+
+      let fLR1 = 0.5 - animationTimeS;
+      fLR1 /= 0.2;
+      fLR1 = 1 - fLR1;
+      fLR1 = MathUtils.clamp(fLR1, 0, 1);
+
+      let fLR2 = 1.0666666666666667 - animationTimeS;
+      fLR2 /= 0.2;
+      fLR2 = MathUtils.clamp(fLR2, 0, 1);
+
+      const fLR = Math.min(fLR1, fLR2);
+
+      app.position.copy(localObject.position)
+        .lerp(localObject2.position, fLR);
+      app.quaternion.copy(localObject.quaternion)
+        .slerp(localObject2.quaternion, fLR);
+      app.scale.copy(localObject.scale)
+        .lerp(localObject2.scale, fLR);
     } else {
       boneAttachments = Array.isArray(boneAttachment) ? boneAttachment : [boneAttachment];
       handleBoneAttachments(app);
