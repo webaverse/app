@@ -50,6 +50,14 @@
         0
       ],
       "start_url": "/practice/water-main2/"
+    },
+    {
+      "position": [
+        0,
+        0,
+        0
+      ],
+      "start_url": "/practice/dual-contouring-terrain-main/"
     }
   ]
 }

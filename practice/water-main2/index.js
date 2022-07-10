@@ -299,10 +299,10 @@ class WaterMesh extends BatchedMesh {
 
               
 
-              gl_FragColor = (texA + texB + vec4(0.5, 0.5, 0.5, 0.)) * vec4(0.02, 0.1, 0.16, 0.9);
-              
+              gl_FragColor = (texA + texB + vec4(0.5, 0.5, 0.5, 0.)) * vec4(0.02, 0.1, 0.16, 0.95);
+              gl_FragColor.rgb /= 2.;
               gl_FragColor += vec4( specularHighlight, 0.0 );
-              //gl_FragColor.rgb /= 1.3;
+              
             //   gl_FragColor = vec4(1.0, 0., 0., 0.6);
               ${THREE.ShaderChunk.logdepthbuf_fragment}
           }
@@ -773,13 +773,8 @@ export default (e) => {
     let lastSwimmingHand = null;
 
     let alreadySetComposer = false;
-    const geometry = new THREE.SphereGeometry( 5, 32, 16 );
-    const material = new THREE.MeshBasicMaterial( { color: 'yellow' } );
-    const sphere = new THREE.Mesh( geometry, material );
-    app.add( sphere );
-    sphere.position.y = 65;
-    sphere.position.z = -10;
-    app.updateMatrixWorld();
+    let reflectionSsrPass = null;
+    
     
     useFrame(({timestamp, timeDiff}) => {
       if (!!tracker && !range) {
@@ -792,22 +787,20 @@ export default (e) => {
         if(generator && localPlayer.avatar){
             if(!alreadySetComposer){
                 if(renderSettings.findRenderSettings(scene)){
-                    console.log(renderSettings.findRenderSettings(scene));
-                    // renderSettings.findRenderSettings(scene).passes.test.selective = true;
-                    renderSettings.findRenderSettings(scene).passes.test._selects.push(generator.getMeshes()[0]);
-                    renderSettings.findRenderSettings(scene).passes.test.maxDistance = 0.1;
-                    // renderSettings.findRenderSettings(scene).passes.test.needsSwap = false;
-                    // renderSettings.findRenderSettings(scene).passes.test.clear = false;
-                    // renderSettings.findRenderSettings(scene).passes.test.renderToScreen = false;
-                    
-                    renderSettings.findRenderSettings(scene).passes.push(renderSettings.findRenderSettings(scene).passes.test);
-                    // const temp0 = renderSettings.findRenderSettings(scene).passes[0];
-                    // const temp1 = renderSettings.findRenderSettings(scene).passes[1];
-                    // renderSettings.findRenderSettings(scene).passes.push(temp0);
-                    // renderSettings.findRenderSettings(scene).passes.push(temp1);
-                    // renderSettings.findRenderSettings(scene).fog.density = 0.07;
+                    for(const pass of renderSettings.findRenderSettings(scene).passes){
+                        if(pass.constructor.name === 'SSRPass'){
+                            pass._selects.push(generator.getMeshes()[0]);
+                            pass.opacity = 0.5;
+                            pass.maxDistance = 5;
+                            reflectionSsrPass = pass;
+                            console.log(pass)
+                        }
+                    }
                     alreadySetComposer = true;
                 }
+            }
+            if(reflectionSsrPass){
+                reflectionSsrPass.ssrMaterial.uniforms.uTime.value = timestamp / 1000;
             }
 
             let playerIsOnSurface = false;
@@ -5104,6 +5097,5 @@ export default (e) => {
         
 //     });
 //   }
-
   return app;
 };
