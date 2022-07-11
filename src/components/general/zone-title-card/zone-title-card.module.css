@@ -21,7 +21,6 @@
     border-color: #000;
   }
 }
-
 .zoneTitleCard {
   display: flex;
   position: fixed;
@@ -33,42 +32,49 @@
   color: #fff;
   text-shadow: 2px 2px 0px #333;
   transform: none;
-  transition: transform 1.5s cubic-bezier(0, 1, 0, 1);
+  transition: 5s cubic-bezier(0, 1, 0, 1);
   pointer-events: none;
   z-index: 999;
+  background-color: black;
 }
-
-.zoneTitleCard:not(.open) {
-  transform: translateY(-100%);
+.zoneTitleCard:not(.showZoneTitleCard) {
+  opacity: 0;
 }
-
 .zoneTitleCard .leftWingWrapper {
-  /* position: absolute; */
   flex: 1 0 35%;
   display: flex;
   justify-content: flex-end;
-  /* left: 10vw; */
 }
 .zoneTitleCard .leftWing {
+  position: relative;
   display: flex;
   flex-direction: column;
   width: 25vw;
 }
 .zoneTitleCard .leftWing .block {
+  position: relative;
   display: flex;
   flex-direction: column;
   height: 65vh;
   width: 100%;
   background-color: #000;
+  justify-content: center;
 }
 .zoneTitleCard .leftWing .block .title {
   margin: 0;
   margin-top: auto;
 }
 .zoneTitleCard .leftWing .block .logoImage {
-  margin-top: auto;
+  position: relative;
   width: 100%;
   object-fit: contain;
+  left: 0;
+  opacity: 1;
+  transition: 5s cubic-bezier(0, 1, 0, 1);
+}
+.zoneTitleCard .leftWing .block .logoImage:not(.showLogo) {
+  left: -100%;
+  opacity: 0;
 }
 .zoneTitleCard .leftWing .tailImg {
   width: 100%;
@@ -88,19 +94,40 @@
 .zoneTitleCard .rightSection {
   display: flex;
   flex-direction: column;
-  /* position: absolute; */
-  /* top: 30vh;
-  right: 30vw;*/
   margin-bottom: 10vh;
 }
 .zoneTitleCard .rightSection .title {
+  position: relative;
+  top: 0;
+  opacity: 1;
   font-size: 7em;
+  transition: 5s cubic-bezier(0, 1, 0, 1);
+}
+.zoneTitleCard .rightSection .title:not(.showTitle) {
+  top: -100%;
+  opacity: 0;
 }
 .zoneTitleCard .rightSection .description {
+  position: relative;
+  right: 0;
+  opacity: 1;
   font-size: 2.5em;
+  transition: 5s cubic-bezier(0, 1, 0, 1);
+}
+.zoneTitleCard .rightSection .description:not(.showDescription) {
+  right: -100%;
+  opacity: 0;
 }
 .zoneTitleCard .rightSection .comment {
+  position: relative;
+  right: 0;
+  opacity: 1;
   font-size: 1em;
+  transition: 5s cubic-bezier(0, 1, 0, 1);
+}
+.zoneTitleCard .rightSection .comment {
+  right: -100%;
+  opacity: 0;
 }
 .zoneTitleCard .rightSection .title,
 .zoneTitleCard .rightSection .description,
@@ -115,36 +142,29 @@
 }
 .zoneTitleCard .rightSection .title .background,
 .zoneTitleCard .rightSection .description .background {
-  /* position: absolute; */
   top: 40%;
   bottom: 0;
-  /* left: -20px;
-  right: -20px; */
   background-color: #000;
   transform: skew(22deg);
 }
-
 .zoneTitleCard .rightSection .renderMirror {
-  /* position: absolute;
-  top: -44px;
-  left: -100px; */
   border: 2px solid #000;
   box-shadow: 2px 2px 0 #333;
   animation: border-blink 0.5s linear infinite;
 }
-
 .zoneTitleCard .bottomSection {
-  /* position: absolute; */
-  /* left: 40vw;
-  bottom: 150px; */
-  /* background-color: #FFF; */
-  /* background-image: linear-gradient(to bottom, #333, #111); */
-  /* flex-basis: 100%; */
+  position: relative;
+  bottom: 0;
+  opacity: 1;
+  transition: 5s cubic-bezier(0, 1, 0, 1);
+}
+.zoneTitleCard .bottomSection:not(.showBottomSection) {
+  bottom: -20%;
+  opacity: 0;
 }
 .zoneTitleCard .bottomSection .loadingBar {
   display: flex;
   flex-direction: column;
-  /* padding: 10px; */
 }
 .zoneTitleCard .bottomSection .loadingBar .label {
   padding: 1vh;
@@ -153,14 +173,10 @@
 }
 .zoneTitleCard .bottomSection .loadingBar .loadProgressImage {
   position: relative;
-  /* width: 40vw; */
   height: 0.2vh;
 }
 .zoneTitleCard .bottomSection .loadingBar .loadProgress {
-  /* position: absolute; */
-  /* left: 51px; */
   width: 40vw;
-  /* bottom: 12px; */
   height: 0.7vh;
   -webkit-appearance: none;
 }
@@ -171,7 +187,6 @@
   .bottomSection
   .loadingBar
   .loadProgress::-webkit-progress-value {
-  /* background-color: #444; */
   background-image: linear-gradient(
     90deg,
     rgba(255, 0, 0, 1) 0%,
@@ -187,8 +202,6 @@
     rgba(255, 0, 0, 1) 100%
   );
   background-size: 512px 100%;
-  /* background-image: linear-gradient(to bottom, #56ab2f, #a8e063); */
-  /* transition: background-color 1s cubic-bezier(0, 1, 0, 1); */
 }
 .overlay {
   background-color: black;
@@ -198,16 +211,18 @@
   top: 0;
   width: 100vw;
   height: 100vh;
+  transition: 5s cubic-bezier(0, 1, 0, 1);
+  opacity: 1;
 }
-
+.overlay:not(.showOverlay) {
+  opacity: 0;
+}
 .rainFx {
   position: fixed;
   top: 0;
   left: 0;
   bottom: 0;
   right: 0;
-  /* width: 100%;
-  height: 100%; */
   z-index: -1;
   pointer-events: none;
 }
