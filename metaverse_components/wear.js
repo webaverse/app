@@ -284,7 +284,7 @@ export default (app, component) => {
         quaternion[3] = 0;
         averageBoneAttachments(o3d);
       }
-      const handleLookAt = o3d => {
+      const handleLHandLookAtRHand = o3d => {
         boneAttachments.length = 0;
         const leftHandBone = player.avatar.foundModelBones[Avatar.modelBoneRenames['rightHand']];
         leftHandBone.matrixWorld
@@ -307,14 +307,17 @@ export default (app, component) => {
         o3d.rotateOnAxis(localVector3.set(1, 0, 0), Math.PI * 0.5);
         o3d.rotateOnAxis(localVector3.set(0, 1, 0), Math.PI * 0.25);
       }
-      // if (animationTimeS > 1.2999999523162842) { // animations.index["pickaxe_swing.fbx"].duration = 1.2999999523162842
-      // } else if (animationTimeS < 0.5 || animationTimeS > 1.0666666666666667) {
-      // } else {
-      // }
       handleLeftHand(localObject);
-      handleRightHand(localObject2)
-      handleLookAt(localObject3);
+      handleRightHand(localObject2);
+      handleLHandLookAtRHand(localObject3);
 
+      // if (animationTimeS > 1.2999999523162842) { // animations.index["pickaxe_swing.fbx"].duration = 1.2999999523162842
+      //   // left hand lookAt right hand
+      // } else if (animationTimeS < 0.5 || animationTimeS > 1.0666666666666667) {
+      //   // left hand
+      // } else {
+      //   // right hand
+      // }
       let fLR1 = 0.5 - animationTimeS;
       fLR1 /= 0.2;
       fLR1 = MathUtils.clamp(fLR1, 0, 1);
@@ -326,20 +329,20 @@ export default (app, component) => {
 
       const fLR = Math.min(fLR1, fLR2);
 
-      let fLookAt = 1.2999999523162842 - animationTimeS;
-      fLookAt /= 0.2;
-      fLookAt = MathUtils.clamp(fLookAt, 0, 1);
-      fLookAt = 1 - fLookAt;
+      let fLHandLookAtRHand = 1.2999999523162842 - animationTimeS;
+      fLHandLookAtRHand /= 0.2;
+      fLHandLookAtRHand = MathUtils.clamp(fLHandLookAtRHand, 0, 1);
+      fLHandLookAtRHand = 1 - fLHandLookAtRHand;
 
       app.position.copy(localObject.position)
         .lerp(localObject2.position, fLR)
-        .lerp(localObject3.position, fLookAt);
+        .lerp(localObject3.position, fLHandLookAtRHand);
       app.quaternion.copy(localObject.quaternion)
         .slerp(localObject2.quaternion, fLR)
-        .slerp(localObject3.quaternion, fLookAt);
+        .slerp(localObject3.quaternion, fLHandLookAtRHand);
       app.scale.copy(localObject.scale)
         .lerp(localObject2.scale, fLR)
-        .lerp(localObject3.scale, fLookAt);
+        .lerp(localObject3.scale, fLHandLookAtRHand);
     } else {
       boneAttachments = Array.isArray(boneAttachment) ? boneAttachment : [boneAttachment];
       averageBoneAttachments(app);
