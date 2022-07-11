@@ -266,25 +266,25 @@ export default (app, component) => {
       window.pickaxeApp = app;
       const animationTimeS = localPlayer.actionInterpolants.use.get() / 1000 * window.speed;
       boneAttachments = [];
-      const handleLeftHand = (o3d) => {
-        boneAttachments[0] = 'rightHand'
+      const handleLeftHand = o3d => {
+        boneAttachments[0] = 'rightHand'; // left/right between boneAttachments and real bones are reversed. `Avatar.modelBoneRenames[]` will translate it, such as: `Avatar.modelBoneRenames['rightHand']` output `'Left_wrist'`.
         position[0] = Math.abs(position[0]);
-        quaternion[0]=0.7071067811865475
-        quaternion[1]=0
-        quaternion[2]=0
-        quaternion[3]=0.7071067811865476
+        quaternion[0] = 0.7071067811865475;
+        quaternion[1] = 0;
+        quaternion[2] = 0;
+        quaternion[3] = 0.7071067811865476;
         averageBoneAttachments(o3d);
       }
-      const handleRightHand = (o3d) => {
-        boneAttachments[0] = 'leftHand'
+      const handleRightHand = o3d => {
+        boneAttachments[0] = 'leftHand';
         position[0] = Math.abs(position[0]) * -1;
-        quaternion[0]=0
-        quaternion[1]=0.7071067811865476
-        quaternion[2]=0.7071067811865475
-        quaternion[3]=0
+        quaternion[0] = 0;
+        quaternion[1] = 0.7071067811865476;
+        quaternion[2] = 0.7071067811865475;
+        quaternion[3] = 0;
         averageBoneAttachments(o3d);
       }
-      const handleLookAt = (o3d) => {
+      const handleLookAt = o3d => {
         boneAttachments.length = 0;
         const leftHandBone = player.avatar.foundModelBones[Avatar.modelBoneRenames['rightHand']];
         leftHandBone.matrixWorld
