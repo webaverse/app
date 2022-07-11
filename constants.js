@@ -101,6 +101,9 @@ export const groundFriction = 0.28;
 export const airFriction = groundFriction;
 export const flyFriction = 0.5;
 export const aimTransitionMaxTime = 150;
+export const pickaxeDuration = 1.2999999523162842;
+export const pickaxeRHandStartTimeS = 0.5;
+export const pickaxeRHandEndTimeS = 1.0666666666666667;
 
 export const avatarInterpolationFrameRate = 60;
 export const avatarInterpolationTimeDelay = 1000/(avatarInterpolationFrameRate * 0.5);

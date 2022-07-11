@@ -8,6 +8,7 @@ import physicsManager from '../physics-manager.js';
 import npcManager from '../npc-manager.js';
 import { MathUtils } from 'three';
 import { lerp } from 'three/src/math/MathUtils';
+import { pickaxeDuration, pickaxeRHandEndTimeS, pickaxeRHandStartTimeS } from '../constants.js';
 // import {rarityColors} from '../constants.js';
 
 const localVector = new THREE.Vector3();
@@ -311,25 +312,25 @@ export default (app, component) => {
       handleRightHand(localObject2);
       handleLHandLookAtRHand(localObject3);
 
-      // if (animationTimeS > 1.2999999523162842) { // animations.index["pickaxe_swing.fbx"].duration = 1.2999999523162842
+      // if (animationTimeS > pickaxeDuration) { // animations.index["pickaxe_swing.fbx"].duration = 1.2999999523162842
       //   // left hand lookAt right hand
-      // } else if (animationTimeS < 0.5 || animationTimeS > 1.0666666666666667) {
+      // } else if (animationTimeS < pickaxeRHandStartTimeS || animationTimeS > pickaxeRHandEndTimeS) {
       //   // left hand
       // } else {
       //   // right hand
       // }
-      let fLR1 = 0.5 - animationTimeS;
+      let fLR1 = pickaxeRHandStartTimeS - animationTimeS;
       fLR1 /= 0.2;
       fLR1 = MathUtils.clamp(fLR1, 0, 1);
       fLR1 = 1 - fLR1;
 
-      let fLR2 = 1.0666666666666667 - animationTimeS;
+      let fLR2 = pickaxeRHandEndTimeS - animationTimeS;
       fLR2 /= 0.2;
       fLR2 = MathUtils.clamp(fLR2, 0, 1);
 
       const fLR = Math.min(fLR1, fLR2);
 
-      let fLHandLookAtRHand = 1.2999999523162842 - animationTimeS;
+      let fLHandLookAtRHand = pickaxeDuration - animationTimeS;
       fLHandLookAtRHand /= 0.2;
       fLHandLookAtRHand = MathUtils.clamp(fLHandLookAtRHand, 0, 1);
       fLHandLookAtRHand = 1 - fLHandLookAtRHand;
