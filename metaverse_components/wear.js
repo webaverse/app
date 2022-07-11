@@ -17,7 +17,15 @@ const localQuaternion2 = new THREE.Quaternion();
 const localEuler = new THREE.Euler();
 const localMatrix = new THREE.Matrix4();
 
+//
+
 const identityVector = new THREE.Vector3();
+
+//
+
+const physicsScene = physicsManager.getScene();
+
+//
 
 export default (app, component) => {
   const {useActivate} = metaversefile;
@@ -44,7 +52,7 @@ export default (app, component) => {
         
         const physicsObjects = app.getPhysicsObjects();
         for (const physicsObject of physicsObjects) {
-          physicsManager.disableActor(physicsObject);
+          physicsScene.disableActor(physicsObject);
         }
         
         if (app.glb) {
@@ -182,7 +190,7 @@ export default (app, component) => {
     if (wearSpec) {
       const physicsObjects = app.getPhysicsObjects();
       for (const physicsObject of physicsObjects) {
-        physicsManager.enableActor(physicsObject);
+        physicsScene.enableActor(physicsObject);
       }
 
       app.scale.copy(initialScale);

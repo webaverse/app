@@ -1,6 +1,6 @@
 // import * as THREE from 'three';
 import metaversefile from 'metaversefile';
-const {useApp, useProcGenManager, useCleanup} = metaversefile;
+const {useApp, useCleanup} = metaversefile;
 
 export default e => {
   const app = useApp();
@@ -11,7 +11,7 @@ export default e => {
     {
       "start_url": "https://webaverse.github.io/dual-contouring-terrain/"
     },
-    {
+    /* {
       "start_url": "https://webaverse.github.io/silk-grass/"
     },
     {
@@ -23,57 +23,111 @@ export default e => {
         {
           "key": "appUrls",
           "value": [
-            "https://webaverse.github.io/ghost/",
-            "https://webaverse.github.io/silkworm-biter/",
-            "https://webaverse.github.io/silkworm-bloater/",
-            "https://webaverse.github.io/silkworm-queen/",
-            "https://webaverse.github.io/silkworm-runner/",
-            "https://webaverse.github.io/silkworm-slasher/"
+            "../../ghost/",
+            "../../silkworm-biter/",
+            "../../silkworm-bloater/",
+            "../../silkworm-queen/",
+            "../../silkworm-runner/",
+            "../../silkworm-slasher/"
           ],
         },
       ],
-    },
+    }, */
   ];
   const passComponents = [];
   const seed = app.getComponent('seed');
-  const range = app.getComponent('range');
-  const wait = app.getComponent('wait') ?? false;
-  /* if (range) {
-    range = new THREE.Box3(
-      new THREE.Vector3(range[0][0], range[0][1], range[0][2]),
-      new THREE.Vector3(range[1][0], range[1][1], range[1][2])
-    );
-  } */
+  const clipRange = app.getComponent('clipRange');
+  const physicsInstance = app.getComponent('physicsInstance');
+  const wait = app.getComponent('wait');
+  const debug = app.getComponent('debug');
+
+  const renderPosition = app.getComponent('renderPosition');
+  if (renderPosition !== undefined) {
+    passComponents.push({
+      "key": "renderPosition",
+      "value": renderPosition,
+    });
+  }
+  const minLodRange = app.getComponent('minLodRange');
+  if (minLodRange !== undefined) {
+    passComponents.push({
+      "key": "minLodRange",
+      "value": minLodRange,
+    });
+  }
+  const lods = app.getComponent('lods');
+  if (lods !== undefined) {
+    passComponents.push({
+      "key": "lods",
+      "value": lods,
+    });
+  }
   if (seed !== undefined) {
     passComponents.push({
       "key": "seed",
       "value": seed,
     });
   }
-  if (range !== undefined) {
+  if (clipRange !== undefined) {
     passComponents.push({
-      "key": "range",
-      "value": range,
+      "key": "clipRange",
+      "value": clipRange,
     });
   }
-  if (wait) {
+  if (physicsInstance !== undefined) {
+    passComponents.push({
+      "key": "physicsInstance",
+      "value": physicsInstance,
+    });
+  }
+  if (wait !== undefined) {
     passComponents.push({
       "key": "wait",
-      "value": true,
+      "value": wait,
     });
   }
+  if (debug !== undefined) {
+    passComponents.push({
+      "key": "debug",
+      "value": debug,
+    });
+  }
+
+  app.addEventListener('componentsupdate', e => {
+    const {keys} = e;
+    const components = {};
+    for (const key of keys) {
+      components[key] = app.getComponent(key);
+    }
+
+    for (const subApp of subApps) {
+      subApp.setComponents(components);
+    }
+  });
 
   const subApps = [];
   const loadPromise = (async () => {
     await Promise.all(landApps.map(async spec => {
       const {start_url, components} = spec;
       const components2 = (components ?? []).concat(passComponents);
+
+      const keys = [];
+      const componentsupdate = (e) => {
+        keys.push(...e.keys);
+      };
+      app.addEventListener('componentsupdate', componentsupdate);
+      
       const subApp = await metaversefile.createAppAsync({
         start_url,
         parent: app,
         components: components2,
       });
       subApps.push(subApp);
+
+      app.removeEventListener('componentsupdate', componentsupdate);
+      for (const key of keys) {
+        subApp.setComponent(key, app.getComponent(key));
+      }
     }));
   })();
   if (wait) {
@@ -88,6 +142,14 @@ export default e => {
     }
     return result;
   };
+  app.getChunkForPhysicsObject = physicsObject => {
+    for (const subApp of subApps) {
+      if (subApp.getChunkForPhysicsObject) {
+        return subApp.getChunkForPhysicsObject(physicsObject);
+      }
+    }
+    return null;
+  }
 
   useCleanup(() => {
     for (const subApp of subApps) {
