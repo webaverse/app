@@ -48,19 +48,24 @@ const localQuaternion = new THREE.Quaternion();
 const localEuler = new THREE.Euler();
 const localVector4D = new THREE.Vector4();
 const localMatrix = new THREE.Matrix4();
-const localMatrix2 = new THREE.Matrix4();
-const localArray = [];
+// const localMatrix2 = new THREE.Matrix4();
+// const localArray = [];
 // const localColor = new THREE.Color();
 const localRaycaster = new THREE.Raycaster();
+const localPlane = new THREE.Plane();
 
 //
 
 const fakeGeometry = new THREE.BufferGeometry();
 const forwardDirection = new THREE.Vector3(0, 0, -1);
+const oneVector = new THREE.Vector3(1, 1, 1);
+const zeroVector = new THREE.Vector3(0, 0, 0);
+const upVector = new THREE.Vector3(0, 1, 0);
 const downQuaternion = new THREE.Quaternion().setFromAxisAngle(
   new THREE.Vector3(1, 0, 0),
   -Math.PI / 2,
 );
+const renderY = 60;
 
 //
 
@@ -207,11 +212,19 @@ export const MapGen = () => {
     const { state, setState } = useContext( AppContext );
     const [width, setWidth] = useState(window.innerWidth);
     const [height, setHeight] = useState(window.innerHeight); 
-    const [position, setPosition] = useState(new THREE.Vector3(0, 0, 0));
-    const [scale, setScale] = useState(1);
+    // const [position, setPosition] = useState(() => new THREE.Vector3(0, 100, 0));
+    // const [quaternion, setQuaternion] = useState(() => downQuaternion.clone());
+    // const [target, setTarget] = useState(() => position.clone().add(new THREE.Vector3(0, 0, -10).applyQuaternion(quaternion)));
+    // const [scale, setScale] = useState(1);
     const [mouseState, setMouseState] = useState(null);
     const [mapScene, setMapScene] = useState(() => new THREE.Scene());
-    const [camera, setCamera] = useState(() => new THREE.OrthographicCamera());
+    const [camera, setCamera] = useState(() => {
+      const camera = new THREE.PerspectiveCamera(45, width / height, 0.1, 10 * 1000);
+      camera.position.y = 100;
+      camera.quaternion.copy(downQuaternion);
+      camera.updateMatrixWorld();
+      return camera;
+    });
     // const [chunks, setChunks] = useState([]);
     const [hoveredObject, setHoveredObject] = useState(null);
     const [selectedChunk, setSelectedChunk] = useState(null);
@@ -227,14 +240,26 @@ export const MapGen = () => {
     const [magicMeshApp, setMagicMeshApp] = useState(null);
     const [limitMeshApp, setLimitMeshApp] = useState(null);
     const [terrainApp, setTerrainApp] = useState(null);
-    const [highlightPhysicsMesh, setHighlightPhysicsMesh] = useState(null);
+    const [hoveredPhysicsMesh, setHighlightPhysicsMesh] = useState(null);
+    const [selectedPhysicsMesh, setSelectedPhysicsMesh] = useState(null);
     const [loaded, setLoaded] = useState(false);
+
+    const [hoveredPhysicsObject, setHoveredPhysicsObject] = useState(null);
+    const [hoveredPoint, setHoveredPoint] = useState(null);
+    const [selectedPhysicsObject, setSelectedPhysicsObject] = useState(null);
+
+    const [animation, setAnimation] = useState(null);
+
     const canvasRef = useRef();
 
     //
 
     const open = state.openedPanel === 'MapGenPanel';
     const selectedObjectName = selectedObject ? selectedObject.name : '';
+
+    // const renderer = getRenderer();
+    // const pixelRatio = renderer.getPixelRatio();
+    const pixelRatio = window.devicePixelRatio;
 
     //
     
@@ -254,22 +279,46 @@ export const MapGen = () => {
 
     };
 
-    const updateCamera = () => {
-      const renderer = getRenderer();
-      const pixelRatio = renderer.getPixelRatio();
-
-      camera.position.set(-position.x / voxelPixelSize, 100, -position.z / voxelPixelSize);
-      camera.quaternion.copy(downQuaternion);
-      camera.scale.setScalar(pixelRatio * scale);
+    const getRenderPosition = () => {
+      return camera.position.clone()
+        .add(new THREE.Vector3(0, 0, -16).applyQuaternion(camera.quaternion))
+        .toArray();
+    };
+    const _updateTerrainApp = () => {
+      if (terrainApp) {
+        const renderPosition = getRenderPosition();
+        terrainApp.setComponent('renderPosition', renderPosition);
+      }
+    };
+    const setPosition = p => {
+      camera.position.copy(p);
       camera.updateMatrixWorld();
       
-      camera.left = -(width / voxelPixelSize) / 2;
+      _updateTerrainApp();
+    };
+    const setQuaternion = q => {
+      camera.quaternion.copy(q);
+      camera.updateMatrixWorld();
+    
+      _updateTerrainApp();
+    };
+    const updateCamera = () => {
+      debugger;
+      const renderer = getRenderer();
+      // const pixelRatio = renderer.getPixelRatio();
+
+      setPosition(position);
+      setQuaternion(quaternion);
+      // camera.scale.setScalar(pixelRatio * scale);
+      // camera.updateMatrixWorld();
+      
+      /* camera.left = -(width / voxelPixelSize) / 2;
       camera.right = (width / voxelPixelSize) / 2;
       camera.top = (height / voxelPixelSize) / 2;
       camera.bottom = -(height / voxelPixelSize) / 2;
       camera.near = 0;
       camera.far = 10 * 1000;
-      camera.updateProjectionMatrix();
+      camera.updateProjectionMatrix(); */
     };
     /* const getChunksInRange = () => {
       const chunks = [];
@@ -299,17 +348,15 @@ export const MapGen = () => {
     const setRaycasterFromEvent = (raycaster, e) => {
       const width = window.innerWidth;
       const height = window.innerHeight;
-      const renderer = getRenderer();
-      const pixelRatio = renderer.getPixelRatio();
+      // const renderer = getRenderer();
+      // const pixelRatio = renderer.getPixelRatio();
       const mouse = localVector2D.set(
-        (e.clientX / pixelRatio / width) * 2 - 1,
-        -(e.clientY / pixelRatio / height) * 2 + 1
+        (e.clientX / width) * 2 - 1,
+        -(e.clientY / height) * 2 + 1
       );
       raycaster.setFromCamera(mouse, camera);
     };
     const selectObject = () => {
-      return; // XXX
-
       const now = performance.now();
       const timeDiff = now - lastSelectTime;
       const newSelectedObject = (selectedObject === hoveredObject && timeDiff > 200) ? null : hoveredObject;
@@ -615,53 +662,121 @@ export const MapGen = () => {
     // mousemove
     useEffect(() => {
       function mouseMove(e) {
+        // console.log('mouse move', !!mouseState);
         if (mouseState) {
-          const dx = e.movementX;
-          const dy = e.movementY;
+          const totalX = mouseState.startX - e.clientX;
+          const totalY = mouseState.startY - e.clientY;
 
-          const renderer = getRenderer();
-          const pixelRatio = renderer.getPixelRatio();
-          setPosition(new THREE.Vector3(
-            position.x + dx * scale / pixelRatio,
-            0,
-            position.z + dy * scale / pixelRatio
-          ));
+          // console.log('move button', e.button, e.buttons, e);
+          if (
+            !!(mouseState.buttons & 1) || // left click
+            (e.shiftKey && !!(mouseState.buttons & 4)) // shift + right click
+          ) {
+            const {forwardTarget} = mouseState;
+
+            const backDirection = new THREE.Vector3(0, 0, 1).applyQuaternion(camera.quaternion);
+            localPlane.setFromNormalAndCoplanarPoint(backDirection, forwardTarget);
+            
+            const oldEvent = {
+              clientX: mouseState.x,
+              clientY: mouseState.y,
+            };
+            setRaycasterFromEvent(localRaycaster, oldEvent);
+
+            const startIntersectionPoint = localRaycaster.ray.intersectPlane(localPlane, localVector);
+
+            setRaycasterFromEvent(localRaycaster, e);
+            const endIntersectionPoint = localRaycaster.ray.intersectPlane(localPlane, localVector2);
+
+            if (startIntersectionPoint && endIntersectionPoint) {
+              const intersectionDelta = endIntersectionPoint.clone().sub(startIntersectionPoint);
+              const p = camera.position.clone()
+                .sub(intersectionDelta);
+              setPosition(p);
+            }
+
+            /* const p = position.clone()
+              .add(new THREE.Vector3(-dx, dy, 0).applyQuaternion(quaternion));
+            setPosition(p); */
+          } else if (mouseState.buttons & 4) { // middle click
+            // setRaycasterFromEvent(localRaycaster, e);
+
+            // const dx = e.movementX;
+            // const dy = e.movementY;
+
+            const {startPosition, startQuaternion, forwardTarget} = mouseState;
+            // const offset = startPosition.clone().sub(forwardTarget);
+            // const offsetNegative = offset.clone().negate();
+            /* const target = position.clone()
+              .add(offset.clone().applyQuaternion(quaternion)); */
+            // localEuler.setFromQuaternion(quaternion, 'YXZ');
+            localEuler.setFromQuaternion(startQuaternion, 'YXZ');
+            localEuler.x += totalY * Math.PI * 2 * 0.001;
+            localEuler.y += totalX * Math.PI * 2 * 0.001;
+            localQuaternion.setFromEuler(localEuler)
+              // .multiply(startQuaternion);
+
+            const d = startPosition.distanceTo(forwardTarget);
+
+            const p = forwardTarget.clone()
+              .add(
+                new THREE.Vector3(0, 0, d)
+                  .applyQuaternion(localQuaternion)
+              );
+            const q = localQuaternion.clone(); /* new THREE.Quaternion().setFromRotationMatrix(
+              localMatrix.lookAt(
+                p,
+                forwardTarget,
+                upVector
+              )
+            ); */
+            
+            setPosition(p);
+            setQuaternion(q);
+          } else if (mouseState.buttons & 2) { // right click
+            /* const p = position.clone();
+            const q = quaternion.clone();
+            
+            setPosition(p);
+            setQuaternion(q); */
+          }
 
           setMouseState({
             x: e.clientX,
             y: e.clientY,
+            // totalX,
+            // totalY,
+            startX: mouseState.startX,
+            startY: mouseState.startY,
+            buttons: mouseState.buttons,
+            startPosition: mouseState.startPosition,
+            startQuaternion: mouseState.startQuaternion,
+            forwardTarget: mouseState.forwardTarget,
             moved: true,
           });
         } else {
-          if (terrainApp && highlightPhysicsMesh) {
-            setRaycasterFromEvent(localRaycaster, e);
+          let physicsObject = null;
+          let hoveredPoint = null;
 
-            highlightPhysicsMesh.visible = false;
+          // console.log('try hit', !!terrainApp, !!hoveredPhysicsMesh);
+          if (terrainApp) {
+            setRaycasterFromEvent(localRaycaster, e);
 
             localQuaternion.setFromUnitVectors(forwardDirection, localRaycaster.ray.direction);
             const raycastResult = physicsScene.raycast(localRaycaster.ray.origin, localQuaternion);
             if (raycastResult) {
+              // window.raycastResult = raycastResult;
               const physicsId = raycastResult.objectId;
               const physicsObjects = terrainApp.getPhysicsObjects();
-              const physicsObject = physicsObjects.find(physicsObject => physicsObject.physicsId === physicsId);
+              physicsObject = physicsObjects.find(physicsObject => physicsObject.physicsId === physicsId);
               if (physicsObject) {
-                const {physicsMesh} = physicsObject;
-                // const physicsGeometry = physicsScene.getGeometryForPhysicsId(physicsId);
-                const timestamp = performance.now();
-
-                highlightPhysicsMesh.geometry = physicsMesh.geometry;
-                highlightPhysicsMesh.matrixWorld.copy(physicsMesh.matrixWorld)
-                  .decompose(highlightPhysicsMesh.position, highlightPhysicsMesh.quaternion, highlightPhysicsMesh.scale);
-        
-                highlightPhysicsMesh.material.uniforms.uTime.value = (timestamp%1500)/1500;
-                highlightPhysicsMesh.material.uniforms.uTime.needsUpdate = true;
-                highlightPhysicsMesh.material.uniforms.uColor.value.setHex(buildMaterial.uniforms.uColor.value.getHex());
-                highlightPhysicsMesh.material.uniforms.uColor.needsUpdate = true;
-                highlightPhysicsMesh.visible = true;
-                highlightPhysicsMesh.updateMatrixWorld();
+                hoveredPoint = new THREE.Vector3().fromArray(raycastResult.point);
               }
             }
           }
+
+          setHoveredPhysicsObject(physicsObject);
+          setHoveredPoint(hoveredPoint);
 
           /* localArray.length = 0;
           const intersections = localRaycaster.intersectObjects(mapScene.children, false, localArray);
@@ -683,52 +798,175 @@ export const MapGen = () => {
       return () => {
         document.removeEventListener('mousemove', mouseMove);
       };
-    }, [mouseState, /* chunks, */ position.x, position.z, scale]);
+    }, [
+      mouseState,
+      /* chunks, */
+      terrainApp,
+      // position.x, position.y, position.z,
+      // quaternion.x, quaternion.y, quaternion.z, quaternion.w,
+      // target.x, target.y, target.z,
+      // scale,
+    ]);
+
+    // physics objects
+    useEffect(() => {
+      if (hoveredPhysicsMesh) {
+        if (hoveredPhysicsObject) {
+          const {physicsMesh} = hoveredPhysicsObject;
+          const timestamp = performance.now();
+
+          hoveredPhysicsMesh.geometry = physicsMesh.geometry;
+          hoveredPhysicsMesh.matrixWorld.copy(physicsMesh.matrixWorld)
+            .decompose(hoveredPhysicsMesh.position, hoveredPhysicsMesh.quaternion, hoveredPhysicsMesh.scale);
+
+          hoveredPhysicsMesh.material.uniforms.uTime.value = (timestamp%1500)/1500;
+          hoveredPhysicsMesh.material.uniforms.uTime.needsUpdate = true;
+          hoveredPhysicsMesh.material.uniforms.uColor.value.setHex(buildMaterial.uniforms.uColor.value.getHex());
+          hoveredPhysicsMesh.material.uniforms.uColor.needsUpdate = true;
+          hoveredPhysicsMesh.visible = true;
+          hoveredPhysicsMesh.updateMatrixWorld();
+        } else {
+          hoveredPhysicsMesh.visible = false;
+        }
+      }
+    }, [hoveredPhysicsMesh, hoveredPhysicsObject]);
+
+    useEffect(() => {
+      if (selectedPhysicsMesh) {
+        if (selectedPhysicsObject) {
+          const {physicsMesh} = selectedPhysicsObject;
+          const timestamp = performance.now();
+
+          selectedPhysicsMesh.geometry = physicsMesh.geometry;
+          selectedPhysicsMesh.matrixWorld.copy(physicsMesh.matrixWorld)
+            .decompose(selectedPhysicsMesh.position, selectedPhysicsMesh.quaternion, selectedPhysicsMesh.scale);
+
+          selectedPhysicsMesh.material.uniforms.uTime.value = (timestamp%1500)/1500;
+          selectedPhysicsMesh.material.uniforms.uTime.needsUpdate = true;
+          selectedPhysicsMesh.material.uniforms.uColor.value.setHex(0x66bb6a);
+          selectedPhysicsMesh.material.uniforms.uColor.needsUpdate = true;
+          selectedPhysicsMesh.visible = true;
+          selectedPhysicsMesh.updateMatrixWorld();
+        } else {
+          selectedPhysicsMesh.visible = false;
+        }
+      }
+    }, [selectedPhysicsMesh, selectedPhysicsObject]);
 
     // wheel
     useEffect(() => {
       if ( state.openedPanel === 'MapGenPanel' ) {
         function wheel(e) {
-          setRaycasterFromEvent(localRaycaster, e);
-          localRaycaster.ray.origin.multiplyScalar(voxelPixelSize);
+          if (!mouseState) {
+            setRaycasterFromEvent(localRaycaster, e);
+            // localRaycaster.ray.origin.multiplyScalar(voxelPixelSize);
 
-          const oldScale = scale;
-          const newScale = Math.min(Math.max(scale * (1 + e.deltaY * 0.001), 0.01), 20);
-          const scaleFactor = newScale / oldScale;
+            /* const target = localRaycaster.ray.origin.clone()
+              .add(localRaycaster.ray.direction.clone().multiplyScalar(3)); */
+            
+            const backDirection = localRaycaster.ray.direction.clone()
+              .multiplyScalar(-1);
+            // console.log('got back direction', backDirection.toArray().join(','));
+            const p = camera.position.clone()
+              .add(backDirection.clone().multiplyScalar(e.deltaY * 0.1));
+            setPosition(p);
+
+            /* const oldScale = scale;
+            const newScale = Math.min(Math.max(scale * (1 + e.deltaY * 0.001), 0.01), 20);
+            const scaleFactor = newScale / oldScale;
+            
+            localMatrix.compose(
+              position,
+              downQuaternion,
+              localVector2.setScalar(scaleFactor)
+            )
+              .premultiply(
+                localMatrix2.makeTranslation(localRaycaster.ray.origin.x, 0, localRaycaster.ray.origin.z)
+              )
+              .premultiply(
+                localMatrix2.makeScale(scaleFactor, scaleFactor, scaleFactor)
+              )
+              .premultiply(
+                localMatrix2.makeTranslation(-localRaycaster.ray.origin.x, 0, -localRaycaster.ray.origin.z)
+              )
+              .decompose(localVector, localQuaternion, localVector2);
           
-          localMatrix.compose(
-            position,
-            downQuaternion,
-            localVector2.setScalar(scaleFactor)
-          )
-            .premultiply(
-              localMatrix2.makeTranslation(localRaycaster.ray.origin.x, 0, localRaycaster.ray.origin.z)
-            )
-            .premultiply(
-              localMatrix2.makeScale(scaleFactor, scaleFactor, scaleFactor)
-            )
-            .premultiply(
-              localMatrix2.makeTranslation(-localRaycaster.ray.origin.x, 0, -localRaycaster.ray.origin.z)
-            )
-            .decompose(localVector, localQuaternion, localVector2);
-        
-          setPosition(localVector.clone());
-          setScale(newScale);
-          setMouseState(null);
+            setPosition(localVector.clone());
+            setScale(newScale); */
+
+            setPosition(p);
+            setMouseState(null);
+          }
 
           return false;
+
         }
         registerIoEventHandler('wheel', wheel);
         return () => {
           unregisterIoEventHandler('wheel', wheel);
         };
       }
-    }, [state.openedPanel, mouseState, position.x, position.z, scale]);
+    }, [state.openedPanel, mouseState]);
 
     // click
     useEffect(() => {
-      function click(e) {
+      /* function click(e) {
+        console.log('click', e);
         if ( state.openedPanel === 'MapGenPanel' ) {
+          return false;
+        } else {
+          return true;
+        }
+      } */
+      function dblclick(e) {
+        // console.log('dbl click', e);
+        if ( state.openedPanel === 'MapGenPanel' ) {
+          setSelectedPhysicsObject(hoveredPhysicsObject);
+
+          if (hoveredPhysicsObject) {
+            const {physicsMesh} = hoveredPhysicsObject;
+            const {geometry} = physicsMesh;
+            const {boundingBox} = geometry;
+
+            // window.hoveredPhysicsObject = hoveredPhysicsObject;
+            
+            const center = boundingBox.getCenter(new THREE.Vector3());
+            const offset = camera.position.clone().sub(center);
+
+            const endPosition = center.clone()
+              .add(
+                offset.clone()
+                  .normalize()
+                  .multiplyScalar(16 * 2)
+              )
+              /* .add(
+                new THREE.Vector3(0, 16/2, 0)
+              ); */
+            const endQuaternion = new THREE.Quaternion().setFromRotationMatrix(
+              new THREE.Matrix4()
+                .lookAt(
+                  camera.position,
+                  center,
+                  upVector
+                )
+            );
+
+            const now = performance.now();
+            const startTime = now;
+            const endTime = startTime + 1000;
+            const animation = {
+              startTime,
+              endTime,
+              startPosition: camera.position.clone(),
+              startQuaternion: camera.quaternion.clone(),
+              endPosition,
+              endQuaternion,
+            };
+            setAnimation(animation);
+          } else {
+            setAnimation(null);
+          }
+
           return false;
         } else {
           return true;
@@ -736,8 +974,15 @@ export const MapGen = () => {
       }
       function mouseUp(e) {
         if ( state.openedPanel === 'MapGenPanel') {
-          if (mouseState && !mouseState.moved && hoveredObject) {
-            selectObject();
+          if (mouseState && !mouseState.moved) {
+            const chunk = terrainApp?.getChunkForPhysicsObject(hoveredPhysicsObject);
+            if (chunk) {
+              // console.log('got chunk', chunk, hoveredPhysicsObject);
+              setSelectedPhysicsObject(selectedPhysicsObject !== hoveredPhysicsObject ? hoveredPhysicsObject : null);
+            } else {
+              // console.log('did not get chunk', hoveredPhysicsObject);
+              setSelectedPhysicsObject(null);
+            }
           }
           setMouseState(null);
           return false;
@@ -745,13 +990,15 @@ export const MapGen = () => {
           return true;
         }
       }
-      registerIoEventHandler('click', click);
+      // registerIoEventHandler('click', click);
+      registerIoEventHandler('dblclick', dblclick);
       registerIoEventHandler('mouseup', mouseUp);
       return () => {
-        unregisterIoEventHandler('click', click);
+        // unregisterIoEventHandler('click', click);
+        unregisterIoEventHandler('dblclick', dblclick);
         unregisterIoEventHandler('mouseup', mouseUp);
       };
-    }, [ state.openedPanel, mouseState, hoveredObject ] );
+    }, [ state.openedPanel, terrainApp, mouseState, /*hoveredObject, */ hoveredPhysicsObject, selectedPhysicsObject ] );
 
     // initialize terrain
     useEffect(async () => {
@@ -765,14 +1012,22 @@ export const MapGen = () => {
         directionalLight.position.set(1, 2, 3);
         mapScene.add(directionalLight);
 
-        // highlight physics mesh
-        const highlightPhysicsMesh = new THREE.Mesh(
+        // highlight physics meshes
+        const hoveredPhysicsMesh = new THREE.Mesh(
           fakeGeometry,
           buildMaterial.clone()
         );
-        highlightPhysicsMesh.frustumCulled = false;
-        mapScene.add(highlightPhysicsMesh);
-        setHighlightPhysicsMesh(highlightPhysicsMesh);
+        hoveredPhysicsMesh.frustumCulled = false;
+        mapScene.add(hoveredPhysicsMesh);
+        setHighlightPhysicsMesh(hoveredPhysicsMesh);
+
+        const selectedPhysicsMesh = new THREE.Mesh(
+          fakeGeometry,
+          buildMaterial.clone()
+        );
+        selectedPhysicsMesh.frustumCulled = false;
+        mapScene.add(selectedPhysicsMesh);
+        setSelectedPhysicsMesh(selectedPhysicsMesh);
 
         // apps
         await Promise.all([
@@ -794,13 +1049,11 @@ export const MapGen = () => {
               components: {
                 seed,
                 physicsInstance,
-                renderPosition: [0, 60, 0],
+                renderPosition: getRenderPosition(),
                 minLodRange: 3,
-                lods: 1,
+                lods: 3,
               }
             });
-            // console.log('create terrain app', app);
-            // (0, 0, 0);
             mapScene.add(terrainApp);
             setTerrainApp(terrainApp);
           })(),
@@ -811,23 +1064,52 @@ export const MapGen = () => {
     // update camera
     useEffect(() => {
       if (state.openedPanel === 'MapGenPanel') {
-        updateCamera();
+        // updateCamera();
 
         // const newChunks = getChunksInRange();
         // setChunks(newChunks);
       }
-    }, [canvasRef, state.openedPanel, width, height, position.x, position.z, scale]);
+    }, [
+      canvasRef,
+      state.openedPanel,
+      width, height,
+      // position.x, position.y, position.z,
+      // quaternion.x, quaternion.y, quaternion.z, quaternion.w,
+      // scale,
+    ]);
 
     // render
     useEffect(() => {
       const canvas = canvasRef.current;
       if (canvas && state.openedPanel === 'MapGenPanel') {
-        updateCamera();
+        // updateCamera();
 
         const ctx = canvas.getContext('2d');
 
-        async function render(e) {
-          const {timestamp, timeDiff} = e.data;
+        function update() {
+          if (animation) {
+            const now = performance.now();
+            const factor = (now - animation.startTime) / (animation.endTime - animation.startTime);
+
+            setPosition(
+              animation.startPosition.clone()
+                .lerp(animation.endPosition, factor)
+            );
+            setQuaternion(
+              animation.startQuaternion.clone()
+                .slerp(animation.endQuaternion, factor)
+            );
+            // camera.updateMatrixWorld();
+
+            if (factor >= 1) {
+              setAnimation(null);
+            }
+          }
+        }
+        function render(e) {
+          // const {timestamp, timeDiff} = e.data;
+
+          update();
 
           // push state
           const renderer = getRenderer();
@@ -842,7 +1124,7 @@ export const MapGen = () => {
           renderer.clear();
           renderer.render(mapScene, camera);
 
-          ctx.clearRect(0, 0, width, height);
+          ctx.clearRect(0, 0, width * pixelRatio, height * pixelRatio);
           ctx.drawImage(renderer.domElement, 0, 0);
 
           // pop state
@@ -853,17 +1135,49 @@ export const MapGen = () => {
           world.appManager.removeEventListener('frame', render);
         };
       }
-    }, [canvasRef, state.openedPanel, width, height, /* chunks, */ position.x, position.z, scale]);
+    }, [canvasRef, state.openedPanel, width, height, /* chunks, */ animation]);
 
     function mouseDown(e) {
       e.preventDefault();
       e.stopPropagation();
 
+      const maxDistance = 100;
+
+      const startPosition = camera.position.clone();
+      const startQuaternion = camera.quaternion.clone();
+      const forwardTarget = (() => {
+        if (hoveredPoint) {
+          const distance = camera.position.distanceTo(hoveredPoint);
+          return camera.position.clone()
+            .add(new THREE.Vector3(0, 0, -distance).applyQuaternion(camera.quaternion));
+        } else {
+          localPlane.setFromNormalAndCoplanarPoint(upVector, localVector.set(0, renderY, 0));
+          setRaycasterFromEvent(localRaycaster, e);
+          const startIntersectionPoint = localRaycaster.ray.intersectPlane(localPlane, localVector);
+          const distance = startIntersectionPoint ? camera.position.distanceTo(startIntersectionPoint) : Infinity;
+          if (distance < maxDistance) {
+            return camera.position.clone()
+              .add(new THREE.Vector3(0, 0, -distance).applyQuaternion(camera.quaternion));
+          } else {
+            return camera.position.clone()
+              .add(new THREE.Vector3(0, 0, -maxDistance).applyQuaternion(camera.quaternion));
+          }
+        }
+      })();
+
+      // console.log('new mouse state');
       setMouseState({
         x: e.clientX,
         y: e.clientY,
+        startX: e.clientX,
+        startY: e.clientY,
+        buttons: e.buttons,
+        startPosition,
+        startQuaternion,
+        forwardTarget,
         moved: false,
       });
+      setAnimation(null);
     }
     function goClick(e) {
       e.preventDefault();
@@ -898,8 +1212,8 @@ export const MapGen = () => {
                 </div>
             </div>
             <canvas
-                width={width}
-                height={height}
+                width={width * pixelRatio}
+                height={height * pixelRatio}
                 className={styles.canvas}
                 onMouseDown={mouseDown}
                 ref={canvasRef}

@@ -10,9 +10,11 @@
   /* pointer-events: none; */
   z-index: 2;
 }
-/* .mapGen .canvas {
-  pointer-events: all;
-} */
+.mapGen .canvas {
+  /* pointer-events: all; */
+  width: 100vw;
+  height: 100vh;
+}
 .mapGen .sidebar {
   display: flex;
   position: absolute;
