@@ -180,7 +180,6 @@ async function loadAnimations() {
   for (const animation of animations) {
     animations.index[animation.name] = animation;
   }
-  window.animations = animations;
 
   /* const animationIndices = animationStepIndices.find(i => i.name === 'Fast Run.fbx');
           for (let i = 0; i < animationIndices.leftFootYDeltas.length; i++) {
@@ -384,20 +383,16 @@ export const loadPromise = (async () => {
     grab_right: {animation: animations.index['grab_right.fbx'], speedFactor: 1.2},
     pick_up: {animation: animations.index['pick_up.fbx'], speedFactor: 1},
   };
-  window.activateAnimations = activateAnimations;
   narutoRunAnimations = {
     narutoRun: animations.find(a => a.isNarutoRun),
   };
-  window.narutoRunAnimations = narutoRunAnimations;
   hurtAnimations = {
     pain_back: animations.index['pain_back.fbx'],
     pain_arch: animations.index['pain_arch.fbx'],
   };
-  window.hurtAnimations = hurtAnimations;
   holdAnimations = {
     pick_up_idle: animations.index['pick_up_idle.fbx'],
   };
-  window.holdAnimations = holdAnimations;
   {
     const down10QuaternionArray = new Quaternion()
       .setFromAxisAngle(new Vector3(1, 0, 0), Math.PI * 0.1)
@@ -702,7 +697,6 @@ export const _applyAnimation = (avatar, now, moveFactors) => {
   } else {
     mirrorFactor = isBackward ? 1 : 0;
   }
-  // if (avatar === window.localPlayer.avatar) console.log(window.logNum(angleFactor), window.logNum(mirrorFactor));
   avatar.lastBackwardFactor = mirrorFactor;
 
   if (avatar.emoteAnimation !== avatar.lastEmoteAnimation) {
@@ -763,25 +757,6 @@ export const _applyAnimation = (avatar, now, moveFactors) => {
     _getHorizontalBlend(k, lerpFn, isPosition, dst);
   };
   const _getApplyFn = () => {
-    // { // play one animation purely.
-    //   return spec => {
-    //     const {
-    //       animationTrackName: k,
-    //       dst,
-    //       // isTop,
-    //     } = spec;
-
-    //     // const animation = animations.index['walking.fbx']
-    //     const animation = animations.index['pickaxe_swing.fbx']
-    //     const t2 = timeSeconds / 10;
-    //     const tFinal = t2 % animation.duration
-    //     // const tFinal = window.timeS;
-    //     const src2 = animation.interpolants[k];
-    //     const v2 = src2.evaluate(tFinal);
-
-    //     dst.fromArray(v2);
-    //   };
-    // }
     if (avatar.jumpState) {
       return spec => {
         const {
@@ -932,8 +907,7 @@ export const _applyAnimation = (avatar, now, moveFactors) => {
 
         let useAnimation;
         let t2;
-        const useTimeS = avatar.useTime / 1000 * window.speed;
-        // const useTimeS = 0;
+        const useTimeS = avatar.useTime / 1000;
         if (avatar.useAnimation) {
           const useAnimationName = avatar.useAnimation;
           useAnimation = useAnimations[useAnimationName];

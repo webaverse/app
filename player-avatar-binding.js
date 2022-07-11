@@ -52,7 +52,6 @@ export function makeAvatar(app) {
   if (app) {
     const {skinnedVrm} = app;
     if (skinnedVrm) {
-      // debugger
       const avatar = new Avatar(skinnedVrm, {
         fingers: true,
         hair: true,

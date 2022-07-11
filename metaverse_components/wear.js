@@ -7,7 +7,6 @@ import physicsManager from '../physics-manager.js';
 // import easing from '../easing.js';
 import npcManager from '../npc-manager.js';
 import { MathUtils } from 'three';
-import { lerp } from 'three/src/math/MathUtils';
 // import {rarityColors} from '../constants.js';
 
 const localVector = new THREE.Vector3();
@@ -263,8 +262,7 @@ export default (app, component) => {
     let boneAttachments;
     const useAction = localPlayer.getAction('use');
     if (useAction?.animation === 'pickaxe') {
-      window.pickaxeApp = app;
-      const animationTimeS = localPlayer.actionInterpolants.use.get() / 1000 * window.speed;
+      const animationTimeS = localPlayer.actionInterpolants.use.get() / 1000;
       boneAttachments = [];
       const handleLeftHand = o3d => {
         boneAttachments[0] = 'rightHand'; // left/right between boneAttachments and real bones are reversed. `Avatar.modelBoneRenames[]` will translate it, such as: `Avatar.modelBoneRenames['rightHand']` output `'Left_wrist'`.
