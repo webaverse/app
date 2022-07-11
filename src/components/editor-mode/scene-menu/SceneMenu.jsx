@@ -313,7 +313,7 @@ export const SceneMenu = ({ multiplayerConnected, selectedScene, setSelectedScen
                         </div>
                         {
                             rooms.map( ( room, i ) => (
-                                <div className={ styles.room } onClick={ ( e ) => { handleRoomSelect( room ) } } key={ i } >
+                                <div className={ styles.room } onClick={ ( e ) => { handleRoomSelect( e, room ) } } key={ i } >
                                     <img className={ styles.image } src="images/world.jpg" />
                                     <div className={ styles.name } >{ room.name }</div>
                                     <div className={ styles.delete } >
