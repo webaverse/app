@@ -777,14 +777,6 @@ export default (e) => {
     let alreadySetComposer = false;
     let reflectionSsrPass = null;
 
-    const geometry = new THREE.SphereGeometry( 5, 32, 16 );
-    const material = new THREE.MeshBasicMaterial( { color: 0xffff00 } );
-    const sphere = new THREE.Mesh( geometry, material );
-    app.add( sphere );
-    sphere.position.y = 65;
-    sphere.position.x = 3;
-    app.updateMatrixWorld();
-    
     
     useFrame(({timestamp, timeDiff}) => {
       if (!!tracker && !range) {
@@ -800,8 +792,9 @@ export default (e) => {
                     for(const pass of renderSettings.findRenderSettings(scene).passes){
                         if(pass.constructor.name === 'SSRPass'){
                             pass._selects.push(generator.getMeshes()[0]);
-                            pass.opacity = 0.08;
-                            pass.maxDistance = 10;
+                            pass.opacity = 0.1;
+                            pass.maxDistance = 5;
+                            pass.player = localPlayer;
                             // pass.thickness = 0.5;
                             reflectionSsrPass = pass;
                             console.log(pass)
