@@ -201,7 +201,7 @@ export default (app, component) => {
   const _copyBoneAttachment = spec => {
     const {boneAttachment = 'hips', position, quaternion, scale} = spec;
 
-    const handleBoneAttachments = (o3d) => {
+    const averageBoneAttachments = (o3d) => {
       // lerp app's transform to average position/quaternion/scale of boneAttachments.
       let count = 0;
       boneAttachments.forEach((boneAttachment, i) => {
@@ -273,7 +273,7 @@ export default (app, component) => {
         quaternion[1]=0
         quaternion[2]=0
         quaternion[3]=0.7071067811865476
-        handleBoneAttachments(o3d);
+        averageBoneAttachments(o3d);
       }
       const handleRightHand = (o3d) => {
         boneAttachments[0] = 'leftHand'
@@ -282,7 +282,7 @@ export default (app, component) => {
         quaternion[1]=0.7071067811865476
         quaternion[2]=0.7071067811865475
         quaternion[3]=0
-        handleBoneAttachments(o3d);
+        averageBoneAttachments(o3d);
       }
       const handleLookAt = (o3d) => {
         boneAttachments.length = 0;
@@ -342,7 +342,7 @@ export default (app, component) => {
         .lerp(localObject3.scale, fLookAt);
     } else {
       boneAttachments = Array.isArray(boneAttachment) ? boneAttachment : [boneAttachment];
-      handleBoneAttachments(app);
+      averageBoneAttachments(app);
     }
 
     app.updateMatrixWorld();
