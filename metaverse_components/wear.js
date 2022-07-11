@@ -201,7 +201,7 @@ export default (app, component) => {
   const _copyBoneAttachment = spec => {
     const {boneAttachment = 'hips', position, quaternion, scale} = spec;
 
-    const averageBoneAttachments = (o3d) => {
+    const averageBoneAttachments = o3d => {
       // lerp app's transform to average position/quaternion/scale of boneAttachments.
       let count = 0;
       boneAttachments.forEach((boneAttachment, i) => {
