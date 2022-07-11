@@ -207,7 +207,8 @@ class WaterMesh extends BatchedMesh {
           ${THREE.ShaderChunk.common}
           ${THREE.ShaderChunk.logdepthbuf_pars_vertex}
           
-      
+          uniform float uTime;
+
           varying vec3 vPos;
           varying vec2 vUv;
           
@@ -216,6 +217,10 @@ class WaterMesh extends BatchedMesh {
               vUv = uv;
               vec3 pos = position;
               vec4 modelPosition = modelMatrix * vec4(pos, 1.0);
+            //   float elevation = sin(modelPosition.x * 0.2 + uTime * 0.75) *
+            //       sin(modelPosition.z * 0.5 + uTime * 0.75) *
+            //       0.2;
+            //   modelPosition.y += elevation;
               vec4 viewPosition = viewMatrix * modelPosition;
               vec4 projectionPosition = projectionMatrix * viewPosition;
       
@@ -777,6 +782,13 @@ export default (e) => {
     let alreadySetComposer = false;
     let reflectionSsrPass = null;
 
+
+    const geometry = new THREE.PlaneGeometry( 5, 5 );
+    const material = new THREE.MeshBasicMaterial( {map: textureLoader.load(`${baseUrl}/textures/test.jpg`), color: 0xffff00, side: THREE.DoubleSide} );
+    const plane = new THREE.Mesh( geometry, material );
+    app.add( plane );
+    plane.position.y = 65;
+
     
     useFrame(({timestamp, timeDiff}) => {
       if (!!tracker && !range) {
@@ -793,14 +805,17 @@ export default (e) => {
                         if(pass.constructor.name === 'SSRPass'){
                             pass._selects.push(generator.getMeshes()[0]);
                             pass.opacity = 0.1;
-                            pass.maxDistance = 5;
+                            pass.maxDistance = 10;
+                            // pass._fresnel = false;
+                            // pass.blur = false;
                             pass.player = localPlayer;
                             // pass.thickness = 0.5;
                             reflectionSsrPass = pass;
-                            console.log(pass)
+                            
                         }
                     }
                     alreadySetComposer = true;
+                    console.log(renderSettings.findRenderSettings(scene))
                 }
             }
             if(reflectionSsrPass){
