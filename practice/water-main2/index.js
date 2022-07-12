@@ -1230,7 +1230,7 @@ export default (e) => {
                 renderSettings.findRenderSettings(scene).fog.density = 0;
             }    
         }
-        if(camera.position.y - 0.1 < cameraWaterSurfacePos.y && contactWater){
+        if(camera.position.y - 0.03 < cameraWaterSurfacePos.y && contactWater){
             if(!cameraHasMask){
                 camera.add(mask);
                 cameraHasMask = true;
