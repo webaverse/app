@@ -34,6 +34,129 @@ w.initialize = (newChunkSize, seed) => {
 w.createInstance = () => Module._createInstance();
 w.destroyInstance = instance => Module._destroyInstance(instance);
 
+//
+
+/* std::vector<uint8_t> TrackerTask::getBuffer() const {
+  size_t size = 0;
+  size += sizeof(vm::ivec3); // min
+  size += sizeof(int); // lod
+  size += sizeof(int); // isLeaf
+  size += sizeof(int[8]); // lodArray
+
+  std::vector<uint8_t> result(size);
+  int index = 0;
+  std::memcpy(result.data() + index, &maxLodNode->min, sizeof(vm::ivec3));
+  index += sizeof(vm::ivec3);
+  *((int *)(result.data() + index)) = maxLodNode->size;
+  index += sizeof(int);
+  *((int *)(result.data() + index)) = (maxLodNode->type == Node_Leaf) ? 1 : 0;
+  index += sizeof(int);
+  std::memcpy(result.data() + index, &maxLodNode->lodArray, sizeof(int[8]));
+  index += sizeof(int[8]);
+  return result;
+}
+uint8_t *TrackerUpdate::getBuffer() const {
+  std::vector<std::vector<uint8_t>> oldTaskBuffers;
+  for (const auto &task : oldTasks) {
+    oldTaskBuffers.push_back(task->getBuffer());
+  }
+
+  std::vector<std::vector<uint8_t>> newTaskBuffers;
+  for (const auto &task : newTasks) {
+    newTaskBuffers.push_back(task->getBuffer());
+  }
+
+  size_t size = 0;
+  size += sizeof(uint32_t); // numOldTasks
+  size += sizeof(uint32_t); // numNewTasks
+  for (auto &buffer : oldTaskBuffers) {
+    size += buffer.size();
+  }
+  for (auto &buffer : newTaskBuffers) {
+    size += buffer.size();
+  }
+
+  uint8_t *ptr = (uint8_t *)malloc(size);
+  int index = 0;
+  *((uint32_t *)(ptr + index)) = oldTasks.size();
+  index += sizeof(uint32_t);
+  *((uint32_t *)(ptr + index)) = newTasks.size();
+  index += sizeof(uint32_t);
+  memcpy(ptr + index, oldTaskBuffers.data(), oldTaskBuffers.size() * sizeof(oldTaskBuffers[0]));
+  index += oldTaskBuffers.size() * sizeof(oldTaskBuffers[0]);
+  memcpy(ptr + index, newTaskBuffers.data(), newTaskBuffers.size() * sizeof(newTaskBuffers[0]));
+  index += newTaskBuffers.size() * sizeof(newTaskBuffers[0]);
+  return ptr;
+} */
+
+const _parseTrackerUpdate = bufferAddress => {
+  const dataView = new DataView(Module.HEAPU8.buffer, bufferAddress);
+  let index = 0;
+  const numOldTasks = dataView.getUint32(index, true);
+  index += Uint32Array.BYTES_PER_ELEMENT;
+  const numNewTasks = dataView.getUint32(index, true);
+  index += Uint32Array.BYTES_PER_ELEMENT;
+
+  const _parseTrackerTask = () => {
+    const min = new Int32Array(Module.HEAPU8.buffer, bufferAddress + index, 3).slice();
+    index += Int32Array.BYTES_PER_ELEMENT * 3;
+    const size = dataView.getInt32(index, true);
+    index += Int32Array.BYTES_PER_ELEMENT;
+    const isLeaf = !!dataView.getInt32(index, true);
+    index += Int32Array.BYTES_PER_ELEMENT;
+    const lodArray = new Int32Array(Module.HEAPU8.buffer, bufferAddress + index, 8).slice();
+    index += Int32Array.BYTES_PER_ELEMENT * 8;
+    return {
+      min,
+      size,
+      isLeaf,
+      lodArray,
+    };
+  };
+  const oldTasks = [];
+  for (let i = 0; i < numOldTasks; i++) {
+    const oldTask = _parseTrackerTask();
+    oldTasks.push(oldTask);
+  }
+  const newTasks = [];
+  for (let i = 0; i < numNewTasks; i++) {
+    const newTask = _parseTrackerTask();
+    newTasks.push(newTask);
+  }
+  return {
+    oldTasks,
+    newTasks
+  };
+};
+w.createTracker = (inst, lod, minLodRange, trackY) => {
+  const result = Module._createTracker(inst, lod, minLodRange, trackY);
+  return result;
+};
+w.destroyTracker = (inst, tracker) => Module._destroyTracker(inst, tracker);
+w.trackerUpdateAsync = async (inst, taskId, tracker, position) => {
+  const allocator = new Allocator(Module);
+
+  const positionArray = allocator.alloc(Float32Array, 3);
+  positionArray.set(position);
+
+  Module._trackerUpdateAsync(
+    inst,
+    taskId,
+    tracker,
+    positionArray.byteOffset,
+  );
+  const p = makePromise();
+  cbs.set(taskId, p);
+
+  allocator.freeAll();
+
+  const outputBufferOffset = await p;
+  const result = _parseTrackerUpdate(outputBufferOffset);
+  return result;
+};
+
+//
+
 const cubeDamage = damageFn => (
   inst,
   x, y, z,
