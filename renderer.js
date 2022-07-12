@@ -59,6 +59,7 @@ function bindCanvas(c) {
     encoding: THREE.sRGBEncoding,
   });
   renderTarget.samples = context.MAX_SAMPLES;
+
   composer = new EffectComposer(renderer, renderTarget);
 
   // initialize camera

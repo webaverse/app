@@ -287,7 +287,55 @@ export default class Webaverse extends EventTarget {
     frameEvent.data.timeDiff = timeDiff;
     game.dispatchEvent(frameEvent);
 
+    const session = renderer.xr.getSession();
+
     getComposer().render();
+
+    // if(!session) {
+    //   getComposer().render();
+    // }
+    // else {
+    //   const currentRenderTarget = renderer.getRenderTarget();
+    //   const composer = getComposer();
+    //   const context = renderer.getContext();
+
+    //   const xrLayer = session.renderState.baseLayer;
+    //   const xrFramebuffer = xrLayer.framebuffer;
+
+    //   let currentFramebuffer = renderer.properties.get( currentRenderTarget ).__webglFramebuffer;
+
+    //   const parameters = {
+		// 		minFilter: THREE.LinearFilter,
+		// 		magFilter: THREE.LinearFilter,
+		// 		format: THREE.RGBAFormat
+		// 	};
+
+		// 	const size = renderer.getSize( new THREE.Vector2() );
+		// 	this._pixelRatio = renderer.getPixelRatio();
+		// 	this._width = size.width;
+		// 	this._height = size.height;
+
+		// 	// renderTarget = new THREE.WebGLRenderTarget( this._width * this._pixelRatio, this._height * this._pixelRatio, parameters );
+		// 	// renderTarget.texture - 
+
+    //   //console.log(xrLayer.context.__tex, xrFramebuffer);
+
+    //   //console.log(currentFramebuffer);
+
+    //   //context.bindFramebuffer(context.DRAW_FRAMEBUFFER, xrFramebuffer);
+
+    //   //console.log(currentRenderTarget);
+
+    //   //console.log(currentFramebuffer);
+
+    //   //console.log(composer);
+
+
+    //   //renderer.setRenderTarget(currentRenderTarget);
+    //   //console.log(readBuffer, maskActive ,renderTarget,renderTarget.__webglFramebuffer);
+    //   //renderer.clear();
+    //   //renderer.render(rootScene, camera);
+    // }
 
     this.dispatchEvent(new MessageEvent('frameend', {
       data: {

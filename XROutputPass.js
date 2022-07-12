@@ -18,6 +18,11 @@ class XROutputPass extends Pass {
 		super();
 	}
 
+  swapBuffers(readBuffer, writeBuffer) {
+    const tmp = readBuffer;
+		readBuffer = writeBuffer;
+		writeBuffer = tmp;
+  }
 
 	render(renderer, renderTarget, readBuffer, deltaTime, maskActive) {
 
@@ -27,28 +32,45 @@ class XROutputPass extends Pass {
         if(session) {
             const xrLayer = session.renderState.baseLayer;
             const xrFramebuffer = xrLayer.framebuffer;
-            //console.log(xrLayer);
-
-            
-
-            
 
             const context = renderer.getContext();
 
-            console.log(context);
+            //const texture = renderTarget.texture;
+            const renderTargetProperties = renderer.properties.get(renderTarget);
+            // const textureProperties = renderer.properties.get(texture);
 
-            let framebuffer = renderer.properties.get( renderTarget ).__webglFramebuffer;
+            //console.log(texture, renderTargetProperties, textureProperties);
 
+            //const fbo = context.createFramebuffer();
+            //const fbo2 = renderer.properties.get( renderTarget ).__webglFramebuffer;
+
+            context.bindFramebuffer(context.READ_FRAMEBUFFER, renderTargetProperties.__webglMultisampledFramebuffer);
+					  context.bindFramebuffer(context.DRAW_FRAMEBUFFER, renderTargetProperties.__webglFramebuffer);
+
+            //context.bindFramebuffer(context.FRAMEBUFFER, fbo);  
+
+            //this.swapBuffers(fbo2, fbo);
+            // context.framebufferTexture2D(
+            //     context.FRAMEBUFFER,
+            //     context.COLOR_ATTACHMENT0,
+            //     context.TEXTURE_2D,
+            //     renderer.properties.get(texture),
+            //     0);
+
+            //context.bindFramebuffer(context.READ_FRAMEBUFFER, fbo2);
+            //context.bindFramebuffer(context.DRAW_FRAMEBUFFER, fbo);
             
-
-            context.bindFramebuffer(context.READ_FRAMEBUFFER, framebuffer);
-            
-
             context.blitFramebuffer(0, 0, renderTarget.height, renderTarget.width,
-                0, 0, renderTarget.height, renderTarget.width,
-                context.COLOR_BUFFER_BIT, context.NEAREST);
+               0, 0, renderTarget.height, renderTarget.width,
+               context.COLOR_BUFFER_BIT, context.NEAREST);
 
-            context.bindFramebuffer(context.DRAW_FRAMEBUFFER, xrFramebuffer);
+            this.swapBuffers(context.DRAW_FRAMEBUFFER, xrFramebuffer);
+
+            context.bindFramebuffer(context.DRAW_FRAMEBUFFER, null); // to canvas
+
+            
+
+            // context.bindFramebuffer(context.DRAW_FRAMEBUFFER, xrFramebuffer);
 
             //console.log(readBuffer, renderTarget);
             //const oldReadFbo = context.getParameter(context.FRAMEBUFFER_BINDING);
@@ -58,8 +80,9 @@ class XROutputPass extends Pass {
             //console.log(oldReadFbo);
             // const framebuffer = renderTarget.__webglFramebuffer;
             // context.bindFramebuffer(context.FRAMEBUFFER, framebuffer);
-            // const data = new Uint8Array(renderTarget.width * renderTarget.height * 4);
-            // context.readPixels(0,0,renderTarget.width,renderTarget.height,context.RGBA,context.UNSIGNED_BYTE,data);
+            //  const data = new Uint8Array(renderTarget.width * renderTarget.height * 4);
+            //  context.readPixels(0,0, renderTarget.width, renderTarget.height, context.RGBA, context.UNSIGNED_BYTE, data);
+            //  console.log(data);
             // context.bindFramebuffer(context.READ_FRAMEBUFFER, framebuffer);
             // context.bindFramebuffer(context.DRAW_FRAMEBUFFER, xrFramebuffer);
             
@@ -76,9 +99,7 @@ class XROutputPass extends Pass {
             
             
 
-            context.bindFramebuffer(context.DRAW_FRAMEBUFFER, xrFramebuffer);
-
-            //renderer.setRenderTarget(renderTarget);
+            //context.bindFramebuffer(context.DRAW_FRAMEBUFFER, xrFramebuffer);
             //context.clear(context.COLOR_BUFFER_BIT);
             //context.bindFramebuffer(context.DRAW_FRAMEBUFFER, oldDrawFbo);
             renderer.render(rootScene, camera);

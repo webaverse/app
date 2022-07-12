@@ -34,9 +34,6 @@ class WebaverseRenderPass extends Pass {
     this.onBeforeRender && this.onBeforeRender();
 
     if (renderer.xr.getSession()) {
-      // render XR (issue with .setRenderTarget() causing black screen)
-      //renderer.clear();
-      //renderer.render(rootScene, camera);
       this.internalXROutputPass.render(renderer, renderTarget, readBuffer, deltaTime, maskActive);
     }
     else {
@@ -48,12 +45,13 @@ class WebaverseRenderPass extends Pass {
       if (this.internalRenderPass) {
         this.internalRenderPass.renderToScreen = this.renderToScreen;
         this.internalRenderPass.render(renderer, renderTarget, readBuffer, deltaTime, maskActive);
+        //console.log("renderPass");
       }
       else {
-        //console.log(renderTarget.__webglFramebuffer);
+        //console.log("thirdPass");
         renderer.setRenderTarget(renderTarget);
-
-        
+        //let framebuffer = renderer.properties.get( renderTarget ).__webglFramebuffer;
+        //console.log(readBuffer, maskActive ,renderTarget,renderTarget.__webglFramebuffer);        
         renderer.clear();
         renderer.render(rootScene, camera);
       }
