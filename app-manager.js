@@ -26,6 +26,9 @@ const localData = {
 const localFrameOpts = {
   data: localData,
 };
+const frameEvent = new MessageEvent('frame', localFrameOpts);
+
+const physicsScene = physicsManager.getScene();
 
 const appManagers = [];
 class AppManager extends EventTarget {
@@ -51,7 +54,7 @@ class AppManager extends EventTarget {
     localData.timestamp = timestamp;
     localData.frame = frame;
     localData.timeDiff = timeDiff;
-    this.dispatchEvent(new MessageEvent('frame', localFrameOpts));
+    this.dispatchEvent(frameEvent);
   }
   /* setPushingLocalUpdates(pushingLocalUpdates) {
     this.pushingLocalUpdates = pushingLocalUpdates;
@@ -475,7 +478,7 @@ class AppManager extends EventTarget {
     if (removeIndex !== -1) {
       this.appsArray.delete(removeIndex, 1);
     } else {
-      console.warn('invalid remove instance id', {removeInstanceId, appsJson});
+      console.warn('invalid remove instance id', {instanceId, appsJson});
       debugger;
     }
   }
@@ -532,34 +535,44 @@ class AppManager extends EventTarget {
     // srcAppManager.setBlindStateMode(true);
     // dstAppManager.setBlindStateMode(true);
     
-    if (srcAppManager.appsArray.doc === dstAppManager.appsArray.doc) {
-      this.unbindTrackedApp(instanceId);
-      
-      let dstTrackedApp = null;
-      srcAppManager.appsArray.doc.transact(() => {
-        const srcTrackedApp = srcAppManager.getTrackedApp(instanceId);
-        const contentId = srcTrackedApp.get('contentId');
-        const position = srcTrackedApp.get('position');
-        const quaternion = srcTrackedApp.get('quaternion');
-        const scale = srcTrackedApp.get('scale');
-        const components = srcTrackedApp.get('components');
-        
-        srcAppManager.removeTrackedAppInternal(instanceId);
-        
-        dstTrackedApp = dstAppManager.addTrackedAppInternal(
-          instanceId,
-          contentId,
-          position,
-          quaternion,
-          scale,
-          components,
-        );
+    this.unbindTrackedApp(instanceId);
+    
+    let dstTrackedApp = null;
+
+    const wrapTxFn = (srcAppManager.appsArray.doc === dstAppManager.appsArray.doc) ?
+      innerFn => srcAppManager.appsArray.doc.transact(innerFn)
+    :
+      innerFn => dstAppManager.appsArray.doc.transact(() => {
+        srcAppManager.appsArray.doc.transact(innerFn);
       });
+    wrapTxFn(() => {
+      const srcTrackedApp = srcAppManager.getTrackedApp(instanceId);
+      /* if (!srcTrackedApp) {
+        console.log('transplant app', {app, srcTrackedApp});
+        debugger;
+      } */
+      const contentId = srcTrackedApp.get('contentId');
+      const position = srcTrackedApp.get('position');
+      const quaternion = srcTrackedApp.get('quaternion');
+      const scale = srcTrackedApp.get('scale');
+      const components = srcTrackedApp.get('components');
       
-      dstAppManager.bindTrackedApp(dstTrackedApp, app);
-    } else {
+      srcAppManager.removeTrackedAppInternal(instanceId);
+      
+      dstTrackedApp = dstAppManager.addTrackedAppInternal(
+        instanceId,
+        contentId,
+        position,
+        quaternion,
+        scale,
+        components,
+      );
+    });
+    
+    dstAppManager.bindTrackedApp(dstTrackedApp, app);
+    /* } else {
       throw new Error('cannot transplant apps between app manager with different state binding');
-    }
+    } */
     
     // srcAppManager.setBlindStateMode(false);
     // dstAppManager.setBlindStateMode(false);
@@ -635,8 +648,8 @@ class AppManager extends EventTarget {
                   child.updateMatrixWorld();
                 }
 
-                physicsManager.setTransform(physicsObject);
-                physicsManager.getBoundingBoxForPhysicsId(physicsObject.physicsId, physicsObject.physicsMesh.geometry.boundingBox);
+                physicsScene.setTransform(physicsObject);
+                physicsScene.getBoundingBoxForPhysicsId(physicsObject.physicsId, physicsObject.physicsMesh.geometry.boundingBox);
               }
             }
           }
@@ -692,6 +705,8 @@ class AppManager extends EventTarget {
       } else {
         throw new Error('double destroy of app manager');
       }
+    } else {
+      throw new Error('destroy of bound app manager');
     }
   }
 }

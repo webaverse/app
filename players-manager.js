@@ -4,8 +4,6 @@ player objects load their own avatar and apps using this binding */
 // import * as THREE from 'three';
 import * as Z from 'zjs';
 import {RemotePlayer} from './character-controller.js';
-// import {getPlayerPrefix} from './util.js';
-// import {playersMapName} from './constants.js';
 import metaversefileApi from 'metaversefile';
 
 class PlayersManager {
@@ -80,11 +78,11 @@ class PlayersManager {
       this.unbindStateFn = this.playersArray.unobserve.bind(this.playersArray, playersObserveFn);
     }
   }
-  updateRemotePlayers(timestamp, timeDiff) {
-    for (const remotePlayer of this.remotePlayers.values()) {
-      remotePlayer.updateAvatar(timestamp, timeDiff);
-    }
-  }
+  // updateRemotePlayers(timestamp, timeDiff) {
+  //   for (const remotePlayer of this.remotePlayers.values()) {
+  //     remotePlayer.updateAvatar(timestamp, timeDiff);
+  //   }
+  // }
 }
 const playersManager = new PlayersManager();
 

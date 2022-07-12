@@ -1,7 +1,8 @@
 
 import React, { useState, useEffect, useRef, createContext } from 'react';
+import classnames from 'classnames';
 
-import { defaultAvatarUrl } from '../../../constants';
+import { defaultPlayerSpec } from '../../../constants';
 
 import game from '../../../game';
 import sceneNames from '../../../scenes/scenes.json';
@@ -11,7 +12,6 @@ import universe from '../../../universe.js';
 import metaversefileApi from '../../../metaversefile-api';
 import cameraManager from '../../../camera-manager';
 import { world } from '../../../world';
-import { handleStoryKeyControls } from '../../../story';
 
 import { ActionMenu } from '../general/action-menu';
 import { Crosshair } from '../general/crosshair';
@@ -29,10 +29,14 @@ import { PlayMode } from '../play-mode';
 import { EditorMode } from '../editor-mode';
 import Header from '../../Header.jsx';
 import QuickMenu from '../../QuickMenu.jsx';
-import { UIMode } from '../general/ui-mode';
+import {ClaimsNotification} from '../../ClaimsNotification.jsx';
+import {DomRenderer} from '../../DomRenderer.jsx';
+// import * as voices from '../../../voices';
+import {handleStoryKeyControls} from '../../../story';
 
 import styles from './App.module.css';
 import '../../fonts.css';
+import raycastManager from '../../../raycast-manager';
 
 //
 
@@ -49,7 +53,8 @@ const _startApp = async ( weba, canvas ) => {
     await weba.startLoop();
 
     const localPlayer = metaversefileApi.useLocalPlayer();
-    await localPlayer.setAvatarUrl( defaultAvatarUrl );
+    // console.log('set player spec', defaultPlayerSpec);
+    await localPlayer.setPlayerSpec(defaultPlayerSpec);
 
 };
 
@@ -79,29 +84,53 @@ const _getCurrentRoom = () => {
 export const AppContext = createContext();
 
 const useWebaverseApp = (() => {
-
-    let webaverse = null;
-
-    return () => {
-
+  let webaverse = null;
+  return () => {
         if ( webaverse === null ) {
-
             webaverse = new Webaverse();
+        }
+        return webaverse;
+  };
+})();
+
+const Canvas = ({
+    app,
+}) => {
+    const canvasRef = useRef( null );
+    const [domHover, setDomHover] = useState( null );
+
+    useEffect( () => {
+
+        if ( canvasRef.current ) {
+
+            _startApp( app, canvasRef.current );
 
         }
 
-        return webaverse;
+    }, [ app, canvasRef ] );
 
-    };
+    useEffect( () => {
+        const domhoverchange = e => {
+            const {domHover} = e.data;
+            // console.log('dom hover change', domHover);
+            setDomHover( domHover );
+        };
+        raycastManager.addEventListener('domhoverchange', domhoverchange);
 
-})();
+        return () => {
+            raycastManager.removeEventListener('domhoverchange', domhoverchange);
+        };
+    }, []);
+
+    return (
+        <canvas className={ classnames( styles.canvas, domHover ? styles.domHover : null ) } ref={ canvasRef } />
+    );
+};
 
 export const App = () => {
 
     const [ state, setState ] = useState({ openedPanel: null });
-    const [ uiMode, setUIMode ] = useState( 'normal' );
 
-    const canvasRef = useRef( null );
     const app = useWebaverseApp();
     const [ selectedApp, setSelectedApp ] = useState( null );
     const [ selectedScene, setSelectedScene ] = useState( _getCurrentSceneSrc() );
@@ -134,24 +163,13 @@ export const App = () => {
 
         }
 
-        if ( state.openedPanel ) {
-
-            setUIMode( 'normal' );
-
-        }
-
     }, [ state.openedPanel ] );
 
     useEffect( () => {
 
         const handleStoryKeyUp = ( event ) => {
 
-            if ( game.inputFocused() ) {
-
-                return;
-
-            }
-
+            if ( game.inputFocused() ) return;
             handleStoryKeyControls( event );
 
         };
@@ -165,37 +183,6 @@ export const App = () => {
         };
 
     }, [] );
-
-    useEffect( () => {
-
-        if ( uiMode === 'none' ) {
-
-            setState({ openedPanel: null });
-
-        }
-
-        const handleKeyDown = ( event ) => {
-
-            if ( event.ctrlKey && event.code === 'KeyH' ) {
-
-                setUIMode( uiMode === 'normal' ? 'none' : 'normal' );
-                return false;
-
-            }
-
-            return true;
-
-        };
-
-        registerIoEventHandler( 'keydown', handleKeyDown );
-
-        return () => {
-
-            unregisterIoEventHandler( 'keydown', handleKeyDown );
-
-        };
-
-    }, [ uiMode ] );
 
     useEffect( () => {
 
@@ -268,16 +255,6 @@ export const App = () => {
 
     useEffect( _loadUrlState, [] );
 
-    useEffect( () => {
-
-        if ( canvasRef.current ) {
-
-            _startApp( app, canvasRef.current );
-
-        }
-
-    }, [ canvasRef ] );
-
     //
 
     const onDragOver = e => {
@@ -299,15 +276,20 @@ export const App = () => {
             onDragEnd={onDragEnd}
             onDragOver={onDragOver}
         >
-            <AppContext.Provider value={{ state, setState, app, setSelectedApp, selectedApp, uiMode }}>
+            <AppContext.Provider value={{ state, setState, app, setSelectedApp, selectedApp }}>
                 <Header setSelectedApp={ setSelectedApp } selectedApp={ selectedApp } />
-                <canvas className={ styles.canvas } ref={ canvasRef } />
+                
+                <DomRenderer />
+                <Canvas app={app} />
                 <Crosshair />
-                <UIMode hideDirection='right'>
-                    <ActionMenu setUIMode={ setUIMode } />
-                </UIMode>
+                
+                <ActionMenu />
                 <Settings />
-                <WorldObjectsList />
+                <ClaimsNotification />
+                <WorldObjectsList
+                    setSelectedApp={ setSelectedApp }
+                    selectedApp={ selectedApp }
+                />
                 <PlayMode />
                 <EditorMode
                     selectedScene={ selectedScene }
@@ -324,7 +306,6 @@ export const App = () => {
                 <FocusBar />
                 <DragAndDrop />
                 <Stats app={ app } />
-
             </AppContext.Provider>
         </div>
     );

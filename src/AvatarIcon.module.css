@@ -1,14 +1,3 @@
-@keyframes rotate {
-  0% {
-    transform: rotate(0deg);
-  }
-  50% {
-    transform: rotate(180deg);
-  }
-  100% {
-    transform: rotate(360deg);
-  }
-}
 @keyframes hueRotate {
   0% {
     filter: hue-rotate(0deg);
@@ -53,22 +42,16 @@
   transform: scale(1.4);
 } */
 
-.characterIcon.loaded .placeholderImg {
-  display: none;
-}
 .characterIcon .placeholderImg {
   position: absolute;
   top: 10px;
   left: 10px;
   width: calc( var(--canvas-size) - 10px * 2);
   height: calc( var(--canvas-size) - 10px * 2);
-
-  animation-name: rotate;
-  animation-duration: 1s;
-  animation-iteration-count: infinite;
-  animation-timing-function: linear;
-
   z-index: 1;
+}
+.characterIcon.loaded .placeholderImg {
+  display: none;
 }
 
 .avatarIcon .characterIcon {

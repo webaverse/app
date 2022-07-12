@@ -74,17 +74,13 @@
         0,
         0
       ],
-      "start_url": "/avatars/drake_hacker_v3_vian.vrm",
-      "components": [
-        {
-          "key": "npc",
-          "value": {
-            "name": "Drake",
-            "voice": "Shining Armor",
-            "bio": "His nickname is DRK. 15/M hacker. Loves guns. Likes plotting new hacks. He has the best equipment and is always ready for a fight."
-          }
-        }
-      ]
+      "type": "application/npc",
+      "content": {
+        "name": "Drake",
+        "avatarUrl": "/avatars/drake_hacker_v3_vian.vrm",
+        "voice": "Shining Armor",
+        "bio": "His nickname is DRK. 15/M hacker. Loves guns. Likes plotting new hacks. He has the best equipment and is always ready for a fight."
+      }
     },
     {
       "position": [

@@ -2,7 +2,6 @@
 import React, { useState, useEffect, useContext, useRef } from 'react';
 import classnames from 'classnames';
 
-import { world } from '../../../../world'
 import universe from '../../../../universe'
 import voiceInput from '../../../../voice-input/voice-input';
 import sceneNames from '../../../../scenes/scenes.json';
@@ -23,7 +22,7 @@ sceneNames.forEach( ( name ) => {
 
 //
 
-export const SceneMenu = ({ className, multiplayerConnected, selectedScene, setSelectedScene, selectedRoom, setSelectedRoom }) => {
+export const SceneMenu = ({ multiplayerConnected, selectedScene, setSelectedScene, selectedRoom, setSelectedRoom }) => {
 
     const { state, setState } = useContext( AppContext );
     const sceneNameInputRef = useRef( null );
@@ -127,7 +126,7 @@ export const SceneMenu = ({ className, multiplayerConnected, selectedScene, setS
 
         setState({ openedPanel: null });
 
-        if ( ! world.isConnected() ) {
+        if ( ! universe.isConnected() ) {
 
             universe.pushUrl( `/?src=${ encodeURIComponent( selectedScene ) }&room=${ room.name }` );
 
@@ -261,7 +260,7 @@ export const SceneMenu = ({ className, multiplayerConnected, selectedScene, setS
     //
 
     return (
-        <div className={ classnames( className, styles.location ) } onClick={ stopPropagation } >
+        <div className={ styles.location } onClick={ stopPropagation } >
             <div className={ styles.row }>
                 <div className={ styles.buttonWrap } onClick={ handleSceneMenuOpen.bind( this, null ) } >
                     <button className={ classnames( styles.button, styles.primary, state.openedPanel === 'SceneMenuPanel' ? null : styles.disabled ) } >
