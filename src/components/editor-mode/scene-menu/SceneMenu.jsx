@@ -13,6 +13,9 @@ import styles from './scene-menu.module.css';
 
 //
 
+const _makeName = (N = 8) =>
+  (Math.random().toString(36) + '00000000000000000').slice(2, N + 2);
+
 const origSceneList = [];
 
 sceneNames.forEach( ( name ) => {
@@ -96,30 +99,29 @@ export const SceneMenu = ({ multiplayerConnected, selectedScene, setSelectedScen
     };
 
     const handleRoomCreateBtnClick = async () => {
+        
+        const roomName = _makeName();
+        const data = null; // Z.encodeStateAsUpdate( world.getState( true ) );
 
-        alert( 'todo' );
-        // const roomName = _makeName();
-        // const data = null; // Z.encodeStateAsUpdate( world.getState( true ) );
+        const res = await fetch( universe.getWorldsHost() + roomName, { method: 'POST', body: data } );
 
-        // const res = await fetch( universe.getWorldsHost() + roomName, { method: 'POST', body: data } );
+        if ( res.ok ) {
 
-        // if ( res.ok ) {
+            refreshRooms();
+            setSelectedRoom( roomName );
+            universe.pushUrl( `/?src=${ encodeURIComponent( sceneInputName ) }&room=${ roomName }` );
 
-        //     refreshRooms();
-        //     setSelectedRoom( roomName );
-        //     universe.pushUrl( `/?src=${ encodeURIComponent( sceneName ) }&room=${ roomName }` );
+            /* this.parent.sendMessage([
+                MESSAGE.ROOMSTATE,
+                data,
+            ]); */
 
-        //     /* this.parent.sendMessage([
-        //         MESSAGE.ROOMSTATE,
-        //         data,
-        //     ]); */
+        } else {
 
-        // } else {
+            const text = await res.text();
+            console.warn( 'error creating room', res.status, text );
 
-        //     const text = await res.text();
-        //     console.warn( 'error creating room', res.status, text );
-
-        // }
+        }
 
     };
 

@@ -146,7 +146,7 @@ function makeId(length) {
     }
   })();
   const initialRoomState = (() => {
-    const s = fs.readFileSync('./scenes/gunroom.scn', 'utf8');
+    const s = fs.readFileSync('./scenes/street.scn', 'utf8');
     const j = JSON.parse(s);
     const {objects} = j;
     
