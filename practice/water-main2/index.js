@@ -272,15 +272,16 @@ class WaterMesh extends BatchedMesh {
               return dh;
           }
   
-          float shineDamper = 150.;
-          float reflectivity = 0.08;
+          float shineDamper = 700.;
+          float reflectivity = 0.6;
           void main() {
              
               vec4 worldPosition = modelMatrix * vec4( vPos, 1.0 );
               vec3 sunToPlayer = normalize(sunPosition - playerPosition); 
               vec3 worldToEye = vec3(playerPosition.x + sunToPlayer.x * 100., playerPosition.y, playerPosition.z + sunToPlayer.z * 100.)-worldPosition.xyz;
               
-              vec3 eyeDirection = normalize( worldToEye );
+            //   vec3 eyeDirection = normalize( worldToEye );
+              vec3 eyeDirection = normalize(worldPosition.xyz - cameraPosition);
               vec2 uv = worldPosition.xz * 0.05;
 
               vec2 flowmap = texture2D(flowmapTexture, uv / 5.).rg * 2. - 1.;
@@ -299,15 +300,15 @@ class WaterMesh extends BatchedMesh {
               vec3 reflectedLight = reflect(normalize(fromSunVector), surfaceNormal);
               float specular = max(dot(reflectedLight, eyeDirection), 0.0);
               specular = pow(specular, shineDamper);
-              vec3 specularHighlight = vec3(0.6,0.6,0.6) * specular * reflectivity;
+              vec3 specularHighlight = vec3(0.7, 0.7, 0.7) * specular * reflectivity;
                  
               vec4 texA = texture2D(waterNoiseTexture, uvwA.xy) * uvwA.z;
               vec4 texB = texture2D(waterNoiseTexture, uvwB.xy) * uvwB.z;
 
               
 
-              gl_FragColor = (texA + texB) * vec4(0.02, 0.1, 0.16, 0.97);
-              gl_FragColor.rgb /= 2.;
+              gl_FragColor = (texA + texB) * vec4(0.04, 0.2, 0.32, 0.97) + vec4(0.0282, 0.470, 0.431, 0.);
+              gl_FragColor.rgb /= 3.;
               gl_FragColor += vec4( specularHighlight, 0.0 );
               
             //   gl_FragColor = vec4(1.0, 0., 0., 0.6);
@@ -805,10 +806,10 @@ export default (e) => {
                         if(pass.constructor.name === 'SSRPass'){
                             pass._selects.push(generator.getMeshes()[0]);
                             pass.opacity = 0.1;
-                            pass.maxDistance = 10;
+                            // pass.maxDistance = 10;
                             // pass._fresnel = false;
                             // pass.blur = false;
-                            pass.player = localPlayer;
+                            // pass.player = localPlayer;
                             // pass.thickness = 0.5;
                             reflectionSsrPass = pass;
                             
@@ -1197,7 +1198,7 @@ export default (e) => {
             
 
             void main() {
-                gl_FragColor = vec4(0.01, 0.05, 0.08, 0.9);
+                gl_FragColor = vec4(0.0282, 0.470, 0.431, 0.7);
                 if(!contactWater || vPos.y > cameraWaterSurfacePos.y)
                     discard;
             ${THREE.ShaderChunk.logdepthbuf_fragment}
@@ -1222,7 +1223,7 @@ export default (e) => {
         mask.material.uniforms.contactWater.value = contactWater;
         if(camera.position.y + 0.03 < cameraWaterSurfacePos.y && contactWater){
             if(renderSettings.findRenderSettings(scene)){
-                renderSettings.findRenderSettings(scene).fog.density = 0.07;
+                renderSettings.findRenderSettings(scene).fog.density = 0.05;
             }
         }
         else{

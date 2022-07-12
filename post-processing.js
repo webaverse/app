@@ -8,6 +8,7 @@ import {ShaderPass} from 'three/examples/jsm/postprocessing/ShaderPass.js';
 import {UnrealBloomPass} from 'three/examples/jsm/postprocessing/UnrealBloomPass.js';
 import {AdaptiveToneMappingPass} from 'three/examples/jsm/postprocessing/AdaptiveToneMappingPass.js';
 import { SSRPass } from 'three/examples/jsm/postprocessing/SSRPass.js';
+import { SSRrPass } from 'three/examples/jsm/postprocessing/SSRrPass.js';
 // import {BloomPass} from 'three/examples/jsm/postprocessing/BloomPass.js';
 // import {AfterimagePass} from 'three/examples/jsm/postprocessing/AfterimagePass.js';
 import {BokehPass} from './BokehPass.js';
