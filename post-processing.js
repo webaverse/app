@@ -148,6 +148,7 @@ function makeSsrPass(ssr) {
       groundReflector: null,
       selects: []
   });
+  window.ssrPass = ssrPass;
   
   
   return ssrPass;
