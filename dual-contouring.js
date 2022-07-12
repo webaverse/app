@@ -362,10 +362,6 @@ w.createTerrainChunkMeshAsync = async (inst, taskId, x, y, z, lods) => {
   const lodArray = allocator.alloc(Int32Array, 8);
   lodArray.set(lods);
 
-  if (!taskId) {
-    debugger;
-  }
-
   Module._createTerrainChunkMeshAsync(
     inst,
     taskId,
