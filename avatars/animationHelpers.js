@@ -646,7 +646,6 @@ export const _createAnimation = avatar => {
   avatar.actionsNodeUnitary = physx.physxWorker.createNode(avatar.mixer, AnimationNodeType.UNITARY);
   physx.physxWorker.addChild(avatar.actionsNodeUnitary, avatar.defaultNodeTwo);
   physx.physxWorker.addChild(avatar.actionsNodeUnitary, avatar.jumpMotion);
-  physx.physxWorker.addChild(avatar.actionsNodeUnitary, avatar.idle8DFlyNodeTwo);
   physx.physxWorker.addChild(avatar.actionsNodeUnitary, avatar.narutoRunMotion);
   physx.physxWorker.addChild(avatar.actionsNodeUnitary, avatar.activateMotion);
   // useMotiono
@@ -675,9 +674,13 @@ export const _createAnimation = avatar => {
     physx.physxWorker.addChild(avatar.actionsNodeUnitary, motion);
   }
 
+  avatar.groundFlyNodeTwo = physx.physxWorker.createNode(avatar.mixer, AnimationNodeType.TWO);
+  physx.physxWorker.addChild(avatar.groundFlyNodeTwo, avatar.actionsNodeUnitary);
+  physx.physxWorker.addChild(avatar.groundFlyNodeTwo, avatar.idle8DFlyNodeTwo);
+
   //
 
-  physx.physxWorker.setRootNode(avatar.mixer, avatar.actionsNodeUnitary);
+  physx.physxWorker.setRootNode(avatar.mixer, avatar.groundFlyNodeTwo);
   // test ------
   // physx.physxWorker.setRootNode(avatar.mixer, avatar.useMotiono.bowDraw);
   // physx.physxWorker.setRootNode(avatar.mixer, avatar.bowDrawLooseNodoeTwo);
@@ -750,7 +753,8 @@ export const _updateAnimation = avatar => {
   // action end event --------------------------------------------
 
   if (avatar.flyEnd) {
-    physx.physxWorker.crossFadeUnitary(avatar.actionsNodeUnitary, 0.2, avatar.defaultNodeTwo);
+    // physx.physxWorker.crossFadeUnitary(avatar.actionsNodeUnitary, 0.2, avatar.defaultNodeTwo);
+    physx.physxWorker.crossFadeTwo(avatar.groundFlyNodeTwo, 0.2, 0);
   }
   if (avatar.jumpEnd) {
     if (avatar.narutoRunState) {
@@ -796,7 +800,8 @@ export const _updateAnimation = avatar => {
   // action start event --------------------------------------------
 
   if (avatar.flyStart) {
-    physx.physxWorker.crossFadeUnitary(avatar.actionsNodeUnitary, 0.2, avatar.idle8DFlyNodeTwo);
+    // physx.physxWorker.crossFadeUnitary(avatar.actionsNodeUnitary, 0.2, avatar.idle8DFlyNodeTwo);
+    physx.physxWorker.crossFadeTwo(avatar.groundFlyNodeTwo, 0.2, 1);
   }
 
   if (avatar.jumpStart) {
