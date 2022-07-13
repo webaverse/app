@@ -26,8 +26,6 @@ import zTargeting from './z-targeting.js';
 window.zTargeting = zTargeting;
 import Avatar from './avatars/avatars.js';
 
-// const {contractNames} = metaversefileConstants;
-
 const localVector = new THREE.Vector3();
 const localVector2 = new THREE.Vector3();
 const localVector3 = new THREE.Vector3();

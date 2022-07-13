@@ -31,7 +31,15 @@
         0,
         0
       ],
-      "start_url": "http://localhost/lib/webaverse_resource/street/"
+      "start_url": "https://webaverse.github.io/street-base/"
+    },
+    {
+      "position": [
+        0,
+        0,
+        0
+      ],
+      "start_url": "https://webaverse.github.io/street/"
     },
     {
       "position": [
