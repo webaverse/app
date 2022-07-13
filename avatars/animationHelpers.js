@@ -1264,7 +1264,8 @@ export const _applyAnimation = (avatar, now, moveFactors, timeDiffS) => {
         const liftSwims = 0.05; // lift swims height, prevent head sink in water
         localVector2.fromArray(v2);
         localVector3.fromArray(v3);
-        localVector3.y += 0.21; // align Swimming.fbx's height to freestyle.fbx
+        // localVector3.y += 0.21; // align Swimming.fbx's height to freestyle.fbx
+        localVector3.y += 0.03; // align Swimming.fbx's height to freestyle.fbx
         localVector3.y += liftSwims;
         localVector4.fromArray(v4);
         localVector4.y += liftSwims;
