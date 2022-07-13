@@ -806,7 +806,7 @@ export default (e) => {
                     for(const pass of renderSettings.findRenderSettings(scene).passes){
                         if(pass.constructor.name === 'SSRPass'){
                             pass._selects.push(generator.getMeshes()[0]);
-                            pass.opacity = 0.2;
+                            pass.opacity = 0.1;
                             // pass.maxDistance = 10;
                             // pass._fresnel = false;
                             // pass.blur = false;
