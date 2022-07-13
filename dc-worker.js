@@ -200,6 +200,33 @@ const _handleMethod = async ({method, args, instance: instanceKey, taskId}) => {
       dc.setClipRange(instance, range);
       return true;
     }
+    case 'createTracker': {
+      const {instance: instanceKey, lod, minLodRange, trackY} = args;
+      const instance = instances.get(instanceKey);
+      const tracker = dc.createTracker(instance, lod, minLodRange, trackY);
+      const spec = {
+        result: tracker,
+        transfers: [],
+      };
+      return spec;
+    }
+    case 'destroyTracker': {
+      const {instance: instanceKey, tracker} = args;
+      const instance = instances.get(instanceKey);
+      dc.destroyTracker(instance, tracker);
+      return true;
+    }
+    case 'trackerUpdate': {
+      const {instance: instanceKey, tracker, position} = args;
+      const instance = instances.get(instanceKey);
+      const trackerUpdate = await dc.trackerUpdateAsync(instance, taskId, tracker, position);
+      const trackerUpdate2 = _cloneTrackerUpdate(trackerUpdate);
+      const spec = {
+        result: trackerUpdate2,
+        transfers: [],
+      };
+      return spec;
+    }
     case 'generateTerrainChunk': {
       const {chunkPosition, lodArray} = args;
       const instance = instances.get(instanceKey);

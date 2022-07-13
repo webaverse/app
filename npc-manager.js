@@ -10,6 +10,7 @@ import {createRelativeUrl} from './util.js';
 
 const localVector = new THREE.Vector3();
 
+const physicsScene = physicsManager.getScene();
 const cancelFnMap = new WeakMap();
 
 class NpcManager extends EventTarget {
@@ -154,7 +155,7 @@ class NpcManager extends EventTarget {
         const runSpeed = walkSpeed * 8;
         const speedDistanceRate = 0.07;
         const frame = e => {
-          if (npcPlayer && physicsManager.getPhysicsEnabled()) {
+          if (npcPlayer && physicsScene.getPhysicsEnabled()) {
             const {timestamp, timeDiff} = e.data;
             
             if (targetSpec) {

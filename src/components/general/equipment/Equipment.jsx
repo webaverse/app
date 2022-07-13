@@ -65,16 +65,19 @@ const objects = {
     ],
 };
 const landTokenObjects = [
-    /* {
+    {
         name: 'Metaveris',
         start_url: '/metaverse_components/land/',
         description: 'Starting parcel',
         seed: 'lol',
-        range: [
+        renderPosition: [0, 0, 0],
+        minLodRange: 3,
+        lods: 1,
+        clipRange: [
             [-32, 0, -32],
             [32, 128, 32]
         ],
-    }, */
+    },
 ];
 
 //
@@ -129,6 +132,62 @@ const ObjectItem = ({
     );
 };
 
+const LandImage = ({
+    object,
+    size,
+    enabled,
+}) => {
+    const [rendered, setRendered] = useState(false);
+    const canvasRef = useRef();
+
+    const pixelRatio = window.devicePixelRatio;
+    
+    useEffect(() => {
+        const canvas = canvasRef.current;
+        if (canvas && enabled && !rendered) {
+            (async () => {
+                const {
+                    seed,
+                    renderPosition,
+                    lods,
+                    minLodRange,
+                    clipRange,
+                } = object;
+                /* console.log('create image bitmap', {
+                    seed,
+                    lods,
+                    minLodRange,
+                    clipRange,
+                }); */
+                const imageBitmap = await createLandIcon({
+                    seed,
+                    renderPosition,
+                    lods,
+                    minLodRange,
+                    clipRange,
+                    width: size * pixelRatio,
+                    height: size * pixelRatio,
+                });
+                // console.log('got image bitmap', imageBitmap);
+             
+                const ctx = canvas.getContext('2d');
+                ctx.drawImage(imageBitmap, 0, 0, canvas.width, canvas.height);
+            })();
+
+            setRendered(true);
+        }
+    }, [canvasRef.current, enabled, rendered]);
+
+    return (
+        <canvas
+            className={styles.canvas}
+            width={size}
+            height={size}
+            ref={canvasRef}
+        />
+    );
+};
+
 const LandItem = ({
     object,
     enabled,
@@ -142,28 +201,6 @@ const LandItem = ({
     highlight,
 }) => {
     const size = 200;
-    const pixelRatio = window.devicePixelRatio;
-    const canvasRef = useRef();
-    useEffect(() => {
-        const canvas = canvasRef.current;
-        if (canvas) {
-            (async () => {
-                const {
-                    seed,
-                    range,
-                } = object;
-                const imageBitmap = await createLandIcon({
-                    seed,
-                    range,
-                    width: size * pixelRatio,
-                    height: size * pixelRatio,
-                });
-             
-                const ctx = canvas.getContext('2d');
-                ctx.drawImage(imageBitmap, 0, 0, canvas.width, canvas.height);
-            })();
-        }
-    }, [canvasRef]);
 
     return (
         <div
@@ -180,14 +217,11 @@ const LandItem = ({
             onDoubleClick={onDoubleClick}
             // ref={ref}
         >
-
-            <canvas
-                className={styles.canvas}
-                width={size}
-                height={size}
-                ref={canvasRef}
+            <LandImage
+                object={object}
+                size={size}
+                enabled={enabled}
             />
-
         </div>
     );
 };
@@ -196,6 +230,7 @@ const EquipmentItems = ({
     leftText,
     rightText,
     sections,
+    open,
     hoverObject,
     selectObject,
     loading,
@@ -466,6 +501,7 @@ export const Equipment = () => {
                                 tokens: inventoryObject,
                           },
                         ]}
+                        open={faceIndex === 0}
                         hoverObject={hoverObject}
                         selectObject={selectObject}
                         loading={loading}
@@ -491,6 +527,7 @@ export const Equipment = () => {
                                 tokens: objects.upstreet,
                             },
                         ]}
+                        open={faceIndex === 1}
                         hoverObject={hoverObject}
                         selectObject={selectObject}
                         loading={loading}
@@ -512,6 +549,7 @@ export const Equipment = () => {
                                 tokens: [],
                             },
                         ]}
+                        open={faceIndex === 2}
                         hoverObject={hoverObject}
                         selectObject={selectObject}
                         loading={loading}
@@ -533,6 +571,7 @@ export const Equipment = () => {
                                 tokens: landTokenObjects,
                             },
                         ]}
+                        open={faceIndex === 3}
                         hoverObject={hoverObject}
                         selectObject={selectObject}
                         loading={loading}

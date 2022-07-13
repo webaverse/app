@@ -25,7 +25,7 @@ const _handleMethod = ({
       geometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
       geometry.setIndex(new THREE.BufferAttribute(indices, 1));
       const mesh = new THREE.Mesh(geometry, fakeMaterial);
-      const result = physxLite.cookGeometryPhysics(physxLite.base, mesh);
+      const result = physxLite.cookGeometryPhysics(mesh);
       return {
         result,
         transfers: [result.buffer],
@@ -37,7 +37,7 @@ const _handleMethod = ({
       geometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
       geometry.setIndex(new THREE.BufferAttribute(indices, 1));
       const mesh = new THREE.Mesh(geometry, fakeMaterial);
-      const result = physxLite.cookConvexGeometryPhysics(physxLite.base, mesh);
+      const result = physxLite.cookConvexGeometryPhysics(mesh);
       return {
         result,
         transfers: [result.buffer],
