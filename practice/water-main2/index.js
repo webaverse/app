@@ -2309,7 +2309,7 @@ export default (e) => {
                 // && localPlayer.getAction('swim').animationType === 'breaststroke'
                 && currentSpeed > 0.3
             ){
-                const splashposition = localPlayer.getAction('swim').animationType === 'breaststroke' ? 0.55 :  0.15;
+                const splashposition = localPlayer.getAction('swim').animationType === 'breaststroke' ? 0.32 :  0.15;
                 const splashposition2 = localPlayer.getAction('swim').animationType === 'breaststroke' ? 0.07 : 0.2;
                 let currentEmmit = 0;
                 for(let i = 0; i < particleCount; i++){
