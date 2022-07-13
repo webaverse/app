@@ -2408,7 +2408,7 @@ const physxWorker = (() => {
   w.stop = (motion) => moduleInstance._stop(motion);
   w.setTimeBias = (motion, timeBias) => moduleInstance._setTimeBias(motion, timeBias);
   w.setSpeed = (motion, speed) => moduleInstance._setSpeed(motion, speed);
-  w.setLoop = (motion, loopType) => moduleInstance._setLoop(motion, loopType);
+  w.setLoop = (motion, loopType) => moduleInstance._setLoop(motion, loopType); // todo: Rename to `setMotionLoop` or `motionSetLoop` `motion_setLoop`.
 
   // End AnimationSystem
 

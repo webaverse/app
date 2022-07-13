@@ -321,6 +321,7 @@ export const loadPromise = (async () => {
   useAnimations = mergeAnimations({
     combo: animations.find(a => a.isCombo),
     slash: animations.find(a => a.isSlash),
+    dashAttack: animations.find(a => a.isDashAttack),
     rifle: animations.find(a => a.isRifle),
     pistol: animations.find(a => a.isPistol),
     magic: animations.find(a => a.isMagic),
@@ -527,6 +528,8 @@ export const _createAnimation = avatar => {
   physx.physxWorker.stop(avatar.useMotiono.swordTopDownSlash);
   physx.physxWorker.setLoop(avatar.useMotiono.swordTopDownSlashStep, AnimationLoopType.LoopOnce);
   physx.physxWorker.stop(avatar.useMotiono.swordTopDownSlashStep);
+  physx.physxWorker.setLoop(avatar.useMotiono.dashAttack, AnimationLoopType.LoopOnce);
+  physx.physxWorker.stop(avatar.useMotiono.dashAttack);
   // envelope
   physx.physxWorker.setLoop(avatar.useMotiono.bowDraw, AnimationLoopType.LoopOnce);
   physx.physxWorker.stop(avatar.useMotiono.bowDraw);
@@ -657,6 +660,7 @@ export const _createAnimation = avatar => {
   physx.physxWorker.addChild(avatar.actionsNodeUnitary, avatar.useMotiono.swordSideSlashStep);
   physx.physxWorker.addChild(avatar.actionsNodeUnitary, avatar.useMotiono.swordTopDownSlash);
   physx.physxWorker.addChild(avatar.actionsNodeUnitary, avatar.useMotiono.swordTopDownSlashStep);
+  physx.physxWorker.addChild(avatar.actionsNodeUnitary, avatar.useMotiono.dashAttack);
 
   // sit
   for (const k in avatar.sitMotiono) {
@@ -825,7 +829,8 @@ export const _updateAnimation = avatar => {
 
   // silsword
   if (avatar.useComboStart) {
-    const useAnimationName = avatar.useAnimationCombo[avatar.useAnimationIndex];
+    // const useAnimationName = avatar.useAnimationCombo[avatar.useAnimationIndex];
+    const useAnimationName = 'dashAttack';
     physx.physxWorker.play(avatar.useMotiono[useAnimationName]);
     physx.physxWorker.crossFadeUnitary(avatar.actionsNodeUnitary, 0.2, avatar.useMotiono[useAnimationName]);
   }
@@ -905,6 +910,7 @@ export const _updateAnimation = avatar => {
         avatar.useMotiono.swordSideSlashStep,
         avatar.useMotiono.swordTopDownSlash,
         avatar.useMotiono.swordTopDownSlashStep,
+        avatar.useMotiono.dashAttack,
       ].includes(motion)) {
         game.handleAnimationEnd();
       }
