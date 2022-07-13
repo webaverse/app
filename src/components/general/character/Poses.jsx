@@ -9,7 +9,6 @@ import { emoteAnimations } from '../../../../avatars/animationHelpers.js';
 import emotes from './emotes.json';
 import fallbackEmotes from "./fallback_emotes.json";
 
-//The trigger emote function is modified to trigger for the required player.
 
 let emoteTimeout = null;
 export const triggerEmote = (emoteName, player = null) => {
