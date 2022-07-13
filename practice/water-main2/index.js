@@ -788,6 +788,7 @@ export default (e) => {
     const plane = new THREE.Mesh( geometry, material );
     app.add( plane );
     plane.position.y = 65;
+    plane.position.z = 5;
 
     
     useFrame(({timestamp, timeDiff}) => {
