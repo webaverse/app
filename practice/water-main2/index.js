@@ -25,6 +25,8 @@ const {
 const sounds = useSound();
 const soundFiles = sounds.getSoundFiles();
 
+let reflectionSsrPass = null;
+
 const baseUrl = import.meta.url.replace(/(\/)[^\/\\]*$/, '$1');
 const textureLoader = new THREE.TextureLoader();
 const bubbleTexture1 = textureLoader.load(`${baseUrl}/textures/Bubble3.png`);
@@ -782,14 +784,14 @@ export default (e) => {
     let lastSwimmingHand = null;
 
     let alreadySetComposer = false;
-    let reflectionSsrPass = null;
+    
 
 
-    const geometry = new THREE.PlaneGeometry( 5, 5 );
-    const material = new THREE.MeshBasicMaterial( {map: textureLoader.load(`${baseUrl}/textures/test.jpg`), color: 0xffff00, side: THREE.DoubleSide} );
-    const plane = new THREE.Mesh( geometry, material );
-    app.add( plane );
-    plane.position.y = 65;
+    // const geometry = new THREE.PlaneGeometry( 5, 5 );
+    // const material = new THREE.MeshBasicMaterial( {map: textureLoader.load(`${baseUrl}/textures/test.jpg`), color: 0xffff00, side: THREE.DoubleSide} );
+    // const plane = new THREE.Mesh( geometry, material );
+    // app.add( plane );
+    // plane.position.y = 65;
 
     
     useFrame(({timestamp, timeDiff}) => {
@@ -812,6 +814,7 @@ export default (e) => {
                             // pass.blur = false;
                             // pass.player = localPlayer;
                             // pass.thickness = 0.5;
+                            // pass.output = 5;
                             reflectionSsrPass = pass;
                             
                         }
@@ -4684,6 +4687,7 @@ export default (e) => {
                         gl_FragColor = ripple;
                     }
                     else{
+                        gl_FragColor.a = 0.;
                         discard;
                     }
                    
@@ -4706,8 +4710,16 @@ export default (e) => {
         });
     })();
     
+    let groupInApp = false;
     let playEffectSw=0;
+    let alreadySetComposer = false;
     useFrame(({timestamp}) => {
+        if(!alreadySetComposer){
+            if(splashMesh && reflectionSsrPass){
+                reflectionSsrPass._selects.push(splashMesh);
+                alreadySetComposer = true;
+            }
+        }
         if (contactWater){
             if(playEffectSw === 0 && waterSurfacePos.y < localPlayer.position.y){
                 playEffectSw = 1;
@@ -4738,10 +4750,14 @@ export default (e) => {
             // }
             if(playEffectSw === 1 && fallindSpeed > 6){
                 group.position.copy(localPlayer.position);
-                group.position.y = waterSurfacePos.y + 0.01;
+                group.position.y = waterSurfacePos.y;
                 splashMesh.material.uniforms.vBroken.value = 0.1;
                 splashMesh.scale.set(0.2, 1, 0.2);
                 splashMesh.material.uniforms.uTime.value = 120;
+                if(!groupInApp){
+                    app.add(group);
+                    groupInApp = true;
+                }
             }
             let falling = fallindSpeed > 10 ? 10 : fallindSpeed;
             if(splashMesh.material.uniforms.vBroken.value < 1){
@@ -4750,6 +4766,12 @@ export default (e) => {
                 splashMesh.scale.x += 0.007 * (1 + falling * 0.1);
                 // splashMesh.scale.y += 0.01;
                 splashMesh.scale.z += 0.007 * (1 + falling * 0.1);
+            }
+            else{
+                if(groupInApp){
+                    app.remove(group);
+                    groupInApp = false;
+                }
             }
                 
             

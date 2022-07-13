@@ -143,6 +143,7 @@ export default () => {
           uniform float time;
           uniform float threshold;
           uniform vec2 resolution;
+          
 
           float getDepth( const in vec2 screenPosition ) {
             #if DEPTH_PACKING == 1
@@ -168,6 +169,7 @@ export default () => {
             float linearEyeDepth = getViewZ( getDepth( screenUV ) );
     
             float diff = saturate( fragmentLinearEyeDepth - linearEyeDepth );
+            gl_FragColor = vec4(vec3(diff), 1); return;
     
             vec2 displacement = texture2D( tDudv, ( vUv * 2.0 ) - time * 0.05 ).rg;
             displacement = ( ( displacement * 2.0 ) - 1.0 ) * 1.0;
