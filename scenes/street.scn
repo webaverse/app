@@ -221,6 +221,25 @@
       "position": [-2, 1, 2],
       "quaternion": [0, 0.7071067811865475, 0, 0.7071067811865476],
       "start_url": "https://webaverse.github.io/helm/"
+    },
+    {
+      "position": [0, -60, 0],
+      "quaternion": [0, 0, 0, 1],
+      "start_url": "../metaverse_modules/land/",
+      "components": [
+        {
+          "key": "minLodRange",
+          "value": 2
+        },
+        {
+          "key": "lods",
+          "value": 3
+        },
+        {
+          "key": "debug",
+          "value": true
+        }
+      ]
     }
   ]
 }
