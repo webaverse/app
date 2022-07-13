@@ -385,16 +385,20 @@ export const loadPromise = (async () => {
     grab_right: {animation: animations.index['grab_right.fbx'], speedFactor: 1.2},
     pick_up: {animation: animations.index['pick_up.fbx'], speedFactor: 1},
   };
+  window.activateAnimations = activateAnimations;
   narutoRunAnimations = {
     narutoRun: animations.find(a => a.isNarutoRun),
   };
+  window.narutoRunAnimations = narutoRunAnimations;
   hurtAnimations = {
     pain_back: animations.index['pain_back.fbx'],
     pain_arch: animations.index['pain_arch.fbx'],
   };
+  window.hurtAnimations = hurtAnimations;
   holdAnimations = {
     pick_up_idle: animations.index['pick_up_idle.fbx'],
   };
+  window.holdAnimations = holdAnimations;
   {
     const down10QuaternionArray = new Quaternion()
       .setFromAxisAngle(new Vector3(1, 0, 0), Math.PI * 0.1)
@@ -541,392 +545,273 @@ export const _createAnimation = avatar => {
       physx.physxWorker.stop(avatar.sitMotiono[k]);
     }
   }
-  let mirrorFactor;
-  if (avatar.backwardAnimationSpec) {
-    const f = (now - avatar.backwardAnimationSpec.startTime) / (avatar.backwardAnimationSpec.endTime - avatar.backwardAnimationSpec.startTime);
-    if (f >= 1) {
-      mirrorFactor = avatar.backwardAnimationSpec.endFactor;
-      avatar.backwardAnimationSpec = null;
-    } else {
-      mirrorFactor = avatar.backwardAnimationSpec.startFactor +
-        Math.pow(
-          f,
-          0.5,
-        ) * (avatar.backwardAnimationSpec.endFactor - avatar.backwardAnimationSpec.startFactor);
+  // emote
+  avatar.emoteMotiono = {};
+  for (const k in emoteAnimations) {
+    const animation = emoteAnimations[k];
+    if (animation) {
+      avatar.emoteMotiono[k] = physx.physxWorker.createMotion(avatar.mixer, animation.pointer);
+      physx.physxWorker.setLoop(avatar.emoteMotiono[k], AnimationLoopType.LoopOnce);
+      physx.physxWorker.stop(avatar.emoteMotiono[k]);
     }
-  } else {
-    mirrorFactor = isBackward ? 1 : 0;
   }
-  // if (avatar === window.localPlayer.avatar) console.log(window.logNum(angleFactor), window.logNum(mirrorFactor));
-  avatar.lastBackwardFactor = mirrorFactor;
-
-  if (avatar.emoteAnimation !== avatar.lastEmoteAnimation) {
-    avatar.lastEmoteTime = avatar.emoteAnimation ? now : 0;
+  // dance
+  avatar.danceMotiono = {};
+  for (const k in danceAnimations) {
+    const animation = danceAnimations[k];
+    if (animation) {
+      avatar.danceMotiono[k] = physx.physxWorker.createMotion(avatar.mixer, animation.pointer);
+    }
   }
-  avatar.lastEmoteAnimation = avatar.emoteAnimation;
 
-  const _getHorizontalBlend = (k, lerpFn, isPosition, target) => {
-    _get7wayBlend(
-      keyWalkAnimationAngles,
-      keyWalkAnimationAnglesMirror,
-      keyRunAnimationAngles,
-      keyRunAnimationAnglesMirror,
-      idleAnimation,
-      // mirrorFactor,
-      // angleFactor,
-      // walkRunFactor,
-      // idleWalkFactor,
-      k,
-      lerpFn,
-      isPosition,
-      localQuaternion,
-    );
-    _get7wayBlend(
-      keyAnimationAnglesOther,
-      keyAnimationAnglesOtherMirror,
-      keyAnimationAnglesOther,
-      keyAnimationAnglesOtherMirror,
-      idleAnimationOther,
-      // mirrorFactor,
-      // angleFactor,
-      // walkRunFactor,
-      // idleWalkFactor,
-      k,
-      lerpFn,
-      isPosition,
-      localQuaternion2,
-    );
+  // create nodes -------------------------------------------------------------
 
-    // _get5wayBlend(keyAnimationAnglesOther, keyAnimationAnglesOtherMirror, idleAnimationOther, mirrorFactor, angleFactor, speedFactor, k, lerpFn, localQuaternion2);
+  avatar._8DirectionsWalkNodeList = physx.physxWorker.createNode(avatar.mixer, AnimationNodeType.LIST);
+  physx.physxWorker.addChild(avatar._8DirectionsWalkNodeList, avatar.walkForwardMotion);
+  physx.physxWorker.addChild(avatar._8DirectionsWalkNodeList, avatar.walkBackwardMotion);
+  physx.physxWorker.addChild(avatar._8DirectionsWalkNodeList, avatar.walkLeftMotion);
+  physx.physxWorker.addChild(avatar._8DirectionsWalkNodeList, avatar.walkRightMotion);
+  physx.physxWorker.addChild(avatar._8DirectionsWalkNodeList, avatar.walkLeftMirrorMotion);
+  physx.physxWorker.addChild(avatar._8DirectionsWalkNodeList, avatar.walkRightMirrorMotion);
 
-    lerpFn
-      .call(
-        target.copy(localQuaternion),
-        localQuaternion2,
-        crouchFactor,
-      );
-  };
-  const _handleDefault = spec => {
-    const {
-      animationTrackName: k,
-      dst,
-      // isTop,
-      lerpFn,
-      isPosition,
-    } = spec;
+  avatar._8DirectionsRunNodeList = physx.physxWorker.createNode(avatar.mixer, AnimationNodeType.LIST);
+  physx.physxWorker.addChild(avatar._8DirectionsRunNodeList, avatar.runForwardMotion);
+  physx.physxWorker.addChild(avatar._8DirectionsRunNodeList, avatar.runBackwardMotion);
+  physx.physxWorker.addChild(avatar._8DirectionsRunNodeList, avatar.runLeftMotion);
+  physx.physxWorker.addChild(avatar._8DirectionsRunNodeList, avatar.runRightMotion);
+  physx.physxWorker.addChild(avatar._8DirectionsRunNodeList, avatar.runLeftMirrorMotion);
+  physx.physxWorker.addChild(avatar._8DirectionsRunNodeList, avatar.runRightMirrorMotion);
 
-    _getHorizontalBlend(k, lerpFn, isPosition, dst);
-  };
-  const _getApplyFn = () => {
-    if (avatar.jumpState) {
-      return spec => {
-        const {
-          animationTrackName: k,
-          dst,
-          // isTop,
-        } = spec;
+  avatar._8DirectionsCrouchNodeList = physx.physxWorker.createNode(avatar.mixer, AnimationNodeType.LIST);
+  physx.physxWorker.addChild(avatar._8DirectionsCrouchNodeList, avatar.crouchForwardMotion);
+  physx.physxWorker.addChild(avatar._8DirectionsCrouchNodeList, avatar.crouchBackwardMotion);
+  physx.physxWorker.addChild(avatar._8DirectionsCrouchNodeList, avatar.crouchLeftMotion);
+  physx.physxWorker.addChild(avatar._8DirectionsCrouchNodeList, avatar.crouchRightMotion);
+  physx.physxWorker.addChild(avatar._8DirectionsCrouchNodeList, avatar.crouchLeftMirrorMotion);
+  physx.physxWorker.addChild(avatar._8DirectionsCrouchNodeList, avatar.crouchRightMirrorMotion);
 
-        const t2 = avatar.jumpTime / 1000 * 0.6 + 0.7;
-        const src2 = jumpAnimation.interpolants[k];
-        const v2 = src2.evaluate(t2);
+  avatar._8DirectionsBowNodeList = physx.physxWorker.createNode(avatar.mixer, AnimationNodeType.LIST);
+  physx.physxWorker.addChild(avatar._8DirectionsBowNodeList, avatar.bowForwardMotion);
+  physx.physxWorker.addChild(avatar._8DirectionsBowNodeList, avatar.bowBackwardMotion);
+  physx.physxWorker.addChild(avatar._8DirectionsBowNodeList, avatar.bowLeftMotion);
+  physx.physxWorker.addChild(avatar._8DirectionsBowNodeList, avatar.bowRightMotion);
+  physx.physxWorker.addChild(avatar._8DirectionsBowNodeList, avatar.bowLeftMirrorMotion);
+  physx.physxWorker.addChild(avatar._8DirectionsBowNodeList, avatar.bowRightMirrorMotion);
 
-        dst.fromArray(v2);
-      };
-    }
-    if (avatar.sitState) {
-      return spec => {
-        const {
-          animationTrackName: k,
-          dst,
-          // isTop,
-        } = spec;
+  avatar._8DirectionsWalkRunNodeTwo = physx.physxWorker.createNode(avatar.mixer, AnimationNodeType.TWO);
+  physx.physxWorker.addChild(avatar._8DirectionsWalkRunNodeTwo, avatar._8DirectionsWalkNodeList);
+  physx.physxWorker.addChild(avatar._8DirectionsWalkRunNodeTwo, avatar._8DirectionsRunNodeList);
 
-        const sitAnimation = sitAnimations[avatar.sitAnimation || defaultSitAnimation];
-        const src2 = sitAnimation.interpolants[k];
-        const v2 = src2.evaluate(1);
+  avatar.idle8DWalkRunNodeTwo = physx.physxWorker.createNode(avatar.mixer, AnimationNodeType.TWO);
+  physx.physxWorker.addChild(avatar.idle8DWalkRunNodeTwo, avatar.idleMotion);
+  physx.physxWorker.addChild(avatar.idle8DWalkRunNodeTwo, avatar._8DirectionsWalkRunNodeTwo);
 
-        dst.fromArray(v2);
-      };
-    }
+  avatar.idle8DCrouchNodeTwo = physx.physxWorker.createNode(avatar.mixer, AnimationNodeType.TWO);
+  physx.physxWorker.addChild(avatar.idle8DCrouchNodeTwo, avatar.crouchIdleMotion);
+  physx.physxWorker.addChild(avatar.idle8DCrouchNodeTwo, avatar._8DirectionsCrouchNodeList);
+
+  avatar.flyForwardNodeTwo = physx.physxWorker.createNode(avatar.mixer, AnimationNodeType.TWO);
+  physx.physxWorker.addChild(avatar.flyForwardNodeTwo, avatar.flyDodgeForwardMotion);
+  physx.physxWorker.addChild(avatar.flyForwardNodeTwo, avatar.flyDashMotion);
+
+  avatar._8DirectionsFlyNodeList = physx.physxWorker.createNode(avatar.mixer, AnimationNodeType.LIST);
+  physx.physxWorker.addChild(avatar._8DirectionsFlyNodeList, avatar.flyForwardNodeTwo);
+  physx.physxWorker.addChild(avatar._8DirectionsFlyNodeList, avatar.flyDodgeBackwardMotion);
+  physx.physxWorker.addChild(avatar._8DirectionsFlyNodeList, avatar.flyDodgeLeftMotion);
+  physx.physxWorker.addChild(avatar._8DirectionsFlyNodeList, avatar.flyDodgeRightMotion);
+
+  avatar.idle8DFlyNodeTwo = physx.physxWorker.createNode(avatar.mixer, AnimationNodeType.TWO);
+  physx.physxWorker.addChild(avatar.idle8DFlyNodeTwo, avatar.flyIdleMotion);
+  physx.physxWorker.addChild(avatar.idle8DFlyNodeTwo, avatar._8DirectionsFlyNodeList);
+
+  avatar.idle8DBowNodeTwo = physx.physxWorker.createNode(avatar.mixer, AnimationNodeType.TWO);
+  physx.physxWorker.addChild(avatar.idle8DBowNodeTwo, avatar.useMotiono.bowIdle);
+  physx.physxWorker.addChild(avatar.idle8DBowNodeTwo, avatar._8DirectionsBowNodeList);
+
+  avatar.bowDrawLooseNodoeTwo = physx.physxWorker.createNode(avatar.mixer, AnimationNodeType.TWO);
+  physx.physxWorker.addChild(avatar.bowDrawLooseNodoeTwo, avatar.useMotiono.bowDraw);
+  physx.physxWorker.addChild(avatar.bowDrawLooseNodoeTwo, avatar.useMotiono.bowLoose);
+
+  // avatar.bowIdle8DDrawLooseNodeOverwrite = avatar.mixer.createNode(avatar.mixer, WebaverseAnimationNodeOverwrite, 'bowIdleDrawLoose', {filters: ['isTop']}); // js version
+  // avatar.bowIdle8DDrawLooseNodeOverwrite = physx.physxWorker.createNode(avatar.mixer, AnimationNodeType.TWO); // ~~todo: NodeType.Overwrite~~
+  avatar.bowIdle8DDrawLooseNodeOverwrite = physx.physxWorker.createNode(avatar.mixer, AnimationNodeType.OVERWRITE); // todo: Selectable filters.
+  physx.physxWorker.addChild(avatar.bowIdle8DDrawLooseNodeOverwrite, avatar.idle8DBowNodeTwo);
+  physx.physxWorker.addChild(avatar.bowIdle8DDrawLooseNodeOverwrite, avatar.bowDrawLooseNodoeTwo);
+
+  avatar.idle8DWalkRun_BowIdle8DDrawLooseNodeTwo = physx.physxWorker.createNode(avatar.mixer, AnimationNodeType.TWO);
+  physx.physxWorker.addChild(avatar.idle8DWalkRun_BowIdle8DDrawLooseNodeTwo, avatar.idle8DWalkRunNodeTwo);
+  physx.physxWorker.addChild(avatar.idle8DWalkRun_BowIdle8DDrawLooseNodeTwo, avatar.bowIdle8DDrawLooseNodeOverwrite);
+
+  avatar.defaultNodeTwo = physx.physxWorker.createNode(avatar.mixer, AnimationNodeType.TWO);
+  physx.physxWorker.addChild(avatar.defaultNodeTwo, avatar.idle8DWalkRun_BowIdle8DDrawLooseNodeTwo);
+  physx.physxWorker.addChild(avatar.defaultNodeTwo, avatar.idle8DCrouchNodeTwo);
+
+  avatar.actionsNodeUnitary = physx.physxWorker.createNode(avatar.mixer, AnimationNodeType.UNITARY);
+  physx.physxWorker.addChild(avatar.actionsNodeUnitary, avatar.defaultNodeTwo);
+  physx.physxWorker.addChild(avatar.actionsNodeUnitary, avatar.jumpMotion);
+  physx.physxWorker.addChild(avatar.actionsNodeUnitary, avatar.narutoRunMotion);
+  physx.physxWorker.addChild(avatar.actionsNodeUnitary, avatar.activateMotion);
+  // useMotiono
+  physx.physxWorker.addChild(avatar.actionsNodeUnitary, avatar.useMotiono.drink);
+  // // sword
+  physx.physxWorker.addChild(avatar.actionsNodeUnitary, avatar.useMotiono.combo);
+  // // silsword combo
+  physx.physxWorker.addChild(avatar.actionsNodeUnitary, avatar.useMotiono.swordSideSlash);
+  physx.physxWorker.addChild(avatar.actionsNodeUnitary, avatar.useMotiono.swordSideSlashStep);
+  physx.physxWorker.addChild(avatar.actionsNodeUnitary, avatar.useMotiono.swordTopDownSlash);
+  physx.physxWorker.addChild(avatar.actionsNodeUnitary, avatar.useMotiono.swordTopDownSlashStep);
+  physx.physxWorker.addChild(avatar.actionsNodeUnitary, avatar.useMotiono.dashAttack);
+
+  // sit
+  for (const k in avatar.sitMotiono) {
+    const motion = avatar.sitMotiono[k];
+    physx.physxWorker.addChild(avatar.actionsNodeUnitary, motion);
+  }
+  // emote
+  for (const k in avatar.emoteMotiono) {
+    const motion = avatar.emoteMotiono[k];
+    physx.physxWorker.addChild(avatar.actionsNodeUnitary, motion);
+  }
+  // dance
+  for (const k in avatar.danceMotiono) {
+    const motion = avatar.danceMotiono[k];
+    physx.physxWorker.addChild(avatar.actionsNodeUnitary, motion);
+  }
+
+  avatar.groundFlyNodeTwo = physx.physxWorker.createNode(avatar.mixer, AnimationNodeType.TWO);
+  physx.physxWorker.addChild(avatar.groundFlyNodeTwo, avatar.actionsNodeUnitary);
+  physx.physxWorker.addChild(avatar.groundFlyNodeTwo, avatar.idle8DFlyNodeTwo);
+
+  //
+
+  physx.physxWorker.setRootNode(avatar.mixer, avatar.groundFlyNodeTwo);
+  // test ------
+  // physx.physxWorker.setRootNode(avatar.mixer, avatar.useMotiono.bowDraw);
+  // physx.physxWorker.setRootNode(avatar.mixer, avatar.bowDrawLooseNodoeTwo);
+  // physx.physxWorker.setRootNode(avatar.mixer, avatar.bowIdle8DDrawLooseNodeOverwrite);
+  // physx.physxWorker.setRootNode(avatar.mixer, avatar.idle8DWalkRun_BowIdle8DDrawLooseNodeTwo);
+  // end test ------
+
+  // --------------------------------------------------------------------------
+
+  // avatar.mixer.addEventListener('finished', event => {
+  // });
+};
+
+export const _updateAnimation = avatar => {
+  const timeS = performance.now() / 1000;
+
+  const angle = avatar.getAngle();
+  const forwardFactor = 1 - MathUtils.clamp(Math.abs(angle) / (Math.PI / 2), 0, 1);
+  const backwardFactor = 1 - MathUtils.clamp((Math.PI - Math.abs(angle)) / (Math.PI / 2), 0, 1);
+  const leftFactor = 1 - MathUtils.clamp(Math.abs(angle - Math.PI / 2) / (Math.PI / 2), 0, 1);
+  const rightFactor = 1 - MathUtils.clamp(Math.abs(angle - -Math.PI / 2) / (Math.PI / 2), 0, 1);
+  const mirrorFactorReverse = 1 - avatar.mirrorFactor;
+  const mirrorLeftFactor = avatar.mirrorFactor * leftFactor;
+  const mirrorRightFactor = avatar.mirrorFactor * rightFactor;
+  const mirrorLeftFactorReverse = mirrorFactorReverse * leftFactor;
+  const mirrorRightFactorReverse = mirrorFactorReverse * rightFactor;
+
+  physx.physxWorker.setWeight(avatar.walkForwardMotion, forwardFactor);
+  physx.physxWorker.setWeight(avatar.walkBackwardMotion, backwardFactor);
+  physx.physxWorker.setWeight(avatar.walkLeftMotion, mirrorLeftFactorReverse);
+  physx.physxWorker.setWeight(avatar.walkLeftMirrorMotion, mirrorLeftFactor);
+  physx.physxWorker.setWeight(avatar.walkRightMotion, mirrorRightFactorReverse);
+  physx.physxWorker.setWeight(avatar.walkRightMirrorMotion, mirrorRightFactor);
+
+  physx.physxWorker.setWeight(avatar.runForwardMotion, forwardFactor);
+  physx.physxWorker.setWeight(avatar.runBackwardMotion, backwardFactor);
+  physx.physxWorker.setWeight(avatar.runLeftMotion, mirrorLeftFactorReverse);
+  physx.physxWorker.setWeight(avatar.runLeftMirrorMotion, mirrorLeftFactor);
+  physx.physxWorker.setWeight(avatar.runRightMotion, mirrorRightFactorReverse);
+  physx.physxWorker.setWeight(avatar.runRightMirrorMotion, mirrorRightFactor);
+
+  physx.physxWorker.setWeight(avatar.crouchForwardMotion, forwardFactor);
+  physx.physxWorker.setWeight(avatar.crouchBackwardMotion, backwardFactor);
+  physx.physxWorker.setWeight(avatar.crouchLeftMotion, mirrorLeftFactorReverse);
+  physx.physxWorker.setWeight(avatar.crouchLeftMirrorMotion, mirrorLeftFactor);
+  physx.physxWorker.setWeight(avatar.crouchRightMotion, mirrorRightFactorReverse);
+  physx.physxWorker.setWeight(avatar.crouchRightMirrorMotion, mirrorRightFactor);
+
+  physx.physxWorker.setWeight(avatar.bowForwardMotion, forwardFactor);
+  physx.physxWorker.setWeight(avatar.bowBackwardMotion, backwardFactor);
+  physx.physxWorker.setWeight(avatar.bowLeftMotion, mirrorLeftFactorReverse);
+  physx.physxWorker.setWeight(avatar.bowLeftMirrorMotion, mirrorLeftFactor);
+  physx.physxWorker.setWeight(avatar.bowRightMotion, mirrorRightFactorReverse);
+  physx.physxWorker.setWeight(avatar.bowRightMirrorMotion, mirrorRightFactor);
+
+  physx.physxWorker.setFactor(avatar._8DirectionsWalkRunNodeTwo, avatar.moveFactors.walkRunFactor);
+  physx.physxWorker.setFactor(avatar.idle8DWalkRunNodeTwo, avatar.moveFactors.idleWalkFactor);
+  physx.physxWorker.setFactor(avatar.idle8DCrouchNodeTwo, avatar.moveFactors.idleWalkFactor);
+  physx.physxWorker.setFactor(avatar.defaultNodeTwo, avatar.moveFactors.crouchFactor);
+  physx.physxWorker.setFactor(avatar.idle8DBowNodeTwo, avatar.moveFactors.idleWalkFactor);
+
+  physx.physxWorker.setWeight(avatar.flyForwardNodeTwo, forwardFactor);
+  physx.physxWorker.setWeight(avatar.flyDodgeBackwardMotion, backwardFactor);
+  physx.physxWorker.setWeight(avatar.flyDodgeLeftMotion, leftFactor);
+  physx.physxWorker.setWeight(avatar.flyDodgeRightMotion, rightFactor);
+
+  physx.physxWorker.setFactor(avatar.idle8DFlyNodeTwo, avatar.moveFactors.walkRunFactor);
+  physx.physxWorker.setFactor(avatar.flyForwardNodeTwo, avatar.flyDashFactor);
+
+  // action end event --------------------------------------------
+
+  if (avatar.flyEnd) {
+    // physx.physxWorker.crossFadeUnitary(avatar.actionsNodeUnitary, 0.2, avatar.defaultNodeTwo);
+    physx.physxWorker.crossFadeTwo(avatar.groundFlyNodeTwo, 0.2, 0);
+  }
+  if (avatar.jumpEnd) {
     if (avatar.narutoRunState) {
-      return spec => {
-        const {
-          animationTrackName: k,
-          dst,
-          // isTop,
-          isPosition,
-        } = spec;
-
-        const narutoRunAnimation = narutoRunAnimations[defaultNarutoRunAnimation];
-        const src2 = narutoRunAnimation.interpolants[k];
-        const t2 = (avatar.narutoRunTime / 1000 * narutoRunTimeFactor) % narutoRunAnimation.duration;
-        const v2 = src2.evaluate(t2);
-
-        dst.fromArray(v2);
-
-        _clearXZ(dst, isPosition);
-      };
+      physx.physxWorker.crossFadeUnitary(avatar.actionsNodeUnitary, 0.2, avatar.narutoRunMotion);
+    } else {
+      physx.physxWorker.crossFadeUnitary(avatar.actionsNodeUnitary, 0.2, avatar.defaultNodeTwo);
     }
+  }
 
-    if (avatar.danceFactor > 0) {
-      return spec => {
-        const {
-          animationTrackName: k,
-          dst,
-          lerpFn,
-          // isTop,
-          isPosition,
-        } = spec;
+  if (avatar.narutoRunEnd) physx.physxWorker.crossFadeUnitary(avatar.actionsNodeUnitary, 0.2, avatar.defaultNodeTwo);
 
-        _handleDefault(spec);
+  if (avatar.activateEnd) {
+    physx.physxWorker.crossFadeUnitary(avatar.actionsNodeUnitary, 0.2, avatar.defaultNodeTwo);
+  }
 
-        const danceAnimation = danceAnimations[avatar.danceAnimation || defaultDanceAnimation];
-        const src2 = danceAnimation.interpolants[k];
-        const t2 = (now / 1000) % danceAnimation.duration;
-        const v2 = src2.evaluate(t2);
+  if (avatar.useEnd) {
+    physx.physxWorker.crossFadeUnitary(avatar.actionsNodeUnitary, 0.2, avatar.defaultNodeTwo);
+  }
 
-        const danceFactorS = avatar.danceFactor / crouchMaxTime;
-        const f = Math.min(Math.max(danceFactorS, 0), 1);
-        lerpFn
-          .call(
-            dst,
-            localQuaternion.fromArray(v2),
-            f,
-          );
+  if (avatar.useComboEnd) {
+    physx.physxWorker.crossFadeUnitary(avatar.actionsNodeUnitary, 0.2, avatar.defaultNodeTwo);
+  }
 
-        _clearXZ(dst, isPosition);
-      };
-    }
+  if (avatar.useEnvelopeEnd) {
+    console.log('useEnvelopeEnd');
+    physx.physxWorker.play(avatar.useMotiono.bowLoose);
+    physx.physxWorker.setFactor(avatar.bowDrawLooseNodoeTwo, 1);
+    physx.physxWorker.crossFadeTwo(avatar.bowIdle8DDrawLooseNodeOverwrite, 0.2, 1);
+  }
 
-    if (avatar.emoteFactor > 0) {
-      return spec => {
-        const {
-          animationTrackName: k,
-          dst,
-          lerpFn,
-          // isTop,
-          isPosition,
-        } = spec;
+  if (avatar.sitEnd) {
+    physx.physxWorker.crossFadeUnitary(avatar.actionsNodeUnitary, 0.2, avatar.defaultNodeTwo);
+  }
 
-        _handleDefault(spec);
+  if (avatar.emoteEnd) {
+    physx.physxWorker.crossFadeUnitary(avatar.actionsNodeUnitary, 0.2, avatar.defaultNodeTwo);
+  }
 
-        const emoteAnimation = emoteAnimations[avatar.emoteAnimation || defaultEmoteAnimation];
-        const src2 = emoteAnimation.interpolants[k];
-        const emoteTime = now - avatar.lastEmoteTime;
-        const t2 = Math.min(emoteTime / 1000, emoteAnimation.duration);
-        const v2 = src2.evaluate(t2);
+  if (avatar.danceEnd) {
+    physx.physxWorker.crossFadeUnitary(avatar.actionsNodeUnitary, 0.2, avatar.defaultNodeTwo);
+  }
 
-        const emoteFactorS = avatar.emoteFactor / crouchMaxTime;
-        const f = Math.min(Math.max(emoteFactorS, 0), 1);
-        lerpFn
-          .call(
-            dst,
-            localQuaternion.fromArray(v2),
-            f,
-          );
+  // action start event --------------------------------------------
 
-        _clearXZ(dst, isPosition);
-      };
-    }
+  if (avatar.flyStart) {
+    // physx.physxWorker.crossFadeUnitary(avatar.actionsNodeUnitary, 0.2, avatar.idle8DFlyNodeTwo);
+    physx.physxWorker.crossFadeTwo(avatar.groundFlyNodeTwo, 0.2, 1);
+  }
 
-    /* if (avatar.fallLoopState) {
-      return spec => {
-        const {
-          animationTrackName: k,
-          dst,
-          // isTop,
-        } = spec;
-
-        const t2 = (avatar.fallLoopTime/1000) ;
-        const src2 = fallLoop.interpolants[k];
-        const v2 = src2.evaluate(t2);
-
-        dst.fromArray(v2);
-      };
-    } */
-    if (
-      avatar.useAnimation ||
-      avatar.useAnimationCombo.length > 0 ||
-      avatar.useAnimationEnvelope.length > 0
-    ) {
-      return spec => {
-        const {
-          animationTrackName: k,
-          dst,
-          // isTop,
-          isPosition,
-        } = spec;
-
-        let useAnimation;
-        let t2;
-        const useTimeS = avatar.useTime / 1000;
-        if (avatar.useAnimation) {
-          const useAnimationName = avatar.useAnimation;
-          useAnimation = useAnimations[useAnimationName];
-          t2 = Math.min(useTimeS, useAnimation.duration);
-        } else if (avatar.useAnimationCombo.length > 0) {
-          const useAnimationName = avatar.useAnimationCombo[avatar.useAnimationIndex];
-          useAnimation = useAnimations[useAnimationName];
-          t2 = Math.min(useTimeS, useAnimation.duration);
-        } else if (avatar.useAnimationEnvelope.length > 0) {
-          let totalTime = 0;
-          for (let i = 0; i < avatar.useAnimationEnvelope.length - 1; i++) {
-            const animationName = avatar.useAnimationEnvelope[i];
-            const animation = useAnimations[animationName];
-            totalTime += animation.duration;
-          }
-
-          if (totalTime > 0) {
-            let animationTimeBase = 0;
-            for (let i = 0; i < avatar.useAnimationEnvelope.length - 1; i++) {
-              const animationName = avatar.useAnimationEnvelope[i];
-              const animation = useAnimations[animationName];
-              if (useTimeS < (animationTimeBase + animation.duration)) {
-                useAnimation = animation;
-                break;
-              }
-              animationTimeBase += animation.duration;
-            }
-            if (useAnimation !== undefined) { // first iteration
-              t2 = Math.min(useTimeS - animationTimeBase, useAnimation.duration);
-            } else { // loop
-              const secondLastAnimationName = avatar.useAnimationEnvelope[avatar.useAnimationEnvelope.length - 2];
-              useAnimation = useAnimations[secondLastAnimationName];
-              t2 = (useTimeS - animationTimeBase) % useAnimation.duration;
-            }
-          }
-        }
-
-        _handleDefault(spec);
-
-        if (useAnimation) {
-          if (!isPosition) {
-            const src2 = useAnimation.interpolants[k];
-            const v2 = src2.evaluate(t2);
-
-            dst.fromArray(v2);
-          } else {
-            const src2 = useAnimation.interpolants[k];
-            const v2 = src2.evaluate(t2);
-            localVector2.fromArray(v2);
-            _clearXZ(localVector2, isPosition);
-
-            const idleAnimation = _getIdleAnimation('walk');
-            const t3 = 0;
-            const src3 = idleAnimation.interpolants[k];
-            const v3 = src3.evaluate(t3);
-            localVector3.fromArray(v3);
-
-            dst
-              .sub(localVector3)
-              .add(localVector2);
-          }
-        }
-      };
-    } else if (avatar.hurtAnimation) {
-      return spec => {
-        const {
-          animationTrackName: k,
-          dst,
-          // isTop,
-          isPosition,
-        } = spec;
-
-        const hurtAnimation = (avatar.hurtAnimation && hurtAnimations[avatar.hurtAnimation]);
-        _handleDefault(spec);
-        const hurtTimeS = avatar.hurtTime / 1000;
-        const t2 = Math.min(hurtTimeS, hurtAnimation.duration);
-        // console.log('hurtAnimation', avatar.hurtAnimation, avatar.hurtTime, hurtAnimation.duration, hurtTimeS, t2);
-        if (!isPosition) {
-          if (hurtAnimation) {
-            const src2 = hurtAnimation.interpolants[k];
-            const v2 = src2.evaluate(t2);
-
-            const idleAnimation = _getIdleAnimation('walk');
-            const t3 = 0;
-            const src3 = idleAnimation.interpolants[k];
-            const v3 = src3.evaluate(t3);
-
-            dst
-              .premultiply(localQuaternion2.fromArray(v3).invert())
-              .premultiply(localQuaternion2.fromArray(v2));
-          }
-        } else {
-          const src2 = hurtAnimation.interpolants[k];
-          const v2 = src2.evaluate(t2);
-
-          const idleAnimation = _getIdleAnimation('walk');
-          const t3 = 0;
-          const src3 = idleAnimation.interpolants[k];
-          const v3 = src3.evaluate(t3);
-
-          dst
-            .sub(localVector2.fromArray(v3))
-            .add(localVector2.fromArray(v2));
-        }
-      };
-    } else if (avatar.aimAnimation) {
-      return spec => {
-        const {
-          animationTrackName: k,
-          dst,
-          // isTop,
-          isPosition,
-        } = spec;
-
-        const aimAnimation = (avatar.aimAnimation && aimAnimations[avatar.aimAnimation]);
-        _handleDefault(spec);
-        const t2 = (avatar.aimTime / aimMaxTime) % aimAnimation.duration;
-        if (!isPosition) {
-          if (aimAnimation) {
-            const src2 = aimAnimation.interpolants[k];
-            const v2 = src2.evaluate(t2);
-
-            const idleAnimation = _getIdleAnimation('walk');
-            const t3 = 0;
-            const src3 = idleAnimation.interpolants[k];
-            const v3 = src3.evaluate(t3);
-
-            dst
-              .premultiply(localQuaternion2.fromArray(v3).invert())
-              .premultiply(localQuaternion2.fromArray(v2));
-          }
-        } else {
-          const src2 = aimAnimation.interpolants[k];
-          const v2 = src2.evaluate(t2);
-
-          const idleAnimation = _getIdleAnimation('walk');
-          const t3 = 0;
-          const src3 = idleAnimation.interpolants[k];
-          const v3 = src3.evaluate(t3);
-
-          dst
-            .sub(localVector2.fromArray(v3))
-            .add(localVector2.fromArray(v2));
-        }
-      };
-    } else if (avatar.unuseAnimation && avatar.unuseTime >= 0) {
-      return spec => {
-        const {
-          animationTrackName: k,
-          dst,
-          lerpFn,
-          // isTop,
-          isPosition,
-        } = spec;
-
-        _handleDefault(spec);
-
-        const unuseTimeS = avatar.unuseTime / 1000;
-        const unuseAnimationName = avatar.unuseAnimation;
-        const unuseAnimation = useAnimations[unuseAnimationName];
-        const t2 = Math.min(unuseTimeS, unuseAnimation.duration);
-        const f = Math.min(Math.max(unuseTimeS / unuseAnimation.duration, 0), 1);
-        const f2 = Math.pow(1 - f, 2);
-
-        if (!isPosition) {
-          const src2 = unuseAnimation.interpolants[k];
-          const v2 = src2.evaluate(t2);
+  if (avatar.jumpStart) {
+    physx.physxWorker.play(avatar.jumpMotion);
+    physx.physxWorker.crossFadeUnitary(avatar.actionsNodeUnitary, 0.2, avatar.jumpMotion);
+  }
 
   if (avatar.activateStart) {
     physx.physxWorker.play(avatar.activateMotion);
@@ -937,12 +822,7 @@ export const _createAnimation = avatar => {
 
   // sword
   if (avatar.useStart) {
-    let useAnimationName;
-    if (avatar.dashattacking) {
-      useAnimationName = 'dashAttack'
-    } else {
-      useAnimationName = avatar.useAnimation;
-    }
+    const useAnimationName = avatar.useAnimation;
     physx.physxWorker.play(avatar.useMotiono[useAnimationName]);
     physx.physxWorker.crossFadeUnitary(avatar.actionsNodeUnitary, 0.2, avatar.useMotiono[useAnimationName]);
   }
@@ -950,8 +830,8 @@ export const _createAnimation = avatar => {
   // silsword
   if (avatar.useComboStart) {
     let useAnimationName;
-    if (avatar.dashattacking) {
-      useAnimationName = 'dashAttack'
+    if (avatar.dashAttacking) {
+      useAnimationName = 'dashAttack';
     } else {
       useAnimationName = avatar.useAnimationCombo[avatar.useAnimationIndex];
     }
@@ -959,69 +839,36 @@ export const _createAnimation = avatar => {
     physx.physxWorker.crossFadeUnitary(avatar.actionsNodeUnitary, 0.2, avatar.useMotiono[useAnimationName]);
   }
 
-        dst.fromArray(v2);
-      };
-    }
-    return _handleDefault;
-  };
-  const applyFn = _getApplyFn();
-  const _blendFly = spec => {
-    const {
-      animationTrackName: k,
-      dst,
-      // isTop,
-      lerpFn,
-    } = spec;
+  // bow
+  if (avatar.useEnvelopeStart) {
+    console.log('useEnvelopeStart');
+    physx.physxWorker.play(avatar.useMotiono.bowDraw);
+    physx.physxWorker.setFactor(avatar.bowDrawLooseNodoeTwo, 0);
+    physx.physxWorker.setFactor(avatar.bowIdle8DDrawLooseNodeOverwrite, 1);
+    physx.physxWorker.crossFadeTwo(avatar.idle8DWalkRun_BowIdle8DDrawLooseNodeTwo, 0.2, 1);
+  }
 
-    if (avatar.flyState || (avatar.flyTime >= 0 && avatar.flyTime < 1000)) {
-      const t2 = avatar.flyTime / 1000;
-      const f = avatar.flyState ? Math.min(cubicBezier(t2), 1) : (1 - Math.min(cubicBezier(t2), 1));
-      const src2 = floatAnimation.interpolants[k];
-      const v2 = src2.evaluate(t2 % floatAnimation.duration);
+  // sit
+  if (avatar.sitStart) {
+    physx.physxWorker.play(avatar.sitMotiono[avatar.sitAnimation || defaultSitAnimation]);
+    physx.physxWorker.crossFadeUnitary(avatar.actionsNodeUnitary, 0.2, avatar.sitMotiono[avatar.sitAnimation || defaultSitAnimation]);
+  }
 
-      lerpFn
-        .call(
-          dst,
-          localQuaternion.fromArray(v2),
-          f,
-        );
-    }
-  };
+  // emote
+  if (avatar.emoteStart) {
+    physx.physxWorker.play(avatar.emoteMotiono[avatar.emoteAnimation || defaultEmoteAnimation]);
+    physx.physxWorker.crossFadeUnitary(avatar.actionsNodeUnitary, 0.2, avatar.emoteMotiono[avatar.emoteAnimation || defaultEmoteAnimation]);
+  }
 
-  const _blendActivateAction = spec => {
-    const {
-      animationTrackName: k,
-      dst,
-      // isTop,
-      lerpFn,
-    } = spec;
+  // dance
+  if (avatar.danceStart) {
+    physx.physxWorker.crossFadeUnitary(avatar.actionsNodeUnitary, 0.2, avatar.danceMotiono[avatar.danceAnimation || defaultDanceAnimation]);
+  }
 
-    if (avatar.activateTime > 0) {
-      const localPlayer = metaversefile.useLocalPlayer();
-
-      let defaultAnimation = 'grab_forward';
-
-      const activateAction = localPlayer.getAction('activate');
-      if (activateAction.animationName) {
-        defaultAnimation = activateAction.animationName;
-      }
-
-      const activateAnimation = activateAnimations[defaultAnimation].animation;
-      const src2 = activateAnimation.interpolants[k];
-      const t2 = ((avatar.activateTime / 1000) * activateAnimations[defaultAnimation].speedFactor) % activateAnimation.duration;
-      const v2 = src2.evaluate(t2);
-
-      const f = avatar.activateTime > 0 ? Math.min(cubicBezier(t2), 1) : (1 - Math.min(cubicBezier(t2), 1));
-
-      lerpFn
-        .call(
-          dst,
-          localQuaternion.fromArray(v2),
-          f,
-        );
-    }
-  };
-
+  // do update
+  const values = window.physx.physxWorker.updateAnimationMixer(avatar.mixer, timeS);
+  // debugger
+  let index = 0;
   for (const spec of avatar.animationMappings) {
     const {
       // animationTrackName: k,
@@ -1030,22 +877,57 @@ export const _createAnimation = avatar => {
       isPosition,
     } = spec;
 
-    applyFn(spec);
-    _blendFly(spec);
-    _blendActivateAction(spec);
+    const result = values[index];
 
-    // ignore all animation position except y
-    if (isPosition) {
-      if (!avatar.jumpState) {
-        // animations position is height-relative
-        dst.y *= avatar.height; // XXX avatar could be made perfect by measuring from foot to hips instead
-      } else {
-        // force height in the jump case to overide the animation
-        dst.y = avatar.height * 0.55;
-      }
+    if (isPosition) { // _clearXZ
+      result[0] = 0;
+      result[2] = 0;
     }
-  if (lastF >= 1) {
-    game.handleAnimationEnd();
+
+    dst.fromArray(result);
+
+    if (isPosition) {
+      dst.y *= avatar.height; // XXX avatar could be made perfect by measuring from foot to hips instead
+    }
+
+    index++;
+  }
+
+  // finished event
+  const finishedFlag = values[53];
+  // console.log(finishedFlag)
+  if (finishedFlag) {
+    // debugger
+    const motion = values[54];
+    // this.dispatchEvent({
+    //   type: 'finished',
+    //   motion,
+    // });
+    // debugger;
+    // console.log('finished');
+
+    const handleAnimationEnd = (motion, trigger) => {
+      if ([
+        avatar.useMotiono.drink,
+        avatar.useMotiono.combo,
+        avatar.useMotiono.swordSideSlash,
+        avatar.useMotiono.swordSideSlashStep,
+        avatar.useMotiono.swordTopDownSlash,
+        avatar.useMotiono.swordTopDownSlashStep,
+        avatar.useMotiono.dashAttack,
+      ].includes(motion)) {
+        game.handleAnimationEnd();
+      }
+    };
+
+    handleAnimationEnd(motion, 'finished');
+
+    if (avatar.useEnvelopeState && motion === avatar.useMotiono.bowDraw) {
+      physx.physxWorker.crossFadeTwo(avatar.bowIdle8DDrawLooseNodeOverwrite, 0.2, 0);
+    }
+    if (motion === avatar.useMotiono.bowLoose) {
+      physx.physxWorker.crossFadeTwo(avatar.idle8DWalkRun_BowIdle8DDrawLooseNodeTwo, 0.2, 0);
+    }
   }
 };
 
