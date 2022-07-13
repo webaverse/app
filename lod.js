@@ -1,8 +1,10 @@
+import { isCommunityResourcable } from '@ethersproject/providers';
 import * as THREE from 'three';
-import {scene, camera} from './renderer.js';
+// import {scene, camera} from './renderer.js';
 import {defaultChunkSize} from './constants.js';
 import {abortError} from './lock-manager.js';
 import {makePromise} from './util.js';
+// import dcWorkerManager from './dc-worker-manager.js';
 
 const localVector = new THREE.Vector3();
 const localVector2 = new THREE.Vector3();
@@ -14,16 +16,18 @@ const localVector3 = new THREE.Vector3();
 
 // const onesLodsArray = new Array(8).fill(1);
 
-const nop = () => {};
+let numUpdates = 0;
+
+// const nop = () => {};
 
 class OctreeNode extends EventTarget {
-  constructor(min, lod, isLeaf) {
+  constructor(min = new THREE.Vector3(), lod = 1, isLeaf = true, lodArray = new Int32Array(8).fill(-1)) {
     super();
     
     this.min = min;
     this.lod = lod;
     this.isLeaf = isLeaf;
-    this.lodArray = Array(8).fill(-1);
+    this.lodArray = lodArray;
 
     this.children = Array(8).fill(null);
   }
@@ -275,13 +279,13 @@ const constructOctreeForLeaf = (position, lod1Range, maxLod) => {
   }; */
 };
 class Task extends EventTarget {
-  constructor(maxLodNode) {
+  constructor(id, maxLodNode, newNodes = [], oldNodes = []) {
     super();
 
+    this.id = id;
     this.maxLodNode = maxLodNode;
-    
-    this.newNodes = [];
-    this.oldNodes = [];
+    this.newNodes = newNodes;
+    this.oldNodes = oldNodes;
 
     this.abortController = new AbortController();
     this.signal = this.abortController.signal;
@@ -315,7 +319,7 @@ class Task extends EventTarget {
     return p;
   }
 }
-const diffLeafNodes = (newLeafNodes, oldLeafNodes) => {
+/* const diffLeafNodes = (newLeafNodes, oldLeafNodes) => {
   // map from min lod hash to task containing new nodes and old nodes
   const taskMap = new Map();
 
@@ -353,22 +357,6 @@ const diffLeafNodes = (newLeafNodes, oldLeafNodes) => {
 
   let tasks = Array.from(taskMap.values());
   return tasks;
-  /* const newTasks = [];
-  const keepTasks = [];
-  for (const task of tasks) {
-    const isNopTask = task.newNodes.length === task.oldNodes.length && task.newNodes.every(newNode => {
-      return task.oldNodes.some(oldNode => oldNode.equalsNode(newNode));
-    });
-    if (isNopTask) {
-      keepTasks.push(task);
-    } else {
-      newTasks.push(task);
-    }
-  }
-  return {
-    newTasks,
-    keepTasks,
-  }; */
 };
 // sort tasks by distance to world position of the central max lod node
 const sortTasks = (tasks, worldPosition) => {
@@ -420,7 +408,7 @@ const updateChunks = (oldChunks, tasks) => {
     chunks: newChunks,
     extraTasks,
   }
-};
+}; */
 
 /*
 note: the nunber of lods at each level can be computed with this function:
@@ -490,15 +478,20 @@ export class LodChunkTracker extends EventTarget {
     lods = 1,
     minLodRange = 2,
     trackY = false,
+    dcWorkerManager = null,
     debug = false,
   } = {}) {
     super();
+
+    console.log('got lod chunk tracker', new Error().stack);
 
     this.chunkSize = chunkSize;
     this.lods = lods;
     this.minLodRange = minLodRange;
     this.trackY = trackY;
+    this.dcWorkerManager = dcWorkerManager;
 
+    this.dcTracker = null;
     this.chunks = [];
     this.lastUpdateCoord = new THREE.Vector3(NaN, NaN, NaN);
 
@@ -526,7 +519,7 @@ export class LodChunkTracker extends EventTarget {
 
       {
         const localVector = new THREE.Vector3();
-        const localVector2 = new THREE.Vector3();
+        // const localVector2 = new THREE.Vector3();
         const localVector3 = new THREE.Vector3();
         const localQuaternion = new THREE.Quaternion();
         const localMatrix = new THREE.Matrix4();
@@ -567,6 +560,9 @@ export class LodChunkTracker extends EventTarget {
           _flushChunks();
         });
       }
+
+      this.isUpdating = false;
+      this.queuedPosition = null;
     }
 
     this.lastOctreeLeafNodes = [];
@@ -588,7 +584,7 @@ export class LodChunkTracker extends EventTarget {
       fn(e);
     }, {once: true});
   }
-  updateCoord(currentCoord) {
+  /* updateCoord(currentCoord) {
     const octreeLeafNodes = constructOctreeForLeaf(currentCoord, this.minLodRange, 2 ** (this.lods - 1));
 
     let tasks = diffLeafNodes(
@@ -630,13 +626,13 @@ export class LodChunkTracker extends EventTarget {
     this.lastOctreeLeafNodes = octreeLeafNodes;
 
     this.dispatchEvent(new MessageEvent('update'));
-  }
+  } */
   async waitForLoad() {
     // console.log('wait for live tasks 1', this.liveTasks.length);
     await Promise.all(this.liveTasks.map(task => task.waitForLoad()));
     // console.log('wait for live tasks 2', this.liveTasks.length);
   }
-  update(position) {
+  /* update(position) {
     const currentCoord = this.#getCurrentCoord(position, localVector).clone();
 
     // if we moved across a chunk boundary, update needed chunks
@@ -644,8 +640,131 @@ export class LodChunkTracker extends EventTarget {
       this.updateCoord(currentCoord);
       this.lastUpdateCoord.copy(currentCoord);
     }
+  } */
+  update(position) {
+    let currentCoord = this.#getCurrentCoord(position, localVector);
+    if (!this.lastUpdateCoord.equals(currentCoord)) {
+      this.lastUpdateCoord.copy(currentCoord);
+
+      // console.log('position update', currentCoord.toArray().join(','));
+
+      (async () => {
+        if (!this.isUpdating) {
+          this.isUpdating = true;
+    
+          /* async createTracker(lod, minLodRange, trackY, {signal} = {}) {
+            const worker = this.getNextWorker();
+            const result = await worker.request('createTracker', {
+              instance: this.instance,
+              lod,
+              minLodRange,
+              trackY,
+            }, {signal});
+            return result;
+          }
+          async destroyTracker(tracker, {signal} = {}) {
+            const worker = this.getNextWorker();
+            const result = await worker.request('destroyTracker', {
+              instance: this.instance,
+              tracker,
+            }, {signal});
+            return result;
+          }
+          async trackerUpdate(tracker, position, {signal} = {}) {
+            const worker = this.getNextWorker();
+            const result = await worker.request('trackerUpdate', {
+              instance: this.instance,
+              tracker,
+              position: position.toArray(),
+            }, {signal});
+            return result;
+          } */
+  
+          if (!this.dcTracker) {
+            // console.log('create tracker 1', /*this.dcWorkerManager.createTracker, */this.lods, this.minLodRange, this.trackY);
+            this.dcTracker = await this.dcWorkerManager.createTracker(this.lods, this.minLodRange, this.trackY);
+          }
+  
+          // console.log('tracker update 1', /*this.dcWorkerManager.trackerUpdate, */this.dcTracker, position);
+          const {
+            currentCoord,
+            oldTasks,
+            newTasks,
+          } = await this.dcWorkerManager.trackerUpdate(this.dcTracker, position);
+
+          console.log('update number', numUpdates++);
+
+          const _parseNode = (nodeSpec) => {
+            const {min, isLeaf, lodArray} = nodeSpec;
+            const lod = nodeSpec.size;
+            return new OctreeNode(
+              new THREE.Vector3().fromArray(min),
+              lod,
+              isLeaf,
+              lodArray
+            );
+          };
+          const _parseTask = (taskSpec) => {
+            const {id} = taskSpec;
+            const newNodes = taskSpec.newNodes.map(newNode => _parseNode(newNode));
+            const oldNodes = taskSpec.oldNodes.map(oldNode => _parseNode(oldNode));
+            return new Task(
+              id,
+              _parseNode(taskSpec),
+              newNodes,
+              oldNodes,
+            );
+          };
+          const _update = () => {
+            for (let i = 0; i < oldTasks.length; i++) {
+              const oldTaskSpec = oldTasks[i];
+              const oldTask = _parseTask(oldTaskSpec);
+              const oldTaskMatch = this.liveTasks.find(liveTask => liveTask.id === oldTask.id);
+              console.log('remove task', oldTask.id, !!oldTaskMatch);
+              if (!oldTaskMatch) {
+                debugger;
+              }
+              oldTaskMatch.cancel();
+              this.liveTasks.splice(this.liveTasks.indexOf(oldTaskMatch), 1);
+            }
+        
+            for (const taskSpec of newTasks) {
+              const task = _parseTask(taskSpec);
+              this.dispatchEvent(new MessageEvent('chunkrelod', {
+                data: {
+                  task,
+                },
+              }));
+              this.liveTasks.push(task);
+              console.log('add task', task.id);
+            }
+        
+            this.dispatchEvent(new MessageEvent('update'));
+          };
+          _update();
+  
+          // console.log('got tasks', {oldTasks, newTasks});
+  
+          this.isUpdating = false;
+  
+          {
+            if (this.queuedPosition) {
+              const {queuedPosition} = this;
+              this.queuedPosition = null;
+  
+              this.update(queuedPosition);
+            }
+          }
+        } else {
+          this.queuedPosition = position.clone();
+        }
+        // console.log('update');
+      })();
+    }
   }
   destroy() {
+    throw new Error('not implemented');
+
     for (const chunk of this.chunks) {
       const task = new Task(chunk);
       task.oldNodes.push(chunk);

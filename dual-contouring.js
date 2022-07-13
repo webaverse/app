@@ -92,25 +92,76 @@ uint8_t *TrackerUpdate::getBuffer() const {
 const _parseTrackerUpdate = bufferAddress => {
   const dataView = new DataView(Module.HEAPU8.buffer, bufferAddress);
   let index = 0;
+  const currentCoord = new Int32Array(Module.HEAPU8.buffer, bufferAddress + index, 3).slice();
+  index += Int32Array.BYTES_PER_ELEMENT * 3;
   const numOldTasks = dataView.getUint32(index, true);
   index += Uint32Array.BYTES_PER_ELEMENT;
   const numNewTasks = dataView.getUint32(index, true);
   index += Uint32Array.BYTES_PER_ELEMENT;
 
   const _parseTrackerTask = () => {
+    const id = dataView.getInt32(index, true);
+    index += Int32Array.BYTES_PER_ELEMENT;
     const min = new Int32Array(Module.HEAPU8.buffer, bufferAddress + index, 3).slice();
     index += Int32Array.BYTES_PER_ELEMENT * 3;
     const size = dataView.getInt32(index, true);
     index += Int32Array.BYTES_PER_ELEMENT;
+    console.log('got id', {id, min: min.join(','), size});
     const isLeaf = !!dataView.getInt32(index, true);
     index += Int32Array.BYTES_PER_ELEMENT;
     const lodArray = new Int32Array(Module.HEAPU8.buffer, bufferAddress + index, 8).slice();
     index += Int32Array.BYTES_PER_ELEMENT * 8;
+    
+    const numOldNodes = dataView.getUint32(index, true);
+    index += Uint32Array.BYTES_PER_ELEMENT;
+    const oldNodes = Array(numOldNodes);
+    for (let i = 0; i < numOldNodes; i++) {
+      const min = new Int32Array(Module.HEAPU8.buffer, bufferAddress + index, 3).slice();
+      index += Int32Array.BYTES_PER_ELEMENT * 3;
+      const size = dataView.getInt32(index, true);
+      index += Int32Array.BYTES_PER_ELEMENT;
+      const isLeaf = !!dataView.getInt32(index, true);
+      index += Int32Array.BYTES_PER_ELEMENT;
+      const lodArray = new Int32Array(Module.HEAPU8.buffer, bufferAddress + index, 8).slice();
+      index += Int32Array.BYTES_PER_ELEMENT * 8;
+
+      oldNodes[i] = {
+        min,
+        size,
+        isLeaf,
+        lodArray,
+      };
+    }
+
+    const numNewNodes = dataView.getUint32(index, true);
+    index += Uint32Array.BYTES_PER_ELEMENT;
+    const newNodes = Array(numNewNodes);
+    for (let i = 0; i < numNewNodes; i++) {
+      const min = new Int32Array(Module.HEAPU8.buffer, bufferAddress + index, 3).slice();
+      index += Int32Array.BYTES_PER_ELEMENT * 3;
+      const size = dataView.getInt32(index, true);
+      index += Int32Array.BYTES_PER_ELEMENT;
+      const isLeaf = !!dataView.getInt32(index, true);
+      index += Int32Array.BYTES_PER_ELEMENT;
+      const lodArray = new Int32Array(Module.HEAPU8.buffer, bufferAddress + index, 8).slice();
+      index += Int32Array.BYTES_PER_ELEMENT * 8;
+
+      newNodes[i] = {
+        min,
+        size,
+        isLeaf,
+        lodArray,
+      };
+    }
+
     return {
+      id,
       min,
       size,
       isLeaf,
       lodArray,
+      oldNodes,
+      newNodes,
     };
   };
   const oldTasks = [];
@@ -124,6 +175,7 @@ const _parseTrackerUpdate = bufferAddress => {
     newTasks.push(newTask);
   }
   return {
+    currentCoord,
     oldTasks,
     newTasks
   };
