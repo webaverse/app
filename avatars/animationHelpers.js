@@ -1229,29 +1229,30 @@ export const _applyAnimation = (avatar, now, moveFactors) => {
 
     if (avatar.activateTime > 0) {
       const localPlayer = metaversefile.useLocalPlayer();
-
-      let defaultAnimation = 'grab_forward';
-
       const activateAction = localPlayer.getAction('activate');
-      // activateAction can be null on remote player on the last frame the action is removed
-      // so we null check it before checkout for the animation name
-      if (activateAction && activateAction.animationName) {
-        defaultAnimation = activateAction.animationName;
+
+      // activateAction can be null on remote player on the last frame of a use action since it is removed first
+      if (activateAction) {
+        let defaultAnimation = 'grab_forward';
+
+        if (activateAction.animationName) {
+          defaultAnimation = activateAction.animationName;
+        }
+
+        const activateAnimation = activateAnimations[defaultAnimation].animation;
+        const src2 = activateAnimation.interpolants[k];
+        const t2 = ((avatar.activateTime / 1000) * activateAnimations[defaultAnimation].speedFactor) % activateAnimation.duration;
+        const v2 = src2.evaluate(t2);
+
+        const f = avatar.activateTime > 0 ? Math.min(cubicBezier(t2), 1) : (1 - Math.min(cubicBezier(t2), 1));
+
+        lerpFn
+          .call(
+            dst,
+            localQuaternion.fromArray(v2),
+            f,
+          );
       }
-
-      const activateAnimation = activateAnimations[defaultAnimation].animation;
-      const src2 = activateAnimation.interpolants[k];
-      const t2 = ((avatar.activateTime / 1000) * activateAnimations[defaultAnimation].speedFactor) % activateAnimation.duration;
-      const v2 = src2.evaluate(t2);
-
-      const f = avatar.activateTime > 0 ? Math.min(cubicBezier(t2), 1) : (1 - Math.min(cubicBezier(t2), 1));
-
-      lerpFn
-        .call(
-          dst,
-          localQuaternion.fromArray(v2),
-          f,
-        );
     }
   };
 
