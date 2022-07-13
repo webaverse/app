@@ -353,20 +353,22 @@ export const Equipment = () => {
         }
 
         async function setupInventory() {
-        const tokens = await getTokens();
-        const inventoryItems = tokens.map((token, i) => {
-            return {
-            name: token.name,
-            start_url: token.url ?? token.animation_url ?? token.collection.banner_image_url,
-            level: token.level ?? 1,
-            };
-        });
-        setInventoryObject(inventoryItems);
+            const tokens = await getTokens();
+            const inventoryItems = tokens.map((token, i) => {
+                return {
+                    name: token.name ?? "",
+                    start_url: token.url ?? "",
+                    // start_url: token.url ?? token.animation_url ?? token.collection.banner_image_url ?? "",
+                    level: token.level ?? 1,
+                };
+            });
+            console.log("invnetory", inventoryItems)
+            setInventoryObject(inventoryItems);
         }
 
         setupInventory().catch((error)=> {
-        console.warn('unable to retrieve inventory')
-        setInventoryObject([]);
+            console.warn('unable to retrieve inventory')
+            setInventoryObject([]);
         });
     }
 
@@ -418,7 +420,6 @@ export const Equipment = () => {
     };
 
     const mintClaim = (e) => {
-        console.log("mintClaim", e)
         mintfromVoucher(e);
     }
     const selectClassName = styles[`select-${selectedMenuIndex}`];
