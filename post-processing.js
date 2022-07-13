@@ -149,6 +149,7 @@ function makeSsrPass(ssr) {
       selects: []
   });
   window.ssrPass = ssrPass;
+  window.SSRPass = SSRPass;
   
   
   return ssrPass;
