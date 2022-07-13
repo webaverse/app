@@ -888,7 +888,7 @@ export const _updateAnimation = avatar => {
   const finishedFlag = values[53];
   // console.log(finishedFlag)
   if (finishedFlag) {
-    debugger
+    // debugger
     const motion = values[54];
     // this.dispatchEvent({
     //   type: 'finished',

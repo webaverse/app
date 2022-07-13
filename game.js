@@ -615,7 +615,6 @@ const _gameUpdate = (timestamp, timeDiff) => {
     } /* else {
 
     } */
-    ioManager.setMovementEnabled(!pickUpAction);
   }
   _handlePickUp();
 
@@ -1031,6 +1030,13 @@ const _gameUpdate = (timestamp, timeDiff) => {
   //   isMouseUp = false;
   // };
   // _updateUse();
+  
+  const useAction = localPlayer.getAction('use');
+  const isUsingSwords = useAction?.animation || useAction?.animationCombo?.length > 0;
+  ioManager.setMovementEnabled(!(
+    localPlayer.hasAction('pickUp') ||
+    isUsingSwords
+  ));
 };
 const _pushAppUpdates = () => {
   world.appManager.pushAppUpdates();
