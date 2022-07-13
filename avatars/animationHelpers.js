@@ -822,15 +822,24 @@ export const _updateAnimation = avatar => {
 
   // sword
   if (avatar.useStart) {
-    const useAnimationName = avatar.useAnimation;
+    let useAnimationName;
+    if (avatar.dashattacking) {
+      useAnimationName = 'dashAttack'
+    } else {
+      useAnimationName = avatar.useAnimation;
+    }
     physx.physxWorker.play(avatar.useMotiono[useAnimationName]);
     physx.physxWorker.crossFadeUnitary(avatar.actionsNodeUnitary, 0.2, avatar.useMotiono[useAnimationName]);
   }
 
   // silsword
   if (avatar.useComboStart) {
-    // const useAnimationName = avatar.useAnimationCombo[avatar.useAnimationIndex];
-    const useAnimationName = 'dashAttack';
+    let useAnimationName;
+    if (avatar.dashattacking) {
+      useAnimationName = 'dashAttack'
+    } else {
+      useAnimationName = avatar.useAnimationCombo[avatar.useAnimationIndex];
+    }
     physx.physxWorker.play(avatar.useMotiono[useAnimationName]);
     physx.physxWorker.crossFadeUnitary(avatar.actionsNodeUnitary, 0.2, avatar.useMotiono[useAnimationName]);
   }

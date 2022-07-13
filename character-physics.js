@@ -7,7 +7,7 @@ import * as THREE from 'three';
 import physicsManager from './physics-manager.js';
 // import ioManager from './io-manager.js';
 import {getVelocityDampingFactor} from './util.js';
-import {groundFriction, flyFriction, airFriction} from './constants.js';
+import {groundFriction, flyFriction, airFriction, dashAttackFriction} from './constants.js';
 import {applyVelocity} from './util.js';
 import {getRenderer, camera} from './renderer.js';
 // import physx from './physx.js';
@@ -258,6 +258,10 @@ class CharacterPhysics {
     if (this.player.hasAction('fly')) {
       const factor = getVelocityDampingFactor(flyFriction, timeDiff);
       velocity.multiplyScalar(factor);
+    } else if (this.player.hasAction('dashAttack')) {
+      const factor = getVelocityDampingFactor(dashAttackFriction, timeDiff);
+      velocity.x *= factor;
+      velocity.z *= factor;
     } else {
       const factor = getVelocityDampingFactor(groundFriction, timeDiff);
       velocity.x *= factor;
