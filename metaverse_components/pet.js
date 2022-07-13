@@ -111,7 +111,7 @@ export default (app, component) => {
           rootBone.updateMatrixWorld();
         }
         if (petMixer) { // animated pet
-          if (petSpec && player) { // activated pet
+          if (petSpec) { // activated pet
             const speed = 0.0014;
 
             const distance = _getAppDistance();
@@ -172,8 +172,9 @@ export default (app, component) => {
     _updateAnimation();
     
     const _updateLook = () => {
+      if (!player) return; // only look at player if following them
       const lookComponent = app.getComponent('look');
-      if (lookComponent && app.glb && player) {
+      if (lookComponent && app.glb) {
         let skinnedMesh = null;
         app.glb.scene.traverse(o => {
           if (skinnedMesh === null && o.isSkinnedMesh) {
@@ -182,7 +183,7 @@ export default (app, component) => {
         });
         if (skinnedMesh) {
           const bone = skinnedMesh.skeleton.bones.find(bone => bone.name === lookComponent.rootBone);
-          if (bone && player) {
+          if (bone) {
             rootBone = bone;
             if (!bone.originalQuaternion) {
               bone.originalQuaternion = bone.quaternion.clone();
