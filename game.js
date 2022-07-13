@@ -23,7 +23,10 @@ import {getLocalPlayer, setLocalPlayer} from './players.js';
 import npcManager from './npc-manager.js';
 import raycastManager from './raycast-manager.js';
 import zTargeting from './z-targeting.js';
+window.zTargeting = zTargeting;
 import Avatar from './avatars/avatars.js';
+
+// const {contractNames} = metaversefileConstants;
 
 const localVector = new THREE.Vector3();
 const localVector2 = new THREE.Vector3();
@@ -388,11 +391,11 @@ const _getNextUseIndex = animationCombo => {
   }
 }
 const _startUse = () => {
+  const localPlayer = getLocalPlayer();
   const wearApp = loadoutManager.getSelectedApp();
-  if (wearApp) {
+  if (wearApp &&  !localPlayer.hasAction('jump') && !localPlayer.hasAction('fly') && !localPlayer.hasAction('narutoRun')) { // will add jump/fly/narutoRun specific useAnimations afterwards.
     const useComponent = wearApp.getComponent('use');
     if (useComponent) {
-      const localPlayer = getLocalPlayer();
       const useAction = localPlayer.getAction('use');
       if (!useAction) {
         const {instanceId} = wearApp;
@@ -416,6 +419,17 @@ const _startUse = () => {
         localPlayer.addAction(newUseAction);
 
         wearApp.use();
+        
+        if (
+          animationCombo?.length > 0 &&
+          localPlayer.avatar?.moveFactors?.walkRunFactor >= 1
+        ) {
+          localPlayer.addAction({type: 'dashAttack'});
+          localVector.copy(cameraManager.lastNonzeroDirectionVectorRotated).setY(0)
+            .normalize()
+            .multiplyScalar(10);
+          localPlayer.characterPhysics.applyWasd(localVector);
+        }
       }
     }
   }
@@ -1721,6 +1735,8 @@ class GameManager extends EventTarget {
     } else {
       lastUseIndex = 0;
     }
+
+    localPlayer.removeAction('dashAttack');
   }
   update = _gameUpdate;
   pushAppUpdates = _pushAppUpdates;
