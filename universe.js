@@ -43,7 +43,7 @@ class Universe extends EventTarget {
       // world.clear();
 
       const promises = [];
-      const {src, room} = worldSpec;
+      let {src, room} = worldSpec;
       if (!room) {
         const state = new Z.Doc();
         world.connectState(state);
@@ -151,8 +151,7 @@ class Universe extends EventTarget {
         const roomUrl = this.getWorldsHost() + room;
         const res = await fetch(roomUrl);
         const data = await res.json();
-        if (data && data.apps) return {count: data.apps.length}
-        return {count: 0}
+        return {count: data.apps ? data.apps.length : 0, detail: data.detail}
       }
     } catch (error) {
       console.error(error)

@@ -148,11 +148,14 @@ function makeId(length) {
   const initialRoomState = (() => {
     const s = fs.readFileSync('./scenes/street.scn', 'utf8');
     const j = JSON.parse(s);
-    const {objects} = j;
+    const {objects, detail} = j;
+    if (!detail) detail = {}
     
     const appsMapName = 'apps';
+    const detailMapName = 'detail';
     const result = {
       [appsMapName]: [],
+      [detailMapName]: detail,
     };
     for (const object of objects) {
       let {start_url, type, content, position = [0, 0, 0], quaternion = [0, 0, 0, 1], scale = [1, 1, 1]} = object;
@@ -172,9 +175,7 @@ function makeId(length) {
     }
     return result;
   })();
-  const initialRoomNames = [
-    'Erithor',
-  ];
+  const initialRoomNames = [];
   wsrtc.bindServer(wsServer, {
     initialRoomState,
     initialRoomNames,
