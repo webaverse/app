@@ -762,8 +762,8 @@ class PhysicsScene extends EventTarget {
       this.scene, id,
     )
   }
-  getTriggerEvent() {
-    const triggerEvents = physx.physxWorker.getTriggerEventPhysics(
+  getTriggerEvents() {
+    const triggerEvents = physx.physxWorker.getTriggerEventsPhysics(
       this.scene,
     )
     triggerEvents.forEach(triggerEvent => {

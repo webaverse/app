@@ -587,8 +587,8 @@ const physxWorker = (() => {
       physics, id,
     )
   }
-  w.getTriggerEventPhysics = (physics) => {
-    const triggerCount = Module._getTriggerEventPhysics(
+  w.getTriggerEventsPhysics = (physics) => {
+    const triggerCount = Module._getTriggerEventsPhysics(
       physics,
       scratchStack.ptr,
     )
