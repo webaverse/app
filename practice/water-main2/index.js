@@ -25,9 +25,12 @@ const {
 const sounds = useSound();
 const soundFiles = sounds.getSoundFiles();
 
+let reflectionSsrPass = null;
+
 const baseUrl = import.meta.url.replace(/(\/)[^\/\\]*$/, '$1');
 const textureLoader = new THREE.TextureLoader();
 const bubbleTexture1 = textureLoader.load(`${baseUrl}/textures/Bubble3.png`);
+const bubbleTexture2 = textureLoader.load(`${baseUrl}/textures/Bubble2.png`);
 const noiseCircleTexture = textureLoader.load(`${baseUrl}/textures/noiseCircle.png`);
 const noiseTexture = textureLoader.load(`${baseUrl}/textures/perlin-noise.jpg`);
 const noiseTexture2 = textureLoader.load(`${baseUrl}/textures/noise.jpg`);
@@ -59,6 +62,8 @@ const waterNormalTexture = textureLoader.load(`${baseUrl}/textures/water-normal.
 waterNormalTexture.wrapS = waterNormalTexture.wrapT = THREE.RepeatWrapping;
 const waterNoiseTexture = textureLoader.load(`${baseUrl}/textures/perlin-noise.jpg`);
 waterNoiseTexture.wrapS = waterNoiseTexture.wrapT = THREE.RepeatWrapping;
+const waterNoiseTexture2 = textureLoader.load(`${baseUrl}/textures/water.png`);
+waterNoiseTexture2.wrapS = waterNoiseTexture2.wrapT = THREE.RepeatWrapping;
 const flowmapTexture = textureLoader.load(`${baseUrl}/textures/flowmap.png`);
 flowmapTexture.wrapS = flowmapTexture.wrapT = THREE.RepeatWrapping;
 //
@@ -192,7 +197,7 @@ class WaterMesh extends BatchedMesh {
               value: new THREE.Vector3()
           },
           waterDerivativeHeightTexture: {
-              value: waterDerivativeHeightTexture
+              value: waterNoiseTexture2
           },
           waterNoiseTexture: {
               value: waterNoiseTexture
@@ -272,15 +277,16 @@ class WaterMesh extends BatchedMesh {
               return dh;
           }
   
-          float shineDamper = 150.;
-          float reflectivity = 0.08;
+          float shineDamper = 30.;
+          float reflectivity = 1.5;
           void main() {
              
               vec4 worldPosition = modelMatrix * vec4( vPos, 1.0 );
               vec3 sunToPlayer = normalize(sunPosition - playerPosition); 
               vec3 worldToEye = vec3(playerPosition.x + sunToPlayer.x * 100., playerPosition.y, playerPosition.z + sunToPlayer.z * 100.)-worldPosition.xyz;
               
-              vec3 eyeDirection = normalize( worldToEye );
+            //   vec3 eyeDirection = normalize( worldToEye );
+              vec3 eyeDirection = normalize(worldPosition.xyz - cameraPosition);
               vec2 uv = worldPosition.xz * 0.05;
 
               vec2 flowmap = texture2D(flowmapTexture, uv / 5.).rg * 2. - 1.;
@@ -291,23 +297,21 @@ class WaterMesh extends BatchedMesh {
               vec3 uvwA = FlowUVW(uv, flowmap, jump, uFlowOffset, uTiling, time, false);
               vec3 uvwB = FlowUVW(uv, flowmap, jump, uFlowOffset, uTiling, time, true);
 
-              vec3 dhA = UnpackDerivativeHeight(texture2D(waterDerivativeHeightTexture, uvwA.xy * 0.5)) * uvwA.z * 1.5;
-              vec3 dhB = UnpackDerivativeHeight(texture2D(waterDerivativeHeightTexture, uvwB.xy * 0.5)) * uvwB.z * 1.5;
+              vec3 dhA = UnpackDerivativeHeight(texture2D(waterDerivativeHeightTexture, uvwA.xy * 1.)) * uvwA.z * 20.5;
+              vec3 dhB = UnpackDerivativeHeight(texture2D(waterDerivativeHeightTexture, uvwB.xy * 1.)) * uvwB.z * 20.5;
               vec3 surfaceNormal = normalize(vec3(-(dhA.xy + dhB.xy), 1.));
 
-              vec3 fromSunVector = worldPosition.xyz - (sunPosition + playerPosition);
+              vec3 fromSunVector = worldPosition.xyz - (sunPosition );
               vec3 reflectedLight = reflect(normalize(fromSunVector), surfaceNormal);
               float specular = max(dot(reflectedLight, eyeDirection), 0.0);
               specular = pow(specular, shineDamper);
-              vec3 specularHighlight = vec3(0.6,0.6,0.6) * specular * reflectivity;
+              vec3 specularHighlight = vec3(0.9, 0.9, 0.9) * specular * reflectivity;
                  
               vec4 texA = texture2D(waterNoiseTexture, uvwA.xy) * uvwA.z;
               vec4 texB = texture2D(waterNoiseTexture, uvwB.xy) * uvwB.z;
 
-              
-
-              gl_FragColor = (texA + texB) * vec4(0.02, 0.1, 0.16, 0.97);
-              gl_FragColor.rgb /= 2.;
+              gl_FragColor = (texA + texB) * vec4(0.048, 0.24, 0.384, 0.97) + vec4(0.0282, 0.470, 0.431, 0.);
+              gl_FragColor.rgb /= 3.;
               gl_FragColor += vec4( specularHighlight, 0.0 );
               
             //   gl_FragColor = vec4(1.0, 0., 0., 0.6);
@@ -780,8 +784,7 @@ export default (e) => {
     let lastSwimmingHand = null;
 
     let alreadySetComposer = false;
-    let reflectionSsrPass = null;
-
+    
 
     const geometry = new THREE.PlaneGeometry( 5, 5 );
     const material = new THREE.MeshBasicMaterial( {map: textureLoader.load(`${baseUrl}/textures/test.jpg`), color: 0xffff00, side: THREE.DoubleSide} );
@@ -806,11 +809,12 @@ export default (e) => {
                         if(pass.constructor.name === 'SSRPass'){
                             pass._selects.push(generator.getMeshes()[0]);
                             pass.opacity = 0.1;
-                            pass.maxDistance = 10;
+                            // pass.maxDistance = 10;
                             // pass._fresnel = false;
                             // pass.blur = false;
-                            pass.player = localPlayer;
+                            // pass.player = localPlayer;
                             // pass.thickness = 0.5;
+                            // pass.output = 5;
                             reflectionSsrPass = pass;
                             
                         }
@@ -1198,7 +1202,7 @@ export default (e) => {
             
 
             void main() {
-                gl_FragColor = vec4(0.01, 0.05, 0.08, 0.9);
+                gl_FragColor = vec4(0.0141, 0.235, 0.2355, 0.7);
                 if(!contactWater || vPos.y > cameraWaterSurfacePos.y)
                     discard;
             ${THREE.ShaderChunk.logdepthbuf_fragment}
@@ -1223,7 +1227,7 @@ export default (e) => {
         mask.material.uniforms.contactWater.value = contactWater;
         if(camera.position.y + 0.03 < cameraWaterSurfacePos.y && contactWater){
             if(renderSettings.findRenderSettings(scene)){
-                renderSettings.findRenderSettings(scene).fog.density = 0.07;
+                renderSettings.findRenderSettings(scene).fog.density = 0.05;
             }
         }
         else{
@@ -1268,15 +1272,6 @@ export default (e) => {
         const positionsAttribute = new THREE.InstancedBufferAttribute(positions, 3);
         geometry2.setAttribute('positions', positionsAttribute);
 
-        const color = new Float32Array(particleCount * 3);
-        const colorAttribute = new THREE.InstancedBufferAttribute(color, 3);
-        geometry2.setAttribute('color', colorAttribute);
-        // const quaternions = new Float32Array(particleCount * 4);
-        // for (let i = 0; i < particleCount; i++) {
-        //   identityQuaternion.toArray(quaternions, i * 4);
-        // }
-        // const quaternionsAttribute = new THREE.InstancedBufferAttribute(quaternions, 4);
-        // geometry2.setAttribute('quaternions', quaternionsAttribute);
 
         const scales = new Float32Array(particleCount);
         const scalesAttribute = new THREE.InstancedBufferAttribute(scales, 1);
@@ -1421,7 +1416,6 @@ export default (e) => {
             const positionsAttribute = mesh.geometry.getAttribute('positions');
             const scalesAttribute = mesh.geometry.getAttribute('scales');
             const startTimeAttribute = mesh.geometry.getAttribute('startTime');
-            const colorAttribute = mesh.geometry.getAttribute('color');
             if(timestamp - lastEmmitTime > 100 && contactWater){
                 for (let i = 0; i < (Math.floor(currentSpeed * 10 + 1) * 5)  ; i++){
                     bubblePos.set(positionsAttribute.getX(i), positionsAttribute.getY(i), positionsAttribute.getZ(i));
@@ -1503,7 +1497,7 @@ export default (e) => {
             scalesAttribute.needsUpdate = true;
             startTimeAttribute.needsUpdate = true;
             offsetAttribute.needsUpdate = true;
-            colorAttribute.needsUpdate = true;
+            
             
             
             mesh.material.uniforms.uTime.value=timestamp/1000;
@@ -1998,7 +1992,7 @@ export default (e) => {
                 if ( broken < 0.03 ) discard;
                 
                 if(gl_FragColor.a > 0.){
-                    gl_FragColor = vec4(0.5, 0.5, 0.5, 1.0);
+                    gl_FragColor = vec4(0.7, 0.7, 0.7, 1.0);
                 }
                 
                 
@@ -3865,7 +3859,8 @@ export default (e) => {
       const particleCount = 50;
       let info = {
           velocity: [particleCount],
-          alreadyHaveRipple: [particleCount]
+          alreadyHaveRipple: [particleCount],
+          offset: [particleCount],
       }
       const acc = new THREE.Vector3(0, -0.002, 0);
 
@@ -4001,35 +3996,166 @@ export default (e) => {
           
       });
 
-  
-      //################################################################ droplet object #########################################################
-      let dropletMesh = null;
-      let dummy = new THREE.Object3D();
-      let matrix = new THREE.Matrix4();
-  
-      function addInstancedMesh() {
-          dropletMesh = new THREE.InstancedMesh(new THREE.PlaneGeometry(0.1, 0.1), new THREE.MeshBasicMaterial({map:splashTexture4, color: 0xffffff, transparent:true, opacity:1, alphaTest: 0.5}), particleCount);
-          dropletgroup.add(dropletMesh);
-          app.add(dropletgroup);
-          setInstancedMeshPositions(dropletMesh);
-      }
-      function setInstancedMeshPositions(mesh1) {
-          for (let i = 0; i < mesh1.count; i++) {
-              dropletMesh.getMatrixAt(i, matrix);
-              matrix.decompose(dummy.position, dummy.quaternion, dummy.scale);
-              dummy.position.y=-500;
-              info.velocity[i] = (new THREE.Vector3(
-                  (Math.random() - 0.5)*3.,
-                  Math.random() * 1.,
-                  (Math.random() - 0.5)*3.));
-              info.velocity[i].divideScalar(20);
-              info.alreadyHaveRipple[i] =false;
-              dummy.updateMatrix();
-              mesh1.setMatrixAt(i, dummy.matrix);
-          }
-          mesh1.instanceMatrix.needsUpdate = true;
-      }
-      addInstancedMesh();
+        //##################################################### get droplet geometry #####################################################
+        
+        const _getGeometry = geometry => {
+            //console.log(geometry)
+            const geometry2 = new THREE.BufferGeometry();
+            ['position', 'normal', 'uv'].forEach(k => {
+            geometry2.setAttribute(k, geometry.attributes[k]);
+            });
+            geometry2.setIndex(geometry.index);
+            
+            const positions = new Float32Array(particleCount * 3);
+            const positionsAttribute = new THREE.InstancedBufferAttribute(positions, 3);
+            geometry2.setAttribute('positions', positionsAttribute);
+
+            const color = new Float32Array(particleCount * 3);
+            const colorAttribute = new THREE.InstancedBufferAttribute(color, 3);
+            geometry2.setAttribute('color', colorAttribute);
+            // const quaternions = new Float32Array(particleCount * 4);
+            // for (let i = 0; i < particleCount; i++) {
+            //   identityQuaternion.toArray(quaternions, i * 4);
+            // }
+            // const quaternionsAttribute = new THREE.InstancedBufferAttribute(quaternions, 4);
+            // geometry2.setAttribute('quaternions', quaternionsAttribute);
+
+            const scales = new Float32Array(particleCount);
+            const scalesAttribute = new THREE.InstancedBufferAttribute(scales, 1);
+            geometry2.setAttribute('scales', scalesAttribute);
+
+            const opacityAttribute = new THREE.InstancedBufferAttribute(new Float32Array(particleCount), 1);
+            opacityAttribute.setUsage(THREE.DynamicDrawUsage);
+            geometry2.setAttribute('opacity', opacityAttribute);
+
+            const startTimeAttribute = new THREE.InstancedBufferAttribute(new Float32Array(particleCount), 1);
+            startTimeAttribute.setUsage(THREE.DynamicDrawUsage);
+            geometry2.setAttribute('startTime', startTimeAttribute);
+        
+            
+            const offset = new Float32Array(particleCount * 2);
+            const offsetAttribute = new THREE.InstancedBufferAttribute(offset, 2);
+            geometry2.setAttribute('offset', offsetAttribute);
+            
+
+            return geometry2;
+        };
+
+        const material= new THREE.ShaderMaterial({
+            uniforms: {
+                uTime: {
+                    value: 0,
+                },
+                cameraBillboardQuaternion: {
+                    value: new THREE.Quaternion(),
+                },
+                bubbleTexture1: {
+                    value: bubbleTexture2,
+                },
+            },
+            vertexShader: `\
+                
+                ${THREE.ShaderChunk.common}
+                ${THREE.ShaderChunk.logdepthbuf_pars_vertex}
+            
+                
+                uniform float uTime;
+                uniform vec4 cameraBillboardQuaternion;
+                
+                
+                varying vec2 vUv;
+                varying vec3 vPos;
+                varying vec3 vColor;
+                varying float vOpacity;
+                varying vec2 vOffset;
+                
+
+                attribute vec3 positions;
+                attribute vec3 color;
+                attribute float scales;
+                attribute float opacity;
+                attribute vec2 offset;
+                
+
+                vec3 rotateVecQuat(vec3 position, vec4 q) {
+                    vec3 v = position.xyz;
+                    return v + 2.0 * cross(q.xyz, cross(q.xyz, v) + q.w * v);
+                }
+                void main() {
+                    vUv = uv;
+                    vPos = position;
+                    // vOpacity = opacity;
+                    // vColor = color;
+                    vOffset = offset;
+                    vec3 pos = position;
+                    pos = rotateVecQuat(pos, cameraBillboardQuaternion);
+                    pos*=scales;
+                    pos+=positions;
+                    //pos = qtransform(pos, quaternions);
+                    //pos.y=cos(uTime/100.);
+                    vec4 modelPosition = modelMatrix * vec4(pos, 1.0);
+                    vec4 viewPosition = viewMatrix * modelPosition;
+                    vec4 projectionPosition = projectionMatrix * viewPosition;
+            
+                    gl_Position = projectionPosition;
+                    ${THREE.ShaderChunk.logdepthbuf_vertex}
+                }
+            `,
+            fragmentShader: `\
+                ${THREE.ShaderChunk.logdepthbuf_pars_fragment}
+                uniform float uTime;
+                uniform sampler2D bubbleTexture1;
+                varying vec2 vUv;
+                varying vec3 vPos;
+                varying vec3 vColor;
+                varying float vOpacity;
+                varying vec2 vOffset;
+
+                void main() {
+                    vec4 bubble = texture2D(
+                                    bubbleTexture1,
+                                    vec2(
+                                        vUv.x / 6. + vOffset.x,
+                                        vUv.y / 5. + vOffset.y
+                                    )
+                    );
+                    
+                    gl_FragColor = bubble;
+                    if(gl_FragColor.a < 0.25){
+                        discard;
+                    }
+                    gl_FragColor.rgb *= 2.;
+                ${THREE.ShaderChunk.logdepthbuf_fragment}
+                }
+            `,
+            side: THREE.DoubleSide,
+            transparent: true,
+            // blending: THREE.AdditiveBlending,
+            // depthWrite: false,
+            //blending: 1,
+
+        });
+        let dropletMesh = null;
+        function addInstancedMesh() {
+            const geometry2 = new THREE.PlaneGeometry( .1, .1 );
+            const geometry = _getGeometry(geometry2);
+            dropletMesh = new THREE.InstancedMesh(geometry, material, particleCount);
+            const positionsAttribute = dropletMesh.geometry.getAttribute('positions');
+            for (let i = 0; i < particleCount; i++) {
+                positionsAttribute.setXYZ(i, localPlayer.position.x + Math.random() * 5, -500, localPlayer.position.z + Math.random() * 5);
+                info.velocity[i] = (new THREE.Vector3(
+                    (Math.random() - 0.5)*3.,
+                    Math.random() * 1.,
+                    (Math.random() - 0.5)*3.));
+                info.velocity[i].divideScalar(20);
+                info.alreadyHaveRipple[i] = false;
+                
+            }
+            positionsAttribute.needsUpdate = true;
+            dropletgroup.add(dropletMesh);
+            app.add(dropletgroup);
+        }
+        addInstancedMesh();
 
       //################################################################ ripple object #########################################################
       let rippleMesh=null;
@@ -4066,13 +4192,6 @@ export default (e) => {
       addInstancedMesh2();
 
 
-
-
-      
-      
-      let alreadyPlaySplash = false;
-      let lastTimePlaySplash = 0;
-      let v=0;
   
       let jumpSw=0;
       
@@ -4085,133 +4204,100 @@ export default (e) => {
               if(jumpSw=2)
                   jumpSw=0;
           }
-          // if(currentRise===1 && !belowWater && !alreadyPlaySplash && contactWater && localPlayer.characterPhysics.velocity.y>1.5){
-          //     v = localPlayer.characterPhysics.velocity.y;
-          //     alreadyPlaySplash = true;
-          //     lastTimePlaySplash=timestamp;
-          //     //console.log(v);
-          // }
-          // if(currentRise===0 || (currentRise===-1 && timestamp-lastTimePlaySplash>1000)){
-          //     v=-1;
-          //     alreadyPlaySplash=false;
-          // }
         if (dropletMesh && rippleMesh) {
-          const opacityAttribute = rippleMesh.geometry.getAttribute('opacity');
-          const brokenAttribute = rippleMesh.geometry.getAttribute('broken');
-          const waveFreqAttribute = rippleMesh.geometry.getAttribute('waveFreq');
-          const positionsAttribute = rippleMesh.geometry.getAttribute('positions');
-          const scalesAttribute = rippleMesh.geometry.getAttribute('scales');
+          const rippleOpacityAttribute = rippleMesh.geometry.getAttribute('opacity');
+          const rippleBrokenAttribute = rippleMesh.geometry.getAttribute('broken');
+          const rippleWaveFreqAttribute = rippleMesh.geometry.getAttribute('waveFreq');
+          const ripplePositionsAttribute = rippleMesh.geometry.getAttribute('positions');
+          const rippleScalesAttribute = rippleMesh.geometry.getAttribute('scales');
+
+          const opacityAttribute = dropletMesh.geometry.getAttribute('opacity');
+          const offsetAttribute = dropletMesh.geometry.getAttribute('offset');
+          const positionsAttribute = dropletMesh.geometry.getAttribute('positions');
+          const scalesAttribute = dropletMesh.geometry.getAttribute('scales');
+          const startTimeAttribute = dropletMesh.geometry.getAttribute('startTime');
           
-          let falling = fallindSpeed>10?10:fallindSpeed;
-          let dropletNum = particleCount*(falling/10);
+          
+          let falling = fallindSpeed > 10 ? 10 : fallindSpeed;
+          let dropletNum = particleCount * (falling / 10);
           dropletNum /= 3;
-          falling=falling<5?7:falling;
+          falling = falling < 5 ? 7 : falling;
           for (let i = 0; i < particleCount; i++) {
-              dropletMesh.getMatrixAt(i, matrix);
-              matrix.decompose(dummy.position, dummy.quaternion, dummy.scale);
-
               if (jumpSw==1) {
+                  let rand = Math.random();
+                  scalesAttribute.setX(i, rand);
+                  positionsAttribute.setXYZ(i, 0, 0, 0);
                   
-                  let rand=Math.random();
-                  dummy.scale.x = rand;
-                  dummy.scale.y = rand;
-                  dummy.scale.z = rand;
-                  dummy.position.x = 0;
-                  dummy.position.y = 0;
-                  dummy.position.z = 0;
-                  
-                  info.velocity[i].x=(Math.random() -0.5)*1*(falling/10);
-                  info.velocity[i].y=Math.random() *1.6*(falling/10);
-                  info.velocity[i].z=(Math.random() -0.5)*1*(falling/10);
-                  
+                  info.velocity[i].x = (Math.random() - 0.5) * 1 * (falling / 10);
+                  info.velocity[i].y = Math.random() * 1.6 * (falling / 10);
+                  info.velocity[i].z = (Math.random() - 0.5) * 1 * (falling / 10);
+            
                   info.velocity[i].divideScalar(20);
+                  
                   info.alreadyHaveRipple[i]=false;
-                  if(i>dropletNum){
-                      dummy.scale.x = 0.001;
-                      dummy.scale.y = 0.001;
-                      dummy.scale.z = 0.001;
+                  if(i > dropletNum){
+                    scalesAttribute.setX(i, 0.001);
                   }
+                  info.offset[i] = Math.floor(Math.random() * 29);
+                  startTimeAttribute.setX(i, 0);
               }
-              // else if(v>0){
-              //     let rand=Math.random();
-              //     dummy.scale.x = rand;
-              //     dummy.scale.y = rand;
-              //     dummy.scale.z = rand;
-              //     dummy.position.x = 0;
-              //     dummy.position.y = 0;
-              //     dummy.position.z = 0;
-                  
-              //     info.velocity[i].x=(Math.random() -0.5)*1*(riseSpeed/5);
-              //     info.velocity[i].y=Math.random() *1.6*(riseSpeed/5);
-              //     info.velocity[i].z=(Math.random() -0.5)*1*(riseSpeed/5);
-                  
-              //     info.velocity[i].divideScalar(20);
-              //     info.alreadyHaveRipple[i]=false;
-              //     if(i>dropletNum2){
-              //         dummy.scale.x = 0.001;
-              //         dummy.scale.y = 0.001;
-              //         dummy.scale.z = 0.001;
-              //     }
-                  
-              // }
-              if(dummy.position.y>=-100){
+              if(positionsAttribute.getY(i) >= -100){
                   info.velocity[i].add(acc);
-                  dummy.scale.x /=1.035;
-                  dummy.scale.y /=1.035;
-                  dummy.scale.z /=1.035;
-                  dummy.position.add(info.velocity[i]);
-
-                  dummy.rotation.copy(camera.rotation);
-                  
-
-                  dummy.updateMatrix();
-                  
-                  dropletMesh.setMatrixAt(i, dummy.matrix);
-                  dropletMesh.instanceMatrix.needsUpdate = true;
+                  scalesAttribute.setX(i, scalesAttribute.getX(i) / 1.035);
+                  positionsAttribute.setXYZ(
+                                            i,
+                                            positionsAttribute.getX(i) + info.velocity[i].x,
+                                            positionsAttribute.getY(i) + info.velocity[i].y,
+                                            positionsAttribute.getZ(i) + info.velocity[i].z
+                  )
+                  startTimeAttribute.setX(i, startTimeAttribute.getX(i) + 1);
+                  if(startTimeAttribute.getX(i) % 2 === 0)
+                    info.offset[i] += 1;
+                  if(info.offset[i] >= 30){
+                    info.offset[i] = 0;
+                  }
+                  offsetAttribute.setXY(i, (5 / 6) - Math.floor(info.offset[i] / 6) * (1. / 6.), Math.floor(info.offset[i] % 5) * 0.2);
+                
               }
-              if(dummy.position.y<0 && !info.alreadyHaveRipple[i] && dummy.scale.x>0.001){
-                  dummy.scale.x=0.0001;
-                  dummy.scale.y=0.0001;
-                  dummy.scale.z=0.0001;
-                  dummy.updateMatrix();
-                  dropletMesh.setMatrixAt(i, dummy.matrix);
-                  dropletMesh.instanceMatrix.needsUpdate = true;
-                  positionsAttribute.setXYZ(i,dummy.position.x,0,dummy.position.z);
-                  scalesAttribute.setX(i,Math.random()*0.2);
-                  opacityAttribute.setX(i,0.5+0.3*Math.random());
-                  waveFreqAttribute.setX(i, Math.random()*(i%10));
-                  brokenAttribute.setX(i, Math.random()-0.8);
+              if(positionsAttribute.getY(i) < 0 && !info.alreadyHaveRipple[i] && scalesAttribute.getX(i) > 0.001){
+                  scalesAttribute.setX(i, 0.0001);
+                  ripplePositionsAttribute.setXYZ(i, positionsAttribute.getX(i), 0, positionsAttribute.getZ(i));
+                  rippleScalesAttribute.setX(i,Math.random()*0.2);
+                  rippleOpacityAttribute.setX(i,0.5+0.3*Math.random());
+                  rippleWaveFreqAttribute.setX(i, Math.random()*(i%10));
+                  rippleBrokenAttribute.setX(i, Math.random()-0.8);
                   info.alreadyHaveRipple[i]=true;
               }
-              else{
-                  dummy.scale.x=0.0001;
-                  dummy.scale.y=0.0001;
-                  dummy.scale.z=0.0001;
-              }
-              opacityAttribute.setX(i,opacityAttribute.getX(i)-0.013);
-              scalesAttribute.setX(i,scalesAttribute.getX(i)+0.02);
-              if(brokenAttribute.getX(i)<1)
-                  brokenAttribute.setX(i, brokenAttribute.getX(i)+0.02);
+              rippleOpacityAttribute.setX(i,rippleOpacityAttribute.getX(i)-0.013);
+              rippleScalesAttribute.setX(i,rippleScalesAttribute.getX(i)+0.02);
+              if(rippleBrokenAttribute.getX(i)<1)
+                  rippleBrokenAttribute.setX(i, rippleBrokenAttribute.getX(i)+0.02);
               
   
           }
-          dropletRipplegroup.position.y = waterSurfacePos.y;
-          positionsAttribute.needsUpdate = true;
-          opacityAttribute.needsUpdate = true;
-          scalesAttribute.needsUpdate = true;
-          brokenAttribute.needsUpdate = true;
-          waveFreqAttribute.needsUpdate = true;
+            positionsAttribute.needsUpdate = true;
+            opacityAttribute.needsUpdate = true;
+            scalesAttribute.needsUpdate = true;
+            startTimeAttribute.needsUpdate = true;
+            offsetAttribute.needsUpdate = true;
+            
+            
+            
+            dropletMesh.material.uniforms.uTime.value=timestamp/1000;
+            dropletMesh.material.uniforms.cameraBillboardQuaternion.value.copy(camera.quaternion);
+
+
+          ripplePositionsAttribute.needsUpdate = true;
+          rippleOpacityAttribute.needsUpdate = true;
+          rippleScalesAttribute.needsUpdate = true;
+          rippleBrokenAttribute.needsUpdate = true;
+          rippleWaveFreqAttribute.needsUpdate = true;
           rippleMesh.material.uniforms.uTime.value=timestamp/1000;
           if(jumpSw==1){
               dropletgroup.position.copy(localPlayer.position);
               dropletRipplegroup.position.copy(localPlayer.position);
               jumpSw=2;
           }
-          // if(v>0){
-          //     dropletgroup.position.copy(localPlayer.position);
-          //     dropletRipplegroup.position.copy(localPlayer.position);
-          //     v=-1;
-          // }
           
           dropletgroup.position.y = waterSurfacePos.y;
           dropletRipplegroup.position.y = waterSurfacePos.y;
@@ -4601,6 +4687,7 @@ export default (e) => {
                         gl_FragColor = ripple;
                     }
                     else{
+                        gl_FragColor.a = 0.;
                         discard;
                     }
                    
@@ -4623,8 +4710,16 @@ export default (e) => {
         });
     })();
     
+    let groupInApp = false;
     let playEffectSw=0;
+    let alreadySetComposer = false;
     useFrame(({timestamp}) => {
+        if(!alreadySetComposer){
+            if(splashMesh && reflectionSsrPass){
+                reflectionSsrPass._selects.push(splashMesh);
+                alreadySetComposer = true;
+            }
+        }
         if (contactWater){
             if(playEffectSw === 0 && waterSurfacePos.y < localPlayer.position.y){
                 playEffectSw = 1;
@@ -4655,10 +4750,14 @@ export default (e) => {
             // }
             if(playEffectSw === 1 && fallindSpeed > 6){
                 group.position.copy(localPlayer.position);
-                group.position.y = waterSurfacePos.y + 0.01;
+                group.position.y = waterSurfacePos.y;
                 splashMesh.material.uniforms.vBroken.value = 0.1;
                 splashMesh.scale.set(0.2, 1, 0.2);
                 splashMesh.material.uniforms.uTime.value = 120;
+                if(!groupInApp){
+                    app.add(group);
+                    groupInApp = true;
+                }
             }
             let falling = fallindSpeed > 10 ? 10 : fallindSpeed;
             if(splashMesh.material.uniforms.vBroken.value < 1){
@@ -4667,6 +4766,12 @@ export default (e) => {
                 splashMesh.scale.x += 0.007 * (1 + falling * 0.1);
                 // splashMesh.scale.y += 0.01;
                 splashMesh.scale.z += 0.007 * (1 + falling * 0.1);
+            }
+            else{
+                if(groupInApp){
+                    app.remove(group);
+                    groupInApp = false;
+                }
             }
                 
             
