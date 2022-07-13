@@ -149,9 +149,23 @@ function makeSsrPass(ssr) {
       groundReflector: null,
       selects: []
   });
-  
-  
+
   return ssrPass;
+}
+function makeSsrrPass(ssrr) {
+  const renderer = getRenderer();
+  const ssrrPass = new SSRrPass({
+      renderer,
+      scene,
+      camera,
+      width: window.innerWidth,
+      height: window.innerHeight,
+      encoding: THREE.sRGBEncoding,
+      selects: []
+  });
+  
+  
+  return ssrrPass;
 }
 function makeEncodingPass() {
   const encodingPass = new ShaderPass({
@@ -245,7 +259,7 @@ class PostProcessing extends EventTarget {
     passes.push(webaverseRenderPass);
     
     if (rendersettings) {
-      const {ssao, dof, hdr, bloom, postPostProcessScene, swirl, ssr} = rendersettings;
+      const {ssao, dof, hdr, bloom, postPostProcessScene, swirl, ssr, ssrr} = rendersettings;
       
       if (ssao || dof) {
         passes.depthPass = makeDepthPass({ssao, dof});
@@ -256,6 +270,10 @@ class PostProcessing extends EventTarget {
       if(ssr){
         const ssrPass = makeSsrPass(ssr);
         passes.push(ssrPass);
+      }
+      if(ssrr){
+        const ssrrPass = makeSsrrPass(ssrr);
+        passes.push(ssrrPass);
       }
       if (dof) {
         const dofPass = makeDofPass(dof, passes.depthPass);

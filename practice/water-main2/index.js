@@ -60,6 +60,8 @@ const waterNormalTexture = textureLoader.load(`${baseUrl}/textures/water-normal.
 waterNormalTexture.wrapS = waterNormalTexture.wrapT = THREE.RepeatWrapping;
 const waterNoiseTexture = textureLoader.load(`${baseUrl}/textures/perlin-noise.jpg`);
 waterNoiseTexture.wrapS = waterNoiseTexture.wrapT = THREE.RepeatWrapping;
+const waterNoiseTexture2 = textureLoader.load(`${baseUrl}/textures/water.png`);
+waterNoiseTexture2.wrapS = waterNoiseTexture2.wrapT = THREE.RepeatWrapping;
 const flowmapTexture = textureLoader.load(`${baseUrl}/textures/flowmap.png`);
 flowmapTexture.wrapS = flowmapTexture.wrapT = THREE.RepeatWrapping;
 //
@@ -193,7 +195,7 @@ class WaterMesh extends BatchedMesh {
               value: new THREE.Vector3()
           },
           waterDerivativeHeightTexture: {
-              value: waterDerivativeHeightTexture
+              value: waterNoiseTexture2
           },
           waterNoiseTexture: {
               value: waterNoiseTexture
@@ -273,8 +275,8 @@ class WaterMesh extends BatchedMesh {
               return dh;
           }
   
-          float shineDamper = 700.;
-          float reflectivity = 0.6;
+          float shineDamper = 30.;
+          float reflectivity = 1.5;
           void main() {
              
               vec4 worldPosition = modelMatrix * vec4( vPos, 1.0 );
@@ -293,20 +295,20 @@ class WaterMesh extends BatchedMesh {
               vec3 uvwA = FlowUVW(uv, flowmap, jump, uFlowOffset, uTiling, time, false);
               vec3 uvwB = FlowUVW(uv, flowmap, jump, uFlowOffset, uTiling, time, true);
 
-              vec3 dhA = UnpackDerivativeHeight(texture2D(waterDerivativeHeightTexture, uvwA.xy * 0.5)) * uvwA.z * 1.5;
-              vec3 dhB = UnpackDerivativeHeight(texture2D(waterDerivativeHeightTexture, uvwB.xy * 0.5)) * uvwB.z * 1.5;
+              vec3 dhA = UnpackDerivativeHeight(texture2D(waterDerivativeHeightTexture, uvwA.xy * 1.)) * uvwA.z * 20.5;
+              vec3 dhB = UnpackDerivativeHeight(texture2D(waterDerivativeHeightTexture, uvwB.xy * 1.)) * uvwB.z * 20.5;
               vec3 surfaceNormal = normalize(vec3(-(dhA.xy + dhB.xy), 1.));
 
-              vec3 fromSunVector = worldPosition.xyz - (sunPosition + playerPosition);
+              vec3 fromSunVector = worldPosition.xyz - (sunPosition );
               vec3 reflectedLight = reflect(normalize(fromSunVector), surfaceNormal);
               float specular = max(dot(reflectedLight, eyeDirection), 0.0);
               specular = pow(specular, shineDamper);
-              vec3 specularHighlight = vec3(0.7, 0.7, 0.7) * specular * reflectivity;
+              vec3 specularHighlight = vec3(0.9, 0.9, 0.9) * specular * reflectivity;
                  
               vec4 texA = texture2D(waterNoiseTexture, uvwA.xy) * uvwA.z;
               vec4 texB = texture2D(waterNoiseTexture, uvwB.xy) * uvwB.z;
 
-              gl_FragColor = (texA + texB) * vec4(0.04, 0.2, 0.32, 0.97) + vec4(0.0282, 0.470, 0.431, 0.);
+              gl_FragColor = (texA + texB) * vec4(0.048, 0.24, 0.384, 0.97) + vec4(0.0282, 0.470, 0.431, 0.);
               gl_FragColor.rgb /= 3.;
               gl_FragColor += vec4( specularHighlight, 0.0 );
               
@@ -804,7 +806,7 @@ export default (e) => {
                     for(const pass of renderSettings.findRenderSettings(scene).passes){
                         if(pass.constructor.name === 'SSRPass'){
                             pass._selects.push(generator.getMeshes()[0]);
-                            pass.opacity = 0.1;
+                            pass.opacity = 0.2;
                             // pass.maxDistance = 10;
                             // pass._fresnel = false;
                             // pass.blur = false;
