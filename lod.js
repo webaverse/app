@@ -720,8 +720,12 @@ export class LodChunkTracker extends EventTarget {
                   task,
                 },
               }));
-              this.liveTasks.push(task);
-              // console.log('add task', task.id);
+              if (task.type !== TrackerTaskTypes.OUTRANGE) {
+                this.liveTasks.push(task);
+                // console.log('add task', task.id);
+              } else {
+                console.log('skip outrange', task);
+              }
             }
         
             this.dispatchEvent(new MessageEvent('update'));
