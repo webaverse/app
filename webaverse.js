@@ -322,10 +322,6 @@ export default class Webaverse extends EventTarget {
           localPlayer.updateAvatar(timestamp, timeDiffCapped);
           // playersManager.updateRemotePlayers(timestamp, timeDiffCapped);
           
-          for (const remotePlayer of playersManager.remotePlayers.values()) {
-            remotePlayer.update(timestamp, timeDiff);
-          }
-
           world.appManager.tick(timestamp, timeDiffCapped, frame);
 
           mobManager.update(timestamp, timeDiffCapped);
