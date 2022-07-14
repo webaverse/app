@@ -294,11 +294,12 @@ const isNop = taskSpec => {
   });
 };
 class Task extends EventTarget {
-  constructor(id, maxLodNode, newNodes = [], oldNodes = []) {
+  constructor(id, maxLodNode, type, newNodes = [], oldNodes = []) {
     super();
 
     this.id = id;
     this.maxLodNode = maxLodNode;
+    this.type = type;
     this.newNodes = newNodes;
     this.oldNodes = oldNodes;
 
@@ -398,7 +399,7 @@ const updateChunks = (oldChunks, tasks) => {
   const newChunks = oldChunks.slice();
   
   for (const task of tasks) {
-    if (!isNop(task) && task.type != TrackerTaskTypes.OUTRANGE) {
+    if (!isNop(task)) {
       let {newNodes, oldNodes} = task;
       for (const oldNode of oldNodes) {
         const index = newChunks.findIndex(chunk => equalsNode(chunk, oldNode));
@@ -685,12 +686,13 @@ export class LodChunkTracker extends EventTarget {
             );
           };
           const _parseTask = (taskSpec) => {
-            const {id} = taskSpec;
+            const {id, type} = taskSpec;
             const newNodes = taskSpec.newNodes.map(newNode => _parseNode(newNode));
             const oldNodes = taskSpec.oldNodes.map(oldNode => _parseNode(oldNode));
             return new Task(
               id,
               _parseNode(taskSpec),
+              type,
               newNodes,
               oldNodes,
             );
@@ -720,12 +722,11 @@ export class LodChunkTracker extends EventTarget {
                   task,
                 },
               }));
-              if (task.type !== TrackerTaskTypes.OUTRANGE) {
+              // console.log('got task type', task.type, task);
+              // if (task.type !== TrackerTaskTypes.OUTRANGE) {
                 this.liveTasks.push(task);
                 // console.log('add task', task.id);
-              } else {
-                console.log('skip outrange', task);
-              }
+              // }
             }
         
             this.dispatchEvent(new MessageEvent('update'));
