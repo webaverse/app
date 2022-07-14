@@ -719,7 +719,7 @@ export class LodChunkTracker extends EventTarget {
                 },
               }));
               this.liveTasks.push(task);
-              console.log('add task', task.id);
+              // console.log('add task', task.id);
             }
         
             this.dispatchEvent(new MessageEvent('update'));
