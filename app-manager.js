@@ -201,6 +201,7 @@ class AppManager extends EventTarget {
       fn();
     } else {
       console.warn('tracked app was not bound:', instanceId);
+      debugger
     }
   }
   bindEvents() {
@@ -537,6 +538,8 @@ class AppManager extends EventTarget {
     
     let dstTrackedApp = null;
 
+    // const wrapTxFn = innerFn => srcAppManager.appsArray.doc.transact(innerFn)
+    debugger
     const wrapTxFn = (srcAppManager.appsArray.doc === dstAppManager.appsArray.doc) ?
       innerFn => srcAppManager.appsArray.doc.transact(innerFn)
     :

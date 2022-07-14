@@ -920,6 +920,7 @@ const _gameUpdate = (timestamp, timeDiff) => {
     
     if (currentActivated && !lastActivated) {
       if (grabUseMesh.targetApp) {
+        debugger
         grabUseMesh.targetApp.activate({
           physicsId: grabUseMesh.targetPhysicsId,
         });

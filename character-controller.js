@@ -303,6 +303,7 @@ class PlayerBase extends THREE.Object3D {
   wear(app, {
     loadoutIndex = -1,
   } = {}) {
+    debugger
     const _getNextLoadoutIndex = () => {
       let loadoutIndex = -1;
       const usedIndexes = Array(8).fill(false);
@@ -344,6 +345,7 @@ class PlayerBase extends THREE.Object3D {
       _removeOldApp();
 
       const _transplantNewApp = () => {
+        debugger
         if (world.appManager.hasTrackedApp(app.instanceId)) {
           world.appManager.transplantApp(app, this.appManager);
         } else {

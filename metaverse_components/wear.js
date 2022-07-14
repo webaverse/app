@@ -22,6 +22,7 @@ const identityVector = new THREE.Vector3();
 export default (app, component) => {
   const {useActivate} = metaversefile;
   
+  debugger
   let wearSpec = null;
   let modelBones = null;
   let appAimAnimationMixers = null;
@@ -35,6 +36,7 @@ export default (app, component) => {
     if (e.wear) {
       player = e.player;
 
+      debugger
       wearSpec = app.getComponent('wear');
       initialScale.copy(app.scale);
       // console.log('wear activate', app, wearSpec, e);
@@ -188,6 +190,7 @@ export default (app, component) => {
       app.scale.copy(initialScale);
       app.updateMatrixWorld();
 
+      debugger
       wearSpec = null;
       modelBones = null;
     }
@@ -196,6 +199,7 @@ export default (app, component) => {
   const _copyBoneAttachment = spec => {
     const {boneAttachment = 'hips', position, quaternion, scale} = spec;
     const boneAttachments = Array.isArray(boneAttachment) ? boneAttachment : [boneAttachment];
+    debugger
 
     // lerp app's transform to average position/quaternion/scale of boneAttachments.
     let count = 0;

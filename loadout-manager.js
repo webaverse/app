@@ -26,7 +26,10 @@ class LoadoutManager extends EventTarget {
     this.selectedIndex = -1;
   
     const localPlayer = getLocalPlayer();
-    localPlayer.addEventListener('wearupdate', e => {
+    this.addWearUpdateEventListener(localPlayer);
+  }
+  addWearUpdateEventListener(player) {
+    player.addEventListener('wearupdate', e => {
       const {app, wear, loadoutIndex} = e;
 
       this.ensureRenderers();

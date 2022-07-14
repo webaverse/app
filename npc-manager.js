@@ -31,7 +31,7 @@ class NpcManager extends EventTarget {
   }) {
     const npcPlayer = new LocalPlayer({
       npc: true,
-      detached,
+      // detached,
     });
     npcPlayer.name = name;
 
