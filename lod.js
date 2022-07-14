@@ -388,12 +388,17 @@ const sortTasks = (tasks, worldPosition) => {
     return a.distance - b.distance;
   });
   return taskDistances.map(taskDistance => taskDistance.task);
+}; */
+const TrackerTaskTypes = {
+  ADD: 1,
+  REMOVE: 2,
+  OUTRANGE: 3,
 };
 const updateChunks = (oldChunks, tasks) => {
   const newChunks = oldChunks.slice();
   
   for (const task of tasks) {
-    if (!task.isNop()) {
+    if (!isNop(task) && task.type != TrackerTaskTypes.OUTRANGE) {
       let {newNodes, oldNodes} = task;
       for (const oldNode of oldNodes) {
         const index = newChunks.findIndex(chunk => equalsNode(chunk, oldNode));
