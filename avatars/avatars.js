@@ -1515,13 +1515,6 @@ class Avatar {
     this.aimRightFactorReverse = 1 - this.aimRightFactor;
     this.aimLeftFactor = this.aimLeftTransitionTime / aimTransitionMaxTime;
     this.aimLeftFactorReverse = 1 - this.aimLeftFactor;
-
-    const _updateAvatarVelocity = () => {
-      const currentPosition = this.inputs.hmd.position;
-      const currentQuaternion = this.inputs.hmd.quaternion;
-      
-      this.setVelocity(timeDiffS, this.lastPosition, currentPosition, currentQuaternion);
-    };
     
     const _overwritePose = poseName => {
       const poseAnimation = animations.index[poseName];
@@ -1908,10 +1901,15 @@ class Avatar {
       _motionControls.call(this)
     }
     
-    
-
+    // for the local player we want to update the velocity immediately
+    // on remote players this is called from the RemotePlayer -> observePlayerFn
     if (this.shouldUpdateVelocity) {
-      _updateAvatarVelocity();
+      this.setVelocity(
+        timeDiffS,
+        this.lastPosition,
+        this.inputs.hmd.position,
+        this.inputs.hmd.quaternion
+      );
     }
     _applyAnimation(this, now, moveFactors);
 
