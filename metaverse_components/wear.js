@@ -19,11 +19,18 @@ const localMatrix = new THREE.Matrix4();
 
 const identityVector = new THREE.Vector3();
 
-export default (app, component) => {
+export default (app, component) => { 
   const {useActivate} = metaversefile;
+
+  const isSwordApp = app.contentId.includes('\\sword\\');
+  if (isSwordApp) console.log('-------------------- wear.js', app.contentId);
   
   debugger
   let wearSpec = null;
+  if (isSwordApp) {
+    debugger
+    window.wearSpec = wearSpec;
+  }
   let modelBones = null;
   let appAimAnimationMixers = null;
   let player = null;
@@ -38,6 +45,10 @@ export default (app, component) => {
 
       debugger
       wearSpec = app.getComponent('wear');
+      if (isSwordApp) {
+        debugger
+        window.wearSpec = wearSpec;
+      }
       initialScale.copy(app.scale);
       // console.log('wear activate', app, wearSpec, e);
       if (wearSpec) {
@@ -192,6 +203,10 @@ export default (app, component) => {
 
       debugger
       wearSpec = null;
+      if (isSwordApp) {
+        debugger
+        window.wearSpec = wearSpec;
+      }
       modelBones = null;
     }
   };
