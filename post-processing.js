@@ -147,11 +147,15 @@ function makeSsrPass(ssr) {
       width: window.innerWidth,
       height: window.innerHeight,
       groundReflector: null,
-      selects: []
+      selects: [],
+      foamDepthMaterial: null,
+      foamRenderTarget: null,
+      water: null,
   });
 
   return ssrPass;
 }
+
 function makeSsrrPass(ssrr) {
   const renderer = getRenderer();
   const ssrrPass = new SSRrPass({
@@ -260,7 +264,6 @@ class PostProcessing extends EventTarget {
     
     if (rendersettings) {
       const {ssao, dof, hdr, bloom, postPostProcessScene, swirl, ssr, ssrr} = rendersettings;
-      
       if (ssao || dof) {
         passes.depthPass = makeDepthPass({ssao, dof});
       }

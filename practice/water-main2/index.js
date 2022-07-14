@@ -156,8 +156,12 @@ class WaterMesh extends BatchedMesh {
     //   material.uniforms.uLightBasePosition.value.copy(coord);
     //   material.uniforms.uLightBasePosition.needsUpdate = true;
     // });
-
+    
     const material = new THREE.ShaderMaterial({
+      defines: {
+        DEPTH_PACKING: 1,
+        ORTHOGRAPHIC_CAMERA: 0
+      },
       uniforms: {
           uTime: {
               type: "f",
@@ -205,6 +209,30 @@ class WaterMesh extends BatchedMesh {
           flowmapTexture: {
               value: flowmapTexture
           },
+          threshold: {
+            value: 0.3
+          },
+          tDudv: {
+            value: null
+          },
+          tDepth: {
+            value: null
+          },
+          cameraNear: {
+            value: 0
+          },
+          cameraFar: {
+            value: 0
+          },
+          resolution: {
+            value: new THREE.Vector2()
+          },
+          foamColor: {
+            value: new THREE.Color(1.0, 1.0, 1.0)
+          },
+          waterColor: {
+            value: new THREE.Color(0., 0.3, 0.5)
+          }
 
       },
       vertexShader: `\
@@ -236,8 +264,10 @@ class WaterMesh extends BatchedMesh {
           
           
           ${THREE.ShaderChunk.logdepthbuf_pars_fragment}
+          #include <common>
+          #include <packing>
           varying vec3 vPos;
-          // varying vec2 vUv;
+          varying vec2 vUv;
           uniform mat4 modelMatrix;
 
           uniform float uTime;
@@ -250,11 +280,37 @@ class WaterMesh extends BatchedMesh {
           uniform vec3 sunPosition;
           uniform vec3 playerPosition;
           uniform vec3 playerDirection;
+
+          uniform sampler2D tDepth;
+          uniform sampler2D tDudv;
+          uniform vec3 waterColor;
+          uniform vec3 foamColor;
+          uniform float cameraNear;
+          uniform float cameraFar;
+          uniform float time;
+          uniform float threshold;
+          uniform vec2 resolution;
           
           
           uniform sampler2D waterDerivativeHeightTexture;
           uniform sampler2D waterNoiseTexture;
           uniform sampler2D flowmapTexture;
+
+          float getDepth( const in vec2 screenPosition ) {
+            #if DEPTH_PACKING == 1
+              return unpackRGBAToDepth( texture2D( tDepth, screenPosition ) );
+            #else
+              return texture2D( tDepth, screenPosition ).x;
+            #endif
+          }
+
+          float getViewZ( const in float depth ) {
+            #if ORTHOGRAPHIC_CAMERA == 1
+              return orthographicDepthToViewZ( depth, cameraNear, cameraFar );
+            #else
+              return perspectiveDepthToViewZ( depth, cameraNear, cameraFar );
+            #endif
+          }
           
           float frac(float v)
           {
@@ -313,8 +369,22 @@ class WaterMesh extends BatchedMesh {
               gl_FragColor = (texA + texB) * vec4(0.048, 0.24, 0.384, 0.97) + vec4(0.0282, 0.470, 0.431, 0.);
               gl_FragColor.rgb /= 3.;
               gl_FragColor += vec4( specularHighlight, 0.0 );
-              
-            //   gl_FragColor = vec4(1.0, 0., 0., 0.6);
+
+
+                // foam
+                vec2 screenUV = gl_FragCoord.xy / resolution;
+
+                float fragmentLinearEyeDepth = getViewZ( gl_FragCoord.z );
+                float linearEyeDepth = getViewZ( getDepth( screenUV ) );
+        
+                float diff = saturate( fragmentLinearEyeDepth - linearEyeDepth );
+        
+                vec2 displacement = texture2D( tDudv, ( worldPosition.xz * 0.05 * 2.0 ) - uTime * 0.05 ).rg;
+                displacement = ( ( displacement * 2.0 ) - 1.0 ) * 1.0;
+                diff += displacement.x;
+        
+                gl_FragColor.rgb = mix( foamColor, gl_FragColor.rgb, step( threshold, diff ) );
+                
               ${THREE.ShaderChunk.logdepthbuf_fragment}
           }
       `,
@@ -785,6 +855,37 @@ export default (e) => {
 
     let alreadySetComposer = false;
     
+    const supportsDepthTextureExtension = !!renderer.extensions.get(
+        "WEBGL_depth_texture"
+    );
+
+    const pixelRatio = renderer.getPixelRatio();
+
+    const renderTarget = new THREE.WebGLRenderTarget(
+    window.innerWidth * pixelRatio,
+    window.innerHeight * pixelRatio
+    );
+    renderTarget.texture.minFilter = THREE.NearestFilter;
+    renderTarget.texture.magFilter = THREE.NearestFilter;
+    renderTarget.texture.generateMipmaps = false;
+    renderTarget.stencilBuffer = false;
+
+    if (supportsDepthTextureExtension === true) {
+    renderTarget.depthTexture = new THREE.DepthTexture();
+    renderTarget.depthTexture.type = THREE.UnsignedShortType;
+    renderTarget.depthTexture.minFilter = THREE.NearestFilter;
+    renderTarget.depthTexture.maxFilter = THREE.NearestFilter;
+    }
+
+    const depthMaterial = new THREE.MeshDepthMaterial();
+    depthMaterial.depthPacking = THREE.RGBADepthPacking;
+    depthMaterial.blending = THREE.NoBlending;
+    
+    const dudvMap = new THREE.TextureLoader().load(
+        "https://i.imgur.com/hOIsXiZ.png"
+    );
+    dudvMap.wrapS = dudvMap.wrapT = THREE.RepeatWrapping;
+
 
 
     // const geometry = new THREE.PlaneGeometry( 5, 5 );
@@ -809,12 +910,15 @@ export default (e) => {
                         if(pass.constructor.name === 'SSRPass'){
                             pass._selects.push(generator.getMeshes()[0]);
                             pass.opacity = 0.1;
+                            pass.foamDepthMaterial = depthMaterial;
+                            pass.foamRenderTarget = renderTarget;
+                            pass.water = generator.getMeshes()[0];
                             // pass.maxDistance = 10;
                             // pass._fresnel = false;
                             // pass.blur = false;
                             // pass.player = localPlayer;
                             // pass.thickness = 0.5;
-                            // pass.output = 5;
+                            // pass.output = 6;
                             reflectionSsrPass = pass;
                             
                         }
@@ -1127,7 +1231,21 @@ export default (e) => {
             generator.getMeshes()[0].material.uniforms.uTime.value = timestamp / 1000;
             generator.getMeshes()[0].material.uniforms.playerPosition.value.copy(localPlayer.position);
             generator.getMeshes()[0].material.uniforms.playerDirection.value.copy(playerDir);
-          
+            generator.getMeshes()[0].material.defines.DEPTH_PACKING = supportsDepthTextureExtension === true ? 0 : 1;
+
+            generator.getMeshes()[0].material.uniforms.cameraNear.value = camera.near;
+            generator.getMeshes()[0].material.uniforms.cameraFar.value = camera.far;
+            generator.getMeshes()[0].material.uniforms.resolution.value.set(
+                window.innerWidth * pixelRatio,
+                window.innerHeight * pixelRatio
+            );
+            generator.getMeshes()[0].material.uniforms.tDudv.value = dudvMap;
+            generator.getMeshes()[0].material.uniforms.tDepth.value =
+                supportsDepthTextureExtension === true
+                    ? renderTarget.depthTexture
+                    : renderTarget.texture;
+                
+                
         }
       }
       count++;

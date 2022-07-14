@@ -72,58 +72,59 @@ export default () => {
     );
     dudvMap.wrapS = dudvMap.wrapT = THREE.RepeatWrapping;
 
-    const uniforms = {
-      time: {
-        value: 0
-      },
-      threshold: {
-        value: 0.1
-      },
-      tDudv: {
-        value: null
-      },
-      tDepth: {
-        value: null
-      },
-      cameraNear: {
-        value: 0
-      },
-      cameraFar: {
-        value: 0
-      },
-      resolution: {
-        value: new THREE.Vector2()
-      },
-      foamColor: {
-        value: new THREE.Color()
-      },
-      waterColor: {
-        value: new THREE.Color()
-      }
-    };
-
     const waterGeometry = new THREE.PlaneBufferGeometry(10, 10);
     const waterMaterial = new THREE.ShaderMaterial({
       defines: {
         DEPTH_PACKING: supportsDepthTextureExtension === true ? 0 : 1,
         ORTHOGRAPHIC_CAMERA: 0
       },
-      uniforms: THREE.UniformsUtils.merge([THREE.UniformsLib["fog"], uniforms]),
+      uniforms: {
+        time: {
+          value: 0
+        },
+        threshold: {
+          value: 0.1
+        },
+        tDudv: {
+          value: null
+        },
+        tDepth: {
+          value: null
+        },
+        cameraNear: {
+          value: 0
+        },
+        cameraFar: {
+          value: 0
+        },
+        resolution: {
+          value: new THREE.Vector2()
+        },
+        foamColor: {
+          value: new THREE.Color()
+        },
+        waterColor: {
+          value: new THREE.Color()
+        }
+      },
       vertexShader: `\
           
           ${THREE.ShaderChunk.common}
           ${THREE.ShaderChunk.logdepthbuf_pars_vertex}
-      
-          #include <fog_pars_vertex>
 
           varying vec2 vUv;
+          varying vec3 vPos;
           
           void main() {
               vUv = uv;
 
-              #include <begin_vertex>
-              #include <project_vertex>
-              #include <fog_vertex>
+              vPos = position;
+              vec3 pos = position;
+              vec4 modelPosition = modelMatrix * vec4(pos, 1.0);
+              vec4 viewPosition = viewMatrix * modelPosition;
+              vec4 projectionPosition = projectionMatrix * viewPosition;
+      
+              gl_Position = projectionPosition;
               ${THREE.ShaderChunk.logdepthbuf_vertex}
           }
       `,
@@ -131,7 +132,7 @@ export default () => {
           ${THREE.ShaderChunk.logdepthbuf_pars_fragment}
           #include <common>
           #include <packing>
-          #include <fog_pars_fragment>
+          
 
           varying vec2 vUv;
           uniform sampler2D tDepth;
@@ -143,7 +144,6 @@ export default () => {
           uniform float time;
           uniform float threshold;
           uniform vec2 resolution;
-          
 
           float getDepth( const in vec2 screenPosition ) {
             #if DEPTH_PACKING == 1
@@ -169,7 +169,6 @@ export default () => {
             float linearEyeDepth = getViewZ( getDepth( screenUV ) );
     
             float diff = saturate( fragmentLinearEyeDepth - linearEyeDepth );
-            gl_FragColor = vec4(vec3(diff), 1); return;
     
             vec2 displacement = texture2D( tDudv, ( vUv * 2.0 ) - time * 0.05 ).rg;
             displacement = ( ( displacement * 2.0 ) - 1.0 ) * 1.0;
@@ -177,14 +176,11 @@ export default () => {
     
             gl_FragColor.rgb = mix( foamColor, waterColor, step( threshold, diff ) );
             gl_FragColor.a = 1.0;
-    
-            #include <tonemapping_fragment>
-            #include <encodings_fragment>
-            #include <fog_fragment>
+            
             ${THREE.ShaderChunk.logdepthbuf_fragment}
           }
       `,
-      fog: true
+      // fog: true
     });
 
    
@@ -211,18 +207,35 @@ export default () => {
       waterColor: 0x14c6a5,
       threshold: 0.1
     };
-    
+    let alreadySetComposer = false;
+
     useFrame(({timestamp}) => {
+      if(!alreadySetComposer){
+        if(renderSettings.findRenderSettings(scene)){
+            for(const pass of renderSettings.findRenderSettings(scene).passes){
+                if(pass.constructor.name === 'SSRPass'){
+                    pass.foamDepthMaterial = depthMaterial;
+                    pass.foamRenderTarget = renderTarget;
+                    pass.water = water;
+                    pass._selects.push(water);
+                    pass.opacity = 0.1;
+                    console.log(pass);
+                }
+            }
+            alreadySetComposer = true;
+            console.log(renderSettings.findRenderSettings(scene))
+        }
+    }
 
-      water.visible = false; // we don't want the depth of the water
-      scene.overrideMaterial = depthMaterial;
+      // water.visible = false; // we don't want the depth of the water
+      // scene.overrideMaterial = depthMaterial;
 
-      renderer.setRenderTarget(renderTarget);
-      renderer.render(scene, camera);
-      renderer.setRenderTarget(null);
+      // renderer.setRenderTarget(renderTarget);
+      // renderer.render(scene, camera);
+      // renderer.setRenderTarget(null);
 
-      scene.overrideMaterial = null;
-      water.visible = true;
+      // scene.overrideMaterial = null;
+      // water.visible = true;
       
       
 
