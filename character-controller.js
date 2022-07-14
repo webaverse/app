@@ -1284,7 +1284,7 @@ class RemotePlayer extends InterpolatedPlayer {
         const timeDiff = timestamp - lastTimestamp;
         lastTimestamp = timestamp;
 
-       this.position.fromArray(position);
+        this.position.fromArray(position);
 
         this.positionInterpolant.snapshot(timeDiff);
         this.quaternionInterpolant.snapshot(timeDiff);
