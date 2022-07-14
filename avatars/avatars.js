@@ -1490,7 +1490,7 @@ class Avatar {
     localEuler.setFromQuaternion(currentQuaternion, 'YXZ');
     localEuler.set(0, -(localEuler.y + Math.PI), 0);
     positionDiff.applyEuler(localEuler);
-    this.velocity.copy(positionDiff).add(this.lastVelocity).divideScalar(2);
+    this.velocity.copy(positionDiff);
     this.lastVelocity.copy(this.velocity);
     this.direction.copy(positionDiff).normalize();
     this.lastPosition.copy(currentPosition);
