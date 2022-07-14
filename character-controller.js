@@ -150,6 +150,15 @@ class PlayerBase extends THREE.Object3D {
   constructor() {
     super();
 
+    this.name = defaultPlayerName;
+    this.bio = defaultPlayerBio;
+    this.characterPhysics = new CharacterPhysics(this);
+    this.characterHups = new CharacterHups(this);
+    this.characterSfx = new CharacterSfx(this);
+    this.characterFx = new CharacterFx(this);
+    this.characterHitter = new CharacterHitter(this);
+    this.characterBehavior = new CharacterBehavior(this);
+
     this.leftHand = new PlayerHand();
     this.rightHand = new PlayerHand();
     this.hands = [
@@ -494,7 +503,13 @@ class PlayerBase extends THREE.Object3D {
     }
   }
   destroy() {
-    // nothing
+    this.characterPhysics.destroy();
+    this.characterHups.destroy();
+    this.characterSfx.destroy();
+    this.characterFx.destroy();
+    this.characterBehavior.destroy();
+
+    super.destroy();
   }
 }
 const controlActionTypes = [
@@ -703,9 +718,8 @@ class StatePlayer extends PlayerBase {
     this.syncAvatarCancelFn = null;
   }
   setSpawnPoint(position, quaternion) {
-    const localPlayer = metaversefile.useLocalPlayer();
-    localPlayer.position.copy(position);
-    localPlayer.quaternion.copy(quaternion);
+    this.position.copy(position);
+    this.quaternion.copy(quaternion);
 
     camera.position.copy(position);
     camera.quaternion.copy(quaternion);
@@ -1006,15 +1020,6 @@ class LocalPlayer extends UninterpolatedPlayer {
     this.isLocalPlayer = !opts.npc;
     this.isNpcPlayer = !!opts.npc;
     this.detached = !!opts.detached;
-
-    this.name = defaultPlayerName;
-    this.bio = defaultPlayerBio;
-    this.characterPhysics = new CharacterPhysics(this);
-    this.characterHups = new CharacterHups(this);
-    this.characterSfx = new CharacterSfx(this);
-    this.characterFx = new CharacterFx(this);
-    this.characterHitter = new CharacterHitter(this);
-    this.characterBehavior = new CharacterBehavior(this);
   }
   async setPlayerSpec(playerSpec) {
     const p = this.setAvatarUrl(playerSpec.avatarUrl);
@@ -1240,15 +1245,6 @@ class LocalPlayer extends UninterpolatedPlayer {
       this.resetPhysics();
     };
   })() */
-  destroy() {
-    this.characterPhysics.destroy();
-    this.characterHups.destroy();
-    this.characterSfx.destroy();
-    this.characterFx.destroy();
-    this.characterBehavior.destroy();
-
-    super.destroy();
-  }
 }
 class RemotePlayer extends InterpolatedPlayer {
   constructor(opts) {
