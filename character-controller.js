@@ -1259,51 +1259,17 @@ class RemotePlayer extends InterpolatedPlayer {
       console.warn('binding to nonexistent player object', this.playersArray.toJSON());
     }
 
-    let lastTimestamp = performance.now();
-    let lastPosition = new THREE.Vector3();
-    const observePlayerFn = (e) => {
-    if (e.changes.keys.has('position')) {
-      const position = e.changes.keys.get('position');
-      console.log("position is", position);
-        const timestamp = performance.now();
-        const timeDiff = timestamp - lastTimestamp;
-        lastTimestamp = timestamp;
-
-       this.position.fromArray(position);
-
-        this.positionInterpolant.snapshot(timeDiff);
-        this.quaternionInterpolant.snapshot(timeDiff);
-
-        this.characterPhysics.setPosition(this.position);
-
-        for (const actionBinaryInterpolant of this
-          .actionBinaryInterpolantsArray) {
-          actionBinaryInterpolant.snapshot(timeDiff);
-        }
-
-        this.characterPhysics.applyAvatarPhysicsDetail(true, true, performance.now(), timeDiff / 1000);
-
-        lastPosition.copy(this.position);
-
-        this.avatar.setVelocity(
-          timeDiff / 1000,
-          lastPosition,
-          this.position,
-          this.quaternion
-        );
-      }
-      if (e.changes.keys.has('quaternion')) {
-        const quaternion = e.changes.keys.get('quaternion');
-        this.quaternion.fromArray(quaternion);
-    }
-  }
-
+    const observePlayerFn = e => {
+      this.position.fromArray(this.playerMap.get('position'));
+      this.quaternion.fromArray(this.playerMap.get('quaternion'));
+    };
     this.playerMap.observe(observePlayerFn);
     this.unbindFns.push(this.playerMap.unobserve.bind(this.playerMap, observePlayerFn));
     
     this.appManager.bindState(this.getAppsState());
     this.appManager.loadApps();
     
+    this.syncAvatar();
   }
 }
 /* class StaticUninterpolatedPlayer extends UninterpolatedPlayer {
