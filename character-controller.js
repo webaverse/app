@@ -931,10 +931,9 @@ class InterpolatedPlayer extends StatePlayer {
       quaternion: this.quaternionInterpolant.get(),
     };
   }
-  updateInterpolation(timestamp, timeDiff) {
+  updateInterpolation(timeDiff) {
     this.positionInterpolant.update(timeDiff);
     this.quaternionInterpolant.update(timeDiff);
-
     for (const actionBinaryInterpolant of this.actionBinaryInterpolantsArray) {
       actionBinaryInterpolant.update(timeDiff);
     }
@@ -1239,6 +1238,7 @@ class LocalPlayer extends UninterpolatedPlayer {
 class RemotePlayer extends InterpolatedPlayer {
   constructor(opts) {
     super(opts);
+
     this.isRemotePlayer = true;
   }
   detachState() {
