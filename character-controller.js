@@ -1283,7 +1283,7 @@ class RemotePlayer extends InterpolatedPlayer {
     
     this.appManager.bindState(this.getAppsState());
     this.appManager.loadApps();
-    }
+  }
 }
 /* class StaticUninterpolatedPlayer extends UninterpolatedPlayer {
   constructor(opts) {
