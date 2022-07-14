@@ -50,6 +50,11 @@
               "type": "uint256"
             },
             {
+              "internalType": "string",
+              "name": "metadatahash",
+              "type": "string"
+            },
+            {
               "internalType": "uint256",
               "name": "balance",
               "type": "uint256"

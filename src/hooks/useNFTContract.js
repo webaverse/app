@@ -124,6 +124,7 @@ export default function useNFTContract(currentAccount) {
       const metadatahash = json_hash.split(FILE_ADDRESS)[1].split('/')[0];
       const Webaversecontract = new ethers.Contract(WebaversecontractAddress, WebaverseABI, signer);
       // const NFTcontract = new ethers.Contract(NFTcontractAddress, NFTABI, signer);
+      debugger;
       const FTcontract = new ethers.Contract(FTcontractAddress, FTABI, signer);
 
       const Bigmintfee = await Webaversecontract.mintFee();
@@ -135,8 +136,11 @@ export default function useNFTContract(currentAccount) {
         const FTapproveres = await FTapprovetx.wait();
         if (FTapproveres.transactionHash) {
           try {
-            const Webaversemintres = await Webaversecontract.mint(currentAccount, 1, metadatahash, "0x");
-            callback(Webaversemintres);
+            const minttx = await Webaversecontract.mint(currentAccount, 1, metadatahash, "0x");
+            let res = await minttx.wait()
+            if (res.transactionHash) {
+                callback();
+            }
           } catch (err) {
             console.warn('minting to webaverse contract failed');
             setError('Mint Failed');
@@ -144,8 +148,11 @@ export default function useNFTContract(currentAccount) {
         }
       } else { // mintfee = 0 for Polygon not webaverse sidechain
         try {
-          const Webaversemintres = await Webaversecontract.mint(currentAccount, 1, metadatahash, "0x");
-          callback(Webaversemintres);
+          const minttx = await Webaversecontract.mint(currentAccount, 1, metadatahash, "0x");
+            let res = await minttx.wait()
+            if (res.transactionHash) {
+                callback();
+            }
         } catch (err) {
           console.warn('minting to webaverse contract failed');
           setError('Mint Failed');

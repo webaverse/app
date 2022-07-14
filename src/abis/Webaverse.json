@@ -104,6 +104,11 @@
               "type": "uint256"
             },
             {
+              "internalType": "string",
+              "name": "metadatahash",
+              "type": "string"
+            },
+            {
               "internalType": "uint256",
               "name": "balance",
               "type": "uint256"
@@ -312,16 +317,6 @@
           "type": "address"
         },
         {
-          "internalType": "uint256",
-          "name": "balance",
-          "type": "uint256"
-        },
-        {
-          "internalType": "string",
-          "name": "uri",
-          "type": "string"
-        },
-        {
           "internalType": "bytes",
           "name": "data",
           "type": "bytes"
@@ -332,6 +327,11 @@
               "internalType": "uint256",
               "name": "tokenId",
               "type": "uint256"
+            },
+            {
+              "internalType": "string",
+              "name": "metadatahash",
+              "type": "string"
             },
             {
               "internalType": "uint256",
