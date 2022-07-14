@@ -1238,7 +1238,7 @@ class LocalPlayer extends UninterpolatedPlayer {
 class RemotePlayer extends InterpolatedPlayer {
   constructor(opts) {
     super(opts);
-
+    
     this.isRemotePlayer = true;
   }
   detachState() {
