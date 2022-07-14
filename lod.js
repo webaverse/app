@@ -699,13 +699,16 @@ export class LodChunkTracker extends EventTarget {
             for (let i = 0; i < oldTasks.length; i++) {
               const oldTaskSpec = oldTasks[i];
               const oldTask = _parseTask(oldTaskSpec);
-              const oldTaskMatch = this.liveTasks.find(liveTask => liveTask.id === oldTask.id);
-              console.log('remove task', oldTask.id, !!oldTaskMatch);
-              if (!oldTaskMatch) {
-                debugger;
+              const oldTaskMatchIndex = this.liveTasks.findIndex(liveTask => liveTask.id === oldTask.id);
+              if (oldTaskMatchIndex !== -1) {
+                const oldTaskMatch = this.liveTasks[oldTaskMatchIndex];
+                /* console.log('remove task', oldTask.id, !!oldTaskMatch);
+                if (!oldTaskMatch) {
+                  debugger;
+                } */
+                oldTaskMatch.cancel();
+                this.liveTasks.splice(oldTaskMatchIndex, 1);
               }
-              oldTaskMatch.cancel();
-              this.liveTasks.splice(this.liveTasks.indexOf(oldTaskMatch), 1);
             }
         
             for (const taskSpec of newTasks) {
