@@ -739,8 +739,7 @@ export class LodChunkTracker extends EventTarget {
                   }));
                   this.liveTasks.push(task);
                 } else {
-                  const outrangedNodes = task.oldNodes;
-                  for (const outrangedNode of outrangedNodes) {
+                  for (const outrangedNode of task.oldNodes) {
                     this.emitChunkDestroy(outrangedNode);
                   }
                 }
