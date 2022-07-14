@@ -13,8 +13,7 @@ import fallbackEmotes from "./fallback_emotes.json";
 let emoteTimeout = null;
 export const triggerEmote = (emoteName, player = null) => {
     const emoteHardName = emoteName.replace(/Soft$/, '');
-    const emoteFinalName = fallbackEmotes[emoteHardName] || emoteHardName;
-    const emote = emotes.find(emote => emote.name === emoteFinalName);
+    const emote = emotes.find(emote => emote.name === emoteHardName);
     if (emote === undefined){
         return;
     }
@@ -31,16 +30,16 @@ export const triggerEmote = (emoteName, player = null) => {
     // add new emote
     const newAction = {
         type: 'emote',
-        animation: emoteFinalName,
+        animation: emoteHardName,
     };
     player.addAction(newAction);
 
     setFacePoseValue(emotion, 1);
 
-    const emoteAnimation = emoteAnimations[emoteFinalName];
+    const emoteAnimation = emoteAnimations[emoteHardName];
     const emoteAnimationDuration = emoteAnimation.duration;
     emoteTimeout = setTimeout(() => {
-        const actionIndex = player.findActionIndex(action => action.type === 'emote' && action.animation === emoteFinalName);
+        const actionIndex = player.findActionIndex(action => action.type === 'emote' && action.animation === emoteHardName);
         player.removeActionIndex(actionIndex);
 
         setFacePoseValue(emotion, 0);

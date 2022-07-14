@@ -8,6 +8,7 @@ import {world} from './world.js';
 import {chatManager} from './chat-manager.js';
 import {createRelativeUrl} from './util.js';
 import { triggerEmote } from './src/components/general/character/Poses.jsx';
+import validEmotionMapping from "./validEmotionMapping.json";
 
 const localVector = new THREE.Vector3();
 
@@ -232,8 +233,8 @@ class NpcManager extends EventTarget {
           console.log('got character say', e.data);
           const {message, emote, action, object, target} = e.data;
           chatManager.addPlayerMessage(npcPlayer, message);
-          if (emote !== 'none') {
-            triggerEmote(emote, npcPlayer);
+          if (emote !== 'none' && validEmotionMapping[emote]!== undefined) {
+            triggerEmote(validEmotionMapping[emote], npcPlayer);
           }
           if (emote === 'supersaiyan' || action === 'supersaiyan' || /supersaiyan/i.test(object) || /supersaiyan/i.test(target)) {
             const newSssAction = {
