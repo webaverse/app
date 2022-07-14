@@ -278,6 +278,21 @@ const constructOctreeForLeaf = (position, lod1Range, maxLod) => {
     },
   }; */
 };
+const vec3Equals = (int32ArrayA, int32ArrayB) => {
+  return int32ArrayA[0] === int32ArrayB[0] && int32ArrayA[1] === int32ArrayB[1] && int32ArrayA[2] === int32ArrayB[2];
+};
+const equalsNode = (a, b) => {
+  // return p.min.x === this.min.x && p.min.y === this.min.y && p.min.z === this.min.z &&
+  //   p.lodArray.every((lod, i) => lod === this.lodArray[i]);
+  // console.log('got a b', a, b);
+  return vec3Equals(a.min, b.min) && a.lodArray.every((lod, i) => lod === b.lodArray[i]);
+};
+const isNop = taskSpec => {
+  // console.log('is nop', taskSpec);
+  return taskSpec.newNodes.length === taskSpec.oldNodes.length && taskSpec.newNodes.every(newNode => {
+    return taskSpec.oldNodes.some(oldNode => equalsNode(oldNode, newNode));
+  });
+};
 class Task extends EventTarget {
   constructor(id, maxLodNode, newNodes = [], oldNodes = []) {
     super();
@@ -303,7 +318,7 @@ class Task extends EventTarget {
   isNop() {
     const task = this;
     return task.newNodes.length === task.oldNodes.length && task.newNodes.every(newNode => {
-      return task.oldNodes.some(oldNode => oldNode.equalsNode(newNode));
+      return task.oldNodes.some(oldNode => equalsNode(oldNode, newNode));
     });
   }
   commit() {
@@ -381,7 +396,7 @@ const updateChunks = (oldChunks, tasks) => {
     if (!task.isNop()) {
       let {newNodes, oldNodes} = task;
       for (const oldNode of oldNodes) {
-        const index = newChunks.findIndex(chunk => chunk.equalsNode(oldNode));
+        const index = newChunks.findIndex(chunk => equalsNode(chunk, oldNode));
         if (index !== -1) {
           newChunks.splice(index, 1);
         } else {
@@ -392,23 +407,10 @@ const updateChunks = (oldChunks, tasks) => {
     }
   }
 
-  const removedChunks = [];
-  for (const oldChunk of oldChunks) {
-    if (!newChunks.some(newChunk => newChunk.min.equals(oldChunk.min))) {
-      removedChunks.push(oldChunk);
-    }
-  }
-  const extraTasks = removedChunks.map(chunk => {
-    const task = new Task(chunk);
-    task.oldNodes.push(chunk);
-    return task;
-  });
+  // console.log('update chunks', oldChunks.length, tasks.length, newChunks.length);
 
-  return {
-    chunks: newChunks,
-    extraTasks,
-  }
-}; */
+  return newChunks;
+};
 
 /*
 note: the nunber of lods at each level can be computed with this function:
