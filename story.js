@@ -119,7 +119,7 @@ class Conversation extends EventTarget {
 
     cameraManager.setDynamicTarget(this.localPlayer.avatar.modelBones.Head, this.remotePlayer?.avatar.modelBones.Head);
   }
-  addRemotePlayerMessage(text, emote = 'none', type = 'chat') {
+  addRemotePlayerMessage(text, emote, type = 'chat') {
     const message = {
       type,
       player: this.remotePlayer,
@@ -167,11 +167,12 @@ class Conversation extends EventTarget {
       const aiScene = metaversefile.useLoreAIScene();
       const {
         value: comment,
+        emote,
         done,
       } = await aiScene.generateChatMessage(this.messages, this.remotePlayer.name);
       
       if (!this.messages.some(m => m.text === comment && m.player === this.remotePlayer)) {
-        this.addRemotePlayerMessage(comment);
+        this.addRemotePlayerMessage(comment, emote);
         done && this.finish();
       } else {
         this.finish();
@@ -223,7 +224,7 @@ class Conversation extends EventTarget {
     }
 
     // say the option
-    this.addLocalPlayerMessage(option, 'option');
+    this.addLocalPlayerMessage(option.message, 'option');
 
     if (option.emote !== 'none' && validEmotionMapping[option.emote]!== undefined) {
       triggerEmote(validEmotionMapping[option.emote], this.localPlayer);
