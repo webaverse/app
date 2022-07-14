@@ -463,6 +463,16 @@ export const _createAnimation = avatar => {
     return avatar.motions.filter(motion => motion.pointer === pointer)[0];
   };
 
+  // test ---
+  avatar.axeMotion = physx.physxWorker.createMotion(avatar.mixer, animations.index['Standing Melee Combo Attack Ver. 2.fbx'].pointer);
+  avatar.motions.push({pointer: avatar.axeMotion, name: 'axeMotion'});
+  physx.physxWorker.setLoop(avatar.axeMotion, AnimationLoopType.LoopOnce);
+  physx.physxWorker.stop(avatar.axeMotion);
+  // physx.physxWorker.setTimeBias(avatar.axeMotion, 0.7);
+  // physx.physxWorker.setSpeed(avatar.axeMotion, 1 / 0.6);
+  //
+  // end test ---
+
   avatar.idleMotion = physx.physxWorker.createMotion(avatar.mixer, animations.index['idle.fbx'].pointer);
   avatar.motions.push({pointer: avatar.idleMotion, name: 'idleMotion'});
 
@@ -706,6 +716,8 @@ export const _createAnimation = avatar => {
   physx.physxWorker.addChild(avatar.actionsNodeUnitary, avatar.useMotiono.swordTopDownSlash);
   physx.physxWorker.addChild(avatar.actionsNodeUnitary, avatar.useMotiono.swordTopDownSlashStep);
   physx.physxWorker.addChild(avatar.actionsNodeUnitary, avatar.useMotiono.dashAttack);
+  // test ---
+  physx.physxWorker.addChild(avatar.actionsNodeUnitary, avatar.axeMotion);
 
   // sit
   for (const k in avatar.sitMotiono) {
@@ -867,9 +879,13 @@ export const _updateAnimation = avatar => {
 
   // sword
   if (avatar.useStart) {
-    const useAnimationName = avatar.useAnimation;
-    physx.physxWorker.play(avatar.useMotiono[useAnimationName]);
-    physx.physxWorker.crossFadeUnitary(avatar.actionsNodeUnitary, 0.2, avatar.useMotiono[useAnimationName]);
+    // const useAnimationName = avatar.useAnimation;
+    // physx.physxWorker.play(avatar.useMotiono[useAnimationName]);
+    // physx.physxWorker.crossFadeUnitary(avatar.actionsNodeUnitary, 0.2, avatar.useMotiono[useAnimationName]);
+
+    // test ---
+    physx.physxWorker.play(avatar.axeMotion);
+    physx.physxWorker.crossFadeUnitary(avatar.actionsNodeUnitary, 0.2, avatar.axeMotion);
   }
 
   // silsword
@@ -961,6 +977,8 @@ export const _updateAnimation = avatar => {
         avatar.useMotiono.swordTopDownSlash,
         avatar.useMotiono.swordTopDownSlashStep,
         avatar.useMotiono.dashAttack,
+        // test ---
+        avatar.axeMotion,
       ].includes(motion)) {
         game.handleAnimationEnd();
       }
