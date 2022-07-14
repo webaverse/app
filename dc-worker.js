@@ -183,6 +183,7 @@ const _cloneNode = (node) => {
 const _cloneTask = task => {
   return {
     id: task.id,
+    type: task.type,
     min: task.min.slice(),
     size: task.size,
     isLeaf: task.isLeaf,

@@ -102,11 +102,13 @@ const _parseTrackerUpdate = bufferAddress => {
   const _parseTrackerTask = () => {
     const id = dataView.getInt32(index, true);
     index += Int32Array.BYTES_PER_ELEMENT;
+    const type = dataView.getInt32(index, true);
+    index += Int32Array.BYTES_PER_ELEMENT;
     const min = new Int32Array(Module.HEAPU8.buffer, bufferAddress + index, 3).slice();
     index += Int32Array.BYTES_PER_ELEMENT * 3;
     const size = dataView.getInt32(index, true);
     index += Int32Array.BYTES_PER_ELEMENT;
-    console.log('got id', {id, min: min.join(','), size});
+    // console.log('got id', {id, min: min.join(','), size});
     const isLeaf = !!dataView.getInt32(index, true);
     index += Int32Array.BYTES_PER_ELEMENT;
     const lodArray = new Int32Array(Module.HEAPU8.buffer, bufferAddress + index, 8).slice();
@@ -156,6 +158,7 @@ const _parseTrackerUpdate = bufferAddress => {
 
     return {
       id,
+      type,
       min,
       size,
       isLeaf,
