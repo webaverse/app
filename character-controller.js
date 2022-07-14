@@ -1280,7 +1280,6 @@ class RemotePlayer extends InterpolatedPlayer {
     const observePlayerFn = (e) => {
     if (e.changes.keys.has('position')) {
       const position = e.changes.keys.get('position');
-      console.log("position is", position);
         const timestamp = performance.now();
         const timeDiff = timestamp - lastTimestamp;
         lastTimestamp = timestamp;
