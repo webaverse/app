@@ -29,9 +29,6 @@
         "fog": {
           "fogType": "exp",
           "args": [[0, 5, 10], 0]
-        },
-        "ssr": {
-          
         }
       }
     },
@@ -49,15 +46,8 @@
         0,
         0
       ],
+      "scale": [100, 1, 100],
       "start_url": "/practice/water-main2/"
-    },
-    {
-      "position": [
-        0,
-        0,
-        0
-      ],
-      "start_url": "/practice/dual-contouring-terrain-main/"
     }
   ]
 }

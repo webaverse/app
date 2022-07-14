@@ -72,6 +72,8 @@ export function applyPlayerActionsToAvatar(player, rig) {
   const jumpAction = player.getAction('jump');
   const flyAction = player.getAction('fly');
   const swimAction = player.getAction('swim');
+  const swimUpAction = player.getAction('swimUp');
+  const swimDownAction = player.getAction('swimDown');
   const useAction = player.getAction('use');
   const pickUpAction = player.getAction('pickUp');
   const narutoRunAction = player.getAction('narutoRun');
@@ -104,6 +106,9 @@ export function applyPlayerActionsToAvatar(player, rig) {
   rig.activateTime = player.actionInterpolants.activate.get();
   rig.swimState = !!swimAction;
   rig.swimTime = swimAction ? player.actionInterpolants.swim.get() : -1;
+  rig.swimUpTime = player.actionInterpolants.swimUp.get();
+  rig.swimDownTime = player.actionInterpolants.swimDown.get();
+  rig.horizontalMovementsTransitionTime = player.actionInterpolants.horizontalMovementsTransition.get();
   
   const _handleUse = () => {
     if (useAction?.animation) {

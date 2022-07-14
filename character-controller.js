@@ -977,15 +977,27 @@ class UninterpolatedPlayer extends StatePlayer {
       emote: new BiActionInterpolant(() => this.hasAction('emote'), 0, crouchMaxTime),
       movements: new InfiniteActionInterpolant(() => {
         const ioManager = metaversefile.useIoManager();
-        return  ioManager.keys.up || ioManager.keys.down || ioManager.keys.left || ioManager.keys.right;
+        return  ioManager.keys.up || ioManager.keys.down || ioManager.keys.left || ioManager.keys.right || ioManager.keys.space || ioManager.keys.ctrl;
       }, 0),
       movementsTransition: new BiActionInterpolant(() => {
+        const ioManager = metaversefile.useIoManager();
+        return  ioManager.keys.up || ioManager.keys.down || ioManager.keys.left || ioManager.keys.right || ioManager.keys.space || ioManager.keys.ctrl;
+      }, 0, crouchMaxTime),
+      horizontalMovementsTransition: new BiActionInterpolant(() => {
         const ioManager = metaversefile.useIoManager();
         return  ioManager.keys.up || ioManager.keys.down || ioManager.keys.left || ioManager.keys.right;
       }, 0, crouchMaxTime),
       sprint: new BiActionInterpolant(() => {
         const ioManager = metaversefile.useIoManager();
         return  ioManager.keys.shift;
+      }, 0, crouchMaxTime),
+      swimUp: new BiActionInterpolant(() => {
+        const ioManager = metaversefile.useIoManager();
+        return  ioManager.keys.space;
+      }, 0, crouchMaxTime),
+      swimDown: new BiActionInterpolant(() => {
+        const ioManager = metaversefile.useIoManager();
+        return  ioManager.keys.ctrl;
       }, 0, crouchMaxTime),
       // throw: new UniActionInterpolant(() => this.hasAction('throw'), 0, throwMaxTime),
       // chargeJump: new InfiniteActionInterpolant(() => this.hasAction('chargeJump'), 0),

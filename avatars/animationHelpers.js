@@ -53,6 +53,9 @@ const localQuaternion3 = new Quaternion();
 const localQuaternion4 = new Quaternion();
 const localQuaternion5 = new Quaternion();
 const localQuaternion6 = new Quaternion();
+const localQuaternion7 = new Quaternion();
+const localQuaternion8 = new Quaternion();
+const localQuaternion9 = new Quaternion();
 
 const identityQuaternion = new Quaternion();
 
@@ -1225,9 +1228,10 @@ export const _applyAnimation = (avatar, now, moveFactors, timeDiffS) => {
       animationTrackName: k,
       dst,
       isPosition,
+      boneName,
       isFirstBone,
     } = spec;
-
+    
     if (avatar.swimState) {
       const swimTimeS = avatar.swimTime / 1000;
       const movementsTimeS = avatar.movementsTime / 1000;
@@ -1249,17 +1253,49 @@ export const _applyAnimation = (avatar, now, moveFactors, timeDiffS) => {
       const f = MathUtils.clamp(swimTimeS / 0.2, 0, 1);
       // if (isPosition) console.log(f);
 
+      
+
       if (!isPosition) {
         localQuaternion2.fromArray(v2);
         localQuaternion3.fromArray(v3);
         localQuaternion4.fromArray(v4);
+        localQuaternion5.fromArray([0.3826834, 0, 0, 0.9238795]); // x: 45deg
+        localQuaternion6.fromArray([0,0,0,1]);
+        localQuaternion7.fromArray([1,0,0,0]);
+        
+        
         // // can't use idleWalkFactor & walkRunFactor here, otherwise "Impulsive breaststroke swim animation" will turn into "freestyle animation" when speed is fast,
         // // and will turn into "floating" a little when speed is slow.
         // localQuaternion3.slerp(localQuaternion4, walkRunFactor);
         // localQuaternion2.slerp(localQuaternion3, idleWalkFactor);
         localQuaternion3.slerp(localQuaternion4, avatar.sprintFactor);
         localQuaternion2.slerp(localQuaternion3, avatar.movementsTransitionFactor);
+
+        
+
+        // Swinging Hips for Breaststroke
+        if(boneName === 'Hips' && avatar.sprintFactor === 0 && movementsTimeS > 0) {
+          localQuaternion2.slerp(localQuaternion5, (Math.cos(movementsTimeS * 6) / 2 + 0.5));
+        }
+
+        if(boneName === 'Hips') {
+          if(avatar.swimUpFactor > 0 && avatar.horizontalMovementsTransitionFactor === 0) {
+            localQuaternion2.slerp(localQuaternion6, avatar.swimUpFactor);
+          } else if(avatar.swimDownFactor > 0 && avatar.horizontalMovementsTransitionFactor === 0) {
+            localQuaternion2.slerp(localQuaternion7, avatar.swimDownFactor);
+          } else {
+            const fU = avatar.swimUpFactor / (avatar.swimUpFactor + avatar.horizontalMovementsTransitionFactor) || 0;
+            const fD = avatar.swimDownFactor / (avatar.swimDownFactor + avatar.horizontalMovementsTransitionFactor) || 0;
+            localQuaternion2.slerp(localQuaternion6, fU);
+            localQuaternion2.slerp(localQuaternion7, fD);
+          }
+        }
+
+
         dst.slerp(localQuaternion2, f);
+        
+
+        
       } else {
         const liftSwims = 0.05; // lift swims height, prevent head sink in water
         localVector2.fromArray(v2);

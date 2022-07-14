@@ -1500,7 +1500,10 @@ class Avatar {
     this.aimLeftFactor = this.aimLeftTransitionTime / aimTransitionMaxTime;
     this.aimLeftFactorReverse = 1 - this.aimLeftFactor;
     this.movementsTransitionFactor = Math.min(Math.max(this.movementsTransitionTime / crouchMaxTime, 0), 1);
+    this.horizontalMovementsTransitionFactor = Math.min(Math.max(this.horizontalMovementsTransitionTime / crouchMaxTime, 0), 1);
     this.sprintFactor = Math.min(Math.max(this.sprintTime / crouchMaxTime, 0), 1);
+    this.swimUpFactor = Math.min(Math.max(this.swimUpTime / crouchMaxTime, 0), 1);
+    this.swimDownFactor = Math.min(Math.max(this.swimDownTime / crouchMaxTime, 0), 1);
 
     const _updateHmdPosition = () => {
       const currentPosition = this.inputs.hmd.position;
