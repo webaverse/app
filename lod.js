@@ -490,7 +490,7 @@ export class LodChunkTracker extends EventTarget {
   } = {}) {
     super();
 
-    console.log('got lod chunk tracker', new Error().stack);
+    // console.log('got lod chunk tracker', new Error().stack);
 
     this.chunkSize = chunkSize;
     this.lods = lods;
