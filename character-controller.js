@@ -865,7 +865,6 @@ class InterpolatedPlayer extends StatePlayer {
     
     this.positionInterpolant = new PositionInterpolant(() => this.getPosition(), avatarInterpolationTimeDelay, avatarInterpolationNumFrames);
     this.quaternionInterpolant = new QuaternionInterpolant(() => this.getQuaternion(), avatarInterpolationTimeDelay, avatarInterpolationNumFrames);
-
     this.actionBinaryInterpolants = {
       crouch: new BinaryInterpolant(() => this.hasAction('crouch'), avatarInterpolationTimeDelay, avatarInterpolationNumFrames),
       activate: new BinaryInterpolant(() => this.hasAction('activate'), avatarInterpolationTimeDelay, avatarInterpolationNumFrames),
@@ -883,11 +882,7 @@ class InterpolatedPlayer extends StatePlayer {
       // fallLoop: new BinaryInterpolant(() => this.hasAction('fallLoop'), avatarInterpolationTimeDelay, avatarInterpolationNumFrames),
       // swordSideSlash: new BinaryInterpolant(() => this.hasAction('swordSideSlash'), avatarInterpolationTimeDelay, avatarInterpolationNumFrames),
       // swordTopDownSlash: new BinaryInterpolant(() => this.hasAction('swordTopDownSlash'), avatarInterpolationTimeDelay, avatarInterpolationNumFrames),
-      hurt: new BinaryInterpolant(
-        () => this.hasAction("hurt"),
-        avatarInterpolationTimeDelay,
-        avatarInterpolationNumFrames
-      ),
+      hurt: new BinaryInterpolant(() => this.hasAction("hurt"), avatarInterpolationTimeDelay, avatarInterpolationNumFrames),
     };
     this.actionBinaryInterpolantsArray = Object.keys(this.actionBinaryInterpolants).map(k => this.actionBinaryInterpolants[k]);
     this.actionInterpolants = {
@@ -911,7 +906,7 @@ class InterpolatedPlayer extends StatePlayer {
       hurt: new InfiniteActionInterpolant(() => this.actionBinaryInterpolants.hurt.get(), 0),
     };
 
-    this.actionInterpolantsArray = Object.keys(this.actionInterpolants).map((k) => this.actionInterpolants[k]);
+    this.actionInterpolantsArray = Object.keys(this.actionInterpolants).map(k => this.actionInterpolants[k]);
 
     this.avatarBinding = {
       position: this.positionInterpolant.get(),
@@ -1225,7 +1220,7 @@ class LocalPlayer extends UninterpolatedPlayer {
 class RemotePlayer extends InterpolatedPlayer {
   constructor(opts) {
     super(opts);
-    
+
     this.isRemotePlayer = true;
   }
   detachState() {
@@ -1245,7 +1240,7 @@ class RemotePlayer extends InterpolatedPlayer {
     } else {
       console.warn('binding to nonexistent player object', this.playersArray.toJSON());
     }
-
+    
     const observePlayerFn = e => {
       this.position.fromArray(this.playerMap.get('position'));
       this.quaternion.fromArray(this.playerMap.get('quaternion'));
