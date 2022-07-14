@@ -39,10 +39,10 @@ class OctreeNode extends EventTarget {
   containsNode(node) {
     return this.containsPoint(node.min);
   }
-  equalsNode(p) {
+  /* equalsNode(p) {
     return p.min.x === this.min.x && p.min.y === this.min.y && p.min.z === this.min.z &&
       p.lodArray.every((lod, i) => lod === this.lodArray[i]);
-  }
+  } */
   intersectsNode(p) {
     return this.containsNode(p) || p.containsNode(this);
   }
@@ -278,19 +278,16 @@ const constructOctreeForLeaf = (position, lod1Range, maxLod) => {
     },
   }; */
 };
-const vec3Equals = (int32ArrayA, int32ArrayB) => {
-  return int32ArrayA[0] === int32ArrayB[0] && int32ArrayA[1] === int32ArrayB[1] && int32ArrayA[2] === int32ArrayB[2];
-};
 const equalsNode = (a, b) => {
-  // return p.min.x === this.min.x && p.min.y === this.min.y && p.min.z === this.min.z &&
-  //   p.lodArray.every((lod, i) => lod === this.lodArray[i]);
-  // console.log('got a b', a, b);
-  return vec3Equals(a.min, b.min) && a.lodArray.every((lod, i) => lod === b.lodArray[i]);
+  return a.min.equals(b.min) && a.lod === b.lod;
+};
+const equalsNodeLod = (a, b) => {
+  return equalsNode(a, b) && a.lodArray.every((lod, i) => lod === b.lodArray[i]);
 };
 const isNop = taskSpec => {
   // console.log('is nop', taskSpec);
   return taskSpec.newNodes.length === taskSpec.oldNodes.length && taskSpec.newNodes.every(newNode => {
-    return taskSpec.oldNodes.some(oldNode => equalsNode(oldNode, newNode));
+    return taskSpec.oldNodes.some(oldNode => equalsNodeLod(oldNode, newNode));
   });
 };
 class Task extends EventTarget {
@@ -306,22 +303,22 @@ class Task extends EventTarget {
     this.abortController = new AbortController();
     this.signal = this.abortController.signal;
   }
-  equals(t) {
+  /* equals(t) {
     return this.newNodes.length === this.oldNodes.length && this.newNodes.every(node => {
       return t.newNodes.some(node2 => node.equalsNode(node2));
     }) && this.oldNodes.every(node => {
       return t.oldNodes.some(node2 => node.equalsNode(node2));
     });
-  }
+  } */
   cancel() {
     this.abortController.abort(abortError);
   }
-  isNop() {
+  /* isNop() {
     const task = this;
     return task.newNodes.length === task.oldNodes.length && task.newNodes.every(newNode => {
       return task.oldNodes.some(oldNode => equalsNode(oldNode, newNode));
     });
-  }
+  } */
   commit() {
     this.dispatchEvent(new MessageEvent('finish'));
   }
@@ -399,7 +396,7 @@ const updateChunks = (oldChunks, tasks) => {
   const newChunks = oldChunks.slice();
   
   for (const task of tasks) {
-    if (!isNop(task)) {
+    if (!isNop(task) && task.type != TrackerTaskTypes.OUTRANGE) {
       let {newNodes, oldNodes} = task;
       for (const oldNode of oldNodes) {
         const index = newChunks.findIndex(chunk => equalsNode(chunk, oldNode));
@@ -534,7 +531,7 @@ export class LodChunkTracker extends EventTarget {
         const localColor = new THREE.Color();
 
         const _getChunkColorHex = chunk => {
-          const lod = chunk.size;
+          const {lod} = chunk;
           if (lod === 1) {
             return 0xFF0000;
           } else if (lod === 2) {
@@ -550,14 +547,15 @@ export class LodChunkTracker extends EventTarget {
           for (let i = 0; i < this.chunks.length; i++) {
             const chunk = this.chunks[i];
             localMatrix.compose(
-              localVector.fromArray(chunk.min)
+              localVector.copy(chunk.min)
                 .multiplyScalar(this.chunkSize),
                 // .add(localVector2.set(0, -60, 0)),
               localQuaternion.identity(),
               localVector3.set(1, 1, 1)
-                .multiplyScalar(chunk.size * this.chunkSize * 0.9)
+                .multiplyScalar(chunk.lod * this.chunkSize * 0.9)
             );
             localColor.setHex(_getChunkColorHex(chunk));
+            // console.log('got chunk', chunk, localMatrix.toArray().join(','), _getChunkColorHex(chunk));
             debugMesh.setMatrixAt(debugMesh.count, localMatrix);
             debugMesh.setColorAt(debugMesh.count, localColor);
             debugMesh.count++;
@@ -667,17 +665,17 @@ export class LodChunkTracker extends EventTarget {
           }
   
           // console.log('tracker update 1', /*this.dcWorkerManager.trackerUpdate, */this.dcTracker, position);
-          const {
+          let {
             currentCoord,
             oldTasks,
             newTasks,
           } = await this.dcWorkerManager.trackerUpdate(this.dcTracker, position);
 
-          this.chunks = updateChunks(this.chunks, newTasks);
-
           const _parseNode = (nodeSpec) => {
-            const {min, isLeaf, lodArray} = nodeSpec;
-            const lod = nodeSpec.size;
+            const {min, size: lod, isLeaf, lodArray} = nodeSpec;
+            /* if (!min) {
+              debugger;
+            } */
             return new OctreeNode(
               new THREE.Vector3().fromArray(min),
               lod,
@@ -686,6 +684,7 @@ export class LodChunkTracker extends EventTarget {
             );
           };
           const _parseTask = (taskSpec) => {
+            // console.log('parse task', taskSpec);
             const {id, type} = taskSpec;
             const newNodes = taskSpec.newNodes.map(newNode => _parseNode(newNode));
             const oldNodes = taskSpec.oldNodes.map(oldNode => _parseNode(oldNode));
@@ -697,36 +696,50 @@ export class LodChunkTracker extends EventTarget {
               oldNodes,
             );
           };
+          oldTasks = oldTasks.map(_parseTask);
+          newTasks = newTasks.map(_parseTask);
+
+          this.chunks = updateChunks(this.chunks, newTasks);
+
           const _update = () => {
             for (let i = 0; i < oldTasks.length; i++) {
-              const oldTaskSpec = oldTasks[i];
-              const oldTask = _parseTask(oldTaskSpec);
+              const oldTask = oldTasks[i];
+              // const oldTask = _parseTask(oldTaskSpec);
               const oldTaskMatchIndex = this.liveTasks.findIndex(liveTask => liveTask.id === oldTask.id);
               if (oldTaskMatchIndex !== -1) {
+                // cancel the old task, aborting its progress
                 const oldTaskMatch = this.liveTasks[oldTaskMatchIndex];
-                /* console.log('remove task', oldTask.id, !!oldTaskMatch);
-                if (!oldTaskMatch) {
-                  debugger;
-                } */
                 oldTaskMatch.cancel();
+
+                /* // if the old task is outranged, emit a destroy event for all of its nodes
+                if (oldTask.type === TrackerTaskTypes.OUTRANGE) {
+                  const outrangedNodes = oldTask.newNodes.length > 0 ? oldTask.newNodes : oldTask.oldNodes;
+                  // console.log('outranged nodes', oldTask.oldNodes.slice(), oldTask.newNodes.slice());
+                  for (const outrangedNode of outrangedNodes) {
+                    this.emitChunkDestroy(outrangedNode);
+                  }
+                } */
+
+                // remove the old task from the live set
                 this.liveTasks.splice(oldTaskMatchIndex, 1);
               } else {
                 debugger;
               }
             }
         
-            for (const taskSpec of newTasks) {
-              const task = _parseTask(taskSpec);
-              this.dispatchEvent(new MessageEvent('chunkrelod', {
-                data: {
-                  task,
-                },
-              }));
-              // console.log('got task type', task.type, task);
-              // if (task.type !== TrackerTaskTypes.OUTRANGE) {
-                this.liveTasks.push(task);
-                // console.log('add task', task.id);
-              // }
+            for (const task of newTasks) {
+              // const task = _parseTask(taskSpec);
+              
+              if (!isNop(task)) {
+                this.dispatchEvent(new MessageEvent('chunkrelod', {
+                  data: {
+                    task,
+                  },
+                }));
+                if (task.type !== TrackerTaskTypes.OUTRANGE) {
+                  this.liveTasks.push(task);
+                }
+              }
             }
         
             this.dispatchEvent(new MessageEvent('update'));
