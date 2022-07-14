@@ -703,9 +703,8 @@ class StatePlayer extends PlayerBase {
     this.syncAvatarCancelFn = null;
   }
   setSpawnPoint(position, quaternion) {
-    const localPlayer = metaversefile.useLocalPlayer();
-    localPlayer.position.copy(position);
-    localPlayer.quaternion.copy(quaternion);
+    this.position.copy(position);
+    this.quaternion.copy(quaternion);
 
     camera.position.copy(position);
     camera.quaternion.copy(quaternion);
