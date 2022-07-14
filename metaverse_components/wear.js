@@ -22,7 +22,9 @@ const identityVector = new THREE.Vector3();
 export default (app, component) => { 
   const {useActivate} = metaversefile;
 
+
   const isSwordApp = app.contentId.includes('\\sword\\');
+  if (isSwordApp) window.swordApp = app;
   if (isSwordApp) console.log('-------------------- wear.js', app.contentId);
   
   debugger
