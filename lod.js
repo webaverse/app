@@ -582,11 +582,11 @@ export class LodChunkTracker extends EventTarget {
     return target.set(cx, cy, cz);
   }
   emitChunkDestroy(chunk) {
-    const hash = chunk.min.toArray().join(','); // _octreeNodeMinHash(chunk.min, chunk.lod);
+    const hash = chunk.min.toArray().join(',') + ':' + chunk.lod; // _octreeNodeMinHash(chunk.min, chunk.lod);
     this.dispatchEvent(new MessageEvent('destroy.' + hash));
   }
   listenForChunkDestroy(chunk, fn) {
-    const hash = chunk.min.toArray().join(','); // _octreeNodeMinHash(chunk.min, chunk.lod);
+    const hash = chunk.min.toArray().join(',') + ':' + chunk.lod; // _octreeNodeMinHash(chunk.min, chunk.lod);
     this.addEventListener('destroy.' + hash, e => {
       fn(e);
     }, {once: true});
