@@ -109,6 +109,7 @@ export const MegaHotBox = ({
   description = '',
   mintEnabled = false,
   selectedMenuIndex = 1,
+  selectObject = null,
   imageBitmap = null,
   onActivate = null,
   onClose = null,
@@ -139,6 +140,13 @@ export const MegaHotBox = ({
         live = false;
       };
     }, []);
+    
+    const claimEnable = () => {
+        if(!selectedMenuIndex && selectObject ) {
+                return selectObject.claimed ?? false;
+            }
+    }
+    // (!selectedMenuIndex && selectObject ) ? (selectObject.claimed ?? false) : false;
 
     return (
       <div className={ classnames(styles.megaHotBox, open ? styles.open : null) } >
@@ -155,7 +163,9 @@ export const MegaHotBox = ({
           <div className={ styles.description }>{description}</div>
         </div>
         <div className={ styles.buttons }>
-          {!selectedMenuIndex && (
+          {/* {((!selectedMenuIndex && selectObject ) ? (selectObject.claimed ?? false) : false ) && ( */}
+          {!claimEnable() && (
+            
             <BigButton
               highlight={false}
             //   disabled={mintEnabled}

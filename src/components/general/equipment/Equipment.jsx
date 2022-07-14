@@ -274,7 +274,8 @@ const EquipmentItems = ({
                         <h2>{name}</h2>
                     </div>
                     <ul className={styles.list}>
-                        {tokens.map((object, i) =>
+                        { 
+                        tokens.map((object, i) => 
                             <ItemClass
                                 object={object}
                                 enabled={open}
@@ -360,6 +361,7 @@ export const Equipment = () => {
                     start_url: token.url ?? "",
                     // start_url: token.url ?? token.animation_url ?? token.collection.banner_image_url ?? "",
                     level: token.level ?? 1,
+                    claimed: true
                 };
             });
             console.log("invnetory", inventoryItems)
@@ -622,6 +624,7 @@ export const Equipment = () => {
                 loading={loading}
                 selectedMenuIndex={selectedMenuIndex}
                 name={selectObject ? selectObject.name : null}
+                selectObject={selectObject ? selectObject : null}
                 description={selectObject ? selectObject.description : null}
                 imageBitmap={imageBitmap}
                 onActivate={onDoubleClick(selectObject)}

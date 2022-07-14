@@ -24,18 +24,8 @@ class DropManager extends EventTarget {
     voucher = 'fakeVoucher', // XXX should really throw if no voucher
   }) {
     // const r = () => (-0.5+Math.random())*2;
-    if(voucher == 'fakeVoucher') voucher = await getVoucherFromServer();
+    // if(voucher == 'fakeVoucher') voucher = await getVoucherFromServer();
 
-    //     const dropComponent = {
-    //         key: 'drop',
-    //         value: {
-    //             type,
-    //             voucher,
-    //             velocity: velocity.toArray(),
-    //             angularVelocity: angularVelocity.toArray(),
-    //         },
-    //     };
-    // }
     const dropComponent = {
       key: 'drop',
       value: {

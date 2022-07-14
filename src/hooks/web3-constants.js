@@ -34,11 +34,11 @@ export const CHAIN_TYPE = {
 }
 
 export const CHAINS = {
-  LOCALHOST: {
-    name: 'Localhost',
-    chainId: '0x539',
-    brandColor: '#5BE2A7',
-  },
+//   LOCALHOST: {
+//     name: 'Localhost',
+//     chainId: '0x539',
+//     brandColor: '#5BE2A7',
+//   },
   WEBAVERSE: {
     chainName: 'Webaverse Side Chain',
     name: 'Webaverse',
@@ -76,28 +76,28 @@ export const CHAINS = {
     brandColor: 'rgb(63,123,228)',
     type: CHAIN_TYPE.PRODUCTION,
   },
-  AVALANCHE_MAIN: {
-    chainName: 'Avalanche Network',
-    name: 'Avalanche',
-    blockExplorerUrls: ['https://snowtrace.io/'],
-    chainId: '0xa86a',
-    symbol: 'AVAX',
-    decimals: 18,
-    rpcUrls: ['https://api.avax.network/ext/bc/C/rpc'],
-    brandColor: 'rgb(228,63,123)',
-    type: CHAIN_TYPE.PRODUCTION,
-  },
-  AVALANCHE_TEST: {
-    chainName: 'Avalanche Testnet',
-    name: 'Fuji',
-    blockExplorerUrls: ['https://testnet.snowtrace.io/'],
-    chainId: '0xa869',
-    symbol: 'AVAX',
-    decimals: 18,
-    rpcUrls: ['https://api.avax.network/ext/bc/C/rpc'],
-    brandColor: 'rgb(228,63,123)',
-    type: CHAIN_TYPE.TEST,
-  },
+//   AVALANCHE_MAIN: {
+//     chainName: 'Avalanche Network',
+//     name: 'Avalanche',
+//     blockExplorerUrls: ['https://snowtrace.io/'],
+//     chainId: '0xa86a',
+//     symbol: 'AVAX',
+//     decimals: 18,
+//     rpcUrls: ['https://api.avax.network/ext/bc/C/rpc'],
+//     brandColor: 'rgb(228,63,123)',
+//     type: CHAIN_TYPE.PRODUCTION,
+//   },
+//   AVALANCHE_TEST: {
+//     chainName: 'Avalanche Testnet',
+//     name: 'Fuji',
+//     blockExplorerUrls: ['https://testnet.snowtrace.io/'],
+//     chainId: '0xa869',
+//     symbol: 'AVAX',
+//     decimals: 18,
+//     rpcUrls: ['https://api.avax.network/ext/bc/C/rpc'],
+//     brandColor: 'rgb(228,63,123)',
+//     type: CHAIN_TYPE.TEST,
+//   },
   POLYGON_MAIN: {
     chainName: 'Polygon Mainnet',
     name: 'Polygon',
