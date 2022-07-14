@@ -595,13 +595,9 @@ class AppManager extends EventTarget {
         scale,
         components,
       );
-
-    //   this.addApp(app);
     });
     
     this.bindTrackedApp(dstTrackedApp, app);
-
-    // this.addApp(app);
   }
   hasApp(app) {
     return this.apps.includes(app);
