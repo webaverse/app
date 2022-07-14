@@ -102,7 +102,6 @@ export class SnapshotInterpolant {
         maxEndTime = snapshot.endTime;
       }
     }
-    // minEndTime -= 1000 / avatarInterpolationFrameRate * avatarInterpolationNumFrames;
 
     if (maxEndTime > 0) { // if we had at least one snapshot
       if (
