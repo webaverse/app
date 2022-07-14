@@ -662,8 +662,6 @@ class StatePlayer extends PlayerBase {
         
         if (this.isLocalPlayer) {
           physicsScene.disableGeometryQueries(this.characterController);
-        } else {
-          avatar.shouldUpdateVelocity = false;
         }
       })();
       
@@ -713,7 +711,7 @@ class StatePlayer extends PlayerBase {
     camera.quaternion.copy(quaternion);
     camera.updateMatrixWorld();
 
-    if(this.characterController) {
+    if (this.characterController) {
       this.characterPhysics.setPosition(position);
     }
   }
