@@ -38,8 +38,10 @@ const voronoiNoiseTexture = textureLoader.load(`${baseUrl}/textures/voronoiNoise
 voronoiNoiseTexture.wrapS = voronoiNoiseTexture.wrapT = THREE.RepeatWrapping;
 const noiseMap = textureLoader.load(`${baseUrl}/textures/noise.jpg`);
 noiseMap.wrapS = noiseMap.wrapT = THREE.RepeatWrapping;
-const dudvMap = textureLoader.load(`${baseUrl}/textures/dudvMap2.png`);
+const dudvMap = textureLoader.load(`${baseUrl}/textures/dudvMap.png`);
 dudvMap.wrapS = dudvMap.wrapT = THREE.RepeatWrapping;
+const dudvMap2 = textureLoader.load(`${baseUrl}/textures/dudvMap2.png`);
+dudvMap2.wrapS = dudvMap2.wrapT = THREE.RepeatWrapping;
 const noiseMap3 = textureLoader.load(`${baseUrl}/textures/noise3.png`);
 const maskTexture = textureLoader.load(`${baseUrl}/textures/mask.png`);
 const splashTexture = textureLoader.load(`${baseUrl}/textures/splash1.png`);
@@ -927,7 +929,7 @@ export default (e) => {
             }
             if(reflectionSsrPass){
                 reflectionSsrPass.ssrMaterial.uniforms.uTime.value = timestamp / 1000;
-                reflectionSsrPass.ssrMaterial.uniforms.distortionTexture.value = waterNoiseTexture2;
+                reflectionSsrPass.ssrMaterial.uniforms.distortionTexture.value = dudvMap;
                 
             }
 
@@ -1238,7 +1240,7 @@ export default (e) => {
                 window.innerHeight * pixelRatio
             );
             generator.getMeshes()[0].material.defines.DEPTH_PACKING = supportsDepthTextureExtension === true ? 0 : 1;
-            generator.getMeshes()[0].material.uniforms.tDudv.value = dudvMap;
+            generator.getMeshes()[0].material.uniforms.tDudv.value = dudvMap2;
             generator.getMeshes()[0].material.uniforms.tDepth.value =
                 supportsDepthTextureExtension === true
                     ? renderTarget.depthTexture
