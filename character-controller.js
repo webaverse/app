@@ -931,22 +931,6 @@ class InterpolatedPlayer extends StatePlayer {
       quaternion: this.quaternionInterpolant.get(),
     };
   }
-  update(timestamp, timeDiff) {
-    this.updateInterpolation();
-
-    const mirrors = metaversefile.getMirrors();
-    if(!this.avatar) return console.warn("no avatar");
-    applyPlayerToAvatar(this, null, this.avatar, mirrors);
-
-    const timeDiffS = timeDiff / 1000;
-    this.characterSfx.update(timestamp, timeDiffS);
-    this.characterFx.update(timestamp, timeDiffS);
-    this.characterPhysics.update(timestamp, timeDiffS);
-    this.characterHitter.update(timestamp, timeDiffS);
-    this.characterBehavior.update(timestamp, timeDiffS);
-
-    this.avatar.update(timestamp, timeDiff);
-  }
   updateInterpolation(timestamp, timeDiff) {
     this.positionInterpolant.update(timeDiff);
     this.quaternionInterpolant.update(timeDiff);
@@ -955,7 +939,7 @@ class InterpolatedPlayer extends StatePlayer {
       actionBinaryInterpolant.update(timeDiff);
     }
     for (const actionInterpolant of this.actionInterpolantsArray) {
-      actionInterpolant.update(timestamp, timeDiff);
+      actionInterpolant.update(timeDiff);
     }
   }
 }
