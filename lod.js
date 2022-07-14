@@ -533,11 +533,12 @@ export class LodChunkTracker extends EventTarget {
         const localColor = new THREE.Color();
 
         const _getChunkColorHex = chunk => {
-          if (chunk.lod === 1) {
+          const lod = chunk.size;
+          if (lod === 1) {
             return 0xFF0000;
-          } else if (chunk.lod === 2) {
+          } else if (lod === 2) {
             return 0x00FF00;
-          } else if (chunk.lod === 4) {
+          } else if (lod === 4) {
             return 0x0000FF;
           } else {
             return 0x0;
@@ -548,12 +549,12 @@ export class LodChunkTracker extends EventTarget {
           for (let i = 0; i < this.chunks.length; i++) {
             const chunk = this.chunks[i];
             localMatrix.compose(
-              localVector.copy(chunk.min)
+              localVector.fromArray(chunk.min)
                 .multiplyScalar(this.chunkSize),
                 // .add(localVector2.set(0, -60, 0)),
               localQuaternion.identity(),
               localVector3.set(1, 1, 1)
-                .multiplyScalar(chunk.lod * this.chunkSize * 0.9)
+                .multiplyScalar(chunk.size * this.chunkSize * 0.9)
             );
             localColor.setHex(_getChunkColorHex(chunk));
             debugMesh.setMatrixAt(debugMesh.count, localMatrix);
