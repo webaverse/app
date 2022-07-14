@@ -939,6 +939,34 @@ class InterpolatedPlayer extends StatePlayer {
       quaternion: this.quaternionInterpolant.get(),
     };
   }
+  update(timestamp, timeDiff) {
+    const _updateInterpolation = () => {
+      this.positionInterpolant.update(timeDiff);
+      this.quaternionInterpolant.update(timeDiff);
+
+      for (const actionBinaryInterpolant of this.actionBinaryInterpolantsArray) {
+        actionBinaryInterpolant.update(timeDiff);
+      }
+      for (const actionInterpolant of this.actionInterpolantsArray) {
+        actionInterpolant.update(timeDiff);
+      }
+    }
+
+    _updateInterpolation();
+
+    const mirrors = metaversefile.getMirrors();
+    if(!this.avatar) return console.warn("no avatar");
+    applyPlayerToAvatar(this, null, this.avatar, mirrors);
+
+    const timeDiffS = timeDiff / 1000;
+    this.characterSfx.update(timestamp, timeDiffS);
+    this.characterFx.update(timestamp, timeDiffS);
+    this.characterPhysics.update(timestamp, timeDiffS);
+    this.characterHitter.update(timestamp, timeDiffS);
+    this.characterBehavior.update(timestamp, timeDiffS);
+
+    this.avatar.update(timestamp, timeDiff);
+  }
   updateInterpolation(timeDiff) {
     this.positionTimeStep.update(timeDiff);
     this.quaternionTimeStep.update(timeDiff);
