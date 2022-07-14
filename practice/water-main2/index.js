@@ -38,7 +38,7 @@ const voronoiNoiseTexture = textureLoader.load(`${baseUrl}/textures/voronoiNoise
 voronoiNoiseTexture.wrapS = voronoiNoiseTexture.wrapT = THREE.RepeatWrapping;
 const noiseMap = textureLoader.load(`${baseUrl}/textures/noise.jpg`);
 noiseMap.wrapS = noiseMap.wrapT = THREE.RepeatWrapping;
-const dudvMap = textureLoader.load(`${baseUrl}/textures/dudvMap.png`);
+const dudvMap = textureLoader.load(`${baseUrl}/textures/dudvMap2.png`);
 dudvMap.wrapS = dudvMap.wrapT = THREE.RepeatWrapping;
 const noiseMap3 = textureLoader.load(`${baseUrl}/textures/noise3.png`);
 const maskTexture = textureLoader.load(`${baseUrl}/textures/mask.png`);
@@ -881,10 +881,7 @@ export default (e) => {
     depthMaterial.depthPacking = THREE.RGBADepthPacking;
     depthMaterial.blending = THREE.NoBlending;
     
-    const dudvMap = new THREE.TextureLoader().load(
-        "https://i.imgur.com/hOIsXiZ.png"
-    );
-    dudvMap.wrapS = dudvMap.wrapT = THREE.RepeatWrapping;
+    
 
 
 
@@ -930,7 +927,7 @@ export default (e) => {
             }
             if(reflectionSsrPass){
                 reflectionSsrPass.ssrMaterial.uniforms.uTime.value = timestamp / 1000;
-                reflectionSsrPass.ssrMaterial.uniforms.distortionTexture.value = dudvMap;
+                reflectionSsrPass.ssrMaterial.uniforms.distortionTexture.value = waterNoiseTexture2;
                 
             }
 
@@ -1232,7 +1229,7 @@ export default (e) => {
             generator.getMeshes()[0].material.uniforms.uTime.value = timestamp / 1000;
             generator.getMeshes()[0].material.uniforms.playerPosition.value.copy(localPlayer.position);
             generator.getMeshes()[0].material.uniforms.playerDirection.value.copy(playerDir);
-            generator.getMeshes()[0].material.defines.DEPTH_PACKING = supportsDepthTextureExtension === true ? 0 : 1;
+            
 
             generator.getMeshes()[0].material.uniforms.cameraNear.value = camera.near;
             generator.getMeshes()[0].material.uniforms.cameraFar.value = camera.far;
@@ -1240,6 +1237,7 @@ export default (e) => {
                 window.innerWidth * pixelRatio,
                 window.innerHeight * pixelRatio
             );
+            generator.getMeshes()[0].material.defines.DEPTH_PACKING = supportsDepthTextureExtension === true ? 0 : 1;
             generator.getMeshes()[0].material.uniforms.tDudv.value = dudvMap;
             generator.getMeshes()[0].material.uniforms.tDepth.value =
                 supportsDepthTextureExtension === true
@@ -1336,7 +1334,15 @@ export default (e) => {
     //app.add( mask );
     // camera.add(mask);
     let cameraHasMask = false;
+    let alreadySetComposer = false;
     useFrame(({timestamp}) => {
+        if(!alreadySetComposer){
+            if(reflectionSsrPass){
+                reflectionSsrPass.invisibleSelects.push(mask);
+                alreadySetComposer = true;
+            }
+        }
+       
       
         // mask.position.set(camera.position.x + cameraDir.x * 0.4, camera.position.y, camera.position.z + cameraDir.z * 0.4); 
         // mask.rotation.copy(camera.rotation);  
