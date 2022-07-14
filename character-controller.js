@@ -940,7 +940,7 @@ class InterpolatedPlayer extends StatePlayer {
     };
   }
   update(timestamp, timeDiff) {
-    this.updateInterpolation();
+    this.updateInterpolation(timeDiff);
 
     const mirrors = metaversefile.getMirrors();
     if(!this.avatar) return console.warn("no avatar");
