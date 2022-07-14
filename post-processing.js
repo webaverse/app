@@ -150,7 +150,7 @@ function makeSsrPass(ssr) {
       selects: [],
       foamDepthMaterial: null,
       foamRenderTarget: null,
-      water: null,
+      invisibleSelects: [],
   });
 
   return ssrPass;

@@ -210,7 +210,7 @@ class WaterMesh extends BatchedMesh {
               value: flowmapTexture
           },
           threshold: {
-            value: 0.3
+            value: 0.1
           },
           tDudv: {
             value: null
@@ -379,7 +379,7 @@ class WaterMesh extends BatchedMesh {
         
                 float diff = saturate( fragmentLinearEyeDepth - linearEyeDepth );
         
-                vec2 displacement = texture2D( tDudv, ( worldPosition.xz * 0.05 * 2.0 ) - uTime * 0.05 ).rg;
+                vec2 displacement = texture2D( tDudv, ( worldPosition.xz * 0.05 * 10.0 ) - uTime * 0.05 ).rg;
                 displacement = ( ( displacement * 2.0 ) - 1.0 ) * 1.0;
                 diff += displacement.x;
         
@@ -902,7 +902,6 @@ export default (e) => {
           .premultiply(localMatrix2.copy(app.matrixWorld).invert())
           .decompose(localVector, localQuaternion, localVector2);
         tracker.update(localVector);
-  
         if(generator && localPlayer.avatar){
             if(!alreadySetComposer){
                 if(renderSettings.findRenderSettings(scene)){
@@ -912,7 +911,9 @@ export default (e) => {
                             pass.opacity = 0.1;
                             pass.foamDepthMaterial = depthMaterial;
                             pass.foamRenderTarget = renderTarget;
-                            pass.water = generator.getMeshes()[0];
+                            pass.invisibleSelects.push(generator.getMeshes()[0]);
+                            pass.invisibleSelects.push(localPlayer.avatar.app);
+                            
                             // pass.maxDistance = 10;
                             // pass._fresnel = false;
                             // pass.blur = false;
