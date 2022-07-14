@@ -731,13 +731,18 @@ export class LodChunkTracker extends EventTarget {
               // const task = _parseTask(taskSpec);
               
               if (!isNop(task)) {
-                this.dispatchEvent(new MessageEvent('chunkrelod', {
-                  data: {
-                    task,
-                  },
-                }));
                 if (task.type !== TrackerTaskTypes.OUTRANGE) {
+                  this.dispatchEvent(new MessageEvent('chunkrelod', {
+                    data: {
+                      task,
+                    },
+                  }));
                   this.liveTasks.push(task);
+                } else {
+                  const outrangedNodes = task.oldNodes;
+                  for (const outrangedNode of outrangedNodes) {
+                    this.emitChunkDestroy(outrangedNode);
+                  }
                 }
               }
             }
