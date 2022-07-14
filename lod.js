@@ -672,7 +672,7 @@ export class LodChunkTracker extends EventTarget {
             newTasks,
           } = await this.dcWorkerManager.trackerUpdate(this.dcTracker, position);
 
-          console.log('update number', numUpdates++);
+          this.chunks = updateChunks(this.chunks, newTasks);
 
           const _parseNode = (nodeSpec) => {
             const {min, isLeaf, lodArray} = nodeSpec;
