@@ -112,7 +112,7 @@ export class SnapshotInterpolant {
         this.readTime = maxEndTime;
       }
 
-      let effectiveReadTime = this.readTime - this.timeDelay;
+      const effectiveReadTime = this.readTime - this.timeDelay;
 
       this.seekTo(effectiveReadTime);
     }
@@ -139,6 +139,7 @@ export class SnapshotInterpolant {
   }
   snapshot(timeDiff) {
     const value = this.fn();
+    // console.log('got value', value.join(','), timeDiff);
     const writeSnapshot = this.snapshots[this.snapshotWriteIndex];
     
     const lastWriteSnapshot = this.snapshots[mod(this.snapshotWriteIndex - 1, this.numFrames)];
@@ -173,16 +174,16 @@ export class PositionInterpolant extends SnapshotInterpolant {
   constructor(fn, timeDelay, numFrames) {
     super(fn, timeDelay, numFrames, () => new THREE.Vector3(), (target, value) => {
       target.fromArray(value);
-      /* if (isNaN(target.x) || isNaN(target.y) || isNaN(target.z)) {
-        debugger;
-      } */
+      if (isNaN(target.x) || isNaN(target.y) || isNaN(target.z)) {
+        throw new Error('target is NaN');
+      }
       return target;
     }, (target, src, dst, f) => {
       target.copy(src).lerp(dst, f);
       // console.log('position lerp', target.toArray(), f);
-      /* if (isNaN(target.x) || isNaN(target.y) || isNaN(target.z)) {
-        debugger;
-      } */
+      if (isNaN(target.x) || isNaN(target.y) || isNaN(target.z)) {
+        throw new Error('target is NaN');
+      }
       return target;
     });
   }

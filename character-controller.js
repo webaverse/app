@@ -713,14 +713,14 @@ class StatePlayer extends PlayerBase {
     camera.quaternion.copy(quaternion);
     camera.updateMatrixWorld();
 
-    if(this.characterPhysics) this.characterPhysics.setPosition(position);
-    this.updateMatrixWorld();
+    if(this.characterController) {
+      this.characterPhysics.setPosition(position);
+    }
   }
   getActions() {
     return this.getActionsState();
   }
   getActionsState() {
-    if (!this.playerMap) return []; // not ideal but prevents local player error
     let actionsArray = this.playerMap.has(avatarMapName) ? this.playerMap.get(actionsMapName, Z.Array) : null;
     if (!actionsArray) {
       actionsArray = new Z.Array();
@@ -932,8 +932,6 @@ class InterpolatedPlayer extends StatePlayer {
       position: this.positionInterpolant.get(),
       quaternion: this.quaternionInterpolant.get(),
     };
-
-    this.syncAvatar();
   }
   update(timestamp, timeDiff) {
     const _updateInterpolation = () => {
@@ -1253,7 +1251,7 @@ class LocalPlayer extends UninterpolatedPlayer {
       this.resetPhysics();
     };
   })() */
-  destroy(){
+  destroy() {
     this.characterPhysics.destroy();
     this.characterHups.destroy();
     this.characterSfx.destroy();
