@@ -708,6 +708,8 @@ export class LodChunkTracker extends EventTarget {
                 } */
                 oldTaskMatch.cancel();
                 this.liveTasks.splice(oldTaskMatchIndex, 1);
+              } else {
+                debugger;
               }
             }
         
