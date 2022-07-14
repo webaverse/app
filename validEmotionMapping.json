@@ -1,0 +1,15 @@
+{
+    "alert": "alert",
+    "angry": "angry",
+    "embarrassed": "embarrassed",
+    "headNod": "headNod",
+    "headShake": "headShake",
+    "sad": "sad",
+    "surprise": "surprise",
+    "victory": "victory",
+    "surprised": "surprise",
+    "happy": "victory",
+    "sorrow": "sad",
+    "joy": "victory",
+    "confused": "alert"
+}
