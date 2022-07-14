@@ -907,7 +907,7 @@ class InterpolatedPlayer extends StatePlayer {
     };
 
     this.actionInterpolantsArray = Object.keys(this.actionInterpolants).map(k => this.actionInterpolants[k]);
-
+    
     this.avatarBinding = {
       position: this.positionInterpolant.get(),
       quaternion: this.quaternionInterpolant.get(),
@@ -1220,7 +1220,7 @@ class LocalPlayer extends UninterpolatedPlayer {
 class RemotePlayer extends InterpolatedPlayer {
   constructor(opts) {
     super(opts);
-
+  
     this.isRemotePlayer = true;
   }
   detachState() {
