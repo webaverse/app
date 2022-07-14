@@ -1,10 +1,10 @@
-import * as THREE from 'three';
-import metaversefile from 'metaversefile';
-import {GLTFLoader} from 'three/examples/jsm/loaders/GLTFLoader.js';
-import {getModelGeoMat} from './model';
-import {Matrix4} from 'three';
+import * as THREE from "three";
+import metaversefile from "metaversefile";
+import { GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader.js";
+import { getModelGeoMat } from "./model";
+import { Matrix4 } from "three";
 
-const {useApp, useCamera, useLocalPlayer, useMaterials, useFrame, useText} =
+const { useApp, useCamera, useLocalPlayer, useMaterials, useFrame, useText } =
   metaversefile;
 
 const Text = useText();
@@ -13,27 +13,27 @@ let nameplateMesh = null;
 
 async function createNameplateMesh() {
   if (nameplateMesh) return;
-  const nameplateModelUrl = '/assets/nameplate.glb';
+  const nameplateModelUrl = "/assets/nameplate.glb";
   const nameplateModel = await new Promise((resolve, reject) => {
     gltfLoader.load(nameplateModelUrl, resolve, () => {}, reject);
   });
-  const {geometry, material} = getModelGeoMat(nameplateModel);
+  const { geometry, material } = getModelGeoMat(nameplateModel);
   nameplateMesh = new THREE.InstancedMesh(geometry, material, 1000);
 }
 
 const createNameplateInstance = () => {
-  if (!nameplateMesh) return 0;
+  if (!nameplateMesh) return -1;
   if (!nameplateMesh.instanceIndex) nameplateMesh.instanceIndex = 0;
   return nameplateMesh.instanceIndex++;
 };
 
 async function getTextMesh(
-  text = '',
-  font = './fonts/Plaza Regular.ttf',
+  text = "",
+  font = "./fonts/Plaza Regular.ttf",
   fontSize = 0.75,
-  anchorX = 'left',
-  anchorY = 'middle',
-  color = 0x000000,
+  anchorX = "left",
+  anchorY = "middle",
+  color = 0x000000
 ) {
   const textMesh = new Text();
   textMesh.text = text;
@@ -43,7 +43,7 @@ async function getTextMesh(
   textMesh.anchorX = anchorX;
   textMesh.anchorY = anchorY;
   textMesh.frustumCulled = false;
-  await new Promise(resolve => {
+  await new Promise((resolve) => {
     textMesh.sync(resolve);
   });
   return textMesh;
@@ -65,10 +65,10 @@ export default () => {
       app.add(nameplateMesh);
     }
     instIndex = createNameplateInstance();
-    const font = './fonts/GeosansLight.ttf';
+    const font = "./fonts/GeosansLight.ttf";
     const fontSize = 0.2;
-    const anchorX = 'center';
-    const anchorY = 'top';
+    const anchorX = "center";
+    const anchorY = "top";
     const color = 0xffffff;
     const textMesh = await getTextMesh(
       app.player.name,
@@ -76,7 +76,7 @@ export default () => {
       fontSize,
       anchorX,
       anchorY,
-      color,
+      color
     );
     textMesh.position.set(0, 0, 0.001);
     textMesh.updateMatrixWorld(true);
@@ -91,7 +91,7 @@ export default () => {
     nameplateMesh.getMatrixAt(instIndex, nameplateMatrix);
     const plateToCamera = new THREE.Vector3().subVectors(
       camera.position,
-      new THREE.Vector3().setFromMatrixPosition(nameplateMatrix),
+      new THREE.Vector3().setFromMatrixPosition(nameplateMatrix)
     );
     if (!lastPlateToCamera.equals(plateToCamera)) {
       plateToCameraAngle = Math.atan2(plateToCamera.x, plateToCamera.z);
@@ -101,20 +101,20 @@ export default () => {
       new Matrix4()
         .multiplyMatrices(
           new Matrix4().makeScale(30, 30, 30),
-          new Matrix4().makeRotationY(plateToCameraAngle),
+          new Matrix4().makeRotationY(plateToCameraAngle)
         )
         .setPosition(
           app.player.position.x,
           app.player.position.y + 0.4,
-          app.player.position.z,
-        ),
+          app.player.position.z
+        )
     );
     nameplateMesh.setMatrixAt(instIndex, nameplateMatrix);
     nameplateMesh.instanceMatrix.needsUpdate = true;
     textGroup.position.set(
       app.player.position.x,
       app.player.position.y + 0.52,
-      app.player.position.z,
+      app.player.position.z
     );
     textGroup.rotation.y = plateToCameraAngle;
     textGroup.updateMatrixWorld(true);
