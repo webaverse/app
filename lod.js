@@ -659,34 +659,6 @@ export class LodChunkTracker extends EventTarget {
       (async () => {
         if (!this.isUpdating) {
           this.isUpdating = true;
-    
-          /* async createTracker(lod, minLodRange, trackY, {signal} = {}) {
-            const worker = this.getNextWorker();
-            const result = await worker.request('createTracker', {
-              instance: this.instance,
-              lod,
-              minLodRange,
-              trackY,
-            }, {signal});
-            return result;
-          }
-          async destroyTracker(tracker, {signal} = {}) {
-            const worker = this.getNextWorker();
-            const result = await worker.request('destroyTracker', {
-              instance: this.instance,
-              tracker,
-            }, {signal});
-            return result;
-          }
-          async trackerUpdate(tracker, position, {signal} = {}) {
-            const worker = this.getNextWorker();
-            const result = await worker.request('trackerUpdate', {
-              instance: this.instance,
-              tracker,
-              position: position.toArray(),
-            }, {signal});
-            return result;
-          } */
   
           if (!this.dcTracker) {
             // console.log('create tracker 1', /*this.dcWorkerManager.createTracker, */this.lods, this.minLodRange, this.trackY);
