@@ -24,6 +24,9 @@ import {mod} from './util.js';
 import {getLocalPlayer} from './players.js';
 import {alea} from './procgen/procgen.js';
 
+import { triggerEmote } from './src/components/general/character/Poses.jsx';
+import validEmotionMapping from "./validEmotionMapping.json";
+
 const localVector2D = new THREE.Vector2();
 
 const upVector = new THREE.Vector3(0, 1, 0);
@@ -116,12 +119,13 @@ class Conversation extends EventTarget {
 
     cameraManager.setDynamicTarget(this.localPlayer.avatar.modelBones.Head, this.remotePlayer?.avatar.modelBones.Head);
   }
-  addRemotePlayerMessage(text, type = 'chat') {
+  addRemotePlayerMessage(text, emote = 'none', type = 'chat') {
     const message = {
       type,
       player: this.remotePlayer,
       name: this.remotePlayer.name,
       text,
+      emote,
     };
     this.messages.push(message);
 
@@ -136,6 +140,10 @@ class Conversation extends EventTarget {
     })();
 
     cameraManager.setDynamicTarget(this.remotePlayer.avatar.modelBones.Head, this.localPlayer.avatar.modelBones.Head);
+
+    if (emote !== 'none' && validEmotionMapping[emote]!== undefined) {
+      triggerEmote(validEmotionMapping[emote], this.remotePlayer);
+    }
   }
   async wrapProgress(fn) {
     if (!this.progressing) {
@@ -216,6 +224,10 @@ class Conversation extends EventTarget {
 
     // say the option
     this.addLocalPlayerMessage(option, 'option');
+
+    if (option.emote !== 'none' && validEmotionMapping[option.emote]!== undefined) {
+      triggerEmote(validEmotionMapping[option.emote], this.localPlayer);
+    }
     
     // clear options
     this.#setOptions(null);
