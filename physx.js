@@ -7,6 +7,7 @@ import * as THREE from 'three';
 // import { getRenderer } from './renderer.js'
 import Module from './public/bin/geometry.js';
 import {Allocator, ScratchStack} from './geometry-util.js';
+import { AnimationNodeType } from './constants.js';
 
 const localVector = new THREE.Vector3()
 const localVector2 = new THREE.Vector3()
@@ -2179,6 +2180,238 @@ const physxWorker = (() => {
       faces: faces,
     }
   }
+
+
+  // AnimationSystem
+
+  w.createAnimationMixer = () => {
+    return Module._createAnimationMixer(
+    )
+  }
+  w.updateAnimationMixer = (mixer, timeS) => {
+    const outputBufferOffsetMain = Module._updateAnimationMixer(
+      mixer, timeS,
+    )
+    // console.log(outputBufferOffsetMain)
+    // debugger
+    const values = [];
+    const headMain = outputBufferOffsetMain / Float32Array.BYTES_PER_ELEMENT;
+    for (let i = 0; i < 53; i++) {
+      let value;
+      const outputBufferOffset = Module.HEAPU32[headMain + i];
+      const head = outputBufferOffset / Float32Array.BYTES_PER_ELEMENT;
+      const valueSize = Module.HEAPF32[head];
+      const x = Module.HEAPF32[head + 1];
+      const y = Module.HEAPF32[head + 2];
+      const z = Module.HEAPF32[head + 3];
+      if (valueSize === 3) {
+        value = [x, y, z];
+      } else if (valueSize === 4) {
+        const w = Module.HEAPF32[head + 4];
+        value = [x, y, z, w];
+      }
+      values.push(value);
+    }
+
+    let outputBufferOffset = Module.HEAPU32[headMain + 53];
+    let head = outputBufferOffset / Float32Array.BYTES_PER_ELEMENT;
+    const finishedFlag = Module.HEAPF32[head];
+    values.push(finishedFlag);
+
+    // if (finishedFlag) debugger
+    outputBufferOffset = Module.HEAPU32[headMain + 54];
+    // head = outputBufferOffset / Float32Array.BYTES_PER_ELEMENT;
+    // const finishedAnimationIndex = Module.HEAPF32[head];
+    // values.push(finishedAnimationIndex);
+    const motion = outputBufferOffset; // = motion's pointer
+    values.push(motion);
+
+    // console.log(finishedFlag);
+    // if (finishedFlag) {
+    //   console.log(finishedAnimationIndex);
+    //   debugger
+    // }
+
+    return values;
+  }
+  w.createAnimationMapping = (isPosition, index, isFirstBone, isLastBone, isTop, isArm) => {
+    Module._createAnimationMapping(
+      isPosition, index, isFirstBone, isLastBone, isTop, isArm
+    )
+  }
+  // w.createAnimationMixer = () => {
+  //   const pointer = Module._createAnimationMixer(
+  //   )
+  //   return pointer;
+  // }
+  w.createAnimation = (duration) => {
+    const pointer = Module._createAnimation(
+      duration,
+    )
+    return pointer;
+  }
+  w.createMotion = (mixer, animation) => {
+    const pointer = Module._createMotion(
+      mixer, animation,
+    )
+    return pointer;
+  }
+  w.createNode = (mixer, type = AnimationNodeType.LIST) => {
+    // debugger
+    const pointer = Module._createNode(
+      mixer, type,
+    )
+    return pointer;
+  }
+  window.nodeReferenceCount = {}; // test
+  w.addChild = (parentNode, childNode) => { // input: pointers of nodes
+
+    if (!parentNode) debugger
+    if (!childNode) debugger
+
+    Module._addChild(
+      parentNode, childNode,
+    )
+
+    if (window.nodeReferenceCount[childNode]) {
+      window.nodeReferenceCount[childNode]++
+    } else {
+      window.nodeReferenceCount[childNode] = 1;
+    }
+  }
+  w.setRootNode = (mixer, node) => { // input: pointer of node
+    Module._setRootNode(
+      mixer, node,
+    )
+  }
+  w.createInterpolant = (animationIndex, parameterPositions, sampleValues, valueSize) => {
+    const allocator = new Allocator(Module);
+
+    if (valueSize === 3) {
+      //
+    } else if (valueSize === 4) {
+      //
+    } else {
+      debugger
+    }
+
+    const parameterPositionsTypedArray = allocator.alloc(Float32Array, parameterPositions.length);
+    parameterPositionsTypedArray.set(parameterPositions);
+
+    const sampleValuesTypedArray = allocator.alloc(Float32Array, sampleValues.length);
+    sampleValuesTypedArray.set(sampleValues);
+
+    Module._createInterpolant(
+      animationIndex,
+      parameterPositions.length,
+      parameterPositionsTypedArray.byteOffset,
+      sampleValues.length,
+      sampleValuesTypedArray.byteOffset,
+      valueSize, // only support 3 (vector) and 4 (quaternion)
+    )
+
+    // allocator.freeAll(); // can't free sampleValuesTypedArray, need persist in wasm for later use.
+  }
+  // w.evaluateInterpolant = (animationIndex, interpolantIndex, t) => {
+  //   const outputBufferOffset = Module._evaluateInterpolant(
+  //     animationIndex,
+  //     interpolantIndex,
+  //     t,
+  //   )
+
+  //   let head = outputBufferOffset / Float32Array.BYTES_PER_ELEMENT;
+  //   let tail = head + 1;
+  //   const valueSize = Module.HEAPF32[head];
+
+  //   head = tail;
+  //   tail = head + 1;
+  //   const x = Module.HEAPF32[head];
+
+  //   head = tail;
+  //   tail = head + 1;
+  //   const y = Module.HEAPF32[head];
+
+  //   head = tail;
+  //   tail = head + 1;
+  //   const z = Module.HEAPF32[head];
+
+  //   if (valueSize === 3) {
+  //     return [x, y, z];
+  //   } else if (valueSize === 4) {
+  //     head = tail;
+  //     tail = head + 1;
+  //     const w = Module.HEAPF32[head];
+
+  //     return [x, y, z, w];
+  //   } else {
+  //     debugger
+  //   }
+  // }
+  // w.getAnimationValues = (animationIndex, t) => {
+  //   const outputBufferOffsetMain = Module._getAnimationValues(
+  //     animationIndex,
+  //     t,
+  //   )
+  //   const values = [];
+  //   const headMain = outputBufferOffsetMain / Float32Array.BYTES_PER_ELEMENT;
+  //   for (let i = 0; i < 53; i++) {
+  //     let value;
+  //     const outputBufferOffset = Module.HEAPU32[headMain + i];
+  //     const head = outputBufferOffset / Float32Array.BYTES_PER_ELEMENT;
+  //     const valueSize = Module.HEAPF32[head];
+  //     const x = Module.HEAPF32[head + 1];
+  //     const y = Module.HEAPF32[head + 2];
+  //     const z = Module.HEAPF32[head + 3];
+  //     if (valueSize === 3) {
+  //       value = [x, y, z];
+  //     } else if (valueSize === 4) {
+  //       const w = Module.HEAPF32[head + 4];
+  //       value = [x, y, z, w];
+  //     }
+  //     values.push(value);
+  //   }
+  //   return values;
+  // }
+  w.crossFadeTwo = (parentNode, duration, targetFactor) => {
+    Module._crossFadeTwo(
+      parentNode, duration, targetFactor,
+    )
+  }
+  w.crossFadeUnitary = (parentNode, duration, targetNode) => {
+    Module._crossFadeUnitary(
+      parentNode, duration, targetNode,
+    )
+  }
+  w.setWeight = (node, weight) => { // todo: renmae: setWeight() // todo: general setProp/Attribute().
+    Module._setWeight(
+      node,
+      weight,
+    )
+  }
+  w.setFactor = (node, factor) => { // todo: general setProp/Attribute().
+    Module._setFactor(
+      node,
+      factor,
+    )
+  }
+  w.getWeight = (node) => {
+    return Module._getWeight(
+      node,
+    )
+  }
+  w.getFactor = (node) => {
+    return Module._getFactor(
+      node,
+    )
+  }
+  w.play = (motion) => Module._play(motion);
+  w.stop = (motion) => Module._stop(motion);
+  w.setTimeBias = (motion, timeBias) => Module._setTimeBias(motion, timeBias);
+  w.setSpeed = (motion, speed) => Module._setSpeed(motion, speed);
+  w.setLoop = (motion, loopType) => Module._setLoop(motion, loopType); // todo: Rename to `setMotionLoop` or `motionSetLoop` `motion_setLoop`.
+
+  // End AnimationSystem
+
   return w;
 })()
 
