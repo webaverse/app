@@ -96,7 +96,10 @@ const DragAndDrop = () => {
   const [currentApp, setCurrentApp] = useState(null);
   const {mintNFT, minting, error, setError} = useNFTContract(account.currentAddress);
   const [mintComplete, setMintComplete] = useState(false);
+  const [pendingTx, setPendingTx] = useState(false);
   const [previewImage, setPreviewImage] = useState(null);
+  const [nftName, setNFTName] = useState(null);
+  const [nftDetails, setNFTDetails] = useState(null);
   const {selectedChain} = useContext(ChainContext);
   const canvasRef = useRef(null);
 
@@ -248,9 +251,12 @@ const DragAndDrop = () => {
     if (currentApp) {
       const app = currentApp;
       await mintNFT(app, previewImage, () => {
-        setMintComplete(true);
         setPreviewImage(null);
-        setCurrentApp(null)
+        setCurrentApp(null);
+        setPendingTx(true)
+      }, () => {
+        setMintComplete(true);
+        setPendingTx(false)
       });
     }
     setCurrentApp(null);
@@ -269,7 +275,7 @@ const DragAndDrop = () => {
     if (mintComplete) {
       setTimeout(() => {
         setMintComplete(false);
-      }, 3000);
+      }, 6000);
     }
   }, [mintComplete]);
 
@@ -277,7 +283,7 @@ const DragAndDrop = () => {
     if (error) {
       setTimeout(() => {
         setError('');
-      }, 3000);
+      }, 6000);
     }
   }, [error]);
 
@@ -370,7 +376,7 @@ const DragAndDrop = () => {
               <span>Equip</span>
               <sub>to self</sub>
             </div>
-            <div className={style.button} disabled={!isChainSupported(selectedChain) || !account.currentAddress} onClick={_mint}>
+            <div className={style.button} disabled={!isChainSupported(selectedChain) || !account.currentAddress || pendingTx} onClick={_mint}>
               <span>Mint</span>
               <sub>on {selectedChain.name}</sub>
             </div>

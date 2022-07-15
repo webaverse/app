@@ -63,7 +63,7 @@ export default function useNFTContract(currentAccount) {
     return contract;
   };
 
-  async function mintNFT(currentApp, previewImage, callback = () => {}) {
+  async function mintNFT(currentApp, previewImage, callback = () => {}, afterminting = () => {}) {
     setMinting(true);
     setError('');
     try {
@@ -124,7 +124,6 @@ export default function useNFTContract(currentAccount) {
       const metadatahash = json_hash.split(FILE_ADDRESS)[1].split('/')[0];
       const Webaversecontract = new ethers.Contract(WebaversecontractAddress, WebaverseABI, signer);
       // const NFTcontract = new ethers.Contract(NFTcontractAddress, NFTABI, signer);
-      debugger;
       const FTcontract = new ethers.Contract(FTcontractAddress, FTABI, signer);
 
       const Bigmintfee = await Webaversecontract.mintFee();
@@ -149,9 +148,11 @@ export default function useNFTContract(currentAccount) {
       } else { // mintfee = 0 for Polygon not webaverse sidechain
         try {
           const minttx = await Webaversecontract.mint(currentAccount, 1, metadatahash, "0x");
+        //   callback(minttx);
+            callback();
             let res = await minttx.wait()
             if (res.transactionHash) {
-                callback();
+                afterminting();
             }
         } catch (err) {
           console.warn('minting to webaverse contract failed');

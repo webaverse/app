@@ -9,6 +9,10 @@ export default function NFTDetailsForm({initialName = '', initialDetails = '', p
   useEffect(() => {
     onChange({name, details});
   }, [name, details, onChange]);
+  useEffect(() => {
+    setName("");
+    setDetails("");
+  }, [initialName])
 
   return <div className={styles.detailsForm}>
     {previewImage && <img crossOrigin="true" src={previewImage} />}
