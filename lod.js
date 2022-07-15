@@ -1,4 +1,3 @@
-import { isCommunityResourcable } from '@ethersproject/providers';
 import * as THREE from 'three';
 // import {scene, camera} from './renderer.js';
 import {defaultChunkSize} from './constants.js';
