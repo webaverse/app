@@ -17,14 +17,6 @@
       }
     },
     {
-      "type": "application/rendersettings",
-      "content": {
-        "ssr": {
-          
-        }
-      }
-    },
-    {
       "position": [
         0,
         0,
@@ -50,20 +42,12 @@
     {
       "position": [
         0,
-        -0.8,
+        0,
         0
       ],
       "physics": true,
       "start_url": "https://webaverse.github.io/block/grid.glb",
       "dynamic": false
-    },
-    {
-      "position": [
-        0,
-        0,
-        -5
-      ],
-      "start_url": "/practice/test-ssr/"
     }
   ]
 }

@@ -160,10 +160,6 @@ class WaterMesh extends BatchedMesh {
     // });
     
     const material = new THREE.ShaderMaterial({
-      defines: {
-        DEPTH_PACKING: 1,
-        ORTHOGRAPHIC_CAMERA: 0
-      },
       uniforms: {
           uTime: {
               type: "f",
@@ -211,34 +207,9 @@ class WaterMesh extends BatchedMesh {
           flowmapTexture: {
               value: flowmapTexture
           },
-          threshold: {
-            value: 0.1
-          },
-          tDudv: {
-            value: null
-          },
-          tDepth: {
-            value: null
-          },
-          cameraNear: {
-            value: 0
-          },
-          cameraFar: {
-            value: 0
-          },
-          resolution: {
-            value: new THREE.Vector2()
-          },
-          foamColor: {
-            value: new THREE.Color(1.0, 1.0, 1.0)
-          },
-          waterColor: {
-            value: new THREE.Color(0., 0.3, 0.5)
-          }
 
       },
       vertexShader: `\
-        //   #extension GL_ANGLE_multi_draw : require
           ${THREE.ShaderChunk.common}
           ${THREE.ShaderChunk.logdepthbuf_pars_vertex}
           
@@ -283,36 +254,11 @@ class WaterMesh extends BatchedMesh {
           uniform vec3 playerPosition;
           uniform vec3 playerDirection;
 
-          uniform sampler2D tDepth;
-          uniform sampler2D tDudv;
-          uniform vec3 waterColor;
-          uniform vec3 foamColor;
-          uniform float cameraNear;
-          uniform float cameraFar;
-          uniform float time;
-          uniform float threshold;
-          uniform vec2 resolution;
-          
           
           uniform sampler2D waterDerivativeHeightTexture;
           uniform sampler2D waterNoiseTexture;
           uniform sampler2D flowmapTexture;
 
-          float getDepth( const in vec2 screenPosition ) {
-            #if DEPTH_PACKING == 1
-              return unpackRGBAToDepth( texture2D( tDepth, screenPosition ) );
-            #else
-              return texture2D( tDepth, screenPosition ).x;
-            #endif
-          }
-
-          float getViewZ( const in float depth ) {
-            #if ORTHOGRAPHIC_CAMERA == 1
-              return orthographicDepthToViewZ( depth, cameraNear, cameraFar );
-            #else
-              return perspectiveDepthToViewZ( depth, cameraNear, cameraFar );
-            #endif
-          }
           
           float frac(float v)
           {
@@ -371,22 +317,7 @@ class WaterMesh extends BatchedMesh {
               gl_FragColor = (texA + texB) * vec4(0.048, 0.24, 0.384, 0.97) + vec4(0.0282, 0.470, 0.431, 0.);
               gl_FragColor.rgb /= 3.;
               gl_FragColor += vec4( specularHighlight, 0.0 );
-
-
-                // foam
-                // vec2 screenUV = gl_FragCoord.xy / resolution;
-
-                // float fragmentLinearEyeDepth = getViewZ( gl_FragCoord.z );
-                // float linearEyeDepth = getViewZ( getDepth( screenUV ) );
-        
-                // float diff = saturate( fragmentLinearEyeDepth - linearEyeDepth );
-        
-                // vec2 displacement = texture2D( tDudv, ( worldPosition.xz * 0.05 * 10.0 ) - uTime * 0.05 ).rg;
-                // displacement = ( ( displacement * 2.0 ) - 1.0 ) * 1.0;
-                // diff += displacement.x;
-        
-                // gl_FragColor.rgb = mix( foamColor, gl_FragColor.rgb, step( threshold, diff ) );
-                
+ 
               ${THREE.ShaderChunk.logdepthbuf_fragment}
           }
       `,
@@ -857,42 +788,7 @@ export default (e) => {
 
     let alreadySetComposer = false;
     
-    const supportsDepthTextureExtension = !!renderer.extensions.get(
-        "WEBGL_depth_texture"
-    );
-
-    const pixelRatio = renderer.getPixelRatio();
-
-    const renderTarget = new THREE.WebGLRenderTarget(
-    window.innerWidth * pixelRatio,
-    window.innerHeight * pixelRatio
-    );
-    renderTarget.texture.minFilter = THREE.NearestFilter;
-    renderTarget.texture.magFilter = THREE.NearestFilter;
-    renderTarget.texture.generateMipmaps = false;
-    renderTarget.stencilBuffer = false;
-
-    if (supportsDepthTextureExtension === true) {
-    renderTarget.depthTexture = new THREE.DepthTexture();
-    renderTarget.depthTexture.type = THREE.UnsignedShortType;
-    renderTarget.depthTexture.minFilter = THREE.NearestFilter;
-    renderTarget.depthTexture.maxFilter = THREE.NearestFilter;
-    }
-
-    const depthMaterial = new THREE.MeshDepthMaterial();
-    depthMaterial.depthPacking = THREE.RGBADepthPacking;
-    depthMaterial.blending = THREE.NoBlending;
     
-    
-
-
-
-    // const geometry = new THREE.PlaneGeometry( 5, 5 );
-    // const material = new THREE.MeshBasicMaterial( {map: textureLoader.load(`${baseUrl}/textures/test.jpg`), color: 0xffff00, side: THREE.DoubleSide} );
-    // const plane = new THREE.Mesh( geometry, material );
-    // app.add( plane );
-    // plane.position.y = 65;
-
     
     useFrame(({timestamp, timeDiff}) => {
       if (!!tracker && !range) {
@@ -905,11 +801,11 @@ export default (e) => {
             if(!alreadySetComposer){
                 if(renderSettings.findRenderSettings(scene)){
                     for(const pass of renderSettings.findRenderSettings(scene).passes){
-                        if(pass.constructor.name === 'SSRPass'){
+                        if(pass.constructor.name === 'WebaWaterPass'){
                             pass._selects.push(generator.getMeshes()[0]);
                             pass.opacity = 0.12;
-                            pass.foamDepthMaterial = depthMaterial;
-                            pass.foamRenderTarget = renderTarget;
+                            // pass.foamDepthMaterial = depthMaterial;
+                            // pass.foamRenderTarget = renderTarget;
                             // pass.invisibleSelects.push(generator.getMeshes()[0]);
                             pass.invisibleSelects.push(localPlayer.avatar.app);
                             
@@ -1234,19 +1130,6 @@ export default (e) => {
             generator.getMeshes()[0].material.uniforms.playerPosition.value.copy(localPlayer.position);
             generator.getMeshes()[0].material.uniforms.playerDirection.value.copy(playerDir);
             
-
-            generator.getMeshes()[0].material.uniforms.cameraNear.value = camera.near;
-            generator.getMeshes()[0].material.uniforms.cameraFar.value = camera.far;
-            generator.getMeshes()[0].material.uniforms.resolution.value.set(
-                window.innerWidth * pixelRatio,
-                window.innerHeight * pixelRatio
-            );
-            generator.getMeshes()[0].material.defines.DEPTH_PACKING = supportsDepthTextureExtension === true ? 0 : 1;
-            generator.getMeshes()[0].material.uniforms.tDudv.value = dudvMap2;
-            generator.getMeshes()[0].material.uniforms.tDepth.value =
-                supportsDepthTextureExtension === true
-                    ? renderTarget.depthTexture
-                    : renderTarget.texture;
                 
                 
         }
@@ -2189,7 +2072,7 @@ export default (e) => {
                 ){
                     let brokenDegree = currentSpeed > 0.3 ? 0.23 + 0.2 * Math.random() : 0.4 + 0.3 * Math.random();
                     if(currentSpeed > 0.5){
-                        brokenDegree *= 1.2;
+                        brokenDegree *= 1.3;
                     }
                     if(!localPlayer.hasAction('swim')){
                         brokenDegree *= 1.1;
@@ -4672,7 +4555,7 @@ export default (e) => {
                 }
                 
                 scalesAttribute.setX(i,scalesAttribute.getX(i) + 0.04);
-                if(brokenAttribute.getX(i)<1)
+                if(brokenAttribute.getX(i) < 1)
                     brokenAttribute.setX(i, brokenAttribute.getX(i) + 0.007);
                 
 

@@ -7,8 +7,7 @@ import * as THREE from 'three';
 import {ShaderPass} from 'three/examples/jsm/postprocessing/ShaderPass.js';
 import {UnrealBloomPass} from 'three/examples/jsm/postprocessing/UnrealBloomPass.js';
 import {AdaptiveToneMappingPass} from 'three/examples/jsm/postprocessing/AdaptiveToneMappingPass.js';
-import { SSRPass } from 'three/examples/jsm/postprocessing/SSRPass.js';
-import { SSRrPass } from 'three/examples/jsm/postprocessing/SSRrPass.js';
+import { WebaWaterPass } from 'three/examples/jsm/postprocessing/WebaWaterPass.js';
 // import {BloomPass} from 'three/examples/jsm/postprocessing/BloomPass.js';
 // import {AfterimagePass} from 'three/examples/jsm/postprocessing/AfterimagePass.js';
 import {BokehPass} from './BokehPass.js';
@@ -138,38 +137,21 @@ function makeBloomPass({
   // unrealBloomPass.enabled = hqDefault;
   return unrealBloomPass;
 }
-function makeSsrPass(ssr) {
+function makeWebaWaterPass(webaWater) {
   const renderer = getRenderer();
-  const ssrPass = new SSRPass( {
+  const webaWaterPass = new WebaWaterPass( {
       renderer,
       scene,
       camera,
       width: window.innerWidth,
       height: window.innerHeight,
-      groundReflector: null,
       selects: [],
-      foamRenderTarget: null,
       invisibleSelects: [],
   });
 
-  return ssrPass;
+  return webaWaterPass;
 }
 
-function makeSsrrPass(ssrr) {
-  const renderer = getRenderer();
-  const ssrrPass = new SSRrPass({
-      renderer,
-      scene,
-      camera,
-      width: window.innerWidth,
-      height: window.innerHeight,
-      encoding: THREE.sRGBEncoding,
-      selects: []
-  });
-  
-  
-  return ssrrPass;
-}
 function makeEncodingPass() {
   const encodingPass = new ShaderPass({
     uniforms: {
@@ -262,20 +244,16 @@ class PostProcessing extends EventTarget {
     passes.push(webaverseRenderPass);
     
     if (rendersettings) {
-      const {ssao, dof, hdr, bloom, postPostProcessScene, swirl, ssr, ssrr} = rendersettings;
+      const {ssao, dof, hdr, bloom, postPostProcessScene, swirl, webaWater} = rendersettings;
       if (ssao || dof) {
         passes.depthPass = makeDepthPass({ssao, dof});
       }
       if (ssao) {
         passes.ssaoPass = makeSsaoRenderPass(ssao, passes.depthPass);
       }
-      if(ssr){
-        const ssrPass = makeSsrPass(ssr);
-        passes.push(ssrPass);
-      }
-      if(ssrr){
-        const ssrrPass = makeSsrrPass(ssrr);
-        passes.push(ssrrPass);
+      if(webaWater){
+        const webaWaterPass = makeWebaWaterPass(webaWater);
+        passes.push(webaWaterPass);
       }
       if (dof) {
         const dofPass = makeDofPass(dof, passes.depthPass);
