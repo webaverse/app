@@ -28,6 +28,8 @@ const localFrameOpts = {
 };
 const frameEvent = new MessageEvent('frame', localFrameOpts);
 
+const physicsScene = physicsManager.getScene();
+
 const appManagers = [];
 class AppManager extends EventTarget {
   constructor({
@@ -476,7 +478,7 @@ class AppManager extends EventTarget {
     if (removeIndex !== -1) {
       this.appsArray.delete(removeIndex, 1);
     } else {
-      console.warn('invalid remove instance id', {removeInstanceId, appsJson});
+      console.warn('invalid remove instance id', {instanceId, appsJson});
       debugger;
     }
   }
@@ -646,8 +648,8 @@ class AppManager extends EventTarget {
                   child.updateMatrixWorld();
                 }
 
-                physicsManager.setTransform(physicsObject);
-                physicsManager.getBoundingBoxForPhysicsId(physicsObject.physicsId, physicsObject.physicsMesh.geometry.boundingBox);
+                physicsScene.setTransform(physicsObject);
+                physicsScene.getBoundingBoxForPhysicsId(physicsObject.physicsId, physicsObject.physicsMesh.geometry.boundingBox);
               }
             }
           }

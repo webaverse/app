@@ -36,6 +36,8 @@ const rightHandOffset = new THREE.Vector3(-0.2, -0.2, -0.4);
 const z22Quaternion = new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 0, 1), -Math.PI/8);
 const groundStickOffset = 0.03;
 
+const physicsScene = physicsManager.getScene();
+
 class CharacterPhysics {
   constructor(player) {
     this.player = player;
@@ -51,7 +53,7 @@ class CharacterPhysics {
   setPosition(p) {
     localVector.copy(p);
     localVector.y -= this.player.avatar.height * 0.5;
-    physicsManager.setCharacterControllerPosition(this.player.characterController, localVector);
+    physicsScene.setCharacterControllerPosition(this.player.characterController, localVector);
   }
   /* apply the currently held keys to the character */
   applyWasd(keysDirection) {
@@ -62,7 +64,7 @@ class CharacterPhysics {
   applyGravity(timeDiffS) {
     // if (this.player) {
       if (this.player.hasAction('jump') && !this.player.hasAction('fly')) {
-        localVector.copy(physicsManager.getGravity())
+        localVector.copy(physicsScene.getGravity())
           .multiplyScalar(timeDiffS);
         this.velocity.add(localVector);
       }
@@ -85,7 +87,7 @@ class CharacterPhysics {
       localVector3.copy(this.velocity)
         .multiplyScalar(timeDiffS);
       // console.log('got local vector', this.velocity.toArray().join(','), localVector3.toArray().join(','), timeDiffS);
-      const flags = physicsManager.moveCharacterController(
+      const flags = physicsScene.moveCharacterController(
         this.player.characterController,
         localVector3,
         minDist,
@@ -97,7 +99,7 @@ class CharacterPhysics {
 
       if (!grounded && !this.player.getAction('jump') && !this.player.getAction('fly')) { // prevent jump when go down slope
         const oldY = this.player.characterController.position.y;
-        const flags = physicsManager.moveCharacterController(
+        const flags = physicsScene.moveCharacterController(
           this.player.characterController,
           localVector3.set(0, -groundStickOffset, 0),
           minDist,
@@ -193,9 +195,19 @@ class CharacterPhysics {
 
         const objInstanceId = sitAction.controllingId;
         const controlledApp = metaversefileApi.getAppByInstanceId(objInstanceId);
-        const sitPos = sitAction.controllingBone ? sitAction.controllingBone : controlledApp;
 
         const sitComponent = controlledApp.getComponent('sit');
+
+        // Patch fix to fix vehicles and mounts for now
+        let rideMesh = null;
+        controlledApp.glb.scene.traverse(o => {
+          if (rideMesh === null && o.isSkinnedMesh) {
+            rideMesh = o;
+          }
+        });
+
+        // NOTE: We had a problem with sending the entire bone in the message buffer, so we're just sending the bone name
+        const sitPos = sitComponent.sitBone ? rideMesh.skeleton.bones.find(bone => bone.name === sitComponent.sitBone) : controlledApp;
         const {
           sitOffset = [0, 0, 0],
           // damping,
@@ -220,7 +232,7 @@ class CharacterPhysics {
         localVector.add(this.sitOffset);
         localVector.y += this.player.avatar.height * 0.5;
 
-        physicsManager.setCharacterControllerPosition(this.player.characterController, localVector);
+        physicsScene.setCharacterControllerPosition(this.player.characterController, localVector);
         localVector.y += this.player.avatar.height * 0.5;
 
         localQuaternion.premultiply(localQuaternion2.setFromAxisAngle(localVector3.set(0, 1, 0), Math.PI));

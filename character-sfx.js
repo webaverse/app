@@ -207,7 +207,10 @@ class CharacterSfx {
       }
       
     };
-    _handleStep();
+
+    if (!this.player.hasAction('sit')) {
+      _handleStep();
+    }
 
     const _handleNarutoRun = () => {
       

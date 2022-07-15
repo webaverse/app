@@ -2,12 +2,19 @@ import * as THREE from 'three';
 import {getRenderer, camera} from './renderer.js';
 import cameraManager from './camera-manager.js';
 import {world} from './world.js';
-import physx from './physx.js';
+// import physx from './physx.js';
+import physicsManager from './physics-manager.js';
 import domRenderer from './dom-renderer.jsx';
 import transformControls from './transform-controls.js';
 
 const localVector = new THREE.Vector3();
 const localQuaternion = new THREE.Quaternion();
+
+//
+
+const physicsScene = physicsManager.getScene();
+
+//
 
 class FakeMouseEvent {
   constructor(clientX = 0, clientY = 0, deltaX = 0, deltaY = 0, inside = false) {
@@ -134,7 +141,7 @@ class RaycastManager extends EventTarget {
         raycaster.ray.direction
       );
       
-      const result = physx.physxWorker.raycastPhysics(physx.physics, position, quaternion);
+      const result = physicsScene.raycast(position, quaternion);
       if (result) {
         // console.log('raycast', result);
         

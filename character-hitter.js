@@ -1,7 +1,7 @@
 import * as THREE from 'three';
 import {scene, camera} from './renderer.js';
 import physics from './physics-manager.js';
-import physx from './physx.js';
+// import physx from './physx.js';
 import Avatar from './avatars/avatars.js';
 import metaversefile from 'metaversefile';
 import * as metaverseModules from './metaverse-modules.js';
@@ -12,7 +12,12 @@ const localQuaternion = new THREE.Quaternion();
 const localEuler = new THREE.Euler();
 const localMatrix = new THREE.Matrix4();
 
-const y180Quaternion = new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 1, 0), Math.PI);
+//
+
+const physicsScene = physics.getScene();
+// const y180Quaternion = new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 1, 0), Math.PI);
+
+//
 
 const hitAttemptEventData = {
   type: '',
@@ -45,8 +50,7 @@ export class CharacterHitter {
           position,
           quaternion,
         } = args;
-        const collision = physx.physxWorker.getCollisionObjectPhysics(
-          physx.physics,
+        const collision = physicsScene.getCollisionObject(
           hitRadius,
           hitHalfHeight,
           position,
