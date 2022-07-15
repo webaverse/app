@@ -4,7 +4,7 @@ import {GLTFLoader} from 'three/examples/jsm/loaders/GLTFLoader.js';
 import {getSingleModelGeoMat} from './model';
 import {Matrix4} from 'three';
 
-const {useApp, useCamera, useLocalPlayer, useMaterials, useFrame, useText} =
+const {useApp, useCamera, useFrame, useText} =
   metaversefile;
 
 const Text = useText();
@@ -49,6 +49,8 @@ async function getTextMesh(
 export default () => {
   const app = useApp();
   const camera = useCamera();
+  const player = app.getComponent('player');
+
   let textGroup = null;
   const lastPlateToCamera = new THREE.Vector3();
   let instIndex = -1;
@@ -81,7 +83,6 @@ export default () => {
   })();
 
   useFrame(() => {
-    const player = app.getComponent('player');
     if (!player || instIndex < 0 || !textGroup) return;
     const nameplateMatrix = new THREE.Matrix4();
     nameplateMesh.getMatrixAt(instIndex, nameplateMatrix);
