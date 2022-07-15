@@ -584,8 +584,8 @@ export class LodChunkTracker extends EventTarget {
         };
         const _flushChunks = () => {
           debugMesh.count = 0;
-          for (let i = 0; i < this.renderChunks.length; i++) {
-            const chunk = this.renderChunks[i];
+          for (let i = 0; i < this.displayChunks.length; i++) {
+            const chunk = this.displayChunks[i];
             localMatrix.compose(
               localVector.copy(chunk.min)
                 .multiplyScalar(this.chunkSize),
@@ -722,9 +722,6 @@ export class LodChunkTracker extends EventTarget {
 
           const _parseNode = (nodeSpec) => {
             const {min, size: lod, isLeaf, lodArray} = nodeSpec;
-            /* if (!min) {
-              debugger;
-            } */
             return new OctreeNode(
               new THREE.Vector3().fromArray(min),
               lod,
@@ -745,66 +742,164 @@ export class LodChunkTracker extends EventTarget {
               oldNodes,
             );
           };
-          oldTasks = oldTasks.map(_parseTask);
-          newTasks = newTasks.map(_parseTask);
+          // oldTasks = oldTasks.map(_parseTask);
+          // newTasks = newTasks.map(_parseTask);
           leafNodes = leafNodes.map(_parseNode);
 
-          this.renderChunks = leafNodes;
-          console.log('got render chunks', this.renderChunks.slice());
+          // debug mesh
+          this.displayChunks = leafNodes;
+
+          // data requests
+          {
+            // cancel old data requests
+            const oldDataRequests = Array.from(this.dataRequests.entries());
+            for (const [hash, oldDataRequest] of oldDataRequests) {
+              const matchingLeafNode = leafNodes.find(leafNode => {
+                return equalsNodeLod(leafNode, oldDataRequest.node)
+              });
+              if (matchingLeafNode) {
+                // keep the data request
+                // console.log('data request keep', hash);
+              } else {
+                // cancel the data request
+                oldDataRequest.cancel();
+                // console.log('data request cancel', hash);
+                // forget the data request
+                this.dataRequests.delete(hash);
+              }
+            }
+
+            // add new data requests
+            for (const chunk of leafNodes) {
+              const hash = chunk.min.toArray().join(',') + ':' + chunk.lod;
+              if (!this.dataRequests.has(hash)) {
+                const dataRequest = new DataRequest(chunk);
+                const {signal} = dataRequest;
+                let waited = false;
+
+                const chunkDataRequestEvent = new MessageEvent('chunkdatarequest', {
+                  data: {
+                    chunk,
+                    waitUntil(promise) {
+                      dataRequest.waitUntil(promise);
+                      waited = true;
+                    },
+                    signal,
+                  },
+                });
+                this.dispatchEvent(chunkDataRequestEvent);
+
+                if (!waited) {
+                  dataRequest.waitUntil(Promise.resolve(null));
+                }
+                dataRequest.isNew = true;
+                // console.log('new data request 1', hash);
+                /* if (this.dataRequests.has(hash)) {
+                  debugger;
+                } */
+                // console.log('new data request 2', hash);
+                this.dataRequests.set(hash, dataRequest);
+              }
+            }
+          }
+
+          // delete all outranged chunks
+          {
+            const renderedChunks = Array.from(this.renderedChunks.values());
+            for (const renderedChunk of renderedChunks) {
+              const hash = renderedChunk.min.toArray().join(',') + ':' + renderedChunk.lod;
+              
+              // check if the chunk is still in the octree
+              const matchingLeafNode = leafNodes.find(leafNode => {
+                return equalsNodeLod(leafNode, renderedChunk);
+              });
+              // console.log('equals node lod', {matchingLeafNode, renderedChunk});
+              if (matchingLeafNode) {
+                // console.log('rendered chunk match', hash);
+                // keep the chunk
+              } else {
+                // delete the chunk
+                const chunkRemoveEvent = new MessageEvent('chunkremove', {
+                  data: {
+                    chunk: renderedChunk,
+                  },
+                });
+                this.dispatchEvent(chunkRemoveEvent);
+
+                // console.log('rendered chunk delete', hash);
+                this.renderedChunks.delete(hash);
+              }
+            }
+          }
+          // wait for and render new chunks
+          for (const leafNode of leafNodes) {
+            const hash = leafNode.min.toArray().join(',') + ':' + leafNode.lod;
+            const dataRequest = this.dataRequests.get(hash);
+            if (dataRequest) {
+              if (dataRequest.isNew) {
+                dataRequest.isNew = false;
+                (async () => {
+                  try {
+                    const renderData = await dataRequest.waitForLoad();
+                    const chunkAddEvent = new MessageEvent('chunkadd', {
+                      data: {
+                        renderData,
+                        chunk: leafNode,
+                      },
+                    });
+                    this.dispatchEvent(chunkAddEvent);
+
+                    /* if (dataRequest.signal.aborted) {
+                      debugger;
+                    } */
+    
+                    // const hash = leafNode.min.toArray().join(',') + ':' + leafNode.lod;
+                    // console.log('rendered chunk set', hash);
+                    this.renderedChunks.set(hash, leafNode);
+                  } catch (err) {
+                    /* if (err?.isAbortError) {
+                      console.log('abort err', err);
+                    } */
+                    if (!err?.isAbortError) {
+                      console.warn(err);
+                    }
+                  }
+                })();
+              } else {
+                // skip adding since it's not a new node
+                // console.log('rendered chunk skip', hash);
+              }
+            } else {
+              throw new Error('no data request for chunk');
+            }
+          }
+
+          /* // compute new live chunks set
           this.chunks = updateChunks(this.chunks, newTasks);
 
           const _update = () => {
-            /* for (let i = 0; i < oldTasks.length; i++) {
-              const oldTask = oldTasks[i];
-              // const oldTask = _parseTask(oldTaskSpec);
-              const oldTaskMatchIndex = this.liveTasks.findIndex(liveTask => liveTask.id === oldTask.id);
-              if (oldTaskMatchIndex !== -1) {
-                // cancel the old task, aborting its progress
-                const oldTaskMatch = this.liveTasks[oldTaskMatchIndex];
-                // oldTaskMatch.cancel();
-
-                // console.log('cancel tracker task');
-
-                // remove the old task from the live set
-                this.liveTasks.splice(oldTaskMatchIndex, 1);
-              } else {
-                debugger;
-              }
-            } */
-        
             for (const task of newTasks) {
-              // const task = _parseTask(taskSpec);
               
               if (!isNop(task)) {
-                // if (task.type !== TrackerTaskTypes.OUTRANGE) {
-                  this.dispatchEvent(new MessageEvent('chunkrelod', {
-                    data: {
-                      task,
-                    },
-                  }));
+                this.dispatchEvent(new MessageEvent('chunkrelod', {
+                  data: {
+                    task,
+                  },
+                }));
 
-                  const overlappingTasks = this.liveTasks.filter(lastTask => task.maxLodNode.containsNode(lastTask.maxLodNode));
-                  for (const oldTask of overlappingTasks) {
-                    oldTask.cancel();
-                    const index = this.liveTasks.indexOf(oldTask);
-                    /* if (index === -1) {
-                      debugger;
-                    } */
-                    this.liveTasks.splice(index, 1);
-                  }
-                  this.liveTasks.push(task);
-                /* } else {
-                  // purge old tasks that are outranged
-                  this.emitChunkDestroy(task.maxLodNode);
-                } */
+                const overlappingTasks = this.liveTasks.filter(lastTask => task.maxLodNode.containsNode(lastTask.maxLodNode));
+                for (const oldTask of overlappingTasks) {
+                  oldTask.cancel();
+                  const index = this.liveTasks.indexOf(oldTask);
+                  this.liveTasks.splice(index, 1);
+                }
+                this.liveTasks.push(task);
               }
-            }
-        
-            this.dispatchEvent(new MessageEvent('update'));
+            }        
           };
-          _update();
-  
-          // console.log('got tasks', {oldTasks, newTasks});
+          _update(); */
+
+          this.dispatchEvent(new MessageEvent('update'));
   
           this.isUpdating = false;
   
@@ -819,7 +914,6 @@ export class LodChunkTracker extends EventTarget {
         } else {
           this.queuedPosition = position.clone();
         }
-        // console.log('update');
       })();
     }
   }
