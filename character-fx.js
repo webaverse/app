@@ -249,7 +249,7 @@ class CharacterFx {
       if(!this.nameplate && !this.player.isNpcPlayer){
         (async () => {
         this.nameplate = metaversefile.createApp();
-        this.nameplate.player = this.player;
+        this.nameplate.setComponent('player', this.player);
           const {modules} = metaversefile.useDefaultModules();
           const m = modules['nameplate'];
           await this.nameplate.addModule(m);

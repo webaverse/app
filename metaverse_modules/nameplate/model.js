@@ -1,7 +1,7 @@
-import { Geometry } from "three/examples/jsm/deprecated/Geometry";
+import {Geometry} from 'three/examples/jsm/deprecated/Geometry';
 
 function addToMaterials(materials, newMaterial) {
-  const index = materials.findIndex((el) => el.name === newMaterial.name);
+  const index = materials.findIndex(el => el.name === newMaterial.name);
   if (index > -1) return index;
   else {
     materials.push(newMaterial);
@@ -10,11 +10,11 @@ function addToMaterials(materials, newMaterial) {
 }
 
 // return single geometry combining children's geometries into one.
-export const getModelGeoMat = (model) => {
+export const getModelGeoMat = model => {
   const newGeometry = new Geometry();
-  let newMaterials = [];
-  model.scene.traverse(function (child) {
-    if (child.type === "Mesh") {
+  const newMaterials = [];
+  model.scene.traverse(function(child) {
+    if (child.type === 'Mesh') {
       const materialIndices = [];
       if (child.material.length) {
         for (let k = 0; k < child.material.length; k++) {
@@ -25,13 +25,13 @@ export const getModelGeoMat = (model) => {
       }
       if (child.geometry.isBufferGeometry) {
         const tGeometry = new Geometry().fromBufferGeometry(child.geometry);
-        tGeometry.faces.forEach((face) => {
+        tGeometry.faces.forEach(face => {
           face.materialIndex = materialIndices[face.materialIndex];
         });
         child.updateMatrix();
         newGeometry.merge(tGeometry, child.matrix);
       } else {
-        child.geometry.faces.forEach((face) => {
+        child.geometry.faces.forEach(face => {
           face.materialIndex = materialIndices[face.materialIndex];
         });
         child.updateMatrix();
@@ -45,15 +45,15 @@ export const getModelGeoMat = (model) => {
   };
 };
 
-export const getSingleModelGeoMat = (model) => {
+export const getSingleModelGeoMat = model => {
   let count = 0;
   let geometry, material;
-  model.scene.traverse((child) => {
-    if (child.type === "Mesh" && count < 1) {
+  model.scene.traverse(child => {
+    if (child.type === 'Mesh' && count < 1) {
       geometry = child.geometry;
       material = child.material;
       count++;
     }
   });
-  return { geometry, material };
+  return {geometry, material};
 };
