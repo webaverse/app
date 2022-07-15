@@ -9,6 +9,7 @@ function addToMaterials(materials, newMaterial) {
   }
 }
 
+// return single geometry combining children's geometries into one.
 export const getModelGeoMat = (model) => {
   const newGeometry = new Geometry();
   let newMaterials = [];
@@ -22,7 +23,6 @@ export const getModelGeoMat = (model) => {
       } else {
         materialIndices.push(addToMaterials(newMaterials, child.material));
       }
-
       if (child.geometry.isBufferGeometry) {
         const tGeometry = new Geometry().fromBufferGeometry(child.geometry);
         tGeometry.faces.forEach((face) => {
@@ -43,4 +43,17 @@ export const getModelGeoMat = (model) => {
     geometry: newGeometry.toBufferGeometry(),
     material: newMaterials,
   };
+};
+
+export const getSingleModelGeoMat = (model) => {
+  let count = 0;
+  let geometry, material;
+  model.scene.traverse((child) => {
+    if (child.type === "Mesh" && count < 1) {
+      geometry = child.geometry;
+      material = child.material;
+      count++;
+    }
+  });
+  return { geometry, material };
 };

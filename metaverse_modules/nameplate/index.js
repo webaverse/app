@@ -1,7 +1,7 @@
 import * as THREE from "three";
 import metaversefile from "metaversefile";
 import { GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader.js";
-import { getModelGeoMat } from "./model";
+import { getSingleModelGeoMat } from "./model";
 import { Matrix4 } from "three";
 
 const { useApp, useCamera, useLocalPlayer, useMaterials, useFrame, useText } =
@@ -13,11 +13,8 @@ let nameplateMesh = null;
 
 async function createNameplateMesh() {
   if (nameplateMesh) return;
-  const nameplateModelUrl = "/assets/nameplate.glb";
-  const nameplateModel = await new Promise((resolve, reject) => {
-    gltfLoader.load(nameplateModelUrl, resolve, () => {}, reject);
-  });
-  const { geometry, material } = getModelGeoMat(nameplateModel);
+  const nameplateModel = await gltfLoader.loadAsync("/assets/nameplate.glb");
+  const { geometry, material } = getSingleModelGeoMat(nameplateModel);
   nameplateMesh = new THREE.InstancedMesh(geometry, material, 1000);
 }
 
