@@ -32,7 +32,9 @@ class PlayersManager {
     return this.playersArray;
   }
   unbindState() {
+    if(this.unbindStateFn != null) {
       this.unbindStateFn();
+    }
       this.playersArray = null;
       this.unbindStateFn = null;
     }
