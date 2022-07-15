@@ -7,6 +7,7 @@ import voiceInput from '../../../../voice-input/voice-input';
 import sceneNames from '../../../../scenes/scenes.json';
 
 import { AppContext } from '../../app';
+import {makeId} from '../../../../util.js';
 
 import styles from './scene-menu.module.css';
 
@@ -98,7 +99,7 @@ export const SceneMenu = ({ multiplayerConnected, selectedScene, setSelectedScen
         const sceneName = selectedScene.trim();
         const data = null; // Z.encodeStateAsUpdate( world.getState( true ) );
 
-        const roomName = (Math.random().toString(36) + '00000000000000000').slice(2, 10);
+        const roomName = makeId(5);
 
         const res = await fetch(universe.getWorldsHost() + roomName, {
           method: 'POST',

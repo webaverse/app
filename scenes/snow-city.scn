@@ -1,0 +1,81 @@
+{
+  "objects": [
+
+  {
+      "type": "application/spawnpoint",
+      "content": {
+        "position": [-16.85, 10 ,-2.32]
+      }
+    },
+{
+      "type": "application/light",
+      "content": {
+        "lightType": "ambient",
+        "args": [[255, 255, 255], 0.6]
+      }
+    },
+    {
+      "type": "application/light",
+      "content": {
+        "lightType": "directional",
+        "args": [[255, 255, 255], 5],
+        "position": [1, 2, 3],
+        "shadow": [150, 5120, 0.1, 10000, -0.0001]
+      }
+    },
+    
+{
+      
+      "position": [
+        0,
+        0,
+        0
+      ],
+      "quaternion": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "start_url": "https://webaverse.github.io/night-skybox/"
+    },
+{
+      
+      "position": [
+        0,
+        -14,
+        0
+      ],
+      "quaternion": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "start_url": "https://webaverse.github.io/Snow/"
+    },
+
+    {
+      "position": [
+        0,
+        0,
+        0
+      ],
+      "quaternion": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "scale": [
+        1,
+       1,
+        1
+      ],
+      "physics": false,
+      "start_url": "https://webaverse.github.io/Snow-Globe/",
+      "dynamic": true
+    }
+
+]
+}

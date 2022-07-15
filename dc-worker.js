@@ -133,6 +133,60 @@ const _cloneLiquidMeshData = (meshData) => {
 
 const instances = new Map();
 
+/* const _parseTrackerUpdate = bufferAddress => {
+  const dataView = new DataView(Module.HEAPU8.buffer, bufferAddress);
+  let index = 0;
+  const numOldTasks = dataView.getUint32(index, true);
+  index += Uint32Array.BYTES_PER_ELEMENT;
+  const numNewTasks = dataView.getUint32(index, true);
+  index += Uint32Array.BYTES_PER_ELEMENT;
+
+  const _parseTrackerTask = () => {
+    const min = new Int32Array(Module.HEAPU8.buffer, index, 3).slice();
+    index += Uint32Array.BYTES_PER_ELEMENT * 3;
+    const size = dataView.getInt32(index, true);
+    index += Int32Array.BYTES_PER_ELEMENT;
+    const isLeaf = !!dataView.getInt32(index, true);
+    index += Int32Array.BYTES_PER_ELEMENT;
+    const lodArray = new Int32Array(Module.HEAPU8.buffer, index, 8).slice();
+    index += Int32Array.BYTES_PER_ELEMENT * 8;
+    return {
+      min,
+      size,
+      isLeaf,
+      lodArray,
+    };
+  };
+  const oldTasks = [];
+  for (let i = 0; i < numOldTasks; i++) {
+    const oldTask = _parseTrackerTask();
+    oldTasks.push(oldTask);
+  }
+  const newTasks = [];
+  for (let i = 0; i < numNewTasks; i++) {
+    const newTask = _parseTrackerTask();
+    newTasks.push(newTask);
+  }
+  return {
+    oldTasks,
+    newTasks,
+  };
+}; */
+const _cloneTask = task => {
+  return {
+    min: task.min.slice(),
+    size: task.size,
+    isLeaf: task.isLeaf,
+    lodArray: task.lodArray.slice(),
+  };
+};
+const _cloneTrackerUpdate = trackerUpdate => {
+  return {
+    oldTasks: trackerUpdate.oldTasks.map(_cloneTask),
+    newTasks: trackerUpdate.newTasks.map(_cloneTask),
+  };
+};
+
 let loaded = false;
 // let running = false;
 let queue = [];
