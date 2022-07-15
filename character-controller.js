@@ -531,7 +531,7 @@ class StatePlayer extends PlayerBase {
     this.avatarEpoch = 0;
     this.syncAvatarCancelFn = null;
     this.unbindFns = [];
-
+    
     this.transform = new Float32Array(7);
 
     this.bindState(playersArray);
@@ -1052,7 +1052,6 @@ class LocalPlayer extends UninterpolatedPlayer {
 
       self.position.toArray(self.transform, 0);
       self.quaternion.toArray(self.transform, 3);
-
       self.playerMap.set('transform', self.transform);
       
       const actions = self.getActionsState();

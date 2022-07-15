@@ -156,8 +156,6 @@ function makeId(length) {
     };
     for (const object of objects) {
       let {start_url, type, content, position = [0, 0, 0], quaternion = [0, 0, 0, 1], scale = [1, 1, 1]} = object;
-      
-      // copy position array into transform Float32Array
 
       const transform = Float32Array.from([...position, ...quaternion, ...scale]);
       const instanceId = makeId(5);
