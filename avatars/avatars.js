@@ -1920,19 +1920,21 @@ class Avatar {
       window.mixer = this.mixer;
       // window.motiono = this.motiono;
     }
-    if (true && this === window.localPlayer.avatar) {
+    // const player = window.localPlayer;
+    const player = window.npcPlayers[0];
+    if (true && player && this === player.avatar) {
       // console.log(window.logNum(this.getAngle()));
 
       /*
         <div style="display:;">keysDirection: --- ${false&&window.logVector3(window.ioManager?.keysDirection)}</div>
       */
-     window.domInfo.innerHTML += `<div style="display:;">actions: --- ${localPlayer.getActionsArray().map(n=>n.type)}</div>`;
+     window.domInfo.innerHTML += `<div style="display:;">actions: --- ${player.getActionsArray().map(n=>n.type)}</div>`;
       window.domInfo.innerHTML += `<div style="display:;">mirrorFactor: --- ${this.mirrorFactor.toFixed(2)}</div>`;
       window.domInfo.innerHTML += `<div style="display:;">walkRunFactor: --- ${this.moveFactors.walkRunFactor.toFixed(2)}</div>`;
       // window.domInfo.innerHTML += `<div style="display:;">avatar.direction: --- ${window.logVector3(this.direction)}</div>`;
-      // window.domInfo.innerHTML += `<div style="display:;">velocity: --- ${window.logVector3(localPlayer.characterPhysics.velocity)} - ${window.logNum(localPlayer.characterPhysics.velocity.length())}</div>`;
+      // window.domInfo.innerHTML += `<div style="display:;">velocity: --- ${window.logVector3(player.characterPhysics.velocity)} - ${window.logNum(player.characterPhysics.velocity.length())}</div>`;
       // window.domInfo.innerHTML += `<div style="display:;">angle: --- ${window.logNum(this.getAngle())}</div>`;
-      // window.domInfo.innerHTML += `<div style="display:;">velocity: --- ${window.logVector3(localPlayer.characterPhysics.velocity)}</div>`;
+      // window.domInfo.innerHTML += `<div style="display:;">velocity: --- ${window.logVector3(player.characterPhysics.velocity)}</div>`;
       // window.domInfo.innerHTML += `<div style="display:;">useEnvelopeFactor: --- ${this.useEnvelopeFactor.toFixed(2)}</div>`;
       // window.domInfo.innerHTML += `<div style="display:;">idleWalkFactor: --- ${moveFactors.idleWalkFactor.toFixed(2)}</div>`;
       // window.domInfo.innerHTML += `<div style="display:;">walkRunFactor: --- ${moveFactors.walkRunFactor.toFixed(2)}</div>`;
