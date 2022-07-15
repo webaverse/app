@@ -197,6 +197,7 @@ const _cloneTrackerUpdate = trackerUpdate => {
     currentCoord: trackerUpdate.currentCoord.slice(),
     oldTasks: trackerUpdate.oldTasks.map(_cloneTask),
     newTasks: trackerUpdate.newTasks.map(_cloneTask),
+    leafNodes: trackerUpdate.leafNodes.map(_cloneNode),
   };
 };
 

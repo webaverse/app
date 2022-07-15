@@ -498,6 +498,7 @@ export class LodChunkTracker extends EventTarget {
 
     this.dcTracker = null;
     this.chunks = [];
+    this.renderChunks = [];
     this.lastUpdateCoord = new THREE.Vector3(NaN, NaN, NaN);
 
     if (debug) {
@@ -544,8 +545,8 @@ export class LodChunkTracker extends EventTarget {
         };
         const _flushChunks = () => {
           debugMesh.count = 0;
-          for (let i = 0; i < this.chunks.length; i++) {
-            const chunk = this.chunks[i];
+          for (let i = 0; i < this.renderChunks.length; i++) {
+            const chunk = this.renderChunks[i];
             localMatrix.compose(
               localVector.copy(chunk.min)
                 .multiplyScalar(this.chunkSize),
@@ -582,14 +583,22 @@ export class LodChunkTracker extends EventTarget {
     return target.set(cx, cy, cz);
   }
   emitChunkDestroy(chunk) {
-    const hash = chunk.min.toArray().join(',') + ':' + chunk.lod; // _octreeNodeMinHash(chunk.min, chunk.lod);
-    this.dispatchEvent(new MessageEvent('destroy.' + hash));
+    // const hash = chunk.min.toArray().join(',') + ':' + chunk.lod; // _octreeNodeMinHash(chunk.min, chunk.lod);
+    this.dispatchEvent(new MessageEvent('destroy', {
+      data: {
+        node: chunk,
+      }
+    }));
   }
   listenForChunkDestroy(chunk, fn) {
-    const hash = chunk.min.toArray().join(',') + ':' + chunk.lod; // _octreeNodeMinHash(chunk.min, chunk.lod);
-    this.addEventListener('destroy.' + hash, e => {
-      fn(e);
-    }, {once: true});
+    // const hash = chunk.min.toArray().join(',') + ':' + chunk.lod; // _octreeNodeMinHash(chunk.min, chunk.lod);
+    const destroy = e => {
+      if (e.data.node.min.equals(chunk)) {
+        fn(e);
+        this.removeEventListener('destroy', destroy);
+      }
+    };
+    this.addEventListener('destroy', destroy);
   }
   /* updateCoord(currentCoord) {
     const octreeLeafNodes = constructOctreeForLeaf(currentCoord, this.minLodRange, 2 ** (this.lods - 1));
@@ -669,6 +678,7 @@ export class LodChunkTracker extends EventTarget {
             currentCoord,
             oldTasks,
             newTasks,
+            leafNodes,
           } = await this.dcWorkerManager.trackerUpdate(this.dcTracker, position);
 
           const _parseNode = (nodeSpec) => {
@@ -698,51 +708,56 @@ export class LodChunkTracker extends EventTarget {
           };
           oldTasks = oldTasks.map(_parseTask);
           newTasks = newTasks.map(_parseTask);
+          leafNodes = leafNodes.map(_parseNode);
 
+          this.renderChunks = leafNodes;
+          console.log('got render chunks', this.renderChunks.slice());
           this.chunks = updateChunks(this.chunks, newTasks);
 
           const _update = () => {
-            for (let i = 0; i < oldTasks.length; i++) {
+            /* for (let i = 0; i < oldTasks.length; i++) {
               const oldTask = oldTasks[i];
               // const oldTask = _parseTask(oldTaskSpec);
               const oldTaskMatchIndex = this.liveTasks.findIndex(liveTask => liveTask.id === oldTask.id);
               if (oldTaskMatchIndex !== -1) {
                 // cancel the old task, aborting its progress
                 const oldTaskMatch = this.liveTasks[oldTaskMatchIndex];
-                oldTaskMatch.cancel();
+                // oldTaskMatch.cancel();
 
-                /* // if the old task is outranged, emit a destroy event for all of its nodes
-                if (oldTask.type === TrackerTaskTypes.OUTRANGE) {
-                  const outrangedNodes = oldTask.newNodes.length > 0 ? oldTask.newNodes : oldTask.oldNodes;
-                  // console.log('outranged nodes', oldTask.oldNodes.slice(), oldTask.newNodes.slice());
-                  for (const outrangedNode of outrangedNodes) {
-                    this.emitChunkDestroy(outrangedNode);
-                  }
-                } */
+                // console.log('cancel tracker task');
 
                 // remove the old task from the live set
                 this.liveTasks.splice(oldTaskMatchIndex, 1);
               } else {
                 debugger;
               }
-            }
+            } */
         
             for (const task of newTasks) {
               // const task = _parseTask(taskSpec);
               
               if (!isNop(task)) {
-                if (task.type !== TrackerTaskTypes.OUTRANGE) {
+                // if (task.type !== TrackerTaskTypes.OUTRANGE) {
                   this.dispatchEvent(new MessageEvent('chunkrelod', {
                     data: {
                       task,
                     },
                   }));
-                  this.liveTasks.push(task);
-                } else {
-                  for (const outrangedNode of task.oldNodes) {
-                    this.emitChunkDestroy(outrangedNode);
+
+                  const overlappingTasks = this.liveTasks.filter(lastTask => task.maxLodNode.containsNode(lastTask.maxLodNode));
+                  for (const oldTask of overlappingTasks) {
+                    oldTask.cancel();
+                    const index = this.liveTasks.indexOf(oldTask);
+                    /* if (index === -1) {
+                      debugger;
+                    } */
+                    this.liveTasks.splice(index, 1);
                   }
-                }
+                  this.liveTasks.push(task);
+                /* } else {
+                  // purge old tasks that are outranged
+                  this.emitChunkDestroy(task.maxLodNode);
+                } */
               }
             }
         
