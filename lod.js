@@ -422,11 +422,11 @@ class DataRequest {
   }
 }
 
-const TrackerTaskTypes = {
+/* const TrackerTaskTypes = {
   ADD: 1,
   REMOVE: 2,
   OUTRANGE: 3,
-};
+}; */
 /* const updateChunks = (oldChunks, tasks) => {
   const newChunks = oldChunks.slice();
   
