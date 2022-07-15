@@ -150,10 +150,11 @@ class NpcManager extends EventTarget {
               animation: 'pain_back',
             };
             npcPlayer.addAction(newAction);
-            
+
             setTimeout(() => {
               npcPlayer.removeAction('hurt');
-            }, hurtAnimationDuration * 1000);
+            // }, hurtAnimationDuration * 1000);
+            }, 0);
           }
         })
 

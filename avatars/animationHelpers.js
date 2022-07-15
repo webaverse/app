@@ -471,6 +471,10 @@ export const _createAnimation = avatar => {
   // physx.physxWorker.setTimeBias(avatar.axeMotion, 0.7);
   // physx.physxWorker.setSpeed(avatar.axeMotion, 1 / 0.6);
   //
+  avatar.hurtMotion = physx.physxWorker.createMotion(avatar.mixer, animations.index['hit_high_l.fbx'].pointer);
+  avatar.motions.push({pointer: avatar.hurtMotion, name: 'hurtMotion'});
+  physx.physxWorker.setLoop(avatar.hurtMotion, AnimationLoopType.LoopOnce);
+  physx.physxWorker.stop(avatar.hurtMotion);
   // end test ---
 
   avatar.idleMotion = physx.physxWorker.createMotion(avatar.mixer, animations.index['idle.fbx'].pointer);
@@ -718,6 +722,7 @@ export const _createAnimation = avatar => {
   physx.physxWorker.addChild(avatar.actionsNodeUnitary, avatar.useMotiono.dashAttack);
   // test ---
   physx.physxWorker.addChild(avatar.actionsNodeUnitary, avatar.axeMotion);
+  physx.physxWorker.addChild(avatar.actionsNodeUnitary, avatar.hurtMotion);
 
   // sit
   for (const k in avatar.sitMotiono) {
@@ -858,6 +863,13 @@ export const _updateAnimation = avatar => {
     physx.physxWorker.crossFadeUnitary(avatar.actionsNodeUnitary, 0.2, avatar.defaultNodeTwo);
   }
 
+  // test ---
+
+  // if (avatar.hurtEnd) {
+  //   console.log('hurtEnd')
+  //   physx.physxWorker.crossFadeUnitary(avatar.actionsNodeUnitary, 0.2, avatar.defaultNodeTwo);
+  // }
+
   // action start event --------------------------------------------
 
   if (avatar.flyStart) {
@@ -924,6 +936,15 @@ export const _updateAnimation = avatar => {
   // dance
   if (avatar.danceStart) {
     physx.physxWorker.crossFadeUnitary(avatar.actionsNodeUnitary, 0.2, avatar.danceMotiono[avatar.danceAnimation || defaultDanceAnimation]);
+  }
+
+  // test ---
+
+  // hurt
+  if (avatar.hurtStart) {
+    console.log('hurtStart')
+    physx.physxWorker.play(avatar.hurtMotion);
+    physx.physxWorker.crossFadeUnitary(avatar.actionsNodeUnitary, 0.2, avatar.hurtMotion);
   }
 
   // do update
