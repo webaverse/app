@@ -10,7 +10,7 @@ import overrides from '../../../../overrides';
 
 import styles from './settings.module.css';
 
-import * as audioManager from '../../../../audio-manager.js';
+import audioManager from '../../../../audio-manager.js';
 
 //
 

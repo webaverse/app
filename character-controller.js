@@ -9,7 +9,7 @@ import physicsManager from './physics-manager.js';
 import {world} from './world.js';
 // import cameraManager from './camera-manager.js';
 import physx from './physx.js';
-import Avatar from './avatars/avatars.js';
+import audioManager from './audio-manager.js';
 import metaversefile from 'metaversefile';
 import {
   actionsMapName,
@@ -806,7 +806,7 @@ class StatePlayer extends PlayerBase {
     }
     if (mediaStream) {
       this.avatar.setAudioEnabled(true);
-      const audioContext = Avatar.getAudioContext();
+      const audioContext = audioManager.getAudioContext();
       const mediaStreamSource = audioContext.createMediaStreamSource(mediaStream);
       mediaStreamSource.connect(this.avatar.getAudioInput());
       this.microphoneMediaStream = mediaStreamSource;
