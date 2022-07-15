@@ -824,9 +824,9 @@ export const _updateAnimation = avatar => {
   }
   if (avatar.jumpEnd) {
     if (avatar.narutoRunState) {
-      physx.physxWorker.crossFadeUnitary(avatar.actionsNodeUnitary, 0.2, avatar.narutoRunMotion);
+      physx.physxWorker.crossFadeUnitary(avatar.actionsNodeUnitary, 0.2, avatar.narutoRunMotion); // todo: always back to defaultNode, then to specific node/motion.
     } else {
-      physx.physxWorker.crossFadeUnitary(avatar.actionsNodeUnitary, 0.2, avatar.defaultNodeTwo);
+      physx.physxWorker.crossFadeUnitary(avatar.actionsNodeUnitary, 0.2, avatar.defaultNodeTwo); // todo: always back to defaultNode, then to specific node/motion.
     }
   }
 
@@ -1012,6 +1012,9 @@ export const _updateAnimation = avatar => {
     }
     if (motion === avatar.useMotiono.bowLoose) {
       physx.physxWorker.crossFadeTwo(avatar.idle8DWalkRun_BowIdle8DDrawLooseNodeTwo, 0.2, 0);
+    }
+    if (motion === avatar.hurtMotion) {
+      physx.physxWorker.crossFadeUnitary(avatar.actionsNodeUnitary, 0.2, avatar.defaultNodeTwo);
     }
   }
 };

@@ -27,19 +27,19 @@ export default (app, component) => {
   if (isSwordApp) window.swordApp = app;
   if (isSwordApp) console.log('-------------------- wear.js', app.contentId);
 
-  if (isSwordApp) {
-    window.npcPlayers[0].addAction({
-      animation: 'combo',
-      behavior: 'sword',
-      boneAttachment: 'leftHand',
-      index: 0,
-      instanceId: app.instanceId,
-      position: [-0.07, -0.03, 0],
-      quaternion: [0.7071067811865475, 0, 0, 0.7071067811865476],
-      scale: [1, 1, 1],
-      type: 'use',
-    })
-  }
+  // if (isSwordApp) {
+  //   window.npcPlayers[0].addAction({
+  //     animation: 'combo',
+  //     behavior: 'sword',
+  //     boneAttachment: 'leftHand',
+  //     index: 0,
+  //     instanceId: app.instanceId,
+  //     position: [-0.07, -0.03, 0],
+  //     quaternion: [0.7071067811865475, 0, 0, 0.7071067811865476],
+  //     scale: [1, 1, 1],
+  //     type: 'use',
+  //   })
+  // }
 
   // debugger
   let wearSpec = null;
