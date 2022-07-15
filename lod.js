@@ -398,6 +398,32 @@ const sortTasks = (tasks, worldPosition) => {
   });
   return taskDistances.map(taskDistance => taskDistance.task);
 }; */
+
+class DataRequest {
+  constructor(node) {
+    this.node = node;
+
+    this.abortController = new AbortController();
+    this.signal = this.abortController.signal;
+
+    this.loadPromise = makePromise();
+  }
+  cancel() {
+    // console.log('cancel data request');
+    this.abortController.abort(abortError);
+  }
+  waitForLoad() {
+    return this.loadPromise;
+  }
+  waitUntil(p) {
+    p.then(result => {
+      this.loadPromise.accept(result);
+    }).catch(err => {
+      this.loadPromise.reject(err);
+    });
+  }
+}
+
 const TrackerTaskTypes = {
   ADD: 1,
   REMOVE: 2,
