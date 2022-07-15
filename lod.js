@@ -535,7 +535,9 @@ export class LodChunkTracker extends EventTarget {
 
     this.dcTracker = null;
     this.chunks = [];
-    this.renderChunks = [];
+    this.displayChunks = []; // for debug mesh
+    this.renderedChunks = new Map(); // hash -> OctreeNode
+    this.dataRequests = new Map(); // hash -> DataRequest
     this.lastUpdateCoord = new THREE.Vector3(NaN, NaN, NaN);
 
     if (debug) {
