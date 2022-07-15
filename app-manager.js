@@ -422,7 +422,6 @@ class AppManager extends EventTarget {
     trackedApp.set('instanceId', instanceId);
     trackedApp.set('contentId', contentId);
     trackedApp.set('transform', transform);
-
     trackedApp.set('components', components);
     return trackedApp;
   }
@@ -436,13 +435,14 @@ class AppManager extends EventTarget {
   ) {
     const self = this;
     this.appsArray.doc.transact(function tx() {
-      position.toArray(self.transform);
-      quaternion.toArray(self.transform, 3);
-      scale.toArray(self.transform, 7);
+      const transform = new Float32Array(10);
+      position.toArray(transform);
+      quaternion.toArray(transform, 3);
+      scale.toArray(transform, 7);
       self.addTrackedAppInternal(
         instanceId,
         contentId,
-        Float32Array.from(self.transform),
+        transform,
         components,
       );
     });
@@ -576,14 +576,15 @@ class AppManager extends EventTarget {
       const contentId = app.contentId;
       const instanceId = app.instanceId;
       const components = app.components.slice();
-      app.position.toArray(self.transform);
-      app.quaternion.toArray(self.transform, 3);
-      app.scale.toArray(self.transform, 7);
+      const transform = new Float32Array(10);
+      app.position.toArray(transform);
+      app.quaternion.toArray(transform, 3);
+      app.scale.toArray(transform, 7);
       
       dstTrackedApp = this.addTrackedAppInternal(
         instanceId,
         contentId,
-        Float32Array.from(transform),
+        transform,
         components,
       );
 
