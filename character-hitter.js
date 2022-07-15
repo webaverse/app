@@ -146,6 +146,7 @@ export class CharacterHitter {
       type: 'hurt',
       animation: Math.random() < 0.5 ? 'pain_arch' : 'pain_back',
     };
+    // console.log('add hurtAction', 'character-hitter.js')
     const hurtAction = this.player.addAction(newAction);
 
     const emotions = [

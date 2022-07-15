@@ -35,7 +35,10 @@ class NpcManager extends EventTarget {
     });
     npcPlayer.name = name;
 
-    if (!window.npcPlayers) window.npcPlayers = []
+    if (!window.npcPlayers) {
+      window.npcPlayers = [];
+      window.npcPlayer = npcPlayer;
+    }
     window.npcPlayers.push(npcPlayer);
 
     let matrixNeedsUpdate = false;
@@ -149,7 +152,9 @@ class NpcManager extends EventTarget {
               type: 'hurt',
               animation: 'pain_back',
             };
+            // console.log('add hurtAction', 'npc-manager.js')
             npcPlayer.addAction(newAction);
+            npcPlayer.removeAction('use'); // todo: setControlAction() ?
 
             setTimeout(() => {
               npcPlayer.removeAction('hurt');
@@ -177,20 +182,44 @@ class NpcManager extends EventTarget {
         const frame = e => {
           if (npcPlayer && physicsManager.getPhysicsEnabled()) {
             const {timestamp, timeDiff} = e.data;
-            
+
             if (targetSpec) {
               const target = targetSpec.object;
               const v = localVector.setFromMatrixPosition(target.matrixWorld)
                 .sub(npcPlayer.position);
               v.y = 0;
               const distance = v.length();
+              // console.log(distance);
               if (targetSpec.type === 'moveto' && distance < 2) {
                 targetSpec = null;
               } else {
-                const speed = Math.min(Math.max(walkSpeed + ((distance - 1.5) * speedDistanceRate), 0), runSpeed);
-                v.normalize()
-                  .multiplyScalar(speed * timeDiff);
-                npcPlayer.characterPhysics.applyWasd(v);
+                if (distance <= 1.5 && !npcPlayer.hasAction('use')) {
+                  window.rootScene.traverse(child => { // test
+                    if (child.contentId?.includes('\\sword\\')) {
+                      // console.log(child)
+                      window.swordApp = child
+                    }
+                  });
+
+                  npcPlayer.addAction({
+                    animation: 'combo',
+                    behavior: 'sword',
+                    boneAttachment: 'leftHand',
+                    index: 0,
+                    instanceId: window.swordApp.instanceId,
+                    position: [-0.07, -0.03, 0],
+                    quaternion: [0.7071067811865475, 0, 0, 0.7071067811865476],
+                    scale: [1, 1, 1],
+                    type: 'use',
+                  });
+                }
+                if (!npcPlayer.hasAction('use')) {
+                  // const speed = Math.min(Math.max(walkSpeed + ((distance - 1.5) * speedDistanceRate), 0), runSpeed);
+                  const speed = Math.min(Math.max(walkSpeed + ((distance - 0.5) * speedDistanceRate), 0), runSpeed);
+                  v.normalize()
+                    .multiplyScalar(speed * timeDiff);
+                  npcPlayer.characterPhysics.applyWasd(v);
+                }
               }
             }
 

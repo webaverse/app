@@ -466,8 +466,8 @@ export const _createAnimation = avatar => {
   // test ---
   avatar.axeMotion = physx.physxWorker.createMotion(avatar.mixer, animations.index['Standing Melee Combo Attack Ver. 2.fbx'].pointer);
   avatar.motions.push({pointer: avatar.axeMotion, name: 'axeMotion'});
-  // physx.physxWorker.setLoop(avatar.axeMotion, AnimationLoopType.LoopOnce);
-  // physx.physxWorker.stop(avatar.axeMotion);
+  physx.physxWorker.setLoop(avatar.axeMotion, AnimationLoopType.LoopOnce);
+  physx.physxWorker.stop(avatar.axeMotion);
   // physx.physxWorker.setTimeBias(avatar.axeMotion, 0.7);
   // physx.physxWorker.setSpeed(avatar.axeMotion, 1 / 0.6);
   //
@@ -1002,6 +1002,8 @@ export const _updateAnimation = avatar => {
         avatar.axeMotion,
       ].includes(motion)) {
         game.handleAnimationEnd();
+
+        window.npcPlayer.removeAction('use');
       }
     };
 
