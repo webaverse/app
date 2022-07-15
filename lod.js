@@ -712,9 +712,9 @@ export class LodChunkTracker extends EventTarget {
   
           // console.log('tracker update 1', /*this.dcWorkerManager.trackerUpdate, */this.dcTracker, position);
           let {
-            currentCoord,
-            oldTasks,
-            newTasks,
+            // currentCoord,
+            // oldTasks,
+            // newTasks,
             leafNodes,
           } = await this.dcWorkerManager.trackerUpdate(this.dcTracker, position);
 
@@ -727,7 +727,7 @@ export class LodChunkTracker extends EventTarget {
               lodArray
             );
           };
-          const _parseTask = (taskSpec) => {
+          /* const _parseTask = (taskSpec) => {
             // console.log('parse task', taskSpec);
             const {id, type} = taskSpec;
             const newNodes = taskSpec.newNodes.map(newNode => _parseNode(newNode));
@@ -739,7 +739,7 @@ export class LodChunkTracker extends EventTarget {
               newNodes,
               oldNodes,
             );
-          };
+          }; */
           // oldTasks = oldTasks.map(_parseTask);
           // newTasks = newTasks.map(_parseTask);
           leafNodes = leafNodes.map(_parseNode);
