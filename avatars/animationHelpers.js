@@ -34,7 +34,7 @@ import {
 } from './constants.js';
 
 import {
-  crouchMaxTime,
+  defaultMaxTime,
   // useMaxTime,
   aimMaxTime,
   // avatarInterpolationFrameRate,
@@ -836,7 +836,7 @@ export const _applyAnimation = (avatar, now, moveFactors, timeDiffS) => {
         const t2 = (now / 1000) % danceAnimation.duration;
         const v2 = src2.evaluate(t2);
 
-        const danceFactorS = avatar.danceFactor / crouchMaxTime;
+        const danceFactorS = avatar.danceFactor / defaultMaxTime;
         const f = Math.min(Math.max(danceFactorS, 0), 1);
         lerpFn
           .call(
@@ -867,7 +867,7 @@ export const _applyAnimation = (avatar, now, moveFactors, timeDiffS) => {
         const t2 = Math.min(emoteTime / 1000, emoteAnimation.duration);
         const v2 = src2.evaluate(t2);
 
-        const emoteFactorS = avatar.emoteFactor / crouchMaxTime;
+        const emoteFactorS = avatar.emoteFactor / defaultMaxTime;
         const f = Math.min(Math.max(emoteFactorS, 0), 1);
         lerpFn
           .call(
@@ -1271,14 +1271,11 @@ export const _applyAnimation = (avatar, now, moveFactors, timeDiffS) => {
         localQuaternion3.slerp(localQuaternion4, avatar.sprintFactor);
         localQuaternion2.slerp(localQuaternion3, avatar.movementsTransitionFactor);
 
-        
-
-        // Swinging Hips for Breaststroke
-        if(boneName === 'Hips' && avatar.sprintFactor === 0 && movementsTimeS > 0) {
-          localQuaternion2.slerp(localQuaternion5, (Math.cos(movementsTimeS * 6) / 2 + 0.5));
-        }
-
         if(boneName === 'Hips') {
+          // Swinging Hips for Breaststroke
+          if(avatar.sprintFactor === 0 && movementsTimeS > 0) {
+            localQuaternion2.slerp(localQuaternion5, (Math.cos(movementsTimeS * 6) / 2 + 0.5));
+          }
           if(avatar.swimUpFactor > 0 && avatar.horizontalMovementsTransitionFactor === 0) {
             localQuaternion2.slerp(localQuaternion6, avatar.swimUpFactor);
           } else if(avatar.swimDownFactor > 0 && avatar.horizontalMovementsTransitionFactor === 0) {
@@ -1289,13 +1286,10 @@ export const _applyAnimation = (avatar, now, moveFactors, timeDiffS) => {
             localQuaternion2.slerp(localQuaternion6, fU);
             localQuaternion2.slerp(localQuaternion7, fD);
           }
+          console.log(avatar.swimUpFactor);
         }
-
-
         dst.slerp(localQuaternion2, f);
-        
 
-        
       } else {
         const liftSwims = 0.05; // lift swims height, prevent head sink in water
         localVector2.fromArray(v2);
