@@ -930,7 +930,7 @@ export default (e) => {
             if(reflectionSsrPass){
                 reflectionSsrPass.ssrMaterial.uniforms.uTime.value = timestamp / 1000;
                 reflectionSsrPass.ssrMaterial.uniforms.distortionTexture.value = dudvMap;
-                reflectionSsrPass.combineMaterial.uniforms.dudvMap.value = dudvMap;
+                reflectionSsrPass.combineMaterial.uniforms.dudvMap.value = dudvMap2;
                 reflectionSsrPass.combineMaterial.uniforms.time.value = timestamp / 1000;
                 
             }
