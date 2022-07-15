@@ -34,21 +34,13 @@ class ProcGenInstance {
       this.dcWorkerManager.setClipRange(range);
     }
   }
-  getChunkTracker({
-    numLods = 1,
-    trackY = false,
-    relod = false,
-    debug = false,
-  } = {}) {
+  getChunkTracker(opts = {}) {
+    const opts2 = structuredClone(opts);
     const {chunkSize, range} = this;
-    const tracker = new LodChunkTracker({
-      chunkSize,
-      numLods,
-      trackY,
-      relod,
-      range,
-      debug,
-    });
+    opts2.chunkSize = chunkSize;
+    opts2.range = range;
+
+    const tracker = new LodChunkTracker(opts2);
     return tracker;
   }
   getLightMapper() {

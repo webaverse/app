@@ -2,7 +2,6 @@
 import React, { useState, useEffect, useContext, useRef } from 'react';
 import classnames from 'classnames';
 
-import { world } from '../../../../world'
 import universe from '../../../../universe'
 import voiceInput from '../../../../voice-input/voice-input';
 import sceneNames from '../../../../scenes/scenes.json';
@@ -125,7 +124,7 @@ export const SceneMenu = ({ multiplayerConnected, selectedScene, setSelectedScen
 
         setState({ openedPanel: null });
 
-        if ( ! world.isConnected() ) {
+        if ( ! universe.isConnected() ) {
 
             universe.pushUrl( `/?src=${ encodeURIComponent( selectedScene ) }&room=${ room.name }` );
 

@@ -168,6 +168,35 @@ export class DcWorkerManager {
       })
     );
   }
+
+  async createTracker(lod, minLodRange, trackY, {signal} = {}) {
+    const worker = this.getNextWorker();
+    const result = await worker.request('createTracker', {
+      instance: this.instance,
+      lod,
+      minLodRange,
+      trackY,
+    }, {signal});
+    return result;
+  }
+  async destroyTracker(tracker, {signal} = {}) {
+    const worker = this.getNextWorker();
+    const result = await worker.request('destroyTracker', {
+      instance: this.instance,
+      tracker,
+    }, {signal});
+    return result;
+  }
+  async trackerUpdate(tracker, position, {signal} = {}) {
+    const worker = this.getNextWorker();
+    const result = await worker.request('trackerUpdate', {
+      instance: this.instance,
+      tracker,
+      position: position.toArray(),
+    }, {signal});
+    return result;
+  }
+
   async generateTerrainChunk(chunkPosition, lodArray, {signal} = {}) {
     // const chunkId = getLockChunkId(chunkPosition);
     // return await this.locks.request(chunkId, async lock => {
