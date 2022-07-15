@@ -287,6 +287,14 @@ const equalsNode = (a, b) => {
 const equalsNodeLod = (a, b) => {
   return equalsNode(a, b) && a.lodArray.every((lod, i) => lod === b.lodArray[i]);
 };
+const containsPoint = (a, p) => {
+  return p.x >= a.min.x && p.x < a.min.x + a.lod &&
+    p.y >= a.min.y && p.y < a.min.y + a.lod &&
+    p.z >= a.min.z && p.z < a.min.z + a.lod;
+};
+const containsNode = (a, node) => {
+  return containsPoint(a, node.min);
+};
 const isNop = taskSpec => {
   // console.log('is nop', taskSpec);
   return taskSpec.newNodes.length === taskSpec.oldNodes.length && taskSpec.newNodes.every(newNode => {
