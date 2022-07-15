@@ -83,7 +83,7 @@ export default () => {
   })();
 
   useFrame(() => {
-    if (!player || instIndex < 0 || !textGroup) return;
+    if (instIndex < 0 || !textGroup) return;
     const nameplateMatrix = new THREE.Matrix4();
     nameplateMesh.getMatrixAt(instIndex, nameplateMatrix);
     const plateToCamera = new THREE.Vector3().subVectors(
