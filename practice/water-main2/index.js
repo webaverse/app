@@ -907,7 +907,7 @@ export default (e) => {
                     for(const pass of renderSettings.findRenderSettings(scene).passes){
                         if(pass.constructor.name === 'SSRPass'){
                             pass._selects.push(generator.getMeshes()[0]);
-                            pass.opacity = 0.1;
+                            pass.opacity = 0.12;
                             pass.foamDepthMaterial = depthMaterial;
                             pass.foamRenderTarget = renderTarget;
                             // pass.invisibleSelects.push(generator.getMeshes()[0]);
@@ -930,6 +930,8 @@ export default (e) => {
             if(reflectionSsrPass){
                 reflectionSsrPass.ssrMaterial.uniforms.uTime.value = timestamp / 1000;
                 reflectionSsrPass.ssrMaterial.uniforms.distortionTexture.value = dudvMap;
+                reflectionSsrPass.combineMaterial.uniforms.dudvMap.value = dudvMap;
+                reflectionSsrPass.combineMaterial.uniforms.time.value = timestamp / 1000;
                 
             }
 
