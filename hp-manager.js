@@ -105,6 +105,7 @@ const makeHitTracker = ({
     }
   };
   hitTracker.hit = (damage, opts) => {
+    // debugger
     const result = hitTracker.damage(damage);
     const {hit, died} = result;
     if (hit) {
@@ -135,6 +136,7 @@ const makeHitTracker = ({
 
       sounds.playSoundName('enemyCut');
 
+      // debugger
       const hitEvent = {
         type: 'hit',
         collisionId,
@@ -161,11 +163,13 @@ const makeHitTracker = ({
   };
 
   hitTracker.damage = damage => {
+    // debugger
     if (hitTime === -1) {
       hitTracker.hp = Math.max(hitTracker.hp - damage, 0);
       if (hitTracker.hp > 0) {
         hitTime = 0;
-        
+
+        // debugger
         /* hitTracker.dispatchEvent({
           type: 'hit',
           hp,

@@ -165,6 +165,7 @@ class App extends THREE.Object3D {
     return this.physicsObjects;
   }
   hit(damage, opts) {
+    // debugger
     this.hitTracker && this.hitTracker.hit(damage, opts);
   }
   getRenderSettings() {

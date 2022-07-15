@@ -92,6 +92,7 @@ export function applyPlayerActionsToAvatar(player, rig) {
   // const fallLoop = player.getAction('fallLoop');
   // const fallLoopAnimation = fallLoop ? fallLoop.animation : '';
   const hurtAction = player.getAction('hurt');
+  if (player === window.npcPlayers[0]) console.log('hurt', !!hurtAction);
   // const swordSideSlash = player.getAction('swordSideSlash');
   // const swordSideSlashAnimation = swordSideSlash ? swordSideSlash.animation : '';
   // const swordTopDownSlash = player.getAction('swordTopDownSlash');

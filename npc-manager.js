@@ -122,9 +122,12 @@ class NpcManager extends EventTarget {
     // events
     let targetSpec = null;
     if (mode === 'attached') {
+      // debugger
       const _listenEvents = () => {
-        const hittrackeradd = e => {
+        /* const hittrackeradd = e => {
+          debugger
           app.hitTracker.addEventListener('hit', e => {
+            debugger
             if (!npcPlayer.hasAction('hurt')) {
               const newAction = {
                 type: 'hurt',
@@ -138,7 +141,21 @@ class NpcManager extends EventTarget {
             }
           });
         };
-        app.addEventListener('hittrackeradded', hittrackeradd);
+        app.addEventListener('hittrackeradded', hittrackeradd); */
+
+        app.addEventListener('hit', e => {
+          if (!npcPlayer.hasAction('hurt')) {
+            const newAction = {
+              type: 'hurt',
+              animation: 'pain_back',
+            };
+            npcPlayer.addAction(newAction);
+            
+            setTimeout(() => {
+              npcPlayer.removeAction('hurt');
+            }, hurtAnimationDuration * 1000);
+          }
+        })
 
         const activate = () => {
           if (targetSpec?.object !== localPlayer) {

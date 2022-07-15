@@ -41,10 +41,10 @@ export default (app, component) => {
     })
   }
 
-  debugger
+  // debugger
   let wearSpec = null;
   if (isSwordApp) {
-    debugger
+    // debugger
     window.wearSpec = wearSpec;
   }
   let modelBones = null;
@@ -59,10 +59,10 @@ export default (app, component) => {
     if (e.wear) {
       player = e.player;
 
-      debugger
+      // debugger
       wearSpec = app.getComponent('wear');
       if (isSwordApp) {
-        debugger
+        // debugger
         window.wearSpec = wearSpec;
       }
       initialScale.copy(app.scale);
@@ -217,10 +217,10 @@ export default (app, component) => {
       app.scale.copy(initialScale);
       app.updateMatrixWorld();
 
-      debugger
+      // debugger
       wearSpec = null;
       if (isSwordApp) {
-        debugger
+        // debugger
         window.wearSpec = wearSpec;
       }
       modelBones = null;
@@ -230,7 +230,7 @@ export default (app, component) => {
   const _copyBoneAttachment = spec => {
     const {boneAttachment = 'hips', position, quaternion, scale} = spec;
     const boneAttachments = Array.isArray(boneAttachment) ? boneAttachment : [boneAttachment];
-    debugger
+    // debugger
 
     // lerp app's transform to average position/quaternion/scale of boneAttachments.
     let count = 0;

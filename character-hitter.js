@@ -141,6 +141,7 @@ export class CharacterHitter {
     }
   }
   getHit(damage) {
+    debugger
     const newAction = {
       type: 'hurt',
       animation: Math.random() < 0.5 ? 'pain_arch' : 'pain_back',
