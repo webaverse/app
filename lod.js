@@ -39,10 +39,13 @@ class OctreeNode extends EventTarget {
   containsNode(node) {
     return this.containsPoint(node.min);
   }
-  /* equalsNode(p) {
-    return p.min.x === this.min.x && p.min.y === this.min.y && p.min.z === this.min.z &&
+  equalsNode(p) {
+    return p.min.x === this.min.x && p.min.y === this.min.y && p.min.z === this.min.z;
+  }
+  equalsNodeLod(p) {
+    return this.equalsNode(p) &&
       p.lodArray.every((lod, i) => lod === this.lodArray[i]);
-  } */
+  }
   intersectsNode(p) {
     return this.containsNode(p) || p.containsNode(this);
   }
