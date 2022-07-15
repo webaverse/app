@@ -1,6 +1,6 @@
-import * as THREE from 'three';
+// import * as THREE from 'three';
 import {makeId} from './util.js';
-import {defaultChunkSize} from './constants.js';
+// import {defaultChunkSize} from './constants.js';
 // import metaversefile from 'metaversefile';
 // import { terrainVertex, terrainFragment } from './shaders/terrainShader.js';
 // import physics from './physics-manager.js';

@@ -309,8 +309,9 @@ export default class Webaverse extends EventTarget {
           // this.injectRigInput();
           
           const localPlayer = metaversefileApi.useLocalPlayer();
-          if (this.contentLoaded && physicsManager.getPhysicsEnabled()) {
-            physicsManager.simulatePhysics(timeDiffCapped);
+          const physicsScene = physicsManager.getScene();
+          if (this.contentLoaded && physicsScene.getPhysicsEnabled()) {
+            physicsScene.simulatePhysics(timeDiffCapped);
             localPlayer.updatePhysics(timestamp, timeDiffCapped);
           }
 
@@ -319,7 +320,7 @@ export default class Webaverse extends EventTarget {
           game.update(timestamp, timeDiffCapped);
           
           localPlayer.updateAvatar(timestamp, timeDiffCapped);
-          playersManager.updateRemotePlayers(timestamp, timeDiffCapped);
+          // playersManager.updateRemotePlayers(timestamp, timeDiffCapped);
           
           world.appManager.tick(timestamp, timeDiffCapped, frame);
 

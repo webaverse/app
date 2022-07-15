@@ -133,6 +133,60 @@ const _cloneLiquidMeshData = (meshData) => {
 
 const instances = new Map();
 
+/* const _parseTrackerUpdate = bufferAddress => {
+  const dataView = new DataView(Module.HEAPU8.buffer, bufferAddress);
+  let index = 0;
+  const numOldTasks = dataView.getUint32(index, true);
+  index += Uint32Array.BYTES_PER_ELEMENT;
+  const numNewTasks = dataView.getUint32(index, true);
+  index += Uint32Array.BYTES_PER_ELEMENT;
+
+  const _parseTrackerTask = () => {
+    const min = new Int32Array(Module.HEAPU8.buffer, index, 3).slice();
+    index += Uint32Array.BYTES_PER_ELEMENT * 3;
+    const size = dataView.getInt32(index, true);
+    index += Int32Array.BYTES_PER_ELEMENT;
+    const isLeaf = !!dataView.getInt32(index, true);
+    index += Int32Array.BYTES_PER_ELEMENT;
+    const lodArray = new Int32Array(Module.HEAPU8.buffer, index, 8).slice();
+    index += Int32Array.BYTES_PER_ELEMENT * 8;
+    return {
+      min,
+      size,
+      isLeaf,
+      lodArray,
+    };
+  };
+  const oldTasks = [];
+  for (let i = 0; i < numOldTasks; i++) {
+    const oldTask = _parseTrackerTask();
+    oldTasks.push(oldTask);
+  }
+  const newTasks = [];
+  for (let i = 0; i < numNewTasks; i++) {
+    const newTask = _parseTrackerTask();
+    newTasks.push(newTask);
+  }
+  return {
+    oldTasks,
+    newTasks,
+  };
+}; */
+const _cloneTask = task => {
+  return {
+    min: task.min.slice(),
+    size: task.size,
+    isLeaf: task.isLeaf,
+    lodArray: task.lodArray.slice(),
+  };
+};
+const _cloneTrackerUpdate = trackerUpdate => {
+  return {
+    oldTasks: trackerUpdate.oldTasks.map(_cloneTask),
+    newTasks: trackerUpdate.newTasks.map(_cloneTask),
+  };
+};
+
 let loaded = false;
 // let running = false;
 let queue = [];
@@ -199,6 +253,33 @@ const _handleMethod = async ({method, args, instance: instanceKey, taskId}) => {
       const instance = instances.get(instanceKey);
       dc.setClipRange(instance, range);
       return true;
+    }
+    case 'createTracker': {
+      const {instance: instanceKey, lod, minLodRange, trackY} = args;
+      const instance = instances.get(instanceKey);
+      const tracker = dc.createTracker(instance, lod, minLodRange, trackY);
+      const spec = {
+        result: tracker,
+        transfers: [],
+      };
+      return spec;
+    }
+    case 'destroyTracker': {
+      const {instance: instanceKey, tracker} = args;
+      const instance = instances.get(instanceKey);
+      dc.destroyTracker(instance, tracker);
+      return true;
+    }
+    case 'trackerUpdate': {
+      const {instance: instanceKey, tracker, position} = args;
+      const instance = instances.get(instanceKey);
+      const trackerUpdate = await dc.trackerUpdateAsync(instance, taskId, tracker, position);
+      const trackerUpdate2 = _cloneTrackerUpdate(trackerUpdate);
+      const spec = {
+        result: trackerUpdate2,
+        transfers: [],
+      };
+      return spec;
     }
     case 'generateTerrainChunk': {
       const {chunkPosition, lodArray} = args;

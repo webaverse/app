@@ -7,9 +7,14 @@ import cameraManager from './camera-manager.js';
 import physicsManager from './physics-manager.js';
 import {getLocalPlayer} from './players.js';
 
+//
+
 const localVector = new THREE.Vector3();
 
+const physicsScene = physicsManager.getScene();
 // const maxResults = 16;
+
+//
 
 const getPyramidConvexGeometry = (() => {
   const radius = 0.5;
@@ -39,8 +44,8 @@ const getPyramidConvexGeometry = (() => {
       scene.add(redMesh); */
 
       const fakeMesh = new THREE.Mesh(geometry);
-      const buffer = physicsManager.cookConvexGeometry(fakeMesh);
-      shapeAddress = physicsManager.createConvexShape(buffer);
+      const buffer = physicsScene.cookConvexGeometry(fakeMesh);
+      shapeAddress = physicsScene.createConvexShape(buffer);
     }
     return shapeAddress;
   };
@@ -58,7 +63,7 @@ class QueryResults {
 
     const pyramidConvexGeometryAddress = getPyramidConvexGeometry();
 
-    const result = physicsManager.sweepConvexShape(
+    const result = physicsScene.sweepConvexShape(
       pyramidConvexGeometryAddress,
       position,
       quaternion,

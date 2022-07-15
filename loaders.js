@@ -13,6 +13,46 @@ import {GIFLoader} from './GIFLoader.js';
 import {VOXLoader} from './VOXLoader.js';
 import {memoize} from './util.js';
 
+class MozLightMapExtension {
+  constructor(parser) {
+    this.parser = parser;
+    this.name = 'MOZ_lightmap';
+  }
+
+  // @TODO: Ideally we should use extendMaterialParams hook.
+  //        But the current official glTF loader doesn't fire extendMaterialParams
+  //        hook for unlit and specular-glossiness materials.
+  //        So using loadMaterial hook as workaround so far.
+  //        Cons is loadMaterial hook is fired as _invokeOne so
+  //        if other plugins defining loadMaterial is registered
+  //        there is a chance that this light map extension handler isn't called.
+  //        The glTF loader should be updated to remove the limitation.
+  loadMaterial(materialIndex) {
+    const parser = this.parser;
+    const json = parser.json;
+    const materialDef = json.materials[materialIndex];
+
+    if (!materialDef.extensions || !materialDef.extensions[this.name]) {
+      return null;
+    }
+
+    const extensionDef = materialDef.extensions[this.name];
+
+    const pending = [];
+
+    pending.push(parser.loadMaterial(materialIndex));
+    pending.push(parser.getDependency('texture', extensionDef.index));
+
+    return Promise.all(pending).then(results => {
+      const material = results[0];
+      const lightMap = results[1];
+      material.lightMap = lightMap;
+      material.lightMapIntensity = extensionDef.intensity !== undefined ? extensionDef.intensity : 1;
+      return material;
+    });
+  }
+}
+
 const _dracoLoader = memoize(() => {
   const dracoLoader = new DRACOLoader();
   dracoLoader.setDecoderPath('/three/draco/');
@@ -47,6 +87,9 @@ const _gltfLoader = memoize(() => {
     const meshoptDecoder = _meshoptDecoder();
     gltfLoader.setMeshoptDecoder(meshoptDecoder);
   }
+
+  gltfLoader.register(parser => new MozLightMapExtension(parser));
+
   return gltfLoader;
 });
 const _shadertoyLoader = memoize(() => new ShadertoyLoader());
