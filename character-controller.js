@@ -303,7 +303,7 @@ class PlayerBase extends THREE.Object3D {
   wear(app, {
     loadoutIndex = -1,
   } = {}) {
-    debugger
+    // debugger
     const _getNextLoadoutIndex = () => {
       let loadoutIndex = -1;
       const usedIndexes = Array(8).fill(false);
@@ -345,7 +345,7 @@ class PlayerBase extends THREE.Object3D {
       _removeOldApp();
 
       const _transplantNewApp = () => {
-        debugger
+        // debugger
         if (world.appManager.hasTrackedApp(app.instanceId)) {
           world.appManager.transplantApp(app, this.appManager);
         } else {
@@ -753,9 +753,16 @@ class StatePlayer extends PlayerBase {
     return this.isBound() ? Array.from(this.getAppsState()) : [];
   }
   addAction(action) {
+    if (this === window.npcPlayer) console.log('add action:', action.type)
     action = clone(action);
     action.actionId = makeId(5);
     this.getActionsState().push([action]);
+    if (this.avatar) {
+      this.avatar.dispatchEvent({
+        type: 'actionStart',
+        action,
+      })
+    }
     return action;
   }
   removeAction(type) {
@@ -763,7 +770,14 @@ class StatePlayer extends PlayerBase {
     let i = 0;
     for (const action of actions) {
       if (action.type === type) {
+        if (this === window.npcPlayer) console.log('del action:', type)
         actions.delete(i);
+        if (this.avatar) {
+          this.avatar.dispatchEvent({
+            type: 'actionEnd',
+            action,
+          })
+        }
         break;
       }
       i++;

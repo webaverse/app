@@ -539,7 +539,7 @@ class AppManager extends EventTarget {
     let dstTrackedApp = null;
 
     // const wrapTxFn = innerFn => srcAppManager.appsArray.doc.transact(innerFn)
-    debugger
+    // debugger
     const wrapTxFn = (srcAppManager.appsArray.doc === dstAppManager.appsArray.doc) ?
       innerFn => srcAppManager.appsArray.doc.transact(innerFn)
     :

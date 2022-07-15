@@ -414,6 +414,7 @@ const _startUse = () => {
           scale,
         };
         // console.log('new use action', newUseAction, useComponent, {animation, animationCombo, animationEnvelope});
+        // console.log('add use', 'game.js')
         localPlayer.addAction(newUseAction);
 
         wearApp.use();
@@ -920,7 +921,7 @@ const _gameUpdate = (timestamp, timeDiff) => {
     
     if (currentActivated && !lastActivated) {
       if (grabUseMesh.targetApp) {
-        debugger
+        // debugger
         grabUseMesh.targetApp.activate({
           physicsId: grabUseMesh.targetPhysicsId,
         });

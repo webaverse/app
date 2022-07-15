@@ -154,10 +154,11 @@ class NpcManager extends EventTarget {
             };
             // console.log('add hurtAction', 'npc-manager.js')
             npcPlayer.addAction(newAction);
+            // console.log('remove use', 'npc-manager.js')
             npcPlayer.removeAction('use'); // todo: setControlAction() ?
 
             setTimeout(() => {
-              npcPlayer.removeAction('hurt');
+              // npcPlayer.removeAction('hurt');
             // }, hurtAnimationDuration * 1000);
             }, 0);
           }
@@ -193,7 +194,7 @@ class NpcManager extends EventTarget {
               if (targetSpec.type === 'moveto' && distance < 2) {
                 targetSpec = null;
               } else {
-                if (distance <= 1.5 && !npcPlayer.hasAction('use')) {
+                if (distance <= 1.5 && !npcPlayer.hasAction('use') && !npcPlayer.hasAction('hurt')) {
                   window.rootScene.traverse(child => { // test
                     if (child.contentId?.includes('\\sword\\')) {
                       // console.log(child)
@@ -201,6 +202,7 @@ class NpcManager extends EventTarget {
                     }
                   });
 
+                  // console.log('add use', 'npc-manager.js')
                   npcPlayer.addAction({
                     animation: 'combo',
                     behavior: 'sword',
@@ -213,7 +215,7 @@ class NpcManager extends EventTarget {
                     type: 'use',
                   });
                 }
-                if (!npcPlayer.hasAction('use')) {
+                if (!npcPlayer.hasAction('use') && !npcPlayer.hasAction('hurt')) {
                   // const speed = Math.min(Math.max(walkSpeed + ((distance - 1.5) * speedDistanceRate), 0), runSpeed);
                   const speed = Math.min(Math.max(walkSpeed + ((distance - 0.5) * speedDistanceRate), 0), runSpeed);
                   v.normalize()

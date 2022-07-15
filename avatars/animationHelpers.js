@@ -758,6 +758,26 @@ export const _createAnimation = avatar => {
 
   // avatar.mixer.addEventListener('finished', event => {
   // });
+
+  avatar.addEventListener('actionStart', e => {
+    // debugger
+    if (e.action.type === 'use') {
+      if (e.action.animation) {
+        // useEnd
+        physx.physxWorker.crossFadeUnitary(avatar.actionsNodeUnitary, 0.2, avatar.defaultNodeTwo);
+      }
+    }
+  })
+  avatar.addEventListener('actionStart', e => {
+    // debugger
+    if (e.action.type === 'use') {
+      if (e.action.animation) {
+        // useStart
+        physx.physxWorker.play(avatar.axeMotion);
+        physx.physxWorker.crossFadeUnitary(avatar.actionsNodeUnitary, 0.2, avatar.axeMotion);
+      }
+    }
+  })
 };
 
 export const _updateAnimation = avatar => {
@@ -890,15 +910,15 @@ export const _updateAnimation = avatar => {
   if (avatar.narutoRunStart) physx.physxWorker.crossFadeUnitary(avatar.actionsNodeUnitary, 0.2, avatar.narutoRunMotion);
 
   // sword
-  if (avatar.useStart) {
-    // const useAnimationName = avatar.useAnimation;
-    // physx.physxWorker.play(avatar.useMotiono[useAnimationName]);
-    // physx.physxWorker.crossFadeUnitary(avatar.actionsNodeUnitary, 0.2, avatar.useMotiono[useAnimationName]);
+  // if (avatar.useStart) {
+  //   // const useAnimationName = avatar.useAnimation;
+  //   // physx.physxWorker.play(avatar.useMotiono[useAnimationName]);
+  //   // physx.physxWorker.crossFadeUnitary(avatar.actionsNodeUnitary, 0.2, avatar.useMotiono[useAnimationName]);
 
-    // test ---
-    physx.physxWorker.play(avatar.axeMotion);
-    physx.physxWorker.crossFadeUnitary(avatar.actionsNodeUnitary, 0.2, avatar.axeMotion);
-  }
+  //   // test ---
+  //   physx.physxWorker.play(avatar.axeMotion);
+  //   physx.physxWorker.crossFadeUnitary(avatar.actionsNodeUnitary, 0.2, avatar.axeMotion);
+  // }
 
   // silsword
   if (avatar.useComboStart) {
@@ -942,7 +962,7 @@ export const _updateAnimation = avatar => {
 
   // hurt
   if (avatar.hurtStart) {
-    console.log('hurtStart')
+    // console.log('hurtStart')
     physx.physxWorker.play(avatar.hurtMotion);
     physx.physxWorker.crossFadeUnitary(avatar.actionsNodeUnitary, 0.2, avatar.hurtMotion);
   }
@@ -981,7 +1001,7 @@ export const _updateAnimation = avatar => {
   if (finishedFlag) {
     // debugger
     const motion = values[54];
-    console.log('---finished', avatar.getMotion(motion));
+    // console.log('---finished', avatar.getMotion(motion));
     // this.dispatchEvent({
     //   type: 'finished',
     //   motion,
@@ -1003,6 +1023,7 @@ export const _updateAnimation = avatar => {
       ].includes(motion)) {
         game.handleAnimationEnd();
 
+        // console.log('remove use', 'animationHelper.js')
         window.npcPlayer.removeAction('use');
       }
     };
@@ -1016,6 +1037,7 @@ export const _updateAnimation = avatar => {
       physx.physxWorker.crossFadeTwo(avatar.idle8DWalkRun_BowIdle8DDrawLooseNodeTwo, 0.2, 0);
     }
     if (motion === avatar.hurtMotion) {
+      window.npcPlayer.removeAction('hurt'); // test
       physx.physxWorker.crossFadeUnitary(avatar.actionsNodeUnitary, 0.2, avatar.defaultNodeTwo);
     }
   }
