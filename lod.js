@@ -427,7 +427,7 @@ const TrackerTaskTypes = {
   REMOVE: 2,
   OUTRANGE: 3,
 };
-const updateChunks = (oldChunks, tasks) => {
+/* const updateChunks = (oldChunks, tasks) => {
   const newChunks = oldChunks.slice();
   
   for (const task of tasks) {
@@ -448,7 +448,7 @@ const updateChunks = (oldChunks, tasks) => {
   // console.log('update chunks', oldChunks.length, tasks.length, newChunks.length);
 
   return newChunks;
-};
+}; */
 
 /*
 note: the nunber of lods at each level can be computed with this function:
