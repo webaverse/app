@@ -508,8 +508,6 @@ class PlayerBase extends THREE.Object3D {
     this.characterSfx.destroy();
     this.characterFx.destroy();
     this.characterBehavior.destroy();
-
-    super.destroy();
   }
 }
 const controlActionTypes = [
