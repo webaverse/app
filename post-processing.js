@@ -148,7 +148,6 @@ function makeSsrPass(ssr) {
       height: window.innerHeight,
       groundReflector: null,
       selects: [],
-      foamDepthMaterial: null,
       foamRenderTarget: null,
       invisibleSelects: [],
   });

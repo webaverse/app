@@ -374,18 +374,18 @@ class WaterMesh extends BatchedMesh {
 
 
                 // foam
-                vec2 screenUV = gl_FragCoord.xy / resolution;
+                // vec2 screenUV = gl_FragCoord.xy / resolution;
 
-                float fragmentLinearEyeDepth = getViewZ( gl_FragCoord.z );
-                float linearEyeDepth = getViewZ( getDepth( screenUV ) );
+                // float fragmentLinearEyeDepth = getViewZ( gl_FragCoord.z );
+                // float linearEyeDepth = getViewZ( getDepth( screenUV ) );
         
-                float diff = saturate( fragmentLinearEyeDepth - linearEyeDepth );
+                // float diff = saturate( fragmentLinearEyeDepth - linearEyeDepth );
         
-                vec2 displacement = texture2D( tDudv, ( worldPosition.xz * 0.05 * 10.0 ) - uTime * 0.05 ).rg;
-                displacement = ( ( displacement * 2.0 ) - 1.0 ) * 1.0;
-                diff += displacement.x;
+                // vec2 displacement = texture2D( tDudv, ( worldPosition.xz * 0.05 * 10.0 ) - uTime * 0.05 ).rg;
+                // displacement = ( ( displacement * 2.0 ) - 1.0 ) * 1.0;
+                // diff += displacement.x;
         
-                gl_FragColor.rgb = mix( foamColor, gl_FragColor.rgb, step( threshold, diff ) );
+                // gl_FragColor.rgb = mix( foamColor, gl_FragColor.rgb, step( threshold, diff ) );
                 
               ${THREE.ShaderChunk.logdepthbuf_fragment}
           }
@@ -910,7 +910,7 @@ export default (e) => {
                             pass.opacity = 0.1;
                             pass.foamDepthMaterial = depthMaterial;
                             pass.foamRenderTarget = renderTarget;
-                            pass.invisibleSelects.push(generator.getMeshes()[0]);
+                            // pass.invisibleSelects.push(generator.getMeshes()[0]);
                             pass.invisibleSelects.push(localPlayer.avatar.app);
                             
                             // pass.maxDistance = 10;
@@ -1340,7 +1340,7 @@ export default (e) => {
     useFrame(({timestamp}) => {
         if(!alreadySetComposer){
             if(reflectionSsrPass){
-                reflectionSsrPass.invisibleSelects.push(mask);
+                // reflectionSsrPass.invisibleSelects.push(mask);
                 alreadySetComposer = true;
             }
         }
