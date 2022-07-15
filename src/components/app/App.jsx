@@ -267,6 +267,9 @@ export const App = () => {
     const onDragEnd = e => {
         // console.log('drag end', e);
     };
+    const test = e =>{
+        console.log('hi')
+    }
 
     return (
         <div
@@ -284,11 +287,12 @@ export const App = () => {
                 <Crosshair />
                 
                 <ActionMenu />
-                <Settings />
+                <Settings onClick={ test }/>
                 <ClaimsNotification />
                 <WorldObjectsList
                     setSelectedApp={ setSelectedApp }
                     selectedApp={ selectedApp }
+                    
                 />
                 <PlayMode />
                 <EditorMode

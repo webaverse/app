@@ -20,10 +20,9 @@ import physicsManager from '../../../../physics-manager.js';
 
 
 const APP_TYPES = [ 'glb', 'html', 'gltf', 'gif', 'vrm' ];
-
+const physicsScene = physicsManager.getScene();
 
 export const WorldObjectsList = () => {
-
     const { state, setState, setSelectedApp, selectedApp } = useContext( AppContext );
     const [ apps, setApps ] = useState( world.appManager.getApps().slice() );
     const [ sortedApps, setSortedApps ] = useState( [] );
@@ -104,18 +103,19 @@ export const WorldObjectsList = () => {
     };
 
     const updatePhysics = () => {
-
+        
         const physicsObjects = selectedApp.getPhysicsObjects();
         physicsObjects.forEach( ( physicsObject ) => {
-            physicsManager.setGeometryScale( physicsObject.physicsId, selectedApp.scale );
+            physicsScene.setGeometryScale( physicsObject.physicsId, selectedApp.scale );
         });
     };
 
     const stopPropagation = ( event ) => {
-
+        
         event.stopPropagation();
 
     };
+    
 
     const handleSetRotationMode = ( event ) => {
 
@@ -247,7 +247,7 @@ export const WorldObjectsList = () => {
                             cameraManager.requestPointerLock();
 
                         }
-
+                
                         setState({ openedPanel: null });
 
                     } else if ( state.openedPanel !== 'SettingsPanel' ) {
