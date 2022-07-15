@@ -662,8 +662,6 @@ class StatePlayer extends PlayerBase {
         
         if (this.isLocalPlayer) {
           physicsScene.disableGeometryQueries(this.characterController);
-        } else {
-          avatar.shouldUpdateVelocity = false;
         }
       })();
       

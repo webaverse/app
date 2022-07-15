@@ -410,7 +410,8 @@ class Avatar {
         },
       };
     }
-
+    
+    this.isLocalPlayer = options.isLocalPlayer !== undefined ? options.isLocalPlayer : true;
     this.object = object;
 
     const model = (() => {
@@ -447,10 +448,6 @@ class Avatar {
     this.vrmExtension = object?.parser?.json?.extensions?.VRM;
     this.firstPersonCurves = getFirstPersonCurves(this.vrmExtension); 
 
-    // should the velocity be automatically updated?
-    // set to false on remote player _setNextAvatarApp()
-    // otherwise, can have weird behavior when remote avatar is moving
-    this.shouldUpdateVelocity = true;
     this.lastVelocity = new THREE.Vector3();
 
     const {
@@ -1903,7 +1900,7 @@ class Avatar {
     
     // for the local player we want to update the velocity immediately
     // on remote players this is called from the RemotePlayer -> observePlayerFn
-    if (this.shouldUpdateVelocity) {
+    if (this.isLocalPlayer) {
       this.setVelocity(
         timeDiffS,
         this.lastPosition,
