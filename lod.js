@@ -538,7 +538,7 @@ export class LodChunkTracker extends EventTarget {
     this.lastUpdateCoord = new THREE.Vector3(NaN, NaN, NaN);
 
     if (debug) {
-      const maxChunks = 512;
+      const maxChunks = 4096;
       const instancedCubeGeometry = new THREE.InstancedBufferGeometry();
       {
         const cubeGeometry = new THREE.BoxBufferGeometry(1, 1, 1)
