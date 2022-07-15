@@ -16,8 +16,6 @@ const localVector = new THREE.Vector3();
 
 // const onesLodsArray = new Array(8).fill(1);
 
-let numUpdates = 0;
-
 // const nop = () => {};
 
 class OctreeNode extends EventTarget {
