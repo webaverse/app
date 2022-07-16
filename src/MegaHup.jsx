@@ -1,13 +1,13 @@
 /* eslint-disable */
-import * as THREE from 'three';
-import React, { useState, useEffect, useRef } from 'react';
-import classnames from 'classnames';
+import * as THREE from "three";
+import React, { useState, useEffect, useRef } from "react";
+import classnames from "classnames";
 // import dioramaManager from '../diorama.js';
 // import game from '../game.js';
-import dioramaManager from '../diorama.js';
+import dioramaManager from "../diorama.js";
 // import {NpcPlayer} from '../character-controller.js';
-import { world } from '../world.js';
-import styles from './MegaHup.module.css';
+import { world } from "../world.js";
+import styles from "./MegaHup.module.css";
 // import {RpgText} from './RpgText.jsx';
 // import {chatTextSpeed} from '../constants.js';
 // import metaversefile from 'metaversefile';
@@ -25,12 +25,12 @@ const MegaHup = function ({
   const canvasRef = useRef();
 
   useEffect(() => {
-    const resize = e => {
+    const resize = (e) => {
       setHeight(e.target.innerHeight);
     };
-    window.addEventListener('resize', resize);
+    window.addEventListener("resize", resize);
     return () => {
-      window.removeEventListener('resize', resize);
+      window.removeEventListener("resize", resize);
     };
   }, []);
 
@@ -42,10 +42,12 @@ const MegaHup = function ({
       {
         diorama = dioramaManager.createPlayerDiorama({
           target: npcPlayer,
-          objects: [
-            npcPlayer.avatar.model,
-          ],
-          cameraOffset: new THREE.Vector3(-0.8 * manageScaleView, 0 * manageScaleView, -0.4 * manageScaleView),
+          objects: [npcPlayer.avatar.model],
+          cameraOffset: new THREE.Vector3(
+            -0.8 * manageScaleView,
+            0 * manageScaleView,
+            -0.4 * manageScaleView
+          ),
           // label: true,
           // outline: true,
           // grassBackground: true,
@@ -56,27 +58,27 @@ const MegaHup = function ({
         diorama.enabled = true;
       }
 
-      const frame = e => {
+      const frame = (e) => {
         const { timestamp, timeDiff } = e.data;
         if (diorama) {
           diorama.update(timestamp, timeDiff);
         }
       };
-      world.appManager.addEventListener('frame', frame);
-      const resize = e => {
+      world.appManager.addEventListener("frame", frame);
+      const resize = (e) => {
         // console.log('diorama set size', width, window.innerHeight);
         diorama.setSize(width, window.innerHeight);
       };
-      window.addEventListener('resize', resize);
-      console.log("creating diorama from MegaHup")
-      console.log(diorama)
+      window.addEventListener("resize", resize);
+      // console.log("creating diorama from MegaHup")
+      // console.log(diorama)
       return () => {
         if (diorama) {
           diorama.removeCanvas(canvas);
           diorama.destroy();
         }
-        world.appManager.removeEventListener('frame', frame);
-        window.removeEventListener('resize', resize);
+        world.appManager.removeEventListener("frame", frame);
+        window.removeEventListener("resize", resize);
         live = false;
       };
     }
@@ -96,6 +98,4 @@ const MegaHup = function ({
     </div>
   );
 };
-export {
-  MegaHup,
-};
+export { MegaHup };
