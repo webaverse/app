@@ -959,7 +959,6 @@ class InterpolatedPlayer extends StatePlayer {
       actionInterpolant.update(timeDiff);
     }
   }
-}
   update(timestamp, timeDiff) {
     if(!this.avatar) return; // avatar takes time to load, ignore until it does
 
@@ -976,23 +975,6 @@ class InterpolatedPlayer extends StatePlayer {
     this.characterBehavior.update(timestamp, timeDiffS);
 
     this.avatar.update(timestamp, timeDiff);
-  }
-  updateInterpolation(timeDiff) {
-    this.positionTimeStep.update(timeDiff);
-    this.quaternionTimeStep.update(timeDiff);
-    
-    this.positionInterpolant.update(timeDiff);
-    this.quaternionInterpolant.update(timeDiff);
-    
-    for (const actionInterpolantTimeStep of this.actionBinaryTimeStepsArray) {
-      actionInterpolantTimeStep.update(timeDiff);
-    }
-    for (const actionBinaryInterpolant of this.actionBinaryInterpolantsArray) {
-      actionBinaryInterpolant.update(timeDiff);
-    }
-    for (const actionInterpolant of this.actionInterpolantsArray) {
-      actionInterpolant.update(timeDiff);
-    }
   }
 }
 class UninterpolatedPlayer extends StatePlayer {
