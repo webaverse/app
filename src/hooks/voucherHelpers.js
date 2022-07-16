@@ -9,7 +9,7 @@ export async function getVoucherFromServer() {
     // const nonce = 552311376;
     const balance = 0;
 
-    const response = await fetch("http://localhost:8081/claim", {
+    const response = await fetch("http://172.32.13.15:8081/claim", {
         method: 'POST',
         headers: {
             'Accept': 'application/json',
