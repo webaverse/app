@@ -514,7 +514,7 @@ export const Equipment = () => {
                         onDoubleClick={onDoubleClick}
                         menuLeft={menuLeft}
                         menuRight={menuRight}
-                        highlights={true}
+                        highlights={false}
                         ItemClass={ObjectItem}
                     />
                     <EquipmentItems
