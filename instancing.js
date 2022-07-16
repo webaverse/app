@@ -202,9 +202,10 @@ export class GeometryAllocator {
     this.positionFreeList.free(geometryBinding.positionFreeListEntry);
     this.indexFreeList.free(geometryBinding.indexFreeListEntry);
   }
-  getDrawSpec(camera, drawStarts, drawCounts) {
+  getDrawSpec(camera, drawStarts, drawCounts, distanceArray) {
     drawStarts.length = 0;
     drawCounts.length = 0;
+    distanceArray.length = 0;
 
     if (this.boundingType) {
       const projScreenMatrix = localMatrix.multiplyMatrices(camera.projectionMatrix, camera.matrixWorldInverse);
@@ -216,7 +217,7 @@ export class GeometryAllocator {
         return (i) => {
           localSphere.center.fromArray(this.boundingData, i * 4);
           localSphere.radius = this.boundingData[i * 4 + 3];
-          return localFrustum.intersectsSphere(localSphere);
+          return localFrustum.intersectsSphere(localSphere) ? localSphere.center.distanceTo(camera.position) : false;
         };
       } else if (this.boundingType === 'box') {
         return (i) => {
@@ -228,11 +229,19 @@ export class GeometryAllocator {
         return (i) => true;
       }
     })();
+
     for (let i = 0; i < this.numDraws; i++) {
-      if (testBoundingFn(i)) {
-        drawStarts.push(this.drawStarts[i]);
-        drawCounts.push(this.drawCounts[i]);
+      let test = testBoundingFn(i);
+      if (test) {
+        distanceArray.push({distance: test, index: i})
       }
+    }
+    distanceArray.sort((a, b) => {
+        return b.distance - a.distance;
+    });
+    for(let i = 0; i < distanceArray.length; i++){
+      drawStarts.push(this.drawStarts[distanceArray[i].index]);
+      drawCounts.push(this.drawCounts[distanceArray[i].index]);
     }
   }
 }
@@ -635,9 +644,10 @@ export class BatchedMesh extends THREE.Mesh {
     
     this.isBatchedMesh = true;
     this.allocator = allocator;
+    this.distanceArray = [];
   }
 	getDrawSpec(camera, drawStarts, drawCounts) {
-    this.allocator.getDrawSpec(camera, drawStarts, drawCounts);
+    this.allocator.getDrawSpec(camera, drawStarts, drawCounts, this.distanceArray);
   }
 }
 
