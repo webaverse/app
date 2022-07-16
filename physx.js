@@ -2429,6 +2429,7 @@ const physxWorker = (() => {
 })()
 
 physx.physxWorker = physxWorker
+window.physxWorker = physxWorker;
 
 const _updateGeometry = () => {
   physx.crosshairMesh.update()
