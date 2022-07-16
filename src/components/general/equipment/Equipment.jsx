@@ -122,7 +122,7 @@ const ObjectItem = ({
             />
 
             <div className={styles.row}>
-                <div className={styles.name}>{object?.name}</div>
+                <div className={styles.name}>{ object ? (object.name.length > 10) ? object.name.slice(0, 10) + ".." : object.name : ""}</div>
                 <div className={styles.level}>Lv. {object?.level}</div>
             </div>
 
