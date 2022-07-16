@@ -732,6 +732,8 @@ class StatePlayer extends PlayerBase {
           }
         }
       }
+    } else {
+      throw new Error("Can't set avatar to instanceId that does not exist in any app manager");
     }
     
     this.syncAvatarCancelFn = null;
@@ -1418,8 +1420,6 @@ class RemotePlayer extends InterpolatedPlayer {
     
     this.appManager.bindState(this.getAppsState());
     this.appManager.loadApps();
-    
-    this.syncAvatar();
   }
 }
 /* class StaticUninterpolatedPlayer extends UninterpolatedPlayer {
