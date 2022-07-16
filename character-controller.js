@@ -995,6 +995,9 @@ class LocalPlayer extends UninterpolatedPlayer {
 
     await p;
   }
+  setAvatarApp(app) {
+    this.#setAvatarAppFromOwnAppManager(app);
+  }
   async setAvatarUrl(u) {
     const localAvatarEpoch = ++this.avatarEpoch;
     const avatarApp = await this.appManager.addTrackedApp(u);
