@@ -2,6 +2,10 @@
 this file is responisible for maintaining player state that is network-replicated.
 */
 
+import {WsAudioDecoder} from 'wsrtc/ws-codec.js';
+import {ensureAudioContext, getAudioContext} from 'wsrtc/ws-audio-context.js';
+import {getAudioDataBuffer} from 'wsrtc/ws-util.js';
+
 import * as THREE from 'three';
 import * as Z from 'zjs';
 import {getRenderer, scene, camera, dolly} from './renderer.js';
@@ -25,6 +29,7 @@ import {
   avatarInterpolationNumFrames,
   // groundFriction,
   // defaultVoicePackName,
+  voiceEndpointBaseUrl,
   numLoadoutSlots,
 } from './constants.js';
 import {AppManager} from './app-manager.js';
@@ -35,7 +40,7 @@ import {CharacterHitter} from './character-hitter.js';
 import {CharacterBehavior} from './character-behavior.js';
 import {CharacterFx} from './character-fx.js';
 import {VoicePack, VoicePackVoicer} from './voice-output/voice-pack-voicer.js';
-import {VoiceEndpoint, VoiceEndpointVoicer, getVoiceEndpointUrl} from './voice-output/voice-endpoint-voicer.js';
+import {VoiceEndpoint, VoiceEndpointVoicer} from './voice-output/voice-endpoint-voicer.js';
 import {BinaryInterpolant, BiActionInterpolant, UniActionInterpolant, InfiniteActionInterpolant, PositionInterpolant, QuaternionInterpolant} from './interpolants.js';
 import {applyPlayerToAvatar, switchAvatar} from './player-avatar-binding.js';
 import {
@@ -260,6 +265,14 @@ class PlayerBase extends THREE.Object3D {
     }
     return false;
   }
+  async setVoicePack({audioUrl, indexUrl}) {
+    const self = this;
+    // this.playersArray.doc.transact(function tx() {
+    const voiceSpec = JSON.stringify({audioUrl, indexUrl, endpointUrl: self.voiceEndpoint ? self.voiceEndpoint.url : ''});
+    self.playerMap.set('voiceSpec', voiceSpec);
+    // });
+    await this.loadVoicePack({audioUrl, indexUrl})
+  }
   async loadVoicePack({audioUrl, indexUrl}) {
     this.voicePack = await VoicePack.load({
       audioUrl,
@@ -268,8 +281,25 @@ class PlayerBase extends THREE.Object3D {
     this.updateVoicer();
   }
   setVoiceEndpoint(voiceId) {
-    if (voiceId) {
-      const url = getVoiceEndpointUrl(voiceId);
+    if (!voiceId) throw new Error('voice Id is null')
+    const self = this;
+    const url = `${voiceEndpointBaseUrl}?voice=${encodeURIComponent(voiceId)}`;
+    this.playersArray.doc.transact(function tx() {
+      let oldVoiceSpec = self.playerMap.get('voiceSpec');
+      if (oldVoiceSpec) {
+        oldVoiceSpec = JSON.parse(oldVoiceSpec);
+        const voiceSpec = JSON.stringify({audioUrl: oldVoiceSpec.audioUrl, indexUrl: oldVoiceSpec.indexUrl, endpointUrl: url});
+        self.playerMap.set('voiceSpec', voiceSpec);
+      } else {
+        const voiceSpec = JSON.stringify({audioUrl: self.voicePack?.audioUrl, indexUrl: self.voicePack?.indexUrl, endpointUrl: url})
+        self.playerMap.set('voiceSpec', voiceSpec);
+      }
+    });
+    this.loadVoiceEndpoint(url)
+  }
+
+  loadVoiceEndpoint(url) {
+    if (url) {
       this.voiceEndpoint = new VoiceEndpoint(url);
     } else {
       this.voiceEndpoint = null;
@@ -277,7 +307,7 @@ class PlayerBase extends THREE.Object3D {
     this.updateVoicer();
   }
   getVoice() {
-    return this.voiceEndpoint || this.voicePack || null;
+    return this.voiceEndpoint || this.voicePack;
   }
   updateVoicer() {
     const voice = this.getVoice();
@@ -799,19 +829,6 @@ class StatePlayer extends PlayerBase {
     }
     actions.push([action]);
   }
-  setMicMediaStream(mediaStream) {
-    if (this.microphoneMediaStream) {
-      this.microphoneMediaStream.disconnect();
-      this.microphoneMediaStream = null;
-    }
-    if (mediaStream) {
-      this.avatar.setAudioEnabled(true);
-      const audioContext = Avatar.getAudioContext();
-      const mediaStreamSource = audioContext.createMediaStreamSource(mediaStream);
-      mediaStreamSource.connect(this.avatar.getAudioInput());
-      this.microphoneMediaStream = mediaStreamSource;
-    }
-  }
   new() {
     const self = this;
     this.playersArray.doc.transact(function tx() {
@@ -1026,6 +1043,21 @@ class LocalPlayer extends UninterpolatedPlayer {
       }
     });
   }
+  setMicMediaStream(mediaStream) {
+    if (this.microphoneMediaStream) {
+      this.microphoneMediaStream.disconnect();
+      this.microphoneMediaStream = null;
+    }
+    if (mediaStream) {
+      this.avatar.setMicrophoneEnabled(true, this);
+      const audioContext = Avatar.getAudioContext();
+      const mediaStreamSource = audioContext.createMediaStreamSource(mediaStream);
+
+      mediaStreamSource.connect(this.avatar.getMicrophoneInput(true));
+
+      this.microphoneMediaStream = mediaStreamSource;
+    }
+  }
   detachState() {
     const oldActions = (this.playersArray ? this.getActionsState() : new Z.Array());
     const oldAvatar = (this.playersArray ? this.getAvatarState() : new Z.Map()).toJSON();
@@ -1215,8 +1247,44 @@ class LocalPlayer extends UninterpolatedPlayer {
 class RemotePlayer extends InterpolatedPlayer {
   constructor(opts) {
     super(opts);
-  
+    this.audioWorkletNode = null;
+    this.audioWorkerLoaded = false;
     this.isRemotePlayer = true;
+  }
+    // The audio worker handles hups and incoming voices
+  // This includes the microphone from the owner of this instance
+  async prepareAudioWorker() {
+    if (!this.audioWorkerLoaded) {
+      this.audioWorkerLoaded = true;
+
+      await ensureAudioContext();
+      const audioContext = getAudioContext();
+
+      this.audioWorkletNode = new AudioWorkletNode(
+        audioContext,
+        'ws-output-worklet'
+      );
+
+      this.audioDecoder = new WsAudioDecoder({
+        output: (data) => {
+          const buffer = getAudioDataBuffer(data);
+          this.audioWorkletNode.port.postMessage(buffer, [buffer.buffer]);
+        },
+      });
+
+      if (!this.avatar.isAudioEnabled()) {
+        this.avatar.setAudioEnabled(true);
+      }
+
+      this.audioWorkletNode.connect(this.avatar.getAudioInput());
+    }
+  }
+  // This is called by WSRTC (in world.js) when it receives new packets for this player
+  processAudioData(data) {
+    this.prepareAudioWorker();
+    if (this.audioWorkletNode) {
+      this.audioDecoder.decode(data.data);
+    }
   }
   detachState() {
     return null;
