@@ -7,6 +7,7 @@ import LegsManager from './vrarmik/LegsManager.js';
 import {scene, camera} from '../renderer.js';
 import MicrophoneWorker from './microphone-worker.js';
 import {AudioRecognizer} from '../audio-recognizer.js';
+import audioManager from '../audio-manager.js';
 import {
   // angleDifference,
   // getVelocityDampingFactor,
@@ -1994,7 +1995,7 @@ class Avatar {
       this.ensureAudioRecognizer();
       this.volume = 0;
 
-      const audioContext = getAudioContext();
+      const audioContext = audioManager.getAudioContext();
       if (audioContext.state === 'suspended') {
         (async () => {
           await audioContext.resume();
@@ -2043,8 +2044,8 @@ class Avatar {
     if (enabled) {
       this.ensureAudioRecognizer();
       this.volume = 0;
-
-      const audioContext = getAudioContext();
+     
+      const audioContext = audioManager.getAudioContext();
       if (audioContext.state === 'suspended') {
         (async () => {
           await audioContext.resume();
@@ -2084,7 +2085,7 @@ class Avatar {
   }
   ensureAudioRecognizer() {
     if (!this.audioRecognizer) {
-      const audioContext = getAudioContext();
+      const audioContext = audioManager.getAudioContext();
       this.audioRecognizer = new AudioRecognizer({
         sampleRate: audioContext.sampleRate,
       });
@@ -2138,7 +2139,7 @@ class Avatar {
       muted: false,
       // emitVolume: true,
       // emitBuffer: true,
-      // audioContext: WSRTC.getAudioContext(),
+      // audioContext: audioManager.getAudioContext(),
       // microphoneWorkletUrl: '/avatars/microphone-worklet.js',
     });
 
@@ -2153,18 +2154,6 @@ Avatar.waitForLoad = () => loadPromise;
 Avatar.getAnimations = () => animations;
 Avatar.getAnimationStepIndices = () => animationStepIndices;
 Avatar.getAnimationMappingConfig = () => animationMappingConfig;
-let avatarAudioContext = null;
-const getAudioContext = () => {
-  if (!avatarAudioContext) {
-    console.warn('using default audio context; setAudioContext was not called');
-    setAudioContext(new AudioContext());
-  }
-  return avatarAudioContext;
-};
-Avatar.getAudioContext = getAudioContext;
-const setAudioContext = newAvatarAudioContext => {
-  avatarAudioContext = newAvatarAudioContext;
-};
-Avatar.setAudioContext = setAudioContext;
+
 Avatar.getClosest2AnimationAngles = getClosest2AnimationAngles;
 export default Avatar;
