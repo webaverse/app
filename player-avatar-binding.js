@@ -7,6 +7,7 @@ import {unFrustumCull, enableShadows} from './util.js';
 import {
   getEyePosition,
 } from './avatars/util.mjs';
+import {getLocalPlayer} from './players.js';
 
 const appSymbol = 'app'; // Symbol('app');
 const avatarSymbol = 'avatar'; // Symbol('avatar');
@@ -51,18 +52,23 @@ export function applyPlayerModesToAvatar(player, session, rig) {
 export function makeAvatar(app) {
   if (app) {
     const {skinnedVrm} = app;
+
+    // get the local player
+    const isLocalPlayer = app.instanceId === getLocalPlayer().getAvatarInstanceId();
+
     if (skinnedVrm) {
       const avatar = new Avatar(skinnedVrm, {
+        isLocalPlayer,
         fingers: true,
         hair: true,
         visemes: true,
         debug: false,
       });
       avatar[appSymbol] = app;
-      
+
       unFrustumCull(app);
       enableShadows(app);
-      
+
       return avatar;
     }
   }
