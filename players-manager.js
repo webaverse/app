@@ -91,11 +91,11 @@ class PlayersManager {
       this.unbindStateFn = this.playersArray.unobserve.bind(this.playersArray, playersObserveFn);
     }
   }
-  // updateRemotePlayers(timestamp, timeDiff) {
-  //   for (const remotePlayer of this.remotePlayers.values()) {
-  //     remotePlayer.updateAvatar(timestamp, timeDiff);
-  //   }
-  // }
+  updateRemotePlayers(timestamp, timeDiff) {
+    for (const remotePlayer of this.remotePlayers.values()) {
+      remotePlayer.update(timestamp, timeDiff);
+    }
+  }
 }
 const playersManager = new PlayersManager();
 
