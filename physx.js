@@ -6,6 +6,7 @@ import * as THREE from 'three';
 // import {makePromise} from './util.js';
 // import { getRenderer } from './renderer.js'
 import Module from './public/bin/geometry.js';
+window.Module = Module;
 import {Allocator, ScratchStack} from './geometry-util.js';
 import { AnimationNodeType } from './constants.js';
 
@@ -2404,6 +2405,18 @@ const physxWorker = (() => {
       node,
     )
   }
+  w.getChildren = (node) => {
+    const count = Module._getChildren(
+      node, scratchStack.ptr,
+    )
+    const children = [];
+    for (let i = 0; i < count; i++) {
+      const childNode = scratchStack.u32[i];
+      children.push(childNode);
+    }
+    return children;
+  }
+
   w.play = (motion) => Module._play(motion);
   w.stop = (motion) => Module._stop(motion);
   w.setTimeBias = (motion, timeBias) => Module._setTimeBias(motion, timeBias);
