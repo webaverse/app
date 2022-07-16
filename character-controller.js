@@ -732,8 +732,6 @@ class StatePlayer extends PlayerBase {
           }
         }
       }
-    } else {
-      _setNextAvatarApp(null);
     }
     
     this.syncAvatarCancelFn = null;
