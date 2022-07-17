@@ -508,8 +508,6 @@ class PlayerBase extends THREE.Object3D {
     this.characterSfx.destroy();
     this.characterFx.destroy();
     this.characterBehavior.destroy();
-
-    super.destroy();
   }
 }
 const controlActionTypes = [
@@ -996,6 +994,9 @@ class LocalPlayer extends UninterpolatedPlayer {
     overrides.userVoicePack.set(playerSpec.voicePack ?? null);
 
     await p;
+  }
+  setAvatarApp(app) {
+    this.#setAvatarAppFromOwnAppManager(app);
   }
   async setAvatarUrl(u) {
     const localAvatarEpoch = ++this.avatarEpoch;
