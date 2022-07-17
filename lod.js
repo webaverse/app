@@ -17,6 +17,71 @@ const localVector = new THREE.Vector3();
 
 // const nop = () => {};
 
+class Dominator extends EventTarget {
+  constructor(base, onload) {
+    super();
+
+    this.base = base;
+    this.onload = onload;
+    this.oldChunks = [];
+    this.newChunks = [];
+
+    this.unlistens = [];
+    this.live = true;
+  }
+  start() {
+    const renderDatas = Array(this.newChunks.length);
+    const _done = () => {
+      this.live = false;
+      this.onload(renderDatas);
+    };
+
+    if ( // if clearing old chunks
+      this.oldChunks.length > 0 &&
+      this.newChunks.length === 0
+    ) {
+      // delete immediately
+      _done();
+    } else { // else if not clearing old chunks
+      this.pendingWaits = [];
+      for (let i = 0; i < this.newChunks.length; i++) {
+        const chunk = this.newChunks[i];
+        if (chunk.dataRequest.renderData === undefined) {
+          this.pendingWaits.push(chunk);
+          // console.log('pending waits add', pendingWaits);
+          const onload = e => {
+            const {renderData} = e.data;
+            renderDatas[i] = renderData;
+
+            // console.log('trigger pending waits', pendingWaits - 1);
+            const index = this.pendingWaits.indexOf(chunk);
+            this.pendingWaits.splice(index, 1);
+            if (this.pendingWaits.length === 0) {
+              _done();
+            }
+          };
+          chunk.addEventListener('load', onload);
+          this.unlistens.push(() => {
+            chunk.removeEventListener('load', onload);
+          });
+        } else {
+          renderDatas[i] = chunk.dataRequest.renderData;
+        }
+      }
+
+      if (this.pendingWaits.length === 0) {
+        this.live = false;
+      }
+      this.initialPendingWeights = this.pendingWaits.slice();
+    }
+  }
+  cancel() {
+    for (const unlisten of this.unlistens) {
+      unlisten();
+    }
+  }
+}
+
 class OctreeNode extends EventTarget {
   constructor(min = new THREE.Vector3(), lod = 1, isLeaf = true, lodArray = new Int32Array(8).fill(-1)) {
     super();
@@ -412,6 +477,30 @@ class DataRequest {
     this.signal = this.abortController.signal;
 
     this.loadPromise = makePromise();
+
+    this.node.dataRequest = this;
+
+    this.renderData = undefined;
+    this.loadPromise.then(renderData => {
+      this.renderData = renderData;
+      this.node.dispatchEvent(new MessageEvent('load', {
+        data: {
+          renderData,
+        },
+      }));
+    }, err => {
+      const renderData = null;
+      this.renderData = renderData;
+      this.node.dispatchEvent(new MessageEvent('load', {
+        data: {
+          renderData,
+        },
+      }));
+    });
+  }
+  replaceNode(node) {
+    this.node = node;
+    this.node.dataRequest = this;
   }
   cancel() {
     // console.log('cancel data request');
@@ -544,6 +633,8 @@ export class LodChunkTracker extends EventTarget {
     this.renderedChunks = new Map(); // hash -> OctreeNode
     this.dataRequests = new Map(); // hash -> DataRequest
     this.lastUpdateCoord = new THREE.Vector3(NaN, NaN, NaN);
+
+    this.dominators = new Map(); // hash -> OctreeNode
 
     if (debug) {
       const maxChunks = 4096;
@@ -756,11 +847,10 @@ export class LodChunkTracker extends EventTarget {
         });
         if (matchingLeafNode) {
           // keep the data request
-          // console.log('data request keep', hash);
+          oldDataRequest.replaceNode(matchingLeafNode);
         } else {
           // cancel the data request
           oldDataRequest.cancel();
-          // console.log('data request cancel', hash);
           // forget the data request
           this.dataRequests.delete(hash);
         }
@@ -778,6 +868,13 @@ export class LodChunkTracker extends EventTarget {
             data: {
               chunk,
               waitUntil(promise) {
+                /* const stack = new Error().stack;
+                promise.then(r => {
+                  if (r === null) {
+                    console.log('promise stack', stack);
+                    debugger;
+                  }
+                }); */
                 dataRequest.waitUntil(promise);
                 waited = true;
               },
@@ -787,122 +884,88 @@ export class LodChunkTracker extends EventTarget {
           this.dispatchEvent(chunkDataRequestEvent);
 
           if (!waited) {
-            dataRequest.waitUntil(Promise.resolve(null));
+            dataRequest.waitUntil(Promise.resolve({
+              unwaited: true,
+            }));
           }
-          dataRequest.isNew = true;
-          // console.log('new data request 1', hash);
-          // console.log('new data request 2', hash);
           this.dataRequests.set(hash, dataRequest);
         }
       }
     }
 
-    // compute replacements for chunks. a replacement is an object that describes a transform from a set of old nodes to new nodes.
-    // the transform is a function that takes a node and returns a new node.
-    // delete all outranged chunks
-    {
-      const renderedChunks = Array.from(this.renderedChunks.values());
-      for (const renderedChunk of renderedChunks) {
-        const hash = renderedChunk.min.toArray().join(',') + ':' + renderedChunk.lod;
-        
-        // check if the chunk is still in the octree
-        const matchingLeafNode = leafNodes.find(leafNode => {
-          return containsNode(leafNode, renderedChunk);
-        });
-        // console.log('equals node lod', {matchingLeafNode, renderedChunk});
-        if (matchingLeafNode) {
-          // console.log('rendered chunk match', hash);
-          // keep the chunk
-        } else {
-          // delete the chunk
-          const chunkRemoveEvent = new MessageEvent('chunkremove', {
-            data: {
-              chunk: renderedChunk,
-            },
-          });
-          this.dispatchEvent(chunkRemoveEvent);
-
-          // console.log('rendered chunk delete', hash);
-          this.renderedChunks.delete(hash);
-          
-          /* if (this.renderedChunks.size === 0) {
-            debugger;
-          } */
-        }
-      }
+    // compute dominators. a dominator is a chunk lod that contains a a transform from old chunks to new chunks.
+    for (const dominator of this.dominators.values()) {
+      dominator.cancel();
     }
+    this.dominators.clear();
+    {
+      const oldRenderedChunks = Array.from(this.renderedChunks.values());
+      const newRenderedChunks = Array.from(this.dataRequests.values()).map(dataRequest => dataRequest.node);
+      const addChunk = (chunk, isNew) => {
+        const oldLeafNode = findLeafNodeForPosition(oldRenderedChunks, chunk.min);
+        const newLeafNode = findLeafNodeForPosition(newRenderedChunks, chunk.min);
+        let maxLodChunk;
+        if (oldLeafNode && newLeafNode) {
+          maxLodChunk = oldLeafNode.lod > newLeafNode.lod ? oldLeafNode : newLeafNode;
+        } else if (oldLeafNode) {
+          maxLodChunk = oldLeafNode;
+        } else if (newLeafNode) {
+          maxLodChunk = newLeafNode;
+        } else {
+          throw new Error('no chunk match in any leaf set');
+        }
 
-    // wait for and render new chunks
-    for (const leafNode of leafNodes) {
-      const hash = leafNode.min.toArray().join(',') + ':' + leafNode.lod;
-      const dataRequest = this.dataRequests.get(hash);
-      if (dataRequest) {
-        if (dataRequest.isNew) {
-          dataRequest.isNew = false;
-          (async () => {
-            try {
-              const renderData = await dataRequest.waitForLoad();
+        const maxLodHash = maxLodChunk.min.toArray().join(',') + ':' + maxLodChunk.lod;
+        let dominator = this.dominators.get(maxLodHash);
+        if (!dominator) {
+          dominator = new Dominator(maxLodChunk, renderDatas => {
+            for (const oldChunk of dominator.oldChunks) {
+              const chunkRemoveEvent = new MessageEvent('chunkremove', {
+                data: {
+                  chunk: oldChunk,
+                },
+              });
+              this.dispatchEvent(chunkRemoveEvent);
+   
+              const hash = oldChunk.min.toArray().join(',') + ':' + oldChunk.lod;
+              this.renderedChunks.delete(hash);
+            }
+            for (let i = 0; i < dominator.newChunks.length; i++) {
+              const newChunk = dominator.newChunks[i];
+              const renderData = renderDatas[i];
+              // console.log('add chunk', newChunk);
+
               const chunkAddEvent = new MessageEvent('chunkadd', {
                 data: {
                   renderData,
-                  chunk: leafNode,
+                  chunk: newChunk,
                 },
               });
               this.dispatchEvent(chunkAddEvent);
 
-              /* if (dataRequest.signal.aborted) {
-                debugger;
-              } */
-
-              // const hash = leafNode.min.toArray().join(',') + ':' + leafNode.lod;
-              // console.log('rendered chunk set', hash);
-              this.renderedChunks.set(hash, leafNode);
-            } catch (err) {
-              /* if (err?.isAbortError) {
-                console.log('abort err', err);
-              } */
-              if (!err?.isAbortError) {
-                console.warn(err);
-              }
+              const hash = newChunk.min.toArray().join(',') + ':' + newChunk.lod;
+              this.renderedChunks.set(hash, newChunk);
             }
-          })();
+          });
+          this.dominators.set(maxLodHash, dominator);
+        }
+        if (isNew) {
+          dominator.newChunks.push(chunk);
         } else {
-          // skip adding since it's not a new node
-          // console.log('rendered chunk skip', hash);
+          dominator.oldChunks.push(chunk);
         }
-      } else {
-        throw new Error('no data request for chunk');
+      };
+      for (const chunk of oldRenderedChunks) {
+        addChunk(chunk, false);
       }
+      for (const chunk of newRenderedChunks) {
+        addChunk(chunk, true);
+      }
+      for (const dominator of this.dominators.values()) {
+        dominator.start();
+      }
+      window.dominators = this.dominators;
     }
-
-    /* if (leafNodes.length === 0) {
-      debugger;
-    } */
-
-    /* // compute new live chunks set
-    this.chunks = updateChunks(this.chunks, newTasks);
-
-    const _update = () => {
-      for (const task of newTasks) {
-        
-        if (!isNop(task)) {
-          this.dispatchEvent(new MessageEvent('chunkrelod', {
-            data: {
-              task,
-            },
-          }));
-
-          const overlappingTasks = this.liveTasks.filter(lastTask => task.maxLodNode.containsNode(lastTask.maxLodNode));
-          for (const oldTask of overlappingTasks) {
-            oldTask.cancel();
-            const index = this.liveTasks.indexOf(oldTask);
-            this.liveTasks.splice(index, 1);
-          }
-          this.liveTasks.push(task);
-        }
-      }        
-    };
-    _update(); */
 
     this.dispatchEvent(new MessageEvent('update'));
   }
