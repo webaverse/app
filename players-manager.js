@@ -20,6 +20,16 @@ class PlayersManager {
   unbindState() {
     const lastPlayers = this.playersArray;
     if (lastPlayers) {
+      const playerSpecs = lastPlayers.toJSON();
+      const nonLocalPlayerSpecs = playerSpecs.filter(p => {
+        return p.playerId !== getLocalPlayer().playerId;
+      });
+      // Destroy all remote players if they still exist
+      for (const nonLocalPlayer of nonLocalPlayerSpecs) {
+        const remotePlayer = this.remotePlayers.get(nonLocalPlayer.playerId);
+        remotePlayer.destroy();
+        this.remotePlayers.delete(nonLocalPlayer.playerId);
+      }
       this.unbindStateFn();
       this.playersArray = null;
       this.unbindStateFn = null;
