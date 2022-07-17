@@ -1,8 +1,7 @@
 import Avatar from './avatars/avatars.js';
-import WSRTC from 'wsrtc/wsrtc.js';
 
 const loadPromise = (async () => {
-  const audioContext = WSRTC.getAudioContext();
+  const audioContext = Avatar.getAudioContext();
   audioContext.gain = audioContext.createGain();
   audioContext.gain.connect(audioContext.destination);
   
@@ -12,6 +11,6 @@ const loadPromise = (async () => {
 export const waitForLoad = () => loadPromise;
 
 export const setVolume = volume => {
-  const audioContext = WSRTC.getAudioContext();
+  const audioContext = Avatar.getAudioContext();
   audioContext.gain.gain.value = volume;
 };

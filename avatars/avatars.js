@@ -869,6 +869,7 @@ class Avatar {
       this.skinnedMeshesVisemeMappings = [];
     }
 
+    this.audioWorker = null;
     this.microphoneWorker = null;
     this.volume = -1;
 
@@ -1973,56 +1974,115 @@ class Avatar {
   }
 
   isAudioEnabled() {
-    return !!this.microphoneWorker;
+    return !!this.audioWorker;
   }
   setAudioEnabled(enabled) {
     // cleanup
-    if (this.microphoneWorker) {
-      this.microphoneWorker.close();
-      this.microphoneWorker = null;
-    }
-    if (this.audioRecognizer) {
-      this.audioRecognizer.destroy();
-      this.audioRecognizer = null;
+    if (this.audioWorker) {
+      this.audioWorker.close();
+      this.audioWorker = null;
     }
 
     // setup
     if (enabled) {
+      this.ensureAudioRecognizer();
       this.volume = 0;
-     
+
       const audioContext = getAudioContext();
       if (audioContext.state === 'suspended') {
         (async () => {
           await audioContext.resume();
         })();
       }
-      this.microphoneWorker = new MicrophoneWorker({
+      const _volume = e => {
+        if (!this.manuallySetMouth) {
+          this.volume = this.volume * 0.8 + e.data * 0.2;
+        } else {
+          console.log("couldn't set mouth because it is being manually set")
+        }
+      }
+
+      const _buffer = e => {
+        this.audioRecognizer.send(e.data);
+      }
+
+      this.audioRecognizer.addEventListener('result', e => {
+        this.vowels.set(e.data);
+      });
+
+      this.audioWorker = new MicrophoneWorker({
         audioContext,
         muted: false,
         emitVolume: true,
         emitBuffer: true,
       });
-      this.microphoneWorker.addEventListener('volume', e => {
-        if(!this.manuallySetMouth){
-          this.volume = this.volume*0.8 + e.data*0.2;
-        }
-      });
-      this.microphoneWorker.addEventListener('buffer', e => {
-        this.audioRecognizer.send(e.data);
-      });
 
-      this.audioRecognizer = new AudioRecognizer({
-        sampleRate: audioContext.sampleRate,
-      });
-      this.audioRecognizer.addEventListener('result', e => {
-        this.vowels.set(e.data);
-      });
+      this.audioWorker.addEventListener('volume', _volume);
+      this.audioWorker.addEventListener('buffer', _buffer);
     } else {
       this.volume = -1;
     }
   }
   getAudioInput() {
-    return this.microphoneWorker && this.microphoneWorker.getInput();
+    return this.audioWorker.getInput();
+  }
+  setMicrophoneEnabled(enabled) {
+    // cleanup
+    if (this.microphoneWorker) {
+      this.microphoneWorker.close();
+      this.microphoneWorker = null;
+    }
+
+    // setup
+    if (enabled) {
+      this.ensureAudioRecognizer();
+      this.volume = 0;
+
+      const audioContext = getAudioContext();
+      if (audioContext.state === 'suspended') {
+        (async () => {
+          await audioContext.resume();
+        })();
+      }
+
+      this.audioRecognizer.addEventListener('result', e => {
+        this.vowels.set(e.data);
+      });
+
+      this.microphoneWorker = new MicrophoneWorker({
+        audioContext,
+        muted: true,
+        emitVolume: true,
+        emitBuffer: true,
+      });
+
+      const _localVolume = e => {
+        this.volume = this.volume * 0.8 + e.data * 0.2;
+      }
+
+      const _localBuffer = e => {
+        this.audioRecognizer.send(e.data);
+      }
+
+      this.microphoneWorker.addEventListener('volume', _localVolume);
+      this.microphoneWorker.addEventListener('buffer', _localBuffer);
+    } else {
+      this.volume = -1;
+    }
+  }
+  isMicrophoneEnabled() {
+    return !!this.microphoneWorker;
+  }
+  getMicrophoneInput() {
+    return this.microphoneWorker.getInput();
+  }
+  ensureAudioRecognizer() {
+    if (!this.audioRecognizer) {
+      const audioContext = getAudioContext();
+      this.audioRecognizer = new AudioRecognizer({
+        sampleRate: audioContext.sampleRate,
+      });
+    }
   }
   decapitate() {
     if (!this.decapitated) {

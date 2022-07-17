@@ -1658,7 +1658,12 @@ class GameManager extends EventTarget {
   /* loadVoicePack(voicePack) {
     return localPlayer.loadVoicePack(voicePack);
   } */
+  setVoicePack(voicePack) {
+    const localPlayer = metaversefileApi.useLocalPlayer();
+    return localPlayer.setVoicePack(voicePack);
+  }
   setVoiceEndpoint(voiceId) {
+    if(!voiceId) return console.error('setVoiceEndpoint error', voiceId);
     const localPlayer = getLocalPlayer();
     return localPlayer.setVoiceEndpoint(voiceId);
   }
