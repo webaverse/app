@@ -180,7 +180,7 @@ const _cloneNode = (node) => {
     lodArray: node.lodArray.slice(),
   };
 };
-const _cloneTask = task => {
+/* const _cloneTask = task => {
   return {
     id: task.id,
     type: task.type,
@@ -191,12 +191,15 @@ const _cloneTask = task => {
     newNodes: task.newNodes.map(_cloneNode),
     oldNodes: task.oldNodes.map(_cloneNode),
   };
-};
+}; */
 const _cloneTrackerUpdate = trackerUpdate => {
+  if (trackerUpdate.leafNodes.length === 0) {
+    debugger;
+  }
   return {
-    currentCoord: trackerUpdate.currentCoord.slice(),
-    oldTasks: trackerUpdate.oldTasks.map(_cloneTask),
-    newTasks: trackerUpdate.newTasks.map(_cloneTask),
+    // currentCoord: trackerUpdate.currentCoord.slice(),
+    // oldTasks: trackerUpdate.oldTasks.map(_cloneTask),
+    // newTasks: trackerUpdate.newTasks.map(_cloneTask),
     leafNodes: trackerUpdate.leafNodes.map(_cloneNode),
   };
 };

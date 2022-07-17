@@ -693,225 +693,242 @@ export class LodChunkTracker extends EventTarget {
       this.lastUpdateCoord.copy(currentCoord);
     }
   } */
-  update(position) {
-    let currentCoord = this.#getCurrentCoord(position, localVector);
-    if (!this.lastUpdateCoord.equals(currentCoord)) {
-      this.lastUpdateCoord.copy(currentCoord);
+  async updateInternal(position) {
+    if (!this.dcTracker) {
+      this.dcTracker = await this.dcWorkerManager.createTracker(this.lods, this.minLodRange, this.trackY);
+    }
 
-      // console.log('position update', currentCoord.toArray().join(','));
+    const trackerUpdateSpec = await this.dcWorkerManager.trackerUpdate(this.dcTracker, position);
+    let {
+      // currentCoord,
+      // oldTasks,
+      // newTasks,
+      leafNodes,
+    } = trackerUpdateSpec;
 
-      (async () => {
-        if (!this.isUpdating) {
-          this.isUpdating = true;
-  
-          if (!this.dcTracker) {
-            // console.log('create tracker 1', /*this.dcWorkerManager.createTracker, */this.lods, this.minLodRange, this.trackY);
-            this.dcTracker = await this.dcWorkerManager.createTracker(this.lods, this.minLodRange, this.trackY);
-          }
-  
-          // console.log('tracker update 1', /*this.dcWorkerManager.trackerUpdate, */this.dcTracker, position);
-          let {
-            // currentCoord,
-            // oldTasks,
-            // newTasks,
-            leafNodes,
-          } = await this.dcWorkerManager.trackerUpdate(this.dcTracker, position);
+    const _parseNode = (nodeSpec) => {
+      const {min, size: lod, isLeaf, lodArray} = nodeSpec;
+      return new OctreeNode(
+        new THREE.Vector3().fromArray(min),
+        lod,
+        isLeaf,
+        lodArray
+      );
+    };
+    /* const _parseTask = (taskSpec) => {
+      // console.log('parse task', taskSpec);
+      const {id, type} = taskSpec;
+      const newNodes = taskSpec.newNodes.map(newNode => _parseNode(newNode));
+      const oldNodes = taskSpec.oldNodes.map(oldNode => _parseNode(oldNode));
+      return new Task(
+        id,
+        _parseNode(taskSpec),
+        type,
+        newNodes,
+        oldNodes,
+      );
+    }; */
+    // oldTasks = oldTasks.map(_parseTask);
+    // newTasks = newTasks.map(_parseTask);
+    /* if (leafNodes.length === 0) {
+      debugger;
+    } */
+    leafNodes = leafNodes.map(_parseNode);
 
-          const _parseNode = (nodeSpec) => {
-            const {min, size: lod, isLeaf, lodArray} = nodeSpec;
-            return new OctreeNode(
-              new THREE.Vector3().fromArray(min),
-              lod,
-              isLeaf,
-              lodArray
-            );
-          };
-          /* const _parseTask = (taskSpec) => {
-            // console.log('parse task', taskSpec);
-            const {id, type} = taskSpec;
-            const newNodes = taskSpec.newNodes.map(newNode => _parseNode(newNode));
-            const oldNodes = taskSpec.oldNodes.map(oldNode => _parseNode(oldNode));
-            return new Task(
-              id,
-              _parseNode(taskSpec),
-              type,
-              newNodes,
-              oldNodes,
-            );
-          }; */
-          // oldTasks = oldTasks.map(_parseTask);
-          // newTasks = newTasks.map(_parseTask);
-          leafNodes = leafNodes.map(_parseNode);
+    // debug mesh
+    this.displayChunks = leafNodes;
 
-          // debug mesh
-          this.displayChunks = leafNodes;
-
-          // data requests
-          {
-            // cancel old data requests
-            const oldDataRequests = Array.from(this.dataRequests.entries());
-            for (const [hash, oldDataRequest] of oldDataRequests) {
-              const matchingLeafNode = leafNodes.find(leafNode => {
-                return equalsNodeLod(leafNode, oldDataRequest.node)
-              });
-              if (matchingLeafNode) {
-                // keep the data request
-                // console.log('data request keep', hash);
-              } else {
-                // cancel the data request
-                oldDataRequest.cancel();
-                // console.log('data request cancel', hash);
-                // forget the data request
-                this.dataRequests.delete(hash);
-              }
-            }
-
-            // add new data requests
-            for (const chunk of leafNodes) {
-              const hash = chunk.min.toArray().join(',') + ':' + chunk.lod;
-              if (!this.dataRequests.has(hash)) {
-                const dataRequest = new DataRequest(chunk);
-                const {signal} = dataRequest;
-                let waited = false;
-
-                const chunkDataRequestEvent = new MessageEvent('chunkdatarequest', {
-                  data: {
-                    chunk,
-                    waitUntil(promise) {
-                      dataRequest.waitUntil(promise);
-                      waited = true;
-                    },
-                    signal,
-                  },
-                });
-                this.dispatchEvent(chunkDataRequestEvent);
-
-                if (!waited) {
-                  dataRequest.waitUntil(Promise.resolve(null));
-                }
-                dataRequest.isNew = true;
-                // console.log('new data request 1', hash);
-                /* if (this.dataRequests.has(hash)) {
-                  debugger;
-                } */
-                // console.log('new data request 2', hash);
-                this.dataRequests.set(hash, dataRequest);
-              }
-            }
-          }
-
-          // delete all outranged chunks
-          {
-            const renderedChunks = Array.from(this.renderedChunks.values());
-            for (const renderedChunk of renderedChunks) {
-              const hash = renderedChunk.min.toArray().join(',') + ':' + renderedChunk.lod;
-              
-              // check if the chunk is still in the octree
-              const matchingLeafNode = leafNodes.find(leafNode => {
-                return equalsNodeLod(leafNode, renderedChunk);
-              });
-              // console.log('equals node lod', {matchingLeafNode, renderedChunk});
-              if (matchingLeafNode) {
-                // console.log('rendered chunk match', hash);
-                // keep the chunk
-              } else {
-                // delete the chunk
-                const chunkRemoveEvent = new MessageEvent('chunkremove', {
-                  data: {
-                    chunk: renderedChunk,
-                  },
-                });
-                this.dispatchEvent(chunkRemoveEvent);
-
-                // console.log('rendered chunk delete', hash);
-                this.renderedChunks.delete(hash);
-              }
-            }
-          }
-          // wait for and render new chunks
-          for (const leafNode of leafNodes) {
-            const hash = leafNode.min.toArray().join(',') + ':' + leafNode.lod;
-            const dataRequest = this.dataRequests.get(hash);
-            if (dataRequest) {
-              if (dataRequest.isNew) {
-                dataRequest.isNew = false;
-                (async () => {
-                  try {
-                    const renderData = await dataRequest.waitForLoad();
-                    const chunkAddEvent = new MessageEvent('chunkadd', {
-                      data: {
-                        renderData,
-                        chunk: leafNode,
-                      },
-                    });
-                    this.dispatchEvent(chunkAddEvent);
-
-                    /* if (dataRequest.signal.aborted) {
-                      debugger;
-                    } */
-    
-                    // const hash = leafNode.min.toArray().join(',') + ':' + leafNode.lod;
-                    // console.log('rendered chunk set', hash);
-                    this.renderedChunks.set(hash, leafNode);
-                  } catch (err) {
-                    /* if (err?.isAbortError) {
-                      console.log('abort err', err);
-                    } */
-                    if (!err?.isAbortError) {
-                      console.warn(err);
-                    }
-                  }
-                })();
-              } else {
-                // skip adding since it's not a new node
-                // console.log('rendered chunk skip', hash);
-              }
-            } else {
-              throw new Error('no data request for chunk');
-            }
-          }
-
-          /* // compute new live chunks set
-          this.chunks = updateChunks(this.chunks, newTasks);
-
-          const _update = () => {
-            for (const task of newTasks) {
-              
-              if (!isNop(task)) {
-                this.dispatchEvent(new MessageEvent('chunkrelod', {
-                  data: {
-                    task,
-                  },
-                }));
-
-                const overlappingTasks = this.liveTasks.filter(lastTask => task.maxLodNode.containsNode(lastTask.maxLodNode));
-                for (const oldTask of overlappingTasks) {
-                  oldTask.cancel();
-                  const index = this.liveTasks.indexOf(oldTask);
-                  this.liveTasks.splice(index, 1);
-                }
-                this.liveTasks.push(task);
-              }
-            }        
-          };
-          _update(); */
-
-          this.dispatchEvent(new MessageEvent('update'));
-  
-          this.isUpdating = false;
-  
-          {
-            if (this.queuedPosition) {
-              const {queuedPosition} = this;
-              this.queuedPosition = null;
-  
-              this.update(queuedPosition);
-            }
-          }
+    // data requests
+    {
+      // cancel old data requests
+      const oldDataRequests = Array.from(this.dataRequests.entries());
+      for (const [hash, oldDataRequest] of oldDataRequests) {
+        const matchingLeafNode = leafNodes.find(leafNode => {
+          return equalsNodeLod(leafNode, oldDataRequest.node)
+        });
+        if (matchingLeafNode) {
+          // keep the data request
+          // console.log('data request keep', hash);
         } else {
-          this.queuedPosition = position.clone();
+          // cancel the data request
+          oldDataRequest.cancel();
+          // console.log('data request cancel', hash);
+          // forget the data request
+          this.dataRequests.delete(hash);
         }
-      })();
+      }
+
+      // add new data requests
+      for (const chunk of leafNodes) {
+        const hash = chunk.min.toArray().join(',') + ':' + chunk.lod;
+        if (!this.dataRequests.has(hash)) {
+          const dataRequest = new DataRequest(chunk);
+          const {signal} = dataRequest;
+          let waited = false;
+
+          const chunkDataRequestEvent = new MessageEvent('chunkdatarequest', {
+            data: {
+              chunk,
+              waitUntil(promise) {
+                dataRequest.waitUntil(promise);
+                waited = true;
+              },
+              signal,
+            },
+          });
+          this.dispatchEvent(chunkDataRequestEvent);
+
+          if (!waited) {
+            dataRequest.waitUntil(Promise.resolve(null));
+          }
+          dataRequest.isNew = true;
+          // console.log('new data request 1', hash);
+          // console.log('new data request 2', hash);
+          this.dataRequests.set(hash, dataRequest);
+        }
+      }
+    }
+
+    // compute replacements for chunks. a replacement is an object that describes a transform from a set of old nodes to new nodes.
+    // the transform is a function that takes a node and returns a new node.
+    // delete all outranged chunks
+    {
+      const renderedChunks = Array.from(this.renderedChunks.values());
+      for (const renderedChunk of renderedChunks) {
+        const hash = renderedChunk.min.toArray().join(',') + ':' + renderedChunk.lod;
+        
+        // check if the chunk is still in the octree
+        const matchingLeafNode = leafNodes.find(leafNode => {
+          return containsNode(leafNode, renderedChunk);
+        });
+        // console.log('equals node lod', {matchingLeafNode, renderedChunk});
+        if (matchingLeafNode) {
+          // console.log('rendered chunk match', hash);
+          // keep the chunk
+        } else {
+          // delete the chunk
+          const chunkRemoveEvent = new MessageEvent('chunkremove', {
+            data: {
+              chunk: renderedChunk,
+            },
+          });
+          this.dispatchEvent(chunkRemoveEvent);
+
+          // console.log('rendered chunk delete', hash);
+          this.renderedChunks.delete(hash);
+          
+          /* if (this.renderedChunks.size === 0) {
+            debugger;
+          } */
+        }
+      }
+    }
+
+    // wait for and render new chunks
+    for (const leafNode of leafNodes) {
+      const hash = leafNode.min.toArray().join(',') + ':' + leafNode.lod;
+      const dataRequest = this.dataRequests.get(hash);
+      if (dataRequest) {
+        if (dataRequest.isNew) {
+          dataRequest.isNew = false;
+          (async () => {
+            try {
+              const renderData = await dataRequest.waitForLoad();
+              const chunkAddEvent = new MessageEvent('chunkadd', {
+                data: {
+                  renderData,
+                  chunk: leafNode,
+                },
+              });
+              this.dispatchEvent(chunkAddEvent);
+
+              /* if (dataRequest.signal.aborted) {
+                debugger;
+              } */
+
+              // const hash = leafNode.min.toArray().join(',') + ':' + leafNode.lod;
+              // console.log('rendered chunk set', hash);
+              this.renderedChunks.set(hash, leafNode);
+            } catch (err) {
+              /* if (err?.isAbortError) {
+                console.log('abort err', err);
+              } */
+              if (!err?.isAbortError) {
+                console.warn(err);
+              }
+            }
+          })();
+        } else {
+          // skip adding since it's not a new node
+          // console.log('rendered chunk skip', hash);
+        }
+      } else {
+        throw new Error('no data request for chunk');
+      }
+    }
+
+    /* if (leafNodes.length === 0) {
+      debugger;
+    } */
+
+    /* // compute new live chunks set
+    this.chunks = updateChunks(this.chunks, newTasks);
+
+    const _update = () => {
+      for (const task of newTasks) {
+        
+        if (!isNop(task)) {
+          this.dispatchEvent(new MessageEvent('chunkrelod', {
+            data: {
+              task,
+            },
+          }));
+
+          const overlappingTasks = this.liveTasks.filter(lastTask => task.maxLodNode.containsNode(lastTask.maxLodNode));
+          for (const oldTask of overlappingTasks) {
+            oldTask.cancel();
+            const index = this.liveTasks.indexOf(oldTask);
+            this.liveTasks.splice(index, 1);
+          }
+          this.liveTasks.push(task);
+        }
+      }        
+    };
+    _update(); */
+
+    this.dispatchEvent(new MessageEvent('update'));
+  }
+  update(position) {
+    // console.log('position update 0', position.toArray().join(','), this.isUpdating);
+    
+    if (!this.isUpdating) {
+      let currentCoord = this.#getCurrentCoord(position, localVector).clone();
+      // console.log('check equals', position.toArray(), this.lastUpdateCoord.toArray(), currentCoord.toArray(), this.lastUpdateCoord.equals(currentCoord));
+      if (!this.lastUpdateCoord.equals(currentCoord)) {
+        // console.log('position update 1', currentCoord.toArray().join(','));
+        
+        (async () => {
+          this.isUpdating = true;
+
+          await this.updateInternal(position);
+
+          // console.log('position update 2', currentCoord.toArray().join(','));
+
+          this.isUpdating = false;
+
+          if (this.queuedPosition) {
+            const {queuedPosition} = this;
+            this.queuedPosition = null;
+
+            // console.log('recurse on queued position', queuedPosition.toArray());
+            this.update(queuedPosition);
+          }
+        })();
+
+        this.lastUpdateCoord.copy(currentCoord);
+      }
+    } else {
+      this.queuedPosition = position.clone();
     }
   }
   destroy() {

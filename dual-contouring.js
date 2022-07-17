@@ -92,14 +92,14 @@ uint8_t *TrackerUpdate::getBuffer() const {
 const _parseTrackerUpdate = bufferAddress => {
   const dataView = new DataView(Module.HEAPU8.buffer, bufferAddress);
   let index = 0;
-  const currentCoord = new Int32Array(Module.HEAPU8.buffer, bufferAddress + index, 3).slice();
+  /* const currentCoord = new Int32Array(Module.HEAPU8.buffer, bufferAddress + index, 3).slice();
   index += Int32Array.BYTES_PER_ELEMENT * 3;
   const numOldTasks = dataView.getUint32(index, true);
   index += Uint32Array.BYTES_PER_ELEMENT;
   const numNewTasks = dataView.getUint32(index, true);
-  index += Uint32Array.BYTES_PER_ELEMENT;
-  const numLeafNodes = dataView.getUint32(index, true);
-  index += Uint32Array.BYTES_PER_ELEMENT;
+  index += Uint32Array.BYTES_PER_ELEMENT; */
+  const numLeafNodes = dataView.getInt32(index, true);
+  index += Int32Array.BYTES_PER_ELEMENT;
 
   const _parseNode = () => {
     const min = new Int32Array(Module.HEAPU8.buffer, bufferAddress + index, 3).slice();
@@ -118,7 +118,7 @@ const _parseTrackerUpdate = bufferAddress => {
       lodArray,
     };
   };
-  const _parseTrackerTask = () => {
+  /* const _parseTrackerTask = () => {
     const id = dataView.getInt32(index, true);
     index += Int32Array.BYTES_PER_ELEMENT;
     const type = dataView.getInt32(index, true);
@@ -156,18 +156,8 @@ const _parseTrackerUpdate = bufferAddress => {
       oldNodes,
       newNodes,
     };
-  };
+  }; */
 
-  // oldTasks
-  const oldTasks = Array(numOldTasks);
-  for (let i = 0; i < numOldTasks; i++) {
-    oldTasks[i] = _parseTrackerTask();
-  }
-  // newTasks
-  const newTasks = Array(numNewTasks);
-  for (let i = 0; i < numNewTasks; i++) {
-    newTasks[i] = _parseTrackerTask();
-  }
   // leafNodes
   const leafNodes = Array(numLeafNodes);
   for (let i = 0; i < numLeafNodes; i++) {
@@ -175,9 +165,9 @@ const _parseTrackerUpdate = bufferAddress => {
   }
 
   return {
-    currentCoord,
-    oldTasks,
-    newTasks,
+    // currentCoord,
+    // oldTasks,
+    // newTasks,
     leafNodes,
   };
 };
