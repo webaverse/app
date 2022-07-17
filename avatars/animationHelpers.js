@@ -431,8 +431,8 @@ export const _createAnimation = avatar => {
     for (const fileName in animations.index) {
       const animation = animations.index[fileName];
       animation.index = animationIndex;
-      const animationPointer = physx.physxWorker.createAnimation(animation.duration);
-      animation.pointer = animationPointer;
+      const animationPtr = physx.physxWorker.createAnimation(animation.duration);
+      animation.ptr = animationPtr;
       // for (const k in animation.interpolants) { // maybe wrong interpolant index order
       for (const spec of avatar.animationMappings) { // correct interpolant index order
         const {
@@ -441,7 +441,7 @@ export const _createAnimation = avatar => {
 
         const interpolant = animation.interpolants[k];
         physx.physxWorker.createInterpolant( // todo: only need createInterpolant once globally
-          animation.index, // todo: use pointer instead of index.
+          animation.index, // todo: use ptr instead of index.
           interpolant.parameterPositions,
           interpolant.sampleValues,
           interpolant.valueSize,
@@ -514,53 +514,53 @@ export const _createAnimation = avatar => {
 
   // create motions -------------------------------------------------------------
 
-  avatar.idleMotion = avatar.createMotion(animations.index['idle.fbx'].pointer, 'idleMotion');
+  avatar.idleMotion = avatar.createMotion(animations.index['idle.fbx'].ptr, 'idleMotion');
 
-  avatar.walkForwardMotion = avatar.createMotion(animations.index['walking.fbx'].pointer, 'walkForwardMotion');
-  avatar.walkBackwardMotion = avatar.createMotion(animations.index['walking backwards.fbx'].pointer, 'walkBackwardMotion');
-  avatar.walkLeftMotion = avatar.createMotion(animations.index['left strafe walking.fbx'].pointer, 'walkLeftMotion');
-  avatar.walkRightMotion = avatar.createMotion(animations.index['right strafe walking.fbx'].pointer, 'walkRightMotion');
-  avatar.walkLeftMirrorMotion = avatar.createMotion(animations.index['right strafe walking reverse.fbx'].pointer, 'walkLeftMirrorMotion');
-  avatar.walkRightMirrorMotion = avatar.createMotion(animations.index['left strafe walking reverse.fbx'].pointer, 'walkRightMirrorMotion');
+  avatar.walkForwardMotion = avatar.createMotion(animations.index['walking.fbx'].ptr, 'walkForwardMotion');
+  avatar.walkBackwardMotion = avatar.createMotion(animations.index['walking backwards.fbx'].ptr, 'walkBackwardMotion');
+  avatar.walkLeftMotion = avatar.createMotion(animations.index['left strafe walking.fbx'].ptr, 'walkLeftMotion');
+  avatar.walkRightMotion = avatar.createMotion(animations.index['right strafe walking.fbx'].ptr, 'walkRightMotion');
+  avatar.walkLeftMirrorMotion = avatar.createMotion(animations.index['right strafe walking reverse.fbx'].ptr, 'walkLeftMirrorMotion');
+  avatar.walkRightMirrorMotion = avatar.createMotion(animations.index['left strafe walking reverse.fbx'].ptr, 'walkRightMirrorMotion');
 
-  avatar.runForwardMotion = avatar.createMotion(animations.index['Fast Run.fbx'].pointer, 'runForwardMotion');
-  avatar.runBackwardMotion = avatar.createMotion(animations.index['running backwards.fbx'].pointer, 'runBackwardMotion');
-  avatar.runLeftMotion = avatar.createMotion(animations.index['left strafe.fbx'].pointer, 'runLeftMotion');
-  avatar.runRightMotion = avatar.createMotion(animations.index['right strafe.fbx'].pointer, 'runRightMotion');
-  avatar.runLeftMirrorMotion = avatar.createMotion(animations.index['right strafe reverse.fbx'].pointer, 'runLeftMirrorMotion');
-  avatar.runRightMirrorMotion = avatar.createMotion(animations.index['left strafe reverse.fbx'].pointer, 'runRightMirrorMotion');
+  avatar.runForwardMotion = avatar.createMotion(animations.index['Fast Run.fbx'].ptr, 'runForwardMotion');
+  avatar.runBackwardMotion = avatar.createMotion(animations.index['running backwards.fbx'].ptr, 'runBackwardMotion');
+  avatar.runLeftMotion = avatar.createMotion(animations.index['left strafe.fbx'].ptr, 'runLeftMotion');
+  avatar.runRightMotion = avatar.createMotion(animations.index['right strafe.fbx'].ptr, 'runRightMotion');
+  avatar.runLeftMirrorMotion = avatar.createMotion(animations.index['right strafe reverse.fbx'].ptr, 'runLeftMirrorMotion');
+  avatar.runRightMirrorMotion = avatar.createMotion(animations.index['left strafe reverse.fbx'].ptr, 'runRightMirrorMotion');
 
-  avatar.crouchForwardMotion = avatar.createMotion(animations.index['Sneaking Forward.fbx'].pointer, 'crouchForwardMotion');
-  avatar.crouchBackwardMotion = avatar.createMotion(animations.index['Sneaking Forward reverse.fbx'].pointer, 'crouchBackwardMotion');
-  avatar.crouchLeftMotion = avatar.createMotion(animations.index['Crouched Sneaking Left.fbx'].pointer, 'crouchLeftMotion');
-  avatar.crouchRightMotion = avatar.createMotion(animations.index['Crouched Sneaking Right.fbx'].pointer, 'crouchRightMotion');
-  avatar.crouchLeftMirrorMotion = avatar.createMotion(animations.index['Crouched Sneaking Right reverse.fbx'].pointer, 'crouchLeftMirrorMotion');
-  avatar.crouchRightMirrorMotion = avatar.createMotion(animations.index['Crouched Sneaking Left reverse.fbx'].pointer, 'crouchRightMirrorMotion');
+  avatar.crouchForwardMotion = avatar.createMotion(animations.index['Sneaking Forward.fbx'].ptr, 'crouchForwardMotion');
+  avatar.crouchBackwardMotion = avatar.createMotion(animations.index['Sneaking Forward reverse.fbx'].ptr, 'crouchBackwardMotion');
+  avatar.crouchLeftMotion = avatar.createMotion(animations.index['Crouched Sneaking Left.fbx'].ptr, 'crouchLeftMotion');
+  avatar.crouchRightMotion = avatar.createMotion(animations.index['Crouched Sneaking Right.fbx'].ptr, 'crouchRightMotion');
+  avatar.crouchLeftMirrorMotion = avatar.createMotion(animations.index['Crouched Sneaking Right reverse.fbx'].ptr, 'crouchLeftMirrorMotion');
+  avatar.crouchRightMirrorMotion = avatar.createMotion(animations.index['Crouched Sneaking Left reverse.fbx'].ptr, 'crouchRightMirrorMotion');
 
-  avatar.bowForwardMotion = avatar.createMotion(animations.index['Standing Aim Walk Forward.fbx'].pointer, 'bowForwardMotion');
-  avatar.bowBackwardMotion = avatar.createMotion(animations.index['Standing Aim Walk Forward reverse.fbx'].pointer, 'bowBackwardMotion');
-  avatar.bowLeftMotion = avatar.createMotion(animations.index['Standing Aim Walk Left.fbx'].pointer, 'bowLeftMotion');
-  avatar.bowRightMotion = avatar.createMotion(animations.index['Standing Aim Walk Right.fbx'].pointer, 'bowRightMotion');
-  avatar.bowLeftMirrorMotion = avatar.createMotion(animations.index['Standing Aim Walk Right reverse.fbx'].pointer, 'bowLeftMirrorMotion');
-  avatar.bowRightMirrorMotion = avatar.createMotion(animations.index['Standing Aim Walk Left reverse.fbx'].pointer, 'bowRightMirrorMotion');
+  avatar.bowForwardMotion = avatar.createMotion(animations.index['Standing Aim Walk Forward.fbx'].ptr, 'bowForwardMotion');
+  avatar.bowBackwardMotion = avatar.createMotion(animations.index['Standing Aim Walk Forward reverse.fbx'].ptr, 'bowBackwardMotion');
+  avatar.bowLeftMotion = avatar.createMotion(animations.index['Standing Aim Walk Left.fbx'].ptr, 'bowLeftMotion');
+  avatar.bowRightMotion = avatar.createMotion(animations.index['Standing Aim Walk Right.fbx'].ptr, 'bowRightMotion');
+  avatar.bowLeftMirrorMotion = avatar.createMotion(animations.index['Standing Aim Walk Right reverse.fbx'].ptr, 'bowLeftMirrorMotion');
+  avatar.bowRightMirrorMotion = avatar.createMotion(animations.index['Standing Aim Walk Left reverse.fbx'].ptr, 'bowRightMirrorMotion');
 
-  avatar.crouchIdleMotion = avatar.createMotion(animations.index['Crouch Idle.fbx'].pointer, 'crouchIdleMotion');
-  avatar.flyMotion = avatar.createMotion(floatAnimation.pointer, 'flyMotion');
-  avatar.flyIdleMotion = avatar.createMotion(animations.index['fly_idle.fbx'].pointer, 'flyIdleMotion');
-  avatar.flyDodgeForwardMotion = avatar.createMotion(animations.index['fly_dodge_forward.fbx'].pointer, 'flyDodgeForwardMotion');
-  avatar.flyDodgeBackwardMotion = avatar.createMotion(animations.index['fly_dodge_backward.fbx'].pointer, 'flyDodgeBackwardMotion');
-  avatar.flyDodgeLeftMotion = avatar.createMotion(animations.index['fly_dodge_left.fbx'].pointer, 'flyDodgeLeftMotion');
-  avatar.flyDodgeRightMotion = avatar.createMotion(animations.index['fly_dodge_right.fbx'].pointer, 'flyDodgeRightMotion');
-  avatar.flyDashMotion = avatar.createMotion(animations.index['fly_dash_forward.fbx'].pointer, 'flyDashMotion');
-  avatar.narutoRunMotion = avatar.createMotion(narutoRunAnimations[defaultNarutoRunAnimation].pointer, 'narutoRunMotion');
+  avatar.crouchIdleMotion = avatar.createMotion(animations.index['Crouch Idle.fbx'].ptr, 'crouchIdleMotion');
+  avatar.flyMotion = avatar.createMotion(floatAnimation.ptr, 'flyMotion');
+  avatar.flyIdleMotion = avatar.createMotion(animations.index['fly_idle.fbx'].ptr, 'flyIdleMotion');
+  avatar.flyDodgeForwardMotion = avatar.createMotion(animations.index['fly_dodge_forward.fbx'].ptr, 'flyDodgeForwardMotion');
+  avatar.flyDodgeBackwardMotion = avatar.createMotion(animations.index['fly_dodge_backward.fbx'].ptr, 'flyDodgeBackwardMotion');
+  avatar.flyDodgeLeftMotion = avatar.createMotion(animations.index['fly_dodge_left.fbx'].ptr, 'flyDodgeLeftMotion');
+  avatar.flyDodgeRightMotion = avatar.createMotion(animations.index['fly_dodge_right.fbx'].ptr, 'flyDodgeRightMotion');
+  avatar.flyDashMotion = avatar.createMotion(animations.index['fly_dash_forward.fbx'].ptr, 'flyDashMotion');
+  avatar.narutoRunMotion = avatar.createMotion(narutoRunAnimations[defaultNarutoRunAnimation].ptr, 'narutoRunMotion');
 
-  avatar.jumpMotion = avatar.createMotion(jumpAnimation.pointer, 'jumpMotion');
+  avatar.jumpMotion = avatar.createMotion(jumpAnimation.ptr, 'jumpMotion');
   physx.physxWorker.setLoop(avatar.jumpMotion, AnimationLoopType.LoopOnce);
   physx.physxWorker.stop(avatar.jumpMotion);
   physx.physxWorker.setTimeBias(avatar.jumpMotion, 0.7);
   physx.physxWorker.setSpeed(avatar.jumpMotion, 1 / 0.6);
 
-  avatar.activateMotion = avatar.createMotion(activateAnimations.grab_forward.animation.pointer, 'activateMotion'); // todo: handle activateAnimations.grab_forward.speedFact, 'activateMotion'or
+  avatar.activateMotion = avatar.createMotion(activateAnimations.grab_forward.animation.ptr, 'activateMotion'); // todo: handle activateAnimations.grab_forward.speedFact, 'activateMotion'or
   physx.physxWorker.setLoop(avatar.activateMotion, AnimationLoopType.LoopOnce);
   physx.physxWorker.stop(avatar.activateMotion);
 
@@ -568,7 +568,7 @@ export const _createAnimation = avatar => {
   for (const k in useAnimations) {
     const animation = useAnimations[k];
     if (animation) {
-      avatar.useMotiono[k] = avatar.createMotion(animation.pointer, k);
+      avatar.useMotiono[k] = avatar.createMotion(animation.ptr, k);
     }
   }
   physx.physxWorker.setLoop(avatar.useMotiono.drink, AnimationLoopType.LoopOnce);
@@ -596,7 +596,7 @@ export const _createAnimation = avatar => {
   for (const k in sitAnimations) {
     const animation = sitAnimations[k];
     if (animation) {
-      avatar.sitMotiono[k] = avatar.createMotion(animation.pointer, k);
+      avatar.sitMotiono[k] = avatar.createMotion(animation.ptr, k);
       physx.physxWorker.setLoop(avatar.sitMotiono[k], AnimationLoopType.LoopOnce);
       physx.physxWorker.stop(avatar.sitMotiono[k]);
     }
@@ -606,7 +606,7 @@ export const _createAnimation = avatar => {
   for (const k in emoteAnimations) {
     const animation = emoteAnimations[k];
     if (animation) {
-      avatar.emoteMotiono[k] = avatar.createMotion(animation.pointer, k);
+      avatar.emoteMotiono[k] = avatar.createMotion(animation.ptr, k);
       physx.physxWorker.setLoop(avatar.emoteMotiono[k], AnimationLoopType.LoopOnce);
       physx.physxWorker.stop(avatar.emoteMotiono[k]);
     }
@@ -616,7 +616,7 @@ export const _createAnimation = avatar => {
   for (const k in danceAnimations) {
     const animation = danceAnimations[k];
     if (animation) {
-      avatar.danceMotiono[k] = avatar.createMotion(animation.pointer, k);
+      avatar.danceMotiono[k] = avatar.createMotion(animation.ptr, k);
     }
   }
 

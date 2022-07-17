@@ -2224,7 +2224,7 @@ const physxWorker = (() => {
     // head = outputBufferOffset / Float32Array.BYTES_PER_ELEMENT;
     // const finishedAnimationIndex = Module.HEAPF32[head];
     // values.push(finishedAnimationIndex);
-    const motion = outputBufferOffset; // = motion's pointer
+    const motion = outputBufferOffset; // = motion's ptr
     values.push(motion);
 
     // console.log(finishedFlag);
@@ -2241,31 +2241,31 @@ const physxWorker = (() => {
     )
   }
   // w.createAnimationMixer = () => {
-  //   const pointer = Module._createAnimationMixer(
+  //   const ptr = Module._createAnimationMixer(
   //   )
-  //   return pointer;
+  //   return ptr;
   // }
   w.createAnimation = (duration) => {
-    const pointer = Module._createAnimation(
+    const ptr = Module._createAnimation(
       duration,
     )
-    return pointer;
+    return ptr;
   }
   w.createMotion = (mixer, animation) => {
-    const pointer = Module._createMotion(
+    const ptr = Module._createMotion(
       mixer, animation,
     )
-    return pointer;
+    return ptr;
   }
   w.createNode = (mixer, type = AnimationNodeType.LIST) => {
     // debugger
-    const pointer = Module._createNode(
+    const ptr = Module._createNode(
       mixer, type,
     )
-    return pointer;
+    return ptr;
   }
   window.nodeReferenceCount = {}; // test
-  w.addChild = (parentNode, childNode) => { // input: pointers of nodes
+  w.addChild = (parentNode, childNode) => { // input: ptrs of nodes
 
     if (!parentNode) debugger
     if (!childNode) debugger
@@ -2280,7 +2280,7 @@ const physxWorker = (() => {
       window.nodeReferenceCount[childNode] = 1;
     }
   }
-  w.setRootNode = (mixer, node) => { // input: pointer of node
+  w.setRootNode = (mixer, node) => { // input: ptr of node
     Module._setRootNode(
       mixer, node,
     )
