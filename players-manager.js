@@ -5,6 +5,7 @@ player objects load their own avatar and apps using this binding */
 import * as Z from 'zjs';
 import {RemotePlayer} from './character-controller.js';
 import metaversefileApi from 'metaversefile';
+import {getLocalPlayer} from './players.js';
 
 class PlayersManager {
   constructor() {
