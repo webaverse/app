@@ -289,8 +289,16 @@ const containsPoint = (a, p) => {
     p.y >= a.min.y && p.y < a.min.y + a.lod &&
     p.z >= a.min.z && p.z < a.min.z + a.lod;
 };
-const containsNode = (a, node) => {
+/* const containsNode = (a, node) => {
   return containsPoint(a, node.min);
+}; */
+const findLeafNodeForPosition = (nodes, p) => {
+  for (const node of nodes) {
+    if (containsPoint(node, p)) {
+      return node;
+    }
+  }
+  return null;
 };
 const isNop = taskSpec => {
   // console.log('is nop', taskSpec);
