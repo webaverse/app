@@ -185,6 +185,7 @@ class AppManager extends EventTarget {
           app.position.fromArray(trackedApp.get('transform'));
           app.quaternion.fromArray(trackedApp.get('transform'), 3);
           app.scale.fromArray(trackedApp.get('transform'), 7);
+          app.updateMatrixWorld();
         }
       }
     };
