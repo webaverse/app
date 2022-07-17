@@ -27,12 +27,12 @@ class Dominator extends EventTarget {
     this.newChunks = [];
 
     this.unlistens = [];
-    this.live = true;
+    // this.live = true;
   }
   start() {
     const renderDatas = Array(this.newChunks.length);
     const _done = () => {
-      this.live = false;
+      // this.live = false;
       this.onload(renderDatas);
     };
 
@@ -43,20 +43,17 @@ class Dominator extends EventTarget {
       // delete immediately
       _done();
     } else { // else if not clearing old chunks
-      this.pendingWaits = [];
+      let pendingWaits = 0;
       for (let i = 0; i < this.newChunks.length; i++) {
         const chunk = this.newChunks[i];
         if (chunk.dataRequest.renderData === undefined) {
-          this.pendingWaits.push(chunk);
+          pendingWaits++;
           // console.log('pending waits add', pendingWaits);
           const onload = e => {
             const {renderData} = e.data;
             renderDatas[i] = renderData;
 
-            // console.log('trigger pending waits', pendingWaits - 1);
-            const index = this.pendingWaits.indexOf(chunk);
-            this.pendingWaits.splice(index, 1);
-            if (this.pendingWaits.length === 0) {
+            if (--pendingWaits === 0) {
               _done();
             }
           };
@@ -69,10 +66,9 @@ class Dominator extends EventTarget {
         }
       }
 
-      if (this.pendingWaits.length === 0) {
+      /* if (pendingWaits === 0) {
         this.live = false;
-      }
-      this.initialPendingWeights = this.pendingWaits.slice();
+      } */
     }
   }
   cancel() {
@@ -964,7 +960,7 @@ export class LodChunkTracker extends EventTarget {
       for (const dominator of this.dominators.values()) {
         dominator.start();
       }
-      window.dominators = this.dominators;
+      // window.dominators = this.dominators;
     }
 
     this.dispatchEvent(new MessageEvent('update'));
