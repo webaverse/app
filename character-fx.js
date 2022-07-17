@@ -277,6 +277,7 @@ class CharacterFx {
     }
     if (this.sonicBoom) {
       sceneLowPriority.remove(this.sonicBoom);
+      this.sonicBoom.destroy();
       this.sonicBoom = null;
     }
     if (this.healEffect) {
