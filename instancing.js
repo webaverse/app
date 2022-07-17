@@ -2,14 +2,36 @@ import * as THREE from 'three';
 import {ImmediateGLBufferAttribute} from './ImmediateGLBufferAttribute.js';
 import * as BufferGeometryUtils from 'three/examples/jsm/utils/BufferGeometryUtils.js';
 import {getRenderer} from './renderer.js';
+import { chunkMinForPosition } from './util.js';
+import { PEEK_FACE_INDICES } from './constants.js';
 
 const localVector2D = new THREE.Vector2();
 const localVector2D2 = new THREE.Vector2();
+const localVector4D = new THREE.Vector4();
+const localVector3D2 = new THREE.Vector3();
 const localMatrix = new THREE.Matrix4();
 const localSphere = new THREE.Sphere();
 const localBox = new THREE.Box3();
 const localFrustum = new THREE.Frustum();
 const localDataTexture = new THREE.DataTexture();
+
+const PEEK_FACES = {
+  FRONT : 0,
+  BACK : 1,
+  LEFT : 2,
+  RIGHT : 3,
+  TOP : 4,
+  BOTTOM : 5,
+  NONE : 6
+};
+const peekFaceSpecs = [
+  [PEEK_FACES['BACK'], PEEK_FACES['FRONT'], 0, 0, -1],
+  [PEEK_FACES['FRONT'], PEEK_FACES['BACK'], 0, 0, 1],
+  [PEEK_FACES['LEFT'], PEEK_FACES['RIGHT'], -1, 0, 0],
+  [PEEK_FACES['RIGHT'], PEEK_FACES['LEFT'], 1, 0, 0],
+  [PEEK_FACES['TOP'], PEEK_FACES['BOTTOM'], 0, 1, 0],
+  [PEEK_FACES['BOTTOM'], PEEK_FACES['TOP'], 0, -1, 0],
+];
 
 const maxNumDraws = 1024;
 
@@ -147,9 +169,10 @@ export class GeometryAllocator {
     this.drawCounts = new Int32Array(maxNumDraws);
     const boundingSize = _getBoundingSize(boundingType);
     this.boundingData = new Float32Array(maxNumDraws * boundingSize);
+    this.minData = new Float32Array(maxNumDraws * 4);
     this.numDraws = 0;
   }
-  alloc(numPositions, numIndices, boundingObject) {
+  alloc(numPositions, numIndices, boundingObject, minObject) {
     const positionFreeListEntry = this.positionFreeList.alloc(numPositions);
     const indexFreeListEntry = this.indexFreeList.alloc(numIndices);
     const geometryBinding = new GeometryPositionIndexBinding(positionFreeListEntry, indexFreeListEntry, this.geometry);
@@ -164,6 +187,7 @@ export class GeometryAllocator {
       boundingObject.min.toArray(this.boundingData, this.numDraws * 6);
       boundingObject.max.toArray(this.boundingData, this.numDraws * 6 + 3);
     }
+    minObject.toArray(this.minData, this.numDraws * 4);
 
     this.numDraws++;
 
@@ -195,6 +219,11 @@ export class GeometryAllocator {
         this.boundingData[freeIndex * 6 + 4] = this.boundingData[lastIndex * 6 + 4];
         this.boundingData[freeIndex * 6 + 5] = this.boundingData[lastIndex * 6 + 5];
       }
+      this.minData[freeIndex * 4 + 0] = this.minData[lastIndex * 4 + 0]; 
+      this.minData[freeIndex * 4 + 1] = this.minData[lastIndex * 4 + 1]; 
+      this.minData[freeIndex * 4 + 2] = this.minData[lastIndex * 4 + 2]; 
+      // chunkSize
+      this.minData[freeIndex * 4 + 3] = this.minData[lastIndex * 4 + 3]; 
     }
 
     this.numDraws--;
@@ -222,16 +251,67 @@ export class GeometryAllocator {
         return (i) => {
           localBox.min.fromArray(this.boundingData, i * 6);
           localBox.max.fromArray(this.boundingData, i * 6 + 3);
+          // console.log(localFrustum);
           return localFrustum.intersectsBox(localBox);
         };
       } else {
         return (i) => true;
       }
     })();
+
+    const testOcclusionFn = (() => {
+      return (i) => {
+        // start bfs, start from the chunk we're in
+        // find the chunk that the camera is inside via floor, so we need min of the chunk, which we have in bounding data
+        localVector4D.fromArray(this.minData, i * 4);
+
+        localVector3D2.set(Math.floor(camera.position.x / localVector4D.w), Math.floor(camera.position.y / localVector4D.w), Math.floor(camera.position.z / localVector4D.w));
+        // console.log(localVector4D.w);
+        if(localVector4D.x == localVector3D2.x && localVector4D.y == localVector3D2.y && localVector4D.z == localVector3D2.z)
+        {
+          console.log('Hello')
+          const peeks = [1,1,1,1,1,1,1,1,1,1,1,1,1,1,1];
+          // start bfs here
+          const marked = [];
+          const queue = [];
+          queue.push([localVector4D, PEEK_FACES["NONE"]]);
+          while(queue.length > 0){
+            const entry = queue.shift();
+            const x = entry[0].x;
+            const y = entry[0].y;
+            const z = entry[0].z;
+            const enterFace = entry[1];
+            // append neighbors to queue
+            for (let i = 0; i < 6; i++) {
+              const peekFaceSpec = peekFaceSpecs[i];
+              const ax = x + peekFaceSpec[2];
+              const ay = y + peekFaceSpec[3];
+              const az = z + peekFaceSpec[4];
+              const newEntry = [new THREE.Vector3(ax,ay,az), peekFaceSpec[0]];
+              const found = marked.find(e => e == newEntry);
+              if(!found){
+                marked.push(entry);
+                if (enterFace == PEEK_FACES['NONE'] || peeks[PEEK_FACE_INDICES[enterFace << 3 | peekFaceSpec[1]]] == 1) {
+                  return false;
+                } else{
+                  return true;
+                }
+              }
+            }
+          }
+        }
+      };
+    })();
+
     for (let i = 0; i < this.numDraws; i++) {
-      if (testBoundingFn(i)) {
-        drawStarts.push(this.drawStarts[i]);
-        drawCounts.push(this.drawCounts[i]);
+      if(testOcclusionFn(i)){
+        // if (testBoundingFn(i)) {
+        // console.log(camera)
+        // if(localFrustum.intersectsObject(camera)){
+          drawStarts.push(this.drawStarts[i]);
+          drawCounts.push(this.drawCounts[i]);
+        // }
+        // }
       }
     }
   }

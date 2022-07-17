@@ -1,7 +1,7 @@
 import * as THREE from 'three';
+import { defaultChunkSize } from './constants.js';
 import dc from './dual-contouring.js';
 import { makePromise } from './util.js';
-import { defaultChunkSize } from './constants.js';
 
 //
 
@@ -27,7 +27,7 @@ const _cloneTerrainMeshData = (meshData) => {
       meshData.biomesUvs2.length * meshData.biomesUvs2.constructor.BYTES_PER_ELEMENT +
       meshData.indices.length * meshData.indices.constructor.BYTES_PER_ELEMENT +
       meshData.skylights.length * meshData.skylights.constructor.BYTES_PER_ELEMENT +
-      meshData.aos.length * meshData.aos.constructor.BYTES_PER_ELEMENT + 
+      meshData.aos.length * meshData.aos.constructor.BYTES_PER_ELEMENT +
       meshData.peeks.length * meshData.peeks.constructor.BYTES_PER_ELEMENT;
 
     const arrayBuffer = new ArrayBuffer(sizeRequired);

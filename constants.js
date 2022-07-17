@@ -13,6 +13,12 @@ export const rarityColors = {
   legendary: [0xAD00EA, 0x32002D],
 };
 
+export const PEEK_FACE_INDICES = [
+    0, 0, 1,2,3,4,0,0,5,0,6,7,8,9,0,0,1,6,0,10,11,12,
+    0, 0, 2,7,10,0,13,14,0,0,3,8,11,13,0,15,0,0,4,9,
+    12, 14,15,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0
+];
+
 const chainName = (() => {
   if (typeof globalThis !== 'undefined' && /^test\./.test(location.hostname)) {
     return 'testnet';
