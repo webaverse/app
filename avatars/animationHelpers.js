@@ -457,7 +457,8 @@ export const _createAnimation = avatar => {
 
   avatar.mixer = physx.physxWorker.createAnimationMixer();
 
-  // create motions -------------------------------------------------------------
+  // test ---
+
   avatar.motions = []; // test
   avatar.createMotion = (animation, name) => {
     const motion = physx.physxWorker.createMotion(avatar.mixer, animation);
@@ -485,6 +486,33 @@ export const _createAnimation = avatar => {
   avatar.getNode = node => {
     return avatar.nodes.filter(n => n.node === node)[0];
   };
+
+  avatar.logActiveNodes = node => {
+    const children = window.physxWorker.getChildren(node);
+    let maxWeight = 0;
+    let maxIndex = -1;
+    children.forEach((child, i) => {
+      const weight = window.physxWorker.getWeight(child);
+      if (weight > maxWeight) {
+        maxWeight = weight;
+        maxIndex = i;
+      }
+    });
+    if (maxIndex >= 0) {
+      const maxWeightNode = children[maxIndex];
+      const nodeObject = avatar.getNode(maxWeightNode);
+      if (nodeObject) {
+        console.log(nodeObject);
+        avatar.logActiveNodes(maxWeightNode);
+      } else {
+        const motionObject = avatar.getMotion(maxWeightNode);
+        console.log(motionObject);
+      }
+    }
+  };
+  // end test ---
+
+  // create motions -------------------------------------------------------------
 
   avatar.idleMotion = avatar.createMotion(animations.index['idle.fbx'].pointer, 'idleMotion');
 
