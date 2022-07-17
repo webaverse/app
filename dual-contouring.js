@@ -386,6 +386,11 @@ const _parseTerrainVertexBuffer = (arrayBuffer, bufferAddress) => {
   index += Uint8Array.BYTES_PER_ELEMENT * numAos;
   index = align4(index);
 
+  const numPeeks = dataView.getUint32(index, true);
+  index += Uint32Array.BYTES_PER_ELEMENT;
+  const peeks = new Uint8Array(arrayBuffer, bufferAddress + index, numPeeks);
+  index += Uint32Array.BYTES_PER_ELEMENT * numPeeks;
+
   return {
     bufferAddress,
     positions,
@@ -397,6 +402,7 @@ const _parseTerrainVertexBuffer = (arrayBuffer, bufferAddress) => {
     indices,
     skylights,
     aos,
+    peeks
   };
 };
 w.createTerrainChunkMeshAsync = async (inst, taskId, x, y, z, lods) => {
