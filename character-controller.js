@@ -638,10 +638,10 @@ class StatePlayer extends PlayerBase {
   }
   // serializers
   getPosition() {
-    return localArray3.fromArray(this.playerMap.get('transform'));
+    return this.playerMap?.get('position') ?? [0, 0, 0];
   }
   getQuaternion() {
-    return localArray3.fromArray(this.playerMap.get('transform'), 3);
+    return this.playerMap?.get('quaternion') ?? [0, 0, 0, 1];
   }
   async syncAvatar() {
     if (this.syncAvatarCancelFn) {
@@ -1019,6 +1019,7 @@ class LocalPlayer extends UninterpolatedPlayer {
       if (oldInstanceId) {
         self.appManager.removeTrackedAppInternal(oldInstanceId);
       }
+      self.syncAvatar();
     });
   }
   setMicMediaStream(mediaStream) {
@@ -1290,6 +1291,7 @@ class RemotePlayer extends InterpolatedPlayer {
     let lastPosition = new THREE.Vector3();
     const observePlayerFn = (e) => {
       if(e.changes.keys.has('avatar')) {
+        console.log("Avatar sync message received")
         const avatar = e.changes.keys.get('avatar').value;
         if (avatar === '') {
           console.warn("Ignoring avatar sync", avatar);
