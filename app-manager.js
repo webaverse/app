@@ -188,6 +188,7 @@ class AppManager extends EventTarget {
         if (e.changes.keys.has('scale')) {
           app.scale.fromArray(trackedApp.get('scale'));
         }
+        app.updateMatrixWorld();
       }
     };
     trackedApp.observe(_observe);
