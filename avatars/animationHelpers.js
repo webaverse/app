@@ -759,7 +759,7 @@ export const _createAnimation = avatar => {
   // avatar.mixer.addEventListener('finished', event => {
   // });
 
-  avatar.addEventListener('actionStart', e => {
+  avatar.addEventListener('actionEnd', e => {
     // debugger
     if (e.action.type === 'use') {
       if (e.action.animation) {
