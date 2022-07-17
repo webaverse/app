@@ -367,8 +367,8 @@ class PlayerBase extends THREE.Object3D {
       const _initPhysics = () => {
         const physicsObjects = app.getPhysicsObjects();
         for (const physicsObject of physicsObjects) {
-          physicsScene.disableGeometryQueries(physicsObject.physicsId);
-          physicsScene.disableGeometry(physicsObject.physicsId);
+          physicsScene.disableGeometryQueries(physicsObject);
+          physicsScene.disableGeometry(physicsObject);
         }
       };
       _initPhysics();
@@ -462,8 +462,8 @@ class PlayerBase extends THREE.Object3D {
       const _deinitPhysics = () => {
         const physicsObjects = app.getPhysicsObjects();
         for (const physicsObject of physicsObjects) {
-          physicsScene.enableGeometryQueries(physicsObject.physicsId);
-          physicsScene.enableGeometry(physicsObject.physicsId);
+          physicsScene.enableGeometryQueries(physicsObject);
+          physicsScene.enableGeometry(physicsObject);
         }
       };
       _deinitPhysics();
@@ -1101,8 +1101,8 @@ class LocalPlayer extends UninterpolatedPlayer {
     
     const physicsObjects = app.getPhysicsObjects();
     for (const physicsObject of physicsObjects) {
-      //physicsScene.disableGeometry(physicsObject.physicsId);
-      physicsScene.disableGeometryQueries(physicsObject.physicsId);
+      //physicsScene.disableGeometry(physicsObject);
+      physicsScene.disableGeometryQueries(physicsObject);
     }
 
     app.dispatchEvent({
@@ -1119,7 +1119,7 @@ class LocalPlayer extends UninterpolatedPlayer {
         const app = metaversefile.getAppByInstanceId(action.instanceId);
         const physicsObjects = app.getPhysicsObjects();
         for (const physicsObject of physicsObjects) {
-          physicsScene.enableGeometryQueries(physicsObject.physicsId);
+          physicsScene.enableGeometryQueries(physicsObject);
         }
         this.removeActionIndex(i + removeOffset);
         removeOffset -= 1;
