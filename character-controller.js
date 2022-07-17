@@ -1319,26 +1319,6 @@ class RemotePlayer extends InterpolatedPlayer {
     let lastTimestamp = performance.now();
     let lastPosition = new THREE.Vector3();
     const observePlayerFn = (e) => {
-      if(e.changes.keys.has(avatarKeyName)) {
-        const avatar = e.changes.keys.get(avatarKeyName).value;
-        console.log("avatar is", avatar)
-        if(avatar === '') {
-          console.log("Ignoring sync", avatar);
-        } else {
-          console.log("syncing avatar", avatar);
-          this.syncAvatar(avatar);
-        }
-      }
-
-      if (e.changes.keys.get('voiceSpec') || e.added?.keys?.get('voiceSpec')) {
-        const voiceSpec = e.changes.keys.get('voiceSpec');
-        const json = JSON.parse(voiceSpec.value);
-        if (json.endpointUrl)
-          {this.loadVoiceEndpoint(json.endpointUrl);}
-        if (json.audioUrl && json.indexUrl)
-          {this.loadVoicePack({audioUrl: json.audioUrl, indexUrl: json.indexUrl});}
-      }
-
       if (e.changes.keys.get('name')) {
         this.name = e.changes.keys.get('name');
       }
