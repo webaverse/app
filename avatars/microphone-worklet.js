@@ -31,7 +31,6 @@ class VolumeProcessor extends AudioWorkletProcessor {
     this.port.start();
   }
   process(inputs, outputs) {
-    try {
     const _emitVolume = () => {
       {
         for (const channels of inputs) {
@@ -110,10 +109,6 @@ class VolumeProcessor extends AudioWorkletProcessor {
     }
 
     return true;
-  } catch (error){
-    console.error(error);
-    return false;
-  }
   }
 }
 registerProcessor('volume-processor', VolumeProcessor);
