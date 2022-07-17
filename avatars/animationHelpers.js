@@ -54,6 +54,8 @@ const localQuaternion2 = new Quaternion();
 
 const identityQuaternion = new Quaternion();
 
+const isDebugger = false; // Used for debug only codes.Don’t create new data structures on the avatar, to not add any more gc sweep depth in product codes.
+
 let animations;
 let animationStepIndices;
 // let animationsBaseModel;
@@ -459,57 +461,68 @@ export const _createAnimation = avatar => {
 
   // test ---
 
-  avatar.motions = []; // test
   avatar.createMotion = (animation, name) => {
     const motion = physx.physxWorker.createMotion(avatar.mixer, animation);
-    avatar.motions.push({
-      motion,
-      name,
-      animation,
-    });
+    if (isDebugger) {
+      avatar.motions.push({
+        motion,
+        name,
+        animation,
+      });
+    }
     return motion; // todo: return object.
   };
-  avatar.getMotion = motion => {
-    return avatar.motions.filter(n => n.motion === motion)[0];
-  };
 
-  avatar.nodes = []; // test
   avatar.createNode = (type, name) => {
     const node = physx.physxWorker.createNode(avatar.mixer, type);
-    avatar.nodes.push({
-      node,
-      name,
-      type,
-    });
+    if (isDebugger) {
+      avatar.nodes.push({
+        node,
+        name,
+        type,
+      });
+    }
     return node; // todo: return object.
   };
-  avatar.getNode = node => {
-    return avatar.nodes.filter(n => n.node === node)[0];
-  };
 
-  avatar.logActiveNodes = node => {
-    const children = window.physxWorker.getChildren(node);
-    let maxWeight = 0;
-    let maxIndex = -1;
-    children.forEach((child, i) => {
-      const weight = window.physxWorker.getWeight(child);
-      if (weight > maxWeight) {
-        maxWeight = weight;
-        maxIndex = i;
+  if (isDebugger) {
+    avatar.motions = [];
+
+    avatar.nodes = [];
+
+    avatar.getMotion = motion => {
+      return avatar.motions.filter(n => n.motion === motion)[0];
+    };
+
+    avatar.getNode = node => {
+      return avatar.nodes.filter(n => n.node === node)[0];
+    };
+
+    avatar.logActiveNodes = node => {
+      const children = window.physxWorker.getChildren(node);
+      let maxWeight = 0;
+      let maxIndex = -1;
+      children.forEach((child, i) => {
+        const weight = window.physxWorker.getWeight(child);
+        if (weight > maxWeight) {
+          maxWeight = weight;
+          maxIndex = i;
+        }
+      });
+      if (maxIndex >= 0) {
+        const maxWeightNode = children[maxIndex];
+        const nodeObject = avatar.getNode(maxWeightNode);
+        if (nodeObject) {
+          console.log(nodeObject);
+          avatar.logActiveNodes(maxWeightNode);
+        } else {
+          const motionObject = avatar.getMotion(maxWeightNode);
+          console.log(motionObject);
+        }
       }
-    });
-    if (maxIndex >= 0) {
-      const maxWeightNode = children[maxIndex];
-      const nodeObject = avatar.getNode(maxWeightNode);
-      if (nodeObject) {
-        console.log(nodeObject);
-        avatar.logActiveNodes(maxWeightNode);
-      } else {
-        const motionObject = avatar.getMotion(maxWeightNode);
-        console.log(motionObject);
-      }
-    }
-  };
+    };
+  }
+
   // end test ---
 
   // create motions -------------------------------------------------------------
@@ -955,7 +968,7 @@ export const _updateAnimation = avatar => {
   if (finishedFlag) {
     // debugger
     const motion = values[54];
-    console.log('---finished', avatar.getMotion(motion));
+    if (isDebugger) console.log('---finished', avatar.getMotion(motion));
     // this.dispatchEvent({
     //   type: 'finished',
     //   motion,
