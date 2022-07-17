@@ -1197,6 +1197,14 @@ class RemotePlayer extends InterpolatedPlayer {
     }
     
     const observePlayerFn = e => {
+      if(e.changes.keys.has('avatar')) {
+        const avatar = e.changes.keys.get('avatar').value;
+        if(avatar === '') {
+          console.warn("Ignoring avatar sync", avatar);
+        } else {
+          this.syncAvatar();
+        }
+      }
       this.position.fromArray(this.playerMap.get('position'));
       this.quaternion.fromArray(this.playerMap.get('quaternion'));
     };
