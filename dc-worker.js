@@ -27,8 +27,9 @@ const _cloneTerrainMeshData = (meshData) => {
       meshData.biomesUvs2.length * meshData.biomesUvs2.constructor.BYTES_PER_ELEMENT +
       meshData.indices.length * meshData.indices.constructor.BYTES_PER_ELEMENT +
       meshData.skylights.length * meshData.skylights.constructor.BYTES_PER_ELEMENT +
-      meshData.aos.length * meshData.aos.constructor.BYTES_PER_ELEMENT +
-      meshData.peeks.length * meshData.peeks.constructor.BYTES_PER_ELEMENT;
+      meshData.aos.length * meshData.aos.constructor.BYTES_PER_ELEMENT;
+      // meshData.peeks.length * meshData.peeks.constructor.BYTES_PER_ELEMENT;
+
     const arrayBuffer = new ArrayBuffer(sizeRequired);
     let index = 0;
 
@@ -68,9 +69,9 @@ const _cloneTerrainMeshData = (meshData) => {
     aos.set(meshData.aos);
     index += meshData.aos.length * meshData.aos.constructor.BYTES_PER_ELEMENT;
 
-    const peeks = new meshData.peeks.constructor(arrayBuffer, index, meshData.peeks.length);
-    peeks.set(meshData.peeks);
-    index += meshData.peeks.length * meshData.peeks.constructor.BYTES_PER_ELEMENT;
+    // const peeks = new meshData.peeks.constructor(arrayBuffer, index, meshData.peeks.length);
+    // peeks.set(meshData.peeks);
+    // index += meshData.peeks.length * meshData.peeks.constructor.BYTES_PER_ELEMENT;
 
     return {
       // bufferAddress: arrayBuffer.byteOffset,
@@ -84,7 +85,7 @@ const _cloneTerrainMeshData = (meshData) => {
       indices,
       skylights,
       aos,
-      peeks
+      // peeks
     };
   } else {
     return null;

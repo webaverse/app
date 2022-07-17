@@ -2,6 +2,8 @@
 import metaversefile from 'metaversefile';
 const {useApp, useCleanup} = metaversefile;
 
+const baseUrl = import.meta.url.replace(/(\/)[^\/\\]*$/, '$1');
+
 export default e => {
   const app = useApp();
 
@@ -9,7 +11,7 @@ export default e => {
 
   const landApps = [
     {
-      "start_url": "https://webaverse.github.io/dual-contouring-terrain/"
+      "start_url": "../../scenes/dual-contouring-terrain/"
     },
     /* {
       "start_url": "https://webaverse.github.io/silk-grass/"
