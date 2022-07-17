@@ -1343,6 +1343,14 @@ class RemotePlayer extends InterpolatedPlayer {
     }
     
     const observePlayerFn = e => {
+      if (e.changes.keys.get('voiceSpec') || e.added?.keys?.get('voiceSpec')) {
+        const voiceSpec = e.changes.keys.get('voiceSpec');
+        const json = JSON.parse(voiceSpec.value);
+        if (json.endpointUrl)
+          {this.loadVoiceEndpoint(json.endpointUrl);}
+        if (json.audioUrl && json.indexUrl)
+          {this.loadVoicePack({audioUrl: json.audioUrl, indexUrl: json.indexUrl});}
+      }
       this.position.fromArray(this.playerMap.get('position'));
       this.quaternion.fromArray(this.playerMap.get('quaternion'));
     };
