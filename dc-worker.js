@@ -172,18 +172,35 @@ const instances = new Map();
     newTasks,
   };
 }; */
-const _cloneTask = task => {
+const _cloneNode = (node) => {
   return {
+    min: node.min.slice(),
+    size: node.size,
+    isLeaf: node.isLeaf,
+    lodArray: node.lodArray.slice(),
+  };
+};
+/* const _cloneTask = task => {
+  return {
+    id: task.id,
+    type: task.type,
     min: task.min.slice(),
     size: task.size,
     isLeaf: task.isLeaf,
     lodArray: task.lodArray.slice(),
+    newNodes: task.newNodes.map(_cloneNode),
+    oldNodes: task.oldNodes.map(_cloneNode),
   };
-};
+}; */
 const _cloneTrackerUpdate = trackerUpdate => {
+  if (trackerUpdate.leafNodes.length === 0) {
+    debugger;
+  }
   return {
-    oldTasks: trackerUpdate.oldTasks.map(_cloneTask),
-    newTasks: trackerUpdate.newTasks.map(_cloneTask),
+    // currentCoord: trackerUpdate.currentCoord.slice(),
+    // oldTasks: trackerUpdate.oldTasks.map(_cloneTask),
+    // newTasks: trackerUpdate.newTasks.map(_cloneTask),
+    leafNodes: trackerUpdate.leafNodes.map(_cloneNode),
   };
 };
 
