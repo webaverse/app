@@ -513,12 +513,13 @@ class PlayerBase extends THREE.Object3D {
     this.characterBehavior.destroy();
   }
 }
-const controlActionTypes = [
+const controlActionTypes = [ // todo: Need same as actionsNodeUnitary.children.
   'jump',
   'crouch',
   'fly',
   'sit',
   'use',
+  'dashAttack',
 ];
 class StatePlayer extends PlayerBase {
   constructor({
