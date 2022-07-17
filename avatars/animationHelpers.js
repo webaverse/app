@@ -765,6 +765,44 @@ export const _createAnimation = avatar => {
 
   // avatar.mixer.addEventListener('finished', event => {
   // });
+
+  avatar.addEventListener('actionEnd', e => {
+    // debugger
+    if (e.action.type === 'use') {
+      if (e.action.animation) {
+        // debugger
+        // useEnd, sword
+        physx.physxWorker.crossFadeUnitary(avatar.actionsNodeUnitary, 0.2, avatar.defaultNodeTwo);
+      } else if (e.action.animationCombo) {
+        // debugger
+        // useComboEnd, silsword
+        physx.physxWorker.crossFadeUnitary(avatar.actionsNodeUnitary, 0.2, avatar.defaultNodeTwo);
+      }
+    }
+  });
+  avatar.addEventListener('actionStart', e => {
+    // debugger
+    if (e.action.type === 'use') {
+      if (e.action.animation) {
+        // debugger
+        // useStart
+        const useAnimationName = e.action.animation;
+        physx.physxWorker.play(avatar.useMotiono[useAnimationName]);
+        physx.physxWorker.crossFadeUnitary(avatar.actionsNodeUnitary, 0.2, avatar.useMotiono[useAnimationName]);
+      } else if (e.action.animationCombo) {
+        // debugger
+        // useComboStart
+        let useAnimationName;
+        if (avatar.dashAttacking) {
+          useAnimationName = 'dashAttack';
+        } else {
+          useAnimationName = e.action.animationCombo[e.action.index];
+        }
+        physx.physxWorker.play(avatar.useMotiono[useAnimationName]);
+        physx.physxWorker.crossFadeUnitary(avatar.actionsNodeUnitary, 0.2, avatar.useMotiono[useAnimationName]);
+      }
+    }
+  });
 };
 
 export const _updateAnimation = avatar => {
@@ -843,13 +881,13 @@ export const _updateAnimation = avatar => {
     physx.physxWorker.crossFadeUnitary(avatar.actionsNodeUnitary, 0.2, avatar.defaultNodeTwo);
   }
 
-  if (avatar.useEnd) {
-    physx.physxWorker.crossFadeUnitary(avatar.actionsNodeUnitary, 0.2, avatar.defaultNodeTwo);
-  }
+  // if (avatar.useEnd) {
+  //   physx.physxWorker.crossFadeUnitary(avatar.actionsNodeUnitary, 0.2, avatar.defaultNodeTwo);
+  // }
 
-  if (avatar.useComboEnd) {
-    physx.physxWorker.crossFadeUnitary(avatar.actionsNodeUnitary, 0.2, avatar.defaultNodeTwo);
-  }
+  // if (avatar.useComboEnd) {
+  //   physx.physxWorker.crossFadeUnitary(avatar.actionsNodeUnitary, 0.2, avatar.defaultNodeTwo);
+  // }
 
   if (avatar.useEnvelopeEnd) {
     console.log('useEnvelopeEnd');
@@ -889,24 +927,24 @@ export const _updateAnimation = avatar => {
 
   if (avatar.narutoRunStart) physx.physxWorker.crossFadeUnitary(avatar.actionsNodeUnitary, 0.2, avatar.narutoRunMotion);
 
-  // sword
-  if (avatar.useStart) {
-    const useAnimationName = avatar.useAnimation;
-    physx.physxWorker.play(avatar.useMotiono[useAnimationName]);
-    physx.physxWorker.crossFadeUnitary(avatar.actionsNodeUnitary, 0.2, avatar.useMotiono[useAnimationName]);
-  }
+  // // sword
+  // if (avatar.useStart) {
+  //   const useAnimationName = avatar.useAnimation;
+  //   physx.physxWorker.play(avatar.useMotiono[useAnimationName]);
+  //   physx.physxWorker.crossFadeUnitary(avatar.actionsNodeUnitary, 0.2, avatar.useMotiono[useAnimationName]);
+  // }
 
-  // silsword
-  if (avatar.useComboStart) {
-    let useAnimationName;
-    if (avatar.dashAttacking) {
-      useAnimationName = 'dashAttack';
-    } else {
-      useAnimationName = avatar.useAnimationCombo[avatar.useAnimationIndex];
-    }
-    physx.physxWorker.play(avatar.useMotiono[useAnimationName]);
-    physx.physxWorker.crossFadeUnitary(avatar.actionsNodeUnitary, 0.2, avatar.useMotiono[useAnimationName]);
-  }
+  // // silsword
+  // if (avatar.useComboStart) {
+  //   let useAnimationName;
+  //   if (avatar.dashAttacking) {
+  //     useAnimationName = 'dashAttack';
+  //   } else {
+  //     useAnimationName = avatar.useAnimationCombo[avatar.useAnimationIndex];
+  //   }
+  //   physx.physxWorker.play(avatar.useMotiono[useAnimationName]);
+  //   physx.physxWorker.crossFadeUnitary(avatar.actionsNodeUnitary, 0.2, avatar.useMotiono[useAnimationName]);
+  // }
 
   // bow
   if (avatar.useEnvelopeStart) {
@@ -986,7 +1024,7 @@ export const _updateAnimation = avatar => {
         avatar.useMotiono.swordTopDownSlashStep,
         avatar.useMotiono.dashAttack,
       ].includes(motion)) {
-        game.handleAnimationEnd();
+        game.handleAnimationEnd(); // todo: Directly remove useAction in actionEnd event.
       }
     };
 

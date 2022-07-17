@@ -134,6 +134,7 @@ import {
   animations,
   animationStepIndices,
 } from './animationHelpers.js';
+import { EventDispatcher } from 'three';
 
 const cubicBezier = easing(0, 1, 0, 1);
 
@@ -398,8 +399,10 @@ const _makeDebugMesh = (avatar) => {
 
 
 
-class Avatar {
+class Avatar extends EventDispatcher {
 	constructor(object, options = {}) {
+    super();
+    
     if (!object) {
       object = {};
     }

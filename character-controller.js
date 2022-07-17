@@ -769,6 +769,12 @@ class StatePlayer extends PlayerBase {
     action = clone(action);
     action.actionId = makeId(5);
     this.getActionsState().push([action]);
+    if (this.avatar) {
+      this.avatar.dispatchEvent({
+        type: 'actionStart',
+        action,
+      })
+    }
     return action;
   }
   removeAction(type) {
@@ -777,6 +783,12 @@ class StatePlayer extends PlayerBase {
     for (const action of actions) {
       if (action.type === type) {
         actions.delete(i);
+        if (this.avatar) {
+          this.avatar.dispatchEvent({
+            type: 'actionEnd',
+            action,
+          })
+        }
         break;
       }
       i++;
