@@ -39,6 +39,8 @@ class AppManager extends EventTarget {
     
     this.appsArray = null;
     this.apps = [];
+
+    this.transform = new Float32Array(10);
     
     this.pendingAddPromises = new Map();
     // this.pushingLocalUpdates = false;
@@ -179,14 +181,10 @@ class AppManager extends EventTarget {
     // console.log('bind tracked app', trackedApp.get('instanceId'));
     const _observe = (e, origin) => {
       if (origin !== 'push') {
-        if (e.changes.keys.has('position')) {
-          app.position.fromArray(trackedApp.get('position'));
-        }
-        if (e.changes.keys.has('quaternion')) {
-          app.quaternion.fromArray(trackedApp.get('quaternion'));
-        }
-        if (e.changes.keys.has('scale')) {
-          app.scale.fromArray(trackedApp.get('scale'));
+        if (e.changes.keys.has('transform')) {
+          app.position.fromArray(trackedApp.get('transform'));
+          app.quaternion.fromArray(trackedApp.get('transform'), 3);
+          app.scale.fromArray(trackedApp.get('transform'), 7);
         }
       }
     };
@@ -209,7 +207,7 @@ class AppManager extends EventTarget {
     this.addEventListener('trackedappadd', async e => {
       const {trackedApp} = e.data;
       const trackedAppBinding = trackedApp.toJSON();
-      const {instanceId, contentId, position, quaternion, scale, components} = trackedAppBinding;
+      const {instanceId, contentId, transform, components} = trackedAppBinding;
       
       const p = makePromise();
       p.instanceId = instanceId;
@@ -256,9 +254,9 @@ class AppManager extends EventTarget {
         // setup
         {
           // set pose
-          app.position.fromArray(position);
-          app.quaternion.fromArray(quaternion);
-          app.scale.fromArray(scale);
+          app.position.fromArray(transform);
+          app.quaternion.fromArray(transform, 3);
+          app.scale.fromArray(transform, 7);
           app.updateMatrixWorld();
           app.lastMatrix.copy(app.matrixWorld);
 
@@ -416,18 +414,14 @@ class AppManager extends EventTarget {
   addTrackedAppInternal(
     instanceId,
     contentId,
-    position,
-    quaternion,
-    scale,
+    transform,
     components,
   ) {
     // console.log('add tracked app internal', instanceId, contentId);
     const trackedApp = this.getOrCreateTrackedApp(instanceId);
     trackedApp.set('instanceId', instanceId);
     trackedApp.set('contentId', contentId);
-    trackedApp.set('position', position);
-    trackedApp.set('quaternion', quaternion);
-    trackedApp.set('scale', scale);
+    trackedApp.set('transform', transform);
     trackedApp.set('components', components);
     return trackedApp;
   }
@@ -441,12 +435,14 @@ class AppManager extends EventTarget {
   ) {
     const self = this;
     this.appsArray.doc.transact(function tx() {
+      const transform = new Float32Array(10);
+      position.toArray(transform);
+      quaternion.toArray(transform, 3);
+      scale.toArray(transform, 7);
       self.addTrackedAppInternal(
         instanceId,
         contentId,
-        position.toArray(),
-        quaternion.toArray(),
-        scale.toArray(),
+        transform,
         components,
       );
     });
@@ -552,9 +548,7 @@ class AppManager extends EventTarget {
         debugger;
       } */
       const contentId = srcTrackedApp.get('contentId');
-      const position = srcTrackedApp.get('position');
-      const quaternion = srcTrackedApp.get('quaternion');
-      const scale = srcTrackedApp.get('scale');
+      const transform = srcTrackedApp.get('transform');
       const components = srcTrackedApp.get('components');
       
       srcAppManager.removeTrackedAppInternal(instanceId);
@@ -562,9 +556,7 @@ class AppManager extends EventTarget {
       dstTrackedApp = dstAppManager.addTrackedAppInternal(
         instanceId,
         contentId,
-        position,
-        quaternion,
-        scale,
+        transform,
         components,
       );
     });
@@ -579,20 +571,20 @@ class AppManager extends EventTarget {
   }
   importApp(app) {
     let dstTrackedApp = null;
+    const self = this;
     this.appsArray.doc.transact(() => {
       const contentId = app.contentId;
       const instanceId = app.instanceId;
-      const position = app.position.toArray();
-      const quaternion = app.quaternion.toArray();
-      const scale = app.scale.toArray();
       const components = app.components.slice();
+      const transform = new Float32Array(10);
+      app.position.toArray(transform);
+      app.quaternion.toArray(transform, 3);
+      app.scale.toArray(transform, 7);
       
       dstTrackedApp = this.addTrackedAppInternal(
         instanceId,
         contentId,
-        position,
-        quaternion,
-        scale,
+        transform,
         components,
       );
 
@@ -621,10 +613,11 @@ class AppManager extends EventTarget {
           const trackedApp = this.getTrackedApp(app.instanceId);
           if (trackedApp) {
             app.matrixWorld.decompose(localVector, localQuaternion, localVector2);
-
-            trackedApp.set('position', localVector.toArray());
-            trackedApp.set('quaternion', localQuaternion.toArray());
-            trackedApp.set('scale', localVector2.toArray());
+        
+            localVector.toArray(this.transform);
+            localQuaternion.toArray(this.transform, 3);
+            localVector2.toArray(this.transform, 7);
+            trackedApp.set('transform', this.transform);
 
             app.updateMatrixWorld();
           }
@@ -665,14 +658,10 @@ class AppManager extends EventTarget {
 
     // iterate over appsArray
     for (const trackedApp of this.appsArray) {
-      const position = trackedApp.get('position');
-      const quaternion = trackedApp.get('quaternion');
-      const scale = trackedApp.get('scale');
+      const transform = trackedApp.get('transform');
       const components = trackedApp.get('components') ?? [];
       const object = {
-        position,
-        quaternion,
-        scale,
+        transform,
         components,
       };
       // console.log('got app object', object);
