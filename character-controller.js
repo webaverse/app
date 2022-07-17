@@ -1242,10 +1242,10 @@ class RemotePlayer extends InterpolatedPlayer {
     const observePlayerFn = (e) => {
       if(e.changes.keys.has('avatar')) {
         const avatar = e.changes.keys.get('avatar').value;
-        if(avatar === '') {
+        if (avatar === '') {
           console.warn("Ignoring avatar sync", avatar);
         } else {
-          this.syncAvatar(avatar);
+          this.syncAvatar();
         }
       }
 
@@ -1299,7 +1299,6 @@ class RemotePlayer extends InterpolatedPlayer {
 
     this.appManager.bindState(this.getAppsState());
     this.appManager.loadApps();
-    
     this.syncAvatar();
   }
 }
