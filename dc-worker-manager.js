@@ -235,7 +235,7 @@ export class DcWorkerManager {
       return result;
     // });
   }
-  async generateTerrainChunkRenderable(chunkPosition, lodArray, {signal} = {}) {
+  /* async generateTerrainChunkRenderable(chunkPosition, lodArray, {signal} = {}) {
     // const chunkId = getLockChunkId(chunkPosition);
     // return await this.locks.request(chunkId, {signal}, async lock => {
       const worker = this.getNextWorker();
@@ -247,7 +247,7 @@ export class DcWorkerManager {
       // signal.throwIfAborted();
       return result;
     // });
-  }
+  } */
   async generateLiquidChunk(chunkPosition, lodArray, {signal} = {}) {
     const worker = this.getNextWorker();
     const result = await worker.request('generateLiquidChunk', {
