@@ -1278,7 +1278,6 @@ class RemotePlayer extends InterpolatedPlayer {
     }
     
     let lastTimestamp = performance.now();
-    let lastPosition = new THREE.Vector3();
 
     const observePlayerFn = (e) => {
       if(e.changes.keys.has('avatar')) {
@@ -1319,16 +1318,15 @@ class RemotePlayer extends InterpolatedPlayer {
           actionBinaryInterpolant.snapshot(timeDiff);
         }
 
-        if(this.avatar) {
+        if(!this.lastPosition.equals(this.position)){
           this.avatar.setVelocity(
             timeDiff / 1000,
-            lastPosition,
-            this.position,
-            this.quaternion
-          );
-        }
-
-        lastPosition.copy(this.position);
+            this.lastPosition,
+            this.positionInterpolant.get(),
+            this.quaternionInterpolant.get()
+            );
+            this.lastPosition.copy(this.position);
+          }
       }
     }
     this.playerMap.observe(observePlayerFn);
@@ -1336,6 +1334,7 @@ class RemotePlayer extends InterpolatedPlayer {
     this.appManager.bindState(this.getAppsState());
     this.syncAvatar();
   }
+  lastPosition = new THREE.Vector3();
   update(timestamp, timeDiff) {
     if(!this.avatar) return // console.log("no avatar"); // avatar takes time to load, ignore until it does
 
