@@ -269,7 +269,6 @@ export class GeometryAllocator {
         // console.log(localVector4D.w);
         if(localVector4D.x == localVector3D2.x && localVector4D.y == localVector3D2.y && localVector4D.z == localVector3D2.z)
         {
-          console.log('Hello');
           return true;
           // const peeks = [1,1,1,1,1,1,1,1,1,1,1,1,1,1,1];
           // // start bfs here
@@ -308,11 +307,12 @@ export class GeometryAllocator {
 
     for (let i = 0; i < this.numDraws; i++) {
       if(testOcclusionFn(i)){
+        console.log('I Am The Chunk That You Are In : ' + i);
         // if (testBoundingFn(i)) {
         // console.log(camera)
         // if(localFrustum.intersectsObject(camera)){
-          drawStarts.push(this.drawStarts[i]);
-          drawCounts.push(this.drawCounts[i]);
+          // drawStarts.push(this.drawStarts[i]);
+          // drawCounts.push(this.drawCounts[i]);
         // }
         // }
       }
