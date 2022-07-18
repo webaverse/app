@@ -108,16 +108,16 @@ export function applyPlayerActionsToAvatar(player, rig) {
   rig.lastJumpState = rig.jumpState;
   //
   rig.jumpTime = player.actionInterpolants.jump.get();
-  rig.flyState = !!flyAction;
-  // start/end event
-  rig.flyStart = false;
-  rig.flyEnd = false;
-  if (rig.flyState !== rig.lastFlyState) {
-    if (rig.flyState) rig.flyStart = true;
-    else rig.flyEnd = true;
-  }
-  rig.lastFlyState = rig.flyState;
-  //
+  // rig.flyState = !!flyAction;
+  // // start/end event
+  // rig.flyStart = false;
+  // rig.flyEnd = false;
+  // if (rig.flyState !== rig.lastFlyState) {
+  //   if (rig.flyState) rig.flyStart = true;
+  //   else rig.flyEnd = true;
+  // }
+  // rig.lastFlyState = rig.flyState;
+  // //
   rig.flyTime = flyAction ? player.actionInterpolants.fly.get() : -1;
   rig.flyDashFactor = player.actionInterpolants.flyDash.getNormalized();
   rig.activateState = !!activateAction;

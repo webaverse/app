@@ -768,7 +768,10 @@ export const _createAnimation = avatar => {
 
   avatar.addEventListener('actionEnd', e => {
     // debugger
-    if (e.action.type === 'use') {
+    console.log('actionEnd', e.action.type, e);
+    if (e.action.type === 'fly') {
+      physx.physxWorker.crossFadeTwo(avatar.groundFlyNodeTwo, 0.2, 0);
+    } else if (e.action.type === 'use') {
       if (e.action.animation) {
         // debugger
         // useEnd, sword
@@ -782,7 +785,10 @@ export const _createAnimation = avatar => {
   });
   avatar.addEventListener('actionStart', e => {
     // debugger
-    if (e.action.type === 'use') {
+    console.log('actionStart', e.action.type, e);
+    if (e.action.type === 'fly') {
+      physx.physxWorker.crossFadeTwo(avatar.groundFlyNodeTwo, 0.2, 1);
+    } else if (e.action.type === 'use') {
       if (e.action.animation) {
         // debugger
         // useStart
@@ -863,10 +869,10 @@ export const _updateAnimation = avatar => {
 
   // action end event --------------------------------------------
 
-  if (avatar.flyEnd) {
-    // physx.physxWorker.crossFadeUnitary(avatar.actionsNodeUnitary, 0.2, avatar.defaultNodeTwo);
-    physx.physxWorker.crossFadeTwo(avatar.groundFlyNodeTwo, 0.2, 0);
-  }
+  // if (avatar.flyEnd) {
+  //   // physx.physxWorker.crossFadeUnitary(avatar.actionsNodeUnitary, 0.2, avatar.defaultNodeTwo);
+  //   physx.physxWorker.crossFadeTwo(avatar.groundFlyNodeTwo, 0.2, 0);
+  // }
   if (avatar.jumpEnd) {
     if (avatar.narutoRunState) {
       physx.physxWorker.crossFadeUnitary(avatar.actionsNodeUnitary, 0.2, avatar.narutoRunMotion);
@@ -910,10 +916,10 @@ export const _updateAnimation = avatar => {
 
   // action start event --------------------------------------------
 
-  if (avatar.flyStart) {
-    // physx.physxWorker.crossFadeUnitary(avatar.actionsNodeUnitary, 0.2, avatar.idle8DFlyNodeTwo);
-    physx.physxWorker.crossFadeTwo(avatar.groundFlyNodeTwo, 0.2, 1);
-  }
+  // if (avatar.flyStart) {
+  //   // physx.physxWorker.crossFadeUnitary(avatar.actionsNodeUnitary, 0.2, avatar.idle8DFlyNodeTwo);
+  //   physx.physxWorker.crossFadeTwo(avatar.groundFlyNodeTwo, 0.2, 1);
+  // }
 
   if (avatar.jumpStart) {
     physx.physxWorker.play(avatar.jumpMotion);

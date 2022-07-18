@@ -811,10 +811,18 @@ class StatePlayer extends PlayerBase {
       const isControlAction = controlActionTypes.includes(action.type);
       if (isControlAction) {
         actions.delete(i);
+        this.avatar.dispatchEvent({
+          type: 'actionEnd',
+          action,
+        })
         i--;
       }
     }
     actions.push([action]);
+    this.avatar.dispatchEvent({
+      type: 'actionStart',
+      action,
+    })
   }
   setMicMediaStream(mediaStream) {
     if (this.microphoneMediaStream) {
