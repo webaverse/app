@@ -1260,14 +1260,58 @@ class RemotePlayer extends InterpolatedPlayer {
     } else {
       console.warn('binding to nonexistent player object', this.playersArray.toJSON());
     }
-    
-    const observePlayerFn = e => {
-      this.position.fromArray(this.playerMap.get('transform'));
-      this.quaternion.fromArray(this.playerMap.get('transform', 3));
-    };
+
+    let lastTimestamp = performance.now();
+    let lastPosition = new THREE.Vector3();
+    const observePlayerFn = (e) => {
+      if (e.changes.keys.get('voiceSpec') || e.added?.keys?.get('voiceSpec')) {
+        const voiceSpec = e.changes.keys.get('voiceSpec');
+        const json = JSON.parse(voiceSpec.value);
+        if (json.endpointUrl)
+          {this.loadVoiceEndpoint(json.endpointUrl);}
+        if (json.audioUrl && json.indexUrl)
+          {this.loadVoicePack({audioUrl: json.audioUrl, indexUrl: json.indexUrl});}
+      }
+
+      if (e.changes.keys.get('name')) {
+        this.name = e.changes.keys.get('name');
+      }
+
+      if (e.changes.keys.has('transform')) {
+        const transform = e.changes.keys.get('transform');
+        const timestamp = performance.now();
+        const timeDiff = timestamp - lastTimestamp;
+        lastTimestamp = timestamp;
+
+        this.position.fromArray(transform);
+        this.quaternion.fromArray(transform);
+        this.updateMatrixWorld();
+
+        this.positionInterpolant.snapshot(timeDiff);
+        this.quaternionInterpolant.snapshot(timeDiff);
+
+        for (const actionBinaryInterpolant of this.actionBinaryInterpolantsArray) {
+          actionBinaryInterpolant.snapshot(timeDiff);
+        }
+
+        this.characterPhysics.applyAvatarPhysicsDetail(true, true, timestamp, timeDiff / 1000);
+
+        if(this.avatar) {
+          this.characterPhysics.setPosition(this.position);
+          this.avatar.setVelocity(
+            timeDiff / 1000,
+            lastPosition,
+            this.position,
+            this.quaternion
+          );
+        }
+
+        lastPosition.copy(this.position);
+      }
+    }
     this.playerMap.observe(observePlayerFn);
     this.unbindFns.push(this.playerMap.unobserve.bind(this.playerMap, observePlayerFn));
-    
+
     this.appManager.bindState(this.getAppsState());
     this.appManager.loadApps();
     
