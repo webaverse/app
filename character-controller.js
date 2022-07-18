@@ -532,6 +532,8 @@ class StatePlayer extends PlayerBase {
     this.syncAvatarCancelFn = null;
     this.unbindFns = [];
     
+    this.transform = new Float32Array(7);
+
     this.bindState(playersArray);
   }
   isBound() {
@@ -632,10 +634,10 @@ class StatePlayer extends PlayerBase {
   }
   // serializers
   getPosition() {
-    return this.playerMap.get('position') ?? [0, 0, 0];
+    return localArray3.fromArray(this.playerMap.get('transform'));
   }
   getQuaternion() {
-    return this.playerMap.get('quaternion') ?? [0, 0, 0, 1];
+    return localArray3.fromArray(this.playerMap.get('transform'), 3);
   }
   async syncAvatar() {
     if (this.syncAvatarCancelFn) {
@@ -874,7 +876,6 @@ class StatePlayer extends PlayerBase {
 class InterpolatedPlayer extends StatePlayer {
   constructor(opts) {
     super(opts);
-    
     this.positionInterpolant = new PositionInterpolant(() => this.getPosition(), avatarInterpolationTimeDelay, avatarInterpolationNumFrames);
     this.quaternionInterpolant = new QuaternionInterpolant(() => this.getQuaternion(), avatarInterpolationTimeDelay, avatarInterpolationNumFrames);
     this.actionBinaryInterpolants = {
@@ -1068,8 +1069,10 @@ class LocalPlayer extends UninterpolatedPlayer {
       self.playerMap = new Z.Map();
       self.playersArray.push([self.playerMap]);
       self.playerMap.set('playerId', self.playerId);
-      self.playerMap.set('position', self.position.toArray(localArray3));
-      self.playerMap.set('quaternion', self.quaternion.toArray(localArray4));
+
+      self.position.toArray(self.transform, 0);
+      self.quaternion.toArray(self.transform, 3);
+      self.playerMap.set('transform', self.transform);
       
       const actions = self.getActionsState();
       for (const oldAction of oldActions) {
@@ -1163,9 +1166,14 @@ class LocalPlayer extends UninterpolatedPlayer {
   } */
   
   pushPlayerUpdates() {
+    const self = this;
     this.playersArray.doc.transact(() => {
-      this.playerMap.set('position', this.position.toArray(localArray3));
-      this.playerMap.set('quaternion', this.quaternion.toArray(localArray4));
+      /* if (isNaN(this.position.x) || isNaN(this.position.y) || isNaN(this.position.z)) {
+        debugger;
+      } */
+      self.position.toArray(self.transform);      
+      self.quaternion.toArray(self.transform, 3);
+      self.playerMap.set('transform', self.transform);
     }, 'push');
 
     this.appManager.updatePhysics();
@@ -1252,7 +1260,6 @@ class RemotePlayer extends InterpolatedPlayer {
     } else {
       console.warn('binding to nonexistent player object', this.playersArray.toJSON());
     }
-    
 
     let lastTimestamp = performance.now();
     let lastPosition = new THREE.Vector3();
