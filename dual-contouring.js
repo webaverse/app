@@ -92,12 +92,16 @@ uint8_t *TrackerUpdate::getBuffer() const {
 const _parseTrackerUpdate = bufferAddress => {
   const dataView = new DataView(Module.HEAPU8.buffer, bufferAddress);
   let index = 0;
+  /* const currentCoord = new Int32Array(Module.HEAPU8.buffer, bufferAddress + index, 3).slice();
+  index += Int32Array.BYTES_PER_ELEMENT * 3;
   const numOldTasks = dataView.getUint32(index, true);
   index += Uint32Array.BYTES_PER_ELEMENT;
   const numNewTasks = dataView.getUint32(index, true);
-  index += Uint32Array.BYTES_PER_ELEMENT;
+  index += Uint32Array.BYTES_PER_ELEMENT; */
+  const numLeafNodes = dataView.getInt32(index, true);
+  index += Int32Array.BYTES_PER_ELEMENT;
 
-  const _parseTrackerTask = () => {
+  const _parseNode = () => {
     const min = new Int32Array(Module.HEAPU8.buffer, bufferAddress + index, 3).slice();
     index += Int32Array.BYTES_PER_ELEMENT * 3;
     const size = dataView.getInt32(index, true);
@@ -106,6 +110,7 @@ const _parseTrackerUpdate = bufferAddress => {
     index += Int32Array.BYTES_PER_ELEMENT;
     const lodArray = new Int32Array(Module.HEAPU8.buffer, bufferAddress + index, 8).slice();
     index += Int32Array.BYTES_PER_ELEMENT * 8;
+    
     return {
       min,
       size,
@@ -113,19 +118,57 @@ const _parseTrackerUpdate = bufferAddress => {
       lodArray,
     };
   };
-  const oldTasks = [];
-  for (let i = 0; i < numOldTasks; i++) {
-    const oldTask = _parseTrackerTask();
-    oldTasks.push(oldTask);
+  /* const _parseTrackerTask = () => {
+    const id = dataView.getInt32(index, true);
+    index += Int32Array.BYTES_PER_ELEMENT;
+    const type = dataView.getInt32(index, true);
+    index += Int32Array.BYTES_PER_ELEMENT;
+    const min = new Int32Array(Module.HEAPU8.buffer, bufferAddress + index, 3).slice();
+    index += Int32Array.BYTES_PER_ELEMENT * 3;
+    const size = dataView.getInt32(index, true);
+    index += Int32Array.BYTES_PER_ELEMENT;
+    const isLeaf = !!dataView.getInt32(index, true);
+    index += Int32Array.BYTES_PER_ELEMENT;
+    const lodArray = new Int32Array(Module.HEAPU8.buffer, bufferAddress + index, 8).slice();
+    index += Int32Array.BYTES_PER_ELEMENT * 8;
+    
+    const numOldNodes = dataView.getUint32(index, true);
+    index += Uint32Array.BYTES_PER_ELEMENT;
+    const oldNodes = Array(numOldNodes);
+    for (let i = 0; i < numOldNodes; i++) {
+      oldNodes[i] = _parseNode();
+    }
+
+    const numNewNodes = dataView.getUint32(index, true);
+    index += Uint32Array.BYTES_PER_ELEMENT;
+    const newNodes = Array(numNewNodes);
+    for (let i = 0; i < numNewNodes; i++) {
+      newNodes[i] = _parseNode();
+    }
+
+    return {
+      id,
+      type,
+      min,
+      size,
+      isLeaf,
+      lodArray,
+      oldNodes,
+      newNodes,
+    };
+  }; */
+
+  // leafNodes
+  const leafNodes = Array(numLeafNodes);
+  for (let i = 0; i < numLeafNodes; i++) {
+    leafNodes[i] = _parseNode();
   }
-  const newTasks = [];
-  for (let i = 0; i < numNewTasks; i++) {
-    const newTask = _parseTrackerTask();
-    newTasks.push(newTask);
-  }
+
   return {
-    oldTasks,
-    newTasks
+    // currentCoord,
+    // oldTasks,
+    // newTasks,
+    leafNodes,
   };
 };
 w.createTracker = (inst, lod, minLodRange, trackY) => {
@@ -343,6 +386,11 @@ const _parseTerrainVertexBuffer = (arrayBuffer, bufferAddress) => {
   index += Uint8Array.BYTES_PER_ELEMENT * numAos;
   index = align4(index);
 
+  const numPeeks = dataView.getUint32(index, true);
+  index += Uint32Array.BYTES_PER_ELEMENT;
+  const peeks = new Uint8Array(arrayBuffer, bufferAddress + index, numPeeks);
+  index += Uint32Array.BYTES_PER_ELEMENT * numPeeks;
+
   return {
     bufferAddress,
     positions,
@@ -354,6 +402,7 @@ const _parseTerrainVertexBuffer = (arrayBuffer, bufferAddress) => {
     indices,
     skylights,
     aos,
+    peeks
   };
 };
 w.createTerrainChunkMeshAsync = async (inst, taskId, x, y, z, lods) => {
@@ -721,6 +770,37 @@ w.createMobSplatAsync = async (inst, taskId, x, z, lod) => {
 // qs data (float32_t) * size
 // instances size (uint32_t)
 // instances data (float32_t) * size
+
+//
+
+w.setCamera = (
+  inst,
+  position,
+  quaternion,
+  projectionMatrix
+) => {
+  const allocator = new Allocator(Module);
+
+  const positionArray = allocator.alloc(Float32Array, 3);
+  positionArray.set(position);
+
+  const quaternionArray = allocator.alloc(Float32Array, 4);
+  quaternionArray.set(quaternion);
+
+  const projectionMatrixArray = allocator.alloc(Float32Array, 16);
+  projectionMatrixArray.set(projectionMatrix);
+
+  Module._setCamera(
+    inst,
+    positionArray.byteOffset,
+    quaternionArray.byteOffset,
+    projectionMatrixArray.byteOffset
+  );
+
+  allocator.freeAll();
+};
+
+//
 
 w.cancelTask = async (inst, taskId) => {
   // console.log('cancel task', inst, taskId);

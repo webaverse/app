@@ -1,6 +1,6 @@
 import WSRTC from 'wsrtc/wsrtc.js';
 import {chatManager} from '../chat-manager.js';
-import {world} from '../world.js';
+import universe from '../universe.js';
 import metaversefile from 'metaversefile';
 
 class VoiceInput extends EventTarget {

@@ -1,6 +1,7 @@
 import * as THREE from 'three';
 import Avatar from './avatars/avatars.js';
 import * as sounds from './sounds.js';
+import audioManager from './audio-manager.js';
 
 import {
   idleFactorSpeed,
@@ -214,7 +215,7 @@ class CharacterSfx {
 
     const _handleNarutoRun = () => {
       
-    this.currentQ.copy(this.player.quaternion);
+      this.currentQ.copy(this.player.quaternion);
      
       let temp=this.currentQ.angleTo(this.preQ);
       for(let i=0;i<4;i++){
@@ -407,7 +408,7 @@ class CharacterSfx {
         offset = voiceFiles[index].offset;
       } 
       
-      const audioContext = Avatar.getAudioContext();
+      const audioContext = audioManager.getAudioContext();
       const audioBufferSourceNode = audioContext.createBufferSource();
       audioBufferSourceNode.buffer = this.player.voicePack.audioBuffer;
 
@@ -494,7 +495,7 @@ class CharacterSfx {
         offset = voiceFiles[index].offset;
       } 
       
-      const audioContext = Avatar.getAudioContext();
+      const audioContext = audioManager.getAudioContext();
       const audioBufferSourceNode = audioContext.createBufferSource();
       audioBufferSourceNode.buffer = this.player.voicePack.audioBuffer;
 

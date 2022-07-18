@@ -13,7 +13,7 @@ import physicsManager from './physics-manager.js';
 import {world} from './world.js';
 // import cameraManager from './camera-manager.js';
 import physx from './physx.js';
-import Avatar from './avatars/avatars.js';
+import audioManager from './audio-manager.js';
 import metaversefile from 'metaversefile';
 import {
   actionsMapName,
@@ -395,8 +395,8 @@ class PlayerBase extends THREE.Object3D {
       const _initPhysics = () => {
         const physicsObjects = app.getPhysicsObjects();
         for (const physicsObject of physicsObjects) {
-          physicsScene.disableGeometryQueries(physicsObject.physicsId);
-          physicsScene.disableGeometry(physicsObject.physicsId);
+          physicsScene.disableGeometryQueries(physicsObject);
+          physicsScene.disableGeometry(physicsObject);
         }
       };
       _initPhysics();
@@ -485,13 +485,15 @@ class PlayerBase extends THREE.Object3D {
           app.updateMatrixWorld();
         }
       };
-      _setAppTransform();
+      if(!app.getComponent('sit') && !app.getComponent('pet')){
+        _setAppTransform();
+      }
 
       const _deinitPhysics = () => {
         const physicsObjects = app.getPhysicsObjects();
         for (const physicsObject of physicsObjects) {
-          physicsScene.enableGeometryQueries(physicsObject.physicsId);
-          physicsScene.enableGeometry(physicsObject.physicsId);
+          physicsScene.enableGeometryQueries(physicsObject);
+          physicsScene.enableGeometry(physicsObject);
         }
       };
       _deinitPhysics();
@@ -906,6 +908,23 @@ class InterpolatedPlayer extends StatePlayer {
       quaternion: this.quaternionInterpolant.get(),
     };
   }
+  update(timestamp, timeDiff) {
+    if(!this.avatar) return; // avatar takes time to load, ignore until it does
+
+    this.updateInterpolation(timeDiff);
+
+    const mirrors = metaversefile.getMirrors();
+    applyPlayerToAvatar(this, null, this.avatar, mirrors);
+
+    const timeDiffS = timeDiff / 1000;
+    this.characterSfx.update(timestamp, timeDiffS);
+    this.characterFx.update(timestamp, timeDiffS);
+    this.characterPhysics.update(timestamp, timeDiffS);
+    this.characterHitter.update(timestamp, timeDiffS);
+    this.characterBehavior.update(timestamp, timeDiffS);
+
+    this.avatar.update(timestamp, timeDiff);
+  }
   updateInterpolation(timeDiff) {
     this.positionInterpolant.update(timeDiff);
     this.quaternionInterpolant.update(timeDiff);
@@ -977,6 +996,9 @@ class LocalPlayer extends UninterpolatedPlayer {
 
     await p;
   }
+  setAvatarApp(app) {
+    this.#setAvatarAppFromOwnAppManager(app);
+  }
   async setAvatarUrl(u) {
     const localAvatarEpoch = ++this.avatarEpoch;
     const avatarApp = await this.appManager.addTrackedApp(u);
@@ -1014,7 +1036,7 @@ class LocalPlayer extends UninterpolatedPlayer {
     }
     if (mediaStream) {
       this.avatar.setMicrophoneEnabled(true, this);
-      const audioContext = Avatar.getAudioContext();
+      const audioContext = audioManager.getAudioContext();
       const mediaStreamSource = audioContext.createMediaStreamSource(mediaStream);
 
       mediaStreamSource.connect(this.avatar.getMicrophoneInput(true));
@@ -1094,8 +1116,8 @@ class LocalPlayer extends UninterpolatedPlayer {
     
     const physicsObjects = app.getPhysicsObjects();
     for (const physicsObject of physicsObjects) {
-      //physicsScene.disableGeometry(physicsObject.physicsId);
-      physicsScene.disableGeometryQueries(physicsObject.physicsId);
+      //physicsScene.disableGeometry(physicsObject);
+      physicsScene.disableGeometryQueries(physicsObject);
     }
 
     app.dispatchEvent({
@@ -1112,7 +1134,7 @@ class LocalPlayer extends UninterpolatedPlayer {
         const app = metaversefile.getAppByInstanceId(action.instanceId);
         const physicsObjects = app.getPhysicsObjects();
         for (const physicsObject of physicsObjects) {
-          physicsScene.enableGeometryQueries(physicsObject.physicsId);
+          physicsScene.enableGeometryQueries(physicsObject);
         }
         this.removeActionIndex(i + removeOffset);
         removeOffset -= 1;
@@ -1276,9 +1298,8 @@ class RemotePlayer extends InterpolatedPlayer {
     } else {
       console.warn('binding to nonexistent player object', this.playersArray.toJSON());
     }
-    
     let lastTimestamp = performance.now();
-
+    let lastPosition = new THREE.Vector3();
     const observePlayerFn = (e) => {
       if(e.changes.keys.has('avatar')) {
         const avatar = e.changes.keys.get('avatar').value;
@@ -1289,10 +1310,9 @@ class RemotePlayer extends InterpolatedPlayer {
           this.syncAvatar();
         }
       }
-
       if (e.changes.keys.get('voiceSpec') || e.added?.keys?.get('voiceSpec')) {
-        const voiceSpec = e.changes.keys.get('voiceSpec').value;
-        const json = JSON.parse(voiceSpec);
+        const voiceSpec = e.changes.keys.get('voiceSpec');
+        const json = JSON.parse(voiceSpec.value);
         if (json.endpointUrl)
           {this.loadVoiceEndpoint(json.endpointUrl);}
         if (json.audioUrl && json.indexUrl)
@@ -1314,6 +1334,7 @@ class RemotePlayer extends InterpolatedPlayer {
 
         this.positionInterpolant.snapshot(timeDiff);
         this.quaternionInterpolant.snapshot(timeDiff);
+
         for (const actionBinaryInterpolant of this.actionBinaryInterpolantsArray) {
           actionBinaryInterpolant.snapshot(timeDiff);
         }
@@ -1329,6 +1350,7 @@ class RemotePlayer extends InterpolatedPlayer {
     }
     this.playerMap.observe(observePlayerFn);
     this.unbindFns.push(this.playerMap.unobserve.bind(this.playerMap, observePlayerFn));
+
     this.appManager.bindState(this.getAppsState());
     this.syncAvatar();
   }
