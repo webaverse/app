@@ -755,6 +755,7 @@ export const _applyAnimation = (avatar, now, moveFactors) => {
 
     _getHorizontalBlend(k, lerpFn, isPosition, dst);
   };
+  // console.log(avatar.emoteFactor);
   const _getApplyFn = () => {
     if (avatar.jumpState) {
       return spec => {

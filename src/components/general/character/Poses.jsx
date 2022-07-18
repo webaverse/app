@@ -18,6 +18,7 @@ export const triggerEmote = emoteName => {
   
   // clear old emote
   const localPlayer = metaversefile.useLocalPlayer();
+  console.log('remove emote');
   localPlayer.removeAction('emote');
   if (emoteTimeout) {
     clearTimeout(emoteTimeout);
@@ -29,6 +30,7 @@ export const triggerEmote = emoteName => {
     type: 'emote',
     animation: emoteName,
   };
+  console.log('add emote');
   localPlayer.addAction(newAction);
 
   setFacePoseValue(emotion, 1);
@@ -37,6 +39,7 @@ export const triggerEmote = emoteName => {
   const emoteAnimationDuration = emoteAnimation.duration;
   emoteTimeout = setTimeout(() => {
     const actionIndex = localPlayer.findActionIndex(action => action.type === 'emote' && action.animation === emoteName);
+    console.log('remove emote timeout');
     localPlayer.removeActionIndex(actionIndex);
 
     setFacePoseValue(emotion, 0);
