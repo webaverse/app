@@ -245,9 +245,7 @@ const _updateIo = timeDiff => {
       ioManager.lastCtrlKey = ioManager.keys.ctrl;
     }
     cameraManager.lastNonzeroDirectionVectorRotated.copy(keysDirection);
-    const useAction = localPlayer.getAction('use');
-    const isUsingSwords = useAction?.animation || useAction?.animationCombo?.length > 0;
-    if (keysDirection.length() > 0 && physicsScene.getPhysicsEnabled() && movementEnabled && !isUsingSwords) { // todo: merge `isUsingSwords` into `movementEnabled`.
+    if (keysDirection.length() > 0 && physicsScene.getPhysicsEnabled() && movementEnabled) {
       localPlayer.characterPhysics.applyWasd(
         keysDirection.normalize()
           .multiplyScalar(game.getSpeed() * timeDiff)
