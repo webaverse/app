@@ -136,6 +136,7 @@ class Universe extends EventTarget {
   // This is called in single player mode instead of connectRoom
   connectState(state) {
     state.setResolvePriority(1);
+    playersManager.clearRemotePlayers();
     playersManager.bindState(state.getArray(playersMapName));
 
     world.appManager.unbindState();
@@ -169,9 +170,11 @@ class Universe extends EventTarget {
 
     // This is called when the websocket connection opens, i.e. server is connectedw
     const open = e => {
+      playersManager.clearRemotePlayers();
       this.wsrtc.removeEventListener('open', open);
       // Clear the last world state
       const appsArray = state.get(appsMapName, Z.Array);
+
       playersManager.bindState(state.getArray(playersMapName));
 
       // Unbind the world state to clear existing apps

@@ -39,6 +39,7 @@ class ProcGenInstance {
     const {chunkSize, range} = this;
     opts2.chunkSize = chunkSize;
     opts2.range = range;
+    opts2.dcWorkerManager = this.dcWorkerManager;
 
     const tracker = new LodChunkTracker(opts2);
     return tracker;
