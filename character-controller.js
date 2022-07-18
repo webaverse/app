@@ -271,7 +271,7 @@ class PlayerBase extends THREE.Object3D {
     const voiceSpec = JSON.stringify({audioUrl, indexUrl, endpointUrl: self.voiceEndpoint ? self.voiceEndpoint.url : ''});
     self.playerMap.set('voiceSpec', voiceSpec);
     // });
-    this.loadVoicePack({audioUrl, indexUrl})
+    await this.loadVoicePack({audioUrl, indexUrl})
   }
   async loadVoicePack({audioUrl, indexUrl}) {
     this.voicePack = await VoicePack.load({
@@ -281,7 +281,7 @@ class PlayerBase extends THREE.Object3D {
     this.updateVoicer();
   }
   setVoiceEndpoint(voiceId) {
-    if (!voiceId) return console.error('voice Id is null')
+    if (!voiceId) throw new Error('voice Id is null')
     const self = this;
     const url = `${voiceEndpointBaseUrl}?voice=${encodeURIComponent(voiceId)}`;
     this.playersArray.doc.transact(function tx() {
@@ -307,7 +307,7 @@ class PlayerBase extends THREE.Object3D {
     this.updateVoicer();
   }
   getVoice() {
-    return this.voiceEndpoint || this.voicePack || console.error('no voice endpoint set');
+    return this.voiceEndpoint || this.voicePack;
   }
   updateVoicer() {
     const voice = this.getVoice();
@@ -1065,7 +1065,6 @@ class LocalPlayer extends UninterpolatedPlayer {
     });
   }
   setMicMediaStream(mediaStream) {
-    if (!this.avatar) return console.warn("Can't set mic media stream, no avatar");
     if (this.microphoneMediaStream) {
       this.microphoneMediaStream.disconnect();
       this.microphoneMediaStream = null;
