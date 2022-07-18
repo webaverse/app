@@ -259,49 +259,52 @@ export class GeometryAllocator {
       }
     })();
 
-    const testOcclusionFn = (() => {
-      return (i) => {
+    const testOcclusionFn = (i) => {
         // start bfs, start from the chunk we're in
         // find the chunk that the camera is inside via floor, so we need min of the chunk, which we have in bounding data
         localVector4D.fromArray(this.minData, i * 4);
+        const chunkSize = localVector4D.w; // we store the chunk size in the w of the vector 
 
-        localVector3D2.set(Math.floor(camera.position.x / localVector4D.w), Math.floor(camera.position.y / localVector4D.w), Math.floor(camera.position.z / localVector4D.w));
+        localVector3D2.set(Math.floor(camera.position.x / chunkSize), Math.floor(camera.position.y / chunkSize), Math.floor(camera.position.z / chunkSize));
         // console.log(localVector4D.w);
         if(localVector4D.x == localVector3D2.x && localVector4D.y == localVector3D2.y && localVector4D.z == localVector3D2.z)
         {
-          console.log('Hello')
-          const peeks = [1,1,1,1,1,1,1,1,1,1,1,1,1,1,1];
-          // start bfs here
-          const marked = [];
-          const queue = [];
-          queue.push([localVector4D, PEEK_FACES["NONE"]]);
-          while(queue.length > 0){
-            const entry = queue.shift();
-            const x = entry[0].x;
-            const y = entry[0].y;
-            const z = entry[0].z;
-            const enterFace = entry[1];
-            // append neighbors to queue
-            for (let i = 0; i < 6; i++) {
-              const peekFaceSpec = peekFaceSpecs[i];
-              const ax = x + peekFaceSpec[2];
-              const ay = y + peekFaceSpec[3];
-              const az = z + peekFaceSpec[4];
-              const newEntry = [new THREE.Vector3(ax,ay,az), peekFaceSpec[0]];
-              const found = marked.find(e => e == newEntry);
-              if(!found){
-                marked.push(entry);
-                if (enterFace == PEEK_FACES['NONE'] || peeks[PEEK_FACE_INDICES[enterFace << 3 | peekFaceSpec[1]]] == 1) {
-                  return false;
-                } else{
-                  return true;
-                }
-              }
-            }
-          }
-        }
+          console.log('Hello');
+          return true;
+          // const peeks = [1,1,1,1,1,1,1,1,1,1,1,1,1,1,1];
+          // // start bfs here
+          // const marked = [];
+          // const queue = [];
+          // queue.push([localVector4D, PEEK_FACES["NONE"]]);
+          // while(queue.length > 0){
+          //   const entry = queue.shift();
+          //   const x = entry[0].x;
+          //   const y = entry[0].y;
+          //   const z = entry[0].z;
+          //   const enterFace = entry[1];
+          //   // append neighbors to queue
+          //   for (let i = 0; i < 6; i++) {
+          //     const peekFaceSpec = peekFaceSpecs[i];
+          //     const ax = x + peekFaceSpec[2];
+          //     const ay = y + peekFaceSpec[3];
+          //     const az = z + peekFaceSpec[4];
+          //     const newEntry = [new THREE.Vector3(ax,ay,az), peekFaceSpec[0]];
+          //     const found = marked.find(e => e == newEntry);
+          //     if(!found){
+          //       marked.push(entry);
+          //       if (enterFace == PEEK_FACES['NONE'] || peeks[PEEK_FACE_INDICES[enterFace << 3 | peekFaceSpec[1]]] == 1) {
+          //         return false;
+          //       } else{
+          //         return true;
+          //       }
+          //     }
+          //   }
+          // }
+        
+      }else{
+        return false;
       };
-    })();
+    };
 
     for (let i = 0; i < this.numDraws; i++) {
       if(testOcclusionFn(i)){
