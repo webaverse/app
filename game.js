@@ -413,8 +413,11 @@ const _startUse = () => {
         wearApp.use();
         
         if (
-          animationCombo?.length > 0 &&
-          localPlayer.avatar?.moveFactors?.walkRunFactor >= 1
+          localPlayer.avatar?.moveFactors?.walkRunFactor >= 1 &&
+          (
+            animation ||
+            animationCombo?.length > 0
+          )
         ) {
           localPlayer.addAction({type: 'dashAttack'});
           localVector.copy(cameraManager.lastNonzeroDirectionVectorRotated).setY(0)
