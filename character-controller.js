@@ -487,7 +487,9 @@ class PlayerBase extends THREE.Object3D {
           app.updateMatrixWorld();
         }
       };
-      _setAppTransform();
+      if(!app.getComponent('sit') && !app.getComponent('pet')){
+        _setAppTransform();
+      }
 
       const _deinitPhysics = () => {
         const physicsObjects = app.getPhysicsObjects();
