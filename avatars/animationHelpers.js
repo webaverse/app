@@ -792,6 +792,11 @@ export const _createAnimation = avatar => {
         physx.physxWorker.crossFadeUnitary(avatar.actionsNodeUnitary, 0.2, avatar.defaultNodeTwo);
       } else if (e.action.animationCombo) { // useComboEnd, silsword
         physx.physxWorker.crossFadeUnitary(avatar.actionsNodeUnitary, 0.2, avatar.defaultNodeTwo);
+      } else if (e.action.animationEnvelope) { // useEnvelopeEnd, bow
+        console.log('useEnvelopeEnd');
+        physx.physxWorker.play(avatar.useMotiono.bowLoose);
+        physx.physxWorker.setFactor(avatar.bowDrawLooseNodoeTwo, 1);
+        physx.physxWorker.crossFadeTwo(avatar.bowIdle8DDrawLooseNodeOverwrite, 0.2, 1);
       }
     }
   });
@@ -821,7 +826,11 @@ export const _createAnimation = avatar => {
       physx.physxWorker.crossFadeUnitary(avatar.actionsNodeUnitary, 0.2, avatar.emoteMotiono[avatar.emoteAnimation || defaultEmoteAnimation]);
     } else if (e.action.type === 'use') {
       if (e.action.animation) { // useStart
-        const useAnimationName = e.action.animation; // todo: need set `avatar.useAnimation`, can't use `e.action.animation` directly.
+        const useAnimationName = e.action.animation;
+        /*
+          todo: need set `avatar.useAnimation`, instead of `e.action.animation` directly, in order to let other codes such as `character-sfx.js` can use it.
+          Really need? Is the use of `avatar` in `character-sfx.js` correct? Use `player.getAction()` instead?
+        */
         physx.physxWorker.play(avatar.useMotiono[useAnimationName]);
         physx.physxWorker.crossFadeUnitary(avatar.actionsNodeUnitary, 0.2, avatar.useMotiono[useAnimationName]);
       } else if (e.action.animationCombo) { // useComboStart
@@ -833,6 +842,12 @@ export const _createAnimation = avatar => {
         }
         physx.physxWorker.play(avatar.useMotiono[useAnimationName]);
         physx.physxWorker.crossFadeUnitary(avatar.actionsNodeUnitary, 0.2, avatar.useMotiono[useAnimationName]);
+      } else if (e.action.animationEnvelope) { // useEnvelopeStart
+        console.log('useEnvelopeStart');
+        physx.physxWorker.play(avatar.useMotiono.bowDraw);
+        physx.physxWorker.setFactor(avatar.bowDrawLooseNodoeTwo, 0);
+        physx.physxWorker.setFactor(avatar.bowIdle8DDrawLooseNodeOverwrite, 1);
+        physx.physxWorker.crossFadeTwo(avatar.idle8DWalkRun_BowIdle8DDrawLooseNodeTwo, 0.2, 1);
       }
     }
   });
@@ -922,12 +937,12 @@ export const _updateAnimation = avatar => {
   //   physx.physxWorker.crossFadeUnitary(avatar.actionsNodeUnitary, 0.2, avatar.defaultNodeTwo);
   // }
 
-  if (avatar.useEnvelopeEnd) {
-    console.log('useEnvelopeEnd');
-    physx.physxWorker.play(avatar.useMotiono.bowLoose);
-    physx.physxWorker.setFactor(avatar.bowDrawLooseNodoeTwo, 1);
-    physx.physxWorker.crossFadeTwo(avatar.bowIdle8DDrawLooseNodeOverwrite, 0.2, 1);
-  }
+  // if (avatar.useEnvelopeEnd) {
+  //   console.log('useEnvelopeEnd');
+  //   physx.physxWorker.play(avatar.useMotiono.bowLoose);
+  //   physx.physxWorker.setFactor(avatar.bowDrawLooseNodoeTwo, 1);
+  //   physx.physxWorker.crossFadeTwo(avatar.bowIdle8DDrawLooseNodeOverwrite, 0.2, 1);
+  // }
 
   // if (avatar.sitEnd) {
   //   physx.physxWorker.crossFadeUnitary(avatar.actionsNodeUnitary, 0.2, avatar.defaultNodeTwo);
@@ -979,14 +994,14 @@ export const _updateAnimation = avatar => {
   //   physx.physxWorker.crossFadeUnitary(avatar.actionsNodeUnitary, 0.2, avatar.useMotiono[useAnimationName]);
   // }
 
-  // bow
-  if (avatar.useEnvelopeStart) {
-    console.log('useEnvelopeStart');
-    physx.physxWorker.play(avatar.useMotiono.bowDraw);
-    physx.physxWorker.setFactor(avatar.bowDrawLooseNodoeTwo, 0);
-    physx.physxWorker.setFactor(avatar.bowIdle8DDrawLooseNodeOverwrite, 1);
-    physx.physxWorker.crossFadeTwo(avatar.idle8DWalkRun_BowIdle8DDrawLooseNodeTwo, 0.2, 1);
-  }
+  // // bow
+  // if (avatar.useEnvelopeStart) {
+  //   console.log('useEnvelopeStart');
+  //   physx.physxWorker.play(avatar.useMotiono.bowDraw);
+  //   physx.physxWorker.setFactor(avatar.bowDrawLooseNodoeTwo, 0);
+  //   physx.physxWorker.setFactor(avatar.bowIdle8DDrawLooseNodeOverwrite, 1);
+  //   physx.physxWorker.crossFadeTwo(avatar.idle8DWalkRun_BowIdle8DDrawLooseNodeTwo, 0.2, 1);
+  // }
 
   // // sit
   // if (avatar.sitStart) {

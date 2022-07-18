@@ -912,7 +912,7 @@ class Avatar extends EventDispatcher {
     this.useTime = NaN;
     this.useAnimation = null;
     this.useAnimationCombo = [];
-    this.useAnimationEnvelope = [];
+    // this.useAnimationEnvelope = [];
     this.unuseAnimation = null;
     this.unuseTime = -1;
     

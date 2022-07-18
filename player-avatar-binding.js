@@ -168,34 +168,34 @@ export function applyPlayerActionsToAvatar(player, rig) {
     // }
     // rig.lastUseComboState = rig.useComboState;
     // //
-    rig.useEnvelopeState = useAction?.animationEnvelope;
-    // start/end event
-    rig.useEnvelopeStart = false;
-    rig.useEnvelopeEnd = false;
-    if (rig.useEnvelopeState !== rig.lastUseEnvelopeState) {
-      if (rig.useEnvelopeState) rig.useEnvelopeStart = true;
-      else rig.useEnvelopeEnd = true;
-    }
-    rig.lastUseEnvelopeState = rig.useEnvelopeState;
-    //
-    rig.useEnvelopeFactor = player.actionInterpolants.useEnvelope.getNormalized();
-    if (useAction?.animationEnvelope) {
-      rig.useAnimationEnvelope = useAction.animationEnvelope;
-    } else {
-      if (rig.useAnimationEnvelope.length > 0) {
-        rig.useAnimationEnvelope = [];
-      }
-    }
-    rig.useAnimationIndex = useAction?.index;
+    // rig.useEnvelopeState = useAction?.animationEnvelope;
+    // // start/end event
+    // rig.useEnvelopeStart = false;
+    // rig.useEnvelopeEnd = false;
+    // if (rig.useEnvelopeState !== rig.lastUseEnvelopeState) {
+    //   if (rig.useEnvelopeState) rig.useEnvelopeStart = true;
+    //   else rig.useEnvelopeEnd = true;
+    // }
+    // rig.lastUseEnvelopeState = rig.useEnvelopeState;
+    // //
+    // rig.useEnvelopeFactor = player.actionInterpolants.useEnvelope.getNormalized();
+    // if (useAction?.animationEnvelope) {
+    //   rig.useAnimationEnvelope = useAction.animationEnvelope;
+    // } else {
+    //   if (rig.useAnimationEnvelope.length > 0) {
+    //     rig.useAnimationEnvelope = [];
+    //   }
+    // }
+    // rig.useAnimationIndex = useAction?.index;
     rig.useTime = player.actionInterpolants.use.get();
     rig.unuseTime = player.actionInterpolants.unuse.get();
-    if (rig.unuseTime === 0) { // this means use is active
-      if (useAction?.animationEnvelope) {
-        rig.unuseAnimation = rig.useAnimationEnvelope[2]; // the last animation in the triplet is the unuse animation
-      } else {
-        rig.unuseAnimation = null;
-      }
-    }
+    // if (rig.unuseTime === 0) { // this means use is active
+    //   if (useAction?.animationEnvelope) {
+    //     rig.unuseAnimation = rig.useAnimationEnvelope[2]; // the last animation in the triplet is the unuse animation
+    //   } else {
+    //     rig.unuseAnimation = null;
+    //   }
+    // }
   };
   _handleUse();
 
@@ -245,7 +245,7 @@ export function applyPlayerActionsToAvatar(player, rig) {
 
   // XXX this needs to be based on the current loadout index
   rig.holdState = wearAction?.holdAnimation === 'pick_up_idle';
-  if (rig.holdState) rig.unuseAnimation = null;
+  // if (rig.holdState) rig.unuseAnimation = null;
   // rig.danceState = !!danceAction;
   // // start/end event
   // rig.danceStart = false;
