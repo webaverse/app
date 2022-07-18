@@ -2044,6 +2044,7 @@ class Avatar {
     if (enabled) {
       this.ensureAudioRecognizer();
       this.volume = 0;
+     
       const audioContext = audioManager.getAudioContext();
       if (audioContext.state === 'suspended') {
         (async () => {
