@@ -146,9 +146,7 @@ class PhysicsScene extends EventTarget {
     physicsObject.physicsMesh = physicsMesh
     return physicsObject
   }
-  addBoxGeometry(position, quaternion, size, dynamic,
-    groupId = -1 // if not equal to -1, this BoxGeometry will not collide with CharacterController.
-  ) {
+  addBoxGeometry(position, quaternion, size, dynamic) {
     const physicsId = getNextPhysicsId()
     physx.physxWorker.addBoxGeometryPhysics(
       this.scene,
@@ -156,8 +154,7 @@ class PhysicsScene extends EventTarget {
       quaternion,
       size,
       physicsId,
-      dynamic,
-      groupId
+      dynamic
     )
   
     const physicsObject = _makePhysicsObject(
@@ -756,36 +753,6 @@ class PhysicsScene extends EventTarget {
   }
   getGravity() {
     return gravity;
-  }
-  setTrigger(id) {
-    return physx.physxWorker.setTriggerPhysics(
-      this.scene, id,
-    )
-  }
-  getTriggerEvents() {
-    const triggerEvents = physx.physxWorker.getTriggerEventsPhysics(
-      this.scene,
-    )
-    triggerEvents.forEach(triggerEvent => {
-      const {status, triggerPhysicsId, otherPhysicsId} = triggerEvent;
-      const triggerApp = metaversefileApi.getAppByPhysicsId(triggerPhysicsId);
-      const otherApp = metaversefileApi.getAppByPhysicsId(otherPhysicsId);
-      if (triggerApp) {
-        if (status === 4) {
-          triggerApp.dispatchEvent({type: 'triggerin', oppositePhysicsId: otherPhysicsId});
-        } else if (status === 16) {
-          triggerApp.dispatchEvent({type: 'triggerout', oppositePhysicsId: otherPhysicsId});
-        }
-      }
-      if (otherApp) {
-        if (status === 4) {
-          otherApp.dispatchEvent({type: 'triggerin', oppositePhysicsId: triggerPhysicsId});
-        } else if (status === 16) {
-          otherApp.dispatchEvent({type: 'triggerout', oppositePhysicsId: triggerPhysicsId});
-        }
-      }
-    })
-    return triggerEvents;
   }
 }
 
