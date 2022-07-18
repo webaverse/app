@@ -13,7 +13,7 @@ import physicsManager from './physics-manager.js';
 import {world} from './world.js';
 // import cameraManager from './camera-manager.js';
 import physx from './physx.js';
-import Avatar from './avatars/avatars.js';
+import audioManager from './audio-manager.js';
 import metaversefile from 'metaversefile';
 import {
   actionsMapName,
@@ -831,6 +831,19 @@ class StatePlayer extends PlayerBase {
     }
     actions.push([action]);
   }
+  setMicMediaStream(mediaStream) {
+    if (this.microphoneMediaStream) {
+      this.microphoneMediaStream.disconnect();
+      this.microphoneMediaStream = null;
+    }
+    if (mediaStream) {
+      this.avatar.setAudioEnabled(true);
+      const audioContext = audioManager.getAudioContext();
+      const mediaStreamSource = audioContext.createMediaStreamSource(mediaStream);
+      mediaStreamSource.connect(this.avatar.getAudioInput());
+      this.microphoneMediaStream = mediaStreamSource;
+    }
+  }
   new() {
     const self = this;
     this.playersArray.doc.transact(function tx() {
@@ -1071,7 +1084,7 @@ class LocalPlayer extends UninterpolatedPlayer {
     }
     if (mediaStream) {
       this.avatar.setMicrophoneEnabled(true, this);
-      const audioContext = Avatar.getAudioContext();
+      const audioContext = audioManager.getAudioContext();
       const mediaStreamSource = audioContext.createMediaStreamSource(mediaStream);
 
       mediaStreamSource.connect(this.avatar.getMicrophoneInput(true));

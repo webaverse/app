@@ -1,16 +1,21 @@
-import Avatar from './avatars/avatars.js';
+class AudioManager {
+  constructor() {
+    this.setAudioContext(new AudioContext());
+    this.audioContext.gain = this.audioContext.createGain();
+    this.audioContext.gain.connect(this.audioContext.destination);
+    this.audioContext.audioWorklet.addModule('avatars/microphone-worklet.js');
+  }
 
-const loadPromise = (async () => {
-  const audioContext = Avatar.getAudioContext();
-  audioContext.gain = audioContext.createGain();
-  audioContext.gain.connect(audioContext.destination);
-  
-  Avatar.setAudioContext(audioContext);
-  await audioContext.audioWorklet.addModule('avatars/microphone-worklet.js');
-})();
-export const waitForLoad = () => loadPromise;
+  getAudioContext() {
+    return this.audioContext;
+  }
 
-export const setVolume = volume => {
-  const audioContext = Avatar.getAudioContext();
-  audioContext.gain.gain.value = volume;
-};
+  setAudioContext(newAudioContext) {
+    this.audioContext = newAudioContext;
+  }
+
+  setVolume(volume) {
+    this.audioContext.gain.gain.value = volume;
+  }
+}
+export default new AudioManager();
