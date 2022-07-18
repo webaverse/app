@@ -1518,7 +1518,7 @@ class Avatar {
     const timeDiffS = timeDiff / 1000;
 
     const currentSpeed = localVector.set(this.velocity.x, 0, this.velocity.z).length();
-    this.currentSpeed = currentSpeed; // test
+    // this.currentSpeed = currentSpeed; // test
 
     this.moveFactors.idleWalkFactor = Math.min(Math.max((currentSpeed - idleFactorSpeed) / (walkFactorSpeed - idleFactorSpeed), 0), 1);
     this.moveFactors.walkRunFactor = Math.min(Math.max((currentSpeed - walkFactorSpeed) / (runFactorSpeed - walkFactorSpeed), 0), 1);
@@ -1938,7 +1938,7 @@ class Avatar {
      window.domInfo.innerHTML += `<div style="display:;">actions: --- ${localPlayer.getActionsArray().map(n=>n.type)}</div>`;
       window.domInfo.innerHTML += `<div style="display:;">mirrorFactor: --- ${this.mirrorFactor.toFixed(2)}</div>`;
       window.domInfo.innerHTML += `<div style="display:;">walkRunFactor: --- ${this.moveFactors.walkRunFactor.toFixed(2)}</div>`;
-      window.domInfo.innerHTML += `<div style="display:;">currentSpeed: --- ${this.currentSpeed.toFixed(2)}</div>`;
+      // window.domInfo.innerHTML += `<div style="display:;">currentSpeed: --- ${this.currentSpeed.toFixed(2)}</div>`;
       // window.domInfo.innerHTML += `<div style="display:;">avatar.direction: --- ${window.logVector3(this.direction)}</div>`;
       // window.domInfo.innerHTML += `<div style="display:;">velocity: --- ${window.logVector3(localPlayer.characterPhysics.velocity)} - ${window.logNum(localPlayer.characterPhysics.velocity.length())}</div>`;
       // window.domInfo.innerHTML += `<div style="display:;">angle: --- ${window.logNum(this.getAngle())}</div>`;
