@@ -107,10 +107,11 @@ export function applyPlayerActionsToAvatar(player, rig) {
   rig.activateTime = player.actionInterpolants.activate.get();
   rig.swimState = !!swimAction;
   rig.swimTime = swimAction ? player.actionInterpolants.swim.get() : -1;
-  rig.swimUpTime = !!swimmingOnSurface ? 0 : player.actionInterpolants.swimUp.get();
+  rig.swimUpTime = player.actionInterpolants.swimUp.get();
   rig.swimDownTime = player.actionInterpolants.swimDown.get();
   rig.horizontalMovementsTransitionTime = player.actionInterpolants.horizontalMovementsTransition.get();
   rig.swimmingOnSurfaceState = !!swimmingOnSurface;
+  rig.swimmingOnSurfaceTime = player.actionInterpolants.surface.get();
   
   const _handleUse = () => {
     if (useAction?.animation) {

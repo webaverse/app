@@ -1504,6 +1504,7 @@ class Avatar {
     this.sprintFactor = Math.min(Math.max(this.sprintTime / defaultMaxTime, 0), 1);
     this.swimUpFactor = Math.min(Math.max(this.swimUpTime / defaultMaxTime, 0), 1);
     this.swimDownFactor = Math.min(Math.max(this.swimDownTime / defaultMaxTime, 0), 1);
+    this.surfaceFactor = Math.min(Math.max(this.swimmingOnSurfaceTime / defaultMaxTime, 0), 1);
 
     const _updateHmdPosition = () => {
       const currentPosition = this.inputs.hmd.position;
