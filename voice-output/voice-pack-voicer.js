@@ -1,7 +1,7 @@
 /* this is the fake speech synthesis module.
 it is responsible for playing Banjo-Kazooie style character speech. */
 
-import Avatar from '../avatars/avatars.js';
+import audioManager from '../audio-manager.js';
 import {loadAudioBuffer, makePromise, selectVoice} from '../util.js';
 import {chatTextSpeed} from '../constants.js';
 
@@ -33,7 +33,7 @@ class VoicePack {
     audioUrl,
     indexUrl,
   }) {
-    const audioContext = Avatar.getAudioContext();
+    const audioContext = audioManager.getAudioContext();
     const [
       files,
       audioBuffer,
@@ -101,7 +101,7 @@ class VoicePackVoicer {
     const _recurse = async () => {
       const {offset, duration} = selectVoice(this.voices);
 
-      const audioContext = Avatar.getAudioContext();
+      const audioContext = audioManager.getAudioContext();
       const audioBufferSourceNode = audioContext.createBufferSource();
       audioBufferSourceNode.buffer = this.audioBuffer;
       audioBufferSourceNode.connect(this.player.avatar.getAudioInput());
