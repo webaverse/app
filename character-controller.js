@@ -773,6 +773,7 @@ class StatePlayer extends PlayerBase {
       this.avatar.dispatchEvent({
         type: 'actionStart',
         action,
+        player: this,
       })
     }
     return action;
@@ -787,6 +788,7 @@ class StatePlayer extends PlayerBase {
           this.avatar.dispatchEvent({
             type: 'actionEnd',
             action,
+            player: this,
           })
         }
         break;
@@ -802,6 +804,7 @@ class StatePlayer extends PlayerBase {
       this.avatar.dispatchEvent({
         type: 'actionEnd',
         action,
+        player: this,
       })
     }
   }
@@ -822,6 +825,7 @@ class StatePlayer extends PlayerBase {
         this.avatar.dispatchEvent({
           type: 'actionEnd',
           action,
+          player: this,
         })
         i--;
       }
@@ -830,6 +834,7 @@ class StatePlayer extends PlayerBase {
     this.avatar.dispatchEvent({
       type: 'actionStart',
       action,
+      player: this,
     })
   }
   setMicMediaStream(mediaStream) {

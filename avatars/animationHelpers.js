@@ -835,6 +835,7 @@ export const _createAnimation = avatar => {
         physx.physxWorker.crossFadeUnitary(avatar.actionsNodeUnitary, 0.2, avatar.useMotiono[useAnimationName]);
       } else if (e.action.animationCombo) { // useComboStart
         let useAnimationName;
+        avatar.dashAttacking = e.player.hasAction('dashAttack');
         if (avatar.dashAttacking) {
           useAnimationName = 'dashAttack';
         } else {

@@ -408,9 +408,6 @@ const _startUse = () => {
           scale,
         };
         // console.log('new use action', newUseAction, useComponent, {animation, animationCombo, animationEnvelope});
-        localPlayer.addAction(newUseAction);
-
-        wearApp.use();
         
         if (
           animationCombo?.length > 0 &&
@@ -422,6 +419,10 @@ const _startUse = () => {
             .multiplyScalar(10);
           localPlayer.characterPhysics.applyWasd(localVector);
         }
+
+        localPlayer.addAction(newUseAction); // note: Have to after `dashAttackAction` added.
+
+        wearApp.use();
       }
     }
   }
