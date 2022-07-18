@@ -367,8 +367,8 @@ class PlayerBase extends THREE.Object3D {
       const _initPhysics = () => {
         const physicsObjects = app.getPhysicsObjects();
         for (const physicsObject of physicsObjects) {
-          physicsScene.disableGeometryQueries(physicsObject.physicsId);
-          physicsScene.disableGeometry(physicsObject.physicsId);
+          physicsScene.disableGeometryQueries(physicsObject);
+          physicsScene.disableGeometry(physicsObject);
         }
       };
       _initPhysics();
@@ -462,8 +462,8 @@ class PlayerBase extends THREE.Object3D {
       const _deinitPhysics = () => {
         const physicsObjects = app.getPhysicsObjects();
         for (const physicsObject of physicsObjects) {
-          physicsScene.enableGeometryQueries(physicsObject.physicsId);
-          physicsScene.enableGeometry(physicsObject.physicsId);
+          physicsScene.enableGeometryQueries(physicsObject);
+          physicsScene.enableGeometry(physicsObject);
         }
       };
       _deinitPhysics();
@@ -927,6 +927,23 @@ class InterpolatedPlayer extends StatePlayer {
       quaternion: this.quaternionInterpolant.get(),
     };
   }
+  update(timestamp, timeDiff) {
+    if(!this.avatar) return; // avatar takes time to load, ignore until it does
+
+    this.updateInterpolation(timeDiff);
+
+    const mirrors = metaversefile.getMirrors();
+    applyPlayerToAvatar(this, null, this.avatar, mirrors);
+
+    const timeDiffS = timeDiff / 1000;
+    this.characterSfx.update(timestamp, timeDiffS);
+    this.characterFx.update(timestamp, timeDiffS);
+    this.characterPhysics.update(timestamp, timeDiffS);
+    this.characterHitter.update(timestamp, timeDiffS);
+    this.characterBehavior.update(timestamp, timeDiffS);
+
+    this.avatar.update(timestamp, timeDiff);
+  }
   updateInterpolation(timeDiff) {
     this.positionInterpolant.update(timeDiff);
     this.quaternionInterpolant.update(timeDiff);
@@ -995,6 +1012,9 @@ class LocalPlayer extends UninterpolatedPlayer {
     overrides.userVoicePack.set(playerSpec.voicePack ?? null);
 
     await p;
+  }
+  setAvatarApp(app) {
+    this.#setAvatarAppFromOwnAppManager(app);
   }
   async setAvatarUrl(u) {
     const localAvatarEpoch = ++this.avatarEpoch;
@@ -1101,8 +1121,8 @@ class LocalPlayer extends UninterpolatedPlayer {
     
     const physicsObjects = app.getPhysicsObjects();
     for (const physicsObject of physicsObjects) {
-      //physicsScene.disableGeometry(physicsObject.physicsId);
-      physicsScene.disableGeometryQueries(physicsObject.physicsId);
+      //physicsScene.disableGeometry(physicsObject);
+      physicsScene.disableGeometryQueries(physicsObject);
     }
 
     app.dispatchEvent({
@@ -1119,7 +1139,7 @@ class LocalPlayer extends UninterpolatedPlayer {
         const app = metaversefile.getAppByInstanceId(action.instanceId);
         const physicsObjects = app.getPhysicsObjects();
         for (const physicsObject of physicsObjects) {
-          physicsScene.enableGeometryQueries(physicsObject.physicsId);
+          physicsScene.enableGeometryQueries(physicsObject);
         }
         this.removeActionIndex(i + removeOffset);
         removeOffset -= 1;
