@@ -571,7 +571,7 @@ export const _createAnimation = avatar => {
   physx.physxWorker.setLoop(avatar.jumpMotion, AnimationLoopType.LoopOnce);
   physx.physxWorker.stop(avatar.jumpMotion);
   physx.physxWorker.setTimeBias(avatar.jumpMotion, 0.7);
-  physx.physxWorker.setSpeed(avatar.jumpMotion, 1 / 0.6);
+  physx.physxWorker.setSpeed(avatar.jumpMotion, 0.6);
 
   avatar.activateMotion = avatar.createMotion(activateAnimations.grab_forward.animation.ptr, 'activateMotion'); // todo: handle activateAnimations.grab_forward.speedFact, 'activateMotion'or
   physx.physxWorker.setLoop(avatar.activateMotion, AnimationLoopType.LoopOnce);
@@ -588,6 +588,7 @@ export const _createAnimation = avatar => {
   physx.physxWorker.stop(avatar.useMotiono.drink);
   physx.physxWorker.setLoop(avatar.useMotiono.combo, AnimationLoopType.LoopOnce);
   physx.physxWorker.stop(avatar.useMotiono.combo);
+  physx.physxWorker.setSpeed(avatar.useMotiono.combo, 1.3);
   // combo
   physx.physxWorker.setLoop(avatar.useMotiono.swordSideSlash, AnimationLoopType.LoopOnce);
   physx.physxWorker.stop(avatar.useMotiono.swordSideSlash);
