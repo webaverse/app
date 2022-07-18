@@ -1318,15 +1318,13 @@ class RemotePlayer extends InterpolatedPlayer {
           actionBinaryInterpolant.snapshot(timeDiff);
         }
 
-        if(!this.lastPosition.equals(this.position)){
-          this.avatar.setVelocity(
-            timeDiff / 1000,
-            this.lastPosition,
-            this.positionInterpolant.get(),
-            this.quaternionInterpolant.get()
-            );
-            this.lastPosition.copy(this.position);
-          }
+        this.avatar?.setVelocity(
+          timeDiff / 1000,
+          this.lastPosition,
+          this.positionInterpolant.get(),
+          this.quaternionInterpolant.get()
+          );
+          this.lastPosition.copy(this.position);
       }
     }
     this.playerMap.observe(observePlayerFn);
