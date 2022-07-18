@@ -696,8 +696,6 @@ class StatePlayer extends PlayerBase {
           }
         }
       }
-    } else {
-      throw new Error("Can't set avatar to instanceId that does not exist in any app manager");
     }
     
     this.syncAvatarCancelFn = null;
