@@ -214,10 +214,7 @@ class CharacterSfx {
 
     const _handleNarutoRun = () => {
       
-      this.currentQ.x=this.player.characterPhysics.player.quaternion.x;
-      this.currentQ.y=this.player.characterPhysics.player.quaternion.y;
-      this.currentQ.z=this.player.characterPhysics.player.quaternion.z;
-      this.currentQ.w=this.player.characterPhysics.player.quaternion.w;
+    this.currentQ.copy(this.player.quaternion);
      
       let temp=this.currentQ.angleTo(this.preQ);
       for(let i=0;i<4;i++){
