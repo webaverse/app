@@ -7,7 +7,7 @@ import alea from '../../../../procgen/alea.js';
 
 const screenshotSize = 100;
 
-export const Infobox = ({ className }) => {
+export const Infobox = () => {
     const canvasRef = useRef();
     const [selectedApp, setSelectedApp] = useState(null);
 
@@ -48,7 +48,7 @@ export const Infobox = ({ className }) => {
     }, []);
 
     return (
-        <div className={ classnames( className, styles.infobox, selectedApp ? styles.selected : null) } >
+        <div className={ classnames(styles.infobox, selectedApp ? styles.selected : null) } >
             <canvas width={screenshotSize} height={screenshotSize} className={ styles.screenshot } ref={canvasRef} />
             <div className={ styles.background }>
               <div className={ styles['background-1'] } />

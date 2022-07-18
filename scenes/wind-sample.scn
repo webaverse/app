@@ -1,0 +1,196 @@
+{
+  "objects": [
+    {
+      "type": "application/light",
+      "content": {
+        "lightType": "ambient",
+        "args": [[255, 255, 255], 0.5]
+      }
+    },
+    {
+      "type": "application/light",
+      "content": {
+        "lightType": "directional",
+        "args": [[255, 255, 255], 5],
+        "position": [1, 2, 3],
+        "shadow": [150, 5120, 0.1, 10000, -0.0001]
+      }
+    },
+    {
+      "type": "application/wind",
+      "content": {
+        "windType": "directional",
+        "direction": [0.5, 0, 0.2],
+        "windForce": 0.5,
+        "noiseScale": 1,
+        "windFrequency": 1
+      }
+    },
+
+
+
+    {
+      "type": "application/wind",
+      "content": {
+        "windType": "central",
+        "direction": [0, 0.3, 0],
+        "radius": 5,
+        "position": [0, 0, -10],
+        "windForce": 5,
+        "noiseScale": 10,
+        "windFrequency": 10
+      }
+    },
+    {
+      "position": [
+        0,
+        0,
+        -10
+      ],
+      "start_url": "https://tcm390.github.io/heli/"
+    },
+
+
+
+
+    {
+      "type": "application/wind",
+      "content": {
+        "windType": "spherical",
+        "direction": [-1, 0.1, 0.5],
+        "radius": 5,
+        "position": [-10, 0, -10],
+        "windForce": 3,
+        "noiseScale": 10,
+        "windFrequency": 0.2
+      }
+    },
+    {
+      "position": [
+        -10,
+        0,
+        -10
+      ],
+      "start_url": "https://tcm390.github.io/vat/"
+    },
+
+
+
+
+    {
+      "type": "application/wind",
+      "content": {
+        "windType": "spherical",
+        "direction": [0, 0, 1],
+        "radius": 1.2,
+        "position": [8, 0.5, -9],
+        "windForce": 3,
+        "noiseScale": 0.1,
+        "windFrequency": 100
+      }
+    },
+    {
+      "position": [
+        8,
+        0,
+        -10
+      ],
+      "scale":[1,1.2,1],
+      "start_url": "https://tcm390.github.io/fan/"
+    },
+
+
+
+
+    {
+      "position": [
+        0,
+        0,
+        0
+      ],
+      "start_url": "https://webaverse.github.io/atmospheric-sky/"
+    },
+    {
+      "position": [
+        0,
+        0,
+        0
+      ],
+      "physics": true,
+      "start_url": "https://webaverse.github.io/block/grid.glb",
+      "dynamic": false
+    },
+    {
+      "position": [
+        3,
+        0,
+        -2
+      ],
+      "quaternion": [
+        0,
+        0,
+        0,
+        1
+      ],
+      "start_url": "/avatars/scillia_drophunter_v15_vian.vrm",
+      "components": [
+        {
+          "key": "npc",
+          "value": {
+            "name": "Scillia",
+            "voice": "Sweetie Belle",
+            "bio": "Her nickname is Scilly or SLY. 13/F drop hunter. She is an adventurer, swordfighter and fan of potions. She is exceptionally skilled and can go Super Saiyan."
+          }
+        }
+      ]
+    },
+    {
+      "position": [
+        2,
+        0,
+        -9
+      ],
+      "quaternion": [
+        0,
+        0,
+        0,
+        1
+      ],
+      "start_url": "/avatars/gear.vrm",
+      "components": [
+        {
+          "key": "npc",
+          "value": {
+            "name": "Scillia",
+            "voice": "Sweetie Belle",
+            "bio": "Her nickname is Scilly or SLY. 13/F drop hunter. She is an adventurer, swordfighter and fan of potions. She is exceptionally skilled and can go Super Saiyan."
+          }
+        }
+      ]
+    },
+    {
+      "position": [
+        -2,
+        3,
+        -9
+      ],
+      "quaternion": [
+        0,
+        0,
+        0,
+        1
+      ],
+      "start_url": "/avatars/drake_hacker_v3_vian.vrm",
+      "components": [
+        {
+          "key": "npc",
+          "value": {
+            "name": "Drake",
+            "voice": "Shining Armor",
+            "bio": "His nickname is DRK. 15/M hacker. Loves guns. Likes plotting new hacks. He has the best equipment and is always ready for a fight."
+          }
+        }
+      ]
+    }
+  ]
+}
