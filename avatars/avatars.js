@@ -1995,7 +1995,7 @@ class Avatar {
       this.ensureAudioRecognizer();
       this.volume = 0;
 
-      const audioContext = getAudioContext();
+      const audioContext = audioManager.getAudioContext();
       if (audioContext.state === 'suspended') {
         (async () => {
           await audioContext.resume();
@@ -2085,7 +2085,7 @@ class Avatar {
   }
   ensureAudioRecognizer() {
     if (!this.audioRecognizer) {
-      const audioContext = getAudioContext();
+      const audioContext = audioManager.getAudioContext();
       this.audioRecognizer = new AudioRecognizer({
         sampleRate: audioContext.sampleRate,
       });

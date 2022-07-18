@@ -1084,7 +1084,7 @@ class LocalPlayer extends UninterpolatedPlayer {
     }
     if (mediaStream) {
       this.avatar.setMicrophoneEnabled(true, this);
-      const audioContext = Avatar.getAudioContext();
+      const audioContext = audioManager.getAudioContext();
       const mediaStreamSource = audioContext.createMediaStreamSource(mediaStream);
 
       mediaStreamSource.connect(this.avatar.getMicrophoneInput(true));
