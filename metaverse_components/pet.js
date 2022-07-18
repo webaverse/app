@@ -10,7 +10,7 @@ const localEuler = new THREE.Euler();
 const localMatrix = new THREE.Matrix4();
 
 export default (app, component) => {
-  const {useFrame, useCleanup, useLocalPlayer, useActivate} = metaversefile;
+  const {useFrame, useCleanup, useLocalPlayer, useRemotePlayers, getPlayerByAppInstanceId, useActivate} = metaversefile;
 
   let petSpec = null;
   let petMixer = null;
@@ -18,7 +18,9 @@ export default (app, component) => {
   let walkAction = null;
   let runAction = null;
   let rootBone = null;
-  
+
+  let player = null;
+
   const petComponent = component;
   const _makePetMixer = () => {
     let petMixer, idleAction;
@@ -61,10 +63,12 @@ export default (app, component) => {
       const m = _makePetMixer();
       petMixer = m.petMixer;
       idleAction = m.idleAction;
+      player = null;
     }
   };
   app.addEventListener('wearupdate', e => {
     if (e.wear) {
+      player = getPlayerByAppInstanceId(app.instanceId);
       if (app.glb) {
         const {animations} = app.glb;
         
@@ -90,8 +94,7 @@ export default (app, component) => {
   const smoothVelocity = new THREE.Vector3();
   const lastLookQuaternion = new THREE.Quaternion();
   const _getAppDistance = () => {
-    const localPlayer = useLocalPlayer();
-    const position = localVector.copy(localPlayer.position);
+    const position = localVector.copy(player.position);
     position.y = 0;
     const distance = app.position.distanceTo(position);
     return distance;
@@ -115,8 +118,7 @@ export default (app, component) => {
             const moveDelta = localVector;
             moveDelta.setScalar(0);
             if (_isFar(distance)) { // handle rounding errors
-              const localPlayer = useLocalPlayer();
-              const position = localPlayer.position.clone();
+              const position = player.position.clone();
               position.y = 0;
               const direction = position.clone()
                 .sub(app.position)
@@ -163,13 +165,26 @@ export default (app, component) => {
           }
           const deltaSeconds = timeDiff / 1000;
           petMixer.update(deltaSeconds);
-          petMixer.getRoot().updateMatrixWorld();
+          app.updateMatrixWorld();
         }
       }
     };
     _updateAnimation();
     
     const _updateLook = () => {
+      let nearestPlayer = useLocalPlayer();
+      let nearestDistance = app.position.distanceTo(nearestPlayer.position);
+
+      const players = useRemotePlayers();
+      for (let i = 0; i < players.length; i++) {
+        const player = players[i];
+        const distance = app.position.distanceTo(player.position);
+        if (distance < nearestDistance) {
+          nearestPlayer = player;
+          nearestDistance = distance;
+        }
+      }
+
       const lookComponent = app.getComponent('look');
       if (lookComponent && app.glb) {
         let skinnedMesh = null;
@@ -190,8 +205,7 @@ export default (app, component) => {
             }
             
             if (!bone.quaternion.equals(lastLookQuaternion)) {
-              const localPlayer = useLocalPlayer();
-              const {position, quaternion} = localPlayer;
+              const {position} = nearestPlayer;
               localQuaternion2.setFromRotationMatrix(
                 localMatrix.lookAt(
                   position,
