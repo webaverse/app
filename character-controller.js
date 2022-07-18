@@ -795,7 +795,15 @@ class StatePlayer extends PlayerBase {
     }
   }
   removeActionIndex(index) {
-    this.getActionsState().delete(index);
+    const actions = this.getActionsState();
+    const action = actions.get(index);
+    actions.delete(index);
+    if (this.avatar) {
+      this.avatar.dispatchEvent({
+        type: 'actionEnd',
+        action,
+      })
+    }
   }
   clearActions() {
     const actionsState = this.getActionsState();

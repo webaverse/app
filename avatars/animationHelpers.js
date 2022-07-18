@@ -54,7 +54,7 @@ const localQuaternion2 = new Quaternion();
 
 const identityQuaternion = new Quaternion();
 
-const isDebugger = false; // Used for debug only codes.Don’t create new data structures on the avatar, to not add any more gc sweep depth in product codes.
+const isDebugger = true; // Used for debug only codes.Don’t create new data structures on the avatar, to not add any more gc sweep depth in product codes.
 
 let animations;
 let animationStepIndices;
@@ -769,16 +769,28 @@ export const _createAnimation = avatar => {
   avatar.addEventListener('actionEnd', e => {
     // debugger
     console.log('actionEnd', e.action.type, e);
-    if (e.action.type === 'fly') {
-      physx.physxWorker.crossFadeTwo(avatar.groundFlyNodeTwo, 0.2, 0);
-    } else if (e.action.type === 'use') {
-      if (e.action.animation) {
-        // debugger
-        // useEnd, sword
+    if (e.action.type === 'jump') { // jumpEnd
+      if (avatar.narutoRunState) {
+        physx.physxWorker.crossFadeUnitary(avatar.actionsNodeUnitary, 0.2, avatar.narutoRunMotion); // todo: All return to default, then to specific motion such as narutoRun?
+      } else {
         physx.physxWorker.crossFadeUnitary(avatar.actionsNodeUnitary, 0.2, avatar.defaultNodeTwo);
-      } else if (e.action.animationCombo) {
-        // debugger
-        // useComboEnd, silsword
+      }
+    } else if (e.action.type === 'fly') { // flyEnd
+      physx.physxWorker.crossFadeTwo(avatar.groundFlyNodeTwo, 0.2, 0);
+    } else if (e.action.type === 'activate') { // activateEnd
+      physx.physxWorker.crossFadeUnitary(avatar.actionsNodeUnitary, 0.2, avatar.defaultNodeTwo);
+    } else if (e.action.type === 'narutoRun') { // narutoRunEnd
+      physx.physxWorker.crossFadeUnitary(avatar.actionsNodeUnitary, 0.2, avatar.defaultNodeTwo);
+    } else if (e.action.type === 'sit') { // sitEnd
+      physx.physxWorker.crossFadeUnitary(avatar.actionsNodeUnitary, 0.2, avatar.defaultNodeTwo);
+    } else if (e.action.type === 'dance') { // danceEnd
+      physx.physxWorker.crossFadeUnitary(avatar.actionsNodeUnitary, 0.2, avatar.defaultNodeTwo);
+    } else if (e.action.type === 'emote') { // emoteEnd
+      physx.physxWorker.crossFadeUnitary(avatar.actionsNodeUnitary, 0.2, avatar.defaultNodeTwo);
+    } else if (e.action.type === 'use') {
+      if (e.action.animation) { // useEnd, sword
+        physx.physxWorker.crossFadeUnitary(avatar.actionsNodeUnitary, 0.2, avatar.defaultNodeTwo);
+      } else if (e.action.animationCombo) { // useComboEnd, silsword
         physx.physxWorker.crossFadeUnitary(avatar.actionsNodeUnitary, 0.2, avatar.defaultNodeTwo);
       }
     }
@@ -786,18 +798,33 @@ export const _createAnimation = avatar => {
   avatar.addEventListener('actionStart', e => {
     // debugger
     console.log('actionStart', e.action.type, e);
-    if (e.action.type === 'fly') {
+    if (e.action.type === 'jump') { // jumpStart
+      physx.physxWorker.play(avatar.jumpMotion);
+      physx.physxWorker.crossFadeUnitary(avatar.actionsNodeUnitary, 0.2, avatar.jumpMotion);
+    } else if (e.action.type === 'fly') { // flyStart
       physx.physxWorker.crossFadeTwo(avatar.groundFlyNodeTwo, 0.2, 1);
+    } else if (e.action.type === 'activate') { // activateStart
+      physx.physxWorker.play(avatar.activateMotion);
+      physx.physxWorker.crossFadeUnitary(avatar.actionsNodeUnitary, 0.2, avatar.activateMotion);
+    } else if (e.action.type === 'narutoRun') { // narutoRunStart
+      physx.physxWorker.crossFadeUnitary(avatar.actionsNodeUnitary, 0.2, avatar.narutoRunMotion);
+    } else if (e.action.type === 'sit') { // sitStart
+      avatar.sitAnimation = e.action.animation;
+      physx.physxWorker.play(avatar.sitMotiono[avatar.sitAnimation || defaultSitAnimation]);
+      physx.physxWorker.crossFadeUnitary(avatar.actionsNodeUnitary, 0.2, avatar.sitMotiono[avatar.sitAnimation || defaultSitAnimation]);
+    } else if (e.action.type === 'dance') { // danceStart
+      avatar.danceAnimation = e.action.animation;
+      physx.physxWorker.crossFadeUnitary(avatar.actionsNodeUnitary, 0.2, avatar.danceMotiono[avatar.danceAnimation || defaultDanceAnimation]);
+    } else if (e.action.type === 'emote') { // emoteStart
+      avatar.emoteAnimation = e.action.animation;
+      physx.physxWorker.play(avatar.emoteMotiono[avatar.emoteAnimation || defaultEmoteAnimation]);
+      physx.physxWorker.crossFadeUnitary(avatar.actionsNodeUnitary, 0.2, avatar.emoteMotiono[avatar.emoteAnimation || defaultEmoteAnimation]);
     } else if (e.action.type === 'use') {
-      if (e.action.animation) {
-        // debugger
-        // useStart
-        const useAnimationName = e.action.animation;
+      if (e.action.animation) { // useStart
+        const useAnimationName = e.action.animation; // todo: need set `avatar.useAnimation`, can't use `e.action.animation` directly.
         physx.physxWorker.play(avatar.useMotiono[useAnimationName]);
         physx.physxWorker.crossFadeUnitary(avatar.actionsNodeUnitary, 0.2, avatar.useMotiono[useAnimationName]);
-      } else if (e.action.animationCombo) {
-        // debugger
-        // useComboStart
+      } else if (e.action.animationCombo) { // useComboStart
         let useAnimationName;
         if (avatar.dashAttacking) {
           useAnimationName = 'dashAttack';
@@ -873,19 +900,19 @@ export const _updateAnimation = avatar => {
   //   // physx.physxWorker.crossFadeUnitary(avatar.actionsNodeUnitary, 0.2, avatar.defaultNodeTwo);
   //   physx.physxWorker.crossFadeTwo(avatar.groundFlyNodeTwo, 0.2, 0);
   // }
-  if (avatar.jumpEnd) {
-    if (avatar.narutoRunState) {
-      physx.physxWorker.crossFadeUnitary(avatar.actionsNodeUnitary, 0.2, avatar.narutoRunMotion);
-    } else {
-      physx.physxWorker.crossFadeUnitary(avatar.actionsNodeUnitary, 0.2, avatar.defaultNodeTwo);
-    }
-  }
+  // if (avatar.jumpEnd) {
+  //   if (avatar.narutoRunState) {
+  //     physx.physxWorker.crossFadeUnitary(avatar.actionsNodeUnitary, 0.2, avatar.narutoRunMotion);
+  //   } else {
+  //     physx.physxWorker.crossFadeUnitary(avatar.actionsNodeUnitary, 0.2, avatar.defaultNodeTwo);
+  //   }
+  // }
 
-  if (avatar.narutoRunEnd) physx.physxWorker.crossFadeUnitary(avatar.actionsNodeUnitary, 0.2, avatar.defaultNodeTwo);
+  // if (avatar.narutoRunEnd) physx.physxWorker.crossFadeUnitary(avatar.actionsNodeUnitary, 0.2, avatar.defaultNodeTwo);
 
-  if (avatar.activateEnd) {
-    physx.physxWorker.crossFadeUnitary(avatar.actionsNodeUnitary, 0.2, avatar.defaultNodeTwo);
-  }
+  // if (avatar.activateEnd) {
+  //   physx.physxWorker.crossFadeUnitary(avatar.actionsNodeUnitary, 0.2, avatar.defaultNodeTwo);
+  // }
 
   // if (avatar.useEnd) {
   //   physx.physxWorker.crossFadeUnitary(avatar.actionsNodeUnitary, 0.2, avatar.defaultNodeTwo);
@@ -902,17 +929,17 @@ export const _updateAnimation = avatar => {
     physx.physxWorker.crossFadeTwo(avatar.bowIdle8DDrawLooseNodeOverwrite, 0.2, 1);
   }
 
-  if (avatar.sitEnd) {
-    physx.physxWorker.crossFadeUnitary(avatar.actionsNodeUnitary, 0.2, avatar.defaultNodeTwo);
-  }
+  // if (avatar.sitEnd) {
+  //   physx.physxWorker.crossFadeUnitary(avatar.actionsNodeUnitary, 0.2, avatar.defaultNodeTwo);
+  // }
 
-  if (avatar.emoteEnd) {
-    physx.physxWorker.crossFadeUnitary(avatar.actionsNodeUnitary, 0.2, avatar.defaultNodeTwo);
-  }
+  // if (avatar.emoteEnd) {
+  //   physx.physxWorker.crossFadeUnitary(avatar.actionsNodeUnitary, 0.2, avatar.defaultNodeTwo);
+  // }
 
-  if (avatar.danceEnd) {
-    physx.physxWorker.crossFadeUnitary(avatar.actionsNodeUnitary, 0.2, avatar.defaultNodeTwo);
-  }
+  // if (avatar.danceEnd) {
+  //   physx.physxWorker.crossFadeUnitary(avatar.actionsNodeUnitary, 0.2, avatar.defaultNodeTwo);
+  // }
 
   // action start event --------------------------------------------
 
@@ -921,17 +948,17 @@ export const _updateAnimation = avatar => {
   //   physx.physxWorker.crossFadeTwo(avatar.groundFlyNodeTwo, 0.2, 1);
   // }
 
-  if (avatar.jumpStart) {
-    physx.physxWorker.play(avatar.jumpMotion);
-    physx.physxWorker.crossFadeUnitary(avatar.actionsNodeUnitary, 0.2, avatar.jumpMotion);
-  }
+  // if (avatar.jumpStart) {
+  //   physx.physxWorker.play(avatar.jumpMotion);
+  //   physx.physxWorker.crossFadeUnitary(avatar.actionsNodeUnitary, 0.2, avatar.jumpMotion);
+  // }
 
-  if (avatar.activateStart) {
-    physx.physxWorker.play(avatar.activateMotion);
-    physx.physxWorker.crossFadeUnitary(avatar.actionsNodeUnitary, 0.2, avatar.activateMotion);
-  }
+  // if (avatar.activateStart) {
+  //   physx.physxWorker.play(avatar.activateMotion);
+  //   physx.physxWorker.crossFadeUnitary(avatar.actionsNodeUnitary, 0.2, avatar.activateMotion);
+  // }
 
-  if (avatar.narutoRunStart) physx.physxWorker.crossFadeUnitary(avatar.actionsNodeUnitary, 0.2, avatar.narutoRunMotion);
+  // if (avatar.narutoRunStart) physx.physxWorker.crossFadeUnitary(avatar.actionsNodeUnitary, 0.2, avatar.narutoRunMotion);
 
   // // sword
   // if (avatar.useStart) {
@@ -961,22 +988,22 @@ export const _updateAnimation = avatar => {
     physx.physxWorker.crossFadeTwo(avatar.idle8DWalkRun_BowIdle8DDrawLooseNodeTwo, 0.2, 1);
   }
 
-  // sit
-  if (avatar.sitStart) {
-    physx.physxWorker.play(avatar.sitMotiono[avatar.sitAnimation || defaultSitAnimation]);
-    physx.physxWorker.crossFadeUnitary(avatar.actionsNodeUnitary, 0.2, avatar.sitMotiono[avatar.sitAnimation || defaultSitAnimation]);
-  }
+  // // sit
+  // if (avatar.sitStart) {
+  //   physx.physxWorker.play(avatar.sitMotiono[avatar.sitAnimation || defaultSitAnimation]);
+  //   physx.physxWorker.crossFadeUnitary(avatar.actionsNodeUnitary, 0.2, avatar.sitMotiono[avatar.sitAnimation || defaultSitAnimation]);
+  // }
 
-  // emote
-  if (avatar.emoteStart) {
-    physx.physxWorker.play(avatar.emoteMotiono[avatar.emoteAnimation || defaultEmoteAnimation]);
-    physx.physxWorker.crossFadeUnitary(avatar.actionsNodeUnitary, 0.2, avatar.emoteMotiono[avatar.emoteAnimation || defaultEmoteAnimation]);
-  }
+  // // emote
+  // if (avatar.emoteStart) {
+  //   physx.physxWorker.play(avatar.emoteMotiono[avatar.emoteAnimation || defaultEmoteAnimation]);
+  //   physx.physxWorker.crossFadeUnitary(avatar.actionsNodeUnitary, 0.2, avatar.emoteMotiono[avatar.emoteAnimation || defaultEmoteAnimation]);
+  // }
 
-  // dance
-  if (avatar.danceStart) {
-    physx.physxWorker.crossFadeUnitary(avatar.actionsNodeUnitary, 0.2, avatar.danceMotiono[avatar.danceAnimation || defaultDanceAnimation]);
-  }
+  // // dance
+  // if (avatar.danceStart) {
+  //   physx.physxWorker.crossFadeUnitary(avatar.actionsNodeUnitary, 0.2, avatar.danceMotiono[avatar.danceAnimation || defaultDanceAnimation]);
+  // }
 
   // do update
   const values = window.physx.physxWorker.updateAnimationMixer(avatar.mixer, timeS);
@@ -1042,6 +1069,13 @@ export const _updateAnimation = avatar => {
     if (motion === avatar.useMotiono.bowLoose) {
       physx.physxWorker.crossFadeTwo(avatar.idle8DWalkRun_BowIdle8DDrawLooseNodeTwo, 0.2, 0);
     }
+    // for (const k in avatar.emoteMotiono) {
+    //   const emoteMotion = avatar.emoteMotiono[k];
+    //   if (motion === emoteMotion) {
+    //     physx.physxWorker.crossFadeUnitary(avatar.actionsNodeUnitary, 0.2, avatar.defaultNodeTwo);
+    //     break;
+    //   }
+    // }
   }
 };
 

@@ -76,11 +76,11 @@ export function applyPlayerActionsToAvatar(player, rig) {
   const pickUpAction = player.getAction('pickUp');
   const narutoRunAction = player.getAction('narutoRun');
   const sitAction = player.getAction('sit');
-  const sitAnimation = sitAction ? sitAction.animation : '';
-  const danceAction = player.getAction('dance');
-  const danceAnimation = danceAction ? danceAction.animation : '';
-  const emoteAction = player.getAction('emote');
-  const emoteAnimation = emoteAction ? emoteAction.animation : '';
+  // const sitAnimation = sitAction ? sitAction.animation : '';
+  // const danceAction = player.getAction('dance');
+  // const danceAnimation = danceAction ? danceAction.animation : '';
+  // const emoteAction = player.getAction('emote');
+  // const emoteAnimation = emoteAction ? emoteAction.animation : '';
   // const throwAction = player.getAction('throw');
   const aimAction = player.getAction('aim');
   const crouchAction = player.getAction('crouch');
@@ -98,15 +98,15 @@ export function applyPlayerActionsToAvatar(player, rig) {
   // const swordTopDownSlashAnimation = swordTopDownSlash ? swordTopDownSlash.animation : '';
 
   rig.jumpState = !!jumpAction;
-  // start/end event
-  rig.jumpStart = false;
-  rig.jumpEnd = false;
-  if (rig.jumpState !== rig.lastJumpState) {
-    if (rig.jumpState) rig.jumpStart = true;
-    else rig.jumpEnd = true;
-  }
-  rig.lastJumpState = rig.jumpState;
-  //
+  // // start/end event
+  // rig.jumpStart = false;
+  // rig.jumpEnd = false;
+  // if (rig.jumpState !== rig.lastJumpState) {
+  //   if (rig.jumpState) rig.jumpStart = true;
+  //   else rig.jumpEnd = true;
+  // }
+  // rig.lastJumpState = rig.jumpState;
+  // //
   rig.jumpTime = player.actionInterpolants.jump.get();
   // rig.flyState = !!flyAction;
   // // start/end event
@@ -121,15 +121,15 @@ export function applyPlayerActionsToAvatar(player, rig) {
   rig.flyTime = flyAction ? player.actionInterpolants.fly.get() : -1;
   rig.flyDashFactor = player.actionInterpolants.flyDash.getNormalized();
   rig.activateState = !!activateAction;
-  // start/end event
-  rig.activateStart = false;
-  rig.activateEnd = false;
-  if (rig.activateState !== rig.lastActivateState) {
-    if (rig.activateState) rig.activateStart = true;
-    else rig.activateEnd = true;
-  }
-  rig.lastActivateState = rig.activateState;
-  //
+  // // start/end event
+  // rig.activateStart = false;
+  // rig.activateEnd = false;
+  // if (rig.activateState !== rig.lastActivateState) {
+  //   if (rig.activateState) rig.activateStart = true;
+  //   else rig.activateEnd = true;
+  // }
+  // rig.lastActivateState = rig.activateState;
+  // //
   rig.activateTime = player.actionInterpolants.activate.get();
 
   const _handleUse = () => {
@@ -214,15 +214,15 @@ export function applyPlayerActionsToAvatar(player, rig) {
   rig.vowels[4] = player.characterBehavior.manuallySetMouth ? 0 : rig.vowels[4];
 
   rig.narutoRunState = !!narutoRunAction && !crouchAction;
-  // start/end event
-  rig.narutoRunStart = false;
-  rig.narutoRunEnd = false;
-  if (rig.narutoRunState !== rig.lastNarutoRunState) {
-    if (rig.narutoRunState) rig.narutoRunStart = true;
-    else rig.narutoRunEnd = true;
-  }
-  rig.lastNarutoRunState = rig.narutoRunState;
-  //
+  // // start/end event
+  // rig.narutoRunStart = false;
+  // rig.narutoRunEnd = false;
+  // if (rig.narutoRunState !== rig.lastNarutoRunState) {
+  //   if (rig.narutoRunState) rig.narutoRunStart = true;
+  //   else rig.narutoRunEnd = true;
+  // }
+  // rig.lastNarutoRunState = rig.narutoRunState;
+  // //
   rig.narutoRunTime = player.actionInterpolants.narutoRun.get();
   rig.aimState = !!aimAction;
   rig.aimTime = player.actionInterpolants.aim.get();
@@ -232,46 +232,46 @@ export function applyPlayerActionsToAvatar(player, rig) {
   // rig.aimDirection.set(0, 0, -1);
   // aimAction && rig.aimDirection.applyQuaternion(rig.inputs.hmd.quaternion);
   rig.sitState = !!sitAction;
-  // start/end event
-  rig.sitStart = false;
-  rig.sitEnd = false;
-  if (rig.sitState !== rig.lastSitState) {
-    if (rig.sitState) rig.sitStart = true;
-    else rig.sitEnd = true;
-  }
-  rig.lastSitState = rig.sitState;
-  //
-  rig.sitAnimation = sitAnimation;
+  // // start/end event
+  // rig.sitStart = false;
+  // rig.sitEnd = false;
+  // if (rig.sitState !== rig.lastSitState) {
+  //   if (rig.sitState) rig.sitStart = true;
+  //   else rig.sitEnd = true;
+  // }
+  // rig.lastSitState = rig.sitState;
+  // //
+  // rig.sitAnimation = sitAnimation;
 
   // XXX this needs to be based on the current loadout index
   rig.holdState = wearAction?.holdAnimation === 'pick_up_idle';
   if (rig.holdState) rig.unuseAnimation = null;
-  rig.danceState = !!danceAction;
-  // start/end event
-  rig.danceStart = false;
-  rig.danceEnd = false;
-  if (rig.danceState !== rig.lastDanceState) {
-    if (rig.danceState) rig.danceStart = true;
-    else rig.danceEnd = true;
-  }
-  rig.lastDanceState = rig.danceState;
-  //
+  // rig.danceState = !!danceAction;
+  // // start/end event
+  // rig.danceStart = false;
+  // rig.danceEnd = false;
+  // if (rig.danceState !== rig.lastDanceState) {
+  //   if (rig.danceState) rig.danceStart = true;
+  //   else rig.danceEnd = true;
+  // }
+  // rig.lastDanceState = rig.danceState;
+  // //
   rig.danceFactor = player.actionInterpolants.dance.get();
-  if (danceAction) {
-    rig.danceAnimation = danceAnimation;
-  }
-  rig.emoteState = !!emoteAction;
-  // start/end event
-  rig.emoteStart = false;
-  rig.emoteEnd = false;
-  if (rig.emoteState !== rig.lastEmoteState) {
-    if (rig.emoteState) rig.emoteStart = true;
-    else rig.emoteEnd = true;
-  }
-  rig.lastEmoteState = rig.emoteState;
-  //
+  // if (danceAction) {
+  //   rig.danceAnimation = danceAnimation;
+  // }
+  // rig.emoteState = !!emoteAction;
+  // // start/end event
+  // rig.emoteStart = false;
+  // rig.emoteEnd = false;
+  // if (rig.emoteState !== rig.lastEmoteState) {
+  //   if (rig.emoteState) rig.emoteStart = true;
+  //   else rig.emoteEnd = true;
+  // }
+  // rig.lastEmoteState = rig.emoteState;
+  // //
   rig.emoteFactor = player.actionInterpolants.emote.get();
-  rig.emoteAnimation = emoteAnimation;
+  // rig.emoteAnimation = emoteAnimation;
   // rig.throwState = !!throwAction;
   // rig.throwTime = player.actionInterpolants.throw.get();
   rig.crouchTime = player.actionInterpolants.crouch.getInverse();

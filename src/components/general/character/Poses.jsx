@@ -35,7 +35,7 @@ export const triggerEmote = emoteName => {
 
   const emoteAnimation = emoteAnimations[emoteName];
   const emoteAnimationDuration = emoteAnimation.duration;
-  emoteTimeout = setTimeout(() => {
+  emoteTimeout = setTimeout(() => { // todo: Use animation/motion's `finished` event instead of `setTimeout` ?
     const actionIndex = localPlayer.findActionIndex(action => action.type === 'emote' && action.animation === emoteName);
     localPlayer.removeActionIndex(actionIndex);
 
