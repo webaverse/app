@@ -214,7 +214,7 @@ class CharacterSfx {
 
     const _handleNarutoRun = () => {
       
-    this.currentQ.copy(this.player.quaternion);
+      this.currentQ.copy(this.player.quaternion);
      
       let temp=this.currentQ.angleTo(this.preQ);
       for(let i=0;i<4;i++){
