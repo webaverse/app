@@ -770,6 +770,9 @@ ioManager.click = e => {
   }
   raycastManager.setLastMouseEvent(e);
 };
+ioManager.dblclick = e => {
+  // nothing
+};
 // let mouseDown = false;
 let lastMouseButtons = 0;
 ioManager.mousedown = e => {

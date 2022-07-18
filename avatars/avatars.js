@@ -7,6 +7,7 @@ import LegsManager from './vrarmik/LegsManager.js';
 import {scene, camera} from '../renderer.js';
 import MicrophoneWorker from './microphone-worker.js';
 import {AudioRecognizer} from '../audio-recognizer.js';
+import audioManager from '../audio-manager.js';
 import {
   // angleDifference,
   // getVelocityDampingFactor,
@@ -410,7 +411,8 @@ class Avatar {
         },
       };
     }
-
+    
+    this.isLocalPlayer = options.isLocalPlayer !== undefined ? options.isLocalPlayer : true;
     this.object = object;
 
     const model = (() => {
@@ -446,6 +448,8 @@ class Avatar {
 
     this.vrmExtension = object?.parser?.json?.extensions?.VRM;
     this.firstPersonCurves = getFirstPersonCurves(this.vrmExtension); 
+
+    this.lastVelocity = new THREE.Vector3();
 
     const {
       skinnedMeshes,
@@ -870,6 +874,7 @@ class Avatar {
       this.skinnedMeshesVisemeMappings = [];
     }
 
+    this.audioWorker = null;
     this.microphoneWorker = null;
     this.volume = -1;
 
@@ -1489,6 +1494,25 @@ class Avatar {
     }
   }
 
+  setVelocity(timeDiffS, lastPosition, currentPosition, currentQuaternion) {
+    // Set the velocity, which will be considered by the animation controller
+    const positionDiff = localVector.copy(lastPosition)
+      .sub(currentPosition)
+      .divideScalar(Math.max(timeDiffS, 0.001))
+      .multiplyScalar(0.1);
+    localEuler.setFromQuaternion(currentQuaternion, 'YXZ');
+    localEuler.set(0, -(localEuler.y + Math.PI), 0);
+    positionDiff.applyEuler(localEuler);
+    this.velocity.copy(positionDiff);
+    this.lastVelocity.copy(this.velocity);
+    this.direction.copy(positionDiff).normalize();
+    this.lastPosition.copy(currentPosition);
+
+    if (this.velocity.length() > maxIdleVelocity) {
+      this.lastMoveTime = performance.now();
+    }
+  }
+
   update(timestamp, timeDiff) {
     const now = timestamp;
     const timeDiffS = timeDiff / 1000;
@@ -1504,29 +1528,6 @@ class Avatar {
     this.aimRightFactorReverse = 1 - this.aimRightFactor;
     this.aimLeftFactor = this.aimLeftTransitionTime / aimTransitionMaxTime;
     this.aimLeftFactorReverse = 1 - this.aimLeftFactor;
-
-    const _updateHmdPosition = () => {
-      const currentPosition = this.inputs.hmd.position;
-      const currentQuaternion = this.inputs.hmd.quaternion;
-      
-      const positionDiff = localVector.copy(this.lastPosition)
-        .sub(currentPosition)
-        .divideScalar(timeDiffS)
-        .multiplyScalar(0.1);
-      localEuler.setFromQuaternion(currentQuaternion, 'YXZ');
-      localEuler.x = 0;
-      localEuler.z = 0;
-      localEuler.y += Math.PI;
-      localEuler2.set(-localEuler.x, -localEuler.y, -localEuler.z, localEuler.order);
-      positionDiff.applyEuler(localEuler2);
-      this.velocity.copy(positionDiff);
-      this.lastPosition.copy(currentPosition);
-      this.direction.copy(positionDiff).normalize();
-
-      if (this.velocity.length() > maxIdleVelocity) {
-        this.lastMoveTime = now;
-      }
-    };
     
     const _overwritePose = poseName => {
       const poseAnimation = animations.index[poseName];
@@ -1913,9 +1914,16 @@ class Avatar {
       _motionControls.call(this)
     }
     
-    
-
-    _updateHmdPosition();
+    // for the local player we want to update the velocity immediately
+    // on remote players this is called from the RemotePlayer -> observePlayerFn
+    if (this.isLocalPlayer) {
+      this.setVelocity(
+        timeDiffS,
+        this.lastPosition,
+        this.inputs.hmd.position,
+        this.inputs.hmd.quaternion
+      );
+    }
     if (this === window.localPlayer.avatar) {
       window.avatar = this;
       window.mixer = this.mixer;
@@ -2060,56 +2068,115 @@ class Avatar {
   }
 
   isAudioEnabled() {
-    return !!this.microphoneWorker;
+    return !!this.audioWorker;
   }
   setAudioEnabled(enabled) {
     // cleanup
-    if (this.microphoneWorker) {
-      this.microphoneWorker.close();
-      this.microphoneWorker = null;
-    }
-    if (this.audioRecognizer) {
-      this.audioRecognizer.destroy();
-      this.audioRecognizer = null;
+    if (this.audioWorker) {
+      this.audioWorker.close();
+      this.audioWorker = null;
     }
 
     // setup
     if (enabled) {
+      this.ensureAudioRecognizer();
       this.volume = 0;
-     
-      const audioContext = getAudioContext();
+
+      const audioContext = audioManager.getAudioContext();
       if (audioContext.state === 'suspended') {
         (async () => {
           await audioContext.resume();
         })();
       }
-      this.microphoneWorker = new MicrophoneWorker({
+      const _volume = e => {
+        // the mouth is manually overridden by the CharacterBehavior class which is attached to all players
+        // this happens when a player is eating fruit or yelling while making an attack
+        if (!this.manuallySetMouth) {
+          this.volume = this.volume * 0.8 + e.data * 0.2;
+        }
+      }
+
+      const _buffer = e => {
+        this.audioRecognizer.send(e.data);
+      }
+
+      this.audioRecognizer.addEventListener('result', e => {
+        this.vowels.set(e.data);
+      });
+
+      this.audioWorker = new MicrophoneWorker({
         audioContext,
         muted: false,
         emitVolume: true,
         emitBuffer: true,
       });
-      this.microphoneWorker.addEventListener('volume', e => {
-        if(!this.manuallySetMouth){
-          this.volume = this.volume*0.8 + e.data*0.2;
-        }
-      });
-      this.microphoneWorker.addEventListener('buffer', e => {
-        this.audioRecognizer.send(e.data);
-      });
 
-      this.audioRecognizer = new AudioRecognizer({
-        sampleRate: audioContext.sampleRate,
-      });
-      this.audioRecognizer.addEventListener('result', e => {
-        this.vowels.set(e.data);
-      });
+      this.audioWorker.addEventListener('volume', _volume);
+      this.audioWorker.addEventListener('buffer', _buffer);
     } else {
       this.volume = -1;
     }
   }
   getAudioInput() {
-    return this.microphoneWorker && this.microphoneWorker.getInput();
+    return this.audioWorker.getInput();
+  }
+  setMicrophoneEnabled(enabled) {
+    // cleanup
+    if (this.microphoneWorker) {
+      this.microphoneWorker.close();
+      this.microphoneWorker = null;
+    }
+
+    // setup
+    if (enabled) {
+      this.ensureAudioRecognizer();
+      this.volume = 0;
+     
+      const audioContext = audioManager.getAudioContext();
+      if (audioContext.state === 'suspended') {
+        (async () => {
+          await audioContext.resume();
+        })();
+      }
+
+      this.audioRecognizer.addEventListener('result', e => {
+        this.vowels.set(e.data);
+      });
+
+      this.microphoneWorker = new MicrophoneWorker({
+        audioContext,
+        muted: true,
+        emitVolume: true,
+        emitBuffer: true,
+      });
+
+      const _localVolume = e => {
+        this.volume = this.volume * 0.8 + e.data * 0.2;
+      }
+
+      const _localBuffer = e => {
+        this.audioRecognizer.send(e.data);
+      }
+
+      this.microphoneWorker.addEventListener('volume', _localVolume);
+      this.microphoneWorker.addEventListener('buffer', _localBuffer);
+    } else {
+      this.volume = -1;
+    }
+  }
+  isMicrophoneEnabled() {
+    return !!this.microphoneWorker;
+  }
+  getMicrophoneInput() {
+    return this.microphoneWorker.getInput();
+  }
+  ensureAudioRecognizer() {
+    if (!this.audioRecognizer) {
+      const audioContext = audioManager.getAudioContext();
+      this.audioRecognizer = new AudioRecognizer({
+        sampleRate: audioContext.sampleRate,
+      });
+    }
   }
   decapitate() {
     if (!this.decapitated) {
@@ -2159,7 +2226,7 @@ class Avatar {
       muted: false,
       // emitVolume: true,
       // emitBuffer: true,
-      // audioContext: WSRTC.getAudioContext(),
+      // audioContext: audioManager.getAudioContext(),
       // microphoneWorkletUrl: '/avatars/microphone-worklet.js',
     });
 
@@ -2174,18 +2241,6 @@ Avatar.waitForLoad = () => loadPromise;
 Avatar.getAnimations = () => animations;
 Avatar.getAnimationStepIndices = () => animationStepIndices;
 Avatar.getAnimationMappingConfig = () => animationMappingConfig;
-let avatarAudioContext = null;
-const getAudioContext = () => {
-  if (!avatarAudioContext) {
-    console.warn('using default audio context; setAudioContext was not called');
-    setAudioContext(new AudioContext());
-  }
-  return avatarAudioContext;
-};
-Avatar.getAudioContext = getAudioContext;
-const setAudioContext = newAvatarAudioContext => {
-  avatarAudioContext = newAvatarAudioContext;
-};
-Avatar.setAudioContext = setAudioContext;
+
 Avatar.getClosest2AnimationAngles = getClosest2AnimationAngles;
 export default Avatar;
