@@ -7,8 +7,9 @@ import { PEEK_FACE_INDICES } from './constants.js';
 
 const localVector2D = new THREE.Vector2();
 const localVector2D2 = new THREE.Vector2();
-const localVector4D = new THREE.Vector4();
+const localVector3D = new THREE.Vector3();
 const localVector3D2 = new THREE.Vector3();
+const localVector3D3 = new THREE.Vector3();
 const localMatrix = new THREE.Matrix4();
 const localSphere = new THREE.Sphere();
 const localBox = new THREE.Box3();
@@ -34,6 +35,10 @@ const peekFaceSpecs = [
 ];
 
 const maxNumDraws = 1024;
+
+const isVectorInRange = (vector, min, max) => {
+  return (vector.x >= min.x && vector.x < max.x) && (vector.y >= min.y && vector.y < max.y) && (vector.z >= min.z && vector.z < max.z);
+}
 
 const _getBoundingSize = boundingType => {
   switch (boundingType) {
@@ -170,12 +175,21 @@ export class GeometryAllocator {
     const boundingSize = _getBoundingSize(boundingType);
     this.boundingData = new Float32Array(maxNumDraws * boundingSize);
     this.minData = new Float32Array(maxNumDraws * 4);
+    this.maxData = new Float32Array(maxNumDraws * 4);
+    this.appMatrix = new THREE.Matrix4();
+    // this.peeksArray = [];
+    this.allocatedDataArray = [];
     this.numDraws = 0;
   }
-  alloc(numPositions, numIndices, boundingObject, minObject) {
+  alloc(numPositions, numIndices, peeks, boundingObject, minObject, maxObject, appMatrix) {
     const positionFreeListEntry = this.positionFreeList.alloc(numPositions);
     const indexFreeListEntry = this.indexFreeList.alloc(numIndices);
     const geometryBinding = new GeometryPositionIndexBinding(positionFreeListEntry, indexFreeListEntry, this.geometry);
+
+    // console.log(minObject);
+    this.allocatedDataArray[this.numDraws] = [this.numDraws, minObject.x, minObject.y, minObject.z, peeks];
+
+    this.appMatrix = appMatrix;
 
     const slot = indexFreeListEntry;
     this.drawStarts[this.numDraws] = slot.start * this.geometry.index.array.BYTES_PER_ELEMENT;
@@ -188,6 +202,10 @@ export class GeometryAllocator {
       boundingObject.max.toArray(this.boundingData, this.numDraws * 6 + 3);
     }
     minObject.toArray(this.minData, this.numDraws * 4);
+    maxObject.toArray(this.maxData, this.numDraws * 4);
+
+    // this.peeksArray[this.numDraws] = peeks; 
+    // console.log(minObject);
 
     this.numDraws++;
 
@@ -224,6 +242,10 @@ export class GeometryAllocator {
       this.minData[freeIndex * 4 + 2] = this.minData[lastIndex * 4 + 2]; 
       // chunkSize
       this.minData[freeIndex * 4 + 3] = this.minData[lastIndex * 4 + 3]; 
+
+      // this.peeksArray[freeIndex] = this.peeksArray[lastIndex];
+
+      this.allocatedDataArray[freeIndex] = this.allocatedDataArray[lastIndex];
     }
 
     this.numDraws--;
@@ -259,64 +281,116 @@ export class GeometryAllocator {
       }
     })();
 
-    const testOcclusionFn = (i) => {
+    const marked = [];
+    const culled = [];
+
+    const cull = (i) => {
         // start bfs, start from the chunk we're in
         // find the chunk that the camera is inside via floor, so we need min of the chunk, which we have in bounding data
-        localVector4D.fromArray(this.minData, i * 4);
-        const chunkSize = localVector4D.w; // we store the chunk size in the w of the vector 
+        localVector3D2.fromArray(this.minData, i * 4); // min
+        localVector3D3.fromArray(this.maxData, i * 4); // max
 
-        localVector3D2.set(Math.floor(camera.position.x / chunkSize), Math.floor(camera.position.y / chunkSize), Math.floor(camera.position.z / chunkSize));
-        // console.log(localVector4D.w);
-        if(localVector4D.x == localVector3D2.x && localVector4D.y == localVector3D2.y && localVector4D.z == localVector3D2.z)
+        const chunkSize = Math.abs(localVector3D2.x - localVector3D3.x);
+        // console.log(chunkSize);
+
+        localVector3D.set(0,0,0);
+        localVector3D.applyMatrix4(this.appMatrix); // transform vector
+
+        localVector3D.set(camera.position.x - localVector3D.x, camera.position.y - localVector3D.y, camera.position.z - localVector3D.z); // camera vector
+
+        if(isVectorInRange(localVector3D, localVector3D2, localVector3D3))
         {
-          return true;
-          // const peeks = [1,1,1,1,1,1,1,1,1,1,1,1,1,1,1];
-          // // start bfs here
-          // const marked = [];
-          // const queue = [];
-          // queue.push([localVector4D, PEEK_FACES["NONE"]]);
-          // while(queue.length > 0){
-          //   const entry = queue.shift();
-          //   const x = entry[0].x;
-          //   const y = entry[0].y;
-          //   const z = entry[0].z;
-          //   const enterFace = entry[1];
-          //   // append neighbors to queue
-          //   for (let i = 0; i < 6; i++) {
-          //     const peekFaceSpec = peekFaceSpecs[i];
-          //     const ax = x + peekFaceSpec[2];
-          //     const ay = y + peekFaceSpec[3];
-          //     const az = z + peekFaceSpec[4];
-          //     const newEntry = [new THREE.Vector3(ax,ay,az), peekFaceSpec[0]];
-          //     const found = marked.find(e => e == newEntry);
-          //     if(!found){
-          //       marked.push(entry);
-          //       if (enterFace == PEEK_FACES['NONE'] || peeks[PEEK_FACE_INDICES[enterFace << 3 | peekFaceSpec[1]]] == 1) {
-          //         return false;
-          //       } else{
-          //         return true;
-          //       }
-          //     }
-          //   }
-          // }
+          // start bfs here
+          const queue = [];
+          localVector3D.set(this.allocatedDataArray[i][1], this.allocatedDataArray[i][2], this.allocatedDataArray[i][3]);
+          const firstEntry = [localVector3D, PEEK_FACES['NONE']]; // starting with the chunk that the camera is in
+
+          // pushing the chunk the camera is in as the first step
+          queue.push(firstEntry);
+
+          while(queue.length > 0){
+            const entry = queue.shift(); // getting first element in the queue and removing it
+            // console.log(entry[0]);
+            const x = entry[0].x;
+            const y = entry[0].y;
+            const z = entry[0].z;
+            const newEntryIndex = this.allocatedDataArray.find((e) => {
+              return e[1] == x && e[2] == y && e[3] == z;
+            })
+            if(newEntryIndex){
+              // console.log(ne);
+                // const found = marked.find((e)=> e[0] == newEntryIndex[0]);
+                // if(found === undefined){
+                  // console.log(found);
+                  const peeks = newEntryIndex[4];
+                  // marked.push(newEntryIndex);
+                  const enterFace = entry[1];
+                  // append neighbors to queue
+                  
+                  for (let i = 0; i < 6; i++) {
+                    const peekFaceSpec = peekFaceSpecs[i];
+                    const ay = y + peekFaceSpec[3] * chunkSize;
+                    if (ay >= 0 && ay < 0 + chunkSize) {
+                      const ax = x + peekFaceSpec[2] * chunkSize;
+                      const az = z + peekFaceSpec[4] * chunkSize;
+                      const id = this.allocatedDataArray.find(e => {
+                        return e[1].x == ax && e[1].y == ay && e[1].z == az;
+                      })
+                      if(id){
+                        console.log('Hello?');
+                        const foundCulled = culled.find(e => e[0] == id[0]);
+                        if(foundCulled === undefined){
+                          culled.push(id);
+                  // console.log(localVector3D);
+                  localVector3D.set(ax, ay, az);
+                  const newQueueEntry = [localVector3D, peekFaceSpec[0]];
+                  if (enterFace == PEEK_FACES['NONE'] || peeks[PEEK_FACE_INDICES[enterFace << 3 | peekFaceSpec[1]]] == 1) {
+                    // console.log(PEEK_FACE_INDICES[enterFace << 3 | peekFaceSpec[1]]);
+                    queue.push(newQueueEntry);
+                  }
+                }
+              }}
+              // }
+              }
+            }
+          }
         
-      }else{
-        return false;
-      };
+      }
     };
 
     for (let i = 0; i < this.numDraws; i++) {
-      if(testOcclusionFn(i)){
-        console.log('I Am The Chunk That You Are In : ' + i);
-        // if (testBoundingFn(i)) {
-        // console.log(camera)
-        // if(localFrustum.intersectsObject(camera)){
-          // drawStarts.push(this.drawStarts[i]);
-          // drawCounts.push(this.drawCounts[i]);
-        // }
-        // }
-      }
+      cull(i);
     }
+    // console.log(this.allocatedDataArray);
+
+    // if(culled.length > 0){
+    //   console.log('Hooray')
+    // }
+    // if(marked){
+    //   console.log(marked)
+    // }
+
+    // console.log(culled);
+    // for (let i = 0; i < this.numDraws; i++) {
+    //   // console.log(culled[i]);
+    //   const found = culled.find(e => e[0] == i);
+    //   if(found === undefined){
+    //     if(testBoundingFn(i)){
+    //       drawStarts.push(this.drawStarts[i]);
+    //       drawCounts.push(this.drawCounts[i]);
+    //     }
+    //   }
+    // }
+
+      for (let i = 0; i < culled.length; i++) {
+      // console.log(culled[i]);
+      const id = culled[i][0];
+     if(testBoundingFn(id)){
+          drawStarts.push(this.drawStarts[id]);
+          drawCounts.push(this.drawCounts[id]);
+        }
+    }
+
   }
 }
 
