@@ -572,9 +572,15 @@ export class LodChunkTracker extends EventTarget {
     this.displayChunks = []; // for debug mesh
     this.renderedChunks = new Map(); // hash -> OctreeNode
     this.dataRequests = new Map(); // hash -> DataRequest
+    this.dominators = new Map(); // hash -> OctreeNode
     this.lastUpdateCoord = new THREE.Vector3(NaN, NaN, NaN);
 
-    this.dominators = new Map(); // hash -> OctreeNode
+    this.isUpdating = false;
+    this.queued = false;
+    this.queue = new TrackerQueue();
+    
+    this.lastOctreeLeafNodes = [];
+    this.liveTasks = [];
 
     if (debug) {
       const maxChunks = 4096;
@@ -643,14 +649,7 @@ export class LodChunkTracker extends EventTarget {
           _flushChunks();
         });
       }
-
-      this.isUpdating = false;
-      this.queued = false;
-      this.queue = new TrackerQueue();
     }
-
-    this.lastOctreeLeafNodes = [];
-    this.liveTasks = [];
   }
   #getCurrentCoord(position, target) {
     const cx = Math.floor(position.x / this.chunkSize);
