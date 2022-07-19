@@ -148,6 +148,7 @@ export class GeometryAllocator {
   constructor(attributeSpecs, {
     bufferSize,
     boundingType = null,
+    occlusionCulling = false
   }) {
     {
       this.geometry = new THREE.BufferGeometry();
@@ -179,16 +180,20 @@ export class GeometryAllocator {
     this.appMatrix = new THREE.Matrix4();
     // this.peeksArray = [];
     this.allocatedDataArray = [];
+    this.occlusionCulling = occlusionCulling;
     this.numDraws = 0;
   }
-  alloc(numPositions, numIndices, peeks, boundingObject, minObject, maxObject, appMatrix) {
+  alloc(numPositions, numIndices, boundingObject, minObject, maxObject, appMatrix , peeks) {
     const positionFreeListEntry = this.positionFreeList.alloc(numPositions);
     const indexFreeListEntry = this.indexFreeList.alloc(numIndices);
     const geometryBinding = new GeometryPositionIndexBinding(positionFreeListEntry, indexFreeListEntry, this.geometry);
 
-    this.allocatedDataArray[this.numDraws] = [this.numDraws, minObject.x, minObject.y, minObject.z, peeks];
-
-    this.appMatrix = appMatrix;
+    if(this.occlusionCulling){
+      this.allocatedDataArray[this.numDraws] = [this.numDraws, minObject.x, minObject.y, minObject.z, peeks];
+      this.appMatrix = appMatrix;
+      minObject.toArray(this.minData, this.numDraws * 4);
+      maxObject.toArray(this.maxData, this.numDraws * 4);
+    }
 
     const slot = indexFreeListEntry;
     this.drawStarts[this.numDraws] = slot.start * this.geometry.index.array.BYTES_PER_ELEMENT;
@@ -200,8 +205,6 @@ export class GeometryAllocator {
       boundingObject.min.toArray(this.boundingData, this.numDraws * 6);
       boundingObject.max.toArray(this.boundingData, this.numDraws * 6 + 3);
     }
-    minObject.toArray(this.minData, this.numDraws * 4);
-    maxObject.toArray(this.maxData, this.numDraws * 4);
 
     this.numDraws++;
 
@@ -233,15 +236,18 @@ export class GeometryAllocator {
         this.boundingData[freeIndex * 6 + 4] = this.boundingData[lastIndex * 6 + 4];
         this.boundingData[freeIndex * 6 + 5] = this.boundingData[lastIndex * 6 + 5];
       }
+
+      if(this.occlusionCulling){
       this.minData[freeIndex * 4 + 0] = this.minData[lastIndex * 4 + 0]; 
       this.minData[freeIndex * 4 + 1] = this.minData[lastIndex * 4 + 1]; 
       this.minData[freeIndex * 4 + 2] = this.minData[lastIndex * 4 + 2];     
+
       this.maxData[freeIndex * 4 + 0] = this.maxData[lastIndex * 4 + 0]; 
       this.maxData[freeIndex * 4 + 1] = this.maxData[lastIndex * 4 + 1]; 
       this.maxData[freeIndex * 4 + 2] = this.maxData[lastIndex * 4 + 2]; 
 
-      // this.peeksArray[freeIndex] = this.peeksArray[lastIndex];
       this.allocatedDataArray[freeIndex] = this.allocatedDataArray[lastIndex];
+      }
     }
 
     this.numDraws--;
@@ -277,7 +283,8 @@ export class GeometryAllocator {
       }
     })();
 
-    const culled = [];
+    if(this.occlusionCulling){
+       const culled = [];
 
     const cull = (i) => {
         // start bfs, start from the chunk we're in
@@ -343,26 +350,15 @@ export class GeometryAllocator {
               }
             }
           }
-        
       }
     };
 
     for (let i = 0; i < this.numDraws; i++) {
       cull(i);
     }
-    // console.log(PEEK_FACE_INDICES);
-    // console.log(this.allocatedDataArray);
 
-    // if(culled.length > 0){
-    //   console.log('Hooray')
-    // }
-    // if(marked){
-    //   console.log(marked)
-    // }
-
-    // console.log(culled);
     for (let i = 0; i < this.numDraws; i++) {
-      // console.log(culled[i]);
+      console.log(culled[i]);
       const found = culled.find(e => e[0] == i);
       if(found === undefined){
         // ! frustum culling has bugs !
@@ -373,9 +369,7 @@ export class GeometryAllocator {
       }
     }
 
-    // console.log(camera.position.y);
-
-    //   for (let i = 0; i < culled.length; i++) {
+    // for (let i = 0; i < culled.length; i++) {
     //   // console.log(culled[i]);
     //   const id = culled[i][0];
     // //  if(testBoundingFn(id)){
@@ -383,6 +377,13 @@ export class GeometryAllocator {
     //       drawCounts.push(this.drawCounts[id]);
     //     // }
     // }
+    }else{
+      for (let i = 0; i < this.numDraws; i++) {
+        drawStarts.push(this.drawStarts[i]);
+        drawCounts.push(this.drawCounts[i]);
+      }
+    }
+
 
   }
 }
