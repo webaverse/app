@@ -282,29 +282,29 @@ export class GeometryAllocator {
     const cull = (i) => {
         // start bfs, start from the chunk we're in
         // find the chunk that the camera is inside via floor, so we need min of the chunk, which we have in bounding data
-        localVector3D2.fromArray(this.minData, i * 4); // min
-        localVector3D3.fromArray(this.maxData, i * 4); // max
+        const min = localVector3D2.fromArray(this.minData, i * 4); // min
+        const max = localVector3D3.fromArray(this.maxData, i * 4); // max
 
-        const chunkSize = Math.abs(localVector3D2.x - localVector3D3.x);
+        const chunkSize = Math.abs(min.x - max.x);
         // console.log(chunkSize);
 
-        localVector3D.set(0,0,0);
-        localVector3D.applyMatrix4(this.appMatrix); // transform vector
+        const appTransform = localVector3D.set(0,0,0);
+        appTransform.applyMatrix4(this.appMatrix); // transform vector
 
-        localVector3D.set(camera.position.x - localVector3D.x, camera.position.y - localVector3D.y, camera.position.z - localVector3D.z); // camera vector
+        const adjustedCameraPos = localVector3D.set(camera.position.x - appTransform.x, camera.position.y - appTransform.y, camera.position.z - appTransform.z); // camera vector
 
-        if(isVectorInRange(localVector3D, localVector3D2, localVector3D3))
+        if(isVectorInRange(adjustedCameraPos, min, max))
         {
           // start bfs here
           const queue = [];
-          localVector3D.set(this.allocatedDataArray[i][1], this.allocatedDataArray[i][2], this.allocatedDataArray[i][3]);
-          const firstEntry = [localVector3D.x , localVector3D.y, localVector3D.z, PEEK_FACES['NONE']]; // starting with the chunk that the camera is in
+          const firstEntryPos = localVector3D.set(this.allocatedDataArray[i][1], this.allocatedDataArray[i][2], this.allocatedDataArray[i][3]);
+          const firstEntry = [firstEntryPos.x , firstEntryPos.y - chunkSize * 4, firstEntryPos.z, PEEK_FACES['NONE']]; // starting with the chunk that the camera is in
 
           // pushing the chunk the camera is in as the first step
           queue.push(firstEntry);
 
-          localVector3D.set(0,0,0);
-          localVector3D.applyMatrix4(this.appMatrix);
+          appTransform.set(0,0,0);
+          appTransform.applyMatrix4(this.appMatrix);
 
           while(queue.length > 0){
             const entry = queue.shift(); // getting first element in the queue and removing it
@@ -321,7 +321,7 @@ export class GeometryAllocator {
                   for (let i = 0; i < 6; i++) {
                     const peekFaceSpec = peekFaceSpecs[i];
                     const ay = y + peekFaceSpec[3] * chunkSize;
-                    if (ay >= -localVector3D.y && ay < -localVector3D.y + chunkSize) {
+                    if ((ay >= -appTransform.y - chunkSize * 16 && ay < -appTransform.y - chunkSize * 4)) {
                       const ax = x + peekFaceSpec[2] * chunkSize;
                       const az = z + peekFaceSpec[4] * chunkSize;
                       const id = this.allocatedDataArray.find(e => {
@@ -332,8 +332,6 @@ export class GeometryAllocator {
                         const foundCulled = culled.find(e => e[0] == id[0]);
                         if(foundCulled === undefined){
                           culled.push(id);
-                          // localVector3D.set(ax, ay, az);
-                          // console.log(localVector3D);
                   const newQueueEntry = [ax,ay,az, peekFaceSpec[0]];
                   if (enterFace == PEEK_FACES['NONE'] || peeks[PEEK_FACE_INDICES[enterFace << 3 | peekFaceSpec[1]]] == 1) {
                     queue.push(newQueueEntry);
@@ -352,6 +350,7 @@ export class GeometryAllocator {
     for (let i = 0; i < this.numDraws; i++) {
       cull(i);
     }
+    // console.log(PEEK_FACE_INDICES);
     // console.log(this.allocatedDataArray);
 
     // if(culled.length > 0){
@@ -366,12 +365,15 @@ export class GeometryAllocator {
       // console.log(culled[i]);
       const found = culled.find(e => e[0] == i);
       if(found === undefined){
-        if(testBoundingFn(i)){
+        // ! frustum culling has bugs !
+        // if(testBoundingFn(i)){ 
           drawStarts.push(this.drawStarts[i]);
           drawCounts.push(this.drawCounts[i]);
-        }
+        // }
       }
     }
+
+    // console.log(camera.position.y);
 
     //   for (let i = 0; i < culled.length; i++) {
     //   // console.log(culled[i]);

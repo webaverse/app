@@ -13,11 +13,29 @@ export const rarityColors = {
   legendary: [0xAD00EA, 0x32002D],
 };
 
-export const PEEK_FACE_INDICES = [
-    0, 0, 1,2,3,4,0,0,5,0,6,7,8,9,0,0,1,6,0,10,11,12,
-    0, 0, 2,7,10,0,13,14,0,0,3,8,11,13,0,15,0,0,4,9,
-    12, 14,15,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0
-];
+const PEEK_FACE_INDICES = [];
+(function initPeekFaceIndices(){
+   for (let i = 0; i < 8 * 8; i++)
+    {
+      PEEK_FACE_INDICES[i] = 0xFF;
+    }
+
+    let peekIndex = 0;
+    for (let startFace = 0; startFace < 6; startFace++)
+    {
+      for (let endFace = 0; endFace < 6; endFace++)
+      {
+        if (startFace != endFace)
+        {
+          const otherEntry = PEEK_FACE_INDICES[endFace << 3 | startFace];
+          PEEK_FACE_INDICES[startFace << 3 | endFace] = otherEntry != 0xFF ? otherEntry : peekIndex++;
+        }
+      }
+    }
+    // console.log("INVOKED");
+})();
+
+export {PEEK_FACE_INDICES};
 
 const chainName = (() => {
   if (typeof globalThis !== 'undefined' && /^test\./.test(location.hostname)) {
