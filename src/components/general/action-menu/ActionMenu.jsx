@@ -8,7 +8,7 @@ import styles from './action-menu.module.css';
 
 //
 
-export const ActionMenu = () => {
+export const ActionMenu = ({ setUIMode, className }) => {
 
     const { state, setState, app } = useContext( AppContext );
     const [ xrSupported, setXrSupported ] = useState( false );
@@ -64,7 +64,7 @@ export const ActionMenu = () => {
     //
 
     return (
-        <div className={ styles.actionMenu } onClick={ stopPropagation } >
+        <div className={ classnames( className, styles.actionMenu ) } onClick={ stopPropagation } >
 
             <div className={ classnames( styles.btn, state.openedPanel === 'WorldPanel' ? styles.wpOpened : null ) } onClick={ handleWorldBtnClick } >
                 <img src="images/webpencil.svg" className={ classnames( styles.background, styles.blue ) } />
