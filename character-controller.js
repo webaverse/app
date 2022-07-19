@@ -1100,7 +1100,7 @@ class LocalPlayer extends UninterpolatedPlayer {
       }
 
       if (oldAvatar !== undefined && oldAvatar !== null && oldAvatar !== '') {
-        this.playerMap.set('avatar', oldAvatar);
+        screenLeft.playerMap.set('avatar', oldAvatar);
       }
     });
     
