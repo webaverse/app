@@ -74,7 +74,7 @@ export function applyPlayerActionsToAvatar(player, rig) {
   const swimAction = player.getAction('swim');
   const swimUpAction = player.getAction('swimUp');
   const swimDownAction = player.getAction('swimDown');
-  const swimmingOnSurface = player.getAction('swim') ? player.getAction('swim').onSurface : false;
+  const swimmingOnSurface = !!swimAction ? !!swimAction.onSurface : false;
   const useAction = player.getAction('use');
   const pickUpAction = player.getAction('pickUp');
   const narutoRunAction = player.getAction('narutoRun');
