@@ -634,6 +634,7 @@ class StatePlayer extends PlayerBase {
       this.attachState(oldState);
       this.bindCommonObservers();
     }
+    this.syncAvatar();
   }
   getAvatarInstanceId() {
     return this.playerMap?.get('avatar');
@@ -1315,7 +1316,6 @@ class RemotePlayer extends InterpolatedPlayer {
           this.syncAvatar();
         }
       }
-
       if (e.changes.keys.get('voiceSpec') || e.added?.keys?.get('voiceSpec')) {
         const voiceSpec = e.changes.keys.get('voiceSpec');
         const json = JSON.parse(voiceSpec.value);
@@ -1366,8 +1366,6 @@ class RemotePlayer extends InterpolatedPlayer {
 
     this.appManager.bindState(this.getAppsState());
     this.appManager.loadApps();
-    
-    this.syncAvatar();
   }
 }
 /* class StaticUninterpolatedPlayer extends UninterpolatedPlayer {

@@ -344,7 +344,8 @@ class AppManager extends EventTarget {
   }
   getAppByPhysicsId(physicsId) {
     for (const app of this.apps) {
-      if (app.getPhysicsObjects && app.getPhysicsObjects().some(o => o.physicsId === physicsId)) {
+      console.log("loading app physics id", app, physicsId);
+      if (app.getPhysicsObjects && app.getPhysicsObjects.length > 0 && app.getPhysicsObjects().some(o => o.physicsId === physicsId)) {
         return app;
       }
     }
@@ -354,6 +355,7 @@ class AppManager extends EventTarget {
     for (const app of this.apps) {
       const physicsObjects = app.getPhysicsObjects();
       for (const physicsObject of physicsObjects) {
+        if(!physicsObject) throw new Error('physics object is null', physicsObject);
         if (physicsObject.physicsId === physicsId) {
           return physicsObject;
         }
