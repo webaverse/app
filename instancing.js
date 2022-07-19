@@ -362,25 +362,25 @@ export class GeometryAllocator {
     // }
 
     // console.log(culled);
-    // for (let i = 0; i < this.numDraws; i++) {
-    //   // console.log(culled[i]);
-    //   const found = culled.find(e => e[0] == i);
-    //   if(found === undefined){
-    //     // if(testBoundingFn(i)){
-    //       drawStarts.push(this.drawStarts[i]);
-    //       drawCounts.push(this.drawCounts[i]);
-    //     // }
-    //   }
-    // }
-
-      for (let i = 0; i < culled.length; i++) {
+    for (let i = 0; i < this.numDraws; i++) {
       // console.log(culled[i]);
-      const id = culled[i][0];
-    //  if(testBoundingFn(id)){
-          drawStarts.push(this.drawStarts[id]);
-          drawCounts.push(this.drawCounts[id]);
-        // }
+      const found = culled.find(e => e[0] == i);
+      if(found === undefined){
+        if(testBoundingFn(i)){
+          drawStarts.push(this.drawStarts[i]);
+          drawCounts.push(this.drawCounts[i]);
+        }
+      }
     }
+
+    //   for (let i = 0; i < culled.length; i++) {
+    //   // console.log(culled[i]);
+    //   const id = culled[i][0];
+    // //  if(testBoundingFn(id)){
+    //       drawStarts.push(this.drawStarts[id]);
+    //       drawCounts.push(this.drawCounts[id]);
+    //     // }
+    // }
 
   }
 }
