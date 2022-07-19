@@ -2,6 +2,10 @@
 this file is responisible for maintaining player state that is network-replicated.
 */
 
+import {WsAudioDecoder} from 'wsrtc/ws-codec.js';
+import {ensureAudioContext, getAudioContext} from 'wsrtc/ws-audio-context.js';
+import {getAudioDataBuffer} from 'wsrtc/ws-util.js';
+
 import * as THREE from 'three';
 import * as Z from 'zjs';
 import {getRenderer, scene, camera, dolly} from './renderer.js';
@@ -9,7 +13,7 @@ import physicsManager from './physics-manager.js';
 import {world} from './world.js';
 // import cameraManager from './camera-manager.js';
 import physx from './physx.js';
-import Avatar from './avatars/avatars.js';
+import audioManager from './audio-manager.js';
 import metaversefile from 'metaversefile';
 import {
   actionsMapName,
@@ -25,6 +29,7 @@ import {
   avatarInterpolationNumFrames,
   // groundFriction,
   // defaultVoicePackName,
+  voiceEndpointBaseUrl,
   numLoadoutSlots,
 } from './constants.js';
 import {AppManager} from './app-manager.js';
@@ -35,7 +40,7 @@ import {CharacterHitter} from './character-hitter.js';
 import {CharacterBehavior} from './character-behavior.js';
 import {CharacterFx} from './character-fx.js';
 import {VoicePack, VoicePackVoicer} from './voice-output/voice-pack-voicer.js';
-import {VoiceEndpoint, VoiceEndpointVoicer, getVoiceEndpointUrl} from './voice-output/voice-endpoint-voicer.js';
+import {VoiceEndpoint, VoiceEndpointVoicer} from './voice-output/voice-endpoint-voicer.js';
 import {BinaryInterpolant, BiActionInterpolant, UniActionInterpolant, InfiniteActionInterpolant, PositionInterpolant, QuaternionInterpolant} from './interpolants.js';
 import {applyPlayerToAvatar, switchAvatar} from './player-avatar-binding.js';
 import {
@@ -260,6 +265,14 @@ class PlayerBase extends THREE.Object3D {
     }
     return false;
   }
+  async setVoicePack({audioUrl, indexUrl}) {
+    const self = this;
+    // this.playersArray.doc.transact(function tx() {
+    const voiceSpec = JSON.stringify({audioUrl, indexUrl, endpointUrl: self.voiceEndpoint ? self.voiceEndpoint.url : ''});
+    self.playerMap.set('voiceSpec', voiceSpec);
+    // });
+    await this.loadVoicePack({audioUrl, indexUrl})
+  }
   async loadVoicePack({audioUrl, indexUrl}) {
     this.voicePack = await VoicePack.load({
       audioUrl,
@@ -268,8 +281,25 @@ class PlayerBase extends THREE.Object3D {
     this.updateVoicer();
   }
   setVoiceEndpoint(voiceId) {
-    if (voiceId) {
-      const url = getVoiceEndpointUrl(voiceId);
+    if (!voiceId) throw new Error('voice Id is null')
+    const self = this;
+    const url = `${voiceEndpointBaseUrl}?voice=${encodeURIComponent(voiceId)}`;
+    this.playersArray.doc.transact(function tx() {
+      let oldVoiceSpec = self.playerMap.get('voiceSpec');
+      if (oldVoiceSpec) {
+        oldVoiceSpec = JSON.parse(oldVoiceSpec);
+        const voiceSpec = JSON.stringify({audioUrl: oldVoiceSpec.audioUrl, indexUrl: oldVoiceSpec.indexUrl, endpointUrl: url});
+        self.playerMap.set('voiceSpec', voiceSpec);
+      } else {
+        const voiceSpec = JSON.stringify({audioUrl: self.voicePack?.audioUrl, indexUrl: self.voicePack?.indexUrl, endpointUrl: url})
+        self.playerMap.set('voiceSpec', voiceSpec);
+      }
+    });
+    this.loadVoiceEndpoint(url)
+  }
+
+  loadVoiceEndpoint(url) {
+    if (url) {
       this.voiceEndpoint = new VoiceEndpoint(url);
     } else {
       this.voiceEndpoint = null;
@@ -277,7 +307,7 @@ class PlayerBase extends THREE.Object3D {
     this.updateVoicer();
   }
   getVoice() {
-    return this.voiceEndpoint || this.voicePack || null;
+    return this.voiceEndpoint || this.voicePack;
   }
   updateVoicer() {
     const voice = this.getVoice();
@@ -457,7 +487,9 @@ class PlayerBase extends THREE.Object3D {
           app.updateMatrixWorld();
         }
       };
-      _setAppTransform();
+      if(!app.getComponent('sit') && !app.getComponent('pet')){
+        _setAppTransform();
+      }
 
       const _deinitPhysics = () => {
         const physicsObjects = app.getPhysicsObjects();
@@ -532,6 +564,8 @@ class StatePlayer extends PlayerBase {
     this.syncAvatarCancelFn = null;
     this.unbindFns = [];
     
+    this.transform = new Float32Array(7);
+
     this.bindState(playersArray);
   }
   isBound() {
@@ -632,10 +666,10 @@ class StatePlayer extends PlayerBase {
   }
   // serializers
   getPosition() {
-    return this.playerMap.get('position') ?? [0, 0, 0];
+    return localArray3.fromArray(this.playerMap.get('transform'));
   }
   getQuaternion() {
-    return this.playerMap.get('quaternion') ?? [0, 0, 0, 1];
+    return localArray3.fromArray(this.playerMap.get('transform'), 3);
   }
   async syncAvatar() {
     if (this.syncAvatarCancelFn) {
@@ -806,7 +840,7 @@ class StatePlayer extends PlayerBase {
     }
     if (mediaStream) {
       this.avatar.setAudioEnabled(true);
-      const audioContext = Avatar.getAudioContext();
+      const audioContext = audioManager.getAudioContext();
       const mediaStreamSource = audioContext.createMediaStreamSource(mediaStream);
       mediaStreamSource.connect(this.avatar.getAudioInput());
       this.microphoneMediaStream = mediaStreamSource;
@@ -874,7 +908,6 @@ class StatePlayer extends PlayerBase {
 class InterpolatedPlayer extends StatePlayer {
   constructor(opts) {
     super(opts);
-    
     this.positionInterpolant = new PositionInterpolant(() => this.getPosition(), avatarInterpolationTimeDelay, avatarInterpolationNumFrames);
     this.quaternionInterpolant = new QuaternionInterpolant(() => this.getQuaternion(), avatarInterpolationTimeDelay, avatarInterpolationNumFrames);
     this.actionBinaryInterpolants = {
@@ -925,6 +958,23 @@ class InterpolatedPlayer extends StatePlayer {
       position: this.positionInterpolant.get(),
       quaternion: this.quaternionInterpolant.get(),
     };
+  }
+  update(timestamp, timeDiff) {
+    if(!this.avatar) return; // avatar takes time to load, ignore until it does
+
+    this.updateInterpolation(timeDiff);
+
+    const mirrors = metaversefile.getMirrors();
+    applyPlayerToAvatar(this, null, this.avatar, mirrors);
+
+    const timeDiffS = timeDiff / 1000;
+    this.characterSfx.update(timestamp, timeDiffS);
+    this.characterFx.update(timestamp, timeDiffS);
+    this.characterPhysics.update(timestamp, timeDiffS);
+    this.characterHitter.update(timestamp, timeDiffS);
+    this.characterBehavior.update(timestamp, timeDiffS);
+
+    this.avatar.update(timestamp, timeDiff);
   }
   updateInterpolation(timeDiff) {
     this.positionInterpolant.update(timeDiff);
@@ -1029,6 +1079,21 @@ class LocalPlayer extends UninterpolatedPlayer {
       }
     });
   }
+  setMicMediaStream(mediaStream) {
+    if (this.microphoneMediaStream) {
+      this.microphoneMediaStream.disconnect();
+      this.microphoneMediaStream = null;
+    }
+    if (mediaStream) {
+      this.avatar.setMicrophoneEnabled(true, this);
+      const audioContext = audioManager.getAudioContext();
+      const mediaStreamSource = audioContext.createMediaStreamSource(mediaStream);
+
+      mediaStreamSource.connect(this.avatar.getMicrophoneInput(true));
+
+      this.microphoneMediaStream = mediaStreamSource;
+    }
+  }
   detachState() {
     const oldActions = (this.playersArray ? this.getActionsState() : new Z.Array());
     const oldAvatar = (this.playersArray ? this.getAvatarState() : new Z.Map()).toJSON();
@@ -1051,8 +1116,10 @@ class LocalPlayer extends UninterpolatedPlayer {
       self.playerMap = new Z.Map();
       self.playersArray.push([self.playerMap]);
       self.playerMap.set('playerId', self.playerId);
-      self.playerMap.set('position', self.position.toArray(localArray3));
-      self.playerMap.set('quaternion', self.quaternion.toArray(localArray4));
+
+      self.position.toArray(self.transform, 0);
+      self.quaternion.toArray(self.transform, 3);
+      self.playerMap.set('transform', self.transform);
       
       const actions = self.getActionsState();
       for (const oldAction of oldActions) {
@@ -1146,12 +1213,14 @@ class LocalPlayer extends UninterpolatedPlayer {
   } */
   
   pushPlayerUpdates() {
+    const self = this;
     this.playersArray.doc.transact(() => {
       /* if (isNaN(this.position.x) || isNaN(this.position.y) || isNaN(this.position.z)) {
         debugger;
       } */
-      this.playerMap.set('position', this.position.toArray(localArray3));
-      this.playerMap.set('quaternion', this.quaternion.toArray(localArray4));
+      self.position.toArray(self.transform);      
+      self.quaternion.toArray(self.transform, 3);
+      self.playerMap.set('transform', self.transform);
     }, 'push');
 
     this.appManager.updatePhysics();
@@ -1218,8 +1287,44 @@ class LocalPlayer extends UninterpolatedPlayer {
 class RemotePlayer extends InterpolatedPlayer {
   constructor(opts) {
     super(opts);
-  
+    this.audioWorkletNode = null;
+    this.audioWorkerLoaded = false;
     this.isRemotePlayer = true;
+  }
+    // The audio worker handles hups and incoming voices
+  // This includes the microphone from the owner of this instance
+  async prepareAudioWorker() {
+    if (!this.audioWorkerLoaded) {
+      this.audioWorkerLoaded = true;
+
+      await ensureAudioContext();
+      const audioContext = getAudioContext();
+
+      this.audioWorkletNode = new AudioWorkletNode(
+        audioContext,
+        'ws-output-worklet'
+      );
+
+      this.audioDecoder = new WsAudioDecoder({
+        output: (data) => {
+          const buffer = getAudioDataBuffer(data);
+          this.audioWorkletNode.port.postMessage(buffer, [buffer.buffer]);
+        },
+      });
+
+      if (!this.avatar.isAudioEnabled()) {
+        this.avatar.setAudioEnabled(true);
+      }
+
+      this.audioWorkletNode.connect(this.avatar.getAudioInput());
+    }
+  }
+  // This is called by WSRTC (in world.js) when it receives new packets for this player
+  processAudioData(data) {
+    this.prepareAudioWorker();
+    if (this.audioWorkletNode) {
+      this.audioDecoder.decode(data.data);
+    }
   }
   detachState() {
     return null;
@@ -1238,14 +1343,58 @@ class RemotePlayer extends InterpolatedPlayer {
     } else {
       console.warn('binding to nonexistent player object', this.playersArray.toJSON());
     }
-    
-    const observePlayerFn = e => {
-      this.position.fromArray(this.playerMap.get('position'));
-      this.quaternion.fromArray(this.playerMap.get('quaternion'));
-    };
+
+    let lastTimestamp = performance.now();
+    let lastPosition = new THREE.Vector3();
+    const observePlayerFn = (e) => {
+      if (e.changes.keys.get('voiceSpec') || e.added?.keys?.get('voiceSpec')) {
+        const voiceSpec = e.changes.keys.get('voiceSpec');
+        const json = JSON.parse(voiceSpec.value);
+        if (json.endpointUrl)
+          {this.loadVoiceEndpoint(json.endpointUrl);}
+        if (json.audioUrl && json.indexUrl)
+          {this.loadVoicePack({audioUrl: json.audioUrl, indexUrl: json.indexUrl});}
+      }
+
+      if (e.changes.keys.get('name')) {
+        this.name = e.changes.keys.get('name');
+      }
+
+      if (e.changes.keys.has('transform')) {
+        const transform = e.changes.keys.get('transform');
+        const timestamp = performance.now();
+        const timeDiff = timestamp - lastTimestamp;
+        lastTimestamp = timestamp;
+
+        this.position.fromArray(transform);
+        this.quaternion.fromArray(transform);
+        this.updateMatrixWorld();
+
+        this.positionInterpolant.snapshot(timeDiff);
+        this.quaternionInterpolant.snapshot(timeDiff);
+
+        for (const actionBinaryInterpolant of this.actionBinaryInterpolantsArray) {
+          actionBinaryInterpolant.snapshot(timeDiff);
+        }
+
+        this.characterPhysics.applyAvatarPhysicsDetail(true, true, timestamp, timeDiff / 1000);
+
+        if(this.avatar) {
+          this.characterPhysics.setPosition(this.position);
+          this.avatar.setVelocity(
+            timeDiff / 1000,
+            lastPosition,
+            this.position,
+            this.quaternion
+          );
+        }
+
+        lastPosition.copy(this.position);
+      }
+    }
     this.playerMap.observe(observePlayerFn);
     this.unbindFns.push(this.playerMap.unobserve.bind(this.playerMap, observePlayerFn));
-    
+
     this.appManager.bindState(this.getAppsState());
     this.appManager.loadApps();
     

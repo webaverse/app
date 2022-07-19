@@ -771,6 +771,37 @@ w.createMobSplatAsync = async (inst, taskId, x, z, lod) => {
 // instances size (uint32_t)
 // instances data (float32_t) * size
 
+//
+
+w.setCamera = (
+  inst,
+  position,
+  quaternion,
+  projectionMatrix
+) => {
+  const allocator = new Allocator(Module);
+
+  const positionArray = allocator.alloc(Float32Array, 3);
+  positionArray.set(position);
+
+  const quaternionArray = allocator.alloc(Float32Array, 4);
+  quaternionArray.set(quaternion);
+
+  const projectionMatrixArray = allocator.alloc(Float32Array, 16);
+  projectionMatrixArray.set(projectionMatrix);
+
+  Module._setCamera(
+    inst,
+    positionArray.byteOffset,
+    quaternionArray.byteOffset,
+    projectionMatrixArray.byteOffset
+  );
+
+  allocator.freeAll();
+};
+
+//
+
 w.cancelTask = async (inst, taskId) => {
   // console.log('cancel task', inst, taskId);
   Module._cancelTask(inst, taskId);
