@@ -1076,6 +1076,10 @@ class LocalPlayer extends UninterpolatedPlayer {
         actions.push([oldAction]);
       }
 
+      if (oldAvatar !== undefined && oldAvatar !== null && oldAvatar !== '') {
+        this.playerMap.set('avatar', oldAvatar);
+      }
+      
       const apps = self.getAppsState();
       for (const oldApp of oldApps) {
         const mapApp = new Z.Map();
@@ -1301,15 +1305,10 @@ class RemotePlayer extends InterpolatedPlayer {
     let lastTimestamp = performance.now();
     let lastPosition = new THREE.Vector3();
     const observePlayerFn = (e) => {
-      if(e.changes.keys.has('avatar')) {
-        const avatar = e.changes.keys.get('avatar').value;
-
-        if (avatar === '') {
-          console.warn("Ignoring avatar sync", avatar);
-        } else {
-          this.syncAvatar();
-        }
+      if (e.changes.keys.has('avatar')) {
+        this.syncAvatar();
       }
+
       if (e.changes.keys.get('voiceSpec') || e.added?.keys?.get('voiceSpec')) {
         const voiceSpec = e.changes.keys.get('voiceSpec');
         const json = JSON.parse(voiceSpec.value);
