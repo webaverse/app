@@ -1039,6 +1039,7 @@ class LocalPlayer extends UninterpolatedPlayer {
       if (oldInstanceId) {
         self.appManager.removeTrackedAppInternal(oldInstanceId);
       }
+      self.syncAvatar();
     });
   }
   setMicMediaStream(mediaStream) {
