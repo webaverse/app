@@ -6,7 +6,6 @@ import * as THREE from 'three';
 // import {makePromise} from './util.js';
 // import { getRenderer } from './renderer.js'
 import Module from './public/bin/geometry.js';
-window.Module = Module;
 import {Allocator, ScratchStack} from './geometry-util.js';
 import { AnimationNodeType } from './constants.js';
 
@@ -2182,7 +2181,6 @@ const physxWorker = (() => {
     }
   }
 
-
   // AnimationSystem
 
   w.createAnimationMixer = () => {
@@ -2193,8 +2191,6 @@ const physxWorker = (() => {
     const outputBufferOffsetMain = Module._updateAnimationMixer(
       mixer, timeS,
     )
-    // console.log(outputBufferOffsetMain)
-    // debugger
     const values = [];
     const headMain = outputBufferOffsetMain / Float32Array.BYTES_PER_ELEMENT;
     for (let i = 0; i < 53; i++) {
@@ -2215,23 +2211,13 @@ const physxWorker = (() => {
     }
 
     let outputBufferOffset = Module.HEAPU32[headMain + 53];
-    let head = outputBufferOffset / Float32Array.BYTES_PER_ELEMENT;
+    const head = outputBufferOffset / Float32Array.BYTES_PER_ELEMENT;
     const finishedFlag = Module.HEAPF32[head];
     values.push(finishedFlag);
 
-    // if (finishedFlag) debugger
     outputBufferOffset = Module.HEAPU32[headMain + 54];
-    // head = outputBufferOffset / Float32Array.BYTES_PER_ELEMENT;
-    // const finishedAnimationIndex = Module.HEAPF32[head];
-    // values.push(finishedAnimationIndex);
     const motion = outputBufferOffset; // = motion's ptr
     values.push(motion);
-
-    // console.log(finishedFlag);
-    // if (finishedFlag) {
-    //   console.log(finishedAnimationIndex);
-    //   debugger
-    // }
 
     return values;
   }
@@ -2240,11 +2226,6 @@ const physxWorker = (() => {
       isPosition, index, isFirstBone, isLastBone, isTop, isArm
     )
   }
-  // w.createAnimationMixer = () => {
-  //   const ptr = Module._createAnimationMixer(
-  //   )
-  //   return ptr;
-  // }
   w.createAnimation = (duration) => {
     const ptr = Module._createAnimation(
       duration,
@@ -2258,7 +2239,6 @@ const physxWorker = (() => {
     return ptr;
   }
   w.createNode = (mixer, type = AnimationNodeType.LIST) => {
-    // debugger
     const ptr = Module._createNode(
       mixer, type,
     )
@@ -2266,10 +2246,6 @@ const physxWorker = (() => {
   }
   window.nodeReferenceCount = {}; // test
   w.addChild = (parentNode, childNode) => { // input: ptrs of nodes
-
-    if (!parentNode) debugger
-    if (!childNode) debugger
-
     Module._addChild(
       parentNode, childNode,
     )
@@ -2293,7 +2269,7 @@ const physxWorker = (() => {
     } else if (valueSize === 4) {
       //
     } else {
-      debugger
+      // debugger
     }
 
     const parameterPositionsTypedArray = allocator.alloc(Float32Array, parameterPositions.length);
@@ -2313,66 +2289,6 @@ const physxWorker = (() => {
 
     // allocator.freeAll(); // can't free sampleValuesTypedArray, need persist in wasm for later use.
   }
-  // w.evaluateInterpolant = (animationIndex, interpolantIndex, t) => {
-  //   const outputBufferOffset = Module._evaluateInterpolant(
-  //     animationIndex,
-  //     interpolantIndex,
-  //     t,
-  //   )
-
-  //   let head = outputBufferOffset / Float32Array.BYTES_PER_ELEMENT;
-  //   let tail = head + 1;
-  //   const valueSize = Module.HEAPF32[head];
-
-  //   head = tail;
-  //   tail = head + 1;
-  //   const x = Module.HEAPF32[head];
-
-  //   head = tail;
-  //   tail = head + 1;
-  //   const y = Module.HEAPF32[head];
-
-  //   head = tail;
-  //   tail = head + 1;
-  //   const z = Module.HEAPF32[head];
-
-  //   if (valueSize === 3) {
-  //     return [x, y, z];
-  //   } else if (valueSize === 4) {
-  //     head = tail;
-  //     tail = head + 1;
-  //     const w = Module.HEAPF32[head];
-
-  //     return [x, y, z, w];
-  //   } else {
-  //     debugger
-  //   }
-  // }
-  // w.getAnimationValues = (animationIndex, t) => {
-  //   const outputBufferOffsetMain = Module._getAnimationValues(
-  //     animationIndex,
-  //     t,
-  //   )
-  //   const values = [];
-  //   const headMain = outputBufferOffsetMain / Float32Array.BYTES_PER_ELEMENT;
-  //   for (let i = 0; i < 53; i++) {
-  //     let value;
-  //     const outputBufferOffset = Module.HEAPU32[headMain + i];
-  //     const head = outputBufferOffset / Float32Array.BYTES_PER_ELEMENT;
-  //     const valueSize = Module.HEAPF32[head];
-  //     const x = Module.HEAPF32[head + 1];
-  //     const y = Module.HEAPF32[head + 2];
-  //     const z = Module.HEAPF32[head + 3];
-  //     if (valueSize === 3) {
-  //       value = [x, y, z];
-  //     } else if (valueSize === 4) {
-  //       const w = Module.HEAPF32[head + 4];
-  //       value = [x, y, z, w];
-  //     }
-  //     values.push(value);
-  //   }
-  //   return values;
-  // }
   w.crossFadeTwo = (parentNode, duration, targetFactor) => {
     Module._crossFadeTwo(
       parentNode, duration, targetFactor,
@@ -2383,13 +2299,13 @@ const physxWorker = (() => {
       parentNode, duration, targetNode,
     )
   }
-  w.setWeight = (node, weight) => { // todo: renmae: setWeight() // todo: general setProp/Attribute().
+  w.setWeight = (node, weight) => {
     Module._setWeight(
       node,
       weight,
     )
   }
-  w.setFactor = (node, factor) => { // todo: general setProp/Attribute().
+  w.setFactor = (node, factor) => {
     Module._setFactor(
       node,
       factor,
@@ -2421,8 +2337,7 @@ const physxWorker = (() => {
   w.stop = (motion) => Module._stop(motion);
   w.setTimeBias = (motion, timeBias) => Module._setTimeBias(motion, timeBias);
   w.setSpeed = (motion, speed) => Module._setSpeed(motion, speed);
-  w.setLoop = (motion, loopType) => Module._setLoop(motion, loopType); // todo: Rename to `setMotionLoop` or `motionSetLoop` `motion_setLoop`.
-
+  w.setLoop = (motion, loopType) => Module._setLoop(motion, loopType);
   // End AnimationSystem
 
   return w;

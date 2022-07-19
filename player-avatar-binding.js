@@ -137,7 +137,7 @@ export function applyPlayerActionsToAvatar(player, rig) {
   rig.lastActivateState = rig.activateState;
   //
   rig.activateTime = player.actionInterpolants.activate.get();
-
+  
   const _handleUse = () => {
     if (useAction?.animation) {
       rig.useAnimation = useAction.animation;
@@ -154,7 +154,6 @@ export function applyPlayerActionsToAvatar(player, rig) {
       }
     }
     rig.useState = useAction?.animation;
-    // console.log(JSON.stringify(rig.useState));
     // start/end event
     rig.useStart = false;
     rig.useEnd = false;
@@ -168,7 +167,7 @@ export function applyPlayerActionsToAvatar(player, rig) {
     // start/end event
     rig.useComboStart = false;
     rig.useComboEnd = false;
-    if (rig.useComboState !== rig.lastUseComboState) { // after index changed, will same array values but different array
+    if (rig.useComboState !== rig.lastUseComboState) {
       if (rig.useComboState) rig.useComboStart = true;
       else rig.useComboEnd = true;
     }
@@ -354,11 +353,11 @@ export function applyPlayerPoseToAvatar(player, rig) {
 export function applyPlayerToAvatar(player, session, rig, mirrors) {
   applyPlayerTransformsToAvatar(player, session, rig);
   // applyPlayerMetaTransformsToAvatar(player, session, rig);
-
+  
   applyPlayerModesToAvatar(player, session, rig);
   applyPlayerActionsToAvatar(player, rig);
   applyPlayerEyesToAvatar(player, rig) || applyMirrorsToAvatar(player, rig, mirrors);
-
+  
   applyFacePoseToAvatar(player, rig);
   applyPlayerPoseToAvatar(player, rig);
 }

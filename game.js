@@ -24,7 +24,6 @@ import physicsManager from './physics-manager.js';
 import npcManager from './npc-manager.js';
 import raycastManager from './raycast-manager.js';
 import zTargeting from './z-targeting.js';
-window.zTargeting = zTargeting;
 import Avatar from './avatars/avatars.js';
 
 const localVector = new THREE.Vector3();
@@ -458,7 +457,6 @@ const _mouseup = () => {
   )) {
     _endUse();
   }
-  // isMouseUp = true;
 };
 
 const _grab = object => {
@@ -1014,23 +1012,6 @@ const _gameUpdate = (timestamp, timeDiff) => {
     crosshairEl.style.visibility = visible ? null : 'hidden';
   }
 
-  // const _updateUse = () => {
-  //   const useAction = localPlayer.getAction('use');
-  //   if (useAction) {
-  //     if (useAction.animation === 'pickUpThrow') {
-  //       const useTime = localPlayer.actionInterpolants.use.get();
-  //       if (useTime / 1000 >= throwAnimationDuration) {
-  //         _endUse();
-  //       }
-  //     } else if (isMouseUp) {
-  //       _endUse();
-  //     }
-
-  //   }
-  //   isMouseUp = false;
-  // };
-  // _updateUse();
-  
   const useAction = localPlayer.getAction('use');
   const isUsingSwords = useAction?.animation || useAction?.animationCombo?.length > 0;
   ioManager.setMovementEnabled(!(
@@ -1423,7 +1404,6 @@ class GameManager extends EventTarget {
     return localPlayer.hasAction('fly');
   }
   toggleFly() {
-    // debugger
     const localPlayer = getLocalPlayer();
     const flyAction = localPlayer.getAction('fly');
     if (flyAction) {
@@ -1722,6 +1702,7 @@ class GameManager extends EventTarget {
       lastUseIndex = 0;
     }
 
+    const localPlayer = getLocalPlayer();
     localPlayer.removeAction('dashAttack');
   }
   update = _gameUpdate;

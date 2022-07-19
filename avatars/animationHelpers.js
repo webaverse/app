@@ -442,8 +442,8 @@ export const _createAnimation = avatar => {
         } = spec;
 
         const interpolant = animation.interpolants[k];
-        physx.physxWorker.createInterpolant( // todo: only need createInterpolant once globally
-          animation.index, // todo: use ptr instead of index.
+        physx.physxWorker.createInterpolant(
+          animation.index,
           interpolant.parameterPositions,
           interpolant.sampleValues,
           interpolant.valueSize,
@@ -459,7 +459,7 @@ export const _createAnimation = avatar => {
 
   avatar.mixer = physx.physxWorker.createAnimationMixer();
 
-  // test ---
+  // util functions -------------------------------------------------------------
 
   avatar.createMotion = (animation, name) => {
     const motion = physx.physxWorker.createMotion(avatar.mixer, animation);
@@ -470,7 +470,7 @@ export const _createAnimation = avatar => {
         animation,
       });
     }
-    return motion; // todo: return object.
+    return motion;
   };
 
   avatar.createNode = (type, name) => {
@@ -482,7 +482,7 @@ export const _createAnimation = avatar => {
         type,
       });
     }
-    return node; // todo: return object.
+    return node;
   };
 
   if (isDebugger) {
@@ -499,11 +499,11 @@ export const _createAnimation = avatar => {
     };
 
     avatar.logActiveNodes = node => {
-      const children = window.physxWorker.getChildren(node);
+      const children = physxWorker.getChildren(node);
       let maxWeight = 0;
       let maxIndex = -1;
       children.forEach((child, i) => {
-        const weight = window.physxWorker.getWeight(child);
+        const weight = physxWorker.getWeight(child);
         if (weight > maxWeight) {
           maxWeight = weight;
           maxIndex = i;
@@ -522,8 +522,6 @@ export const _createAnimation = avatar => {
       }
     };
   }
-
-  // end test ---
 
   // create motions -------------------------------------------------------------
 
@@ -573,7 +571,7 @@ export const _createAnimation = avatar => {
   physx.physxWorker.setTimeBias(avatar.jumpMotion, 0.7);
   physx.physxWorker.setSpeed(avatar.jumpMotion, 0.6);
 
-  avatar.activateMotion = avatar.createMotion(activateAnimations.grab_forward.animation.ptr, 'activateMotion'); // todo: handle activateAnimations.grab_forward.speedFact, 'activateMotion'or
+  avatar.activateMotion = avatar.createMotion(activateAnimations.grab_forward.animation.ptr, 'activateMotion');
   physx.physxWorker.setLoop(avatar.activateMotion, AnimationLoopType.LoopOnce);
   physx.physxWorker.stop(avatar.activateMotion);
 
@@ -702,9 +700,7 @@ export const _createAnimation = avatar => {
   physx.physxWorker.addChild(avatar.bowDrawLooseNodoeTwo, avatar.useMotiono.bowDraw);
   physx.physxWorker.addChild(avatar.bowDrawLooseNodoeTwo, avatar.useMotiono.bowLoose);
 
-  // avatar.bowIdle8DDrawLooseNodeOverwrite = avatar.createNode(WebaverseAnimationNodeOverwrite, 'bowIdleDrawLoose', {filters: ['isTop']}); // js version
-  // avatar.bowIdle8DDrawLooseNodeOverwrite = avatar.createNode(AnimationNodeType.TWO); // ~~todo: NodeType.Overwrite~~
-  avatar.bowIdle8DDrawLooseNodeOverwrite = avatar.createNode(AnimationNodeType.OVERWRITE, 'bowIdle8DDrawLooseNodeOverwrite'); // todo: Selectable filters.
+  avatar.bowIdle8DDrawLooseNodeOverwrite = avatar.createNode(AnimationNodeType.OVERWRITE, 'bowIdle8DDrawLooseNodeOverwrite');
   physx.physxWorker.addChild(avatar.bowIdle8DDrawLooseNodeOverwrite, avatar.idle8DBowNodeTwo);
   physx.physxWorker.addChild(avatar.bowIdle8DDrawLooseNodeOverwrite, avatar.bowDrawLooseNodoeTwo);
 
@@ -723,9 +719,9 @@ export const _createAnimation = avatar => {
   physx.physxWorker.addChild(avatar.actionsNodeUnitary, avatar.activateMotion);
   // useMotiono
   physx.physxWorker.addChild(avatar.actionsNodeUnitary, avatar.useMotiono.drink);
-  // // sword
+  // sword
   physx.physxWorker.addChild(avatar.actionsNodeUnitary, avatar.useMotiono.combo);
-  // // silsword combo
+  // silsword combo
   physx.physxWorker.addChild(avatar.actionsNodeUnitary, avatar.useMotiono.swordSideSlash);
   physx.physxWorker.addChild(avatar.actionsNodeUnitary, avatar.useMotiono.swordSideSlashStep);
   physx.physxWorker.addChild(avatar.actionsNodeUnitary, avatar.useMotiono.swordTopDownSlash);
@@ -755,17 +751,6 @@ export const _createAnimation = avatar => {
   //
 
   physx.physxWorker.setRootNode(avatar.mixer, avatar.groundFlyNodeTwo);
-  // test ------
-  // physx.physxWorker.setRootNode(avatar.mixer, avatar.useMotiono.bowDraw);
-  // physx.physxWorker.setRootNode(avatar.mixer, avatar.bowDrawLooseNodoeTwo);
-  // physx.physxWorker.setRootNode(avatar.mixer, avatar.bowIdle8DDrawLooseNodeOverwrite);
-  // physx.physxWorker.setRootNode(avatar.mixer, avatar.idle8DWalkRun_BowIdle8DDrawLooseNodeTwo);
-  // end test ------
-
-  // --------------------------------------------------------------------------
-
-  // avatar.mixer.addEventListener('finished', event => {
-  // });
 };
 
 export const _updateAnimation = avatar => {
@@ -827,7 +812,6 @@ export const _updateAnimation = avatar => {
   // action end event --------------------------------------------
 
   if (avatar.flyEnd) {
-    // physx.physxWorker.crossFadeUnitary(avatar.actionsNodeUnitary, 0.2, avatar.defaultNodeTwo);
     physx.physxWorker.crossFadeTwo(avatar.groundFlyNodeTwo, 0.2, 0);
   }
   if (avatar.jumpEnd) {
@@ -874,7 +858,6 @@ export const _updateAnimation = avatar => {
   // action start event --------------------------------------------
 
   if (avatar.flyStart) {
-    // physx.physxWorker.crossFadeUnitary(avatar.actionsNodeUnitary, 0.2, avatar.idle8DFlyNodeTwo);
     physx.physxWorker.crossFadeTwo(avatar.groundFlyNodeTwo, 0.2, 1);
   }
 
@@ -941,8 +924,7 @@ export const _updateAnimation = avatar => {
   }
 
   // do update
-  const values = window.physx.physxWorker.updateAnimationMixer(avatar.mixer, timeS);
-  // debugger
+  const values = physx.physxWorker.updateAnimationMixer(avatar.mixer, timeS);
   let index = 0;
   for (const spec of avatar.animationMappings) {
     const {
@@ -970,17 +952,9 @@ export const _updateAnimation = avatar => {
 
   // finished event
   const finishedFlag = values[53];
-  // console.log(finishedFlag)
   if (finishedFlag) {
-    // debugger
     const motion = values[54];
     if (isDebugger) console.log('---finished', avatar.getMotion(motion));
-    // this.dispatchEvent({
-    //   type: 'finished',
-    //   motion,
-    // });
-    // debugger;
-    // console.log('finished');
 
     const handleAnimationEnd = (motion, trigger) => {
       if ([

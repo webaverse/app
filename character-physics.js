@@ -43,7 +43,6 @@ class CharacterPhysics {
     this.player = player;
 
     this.velocity = new THREE.Vector3();
-    // this.lastGroundedTime = 0;
     this.lastGrounded = null;
     this.sitOffset = new THREE.Vector3();
    
@@ -144,27 +143,9 @@ class CharacterPhysics {
 
         const jumpAction = this.player.getAction('jump');
         const flyAction = this.player.getAction('fly');
-        // todo: add air state/action ?
-
-        // const _ensureJumpAction = () => {
-        //   if (!jumpAction) {
-        //     const newJumpAction = {
-        //       type: 'jump',
-        //       time: 0,
-        //     };
-        //     this.player.addAction(newJumpAction);
-        //   } else {
-        //     jumpAction.set('time', 0);
-        //   }
-        // };
-        // const _ensureNoJumpAction = () => {
-        //   this.player.removeAction('jump');
-        // };
 
         if (grounded) {
-          // this.player.removeAction('fly');
           this.player.removeAction('jump');
-          // this.lastGroundedTime = now;
 
           this.velocity.y = -1;
         } else {
@@ -172,21 +153,6 @@ class CharacterPhysics {
             this.player.setControlAction({type: 'jump'});
           }
         }
-
-        // if (!jumpAction) {
-        //   const lastGroundedTimeDiff = now - this.lastGroundedTime;
-        //   if (lastGroundedTimeDiff <= 100) {
-        //     _ensureNoJumpAction();
-        //   } else {
-        //     _ensureJumpAction();
-          
-        //     this.velocity.y = 0;
-        //   }
-        // } else {
-        //   if (grounded) {
-        //     _ensureNoJumpAction();
-        //   }
-        // }
       } else {
         //Outdated vehicle code
         this.velocity.y = 0;
@@ -223,7 +189,6 @@ class CharacterPhysics {
             )
             .premultiply(localQuaternion2.setFromAxisAngle(localVector3.set(0, 1, 0), Math.PI));
         }
-        // controlledApp.position.y = 0; // test
         controlledApp.updateMatrixWorld();
 
         localMatrix.copy(sitPos.matrixWorld)
