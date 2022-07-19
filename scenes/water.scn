@@ -41,7 +41,7 @@
         0,
         0
       ],
-      "start_url": "https://webaverse.github.io/atmospheric-sky/"
+      "start_url": "http://localhost/lib/webaverse_resource/atmospheric-sky/"
     },
     {
       "position": [
@@ -49,7 +49,15 @@
         0,
         0
       ],
-      "start_url": "https://webaverse.github.io/water/"
+      "start_url": "http://localhost/lib/webaverse_resource/water/"
+    },
+    {
+      "position": [
+        0,
+        0,
+        0
+      ],
+      "start_url": "http://localhost/lib/webaverse_resource/dual-contouring-terrain/"
     }
   ]
 }
