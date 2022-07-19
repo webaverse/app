@@ -640,10 +640,10 @@ class StatePlayer extends PlayerBase {
   }
   // serializers
   getPosition() {
-    return localArray3.fromArray(this.playerMap.get('transform'));
+    return this.position.toArray(localArray3) ?? [0, 0, 0];
   }
   getQuaternion() {
-    return localArray3.fromArray(this.playerMap.get('transform'), 3);
+    return this.quaternion.toArray(localArray4) ?? [0, 0, 0, 1];
   }
   async syncAvatar() {
     if (this.syncAvatarCancelFn) {
@@ -1089,10 +1089,6 @@ class LocalPlayer extends UninterpolatedPlayer {
         actions.push([oldAction]);
       }
       
-      if (oldAvatar !== undefined && oldAvatar !== null && oldAvatar !== '') {
-        this.playerMap.set('avatar', oldAvatar);
-      }
-      
       const apps = self.getAppsState();
       for (const oldApp of oldApps) {
         const mapApp = new Z.Map();
@@ -1101,6 +1097,10 @@ class LocalPlayer extends UninterpolatedPlayer {
           mapApp.set(k, v);
         }
         apps.push([mapApp]);
+      }
+
+      if (oldAvatar !== undefined && oldAvatar !== null && oldAvatar !== '') {
+        this.playerMap.set('avatar', oldAvatar);
       }
     });
     
