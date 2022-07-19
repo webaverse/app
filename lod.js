@@ -1,13 +1,12 @@
 import * as THREE from 'three';
-// import {camera} from './renderer.js';
+import {scene, camera} from './renderer.js';
 import {defaultChunkSize} from './constants.js';
 import {abortError} from './lock-manager.js';
 import {makePromise} from './util.js';
-// import dcWorkerManager from './dc-worker-manager.js';
 
 const localVector = new THREE.Vector3();
-// const localVector2 = new THREE.Vector3();
-// const localVector3 = new THREE.Vector3();
+const localVector2 = new THREE.Vector3();
+const localVector3 = new THREE.Vector3();
 // const localVector4 = new THREE.Vector3();
 // const localVector5 = new THREE.Vector3();
 // const localQuaternion = new THREE.Quaternion();
@@ -15,71 +14,16 @@ const localVector = new THREE.Vector3();
 
 // const onesLodsArray = new Array(8).fill(1);
 
-// const nop = () => {};
-
-class Dominator extends EventTarget {
-  constructor(base, onload) {
-    super();
-
-    this.base = base;
-    this.onload = onload;
-    this.oldChunks = [];
-    this.newChunks = [];
-
-    this.unlistens = [];
-  }
-  start() {
-    const renderDatas = Array(this.newChunks.length);
-    const _done = () => {
-      this.onload(renderDatas);
-    };
-
-    if ( // if clearing old chunks
-      this.oldChunks.length > 0 &&
-      this.newChunks.length === 0
-    ) {
-      // delete immediately
-      _done();
-    } else { // else if not clearing old chunks
-      let pendingWaits = 0;
-      for (let i = 0; i < this.newChunks.length; i++) {
-        const chunk = this.newChunks[i];
-        if (chunk.dataRequest.renderData === undefined) {
-          pendingWaits++;
-          // console.log('pending waits add', pendingWaits);
-          const onload = e => {
-            const {renderData} = e.data;
-            renderDatas[i] = renderData;
-
-            if (--pendingWaits === 0) {
-              _done();
-            }
-          };
-          chunk.addEventListener('load', onload);
-          this.unlistens.push(() => {
-            chunk.removeEventListener('load', onload);
-          });
-        } else {
-          renderDatas[i] = chunk.dataRequest.renderData;
-        }
-      }
-    }
-  }
-  cancel() {
-    for (const unlisten of this.unlistens) {
-      unlisten();
-    }
-  }
-}
+const nop = () => {};
 
 class OctreeNode extends EventTarget {
-  constructor(min = new THREE.Vector3(), lod = 1, isLeaf = true, lodArray = new Int32Array(8).fill(-1)) {
+  constructor(min, lod, isLeaf) {
     super();
     
     this.min = min;
     this.lod = lod;
     this.isLeaf = isLeaf;
-    this.lodArray = lodArray;
+    this.lodArray = Array(8).fill(-1);
 
     this.children = Array(8).fill(null);
   }
@@ -92,10 +36,7 @@ class OctreeNode extends EventTarget {
     return this.containsPoint(node.min);
   }
   equalsNode(p) {
-    return p.min.x === this.min.x && p.min.y === this.min.y && p.min.z === this.min.z;
-  }
-  equalsNodeLod(p) {
-    return this.equalsNode(p) &&
+    return p.min.x === this.min.x && p.min.y === this.min.y && p.min.z === this.min.z &&
       p.lodArray.every((lod, i) => lod === this.lodArray[i]);
   }
   intersectsNode(p) {
@@ -191,6 +132,43 @@ const constructOctreeForLeaf = (position, lod1Range, maxLod) => {
     }
   }
 
+  /* // fill in missing children that are in the lod1Range
+  const _ensureChildrenDownToLod1 = node => {
+    const lodMin = node.min;
+    const lod = node.lod;
+    if (lod === 1) {
+      return;
+    }
+    node.isLeaf = false;
+    for (let dx = 0; dx < 2; dx++) {
+      for (let dy = 0; dy < 2; dy++) {
+        for (let dz = 0; dz < 2; dz++) {
+            const childIndex = dx + 2 * (dy + 2 * dz);
+            if (node.children[childIndex] === null) {
+              const childNode = _createNode(
+                lodMin.clone().add(
+                  new THREE.Vector3(dx, dy, dz).multiplyScalar(lod / 2)
+                ),
+                lod / 2,
+                true
+              );
+              node.children[childIndex] = childNode;
+              _ensureChildrenDownToLod1(childNode);
+            }
+        }
+      }
+    }
+  };
+  for (let node of nodeMap.values()) {
+    if (
+      node.min.x >= rangeMin.x && node.min.x < rangeMax.x &&
+      node.min.y >= rangeMin.y && node.min.y < rangeMax.y &&
+      node.min.z >= rangeMin.z && node.min.z < rangeMax.z
+    ) {
+      _ensureChildrenDownToLod1(node);
+    }
+  } */
+
   const rootNodes = [];
   for (const node of nodeMap.values()) {
     if (node.lod === maxLod) {
@@ -267,65 +245,62 @@ const constructOctreeForLeaf = (position, lod1Range, maxLod) => {
     });
   }
 
-  return leafNodes;
-};
-const equalsNode = (a, b) => {
-  return a.min.equals(b.min) && a.lod === b.lod;
-};
-const equalsNodeLod = (a, b) => {
-  return equalsNode(a, b) && a.lodArray.every((lod, i) => lod === b.lodArray[i]);
-};
-const containsPoint = (a, p) => {
-  return p.x >= a.min.x && p.x < a.min.x + a.lod &&
-    p.y >= a.min.y && p.y < a.min.y + a.lod &&
-    p.z >= a.min.z && p.z < a.min.z + a.lod;
-};
-/* const containsNode = (a, node) => {
-  return containsPoint(a, node.min);
-}; */
-const findLeafNodeForPosition = (nodes, p) => {
-  for (const node of nodes) {
-    if (containsPoint(node, p)) {
-      return node;
-    }
-  }
-  return null;
-};
-const isNop = taskSpec => {
-  // console.log('is nop', taskSpec);
-  return taskSpec.newNodes.length === taskSpec.oldNodes.length && taskSpec.newNodes.every(newNode => {
-    return taskSpec.oldNodes.some(oldNode => equalsNodeLod(oldNode, newNode));
-  });
+  return {
+    rootNodes,
+    lod1Nodes,
+    leafNodes,
+    remapNodes(nodes) {
+      for (let i = 0; i < nodes.length; i++) {
+        const node = nodes[i];
+        const hash = _octreeNodeMinHash(node.min, node.lod);
+        const otherNode = nodeMap.get(hash);
+        if (otherNode) {
+          nodes[i] = otherNode;
+        }
+      }
+    },
+    getOutrangedNodes(nodes) {
+      const remainderNodes = [];
+      for (let i = 0; i < nodes.length; i++) {
+        const node = nodes[i];
+        const hash = _octreeNodeMinHash(node.min, node.lod);
+        const otherNode = nodeMap.get(hash);
+        if (!otherNode) {
+          remainderNodes.push(node);
+        }
+      }
+      return remainderNodes;
+    },
+  };
 };
 class Task extends EventTarget {
-  constructor(id, maxLodNode, type, newNodes = [], oldNodes = []) {
+  constructor(maxLodNode) {
     super();
 
-    this.id = id;
     this.maxLodNode = maxLodNode;
-    this.type = type;
-    this.newNodes = newNodes;
-    this.oldNodes = oldNodes;
+    
+    this.newNodes = [];
+    this.oldNodes = [];
 
     this.abortController = new AbortController();
     this.signal = this.abortController.signal;
   }
-  /* equals(t) {
+  equals(t) {
     return this.newNodes.length === this.oldNodes.length && this.newNodes.every(node => {
       return t.newNodes.some(node2 => node.equalsNode(node2));
     }) && this.oldNodes.every(node => {
       return t.oldNodes.some(node2 => node.equalsNode(node2));
     });
-  } */
+  }
   cancel() {
     this.abortController.abort(abortError);
   }
-  /* isNop() {
+  isNop() {
     const task = this;
     return task.newNodes.length === task.oldNodes.length && task.newNodes.every(newNode => {
-      return task.oldNodes.some(oldNode => equalsNode(oldNode, newNode));
+      return task.oldNodes.some(oldNode => oldNode.equalsNode(newNode));
     });
-  } */
+  }
   commit() {
     this.dispatchEvent(new MessageEvent('finish'));
   }
@@ -339,7 +314,7 @@ class Task extends EventTarget {
     return p;
   }
 }
-/* const diffLeafNodes = (newLeafNodes, oldLeafNodes) => {
+const diffLeafNodes = (newLeafNodes, oldLeafNodes) => {
   // map from min lod hash to task containing new nodes and old nodes
   const taskMap = new Map();
 
@@ -377,6 +352,22 @@ class Task extends EventTarget {
 
   let tasks = Array.from(taskMap.values());
   return tasks;
+  /* const newTasks = [];
+  const keepTasks = [];
+  for (const task of tasks) {
+    const isNopTask = task.newNodes.length === task.oldNodes.length && task.newNodes.every(newNode => {
+      return task.oldNodes.some(oldNode => oldNode.equalsNode(newNode));
+    });
+    if (isNopTask) {
+      keepTasks.push(task);
+    } else {
+      newTasks.push(task);
+    }
+  }
+  return {
+    newTasks,
+    keepTasks,
+  }; */
 };
 // sort tasks by distance to world position of the central max lod node
 const sortTasks = (tasks, worldPosition) => {
@@ -393,96 +384,7 @@ const sortTasks = (tasks, worldPosition) => {
     return a.distance - b.distance;
   });
   return taskDistances.map(taskDistance => taskDistance.task);
-}; */
-
-class DataRequest {
-  constructor(node) {
-    this.node = node;
-
-    this.abortController = new AbortController();
-    this.signal = this.abortController.signal;
-
-    this.loadPromise = makePromise();
-
-    this.node.dataRequest = this;
-
-    this.renderData = undefined;
-    this.loadPromise.then(renderData => {
-      this.renderData = renderData;
-      this.node.dispatchEvent(new MessageEvent('load', {
-        data: {
-          renderData,
-        },
-      }));
-    }, err => {
-      const renderData = null;
-      this.renderData = renderData;
-      this.node.dispatchEvent(new MessageEvent('load', {
-        data: {
-          renderData,
-        },
-      }));
-    });
-  }
-  replaceNode(node) {
-    this.node = node;
-    this.node.dataRequest = this;
-  }
-  cancel() {
-    // console.log('cancel data request');
-    this.abortController.abort(abortError);
-  }
-  waitForLoad() {
-    return this.loadPromise;
-  }
-  waitUntil(p) {
-    p.then(result => {
-      this.loadPromise.accept(result);
-    }).catch(err => {
-      this.loadPromise.reject(err);
-    });
-  }
-}
-
-//
-
-class TrackerQueue {
-  constructor() {
-    this.position = new THREE.Vector3();
-    this.quaternion = new THREE.Quaternion();
-    this.projectionMatrix = new THREE.Matrix4();
-  }
-}
-
-//
-
-/* const TrackerTaskTypes = {
-  ADD: 1,
-  REMOVE: 2,
-  OUTRANGE: 3,
-}; */
-/* const updateChunks = (oldChunks, tasks) => {
-  const newChunks = oldChunks.slice();
-  
-  for (const task of tasks) {
-    if (!isNop(task) && task.type != TrackerTaskTypes.OUTRANGE) {
-      let {newNodes, oldNodes} = task;
-      for (const oldNode of oldNodes) {
-        const index = newChunks.findIndex(chunk => equalsNode(chunk, oldNode));
-        if (index !== -1) {
-          newChunks.splice(index, 1);
-        } else {
-          debugger;
-        }
-      }
-      newChunks.push(...newNodes);
-    }
-  }
-
-  // console.log('update chunks', oldChunks.length, tasks.length, newChunks.length);
-
-  return newChunks;
-}; */
+};
 
 /*
 note: the nunber of lods at each level can be computed with this function:
@@ -552,38 +454,20 @@ export class LodChunkTracker extends EventTarget {
     lods = 1,
     minLodRange = 2,
     trackY = false,
-    sort = false,
-    dcWorkerManager = null,
     debug = false,
   } = {}) {
     super();
-
-    // console.log('got lod chunk tracker', new Error().stack);
 
     this.chunkSize = chunkSize;
     this.lods = lods;
     this.minLodRange = minLodRange;
     this.trackY = trackY;
-    this.sort = sort;
-    this.dcWorkerManager = dcWorkerManager;
 
-    this.dcTracker = null;
     this.chunks = [];
-    this.displayChunks = []; // for debug mesh
-    this.renderedChunks = new Map(); // hash -> OctreeNode
-    this.dataRequests = new Map(); // hash -> DataRequest
-    this.dominators = new Map(); // hash -> OctreeNode
     this.lastUpdateCoord = new THREE.Vector3(NaN, NaN, NaN);
 
-    this.isUpdating = false;
-    this.queued = false;
-    this.queue = new TrackerQueue();
-    
-    this.lastOctreeLeafNodes = [];
-    this.liveTasks = [];
-
     if (debug) {
-      const maxChunks = 4096;
+      const maxChunks = 512;
       const instancedCubeGeometry = new THREE.InstancedBufferGeometry();
       {
         const cubeGeometry = new THREE.BoxBufferGeometry(1, 1, 1)
@@ -602,23 +486,26 @@ export class LodChunkTracker extends EventTarget {
       const debugMesh = new THREE.InstancedMesh(instancedCubeGeometry, redMaterial, maxChunks);
       debugMesh.count = 0;
       debugMesh.frustumCulled = false;
+      // scene.add(debugMesh);
+      // window.debugMesh = debugMesh;
       this.debugMesh = debugMesh;
 
       {
         const localVector = new THREE.Vector3();
-        // const localVector2 = new THREE.Vector3();
+        const localVector2 = new THREE.Vector3();
         const localVector3 = new THREE.Vector3();
         const localQuaternion = new THREE.Quaternion();
         const localMatrix = new THREE.Matrix4();
         const localColor = new THREE.Color();
 
+        // const chunks = [];
+        // const removedChunks = [];
         const _getChunkColorHex = chunk => {
-          const {lod} = chunk;
-          if (lod === 1) {
+          if (chunk.lod === 1) {
             return 0xFF0000;
-          } else if (lod === 2) {
+          } else if (chunk.lod === 2) {
             return 0x00FF00;
-          } else if (lod === 4) {
+          } else if (chunk.lod === 4) {
             return 0x0000FF;
           } else {
             return 0x0;
@@ -626,30 +513,70 @@ export class LodChunkTracker extends EventTarget {
         };
         const _flushChunks = () => {
           debugMesh.count = 0;
-          for (let i = 0; i < this.displayChunks.length; i++) {
-            const chunk = this.displayChunks[i];
-            localMatrix.compose(
-              localVector.copy(chunk.min)
-                .multiplyScalar(this.chunkSize),
-                // .add(localVector2.set(0, -60, 0)),
-              localQuaternion.identity(),
-              localVector3.set(1, 1, 1)
-                .multiplyScalar(chunk.lod * this.chunkSize * 0.9)
-            );
-            localColor.setHex(_getChunkColorHex(chunk));
-            // console.log('got chunk', chunk, localMatrix.toArray().join(','), _getChunkColorHex(chunk));
-            debugMesh.setMatrixAt(debugMesh.count, localMatrix);
-            debugMesh.setColorAt(debugMesh.count, localColor);
-            debugMesh.count++;
+          for (let i = 0; i < this.chunks.length; i++) {
+            const chunk = this.chunks[i];
+            // if (chunk.lod === 2) {
+              localMatrix.compose(
+                localVector.copy(chunk.min)
+                  .multiplyScalar(this.chunkSize),
+                  // .add(localVector2.set(0, -60, 0)),
+                localQuaternion.identity(),
+                localVector3.set(1, 1, 1)
+                  .multiplyScalar(chunk.lod * this.chunkSize * 0.9)
+              );
+              localColor.setHex(_getChunkColorHex(chunk));
+              debugMesh.setMatrixAt(debugMesh.count, localMatrix);
+              debugMesh.setColorAt(debugMesh.count, localColor);
+              debugMesh.count++;
+            // }
           }
           debugMesh.instanceMatrix.needsUpdate = true;
           debugMesh.instanceColor && (debugMesh.instanceColor.needsUpdate = true);
+          // debugMesh.count = chunks.length;
         };
-        this.addEventListener('update', e => {
+        /* this.addEventListener('chunkadd', e => {
+          try {
+            const {chunk} = e.data;
+            chunks.push(chunk);
+            _flushChunks();
+          } catch(err) {
+            console.warn(err);
+          }
+        });
+        this.addEventListener('chunkremove', e => {
+          const {chunk} = e.data;
+          const index = chunks.indexOf(chunk);
+          chunks.splice(index, 1);
           _flushChunks();
+        }); */
+        this.addEventListener('chunkrelod', e => {
+          const {task} = e.data;
+          let {newNodes, oldNodes} = task;
+          for (const oldNode of oldNodes) {
+            const index = this.chunks.findIndex(chunk => chunk.equalsNode(oldNode));
+            if (index !== -1) {
+              // const oldChunk = chunks[index];
+              // removedChunks.push(oldChunk);
+              this.chunks.splice(index, 1);
+            } else {
+              debugger;
+            }
+          }
+          this.chunks.push(...newNodes);
+          _flushChunks();
+          /* const {newChunk, oldChunks} = e.data;
+          for (const oldChunk of oldChunks) {
+            const index = chunks.indexOf(oldChunk);
+            chunks.splice(index, 1);
+          }
+          chunks.push(newChunk);
+          _flushChunks(); */
         });
       }
     }
+
+    this.lastOctree = null;
+    this.liveTasks = [];
   }
   #getCurrentCoord(position, target) {
     const cx = Math.floor(position.x / this.chunkSize);
@@ -658,40 +585,41 @@ export class LodChunkTracker extends EventTarget {
     return target.set(cx, cy, cz);
   }
   emitChunkDestroy(chunk) {
-    // const hash = chunk.min.toArray().join(',') + ':' + chunk.lod; // _octreeNodeMinHash(chunk.min, chunk.lod);
-    this.dispatchEvent(new MessageEvent('destroy', {
-      data: {
-        node: chunk,
-      }
-    }));
+    const hash = chunk.min.toArray().join(','); // _octreeNodeMinHash(chunk.min, chunk.lod);
+    this.dispatchEvent(new MessageEvent('destroy.' + hash));
   }
   listenForChunkDestroy(chunk, fn) {
-    // const hash = chunk.min.toArray().join(',') + ':' + chunk.lod; // _octreeNodeMinHash(chunk.min, chunk.lod);
-    const destroy = e => {
-      if (e.data.node.min.equals(chunk)) {
-        fn(e);
-        this.removeEventListener('destroy', destroy);
-      }
-    };
-    this.addEventListener('destroy', destroy);
+    const hash = chunk.min.toArray().join(','); // _octreeNodeMinHash(chunk.min, chunk.lod);
+    this.addEventListener('destroy.' + hash, e => {
+      fn(e);
+    }, {once: true});
   }
-  /* updateCoord(currentCoord) {
-    const octreeLeafNodes = constructOctreeForLeaf(currentCoord, this.minLodRange, 2 ** (this.lods - 1));
+  updateCoord(currentCoord) {
+    const octree = constructOctreeForLeaf(currentCoord, this.minLodRange, 2 ** (this.lods - 1));
 
-    let tasks = diffLeafNodes(
-      octreeLeafNodes,
-      this.lastOctreeLeafNodes,
-    );
-
-    const {
-      chunks,
-      extraTasks,
-    } = updateChunks(this.chunks, tasks);
-    this.chunks = chunks;
-    tasks.push(...extraTasks);
-
+    let tasks = diffLeafNodes(octree.leafNodes, this.lastOctree ? this.lastOctree.leafNodes : []);
     sortTasks(tasks, camera.position);
-
+    
+    // if (lastOctree) {
+      /* for (const task of newTasks) {
+        lastOctree.remapNodes(task.newNodes);
+        lastOctree.remapNodes(task.oldNodes);
+      }
+      for (const task of keepTasks) {
+        lastOctree.remapNodes(task.newNodes);
+        lastOctree.remapNodes(task.oldNodes);
+      } */
+      /* for (const lastTask of lastTasks) {
+        const outrangedNodes = octree.getOutrangedNodes(lastTask.newNodes);
+        for (const node of outrangedNodes) {
+          node.destroy();
+        }
+      } */
+    // }
+    // const newTasks = [];
+    // const keepTasks = [];
+    // const cancelTasks = [];
+    // console.log('check tasks', tasks.length);
     for (let i = 0; i < tasks.length; i++) {
       const task = tasks[i];
       if (!task.isNop()) {
@@ -704,8 +632,33 @@ export class LodChunkTracker extends EventTarget {
       }
     }
 
+    // cancel all non-keep tasks
+    // const canceledTasks = [];
+    /* for (const oldTask of lastTasks) {
+      if (newTasks.some(newTask => {
+        return newTask.maxLodNode.containsNode(oldTask.maxLodNode);
+      })) {
+        const replacedNodes = oldTask.newNodes.filter(oldNode => {
+           return newTasks.some(newTask => newTask.oldNodes.some(oldNode2 => oldNode2.equalsNode(oldNode)));
+        });
+        if (replacedNodes.length !== oldTask.newNodes.length) {
+          debugger;
+        }
+      }
+      if (!keepTasks.some(keepTask => keepTask.maxLodNode.containsNode(oldTask.maxLodNode))) {
+        oldTask.cancel();
+        // canceledTasks.push(task);
+      }
+    } */
+    /* for (const cancelTask of cancelTasks) {
+      cancelTask.cancel();
+    } */
+
+    const oldChunks = this.chunks.slice();
+    const validTasks = [];
     for (const task of tasks) {
       if (!task.isNop()) {
+        validTasks.push(task);
         this.dispatchEvent(new MessageEvent('chunkrelod', {
           data: {
             task,
@@ -713,17 +666,48 @@ export class LodChunkTracker extends EventTarget {
         }));
       }
     }
+    if (tasks.length != 0){
+      let oldNodes = [];
+      let newNodes = [];
+      
+      validTasks.forEach(tsk => {
+        oldNodes = oldNodes.concat(tsk.oldNodes);
+        newNodes =newNodes.concat(tsk.newNodes);
+      });
+      let task = new Task();
+      task.oldNodes = oldNodes;
+      task.newNodes = newNodes;
+      this.dispatchEvent(new MessageEvent('blockchunkrelod', {
+        data: {
+          task,
+        },
+      }));
+    }
+    const newChunks = this.chunks.slice();
+    /* const newChunkRange = new THREE.Box3(
+      new THREE.Vector3(Infinity, Infinity, Infinity),
+      new THREE.Vector3(-Infinity, -Infinity, -Infinity),
+    ); */
+    /* for (const newChunk of newChunks) {
+      newChunkRange.min.min(newChunk.min);
+      newChunkRange.max.max(newChunk.min.clone().add(new THREE.Vector3(1, 1, 1).multiplyScalar(newChunk.lod)));
+    } */
+    for (const oldChunk of oldChunks) {
+      if (!newChunks.some(newChunk => newChunk.min.equals(oldChunk.min))) {
+        this.emitChunkDestroy(oldChunk);
+      }
+    }
 
-    this.lastOctreeLeafNodes = octreeLeafNodes;
-
-    this.dispatchEvent(new MessageEvent('update'));
-  } */
+    this.lastOctree = octree;
+  }
   async waitForLoad() {
     // console.log('wait for live tasks 1', this.liveTasks.length);
     await Promise.all(this.liveTasks.map(task => task.waitForLoad()));
     // console.log('wait for live tasks 2', this.liveTasks.length);
   }
-  /* update(position) {
+  update(position) {
+    // if (this.range) throw new Error('lod tracker has range and cannot be updated manually');
+
     const currentCoord = this.#getCurrentCoord(position, localVector).clone();
 
     // if we moved across a chunk boundary, update needed chunks
@@ -731,251 +715,60 @@ export class LodChunkTracker extends EventTarget {
       this.updateCoord(currentCoord);
       this.lastUpdateCoord.copy(currentCoord);
     }
-  } */
-  async ensureTracker() {
-    if (!this.dcTracker) {
-      this.dcTracker = await this.dcWorkerManager.createTracker(this.lods, this.minLodRange, this.trackY);
-    }
   }
-  sortInternal(position, quaternion, projectionMatrix) {
-    /* window.sortDirection = new THREE.Vector3(0, 0, -1)
-      .applyQuaternion(quaternion);
-    window.sortPosition = position.clone(); */
-    this.dcWorkerManager.setCamera(
-      position,
-      quaternion,
-      projectionMatrix
-    );
-  }
-  async updateInternal(position) {
-    await this.ensureTracker();
-
-    const trackerUpdateSpec = await this.dcWorkerManager.trackerUpdate(this.dcTracker, position);
-    let {
-      // currentCoord,
-      // oldTasks,
-      // newTasks,
-      leafNodes,
-    } = trackerUpdateSpec;
-
-    const _parseNode = (nodeSpec) => {
-      const {min, size: lod, isLeaf, lodArray} = nodeSpec;
-      return new OctreeNode(
-        new THREE.Vector3().fromArray(min),
-        lod,
-        isLeaf,
-        lodArray
-      );
+  /* async render(renderSpec) {
+    const waitPromises = [];
+    const waitUntil = p => {
+      waitPromises.push(p);
     };
-    /* const _parseTask = (taskSpec) => {
-      // console.log('parse task', taskSpec);
-      const {id, type} = taskSpec;
-      const newNodes = taskSpec.newNodes.map(newNode => _parseNode(newNode));
-      const oldNodes = taskSpec.oldNodes.map(oldNode => _parseNode(oldNode));
-      return new Task(
-        id,
-        _parseNode(taskSpec),
-        type,
-        newNodes,
-        oldNodes,
-      );
-    }; */
-    // oldTasks = oldTasks.map(_parseTask);
-    // newTasks = newTasks.map(_parseTask);
-    /* if (leafNodes.length === 0) {
-      debugger;
-    } */
-    leafNodes = leafNodes.map(_parseNode);
 
-    // debug mesh
-    this.displayChunks = leafNodes;
-
-    // data requests
-    {
-      // cancel old data requests
-      const oldDataRequests = Array.from(this.dataRequests.entries());
-      for (const [hash, oldDataRequest] of oldDataRequests) {
-        const matchingLeafNode = leafNodes.find(leafNode => {
-          return equalsNodeLod(leafNode, oldDataRequest.node)
-        });
-        if (matchingLeafNode) {
-          // keep the data request
-          oldDataRequest.replaceNode(matchingLeafNode);
-        } else {
-          // cancel the data request
-          oldDataRequest.cancel();
-          // forget the data request
-          this.dataRequests.delete(hash);
-        }
-      }
-
-      // add new data requests
-      for (const chunk of leafNodes) {
-        const hash = chunk.min.toArray().join(',') + ':' + chunk.lod;
-        if (!this.dataRequests.has(hash)) {
-          const dataRequest = new DataRequest(chunk);
-          const {signal} = dataRequest;
-          let waited = false;
-
-          const chunkDataRequestEvent = new MessageEvent('chunkdatarequest', {
-            data: {
-              chunk,
-              waitUntil(promise) {
-                /* const stack = new Error().stack;
-                promise.then(r => {
-                  if (r === null) {
-                    console.log('promise stack', stack);
-                    debugger;
-                  }
-                }); */
-                dataRequest.waitUntil(promise);
-                waited = true;
-              },
-              signal,
-            },
-          });
-          this.dispatchEvent(chunkDataRequestEvent);
-
-          if (!waited) {
-            dataRequest.waitUntil(Promise.resolve({
-              unwaited: true,
-            }));
-          }
-          this.dataRequests.set(hash, dataRequest);
-        }
-      }
-    }
-
-    // compute dominators. a dominator is a chunk lod that contains a a transform from old chunks to new chunks.
-    for (const dominator of this.dominators.values()) {
-      dominator.cancel();
-    }
-    this.dominators.clear();
-    {
-      const oldRenderedChunks = Array.from(this.renderedChunks.values());
-      const newRenderedChunks = Array.from(this.dataRequests.values()).map(dataRequest => dataRequest.node);
-      const addChunk = (chunk, isNew) => {
-        const oldLeafNode = findLeafNodeForPosition(oldRenderedChunks, chunk.min);
-        const newLeafNode = findLeafNodeForPosition(newRenderedChunks, chunk.min);
-        let maxLodChunk;
-        if (oldLeafNode && newLeafNode) {
-          maxLodChunk = oldLeafNode.lod > newLeafNode.lod ? oldLeafNode : newLeafNode;
-        } else if (oldLeafNode) {
-          maxLodChunk = oldLeafNode;
-        } else if (newLeafNode) {
-          maxLodChunk = newLeafNode;
-        } else {
-          throw new Error('no chunk match in any leaf set');
-        }
-
-        const maxLodHash = maxLodChunk.min.toArray().join(',') + ':' + maxLodChunk.lod;
-        let dominator = this.dominators.get(maxLodHash);
-        if (!dominator) {
-          dominator = new Dominator(maxLodChunk, renderDatas => {
-            for (const oldChunk of dominator.oldChunks) {
-              const chunkRemoveEvent = new MessageEvent('chunkremove', {
-                data: {
-                  chunk: oldChunk,
-                },
-              });
-              this.dispatchEvent(chunkRemoveEvent);
-   
-              const hash = oldChunk.min.toArray().join(',') + ':' + oldChunk.lod;
-              this.renderedChunks.delete(hash);
-            }
-            for (let i = 0; i < dominator.newChunks.length; i++) {
-              const newChunk = dominator.newChunks[i];
-              const renderData = renderDatas[i];
-              // console.log('add chunk', newChunk);
-
-              const chunkAddEvent = new MessageEvent('chunkadd', {
-                data: {
-                  renderData,
-                  chunk: newChunk,
-                },
-              });
-              this.dispatchEvent(chunkAddEvent);
-
-              const hash = newChunk.min.toArray().join(',') + ':' + newChunk.lod;
-              this.renderedChunks.set(hash, newChunk);
-            }
-          });
-          this.dominators.set(maxLodHash, dominator);
-        }
-        if (isNew) {
-          dominator.newChunks.push(chunk);
-        } else {
-          dominator.oldChunks.push(chunk);
-        }
-      };
-      for (const chunk of oldRenderedChunks) {
-        addChunk(chunk, false);
-      }
-      for (const chunk of newRenderedChunks) {
-        addChunk(chunk, true);
-      }
-      for (const dominator of this.dominators.values()) {
-        dominator.start();
-      }
-      // window.dominators = this.dominators;
-    }
-
-    this.dispatchEvent(new MessageEvent('update'));
-  }
-  update(position, quaternion, projectionMatrix) {
-    // update sort
-    if (this.sort) {
-      if (position && quaternion && projectionMatrix) {
-        this.sortInternal(position, quaternion, projectionMatrix);
-      } else {
-        throw new Error('lod tracker missing transform arguments');
-      }
-    }
-    
-    // update coordinate
-    if (!this.isUpdating) {
-      let currentCoord = this.#getCurrentCoord(position, localVector).clone();
-      // console.log('check equals', position.toArray(), this.lastUpdateCoord.toArray(), currentCoord.toArray(), this.lastUpdateCoord.equals(currentCoord));
-      if (!this.lastUpdateCoord.equals(currentCoord)) {
-        // console.log('position update 1', currentCoord.toArray().join(','));
-        
-        (async () => {
-          this.isUpdating = true;
-
-          await this.updateInternal(position);
-
-          // console.log('position update 2', currentCoord.toArray().join(','));
-
-          this.isUpdating = false;
-
-          if (this.queued) {
-            const {position, quaternion, projectionMatrix} = this.queue;
-            this.queued = false;
-
-            // console.log('recurse on queued position', queuedPosition.toArray());
-            this.update(position, quaternion, projectionMatrix);
-          }
-        })();
-
-        this.lastUpdateCoord.copy(currentCoord);
-      }
-    } else {
-      this.queued = true;
-      position && this.queue.position.copy(position);
-      quaternion && this.queue.quaternion.copy(quaternion);
-      projectionMatrix && this.queue.projectionMatrix.copy(projectionMatrix);
-    }
-  }
-  destroy() {
-    throw new Error('not implemented');
-
-    for (const chunk of this.chunks) {
-      const task = new Task(chunk);
-      task.oldNodes.push(chunk);
-      
-      this.dispatchEvent(new MessageEvent('chunkrelod', {
+    const _emitCoordUpdate = () => {
+      const coord = localVector.copy(range.min)
+        .divideScalar(this.chunkSize);
+      this.dispatchEvent(new MessageEvent('coordupdate', {
         data: {
-          task,
+          coord,
+          waitUntil,
+        },
+      }));
+    };
+    _emitCoordUpdate();
+
+    const _addRangeChunks = () => {
+      const minChunkX = Math.floor(range.min.x / this.chunkSize);
+      const minChunkY = this.trackY ? Math.floor(range.min.y / this.chunkSize) : 0;
+      const minChunkZ = Math.floor(range.min.z / this.chunkSize);
+
+      const maxChunkX = Math.floor(range.max.x / this.chunkSize);
+      const maxChunkY = this.trackY ? Math.floor(range.max.y / this.chunkSize) : 1;
+      const maxChunkZ = Math.floor(range.max.z / this.chunkSize);
+
+      const lod = 1;
+      for (let y = minChunkY; y < maxChunkY; y++) {
+        for (let z = minChunkZ; z < maxChunkZ; z++) {
+          for (let x = minChunkX; x < maxChunkX; x++) {
+            const chunk = new LodChunk(x, y, z, lod, onesLodsArray);
+            this.dispatchEvent(new MessageEvent('chunkadd', {
+              data: {
+                chunk,
+                waitUntil,
+              },
+            }));
+            this.chunks.push(chunk);
+          }
+        }
+      }
+    };
+    _addRangeChunks();
+
+    await Promise.all(waitPromises);
+  } */
+  destroy() {
+    for (const chunk of this.chunks) {
+      this.dispatchEvent(new MessageEvent('chunkremove', {
+        data: {
+          chunk,
+          waitUntil: nop,
         },
       }));
     }
