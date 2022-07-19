@@ -156,7 +156,6 @@ class PlayerBase extends THREE.Object3D {
 
     this.name = defaultPlayerName;
     this.bio = defaultPlayerBio;
-    this.characterPhysics = new CharacterPhysics(this);
     this.characterHups = new CharacterHups(this);
     this.characterSfx = new CharacterSfx(this);
     this.characterFx = new CharacterFx(this);
@@ -456,7 +455,7 @@ class PlayerBase extends THREE.Object3D {
             physicsObject.updateMatrixWorld();
 
             physicsScene.setTransform(physicsObject, true);
-            physicsScene.setVelocity(physicsObject, localVector.copy(dropDirection).multiplyScalar(5).add(this.characterPhysics.velocity), true);
+            physicsScene.setVelocity(physicsObject, localVector.copy(dropDirection).multiplyScalar(5)/*.add(this.characterPhysics.velocity)*/, true);
             physicsScene.setAngularVelocity(physicsObject, zeroVector, true);
 
             app.position.copy(physicsObject.position);
@@ -534,7 +533,6 @@ class PlayerBase extends THREE.Object3D {
     }
   }
   destroy() {
-    this.characterPhysics.destroy();
     this.characterHups.destroy();
     this.characterSfx.destroy();
     this.characterFx.destroy();
@@ -641,10 +639,10 @@ class StatePlayer extends PlayerBase {
   }
   // serializers
   getPosition() {
-    return localArray3.fromArray(this.playerMap.get('transform'));
+    return this.position.toArray(localArray3) ?? [0, 0, 0];
   }
   getQuaternion() {
-    return localArray3.fromArray(this.playerMap.get('transform'), 3);
+    return this.quaternion.toArray(localArray4) ?? [0, 0, 0, 1];
   }
   async syncAvatar() {
     if (this.syncAvatarCancelFn) {
@@ -653,7 +651,7 @@ class StatePlayer extends PlayerBase {
     }
     const cancelFn = makeCancelFn();
     this.syncAvatarCancelFn = cancelFn;
-    
+
     const instanceId = this.getAvatarInstanceId();
     
     // remove last app
@@ -719,7 +717,7 @@ class StatePlayer extends PlayerBase {
         }
       }
     } else {
-      _setNextAvatarApp(null);
+      // The first sync happens twice on joining remote players so this may get called
     }
     
     this.syncAvatarCancelFn = null;
@@ -799,19 +797,6 @@ class StatePlayer extends PlayerBase {
       }
     }
     actions.push([action]);
-  }
-  setMicMediaStream(mediaStream) {
-    if (this.microphoneMediaStream) {
-      this.microphoneMediaStream.disconnect();
-      this.microphoneMediaStream = null;
-    }
-    if (mediaStream) {
-      this.avatar.setAudioEnabled(true);
-      const audioContext = audioManager.getAudioContext();
-      const mediaStreamSource = audioContext.createMediaStreamSource(mediaStream);
-      mediaStreamSource.connect(this.avatar.getAudioInput());
-      this.microphoneMediaStream = mediaStreamSource;
-    }
   }
   new() {
     const self = this;
@@ -924,23 +909,6 @@ class InterpolatedPlayer extends StatePlayer {
       quaternion: this.quaternionInterpolant.get(),
     };
   }
-  update(timestamp, timeDiff) {
-    if(!this.avatar) return; // avatar takes time to load, ignore until it does
-
-    this.updateInterpolation(timeDiff);
-
-    const mirrors = metaversefile.getMirrors();
-    applyPlayerToAvatar(this, null, this.avatar, mirrors);
-
-    const timeDiffS = timeDiff / 1000;
-    this.characterSfx.update(timestamp, timeDiffS);
-    this.characterFx.update(timestamp, timeDiffS);
-    this.characterPhysics.update(timestamp, timeDiffS);
-    this.characterHitter.update(timestamp, timeDiffS);
-    this.characterBehavior.update(timestamp, timeDiffS);
-
-    this.avatar.update(timestamp, timeDiff);
-  }
   updateInterpolation(timeDiff) {
     this.positionInterpolant.update(timeDiff);
     this.quaternionInterpolant.update(timeDiff);
@@ -1001,6 +969,8 @@ class LocalPlayer extends UninterpolatedPlayer {
     this.isLocalPlayer = !opts.npc;
     this.isNpcPlayer = !!opts.npc;
     this.detached = !!opts.detached;
+
+    this.characterPhysics = new CharacterPhysics(this);
   }
   async setPlayerSpec(playerSpec) {
     const p = this.setAvatarUrl(playerSpec.avatarUrl);
@@ -1040,6 +1010,7 @@ class LocalPlayer extends UninterpolatedPlayer {
       if (oldInstanceId) {
         self.appManager.removeTrackedAppInternal(oldInstanceId);
       }
+      self.syncAvatar();
     });
   }
   setMicMediaStream(mediaStream) {
@@ -1088,11 +1059,7 @@ class LocalPlayer extends UninterpolatedPlayer {
       for (const oldAction of oldActions) {
         actions.push([oldAction]);
       }
-      
-      if (oldAvatar !== undefined && oldAvatar !== null && oldAvatar !== '') {
-        this.playerMap.set('avatar', oldAvatar);
-      }
-      
+
       const apps = self.getAppsState();
       for (const oldApp of oldApps) {
         const mapApp = new Z.Map();
@@ -1101,6 +1068,10 @@ class LocalPlayer extends UninterpolatedPlayer {
           mapApp.set(k, v);
         }
         apps.push([mapApp]);
+      }
+
+      if (oldAvatar !== undefined && oldAvatar !== null && oldAvatar !== '') {
+        self.playerMap.set('avatar', oldAvatar);
       }
     });
     
@@ -1172,16 +1143,19 @@ class LocalPlayer extends UninterpolatedPlayer {
     camera.position.sub(localVector.copy(cameraOffset).applyQuaternion(camera.quaternion));
     camera.updateMatrixWorld();
   } */
-  
+  lastMatrix = new THREE.Matrix4();
   pushPlayerUpdates() {
     const self = this;
     this.playersArray.doc.transact(() => {
       /* if (isNaN(this.position.x) || isNaN(this.position.y) || isNaN(this.position.z)) {
         debugger;
       } */
-      self.position.toArray(self.transform);      
-      self.quaternion.toArray(self.transform, 3);
-      self.playerMap.set('transform', self.transform);
+      // if(!this.lastMatrix.equals(this.matrixWorld)) {
+        self.position.toArray(self.transform);      
+        self.quaternion.toArray(self.transform, 3);
+        self.playerMap.set('transform', self.transform);
+      //   this.lastMatrix.copy(this.matrixWorld);
+      // }
     }, 'push');
 
     this.appManager.updatePhysics();
@@ -1195,10 +1169,6 @@ class LocalPlayer extends UninterpolatedPlayer {
   updateAvatar(timestamp, timeDiff) {
     if (this.avatar) {
       const timeDiffS = timeDiff / 1000;
-      this.characterSfx.update(timestamp, timeDiffS);
-      this.characterFx.update(timestamp, timeDiffS);
-      this.characterHitter.update(timestamp, timeDiffS);
-      this.characterBehavior.update(timestamp, timeDiffS);
 
       this.updateInterpolation(timeDiff);
 
@@ -1206,10 +1176,16 @@ class LocalPlayer extends UninterpolatedPlayer {
       const mirrors = metaversefile.getMirrors();
       applyPlayerToAvatar(this, session, this.avatar, mirrors);
 
+      this.characterSfx.update(timestamp, timeDiffS);
+      this.characterFx.update(timestamp, timeDiffS);
+      this.characterBehavior.update(timestamp, timeDiffS);
+      
       this.avatar.update(timestamp, timeDiff);
-
-      this.characterHups.update(timestamp);
     }
+  }
+  destroy() {
+    super.destroy();
+    this.characterPhysics.destroy();
   }
   /* teleportTo = (() => {
     const localVector = new THREE.Vector3();
@@ -1304,13 +1280,12 @@ class RemotePlayer extends InterpolatedPlayer {
     } else {
       console.warn('binding to nonexistent player object', this.playersArray.toJSON());
     }
-
     let lastTimestamp = performance.now();
-    let lastPosition = new THREE.Vector3();
     const observePlayerFn = (e) => {
       if(e.changes.keys.has('avatar')) {
         const avatar = e.changes.keys.get('avatar').value;
-        if(avatar === '') {
+
+        if (avatar === '') {
           console.warn("Ignoring avatar sync", avatar);
         } else {
           this.syncAvatar();
@@ -1326,18 +1301,17 @@ class RemotePlayer extends InterpolatedPlayer {
       }
 
       if (e.changes.keys.get('name')) {
-        this.name = e.changes.keys.get('name');
+        this.name = e.changes.keys.get('name').value;
       }
 
       if (e.changes.keys.has('transform')) {
-        const transform = e.changes.keys.get('transform');
+        const transform = e.changes.keys.get('transform').value;
         const timestamp = performance.now();
         const timeDiff = timestamp - lastTimestamp;
         lastTimestamp = timestamp;
 
         this.position.fromArray(transform);
-        this.quaternion.fromArray(transform);
-        this.updateMatrixWorld();
+        this.quaternion.fromArray(transform, 3);
 
         this.positionInterpolant.snapshot(timeDiff);
         this.quaternionInterpolant.snapshot(timeDiff);
@@ -1346,19 +1320,13 @@ class RemotePlayer extends InterpolatedPlayer {
           actionBinaryInterpolant.snapshot(timeDiff);
         }
 
-        this.characterPhysics.applyAvatarPhysicsDetail(true, true, timestamp, timeDiff / 1000);
-
-        if(this.avatar) {
-          this.characterPhysics.setPosition(this.position);
-          this.avatar.setVelocity(
-            timeDiff / 1000,
-            lastPosition,
-            this.position,
-            this.quaternion
+        this.avatar?.setVelocity(
+          timeDiff / 1000,
+          this.lastPosition,
+          this.positionInterpolant.get(),
+          this.quaternionInterpolant.get()
           );
-        }
-
-        lastPosition.copy(this.position);
+          this.lastPosition.copy(this.position);
       }
     }
     this.playerMap.observe(observePlayerFn);
@@ -1366,6 +1334,23 @@ class RemotePlayer extends InterpolatedPlayer {
 
     this.appManager.bindState(this.getAppsState());
     this.appManager.loadApps();
+    this.syncAvatar();
+  }
+  lastPosition = new THREE.Vector3();
+  update(timestamp, timeDiff) {
+    if(!this.avatar) return // console.log("no avatar"); // avatar takes time to load, ignore until it does
+
+    this.updateInterpolation(timeDiff);
+
+    const mirrors = metaversefile.getMirrors();
+    applyPlayerToAvatar(this, null, this.avatar, mirrors);
+
+    const timeDiffS = timeDiff / 1000;
+    this.characterSfx.update(timestamp, timeDiffS);
+    this.characterFx.update(timestamp, timeDiffS);
+    this.characterBehavior.update(timestamp, timeDiffS);
+
+    this.avatar.update(timestamp, timeDiff);
   }
 }
 /* class StaticUninterpolatedPlayer extends UninterpolatedPlayer {

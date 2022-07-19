@@ -185,7 +185,6 @@ class AppManager extends EventTarget {
           app.position.fromArray(trackedApp.get('transform'));
           app.quaternion.fromArray(trackedApp.get('transform'), 3);
           app.scale.fromArray(trackedApp.get('transform'), 7);
-          app.updateMatrixWorld();
         }
       }
     };
@@ -344,7 +343,6 @@ class AppManager extends EventTarget {
   }
   getAppByPhysicsId(physicsId) {
     for (const app of this.apps) {
-      console.log("loading app physics id", app, physicsId);
       if (app.getPhysicsObjects && app.getPhysicsObjects.length > 0 && app.getPhysicsObjects().some(o => o.physicsId === physicsId)) {
         return app;
       }
@@ -584,7 +582,7 @@ class AppManager extends EventTarget {
       app.quaternion.toArray(transform, 3);
       app.scale.toArray(transform, 7);
       
-      dstTrackedApp = this.addTrackedAppInternal(
+      dstTrackedApp = self.addTrackedAppInternal(
         instanceId,
         contentId,
         transform,
