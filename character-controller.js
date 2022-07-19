@@ -650,7 +650,7 @@ class StatePlayer extends PlayerBase {
     }
     const cancelFn = makeCancelFn();
     this.syncAvatarCancelFn = cancelFn;
-
+    
     const instanceId = this.getAvatarInstanceId();
     
     // remove last app
@@ -715,8 +715,6 @@ class StatePlayer extends PlayerBase {
           }
         }
       }
-    } else {
-      // The first sync happens twice on joining remote players so this may get called
     }
     
     this.syncAvatarCancelFn = null;
@@ -1075,7 +1073,7 @@ class LocalPlayer extends UninterpolatedPlayer {
       for (const oldAction of oldActions) {
         actions.push([oldAction]);
       }
-
+      
       const apps = self.getAppsState();
       for (const oldApp of oldApps) {
         const mapApp = new Z.Map();
@@ -1085,7 +1083,7 @@ class LocalPlayer extends UninterpolatedPlayer {
         }
         apps.push([mapApp]);
       }
-
+      
       if (oldAvatar !== undefined && oldAvatar !== null && oldAvatar !== '') {
         this.playerMap.set('avatar', oldAvatar);
       }
@@ -1245,6 +1243,7 @@ class RemotePlayer extends InterpolatedPlayer {
     this.audioWorkletNode = null;
     this.audioWorkerLoaded = false;
     this.isRemotePlayer = true;
+    this.lastPosition = new THREE.Vector3();
   }
     // The audio worker handles hups and incoming voices
   // This includes the microphone from the owner of this instance
@@ -1345,7 +1344,7 @@ class RemotePlayer extends InterpolatedPlayer {
           this.positionInterpolant.get(),
           this.quaternionInterpolant.get()
           );
-          this.lastPosition.copy(this.position);
+        this.lastPosition.copy(this.position);
       }
     }
     this.playerMap.observe(observePlayerFn);
@@ -1354,7 +1353,6 @@ class RemotePlayer extends InterpolatedPlayer {
     this.appManager.bindState(this.getAppsState());
     this.syncAvatar();
   }
-  lastPosition = new THREE.Vector3();
   update(timestamp, timeDiff) {
     if(!this.avatar) return // console.log("no avatar"); // avatar takes time to load, ignore until it does
 
