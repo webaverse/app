@@ -107,7 +107,8 @@ export const WorldObjectsList = () => {
 
         const physicsObjects = selectedApp.getPhysicsObjects();
         physicsObjects.forEach( ( physicsObject ) => {
-            physicsManager.setGeometryScale( physicsObject.physicsId, selectedApp.scale );
+            const physicsScene = physicsManager.getScene();
+            physicsScene.setGeometryScale( physicsObject.physicsId, selectedApp.scale );
         });
     };
 
