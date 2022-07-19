@@ -358,7 +358,7 @@ export class GeometryAllocator {
     }
 
     for (let i = 0; i < this.numDraws; i++) {
-      console.log(culled[i]);
+      // console.log(culled[i]);
       const found = culled.find(e => e[0] == i);
       if(found === undefined){
         // ! frustum culling has bugs !
