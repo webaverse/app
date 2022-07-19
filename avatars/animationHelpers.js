@@ -1253,8 +1253,6 @@ export const _applyAnimation = (avatar, now, moveFactors, timeDiffS) => {
       const f = MathUtils.clamp(swimTimeS / 0.2, 0, 1);
       // if (isPosition) console.log(f);
 
-      
-
       if (!isPosition) {
         localQuaternion2.fromArray(v2);
         localQuaternion3.fromArray(v3);
@@ -1262,13 +1260,14 @@ export const _applyAnimation = (avatar, now, moveFactors, timeDiffS) => {
         localQuaternion5.fromArray([0,0,0,1]);
         localQuaternion6.fromArray([1,0,0,0]);
         
-        
         // // can't use idleWalkFactor & walkRunFactor here, otherwise "Impulsive breaststroke swim animation" will turn into "freestyle animation" when speed is fast,
         // // and will turn into "floating" a little when speed is slow.
         // localQuaternion3.slerp(localQuaternion4, walkRunFactor);
         // localQuaternion2.slerp(localQuaternion3, idleWalkFactor);
-        localQuaternion3.slerp(localQuaternion4, avatar.sprintFactor);
-        localQuaternion2.slerp(localQuaternion3, avatar.movementsTransitionFactor);
+        if(!avatar.swimmingOnSurfaceState || (avatar.swimmingOnSurfaceState && avatar.horizontalMovementsTransitionFactor > 0)) {
+          localQuaternion3.slerp(localQuaternion4, avatar.sprintFactor);
+          localQuaternion2.slerp(localQuaternion3, avatar.movementsTransitionFactor);
+        }
 
         if(boneName === 'Hips') {
           if(avatar.swimUpFactor > 0 && avatar.horizontalMovementsTransitionFactor === 0) {
@@ -1285,17 +1284,19 @@ export const _applyAnimation = (avatar, now, moveFactors, timeDiffS) => {
         dst.slerp(localQuaternion2, f);
 
       } else {
-        const liftSwims = 0.05; // lift swims height, prevent head sink in water
         localVector2.fromArray(v2);
-        localVector3.fromArray(v3);
-        localVector3.y += 0.21; // align Swimming.fbx's height to freestyle.fbx
-        localVector3.y += liftSwims;
-        localVector4.fromArray(v4);
-        localVector4.y += liftSwims;
-        // localVector3.lerp(localVector4, walkRunFactor);
-        // localVector2.lerp(localVector3, idleWalkFactor);
-        localVector3.lerp(localVector4, avatar.sprintFactor);
-        localVector2.lerp(localVector3, avatar.movementsTransitionFactor);
+        if(!avatar.swimmingOnSurfaceState || (avatar.swimmingOnSurfaceState && avatar.horizontalMovementsTransitionFactor > 0)) {
+          const liftSwims = 0.05; // lift swims height, prevent head sink in water
+          localVector3.fromArray(v3);
+          localVector3.y += 0.21; // align Swimming.fbx's height to freestyle.fbx
+          localVector3.y += liftSwims;
+          localVector4.fromArray(v4);
+          localVector4.y += liftSwims;
+          // localVector3.lerp(localVector4, walkRunFactor);
+          // localVector2.lerp(localVector3, idleWalkFactor);
+          localVector3.lerp(localVector4, avatar.sprintFactor);
+          localVector2.lerp(localVector3, avatar.movementsTransitionFactor);
+        }
         dst.lerp(localVector2, f);
       }
     }
