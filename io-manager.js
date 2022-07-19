@@ -235,7 +235,7 @@ const _updateIo = timeDiff => {
         localPlayer.getAction('swim').animationType = 'null';
       }
     }
-    if (localPlayer.hasAction('fly') || (localPlayer.hasAction('swim'))) {
+    if (localPlayer.hasAction('fly') || localPlayer.hasAction('swim')) {
       if(localPlayer.getAction('swim').onSurface) { // Stay on surface
         const camEuler = camera.rotation.clone();
         camEuler.x = 0;
@@ -245,8 +245,6 @@ const _updateIo = timeDiff => {
         keysDirection.applyQuaternion(camera.quaternion);
         _updateVertical(keysDirection);
       }
-      
-      
     } else {
       const cameraEuler = camera.rotation.clone();
       cameraEuler.x = 0;
