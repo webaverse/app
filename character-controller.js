@@ -17,7 +17,6 @@ import audioManager from './audio-manager.js';
 import metaversefile from 'metaversefile';
 import {
   actionsMapName,
-  avatarMapName,
   appsMapName,
   playersMapName,
   crouchMaxTime,
@@ -611,31 +610,6 @@ class StatePlayer extends PlayerBase {
     };
     actions.observe(observeActionsFn);
     this.unbindFns.push(actions.unobserve.bind(actions, observeActionsFn));
-    
-    const avatar = this.getAvatarState();
-    let lastAvatarInstanceId = '';
-    const observeAvatarFn = async () => {
-      // we are in an observer and we want to perform a state transaction as a result
-      // therefore we need to yeild out of the observer first or else the other transaction handlers will get confused about timing
-      // await Promise.resolve();
-      
-      const instanceId = this.getAvatarInstanceId();
-      if (lastAvatarInstanceId !== instanceId) {
-        lastAvatarInstanceId = instanceId;
-        
-        this.syncAvatar();
-      }
-    };
-    avatar.observe(observeAvatarFn);
-    this.unbindFns.push(avatar.unobserve.bind(avatar, observeAvatarFn));
-    
-    const _cancelSyncAvatar = () => {
-      if (this.syncAvatarCancelFn) {
-        this.syncAvatarCancelFn();
-        this.syncAvatarCancelFn = null;
-      }
-    };
-    this.unbindFns.push(_cancelSyncAvatar);
   }
   unbindCommonObservers() {
     for (const unbindFn of this.unbindFns) {
@@ -662,7 +636,7 @@ class StatePlayer extends PlayerBase {
     }
   }
   getAvatarInstanceId() {
-    return this.getAvatarState().get('instanceId') ?? '';
+    return this.playerMap?.get('avatar');
   }
   // serializers
   getPosition() {
@@ -765,7 +739,7 @@ class StatePlayer extends PlayerBase {
     return this.getActionsState();
   }
   getActionsState() {
-    let actionsArray = this.playerMap.has(avatarMapName) ? this.playerMap.get(actionsMapName, Z.Array) : null;
+    let actionsArray = this.playerMap.has(actionsMapName) ? this.playerMap.get(actionsMapName, Z.Array) : null;
     if (!actionsArray) {
       actionsArray = new Z.Array();
       this.playerMap.set(actionsMapName, actionsArray);
@@ -775,16 +749,8 @@ class StatePlayer extends PlayerBase {
   getActionsArray() {
     return this.isBound() ? Array.from(this.getActionsState()) : [];
   }
-  getAvatarState() {
-    let avatarMap = this.playerMap.has(avatarMapName) ? this.playerMap.get(avatarMapName, Z.Map) : null;
-    if (!avatarMap) {
-      avatarMap = new Z.Map();
-      this.playerMap.set(avatarMapName, avatarMap);
-    }
-    return avatarMap;
-  }
   getAppsState() {
-    let appsArray = this.playerMap.has(avatarMapName) ? this.playerMap.get(appsMapName, Z.Array) : null;
+    let appsArray = this.playerMap.has(appsMapName) ? this.playerMap.get(appsMapName, Z.Array) : null;
     if (!appsArray) {
       appsArray = new Z.Array();
       this.playerMap.set(appsMapName, appsArray);
@@ -854,8 +820,7 @@ class StatePlayer extends PlayerBase {
         actions.delete(actions.length - 1);
       }
       
-      const avatar = self.getAvatarState();
-      avatar.delete('instanceId');
+      this.playerMap.delete('avatar');
       
       const apps = self.getAppsState();
       while (apps.length > 0) {
@@ -865,11 +830,10 @@ class StatePlayer extends PlayerBase {
   }
   save() {
     const actions = this.getActionsState();
-    const avatar = this.getAvatarState();
     const apps = this.getAppsState();
     return JSON.stringify({
       // actions: actions.toJSON(),
-      avatar: avatar.toJSON(),
+      avatar: this.getAvatarInstanceId(),
       apps: apps.toJSON(),
     });
   }
@@ -883,9 +847,9 @@ class StatePlayer extends PlayerBase {
         actions.delete(actions.length - 1);
       }
       
-      const avatar = self.getAvatarState();
+      const avatar = self.getAvatarInstanceId();
       if (j?.avatar?.instanceId) {
-        avatar.set('instanceId', j.avatar.instanceId);
+        this.playerMap.set('avatar', avatar);
       }
       
       const apps = self.getAppsState();
@@ -1058,8 +1022,7 @@ class LocalPlayer extends UninterpolatedPlayer {
     this.#setAvatarAppFromOwnAppManager(avatarApp);
   }
   getAvatarApp() {
-    const avatar = this.getAvatarState();
-    const instanceId = avatar.get('instanceId');
+    const instanceId = this.playerMap.get('avatar');
     return this.appManager.getAppByInstanceId(instanceId);
   }
   /* importAvatarApp(app, srcAppManager) {
@@ -1069,10 +1032,9 @@ class LocalPlayer extends UninterpolatedPlayer {
   #setAvatarAppFromOwnAppManager(app) {
     const self = this;
     this.playersArray.doc.transact(function tx() {
-      const avatar = self.getAvatarState();
-      const oldInstanceId = avatar.get('instanceId');
+      const oldInstanceId = self.playerMap.get('avatar');
       
-      avatar.set('instanceId', app.instanceId);
+      self.playerMap.set('avatar', app.instanceId);
 
       if (oldInstanceId) {
         self.appManager.removeTrackedAppInternal(oldInstanceId);
@@ -1096,7 +1058,7 @@ class LocalPlayer extends UninterpolatedPlayer {
   }
   detachState() {
     const oldActions = (this.playersArray ? this.getActionsState() : new Z.Array());
-    const oldAvatar = (this.playersArray ? this.getAvatarState() : new Z.Map()).toJSON();
+    const oldAvatar = this.playersArray && this.getAvatarInstanceId();
     const oldApps = (this.playersArray ? this.getAppsState() : new Z.Array()).toJSON();
     return {
       oldActions,
@@ -1126,10 +1088,8 @@ class LocalPlayer extends UninterpolatedPlayer {
         actions.push([oldAction]);
       }
       
-      const avatar = self.getAvatarState();
-      const {instanceId} = oldAvatar;
-      if (instanceId !== undefined) {
-        avatar.set('instanceId', instanceId);
+      if (oldAvatar !== undefined && oldAvatar !== null && oldAvatar !== '') {
+        this.playerMap.set('avatar', oldAvatar);
       }
       
       const apps = self.getAppsState();
@@ -1347,6 +1307,15 @@ class RemotePlayer extends InterpolatedPlayer {
     let lastTimestamp = performance.now();
     let lastPosition = new THREE.Vector3();
     const observePlayerFn = (e) => {
+      if(e.changes.keys.has('avatar')) {
+        const avatar = e.changes.keys.get('avatar').value;
+        if(avatar === '') {
+          console.warn("Ignoring avatar sync", avatar);
+        } else {
+          this.syncAvatar();
+        }
+      }
+
       if (e.changes.keys.get('voiceSpec') || e.added?.keys?.get('voiceSpec')) {
         const voiceSpec = e.changes.keys.get('voiceSpec');
         const json = JSON.parse(voiceSpec.value);

@@ -78,7 +78,6 @@ export const walletHost = 'https://wallet.webaverse.com';
 
 export const worldMapName = 'world';
 export const actionsMapName = 'actions';
-export const avatarMapName = 'avatar';
 export const playersMapName = 'players';
 export const appsMapName = 'apps';
 
