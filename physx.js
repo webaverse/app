@@ -2244,17 +2244,10 @@ const physxWorker = (() => {
     )
     return ptr;
   }
-  window.nodeReferenceCount = {}; // test
   w.addChild = (parentNode, childNode) => { // input: ptrs of nodes
     Module._addChild(
       parentNode, childNode,
     )
-
-    if (window.nodeReferenceCount[childNode]) {
-      window.nodeReferenceCount[childNode]++
-    } else {
-      window.nodeReferenceCount[childNode] = 1;
-    }
   }
   w.setRootNode = (mixer, node) => { // input: ptr of node
     Module._setRootNode(
@@ -2263,14 +2256,6 @@ const physxWorker = (() => {
   }
   w.createInterpolant = (animationIndex, parameterPositions, sampleValues, valueSize) => {
     const allocator = new Allocator(Module);
-
-    if (valueSize === 3) {
-      //
-    } else if (valueSize === 4) {
-      //
-    } else {
-      // debugger
-    }
 
     const parameterPositionsTypedArray = allocator.alloc(Float32Array, parameterPositions.length);
     parameterPositionsTypedArray.set(parameterPositions);
@@ -2344,7 +2329,6 @@ const physxWorker = (() => {
 })()
 
 physx.physxWorker = physxWorker
-window.physxWorker = physxWorker;
 
 const _updateGeometry = () => {
   physx.crosshairMesh.update()
