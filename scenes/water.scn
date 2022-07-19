@@ -51,13 +51,18 @@
       ],
       "start_url": "http://localhost/lib/webaverse_resource/water/"
     },
-    {
-      "position": [
-        0,
-        0,
-        0
-      ],
-      "start_url": "http://localhost/lib/webaverse_resource/dual-contouring-terrain/"
-    }
+    
+
+    { "position": [ 0, 64, -5 ], "start_url": "http://localhost/lib/webaverse_resource/bow/" },
+    { "position": [ 1.5, 64, -5 ], "start_url": "http://localhost/lib/webaverse_resource/pistol/" },
+    { "position": [ 3, 64, -5 ], "start_url": "http://localhost/lib/webaverse_resource/rifle/" },
+    { "position": [ 4.5, 64, -5 ], "start_url": "http://localhost/lib/webaverse_resource/potion/" },
+    { "position": [ 5, 0, 5 ], "start_url": "http://localhost/lib/webaverse_resource/ramp/" },
+    { "position": [-1.5, 64, -5], "quaternion": [0, 0.7071067811865475, 0, 0.7071067811865476], "start_url": "http://localhost/lib/webaverse_resource/sword/" },
+    { "position": [-3, 64, -5], "quaternion": [0, 0.7071067811865475, 0, 0.7071067811865476], "start_url": "http://localhost/lib/webaverse_resource/silsword/" },
+    { "position": [-5, 64, 5], "quaternion": [0, 0, 0, 1], "start_url": "http://localhost/lib/webaverse_resource/hovercraft/" },
+    
+    { "position": [ 0, 64, 0 ], "start_url": "http://localhost/lib/webaverse_resource/physicscube/" },
+    { "position": [ 0, 64, 0 ], "quaternion": [ 0, 0, 0, 1 ], "start_url": "http://localhost/lib/webaverse_resource/stacks/" }
   ]
 }
