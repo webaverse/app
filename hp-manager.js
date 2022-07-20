@@ -135,7 +135,7 @@ const makeHitTracker = ({
 
       sounds.playSoundName('enemyCut');
 
-      hitTracker.dispatchEvent({
+      const hitEvent = {
         type: 'hit',
         collisionId,
         hitPosition,
@@ -144,13 +144,17 @@ const makeHitTracker = ({
         // willDie,
         hp: hitTracker.hp,
         totalHp: hitTracker.totalHp,
-      });
+      };
+      // hitTracker.dispatchEvent(hitEvent);
+      currentApp.dispatchEvent(hitEvent);
       if (died) {
-        hitTracker.dispatchEvent({
+        const dieEvent = {
           type: 'die',
           // position: cylinderMesh.position,
           // quaternion: cylinderMesh.quaternion,
-        });
+        };
+        // hitTracker.dispatchEvent();
+        currentApp.dispatchEvent(dieEvent);
       }
     }
     return result;

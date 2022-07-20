@@ -91,7 +91,6 @@ export const genPic = async ({
   video,
 }) => {
   await Avatar.waitForLoad();
-  await audioManager.waitForLoad();
 
   /* console.log('gen pic', {
     url,

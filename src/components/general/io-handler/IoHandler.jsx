@@ -5,7 +5,7 @@ import ioManager from '../../../../io-manager.js';
 
 //
 
-const types = [ 'keydown', 'keypress', 'keyup', 'click', 'mousedown', 'mouseup', 'mousemove', 'mouseenter', 'mouseleave', 'wheel', 'paste' ];
+const types = [ 'keydown', 'keypress', 'keyup', 'click', 'dblclick', 'mousedown', 'mouseup', 'mousemove', 'mouseenter', 'mouseleave', 'wheel', 'paste' ];
 const ioEventHandlers = {};
 
 for ( const type of types.concat(['']) ) {

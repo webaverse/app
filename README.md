@@ -1,90 +1,89 @@
-# Webaverse client app
+<img src="docs/banner.jpeg" width=100% />
 
-Uses NodeJS, with vite.js on the backend, serving up index.js and index.html and other types of imports to the end-client. We also have [Totum](https://github.com/webaverse/Totum/) which accepts requests to decode or load various types of files and represent it as a javascript file, and [wsrtc](https://github.com/webaverse/wsrtc/) handling the multiplayer over websockets. Users can join rooms and share CRDT [z.js](https://github.com/webaverse/zjs) state data to one another across the network. Also utilised by wsrtc are web codecs used to perform voice encoding and decoding.
-Once the app is installed all you need to do is go to local.webaverse.com:3000 to launch the client. ThreeJS is used as a Renderer, physx-wasm for physics calculations as well as VRM models for avatars.
+<p align="center">
+    <a href="https://github.com/webaverse/app/graphs/contributors" alt="Contributors">
+        <img src="https://img.shields.io/github/contributors/webaverse/app" /></a>
+    <a href="https://discord.gg/webaverse">
+        <img src="https://img.shields.io/discord/906925486049992755.svg?logo=discord"
+            alt="chat on Discord"></a>
+    <a href="https://twitter.com/intent/follow?screen_name=webaverse">
+        <img src="https://img.shields.io/twitter/follow/webaverse?style=social&logo=twitter"
+            alt="follow on Twitter"></a>
+</p>
+<h1 align="center">Webaverse</h1>
+<p align="center">
+An open source web3 metaverse game engine that anyone can host. Easy to use, runs in the browser and utilizes open tools and standards like <a href="https://github.com/mrdoob/three.js">three.js</a> and <a href="https://github.com/nodejs/node">Node</a>.
+</p>
+<p align="center">
+Everything you need to get started with building in the Webaverse is contained in this repository.
+</p>
 
-## Client Quick Start
+## Key Features
 
-## To Use!
+- 🎮 A full-featured game engine running in your browser
+- ♾️ Infinite procedurally generated world
+- 🧑‍🤝‍🧑 Multiplayer with voice and chat
+- 🤖 AI-powered non-player characters
+- 👓 Supports desktop and VR (mobile coming soon)
+- 😊 Expressive, vocal and emotive avatars
+- 🔮 Runtime support for user uploads and custom apps
+- 🖥️ Completely self-hostable
 
-To clone and run App you'll need [Git](https://git-scm.com) and [Node.js](https://nodejs.org/en/download/) v.17(which comes with [npm](http://npmjs.com)) installed on your computer. From your command line:
+<p align="center">
+<img src="docs/combat.gif" width=30% padding="0" margin="0" align="center" />
+<img src="docs/asteroids.gif" width=30% align="center" />
+<img src="docs/rug_radio.gif" width=30% align="center" />
+</p>
+<p align="center">
+<img src="docs/rotation.gif" width=91% align="center" />
+</p>
+<p align="center">
+<img src="docs/Uncanny_alley.gif" width=30% align="center" />
+<img src="docs/monster_truck.gif" width=30% align="center" />
+<img src="docs/plane.gif" width=30% align="center" />
+</p>
 
-```bash
-# Clone this repository
+<h1 align="center">Documentation</h1>
+<p align="center">
+Developer documentation is <a href="https://docs.webaverse.com/docs/index">here</a><br />
+User documentation is <a href="https://webaverse.notion.site/User-Docs-3a36b223e39b4f94b3d1f6921a4c297a">here</a>
+</p>
+
+## Installation
+
+**Important note before you clone this repo:** This repo uses Git submodules.
+You need to install with the `--recurse-submodules` flag or installation will not work. Copy the code below to clone the repository if you aren't sure.
+
+```sh
 git clone --recurse-submodules https://github.com/webaverse/app.git
-# Go into the repository
-cd app/
-# Install dependencies
-npm install
-# Run the app
-npm run dev
-# Navigate to the URL mentioned in the terminal
-
+cd app/ # Go into the repository
+git pull --recurse-submodules # Pull recursively
+npm install # Install dependencies
 ```
 
-## Pay Attention
+##### Note for Windows Users
+We recommend that you use Windows Subsystem for Linux to run Webaverse. This [video](https://www.youtube.com/watch?v=5RTSlby-l9w) shows you how you can set up WSL. Once you've installed it, run `wsl` in your terminal to enter Ubuntu, and then run Webaverse from there.
 
-When cloning App from git, you must include the option **"--recurse-submodules"**. The App repo relies upon and imports other Webaverse repos that are vital to the functioning application.
+## Quickstart
 
----
+Starting the application is as easy as:
 
-## Development Environment Setup
-
-### IDEs
-
-We prefer using [VSCode](https://code.visualstudio.com/download) for development, so the below notes reflect that toolset; however you should be able to adapt this guide to apply to any other IDEs.
-
-## Technologies
-
-The App primarily uses the following technologies
-
-* [NodeJS](https://nodejs.org/)
-* [ThreeJS](https://threejs.org/)
-* [ViteJS](https://vitejs.dev/)
-* [ReactJS](https://reactjs.org/)
-
----
-
-### Directory Structure
-
-```bash
-**Root**
-│
-├───src <--- React Application Resides Here
-	├───Main.jsx <-- Registers the routes of the React App and Load Dom
-	├───App.jsx <-- Loads Webaverse.js from Root directory
-│
-├─ index.js <-- This starts the vite server that serves the React App
-│
-├─ webaverse.js <-- This is the entry point of the Webaverse
-│
-├─ io-manager.js <-- Controls the input events within the application.
-...
+```sh
+npm run start
 ```
 
----
+Once the server has started up, you can visit `https://local.webaverse.com` 
 
-### Setup ESLint
+## Let's build it together!
 
-* Within VSCode, go to your extensions tab and search for `ESLINT`
+We would love for you to come build with us. First, please review the documentation in it's entirety before contributing. Also join our [Discord](https://discord.gg/webaverse) and introduce yourself.
 
-![VSCodeESLintSetup](https://user-images.githubusercontent.com/51108458/144331775-2f5363d9-8d3f-4120-bb22-3308047c5605.png)
+##### New Issues and Features
 
-* OR From the command line:
+Please search Github issues before reporting a new issue or starting a new feature. If you are starting a new feature or bug fix, please write up or reference an issue and indicate that you are working on it.
 
-```bash
-npm install eslint -g
-eslint --init
-```
+##### Pull Requests
 
----
+Please make sure your PRs change as little existing code as is necessary to prevent upstream merge conflicts. When posting a pull request, please document what the PR does and how it can be reviewed and QA'd. PRs will be reviewed and accepted if they conform to our linting and code conventions, don't cause any bugs and don't decrease performance of the app.
 
-### Development Mode
-
-The application uses vite to hot reload itself automatically if there are any changes to any files. To start the App in dev mode, run:
-
-```bash
-npm run dev
-```
-
----
+<img align="middle" style='margin: 1em' src="/docs/town.jpeg" width=100% />

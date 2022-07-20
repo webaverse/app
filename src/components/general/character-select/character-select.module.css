@@ -6,7 +6,7 @@
   width: 100vw;
   height: calc(100vh - 200px);
   background-image: linear-gradient(to bottom, #222, #000);
-  color: #fff;
+  color: #FFF;
   flex-direction: column;
   /* transform: translateY(100vh); */
   transition: transform 1s cubic-bezier(0, 1, 0, 1);
@@ -27,7 +27,8 @@
 .characterSelect h1,
 .characterSelect h2,
 .characterSelect h3,
-.characterSelect h4 {
+.characterSelect h4
+{
   margin: 0;
   font-family: "WinchesterCaps";
   letter-spacing: 1px;
@@ -49,7 +50,7 @@
   }
   50% {
     background-image: none;
-    background-color: #ffffff;
+    background-color: #FFFFFF;
   }
   100% {
     background-image: none;
@@ -77,7 +78,7 @@
   cursor: pointer;
 }
 .characterSelect .list .item.highlight {
-  border-color: #fff;
+  border-color: #FFF;
 }
 .characterSelect .list .item.animate {
   animation-name: character-animation;
@@ -136,4 +137,23 @@
   border-radius: 5px;
   height: 30px;
   cursor: pointer;
+}
+/* */
+
+.characterSelect .text {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  width: calc(100vw - 400px - 20px * 2);
+  height: 300px;
+  padding: 30px;
+  margin: 20px;
+  background-image: radial-gradient(closest-side, #000 0%, rgb(32 32 32 / 90%) 100%);
+  border-radius: 15px;
+  color: #FFF;
+  font-family: 'PlazaRegular';
+  font-size: 34px;
+  letter-spacing: 2px;
+  text-shadow: 0 0 10px #000;
+  pointer-events: none;
 }

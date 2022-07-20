@@ -1,6 +1,7 @@
 import * as THREE from 'three';
 import Avatar from './avatars/avatars.js';
 import * as sounds from './sounds.js';
+import audioManager from './audio-manager.js';
 
 import {
   idleFactorSpeed,
@@ -78,16 +79,17 @@ class CharacterSfx {
     this.willGasp = false;
 
     this.oldNarutoRunSound = null;
-
     this.lastEmote = null;
 
-    const wearupdate = e => {
-      sounds.playSoundName(e.wear ? 'itemEquip' : 'itemUnequip');
-    };
-    player.addEventListener('wearupdate', wearupdate);
-    this.cleanup = () => {
-      player.removeEventListener('wearupdate', wearupdate);
-    };
+    if (this.player.isLocalPlayer) {
+      const wearupdate = e => {
+        sounds.playSoundName(e.wear ? 'itemEquip' : 'itemUnequip');
+      };
+      player.addEventListener('wearupdate', wearupdate);
+      this.cleanup = () => {
+        player.removeEventListener('wearupdate', wearupdate);
+      };
+    }
   }
   update(timestamp, timeDiffS) {
     if (!this.player.avatar) {
@@ -206,14 +208,14 @@ class CharacterSfx {
       }
       
     };
-    _handleStep();
+
+    if (!this.player.hasAction('sit')) {
+      _handleStep();
+    }
 
     const _handleNarutoRun = () => {
       
-      this.currentQ.x=this.player.characterPhysics.player.quaternion.x;
-      this.currentQ.y=this.player.characterPhysics.player.quaternion.y;
-      this.currentQ.z=this.player.characterPhysics.player.quaternion.z;
-      this.currentQ.w=this.player.characterPhysics.player.quaternion.w;
+      this.currentQ.copy(this.player.quaternion);
      
       let temp=this.currentQ.angleTo(this.preQ);
       for(let i=0;i<4;i++){
@@ -366,8 +368,8 @@ class CharacterSfx {
     if (this.player.voicePack) { // ensure voice pack loaded
       let voiceFiles, offset, duration;
       switch (type) {
-        case 'pain': {
-          voiceFiles = this.player.voicePack.actionVoices.filter(f => /pain/i.test(f.name));
+        case 'hurt': {
+          voiceFiles = this.player.voicePack.actionVoices.filter(f => /hurt/i.test(f.name));
           break;
         }
         case 'scream': {
@@ -406,7 +408,7 @@ class CharacterSfx {
         offset = voiceFiles[index].offset;
       } 
       
-      const audioContext = Avatar.getAudioContext();
+      const audioContext = audioManager.getAudioContext();
       const audioBufferSourceNode = audioContext.createBufferSource();
       audioBufferSourceNode.buffer = this.player.voicePack.audioBuffer;
 
@@ -493,7 +495,7 @@ class CharacterSfx {
         offset = voiceFiles[index].offset;
       } 
       
-      const audioContext = Avatar.getAudioContext();
+      const audioContext = audioManager.getAudioContext();
       const audioBufferSourceNode = audioContext.createBufferSource();
       audioBufferSourceNode.buffer = this.player.voicePack.audioBuffer;
 
@@ -521,7 +523,7 @@ class CharacterSfx {
     }
   }
   destroy() {
-    this.cleanup();
+    this.cleanup && this.cleanup();
   }
 }
 
