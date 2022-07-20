@@ -172,9 +172,7 @@ function makeId(length) {
     }
     return result;
   })();
-  const initialRoomNames = [
-    'Erithor',
-  ];
+  const initialRoomNames = [];
   wsrtc.bindServer(wsServer, {
     initialRoomState,
     initialRoomNames,
