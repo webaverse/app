@@ -32,7 +32,6 @@ import {
   bindCanvas,
   getComposer,
 } from './renderer.js';
-import * as audioManager from './audio-manager.js';
 import transformControls from './transform-controls.js';
 import * as metaverseModules from './metaverse-modules.js';
 import dioramaManager from './diorama.js';
@@ -83,7 +82,6 @@ export default class Webaverse extends EventTarget {
         physx.waitForLoad(),
         Avatar.waitForLoad(),
         physxWorkerManager.waitForLoad(),
-        audioManager.waitForLoad(),
         sounds.waitForLoad(),
         zTargeting.waitForLoad(),
         particleSystemManager.waitForLoad(),
@@ -309,8 +307,9 @@ export default class Webaverse extends EventTarget {
           // this.injectRigInput();
           
           const localPlayer = metaversefileApi.useLocalPlayer();
-          if (this.contentLoaded && physicsManager.getPhysicsEnabled()) {
-            physicsManager.simulatePhysics(timeDiffCapped);
+          const physicsScene = physicsManager.getScene();
+          if (this.contentLoaded && physicsScene.getPhysicsEnabled()) {
+            physicsScene.simulatePhysics(timeDiffCapped);
             localPlayer.updatePhysics(timestamp, timeDiffCapped);
           }
 
@@ -319,7 +318,7 @@ export default class Webaverse extends EventTarget {
           game.update(timestamp, timeDiffCapped);
           
           localPlayer.updateAvatar(timestamp, timeDiffCapped);
-          // playersManager.updateRemotePlayers(timestamp, timeDiffCapped);
+          playersManager.updateRemotePlayers(timestamp, timeDiffCapped);
           
           world.appManager.tick(timestamp, timeDiffCapped, frame);
 
