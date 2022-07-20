@@ -54,7 +54,7 @@ const localQuaternion2 = new Quaternion();
 
 const identityQuaternion = new Quaternion();
 
-const isDebugger = false; // Used for debug only codes.Don’t create new data structures on the avatar, to not add any more gc sweep depth in product codes.
+const isDebugger = true; // Used for debug only codes.Don’t create new data structures on the avatar, to not add any more gc sweep depth in product codes.
 
 let animations;
 let animationStepIndices;
@@ -88,7 +88,7 @@ const defaultHoldAnimation = 'pick_up_idle';
 const defaultEmoteAnimation = 'angry';
 // const defaultThrowAnimation = 'throw';
 // const defaultCrouchAnimation = 'crouch';
-// const defaultActivateAnimation = 'activate';
+const defaultActivateAnimation = 'grab_forward';
 const defaultNarutoRunAnimation = 'narutoRun';
 // const defaultchargeJumpAnimation = 'chargeJump';
 // const defaultStandChargeAnimation = 'standCharge';
@@ -381,12 +381,19 @@ export const loadPromise = (async () => {
       crouch: animations.find(a => a.isCrouch),
     }; */
   activateAnimations = {
-    grab_forward: {animation: animations.index['grab_forward.fbx'], speedFactor: 1.2},
-    grab_down: {animation: animations.index['grab_down.fbx'], speedFactor: 1.7},
-    grab_up: {animation: animations.index['grab_up.fbx'], speedFactor: 1.2},
-    grab_left: {animation: animations.index['grab_left.fbx'], speedFactor: 1.2},
-    grab_right: {animation: animations.index['grab_right.fbx'], speedFactor: 1.2},
-    pick_up: {animation: animations.index['pick_up.fbx'], speedFactor: 1},
+    // todo: handle activateAnimations.grab_forward.speedFactor
+    // grab_forward: {animation: animations.index['grab_forward.fbx'], speedFactor: 1.2},
+    // grab_down: {animation: animations.index['grab_down.fbx'], speedFactor: 1.7},
+    // grab_up: {animation: animations.index['grab_up.fbx'], speedFactor: 1.2},
+    // grab_left: {animation: animations.index['grab_left.fbx'], speedFactor: 1.2},
+    // grab_right: {animation: animations.index['grab_right.fbx'], speedFactor: 1.2},
+    // pick_up: {animation: animations.index['pick_up.fbx'], speedFactor: 1},
+    grab_forward: animations.index['grab_forward.fbx'],
+    grab_down: animations.index['grab_down.fbx'],
+    grab_up: animations.index['grab_up.fbx'],
+    grab_left: animations.index['grab_left.fbx'],
+    grab_right: animations.index['grab_right.fbx'],
+    pick_up: animations.index['pick_up.fbx'],
   };
   window.activateAnimations = activateAnimations;
   narutoRunAnimations = {
@@ -574,10 +581,6 @@ export const _createAnimation = avatar => {
   physx.physxWorker.setTimeBias(avatar.jumpMotion, 0.7);
   physx.physxWorker.setSpeed(avatar.jumpMotion, 0.6);
 
-  avatar.activateMotion = avatar.createMotion(activateAnimations.grab_forward.animation.ptr, 'activateMotion'); // todo: handle activateAnimations.grab_forward.speedFact, 'activateMotion'or
-  physx.physxWorker.setLoop(avatar.activateMotion, AnimationLoopType.LoopOnce);
-  physx.physxWorker.stop(avatar.activateMotion);
-
   avatar.useMotiono = {};
   for (const k in useAnimations) {
     const animation = useAnimations[k];
@@ -640,6 +643,16 @@ export const _createAnimation = avatar => {
     const animation = holdAnimations[k];
     if (animation) {
       avatar.holdMotiono[k] = avatar.createMotion(animation.ptr, k);
+    }
+  }
+  // activate
+  avatar.activateMotiono = {};
+  for (const k in activateAnimations) {
+    const animation = activateAnimations[k];
+    if (animation) {
+      avatar.activateMotiono[k] = avatar.createMotion(animation.ptr, k);
+      physx.physxWorker.setLoop(avatar.activateMotiono[k], AnimationLoopType.LoopOnce);
+      physx.physxWorker.stop(avatar.activateMotiono[k]);
     }
   }
 
@@ -729,7 +742,6 @@ export const _createAnimation = avatar => {
   physx.physxWorker.addChild(avatar.actionsNodeUnitary, avatar.defaultNodeTwo);
   physx.physxWorker.addChild(avatar.actionsNodeUnitary, avatar.jumpMotion);
   physx.physxWorker.addChild(avatar.actionsNodeUnitary, avatar.narutoRunMotion);
-  physx.physxWorker.addChild(avatar.actionsNodeUnitary, avatar.activateMotion);
   // useMotiono
   physx.physxWorker.addChild(avatar.actionsNodeUnitary, avatar.useMotiono.drink);
   // // sword
@@ -759,6 +771,11 @@ export const _createAnimation = avatar => {
   // hold
   for (const k in avatar.holdMotiono) {
     const motion = avatar.holdMotiono[k];
+    physx.physxWorker.addChild(avatar.actionsNodeUnitary, motion);
+  }
+  // activate
+  for (const k in avatar.activateMotiono) {
+    const motion = avatar.activateMotiono[k];
     physx.physxWorker.addChild(avatar.actionsNodeUnitary, motion);
   }
 
@@ -901,11 +918,6 @@ export const _updateAnimation = avatar => {
     physx.physxWorker.crossFadeUnitary(avatar.actionsNodeUnitary, 0.2, avatar.jumpMotion);
   }
 
-  if (avatar.activateStart) {
-    physx.physxWorker.play(avatar.activateMotion);
-    physx.physxWorker.crossFadeUnitary(avatar.actionsNodeUnitary, 0.2, avatar.activateMotion);
-  }
-
   if (avatar.narutoRunStart) physx.physxWorker.crossFadeUnitary(avatar.actionsNodeUnitary, 0.2, avatar.narutoRunMotion);
 
   // sword
@@ -961,6 +973,12 @@ export const _updateAnimation = avatar => {
   // hold
   if (avatar.holdStart) {
     physx.physxWorker.crossFadeUnitary(avatar.actionsNodeUnitary, 0.2, avatar.holdMotiono[avatar.holdAnimation || defaultHoldAnimation]);
+  }
+
+  // activate
+  if (avatar.activateStart) {
+    physx.physxWorker.play(avatar.activateMotiono[avatar.activateAnimation || defaultActivateAnimation]);
+    physx.physxWorker.crossFadeUnitary(avatar.actionsNodeUnitary, 0.2, avatar.activateMotiono[avatar.activateAnimation || defaultActivateAnimation]);
   }
 
   // do update
