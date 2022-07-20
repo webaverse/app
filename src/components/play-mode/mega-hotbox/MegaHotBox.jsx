@@ -107,9 +107,13 @@ export const MegaHotBox = ({
   open = true,
   name = '',
   description = '',
+  mintEnabled = false,
+  selectedMenuIndex = 1,
+  selectObject = null,
   imageBitmap = null,
   onActivate = null,
   onClose = null,
+  onMint = null,    
 }) => {
     const [ backImageBitmap, setBackImageBitmap ] = useState(null);
 
@@ -136,6 +140,13 @@ export const MegaHotBox = ({
         live = false;
       };
     }, []);
+    
+    const claimEnable = () => {
+        if(!selectedMenuIndex && selectObject ) {
+                return selectObject.claimed ?? false;
+            }
+    }
+    // (!selectedMenuIndex && selectObject ) ? (selectObject.claimed ?? false) : false;
 
     return (
       <div className={ classnames(styles.megaHotBox, open ? styles.open : null) } >
@@ -152,6 +163,25 @@ export const MegaHotBox = ({
           <div className={ styles.description }>{description}</div>
         </div>
         <div className={ styles.buttons }>
+          {/* {((!selectedMenuIndex && selectObject ) ? (selectObject.claimed ?? false) : false ) && ( */}
+          {!claimEnable() && (
+            
+            <BigButton
+              highlight={false}
+            //   disabled={mintEnabled}
+              onClick={(e) => {
+                if(!mintEnabled) {
+                    alert("Please connect wallet or select Supported chain!")
+                    return false;
+                }
+                //   onActivate && onActivate(e);
+                onMint && onMint(e);
+                onClose && onClose(e);
+              }}
+            >
+              Claim
+            </BigButton>
+          )}
           <BigButton
             highlight={false}
             onClick={e => {

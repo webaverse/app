@@ -234,8 +234,9 @@ class CharacterFx {
 
     this.lastSSS = isSSS;
     const _updateSonicBoomMesh = () => {
-      if (this.player.isLocalPlayer && !this.sonicBoom) {
+      if (!this.sonicBoom  && !this.player.isNpcPlayer) {
         this.sonicBoom = metaversefile.createApp();
+        this.sonicBoom.setComponent('player', this.player);
         (async () => {
           const {modules} = metaversefile.useDefaultModules();
           const m = modules['sonicBoom'];
@@ -289,6 +290,7 @@ class CharacterFx {
     }
     if (this.sonicBoom) {
       sceneLowPriority.remove(this.sonicBoom);
+      this.sonicBoom.destroy();
       this.sonicBoom = null;
     }
     if (this.nameplate) {

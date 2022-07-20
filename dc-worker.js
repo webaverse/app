@@ -1,7 +1,7 @@
 import * as THREE from 'three';
+import { defaultChunkSize } from './constants.js';
 import dc from './dual-contouring.js';
 import { makePromise } from './util.js';
-import { defaultChunkSize } from './constants.js';
 
 //
 
@@ -27,7 +27,9 @@ const _cloneTerrainMeshData = (meshData) => {
       meshData.biomesUvs2.length * meshData.biomesUvs2.constructor.BYTES_PER_ELEMENT +
       meshData.indices.length * meshData.indices.constructor.BYTES_PER_ELEMENT +
       meshData.skylights.length * meshData.skylights.constructor.BYTES_PER_ELEMENT +
-      meshData.aos.length * meshData.aos.constructor.BYTES_PER_ELEMENT;
+      meshData.aos.length * meshData.aos.constructor.BYTES_PER_ELEMENT +
+      meshData.peeks.length * meshData.peeks.constructor.BYTES_PER_ELEMENT;
+
     const arrayBuffer = new ArrayBuffer(sizeRequired);
     let index = 0;
 
@@ -66,6 +68,10 @@ const _cloneTerrainMeshData = (meshData) => {
     const aos = new meshData.aos.constructor(arrayBuffer, index, meshData.aos.length);
     aos.set(meshData.aos);
     index += meshData.aos.length * meshData.aos.constructor.BYTES_PER_ELEMENT;
+    
+    const peeks = new meshData.peeks.constructor(arrayBuffer, index, meshData.peeks.length);
+    peeks.set(meshData.peeks);
+    index += meshData.peeks.length * meshData.peeks.constructor.BYTES_PER_ELEMENT;
 
     return {
       // bufferAddress: arrayBuffer.byteOffset,
@@ -79,6 +85,7 @@ const _cloneTerrainMeshData = (meshData) => {
       indices,
       skylights,
       aos,
+      peeks
     };
   } else {
     return null;
@@ -132,6 +139,77 @@ const _cloneLiquidMeshData = (meshData) => {
 };
 
 const instances = new Map();
+
+/* const _parseTrackerUpdate = bufferAddress => {
+  const dataView = new DataView(Module.HEAPU8.buffer, bufferAddress);
+  let index = 0;
+  const numOldTasks = dataView.getUint32(index, true);
+  index += Uint32Array.BYTES_PER_ELEMENT;
+  const numNewTasks = dataView.getUint32(index, true);
+  index += Uint32Array.BYTES_PER_ELEMENT;
+
+  const _parseTrackerTask = () => {
+    const min = new Int32Array(Module.HEAPU8.buffer, index, 3).slice();
+    index += Uint32Array.BYTES_PER_ELEMENT * 3;
+    const size = dataView.getInt32(index, true);
+    index += Int32Array.BYTES_PER_ELEMENT;
+    const isLeaf = !!dataView.getInt32(index, true);
+    index += Int32Array.BYTES_PER_ELEMENT;
+    const lodArray = new Int32Array(Module.HEAPU8.buffer, index, 8).slice();
+    index += Int32Array.BYTES_PER_ELEMENT * 8;
+    return {
+      min,
+      size,
+      isLeaf,
+      lodArray,
+    };
+  };
+  const oldTasks = [];
+  for (let i = 0; i < numOldTasks; i++) {
+    const oldTask = _parseTrackerTask();
+    oldTasks.push(oldTask);
+  }
+  const newTasks = [];
+  for (let i = 0; i < numNewTasks; i++) {
+    const newTask = _parseTrackerTask();
+    newTasks.push(newTask);
+  }
+  return {
+    oldTasks,
+    newTasks,
+  };
+}; */
+const _cloneNode = (node) => {
+  return {
+    min: node.min.slice(),
+    size: node.size,
+    isLeaf: node.isLeaf,
+    lodArray: node.lodArray.slice(),
+  };
+};
+/* const _cloneTask = task => {
+  return {
+    id: task.id,
+    type: task.type,
+    min: task.min.slice(),
+    size: task.size,
+    isLeaf: task.isLeaf,
+    lodArray: task.lodArray.slice(),
+    newNodes: task.newNodes.map(_cloneNode),
+    oldNodes: task.oldNodes.map(_cloneNode),
+  };
+}; */
+const _cloneTrackerUpdate = trackerUpdate => {
+  if (trackerUpdate.leafNodes.length === 0) {
+    debugger;
+  }
+  return {
+    // currentCoord: trackerUpdate.currentCoord.slice(),
+    // oldTasks: trackerUpdate.oldTasks.map(_cloneTask),
+    // newTasks: trackerUpdate.newTasks.map(_cloneTask),
+    leafNodes: trackerUpdate.leafNodes.map(_cloneNode),
+  };
+};
 
 let loaded = false;
 // let running = false;
@@ -194,11 +272,44 @@ const _handleMethod = async ({method, args, instance: instanceKey, taskId}) => {
         return false;
       }
     }
+    case 'setCamera': {
+      const {instance: instanceKey, position, quaternion, projectionMatrix} = args;
+      const instance = instances.get(instanceKey);
+      dc.setCamera(instance, position, quaternion, projectionMatrix);
+      return true;
+    }
     case 'setClipRange': {
       const {instance: instanceKey, range} = args;
       const instance = instances.get(instanceKey);
       dc.setClipRange(instance, range);
       return true;
+    }
+    case 'createTracker': {
+      const {instance: instanceKey, lod, minLodRange, trackY} = args;
+      const instance = instances.get(instanceKey);
+      const tracker = dc.createTracker(instance, lod, minLodRange, trackY);
+      const spec = {
+        result: tracker,
+        transfers: [],
+      };
+      return spec;
+    }
+    case 'destroyTracker': {
+      const {instance: instanceKey, tracker} = args;
+      const instance = instances.get(instanceKey);
+      dc.destroyTracker(instance, tracker);
+      return true;
+    }
+    case 'trackerUpdate': {
+      const {instance: instanceKey, tracker, position} = args;
+      const instance = instances.get(instanceKey);
+      const trackerUpdate = await dc.trackerUpdateAsync(instance, taskId, tracker, position);
+      const trackerUpdate2 = _cloneTrackerUpdate(trackerUpdate);
+      const spec = {
+        result: trackerUpdate2,
+        transfers: [],
+      };
+      return spec;
     }
     case 'generateTerrainChunk': {
       const {chunkPosition, lodArray} = args;
