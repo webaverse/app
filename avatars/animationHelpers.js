@@ -84,6 +84,7 @@ let holdAnimations;
 const defaultSitAnimation = 'chair';
 // const defaultUseAnimation = 'combo';
 const defaultDanceAnimation = 'dansu';
+const defaultHoldAnimation = 'pick_up_idle';
 const defaultEmoteAnimation = 'angry';
 // const defaultThrowAnimation = 'throw';
 // const defaultCrouchAnimation = 'crouch';
@@ -633,6 +634,14 @@ export const _createAnimation = avatar => {
       avatar.danceMotiono[k] = avatar.createMotion(animation.ptr, k);
     }
   }
+  // hold
+  avatar.holdMotiono = {};
+  for (const k in holdAnimations) {
+    const animation = holdAnimations[k];
+    if (animation) {
+      avatar.holdMotiono[k] = avatar.createMotion(animation.ptr, k);
+    }
+  }
 
   // create nodes -------------------------------------------------------------
 
@@ -745,6 +754,11 @@ export const _createAnimation = avatar => {
   // dance
   for (const k in avatar.danceMotiono) {
     const motion = avatar.danceMotiono[k];
+    physx.physxWorker.addChild(avatar.actionsNodeUnitary, motion);
+  }
+  // hold
+  for (const k in avatar.holdMotiono) {
+    const motion = avatar.holdMotiono[k];
     physx.physxWorker.addChild(avatar.actionsNodeUnitary, motion);
   }
 
@@ -871,6 +885,10 @@ export const _updateAnimation = avatar => {
     physx.physxWorker.crossFadeUnitary(avatar.actionsNodeUnitary, 0.2, avatar.defaultNodeTwo);
   }
 
+  if (avatar.holdEnd) {
+    physx.physxWorker.crossFadeUnitary(avatar.actionsNodeUnitary, 0.2, avatar.defaultNodeTwo);
+  }
+
   // action start event --------------------------------------------
 
   if (avatar.flyStart) {
@@ -938,6 +956,11 @@ export const _updateAnimation = avatar => {
   // dance
   if (avatar.danceStart) {
     physx.physxWorker.crossFadeUnitary(avatar.actionsNodeUnitary, 0.2, avatar.danceMotiono[avatar.danceAnimation || defaultDanceAnimation]);
+  }
+
+  // hold
+  if (avatar.holdStart) {
+    physx.physxWorker.crossFadeUnitary(avatar.actionsNodeUnitary, 0.2, avatar.holdMotiono[avatar.holdAnimation || defaultHoldAnimation]);
   }
 
   // do update
