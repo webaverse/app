@@ -1,5 +1,5 @@
 import * as THREE from 'three';
-// import {scene, camera} from './renderer.js';
+// import {camera} from './renderer.js';
 import {defaultChunkSize} from './constants.js';
 import {abortError} from './lock-manager.js';
 import {makePromise} from './util.js';
@@ -27,12 +27,10 @@ class Dominator extends EventTarget {
     this.newChunks = [];
 
     this.unlistens = [];
-    this.live = true;
   }
   start() {
     const renderDatas = Array(this.newChunks.length);
     const _done = () => {
-      this.live = false;
       this.onload(renderDatas);
     };
 
@@ -43,20 +41,17 @@ class Dominator extends EventTarget {
       // delete immediately
       _done();
     } else { // else if not clearing old chunks
-      this.pendingWaits = [];
+      let pendingWaits = 0;
       for (let i = 0; i < this.newChunks.length; i++) {
         const chunk = this.newChunks[i];
         if (chunk.dataRequest.renderData === undefined) {
-          this.pendingWaits.push(chunk);
+          pendingWaits++;
           // console.log('pending waits add', pendingWaits);
           const onload = e => {
             const {renderData} = e.data;
             renderDatas[i] = renderData;
 
-            // console.log('trigger pending waits', pendingWaits - 1);
-            const index = this.pendingWaits.indexOf(chunk);
-            this.pendingWaits.splice(index, 1);
-            if (this.pendingWaits.length === 0) {
+            if (--pendingWaits === 0) {
               _done();
             }
           };
@@ -68,11 +63,6 @@ class Dominator extends EventTarget {
           renderDatas[i] = chunk.dataRequest.renderData;
         }
       }
-
-      if (this.pendingWaits.length === 0) {
-        this.live = false;
-      }
-      this.initialPendingWeights = this.pendingWaits.slice();
     }
   }
   cancel() {
@@ -201,43 +191,6 @@ const constructOctreeForLeaf = (position, lod1Range, maxLod) => {
     }
   }
 
-  /* // fill in missing children that are in the lod1Range
-  const _ensureChildrenDownToLod1 = node => {
-    const lodMin = node.min;
-    const lod = node.lod;
-    if (lod === 1) {
-      return;
-    }
-    node.isLeaf = false;
-    for (let dx = 0; dx < 2; dx++) {
-      for (let dy = 0; dy < 2; dy++) {
-        for (let dz = 0; dz < 2; dz++) {
-            const childIndex = dx + 2 * (dy + 2 * dz);
-            if (node.children[childIndex] === null) {
-              const childNode = _createNode(
-                lodMin.clone().add(
-                  new THREE.Vector3(dx, dy, dz).multiplyScalar(lod / 2)
-                ),
-                lod / 2,
-                true
-              );
-              node.children[childIndex] = childNode;
-              _ensureChildrenDownToLod1(childNode);
-            }
-        }
-      }
-    }
-  };
-  for (let node of nodeMap.values()) {
-    if (
-      node.min.x >= rangeMin.x && node.min.x < rangeMax.x &&
-      node.min.y >= rangeMin.y && node.min.y < rangeMax.y &&
-      node.min.z >= rangeMin.z && node.min.z < rangeMax.z
-    ) {
-      _ensureChildrenDownToLod1(node);
-    }
-  } */
-
   const rootNodes = [];
   for (const node of nodeMap.values()) {
     if (node.lod === maxLod) {
@@ -315,33 +268,6 @@ const constructOctreeForLeaf = (position, lod1Range, maxLod) => {
   }
 
   return leafNodes;
-  /* return {
-    rootNodes,
-    lod1Nodes,
-    leafNodes,
-    remapNodes(nodes) {
-      for (let i = 0; i < nodes.length; i++) {
-        const node = nodes[i];
-        const hash = _octreeNodeMinHash(node.min, node.lod);
-        const otherNode = nodeMap.get(hash);
-        if (otherNode) {
-          nodes[i] = otherNode;
-        }
-      }
-    },
-    getOutrangedNodes(nodes) {
-      const remainderNodes = [];
-      for (let i = 0; i < nodes.length; i++) {
-        const node = nodes[i];
-        const hash = _octreeNodeMinHash(node.min, node.lod);
-        const otherNode = nodeMap.get(hash);
-        if (!otherNode) {
-          remainderNodes.push(node);
-        }
-      }
-      return remainderNodes;
-    },
-  }; */
 };
 const equalsNode = (a, b) => {
   return a.min.equals(b.min) && a.lod === b.lod;
@@ -518,6 +444,18 @@ class DataRequest {
   }
 }
 
+//
+
+class TrackerQueue {
+  constructor() {
+    this.position = new THREE.Vector3();
+    this.quaternion = new THREE.Quaternion();
+    this.projectionMatrix = new THREE.Matrix4();
+  }
+}
+
+//
+
 /* const TrackerTaskTypes = {
   ADD: 1,
   REMOVE: 2,
@@ -614,6 +552,7 @@ export class LodChunkTracker extends EventTarget {
     lods = 1,
     minLodRange = 2,
     trackY = false,
+    sort = false,
     dcWorkerManager = null,
     debug = false,
   } = {}) {
@@ -625,6 +564,7 @@ export class LodChunkTracker extends EventTarget {
     this.lods = lods;
     this.minLodRange = minLodRange;
     this.trackY = trackY;
+    this.sort = sort;
     this.dcWorkerManager = dcWorkerManager;
 
     this.dcTracker = null;
@@ -632,9 +572,15 @@ export class LodChunkTracker extends EventTarget {
     this.displayChunks = []; // for debug mesh
     this.renderedChunks = new Map(); // hash -> OctreeNode
     this.dataRequests = new Map(); // hash -> DataRequest
+    this.dominators = new Map(); // hash -> OctreeNode
     this.lastUpdateCoord = new THREE.Vector3(NaN, NaN, NaN);
 
-    this.dominators = new Map(); // hash -> OctreeNode
+    this.isUpdating = false;
+    this.queued = false;
+    this.queue = new TrackerQueue();
+    
+    this.lastOctreeLeafNodes = [];
+    this.liveTasks = [];
 
     if (debug) {
       const maxChunks = 4096;
@@ -703,13 +649,7 @@ export class LodChunkTracker extends EventTarget {
           _flushChunks();
         });
       }
-
-      this.isUpdating = false;
-      this.queuedPosition = null;
     }
-
-    this.lastOctreeLeafNodes = [];
-    this.liveTasks = [];
   }
   #getCurrentCoord(position, target) {
     const cx = Math.floor(position.x / this.chunkSize);
@@ -792,10 +732,23 @@ export class LodChunkTracker extends EventTarget {
       this.lastUpdateCoord.copy(currentCoord);
     }
   } */
-  async updateInternal(position) {
+  async ensureTracker() {
     if (!this.dcTracker) {
       this.dcTracker = await this.dcWorkerManager.createTracker(this.lods, this.minLodRange, this.trackY);
     }
+  }
+  sortInternal(position, quaternion, projectionMatrix) {
+    /* window.sortDirection = new THREE.Vector3(0, 0, -1)
+      .applyQuaternion(quaternion);
+    window.sortPosition = position.clone(); */
+    this.dcWorkerManager.setCamera(
+      position,
+      quaternion,
+      projectionMatrix
+    );
+  }
+  async updateInternal(position) {
+    await this.ensureTracker();
 
     const trackerUpdateSpec = await this.dcWorkerManager.trackerUpdate(this.dcTracker, position);
     let {
@@ -964,14 +917,22 @@ export class LodChunkTracker extends EventTarget {
       for (const dominator of this.dominators.values()) {
         dominator.start();
       }
-      window.dominators = this.dominators;
+      // window.dominators = this.dominators;
     }
 
     this.dispatchEvent(new MessageEvent('update'));
   }
-  update(position) {
-    // console.log('position update 0', position.toArray().join(','), this.isUpdating);
+  update(position, quaternion, projectionMatrix) {
+    // update sort
+    if (this.sort) {
+      if (position && quaternion && projectionMatrix) {
+        this.sortInternal(position, quaternion, projectionMatrix);
+      } else {
+        throw new Error('lod tracker missing transform arguments');
+      }
+    }
     
+    // update coordinate
     if (!this.isUpdating) {
       let currentCoord = this.#getCurrentCoord(position, localVector).clone();
       // console.log('check equals', position.toArray(), this.lastUpdateCoord.toArray(), currentCoord.toArray(), this.lastUpdateCoord.equals(currentCoord));
@@ -987,19 +948,22 @@ export class LodChunkTracker extends EventTarget {
 
           this.isUpdating = false;
 
-          if (this.queuedPosition) {
-            const {queuedPosition} = this;
-            this.queuedPosition = null;
+          if (this.queued) {
+            const {position, quaternion, projectionMatrix} = this.queue;
+            this.queued = false;
 
             // console.log('recurse on queued position', queuedPosition.toArray());
-            this.update(queuedPosition);
+            this.update(position, quaternion, projectionMatrix);
           }
         })();
 
         this.lastUpdateCoord.copy(currentCoord);
       }
     } else {
-      this.queuedPosition = position.clone();
+      this.queued = true;
+      position && this.queue.position.copy(position);
+      quaternion && this.queue.quaternion.copy(quaternion);
+      projectionMatrix && this.queue.projectionMatrix.copy(projectionMatrix);
     }
   }
   destroy() {

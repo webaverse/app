@@ -11,6 +11,9 @@ export default e => {
     {
       "start_url": "https://webaverse.github.io/dual-contouring-terrain/"
     },
+    {
+      "start_url": "https://webaverse.github.io/water/"
+    },
     /* {
       "start_url": "https://webaverse.github.io/silk-grass/"
     },

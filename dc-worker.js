@@ -272,6 +272,12 @@ const _handleMethod = async ({method, args, instance: instanceKey, taskId}) => {
         return false;
       }
     }
+    case 'setCamera': {
+      const {instance: instanceKey, position, quaternion, projectionMatrix} = args;
+      const instance = instances.get(instanceKey);
+      dc.setCamera(instance, position, quaternion, projectionMatrix);
+      return true;
+    }
     case 'setClipRange': {
       const {instance: instanceKey, range} = args;
       const instance = instances.get(instanceKey);
