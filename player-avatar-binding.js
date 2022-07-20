@@ -89,6 +89,7 @@ export function makeAvatar(app) {
 export function applyPlayerActionsToAvatar(player, rig) {
   const jumpAction = player.getAction('jump');
   const flyAction = player.getAction('fly');
+  const swimAction = player.getAction('swim');
   const useAction = player.getAction('use');
   const pickUpAction = player.getAction('pickUp');
   const narutoRunAction = player.getAction('narutoRun');
@@ -119,6 +120,8 @@ export function applyPlayerActionsToAvatar(player, rig) {
   rig.flyState = !!flyAction;
   rig.flyTime = flyAction ? player.actionInterpolants.fly.get() : -1;
   rig.activateTime = player.actionInterpolants.activate.get();
+  rig.swimState = !!swimAction;
+  rig.swimTime = swimAction ? player.actionInterpolants.swim.get() : -1;
   
   const _handleUse = () => {
     if (useAction?.animation) {
@@ -209,6 +212,9 @@ export function applyPlayerActionsToAvatar(player, rig) {
   // rig.swordTopDownSlashState = !!swordTopDownSlash;
   rig.hurtAnimation = (hurtAction?.animation) || '';
   rig.hurtTime = player.actionInterpolants.hurt.get();
+  rig.movementsTime = player.actionInterpolants.movements.get();
+  rig.movementsTransitionTime = player.actionInterpolants.movementsTransition.get();
+  rig.sprintTime = player.actionInterpolants.sprint.get();
 }
 // returns whether eyes were applied
 export function applyPlayerEyesToAvatar(player, rig) {
