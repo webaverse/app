@@ -2,7 +2,7 @@
 this manager provides music preloading, selection, and playing.
 */
 
-import WSRTC from 'wsrtc/wsrtc.js';
+import audioManager from './audio-manager.js';
 import {defaultMusicVolume} from './constants.js';
 
 class Music {
@@ -142,5 +142,5 @@ class MusicManager {
     return this.loadPromise;
   }
 }
-const musicManager = new MusicManager(WSRTC.getAudioContext());
+const musicManager = new MusicManager(audioManager.getAudioContext());
 export default musicManager;

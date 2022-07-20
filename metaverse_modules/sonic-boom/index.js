@@ -4,10 +4,9 @@ import metaversefile from 'metaversefile';
 const {useApp, useFrame, useLocalPlayer, useCameraManager, useLoaders, useInternals} = metaversefile;
 const baseUrl = import.meta.url.replace(/(\/)[^\/\\]*$/, '$1');
 
-
 export default () => {
   const app = useApp();
-  const localPlayer = useLocalPlayer();
+  const localPlayer = app.getComponent('player') || useLocalPlayer();
   const cameraManager = useCameraManager();
   const {renderer, camera} = useInternals();
   let narutoRunTime=0; 

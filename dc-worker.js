@@ -1,7 +1,7 @@
 import * as THREE from 'three';
+import { defaultChunkSize } from './constants.js';
 import dc from './dual-contouring.js';
 import { makePromise } from './util.js';
-import { defaultChunkSize } from './constants.js';
 
 //
 
@@ -27,7 +27,9 @@ const _cloneTerrainMeshData = (meshData) => {
       meshData.biomesUvs2.length * meshData.biomesUvs2.constructor.BYTES_PER_ELEMENT +
       meshData.indices.length * meshData.indices.constructor.BYTES_PER_ELEMENT +
       meshData.skylights.length * meshData.skylights.constructor.BYTES_PER_ELEMENT +
-      meshData.aos.length * meshData.aos.constructor.BYTES_PER_ELEMENT;
+      meshData.aos.length * meshData.aos.constructor.BYTES_PER_ELEMENT +
+      meshData.peeks.length * meshData.peeks.constructor.BYTES_PER_ELEMENT;
+
     const arrayBuffer = new ArrayBuffer(sizeRequired);
     let index = 0;
 
@@ -66,6 +68,10 @@ const _cloneTerrainMeshData = (meshData) => {
     const aos = new meshData.aos.constructor(arrayBuffer, index, meshData.aos.length);
     aos.set(meshData.aos);
     index += meshData.aos.length * meshData.aos.constructor.BYTES_PER_ELEMENT;
+    
+    const peeks = new meshData.peeks.constructor(arrayBuffer, index, meshData.peeks.length);
+    peeks.set(meshData.peeks);
+    index += meshData.peeks.length * meshData.peeks.constructor.BYTES_PER_ELEMENT;
 
     return {
       // bufferAddress: arrayBuffer.byteOffset,
@@ -79,6 +85,7 @@ const _cloneTerrainMeshData = (meshData) => {
       indices,
       skylights,
       aos,
+      peeks
     };
   } else {
     return null;
@@ -172,18 +179,35 @@ const instances = new Map();
     newTasks,
   };
 }; */
-const _cloneTask = task => {
+const _cloneNode = (node) => {
   return {
+    min: node.min.slice(),
+    size: node.size,
+    isLeaf: node.isLeaf,
+    lodArray: node.lodArray.slice(),
+  };
+};
+/* const _cloneTask = task => {
+  return {
+    id: task.id,
+    type: task.type,
     min: task.min.slice(),
     size: task.size,
     isLeaf: task.isLeaf,
     lodArray: task.lodArray.slice(),
+    newNodes: task.newNodes.map(_cloneNode),
+    oldNodes: task.oldNodes.map(_cloneNode),
   };
-};
+}; */
 const _cloneTrackerUpdate = trackerUpdate => {
+  if (trackerUpdate.leafNodes.length === 0) {
+    debugger;
+  }
   return {
-    oldTasks: trackerUpdate.oldTasks.map(_cloneTask),
-    newTasks: trackerUpdate.newTasks.map(_cloneTask),
+    // currentCoord: trackerUpdate.currentCoord.slice(),
+    // oldTasks: trackerUpdate.oldTasks.map(_cloneTask),
+    // newTasks: trackerUpdate.newTasks.map(_cloneTask),
+    leafNodes: trackerUpdate.leafNodes.map(_cloneNode),
   };
 };
 
@@ -247,6 +271,12 @@ const _handleMethod = async ({method, args, instance: instanceKey, taskId}) => {
       } else {
         return false;
       }
+    }
+    case 'setCamera': {
+      const {instance: instanceKey, position, quaternion, projectionMatrix} = args;
+      const instance = instances.get(instanceKey);
+      dc.setCamera(instance, position, quaternion, projectionMatrix);
+      return true;
     }
     case 'setClipRange': {
       const {instance: instanceKey, range} = args;

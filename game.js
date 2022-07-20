@@ -1656,9 +1656,10 @@ class GameManager extends EventTarget {
       ]);
     });
   }
-  /* loadVoicePack(voicePack) {
-    return localPlayer.loadVoicePack(voicePack);
-  } */
+  async setVoicePack(voicePack) {
+    const localPlayer = metaversefileApi.useLocalPlayer();
+    return await localPlayer.setVoicePack(voicePack);
+  }
   setVoiceEndpoint(voiceId) {
     const localPlayer = getLocalPlayer();
     return localPlayer.setVoiceEndpoint(voiceId);
