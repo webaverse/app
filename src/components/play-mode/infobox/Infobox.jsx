@@ -30,7 +30,7 @@ export const Infobox = () => {
             infoboxRenderer.addCanvas(canvas);
 
             return () => {
-                infoBoxRenderer.removeCanvas(canvas);
+                infoboxRenderer.removeCanvas(canvas);
             };
         }
     }, [canvasRef]);

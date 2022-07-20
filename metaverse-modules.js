@@ -21,6 +21,7 @@ const moduleUrls = {
   cameraPlaceholder: './metaverse_modules/camera-placeholder/',
   targetReticle: './metaverse_modules/target-reticle/',
   halo: './metaverse_modules/halo/',
+  silsword: './metaverse_modules/silsword/',
   silks: './metaverse_modules/silks/',
   magic: './metaverse_modules/magic/',
   limit: './metaverse_modules/limit/',

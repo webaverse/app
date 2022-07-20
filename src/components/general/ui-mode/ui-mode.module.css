@@ -4,15 +4,15 @@
 }
 
 .uiBlock.hide.leftHideDirection {
-    transform: translateX( -120% );
+    transform: translateX( -150% );
 }
 
 .uiBlock.hide.rightHideDirection {
-    transform: translateX( 120% );
+    transform: translateX( 150% );
 }
 
 .uiBlock.hide.topHideDirection {
-    transform: translateY( -120% );
+    transform: translateY( -150% );
 }
 
 .uiBlock.hide.bottomHideDirection {
