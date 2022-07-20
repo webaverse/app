@@ -415,7 +415,7 @@ const _startUse = () => {
         if (
           localPlayer.avatar?.moveFactors?.walkRunFactor >= 1 &&
           (
-            animation ||
+            animation === 'combo' ||
             animationCombo?.length > 0
           )
         ) {
@@ -935,6 +935,8 @@ const _gameUpdate = (timestamp, timeDiff) => {
 
       if (currentThrowing && !lastThrowing) {
         // console.log('got throw action', useAction, localPlayer);
+
+        localPlayer.removeAction('use');
 
         const app = metaversefileApi.getAppByInstanceId(useAction.instanceId);
         localPlayer.unwear(app, {

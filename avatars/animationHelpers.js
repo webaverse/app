@@ -512,6 +512,7 @@ export const _createAnimation = avatar => {
       let maxIndex = -1;
       children.forEach((child, i) => {
         const weight = window.physxWorker.getWeight(child);
+        if (weight === 1) console.log(1);
         if (weight > maxWeight) {
           maxWeight = weight;
           maxIndex = i;
@@ -521,11 +522,11 @@ export const _createAnimation = avatar => {
         const maxWeightNode = children[maxIndex];
         const nodeObject = avatar.getNode(maxWeightNode);
         if (nodeObject) {
-          console.log(nodeObject);
+          console.log(nodeObject, maxWeight);
           avatar.logActiveNodes(maxWeightNode);
         } else {
           const motionObject = avatar.getMotion(maxWeightNode);
-          console.log(motionObject);
+          console.log(motionObject, maxWeight);
         }
       }
     };
@@ -581,34 +582,17 @@ export const _createAnimation = avatar => {
   physx.physxWorker.setTimeBias(avatar.jumpMotion, 0.7);
   physx.physxWorker.setSpeed(avatar.jumpMotion, 0.6);
 
+  // use
   avatar.useMotiono = {};
   for (const k in useAnimations) {
     const animation = useAnimations[k];
     if (animation) {
       avatar.useMotiono[k] = avatar.createMotion(animation.ptr, k);
+      physx.physxWorker.setLoop(avatar.useMotiono[k], AnimationLoopType.LoopOnce);
+      physx.physxWorker.stop(avatar.useMotiono[k]);
     }
   }
-  physx.physxWorker.setLoop(avatar.useMotiono.drink, AnimationLoopType.LoopOnce);
-  physx.physxWorker.stop(avatar.useMotiono.drink);
-  physx.physxWorker.setLoop(avatar.useMotiono.combo, AnimationLoopType.LoopOnce);
-  physx.physxWorker.stop(avatar.useMotiono.combo);
   physx.physxWorker.setSpeed(avatar.useMotiono.combo, 1.3);
-  // combo
-  physx.physxWorker.setLoop(avatar.useMotiono.swordSideSlash, AnimationLoopType.LoopOnce);
-  physx.physxWorker.stop(avatar.useMotiono.swordSideSlash);
-  physx.physxWorker.setLoop(avatar.useMotiono.swordSideSlashStep, AnimationLoopType.LoopOnce);
-  physx.physxWorker.stop(avatar.useMotiono.swordSideSlashStep);
-  physx.physxWorker.setLoop(avatar.useMotiono.swordTopDownSlash, AnimationLoopType.LoopOnce);
-  physx.physxWorker.stop(avatar.useMotiono.swordTopDownSlash);
-  physx.physxWorker.setLoop(avatar.useMotiono.swordTopDownSlashStep, AnimationLoopType.LoopOnce);
-  physx.physxWorker.stop(avatar.useMotiono.swordTopDownSlashStep);
-  physx.physxWorker.setLoop(avatar.useMotiono.dashAttack, AnimationLoopType.LoopOnce);
-  physx.physxWorker.stop(avatar.useMotiono.dashAttack);
-  // envelope
-  physx.physxWorker.setLoop(avatar.useMotiono.bowDraw, AnimationLoopType.LoopOnce);
-  physx.physxWorker.stop(avatar.useMotiono.bowDraw);
-  physx.physxWorker.setLoop(avatar.useMotiono.bowLoose, AnimationLoopType.LoopOnce);
-  physx.physxWorker.stop(avatar.useMotiono.bowLoose);
   // sit
   avatar.sitMotiono = {};
   for (const k in sitAnimations) {
@@ -742,17 +726,13 @@ export const _createAnimation = avatar => {
   physx.physxWorker.addChild(avatar.actionsNodeUnitary, avatar.defaultNodeTwo);
   physx.physxWorker.addChild(avatar.actionsNodeUnitary, avatar.jumpMotion);
   physx.physxWorker.addChild(avatar.actionsNodeUnitary, avatar.narutoRunMotion);
-  // useMotiono
-  physx.physxWorker.addChild(avatar.actionsNodeUnitary, avatar.useMotiono.drink);
-  // // sword
-  physx.physxWorker.addChild(avatar.actionsNodeUnitary, avatar.useMotiono.combo);
-  // // silsword combo
-  physx.physxWorker.addChild(avatar.actionsNodeUnitary, avatar.useMotiono.swordSideSlash);
-  physx.physxWorker.addChild(avatar.actionsNodeUnitary, avatar.useMotiono.swordSideSlashStep);
-  physx.physxWorker.addChild(avatar.actionsNodeUnitary, avatar.useMotiono.swordTopDownSlash);
-  physx.physxWorker.addChild(avatar.actionsNodeUnitary, avatar.useMotiono.swordTopDownSlashStep);
-  physx.physxWorker.addChild(avatar.actionsNodeUnitary, avatar.useMotiono.dashAttack);
 
+  // use
+  for (const k in avatar.useMotiono) {
+    if (['bowIdle', 'bowDraw', 'bowLoose'].includes(k)) continue; // these motions already added to parent at above.
+    const motion = avatar.useMotiono[k];
+    physx.physxWorker.addChild(avatar.actionsNodeUnitary, motion);
+  }
   // sit
   for (const k in avatar.sitMotiono) {
     const motion = avatar.sitMotiono[k];
@@ -780,7 +760,7 @@ export const _createAnimation = avatar => {
   //   physx.physxWorker.addChild(avatar.actionsNodeUnitary, motion);
   // }
   avatar.holdNodeOverwrite = avatar.createNode(AnimationNodeType.OVERWRITE, 'holdNodeOverwrite'); // todo: Selectable filters.
-  physx.physxWorker.addChild(avatar.holdNodeOverwrite, avatar.defaultNodeTwo); // todo: Can add one node to multiple parents? Tested ok for defaultNodeTwo.
+  physx.physxWorker.addChild(avatar.holdNodeOverwrite, avatar.defaultNodeTwo); // todo: Can add one node to multiple parents? Tested ok for defaultNodeTwo. But should be problematic, weight changed in one place will affect other places.
   physx.physxWorker.addChild(avatar.holdNodeOverwrite, avatar.holdMotiono[defaultHoldAnimation]);
 
   physx.physxWorker.setFactor(avatar.holdNodeOverwrite, 1);
