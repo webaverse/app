@@ -1,7 +1,7 @@
 
 import React, { useEffect, useContext, useState } from 'react';
 import classnames from 'classnames';
-
+import cameraManager from '../../../../camera-manager.js';
 import { AppContext } from '../../app';
 
 import styles from './action-menu.module.css';
@@ -22,8 +22,27 @@ export const ActionMenu = ({ setUIMode, className }) => {
     };
 
     const handleWorldBtnClick = () => {
+        if ( state.openedPanel === 'WorldPanel' ) {
 
-        setState({ openedPanel: ( state.openedPanel === 'WorldPanel' ? null : 'WorldPanel' ) });
+            if ( ! cameraManager.pointerLockElement ) {
+
+                cameraManager.requestPointerLock();
+
+            }
+    
+            setState({ openedPanel: null });
+
+        } else if ( state.openedPanel !== 'SettingsPanel' ) {
+
+            if ( cameraManager.pointerLockElement ) {
+
+                cameraManager.exitPointerLock();
+
+            }
+
+            setState({ openedPanel: 'WorldPanel' });
+
+        }
 
     };
 
@@ -88,9 +107,8 @@ export const ActionMenu = ({ setUIMode, className }) => {
             <div className={ styles.btnWrapper } >
                 <div className={ classnames( styles.btn, styles.mode ) } onClick={ handleModeBtnClick } >
                     <img src="images/webpencil.svg" className={ classnames( styles.background, styles.blue ) } />
-                    <span className={ styles.text } >隠れる { uiMode === 'normal' ? 'Hide' : 'Show' }</span>
+                    <span className={ styles.text } >隠れる Hide</span>
                 </div>
-                <div className={ styles.tooltip } >CTRL+H</div>
             </div>
             <div className={ styles.btnWrapper } >
                 <div className={ classnames( styles.btn, styles.vr, xrSupported ? null : styles.disabled ) } onClick={ handleVRBtnClick } >

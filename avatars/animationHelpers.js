@@ -1,4 +1,4 @@
-import {Vector3, Quaternion, AnimationClip} from 'three';
+import {Vector3, Quaternion, AnimationClip, MathUtils} from 'three';
 import metaversefile from 'metaversefile';
 import {/* VRMSpringBoneImporter, VRMLookAtApplyer, */ VRMCurveMapper} from '@pixiv/three-vrm/lib/three-vrm.module.js';
 // import easing from '../easing.js';
@@ -45,6 +45,7 @@ import {
 const localVector = new Vector3();
 const localVector2 = new Vector3();
 const localVector3 = new Vector3();
+const localVector4 = new Vector3();
 
 const localQuaternion = new Quaternion();
 const localQuaternion2 = new Quaternion();
@@ -52,6 +53,8 @@ const localQuaternion3 = new Quaternion();
 const localQuaternion4 = new Quaternion();
 const localQuaternion5 = new Quaternion();
 const localQuaternion6 = new Quaternion();
+
+const identityQuaternion = new Quaternion();
 
 let animations;
 let animationStepIndices;
@@ -63,6 +66,7 @@ let aimAnimations;
 let sitAnimations;
 let danceAnimations;
 let emoteAnimations;
+let pickUpAnimations;
 // let throwAnimations;
 // let crouchAnimations;
 let activateAnimations;
@@ -74,6 +78,7 @@ let narutoRunAnimations;
 // let swordSideSlash;
 // let swordTopDownSlash;
 let hurtAnimations;
+let holdAnimations;
 
 const defaultSitAnimation = 'chair';
 // const defaultUseAnimation = 'combo';
@@ -322,6 +327,7 @@ export const loadPromise = (async () => {
     eat: animations.find(a => a.isEating),
     drink: animations.find(a => a.isDrinking),
     throw: animations.find(a => a.isThrow),
+    pickUpThrow: animations.find(a => a.isPickUpThrow),
     bowDraw: animations.find(a => a.isBowDraw),
     bowIdle: animations.find(a => a.isBowIdle),
     bowLoose: animations.find(a => a.isBowLoose),
@@ -353,9 +359,19 @@ export const loadPromise = (async () => {
     victory: animations.find(a => a.isVictory),
     victorySoft: animations.find(a => a.isVictorySoft),
   };
-  // throwAnimations = {
-  //   throw: animations.find(a => a.isThrow),
-  // };
+  pickUpAnimations = {
+    pickUp: animations.find(a => a.isPickUp),
+    pickUpIdle: animations.find(a => a.isPickUpIdle),
+    pickUpThrow: animations.find(a => a.isPickUpThrow),
+    putDown: animations.find(a => a.isPutDown),
+    pickUpZelda: animations.find(a => a.isPickUpZelda),
+    pickUpIdleZelda: animations.find(a => a.isPickUpIdleZelda),
+    putDownZelda: animations.find(a => a.isPutDownZelda),
+  };
+  /* throwAnimations = {
+    throw: animations.find(a => a.isThrow),
+    pickUpThrow: animations.find(a => a.isPickUpThrow),
+  }; */
   /* crouchAnimations = {
       crouch: animations.find(a => a.isCrouch),
     }; */
@@ -365,6 +381,7 @@ export const loadPromise = (async () => {
     grab_up: {animation: animations.index['grab_up.fbx'], speedFactor: 1.2},
     grab_left: {animation: animations.index['grab_left.fbx'], speedFactor: 1.2},
     grab_right: {animation: animations.index['grab_right.fbx'], speedFactor: 1.2},
+    pick_up: {animation: animations.index['pick_up.fbx'], speedFactor: 1},
   };
   narutoRunAnimations = {
     narutoRun: animations.find(a => a.isNarutoRun),
@@ -372,6 +389,9 @@ export const loadPromise = (async () => {
   hurtAnimations = {
     pain_back: animations.index['pain_back.fbx'],
     pain_arch: animations.index['pain_arch.fbx'],
+  };
+  holdAnimations = {
+    pick_up_idle: animations.index['pick_up_idle.fbx'],
   };
   {
     const down10QuaternionArray = new Quaternion()
@@ -388,7 +408,7 @@ export const loadPromise = (async () => {
   console.log('load avatar animations error', err);
 });
 
-export const _applyAnimation = (avatar, now, moveFactors) => {
+export const _applyAnimation = (avatar, now, moveFactors, timeDiffS) => {
   // const runSpeed = 0.5;
   const angle = avatar.getAngle();
   const timeSeconds = now / 1000;
@@ -743,6 +763,7 @@ export const _applyAnimation = (avatar, now, moveFactors) => {
           animationTrackName: k,
           dst,
           // isTop,
+          isArm,
         } = spec;
 
         const t2 = avatar.jumpTime / 1000 * 0.6 + 0.7;
@@ -750,6 +771,14 @@ export const _applyAnimation = (avatar, now, moveFactors) => {
         const v2 = src2.evaluate(t2);
 
         dst.fromArray(v2);
+
+        if (avatar.holdState && isArm) {
+          const holdAnimation = holdAnimations['pick_up_idle'];
+          const src2 = holdAnimation.interpolants[k];
+          const t2 = (now / 1000) % holdAnimation.duration;
+          const v2 = src2.evaluate(t2);
+          dst.fromArray(v2);
+        }
       };
     }
     if (avatar.sitState) {
@@ -1094,6 +1123,67 @@ export const _applyAnimation = (avatar, now, moveFactors) => {
           avatar.useAnimation = '';
         }
       };
+    } else if (avatar.holdState) {
+      return spec => {
+        const {
+          animationTrackName: k,
+          dst,
+          lerpFn,
+          boneName,
+          isTop,
+          isPosition,
+          isArm,
+        } = spec;
+
+        _handleDefault(spec);
+
+        const holdAnimation = holdAnimations['pick_up_idle'];
+        const src2 = holdAnimation.interpolants[k];
+        const t2 = (now / 1000) % holdAnimation.duration;
+        const v2 = src2.evaluate(t2);
+
+        if (isTop) {
+          if (boneName === 'Left_arm' || boneName === 'Right_arm') {
+            dst.fromArray(v2);
+          } else {
+            if (isArm) {
+              dst
+                .slerp(identityQuaternion, walkRunFactor * 0.7 + crouchFactor * (1 - idleWalkFactor) * 0.5)
+                .premultiply(localQuaternion2.fromArray(v2));
+            } else {
+              dst
+                .premultiply(localQuaternion2.fromArray(v2));
+            }
+          }
+        }
+      };
+    } else if (avatar.pickUpState) {
+      return spec => {
+        const {
+          animationTrackName: k,
+          dst,
+          /* lerpFn,
+          isTop,
+          isPosition, */
+        } = spec;
+
+        const pickUpAnimation = pickUpAnimations['pickUpZelda'];
+        const pickUpIdleAnimation = pickUpAnimations['pickUpIdleZelda'];
+
+        const t2 = avatar.pickUpTime / 1000;
+        if (t2 < pickUpAnimation.duration) {
+          const src2 = pickUpAnimation.interpolants[k];
+          const v2 = src2.evaluate(t2);
+
+          dst.fromArray(v2);
+        } else {
+          const t3 = (t2 - pickUpAnimation.duration) % pickUpIdleAnimation.duration;
+          const src2 = pickUpIdleAnimation.interpolants[k];
+          const v2 = src2.evaluate(t3);
+
+          dst.fromArray(v2);
+        }
+      };
     }
     return _handleDefault;
   };
@@ -1103,6 +1193,7 @@ export const _applyAnimation = (avatar, now, moveFactors) => {
       animationTrackName: k,
       dst,
       // isTop,
+      isArm,
       lerpFn,
     } = spec;
 
@@ -1118,9 +1209,74 @@ export const _applyAnimation = (avatar, now, moveFactors) => {
           localQuaternion.fromArray(v2),
           f,
         );
+
+      if (avatar.holdState && isArm) {
+        const holdAnimation = holdAnimations['pick_up_idle'];
+        const src2 = holdAnimation.interpolants[k];
+        const t2 = (now / 1000) % holdAnimation.duration;
+        const v2 = src2.evaluate(t2);
+        dst.fromArray(v2);
+      }
     }
   };
 
+  const _blendSwim = spec => {
+    const {
+      animationTrackName: k,
+      dst,
+      isPosition,
+      isFirstBone,
+    } = spec;
+
+    if (avatar.swimState) {
+      const swimTimeS = avatar.swimTime / 1000;
+      const movementsTimeS = avatar.movementsTime / 1000;
+      // if (isFirstBone) {
+      //   // const swimSpeed = 1 + idleWalkFactor + walkRunFactor;
+      //   // avatar.swimAnimTime += timeDiffS * swimSpeed;
+      //   // avatar.swimAnimTime = avatar.movementsTime / 1000 * swimSpeed;
+      // }
+
+      const src2 = floatAnimation.interpolants[k];
+      const v2 = src2.evaluate(swimTimeS % floatAnimation.duration);
+
+      const src3 = animations.index['Swimming.fbx'].interpolants[k];
+      const v3 = src3.evaluate(movementsTimeS * 1 % animations.index['Swimming.fbx'].duration);
+
+      const src4 = animations.index['freestyle.fbx'].interpolants[k];
+      const v4 = src4.evaluate(movementsTimeS * 2 % animations.index['freestyle.fbx'].duration);
+
+      const f = MathUtils.clamp(swimTimeS / 0.2, 0, 1);
+      // if (isPosition) console.log(f);
+
+      if (!isPosition) {
+        localQuaternion2.fromArray(v2);
+        localQuaternion3.fromArray(v3);
+        localQuaternion4.fromArray(v4);
+        // // can't use idleWalkFactor & walkRunFactor here, otherwise "Impulsive breaststroke swim animation" will turn into "freestyle animation" when speed is fast,
+        // // and will turn into "floating" a little when speed is slow.
+        // localQuaternion3.slerp(localQuaternion4, walkRunFactor);
+        // localQuaternion2.slerp(localQuaternion3, idleWalkFactor);
+        localQuaternion3.slerp(localQuaternion4, avatar.sprintFactor);
+        localQuaternion2.slerp(localQuaternion3, avatar.movementsTransitionFactor);
+        dst.slerp(localQuaternion2, f);
+      } else {
+        const liftSwims = 0.05; // lift swims height, prevent head sink in water
+        localVector2.fromArray(v2);
+        localVector3.fromArray(v3);
+        // localVector3.y += 0.21; // align Swimming.fbx's height to freestyle.fbx
+        localVector3.y += 0.03; // align Swimming.fbx's height to freestyle.fbx
+        localVector3.y += liftSwims;
+        localVector4.fromArray(v4);
+        localVector4.y += liftSwims;
+        // localVector3.lerp(localVector4, walkRunFactor);
+        // localVector2.lerp(localVector3, idleWalkFactor);
+        localVector3.lerp(localVector4, avatar.sprintFactor);
+        localVector2.lerp(localVector3, avatar.movementsTransitionFactor);
+        dst.lerp(localVector2, f);
+      }
+    }
+  };
   const _blendActivateAction = spec => {
     const {
       animationTrackName: k,
@@ -1134,8 +1290,9 @@ export const _applyAnimation = (avatar, now, moveFactors) => {
 
       let defaultAnimation = 'grab_forward';
 
-      if (localPlayer.getAction('activate').animationName) {
-        defaultAnimation = localPlayer.getAction('activate').animationName;
+      const activateAction = localPlayer.getAction('activate');
+      if (activateAction.animationName) {
+        defaultAnimation = activateAction.animationName;
       }
 
       const activateAnimation = activateAnimations[defaultAnimation].animation;
@@ -1165,15 +1322,19 @@ export const _applyAnimation = (avatar, now, moveFactors) => {
     applyFn(spec);
     _blendFly(spec);
     _blendActivateAction(spec);
+    _blendSwim(spec);
 
     // ignore all animation position except y
     if (isPosition) {
-      if (!avatar.jumpState) {
+      if (avatar.swimState) {
         // animations position is height-relative
         dst.y *= avatar.height; // XXX avatar could be made perfect by measuring from foot to hips instead
-      } else {
+      } else if (avatar.jumpState) {
         // force height in the jump case to overide the animation
         dst.y = avatar.height * 0.55;
+      } else {
+        // animations position is height-relative
+        dst.y *= avatar.height; // XXX avatar could be made perfect by measuring from foot to hips instead
       }
     }
   }

@@ -205,8 +205,7 @@
 
 .userWrap {
   display: flex;
-  position: absolute;
-  top: 0;
+  top: 8px;
   right: 0;
   margin-top: 10px;
   align-items: center;
@@ -224,8 +223,13 @@
   pointer-events: all;
   cursor: pointer;
 }
+
+.userBar .address.avatarPadRight {
+  padding-left: 60px;
+}
+
 .userBar .avatarUrl {
-  position: relative;
+  position: absolute;
   z-index: 1;
 }
 .userBar .avatarUrl .img {
@@ -261,9 +265,9 @@
 .userBar .avatarUrl + .address {
   border-radius: 0;
 }
-.userBar:hover .address {
+/* .userBar:hover .address {
   background-color: #00a8fc;
-}
+} */
 .userBar .verifiedIcon {
   position: relative;
   width: 18px;

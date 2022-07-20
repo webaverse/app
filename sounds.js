@@ -1,4 +1,4 @@
-import Avatar from './avatars/avatars.js';
+import audioManager from './audio-manager.js';
 import {loadAudioBuffer} from './util.js';
 import soundFileSpecs from './public/sounds/sound-files.json';
 
@@ -26,10 +26,13 @@ const soundFiles = {
   menuDone: _getSoundFiles(/OOT_Dialogue_Done/),
   menuClick: _getSoundFiles(/ff8_click/),
   menuOk: _getSoundFiles(/ff8_menu_ok/),
+  menuSelect: _getSoundFiles(/PauseMenu_Select/),
   menuBack: _getSoundFiles(/ff8_menu_back/),
   menuLeft: _getSoundFiles(/PauseMenu_Turn_Left/),
   menuRight: _getSoundFiles(/PauseMenu_Turn_Right/),
   menuReady: _getSoundFiles(/ff7_cursor_ready/),
+  menuBeep: _getSoundFiles(/beep/),
+  menuBoop: _getSoundFiles(/boop/),
   itemEquip: _getSoundFiles(/Link_Item\.wav/),
   itemUnequip: _getSoundFiles(/Link_Item_Away/),
   zTargetCenter: _getSoundFiles(/ZTarget_Center/),
@@ -39,13 +42,25 @@ const soundFiles = {
   battleTransition: _getSoundFiles(/ff7_battle_transition/),
   limitBreak: _getSoundFiles(/ff7_limit_break/),
   limitBreakReady: _getSoundFiles(/ff8_limit_ready/),
+  naviHey: _getSoundFiles(/navi_hey/),
+  naviWatchout: _getSoundFiles(/navi_watchout/),
+  naviFriendly: _getSoundFiles(/navi_friendly/),
+  naviItem: _getSoundFiles(/navi_item/),
+  naviDanger: _getSoundFiles(/navi_danger/),
+  bushCut: _getSoundFiles(/OOT_Bush_Cut/),
+  // bushPickup: _getSoundFiles(/OOT_Bush_Pickup/),
+  // bushWalk: _getSoundFiles(/OOT_Bush_Walk/),
+  hpPickup: _getSoundFiles(/OOT_Get_Heart/),
+  mpPickup: _getSoundFiles(/OOT_Get_SmallItem1/),
+  refill: _getSoundFiles(/OOT_MagicRefill/),
+  explosion: _getSoundFiles(/OOT_Bomb_Blow/),
+
+  water: _getSoundFiles(/^water\//),
 };
 
 let soundFileAudioBuffer;
 const loadPromise = (async () => {
-  await Avatar.waitForLoad();
-
-  const audioContext = Avatar.getAudioContext();
+  const audioContext = audioManager.getAudioContext();
   soundFileAudioBuffer = await loadAudioBuffer(audioContext, '/sounds/sounds.mp3');
 })();
 const waitForLoad = () => loadPromise;
@@ -55,7 +70,7 @@ const getSoundFileAudioBuffer = () => soundFileAudioBuffer;
 
 const playSound = audioSpec => {
   const {offset, duration} = audioSpec;
-  const audioContext = Avatar.getAudioContext();
+  const audioContext = audioManager.getAudioContext();
   const audioBufferSourceNode = audioContext.createBufferSource();
   audioBufferSourceNode.buffer = soundFileAudioBuffer;
   audioBufferSourceNode.connect(audioContext.gain);
@@ -66,9 +81,13 @@ const playSoundName = name => {
   const snds = soundFiles[name];
   if (snds) {
     const sound = snds[Math.floor(Math.random() * snds.length)];
+    if (!sound) {
+      debugger;
+    }
     playSound(sound);
     return true;
   } else {
+    debugger;
     return false;
   }
 };

@@ -39,7 +39,7 @@ function makeId(length) {
   return result;
 }
 
-const _proxyUrl = (req, res, u) => {
+/* const _proxyUrl = (req, res, u) => {
   const proxyReq = /https/.test(u) ? https.request(u) : http.request(u);
   proxyReq.on('response', proxyRes => {
     for (const header in proxyRes.headers) {
@@ -54,7 +54,7 @@ const _proxyUrl = (req, res, u) => {
     res.end();
   });
   proxyReq.end();
-};
+}; */
 
 (async () => {
   const app = express();
@@ -156,6 +156,8 @@ const _proxyUrl = (req, res, u) => {
     };
     for (const object of objects) {
       let {start_url, type, content, position = [0, 0, 0], quaternion = [0, 0, 0, 1], scale = [1, 1, 1]} = object;
+
+      const transform = Float32Array.from([...position, ...quaternion, ...scale]);
       const instanceId = makeId(5);
       if (!start_url && type && content) {
         start_url = `data:${type},${encodeURI(JSON.stringify(content))}`;
@@ -163,18 +165,14 @@ const _proxyUrl = (req, res, u) => {
       const appObject = {
         instanceId,
         contentId: start_url,
-        position,
-        quaternion,
-        scale,
+        transform,
         components: JSON.stringify([]),
       };
       result[appsMapName].push(appObject);
     }
     return result;
   })();
-  const initialRoomNames = [
-    'Erithor',
-  ];
+  const initialRoomNames = [];
   wsrtc.bindServer(wsServer, {
     initialRoomState,
     initialRoomNames,

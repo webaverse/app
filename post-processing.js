@@ -7,13 +7,14 @@ import * as THREE from 'three';
 import {ShaderPass} from 'three/examples/jsm/postprocessing/ShaderPass.js';
 import {UnrealBloomPass} from 'three/examples/jsm/postprocessing/UnrealBloomPass.js';
 import {AdaptiveToneMappingPass} from 'three/examples/jsm/postprocessing/AdaptiveToneMappingPass.js';
+import { WebaWaterPass } from 'three/examples/jsm/postprocessing/WebaWaterPass.js';
 // import {BloomPass} from 'three/examples/jsm/postprocessing/BloomPass.js';
 // import {AfterimagePass} from 'three/examples/jsm/postprocessing/AfterimagePass.js';
 import {BokehPass} from './BokehPass.js';
 import {SSAOPass} from './SSAOPass.js';
 // import {RenderPass} from './RenderPass.js';
 import {DepthPass} from './DepthPass.js';
-import {SwirlPass} from './SwirlPass.js';
+// import {SwirlPass} from './SwirlPass.js';
 import {
   getRenderer,
   getComposer,
@@ -33,8 +34,8 @@ import {WebaverseRenderPass} from './webaverse-render-pass.js';
 import renderSettingsManager from './rendersettings-manager.js';
 import metaversefileApi from 'metaversefile';
 // import {parseQuery} from './util.js';
-import * as sounds from './sounds.js';
-import musicManager from './music-manager.js';
+// import * as sounds from './sounds.js';
+// import musicManager from './music-manager.js';
 
 // const hqDefault = parseQuery(window.location.search)['hq'] === '1';
 
@@ -136,6 +137,21 @@ function makeBloomPass({
   // unrealBloomPass.enabled = hqDefault;
   return unrealBloomPass;
 }
+function makeWebaWaterPass(webaWater) {
+  const renderer = getRenderer();
+  const webaWaterPass = new WebaWaterPass( {
+      renderer,
+      scene,
+      camera,
+      width: window.innerWidth,
+      height: window.innerHeight,
+      selects: [],
+      invisibleSelects: [],
+  });
+
+  return webaWaterPass;
+}
+
 function makeEncodingPass() {
   const encodingPass = new ShaderPass({
     uniforms: {
@@ -168,7 +184,10 @@ function makeEncodingPass() {
 }
 
 const webaverseRenderPass = new WebaverseRenderPass();
-const _isDecapitated = () => (/^(?:camera|firstperson)$/.test(cameraManager.getMode()) || !!getRenderer().xr.getSession());
+const _isDecapitated = () => (
+  (/^(?:camera|firstperson)$/.test(cameraManager.getMode()) && !cameraManager.target) ||
+  !!getRenderer().xr.getSession()
+);
 webaverseRenderPass.onBeforeRender = (a, b, c) => {
   // ensure lights attached
   // scene.add(world.lights);
@@ -225,13 +244,16 @@ class PostProcessing extends EventTarget {
     passes.push(webaverseRenderPass);
     
     if (rendersettings) {
-      const {ssao, dof, hdr, bloom, postPostProcessScene, swirl} = rendersettings;
-      
+      const {ssao, dof, hdr, bloom, postPostProcessScene, swirl, webaWater} = rendersettings;
       if (ssao || dof) {
         passes.depthPass = makeDepthPass({ssao, dof});
       }
       if (ssao) {
         passes.ssaoPass = makeSsaoRenderPass(ssao, passes.depthPass);
+      }
+      if(webaWater){
+        const webaWaterPass = makeWebaWaterPass(webaWater);
+        passes.push(webaWaterPass);
       }
       if (dof) {
         const dofPass = makeDofPass(dof, passes.depthPass);

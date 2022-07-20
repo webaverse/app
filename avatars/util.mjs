@@ -551,6 +551,13 @@ export const decorateAnimation = animation => {
   animation.isRunning = /fast run|running|left strafe(?: reverse)?\.|right strafe(?: reverse)?\./i.test(animation.name);
   animation.isActivate = /object/i.test(animation.name);
   animation.isNarutoRun = /naruto run/i.test(animation.name);
+  animation.isPickUp = /pick_up/i.test(animation.name);
+  animation.isPickUpIdle = /pick_up_idle/i.test(animation.name);
+  animation.isPickUpThrow = /pick_up_throw/i.test(animation.name);
+  animation.isPutDown = /put_down/i.test(animation.name);
+  animation.isPickUpZelda = /pick_up_zelda/i.test(animation.name);
+  animation.isPickUpIdleZelda = /pick_up_idle_zelda/i.test(animation.name);
+  animation.isPutDownZelda = /put_down_zelda/i.test(animation.name);
   animation.isReverse = /reverse/i.test(animation.name);
   // animation.isLanding = /landing/i.test(animation.name);
   // animation.isChargeJumpFall = /charge_jump_fall/i.test(animation.name);

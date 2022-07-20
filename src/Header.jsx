@@ -10,10 +10,10 @@ import ioManager from '../io-manager.js'
 import { Character } from './components/general/character';
 import { CharacterSelect } from './components/general/character-select';
 import { Equipment } from './components/general/equipment';
-import { Tokens } from './tabs/tokens';
 import { registerIoEventHandler, unregisterIoEventHandler } from './components/general/io-handler';
 import { AppContext } from './components/app';
 import { AvatarIcon } from './AvatarIcon';
+import { StoryTime } from './StoryTime';
 import { User } from './User';
 
 import styles from './Header.module.css';
@@ -23,21 +23,20 @@ import { UIMode } from './components/general/ui-mode/index.jsx';
 
 export default function Header() {
 
-    const { state, setState, selectedApp } = useContext( AppContext );
+    const { state, setState, selectedApp, account } = useContext( AppContext );
     const localPlayer = metaversefile.useLocalPlayer();
     const _getWearActions = () => localPlayer.getActionsArray().filter(action => action.type === 'wear');
 
     const dioramaCanvasRef = useRef();
     const panelsRef = useRef();
 
-    const [address, setAddress] = useState('');
     const [nfts, setNfts] = useState(null);
     // const [apps, setApps] = useState(world.appManager.getApps().slice());
     // const [claims, setClaims] = useState([]);
     // const [dragging, setDragging] = useState(false);
     const [loginFrom, setLoginFrom] = useState('');
     const [wearActions, setWearActions] = useState(_getWearActions());
-
+    const address = account.currentAddress;
     //
 
     const stopPropagation = ( event ) => {
@@ -262,14 +261,13 @@ export default function Header() {
               localPlayer={localPlayer}
               npcs={npcs}
             />
+            <StoryTime />
             {/* <div className={styles.inner}> */}
                 <UIMode hideDirection='left' >
                     <AvatarIcon />
                 </UIMode>
                 <UIMode hideDirection='right' >
                     <User
-                        address={address}
-                        setAddress={setAddress}
                         setLoginFrom={setLoginFrom}
                     />
                 </UIMode>
@@ -290,13 +288,6 @@ export default function Header() {
                         claims={claims}
                         panelsRef={panelsRef}
                     /> */}
-                    <Tokens
-                        nfts={nfts}
-                        hacks={hacks}
-                        address={address}
-                        setNfts={setNfts}
-                        loginFrom={loginFrom}
-                    />
                 </div>
             {/* </div> */}
         </div>
