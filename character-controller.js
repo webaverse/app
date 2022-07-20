@@ -156,7 +156,6 @@ class PlayerBase extends THREE.Object3D {
 
     this.name = defaultPlayerName;
     this.bio = defaultPlayerBio;
-    this.characterPhysics = new CharacterPhysics(this);
     this.characterHups = new CharacterHups(this);
     this.characterSfx = new CharacterSfx(this);
     this.characterFx = new CharacterFx(this);
@@ -534,7 +533,6 @@ class PlayerBase extends THREE.Object3D {
     }
   }
   destroy() {
-    this.characterPhysics.destroy();
     this.characterHups.destroy();
     this.characterSfx.destroy();
     this.characterFx.destroy();
@@ -987,6 +985,8 @@ class LocalPlayer extends UninterpolatedPlayer {
     this.isLocalPlayer = !opts.npc;
     this.isNpcPlayer = !!opts.npc;
     this.detached = !!opts.detached;
+
+    this.characterPhysics = new CharacterPhysics(this);
   }
   async setPlayerSpec(playerSpec) {
     const p = this.setAvatarUrl(playerSpec.avatarUrl);
@@ -1198,6 +1198,10 @@ class LocalPlayer extends UninterpolatedPlayer {
       this.characterHups.update(timestamp);
     }
   }
+  destroy(){
+    super.destroy();
+    this.characterPhysics.destroy();
+  }
   /* teleportTo = (() => {
     const localVector = new THREE.Vector3();
     const localVector2 = new THREE.Vector3();
@@ -1329,10 +1333,7 @@ class RemotePlayer extends InterpolatedPlayer {
           actionBinaryInterpolant.snapshot(timeDiff);
         }
 
-        this.characterPhysics.applyAvatarPhysicsDetail(true, true, timestamp, timeDiff / 1000);
-
         if(this.avatar) {
-          this.characterPhysics.setPosition(this.position);
           this.avatar.setVelocity(
             timeDiff / 1000,
             lastPosition,
