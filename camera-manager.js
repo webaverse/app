@@ -193,6 +193,7 @@ class CameraManager extends EventTarget {
     this.lastTimestamp = 0;
     this.cinematicScript = null;
     this.cinematicScriptStartTime = -1;
+    this.modeIs2D = false;
 
     document.addEventListener('pointerlockchange', e => {
       let pointerLockElement = document.pointerLockElement;
