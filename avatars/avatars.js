@@ -2016,7 +2016,7 @@ class Avatar {
         // the mouth is manually overridden by the CharacterBehavior class which is attached to all players
         // this happens when a player is eating fruit or yelling while making an attack
         if (!this.manuallySetMouth) {
-          this.volume = this.volume * 0.8 + e.data * 0.2;
+          this.volume = e.data;
         }
       }
 
@@ -2074,16 +2074,16 @@ class Avatar {
         emitBuffer: true,
       });
 
-      const _localVolume = e => {
+      const _volume = e => {
         this.volume = this.volume * 0.8 + e.data * 0.2;
       }
 
-      const _localBuffer = e => {
+      const _buffer = e => {
         this.audioRecognizer.send(e.data);
       }
 
-      this.microphoneWorker.addEventListener('volume', _localVolume);
-      this.microphoneWorker.addEventListener('buffer', _localBuffer);
+      this.microphoneWorker.addEventListener('volume', _volume);
+      this.microphoneWorker.addEventListener('buffer', _buffer);
     } else {
       this.volume = -1;
     }
