@@ -799,19 +799,6 @@ class StatePlayer extends PlayerBase {
     }
     actions.push([action]);
   }
-  setMicMediaStream(mediaStream) {
-    if (this.microphoneMediaStream) {
-      this.microphoneMediaStream.disconnect();
-      this.microphoneMediaStream = null;
-    }
-    if (mediaStream) {
-      this.avatar.setAudioEnabled(true);
-      const audioContext = audioManager.getAudioContext();
-      const mediaStreamSource = audioContext.createMediaStreamSource(mediaStream);
-      mediaStreamSource.connect(this.avatar.getAudioInput());
-      this.microphoneMediaStream = mediaStreamSource;
-    }
-  }
   new() {
     const self = this;
     this.playersArray.doc.transact(function tx() {
