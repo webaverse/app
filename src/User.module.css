@@ -205,7 +205,6 @@
 
 .userWrap {
   display: flex;
-  position: absolute;
   top: 0;
   right: 0;
   margin-top: 10px;

@@ -227,69 +227,67 @@ export const User = ({ className, address, setAddress, setLoginFrom }) => {
                 className
             ) }
         >
-            <div className={ styles.keyWrap } onClick={e => {
-                e.preventDefault();
-                e.stopPropagation();
+            {!loggedIn &&
+                <div className={ styles.keyWrap } onClick={e => {
+                    e.preventDefault();
+                    e.stopPropagation();
 
-                if (!loggedIn) {
+                        if ( !open ) {
 
-                    if ( !open ) {
+                            setState({ openedPanel: 'LoginPanel' });
 
-                        setState({ openedPanel: 'LoginPanel' });
+                        } else {
+                            setState({ openedPanel: null });
+                        }
 
-                    } else {
-                        setState({ openedPanel: null });
-                    }
+                        sounds.playSoundName('menuNext');
 
-                    sounds.playSoundName('menuNext');
-
-                }
-            }} onMouseEnter={e => {
+                }} onMouseEnter={e => {
+                    
+                    _triggerClickSound();
                 
-                _triggerClickSound();
-            
-            }}>
-                <div className={styles.key}>
-                    <div className={styles.bow}>
-                        <img className={styles.icon} src="./images/log-in.svg" />
-                    </div>
-                    <div className={styles.blade}>
-                        <div className={styles.background} />
-                        <div className={styles.text}>ログイン Log in</div>
-                    </div>
-                </div>
-            </div>
-
-            <div className={styles.loggingInPlaceholder}>Logging in</div>
-
-            <div
-                className={styles.userWrap}
-            >
-                <div
-                    className={styles.userBar}
-                    onClick={openUserPanel}
-                >
-                    {avatarUrl ? (
-                        <div
-                            className={styles.avatarUrl}
-                        >
-                            <img className={styles.img} src={avatarUrl} crossOrigin='Anonymous' />
+                }}>
+                    <div className={styles.key}>
+                        <div className={styles.bow}>
+                            <img className={styles.icon} src="./images/log-in.svg" />
                         </div>
-                    ) : null}
-                    <div
-                        className={styles.address}
-                    >{ensName || address || ''} <img className={styles.verifiedIcon} src="./images/verified.svg" /></div>
+                        <div className={styles.blade}>
+                            <div className={styles.background} />
+                            <div className={styles.text}>ログイン Log in</div>
+                        </div>
+                    </div>
                 </div>
-                <div className={styles.logoutBtn}
-                    onClick={e => {
-                        e.preventDefault();
-                        e.stopPropagation();
-                        WebaWallet.logout();
-                        _setAddress(null);
-                    }}
-                >Logout</div>
-            </div>
-
+            }
+            <div className={styles.loggingInPlaceholder}>Logging in</div>
+            {loggedIn &&
+                <div
+                    className={styles.userWrap}
+                >
+                    <div
+                        className={styles.userBar}
+                        onClick={openUserPanel}
+                    >
+                        {avatarUrl ? (
+                            <div
+                                className={styles.avatarUrl}
+                            >
+                                <img className={styles.img} src={avatarUrl} crossOrigin='Anonymous' />
+                            </div>
+                        ) : null}
+                        <div
+                            className={styles.address}
+                        >{ensName || address || ''} <img className={styles.verifiedIcon} src="./images/verified.svg" /></div>
+                    </div>
+                    <div className={styles.logoutBtn}
+                        onClick={e => {
+                            e.preventDefault();
+                            e.stopPropagation();
+                            WebaWallet.logout();
+                            _setAddress(null);
+                        }}
+                    >Logout</div>
+                </div>
+            }
             <div className={ classnames(
                 styles.userLoginMethodsModal,
                 open ? styles.opened : null,

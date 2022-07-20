@@ -88,9 +88,8 @@ export const ActionMenu = ({ setUIMode, className }) => {
             <div className={ styles.btnWrapper } >
                 <div className={ classnames( styles.btn, styles.mode ) } onClick={ handleModeBtnClick } >
                     <img src="images/webpencil.svg" className={ classnames( styles.background, styles.blue ) } />
-                    <span className={ styles.text } >隠れる { uiMode === 'normal' ? 'Hide' : 'Show' }</span>
+                    <span className={ styles.text } >隠れる Hide</span>
                 </div>
-                <div className={ styles.tooltip } >CTRL+H</div>
             </div>
             <div className={ styles.btnWrapper } >
                 <div className={ classnames( styles.btn, styles.vr, xrSupported ? null : styles.disabled ) } onClick={ handleVRBtnClick } >
