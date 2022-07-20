@@ -247,7 +247,7 @@ class CharacterFx {
     };
     _updateSonicBoomMesh();
     const _updateNameplate = () => {
-      if(!this.nameplate && !this.player.isNpcPlayer){
+      if(!this.nameplate && !this.player.isNpcPlayer && !this.player.isLocalPlayer){
         (async () => {
         this.nameplate = metaversefile.createApp();
         this.nameplate.setComponent('player', this.player);

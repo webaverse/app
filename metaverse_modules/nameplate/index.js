@@ -1,11 +1,23 @@
 import * as THREE from 'three';
 import metaversefile from 'metaversefile';
-import {GLTFLoader} from 'three/examples/jsm/loaders/GLTFLoader.js';
-import {getSingleModelGeoMat} from './model';
-import {Matrix4} from 'three';
+import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
+import { Matrix4 } from 'three';
 
-const {useApp, useCamera, useFrame, useText} =
-  metaversefile;
+const { useApp, useCamera, useFrame, useText } = metaversefile;
+
+const getSingleModelGeoMat = model => {
+  let count = 0;
+  let geometry, material;
+  model.scene.traverse(child => {
+    if (child.type === 'Mesh' && count < 1) {
+      geometry = child.geometry;
+      material = child.material;
+      count++;
+    }
+  });
+  return { geometry, material };
+};
+
 
 const Text = useText();
 const gltfLoader = new GLTFLoader();
@@ -14,7 +26,7 @@ let nameplateMesh = null;
 async function createNameplateMesh() {
   if (nameplateMesh) return;
   const nameplateModel = await gltfLoader.loadAsync('/assets/nameplate.glb');
-  const {geometry, material} = getSingleModelGeoMat(nameplateModel);
+  const { geometry, material } = getSingleModelGeoMat(nameplateModel);
   nameplateMesh = new THREE.InstancedMesh(geometry, material, 1000);
 }
 
@@ -50,6 +62,7 @@ export default () => {
   const app = useApp();
   const camera = useCamera();
   const player = app.getComponent('player');
+  console.log("creating nameplate", player)
 
   let textGroup = null;
   const lastPlateToCamera = new THREE.Vector3();
