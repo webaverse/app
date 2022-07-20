@@ -1,7 +1,7 @@
 
 import React, { useEffect, useContext, useState } from 'react';
 import classnames from 'classnames';
-
+import cameraManager from '../../../../camera-manager.js';
 import { AppContext } from '../../app';
 
 import styles from './action-menu.module.css';
@@ -22,8 +22,27 @@ export const ActionMenu = () => {
     };
 
     const handleWorldBtnClick = () => {
+        if ( state.openedPanel === 'WorldPanel' ) {
 
-        setState({ openedPanel: ( state.openedPanel === 'WorldPanel' ? null : 'WorldPanel' ) });
+            if ( ! cameraManager.pointerLockElement ) {
+
+                cameraManager.requestPointerLock();
+
+            }
+    
+            setState({ openedPanel: null });
+
+        } else if ( state.openedPanel !== 'SettingsPanel' ) {
+
+            if ( cameraManager.pointerLockElement ) {
+
+                cameraManager.exitPointerLock();
+
+            }
+
+            setState({ openedPanel: 'WorldPanel' });
+
+        }
 
     };
 
