@@ -17,7 +17,7 @@ import Chains from './components/web3/chains';
 
 //
 
-export const User = ({ setLoginFrom }) => {
+export const User = ({ className, setLoginFrom }) => {
 
     const { state, setState, account, chain } = useContext( AppContext );
     const [ensName, setEnsName] = useState('');
@@ -211,60 +211,59 @@ export const User = ({ setLoginFrom }) => {
                 open ? styles.open : null,
                 loggedIn ? styles.loggedIn : null,
                 loggingIn ? styles.loggingIn : null,
+                className
             ) }
         >
-            <div className={styles.keyWrap} onClick={e => {
-                e.preventDefault();
-                e.stopPropagation();
+            {!loggedIn &&
+                <div className={ styles.keyWrap } onClick={e => {
+                    e.preventDefault();
+                    e.stopPropagation();
 
-                if (!loggedIn) {
+                        if ( !open ) {
 
-                    if ( !open ) {
+                            setState({ openedPanel: 'LoginPanel' });
 
-                        setState({ openedPanel: 'LoginPanel' });
+                        } else {
+                            setState({ openedPanel: null });
+                        }
 
-                    } else {
-                        setState({ openedPanel: null });
-                    }
+                        sounds.playSoundName('menuNext');
 
-                    sounds.playSoundName('menuNext');
-
-                }
-            }} onMouseEnter={e => {
+                }} onMouseEnter={e => {
+                    
+                    _triggerClickSound();
                 
-                _triggerClickSound();
-            
-            }}>
-                <div className={styles.key}>
-                    <div className={styles.bow}>
-                        <img className={styles.icon} src="./images/log-in.svg" />
-                    </div>
-                    <div className={styles.blade}>
-                        <div className={styles.background} />
-                        <div className={styles.text}>ログイン Log in</div>
+                }}>
+                    <div className={styles.key}>
+                        <div className={styles.bow}>
+                            <img className={styles.icon} src="./images/log-in.svg" />
+                        </div>
+                        <div className={styles.blade}>
+                            <div className={styles.background} />
+                            <div className={styles.text}>ログイン Log in</div>
+                        </div>
                     </div>
                 </div>
-            </div>
-
+            }
             <div className={styles.loggingInPlaceholder}>Logging in</div>
-
-            <div
-                className={styles.userWrap}
-            >   
-                {loggedIn && <Chains />}
+            {loggedIn &&
                 <div
-                    className={styles.userBar}
-                    onClick={openUserPanel}
+                    className={styles.userWrap}
                 >
+                    <Chains />
+                    <div
+                        className={styles.userBar}
+                        onClick={openUserPanel}
+                    >
                     {avatarUrl ? (
                         <div className={styles.avatarUrl}>
                             <img className={styles.img} src={avatarUrl} crossOrigin='Anonymous' />
                         </div>
                     ) : null}
                     <div
-                        className={[styles.address, avatarUrl ? styles.avatarPadRight : undefined].join(' ')}
-                    >{ensName || address || currentAddress || ''} <img className={styles.verifiedIcon} src="./images/verified.svg" /></div>
-                </div>
+                    className={[styles.address, avatarUrl ? styles.avatarPadRight : undefined].join(' ')}
+                >{ensName || address || currentAddress || ''} <img className={styles.verifiedIcon} src="./images/verified.svg" /></div>
+            </div>
                 {/* <div className={styles.logoutBtn}
                     onClick={e => {
                         e.preventDefault();
@@ -273,8 +272,8 @@ export const User = ({ setLoginFrom }) => {
                         _setAddress(null);
                     }}
                 >Logout</div> */}
-            </div>
-
+                </div>
+            }            
             <div className={ classnames(
                 styles.userLoginMethodsModal,
                 open ? styles.opened : null,

@@ -34,7 +34,7 @@ export default function useNFTContract(currentAccount) {
 
   useEffect(() => {
     try {
-      if(CONTRACTS[selectedChain.contract_name]) {
+      if (CONTRACTS[selectedChain.contract_name]) {
         const WebaversecontractAddress = CONTRACTS[selectedChain.contract_name].Webaverse;
         const NFTcontractAddress = CONTRACTS[selectedChain.contract_name].NFT;
         const FTcontractAddress = CONTRACTS[selectedChain.contract_name].FT;
@@ -44,20 +44,17 @@ export default function useNFTContract(currentAccount) {
       } else {
         throw new Error('unsupported chain');
       }
-
     } catch (error) {
       console.warn('tried to use contract for unsupported chain');
     }
   }, [selectedChain]);
-
-
 
   async function getSigner() {
     var provider = new ethers.providers.Web3Provider(window.ethereum);
     return provider.getSigner(currentAccount);
   }
 
-  const getContract = async () => { //NFTcontract
+  const getContract = async () => { // NFTcontract
     const simpleRpcProvider = new ethers.providers.StaticJsonRpcProvider(selectedChain.rpcUrls[0]);
     const contract = new ethers.Contract(NFTcontractAddress, NFTABI, simpleRpcProvider);
     return contract;
@@ -73,7 +70,7 @@ export default function useNFTContract(currentAccount) {
       const signer = await getSigner();
       const name = currentApp.name;
       const ext = currentApp.appType;
-    //   const hash = currentApp.contentId.split(FILE_ADDRESS)[1].split('/')[0];
+      //   const hash = currentApp.contentId.split(FILE_ADDRESS)[1].split('/')[0];
       const description = currentApp.description;
 
       const metadataFileName = `${name}-metadata.json`;
@@ -83,12 +80,11 @@ export default function useNFTContract(currentAccount) {
         avatarURI = currentApp.contentId;
 
         metadata = {
-            name,
-            description,
-            image: imageURI,
-            animation_url: avatarURI
-        }
-
+          name,
+          description,
+          image: imageURI,
+          animation_url: avatarURI,
+        };
       } else { // image object
         imageURI = currentApp.contentId;
         avatarURI = '';
@@ -96,8 +92,8 @@ export default function useNFTContract(currentAccount) {
         metadata = {
           name,
           description,
-          image: imageURI
-        }
+          image: imageURI,
+        };
       }
 
       const type = 'upload';
@@ -128,17 +124,17 @@ export default function useNFTContract(currentAccount) {
 
       const Bigmintfee = await Webaversecontract.mintFee();
       const mintfee = BigNumber.from(Bigmintfee).toNumber();
-      console.log()
+      console.log();
 
       if (mintfee > 0) { // webaverse side chain mintfee != 0
         const FTapprovetx = await FTcontract.approve(NFTcontractAddress, mintfee); // mintfee = 10 default
         const FTapproveres = await FTapprovetx.wait();
         if (FTapproveres.transactionHash) {
           try {
-            const minttx = await Webaversecontract.mint(currentAccount, 1, metadatahash, "0x");
-            let res = await minttx.wait()
+            const minttx = await Webaversecontract.mint(currentAccount, 1, metadatahash, '0x');
+            const res = await minttx.wait();
             if (res.transactionHash) {
-                callback();
+              callback();
             }
           } catch (err) {
             console.warn('minting to webaverse contract failed');
@@ -147,13 +143,13 @@ export default function useNFTContract(currentAccount) {
         }
       } else { // mintfee = 0 for Polygon not webaverse sidechain
         try {
-          const minttx = await Webaversecontract.mint(currentAccount, 1, metadatahash, "0x");
-        //   callback(minttx);
-            callback();
-            let res = await minttx.wait()
-            if (res.transactionHash) {
-                afterminting();
-            }
+          const minttx = await Webaversecontract.mint(currentAccount, 1, metadatahash, '0x');
+          //   callback(minttx);
+          callback();
+          const res = await minttx.wait();
+          if (res.transactionHash) {
+            afterminting();
+          }
         } catch (err) {
           console.warn('minting to webaverse contract failed');
           setError('Mint Failed');
@@ -167,7 +163,7 @@ export default function useNFTContract(currentAccount) {
     }
   }
 
-  async function mintfromVoucher(app, previewImage="testimageurl", callback = () => {}) {
+  async function mintfromVoucher(app, previewImage = 'testimageurl', callback = () => {}) {
     setMinting(true);
     setError('');
     try {
@@ -176,32 +172,31 @@ export default function useNFTContract(currentAccount) {
 
       const signer = await getSigner();
       const name = app.name;
-      const ext = "testType";
-    //   const hash = currentApp.contentId.split(FILE_ADDRESS)[1].split('/')[0];
-      const description = "testDescription";
+      const ext = 'testType';
+      //   const hash = currentApp.contentId.split(FILE_ADDRESS)[1].split('/')[0];
+      const description = 'testDescription';
 
       const metadataFileName = `${name}-metadata.json`;
       let metadata;
       if (previewImage) { // 3D object
         imageURI = previewImage;
-        avatarURI = "testcontentID";
+        avatarURI = 'testcontentID';
 
         metadata = {
-            name,
-            description,
-            image: imageURI,
-            animation_url: avatarURI
-        }
-
+          name,
+          description,
+          image: imageURI,
+          animation_url: avatarURI,
+        };
       } else { // image object
-        imageURI = "testcontentID";
+        imageURI = 'testcontentID';
         avatarURI = '';
 
         metadata = {
           name,
           description,
-          image: imageURI
-        }
+          image: imageURI,
+        };
       }
 
       const type = 'upload';
@@ -225,20 +220,20 @@ export default function useNFTContract(currentAccount) {
         load.end();
       }
 
-      const metadatahash = json_hash.split(FILE_ADDRESS)[1].split('/')[0];
-      const Webaversecontract = new ethers.Contract(WebaversecontractAddress, WebaverseABI, signer);
+      const metadataHash = json_hash.split(FILE_ADDRESS)[1].split('/')[0];
+      const webaverseContract = new ethers.Contract(WebaversecontractAddress, WebaverseABI, signer);
       // const NFTcontract = new ethers.Contract(NFTcontractAddress, NFTABI, signer);
       const FTcontract = new ethers.Contract(FTcontractAddress, FTABI, signer);
 
-      const Bigmintfee = await Webaversecontract.mintFee();
-      const mintfee = BigNumber.from(Bigmintfee).toNumber();
+      const bigMintFee = await webaverseContract.mintFee();
+      const mintfee = BigNumber.from(bigMintFee).toNumber();
       if (mintfee > 0) { // webaverse side chain mintfee != 0
         const FTapprovetx = await FTcontract.approve(NFTcontractAddress, mintfee); // mintfee = 10 default
         const FTapproveres = await FTapprovetx.wait();
         if (FTapproveres.transactionHash) {
           try {
-            const Webaversemintres = await Webaversecontract.mintfromVoucher(currentAccount, 1, metadatahash, "0x", app.voucher);
-            callback(Webaversemintres);
+            const res = await webaverseContract.mintfromVoucher(currentAccount, 1, metadataHash, '0x', app.voucher);
+            callback(res);
           } catch (err) {
             console.warn('minting to webaverse contract failed');
             setError('Mint Failed');
@@ -246,8 +241,8 @@ export default function useNFTContract(currentAccount) {
         }
       } else { // mintfee = 0 for Polygon not webaverse sidechain
         try {
-          const Webaversemintres = await Webaversecontract.mintfromVoucher(currentAccount, 1, metadatahash, "0x", app.voucher);
-          callback(Webaversemintres);
+          const res = await webaverseContract.mintfromVoucher(currentAccount, 1, metadataHash, '0x', app.voucher);
+          callback(res);
         } catch (err) {
           console.warn('minting to webaverse contract failed');
           setError('Mint Failed');
@@ -270,9 +265,8 @@ export default function useNFTContract(currentAccount) {
   async function getTokenIdsOf() {
     const contract = await getContract();
     const tokenData = await contract.getTokenIdsByOwner(currentAccount);
-    console.log("minted", tokenData)
     const tokenCount = BigNumber.from(tokenData[1]).toNumber();
-    const tokenIds = [...Array(tokenCount)].map((_ ,index) => BigNumber.from(tokenData[0][index]).toNumber())
+    const tokenIds = [...Array(tokenCount)].map((_, index) => BigNumber.from(tokenData[0][index]).toNumber());
     return tokenIds;
   }
 
@@ -289,7 +283,7 @@ export default function useNFTContract(currentAccount) {
     const tokenIdsOf = await getTokenIdsOf();
     return await Promise.all(tokenIdsOf.map(async tokenId => {
       const token = await getToken(tokenId);
-      const metadatajson = await fetch(token).then(res =>res.json());
+      const metadatajson = await fetch(token).then(res => res.json());
       const {name, image, animation_url} = metadatajson;
       const url = animation_url || image;
 

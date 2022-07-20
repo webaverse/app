@@ -332,39 +332,42 @@ export const Equipment = () => {
     const open = state.openedPanel === 'CharacterPanel';
 
     useEffect(() => {
-        if (open && account && account.currentAddress) {
+        console.log('account', account);
+        if (account && account.currentAddress) {
+            console.log('querying opensea');
           async function queryOpensea() {
             fetch(
               `https://api.opensea.io/api/v1/assets?owner=${account.currentAddress}&limit=${50}`,
              // { headers: { "X-API-KEY": "6a7ceb45f3c44c84be65779ad2907046" } }
             // WARNING: without opensea api key this API is rate-limited
              ).then((res) => res.json())
-              .then(({ assets }) => setNfts(assets))
+              .then(({ assets }) => { console.log('returned assets', assets); setNfts(assets); })
               .catch(() => console.warn('could not connect to opensea. the api key may have expired'));
           }
           queryOpensea();
+        } else {
+            console.log('could not query opensea')
         }
-    }, [open]);
+    }, [account]);
 
   useEffect(() => {
     if(open && nfts) {
         if (!supportedChain) {
-            setInventoryObject([]);
+            console.log("unsupported chain!");
+            setInventoryObject(nfts);
             return;
         }
 
         async function setupInventory() {
-            const tokens = await getTokens();
-            const inventoryItems = tokens.map((token, i) => {
+            const inventoryItems = nfts.map((token, i) => {
                 return {
                     name: token.name ?? "",
                     start_url: token.url ?? "",
-                    // start_url: token.url ?? token.animation_url ?? token.collection.banner_image_url ?? "",
+                    start_url: token.url ?? (token.animation_url !== "" ? token.animation_url : token.collection.banner_image_url),
                     level: token.level ?? 1,
                     claimed: true
                 };
             });
-            console.log("invnetory", inventoryItems)
             setInventoryObject(inventoryItems);
         }
 
