@@ -50,6 +50,7 @@
         0
       ],
       "start_url": "https://webaverse.github.io/water/"
-    }
+    },
+    { "position": [ 0, 0, 0 ], "start_url": "https://webaverse.github.io/dual-contouring-terrain/" }
   ]
 }
