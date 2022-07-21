@@ -3,6 +3,7 @@ import * as BufferGeometryUtils from 'three/examples/jsm/utils/BufferGeometryUti
 import { PEEK_FACE_INDICES } from './constants.js';
 import { ImmediateGLBufferAttribute } from './ImmediateGLBufferAttribute.js';
 import { getRenderer } from './renderer.js';
+import Module from './public/bin/geometry.js';
 
 const localVector2D = new THREE.Vector2();
 const localVector2D2 = new THREE.Vector2();
@@ -147,7 +148,7 @@ export class GeometryAllocator {
   constructor(attributeSpecs, {
     bufferSize,
     boundingType = null,
-    occlusionCulling = false
+    hasOcclusionCulling = false
   }) {
     {
       this.geometry = new THREE.BufferGeometry();
@@ -178,8 +179,10 @@ export class GeometryAllocator {
     this.maxData = new Float32Array(maxNumDraws * 4);
     this.appMatrix = new THREE.Matrix4();
     // this.peeksArray = [];
-    this.allocatedDataArray = [];
-    this.occlusionCulling = occlusionCulling;
+    this.hasOcclusionCulling = hasOcclusionCulling;
+    if(this.hasOcclusionCulling){
+      this.OCInstance = Module._createOcclusionCullingInstance();
+    }
     this.numDraws = 0;
   }
   alloc(numPositions, numIndices, boundingObject, minObject, maxObject, appMatrix , peeks) {
@@ -187,11 +190,13 @@ export class GeometryAllocator {
     const indexFreeListEntry = this.indexFreeList.alloc(numIndices);
     const geometryBinding = new GeometryPositionIndexBinding(positionFreeListEntry, indexFreeListEntry, this.geometry);
 
-    if(this.occlusionCulling){
+    if(this.hasOcclusionCulling){
       minObject.applyMatrix4(this.appMatrix);
       maxObject.applyMatrix4(this.appMatrix);
 
-      this.allocatedDataArray[this.numDraws] = [this.numDraws, minObject.x, minObject.y, minObject.z, PEEK_FACES["NONE"], peeks];
+      // this.allocatedDataArray[this.numDraws] = [this.numDraws, minObject.x, minObject.y, minObject.z, PEEK_FACES["NONE"], peeks];
+      Module._allocateOcclusionCulling(this.OCInstance, this.numDraws, minObject.x, minObject.y, minObject.z, peeks);
+      
       this.appMatrix = appMatrix;
 
       minObject.toArray(this.minData, this.numDraws * 4);
@@ -240,16 +245,17 @@ export class GeometryAllocator {
         this.boundingData[freeIndex * 6 + 5] = this.boundingData[lastIndex * 6 + 5];
       }
 
-      if (this.occlusionCulling) {
+      if (this.hasOcclusionCulling) {
+        Module._freeOcclusionCulling(this.OCInstance, this.minData[freeIndex * 4 + 0], this.minData[freeIndex * 4 + 1], this.minData[freeIndex * 4 + 2]);
+
         this.minData[freeIndex * 4 + 0] = this.minData[lastIndex * 4 + 0];
         this.minData[freeIndex * 4 + 1] = this.minData[lastIndex * 4 + 1];
         this.minData[freeIndex * 4 + 2] = this.minData[lastIndex * 4 + 2];
-
+        
         this.maxData[freeIndex * 4 + 0] = this.maxData[lastIndex * 4 + 0];
         this.maxData[freeIndex * 4 + 1] = this.maxData[lastIndex * 4 + 1];
         this.maxData[freeIndex * 4 + 2] = this.maxData[lastIndex * 4 + 2];
 
-        this.allocatedDataArray[freeIndex] = this.allocatedDataArray[lastIndex];
       }
     }
 
@@ -287,101 +293,38 @@ export class GeometryAllocator {
       }
     })();
 
-    if(this.occlusionCulling){
-       const culled = [];
+    if (this.hasOcclusionCulling) {
+      const cull = (i) => {
+        // start bfs, start from the chunk we're in
+        // find the chunk that the camera is inside via floor, so we need min of the chunk, which we have in bounding data
+        const min = localVector3D2.fromArray(this.minData, i * 4); // min
+        const max = localVector3D3.fromArray(this.maxData, i * 4); // max
 
-    const cull = (i) => {
-      // start bfs, start from the chunk we're in
-      // find the chunk that the camera is inside via floor, so we need min of the chunk, which we have in bounding data
-      const min = localVector3D2.fromArray(this.minData, i * 4); // min
-      const max = localVector3D3.fromArray(this.maxData, i * 4); // max
+        Module._setVisibilityOcclusionCulling(this.OCInstance, i, camera.position.x, camera.position.y, camera.position.z, min.x, min.y, min.z, max.x, max.y, max.z);
+      };
 
-      const chunkSize = Math.abs(min.x - max.x);
-      
-      if (isVectorInRange(camera.position, min, max)) {
-        // start bfs here
-        const queue = [];
-        const firstEntry = [
-          i,
-          min.x,
-          min.y - 64,
-          min.z,
-          PEEK_FACES['NONE'],
-          null,
-        ]; // starting with the chunk that the camera is in
-
-        // pushing the chunk the camera is in as the first step
-        queue.push(firstEntry);
-
-        while (queue.length > 0) {
-          const entry = queue.shift(); // getting first element in the queue and removing it
-          const x = entry[1];
-          const y = entry[2];
-          const z = entry[3];
-          const enterFace = entry[4];
-          const peeks = entry[5];
-          for (let i = 0; i < 6; i++) {
-            const peekFaceSpec = peekFaceSpecs[i];
-            const ay = y + peekFaceSpec[3] * chunkSize;
-            if (ay >= -640 && ay < -64) {
-              const ax = x + peekFaceSpec[2] * chunkSize;
-              const az = z + peekFaceSpec[4] * chunkSize;
-              const allocatedEntry = this.allocatedDataArray.find((e) => {
-                return e[1] == ax && e[2] == ay && e[3] == az;
-              });
-              if (allocatedEntry) {
-                const foundCulled = culled.find((e) => e[0] == allocatedEntry[0]);
-                if (foundCulled === undefined) {
-                  culled.push(allocatedEntry);
-                  const newQueueEntry = [
-                    allocatedEntry[0],
-                    ax,
-                    ay,
-                    az,
-                    peekFaceSpec[0],
-                    allocatedEntry[5],
-                  ];
-                  if (
-                    enterFace == PEEK_FACES['NONE'] ||
-                    peeks[
-                      PEEK_FACE_INDICES[(enterFace << 3) | peekFaceSpec[1]]
-                    ] == 1
-                    ) {
-                      queue.push(newQueueEntry);
-                    }
-                  }
-              }
-            }
-          }
-        }
+      for (let i = 0; i < this.numDraws; i++) {
+        cull(i);
       }
-    };
 
-    for (let i = 0; i < this.numDraws; i++) {
-      cull(i);
-    }
+      // for (let i = 0; i < this.numDraws; i++) {
+      //   // console.log(culled[i]);
+      //     // ! frustum culling has bugs !
+      //     // if(testBoundingFn(i)){
+      //       drawStarts.push(this.drawStarts[i]);
+      //       drawCounts.push(this.drawCounts[i]);
+      //     // }
+      // }
 
-    for (let i = 0; i < this.numDraws; i++) {
-      // console.log(culled[i]);
-      const found = culled.find(e => e[0] == i);
-      if(found === undefined){
-        // ! frustum culling has bugs !
-        // if(testBoundingFn(i)){ 
-          drawStarts.push(this.drawStarts[i]);
-          drawCounts.push(this.drawCounts[i]);
-        // }
-      }
-    }
-
-    // for (let i = 0; i < culled.length; i++) {
-    //   // console.log(culled[i]);
-    //   const id = culled[i][0];
-    //     //  if(testBoundingFn(id)){
-    //       drawStarts.push(this.drawStarts[id]);
-    //       drawCounts.push(this.drawCounts[id]);
-    //       // }
-    // }
-    }else{
+      // for (let i = 0; i < culled.length; i++) {
+      //   // console.log(culled[i]);
+      //   const id = culled[i][0];
+      //     //  if(testBoundingFn(id)){
+      //       drawStarts.push(this.drawStarts[id]);
+      //       drawCounts.push(this.drawCounts[id]);
+      //       // }
+      // }
+    } else {
       for (let i = 0; i < this.numDraws; i++) {
         drawStarts.push(this.drawStarts[i]);
         drawCounts.push(this.drawCounts[i]);
