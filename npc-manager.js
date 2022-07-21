@@ -146,6 +146,16 @@ class NpcManager extends EventTarget {
             };
           } else {
             targetSpec = null;
+            if(!npcPlayer.hasAction('use')) {
+              const newAction = {
+                type: 'use'
+              };
+              npcPlayer.addAction(newAction);
+
+              setTimeout(() => {
+                npcPlayer.removeAction('use');
+              }, 3 * 1000);
+            }
           }
         };
         app.addEventListener('activate', activate);

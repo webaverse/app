@@ -8,6 +8,20 @@
       }
     },
     {
+      "type": "application/rendersettings",
+      "content": {
+        "background": {
+            "color": [252, 211, 157]
+        }
+      }
+    },
+    {
+      "type": "application/settings",
+      "content": {
+        "enable2D": true
+      }
+    },
+    {
       "type": "application/light",
       "content": {
         "lightType": "directional",
@@ -18,26 +32,43 @@
     },
     {
       "position": [
-        0,
-        0,
+        20,
+        0.5,
         0
-      ],
-      "start_url": "https://webaverse.github.io/atmospheric-sky/"
-    },
-    {
-      "position": [
-        4,
-        0,
-        1
       ],
       "quaternion": [
         0,
-        0.7071067811865475,
         0,
-        0.7071067811865475
+        0,
+        1
       ],
-      "start_url": "https://avatar-models.exokit.org/model49.vrm",
-      "dynamic": true
+      "scale": [
+        1,
+        1,
+        1
+      ],
+      "start_url": "https://webaverse.github.io/silsword/"
+    },
+    {
+      "position": [
+        56,
+        10,
+        0
+      ],
+      "quaternion": [
+        0,
+        1,
+        0,
+        0
+      ],
+      "type": "application/npc",
+      "content": {
+        "name": "Drake",
+        "avatarUrl": "/avatars/drake_hacker_v3_vian.vrm",
+        "voice": "Shining Armor",
+        "bio": "His nickname is DRK. 15/M hacker. Loves guns. Likes plotting new hacks. He has the best equipment and is always ready for a fight.",
+        "wear": [{"start_url": "https://webaverse.github.io/silsword/"}]
+      }
     },
     {
       "position": [
@@ -45,9 +76,13 @@
         0,
         0
       ],
-      "physics": true,
-      "start_url": "https://webaverse.github.io/block/grid.glb",
-      "dynamic": false
+      "start_url": "./boilerplate/2d"
+    },
+    {
+      "position": [
+        48.1, 6.5, 0
+      ],
+      "start_url": "./boilerplate/2d/assets/coin.glb"
     }
   ]
 }
