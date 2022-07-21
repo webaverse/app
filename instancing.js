@@ -197,7 +197,6 @@ export class GeometryAllocator {
       // this.allocatedDataArray[this.numDraws] = [this.numDraws, minObject.x, minObject.y, minObject.z, PEEK_FACES["NONE"], peeks];
       Module._allocateOcclusionCulling(this.OCInstance, this.numDraws, minObject.x, minObject.y, minObject.z, peeks);
       
-      
       this.appMatrix = appMatrix;
 
       minObject.toArray(this.minData, this.numDraws * 4);
