@@ -216,7 +216,19 @@ export function applyPlayerActionsToAvatar(player, rig) {
   rig.movementsTransitionTime = player.actionInterpolants.movementsTransition.get();
   rig.sprintTime = player.actionInterpolants.sprint.get();
 }
-// returns whether eyes were applied
+// returns whether headTarget were applied
+export function applyPlayerHeadTargetToAvatar(player, rig) {
+  if (player.headTargetEnabled) {
+    rig.headTarget.copy(player.headTarget);
+    rig.headTargetInverted = player.headTargetInverted;
+    rig.headTargetEnabled = true;
+    return true;
+  } else {
+    rig.headTargetEnabled = false;
+    return false;
+  }
+}
+// returns whether eyes(eyeballs) were applied
 export function applyPlayerEyesToAvatar(player, rig) {
   if (player.eyeballTargetEnabled) {
     rig.eyeballTarget.copy(player.eyeballTarget);
@@ -272,6 +284,7 @@ export function applyPlayerToAvatar(player, session, rig, mirrors) {
   
   applyPlayerModesToAvatar(player, session, rig);
   applyPlayerActionsToAvatar(player, rig);
+  applyPlayerHeadTargetToAvatar(player, rig);
   applyPlayerEyesToAvatar(player, rig) || applyMirrorsToAvatar(player, rig, mirrors);
   
   applyFacePoseToAvatar(player, rig);

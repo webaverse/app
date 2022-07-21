@@ -189,8 +189,13 @@ class PlayerBase extends THREE.Object3D {
       }
     });
 
+    this.headTarget = new THREE.Vector3();
+    this.headTargetInverted = false;
+    this.headTargetEnabled = false;
+    
     this.eyeballTarget = new THREE.Vector3();
     this.eyeballTargetEnabled = false;
+    
     this.voicePack = null;
     this.voiceEndpoint = null;
   }
@@ -530,6 +535,19 @@ class PlayerBase extends THREE.Object3D {
         });
       };
       _emitEvents();
+    }
+  }
+  setTarget(target) { // set both head and eyeball target;
+    if (target) {
+      this.headTarget.copy(target);
+      this.headTargetInverted = true;
+      this.headTargetEnabled = true;
+
+      this.eyeballTarget.copy(target);
+      this.eyeballTargetEnabled = true;
+    } else {
+      this.headTargetEnabled = false;
+      this.eyeballTargetEnabled = false;
     }
   }
   destroy() {
@@ -954,6 +972,7 @@ class UninterpolatedPlayer extends StatePlayer {
       fly: new InfiniteActionInterpolant(() => this.hasAction('fly'), 0),
       swim: new InfiniteActionInterpolant(() => this.hasAction('swim'), 0),
       jump: new InfiniteActionInterpolant(() => this.hasAction('jump'), 0),
+      unjump: new InfiniteActionInterpolant(() => !this.hasAction('jump'), 0),
       dance: new BiActionInterpolant(() => this.hasAction('dance'), 0, crouchMaxTime),
       emote: new BiActionInterpolant(() => this.hasAction('emote'), 0, crouchMaxTime),
       movements: new InfiniteActionInterpolant(() => {
