@@ -558,14 +558,17 @@ export class InstancedGeometryAllocator {
           name,
           Type,
           itemSize,
+          itemCount
         } = spec;
 
         // compute the minimum size of a texture that can hold the data
         let neededItems4 = numGeometries * maxDrawCallsPerGeometry * maxInstancesPerDrawCall;
+        if (itemCount)
+          neededItems4 = itemCount;
         if (itemSize > 4) {
           neededItems4 *= itemSize / 4;
         }
-        const textureSizePx = Math.max(Math.pow(2, Math.ceil(Math.log2(Math.sqrt(neededItems4)))), 16);
+        const textureSizePx = Math.max(Math.pow(2, Math.ceil(Math.log2(Math.sqrt(neededItems4)))), 2048);
         const itemSizeSnap = itemSize > 4 ? 4 : itemSize;
 
         const format = (() => {
