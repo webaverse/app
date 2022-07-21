@@ -196,8 +196,8 @@ export const genPic = async ({
   const writeCanvas = canvas;
   writeCanvas.width = width;
   writeCanvas.height = height;
-  writeCanvas.style.width = `${width / window.devicePixelRatio}px`;
-  writeCanvas.style.height = `${height / window.devicePixelRatio}px`;
+  writeCanvas.style.width = `${width/window.devicePixelRatio}px`;
+  writeCanvas.style.height = `${height/window.devicePixelRatio}px`;
   const writeCtx = writeCanvas.getContext('2d');
 
   const mode = 'idle';
@@ -206,7 +206,7 @@ export const genPic = async ({
   let totalDuration;
   switch (mode) {
     case 'idle': {
-      update = () => { };
+      update = () => {};
       totalDuration = idleAnimationDuration * 1000;
       break;
     }
@@ -226,7 +226,7 @@ export const genPic = async ({
       const spriteSpec = {
         name: 'naruto run',
         duration: narutoRunAnimationDuration,
-        init({ player }) {
+        init({player}) {
           let positionOffset = 0;
           // let narutoRunTime = 0;
           // const narutoRunIncrementSpeed = 1000 * 4;
@@ -247,7 +247,7 @@ export const genPic = async ({
                 .add(new THREE.Vector3(0, 0, -distance).applyEuler(euler));
               camera.lookAt(new THREE.Vector3(0, avatar.height*cameraHeightFactor, positionOffset));
               camera.updateMatrixWorld(); */
-
+              
               diorama.setCameraOffset(
                 localVector.set(0, 0, 2)
                   .applyQuaternion(localQuaternion.setFromAxisAngle(localVector2.set(0, 1, 0), -angle))
@@ -266,7 +266,7 @@ export const genPic = async ({
             },
             /* cleanup() {
               avatar.narutoRunState = false;
-            }, */
+            }, */            
           };
         },
       };
@@ -293,7 +293,7 @@ export const genPic = async ({
       writeCanvas.toBlob(blob => {
         const reader = new FileReader();
         reader.readAsDataURL(blob);
-        reader.onloadend = function () {
+        reader.onloadend = function() {
           const dataUrl = reader.result;
           resolve(dataUrl);
         };
@@ -323,7 +323,7 @@ export const genPic = async ({
         _pushFrame();
         now += timeDiff;
 
-        if ((index % framesPerFrame) === framesPerFrame - 1) {
+        if ((index % framesPerFrame) === framesPerFrame-1) {
           await new Promise((accept, reject) => {
             requestAnimationFrame(() => {
               accept();
@@ -354,8 +354,8 @@ export const genPic = async ({
     video.onerror = reject;
     video.src = URL.createObjectURL(blob);
   });
-  video.style.width = `${width / window.devicePixelRatio}px`;
-  video.style.height = `${height / window.devicePixelRatio}px`;
+  video.style.width = `${width/window.devicePixelRatio}px`;
+  video.style.height = `${height/window.devicePixelRatio}px`;
   video.controls = true;
   video.loop = true;
 };
