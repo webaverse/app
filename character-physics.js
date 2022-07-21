@@ -165,7 +165,7 @@ class CharacterPhysics {
 
           this.velocity.y = -1;
         } else {
-          if (this.lastGrounded && !this.player.hasAction('jump') && !this.player.hasAction('fly')) {
+          if (!this.player.hasAction('fallLoop') && !this.player.hasAction('jump') && !this.player.hasAction('fly') && !this.player.hasAction('swim')) {
             this.player.setControlAction({type: 'fallLoop'});
           }
         }
