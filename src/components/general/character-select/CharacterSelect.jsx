@@ -189,7 +189,6 @@ export const CharacterSelect = () => {
                 }
 
                 if (targetCharacter.avatarUrl.includes("usercollection")) {
-                    console.log('npcPlayer', npcPlayer)
                     let box = new THREE.Box3().setFromObject(npcPlayer.avatar.model)
                     let size = box.getSize(new THREE.Vector3()).length();
                     const scalar = 0.9;

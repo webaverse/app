@@ -97,7 +97,7 @@ const Stat = ({
                 </div>
                 {statSpec.progress ? (
                     <progress className={styles.progress} value={statSpec.progress} />
-                ) : null}
+                )  : null}
             </div>
         </div>
     );
@@ -107,9 +107,9 @@ const Stat = ({
 
 export const Character = ({ game, /* wearActions,*/ dioramaCanvasRef }) => {
 
-    const { state, setState } = useContext(AppContext);
-    const [open, setOpen] = useState(false);
-    const [characterSelectOpen, setCharacterSelectOpen] = useState(false);
+    const { state, setState } = useContext( AppContext );
+    const [ open, setOpen ] = useState(false);
+    const [ characterSelectOpen, setCharacterSelectOpen ] = useState(false);
 
     const sideSize = 400;
 
@@ -129,19 +129,19 @@ export const Character = ({ game, /* wearActions,*/ dioramaCanvasRef }) => {
 
     //
 
-    useEffect(() => {
+    useEffect( () => {
 
-        if (game.playerDiorama) {
+        if ( game.playerDiorama ) {
 
             const canvas = dioramaCanvasRef.current;
 
-            if (canvas && state.openedPanel === 'CharacterPanel') {
+            if ( canvas && state.openedPanel === 'CharacterPanel' ) {
 
-                game.playerDiorama.addCanvas(canvas);
+                game.playerDiorama.addCanvas( canvas );
 
                 return () => {
 
-                    game.playerDiorama.removeCanvas(canvas);
+                    game.playerDiorama.removeCanvas( canvas );
 
                 };
 
@@ -149,10 +149,10 @@ export const Character = ({ game, /* wearActions,*/ dioramaCanvasRef }) => {
 
         }
 
-    }, [dioramaCanvasRef, state.openedPanel]);
+    }, [ dioramaCanvasRef, state.openedPanel ] );
 
 
-    useEffect(() => {
+    useEffect( () => {
 
         const lastOpen = open;
         const lastCharacterSelectOpen = characterSelectOpen;
@@ -173,9 +173,9 @@ export const Character = ({ game, /* wearActions,*/ dioramaCanvasRef }) => {
         setOpen(newOpen);
         setCharacterSelectOpen(newCharacterSelectOpen);
 
-    }, [state.openedPanel]);
+    }, [ state.openedPanel ] );
 
-    function onCanvasClick() {
+    function onCanvasClick () {
 
         game.playerDiorama.toggleShader();
 
@@ -186,7 +186,7 @@ export const Character = ({ game, /* wearActions,*/ dioramaCanvasRef }) => {
     };
 
     function onCharacterSelectClick(e) {
-        setState({ openedPanel: (state.openedPanel === 'CharacterSelect' ? null : 'CharacterSelect') });
+        setState({ openedPanel: ( state.openedPanel === 'CharacterSelect' ? null : 'CharacterSelect' ) });
 
         /* if ( state.openedPanel === 'CharacterSelect' ) {
 
@@ -205,19 +205,19 @@ export const Character = ({ game, /* wearActions,*/ dioramaCanvasRef }) => {
 
     return (
         <div
-            className={classnames(styles.characterWrapper, open ? styles.opened : null)}
+            className={ classnames( styles.characterWrapper, open ? styles.opened : null ) }
             onDrop={onDrop}
         >
             <div className={ styles.characterPanel } >
                 <Poses
                     parentOpened={open}
                 />
-
+                
                 <Emotions
                     parentOpened={open}
                 />
 
-                <canvas className={styles.avatar} ref={dioramaCanvasRef} width={sideSize} height={sideSize} onClick={onCanvasClick} />
+                <canvas className={ styles.avatar } ref={ dioramaCanvasRef } width={ sideSize } height={ sideSize } onClick={ onCanvasClick } />
 
                 <div className={styles['panel-body']}>
                     <div className={styles['panel-header']}>
