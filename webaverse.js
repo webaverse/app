@@ -309,6 +309,7 @@ export default class Webaverse extends EventTarget {
         performanceTracker.setGpuPrefix('pre');
         const localPlayer = metaversefileApi.useLocalPlayer();
 
+<<<<<<< HEAD
         // Update user input
         ioManager.update(timeDiffCapped);
 
@@ -352,6 +353,38 @@ export default class Webaverse extends EventTarget {
 
         // Clean up input
         ioManager.updatePost();
+=======
+          transformControls.update();
+          raycastManager.update(timestamp, timeDiffCapped);
+          game.update(timestamp, timeDiffCapped);
+          
+          localPlayer.updateAvatar(timestamp, timeDiffCapped);
+          // playersManager.updateRemotePlayers(timestamp, timeDiffCapped);
+          
+          world.appManager.tick(timestamp, timeDiffCapped, frame);
+
+          mobManager.update(timestamp, timeDiffCapped);
+          hpManager.update(timestamp, timeDiffCapped);
+          questManager.update(timestamp, timeDiffCapped);
+          particleSystemManager.update(timestamp, timeDiffCapped);
+
+          cameraManager.updatePost(timestamp, timeDiffCapped);
+          ioManager.updatePost();
+
+          game.pushAppUpdates();
+          game.pushPlayerUpdates();
+
+          const session = renderer.xr.getSession();
+          const xrCamera = session ? renderer.xr.getCamera(camera) : camera;
+          localMatrix.multiplyMatrices(xrCamera.projectionMatrix, /*localMatrix2.multiplyMatrices(*/xrCamera.matrixWorldInverse/*, physx.worldContainer.matrixWorld)*/);
+          localMatrix2.copy(xrCamera.matrix)
+            .premultiply(dolly.matrix)
+            .decompose(localVector, localQuaternion, localVector2);
+          
+          lastTimestamp = timestamp;
+        };
+        _pre();
+>>>>>>> e868b66c96ac996bc09c2544889aec17395ddc77
 
         // render scenes
         performanceTracker.setGpuPrefix('diorama');

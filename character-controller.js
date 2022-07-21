@@ -205,7 +205,19 @@ class Player extends THREE.Object3D {
     }
     _prepareAppManager();
 
+<<<<<<< HEAD
     this.bindState(playersArray);
+=======
+    this.headTarget = new THREE.Vector3();
+    this.headTargetInverted = false;
+    this.headTargetEnabled = false;
+    
+    this.eyeballTarget = new THREE.Vector3();
+    this.eyeballTargetEnabled = false;
+    
+    this.voicePack = null;
+    this.voiceEndpoint = null;
+>>>>>>> e868b66c96ac996bc09c2544889aec17395ddc77
   }
   findAction(fn) {
     const actions = this.getActionsState();
@@ -569,6 +581,39 @@ class Player extends THREE.Object3D {
     } else {
       this.handleWearUpdate(app, false, -1, true, true)
     }
+<<<<<<< HEAD
+=======
+  }
+  setTarget(target) { // set both head and eyeball target;
+    if (target) {
+      this.headTarget.copy(target);
+      this.headTargetInverted = true;
+      this.headTargetEnabled = true;
+
+      this.eyeballTarget.copy(target);
+      this.eyeballTargetEnabled = true;
+    } else {
+      this.headTargetEnabled = false;
+      this.eyeballTargetEnabled = false;
+    }
+  }
+  destroy() {
+    // nothing
+  }
+}
+const controlActionTypes = [
+  'jump',
+  'crouch',
+  'fly',
+  'sit',
+];
+class StatePlayer extends PlayerBase {
+  constructor({
+    playerId = makeId(5),
+    playersArray = new Z.Doc().getArray(playersMapName),
+  } = {}) {
+    super();
+>>>>>>> e868b66c96ac996bc09c2544889aec17395ddc77
 
     app.dispatchEvent({
       type: "resettransform",

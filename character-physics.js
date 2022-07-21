@@ -1,12 +1,14 @@
 /* this is the character physics implementation.
 it sets up and ticks the physics loop for our local character */
+
 import * as THREE from 'three';
 // import cameraManager from './camera-manager.js';
 // import {getPlayerCrouchFactor} from './character-controller.js';
 import physicsManager from './physics-manager.js';
 // import ioManager from './io-manager.js';
-import {applyVelocity, getVelocityDampingFactor} from './util.js';
-import {groundFriction, flyFriction, airFriction} from './constants.js';
+import {getVelocityDampingFactor} from './util.js';
+import {groundFriction, flyFriction, airFriction, swimFriction} from './constants.js';
+import {applyVelocity} from './util.js';
 import {getRenderer, camera} from './renderer.js';
 // import physx from './physx.js';
 import metaversefileApi from 'metaversefile';
@@ -34,6 +36,8 @@ const rightHandOffset = new THREE.Vector3(-0.2, -0.2, -0.4);
 const z22Quaternion = new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 0, 1), -Math.PI/8);
 const groundStickOffset = 0.03;
 
+const physicsScene = physicsManager.getScene();
+
 class CharacterPhysics {
   constructor(player) {
     this.player = player;
@@ -48,7 +52,7 @@ class CharacterPhysics {
   setPosition(p) {
     localVector.copy(p);
     localVector.y -= this.player.avatar.height * 0.5;
-    physicsManager.setCharacterControllerPosition(this.player.characterController, localVector);
+    physicsScene.setCharacterControllerPosition(this.player.characterController, localVector);
   }
   /* apply the currently held keys to the character */
   applyWasd(keysDirection) {
@@ -58,8 +62,8 @@ class CharacterPhysics {
   }
   applyGravity(timeDiffS) {
     // if (this.player) {
-      if (this.player.hasAction('jump') && !this.player.hasAction('fly')) {
-        localVector.copy(physicsManager.getGravity())
+      if (this.player.hasAction('jump') && !this.player.hasAction('fly') && !this.player.hasAction('swim')) {
+        localVector.copy(physicsScene.getGravity())
           .multiplyScalar(timeDiffS);
         this.velocity.add(localVector);
       }
@@ -82,7 +86,12 @@ class CharacterPhysics {
       localVector3.copy(this.velocity)
         .multiplyScalar(timeDiffS);
       // console.log('got local vector', this.velocity.toArray().join(','), localVector3.toArray().join(','), timeDiffS);
-      const flags = physicsManager.moveCharacterController(
+      if(this.player.hasAction('swim') && this.player.getAction('swim').onSurface && !this.player.hasAction('fly')){
+        if(this.player.characterPhysics.velocity.y > 0){
+          localVector3.y = 0;
+        }
+      }
+      const flags = physicsScene.moveCharacterController(
         this.player.characterController,
         localVector3,
         minDist,
@@ -92,9 +101,9 @@ class CharacterPhysics {
       // const collided = flags !== 0;
       let grounded = !!(flags & 0x1); 
 
-      if (!grounded && !this.player.getAction('jump') && !this.player.getAction('fly')) { // prevent jump when go down slope
+      if (!grounded && !this.player.getAction('jump') && !this.player.getAction('fly') && !this.player.hasAction('swim')) { // prevent jump when go down slope
         const oldY = this.player.characterController.position.y;
-        const flags = physicsManager.moveCharacterController(
+        const flags = physicsScene.moveCharacterController(
           this.player.characterController,
           localVector3.set(0, -groundStickOffset, 0),
           minDist,
@@ -174,7 +183,7 @@ class CharacterPhysics {
           }
         }
       } else {
-        // Vehicle code
+        //Outdated vehicle code
         this.velocity.y = 0;
 
         const sitAction = this.player.getAction('sit');
@@ -184,8 +193,7 @@ class CharacterPhysics {
 
         const sitComponent = controlledApp.getComponent('sit');
 
-        // NOTE: This works, but is probably not very performant for more than a few riders
-        // TODO: Optimize this
+        // Patch fix to fix vehicles and mounts for now
         let rideMesh = null;
         controlledApp.glb.scene.traverse(o => {
           if (rideMesh === null && o.isSkinnedMesh) {
@@ -194,9 +202,7 @@ class CharacterPhysics {
         });
 
         // NOTE: We had a problem with sending the entire bone in the message buffer, so we're just sending the bone name
-        // Make sure this is compatible with all metaversefiles
         const sitPos = sitComponent.sitBone ? rideMesh.skeleton.bones.find(bone => bone.name === sitComponent.sitBone) : controlledApp;
-
         const {
           sitOffset = [0, 0, 0],
           // damping,
@@ -220,7 +226,7 @@ class CharacterPhysics {
         localVector.add(this.sitOffset);
         localVector.y += this.player.avatar.height * 0.5;
 
-        physicsManager.setCharacterControllerPosition(this.player.characterController, localVector);
+        physicsScene.setCharacterControllerPosition(this.player.characterController, localVector);
         localVector.y += this.player.avatar.height * 0.5;
 
         localQuaternion.premultiply(localQuaternion2.setFromAxisAngle(localVector3.set(0, 1, 0), Math.PI));
@@ -256,7 +262,12 @@ class CharacterPhysics {
     if (this.player.hasAction('fly')) {
       const factor = getVelocityDampingFactor(flyFriction, timeDiff);
       velocity.multiplyScalar(factor);
-    } else {
+    } 
+    else if(this.player.hasAction('swim')){
+      const factor = getVelocityDampingFactor(swimFriction, timeDiff);
+      velocity.multiplyScalar(factor);
+    }
+    else {
       const factor = getVelocityDampingFactor(groundFriction, timeDiff);
       velocity.x *= factor;
       velocity.z *= factor;

@@ -101,6 +101,7 @@ class PlayersManager {
 
           remotePlayer.destroy();
         }
+<<<<<<< HEAD
       }
     };
     this.playersArray.observe(playersObserveFn);
@@ -109,6 +110,18 @@ class PlayersManager {
       playersObserveFn,
     );
   }
+=======
+      };
+      this.playersArray.observe(playersObserveFn);
+      this.unbindStateFn = this.playersArray.unobserve.bind(this.playersArray, playersObserveFn);
+    }
+  }
+  // updateRemotePlayers(timestamp, timeDiff) {
+  //   for (const remotePlayer of this.remotePlayers.values()) {
+  //     remotePlayer.updateAvatar(timestamp, timeDiff);
+  //   }
+  // }
+>>>>>>> e868b66c96ac996bc09c2544889aec17395ddc77
 }
 const playersManager = new PlayersManager();
 

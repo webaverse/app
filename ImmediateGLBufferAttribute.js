@@ -41,10 +41,13 @@ export class ImmediateGLBufferAttribute extends THREE.GLBufferAttribute {
     const renderer = getRenderer();
     const gl = renderer.getContext();
     const buffer = gl.createBuffer();
-    const target = ImmediateGLBufferAttribute.getTarget(isIndex);
-    gl.bindBuffer(target, buffer);
-    gl.bufferData(target, array.byteLength, gl.STATIC_DRAW);
-    gl.bindBuffer(target, null);
+    {
+      const target = ImmediateGLBufferAttribute.getTarget(isIndex);
+      const oldBinding = gl.getParameter(ImmediateGLBufferAttribute.getTargetBinding(isIndex));
+      gl.bindBuffer(target, buffer);
+      gl.bufferData(target, array.byteLength, gl.DYNAMIC_DRAW);
+      gl.bindBuffer(target, oldBinding);
+    }
     super(buffer, glType, itemSize, Type.BYTES_PER_ELEMENT, array.length / itemSize);
     
     this.array = array;

@@ -3,7 +3,7 @@ metaversefile uses plugins to load files from the metaverse and load them as app
 it is an interface between raw data and the engine.
 metaversfile can load many file types, including javascript.
 */
-import {getLocalPlayer, remotePlayers} from './players.js';
+
 import * as THREE from 'three';
 import {Text} from 'troika-three-text';
 import React from 'react';
@@ -34,6 +34,7 @@ import npcManager from './npc-manager.js';
 import mobManager from './mob-manager.js';
 import universe from './universe.js';
 import {PathFinder} from './npc-utils.js';
+import {getLocalPlayer, remotePlayers} from './players.js';
 import loaders from './loaders.js';
 import * as voices from './voices.js';
 import * as procgen from './procgen/procgen.js';
@@ -48,7 +49,6 @@ import * as scenePreviewer from './scene-previewer.js';
 import * as sounds from './sounds.js';
 import * as lodder from './lod.js';
 import hpManager from './hp-manager.js';
-import {playersManager} from './players-manager.js';
 import particleSystemManager from './particle-system.js';
 import domRenderEngine from './dom-renderer.jsx';
 import dropManager from './drop-manager.js';
@@ -58,6 +58,7 @@ import procGenManager from './procgen-manager.js';
 import cardsManager from './cards-manager.js';
 import * as instancing from './instancing.js';
 import * as atlasing from './atlasing.js';
+import ioManager from './io-manager.js';
 
 const localVector2D = new THREE.Vector2();
 
@@ -536,11 +537,14 @@ metaversefile.setApi({
     return getLocalPlayer();
   },
   useRemotePlayer(playerId) {
-    let player = playersManager.remotePlayers.get(playerId);
+    let player = remotePlayers.get(playerId);
+    /* if (!player) {
+      player = new RemotePlayer();
+    } */
     return player;
   },
   useRemotePlayers() {
-    return Array.from(playersManager.remotePlayers.values());
+    return Array.from(remotePlayers.values());
   },
   useNpcManager() {
     return npcManager;
@@ -560,19 +564,21 @@ metaversefile.setApi({
   useMeshLodder() {
     return meshLodManager;
   },
-  usePhysics() {
+  usePhysics(instance = null) {
     const app = currentAppRender;
     if (app) {
-      const physics = {};
+      const physicsScene = physicsManager.getScene(instance)
+        .clone();
+      /* const physics = {};
       for (const k in physicsManager) {
         physics[k] = physicsManager[k];
-      }
+      } */
       /* const localVector = new THREE.Vector3();
       const localVector2 = new THREE.Vector3();
       const localQuaternion = new THREE.Quaternion();
       const localMatrix = new THREE.Matrix4(); */
       // const localMatrix2 = new THREE.Matrix4();
-      physics.addBoxGeometry = (addBoxGeometry => function(position, quaternion, size, dynamic) {
+      physicsScene.addBoxGeometry = (addBoxGeometry => function(position, quaternion, size, dynamic) {
         /* const basePosition = position;
         const baseQuaternion = quaternion;
         const baseScale = size;
@@ -600,8 +606,8 @@ metaversefile.setApi({
         app.physicsObjects.push(physicsObject);
 
         return physicsObject;
-      })(physics.addBoxGeometry);
-      physics.addCapsuleGeometry = (addCapsuleGeometry => function(position, quaternion, radius, halfHeight, physicsMaterial, dynamic, flags) {
+      })(physicsScene.addBoxGeometry);
+      physicsScene.addCapsuleGeometry = (addCapsuleGeometry => function(position, quaternion, radius, halfHeight, physicsMaterial, dynamic, flags) {
         // const basePosition = position;
         // const baseQuaternion = quaternion;
         // const baseScale = new THREE.Vector3(radius, halfHeight*2, radius)
@@ -642,7 +648,7 @@ metaversefile.setApi({
         // physicsManager.pushUpdate(app, physicsObject);
         //physicsManager.setTransform(physicsObject);
         return physicsObject;
-      })(physics.addCapsuleGeometry);
+      })(physicsScene.addCapsuleGeometry);
       /* physics.addSphereGeometry = (addSphereGeometry => function(position, quaternion, radius, physicsMaterial, ccdEnabled) {
         const basePosition = position;
         const baseQuaternion = quaternion;
@@ -672,7 +678,7 @@ metaversefile.setApi({
         // physicsManager.pushUpdate(app, physicsObject);
         return physicsObject;
       })(physics.addSphereGeometry); */
-      physics.addGeometry = (addGeometry => function(mesh) {
+      physicsScene.addGeometry = (addGeometry => function(mesh) {
         /* const oldParent = mesh.parent;
         
         const parentMesh = new THREE.Object3D();
@@ -697,62 +703,26 @@ metaversefile.setApi({
         // app.add(physicsObject);
         app.physicsObjects.push(physicsObject);
         return physicsObject;
-      })(physics.addGeometry);
-      physics.addCookedGeometry = (addCookedGeometry => function(buffer, position, quaternion, scale) {
+      })(physicsScene.addGeometry);
+      physicsScene.addCookedGeometry = (addCookedGeometry => function(buffer, position, quaternion, scale) {
         const physicsObject = addCookedGeometry.apply(this, arguments);
         // app.add(physicsObject);
         app.physicsObjects.push(physicsObject);
         return physicsObject;
-      })(physics.addCookedGeometry);
-      physics.addConvexGeometry = (addConvexGeometry => function(mesh) {
+      })(physicsScene.addCookedGeometry);
+      physicsScene.addConvexGeometry = (addConvexGeometry => function(mesh) {
         const physicsObject = addConvexGeometry.apply(this, arguments);
         // app.add(physicsObject);
         app.physicsObjects.push(physicsObject);
         return physicsObject;
-      })(physics.addConvexGeometry);
-      physics.addCookedConvexGeometry = (addCookedConvexGeometry => function(buffer, position, quaternion, scale) {
+      })(physicsScene.addConvexGeometry);
+      physicsScene.addCookedConvexGeometry = (addCookedConvexGeometry => function(buffer, position, quaternion, scale) {
         const physicsObject = addCookedConvexGeometry.apply(this, arguments);
         // app.add(physicsObject);
         app.physicsObjects.push(physicsObject);
         return physicsObject;
-      })(physics.addCookedConvexGeometry);
-      /* physics.enablePhysicsObject = (enablePhysicsObject => function(physicsObject) {
-        enablePhysicsObject.call(this, physicsObject);
-      })(physics.enablePhysicsObject);
-      physics.disablePhysicsObject = (disablePhysicsObject => function(physicsObject) {
-        disablePhysicsObject.call(this, physicsObject);
-      })(physics.disablePhysicsObject);
-      physics.enableGeometryQueries = (enableGeometryQueries => function(physicsObject) {
-        enableGeometryQueries.call(this, physicsObject);
-      })(physics.enableGeometryQueries);
-      physics.disableGeometryQueries = (disableGeometryQueries => function(physicsObject) {
-        disableGeometryQueries.call(this, physicsObject);
-      })(physics.disableGeometryQueries); */
-
-      /* physics.setTransform = (setTransform => function(physicsObject) {
-        setTransform.call(this, physicsObject);
-      })(physics.setTransform); */
-      /* physics.getPhysicsTransform = (getPhysicsTransform => function(physicsId) {
-        const transform = getPhysicsTransform.apply(this, arguments);
-        const {position, quaternion} = transform;
-        app.updateMatrixWorld();
-        localMatrix
-          .compose(position, quaternion, localVector2.set(1, 1, 1))
-          .premultiply(localMatrix2.copy(app.matrixWorld).invert())
-          .decompose(position, quaternion, localVector2);
-        return transform;
-      })(physics.getPhysicsTransform);
-      physics.setPhysicsTransform = (setPhysicsTransform => function(physicsId, position, quaternion, scale) {
-        app.updateMatrixWorld();
-        localMatrix
-          .compose(position, quaternion, scale)
-          .premultiply(app.matrixWorld)
-          .decompose(localVector, localQuaternion, localVector2);
-        position = localVector;
-        quaternion = localQuaternion;
-        return setPhysicsTransform.call(this, physicsId, position, quaternion, scale);
-      })(physics.setPhysicsTransform); */
-      physics.removeGeometry = (removeGeometry => function(physicsObject) {
+      })(physicsScene.addCookedConvexGeometry);
+      physicsScene.removeGeometry = (removeGeometry => function(physicsObject) {
         removeGeometry.apply(this, arguments);
         
         const index = app.physicsObjects.indexOf(physicsObject);
@@ -760,15 +730,18 @@ metaversefile.setApi({
           app.remove(physicsObject);
           app.physicsObjects.splice(index);
         }
-      })(physics.removeGeometry);
+      })(physicsScene.removeGeometry);
       
-      return physics;
+      return physicsScene;
     } else {
       throw new Error('usePhysics cannot be called outside of render()');
     }
   },
   useHpManager() {
     return hpManager;
+  },
+  useIoManager() {
+    return ioManager;
   },
   useProcGen() {
     return procgen;
@@ -987,6 +960,21 @@ export default () => {
   removeTrackedApp(app) {
     return world.appManager.removeTrackedApp.apply(world.appManager, arguments);
   },
+  getPlayerByAppInstanceId(instanceId) {
+    let result = localPlayer.appManager.getAppByInstanceId(instanceId);
+    if (result) {
+      return localPlayer;
+    } else {
+      const remotePlayers = useRemotePlayers();
+      for (const remotePlayer of remotePlayers) {
+        const remoteApp = remotePlayer.appManager.getAppByInstanceId(instanceId);
+        if (remoteApp) {
+          return remotePlayer;
+        }
+      }
+      return null;
+    }
+  },
   getAppByInstanceId(instanceId) {
     // local
     const localPlayer = getLocalPlayer();
@@ -1014,21 +1002,6 @@ export default () => {
 
     // default
     return null;
-  },
-  getPlayerByInstanceId(instanceId) {
-    let result = localPlayer.appManager.getAppByInstanceId(instanceId);
-    if (result) {
-      return localPlayer;
-    } else {
-      const remotePlayers = metaversefile.useRemotePlayers();
-      for (const remotePlayer of remotePlayers) {
-        const remoteApp = remotePlayer.appManager.getAppByInstanceId(instanceId);
-        if (remoteApp) {
-          return remotePlayer;
-        }
-      }
-      return null;
-    }
   },
   getAppByPhysicsId(physicsId) {
     // local player
