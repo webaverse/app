@@ -962,20 +962,20 @@ const _gameUpdate = (timestamp, timeDiff) => {
   };
   _updateThrow();
 
-  const _updateBehavior = () => {
-    const useAction = localPlayer.getAction('use');
+  const _updateBehavior = player => {
+    const useAction = player.getAction('use');
     if (useAction) {
       const _handleSword = () => {
-        localVector.copy(localPlayer.position)
-          .add(localVector2.set(0, 0, -hitboxOffsetDistance).applyQuaternion(localPlayer.quaternion));
+        localVector.copy(player.position)
+          .add(localVector2.set(0, 0, -hitboxOffsetDistance).applyQuaternion(player.quaternion));
 
-        localPlayer.characterHitter.attemptHit({
+          player.characterHitter.attemptHit({
           type: 'sword',
           args: {
             hitRadius,
             hitHalfHeight,
             position: localVector,
-            quaternion: localPlayer.quaternion,
+            quaternion: player.quaternion,
           },
           timestamp,
         });
@@ -992,7 +992,10 @@ const _gameUpdate = (timestamp, timeDiff) => {
       }
     }
   };
-  _updateBehavior();
+  _updateBehavior(localPlayer);
+  for(const npc of npcManager.npcs) {
+    _updateBehavior(npc);
+  }
   
   const _updateMouseLook = () => {
     if (localPlayer.avatar) {

@@ -56,6 +56,7 @@ export class CharacterHitter {
           const collisionId = collision.objectId;
           const result = metaversefile.getPairByPhysicsId(collisionId);
           if (result) {
+            console.log(result);
             const [app, physicsObject] = result;
             const timeDiff = timestamp - this.lastHitTime;
             if (timeDiff > 1000) {
@@ -74,7 +75,7 @@ export class CharacterHitter {
               localEuler.x = 0;
               localEuler.z = 0;
               const hitQuaternion = localQuaternion.setFromEuler(localEuler);
-    
+    console.log('HIT');
               // const willDie = app.willDieFrom(damage);
               app.hit(damage, {
                 type: 'sword',
@@ -146,7 +147,7 @@ export class CharacterHitter {
       type: 'hurt',
       animation: Math.random() < 0.5 ? 'pain_arch' : 'pain_back',
     };
-    // console.log('add hurtAction', 'character-hitter.js')
+    console.log('add hurtAction', 'character-hitter.js')
     const hurtAction = this.player.addAction(newAction);
 
     const emotions = [
