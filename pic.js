@@ -71,7 +71,7 @@ const _makeLights = () => {
   const directionalLight = new THREE.DirectionalLight(0xFFFFFF, 5);
   directionalLight.position.set(1, 1.5, -2);
   directionalLight.updateMatrixWorld();
-  
+
   /* const directionalLight2 = new THREE.DirectionalLight(0xFFFFFF, 1.5);
   directionalLight2.position.set(-1, 1.5, -2);
   directionalLight2.updateMatrixWorld(); */
@@ -196,8 +196,8 @@ export const genPic = async ({
   const writeCanvas = canvas;
   writeCanvas.width = width;
   writeCanvas.height = height;
-  writeCanvas.style.width = `${width/window.devicePixelRatio}px`;
-  writeCanvas.style.height = `${height/window.devicePixelRatio}px`;
+  writeCanvas.style.width = `${width / window.devicePixelRatio}px`;
+  writeCanvas.style.height = `${height / window.devicePixelRatio}px`;
   const writeCtx = writeCanvas.getContext('2d');
 
   const mode = 'idle';
@@ -206,8 +206,8 @@ export const genPic = async ({
   let totalDuration;
   switch (mode) {
     case 'idle': {
-      update = () => {};
-      totalDuration = idleAnimationDuration*1000;
+      update = () => { };
+      totalDuration = idleAnimationDuration * 1000;
       break;
     }
     case 'narutoRun': {
@@ -226,7 +226,7 @@ export const genPic = async ({
       const spriteSpec = {
         name: 'naruto run',
         duration: narutoRunAnimationDuration,
-        init({player}) {
+        init({ player }) {
           let positionOffset = 0;
           // let narutoRunTime = 0;
           // const narutoRunIncrementSpeed = 1000 * 4;
@@ -238,10 +238,10 @@ export const genPic = async ({
 
           return {
             update(timestamp, timeDiff) {
-              const timeDiffMs = timeDiff/1000;
-              const angle = -Math.PI/2;
-              positionOffset -= narutoRunSpeed/1000 * timeDiffMs;
-              
+              const timeDiffMs = timeDiff / 1000;
+              const angle = -Math.PI / 2;
+              positionOffset -= narutoRunSpeed / 1000 * timeDiffMs;
+
               /* const euler = new THREE.Euler(0, angle, 0, 'YXZ');
               camera.position.set(0, avatar.height*cameraHeightFactor, positionOffset)
                 .add(new THREE.Vector3(0, 0, -distance).applyEuler(euler));
@@ -266,7 +266,7 @@ export const genPic = async ({
             },
             /* cleanup() {
               avatar.narutoRunState = false;
-            }, */            
+            }, */
           };
         },
       };
@@ -292,9 +292,9 @@ export const genPic = async ({
     const p = new Promise((resolve, reject) => {
       writeCanvas.toBlob(blob => {
         const reader = new FileReader();
-        reader.readAsDataURL(blob); 
-        reader.onloadend = function() {
-          const dataUrl = reader.result;                
+        reader.readAsDataURL(blob);
+        reader.onloadend = function () {
+          const dataUrl = reader.result;
           resolve(dataUrl);
         };
       }, 'image/webp', videoQuality);
@@ -306,8 +306,8 @@ export const genPic = async ({
 
     const _renderFrames = async () => {
       let now = 0;
-      const timeDiff = 1000/FPS;
-      for (let i = 0; i < FPS*2; i++) {
+      const timeDiff = 1000 / FPS;
+      for (let i = 0; i < FPS * 2; i++) {
         _animate(now, timeDiff);
       }
 
@@ -323,7 +323,7 @@ export const genPic = async ({
         _pushFrame();
         now += timeDiff;
 
-        if ((index % framesPerFrame) === framesPerFrame-1) {
+        if ((index % framesPerFrame) === framesPerFrame - 1) {
           await new Promise((accept, reject) => {
             requestAnimationFrame(() => {
               accept();
@@ -354,8 +354,8 @@ export const genPic = async ({
     video.onerror = reject;
     video.src = URL.createObjectURL(blob);
   });
-  video.style.width = `${width/window.devicePixelRatio}px`;
-  video.style.height = `${height/window.devicePixelRatio}px`;
+  video.style.width = `${width / window.devicePixelRatio}px`;
+  video.style.height = `${height / window.devicePixelRatio}px`;
   video.controls = true;
   video.loop = true;
 };

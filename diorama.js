@@ -1,20 +1,22 @@
+/* eslint-disable */
 import * as THREE from 'three';
-import {getRenderer} from './renderer.js';
+import { getRenderer } from './renderer.js';
 import * as BufferGeometryUtils from 'three/examples/jsm/utils/BufferGeometryUtils.js';
 // import {world} from './world.js';
 // import {fitCameraToBoundingBox} from './util.js';
-import {Text} from 'troika-three-text';
+import { Text } from 'troika-three-text';
 // import {defaultDioramaSize} from './constants.js';
-import {fullscreenGeometry, gradients} from './background-fx/common.js';
-import {OutlineBgFxMesh} from './background-fx/OutlineBgFx.js';
-import {NoiseBgFxMesh} from './background-fx/NoiseBgFx.js';
-import {PoisonBgFxMesh} from './background-fx/PoisonBgFx.js';
-import {SmokeBgFxMesh} from './background-fx/SmokeBgFx.js';
-import {GlyphBgFxMesh} from './background-fx/GlyphBgFx.js';
-import {DotsBgFxMesh} from './background-fx/DotsBgFx.js';
-import {LightningBgFxMesh} from './background-fx/LightningBgFx.js';
-import {RadialBgFxMesh} from './background-fx/RadialBgFx.js';
-import {GrassBgFxMesh} from './background-fx/GrassBgFx.js';
+import { fullscreenGeometry, gradients } from './background-fx/common.js';
+import { OutlineBgFxMesh } from './background-fx/OutlineBgFx.js';
+import { NoiseBgFxMesh } from './background-fx/NoiseBgFx.js';
+import { PoisonBgFxMesh } from './background-fx/PoisonBgFx.js';
+import { SmokeBgFxMesh } from './background-fx/SmokeBgFx.js';
+import { GlyphBgFxMesh } from './background-fx/GlyphBgFx.js';
+import { DotsBgFxMesh } from './background-fx/DotsBgFx.js';
+import { LightningBgFxMesh } from './background-fx/LightningBgFx.js';
+import { RadialBgFxMesh } from './background-fx/RadialBgFx.js';
+import { GrassBgFxMesh } from './background-fx/GrassBgFx.js';
+import { LocalPlayer } from './character-controller.js';
 
 const localVector = new THREE.Vector3();
 const localVector2 = new THREE.Vector3();
@@ -28,14 +30,14 @@ const localColor = new THREE.Color();
 
 // this function maps the speed histogram to a position, integrated up to the given timestamp
 const mapTime = (speedHistogram = new SpeedHistogram, time = 0) => {
-  const {elements} = speedHistogram;
+  const { elements } = speedHistogram;
   const totalDistance = speedHistogram.totalDistance();
   // const totalDuration = speedHistogram.totalDuration();
   // const totalDistance = this.totalDistance();
   let currentTime = 0;
   let currentDistance = 0;
   for (let i = 0; i < elements.length; i++) {
-    const {speed, duration} = elements[i];
+    const { speed, duration } = elements[i];
     if (time < currentTime + duration) {
       currentDistance += speed * (time - currentTime);
       break;
@@ -52,10 +54,10 @@ class SpeedHistogram {
     this.elements = [];
   }
   add(speed, duration) {
-    this.elements.push({speed, duration});
+    this.elements.push({ speed, duration });
   }
   totalDuration() {
-    const {elements} = this;
+    const { elements } = this;
     let totalDuration = 0;
     for (let i = 0; i < elements.length; i++) {
       totalDuration += elements[i].duration;
@@ -63,7 +65,7 @@ class SpeedHistogram {
     return totalDuration;
   }
   totalDistance() {
-    const {elements} = this;
+    const { elements } = this;
     // const totalDuration = this.totalDuration();
     let totalDistance = 0;
     for (let i = 0; i < elements.length; i++) {
@@ -95,9 +97,9 @@ class SpeedHistogram {
   }
 }
 const histogram = new SpeedHistogram().fromArray([
-  {speed: 10, duration: 100},
-  {speed: 0.05, duration: 2000},
-  {speed: 10, duration: 100},
+  { speed: 10, duration: 100 },
+  { speed: 0.05, duration: 2000 },
+  { speed: 10, duration: 100 },
 ]).toArray(60);
 const labelAnimationRate = 3;
 const labelVertexShader = `\
@@ -348,7 +350,7 @@ const glyphMesh = new GlyphBgFxMesh();
 const dotsMesh = new DotsBgFxMesh();
 const textObject = (() => {
   const o = new THREE.Object3D();
-  
+
   const _decorateGeometry = (g, offset, z, scale) => {
     const offsets = new Float32Array(g.attributes.position.array.length);
     const scales = new Float32Array(g.attributes.position.count);
@@ -497,10 +499,11 @@ const createPlayerDiorama = ({
   dotsBackground = false,
   autoCamera = true,
   detached = false,
+  avatarScreenshoting = false,
 } = {}) => {
   // _ensureSideSceneCompiled();
 
-  const {devicePixelRatio: pixelRatio} = window;
+  const { devicePixelRatio: pixelRatio } = window;
 
   const canvases = [];
   let outlineRenderTarget = null;
@@ -525,7 +528,7 @@ const createPlayerDiorama = ({
       canvases.length = 0;
     },
     addCanvas(canvas) {
-      const {width, height} = canvas;
+      const { width, height } = canvas;
       this.width = Math.max(this.width, width);
       this.height = Math.max(this.height, height);
 
@@ -680,9 +683,20 @@ const createPlayerDiorama = ({
           const targetPosition = localVector;
           const targetQuaternion = localQuaternion;
 
+          let scaleViewOffset = 1;
+
+          //For rendering Character Selection and Current Player view
+          if (!avatarScreenshoting) {
+            let box = new THREE.Box3().setFromObject(target.avatar.model)
+            let size = box.getSize(new THREE.Vector3()).length();
+            const scalar = 0.75;
+            if (target instanceof LocalPlayer)
+              scaleViewOffset = size * scalar;
+          }
+
           sideCamera.position.copy(targetPosition)
             .add(
-              localVector2.set(cameraOffset.x, 0, cameraOffset.z)
+              localVector2.set(cameraOffset.x * scaleViewOffset, 0, cameraOffset.z * scaleViewOffset)
                 .applyQuaternion(targetQuaternion)
             );
           sideCamera.quaternion.setFromRotationMatrix(
@@ -693,7 +707,7 @@ const createPlayerDiorama = ({
             )
           );
           sideCamera.position.add(
-            localVector2.set(0, cameraOffset.y, 0)
+            localVector2.set(0, cameraOffset.y * scaleViewOffset, 0)
               .applyQuaternion(targetQuaternion)
           );
           sideCamera.updateMatrixWorld();
@@ -707,11 +721,11 @@ const createPlayerDiorama = ({
         renderer.setClearColor(0x000000, 0);
         renderer.clear();
         renderer.render(outlineRenderScene, sideCamera);
-        
+
         // set up side scene
         _addObjectsToScene(sideScene);
         // sideScene.add(world.lights);
-    
+
         const _renderGrass = () => {
           if (grassBackground) {
             grassMesh.update(timeOffset, timeDiff, this.width, this.height);
@@ -809,7 +823,7 @@ const createPlayerDiorama = ({
           }
         };
         _renderLabel();
-        
+
         // render side scene
         const _render = () => {
           renderer.setRenderTarget(oldRenderTarget);
@@ -823,7 +837,7 @@ const createPlayerDiorama = ({
         _render();
         const _copyFrame = () => {
           for (const canvas of canvases) {
-            const {width, height, ctx} = canvas;
+            const { width, height, ctx } = canvas;
             ctx.clearRect(0, 0, width, height);
             ctx.drawImage(
               renderer.domElement,
