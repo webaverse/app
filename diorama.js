@@ -1,22 +1,22 @@
 /* eslint-disable */
 import * as THREE from 'three';
-import { getRenderer } from './renderer.js';
+import {getRenderer} from './renderer.js';
 import * as BufferGeometryUtils from 'three/examples/jsm/utils/BufferGeometryUtils.js';
 // import {world} from './world.js';
 // import {fitCameraToBoundingBox} from './util.js';
-import { Text } from 'troika-three-text';
+import {Text} from 'troika-three-text';
 // import {defaultDioramaSize} from './constants.js';
-import { fullscreenGeometry, gradients } from './background-fx/common.js';
-import { OutlineBgFxMesh } from './background-fx/OutlineBgFx.js';
-import { NoiseBgFxMesh } from './background-fx/NoiseBgFx.js';
-import { PoisonBgFxMesh } from './background-fx/PoisonBgFx.js';
-import { SmokeBgFxMesh } from './background-fx/SmokeBgFx.js';
-import { GlyphBgFxMesh } from './background-fx/GlyphBgFx.js';
-import { DotsBgFxMesh } from './background-fx/DotsBgFx.js';
-import { LightningBgFxMesh } from './background-fx/LightningBgFx.js';
-import { RadialBgFxMesh } from './background-fx/RadialBgFx.js';
-import { GrassBgFxMesh } from './background-fx/GrassBgFx.js';
-import { LocalPlayer } from './character-controller.js';
+import {fullscreenGeometry, gradients} from './background-fx/common.js';
+import {OutlineBgFxMesh} from './background-fx/OutlineBgFx.js';
+import {NoiseBgFxMesh} from './background-fx/NoiseBgFx.js';
+import {PoisonBgFxMesh} from './background-fx/PoisonBgFx.js';
+import {SmokeBgFxMesh} from './background-fx/SmokeBgFx.js';
+import {GlyphBgFxMesh} from './background-fx/GlyphBgFx.js';
+import {DotsBgFxMesh} from './background-fx/DotsBgFx.js';
+import {LightningBgFxMesh} from './background-fx/LightningBgFx.js';
+import {RadialBgFxMesh} from './background-fx/RadialBgFx.js';
+import {GrassBgFxMesh} from './background-fx/GrassBgFx.js';
+import {LocalPlayer} from './character-controller.js';
 
 const localVector = new THREE.Vector3();
 const localVector2 = new THREE.Vector3();
@@ -30,7 +30,7 @@ const localColor = new THREE.Color();
 
 // this function maps the speed histogram to a position, integrated up to the given timestamp
 const mapTime = (speedHistogram = new SpeedHistogram, time = 0) => {
-  const { elements } = speedHistogram;
+  const {elements} = speedHistogram;
   const totalDistance = speedHistogram.totalDistance();
   // const totalDuration = speedHistogram.totalDuration();
   // const totalDistance = this.totalDistance();
@@ -54,7 +54,7 @@ class SpeedHistogram {
     this.elements = [];
   }
   add(speed, duration) {
-    this.elements.push({ speed, duration });
+    this.elements.push({speed, duration});
   }
   totalDuration() {
     const {elements} = this;
@@ -528,7 +528,7 @@ const createPlayerDiorama = ({
       canvases.length = 0;
     },
     addCanvas(canvas) {
-      const { width, height } = canvas;
+      const {width, height} = canvas;
       this.width = Math.max(this.width, width);
       this.height = Math.max(this.height, height);
 
