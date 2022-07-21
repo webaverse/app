@@ -471,7 +471,7 @@ class InstancedSkeleton extends THREE.Skeleton {
     this.unifiedBoneMatrices = boneTexture.image.data; // Avoid setting to THREE.Skeleton because update() tries to access texture buffer
     this.unifiedBoneTexture = boneTexture;
     unifiedBoneTextureSize = boneTexture.image.width;
-    console.log('boneTextureSize', unifiedBoneTextureSize);
+    // console.log('boneTextureSize', unifiedBoneTextureSize);
   }
   bakeFrame(skeleton, drawCallIndex, frameIndex) {
     const boneMatrices = this.unifiedBoneMatrices;
@@ -538,27 +538,33 @@ class MobBatchedMesh extends InstancedBatchedMesh {
 
     // allocator
 
+    const instanceCount = maxGeometries * maxDrawCallsPerGeometry * maxInstancesPerDrawCall;
+    const geometryFrameCount = maxAnimationFrameLength * maxGeometries * maxDrawCallsPerGeometry;
+
     const allocator = new InstancedGeometryAllocator(geometries, [
       {
         name: 'p',
         Type: Float32Array,
         itemSize: 3,
+        itemCount: instanceCount,
       },
       {
         name: 'q',
         Type: Float32Array,
         itemSize: 4,
+        itemCount: instanceCount,
       },
       {
         name: 'timeOffset',
         Type: Float32Array,
         itemSize: 1,
+        itemCount: instanceCount,
       },
       {
         name: 'boneTexture',
         Type: Float32Array,
         itemSize: maxBonesPerInstance * 16,
-        itemCount: maxAnimationFrameLength * maxGeometries * maxDrawCallsPerGeometry,
+        itemCount: geometryFrameCount,
       },
     ], {
       maxInstancesPerDrawCall,

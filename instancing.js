@@ -562,9 +562,7 @@ export class InstancedGeometryAllocator {
         } = spec;
 
         // compute the minimum size of a texture that can hold the data
-        let neededItems4 = numGeometries * maxDrawCallsPerGeometry * maxInstancesPerDrawCall;
-        if (itemCount)
-          neededItems4 = itemCount;
+        let neededItems4 = itemCount;
         if (itemSize > 4) {
           neededItems4 *= itemSize / 4;
         }
