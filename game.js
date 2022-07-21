@@ -1390,6 +1390,9 @@ class GameManager extends EventTarget {
     const flyAction = localPlayer.getAction('fly');
     if (flyAction) {
       localPlayer.removeAction('fly');
+      if (!localPlayer.characterPhysics.lastGrounded) {
+        localPlayer.setControlAction({type: 'fallLoop'});
+      }
     } else {
       const flyAction = {
         type: 'fly',
@@ -1479,14 +1482,14 @@ class GameManager extends EventTarget {
       }
     }
 
-    const jumpAction = localPlayer.getAction('jump');
-    if (!jumpAction) {
+    if (!localPlayer.hasAction('jump') && !localPlayer.hasAction('fly') && !localPlayer.hasAction('fallLoop')) {
       const newJumpAction = {
         type: 'jump',
-        trigger:trigger
+        trigger:trigger,
+        startPositionY: localPlayer.characterController.position.y,
         // time: 0,
       };
-      localPlayer.addAction(newJumpAction);
+      localPlayer.setControlAction(newJumpAction);
     }
   }
   jump(trigger) {
@@ -1494,8 +1497,8 @@ class GameManager extends EventTarget {
     this.ensureJump(trigger);
 
     // update velocity
-    const localPlayer = getLocalPlayer();
-    localPlayer.characterPhysics.velocity.y += 6;
+    // const localPlayer = getLocalPlayer();
+    // localPlayer.characterPhysics.velocity.y += 6; // currently using aesthetic jump movement
     
     // play sound
     // soundManager.play('jump');

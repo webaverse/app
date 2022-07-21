@@ -88,6 +88,7 @@ export function makeAvatar(app) {
 }
 export function applyPlayerActionsToAvatar(player, rig) {
   const jumpAction = player.getAction('jump');
+  const landAction = player.getAction('land');
   const flyAction = player.getAction('fly');
   const swimAction = player.getAction('swim');
   const useAction = player.getAction('use');
@@ -107,8 +108,8 @@ export function applyPlayerActionsToAvatar(player, rig) {
   // const chargeJumpAnimation = chargeJump ? chargeJump.animation : '';
   // const standCharge = player.getAction('standCharge');
   // const standChargeAnimation = standCharge ? standCharge.animation : '';
-  // const fallLoop = player.getAction('fallLoop');
-  // const fallLoopAnimation = fallLoop ? fallLoop.animation : '';
+  const fallLoopAction = player.getAction('fallLoop');
+  // const fallLoopAnimation = fallLoopAction ? fallLoopAction.animation : '';
   const hurtAction = player.getAction('hurt');
   // const swordSideSlash = player.getAction('swordSideSlash');
   // const swordSideSlashAnimation = swordSideSlash ? swordSideSlash.animation : '';
@@ -117,6 +118,8 @@ export function applyPlayerActionsToAvatar(player, rig) {
 
   rig.jumpState = !!jumpAction;
   rig.jumpTime = player.actionInterpolants.jump.get();
+  rig.landTime = player.actionInterpolants.land.get();
+  rig.lastLandStartTime = landAction ? landAction.time : 0;
   rig.flyState = !!flyAction;
   rig.flyTime = flyAction ? player.actionInterpolants.fly.get() : -1;
   rig.activateTime = player.actionInterpolants.activate.get();
@@ -201,9 +204,9 @@ export function applyPlayerActionsToAvatar(player, rig) {
   // rig.standChargeTime = player.actionInterpolants.standCharge.get();
   // rig.standChargeAnimation = standChargeAnimation;
   // rig.standChargeState = !!standCharge;
-  // rig.fallLoopTime = player.actionInterpolants.fallLoop.get();
+  rig.fallLoopTime = player.actionInterpolants.fallLoop.get();
   // rig.fallLoopAnimation = fallLoopAnimation;
-  // rig.fallLoopState = !!fallLoop;
+  rig.fallLoopState = !!fallLoopAction;
   // rig.swordSideSlashTime = player.actionInterpolants.swordSideSlash.get();
   // rig.swordSideSlashAnimation = swordSideSlashAnimation;
   // rig.swordSideSlashState = !!swordSideSlash;
