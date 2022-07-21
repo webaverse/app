@@ -5,6 +5,7 @@ player objects load their own avatar and apps using this binding */
 import * as Z from 'zjs';
 import {RemotePlayer} from './character-controller.js';
 import metaversefileApi from 'metaversefile';
+import {getLocalPlayer} from './players.js';
 
 class PlayersManager {
   constructor() {
@@ -14,17 +15,30 @@ class PlayersManager {
     
     this.unbindStateFn = null;
   }
+  clearRemotePlayers() {
+    const lastPlayers = this.playersArray;
+    if (lastPlayers) {
+      const playerSpecs = lastPlayers.toJSON();
+      const nonLocalPlayerSpecs = playerSpecs.filter(p => {
+        return p.playerId !== getLocalPlayer().playerId;
+      });
+      for (const nonLocalPlayer of nonLocalPlayerSpecs) {
+        const remotePlayer = this.remotePlayers.get(nonLocalPlayer.playerId);
+        remotePlayer.destroy();
+        this.remotePlayers.delete(nonLocalPlayer.playerId);
+      }
+    }
+  }
   getPlayersState() {
     return this.playersArray;
   }
   unbindState() {
-    const lastPlayers = this.playersArray;
-    if (lastPlayers) {
+    if(this.unbindStateFn != null) {
       this.unbindStateFn();
+    }
       this.playersArray = null;
       this.unbindStateFn = null;
     }
-  }
   bindState(nextPlayersArray) {
     this.unbindState();
     
@@ -80,7 +94,7 @@ class PlayersManager {
   }
   updateRemotePlayers(timestamp, timeDiff) {
     for (const remotePlayer of this.remotePlayers.values()) {
-      remotePlayer.updateAvatar(timestamp, timeDiff);
+      remotePlayer.update(timestamp, timeDiff);
     }
   }
 }

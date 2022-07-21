@@ -6,9 +6,8 @@ import * as THREE from 'three';
 // import {getPlayerCrouchFactor} from './character-controller.js';
 import physicsManager from './physics-manager.js';
 // import ioManager from './io-manager.js';
-import {getVelocityDampingFactor} from './util.js';
+import {getVelocityDampingFactor, applyVelocity} from './util.js';
 import {groundFriction, flyFriction, airFriction, flatGroundJumpAirTime, jumpHeight} from './constants.js';
-import {applyVelocity} from './util.js';
 import {getRenderer, camera} from './renderer.js';
 // import physx from './physx.js';
 import metaversefileApi from 'metaversefile';
@@ -63,7 +62,7 @@ class CharacterPhysics {
   }
   applyGravity(timeDiffS) {
     // if (this.player) {
-      if ((this.player.hasAction('jump') || this.player.hasAction('fallLoop')) && !this.player.hasAction('fly')) {
+      if ((this.player.hasAction('jump') || this.player.hasAction('fallLoop')) && !this.player.hasAction('fly') && !this.player.hasAction('swim')) {
         localVector.copy(physicsScene.getGravity())
           .multiplyScalar(timeDiffS);
         this.velocity.add(localVector);
@@ -97,6 +96,11 @@ class CharacterPhysics {
       }
         
       // console.log('got local vector', this.velocity.toArray().join(','), localVector3.toArray().join(','), timeDiffS);
+      if(this.player.hasAction('swim') && this.player.getAction('swim').onSurface && !this.player.hasAction('fly')){
+        if(this.player.characterPhysics.velocity.y > 0){
+          localVector3.y = 0;
+        }
+      }
       const flags = physicsScene.moveCharacterController(
         this.player.characterController,
         localVector3,
@@ -107,7 +111,7 @@ class CharacterPhysics {
       // const collided = flags !== 0;
       let grounded = !!(flags & 0x1); 
 
-      if (!grounded && !this.player.getAction('jump') && !this.player.getAction('fly')) { // prevent jump when go down slope
+      if (!grounded && !this.player.getAction('jump') && !this.player.getAction('fly') && !this.player.hasAction('swim')) { // prevent jump when go down slope
         const oldY = this.player.characterController.position.y;
         const flags = physicsScene.moveCharacterController(
           this.player.characterController,
@@ -173,9 +177,19 @@ class CharacterPhysics {
 
         const objInstanceId = sitAction.controllingId;
         const controlledApp = metaversefileApi.getAppByInstanceId(objInstanceId);
-        const sitPos = sitAction.controllingBone ? sitAction.controllingBone : controlledApp;
 
         const sitComponent = controlledApp.getComponent('sit');
+
+        // Patch fix to fix vehicles and mounts for now
+        let rideMesh = null;
+        controlledApp.glb.scene.traverse(o => {
+          if (rideMesh === null && o.isSkinnedMesh) {
+            rideMesh = o;
+          }
+        });
+
+        // NOTE: We had a problem with sending the entire bone in the message buffer, so we're just sending the bone name
+        const sitPos = sitComponent.sitBone ? rideMesh.skeleton.bones.find(bone => bone.name === sitComponent.sitBone) : controlledApp;
         const {
           sitOffset = [0, 0, 0],
           // damping,
@@ -238,7 +252,12 @@ class CharacterPhysics {
     if (this.player.hasAction('fly')) {
       const factor = getVelocityDampingFactor(flyFriction, timeDiff);
       velocity.multiplyScalar(factor);
-    } else {
+    } 
+    else if(this.player.hasAction('swim')){
+      const factor = getVelocityDampingFactor(swimFriction, timeDiff);
+      velocity.multiplyScalar(factor);
+    }
+    else {
       const factor = getVelocityDampingFactor(groundFriction, timeDiff);
       velocity.x *= factor;
       velocity.z *= factor;

@@ -657,6 +657,7 @@ const _gameUpdate = (timestamp, timeDiff) => {
         mouseHighlightPhysicsMesh.updateMatrixWorld();
 
         mouseHighlightPhysicsMesh.visible = true;
+        gameManager.setMouseHoverObject(collision.app, collision.physicsId, collision.point);
       }
     }
   };
@@ -1407,6 +1408,14 @@ class GameManager extends EventTarget {
     const localPlayer = getLocalPlayer();
     return localPlayer.hasAction('crouch');
   }
+  isSwimming() {
+    const localPlayer = getLocalPlayer();
+    return localPlayer.hasAction('swim');
+  }
+  isFlying() {
+    const localPlayer = getLocalPlayer();
+    return localPlayer.hasAction('fly');
+  }
   toggleCrouch() {
     const localPlayer = getLocalPlayer();
     let crouchAction = localPlayer.getAction('crouch');
@@ -1588,6 +1597,8 @@ class GameManager extends EventTarget {
     const flySpeed = walkSpeed * 2;
     const defaultCrouchSpeed = walkSpeed * 0.7;
     const isCrouched = gameManager.isCrouched();
+    const isSwimming = gameManager.isSwimming();
+    const isFlying = gameManager.isFlying();
     const isMovingBackward = gameManager.isMovingBackward();
     if (isCrouched && !isMovingBackward) {
       speed = defaultCrouchSpeed;
@@ -1596,11 +1607,11 @@ class GameManager extends EventTarget {
     } else {
       speed = walkSpeed;
     }
-    
+    const localPlayer = getLocalPlayer();
     const sprintMultiplier = (ioManager.keys.shift && !isCrouched) ?
       (ioManager.keys.doubleTap ? 20 : 3)
     :
-      1;
+    ((isSwimming && !isFlying) ? 5 - localPlayer.getAction('swim').swimDamping : 1);
     speed *= sprintMultiplier;
     
     const backwardMultiplier = isMovingBackward ? 0.7 : 1;
@@ -1658,9 +1669,10 @@ class GameManager extends EventTarget {
       ]);
     });
   }
-  /* loadVoicePack(voicePack) {
-    return localPlayer.loadVoicePack(voicePack);
-  } */
+  async setVoicePack(voicePack) {
+    const localPlayer = metaversefileApi.useLocalPlayer();
+    return await localPlayer.setVoicePack(voicePack);
+  }
   setVoiceEndpoint(voiceId) {
     const localPlayer = getLocalPlayer();
     return localPlayer.setVoiceEndpoint(voiceId);

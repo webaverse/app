@@ -7,6 +7,7 @@ import {unFrustumCull, enableShadows} from './util.js';
 import {
   getEyePosition,
 } from './avatars/util.mjs';
+import {getLocalPlayer, remotePlayers} from './players.js';
 
 const appSymbol = 'app'; // Symbol('app');
 const avatarSymbol = 'avatar'; // Symbol('avatar');
@@ -51,18 +52,35 @@ export function applyPlayerModesToAvatar(player, session, rig) {
 export function makeAvatar(app) {
   if (app) {
     const {skinnedVrm} = app;
+
+    const _getPlayerByAppInstanceId = instanceId => {
+      const localPlayer = getLocalPlayer();
+      const result = localPlayer.appManager.getAppByInstanceId(instanceId);
+      if (result) {
+        return localPlayer;
+      } else {
+        for (const remotePlayer of remotePlayers) {
+          if (remotePlayer.appManager.getAppByInstanceId(instanceId)) {
+            return remotePlayer;
+          }
+        }
+      }
+    }
+
+    const player = _getPlayerByAppInstanceId(app.instanceId);
     if (skinnedVrm) {
       const avatar = new Avatar(skinnedVrm, {
+        isLocalPlayer: !player || !player.isRemotePlayer,
         fingers: true,
         hair: true,
         visemes: true,
         debug: false,
       });
       avatar[appSymbol] = app;
-      
+
       unFrustumCull(app);
       enableShadows(app);
-      
+
       return avatar;
     }
   }
@@ -72,6 +90,7 @@ export function applyPlayerActionsToAvatar(player, rig) {
   const jumpAction = player.getAction('jump');
   const landAction = player.getAction('land');
   const flyAction = player.getAction('fly');
+  const swimAction = player.getAction('swim');
   const useAction = player.getAction('use');
   const pickUpAction = player.getAction('pickUp');
   const narutoRunAction = player.getAction('narutoRun');
@@ -104,6 +123,8 @@ export function applyPlayerActionsToAvatar(player, rig) {
   rig.flyState = !!flyAction;
   rig.flyTime = flyAction ? player.actionInterpolants.fly.get() : -1;
   rig.activateTime = player.actionInterpolants.activate.get();
+  rig.swimState = !!swimAction;
+  rig.swimTime = swimAction ? player.actionInterpolants.swim.get() : -1;
   
   const _handleUse = () => {
     if (useAction?.animation) {
@@ -194,6 +215,9 @@ export function applyPlayerActionsToAvatar(player, rig) {
   // rig.swordTopDownSlashState = !!swordTopDownSlash;
   rig.hurtAnimation = (hurtAction?.animation) || '';
   rig.hurtTime = player.actionInterpolants.hurt.get();
+  rig.movementsTime = player.actionInterpolants.movements.get();
+  rig.movementsTransitionTime = player.actionInterpolants.movementsTransition.get();
+  rig.sprintTime = player.actionInterpolants.sprint.get();
 }
 // returns whether eyes were applied
 export function applyPlayerEyesToAvatar(player, rig) {

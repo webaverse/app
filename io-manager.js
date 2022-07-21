@@ -230,7 +230,18 @@ const _updateIo = timeDiff => {
       cameraManager.lastNonzeroDirectionVector.copy(keysDirection);
     }
     
-    if (localPlayer.hasAction('fly')) {
+    if (localPlayer.hasAction('swim')){
+      if(ioManager.keys.shift && keysDirection.length() > 0){
+        localPlayer.getAction('swim').animationType = 'freestyle';
+      }
+      else if(!ioManager.keys.shift && keysDirection.length() > 0){
+        localPlayer.getAction('swim').animationType = 'breaststroke';
+      }
+      else{
+        localPlayer.getAction('swim').animationType = 'null';
+      }
+    }
+    if (localPlayer.hasAction('fly') || localPlayer.hasAction('swim')) {
       keysDirection.applyQuaternion(camera.quaternion);
       _updateVertical(keysDirection);
     } else {
@@ -766,6 +777,9 @@ ioManager.click = e => {
     } */
   }
   raycastManager.setLastMouseEvent(e);
+};
+ioManager.dblclick = e => {
+  // nothing
 };
 // let mouseDown = false;
 let lastMouseButtons = 0;
