@@ -37,7 +37,7 @@ const mapTime = (speedHistogram = new SpeedHistogram, time = 0) => {
   let currentTime = 0;
   let currentDistance = 0;
   for (let i = 0; i < elements.length; i++) {
-    const { speed, duration } = elements[i];
+    const {speed, duration} = elements[i];
     if (time < currentTime + duration) {
       currentDistance += speed * (time - currentTime);
       break;
@@ -57,7 +57,7 @@ class SpeedHistogram {
     this.elements.push({ speed, duration });
   }
   totalDuration() {
-    const { elements } = this;
+    const {elements} = this;
     let totalDuration = 0;
     for (let i = 0; i < elements.length; i++) {
       totalDuration += elements[i].duration;
@@ -65,7 +65,7 @@ class SpeedHistogram {
     return totalDuration;
   }
   totalDistance() {
-    const { elements } = this;
+    const {elements} = this;
     // const totalDuration = this.totalDuration();
     let totalDistance = 0;
     for (let i = 0; i < elements.length; i++) {
@@ -97,9 +97,9 @@ class SpeedHistogram {
   }
 }
 const histogram = new SpeedHistogram().fromArray([
-  { speed: 10, duration: 100 },
-  { speed: 0.05, duration: 2000 },
-  { speed: 10, duration: 100 },
+  {speed: 10, duration: 100},
+  {speed: 0.05, duration: 2000},
+  {speed: 10, duration: 100},
 ]).toArray(60);
 const labelAnimationRate = 3;
 const labelVertexShader = `\
@@ -503,7 +503,7 @@ const createPlayerDiorama = ({
 } = {}) => {
   // _ensureSideSceneCompiled();
 
-  const { devicePixelRatio: pixelRatio } = window;
+  const {devicePixelRatio: pixelRatio} = window;
 
   const canvases = [];
   let outlineRenderTarget = null;
@@ -721,11 +721,11 @@ const createPlayerDiorama = ({
         renderer.setClearColor(0x000000, 0);
         renderer.clear();
         renderer.render(outlineRenderScene, sideCamera);
-
+        
         // set up side scene
         _addObjectsToScene(sideScene);
         // sideScene.add(world.lights);
-
+    
         const _renderGrass = () => {
           if (grassBackground) {
             grassMesh.update(timeOffset, timeDiff, this.width, this.height);
@@ -823,7 +823,7 @@ const createPlayerDiorama = ({
           }
         };
         _renderLabel();
-
+        
         // render side scene
         const _render = () => {
           renderer.setRenderTarget(oldRenderTarget);
@@ -837,7 +837,7 @@ const createPlayerDiorama = ({
         _render();
         const _copyFrame = () => {
           for (const canvas of canvases) {
-            const { width, height, ctx } = canvas;
+            const {width, height, ctx} = canvas;
             ctx.clearRect(0, 0, width, height);
             ctx.drawImage(
               renderer.domElement,
