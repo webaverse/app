@@ -6,7 +6,7 @@ import {getLocalPlayer, remotePlayers} from './players.js';
 import * as voices from './voices.js';
 import {world} from './world.js';
 import {chatManager} from './chat-manager.js';
-import {createRelativeUrl} from './util.js';
+import {makeId, createRelativeUrl} from './util.js';
 import { triggerEmote } from './src/components/general/character/Poses.jsx';
 import validEmotionMapping from "./validEmotionMapping.json";
 
@@ -30,7 +30,7 @@ class NpcManager extends EventTarget {
     position,
     quaternion,
     scale,
-    detached,
+    detached
   }) {
     const npcPlayer = new LocalPlayer({
       npc: true,
@@ -231,7 +231,17 @@ class NpcManager extends EventTarget {
         character.addEventListener('say', e => {
           console.log('got character say', e.data);
           const {message, emote, action, object, target} = e.data;
-          chatManager.addPlayerMessage(npcPlayer, message);
+          const chatId = makeId(5);
+
+          const m = {
+            type: 'chat',
+            chatId,
+            playerId: localPlayer.playerId,
+            playerName: localPlayer.name,
+            message,
+          };
+
+          chatManager.addPlayerMessage(npcPlayer, m);
           if (emote !== 'none' && validEmotionMapping[emote]!== undefined) {
             triggerEmote(validEmotionMapping[emote], npcPlayer);
           }
@@ -273,7 +283,7 @@ class NpcManager extends EventTarget {
           .add(new THREE.Vector3(0, 1, 0)),
         quaternion: app.quaternion,
         scale: app.scale,
-        detached: npcDetached,
+        detached: npcDetached
       });
 
       // attach to scene
