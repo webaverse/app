@@ -17,6 +17,9 @@ export class ScalarInterpolant {
   getInverse() {
     return this.maxValue - this.value;
   }
+  reset() {
+    this.value = this.minValue;
+  }
 }
 
 // bidirectional linear; goes forward and backward

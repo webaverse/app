@@ -1940,9 +1940,13 @@ class Avatar {
     if (true && player && this === player.avatar) {
       window.domInfo.innerHTML += `
         <div style="display:;">actions: --- ${player.getActionsArray().map(n=>n.type)}</div>
+        <div style="display:;">fallLoopState: --- ${this.fallLoopState}</div>
+        <div style="display:;">fallLoopTime: --- ${Math.floor(this.fallLoopTime)}</div>
+        <div style="display:;">fallLoopFactor: --- ${this.fallLoopFactor?.toFixed(2)}</div>
+        <div style="display:;">landTime: --- ${Math.floor(this.landTime)}</div>
       `
     }
-    
+
     _applyAnimation(this, now, moveFactors, timeDiffS);
 
     if (this.poseAnimation) {
