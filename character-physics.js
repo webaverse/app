@@ -6,9 +6,8 @@ import * as THREE from 'three';
 // import {getPlayerCrouchFactor} from './character-controller.js';
 import physicsManager from './physics-manager.js';
 // import ioManager from './io-manager.js';
-import {getVelocityDampingFactor} from './util.js';
-import {groundFriction, flyFriction, airFriction} from './constants.js';
-import {applyVelocity} from './util.js';
+import {getVelocityDampingFactor, applyVelocity} from './util.js';
+import {groundFriction, flyFriction, airFriction, flatGroundJumpAirTime, jumpHeight} from './constants.js';
 import {getRenderer, camera} from './renderer.js';
 // import physx from './physx.js';
 import metaversefileApi from 'metaversefile';
@@ -43,7 +42,8 @@ class CharacterPhysics {
     this.player = player;
 
     this.velocity = new THREE.Vector3();
-    this.lastGroundedTime = 0;
+    this.lastGrounded = null;
+    this.lastCharacterControllerY = null;
     this.sitOffset = new THREE.Vector3();
    
     this.lastPistolUse = false;
@@ -62,7 +62,7 @@ class CharacterPhysics {
   }
   applyGravity(timeDiffS) {
     // if (this.player) {
-      if (this.player.hasAction('jump') && !this.player.hasAction('fly')) {
+      if ((this.player.hasAction('jump') || this.player.hasAction('fallLoop')) && !this.player.hasAction('fly') && !this.player.hasAction('swim')) {
         localVector.copy(physicsScene.getGravity())
           .multiplyScalar(timeDiffS);
         this.velocity.add(localVector);
@@ -85,7 +85,22 @@ class CharacterPhysics {
       const minDist = 0;
       localVector3.copy(this.velocity)
         .multiplyScalar(timeDiffS);
+
+      const jumpAction = this.player.getAction('jump');
+      if (jumpAction?.trigger === 'jump') {
+        const jumpTime = this.player.actionInterpolants.jump.get();
+        localVector3.y = Math.sin(jumpTime * (Math.PI / flatGroundJumpAirTime)) * jumpHeight + jumpAction.startPositionY - this.lastCharacterControllerY;
+        if (jumpTime >= flatGroundJumpAirTime) {
+          this.player.setControlAction({type: 'fallLoop'});
+        }
+      }
+        
       // console.log('got local vector', this.velocity.toArray().join(','), localVector3.toArray().join(','), timeDiffS);
+      if(this.player.hasAction('swim') && this.player.getAction('swim').onSurface && !this.player.hasAction('fly')){
+        if(this.player.characterPhysics.velocity.y > 0){
+          localVector3.y = 0;
+        }
+      }
       const flags = physicsScene.moveCharacterController(
         this.player.characterController,
         localVector3,
@@ -96,7 +111,7 @@ class CharacterPhysics {
       // const collided = flags !== 0;
       let grounded = !!(flags & 0x1); 
 
-      if (!grounded && !this.player.getAction('jump') && !this.player.getAction('fly')) { // prevent jump when go down slope
+      if (!grounded && !this.player.getAction('jump') && !this.player.getAction('fly') && !this.player.hasAction('swim')) { // prevent jump when go down slope
         const oldY = this.player.characterController.position.y;
         const flags = physicsScene.moveCharacterController(
           this.player.characterController,
@@ -141,40 +156,17 @@ class CharacterPhysics {
           localQuaternion.copy(camera.quaternion);
         }
 
-        const jumpAction = this.player.getAction('jump');
-        const _ensureJumpAction = () => {
-          if (!jumpAction) {
-            const newJumpAction = {
-              type: 'jump',
-              time: 0,
-            };
-            this.player.addAction(newJumpAction);
-          } else {
-            jumpAction.set('time', 0);
-          }
-        };
-        const _ensureNoJumpAction = () => {
-          this.player.removeAction('jump');
-        };
-
         if (grounded) {
-          this.lastGroundedTime = now;
+          if (!this.lastGrounded) {
+            if (this.player.hasAction('jump') || this.player.hasAction('fallLoop')) {
+              this.player.setControlAction({type: 'land', time: now});
+            }
+          };
 
           this.velocity.y = -1;
-        }
-
-        if (!jumpAction) {
-          const lastGroundedTimeDiff = now - this.lastGroundedTime;
-          if (lastGroundedTimeDiff <= 100) {
-            _ensureNoJumpAction();
-          } else {
-            _ensureJumpAction();
-          
-            this.velocity.y = 0;
-          }
         } else {
-          if (grounded) {
-            _ensureNoJumpAction();
+          if (this.lastGrounded && !this.player.hasAction('jump') && !this.player.hasAction('fly')) {
+            this.player.setControlAction({type: 'fallLoop'});
           }
         }
       } else {
@@ -250,6 +242,9 @@ class CharacterPhysics {
         }
         this.avatar.updateMatrixWorld();
       } */
+
+      this.lastGrounded = grounded;
+      this.lastCharacterControllerY = this.player.characterController.position.y;
     }
   }
   /* dampen the velocity to make physical sense for the current avatar state */
@@ -257,7 +252,12 @@ class CharacterPhysics {
     if (this.player.hasAction('fly')) {
       const factor = getVelocityDampingFactor(flyFriction, timeDiff);
       velocity.multiplyScalar(factor);
-    } else {
+    } 
+    else if(this.player.hasAction('swim')){
+      const factor = getVelocityDampingFactor(swimFriction, timeDiff);
+      velocity.multiplyScalar(factor);
+    }
+    else {
       const factor = getVelocityDampingFactor(groundFriction, timeDiff);
       velocity.x *= factor;
       velocity.z *= factor;

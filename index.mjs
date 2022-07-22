@@ -156,6 +156,8 @@ function makeId(length) {
     };
     for (const object of objects) {
       let {start_url, type, content, position = [0, 0, 0], quaternion = [0, 0, 0, 1], scale = [1, 1, 1]} = object;
+
+      const transform = Float32Array.from([...position, ...quaternion, ...scale]);
       const instanceId = makeId(5);
       if (!start_url && type && content) {
         start_url = `data:${type},${encodeURI(JSON.stringify(content))}`;
@@ -163,18 +165,14 @@ function makeId(length) {
       const appObject = {
         instanceId,
         contentId: start_url,
-        position,
-        quaternion,
-        scale,
+        transform,
         components: JSON.stringify([]),
       };
       result[appsMapName].push(appObject);
     }
     return result;
   })();
-  const initialRoomNames = [
-    'Erithor',
-  ];
+  const initialRoomNames = [];
   wsrtc.bindServer(wsServer, {
     initialRoomState,
     initialRoomNames,

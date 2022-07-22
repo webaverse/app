@@ -58,6 +58,7 @@ import procGenManager from './procgen-manager.js';
 import cardsManager from './cards-manager.js';
 import * as instancing from './instancing.js';
 import * as atlasing from './atlasing.js';
+import ioManager from './io-manager.js';
 
 const localVector2D = new THREE.Vector2();
 
@@ -739,6 +740,9 @@ metaversefile.setApi({
   useHpManager() {
     return hpManager;
   },
+  useIoManager() {
+    return ioManager;
+  },
   useProcGen() {
     return procgen;
   },
@@ -955,6 +959,21 @@ export default () => {
   },
   removeTrackedApp(app) {
     return world.appManager.removeTrackedApp.apply(world.appManager, arguments);
+  },
+  getPlayerByAppInstanceId(instanceId) {
+    let result = localPlayer.appManager.getAppByInstanceId(instanceId);
+    if (result) {
+      return localPlayer;
+    } else {
+      const remotePlayers = useRemotePlayers();
+      for (const remotePlayer of remotePlayers) {
+        const remoteApp = remotePlayer.appManager.getAppByInstanceId(instanceId);
+        if (remoteApp) {
+          return remotePlayer;
+        }
+      }
+      return null;
+    }
   },
   getAppByInstanceId(instanceId) {
     // local

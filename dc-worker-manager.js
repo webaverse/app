@@ -158,15 +158,40 @@ export class DcWorkerManager {
     this.nextWorker = (this.nextWorker + 1) % workers.length;
     return worker;
   }
-  async setClipRange(range, {signal} = {}) {
-    await Promise.all(
+  setCamera(position, quaternion, projectionMatrix) {
+    /* if (position.x === 0 && position.y === 0 && position.z === 0) {
+      debugger;
+      return;
+    } */
+
+    const positionArray = position.toArray();
+    const quaternionArray = quaternion.toArray();
+    const projectionMatrixArray = projectionMatrix.toArray();
+
+    const worker = this.getNextWorker();
+    worker.request('setCamera', {
+      instance: this.instance,
+      position: positionArray,
+      quaternion: quaternionArray,
+      projectionMatrix: projectionMatrixArray,
+    });
+  }
+  setClipRange(range) {
+    const rangeArray = [range.min.toArray(), range.max.toArray()];
+    
+    const worker = this.getNextWorker();
+    worker.request('setClipRange', {
+      instance: this.instance,
+      range: rangeArray,
+    });
+    /* await Promise.all(
       this.workers.map((worker) => {
         return worker.request('setClipRange', {
           instance: this.instance,
           range: [range.min.toArray(), range.max.toArray()],
         }, {signal});
       })
-    );
+    ); */
   }
 
   async createTracker(lod, minLodRange, trackY, {signal} = {}) {
@@ -210,7 +235,7 @@ export class DcWorkerManager {
       return result;
     // });
   }
-  async generateTerrainChunkRenderable(chunkPosition, lodArray, {signal} = {}) {
+  /* async generateTerrainChunkRenderable(chunkPosition, lodArray, {signal} = {}) {
     // const chunkId = getLockChunkId(chunkPosition);
     // return await this.locks.request(chunkId, {signal}, async lock => {
       const worker = this.getNextWorker();
@@ -222,7 +247,7 @@ export class DcWorkerManager {
       // signal.throwIfAborted();
       return result;
     // });
-  }
+  } */
   async generateLiquidChunk(chunkPosition, lodArray, {signal} = {}) {
     const worker = this.getNextWorker();
     const result = await worker.request('generateLiquidChunk', {

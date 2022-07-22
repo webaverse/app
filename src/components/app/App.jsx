@@ -1,5 +1,5 @@
 
-import React, { useState, useEffect, useRef, createContext } from 'react';
+import React, { useState, useEffect, useRef, createContext, useContext } from 'react';
 import classnames from 'classnames';
 
 import { defaultPlayerSpec } from '../../../constants';
@@ -21,6 +21,7 @@ import { IoHandler, registerIoEventHandler, unregisterIoEventHandler } from '../
 import { ZoneTitleCard } from '../general/zone-title-card';
 import { Quests } from '../play-mode/quests';
 import { MapGen } from '../general/map-gen/MapGen.jsx';
+import { UIMode } from '../general/ui-mode';
 import { LoadingBox } from '../../LoadingBox.jsx';
 import { FocusBar } from '../../FocusBar.jsx';
 import { DragAndDrop } from '../../DragAndDrop.jsx';
@@ -37,6 +38,9 @@ import {handleStoryKeyControls} from '../../../story';
 import styles from './App.module.css';
 import '../../fonts.css';
 import raycastManager from '../../../raycast-manager';
+
+import { AccountContext } from '../../hooks/web3AccountProvider';
+import { ChainContext } from '../../hooks/chainProvider';
 
 //
 
@@ -130,12 +134,16 @@ const Canvas = ({
 export const App = () => {
 
     const [ state, setState ] = useState({ openedPanel: null });
+    const [ uiMode, setUIMode ] = useState( 'normal' );
 
+    const canvasRef = useRef( null );
     const app = useWebaverseApp();
     const [ selectedApp, setSelectedApp ] = useState( null );
     const [ selectedScene, setSelectedScene ] = useState( _getCurrentSceneSrc() );
     const [ selectedRoom, setSelectedRoom ] = useState( _getCurrentRoom() );
     const [ apps, setApps ] = useState( world.appManager.getApps().slice() );
+    const account = useContext(AccountContext);
+    const chain = useContext(ChainContext);
 
     //
 
@@ -163,6 +171,12 @@ export const App = () => {
 
         }
 
+        if ( state.openedPanel ) {
+
+            setUIMode( 'normal' );
+
+        }
+
     }, [ state.openedPanel ] );
 
     useEffect( () => {
@@ -183,6 +197,37 @@ export const App = () => {
         };
 
     }, [] );
+
+    useEffect( () => {
+
+        if ( uiMode === 'none' ) {
+
+            setState({ openedPanel: null });
+
+        }
+
+        const handleKeyDown = ( event ) => {
+
+            if ( event.ctrlKey && event.code === 'KeyH' ) {
+
+                setUIMode( uiMode === 'normal' ? 'none' : 'normal' );
+                return false;
+
+            }
+
+            return true;
+
+        };
+
+        registerIoEventHandler( 'keydown', handleKeyDown );
+
+        return () => {
+
+            unregisterIoEventHandler( 'keydown', handleKeyDown );
+
+        };
+
+    }, [ uiMode ] );
 
     useEffect( () => {
 
@@ -255,6 +300,16 @@ export const App = () => {
 
     useEffect( _loadUrlState, [] );
 
+    useEffect( () => {
+
+        if ( canvasRef.current ) {
+
+            _startApp( app, canvasRef.current );
+
+        }
+
+    }, [ canvasRef ] );
+
     //
 
     const onDragOver = e => {
@@ -276,14 +331,14 @@ export const App = () => {
             onDragEnd={onDragEnd}
             onDragOver={onDragOver}
         >
-            <AppContext.Provider value={{ state, setState, app, setSelectedApp, selectedApp }}>
+            <AppContext.Provider value={{ state, setState, app, setSelectedApp, selectedApp, uiMode, account, chain }}>
                 <Header setSelectedApp={ setSelectedApp } selectedApp={ selectedApp } />
-                
                 <DomRenderer />
                 <Canvas app={app} />
                 <Crosshair />
-                
-                <ActionMenu />
+                <UIMode hideDirection='right'>
+                    <ActionMenu setUIMode={ setUIMode } />
+                </UIMode>
                 <Settings />
                 <ClaimsNotification />
                 <WorldObjectsList

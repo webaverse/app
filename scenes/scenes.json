@@ -1,6 +1,7 @@
 [
   "street.scn",
   "treehouse.scn",
+  "water.scn",
   "shadows.scn",
   "darkness.scn",
   "grass.scn",
@@ -35,5 +36,7 @@
   "crypt.scn",
   "spacepod.scn",
   "plaza.scn",
-  "wind-sample.scn"
+  "wind-sample.scn",
+  "snow-city.scn",
+  "traffic.scn"
 ]

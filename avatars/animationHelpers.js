@@ -1,4 +1,4 @@
-import {Vector3, Quaternion, AnimationClip} from 'three';
+import {Vector3, Quaternion, AnimationClip, MathUtils} from 'three';
 import metaversefile from 'metaversefile';
 import {/* VRMSpringBoneImporter, VRMLookAtApplyer, */ VRMCurveMapper} from '@pixiv/three-vrm/lib/three-vrm.module.js';
 // import easing from '../easing.js';
@@ -45,6 +45,7 @@ import {
 const localVector = new Vector3();
 const localVector2 = new Vector3();
 const localVector3 = new Vector3();
+const localVector4 = new Vector3();
 
 const localQuaternion = new Quaternion();
 const localQuaternion2 = new Quaternion();
@@ -59,6 +60,7 @@ let animations;
 let animationStepIndices;
 // let animationsBaseModel;
 let jumpAnimation;
+let fallLoopAnimation;
 let floatAnimation;
 let useAnimations;
 let aimAnimations;
@@ -304,6 +306,7 @@ export const loadPromise = (async () => {
   // swordTopDownSlash = animations.find(a => a.isSwordTopDownSlash)
 
   jumpAnimation = animations.find(a => a.isJump);
+  fallLoopAnimation = animations.index['falling.fbx'];
   // sittingAnimation = animations.find(a => a.isSitting);
   floatAnimation = animations.find(a => a.isFloat);
   // rifleAnimation = animations.find(a => a.isRifle);
@@ -407,10 +410,11 @@ export const loadPromise = (async () => {
   console.log('load avatar animations error', err);
 });
 
-export const _applyAnimation = (avatar, now, moveFactors) => {
+export const _applyAnimation = (avatar, now, moveFactors, timeDiffS) => {
   // const runSpeed = 0.5;
   const angle = avatar.getAngle();
   const timeSeconds = now / 1000;
+  const landTimeSeconds = timeSeconds - avatar.lastLandStartTime / 1000 + 0.8; // in order to align landing 2.fbx with walk/run
   const {idleWalkFactor, walkRunFactor, crouchFactor} = moveFactors;
 
   /* const _getAnimationKey = crouchState => {
@@ -489,11 +493,11 @@ export const _applyAnimation = (avatar, now, moveFactors) => {
     // WALK
     // normal horizontal walk blend
     {
-      const t1 = timeSeconds % horizontalWalkAnimationAngles[0].animation.duration;
+      const t1 = landTimeSeconds % horizontalWalkAnimationAngles[0].animation.duration;
       const src1 = horizontalWalkAnimationAngles[0].animation.interpolants[k];
       const v1 = src1.evaluate(t1);
 
-      const t2 = timeSeconds % horizontalWalkAnimationAngles[1].animation.duration;
+      const t2 = landTimeSeconds % horizontalWalkAnimationAngles[1].animation.duration;
       const src2 = horizontalWalkAnimationAngles[1].animation.interpolants[k];
       const v2 = src2.evaluate(t2);
 
@@ -507,11 +511,11 @@ export const _applyAnimation = (avatar, now, moveFactors) => {
 
     // mirror horizontal blend (backwards walk)
     {
-      const t1 = timeSeconds % horizontalWalkAnimationAnglesMirror[0].animation.duration;
+      const t1 = landTimeSeconds % horizontalWalkAnimationAnglesMirror[0].animation.duration;
       const src1 = horizontalWalkAnimationAnglesMirror[0].animation.interpolants[k];
       const v1 = src1.evaluate(t1);
 
-      const t2 = timeSeconds % horizontalWalkAnimationAnglesMirror[1].animation.duration;
+      const t2 = landTimeSeconds % horizontalWalkAnimationAnglesMirror[1].animation.duration;
       const src2 = horizontalWalkAnimationAnglesMirror[1].animation.interpolants[k];
       const v2 = src2.evaluate(t2);
 
@@ -534,11 +538,11 @@ export const _applyAnimation = (avatar, now, moveFactors) => {
     // RUN
     // normal horizontal run blend
     {
-      const t1 = timeSeconds % horizontalRunAnimationAngles[0].animation.duration;
+      const t1 = landTimeSeconds % horizontalRunAnimationAngles[0].animation.duration;
       const src1 = horizontalRunAnimationAngles[0].animation.interpolants[k];
       const v1 = src1.evaluate(t1);
 
-      const t2 = timeSeconds % horizontalRunAnimationAngles[1].animation.duration;
+      const t2 = landTimeSeconds % horizontalRunAnimationAngles[1].animation.duration;
       const src2 = horizontalRunAnimationAngles[1].animation.interpolants[k];
       const v2 = src2.evaluate(t2);
 
@@ -552,11 +556,11 @@ export const _applyAnimation = (avatar, now, moveFactors) => {
 
     // mirror horizontal blend (backwards run)
     {
-      const t1 = timeSeconds % horizontalRunAnimationAnglesMirror[0].animation.duration;
+      const t1 = landTimeSeconds % horizontalRunAnimationAnglesMirror[0].animation.duration;
       const src1 = horizontalRunAnimationAnglesMirror[0].animation.interpolants[k];
       const v1 = src1.evaluate(t1);
 
-      const t2 = timeSeconds % horizontalRunAnimationAnglesMirror[1].animation.duration;
+      const t2 = landTimeSeconds % horizontalRunAnimationAnglesMirror[1].animation.duration;
       const src2 = horizontalRunAnimationAnglesMirror[1].animation.interpolants[k];
       const v2 = src2.evaluate(t2);
 
@@ -623,7 +627,7 @@ export const _applyAnimation = (avatar, now, moveFactors) => {
   /* // walk sound effect
     {
       const soundManager = metaversefile.useSoundManager();
-      const currAniTime = timeSeconds % idleAnimation.duration;
+      const currAniTime = landTimeSeconds % idleAnimation.duration;
 
       if (currentSpeed > 0.1) {
         if (key === 'walk') {
@@ -762,14 +766,17 @@ export const _applyAnimation = (avatar, now, moveFactors) => {
           animationTrackName: k,
           dst,
           // isTop,
+          isPosition,
           isArm,
         } = spec;
 
-        const t2 = avatar.jumpTime / 1000 * 0.6 + 0.7;
+        const t2 = avatar.jumpTime / 1000;
         const src2 = jumpAnimation.interpolants[k];
         const v2 = src2.evaluate(t2);
 
         dst.fromArray(v2);
+
+        _clearXZ(dst, isPosition);
 
         if (avatar.holdState && isArm) {
           const holdAnimation = holdAnimations['pick_up_idle'];
@@ -780,6 +787,26 @@ export const _applyAnimation = (avatar, now, moveFactors) => {
         }
       };
     }
+
+    if (avatar.fallLoopState) {
+      return spec => {
+        const {
+          animationTrackName: k,
+          dst,
+          // isTop,
+          isPosition,
+        } = spec;
+
+        const t2 = (avatar.fallLoopTime / 1000);
+        const src2 = fallLoopAnimation.interpolants[k];
+        const v2 = src2.evaluate(t2);
+
+        dst.fromArray(v2);
+
+        _clearXZ(dst, isPosition);
+      };
+    }
+
     if (avatar.sitState) {
       return spec => {
         const {
@@ -876,21 +903,6 @@ export const _applyAnimation = (avatar, now, moveFactors) => {
       };
     }
 
-    /* if (avatar.fallLoopState) {
-      return spec => {
-        const {
-          animationTrackName: k,
-          dst,
-          // isTop,
-        } = spec;
-
-        const t2 = (avatar.fallLoopTime/1000) ;
-        const src2 = fallLoop.interpolants[k];
-        const v2 = src2.evaluate(t2);
-
-        dst.fromArray(v2);
-      };
-    } */
     if (
       avatar.useAnimation ||
       avatar.useAnimationCombo.length > 0 ||
@@ -1218,7 +1230,133 @@ export const _applyAnimation = (avatar, now, moveFactors) => {
       }
     }
   };
+  const _blendLand = spec => {
+    const {
+      animationTrackName: k,
+      dst,
+      // isTop,
+      isPosition,
+    } = spec;
 
+    if (idleWalkFactor === 0) {
+      const animationSpeed = 0.75;
+      const landTimeS = avatar.landTime / 1000;
+      const landingAnimation = animations.index['landing.fbx'];
+      const landingAnimationDuration = landingAnimation.duration / animationSpeed;
+      const landFactor = landTimeS / landingAnimationDuration;
+
+      if (landFactor > 0 && landFactor <= 1) {
+        const t2 = landTimeS * animationSpeed;
+        const src2 = landingAnimation.interpolants[k];
+        const v2 = src2.evaluate(t2);
+
+        let f = (landingAnimationDuration - landTimeS) / 0.05; // 0.05 = 3 frames
+        f = MathUtils.clamp(f, 0, 1);
+
+        if (!isPosition) {
+          localQuaternion.fromArray(v2);
+          dst.slerp(localQuaternion, f);
+        } else {
+          localVector.fromArray(v2);
+          _clearXZ(localVector, isPosition);
+          dst.lerp(localVector, f);
+        }
+      }
+    } else {
+      const animationSpeed = 0.95;
+      const landTimeS = avatar.landTime / 1000;
+      const landingAnimation = animations.index['landing 2.fbx'];
+      const landingAnimationDuration = landingAnimation.duration / animationSpeed;
+      const landFactor = landTimeS / landingAnimationDuration;
+
+      if (landFactor > 0 && landFactor <= 1) {
+        const t2 = landTimeS * animationSpeed;
+        const src2 = landingAnimation.interpolants[k];
+        const v2 = src2.evaluate(t2);
+
+        const t3 = landTimeS * animationSpeed;
+        const src3 = fallLoopAnimation.interpolants[k];
+        const v3 = src3.evaluate(t3);
+
+        let f3 = landTimeS / 0.1;
+        f3 = MathUtils.clamp(f3, 0, 1);
+
+        let f2 = (landingAnimationDuration - landTimeS) / 0.15;
+        f2 = MathUtils.clamp(f2, 0, 1);
+
+        if (!isPosition) {
+          localQuaternion3.fromArray(v3);
+          localQuaternion2.fromArray(v2);
+          localQuaternion3.slerp(localQuaternion2, f3);
+          dst.slerp(localQuaternion3, f2);
+        } else {
+          localVector3.fromArray(v3);
+          localVector2.fromArray(v2);
+          localVector3.lerp(localVector2, f3);
+          dst.lerp(localVector3, f2);
+          _clearXZ(dst, isPosition);
+        }
+      }
+    }
+  };
+
+  const _blendSwim = spec => {
+    const {
+      animationTrackName: k,
+      dst,
+      isPosition,
+      isFirstBone,
+    } = spec;
+
+    if (avatar.swimState) {
+      const swimTimeS = avatar.swimTime / 1000;
+      const movementsTimeS = avatar.movementsTime / 1000;
+      // if (isFirstBone) {
+      //   // const swimSpeed = 1 + idleWalkFactor + walkRunFactor;
+      //   // avatar.swimAnimTime += timeDiffS * swimSpeed;
+      //   // avatar.swimAnimTime = avatar.movementsTime / 1000 * swimSpeed;
+      // }
+
+      const src2 = floatAnimation.interpolants[k];
+      const v2 = src2.evaluate(swimTimeS % floatAnimation.duration);
+
+      const src3 = animations.index['Swimming.fbx'].interpolants[k];
+      const v3 = src3.evaluate(movementsTimeS * 1 % animations.index['Swimming.fbx'].duration);
+
+      const src4 = animations.index['freestyle.fbx'].interpolants[k];
+      const v4 = src4.evaluate(movementsTimeS * 2 % animations.index['freestyle.fbx'].duration);
+
+      const f = MathUtils.clamp(swimTimeS / 0.2, 0, 1);
+      // if (isPosition) console.log(f);
+
+      if (!isPosition) {
+        localQuaternion2.fromArray(v2);
+        localQuaternion3.fromArray(v3);
+        localQuaternion4.fromArray(v4);
+        // // can't use idleWalkFactor & walkRunFactor here, otherwise "Impulsive breaststroke swim animation" will turn into "freestyle animation" when speed is fast,
+        // // and will turn into "floating" a little when speed is slow.
+        // localQuaternion3.slerp(localQuaternion4, walkRunFactor);
+        // localQuaternion2.slerp(localQuaternion3, idleWalkFactor);
+        localQuaternion3.slerp(localQuaternion4, avatar.sprintFactor);
+        localQuaternion2.slerp(localQuaternion3, avatar.movementsTransitionFactor);
+        dst.slerp(localQuaternion2, f);
+      } else {
+        const liftSwims = 0.05; // lift swims height, prevent head sink in water
+        localVector2.fromArray(v2);
+        localVector3.fromArray(v3);
+        // localVector3.y += 0.21; // align Swimming.fbx's height to freestyle.fbx
+        localVector3.y += 0.03; // align Swimming.fbx's height to freestyle.fbx
+        localVector3.y += liftSwims;
+        localVector4.fromArray(v4);
+        localVector4.y += liftSwims;
+        // localVector3.lerp(localVector4, walkRunFactor);
+        // localVector2.lerp(localVector3, idleWalkFactor);
+        localVector3.lerp(localVector4, avatar.sprintFactor);
+        localVector2.lerp(localVector3, avatar.movementsTransitionFactor);
+        dst.lerp(localVector2, f);
+      }
+    }
+  };
   const _blendActivateAction = spec => {
     const {
       animationTrackName: k,
@@ -1262,17 +1400,22 @@ export const _applyAnimation = (avatar, now, moveFactors) => {
     } = spec;
 
     applyFn(spec);
+    _blendLand(spec);
     _blendFly(spec);
     _blendActivateAction(spec);
+    _blendSwim(spec);
 
     // ignore all animation position except y
     if (isPosition) {
-      if (!avatar.jumpState) {
+      if (avatar.swimState || (!avatar.jumpState && !avatar.fallLoopState)) {
         // animations position is height-relative
         dst.y *= avatar.height; // XXX avatar could be made perfect by measuring from foot to hips instead
-      } else {
+      } else if (avatar.jumpState) {
         // force height in the jump case to overide the animation
         dst.y = avatar.height * 0.55;
+      } else {
+        // animations position is height-relative
+        dst.y *= avatar.height; // XXX avatar could be made perfect by measuring from foot to hips instead
       }
     }
   }

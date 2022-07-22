@@ -1,4 +1,4 @@
-import Avatar from './avatars/avatars.js';
+import audioManager from './audio-manager.js';
 import {loadAudioBuffer} from './util.js';
 import soundFileSpecs from './public/sounds/sound-files.json';
 
@@ -54,13 +54,13 @@ const soundFiles = {
   mpPickup: _getSoundFiles(/OOT_Get_SmallItem1/),
   refill: _getSoundFiles(/OOT_MagicRefill/),
   explosion: _getSoundFiles(/OOT_Bomb_Blow/),
+
+  water: _getSoundFiles(/^water\//),
 };
 
 let soundFileAudioBuffer;
 const loadPromise = (async () => {
-  await Avatar.waitForLoad();
-
-  const audioContext = Avatar.getAudioContext();
+  const audioContext = audioManager.getAudioContext();
   soundFileAudioBuffer = await loadAudioBuffer(audioContext, '/sounds/sounds.mp3');
 })();
 const waitForLoad = () => loadPromise;
@@ -70,7 +70,7 @@ const getSoundFileAudioBuffer = () => soundFileAudioBuffer;
 
 const playSound = audioSpec => {
   const {offset, duration} = audioSpec;
-  const audioContext = Avatar.getAudioContext();
+  const audioContext = audioManager.getAudioContext();
   const audioBufferSourceNode = audioContext.createBufferSource();
   audioBufferSourceNode.buffer = soundFileAudioBuffer;
   audioBufferSourceNode.connect(audioContext.gain);
