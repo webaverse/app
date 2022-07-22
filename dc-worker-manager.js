@@ -222,6 +222,7 @@ export class DcWorkerManager {
       instance: this.instance,
       tracker,
       position: position.toArray(),
+      priority: TASK_PRIORITIES.tracker,
     }, {signal});
     return result;
   }
@@ -267,6 +268,7 @@ export class DcWorkerManager {
     const result = await worker.request('getChunkHeightfield', {
       x, z,
       lod,
+      priority: TASK_PRIORITIES.splat,
     }, {signal});
     return result;
   }
@@ -317,6 +319,7 @@ export class DcWorkerManager {
       x,
       z,
       lod,
+      priority: TASK_PRIORITIES.splat,
     }, {signal});
     return result;
   }
@@ -327,6 +330,7 @@ export class DcWorkerManager {
       x,
       z,
       lod,
+      priority: TASK_PRIORITIES.splat,
     }, {signal});
     return result;
   }
@@ -337,6 +341,7 @@ export class DcWorkerManager {
       x,
       z,
       lod,
+      priority: TASK_PRIORITIES.splat,
     }, {signal});
     return result;
   }
