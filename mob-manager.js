@@ -31,13 +31,15 @@ const minDistance = 1;
 const hitDistance = 1.5;
 const maxAnisotropy = 16;
 
-let maxGeometries = 8;
+let numGeometries = 8;
 const maxInstancesPerDrawCall = 128;
 const maxDrawCallsPerGeometry = 1;
 const maxBonesPerInstance = 128;
 
 const bakeFps = 24;
 const maxAnimationFrameLength = 512;
+
+let unifiedBoneTextureSize = 1024;
 
 // window.THREE = THREE;
 
@@ -466,20 +468,19 @@ class InstancedSkeleton extends THREE.Skeleton {
 
     // bone texture
     const boneTexture = this.parent.allocator.getTexture('boneTexture');
-    this.boneMatrices = boneTexture.image.data;
-    this.boneTexture = boneTexture;
-    this.boneTextureSize = boneTexture.image.width;
-    // console.log('boneTextureSize', this.boneTextureSize);
+    this.unifiedBoneMatrices = boneTexture.image.data; // Avoid setting to THREE.Skeleton because update() tries to access texture buffer
+    this.unifiedBoneTexture = boneTexture;
+    unifiedBoneTextureSize = boneTexture.image.width;
+    // console.log('boneTextureSize', unifiedBoneTextureSize);
   }
   bakeFrame(skeleton, drawCallIndex, frameIndex) {
-    const boneMatrices = this.boneMatrices;
-    const boneTexture = this.parent.allocator.getTexture('boneTexture');
+    const boneMatrices = this.unifiedBoneMatrices;
     
     const drawCall = this.parent.drawCalls[drawCallIndex];
     
-    // geometry -> instance (skeleton) -> bone -> matrix
-    const dstOffset = frameIndex * maxGeometries * maxDrawCallsPerGeometry * maxBonesPerInstance * 16 +
-      drawCall.freeListEntry.start * maxDrawCallsPerGeometry * maxBonesPerInstance * 16;
+    // frame -> geometry (skeleton) -> bone -> matrix
+    const dstOffset = frameIndex * numGeometries * maxBonesPerInstance * 16 +
+      drawCall.freeListEntry.start * maxBonesPerInstance * 16;
 
     const bones = skeleton.bones;
     const boneInverses = skeleton.boneInverses;
@@ -496,8 +497,6 @@ class InstancedSkeleton extends THREE.Skeleton {
       localMatrix.toArray( boneMatrices, dstOffset + i * 16 );
 
     }
-
-    boneTexture.needsUpdate = true;
 	}
 }
 
@@ -520,7 +519,7 @@ class MobBatchedMesh extends InstancedBatchedMesh {
       textures: ['map', 'normalMap', 'roughnessMap', 'metalnessMap'],
     });
 
-    maxGeometries = geometries.length;
+    numGeometries = geometries.length;
 
     for (let i = 0; i < geometries.length; i++) {
       const geometry = geometries[i];
@@ -559,11 +558,12 @@ class MobBatchedMesh extends InstancedBatchedMesh {
         name: 'boneTexture',
         Type: Float32Array,
         itemSize: maxBonesPerInstance * 16,
-        itemCount: maxAnimationFrameLength * maxGeometries * maxDrawCallsPerGeometry,
+        instanced: false,
       },
     ], {
       maxInstancesPerDrawCall,
       maxDrawCallsPerGeometry,
+      maxSlotsPerGeometry: maxAnimationFrameLength,
     });
     const {geometry, textures: attributeTextures} = allocator;
     for (const k in attributeTextures) {
@@ -599,6 +599,10 @@ class MobBatchedMesh extends InstancedBatchedMesh {
           value: attributeTextures.timeOffset,
           needsUpdate: true,
         };
+        shader.uniforms.uBoneTexture = {
+          value: attributeTextures.boneTexture,
+          needsUpdate: true,
+        };
         shader.uniforms.uTime = { value: 0 };
 
         // skin vertex
@@ -612,29 +616,28 @@ class MobBatchedMesh extends InstancedBatchedMesh {
 #ifdef USE_SKINNING
 uniform mat4 bindMatrix;
 uniform mat4 bindMatrixInverse;
-uniform highp sampler2D boneTexture;
+uniform highp sampler2D uBoneTexture;
 uniform sampler2D timeOffsetTexture;
-uniform int boneTextureSize;
 uniform int     uTime;
 attribute float frameCount;
 mat4 getBoneMatrix( const in float base, const in float i ) {
   float j = base + i * 4.0;
-  float x = mod( j, float( boneTextureSize ) );
-  float y = floor( j / float( boneTextureSize ) );
-  float dx = 1.0 / float( boneTextureSize );
-  float dy = 1.0 / float( boneTextureSize );
+  float x = mod( j, float( ${unifiedBoneTextureSize} ) );
+  float y = floor( j / float( ${unifiedBoneTextureSize} ) );
+  float dx = 1.0 / float( ${unifiedBoneTextureSize} );
+  float dy = 1.0 / float( ${unifiedBoneTextureSize} );
   y = dy * ( y + 0.5 );
-  vec4 v1 = texture2D( boneTexture, vec2( dx * ( x + 0.5 ), y ) );
-  vec4 v2 = texture2D( boneTexture, vec2( dx * ( x + 1.5 ), y ) );
-  vec4 v3 = texture2D( boneTexture, vec2( dx * ( x + 2.5 ), y ) );
-  vec4 v4 = texture2D( boneTexture, vec2( dx * ( x + 3.5 ), y ) );
+  vec4 v1 = texture2D( uBoneTexture, vec2( dx * ( x + 0.5 ), y ) );
+  vec4 v2 = texture2D( uBoneTexture, vec2( dx * ( x + 1.5 ), y ) );
+  vec4 v3 = texture2D( uBoneTexture, vec2( dx * ( x + 2.5 ), y ) );
+  vec4 v4 = texture2D( uBoneTexture, vec2( dx * ( x + 3.5 ), y ) );
   mat4 bone = mat4( v1, v2, v3, v4 );
   return bone;
 }
 #endif
         `);
         shader.vertexShader = shader.vertexShader.replace(`#include <skinbase_vertex>`, `\
-int boneTextureInstanceIndex = gl_DrawID * ${maxBonesPerInstance};
+int boneTextureIndex = gl_DrawID * ${maxBonesPerInstance};
 int instanceIndex = gl_DrawID * ${maxInstancesPerDrawCall} + gl_InstanceID;
 #ifdef USE_SKINNING
   
@@ -646,8 +649,8 @@ int instanceIndex = gl_DrawID * ${maxInstancesPerDrawCall} + gl_InstanceID;
   float timeOffset = texture2D(timeOffsetTexture, timeOffsetpUv).x;
   
   float frame		= mod( float(uTime) + timeOffset * frameCount, frameCount );
-  boneTextureInstanceIndex = boneTextureInstanceIndex + int(frame) * (${maxGeometries} * ${maxBonesPerInstance});
-  float boneIndexOffset = float(boneTextureInstanceIndex) * 4.;
+  boneTextureIndex = boneTextureIndex + int(frame) * ${numGeometries} * ${maxBonesPerInstance};
+  float boneIndexOffset = float(boneTextureIndex) * 4.;
   mat4 boneMatX = getBoneMatrix( boneIndexOffset, skinIndex.x );
   mat4 boneMatY = getBoneMatrix( boneIndexOffset, skinIndex.y );
   mat4 boneMatZ = getBoneMatrix( boneIndexOffset, skinIndex.z );
@@ -829,7 +832,7 @@ gl_Position = projectionMatrix * mvPosition;
         this.skeleton.bakeFrame(skeleton2, i, t);
       }
     }
-    this.skeleton.update();
+    this.skeleton.unifiedBoneTexture.needsUpdate = true;
   }
   getDrawCall(geometryIndex) {
     let drawCall = this.drawCalls[geometryIndex];
