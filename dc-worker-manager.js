@@ -5,6 +5,10 @@ import {LockManager, abortError} from './lock-manager.js';
 //
 
 const defaultNumDcWorkers = 1;
+const TASK_PRIORITIES = {
+  tracker: -10,
+  splat: -1,
+};
 
 //
 
