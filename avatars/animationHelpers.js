@@ -788,25 +788,6 @@ export const _applyAnimation = (avatar, now, moveFactors, timeDiffS) => {
       };
     }
 
-    if (avatar.fallLoopState) {
-      return spec => {
-        const {
-          animationTrackName: k,
-          dst,
-          // isTop,
-          isPosition,
-        } = spec;
-
-        const t2 = (avatar.fallLoopTime / 1000);
-        const src2 = fallLoopAnimation.interpolants[k];
-        const v2 = src2.evaluate(t2);
-
-        dst.fromArray(v2);
-
-        _clearXZ(dst, isPosition);
-      };
-    }
-
     if (avatar.sitState) {
       return spec => {
         const {
@@ -1274,29 +1255,54 @@ export const _applyAnimation = (avatar, now, moveFactors, timeDiffS) => {
         const src2 = landingAnimation.interpolants[k];
         const v2 = src2.evaluate(t2);
 
-        const t3 = landTimeS * animationSpeed;
-        const src3 = fallLoopAnimation.interpolants[k];
-        const v3 = src3.evaluate(t3);
-
+        /* Calculating the time since the player landed on the ground. */
         let f3 = landTimeS / 0.1;
         f3 = MathUtils.clamp(f3, 0, 1);
 
+        /* Calculating the time remaining until the landing animation is complete. */
         let f2 = (landingAnimationDuration - landTimeS) / 0.15;
         f2 = MathUtils.clamp(f2, 0, 1);
 
+        const f = Math.min(f3, f2);
+
         if (!isPosition) {
-          localQuaternion3.fromArray(v3);
           localQuaternion2.fromArray(v2);
-          localQuaternion3.slerp(localQuaternion2, f3);
-          dst.slerp(localQuaternion3, f2);
+          dst.slerp(localQuaternion2, f);
         } else {
-          localVector3.fromArray(v3);
           localVector2.fromArray(v2);
-          localVector3.lerp(localVector2, f3);
-          dst.lerp(localVector3, f2);
+          dst.lerp(localVector2, f);
           _clearXZ(dst, isPosition);
         }
       }
+    }
+  };
+
+  const _blendFallLoop = spec => {
+    const {
+      animationTrackName: k,
+      dst,
+      isPosition,
+      lerpFn,
+    } = spec;
+
+    if (avatar.fallLoopFactor > 0) {
+      const t2 = (avatar.fallLoopTime / 1000);
+      const src2 = fallLoopAnimation.interpolants[k];
+      const v2 = src2.evaluate(t2);
+      const f = MathUtils.clamp(t2 / 0.3, 0, 1);
+
+      if (avatar.fallLoopFrom === 'jump') {
+        dst.fromArray(v2);
+      } else {
+        lerpFn
+          .call(
+            dst,
+            localQuaternion.fromArray(v2),
+            f,
+          );
+      }
+
+      _clearXZ(dst, isPosition);
     }
   };
 
@@ -1400,8 +1406,9 @@ export const _applyAnimation = (avatar, now, moveFactors, timeDiffS) => {
     } = spec;
 
     applyFn(spec);
-    _blendLand(spec);
     _blendFly(spec);
+    _blendFallLoop(spec);
+    _blendLand(spec);
     _blendActivateAction(spec);
     _blendSwim(spec);
 

@@ -5,6 +5,10 @@ import {LockManager, abortError} from './lock-manager.js';
 //
 
 const defaultNumDcWorkers = 1;
+const TASK_PRIORITIES = {
+  tracker: -10,
+  splat: -1,
+};
 
 //
 
@@ -218,6 +222,7 @@ export class DcWorkerManager {
       instance: this.instance,
       tracker,
       position: position.toArray(),
+      priority: TASK_PRIORITIES.tracker,
     }, {signal});
     return result;
   }
@@ -261,8 +266,32 @@ export class DcWorkerManager {
   async getChunkHeightfield(x, z, lod, {signal} = {}) {
     const worker = this.getNextWorker();
     const result = await worker.request('getChunkHeightfield', {
+      instance: this.instance,
       x, z,
       lod,
+      priority: TASK_PRIORITIES.splat,
+    }, {signal});
+    return result;
+  }
+  async getHeightfieldRange(x, z, w, h, lod, {signal} = {}) {
+    const worker = this.getNextWorker();
+    const result = await worker.request('getHeightfieldRange', {
+      instance: this.instance,
+      x, z,
+      w, h,
+      lod,
+      priority: TASK_PRIORITIES.splat,
+    }, {signal});
+    return result;
+  }
+  async getLightRange(x, y, z, w, h, d, lod, {signal} = {}) {
+    const worker = this.getNextWorker();
+    const result = await worker.request('getLightRange', {
+      instance: this.instance,
+      x, y, z,
+      w, h, d,
+      lod,
+      priority: TASK_PRIORITIES.splat,
     }, {signal});
     return result;
   }
@@ -313,6 +342,7 @@ export class DcWorkerManager {
       x,
       z,
       lod,
+      priority: TASK_PRIORITIES.splat,
     }, {signal});
     return result;
   }
@@ -323,6 +353,7 @@ export class DcWorkerManager {
       x,
       z,
       lod,
+      priority: TASK_PRIORITIES.splat,
     }, {signal});
     return result;
   }
@@ -333,6 +364,7 @@ export class DcWorkerManager {
       x,
       z,
       lod,
+      priority: TASK_PRIORITIES.splat,
     }, {signal});
     return result;
   }
