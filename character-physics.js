@@ -43,6 +43,7 @@ class CharacterPhysics {
 
     this.velocity = new THREE.Vector3();
     this.lastGrounded = null;
+    this.lastGroundedTime = 0;
     this.lastCharacterControllerY = null;
     this.sitOffset = new THREE.Vector3();
    
@@ -157,16 +158,23 @@ class CharacterPhysics {
         }
 
         if (grounded) {
+          this.lastGroundedTime = now;
           if (!this.lastGrounded) {
             if (this.player.hasAction('jump') || this.player.hasAction('fallLoop')) {
+              console.log('land')
               this.player.setControlAction({type: 'land', time: now});
             }
           };
 
           this.velocity.y = -1;
         } else {
-          if (!this.player.hasAction('fallLoop') && !this.player.hasAction('jump') && !this.player.hasAction('fly') && !this.player.hasAction('swim')) {
-            this.player.setControlAction({type: 'fallLoop'});
+          const lastGroundedTimeDiff = now - this.lastGroundedTime;
+          if (lastGroundedTimeDiff > 200) {
+            if (!this.player.hasAction('fallLoop') && !this.player.hasAction('jump') && !this.player.hasAction('fly') && !this.player.hasAction('swim')) {
+              console.log('fallLoop')
+              this.player.setControlAction({type: 'fallLoop'});
+              this.velocity.y = 0;
+            }
           }
         }
       } else {
