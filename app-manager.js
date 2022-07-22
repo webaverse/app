@@ -34,9 +34,10 @@ const appManagers = [];
 class AppManager extends EventTarget {
   constructor({
     appsArray = new Z.Doc().getArray(worldMapName),
+    owner
   } = {}) {
     super();
-    
+    this.owner = owner;
     this.appsArray = null;
     this.apps = [];
 
@@ -74,7 +75,7 @@ class AppManager extends EventTarget {
   }
   unbindState() {
     if (this.isBound()) {
-      this.unbindStateFn();
+      if(this.unbindStateFn) this.unbindStateFn();
       this.appsArray = null;
       this.unbindStateFn = null;
     }
@@ -82,8 +83,8 @@ class AppManager extends EventTarget {
   bindState(nextAppsArray) {
     this.unbindState();
   
-    if (nextAppsArray) {
-      const observe = e => {
+    if (nextAppsArray && !this.owner.isLocalPlayer && !this.owner.isNpcPlayer) {
+      const observe = (e, origin) => {
         const {added, deleted} = e.changes;
         
         for (const item of added.values()) {
@@ -164,18 +165,25 @@ class AppManager extends EventTarget {
       this.unbindStateFn = () => {
         nextAppsArray.unobserve(observe);
       };
+    } else {
+      console.warn("skip observe", this.owner)
     }
     this.appsArray = nextAppsArray;
   }
   loadApps() {
     for (let i = 0; i < this.appsArray.length; i++) {
       const trackedApp = this.appsArray.get(i, Z.Map);
-      this.dispatchEvent(new MessageEvent('trackedappadd', {
-        data: {
-          trackedApp,
-        },
-      }));
+      if(!this.trackedAppBound(trackedApp.instanceId)) {
+        this.dispatchEvent(new MessageEvent('trackedappadd', {
+          data: {
+            trackedApp,
+          },
+        }));
+      }
     }
+  }
+  trackedAppBound (instanceId) {
+    return !!this.trackedAppUnobserveMap.get(instanceId)
   }
   bindTrackedApp(trackedApp, app) {
     // console.log('bind tracked app', trackedApp.get('instanceId'));
@@ -440,13 +448,14 @@ class AppManager extends EventTarget {
       position.toArray(transform);
       quaternion.toArray(transform, 3);
       scale.toArray(transform, 7);
-      self.addTrackedAppInternal(
+      const trackedApp = self.addTrackedAppInternal(
         instanceId,
         contentId,
         transform,
         components,
       );
     });
+
     const p = this.pendingAddPromises.get(instanceId);
     if (p) {
       return p;
@@ -486,8 +495,11 @@ class AppManager extends EventTarget {
     });
   }
   addApp(app) {
+    if(this.apps.includes(app)) throw new Error('already includes app', app)
     this.apps.push(app);
-    
+    if(app.appType === 'vrm'){
+      console.error(app)
+    }
     this.dispatchEvent(new MessageEvent('appadd', {
       data: app,
     }));
@@ -571,6 +583,7 @@ class AppManager extends EventTarget {
     // dstAppManager.setBlindStateMode(false);
   }
   importApp(app) {
+    console.log("************ IMPORT APP")
     let dstTrackedApp = null;
     const self = this;
     this.appsArray.doc.transact(() => {
@@ -589,7 +602,7 @@ class AppManager extends EventTarget {
         components,
       );
     });
-    
+    this.addApp(app);
     this.bindTrackedApp(dstTrackedApp, app);
   }
   hasApp(app) {

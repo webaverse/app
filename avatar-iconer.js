@@ -57,6 +57,7 @@ class AvatarIconer extends EventTarget {
           name: 'avatar-iconer-npc',
           avatarUrl: start_url,
           detached: true,
+          networked: false
         });
   
         const emotionCanvases = await Promise.all(allEmotions.map(async emotion => {

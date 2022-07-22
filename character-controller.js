@@ -175,6 +175,7 @@ class PlayerBase extends THREE.Object3D {
     
     this.appManager = new AppManager({
       appsMap: null,
+      owner: this
     });
     this.appManager.addEventListener('appadd', e => {
       if (!this.detached) {
@@ -1028,7 +1029,7 @@ class UninterpolatedPlayer extends StatePlayer {
 class LocalPlayer extends UninterpolatedPlayer {
   constructor(opts) {
     super(opts);
-
+    this.networked = opts.networked;
     this.isLocalPlayer = !opts.npc;
     this.isNpcPlayer = !!opts.npc;
     this.detached = !!opts.detached;
@@ -1047,13 +1048,13 @@ class LocalPlayer extends UninterpolatedPlayer {
     this.#setAvatarAppFromOwnAppManager(app);
   }
   async setAvatarUrl(u) {
-    const localAvatarEpoch = ++this.avatarEpoch;
-    const avatarApp = await this.appManager.addTrackedApp(u);
-    if (this.avatarEpoch !== localAvatarEpoch) {
-      this.appManager.removeTrackedApp(avatarApp.instanceId);
-      return;
-    }
-    this.#setAvatarAppFromOwnAppManager(avatarApp);
+      const localAvatarEpoch = ++this.avatarEpoch;
+      const avatarApp = await this.appManager.addTrackedApp(u);
+      if (this.avatarEpoch !== localAvatarEpoch) {
+        this.appManager.removeTrackedApp(avatarApp.instanceId);
+        return;
+      }
+      this.#setAvatarAppFromOwnAppManager(avatarApp);
   }
   getAvatarApp() {
     const instanceId = this.playerMap.get('avatar');
@@ -1066,13 +1067,13 @@ class LocalPlayer extends UninterpolatedPlayer {
   #setAvatarAppFromOwnAppManager(app) {
     const self = this;
     this.playersArray.doc.transact(function tx() {
-      const oldInstanceId = self.playerMap.get('avatar');
-      
-      self.playerMap.set('avatar', app.instanceId);
+        const oldInstanceId = self.playerMap.get('avatar');
+        
+        self.playerMap.set('avatar', app.instanceId);
 
-      if (oldInstanceId) {
-        self.appManager.removeTrackedAppInternal(oldInstanceId);
-      }
+        if (oldInstanceId) {
+          self.appManager.removeTrackedAppInternal(oldInstanceId);
+        }
       self.syncAvatar();
     });
   }
@@ -1137,7 +1138,6 @@ class LocalPlayer extends UninterpolatedPlayer {
         self.playerMap.set('avatar', oldAvatar);
       }
     });
-    
     this.appManager.bindState(this.getAppsState());
   }
   grab(app, hand = 'left') {
@@ -1392,7 +1392,6 @@ class RemotePlayer extends InterpolatedPlayer {
     this.unbindFns.push(this.playerMap.unobserve.bind(this.playerMap, observePlayerFn));
 
     this.appManager.bindState(this.getAppsState());
-    this.syncAvatar();
   }
   update(timestamp, timeDiff) {
     if(!this.avatar) return // console.log("no avatar"); // avatar takes time to load, ignore until it does
