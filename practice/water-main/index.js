@@ -173,6 +173,48 @@ class WaterMesh extends BatchedMesh {
           uTime: {
             value: 0
           },
+          uUJump: {
+            type: "f",
+            value: 0.24
+          },
+          uVJump: {
+            type: "f",
+            value: 0.208
+          },
+          uTiling: {
+            type: "f",
+            value: 2
+          },
+          uSpeed: {
+            type: "f",
+            value: 0.5
+          },
+          uFlowStrength: {
+            type: "f",
+            value: 0.25
+          },
+          uFlowOffset: {
+            type: "f",
+            value: -1.5
+          },
+          sunPosition: {
+            value: new THREE.Vector3(200.0, 1.0, -600.)
+          },
+          playerPosition: {
+            value: new THREE.Vector3()
+          },
+          playerDirection: {
+            value: new THREE.Vector3()
+          },
+          waterDerivativeHeightTexture: {
+            value: waterDerivativeHeightTexture
+          },
+          waterNoiseTexture: {
+            value: waterNoiseTexture
+          },
+          flowmapTexture: {
+            value: flowmapTexture
+          },
           threshold: {
             value: 0.1
           },
@@ -191,12 +233,6 @@ class WaterMesh extends BatchedMesh {
           resolution: {
             value: new THREE.Vector2()
           },
-          foamColor: {
-            value: new THREE.Color()
-          },
-          waterColor: {
-            value: new THREE.Color()
-          }
         },
         vertexShader: `\
             
@@ -224,16 +260,29 @@ class WaterMesh extends BatchedMesh {
             #include <common>
             #include <packing>
             uniform mat4 modelMatrix;
+
+
+            uniform float uTime;
+            uniform float uUJump;
+            uniform float uVJump;
+            uniform float uTiling;
+            uniform float uSpeed;
+            uniform float uFlowStrength;
+            uniform float uFlowOffset;
+            uniform vec3 sunPosition;
+            uniform vec3 playerPosition;
+            uniform vec3 playerDirection;
+            uniform sampler2D waterDerivativeHeightTexture;
+            uniform sampler2D waterNoiseTexture;
+            uniform sampler2D flowmapTexture;
+
   
             varying vec2 vUv;
             varying vec3 vPos;
             uniform sampler2D tDepth;
             uniform sampler2D tDudv;
-            uniform vec3 waterColor;
-            uniform vec3 foamColor;
             uniform float cameraNear;
             uniform float cameraFar;
-            uniform float uTime;
             uniform float threshold;
             uniform vec2 resolution;
   
@@ -244,28 +293,84 @@ class WaterMesh extends BatchedMesh {
             float getViewZ( const in float depth ) {
                 return perspectiveDepthToViewZ( depth, cameraNear, cameraFar );
             }
+            float frac(float v)
+            {
+                return v - floor(v);
+            }
+            vec3 FlowUVW (vec2 uv, vec2 flowVector, vec2 jump, float flowOffset, float tiling, float time,  bool flowB) {
+                float phaseOffset = flowB ? 0.5 : 0.;
+                float progress = frac(time + phaseOffset);
+                vec3 uvw;
+                uvw.xy = uv - flowVector * (progress + flowOffset);
+                uvw.xy *= tiling;
+                uvw.xy += phaseOffset;
+                uvw.xy += (time - progress) * jump;
+                uvw.z = 1. - abs(1. - 2. * progress);
+                return uvw;
+            }
+            vec3 UnpackDerivativeHeight (vec4 textureData) {
+                vec3 dh = textureData.agb;
+                dh.xy = dh.xy * 2. - 1.;
+                return dh;
+            }
             
-  
+            float shineDamper = 10.;
+            float reflectivity = 0.08;
             void main() {
               vec4 worldPosition = modelMatrix * vec4( vPos, 1.0 );
+              vec3 sunToPlayer = normalize(sunPosition - playerPosition); 
+              vec3 worldToEye = vec3(playerPosition.x + sunToPlayer.x * 100., playerPosition.y, playerPosition.z + sunToPlayer.z * 100.)-worldPosition.xyz;
+              
+              vec3 eyeDirection = normalize( worldToEye );
+            //   vec3 eyeDirection = normalize(worldPosition.xyz - cameraPosition);
+              vec2 uv = worldPosition.xz * 0.05;
+              vec2 flowmap = texture2D(flowmapTexture, uv / 5.).rg * 2. - 1.;
+              flowmap *= uFlowStrength;
+              float noise = texture2D(flowmapTexture, uv).a;
+              float time = uTime * uSpeed + noise;
+              vec2 jump = vec2(uUJump, uVJump);
+              vec3 uvwA = FlowUVW(uv, flowmap, jump, uFlowOffset, uTiling, time, false);
+              vec3 uvwB = FlowUVW(uv, flowmap, jump, uFlowOffset, uTiling, time, true);
+              vec3 dhA = UnpackDerivativeHeight(texture2D(waterDerivativeHeightTexture, uvwA.xy * 0.5)) * uvwA.z * 5.5;
+              vec3 dhB = UnpackDerivativeHeight(texture2D(waterDerivativeHeightTexture, uvwB.xy * 0.5)) * uvwB.z * 5.5;
+              vec3 surfaceNormal = normalize(vec3(-(dhA.xy + dhB.xy), 1.));
+              vec3 fromSunVector = worldPosition.xyz - (sunPosition + playerPosition);
+              vec3 reflectedLight = reflect(normalize(fromSunVector), surfaceNormal);
+              float specular = max(dot(reflectedLight, eyeDirection), 0.0);
+              specular = pow(specular, shineDamper);
+              vec3 specularHighlight = vec3(0.0282 * 0.9, 0.431 * 0.9, 0.47 * 0.9) * specular * reflectivity;
+                 
+              vec4 texA = texture2D(waterNoiseTexture, uvwA.xy) * uvwA.z;
+              vec4 texB = texture2D(waterNoiseTexture, uvwB.xy) * uvwB.z;
+              gl_FragColor = (texA + texB) * vec4(0.048 / 1.5, 0.24 / 1.5, 0.384 / 1.5, 0.97) + vec4(0.0282, 0.431, 0.47, 0.);
+              gl_FragColor.rgb /= 3.;
+              gl_FragColor += vec4( specularHighlight, 0.0 );
+
+
+
+
+              // foam
               vec2 screenUV = gl_FragCoord.xy / resolution;
   
               float fragmentLinearEyeDepth = getViewZ( gl_FragCoord.z );
               float linearEyeDepth = getViewZ( getDepth( screenUV ) );
       
               float diff = saturate( fragmentLinearEyeDepth - linearEyeDepth );
-              gl_FragColor = vec4(vec3(diff), 1.0);
               if(diff > 0.){
-                vec2 displacement = texture2D( tDudv, ( worldPosition.xz * 1.0 ) - uTime * 0.05 ).rg;
+                vec2 channelA = texture2D( tDudv, vec2(0.25 * worldPosition.x + uTime * 0.04, 0.5 * worldPosition.z - uTime * 0.03) ).rg;
+				vec2 channelB = texture2D( tDudv, vec2(0.5 * worldPosition.x - uTime * 0.05, 0.35 * worldPosition.z + uTime * 0.04) ).rg;
+                vec2 displacement = (channelA + channelB) * 0.5;
                 displacement = ( ( displacement * 2.0 ) - 1.0 ) * 1.0;
                 diff += displacement.x;
+
+
+                // vec2 displacement = texture2D( tDudv, ( worldPosition.xz * 1.0 ) - uTime * 0.05 ).rg;
+                // displacement = ( ( displacement * 2.0 ) - 1.0 ) * 1.0;
+                // diff += displacement.x;
         
-                gl_FragColor.rgb = mix( foamColor, vec3(1.0, 0., 0.), step( 0.1, diff ) );
-                gl_FragColor.a = 0.8;
+                gl_FragColor = mix( vec4(1.0, 1.0, 1.0, gl_FragColor.a), gl_FragColor, step( 0.05, diff ) );
               }
-              else{
-                gl_FragColor = vec4(1.0, 0., 0., 0.8);
-              }
+              
               
               ${THREE.ShaderChunk.logdepthbuf_fragment}
             }
@@ -1202,8 +1307,8 @@ export default (e) => {
                 
             }
             generator.getMeshes()[0].material.uniforms.uTime.value = timestamp / 1000;
-            // generator.getMeshes()[0].material.uniforms.playerPosition.value.copy(localPlayer.position);
-            // generator.getMeshes()[0].material.uniforms.playerDirection.value.copy(playerDir);
+            generator.getMeshes()[0].material.uniforms.playerPosition.value.copy(localPlayer.position);
+            generator.getMeshes()[0].material.uniforms.playerDirection.value.copy(playerDir);
 
             
             generator.getMeshes()[0].material.uniforms.cameraNear.value = camera.near;
@@ -1290,7 +1395,7 @@ export default (e) => {
             
 
             void main() {
-                gl_FragColor = vec4(0.0141, 0.235, 0.2355, 0.7);
+                gl_FragColor = vec4(0.0141, 0.235, 0.25, 0.7);
                 if(!contactWater || vPos.y > cameraWaterSurfacePos.y)
                     discard;
             ${THREE.ShaderChunk.logdepthbuf_fragment}

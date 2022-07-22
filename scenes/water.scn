@@ -28,7 +28,7 @@
       "content": {
         "fog": {
           "fogType": "exp",
-          "args": [[7, 44.5, 41.5], 0]
+          "args": [[7, 41.5, 44.5], 0]
         },
         "webaWater": {
           
