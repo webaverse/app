@@ -529,7 +529,6 @@ class MobBatchedMesh extends InstancedBatchedMesh {
       // const idleAnimation = animations.find(a => a.name === 'idle');
       const clip = animations[0];
 
-      const positions = geometry.attributes.position.array;
       const frameCount = Math.floor(clip.duration * bakeFps);
       const frameCounts = new Float32Array(geometry.attributes.position.count)
         .fill(frameCount);
@@ -618,7 +617,7 @@ uniform mat4 bindMatrix;
 uniform mat4 bindMatrixInverse;
 uniform highp sampler2D uBoneTexture;
 uniform sampler2D timeOffsetTexture;
-uniform int     uTime;
+uniform float     uTime;
 attribute float frameCount;
 mat4 getBoneMatrix( const in float base, const in float i ) {
   float j = base + i * 4.0;
@@ -648,7 +647,7 @@ int instanceIndex = gl_DrawID * ${maxInstancesPerDrawCall} + gl_InstanceID;
   vec2 timeOffsetpUv = (vec2(timeOffsetX, timeOffsetY) + 0.5) / vec2(timeOffsetWidth, timeOffsetHeight);
   float timeOffset = texture2D(timeOffsetTexture, timeOffsetpUv).x;
   
-  float frame		= mod( float(uTime) + timeOffset * frameCount, frameCount );
+  float frame		= mod( uTime + timeOffset * frameCount, frameCount );
   boneTextureIndex = boneTextureIndex + int(frame) * ${numGeometries} * ${maxBonesPerInstance};
   float boneIndexOffset = float(boneTextureIndex) * 4.;
   mat4 boneMatX = getBoneMatrix( boneIndexOffset, skinIndex.x );
@@ -989,7 +988,7 @@ gl_Position = projectionMatrix * mvPosition;
     const shader = this.material.userData.shader;
     if (shader) {
       const frameIndex = timestamp * bakeFps / 1000;
-      shader.uniforms.uTime.value = Math.floor(frameIndex);
+      shader.uniforms.uTime.value = frameIndex;
     }
   }
 }
