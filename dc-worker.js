@@ -408,6 +408,42 @@ const _handleMethod = async ({method, args, instance: instanceKey, taskId}) => {
         return null;
       }
     }
+    case 'getHeightfieldRange': {
+      const {instance: instanceKey, x, z, w, h, lod, priority} = args;
+      const instance = instances.get(instanceKey);
+      if (!instance) throw new Error('getHeightfieldRange : instance not found');
+      
+      const heights = await dc.getHeightfieldRangeAsync(instance, taskId, x, z, w, h, lod, priority);
+
+      // console.log('got heights', heights);
+      
+      const spec = {
+        result: heights,
+        transfers: [heights.buffer],
+      };
+      return spec;
+    }
+    case 'getLightRange': {
+      const {instance: instanceKey, x, y, z, w, h, d, lod, priority} = args;
+      const instance = instances.get(instanceKey);
+      if (!instance) throw new Error('getLightRange : instance not found');
+      
+      const {
+        skylights,
+        aos,
+      } = await dc.getLightRangeAsync(instance, taskId, x, y, z, w, h, d, lod, priority);
+      
+      // console.log('got lights', {skylights, aos});
+      
+      const spec = {
+        result: {
+          skylights,
+          aos,
+        },
+        transfers: [skylights.buffer, aos.buffer],
+      };
+      return spec;
+    }
     case 'getChunkHeightfield': {
       const {x, z, lod, priority} = args;
       const instance = instances.get(instanceKey);
