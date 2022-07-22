@@ -42,7 +42,7 @@ class CharacterPhysics {
     this.player = player;
 
     this.velocity = new THREE.Vector3();
-    this.lastGrounded = null;
+    this.lastGroundedTime = 0;
     this.lastCharacterControllerY = null;
     this.sitOffset = new THREE.Vector3();
    
@@ -156,17 +156,36 @@ class CharacterPhysics {
           localQuaternion.copy(camera.quaternion);
         }
 
-        if (grounded) {
-          if (!this.lastGrounded) {
-            if (this.player.hasAction('jump') || this.player.hasAction('fallLoop')) {
-              this.player.setControlAction({type: 'land', time: now});
-            }
-          };
-
-          this.velocity.y = -1;
-        } else {
+        const jumpAction = this.player.getAction('jump');
+        const fallLoopAction = this.player.getAction('fallLoop');
+        const _ensureJumpAction = () => {
           if (!this.player.hasAction('fallLoop') && !this.player.hasAction('jump') && !this.player.hasAction('fly') && !this.player.hasAction('swim')) {
             this.player.setControlAction({type: 'fallLoop'});
+          }
+        };
+        const _ensureNoJumpAction = () => {
+          if (this.player.hasAction('jump') || this.player.hasAction('fallLoop')) {
+            this.player.setControlAction({type: 'land', time: now});
+          }
+        };
+
+        if (grounded) {
+          this.lastGroundedTime = now;
+          this.velocity.y = -1;
+        }
+        
+        if (!jumpAction && !fallLoopAction) {
+          const lastGroundedTimeDiff = now - this.lastGroundedTime;
+          if (lastGroundedTimeDiff <= 100) {
+            _ensureNoJumpAction();
+          } else {
+            _ensureJumpAction();
+
+            this.velocity.y = 0;
+          }
+        } else {
+          if (grounded) {
+            _ensureNoJumpAction();
           }
         }
       } else {
