@@ -51,9 +51,9 @@ User documentation is <a href="https://webaverse.notion.site/User-Docs-3a36b223e
 
 ## Minimum Requirements
 
-8 GB Hard Drive space
-4 vCPUs
-8 GB Memory
+- 10 GB Disk Space
+- 8 GB RAM
+- 4 Core CPU / vCPUs
 
 ## Installation
 
