@@ -213,6 +213,19 @@ function deserializeChunkAllocationData(dataView, offset) {
   return new ChunkAllocationData(id, { x:minX, y:minY, z:minZ }, enterFace, peeks);
 }
 
+function parseDrawCallListBuffer(arrayBuffer, bufferAddress){
+  const dataView = new DataView(arrayBuffer, bufferAddress);
+
+  let index = 0;
+  // DrawCalls
+  const numDrawCalls = dataView.getUint32(index, true);
+  index += Uint32Array.BYTES_PER_ELEMENT;
+  const DrawCalls = new Int32Array(arrayBuffer, bufferAddress + index, numDrawCalls);
+  index += Int32Array.BYTES_PER_ELEMENT * numDrawCalls;
+
+  // console.log(DrawCalls);
+}
+
 export class GeometryAllocator {
   constructor(attributeSpecs, {
     bufferSize,
@@ -255,7 +268,7 @@ export class GeometryAllocator {
       const chunkAllocationBufferSize = maxNumDraws * chunkAllocationDataSize;
       this.chunkAllocationBuffer = allocator.alloc(Uint8Array, chunkAllocationBufferSize);
       this.chunkAllocationArrayOffset = this.chunkAllocationBuffer.offset;
-      this.chunkAllocationDataView = new DataView(Module.HEAPU8.buffer, this.chunkAllocationArrayOffset, chunkAllocationBufferSize);
+      this.chunkAllocationDataView = new DataView(Module.HEAP8.buffer, this.chunkAllocationArrayOffset, chunkAllocationBufferSize);
     }
     this.numDraws = 0;
   }
@@ -390,15 +403,18 @@ export class GeometryAllocator {
 
 
       if(foundId){
-      // console.log(currentChunkMax.x);
-      Module._cullOcclusionCulling(
+      // console.log(this.chunkAllocationArrayOffset);
+      // console.log(foundId);
+      const drawListBuffer = Module._cullOcclusionCulling(
         this.OCInstance,
         this.chunkAllocationArrayOffset, 
         foundId,
         currentChunkMin.x, currentChunkMin.y, currentChunkMin.z,
         currentChunkMax.x, currentChunkMax.y, currentChunkMax.z,
-        camera.position.x, camera.position.y, camera.position.z
+        camera.position.x, camera.position.y, camera.position.z,
+        this.numDraws
         );
+        parseDrawCallListBuffer(Module.HEAP8.buffer, Module.HEAP8.byteOffset + drawListBuffer);
       }
 
 
