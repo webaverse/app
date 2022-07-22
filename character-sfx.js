@@ -10,7 +10,7 @@ import {
   narutoRunTimeFactor,
 } from './avatars/constants.js';
 import {
-  crouchMaxTime,
+  defaultMaxTime,
   eatFrameIndices,
   drinkFrameIndices,
 } from './constants.js';
@@ -110,7 +110,7 @@ class CharacterSfx {
     
     const idleWalkFactor = Math.min(Math.max((currentSpeed - idleFactorSpeed) / (walkFactorSpeed - idleFactorSpeed), 0), 1);
     const walkRunFactor = Math.min(Math.max((currentSpeed - walkFactorSpeed) / (runFactorSpeed - walkFactorSpeed), 0), 1);
-    const crouchFactor = Math.min(Math.max(1 - (this.player.avatar.crouchTime / crouchMaxTime), 0), 1);
+    const crouchFactor = Math.min(Math.max(1 - (this.player.avatar.crouchTime / defaultMaxTime), 0), 1);
 
     const soundFiles = sounds.getSoundFiles();
     // const soundFileAudioBuffer = sounds.getSoundFileAudioBuffer();

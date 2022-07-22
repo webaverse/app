@@ -19,7 +19,7 @@ import {
   actionsMapName,
   appsMapName,
   playersMapName,
-  crouchMaxTime,
+  defaultMaxTime,
   activateMaxTime,
   // useMaxTime,
   aimTransitionMaxTime,
@@ -878,7 +878,7 @@ class InterpolatedPlayer extends StatePlayer {
     };
     this.actionBinaryInterpolantsArray = Object.keys(this.actionBinaryInterpolants).map(k => this.actionBinaryInterpolants[k]);
     this.actionInterpolants = {
-      crouch: new BiActionInterpolant(() => this.actionBinaryInterpolants.crouch.get(), 0, crouchMaxTime),
+      crouch: new BiActionInterpolant(() => this.actionBinaryInterpolants.crouch.get(), 0, defaultMaxTime),
       activate: new UniActionInterpolant(() => this.actionBinaryInterpolants.activate.get(), 0, activateMaxTime),
       use: new InfiniteActionInterpolant(() => this.actionBinaryInterpolants.use.get(), 0),
       pickUp: new InfiniteActionInterpolant(() => this.actionBinaryInterpolants.pickUp.get(), 0),
@@ -942,7 +942,7 @@ class UninterpolatedPlayer extends StatePlayer {
   }
   static init() {
     this.actionInterpolants = {
-      crouch: new BiActionInterpolant(() => this.hasAction('crouch'), 0, crouchMaxTime),
+      crouch: new BiActionInterpolant(() => this.hasAction('crouch'), 0, defaultMaxTime),
       activate: new UniActionInterpolant(() => this.hasAction('activate'), 0, activateMaxTime),
       use: new InfiniteActionInterpolant(() => this.hasAction('use'), 0),
       pickUp: new InfiniteActionInterpolant(() => this.hasAction('pickUp'), 0),
@@ -954,20 +954,35 @@ class UninterpolatedPlayer extends StatePlayer {
       fly: new InfiniteActionInterpolant(() => this.hasAction('fly'), 0),
       swim: new InfiniteActionInterpolant(() => this.hasAction('swim'), 0),
       jump: new InfiniteActionInterpolant(() => this.hasAction('jump'), 0),
-      dance: new BiActionInterpolant(() => this.hasAction('dance'), 0, crouchMaxTime),
-      emote: new BiActionInterpolant(() => this.hasAction('emote'), 0, crouchMaxTime),
+      dance: new BiActionInterpolant(() => this.hasAction('dance'), 0, defaultMaxTime),
+      emote: new BiActionInterpolant(() => this.hasAction('emote'), 0, defaultMaxTime),
       movements: new InfiniteActionInterpolant(() => {
         const ioManager = metaversefile.useIoManager();
-        return  ioManager.keys.up || ioManager.keys.down || ioManager.keys.left || ioManager.keys.right;
+        return  ioManager.keys.up || ioManager.keys.down || ioManager.keys.left || ioManager.keys.right || ioManager.keys.space || ioManager.keys.ctrl;;
       }, 0),
       movementsTransition: new BiActionInterpolant(() => {
         const ioManager = metaversefile.useIoManager();
+        return  ioManager.keys.up || ioManager.keys.down || ioManager.keys.left || ioManager.keys.right || ioManager.keys.space || ioManager.keys.ctrl;;
+      }, 0, defaultMaxTime),
+      horizontalMovementsTransition: new BiActionInterpolant(() => {
+        const ioManager = metaversefile.useIoManager();
         return  ioManager.keys.up || ioManager.keys.down || ioManager.keys.left || ioManager.keys.right;
-      }, 0, crouchMaxTime),
+      }, 0, defaultMaxTime),
       sprint: new BiActionInterpolant(() => {
         const ioManager = metaversefile.useIoManager();
         return  ioManager.keys.shift;
-      }, 0, crouchMaxTime),
+      }, 0, defaultMaxTime),
+      swimUp: new BiActionInterpolant(() => {
+        const ioManager = metaversefile.useIoManager();
+        return  ioManager.keys.space;
+      }, 0, defaultMaxTime),
+      swimDown: new BiActionInterpolant(() => {
+        const ioManager = metaversefile.useIoManager();
+        return  ioManager.keys.ctrl;
+      }, 0, defaultMaxTime),
+      surface: new BiActionInterpolant(() => {
+        return  !this.avatar.swimmingOnSurfaceState;
+      }, 0, defaultMaxTime),
       // throw: new UniActionInterpolant(() => this.hasAction('throw'), 0, throwMaxTime),
       // chargeJump: new InfiniteActionInterpolant(() => this.hasAction('chargeJump'), 0),
       // standCharge: new InfiniteActionInterpolant(() => this.hasAction('standCharge'), 0),

@@ -242,7 +242,13 @@ const _updateIo = timeDiff => {
       }
     }
     if (localPlayer.hasAction('fly') || localPlayer.hasAction('swim')) {
-      keysDirection.applyQuaternion(camera.quaternion);
+      if(localPlayer.getAction('swim').onSurface) {
+        const camEuler = camera.rotation.clone();
+        camEuler.x = 0;
+        keysDirection.applyEuler(camEuler);
+      } else {
+        keysDirection.applyQuaternion(camera.quaternion);
+      }
       _updateVertical(keysDirection);
     } else {
       const cameraEuler = camera.rotation.clone();
