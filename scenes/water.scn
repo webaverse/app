@@ -45,12 +45,12 @@
     },
     {
       "position": [
-        0,
-        0,
-        0
+        2,
+        -50,
+        3
       ],
-      "start_url": "https://webaverse.github.io/water/"
+      "start_url": "/practice/water-main/"
     },
-    { "position": [ 0, 0, 0 ], "start_url": "https://webaverse.github.io/dual-contouring-terrain/" }
+    { "position": [ 0, -50, 0 ], "start_url": "/practice/dual-contouring-terrain-main/" }
   ]
 }
