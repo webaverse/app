@@ -747,9 +747,6 @@ export class LodChunkTracker extends EventTarget {
     }
   }
   sortInternal(position, quaternion, projectionMatrix) {
-    /* window.sortDirection = new THREE.Vector3(0, 0, -1)
-      .applyQuaternion(quaternion);
-    window.sortPosition = position.clone(); */
     this.dcWorkerManager.setCamera(
       position,
       quaternion,
