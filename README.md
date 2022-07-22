@@ -49,6 +49,12 @@ Developer documentation is <a href="https://docs.webaverse.com/docs/index">here<
 User documentation is <a href="https://webaverse.notion.site/User-Docs-3a36b223e39b4f94b3d1f6921a4c297a">here</a>
 </p>
 
+## Minimum Requirements
+
+8 GB Hard Drive space
+4 vCPUs
+8 GB Memory
+
 ## Installation
 
 **Important note before you clone this repo:** This repo uses Git submodules.
