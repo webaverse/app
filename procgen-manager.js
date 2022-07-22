@@ -61,6 +61,7 @@ class ProcGenInstance {
   } = {}) {
     if (!this.heightfieldMapper) {
       this.heightfieldMapper = new HeightfieldMapper({
+        procGenInstance: this,
         size,
         debug,
       });
