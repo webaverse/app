@@ -4,6 +4,7 @@ import { PEEK_FACE_INDICES } from './constants.js';
 import { ImmediateGLBufferAttribute } from './ImmediateGLBufferAttribute.js';
 import { getRenderer } from './renderer.js';
 import Module from './public/bin/geometry.js';
+import { Allocator } from './geometry-util.js';
 
 const localVector2D = new THREE.Vector2();
 const localVector2D2 = new THREE.Vector2();
@@ -250,8 +251,11 @@ export class GeometryAllocator {
     this.hasOcclusionCulling = hasOcclusionCulling;
     if(this.hasOcclusionCulling){
       this.OCInstance = Module._initOcclusionCulling();
-      this.chunkAllocationBuffer = new ArrayBuffer(maxNumDraws * chunkAllocationDataSize); // buffer for ChunkAllocationData class : 35 = 4 + 12 + 4 + 15
-      this.chunkAllocationDataView = new DataView(this.chunkAllocationBuffer);
+      const allocator = new Allocator(Module);  
+      const chunkAllocationBufferSize = maxNumDraws * chunkAllocationDataSize;
+      this.chunkAllocationBuffer = allocator.alloc(Uint8Array, chunkAllocationBufferSize);
+      this.chunkAllocationArrayOffset = this.chunkAllocationBuffer.offset;
+      this.chunkAllocationDataView = new DataView(Module.HEAPU8.buffer, this.chunkAllocationArrayOffset, chunkAllocationBufferSize);
     }
     this.numDraws = 0;
   }
@@ -383,13 +387,13 @@ export class GeometryAllocator {
         findCameraChunk(i);
       }
 
+
+
       if(foundId){
-        
-      const buffer = new Uint8Array(this.chunkAllocationBuffer);
-      // console.log(Module._cullOcclusionCulling);
+      // console.log(currentChunkMax.x);
       Module._cullOcclusionCulling(
         this.OCInstance,
-        buffer, 
+        this.chunkAllocationArrayOffset, 
         foundId,
         currentChunkMin.x, currentChunkMin.y, currentChunkMin.z,
         currentChunkMax.x, currentChunkMax.y, currentChunkMax.z,
