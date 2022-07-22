@@ -200,9 +200,9 @@ const _cloneNode = (node) => {
   };
 }; */
 const _cloneTrackerUpdate = trackerUpdate => {
-  if (trackerUpdate.leafNodes.length === 0) {
+  /* if (trackerUpdate.leafNodes.length === 0) {
     debugger;
-  }
+  } */
   return {
     // currentCoord: trackerUpdate.currentCoord.slice(),
     // oldTasks: trackerUpdate.oldTasks.map(_cloneTask),
