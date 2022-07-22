@@ -176,7 +176,7 @@ w.createTracker = (inst, lod, minLodRange, trackY) => {
   return result;
 };
 w.destroyTracker = (inst, tracker) => Module._destroyTracker(inst, tracker);
-w.trackerUpdateAsync = async (inst, taskId, tracker, position) => {
+w.trackerUpdateAsync = async (inst, taskId, tracker, position, priority) => {
   const allocator = new Allocator(Module);
 
   const positionArray = allocator.alloc(Float32Array, 3);
@@ -187,6 +187,7 @@ w.trackerUpdateAsync = async (inst, taskId, tracker, position) => {
     taskId,
     tracker,
     positionArray.byteOffset,
+    priority
   );
   const p = makePromise();
   cbs.set(taskId, p);
@@ -506,7 +507,7 @@ w.createLiquidChunkMeshAsync = async (inst, taskId, x, y, z, lods) => {
 
 //
 
-w.getChunkHeightfieldAsync = async (inst, taskId, x, z, lod) => {
+w.getChunkHeightfieldAsync = async (inst, taskId, x, z, lod, priority) => {
   // const allocator = new Allocator(Module);
 
   // const heights = allocator.alloc(Float32Array, chunkSize * chunkSize);
@@ -516,7 +517,8 @@ w.getChunkHeightfieldAsync = async (inst, taskId, x, z, lod) => {
       inst,
       taskId,
       x, z,
-      lod
+      lod,
+      priority
     );
 
     const p = makePromise();
@@ -657,7 +659,7 @@ function _parsePQI(addr) {
     instances,
   };
 }
-w.createGrassSplatAsync = async (inst, taskId, x, z, lod) => {
+w.createGrassSplatAsync = async (inst, taskId, x, z, lod, priority) => {
   // const allocator = new Allocator(Module);
 
   // const allocSize = 64 * 1024;
@@ -671,7 +673,8 @@ w.createGrassSplatAsync = async (inst, taskId, x, z, lod) => {
       inst,
       taskId,
       x, z,
-      lod
+      lod,
+      priority
     );
 
     const p = makePromise();
@@ -692,7 +695,7 @@ w.createGrassSplatAsync = async (inst, taskId, x, z, lod) => {
     // allocator.freeAll();
   } */
 };
-w.createVegetationSplatAsync = async (inst, taskId, x, z, lod) => {
+w.createVegetationSplatAsync = async (inst, taskId, x, z, lod, priority) => {
   // const allocator = new Allocator(Module);
 
   // const allocSize = 64 * 1024;
@@ -706,7 +709,8 @@ w.createVegetationSplatAsync = async (inst, taskId, x, z, lod) => {
       inst,
       taskId,
       x, z,
-      lod
+      lod,
+      priority
     );
 
     const p = makePromise();
@@ -727,7 +731,7 @@ w.createVegetationSplatAsync = async (inst, taskId, x, z, lod) => {
     // allocator.freeAll();
   } */
 };
-w.createMobSplatAsync = async (inst, taskId, x, z, lod) => {
+w.createMobSplatAsync = async (inst, taskId, x, z, lod, priority) => {
   // const allocator = new Allocator(Module);
 
   /* const allocSize = 64 * 1024;
@@ -741,7 +745,8 @@ w.createMobSplatAsync = async (inst, taskId, x, z, lod) => {
       inst,
       taskId,
       x, z,
-      lod
+      lod,
+      priority
     );
 
     const p = makePromise();
