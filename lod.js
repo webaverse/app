@@ -843,11 +843,13 @@ export class LodChunkTracker extends EventTarget {
       }
     }
 
-    // compute dominators. a dominator is a chunk lod that contains a a transform from old chunks to new chunks.
+    // a dominator is a chunk lod that contains a a transform from old chunks to new chunks.
+    // cancel old dominators
     for (const dominator of this.dominators.values()) {
       dominator.cancel();
     }
     this.dominators.clear();
+    // compute dominators
     {
       const oldRenderedChunks = Array.from(this.renderedChunks.values());
       const newRenderedChunks = Array.from(this.dataRequests.values()).map(dataRequest => dataRequest.node);
@@ -869,6 +871,7 @@ export class LodChunkTracker extends EventTarget {
         let dominator = this.dominators.get(maxLodHash);
         if (!dominator) {
           dominator = new Dominator(maxLodChunk, renderDatas => {
+            // when we have all data
             for (const oldChunk of dominator.oldChunks) {
               const chunkRemoveEvent = new MessageEvent('chunkremove', {
                 data: {
