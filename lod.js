@@ -546,6 +546,15 @@ export class LodChunk extends THREE.Vector3 {
       p.z >= this.z && p.z < this.z + this.lod;
   }
 }
+const _parseNode = (nodeSpec) => {
+  const {min, size: lod, isLeaf, lodArray} = nodeSpec;
+  return new OctreeNode(
+    new THREE.Vector3().fromArray(min),
+    lod,
+    isLeaf,
+    lodArray
+  );
+};
 export class LodChunkTracker extends EventTarget {
   constructor({
     chunkSize = defaultChunkSize,
@@ -758,15 +767,6 @@ export class LodChunkTracker extends EventTarget {
       leafNodes,
     } = trackerUpdateSpec;
 
-    const _parseNode = (nodeSpec) => {
-      const {min, size: lod, isLeaf, lodArray} = nodeSpec;
-      return new OctreeNode(
-        new THREE.Vector3().fromArray(min),
-        lod,
-        isLeaf,
-        lodArray
-      );
-    };
     /* const _parseTask = (taskSpec) => {
       // console.log('parse task', taskSpec);
       const {id, type} = taskSpec;
