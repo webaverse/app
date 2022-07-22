@@ -10,6 +10,8 @@ const localVector2D2 = new THREE.Vector2();
 const localVector3D = new THREE.Vector3();
 const localVector3D2 = new THREE.Vector3();
 const localVector3D3 = new THREE.Vector3();
+const currentChunkMin = new THREE.Vector3();
+const currentChunkMax = new THREE.Vector3();
 const localMatrix = new THREE.Matrix4();
 const localSphere = new THREE.Sphere();
 const localBox = new THREE.Box3();
@@ -144,6 +146,72 @@ export class GeometryPositionIndexBinding {
   }
 }
 
+const chunkAllocationDataSize =
+  Int32Array.BYTES_PER_ELEMENT +
+  Int32Array.BYTES_PER_ELEMENT +
+  Int32Array.BYTES_PER_ELEMENT +
+  Int32Array.BYTES_PER_ELEMENT +
+  Int32Array.BYTES_PER_ELEMENT +
+  Uint8Array.BYTES_PER_ELEMENT; // 35
+
+class ChunkAllocationData {
+  constructor(id, min, enterFace, peeks) {
+    this.id = id; // 4 bytes
+    this.min = min; // 12 bytes
+    this.enterFace = enterFace; // 4 bytes
+    this.peeks = peeks; // 15 bytes
+  }
+  serialize(dataView, offset) {
+    let localOffset = 0;
+    dataView.setInt32(offset + localOffset, this.id);
+    localOffset += Int32Array.BYTES_PER_ELEMENT;
+
+    dataView.setInt32(offset + localOffset, this.min.x);
+    localOffset += Int32Array.BYTES_PER_ELEMENT;
+
+    dataView.setInt32(offset + localOffset, this.min.y);
+    localOffset += Int32Array.BYTES_PER_ELEMENT;
+
+    dataView.setInt32(offset + localOffset, this.min.z);
+    localOffset += Int32Array.BYTES_PER_ELEMENT;
+
+    dataView.setInt32(offset + localOffset, PEEK_FACES['NONE']);
+    localOffset += Int32Array.BYTES_PER_ELEMENT;
+
+    for (let j = 0; j < 15; j++) {
+      dataView.setUint8(offset + localOffset, this.peeks[j]);
+      localOffset += Uint8Array.BYTES_PER_ELEMENT;
+    }
+  }
+}
+
+function deserializeChunkAllocationData(dataView, offset) {
+  let localOffset = 0;
+  const id = dataView.getInt32(offset + localOffset);
+  localOffset += Int32Array.BYTES_PER_ELEMENT;
+
+  const minX = dataView.getInt32(offset + localOffset);
+  localOffset += Int32Array.BYTES_PER_ELEMENT;
+
+  const minY = dataView.getInt32(offset + localOffset);
+  localOffset += Int32Array.BYTES_PER_ELEMENT;
+
+  const minZ = dataView.getInt32(offset + localOffset);
+  localOffset += Int32Array.BYTES_PER_ELEMENT;
+
+  const enterFace = dataView.getInt32(offset + localOffset);
+  localOffset += Int32Array.BYTES_PER_ELEMENT;
+
+  const peeks = new Uint8Array(15);
+
+  for (let j = 0; j < 15; j++) {
+    peeks.set([dataView.getUint8(offset + localOffset)], j);
+    localOffset += Uint8Array.BYTES_PER_ELEMENT;
+  }
+
+  return new ChunkAllocationData(id, { x:minX, y:minY, z:minZ }, enterFace, peeks);
+}
+
 export class GeometryAllocator {
   constructor(attributeSpecs, {
     bufferSize,
@@ -181,7 +249,9 @@ export class GeometryAllocator {
     // this.peeksArray = [];
     this.hasOcclusionCulling = hasOcclusionCulling;
     if(this.hasOcclusionCulling){
-      this.OCInstance = Module._createOcclusionCullingInstance();
+      this.OCInstance = Module._initOcclusionCulling();
+      this.chunkAllocationBuffer = new ArrayBuffer(maxNumDraws * chunkAllocationDataSize); // buffer for ChunkAllocationData class : 35 = 4 + 12 + 4 + 15
+      this.chunkAllocationDataView = new DataView(this.chunkAllocationBuffer);
     }
     this.numDraws = 0;
   }
@@ -194,9 +264,9 @@ export class GeometryAllocator {
       minObject.applyMatrix4(this.appMatrix);
       maxObject.applyMatrix4(this.appMatrix);
 
-      // this.allocatedDataArray[this.numDraws] = [this.numDraws, minObject.x, minObject.y, minObject.z, PEEK_FACES["NONE"], peeks];
-      Module._allocateOcclusionCulling(this.OCInstance, this.numDraws, minObject.x, minObject.y, minObject.z, peeks);
-      
+      const allocatedChunk = new ChunkAllocationData(this.numDraws, minObject, PEEK_FACES["NONE"], peeks);
+      allocatedChunk.serialize(this.chunkAllocationDataView, this.numDraws * chunkAllocationDataSize);
+
       this.appMatrix = appMatrix;
 
       minObject.toArray(this.minData, this.numDraws * 4);
@@ -246,7 +316,6 @@ export class GeometryAllocator {
       }
 
       if (this.hasOcclusionCulling) {
-        Module._freeOcclusionCulling(this.OCInstance, this.minData[freeIndex * 4 + 0], this.minData[freeIndex * 4 + 1], this.minData[freeIndex * 4 + 2]);
 
         this.minData[freeIndex * 4 + 0] = this.minData[lastIndex * 4 + 0];
         this.minData[freeIndex * 4 + 1] = this.minData[lastIndex * 4 + 1];
@@ -256,6 +325,8 @@ export class GeometryAllocator {
         this.maxData[freeIndex * 4 + 1] = this.maxData[lastIndex * 4 + 1];
         this.maxData[freeIndex * 4 + 2] = this.maxData[lastIndex * 4 + 2];
 
+        const freeChunk = deserializeChunkAllocationData(this.chunkAllocationDataView, lastIndex * chunkAllocationDataSize);
+        freeChunk.serialize(this.chunkAllocationDataView, freeIndex * chunkAllocationDataSize); // free
       }
     }
 
@@ -294,18 +365,38 @@ export class GeometryAllocator {
     })();
 
     if (this.hasOcclusionCulling) {
-      const cull = (i) => {
-        // start bfs, start from the chunk we're in
-        // find the chunk that the camera is inside via floor, so we need min of the chunk, which we have in bounding data
+      let foundId;
+      const findCameraChunk = (i) => {
+        // find the chunk that the camera is inside
         const min = localVector3D2.fromArray(this.minData, i * 4); // min
         const max = localVector3D3.fromArray(this.maxData, i * 4); // max
 
-        Module._setVisibilityOcclusionCulling(this.OCInstance, i, camera.position.x, camera.position.y, camera.position.z, min.x, min.y, min.z, max.x, max.y, max.z);
+        if(isVectorInRange(camera.position, min, max)){
+          currentChunkMin.clone(min);
+          currentChunkMax.clone(max);
+          foundId = i;
+          // console.log(min.x == this.chunkAllocationDataView.getInt32(i * chunkAllocationDataSize + Int32Array.BYTES_PER_ELEMENT));
+        }
       };
 
       for (let i = 0; i < this.numDraws; i++) {
-        cull(i);
+        findCameraChunk(i);
       }
+
+      if(foundId){
+        
+      const buffer = new Uint8Array(this.chunkAllocationBuffer);
+      // console.log(Module._cullOcclusionCulling);
+      Module._cullOcclusionCulling(
+        this.OCInstance,
+        buffer, 
+        foundId,
+        currentChunkMin.x, currentChunkMin.y, currentChunkMin.z,
+        currentChunkMax.x, currentChunkMax.y, currentChunkMax.z,
+        camera.position.x, camera.position.y, camera.position.z
+        );
+      }
+
 
       // for (let i = 0; i < this.numDraws; i++) {
       //   // console.log(culled[i]);
