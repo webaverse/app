@@ -31,7 +31,7 @@ const minDistance = 1;
 const hitDistance = 1.5;
 const maxAnisotropy = 16;
 
-let maxGeometries = 8;
+let numGeometries = 8;
 const maxInstancesPerDrawCall = 128;
 const maxDrawCallsPerGeometry = 1;
 const maxBonesPerInstance = 128;
@@ -478,9 +478,9 @@ class InstancedSkeleton extends THREE.Skeleton {
     
     const drawCall = this.parent.drawCalls[drawCallIndex];
     
-    // geometry -> instance (skeleton) -> bone -> matrix
-    const dstOffset = frameIndex * maxGeometries * maxDrawCallsPerGeometry * maxBonesPerInstance * 16 +
-      drawCall.freeListEntry.start * maxDrawCallsPerGeometry * maxBonesPerInstance * 16;
+    // frame -> geometry (skeleton) -> bone -> matrix
+    const dstOffset = frameIndex * numGeometries * maxBonesPerInstance * 16 +
+      drawCall.freeListEntry.start * maxBonesPerInstance * 16;
 
     const bones = skeleton.bones;
     const boneInverses = skeleton.boneInverses;
@@ -519,7 +519,7 @@ class MobBatchedMesh extends InstancedBatchedMesh {
       textures: ['map', 'normalMap', 'roughnessMap', 'metalnessMap'],
     });
 
-    maxGeometries = geometries.length;
+    numGeometries = geometries.length;
 
     for (let i = 0; i < geometries.length; i++) {
       const geometry = geometries[i];
@@ -538,37 +538,32 @@ class MobBatchedMesh extends InstancedBatchedMesh {
 
     // allocator
 
-    const instanceCount = maxGeometries * maxDrawCallsPerGeometry * maxInstancesPerDrawCall;
-    const geometryFrameCount = maxAnimationFrameLength * maxGeometries * maxDrawCallsPerGeometry;
-
     const allocator = new InstancedGeometryAllocator(geometries, [
       {
         name: 'p',
         Type: Float32Array,
         itemSize: 3,
-        itemCount: instanceCount,
       },
       {
         name: 'q',
         Type: Float32Array,
         itemSize: 4,
-        itemCount: instanceCount,
       },
       {
         name: 'timeOffset',
         Type: Float32Array,
         itemSize: 1,
-        itemCount: instanceCount,
       },
       {
         name: 'boneTexture',
         Type: Float32Array,
         itemSize: maxBonesPerInstance * 16,
-        itemCount: geometryFrameCount,
+        instanced: false,
       },
     ], {
       maxInstancesPerDrawCall,
       maxDrawCallsPerGeometry,
+      maxSlotsPerGeometry: maxAnimationFrameLength,
     });
     const {geometry, textures: attributeTextures} = allocator;
     for (const k in attributeTextures) {
@@ -642,7 +637,7 @@ mat4 getBoneMatrix( const in float base, const in float i ) {
 #endif
         `);
         shader.vertexShader = shader.vertexShader.replace(`#include <skinbase_vertex>`, `\
-int boneTextureInstanceIndex = gl_DrawID * ${maxBonesPerInstance};
+int boneTextureIndex = gl_DrawID * ${maxBonesPerInstance};
 int instanceIndex = gl_DrawID * ${maxInstancesPerDrawCall} + gl_InstanceID;
 #ifdef USE_SKINNING
   
@@ -654,8 +649,8 @@ int instanceIndex = gl_DrawID * ${maxInstancesPerDrawCall} + gl_InstanceID;
   float timeOffset = texture2D(timeOffsetTexture, timeOffsetpUv).x;
   
   float frame		= mod( float(uTime) + timeOffset * frameCount, frameCount );
-  boneTextureInstanceIndex = boneTextureInstanceIndex + int(frame) * (${maxGeometries} * ${maxBonesPerInstance});
-  float boneIndexOffset = float(boneTextureInstanceIndex) * 4.;
+  boneTextureIndex = boneTextureIndex + int(frame) * ${numGeometries} * ${maxBonesPerInstance};
+  float boneIndexOffset = float(boneTextureIndex) * 4.;
   mat4 boneMatX = getBoneMatrix( boneIndexOffset, skinIndex.x );
   mat4 boneMatY = getBoneMatrix( boneIndexOffset, skinIndex.y );
   mat4 boneMatZ = getBoneMatrix( boneIndexOffset, skinIndex.z );

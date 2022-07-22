@@ -508,6 +508,7 @@ export class InstancedGeometryAllocator {
   constructor(geometries, instanceTextureSpecs, {
     maxInstancesPerDrawCall,
     maxDrawCallsPerGeometry,
+    maxSlotsPerGeometry,
     boundingType = null,
     instanceBoundingType = null,
   }) {
@@ -558,10 +559,15 @@ export class InstancedGeometryAllocator {
           name,
           Type,
           itemSize,
-          itemCount
+          instanced = true
         } = spec;
 
         // compute the minimum size of a texture that can hold the data
+
+        let itemCount = numGeometries * maxDrawCallsPerGeometry * maxInstancesPerDrawCall;
+        if ( !instanced ) {
+          itemCount = maxSlotsPerGeometry * numGeometries;
+        }
         let neededItems4 = itemCount;
         if (itemSize > 4) {
           neededItems4 *= itemSize / 4;
