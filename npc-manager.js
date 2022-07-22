@@ -30,7 +30,7 @@ class NpcManager extends EventTarget {
     position,
     quaternion,
     scale,
-    detached
+    detached,
   }) {
     const npcPlayer = new LocalPlayer({
       npc: true,
@@ -283,7 +283,7 @@ class NpcManager extends EventTarget {
           .add(new THREE.Vector3(0, 1, 0)),
         quaternion: app.quaternion,
         scale: app.scale,
-        detached: npcDetached
+        detached: npcDetached,
       });
 
       // attach to scene
