@@ -1287,18 +1287,23 @@ export const _applyAnimation = (avatar, now, moveFactors, timeDiffS) => {
       lerpFn,
     } = spec;
 
+    // if (avatar.fallLoopState) {
     if (avatar.fallLoopFactor > 0) {
       const t2 = (avatar.fallLoopTime / 1000);
       const src2 = fallLoopAnimation.interpolants[k];
       const v2 = src2.evaluate(t2);
       const f = MathUtils.clamp(t2 / 0.3, 0, 1);
 
-      lerpFn
-        .call(
-          dst,
-          localQuaternion.fromArray(v2),
-          f,
-        );
+      if (avatar.fallLoopFrom === 'jump') {
+        dst.fromArray(v2);
+      } else {
+        lerpFn
+          .call(
+            dst,
+            localQuaternion.fromArray(v2),
+            f,
+          );
+      }
 
       _clearXZ(dst, isPosition);
     }

@@ -118,6 +118,7 @@ export function applyPlayerActionsToAvatar(player, rig) {
 
   rig.jumpState = !!jumpAction;
   rig.jumpTime = player.actionInterpolants.jump.get();
+  rig.jumpFactor = player.actionInterpolants.jumpTransition.getNormalized();
   rig.landTime = player.actionInterpolants.land.get();
   rig.lastLandStartTime = landAction ? landAction.time : 0;
   rig.flyState = !!flyAction;
@@ -206,6 +207,7 @@ export function applyPlayerActionsToAvatar(player, rig) {
   // rig.standChargeState = !!standCharge;
   rig.fallLoopTime = player.actionInterpolants.fallLoop.get();
   rig.fallLoopFactor = player.actionInterpolants.fallLoopTransition.getNormalized();
+  rig.fallLoopFrom = fallLoopAction ? fallLoopAction.from : '';
   // rig.fallLoopAnimation = fallLoopAnimation;
   rig.fallLoopState = !!fallLoopAction;
   // rig.swordSideSlashTime = player.actionInterpolants.swordSideSlash.get();

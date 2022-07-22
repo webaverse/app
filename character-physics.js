@@ -92,7 +92,7 @@ class CharacterPhysics {
         const jumpTime = this.player.actionInterpolants.jump.get();
         localVector3.y = Math.sin(jumpTime * (Math.PI / flatGroundJumpAirTime)) * jumpHeight + jumpAction.startPositionY - this.lastCharacterControllerY;
         if (jumpTime >= flatGroundJumpAirTime) {
-          this.player.setControlAction({type: 'fallLoop'});
+          this.player.setControlAction({type: 'fallLoop', from: 'jump'});
         }
       }
         
