@@ -1225,6 +1225,7 @@ export const _applyAnimation = (avatar, now, moveFactors, timeDiffS) => {
       const landingAnimation = animations.index['landing.fbx'];
       const landingAnimationDuration = landingAnimation.duration / animationSpeed;
       const landFactor = landTimeS / landingAnimationDuration;
+      // if (isPosition && avatar === window.localPlayer?.avatar) console.log('landFactor', landFactor);
 
       if (landFactor > 0 && landFactor <= 1) {
         const t2 = landTimeS * animationSpeed;
@@ -1249,6 +1250,7 @@ export const _applyAnimation = (avatar, now, moveFactors, timeDiffS) => {
       const landingAnimation = animations.index['landing 2.fbx'];
       const landingAnimationDuration = landingAnimation.duration / animationSpeed;
       const landFactor = landTimeS / landingAnimationDuration;
+      // if (isPosition && avatar === window.localPlayer?.avatar) console.log('landFactor', landFactor);
 
       if (landFactor > 0 && landFactor <= 1) {
         const t2 = landTimeS * animationSpeed;
@@ -1285,6 +1287,7 @@ export const _applyAnimation = (avatar, now, moveFactors, timeDiffS) => {
       lerpFn,
     } = spec;
 
+    // if (avatar.fallLoopState) {
     if (avatar.fallLoopFactor > 0) {
       const t2 = (avatar.fallLoopTime / 1000);
       const src2 = fallLoopAnimation.interpolants[k];

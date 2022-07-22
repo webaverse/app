@@ -161,6 +161,7 @@ class CharacterPhysics {
           this.lastGroundedTime = now;
           if (!this.lastGrounded) {
             if (this.player.hasAction('jump') || this.player.hasAction('fallLoop')) {
+              console.log('land')
               this.player.setControlAction({type: 'land', time: now});
             }
           };
@@ -170,6 +171,7 @@ class CharacterPhysics {
           const lastGroundedTimeDiff = now - this.lastGroundedTime;
           if (lastGroundedTimeDiff > 200) {
             if (!this.player.hasAction('fallLoop') && !this.player.hasAction('jump') && !this.player.hasAction('fly') && !this.player.hasAction('swim')) {
+              console.log('fallLoop')
               this.player.setControlAction({type: 'fallLoop'});
               this.velocity.y = 0;
             }
