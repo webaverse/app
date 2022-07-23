@@ -2,8 +2,9 @@ import * as THREE from 'three';
 import {ImmediateGLBufferAttribute} from './ImmediateGLBufferAttribute.js';
 import * as BufferGeometryUtils from 'three/examples/jsm/utils/BufferGeometryUtils.js';
 import {getRenderer} from './renderer.js';
-import { chunkMinForPosition } from './util.js';
+// import { chunkMinForPosition, convertMeshToPhysicsMesh } from './util.js';
 import { PEEK_FACE_INDICES } from './constants.js';
+// import { toHiraganaCase } from 'encoding-japanese';
 
 const localVector2D = new THREE.Vector2();
 const localVector2D2 = new THREE.Vector2();
