@@ -47,17 +47,15 @@ class Dominator extends EventTarget {
         if (chunk.dataRequest.renderData === undefined) {
           pendingWaits++;
           // console.log('pending waits add', pendingWaits);
-          const onload = e => {
-            const {renderData} = e.data;
+          chunk.onload = renderData => {
             renderDatas[i] = renderData;
 
             if (--pendingWaits === 0) {
               _done();
             }
           };
-          chunk.addEventListener('load', onload);
           this.unlistens.push(() => {
-            chunk.removeEventListener('load', onload);
+            chunk.onload = null;
           });
         } else {
           renderDatas[i] = chunk.dataRequest.renderData;
@@ -72,9 +70,9 @@ class Dominator extends EventTarget {
   }
 }
 
-class OctreeNode extends EventTarget {
+class OctreeNode {
   constructor(min = new THREE.Vector3(), lod = 1, isLeaf = true, lodArray = new Int32Array(8).fill(-1)) {
-    super();
+    // super();
     
     this.min = min;
     this.lod = lod;
@@ -82,6 +80,8 @@ class OctreeNode extends EventTarget {
     this.lodArray = lodArray;
 
     this.children = Array(8).fill(null);
+
+    this.onload = null;
   }
   containsPoint(p) {
     return p.x >= this.min.x && p.x < this.min.x + this.lod &&
@@ -101,9 +101,12 @@ class OctreeNode extends EventTarget {
   intersectsNode(p) {
     return this.containsNode(p) || p.containsNode(this);
   }
-  destroy() {
-    this.dispatchEvent(new MessageEvent('destroy'));
+  load(result) {
+    this.onload && this.onload(result);
   }
+  /* destroy() {
+    this.dispatchEvent(new MessageEvent('destroy'));
+  } */
 }
 /* const tempUint32Array = new Uint32Array(1);
 const _toUint32 = value => {
@@ -409,19 +412,11 @@ class DataRequest {
     this.renderData = undefined;
     this.loadPromise.then(renderData => {
       this.renderData = renderData;
-      this.node.dispatchEvent(new MessageEvent('load', {
-        data: {
-          renderData,
-        },
-      }));
+      this.node.load(renderData);
     }, err => {
       const renderData = null;
       this.renderData = renderData;
-      this.node.dispatchEvent(new MessageEvent('load', {
-        data: {
-          renderData,
-        },
-      }));
+      this.node.load(renderData);
     });
   }
   replaceNode(node) {
