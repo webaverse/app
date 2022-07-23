@@ -88,6 +88,7 @@ export function makeAvatar(app) {
 }
 export function applyPlayerActionsToAvatar(player, rig) {
   const jumpAction = player.getAction('jump');
+  const doubleJumpAction = player.getAction('doubleJump');
   const landAction = player.getAction('land');
   const flyAction = player.getAction('fly');
   const swimAction = player.getAction('swim');
@@ -118,6 +119,7 @@ export function applyPlayerActionsToAvatar(player, rig) {
 
   rig.jumpState = !!jumpAction;
   rig.jumpTime = player.actionInterpolants.jump.get();
+  rig.doubleJumpState = !!doubleJumpAction;
   rig.doubleJumpTime = player.actionInterpolants.doubleJump.get();
   rig.landTime = player.actionInterpolants.land.get();
   rig.lastLandStartTime = landAction ? landAction.time : 0;

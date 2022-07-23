@@ -60,6 +60,7 @@ let animations;
 let animationStepIndices;
 // let animationsBaseModel;
 let jumpAnimation;
+let doubleJumpAnimation;
 let fallLoopAnimation;
 let floatAnimation;
 let useAnimations;
@@ -306,6 +307,7 @@ export const loadPromise = (async () => {
   // swordTopDownSlash = animations.find(a => a.isSwordTopDownSlash)
 
   jumpAnimation = animations.find(a => a.isJump);
+  doubleJumpAnimation = animations.find(a => a.isDoubleJump);
   fallLoopAnimation = animations.index['falling.fbx'];
   // sittingAnimation = animations.find(a => a.isSitting);
   floatAnimation = animations.find(a => a.isFloat);
@@ -760,6 +762,33 @@ export const _applyAnimation = (avatar, now, moveFactors, timeDiffS) => {
     _getHorizontalBlend(k, lerpFn, isPosition, dst);
   };
   const _getApplyFn = () => {
+    if (avatar.doubleJumpState) {
+      return spec => {
+        const {
+          animationTrackName: k,
+          dst,
+          // isTop,
+          isPosition,
+          isArm,
+        } = spec;
+
+        const t2 = avatar.doubleJumpTime / 1000;
+        const src2 = doubleJumpAnimation.interpolants[k];
+        const v2 = src2.evaluate(t2);
+
+        dst.fromArray(v2);
+
+        _clearXZ(dst, isPosition);
+
+        if (avatar.holdState && isArm) {
+          const holdAnimation = holdAnimations['pick_up_idle'];
+          const src2 = holdAnimation.interpolants[k];
+          const t2 = (now / 1000) % holdAnimation.duration;
+          const v2 = src2.evaluate(t2);
+          dst.fromArray(v2);
+        }
+      };
+    }
     if (avatar.jumpState) {
       return spec => {
         const {
