@@ -49,84 +49,110 @@ const _getBoundingSize = boundingType => {
   }
 };
 
-export class FreeListSlot {
-  constructor(start, count, used) {
-    // array-relative indexing, not item-relative
-    // start++ implies attribute.array[start++]
-    this.start = start;
-    this.count = count;
-    this.used = used;
+// get the closes power of 2 that fits the given size
+const _getClosestPowerOf2 = size => {
+  return Math.ceil(Math.log2(size));
+};
+
+// align a memory address
+const _align = (addr, n) => {
+  const r = addr % n;
+  return r === 0 ? addr : addr + (n - r);
+};
+
+// circular index buffer
+const maxSlotEntries = 4096;
+class FreeListArray {
+  constructor(slotSize, parent) {
+    this.slotSize = slotSize;
+    this.parent = parent;
+    
+    this.startIndex = 0;
+    this.endIndex = 0;
+    this.entries = new Int32Array(maxSlotEntries);
+    this.allocatedEntries = 0;
   }
-  alloc(size) {
-    if (size < this.count) {
-      this.used = true;
-      const newSlot = new FreeListSlot(this.start + size, this.count - size, false);
-      this.count = size;
-      return [
-        this,
-        newSlot,
-      ];
-    } else if (size === this.count) {
-      this.used = true;
-      return [this];
+  alloc() {
+    if (this.allocatedEntries < maxSlotEntries) {
+      if (this.startIndex === this.endIndex) {
+        this.entries[this.endIndex] = this.parent.allocIndex(this.slotSize);
+        this.endIndex = (this.endIndex + 1) % maxSlotEntries;
+      }
+      const index = this.entries[this.startIndex];
+      this.startIndex = (this.startIndex + 1) % maxSlotEntries;
+      this.allocatedEntries++;
+      return index;
     } else {
-      throw new Error('could not allocate from self: ' + size + ' : ' + this.count);
+      throw new Error('out of slots to allocate');
     }
   }
-  free() {
-    this.used = false;
-    return [this];
+  free(index) {
+    this.entries[this.endIndex] = index;
+    this.endIndex = (this.endIndex + 1) % maxSlotEntries;
+    this.allocatedEntries--;
   }
 }
-
 export class FreeList {
-  constructor(size) {
-    this.slots = [
-      new FreeListSlot(0, size, false),
-    ];
+  constructor(size, alignment = 1) {
+    this.freeStart = 0;
+    this.freeEnd = size;
+    this.alignment = alignment;
+
+    this.slots = new Map(); // Map<slotSize, FreeListArray>
+    this.slotSizes = new Map(); // Map<index, slotSize>
   }
-  findFirstFreeSlotIndexWithSize(size) {
-    for (let i = 0; i < this.slots.length; i++) {
-      const slot = this.slots[i];
-      if (!slot.used && slot.count >= size) {
-        return i;
-      }
+  allocIndex(slotSize) {
+    const allocSize = 1 << slotSize;
+    let newFreeStart = this.freeStart + allocSize;
+    newFreeStart = _align(newFreeStart, this.alignment);
+    if (newFreeStart <= this.freeEnd) {
+      const index = this.freeStart;
+      this.freeStart = newFreeStart;
+      return index;
+    } else {
+      throw new Error('out of memory to allocate to slot');
     }
-    return -1;
   }
   alloc(size) {
     if (size > 0) {
-      const index = this.findFirstFreeSlotIndexWithSize(size);
-      if (index !== -1) {
-        const slot = this.slots[index];
-        const replacementArray = slot.alloc(size);
-        this.slots.splice.apply(this.slots, [index, 1].concat(replacementArray));
-        return replacementArray[0];
+      const slotSize = _getClosestPowerOf2(size);
+      let slot = this.slots.get(slotSize);
+      if (slot === undefined) {
+        slot = new FreeListArray(slotSize, this);
+        this.slots.set(slotSize, slot);
+      }
+      const index = slot.alloc();
+      this.slotSizes.set(index, slotSize);
+
+      const entry = {
+        start: index,
+        count: size,
+      };
+      return entry;
+    } else {
+      debugger;
+      return {
+        start: 0,
+        count: 0,
+      };
+    }
+  }
+  free(entry) {
+    const {start: index} = entry;
+    if (index >= 0) {
+      const slotSize = this.slotSizes.get(index);
+      if (slotSize !== undefined) {
+        const slot = this.slots.get(slotSize);
+        if (slot !== undefined) {
+          slot.free(index);
+        } else {
+          throw new Error('invalid slot');
+        }
       } else {
-        throw new Error('out of memory');
+        throw new Error('invalid index');
       }
     } else {
-      throw new Error('alloc size must be > 0');
-    }
-  }
-  free(slot) {
-    const index = this.slots.indexOf(slot);
-    if (index !== -1) {
-      const replacementArray = slot.free();
-      this.slots.splice.apply(this.slots, [index, 1].concat(replacementArray));
-      this.#mergeAdjacentSlots();
-    } else {
-      throw new Error('invalid free');
-    }
-  }
-  #mergeAdjacentSlots() {
-    for (let i = this.slots.length - 2; i >= 0; i--) {
-      const slot = this.slots[i];
-      const nextSlot = this.slots[i + 1];
-      if (!slot.used && !nextSlot.used) {
-        slot.count += nextSlot.count;
-        this.slots.splice(i + 1, 1);
-      }
+      // nothing
     }
   }
 }
