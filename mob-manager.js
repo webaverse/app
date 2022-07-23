@@ -480,7 +480,7 @@ class InstancedSkeleton extends THREE.Skeleton {
     
     // frame -> geometry (skeleton) -> bone -> matrix
     const dstOffset = frameIndex * numGeometries * maxBonesPerInstance * 16 +
-      drawCall.freeListEntry.start * maxBonesPerInstance * 16;
+      drawCall.freeListEntry * maxBonesPerInstance * 16;
 
     const bones = skeleton.bones;
     const boneInverses = skeleton.boneInverses;
