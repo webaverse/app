@@ -9,10 +9,10 @@ export default e => {
 
   const landApps = [
     {
-      "start_url": "https://webaverse.github.io/dual-contouring-terrain/"
+      "start_url": "http://localhost/lib/webaverse_resource/dual-contouring-terrain/"
     },
     {
-      "start_url": "https://webaverse.github.io/water/"
+      "start_url": "http://localhost/lib/webaverse_resource/water/"
     },
     /* {
       "start_url": "https://webaverse.github.io/silk-grass/"
