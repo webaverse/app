@@ -19,6 +19,29 @@ class WebaverseRenderPass extends Pass {
     this.internalRenderPass = null;
     this.onBeforeRender = null;
     this.onAfterRender = null;
+
+    this.foamInvisibleList = [];
+    this.foamDepthMaterial = null;
+    this.foamRenderTarget = null;
+  }
+  renderFoam(renderer){
+    if(this.foamDepthMaterial && this.foamRenderTarget){
+          renderer.setRenderTarget(this.foamRenderTarget);
+          renderer.clear();
+          for(const invisibleObject of this.foamInvisibleList){
+            invisibleObject.visible = false; 
+          }
+          this.scene.overrideMaterial = this.foamDepthMaterial;
+
+
+          renderer.render(this.scene, this.camera);
+          renderer.setRenderTarget(null);
+
+          this.scene.overrideMaterial = null;
+          for(const invisibleObject of this.foamInvisibleList){
+            invisibleObject.visible = true; 
+          }
+    }
   }
   setSize(width, height) {
     if (this.internalDepthPass) {
@@ -30,6 +53,7 @@ class WebaverseRenderPass extends Pass {
 
 	}
   render(renderer, renderTarget, readBuffer, deltaTime, maskActive) {
+    this.renderFoam(renderer);
     this.onBeforeRender && this.onBeforeRender();
     
     // render
