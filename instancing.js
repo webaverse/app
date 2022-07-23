@@ -39,8 +39,8 @@ const peekFaceSpecs = [
 
 const maxNumDraws = 1024;
 
-const isVectorInRange = (vector, min, max) => {
-  return (vector.x >= min.x && vector.x < max.x) && (vector.y >= min.y && vector.y < max.y) && (vector.z >= min.z && vector.z < max.z);
+const isCameraInRange2D = (vector, min, max) => {
+  return (vector.x >= min.x && vector.x < max.x) && (vector.z >= min.z && vector.z < max.z);
 }
 
 const _getBoundingSize = boundingType => {
@@ -147,13 +147,11 @@ export class GeometryPositionIndexBinding {
   }
 }
 
-const chunkAllocationDataSize =
-  Int32Array.BYTES_PER_ELEMENT +
-  Int32Array.BYTES_PER_ELEMENT +
-  Int32Array.BYTES_PER_ELEMENT +
-  Int32Array.BYTES_PER_ELEMENT +
-  Int32Array.BYTES_PER_ELEMENT +
-  Uint8Array.BYTES_PER_ELEMENT * 15; // 35
+const chunkAllocationDataSize =      // 35
+  Int32Array.BYTES_PER_ELEMENT +     // id
+  Int32Array.BYTES_PER_ELEMENT * 3 + // min
+  Int32Array.BYTES_PER_ELEMENT +     // enterFace
+  Uint8Array.BYTES_PER_ELEMENT * 15; // peeks
 
 class ChunkAllocationData {
   constructor(id, min, enterFace, peeks) {
@@ -164,23 +162,25 @@ class ChunkAllocationData {
   }
   serialize(dataView, offset) {
     let localOffset = 0;
-    dataView.setInt32(offset + localOffset, this.id);
+    dataView.setInt32(offset + localOffset, this.id, true);
     localOffset += Int32Array.BYTES_PER_ELEMENT;
 
-    dataView.setInt32(offset + localOffset, this.min.x);
+    dataView.setInt32(offset + localOffset, this.min.x, true);
     localOffset += Int32Array.BYTES_PER_ELEMENT;
 
-    dataView.setInt32(offset + localOffset, this.min.y);
+    dataView.setInt32(offset + localOffset, this.min.y, true);
     localOffset += Int32Array.BYTES_PER_ELEMENT;
 
-    dataView.setInt32(offset + localOffset, this.min.z);
+    dataView.setInt32(offset + localOffset, this.min.z, true);
     localOffset += Int32Array.BYTES_PER_ELEMENT;
 
-    dataView.setInt32(offset + localOffset, PEEK_FACES['NONE']);
+    // console.log(this.min.x);
+
+    dataView.setInt32(offset + localOffset, this.enterFace, true);
     localOffset += Int32Array.BYTES_PER_ELEMENT;
 
     for (let j = 0; j < 15; j++) {
-      dataView.setUint8(offset + localOffset, this.peeks[j]);
+      dataView.setUint8(offset + localOffset, this.peeks[j], true);
       localOffset += Uint8Array.BYTES_PER_ELEMENT;
     }
   }
@@ -188,25 +188,25 @@ class ChunkAllocationData {
 
 function deserializeChunkAllocationData(dataView, offset) {
   let localOffset = 0;
-  const id = dataView.getInt32(offset + localOffset);
+  const id = dataView.getInt32(offset + localOffset, true);
   localOffset += Int32Array.BYTES_PER_ELEMENT;
 
-  const minX = dataView.getInt32(offset + localOffset);
+  const minX = dataView.getInt32(offset + localOffset, true);
   localOffset += Int32Array.BYTES_PER_ELEMENT;
 
-  const minY = dataView.getInt32(offset + localOffset);
+  const minY = dataView.getInt32(offset + localOffset, true);
   localOffset += Int32Array.BYTES_PER_ELEMENT;
 
-  const minZ = dataView.getInt32(offset + localOffset);
+  const minZ = dataView.getInt32(offset + localOffset, true);
   localOffset += Int32Array.BYTES_PER_ELEMENT;
 
-  const enterFace = dataView.getInt32(offset + localOffset);
+  const enterFace = dataView.getInt32(offset + localOffset, true);
   localOffset += Int32Array.BYTES_PER_ELEMENT;
 
   const peeks = new Uint8Array(15);
 
   for (let j = 0; j < 15; j++) {
-    peeks.set([dataView.getUint8(offset + localOffset)], j);
+    peeks.set([dataView.getUint8(offset + localOffset, true)], j);
     localOffset += Uint8Array.BYTES_PER_ELEMENT;
   }
 
@@ -223,7 +223,7 @@ function parseDrawCallListBuffer(arrayBuffer, bufferAddress){
   const DrawCalls = new Int32Array(arrayBuffer, bufferAddress + index, numDrawCalls);
   index += Int32Array.BYTES_PER_ELEMENT * numDrawCalls;
 
-  // console.log(DrawCalls);
+  return DrawCalls;
 }
 
 export class GeometryAllocator {
@@ -389,11 +389,11 @@ export class GeometryAllocator {
         const min = localVector3D2.fromArray(this.minData, i * 4); // min
         const max = localVector3D3.fromArray(this.maxData, i * 4); // max
 
-        if(isVectorInRange(camera.position, min, max)){
+        if(isCameraInRange2D(camera.position, min, max)){
           currentChunkMin.copy(min);
           currentChunkMax.copy(max);
           foundId = i;
-          // console.log(min.x);
+          // console.log(camera.position.y);
           // console.log(currentChunkMin.x == this.chunkAllocationDataView.getInt32(i * chunkAllocationDataSize + Int32Array.BYTES_PER_ELEMENT));
         }
       };
@@ -404,21 +404,41 @@ export class GeometryAllocator {
 
 
 
-      if(foundId){
-        // const dw = new DataView(Module.HEAP8.buffer, this.chunkAllocationArrayOffset, maxNumDraws * chunkAllocationDataSize);
+      if (foundId) {
+        // const dw = new DataView(Module.HEAP8.buffer);
+        // console.log(this.chunkAllocationArrayOffset);
         // console.log(chunkAllocationDataSize);
-        // console.log(dw.getInt32((this.numDraws - 1) * chunkAllocationDataSize));
-      // console.log(foundId);
-      const drawListBuffer = Module._cullOcclusionCulling(
-        this.OCInstance,
-        this.chunkAllocationArrayOffset, 
-        foundId,
-        currentChunkMin.x, currentChunkMin.y, currentChunkMin.z,
-        currentChunkMax.x, currentChunkMax.y, currentChunkMax.z,
-        camera.position.x, camera.position.y, camera.position.z,
-        this.numDraws
+        // console.log(dw.getInt32(this.chunkAllocationArrayOffset + 70));
+        // console.log(this.numDraws);
+        const cameraView = new THREE.Vector3();
+        camera.getWorldDirection(cameraView);
+        const drawListBuffer = Module._cullOcclusionCulling(
+          this.OCInstance,
+          this.chunkAllocationArrayOffset,
+          foundId,
+          currentChunkMin.x,
+          currentChunkMin.y,
+          currentChunkMin.z,
+          currentChunkMax.x,
+          currentChunkMax.y,
+          currentChunkMax.z,
+          camera.position.x,
+          camera.position.y,
+          camera.position.z,
+          cameraView.x,
+          cameraView.y,
+          cameraView.z,
+          this.numDraws
         );
-        parseDrawCallListBuffer(Module.HEAP8.buffer, Module.HEAP8.byteOffset + drawListBuffer);
+        const drawCalls = parseDrawCallListBuffer(
+          Module.HEAP8.buffer,
+          Module.HEAP8.byteOffset + drawListBuffer
+        );
+        // console.log(drawCalls);
+        for (let i = 0; i < drawCalls.length; i++) {
+          drawStarts.push(this.drawStarts[drawCalls[i]]);
+          drawCounts.push(this.drawCounts[drawCalls[i]]);
+        }
       }
 
 
