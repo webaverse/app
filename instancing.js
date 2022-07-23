@@ -114,28 +114,20 @@ export class FreeList {
     }
   }
   alloc(size) {
-    if (size > 0) {
-      const slotSize = _getClosestPowerOf2(size);
-      let slot = this.slots.get(slotSize);
-      if (slot === undefined) {
-        slot = new FreeListArray(slotSize, this);
-        this.slots.set(slotSize, slot);
-      }
-      const index = slot.alloc();
-      this.slotSizes.set(index, slotSize);
-
-      const entry = {
-        start: index,
-        count: size,
-      };
-      return entry;
-    } else {
-      debugger;
-      return {
-        start: 0,
-        count: 0,
-      };
+    const slotSize = _getClosestPowerOf2(size);
+    let slot = this.slots.get(slotSize);
+    if (slot === undefined) {
+      slot = new FreeListArray(slotSize, this);
+      this.slots.set(slotSize, slot);
     }
+    const index = slot.alloc();
+    this.slotSizes.set(index, slotSize);
+
+    const entry = {
+      start: index,
+      count: size,
+    };
+    return entry;
   }
   free(entry) {
     const {start: index} = entry;
