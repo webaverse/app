@@ -990,6 +990,7 @@ class UninterpolatedPlayer extends StatePlayer {
       fly: new InfiniteActionInterpolant(() => this.hasAction('fly'), 0),
       swim: new InfiniteActionInterpolant(() => this.hasAction('swim'), 0),
       jump: new InfiniteActionInterpolant(() => this.hasAction('jump'), 0),
+      doubleJump: new InfiniteActionInterpolant(() => this.hasAction('doubleJump'), 0),
       land: new InfiniteActionInterpolant(() => !this.hasAction('jump') && !this.hasAction('fallLoop') && !this.hasAction('fly'), 0),
       dance: new BiActionInterpolant(() => this.hasAction('dance'), 0, crouchMaxTime),
       emote: new BiActionInterpolant(() => this.hasAction('emote'), 0, crouchMaxTime),
