@@ -195,7 +195,7 @@ export class GeometryAllocator {
 
     this.boundingType = boundingType;
 
-    this.positionFreeList = new FreeList(bufferSize * 3);
+    this.positionFreeList = new FreeList(bufferSize * 3, 3);
     this.indexFreeList = new FreeList(bufferSize);
 
     this.drawStarts = new Int32Array(maxNumDraws);
