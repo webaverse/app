@@ -46,11 +46,11 @@
     {
       "position": [
         0,
-        0,
+        -60,
         0
       ],
       "start_url": "http://localhost/lib/webaverse_resource/water/"
     },
-    { "position": [ 0, 0, 0 ], "start_url": "http://localhost/lib/webaverse_resource/dual-contouring-terrain/" }
+    { "position": [ 0, 0, 0 ], "scale": [1, 1, 1], "start_url": "http://localhost/lib/webaverse_resource/block/grid.glb" }
   ]
 }
