@@ -153,7 +153,7 @@ const chunkAllocationDataSize =
   Int32Array.BYTES_PER_ELEMENT +
   Int32Array.BYTES_PER_ELEMENT +
   Int32Array.BYTES_PER_ELEMENT +
-  Uint8Array.BYTES_PER_ELEMENT; // 35
+  Uint8Array.BYTES_PER_ELEMENT * 15; // 35
 
 class ChunkAllocationData {
   constructor(id, min, enterFace, peeks) {
@@ -267,6 +267,7 @@ export class GeometryAllocator {
       const allocator = new Allocator(Module);  
       const chunkAllocationBufferSize = maxNumDraws * chunkAllocationDataSize;
       this.chunkAllocationBuffer = allocator.alloc(Uint8Array, chunkAllocationBufferSize);
+      // console.log(this.chunkAllocationBuffer.length);
       this.chunkAllocationArrayOffset = this.chunkAllocationBuffer.offset;
       this.chunkAllocationDataView = new DataView(Module.HEAP8.buffer, this.chunkAllocationArrayOffset, chunkAllocationBufferSize);
     }
@@ -389,10 +390,11 @@ export class GeometryAllocator {
         const max = localVector3D3.fromArray(this.maxData, i * 4); // max
 
         if(isVectorInRange(camera.position, min, max)){
-          currentChunkMin.clone(min);
-          currentChunkMax.clone(max);
+          currentChunkMin.copy(min);
+          currentChunkMax.copy(max);
           foundId = i;
-          // console.log(min.x == this.chunkAllocationDataView.getInt32(i * chunkAllocationDataSize + Int32Array.BYTES_PER_ELEMENT));
+          // console.log(min.x);
+          // console.log(currentChunkMin.x == this.chunkAllocationDataView.getInt32(i * chunkAllocationDataSize + Int32Array.BYTES_PER_ELEMENT));
         }
       };
 
@@ -403,7 +405,9 @@ export class GeometryAllocator {
 
 
       if(foundId){
-      // console.log(this.chunkAllocationArrayOffset);
+        // const dw = new DataView(Module.HEAP8.buffer, this.chunkAllocationArrayOffset, maxNumDraws * chunkAllocationDataSize);
+        // console.log(chunkAllocationDataSize);
+        // console.log(dw.getInt32((this.numDraws - 1) * chunkAllocationDataSize));
       // console.log(foundId);
       const drawListBuffer = Module._cullOcclusionCulling(
         this.OCInstance,
