@@ -1394,11 +1394,11 @@ class GameManager extends EventTarget {
         localPlayer.setControlAction({type: 'fallLoop'});
       }
     } else {
-      const flyAction = {
-        type: 'fly',
-        time: 0,
-      };
-      localPlayer.setControlAction(flyAction);
+      // const flyAction = {
+      //   type: 'fly',
+      //   time: 0,
+      // };
+      // localPlayer.setControlAction(flyAction);
     }
   }
   isCrouched() {
