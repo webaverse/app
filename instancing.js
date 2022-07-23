@@ -122,29 +122,19 @@ export class FreeList {
     }
     const index = slot.alloc();
     this.slotSizes.set(index, slotSize);
-
-    const entry = {
-      start: index,
-      count: size,
-    };
-    return entry;
+    return index;
   }
-  free(entry) {
-    const {start: index} = entry;
-    if (index >= 0) {
-      const slotSize = this.slotSizes.get(index);
-      if (slotSize !== undefined) {
-        const slot = this.slots.get(slotSize);
-        if (slot !== undefined) {
-          slot.free(index);
-        } else {
-          throw new Error('invalid slot');
-        }
+  free(index) {
+    const slotSize = this.slotSizes.get(index);
+    if (slotSize !== undefined) {
+      const slot = this.slots.get(slotSize);
+      if (slot !== undefined) {
+        slot.free(index);
       } else {
-        throw new Error('invalid index');
+        throw new Error('invalid free slot');
       }
     } else {
-      // nothing
+      throw new Error('invalid free index');
     }
   }
 }
@@ -156,10 +146,10 @@ export class GeometryPositionIndexBinding {
     this.geometry = geometry;
   }
   getAttributeOffset(name = 'position') {
-    return this.positionFreeListEntry.start / 3 * this.geometry.attributes[name].itemSize;
+    return this.positionFreeListEntry / 3 * this.geometry.attributes[name].itemSize;
   }
   getIndexOffset() {
-    return this.indexFreeListEntry.start;
+    return this.indexFreeListEntry;
   }
 }
 
@@ -215,8 +205,8 @@ export class GeometryAllocator {
     }
 
     const slot = indexFreeListEntry;
-    this.drawStarts[this.numDraws] = slot.start * this.geometry.index.array.BYTES_PER_ELEMENT;
-    this.drawCounts[this.numDraws] = slot.count;
+    this.drawStarts[this.numDraws] = slot * this.geometry.index.array.BYTES_PER_ELEMENT;
+    this.drawCounts[this.numDraws] = numIndices;
     if (this.boundingType === 'sphere') {
       boundingObject.center.toArray(this.boundingData, this.numDraws * 4);
       this.boundingData[this.numDraws * 4 + 3] = boundingObject.radius;
@@ -231,7 +221,7 @@ export class GeometryAllocator {
   }
   free(geometryBinding) {
     const slot = geometryBinding.indexFreeListEntry;
-    const expectedStartValue = slot.start * this.geometry.index.array.BYTES_PER_ELEMENT;
+    const expectedStartValue = slot * this.geometry.index.array.BYTES_PER_ELEMENT;
     const freeIndex = this.drawStarts.indexOf(expectedStartValue);
 
     if (this.numDraws >= 2) {
@@ -420,7 +410,7 @@ export class DrawCallBinding {
   getTextureOffset(name) {
     const texture = this.getTexture(name);
     const {itemSize} = texture;
-    return this.freeListEntry.start * this.allocator.maxInstancesPerDrawCall * itemSize;
+    return this.freeListEntry * this.allocator.maxInstancesPerDrawCall * itemSize;
   }
   getInstanceCount() {
     return this.allocator.getInstanceCount(this);
@@ -663,15 +653,15 @@ export class InstancedGeometryAllocator {
       },
     } = geometrySpec;
 
-    this.drawStarts[freeListEntry.start] = start * this.geometry.index.array.BYTES_PER_ELEMENT;
-    this.drawCounts[freeListEntry.start] = count;
-    this.drawInstanceCounts[freeListEntry.start] = 0;
+    this.drawStarts[freeListEntry] = start * this.geometry.index.array.BYTES_PER_ELEMENT;
+    this.drawCounts[freeListEntry] = count;
+    this.drawInstanceCounts[freeListEntry] = 0;
     if (this.boundingType === 'sphere') {
-      boundingObject.center.toArray(this.boundingData, freeListEntry.start * 4);
-      this.boundingData[freeListEntry.start * 4 + 3] = boundingObject.radius;
+      boundingObject.center.toArray(this.boundingData, freeListEntry  * 4);
+      this.boundingData[freeListEntry * 4 + 3] = boundingObject.radius;
     } else if (this.boundingType === 'box') {
-      boundingObject.min.toArray(this.boundingData, freeListEntry.start * 6);
-      boundingObject.max.toArray(this.boundingData, freeListEntry.start * 6 + 3);
+      boundingObject.min.toArray(this.boundingData, freeListEntry * 6);
+      boundingObject.max.toArray(this.boundingData, freeListEntry * 6 + 3);
     }
     
     return drawCall;
@@ -679,36 +669,36 @@ export class InstancedGeometryAllocator {
   freeDrawCall(drawCall) {
     const {freeListEntry} = drawCall;
 
-    this.drawStarts[freeListEntry.start] = 0;
-    this.drawCounts[freeListEntry.start] = 0;
-    this.drawInstanceCounts[freeListEntry.start] = 0;
+    this.drawStarts[freeListEntry] = 0;
+    this.drawCounts[freeListEntry] = 0;
+    this.drawInstanceCounts[freeListEntry] = 0;
     if (this.boundingType === 'sphere') {
-      this.boundingData[freeListEntry.start * 4] = 0;
-      this.boundingData[freeListEntry.start * 4 + 1] = 0;
-      this.boundingData[freeListEntry.start * 4 + 2] = 0;
-      this.boundingData[freeListEntry.start * 4 + 3] = 0;
+      this.boundingData[freeListEntry * 4] = 0;
+      this.boundingData[freeListEntry * 4 + 1] = 0;
+      this.boundingData[freeListEntry * 4 + 2] = 0;
+      this.boundingData[freeListEntry * 4 + 3] = 0;
     } else if (this.boundingType === 'box') {
-      this.boundingData[freeListEntry.start * 6] = 0;
-      this.boundingData[freeListEntry.start * 6 + 1] = 0;
-      this.boundingData[freeListEntry.start * 6 + 2] = 0;
-      this.boundingData[freeListEntry.start * 6 + 3] = 0;
-      this.boundingData[freeListEntry.start * 6 + 4] = 0;
-      this.boundingData[freeListEntry.start * 6 + 5] = 0;
+      this.boundingData[freeListEntry * 6] = 0;
+      this.boundingData[freeListEntry * 6 + 1] = 0;
+      this.boundingData[freeListEntry * 6 + 2] = 0;
+      this.boundingData[freeListEntry * 6 + 3] = 0;
+      this.boundingData[freeListEntry * 6 + 4] = 0;
+      this.boundingData[freeListEntry * 6 + 5] = 0;
     }
 
     this.freeList.free(freeListEntry);
   }
   getInstanceCount(drawCall) {
-    return this.drawInstanceCounts[drawCall.freeListEntry.start];
+    return this.drawInstanceCounts[drawCall.freeListEntry];
   }
   setInstanceCount(drawCall, instanceCount) {
-    this.drawInstanceCounts[drawCall.freeListEntry.start] = instanceCount;
+    this.drawInstanceCounts[drawCall.freeListEntry ] = instanceCount;
   }
   incrementInstanceCount(drawCall) {
-    this.drawInstanceCounts[drawCall.freeListEntry.start]++;
+    this.drawInstanceCounts[drawCall.freeListEntry ]++;
   }
   decrementInstanceCount(drawCall) {
-    this.drawInstanceCounts[drawCall.freeListEntry.start]--;
+    this.drawInstanceCounts[drawCall.freeListEntry ]--;
   }
   getTexture(name) {
     return this.textures[name];
