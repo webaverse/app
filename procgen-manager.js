@@ -55,13 +55,15 @@ class ProcGenInstance {
     }
     return this.lightmapper;
   }
-  getHeightfieldMapper() {
+  getHeightfieldMapper({
+    size,
+    debug = false,
+  } = {}) {
     if (!this.heightfieldMapper) {
-      const {chunkSize, range} = this;
       this.heightfieldMapper = new HeightfieldMapper({
-        chunkSize,
-        terrainSize,
-        range,
+        procGenInstance: this,
+        size,
+        debug,
       });
     }
     return this.heightfieldMapper;
