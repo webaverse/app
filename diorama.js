@@ -678,7 +678,9 @@ const createPlayerDiorama = ({
           // set up side camera
           target.matrixWorld.decompose(localVector, localQuaternion, localVector2);
           const targetPosition = localVector;
-          const targetQuaternion = localQuaternion;
+          const targetEuler = new THREE.Euler().setFromQuaternion(localQuaternion);
+          targetEuler._y += Math.PI;
+          const targetQuaternion = new THREE.Quaternion().setFromEuler(targetEuler)
 
           sideCamera.position.copy(targetPosition)
             .add(
