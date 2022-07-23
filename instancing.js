@@ -222,6 +222,7 @@ export class GeometryAllocator {
   free(geometryBinding) {
     const slot = geometryBinding.indexFreeListEntry;
     const expectedStartValue = slot * this.geometry.index.array.BYTES_PER_ELEMENT;
+    // XXX using indexOf is slow. we can do better.
     const freeIndex = this.drawStarts.indexOf(expectedStartValue);
 
     if (this.numDraws >= 2) {
