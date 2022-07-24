@@ -17,6 +17,32 @@ const localVector = new THREE.Vector3();
 
 // const nop = () => {};
 
+const uint16Array = new Uint16Array(1);
+/* uint64_t hashOctreeMinLod(const vm::ivec3 &min, int lod) {
+    uint64_t result = uint16_t(min.x);
+    result = (result << 16) | uint16_t(min.y);
+    result = (result << 16) | uint16_t(min.z);
+    result = (result << 16) | uint16_t(lod);
+    return result;
+} */
+const tp16 = 2 ** 16;
+const tp5 = 2 ** 5;
+const _getHashMinLod = (min, lod) => {
+  let result;
+  
+  uint16Array[0] = min.x;
+  result = uint16Array[0];
+  uint16Array[0] = min.y;
+  result = (result * tp16) + uint16Array[0];
+  uint16Array[0] = min.z;
+  result = (result * tp16) + uint16Array[0];
+  uint16Array[0] = lod;
+  result = (result * tp5) + uint16Array[0];
+
+  return result;
+};
+const _getHashChunk = chunk => _getHashMinLod(chunk.min, chunk.lod);
+
 class Dominator extends EventTarget {
   constructor(base, onload) {
     super();
@@ -113,9 +139,9 @@ const _toUint32 = value => {
   tempUint32Array[0] = value;
   return tempUint32Array[0];
 } */
-const _octreeNodeMinHash = (min, lod) => `${min.x},${min.y},${min.z}:${lod}`;
-const _getLeafNodeFromPoint = (leafNodes, p) => leafNodes.find(node => node.containsPoint(p));
-const constructOctreeForLeaf = (position, lod1Range, maxLod) => {
+// const _octreeNodeMinHash = (min, lod) => `${min.x},${min.y},${min.z}:${lod}`;
+// const _getLeafNodeFromPoint = (leafNodes, p) => leafNodes.find(node => node.containsPoint(p));
+/* const constructOctreeForLeaf = (position, lod1Range, maxLod) => {
   const nodeMap = new Map();
   
   const _getNode = (min, lod) => {
@@ -271,7 +297,7 @@ const constructOctreeForLeaf = (position, lod1Range, maxLod) => {
   }
 
   return leafNodes;
-};
+}; */
 const equalsNode = (a, b) => {
   return a.min.equals(b.min) && a.lod === b.lod;
 };
@@ -639,7 +665,6 @@ export class LodChunkTracker extends EventTarget {
     return target.set(cx, cy, cz);
   }
   emitChunkDestroy(chunk) {
-    // const hash = chunk.min.toArray().join(',') + ':' + chunk.lod; // _octreeNodeMinHash(chunk.min, chunk.lod);
     this.dispatchEvent(new MessageEvent('destroy', {
       data: {
         node: chunk,
@@ -647,7 +672,6 @@ export class LodChunkTracker extends EventTarget {
     }));
   }
   listenForChunkDestroy(chunk, fn) {
-    // const hash = chunk.min.toArray().join(',') + ':' + chunk.lod; // _octreeNodeMinHash(chunk.min, chunk.lod);
     const destroy = e => {
       if (e.data.node.min.equals(chunk)) {
         fn(e);
@@ -792,7 +816,7 @@ export class LodChunkTracker extends EventTarget {
 
       // add new data requests
       for (const chunk of leafNodes) {
-        const hash = chunk.min.toArray().join(',') + ':' + chunk.lod;
+        const hash = _getHashChunk(chunk);
         if (!this.dataRequests.has(hash)) {
           const dataRequest = new DataRequest(chunk);
           const {signal} = dataRequest;
@@ -849,7 +873,7 @@ export class LodChunkTracker extends EventTarget {
           throw new Error('no chunk match in any leaf set');
         }
 
-        const maxLodHash = maxLodChunk.min.toArray().join(',') + ':' + maxLodChunk.lod;
+        const maxLodHash = _getHashChunk(maxLodChunk);
         let dominator = this.dominators.get(maxLodHash);
         if (!dominator) {
           dominator = new Dominator(maxLodChunk, renderDatas => {
@@ -861,7 +885,7 @@ export class LodChunkTracker extends EventTarget {
               });
               this.dispatchEvent(chunkRemoveEvent);
    
-              const hash = oldChunk.min.toArray().join(',') + ':' + oldChunk.lod;
+              const hash = _getHashChunk(oldChunk);
               this.renderedChunks.delete(hash);
             }
             for (let i = 0; i < dominator.newChunks.length; i++) {
@@ -877,7 +901,7 @@ export class LodChunkTracker extends EventTarget {
               });
               this.dispatchEvent(chunkAddEvent);
 
-              const hash = newChunk.min.toArray().join(',') + ':' + newChunk.lod;
+              const hash = _getHashChunk(newChunk);
               this.renderedChunks.set(hash, newChunk);
             }
           });
