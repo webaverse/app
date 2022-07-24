@@ -411,7 +411,6 @@ class DataRequest {
     this.node.dataRequest = this;
   }
   cancel() {
-    // console.log('cancel data request');
     this.abortController.abort(abortError);
   }
   waitForLoad() {
