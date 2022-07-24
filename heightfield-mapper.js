@@ -239,6 +239,8 @@ export class HeightfieldMapper /* extends EventTarget */ {
             vec2 posDiff = pos2D - 0.5 - (uHeightfieldMinPosition) / uHeightfieldSize;
             vec2 uvHeightfield = posDiff;
             uvHeightfield = mod(uvHeightfield, 1.); */
+
+            // gl_FragColor = vec4(vUv.x, 0., vUv.y, 0.5);
             gl_FragColor = vec4(vUv.x, 0., vUv.y, 1.);
           }
         `;
