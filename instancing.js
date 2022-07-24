@@ -693,13 +693,13 @@ export class InstancedGeometryAllocator {
     return this.drawInstanceCounts[drawCall.freeListEntry];
   }
   setInstanceCount(drawCall, instanceCount) {
-    this.drawInstanceCounts[drawCall.freeListEntry ] = instanceCount;
+    this.drawInstanceCounts[drawCall.freeListEntry] = instanceCount;
   }
   incrementInstanceCount(drawCall) {
-    this.drawInstanceCounts[drawCall.freeListEntry ]++;
+    this.drawInstanceCounts[drawCall.freeListEntry]++;
   }
   decrementInstanceCount(drawCall) {
-    this.drawInstanceCounts[drawCall.freeListEntry ]--;
+    this.drawInstanceCounts[drawCall.freeListEntry]--;
   }
   getTexture(name) {
     return this.textures[name];
