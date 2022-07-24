@@ -205,6 +205,8 @@ export function applyPlayerActionsToAvatar(player, rig) {
   // rig.standChargeAnimation = standChargeAnimation;
   // rig.standChargeState = !!standCharge;
   rig.fallLoopTime = player.actionInterpolants.fallLoop.get();
+  rig.fallLoopFactor = player.actionInterpolants.fallLoopTransition.getNormalized();
+  rig.fallLoopFrom = fallLoopAction ? fallLoopAction.from : '';
   // rig.fallLoopAnimation = fallLoopAnimation;
   rig.fallLoopState = !!fallLoopAction;
   // rig.swordSideSlashTime = player.actionInterpolants.swordSideSlash.get();
