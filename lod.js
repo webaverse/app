@@ -505,7 +505,7 @@ using these results
 - the tri budget can be scaled linearly with the results
 - the chunk size can be changed to increase the view distance while decreasing the density, while keeping the tri budget the same
 */
-export class LodChunk extends THREE.Vector3 {
+/* export class LodChunk extends THREE.Vector3 {
   constructor(x, y, z, lod, lodArray) {
     
     super(x, y, z);
@@ -526,7 +526,7 @@ export class LodChunk extends THREE.Vector3 {
       p.y >= this.y && p.y < this.y + this.lod &&
       p.z >= this.z && p.z < this.z + this.lod;
   }
-}
+} */
 export class LodChunkTracker extends EventTarget {
   constructor({
     chunkSize = defaultChunkSize,
@@ -950,7 +950,7 @@ export class LodChunkTracker extends EventTarget {
   destroy() {
     throw new Error('not implemented');
 
-    for (const chunk of this.chunks) {
+    /* for (const chunk of this.chunks) {
       const task = new Task(chunk);
       task.oldNodes.push(chunk);
       
@@ -960,6 +960,6 @@ export class LodChunkTracker extends EventTarget {
         },
       }));
     }
-    this.chunks.length = 0;
+    this.chunks.length = 0; */
   }
 }
