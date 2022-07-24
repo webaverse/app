@@ -31,12 +31,15 @@ const minDistance = 1;
 const hitDistance = 1.5;
 const maxAnisotropy = 16;
 
-const maxGeometries = 8;
+let numGeometries = 8;
 const maxInstancesPerDrawCall = 128;
 const maxDrawCallsPerGeometry = 1;
 const maxBonesPerInstance = 128;
 
 const bakeFps = 24;
+const maxAnimationFrameLength = 512;
+
+let unifiedBoneTextureSize = 1024;
 
 // window.THREE = THREE;
 
@@ -465,19 +468,19 @@ class InstancedSkeleton extends THREE.Skeleton {
 
     // bone texture
     const boneTexture = this.parent.allocator.getTexture('boneTexture');
-    this.boneMatrices = boneTexture.image.data;
-    this.boneTexture = boneTexture;
-    this.boneTextureSize = boneTexture.image.width;
+    this.unifiedBoneMatrices = boneTexture.image.data; // Avoid setting to THREE.Skeleton because update() tries to access texture buffer
+    this.unifiedBoneTexture = boneTexture;
+    unifiedBoneTextureSize = boneTexture.image.width;
+    // console.log('boneTextureSize', unifiedBoneTextureSize);
   }
   bakeFrame(skeleton, drawCallIndex, frameIndex) {
-    const boneMatrices = this.boneMatrices;
-    const boneTexture = this.parent.allocator.getTexture('boneTexture');
+    const boneMatrices = this.unifiedBoneMatrices;
     
     const drawCall = this.parent.drawCalls[drawCallIndex];
     
-    // geometry -> instance (skeleton) -> bone -> matrix
-    const dstOffset = frameIndex * maxGeometries * maxDrawCallsPerGeometry * maxBonesPerInstance * 16 +
-      drawCall.freeListEntry.start * maxDrawCallsPerGeometry * maxBonesPerInstance * 16;
+    // frame -> geometry (skeleton) -> bone -> matrix
+    const dstOffset = frameIndex * numGeometries * maxBonesPerInstance * 16 +
+      drawCall.freeListEntry * maxBonesPerInstance * 16;
 
     const bones = skeleton.bones;
     const boneInverses = skeleton.boneInverses;
@@ -494,8 +497,6 @@ class InstancedSkeleton extends THREE.Skeleton {
       localMatrix.toArray( boneMatrices, dstOffset + i * 16 );
 
     }
-
-    boneTexture.needsUpdate = true;
 	}
 }
 
@@ -518,6 +519,8 @@ class MobBatchedMesh extends InstancedBatchedMesh {
       textures: ['map', 'normalMap', 'roughnessMap', 'metalnessMap'],
     });
 
+    numGeometries = geometries.length;
+
     for (let i = 0; i < geometries.length; i++) {
       const geometry = geometries[i];
       const glb = glbs[i];
@@ -526,9 +529,8 @@ class MobBatchedMesh extends InstancedBatchedMesh {
       // const idleAnimation = animations.find(a => a.name === 'idle');
       const clip = animations[0];
 
-      const positions = geometry.attributes.position.array;
       const frameCount = Math.floor(clip.duration * bakeFps);
-      const frameCounts = new Float32Array(positions.length)
+      const frameCounts = new Float32Array(geometry.attributes.position.count)
         .fill(frameCount);
       geometry.setAttribute('frameCount', new THREE.BufferAttribute(frameCounts, 1));
     }
@@ -555,10 +557,12 @@ class MobBatchedMesh extends InstancedBatchedMesh {
         name: 'boneTexture',
         Type: Float32Array,
         itemSize: maxBonesPerInstance * 16,
+        instanced: false,
       },
     ], {
       maxInstancesPerDrawCall,
       maxDrawCallsPerGeometry,
+      maxSlotsPerGeometry: maxAnimationFrameLength,
     });
     const {geometry, textures: attributeTextures} = allocator;
     for (const k in attributeTextures) {
@@ -594,7 +598,11 @@ class MobBatchedMesh extends InstancedBatchedMesh {
           value: attributeTextures.timeOffset,
           needsUpdate: true,
         };
-        shader.uniforms.time = { value: 0 };
+        shader.uniforms.uBoneTexture = {
+          value: attributeTextures.boneTexture,
+          needsUpdate: true,
+        };
+        shader.uniforms.uTime = { value: 0 };
 
         // skin vertex
 
@@ -607,29 +615,157 @@ class MobBatchedMesh extends InstancedBatchedMesh {
 #ifdef USE_SKINNING
 uniform mat4 bindMatrix;
 uniform mat4 bindMatrixInverse;
-uniform highp sampler2D boneTexture;
+uniform highp sampler2D uBoneTexture;
 uniform sampler2D timeOffsetTexture;
-uniform int boneTextureSize;
-uniform int     time;
+uniform float     uTime;
 attribute float frameCount;
 mat4 getBoneMatrix( const in float base, const in float i ) {
   float j = base + i * 4.0;
-  float x = mod( j, float( boneTextureSize ) );
-  float y = floor( j / float( boneTextureSize ) );
-  float dx = 1.0 / float( boneTextureSize );
-  float dy = 1.0 / float( boneTextureSize );
+  float x = mod( j, float( ${unifiedBoneTextureSize} ) );
+  float y = floor( j / float( ${unifiedBoneTextureSize} ) );
+  float dx = 1.0 / float( ${unifiedBoneTextureSize} );
+  float dy = 1.0 / float( ${unifiedBoneTextureSize} );
   y = dy * ( y + 0.5 );
-  vec4 v1 = texture2D( boneTexture, vec2( dx * ( x + 0.5 ), y ) );
-  vec4 v2 = texture2D( boneTexture, vec2( dx * ( x + 1.5 ), y ) );
-  vec4 v3 = texture2D( boneTexture, vec2( dx * ( x + 2.5 ), y ) );
-  vec4 v4 = texture2D( boneTexture, vec2( dx * ( x + 3.5 ), y ) );
+  vec4 v1 = texture2D( uBoneTexture, vec2( dx * ( x + 0.5 ), y ) );
+  vec4 v2 = texture2D( uBoneTexture, vec2( dx * ( x + 1.5 ), y ) );
+  vec4 v3 = texture2D( uBoneTexture, vec2( dx * ( x + 2.5 ), y ) );
+  vec4 v4 = texture2D( uBoneTexture, vec2( dx * ( x + 3.5 ), y ) );
   mat4 bone = mat4( v1, v2, v3, v4 );
   return bone;
+}
+vec4 mat2quat( mat3 m ) {
+  vec4 q;
+  float tr = m[0][0] + m[1][1] + m[2][2];
+
+  if (tr > 0.0) { 
+    float S = sqrt(tr + 1.0) * 2.0; // S=4*qw 
+    q.w = 0.25 * S;
+    q.x = (m[2][1] - m[1][2]) / S;
+    q.y = (m[0][2] - m[2][0]) / S; 
+    q.z = (m[1][0] - m[0][1]) / S; 
+  } else if ((m[0][0] > m[1][1]) && (m[0][0] > m[2][2])) { 
+    float S = sqrt(1.0 + m[0][0] - m[1][1] - m[2][2]) * 2.0; // S=4*qx 
+    q.w = (m[2][1] - m[1][2]) / S;
+    q.x = 0.25 * S;
+    q.y = (m[0][1] + m[1][0]) / S; 
+    q.z = (m[0][2] + m[2][0]) / S; 
+  } else if (m[1][1] > m[2][2]) { 
+    float S = sqrt(1.0 + m[1][1] - m[0][0] - m[2][2]) * 2.0; // S=4*qy
+    q.w = (m[0][2] - m[2][0]) / S;
+    q.x = (m[0][1] + m[1][0]) / S; 
+    q.y = 0.25 * S;
+    q.z = (m[1][2] + m[2][1]) / S; 
+  } else { 
+    float S = sqrt(1.0 + m[2][2] - m[0][0] - m[1][1]) * 2.0; // S=4*qz
+    q.w = (m[1][0] - m[0][1]) / S;
+    q.x = (m[0][2] + m[2][0]) / S;
+    q.y = (m[1][2] + m[2][1]) / S;
+    q.z = 0.25 * S;
+  }
+
+  return q;
+}
+mat4 quat2mat( vec4 q ) {
+  mat4 m;
+  m[0][0] = 1.0 - 2.0*(q.y*q.y + q.z*q.z);
+  m[0][1] = 2.0*(q.x*q.y - q.z*q.w);
+  m[0][2] = 2.0*(q.x*q.z + q.y*q.w);
+  m[1][0] = 2.0*(q.x*q.y + q.z*q.w);
+  m[1][1] = 1.0 - 2.0*(q.x*q.x + q.z*q.z);
+  m[1][2] = 2.0*(q.y*q.z - q.x*q.w);
+  m[2][0] = 2.0*(q.x*q.z - q.y*q.w);
+  m[2][1] = 2.0*(q.y*q.z + q.x*q.w);
+  m[2][2] = 1.0 - 2.0*(q.x*q.x + q.y*q.y);
+
+  m[0][3] = 0.0;
+  m[1][3] = 0.0;
+  m[2][3] = 0.0;
+  m[3][0] = 0.0;
+  m[3][1] = 0.0;
+  m[3][2] = 0.0;
+  m[3][3] = 1.0;
+
+  return m;
+}
+#define QUATERNION_IDENTITY vec4(0, 0, 0, 1)
+
+#ifndef PI
+#define PI 3.1415926
+#endif
+vec4 q_slerp(vec4 a, vec4 b, float t) {
+  // if either input is zero, return the other.
+  if (length(a) == 0.0) {
+      if (length(b) == 0.0) {
+          return QUATERNION_IDENTITY;
+      }
+      return b;
+  } else if (length(b) == 0.0) {
+      return a;
+  }
+
+  float cosHalfAngle = a.w * b.w + dot(a.xyz, b.xyz);
+
+  if (cosHalfAngle >= 1.0 || cosHalfAngle <= -1.0) {
+      return a;
+  } else if (cosHalfAngle < 0.0) {
+      b.xyz = -b.xyz;
+      b.w = -b.w;
+      cosHalfAngle = -cosHalfAngle;
+  }
+
+  float blendA;
+  float blendB;
+  if (cosHalfAngle < 0.99) {
+      // do proper slerp for big angles
+      float halfAngle = acos(cosHalfAngle);
+      float sinHalfAngle = sin(halfAngle);
+      float oneOverSinHalfAngle = 1.0 / sinHalfAngle;
+      blendA = sin(halfAngle * (1.0 - t)) * oneOverSinHalfAngle;
+      blendB = sin(halfAngle * t) * oneOverSinHalfAngle;
+  } else {
+      // do lerp if angle is really small.
+      blendA = 1.0 - t;
+      blendB = t;
+  }
+
+  vec4 result = vec4(blendA * a.xyz + blendB * b.xyz, blendA * a.w + blendB * b.w);
+  if (length(result) > 0.0) {
+      return normalize(result);
+  }
+  return QUATERNION_IDENTITY;
+}
+mat4 getInterpBoneMatrix( const in float base1, const in float base2, const in float ratio, const in float i ) {
+  mat4 boneMat1 = getBoneMatrix( base1, i );
+  mat4 boneMat2 = getBoneMatrix( base2, i );
+
+  vec3 translation1 = boneMat1[3].xyz;
+  vec3 translation2 = boneMat2[3].xyz;
+  vec3 translation = translation1 * (1.0 - ratio) + translation2 * ratio;
+
+  mat3 rot1 = mat3(boneMat1);
+  float s1 = pow(determinant( rot1 ), 1.0/3.0);
+  rot1 = rot1 / s1;
+
+  mat3 rot2 = mat3(boneMat2);
+  float s2 = pow(determinant( rot2 ), 1.0/3.0);
+  rot2 = rot2 / s2;
+
+  vec4 q1 = mat2quat( rot1 );
+  vec4 q2 = mat2quat( rot2 );
+  vec4 q = q_slerp( q1, q2, ratio );
+
+  float s = s1 * (1.0 - ratio) + s2 * ratio;
+
+  mat4 boneMat = quat2mat( q );
+  boneMat = boneMat * s;
+  boneMat[3] = vec4(translation, 1.0);
+
+  return boneMat;
 }
 #endif
         `);
         shader.vertexShader = shader.vertexShader.replace(`#include <skinbase_vertex>`, `\
-int boneTextureInstanceIndex = gl_DrawID * ${maxBonesPerInstance};
+int boneTextureIndex = gl_DrawID * ${maxBonesPerInstance};
 int instanceIndex = gl_DrawID * ${maxInstancesPerDrawCall} + gl_InstanceID;
 #ifdef USE_SKINNING
   
@@ -640,13 +776,23 @@ int instanceIndex = gl_DrawID * ${maxInstancesPerDrawCall} + gl_InstanceID;
   vec2 timeOffsetpUv = (vec2(timeOffsetX, timeOffsetY) + 0.5) / vec2(timeOffsetWidth, timeOffsetHeight);
   float timeOffset = texture2D(timeOffsetTexture, timeOffsetpUv).x;
   
-  float frame		= mod( float(time) + timeOffset*frameCount, frameCount );
-  boneTextureInstanceIndex = boneTextureInstanceIndex + int(frame) * (${maxGeometries} * ${maxBonesPerInstance});
-  float boneIndexOffset = float(boneTextureInstanceIndex) * 4.;
-  mat4 boneMatX = getBoneMatrix( boneIndexOffset, skinIndex.x );
-  mat4 boneMatY = getBoneMatrix( boneIndexOffset, skinIndex.y );
-  mat4 boneMatZ = getBoneMatrix( boneIndexOffset, skinIndex.z );
-  mat4 boneMatW = getBoneMatrix( boneIndexOffset, skinIndex.w );
+  float time1 = float(floor(uTime));
+  float time2 = float(ceil(uTime));
+  float timeRatio = (uTime - time1) / (time2 - time1);
+  if (time2 == time1) {
+    timeRatio = 0.0f;
+  }
+  float frame1 = mod( float(time1) + timeOffset * frameCount, frameCount );
+  float frame2 = mod( float(time2) + timeOffset * frameCount, frameCount );
+  int boneTextureIndex1 = boneTextureIndex + int(frame1) * ${numGeometries} * ${maxBonesPerInstance};
+  int boneTextureIndex2 = boneTextureIndex + int(frame2) * ${numGeometries} * ${maxBonesPerInstance};
+  float boneIndexOffset1 = float(boneTextureIndex1) * 4.;
+  float boneIndexOffset2 = float(boneTextureIndex2) * 4.;
+
+  mat4 boneMatX = getInterpBoneMatrix( boneIndexOffset1, boneIndexOffset2, timeRatio, skinIndex.x );
+  mat4 boneMatY = getInterpBoneMatrix( boneIndexOffset1, boneIndexOffset2, timeRatio, skinIndex.y );
+  mat4 boneMatZ = getInterpBoneMatrix( boneIndexOffset1, boneIndexOffset2, timeRatio, skinIndex.z );
+  mat4 boneMatW = getInterpBoneMatrix( boneIndexOffset1, boneIndexOffset2, timeRatio, skinIndex.w );
 
   /* mat4 boneMatX = mat4(1.);
   mat4 boneMatY = mat4(1.);
@@ -809,8 +955,6 @@ gl_Position = projectionMatrix * mvPosition;
         action.play();
         mixer.updateMatrixWorld = () => {
           glb2Scene.updateMatrixWorld();
-
-          // window.glb2Scene = glb2Scene; // XXX
         };
       //}
 
@@ -820,13 +964,13 @@ gl_Position = projectionMatrix * mvPosition;
       mixer.setTime(0);
       const frameCount = Math.floor(clip.duration * bakeFps);
       for (let t = 0; t < frameCount; t++) {
-        mixer.update(1./bakeFps);
+        mixer.update(1. / bakeFps);
         mixer.updateMatrixWorld();
 
         this.skeleton.bakeFrame(skeleton2, i, t);
       }
     }
-    this.skeleton.update();
+    this.skeleton.unifiedBoneTexture.needsUpdate = true;
   }
   getDrawCall(geometryIndex) {
     let drawCall = this.drawCalls[geometryIndex];
@@ -838,23 +982,13 @@ gl_Position = projectionMatrix * mvPosition;
     }
     return drawCall;
   }
-  async addChunk(chunk, {
-    signal,
-  } = {}) {
-    if (chunk.y === 0) {
-      let live = true;
-      signal.addEventListener('abort', e => {
-        live = false;
-      });
+  drawChunk(chunk, renderData, tracker) {
+    const mobData = renderData;
 
-      const _getMobData = async chunk => {
-        const lod = 1;
-        return await this.procGenInstance.dcWorkerManager.createMobSplat(chunk.x * chunkWorldSize, chunk.z * chunkWorldSize, lod);
-      };
-      const mobData = await _getMobData(chunk);
-      // mobData.instances.length > 0 && console.log('got mob data', mobData, chunk); // XXX
-      if (!live) return;
+    if (!renderData.instances) return;
 
+    // mob geometry
+    {
       const _renderMobGeometry = (drawCall, ps, qs, index) => {
         // locals
 
@@ -924,6 +1058,8 @@ gl_Position = projectionMatrix * mvPosition;
           const pOffset = drawCall.getTextureOffset('p');
           const qTexture = drawCall.getTexture('q');
           const qOffset = drawCall.getTextureOffset('q');
+          const timeOffsetTexture = drawCall.getTexture('timeOffset');
+          const timeOffsetOffset = drawCall.getTextureOffset('timeOffset');
 
           // delete by replacing current instance with last instance
 
@@ -936,13 +1072,15 @@ gl_Position = projectionMatrix * mvPosition;
           qTexture.image.data[qOffset + instanceIndex * 4 + 2] = qTexture.image.data[qOffset + lastInstanceIndex * 4 + 2];
           qTexture.image.data[qOffset + instanceIndex * 4 + 3] = qTexture.image.data[qOffset + lastInstanceIndex * 4 + 3];
 
+          timeOffsetTexture.image.data[timeOffsetOffset + instanceIndex] = timeOffsetTexture.image.data[timeOffsetOffset + lastInstanceIndex];
+
 
           drawCall.updateTexture('p', pOffset / 3 + instanceIndex, 1);
           drawCall.updateTexture('q', qOffset / 4 + instanceIndex, 1);
+          drawCall.updateTexture('timeOffset', timeOffsetOffset + instanceIndex, 1);
 
           // mob instance
-
-          drawCall.instances[instanceIndex] = drawCall.instances[drawCall.instances.length - 1];
+          drawCall.instances[instanceIndex] = drawCall.instances[lastInstanceIndex];
           drawCall.instances.length--;
         } else {
           drawCall.instances.length = 0;
@@ -953,6 +1091,7 @@ gl_Position = projectionMatrix * mvPosition;
         drawCall.decrementInstanceCount();
       }
 
+      let mobInstances = [];
       for (let i = 0; i < mobData.instances.length; i++) {
         const geometryNoise = mobData.instances[i];
         // console.log('got noise', geometryNoise);
@@ -960,19 +1099,34 @@ gl_Position = projectionMatrix * mvPosition;
         
         const drawCall = this.getDrawCall(geometryIndex);
         const mobInstance = _renderMobGeometry(drawCall, mobData.ps, mobData.qs, i);
-        // window.drawCall = drawCall;
-
-        signal.addEventListener('abort', e => {
-          _unrenderMobGeometry(drawCall, mobInstance);
-        });
+        mobInstances.push(mobInstance);
       }
+
+      const onchunkremove = () => {
+        // const {chunk: removeChunk} = e;
+        // if (chunk.equalsNodeLod(removeChunk)) {
+          for (let i = 0; i < mobData.instances.length; i++) {
+            const geometryNoise = mobData.instances[i];
+            const geometryIndex = Math.floor(geometryNoise * this.meshes.length);
+            
+            const drawCall = this.getDrawCall(geometryIndex);
+
+            const mobInstance = mobInstances[i];
+
+            _unrenderMobGeometry(drawCall, mobInstance);
+          }
+
+          tracker.offChunkRemove(chunk, onchunkremove);
+        // }
+      };
+      tracker.onChunkRemove(chunk, onchunkremove);
     }
   }
   update(timestamp, timeDiff) {
     const shader = this.material.userData.shader;
     if (shader) {
       const frameIndex = timestamp * bakeFps / 1000;
-      shader.uniforms.time.value = Math.floor(frameIndex);
+      shader.uniforms.uTime.value = frameIndex;
     }
   }
 }
@@ -1043,20 +1197,6 @@ class MobGenerator {
   getMobModuleNames() {
     return Object.keys(this.mobModules).sort();
   }
-  generateChunk(chunk) {
-    const abortController = new AbortController();
-    const {signal} = abortController;
-    
-    (async () => {
-      await this.mobBatchedMesh.addChunk(chunk, {
-        signal,
-      });
-    })();    
-
-    chunk.binding = {
-      abortController,
-    };
-  }
   disposeChunk(chunk) {
     const {abortController} = chunk.binding;
     abortController.abort();
@@ -1092,21 +1232,39 @@ class Mobber {
       // trackY: true,
       // relod: true,
     });
-    const chunkadd = e => {
-      const {chunk, waitUntil} = e.data;
-      waitUntil(generator.generateChunk(chunk));
+    const chunkdatarequest = (e) => {
+      const {chunk, waitUntil, signal} = e;
+      const {lod} = chunk;
+
+      if (chunk.min.y !== 0) return;
+  
+      const loadPromise = (async () => {
+        const result = await procGenInstance.dcWorkerManager.createMobSplat(
+          chunk.min.x * chunkWorldSize,
+          chunk.min.z * chunkWorldSize,
+          lod
+        );
+        
+        signal.throwIfAborted();
+  
+        return result;
+      })();
+      waitUntil(loadPromise);
     };
-    tracker.addEventListener('chunkadd', chunkadd);
-    const chunkremove = e => {
-      const {chunk} = e.data;
-      generator.disposeChunk(chunk);
+    const chunkadd = (e) => {
+      const {renderData, chunk} = e;
+      generator.mobBatchedMesh.drawChunk(chunk, renderData, tracker);
     };
-    tracker.addEventListener('chunkremove', chunkremove);
+    // tracker.addEventListener('chunkdatarequest', chunkdatarequest);
+    // tracker.addEventListener('chunkadd', chunkadd);
+    tracker.onChunkDataRequest(chunkdatarequest);
+    tracker.onChunkAdd(chunkadd);
+
     this.tracker = tracker;
   }
   async waitForUpdate() {
     await new Promise((accept, reject) => {
-      this.tracker.addEventListener('update', () => {
+      this.tracker.onPostUpdate(() => {
         accept();
       });
     });
