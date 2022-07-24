@@ -711,6 +711,7 @@ metaversefile.setApi({
         return physicsObject;
       })(physicsScene.addCookedGeometry);
       physicsScene.addConvexGeometry = (addConvexGeometry => function(mesh) {
+        debugger
         const physicsObject = addConvexGeometry.apply(this, arguments);
         // app.add(physicsObject);
         app.physicsObjects.push(physicsObject);

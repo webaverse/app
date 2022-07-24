@@ -268,6 +268,8 @@ class PhysicsScene extends EventTarget {
     physx.physxWorker.addConvexGeometryPhysics(
       this.scene,
       physicsMesh,
+      false,
+      false,
       physicsId
     )
     physicsMesh.geometry = this.extractPhysicsGeometryForId(physicsId)
@@ -384,6 +386,7 @@ class PhysicsScene extends EventTarget {
     return physicsObject
   }
   getGeometryForPhysicsId(physicsId) {
+    // debugger
     return physx.physxWorker.getGeometryPhysics(this.scene, physicsId);
   }
   getBoundingBoxForPhysicsId(physicsId, box) {
