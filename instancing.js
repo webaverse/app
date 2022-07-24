@@ -19,7 +19,7 @@ const localMatrix = new THREE.Matrix4();
 const localSphere = new THREE.Sphere();
 const localBox = new THREE.Box3();
 const localFrustum = new THREE.Frustum();
-const localDataTexture = new THREE.DataTexture();
+// const localDataTexture = new THREE.DataTexture();
 
 const PEEK_FACES = {
   FRONT : 0,
@@ -530,62 +530,116 @@ export class DrawCallBinding {
   decrementInstanceCount() {
     return this.allocator.decrementInstanceCount(this);
   }
-  updateTexture(name, pixelIndex, itemCount) { // XXX optimize this
+  updateTexture(name, dataIndex, dataLength) {
     const texture = this.getTexture(name);
-    // const textureIndex = this.getTextureIndex(name);
-    texture.needsUpdate = true;
-    return;
 
+    let pixelIndex = dataIndex / texture.itemSize;
+    let itemCount = dataLength / texture.itemSize;
+
+    // update all pixels from pixelIndex to pixelIndex + itemCount
+    // this requires up to 3 writes to the texture
     const renderer = getRenderer();
-    
-    const _getIndexUv = (index, target) => {
-      const x = index % texture.width;
-      const y = Math.floor(index / texture.width);
-      return target.set(x, y);
-    };
 
-    // render start slice
-    const startUv = _getIndexUv(pixelIndex, localVector2D);
-    if (startUv.x > 0) {
-      localDataTexture.image.width = texture.image.width - startUv.x;
-      localDataTexture.image.height = 1;
-      localDataTexture.image.data = texture.image.data.subarray(
-        pixelIndex,
-        pixelIndex + startUv.x
+    let minX = pixelIndex % texture.image.width;
+    let minY = Math.floor(pixelIndex / texture.image.width);
+    let maxX = (pixelIndex + itemCount) % texture.image.width;
+    let maxY = Math.floor((pixelIndex + itemCount) / texture.image.width);
+
+    // top
+    if (minX !== 0) {
+      const x = minX;
+      const y = minY;
+      const w = Math.min(texture.image.width - x, itemCount);
+      const h = 1;
+      const position = new THREE.Vector2(x, y);
+      const start = (x + y * texture.image.width) * texture.itemSize;
+      const size = (w * h) * texture.itemSize;
+      const data = texture.image.data.subarray(
+        start,
+        start + size
       );
-      renderer.copyTextureToTexture(startUv, localDataTexture, texture, 0);
 
-      startUv.x = 0;
-      startUv.y++;
+      const srcTexture = new THREE.DataTexture(
+        data,
+        w, h,
+        texture.format,
+        texture.type,
+      );
+      renderer.copyTextureToTexture(
+        position,
+        srcTexture,
+        texture,
+        0
+      );
+
+      minX = 0;
+      minY++;
+
+      pixelIndex += w * h; 
+      itemCount -= w * h;
     }
 
-    const endUv = _getIndexUv(pixelIndex + pixelCount, localVector2D2);
-    if (endUv.y > startUv.y) {
-      // render end slice
-      if (endUv.x > 0) {
-        localDataTexture.image.width = endUv.x;
-        localDataTexture.image.height = 1;
-        localDataTexture.image.data = texture.image.data.subarray(
-          endUv.y * texture.image.width,
-          endUv.y * texture.image.width + endUv.x
-        );
-        renderer.copyTextureToTexture(endUv, localDataTexture, texture, 0);
+    // middle
+    if (minY < maxY) {
+      const x = 0;
+      const y = minY;
+      const w = texture.image.width;
+      const h = maxY - minY;
+      const position = new THREE.Vector2(x, y);
+      const start = (x + y * texture.image.width) * texture.itemSize;
+      const size = (w * h) * texture.itemSize;
+      const data = texture.image.data.subarray(
+        start,
+        start + size
+      );
 
-        endUv.x = 0;
-        endUv.y--;
-      }
+      const srcTexture = new THREE.DataTexture(
+        data,
+        w, h,
+        texture.format,
+        texture.type,
+      );
+      renderer.copyTextureToTexture(
+        position,
+        srcTexture,
+        texture,
+      );
 
-      // render middle slice
-      if (endUv.y > startUv.y) {
-        localDataTexture.image.width = texture.image.width;
-        localDataTexture.image.height = endUv.y - startUv.y;
-        localDataTexture.image.data = texture.image.data.subarray(
-          startUv.y * texture.image.width,
-          endUv.y * texture.image.width
-        );
-        renderer.copyTextureToTexture(startUv, localDataTexture, texture, 0);
-      }
+      minX = 0;
+      minY = maxY;
+
+      pixelIndex += w * h;
+      itemCount -= w * h;
     }
+
+    // bottom
+    if (itemCount > 0) {
+      const x = minX;
+      const y = minY + 1;
+      const w = itemCount;
+      const h = 1;
+      const position = new THREE.Vector2(x, y);
+      const start = (x + y * texture.image.width) * texture.itemSize;
+      const size = (w * h) * texture.itemSize;
+      const data = texture.image.data.subarray(
+        start,
+        start + size
+      );
+
+      const srcTexture = new THREE.DataTexture(
+        data,
+        w, h,
+        texture.format,
+        texture.type,
+      );
+      renderer.copyTextureToTexture(
+        position,
+        srcTexture,
+        texture,
+      );
+    }
+
+    // texture.needsUpdate = true;
   }
 }
 
@@ -727,7 +781,8 @@ export class InstancedGeometryAllocator {
         texture.name = name;
         texture.minFilter = THREE.NearestFilter;
         texture.magFilter = THREE.NearestFilter;
-        // texture.needsUpdate = true;
+        // texture.flipY = true;
+        texture.needsUpdate = true;
         texture.itemSize = itemSize;
         return texture;
       });
