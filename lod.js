@@ -455,13 +455,13 @@ class DataRequest {
 
 //
 
-class TrackerQueue {
+/* class TrackerQueue {
   constructor() {
     this.position = new THREE.Vector3();
     this.quaternion = new THREE.Quaternion();
     this.projectionMatrix = new THREE.Matrix4();
   }
-}
+} */
 
 //
 
@@ -586,10 +586,11 @@ export class LodChunkTracker /* extends EventTarget */ {
 
     this.isUpdating = false;
     this.queued = false;
-    this.queue = new TrackerQueue();
+    this.queuePosition = new THREE.Vector3();
     
     this.lastOctreeLeafNodes = [];
     this.liveTasks = [];
+    this.listIndex = -1;
     
     this.listeners = {
       postUpdate: [],
@@ -718,6 +719,14 @@ export class LodChunkTracker /* extends EventTarget */ {
       const index = list.indexOf(fn);
       if (index !== -1) {
         list.splice(index, 1);
+        
+        // listIndex is used to iterate the list during deletion.
+        // we are deleting slot "index" here, so we need to adjust listIndex.
+        if (this.listIndex !== -1) {
+          if (index <= this.listIndex) {
+            this.listIndex--;
+          }
+        }
 
         if (list.length === 0) {
           this.listeners.chunkRemove.delete(hash);
@@ -746,10 +755,11 @@ export class LodChunkTracker /* extends EventTarget */ {
     const hash = _getHashChunk(chunk);
     let list = this.listeners.chunkRemove.get(hash);
     if (list) {
-      list = list.slice();
-      for (const listener of list) {
+      for (this.listIndex = 0; this.listIndex < list.length; this.listIndex++) {
+        const listener = list[this.listIndex];
         listener(chunk);
       }
+      this.listIndex = -1;
     }
   }
 
@@ -987,28 +997,23 @@ export class LodChunkTracker /* extends EventTarget */ {
 
     this.postUpdate();
   }
-  update(position, quaternion, projectionMatrix) {
+  update(position) {
     // update coordinate
     if (!this.isUpdating) {
-      let currentCoord = this.#getCurrentCoord(position, localVector).clone();
+      const currentCoord = this.#getCurrentCoord(position, localVector);
       
-      // console.log('check equals', position.toArray(), this.lastUpdateCoord.toArray(), currentCoord.toArray(), this.lastUpdateCoord.equals(currentCoord));
       if (!this.lastUpdateCoord.equals(currentCoord)) {
         (async () => {
           this.isUpdating = true;
 
-          await this.updateInternal(position);
-
-          // console.log('position update 2', currentCoord.toArray().join(','));
+          const positionClone = position.clone();
+          await this.updateInternal(positionClone);
 
           this.isUpdating = false;
 
           if (this.queued) {
-            const {position, quaternion, projectionMatrix} = this.queue;
             this.queued = false;
-
-            // console.log('recurse on queued position', queuedPosition.toArray());
-            this.update(position, quaternion, projectionMatrix);
+            this.update(this.queuePosition);
           }
         })();
 
@@ -1016,9 +1021,7 @@ export class LodChunkTracker /* extends EventTarget */ {
       }
     } else {
       this.queued = true;
-      position && this.queue.position.copy(position);
-      quaternion && this.queue.quaternion.copy(quaternion);
-      projectionMatrix && this.queue.projectionMatrix.copy(projectionMatrix);
+      this.queuePosition.copy(position);
     }
   }
   destroy() {
