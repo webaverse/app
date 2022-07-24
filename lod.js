@@ -294,13 +294,13 @@ const findLeafNodeForPosition = (nodes, p) => {
   }
   return null;
 };
-const isNop = taskSpec => {
+/* const isNop = taskSpec => {
   // console.log('is nop', taskSpec);
   return taskSpec.newNodes.length === taskSpec.oldNodes.length && taskSpec.newNodes.every(newNode => {
     return taskSpec.oldNodes.some(oldNode => equalsNodeLod(oldNode, newNode));
   });
-};
-class Task extends EventTarget {
+}; */
+/* class Task extends EventTarget {
   constructor(id, maxLodNode, type, newNodes = [], oldNodes = []) {
     super();
 
@@ -313,22 +313,9 @@ class Task extends EventTarget {
     this.abortController = new AbortController();
     this.signal = this.abortController.signal;
   }
-  /* equals(t) {
-    return this.newNodes.length === this.oldNodes.length && this.newNodes.every(node => {
-      return t.newNodes.some(node2 => node.equalsNode(node2));
-    }) && this.oldNodes.every(node => {
-      return t.oldNodes.some(node2 => node.equalsNode(node2));
-    });
-  } */
   cancel() {
     this.abortController.abort(abortError);
   }
-  /* isNop() {
-    const task = this;
-    return task.newNodes.length === task.oldNodes.length && task.newNodes.every(newNode => {
-      return task.oldNodes.some(oldNode => equalsNode(oldNode, newNode));
-    });
-  } */
   commit() {
     this.dispatchEvent(new MessageEvent('finish'));
   }
@@ -341,7 +328,7 @@ class Task extends EventTarget {
     });
     return p;
   }
-}
+} */
 /* const diffLeafNodes = (newLeafNodes, oldLeafNodes) => {
   // map from min lod hash to task containing new nodes and old nodes
   const taskMap = new Map();
