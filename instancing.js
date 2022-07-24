@@ -15,7 +15,7 @@ const localMatrix = new THREE.Matrix4();
 const localSphere = new THREE.Sphere();
 const localBox = new THREE.Box3();
 const localFrustum = new THREE.Frustum();
-const localDataTexture = new THREE.DataTexture();
+// const localDataTexture = new THREE.DataTexture();
 
 const PEEK_FACES = {
   FRONT : 0,
