@@ -573,6 +573,8 @@ export class DrawCallBinding {
         0
       );
 
+      srcTexture.image.data = null;
+
       minX = 0;
       minY++;
 
@@ -607,6 +609,8 @@ export class DrawCallBinding {
         texture,
       );
 
+      srcTexture.image.data = null;
+
       minX = 0;
       minY = maxY;
 
@@ -640,6 +644,8 @@ export class DrawCallBinding {
         srcTexture,
         texture,
       );
+
+      srcTexture.image.data = null;
     }
 
     // texture.needsUpdate = true;
