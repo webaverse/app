@@ -8,11 +8,11 @@ export default e => {
   app.name = 'land';
 
   const landApps = [
+    // {
+    //   "start_url": "/practice/dual-contouring-terrain-main/"
+    // },
     {
-      "start_url": "https://webaverse.github.io/dual-contouring-terrain/"
-    },
-    {
-      "start_url": "https://webaverse.github.io/water/"
+      "start_url": "/practice/water-main/"
     },
     /* {
       "start_url": "https://webaverse.github.io/silk-grass/"

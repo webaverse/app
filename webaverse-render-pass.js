@@ -23,6 +23,8 @@ class WebaverseRenderPass extends Pass {
     this.foamInvisibleList = [];
     this.foamDepthMaterial = null;
     this.foamRenderTarget = null;
+    this.scene = null;
+    this.camera = null;
   }
   renderFoam(renderer){
     if(this.foamDepthMaterial && this.foamRenderTarget){
@@ -32,7 +34,6 @@ class WebaverseRenderPass extends Pass {
             invisibleObject.visible = false; 
           }
           this.scene.overrideMaterial = this.foamDepthMaterial;
-
 
           renderer.render(this.scene, this.camera);
           renderer.setRenderTarget(null);
