@@ -1088,10 +1088,9 @@ gl_Position = projectionMatrix * mvPosition;
         mobInstances.push(mobInstance);
       }
 
-      const onchunkremove = e => {
-        const {chunk: removeChunk} = e.data;
-        if (chunk.equalsNodeLod(removeChunk)) {
-
+      const onchunkremove = () => {
+        // const {chunk: removeChunk} = e;
+        // if (chunk.equalsNodeLod(removeChunk)) {
           for (let i = 0; i < mobData.instances.length; i++) {
             const geometryNoise = mobData.instances[i];
             const geometryIndex = Math.floor(geometryNoise * this.meshes.length);
@@ -1103,10 +1102,10 @@ gl_Position = projectionMatrix * mvPosition;
             _unrenderMobGeometry(drawCall, mobInstance);
           }
 
-          tracker.removeEventListener('chunkremove', onchunkremove);
-        }
+          tracker.offChunkRemove(chunk, onchunkremove);
+        // }
       };
-      tracker.addEventListener('chunkremove', onchunkremove);
+      tracker.onChunkRemove(chunk, onchunkremove);
     }
   }
   update(timestamp, timeDiff) {
@@ -1220,7 +1219,7 @@ class Mobber {
       // relod: true,
     });
     const chunkdatarequest = (e) => {
-      const {chunk, waitUntil, signal} = e.data;
+      const {chunk, waitUntil, signal} = e;
       const {lod} = chunk;
 
       if (chunk.min.y !== 0) return;
@@ -1239,17 +1238,19 @@ class Mobber {
       waitUntil(loadPromise);
     };
     const chunkadd = (e) => {
-      const {renderData, chunk} = e.data;
+      const {renderData, chunk} = e;
       generator.mobBatchedMesh.drawChunk(chunk, renderData, tracker);
     };
-    tracker.addEventListener('chunkdatarequest', chunkdatarequest);
-    tracker.addEventListener('chunkadd', chunkadd);
+    // tracker.addEventListener('chunkdatarequest', chunkdatarequest);
+    // tracker.addEventListener('chunkadd', chunkadd);
+    tracker.onChunkDataRequest(chunkdatarequest);
+    tracker.onChunkAdd(chunkadd);
 
     this.tracker = tracker;
   }
   async waitForUpdate() {
     await new Promise((accept, reject) => {
-      this.tracker.addEventListener('update', () => {
+      this.tracker.onPostUpdate(() => {
         accept();
       });
     });
