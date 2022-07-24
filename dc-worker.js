@@ -273,9 +273,9 @@ const _handleMethod = async ({method, args, instance: instanceKey, taskId}) => {
       }
     }
     case 'setCamera': {
-      const {instance: instanceKey, position, quaternion, projectionMatrix} = args;
+      const {instance: instanceKey, worldPosition, cameraPosition, cameraQuaternion, projectionMatrix} = args;
       const instance = instances.get(instanceKey);
-      dc.setCamera(instance, position, quaternion, projectionMatrix);
+      dc.setCamera(instance, worldPosition, cameraPosition, cameraQuaternion, projectionMatrix);
       return true;
     }
     case 'setClipRange': {

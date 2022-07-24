@@ -162,21 +162,23 @@ export class DcWorkerManager {
     this.nextWorker = (this.nextWorker + 1) % workers.length;
     return worker;
   }
-  setCamera(position, quaternion, projectionMatrix) {
+  setCamera(worldPosition, cameraPosition, cameraQuaternion, projectionMatrix) {
     /* if (position.x === 0 && position.y === 0 && position.z === 0) {
       debugger;
       return;
     } */
 
-    const positionArray = position.toArray();
-    const quaternionArray = quaternion.toArray();
+    const worldPositionArray = worldPosition.toArray();
+    const cameraPositionArray = cameraPosition.toArray();
+    const cameraQuaternionArray = cameraQuaternion.toArray();
     const projectionMatrixArray = projectionMatrix.toArray();
 
     const worker = this.getNextWorker();
     worker.request('setCamera', {
       instance: this.instance,
-      position: positionArray,
-      quaternion: quaternionArray,
+      worldPosition: worldPositionArray,
+      cameraPosition: cameraPositionArray,
+      cameraQuaternion: cameraQuaternionArray,
       projectionMatrix: projectionMatrixArray,
     });
   }
