@@ -72,9 +72,11 @@ class AppManager extends EventTarget {
     return !!this.appsArray;
   }
   unbindState() {
-    if(this.unbindStateFn) this.unbindStateFn();
-    this.appsArray = null;
-    this.unbindStateFn = null;
+    if(this.unbindStateFn) {
+      this.unbindStateFn();
+      this.appsArray = null;
+      this.unbindStateFn = null;
+    }
   }
   bindState(nextAppsArray) {
     this.unbindState();
@@ -387,6 +389,7 @@ class AppManager extends EventTarget {
     }
     
     const appMap = new Z.Map();
+    console.log("getOrCreateTrackedApp", this.appsArray)
     this.appsArray.push([appMap]);
     return appMap;
   }
@@ -482,7 +485,7 @@ class AppManager extends EventTarget {
     if (removeIndex !== -1) {
       this.appsArray.delete(removeIndex, 1);
     } else {
-      console.warn('invalid remove instance id', {instanceId, appsJson});
+      console.warn('invalid remove instance id', {instanceId});
       debugger;
     }
   }

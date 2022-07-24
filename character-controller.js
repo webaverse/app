@@ -181,6 +181,7 @@ class PlayerBase extends THREE.Object3D {
     this.appManager.addEventListener('appadd', e => {
       if (!this.detached) {
         const app = e.data;
+        console.log("added to scene", app, new Error().stack)
         scene.add(app);
       }
     });
@@ -657,10 +658,8 @@ class StatePlayer extends PlayerBase {
 
       // blindly add to new state
       this.playersArray = nextPlayersArray;
-      if (this.playersArray) {
-        this.attachState(oldState);
-        this.bindCommonObservers();
-      }
+      this.attachState(oldState);
+      this.bindCommonObservers();
     }
 
   }
@@ -869,7 +868,11 @@ class StatePlayer extends PlayerBase {
       const apps = self.getAppsState();
       if (Array.isArray(j?.apps)) {
         for (const app of j.apps) {
-          apps.push([app]);
+          if(apps.find(a => a.instanceId === app.instanceId)) {
+            throw new Error('app already exists');
+          } else {
+            apps.push([app]);
+          }
         }
       }
     });
@@ -1138,17 +1141,18 @@ class LocalPlayer extends UninterpolatedPlayer {
       for (const oldAction of oldActions) {
         actions.push([oldAction]);
       }
-      
       const apps = self.getAppsState();
+      console.log('apps before', apps)
       for (const oldApp of oldApps) {
         const mapApp = new Z.Map();
         for (const k in oldApp) {
           const v = oldApp[k];
           mapApp.set(k, v);
         }
+        
         apps.push([mapApp]);
       }
-      
+      console.log("apps are", apps)
       if (oldAvatar !== undefined && oldAvatar !== null && oldAvatar !== '') {
         self.playerMap.set('avatar', oldAvatar);
       }
@@ -1158,7 +1162,7 @@ class LocalPlayer extends UninterpolatedPlayer {
         self.playerMap.set('voiceSpec', voiceSpec);
       }
     });
-    if(this.networked){
+    if(this.networked && !this.avatar){
 
       this.setPlayerSpec(defaultPlayerSpec);
     }
@@ -1434,9 +1438,15 @@ class RemotePlayer extends InterpolatedPlayer {
     }
     this.playerMap.observe(observePlayerFn);
     this.unbindFns.push(this.playerMap.unobserve.bind(this.playerMap, observePlayerFn));
+    console.log("*** REMOTE PLAYER");
+    console.log(this);
+    console.log(this.playerMap);
+    console.log(scene);
 
     // when we join a world where there are already players, we need to load their apps and sync
-    if(!this.appManager.apps.length > 0){
+    if(!this.avatar && !this.appManager.apps.length > 0){
+      console.log("******** LOADING APPS ON REMOTE PLAYER");
+      console.log(new Error().stack);
       this.appManager.loadApps().then(() => {
         this.syncAvatar();
       });
