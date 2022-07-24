@@ -17,6 +17,32 @@ const localVector = new THREE.Vector3();
 
 // const nop = () => {};
 
+const uint16Array = new Uint16Array(1);
+/* uint64_t hashOctreeMinLod(const vm::ivec3 &min, int lod) {
+    uint64_t result = uint16_t(min.x);
+    result = (result << 16) | uint16_t(min.y);
+    result = (result << 16) | uint16_t(min.z);
+    result = (result << 16) | uint16_t(lod);
+    return result;
+} */
+const tp16 = 2 ** 16;
+const tp5 = 2 ** 5;
+const _getHashMinLod = (min, lod) => {
+  let result;
+  
+  uint16Array[0] = min.x;
+  result = uint16Array[0];
+  uint16Array[0] = min.y;
+  result = (result * tp16) + uint16Array[0];
+  uint16Array[0] = min.z;
+  result = (result * tp16) + uint16Array[0];
+  uint16Array[0] = lod;
+  result = (result * tp5) + uint16Array[0];
+
+  return result;
+};
+const _getHashChunk = chunk => _getHashMinLod(chunk.min, chunk.lod);
+
 class Dominator extends EventTarget {
   constructor(base, onload) {
     super();
@@ -47,17 +73,15 @@ class Dominator extends EventTarget {
         if (chunk.dataRequest.renderData === undefined) {
           pendingWaits++;
           // console.log('pending waits add', pendingWaits);
-          const onload = e => {
-            const {renderData} = e.data;
+          chunk.onload = renderData => {
             renderDatas[i] = renderData;
 
             if (--pendingWaits === 0) {
               _done();
             }
           };
-          chunk.addEventListener('load', onload);
           this.unlistens.push(() => {
-            chunk.removeEventListener('load', onload);
+            chunk.onload = null;
           });
         } else {
           renderDatas[i] = chunk.dataRequest.renderData;
@@ -72,9 +96,9 @@ class Dominator extends EventTarget {
   }
 }
 
-class OctreeNode extends EventTarget {
+class OctreeNode {
   constructor(min = new THREE.Vector3(), lod = 1, isLeaf = true, lodArray = new Int32Array(8).fill(-1)) {
-    super();
+    // super();
     
     this.min = min;
     this.lod = lod;
@@ -82,6 +106,8 @@ class OctreeNode extends EventTarget {
     this.lodArray = lodArray;
 
     this.children = Array(8).fill(null);
+
+    this.onload = null;
   }
   containsPoint(p) {
     return p.x >= this.min.x && p.x < this.min.x + this.lod &&
@@ -101,18 +127,21 @@ class OctreeNode extends EventTarget {
   intersectsNode(p) {
     return this.containsNode(p) || p.containsNode(this);
   }
-  destroy() {
-    this.dispatchEvent(new MessageEvent('destroy'));
+  load(result) {
+    this.onload && this.onload(result);
   }
+  /* destroy() {
+    this.dispatchEvent(new MessageEvent('destroy'));
+  } */
 }
 /* const tempUint32Array = new Uint32Array(1);
 const _toUint32 = value => {
   tempUint32Array[0] = value;
   return tempUint32Array[0];
 } */
-const _octreeNodeMinHash = (min, lod) => `${min.x},${min.y},${min.z}:${lod}`;
-const _getLeafNodeFromPoint = (leafNodes, p) => leafNodes.find(node => node.containsPoint(p));
-const constructOctreeForLeaf = (position, lod1Range, maxLod) => {
+// const _octreeNodeMinHash = (min, lod) => `${min.x},${min.y},${min.z}:${lod}`;
+// const _getLeafNodeFromPoint = (leafNodes, p) => leafNodes.find(node => node.containsPoint(p));
+/* const constructOctreeForLeaf = (position, lod1Range, maxLod) => {
   const nodeMap = new Map();
   
   const _getNode = (min, lod) => {
@@ -268,7 +297,7 @@ const constructOctreeForLeaf = (position, lod1Range, maxLod) => {
   }
 
   return leafNodes;
-};
+}; */
 const equalsNode = (a, b) => {
   return a.min.equals(b.min) && a.lod === b.lod;
 };
@@ -291,13 +320,13 @@ const findLeafNodeForPosition = (nodes, p) => {
   }
   return null;
 };
-const isNop = taskSpec => {
+/* const isNop = taskSpec => {
   // console.log('is nop', taskSpec);
   return taskSpec.newNodes.length === taskSpec.oldNodes.length && taskSpec.newNodes.every(newNode => {
     return taskSpec.oldNodes.some(oldNode => equalsNodeLod(oldNode, newNode));
   });
-};
-class Task extends EventTarget {
+}; */
+/* class Task extends EventTarget {
   constructor(id, maxLodNode, type, newNodes = [], oldNodes = []) {
     super();
 
@@ -310,22 +339,9 @@ class Task extends EventTarget {
     this.abortController = new AbortController();
     this.signal = this.abortController.signal;
   }
-  /* equals(t) {
-    return this.newNodes.length === this.oldNodes.length && this.newNodes.every(node => {
-      return t.newNodes.some(node2 => node.equalsNode(node2));
-    }) && this.oldNodes.every(node => {
-      return t.oldNodes.some(node2 => node.equalsNode(node2));
-    });
-  } */
   cancel() {
     this.abortController.abort(abortError);
   }
-  /* isNop() {
-    const task = this;
-    return task.newNodes.length === task.oldNodes.length && task.newNodes.every(newNode => {
-      return task.oldNodes.some(oldNode => equalsNode(oldNode, newNode));
-    });
-  } */
   commit() {
     this.dispatchEvent(new MessageEvent('finish'));
   }
@@ -338,7 +354,7 @@ class Task extends EventTarget {
     });
     return p;
   }
-}
+} */
 /* const diffLeafNodes = (newLeafNodes, oldLeafNodes) => {
   // map from min lod hash to task containing new nodes and old nodes
   const taskMap = new Map();
@@ -409,19 +425,11 @@ class DataRequest {
     this.renderData = undefined;
     this.loadPromise.then(renderData => {
       this.renderData = renderData;
-      this.node.dispatchEvent(new MessageEvent('load', {
-        data: {
-          renderData,
-        },
-      }));
+      this.node.load(renderData);
     }, err => {
       const renderData = null;
       this.renderData = renderData;
-      this.node.dispatchEvent(new MessageEvent('load', {
-        data: {
-          renderData,
-        },
-      }));
+      this.node.load(renderData);
     });
   }
   replaceNode(node) {
@@ -429,7 +437,6 @@ class DataRequest {
     this.node.dataRequest = this;
   }
   cancel() {
-    // console.log('cancel data request');
     this.abortController.abort(abortError);
   }
   waitForLoad() {
@@ -524,7 +531,7 @@ using these results
 - the tri budget can be scaled linearly with the results
 - the chunk size can be changed to increase the view distance while decreasing the density, while keeping the tri budget the same
 */
-export class LodChunk extends THREE.Vector3 {
+/* export class LodChunk extends THREE.Vector3 {
   constructor(x, y, z, lod, lodArray) {
     
     super(x, y, z);
@@ -545,7 +552,7 @@ export class LodChunk extends THREE.Vector3 {
       p.y >= this.y && p.y < this.y + this.lod &&
       p.z >= this.z && p.z < this.z + this.lod;
   }
-}
+} */
 export class LodChunkTracker extends EventTarget {
   constructor({
     chunkSize = defaultChunkSize,
@@ -658,7 +665,6 @@ export class LodChunkTracker extends EventTarget {
     return target.set(cx, cy, cz);
   }
   emitChunkDestroy(chunk) {
-    // const hash = chunk.min.toArray().join(',') + ':' + chunk.lod; // _octreeNodeMinHash(chunk.min, chunk.lod);
     this.dispatchEvent(new MessageEvent('destroy', {
       data: {
         node: chunk,
@@ -666,7 +672,6 @@ export class LodChunkTracker extends EventTarget {
     }));
   }
   listenForChunkDestroy(chunk, fn) {
-    // const hash = chunk.min.toArray().join(',') + ':' + chunk.lod; // _octreeNodeMinHash(chunk.min, chunk.lod);
     const destroy = e => {
       if (e.data.node.min.equals(chunk)) {
         fn(e);
@@ -811,7 +816,7 @@ export class LodChunkTracker extends EventTarget {
 
       // add new data requests
       for (const chunk of leafNodes) {
-        const hash = chunk.min.toArray().join(',') + ':' + chunk.lod;
+        const hash = _getHashChunk(chunk);
         if (!this.dataRequests.has(hash)) {
           const dataRequest = new DataRequest(chunk);
           const {signal} = dataRequest;
@@ -868,7 +873,7 @@ export class LodChunkTracker extends EventTarget {
           throw new Error('no chunk match in any leaf set');
         }
 
-        const maxLodHash = maxLodChunk.min.toArray().join(',') + ':' + maxLodChunk.lod;
+        const maxLodHash = _getHashChunk(maxLodChunk);
         let dominator = this.dominators.get(maxLodHash);
         if (!dominator) {
           dominator = new Dominator(maxLodChunk, renderDatas => {
@@ -880,7 +885,7 @@ export class LodChunkTracker extends EventTarget {
               });
               this.dispatchEvent(chunkRemoveEvent);
    
-              const hash = oldChunk.min.toArray().join(',') + ':' + oldChunk.lod;
+              const hash = _getHashChunk(oldChunk);
               this.renderedChunks.delete(hash);
             }
             for (let i = 0; i < dominator.newChunks.length; i++) {
@@ -896,7 +901,7 @@ export class LodChunkTracker extends EventTarget {
               });
               this.dispatchEvent(chunkAddEvent);
 
-              const hash = newChunk.min.toArray().join(',') + ':' + newChunk.lod;
+              const hash = _getHashChunk(newChunk);
               this.renderedChunks.set(hash, newChunk);
             }
           });
@@ -969,7 +974,7 @@ export class LodChunkTracker extends EventTarget {
   destroy() {
     throw new Error('not implemented');
 
-    for (const chunk of this.chunks) {
+    /* for (const chunk of this.chunks) {
       const task = new Task(chunk);
       task.oldNodes.push(chunk);
       
@@ -979,6 +984,6 @@ export class LodChunkTracker extends EventTarget {
         },
       }));
     }
-    this.chunks.length = 0;
+    this.chunks.length = 0; */
   }
 }
