@@ -258,13 +258,15 @@ class PhysicsScene extends EventTarget {
     physicsMesh.updateMatrixWorld()
     return physicsObject
   }
-  addConvexGeometry(mesh) {
+  addConvexGeometry(mesh, dynamic = false, external = false) {
     const physicsMesh = convertMeshToPhysicsMesh(mesh)
   
     const physicsId = getNextPhysicsId()
     physx.physxWorker.addConvexGeometryPhysics(
       this.scene,
       physicsMesh,
+      dynamic,
+      external,
       physicsId
     )
     physicsMesh.geometry = this.extractPhysicsGeometryForId(physicsId)
