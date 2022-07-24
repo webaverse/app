@@ -244,7 +244,7 @@ export class HeightfieldMapper /* extends EventTarget */ {
             gl_FragColor = vec4(vUv.x, 0., vUv.y, 1.);
           }
         `;
-        const fourTapFullscreenMaterial = new WebaverseShaderMaterial({
+        const debugMaterial = new WebaverseShaderMaterial({
           uniforms: {
             uHeightfield: {
               value: this.heightfieldTexture,
@@ -254,8 +254,9 @@ export class HeightfieldMapper /* extends EventTarget */ {
           vertexShader: fullscreenVertexShader,
           fragmentShader: fullscreenFragmentShader,
           side: THREE.DoubleSide,
+          // transparent: true,
         });
-        const debugMesh = new THREE.Mesh(planeGeometry, fourTapFullscreenMaterial);
+        const debugMesh = new THREE.Mesh(planeGeometry, debugMaterial);
         debugMesh.frustumCulled = false;
         return debugMesh;
       })();
