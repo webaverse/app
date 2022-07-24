@@ -1519,6 +1519,7 @@ const physxWorker = (() => {
 
     const materialAddress = w.getDefaultMaterial(physics);
 
+    debugger
     Module._addConvexGeometryPhysics(
       physics,
       shape,
@@ -1594,6 +1595,7 @@ const physxWorker = (() => {
 
     const materialAddress = w.getDefaultMaterial(physics)
 
+    debugger
     Module._addConvexGeometryPhysics(
       physics,
       shape,
@@ -1619,6 +1621,7 @@ const physxWorker = (() => {
 
     const materialAddress = w.getDefaultMaterial(physics);
 
+    debugger
     Module._addConvexGeometryPhysics(
       physics,
       shape,
