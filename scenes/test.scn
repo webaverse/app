@@ -25,8 +25,8 @@
     { "position": [ 12, 3, 0 ], "scale": [ 1, 1, 1 ], "start_url": "http://localhost/lib/webaverse_resource/triggerconvex/" },
     { "position": [ 20, 10, -10 ], "scale": [ 1, 1, 1 ], "start_url": "http://localhost/lib/webaverse_resource/triggerconvex/" },
 
-    { "position": [ 12, 3, 0 ], "quaternion": [0, -0.7071067811865475, 0, 0.7071067811865476], "scale": [ 1, 1, 1 ], "start_url": "http://localhost/lib/webaverse_resource/triggerplane/" },
-    { "position": [ 20, 10, -10 ], "quaternion": [0, 0, 0.7071067811865475, 0.7071067811865476], "scale": [ 1, 1, 1 ], "start_url": "http://localhost/lib/webaverse_resource/triggerplane/" },
+    { "position": [ -20, 3, 0 ], "quaternion": [0, -0.7071067811865475, 0, 0.7071067811865476], "scale": [ 1, 1, 1 ], "start_url": "http://localhost/lib/webaverse_resource/triggerplane/" },
+    { "position": [ -20, 10, -10 ], "quaternion": [0, 0, 0.7071067811865475, 0.7071067811865476], "scale": [ 1, 1, 1 ], "start_url": "http://localhost/lib/webaverse_resource/triggerplane/" },
 
     { "position": [ 0, 0, 0 ], "start_url": "http://localhost/lib/webaverse_resource/block/grid.glb" }
   ]
