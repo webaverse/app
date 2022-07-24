@@ -41,13 +41,13 @@ const _makeHeightfieldRenderTarget = (w, h) => new THREE.WebGLRenderTarget(w, h,
   // flipY: false,
 });
 
-export class HeightfieldMapper extends EventTarget {
+export class HeightfieldMapper /* extends EventTarget */ {
   constructor({
     procGenInstance,
     size,
     debug = false,
   }) {
-    super();
+    // super();
 
     this.procGenInstance = procGenInstance;
     this.size = size;
