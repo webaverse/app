@@ -42,6 +42,8 @@ const _getHashMinLod = (min, lod) => {
   return result;
 };
 const _getHashChunk = chunk => _getHashMinLod(chunk.min, chunk.lod);
+const _getHashMinLodArray = (min, lodArray) => min.x + ',' + min.y + ',' + min.z + ':' + lodArray.join(',');
+const _getHashChunkLodArray = chunk => _getHashMinLodArray(chunk.min, chunk.lodArray);
 
 class Dominator extends EventTarget {
   constructor(base, onload) {
@@ -553,7 +555,7 @@ using these results
       p.z >= this.z && p.z < this.z + this.lod;
   }
 } */
-export class LodChunkTracker extends EventTarget {
+export class LodChunkTracker /* extends EventTarget */ {
   constructor({
     chunkSize = defaultChunkSize,
     lods = 1,
@@ -563,7 +565,7 @@ export class LodChunkTracker extends EventTarget {
     dcWorkerManager = null,
     debug = false,
   } = {}) {
-    super();
+    // super();
 
     // console.log('got lod chunk tracker', new Error().stack);
 
@@ -588,6 +590,13 @@ export class LodChunkTracker extends EventTarget {
     
     this.lastOctreeLeafNodes = [];
     this.liveTasks = [];
+    
+    this.listeners = {
+      postUpdate: [],
+      chunkDataRequest: [],
+      chunkAdd: [],
+      chunkRemove: new Map(),
+    };
 
     if (debug) {
       const maxChunks = 4096;
@@ -652,9 +661,7 @@ export class LodChunkTracker extends EventTarget {
           debugMesh.instanceMatrix.needsUpdate = true;
           debugMesh.instanceColor && (debugMesh.instanceColor.needsUpdate = true);
         };
-        this.addEventListener('update', e => {
-          _flushChunks();
-        });
+        this.onPostUpdate(_flushChunks);
       }
     }
   }
@@ -664,14 +671,96 @@ export class LodChunkTracker extends EventTarget {
     const cz = Math.floor(position.z / this.chunkSize);
     return target.set(cx, cy, cz);
   }
-  emitChunkDestroy(chunk) {
+
+  // listeners
+  onPostUpdate(fn) {
+    this.listeners.postUpdate.push(fn);
+  }
+  onChunkDataRequest(fn) {
+    this.listeners.chunkDataRequest.push(fn);
+  }
+  onChunkAdd(fn) {
+    this.listeners.chunkAdd.push(fn);
+  }
+  onChunkRemove(chunk, fn) {
+    const hash = _getHashChunk(chunk);
+    let list = this.listeners.chunkRemove.get(hash);
+    if (!list) {
+      list = [];
+      this.listeners.chunkRemove.set(hash, list);
+    }
+    list.push(fn);
+  }
+
+  // unlisteners
+  offPostUpdate(fn) {
+    const index = this.listeners.postUpdate.indexOf(fn);
+    if (index !== -1) {
+      this.listeners.postUpdate.splice(index, 1);
+    }
+  }
+  offChunkDataRequest(fn) {
+    const index = this.listeners.chunkDataRequest.indexOf(fn);
+    if (index !== -1) {
+      this.listeners.chunkDataRequest.splice(index, 1);
+    }
+  }
+  offChunkAdd(fn) {
+    const index = this.listeners.chunkAdd.indexOf(fn);
+    if (index !== -1) {
+      this.listeners.chunkAdd.splice(index, 1);
+    }
+  }
+  offChunkRemove(chunk, fn) {
+    const hash = _getHashChunk(chunk);
+    const list = this.listeners.chunkRemove.get(hash);
+    if (list) {
+      const index = list.indexOf(fn);
+      if (index !== -1) {
+        list.splice(index, 1);
+
+        if (list.length === 0) {
+          this.listeners.chunkRemove.delete(hash);
+        }
+      }
+    }
+  }
+
+  // emitter
+  postUpdate(result) {
+    for (const listener of this.listeners.postUpdate) {
+      listener(result);
+    }
+  }
+  chunkDataRequest(result) {
+    for (const listener of this.listeners.chunkDataRequest) {
+      listener(result);
+    }
+  }
+  chunkAdd(result) {
+    for (const listener of this.listeners.chunkAdd) {
+      listener(result);
+    }
+  }
+  chunkRemove(chunk) {
+    const hash = _getHashChunk(chunk);
+    let list = this.listeners.chunkRemove.get(hash);
+    if (list) {
+      list = list.slice();
+      for (const listener of list) {
+        listener(chunk);
+      }
+    }
+  }
+
+  /* emitChunkDestroy(chunk) {
     this.dispatchEvent(new MessageEvent('destroy', {
       data: {
         node: chunk,
       }
     }));
-  }
-  listenForChunkDestroy(chunk, fn) {
+  } */
+  /* listenForChunkDestroy(chunk, fn) {
     const destroy = e => {
       if (e.data.node.min.equals(chunk)) {
         fn(e);
@@ -679,7 +768,7 @@ export class LodChunkTracker extends EventTarget {
       }
     };
     this.addEventListener('destroy', destroy);
-  }
+  } */
   /* updateCoord(currentCoord) {
     const octreeLeafNodes = constructOctreeForLeaf(currentCoord, this.minLodRange, 2 ** (this.lods - 1));
 
@@ -822,24 +911,14 @@ export class LodChunkTracker extends EventTarget {
           const {signal} = dataRequest;
           let waited = false;
 
-          const chunkDataRequestEvent = new MessageEvent('chunkdatarequest', {
-            data: {
-              chunk,
-              waitUntil(promise) {
-                /* const stack = new Error().stack;
-                promise.then(r => {
-                  if (r === null) {
-                    console.log('promise stack', stack);
-                    debugger;
-                  }
-                }); */
-                dataRequest.waitUntil(promise);
-                waited = true;
-              },
-              signal,
+          this.chunkDataRequest({
+            chunk,
+            waitUntil(promise) {
+              dataRequest.waitUntil(promise);
+              waited = true;
             },
+            signal,
           });
-          this.dispatchEvent(chunkDataRequestEvent);
 
           if (!waited) {
             dataRequest.waitUntil(Promise.resolve({
@@ -878,12 +957,7 @@ export class LodChunkTracker extends EventTarget {
         if (!dominator) {
           dominator = new Dominator(maxLodChunk, renderDatas => {
             for (const oldChunk of dominator.oldChunks) {
-              const chunkRemoveEvent = new MessageEvent('chunkremove', {
-                data: {
-                  chunk: oldChunk,
-                },
-              });
-              this.dispatchEvent(chunkRemoveEvent);
+              this.chunkRemove(oldChunk);
    
               const hash = _getHashChunk(oldChunk);
               this.renderedChunks.delete(hash);
@@ -893,13 +967,10 @@ export class LodChunkTracker extends EventTarget {
               const renderData = renderDatas[i];
               // console.log('add chunk', newChunk);
 
-              const chunkAddEvent = new MessageEvent('chunkadd', {
-                data: {
-                  renderData,
-                  chunk: newChunk,
-                },
+              this.chunkAdd({
+                renderData,
+                chunk: newChunk,
               });
-              this.dispatchEvent(chunkAddEvent);
 
               const hash = _getHashChunk(newChunk);
               this.renderedChunks.set(hash, newChunk);
@@ -922,10 +993,9 @@ export class LodChunkTracker extends EventTarget {
       for (const dominator of this.dominators.values()) {
         dominator.start();
       }
-      // window.dominators = this.dominators;
     }
 
-    this.dispatchEvent(new MessageEvent('update'));
+    this.postUpdate();
   }
   update(position, quaternion, projectionMatrix) {
     // update sort
