@@ -16,7 +16,7 @@
       }
     },
 
-    { "position": [ 0, 0, 0 ], "scale": [ 1, 1, 1 ], "start_url": "http://localhost/lib/webaverse_resource/triggercube/" },
+    { "position": [ 5, 3, 0 ], "scale": [ 1, 1, 1 ], "start_url": "http://localhost/lib/webaverse_resource/triggerconvex/" },
     { "position": [ 0, 0, 0 ], "start_url": "http://localhost/lib/webaverse_resource/block/grid.glb" }
   ]
 }
