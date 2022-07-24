@@ -160,8 +160,13 @@ class ChunkAllocationData {
     this.enterFace = enterFace; // 4 bytes
     this.peeks = peeks; // 15 bytes
   }
-  serialize(dataView, offset) {
+  serialize(dataView, serializeId) {
+    this.id = serializeId;
+
+    let offset = serializeId * chunkAllocationDataSize;
     let localOffset = 0;
+
+    
     dataView.setInt32(offset + localOffset, this.id, true);
     localOffset += Int32Array.BYTES_PER_ELEMENT;
 
@@ -174,8 +179,6 @@ class ChunkAllocationData {
     dataView.setInt32(offset + localOffset, this.min.z, true);
     localOffset += Int32Array.BYTES_PER_ELEMENT;
 
-    // console.log(this.min.x);
-
     dataView.setInt32(offset + localOffset, this.enterFace, true);
     localOffset += Int32Array.BYTES_PER_ELEMENT;
 
@@ -186,7 +189,8 @@ class ChunkAllocationData {
   }
 }
 
-function deserializeChunkAllocationData(dataView, offset) {
+function deserializeChunkAllocationData(dataView, serializeId) {
+  let offset = serializeId * chunkAllocationDataSize;
   let localOffset = 0;
   const id = dataView.getInt32(offset + localOffset, true);
   localOffset += Int32Array.BYTES_PER_ELEMENT;
@@ -222,6 +226,7 @@ function parseDrawCallListBuffer(arrayBuffer, bufferAddress){
   index += Uint32Array.BYTES_PER_ELEMENT;
   const DrawCalls = new Int32Array(arrayBuffer, bufferAddress + index, numDrawCalls);
   index += Int32Array.BYTES_PER_ELEMENT * numDrawCalls;
+  // console.log(DrawCalls);
 
   return DrawCalls;
 }
@@ -283,7 +288,7 @@ export class GeometryAllocator {
       maxObject.applyMatrix4(this.appMatrix);
 
       const allocatedChunk = new ChunkAllocationData(this.numDraws, minObject, PEEK_FACES["NONE"], peeks);
-      allocatedChunk.serialize(this.chunkAllocationDataView, this.numDraws * chunkAllocationDataSize);
+      allocatedChunk.serialize(this.chunkAllocationDataView, this.numDraws);
 
       this.appMatrix = appMatrix;
 
@@ -343,8 +348,8 @@ export class GeometryAllocator {
         this.maxData[freeIndex * 4 + 1] = this.maxData[lastIndex * 4 + 1];
         this.maxData[freeIndex * 4 + 2] = this.maxData[lastIndex * 4 + 2];
 
-        const freeChunk = deserializeChunkAllocationData(this.chunkAllocationDataView, lastIndex * chunkAllocationDataSize);
-        freeChunk.serialize(this.chunkAllocationDataView, freeIndex * chunkAllocationDataSize); // free
+        const freeChunk = deserializeChunkAllocationData(this.chunkAllocationDataView, lastIndex);
+        freeChunk.serialize(this.chunkAllocationDataView, freeIndex); // free
       }
     }
 
@@ -384,16 +389,22 @@ export class GeometryAllocator {
 
     if (this.hasOcclusionCulling) {
       let foundId;
+      let surfaceY = -Infinity;
       const findCameraChunk = (i) => {
         // find the chunk that the camera is inside
+        localVector3D2.set(0, 0, 0);
+        localVector3D3.set(0, 0, 0);
         const min = localVector3D2.fromArray(this.minData, i * 4); // min
         const max = localVector3D3.fromArray(this.maxData, i * 4); // max
 
-        if(isCameraInRange2D(camera.position, min, max)){
-          currentChunkMin.copy(min);
-          currentChunkMax.copy(max);
-          foundId = i;
-          // console.log(camera.position.y);
+        if (isCameraInRange2D(camera.position, min, max)) {
+          if (surfaceY < min.y) {
+            surfaceY = min.y;
+            currentChunkMin.copy(min);
+            currentChunkMax.copy(max);
+            foundId = i;
+          }
+          // console.log(max.x - min.x);
           // console.log(currentChunkMin.x == this.chunkAllocationDataView.getInt32(i * chunkAllocationDataSize + Int32Array.BYTES_PER_ELEMENT));
         }
       };
@@ -402,16 +413,8 @@ export class GeometryAllocator {
         findCameraChunk(i);
       }
 
-
-
       if (foundId) {
-        // const dw = new DataView(Module.HEAP8.buffer);
-        // console.log(this.chunkAllocationArrayOffset);
-        // console.log(chunkAllocationDataSize);
-        // console.log(dw.getInt32(this.chunkAllocationArrayOffset + 70));
-        // console.log(this.numDraws);
         const cameraView = new THREE.Vector3();
-        camera.getWorldDirection(cameraView);
         const drawListBuffer = Module._cullOcclusionCulling(
           this.OCInstance,
           this.chunkAllocationArrayOffset,
@@ -434,13 +437,11 @@ export class GeometryAllocator {
           Module.HEAP8.buffer,
           Module.HEAP8.byteOffset + drawListBuffer
         );
-        // console.log(drawCalls);
         for (let i = 0; i < drawCalls.length; i++) {
           drawStarts.push(this.drawStarts[drawCalls[i]]);
           drawCounts.push(this.drawCounts[drawCalls[i]]);
         }
       }
-
 
       // for (let i = 0; i < this.numDraws; i++) {
       //   // console.log(culled[i]);
