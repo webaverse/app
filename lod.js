@@ -561,7 +561,7 @@ export class LodChunkTracker /* extends EventTarget */ {
     lods = 1,
     minLodRange = 2,
     trackY = false,
-    sort = false,
+    // sort = false,
     dcWorkerManager = null,
     debug = false,
   } = {}) {
@@ -573,7 +573,7 @@ export class LodChunkTracker /* extends EventTarget */ {
     this.lods = lods;
     this.minLodRange = minLodRange;
     this.trackY = trackY;
-    this.sort = sort;
+    // this.sort = sort;
     this.dcWorkerManager = dcWorkerManager;
 
     this.dcTracker = null;
@@ -831,16 +831,6 @@ export class LodChunkTracker /* extends EventTarget */ {
       this.dcTracker = await this.dcWorkerManager.createTracker(this.lods, this.minLodRange, this.trackY);
     }
   }
-  sortInternal(position, quaternion, projectionMatrix) {
-    /* window.sortDirection = new THREE.Vector3(0, 0, -1)
-      .applyQuaternion(quaternion);
-    window.sortPosition = position.clone(); */
-    this.dcWorkerManager.setCamera(
-      position,
-      quaternion,
-      projectionMatrix
-    );
-  }
   async updateInternal(position) {
     await this.ensureTracker();
 
@@ -998,22 +988,12 @@ export class LodChunkTracker /* extends EventTarget */ {
     this.postUpdate();
   }
   update(position, quaternion, projectionMatrix) {
-    // update sort
-    if (this.sort) {
-      if (position && quaternion && projectionMatrix) {
-        this.sortInternal(position, quaternion, projectionMatrix);
-      } else {
-        throw new Error('lod tracker missing transform arguments');
-      }
-    }
-    
     // update coordinate
     if (!this.isUpdating) {
       let currentCoord = this.#getCurrentCoord(position, localVector).clone();
+      
       // console.log('check equals', position.toArray(), this.lastUpdateCoord.toArray(), currentCoord.toArray(), this.lastUpdateCoord.equals(currentCoord));
       if (!this.lastUpdateCoord.equals(currentCoord)) {
-        // console.log('position update 1', currentCoord.toArray().join(','));
-        
         (async () => {
           this.isUpdating = true;
 
