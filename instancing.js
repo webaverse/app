@@ -41,7 +41,7 @@ const peekFaceSpecs = [
 
 const maxNumDraws = 1024;
 
-const isCameraInRange2D = (vector, min, max) => {
+const isPointInPillar = (vector, min, max) => {
   return (vector.x >= min.x && vector.x < max.x) && (vector.z >= min.z && vector.z < max.z);
 }
 
@@ -453,7 +453,7 @@ export class GeometryAllocator {
         const min = localVector3D2.fromArray(this.minData, i * 4); // min
         const max = localVector3D3.fromArray(this.maxData, i * 4); // max
 
-        if (isCameraInRange2D(camera.position, min, max)) {
+        if (isPointInPillar(camera.position, min, max)) {
           if (surfaceY < min.y) {
             surfaceY = min.y;
             currentChunkMin.copy(min);
