@@ -1,5 +1,3 @@
-Error.stackTraceLimit = Infinity;
-
 /*
 this file is responisible for maintaining player state that is network-replicated.
 */
@@ -182,8 +180,6 @@ class PlayerBase extends THREE.Object3D {
     });
     this.appManager.addEventListener('appadd', e => {
       if (!this.detached) {
-        console.log("appadd", e.data);
-        console.log(new Error().stack);
         const app = e.data;
         scene.add(app);
       }
@@ -664,7 +660,6 @@ class StatePlayer extends PlayerBase {
       this.attachState(oldState);
       this.bindCommonObservers();
     }
-
   }
   getAvatarInstanceId() {
     return this.playerMap?.get('avatar');
@@ -1160,7 +1155,6 @@ class LocalPlayer extends UninterpolatedPlayer {
       }
     });
     if(this.networked){
-
       this.setPlayerSpec(defaultPlayerSpec);
     }
   }

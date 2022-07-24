@@ -1,5 +1,3 @@
-Error.stackTraceLimit = Infinity;
-
 /*
 app manager binds z.js data to live running metaversefile apps.
 you can have as many app managers as you want.
@@ -444,7 +442,6 @@ class AppManager extends EventTarget {
         components,
       );
     });
-
     const p = this.pendingAddPromises.get(instanceId);
     if (p) {
       return p;
@@ -685,6 +682,8 @@ class AppManager extends EventTarget {
         this.clear();
         
         appManagers.splice(index, 1);
+      } else {
+        throw new Error('double destroy of app manager');
       }
     } else {
       throw new Error('destroy of bound app manager');
