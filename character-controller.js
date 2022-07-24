@@ -1141,8 +1141,8 @@ class LocalPlayer extends UninterpolatedPlayer {
       for (const oldAction of oldActions) {
         actions.push([oldAction]);
       }
+      
       const apps = self.getAppsState();
-      console.log('apps before', apps)
       for (const oldApp of oldApps) {
         const mapApp = new Z.Map();
         for (const k in oldApp) {
@@ -1152,7 +1152,7 @@ class LocalPlayer extends UninterpolatedPlayer {
         
         apps.push([mapApp]);
       }
-      console.log("apps are", apps)
+      
       if (oldAvatar !== undefined && oldAvatar !== null && oldAvatar !== '') {
         self.playerMap.set('avatar', oldAvatar);
       }
@@ -1162,7 +1162,7 @@ class LocalPlayer extends UninterpolatedPlayer {
         self.playerMap.set('voiceSpec', voiceSpec);
       }
     });
-    if(this.networked && !this.avatar){
+    if(this.networked){
 
       this.setPlayerSpec(defaultPlayerSpec);
     }
@@ -1383,6 +1383,7 @@ class RemotePlayer extends InterpolatedPlayer {
       const trackedApp = this.appManager.getTrackedApp(appId);
       if (appInstance && trackedApp) {
       } else if(trackedApp){
+        console.log('importTrackedApp tracked app', appId);
         this.appManager.importTrackedApp(trackedApp);
         if(appId === avatarId){
           this.avatar = this.appManager.getAppByInstanceId(appId);
