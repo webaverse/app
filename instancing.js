@@ -9,8 +9,8 @@ import { Allocator } from './geometry-util.js';
 // import { toHiraganaCase } from 'encoding-japanese';
 
 const localVector2D = new THREE.Vector2();
-const localVector2D2 = new THREE.Vector2();
-const localVector3D = new THREE.Vector3();
+// const localVector2D2 = new THREE.Vector2();
+// const localVector3D = new THREE.Vector3();
 const localVector3D2 = new THREE.Vector3();
 const localVector3D3 = new THREE.Vector3();
 const currentChunkMin = new THREE.Vector3();
@@ -19,7 +19,7 @@ const localMatrix = new THREE.Matrix4();
 const localSphere = new THREE.Sphere();
 const localBox = new THREE.Box3();
 const localFrustum = new THREE.Frustum();
-// const localDataTexture = new THREE.DataTexture();
+const localDataTexture = new THREE.DataTexture();
 
 const PEEK_FACES = {
   FRONT : 0,
@@ -551,7 +551,7 @@ export class DrawCallBinding {
       const y = minY;
       const w = Math.min(texture.image.width - x, itemCount);
       const h = 1;
-      const position = new THREE.Vector2(x, y);
+      const position = localVector2D.set(x, y);
       const start = (x + y * texture.image.width) * texture.itemSize;
       const size = (w * h) * texture.itemSize;
       const data = texture.image.data.subarray(
@@ -559,12 +559,13 @@ export class DrawCallBinding {
         start + size
       );
 
-      const srcTexture = new THREE.DataTexture(
-        data,
-        w, h,
-        texture.format,
-        texture.type,
-      );
+      const srcTexture = localDataTexture;
+      srcTexture.image.data = data;
+      srcTexture.image.width = w;
+      srcTexture.image.height = h;
+      srcTexture.format = texture.format;
+      srcTexture.type = texture.type;
+
       renderer.copyTextureToTexture(
         position,
         srcTexture,
@@ -585,7 +586,7 @@ export class DrawCallBinding {
       const y = minY;
       const w = texture.image.width;
       const h = maxY - minY;
-      const position = new THREE.Vector2(x, y);
+      const position = localVector2D.set(x, y);
       const start = (x + y * texture.image.width) * texture.itemSize;
       const size = (w * h) * texture.itemSize;
       const data = texture.image.data.subarray(
@@ -593,12 +594,13 @@ export class DrawCallBinding {
         start + size
       );
 
-      const srcTexture = new THREE.DataTexture(
-        data,
-        w, h,
-        texture.format,
-        texture.type,
-      );
+      const srcTexture = localDataTexture;
+      srcTexture.image.data = data;
+      srcTexture.image.width = w;
+      srcTexture.image.height = h;
+      srcTexture.format = texture.format;
+      srcTexture.type = texture.type;
+
       renderer.copyTextureToTexture(
         position,
         srcTexture,
@@ -618,7 +620,7 @@ export class DrawCallBinding {
       const y = minY + 1;
       const w = itemCount;
       const h = 1;
-      const position = new THREE.Vector2(x, y);
+      const position = localVector2D.set(x, y);
       const start = (x + y * texture.image.width) * texture.itemSize;
       const size = (w * h) * texture.itemSize;
       const data = texture.image.data.subarray(
@@ -626,12 +628,13 @@ export class DrawCallBinding {
         start + size
       );
 
-      const srcTexture = new THREE.DataTexture(
-        data,
-        w, h,
-        texture.format,
-        texture.type,
-      );
+      const srcTexture = localDataTexture;
+      srcTexture.image.data = data;
+      srcTexture.image.width = w;
+      srcTexture.image.height = h;
+      srcTexture.format = texture.format;
+      srcTexture.type = texture.type;
+
       renderer.copyTextureToTexture(
         position,
         srcTexture,
