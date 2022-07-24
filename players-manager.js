@@ -69,6 +69,7 @@ class PlayersManager {
             const remotePlayer = new RemotePlayer({
               playerId,
               playersArray: this.playersArray,
+              networked: true,
             });
             this.remotePlayers.set(playerId, remotePlayer);
           }

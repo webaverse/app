@@ -1056,7 +1056,7 @@ const _setFirstPersonAction = firstPerson => {
   }
 };
 let lastFirstPerson = cameraManager.getMode() === 'firstperson';
-_setFirstPersonAction(lastFirstPerson);
+// _setFirstPersonAction(lastFirstPerson);
 /* cameraManager.addEventListener('modechange', e => {
   // XXX need to do this in the frame loop instead
   const {mode} = e.data;

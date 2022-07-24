@@ -1,3 +1,5 @@
+Error.stackTraceLimit = Infinity;
+
 /*
 this file is responisible for maintaining player state that is network-replicated.
 */
@@ -5,6 +7,7 @@ this file is responisible for maintaining player state that is network-replicate
 import {WsAudioDecoder} from 'wsrtc/ws-codec.js';
 import {ensureAudioContext, getAudioContext} from 'wsrtc/ws-audio-context.js';
 import {getAudioDataBuffer} from 'wsrtc/ws-util.js';
+import { defaultPlayerSpec } from './constants';
 
 import * as THREE from 'three';
 import * as Z from 'zjs';
@@ -175,10 +178,12 @@ class PlayerBase extends THREE.Object3D {
     
     this.appManager = new AppManager({
       appsMap: null,
-      owner: this
+      networked: this.networked
     });
     this.appManager.addEventListener('appadd', e => {
       if (!this.detached) {
+        console.log("appadd", e.data);
+        console.log(new Error().stack);
         const app = e.data;
         scene.add(app);
       }
@@ -506,7 +511,7 @@ class PlayerBase extends THREE.Object3D {
       
       const _removeApp = () => {
         this.removeActionIndex(wearActionIndex);
-        
+
         if (this.appManager.hasTrackedApp(app.instanceId)) {
           if (destroy) {
             this.appManager.removeApp(app);
@@ -552,6 +557,12 @@ class PlayerBase extends THREE.Object3D {
     }
   }
   destroy() {
+    this.appManager.destroy();
+    if(this.avatar){
+      scene.remove(this.avatar.app);
+      this.avatar.app.destroy();
+      this.avatar.destroy();
+    }
     this.characterHups.destroy();
     this.characterSfx.destroy();
     this.characterFx.destroy();
@@ -647,13 +658,13 @@ class StatePlayer extends PlayerBase {
     this.unbindCommonObservers();
     
     // note: leave the old state as is. it is the host's responsibility to garbage collect us when we disconnect.
-    
     // blindly add to new state
     this.playersArray = nextPlayersArray;
     if (this.playersArray) {
       this.attachState(oldState);
       this.bindCommonObservers();
     }
+
   }
   getAvatarInstanceId() {
     return this.playerMap?.get('avatar');
@@ -674,7 +685,7 @@ class StatePlayer extends PlayerBase {
     this.syncAvatarCancelFn = cancelFn;
     
     const instanceId = this.getAvatarInstanceId();
-    
+
     // remove last app
     if (this.avatar) {
       const oldPeerOwnerAppManager = this.appManager.getPeerOwnerAppManager(this.avatar.app.instanceId);
@@ -894,7 +905,8 @@ class InterpolatedPlayer extends StatePlayer {
       // throw: new BinaryInterpolant(() => this.hasAction('throw'), avatarInterpolationTimeDelay, avatarInterpolationNumFrames),
       // chargeJump: new BinaryInterpolant(() => this.hasAction('chargeJump'), avatarInterpolationTimeDelay, avatarInterpolationNumFrames),
       // standCharge: new BinaryInterpolant(() => this.hasAction('standCharge'), avatarInterpolationTimeDelay, avatarInterpolationNumFrames),
-      // fallLoop: new BinaryInterpolant(() => this.hasAction('fallLoop'), avatarInterpolationTimeDelay, avatarInterpolationNumFrames),
+      fallLoop: new BinaryInterpolant(() => this.hasAction('fallLoop'), avatarInterpolationTimeDelay, avatarInterpolationNumFrames),
+      // fallLoopTransition: new BiActionInterpolant(() => this.hasAction('fallLoop'), 0, 300),
       // swordSideSlash: new BinaryInterpolant(() => this.hasAction('swordSideSlash'), avatarInterpolationTimeDelay, avatarInterpolationNumFrames),
       // swordTopDownSlash: new BinaryInterpolant(() => this.hasAction('swordTopDownSlash'), avatarInterpolationTimeDelay, avatarInterpolationNumFrames),
       hurt: new BinaryInterpolant(() => this.hasAction('hurt'), avatarInterpolationTimeDelay, avatarInterpolationNumFrames),
@@ -914,6 +926,8 @@ class InterpolatedPlayer extends StatePlayer {
       jump: new InfiniteActionInterpolant(() => this.actionBinaryInterpolants.jump.get(), 0),
       land: new InfiniteActionInterpolant(() => this.actionBinaryInterpolants.land.get(), 0),
       fallLoop: new InfiniteActionInterpolant(() => this.hasAction('fallLoop'), 0),
+      fallLoopTransition: new BiActionInterpolant(() => this.actionBinaryInterpolants.fallLoop.get(), 0, 300),
+
       dance: new InfiniteActionInterpolant(() => this.actionBinaryInterpolants.dance.get(), 0),
       emote: new InfiniteActionInterpolant(() => this.actionBinaryInterpolants.emote.get(), 0),
       // throw: new UniActionInterpolant(() => this.actionBinaryInterpolants.throw.get(), 0, throwMaxTime),
@@ -1031,7 +1045,7 @@ class UninterpolatedPlayer extends StatePlayer {
 class LocalPlayer extends UninterpolatedPlayer {
   constructor(opts) {
     super(opts);
-    this.networked = opts.networked;
+    this.networked = opts.networked === false ? false : true;
     this.isLocalPlayer = !opts.npc;
     this.isNpcPlayer = !!opts.npc;
     this.detached = !!opts.detached;
@@ -1050,13 +1064,13 @@ class LocalPlayer extends UninterpolatedPlayer {
     this.#setAvatarAppFromOwnAppManager(app);
   }
   async setAvatarUrl(u) {
-      const localAvatarEpoch = ++this.avatarEpoch;
-      const avatarApp = await this.appManager.addTrackedApp(u);
-      if (this.avatarEpoch !== localAvatarEpoch) {
-        this.appManager.removeTrackedApp(avatarApp.instanceId);
-        return;
-      }
-      this.#setAvatarAppFromOwnAppManager(avatarApp);
+    const localAvatarEpoch = ++this.avatarEpoch;
+    const avatarApp = await this.appManager.addTrackedApp(u);
+    if (this.avatarEpoch !== localAvatarEpoch) {
+      this.appManager.removeTrackedApp(avatarApp.instanceId);
+      return;
+    }
+    this.#setAvatarAppFromOwnAppManager(avatarApp);
   }
   getAvatarApp() {
     const instanceId = this.playerMap.get('avatar');
@@ -1069,13 +1083,11 @@ class LocalPlayer extends UninterpolatedPlayer {
   #setAvatarAppFromOwnAppManager(app) {
     const self = this;
     this.playersArray.doc.transact(function tx() {
-        const oldInstanceId = self.playerMap.get('avatar');
-        
-        self.playerMap.set('avatar', app.instanceId);
-
-        if (oldInstanceId) {
-          self.appManager.removeTrackedAppInternal(oldInstanceId);
-        }
+      const oldInstanceId = self.playerMap.get('avatar');
+      self.playerMap.set('avatar', app.instanceId);
+      if (oldInstanceId) {
+        self.appManager.removeTrackedAppInternal(oldInstanceId);
+      }
       self.syncAvatar();
     });
   }
@@ -1147,6 +1159,10 @@ class LocalPlayer extends UninterpolatedPlayer {
         self.playerMap.set('voiceSpec', voiceSpec);
       }
     });
+    if(this.networked){
+
+      this.setPlayerSpec(defaultPlayerSpec);
+    }
   }
   grab(app, hand = 'left') {
     const localPlayer = metaversefile.useLocalPlayer();
@@ -1352,11 +1368,31 @@ class RemotePlayer extends InterpolatedPlayer {
       console.warn('binding to nonexistent player object', this.playersArray.toJSON());
     }
     let lastTimestamp = performance.now();
-    let lastPosition = new THREE.Vector3();
-    const observePlayerFn = (e) => {
-      if (e.changes.keys.has('avatar')) {
-        this.syncAvatar();
+
+    this.appManager.bindState(this.getAppsState());
+
+    const avatarId = this.playerMap.get('avatar');
+    const appsArray = this.playerMap.get('apps', Z.Array);
+    for (let i = 0; i < appsArray.length; i++) {
+      const app = appsArray.get(i, Z.Map);
+      const appId = app.get('instanceId');
+      const appInstance = this.appManager.getAppByInstanceId(appId);
+      const trackedApp = this.appManager.getTrackedApp(appId);
+      if (appInstance && trackedApp) {
+      } else if(trackedApp){
+        this.appManager.importTrackedApp(trackedApp);
+        if(appId === avatarId){
+          this.avatar = this.appManager.getAppByInstanceId(appId);
+        }
+      } else {
+        throw new Error('app not found', appId);
       }
+    }
+
+    const observePlayerFn = (e) => {
+        if (e.changes.keys.has('avatar')) {
+          this.syncAvatar();
+        }
 
       if (e.changes.keys.get('voiceSpec') || e.added?.keys?.get('voiceSpec')) {
         const voiceSpec = e.changes.keys.get('voiceSpec');
@@ -1398,8 +1434,6 @@ class RemotePlayer extends InterpolatedPlayer {
     }
     this.playerMap.observe(observePlayerFn);
     this.unbindFns.push(this.playerMap.unobserve.bind(this.playerMap, observePlayerFn));
-
-    this.appManager.bindState(this.getAppsState());
   }
   update(timestamp, timeDiff) {
     if(!this.avatar) return // console.log("no avatar"); // avatar takes time to load, ignore until it does

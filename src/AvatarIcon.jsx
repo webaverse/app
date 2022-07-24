@@ -26,32 +26,35 @@ const CharacterIcon = () => {
 
   useEffect(() => {
     const canvas = canvasRef.current;
-    if (canvas) {
-      const localPlayer = getLocalPlayer();
-      const avatarIconer = new AvatarIconer(localPlayer, {
-        width: characterIconSize * pixelRatio,
-        height: characterIconSize * pixelRatio,
-      });
-      avatarIconer.addCanvas(canvas);
+    const localPlayer = getLocalPlayer();
+    const e = localPlayer.addEventListener('avatarchange', () => {
+      if (canvas && localPlayer.avatar) {
+        const avatarIconer = new AvatarIconer(localPlayer, {
+          width: characterIconSize * pixelRatio,
+          height: characterIconSize * pixelRatio,
+        });
+        avatarIconer.addCanvas(canvas);
 
-      const frame = () => {
-        if (avatarIconer.enabled) {
-          avatarIconer.update();
-        }
-      };
-      world.appManager.addEventListener('frame', frame);
+        const frame = () => {
+          if (avatarIconer.enabled) {
+            avatarIconer.update();
+          }
+        };
+        world.appManager.addEventListener('frame', frame);
 
-      const enabledchange = e => {
-        setLoaded(e.data.enabled);
-      };
-      avatarIconer.addEventListener('enabledchange', enabledchange);
+        const enabledchange = e => {
+          setLoaded(e.data.enabled);
+        };
+        avatarIconer.addEventListener('enabledchange', enabledchange);
 
-      return () => {
-        avatarIconer.destroy();
-        world.appManager.removeEventListener('frame', frame);
-        avatarIconer.removeEventListener('enabledchange', enabledchange);
-      };
-    }
+        return () => {
+          avatarIconer.destroy();
+          world.appManager.removeEventListener('frame', frame);
+          avatarIconer.removeEventListener('enabledchange', enabledchange);
+        };
+      }
+      localPlayer.removeEventListener('avatarchange', e);
+  });
   }, [canvasRef]);
 
   return (

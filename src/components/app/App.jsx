@@ -55,11 +55,6 @@ const _startApp = async ( weba, canvas ) => {
     await weba.waitForLoad();
     universe.handleUrlUpdate();
     await weba.startLoop();
-
-    const localPlayer = metaversefileApi.useLocalPlayer();
-    // console.log('set player spec', defaultPlayerSpec);
-    await localPlayer.setPlayerSpec(defaultPlayerSpec);
-
 };
 
 const _getCurrentSceneSrc = () => {
