@@ -227,7 +227,7 @@ function deserializeChunkAllocationData(dataView, serializeId) {
   return new ChunkAllocationData(id, { x:minX, y:minY, z:minZ }, enterFace, peeks);
 }
 
-function parseDrawCallListBuffer(arrayBuffer, bufferAddress){
+function deserializeDrawListBuffer(arrayBuffer, bufferAddress){
   const dataView = new DataView(arrayBuffer, bufferAddress);
 
   let index = 0;
@@ -236,28 +236,25 @@ function parseDrawCallListBuffer(arrayBuffer, bufferAddress){
   index += Uint32Array.BYTES_PER_ELEMENT;
   const DrawCalls = new Int32Array(arrayBuffer, bufferAddress + index, numDrawCalls);
   index += Int32Array.BYTES_PER_ELEMENT * numDrawCalls;
-  // console.log(DrawCalls);
 
   return DrawCalls;
 }
 
 export class GeometryAllocator {
-  constructor(attributeSpecs, {
-    bufferSize,
-    boundingType = null,
-    hasOcclusionCulling = false
-  }) {
+  constructor(
+    attributeSpecs,
+    { bufferSize, boundingType = null, hasOcclusionCulling = false }
+  ) {
     {
       this.geometry = new THREE.BufferGeometry();
       for (const attributeSpec of attributeSpecs) {
-        const {
-          name,
-          Type,
-          itemSize,
-        } = attributeSpec;
+        const { name, Type, itemSize } = attributeSpec;
 
         const array = new Type(bufferSize * itemSize);
-        this.geometry.setAttribute(name, new ImmediateGLBufferAttribute(array, itemSize, false));
+        this.geometry.setAttribute(
+          name,
+          new ImmediateGLBufferAttribute(array, itemSize, false)
+        );
       }
       const indices = new Uint32Array(bufferSize);
       this.geometry.setIndex(new ImmediateGLBufferAttribute(indices, 1, true));
@@ -277,27 +274,51 @@ export class GeometryAllocator {
     this.appMatrix = new THREE.Matrix4();
     // this.peeksArray = [];
     this.hasOcclusionCulling = hasOcclusionCulling;
-    if(this.hasOcclusionCulling){
+    if (this.hasOcclusionCulling) {
       this.OCInstance = Module._initOcclusionCulling();
-      const allocator = new Allocator(Module);  
+      const allocator = new Allocator(Module);
       const chunkAllocationBufferSize = maxNumDraws * chunkAllocationDataSize;
-      this.chunkAllocationBuffer = allocator.alloc(Uint8Array, chunkAllocationBufferSize);
+      this.chunkAllocationBuffer = allocator.alloc(
+        Uint8Array,
+        chunkAllocationBufferSize
+      );
       // console.log(this.chunkAllocationBuffer.length);
       this.chunkAllocationArrayOffset = this.chunkAllocationBuffer.offset;
-      this.chunkAllocationDataView = new DataView(Module.HEAP8.buffer, this.chunkAllocationArrayOffset, chunkAllocationBufferSize);
+      this.chunkAllocationDataView = new DataView(
+        Module.HEAP8.buffer,
+        this.chunkAllocationArrayOffset,
+        chunkAllocationBufferSize
+      );
     }
     this.numDraws = 0;
   }
-  alloc(numPositions, numIndices, boundingObject, minObject, maxObject, appMatrix , peeks) {
+  alloc(
+    numPositions,
+    numIndices,
+    boundingObject,
+    minObject,
+    maxObject,
+    appMatrix,
+    peeks
+  ) {
     const positionFreeListEntry = this.positionFreeList.alloc(numPositions);
     const indexFreeListEntry = this.indexFreeList.alloc(numIndices);
-    const geometryBinding = new GeometryPositionIndexBinding(positionFreeListEntry, indexFreeListEntry, this.geometry);
+    const geometryBinding = new GeometryPositionIndexBinding(
+      positionFreeListEntry,
+      indexFreeListEntry,
+      this.geometry
+    );
 
-    if(this.hasOcclusionCulling){
+    if (this.hasOcclusionCulling) {
       minObject.applyMatrix4(this.appMatrix);
       maxObject.applyMatrix4(this.appMatrix);
 
-      const allocatedChunk = new ChunkAllocationData(this.numDraws, minObject, PEEK_FACES["NONE"], peeks);
+      const allocatedChunk = new ChunkAllocationData(
+        this.numDraws,
+        minObject,
+        PEEK_FACES['NONE'],
+        peeks
+      );
       allocatedChunk.serialize(this.chunkAllocationDataView, this.numDraws);
 
       this.appMatrix = appMatrix;
@@ -307,7 +328,8 @@ export class GeometryAllocator {
     }
 
     const slot = indexFreeListEntry;
-    this.drawStarts[this.numDraws] = slot * this.geometry.index.array.BYTES_PER_ELEMENT;
+    this.drawStarts[this.numDraws] =
+      slot * this.geometry.index.array.BYTES_PER_ELEMENT;
     this.drawCounts[this.numDraws] = numIndices;
     if (this.boundingType === 'sphere') {
       boundingObject.center.toArray(this.boundingData, this.numDraws * 4);
@@ -323,7 +345,8 @@ export class GeometryAllocator {
   }
   free(geometryBinding) {
     const slot = geometryBinding.indexFreeListEntry;
-    const expectedStartValue = slot * this.geometry.index.array.BYTES_PER_ELEMENT;
+    const expectedStartValue =
+      slot * this.geometry.index.array.BYTES_PER_ELEMENT;
     // XXX using indexOf is slow. we can do better.
     const freeIndex = this.drawStarts.indexOf(expectedStartValue);
 
@@ -335,31 +358,41 @@ export class GeometryAllocator {
         this.drawStarts[freeIndex] = this.drawStarts[lastIndex];
         this.drawCounts[freeIndex] = this.drawCounts[lastIndex];
         this.boundingData[freeIndex * 4] = this.boundingData[lastIndex * 4];
-        this.boundingData[freeIndex * 4 + 1] = this.boundingData[lastIndex * 4 + 1];
-        this.boundingData[freeIndex * 4 + 2] = this.boundingData[lastIndex * 4 + 2];
-        this.boundingData[freeIndex * 4 + 3] = this.boundingData[lastIndex * 4 + 3];
+        this.boundingData[freeIndex * 4 + 1] =
+          this.boundingData[lastIndex * 4 + 1];
+        this.boundingData[freeIndex * 4 + 2] =
+          this.boundingData[lastIndex * 4 + 2];
+        this.boundingData[freeIndex * 4 + 3] =
+          this.boundingData[lastIndex * 4 + 3];
       } else if (this.boundingType === 'box') {
         this.drawStarts[freeIndex] = this.drawStarts[lastIndex];
         this.drawCounts[freeIndex] = this.drawCounts[lastIndex];
         this.boundingData[freeIndex * 6] = this.boundingData[lastIndex * 6];
-        this.boundingData[freeIndex * 6 + 1] = this.boundingData[lastIndex * 6 + 1];
-        this.boundingData[freeIndex * 6 + 2] = this.boundingData[lastIndex * 6 + 2];
-        this.boundingData[freeIndex * 6 + 3] = this.boundingData[lastIndex * 6 + 3];
-        this.boundingData[freeIndex * 6 + 4] = this.boundingData[lastIndex * 6 + 4];
-        this.boundingData[freeIndex * 6 + 5] = this.boundingData[lastIndex * 6 + 5];
+        this.boundingData[freeIndex * 6 + 1] =
+          this.boundingData[lastIndex * 6 + 1];
+        this.boundingData[freeIndex * 6 + 2] =
+          this.boundingData[lastIndex * 6 + 2];
+        this.boundingData[freeIndex * 6 + 3] =
+          this.boundingData[lastIndex * 6 + 3];
+        this.boundingData[freeIndex * 6 + 4] =
+          this.boundingData[lastIndex * 6 + 4];
+        this.boundingData[freeIndex * 6 + 5] =
+          this.boundingData[lastIndex * 6 + 5];
       }
 
       if (this.hasOcclusionCulling) {
-
         this.minData[freeIndex * 4 + 0] = this.minData[lastIndex * 4 + 0];
         this.minData[freeIndex * 4 + 1] = this.minData[lastIndex * 4 + 1];
         this.minData[freeIndex * 4 + 2] = this.minData[lastIndex * 4 + 2];
-        
+
         this.maxData[freeIndex * 4 + 0] = this.maxData[lastIndex * 4 + 0];
         this.maxData[freeIndex * 4 + 1] = this.maxData[lastIndex * 4 + 1];
         this.maxData[freeIndex * 4 + 2] = this.maxData[lastIndex * 4 + 2];
 
-        const freeChunk = deserializeChunkAllocationData(this.chunkAllocationDataView, lastIndex);
+        const freeChunk = deserializeChunkAllocationData(
+          this.chunkAllocationDataView,
+          lastIndex
+        );
         freeChunk.serialize(this.chunkAllocationDataView, freeIndex); // free
       }
     }
@@ -375,7 +408,10 @@ export class GeometryAllocator {
     distanceArray.length = 0;
 
     if (this.boundingType) {
-      const projScreenMatrix = localMatrix.multiplyMatrices(camera.projectionMatrix, camera.matrixWorldInverse);
+      const projScreenMatrix = localMatrix.multiplyMatrices(
+        camera.projectionMatrix,
+        camera.matrixWorldInverse
+      );
       localFrustum.setFromProjectionMatrix(projScreenMatrix);
     }
 
@@ -384,7 +420,9 @@ export class GeometryAllocator {
         return (i) => {
           localSphere.center.fromArray(this.boundingData, i * 4);
           localSphere.radius = this.boundingData[i * 4 + 3];
-          return localFrustum.intersectsSphere(localSphere) ? localSphere.center.distanceTo(camera.position) : false;
+          return localFrustum.intersectsSphere(localSphere)
+            ? localSphere.center.distanceTo(camera.position)
+            : false;
         };
       } else if (this.boundingType === 'box') {
         return (i) => {
@@ -397,6 +435,13 @@ export class GeometryAllocator {
         return (i) => true;
       }
     })();
+
+    const fullyDraw = () => {
+      for (let i = 0; i < this.numDraws; i++) {
+        drawStarts.push(this.drawStarts[i]);
+        drawCounts.push(this.drawCounts[i]);
+      }
+    };
 
     if (this.hasOcclusionCulling) {
       let foundId;
@@ -415,8 +460,6 @@ export class GeometryAllocator {
             currentChunkMax.copy(max);
             foundId = i;
           }
-          // console.log(max.x - min.x);
-          // console.log(currentChunkMin.x == this.chunkAllocationDataView.getInt32(i * chunkAllocationDataSize + Int32Array.BYTES_PER_ELEMENT));
         }
       };
 
@@ -444,7 +487,7 @@ export class GeometryAllocator {
           cameraView.z,
           this.numDraws
         );
-        const drawCalls = parseDrawCallListBuffer(
+        const drawCalls = deserializeDrawListBuffer(
           Module.HEAP8.buffer,
           Module.HEAP8.byteOffset + drawListBuffer
         );
@@ -452,33 +495,12 @@ export class GeometryAllocator {
           drawStarts.push(this.drawStarts[drawCalls[i]]);
           drawCounts.push(this.drawCounts[drawCalls[i]]);
         }
+      } else {
+        fullyDraw();
       }
-
-      // for (let i = 0; i < this.numDraws; i++) {
-      //   // console.log(culled[i]);
-      //     // ! frustum culling has bugs !
-      //     // if(testBoundingFn(i)){
-      //       drawStarts.push(this.drawStarts[i]);
-      //       drawCounts.push(this.drawCounts[i]);
-      //     // }
-      // }
-
-      // for (let i = 0; i < culled.length; i++) {
-      //   // console.log(culled[i]);
-      //   const id = culled[i][0];
-      //     //  if(testBoundingFn(id)){
-      //       drawStarts.push(this.drawStarts[id]);
-      //       drawCounts.push(this.drawCounts[id]);
-      //       // }
-      // }
     } else {
-      for (let i = 0; i < this.numDraws; i++) {
-        drawStarts.push(this.drawStarts[i]);
-        drawCounts.push(this.drawCounts[i]);
-      }
+      fullyDraw();
     }
-
-
   }
 }
 
