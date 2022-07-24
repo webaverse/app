@@ -781,7 +781,8 @@ export class InstancedGeometryAllocator {
         texture.name = name;
         texture.minFilter = THREE.NearestFilter;
         texture.magFilter = THREE.NearestFilter;
-        // texture.needsUpdate = true;
+        // texture.flipY = true;
+        texture.needsUpdate = true;
         texture.itemSize = itemSize;
         return texture;
       });
