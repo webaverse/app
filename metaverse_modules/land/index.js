@@ -4,6 +4,7 @@ const {useApp, useLocalPlayer, useCamera, useProcGenManager, useFrame, useCleanu
 
 const localVector = new THREE.Vector3();
 const localVector2 = new THREE.Vector3();
+const localVector3 = new THREE.Vector3();
 const localQuaternion = new THREE.Quaternion();
 const localMatrix = new THREE.Matrix4();
 const localMatrix2 = new THREE.Matrix4();
@@ -174,16 +175,24 @@ export default e => {
 
   if (!renderPosition) {
     useFrame(() => {
+      const appMatrixWorldInverse = localMatrix2.copy(app.matrixWorld).invert();
       localMatrix
         .copy(localPlayer.matrixWorld)
-        .premultiply(localMatrix2.copy(app.matrixWorld).invert())
+        .premultiply(appMatrixWorldInverse)
         .decompose(localVector, localQuaternion, localVector2);
-
       const playerPosition = localVector;
+
+      localMatrix
+        .copy(camera.matrixWorld)
+        .premultiply(appMatrixWorldInverse)
+        .decompose(localVector2, localQuaternion, localVector3);
+      const cameraPosition = localVector2;
+      const cameraQuaternion = localQuaternion;
+
       procGenInstance.dcWorkerManager.setCamera(
         playerPosition,
-        camera.position,
-        camera.quaternion,
+        cameraPosition,
+        cameraQuaternion,
         camera.projectionMatrix
       );
     });
