@@ -595,7 +595,7 @@ export class LodChunkTracker /* extends EventTarget */ {
       postUpdate: [],
       chunkDataRequest: [],
       chunkAdd: [],
-      chunkRemove: [],
+      chunkRemove: new Map(),
     };
 
     if (debug) {
@@ -682,8 +682,14 @@ export class LodChunkTracker /* extends EventTarget */ {
   onChunkAdd(fn) {
     this.listeners.chunkAdd.push(fn);
   }
-  onChunkRemove(fn) {
-    this.listeners.chunkRemove.push(fn);
+  onChunkRemove(chunk, fn) {
+    const hash = _getHashChunk(chunk);
+    let list = this.listeners.chunkRemove.get(hash);
+    if (!list) {
+      list = [];
+      this.listeners.chunkRemove.set(hash, list);
+    }
+    list.push(fn);
   }
 
   // unlisteners
@@ -705,10 +711,18 @@ export class LodChunkTracker /* extends EventTarget */ {
       this.listeners.chunkAdd.splice(index, 1);
     }
   }
-  offChunkRemove(fn) {
-    const index = this.listeners.chunkRemove.indexOf(fn);
-    if (index !== -1) {
-      this.listeners.chunkRemove.splice(index, 1);
+  offChunkRemove(chunk, fn) {
+    const hash = _getHashChunk(chunk);
+    const list = this.listeners.chunkRemove.get(hash);
+    if (list) {
+      const index = list.indexOf(fn);
+      if (index !== -1) {
+        list.splice(index, 1);
+
+        if (list.length === 0) {
+          this.listeners.chunkRemove.delete(hash);
+        }
+      }
     }
   }
 
@@ -728,9 +742,14 @@ export class LodChunkTracker /* extends EventTarget */ {
       listener(result);
     }
   }
-  chunkRemove(result) {
-    for (const listener of this.listeners.chunkRemove) {
-      listener(result);
+  chunkRemove(chunk) {
+    const hash = _getHashChunk(chunk);
+    let list = this.listeners.chunkRemove.get(hash);
+    if (list) {
+      list = list.slice();
+      for (const listener of list) {
+        listener(chunk);
+      }
     }
   }
 
@@ -938,9 +957,7 @@ export class LodChunkTracker /* extends EventTarget */ {
         if (!dominator) {
           dominator = new Dominator(maxLodChunk, renderDatas => {
             for (const oldChunk of dominator.oldChunks) {
-              this.chunkRemove({
-                chunk: oldChunk,
-              });
+              this.chunkRemove(oldChunk);
    
               const hash = _getHashChunk(oldChunk);
               this.renderedChunks.delete(hash);
