@@ -164,6 +164,17 @@ class AppManager extends EventTarget {
     }
     this.appsArray = nextAppsArray;
   }
+  async loadApps() {
+    for (let i = 0; i < this.appsArray.length; i++) {
+      const trackedApp = this.appsArray.get(i, Z.Map);
+      if(this.hasTrackedApp(trackedApp.instanceId)){
+        const app = this.apps.find(app => app.instanceId === trackedApp.instanceId);
+        if(!app){
+          await this.importTrackedApp(trackedApp);
+        }
+      }
+    }
+  }
   trackedAppBound (instanceId) {
     return !!this.trackedAppUnobserveMap.get(instanceId)
   }
@@ -442,6 +453,7 @@ class AppManager extends EventTarget {
         components,
       );
     });
+
     const p = this.pendingAddPromises.get(instanceId);
     if (p) {
       return p;
@@ -682,8 +694,6 @@ class AppManager extends EventTarget {
         this.clear();
         
         appManagers.splice(index, 1);
-      } else {
-        throw new Error('double destroy of app manager');
       }
     } else {
       throw new Error('destroy of bound app manager');

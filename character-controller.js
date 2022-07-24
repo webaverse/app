@@ -507,7 +507,6 @@ class PlayerBase extends THREE.Object3D {
       
       const _removeApp = () => {
         this.removeActionIndex(wearActionIndex);
-
         if (this.appManager.hasTrackedApp(app.instanceId)) {
           if (destroy) {
             this.appManager.removeApp(app);
@@ -654,12 +653,16 @@ class StatePlayer extends PlayerBase {
     this.unbindCommonObservers();
     
     // note: leave the old state as is. it is the host's responsibility to garbage collect us when we disconnect.
-    // blindly add to new state
-    this.playersArray = nextPlayersArray;
-    if (this.playersArray) {
-      this.attachState(oldState);
-      this.bindCommonObservers();
+    if(!this.detached){
+
+      // blindly add to new state
+      this.playersArray = nextPlayersArray;
+      if (this.playersArray) {
+        this.attachState(oldState);
+        this.bindCommonObservers();
+      }
     }
+
   }
   getAvatarInstanceId() {
     return this.playerMap?.get('avatar');
@@ -1078,8 +1081,9 @@ class LocalPlayer extends UninterpolatedPlayer {
   #setAvatarAppFromOwnAppManager(app) {
     const self = this;
     this.playersArray.doc.transact(function tx() {
-      const oldInstanceId = self.playerMap.get('avatar');
-      self.playerMap.set('avatar', app.instanceId);
+    const oldInstanceId = self.playerMap.get('avatar');
+    
+    self.playerMap.set('avatar', app.instanceId);
       if (oldInstanceId) {
         self.appManager.removeTrackedAppInternal(oldInstanceId);
       }
@@ -1155,6 +1159,7 @@ class LocalPlayer extends UninterpolatedPlayer {
       }
     });
     if(this.networked){
+
       this.setPlayerSpec(defaultPlayerSpec);
     }
   }
@@ -1383,6 +1388,7 @@ class RemotePlayer extends InterpolatedPlayer {
       }
     }
 
+
     const observePlayerFn = (e) => {
         if (e.changes.keys.has('avatar')) {
           this.syncAvatar();
@@ -1428,6 +1434,13 @@ class RemotePlayer extends InterpolatedPlayer {
     }
     this.playerMap.observe(observePlayerFn);
     this.unbindFns.push(this.playerMap.unobserve.bind(this.playerMap, observePlayerFn));
+
+    // when we join a world where there are already players, we need to load their apps and sync
+    if(!this.appManager.apps.length > 0){
+      this.appManager.loadApps().then(() => {
+        this.syncAvatar();
+      });
+    }
   }
   update(timestamp, timeDiff) {
     if(!this.avatar) return // console.log("no avatar"); // avatar takes time to load, ignore until it does
