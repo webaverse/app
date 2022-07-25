@@ -480,7 +480,7 @@ class InstancedSkeleton extends THREE.Skeleton {
     
     // frame -> geometry (skeleton) -> bone -> matrix
     const dstOffset = frameIndex * numGeometries * maxBonesPerInstance * 16 +
-      drawCall.freeListEntry.start * maxBonesPerInstance * 16;
+      drawCall.freeListEntry * maxBonesPerInstance * 16;
 
     const bones = skeleton.bones;
     const boneInverses = skeleton.boneInverses;
@@ -633,6 +633,135 @@ mat4 getBoneMatrix( const in float base, const in float i ) {
   mat4 bone = mat4( v1, v2, v3, v4 );
   return bone;
 }
+vec4 mat2quat( mat3 m ) {
+  vec4 q;
+  float tr = m[0][0] + m[1][1] + m[2][2];
+
+  if (tr > 0.0) { 
+    float S = sqrt(tr + 1.0) * 2.0; // S=4*qw 
+    q.w = 0.25 * S;
+    q.x = (m[2][1] - m[1][2]) / S;
+    q.y = (m[0][2] - m[2][0]) / S; 
+    q.z = (m[1][0] - m[0][1]) / S; 
+  } else if ((m[0][0] > m[1][1]) && (m[0][0] > m[2][2])) { 
+    float S = sqrt(1.0 + m[0][0] - m[1][1] - m[2][2]) * 2.0; // S=4*qx 
+    q.w = (m[2][1] - m[1][2]) / S;
+    q.x = 0.25 * S;
+    q.y = (m[0][1] + m[1][0]) / S; 
+    q.z = (m[0][2] + m[2][0]) / S; 
+  } else if (m[1][1] > m[2][2]) { 
+    float S = sqrt(1.0 + m[1][1] - m[0][0] - m[2][2]) * 2.0; // S=4*qy
+    q.w = (m[0][2] - m[2][0]) / S;
+    q.x = (m[0][1] + m[1][0]) / S; 
+    q.y = 0.25 * S;
+    q.z = (m[1][2] + m[2][1]) / S; 
+  } else { 
+    float S = sqrt(1.0 + m[2][2] - m[0][0] - m[1][1]) * 2.0; // S=4*qz
+    q.w = (m[1][0] - m[0][1]) / S;
+    q.x = (m[0][2] + m[2][0]) / S;
+    q.y = (m[1][2] + m[2][1]) / S;
+    q.z = 0.25 * S;
+  }
+
+  return q;
+}
+mat4 quat2mat( vec4 q ) {
+  mat4 m;
+  m[0][0] = 1.0 - 2.0*(q.y*q.y + q.z*q.z);
+  m[0][1] = 2.0*(q.x*q.y - q.z*q.w);
+  m[0][2] = 2.0*(q.x*q.z + q.y*q.w);
+  m[1][0] = 2.0*(q.x*q.y + q.z*q.w);
+  m[1][1] = 1.0 - 2.0*(q.x*q.x + q.z*q.z);
+  m[1][2] = 2.0*(q.y*q.z - q.x*q.w);
+  m[2][0] = 2.0*(q.x*q.z - q.y*q.w);
+  m[2][1] = 2.0*(q.y*q.z + q.x*q.w);
+  m[2][2] = 1.0 - 2.0*(q.x*q.x + q.y*q.y);
+
+  m[0][3] = 0.0;
+  m[1][3] = 0.0;
+  m[2][3] = 0.0;
+  m[3][0] = 0.0;
+  m[3][1] = 0.0;
+  m[3][2] = 0.0;
+  m[3][3] = 1.0;
+
+  return m;
+}
+#define QUATERNION_IDENTITY vec4(0, 0, 0, 1)
+
+#ifndef PI
+#define PI 3.1415926
+#endif
+vec4 q_slerp(vec4 a, vec4 b, float t) {
+  // if either input is zero, return the other.
+  if (length(a) == 0.0) {
+      if (length(b) == 0.0) {
+          return QUATERNION_IDENTITY;
+      }
+      return b;
+  } else if (length(b) == 0.0) {
+      return a;
+  }
+
+  float cosHalfAngle = a.w * b.w + dot(a.xyz, b.xyz);
+
+  if (cosHalfAngle >= 1.0 || cosHalfAngle <= -1.0) {
+      return a;
+  } else if (cosHalfAngle < 0.0) {
+      b.xyz = -b.xyz;
+      b.w = -b.w;
+      cosHalfAngle = -cosHalfAngle;
+  }
+
+  float blendA;
+  float blendB;
+  if (cosHalfAngle < 0.99) {
+      // do proper slerp for big angles
+      float halfAngle = acos(cosHalfAngle);
+      float sinHalfAngle = sin(halfAngle);
+      float oneOverSinHalfAngle = 1.0 / sinHalfAngle;
+      blendA = sin(halfAngle * (1.0 - t)) * oneOverSinHalfAngle;
+      blendB = sin(halfAngle * t) * oneOverSinHalfAngle;
+  } else {
+      // do lerp if angle is really small.
+      blendA = 1.0 - t;
+      blendB = t;
+  }
+
+  vec4 result = vec4(blendA * a.xyz + blendB * b.xyz, blendA * a.w + blendB * b.w);
+  if (length(result) > 0.0) {
+      return normalize(result);
+  }
+  return QUATERNION_IDENTITY;
+}
+mat4 getInterpBoneMatrix( const in float base1, const in float base2, const in float ratio, const in float i ) {
+  mat4 boneMat1 = getBoneMatrix( base1, i );
+  mat4 boneMat2 = getBoneMatrix( base2, i );
+
+  vec3 translation1 = boneMat1[3].xyz;
+  vec3 translation2 = boneMat2[3].xyz;
+  vec3 translation = translation1 * (1.0 - ratio) + translation2 * ratio;
+
+  mat3 rot1 = mat3(boneMat1);
+  float s1 = pow(determinant( rot1 ), 1.0/3.0);
+  rot1 = rot1 / s1;
+
+  mat3 rot2 = mat3(boneMat2);
+  float s2 = pow(determinant( rot2 ), 1.0/3.0);
+  rot2 = rot2 / s2;
+
+  vec4 q1 = mat2quat( rot1 );
+  vec4 q2 = mat2quat( rot2 );
+  vec4 q = q_slerp( q1, q2, ratio );
+
+  float s = s1 * (1.0 - ratio) + s2 * ratio;
+
+  mat4 boneMat = quat2mat( q );
+  boneMat = boneMat * s;
+  boneMat[3] = vec4(translation, 1.0);
+
+  return boneMat;
+}
 #endif
         `);
         shader.vertexShader = shader.vertexShader.replace(`#include <skinbase_vertex>`, `\
@@ -647,13 +776,23 @@ int instanceIndex = gl_DrawID * ${maxInstancesPerDrawCall} + gl_InstanceID;
   vec2 timeOffsetpUv = (vec2(timeOffsetX, timeOffsetY) + 0.5) / vec2(timeOffsetWidth, timeOffsetHeight);
   float timeOffset = texture2D(timeOffsetTexture, timeOffsetpUv).x;
   
-  float frame		= mod( uTime + timeOffset * frameCount, frameCount );
-  boneTextureIndex = boneTextureIndex + int(frame) * ${numGeometries} * ${maxBonesPerInstance};
-  float boneIndexOffset = float(boneTextureIndex) * 4.;
-  mat4 boneMatX = getBoneMatrix( boneIndexOffset, skinIndex.x );
-  mat4 boneMatY = getBoneMatrix( boneIndexOffset, skinIndex.y );
-  mat4 boneMatZ = getBoneMatrix( boneIndexOffset, skinIndex.z );
-  mat4 boneMatW = getBoneMatrix( boneIndexOffset, skinIndex.w );
+  float time1 = float(floor(uTime));
+  float time2 = float(ceil(uTime));
+  float timeRatio = (uTime - time1) / (time2 - time1);
+  if (time2 == time1) {
+    timeRatio = 0.0f;
+  }
+  float frame1 = mod( float(time1) + timeOffset * frameCount, frameCount );
+  float frame2 = mod( float(time2) + timeOffset * frameCount, frameCount );
+  int boneTextureIndex1 = boneTextureIndex + int(frame1) * ${numGeometries} * ${maxBonesPerInstance};
+  int boneTextureIndex2 = boneTextureIndex + int(frame2) * ${numGeometries} * ${maxBonesPerInstance};
+  float boneIndexOffset1 = float(boneTextureIndex1) * 4.;
+  float boneIndexOffset2 = float(boneTextureIndex2) * 4.;
+
+  mat4 boneMatX = getInterpBoneMatrix( boneIndexOffset1, boneIndexOffset2, timeRatio, skinIndex.x );
+  mat4 boneMatY = getInterpBoneMatrix( boneIndexOffset1, boneIndexOffset2, timeRatio, skinIndex.y );
+  mat4 boneMatZ = getInterpBoneMatrix( boneIndexOffset1, boneIndexOffset2, timeRatio, skinIndex.z );
+  mat4 boneMatW = getInterpBoneMatrix( boneIndexOffset1, boneIndexOffset2, timeRatio, skinIndex.w );
 
   /* mat4 boneMatX = mat4(1.);
   mat4 boneMatY = mat4(1.);
@@ -870,7 +1009,7 @@ gl_Position = projectionMatrix * mvPosition;
         pTexture.image.data[pOffset + instanceIndex * 3 + 1] = py;
         pTexture.image.data[pOffset + instanceIndex * 3 + 2] = pz;
 
-        drawCall.updateTexture('p', pOffset / 3 + instanceIndex, 1);
+        drawCall.updateTexture('p', pOffset + instanceIndex * 3, 3);
 
         // quaternion
 
@@ -883,7 +1022,7 @@ gl_Position = projectionMatrix * mvPosition;
         qTexture.image.data[qOffset + instanceIndex * 4 + 2] = qz;
         qTexture.image.data[qOffset + instanceIndex * 4 + 3] = qw;
 
-        drawCall.updateTexture('q', qOffset / 4 + instanceIndex, 1);
+        drawCall.updateTexture('q', qOffset + instanceIndex * 4, 4);
 
         // time offset
 
@@ -936,8 +1075,8 @@ gl_Position = projectionMatrix * mvPosition;
           timeOffsetTexture.image.data[timeOffsetOffset + instanceIndex] = timeOffsetTexture.image.data[timeOffsetOffset + lastInstanceIndex];
 
 
-          drawCall.updateTexture('p', pOffset / 3 + instanceIndex, 1);
-          drawCall.updateTexture('q', qOffset / 4 + instanceIndex, 1);
+          drawCall.updateTexture('p', pOffset + instanceIndex * 3, 3);
+          drawCall.updateTexture('q', qOffset + instanceIndex * 4, 4);
           drawCall.updateTexture('timeOffset', timeOffsetOffset + instanceIndex, 1);
 
           // mob instance
@@ -963,10 +1102,9 @@ gl_Position = projectionMatrix * mvPosition;
         mobInstances.push(mobInstance);
       }
 
-      const onchunkremove = e => {
-        const {chunk: removeChunk} = e.data;
-        if (chunk.equalsNodeLod(removeChunk)) {
-
+      const onchunkremove = () => {
+        // const {chunk: removeChunk} = e;
+        // if (chunk.equalsNodeLod(removeChunk)) {
           for (let i = 0; i < mobData.instances.length; i++) {
             const geometryNoise = mobData.instances[i];
             const geometryIndex = Math.floor(geometryNoise * this.meshes.length);
@@ -978,10 +1116,10 @@ gl_Position = projectionMatrix * mvPosition;
             _unrenderMobGeometry(drawCall, mobInstance);
           }
 
-          tracker.removeEventListener('chunkremove', onchunkremove);
-        }
+          tracker.offChunkRemove(chunk, onchunkremove);
+        // }
       };
-      tracker.addEventListener('chunkremove', onchunkremove);
+      tracker.onChunkRemove(chunk, onchunkremove);
     }
   }
   update(timestamp, timeDiff) {
@@ -1095,7 +1233,7 @@ class Mobber {
       // relod: true,
     });
     const chunkdatarequest = (e) => {
-      const {chunk, waitUntil, signal} = e.data;
+      const {chunk, waitUntil, signal} = e;
       const {lod} = chunk;
 
       if (chunk.min.y !== 0) return;
@@ -1114,17 +1252,19 @@ class Mobber {
       waitUntil(loadPromise);
     };
     const chunkadd = (e) => {
-      const {renderData, chunk} = e.data;
+      const {renderData, chunk} = e;
       generator.mobBatchedMesh.drawChunk(chunk, renderData, tracker);
     };
-    tracker.addEventListener('chunkdatarequest', chunkdatarequest);
-    tracker.addEventListener('chunkadd', chunkadd);
+    // tracker.addEventListener('chunkdatarequest', chunkdatarequest);
+    // tracker.addEventListener('chunkadd', chunkadd);
+    tracker.onChunkDataRequest(chunkdatarequest);
+    tracker.onChunkAdd(chunkadd);
 
     this.tracker = tracker;
   }
   async waitForUpdate() {
     await new Promise((accept, reject) => {
-      this.tracker.addEventListener('update', () => {
+      this.tracker.onPostUpdate(() => {
         accept();
       });
     });

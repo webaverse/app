@@ -582,6 +582,27 @@ const physxWorker = (() => {
 
     return newUpdates
   }
+  w.setTriggerPhysics = (physics, id) => {
+    return Module._setTriggerPhysics(
+      physics, id,
+    )
+  }
+  w.getTriggerEventsPhysics = (physics) => {
+    const triggerCount = Module._getTriggerEventsPhysics(
+      physics,
+      scratchStack.ptr,
+    )
+    const triggerEvents = [];
+    if (triggerCount > 0) {
+      for (let i = 0; i < triggerCount; i++) {
+        const status = scratchStack.u32[i * 3 + 0];
+        const triggerPhysicsId = scratchStack.u32[i * 3 + 1];
+        const otherPhysicsId = scratchStack.u32[i * 3 + 2];
+        triggerEvents.push({status, triggerPhysicsId, otherPhysicsId});
+      }
+    }
+    return triggerEvents;
+  }
 
   w.createMaterial = (physics, mat) => {
     const material = scratchStack.f32.subarray(0, 3);
@@ -2016,13 +2037,40 @@ const physxWorker = (() => {
     )
     allocator.freeAll()
   }
+  w.addPlaneGeometryPhysics = (
+    physics,
+    position,
+    quaternion,
+    id,
+    dynamic,
+  ) => {
+    const allocator = new Allocator(Module)
+    const p = allocator.alloc(Float32Array, 3)
+    const q = allocator.alloc(Float32Array, 4)
+
+    position.toArray(p)
+    quaternion.toArray(q)
+
+    const materialAddress = w.getDefaultMaterial(physics);
+
+    Module._addPlaneGeometryPhysics(
+      physics,
+      p.byteOffset,
+      q.byteOffset,
+      id,
+      materialAddress,
+      +dynamic,
+    )
+    allocator.freeAll()
+  }
   w.addBoxGeometryPhysics = (
     physics,
     position,
     quaternion,
     size,
     id,
-    dynamic
+    dynamic,
+    groupId = -1 // if not equal to -1, this BoxGeometry will not collide with CharacterController.
   ) => {
     const allocator = new Allocator(Module)
     const p = allocator.alloc(Float32Array, 3)
@@ -2042,7 +2090,8 @@ const physxWorker = (() => {
       s.byteOffset,
       id,
       materialAddress,
-      +dynamic
+      +dynamic,
+      groupId,
     )
     allocator.freeAll()
   }
