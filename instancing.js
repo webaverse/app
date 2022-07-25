@@ -446,7 +446,7 @@ export class GeometryAllocator {
     if (this.hasOcclusionCulling) {
       let foundId;
       let surfaceY = -Infinity;
-      const findCameraChunk = (i) => {
+      const findSearchStartingChunk = (i) => {
         // find the chunk that the camera is inside
         localVector3D2.set(0, 0, 0);
         localVector3D3.set(0, 0, 0);
@@ -455,16 +455,18 @@ export class GeometryAllocator {
 
         if (isPointInPillar(camera.position, min, max)) {
           if (surfaceY < min.y) {
-            surfaceY = min.y;
-            currentChunkMin.copy(min);
-            currentChunkMax.copy(max);
-            foundId = i;
+            if (min.y <= 0 && min.y <= camera.position.y) {
+              surfaceY = min.y;
+              currentChunkMin.copy(min);
+              currentChunkMax.copy(max);
+              foundId = i;
+            }
           }
         }
       };
 
       for (let i = 0; i < this.numDraws; i++) {
-        findCameraChunk(i);
+        findSearchStartingChunk(i);
       }
 
       if (foundId) {
