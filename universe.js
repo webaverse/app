@@ -198,7 +198,7 @@ class Universe extends EventTarget {
         localPlayer.bindState(state.getArray(playersMapName));
 
         this.wsrtc.addEventListener('audio', e => {
-          const player = playersManager.remotePlayersByInteger.get(e.data.playerId);
+          const player = playersManager.remotePlayers.get(e.data.playerId);
           player.processAudioData(e.data);
         });
       };
