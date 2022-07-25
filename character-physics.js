@@ -171,7 +171,11 @@ class CharacterPhysics {
           if (!this.lastGrounded) {
             if (this.player.hasAction('jump') || this.player.hasAction('fallLoop')) {
               console.log('land')
-              this.player.setControlAction({type: 'land', time: now});
+              this.player.setControlAction({
+                type: 'land',
+                time: now,
+                isMoving: this.player.avatar.idleWalkFactor > 0,
+              });
               this.player.removeAction('doubleJump');
             }
           };

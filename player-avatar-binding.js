@@ -123,6 +123,7 @@ export function applyPlayerActionsToAvatar(player, rig) {
   rig.doubleJumpTime = player.actionInterpolants.doubleJump.get();
   rig.landTime = player.actionInterpolants.land.get();
   rig.lastLandStartTime = landAction ? landAction.time : 0;
+  rig.landWithMoving = landAction?.isMoving;
   rig.flyState = !!flyAction;
   rig.flyTime = flyAction ? player.actionInterpolants.fly.get() : -1;
   rig.activateTime = player.actionInterpolants.activate.get();
