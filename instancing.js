@@ -445,7 +445,7 @@ export class GeometryAllocator {
 
     if (this.hasOcclusionCulling) { 
 
-      const findSearchStartingChunk = (i) => {
+      const findSearchStartingChunk = () => {
         let foundId;
         let surfaceY = -Infinity;
         // find the chunk that the camera is inside of
