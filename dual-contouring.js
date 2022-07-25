@@ -507,30 +507,95 @@ w.createLiquidChunkMeshAsync = async (inst, taskId, x, y, z, lods) => {
 
 //
 
-w.getChunkHeightfieldAsync = async (inst, taskId, x, z, lod, priority) => {
-  // const allocator = new Allocator(Module);
+w.getHeightfieldRangeAsync = async (inst, taskId, x, y, w, h, lod, priority) => {
+  const allocator = new Allocator(Module);
 
-  // const heights = allocator.alloc(Float32Array, chunkSize * chunkSize);
+  try {
+    const heights = allocator.alloc(Float32Array, w * h);
 
-  // try {
-    Module._getChunkHeightfieldAsync(
+    /* console.log('get heightfield range', {
       inst,
       taskId,
-      x, z,
+      x, y,
+      w, h,
       lod,
+      byteOffset: heights.byteOffset,
+      priority
+    }); */
+
+    Module._getHeightfieldRangeAsync(
+      inst,
+      taskId,
+      x, y,
+      w, h,
+      lod,
+      heights.byteOffset,
       priority
     );
 
     const p = makePromise();
     cbs.set(taskId, p);
-    const heights = await p;
 
-    const heights2 = new Float32Array(Module.HEAPU8.buffer, heights, chunkSize * chunkSize).slice();
-    Module._doFree(heights);
-    return heights2;
-  /* } finally {
-    // allocator.freeAll();
-  } */
+    await p;
+
+    return heights.slice();
+  /* } catch(err) {
+    console.warn(err);
+    debugger; */
+  } finally {
+    allocator.freeAll();
+  }
+};
+w.getLightRangeAsync = async (inst, taskId, x, y, z, w, h, d, lod, priority) => {
+  const allocator = new Allocator(Module);
+
+  try {
+    const skylightsArray = allocator.alloc(Uint8Array, w * h * d);
+    const aosArray = allocator.alloc(Uint8Array, w * h * d);
+
+    Module._getLightRangeAsync(
+      inst,
+      taskId,
+      x, y, z,
+      w, h, d,
+      lod,
+      skylightsArray.byteOffset,
+      aosArray.byteOffset,
+      priority
+    );
+
+    const p = makePromise();
+    cbs.set(taskId, p);
+
+    await p;
+
+    return {
+      skylights: skylightsArray.slice(),
+      aos: aosArray.slice(),
+    };
+  } finally {
+    allocator.freeAll();
+  }
+};
+
+//
+
+w.getChunkHeightfieldAsync = async (inst, taskId, x, z, lod, priority) => {
+  Module._getChunkHeightfieldAsync(
+    inst,
+    taskId,
+    x, z,
+    lod,
+    priority
+  );
+
+  const p = makePromise();
+  cbs.set(taskId, p);
+  const heights = await p;
+
+  const heights2 = new Float32Array(Module.HEAPU8.buffer, heights, chunkSize * chunkSize).slice();
+  Module._doFree(heights);
+  return heights2;
 };
 /* w.getHeightfieldRange = (inst, x, z, w, h, lod) => {
   const allocator = new Allocator(Module);
@@ -780,25 +845,30 @@ w.createMobSplatAsync = async (inst, taskId, x, z, lod, priority) => {
 
 w.setCamera = (
   inst,
-  position,
-  quaternion,
+  worldPosition,
+  cameraPosition,
+  cameraQuaternion,
   projectionMatrix
 ) => {
   const allocator = new Allocator(Module);
 
-  const positionArray = allocator.alloc(Float32Array, 3);
-  positionArray.set(position);
+  const worldPositionArray = allocator.alloc(Float32Array, 3);
+  worldPositionArray.set(worldPosition);
 
-  const quaternionArray = allocator.alloc(Float32Array, 4);
-  quaternionArray.set(quaternion);
+  const cameraPositionArray = allocator.alloc(Float32Array, 3);
+  cameraPositionArray.set(cameraPosition);
+
+  const cameraQuaternionArray = allocator.alloc(Float32Array, 4);
+  cameraQuaternionArray.set(cameraQuaternion);
 
   const projectionMatrixArray = allocator.alloc(Float32Array, 16);
   projectionMatrixArray.set(projectionMatrix);
 
   Module._setCamera(
     inst,
-    positionArray.byteOffset,
-    quaternionArray.byteOffset,
+    worldPositionArray.byteOffset,
+    cameraPositionArray.byteOffset,
+    cameraQuaternionArray.byteOffset,
     projectionMatrixArray.byteOffset
   );
 

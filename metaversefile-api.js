@@ -578,6 +578,11 @@ metaversefile.setApi({
       const localQuaternion = new THREE.Quaternion();
       const localMatrix = new THREE.Matrix4(); */
       // const localMatrix2 = new THREE.Matrix4();
+      physicsScene.addPlaneGeometry = (addPlaneGeometry => function(position, quaternion, dynamic) {
+        const physicsObject = addPlaneGeometry.call(this, position, quaternion, dynamic);
+        app.physicsObjects.push(physicsObject);
+        return physicsObject;
+      })(physicsScene.addPlaneGeometry);
       physicsScene.addBoxGeometry = (addBoxGeometry => function(position, quaternion, size, dynamic) {
         /* const basePosition = position;
         const baseQuaternion = quaternion;
