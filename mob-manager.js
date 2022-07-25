@@ -1009,7 +1009,7 @@ gl_Position = projectionMatrix * mvPosition;
         pTexture.image.data[pOffset + instanceIndex * 3 + 1] = py;
         pTexture.image.data[pOffset + instanceIndex * 3 + 2] = pz;
 
-        drawCall.updateTexture('p', pOffset / 3 + instanceIndex, 1);
+        drawCall.updateTexture('p', pOffset + instanceIndex * 3, 3);
 
         // quaternion
 
@@ -1022,7 +1022,7 @@ gl_Position = projectionMatrix * mvPosition;
         qTexture.image.data[qOffset + instanceIndex * 4 + 2] = qz;
         qTexture.image.data[qOffset + instanceIndex * 4 + 3] = qw;
 
-        drawCall.updateTexture('q', qOffset / 4 + instanceIndex, 1);
+        drawCall.updateTexture('q', qOffset + instanceIndex * 4, 4);
 
         // time offset
 
@@ -1075,8 +1075,8 @@ gl_Position = projectionMatrix * mvPosition;
           timeOffsetTexture.image.data[timeOffsetOffset + instanceIndex] = timeOffsetTexture.image.data[timeOffsetOffset + lastInstanceIndex];
 
 
-          drawCall.updateTexture('p', pOffset / 3 + instanceIndex, 1);
-          drawCall.updateTexture('q', qOffset / 4 + instanceIndex, 1);
+          drawCall.updateTexture('p', pOffset + instanceIndex * 3, 3);
+          drawCall.updateTexture('q', qOffset + instanceIndex * 4, 4);
           drawCall.updateTexture('timeOffset', timeOffsetOffset + instanceIndex, 1);
 
           // mob instance
