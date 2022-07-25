@@ -1,5 +1,5 @@
 import * as THREE from 'three';
-import {getRenderer, scene} from './renderer.js';
+// import {getRenderer, scene} from './renderer.js';
 import {WebaverseShaderMaterial} from './materials.js';
 
 const localVector = new THREE.Vector3();
