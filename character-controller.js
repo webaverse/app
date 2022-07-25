@@ -1,7 +1,7 @@
 /*
 this file is responisible for maintaining player state that is network-replicated.
 */
-
+import {murmurhash3} from './procgen/murmurhash3.js';
 import {WsAudioDecoder} from 'wsrtc/ws-codec.js';
 import {ensureAudioContext, getAudioContext} from 'wsrtc/ws-audio-context.js';
 import {getAudioDataBuffer} from 'wsrtc/ws-util.js';
@@ -574,6 +574,7 @@ class StatePlayer extends PlayerBase {
     super();
 
     this.playerId = playerId;
+    this.playerIdInt = murmurhash3(playerId);
     this.playersArray = null;
     this.playerMap = null;
     this.microphoneMediaStream = null;
