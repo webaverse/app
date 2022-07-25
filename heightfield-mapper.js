@@ -41,13 +41,13 @@ const _makeHeightfieldRenderTarget = (w, h) => new THREE.WebGLRenderTarget(w, h,
   // flipY: false,
 });
 
-export class HeightfieldMapper extends EventTarget {
+export class HeightfieldMapper /* extends EventTarget */ {
   constructor({
     procGenInstance,
     size,
     debug = false,
   }) {
-    super();
+    // super();
 
     this.procGenInstance = procGenInstance;
     this.size = size;
@@ -239,10 +239,12 @@ export class HeightfieldMapper extends EventTarget {
             vec2 posDiff = pos2D - 0.5 - (uHeightfieldMinPosition) / uHeightfieldSize;
             vec2 uvHeightfield = posDiff;
             uvHeightfield = mod(uvHeightfield, 1.); */
+
+            // gl_FragColor = vec4(vUv.x, 0., vUv.y, 0.5);
             gl_FragColor = vec4(vUv.x, 0., vUv.y, 1.);
           }
         `;
-        const fourTapFullscreenMaterial = new WebaverseShaderMaterial({
+        const debugMaterial = new WebaverseShaderMaterial({
           uniforms: {
             uHeightfield: {
               value: this.heightfieldTexture,
@@ -252,8 +254,9 @@ export class HeightfieldMapper extends EventTarget {
           vertexShader: fullscreenVertexShader,
           fragmentShader: fullscreenFragmentShader,
           side: THREE.DoubleSide,
+          // transparent: true,
         });
-        const debugMesh = new THREE.Mesh(planeGeometry, fourTapFullscreenMaterial);
+        const debugMesh = new THREE.Mesh(planeGeometry, debugMaterial);
         debugMesh.frustumCulled = false;
         return debugMesh;
       })();

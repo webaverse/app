@@ -1,16 +1,20 @@
 import * as THREE from 'three';
-import {ImmediateGLBufferAttribute} from './ImmediateGLBufferAttribute.js';
 import * as BufferGeometryUtils from 'three/examples/jsm/utils/BufferGeometryUtils.js';
 import {getRenderer} from './renderer.js';
 // import { chunkMinForPosition, convertMeshToPhysicsMesh } from './util.js';
-import { PEEK_FACE_INDICES } from './constants.js';
+// import { PEEK_FACE_INDICES } from './constants.js';
+import { ImmediateGLBufferAttribute } from './ImmediateGLBufferAttribute.js';
+import Module from './public/bin/geometry.js';
+import { Allocator } from './geometry-util.js';
 // import { toHiraganaCase } from 'encoding-japanese';
 
 const localVector2D = new THREE.Vector2();
-const localVector2D2 = new THREE.Vector2();
-const localVector3D = new THREE.Vector3();
+// const localVector2D2 = new THREE.Vector2();
+// const localVector3D = new THREE.Vector3();
 const localVector3D2 = new THREE.Vector3();
 const localVector3D3 = new THREE.Vector3();
+const currentChunkMin = new THREE.Vector3();
+const currentChunkMax = new THREE.Vector3();
 const localMatrix = new THREE.Matrix4();
 const localSphere = new THREE.Sphere();
 const localBox = new THREE.Box3();
@@ -37,8 +41,8 @@ const peekFaceSpecs = [
 
 const maxNumDraws = 1024;
 
-const isVectorInRange = (vector, min, max) => {
-  return (vector.x >= min.x && vector.x < max.x) && (vector.y >= min.y && vector.y < max.y) && (vector.z >= min.z && vector.z < max.z);
+const isPointInPillar = (vector, min, max) => {
+  return (vector.x >= min.x && vector.x < max.x) && (vector.z >= min.z && vector.z < max.z);
 }
 
 const _getBoundingSize = boundingType => {
@@ -153,23 +157,104 @@ export class GeometryPositionIndexBinding {
   }
 }
 
+const chunkAllocationDataSize =      // 35
+  Int32Array.BYTES_PER_ELEMENT +     // id
+  Int32Array.BYTES_PER_ELEMENT * 3 + // min
+  Int32Array.BYTES_PER_ELEMENT +     // enterFace
+  Uint8Array.BYTES_PER_ELEMENT * 15; // peeks
+
+class ChunkAllocationData {
+  constructor(id, min, enterFace, peeks) {
+    this.id = id; // 4 bytes
+    this.min = min; // 12 bytes
+    this.enterFace = enterFace; // 4 bytes
+    this.peeks = peeks; // 15 bytes
+  }
+  serialize(dataView, serializeId) {
+    this.id = serializeId;
+
+    let offset = serializeId * chunkAllocationDataSize;
+    let localOffset = 0;
+
+    
+    dataView.setInt32(offset + localOffset, this.id, true);
+    localOffset += Int32Array.BYTES_PER_ELEMENT;
+
+    dataView.setInt32(offset + localOffset, this.min.x, true);
+    localOffset += Int32Array.BYTES_PER_ELEMENT;
+
+    dataView.setInt32(offset + localOffset, this.min.y, true);
+    localOffset += Int32Array.BYTES_PER_ELEMENT;
+
+    dataView.setInt32(offset + localOffset, this.min.z, true);
+    localOffset += Int32Array.BYTES_PER_ELEMENT;
+
+    dataView.setInt32(offset + localOffset, this.enterFace, true);
+    localOffset += Int32Array.BYTES_PER_ELEMENT;
+
+    for (let j = 0; j < 15; j++) {
+      dataView.setUint8(offset + localOffset, this.peeks[j], true);
+      localOffset += Uint8Array.BYTES_PER_ELEMENT;
+    }
+  }
+}
+
+function deserializeChunkAllocationData(dataView, serializeId) {
+  let offset = serializeId * chunkAllocationDataSize;
+  let localOffset = 0;
+  const id = dataView.getInt32(offset + localOffset, true);
+  localOffset += Int32Array.BYTES_PER_ELEMENT;
+
+  const minX = dataView.getInt32(offset + localOffset, true);
+  localOffset += Int32Array.BYTES_PER_ELEMENT;
+
+  const minY = dataView.getInt32(offset + localOffset, true);
+  localOffset += Int32Array.BYTES_PER_ELEMENT;
+
+  const minZ = dataView.getInt32(offset + localOffset, true);
+  localOffset += Int32Array.BYTES_PER_ELEMENT;
+
+  const enterFace = dataView.getInt32(offset + localOffset, true);
+  localOffset += Int32Array.BYTES_PER_ELEMENT;
+
+  const peeks = new Uint8Array(15);
+
+  for (let j = 0; j < 15; j++) {
+    peeks.set([dataView.getUint8(offset + localOffset, true)], j);
+    localOffset += Uint8Array.BYTES_PER_ELEMENT;
+  }
+
+  return new ChunkAllocationData(id, { x:minX, y:minY, z:minZ }, enterFace, peeks);
+}
+
+function deserializeDrawListBuffer(arrayBuffer, bufferAddress){
+  const dataView = new DataView(arrayBuffer, bufferAddress);
+
+  let index = 0;
+  // DrawCalls
+  const numDrawCalls = dataView.getUint32(index, true);
+  index += Uint32Array.BYTES_PER_ELEMENT;
+  const DrawCalls = new Int32Array(arrayBuffer, bufferAddress + index, numDrawCalls);
+  index += Int32Array.BYTES_PER_ELEMENT * numDrawCalls;
+
+  return DrawCalls;
+}
+
 export class GeometryAllocator {
-  constructor(attributeSpecs, {
-    bufferSize,
-    boundingType = null,
-    occlusionCulling = false
-  }) {
+  constructor(
+    attributeSpecs,
+    { bufferSize, boundingType = null, hasOcclusionCulling = false }
+  ) {
     {
       this.geometry = new THREE.BufferGeometry();
       for (const attributeSpec of attributeSpecs) {
-        const {
-          name,
-          Type,
-          itemSize,
-        } = attributeSpec;
+        const { name, Type, itemSize } = attributeSpec;
 
         const array = new Type(bufferSize * itemSize);
-        this.geometry.setAttribute(name, new ImmediateGLBufferAttribute(array, itemSize, false));
+        this.geometry.setAttribute(
+          name,
+          new ImmediateGLBufferAttribute(array, itemSize, false)
+        );
       }
       const indices = new Uint32Array(bufferSize);
       this.geometry.setIndex(new ImmediateGLBufferAttribute(indices, 1, true));
@@ -188,24 +273,63 @@ export class GeometryAllocator {
     this.maxData = new Float32Array(maxNumDraws * 4);
     this.appMatrix = new THREE.Matrix4();
     // this.peeksArray = [];
-    this.allocatedDataArray = [];
-    this.occlusionCulling = occlusionCulling;
+    this.hasOcclusionCulling = hasOcclusionCulling;
+    if (this.hasOcclusionCulling) {
+      this.OCInstance = Module._initOcclusionCulling();
+      const allocator = new Allocator(Module);
+      const chunkAllocationBufferSize = maxNumDraws * chunkAllocationDataSize;
+      this.chunkAllocationBuffer = allocator.alloc(
+        Uint8Array,
+        chunkAllocationBufferSize
+      );
+      // console.log(this.chunkAllocationBuffer.length);
+      this.chunkAllocationArrayOffset = this.chunkAllocationBuffer.offset;
+      this.chunkAllocationDataView = new DataView(
+        Module.HEAP8.buffer,
+        this.chunkAllocationArrayOffset,
+        chunkAllocationBufferSize
+      );
+    }
     this.numDraws = 0;
   }
-  alloc(numPositions, numIndices, boundingObject, minObject, maxObject, appMatrix , peeks) {
+  alloc(
+    numPositions,
+    numIndices,
+    boundingObject,
+    minObject,
+    maxObject,
+    appMatrix,
+    peeks
+  ) {
     const positionFreeListEntry = this.positionFreeList.alloc(numPositions);
     const indexFreeListEntry = this.indexFreeList.alloc(numIndices);
-    const geometryBinding = new GeometryPositionIndexBinding(positionFreeListEntry, indexFreeListEntry, this.geometry);
+    const geometryBinding = new GeometryPositionIndexBinding(
+      positionFreeListEntry,
+      indexFreeListEntry,
+      this.geometry
+    );
 
-    if(this.occlusionCulling){
-      this.allocatedDataArray[this.numDraws] = [this.numDraws, minObject.x, minObject.y, minObject.z, peeks];
+    if (this.hasOcclusionCulling) {
+      minObject.applyMatrix4(this.appMatrix);
+      maxObject.applyMatrix4(this.appMatrix);
+
+      const allocatedChunk = new ChunkAllocationData(
+        this.numDraws,
+        minObject,
+        PEEK_FACES['NONE'],
+        peeks
+      );
+      allocatedChunk.serialize(this.chunkAllocationDataView, this.numDraws);
+
       this.appMatrix = appMatrix;
+
       minObject.toArray(this.minData, this.numDraws * 4);
       maxObject.toArray(this.maxData, this.numDraws * 4);
     }
 
     const slot = indexFreeListEntry;
-    this.drawStarts[this.numDraws] = slot * this.geometry.index.array.BYTES_PER_ELEMENT;
+    this.drawStarts[this.numDraws] =
+      slot * this.geometry.index.array.BYTES_PER_ELEMENT;
     this.drawCounts[this.numDraws] = numIndices;
     if (this.boundingType === 'sphere') {
       boundingObject.center.toArray(this.boundingData, this.numDraws * 4);
@@ -221,7 +345,8 @@ export class GeometryAllocator {
   }
   free(geometryBinding) {
     const slot = geometryBinding.indexFreeListEntry;
-    const expectedStartValue = slot * this.geometry.index.array.BYTES_PER_ELEMENT;
+    const expectedStartValue =
+      slot * this.geometry.index.array.BYTES_PER_ELEMENT;
     // XXX using indexOf is slow. we can do better.
     const freeIndex = this.drawStarts.indexOf(expectedStartValue);
 
@@ -233,30 +358,42 @@ export class GeometryAllocator {
         this.drawStarts[freeIndex] = this.drawStarts[lastIndex];
         this.drawCounts[freeIndex] = this.drawCounts[lastIndex];
         this.boundingData[freeIndex * 4] = this.boundingData[lastIndex * 4];
-        this.boundingData[freeIndex * 4 + 1] = this.boundingData[lastIndex * 4 + 1];
-        this.boundingData[freeIndex * 4 + 2] = this.boundingData[lastIndex * 4 + 2];
-        this.boundingData[freeIndex * 4 + 3] = this.boundingData[lastIndex * 4 + 3];
+        this.boundingData[freeIndex * 4 + 1] =
+          this.boundingData[lastIndex * 4 + 1];
+        this.boundingData[freeIndex * 4 + 2] =
+          this.boundingData[lastIndex * 4 + 2];
+        this.boundingData[freeIndex * 4 + 3] =
+          this.boundingData[lastIndex * 4 + 3];
       } else if (this.boundingType === 'box') {
         this.drawStarts[freeIndex] = this.drawStarts[lastIndex];
         this.drawCounts[freeIndex] = this.drawCounts[lastIndex];
         this.boundingData[freeIndex * 6] = this.boundingData[lastIndex * 6];
-        this.boundingData[freeIndex * 6 + 1] = this.boundingData[lastIndex * 6 + 1];
-        this.boundingData[freeIndex * 6 + 2] = this.boundingData[lastIndex * 6 + 2];
-        this.boundingData[freeIndex * 6 + 3] = this.boundingData[lastIndex * 6 + 3];
-        this.boundingData[freeIndex * 6 + 4] = this.boundingData[lastIndex * 6 + 4];
-        this.boundingData[freeIndex * 6 + 5] = this.boundingData[lastIndex * 6 + 5];
+        this.boundingData[freeIndex * 6 + 1] =
+          this.boundingData[lastIndex * 6 + 1];
+        this.boundingData[freeIndex * 6 + 2] =
+          this.boundingData[lastIndex * 6 + 2];
+        this.boundingData[freeIndex * 6 + 3] =
+          this.boundingData[lastIndex * 6 + 3];
+        this.boundingData[freeIndex * 6 + 4] =
+          this.boundingData[lastIndex * 6 + 4];
+        this.boundingData[freeIndex * 6 + 5] =
+          this.boundingData[lastIndex * 6 + 5];
       }
 
-      if(this.occlusionCulling){
-      this.minData[freeIndex * 4 + 0] = this.minData[lastIndex * 4 + 0]; 
-      this.minData[freeIndex * 4 + 1] = this.minData[lastIndex * 4 + 1]; 
-      this.minData[freeIndex * 4 + 2] = this.minData[lastIndex * 4 + 2];     
+      if (this.hasOcclusionCulling) {
+        this.minData[freeIndex * 4 + 0] = this.minData[lastIndex * 4 + 0];
+        this.minData[freeIndex * 4 + 1] = this.minData[lastIndex * 4 + 1];
+        this.minData[freeIndex * 4 + 2] = this.minData[lastIndex * 4 + 2];
 
-      this.maxData[freeIndex * 4 + 0] = this.maxData[lastIndex * 4 + 0]; 
-      this.maxData[freeIndex * 4 + 1] = this.maxData[lastIndex * 4 + 1]; 
-      this.maxData[freeIndex * 4 + 2] = this.maxData[lastIndex * 4 + 2]; 
+        this.maxData[freeIndex * 4 + 0] = this.maxData[lastIndex * 4 + 0];
+        this.maxData[freeIndex * 4 + 1] = this.maxData[lastIndex * 4 + 1];
+        this.maxData[freeIndex * 4 + 2] = this.maxData[lastIndex * 4 + 2];
 
-      this.allocatedDataArray[freeIndex] = this.allocatedDataArray[lastIndex];
+        const freeChunk = deserializeChunkAllocationData(
+          this.chunkAllocationDataView,
+          lastIndex
+        );
+        freeChunk.serialize(this.chunkAllocationDataView, freeIndex); // free
       }
     }
 
@@ -271,7 +408,10 @@ export class GeometryAllocator {
     distanceArray.length = 0;
 
     if (this.boundingType) {
-      const projScreenMatrix = localMatrix.multiplyMatrices(camera.projectionMatrix, camera.matrixWorldInverse);
+      const projScreenMatrix = localMatrix.multiplyMatrices(
+        camera.projectionMatrix,
+        camera.matrixWorldInverse
+      );
       localFrustum.setFromProjectionMatrix(projScreenMatrix);
     }
 
@@ -280,7 +420,9 @@ export class GeometryAllocator {
         return (i) => {
           localSphere.center.fromArray(this.boundingData, i * 4);
           localSphere.radius = this.boundingData[i * 4 + 3];
-          return localFrustum.intersectsSphere(localSphere) ? localSphere.center.distanceTo(camera.position) : false;
+          return localFrustum.intersectsSphere(localSphere)
+            ? localSphere.center.distanceTo(camera.position)
+            : false;
         };
       } else if (this.boundingType === 'box') {
         return (i) => {
@@ -294,108 +436,71 @@ export class GeometryAllocator {
       }
     })();
 
-    if(this.occlusionCulling){
-       const culled = [];
-
-    const cull = (i) => {
-        // start bfs, start from the chunk we're in
-        // find the chunk that the camera is inside via floor, so we need min of the chunk, which we have in bounding data
-        const min = localVector3D2.fromArray(this.minData, i * 4); // min
-        const max = localVector3D3.fromArray(this.maxData, i * 4); // max
-
-        const chunkSize = Math.abs(min.x - max.x);
-        // console.log(chunkSize);
-
-        const appTransform = localVector3D.set(0,0,0);
-        appTransform.applyMatrix4(this.appMatrix); // transform vector
-
-        const adjustedCameraPos = localVector3D.set(camera.position.x - appTransform.x, camera.position.y - appTransform.y, camera.position.z - appTransform.z); // camera vector
-
-        if(isVectorInRange(adjustedCameraPos, min, max))
-        {
-          // start bfs here
-          const queue = [];
-          const firstEntryPos = localVector3D.set(this.allocatedDataArray[i][1], this.allocatedDataArray[i][2], this.allocatedDataArray[i][3]);
-          const firstEntry = [firstEntryPos.x , firstEntryPos.y - chunkSize * 4, firstEntryPos.z, PEEK_FACES['NONE']]; // starting with the chunk that the camera is in
-
-          // pushing the chunk the camera is in as the first step
-          queue.push(firstEntry);
-
-          appTransform.set(0,0,0);
-          appTransform.applyMatrix4(this.appMatrix);
-
-          while(queue.length > 0){
-            const entry = queue.shift(); // getting first element in the queue and removing it
-            // console.log(entry[0]);
-            const x = entry[0];
-            const y = entry[1];
-            const z = entry[2];
-            const newEntryIndex = this.allocatedDataArray.find((e) => {
-              return e[1] == x && e[2] == y && e[3] == z;
-            })
-            if(newEntryIndex){
-                  const peeks = newEntryIndex[4];
-                  const enterFace = entry[3];
-                  for (let i = 0; i < 6; i++) {
-                    const peekFaceSpec = peekFaceSpecs[i];
-                    const ay = y + peekFaceSpec[3] * chunkSize;
-                    if ((ay >= -appTransform.y - chunkSize * 16 && ay < -appTransform.y - chunkSize * 4)) {
-                      const ax = x + peekFaceSpec[2] * chunkSize;
-                      const az = z + peekFaceSpec[4] * chunkSize;
-                      const id = this.allocatedDataArray.find(e => {
-                        return e[1] == ax && e[2] == ay && e[3] == az;
-                      })
-                      if(id){
-                        // console.log('Hello');
-                        const foundCulled = culled.find(e => e[0] == id[0]);
-                        if(foundCulled === undefined){
-                          culled.push(id);
-                  const newQueueEntry = [ax,ay,az, peekFaceSpec[0]];
-                  if (enterFace == PEEK_FACES['NONE'] || peeks[PEEK_FACE_INDICES[enterFace << 3 | peekFaceSpec[1]]] == 1) {
-                    queue.push(newQueueEntry);
-                  }
-                }
-              }
-            }
-              // }
-              }
-            }
-          }
-      }
-    };
-
-    for (let i = 0; i < this.numDraws; i++) {
-      cull(i);
-    }
-
-    for (let i = 0; i < this.numDraws; i++) {
-      // console.log(culled[i]);
-      const found = culled.find(e => e[0] == i);
-      if(found === undefined){
-        // ! frustum culling has bugs !
-        // if(testBoundingFn(i)){ 
-          drawStarts.push(this.drawStarts[i]);
-          drawCounts.push(this.drawCounts[i]);
-        // }
-      }
-    }
-
-    // for (let i = 0; i < culled.length; i++) {
-    //   // console.log(culled[i]);
-    //   const id = culled[i][0];
-    // //  if(testBoundingFn(id)){
-    //       drawStarts.push(this.drawStarts[id]);
-    //       drawCounts.push(this.drawCounts[id]);
-    //     // }
-    // }
-    }else{
+    const fullyDraw = () => {
       for (let i = 0; i < this.numDraws; i++) {
         drawStarts.push(this.drawStarts[i]);
         drawCounts.push(this.drawCounts[i]);
       }
+    };
+
+    if (this.hasOcclusionCulling) {
+      let foundId;
+      let surfaceY = -Infinity;
+      const findCameraChunk = (i) => {
+        // find the chunk that the camera is inside
+        localVector3D2.set(0, 0, 0);
+        localVector3D3.set(0, 0, 0);
+        const min = localVector3D2.fromArray(this.minData, i * 4); // min
+        const max = localVector3D3.fromArray(this.maxData, i * 4); // max
+
+        if (isPointInPillar(camera.position, min, max)) {
+          if (surfaceY < min.y) {
+            surfaceY = min.y;
+            currentChunkMin.copy(min);
+            currentChunkMax.copy(max);
+            foundId = i;
+          }
+        }
+      };
+
+      for (let i = 0; i < this.numDraws; i++) {
+        findCameraChunk(i);
+      }
+
+      if (foundId) {
+        const cameraView = new THREE.Vector3();
+        const drawListBuffer = Module._cullOcclusionCulling(
+          this.OCInstance,
+          this.chunkAllocationArrayOffset,
+          foundId,
+          currentChunkMin.x,
+          currentChunkMin.y,
+          currentChunkMin.z,
+          currentChunkMax.x,
+          currentChunkMax.y,
+          currentChunkMax.z,
+          camera.position.x,
+          camera.position.y,
+          camera.position.z,
+          cameraView.x,
+          cameraView.y,
+          cameraView.z,
+          this.numDraws
+        );
+        const drawCalls = deserializeDrawListBuffer(
+          Module.HEAP8.buffer,
+          Module.HEAP8.byteOffset + drawListBuffer
+        );
+        for (let i = 0; i < drawCalls.length; i++) {
+          drawStarts.push(this.drawStarts[drawCalls[i]]);
+          drawCounts.push(this.drawCounts[drawCalls[i]]);
+        }
+      } else {
+        fullyDraw();
+      }
+    } else {
+      fullyDraw();
     }
-
-
   }
 }
 
@@ -425,62 +530,125 @@ export class DrawCallBinding {
   decrementInstanceCount() {
     return this.allocator.decrementInstanceCount(this);
   }
-  updateTexture(name, pixelIndex, itemCount) { // XXX optimize this
+  updateTexture(name, dataIndex, dataLength) {
     const texture = this.getTexture(name);
-    // const textureIndex = this.getTextureIndex(name);
-    texture.needsUpdate = true;
-    return;
 
+    let pixelIndex = dataIndex / texture.itemSize;
+    let itemCount = dataLength / texture.itemSize;
+
+    // update all pixels from pixelIndex to pixelIndex + itemCount
+    // this requires up to 3 writes to the texture
     const renderer = getRenderer();
-    
-    const _getIndexUv = (index, target) => {
-      const x = index % texture.width;
-      const y = Math.floor(index / texture.width);
-      return target.set(x, y);
-    };
 
-    // render start slice
-    const startUv = _getIndexUv(pixelIndex, localVector2D);
-    if (startUv.x > 0) {
-      localDataTexture.image.width = texture.image.width - startUv.x;
-      localDataTexture.image.height = 1;
-      localDataTexture.image.data = texture.image.data.subarray(
-        pixelIndex,
-        pixelIndex + startUv.x
+    let minX = pixelIndex % texture.image.width;
+    let minY = Math.floor(pixelIndex / texture.image.width);
+    let maxX = (pixelIndex + itemCount) % texture.image.width;
+    let maxY = Math.floor((pixelIndex + itemCount) / texture.image.width);
+
+    // top
+    if (minX !== 0) {
+      const x = minX;
+      const y = minY;
+      const w = Math.min(texture.image.width - x, itemCount);
+      const h = 1;
+      const position = localVector2D.set(x, y);
+      const start = (x + y * texture.image.width) * texture.itemSize;
+      const size = (w * h) * texture.itemSize;
+      const data = texture.image.data.subarray(
+        start,
+        start + size
       );
-      renderer.copyTextureToTexture(startUv, localDataTexture, texture, 0);
 
-      startUv.x = 0;
-      startUv.y++;
+      const srcTexture = localDataTexture;
+      srcTexture.image.data = data;
+      srcTexture.image.width = w;
+      srcTexture.image.height = h;
+      srcTexture.format = texture.format;
+      srcTexture.type = texture.type;
+
+      renderer.copyTextureToTexture(
+        position,
+        srcTexture,
+        texture,
+        0
+      );
+
+      srcTexture.image.data = null;
+
+      minX = 0;
+      minY++;
+
+      pixelIndex += w * h; 
+      itemCount -= w * h;
     }
 
-    const endUv = _getIndexUv(pixelIndex + pixelCount, localVector2D2);
-    if (endUv.y > startUv.y) {
-      // render end slice
-      if (endUv.x > 0) {
-        localDataTexture.image.width = endUv.x;
-        localDataTexture.image.height = 1;
-        localDataTexture.image.data = texture.image.data.subarray(
-          endUv.y * texture.image.width,
-          endUv.y * texture.image.width + endUv.x
-        );
-        renderer.copyTextureToTexture(endUv, localDataTexture, texture, 0);
+    // middle
+    if (minY < maxY) {
+      const x = 0;
+      const y = minY;
+      const w = texture.image.width;
+      const h = maxY - minY;
+      const position = localVector2D.set(x, y);
+      const start = (x + y * texture.image.width) * texture.itemSize;
+      const size = (w * h) * texture.itemSize;
+      const data = texture.image.data.subarray(
+        start,
+        start + size
+      );
 
-        endUv.x = 0;
-        endUv.y--;
-      }
+      const srcTexture = localDataTexture;
+      srcTexture.image.data = data;
+      srcTexture.image.width = w;
+      srcTexture.image.height = h;
+      srcTexture.format = texture.format;
+      srcTexture.type = texture.type;
 
-      // render middle slice
-      if (endUv.y > startUv.y) {
-        localDataTexture.image.width = texture.image.width;
-        localDataTexture.image.height = endUv.y - startUv.y;
-        localDataTexture.image.data = texture.image.data.subarray(
-          startUv.y * texture.image.width,
-          endUv.y * texture.image.width
-        );
-        renderer.copyTextureToTexture(startUv, localDataTexture, texture, 0);
-      }
+      renderer.copyTextureToTexture(
+        position,
+        srcTexture,
+        texture,
+      );
+
+      srcTexture.image.data = null;
+
+      minX = 0;
+      minY = maxY;
+
+      pixelIndex += w * h;
+      itemCount -= w * h;
     }
+
+    // bottom
+    if (itemCount > 0) {
+      const x = minX;
+      const y = minY + 1;
+      const w = itemCount;
+      const h = 1;
+      const position = localVector2D.set(x, y);
+      const start = (x + y * texture.image.width) * texture.itemSize;
+      const size = (w * h) * texture.itemSize;
+      const data = texture.image.data.subarray(
+        start,
+        start + size
+      );
+
+      const srcTexture = localDataTexture;
+      srcTexture.image.data = data;
+      srcTexture.image.width = w;
+      srcTexture.image.height = h;
+      srcTexture.format = texture.format;
+      srcTexture.type = texture.type;
+
+      renderer.copyTextureToTexture(
+        position,
+        srcTexture,
+        texture,
+      );
+
+      srcTexture.image.data = null;
+    }
+
+    // texture.needsUpdate = true;
   }
 }
 
@@ -622,7 +790,8 @@ export class InstancedGeometryAllocator {
         texture.name = name;
         texture.minFilter = THREE.NearestFilter;
         texture.magFilter = THREE.NearestFilter;
-        // texture.needsUpdate = true;
+        // texture.flipY = true;
+        texture.needsUpdate = true;
         texture.itemSize = itemSize;
         return texture;
       });
