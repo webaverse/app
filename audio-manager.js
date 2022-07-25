@@ -1,13 +1,11 @@
-import {ensureAudioContext, getAudioContext} from 'wsrtc/ws-audio-context.js';
+import {getAudioContext} from 'wsrtc/ws-audio-context.js';
 
 class AudioManager {
   constructor() {
-    ensureAudioContext().then(() => {
-      this.setAudioContext(getAudioContext());
-      this.audioContext.gain = this.audioContext.createGain();
-      this.audioContext.gain.connect(this.audioContext.destination);
-      this.audioContext.audioWorklet.addModule('avatars/microphone-worklet.js');
-    });
+    this.setAudioContext(getAudioContext());
+    this.audioContext.gain = this.audioContext.createGain();
+    this.audioContext.gain.connect(this.audioContext.destination);
+    this.audioContext.audioWorklet.addModule('avatars/microphone-worklet.js');
   }
 
   getAudioContext() {
