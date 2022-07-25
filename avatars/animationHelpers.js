@@ -34,7 +34,7 @@ import {
 } from './constants.js';
 
 import {
-  defaultMaxTime,
+  defaultActionTransitionTime,
   // useMaxTime,
   aimMaxTime,
   // avatarInterpolationFrameRate,
@@ -833,7 +833,7 @@ export const _applyAnimation = (avatar, now, moveFactors, timeDiffS) => {
         const t2 = (now / 1000) % danceAnimation.duration;
         const v2 = src2.evaluate(t2);
 
-        const danceFactorS = avatar.danceFactor / defaultMaxTime;
+        const danceFactorS = avatar.danceFactor / defaultActionTransitionTime;
         const f = Math.min(Math.max(danceFactorS, 0), 1);
         lerpFn
           .call(
@@ -864,7 +864,7 @@ export const _applyAnimation = (avatar, now, moveFactors, timeDiffS) => {
         const t2 = Math.min(emoteTime / 1000, emoteAnimation.duration);
         const v2 = src2.evaluate(t2);
 
-        const emoteFactorS = avatar.emoteFactor / defaultMaxTime;
+        const emoteFactorS = avatar.emoteFactor / defaultActionTransitionTime;
         const f = Math.min(Math.max(emoteFactorS, 0), 1);
         lerpFn
           .call(
@@ -1254,8 +1254,8 @@ export const _applyAnimation = (avatar, now, moveFactors, timeDiffS) => {
         localQuaternion2.fromArray(v2);
         localQuaternion3.fromArray(v3);
         localQuaternion4.fromArray(v4);
-        localQuaternion5.fromArray([0,0,0,1]);
-        localQuaternion6.fromArray([1,0,0,0]);
+        localQuaternion5.set(0,0,0,1);
+        localQuaternion6.set(1,0,0,0);
 
         // // can't use idleWalkFactor & walkRunFactor here, otherwise "Impulsive breaststroke swim animation" will turn into "freestyle animation" when speed is fast,
         // // and will turn into "floating" a little when speed is slow.
@@ -1281,15 +1281,11 @@ export const _applyAnimation = (avatar, now, moveFactors, timeDiffS) => {
       } else {
         localVector2.fromArray(v2);
         if(!avatar.swimmingOnSurfaceState || (avatar.swimmingOnSurfaceState && avatar.horizontalMovementsTransitionFactor > 0)) {
-          const liftSwims = 0.05; // lift swims height, prevent head sink in water
+          const liftSwims = 0.035 * avatar.height; // lift swims height, prevent head sink in water
           localVector3.fromArray(v3);
-          // localVector3.y += 0.21; // align Swimming.fbx's height to freestyle.fbx
-          localVector3.y += 0.03; // align Swimming.fbx's height to freestyle.fbx
           localVector3.y += liftSwims;
           localVector4.fromArray(v4);
           localVector4.y += liftSwims;
-          // localVector3.lerp(localVector4, walkRunFactor);
-          // localVector2.lerp(localVector3, idleWalkFactor);
           localVector3.lerp(localVector4, avatar.sprintFactor);
           localVector2.lerp(localVector3, avatar.movementsTransitionFactor);
         }

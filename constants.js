@@ -110,7 +110,7 @@ export const metaverseProfileDefinition = `kjzl6cwe1jw145wm7u2sy1wpa33hglvmuy6th
 
 export const audioTimeoutTime = 10 * 1000;
 
-export const defaultMaxTime = 200;
+export const defaultActionTransitionTime = 200;
 export const activateMaxTime = 750;
 export const useMaxTime = 750;
 export const aimMaxTime = 1000;
@@ -137,7 +137,7 @@ export const defaultMaxId = 8192;
 
 export const defaultMusicVolume = 0.35;
 
-export const voicePacksUrl = `https://webaverse.github.io/voicepacks/all_packs.json`;
+export const voicePacksUrl = `http://localhost/voicepacks/all_packs.json`;
 
 export const voiceEndpointBaseUrl = `https://voice.webaverse.com/tts`;
 export const voiceEndpointsUrl = `https://raw.githubusercontent.com/webaverse/tiktalknet/main/model_lists/all_models.json`;

@@ -15,7 +15,7 @@ import {
 } from '../util.js';
 // import Simplex from '../simplex-noise.js';
 import {
-  defaultMaxTime,
+  defaultActionTransitionTime,
   // useMaxTime,
   aimMaxTime,
   aimTransitionMaxTime,
@@ -941,7 +941,7 @@ class Avatar {
     this.aimLeftFactorReverse = 1;
     // this.throwState = null;
     // this.throwTime = 0;
-    this.crouchTime = defaultMaxTime;
+    this.crouchTime = defaultActionTransitionTime;
     this.sitTarget = new THREE.Object3D();
     this.fakeSpeechValue = 0;
     this.fakeSpeechSmoothed = 0;
@@ -1517,18 +1517,18 @@ class Avatar {
     const moveFactors = {};
     moveFactors.idleWalkFactor = Math.min(Math.max((currentSpeed - idleFactorSpeed) / (walkFactorSpeed - idleFactorSpeed), 0), 1);
     moveFactors.walkRunFactor = Math.min(Math.max((currentSpeed - walkFactorSpeed) / (runFactorSpeed - walkFactorSpeed), 0), 1);
-    moveFactors.crouchFactor = Math.min(Math.max(1 - (this.crouchTime / defaultMaxTime), 0), 1);
+    moveFactors.crouchFactor = Math.min(Math.max(1 - (this.crouchTime / defaultActionTransitionTime), 0), 1);
     // console.log('current speed', currentSpeed, idleWalkFactor, walkRunFactor);
     this.aimRightFactor = this.aimRightTransitionTime / aimTransitionMaxTime;
     this.aimRightFactorReverse = 1 - this.aimRightFactor;
     this.aimLeftFactor = this.aimLeftTransitionTime / aimTransitionMaxTime;
     this.aimLeftFactorReverse = 1 - this.aimLeftFactor;
-    this.movementsTransitionFactor = Math.min(Math.max(this.movementsTransitionTime / defaultMaxTime, 0), 1);
-    this.horizontalMovementsTransitionFactor = Math.min(Math.max(this.horizontalMovementsTransitionTime / defaultMaxTime, 0), 1);
-    this.sprintFactor = Math.min(Math.max(this.sprintTime / defaultMaxTime, 0), 1);
-    this.swimUpFactor = Math.min(Math.max(this.swimUpTime / defaultMaxTime, 0), 1);
-    this.swimDownFactor = Math.min(Math.max(this.swimDownTime / defaultMaxTime, 0), 1);
-    this.surfaceFactor = Math.min(Math.max(this.swimmingOnSurfaceTime / defaultMaxTime, 0), 1);
+    this.movementsTransitionFactor = Math.min(Math.max(this.movementsTransitionTime / defaultActionTransitionTime, 0), 1);
+    this.horizontalMovementsTransitionFactor = Math.min(Math.max(this.horizontalMovementsTransitionTime / defaultActionTransitionTime, 0), 1);
+    this.sprintFactor = Math.min(Math.max(this.sprintTime / defaultActionTransitionTime, 0), 1);
+    this.swimUpFactor = Math.min(Math.max(this.swimUpTime / defaultActionTransitionTime, 0), 1);
+    this.swimDownFactor = Math.min(Math.max(this.swimDownTime / defaultActionTransitionTime, 0), 1);
+    this.surfaceFactor = Math.min(Math.max(this.swimmingOnSurfaceTime / defaultActionTransitionTime, 0), 1);
     
     const _overwritePose = poseName => {
       const poseAnimation = animations.index[poseName];
