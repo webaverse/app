@@ -767,9 +767,7 @@ export const _applyAnimation = (avatar, now) => {
         const {
           animationTrackName: k,
           dst,
-          // isTop,
           isPosition,
-          isArm,
         } = spec;
 
         const t2 = avatar.doubleJumpTime / 1000;
@@ -779,14 +777,6 @@ export const _applyAnimation = (avatar, now) => {
         dst.fromArray(v2);
 
         _clearXZ(dst, isPosition);
-
-        if (avatar.holdState && isArm) {
-          const holdAnimation = holdAnimations['pick_up_idle'];
-          const src2 = holdAnimation.interpolants[k];
-          const t2 = (now / 1000) % holdAnimation.duration;
-          const v2 = src2.evaluate(t2);
-          dst.fromArray(v2);
-        }
       };
     }
     if (avatar.jumpState) {
