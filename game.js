@@ -1509,6 +1509,7 @@ class GameManager extends EventTarget {
 
   }
   doubleJump() {
+    const localPlayer = getLocalPlayer();
     localPlayer.addAction({
       type: 'doubleJump',
       startPositionY: localPlayer.characterController.position.y,
