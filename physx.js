@@ -2037,6 +2037,32 @@ const physxWorker = (() => {
     )
     allocator.freeAll()
   }
+  w.addPlaneGeometryPhysics = (
+    physics,
+    position,
+    quaternion,
+    id,
+    dynamic,
+  ) => {
+    const allocator = new Allocator(Module)
+    const p = allocator.alloc(Float32Array, 3)
+    const q = allocator.alloc(Float32Array, 4)
+
+    position.toArray(p)
+    quaternion.toArray(q)
+
+    const materialAddress = w.getDefaultMaterial(physics);
+
+    Module._addPlaneGeometryPhysics(
+      physics,
+      p.byteOffset,
+      q.byteOffset,
+      id,
+      materialAddress,
+      +dynamic,
+    )
+    allocator.freeAll()
+  }
   w.addBoxGeometryPhysics = (
     physics,
     position,
