@@ -14,7 +14,6 @@ class PlayersManager extends EventTarget {
     
     this.remotePlayers = new Map();
     this.remotePlayersByInteger = new Map();
-
     this.unbindStateFn = null;
   }
   clearRemotePlayers() {
