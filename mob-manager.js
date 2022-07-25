@@ -479,8 +479,8 @@ class InstancedSkeleton extends THREE.Skeleton {
     const drawCall = this.parent.drawCalls[drawCallIndex];
     
     // frame -> geometry (skeleton) -> bone -> matrix
-    const dstOffset = frameIndex * numGeometries * maxBonesPerInstance * 16 +
-      drawCall.freeListEntry * maxBonesPerInstance * 16;
+    const dstOffset = frameIndex * numGeometries * maxBonesPerInstance * 8 +
+      drawCall.freeListEntry * maxBonesPerInstance * 8;
 
     const bones = skeleton.bones;
     const boneInverses = skeleton.boneInverses;
@@ -494,10 +494,24 @@ class InstancedSkeleton extends THREE.Skeleton {
       const matrix = bones[ i ] ? bones[ i ].matrixWorld : identityMatrix;
 
       localMatrix.multiplyMatrices( matrix, boneInverses[ i ] );
-      localMatrix.toArray( boneMatrices, dstOffset + i * 16 );
 
+      // decompose the transformation, and assign to bone matrix in layout of
+      // [t_3, s], [q_4]
+      const translation = new THREE.Vector3();
+      const rotation = new THREE.Quaternion();
+      const scale = new THREE.Vector3();
+      localMatrix.decompose(translation, rotation, scale);
+      rotation.invert();
+      const pos = new THREE.Vector4(
+        localMatrix.elements[12],
+        localMatrix.elements[13],
+        localMatrix.elements[14],
+        scale.x);
+
+      pos.toArray(boneMatrices, dstOffset + i * 8);
+      rotation.toArray(boneMatrices, dstOffset + i * 8 + 4);
     }
-	}
+  }
 }
 
 class MobBatchedMesh extends InstancedBatchedMesh {
@@ -556,7 +570,7 @@ class MobBatchedMesh extends InstancedBatchedMesh {
       {
         name: 'boneTexture',
         Type: Float32Array,
-        itemSize: maxBonesPerInstance * 16,
+        itemSize: maxBonesPerInstance * 8,
         instanced: false,
       },
     ], {
@@ -610,29 +624,7 @@ class MobBatchedMesh extends InstancedBatchedMesh {
         window.vertexShader = shader.vertexShader;
 
         shader.vertexShader = shader.vertexShader.replace(`#include <skinning_pars_vertex>`, `\
-// #undef USE_SKINNING
-
 #ifdef USE_SKINNING
-uniform mat4 bindMatrix;
-uniform mat4 bindMatrixInverse;
-uniform highp sampler2D uBoneTexture;
-uniform sampler2D timeOffsetTexture;
-uniform float     uTime;
-attribute float frameCount;
-mat4 getBoneMatrix( const in float base, const in float i ) {
-  float j = base + i * 4.0;
-  float x = mod( j, float( ${unifiedBoneTextureSize} ) );
-  float y = floor( j / float( ${unifiedBoneTextureSize} ) );
-  float dx = 1.0 / float( ${unifiedBoneTextureSize} );
-  float dy = 1.0 / float( ${unifiedBoneTextureSize} );
-  y = dy * ( y + 0.5 );
-  vec4 v1 = texture2D( uBoneTexture, vec2( dx * ( x + 0.5 ), y ) );
-  vec4 v2 = texture2D( uBoneTexture, vec2( dx * ( x + 1.5 ), y ) );
-  vec4 v3 = texture2D( uBoneTexture, vec2( dx * ( x + 2.5 ), y ) );
-  vec4 v4 = texture2D( uBoneTexture, vec2( dx * ( x + 3.5 ), y ) );
-  mat4 bone = mat4( v1, v2, v3, v4 );
-  return bone;
-}
 vec4 mat2quat( mat3 m ) {
   vec4 q;
   float tr = m[0][0] + m[1][1] + m[2][2];
@@ -734,27 +726,53 @@ vec4 q_slerp(vec4 a, vec4 b, float t) {
   }
   return QUATERNION_IDENTITY;
 }
-mat4 getInterpBoneMatrix( const in float base1, const in float base2, const in float ratio, const in float i ) {
-  mat4 boneMat1 = getBoneMatrix( base1, i );
-  mat4 boneMat2 = getBoneMatrix( base2, i );
+#endif
+#include <skinning_pars_vertex>
+`);
 
-  vec3 translation1 = boneMat1[3].xyz;
-  vec3 translation2 = boneMat2[3].xyz;
-  vec3 translation = translation1 * (1.0 - ratio) + translation2 * ratio;
+        shader.vertexShader = shader.vertexShader.replace(`#include <skinning_pars_vertex>`, `\
+// #undef USE_SKINNING
 
-  mat3 rot1 = mat3(boneMat1);
-  float s1 = pow(determinant( rot1 ), 1.0/3.0);
-  rot1 = rot1 / s1;
+#ifdef USE_SKINNING
+uniform mat4 bindMatrix;
+uniform mat4 bindMatrixInverse;
+uniform highp sampler2D uBoneTexture;
+uniform sampler2D timeOffsetTexture;
+uniform float     uTime;
+attribute float frameCount;
 
-  mat3 rot2 = mat3(boneMat2);
-  float s2 = pow(determinant( rot2 ), 1.0/3.0);
-  rot2 = rot2 / s2;
+struct BoneTransform
+{
+  vec3 t;
+  float s;
+  vec4 q;
+};
 
-  vec4 q1 = mat2quat( rot1 );
-  vec4 q2 = mat2quat( rot2 );
-  vec4 q = q_slerp( q1, q2, ratio );
+BoneTransform getBoneTransform( const in float base, const in float i ) {
+  float j = base + i * 2.0;
+  float x = mod( j, float( ${unifiedBoneTextureSize} ) );
+  float y = floor( j / float( ${unifiedBoneTextureSize} ) );
+  float dx = 1.0 / float( ${unifiedBoneTextureSize} );
+  float dy = 1.0 / float( ${unifiedBoneTextureSize} );
+  y = dy * ( y + 0.5 );
+  vec4 v1 = texture2D( uBoneTexture, vec2( dx * ( x + 0.5 ), y ) );
+  vec4 v2 = texture2D( uBoneTexture, vec2( dx * ( x + 1.5 ), y ) );
 
-  float s = s1 * (1.0 - ratio) + s2 * ratio;
+  BoneTransform transform;
+  transform.t = v1.xyz;
+  transform.s = v1.w;
+  transform.q = v2;
+
+  return transform;
+}
+
+mat4 getBoneMatrix( const in float base1, const in float base2, const in float ratio, const in float i ) {
+  BoneTransform transform1 = getBoneTransform( base1, i );
+  BoneTransform transform2 = getBoneTransform( base2, i );
+
+  vec3 translation = transform1.t * (1.0 - ratio) + transform2.t * ratio;
+  float s = transform1.s * (1.0 - ratio) + transform2.s * ratio;
+  vec4 q = q_slerp( transform1.q, transform2.q, ratio );
 
   mat4 boneMat = quat2mat( q );
   boneMat = boneMat * s;
@@ -786,13 +804,13 @@ int instanceIndex = gl_DrawID * ${maxInstancesPerDrawCall} + gl_InstanceID;
   float frame2 = mod( float(time2) + timeOffset * frameCount, frameCount );
   int boneTextureIndex1 = boneTextureIndex + int(frame1) * ${numGeometries} * ${maxBonesPerInstance};
   int boneTextureIndex2 = boneTextureIndex + int(frame2) * ${numGeometries} * ${maxBonesPerInstance};
-  float boneIndexOffset1 = float(boneTextureIndex1) * 4.;
-  float boneIndexOffset2 = float(boneTextureIndex2) * 4.;
+  float boneIndexOffset1 = float(boneTextureIndex1) * 2.;
+  float boneIndexOffset2 = float(boneTextureIndex2) * 2.;
 
-  mat4 boneMatX = getInterpBoneMatrix( boneIndexOffset1, boneIndexOffset2, timeRatio, skinIndex.x );
-  mat4 boneMatY = getInterpBoneMatrix( boneIndexOffset1, boneIndexOffset2, timeRatio, skinIndex.y );
-  mat4 boneMatZ = getInterpBoneMatrix( boneIndexOffset1, boneIndexOffset2, timeRatio, skinIndex.z );
-  mat4 boneMatW = getInterpBoneMatrix( boneIndexOffset1, boneIndexOffset2, timeRatio, skinIndex.w );
+  mat4 boneMatX = getBoneMatrix( boneIndexOffset1, boneIndexOffset2, timeRatio, skinIndex.x );
+  mat4 boneMatY = getBoneMatrix( boneIndexOffset1, boneIndexOffset2, timeRatio, skinIndex.y );
+  mat4 boneMatZ = getBoneMatrix( boneIndexOffset1, boneIndexOffset2, timeRatio, skinIndex.z );
+  mat4 boneMatW = getBoneMatrix( boneIndexOffset1, boneIndexOffset2, timeRatio, skinIndex.w );
 
   /* mat4 boneMatX = mat4(1.);
   mat4 boneMatY = mat4(1.);
