@@ -625,38 +625,6 @@ class MobBatchedMesh extends InstancedBatchedMesh {
 
         shader.vertexShader = shader.vertexShader.replace(`#include <skinning_pars_vertex>`, `\
 #ifdef USE_SKINNING
-vec4 mat2quat( mat3 m ) {
-  vec4 q;
-  float tr = m[0][0] + m[1][1] + m[2][2];
-
-  if (tr > 0.0) { 
-    float S = sqrt(tr + 1.0) * 2.0; // S=4*qw 
-    q.w = 0.25 * S;
-    q.x = (m[2][1] - m[1][2]) / S;
-    q.y = (m[0][2] - m[2][0]) / S; 
-    q.z = (m[1][0] - m[0][1]) / S; 
-  } else if ((m[0][0] > m[1][1]) && (m[0][0] > m[2][2])) { 
-    float S = sqrt(1.0 + m[0][0] - m[1][1] - m[2][2]) * 2.0; // S=4*qx 
-    q.w = (m[2][1] - m[1][2]) / S;
-    q.x = 0.25 * S;
-    q.y = (m[0][1] + m[1][0]) / S; 
-    q.z = (m[0][2] + m[2][0]) / S; 
-  } else if (m[1][1] > m[2][2]) { 
-    float S = sqrt(1.0 + m[1][1] - m[0][0] - m[2][2]) * 2.0; // S=4*qy
-    q.w = (m[0][2] - m[2][0]) / S;
-    q.x = (m[0][1] + m[1][0]) / S; 
-    q.y = 0.25 * S;
-    q.z = (m[1][2] + m[2][1]) / S; 
-  } else { 
-    float S = sqrt(1.0 + m[2][2] - m[0][0] - m[1][1]) * 2.0; // S=4*qz
-    q.w = (m[1][0] - m[0][1]) / S;
-    q.x = (m[0][2] + m[2][0]) / S;
-    q.y = (m[1][2] + m[2][1]) / S;
-    q.z = 0.25 * S;
-  }
-
-  return q;
-}
 mat4 quat2mat( vec4 q ) {
   mat4 m;
   m[0][0] = 1.0 - 2.0*(q.y*q.y + q.z*q.z);
@@ -681,9 +649,6 @@ mat4 quat2mat( vec4 q ) {
 }
 #define QUATERNION_IDENTITY vec4(0, 0, 0, 1)
 
-#ifndef PI
-#define PI 3.1415926
-#endif
 vec4 q_slerp(vec4 a, vec4 b, float t) {
   // if either input is zero, return the other.
   if (length(a) == 0.0) {
