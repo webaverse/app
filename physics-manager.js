@@ -146,6 +146,29 @@ class PhysicsScene extends EventTarget {
     physicsObject.physicsMesh = physicsMesh
     return physicsObject
   }
+  addPlaneGeometry(position, quaternion, dynamic) {
+    const physicsId = getNextPhysicsId()
+    physx.physxWorker.addPlaneGeometryPhysics(
+      this.scene,
+      position,
+      quaternion,
+      physicsId,
+      dynamic,
+    )
+  
+    const physicsObject = _makePhysicsObject(
+      physicsId,
+      position,
+      quaternion,
+      localVector2.set(1, 1, 1)
+    )
+    const physicsMesh = new THREE.Mesh(new THREE.PlaneGeometry(1, 1), redMaterial)
+    physicsMesh.visible = false
+    physicsObject.add(physicsMesh)
+    physicsObject.updateMatrixWorld()
+    physicsObject.physicsMesh = physicsMesh
+    return physicsObject
+  }
   addBoxGeometry(position, quaternion, size, dynamic,
     groupId = -1 // if not equal to -1, this BoxGeometry will not collide with CharacterController.
   ) {
