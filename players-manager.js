@@ -13,7 +13,8 @@ class PlayersManager extends EventTarget {
     this.playersArray = null;
     
     this.remotePlayers = new Map();
-    
+    this.remotePlayersByInteger = new Map();
+
     this.unbindStateFn = null;
   }
   clearRemotePlayers() {
@@ -27,6 +28,7 @@ class PlayersManager extends EventTarget {
         const remotePlayer = this.remotePlayers.get(nonLocalPlayer.playerId);
         remotePlayer.destroy();
         this.remotePlayers.delete(nonLocalPlayer.playerId);
+        this.remotePlayersByInteger.delete(nonLocalPlayer.playerIdInt);
       }
     }
   }
@@ -72,10 +74,15 @@ class PlayersManager extends EventTarget {
               playersArray: this.playersArray,
             });
             this.remotePlayers.set(playerId, remotePlayer);
+            this.remotePlayersByInteger.set(remotePlayer.playerIdInt, remotePlayer);
           }
         }
         // console.log('players observe', added, deleted);
         for (const item of deleted.values()) {
+          if(item === 0){
+            console.log('item === 0');
+            continue;
+          }
           // console.log('player remove 1', item);
           const playerId = item.content.type._map.get('playerId').content.arr[0]; // needed to get the old data
           // console.log('player remove 2', playerId, localPlayer.playerId);
@@ -85,6 +92,7 @@ class PlayersManager extends EventTarget {
             
             const remotePlayer = this.remotePlayers.get(playerId);
             this.remotePlayers.delete(playerId);
+            this.remotePlayersByInteger.delete(remotePlayer.playerIdInt);
             remotePlayer.destroy();
           }
         }

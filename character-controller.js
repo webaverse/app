@@ -6,6 +6,7 @@ import {WsAudioDecoder} from 'wsrtc/ws-codec.js';
 import {ensureAudioContext, getAudioContext} from 'wsrtc/ws-audio-context.js';
 import {getAudioDataBuffer} from 'wsrtc/ws-util.js';
 import { defaultPlayerSpec } from './constants';
+import {murmurhash3} from './procgen/murmurhash3.js';
 
 import * as THREE from 'three';
 import * as Z from 'zjs';
@@ -582,6 +583,7 @@ class StatePlayer extends PlayerBase {
     super();
 
     this.playerId = playerId;
+    this.playerIdInt = murmurhash3(playerId);
     this.playersArray = null;
     this.playerMap = null;
     this.microphoneMediaStream = null;
