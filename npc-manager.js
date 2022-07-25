@@ -9,6 +9,8 @@ import {chatManager} from './chat-manager.js';
 import {makeId, createRelativeUrl} from './util.js';
 import { triggerEmote } from './src/components/general/character/Poses.jsx';
 import validEmotionMapping from "./validEmotionMapping.json";
+import universe from './universe.js';
+import Z from 'zjs';
 
 const localVector = new THREE.Vector3();
 
@@ -59,12 +61,14 @@ class NpcManager extends EventTarget {
     if (npcApp) {
       npcApp.npcPlayer = npcPlayer; // for character select
     }
-
-    await npcPlayer.setAvatarUrl(avatarUrl);
-
+    
     if (!detached) {
       this.npcs.push(npcPlayer);
+      npcPlayer.bindState(universe.state.getArray('players'));
+    } else {
+      npcPlayer.bindState(new Z.Doc().getArray('players'));
     }
+    await npcPlayer.setAvatarUrl(avatarUrl);
 
     return npcPlayer;
   }

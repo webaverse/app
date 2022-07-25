@@ -1053,10 +1053,9 @@ class LocalPlayer extends UninterpolatedPlayer {
   }
   async setPlayerSpec(playerSpec) {
     const p = this.setAvatarUrl(playerSpec.avatarUrl);
-    
     overrides.userVoiceEndpoint.set(playerSpec.voice ?? null);
     overrides.userVoicePack.set(playerSpec.voicePack ?? null);
-
+      
     await p;
   }
   setAvatarApp(app) {
@@ -1155,12 +1154,15 @@ class LocalPlayer extends UninterpolatedPlayer {
         self.playerMap.set('avatar', oldAvatar);
       }
 
-      if(self.voiceEndpoint) {
+      if(self.voiceEndpoint && !self.detached) {
         const voiceSpec = JSON.stringify({audioUrl: self.voiceEndpoint.audioUrl, indexUrl: self.voiceEndpoint.indexUrl, endpointUrl: self.voiceEndpoint ? self.voiceEndpoint.url : ''});
         self.playerMap.set('voiceSpec', voiceSpec);
       }
+      
     });
-    this.setPlayerSpec(defaultPlayerSpec);
+    if(!this.detached){
+      this.setPlayerSpec(defaultPlayerSpec);
+    }
   }
   grab(app, hand = 'left') {
     const localPlayer = metaversefile.useLocalPlayer();

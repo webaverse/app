@@ -295,9 +295,10 @@ export default class Webaverse extends EventTarget {
     const localPlayer = metaversefileApi.useLocalPlayer();
     let localPlayerInitialized = false;
     localPlayer.addEventListener('avatarchange', () => {
-      localPlayerInitialized = true;
+      if (localPlayer.playerMap) {
+        localPlayerInitialized = true;
+      }
     });
-    
     let lastTimestamp = performance.now();
     const animate = (timestamp, frame) => {
       performanceTracker.startFrame();
@@ -315,16 +316,13 @@ export default class Webaverse extends EventTarget {
             physicsScene.getTriggerEvents();
             localPlayer.updatePhysics(timestamp, timeDiffCapped);
           }
-
           transformControls.update();
           raycastManager.update(timestamp, timeDiffCapped);
           game.update(timestamp, timeDiffCapped);
           
-          if (localPlayerInitialized){
-            ioManager.update(timeDiffCapped);
-            localPlayer.updateAvatar(timestamp, timeDiffCapped);
-            // this.injectRigInput();
-          }
+          ioManager.update(timeDiffCapped);
+          localPlayer.updateAvatar(timestamp, timeDiffCapped);
+          // this.injectRigInput();
           playersManager.updateRemotePlayers(timestamp, timeDiffCapped);
           
           world.appManager.tick(timestamp, timeDiffCapped, frame);
@@ -349,8 +347,9 @@ export default class Webaverse extends EventTarget {
           
           lastTimestamp = timestamp;
         };
-        _pre();
-
+        if (localPlayerInitialized) {
+          _pre();
+        }
         // render scenes
         performanceTracker.setGpuPrefix('diorama');
         dioramaManager.update(timestamp, timeDiffCapped);

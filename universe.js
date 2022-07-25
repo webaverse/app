@@ -19,7 +19,6 @@ import sceneNames from './scenes/scenes.json';
 import {parseQuery} from './util.js';
 import {world} from './world.js';
 
-import {scene} from './renderer.js';
 const physicsScene = physicsManager.getScene();
 
 class Universe extends EventTarget {
@@ -136,6 +135,7 @@ class Universe extends EventTarget {
   // called by enterWorld() in universe.js
   // This is called in single player mode instead of connectRoom
   connectState(state) {
+    this.state = state;
     state.setResolvePriority(1);
     playersManager.clearRemotePlayers();
     playersManager.bindState(state.getArray(playersMapName));
@@ -148,27 +148,18 @@ class Universe extends EventTarget {
 
     const localPlayer = getLocalPlayer();
     localPlayer.bindState(state.getArray(playersMapName));
-
-    window.addEventListener('keydown', e => {
-      if (e.keyCode === 27) {
-        console.log(state);
-        console.log(localPlayer);
-        console.log(scene);
-      }
-    });
   }
 
   // called by enterWorld() in universe.js
   // This is called when a user joins a multiplayer room
   // either from single player or directly from a link
   async connectRoom(u, state = new Z.Doc()) {
+    this.state = state;
     // Players cannot be initialized until the physx worker is loaded
     // Otherwise you will receive allocation errors because the module instance is undefined
     await physx.waitForLoad();
     await physxWorkerManager.waitForLoad();
     const localPlayer = getLocalPlayer();
-    playersManager.clearRemotePlayers();
-    playersManager.bindState(state.getArray(playersMapName));
 
     state.setResolvePriority(1);
 
@@ -181,10 +172,12 @@ class Universe extends EventTarget {
 
     // This is called when the websocket connection opens, i.e. server is connectedw
     const open = e => {
+      playersManager.clearRemotePlayers();
       this.wsrtc.removeEventListener('open', open);
       // Clear the last world state
       const appsArray = state.get(appsMapName, Z.Array);
 
+      playersManager.bindState(state.getArray(playersMapName));
 
       // Unbind the world state to clear existing apps
       world.appManager.unbindState();

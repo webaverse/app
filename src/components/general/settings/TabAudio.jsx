@@ -9,7 +9,7 @@ import * as voices from '../../../../voices';
 import overrides from '../../../../overrides';
 
 import styles from './settings.module.css';
-
+import {getLocalPlayer} from '../../../../players.js';
 import audioManager from '../../../../audio-manager.js';
 
 //
@@ -153,10 +153,17 @@ export const TabAudio = ({ active }) => {
                 setChangesNotSaved( true );
 
             } else {
-
-                setSettingsLoaded( true );
-                applySettings();
-
+                const localPlayer = getLocalPlayer();
+                if (localPlayer.avatar){
+                    setSettingsLoaded( true );
+                    applySettings();
+                } else {
+                    const e = localPlayer.addEventListener('avatarchange', () => {
+                        setSettingsLoaded( true );
+                        applySettings();
+                        localPlayer.removeEventListener('avatarchange', e);
+                    });
+                }
             }
 
         }
