@@ -7,6 +7,7 @@ import {scene} from './renderer.js';
 import * as metaverseModules from './metaverse-modules.js';
 import * as sounds from './sounds.js';
 import metaversefileApi from 'metaversefile';
+import Avatar from './avatars/avatars.js';
 
 // const localVector = new THREE.Vector3();
 const localEuler = new THREE.Euler();
@@ -105,9 +106,11 @@ const makeHitTracker = ({
     }
   };
   hitTracker.hit = (damage, opts) => {
+    console.log("1");
     const result = hitTracker.damage(damage);
     const {hit, died} = result;
     if (hit) {
+      console.log('2');
       const {collisionId, hitPosition, hitDirection, hitQuaternion} = opts;
 
       if (died) {
@@ -134,6 +137,40 @@ const makeHitTracker = ({
       }
 
       sounds.playSoundName('enemyCut');
+      console.log(currentApp);
+
+      if(currentApp.appType === "npc") {
+        const gruntTypes = [
+          'hurt',
+          'scream',
+          'attack',
+          'angry',
+          'gasp',
+          ];
+        const gruntType = gruntTypes[Math.floor(Math.random() * gruntTypes.length)];
+        // console.log('play grunt', emotion, gruntType);
+
+        const animations = Avatar.getAnimations();
+        const hurtAnimation = animations.find(a => a.isHurt);
+        const hurtAnimationDuration = hurtAnimation.duration;
+
+
+        currentApp.npcPlayer.characterSfx.playGrunt(gruntType);
+        if (!currentApp.npcPlayer.hasAction('hurt')) {
+          const newAction = {
+            type: 'hurt',
+            animation: 'pain_back',
+          };
+          currentApp.npcPlayer.addAction(newAction);
+          
+          setTimeout(() => {
+            currentApp.npcPlayer.removeAction('hurt');
+          }, hurtAnimationDuration * 1000);
+        }
+        else {
+          currentApp.npcPlayer.removeAction('hurt');
+        }
+      }
 
       const hitEvent = {
         type: 'hit',

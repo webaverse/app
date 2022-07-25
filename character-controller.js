@@ -15,6 +15,7 @@ import {world} from './world.js';
 import physx from './physx.js';
 import audioManager from './audio-manager.js';
 import metaversefile from 'metaversefile';
+import Avatar from './avatars/avatars.js';
 import {
   actionsMapName,
   appsMapName,
@@ -46,7 +47,7 @@ import {
   defaultPlayerName,
   defaultPlayerBio,
 } from './ai/lore/lore-model.js';
-// import * as sounds from './sounds.js';
+import * as sounds from './sounds.js';
 import musicManager from './music-manager.js';
 import {makeId, clone, unFrustumCull, enableShadows} from './util.js';
 import overrides from './overrides.js';
@@ -996,6 +997,7 @@ class LocalPlayer extends UninterpolatedPlayer {
     this.isLocalPlayer = !opts.npc;
     this.isNpcPlayer = !!opts.npc;
     this.detached = !!opts.detached;
+    this.health = 100;
 
     this.characterPhysics = new CharacterPhysics(this);
   }
@@ -1018,6 +1020,46 @@ class LocalPlayer extends UninterpolatedPlayer {
       return;
     }
     this.#setAvatarAppFromOwnAppManager(avatarApp);
+  }
+  hit() {
+    console.log(this.player, this.health);
+    this.health -= 10;
+
+    const gruntTypes = [
+      'hurt',
+      'scream',
+      'attack',
+      'angry',
+      'gasp',
+    ];
+    const gruntType = gruntTypes[Math.floor(Math.random() * gruntTypes.length)];
+    // console.log('play grunt', emotion, gruntType);
+
+    const animations = Avatar.getAnimations();
+    const hurtAnimation = animations.find(a => a.isHurt);
+    const hurtAnimationDuration = hurtAnimation.duration; 
+
+    if(this.health <= 0) {
+      console.log("died");
+      this.characterPhysics.setPosition(new THREE.Vector3(0,1,0));
+      this.health = 100;
+    }
+    sounds.playSoundName('enemyCut');
+    this.characterSfx.playGrunt(gruntType);
+    if (!this.hasAction('hurt')) {
+      const newAction = {
+        type: 'hurt',
+        animation: 'pain_back',
+      };
+      this.addAction(newAction);
+      
+      setTimeout(() => {
+        this.removeAction('hurt');
+      }, hurtAnimationDuration * 1000);
+    }
+    else {
+      this.removeAction('hurt');
+    }
   }
   getAvatarApp() {
     const instanceId = this.playerMap.get('avatar');

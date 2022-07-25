@@ -112,10 +112,12 @@ let canvasHeight = window.innerHeight;
 let aspectRatio =  canvasWidth/canvasHeight;
 let viewSize = 15;
 
+const orthographicCamera = new THREE.OrthographicCamera(-aspectRatio*viewSize/2, aspectRatio*viewSize/2, viewSize/2, -viewSize/2, -1000, 100);
+orthographicCamera.position.set(0, 0, 6);
+orthographicCamera.name = 'orthographicCamera';
 
-const camera = new THREE.OrthographicCamera(-aspectRatio*viewSize/2, aspectRatio*viewSize/2, viewSize/2, -viewSize/2, -1000, 100);
-//const camera = new THREE.PerspectiveCamera(minFov, 1, 0.1, 30000);
-camera.position.set(0, 0, 6);
+const camera = new THREE.PerspectiveCamera(minFov, 1, 0.1, 30000);
+camera.position.set(0, 1.6, 0);
 camera.rotation.order = 'YXZ';
 camera.name = 'sceneCamera';
 /* const avatarCamera = camera.clone();
@@ -127,6 +129,7 @@ const dolly = new THREE.Object3D();
 const epsilon = 0.000001;
 dolly.position.set(epsilon, epsilon, epsilon);
 dolly.add(camera);
+dolly.add(orthographicCamera);
 // dolly.add(avatarCamera);
 scene.add(dolly);
 

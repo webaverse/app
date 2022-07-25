@@ -8,7 +8,10 @@ import {world} from './world.js';
 import {chatManager} from './chat-manager.js';
 import {createRelativeUrl} from './util.js';
 
+import metaversefile from 'metaversefile';
+
 const localVector = new THREE.Vector3();
+const localVector2 = new THREE.Vector3();
 
 const physicsScene = physicsManager.getScene();
 const cancelFnMap = new WeakMap();
@@ -123,6 +126,7 @@ class NpcManager extends EventTarget {
       const _listenEvents = () => {
         const hittrackeradd = e => {
           app.hitTracker.addEventListener('hit', e => {
+            console.log("got hitttttt");
             if (!npcPlayer.hasAction('hurt')) {
               const newAction = {
                 type: 'hurt',
@@ -160,6 +164,71 @@ class NpcManager extends EventTarget {
         };
         app.addEventListener('activate', activate);
 
+        const _handleCombat = (bot) => {
+          if(!bot.getAction('use')) {
+            let botPhyObj = metaversefile.getPhysicsObjectByPhysicsId(bot.characterController.physicsId);
+            let weapon = bot.appManager.apps[1];
+            const useComponent = weapon.getComponent('use');
+            const {boneAttachment, animation, animationCombo, animationEnvelope, ik, behavior, position, quaternion, scale} = useComponent;
+            const {instanceId} = weapon;
+
+            const newUseAction = {
+              type: 'use',
+              instanceId,
+              animation,
+              animationCombo,
+              animationEnvelope,
+              ik,
+              behavior,
+              boneAttachment,
+              index: 0,
+              position,
+              quaternion,
+              scale,
+            };
+
+            bot.addAction(newUseAction);
+            weapon.use();
+
+            const hitRadius = 1;
+            const hitHeight = 0.2;
+            const hitHalfHeight = hitHeight * 0.5;
+            const hitboxOffsetDistance = 0.3;
+
+            const _handleSword = () => {
+              //console.log(getLocalPlayer());
+              //console.log(metaversefile.getPhysicsObjectByPhysicsId(getLocalPlayer().characterController.physicsId));
+              physicsScene.enableGeometryQueries(getLocalPlayer().characterController.physicsMesh.parent);
+              physicsScene.disableGeometryQueries(botPhyObj);
+              let timestamp = performance.now();
+              localVector.copy(bot.position)
+                .add(localVector2.set(0, 0, -hitboxOffsetDistance).applyQuaternion(bot.quaternion));
+
+              bot.characterHitter.attemptHit({
+                type: 'sword',
+                args: {
+                  hitRadius,
+                  hitHalfHeight,
+                  position: localVector,
+                  quaternion: bot.quaternion,
+                },
+                timestamp,
+              });
+              physicsScene.disableGeometryQueries(getLocalPlayer().characterController.physicsMesh.parent);
+              physicsScene.enableGeometryQueries(botPhyObj);
+            };
+            _handleSword();
+            
+
+            setTimeout(() => {
+              //_handleSword();
+                bot.removeAction('use');
+                
+
+            }, 2000);
+          }
+        }
+
         const slowdownFactor = 0.4;
         const walkSpeed = 0.075 * slowdownFactor;
         const runSpeed = walkSpeed * 8;
@@ -176,7 +245,23 @@ class NpcManager extends EventTarget {
               const distance = v.length();
               if (targetSpec.type === 'moveto' && distance < 2) {
                 targetSpec = null;
+                if(npcPlayer.getAction('use')){
+                  npcPlayer.removeAction('use');
+                }
               } else {
+                //console.log('moving to');
+                if(distance < 3) {
+                  //npcPlayer.removeAction('use');
+                  _handleCombat(npcPlayer);
+
+                  //console.log(distance);
+                }
+                else {
+
+                  if(npcPlayer.getAction('use')){
+                    npcPlayer.removeAction('use');
+                  }
+                }
                 const speed = Math.min(Math.max(walkSpeed + ((distance - 1.5) * speedDistanceRate), 0), runSpeed);
                 v.normalize()
                   .multiplyScalar(speed * timeDiff);

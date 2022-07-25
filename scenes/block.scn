@@ -51,7 +51,7 @@
     },
     {
       "position": [
-        56,
+        49,
         10,
         0
       ],
@@ -67,7 +67,7 @@
         "avatarUrl": "/avatars/drake_hacker_v3_vian.vrm",
         "voice": "Shining Armor",
         "bio": "His nickname is DRK. 15/M hacker. Loves guns. Likes plotting new hacks. He has the best equipment and is always ready for a fight.",
-        "wear": [{"start_url": "https://webaverse.github.io/silsword/"}]
+        "wear": [{"start_url": "/scenes/silsword"}]
       }
     },
     {

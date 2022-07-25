@@ -1072,12 +1072,18 @@ export default () => {
       }
     }
 
+    if(localPlayer.characterController.physicsId === physicsId) {
+      //console.log("player", physicsId, localPlayer);
+      return localPlayer.characterController.physicsMesh.parent;
+    }
+
     // default
     return null;
   },
   getPairByPhysicsId(physicsId) {
     // local player
     const localPlayer = getLocalPlayer();
+
     let result = world.appManager.getPairByPhysicsId(physicsId);
     if (result) {
       // console.log('return 1');
@@ -1110,6 +1116,10 @@ export default () => {
           return [mob.subApp, mobPhysicsObject];
         }
       }
+    }
+
+    if(localPlayer.characterController.physicsMesh.parent.physicsId === physicsId) {
+      return [localPlayer, localPlayer.characterController.physicsMesh.parent];
     }
 
     // default

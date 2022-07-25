@@ -5,6 +5,7 @@ import physics from './physics-manager.js';
 import Avatar from './avatars/avatars.js';
 import metaversefile from 'metaversefile';
 import * as metaverseModules from './metaverse-modules.js';
+import {getLocalPlayer} from './players.js';
 
 const localVector = new THREE.Vector3();
 const localVector2 = new THREE.Vector3();
@@ -57,9 +58,11 @@ export class CharacterHitter {
           quaternion,
         );
         if (collision) {
+          //console.log('got collision');
           const collisionId = collision.objectId;
           const result = metaversefile.getPairByPhysicsId(collisionId);
           if (result) {
+            //console.log(result, "got result");
             const [app, physicsObject] = result;
             const timeDiff = timestamp - this.lastHitTime;
             if (timeDiff > 1000) {
@@ -78,8 +81,7 @@ export class CharacterHitter {
               localEuler.x = 0;
               localEuler.z = 0;
               const hitQuaternion = localQuaternion.setFromEuler(localEuler);
-    
-              // const willDie = app.willDieFrom(damage);
+
               app.hit(damage, {
                 type: 'sword',
                 collisionId,
@@ -89,8 +91,14 @@ export class CharacterHitter {
                 hitDirection,
                 // willDie,
               });
+
+              console.log(app, "got hit");
+    
+              // const willDie = app.willDieFrom(damage);
             
               this.lastHitTime = timestamp;
+
+              //console.log(collision);
 
               return collision;
             }

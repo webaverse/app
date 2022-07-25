@@ -1,0 +1,78 @@
+{
+  "objects": [
+    {
+      "type": "application/light",
+      "content": {
+        "lightType": "ambient",
+        "args": [[255, 255, 255], 0.5]
+      }
+    },
+    {
+      "type": "application/light",
+      "content": {
+        "lightType": "directional",
+        "args": [[255, 255, 255], 5],
+        "position": [1, 2, 3],
+        "shadow": [150, 5120, 0.1, 10000, -0.0001]
+      }
+    },
+    {
+      "position": [
+        -6,
+        10,
+        9
+      ],
+      "quaternion": [
+        0,
+        1,
+        0,
+        0
+      ],
+      "type": "application/npc",
+      "content": {
+        "name": "Drake",
+        "avatarUrl": "/avatars/drake_hacker_v3_vian.vrm",
+        "voice": "Shining Armor",
+        "bio": "His nickname is DRK. 15/M hacker. Loves guns. Likes plotting new hacks. He has the best equipment and is always ready for a fight.",
+        "wear": [{"start_url": "/scenes/silsword"}]
+      }
+    },
+    {
+      "position": [
+        -11,
+        5,
+        -2
+      ],
+      "quaternion": [
+        0,
+        0,
+        0,
+        1
+      ],
+      "scale": [
+        1,
+        1,
+        1
+      ],
+      "start_url": "./silsword"
+    },
+    {
+      "position": [
+        0,
+        0,
+        0
+      ],
+      "start_url": "https://webaverse.github.io/atmospheric-sky/"
+    },
+    {
+      "position": [
+        0,
+        0,
+        0
+      ],
+      "physics": true,
+      "start_url": "./mario_scene.glb",
+      "dynamic": false
+    }
+  ]
+}

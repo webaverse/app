@@ -42,6 +42,7 @@ export default (app, component) => {
   const wearupdate = e => {
     if (e.wear) {
       player = e.player;
+      console.log(e, "console 1");
 
       wearSpec = app.getComponent('wear');
       initialScale.copy(app.scale);
