@@ -23,7 +23,6 @@ class AvatarIconer extends EventTarget {
     this.enabled = false;
 
     this.canvases = [];
-    
     const avatarchange = e => {
       this.renderAvatarApp(e.app);
     };
@@ -57,7 +56,6 @@ class AvatarIconer extends EventTarget {
           name: 'avatar-iconer-npc',
           avatarUrl: start_url,
           detached: true,
-          networked: false
         });
   
         const emotionCanvases = await Promise.all(allEmotions.map(async emotion => {

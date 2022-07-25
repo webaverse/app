@@ -18,6 +18,7 @@ import { User } from './User';
 
 import styles from './Header.module.css';
 import { UIMode } from './components/general/ui-mode/index.jsx';
+import { playersManager } from '../players-manager.js';
 
 //
 
@@ -30,12 +31,14 @@ export default function Header() {
     const dioramaCanvasRef = useRef();
     const panelsRef = useRef();
 
+    const [remotePlayers, setRemotePlayers] = useState([]);
+
     const [nfts, setNfts] = useState(null);
     // const [apps, setApps] = useState(world.appManager.getApps().slice());
     // const [claims, setClaims] = useState([]);
     // const [dragging, setDragging] = useState(false);
     const [loginFrom, setLoginFrom] = useState('');
-    const [wearActions, setWearActions] = useState(_getWearActions());
+    const [wearActions, setWearActions] = useState([]);
     const address = account.currentAddress;
     //
 
@@ -46,6 +49,12 @@ export default function Header() {
     };
 
     //
+
+    useEffect ( () => {
+        playersManager.addEventListener('remoteplayersupdated', () => {
+            setRemotePlayers(metaversefile.useRemotePlayers());
+        });
+    }, [])
 
     useEffect( () => {
 
@@ -260,6 +269,7 @@ export default function Header() {
             <CharacterHups
               localPlayer={localPlayer}
               npcs={npcs}
+              remotePlayers={remotePlayers}
             />
             <StoryTime />
             {/* <div className={styles.inner}> */}

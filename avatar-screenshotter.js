@@ -28,7 +28,6 @@ export const screenshotAvatarUrl = async ({
     name: 'sceenshot-npc',
     avatarUrl: start_url,
     detached: true,
-    networked: false
   });
 
   const result = await screenshotPlayer({

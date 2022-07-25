@@ -591,8 +591,9 @@ class StatePlayer extends PlayerBase {
     this.unbindFns = [];
     
     this.transform = new Float32Array(7);
-
-    this.bindState(playersArray);
+    if(this.detached){
+      this.bindState(playersArray);
+    }
   }
   isBound() {
     return !!this.playersArray;
@@ -609,7 +610,7 @@ class StatePlayer extends PlayerBase {
   attachState(oldState) {
     throw new Error('called abstract method');
   }
-  bindCommonObservers() {
+  bindActionObservers() {
     const actions = this.getActionsState();
     let lastActions = actions.toJSON();
     const observeActionsFn = () => {
@@ -638,7 +639,7 @@ class StatePlayer extends PlayerBase {
     actions.observe(observeActionsFn);
     this.unbindFns.push(actions.unobserve.bind(actions, observeActionsFn));
   }
-  unbindCommonObservers() {
+  unbindActionObservers() {
     for (const unbindFn of this.unbindFns) {
       unbindFn();
     }
@@ -651,16 +652,13 @@ class StatePlayer extends PlayerBase {
     // unbind
     this.unbindState();
     this.appManager.unbindState();
-    this.unbindCommonObservers();
+    this.unbindActionObservers();
     
     // note: leave the old state as is. it is the host's responsibility to garbage collect us when we disconnect.
-    if(!this.detached){
-
-      // blindly add to new state
-      this.playersArray = nextPlayersArray;
-      this.attachState(oldState);
-      this.bindCommonObservers();
-    }
+    // blindly add to new state
+    this.playersArray = nextPlayersArray;
+    this.attachState(oldState);
+    this.bindActionObservers();
 
   }
   getAvatarInstanceId() {
@@ -1109,9 +1107,9 @@ class LocalPlayer extends UninterpolatedPlayer {
     }
   }
   detachState() {
-    const oldActions = (this.playersArray ? this.getActionsState() : new Z.Array());
+    const oldActions = this.playerMap ? this.getActionsState() : new Z.Array();
     const oldAvatar = this.playersArray && this.getAvatarInstanceId();
-    const oldApps = (this.playersArray ? this.getAppsState() : new Z.Array()).toJSON();
+    const oldApps = (this.playerMap ? this.getAppsState() : new Z.Array()).toJSON();
     return {
       oldActions,
       oldAvatar,
@@ -1162,10 +1160,7 @@ class LocalPlayer extends UninterpolatedPlayer {
         self.playerMap.set('voiceSpec', voiceSpec);
       }
     });
-    if(this.networked){
-
-      this.setPlayerSpec(defaultPlayerSpec);
-    }
+    this.setPlayerSpec(defaultPlayerSpec);
   }
   grab(app, hand = 'left') {
     const localPlayer = metaversefile.useLocalPlayer();
@@ -1450,6 +1445,10 @@ class RemotePlayer extends InterpolatedPlayer {
       console.log(new Error().stack);
       this.appManager.loadApps().then(() => {
         this.syncAvatar();
+        if(!this.voicer || !this.voiceEndpoint){
+            let voiceSpec = JSON.parse(this.playerMap.get('voiceSpec'));
+            this.loadVoiceEndpoint(voiceSpec.endpointUrl)
+        }
       });
     }
   }

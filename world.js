@@ -25,9 +25,7 @@ const _getBindSceneForRenderPriority = renderPriority => {
 // Handles the world and objects in it, has an app manager just like a player
 export class World {
   constructor() {
-    this.appManager = new AppManager({
-      networked: true
-    });
+    this.appManager = new AppManager();
     this.winds = [];
     // This handles adding apps to the world scene
     this.appManager.addEventListener('appadd', e => {

@@ -30,13 +30,11 @@ class NpcManager extends EventTarget {
     position,
     quaternion,
     scale,
-    detached,
-    networked = true
+    detached
   }) {
     const npcPlayer = new LocalPlayer({
       npc: true,
-      detached,
-      networked
+      detached
     });
     npcPlayer.name = name;
 

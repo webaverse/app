@@ -66,7 +66,7 @@ function ChatInput () {
                             if ( value ) {
 
                                 const text = checkText( value );
-                                chatManager.addMessage( text, { timeout: 3000 });
+                                chatManager.addLocalPlayerMessage( text, { timeout: 3000 });
 
                             }
 

@@ -33,13 +33,11 @@ const physicsScene = physicsManager.getScene();
 const appManagers = [];
 class AppManager extends EventTarget {
   constructor({
-    appsArray = new Z.Doc().getArray(worldMapName),
-    networked = true
+    appsArray = new Z.Doc().getArray(worldMapName)
   } = {}) {
     super();
     this.appsArray = null;
     this.apps = [];
-    this.networked = networked;
     this.transform = new Float32Array(10);
     
     this.pendingAddPromises = new Map();

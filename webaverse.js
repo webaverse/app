@@ -291,6 +291,12 @@ export default class Webaverse extends EventTarget {
     if (!renderer) {
       throw new Error('must bind canvas first');
     }
+
+    const localPlayer = metaversefileApi.useLocalPlayer();
+    let localPlayerInitialized = false;
+    localPlayer.addEventListener('avatarchange', () => {
+      localPlayerInitialized = true;
+    });
     
     let lastTimestamp = performance.now();
     const animate = (timestamp, frame) => {
@@ -303,10 +309,6 @@ export default class Webaverse extends EventTarget {
 
         performanceTracker.setGpuPrefix('pre');
         const _pre = () => {
-          ioManager.update(timeDiffCapped);
-          // this.injectRigInput();
-          
-          const localPlayer = metaversefileApi.useLocalPlayer();
           const physicsScene = physicsManager.getScene();
           if (this.contentLoaded && physicsScene.getPhysicsEnabled()) {
             physicsScene.simulatePhysics(timeDiffCapped);
@@ -318,7 +320,11 @@ export default class Webaverse extends EventTarget {
           raycastManager.update(timestamp, timeDiffCapped);
           game.update(timestamp, timeDiffCapped);
           
-          localPlayer.updateAvatar(timestamp, timeDiffCapped);
+          if (localPlayerInitialized){
+            ioManager.update(timeDiffCapped);
+            localPlayer.updateAvatar(timestamp, timeDiffCapped);
+            // this.injectRigInput();
+          }
           playersManager.updateRemotePlayers(timestamp, timeDiffCapped);
           
           world.appManager.tick(timestamp, timeDiffCapped, frame);

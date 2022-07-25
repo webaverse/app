@@ -148,7 +148,7 @@ const CharacterHup = function(props) {
 export default function CharacterHups({
   localPlayer,
   npcs,
-  remotePlayers = metaversefile.useRemotePlayers()
+  remotePlayers
 }) {
   const [hups, setHups] = useState([]);
 

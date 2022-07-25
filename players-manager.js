@@ -7,8 +7,9 @@ import {RemotePlayer} from './character-controller.js';
 import metaversefileApi from 'metaversefile';
 import {getLocalPlayer} from './players.js';
 
-class PlayersManager {
+class PlayersManager extends EventTarget {
   constructor() {
+    super();
     this.playersArray = null;
     
     this.remotePlayers = new Map();
@@ -69,7 +70,6 @@ class PlayersManager {
             const remotePlayer = new RemotePlayer({
               playerId,
               playersArray: this.playersArray,
-              networked: true,
             });
             this.remotePlayers.set(playerId, remotePlayer);
           }
@@ -88,6 +88,7 @@ class PlayersManager {
             remotePlayer.destroy();
           }
         }
+        this.dispatchEvent(new MessageEvent('remoteplayersupdated'))
       };
       this.playersArray.observe(playersObserveFn);
       this.unbindStateFn = this.playersArray.unobserve.bind(this.playersArray, playersObserveFn);

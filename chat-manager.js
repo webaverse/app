@@ -73,7 +73,7 @@ class ChatManager extends EventTarget {
     
     return m;
   }
-  addMessage(message, opts) {
+  addLocalPlayerMessage(message, opts) {
     const chatId = makeId(5);
     const localPlayer = metaversefileApi.useLocalPlayer();
     const m = {
