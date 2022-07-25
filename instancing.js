@@ -443,19 +443,22 @@ export class GeometryAllocator {
       }
     };
 
-    if (this.hasOcclusionCulling) {
-      let foundId;
-      let surfaceY = -Infinity;
-      const findSearchStartingChunk = (i) => {
-        // find the chunk that the camera is inside
-        localVector3D2.set(0, 0, 0);
-        localVector3D3.set(0, 0, 0);
-        const min = localVector3D2.fromArray(this.minData, i * 4); // min
-        const max = localVector3D3.fromArray(this.maxData, i * 4); // max
+    if (this.hasOcclusionCulling) { 
 
-        if (isPointInPillar(camera.position, min, max)) {
-          if (surfaceY < min.y) {
-            if (min.y <= 0 && min.y <= camera.position.y) {
+      const findSearchStartingChunk = (i) => {
+        let foundId;
+        let surfaceY = -Infinity;
+        // find the chunk that the camera is inside of
+        for (let i = 0; i < this.numDraws; i++) {
+          localVector3D2.set(0, 0, 0);
+          localVector3D3.set(0, 0, 0);
+
+          const min = localVector3D2.fromArray(this.minData, i * 4); // min
+          const max = localVector3D3.fromArray(this.maxData, i * 4); // max
+
+          if (isPointInPillar(camera.position, min, max)) {
+            // we pick the chunk that has the largest height between those who are in the correct range
+            if (surfaceY < min.y && min.y <= 0 && min.y <= camera.position.y) {
               surfaceY = min.y;
               currentChunkMin.copy(min);
               currentChunkMax.copy(max);
@@ -463,11 +466,11 @@ export class GeometryAllocator {
             }
           }
         }
+        return foundId;
       };
 
-      for (let i = 0; i < this.numDraws; i++) {
-        findSearchStartingChunk(i);
-      }
+      const foundId = findSearchStartingChunk();
+     
 
       if (foundId) {
         const cameraView = new THREE.Vector3();
