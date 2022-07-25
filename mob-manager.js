@@ -665,7 +665,7 @@ vec4 mat2quat( mat3 m ) {
 
   return q;
 }
-mat4 quat2mat (vec4 q ) {
+mat4 quat2mat( vec4 q ) {
   mat4 m;
   m[0][0] = 1.0 - 2.0*(q.y*q.y + q.z*q.z);
   m[0][1] = 2.0*(q.x*q.y - q.z*q.w);
@@ -742,11 +742,22 @@ mat4 getInterpBoneMatrix( const in float base1, const in float base2, const in f
   vec3 translation2 = boneMat2[3].xyz;
   vec3 translation = translation1 * (1.0 - ratio) + translation2 * ratio;
 
-  vec4 q1 = mat2quat( mat3(boneMat1) );
-  vec4 q2 = mat2quat( mat3(boneMat2) );
+  mat3 rot1 = mat3(boneMat1);
+  float s1 = pow(determinant( rot1 ), 1.0/3.0);
+  rot1 = rot1 / s1;
+
+  mat3 rot2 = mat3(boneMat2);
+  float s2 = pow(determinant( rot2 ), 1.0/3.0);
+  rot2 = rot2 / s2;
+
+  vec4 q1 = mat2quat( rot1 );
+  vec4 q2 = mat2quat( rot2 );
   vec4 q = q_slerp( q1, q2, ratio );
 
+  float s = s1 * (1.0 - ratio) + s2 * ratio;
+
   mat4 boneMat = quat2mat( q );
+  boneMat = boneMat * s;
   boneMat[3] = vec4(translation, 1.0);
 
   return boneMat;
@@ -768,6 +779,9 @@ int instanceIndex = gl_DrawID * ${maxInstancesPerDrawCall} + gl_InstanceID;
   float time1 = float(floor(uTime));
   float time2 = float(ceil(uTime));
   float timeRatio = (uTime - time1) / (time2 - time1);
+  if (time2 == time1) {
+    timeRatio = 0.0f;
+  }
   float frame1 = mod( float(time1) + timeOffset * frameCount, frameCount );
   float frame2 = mod( float(time2) + timeOffset * frameCount, frameCount );
   int boneTextureIndex1 = boneTextureIndex + int(frame1) * ${numGeometries} * ${maxBonesPerInstance};
@@ -995,7 +1009,7 @@ gl_Position = projectionMatrix * mvPosition;
         pTexture.image.data[pOffset + instanceIndex * 3 + 1] = py;
         pTexture.image.data[pOffset + instanceIndex * 3 + 2] = pz;
 
-        drawCall.updateTexture('p', pOffset / 3 + instanceIndex, 1);
+        drawCall.updateTexture('p', pOffset + instanceIndex * 3, 3);
 
         // quaternion
 
@@ -1008,7 +1022,7 @@ gl_Position = projectionMatrix * mvPosition;
         qTexture.image.data[qOffset + instanceIndex * 4 + 2] = qz;
         qTexture.image.data[qOffset + instanceIndex * 4 + 3] = qw;
 
-        drawCall.updateTexture('q', qOffset / 4 + instanceIndex, 1);
+        drawCall.updateTexture('q', qOffset + instanceIndex * 4, 4);
 
         // time offset
 
@@ -1061,8 +1075,8 @@ gl_Position = projectionMatrix * mvPosition;
           timeOffsetTexture.image.data[timeOffsetOffset + instanceIndex] = timeOffsetTexture.image.data[timeOffsetOffset + lastInstanceIndex];
 
 
-          drawCall.updateTexture('p', pOffset / 3 + instanceIndex, 1);
-          drawCall.updateTexture('q', qOffset / 4 + instanceIndex, 1);
+          drawCall.updateTexture('p', pOffset + instanceIndex * 3, 3);
+          drawCall.updateTexture('q', qOffset + instanceIndex * 4, 4);
           drawCall.updateTexture('timeOffset', timeOffsetOffset + instanceIndex, 1);
 
           // mob instance
@@ -1088,10 +1102,9 @@ gl_Position = projectionMatrix * mvPosition;
         mobInstances.push(mobInstance);
       }
 
-      const onchunkremove = e => {
-        const {chunk: removeChunk} = e.data;
-        if (chunk.equalsNodeLod(removeChunk)) {
-
+      const onchunkremove = () => {
+        // const {chunk: removeChunk} = e;
+        // if (chunk.equalsNodeLod(removeChunk)) {
           for (let i = 0; i < mobData.instances.length; i++) {
             const geometryNoise = mobData.instances[i];
             const geometryIndex = Math.floor(geometryNoise * this.meshes.length);
@@ -1103,10 +1116,10 @@ gl_Position = projectionMatrix * mvPosition;
             _unrenderMobGeometry(drawCall, mobInstance);
           }
 
-          tracker.removeEventListener('chunkremove', onchunkremove);
-        }
+          tracker.offChunkRemove(chunk, onchunkremove);
+        // }
       };
-      tracker.addEventListener('chunkremove', onchunkremove);
+      tracker.onChunkRemove(chunk, onchunkremove);
     }
   }
   update(timestamp, timeDiff) {
@@ -1220,7 +1233,7 @@ class Mobber {
       // relod: true,
     });
     const chunkdatarequest = (e) => {
-      const {chunk, waitUntil, signal} = e.data;
+      const {chunk, waitUntil, signal} = e;
       const {lod} = chunk;
 
       if (chunk.min.y !== 0) return;
@@ -1239,17 +1252,19 @@ class Mobber {
       waitUntil(loadPromise);
     };
     const chunkadd = (e) => {
-      const {renderData, chunk} = e.data;
+      const {renderData, chunk} = e;
       generator.mobBatchedMesh.drawChunk(chunk, renderData, tracker);
     };
-    tracker.addEventListener('chunkdatarequest', chunkdatarequest);
-    tracker.addEventListener('chunkadd', chunkadd);
+    // tracker.addEventListener('chunkdatarequest', chunkdatarequest);
+    // tracker.addEventListener('chunkadd', chunkadd);
+    tracker.onChunkDataRequest(chunkdatarequest);
+    tracker.onChunkAdd(chunkadd);
 
     this.tracker = tracker;
   }
   async waitForUpdate() {
     await new Promise((accept, reject) => {
-      this.tracker.addEventListener('update', () => {
+      this.tracker.onPostUpdate(() => {
         accept();
       });
     });

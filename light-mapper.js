@@ -5,14 +5,14 @@ import {WebaverseShaderMaterial} from './materials.js';
 const localVector = new THREE.Vector3();
 const localVector2 = new THREE.Vector3();
 const localVector3 = new THREE.Vector3();
-const localVector4 = new THREE.Vector3();
+// const localVector4 = new THREE.Vector3();
 const localBox = new THREE.Box3();
 
-const zeroVector = new THREE.Vector3();
+// const zeroVector = new THREE.Vector3();
 
 //
 
-const _writeTex3d = (() => {
+/* const _writeTex3d = (() => {
   const localVector = new THREE.Vector3();
   const localBox = new THREE.Box3();
   return (dstTex, dstSize, dstPosition, srcArray, sourceBox) => {
@@ -116,39 +116,46 @@ const _copyArray3dWithin = (array, dstSize, dstPosition, sourceBox) => {
       }
     }
   }
-};
+}; */
 
 //
 
-export class LightMapper extends EventTarget {
+export class LightMapper /* extends EventTarget */ {
   constructor({
-    chunkSize,
-    terrainSize,
-    range,
+    // chunkSize,
+    // terrainSize,
+    // range,
+    procGenInstance,
+    size,
     debug,
   }) {
-    super();
+    // super();
 
-    this.chunkSize = chunkSize;
-    this.terrainSize = terrainSize;
-    this.range = range;
+    this.procGenInstance = procGenInstance;
+    this.size = size;
+    // this.chunkSize = chunkSize;
+    // this.terrainSize = terrainSize;
+    // this.range = range;
     // this.debug = debug;
 
-    const skylightData = new Uint8Array(terrainSize * terrainSize * terrainSize);
-    const skylightTex = new THREE.DataTexture3D(skylightData, terrainSize, terrainSize, terrainSize);
+    this.lastUpdateCoord = new THREE.Vector3(NaN, NaN, NaN);
+
+    this.queued = false;
+    this.queuedPosition = new THREE.Vector3();
+
+    const skylightData = new Uint8Array(size.x * size.y * size.z);
+    const skylightTex = new THREE.DataTexture3D(skylightData, size.x, size.y, size.z);
     skylightTex.format = THREE.RedFormat;
     skylightTex.type = THREE.UnsignedByteType;
     skylightTex.minFilter = THREE.LinearFilter;
     skylightTex.magFilter = THREE.LinearFilter;
-    // skylightTex.minFilter = THREE.NearestFilter;
-    // skylightTex.magFilter = THREE.NearestFilter;
     skylightTex.flipY = false;
     skylightTex.needsUpdate = true;
     skylightTex.generateMipmaps = false;
     this.skylightTex = skylightTex;
 
-    const aoData = new Uint8Array(terrainSize * terrainSize * terrainSize);
-    const aoTex = new THREE.DataTexture3D(aoData, terrainSize, terrainSize, terrainSize);
+    const aoData = new Uint8Array(size.x * size.y * size.z);
+    const aoTex = new THREE.DataTexture3D(aoData, size.x, size.y, size.z);
     aoTex.format = THREE.RedFormat;
     aoTex.type = THREE.UnsignedByteType;
     aoTex.minFilter = THREE.LinearFilter;
@@ -160,103 +167,100 @@ export class LightMapper extends EventTarget {
     aoTex.generateMipmaps = false;
     this.aoTex = aoTex;
 
-    this.lightBasePosition = new THREE.Vector3(
+    /* this.lightBasePosition = new THREE.Vector3(
       -terrainSize / 2,
       0,
       -terrainSize / 2
     );
-    this.lightTexSize = new THREE.Vector3(terrainSize, terrainSize, terrainSize);
+    this.lightTexSize = new THREE.Vector3(terrainSize, terrainSize, terrainSize); */
 
+    this.debugMesh = null;
     if (debug) {
-      const maxInstances = terrainSize * terrainSize * terrainSize;
-      const instancedCubeGeometry = new THREE.InstancedBufferGeometry();
-      {
-        const cubeGeometry = new THREE.BoxBufferGeometry(0.8, 0.8, 0.8);
-        for (const k in cubeGeometry.attributes) {
-          instancedCubeGeometry.setAttribute(k, cubeGeometry.attributes[k]);
+      this.debugMesh = (() => {
+        const maxInstances = size.x * size.y * size.z;
+        const instancedCubeGeometry = new THREE.InstancedBufferGeometry();
+        {
+          const cubeGeometry = new THREE.BoxBufferGeometry(0.8, 0.8, 0.8);
+          for (const k in cubeGeometry.attributes) {
+            instancedCubeGeometry.setAttribute(k, cubeGeometry.attributes[k]);
+          }
+          instancedCubeGeometry.setIndex(cubeGeometry.index);
         }
-        instancedCubeGeometry.setIndex(cubeGeometry.index);
-      }
-      const debugMaterial = new WebaverseShaderMaterial({
-        uniforms: {
-          uSkylightTex: {
-            value: this.skylightTex,
-            needsUpdate: true,
+        const debugMaterial = new WebaverseShaderMaterial({
+          uniforms: {
+            uSkylightTex: {
+              value: this.skylightTex,
+              needsUpdate: true,
+            },
+            uAoTex: {
+              value: this.aoTex,
+              needsUpdate: true,
+            },
           },
-          uAoTex: {
-            value: this.aoTex,
-            needsUpdate: true,
-          },
-        },
-        vertexShader: `\
-          varying vec3 vNormal;
-          varying vec3 vUv;
-          
-          const float terrainSize = ${terrainSize.toFixed(8)};
-          
-          void main() {
-            float instance = float(gl_InstanceID);
-            float x = mod(instance, terrainSize);
-            instance = (instance - x) / terrainSize;
-            float y = mod(instance, terrainSize);
-            instance = (instance - y) / terrainSize;
-            float z = instance;
+          vertexShader: `\
+            varying vec3 vNormal;
+            varying vec3 vUv;
+            
+            const vec3 size = vec3(${size.toArray().map(n => n.toFixed(8)).join(',')});
+            
+            void main() {
+              float instance = float(gl_InstanceID);
+              float x = mod(instance, size.x);
+              instance = (instance - x) / size.x;
+              float y = mod(instance, size.y);
+              instance = (instance - y) / size.y;
+              float z = instance;
 
-            vec3 offset = vec3(x, y, z);
-            vUv = offset / terrainSize;
+              vec3 offset = vec3(x, y, z);
+              vUv = offset / size;
 
-            gl_Position = projectionMatrix * modelViewMatrix * vec4(position + offset, 1.0);
+              gl_Position = projectionMatrix * modelViewMatrix * vec4(position + offset, 1.0);
 
-            vNormal = normalMatrix * normal;
-          }
-        `,
-        fragmentShader: `\
-          precision highp sampler3D;
-        
-          uniform sampler3D uSkylightTex;
-          uniform sampler3D uAoTex;
-
-          varying vec3 vNormal;
-          varying vec3 vUv;
-
-          const float terrainSize = ${terrainSize.toFixed(8)};
-
-          void main() {
-            float skylight = texture(uSkylightTex, vUv).r;
-            float ao = texture(uAoTex, vUv).r;
-
-            float c = 1. - (skylight * 255. / 8.);
-
-            if (c > 0.0) {
-              gl_FragColor = vec4(vNormal, c);
-            } else {
-              discard;
+              vNormal = normalMatrix * normal;
             }
-          }
-        `,
-        // color: 0xFFFFFF,
-        transparent: true,
-        // opacity: 0.1,
-      });
-      const debugMesh = new THREE.InstancedMesh(instancedCubeGeometry, debugMaterial, maxInstances);
-      const heightOffset = -60;
-      // debugMesh.position.y += heightOffset;
-      // debugMesh.updateMatrixWorld();
-      // debugMesh.count = 0;
-      debugMesh.frustumCulled = false;
-      scene.add(debugMesh);
+          `,
+          fragmentShader: `\
+            precision highp sampler3D;
+          
+            uniform sampler3D uSkylightTex;
+            uniform sampler3D uAoTex;
 
-      this.addEventListener('coordupdate', e => {
-        const {coord} = e.data;
-        // console.log('coord update', coord.toArray().join(','));
-        debugMesh.position.copy(coord)
-          // .multiplyScalar(terrainSize);
-        debugMesh.position.y += heightOffset;
-        debugMesh.updateMatrixWorld();
-      });
+            varying vec3 vNormal;
+            varying vec3 vUv;
+
+            void main() {
+              float skylight = texture(uSkylightTex, vUv).r;
+              float ao = texture(uAoTex, vUv).r;
+
+              float c = 1. - (skylight * 255. / 8.);
+
+              if (c > 0.0) {
+                gl_FragColor = vec4(vNormal, c);
+              } else {
+                discard;
+              }
+            }
+          `,
+          // color: 0xFFFFFF,
+          transparent: true,
+          // opacity: 0.1,
+        });
+        const debugMesh = new THREE.InstancedMesh(instancedCubeGeometry, debugMaterial, maxInstances);
+        // const heightOffset = -60;
+        debugMesh.frustumCulled = false;
+        // scene.add(debugMesh);
+
+        /* this.addEventListener('coordupdate', e => {
+          const {coord} = e.data;
+          debugMesh.position.copy(coord)
+          debugMesh.position.y += heightOffset;
+          debugMesh.updateMatrixWorld();
+        }); */
+        return debugMesh;
+      })();
     }
   }
-  drawChunk(chunk, {
+  /* drawChunk(chunk, {
     skylights,
     aos,
   }) {
@@ -286,8 +290,66 @@ export class LightMapper extends EventTarget {
         // ao,
       },
     }));
+  } */
+  update(position) {
+    if (!this.updating) {
+      (async () => {
+        this.updating = true;
+      
+        const coord = localVector.copy(position);
+        coord.x = Math.floor(coord.x);
+        coord.y = Math.floor(coord.y);
+        coord.z = Math.floor(coord.z);
+        if (!this.lastUpdateCoord.equals(coord)) {
+          this.lastUpdateCoord.copy(coord);
+
+          if (this.debugMesh) {
+            const coordOffset = localVector2.set(
+              coord.x - Math.floor(this.size.x / 2),
+              coord.y - Math.floor(this.size.y / 2),
+              coord.z - Math.floor(this.size.z / 2)
+            );
+            const lod = 1;
+            const {
+              skylights,
+              aos,
+            } = await this.procGenInstance.dcWorkerManager.getLightRange(
+              coordOffset.x,
+              coordOffset.y,
+              coordOffset.z,
+              this.size.x,
+              this.size.y,
+              this.size.z,
+              lod
+            );
+
+            /* console.log(
+              'got skylights aos',
+              skylights.filter(n => n !== 0).length,
+              aos.filter(n => n !== 0).length
+            ); */
+
+            // this.heightfieldTexture.image.data.set(heightfield);
+            // this.heightfieldTexture.needsUpdate = true;
+
+            this.debugMesh.position.copy(coordOffset);
+            this.debugMesh.updateMatrixWorld();
+          }
+        }
+
+        this.updating = false;
+        
+        if (this.queued) {
+          this.queued = false;
+          this.update(this.queuedPosition);
+        }
+      })();
+    } else {
+      this.queued = true;
+      this.queuedPosition.copy(position);
+    }
   }
-  updateCoord(min1xCoord) {
+  /* updateCoord(min1xCoord) {
     const lastPosition = this.lightBasePosition;
     const newPosition = localVector.copy(min1xCoord)
       .multiplyScalar(this.chunkSize);
@@ -334,10 +396,6 @@ export class LightMapper extends EventTarget {
           coord: newPosition,
         },
       }));
-
-      // return true;
-    } /* else {
-      return false;
-    } */
-  }
+    }
+  } */
 }

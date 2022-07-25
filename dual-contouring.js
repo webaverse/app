@@ -845,25 +845,30 @@ w.createMobSplatAsync = async (inst, taskId, x, z, lod, priority) => {
 
 w.setCamera = (
   inst,
-  position,
-  quaternion,
+  worldPosition,
+  cameraPosition,
+  cameraQuaternion,
   projectionMatrix
 ) => {
   const allocator = new Allocator(Module);
 
-  const positionArray = allocator.alloc(Float32Array, 3);
-  positionArray.set(position);
+  const worldPositionArray = allocator.alloc(Float32Array, 3);
+  worldPositionArray.set(worldPosition);
 
-  const quaternionArray = allocator.alloc(Float32Array, 4);
-  quaternionArray.set(quaternion);
+  const cameraPositionArray = allocator.alloc(Float32Array, 3);
+  cameraPositionArray.set(cameraPosition);
+
+  const cameraQuaternionArray = allocator.alloc(Float32Array, 4);
+  cameraQuaternionArray.set(cameraQuaternion);
 
   const projectionMatrixArray = allocator.alloc(Float32Array, 16);
   projectionMatrixArray.set(projectionMatrix);
 
   Module._setCamera(
     inst,
-    positionArray.byteOffset,
-    quaternionArray.byteOffset,
+    worldPositionArray.byteOffset,
+    cameraPositionArray.byteOffset,
+    cameraQuaternionArray.byteOffset,
     projectionMatrixArray.byteOffset
   );
 
