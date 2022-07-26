@@ -2,6 +2,7 @@ import Module from './public/dc.module.js'
 import {Allocator} from './geometry-util.js';
 import {makePromise} from './util.js';
 import {defaultChunkSize} from './constants.js';
+import * as THREE from 'three';
 
 //
 
@@ -438,6 +439,43 @@ w.createTerrainChunkMeshAsync = async (inst, taskId, x, y, z, lods) => {
 
 //
 
+// const _parseLiquidVertexBuffer = (arrayBuffer, bufferAddress) => {
+//   const dataView = new DataView(arrayBuffer, bufferAddress);
+
+//   let index = 0;
+
+//   // positions
+//   const numPositions = dataView.getUint32(index, true);
+//   index += Uint32Array.BYTES_PER_ELEMENT;
+//   const positions = new Float32Array(arrayBuffer, bufferAddress + index, numPositions * 3);
+//   index += Float32Array.BYTES_PER_ELEMENT * numPositions * 3;
+
+//   // normals
+//   const numNormals = dataView.getUint32(index, true);
+//   index += Uint32Array.BYTES_PER_ELEMENT;
+//   const normals = new Float32Array(arrayBuffer, bufferAddress + index, numNormals * 3);
+//   index += Float32Array.BYTES_PER_ELEMENT * numNormals * 3;
+
+//   // biomes
+//   const numBiomes = dataView.getUint32(index, true);
+//   index += Uint32Array.BYTES_PER_ELEMENT;
+//   const biomes = new Int32Array(arrayBuffer, bufferAddress + index, numBiomes);
+//   index += Int32Array.BYTES_PER_ELEMENT * numBiomes;
+
+//   // indices
+//   const numIndices = dataView.getUint32(index, true);
+//   index += Uint32Array.BYTES_PER_ELEMENT;
+//   const indices = new Uint32Array(arrayBuffer, bufferAddress + index, numIndices);
+//   index += Uint32Array.BYTES_PER_ELEMENT * numIndices;
+
+//   return {
+//     bufferAddress,
+//     positions,
+//     normals,
+//     biomes,
+//     indices,
+//   };
+// };
 const _parseLiquidVertexBuffer = (arrayBuffer, bufferAddress) => {
   const dataView = new DataView(arrayBuffer, bufferAddress);
 
@@ -446,13 +484,14 @@ const _parseLiquidVertexBuffer = (arrayBuffer, bufferAddress) => {
   // positions
   const numPositions = dataView.getUint32(index, true);
   index += Uint32Array.BYTES_PER_ELEMENT;
-  const positions = new Float32Array(arrayBuffer, bufferAddress + index, numPositions * 3);
+  // const positions = new Float32Array(arrayBuffer, bufferAddress + index, numPositions * 3);
+  const position0 = new Float32Array(arrayBuffer, bufferAddress + index, 3);
   index += Float32Array.BYTES_PER_ELEMENT * numPositions * 3;
 
   // normals
   const numNormals = dataView.getUint32(index, true);
   index += Uint32Array.BYTES_PER_ELEMENT;
-  const normals = new Float32Array(arrayBuffer, bufferAddress + index, numNormals * 3);
+  // const normals = new Float32Array(arrayBuffer, bufferAddress + index, numNormals * 3);
   index += Float32Array.BYTES_PER_ELEMENT * numNormals * 3;
 
   // biomes
@@ -461,11 +500,22 @@ const _parseLiquidVertexBuffer = (arrayBuffer, bufferAddress) => {
   const biomes = new Int32Array(arrayBuffer, bufferAddress + index, numBiomes);
   index += Int32Array.BYTES_PER_ELEMENT * numBiomes;
 
-  // indices
+  // // indices
   const numIndices = dataView.getUint32(index, true);
   index += Uint32Array.BYTES_PER_ELEMENT;
-  const indices = new Uint32Array(arrayBuffer, bufferAddress + index, numIndices);
+  // const indices = new Uint32Array(arrayBuffer, bufferAddress + index, numIndices);
   index += Uint32Array.BYTES_PER_ELEMENT * numIndices;
+
+  const geometry = new THREE.BoxGeometry();
+  const positions = geometry.attributes.position.array;
+  const normals = geometry.attributes.normal.array;
+  const indices = geometry.index.array;
+
+  for (let i = 0; i < geometry.attributes.position.count; i++) {
+    positions[i * 3 + 0] += position0[0];
+    positions[i * 3 + 1] += position0[1];
+    positions[i * 3 + 2] += position0[2];
+  }
 
   return {
     bufferAddress,
