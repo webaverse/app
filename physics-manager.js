@@ -304,9 +304,9 @@ class PhysicsScene extends EventTarget {
       mesh.scale
     )
     physicsObject.add(physicsMesh)
-    physicsMesh.position.set(0, 0, 0)
-    physicsMesh.quaternion.set(0, 0, 0, 1)
-    physicsMesh.scale.set(1, 1, 1)
+    // physicsMesh.position.set(0, 0, 0)
+    // physicsMesh.quaternion.set(0, 0, 0, 1)
+    // physicsMesh.scale.set(1, 1, 1)
     physicsMesh.updateMatrixWorld()
     physicsObject.physicsMesh = physicsMesh
     return physicsObject
