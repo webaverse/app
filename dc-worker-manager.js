@@ -262,6 +262,7 @@ export class DcWorkerManager {
       chunkPosition: chunkPosition.toArray(),
       lodArray,
     }, {signal});
+    // debugger
     // signal.throwIfAborted();
     return result;
   }

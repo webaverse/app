@@ -478,6 +478,7 @@ w.createTerrainChunkMeshAsync = async (inst, taskId, x, y, z, lods) => {
 // };
 const _parseLiquidVertexBuffer = (arrayBuffer, bufferAddress) => {
   const dataView = new DataView(arrayBuffer, bufferAddress);
+  // debugger
 
   let index = 0;
 

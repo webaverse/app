@@ -93,6 +93,7 @@ const _cloneTerrainMeshData = (meshData) => {
 };
 const _cloneLiquidMeshData = (meshData) => {
   if (meshData) {
+    // debugger
     /* return {
       arrayBuffer: new ArrayBuffer(1),
       positions: meshData.positions.slice(),
@@ -102,10 +103,17 @@ const _cloneLiquidMeshData = (meshData) => {
       indices: meshData.indices.slice(),
     }; */
 
-    const sizeRequired = meshData.positions.length * meshData.positions.constructor.BYTES_PER_ELEMENT +
-      meshData.normals.length * meshData.normals.constructor.BYTES_PER_ELEMENT +
+    // const sizeRequired = meshData.positions.length * meshData.positions.constructor.BYTES_PER_ELEMENT +
+    //   meshData.normals.length * meshData.normals.constructor.BYTES_PER_ELEMENT +
+    //   meshData.biomes.length * meshData.biomes.constructor.BYTES_PER_ELEMENT +
+    //   meshData.indices.length * meshData.indices.constructor.BYTES_PER_ELEMENT;
+
+    // THREE.BoxGeometry
+    const sizeRequired = 72 * meshData.positions.constructor.BYTES_PER_ELEMENT +
+      72 * meshData.normals.constructor.BYTES_PER_ELEMENT +
       meshData.biomes.length * meshData.biomes.constructor.BYTES_PER_ELEMENT +
-      meshData.indices.length * meshData.indices.constructor.BYTES_PER_ELEMENT;
+      36 * meshData.indices.constructor.BYTES_PER_ELEMENT;
+
     const arrayBuffer = new ArrayBuffer(sizeRequired);
     let index = 0;
 
@@ -395,6 +403,7 @@ const _handleMethod = async ({method, args, instance: instanceKey, taskId}) => {
       localVector.fromArray(chunkPosition)
         .multiplyScalar(chunkWorldSize);
       const meshData = await dc.createLiquidChunkMeshAsync(instance, taskId, localVector.x, localVector.y, localVector.z, lodArray);
+      // if (meshData) debugger
       const meshData2 = _cloneLiquidMeshData(meshData);
       meshData && dc.free(meshData.bufferAddress);
 

@@ -337,6 +337,8 @@ class PhysicsScene extends EventTarget {
       position,
       quaternion,
       scale,
+      false,
+      false,
       physicsId
     )
   
