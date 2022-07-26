@@ -1541,6 +1541,7 @@ const physxWorker = (() => {
     mesh.getWorldQuaternion(localQuaternion).toArray(quaternionBuffer)
     const scaleBuffer = scratchStack.f32.subarray(10, 13)
     mesh.getWorldScale(localVector2).toArray(scaleBuffer)
+    debugger
     /* const mat = scratchStack.f32.subarray(13, 16)
     mat[0] = physicsMaterial[0]
     mat[1] = physicsMaterial[1]
@@ -1658,6 +1659,7 @@ const physxWorker = (() => {
     quaternion.toArray(quaternionBuffer)
     const scaleBuffer = scratchStack.f32.subarray(10, 13)
     scale.toArray(scaleBuffer)
+    debugger
 
     const materialAddress = w.getDefaultMaterial(physics);
 
@@ -1669,8 +1671,8 @@ const physxWorker = (() => {
       scaleBuffer.byteOffset,
       id,
       materialAddress,
-      +dynamic,
-      +external,
+      0,
+      0,
       shape
     )
   }
