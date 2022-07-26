@@ -6,6 +6,9 @@ import {getRenderer} from './renderer.js';
 import { ImmediateGLBufferAttribute } from './ImmediateGLBufferAttribute.js';
 import Module from './public/bin/geometry.js';
 import { Allocator } from './geometry-util.js';
+import { chunkMinForPosition } from './util.js';
+import { defaultChunkSize } from './constants.js';
+import { _getHashMinLod } from './lod.js';
 // import { toHiraganaCase } from 'encoding-japanese';
 
 const localVector2D = new THREE.Vector2();
@@ -243,7 +246,7 @@ function deserializeDrawListBuffer(arrayBuffer, bufferAddress){
 export class GeometryAllocator {
   constructor(
     attributeSpecs,
-    { bufferSize, boundingType = null, hasOcclusionCulling = false }
+    { bufferSize, boundingType = null, hasOcclusionCulling = false, chunkNodesMap }
   ) {
     {
       this.geometry = new THREE.BufferGeometry();
@@ -275,6 +278,7 @@ export class GeometryAllocator {
     // this.peeksArray = [];
     this.hasOcclusionCulling = hasOcclusionCulling;
     if (this.hasOcclusionCulling) {
+      this.chunkNodesMap = chunkNodesMap;
       this.OCInstance = Module._initOcclusionCulling();
       const allocator = new Allocator(Module);
       const chunkAllocationBufferSize = maxNumDraws * chunkAllocationDataSize;
@@ -447,25 +451,43 @@ export class GeometryAllocator {
 
       const findSearchStartingChunk = () => {
         let foundId;
-        let surfaceY = -Infinity;
-        // find the chunk that the camera is inside of
-        for (let i = 0; i < this.numDraws; i++) {
-          localVector3D2.set(0, 0, 0);
-          localVector3D3.set(0, 0, 0);
+        // let surfaceY = -Infinity;
+        // // find the chunk that the camera is inside of
+        // for (let i = 0; i < this.numDraws; i++) {
+        //   localVector3D2.set(0, 0, 0);
+        //   localVector3D3.set(0, 0, 0);
 
-          const min = localVector3D2.fromArray(this.minData, i * 4); // min
-          const max = localVector3D3.fromArray(this.maxData, i * 4); // max
+        //   const min = localVector3D2.fromArray(this.minData, i * 4); // min
+        //   const max = localVector3D3.fromArray(this.maxData, i * 4); // max
 
-          if (isPointInPillar(camera.position, min, max)) {
-            // we pick the chunk that has the largest height between those who are in the correct range
-            if (surfaceY < min.y && min.y <= 0 && min.y <= camera.position.y) {
-              surfaceY = min.y;
-              currentChunkMin.copy(min);
-              currentChunkMax.copy(max);
-              foundId = i;
-            }
+        //   if (isPointInPillar(camera.position, min, max)) {
+        //     // we pick the chunk that has the largest height between those who are in the correct range
+        //     if (surfaceY < min.y && min.y <= 0 && min.y <= camera.position.y) {
+        //       surfaceY = min.y;
+        //       currentChunkMin.copy(min);
+        //       currentChunkMax.copy(max);
+        //       foundId = i;
+        //     }
+        //   }
+        // }
+
+        const camPos = camera.position;
+
+        for (let j = 0; j < 5; j++) { 
+          const lod = 2 ** j;
+          const chunkSize =  defaultChunkSize * lod;
+          const chunkMin = chunkMinForPosition(camPos.x, camPos.y, camPos.z, chunkSize);
+          const hash = _getHashMinLod(chunkMin, lod);
+          if(this.chunkNodesMap.has(hash)){
+            currentChunkMin.copy(chunkMin);
+            currentChunkMax.set(chunkMin.x + chunkSize, chunkMin.y + chunkSize, chunkMin.z + chunkSize);
+            console.log('Found it');
+            break;
           }
         }
+
+
+
         return foundId;
       };
 
