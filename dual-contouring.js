@@ -507,7 +507,7 @@ const _parseLiquidVertexBuffer = (arrayBuffer, bufferAddress) => {
   // const indices = new Uint32Array(arrayBuffer, bufferAddress + index, numIndices);
   index += Uint32Array.BYTES_PER_ELEMENT * numIndices;
 
-  const geometry = new THREE.BoxGeometry();
+  const geometry = new THREE.ConeGeometry(5, 10, 3);
   const positions = geometry.attributes.position.array;
   const normals = geometry.attributes.normal.array;
   const indices = geometry.index.array;
