@@ -89,10 +89,19 @@ class CharacterPhysics {
 
       const jumpAction = this.player.getAction('jump');
       if (jumpAction?.trigger === 'jump') {
-        const jumpTime = this.player.actionInterpolants.jump.get();
-        localVector3.y = Math.sin(jumpTime * (Math.PI / flatGroundJumpAirTime)) * jumpHeight + jumpAction.startPositionY - this.lastCharacterControllerY;
-        if (jumpTime >= flatGroundJumpAirTime) {
-          this.player.setControlAction({type: 'fallLoop', from: 'jump'});
+        const doubleJumpAction = this.player.getAction('doubleJump');
+        if (doubleJumpAction) {
+          const doubleJumpTime = this.player.actionInterpolants.doubleJump.get();
+          localVector3.y = Math.sin(doubleJumpTime * (Math.PI / flatGroundJumpAirTime)) * jumpHeight + doubleJumpAction.startPositionY - this.lastCharacterControllerY;
+          if (doubleJumpTime >= flatGroundJumpAirTime) {
+            this.player.setControlAction({type: 'fallLoop', from: 'jump'});
+          }
+        } else {
+          const jumpTime = this.player.actionInterpolants.jump.get();
+          localVector3.y = Math.sin(jumpTime * (Math.PI / flatGroundJumpAirTime)) * jumpHeight + jumpAction.startPositionY - this.lastCharacterControllerY;
+          if (jumpTime >= flatGroundJumpAirTime) {
+            this.player.setControlAction({type: 'fallLoop', from: 'jump'});
+          }
         }
       }
         
@@ -161,8 +170,12 @@ class CharacterPhysics {
           this.lastGroundedTime = now;
           if (!this.lastGrounded) {
             if (this.player.hasAction('jump') || this.player.hasAction('fallLoop')) {
-              console.log('land')
-              this.player.setControlAction({type: 'land', time: now});
+              this.player.setControlAction({
+                type: 'land',
+                time: now,
+                isMoving: this.player.avatar.idleWalkFactor > 0,
+              });
+              this.player.removeAction('doubleJump');
             }
           };
 
@@ -171,7 +184,6 @@ class CharacterPhysics {
           const lastGroundedTimeDiff = now - this.lastGroundedTime;
           if (lastGroundedTimeDiff > 200) {
             if (!this.player.hasAction('fallLoop') && !this.player.hasAction('jump') && !this.player.hasAction('fly') && !this.player.hasAction('swim')) {
-              console.log('fallLoop')
               this.player.setControlAction({type: 'fallLoop'});
               this.velocity.y = 0;
             }

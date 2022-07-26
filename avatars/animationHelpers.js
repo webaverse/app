@@ -60,6 +60,7 @@ let animations;
 let animationStepIndices;
 // let animationsBaseModel;
 let jumpAnimation;
+let doubleJumpAnimation;
 let fallLoopAnimation;
 let floatAnimation;
 let useAnimations;
@@ -306,6 +307,7 @@ export const loadPromise = (async () => {
   // swordTopDownSlash = animations.find(a => a.isSwordTopDownSlash)
 
   jumpAnimation = animations.find(a => a.isJump);
+  doubleJumpAnimation = animations.find(a => a.isDoubleJump);
   fallLoopAnimation = animations.index['falling.fbx'];
   // sittingAnimation = animations.find(a => a.isSitting);
   floatAnimation = animations.find(a => a.isFloat);
@@ -410,12 +412,12 @@ export const loadPromise = (async () => {
   console.log('load avatar animations error', err);
 });
 
-export const _applyAnimation = (avatar, now, moveFactors, timeDiffS) => {
+export const _applyAnimation = (avatar, now) => {
   // const runSpeed = 0.5;
   const angle = avatar.getAngle();
   const timeSeconds = now / 1000;
   const landTimeSeconds = timeSeconds - avatar.lastLandStartTime / 1000 + 0.8; // in order to align landing 2.fbx with walk/run
-  const {idleWalkFactor, walkRunFactor, crouchFactor} = moveFactors;
+  const {idleWalkFactor, walkRunFactor, crouchFactor} = avatar;
 
   /* const _getAnimationKey = crouchState => {
     if (crouchState) {
@@ -760,6 +762,23 @@ export const _applyAnimation = (avatar, now, moveFactors, timeDiffS) => {
     _getHorizontalBlend(k, lerpFn, isPosition, dst);
   };
   const _getApplyFn = () => {
+    if (avatar.doubleJumpState) {
+      return spec => {
+        const {
+          animationTrackName: k,
+          dst,
+          isPosition,
+        } = spec;
+
+        const t2 = avatar.doubleJumpTime / 1000;
+        const src2 = doubleJumpAnimation.interpolants[k];
+        const v2 = src2.evaluate(t2);
+
+        dst.fromArray(v2);
+
+        _clearXZ(dst, isPosition);
+      };
+    }
     if (avatar.jumpState) {
       return spec => {
         const {
@@ -1219,13 +1238,12 @@ export const _applyAnimation = (avatar, now, moveFactors, timeDiffS) => {
       isPosition,
     } = spec;
 
-    if (idleWalkFactor === 0) {
+    if (!avatar.landWithMoving) {
       const animationSpeed = 0.75;
       const landTimeS = avatar.landTime / 1000;
       const landingAnimation = animations.index['landing.fbx'];
       const landingAnimationDuration = landingAnimation.duration / animationSpeed;
       const landFactor = landTimeS / landingAnimationDuration;
-      // if (isPosition && avatar === window.localPlayer?.avatar) console.log('landFactor', landFactor);
 
       if (landFactor > 0 && landFactor <= 1) {
         const t2 = landTimeS * animationSpeed;
@@ -1250,7 +1268,6 @@ export const _applyAnimation = (avatar, now, moveFactors, timeDiffS) => {
       const landingAnimation = animations.index['landing 2.fbx'];
       const landingAnimationDuration = landingAnimation.duration / animationSpeed;
       const landFactor = landTimeS / landingAnimationDuration;
-      // if (isPosition && avatar === window.localPlayer?.avatar) console.log('landFactor', landFactor);
 
       if (landFactor > 0 && landFactor <= 1) {
         const t2 = landTimeS * animationSpeed;
@@ -1287,7 +1304,6 @@ export const _applyAnimation = (avatar, now, moveFactors, timeDiffS) => {
       lerpFn,
     } = spec;
 
-    // if (avatar.fallLoopState) {
     if (avatar.fallLoopFactor > 0) {
       const t2 = (avatar.fallLoopTime / 1000);
       const src2 = fallLoopAnimation.interpolants[k];
@@ -1417,10 +1433,10 @@ export const _applyAnimation = (avatar, now, moveFactors, timeDiffS) => {
 
     // ignore all animation position except y
     if (isPosition) {
-      if (avatar.swimState || (!avatar.jumpState && !avatar.fallLoopState)) {
+      if (avatar.swimState) {
         // animations position is height-relative
         dst.y *= avatar.height; // XXX avatar could be made perfect by measuring from foot to hips instead
-      } else if (avatar.jumpState) {
+      } else if (avatar.jumpState || avatar.doubleJumpState || avatar.fallLoopState) {
         // force height in the jump case to overide the animation
         dst.y = avatar.height * 0.55;
       } else {
