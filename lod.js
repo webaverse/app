@@ -27,7 +27,7 @@ const uint16Array = new Uint16Array(1);
 } */
 const tp16 = 2 ** 16;
 const tp5 = 2 ** 5;
-const _getHashMinLod = (min, lod) => {
+export const _getHashMinLod = (min, lod) => {
   let result;
   
   uint16Array[0] = min.x;
@@ -582,6 +582,7 @@ export class LodChunkTracker /* extends EventTarget */ {
     this.renderedChunks = new Map(); // hash -> OctreeNode
     this.dataRequests = new Map(); // hash -> DataRequest
     this.dominators = new Map(); // hash -> OctreeNode
+    this.chunkNodes = new Map();
     this.lastUpdateCoord = new THREE.Vector3(NaN, NaN, NaN);
 
     this.isUpdating = false;
@@ -851,7 +852,7 @@ export class LodChunkTracker /* extends EventTarget */ {
       // newTasks,
       leafNodes,
     } = trackerUpdateSpec;
-
+    
     const _parseNode = (nodeSpec) => {
       const {min, size: lod, isLeaf, lodArray} = nodeSpec;
       return new OctreeNode(
@@ -883,7 +884,7 @@ export class LodChunkTracker /* extends EventTarget */ {
 
     // debug mesh
     this.displayChunks = leafNodes;
-
+    
     // data requests
     {
       // cancel old data requests
@@ -903,10 +904,26 @@ export class LodChunkTracker /* extends EventTarget */ {
         }
       }
 
+      const oldChunkNodes = Array.from(this.chunkNodes);
+      // console.log(this.chunkNodes);
+      for (const [hash, oldChunkNode] of oldChunkNodes) {
+        // console.log(oldChunkNode);
+        const matchingLeafNode = leafNodes.find((leafNode) => {
+          return equalsNodeLod(leafNode, oldChunkNode);
+        });
+        if (!matchingLeafNode) {
+          this.chunkNodes.delete(hash);
+        }
+      }
+
       // add new data requests
       for (const chunk of leafNodes) {
-        const hash = _getHashChunk(chunk);
+        const hash = _getHashChunk(chunk);  
+        if (!this.chunkNodes.has(hash)) {
+          this.chunkNodes.set(hash, chunk);
+        }
         if (!this.dataRequests.has(hash)) {
+        
           const dataRequest = new DataRequest(chunk);
           const {signal} = dataRequest;
           let waited = false;
