@@ -7,6 +7,7 @@ let windDirection = new THREE.Vector3();
 const windPosition = new THREE.Vector3();
 const windNoisePos = new THREE.Vector3();
 const localVector2 = new THREE.Vector3();
+const zeroVector3 = new THREE.Vector3();
 
 const update = (timestamp, headPosition, springBoneManager) => {
     const winds = metaversefile.getWinds();
@@ -27,8 +28,8 @@ const update = (timestamp, headPosition, springBoneManager) => {
     const _handleNormal = () =>{
       for (const springBones of springBoneManager.springBoneGroupList) {
         for (const o of springBones) {
-          o.gravityDir = new THREE.Vector3()
-          o.gravityPower = 0
+          o.gravityDir = zeroVector3;
+          o.gravityPower = 0;
         }
       }
     }
@@ -127,7 +128,7 @@ const update = (timestamp, headPosition, springBoneManager) => {
         }
       }
     } else {
-      _handleNormal()
+      _handleNormal();
     }
 };
 export {
