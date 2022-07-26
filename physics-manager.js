@@ -382,7 +382,7 @@ class PhysicsScene extends EventTarget {
     physicsMesh.updateMatrixWorld()
     return physicsObject
   }
-  addConvexShape(shapeAddress, position, quaternion, scale, dynamic, external, physicsGeometry = null) {
+  addConvexShape(shapeAddress, position, quaternion, scale, dynamic = false, external = false, physicsGeometry = null) {
     // vismark
     const physicsId = getNextPhysicsId()
   
