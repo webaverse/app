@@ -1520,12 +1520,20 @@ const physxWorker = (() => {
     const dataLength = scratchStack.u32[1]
     const streamPtr = scratchStack.u32[2]
 
+    const buffer = Module.HEAPU8.slice(dataPtr, dataPtr + dataLength);
+    console.log('add', {buffer});
+
+    console.log('add', 1, dataPtr);
+    console.log('add', 2, dataLength);
+    console.log('add', 3, streamPtr);
     const shape = Module._createConvexShapePhysics(
       physics,
       dataPtr,
       dataLength,
       streamPtr,
     )
+
+    console.log('add', {shapeAddress: shape});
 
     const positionBuffer = scratchStack.f32.subarray(3, 6)
     mesh.getWorldPosition(localVector).toArray(positionBuffer)
@@ -1580,6 +1588,12 @@ const physxWorker = (() => {
     const dataPtr = scratchStack.u32[0]
     const dataLength = scratchStack.u32[1]
     const streamPtr = scratchStack.u32[2] // XXX delete if it will not be deleted
+    window.dataPtr = dataPtr;
+    window.dataLength = dataLength;
+    window.streamPtr = streamPtr;
+    console.log({dataPtr})
+    console.log({dataLength})
+    console.log({streamPtr})
 
     const result = Module.HEAPU8.slice(dataPtr, dataPtr + dataLength);
     allocator.freeAll()
@@ -1669,17 +1683,22 @@ const physxWorker = (() => {
     return shapeAddress;
   };
   w.createConvexShapePhysics = (physics, buffer) => {
-    const allocator = new Allocator(Module)
-    const buffer2 = allocator.alloc(Uint8Array, buffer.length)
-    buffer2.set(buffer)
+    // const allocator = new Allocator(Module)
+    // const buffer2 = allocator.alloc(Uint8Array, buffer.length)
+    // buffer2.set(buffer)
 
+    buffer = Module.HEAPU8.slice(window.dataPtr, window.dataPtr + window.dataLength);
+
+    console.log(1, buffer.byteOffset);
+    console.log(2, buffer.byteLength);
+    console.log(3, window.streamPtr);
     const shapeAddress = Module._createConvexShapePhysics(
       physics,
-      buffer2.byteOffset,
-      buffer2.byteLength,
-      0,
+      window.dataPtr,
+      window.dataLength,
+      window.streamPtr,
     );
-    allocator.freeAll();
+    // allocator.freeAll();
     return shapeAddress;
   };
 
