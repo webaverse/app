@@ -1,5 +1,5 @@
 import * as THREE from 'three';
-import {getRenderer, scene} from './renderer.js';
+// import {getRenderer, scene} from './renderer.js';
 import {WebaverseShaderMaterial} from './materials.js';
 
 const localVector = new THREE.Vector3();
@@ -232,10 +232,16 @@ export class LightMapper /* extends EventTarget */ {
               float skylight = texture(uSkylightTex, vUv).r;
               float ao = texture(uAoTex, vUv).r;
 
-              float c = 1. - (skylight * 255. / 8.);
+              // float c = 1. - (skylight * 255. / 8.);
 
-              if (c > 0.0) {
-                gl_FragColor = vec4(vNormal, c);
+              float s = skylight * 255. / 8.;
+              float a = ao * 255. / 27.;
+
+              s = 1. - s;
+              a = 1. - a;
+
+              if (s > 0.0) {
+                gl_FragColor = vec4(vNormal, s);
               } else {
                 discard;
               }
@@ -246,16 +252,8 @@ export class LightMapper /* extends EventTarget */ {
           // opacity: 0.1,
         });
         const debugMesh = new THREE.InstancedMesh(instancedCubeGeometry, debugMaterial, maxInstances);
-        // const heightOffset = -60;
         debugMesh.frustumCulled = false;
-        // scene.add(debugMesh);
-
-        /* this.addEventListener('coordupdate', e => {
-          const {coord} = e.data;
-          debugMesh.position.copy(coord)
-          debugMesh.position.y += heightOffset;
-          debugMesh.updateMatrixWorld();
-        }); */
+        
         return debugMesh;
       })();
     }
@@ -323,16 +321,28 @@ export class LightMapper /* extends EventTarget */ {
               lod
             );
 
+            this.skylightTex.image.data.set(skylights);
+            this.skylightTex.needsUpdate = true;
+
+            this.aoTex.image.data.set(aos);
+            this.aoTex.needsUpdate = true;
+
             /* console.log(
               'got skylights aos',
-              skylights.filter(n => n !== 0).length,
-              aos.filter(n => n !== 0).length
+              skylights.filter(n => n !== 0).slice(0, 16).join(','),
+              aos.filter(n => n !== 0).slice(0, 16).join(','),
+              this.skylightTex.image.data.filter(n => n !== 0).slice(0, 16).join(','),
             ); */
 
             // this.heightfieldTexture.image.data.set(heightfield);
             // this.heightfieldTexture.needsUpdate = true;
 
             this.debugMesh.position.copy(coordOffset);
+            /* if (this.debugMesh.parent) {
+              this.debugMesh.position
+                .applyMatrix4(localMatrix.copy(this.debugMesh.parent.matrixWorld).invert());
+            } */
+            // console.log('got position', this.debugMesh.position.toArray().join(','));
             this.debugMesh.updateMatrixWorld();
           }
         }
