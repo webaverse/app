@@ -512,14 +512,14 @@ const _gameUpdate = (timestamp, timeDiff) => {
         const object = metaversefileApi.getAppByPhysicsId(physicsId);
         const physicsObject = metaversefileApi.getPhysicsObjectByPhysicsId(physicsId);
         const _isActiveApp = (app) => {
-          let isActive = false
+          let isActive = false;
           for (const comp of activeComponents) {
-            isActive ||= !!app.getComponent(comp)
-            if (isActive) break
+            isActive ||= !!app.getComponent(comp);
+            if (isActive) break;
           }
-          return isActive
+          return isActive;
         }
-        if (object && !_isWear(object) && physicsObject && !_isActiveApp(object)) {
+        if (object && !_isWear(object) && physicsObject && _isActiveApp(object)) {
           grabUseMesh.position.setFromMatrixPosition(physicsObject.physicsMesh.matrixWorld);
           grabUseMesh.quaternion.copy(camera.quaternion);
           grabUseMesh.updateMatrixWorld();
