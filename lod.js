@@ -590,7 +590,6 @@ export class LodChunkTracker /* extends EventTarget */ {
     
     this.lastOctreeLeafNodes = [];
     this.liveTasks = [];
-    this.listIndex = -1;
     
     this.listeners = {
       postUpdate: [],
@@ -719,14 +718,6 @@ export class LodChunkTracker /* extends EventTarget */ {
       const index = list.indexOf(fn);
       if (index !== -1) {
         list.splice(index, 1);
-        
-        // listIndex is used to iterate the list during deletion.
-        // we are deleting slot "index" here, so we need to adjust listIndex.
-        if (this.listIndex !== -1) {
-          if (index <= this.listIndex) {
-            this.listIndex--;
-          }
-        }
 
         if (list.length === 0) {
           this.listeners.chunkRemove.delete(hash);
@@ -755,11 +746,10 @@ export class LodChunkTracker /* extends EventTarget */ {
     const hash = _getHashChunk(chunk);
     let list = this.listeners.chunkRemove.get(hash);
     if (list) {
-      for (this.listIndex = 0; this.listIndex < list.length; this.listIndex++) {
-        const listener = list[this.listIndex];
+      list = list.slice();
+      for (const listener of list) {
         listener(chunk);
       }
-      this.listIndex = -1;
     }
   }
 
