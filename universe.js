@@ -18,6 +18,7 @@ import {getLocalPlayer} from './players.js';
 import sceneNames from './scenes/scenes.json';
 import {parseQuery} from './util.js';
 import {world} from './world.js';
+import axios from 'axios';
 
 const physicsScene = physicsManager.getScene();
 
@@ -51,15 +52,16 @@ class Universe extends EventTarget {
       // world.clear();
 
       const promises = [];
-      const {src, room} = worldSpec;
+      let {src, room} = worldSpec;
       if (!room) {
         const state = new Z.Doc();
         this.connectState(state);
-        
         let match;
+
         if (src === undefined) {
+          src = './scenes/' + sceneNames[0]
           promises.push(metaversefile.createAppAsync({
-            start_url: './scenes/' + sceneNames[0],
+            start_url: src,
           }));
         } else if (src === '') {
           // nothing
@@ -74,6 +76,10 @@ class Universe extends EventTarget {
           });
           promises.push(p);
         }
+
+        const sceneURL = location.origin + src.substring(1);
+        const sceneInfo = await axios.get(sceneURL);
+        window.sceneSettings = sceneInfo.data.settings || {};
       } else {
         const p = (async () => {
           const roomUrl = this.getWorldsHost() + room;

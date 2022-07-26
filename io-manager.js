@@ -346,11 +346,13 @@ ioManager.keydown = e => {
       }
 
       const now = performance.now();
-      // const timeDiff = now - lastKeysDownTime.keyW;
-      // if (timeDiff < doubleTapTime && ioManager.keys.shift) {
-      //   ioManager.keys.doubleTap = true;
-      //   game.menuDoubleTap();
-      // }
+      if (!window.sceneSettings.noNarutoRun) {
+        const timeDiff = now - lastKeysDownTime.keyW;
+        if (timeDiff < doubleTapTime && ioManager.keys.shift) {
+          ioManager.keys.doubleTap = true;
+          game.menuDoubleTap();
+        }
+      }
       lastKeysDownTime.keyW = now;
       lastKeysDownTime.keyS = 0;
       break;
@@ -362,11 +364,13 @@ ioManager.keydown = e => {
       }
 
       const now = performance.now();
-      // const timeDiff = now - lastKeysDownTime.keyA;
-      // if (timeDiff < doubleTapTime && ioManager.keys.shift) {
-      //   ioManager.keys.doubleTap = true;
-      //   game.menuDoubleTap();
-      // }
+      if (!window.sceneSettings.noNarutoRun) {
+        const timeDiff = now - lastKeysDownTime.keyA;
+        if (timeDiff < doubleTapTime && ioManager.keys.shift) {
+          ioManager.keys.doubleTap = true;
+          game.menuDoubleTap();
+        }
+      }
       lastKeysDownTime.keyA = now;
       lastKeysDownTime.keyD = 0;
       break;
@@ -390,11 +394,13 @@ ioManager.keydown = e => {
         }
 
         const now = performance.now();
-        // const timeDiff = now - lastKeysDownTime.keyS;
-        // if (timeDiff < doubleTapTime && ioManager.keys.shift) {
-        //   ioManager.keys.doubleTap = true;
-        //   game.menuDoubleTap();
-        // }
+        if (!window.sceneSettings.noNarutoRun) {
+          const timeDiff = now - lastKeysDownTime.keyS;
+          if (timeDiff < doubleTapTime && ioManager.keys.shift) {
+            ioManager.keys.doubleTap = true;
+            game.menuDoubleTap();
+          }
+        }
         lastKeysDownTime.keyS = now;
         lastKeysDownTime.keyW = 0;
       }
@@ -407,11 +413,13 @@ ioManager.keydown = e => {
       }
 
       const now = performance.now();
-      // const timeDiff = now - lastKeysDownTime.keyD;
-      // if (timeDiff < doubleTapTime && ioManager.keys.shift) {
-      //   ioManager.keys.doubleTap = true;
-      //   game.menuDoubleTap();
-      // }
+      if (!window.sceneSettings.noNarutoRun) {
+        const timeDiff = now - lastKeysDownTime.keyD;
+        if (timeDiff < doubleTapTime && ioManager.keys.shift) {
+          ioManager.keys.doubleTap = true;
+          game.menuDoubleTap();
+        }
+      }
       lastKeysDownTime.keyD = now;
       lastKeysDownTime.keyA = 0;
       break;

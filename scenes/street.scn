@@ -219,5 +219,9 @@
       "quaternion": [0, 0.7071067811865475, 0, 0.7071067811865476],
       "start_url": "https://webaverse.github.io/helm/"
     }
-  ]
+  ],
+  "settings": {
+    "noFly": true,
+    "noNarutoRun": true
+  }
 }
