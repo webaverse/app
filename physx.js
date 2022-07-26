@@ -1520,8 +1520,8 @@ const physxWorker = (() => {
     const dataLength = scratchStack.u32[1]
     const streamPtr = scratchStack.u32[2]
 
-    const buffer = Module.HEAPU8.slice(dataPtr, dataPtr + dataLength);
-    console.log('add', {buffer});
+    // const buffer = Module.HEAPU8.slice(dataPtr, dataPtr + dataLength);
+    // console.log('add', {buffer});
 
     console.log('add', 1, dataPtr);
     console.log('add', 2, dataLength);
@@ -1588,16 +1588,21 @@ const physxWorker = (() => {
     const dataPtr = scratchStack.u32[0]
     const dataLength = scratchStack.u32[1]
     const streamPtr = scratchStack.u32[2] // XXX delete if it will not be deleted
-    window.dataPtr = dataPtr;
-    window.dataLength = dataLength;
-    window.streamPtr = streamPtr;
+    // window.dataPtr = dataPtr;
+    // window.dataLength = dataLength;
+    // window.streamPtr = streamPtr;
     console.log({dataPtr})
     console.log({dataLength})
     console.log({streamPtr})
 
     const result = Module.HEAPU8.slice(dataPtr, dataPtr + dataLength);
     allocator.freeAll()
-    return result
+    // return result
+    return {
+      dataPtr,
+      dataLength,
+      streamPtr,
+    }
   }
   w.addCookedConvexGeometryPhysics = (
     physics,
@@ -1687,16 +1692,16 @@ const physxWorker = (() => {
     // const buffer2 = allocator.alloc(Uint8Array, buffer.length)
     // buffer2.set(buffer)
 
-    buffer = Module.HEAPU8.slice(window.dataPtr, window.dataPtr + window.dataLength);
+    // buffer = Module.HEAPU8.slice(window.dataPtr, window.dataPtr + window.dataLength);
 
-    console.log(1, buffer.byteOffset);
-    console.log(2, buffer.byteLength);
-    console.log(3, window.streamPtr);
+    // console.log(1, buffer.byteOffset);
+    // console.log(2, buffer.byteLength);
+    // console.log(3, window.streamPtr);
     const shapeAddress = Module._createConvexShapePhysics(
       physics,
-      window.dataPtr,
-      window.dataLength,
-      window.streamPtr,
+      buffer.dataPtr,
+      buffer.dataLength,
+      buffer.streamPtr,
     );
     // allocator.freeAll();
     return shapeAddress;
