@@ -379,7 +379,7 @@ class PhysicsScene extends EventTarget {
     physicsMesh.updateMatrixWorld()
     return physicsObject
   }
-  addConvexShape(shapeAddress, position, quaternion, scale, dynamic, external) {
+  addConvexShape(shapeAddress, position, quaternion, scale, dynamic, external, physicsGeometry = null) {
     const physicsId = getNextPhysicsId()
   
     physx.physxWorker.addConvexShapePhysics(
@@ -399,8 +399,11 @@ class PhysicsScene extends EventTarget {
       quaternion,
       scale
     )
-    const geometry = this.extractPhysicsGeometryForId(physicsId);
-    const physicsMesh = new THREE.Mesh(geometry, redMaterial);
+
+    if (!physicsGeometry)
+      physicsGeometry = this.extractPhysicsGeometryForId(physicsId);
+
+    const physicsMesh = new THREE.Mesh(physicsGeometry, redMaterial);
   
     physicsMesh.visible = false
     physicsObject.add(physicsMesh)
