@@ -992,6 +992,10 @@ const _gameUpdate = (timestamp, timeDiff) => {
       }
     }
   };
+  // const papp = localPlayer.getAvatarApp();
+  // if(papp) {
+  //   console.log(papp.hit);
+  // }
   _updateBehavior(localPlayer);
   for(const npc of npcManager.npcs) {
     _updateBehavior(npc);

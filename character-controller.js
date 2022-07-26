@@ -528,26 +528,26 @@ class StatePlayer extends PlayerBase {
 
     const self = this;
     this.appManager.addEventListener('appadd', e => {
-      console.log(e.data);
-      // if(e.data.avatar) {
-        // console.log(e.data.avatar);
-        e.data.addEventListener('hit', e => {
-          if (!self.hasAction('hurt')) {
-            const newAction = {
-              type: 'hurt',
-              animation: 'pain_back',
-            };
-            // console.log('add hurtAction', 'localPlayer')
-            self.addAction(newAction);
-            // console.log('remove use', 'localPlayer')
-            self.removeAction('use'); // todo: setControlAction() ?
-console.log(self);
-            setTimeout(() => {
-              // self.removeAction('hurt');
-            // }, hurtAnimationDuration * 1000);
-            }, 0);
-          }
-        })
+      const app = e.data;
+      console.log(app);
+      app.addEventListener('hit', e => {
+        console.log(e);
+        if (!self.hasAction('hurt')) {
+          const newAction = {
+            type: 'hurt',
+            animation: 'pain_back',
+          };
+          // console.log('add hurtAction', 'localPlayer')
+          self.addAction(newAction);
+          // console.log('remove use', 'localPlayer')
+          self.removeAction('use'); // todo: setControlAction() ?
+
+          setTimeout(() => {
+            // self.removeAction('hurt');
+          // }, hurtAnimationDuration * 1000);
+          }, 0);
+        }
+      })
       // }
     })
   }

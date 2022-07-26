@@ -145,7 +145,7 @@ class NpcManager extends EventTarget {
           });
         };
         app.addEventListener('hittrackeradded', hittrackeradd); */
-
+console.log(app);
         app.addEventListener('hit', e => {
           if (!npcPlayer.hasAction('hurt')) {
             const newAction = {
@@ -197,7 +197,7 @@ class NpcManager extends EventTarget {
                 if (distance <= 1.5 && !npcPlayer.hasAction('use') && !npcPlayer.hasAction('hurt')) {
                   window.rootScene.traverse(child => { // test
                     if (child.contentId?.includes('\\sword\\')) {
-                      // console.log(child)
+                      console.log(child)
                       window.swordApp = child
                     }
                   });

@@ -45,6 +45,7 @@ export class CharacterHitter {
           position,
           quaternion,
         } = args;
+
         const collision = physx.physxWorker.getCollisionObjectPhysics(
           physx.physics,
           hitRadius,
@@ -52,12 +53,25 @@ export class CharacterHitter {
           position,
           quaternion,
         );
+
+        const playerCollision = physx.physxWorker.collideCapsulePhysics(
+          physx.physics,
+          hitRadius,
+          hitHalfHeight,
+          position,
+          quaternion,
+        );
+
+        if(playerCollision) {
+          console.log(metaversefile.getPairByPhysicsId(playerCollision.objectId));
+        }
+
         if (collision) {
           const collisionId = collision.objectId;
           const result = metaversefile.getPairByPhysicsId(collisionId);
           if (result) {
-            console.log(result);
             const [app, physicsObject] = result;
+            console.log(app.name);
             const timeDiff = timestamp - this.lastHitTime;
             if (timeDiff > 1000) {
               const useAction = this.player.getAction('use');
@@ -142,7 +156,7 @@ export class CharacterHitter {
     }
   }
   getHit(damage) {
-    debugger
+    // debugger
     const newAction = {
       type: 'hurt',
       animation: Math.random() < 0.5 ? 'pain_arch' : 'pain_back',
