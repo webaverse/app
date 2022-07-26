@@ -1562,6 +1562,7 @@ const physxWorker = (() => {
     )
   }
   w.cookConvexGeometryPhysics = (physics, mesh) => {
+    // vismark
     mesh.updateMatrixWorld()
     const { geometry } = mesh
 
@@ -1650,6 +1651,7 @@ const physxWorker = (() => {
   }
 
   w.addConvexShapePhysics = (physics, shape, position, quaternion, scale, dynamic, external, id) => {
+    // vismark
     const positionBuffer = scratchStack.f32.subarray(3, 6)
     position.toArray(positionBuffer)
     const quaternionBuffer = scratchStack.f32.subarray(6, 10)
@@ -1688,6 +1690,7 @@ const physxWorker = (() => {
     return shapeAddress;
   };
   w.createConvexShapePhysics = (physics, buffer) => {
+    // vismark
     // const allocator = new Allocator(Module)
     // const buffer2 = allocator.alloc(Uint8Array, buffer.length)
     // buffer2.set(buffer)

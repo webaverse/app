@@ -297,6 +297,7 @@ class PhysicsScene extends EventTarget {
     )
     physicsMesh.geometry = this.extractPhysicsGeometryForId(physicsId)
   
+    debugger
     const physicsObject = _makePhysicsObject(
       physicsId,
       mesh.position,
@@ -312,7 +313,9 @@ class PhysicsScene extends EventTarget {
     return physicsObject
   }
   cookConvexGeometry(mesh) {
+    // vismark
     const physicsMesh = convertMeshToPhysicsMesh(mesh);
+    window.physicsMesh = physicsMesh;
     const buffer = physx.physxWorker.cookConvexGeometryPhysics(this.scene, physicsMesh);
     return buffer;
   }
@@ -380,6 +383,7 @@ class PhysicsScene extends EventTarget {
     return physicsObject
   }
   addConvexShape(shapeAddress, position, quaternion, scale, dynamic, external, physicsGeometry = null) {
+    // vismark
     const physicsId = getNextPhysicsId()
   
     physx.physxWorker.addConvexShapePhysics(
@@ -392,23 +396,26 @@ class PhysicsScene extends EventTarget {
       external,
       physicsId
     );
+
+    // if (!physicsGeometry)
+    //   physicsGeometry = this.extractPhysicsGeometryForId(physicsId);
+
+    // const physicsMesh = new THREE.Mesh(physicsGeometry, redMaterial);
+    const physicsMesh = window.physicsMesh;
+    physicsMesh.geometry = this.extractPhysicsGeometryForId(physicsId)
   
     const physicsObject = _makePhysicsObject(
       physicsId,
-      position,
-      quaternion,
-      scale
+      new THREE.Vector3(),
+      new THREE.Quaternion(),
+      new THREE.Vector3(),
     )
 
-    if (!physicsGeometry)
-      physicsGeometry = this.extractPhysicsGeometryForId(physicsId);
-
-    const physicsMesh = new THREE.Mesh(physicsGeometry, redMaterial);
-  
-    physicsMesh.visible = false
+    // physicsMesh.visible = false
     physicsObject.add(physicsMesh)
-    physicsObject.physicsMesh = physicsMesh;
     physicsMesh.updateMatrixWorld();
+    physicsObject.updateMatrixWorld();
+    physicsObject.physicsMesh = physicsMesh;
     return physicsObject
   }
   getGeometryForPhysicsId(physicsId) {
@@ -774,6 +781,7 @@ class PhysicsScene extends EventTarget {
     return physx.physxWorker.createShapePhysics(this.scene, buffer);
   }
   createConvexShape(buffer) {
+    // vismark
     return physx.physxWorker.createConvexShapePhysics(this.scene, buffer);
   }
   getPhysicsEnabled() {
