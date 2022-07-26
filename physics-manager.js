@@ -800,16 +800,16 @@ class PhysicsScene extends EventTarget {
       const otherApp = metaversefileApi.getAppByPhysicsId(otherPhysicsId);
       if (triggerApp) {
         if (status === 4) {
-          triggerApp.dispatchEvent({type: 'triggerin', oppositePhysicsId: otherPhysicsId});
+          triggerApp.dispatchEvent({type: 'triggerin', myPhysicsId: triggerPhysicsId, oppositePhysicsId: otherPhysicsId});
         } else if (status === 16) {
-          triggerApp.dispatchEvent({type: 'triggerout', oppositePhysicsId: otherPhysicsId});
+          triggerApp.dispatchEvent({type: 'triggerout', myPhysicsId: triggerPhysicsId, oppositePhysicsId: otherPhysicsId});
         }
       }
       if (otherApp) {
         if (status === 4) {
-          otherApp.dispatchEvent({type: 'triggerin', oppositePhysicsId: triggerPhysicsId});
+          otherApp.dispatchEvent({type: 'triggerin', myPhysicsId: triggerPhysicsId, oppositePhysicsId: triggerPhysicsId});
         } else if (status === 16) {
-          otherApp.dispatchEvent({type: 'triggerout', oppositePhysicsId: triggerPhysicsId});
+          otherApp.dispatchEvent({type: 'triggerout', myPhysicsId: triggerPhysicsId, oppositePhysicsId: triggerPhysicsId});
         }
       }
     })
