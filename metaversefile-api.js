@@ -721,6 +721,12 @@ metaversefile.setApi({
         app.physicsObjects.push(physicsObject);
         return physicsObject;
       })(physicsScene.addConvexGeometry);
+      physicsScene.addConvexShape = (addConvexShape => function(mesh) {
+        const physicsObject = addConvexShape.apply(this, arguments);
+        // app.add(physicsObject);
+        app.physicsObjects.push(physicsObject);
+        return physicsObject;
+      })(physicsScene.addConvexShape);
       physicsScene.addCookedConvexGeometry = (addCookedConvexGeometry => function(buffer, position, quaternion, scale) {
         const physicsObject = addCookedConvexGeometry.apply(this, arguments);
         // app.add(physicsObject);
