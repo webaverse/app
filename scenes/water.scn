@@ -28,7 +28,7 @@
       "content": {
         "fog": {
           "fogType": "exp",
-          "args": [[0, 0, 0], 0]
+          "args": [[7, 44.5, 41.5], 0]
         },
         "webaWater": {
           
@@ -46,18 +46,11 @@
     {
       "position": [
         0,
-        -50,
-        0
-      ],
-      "start_url": "/practice/water-main/"
-    },
-    {
-      "position": [
         0,
-        -50,
         0
       ],
-      "start_url": "/practice/dual-contouring-terrain-main/"
-    }
+      "start_url": "https://webaverse.github.io/water/"
+    },
+    { "position": [ 0, 0, 0 ], "start_url": "https://webaverse.github.io/dual-contouring-terrain/" }
   ]
 }
