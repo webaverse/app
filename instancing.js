@@ -626,7 +626,7 @@ export class DrawCallBinding {
     // bottom
     if (itemCount > 0) {
       const x = minX;
-      const y = minY + 1;
+      const y = minY;
       const w = itemCount;
       const h = 1;
       const position = localVector2D.set(x, y);
@@ -652,8 +652,6 @@ export class DrawCallBinding {
 
       srcTexture.image.data = null;
     }
-
-    // texture.needsUpdate = true;
   }
 }
 
