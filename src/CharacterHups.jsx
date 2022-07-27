@@ -32,7 +32,7 @@ const CharacterHup = function(props) {
     if (canvasRef.current) {
       const canvas = canvasRef.current;
       const player = hup.parent.player;
-      let { diorama, avatar } = chatDioramas.get(player) ?? { diorama: null, avatar: null };
+      let {diorama, avatar} = chatDioramas.get(player) ?? {diorama: null, avatar: null};
 
       if (diorama && player.avatar.model === avatar) {
         diorama.resetCanvases();
