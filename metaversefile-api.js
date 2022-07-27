@@ -41,6 +41,7 @@ import * as procgen from './procgen/procgen.js';
 import {getHeight} from './avatars/util.mjs';
 import performanceTracker from './performance-tracker.js';
 import renderSettingsManager from './rendersettings-manager.js';
+import sceneSettingsManager from './scenesettings-manager.js';
 import questManager from './quest-manager.js';
 import {murmurhash3} from './procgen/murmurhash3.js';
 import debug from './debug.js';
@@ -173,6 +174,11 @@ class App extends THREE.Object3D {
       return renderSettingsManager.findRenderSettings(this);
     } else {
       return null;
+    }
+  }
+  getSceneSettings() {
+    if (this.hasSubApps) {
+      return sceneSettingsManager.findSceneSettings(this);
     }
   }
   activate({
@@ -386,6 +392,9 @@ metaversefile.setApi({
   },
   useRenderSettings() {
     return renderSettingsManager;
+  },
+  useSceneSettings() {
+    return sceneSettingsManager;
   },
   useScene() {
     return scene;

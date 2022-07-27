@@ -1394,7 +1394,8 @@ class GameManager extends EventTarget {
         localPlayer.setControlAction({type: 'fallLoop'});
       }
     } else {
-      if (!window.sceneSettings.noFly) {
+      const sceneSettings = metaversefileApi.useSceneSettings().getSceneSettings();
+      if (!sceneSettings.noFly) {
         const flyAction = {
           type: 'fly',
           time: 0,

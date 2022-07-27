@@ -24,6 +24,7 @@ import transformControls from './transform-controls.js';
 import storyManager from './story.js';
 // import domRenderer from './dom-renderer.jsx';
 import raycastManager from './raycast-manager.js';
+import metaversefileApi from './metaversefile-api.js';
 
 // const localVector = new THREE.Vector3();
 // const localVector2 = new THREE.Vector3();
@@ -323,6 +324,8 @@ ioManager.keydown = e => {
     console.log(window.lol2);
   } */
 
+  const sceneSettings = metaversefileApi.useSceneSettings().getSceneSettings();
+
   switch (e.which) {
     case 9: { // tab
       break;
@@ -346,7 +349,7 @@ ioManager.keydown = e => {
       }
 
       const now = performance.now();
-      if (!window.sceneSettings.noNarutoRun) {
+      if (!sceneSettings.noNarutoRun) {
         const timeDiff = now - lastKeysDownTime.keyW;
         if (timeDiff < doubleTapTime && ioManager.keys.shift) {
           ioManager.keys.doubleTap = true;
@@ -364,7 +367,7 @@ ioManager.keydown = e => {
       }
 
       const now = performance.now();
-      if (!window.sceneSettings.noNarutoRun) {
+      if (!sceneSettings.noNarutoRun) {
         const timeDiff = now - lastKeysDownTime.keyA;
         if (timeDiff < doubleTapTime && ioManager.keys.shift) {
           ioManager.keys.doubleTap = true;
@@ -394,7 +397,7 @@ ioManager.keydown = e => {
         }
 
         const now = performance.now();
-        if (!window.sceneSettings.noNarutoRun) {
+        if (!sceneSettings.noNarutoRun) {
           const timeDiff = now - lastKeysDownTime.keyS;
           if (timeDiff < doubleTapTime && ioManager.keys.shift) {
             ioManager.keys.doubleTap = true;
@@ -413,7 +416,7 @@ ioManager.keydown = e => {
       }
 
       const now = performance.now();
-      if (!window.sceneSettings.noNarutoRun) {
+      if (!sceneSettings.noNarutoRun) {
         const timeDiff = now - lastKeysDownTime.keyD;
         if (timeDiff < doubleTapTime && ioManager.keys.shift) {
           ioManager.keys.doubleTap = true;

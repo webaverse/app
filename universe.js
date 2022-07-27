@@ -18,7 +18,7 @@ import {getLocalPlayer} from './players.js';
 import sceneNames from './scenes/scenes.json';
 import {parseQuery} from './util.js';
 import {world} from './world.js';
-import axios from 'axios';
+import metaversefileApi from './metaversefile-api.js';
 
 const physicsScene = physicsManager.getScene();
 
@@ -76,10 +76,7 @@ class Universe extends EventTarget {
           });
           promises.push(p);
         }
-
-        const sceneURL = location.origin + src.substring(1);
-        const sceneInfo = await axios.get(sceneURL);
-        window.sceneSettings = sceneInfo.data.settings || {};
+        metaversefileApi.useSceneSettings().makeSceneSettings({});
       } else {
         const p = (async () => {
           const roomUrl = this.getWorldsHost() + room;
