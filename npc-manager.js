@@ -298,7 +298,7 @@ class NpcManager extends EventTarget {
 
       // voice endpoint setup
       const _setVoiceEndpoint = () => {
-        const voice = voices.voiceEndpoints.find(v => v.name.replace(' ', '') === npcVoiceName.replace(' ', ''));
+        const voice = voices.voiceEndpoints.find(v => v.name.toLowerCase().replaceAll(' ', '') === npcVoiceName.toLowerCase().replaceAll(' ', ''));
         if (voice) {
           newNpcPlayer.setVoiceEndpoint(voice.drive_id);
         } else {
