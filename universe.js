@@ -135,6 +135,7 @@ class Universe extends EventTarget {
   // called by enterWorld() in universe.js
   // This is called in single player mode instead of connectRoom
   connectState(state) {
+    this.state = state;
     state.setResolvePriority(1);
     playersManager.clearRemotePlayers();
     playersManager.bindState(state.getArray(playersMapName));
@@ -153,6 +154,7 @@ class Universe extends EventTarget {
   // This is called when a user joins a multiplayer room
   // either from single player or directly from a link
   async connectRoom(u, state = new Z.Doc()) {
+    this.state = state;
     // Players cannot be initialized until the physx worker is loaded
     // Otherwise you will receive allocation errors because the module instance is undefined
     await physx.waitForLoad();
