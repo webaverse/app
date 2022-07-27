@@ -1,4 +1,3 @@
-/* eslint-disable */
 import * as THREE from 'three';
 import {getRenderer} from './renderer.js';
 import * as BufferGeometryUtils from 'three/examples/jsm/utils/BufferGeometryUtils.js';
@@ -499,7 +498,7 @@ const createPlayerDiorama = ({
   dotsBackground = false,
   autoCamera = true,
   detached = false,
-  avatarScreenshoting = false,
+  isScreenshot = false,
 } = {}) => {
   // _ensureSideSceneCompiled();
 
@@ -686,7 +685,7 @@ const createPlayerDiorama = ({
           let scaleViewOffset = 1;
 
           //For rendering Character Selection and Current Player view
-          if (!avatarScreenshoting) {
+          if (!isScreenshot) {
             let box = new THREE.Box3().setFromObject(target.avatar.model)
             let size = box.getSize(new THREE.Vector3()).length();
             const scalar = 0.75;

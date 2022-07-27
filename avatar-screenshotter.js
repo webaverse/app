@@ -24,6 +24,7 @@ export const screenshotAvatarUrl = async ({
   cameraOffset,
   emotion,
 }) => {
+  console.error('screenshot avatar')
   const player = await npcManager.createNpcAsync({
     name: 'sceenshot-npc',
     avatarUrl: start_url,
@@ -106,6 +107,7 @@ export const screenshotPlayer = async ({
   }
 
   const localLights = _makeLights();
+  
   const objects = localLights.concat([
     player.avatar.model,
   ]);
@@ -121,7 +123,7 @@ export const screenshotPlayer = async ({
     // grassBackground: true,
     // glyphBackground: true,
     detached: true,
-    avatarScreenshoting: true,
+    isScreenshot: true,
   });
   diorama.addCanvas(writeCanvas);
   diorama.setClearColor(0xFFFFFF, 1);

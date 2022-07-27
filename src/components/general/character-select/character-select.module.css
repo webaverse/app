@@ -21,7 +21,8 @@
 .characterSelect .menu .heading {
   padding: 15px 20px;
 }
-.characterSelect .menu .subheading {
+.characterSelect .menu .subheading
+{
   padding: 10px 20px;
 }
 .characterSelect h1,
@@ -29,7 +30,7 @@
 .characterSelect h3,
 .characterSelect h4 {
   margin: 0;
-  font-family: "WinchesterCaps";
+  font-family: 'WinchesterCaps';
   letter-spacing: 1px;
   white-space: nowrap;
 }
@@ -49,7 +50,7 @@
   }
   50% {
     background-image: none;
-    background-color: #FFFfff;
+    background-color: #FFFFFF;
   }
   100% {
     background-image: none;
@@ -76,7 +77,8 @@
   border: 3px solid #282828;
   cursor: pointer;
 }
-.characterSelect .list .item.highlight {
+.characterSelect .list .item.highlight
+{
   border-color: #FFF;
 }
 .characterSelect .list .item.animate {
@@ -86,7 +88,8 @@
   animation-iteration-count: 5;
 }
 .characterSelect .list .item.animate,
-.characterSelect .list .item.disabled {
+.characterSelect .list .item.disabled
+{
   cursor: default;
 }
 .characterSelect .list .item .img {
@@ -108,7 +111,7 @@
 }
 
 .characterSelect .list .item .name {
-  font-family: "PlazaRegular";
+  font-family: 'PlazaRegular';
   font-size: 20px;
   letter-spacing: 0.5px;
 }
@@ -126,9 +129,6 @@
   align-items: center;
   gap: 5px;
 }
-
-
-
 
 .button {
   background: #000;
@@ -166,7 +166,7 @@
 
 .select {
   display: grid;
-  grid-template-areas: "select";
+  grid-template-areas: 'select';
   align-items: center;
   position: relative;
   min-width: 5ch;
@@ -181,7 +181,7 @@
 }
 
 .select::after {
-  content: "";
+  content: '';
   justify-self: end;
   width: 0.8em;
   height: 0.5em;
