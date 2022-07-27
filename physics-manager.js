@@ -328,7 +328,9 @@ class PhysicsScene extends EventTarget {
     buffer,
     position,
     quaternion,
-    scale
+    scale,
+    dynamic = false,
+    external = false,
   ) {
     const physicsId = getNextPhysicsId()
     physx.physxWorker.addCookedConvexGeometryPhysics(
@@ -337,8 +339,8 @@ class PhysicsScene extends EventTarget {
       position,
       quaternion,
       scale,
-      false,
-      false,
+      dynamic,
+      external,
       physicsId
     )
   
@@ -381,7 +383,7 @@ class PhysicsScene extends EventTarget {
     physicsMesh.updateMatrixWorld()
     return physicsObject
   }
-  addConvexShape(shapeAddress, position, quaternion, scale, dynamic, external, physicsGeometry = null) {
+  addConvexShape(shapeAddress, position, quaternion, scale, dynamic = false, external = false, physicsGeometry = null) {
     const physicsId = getNextPhysicsId()
   
     physx.physxWorker.addConvexShapePhysics(

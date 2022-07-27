@@ -1608,7 +1608,7 @@ const physxWorker = (() => {
     const scaleBuffer = scratchStack.f32.subarray(7, 10)
     scale.toArray(scaleBuffer)
 
-    const shape = Module._createShapePhysics(
+    const shape = Module._createConvexShapePhysics(
       physics,
       buffer2.byteOffset,
       buffer2.byteLength,
