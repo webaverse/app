@@ -1391,11 +1391,11 @@ export const _applyAnimation = (avatar, now) => {
     } = spec;
 
     if (avatar.activateTime > 0) {
-      const localPlayer = metaversefile.useLocalPlayer();
+      const player = metaversefile.getPlayerByAppInstanceId(avatar.app.instanceId);
 
       let defaultAnimation = 'grab_forward';
 
-      const activateAction = localPlayer.getAction('activate');
+      const activateAction = player.getAction('activate');
       if (activateAction.animationName) {
         defaultAnimation = activateAction.animationName;
       }
