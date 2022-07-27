@@ -24,7 +24,6 @@ export const screenshotAvatarUrl = async ({
   cameraOffset,
   emotion,
 }) => {
-  console.error('screenshot avatar')
   const player = await npcManager.createNpcAsync({
     name: 'sceenshot-npc',
     avatarUrl: start_url,
@@ -107,7 +106,6 @@ export const screenshotPlayer = async ({
   }
 
   const localLights = _makeLights();
-  
   const objects = localLights.concat([
     player.avatar.model,
   ]);

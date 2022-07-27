@@ -349,7 +349,7 @@ const glyphMesh = new GlyphBgFxMesh();
 const dotsMesh = new DotsBgFxMesh();
 const textObject = (() => {
   const o = new THREE.Object3D();
-
+  
   const _decorateGeometry = (g, offset, z, scale) => {
     const offsets = new Float32Array(g.attributes.position.array.length);
     const scales = new Float32Array(g.attributes.position.count);
