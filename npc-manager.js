@@ -229,7 +229,6 @@ class NpcManager extends EventTarget {
           bio: npcBio,
         });
         character.addEventListener('say', e => {
-          console.log('got character say', e.data);
           const {message, emote, action, object, target} = e.data;
           const chatId = makeId(5);
 
@@ -299,15 +298,14 @@ class NpcManager extends EventTarget {
 
       // voice endpoint setup
       const _setVoiceEndpoint = () => {
-        const voice = voices.voiceEndpoints.find(v => v.name === npcVoiceName);
+        const voice = voices.voiceEndpoints.find(v => v.name.replace(' ', '') === npcVoiceName.replace(' ', ''));
         if (voice) {
           newNpcPlayer.setVoiceEndpoint(voice.drive_id);
         } else {
-          console.warn('unknown voice name', npcVoiceName, voices.voiceEndpoints);
+          console.error('*** unknown voice name', npcVoiceName, voices.voiceEndpoints);
         }
       };
       _setVoiceEndpoint();
-
       // wearables
       const _updateWearables = async () => {
         const wearablePromises = npcWear.map(wear => (async () => {
