@@ -39,28 +39,37 @@ class ProcGenInstance {
     const {chunkSize, range} = this;
     opts2.chunkSize = chunkSize;
     opts2.range = range;
+    opts2.dcWorkerManager = this.dcWorkerManager;
 
     const tracker = new LodChunkTracker(opts2);
     return tracker;
   }
-  getLightMapper() {
+  getLightMapper({
+    size,
+    debug = false,
+  }) {
     if (!this.lightmapper) {
-      const {chunkSize, range} = this;
+      // const {chunkSize, range} = this;
       this.lightmapper = new LightMapper({
-        chunkSize,
-        terrainSize,
-        range,
+        // chunkSize,
+        // terrainSize,
+        // range,
+        procGenInstance: this,
+        size,
+        debug,
       });
     }
     return this.lightmapper;
   }
-  getHeightfieldMapper() {
+  getHeightfieldMapper({
+    size,
+    debug = false,
+  } = {}) {
     if (!this.heightfieldMapper) {
-      const {chunkSize, range} = this;
       this.heightfieldMapper = new HeightfieldMapper({
-        chunkSize,
-        terrainSize,
-        range,
+        procGenInstance: this,
+        size,
+        debug,
       });
     }
     return this.heightfieldMapper;

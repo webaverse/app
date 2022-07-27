@@ -661,6 +661,7 @@ const _gameUpdate = (timestamp, timeDiff) => {
         mouseHighlightPhysicsMesh.updateMatrixWorld();
 
         mouseHighlightPhysicsMesh.visible = true;
+        gameManager.setMouseHoverObject(collision.app, collision.physicsId, collision.point);
       }
     }
   };
@@ -969,31 +970,29 @@ const _gameUpdate = (timestamp, timeDiff) => {
   };
   _updateBehavior();
   
-  const _updateMouseLook = () => {
+  const _updateLook = () => {
     if (localPlayer.avatar) {
       if (mouseSelectedObject && mouseSelectedPosition) {
         // console.log('got', mouseSelectedObject.position.toArray().join(','));
-        localPlayer.avatar.eyeTarget.copy(mouseSelectedPosition);
-        localPlayer.avatar.eyeTargetInverted = true;
-        localPlayer.avatar.eyeTargetEnabled = true;
-      } else if (!cameraManager.pointerLockElement && !cameraManager.target && lastMouseEvent) {
+        localPlayer.headTarget.copy(mouseSelectedPosition);
+        localPlayer.headTargetInverted = true;
+        localPlayer.headTargetEnabled = true;
+      } else if (!cameraManager.pointerLockElement && !cameraManager.target && raycastManager.lastMouseEvent) {
         const renderer = getRenderer();
         const size = renderer.getSize(localVector);
         
-        localPlayer.avatar.eyeTarget.set(-(lastMouseEvent.clientX/size.x-0.5), (lastMouseEvent.clientY/size.y-0.5), 1)
+        localPlayer.headTarget.set(-(raycastManager.lastMouseEvent.clientX/size.x-0.5), (raycastManager.lastMouseEvent.clientY/size.y-0.5), 1)
           .unproject(camera);
-        localPlayer.avatar.eyeTargetInverted = false;
-        localPlayer.avatar.eyeTargetEnabled = true;
+        localPlayer.headTargetInverted = false;
+        localPlayer.headTargetEnabled = true;
       } else if (zTargeting?.focusTargetReticle?.position) {
-        localPlayer.avatar.eyeTarget.copy(zTargeting.focusTargetReticle.position);
-        localPlayer.avatar.eyeTargetInverted = true;
-        localPlayer.avatar.eyeTargetEnabled = true;
+        localPlayer.setTarget(zTargeting.focusTargetReticle.position);
       } else {
-        localPlayer.avatar.eyeTargetEnabled = false;
+        localPlayer.setTarget(null);
       }
     }
   };
-  _updateMouseLook();
+  _updateLook();
 
   const crosshairEl = document.getElementById('crosshair');
   if (crosshairEl) {
@@ -1082,7 +1081,6 @@ _setFirstPersonAction(lastFirstPerson);
   _setFirstPersonAction(firstPerson);
 }); */
 
-let lastMouseEvent = null;
 class GameManager extends EventTarget {
   constructor() {
     super();
@@ -1409,6 +1407,9 @@ class GameManager extends EventTarget {
     const flyAction = localPlayer.getAction('fly');
     if (flyAction) {
       localPlayer.removeAction('fly');
+      if (!localPlayer.characterPhysics.lastGrounded) {
+        localPlayer.setControlAction({type: 'fallLoop'});
+      }
     } else {
       const flyAction = {
         type: 'fly',
@@ -1420,6 +1421,14 @@ class GameManager extends EventTarget {
   isCrouched() {
     const localPlayer = getLocalPlayer();
     return localPlayer.hasAction('crouch');
+  }
+  isSwimming() {
+    const localPlayer = getLocalPlayer();
+    return localPlayer.hasAction('swim');
+  }
+  isFlying() {
+    const localPlayer = getLocalPlayer();
+    return localPlayer.hasAction('fly');
   }
   toggleCrouch() {
     const localPlayer = getLocalPlayer();
@@ -1477,6 +1486,10 @@ class GameManager extends EventTarget {
     const localPlayer = getLocalPlayer();
     return localPlayer.hasAction('jump');
   }
+  isDoubleJumping() {
+    const localPlayer = getLocalPlayer();
+    return localPlayer.hasAction('doubleJump');
+  }
   ensureJump(trigger) {
     const localPlayer = getLocalPlayer();
 
@@ -1490,14 +1503,14 @@ class GameManager extends EventTarget {
       }
     }
 
-    const jumpAction = localPlayer.getAction('jump');
-    if (!jumpAction) {
+    if (!localPlayer.hasAction('jump') && !localPlayer.hasAction('fly') && !localPlayer.hasAction('fallLoop') && !localPlayer.hasAction('swim')) {
       const newJumpAction = {
         type: 'jump',
-        trigger:trigger
+        trigger:trigger,
+        startPositionY: localPlayer.characterController.position.y,
         // time: 0,
       };
-      localPlayer.addAction(newJumpAction);
+      localPlayer.setControlAction(newJumpAction);
     }
   }
   jump(trigger) {
@@ -1505,17 +1518,29 @@ class GameManager extends EventTarget {
     this.ensureJump(trigger);
 
     // update velocity
-    const localPlayer = getLocalPlayer();
-    localPlayer.characterPhysics.velocity.y += 6;
+    // const localPlayer = getLocalPlayer();
+    // localPlayer.characterPhysics.velocity.y += 6; // currently using aesthetic jump movement
     
     // play sound
     // soundManager.play('jump');
 
   }
+  doubleJump() {
+    const localPlayer = getLocalPlayer();
+    localPlayer.addAction({
+      type: 'doubleJump',
+      startPositionY: localPlayer.characterController.position.y,
+    });
+  }
   isMovingBackward() {
     const localPlayer = getLocalPlayer();
     // return ioManager.keysDirection.z > 0 && this.isAiming();
     return localPlayer.avatar.direction.z > 0.1; // If check > 0 will cause glitch when move left/right;
+    /*
+      return localPlayer.avatar.direction.z > 0.1;
+      // If check > 0 will cause glitch when move left/right.
+      // Has a little lag after release backward key.
+    */
   }
   isAiming() {
     const localPlayer = getLocalPlayer();
@@ -1602,6 +1627,8 @@ class GameManager extends EventTarget {
     const flySpeed = walkSpeed * 2;
     const defaultCrouchSpeed = walkSpeed * 0.7;
     const isCrouched = gameManager.isCrouched();
+    const isSwimming = gameManager.isSwimming();
+    const isFlying = gameManager.isFlying();
     const isMovingBackward = gameManager.isMovingBackward();
     if (isCrouched && !isMovingBackward) {
       speed = defaultCrouchSpeed;
@@ -1610,11 +1637,11 @@ class GameManager extends EventTarget {
     } else {
       speed = walkSpeed;
     }
-    
+    const localPlayer = getLocalPlayer();
     const sprintMultiplier = (ioManager.keys.shift && !isCrouched) ?
       (ioManager.keys.doubleTap ? 20 : 3)
     :
-      1;
+    ((isSwimming && !isFlying) ? 5 - localPlayer.getAction('swim').swimDamping : 1);
     speed *= sprintMultiplier;
     
     const backwardMultiplier = isMovingBackward ? 0.7 : 1;
@@ -1672,9 +1699,10 @@ class GameManager extends EventTarget {
       ]);
     });
   }
-  /* loadVoicePack(voicePack) {
-    return localPlayer.loadVoicePack(voicePack);
-  } */
+  async setVoicePack(voicePack) {
+    const localPlayer = metaversefileApi.useLocalPlayer();
+    return await localPlayer.setVoicePack(voicePack);
+  }
   setVoiceEndpoint(voiceId) {
     const localPlayer = getLocalPlayer();
     return localPlayer.setVoiceEndpoint(voiceId);

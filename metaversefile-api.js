@@ -58,6 +58,7 @@ import procGenManager from './procgen-manager.js';
 import cardsManager from './cards-manager.js';
 import * as instancing from './instancing.js';
 import * as atlasing from './atlasing.js';
+import ioManager from './io-manager.js';
 
 const localVector2D = new THREE.Vector2();
 
@@ -577,6 +578,11 @@ metaversefile.setApi({
       const localQuaternion = new THREE.Quaternion();
       const localMatrix = new THREE.Matrix4(); */
       // const localMatrix2 = new THREE.Matrix4();
+      physicsScene.addPlaneGeometry = (addPlaneGeometry => function(position, quaternion, dynamic) {
+        const physicsObject = addPlaneGeometry.call(this, position, quaternion, dynamic);
+        app.physicsObjects.push(physicsObject);
+        return physicsObject;
+      })(physicsScene.addPlaneGeometry);
       physicsScene.addBoxGeometry = (addBoxGeometry => function(position, quaternion, size, dynamic) {
         /* const basePosition = position;
         const baseQuaternion = quaternion;
@@ -715,6 +721,12 @@ metaversefile.setApi({
         app.physicsObjects.push(physicsObject);
         return physicsObject;
       })(physicsScene.addConvexGeometry);
+      physicsScene.addConvexShape = (addConvexShape => function(mesh) {
+        const physicsObject = addConvexShape.apply(this, arguments);
+        // app.add(physicsObject);
+        app.physicsObjects.push(physicsObject);
+        return physicsObject;
+      })(physicsScene.addConvexShape);
       physicsScene.addCookedConvexGeometry = (addCookedConvexGeometry => function(buffer, position, quaternion, scale) {
         const physicsObject = addCookedConvexGeometry.apply(this, arguments);
         // app.add(physicsObject);
@@ -738,6 +750,9 @@ metaversefile.setApi({
   },
   useHpManager() {
     return hpManager;
+  },
+  useIoManager() {
+    return ioManager;
   },
   useProcGen() {
     return procgen;
@@ -955,6 +970,21 @@ export default () => {
   },
   removeTrackedApp(app) {
     return world.appManager.removeTrackedApp.apply(world.appManager, arguments);
+  },
+  getPlayerByAppInstanceId(instanceId) {
+    let result = localPlayer.appManager.getAppByInstanceId(instanceId);
+    if (result) {
+      return localPlayer;
+    } else {
+      const remotePlayers = useRemotePlayers();
+      for (const remotePlayer of remotePlayers) {
+        const remoteApp = remotePlayer.appManager.getAppByInstanceId(instanceId);
+        if (remoteApp) {
+          return remotePlayer;
+        }
+      }
+      return null;
+    }
   },
   getAppByInstanceId(instanceId) {
     // local

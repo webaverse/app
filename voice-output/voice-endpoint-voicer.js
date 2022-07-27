@@ -1,6 +1,6 @@
 /* this module is responsible for mapping a remote TTS endpoint to the character. */
 
-import Avatar from '../avatars/avatars.js';
+import audioManager from '../audio-manager.js';
 import {makePromise} from '../util.js';
 import {voiceEndpointBaseUrl} from '../constants.js';
 
@@ -48,7 +48,7 @@ class VoiceEndpointVoicer {
       } */);
       const arrayBuffer = await res.arrayBuffer();
 
-      const audioContext = Avatar.getAudioContext();
+      const audioContext = audioManager.getAudioContext();
       const audioBuffer = await audioContext.decodeAudioData(arrayBuffer);
       return audioBuffer;
     } catch(err) {
@@ -99,7 +99,7 @@ class VoiceEndpointVoicer {
           return;
         }
 
-        const audioContext = Avatar.getAudioContext();
+        const audioContext = audioManager.getAudioContext();
         const audioBufferSourceNode = audioContext.createBufferSource();
         audioBufferSourceNode.buffer = audioBuffer;
         const ended = () => {

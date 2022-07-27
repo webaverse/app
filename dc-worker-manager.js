@@ -5,6 +5,10 @@ import {LockManager, abortError} from './lock-manager.js';
 //
 
 const defaultNumDcWorkers = 1;
+const TASK_PRIORITIES = {
+  tracker: -10,
+  splat: -1,
+};
 
 //
 
@@ -158,15 +162,42 @@ export class DcWorkerManager {
     this.nextWorker = (this.nextWorker + 1) % workers.length;
     return worker;
   }
-  async setClipRange(range, {signal} = {}) {
-    await Promise.all(
+  setCamera(worldPosition, cameraPosition, cameraQuaternion, projectionMatrix) {
+    /* if (position.x === 0 && position.y === 0 && position.z === 0) {
+      debugger;
+      return;
+    } */
+
+    const worldPositionArray = worldPosition.toArray();
+    const cameraPositionArray = cameraPosition.toArray();
+    const cameraQuaternionArray = cameraQuaternion.toArray();
+    const projectionMatrixArray = projectionMatrix.toArray();
+
+    const worker = this.getNextWorker();
+    worker.request('setCamera', {
+      instance: this.instance,
+      worldPosition: worldPositionArray,
+      cameraPosition: cameraPositionArray,
+      cameraQuaternion: cameraQuaternionArray,
+      projectionMatrix: projectionMatrixArray,
+    });
+  }
+  setClipRange(range) {
+    const rangeArray = [range.min.toArray(), range.max.toArray()];
+    
+    const worker = this.getNextWorker();
+    worker.request('setClipRange', {
+      instance: this.instance,
+      range: rangeArray,
+    });
+    /* await Promise.all(
       this.workers.map((worker) => {
         return worker.request('setClipRange', {
           instance: this.instance,
           range: [range.min.toArray(), range.max.toArray()],
         }, {signal});
       })
-    );
+    ); */
   }
 
   async createTracker(lod, minLodRange, trackY, {signal} = {}) {
@@ -193,6 +224,7 @@ export class DcWorkerManager {
       instance: this.instance,
       tracker,
       position: position.toArray(),
+      priority: TASK_PRIORITIES.tracker,
     }, {signal});
     return result;
   }
@@ -210,7 +242,7 @@ export class DcWorkerManager {
       return result;
     // });
   }
-  async generateTerrainChunkRenderable(chunkPosition, lodArray, {signal} = {}) {
+  /* async generateTerrainChunkRenderable(chunkPosition, lodArray, {signal} = {}) {
     // const chunkId = getLockChunkId(chunkPosition);
     // return await this.locks.request(chunkId, {signal}, async lock => {
       const worker = this.getNextWorker();
@@ -222,7 +254,7 @@ export class DcWorkerManager {
       // signal.throwIfAborted();
       return result;
     // });
-  }
+  } */
   async generateLiquidChunk(chunkPosition, lodArray, {signal} = {}) {
     const worker = this.getNextWorker();
     const result = await worker.request('generateLiquidChunk', {
@@ -236,8 +268,32 @@ export class DcWorkerManager {
   async getChunkHeightfield(x, z, lod, {signal} = {}) {
     const worker = this.getNextWorker();
     const result = await worker.request('getChunkHeightfield', {
+      instance: this.instance,
       x, z,
       lod,
+      priority: TASK_PRIORITIES.splat,
+    }, {signal});
+    return result;
+  }
+  async getHeightfieldRange(x, z, w, h, lod, {signal} = {}) {
+    const worker = this.getNextWorker();
+    const result = await worker.request('getHeightfieldRange', {
+      instance: this.instance,
+      x, z,
+      w, h,
+      lod,
+      priority: TASK_PRIORITIES.splat,
+    }, {signal});
+    return result;
+  }
+  async getLightRange(x, y, z, w, h, d, lod, {signal} = {}) {
+    const worker = this.getNextWorker();
+    const result = await worker.request('getLightRange', {
+      instance: this.instance,
+      x, y, z,
+      w, h, d,
+      lod,
+      priority: TASK_PRIORITIES.splat,
     }, {signal});
     return result;
   }
@@ -288,6 +344,7 @@ export class DcWorkerManager {
       x,
       z,
       lod,
+      priority: TASK_PRIORITIES.splat,
     }, {signal});
     return result;
   }
@@ -298,6 +355,7 @@ export class DcWorkerManager {
       x,
       z,
       lod,
+      priority: TASK_PRIORITIES.splat,
     }, {signal});
     return result;
   }
@@ -308,6 +366,7 @@ export class DcWorkerManager {
       x,
       z,
       lod,
+      priority: TASK_PRIORITIES.splat,
     }, {signal});
     return result;
   }
