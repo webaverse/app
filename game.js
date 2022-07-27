@@ -951,7 +951,6 @@ const _gameUpdate = (timestamp, timeDiff) => {
                 quaternion: localQuaternion,
               },
               timestamp,
-              filters: wearApp.getPhysicsObjects().map(physicsObject => physicsObject.physicsId),
             });
           }
         }
