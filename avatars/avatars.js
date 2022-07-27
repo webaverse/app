@@ -1937,6 +1937,15 @@ class Avatar {
         this.inputs.hmd.quaternion
       );
     }
+
+    const player = window.localPlayer;
+    // const player = window.npcPlayers[0];
+    if (true && player && this === player.avatar) {
+      window.domInfo.innerHTML += `
+        <div style="display:;">actions: --- ${player.getActionsArray().map(n=>n.type)}</div>
+      `
+    }
+
     _applyAnimation(this, now);
 
     if (this.poseAnimation) {

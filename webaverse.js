@@ -295,6 +295,8 @@ export default class Webaverse extends EventTarget {
     let lastTimestamp = performance.now();
     const animate = (timestamp, frame) => {
       performanceTracker.startFrame();
+      
+      window.domInfo.innerHTML = '';
 
       const _frame = () => {
         timestamp = timestamp ?? performance.now();
