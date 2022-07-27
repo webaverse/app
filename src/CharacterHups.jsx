@@ -42,7 +42,6 @@ const CharacterHup = function(props) {
         player.avatar.model.traverse(
           (object) => object.type === "Bone" && object.name === "Head" && !neckBone && (neckBone = object)
         );
-        neckBone.quaternion.copy(player.quaternion)
         diorama = dioramaManager.createPlayerDiorama({
           target: neckBone,
           objects: [player.avatar.model],
