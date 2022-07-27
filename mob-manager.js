@@ -41,6 +41,8 @@ const maxAnimationFrameLength = 512;
 
 let unifiedBoneTextureSize = 1024;
 
+const physicsScene = physicsManager.getScene();
+
 // window.THREE = THREE;
 
 const _zeroY = v => {
@@ -97,7 +99,7 @@ function makeCharacterController(app, {
         .applyQuaternion(localQuaternion)
     );
 
-  const characterController = physicsManager.createCharacterController(
+  const characterController = physicsScene.createCharacterController(
     radius - contactOffset,
     innerHeight,
     contactOffset,
@@ -108,8 +110,11 @@ function makeCharacterController(app, {
 }
 
 class Mob {
-  constructor(app = null, srcUrl = '') {
+  constructor(app = null, srcUrl = '', position = null, quaternion = null) {
+    console.log('Mob constructor', srcUrl, position, quaternion, app);
     this.app = app;
+    this.position = position;
+    this.quaternion = quaternion;
     this.subApp = null;
 
     this.name = this.app.name + '@' + this.app.position.toArray().join(',');
@@ -119,7 +124,9 @@ class Mob {
 
     if (srcUrl) {
       (async () => {
-        await this.loadApp(srcUrl);
+        const m = await metaversefile.import(srcUrl);
+        const mobJsonUrl = m.srcUrl;
+        await this.loadApp(mobJsonUrl);
       })();
     }
   }
@@ -157,8 +164,8 @@ class Mob {
 
       const subApp = await metaversefile.createAppAsync({
         start_url: mobUrl,
-        position: this.app.position,
-        quaternion: this.app.quaternion,
+        position: this.app.position.clone() +  + this.position,
+        quaternion: this.app.quaternion.clone().multiply(this.quaternion),
         scale: this.app.scale,
       });
       if (!live) return;
@@ -171,13 +178,13 @@ class Mob {
         this.app.add(subApp);
         this.subApp = subApp;
 
-        this.app.position.set(0, 0, 0);
-        this.app.quaternion.identity();
-        this.app.scale.set(1, 1, 1);
-        this.app.updateMatrixWorld();
+        //this.app.position.set(0, 0, 0);
+        //this.app.quaternion.identity();
+        //this.app.scale.set(1, 1, 1);
+        //this.app.updateMatrixWorld();
 
         this.cleanupFns.push(() => {
-          this.app.clear();
+          // this.app.clear();
         });
       };
       _attachToApp();
@@ -217,6 +224,7 @@ class Mob {
       } else {
         idleAnimation = [];
       }
+      // console.log('idleAnimation', idleAnimation, subApp, mobComponent);
 
       const characterController = makeCharacterController(subApp, {
         radius,
@@ -248,7 +256,8 @@ class Mob {
           halfHeight,
         } = spec;
         _getPhysicsExtraPositionQuaternion(spec, localVector, localQuaternion, localVector2, localMatrix);
-        const physicsObject = physicsManager.addCapsuleGeometry(localVector, localQuaternion, radius, halfHeight);
+        console.log('localVector', localVector);
+        const physicsObject = physicsScene.addCapsuleGeometry(localVector, localQuaternion, radius, halfHeight);
         physicsObject.spec = spec;
         return physicsObject;
       });
@@ -256,9 +265,9 @@ class Mob {
       subApp.getPhysicsObjects = () => physicsObjects;
 
       this.cleanupFns.push(() => {
-        physicsManager.destroyCharacterController(characterController);
+        physicsScene.destroyCharacterController(characterController);
         for (const extraPhysicsObject of extraPhysicsObjects) {
-          physicsManager.removeGeometry(extraPhysicsObject);
+          physicsScene.removeGeometry(extraPhysicsObject);
         }
       });
 
@@ -290,17 +299,18 @@ class Mob {
       let animation = null;
       let velocity = new THREE.Vector3(0, 0, 0);
       this.updateFns.push((timestamp, timeDiff) => {
+        return;
         const localPlayer = getLocalPlayer();
         const timeDiffS = timeDiff / 1000;
 
         if (animation) {
           mesh.position.add(localVector.copy(animation.velocity).multiplyScalar(timeDiff/1000));
-          animation.velocity.add(localVector.copy(physicsManager.getGravity()).multiplyScalar(timeDiff/1000));
+          animation.velocity.add(localVector.copy(physicsScene.getGravity()).multiplyScalar(timeDiff/1000));
           if (mesh.position.y < 0) {
             animation = null;
           }
 
-          physicsManager.setCharacterControllerPosition(characterController, mesh.position);
+          physicsScene.setCharacterControllerPosition(characterController, mesh.position);
 
           mesh.updateMatrixWorld();
           
@@ -334,16 +344,16 @@ class Mob {
 
                 const popExtraGeometry = (() => {
                   for (const extraPhysicsObject of extraPhysicsObjects) {
-                    physicsManager.disableActor(extraPhysicsObject);
+                    physicsScene.disableActor(extraPhysicsObject);
                   }
                   return () => {
                     for (const extraPhysicsObject of extraPhysicsObjects) {
-                      physicsManager.enableActor(extraPhysicsObject);
+                      physicsScene.enableActor(extraPhysicsObject);
                     }
                   };
                 })();
 
-                const flags = physicsManager.moveCharacterController(
+                const flags = physicsScene.moveCharacterController(
                   characterController,
                   moveDelta,
                   minDist,
@@ -356,7 +366,7 @@ class Mob {
                 let grounded = !!(flags & 0x1);
                 if (!grounded) {                  
                   velocity.add(
-                    localVector.copy(physicsManager.getGravity())
+                    localVector.copy(physicsScene.getGravity())
                       .multiplyScalar(timeDiffS)
                   );
                 } else {
@@ -413,7 +423,7 @@ class Mob {
               extraPhysicsObject.position.copy(localVector);
               extraPhysicsObject.quaternion.copy(localQuaternion);
               extraPhysicsObject.updateMatrixWorld();
-              physicsManager.setTransform(extraPhysicsObject);
+              physicsScene.setTransform(extraPhysicsObject);
             }
           };
           _updateExtraPhysics();
@@ -449,6 +459,7 @@ class Mob {
     }
   }
   destroy() {
+    console.log('Mob.destroy');
     for (const fn of this.cleanupFns) {
       fn();
     }
@@ -456,7 +467,8 @@ class Mob {
 }
 
 class MobInstance {
-  constructor() {
+  constructor(mob) {
+    this.mob = mob;
   }
 }
 
@@ -473,7 +485,7 @@ class InstancedSkeleton extends THREE.Skeleton {
     unifiedBoneTextureSize = boneTexture.image.width;
     // console.log('boneTextureSize', unifiedBoneTextureSize);
   }
-  bakeFrame(skeleton, drawCallIndex, frameIndex) {
+  bakeFrame(glb, skeleton, drawCallIndex, frameIndex) {
     const boneMatrices = this.unifiedBoneMatrices;
     
     const drawCall = this.parent.drawCalls[drawCallIndex];
@@ -502,6 +514,11 @@ class InstancedSkeleton extends THREE.Skeleton {
       const scale = new THREE.Vector3();
       localMatrix.decompose(translation, rotation, scale);
       rotation.invert();
+      // check if scale is uniform
+      var tolerance = 1.192092896e-07 * 1000;
+      if ( !(Math.abs(scale.x - scale.y) < tolerance && Math.abs(scale.x - scale.z) < tolerance) ) {
+        console.log('Non-uniform scale bone matrix', glb, scale);
+      }
       const pos = new THREE.Vector4(
         localMatrix.elements[12],
         localMatrix.elements[13],
@@ -522,6 +539,8 @@ class MobBatchedMesh extends InstancedBatchedMesh {
     const {
       glbs,
       skinnedMeshes: meshes,
+      app,
+      appUrls,
     } = mobData;
     const {
       // atlas,
@@ -870,6 +889,8 @@ gl_Position = projectionMatrix * mvPosition;
     super(geometry, material, allocator);
     this.frustumCulled = false;
 
+    this.app = app;
+    this.appUrls = appUrls;
     this.procGenInstance = procGenInstance;
 
     {
@@ -906,6 +927,7 @@ gl_Position = projectionMatrix * mvPosition;
 
     this.glbs = glbs;
     this.meshes = meshes;
+    this.mobs = [];
     // this.rootBones = rootBones;
     this.drawCalls = Array(meshes.length).fill(null);
 
@@ -950,7 +972,7 @@ gl_Position = projectionMatrix * mvPosition;
         mixer.update(1. / bakeFps);
         mixer.updateMatrixWorld();
 
-        this.skeleton.bakeFrame(skeleton2, i, t);
+        this.skeleton.bakeFrame(glb, skeleton2, i, t);
       }
     }
     this.skeleton.unifiedBoneTexture.needsUpdate = true;
@@ -965,7 +987,7 @@ gl_Position = projectionMatrix * mvPosition;
     }
     return drawCall;
   }
-  drawChunk(chunk, renderData, tracker) {
+  drawChunk(chunk, renderData, tracker, mob) {
     const mobData = renderData;
 
     if (!renderData.instances) return;
@@ -1014,7 +1036,7 @@ gl_Position = projectionMatrix * mvPosition;
         drawCall.updateTexture('timeOffset', timeOffsetOffset + instanceIndex, 1);
 
 
-        const instance = new MobInstance();
+        const instance = new MobInstance(mob);
         drawCall.instances.push(instance);
 
         // physics
@@ -1079,9 +1101,24 @@ gl_Position = projectionMatrix * mvPosition;
         const geometryNoise = mobData.instances[i];
         // console.log('got noise', geometryNoise);
         const geometryIndex = Math.floor(geometryNoise * this.meshes.length);
+
+        const px = mobData.ps[i * 3];
+        const py = mobData.ps[i * 3 + 1];
+        const pz = mobData.ps[i * 3 + 2];
+
+        const qx = mobData.qs[i * 4];
+        const qy = mobData.qs[i * 4 + 1];
+        const qz = mobData.qs[i * 4 + 2];
+        const qw = mobData.qs[i * 4 + 3];
+
+        const position = new THREE.Vector3(px, py, pz);
+        const quaternion = new THREE.Quaternion(qx, qy, qz, qw);
+
+        mob = this.addMobApp(this.app, this.appUrls[geometryIndex], position, quaternion);
         
         const drawCall = this.getDrawCall(geometryIndex);
-        const mobInstance = _renderMobGeometry(drawCall, mobData.ps, mobData.qs, i);
+        const mobInstance = _renderMobGeometry(drawCall, mobData.ps, mobData.qs, i, mob);
+
         mobInstances.push(mobInstance);
       }
 
@@ -1096,7 +1133,9 @@ gl_Position = projectionMatrix * mvPosition;
 
             const mobInstance = mobInstances[i];
 
+            this.removeMobApp(mobInstance.mob.subApp);
             _unrenderMobGeometry(drawCall, mobInstance);
+            //
           }
 
           tracker.offChunkRemove(chunk, onchunkremove);
@@ -1111,13 +1150,51 @@ gl_Position = projectionMatrix * mvPosition;
       const frameIndex = timestamp * bakeFps / 1000;
       shader.uniforms.uTime.value = frameIndex;
     }
+
+    for (const mob of this.mobs) {
+      mob.update(timestamp, timeDiff);
+    }
+  }
+  getPhysicsObjects() {
+    let results = [];
+    for (const mob of this.mobs) {
+      const physicsObjects = mob.getPhysicsObjects();
+      results.push(physicsObjects);
+    }
+    results = results.flat();
+    return results;
+  }
+  addMobApp(app, srcUrl, position, quaternion) {
+    /*if (app.appType !== 'mob') {
+      console.warn('not a mob app', app);
+      throw new Error('only mob apps can be mobs');
+    }*/
+    if (!srcUrl) {
+      console.warn('no srcUrl', app);
+      throw new Error('srcUrl is required');
+    }
+
+    const mob = new Mob(app, srcUrl, position, quaternion);
+    this.mobs.push(mob);
+    return mob;
+  }
+  removeMobApp(app) {
+    const index = this.mobs.findIndex(mob => mob.subApp === app);
+    if (index !== -1) {
+      const mob = this.mobs[index];
+      mob.destroy();
+      this.mobs.splice(index, 1);
+    }
   }
 }
 
 class MobsCompiledData {
   constructor({
+    app = null,
     appUrls = [],
   } = {}) {
+    this.app = app;
+    this.appUrls = appUrls;
     this.glbs = null;
     this.skinnedMeshes = null;
 
@@ -1206,9 +1283,6 @@ class Mobber {
       mobData,
     });
     this.generator = generator;
-    /* this.tracker = new LodChunkTracker(this.generator, {
-      chunkWorldSize,
-    }); */
     const numLods = 1;
     const tracker = procGenInstance.getChunkTracker({
       numLods,
@@ -1238,8 +1312,6 @@ class Mobber {
       const {renderData, chunk} = e;
       generator.mobBatchedMesh.drawChunk(chunk, renderData, tracker);
     };
-    // tracker.addEventListener('chunkdatarequest', chunkdatarequest);
-    // tracker.addEventListener('chunkadd', chunkadd);
     tracker.onChunkDataRequest(chunkdatarequest);
     tracker.onChunkAdd(chunkadd);
 
@@ -1262,6 +1334,12 @@ class Mobber {
   getChunks() {
     return this.generator.object;
   }
+  getPhysicsObjects() {
+    return this.generator.mobBatchedMesh.getPhysicsObjects();
+  }
+  getMobs() {
+    return this.generator.mobBatchedMesh.mobs;
+  }
   update(timestamp, timeDiff) {
     const localPlayer = getLocalPlayer();
     !this.procGenInstance.range && this.tracker.update(localPlayer.position);
@@ -1276,7 +1354,6 @@ class Mobber {
 class MobManager {
   constructor() {
     this.mobbers = [];
-    this.mobs = [];
   }
   createMobber({
     procGenInstance,
@@ -1293,39 +1370,29 @@ class MobManager {
     mobber.destroy();
     this.mobbers.splice(this.mobbers.indexOf(mobber), 1);
   }
-  async loadData(appUrls) {
+  async loadData(app, appUrls) {
     const mobData = new MobsCompiledData({
+      app,
       appUrls,
     });
     await mobData.waitForLoad();
     return mobData;
   }
-  addMobApp(app, srcUrl) {
-    if (app.appType !== 'mob') {
-      console.warn('not a mob app', app);
-      throw new Error('only mob apps can be mobs');
-    }
-    if (!srcUrl) {
-      console.warn('no srcUrl', app);
-      throw new Error('srcUrl is required');
-    }
-
-    const mob = new Mob(app, srcUrl);
-    this.mobs.push(mob);
-  }
-  removeMobApp(app) {
-    const index = this.mobs.findIndex(mob => mob.app === app);
-    if (index !== -1) {
-      const mob = this.mobs[index];
-      mob.destroy();
-      this.mobs.splice(index, 1);
-    }
-  }
   getPhysicsObjects() {
     let results = [];
-    for (const mob of this.mobs) {
-      const physicsObjects = mob.getPhysicsObjects();
+    for (const mobber of this.mobbers) {
+      const physicsObjects = mobber.getPhysicsObjects();
       results.push(physicsObjects);
+    }
+    results = results.flat();
+    return results;
+    // console.log('land getPhysicsObjects', app, subApps, result);
+  }
+  getMobs() {
+    let results = [];
+    for (const mobber of this.mobbers) {
+      const mobs = mobber.getMobs();
+      results.push(mobs);
     }
     results = results.flat();
     return results;
@@ -1335,10 +1402,6 @@ class MobManager {
     /* for (const mobber of this.mobbers) {
       mobber.update(timestamp, timeDiff);
     } */
-
-    for (const mob of this.mobs) {
-      mob.update(timestamp, timeDiff);
-    }
   }
 }
 const mobManager = new MobManager();

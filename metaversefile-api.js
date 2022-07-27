@@ -1038,7 +1038,7 @@ export default () => {
     }
 
     // mob
-    for (const mob of mobManager.mobs) {
+    for (const mob of mobManager.getMobs()) {
       const mobPhysicsObjects = mob.getPhysicsObjects();
       for (const mobPhysicsObject of mobPhysicsObjects) {
         if (mobPhysicsObject.physicsId === physicsId) {
@@ -1074,7 +1074,7 @@ export default () => {
     }
 
     // mob
-    for (const mob of mobManager.mobs) {
+    for (const mob of mobManager.getMobs()) {
       const mobPhysicsObjects = mob.getPhysicsObjects();
       for (const mobPhysicsObject of mobPhysicsObjects) {
         if (mobPhysicsObject.physicsId === physicsId) {
@@ -1113,7 +1113,7 @@ export default () => {
     }
 
     // mob
-    for (const mob of mobManager.mobs) {
+    for (const mob of mobManager.getMobs()) {
       const mobPhysicsObjects = mob.getPhysicsObjects();
       for (const mobPhysicsObject of mobPhysicsObjects) {
         if (mobPhysicsObject.physicsId === physicsId) {

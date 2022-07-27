@@ -29,7 +29,7 @@ export default e => {
       live = false;
     });
 
-    const mobData = await mobManager.loadData(appUrls);
+    const mobData = await mobManager.loadData(app, appUrls);
     if (!live) return;
 
     const procGenInstance = procGenManager.getInstance(seed, range);
@@ -58,6 +58,8 @@ export default e => {
       mobber.destroy();
     }
   });
+
+  app.getPhysicsObjects = () => mobManager.getPhysicsObjects();
 
   return app;
 };
