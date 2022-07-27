@@ -1937,7 +1937,7 @@ class Avatar {
         this.inputs.hmd.quaternion
       );
     }
-    _applyAnimation(this, now);
+    // _applyAnimation(this, now);
 
     if (this.poseAnimation) {
       _overwritePose(this.poseAnimation);
