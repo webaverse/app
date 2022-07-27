@@ -485,14 +485,14 @@ const _parseLiquidVertexBuffer = (arrayBuffer, bufferAddress) => {
   // positions
   const numPositions = dataView.getUint32(index, true);
   index += Uint32Array.BYTES_PER_ELEMENT;
-  // const positions = new Float32Array(arrayBuffer, bufferAddress + index, numPositions * 3);
+  const positions = new Float32Array(arrayBuffer, bufferAddress + index, numPositions * 3);
   const position0 = new Float32Array(arrayBuffer, bufferAddress + index, 3);
   index += Float32Array.BYTES_PER_ELEMENT * numPositions * 3;
 
   // normals
   const numNormals = dataView.getUint32(index, true);
   index += Uint32Array.BYTES_PER_ELEMENT;
-  // const normals = new Float32Array(arrayBuffer, bufferAddress + index, numNormals * 3);
+  const normals = new Float32Array(arrayBuffer, bufferAddress + index, numNormals * 3);
   index += Float32Array.BYTES_PER_ELEMENT * numNormals * 3;
 
   // biomes
@@ -504,20 +504,24 @@ const _parseLiquidVertexBuffer = (arrayBuffer, bufferAddress) => {
   // // indices
   const numIndices = dataView.getUint32(index, true);
   index += Uint32Array.BYTES_PER_ELEMENT;
-  // const indices = new Uint32Array(arrayBuffer, bufferAddress + index, numIndices);
+  const indices = new Uint32Array(arrayBuffer, bufferAddress + index, numIndices);
   index += Uint32Array.BYTES_PER_ELEMENT * numIndices;
 
-  const size = 10;
-  const geometry = new THREE.BoxGeometry(size, size, size);
-  const positions = geometry.attributes.position.array;
-  const normals = geometry.attributes.normal.array;
-  const indices = geometry.index.array;
+  // test
 
-  for (let i = 0; i < geometry.attributes.position.count; i++) {
-    positions[i * 3 + 0] += position0[0];
-    positions[i * 3 + 1] += position0[1];
-    positions[i * 3 + 2] += position0[2];
-  }
+  // const size = 10;
+  // const geometry = new THREE.BoxGeometry(size, size, size);
+  // const positions = geometry.attributes.position.array;
+  // const normals = geometry.attributes.normal.array;
+  // const indices = geometry.index.array;
+
+  // for (let i = 0; i < geometry.attributes.position.count; i++) {
+  //   positions[i * 3 + 0] += position0[0];
+  //   positions[i * 3 + 1] += position0[1];
+  //   positions[i * 3 + 2] += position0[2];
+  // }
+
+  // end test
 
   return {
     bufferAddress,

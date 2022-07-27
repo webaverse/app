@@ -103,21 +103,32 @@ const _cloneLiquidMeshData = (meshData) => {
       indices: meshData.indices.slice(),
     }; */
 
-    // const sizeRequired = meshData.positions.length * meshData.positions.constructor.BYTES_PER_ELEMENT +
-    //   meshData.normals.length * meshData.normals.constructor.BYTES_PER_ELEMENT +
-    //   meshData.biomes.length * meshData.biomes.constructor.BYTES_PER_ELEMENT +
-    //   meshData.indices.length * meshData.indices.constructor.BYTES_PER_ELEMENT;
-
-    // THREE.BoxGeometry
-    const sizeRequired = 72 * meshData.positions.constructor.BYTES_PER_ELEMENT +
-      72 * meshData.normals.constructor.BYTES_PER_ELEMENT +
+    const sizeRequired = meshData.positions.length * meshData.positions.constructor.BYTES_PER_ELEMENT +
+      meshData.normals.length * meshData.normals.constructor.BYTES_PER_ELEMENT +
       meshData.biomes.length * meshData.biomes.constructor.BYTES_PER_ELEMENT +
-      36 * meshData.indices.constructor.BYTES_PER_ELEMENT;
+      meshData.indices.length * meshData.indices.constructor.BYTES_PER_ELEMENT;
+
+    // test
+
+    // // THREE.BoxGeometry
+    // const sizeRequired = 72 * meshData.positions.constructor.BYTES_PER_ELEMENT +
+    //   72 * meshData.normals.constructor.BYTES_PER_ELEMENT +
+    //   meshData.biomes.length * meshData.biomes.constructor.BYTES_PER_ELEMENT +
+    //   36 * meshData.indices.constructor.BYTES_PER_ELEMENT;
+
+    // end test
 
     const arrayBuffer = new ArrayBuffer(sizeRequired);
     let index = 0;
 
-    const positions = new meshData.positions.constructor(arrayBuffer, index, meshData.positions.length);
+    // console.log('meshData.positions.length', meshData.positions.length)
+    let positions;
+    try {
+      positions = new meshData.positions.constructor(arrayBuffer, index, meshData.positions.length);
+    } catch(e) {
+      debugger
+    }
+    console.log('created positions')
     positions.set(meshData.positions);
     index += meshData.positions.length * meshData.positions.constructor.BYTES_PER_ELEMENT;
     
