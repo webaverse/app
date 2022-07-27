@@ -239,31 +239,31 @@ export const ComponentEditor = () => {
                     return (
                         <div className={ classNames( styles.item, ( ! isEditable ? styles.disabled : null ) ) } key={ component.key } >
                             <img src="./images/ui/lock.svg" className={ styles.lock } />
-                            <div className={ styles.itemRemove } onClick={ isEditable ? handleRemoveItemBtnClick.bind( this, component.key ) : null } >x</div>
+                            <div className={ styles.itemRemove } onClick={ isEditable ? handleRemoveItemBtnClick.bind( null, component.key ) : null } >x</div>
                             {
                                 editComponentKey === component.key ? (
                                     <>
-                                        <img src="./images/ui/check.svg" className={ styles.itemApply } onClick={ handleApplyItemKeyBtnClick.bind( this, component.key ) } />
-                                        <input className={ styles.itemKey } value={ editComponentKeyNewValue } onChange={ handleKeyInputChange } type="text" onKeyUp={ handleKeyInputKeyUp.bind( this, component.key ) } />
+                                        <img src="./images/ui/check.svg" className={ styles.itemApply } onClick={ handleApplyItemKeyBtnClick.bind( null, component.key ) } />
+                                        <input className={ styles.itemKey } value={ editComponentKeyNewValue } onChange={ handleKeyInputChange } type="text" onKeyUp={ handleKeyInputKeyUp.bind( null, component.key ) } />
                                     </>
                                 ) : (
                                     <>
-                                        <img src="./images/ui/edit.svg" className={ styles.itemEdit } onClick={ handleEditItemBtnClick.bind( this, component.key ) } />
+                                        <img src="./images/ui/edit.svg" className={ styles.itemEdit } onClick={ handleEditItemBtnClick.bind( null, component.key ) } />
                                         <div className={ styles.itemTitle } >{ component.key }</div>
                                     </>
                                 )
                             }
                             {
                                 {
-                                    'number': <input type="number" className={ classNames( styles.itemValue, ( isEditable && component._componentEditorError ? styles.valueError : null ) ) } disabled={ ! isEditable }  value={ component.value } onChange={ handleValueInputChange.bind( this, component.key ) } />,
+                                    'number': <input type="number" className={ classNames( styles.itemValue, ( isEditable && component._componentEditorError ? styles.valueError : null ) ) } disabled={ ! isEditable }  value={ component.value } onChange={ handleValueInputChange.bind( null, component.key ) } />,
                                     'bool': <input type="checkbox" defaultChecked={!!component.value} className={ classNames( styles.itemValue, ( isEditable && component._componentEditorError ? styles.valueError : null ) ) } disabled={ ! isEditable } onChange={ (e)=>handleCheckboxChange(component.key, e.target.checked ? true : false) } />,
-                                    'string': <input type="text" className={ classNames( styles.itemValue, ( isEditable && component._componentEditorError ? styles.valueError : null ) ) } disabled={ ! isEditable }  value={ component.value } onChange={ handleValueInputChange.bind( this, component.key ) } />,
-                                    'json': <input type="text" className={ classNames( styles.itemValue, ( isEditable && component._componentEditorError ? styles.valueError : null ) ) } disabled={ ! isEditable }  value={ component.value } onChange={ handleValueInputChange.bind( this, component.key ) } />
+                                    'string': <input type="text" className={ classNames( styles.itemValue, ( isEditable && component._componentEditorError ? styles.valueError : null ) ) } disabled={ ! isEditable }  value={ component.value } onChange={ handleValueInputChange.bind( null, component.key ) } />,
+                                    'json': <input type="text" className={ classNames( styles.itemValue, ( isEditable && component._componentEditorError ? styles.valueError : null ) ) } disabled={ ! isEditable }  value={ component.value } onChange={ handleValueInputChange.bind( null, component.key ) } />
                                 }[component.type]
                             }       
                             {
                                 isEditable ? (
-                                    <select className={ styles.itemType } value={ component.type } onChange={ handleTypeSelectChange.bind( this, component.key ) } >
+                                    <select className={ styles.itemType } value={ component.type } onChange={ handleTypeSelectChange.bind( null, component.key ) } >
                                         <option value='string' >string</option>
                                         <option value='number' >number</option>
                                         <option value='bool' >bool</option>

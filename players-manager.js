@@ -12,7 +12,7 @@ class PlayersManager {
     this.playersArray = null;
     
     this.remotePlayers = new Map();
-    
+    this.remotePlayersByInteger = new Map();
     this.unbindStateFn = null;
   }
   clearRemotePlayers() {
@@ -26,6 +26,7 @@ class PlayersManager {
         const remotePlayer = this.remotePlayers.get(nonLocalPlayer.playerId);
         remotePlayer.destroy();
         this.remotePlayers.delete(nonLocalPlayer.playerId);
+        this.remotePlayersByInteger.delete(nonLocalPlayer.playerIdInt);
       }
     }
   }
@@ -71,6 +72,7 @@ class PlayersManager {
               playersArray: this.playersArray,
             });
             this.remotePlayers.set(playerId, remotePlayer);
+            this.remotePlayersByInteger.set(remotePlayer.playerIdInt, remotePlayer);
           }
         }
         // console.log('players observe', added, deleted);
@@ -84,6 +86,7 @@ class PlayersManager {
             
             const remotePlayer = this.remotePlayers.get(playerId);
             this.remotePlayers.delete(playerId);
+            this.remotePlayersByInteger.delete(remotePlayer.playerIdInt);
             remotePlayer.destroy();
           }
         }
