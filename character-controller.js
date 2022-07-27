@@ -785,6 +785,7 @@ class StatePlayer extends PlayerBase {
     return action;
   }
   removeAction(type) {
+    // if (type === 'swim') debugger
     const actions = this.getActionsState();
     let i = 0;
     for (const action of actions) {
@@ -806,6 +807,7 @@ class StatePlayer extends PlayerBase {
     }
   }
   setControlAction(action) {
+    // debugger
     const actions = this.getActionsState();
     for (let i = 0; i < actions.length; i++) {
       const action = actions.get(i);
