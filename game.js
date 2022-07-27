@@ -1006,7 +1006,6 @@ const _pushAppUpdates = () => {
   world.appManager.pushAppUpdates();
   
   for (const remotePlayer in playersManager.getRemotePlayers()) {
-    console.log('remotePlayer is', remotePlayer);
     remotePlayer.appManager.pushAppUpdates();
   }
 };
