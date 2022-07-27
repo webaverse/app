@@ -252,9 +252,8 @@ export const LightArrow = function({
         className,
       )}
       style={{
-        transform: `translate(${x}px, ${y}px)`,
-        left: ax,
-        top: ay,
+        left: `${x}px`,
+        top: `${y}px`,
       }}
       onClick={onClick}
     >
