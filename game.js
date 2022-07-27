@@ -14,7 +14,7 @@ import {world} from './world.js';
 import {buildMaterial, highlightMaterial, selectMaterial, hoverMaterial, hoverEquipmentMaterial} from './shaders.js';
 import {getRenderer, sceneLowPriority, camera} from './renderer.js';
 import {downloadFile, snapPosition, getDropUrl, handleDropJsonItem} from './util.js';
-import {maxGrabDistance, throwReleaseTime, storageHost, minFov, maxFov, throwAnimationDuration, activeComponents} from './constants.js';
+import {maxGrabDistance, throwReleaseTime, storageHost, minFov, maxFov, throwAnimationDuration} from './constants.js';
 import metaversefileApi from './metaversefile-api.js';
 import * as metaverseModules from './metaverse-modules.js';
 import loadoutManager from './loadout-manager.js';
@@ -511,15 +511,8 @@ const _gameUpdate = (timestamp, timeDiff) => {
         const physicsId = collision.objectId;
         const object = metaversefileApi.getAppByPhysicsId(physicsId);
         const physicsObject = metaversefileApi.getPhysicsObjectByPhysicsId(physicsId);
-        const _isActiveApp = (app) => {
-          let isActive = false;
-          for (const comp of activeComponents) {
-            isActive ||= !!app.getComponent(comp);
-            if (isActive) break;
-          }
-          return isActive;
-        }
-        if (object && !_isWear(object) && physicsObject && _isActiveApp(object)) {
+
+        if (object && !_isWear(object) && physicsObject && !object.getComponent('nonItem')) {
           grabUseMesh.position.setFromMatrixPosition(physicsObject.physicsMesh.matrixWorld);
           grabUseMesh.quaternion.copy(camera.quaternion);
           grabUseMesh.updateMatrixWorld();
