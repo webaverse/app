@@ -1,6 +1,7 @@
 import * as THREE from 'three';
 import Avatar from './avatars/avatars.js';
 import * as sounds from './sounds.js';
+import audioManager from './audio-manager.js';
 
 import {
   idleFactorSpeed,
@@ -21,6 +22,11 @@ import {
 } from './util.js';
 
 const localVector = new THREE.Vector3();
+
+const freestyleDuration = 1466.6666666666666 / 2;
+const freestyleOffset = 900 / 2;
+const breaststrokeDuration = 1066.6666666666666;
+const breaststrokeOffset = 433.3333333333333;
 
 
 // HACK: this is used to dynamically control the step offset for a particular animation
@@ -77,14 +83,28 @@ class CharacterSfx {
     this.startRunningTime = 0;
     this.willGasp = false;
 
-    
     this.oldNarutoRunSound = null;
+    this.lastEmote = null;
+
+    if (this.player.isLocalPlayer) {
+      const wearupdate = e => {
+        sounds.playSoundName(e.wear ? 'itemEquip' : 'itemUnequip');
+      };
+      player.addEventListener('wearupdate', wearupdate);
+      this.cleanup = () => {
+        player.removeEventListener('wearupdate', wearupdate);
+      };
+    }
+
+    this.currentStep = null;
+    this.currentSwimmingHand = null;
+    this.setSwimmingHand = true;
   }
   update(timestamp, timeDiffS) {
     if (!this.player.avatar) {
       return;
     }
-
+    
     const timeSeconds = timestamp/1000;
     const currentSpeed = localVector.set(this.player.avatar.velocity.x, 0, this.player.avatar.velocity.z).length();
     
@@ -98,16 +118,14 @@ class CharacterSfx {
     // jump
     const _handleJump = () => {
       if (this.player.avatar.jumpState && !this.lastJumpState) {
-        const audioSpec = soundFiles.jump[Math.floor(Math.random() * soundFiles.jump.length)];
-        sounds.playSound(audioSpec);
+        sounds.playSoundName('jump');
 
         // play jump grunt 
         if(this.player.hasAction('jump') && this.player.getAction('jump').trigger === 'jump'){
           this.playGrunt('jump'); 
         }
       } else if (this.lastJumpState && !this.player.avatar.jumpState) {
-        const audioSpec = soundFiles.land[Math.floor(Math.random() * soundFiles.land.length)];
-        sounds.playSound(audioSpec);
+        sounds.playSoundName('land');
       }
       this.lastJumpState = this.player.avatar.jumpState;
     };
@@ -115,7 +133,7 @@ class CharacterSfx {
 
     // step
     const _handleStep = () => {
-      if (idleWalkFactor > 0.7 && !this.player.avatar.jumpState && !this.player.avatar.flyState) {
+      if (idleWalkFactor > 0.7 && !this.player.avatar.jumpState && !this.player.avatar.fallLoopState && !this.player.avatar.flyState && !this.player.hasAction('swim')) {
         const isRunning = walkRunFactor > 0.5;
         const isCrouching = crouchFactor > 0.5;
         const isNarutoRun = this.player.avatar.narutoRunState;
@@ -171,7 +189,7 @@ class CharacterSfx {
                 /* for (const a of candidateAudios) {
                   !a.paused && a.pause();
                 } */
-                
+                this.currentStep = 'left';
                 const audioSpec = candidateAudios[Math.floor(Math.random() * candidateAudios.length)];
                 sounds.playSound(audioSpec);
               }
@@ -184,7 +202,7 @@ class CharacterSfx {
                 /* for (const a of candidateAudios) {
                   !a.paused && a.pause();
                 } */
-
+                this.currentStep = 'right';
                 const audioSpec = candidateAudios[Math.floor(Math.random() * candidateAudios.length)];
                 sounds.playSound(audioSpec);
               }
@@ -199,14 +217,60 @@ class CharacterSfx {
       }
       
     };
-    _handleStep();
+
+    if (!this.player.hasAction('sit')) {
+      _handleStep();
+    }
+    const _handleSwim = () => {
+      if(this.player.hasAction('swim')){
+          // const candidateAudios = soundFiles.water;
+          // console.log(candidateAudios);
+          if(this.player.getAction('swim').animationType === 'breaststroke'){
+              if(this.setSwimmingHand && this.player.actionInterpolants.movements.get() % breaststrokeDuration <= breaststrokeOffset){
+                  this.setSwimmingHand = false;
+                  this.currentSwimmingHand = null;
+              }
+              else if(!this.setSwimmingHand && this.player.actionInterpolants.movements.get() % breaststrokeDuration > breaststrokeOffset){
+                  let regex = new RegExp('^water/swim[0-9]*.wav$');
+                  const candidateAudios = soundFiles.water.filter(f => regex.test(f.name));
+                  const audioSpec = candidateAudios[Math.floor(Math.random() * candidateAudios.length)];
+                  if(this.player.getAction('swim').onSurface)
+                    sounds.playSound(audioSpec);
+
+                  this.setSwimmingHand = true;
+                  this.currentSwimmingHand = 'right';
+              }
+
+          }
+          else if(this.player.getAction('swim').animationType === 'freestyle'){
+              let regex = new RegExp('^water/swim_fast[0-9]*.wav$');
+              const candidateAudios = soundFiles.water.filter(f => regex.test(f.name));
+              const audioSpec = candidateAudios[Math.floor(Math.random() * candidateAudios.length)];
+
+              if(this.setSwimmingHand && this.player.actionInterpolants.movements.get() % freestyleDuration <= freestyleOffset){
+                  // console.log('left hand')
+                  if(this.player.getAction('swim').onSurface)
+                    sounds.playSound(audioSpec);
+                  this.currentSwimmingHand = 'left';
+                  this.setSwimmingHand = false;
+              }
+              else if(!this.setSwimmingHand && this.player.actionInterpolants.movements.get() % freestyleDuration > freestyleOffset){
+                  // console.log('right hand')
+                  if(this.player.getAction('swim').onSurface)
+                    sounds.playSound(audioSpec);
+                  this.currentSwimmingHand = 'right';
+                  this.setSwimmingHand = true;
+              }
+          }  
+      }
+    }
+
+    _handleSwim();
+
 
     const _handleNarutoRun = () => {
       
-      this.currentQ.x=this.player.characterPhysics.player.quaternion.x;
-      this.currentQ.y=this.player.characterPhysics.player.quaternion.y;
-      this.currentQ.z=this.player.characterPhysics.player.quaternion.z;
-      this.currentQ.w=this.player.characterPhysics.player.quaternion.w;
+      this.currentQ.copy(this.player.quaternion);
      
       let temp=this.currentQ.angleTo(this.preQ);
       for(let i=0;i<4;i++){
@@ -305,8 +369,7 @@ class CharacterSfx {
 
           // console.log('chomp', v, eatFrameIndex, this.lastEatFrameIndex);
           if (eatFrameIndex !== 0 && eatFrameIndex !== this.lastEatFrameIndex) {
-            const audioSpec = soundFiles.chomp[Math.floor(Math.random() * soundFiles.chomp.length)];
-            sounds.playSound(audioSpec);
+            sounds.playSoundName('chomp');
             // control mouth movement
             this.player.characterBehavior.setMouthMoving(0.04,0.04,0.1,0.02);
           }
@@ -321,8 +384,7 @@ class CharacterSfx {
 
           // console.log('gulp', v, drinkFrameIndex, this.lastDrinkFrameIndex);
           if (drinkFrameIndex !== 0 && drinkFrameIndex !== this.lastDrinkFrameIndex) {
-            const audioSpec = soundFiles.gulp[Math.floor(Math.random() * soundFiles.gulp.length)];
-            sounds.playSound(audioSpec);
+            sounds.playSoundName('gulp');
             // control mouth movement
             this.player.characterBehavior.setMouthMoving(0.1,0.1,0.1,0.1);
           }
@@ -347,79 +409,176 @@ class CharacterSfx {
       }
     };
     _handleFood();
+
+    // emote
+    const _handleEmote = () => {
+      if(this.player.avatar.emoteAnimation && this.lastEmote !== this.player.avatar.emoteAnimation){
+        this.playEmote(this.player.avatar.emoteAnimation);
+      }
+      this.lastEmote = this.player.avatar.emoteAnimation;
+    };
+    _handleEmote();
   }
   playGrunt(type, index){
-    
-    let voiceFiles, offset, duration;
-    switch (type) {
-      case 'pain': {
-        voiceFiles = this.player.voicePack.actionVoices.filter(f => /pain/i.test(f.name));
-        break;
+    if (this.player.voicePack) { // ensure voice pack loaded
+      let voiceFiles, offset, duration;
+      switch (type) {
+        case 'hurt': {
+          voiceFiles = this.player.voicePack.actionVoices.filter(f => /hurt/i.test(f.name));
+          break;
+        }
+        case 'scream': {
+          voiceFiles = this.player.voicePack.actionVoices.filter(f => /scream/i.test(f.name));
+          break;
+        }
+        case 'attack': {
+          voiceFiles = this.player.voicePack.actionVoices.filter(f => /attack/i.test(f.name));
+          break;
+        }
+        case 'angry': {
+          voiceFiles = this.player.voicePack.actionVoices.filter(f => /angry/i.test(f.name));
+          break;
+        }
+        case 'gasp': {
+          voiceFiles = this.player.voicePack.actionVoices.filter(f => /gasp/i.test(f.name));
+          break;
+        }
+        case 'jump': {
+          voiceFiles = this.player.voicePack.actionVoices.filter(f => /jump/i.test(f.name));
+          break;
+        }
+        case 'narutoRun': {
+          voiceFiles = this.player.voicePack.actionVoices.filter(f => /nr/i.test(f.name));
+          break;
+        }
       }
-      case 'scream': {
-        voiceFiles = this.player.voicePack.actionVoices.filter(f => /scream/i.test(f.name));
-        break;
+      
+      if(index===undefined){
+        let voice = selectVoice(voiceFiles);
+        duration = voice.duration;
+        offset = voice.offset;
       }
-      case 'attack': {
-        voiceFiles = this.player.voicePack.actionVoices.filter(f => /attack/i.test(f.name));
-        break;
-      }
-      case 'angry': {
-        voiceFiles = this.player.voicePack.actionVoices.filter(f => /angry/i.test(f.name));
-        break;
-      }
-      case 'gasp': {
-        voiceFiles = this.player.voicePack.actionVoices.filter(f => /gasp/i.test(f.name));
-        break;
-      }
-      case 'jump': {
-        voiceFiles = this.player.voicePack.actionVoices.filter(f => /jump/i.test(f.name));
-        break;
-      }
-      case 'narutoRun': {
-        voiceFiles = this.player.voicePack.actionVoices.filter(f => /nr/i.test(f.name));
-        break;
-      }
-    }
-    
-    if(index===undefined){
-      let voice = selectVoice(voiceFiles);
-      duration = voice.duration;
-      offset = voice.offset;
-    }
-    else{
-      duration = voiceFiles[index].duration;
-      offset = voiceFiles[index].offset;
-    } 
-    
-    const audioContext = Avatar.getAudioContext();
-    const audioBufferSourceNode = audioContext.createBufferSource();
-    audioBufferSourceNode.buffer = this.player.voicePack.audioBuffer;
+      else{
+        duration = voiceFiles[index].duration;
+        offset = voiceFiles[index].offset;
+      } 
+      
+      const audioContext = audioManager.getAudioContext();
+      const audioBufferSourceNode = audioContext.createBufferSource();
+      audioBufferSourceNode.buffer = this.player.voicePack.audioBuffer;
 
-    // control mouth movement with audio volume
-    if (!this.player.avatar.isAudioEnabled()) {
-      this.player.avatar.setAudioEnabled(true);
-    }
-    audioBufferSourceNode.connect(this.player.avatar.getAudioInput());
+      // control mouth movement with audio volume
+      if (!this.player.avatar.isAudioEnabled()) {
+        this.player.avatar.setAudioEnabled(true);
+      }
+      audioBufferSourceNode.connect(this.player.avatar.getAudioInput());
 
-    // if the oldGrunt are still playing
-    if(this.oldGrunt){
-      this.oldGrunt.stop();
-      this.oldGrunt = null;
-    }
-
-    this.oldGrunt=audioBufferSourceNode;
-    // clean the oldGrunt if voice end
-    audioBufferSourceNode.addEventListener('ended', () => {
-      if (this.oldGrunt === audioBufferSourceNode) {
+      // if the oldGrunt are still playing
+      if(this.oldGrunt){
+        this.oldGrunt.stop();
         this.oldGrunt = null;
       }
-    });
 
-    audioBufferSourceNode.start(0, offset, duration);
+      this.oldGrunt=audioBufferSourceNode;
+      // clean the oldGrunt if voice end
+      audioBufferSourceNode.addEventListener('ended', () => {
+        if (this.oldGrunt === audioBufferSourceNode) {
+          this.oldGrunt = null;
+        }
+      });
+
+      audioBufferSourceNode.start(0, offset, duration);
+    }
+  }
+  playEmote(type, index){
+    if (this.player.voicePack) { // ensure voice pack loaded
+      let voiceFiles, offset, duration;
+      switch (type) {
+        case 'alertSoft':
+        case 'alert': {
+          voiceFiles = this.player.voicePack.emoteVoices.filter(f => /alert/i.test(f.name));
+          break;
+        }
+        case 'angrySoft':
+        case 'angry': {
+          voiceFiles = this.player.voicePack.emoteVoices.filter(f => /angry/i.test(f.name));
+          break;
+        }
+        case 'embarrassedSoft':
+        case 'embarrassed': {
+          voiceFiles = this.player.voicePack.emoteVoices.filter(f => /emba/i.test(f.name));
+          break;
+        }
+        case 'headNodSoft':
+        case 'headNod': {
+          voiceFiles = this.player.voicePack.emoteVoices.filter(f => /nod/i.test(f.name));
+          break;
+        }
+        case 'headShakeSoft':
+        case 'headShake': {
+          voiceFiles = this.player.voicePack.emoteVoices.filter(f => /shake/i.test(f.name));
+          break;
+        }
+        case 'sadSoft':
+        case 'sad': {
+          voiceFiles = this.player.voicePack.emoteVoices.filter(f => /sad/i.test(f.name));
+          break;
+        }
+        case 'surpriseSoft':
+        case 'surprise': {
+          voiceFiles = this.player.voicePack.emoteVoices.filter(f => /surprise/i.test(f.name));
+          break;
+        }
+        case 'victorySoft':
+        case 'victory': {
+          voiceFiles = this.player.voicePack.emoteVoices.filter(f => /victory/i.test(f.name));
+          break;
+        }
+        default: {
+          voiceFiles = this.player.voicePack.emoteVoices;
+          break;
+        }
+      }
+      
+      if(index===undefined){
+        let voice = selectVoice(voiceFiles);
+        duration = voice.duration;
+        offset = voice.offset;
+      }
+      else{
+        duration = voiceFiles[index].duration;
+        offset = voiceFiles[index].offset;
+      } 
+      
+      const audioContext = audioManager.getAudioContext();
+      const audioBufferSourceNode = audioContext.createBufferSource();
+      audioBufferSourceNode.buffer = this.player.voicePack.audioBuffer;
+
+      // control mouth movement with audio volume
+      if (!this.player.avatar.isAudioEnabled()) {
+        this.player.avatar.setAudioEnabled(true);
+      }
+      audioBufferSourceNode.connect(this.player.avatar.getAudioInput());
+
+      // if the oldGrunt are still playing
+      if(this.oldGrunt){
+        this.oldGrunt.stop();
+        this.oldGrunt = null;
+      }
+
+      this.oldGrunt=audioBufferSourceNode;
+      // clean the oldGrunt if voice end
+      audioBufferSourceNode.addEventListener('ended', () => {
+        if (this.oldGrunt === audioBufferSourceNode) {
+          this.oldGrunt = null;
+        }
+      });
+
+      audioBufferSourceNode.start(0, offset, duration);
+    }
   }
   destroy() {
-    // nothing
+    this.cleanup && this.cleanup();
   }
 }
 

@@ -9,14 +9,16 @@ import ioManager from '../io-manager.js'
 
 import { Character } from './components/general/character';
 import { CharacterSelect } from './components/general/character-select';
-import { Inventory } from './components/general/inventory';
+import { Equipment } from './components/general/equipment';
 import { Tokens } from './tabs/tokens';
 import { registerIoEventHandler, unregisterIoEventHandler } from './components/general/io-handler';
 import { AppContext } from './components/app';
 import { AvatarIcon } from './AvatarIcon';
+import { StoryTime } from './StoryTime';
 import { User } from './User';
 
 import styles from './Header.module.css';
+import { UIMode } from './components/general/ui-mode/index.jsx';
 
 //
 
@@ -153,11 +155,15 @@ export default function Header() {
 
                 case 9: { // tab
 
-                    setState({ openedPanel: ( state.openedPanel === 'CharacterPanel' ? null : 'CharacterPanel' ) });
+                    if ( !event.repeat ) {
 
-                    if ( state.openedPanel === 'CharacterPanel' && ! cameraManager.pointerLockElement ) {
+                        setState({ openedPanel: ( state.openedPanel === 'CharacterPanel' ? null : 'CharacterPanel' ) });
 
-                        cameraManager.requestPointerLock();
+                        if ( state.openedPanel === 'CharacterPanel' && ! cameraManager.pointerLockElement ) {
+
+                            cameraManager.requestPointerLock();
+
+                        }
 
                     }
 
@@ -166,8 +172,6 @@ export default function Header() {
                 }
 
             }
-
-            return false;
 
         };
 
@@ -259,13 +263,18 @@ export default function Header() {
               localPlayer={localPlayer}
               npcs={npcs}
             />
+            <StoryTime />
             {/* <div className={styles.inner}> */}
-                <AvatarIcon />
-                <User
-                    address={address}
-                    setAddress={setAddress}
-                    setLoginFrom={setLoginFrom}
-                />
+                <UIMode hideDirection='left' >
+                    <AvatarIcon />
+                </UIMode>
+                <UIMode hideDirection='right' >
+                    <User
+                        address={address}
+                        setAddress={setAddress}
+                        setLoginFrom={setLoginFrom}
+                    />
+                </UIMode>
                 <div className={styles.tabs}>
                     <Character
                         panelsRef={panelsRef}
@@ -276,15 +285,15 @@ export default function Header() {
                     <CharacterSelect
                         
                     />
-                    <Inventory
-                    
-                    />
+                    <Equipment />
                     {/* <Claims
                         open={ claimsOpen }
                         toggleOpen={ toggleClaimsOpen }
                         claims={claims}
                         panelsRef={panelsRef}
                     /> */}
+                </div>
+                <div className={styles.panels}>
                     <Tokens
                         nfts={nfts}
                         hacks={hacks}

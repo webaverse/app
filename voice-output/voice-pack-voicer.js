@@ -1,7 +1,7 @@
 /* this is the fake speech synthesis module.
 it is responsible for playing Banjo-Kazooie style character speech. */
 
-import Avatar from '../avatars/avatars.js';
+import audioManager from '../audio-manager.js';
 import {loadAudioBuffer, makePromise, selectVoice} from '../util.js';
 import {chatTextSpeed} from '../constants.js';
 
@@ -10,8 +10,17 @@ class VoicePack {
   constructor(files, audioBuffer) {
     this.syllableFiles = files.filter(({name}) => /\/[0-9]+\.wav$/.test(name));
     this.actionFiles = files.filter(({name}) => /^actions\//.test(name));
+    this.emoteFiles = files.filter(({name}) => /^emotes\//.test(name));
     this.audioBuffer = audioBuffer;
     this.actionVoices = this.actionFiles.map(({name, offset, duration}) => {
+      return {
+        name,
+        offset,
+        duration,
+        nonce: 0,
+      };
+    });
+    this.emoteVoices = this.emoteFiles.map(({name, offset, duration}) => {
       return {
         name,
         offset,
@@ -24,7 +33,7 @@ class VoicePack {
     audioUrl,
     indexUrl,
   }) {
-    const audioContext = Avatar.getAudioContext();
+    const audioContext = audioManager.getAudioContext();
     const [
       files,
       audioBuffer,
@@ -92,7 +101,7 @@ class VoicePackVoicer {
     const _recurse = async () => {
       const {offset, duration} = selectVoice(this.voices);
 
-      const audioContext = Avatar.getAudioContext();
+      const audioContext = audioManager.getAudioContext();
       const audioBufferSourceNode = audioContext.createBufferSource();
       audioBufferSourceNode.buffer = this.audioBuffer;
       audioBufferSourceNode.connect(this.player.avatar.getAudioInput());

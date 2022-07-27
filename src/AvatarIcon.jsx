@@ -11,9 +11,11 @@ import {
 } from '../player-stats.js';
 
 import styles from './AvatarIcon.module.css';
-import { localPlayer } from '../players.js';
+import {PlaceholderImg} from './PlaceholderImg.jsx';
+import { getLocalPlayer } from '../players.js';
 import { AvatarIconer } from '../avatar-iconer.js';
 import cameraManager from '../camera-manager.js'
+import * as sounds from '../sounds.js'
 
 const characterIconSize = 100;
 const pixelRatio = window.devicePixelRatio;
@@ -25,6 +27,7 @@ const CharacterIcon = () => {
   useEffect(() => {
     const canvas = canvasRef.current;
     if (canvas) {
+      const localPlayer = getLocalPlayer();
       const avatarIconer = new AvatarIconer(localPlayer, {
         width: characterIconSize * pixelRatio,
         height: characterIconSize * pixelRatio,
@@ -49,13 +52,18 @@ const CharacterIcon = () => {
         avatarIconer.removeEventListener('enabledchange', enabledchange);
       };
     }
-  }, [canvasRef.current]);
+  }, [canvasRef]);
 
   return (
-      <div className={classnames(
-        styles.characterIcon,
-        loaded ? styles.loaded : null,
-      )}>
+      <div
+        className={classnames(
+          styles.characterIcon,
+          loaded ? styles.loaded : null,
+        )}
+        onMouseEnter={e => {
+          sounds.playSoundName('menuClick');
+        }}
+      >
           <div className={styles.main}>
               <canvas
                 className={styles.canvas}
@@ -63,7 +71,7 @@ const CharacterIcon = () => {
                 height={characterIconSize * pixelRatio}
                 ref={canvasRef}
               />
-              <img className={styles.placeholderImg} src="./images/arc.svg" />
+              <PlaceholderImg className={styles.placeholderImg} />
               <div className={styles.meta}>
                   <div className={styles.text}>
                       <div className={styles.background} />
@@ -101,7 +109,7 @@ const CharacterIcon = () => {
   );
 };
 
-export const AvatarIcon = () => {
+export const AvatarIcon = ({ className }) => {
     const { state, setState } = useContext( AppContext );
 
     const handleCharacterBtnClick = () => {
@@ -118,7 +126,7 @@ export const AvatarIcon = () => {
 
     return (
         <div
-            className={styles.avatarIcon}
+            className={ classnames( className, styles.avatarIcon ) }
             onClick={handleCharacterBtnClick}
         >
             {/* <a href="/" className={styles.logo}>

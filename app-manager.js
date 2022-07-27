@@ -26,6 +26,9 @@ const localData = {
 const localFrameOpts = {
   data: localData,
 };
+const frameEvent = new MessageEvent('frame', localFrameOpts);
+
+const physicsScene = physicsManager.getScene();
 
 const appManagers = [];
 class AppManager extends EventTarget {
@@ -36,6 +39,8 @@ class AppManager extends EventTarget {
     
     this.appsArray = null;
     this.apps = [];
+
+    this.transform = new Float32Array(10);
     
     this.pendingAddPromises = new Map();
     // this.pushingLocalUpdates = false;
@@ -51,7 +56,7 @@ class AppManager extends EventTarget {
     localData.timestamp = timestamp;
     localData.frame = frame;
     localData.timeDiff = timeDiff;
-    this.dispatchEvent(new MessageEvent('frame', localFrameOpts));
+    this.dispatchEvent(frameEvent);
   }
   /* setPushingLocalUpdates(pushingLocalUpdates) {
     this.pushingLocalUpdates = pushingLocalUpdates;
@@ -176,14 +181,11 @@ class AppManager extends EventTarget {
     // console.log('bind tracked app', trackedApp.get('instanceId'));
     const _observe = (e, origin) => {
       if (origin !== 'push') {
-        if (e.changes.keys.has('position')) {
-          app.position.fromArray(trackedApp.get('position'));
-        }
-        if (e.changes.keys.has('quaternion')) {
-          app.quaternion.fromArray(trackedApp.get('quaternion'));
-        }
-        if (e.changes.keys.has('scale')) {
-          app.scale.fromArray(trackedApp.get('scale'));
+        if (e.changes.keys.has('transform')) {
+          app.position.fromArray(trackedApp.get('transform'));
+          app.quaternion.fromArray(trackedApp.get('transform'), 3);
+          app.scale.fromArray(trackedApp.get('transform'), 7);
+          app.updateMatrixWorld();
         }
       }
     };
@@ -205,9 +207,8 @@ class AppManager extends EventTarget {
   bindEvents() {
     this.addEventListener('trackedappadd', async e => {
       const {trackedApp} = e.data;
-      const trackedAppJson = trackedApp.toJSON();
-      const {instanceId, contentId, position, quaternion, scale, components: componentsString} = trackedAppJson;
-      const components = JSON.parse(componentsString);
+      const trackedAppBinding = trackedApp.toJSON();
+      const {instanceId, contentId, transform, components} = trackedAppBinding;
       
       const p = makePromise();
       p.instanceId = instanceId;
@@ -254,9 +255,9 @@ class AppManager extends EventTarget {
         // setup
         {
           // set pose
-          app.position.fromArray(position);
-          app.quaternion.fromArray(quaternion);
-          app.scale.fromArray(scale);
+          app.position.fromArray(transform);
+          app.quaternion.fromArray(transform, 3);
+          app.scale.fromArray(transform, 7);
           app.updateMatrixWorld();
           app.lastMatrix.copy(app.matrixWorld);
 
@@ -414,19 +415,15 @@ class AppManager extends EventTarget {
   addTrackedAppInternal(
     instanceId,
     contentId,
-    position,
-    quaternion,
-    scale,
+    transform,
     components,
   ) {
     // console.log('add tracked app internal', instanceId, contentId);
     const trackedApp = this.getOrCreateTrackedApp(instanceId);
     trackedApp.set('instanceId', instanceId);
     trackedApp.set('contentId', contentId);
-    trackedApp.set('position', position);
-    trackedApp.set('quaternion', quaternion);
-    trackedApp.set('scale', scale);
-    trackedApp.set('components', JSON.stringify(components));
+    trackedApp.set('transform', transform);
+    trackedApp.set('components', components);
     return trackedApp;
   }
   addTrackedApp(
@@ -439,12 +436,14 @@ class AppManager extends EventTarget {
   ) {
     const self = this;
     this.appsArray.doc.transact(function tx() {
+      const transform = new Float32Array(10);
+      position.toArray(transform);
+      quaternion.toArray(transform, 3);
+      scale.toArray(transform, 7);
       self.addTrackedAppInternal(
         instanceId,
         contentId,
-        position.toArray(),
-        quaternion.toArray(),
-        scale.toArray(),
+        transform,
         components,
       );
     });
@@ -476,7 +475,7 @@ class AppManager extends EventTarget {
     if (removeIndex !== -1) {
       this.appsArray.delete(removeIndex, 1);
     } else {
-      console.warn('invalid remove instance id', {removeInstanceId, appsJson});
+      console.warn('invalid remove instance id', {instanceId, appsJson});
       debugger;
     }
   }
@@ -533,54 +532,60 @@ class AppManager extends EventTarget {
     // srcAppManager.setBlindStateMode(true);
     // dstAppManager.setBlindStateMode(true);
     
-    if (srcAppManager.appsArray.doc === dstAppManager.appsArray.doc) {
-      this.unbindTrackedApp(instanceId);
-      
-      let dstTrackedApp = null;
-      srcAppManager.appsArray.doc.transact(() => {
-        const srcTrackedApp = srcAppManager.getTrackedApp(instanceId);
-        const contentId = srcTrackedApp.get('contentId');
-        const position = srcTrackedApp.get('position');
-        const quaternion = srcTrackedApp.get('quaternion');
-        const scale = srcTrackedApp.get('scale');
-        const components = srcTrackedApp.get('components');
-        
-        srcAppManager.removeTrackedAppInternal(instanceId);
-        
-        dstTrackedApp = dstAppManager.addTrackedAppInternal(
-          instanceId,
-          contentId,
-          position,
-          quaternion,
-          scale,
-          components,
-        );
+    this.unbindTrackedApp(instanceId);
+    
+    let dstTrackedApp = null;
+
+    const wrapTxFn = (srcAppManager.appsArray.doc === dstAppManager.appsArray.doc) ?
+      innerFn => srcAppManager.appsArray.doc.transact(innerFn)
+    :
+      innerFn => dstAppManager.appsArray.doc.transact(() => {
+        srcAppManager.appsArray.doc.transact(innerFn);
       });
+    wrapTxFn(() => {
+      const srcTrackedApp = srcAppManager.getTrackedApp(instanceId);
+      /* if (!srcTrackedApp) {
+        console.log('transplant app', {app, srcTrackedApp});
+        debugger;
+      } */
+      const contentId = srcTrackedApp.get('contentId');
+      const transform = srcTrackedApp.get('transform');
+      const components = srcTrackedApp.get('components');
       
-      dstAppManager.bindTrackedApp(dstTrackedApp, app);
-    } else {
+      srcAppManager.removeTrackedAppInternal(instanceId);
+      
+      dstTrackedApp = dstAppManager.addTrackedAppInternal(
+        instanceId,
+        contentId,
+        transform,
+        components,
+      );
+    });
+    
+    dstAppManager.bindTrackedApp(dstTrackedApp, app);
+    /* } else {
       throw new Error('cannot transplant apps between app manager with different state binding');
-    }
+    } */
     
     // srcAppManager.setBlindStateMode(false);
     // dstAppManager.setBlindStateMode(false);
   }
   importApp(app) {
     let dstTrackedApp = null;
+    const self = this;
     this.appsArray.doc.transact(() => {
       const contentId = app.contentId;
       const instanceId = app.instanceId;
-      const position = app.position.toArray();
-      const quaternion = app.quaternion.toArray();
-      const scale = app.scale.toArray();
       const components = app.components.slice();
+      const transform = new Float32Array(10);
+      app.position.toArray(transform);
+      app.quaternion.toArray(transform, 3);
+      app.scale.toArray(transform, 7);
       
-      dstTrackedApp = this.addTrackedAppInternal(
+      dstTrackedApp = self.addTrackedAppInternal(
         instanceId,
         contentId,
-        position,
-        quaternion,
-        scale,
+        transform,
         components,
       );
 
@@ -609,10 +614,11 @@ class AppManager extends EventTarget {
           const trackedApp = this.getTrackedApp(app.instanceId);
           if (trackedApp) {
             app.matrixWorld.decompose(localVector, localQuaternion, localVector2);
-
-            trackedApp.set('position', localVector.toArray());
-            trackedApp.set('quaternion', localQuaternion.toArray());
-            trackedApp.set('scale', localVector2.toArray());
+        
+            localVector.toArray(this.transform);
+            localQuaternion.toArray(this.transform, 3);
+            localVector2.toArray(this.transform, 7);
+            trackedApp.set('transform', this.transform);
 
             app.updateMatrixWorld();
           }
@@ -636,8 +642,8 @@ class AppManager extends EventTarget {
                   child.updateMatrixWorld();
                 }
 
-                physicsManager.setTransform(physicsObject);
-                physicsManager.getBoundingBoxForPhysicsId(physicsObject.physicsId, physicsObject.physicsMesh.geometry.boundingBox);
+                physicsScene.setTransform(physicsObject);
+                physicsScene.getBoundingBoxForPhysicsId(physicsObject.physicsId, physicsObject.physicsMesh.geometry.boundingBox);
               }
             }
           }
@@ -653,15 +659,10 @@ class AppManager extends EventTarget {
 
     // iterate over appsArray
     for (const trackedApp of this.appsArray) {
-      const position = trackedApp.get('position');
-      const quaternion = trackedApp.get('quaternion');
-      const scale = trackedApp.get('scale');
-      const componentsString = trackedApp.get('components');
-      const components = jsonParse(componentsString) ?? [];
+      const transform = trackedApp.get('transform');
+      const components = trackedApp.get('components') ?? [];
       const object = {
-        position,
-        quaternion,
-        scale,
+        transform,
         components,
       };
       // console.log('got app object', object);
@@ -694,6 +695,8 @@ class AppManager extends EventTarget {
       } else {
         throw new Error('double destroy of app manager');
       }
+    } else {
+      throw new Error('destroy of bound app manager');
     }
   }
 }

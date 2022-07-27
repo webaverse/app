@@ -1,0 +1,55 @@
+{
+  "objects": [
+    {
+      "type": "application/spawnpoint",
+      "content": {
+        "position": [-85.7,108,40],
+        "quaternion": [0, 0.0,0, 0.0]
+      }
+    },
+    {
+      "type": "application/light",
+      "content": {
+        "lightType": "ambient",
+        "args": [[255, 255, 255], 0.5]
+      }
+    },
+    {
+      "type": "application/light",
+      "content": {
+        "lightType": "directional",
+        "args": [[255, 255, 255], 2],
+        "position": [1, 100, 3],
+        "shadow": [150, 5120, 0.1, 10000, -0.0001]
+      }
+    },
+   
+    {
+      "position": [
+        0,
+        0,
+        0
+      ],
+      "start_url": "https://webaverse.github.io/aurora-sky/"
+    },
+    {
+      "position": [
+        0,
+        0,
+        0
+      ],
+      "physics": true,
+      "start_url": "https://webaverse.github.io/green-hill/",
+      "dynamic": false
+    },
+    {
+      "position": [
+        0,
+        0,
+        0
+      ],
+      "start_url": "https://webaverse.github.io/dynamic-water/"
+    }
+    
+  ]
+}

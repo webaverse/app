@@ -113,9 +113,7 @@ const makeHitTracker = ({
       if (died) {
         triggerDamageAnimation(collisionId);
         
-        const soundFiles = sounds.getSoundFiles();
-        const enemyDeathSound = soundFiles.enemyDeath[Math.floor(Math.random() * soundFiles.enemyDeath.length)];
-        sounds.playSound(enemyDeathSound);
+        sounds.playSoundName('enemyDeath');
       }
 
       {
@@ -135,7 +133,9 @@ const makeHitTracker = ({
         scene.add(damageMeshApp);
       }
 
-      hitTracker.dispatchEvent({
+      sounds.playSoundName('enemyCut');
+
+      const hitEvent = {
         type: 'hit',
         collisionId,
         hitPosition,
@@ -144,13 +144,17 @@ const makeHitTracker = ({
         // willDie,
         hp: hitTracker.hp,
         totalHp: hitTracker.totalHp,
-      });
+      };
+      // hitTracker.dispatchEvent(hitEvent);
+      currentApp.dispatchEvent(hitEvent);
       if (died) {
-        hitTracker.dispatchEvent({
+        const dieEvent = {
           type: 'die',
           // position: cylinderMesh.position,
           // quaternion: cylinderMesh.quaternion,
-        });
+        };
+        // hitTracker.dispatchEvent();
+        currentApp.dispatchEvent(dieEvent);
       }
     }
     return result;

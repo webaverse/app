@@ -46,28 +46,24 @@ class Hup extends EventTarget {
         message,
       },
     }));
-    if (this.parent.player.voicer) {
-      const preloadedMessage = this.parent.player.voicer.preloadMessage(message);
-      await chatManager.waitForVoiceTurn(() => {
-        if (message) {
-          if (this.fullText.length > 0) {
-            this.fullText += '\n';
-          }
-          this.fullText += message;
+    const preloadedMessage = this.parent.player.voicer.preloadMessage(message);
+    await chatManager.waitForVoiceTurn(() => {
+      if (message) {
+        if (this.fullText.length > 0) {
+          this.fullText += '\n';
         }
-        this.emote = emote ?? null;
+        this.fullText += message;
+      }
+      this.emote = emote ?? null;
 
-        this.dispatchEvent(new MessageEvent('voicestart', {
-          data: {
-            message,
-            fullText: this.fullText,
-          },
-        }));
-        return this.parent.player.voicer.start(preloadedMessage);
-      });
-    } else {
-      await Promise.resolve();
-    }
+      this.dispatchEvent(new MessageEvent('voicestart', {
+        data: {
+          message,
+          fullText: this.fullText,
+        },
+      }));
+      return this.parent.player.voicer.start(preloadedMessage);
+    });
     // this.parent.player === metaversefile.useLocalPlayer() && console.log('emit voice end');
     this.dispatchEvent(new MessageEvent('voiceend', {
       data: {

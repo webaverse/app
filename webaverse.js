@@ -17,6 +17,7 @@ import hpManager from './hp-manager.js';
 import {playersManager} from './players-manager.js';
 import minimapManager from './minimap.js';
 import postProcessing from './post-processing.js';
+import particleSystemManager from './particle-system.js';
 import loadoutManager from './loadout-manager.js';
 import questManager from './quest-manager.js';
 import mobManager from './mob-manager.js';
@@ -31,7 +32,6 @@ import {
   bindCanvas,
   getComposer,
 } from './renderer.js';
-import * as audioManager from './audio-manager.js';
 import transformControls from './transform-controls.js';
 import * as metaverseModules from './metaverse-modules.js';
 import dioramaManager from './diorama.js';
@@ -40,7 +40,12 @@ import performanceTracker from './performance-tracker.js';
 import renderSettingsManager from './rendersettings-manager.js';
 import metaversefileApi from 'metaversefile';
 import WebaWallet from './src/components/wallet.js';
-import {OffscreenEngine} from './offscreen-engine.js';
+// import domRenderEngine from './dom-renderer.jsx';
+import musicManager from './music-manager.js';
+import physxWorkerManager from './physx-worker-manager.js';
+import story from './story.js';
+import zTargeting from './z-targeting.js';
+import raycastManager from './raycast-manager.js';
 
 const localVector = new THREE.Vector3();
 const localVector2 = new THREE.Vector3();
@@ -61,9 +66,8 @@ const sessionOpts = {
 
 const frameEvent = new MessageEvent('frame', {
   data: {
-    now: 0,
+    timestamp: 0,
     timeDiff: 0,
-    // lastTimestamp: 0,
   },
 });
 
@@ -71,15 +75,20 @@ export default class Webaverse extends EventTarget {
   constructor() {
     super();
 
+    story.listenHack();
+
     this.loadPromise = (async () => {
       await Promise.all([
         physx.waitForLoad(),
         Avatar.waitForLoad(),
-        audioManager.waitForLoad(),
+        physxWorkerManager.waitForLoad(),
         sounds.waitForLoad(),
+        zTargeting.waitForLoad(),
+        particleSystemManager.waitForLoad(),
         transformControls.waitForLoad(),
         metaverseModules.waitForLoad(),
         voices.waitForLoad(),
+        musicManager.waitForLoad(),
         WebaWallet.waitForLoad(),
       ]);
     })();
@@ -261,9 +270,9 @@ export default class Webaverse extends EventTarget {
     // console.log('frame 1');
 
     const renderer = getRenderer();
-    frameEvent.data.now = timestamp;
+    frameEvent.data.timestamp = timestamp;
     frameEvent.data.timeDiff = timeDiff;
-    this.dispatchEvent(frameEvent);
+    game.dispatchEvent(frameEvent);
 
     getComposer().render();
 
@@ -298,12 +307,15 @@ export default class Webaverse extends EventTarget {
           // this.injectRigInput();
           
           const localPlayer = metaversefileApi.useLocalPlayer();
-          if (this.contentLoaded && physicsManager.getPhysicsEnabled()) {
-            physicsManager.simulatePhysics(timeDiffCapped);
+          const physicsScene = physicsManager.getScene();
+          if (this.contentLoaded && physicsScene.getPhysicsEnabled()) {
+            physicsScene.simulatePhysics(timeDiffCapped);
+            physicsScene.getTriggerEvents();
             localPlayer.updatePhysics(timestamp, timeDiffCapped);
           }
 
           transformControls.update();
+          raycastManager.update(timestamp, timeDiffCapped);
           game.update(timestamp, timeDiffCapped);
           
           localPlayer.updateAvatar(timestamp, timeDiffCapped);
@@ -314,6 +326,7 @@ export default class Webaverse extends EventTarget {
           mobManager.update(timestamp, timeDiffCapped);
           hpManager.update(timestamp, timeDiffCapped);
           questManager.update(timestamp, timeDiffCapped);
+          particleSystemManager.update(timestamp, timeDiffCapped);
 
           cameraManager.updatePost(timestamp, timeDiffCapped);
           ioManager.updatePost();
@@ -528,7 +541,7 @@ const _startHacks = webaverse => {
     }
   }; */
   webaverse.titleCardHack = false;
-  let haloMeshApp = null;
+  // let haloMeshApp = null;
   window.addEventListener('keydown', e => {
     if (e.which === 46) { // .
       emotionIndex = -1;
@@ -554,20 +567,6 @@ const _startHacks = webaverse => {
           titleCardHack: webaverse.titleCardHack,
         }
       }));
-    } else if (e.which === 75) { // K
-      if (!haloMeshApp) {
-        haloMeshApp = metaversefileApi.createApp();
-        (async () => {
-          const {modules} = metaversefileApi.useDefaultModules();
-          const m = modules['halo'];
-          await haloMeshApp.addModule(m);
-        })();
-        scene.add(haloMeshApp);
-      } else {
-        scene.remove(haloMeshApp);
-        haloMeshApp.destroy();
-        haloMeshApp = null;
-      }
     } else {
       const match = e.code.match(/^Numpad([0-9])$/);
       if (match) {

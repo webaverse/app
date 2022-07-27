@@ -1,0 +1,93 @@
+{
+  "objects": [
+{
+      "type": "application/spawnpoint",
+      "content": {
+        "position": [-6.01,7,16.59]
+      }},
+    {
+      "type": "application/light",
+      "content": {
+        "lightType": "ambient",
+        "args": [[155, 155, 255], 0.1]
+      }
+    },
+    {
+      "type": "application/light",
+      "content": {
+        "lightType": "directional",
+        "args": [[155, 155, 255], 2],
+        "position": [0, 0, 3000]
+      }
+    },
+    {
+      "type": "application/light",
+      "content": {
+        "lightType": "directional",
+        "args": [[255, 255, 255], 5],
+        "position": [1, 2, 3],
+        "shadow": [50, 4096, 0.1, 1000, 0, 0.2]
+      }
+    },
+    {
+      "type": "application/light",
+      "content": {
+        "lightType": "directional",
+        "args": [[255, 255, 255], 5],
+        "position": [3, 2, -3],
+        "shadow": [50, 4096, 0.1, 1000, 0, 0.2]
+      }
+    },
+    {
+      "position": [0,0,0],
+      "start_url": "https://webaverse.github.io/aurora-sky/"
+    },
+
+    {
+      "position": [
+        0,
+        0,
+        0
+      ],
+      "scale": [
+        10,
+        10,
+        10
+      ],
+      "physics": true,
+      "start_url": "https://webaverse.github.io/Voxelz/",
+      "dynamic": false
+    },
+   {
+      "position": [
+        43.74,
+        1,
+        31.55
+      ],
+      "scale": [
+        1,
+        1,
+        1
+      ],
+      "physics": true,
+      "start_url": "https://alisaad673.github.io/npc.1/N3D-29-VRM.vrm",
+      "dynamic": false
+    }, 
+   {
+      "position": [
+        45.74,
+        1,
+        31.55
+      ],
+      "scale": [
+        1,
+        1,
+        1
+      ],
+      "physics": true,
+      "start_url": "https://alisaad673.github.io/npc.1/N3D-43-VRM.vrm",
+      "dynamic": false
+    }
+    
+  ]
+}
