@@ -473,8 +473,8 @@ const _grab = object => {
   gameManager.editMode = false;
 };
 
-const hitRadius = 1;
-const hitHeight = 0.2;
+const hitRadius = 2;
+const hitHeight = 2;
 const hitHalfHeight = hitHeight * 0.5;
 const hitboxOffsetDistance = 0.3;
 /* const cylinderMesh = (() => {
@@ -966,19 +966,38 @@ const _gameUpdate = (timestamp, timeDiff) => {
     const useAction = player.getAction('use');
     if (useAction) {
       const _handleSword = () => {
-        localVector.copy(player.position)
-          .add(localVector2.set(0, 0, -hitboxOffsetDistance).applyQuaternion(player.quaternion));
+        if(player.isLocalPlayer) {
+          localVector.copy(player.position)
+            .add(localVector2.set(0, 0, -hitboxOffsetDistance).applyQuaternion(player.quaternion));
 
-          player.characterHitter.attemptHit({
-          type: 'sword',
-          args: {
-            hitRadius,
-            hitHalfHeight,
-            position: localVector,
-            quaternion: player.quaternion,
-          },
-          timestamp,
-        });
+            player.characterHitter.attemptHit({
+            type: 'sword',
+            args: {
+              hitRadius,
+              hitHalfHeight,
+              position: localVector,
+              quaternion: player.quaternion,
+            },
+            timestamp,
+          });
+        } else if(player.isNpcPlayer) {
+          // localVector.copy(player.position)
+          //   .add(localVector2.set(0, 0, -hitboxOffsetDistance).applyQuaternion(player.quaternion));
+          
+          localVector.copy(player.position)
+            .add(localVector2.fromArray(useAction.position).applyQuaternion(player.quaternion.premultiply(localQuaternion.fromArray(useAction.quaternion))));
+
+            player.characterHitter.attemptHit({
+            type: 'sword',
+            args: {
+              hitRadius,
+              hitHalfHeight,
+              position: player.position,
+              quaternion: player.quaternion,
+            },
+            timestamp,
+          });
+        }
       };
 
       switch (useAction.behavior) {
@@ -992,10 +1011,7 @@ const _gameUpdate = (timestamp, timeDiff) => {
       }
     }
   };
-  // const papp = localPlayer.getAvatarApp();
-  // if(papp) {
-  //   console.log(papp.hit);
-  // }
+
   _updateBehavior(localPlayer);
   for(const npc of npcManager.npcs) {
     _updateBehavior(npc);

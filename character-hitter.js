@@ -22,6 +22,20 @@ const hitAttemptEvent = new MessageEvent('hitattempt', {
   data: hitAttemptEventData,
 });
 
+
+// player.characterHitter.attemptHit({
+//   type: 'sword',
+//   args: {
+//     hitRadius,
+//     hitHalfHeight,
+//     position: localVector,
+//     quaternion: player.quaternion,
+//   },
+//   timestamp,
+// });
+
+
+
 export class CharacterHitter {
   constructor(player) {
     this.player = player;
@@ -46,25 +60,34 @@ export class CharacterHitter {
           quaternion,
         } = args;
 
-        const collision = physx.physxWorker.getCollisionObjectPhysics(
+        // if(this.player.isNpcPlayer) {
+        //   physics.disableGeometryQueries(this.player.characterController);
+        // }
+
+        const collision = physx.physxWorker.overlapCapsulePhysics(
           physx.physics,
-          hitRadius,
-          hitHalfHeight,
-          position,
-          quaternion,
+          2,
+          2,
+          this.player.position,
+          this.player.quaternion,
         );
 
-        const playerCollision = physx.physxWorker.collideCapsulePhysics(
-          physx.physics,
-          hitRadius,
-          hitHalfHeight,
-          position,
-          quaternion,
-        );
+        // const playerCollision = physx.physxWorker.collideCapsulePhysics(
+        //   physx.physics,
+        //   hitRadius,
+        //   0.2,
+        //   position,
+        //   quaternion,
+        //   1
+        // );
 
-        if(playerCollision) {
-          console.log(metaversefile.getPairByPhysicsId(playerCollision.objectId));
-        }
+        // if(this.player.isNpcPlayer) {
+        //   physics.enableGeometryQueries(this.player.characterController);
+        // }
+
+        // if(playerCollision) {
+        //   console.log(metaversefile.getPairByPhysicsId(playerCollision.objectId));
+        // }
 
         if (collision) {
           const collisionId = collision.objectId;

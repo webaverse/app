@@ -691,7 +691,7 @@ class StatePlayer extends PlayerBase {
         loadPhysxCharacterController.call(this);
         
         if (this.isLocalPlayer) {
-          physicsManager.disableGeometryQueries(this.characterController);
+          // physicsManager.disableGeometryQueries(this.characterController);
         }
       })();
       
