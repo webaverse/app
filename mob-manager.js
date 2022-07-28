@@ -115,14 +115,16 @@ class Mob {
     const {
       position,
       quaternion,
-      timeOffset
+      timeOffset,
+      updateMobGeometry
     } = spec;
     this.position = position;
     this.quaternion = quaternion;
     this.timeOffset = timeOffset;
+    this.updateMobGeometry = updateMobGeometry;
     this.subApp = null;
 
-    this.name = this.app.name + '@' + this.app.position.toArray().join(',');
+    this.name = this.app.name + '@' + this.position.toArray().join(',');
 
     this.updateFns = [];
     this.cleanupFns = [];
@@ -173,6 +175,7 @@ class Mob {
         quaternion: this.app.quaternion.clone().multiply(this.quaternion),
         scale: this.app.scale,
       });
+      subApp.visible = false;
       if (!live) return;
 
       const rng = this.#getRng();
@@ -212,7 +215,7 @@ class Mob {
         hitTracker.bind(subApp);
         subApp.dispatchEvent({type: 'hittrackeradded'});
         const die = () => {
-          this.app.destroy();
+          this.subApp.destroy();
           _drop();
         };
         subApp.addEventListener('die', die, {once: true});
@@ -324,7 +327,7 @@ class Mob {
           const meshPosition = localVector2;
           const meshQuaternion = localQuaternion;
           const meshScale = localVector3;
-
+          
           const meshPositionY0 = localVector4.copy(meshPosition);
           const characterPositionY0 = localVector5.copy(localPlayer.position)
             .add(localVector6.set(0, localPlayer.avatar ? -localPlayer.avatar.height : 0, 0));
@@ -397,10 +400,12 @@ class Mob {
 
                 mesh.matrixWorld.compose(meshPosition, meshQuaternion, meshScale);
                 mesh.matrix.copy(mesh.matrixWorld);
-                if (app.parent) {
-                  mesh.matrix.premultiply(localMatrix.copy(app.parent.matrixWorld).invert());
+                if (this.app.parent) {
+                  mesh.matrix.premultiply(localMatrix.copy(this.app.parent.matrixWorld).invert());
                 }
                 mesh.matrix.decompose(mesh.position, mesh.quaternion, mesh.scale);
+
+                this.updateMobGeometry(mesh.position, mesh.quaternion);
               }
             }
           };
@@ -469,8 +474,8 @@ class Mob {
 }
 
 class MobInstance {
-  constructor(mob) {
-    this.mob = mob;
+  constructor() {
+    this.mob = null;
   }
 }
 
@@ -990,7 +995,7 @@ gl_Position = projectionMatrix * mvPosition;
     }
     return drawCall;
   }
-  drawChunk(chunk, renderData, tracker, mob) {
+  drawChunk(chunk, renderData, tracker) {
     const mobData = renderData;
 
     if (!renderData.instances) return;
@@ -1038,7 +1043,7 @@ gl_Position = projectionMatrix * mvPosition;
         drawCall.updateTexture('timeOffset', timeOffsetOffset + instanceIndex, 1);
 
 
-        const instance = new MobInstance(mob);
+        const instance = new MobInstance();
         drawCall.instances.push(instance);
 
         // physics
@@ -1108,24 +1113,52 @@ gl_Position = projectionMatrix * mvPosition;
         const px = mobData.ps[i * 3];
         const py = mobData.ps[i * 3 + 1];
         const pz = mobData.ps[i * 3 + 2];
+        const position = new THREE.Vector3(px, py, pz);
 
         const qx = mobData.qs[i * 4];
         const qy = mobData.qs[i * 4 + 1];
         const qz = mobData.qs[i * 4 + 2];
         const qw = mobData.qs[i * 4 + 3];
+        const quaternion = new THREE.Quaternion(qx, qy, qz, qw);
 
         const timeOffset = Math.random();
         mobData.timeOffsets[i] = timeOffset; // this can be generated when ps, qs are filled
 
-        const position = new THREE.Vector3(px, py, pz);
-        const quaternion = new THREE.Quaternion(qx, qy, qz, qw);
-
-        mob = this.addMobApp(this.app, this.appUrls[geometryIndex],
-          {position, quaternion, timeOffset}
-        );
-        
         const drawCall = this.getDrawCall(geometryIndex);
-        const mobInstance = _renderMobGeometry(drawCall, mobData.ps, mobData.qs, timeOffset, i, mob);
+        const mobInstance = _renderMobGeometry(drawCall, mobData.ps, mobData.qs, timeOffset, i);
+        
+        const _updateMobGeometry = (position, quaternion) => {
+          const instanceIndex = drawCall.instances.indexOf(mobInstance);
+          if (instanceIndex >= 0) {
+            // locals
+            
+            const pTexture = drawCall.getTexture('p');
+            const pOffset = drawCall.getTextureOffset('p');
+            const qTexture = drawCall.getTexture('q');
+            const qOffset = drawCall.getTextureOffset('q');
+            
+            // update the texture
+            
+            pTexture.image.data[pOffset + instanceIndex * 3] = position.x;
+            pTexture.image.data[pOffset + instanceIndex * 3 + 1] = position.y;
+            pTexture.image.data[pOffset + instanceIndex * 3 + 2] = position.z;
+
+            qTexture.image.data[qOffset + instanceIndex * 4] = quaternion.x;
+            qTexture.image.data[qOffset + instanceIndex * 4 + 1] = quaternion.y;
+            qTexture.image.data[qOffset + instanceIndex * 4 + 2] = quaternion.z;
+            qTexture.image.data[qOffset + instanceIndex * 4 + 3] = quaternion.w;
+
+            
+            drawCall.updateTexture('p', pOffset + instanceIndex * 3, 3);
+            drawCall.updateTexture('q', qOffset + instanceIndex * 4, 4);
+          }
+        }
+
+        const mob = this.addMobApp(this.app, this.appUrls[geometryIndex],
+          {position, quaternion, timeOffset, updateMobGeometry: _updateMobGeometry}
+        );
+        mobInstance.mob = mob;
+
         mobInstances.push(mobInstance);
       }
 
