@@ -14,7 +14,6 @@ import physicsManager from './physics-manager.js';
 import physxWorkerManager from './physx-worker-manager.js';
 import physx from './physx.js';
 import {playersManager} from './players-manager.js';
-import {getLocalPlayer} from './players.js';
 import sceneNames from './scenes/scenes.json';
 import {parseQuery} from './util.js';
 import {world} from './world.js';
@@ -145,7 +144,7 @@ class Universe extends EventTarget {
 
     world.appManager.bindState(appsArray);
 
-    const localPlayer = getLocalPlayer();
+    const localPlayer = playersManager.getLocalPlayer();
     localPlayer.bindState(state.getArray(playersMapName));
   }
 
@@ -157,7 +156,7 @@ class Universe extends EventTarget {
     // Otherwise you will receive allocation errors because the module instance is undefined
     await physx.waitForLoad();
     await physxWorkerManager.waitForLoad();
-    const localPlayer = getLocalPlayer();
+    const localPlayer = playersManager.getLocalPlayer();
 
     state.setResolvePriority(1);
 
