@@ -722,13 +722,22 @@ export const _createAnimation = avatar => {
   physx.physxWorker.addChild(avatar.defaultNodeTwo, avatar.idle8DWalkRun_BowIdle8DDrawLooseNodeTwo);
   physx.physxWorker.addChild(avatar.defaultNodeTwo, avatar.idle8DCrouchNodeTwo);
 
+  avatar.emotesNodeUnitary = avatar.createNode(AnimationNodeType.UNITARY, 'emotesNodeUnitary');
+  for (const k in avatar.emoteMotiono) {
+    const motion = avatar.emoteMotiono[k];
+    physx.physxWorker.addChild(avatar.emotesNodeUnitary, motion);
+  }
+  avatar.emoteNodeTwo = avatar.createNode(AnimationNodeType.TWO, 'emoteNodeTwo');
+  physx.physxWorker.addChild(avatar.emoteNodeTwo, avatar.defaultNodeTwo);
+  physx.physxWorker.addChild(avatar.emoteNodeTwo, avatar.emotesNodeUnitary);
+
   avatar.dancesNodeUnitary = avatar.createNode(AnimationNodeType.UNITARY, 'dancesNodeUnitary');
   for (const k in avatar.danceMotiono) {
     const motion = avatar.danceMotiono[k];
     physx.physxWorker.addChild(avatar.dancesNodeUnitary, motion);
   }
   avatar.danceNodeTwo = avatar.createNode(AnimationNodeType.TWO, 'danceNodeTwo');
-  physx.physxWorker.addChild(avatar.danceNodeTwo, avatar.defaultNodeTwo);
+  physx.physxWorker.addChild(avatar.danceNodeTwo, avatar.emoteNodeTwo);
   physx.physxWorker.addChild(avatar.danceNodeTwo, avatar.dancesNodeUnitary);
 
   avatar.narutoRunNodeTwo = avatar.createNode(AnimationNodeType.TWO, 'narutoRunNodeTwo');
@@ -755,11 +764,6 @@ export const _createAnimation = avatar => {
   for (const k in avatar.useMotiono) {
     if (['bowIdle', 'bowDraw', 'bowLoose'].includes(k)) continue; // these motions already added to parent at above.
     const motion = avatar.useMotiono[k];
-    physx.physxWorker.addChild(avatar.actionsNodeUnitary, motion);
-  }
-  // emote
-  for (const k in avatar.emoteMotiono) {
-    const motion = avatar.emoteMotiono[k];
     physx.physxWorker.addChild(avatar.actionsNodeUnitary, motion);
   }
   // activate
@@ -905,7 +909,7 @@ export const _updateAnimation = avatar => {
   }
 
   if (avatar.emoteEnd) {
-    physx.physxWorker.crossFadeUnitary(avatar.actionsNodeUnitary, 0.2, avatar.defaultNodeTwo);
+    physx.physxWorker.crossFadeTwo(avatar.emoteNodeTwo, 0.2, 0);
   }
 
   if (avatar.danceEnd) {
@@ -975,8 +979,10 @@ export const _updateAnimation = avatar => {
 
   // emote
   if (avatar.emoteStart) {
-    physx.physxWorker.play(avatar.emoteMotiono[avatar.emoteAnimation || defaultEmoteAnimation]);
-    physx.physxWorker.crossFadeUnitary(avatar.actionsNodeUnitary, 0.2, avatar.emoteMotiono[avatar.emoteAnimation || defaultEmoteAnimation]);
+    const emoteMotion = avatar.emoteMotiono[avatar.emoteAnimation || defaultEmoteAnimation];
+    physx.physxWorker.play(emoteMotion);
+    physx.physxWorker.crossFadeUnitary(avatar.emotesNodeUnitary, 0, emoteMotion);
+    physx.physxWorker.crossFadeTwo(avatar.emoteNodeTwo, 0.2, 1);
   }
 
   // dance
