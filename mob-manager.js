@@ -110,11 +110,16 @@ function makeCharacterController(app, {
 }
 
 class Mob {
-  constructor(app = null, srcUrl = '', position = null, quaternion = null) {
-    console.log('Mob constructor', srcUrl, position, quaternion, app);
+  constructor(app = null, srcUrl = '', spec = {}) {
     this.app = app;
+    const {
+      position,
+      quaternion,
+      timeOffset
+    } = spec;
     this.position = position;
     this.quaternion = quaternion;
+    this.timeOffset = timeOffset;
     this.subApp = null;
 
     this.name = this.app.name + '@' + this.app.position.toArray().join(',');
@@ -163,8 +168,8 @@ class Mob {
       const modelPrerotation = new THREE.Quaternion().fromArray(modelQuaternion);
 
       const subApp = await metaversefile.createAppAsync({
-        start_url: mobUrl,
-        position: this.app.position.clone() +  + this.position,
+        start_url: '',
+        position: this.app.position.clone().add(this.position),
         quaternion: this.app.quaternion.clone().multiply(this.quaternion),
         scale: this.app.scale,
       });
@@ -215,7 +220,7 @@ class Mob {
       _bindHitTracker();
 
       const mesh = subApp;
-      const animations = subApp.glb.animations;
+      //const animations = subApp.glb.animations;
       let  {idleAnimation = ['idle'], aggroDistance, walkSpeed = 1} = mobComponent;
       if (idleAnimation) {
         if (!Array.isArray(idleAnimation)) {
@@ -224,7 +229,6 @@ class Mob {
       } else {
         idleAnimation = [];
       }
-      // console.log('idleAnimation', idleAnimation, subApp, mobComponent);
 
       const characterController = makeCharacterController(subApp, {
         radius,
@@ -256,7 +260,6 @@ class Mob {
           halfHeight,
         } = spec;
         _getPhysicsExtraPositionQuaternion(spec, localVector, localQuaternion, localVector2, localMatrix);
-        console.log('localVector', localVector);
         const physicsObject = physicsScene.addCapsuleGeometry(localVector, localQuaternion, radius, halfHeight);
         physicsObject.spec = spec;
         return physicsObject;
@@ -272,13 +275,13 @@ class Mob {
       });
 
       // rotation hacks
-      {
+      /* {
         mesh.position.y = 0;
         localEuler.setFromQuaternion(mesh.quaternion, 'YXZ');
         localEuler.x = 0;
         localEuler.z = 0;
         mesh.quaternion.setFromEuler(localEuler);
-      }
+      } 
 
       // initialize animation
       const idleAnimationClips = idleAnimation.map(name => animations.find(a => a.name === name)).filter(a => !!a);
@@ -289,17 +292,17 @@ class Mob {
           idleAction.play();
         }
         
-        this.updateFns.push((timestamp, timeDiff) => {
-          const deltaSeconds = timeDiff / 1000;
-          mixer.update(deltaSeconds);
-        });
-      }
+        if (idleActions.length != 0) {
+          this.updateFns.push((timestamp, timeDiff) => {
+            mixer.setTime(timestamp / 1000 + this.timeOffset * idleActions[0].duration);
+          });
+        }
+      } */
 
       // set up frame loop
       let animation = null;
       let velocity = new THREE.Vector3(0, 0, 0);
       this.updateFns.push((timestamp, timeDiff) => {
-        return;
         const localPlayer = getLocalPlayer();
         const timeDiffS = timeDiff / 1000;
 
@@ -459,7 +462,6 @@ class Mob {
     }
   }
   destroy() {
-    console.log('Mob.destroy');
     for (const fn of this.cleanupFns) {
       fn();
     }
@@ -952,6 +954,7 @@ gl_Position = projectionMatrix * mvPosition;
       
       // animations
       let mixer = null;
+      // const idleAnimation = animations.find(a => a.name === 'idle');
       const clip = animations[0];
       //{
         mixer = new THREE.AnimationMixer(rootBone2);
@@ -994,7 +997,7 @@ gl_Position = projectionMatrix * mvPosition;
 
     // mob geometry
     {
-      const _renderMobGeometry = (drawCall, ps, qs, index) => {
+      const _renderMobGeometry = (drawCall, ps, qs, to, index) => {
         // locals
 
         const instanceIndex = drawCall.getInstanceCount();
@@ -1030,8 +1033,7 @@ gl_Position = projectionMatrix * mvPosition;
         drawCall.updateTexture('q', qOffset + instanceIndex * 4, 4);
 
         // time offset
-
-        timeOffsetTexture.image.data[timeOffsetOffset + instanceIndex] = Math.random();
+        timeOffsetTexture.image.data[timeOffsetOffset + instanceIndex] = to;
 
         drawCall.updateTexture('timeOffset', timeOffsetOffset + instanceIndex, 1);
 
@@ -1097,6 +1099,7 @@ gl_Position = projectionMatrix * mvPosition;
       }
 
       let mobInstances = [];
+      mobData.timeOffsets = [];
       for (let i = 0; i < mobData.instances.length; i++) {
         const geometryNoise = mobData.instances[i];
         // console.log('got noise', geometryNoise);
@@ -1111,14 +1114,18 @@ gl_Position = projectionMatrix * mvPosition;
         const qz = mobData.qs[i * 4 + 2];
         const qw = mobData.qs[i * 4 + 3];
 
+        const timeOffset = Math.random();
+        mobData.timeOffsets[i] = timeOffset; // this can be generated when ps, qs are filled
+
         const position = new THREE.Vector3(px, py, pz);
         const quaternion = new THREE.Quaternion(qx, qy, qz, qw);
 
-        mob = this.addMobApp(this.app, this.appUrls[geometryIndex], position, quaternion);
+        mob = this.addMobApp(this.app, this.appUrls[geometryIndex],
+          {position, quaternion, timeOffset}
+        );
         
         const drawCall = this.getDrawCall(geometryIndex);
-        const mobInstance = _renderMobGeometry(drawCall, mobData.ps, mobData.qs, i, mob);
-
+        const mobInstance = _renderMobGeometry(drawCall, mobData.ps, mobData.qs, timeOffset, i, mob);
         mobInstances.push(mobInstance);
       }
 
@@ -1135,7 +1142,6 @@ gl_Position = projectionMatrix * mvPosition;
 
             this.removeMobApp(mobInstance.mob.subApp);
             _unrenderMobGeometry(drawCall, mobInstance);
-            //
           }
 
           tracker.offChunkRemove(chunk, onchunkremove);
@@ -1164,7 +1170,7 @@ gl_Position = projectionMatrix * mvPosition;
     results = results.flat();
     return results;
   }
-  addMobApp(app, srcUrl, position, quaternion) {
+  addMobApp(app, srcUrl, spec) {
     /*if (app.appType !== 'mob') {
       console.warn('not a mob app', app);
       throw new Error('only mob apps can be mobs');
@@ -1174,7 +1180,7 @@ gl_Position = projectionMatrix * mvPosition;
       throw new Error('srcUrl is required');
     }
 
-    const mob = new Mob(app, srcUrl, position, quaternion);
+    const mob = new Mob(app, srcUrl, spec);
     this.mobs.push(mob);
     return mob;
   }
@@ -1386,7 +1392,6 @@ class MobManager {
     }
     results = results.flat();
     return results;
-    // console.log('land getPhysicsObjects', app, subApps, result);
   }
   getMobs() {
     let results = [];
