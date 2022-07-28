@@ -735,9 +735,12 @@ export const _createAnimation = avatar => {
   physx.physxWorker.addChild(avatar.sitNodeTwo, avatar.jumpNodeTwo);
   physx.physxWorker.addChild(avatar.sitNodeTwo, avatar.sitsNodeUnitary);
 
+  avatar.narutoRunNodeTwo = avatar.createNode(AnimationNodeType.TWO, 'narutoRunNodeTwo');
+  physx.physxWorker.addChild(avatar.narutoRunNodeTwo, avatar.defaultNodeTwo);
+  physx.physxWorker.addChild(avatar.narutoRunNodeTwo, avatar.narutoRunMotion);
+
   avatar.actionsNodeUnitary = avatar.createNode(AnimationNodeType.UNITARY, 'actionsNodeUnitary');
   physx.physxWorker.addChild(avatar.actionsNodeUnitary, avatar.defaultNodeTwo);
-  physx.physxWorker.addChild(avatar.actionsNodeUnitary, avatar.narutoRunMotion);
 
   // use
   for (const k in avatar.useMotiono) {
@@ -783,7 +786,7 @@ export const _createAnimation = avatar => {
   //
 
   // physx.physxWorker.setRootNode(avatar.mixer, avatar.groundFlyNodeTwo);
-  physx.physxWorker.setRootNode(avatar.mixer, avatar.sitNodeTwo);
+  physx.physxWorker.setRootNode(avatar.mixer, avatar.narutoRunNodeTwo);
   // test ------
   // physx.physxWorker.setRootNode(avatar.mixer, avatar.useMotiono.bowDraw);
   // physx.physxWorker.setRootNode(avatar.mixer, avatar.bowDrawLooseNodoeTwo);
@@ -870,7 +873,9 @@ export const _updateAnimation = avatar => {
     // }
   }
 
-  if (avatar.narutoRunEnd) physx.physxWorker.crossFadeUnitary(avatar.actionsNodeUnitary, 0.2, avatar.defaultNodeTwo);
+  if (avatar.narutoRunEnd) {
+    physx.physxWorker.crossFadeTwo(avatar.narutoRunNodeTwo, 0.2, 0);
+  }
 
   if (avatar.activateEnd) {
     physx.physxWorker.crossFadeUnitary(avatar.actionsNodeUnitary, 0.2, avatar.defaultNodeTwo);
@@ -919,7 +924,9 @@ export const _updateAnimation = avatar => {
     physx.physxWorker.crossFadeTwo(avatar.jumpNodeTwo, 0.2, 1);
   }
 
-  if (avatar.narutoRunStart) physx.physxWorker.crossFadeUnitary(avatar.actionsNodeUnitary, 0.2, avatar.narutoRunMotion);
+  if (avatar.narutoRunStart) {
+    physx.physxWorker.crossFadeTwo(avatar.narutoRunNodeTwo, 0.2, 1);
+  }
 
   // sword
   if (avatar.useStart) {
