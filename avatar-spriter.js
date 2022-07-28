@@ -1680,8 +1680,7 @@ export const renderSpriteImages = skinnedVrm => {
 
   return spriteImages;
 };
-export const createSpriteAvatarMesh = skinnedVrm => {
-  const spriteImages = renderSpriteImages(skinnedVrm);
+export const createSpriteAvatarMeshFromTextures = spriteImages => {
   const spriteTextures = spriteImages.map(img => {
     const t = new THREE.Texture(img);
     t.needsUpdate = true;
@@ -1689,4 +1688,8 @@ export const createSpriteAvatarMesh = skinnedVrm => {
   });
   const spriteAvatarMesh = new SpriteAvatarMesh(spriteTextures);
   return spriteAvatarMesh;
+};
+export const createSpriteAvatarMesh = skinnedVrm => {
+  const spriteImages = renderSpriteImages(skinnedVrm);
+  return createSpriteAvatarMeshFromTextures(spriteImages);
 };

@@ -1,10 +1,10 @@
 import * as THREE from 'three';
-
 import {getMergeableObjects, mergeGeometryTextureAtlas} from './geometry-texture-atlas.js';
+import exporters from './exporters.js';
 
 const defaultTextureSize = 4096;
 
-export const crunchAvatarModel = (model, options = {}) => {
+export const crunchAvatarModel = async (model, options = {}) => {
   const textureSize = options.textureSize ?? defaultTextureSize;
 
   const textureTypes = [
@@ -22,10 +22,10 @@ export const crunchAvatarModel = (model, options = {}) => {
     morphTargetInfluencesArray,
   } = mergeable;
   const {
-    atlas,
-    atlasImages,
-    attributeLayouts,
-    morphAttributeLayouts,
+    // atlas,
+    // atlasImages,
+    // attributeLayouts,
+    // morphAttributeLayouts,
     geometry,
     atlasTextures,
   } = mergeGeometryTextureAtlas(mergeable, textureSize);
@@ -46,5 +46,15 @@ export const crunchAvatarModel = (model, options = {}) => {
   crunchedModel.morphTargetDictionary = morphTargetDictionaryArray[0];
   crunchedModel.morphTargetInfluences = morphTargetInfluencesArray[0];
   crunchedModel.frustumCulled = false;
-  return crunchedModel;
+
+  const glbData = await new Promise((accept, reject) => {
+    const {gltfExporter} = exporters;
+    gltfExporter.parse(crunchedModel, function onCompleted(arrayBuffer) {
+      accept(arrayBuffer);
+    }, function onError(error) {
+      reject(error);
+    }
+  );
+  });
+  return glbData;
 };

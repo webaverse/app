@@ -2,6 +2,7 @@ import * as THREE from 'three';
 import {MaxRectsPacker} from 'maxrects-packer';
 import {getRenderer} from './renderer.js';
 import {modUv} from './util.js';
+import exporters from './exporters.js';
 
 const defaultTextureSize = 4096;
 const startAtlasSize = 512;
@@ -48,6 +49,24 @@ const getObjectKeyDefault = (type, object, material) => {
     renderer.getProgramCacheKey(object, material),
   ].join(',');
 };
+export const getSkeletons = (object) => {
+  const skeletons = [];
+  object.traverse((o) => {
+    if (o.isSkeleton) {
+      skeletons.push(o);
+    }
+  });
+  return skeletons;
+};
+export const getBones = (object) => {
+  const bones = [];
+  object.traverse((o) => {
+    if (o.isBone) {
+      bones.push(o);
+    }
+  });
+  return bones;
+}
 export const getMergeableObjects = (model, getObjectKey = getObjectKeyDefault) => {
   const mergeables = new Map();
   model.traverse(o => {
@@ -107,15 +126,15 @@ export const getMergeableObjects = (model, getObjectKey = getObjectKeyDefault) =
 
 export const mergeGeometryTextureAtlas = (mergeable, textureSize) => {
   const {
-    type,
-    material,
+    // type,
+    // material,
     geometries,
     maps,
     emissiveMaps,
     normalMaps,
-    skeletons,
-    morphTargetDictionaryArray,
-    morphTargetInfluencesArray,
+    // skeletons,
+    // morphTargetDictionaryArray,
+    // morphTargetInfluencesArray,
   } = mergeable;
 
   // compute texture sizes
@@ -297,14 +316,18 @@ export const mergeGeometryTextureAtlas = (mergeable, textureSize) => {
   const attributeLayouts = _makeAttributeLayoutsFromGeometries(geometries);
 
   const _makeMorphAttributeLayoutsFromGeometries = geometries => {
+    console.log('got geomtries', geometries);
+    
     // create morph layouts
     const morphAttributeLayouts = [];
     for (const g of geometries) {
       const morphAttributes = g.morphAttributes;
+      // console.log('got keys', Object.keys(morphAttributes));
       for (const morphAttributeName in morphAttributes) {
         const morphAttribute = morphAttributes[morphAttributeName];
         let morphLayout = morphAttributeLayouts.find(l => l.name === morphAttributeName);
         if (!morphLayout) {
+          // console.log('missing morph layout', morphAttributeName, morphAttribute);
           morphLayout = new MorphAttributeLayout(
             morphAttributeName,
             morphAttribute[0].array.constructor,
@@ -317,6 +340,11 @@ export const mergeGeometryTextureAtlas = (mergeable, textureSize) => {
         morphLayout.count += morphAttribute[0].count * morphAttribute[0].itemSize;
       }
     }
+
+    /* for (const g of geometries) {
+      morphLayout.count += morphAttribute[0].count * morphAttribute[0].itemSize;
+    } */
+
     return morphAttributeLayouts;
   };
   const morphAttributeLayouts = _makeMorphAttributeLayoutsFromGeometries(geometries);
@@ -328,6 +356,9 @@ export const mergeGeometryTextureAtlas = (mergeable, textureSize) => {
         let gAttribute = g.attributes[layout.name];
         if (!gAttribute) {
           if (layout.name === 'skinIndex' || layout.name === 'skinWeight') {
+            console.log('force layout', layout);
+            debugger;
+            
             gAttribute = layout.makeDefault(g);
             g.setAttribute(layout.name, gAttribute);
 
@@ -343,7 +374,8 @@ export const mergeGeometryTextureAtlas = (mergeable, textureSize) => {
       for (const g of geometries) {
         let morphAttribute = g.morphAttributes[morphLayout.name];
         if (!morphAttribute) {
-          // console.log('missing morph attribute', morphLayout, morphAttribute);
+          console.log('missing morph attribute', morphLayout, morphAttribute);
+          debugger;
 
           morphAttribute = morphLayout.makeDefault(g);
           g.morphAttributes[morphLayout.name] = morphAttribute;
@@ -386,13 +418,34 @@ export const mergeGeometryTextureAtlas = (mergeable, textureSize) => {
         const morphAttribute = new THREE.BufferAttribute(morphData, morphLayout.itemSize);
         morphsArray[i] = morphAttribute;
         let morphDataIndex = 0;
+        
+        /* const geometries2 = geometries.slice();
+        // randomize the order of geometries2
+        for (let j = 0; j < geometries2.length; j++) {
+          const j2 = Math.floor(Math.random() * geometries2.length);
+          const tmp = geometries2[j];
+          geometries2[j] = geometries2[j2];
+          geometries2[j2] = tmp;
+        } */
+        
         for (const g of geometries) {
           let gMorphAttribute = g.morphAttributes[morphLayout.name];
           gMorphAttribute = gMorphAttribute?.[i];
           if (gMorphAttribute) {
             morphData.set(gMorphAttribute.array, morphDataIndex);
+            
+            const nz = morphData.filter(n => n != 0);
+            console.log('case 1', nz.join(','));
+
+            /* for (let i = 0; i < morphData.length; i++) {
+              morphData[i] = Math.random();
+            } */
+            if ((gMorphAttribute.count * gMorphAttribute.itemSize) !== gMorphAttribute.array.length) {
+              debugger;
+            }
             morphDataIndex += gMorphAttribute.count * gMorphAttribute.itemSize;
           } else {
+            console.log('case 2');
             const matchingAttribute = g.attributes[morphLayout.name];
             morphDataIndex += matchingAttribute.count * matchingAttribute.itemSize;
           }
@@ -532,7 +585,13 @@ export const mergeGeometryTextureAtlas = (mergeable, textureSize) => {
   };
 };
 
-export const optimizeAvatarModel = (model, options = {}) => {
+export const optimizeAvatarModel = async (model, options = {}) => {
+  /* if (!model) {
+    debugger;
+  }
+  if (!model.traverse) {
+    debugger;
+  } */
   const textureSize = options.textureSize ?? defaultTextureSize;
 
   const mergeables = getMergeableObjects(model);
@@ -541,19 +600,19 @@ export const optimizeAvatarModel = (model, options = {}) => {
     const {
       type,
       material,
-      geometries,
-      maps,
-      emissiveMaps,
-      normalMaps,
+      // geometries,
+      // maps,
+      // emissiveMaps,
+      // normalMaps,
       skeletons,
       morphTargetDictionaryArray,
       morphTargetInfluencesArray,
     } = mergeable;
     const {
-      atlas,
-      atlasImages,
-      attributeLayouts,
-      morphAttributeLayouts,
+      // atlas,
+      // atlasImages,
+      // attributeLayouts,
+      // morphAttributeLayouts,
       geometry,
       atlasTextures,
     } = mergeGeometryTextureAtlas(mergeable, textureSize);
@@ -606,5 +665,37 @@ export const optimizeAvatarModel = (model, options = {}) => {
   for (const mesh of mergedMeshes) {
     object.add(mesh);
   }
-  return object;
+
+  /* // also need skeletons or else the parse will crash
+  const skeletons = getSkeletons(model);
+  for (const skeleton of skeletons) {
+    object.add(skeleton);
+  } */
+
+  // same as above, but for bones
+  const bones = getBones(model);
+  for (const bone of bones) {
+    object.add(bone);
+  }
+  // console.log('got bones', model, bones);
+
+  const glbData = await new Promise((accept, reject) => {
+    const {gltfExporter} = exporters;
+    gltfExporter.parse(
+      object,
+      function onCompleted(arrayBuffer) {
+        accept(arrayBuffer);
+      }, function onError(error) {
+        reject(error);
+      },
+      {
+        binary: true,
+        onlyVisible: false,
+        // forceIndices: true,
+        truncateDrawRange: false,
+        includeCustomExtensions: true,
+      },
+    );
+  });
+  return glbData;
 };
