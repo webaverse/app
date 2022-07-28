@@ -726,6 +726,15 @@ export const _createAnimation = avatar => {
   physx.physxWorker.addChild(avatar.jumpNodeTwo, avatar.defaultNodeTwo);
   physx.physxWorker.addChild(avatar.jumpNodeTwo, avatar.jumpMotion);
 
+  avatar.sitsNodeUnitary = avatar.createNode(AnimationNodeType.TWO, 'sitsNodeUnitary');
+  for (const k in avatar.sitMotiono) {
+    const motion = avatar.sitMotiono[k];
+    physx.physxWorker.addChild(avatar.sitsNodeUnitary, motion);
+  }
+  avatar.sitNodeTwo = avatar.createNode(AnimationNodeType.TWO, 'sitNodeTwo');
+  physx.physxWorker.addChild(avatar.sitNodeTwo, avatar.jumpNodeTwo);
+  physx.physxWorker.addChild(avatar.sitNodeTwo, avatar.sitsNodeUnitary);
+
   avatar.actionsNodeUnitary = avatar.createNode(AnimationNodeType.UNITARY, 'actionsNodeUnitary');
   physx.physxWorker.addChild(avatar.actionsNodeUnitary, avatar.defaultNodeTwo);
   physx.physxWorker.addChild(avatar.actionsNodeUnitary, avatar.narutoRunMotion);
@@ -734,11 +743,6 @@ export const _createAnimation = avatar => {
   for (const k in avatar.useMotiono) {
     if (['bowIdle', 'bowDraw', 'bowLoose'].includes(k)) continue; // these motions already added to parent at above.
     const motion = avatar.useMotiono[k];
-    physx.physxWorker.addChild(avatar.actionsNodeUnitary, motion);
-  }
-  // sit
-  for (const k in avatar.sitMotiono) {
-    const motion = avatar.sitMotiono[k];
     physx.physxWorker.addChild(avatar.actionsNodeUnitary, motion);
   }
   // emote
@@ -779,7 +783,7 @@ export const _createAnimation = avatar => {
   //
 
   // physx.physxWorker.setRootNode(avatar.mixer, avatar.groundFlyNodeTwo);
-  physx.physxWorker.setRootNode(avatar.mixer, avatar.jumpNodeTwo);
+  physx.physxWorker.setRootNode(avatar.mixer, avatar.sitNodeTwo);
   // test ------
   // physx.physxWorker.setRootNode(avatar.mixer, avatar.useMotiono.bowDraw);
   // physx.physxWorker.setRootNode(avatar.mixer, avatar.bowDrawLooseNodoeTwo);
@@ -888,7 +892,7 @@ export const _updateAnimation = avatar => {
   }
 
   if (avatar.sitEnd) {
-    physx.physxWorker.crossFadeUnitary(avatar.actionsNodeUnitary, 0.2, avatar.defaultNodeTwo);
+    physx.physxWorker.crossFadeTwo(avatar.sitNodeTwo, 0.2, 0);
   }
 
   if (avatar.emoteEnd) {
@@ -952,8 +956,10 @@ export const _updateAnimation = avatar => {
 
   // sit
   if (avatar.sitStart) {
-    physx.physxWorker.play(avatar.sitMotiono[avatar.sitAnimation || defaultSitAnimation]);
-    physx.physxWorker.crossFadeUnitary(avatar.actionsNodeUnitary, 0.2, avatar.sitMotiono[avatar.sitAnimation || defaultSitAnimation]);
+    const sitMotion = avatar.sitMotiono[avatar.sitAnimation || defaultSitAnimation];
+    physx.physxWorker.play(sitMotion);
+    physx.physxWorker.crossFadeUnitary(avatar.sitsNodeUnitary, 0, sitMotion);
+    physx.physxWorker.crossFadeTwo(avatar.sitNodeTwo, 0.2, 1);
   }
 
   // emote
