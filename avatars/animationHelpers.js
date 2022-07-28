@@ -845,6 +845,8 @@ export const _updateAnimation = avatar => {
   physx.physxWorker.setFactor(avatar.idle8DFlyNodeTwo, avatar.moveFactors.walkRunFactor);
   physx.physxWorker.setFactor(avatar.flyForwardNodeTwo, avatar.flyDashFactor);
 
+  physx.physxWorker.setFactor(avatar.holdNodeFunc, avatar.moveFactors.walkRunFactor * 0.7 + avatar.moveFactors.crouchFactor * (1 - avatar.moveFactors.idleWalkFactor) * 0.5);
+
   // action end event --------------------------------------------
 
   if (avatar.flyEnd) {
