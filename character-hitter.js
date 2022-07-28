@@ -60,41 +60,32 @@ export class CharacterHitter {
           quaternion,
         } = args;
 
-        // if(this.player.isNpcPlayer) {
-        //   physics.disableGeometryQueries(this.player.characterController);
-        // }
+        if(this.player.isNpcPlayer) {
+          physics.disableGeometryQueries(this.player.characterController);
+        }
 
-        const collision = physx.physxWorker.overlapCapsulePhysics(
+        const collision = physx.physxWorker.collideCapsulePhysics(
           physx.physics,
-          2,
-          2,
-          this.player.position,
-          this.player.quaternion,
+          hitRadius,
+          hitHalfHeight,
+          position, //this.player.position,
+          quaternion, //this.player.quaternion,
+          1
         );
 
-        // const playerCollision = physx.physxWorker.collideCapsulePhysics(
-        //   physx.physics,
-        //   hitRadius,
-        //   0.2,
-        //   position,
-        //   quaternion,
-        //   1
-        // );
-
-        // if(this.player.isNpcPlayer) {
-        //   physics.enableGeometryQueries(this.player.characterController);
-        // }
-
-        // if(playerCollision) {
-        //   console.log(metaversefile.getPairByPhysicsId(playerCollision.objectId));
-        // }
+        if(this.player.isNpcPlayer) {
+          physics.enableGeometryQueries(this.player.characterController);
+        }
 
         if (collision) {
           const collisionId = collision.objectId;
+          if(collisionId === window.localPlayer.characterController.physicsId) { // workaround, because metaversefile.getPairByPhysicsId currently doesnt return localPlayer's pair
+            window.localPlayer.characterHitter.getHit(100);
+          }
+
           const result = metaversefile.getPairByPhysicsId(collisionId);
           if (result) {
             const [app, physicsObject] = result;
-            console.log(app.name);
             const timeDiff = timestamp - this.lastHitTime;
             if (timeDiff > 1000) {
               const useAction = this.player.getAction('use');

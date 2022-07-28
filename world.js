@@ -313,8 +313,8 @@ appManager.addEventListener('appadd', e => {
   const app = e.data;
   const bindScene = _getBindSceneForRenderPriority(app.getComponent('renderPriority'));
   bindScene.add(app);
-
-  _bindHitTracker(app);
+console.log('hitTrackers disabled in world.js');
+  // _bindHitTracker(app);
 });
 appManager.addEventListener('trackedappmigrate', async e => {
   const {app, sourceAppManager, destinationAppManager} = e.data;

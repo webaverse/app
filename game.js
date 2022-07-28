@@ -473,8 +473,8 @@ const _grab = object => {
   gameManager.editMode = false;
 };
 
-const hitRadius = 2;
-const hitHeight = 2;
+const hitRadius = 1;
+const hitHeight = 1;
 const hitHalfHeight = hitHeight * 0.5;
 const hitboxOffsetDistance = 0.3;
 /* const cylinderMesh = (() => {
@@ -981,18 +981,18 @@ const _gameUpdate = (timestamp, timeDiff) => {
             timestamp,
           });
         } else if(player.isNpcPlayer) {
-          // localVector.copy(player.position)
-          //   .add(localVector2.set(0, 0, -hitboxOffsetDistance).applyQuaternion(player.quaternion));
-          
           localVector.copy(player.position)
-            .add(localVector2.fromArray(useAction.position).applyQuaternion(player.quaternion.premultiply(localQuaternion.fromArray(useAction.quaternion))));
+            .add(localVector2.set(0, 0, -hitboxOffsetDistance).applyQuaternion(player.quaternion));
+          
+          // localVector.copy(player.position)
+          //   .add(localVector2.fromArray(useAction.position).applyQuaternion(player.quaternion.premultiply(localQuaternion.fromArray(useAction.quaternion))));
 
             player.characterHitter.attemptHit({
             type: 'sword',
             args: {
               hitRadius,
               hitHalfHeight,
-              position: player.position,
+              position: localVector,
               quaternion: player.quaternion,
             },
             timestamp,
