@@ -11,6 +11,7 @@ import fallbackEmotes from "./fallback_emotes.json";
 
 
 let emoteTimeout = null;
+let lastEmotion = null;
 export const triggerEmote = (emoteName, player = null) => {
     const emoteHardName = emoteName.replace(/Soft$/, '');
     const emote = emotes.find(emote => emote.name === emoteHardName);
@@ -23,8 +24,10 @@ export const triggerEmote = (emoteName, player = null) => {
     // clear old emote
     player.removeAction('emote');
     if (emoteTimeout) {
+        setFacePoseValue(lastEmotion, 0);
         clearTimeout(emoteTimeout);
         emoteTimeout = null;
+        lastEmotion = null;
     }
 
     // add new emote
@@ -35,6 +38,7 @@ export const triggerEmote = (emoteName, player = null) => {
     player.addAction(newAction);
 
     setFacePoseValue(emotion, 1);
+    lastEmotion = emotion;
 
     const emoteAnimation = emoteAnimations[emoteHardName];
     const emoteAnimationDuration = emoteAnimation.duration;
