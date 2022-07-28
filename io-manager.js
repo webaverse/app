@@ -262,7 +262,7 @@ const _updateIo = timeDiff => {
       window.domInfo.innerHTML += `<div style="display:;">game.getSpeed() * timeDiff: --- ${window.logNum(game.getSpeed() * timeDiff)}</div>`;
       localPlayer.characterPhysics.applyWasd(
         keysDirection.normalize()
-          .multiplyScalar(game.getSpeed() * timeDiff)
+          .multiplyScalar(game.getSpeed() * (timeDiff / 20))
       );
     }
   }

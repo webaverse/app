@@ -86,7 +86,7 @@ class CharacterPhysics {
       // move character controller
       const minDist = 0;
       localVector3.copy(this.velocity)
-        .multiplyScalar(timeDiffS);
+        // .multiplyScalar(timeDiffS); // ok?: Already multiplied timeDiff with keysDirection in io-manager.js, don't need multiply timeDiffS again here?
 
       const jumpAction = this.player.getAction('jump');
       if (jumpAction?.trigger === 'jump') {
