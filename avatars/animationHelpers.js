@@ -1154,7 +1154,7 @@ export const _applyAnimation = (avatar, now) => {
         const v2 = src2.evaluate(t2);
 
         if (isTop) {
-          if (boneName === 'Left_arm' || boneName === 'Right_arm') {
+          if (boneName === 'Left_arm' /* 8 */ || boneName === 'Right_arm' /* 27 */) {
             dst.fromArray(v2);
           } else {
             if (isArm) {
