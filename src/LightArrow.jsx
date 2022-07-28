@@ -192,6 +192,7 @@ const _downloadArrowImage = async () => {
 
 export const LightArrow = function({
   className,
+  visible = false,
   enabled = true,
   up = false,
   down = false,
@@ -246,14 +247,15 @@ export const LightArrow = function({
     <div
       className={classnames(
         styles.lightArrowContainer,
-        enabled ? styles.enabled : null,
+        enabled ? styles.enabled : styles.enabled,
         up ? styles.up : null,
         down ? styles.down : null,
         className,
       )}
       style={{
-        left: `${x}px`,
-        top: `${y}px`,
+        left: `75%`,
+        top: `50%`,
+        opacity: visible ? 1 : 0,
       }}
       onClick={onClick}
     >
