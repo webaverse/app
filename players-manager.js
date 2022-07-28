@@ -7,8 +7,9 @@ import {RemotePlayer} from './character-controller.js';
 import metaversefileApi from 'metaversefile';
 import {getLocalPlayer} from './players.js';
 
-class PlayersManager {
+class PlayersManager extends EventTarget {
   constructor() {
+    super();
     this.playersArray = null;
     
     this.remotePlayers = new Map();
@@ -73,6 +74,7 @@ class PlayersManager {
             });
             this.remotePlayers.set(playerId, remotePlayer);
             this.remotePlayersByInteger.set(remotePlayer.playerIdInt, remotePlayer);
+            this.dispatchEvent(new MessageEvent('playeradded', { data: { player: remotePlayer } }));
           }
         }
         // console.log('players observe', added, deleted);
@@ -88,6 +90,7 @@ class PlayersManager {
             this.remotePlayers.delete(playerId);
             this.remotePlayersByInteger.delete(remotePlayer.playerIdInt);
             remotePlayer.destroy();
+            this.dispatchEvent(new MessageEvent('playerremoved', { data: { player: remotePlayer } }));
           }
         }
       };
