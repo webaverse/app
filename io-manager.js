@@ -24,7 +24,7 @@ import transformControls from './transform-controls.js';
 import storyManager from './story.js';
 // import domRenderer from './dom-renderer.jsx';
 import raycastManager from './raycast-manager.js';
-import metaversefileApi from './metaversefile-api.js';
+import {useSceneSettingsManager} from "./scenesettings-manager"
 
 // const localVector = new THREE.Vector3();
 // const localVector2 = new THREE.Vector3();
@@ -324,7 +324,7 @@ ioManager.keydown = e => {
     console.log(window.lol2);
   } */
 
-  const sceneSettings = metaversefileApi.useSceneSettings().getSceneSettings();
+  const sceneSettings = useSceneSettingsManager().getSceneSettings();
 
   switch (e.which) {
     case 9: { // tab

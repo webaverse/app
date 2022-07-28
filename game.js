@@ -25,6 +25,7 @@ import npcManager from './npc-manager.js';
 import raycastManager from './raycast-manager.js';
 import zTargeting from './z-targeting.js';
 import Avatar from './avatars/avatars.js';
+import {useSceneSettingsManager} from "./scenesettings-manager"
 
 const localVector = new THREE.Vector3();
 const localVector2 = new THREE.Vector3();
@@ -1394,7 +1395,7 @@ class GameManager extends EventTarget {
         localPlayer.setControlAction({type: 'fallLoop'});
       }
     } else {
-      const sceneSettings = metaversefileApi.useSceneSettings().getSceneSettings();
+      const sceneSettings = useSceneSettingsManager().getSceneSettings();
       if (!sceneSettings.noFly) {
         const flyAction = {
           type: 'fly',
