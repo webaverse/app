@@ -1937,6 +1937,19 @@ class Avatar {
         this.inputs.hmd.quaternion
       );
     }
+
+    const player = window.localPlayer;
+    // const player = window.npcPlayers[0];
+    if (true && player && this === player.avatar) {
+      window.domInfo.innerHTML += `
+        <div style="display:;">actions: --- ${player.getActionsArray().map(n=>n.type)}</div>
+        <div style="display:;">velocity: --- ${window.logVector3(player.characterPhysics.velocity)} of characterPhysics ( correct )</div>
+        <div style="display:;">velocity length: --- ${window.logNum(player.characterPhysics.velocity.length())}</div>
+        <div style="display:;">velocity: --- ${window.logVector3(this.velocity)} of avatar</div>
+        <div style="display:;">velocity length: --- ${window.logNum(this.velocity.length())}</div>
+      `
+    }
+
     _applyAnimation(this, now);
 
     if (this.poseAnimation) {
