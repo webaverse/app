@@ -24,9 +24,7 @@ import {
   // avatarInterpolationNumFrames,
 } from '../constants.js';
 // import {FixedTimeStep} from '../interpolants.js';
-import * as avatarOptimizer from '../avatar-optimizer.js';
-import * as avatarCruncher from '../avatar-cruncher.js';
-import * as avatarSpriter from '../avatar-spriter.js';
+import {AvatarRenderer} from './avatar-renderer.js';
 // import * as sceneCruncher from '../scene-cruncher.js';
 import {
   idleFactorSpeed,
@@ -398,8 +396,6 @@ const _makeDebugMesh = (avatar) => {
 // const testMesh = new THREE.Mesh(g, m);
 // scene.add(testMesh);
 
-
-
 class Avatar {
 	constructor(object, options = {}) {
     if (!object) {
@@ -442,7 +438,17 @@ class Avatar {
       return o;
     })();
 
-    this.model = model;
+    this.model = model; // XXX still needed?
+    this.model.visible = false;
+    
+    {
+      this.renderer = new AvatarRenderer(object);
+      scene.add(this.renderer.scene); // XXX debug
+      this.renderer.scene.updateMatrixWorld();
+      globalThis.avatarRenderer = this.renderer;
+      globalThis.scene = scene;
+    }
+
     this.spriteMegaAvatarMesh = null;
     this.crunchedModel = null;
     this.optimizedModel = null;
@@ -461,10 +467,10 @@ class Avatar {
       flipZ,
       flipY,
       flipLeg,
-      tailBones,
-      armature,
-      armatureQuaternion,
-      armatureMatrixInverse,
+      // tailBones,
+      // armature,
+      // armatureQuaternion,
+      // armatureMatrixInverse,
       // retargetedAnimations,
     } = Avatar.bindAvatar(object);
     this.skinnedMeshes = skinnedMeshes;
@@ -880,7 +886,7 @@ class Avatar {
     this.microphoneWorker = null;
     this.volume = 0;
 
-    this.quality = 4;
+    // this.quality = 4;
 
     this.shoulderTransforms.Start();
     this.legsManager.Start();
@@ -1412,87 +1418,7 @@ class Avatar {
     return localEuler.y;
   }
   async setQuality(quality) {
-    this.quality = quality;
-
-    switch (this.quality) {
-      case 1: {
-        if (!this.spriteAvatarMesh) {
-          const skinnedMesh = await this.object.cloneVrm();
-          this.spriteAvatarMesh = avatarSpriter.createSpriteAvatarMesh(skinnedMesh);
-          this.spriteAvatarMesh.visible = false;
-          this.spriteAvatarMesh.enabled = true; // XXX
-          scene.add(this.spriteAvatarMesh);
-        }
-        break;
-      }
-      case 2: {
-        if (!this.crunchedModel) {
-          this.crunchedModel = avatarCruncher.crunchAvatarModel(this.model);
-          this.crunchedModel.visible = false;
-          this.crunchedModel.enabled = true; // XXX
-          scene.add(this.crunchedModel);
-        }
-        break;
-      }
-      case 3: {
-        if (!this.optimizedModel) {
-          this.optimizedModel = avatarOptimizer.optimizeAvatarModel(this.model);
-          this.optimizedModel.visible = false;
-          this.optimizedModel.enabled = true; // XXX
-          scene.add(this.optimizedModel);
-        }
-        break;
-      }
-      case 3:
-      case 4: {
-        break;
-      }
-      default: {
-        throw new Error('unknown avatar quality: ' + this.quality);
-      }
-    }
-
-    this.#updateVisibility();
-  }
-  #updateVisibility() {
-    this.model.visible = false;
-    if (this.spriteAvatarMesh) {
-      this.spriteAvatarMesh.visible = false;
-    }
-    if (this.crunchedModel) {
-      this.crunchedModel.visible = false;
-    }
-    if (this.optimizedModel) {
-      this.optimizedModel.visible = false;
-    }
-
-    switch (this.quality) {
-      case 1: {
-        if (this.spriteAvatarMesh && this.spriteAvatarMesh.enabled) {
-          this.spriteAvatarMesh.visible = true;
-        }
-        break;
-      }
-      case 2: {
-        if (this.crunchedModel && this.crunchedModel.enabled) {
-          this.crunchedModel.visible = true;
-        }
-        break;
-      }
-      case 3: {
-        if (this.optimizedModel && this.optimizedModel.enabled) {
-          this.optimizedModel.visible = true;
-        }
-        break;
-      }
-      case 4: {
-        this.model.visible = true;
-        break;
-      }
-      default: {
-        throw new Error('unknown avatar quality: ' + this.quality);
-      }
-    }
+    await this.renderer.setQuality(quality);
   }
   lerpShoulderTransforms() {
     if (this.shoulderTransforms.handsEnabled[0]) {

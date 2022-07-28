@@ -160,6 +160,8 @@ export const defaultDioramaSize = 512;
 export const defaultChunkSize = 16;
 export const defaultWorldSeed = 100;
 
+export const defaultAvatarQuality = 3;
+
 export const defaultVoiceEndpoint = `Sweetie Belle`;
 export const defaultVoicePackName = `ShiShi voice pack`;
 

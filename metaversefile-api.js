@@ -453,9 +453,9 @@ metaversefile.setApi({
   useAvatarOptimizer() {
     return avatarOptimizer;
   },
-  useAvatarCruncher() {
+  /* useAvatarCruncher() {
     return avatarCruncher;
-  },
+  }, */
   useAvatarSpriter() {
     return avatarSpriter;
   },
