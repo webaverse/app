@@ -2395,6 +2395,12 @@ const physxWorker = (() => {
       factor,
     )
   }
+  w.setArg = (node, arg) => {
+    Module._setArg(
+      node,
+      arg,
+    )
+  }
   w.getWeight = (node) => {
     return Module._getWeight(
       node,

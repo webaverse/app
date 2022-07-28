@@ -722,13 +722,22 @@ export const _createAnimation = avatar => {
   physx.physxWorker.addChild(avatar.defaultNodeTwo, avatar.idle8DWalkRun_BowIdle8DDrawLooseNodeTwo);
   physx.physxWorker.addChild(avatar.defaultNodeTwo, avatar.idle8DCrouchNodeTwo);
 
+  avatar.holdsNodeUnitary = avatar.createNode(AnimationNodeType.UNITARY, 'holdsNodeUnitary');
+  for (const k in avatar.holdMotiono) {
+    const motion = avatar.holdMotiono[k];
+    physx.physxWorker.addChild(avatar.holdsNodeUnitary, motion);
+  }
+  avatar.holdNodeFunc = avatar.createNode(AnimationNodeType.FUNC, 'holdNodeFunc');
+  physx.physxWorker.addChild(avatar.holdNodeFunc, avatar.defaultNodeTwo);
+  physx.physxWorker.addChild(avatar.holdNodeFunc, avatar.holdsNodeUnitary);
+
   avatar.emotesNodeUnitary = avatar.createNode(AnimationNodeType.UNITARY, 'emotesNodeUnitary');
   for (const k in avatar.emoteMotiono) {
     const motion = avatar.emoteMotiono[k];
     physx.physxWorker.addChild(avatar.emotesNodeUnitary, motion);
   }
   avatar.emoteNodeTwo = avatar.createNode(AnimationNodeType.TWO, 'emoteNodeTwo');
-  physx.physxWorker.addChild(avatar.emoteNodeTwo, avatar.defaultNodeTwo);
+  physx.physxWorker.addChild(avatar.emoteNodeTwo, avatar.holdNodeFunc);
   physx.physxWorker.addChild(avatar.emoteNodeTwo, avatar.emotesNodeUnitary);
 
   avatar.dancesNodeUnitary = avatar.createNode(AnimationNodeType.UNITARY, 'dancesNodeUnitary');
@@ -771,19 +780,6 @@ export const _createAnimation = avatar => {
     const motion = avatar.activateMotiono[k];
     physx.physxWorker.addChild(avatar.actionsNodeUnitary, motion);
   }
-
-  // hold
-  // for (const k in avatar.holdMotiono) {
-  //   const motion = avatar.holdMotiono[k];
-  //   physx.physxWorker.addChild(avatar.actionsNodeUnitary, motion);
-  // }
-  avatar.holdNodeFunc = avatar.createNode(AnimationNodeType.FUNC, 'holdNodeFunc'); // todo: Selectable filters.
-  physx.physxWorker.addChild(avatar.holdNodeFunc, avatar.defaultNodeTwo); // todo: Can add one node to multiple parents? Tested ok for defaultNodeTwo. But should be problematic, weight changed in one place will affect other places.
-  physx.physxWorker.addChild(avatar.holdNodeFunc, avatar.holdMotiono[defaultHoldAnimation]);
-
-  physx.physxWorker.setFactor(avatar.holdNodeFunc, 1);
-
-  physx.physxWorker.addChild(avatar.actionsNodeUnitary, avatar.holdNodeFunc);
 
   //
 
@@ -864,7 +860,7 @@ export const _updateAnimation = avatar => {
   physx.physxWorker.setFactor(avatar.idle8DFlyNodeTwo, avatar.moveFactors.walkRunFactor);
   physx.physxWorker.setFactor(avatar.flyForwardNodeTwo, avatar.flyDashFactor);
 
-  physx.physxWorker.setFactor(avatar.holdNodeFunc, avatar.moveFactors.walkRunFactor * 0.7 + avatar.moveFactors.crouchFactor * (1 - avatar.moveFactors.idleWalkFactor) * 0.5);
+  physx.physxWorker.setArg(avatar.holdNodeFunc, avatar.moveFactors.walkRunFactor * 0.7 + avatar.moveFactors.crouchFactor * (1 - avatar.moveFactors.idleWalkFactor) * 0.5);
 
   // action end event --------------------------------------------
 
@@ -917,7 +913,8 @@ export const _updateAnimation = avatar => {
   }
 
   if (avatar.holdEnd) {
-    physx.physxWorker.crossFadeUnitary(avatar.actionsNodeUnitary, 0.2, avatar.defaultNodeTwo);
+    // physx.physxWorker.crossFadeTwo(avatar.holdNodeFunc, 0.2, 0);
+    physx.physxWorker.setFactor(avatar.holdNodeFunc, 0);
   }
 
   // action start event --------------------------------------------
@@ -995,8 +992,11 @@ export const _updateAnimation = avatar => {
 
   // hold
   if (avatar.holdStart) {
-    // physx.physxWorker.crossFadeUnitary(avatar.actionsNodeUnitary, 0.2, avatar.holdMotiono[avatar.holdAnimation || defaultHoldAnimation]);
-    physx.physxWorker.crossFadeUnitary(avatar.actionsNodeUnitary, 0.2, avatar.holdNodeFunc);
+    const holdMotion = avatar.holdMotiono[avatar.holdAnimation || defaultHoldAnimation];
+    physx.physxWorker.play(holdMotion);
+    physx.physxWorker.crossFadeUnitary(avatar.holdsNodeUnitary, 0, holdMotion);
+    // physx.physxWorker.crossFadeTwo(avatar.holdNodeFunc, 0.2, 1); // todo: crossFade
+    physx.physxWorker.setFactor(avatar.holdNodeFunc, 1);
   }
 
   // activate
