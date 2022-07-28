@@ -213,6 +213,7 @@ export function applyPlayerActionsToAvatar(player, rig) {
   rig.fallLoopFrom = fallLoopAction ? fallLoopAction.from : '';
   // rig.fallLoopAnimation = fallLoopAnimation;
   rig.fallLoopState = !!fallLoopAction;
+  rig.landState = !!landAction;
   // rig.swordSideSlashTime = player.actionInterpolants.swordSideSlash.get();
   // rig.swordSideSlashAnimation = swordSideSlashAnimation;
   // rig.swordSideSlashState = !!swordSideSlash;
