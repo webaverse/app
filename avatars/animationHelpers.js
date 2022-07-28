@@ -759,13 +759,13 @@ export const _createAnimation = avatar => {
   //   const motion = avatar.holdMotiono[k];
   //   physx.physxWorker.addChild(avatar.actionsNodeUnitary, motion);
   // }
-  avatar.holdNodeOverwrite = avatar.createNode(AnimationNodeType.OVERWRITE, 'holdNodeOverwrite'); // todo: Selectable filters.
-  physx.physxWorker.addChild(avatar.holdNodeOverwrite, avatar.defaultNodeTwo); // todo: Can add one node to multiple parents? Tested ok for defaultNodeTwo. But should be problematic, weight changed in one place will affect other places.
-  physx.physxWorker.addChild(avatar.holdNodeOverwrite, avatar.holdMotiono[defaultHoldAnimation]);
+  avatar.holdNodeFunc = avatar.createNode(AnimationNodeType.FUNC, 'holdNodeFunc'); // todo: Selectable filters.
+  physx.physxWorker.addChild(avatar.holdNodeFunc, avatar.defaultNodeTwo); // todo: Can add one node to multiple parents? Tested ok for defaultNodeTwo. But should be problematic, weight changed in one place will affect other places.
+  physx.physxWorker.addChild(avatar.holdNodeFunc, avatar.holdMotiono[defaultHoldAnimation]);
 
-  physx.physxWorker.setFactor(avatar.holdNodeOverwrite, 1);
+  physx.physxWorker.setFactor(avatar.holdNodeFunc, 1);
 
-  physx.physxWorker.addChild(avatar.actionsNodeUnitary, avatar.holdNodeOverwrite);
+  physx.physxWorker.addChild(avatar.actionsNodeUnitary, avatar.holdNodeFunc);
 
   //
 
@@ -963,7 +963,7 @@ export const _updateAnimation = avatar => {
   // hold
   if (avatar.holdStart) {
     // physx.physxWorker.crossFadeUnitary(avatar.actionsNodeUnitary, 0.2, avatar.holdMotiono[avatar.holdAnimation || defaultHoldAnimation]);
-    physx.physxWorker.crossFadeUnitary(avatar.actionsNodeUnitary, 0.2, avatar.holdNodeOverwrite);
+    physx.physxWorker.crossFadeUnitary(avatar.actionsNodeUnitary, 0.2, avatar.holdNodeFunc);
   }
 
   // activate

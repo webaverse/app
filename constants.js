@@ -158,6 +158,7 @@ export const AnimationNodeType = {
   TWO: 2,
   UNITARY: 3,
   OVERWRITE: 4,
+  FUNC: 5,
 };
 
 export const AnimationLoopType = {
