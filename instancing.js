@@ -18,6 +18,7 @@ const localVector3D2 = new THREE.Vector3();
 const localVector3D3 = new THREE.Vector3();
 const currentChunkMin = new THREE.Vector3();
 const currentChunkMax = new THREE.Vector3();
+const cameraViewVector = new THREE.Vector3();
 const localMatrix = new THREE.Matrix4();
 const localSphere = new THREE.Sphere();
 const localBox = new THREE.Box3();
@@ -245,11 +246,25 @@ function deserializeDrawListBuffer(arrayBuffer, bufferAddress){
   // DrawCalls
   const numDrawCalls = dataView.getUint32(index, true);
   index += Uint32Array.BYTES_PER_ELEMENT;
-  const DrawCalls = new Int32Array(arrayBuffer, bufferAddress + index, numDrawCalls);
+  const drawCalls = new Int32Array(arrayBuffer, bufferAddress + index, numDrawCalls);
   index += Int32Array.BYTES_PER_ELEMENT * numDrawCalls;
 
-  return DrawCalls;
+  return drawCalls;
 }
+
+function serializeChunkNodesMap(dataView, chunkNodesMap) {
+  let index = 0;
+  chunkNodesMap.forEach(chunkNode => {
+    dataView.setInt32(index, chunkNode.min.x, true);
+    index += Int32Array.BYTES_PER_ELEMENT;
+
+    dataView.setInt32(index, chunkNode.min.y, true);
+    index += Int32Array.BYTES_PER_ELEMENT;
+
+    dataView.setInt32(index, chunkNode.min.z, true);
+    index += Int32Array.BYTES_PER_ELEMENT;
+  });
+};
 
 export class GeometryAllocator {
   constructor(
@@ -259,6 +274,7 @@ export class GeometryAllocator {
       boundingType = null,
       hasOcclusionCulling = false,
       chunkNodesMap,
+      appMatrix
     }
   ) {
     {
@@ -287,26 +303,34 @@ export class GeometryAllocator {
     this.boundingData = new Float32Array(maxNumDraws * boundingSize);
     this.minData = new Float32Array(maxNumDraws * 4);
     this.maxData = new Float32Array(maxNumDraws * 4);
-    this.appMatrix = new THREE.Matrix4();
     // this.peeksArray = [];
     this.hasOcclusionCulling = hasOcclusionCulling;
     if (this.hasOcclusionCulling) {
-      this.chunkNodesMap = chunkNodesMap;
-      this.chunkIdMap = new Map();
       this.OCInstance = Module._initOcclusionCulling();
+
       const allocator = new Allocator(Module);
+      this.chunkNodesMap = chunkNodesMap;
+
+      const chunkNodesMapBufferSize = Int32Array.BYTES_PER_ELEMENT * 3 * maxNumDraws;
+      this.chunkNodesMapBuffer = allocator.alloc(Uint8Array, chunkNodesMapBufferSize);
+      this.chunkNodesMapBufferOffset = this.chunkNodesMapBuffer.offset;
+      this.chunkNodesMapDataView = new DataView(Module.HEAP8.buffer, this.chunkNodesMapBufferOffset, chunkNodesMapBufferSize)
+
+      this.chunkIdMap = new Map();
+
       const chunkAllocationBufferSize = maxNumDraws * chunkAllocationDataSize;
       this.chunkAllocationBuffer = allocator.alloc(
         Uint8Array,
         chunkAllocationBufferSize
       );
-      // console.log(this.chunkAllocationBuffer.length);
       this.chunkAllocationArrayOffset = this.chunkAllocationBuffer.offset;
       this.chunkAllocationDataView = new DataView(
         Module.HEAP8.buffer,
         this.chunkAllocationArrayOffset,
         chunkAllocationBufferSize
       );
+
+      this.appMatrix = appMatrix;
     }
     this.numDraws = 0;
   }
@@ -316,8 +340,7 @@ export class GeometryAllocator {
     boundingObject,
     minObject,
     maxObject,
-    appMatrix,
-    peeks
+    peeks,
   ) {
     const positionFreeListEntry = this.positionFreeList.alloc(numPositions);
     const indexFreeListEntry = this.indexFreeList.alloc(numIndices);
@@ -333,10 +356,9 @@ export class GeometryAllocator {
         minObject.clone().divideScalar(lod * defaultChunkSize),
         lod
       );
-      this.chunkIdMap.set(chunkHash, this.numDraws);
-
-      minObject.applyMatrix4(this.appMatrix);
-      maxObject.applyMatrix4(this.appMatrix);
+      if(!this.chunkIdMap.has(chunkHash)){
+        this.chunkIdMap.set(chunkHash, this.numDraws);
+      }
 
       const allocatedChunk = new ChunkAllocationData(
         this.numDraws,
@@ -347,10 +369,12 @@ export class GeometryAllocator {
       );
       allocatedChunk.serialize(this.chunkAllocationDataView, this.numDraws);
 
-      this.appMatrix = appMatrix;
-
       minObject.toArray(this.minData, this.numDraws * 4);
       maxObject.toArray(this.maxData, this.numDraws * 4);
+
+      // console.log(this.chunkNodesMap);
+
+      serializeChunkNodesMap(this.chunkNodesMapDataView, this.chunkNodesMap);
     }
 
     const slot = indexFreeListEntry;
@@ -419,7 +443,9 @@ export class GeometryAllocator {
         );
         const lod = (chunkMax.x - chunkMin.x) / defaultChunkSize;
         const chunkHash = _getHashMinLod(chunkMin, lod);
-        this.chunkIdMap.delete(chunkHash);
+        if(this.chunkIdMap.has(chunkHash)){
+          this.chunkIdMap.delete(chunkHash);
+        }
 
         this.minData[freeIndex * 4 + 0] = this.minData[lastIndex * 4 + 0];
         this.minData[freeIndex * 4 + 1] = this.minData[lastIndex * 4 + 1];
@@ -434,6 +460,8 @@ export class GeometryAllocator {
           lastIndex
         );
         freeChunk.serialize(this.chunkAllocationDataView, freeIndex); // free
+
+        serializeChunkNodesMap(this.chunkNodesMapDataView, this.chunkNodesMap);
       }
     }
 
@@ -484,55 +512,53 @@ export class GeometryAllocator {
     };
 
     if (this.hasOcclusionCulling) {
-      const findSearchStartingChunk = (cameraPosition) => {
+      const findStartingChunk = (cameraPosition) => {
         const camTransformedPos = cameraPosition.clone();
-        const appTransformVector = localVector3D2
-          .set(0, 0, 0)
-          .applyMatrix4(this.appMatrix);
-        camTransformedPos.sub(appTransformVector);
+
+        // const appTransformVector = localVector3D2.clone()
+        //   .set(0, 0, 0)
+        //   .applyMatrix4(this.appMatrix);
+
+        // camTransformedPos.sub(appTransformVector); // adjusting camera position to match with chunk coords
 
         for (let j = 0; j < 5; j++) {
           const lod = 2 ** j;
           const chunkSize = defaultChunkSize * lod;
+
           const chunkMin = chunkMinForPosition(
             camTransformedPos.x,
-            camTransformedPos.y,
+            camTransformedPos.y + 70,
             camTransformedPos.z,
             chunkSize
           );
+
           const hash = _getHashMinLod(chunkMin, lod);
-          const chunkWorldMin = chunkMin
+
+          const chunkWorldMin = chunkMin.clone()
             .multiplyScalar(chunkSize)
-            .add(appTransformVector);
+
           currentChunkMin.copy(chunkWorldMin);
-          currentChunkMax.set(
-            chunkWorldMin.x + chunkSize,
-            chunkWorldMin.y + chunkSize,
-            chunkWorldMin.z + chunkSize
-          );
+          currentChunkMax.copy(chunkWorldMin).addScalar(chunkSize);
+
           if (this.chunkNodesMap.has(hash)) {
-            if (
-              currentChunkMin.y <= 0 &&
-              currentChunkMin.y <= cameraPosition.y
-            ) {
-            return this.chunkIdMap.get(hash);
-            }
-          } else {
-            return airChunkId;
+            const foundId = this.chunkIdMap.get(hash);
+            return foundId ? foundId : airChunkId; 
           }
         }
+
+        return airChunkId;
       };
 
-      const foundId = findSearchStartingChunk(camera.position);
-
-      // console.log(foundId);
+      const foundId = findStartingChunk(camera.position);
 
       if (foundId) {
-        const lod = (currentChunkMax.x - currentChunkMin.x) / defaultChunkSize;
-        const cameraView = new THREE.Vector3();
+        const lod = foundId != airChunkId ? (currentChunkMax.x - currentChunkMin.x) / defaultChunkSize : 1;
+        console.log(lod + " , " + foundId);
+        const cameraView = cameraViewVector;
         const drawListBuffer = Module._cullOcclusionCulling(
           this.OCInstance,
           this.chunkAllocationArrayOffset,
+          this.chunkNodesMapBufferOffset,
           foundId,
           currentChunkMin.x,
           currentChunkMin.y,
@@ -547,7 +573,8 @@ export class GeometryAllocator {
           cameraView.y,
           cameraView.z,
           lod,
-          this.numDraws
+          this.numDraws,
+          this.chunkNodesMap.size
         );
         const drawCalls = deserializeDrawListBuffer(
           Module.HEAP8.buffer,
