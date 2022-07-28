@@ -722,9 +722,9 @@ export const _createAnimation = avatar => {
   physx.physxWorker.addChild(avatar.defaultNodeTwo, avatar.idle8DWalkRun_BowIdle8DDrawLooseNodeTwo);
   physx.physxWorker.addChild(avatar.defaultNodeTwo, avatar.idle8DCrouchNodeTwo);
 
-  avatar.jumpNodeTwo = avatar.createNode(AnimationNodeType.TWO, 'jumpNodeTwo');
-  physx.physxWorker.addChild(avatar.jumpNodeTwo, avatar.defaultNodeTwo);
-  physx.physxWorker.addChild(avatar.jumpNodeTwo, avatar.jumpMotion);
+  avatar.narutoRunNodeTwo = avatar.createNode(AnimationNodeType.TWO, 'narutoRunNodeTwo');
+  physx.physxWorker.addChild(avatar.narutoRunNodeTwo, avatar.defaultNodeTwo);
+  physx.physxWorker.addChild(avatar.narutoRunNodeTwo, avatar.narutoRunMotion);
 
   avatar.sitsNodeUnitary = avatar.createNode(AnimationNodeType.TWO, 'sitsNodeUnitary');
   for (const k in avatar.sitMotiono) {
@@ -732,12 +732,12 @@ export const _createAnimation = avatar => {
     physx.physxWorker.addChild(avatar.sitsNodeUnitary, motion);
   }
   avatar.sitNodeTwo = avatar.createNode(AnimationNodeType.TWO, 'sitNodeTwo');
-  physx.physxWorker.addChild(avatar.sitNodeTwo, avatar.jumpNodeTwo);
+  physx.physxWorker.addChild(avatar.sitNodeTwo, avatar.narutoRunNodeTwo);
   physx.physxWorker.addChild(avatar.sitNodeTwo, avatar.sitsNodeUnitary);
 
-  avatar.narutoRunNodeTwo = avatar.createNode(AnimationNodeType.TWO, 'narutoRunNodeTwo');
-  physx.physxWorker.addChild(avatar.narutoRunNodeTwo, avatar.defaultNodeTwo);
-  physx.physxWorker.addChild(avatar.narutoRunNodeTwo, avatar.narutoRunMotion);
+  avatar.jumpNodeTwo = avatar.createNode(AnimationNodeType.TWO, 'jumpNodeTwo');
+  physx.physxWorker.addChild(avatar.jumpNodeTwo, avatar.sitNodeTwo);
+  physx.physxWorker.addChild(avatar.jumpNodeTwo, avatar.jumpMotion);
 
   avatar.actionsNodeUnitary = avatar.createNode(AnimationNodeType.UNITARY, 'actionsNodeUnitary');
   physx.physxWorker.addChild(avatar.actionsNodeUnitary, avatar.defaultNodeTwo);
@@ -786,7 +786,7 @@ export const _createAnimation = avatar => {
   //
 
   // physx.physxWorker.setRootNode(avatar.mixer, avatar.groundFlyNodeTwo);
-  physx.physxWorker.setRootNode(avatar.mixer, avatar.narutoRunNodeTwo);
+  physx.physxWorker.setRootNode(avatar.mixer, avatar.jumpNodeTwo);
   // test ------
   // physx.physxWorker.setRootNode(avatar.mixer, avatar.useMotiono.bowDraw);
   // physx.physxWorker.setRootNode(avatar.mixer, avatar.bowDrawLooseNodoeTwo);
