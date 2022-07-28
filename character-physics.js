@@ -58,7 +58,8 @@ class CharacterPhysics {
   /* apply the currently held keys to the character */
   applyWasd(keysDirection) {
     if (this.player.avatar) {
-      this.velocity.add(keysDirection);
+      // this.velocity.add(keysDirection);
+      this.velocity.copy(keysDirection);
     }
   }
   applyGravity(timeDiffS) {
@@ -269,19 +270,26 @@ class CharacterPhysics {
   }
   /* dampen the velocity to make physical sense for the current avatar state */
   applyVelocityDamping(velocity, timeDiff) {
-    if (this.player.hasAction('fly')) {
-      const factor = getVelocityDampingFactor(flyFriction, timeDiff);
-      velocity.multiplyScalar(factor);
-    } 
-    else if(this.player.hasAction('swim')){
-      const factor = getVelocityDampingFactor(swimFriction, timeDiff);
-      velocity.multiplyScalar(factor);
-    }
-    else {
+    // if (this.player.hasAction('fly')) {
+    //   const factor = getVelocityDampingFactor(flyFriction, timeDiff);
+    //   velocity.multiplyScalar(factor);
+    // } 
+    // else if(this.player.hasAction('swim')){
+    //   const factor = getVelocityDampingFactor(swimFriction, timeDiff);
+    //   velocity.multiplyScalar(factor);
+    // }
+    // else {
       const factor = getVelocityDampingFactor(groundFriction, timeDiff);
-      velocity.x *= factor;
-      velocity.z *= factor;
-    }
+      // window.domInfo.innerHTML += `<div style="display:;">factor: --- ${window.logNum(factor)}</div>`;
+      // velocity.x *= factor;
+      // velocity.z *= factor;
+
+      // window.domInfo.innerHTML += `<div style="display:;">timeDiff: --- ${window.logNum(timeDiff)}</div>`;
+
+      // const factor = window.aaa;
+      // velocity.x *= factor;
+      // velocity.z *= factor;
+    // }
   }
   applyAvatarPhysics(now, timeDiffS) {
     // const renderer = getRenderer();

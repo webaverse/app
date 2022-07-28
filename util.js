@@ -687,6 +687,7 @@ export function angleDifference(angle1, angle2) {
 
 export function getVelocityDampingFactor(dampingPer60Hz, timeDiff) {
   return Math.pow(dampingPer60Hz, timeDiff / 60);
+  // return Math.pow(dampingPer60Hz, timeDiff);
 }
 
 export function getPlayerPrefix(playerId) {

@@ -256,6 +256,10 @@ const _updateIo = timeDiff => {
       ioManager.lastCtrlKey = ioManager.keys.ctrl;
     }
     if (keysDirection.length() > 0 && physicsScene.getPhysicsEnabled() && movementEnabled) {
+      // console.log(game.getSpeed())
+      window.domInfo.innerHTML += `<div style="display:;">game.getSpeed(): --- ${window.logNum(game.getSpeed())}</div>`;
+      window.domInfo.innerHTML += `<div style="display:;">timeDiff: --- ${window.logNum(timeDiff)}</div>`;
+      window.domInfo.innerHTML += `<div style="display:;">game.getSpeed() * timeDiff: --- ${window.logNum(game.getSpeed() * timeDiff)}</div>`;
       localPlayer.characterPhysics.applyWasd(
         keysDirection.normalize()
           .multiplyScalar(game.getSpeed() * timeDiff)
