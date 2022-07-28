@@ -571,7 +571,6 @@ class AppManager extends EventTarget {
     // dstAppManager.setBlindStateMode(false);
   }
   importApp(app) {
-    let dstTrackedApp = null;
     const self = this;
     this.appsArray.doc.transact(() => {
       const contentId = app.contentId;
@@ -582,19 +581,16 @@ class AppManager extends EventTarget {
       app.quaternion.toArray(transform, 3);
       app.scale.toArray(transform, 7);
       
-      dstTrackedApp = self.addTrackedAppInternal(
+      const dstTrackedApp = self.addTrackedAppInternal(
         instanceId,
         contentId,
         transform,
         components,
       );
 
-      this.addApp(app);
+      self.addApp(app);
+      self.bindTrackedApp(dstTrackedApp, app);
     });
-    
-    this.bindTrackedApp(dstTrackedApp, app);
-
-    this.addApp(app);
   }
   hasApp(app) {
     return this.apps.includes(app);
