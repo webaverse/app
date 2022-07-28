@@ -722,9 +722,12 @@ export const _createAnimation = avatar => {
   physx.physxWorker.addChild(avatar.defaultNodeTwo, avatar.idle8DWalkRun_BowIdle8DDrawLooseNodeTwo);
   physx.physxWorker.addChild(avatar.defaultNodeTwo, avatar.idle8DCrouchNodeTwo);
 
+  avatar.jumpNodeTwo = avatar.createNode(AnimationNodeType.TWO, 'jumpNodeTwo');
+  physx.physxWorker.addChild(avatar.jumpNodeTwo, avatar.defaultNodeTwo);
+  physx.physxWorker.addChild(avatar.jumpNodeTwo, avatar.jumpMotion);
+
   avatar.actionsNodeUnitary = avatar.createNode(AnimationNodeType.UNITARY, 'actionsNodeUnitary');
   physx.physxWorker.addChild(avatar.actionsNodeUnitary, avatar.defaultNodeTwo);
-  physx.physxWorker.addChild(avatar.actionsNodeUnitary, avatar.jumpMotion);
   physx.physxWorker.addChild(avatar.actionsNodeUnitary, avatar.narutoRunMotion);
 
   // use
@@ -775,7 +778,8 @@ export const _createAnimation = avatar => {
 
   //
 
-  physx.physxWorker.setRootNode(avatar.mixer, avatar.groundFlyNodeTwo);
+  // physx.physxWorker.setRootNode(avatar.mixer, avatar.groundFlyNodeTwo);
+  physx.physxWorker.setRootNode(avatar.mixer, avatar.jumpNodeTwo);
   // test ------
   // physx.physxWorker.setRootNode(avatar.mixer, avatar.useMotiono.bowDraw);
   // physx.physxWorker.setRootNode(avatar.mixer, avatar.bowDrawLooseNodoeTwo);
@@ -854,11 +858,12 @@ export const _updateAnimation = avatar => {
     physx.physxWorker.crossFadeTwo(avatar.groundFlyNodeTwo, 0.2, 0);
   }
   if (avatar.jumpEnd) {
-    if (avatar.narutoRunState) {
-      physx.physxWorker.crossFadeUnitary(avatar.actionsNodeUnitary, 0.2, avatar.narutoRunMotion);
-    } else {
-      physx.physxWorker.crossFadeUnitary(avatar.actionsNodeUnitary, 0.2, avatar.defaultNodeTwo);
-    }
+    physx.physxWorker.crossFadeTwo(avatar.jumpNodeTwo, 0.2, 0);
+    // if (avatar.narutoRunState) {
+    //   physx.physxWorker.crossFadeUnitary(avatar.actionsNodeUnitary, 0.2, avatar.narutoRunMotion);
+    // } else {
+    //   physx.physxWorker.crossFadeUnitary(avatar.actionsNodeUnitary, 0.2, avatar.defaultNodeTwo);
+    // }
   }
 
   if (avatar.narutoRunEnd) physx.physxWorker.crossFadeUnitary(avatar.actionsNodeUnitary, 0.2, avatar.defaultNodeTwo);
@@ -907,7 +912,7 @@ export const _updateAnimation = avatar => {
 
   if (avatar.jumpStart) {
     physx.physxWorker.play(avatar.jumpMotion);
-    physx.physxWorker.crossFadeUnitary(avatar.actionsNodeUnitary, 0.2, avatar.jumpMotion);
+    physx.physxWorker.crossFadeTwo(avatar.jumpNodeTwo, 0.2, 1);
   }
 
   if (avatar.narutoRunStart) physx.physxWorker.crossFadeUnitary(avatar.actionsNodeUnitary, 0.2, avatar.narutoRunMotion);
