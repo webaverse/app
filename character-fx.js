@@ -238,8 +238,8 @@ class CharacterFx {
         this.sonicBoom = metaversefile.createApp();
         this.sonicBoom.setComponent('player', this.player);
         (async () => {
-          const {modules} = metaversefile.useDefaultModules();
-          const m = modules['sonicBoom'];
+          const {importModule} = metaversefile.useDefaultModules();
+          const m = await importModule('sonicBoom');
           await this.sonicBoom.addModule(m);
         })();
         sceneLowPriority.add(this.sonicBoom);
