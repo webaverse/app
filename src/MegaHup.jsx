@@ -35,15 +35,22 @@ const MegaHup = function({
   useEffect(() => {
     const canvas = canvasRef.current;
     if (canvas && npcPlayer) {
-      let live = true;
       let diorama = null;
       {
+        let spineBone;
+        npcPlayer.avatar.model.traverse(
+          object => {
+            if (object.type === 'Bone' && object.name === 'Spine' && !spineBone) {
+              spineBone = object;
+            }
+          }
+        );
         diorama = dioramaManager.createPlayerDiorama({
-          target: npcPlayer,
+          target: spineBone,
           objects: [
             npcPlayer.avatar.model,
           ],
-          cameraOffset: new THREE.Vector3(-0.8, 0, -0.4),
+          cameraOffset: new THREE.Vector3(-0.8, 0.4, -0.8),
           // label: true,
           // outline: true,
           // grassBackground: true,
