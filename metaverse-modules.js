@@ -29,8 +29,8 @@ const moduleUrls = {
   firedrop: './metaverse_modules/firedrop/',
   meshLodItem: './metaverse_modules/mesh-lod-item/',
 };
-const modules = {};
-let loadPromise = null;
+// const modules = {};
+/* let loadPromise = null;
 const _load = async () => {
   const promises = [];
   for (const moduleName in moduleUrls) {
@@ -44,15 +44,21 @@ const _load = async () => {
     promises.push(p);
   }
   await Promise.all(promises);
-};
-const waitForLoad = () => {
+}; */
+/* const waitForLoad = () => {
   if (!loadPromise) {
     loadPromise = _load();
   }
   return loadPromise;
+}; */
+const importModule = async (moduleName) => {
+  const moduleUrl = moduleUrls[moduleName];
+  const module = await metaversefile.import(moduleUrl);
+  return module;
 };
 export {
   moduleUrls,
-  modules,
-  waitForLoad,
+  importModule,
+  // modules,
+  // waitForLoad,
 };
