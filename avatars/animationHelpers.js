@@ -218,199 +218,207 @@ async function loadSkeleton() {
   }
 }
 
-export const loadPromise = (async () => {
-  await Promise.resolve(); // wait for metaversefile to be defined
+let promises = null;
+export const loadAll = () => {
+  // await Promise.resolve(); // wait for metaversefile to be defined
 
-  await Promise.all([
-    loadAnimations(),
-    loadSkeleton(),
-  ]);
+  if (!promises) {
+    promises = [
+      loadAnimations(),
+      loadSkeleton(),
+    ];
 
-  for (const k in animationsAngleArrays) {
-    const as = animationsAngleArrays[k];
-    for (const a of as) {
-      a.animation = animations.index[a.name];
-    }
+    (async () => {
+      await Promise.all(promises);
+
+      for (const k in animationsAngleArrays) {
+        const as = animationsAngleArrays[k];
+        for (const a of as) {
+          a.animation = animations.index[a.name];
+        }
+      }
+
+      for (const k in animationsAngleArraysMirror) {
+        const as = animationsAngleArraysMirror[k];
+        for (const a of as) {
+          a.animation = animations.index[a.name];
+        }
+      }
+      for (const k in animationsIdleArrays) {
+        animationsIdleArrays[k].animation = animations.index[animationsIdleArrays[k].name];
+      }
+    
+      const walkingAnimations = [
+        'walking.fbx',
+        'left strafe walking.fbx',
+        'right strafe walking.fbx',
+      ].map(name => animations.index[name]);
+      const walkingBackwardAnimations = [
+        'walking backwards.fbx',
+        'left strafe walking reverse.fbx',
+        'right strafe walking reverse.fbx',
+      ].map(name => animations.index[name]);
+      const runningAnimations = [
+        'Fast Run.fbx',
+        'left strafe.fbx',
+        'right strafe.fbx',
+      ].map(name => animations.index[name]);
+      const runningBackwardAnimations = [
+        'running backwards.fbx',
+        'left strafe reverse.fbx',
+        'right strafe reverse.fbx',
+      ].map(name => animations.index[name]);
+      const crouchingForwardAnimations = [
+        'Sneaking Forward.fbx',
+        'Crouched Sneaking Left.fbx',
+        'Crouched Sneaking Right.fbx',
+      ].map(name => animations.index[name]);
+      const crouchingBackwardAnimations = [
+        'Sneaking Forward reverse.fbx',
+        'Crouched Sneaking Left reverse.fbx',
+        'Crouched Sneaking Right reverse.fbx',
+      ].map(name => animations.index[name]);
+      for (const animation of animations) {
+        decorateAnimation(animation);
+      }
+    
+      _normalizeAnimationDurations(walkingAnimations, walkingAnimations[0]);
+      _normalizeAnimationDurations(walkingBackwardAnimations, walkingBackwardAnimations[0]);
+      _normalizeAnimationDurations(runningAnimations, runningAnimations[0]);
+      _normalizeAnimationDurations(runningBackwardAnimations, runningBackwardAnimations[0]);
+      _normalizeAnimationDurations(crouchingForwardAnimations, crouchingForwardAnimations[0], 0.5);
+      _normalizeAnimationDurations(crouchingBackwardAnimations, crouchingBackwardAnimations[0], 0.5);
+    
+      function mergeAnimations(a, b) {
+        const o = {};
+        for (const k in a) {
+          o[k] = a[k];
+        }
+        for (const k in b) {
+          o[k] = b[k];
+        }
+        return o;
+      }
+      /* jumpAnimationSegments = {
+          chargeJump: animations.find(a => a.isChargeJump),
+          chargeJumpFall: animations.find(a => a.isChargeJumpFall),
+          isFallLoop: animations.find(a => a.isFallLoop),
+          isLanding: animations.find(a => a.isLanding)
+        }; */
+    
+      // chargeJump = animations.find(a => a.isChargeJump);
+      // standCharge = animations.find(a => a.isStandCharge);
+      // fallLoop = animations.find(a => a.isFallLoop);
+      // swordSideSlash = animations.find(a => a.isSwordSideSlash);
+      // swordTopDownSlash = animations.find(a => a.isSwordTopDownSlash)
+    
+      jumpAnimation = animations.find(a => a.isJump);
+      doubleJumpAnimation = animations.find(a => a.isDoubleJump);
+      fallLoopAnimation = animations.index['falling.fbx'];
+      // sittingAnimation = animations.find(a => a.isSitting);
+      floatAnimation = animations.find(a => a.isFloat);
+      // rifleAnimation = animations.find(a => a.isRifle);
+      // hitAnimation = animations.find(a => a.isHit);
+      aimAnimations = {
+        swordSideIdle: animations.index['sword_idle_side.fbx'],
+        swordSideIdleStatic: animations.index['sword_idle_side_static.fbx'],
+        swordSideSlash: animations.index['sword_side_slash.fbx'],
+        swordSideSlashStep: animations.index['sword_side_slash_step.fbx'],
+        swordTopDownSlash: animations.index['sword_topdown_slash.fbx'],
+        swordTopDownSlashStep: animations.index['sword_topdown_slash_step.fbx'],
+        swordUndraw: animations.index['sword_undraw.fbx'],
+      };
+      useAnimations = mergeAnimations({
+        combo: animations.find(a => a.isCombo),
+        slash: animations.find(a => a.isSlash),
+        rifle: animations.find(a => a.isRifle),
+        pistol: animations.find(a => a.isPistol),
+        magic: animations.find(a => a.isMagic),
+        eat: animations.find(a => a.isEating),
+        drink: animations.find(a => a.isDrinking),
+        throw: animations.find(a => a.isThrow),
+        pickUpThrow: animations.find(a => a.isPickUpThrow),
+        bowDraw: animations.find(a => a.isBowDraw),
+        bowIdle: animations.find(a => a.isBowIdle),
+        bowLoose: animations.find(a => a.isBowLoose),
+      }, aimAnimations);
+      sitAnimations = {
+        chair: animations.find(a => a.isSitting),
+        saddle: animations.find(a => a.isSitting),
+        stand: animations.find(a => a.isSkateboarding),
+      };
+      danceAnimations = {
+        dansu: animations.find(a => a.isDancing),
+        powerup: animations.find(a => a.isPowerUp),
+      };
+      emoteAnimations = {
+        alert: animations.find(a => a.isAlert),
+        alertSoft: animations.find(a => a.isAlertSoft),
+        angry: animations.find(a => a.isAngry),
+        angrySoft: animations.find(a => a.isAngrySoft),
+        embarrassed: animations.find(a => a.isEmbarrassed),
+        embarrassedSoft: animations.find(a => a.isEmbarrassedSoft),
+        headNod: animations.find(a => a.isHeadNod),
+        headNodSoft: animations.find(a => a.isHeadNodSingle),
+        headShake: animations.find(a => a.isHeadShake),
+        headShakeSoft: animations.find(a => a.isHeadShakeSingle),
+        sad: animations.find(a => a.isSad),
+        sadSoft: animations.find(a => a.isSadSoft),
+        surprise: animations.find(a => a.isSurprise),
+        surpriseSoft: animations.find(a => a.isSurpriseSoft),
+        victory: animations.find(a => a.isVictory),
+        victorySoft: animations.find(a => a.isVictorySoft),
+      };
+      pickUpAnimations = {
+        pickUp: animations.find(a => a.isPickUp),
+        pickUpIdle: animations.find(a => a.isPickUpIdle),
+        pickUpThrow: animations.find(a => a.isPickUpThrow),
+        putDown: animations.find(a => a.isPutDown),
+        pickUpZelda: animations.find(a => a.isPickUpZelda),
+        pickUpIdleZelda: animations.find(a => a.isPickUpIdleZelda),
+        putDownZelda: animations.find(a => a.isPutDownZelda),
+      };
+      /* throwAnimations = {
+        throw: animations.find(a => a.isThrow),
+        pickUpThrow: animations.find(a => a.isPickUpThrow),
+      }; */
+      /* crouchAnimations = {
+          crouch: animations.find(a => a.isCrouch),
+        }; */
+      activateAnimations = {
+        grab_forward: {animation: animations.index['grab_forward.fbx'], speedFactor: 1.2},
+        grab_down: {animation: animations.index['grab_down.fbx'], speedFactor: 1.7},
+        grab_up: {animation: animations.index['grab_up.fbx'], speedFactor: 1.2},
+        grab_left: {animation: animations.index['grab_left.fbx'], speedFactor: 1.2},
+        grab_right: {animation: animations.index['grab_right.fbx'], speedFactor: 1.2},
+        pick_up: {animation: animations.index['pick_up.fbx'], speedFactor: 1},
+      };
+      narutoRunAnimations = {
+        narutoRun: animations.find(a => a.isNarutoRun),
+      };
+      hurtAnimations = {
+        pain_back: animations.index['pain_back.fbx'],
+        pain_arch: animations.index['pain_arch.fbx'],
+      };
+      holdAnimations = {
+        pick_up_idle: animations.index['pick_up_idle.fbx'],
+      };
+      {
+        const down10QuaternionArray = new Quaternion()
+          .setFromAxisAngle(new Vector3(1, 0, 0), Math.PI * 0.1)
+          .toArray();
+        [
+          'mixamorigSpine1.quaternion',
+          'mixamorigSpine2.quaternion',
+        ].forEach(k => {
+          narutoRunAnimations.narutoRun.interpolants[k].evaluate = t => down10QuaternionArray;
+        });
+      }
+    })();
   }
-  for (const k in animationsAngleArraysMirror) {
-    const as = animationsAngleArraysMirror[k];
-    for (const a of as) {
-      a.animation = animations.index[a.name];
-    }
-  }
-  for (const k in animationsIdleArrays) {
-    animationsIdleArrays[k].animation = animations.index[animationsIdleArrays[k].name];
-  }
 
-  const walkingAnimations = [
-    'walking.fbx',
-    'left strafe walking.fbx',
-    'right strafe walking.fbx',
-  ].map(name => animations.index[name]);
-  const walkingBackwardAnimations = [
-    'walking backwards.fbx',
-    'left strafe walking reverse.fbx',
-    'right strafe walking reverse.fbx',
-  ].map(name => animations.index[name]);
-  const runningAnimations = [
-    'Fast Run.fbx',
-    'left strafe.fbx',
-    'right strafe.fbx',
-  ].map(name => animations.index[name]);
-  const runningBackwardAnimations = [
-    'running backwards.fbx',
-    'left strafe reverse.fbx',
-    'right strafe reverse.fbx',
-  ].map(name => animations.index[name]);
-  const crouchingForwardAnimations = [
-    'Sneaking Forward.fbx',
-    'Crouched Sneaking Left.fbx',
-    'Crouched Sneaking Right.fbx',
-  ].map(name => animations.index[name]);
-  const crouchingBackwardAnimations = [
-    'Sneaking Forward reverse.fbx',
-    'Crouched Sneaking Left reverse.fbx',
-    'Crouched Sneaking Right reverse.fbx',
-  ].map(name => animations.index[name]);
-  for (const animation of animations) {
-    decorateAnimation(animation);
-  }
-
-  _normalizeAnimationDurations(walkingAnimations, walkingAnimations[0]);
-  _normalizeAnimationDurations(walkingBackwardAnimations, walkingBackwardAnimations[0]);
-  _normalizeAnimationDurations(runningAnimations, runningAnimations[0]);
-  _normalizeAnimationDurations(runningBackwardAnimations, runningBackwardAnimations[0]);
-  _normalizeAnimationDurations(crouchingForwardAnimations, crouchingForwardAnimations[0], 0.5);
-  _normalizeAnimationDurations(crouchingBackwardAnimations, crouchingBackwardAnimations[0], 0.5);
-
-  function mergeAnimations(a, b) {
-    const o = {};
-    for (const k in a) {
-      o[k] = a[k];
-    }
-    for (const k in b) {
-      o[k] = b[k];
-    }
-    return o;
-  }
-  /* jumpAnimationSegments = {
-      chargeJump: animations.find(a => a.isChargeJump),
-      chargeJumpFall: animations.find(a => a.isChargeJumpFall),
-      isFallLoop: animations.find(a => a.isFallLoop),
-      isLanding: animations.find(a => a.isLanding)
-    }; */
-
-  // chargeJump = animations.find(a => a.isChargeJump);
-  // standCharge = animations.find(a => a.isStandCharge);
-  // fallLoop = animations.find(a => a.isFallLoop);
-  // swordSideSlash = animations.find(a => a.isSwordSideSlash);
-  // swordTopDownSlash = animations.find(a => a.isSwordTopDownSlash)
-
-  jumpAnimation = animations.find(a => a.isJump);
-  doubleJumpAnimation = animations.find(a => a.isDoubleJump);
-  fallLoopAnimation = animations.index['falling.fbx'];
-  // sittingAnimation = animations.find(a => a.isSitting);
-  floatAnimation = animations.find(a => a.isFloat);
-  // rifleAnimation = animations.find(a => a.isRifle);
-  // hitAnimation = animations.find(a => a.isHit);
-  aimAnimations = {
-    swordSideIdle: animations.index['sword_idle_side.fbx'],
-    swordSideIdleStatic: animations.index['sword_idle_side_static.fbx'],
-    swordSideSlash: animations.index['sword_side_slash.fbx'],
-    swordSideSlashStep: animations.index['sword_side_slash_step.fbx'],
-    swordTopDownSlash: animations.index['sword_topdown_slash.fbx'],
-    swordTopDownSlashStep: animations.index['sword_topdown_slash_step.fbx'],
-    swordUndraw: animations.index['sword_undraw.fbx'],
-  };
-  useAnimations = mergeAnimations({
-    combo: animations.find(a => a.isCombo),
-    slash: animations.find(a => a.isSlash),
-    rifle: animations.find(a => a.isRifle),
-    pistol: animations.find(a => a.isPistol),
-    magic: animations.find(a => a.isMagic),
-    eat: animations.find(a => a.isEating),
-    drink: animations.find(a => a.isDrinking),
-    throw: animations.find(a => a.isThrow),
-    pickUpThrow: animations.find(a => a.isPickUpThrow),
-    bowDraw: animations.find(a => a.isBowDraw),
-    bowIdle: animations.find(a => a.isBowIdle),
-    bowLoose: animations.find(a => a.isBowLoose),
-  }, aimAnimations);
-  sitAnimations = {
-    chair: animations.find(a => a.isSitting),
-    saddle: animations.find(a => a.isSitting),
-    stand: animations.find(a => a.isSkateboarding),
-  };
-  danceAnimations = {
-    dansu: animations.find(a => a.isDancing),
-    powerup: animations.find(a => a.isPowerUp),
-  };
-  emoteAnimations = {
-    alert: animations.find(a => a.isAlert),
-    alertSoft: animations.find(a => a.isAlertSoft),
-    angry: animations.find(a => a.isAngry),
-    angrySoft: animations.find(a => a.isAngrySoft),
-    embarrassed: animations.find(a => a.isEmbarrassed),
-    embarrassedSoft: animations.find(a => a.isEmbarrassedSoft),
-    headNod: animations.find(a => a.isHeadNod),
-    headNodSoft: animations.find(a => a.isHeadNodSingle),
-    headShake: animations.find(a => a.isHeadShake),
-    headShakeSoft: animations.find(a => a.isHeadShakeSingle),
-    sad: animations.find(a => a.isSad),
-    sadSoft: animations.find(a => a.isSadSoft),
-    surprise: animations.find(a => a.isSurprise),
-    surpriseSoft: animations.find(a => a.isSurpriseSoft),
-    victory: animations.find(a => a.isVictory),
-    victorySoft: animations.find(a => a.isVictorySoft),
-  };
-  pickUpAnimations = {
-    pickUp: animations.find(a => a.isPickUp),
-    pickUpIdle: animations.find(a => a.isPickUpIdle),
-    pickUpThrow: animations.find(a => a.isPickUpThrow),
-    putDown: animations.find(a => a.isPutDown),
-    pickUpZelda: animations.find(a => a.isPickUpZelda),
-    pickUpIdleZelda: animations.find(a => a.isPickUpIdleZelda),
-    putDownZelda: animations.find(a => a.isPutDownZelda),
-  };
-  /* throwAnimations = {
-    throw: animations.find(a => a.isThrow),
-    pickUpThrow: animations.find(a => a.isPickUpThrow),
-  }; */
-  /* crouchAnimations = {
-      crouch: animations.find(a => a.isCrouch),
-    }; */
-  activateAnimations = {
-    grab_forward: {animation: animations.index['grab_forward.fbx'], speedFactor: 1.2},
-    grab_down: {animation: animations.index['grab_down.fbx'], speedFactor: 1.7},
-    grab_up: {animation: animations.index['grab_up.fbx'], speedFactor: 1.2},
-    grab_left: {animation: animations.index['grab_left.fbx'], speedFactor: 1.2},
-    grab_right: {animation: animations.index['grab_right.fbx'], speedFactor: 1.2},
-    pick_up: {animation: animations.index['pick_up.fbx'], speedFactor: 1},
-  };
-  narutoRunAnimations = {
-    narutoRun: animations.find(a => a.isNarutoRun),
-  };
-  hurtAnimations = {
-    pain_back: animations.index['pain_back.fbx'],
-    pain_arch: animations.index['pain_arch.fbx'],
-  };
-  holdAnimations = {
-    pick_up_idle: animations.index['pick_up_idle.fbx'],
-  };
-  {
-    const down10QuaternionArray = new Quaternion()
-      .setFromAxisAngle(new Vector3(1, 0, 0), Math.PI * 0.1)
-      .toArray();
-    [
-      'mixamorigSpine1.quaternion',
-      'mixamorigSpine2.quaternion',
-    ].forEach(k => {
-      narutoRunAnimations.narutoRun.interpolants[k].evaluate = t => down10QuaternionArray;
-    });
-  }
-})().catch(err => {
-  console.log('load avatar animations error', err);
-});
+  return promises;
+};
 
 export const _applyAnimation = (avatar, now) => {
   // const runSpeed = 0.5;

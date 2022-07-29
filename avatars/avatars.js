@@ -49,7 +49,7 @@ import {
 import {easing} from '../math-utils.js';
 import metaversefile from 'metaversefile';
 
-import { getFirstPersonCurves, getClosest2AnimationAngles, loadPromise, _findArmature, _getLerpFn, _applyAnimation } from './animationHelpers.js'
+import { getFirstPersonCurves, getClosest2AnimationAngles, loadAll, _findArmature, _getLerpFn, _applyAnimation } from './animationHelpers.js'
 
 import { animationMappingConfig } from './AnimationMapping.js';
 import Emoter from './Emoter.js'
@@ -391,6 +391,9 @@ const _makeDebugMesh = (avatar) => {
   return mesh;
 };
 
+const waitForLoad = async () => {
+  await loadAll();
+};
 
 // const g = new THREE.BoxBufferGeometry(0.05, 0.05, 0.05);
 // const m = new THREE.MeshBasicMaterial({ color: 0xFF00FF });
@@ -2177,7 +2180,8 @@ class Avatar {
     this.setAudioEnabled(false);
   }
 }
-Avatar.waitForLoad = () => loadPromise;
+Avatar.loadAll = loadAll;
+Avatar.waitForLoad = waitForLoad;
 Avatar.getAnimations = () => animations;
 Avatar.getAnimationStepIndices = () => animationStepIndices;
 Avatar.getAnimationMappingConfig = () => animationMappingConfig;
