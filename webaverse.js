@@ -297,6 +297,7 @@ export default class Webaverse extends EventTarget {
       performanceTracker.startFrame();
 
       window.domInfo.innerHTML = '';
+      window.isDebugger = false;
 
       const _frame = () => {
         timestamp = timestamp ?? performance.now();
