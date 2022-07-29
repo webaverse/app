@@ -1517,7 +1517,7 @@ class GameManager extends EventTarget {
   isMovingBackward() {
     const localPlayer = playersManager.getLocalPlayer();
     // return ioManager.keysDirection.z > 0 && this.isAiming();
-    return localPlayer.avatar.direction.z > 0.1; // If check > 0 will cause glitch when move left/right;
+    return localPlayer.avatar?.direction.z > 0.1; // If check > 0 will cause glitch when move left/right;
     /*
       return localPlayer.avatar.direction.z > 0.1;
       // If check > 0 will cause glitch when move left/right.

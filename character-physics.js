@@ -60,9 +60,9 @@ class CharacterPhysics {
     // console.log('wasd')
     if (this.player.avatar) {
       window.visKeysDirectionX = keysDirection.x;
-      this.velocity.add(keysDirection);
-      // this.velocity.x = keysDirection.x;
-      // this.velocity.z = keysDirection.z;
+      // this.velocity.add(keysDirection);
+      this.velocity.x = keysDirection.x;
+      this.velocity.z = keysDirection.z;
       window.visVelocityBeforeDampingX = this.velocity.x;
     }
   }
