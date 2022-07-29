@@ -262,7 +262,7 @@ const _updateIo = timeDiff => {
       if (!window.visStartTime) window.visStartTime = performance.now();
       localPlayer.characterPhysics.applyWasd(
         keysDirection.normalize()
-          .multiplyScalar(game.getSpeed() * timeDiff)
+          .multiplyScalar(timeDiff / 100)
       );
     }
   }
