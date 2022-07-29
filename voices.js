@@ -6,20 +6,20 @@ import * as voices from './voices.js';
 const voicePacks = [];
 const voiceEndpoints = [];
 
-const loadPromise = (async () => {
-  await Promise.all([
+const load = () => {
+  return [
     (async () => {
-      const res = await fetch( voicePacksUrl );
+      const res = await fetch(voicePacksUrl);
       const j = await res.json();
       voicePacks.push(...j);
     })(),
     (async () => {
-      const res = await fetch( voiceEndpointsUrl );
+      const res = await fetch(voiceEndpointsUrl);
       const j = await res.json();
       voiceEndpoints.push(...j);
     })(),
-  ]);
-})();
+  ];
+};
 
 [
   'overrideVoicePack',
@@ -57,12 +57,13 @@ const loadPromise = (async () => {
   });
 });
 
-const waitForLoad = () => {
+/* const waitForLoad = () => {
   return loadPromise;
-};
+}; */
 
 export {
-  waitForLoad,
+  // waitForLoad,
+  load,
   voicePacks,
   voiceEndpoints,
 }
