@@ -35,12 +35,11 @@ export default e => {
   const particles = [];
   e.waitUntil((async () => {
     {
-      const localParticleSystem = particleSystemManager.createParticleSystem({
+      const localParticleSystem = await particleSystemManager.createParticleSystem({
         particleNames,
         size,
         maxParticles: numParticles,
       });
-      await localParticleSystem.waitForLoad();
       scene.add(localParticleSystem);
       particleSystem = localParticleSystem;
     }
