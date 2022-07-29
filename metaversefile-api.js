@@ -976,8 +976,7 @@ export default () => {
     if (result) {
       return localPlayer;
     } else {
-      const remotePlayers = playersManager.getRemotePlayers().values();
-      for (const remotePlayer of remotePlayers) {
+      for (const remotePlayer in playersManager.getRemotePlayers()) {
         const remoteApp = remotePlayer.appManager.getAppByInstanceId(instanceId);
         if (remoteApp) {
           return remotePlayer;
@@ -1004,9 +1003,7 @@ export default () => {
 
     // remote
     for (const remotePlayer in playersManager.getRemotePlayers()) {
-      console.log('looking in remotePlayer', remotePlayer);
       const remoteApp = remotePlayer.appManager.getAppByInstanceId(instanceId);
-      console.log('remoteApp', remoteApp);
       if (remoteApp) {
         return remoteApp;
       }

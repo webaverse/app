@@ -1396,6 +1396,8 @@ export const _applyAnimation = (avatar, now) => {
       let defaultAnimation = 'grab_forward';
 
       const activateAction = player && player.getAction('activate');
+      // the action can be unset on remote player while this is still happening
+      // null check to prevent a frame of empty action at the end of the pickup
       if (activateAction && activateAction.animationName) {
         defaultAnimation = activateAction.animationName;
       }
