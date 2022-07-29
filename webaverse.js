@@ -44,8 +44,9 @@ import WebaWallet from './src/components/wallet.js';
 import musicManager from './music-manager.js';
 import physxWorkerManager from './physx-worker-manager.js';
 import story from './story.js';
-import zTargeting from './z-targeting.js';
+// import zTargeting from './z-targeting.js';
 import raycastManager from './raycast-manager.js';
+import resourceManager from './resource-manager.js';
 import universe from './universe.js';
 
 const localVector = new THREE.Vector3();
@@ -78,18 +79,22 @@ export default class Webaverse extends EventTarget {
 
     story.listenHack();
 
+    // pre loads
+    resourceManager.addAll(musicManager.load());
+    resourceManager.add(sounds.load());
+    resourceManager.addAll(voices.load());
+    resourceManager.addAll(Avatar.loadAll());
+
+    // post loads
+    resourceManager.addPost(game.postLoad);
+
     this.loadPromise = (async () => {
       await Promise.all([
+        resourceManager.waitForLoad(),
+
         physx.waitForLoad(),
-        Avatar.waitForLoad(),
         physxWorkerManager.waitForLoad(),
-        sounds.waitForLoad(),
-        zTargeting.waitForLoad(),
-        particleSystemManager.waitForLoad(),
-        transformControls.waitForLoad(),
-        metaverseModules.waitForLoad(),
-        voices.waitForLoad(),
-        musicManager.waitForLoad(),
+        // metaverseModules.waitForLoad(),
         WebaWallet.waitForLoad(),
       ]);
     })();
