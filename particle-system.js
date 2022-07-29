@@ -22,7 +22,8 @@ const ensureLoad = async () => {
 }; */
 const loadParticlesJson = async () => {
   const res = await fetch(particlesJsonUrl);
-  particlesJson = await res.json();
+  const particlesJson = await res.json();
+  return particlesJson;
 };
 let particlesJsonLoadPromise = null;
 const getParticlesJson = async () => {
@@ -334,6 +335,7 @@ class ParticleSystem extends THREE.InstancedMesh {
     // this.visible = false;
     this.needsUpdate = false;
 
+    this.particleNames = particleNames;
     this.textures = [];
     this.loadPromise = null;
     this.particles = Array(maxParticles).fill(null);
@@ -411,14 +413,21 @@ class ParticleSystem extends THREE.InstancedMesh {
     
     this.count = index;
   }
-  async load() {
+  loadAll() {
+    const promises = this.particleNames.map(particleName =>
+      _loadParticleTextureByName(particleName)
+    );
+    (async () => {
+      const newTextures = await Promise.all(promises);
+      this.textures = newTextures;
+      this.material.setTextures(newTextures);
+    })();
+    return promises;
+  }
+  async waitForLoad() {
     if (!this.loadPromise) {
-      this.loadPromise = Promise.all(particleNames.map(async particleName => {
-        return await _loadParticleTextureByName(particleName);
-      })).then(newTextures => {
-        this.textures = newTextures;
-        this.material.setTextures(newTextures);
-      });
+      const promises = this.loadAll();
+      this.loadPromise = Promise.all(promises);
     }
     await this.loadPromise;
   }
@@ -428,7 +437,7 @@ class ParticleSystem extends THREE.InstancedMesh {
 }
 
 const particleSystems = [];
-const createParticleSystem = ({
+const createParticleSystem = async ({
   particleNames,
   size,
   maxParticles,
@@ -438,6 +447,7 @@ const createParticleSystem = ({
     size,
     maxParticles,
   });
+  await particleSystem.waitForLoad();
   particleSystems.push(particleSystem);
   return particleSystem;
 };
