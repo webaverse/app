@@ -444,23 +444,23 @@ export const mergeGeometryTextureAtlas = (mergeable, textureSize) => {
           // const object = objects[i];
           const g = geometries[i];
           
-          const r = Math.random();
+          // const r = Math.random();
 
           let gMorphAttribute = g.morphAttributes[morphLayout.name];
           gMorphAttribute = gMorphAttribute?.[i];
           if (gMorphAttribute) {
-            // console.log('src', first, object, g, gMorphAttribute);
+            console.log('src', first, g, gMorphAttribute);
             morphData.set(gMorphAttribute.array, morphDataIndex);
             
             // const nz = gMorphAttribute.array.filter(n => n != 0);
             // console.log('case 1', first, nz.length, object, g, gMorphAttribute);
             
-            if (first === 2 || first === 1) {
+            /* if (first === 2 || first === 1) {
               for (let i = 0; i < gMorphAttribute.array.length; i++) {
                 // morphData[morphDataIndex + i] = r;
                 // morphData[morphDataIndex + i] *= 100;
               }
-            }
+            } */
 
             /* for (let i = 0; i < morphData.length; i++) {
               morphData[i] = Math.random();
@@ -676,9 +676,9 @@ export const optimizeAvatarModel = async (model, options = {}) => {
       } else if (type === 'skinnedMesh') {
         const skinnedMesh = new THREE.SkinnedMesh(geometry, m);
         skinnedMesh.skeleton = skeletons[0];
-        skinnedMesh.morphTargetDictionary = morphTargetDictionaryArray[0];
-        skinnedMesh.morphTargetInfluences = morphTargetInfluencesArray[0];
-        // skinnedMesh.updateMorphTargets();
+        // skinnedMesh.morphTargetDictionary = morphTargetDictionaryArray[0];
+        // skinnedMesh.morphTargetInfluences = morphTargetInfluencesArray[0];
+        skinnedMesh.updateMorphTargets();
         // console.log('got influences', skinnedMesh.morphTargetInfluences);
         return skinnedMesh;
       } else {
@@ -721,9 +721,9 @@ export const optimizeAvatarModel = async (model, options = {}) => {
       },
       {
         binary: true,
-        onlyVisible: false,
+        // onlyVisible: false,
         // forceIndices: true,
-        truncateDrawRange: false,
+        // truncateDrawRange: false,
         includeCustomExtensions: true,
       },
     );

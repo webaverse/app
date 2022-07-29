@@ -133,7 +133,7 @@ const _bindSkeleton = (dstModel, srcObject) => {
       // o.morphAttributes = skinnedMesh.morphAttributes;
       // o.morphAttributesRelative = skinnedMesh.morphAttributesRelative;
 
-      o.geometry.morphAttributes.position.forEach(attr => {
+      /* o.geometry.morphAttributes.position.forEach(attr => {
         attr.onUploadCallback = () => {
           console.log('upload callback');
         };
@@ -144,12 +144,12 @@ const _bindSkeleton = (dstModel, srcObject) => {
             // attr.array[i] = Math.random();
           // }
         }
-      });
+      }); */
 
       // o.onBeforeRender = () => {debugger;}
-      o.material.onBeforeCompile = (shader) => {
+      /* o.material.onBeforeCompile = (shader) => {
         console.log('compile avatar shader', shader);
-      };
+      }; */
       // window.o = o;
 
       const _frame = () => {
@@ -159,7 +159,8 @@ const _bindSkeleton = (dstModel, srcObject) => {
           debugger;
         }
         for (let i = 0; i < o.morphTargetInfluences.length; i++) {
-          o.morphTargetInfluences[i] = skinnedMesh.morphTargetInfluences[i];
+          // o.morphTargetInfluences[i] = skinnedMesh.morphTargetInfluences[i];
+          o.morphTargetInfluences[i] = 1;
         }
       };
       _frame();
@@ -331,9 +332,9 @@ export class AvatarRenderer {
         if (!this.optimizedModel) {
           this.optimizedModel = true;
 
-          // const glbData = await this.optimizeAvatarModel([this.object.arrayBuffer, this.object.srcUrl]);
+          const glbData = await this.optimizeAvatarModel([this.object.arrayBuffer, this.object.srcUrl]);
 
-          const parseVrm = (arrayBuffer, srcUrl) => new Promise((accept, reject) => {
+          /* const parseVrm = (arrayBuffer, srcUrl) => new Promise((accept, reject) => {
             const { gltfLoader } = loaders;
             gltfLoader.parse(arrayBuffer, srcUrl, object => {
               accept(object);
@@ -355,7 +356,7 @@ export class AvatarRenderer {
                 includeCustomExtensions: true,
               },
             );
-          });
+          }); */
 
           const glb = await new Promise((accept, reject) => {
             const {gltfLoader} = loaders;
