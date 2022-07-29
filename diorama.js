@@ -681,7 +681,7 @@ const createPlayerDiorama = ({
           target.matrixWorld.decompose(localVector, localQuaternion, localVector2);
           const targetPosition = localVector;
           const targetEuler = localEuler.setFromQuaternion(localQuaternion);
-          if(!detached && !flipY) {
+          if(!detached) {
             targetEuler._y += Math.PI;
           }
           const targetQuaternion = localQuaternion.setFromEuler(targetEuler)
