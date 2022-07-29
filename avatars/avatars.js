@@ -438,6 +438,10 @@ class Avatar {
       return o;
     })();
 
+    // if (!model.parent) {
+      console.log('model parent', model.parent, new Error().stack);
+    // }
+
     this.model = model; // XXX still needed?
     this.model.visible = false;
     
