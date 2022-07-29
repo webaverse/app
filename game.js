@@ -1680,9 +1680,9 @@ class GameManager extends EventTarget {
       ]);
       let neckBone;
       e.avatar.model.traverse(
-        (object) => {
-          if (object.type === "Bone" && object.name === "Head") {
-            return neckBone = object;
+        object => {
+          if (object.type === 'Bone' && object.name === 'Head' && !neckBone) {
+            neckBone = object;
           }
         }
       );

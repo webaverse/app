@@ -35,12 +35,15 @@ const MegaHup = function({
   useEffect(() => {
     const canvas = canvasRef.current;
     if (canvas && npcPlayer) {
-      let live = true;
       let diorama = null;
       {
         let spineBone;
         npcPlayer.avatar.model.traverse(
-          (object) => object.type === "Bone" && object.name === "Spine" && !spineBone && (spineBone = object)
+          object => {
+            if (object.type === 'Bone' && object.name === 'Spine' && !spineBone) {
+              spineBone = object;
+            }
+          }
         );
         diorama = dioramaManager.createPlayerDiorama({
           target: spineBone,
