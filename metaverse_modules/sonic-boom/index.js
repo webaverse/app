@@ -44,10 +44,10 @@ export default () => {
     {
         let localVector = new THREE.Vector3();
         useFrame(() => {
-            localVector.x=0;
-            localVector.y=0;
-            localVector.z=-1;
-            currentDir = localVector.applyQuaternion( localPlayer.quaternion );
+            localVector.x = 0;
+            localVector.y = 0;
+            localVector.z = -1;
+            currentDir = localVector.applyQuaternion(localPlayer.quaternion);
             currentDir.normalize();
             if (localPlayer.hasAction('narutoRun')){
                     narutoRunTime ++;
@@ -1896,7 +1896,7 @@ export default () => {
                     }
                     for (let i = 0; i < particleCount; i++) {
                         scalesAttribute.setX(i, 0.08 + Math.random() * 0.05);
-                        let rand = (1 + Math.random() * i * 0.05);
+                        let rand = (1 + Math.random() * i * 0.025);
                         let rand2 = (Math.random() - 0.5) * 0.25;
                         info.velocity[i].set( rand * currentDir.x + localVector2.x * rand2, 0.25 + Math.random() * 0.25, rand * currentDir.z + localVector2.z * rand2);
                         positionsAttribute.setXYZ(
