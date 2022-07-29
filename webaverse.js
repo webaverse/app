@@ -299,6 +299,7 @@ export default class Webaverse extends EventTarget {
 
       window.domInfo.innerHTML = '';
       window.isDebugger = false;
+      // console.log('---animate')
 
       const _frame = () => {
         timestamp = timestamp ?? performance.now();

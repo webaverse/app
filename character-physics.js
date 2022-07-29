@@ -57,6 +57,7 @@ class CharacterPhysics {
   }
   /* apply the currently held keys to the character */
   applyWasd(keysDirection) {
+    // console.log('wasd')
     if (this.player.avatar) {
       window.visKeysDirectionX = keysDirection.x;
       this.velocity.add(keysDirection);
@@ -112,6 +113,9 @@ class CharacterPhysics {
       //     localVector3.y = 0;
       //   }
       // }
+
+      // console.log('move')
+
       const flags = physicsScene.moveCharacterController(
         this.player.characterController,
         localVector3,
@@ -292,6 +296,7 @@ class CharacterPhysics {
       velocity.multiplyScalar(factor);
     }
     else {
+      // console.log('damping')
       const factor = getVelocityDampingFactor(groundFriction, timeDiff);
       velocity.x *= factor;
       velocity.z *= factor;
