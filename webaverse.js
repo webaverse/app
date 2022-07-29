@@ -82,11 +82,9 @@ export default class Webaverse extends EventTarget {
       story.listenHack();
 
       // pre loads
-      /* resourceManager.addAll(musicManager.load());
-      resourceManager.add(sounds.load()); */
-      resourceManager.addAll(voices.load());
       resourceManager.addAll(Avatar.loadAll());
       resourceManager.add(physx.load());
+      resourceManager.add(voices.load());
 
       // post loads
       resourceManager.addPost(game.postLoad.bind(game));
