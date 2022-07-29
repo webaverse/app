@@ -44,9 +44,11 @@ class PlayersManager extends EventTarget {
       });
       for (const nonLocalPlayer of nonLocalPlayerSpecs) {
         const remotePlayer = this.remotePlayers.get(nonLocalPlayer.playerId);
-        remotePlayer.destroy();
-        this.remotePlayers.delete(nonLocalPlayer.playerId);
-        this.remotePlayersByInteger.delete(nonLocalPlayer.playerIdInt);
+        if (remotePlayer) {
+          remotePlayer.destroy();
+          this.remotePlayers.delete(nonLocalPlayer.playerId);
+          this.remotePlayersByInteger.delete(nonLocalPlayer.playerIdInt);
+        }
       }
     }
   }
