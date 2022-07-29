@@ -498,6 +498,7 @@ const createPlayerDiorama = ({
   dotsBackground = false,
   autoCamera = true,
   detached = false,
+  flipY = false,
 } = {}) => {
   // _ensureSideSceneCompiled();
 
@@ -680,7 +681,9 @@ const createPlayerDiorama = ({
           target.matrixWorld.decompose(localVector, localQuaternion, localVector2);
           const targetPosition = localVector;
           const targetEuler = localEuler.setFromQuaternion(localQuaternion);
-          if(!detached) targetEuler._y += Math.PI;
+          if(!detached && !flipY) {
+            targetEuler._y += Math.PI;
+          }
           const targetQuaternion = localQuaternion.setFromEuler(targetEuler)
 
           sideCamera.position.copy(targetPosition)

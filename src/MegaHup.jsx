@@ -49,6 +49,7 @@ const MegaHup = function({
           // grassBackground: true,
           // glyphBackground: true,
           dotsBackground: true,
+          flipY: true,
         });
         diorama.addCanvas(canvas);
         diorama.enabled = true;
