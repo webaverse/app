@@ -121,7 +121,6 @@ export const screenshotPlayer = async ({
     // grassBackground: true,
     // glyphBackground: true,
     detached: true,
-    isScreenshot: true,
   });
   diorama.addCanvas(writeCanvas);
   diorama.setClearColor(0xFFFFFF, 1);

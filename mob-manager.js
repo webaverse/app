@@ -1,7 +1,7 @@
 import * as THREE from 'three';
 import * as SkeletonUtils from 'three/examples/jsm/utils/SkeletonUtils.js';
 import metaversefile from 'metaversefile';
-import {getLocalPlayer} from './players.js';
+import {playersManager} from './players-manager.js';
 import physicsManager from './physics-manager.js';
 import hpManager from './hp-manager.js';
 // import {LodChunkTracker} from './lod.js';
@@ -290,7 +290,7 @@ class Mob {
       let animation = null;
       let velocity = new THREE.Vector3(0, 0, 0);
       this.updateFns.push((timestamp, timeDiff) => {
-        const localPlayer = getLocalPlayer();
+        const localPlayer = playersManager.getLocalPlayer();
         const timeDiffS = timeDiff / 1000;
 
         if (animation) {
@@ -1263,7 +1263,7 @@ class Mobber {
     return this.generator.object;
   }
   update(timestamp, timeDiff) {
-    const localPlayer = getLocalPlayer();
+    const localPlayer = playersManager.getLocalPlayer();
     !this.procGenInstance.range && this.tracker.update(localPlayer.position);
     this.generator.update(timestamp, timeDiff);
   }
