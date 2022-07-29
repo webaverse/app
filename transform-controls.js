@@ -10,7 +10,7 @@ const localVector3 = new THREE.Vector3();
 const localVector4 = new THREE.Vector3();
 const localQuaternion = new THREE.Quaternion();
 const localMatrix = new THREE.Matrix4();
-const localPlane = new THREE.Plane();
+// const localPlane = new THREE.Plane();
 
 const TransformAxisConstraints = {
   X: new THREE.Vector3(1, 0, 0),
