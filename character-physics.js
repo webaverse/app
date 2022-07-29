@@ -58,6 +58,7 @@ class CharacterPhysics {
   /* apply the currently held keys to the character */
   applyWasd(keysDirection) {
     if (this.player.avatar) {
+      window.visKeysDirectionX = keysDirection.x;
       this.velocity.add(keysDirection);
     }
   }
@@ -140,7 +141,16 @@ class CharacterPhysics {
       // }
 
       if (window.isDebugger) {
-        console.log(timeDiffS, this.velocity.x, localVector3.x, this.player.characterController.position.x)
+        console.log(
+          performance.now() - window.visStartTime + '\t' + 
+          window.visSpeed + '\t' + 
+          window.visTimeDiff + '\t' + 
+          window.visKeysDirectionX + '\t' + 
+          timeDiffS + '\t' + 
+          this.velocity.x + '\t' + 
+          localVector3.x + '\t' + 
+          this.player.characterController.position.x
+        )
       }
 
       this.player.characterController.updateMatrixWorld();
