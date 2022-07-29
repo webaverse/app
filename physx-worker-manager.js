@@ -19,53 +19,48 @@ class PhysicsWorkerManager {
     this.nextWorker = 0;
     this.loadPromise = null;
   }
-  waitForLoad() {
-    if (!this.loadPromise) {
-      this.loadPromise = (async () => {
-        // create workers
-        const workers = Array(this.numWorkers);
-        for (let i = 0; i < this.numWorkers; i++) {
-          const worker = new Worker('./physx-worker.js?import', {
-            type: 'module',
-          });
-          const cbs = new Map();
-          worker.onmessage = e => {
-            const {requestId} = e.data;
-            const cb = cbs.get(requestId);
-            if (cb) {
-              cbs.delete(requestId);
-              cb(e.data);
-            } else {
-              console.warn('worker message without callback', e.data);
-            }
-          };
-          worker.onerror = err => {
-            console.log('physx worker load error', err);
-          };
-          worker.request = (method, args) => {
-            return new Promise((resolve, reject) => {
-              const requestId = makeId(5);
-              cbs.set(requestId, data => {
-                const {error, result} = data;
-                if (error) {
-                  reject(error);
-                } else {
-                  resolve(result);
-                }
-              });
-              worker.postMessage({
-                method,
-                args,
-                requestId,
-              });
-            });
-          };
-          workers[i] = worker;
+  postLoad() {
+    // create workers
+    const workers = Array(this.numWorkers);
+    for (let i = 0; i < this.numWorkers; i++) {
+      const worker = new Worker('./physx-worker.js?import', {
+        type: 'module',
+      });
+      const cbs = new Map();
+      worker.onmessage = e => {
+        const {requestId} = e.data;
+        const cb = cbs.get(requestId);
+        if (cb) {
+          cbs.delete(requestId);
+          cb(e.data);
+        } else {
+          console.warn('worker message without callback', e.data);
         }
-        this.workers = workers;
-      })();
+      };
+      worker.onerror = err => {
+        console.log('physx worker load error', err);
+      };
+      worker.request = (method, args) => {
+        return new Promise((resolve, reject) => {
+          const requestId = makeId(5);
+          cbs.set(requestId, data => {
+            const {error, result} = data;
+            if (error) {
+              reject(error);
+            } else {
+              resolve(result);
+            }
+          });
+          worker.postMessage({
+            method,
+            args,
+            requestId,
+          });
+        });
+      };
+      workers[i] = worker;
     }
-    return this.loadPromise;
+    this.workers = workers;
   }
   async cookGeometry(mesh) {
     await this.waitForLoad();
