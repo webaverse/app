@@ -8,15 +8,32 @@ import loaders from './loaders.js';
 const urlPrefix = `https://webaverse.github.io/fx-textures/`;
 const particlesJsonUrl = `${urlPrefix}fx-files.json`;
 
-let particlesJson = null;
-const loadPromise = (async () => {
+/* let particlesJson = null;
+const load = async () => {
   const res = await fetch(particlesJsonUrl);
   particlesJson = await res.json();
-})();
-const waitForLoad = () => loadPromise;
+};
+let loadPromise = null;
+const ensureLoad = async () => {
+  if (!loadPromise) {
+    loadPromise = load();
+  }
+  await loadPromise();
+}; */
+const loadParticlesJson = async () => {
+  const res = await fetch(particlesJsonUrl);
+  particlesJson = await res.json();
+};
+let particlesJsonLoadPromise = null;
+const getParticlesJson = async () => {
+  if (!particlesJsonLoadPromise) {
+    particlesJsonLoadPromise = loadParticlesJson();
+  }
+  return await particlesJsonLoadPromise;
+}
 
 const _loadParticleTextureByName = async name => {
-  await waitForLoad();
+  const particlesJson = await getParticlesJson();
 
   const fileSpec = particlesJson.find(f => f.name === name);
   const {numFrames} = fileSpec;
@@ -318,12 +335,7 @@ class ParticleSystem extends THREE.InstancedMesh {
     this.needsUpdate = false;
 
     this.textures = [];
-    this.loadPromise = Promise.all(particleNames.map(async particleName => {
-      return await _loadParticleTextureByName(particleName);
-    })).then(newTextures => {
-      this.textures = newTextures;
-      this.material.setTextures(newTextures);
-    });
+    this.loadPromise = null;
     this.particles = Array(maxParticles).fill(null);
     this.count = 0;
   }
@@ -399,8 +411,16 @@ class ParticleSystem extends THREE.InstancedMesh {
     
     this.count = index;
   }
-  waitForLoad() {
-    return this.loadPromise;
+  async load() {
+    if (!this.loadPromise) {
+      this.loadPromise = Promise.all(particleNames.map(async particleName => {
+        return await _loadParticleTextureByName(particleName);
+      })).then(newTextures => {
+        this.textures = newTextures;
+        this.material.setTextures(newTextures);
+      });
+    }
+    await this.loadPromise;
   }
   destroy() {
     // nothing
@@ -434,9 +454,9 @@ const update = (timestamp, timeDiff) => {
   }
 };
 const particleSystemManager = {
+  // load,
   createParticleSystem,
   destroyParticleSystem,
-  waitForLoad,
   update,
 };
 export default particleSystemManager;
