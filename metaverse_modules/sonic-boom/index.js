@@ -23,7 +23,7 @@ export default () => {
   const electricityTexture1 = textureLoader.load(`${baseUrl}/textures/texture8.png`);
   const electricityTexture2 = textureLoader.load(`${baseUrl}/textures/texture11.png`);
 
-    let currentDir=new THREE.Vector3();
+    let currentDir = new THREE.Vector3();
     //################################################ trace narutoRun Time ########################################
     {
         let localVector = new THREE.Vector3();
@@ -573,186 +573,185 @@ export default () => {
         });
 
     }
+    const trailMaterial = new THREE.ShaderMaterial({
+        uniforms: {
+            uTime: {
+                value: 0,
+            },
+            opacity: {
+                value: 0,
+            },
+            textureR: { type: 't', value: textureR },
+            textureG: { type: 't', value: textureG },
+            textureB: { type: 't', value: textureB },
+            t: { value: 0.9 }
+        },
+        vertexShader: `\
+             
+            ${THREE.ShaderChunk.common}
+            ${THREE.ShaderChunk.logdepthbuf_pars_vertex}
+           
+         
+            uniform float uTime;
+    
+            varying vec2 vUv;
+           
+            void main() {
+              vUv=uv;
+              vUv.y*=1.0;
+              //vUv.x=1.-vUv.x;
+              vec4 modelPosition = modelMatrix * vec4(position, 1.0);
+              vec4 viewPosition = viewMatrix * modelPosition;
+              vec4 projectionPosition = projectionMatrix * viewPosition;
+    
+              gl_Position = projectionPosition;
+              ${THREE.ShaderChunk.logdepthbuf_vertex}
+            }
+          `,
+          fragmentShader: `\
+          ${THREE.ShaderChunk.logdepthbuf_pars_fragment}
+          uniform sampler2D textureR;
+          uniform sampler2D textureG;
+          uniform sampler2D textureB;
+          uniform float uTime;
+          uniform float opacity;
+          varying vec2 vUv;
+          void main() {
+              
+  
+              vec3 texColorR = texture2D(
+                  textureR,
+                  vec2(
+                      mod(1.*vUv.x+uTime*5.,1.),
+                      mod(2.*vUv.y+uTime*5.,1.)
+                      
+                  )
+              ).rgb;  
+              vec3 texColorG = texture2D(
+                  textureG,
+                  vec2(
+                      mod(1.*vUv.x+uTime*5.,1.),
+                      mod(2.*vUv.y+uTime*5.,1.)
+                      
+                  )
+              ).rgb;  
+              vec3 texColorB = texture2D(
+                  textureB,
+                  vec2(
+                      mod(1.*vUv.x,1.),
+                      mod(2.5*vUv.y+uTime*2.5,1.)
+                      
+                  )
+              ).rgb;  
+              gl_FragColor = vec4(texColorB.b)*((vec4(texColorR.r)+vec4(texColorG.g))/2.);
+              
+
+              if( gl_FragColor.b >= 0.1 ){
+                  gl_FragColor = vec4(mix(vec3(0.020, 0.180, 1.920),vec3(0.284, 0.922, 0.980),gl_FragColor.b),gl_FragColor.b);
+              }else{
+                  gl_FragColor = vec4(0.);
+              }
+               gl_FragColor *= vec4(sin(vUv.y) - 0.1);
+               gl_FragColor *= vec4(smoothstep(0.3,0.628,vUv.y));
+               if(abs(vUv.x)>0.9 || abs(vUv.x)<0.1)
+                    gl_FragColor.a=0.;
+                
+                gl_FragColor.a*=3.;
+                gl_FragColor.a*=opacity;
+                //gl_FragColor.a*=(1.-vUv.y)*5.;
+                //gl_FragColor = vec4(vec3(texColor), texColor.b);
+                //gl_FragColor.a*=(vUv.x)*5.;
+                //gl_FragColor = vec4(vUv, 1.0, 1.0);
+            ${THREE.ShaderChunk.logdepthbuf_fragment}
+          }
+        `,
+      side: THREE.DoubleSide,
+      transparent: true,
+      depthWrite: false,
+      blending: THREE.AdditiveBlending,
+
+      clipping: false,
+      fog: false,
+      lights: false,
+    });
+    trailMaterial.freeze();
     //########################################## vertical trail ######################################
     {
-        const planeGeometry = new THREE.BufferGeometry();
-        let planeNumber=100;
-        let position= new Float32Array(18*planeNumber);
-        planeGeometry.setAttribute('position', new THREE.BufferAttribute(position, 3));
+      const planeGeometry = new THREE.BufferGeometry();
+      let planeNumber = 100;
+      let position= new Float32Array(18 * planeNumber);
+      planeGeometry.setAttribute('position', new THREE.BufferAttribute(position, 3));
 
-        let uv = new Float32Array(12*planeNumber);
-        let fraction = 1;
-        let ratio = 1 / planeNumber;
-        for (let i = 0; i < planeNumber; i++) {
-            uv[i * 12 + 0] = 0;
-            uv[i * 12 + 1] = fraction;
-    
-            uv[i * 12 + 2] = 1;
-            uv[i * 12 + 3] = fraction;
-    
-            uv[i * 12 + 4] = 0;
-            uv[i * 12 + 5] = fraction - ratio;
-    
-            uv[i * 12 + 6] = 1;
-            uv[i * 12 + 7] = fraction - ratio;
-    
-            uv[i * 12 + 8] = 0;
-            uv[i * 12 + 9] = fraction - ratio;
-    
-            uv[i * 12 + 10] = 1;
-            uv[i * 12 + 11] = fraction;
-    
-            fraction -= ratio;
-    
-        }
-        planeGeometry.setAttribute('uv', new THREE.BufferAttribute(uv, 2));
-    
-        
-        
-        const material = new THREE.ShaderMaterial({
-            uniforms: {
-                uTime: {
-                    value: 0,
-                },
-                opacity: {
-                    value: 0,
-                },
-                textureR: { type: 't', value: textureR },
-                textureG: { type: 't', value: textureG },
-                textureB: { type: 't', value: textureB },
-                t: { value: 0.9 }
-            },
-            vertexShader: `\
-                 
-                ${THREE.ShaderChunk.common}
-                ${THREE.ShaderChunk.logdepthbuf_pars_vertex}
-               
-             
-                uniform float uTime;
-        
-                varying vec2 vUv;
-               
-                void main() {
-                  vUv=uv;
-                  vUv.y*=1.0;
-                  //vUv.x=1.-vUv.x;
-                  vec4 modelPosition = modelMatrix * vec4(position, 1.0);
-                  vec4 viewPosition = viewMatrix * modelPosition;
-                  vec4 projectionPosition = projectionMatrix * viewPosition;
-        
-                  gl_Position = projectionPosition;
-                  ${THREE.ShaderChunk.logdepthbuf_vertex}
-                }
-              `,
-              fragmentShader: `\
-              ${THREE.ShaderChunk.logdepthbuf_pars_fragment}
-              uniform sampler2D textureR;
-              uniform sampler2D textureG;
-              uniform sampler2D textureB;
-              uniform float uTime;
-              uniform float opacity;
-              varying vec2 vUv;
-              void main() {
-                  
-      
-                  vec3 texColorR = texture2D(
-                      textureR,
-                      vec2(
-                          mod(1.*vUv.x+uTime*5.,1.),
-                          mod(2.*vUv.y+uTime*5.,1.)
-                          
-                      )
-                  ).rgb;  
-                  vec3 texColorG = texture2D(
-                      textureG,
-                      vec2(
-                          mod(1.*vUv.x+uTime*5.,1.),
-                          mod(2.*vUv.y+uTime*5.,1.)
-                          
-                      )
-                  ).rgb;  
-                  vec3 texColorB = texture2D(
-                      textureB,
-                      vec2(
-                          mod(1.*vUv.x,1.),
-                          mod(2.5*vUv.y+uTime*2.5,1.)
-                          
-                      )
-                  ).rgb;  
-                  gl_FragColor = vec4(texColorB.b)*((vec4(texColorR.r)+vec4(texColorG.g))/2.);
-                  
-    
-                  if( gl_FragColor.b >= 0.1 ){
-                      gl_FragColor = vec4(mix(vec3(0.020, 0.180, 1.920),vec3(0.284, 0.922, 0.980),gl_FragColor.b),gl_FragColor.b);
-                  }else{
-                      gl_FragColor = vec4(0.);
-                  }
-                   gl_FragColor *= vec4(sin(vUv.y) - 0.1);
-                   gl_FragColor *= vec4(smoothstep(0.3,0.628,vUv.y));
-                   if(abs(vUv.x)>0.9 || abs(vUv.x)<0.1)
-                        gl_FragColor.a=0.;
-                    
-                    gl_FragColor.a*=3.;
-                    gl_FragColor.a*=opacity;
-                    //gl_FragColor.a*=(1.-vUv.y)*5.;
-                    //gl_FragColor = vec4(vec3(texColor), texColor.b);
-                    //gl_FragColor.a*=(vUv.x)*5.;
-                    //gl_FragColor = vec4(vUv, 1.0, 1.0);
-                ${THREE.ShaderChunk.logdepthbuf_fragment}
-              }
-            `,
-          side: THREE.DoubleSide,
-          transparent: true,
-          depthWrite: false,
-          blending: THREE.AdditiveBlending,
+      let uv = new Float32Array(12 * planeNumber);
+      let fraction = 1;
+      let ratio = 1 / planeNumber;
+      for (let i = 0; i < planeNumber; i++) {
+        uv[i * 12 + 0] = 0;
+        uv[i * 12 + 1] = fraction;
 
-          clipping: false,
-          fog: false,
-          lights: false,
-      });
-      material.freeze();
+        uv[i * 12 + 2] = 1;
+        uv[i * 12 + 3] = fraction;
+
+        uv[i * 12 + 4] = 0;
+        uv[i * 12 + 5] = fraction - ratio;
+
+        uv[i * 12 + 6] = 1;
+        uv[i * 12 + 7] = fraction - ratio;
+
+        uv[i * 12 + 8] = 0;
+        uv[i * 12 + 9] = fraction - ratio;
+
+        uv[i * 12 + 10] = 1;
+        uv[i * 12 + 11] = fraction;
+
+        fraction -= ratio;
+
+      }
+      planeGeometry.setAttribute('uv', new THREE.BufferAttribute(uv, 2));
+
+      const material = trailMaterial;
     
       let plane=new THREE.Mesh(planeGeometry,material);
       //app.add(plane);
-      plane.position.y=1;
+      plane.position.y = 1;
       plane.frustumCulled = false;
-      let temp=[];
-      let temp2=[];
-      let sonicBoomInApp=false;
+      let temp = [];
+      let temp2 = [];
+      let sonicBoomInApp = false;
       useFrame(({timestamp}) => {
         
         
-        if(narutoRunTime>=10){
+        if(narutoRunTime >= 10){
             if(!sonicBoomInApp){
                 //console.log('add-planeTrail1');
                 app.add(plane);
-                sonicBoomInApp=true;
+                sonicBoomInApp = true;
             }
             material.uniforms.opacity.value = 1;
         }
         else{
-            if(material.uniforms.opacity.value>0)
+            if(material.uniforms.opacity.value > 0)
                 material.uniforms.opacity.value -= 0.02;
         }
-        if(narutoRunTime>0 && narutoRunTime<10){
+        if(narutoRunTime > 0 && narutoRunTime < 10){
             material.uniforms.opacity.value = 0;
         }
-        if(material.uniforms.opacity.value>0){
+        if(material.uniforms.opacity.value > 0){
             //console.log('sonic-boom-verticalPlane');
-            for(let i=0;i<18;i++){
-                temp[i]=position[i];
+            for(let i = 0;i < 18; i++){
+                temp[i] = position[i];
             }
             for (let i = 0; i < planeNumber; i++){
-                if(i===0){
+                if(i === 0){
                     position[0] = localPlayer.position.x;
-                    position[1] = localPlayer.position.y-1.;
+                    position[1] = localPlayer.position.y - 1.;
                     position[2] = localPlayer.position.z;
                     if (localPlayer.avatar) {
                         position[1] -= localPlayer.avatar.height;
                         position[1] += 1.18;
                     }
                     position[3] = localPlayer.position.x;
-                    position[4] = localPlayer.position.y-2.;
+                    position[4] = localPlayer.position.y - 2.;
                     position[5] = localPlayer.position.z;
                     if (localPlayer.avatar) {
                         position[4] -= localPlayer.avatar.height;
@@ -772,7 +771,7 @@ export default () => {
                     position[14] = temp[2];
                 
                     position[15] = localPlayer.position.x;
-                    position[16] = localPlayer.position.y-2.;
+                    position[16] = localPlayer.position.y - 2.;
                     position[17] = localPlayer.position.z;
                     if (localPlayer.avatar) {
                         position[16] -= localPlayer.avatar.height;
@@ -781,10 +780,10 @@ export default () => {
                 }
                 else{
                     
-                    for(let j=0;j<18;j++){
-                        temp2[j]=position[i*18+j];
-                        position[i*18+j]=temp[j];
-                        temp[j]=temp2[j];
+                    for(let j = 0; j < 18; j++){
+                        temp2[j] = position[i * 18 + j];
+                        position[i * 18 + j] = temp[j];
+                        temp[j] = temp2[j];
                     }
                     
     
@@ -795,13 +794,13 @@ export default () => {
             plane.geometry.dynamic = true;
             plane.geometry.attributes.position.needsUpdate = true;
             
-            material.uniforms.uTime.value = timestamp/1000;
+            material.uniforms.uTime.value = timestamp / 1000;
         }
         else{
             if(sonicBoomInApp){
                 //console.log('remove-planeTrail1');
                 app.remove(plane);
-                sonicBoomInApp=false;
+                sonicBoomInApp = false;
             }
         }
        
@@ -813,206 +812,105 @@ export default () => {
     }
     //########################################## horizontal trail ######################################
     {
-        const planeGeometry = new THREE.BufferGeometry();
-        const planeNumber=100;
-        let position= new Float32Array(18*planeNumber);
-        planeGeometry.setAttribute('position', new THREE.BufferAttribute(position, 3));
+      const planeGeometry = new THREE.BufferGeometry();
+      const planeNumber = 100;
+      let position = new Float32Array(18 * planeNumber);
+      planeGeometry.setAttribute('position', new THREE.BufferAttribute(position, 3));
 
-        let uv = new Float32Array(12*planeNumber);
-        let fraction = 1;
-        let ratio = 1 / planeNumber;
-        for (let i = 0; i < planeNumber; i++) {
-            uv[i * 12 + 0] = 0;
-            uv[i * 12 + 1] = fraction;
-    
-            uv[i * 12 + 2] = 1;
-            uv[i * 12 + 3] = fraction;
-    
-            uv[i * 12 + 4] = 0;
-            uv[i * 12 + 5] = fraction - ratio;
-    
-            uv[i * 12 + 6] = 1;
-            uv[i * 12 + 7] = fraction - ratio;
-    
-            uv[i * 12 + 8] = 0;
-            uv[i * 12 + 9] = fraction - ratio;
-    
-            uv[i * 12 + 10] = 1;
-            uv[i * 12 + 11] = fraction;
-    
-            fraction -= ratio;
-    
-        }
-        planeGeometry.setAttribute('uv', new THREE.BufferAttribute(uv, 2));
+      let uv = new Float32Array(12 * planeNumber);
+      let fraction = 1;
+      let ratio = 1 / planeNumber;
+      for (let i = 0; i < planeNumber; i++) {
+        uv[i * 12 + 0] = 0;
+        uv[i * 12 + 1] = fraction;
+
+        uv[i * 12 + 2] = 1;
+        uv[i * 12 + 3] = fraction;
+
+        uv[i * 12 + 4] = 0;
+        uv[i * 12 + 5] = fraction - ratio;
+
+        uv[i * 12 + 6] = 1;
+        uv[i * 12 + 7] = fraction - ratio;
+
+        uv[i * 12 + 8] = 0;
+        uv[i * 12 + 9] = fraction - ratio;
+
+        uv[i * 12 + 10] = 1;
+        uv[i * 12 + 11] = fraction;
+
+        fraction -= ratio;
+
+      }
+      planeGeometry.setAttribute('uv', new THREE.BufferAttribute(uv, 2));
        
         
         
-        const material = new THREE.ShaderMaterial({
-            uniforms: {
-                uTime: {
-                    value: 0,
-                },
-                opacity: {
-                    value: 0,
-                },
-                textureR: { type: 't', value: textureR },
-                textureG: { type: 't', value: textureG },
-                textureB: { type: 't', value: textureB },
-                t: { value: 0.9 }
-            },
-            vertexShader: `\
-                 
-                ${THREE.ShaderChunk.common}
-                ${THREE.ShaderChunk.logdepthbuf_pars_vertex}
-               
-             
-                uniform float uTime;
-        
-                varying vec2 vUv;
-               
-                void main() {
-                  vUv=uv;
-                  vUv.y*=1.0;
-                  //vUv.x=1.-vUv.x;
-                  vec4 modelPosition = modelMatrix * vec4(position, 1.0);
-                  vec4 viewPosition = viewMatrix * modelPosition;
-                  vec4 projectionPosition = projectionMatrix * viewPosition;
-        
-                  gl_Position = projectionPosition;
-                  ${THREE.ShaderChunk.logdepthbuf_vertex}
-                }
-              `,
-              fragmentShader: `\
-              ${THREE.ShaderChunk.logdepthbuf_pars_fragment}
-              uniform sampler2D textureR;
-              uniform sampler2D textureG;
-              uniform sampler2D textureB;
-              uniform float uTime;
-              uniform float opacity;
-              varying vec2 vUv;
-              void main() {
-                  
-      
-                  vec3 texColorR = texture2D(
-                      textureR,
-                      vec2(
-                          mod(1.*vUv.x+uTime*5.,1.),
-                          mod(2.*vUv.y+uTime*5.,1.)
-                          
-                      )
-                  ).rgb;  
-                  vec3 texColorG = texture2D(
-                      textureG,
-                      vec2(
-                          mod(1.*vUv.x+uTime*5.,1.),
-                          mod(2.*vUv.y+uTime*5.,1.)
-                          
-                      )
-                  ).rgb;  
-                  vec3 texColorB = texture2D(
-                      textureB,
-                      vec2(
-                          mod(1.*vUv.x,1.),
-                          mod(2.5*vUv.y+uTime*2.5,1.)
-                          
-                      )
-                  ).rgb;  
-                  gl_FragColor = vec4(texColorB.b)*((vec4(texColorR.r)+vec4(texColorG.g))/2.);
-                  
-    
-                  if( gl_FragColor.b >= 0.1 ){
-                      gl_FragColor = vec4(mix(vec3(0.020, 0.180, 1.920),vec3(0.284, 0.922, 0.980),gl_FragColor.b),gl_FragColor.b);
-                  }else{
-                      gl_FragColor = vec4(0.);
-                  }
-                   gl_FragColor *= vec4(sin(vUv.y) - 0.1);
-                   gl_FragColor *= vec4(smoothstep(0.3,0.628,vUv.y));
-                   if(abs(vUv.x)>0.9 || abs(vUv.x)<0.1)
-                        gl_FragColor.a=0.;
-                    
-                    gl_FragColor.a*=3.;
-                    gl_FragColor.a*=opacity;
-                    
-                  //gl_FragColor = vec4(vec3(texColor), texColor.b);
-                  //gl_FragColor.a*=(vUv.x)*5.;
-                  //gl_FragColor = vec4(vUv, 1.0, 1.0);
-                ${THREE.ShaderChunk.logdepthbuf_fragment}
-              }
-            `,
-          side: THREE.DoubleSide,
-          transparent: true,
-          depthWrite: false,
-          blending: THREE.AdditiveBlending,
-
-          clipping: false,
-          fog: false,
-          lights: false,
-      });
-      material.freeze();
+      const material = trailMaterial;
     
       let plane=new THREE.Mesh(planeGeometry,material);
       //app.add(plane);
-      plane.position.y=1;
+      plane.position.y = 1;
       plane.frustumCulled = false;
 
-      const point1 =  new THREE.Vector3();
-      const point2 =  new THREE.Vector3();
+      const point1 = new THREE.Vector3();
+      const point2 = new THREE.Vector3();
       const localVector2 = new THREE.Vector3();
       let temp=[];
       let temp2=[];
       let quaternion = new THREE.Quaternion();
-      quaternion.setFromAxisAngle(new THREE.Vector3(0,1,0),-Math.PI/2);
+      quaternion.setFromAxisAngle(new THREE.Vector3(0, 1, 0), -Math.PI / 2);
       let sonicBoomInApp=false;
       useFrame(({timestamp}) => {
 
 
-        if(narutoRunTime>=10){
+        if(narutoRunTime >= 10){
             if(!sonicBoomInApp){
                 //console.log('add-planeTrail2');
                 app.add(plane);
-                sonicBoomInApp=true;
+                sonicBoomInApp = true;
             }
             material.uniforms.opacity.value = 1;
         }
         else{
-            if(material.uniforms.opacity.value>0)
+            if(material.uniforms.opacity.value > 0)
                 material.uniforms.opacity.value -= 0.0255;
         }
-        if(narutoRunTime>0 && narutoRunTime<10){
+        if(narutoRunTime > 0 && narutoRunTime < 10){
             material.uniforms.opacity.value = 0;
         }
-        if(material.uniforms.opacity.value>0){
+        if(material.uniforms.opacity.value > 0){
             //console.log('sonic-boom-horiPlane');
             
             localVector2.set(currentDir.x, currentDir.y, currentDir.z).applyQuaternion(quaternion);
     
-            point1.x=localPlayer.position.x;
-            point1.y=localPlayer.position.y;
-            point1.z=localPlayer.position.z;
-            point2.x=localPlayer.position.x;
-            point2.y=localPlayer.position.y;
-            point2.z=localPlayer.position.z;
+            point1.x = localPlayer.position.x;
+            point1.y = localPlayer.position.y;
+            point1.z = localPlayer.position.z;
+            point2.x = localPlayer.position.x;
+            point2.y = localPlayer.position.y;
+            point2.z = localPlayer.position.z;
             
-            point1.x-=0.6*localVector2.x;
-            point1.z-=0.6*localVector2.z;
-            point2.x+=0.6*localVector2.x;
-            point2.z+=0.6*localVector2.z;
+            point1.x -= 0.6 * localVector2.x;
+            point1.z -= 0.6 * localVector2.z;
+            point2.x += 0.6 * localVector2.x;
+            point2.z += 0.6 * localVector2.z;
             
            
-            for(let i=0;i<18;i++){
-                temp[i]=position[i];
+            for(let i = 0;i < 18; i++){
+                temp[i] = position[i];
             }
             for (let i = 0; i < planeNumber; i++){
-                if(i===0){
+                if(i === 0){
                     position[0] = point1.x;
-                    position[1] = localPlayer.position.y-1.55;
+                    position[1] = localPlayer.position.y - 1.55;
                     position[2] = point1.z;
                     if (localPlayer.avatar) {
                         position[1] -= localPlayer.avatar.height;
                         position[1] += 1.18;
                     }
                     position[3] = point2.x;
-                    position[4] = localPlayer.position.y-1.55;
+                    position[4] = localPlayer.position.y - 1.55;
                     position[5] = point2.z;
                     if (localPlayer.avatar) {
                         position[4] -= localPlayer.avatar.height;
@@ -1032,7 +930,7 @@ export default () => {
                     position[14] = temp[2];
                 
                     position[15] = point2.x;
-                    position[16] = localPlayer.position.y-1.55;
+                    position[16] = localPlayer.position.y - 1.55;
                     position[17] = point2.z;
                     if (localPlayer.avatar) {
                         position[16] -= localPlayer.avatar.height;
@@ -1041,10 +939,10 @@ export default () => {
                 }
                 else{
                     
-                    for(let j=0;j<18;j++){
-                        temp2[j]=position[i*18+j];
-                        position[i*18+j]=temp[j];
-                        temp[j]=temp2[j];
+                    for(let j = 0; j < 18; j++){
+                        temp2[j]=position[i * 18 + j];
+                        position[i * 18 + j] = temp[j];
+                        temp[j] = temp2[j];
                     }
                     
     
@@ -1054,7 +952,7 @@ export default () => {
             plane.geometry.verticesNeedUpdate = true;
             plane.geometry.dynamic = true;
             plane.geometry.attributes.position.needsUpdate = true;
-            material.uniforms.uTime.value = timestamp/1000;
+            material.uniforms.uTime.value = timestamp / 1000;
         }
         else{
             if(sonicBoomInApp){
@@ -1425,11 +1323,15 @@ export default () => {
     {
         
         const particleCount = 10;
+        let info = {
+            velocity: [particleCount]
+        }
+        let acc = new THREE.Vector3(-0.000, 0.0008, 0.0018);
         const attributeSpecs = [];
         attributeSpecs.push({name: 'id', itemSize: 1});
         attributeSpecs.push({name: 'scales', itemSize: 1});
         // attributeSpecs.push({name: 'textureRotation', itemSize: 1});
-        const geometry2 = new THREE.PlaneBufferGeometry(3., 3.);
+        const geometry2 = new THREE.PlaneBufferGeometry(0.075, 0.075);
         const geometry = _getGeometry(geometry2, attributeSpecs, particleCount);
         const idAttribute = geometry.getAttribute('id');
         for(let i = 0; i < particleCount; i++){
@@ -1477,10 +1379,12 @@ export default () => {
                     vId = id;
                     vec3 pos = position;
                     pos = rotateVecQuat(pos, cameraBillboardQuaternion);
-                    // pos *= size;
                     pos *= scales;
                     pos += positions;
-                    gl_Position = projectionMatrix * modelViewMatrix * vec4(pos, 1.0);
+                    vec4 modelPosition = modelMatrix * vec4(pos, 1.0);
+                    vec4 viewPosition = viewMatrix * modelPosition;
+                    vec4 projectionPosition = projectionMatrix * viewPosition;
+                    gl_Position = projectionPosition;
                     ${THREE.ShaderChunk.logdepthbuf_vertex}
                 }
             `,
@@ -1506,6 +1410,8 @@ export default () => {
                     {
                         discard;    
                     }   
+                    gl_FragColor.r *= abs(sin(uTime) * vId);
+                    gl_FragColor.g *= abs(sin(uTime) * vId);
                     gl_FragColor = tex;
                     gl_FragColor.a *= opacity;
                     
@@ -1526,6 +1432,10 @@ export default () => {
         const group = new THREE.Group();
         const electricityBall = new THREE.InstancedMesh(geometry, material, particleCount);
         group.add(electricityBall)
+
+        for(let i = 0; i< particleCount; i++){
+            info.velocity[i] = new THREE.Vector3();
+        }
        
         let sonicBoomInApp = false;
         useFrame(({timestamp}) => {
@@ -1558,19 +1468,41 @@ export default () => {
                 }
 
                 const scalesAttribute = electricityBall.geometry.getAttribute('scales');
+                const positionsAttribute = electricityBall.geometry.getAttribute('positions');
                 
                 for(let i = 0; i < particleCount; i++){
-                    scalesAttribute.setX(i, 1);
+                    if(scalesAttribute.getX(i) < 0.1){
+                        positionsAttribute.setXYZ(i, (Math.random() - 0.5) * 0.15, (Math.random() - 0.5) * 0.55, (Math.random() - 0.5) * 0.15);
+                        scalesAttribute.setX(i, 1 + Math.random());
+                        let rand = Math.random();
+                        info.velocity[i].set( (rand + 0.5) * -currentDir.x, 0, (rand + 0.5) * -currentDir.z);
+                        // info.velocity[i].divideScalar(10);
+                        break;
+                    }
+                    positionsAttribute.setXYZ(
+                        i,
+                        positionsAttribute.getX(i) + info.velocity[i].x,
+                        positionsAttribute.getY(i) + info.velocity[i].y,
+                        positionsAttribute.getZ(i) + info.velocity[i].z
+                    )
+                    scalesAttribute.setX(i, scalesAttribute.getX(i) / 1.2);
+                    
+
                 }
                 
                 scalesAttribute.needsUpdate = true;
-
+                positionsAttribute.needsUpdate = true;
 
                 material.uniforms.uTime.value = timestamp / 1000;
                 material.uniforms.cameraBillboardQuaternion.value.copy(camera.quaternion);
             }
             else{
                 if(sonicBoomInApp){
+                    const scalesAttribute = electricityBall.geometry.getAttribute('scales');
+                    for(let i = 0; i < particleCount; i++){
+                        scalesAttribute.setX(i, 0);
+                    }
+                    scalesAttribute.needsUpdate = true;
                     //console.log('remove-electricty1');
                     app.remove(group);
                     sonicBoomInApp = false;
