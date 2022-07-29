@@ -11,25 +11,39 @@ export default () => {
   const {renderer, camera} = useInternals();
   let narutoRunTime=0; 
   let lastStopSw=0;
-  const textureLoader = new THREE.TextureLoader()
-  const wave2 = textureLoader.load(`${baseUrl}/textures/wave2.jpeg`)
-  const wave20 = textureLoader.load(`${baseUrl}/textures/wave20.png`)
-  const wave9 = textureLoader.load(`${baseUrl}/textures/wave9.png`)
-  const electronicballTexture = textureLoader.load(`${baseUrl}/textures/electronic-ball2.png`);
-  const noiseMap = textureLoader.load(`${baseUrl}/textures/noise.jpg`);
-  const electricityTexture1 = textureLoader.load(`${baseUrl}/textures/texture8.png`);
-  const electricityTexture2 = textureLoader.load(`${baseUrl}/textures/texture11.png`);
-  const trailTexture = textureLoader.load(`${baseUrl}/textures/trail.png`);
-  trailTexture.wrapS = trailTexture.wrapT = THREE.RepeatWrapping;
-  const maskTexture = textureLoader.load(`${baseUrl}/textures/mask2.png`);
-  const noiseTexture = textureLoader.load(`${baseUrl}/textures/voronoiNoise.jpg`);
-  noiseTexture.wrapS = noiseTexture.wrapT = THREE.RepeatWrapping;
+  
+  const nameSpec = [
+    'wave2',
+    'wave20',
+    'wave9',
+    'electronic-ball2',
+    'noise',
+    'electricityTexture1',
+    'electricityTexture2',
+    'trail2',
+    'mask',
+    'voronoiNoise',
+  ]
+  const particleTexture = [];
+  const _loadAllTexture = async names => {
+    for(const name of names){
+        const texture = await new Promise((accept, reject) => {
+            const {ktx2Loader} = useLoaders();
+            const u = `${baseUrl}/textures/${name}.ktx2`;
+            ktx2Loader.load(u, accept, function onProgress() {}, reject);
+        });
+        particleTexture.push(texture);
+    }
+  };
+  _loadAllTexture(nameSpec);
+  
+  
+  
     let currentDir = new THREE.Vector3();
     //################################################ trace narutoRun Time ########################################
     {
         let localVector = new THREE.Vector3();
         useFrame(() => {
-            
             localVector.x=0;
             localVector.y=0;
             localVector.z=-1;
@@ -95,11 +109,11 @@ export default () => {
               },
               waveTexture: {
                 type: "t",
-                value: wave2
+                value: null
               },
               waveTexture2: {
                 type: "t",
-                value: wave20
+                value: null
               },
               
             },
@@ -205,6 +219,7 @@ export default () => {
         //     console.log('compile frontwave material')
         // }
         material.freeze();
+        
         const group = new THREE.Group();
         group.add(frontwave);
         renderer.compile(group, camera)
@@ -232,6 +247,10 @@ export default () => {
 
                 group.scale.set(1, 1, 1);
                 material.uniforms.uTime.value = timestamp / 5000;
+                if(!material.uniforms.waveTexture.value)
+                    material.uniforms.waveTexture.value = particleTexture[nameSpec.indexOf('wave2')];
+                if(!material.uniforms.waveTexture2.value)
+                    material.uniforms.waveTexture2.value = particleTexture[nameSpec.indexOf('wave20')];
             }
             else{
                 if(sonicBoomInApp){
@@ -292,7 +311,7 @@ export default () => {
             uniforms: {
                 perlinnoise: {
                     type: "t",
-                    value:wave2
+                    value: null
                 },
                 uTime: {
                     type: "f",
@@ -341,6 +360,8 @@ export default () => {
                 group.position.z -= 2.2 * currentDir.z;
                 group.scale.set(1, 1, 1);
                 windMaterial.uniforms.uTime.value = timestamp / 10000;
+                if(!windMaterial.uniforms.perlinnoise.value)
+                    windMaterial.uniforms.perlinnoise.value = particleTexture[nameSpec.indexOf('wave2')];
             }
             else{
                 if(sonicBoomInApp){
@@ -376,7 +397,7 @@ export default () => {
             uniforms: {
                 perlinnoise: {
                     type: "t",
-                    value: wave9
+                    value: null
                 },
                 color: {
                     value: new THREE.Vector3(0.120, 0.280, 1.920)
@@ -545,6 +566,8 @@ export default () => {
                 group.position.x -= 2.2 * currentDir.x;
                 group.position.z -= 2.2 * currentDir.z;
                 flameMaterial.uniforms.uTime.value = timestamp / 20000;
+                if(!flameMaterial.uniforms.perlinnoise.value)
+                    flameMaterial.uniforms.perlinnoise.value = particleTexture[nameSpec.indexOf('wave9')];
                 if(Math.abs(localPlayer.rotation.x) > 0){
                     let temp = localPlayer.rotation.y + Math.PI;
                     for(let i = 0; i < 5; i++){
@@ -588,9 +611,9 @@ export default () => {
             opacity: {
                 value: 0,
             },
-            trailTexture:{ value: trailTexture},
-            maskTexture:{value: maskTexture},
-            noiseTexture:{value: noiseTexture},
+            trailTexture:{ value: null},
+            maskTexture:{value: null},
+            noiseTexture:{value: null},
             t: { value: 0.9 }
         },
         vertexShader: `\
@@ -605,7 +628,7 @@ export default () => {
            
             void main() {
               vUv = uv;
-              vUv.y *= 2.;
+            //   vUv.y *= 2.;
               //vUv.x=1.-vUv.x;
               vec4 modelPosition = modelMatrix * vec4(position, 1.0);
               vec4 viewPosition = viewMatrix * modelPosition;
@@ -628,7 +651,7 @@ export default () => {
             vec4 noise = texture2D(
                 noiseTexture,
                 vec2(
-                    vUv.x + uTime * 5.,
+                    vUv.x + uTime * 0.5,
                     vUv.y + uTime * 5.
                 )
             );  
@@ -637,14 +660,14 @@ export default () => {
                 trailTexture,
                 vec2(
                     mix(vUv.x, noise.r, 0.1),
-                    mix(vUv.y + uTime * 5., noise.g, 0.25)
+                    mix(vUv.y + uTime * 2.5, noise.g, 0.2)
                 )
             );  
             vec4 mask = texture2D(
                 maskTexture,
                 vec2(
                     vUv.x,
-                    vUv.y * 0.5
+                    1. - vUv.y
                 )
             );  
               
@@ -737,14 +760,14 @@ export default () => {
             for (let i = 0; i < planeNumber; i++){
                 if(i === 0){
                     position[0] = localPlayer.position.x;
-                    position[1] = localPlayer.position.y - 0.9;
+                    position[1] = localPlayer.position.y - 0.8;
                     position[2] = localPlayer.position.z;
                     if (localPlayer.avatar) {
                         position[1] -= localPlayer.avatar.height;
                         position[1] += 1.18;
                     }
                     position[3] = localPlayer.position.x;
-                    position[4] = localPlayer.position.y - 2.1;
+                    position[4] = localPlayer.position.y - 2.2;
                     position[5] = localPlayer.position.z;
                     if (localPlayer.avatar) {
                         position[4] -= localPlayer.avatar.height;
@@ -764,7 +787,7 @@ export default () => {
                     position[14] = temp[2];
                 
                     position[15] = localPlayer.position.x;
-                    position[16] = localPlayer.position.y - 2.1;
+                    position[16] = localPlayer.position.y - 2.2;
                     position[17] = localPlayer.position.z;
                     if (localPlayer.avatar) {
                         position[16] -= localPlayer.avatar.height;
@@ -788,6 +811,19 @@ export default () => {
             plane.geometry.attributes.position.needsUpdate = true;
             
             material.uniforms.uTime.value = timestamp / 1000;
+            if(!material.uniforms.trailTexture.value){
+                material.uniforms.trailTexture.value = particleTexture[nameSpec.indexOf('trail2')];
+                material.uniforms.trailTexture.value.wrapS = material.uniforms.trailTexture.value.wrapT = THREE.RepeatWrapping;
+            }
+                
+            if(!material.uniforms.noiseTexture.value){
+                material.uniforms.noiseTexture.value = particleTexture[nameSpec.indexOf('voronoiNoise')];
+                material.uniforms.noiseTexture.value.wrapS = material.uniforms.noiseTexture.value.wrapT = THREE.RepeatWrapping;
+            }
+            if(!material.uniforms.maskTexture.value){
+                material.uniforms.maskTexture.value = particleTexture[nameSpec.indexOf('mask')];
+            }
+                
         }
         else{
             if(sonicBoomInApp){
@@ -884,10 +920,10 @@ export default () => {
             point2.y = localPlayer.position.y;
             point2.z = localPlayer.position.z;
             
-            point1.x -= 0.6 * localVector2.x;
-            point1.z -= 0.6 * localVector2.z;
-            point2.x += 0.6 * localVector2.x;
-            point2.z += 0.6 * localVector2.z;
+            point1.x -= 1 * localVector2.x;
+            point1.z -= 1 * localVector2.z;
+            point2.x += 1 * localVector2.x;
+            point2.z += 1 * localVector2.z;
             
            
             for(let i = 0;i < 18; i++){
@@ -1148,11 +1184,11 @@ export default () => {
                 },
                 electricityTexture1: {
                     type: "t",
-                    value: electricityTexture1
+                    value: null
                 },
                 electricityTexture2: {
                     type: "t",
-                    value: electricityTexture2
+                    value: null
                 },
 
             },
@@ -1292,6 +1328,12 @@ export default () => {
                 }
                 material.uniforms.uTime.value = timestamp / 1000;
                 material.uniforms.cameraBillboardQuaternion.value.copy(camera.quaternion);
+                if(!material.uniforms.electricityTexture1.value){
+                    material.uniforms.electricityTexture1.value = particleTexture[nameSpec.indexOf('electricityTexture1')];
+                }
+                if(!material.uniforms.electricityTexture2.value){
+                    material.uniforms.electricityTexture2.value = particleTexture[nameSpec.indexOf('electricityTexture2')];
+                }
                 const scalesAttribute = electricity.geometry.getAttribute('scales');
                 const textureRotationAttribute = electricity.geometry.getAttribute('textureRotation');
                 scalesAttribute.setX(0, 0.8 + Math.random() * 0.2);
@@ -1346,7 +1388,7 @@ export default () => {
                 },
                 electronicballTexture: {
                     type: "t",
-                    value: electronicballTexture
+                    value: null
                 },
 
             },
@@ -1496,6 +1538,9 @@ export default () => {
 
                 material.uniforms.uTime.value = timestamp / 1000;
                 material.uniforms.cameraBillboardQuaternion.value.copy(camera.quaternion);
+                if(!material.uniforms.electronicballTexture.value){
+                    material.uniforms.electronicballTexture.value = particleTexture[nameSpec.indexOf('electronic-ball2')];
+                }
             }
             else{
                 if(sonicBoomInApp){
@@ -1721,7 +1766,7 @@ export default () => {
             uniforms: {
                 uTime: { value: 0 },
                 opacity: { value: 0 },
-                noiseMap: {value: noiseMap}
+                noiseMap: {value: null}
 
             },
             vertexShader: `
@@ -1829,12 +1874,15 @@ export default () => {
         const euler = new THREE.Euler();
         const quaternion = new THREE.Quaternion();
        
+        const localVector2 = new THREE.Vector3();
+        const quaternion2 = new THREE.Quaternion();
+        quaternion2.setFromAxisAngle(new THREE.Vector3(0, 1, 0), -Math.PI / 2);
 
         let sonicBoomInApp=false;
         useFrame(({timestamp}) => {
             let count = 0;
             if (mesh) {
-                
+                localVector2.set(currentDir.x, currentDir.y, currentDir.z).applyQuaternion(quaternion2);
                 const positionsAttribute = mesh.geometry.getAttribute('positions');
                 const opacityAttribute = mesh.geometry.getAttribute('opacity');
                 const brokenAttribute = mesh.geometry.getAttribute('broken');
@@ -1847,14 +1895,15 @@ export default () => {
                         sonicBoomInApp = true;
                     }
                     for (let i = 0; i < particleCount; i++) {
-                        scalesAttribute.setX(i, 0.06 + Math.random() * 0.05);
+                        scalesAttribute.setX(i, 0.08 + Math.random() * 0.05);
                         let rand = (1 + Math.random() * i * 0.05);
-                        info.velocity[i].set( rand * currentDir.x, 0.25 + Math.random() * 0.25, rand * currentDir.z);
+                        let rand2 = (Math.random() - 0.5) * 0.25;
+                        info.velocity[i].set( rand * currentDir.x + localVector2.x * rand2, 0.25 + Math.random() * 0.25, rand * currentDir.z + localVector2.z * rand2);
                         positionsAttribute.setXYZ(
                             i, 
-                            localPlayer.position.x + info.velocity[i].x, 
+                            localPlayer.position.x + info.velocity[i].x , 
                             localPlayer.position.y - localPlayer.avatar.height, 
-                            localPlayer.position.z + info.velocity[i].z
+                            localPlayer.position.z + info.velocity[i].z 
                         );
                         euler.set(Math.random() * 2 * Math.PI, Math.random() * 2 * Math.PI, Math.random() * 2 * Math.PI);
                         quaternion.setFromEuler(euler);
@@ -1884,7 +1933,9 @@ export default () => {
                 opacityAttribute.needsUpdate = true;
                 brokenAttribute.needsUpdate = true;
                 quaternionAttribute.needsUpdate = true;
-                
+                if(!material.uniforms.noiseMap.value){
+                    material.uniforms.noiseMap.value = particleTexture[nameSpec.indexOf('noise')];
+                }
                 
     
             }
