@@ -40,10 +40,13 @@ const CharacterHup = function(props) {
         diorama.resetCanvases();
         diorama.addCanvas(canvas);
       } else {
-        avatar = player.avatar.model;
+        let neckBone;
+        player.avatar.model.traverse(
+          (object) => object.type === "Bone" && object.name === "Head" && !neckBone && (neckBone = object)
+        );
         diorama = dioramaManager.createPlayerDiorama({
-          target: player,
-          objects: [avatar],
+          target: neckBone,
+          objects: [player.avatar.model],
           grassBackground: true,
         });
         diorama.addCanvas(canvas);
@@ -56,6 +59,7 @@ const CharacterHup = function(props) {
       };
     }
   }, [canvasRef]);
+
   useEffect(() => {
     // console.log('effect 2', hup);
     if (hupRef.current) {

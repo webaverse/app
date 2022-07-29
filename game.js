@@ -1668,17 +1668,25 @@ class GameManager extends EventTarget {
 
     const localPlayer = playersManager.getLocalPlayer();
     this.playerDiorama = dioramaManager.createPlayerDiorama({
-      target: localPlayer,
+      // target: localPlayer,
       // label: true,
       outline: true,
       grassBackground: true,
       // glyphBackground: true,
     });
-
     localPlayer.addEventListener('avatarchange', e => {
       this.playerDiorama.setObjects([
         e.avatar.model,
       ]);
+      let neckBone;
+      e.avatar.model.traverse(
+        (object) => {
+          if (object.type === "Bone" && object.name === "Head") {
+            return neckBone = object;
+          }
+        }
+      );
+      this.playerDiorama.setTarget(neckBone);
     });
   }
   async setVoicePack(voicePack) {
