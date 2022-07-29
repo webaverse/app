@@ -16,7 +16,7 @@ class Wallet {
     this.launched = false;
   }
 
-  async waitForLoad() {
+  async load() {
     const self = this;
     let pubk = '';
 
@@ -65,9 +65,9 @@ class Wallet {
         }
       };
       window.addEventListener('message', f);
-    }).catch(e => {
+    })/* .catch(e => {
       console.warn(e);
-    });
+    }); */
   }
 
   async waitForLaunch() {
