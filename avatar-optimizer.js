@@ -136,8 +136,8 @@ export const mergeGeometryTextureAtlas = (mergeable, textureSize) => {
     emissiveMaps,
     normalMaps,
     // skeletons,
-    // morphTargetDictionaryArray,
-    // morphTargetInfluencesArray,
+    morphTargetDictionaryArray,
+    morphTargetInfluencesArray,
   } = mergeable;
 
   // compute texture sizes
@@ -440,13 +440,16 @@ export const mergeGeometryTextureAtlas = (mergeable, textureSize) => {
         // console.log('num geos', geometries.length);
         
         let first = 0;
-        for (let i = 0; i < geometries.length; i++) {
+        for (let j = 0; j < geometries.length; j++) {
           // const object = objects[i];
-          const g = geometries[i];
+          const g = geometries[j];
           
           // const r = Math.random();
 
           let gMorphAttribute = g.morphAttributes[morphLayout.name];
+          if (gMorphAttribute.length !== morphsArray.length) {
+            debugger;
+          }
           gMorphAttribute = gMorphAttribute?.[i];
           if (gMorphAttribute) {
             console.log('src', first, g, gMorphAttribute);
@@ -676,9 +679,9 @@ export const optimizeAvatarModel = async (model, options = {}) => {
       } else if (type === 'skinnedMesh') {
         const skinnedMesh = new THREE.SkinnedMesh(geometry, m);
         skinnedMesh.skeleton = skeletons[0];
-        // skinnedMesh.morphTargetDictionary = morphTargetDictionaryArray[0];
-        // skinnedMesh.morphTargetInfluences = morphTargetInfluencesArray[0];
-        skinnedMesh.updateMorphTargets();
+        skinnedMesh.morphTargetDictionary = morphTargetDictionaryArray[0];
+        skinnedMesh.morphTargetInfluences = morphTargetInfluencesArray[0];
+        // skinnedMesh.updateMorphTargets();
         // console.log('got influences', skinnedMesh.morphTargetInfluences);
         return skinnedMesh;
       } else {
