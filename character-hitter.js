@@ -181,8 +181,8 @@ export class CharacterHitter {
       const damageMeshApp = metaversefile.createApp();
       (async () => {
         await metaverseModules.waitForLoad();
-        const {modules} = metaversefile.useDefaultModules();
-        const m = modules['damageMesh'];
+        const {importModule} = metaversefile.useDefaultModules();
+        const m = await importModule('damageMesh');
         await damageMeshApp.addModule(m);
       })();
       damageMeshApp.position.copy(this.player.position);

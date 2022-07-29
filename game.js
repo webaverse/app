@@ -1026,8 +1026,8 @@ const rotationSnap = Math.PI/6;
     const app = metaversefileApi.createApp();
     (async () => {
       await metaverseModules.waitForLoad();
-      const {modules} = metaversefileApi.useDefaultModules();
-      const m = modules['arrowLoader'];
+      const {importModule} = metaversefile.useDefaultModules();
+      const m = await importModule('arrowLoader');
       await app.addModule(m);
     })();
     return app;
