@@ -179,6 +179,20 @@ export default function CharacterHups({
       remotePlayer.characterHups.addEventListener('hupremove', hupremove);
     }
 
+    const handlePlayerAdd = (e) => {
+      e.data.player.characterHups.addEventListener('hupadd', hupadd);
+      e.data.player.characterHups.addEventListener('hupremove', hupremove);
+
+    }
+
+    const handlePlayerRemove = (e) => {
+      e.data.player.characterHups.removeEventListener('hupadd', hupadd);
+      e.data.player.characterHups.removeEventListener('hupremove', hupremove);
+    }
+
+    playersManager.addEventListener('playeradded', handlePlayerAdd);
+    playersManager.addEventListener('playerremoved', handlePlayerRemove);
+
     return () => {
       localPlayer.characterHups.removeEventListener('hupadd', hupadd);
       localPlayer.characterHups.removeEventListener('hupremove', hupremove);
