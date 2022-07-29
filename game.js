@@ -1666,16 +1666,24 @@ class GameManager extends EventTarget {
   bindDioramaCanvas() {
     const localPlayer = playersManager.getLocalPlayer();
     this.playerDiorama = dioramaManager.createPlayerDiorama({
+      // target: localPlayer,
+      // label: true,
       outline: true,
       grassBackground: true,
     });
     localPlayer.addEventListener('avatarchange', e => {
+      this.playerDiorama.setObjects([
+        e.avatar.model,
+      ]);
       let neckBone;
       e.avatar.model.traverse(
-        (object) => object.type === "Bone" && object.name === "Head" && !neckBone && (neckBone = object)
+        (object) => {
+          if (object.type === "Bone" && object.name === "Head") {
+            return neckBone = object;
+          }
+        }
       );
       this.playerDiorama.setTarget(neckBone);
-      this.playerDiorama.setObjects([e.avatar.model]);
     });
   }
   async setVoicePack(voicePack) {

@@ -20,6 +20,7 @@ const localVector = new THREE.Vector3();
 const localVector2 = new THREE.Vector3();
 const localVector3 = new THREE.Vector3();
 const localVector2D = new THREE.Vector2();
+const localEuler = new THREE.Euler();
 const localVector2D2 = new THREE.Vector2();
 const localVector4D = new THREE.Vector4();
 const localQuaternion = new THREE.Quaternion();
@@ -27,7 +28,7 @@ const localMatrix = new THREE.Matrix4();
 const localColor = new THREE.Color();
 
 // this function maps the speed histogram to a position, integrated up to the given timestamp
-const mapTime = (speedHistogram = new SpeedHistogram, time = 0) => {
+const mapTime = (speedHistogram = new SpeedHistogram(), time = 0) => {
   const {elements} = speedHistogram;
   const totalDistance = speedHistogram.totalDistance();
   // const totalDuration = speedHistogram.totalDuration();
@@ -678,9 +679,9 @@ const createPlayerDiorama = ({
           // set up side camera
           target.matrixWorld.decompose(localVector, localQuaternion, localVector2);
           const targetPosition = localVector;
-          const targetEuler = new THREE.Euler().setFromQuaternion(localQuaternion);
-          targetEuler._y += Math.PI;
-          const targetQuaternion = new THREE.Quaternion().setFromEuler(targetEuler)
+          const targetEuler = localEuler.setFromQuaternion(localQuaternion);
+          if(!detached) targetEuler._y += Math.PI;
+          const targetQuaternion = localQuaternion.setFromEuler(targetEuler)
 
           sideCamera.position.copy(targetPosition)
             .add(
