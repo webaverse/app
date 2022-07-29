@@ -332,7 +332,15 @@ export class AvatarRenderer {
         if (!this.optimizedModel) {
           this.optimizedModel = true;
 
-          const glbData = await this.optimizeAvatarModel([this.object.arrayBuffer, this.object.srcUrl]);
+          const parseVrm = (arrayBuffer, srcUrl) => new Promise((accept, reject) => {
+            const { gltfLoader } = loaders;
+            gltfLoader.parse(arrayBuffer, srcUrl, object => {
+              accept(object);
+            }, reject);
+          });
+          const object = await parseVrm(this.object.arrayBuffer, this.object.srcUrl);
+
+          const glb = await avatarOptimizer.optimizeAvatarModel(object.scene);
 
           /* const parseVrm = (arrayBuffer, srcUrl) => new Promise((accept, reject) => {
             const { gltfLoader } = loaders;
@@ -358,13 +366,13 @@ export class AvatarRenderer {
             );
           }); */
 
-          const glb = await new Promise((accept, reject) => {
+          /* const glb = await new Promise((accept, reject) => {
             const {gltfLoader} = loaders;
             gltfLoader.parse(glbData, this.object.srcUrl, object => {
               // window.o15 = object;
               accept(object.scene);
             }, reject);
-          });
+          }); */
 
           _bindSkeleton(glb, this.object);
           this.optimizedModel = glb;
@@ -373,6 +381,8 @@ export class AvatarRenderer {
           // object.scene.updateMatrixWorld();
           // this.scene.add(object.scene);
           
+          // window.glb = glb;
+
           this.optimizedModel.updateMatrixWorld();
           this.scene.add(this.optimizedModel);
         }
