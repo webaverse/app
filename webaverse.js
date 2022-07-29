@@ -77,26 +77,25 @@ export default class Webaverse extends EventTarget {
   constructor() {
     super();
 
-    story.listenHack();
+    {
+      // hacks
+      story.listenHack();
 
-    // pre loads
-    resourceManager.addAll(musicManager.load());
-    resourceManager.add(sounds.load());
-    resourceManager.addAll(voices.load());
-    resourceManager.addAll(Avatar.loadAll());
-    resourceManager.add(physx.load());
+      // pre loads
+      resourceManager.addAll(musicManager.load());
+      resourceManager.add(sounds.load());
+      resourceManager.addAll(voices.load());
+      resourceManager.addAll(Avatar.loadAll());
+      resourceManager.add(physx.load());
 
-    // post loads
-    resourceManager.addPost(game.postLoad.bind(game));
-    resourceManager.addPost(physxWorkerManager.postLoad.bind(physxWorkerManager));
+      // post loads
+      resourceManager.addPost(game.postLoad.bind(game));
+      resourceManager.addPost(physxWorkerManager.postLoad.bind(physxWorkerManager));
+      resourceManager.addPost(WebaWallet.load.bind(WebaWallet));
 
-    this.loadPromise = (async () => {
-      await Promise.all([
-        resourceManager.waitForLoad(),
+      this.loadPromise = resourceManager.waitForLoad();
+    }
 
-        WebaWallet.waitForLoad(),
-      ]);
-    })();
     this.contentLoaded = false;
   }
   
