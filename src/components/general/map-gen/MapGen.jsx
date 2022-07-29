@@ -411,8 +411,8 @@ export const MapGen = () => {
                         position,
                       });
                       (async () => {
-                        const {modules} = metaversefile.useDefaultModules();
-                        const m = modules['firedrop'];
+                        const {importModule} = metaversefile.useDefaultModules();
+                        const m = await importModule('firedrop');
                         await firedropMeshApp.addModule(m);
                       })();
                       scene.add(firedropMeshApp);
@@ -433,8 +433,8 @@ export const MapGen = () => {
                     if (!haloMeshApp) {
                       const haloMeshApp = metaversefile.createApp();
                       (async () => {
-                        const {modules} = metaversefile.useDefaultModules();
-                        const m = modules['halo'];
+                        const {importModule} = metaversefile.useDefaultModules();
+                        const m = await importModule('halo');
                         await haloMeshApp.addModule(m);
                       })();
                       scene.add(haloMeshApp);
@@ -455,8 +455,8 @@ export const MapGen = () => {
                       if (!silksMeshApp) {
                         const silksMeshApp = metaversefile.createApp();
                         (async () => {
-                          const {modules} = metaversefile.useDefaultModules();
-                          const m = modules['silks'];
+                          const {importModule} = metaversefile.useDefaultModules();
+                          const m = await importModule('silks');
                           await silksMeshApp.addModule(m);
                         })();
                         scene.add(silksMeshApp);
@@ -478,8 +478,8 @@ export const MapGen = () => {
                     if (!cometMeshApp) {
                       const cometMeshApp = metaversefile.createApp();
                       (async () => {
-                        const {modules} = metaversefile.useDefaultModules();
-                        const m = modules['comet'];
+                        const {importModule} = metaversefile.useDefaultModules();
+                        const m = await importModule('comet');
                         await cometMeshApp.addModule(m);
                       })();
                       scene.add(cometMeshApp);
@@ -509,8 +509,8 @@ export const MapGen = () => {
                     if (!flareMeshApp) {
                       const flareMeshApp = metaversefile.createApp();
                       (async () => {
-                        const {modules} = metaversefile.useDefaultModules();
-                        const m = modules['flare'];
+                        const {importModule} = metaversefile.useDefaultModules();
+                        const m = await importModule('flare');
                         await flareMeshApp.addModule(m);
                       })();
                       scene.add(flareMeshApp);
@@ -553,8 +553,8 @@ export const MapGen = () => {
                     if (!magicMeshApp) {
                       const magicMeshApp = metaversefile.createApp();
                       (async () => {
-                        const {modules} = metaversefile.useDefaultModules();
-                        const m = modules['magic'];
+                        const {importModule} = metaversefile.useDefaultModules();
+                        const m = await importModule('magic');
                         await magicMeshApp.addModule(m);
                       })();
                       sceneLowPriority.add(magicMeshApp);
@@ -576,8 +576,8 @@ export const MapGen = () => {
                     if (!limitMeshApp) {
                       const limitMeshApp = metaversefile.createApp();
                       (async () => {
-                        const {modules} = metaversefile.useDefaultModules();
-                        const m = modules['limit'];
+                        const {importModule} = metaversefile.useDefaultModules();
+                        const m = await importModule('limit');
                         await limitMeshApp.addModule(m);
                       })();
                       sceneLowPriority.add(limitMeshApp);
