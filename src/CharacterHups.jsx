@@ -30,6 +30,7 @@ const CharacterHup = function(props) {
 
   useEffect(() => {
     // console.log('effect 1', hup);
+
     if (canvasRef.current) {
       const canvas = canvasRef.current;
       const player = hup.parent.player;
@@ -49,8 +50,10 @@ const CharacterHup = function(props) {
           grassBackground: true,
         });
         diorama.addCanvas(canvas);
+        // chatDioramas.set(player, diorama);
         // console.log('no diorama');
       }
+
       return () => {
         diorama.destroy();
       };
