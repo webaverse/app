@@ -21,29 +21,25 @@ const capsuleUpQuaternion = new THREE.Quaternion().setFromAxisAngle(
 
 const physx = {};
 
-let loadPromise = null;
 let scratchStack = null;
 physx.loaded = false;
-physx.waitForLoad =  () => {
+physx.load = async () => {
+  await Module.waitForLoad();
+
+  Module._initialize();
+
+  const scratchStackSize = 1024 * 1024;
+  scratchStack = new ScratchStack(Module, scratchStackSize);
+};
+let loadPromise = null;
+physx.waitForLoad = async () => {
   if (!loadPromise) {
     loadPromise = (async () => {
-      await Module.waitForLoad();
-
-      Module._initialize();
-
-      const scratchStackSize = 1024 * 1024;
-      scratchStack = new ScratchStack(Module, scratchStackSize);
-
+      await physx.load();
       physx.loaded = true;
-
-      // console.log('module called run', Module.calledRun);
-      /* if (Module.calledRun) {
-        // Module.onRuntimeInitialized()
-        Module.postRun()
-      } */
     })();
   }
-  return loadPromise;
+  await loadPromise;
 };
 
 const physxWorker = (() => {
