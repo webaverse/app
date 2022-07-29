@@ -7,7 +7,7 @@ import {unFrustumCull, enableShadows} from './util.js';
 import {
   getEyePosition,
 } from './avatars/util.mjs';
-import {getLocalPlayer, remotePlayers} from './players.js';
+import {playersManager} from './players-manager.js';
 
 const appSymbol = 'app'; // Symbol('app');
 const avatarSymbol = 'avatar'; // Symbol('avatar');
@@ -54,12 +54,13 @@ export function makeAvatar(app) {
     const {skinnedVrm} = app;
 
     const _getPlayerByAppInstanceId = instanceId => {
-      const localPlayer = getLocalPlayer();
+      const remotePlayers = playersManager.getRemotePlayers(); // Might have to be removed too
+      const localPlayer = playersManager.getLocalPlayer();
       const result = localPlayer.appManager.getAppByInstanceId(instanceId);
       if (result) {
         return localPlayer;
       } else {
-        for (const remotePlayer of remotePlayers) {
+        for (const remotePlayer in remotePlayers) {
           if (remotePlayer.appManager.getAppByInstanceId(instanceId)) {
             return remotePlayer;
           }
@@ -88,6 +89,7 @@ export function makeAvatar(app) {
 }
 export function applyPlayerActionsToAvatar(player, rig) {
   const jumpAction = player.getAction('jump');
+  const doubleJumpAction = player.getAction('doubleJump');
   const landAction = player.getAction('land');
   const flyAction = player.getAction('fly');
   const swimAction = player.getAction('swim');
@@ -118,8 +120,11 @@ export function applyPlayerActionsToAvatar(player, rig) {
 
   rig.jumpState = !!jumpAction;
   rig.jumpTime = player.actionInterpolants.jump.get();
+  rig.doubleJumpState = !!doubleJumpAction;
+  rig.doubleJumpTime = player.actionInterpolants.doubleJump.get();
   rig.landTime = player.actionInterpolants.land.get();
   rig.lastLandStartTime = landAction ? landAction.time : 0;
+  rig.landWithMoving = landAction?.isMoving;
   rig.flyState = !!flyAction;
   rig.flyTime = flyAction ? player.actionInterpolants.fly.get() : -1;
   rig.activateTime = player.actionInterpolants.activate.get();

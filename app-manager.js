@@ -167,16 +167,106 @@ class AppManager extends EventTarget {
     }
     this.appsArray = nextAppsArray;
   }
-  loadApps() {
+  async loadApps() {
     for (let i = 0; i < this.appsArray.length; i++) {
       const trackedApp = this.appsArray.get(i, Z.Map);
-      this.dispatchEvent(new MessageEvent('trackedappadd', {
-        data: {
-          trackedApp,
-        },
-      }));
+      if(this.hasTrackedApp(trackedApp.get('instanceId'))) {
+        const app = this.apps.find(app => app.instanceId === trackedApp.get('instanceId'));
+        if(!app){
+          await this.importTrackedApp(trackedApp);
+        }
+      }
     }
   }
+  trackedAppBound (instanceId) {
+    return !!this.trackedAppUnobserveMap.get(instanceId)
+  }
+  
+  async importTrackedApp(trackedApp) {
+    const trackedAppBinding = trackedApp.toJSON();
+    const {instanceId, contentId, transform, components} = trackedAppBinding;
+    
+    const p = makePromise();
+    p.instanceId = instanceId;
+    this.pendingAddPromises.set(instanceId, p);
+
+    let live = true;
+    
+    const clear = e => {
+      live = false;
+      cleanup();
+    };
+    const cleanup = () => {
+      this.removeEventListener('clear', clear);
+      this.pendingAddPromises.delete(instanceId);
+    };
+    this.addEventListener('clear', clear);
+    const _bailout = app => {
+      // Add Error placeholder
+      const errorPH = this.getErrorPlaceholder();
+      if (app) {
+        errorPH.position.fromArray(app.position);
+        errorPH.quaternion.fromArray(app.quaternion);
+        errorPH.scale.fromArray(app.scale);
+      }
+      this.addApp(errorPH);
+
+      // Remove app
+      if (app) {
+        this.removeApp(app);
+        app.destroy();
+      }
+      p.reject(new Error('app cleared during load: ' + contentId));
+    };
+
+    // attempt to load app
+    try {
+      const m = await metaversefile.import(contentId);
+      if (!live) return _bailout(null);
+
+      // create app
+      // as an optimization, the app may be reused by calling addApp() before tracking it
+      const app = metaversefile.createApp();
+
+      // setup
+      {
+        // set pose
+        app.position.fromArray(transform);
+        app.quaternion.fromArray(transform, 3);
+        app.scale.fromArray(transform, 7);
+        app.updateMatrixWorld();
+        app.lastMatrix.copy(app.matrixWorld);
+
+        // set components
+        app.instanceId = instanceId;
+        app.setComponent('physics', true);
+        for (const {key, value} of components) {
+          app.setComponent(key, value);
+        }
+      }
+
+      // initialize app
+      {
+        // console.log('add module', m);
+        const mesh = await app.addModule(m);
+        if (!live) return _bailout(app);
+        if (!mesh) {
+          console.warn('failed to load object', {contentId});
+        }
+
+        this.addApp(app);
+      }
+
+      this.bindTrackedApp(trackedApp, app);
+
+      p.accept(app);
+    } catch (err) {
+      p.reject(err);
+    } finally {
+      cleanup();
+    }
+  }
+
   bindTrackedApp(trackedApp, app) {
     // console.log('bind tracked app', trackedApp.get('instanceId'));
     const _observe = (e, origin) => {
@@ -207,88 +297,7 @@ class AppManager extends EventTarget {
   bindEvents() {
     this.addEventListener('trackedappadd', async e => {
       const {trackedApp} = e.data;
-      const trackedAppBinding = trackedApp.toJSON();
-      const {instanceId, contentId, transform, components} = trackedAppBinding;
-      
-      const p = makePromise();
-      p.instanceId = instanceId;
-      this.pendingAddPromises.set(instanceId, p);
-
-      let live = true;
-      
-      const clear = e => {
-        live = false;
-        cleanup();
-      };
-      const cleanup = () => {
-        this.removeEventListener('clear', clear);
-        this.pendingAddPromises.delete(instanceId);
-      };
-      this.addEventListener('clear', clear);
-      const _bailout = app => {
-        // Add Error placeholder
-        const errorPH = this.getErrorPlaceholder();
-        if (app) {
-          errorPH.position.fromArray(app.position);
-          errorPH.quaternion.fromArray(app.quaternion);
-          errorPH.scale.fromArray(app.scale);
-        }
-        this.addApp(errorPH);
-
-        // Remove app
-        if (app) {
-          this.removeApp(app);
-          app.destroy();
-        }
-        p.reject(new Error('app cleared during load: ' + contentId));
-      };
-
-      // attempt to load app
-      try {
-        const m = await metaversefile.import(contentId);
-        if (!live) return _bailout(null);
-
-        // create app
-        // as an optimization, the app may be reused by calling addApp() before tracking it
-        const app = metaversefile.createApp();
-
-        // setup
-        {
-          // set pose
-          app.position.fromArray(transform);
-          app.quaternion.fromArray(transform, 3);
-          app.scale.fromArray(transform, 7);
-          app.updateMatrixWorld();
-          app.lastMatrix.copy(app.matrixWorld);
-
-          // set components
-          app.instanceId = instanceId;
-          app.setComponent('physics', true);
-          for (const {key, value} of components) {
-            app.setComponent(key, value);
-          }
-        }
-
-        // initialize app
-        {
-          // console.log('add module', m);
-          const mesh = await app.addModule(m);
-          if (!live) return _bailout(app);
-          if (!mesh) {
-            console.warn('failed to load object', {contentId});
-          }
-
-          this.addApp(app);
-        }
-
-        this.bindTrackedApp(trackedApp, app);
-
-        p.accept(app);
-      } catch (err) {
-        p.reject(err);
-      } finally {
-        cleanup();
-      }
+      this.importTrackedApp(trackedApp);
     });
     this.addEventListener('trackedappremove', async e => {
       const {instanceId, app} = e.data;
@@ -386,7 +395,7 @@ class AppManager extends EventTarget {
   }
   getTrackedApp(instanceId) {
     for (const app of this.appsArray) {
-      if (app.get('instanceId') === instanceId) {
+      if (app.instanceId || app.get('instanceId')) {
         return app;
       }
     }
@@ -394,7 +403,7 @@ class AppManager extends EventTarget {
   }
   hasTrackedApp(instanceId) {
     for (const app of this.appsArray) {
-      if (app.get('instanceId') === instanceId) {
+      if ((app.instanceId || app.get('instanceId')) === instanceId) {
         return true;
       }
     }
@@ -571,7 +580,6 @@ class AppManager extends EventTarget {
     // dstAppManager.setBlindStateMode(false);
   }
   importApp(app) {
-    let dstTrackedApp = null;
     const self = this;
     this.appsArray.doc.transact(() => {
       const contentId = app.contentId;
@@ -582,19 +590,16 @@ class AppManager extends EventTarget {
       app.quaternion.toArray(transform, 3);
       app.scale.toArray(transform, 7);
       
-      dstTrackedApp = self.addTrackedAppInternal(
+      const dstTrackedApp = self.addTrackedAppInternal(
         instanceId,
         contentId,
         transform,
         components,
       );
 
-      this.addApp(app);
+      self.addApp(app);
+      self.bindTrackedApp(dstTrackedApp, app);
     });
-    
-    this.bindTrackedApp(dstTrackedApp, app);
-
-    this.addApp(app);
   }
   hasApp(app) {
     return this.apps.includes(app);

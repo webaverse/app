@@ -2,7 +2,7 @@ import * as THREE from 'three';
 import Avatar from './avatars/avatars.js';
 import physicsManager from './physics-manager.js';
 import {LocalPlayer} from './character-controller.js';
-import {getLocalPlayer, remotePlayers} from './players.js';
+import {playersManager} from './players-manager.js';
 import * as voices from './voices.js';
 import {world} from './world.js';
 import {chatManager} from './chat-manager.js';
@@ -79,7 +79,7 @@ class NpcManager extends EventTarget {
   }
 
   async addNpcApp(app, srcUrl) {
-    const localPlayer = getLocalPlayer();
+    const localPlayer = playersManager.getLocalPlayer();
 
     let live = true;
     let json = null;
@@ -229,7 +229,6 @@ class NpcManager extends EventTarget {
           bio: npcBio,
         });
         character.addEventListener('say', e => {
-          console.log('got character say', e.data);
           const {message, emote, action, object, target} = e.data;
           const chatId = makeId(5);
 
@@ -299,15 +298,14 @@ class NpcManager extends EventTarget {
 
       // voice endpoint setup
       const _setVoiceEndpoint = () => {
-        const voice = voices.voiceEndpoints.find(v => v.name === npcVoiceName);
+        const voice = voices.voiceEndpoints.find(v => v.name.toLowerCase().replaceAll(' ', '') === npcVoiceName.toLowerCase().replaceAll(' ', ''));
         if (voice) {
           newNpcPlayer.setVoiceEndpoint(voice.drive_id);
         } else {
-          console.warn('unknown voice name', npcVoiceName, voices.voiceEndpoints);
+          console.error('*** unknown voice name', npcVoiceName, voices.voiceEndpoints);
         }
       };
       _setVoiceEndpoint();
-
       // wearables
       const _updateWearables = async () => {
         const wearablePromises = npcWear.map(wear => (async () => {
