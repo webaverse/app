@@ -1,6 +1,6 @@
 import { voicePacksUrl, voiceEndpointsUrl, defaultVoiceEndpoint, defaultVoicePackName } from './constants.js';
 import overrides from './overrides.js';
-import {getLocalPlayer} from './players.js';
+import {playersManager} from './players-manager.js';
 import * as voices from './voices.js';
 
 const voicePacks = [];
@@ -37,7 +37,7 @@ const loadPromise = (async () => {
     const audioUrl = voicePacksUrlBase + audioPath;
     const indexUrl = voicePacksUrlBase + indexPath;
 
-    const localPlayer = getLocalPlayer();
+    const localPlayer = playersManager.getLocalPlayer();
     await localPlayer.setVoicePack({
       audioUrl,
       indexUrl,
@@ -52,7 +52,7 @@ const loadPromise = (async () => {
     const voiceEndpointName = overrides.overrideVoiceEndpoint.get() ?? overrides.userVoiceEndpoint.get() ?? defaultVoiceEndpoint;
     const voiceEndpoint = voices.voiceEndpoints.find(ve => ve.name === voiceEndpointName);
 
-    const localPlayer = getLocalPlayer();
+    const localPlayer = playersManager.getLocalPlayer();
     localPlayer.setVoiceEndpoint(voiceEndpoint.drive_id);
   });
 });

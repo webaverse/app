@@ -584,7 +584,6 @@ class StatePlayer extends PlayerBase {
     this.unbindFns = [];
     
     this.transform = new Float32Array(7);
-
     this.bindState(playersArray);
   }
   isBound() {
@@ -650,13 +649,11 @@ class StatePlayer extends PlayerBase {
     
     // blindly add to new state
     this.playersArray = nextPlayersArray;
-    if (this.playersArray) {
-      this.attachState(oldState);
-      this.bindCommonObservers();
-    }
+    this.attachState(oldState);
+    this.bindCommonObservers();
   }
   getAvatarInstanceId() {
-    return this.playerMap?.get('avatar');
+    return this.playerMap.get('avatar');
   }
   // serializers
   getPosition() {
@@ -672,7 +669,6 @@ class StatePlayer extends PlayerBase {
     }
     const cancelFn = makeCancelFn();
     this.syncAvatarCancelFn = cancelFn;
-    
     const instanceId = this.getAvatarInstanceId();
     
     // remove last app
@@ -853,7 +849,7 @@ class StatePlayer extends PlayerBase {
       }
       
       const avatar = self.getAvatarInstanceId();
-      if (j?.avatar?.instanceId) {
+      if (avatar) {
         this.playerMap.set('avatar', avatar);
       }
       
@@ -1075,8 +1071,11 @@ class LocalPlayer extends UninterpolatedPlayer {
     const self = this;
     this.playersArray.doc.transact(function tx() {
       const oldInstanceId = self.playerMap.get('avatar');
-      
-      self.playerMap.set('avatar', app.instanceId);
+      if(app.instanceId){
+        self.playerMap.set('avatar', app.instanceId);
+      } else {
+        throw new Error('app.instanceId is null');
+      }
 
       if (oldInstanceId) {
         self.appManager.removeTrackedAppInternal(oldInstanceId);
@@ -1121,7 +1120,6 @@ class LocalPlayer extends UninterpolatedPlayer {
       self.playerMap = new Z.Map();
 
       self.appManager.bindState(self.getAppsState());
-      self.playersArray.push([self.playerMap]);
       self.playerMap.set('playerId', self.playerId);
 
       self.position.toArray(self.transform, 0);
@@ -1151,10 +1149,10 @@ class LocalPlayer extends UninterpolatedPlayer {
         const voiceSpec = JSON.stringify({audioUrl: self.voiceEndpoint.audioUrl, indexUrl: self.voiceEndpoint.indexUrl, endpointUrl: self.voiceEndpoint ? self.voiceEndpoint.url : ''});
         self.playerMap.set('voiceSpec', voiceSpec);
       }
+      self.playersArray.push([self.playerMap]);
     });
   }
   grab(app, hand = 'left') {
-    const localPlayer = metaversefile.useLocalPlayer();
     const {position, quaternion} = _getSession() ?
       localPlayer[hand === 'left' ? 'leftHand' : 'rightHand']
     :
@@ -1172,7 +1170,7 @@ class LocalPlayer extends UninterpolatedPlayer {
         .premultiply(localMatrix2.compose(position, quaternion, localVector.set(1, 1, 1)).invert())
         .toArray()
     };
-    localPlayer.addAction(grabAction);
+    this.addAction(grabAction);
     
     const physicsObjects = app.getPhysicsObjects();
     for (const physicsObject of physicsObjects) {
@@ -1223,12 +1221,15 @@ class LocalPlayer extends UninterpolatedPlayer {
   pushPlayerUpdates() {
     const self = this;
     this.playersArray.doc.transact(() => {
-      /* if (isNaN(this.position.x) || isNaN(this.position.y) || isNaN(this.position.z)) {
-        debugger;
-      } */
-      self.position.toArray(self.transform);      
-      self.quaternion.toArray(self.transform, 3);
-      self.playerMap.set('transform', self.transform);
+        /* if (isNaN(this.position.x) || isNaN(this.position.y) || isNaN(this.position.z)) {
+          debugger;
+        } */
+      if(!this.matrixWorld.equals(this.lastMatrix)) {
+        self.position.toArray(self.transform);      
+        self.quaternion.toArray(self.transform, 3);
+        self.playerMap.set('transform', self.transform);
+        this.matrixWorld.copy(this.lastMatrix)
+      }
     }, 'push');
 
     this.appManager.updatePhysics();
@@ -1354,7 +1355,7 @@ class RemotePlayer extends InterpolatedPlayer {
     if (index !== -1) {
       this.playerMap = this.playersArray.get(index, Z.Map);
     } else {
-      console.warn('binding to nonexistent player object', this.playersArray.toJSON());
+      throw new Error('binding to nonexistent player object', this.playersArray.toJSON());
     }
     let lastTimestamp = performance.now();
     let lastPosition = new THREE.Vector3();
@@ -1403,9 +1404,14 @@ class RemotePlayer extends InterpolatedPlayer {
     }
     this.playerMap.observe(observePlayerFn);
     this.unbindFns.push(this.playerMap.unobserve.bind(this.playerMap, observePlayerFn));
-
     this.appManager.bindState(this.getAppsState());
-    this.syncAvatar();
+    this.appManager.loadApps().then(() => {
+      if(!this.voicer || !this.voiceEndpoint){
+        let voiceSpec = JSON.parse(this.playerMap.get('voiceSpec'));
+        this.loadVoiceEndpoint(voiceSpec.endpointUrl);
+      }
+      this.syncAvatar();
+    });
   }
   update(timestamp, timeDiff) {
     if(!this.avatar) return // console.log("no avatar"); // avatar takes time to load, ignore until it does

@@ -5,7 +5,7 @@ import {scene, camera} from './renderer.js';
 import * as sounds from './sounds.js';
 import cameraManager from './camera-manager.js';
 import physicsManager from './physics-manager.js';
-import {getLocalPlayer} from './players.js';
+import {playersManager} from './players-manager.js';
 
 //
 
@@ -143,7 +143,7 @@ class ZTargeting extends THREE.Object3D {
   }
   setQueryResult(timestamp) {
     let reticles;
-    const localPlayer = getLocalPlayer();
+    const localPlayer = playersManager.getLocalPlayer();
     if (localPlayer.hasAction('aim')) {
       this.queryResults.snapshot(camera);
       reticles = this.queryResults.results;
@@ -199,7 +199,7 @@ class ZTargeting extends THREE.Object3D {
 
       cameraManager.setFocus(true);
       const remoteApp = this.focusTargetReticle ? metaversefile.getAppByPhysicsId(this.focusTargetReticle.physicsId) : null;
-      const localPlayer = getLocalPlayer();
+      const localPlayer = playersManager.getLocalPlayer();
       cameraManager.setStaticTarget(localPlayer.avatar.modelBones.Head, remoteApp);
     }
   }
@@ -217,7 +217,7 @@ class ZTargeting extends THREE.Object3D {
     if (cameraManager.focus) {
       this.handleUp();
     } else {
-      const localPlayer = getLocalPlayer();
+      const localPlayer = playersManager.getLocalPlayer();
       this.handleDown(localPlayer);
       
       if (this.queryResults.results.length === 0) {

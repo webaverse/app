@@ -617,7 +617,7 @@ const physxWorker = (() => {
     return materialAddress;
   };
   w.destroyMaterial = (physics, materialAddress) => {
-    Module._destroyMaterial(physics, materialAddress);
+    Module._destroyMaterialPhysics(physics, materialAddress);
   };
   w.getDefaultMaterial = (() => {
     let defaultMaterial = null;
