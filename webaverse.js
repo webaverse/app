@@ -84,6 +84,7 @@ export default class Webaverse extends EventTarget {
     resourceManager.add(sounds.load());
     resourceManager.addAll(voices.load());
     resourceManager.addAll(Avatar.loadAll());
+    resourceManager.add(physx.load());
 
     // post loads
     resourceManager.addPost(game.postLoad);
@@ -92,7 +93,6 @@ export default class Webaverse extends EventTarget {
       await Promise.all([
         resourceManager.waitForLoad(),
 
-        physx.waitForLoad(),
         physxWorkerManager.waitForLoad(),
         WebaWallet.waitForLoad(),
       ]);
