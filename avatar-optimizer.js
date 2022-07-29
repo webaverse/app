@@ -136,8 +136,8 @@ export const mergeGeometryTextureAtlas = (mergeable, textureSize) => {
     emissiveMaps,
     normalMaps,
     // skeletons,
-    morphTargetDictionaryArray,
-    morphTargetInfluencesArray,
+    // morphTargetDictionaryArray,
+    // morphTargetInfluencesArray,
   } = mergeable;
 
   // compute texture sizes
@@ -343,13 +343,30 @@ export const mergeGeometryTextureAtlas = (mergeable, textureSize) => {
           morphAttributeLayouts.push(morphLayout);
         }
 
+        for (let i = 1; i < morphAttribute.length; i++) {
+          const attribute = morphAttribute[i];
+          if (attribute.count !== morphAttribute[0].count) {
+            debugger;
+          }
+          if (attribute.itemSize !== morphAttribute[0].itemSize) {
+            debugger;
+          }
+          if (attribute.array.constructor !== morphAttribute[0].array.constructor) {
+            debugger;
+          }
+        }
+
         morphLayout.count += morphAttribute[0].count * morphAttribute[0].itemSize;
       }
     }
 
-    /* for (const g of geometries) {
-      morphLayout.count += morphAttribute[0].count * morphAttribute[0].itemSize;
-    } */
+    for (let i = 0; i < geometries.length; i++) {
+      const g = geometries[i];
+      for (const k in g.morphAttributes) {
+        const morphAttribute = g.morphAttributes[k];
+        console.log('got morph attr', i, k, morphAttribute);
+      }
+    }
 
     return morphAttributeLayouts;
   };
@@ -364,7 +381,7 @@ export const mergeGeometryTextureAtlas = (mergeable, textureSize) => {
           if (layout.name === 'skinIndex' || layout.name === 'skinWeight') {
             console.log('force layout', layout);
             debugger;
-            
+
             gAttribute = layout.makeDefault(g);
             g.setAttribute(layout.name, gAttribute);
 
@@ -416,6 +433,122 @@ export const mergeGeometryTextureAtlas = (mergeable, textureSize) => {
       geometry.setAttribute(layout.name, attribute);
     }
   };
+  /* function mergeBufferAttributes( attributes ) {
+
+    let TypedArray;
+    let itemSize;
+    let normalized;
+    let arrayLength = 0;
+  
+    for ( let i = 0; i < attributes.length; ++ i ) {
+  
+      const attribute = attributes[ i ];
+  
+      if ( attribute.isInterleavedBufferAttribute ) {
+  
+        console.error( 'THREE.BufferGeometryUtils: .mergeBufferAttributes() failed. InterleavedBufferAttributes are not supported.' );
+        return null;
+  
+      }
+  
+      if ( TypedArray === undefined ) TypedArray = attribute.array.constructor;
+      if ( TypedArray !== attribute.array.constructor ) {
+  
+        console.error( 'THREE.BufferGeometryUtils: .mergeBufferAttributes() failed. BufferAttribute.array must be of consistent array types across matching attributes.' );
+        return null;
+  
+      }
+  
+      if ( itemSize === undefined ) itemSize = attribute.itemSize;
+      if ( itemSize !== attribute.itemSize ) {
+  
+        console.error( 'THREE.BufferGeometryUtils: .mergeBufferAttributes() failed. BufferAttribute.itemSize must be consistent across matching attributes.' );
+        return null;
+  
+      }
+  
+      if ( normalized === undefined ) normalized = attribute.normalized;
+      if ( normalized !== attribute.normalized ) {
+  
+        console.error( 'THREE.BufferGeometryUtils: .mergeBufferAttributes() failed. BufferAttribute.normalized must be consistent across matching attributes.' );
+        return null;
+  
+      }
+  
+      arrayLength += attribute.array.length;
+  
+    }
+  
+    const array = new TypedArray( arrayLength );
+    let offset = 0;
+  
+    for ( let i = 0; i < attributes.length; ++ i ) {
+  
+      array.set( attributes[ i ].array, offset );
+  
+      offset += attributes[ i ].array.length;
+  
+    }
+  
+    return new THREE.BufferAttribute( array, itemSize, normalized );
+  
+  }
+  const _mergeMorphAttributes = (geometry, geometries, objects, morphAttributeLayouts) => {
+    // collect
+    const morphAttributesUsed = new Set( Object.keys( geometries[ 0 ].morphAttributes ) );
+    const morphAttributes = {};
+    for (const geometry of geometries) {
+      for ( const name in geometry.morphAttributes ) {
+
+        if ( ! morphAttributesUsed.has( name ) ) {
+
+          console.error( 'THREE.BufferGeometryUtils: .mergeBufferGeometries() failed with geometry at index ' + i + '.  .morphAttributes must be consistent throughout all geometries.' );
+          return null;
+
+        }
+
+        if ( morphAttributes[ name ] === undefined ) morphAttributes[ name ] = [];
+
+        morphAttributes[ name ].push( geometry.morphAttributes[ name ] );
+
+      }
+    }
+
+    // merge
+    for ( const name in morphAttributes ) {
+
+      const numMorphTargets = morphAttributes[ name ][ 0 ].length;
+  
+      if ( numMorphTargets === 0 ) break;
+  
+      geometry.morphAttributes = geometry.morphAttributes || {};
+      geometry.morphAttributes[ name ] = [];
+  
+      for ( let i = 0; i < numMorphTargets; ++ i ) {
+  
+        const morphAttributesToMerge = [];
+  
+        for ( let j = 0; j < morphAttributes[ name ].length; ++ j ) {
+  
+          morphAttributesToMerge.push( morphAttributes[ name ][ j ][ i ] );
+  
+        }
+  
+        const mergedMorphAttribute = mergeBufferAttributes( morphAttributesToMerge );
+  
+        if ( ! mergedMorphAttribute ) {
+  
+          console.error( 'THREE.BufferGeometryUtils: .mergeBufferGeometries() failed while trying to merge the ' + name + ' morphAttribute.' );
+          return null;
+  
+        }
+  
+        geometry.morphAttributes[ name ].push( mergedMorphAttribute );
+  
+      }
+  
+    }
+  }; */
   const _mergeMorphAttributes = (geometry, geometries, objects, morphAttributeLayouts) => {
     // console.log('morphAttributeLayouts', morphAttributeLayouts);
     // globalThis.morphAttributeLayouts = morphAttributeLayouts;
@@ -437,7 +570,7 @@ export const mergeGeometryTextureAtlas = (mergeable, textureSize) => {
           geometries2[j2] = tmp;
         } */
 
-        // console.log('num geos', geometries.length);
+        console.log('num geos', geometries);
         
         let first = 0;
         for (let j = 0; j < geometries.length; j++) {
@@ -451,12 +584,15 @@ export const mergeGeometryTextureAtlas = (mergeable, textureSize) => {
             debugger;
           }
           gMorphAttribute = gMorphAttribute?.[i];
+          if (gMorphAttribute.count !== g.attributes.position.count) {
+            debugger;
+          }
           if (gMorphAttribute) {
-            console.log('src', first, g, gMorphAttribute);
+            // console.log('src', first, g, gMorphAttribute, morphAttribute, object);
             morphData.set(gMorphAttribute.array, morphDataIndex);
             
-            // const nz = gMorphAttribute.array.filter(n => n != 0);
-            // console.log('case 1', first, nz.length, object, g, gMorphAttribute);
+            const nz = gMorphAttribute.array.filter(n => Math.abs(n) >= 0.01);
+            console.log('case 1', first, nz.length);
             
             /* if (first === 2 || first === 1) {
               for (let i = 0; i < gMorphAttribute.array.length; i++) {
@@ -488,6 +624,7 @@ export const mergeGeometryTextureAtlas = (mergeable, textureSize) => {
         }
       }
       geometry.morphAttributes[morphLayout.name] = morphsArray;
+      // geometry.morphTargetsRelative = true;
     }
   };
   const _mergeIndices = (geometry, geometries) => {
@@ -503,6 +640,9 @@ export const mergeGeometryTextureAtlas = (mergeable, textureSize) => {
       const srcIndexData = g.index.array;
       for (let i = 0; i < srcIndexData.length; i++) {
         indexData[indexOffset++] = srcIndexData[i] + positionOffset;
+      }
+      if (g.attributes.position.count !== g.morphAttributes.position[0].count) {
+        debugger;
       }
       positionOffset += g.attributes.position.count;
     }
@@ -713,7 +853,11 @@ export const optimizeAvatarModel = async (model, options = {}) => {
   }
   // console.log('got bones', model, bones);
 
-  const glbData = await new Promise((accept, reject) => {
+  // XXX this should anti-index flattened index ranges for the multi-materials case
+
+  return object;
+
+  /* const glbData = await new Promise((accept, reject) => {
     const {gltfExporter} = exporters;
     gltfExporter.parse(
       object,
@@ -731,5 +875,5 @@ export const optimizeAvatarModel = async (model, options = {}) => {
       },
     );
   });
-  return glbData;
+  return glbData; */
 };
