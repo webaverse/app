@@ -12,7 +12,7 @@ import {getRenderer, scene, camera} from './renderer.js';
 import physicsManager from './physics-manager.js';
 import {world} from './world.js';
 // import cameraManager from './camera-manager.js';
-import physx from './physx.js';
+// import physx from './physx.js';
 import audioManager from './audio-manager.js';
 import metaversefile from 'metaversefile';
 import {
@@ -23,7 +23,7 @@ import {
   activateMaxTime,
   // useMaxTime,
   aimTransitionMaxTime,
-  avatarInterpolationFrameRate,
+  // avatarInterpolationFrameRate,
   avatarInterpolationTimeDelay,
   avatarInterpolationNumFrames,
   // groundFriction,
@@ -1062,6 +1062,7 @@ class LocalPlayer extends UninterpolatedPlayer {
   async setAvatarUrl(u) {
     const localAvatarEpoch = ++this.avatarEpoch;
     const avatarApp = await this.appManager.addTrackedApp(u);
+    // avatarApp.parent.remove(avatarApp);
     if (this.avatarEpoch !== localAvatarEpoch) {
       this.appManager.removeTrackedApp(avatarApp.instanceId);
       return;
