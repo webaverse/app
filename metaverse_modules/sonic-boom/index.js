@@ -1840,7 +1840,7 @@ export default () => {
                 const brokenAttribute = mesh.geometry.getAttribute('broken');
                 const scalesAttribute = mesh.geometry.getAttribute('scales');
                 const quaternionAttribute = mesh.geometry.getAttribute('quaternions');
-                if(lastStopSw === 1  && narutoRunTime===0){
+                if(lastStopSw === 1  && narutoRunTime===0 && localPlayer.hasAction('land')){
                     if(!sonicBoomInApp){
                         // console.log('add-dust');
                         app.add(mesh);
