@@ -1,5 +1,6 @@
 import { Object3D, Color, Vector3 } from 'three';
-import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
+// import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
+import loaders from './loaders.js';
 const transformGizmoUrl = './assets/TransformGizmo2.glb';
 import cloneObject3D from "./cloneObject3D.js";
 // import { TransformMode, TransformAxis } from "./SpokeControls.js";
@@ -24,15 +25,15 @@ const TransformAxis = {
 };
 
 let gizmoGltf = null;
-const gltfLoader = new GLTFLoader();
 
 export default class TransformGizmo extends Object3D {
   static async load() {
-    if (gizmoGltf) {
+    /* if (gizmoGltf) {
       return Promise.resolve(gizmoGltf);
-    }
+    } */
 
     const gltf = await new Promise((accept, reject) => {
+      const {gltfLoader} = loaders;
       gltfLoader.load(transformGizmoUrl, accept, function onprogress() {}, reject);
     });
 
