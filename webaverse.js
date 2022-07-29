@@ -82,8 +82,8 @@ export default class Webaverse extends EventTarget {
       story.listenHack();
 
       // pre loads
-      resourceManager.addAll(musicManager.load());
-      resourceManager.add(sounds.load());
+      /* resourceManager.addAll(musicManager.load());
+      resourceManager.add(sounds.load()); */
       resourceManager.addAll(voices.load());
       resourceManager.addAll(Avatar.loadAll());
       resourceManager.add(physx.load());
@@ -91,6 +91,7 @@ export default class Webaverse extends EventTarget {
       // post loads
       resourceManager.addPost(game.postLoad.bind(game));
       resourceManager.addPost(physxWorkerManager.postLoad.bind(physxWorkerManager));
+      resourceManager.addPost(sounds.postLoad.bind(sounds));
       resourceManager.addPost(WebaWallet.load.bind(WebaWallet));
 
       this.loadPromise = resourceManager.waitForLoad();
