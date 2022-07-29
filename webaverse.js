@@ -87,13 +87,13 @@ export default class Webaverse extends EventTarget {
     resourceManager.add(physx.load());
 
     // post loads
-    resourceManager.addPost(game.postLoad);
+    resourceManager.addPost(game.postLoad.bind(game));
+    resourceManager.addPost(physxWorkerManager.postLoad.bind(physxWorkerManager));
 
     this.loadPromise = (async () => {
       await Promise.all([
         resourceManager.waitForLoad(),
 
-        physxWorkerManager.waitForLoad(),
         WebaWallet.waitForLoad(),
       ]);
     })();
