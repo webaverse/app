@@ -61,6 +61,7 @@ class CharacterPhysics {
     if (this.player.avatar) {
       window.visKeysDirectionX = keysDirection.x;
       this.velocity.add(keysDirection);
+      window.visVelocityBeforeDampingX = this.velocity.x;
     }
   }
   applyGravity(timeDiffS) {
@@ -150,8 +151,9 @@ class CharacterPhysics {
           window.visSpeed + '\t' + 
           window.visTimeDiff + '\t' + 
           window.visKeysDirectionX + '\t' + 
-          timeDiffS + '\t' + 
+          window.visVelocityBeforeDampingX + '\t' + 
           this.velocity.x + '\t' + 
+          timeDiffS + '\t' + 
           localVector3.x + '\t' + 
           this.player.characterController.position.x
         )
