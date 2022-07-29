@@ -201,11 +201,13 @@ export default () => {
             lights: false,
         });
         const frontwave = new THREE.InstancedMesh(geometry, material, particleCount);
-        
+        // material.onBeforeCompile = () => {
+        //     console.log('compile frontwave material')
+        // }
         material.freeze();
         const group = new THREE.Group();
         group.add(frontwave);
-
+        renderer.compile(group, camera)
         let sonicBoomInApp = false;
         useFrame(({timestamp}) => {
             
@@ -283,40 +285,41 @@ export default () => {
                 
             }
         `;
-        let windMaterial;
-        function windEffect() {
-            const geometry = new THREE.CylinderBufferGeometry(0.5, 0.9, 5.3, 50, 50, true);
-            windMaterial = new THREE.ShaderMaterial({
-                uniforms: {
-                    perlinnoise: {
-                        type: "t",
-                        value:wave2
-                    },
-                    uTime: {
-                        type: "f",
-                        value: 0.0
-                    },
-                },
-                // wireframe:true,
-                vertexShader: vertrun,
-                fragmentShader: fragrun,
-                transparent: true,
-                depthWrite: false,
-                blending: THREE.AdditiveBlending,
-                side: THREE.DoubleSide,
-
-                clipping: false,
-                fog: false,
-                lights: false,
-            });
-            windMaterial.freeze();
-            const mesh = new THREE.Mesh(geometry, windMaterial);
-            mesh.setRotationFromAxisAngle(new THREE.Vector3( 1, 0, 0 ), -90 * Math.PI / 180);
-            
-            group.add(mesh);
-        }
-        windEffect();
         
+        
+        const geometry = new THREE.CylinderBufferGeometry(0.5, 0.9, 5.3, 50, 50, true);
+        const windMaterial = new THREE.ShaderMaterial({
+            uniforms: {
+                perlinnoise: {
+                    type: "t",
+                    value:wave2
+                },
+                uTime: {
+                    type: "f",
+                    value: 0.0
+                },
+            },
+            // wireframe:true,
+            vertexShader: vertrun,
+            fragmentShader: fragrun,
+            transparent: true,
+            depthWrite: false,
+            blending: THREE.AdditiveBlending,
+            side: THREE.DoubleSide,
+
+            clipping: false,
+            fog: false,
+            lights: false,
+        });
+        windMaterial.freeze();
+        const mesh = new THREE.Mesh(geometry, windMaterial);
+        mesh.setRotationFromAxisAngle(new THREE.Vector3( 1, 0, 0 ), -90 * Math.PI / 180);
+        group.add(mesh);
+            
+        // windMaterial.onBeforeCompile = () => {
+        //     console.log('compile wind material')
+        // }
+        renderer.compile(group, camera)
         
         let sonicBoomInApp=false;
         useFrame(({timestamp}) => {
@@ -369,7 +372,7 @@ export default () => {
         idAttribute.needsUpdate = true;
 
         const group = new THREE.Group();
-        const material = new THREE.ShaderMaterial({
+        const flameMaterial = new THREE.ShaderMaterial({
             uniforms: {
                 perlinnoise: {
                     type: "t",
@@ -510,27 +513,30 @@ export default () => {
             fog: false,
             lights: false,
         });
-        const flameMesh = new THREE.InstancedMesh(geometry, material, particleCount);
+        const flameMesh = new THREE.InstancedMesh(geometry, flameMaterial, particleCount);
         group.add(flameMesh);
+        // flameMaterial.onBeforeCompile = () => {
+        //     console.log('compile flame material')
+        // }
+        renderer.compile(group, camera)
         let playerRotation = [0, 0, 0, 0, 0];
         let sonicBoomInApp = false;
         let lightningfreq = 0;
         useFrame(({timestamp}) => {
             if(narutoRunTime > 10 ){
                 if(!sonicBoomInApp){
-                    //console.log('add-flame');
+                    // console.log('add-flame');
                     app.add(group);
                     sonicBoomInApp=true;
                 }
                 group.scale.set(1, 1, 1);
-                material.uniforms.strength.value = 1.0;
+                flameMaterial.uniforms.strength.value = 1.0;
             }
             else{
-                if(material.uniforms.strength.value > 0)
-                    material.uniforms.strength.value -= 0.025;
+                if(flameMaterial.uniforms.strength.value > 0)
+                    flameMaterial.uniforms.strength.value -= 0.025;
             }
-            if(material.uniforms.strength.value>0){
-                //console.log('sonic-boom-flame');
+            if(flameMaterial.uniforms.strength.value>0){
                 group.position.copy(localPlayer.position);
                 if (localPlayer.avatar) {
                     group.position.y -= localPlayer.avatar.height;
@@ -538,9 +544,9 @@ export default () => {
                 }
                 group.position.x -= 2.2 * currentDir.x;
                 group.position.z -= 2.2 * currentDir.z;
-                material.uniforms.uTime.value = timestamp / 20000;
+                flameMaterial.uniforms.uTime.value = timestamp / 20000;
                 if(Math.abs(localPlayer.rotation.x) > 0){
-                    let temp=localPlayer.rotation.y + Math.PI;
+                    let temp = localPlayer.rotation.y + Math.PI;
                     for(let i = 0; i < 5; i++){
                         let temp2 = playerRotation[i];
                         playerRotation[i] = temp;
@@ -556,15 +562,15 @@ export default () => {
                     }
                 }
                 if(lightningfreq % 1 === 0){
-                    material.uniforms.random.value = Math.random() * Math.PI;
+                    flameMaterial.uniforms.random.value = Math.random() * Math.PI;
                 }
                 lightningfreq++;
                
-                material.uniforms.playerRotation.value.set(playerRotation[0], 0, playerRotation[4]);
+                flameMaterial.uniforms.playerRotation.value.set(playerRotation[0], 0, playerRotation[4]);
             }
             else{
                 if(sonicBoomInApp){
-                    //console.log('remove-flame');
+                    // console.log('remove-flame');
                     app.remove(group);
                     sonicBoomInApp=false;
                 }
@@ -694,8 +700,12 @@ export default () => {
 
       const material = trailMaterial;
     
-      let plane=new THREE.Mesh(planeGeometry,material);
+      let plane = new THREE.Mesh(planeGeometry,material);
       //app.add(plane);
+    //   material.onBeforeCompile = () => {
+    //         console.log('compile trail material')
+    //   }
+      renderer.compile(plane, camera)
       plane.position.y = 1;
       plane.frustumCulled = false;
       let temp = [];
@@ -831,7 +841,7 @@ export default () => {
         
       const material = trailMaterial;
     
-      let plane=new THREE.Mesh(planeGeometry,material);
+      let plane = new THREE.Mesh(planeGeometry,material);
       //app.add(plane);
       plane.position.y = 1;
       plane.frustumCulled = false;
@@ -839,8 +849,8 @@ export default () => {
       const point1 = new THREE.Vector3();
       const point2 = new THREE.Vector3();
       const localVector2 = new THREE.Vector3();
-      let temp=[];
-      let temp2=[];
+      let temp = [];
+      let temp2 = [];
       let quaternion = new THREE.Quaternion();
       quaternion.setFromAxisAngle(new THREE.Vector3(0, 1, 0), -Math.PI / 2);
       let sonicBoomInApp=false;
@@ -1050,6 +1060,10 @@ export default () => {
         
 
         const mainBall = new THREE.Points(particlesGeometry, particlesMaterial);
+        // particlesMaterial.onBeforeCompile = () => {
+        //   console.log('compile mainBall material')
+        // }
+        renderer.compile(mainBall, camera)
         //app.add(mainBall);
         //app.updateMatrixWorld();
         
@@ -1229,6 +1243,11 @@ export default () => {
         const group = new THREE.Group();
         const electricity = new THREE.InstancedMesh(geometry, material, particleCount);
         group.add(electricity)
+
+        // material.onBeforeCompile = () => {
+        //     console.log('compile electricity material')
+        // }
+        renderer.compile(group, camera)
        
         let sonicBoomInApp = false;
         useFrame(({timestamp}) => {
@@ -1411,6 +1430,10 @@ export default () => {
         const electricityBall = new THREE.InstancedMesh(geometry, material, particleCount);
         group.add(electricityBall)
 
+        // material.onBeforeCompile = () => {
+        //     console.log('compile electricityBall material')
+        // }
+        renderer.compile(group, camera)
         for(let i = 0; i< particleCount; i++){
             info.velocity[i] = new THREE.Vector3();
         }
@@ -1517,6 +1540,7 @@ export default () => {
 
             wave.scene.rotation.x = Math.PI/2;
             group.add(wave.scene);
+            
             //app.add(group);
             
             wave.scene.children[0].material= new THREE.ShaderMaterial({
@@ -1617,7 +1641,10 @@ export default () => {
                 lights: false,
             });
             wave.scene.children[0].material.freeze();
-
+            // wave.scene.children[0].material.onBeforeCompile = () => {
+            //     console.log('compile shock wave material')
+            // }
+            renderer.compile(group, camera)
 
         })();
 
@@ -1684,7 +1711,7 @@ export default () => {
             velocity: [particleCount],
             inApp: [particleCount]
         }
-        let acc = new THREE.Vector3(0.000, -0.0008, 0.000);
+        let acc = new THREE.Vector3(0.000, -0.001, 0.000);
         
         for(let i = 0; i < particleCount; i++){
             info.velocity[i] = new THREE.Vector3();
@@ -1788,6 +1815,11 @@ export default () => {
                 const quaternionsAttribute = new THREE.InstancedBufferAttribute(quaternions, 4);
                 geometry.setAttribute('quaternions', quaternionsAttribute);
                 mesh = new THREE.InstancedMesh(geometry, material, particleCount);
+
+                // material.onBeforeCompile = () => {
+                //     console.log('compile dust material')
+                // }
+                renderer.compile(mesh, camera)
               }
             });
             
@@ -1816,7 +1848,7 @@ export default () => {
                     }
                     for (let i = 0; i < particleCount; i++) {
                         scalesAttribute.setX(i, 0.06 + Math.random() * 0.05);
-                        let rand = (1 + Math.random() * 0.3);
+                        let rand = (1 + Math.random() * i * 0.05);
                         info.velocity[i].set( rand * currentDir.x, 0.25 + Math.random() * 0.25, rand * currentDir.z);
                         positionsAttribute.setXYZ(
                             i, 
