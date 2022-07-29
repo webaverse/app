@@ -3,6 +3,7 @@ this manager provides music preloading, selection, and playing.
 */
 
 import audioManager from './audio-manager.js';
+import {makePromise} from './util.js';
 import {defaultMusicVolume} from './constants.js';
 
 class Music {
@@ -10,16 +11,19 @@ class Music {
     this.name = name;
     this.urls = urls ?? [url];
     this.audioContext = audioContext;
-    this.audioBuffers = null;
+    this.audioBuffers = Array(this.urls.length).fill(null);
     this.audioBufferIndex = 0; // Math.floor(Math.random() * this.urls.length);
 
-    this.loadPromise = (async () => {
+    this.loadPromise = makePromise();
+    /* this.loadPromise = (async () => {
       this.audioBuffers = await Promise.all(this.urls.map(async url => {
+        console.log('fetch 1', url);
         const res = await fetch(url);
+        console.log('fetch 2', url);
         const arrayBuffer = await res.arrayBuffer();
         return await this.audioContext.decodeAudioData(arrayBuffer);
       }));
-    })();
+    })(); */
   }
   play({
     repeat = false,
@@ -42,6 +46,21 @@ class Music {
       source,
       gain,
     };
+  }
+  load() {
+    const promises = Promise.all(this.urls.map(async (url, i) => {
+      // console.log('fetch 1', url);
+      const res = await fetch(url);
+      // console.log('fetch 2', url);
+      const arrayBuffer = await res.arrayBuffer();
+      const audioData = await this.audioContext.decodeAudioData(arrayBuffer);
+      this.audioBuffers[i] = audioData;
+    }));
+    (async () => {
+      await promises;
+      this.loadPromise.accept();
+    })();
+    return promises;
   }
   waitForLoad() {
     return this.loadPromise;
@@ -97,8 +116,8 @@ class MusicManager {
   constructor(audioContext) {
     this.audioContext = audioContext;
     this.musics = musicSpecs.map(spec => new Music(spec, audioContext));
-    this.loadPromise = Promise.all(this.musics.map(music => music.waitForLoad()))
-      .then(() => {});
+    /* this.loadPromise = Promise.all(this.musics.map(music => music.waitForLoad()))
+      .then(() => {}); */
     this.currentMusic = null;
   }
   async fetchMusic(url, name = url) {
@@ -137,6 +156,10 @@ class MusicManager {
       this.currentMusic.gain.disconnect();
       this.currentMusic = null;
     }
+  }
+  load() {
+    const promises = this.musics.map(music => music.load());
+    return promises;
   }
   waitForLoad() {
     return this.loadPromise;
