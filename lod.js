@@ -26,18 +26,24 @@ const uint16Array = new Uint16Array(1);
     return result;
 } */
 const tp16 = 2 ** 16;
-const tp5 = 2 ** 5;
+const tp11 = 2 ** 11;
 const _getHashMinLod = (min, lod) => {
   let result;
   
   uint16Array[0] = min.x;
   result = uint16Array[0];
+  result *= tp16;
+
   uint16Array[0] = min.y;
-  result = (result * tp16) + uint16Array[0];
+  result += uint16Array[0];
+  result *= tp11;
+  
   uint16Array[0] = min.z;
-  result = (result * tp16) + uint16Array[0];
+  result += uint16Array[0];
+  result *= tp16;
+  
   uint16Array[0] = lod;
-  result = (result * tp5) + uint16Array[0];
+  result += uint16Array[0];
 
   return result;
 };
