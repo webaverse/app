@@ -111,7 +111,7 @@ const update = (timestamp, headPosition, springBoneManager) => {
         }
       }
     }
-    if(winds && winds.length){
+    if(winds && winds.length > 0){
       let windIndex = inWindZone();
       if(windIndex !== -1){
         if(winds[windIndex].windType === 'spherical')
