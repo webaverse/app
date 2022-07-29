@@ -449,6 +449,7 @@ story.startLocalPlayerComment = comment => {
 };
 
 story.listenHack = () => {
+  // XXX this should be ported to the React UI code
   window.document.addEventListener('click', async e => {
     if (cameraManager.pointerLockElement) {
       if (e.button === 0 && (cameraManager.focus && zTargeting.focusTargetReticle)) {
