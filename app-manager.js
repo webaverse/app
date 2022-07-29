@@ -395,7 +395,7 @@ class AppManager extends EventTarget {
   }
   getTrackedApp(instanceId) {
     for (const app of this.appsArray) {
-      if (app.instanceId || app.get('instanceId')) {
+      if (app.get('instanceId') === instanceId) {
         return app;
       }
     }
@@ -403,7 +403,7 @@ class AppManager extends EventTarget {
   }
   hasTrackedApp(instanceId) {
     for (const app of this.appsArray) {
-      if ((app.instanceId || app.get('instanceId')) === instanceId) {
+      if (app.get('instanceId') === instanceId) {
         return true;
       }
     }
