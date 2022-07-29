@@ -1664,12 +1664,15 @@ class GameManager extends EventTarget {
   }
   playerDiorama = null;
   bindDioramaCanvas() {
+    // await rendererWaitForLoad();
+
     const localPlayer = playersManager.getLocalPlayer();
     this.playerDiorama = dioramaManager.createPlayerDiorama({
       // target: localPlayer,
       // label: true,
       outline: true,
       grassBackground: true,
+      // glyphBackground: true,
     });
     localPlayer.addEventListener('avatarchange', e => {
       this.playerDiorama.setObjects([
