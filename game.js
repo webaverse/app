@@ -16,7 +16,7 @@ import {getRenderer, sceneLowPriority, camera} from './renderer.js';
 import {downloadFile, snapPosition, getDropUrl, handleDropJsonItem} from './util.js';
 import {maxGrabDistance, throwReleaseTime, storageHost, minFov, maxFov, throwAnimationDuration} from './constants.js';
 import metaversefileApi from './metaversefile-api.js';
-import * as metaverseModules from './metaverse-modules.js';
+// import * as metaverseModules from './metaverse-modules.js';
 import loadoutManager from './loadout-manager.js';
 import * as sounds from './sounds.js';
 import {playersManager} from './players-manager.js';
@@ -460,20 +460,23 @@ const hitboxOffsetDistance = 0.3;
 })(); */
 
 let grabUseMesh = null;
-const _gameInit = () => {
+/* const _gameInit = () => {
+  
+};
+Promise.resolve()
+  .then(_gameInit); */
+const _postLoad = async () => { 
+  // await metaverseModules.waitForLoad();
+  const {importModule} = metaversefileApi.useDefaultModules();
+  const m = await importModule('button');
+  // const m = modules['button'];
   grabUseMesh = metaversefileApi.createApp();
-  (async () => {
-    await metaverseModules.waitForLoad();
-    const {modules} = metaversefileApi.useDefaultModules();
-    const m = modules['button'];
-    await grabUseMesh.addModule(m);
-  })();
   grabUseMesh.targetApp = null;
   grabUseMesh.targetPhysicsId = -1;
   sceneLowPriority.add(grabUseMesh);
+  
+  await grabUseMesh.addModule(m);
 };
-Promise.resolve()
-  .then(_gameInit);
 
 let lastActivated = false;
 let lastThrowing = false;
@@ -494,52 +497,54 @@ const _gameUpdate = (timestamp, timeDiff) => {
   _handlePush();
 
   const _updateGrab = () => {
-    const renderer = getRenderer();
-    const _isWear = o => localPlayer.findAction(action => action.type === 'wear' && action.instanceId === o.instanceId);
+    if (grabUseMesh) {
+      const renderer = getRenderer();
+      const _isWear = o => localPlayer.findAction(action => action.type === 'wear' && action.instanceId === o.instanceId);
 
-    grabUseMesh.visible = false;
-    if (!gameManager.editMode) {
-      const avatarHeight = localPlayer.avatar ? localPlayer.avatar.height : 0;
-      localVector.copy(localPlayer.position)
-        .add(localVector2.set(0, avatarHeight * (1 - localPlayer.getCrouchFactor()) * 0.5, -0.3).applyQuaternion(localPlayer.quaternion));
-        
-      const radius = 1;
-      const halfHeight = 0.1;
-      const collision = physicsScene.getCollisionObject(radius, halfHeight, localVector, localPlayer.quaternion);
-      if (collision) {
-        const physicsId = collision.objectId;
-        const object = metaversefileApi.getAppByPhysicsId(physicsId);
-        // console.log('got collision', physicsId, object);
-        const physicsObject = metaversefileApi.getPhysicsObjectByPhysicsId(physicsId);
-        if (object && !_isWear(object) && physicsObject) {
-          grabUseMesh.position.setFromMatrixPosition(physicsObject.physicsMesh.matrixWorld);
-          grabUseMesh.quaternion.copy(camera.quaternion);
-          grabUseMesh.updateMatrixWorld();
-          grabUseMesh.targetApp = object;
-          grabUseMesh.targetPhysicsId = physicsId;
-          grabUseMesh.setComponent('value', localPlayer.actionInterpolants.activate.getNormalized());
+      grabUseMesh.visible = false;
+      if (!gameManager.editMode) {
+        const avatarHeight = localPlayer.avatar ? localPlayer.avatar.height : 0;
+        localVector.copy(localPlayer.position)
+          .add(localVector2.set(0, avatarHeight * (1 - localPlayer.getCrouchFactor()) * 0.5, -0.3).applyQuaternion(localPlayer.quaternion));
           
-          grabUseMesh.visible = true;
+        const radius = 1;
+        const halfHeight = 0.1;
+        const collision = physicsScene.getCollisionObject(radius, halfHeight, localVector, localPlayer.quaternion);
+        if (collision) {
+          const physicsId = collision.objectId;
+          const object = metaversefileApi.getAppByPhysicsId(physicsId);
+          // console.log('got collision', physicsId, object);
+          const physicsObject = metaversefileApi.getPhysicsObjectByPhysicsId(physicsId);
+          if (object && !_isWear(object) && physicsObject) {
+            grabUseMesh.position.setFromMatrixPosition(physicsObject.physicsMesh.matrixWorld);
+            grabUseMesh.quaternion.copy(camera.quaternion);
+            grabUseMesh.updateMatrixWorld();
+            grabUseMesh.targetApp = object;
+            grabUseMesh.targetPhysicsId = physicsId;
+            grabUseMesh.setComponent('value', localPlayer.actionInterpolants.activate.getNormalized());
+            
+            grabUseMesh.visible = true;
+          }
         }
       }
-    }
 
-    for (let i = 0; i < 2; i++) {
-      const grabAction = _getGrabAction(i);
-      const grabbedObject = _getGrabbedObject(i);
-      if (grabbedObject && !_isWear(grabbedObject)) {
-        const {position, quaternion} = renderer.xr.getSession() ? localPlayer[hand === 'left' ? 'leftHand' : 'rightHand'] : camera;
-        localMatrix.compose(position, quaternion, localVector.set(1, 1, 1));
-        grabbedObject.updateMatrixWorld();
+      for (let i = 0; i < 2; i++) {
+        const grabAction = _getGrabAction(i);
+        const grabbedObject = _getGrabbedObject(i);
+        if (grabbedObject && !_isWear(grabbedObject)) {
+          const {position, quaternion} = renderer.xr.getSession() ? localPlayer[hand === 'left' ? 'leftHand' : 'rightHand'] : camera;
+          localMatrix.compose(position, quaternion, localVector.set(1, 1, 1));
+          grabbedObject.updateMatrixWorld();
 
-        updateGrabbedObject(grabbedObject, localMatrix, localMatrix3.fromArray(grabAction.matrix), {
-          collisionEnabled: true,
-          handSnapEnabled: true,
-          physx,
-          gridSnap: gameManager.getGridSnap(),
-        });
+          updateGrabbedObject(grabbedObject, localMatrix, localMatrix3.fromArray(grabAction.matrix), {
+            collisionEnabled: true,
+            handSnapEnabled: true,
+            physx,
+            gridSnap: gameManager.getGridSnap(),
+          });
 
-        grabUseMesh.setComponent('value', localPlayer.actionInterpolants.activate.getNormalized());
+          grabUseMesh.setComponent('value', localPlayer.actionInterpolants.activate.getNormalized());
+        }
       }
     }
   };
@@ -1641,16 +1646,18 @@ class GameManager extends EventTarget {
     return dragRightSpec;
   }
   menuActivateDown() {
-    if (grabUseMesh.visible) {
-      const localPlayer = playersManager.getLocalPlayer();
-      const activateAction = localPlayer.getAction('activate');
-      if (!activateAction) {
-        const animationName = _getCurrentGrabAnimation();
-        const newActivateAction = {
-          type: 'activate',
-          animationName,
-        };
-        localPlayer.addAction(newActivateAction);
+    if (grabUseMesh) {
+      if (grabUseMesh.visible) {
+        const localPlayer = playersManager.getLocalPlayer();
+        const activateAction = localPlayer.getAction('activate');
+        if (!activateAction) {
+          const animationName = _getCurrentGrabAnimation();
+          const newActivateAction = {
+            type: 'activate',
+            animationName,
+          };
+          localPlayer.addAction(newActivateAction);
+        }
       }
     }
   }
@@ -1709,6 +1716,7 @@ class GameManager extends EventTarget {
   update = _gameUpdate;
   pushAppUpdates = _pushAppUpdates;
   pushPlayerUpdates = _pushPlayerUpdates;
+  postLoad = _postLoad;
 }
 const gameManager = new GameManager();
 export default gameManager;
