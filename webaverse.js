@@ -382,7 +382,7 @@ const _startHacks = webaverse => {
 
   // press R to debug current state in console
   window.addEventListener('keydown', event => {
-    if (event.key === 'R') {
+    if (event.key === '}') {
       console.log('>>>>> current state');
       console.log(universe.state);
       console.log('>>>>> scene');
