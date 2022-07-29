@@ -15,14 +15,15 @@ export default () => {
   const wave2 = textureLoader.load(`${baseUrl}/textures/wave2.jpeg`)
   const wave20 = textureLoader.load(`${baseUrl}/textures/wave20.png`)
   const wave9 = textureLoader.load(`${baseUrl}/textures/wave9.png`)
-  const textureR = textureLoader.load(`${baseUrl}/textures/r.jpg`);
-  const textureG = textureLoader.load(`${baseUrl}/textures/g.jpg`);
-  const textureB = textureLoader.load(`${baseUrl}/textures/b.jpg`);
   const electronicballTexture = textureLoader.load(`${baseUrl}/textures/electronic-ball2.png`);
   const noiseMap = textureLoader.load(`${baseUrl}/textures/noise.jpg`);
   const electricityTexture1 = textureLoader.load(`${baseUrl}/textures/texture8.png`);
   const electricityTexture2 = textureLoader.load(`${baseUrl}/textures/texture11.png`);
-
+  const trailTexture = textureLoader.load(`${baseUrl}/textures/trail.png`);
+  trailTexture.wrapS = trailTexture.wrapT = THREE.RepeatWrapping;
+  const maskTexture = textureLoader.load(`${baseUrl}/textures/mask2.png`);
+  const noiseTexture = textureLoader.load(`${baseUrl}/textures/voronoiNoise.jpg`);
+  noiseTexture.wrapS = noiseTexture.wrapT = THREE.RepeatWrapping;
     let currentDir = new THREE.Vector3();
     //################################################ trace narutoRun Time ########################################
     {
@@ -581,9 +582,9 @@ export default () => {
             opacity: {
                 value: 0,
             },
-            textureR: { type: 't', value: textureR },
-            textureG: { type: 't', value: textureG },
-            textureB: { type: 't', value: textureB },
+            trailTexture:{ value: trailTexture},
+            maskTexture:{value: maskTexture},
+            noiseTexture:{value: noiseTexture},
             t: { value: 0.9 }
         },
         vertexShader: `\
@@ -597,8 +598,8 @@ export default () => {
             varying vec2 vUv;
            
             void main() {
-              vUv=uv;
-              vUv.y*=1.0;
+              vUv = uv;
+              vUv.y *= 2.;
               //vUv.x=1.-vUv.x;
               vec4 modelPosition = modelMatrix * vec4(position, 1.0);
               vec4 viewPosition = viewMatrix * modelPosition;
@@ -610,58 +611,40 @@ export default () => {
           `,
           fragmentShader: `\
           ${THREE.ShaderChunk.logdepthbuf_pars_fragment}
-          uniform sampler2D textureR;
-          uniform sampler2D textureG;
-          uniform sampler2D textureB;
+          uniform sampler2D trailTexture;
+          uniform sampler2D maskTexture;
+          uniform sampler2D noiseTexture;
+          
           uniform float uTime;
           uniform float opacity;
           varying vec2 vUv;
           void main() {
-              
+            vec4 noise = texture2D(
+                noiseTexture,
+                vec2(
+                    vUv.x + uTime * 5.,
+                    vUv.y + uTime * 5.
+                )
+            );  
   
-              vec3 texColorR = texture2D(
-                  textureR,
-                  vec2(
-                      mod(1.*vUv.x+uTime*5.,1.),
-                      mod(2.*vUv.y+uTime*5.,1.)
-                      
-                  )
-              ).rgb;  
-              vec3 texColorG = texture2D(
-                  textureG,
-                  vec2(
-                      mod(1.*vUv.x+uTime*5.,1.),
-                      mod(2.*vUv.y+uTime*5.,1.)
-                      
-                  )
-              ).rgb;  
-              vec3 texColorB = texture2D(
-                  textureB,
-                  vec2(
-                      mod(1.*vUv.x,1.),
-                      mod(2.5*vUv.y+uTime*2.5,1.)
-                      
-                  )
-              ).rgb;  
-              gl_FragColor = vec4(texColorB.b)*((vec4(texColorR.r)+vec4(texColorG.g))/2.);
+            vec4 trail = texture2D(
+                trailTexture,
+                vec2(
+                    mix(vUv.x, noise.r, 0.1),
+                    mix(vUv.y + uTime * 5., noise.g, 0.25)
+                )
+            );  
+            vec4 mask = texture2D(
+                maskTexture,
+                vec2(
+                    vUv.x,
+                    vUv.y * 0.5
+                )
+            );  
               
-
-              if( gl_FragColor.b >= 0.1 ){
-                  gl_FragColor = vec4(mix(vec3(0.020, 0.180, 1.920),vec3(0.284, 0.922, 0.980),gl_FragColor.b),gl_FragColor.b);
-              }else{
-                  gl_FragColor = vec4(0.);
-              }
-               gl_FragColor *= vec4(sin(vUv.y) - 0.1);
-               gl_FragColor *= vec4(smoothstep(0.3,0.628,vUv.y));
-               if(abs(vUv.x)>0.9 || abs(vUv.x)<0.1)
-                    gl_FragColor.a=0.;
+            gl_FragColor = trail * mask * vec4(0.120, 0.280, 1.920, 1.0);
+            gl_FragColor.a *= opacity;
                 
-                gl_FragColor.a*=3.;
-                gl_FragColor.a*=opacity;
-                //gl_FragColor.a*=(1.-vUv.y)*5.;
-                //gl_FragColor = vec4(vec3(texColor), texColor.b);
-                //gl_FragColor.a*=(vUv.x)*5.;
-                //gl_FragColor = vec4(vUv, 1.0, 1.0);
             ${THREE.ShaderChunk.logdepthbuf_fragment}
           }
         `,
@@ -678,7 +661,7 @@ export default () => {
     //########################################## vertical trail ######################################
     {
       const planeGeometry = new THREE.BufferGeometry();
-      let planeNumber = 100;
+      let planeNumber = 50;
       let position= new Float32Array(18 * planeNumber);
       planeGeometry.setAttribute('position', new THREE.BufferAttribute(position, 3));
 
@@ -744,14 +727,14 @@ export default () => {
             for (let i = 0; i < planeNumber; i++){
                 if(i === 0){
                     position[0] = localPlayer.position.x;
-                    position[1] = localPlayer.position.y - 1.;
+                    position[1] = localPlayer.position.y - 0.9;
                     position[2] = localPlayer.position.z;
                     if (localPlayer.avatar) {
                         position[1] -= localPlayer.avatar.height;
                         position[1] += 1.18;
                     }
                     position[3] = localPlayer.position.x;
-                    position[4] = localPlayer.position.y - 2.;
+                    position[4] = localPlayer.position.y - 2.1;
                     position[5] = localPlayer.position.z;
                     if (localPlayer.avatar) {
                         position[4] -= localPlayer.avatar.height;
@@ -771,7 +754,7 @@ export default () => {
                     position[14] = temp[2];
                 
                     position[15] = localPlayer.position.x;
-                    position[16] = localPlayer.position.y - 2.;
+                    position[16] = localPlayer.position.y - 2.1;
                     position[17] = localPlayer.position.z;
                     if (localPlayer.avatar) {
                         position[16] -= localPlayer.avatar.height;
@@ -813,7 +796,7 @@ export default () => {
     //########################################## horizontal trail ######################################
     {
       const planeGeometry = new THREE.BufferGeometry();
-      const planeNumber = 100;
+      const planeNumber = 50;
       let position = new Float32Array(18 * planeNumber);
       planeGeometry.setAttribute('position', new THREE.BufferAttribute(position, 3));
 
@@ -958,14 +941,9 @@ export default () => {
             if(sonicBoomInApp){
                 //console.log('remove-planeTrail2');
                 app.remove(plane);
-                sonicBoomInApp=false;
+                sonicBoomInApp = false;
             }
         }
-        
-        
-        //app.updateMatrixWorld();
-          
-      
       });
     }
     //##################################### mainBall ####################################################
@@ -1319,7 +1297,7 @@ export default () => {
         });
     }
     
-    //#################################### particle behind avatar 1 ###############################
+    //#################################### particle behind avatar ###############################
     {
         
         const particleCount = 10;
@@ -1535,9 +1513,9 @@ export default () => {
                 gltfLoader.load(u, accept, function onprogress() {}, reject);
                 
             });
-            wave.scene.position.y=-5000;
+            wave.scene.position.y = -5000;
 
-            wave.scene.rotation.x=Math.PI/2;
+            wave.scene.rotation.x = Math.PI/2;
             group.add(wave.scene);
             //app.add(group);
             
@@ -1550,7 +1528,7 @@ export default () => {
                         value: 0,
                     },
                     avatarPos:{
-                        value: new THREE.Vector3(0,0,0)
+                        value: new THREE.Vector3(0, 0, 0)
                     },
                     iResolution: { value: new THREE.Vector3() },
                 },
@@ -1700,279 +1678,198 @@ export default () => {
     }
     //##################################### front dust ################################################
     {
-        const particleCount = 20;
-        const group=new THREE.Group();
+
+        const particleCount = 10;
         let info = {
-            velocity: [particleCount]
+            velocity: [particleCount],
+            inApp: [particleCount]
         }
-        let acc = new THREE.Vector3(-0.000, 0.0008, 0.0018);
-    
-        //##################################################### get Dust geometry #####################################################
-        const identityQuaternion = new THREE.Quaternion();
-        const _getDustGeometry = geometry => {
-            //console.log(geometry)
-            const geometry2 = new THREE.BufferGeometry();
-            ['position', 'normal', 'uv'].forEach(k => {
-              geometry2.setAttribute(k, geometry.attributes[k]);
-            });
-            geometry2.setIndex(geometry.index);
-            
-            const positions = new Float32Array(particleCount * 3);
-            const positionsAttribute = new THREE.InstancedBufferAttribute(positions, 3);
-            geometry2.setAttribute('positions', positionsAttribute);
-            const quaternions = new Float32Array(particleCount * 4);
-            for (let i = 0; i < particleCount; i++) {
-              identityQuaternion.toArray(quaternions, i * 4);
-            }
-            const quaternionsAttribute = new THREE.InstancedBufferAttribute(quaternions, 4);
-            geometry2.setAttribute('quaternions', quaternionsAttribute);
-    
-            const startTimes = new Float32Array(particleCount);
-            const startTimesAttribute = new THREE.InstancedBufferAttribute(startTimes, 1);
-            geometry2.setAttribute('startTimes', startTimesAttribute);
-    
-            const opacityAttribute = new THREE.InstancedBufferAttribute(new Float32Array(particleCount), 1);
-            opacityAttribute.setUsage(THREE.DynamicDrawUsage);
-            geometry2.setAttribute('opacity', opacityAttribute);
-    
-            const brokenAttribute = new THREE.InstancedBufferAttribute(new Float32Array(particleCount), 1);
-            brokenAttribute.setUsage(THREE.DynamicDrawUsage);
-            geometry2.setAttribute('broken', brokenAttribute);
+        let acc = new THREE.Vector3(0.000, -0.0008, 0.000);
         
-            return geometry2;
-        };
-    
-        //##################################################### material #####################################################
-        let dustMaterial= new THREE.MeshBasicMaterial({
-            // clipping: false,
-            fog: false,
-            // lights: false,
-        });
-        dustMaterial.transparent=true; 
-        dustMaterial.depthWrite=false;
-        dustMaterial.alphaMap=noiseMap;
-        //dustMaterial.blending= THREE.AdditiveBlending;
-        //dustMaterial.side=THREE.DoubleSide;
-        //dustMaterial.opacity=0.2;
-        dustMaterial.freeze();
-    
-        const uniforms = {
-            uTime: {
-                value: 0
+        for(let i = 0; i < particleCount; i++){
+            info.velocity[i] = new THREE.Vector3();
+        }
+
+        const material = new THREE.ShaderMaterial({
+            uniforms: {
+                uTime: { value: 0 },
+                opacity: { value: 0 },
+                noiseMap: {value: noiseMap}
+
             },
-        }
-        dustMaterial.onBeforeCompile = shader => {
-            shader.uniforms.uTime = uniforms.uTime;
-            shader.vertexShader = 'attribute float opacity;attribute float broken;\n varying float vOpacity; varying float vBroken; varying vec3 vPos; \n ' + shader.vertexShader;
-            shader.vertexShader = shader.vertexShader.replace(
-              '#include <begin_vertex>',
-              ['vec3 transformed = vec3( position );', 'vOpacity = opacity; vBroken = broken; vPos = position;'].join('\n')
-            );
-            shader.fragmentShader = 'uniform float uTime; varying float vBroken; varying float vOpacity; varying vec3 vPos;\n' + shader.fragmentShader;
-            shader.fragmentShader = shader.fragmentShader
-            .replace(
-                `vec4 diffuseColor = vec4( diffuse, opacity );`,
-                `
-                  vec4 diffuseColor = vec4( diffuse, vOpacity);
-      
-                `
-            );
-            shader.fragmentShader = shader.fragmentShader.replace(
-                '#include <alphamap_fragment>',
-                [
-                  'float broken = abs( sin( 1.0 - vBroken ) ) - texture2D( alphaMap, vUv ).g;',
-                  'if ( broken < 0.0001 ) discard;'
-                ].join('\n')
-            );
-        };
+            vertexShader: `
+                ${THREE.ShaderChunk.common}
+                ${THREE.ShaderChunk.logdepthbuf_pars_vertex}
+                uniform float uTime;
+                
+                attribute float scales;
+                attribute float broken;
+                attribute vec3 positions;
+                attribute vec4 quaternions;
+
+                varying float vBroken;
+                varying vec2 vUv;
+
+                vec3 rotateVecQuat(vec3 position, vec4 q) {
+                    vec3 v = position.xyz;
+                    return v + 2.0 * cross(q.xyz, cross(q.xyz, v) + q.w * v);
+                }
+
+                void main() {  
+                    vBroken = broken;
+                    vUv = uv;
+                    vec3 pos = position;
+                    pos = rotateVecQuat(pos, quaternions);
+                    pos *= scales;
+                    pos += positions;
+                    vec4 modelPosition = modelMatrix * vec4(pos, 1.0);
+                    vec4 viewPosition = viewMatrix * modelPosition;
+                    vec4 projectionPosition = projectionMatrix * viewPosition;
+                    gl_Position = projectionPosition;
+                    ${THREE.ShaderChunk.logdepthbuf_vertex}
+                }
+            `,
+            fragmentShader: `
+                ${THREE.ShaderChunk.logdepthbuf_pars_fragment}
+                uniform float uTime;
+                uniform float opacity;
+                uniform sampler2D noiseMap;
+
+                varying float vBroken;
+                varying vec2 vUv;
+
+                void main() {
+                    gl_FragColor = vec4(1.0, 1.0, 1.0, 1.0);
+                    vec4 noise = texture2D(
+                        noiseMap,
+                        vUv
+                    ); 
+                    float broken = abs( sin( 1.0 - vBroken ) ) - noise.g;
+                    if ( broken < 0.0001 ) discard;
+                    
+                    
+                    ${THREE.ShaderChunk.logdepthbuf_fragment}
+                    
+                }
+            `,
+            side: THREE.DoubleSide,
+            transparent: true,
+            depthWrite: false,
+            blending: THREE.AdditiveBlending,
+
+            clipping: false,
+            fog: false,
+            lights: false,
+        });
+        material.freeze();
         
-        //##################################################### load glb #####################################################
-        //let dustGeometry;
-        let dustApp;
+        let mesh = null;
+        let dustGeometry = null;
         (async () => {
             const u = `${baseUrl}/assets/smoke.glb`;
-            dustApp = await new Promise((accept, reject) => {
+            const dustApp = await new Promise((accept, reject) => {
                 const {gltfLoader} = useLoaders();
                 gltfLoader.load(u, accept, function onprogress() {}, reject);
                 
             });
             dustApp.scene.traverse(o => {
               if (o.isMesh) {
-                addInstancedMesh(o.geometry);
+                dustGeometry = o.geometry;
+                const attributeSpecs = [];
+                attributeSpecs.push({name: 'broken', itemSize: 1});
+                attributeSpecs.push({name: 'opacity', itemSize: 1});
+                attributeSpecs.push({name: 'scales', itemSize: 1});
+                const geometry = _getGeometry(dustGeometry, attributeSpecs, particleCount);
+                const quaternions = new Float32Array(particleCount * 4);
+                const identityQuaternion = new THREE.Quaternion();
+                for (let i = 0; i < particleCount; i++) {
+                    identityQuaternion.toArray(quaternions, i * 4);
+                }
+                const quaternionsAttribute = new THREE.InstancedBufferAttribute(quaternions, 4);
+                geometry.setAttribute('quaternions', quaternionsAttribute);
+                mesh = new THREE.InstancedMesh(geometry, material, particleCount);
               }
             });
             
     
         })();
-    
         
-    
-        //##################################################### object #####################################################
-        let mesh = null;
-        let dummy = new THREE.Object3D();
-    
-    
-        function addInstancedMesh(dustGeometry) {
-            const geometry = _getDustGeometry(dustGeometry);
-            mesh = new THREE.InstancedMesh(geometry, dustMaterial, particleCount);
-            group.add(mesh);
-            //app.add(group);
-            setInstancedMeshPositions(mesh);
-            
-        }
-        let matrix = new THREE.Matrix4();
-        function setInstancedMeshPositions(mesh1) {
-            for (let i = 0; i < mesh1.count; i++) {
-                mesh.getMatrixAt(i, matrix);
-                dummy.scale.x = .00001;
-                dummy.scale.y = .00001;
-                dummy.scale.z = .00001;
-                dummy.position.x = (Math.random()-0.5)*0.2;
-                dummy.position.y = -0.2;
-                dummy.position.z = i*0.1;
-                dummy.rotation.x=Math.random()*i;
-                dummy.rotation.y=Math.random()*i;
-                dummy.rotation.z=Math.random()*i;
-                info.velocity[i] = (new THREE.Vector3(
-                    0,
-                    0,
-                    -0.8-Math.random()));
-                info.velocity[i].divideScalar(20);
-                dummy.updateMatrix();
-                mesh1.setMatrixAt(i, dummy.matrix);
-            }
-            mesh1.instanceMatrix.needsUpdate = true;
-        }
+        const euler = new THREE.Euler();
+        const quaternion = new THREE.Quaternion();
        
-    
-        
-        
-        let currentRotate=0;
-        let preRotate=0;
-        let narutoEndTime=0;
+
         let sonicBoomInApp=false;
         useFrame(({timestamp}) => {
-    
-            
-            
-        
-            
-            
-            if(narutoRunTime===1){
-                if(!sonicBoomInApp){
-                    //console.log('add-dust');
-                    app.add(group);
-                    sonicBoomInApp=true;
-                }
-            }
+            let count = 0;
             if (mesh) {
                 
-                group.position.copy(localPlayer.position);
-                group.rotation.copy(localPlayer.rotation);
-                if (localPlayer.avatar) {
-                group.position.y -= localPlayer.avatar.height;
-                group.position.y += 0.2;
-                }
-                
-                group.position.x-=0.3*currentDir.x;
-                group.position.z-=0.3*currentDir.z;
-
-                if(localPlayer.rotation.x===0)
-                    currentRotate=-localPlayer.rotation.y;
-                else{
-                    if(localPlayer.rotation.y>0)
-                        currentRotate=(localPlayer.rotation.y-Math.PI);
-                    else
-                        currentRotate=(localPlayer.rotation.y+Math.PI);
-                }
-                //console.log('sonic-boom-front-dust');
-                
+                const positionsAttribute = mesh.geometry.getAttribute('positions');
                 const opacityAttribute = mesh.geometry.getAttribute('opacity');
                 const brokenAttribute = mesh.geometry.getAttribute('broken');
-                const startTimesAttribute = mesh.geometry.getAttribute('startTimes');
-                for (let i = 0; i < particleCount; i++) {
-                    mesh.getMatrixAt(i, matrix);
-                    matrix.decompose(dummy.position, dummy.quaternion, dummy.scale);
-                    
-                    
-                    if(lastStopSw===1 && narutoRunTime===0 ){
-                        opacityAttribute.setX(i, 1);
-                        brokenAttribute.setX(i, Math.random()-0.6);
-                        
-                        dummy.scale.x = 0.06+Math.random()*0.05;
-                        dummy.scale.y = 0.06+Math.random()*0.05;
-                        dummy.scale.z = 0.06+Math.random()*0.05;
-                        
-                        dummy.position.x = (Math.random()-0.5)*0.2;
-                        dummy.position.y = -0.2;
-                        dummy.position.z = (Math.random()-0.5)*0.2;
-                        
-                        info.velocity[i].x=0;
-                        info.velocity[i].y=0;
-                        info.velocity[i].z=-0.8-Math.random();
+                const scalesAttribute = mesh.geometry.getAttribute('scales');
+                const quaternionAttribute = mesh.geometry.getAttribute('quaternions');
+                if(lastStopSw === 1  && narutoRunTime===0){
+                    if(!sonicBoomInApp){
+                        // console.log('add-dust');
+                        app.add(mesh);
+                        sonicBoomInApp = true;
+                    }
+                    for (let i = 0; i < particleCount; i++) {
+                        scalesAttribute.setX(i, 0.06 + Math.random() * 0.05);
+                        let rand = (1 + Math.random() * 0.3);
+                        info.velocity[i].set( rand * currentDir.x, 0.25 + Math.random() * 0.25, rand * currentDir.z);
+                        positionsAttribute.setXYZ(
+                            i, 
+                            localPlayer.position.x + info.velocity[i].x, 
+                            localPlayer.position.y - localPlayer.avatar.height, 
+                            localPlayer.position.z + info.velocity[i].z
+                        );
+                        euler.set(Math.random() * 2 * Math.PI, Math.random() * 2 * Math.PI, Math.random() * 2 * Math.PI);
+                        quaternion.setFromEuler(euler);
+                        quaternionAttribute.setXYZW(i, quaternion.x, quaternion.y, quaternion.z, quaternion.w);
+                        brokenAttribute.setX(i, Math.random() - 0.6);
                         
                         info.velocity[i].divideScalar(20);
                     }
-                    
-                    if(dummy.position.z<50){
-                        opacityAttribute.setX(i, opacityAttribute.getX(i)-0.04);
-                        if(brokenAttribute.getX(i)<1)
-                            brokenAttribute.setX(i, brokenAttribute.getX(i)+0.045);
-                        else
-                            brokenAttribute.setX(i, 1);
-                        dummy.rotation.z=timestamp/500.;
-                        
-                        dummy.scale.x*=1.03;
-                        dummy.scale.y*=1.03;
-                        dummy.scale.z*=1.03;
-                        
-                        
-                        if(narutoRunTime>0){
-                            dummy.scale.x = .00001;
-                            dummy.scale.y = .00001;
-                            dummy.scale.z = .00001;
-                        }
-                        if(Math.abs(currentRotate-preRotate)>=0.175){
-                            dummy.scale.x = .00001;
-                            dummy.scale.y = .00001;
-                            dummy.scale.z = .00001;
-                        }
-                        info.velocity[i].add(acc);
-                        dummy.position.add(info.velocity[i]);
-                        dummy.updateMatrix();
-                        mesh.setMatrixAt(i, dummy.matrix);
-                    } 
-    
                 }
-                
-                mesh.instanceMatrix.needsUpdate = true;
+                for (let i = 0; i < particleCount; i++){
+                    if(brokenAttribute.getX(i) < 1){
+                        positionsAttribute.setXYZ(  i, 
+                                                    positionsAttribute.getX(i) + info.velocity[i].x, 
+                                                    positionsAttribute.getY(i) + info.velocity[i].y, 
+                                                    positionsAttribute.getZ(i) + info.velocity[i].z
+                        );
+                        scalesAttribute.setX(i, scalesAttribute.getX(i) * 1.03);
+                        brokenAttribute.setX(i, brokenAttribute.getX(i) + 0.045);
+                        info.velocity[i].add(acc);
+                    }
+                    else{
+                        count++;
+                    }
+                }
+                scalesAttribute.needsUpdate = true;
+                positionsAttribute.needsUpdate = true;
                 opacityAttribute.needsUpdate = true;
                 brokenAttribute.needsUpdate = true;
-                startTimesAttribute.needsUpdate = true;
+                quaternionAttribute.needsUpdate = true;
+                
+                
     
             }
-            if(lastStopSw===1  && narutoRunTime===0){
-                lastStopSw=0;
-                
-                //narutoEndTime=timestamp;
+            if(lastStopSw === 1  && narutoRunTime === 0){
+                lastStopSw = 0;
             }
-            if(lastStopSw===0){
+            if(count >= particleCount){
                 if(sonicBoomInApp){
-                    mesh.getMatrixAt(particleCount-1, matrix);
-                    matrix.decompose(dummy.position, dummy.quaternion, dummy.scale);
-                    if(dummy.position.z>40){
-                        //console.log('remove-dust');
-                        app.remove(group);
-                        sonicBoomInApp=false;
-                    }
-                    
+                    // console.log('remove dust');
+                    app.remove(mesh);
+                    sonicBoomInApp=false;
                 }
             }
-            //group.updateMatrixWorld();
             app.updateMatrixWorld();
-            preRotate=currentRotate;
         });
-      }
+
+    }
   app.setComponent('renderPriority', 'low');
   
   return app;
