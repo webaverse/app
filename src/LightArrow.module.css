@@ -10,7 +10,6 @@
   -o-transition: opacity 0.3s;
   transition: opacity 0.3s;
   user-select: none;
-  opacity: 0;
 }
 .lightArrowContainer:not(.enabled) .lightArrow {
   transform: scale(0, 0);

@@ -43,6 +43,10 @@
   list-style-type: none;
 }
 
+.section {
+  z-index:100000;
+}
+
 @keyframes character-animation {
   0% {
     background-image: none;
