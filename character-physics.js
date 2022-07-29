@@ -60,7 +60,9 @@ class CharacterPhysics {
     // console.log('wasd')
     if (this.player.avatar) {
       window.visKeysDirectionX = keysDirection.x;
-      this.velocity.add(keysDirection);
+      // this.velocity.add(keysDirection);
+      this.velocity.x = keysDirection.x;
+      this.velocity.z = keysDirection.z;
       window.visVelocityBeforeDampingX = this.velocity.x;
     }
   }
@@ -88,7 +90,9 @@ class CharacterPhysics {
       // move character controller
       const minDist = 0;
       localVector3.copy(this.velocity)
-        .multiplyScalar(timeDiffS);
+        // .multiplyScalar(timeDiffS);
+        // .multiplyScalar(timeDiffS);
+        // .multiplyScalar(0.016);
 
       // const jumpAction = this.player.getAction('jump');
       // if (jumpAction?.trigger === 'jump') {
@@ -289,20 +293,20 @@ class CharacterPhysics {
   }
   /* dampen the velocity to make physical sense for the current avatar state */
   applyVelocityDamping(velocity, timeDiff) {
-    if (this.player.hasAction('fly')) {
-      const factor = getVelocityDampingFactor(flyFriction, timeDiff);
-      velocity.multiplyScalar(factor);
-    } 
-    else if(this.player.hasAction('swim')){
-      const factor = getVelocityDampingFactor(swimFriction, timeDiff);
-      velocity.multiplyScalar(factor);
-    }
-    else {
-      // console.log('damping')
-      const factor = getVelocityDampingFactor(groundFriction, timeDiff);
-      velocity.x *= factor;
-      velocity.z *= factor;
-    }
+    // if (this.player.hasAction('fly')) {
+    //   const factor = getVelocityDampingFactor(flyFriction, timeDiff);
+    //   velocity.multiplyScalar(factor);
+    // } 
+    // else if(this.player.hasAction('swim')){
+    //   const factor = getVelocityDampingFactor(swimFriction, timeDiff);
+    //   velocity.multiplyScalar(factor);
+    // }
+    // else {
+    //   // console.log('damping')
+    //   const factor = getVelocityDampingFactor(groundFriction, timeDiff);
+    //   velocity.x *= factor;
+    //   velocity.z *= factor;
+    // }
   }
   applyAvatarPhysics(now, timeDiffS) {
     // const renderer = getRenderer();
