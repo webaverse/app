@@ -25,6 +25,7 @@ import npcManager from './npc-manager.js';
 import raycastManager from './raycast-manager.js';
 import zTargeting from './z-targeting.js';
 import Avatar from './avatars/avatars.js';
+import {makeId} from './util.js';
 
 const localVector = new THREE.Vector3();
 const localVector2 = new THREE.Vector3();
@@ -1436,6 +1437,8 @@ class GameManager extends EventTarget {
     const app = await metaversefileApi.createAppAsync({
       start_url: u,
     });
+    app.instanceId = makeId(6);
+    // this process "creates" a new app on what we currently have in inventory
     world.appManager.importApp(app);
     app.activate();
     // XXX set to index
