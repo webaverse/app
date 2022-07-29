@@ -14,7 +14,7 @@ class Music {
     this.audioBuffers = Array(this.urls.length).fill(null);
     this.audioBufferIndex = 0; // Math.floor(Math.random() * this.urls.length);
 
-    this.loadPromise = makePromise();
+    // this.loadPromise = makePromise();
     /* this.loadPromise = (async () => {
       this.audioBuffers = await Promise.all(this.urls.map(async url => {
         console.log('fetch 1', url);
@@ -47,11 +47,9 @@ class Music {
       gain,
     };
   }
-  load() {
+  /* load() {
     const promises = Promise.all(this.urls.map(async (url, i) => {
-      // console.log('fetch 1', url);
       const res = await fetch(url);
-      // console.log('fetch 2', url);
       const arrayBuffer = await res.arrayBuffer();
       const audioData = await this.audioContext.decodeAudioData(arrayBuffer);
       this.audioBuffers[i] = audioData;
@@ -64,7 +62,7 @@ class Music {
   }
   waitForLoad() {
     return this.loadPromise;
-  }
+  } */
 }
 const musicSpecs = [
   {
@@ -115,18 +113,29 @@ const musicSpecs = [
 class MusicManager {
   constructor(audioContext) {
     this.audioContext = audioContext;
-    this.musics = musicSpecs.map(spec => new Music(spec, audioContext));
-    /* this.loadPromise = Promise.all(this.musics.map(music => music.waitForLoad()))
-      .then(() => {}); */
+
+    this.musics = new Map();
     this.currentMusic = null;
   }
   async fetchMusic(url, name = url) {
-    const music = new Music({
-      name,
-      url,
-    }, this.audioContext);
+    let music = this.musics.get(url);
+    if (!music) {
+      music = new Music({
+        name,
+        url,
+      }, this.audioContext);
+      this.musics.set(url, music);
+    }
     await music.waitForLoad();
     return music;
+  }
+  getMusicUrl(name) {
+    const musicSpec = musicSpecs.find(spec => spec.name === name);
+    if (musicSpec) {
+      return musicSpec.urls[Math.floor(Math.random() * musicSpec.urls.length)];
+    } else {
+      return null;
+    }
   }
   playCurrentMusic(newMusic, {
     repeat = false,
@@ -144,8 +153,9 @@ class MusicManager {
       }
     });
   }
-  playCurrentMusicName(name, opts) {
-    const newMusic = this.musics.find(music => music.name === name);
+  async playCurrentMusicName(name, opts) {
+    const url = getMusicUrl(name);
+    const newMusic = await this.fetchMusic(url, name);
     if (newMusic) {
       this.playCurrentMusic(newMusic, opts);
     }
@@ -156,13 +166,6 @@ class MusicManager {
       this.currentMusic.gain.disconnect();
       this.currentMusic = null;
     }
-  }
-  load() {
-    const promises = this.musics.map(music => music.load());
-    return promises;
-  }
-  waitForLoad() {
-    return this.loadPromise;
   }
 }
 const musicManager = new MusicManager(audioManager.getAudioContext());
