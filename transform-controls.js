@@ -22,18 +22,9 @@ const TransformAxisConstraints = {
   XYZ: new THREE.Vector3(1, 1, 1)
 };
 
-const loadPromise = (async () => {
-  await TransformGizmo.load();
-
-  transformControls.transformGizmo = new TransformGizmo();
-  // transformGizmo.setTransformMode('Translate');
-  // transformControls.transformGizmo.visible = false;
-  sceneLowPriority.add(transformControls.transformGizmo);
-  transformControls.setTransformMode('translate');
-})();
-
 // let binding = null;
 const transformControls = {
+  loaded: false,
   transformGizmo: null,
   planeNormal: new THREE.Vector3(),
   transformPlane: new THREE.Plane(),
@@ -41,8 +32,24 @@ const transformControls = {
   dragging: false,
   startMatrix: new THREE.Matrix4(),
   startMouseMatrix: new THREE.Matrix4(),
-  waitForLoad() {
+  /* waitForLoad() {
     return loadPromise;
+  }, */
+  async load() {
+    await TransformGizmo.load();
+  
+    transformControls.transformGizmo = new TransformGizmo();
+    // transformGizmo.setTransformMode('Translate');
+    // transformControls.transformGizmo.visible = false;
+    sceneLowPriority.add(transformControls.transformGizmo);
+    transformControls.setTransformMode('translate');
+  },
+  async ensureLoad() {
+    if (!this.loaded) {
+      this.loaded = true;
+
+      this.load();
+    }
   },
   setTransformMode(transformMode) {
     this.transformGizmo.setTransformMode(capitalize(transformMode));
@@ -63,27 +70,32 @@ const transformControls = {
     binding = o;
   }, */
   handleMouseDown(raycaster) {
-    this.transformAxis = this.transformGizmo?.selectAxisWithRaycaster(raycaster);
-    if (this.transformAxis) {
-      console.log('yes transform axis');
-      
-      const axisInfo = this.transformGizmo.selectedAxis.axisInfo;
-      this.planeNormal
-        .copy(axisInfo.planeNormal)
-        .applyQuaternion(this.transformGizmo.quaternion)
-        .normalize();
-      this.transformPlane.setFromNormalAndCoplanarPoint(this.planeNormal, this.transformGizmo.position);
-      this.dragging = true;
-      
-      this.startMatrix.copy(this.transformGizmo.matrix);
-      raycaster.ray.intersectPlane(this.transformPlane, localVector);
-      this.startMouseMatrix.compose(
-        localVector,
-        localQuaternion.set(0, 0, 0, 1),
-        localVector2.set(1, 1, 1)
-      );
+
+    if (this.transformGizmo) {
+      this.transformAxis = this.transformGizmo?.selectAxisWithRaycaster(raycaster);
+      if (this.transformAxis) {
+        console.log('yes transform axis');
+        
+        const axisInfo = this.transformGizmo.selectedAxis.axisInfo;
+        this.planeNormal
+          .copy(axisInfo.planeNormal)
+          .applyQuaternion(this.transformGizmo.quaternion)
+          .normalize();
+        this.transformPlane.setFromNormalAndCoplanarPoint(this.planeNormal, this.transformGizmo.position);
+        this.dragging = true;
+        
+        this.startMatrix.copy(this.transformGizmo.matrix);
+        raycaster.ray.intersectPlane(this.transformPlane, localVector);
+        this.startMouseMatrix.compose(
+          localVector,
+          localQuaternion.set(0, 0, 0, 1),
+          localVector2.set(1, 1, 1)
+        );
+      } else {
+        // console.log('no transform axis');
+      }
     } else {
-      // console.log('no transform axis');
+      this.ensureLoad();
     }
   },
   handleMouseUp(raycaster) {
@@ -123,15 +135,21 @@ const transformControls = {
       } else {
         this.transformGizmo.highlightHoveredAxis(raycaster);
       }
+    } else {
+      this.ensureLoad();
     }
   },
   update() {
-    const mouseSelectedObject = game.getMouseSelectedObject();
-    this.transformGizmo.visible = !!mouseSelectedObject && !game.contextMenu;
-    if (this.transformGizmo.visible) {
-      this.transformGizmo.position.copy(mouseSelectedObject.position);
-      this.transformGizmo.quaternion.copy(mouseSelectedObject.quaternion);
-      this.transformGizmo.scale.copy(mouseSelectedObject.scale);
+    if (this.transformGizmo) {
+      const mouseSelectedObject = game.getMouseSelectedObject();
+      this.transformGizmo.visible = !!mouseSelectedObject && !game.contextMenu;
+      if (this.transformGizmo.visible) {
+        this.transformGizmo.position.copy(mouseSelectedObject.position);
+        this.transformGizmo.quaternion.copy(mouseSelectedObject.quaternion);
+        this.transformGizmo.scale.copy(mouseSelectedObject.scale);
+      }
+    } else {
+      this.ensureLoad();
     }
   },
 };
