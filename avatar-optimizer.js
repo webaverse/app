@@ -98,6 +98,7 @@ export const getMergeableObjects = (model, getObjectKey = getObjectKeyDefault) =
           m = {
             type,
             material: objectMaterial,
+            objects: [],
             geometries: [],
             maps: [],
             emissiveMaps: [],
@@ -110,6 +111,7 @@ export const getMergeableObjects = (model, getObjectKey = getObjectKeyDefault) =
           mergeables.set(key, m);
         }
 
+        m.objects.push(o);
         m.geometries.push(objectGeometry);
         m.maps.push(map);
         m.emissiveMaps.push(emissiveMap);
@@ -128,6 +130,7 @@ export const mergeGeometryTextureAtlas = (mergeable, textureSize) => {
   const {
     // type,
     // material,
+    objects,
     geometries,
     maps,
     emissiveMaps,
@@ -316,7 +319,10 @@ export const mergeGeometryTextureAtlas = (mergeable, textureSize) => {
   const attributeLayouts = _makeAttributeLayoutsFromGeometries(geometries);
 
   const _makeMorphAttributeLayoutsFromGeometries = geometries => {
-    console.log('got geomtries', geometries);
+    // console.log('got geomtries', geometries);
+    /* for (const geometry of geometries) {
+      geometry.
+    } */
     
     // create morph layouts
     const morphAttributeLayouts = [];
@@ -410,7 +416,10 @@ export const mergeGeometryTextureAtlas = (mergeable, textureSize) => {
       geometry.setAttribute(layout.name, attribute);
     }
   };
-  const _mergeMorphAttributes = (geometry, geometries, morphAttributeLayouts) => {
+  const _mergeMorphAttributes = (geometry, geometries, objects, morphAttributeLayouts) => {
+    // console.log('morphAttributeLayouts', morphAttributeLayouts);
+    // globalThis.morphAttributeLayouts = morphAttributeLayouts;
+
     for (const morphLayout of morphAttributeLayouts) {
       const morphsArray = Array(morphLayout.arraySize);
       for (let i = 0; i < morphLayout.arraySize; i++) {
@@ -427,15 +436,31 @@ export const mergeGeometryTextureAtlas = (mergeable, textureSize) => {
           geometries2[j] = geometries2[j2];
           geometries2[j2] = tmp;
         } */
+
+        // console.log('num geos', geometries.length);
         
-        for (const g of geometries) {
+        let first = 0;
+        for (let i = 0; i < geometries.length; i++) {
+          // const object = objects[i];
+          const g = geometries[i];
+          
+          const r = Math.random();
+
           let gMorphAttribute = g.morphAttributes[morphLayout.name];
           gMorphAttribute = gMorphAttribute?.[i];
           if (gMorphAttribute) {
+            // console.log('src', first, object, g, gMorphAttribute);
             morphData.set(gMorphAttribute.array, morphDataIndex);
             
-            const nz = morphData.filter(n => n != 0);
-            console.log('case 1', nz.join(','));
+            // const nz = gMorphAttribute.array.filter(n => n != 0);
+            // console.log('case 1', first, nz.length, object, g, gMorphAttribute);
+            
+            if (first === 2 || first === 1) {
+              for (let i = 0; i < gMorphAttribute.array.length; i++) {
+                // morphData[morphDataIndex + i] = r;
+                // morphData[morphDataIndex + i] *= 100;
+              }
+            }
 
             /* for (let i = 0; i < morphData.length; i++) {
               morphData[i] = Math.random();
@@ -446,13 +471,17 @@ export const mergeGeometryTextureAtlas = (mergeable, textureSize) => {
             morphDataIndex += gMorphAttribute.count * gMorphAttribute.itemSize;
           } else {
             console.log('case 2');
+            debugger;
             const matchingAttribute = g.attributes[morphLayout.name];
             morphDataIndex += matchingAttribute.count * matchingAttribute.itemSize;
           }
+
+          first++;
         }
         // sanity check
         if (morphDataIndex !== morphLayout.count) {
           console.warn('desynced morph data 2', morphLayout.name, morphDataIndex, morphLayout.count);
+          debugger;
         }
       }
       geometry.morphAttributes[morphLayout.name] = morphsArray;
@@ -522,19 +551,19 @@ export const mergeGeometryTextureAtlas = (mergeable, textureSize) => {
       });
     }
   };
-  const _mergeGeometries = geometries => {
+  const _mergeGeometries = (geometries, objects) => {
     const geometry = new THREE.BufferGeometry();
     geometry.morphTargetsRelative = true;
 
     _forceGeometriesAttributeLayouts(attributeLayouts, geometries);
     _mergeAttributes(geometry, geometries, attributeLayouts);
-    _mergeMorphAttributes(geometry, geometries, morphAttributeLayouts);
+    _mergeMorphAttributes(geometry, geometries, objects, morphAttributeLayouts);
     _mergeIndices(geometry, geometries);
     _remapGeometryUvs(geometry, geometries);
 
     return geometry;
   };
-  const geometry = _mergeGeometries(geometries);
+  const geometry = _mergeGeometries(geometries, objects);
   // console.log('got geometry', geometry);
 
   const _makeAtlasTextures = atlasImages => {
@@ -649,6 +678,8 @@ export const optimizeAvatarModel = async (model, options = {}) => {
         skinnedMesh.skeleton = skeletons[0];
         skinnedMesh.morphTargetDictionary = morphTargetDictionaryArray[0];
         skinnedMesh.morphTargetInfluences = morphTargetInfluencesArray[0];
+        // skinnedMesh.updateMorphTargets();
+        // console.log('got influences', skinnedMesh.morphTargetInfluences);
         return skinnedMesh;
       } else {
         throw new Error(`unknown type ${type}`);

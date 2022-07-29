@@ -5,9 +5,16 @@ import * as avatarCruncher from '../avatar-cruncher.js';
 import * as avatarSpriter from '../avatar-spriter.js';
 import offscreenEngineManager from '../offscreen-engine-manager.js';
 import loaders from '../loaders.js';
+import exporters from '../exporters.js';
 import {
   defaultAvatarQuality,
 } from '../constants.js';
+import { downloadFile } from '../util.js';
+
+window.morphTargetDictionaries = [];
+window.morphTargetInfluences = [];
+window.srcMorphTargetDictionaries = [];
+window.srcMorphTargetInfluences = [];
 
 const avatarPlaceholderImagePromise = (async () => {
   const avatarPlaceholderImage = new Image();
@@ -34,7 +41,7 @@ const _makeAvatarPlaceholderMesh = () => {
   return mesh; 
 };
 const _bindSkeleton = (dstModel, srcObject) => {
-  console.log('bind skeleton', dstModel, srcObject);
+  // console.log('bind skeleton', dstModel, srcObject);
   const srcModel = srcObject.scene;
   
   const _findBoneInSrc = (srcBoneName) => {
@@ -103,6 +110,9 @@ const _bindSkeleton = (dstModel, srcObject) => {
       // bind the skeleton
       const {skeleton: dstSkeleton} = o;
       const srcSkeleton = _findSrcSkeletonFromDstSkeleton(dstSkeleton);
+      if (!srcSkeleton) {
+        debugger;
+      }
       o.skeleton = srcSkeleton;
     }
     if (o.isMesh) {
@@ -110,8 +120,15 @@ const _bindSkeleton = (dstModel, srcObject) => {
       // skinnedMesh.skeleton = skeletons[0];
       const skinnedMesh = _findSkinnedMeshInSrc();
       // console.log('map blend shapes', o, skinnedMesh);
-      o.morphTargetDictionary = skinnedMesh.morphTargetDictionary;
-      o.morphTargetInfluences = skinnedMesh.morphTargetInfluences;
+      
+      // o.morphTargetDictionary = skinnedMesh.morphTargetDictionary;
+      // o.morphTargetInfluences = skinnedMesh.morphTargetInfluences;
+      
+      window.morphTargetDictionaries.push(o.morphTargetDictionary);
+      window.morphTargetInfluences.push(o.morphTargetInfluences);
+      window.srcMorphTargetDictionaries.push(skinnedMesh.morphTargetDictionary);
+      window.srcMorphTargetInfluences.push(skinnedMesh.morphTargetInfluences);
+
       // o.geometry.morphAttributes = skinnedMesh.geometry.morphAttributes;
       // o.morphAttributes = skinnedMesh.morphAttributes;
       // o.morphAttributesRelative = skinnedMesh.morphAttributesRelative;
@@ -123,7 +140,7 @@ const _bindSkeleton = (dstModel, srcObject) => {
 
         for (let i = 0; i < attr.array.length; i++) {
           // if ((attr.array[i]) != 0) {
-            attr.array[i] *= 10;
+            // attr.array[i] *= 10;
             // attr.array[i] = Math.random();
           // }
         }
@@ -138,7 +155,12 @@ const _bindSkeleton = (dstModel, srcObject) => {
       const _frame = () => {
         window.requestAnimationFrame(_frame);
       
-        // console.log('got frame', o.morphTargetInfluences.join(','));
+        if (o.morphTargetInfluences.length !== skinnedMesh.morphTargetInfluences.length) {
+          debugger;
+        }
+        for (let i = 0; i < o.morphTargetInfluences.length; i++) {
+          o.morphTargetInfluences[i] = skinnedMesh.morphTargetInfluences[i];
+        }
       };
       _frame();
     }
@@ -307,41 +329,51 @@ export class AvatarRenderer {
       }
       case 3: {
         if (!this.optimizedModel) {
-          if (!this.object.arrayBuffer) {
-            debugger;
-          }
-          const glbData = await this.optimizeAvatarModel([this.object.arrayBuffer, this.object.srcUrl]);
+          this.optimizedModel = true;
+
+          // const glbData = await this.optimizeAvatarModel([this.object.arrayBuffer, this.object.srcUrl]);
+
+          const parseVrm = (arrayBuffer, srcUrl) => new Promise((accept, reject) => {
+            const { gltfLoader } = loaders;
+            gltfLoader.parse(arrayBuffer, srcUrl, object => {
+              accept(object);
+            }, reject);
+          });
+          const object = await parseVrm(this.object.arrayBuffer, this.object.srcUrl);
+          object.scene.updateMatrixWorld();
+          const glbData = await new Promise((accept, reject) => {
+            const {gltfExporter} = exporters;
+            gltfExporter.parse(
+              object.scene,
+              function onCompleted(arrayBuffer) {
+                accept(arrayBuffer);
+              }, function onError(error) {
+                reject(error);
+              },
+              {
+                binary: true,
+                includeCustomExtensions: true,
+              },
+            );
+          });
+
           const glb = await new Promise((accept, reject) => {
             const {gltfLoader} = loaders;
             gltfLoader.parse(glbData, this.object.srcUrl, object => {
+              // window.o15 = object;
               accept(object.scene);
             }, reject);
           });
+
           _bindSkeleton(glb, this.object);
-          /* glb.traverse(o => {
-            if (o.isMesh) {
-              console.log('set flag', o);
-              o.onBeforeRender = () => {
-                debugger;
-              };
-              o.frustumCulled = false;
-
-              for (const k in o.material) {
-                const v = o.material[k];
-                if (v?.isTexture) {
-                  v.onUpdate = () => {
-                    debugger;
-                  };
-                }
-              }
-            }
-          }); */
           this.optimizedModel = glb;
-          // this.optimizedModel.visible = false;
-          // this.optimizedModel.enabled = true; // XXX
+          
+          // object.scene.position.x = -10;
+          // object.scene.updateMatrixWorld();
+          // this.scene.add(object.scene);
+          
+          this.optimizedModel.updateMatrixWorld();
           this.scene.add(this.optimizedModel);
-
-          // window.optimizedModel = this.optimizedModel;
         }
         break;
       }
