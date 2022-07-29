@@ -220,8 +220,8 @@ class CharacterFx {
       if (isPowerup && !this.kiMesh) {
         this.kiMesh = metaversefile.createApp();
         (async () => {
-          const {modules} = metaversefile.useDefaultModules();
-          const m = modules['ki'];
+          const {importModule} = metaversefile.useDefaultModules();
+          const m = await importModule('ki');
           await this.kiMesh.addModule(m);
         })();
         sceneLowPriority.add(this.kiMesh);
@@ -251,8 +251,8 @@ class CharacterFx {
         (async () => {
         this.nameplate = metaversefile.createApp();
         this.nameplate.setComponent('player', this.player);
-          const {modules} = metaversefile.useDefaultModules();
-          const m = modules['nameplate'];
+          const {importModule} = metaversefile.useDefaultModules();
+          const m = await importModule('nameplate');
           await this.nameplate.addModule(m);
           sceneLowPriority.add(this.nameplate);
         })();
@@ -265,8 +265,8 @@ class CharacterFx {
         if (!this.healEffect) {
           this.healEffect = metaversefile.createApp();
           (async () => {
-            const {modules} = metaversefile.useDefaultModules();
-            const m = modules['healEffect'];
+            const {importModule} = metaversefile.useDefaultModules();
+            const m = await importModule('healEffect');
             await this.healEffect.addModule(m);
             this.healEffect.playEffect(this.player);
             this.player.removeAction('cure')
