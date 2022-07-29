@@ -124,54 +124,56 @@ class ZTargeting extends THREE.Object3D {
     this.focusTargetReticle = null;
     this.queryResults = new QueryResults();
 
-    this.loadPromise = null;
+    (async () => {
+      await Promise.resolve(); // wait for import
+      await this.load();
+    })()
+      .catch(err => {
+        console.warn(err);
+      });
   }
-  waitForLoad() {
-    if (!this.loadPromise) {
-      this.loadPromise = (async () => {
-        const targetReticleApp = metaversefile.createApp();
-        await metaverseModules.waitForLoad();
+  async load() {
+    const targetReticleApp = metaversefile.createApp();
 
-        const {modules} = metaverseModules;
-        const m = modules['targetReticle'];
-        await targetReticleApp.addModule(m);
-        scene.add(targetReticleApp);
-        this.targetReticleApp = targetReticleApp;
-      })();
-    }
-    return this.loadPromise;
+    const {importModule} = metaverseModules;
+    const m = await importModule('targetReticle');
+    await targetReticleApp.addModule(m);
+    scene.add(targetReticleApp);
+    this.targetReticleApp = targetReticleApp;
   }
   setQueryResult(timestamp) {
-    let reticles;
     const localPlayer = playersManager.getLocalPlayer();
     if (localPlayer.hasAction('aim')) {
       this.queryResults.snapshot(camera);
-      reticles = this.queryResults.results;
+      this.reticles = this.queryResults.results;
     } else {
-      reticles = [];
+      this.reticles = [];
     }
-    if (this.focusTargetReticle) {
-      const timeDiff = timestamp - cameraManager.lerpStartTime;
-      const focusTime = 250;
 
-      const f = timeDiff / focusTime;
-      if (cameraManager.focus || f < 3) {
-        reticles = [
-          this.focusTargetReticle,
-        ];
+    if (this.targetReticleApp) {
+      if (this.focusTargetReticle) {
+        const timeDiff = timestamp - cameraManager.lerpStartTime;
+        const focusTime = 250;
 
-        let f2 = Math.min(Math.max(f, 0), 1);
-        if (cameraManager.focus) {
-          f2 = 1 - f2;
+        const f = timeDiff / focusTime;
+        if (cameraManager.focus || f < 3) {
+          this.reticles = [
+            this.focusTargetReticle,
+          ];
+
+          let f2 = Math.min(Math.max(f, 0), 1);
+          if (cameraManager.focus) {
+            f2 = 1 - f2;
+          }
+          this.focusTargetReticle.zoom = f2;
+        } else {
+          this.focusTargetReticle = null;
         }
-        this.focusTargetReticle.zoom = f2;
-      } else {
-        this.focusTargetReticle = null;
       }
+
+      const targetReticleMesh = this.targetReticleApp.children[0];
+      targetReticleMesh.setReticles(this.reticles);
     }
-    
-    const targetReticleMesh = this.targetReticleApp.children[0];
-    targetReticleMesh.setReticles(reticles);
   }
   update(timestamp) {
     this.setQueryResult(timestamp);
