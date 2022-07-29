@@ -9,7 +9,7 @@ const cubicBezier = easing(0, 1, 0, 1);
 const physicsScene = physicsManager.getScene();
 
 class DomItem extends THREE.Object3D {
-  constructor(position, quaternion, scale, width, height, worldWidth, render, domRenderEngine) {
+  constructor(position, quaternion, scale, width, height, worldWidth, render) {
     super();
 
     this.name = 'domNode';
@@ -54,8 +54,6 @@ class DomItem extends THREE.Object3D {
     physicsScene.disableActor(physicsObject);
     physicsScene.disableGeometryQueries(physicsObject);
     this.physicsObject = physicsObject;
-
-    this.domRenderEngine = domRenderEngine;
   }
   startAnimation(enabled, startTime, endTime) {
     this.enabled = enabled;
@@ -119,7 +117,7 @@ class DomItem extends THREE.Object3D {
     physicsScene.enableActor(this.physicsObject);
     physicsScene.removeGeometry(this.physicsObject);
     this.remove(this.floatNode);
-    this.domRenderEngine.removeDom(this);
+    domRenderer.removeDom(this);
   }
 }
 
@@ -175,7 +173,7 @@ export class DomRenderEngine extends EventTarget {
     worldWidth = 1,
     render = () => (<div />),
   }) {
-    const dom = new DomItem(position, quaternion, scale, width, height, worldWidth, render, this);
+    const dom = new DomItem(position, quaternion, scale, width, height, worldWidth, render);
     this.doms.push(dom);
     this.physicsObjects.push(dom.physicsObject);
 
