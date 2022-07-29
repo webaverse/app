@@ -94,7 +94,6 @@ export default class Webaverse extends EventTarget {
 
         physx.waitForLoad(),
         physxWorkerManager.waitForLoad(),
-        // metaverseModules.waitForLoad(),
         WebaWallet.waitForLoad(),
       ]);
     })();
