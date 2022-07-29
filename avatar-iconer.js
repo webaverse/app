@@ -47,12 +47,15 @@ class AvatarIconer extends EventTarget {
       import metaversefile from './metaversefile-api.js';
       import npcManager from './npc-manager.js';
       import {screenshotPlayer} from './avatar-screenshotter.js';
+      import Avatar from './avatars/avatars.js';
       import {emotions} from './src/components/general/character/Emotions.jsx';
 
       const allEmotions = [''].concat(emotions);
       const cameraOffset = new THREE.Vector3(0, 0.05, -0.35);
       `,
       async function(start_url, width, height) {
+        await Avatar.waitForLoad();
+        
         const player = await npcManager.createNpcAsync({
           name: 'avatar-iconer-npc',
           avatarUrl: start_url,
