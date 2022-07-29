@@ -25,7 +25,7 @@ const update = (timestamp, headPosition, springBoneManager) => {
       return -1;
     }
 
-    const _handleNormal = () =>{
+    const _handleNoWind = () =>{
       for (const springBones of springBoneManager.springBoneGroupList) {
         for (const o of springBones) {
           o.gravityDir = zeroVector3;
@@ -128,7 +128,7 @@ const update = (timestamp, headPosition, springBoneManager) => {
         }
       }
     } else {
-      _handleNormal();
+      _handleNoWind();
     }
 };
 export {
