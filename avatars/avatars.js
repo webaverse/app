@@ -1949,6 +1949,9 @@ class Avatar {
         <div style="display:;">velocity length: --- ${window.logNum(this.velocity.length())}</div>
         <div style="display:;">idleWalkFactor: --- ${this.idleWalkFactor.toFixed(2)}</div>
         <div style="display:;">walkRunFactor: --- ${this.walkRunFactor.toFixed(2)}</div>
+        <div style="display:;">avatar.direction: --- ${window.logVector3(this.direction)}</div>
+        <div style="display:;">player.direction: --- ${window.logVector3(player.getWorldDirection(localVector))}</div>
+        <div style="display:;">angle: --- ${window.logNum(this.getAngle())}</div>
       `
     }
 
