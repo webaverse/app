@@ -1497,7 +1497,6 @@ class Avatar {
   }
 
   setVelocity(timeDiffS, lastPosition, currentPosition, currentQuaternion) {
-    // console.log('direction')
     // Set the velocity, which will be considered by the animation controller
     const positionDiff = localVector.copy(lastPosition)
       .sub(currentPosition)
@@ -1507,7 +1506,6 @@ class Avatar {
     localEuler.set(0, -(localEuler.y + Math.PI), 0);
     positionDiff.applyEuler(localEuler);
     // this.velocity.copy(positionDiff);
-    // this.velocity.applyEuler(localEuler);
     this.lastVelocity.copy(this.velocity);
     this.direction.copy(positionDiff).normalize();
     this.lastPosition.copy(currentPosition);

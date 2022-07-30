@@ -88,10 +88,8 @@ export function makeAvatar(app) {
   return null;
 }
 export function applyPlayerActionsToAvatar(player, rig) {
-
   if (rig.velocity && player.characterPhysics?.velocity) {
     rig.velocity.copy(player.characterPhysics.velocity);
-    // console.log(player.characterPhysics.velocity.x, player.characterPhysics.velocity.z);
     rig.velocity.x *= 0.1;
     rig.velocity.z *= 0.1;
     rig.velocity.applyQuaternion(localQuaternion.copy(player.quaternion).invert()); // todo: Don't need still ok?
