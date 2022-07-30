@@ -780,6 +780,9 @@ export const optimizeAvatarModel = async (model, options = {}) => {
       morphTargetDictionaryArray,
       morphTargetInfluencesArray,
     } = mergeable;
+
+    // morphTargetInfluencesArray[1] = 0.5;
+
     const {
       // atlas,
       // atlasImages,
@@ -837,6 +840,7 @@ export const optimizeAvatarModel = async (model, options = {}) => {
 
   const object = new THREE.Object3D();
   for (const mesh of mergedMeshes) {
+    mesh.morphTargetInfluences[5] = 0.5;
     object.add(mesh);
   }
 

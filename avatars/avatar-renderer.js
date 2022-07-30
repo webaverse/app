@@ -160,7 +160,7 @@ const _bindSkeleton = (dstModel, srcObject) => {
         }
         for (let i = 0; i < o.morphTargetInfluences.length; i++) {
           // o.morphTargetInfluences[i] = skinnedMesh.morphTargetInfluences[i];
-          o.morphTargetInfluences[i] = 1;
+          // o.morphTargetInfluences[i] = 1;
         }
       };
       _frame();
@@ -341,6 +341,29 @@ export class AvatarRenderer {
           const object = await parseVrm(this.object.arrayBuffer, this.object.srcUrl);
 
           const glb = await avatarOptimizer.optimizeAvatarModel(object.scene);
+          // const glb = object.scene;
+
+          // const children = glb.children[2].children;
+          // let scount = 0;
+
+          // for (let i = 0; i < 8; i++) {
+          //   const skinnedMeshMorphAttributes =
+          //     children[i].geometry.morphAttributes.position;
+          //   const count = skinnedMeshMorphAttributes;
+          //   for (let j = 0; j < skinnedMeshMorphAttributes.length; j++) {
+          //     const el = skinnedMeshMorphAttributes[j];
+          //     const arr = el.array;
+          //     for (let k = 0; k < arr.length; k++) {
+          //       const arrEl = arr[k];
+          //       if (arrEl != 0 || arrEl != -0) {
+          //       scount++;
+          //       }
+          //     }
+          //   }
+          // }
+          // console.log(scount);
+
+          // console.log('GLB : ', children);
 
           /* const parseVrm = (arrayBuffer, srcUrl) => new Promise((accept, reject) => {
             const { gltfLoader } = loaders;
