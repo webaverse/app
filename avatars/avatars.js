@@ -1943,8 +1943,8 @@ class Avatar {
     if (true && player && this === player.avatar) {
       window.domInfo.innerHTML += `
         <div style="display:;">actions: --- ${player.getActionsArray().map(n=>n.type)}</div>
-        <div style="display:;">moveDistancePerFrame: --- ${window.logVector3(player.characterPhysics.moveDistancePerFrame)} | ${window.logNum(player.characterPhysics.moveDistancePerFrame.length())} of characterPhysics ( correct )</div>
-        <div style="display:;">moveDistancePerFrame: --- ${window.logVector3(player.characterPhysics.dampedMoveDistancePerFrame)} | ${window.logNum(player.characterPhysics.dampedMoveDistancePerFrame.length() * 6)} damped ( length * 6 )</div>
+        <div style="display:;">targetMoveDistancePerFrame: --- ${window.logVector3(player.characterPhysics.targetMoveDistancePerFrame)} | ${window.logNum(player.characterPhysics.targetMoveDistancePerFrame.length())} of characterPhysics ( correct )</div>
+        <div style="display:;">targetMoveDistancePerFrame: --- ${window.logVector3(player.characterPhysics.moveDistancePerFrame)} | ${window.logNum(player.characterPhysics.moveDistancePerFrame.length() * 6)} damped ( length * 6 )</div>
         <div style="display:;">velocity: --- ${window.logVector3(player.characterPhysics.velocity)} | ${window.logNum(player.characterPhysics.velocity.length())} of characterPhysics</div>
         <div style="display:;">velocity: --- ${window.logVector3(this.velocity)} | ${window.logNum(this.velocity.length())} of avatar</div>
         <div style="display:;">idleWalkFactor: --- ${window.logNum(this.idleWalkFactor)}</div>
