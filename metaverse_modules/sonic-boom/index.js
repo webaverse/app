@@ -1754,12 +1754,12 @@ export default () => {
         const particleCount = 10;
         let info = {
             velocity: [particleCount],
-            inApp: [particleCount]
+            inApp: [particleCount],
+            acc:[particleCount]
         }
-        let acc = new THREE.Vector3(0.000, -0.001, 0.000);
-        
         for(let i = 0; i < particleCount; i++){
             info.velocity[i] = new THREE.Vector3();
+            info.acc[i] = new THREE.Vector3();
         }
 
         const material = new THREE.ShaderMaterial({
@@ -1774,13 +1774,15 @@ export default () => {
                 ${THREE.ShaderChunk.logdepthbuf_pars_vertex}
                 uniform float uTime;
                 
-                attribute float scales;
+                attribute vec3 scales;
                 attribute float broken;
+                attribute float opacity;
                 attribute vec3 positions;
                 attribute vec4 quaternions;
 
                 varying float vBroken;
                 varying vec2 vUv;
+                varying float vOpacity;
 
                 vec3 rotateVecQuat(vec3 position, vec4 q) {
                     vec3 v = position.xyz;
@@ -1788,6 +1790,7 @@ export default () => {
                 }
 
                 void main() {  
+                    vOpacity = opacity;
                     vBroken = broken;
                     vUv = uv;
                     vec3 pos = position;
@@ -1809,13 +1812,15 @@ export default () => {
 
                 varying float vBroken;
                 varying vec2 vUv;
-
+                varying float vOpacity;
+                
                 void main() {
                     gl_FragColor = vec4(1.0, 1.0, 1.0, 1.0);
                     vec4 noise = texture2D(
                         noiseMap,
                         vUv
                     ); 
+                    gl_FragColor *= vOpacity;
                     float broken = abs( sin( 1.0 - vBroken ) ) - noise.g;
                     if ( broken < 0.0001 ) discard;
                     
@@ -1850,7 +1855,7 @@ export default () => {
                 const attributeSpecs = [];
                 attributeSpecs.push({name: 'broken', itemSize: 1});
                 attributeSpecs.push({name: 'opacity', itemSize: 1});
-                attributeSpecs.push({name: 'scales', itemSize: 1});
+                attributeSpecs.push({name: 'scales', itemSize: 3});
                 const geometry = _getGeometry(dustGeometry, attributeSpecs, particleCount);
                 const quaternions = new Float32Array(particleCount * 4);
                 const identityQuaternion = new THREE.Quaternion();
@@ -1895,21 +1900,22 @@ export default () => {
                         sonicBoomInApp = true;
                     }
                     for (let i = 0; i < particleCount; i++) {
-                        scalesAttribute.setX(i, 0.08 + Math.random() * 0.05);
-                        let rand = (1 + Math.random() * i * 0.025);
+                        scalesAttribute.setXYZ(i, 0.03 + Math.random() * 0.025, 0.03 + Math.random() * 0.025, 0.03 + Math.random() * 0.025);
+                        let rand = (1.1 + Math.random() * i * 0.025);
                         let rand2 = (Math.random() - 0.5) * 0.25;
-                        info.velocity[i].set( rand * currentDir.x + localVector2.x * rand2, 0.25 + Math.random() * 0.25, rand * currentDir.z + localVector2.z * rand2);
+                        info.velocity[i].set( rand * currentDir.x + localVector2.x * rand2, 0.3 + Math.random() * 0.3, rand * currentDir.z + localVector2.z * rand2);
+                        info.acc[i].set(-currentDir.x * 0.0012, -0.0012, -currentDir.z * 0.0012);
                         positionsAttribute.setXYZ(
                             i, 
                             localPlayer.position.x + info.velocity[i].x , 
-                            localPlayer.position.y - localPlayer.avatar.height, 
+                            localPlayer.position.y - localPlayer.avatar.height - Math.random() * 0.2, 
                             localPlayer.position.z + info.velocity[i].z 
                         );
-                        euler.set(Math.random() * 2 * Math.PI, Math.random() * 2 * Math.PI, Math.random() * 2 * Math.PI);
+                        euler.set(Math.random() * Math.PI, Math.random() * Math.PI, Math.random() * Math.PI);
                         quaternion.setFromEuler(euler);
                         quaternionAttribute.setXYZW(i, quaternion.x, quaternion.y, quaternion.z, quaternion.w);
-                        brokenAttribute.setX(i, Math.random() - 0.6);
-                        
+                        brokenAttribute.setX(i, Math.random() * 0.5 - 0.6);
+                        opacityAttribute.setX(i, 0.8 + Math.random() * 0.2);
                         info.velocity[i].divideScalar(20);
                     }
                 }
@@ -1920,9 +1926,10 @@ export default () => {
                                                     positionsAttribute.getY(i) + info.velocity[i].y, 
                                                     positionsAttribute.getZ(i) + info.velocity[i].z
                         );
-                        scalesAttribute.setX(i, scalesAttribute.getX(i) * 1.03);
-                        brokenAttribute.setX(i, brokenAttribute.getX(i) + 0.045);
-                        info.velocity[i].add(acc);
+                        scalesAttribute.setXYZ(i, scalesAttribute.getX(i) * 1.05, scalesAttribute.getY(i) * 1.05, scalesAttribute.getZ(i) * 1.05);
+                        brokenAttribute.setX(i, brokenAttribute.getX(i) + 0.035);
+                        opacityAttribute.setX(i, opacityAttribute.getX(i) - 0.02);
+                        info.velocity[i].add(info.acc[i]);
                     }
                     else{
                         count++;
