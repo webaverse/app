@@ -1946,6 +1946,7 @@ class Avatar {
         <div style="display:;">velocity: --- ${window.logVector3(player.characterPhysics.velocity)} of characterPhysics ( correct )</div>
         <div style="display:;">velocity length: --- ${window.logNum(player.characterPhysics.velocity.length())}</div>
         <div style="display:;">dampedVelocity: --- ${window.logVector3(player.characterPhysics.dampedVelocity)}</div>
+        <div style="display:;">velocity length * 6: --- ${window.logNum(player.characterPhysics.dampedVelocity.length() * 6)}</div>
         <div style="display:;">velocity: --- ${window.logVector3(this.velocity)} of avatar</div>
         <div style="display:;">velocity length: --- ${window.logNum(this.velocity.length())}</div>
         <div style="display:;">idleWalkFactor: --- ${window.logNum(this.idleWalkFactor)}</div>
