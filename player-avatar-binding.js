@@ -89,8 +89,8 @@ export function makeAvatar(app) {
 }
 export function applyPlayerActionsToAvatar(player, rig) {
 
-  if (rig.velocity && player.characterPhysics?.dampedVelocity) {
-    rig.velocity.copy(player.characterPhysics.dampedVelocity).multiplyScalar(6);
+  if (rig.velocity && player.characterPhysics?.realVelocity) {
+    rig.velocity.copy(player.characterPhysics.realVelocity).multiplyScalar(0.1);
   }
 
   const jumpAction = player.getAction('jump');
