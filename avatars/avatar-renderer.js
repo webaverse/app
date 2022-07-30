@@ -160,7 +160,7 @@ const _bindSkeleton = (dstModel, srcObject) => {
         }
         for (let i = 0; i < o.morphTargetInfluences.length; i++) {
           // o.morphTargetInfluences[i] = skinnedMesh.morphTargetInfluences[i];
-          // o.morphTargetInfluences[i] = 1;
+          o.morphTargetInfluences[i] = 1;
         }
       };
       _frame();
