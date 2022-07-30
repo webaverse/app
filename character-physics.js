@@ -41,6 +41,8 @@ class CharacterPhysics {
   constructor(player) {
     this.player = player;
 
+    this.targetVelocity = new THREE.Vector3();
+    this.lastTargetVelocity = new THREE.Vector3();
     this.velocity = new THREE.Vector3();
     this.moveDistancePerFrame = new THREE.Vector3();
     this.lastMoveDistancePerFrame = new THREE.Vector3();
@@ -60,15 +62,16 @@ class CharacterPhysics {
     physicsScene.setCharacterControllerPosition(this.player.characterController, localVector);
   }
   /* apply the currently held keys to the character */
-  applyWasd(keysDirection) {
+  applyWasd(velocity, timeDiff) {
     // console.log('wasd')
     if (this.player.avatar) {
-      window.visKeysDirectionX = keysDirection.x;
+      this.targetVelocity.copy(velocity);
+      // window.visKeysDirectionX = keysDirection.x;
       // this.velocity.add(keysDirection);
-      this.moveDistancePerFrame.x = keysDirection.x;
-      this.moveDistancePerFrame.z = keysDirection.z;
+      this.moveDistancePerFrame.x = this.targetVelocity.x * timeDiff;
+      this.moveDistancePerFrame.z = this.targetVelocity.z * timeDiff;
       // console.log(this.velocity.x, this.velocity.z)
-      window.visVelocityBeforeDampingX = this.velocity.x;
+      // window.visVelocityBeforeDampingX = this.velocity.x;
     }
   }
   applyGravity(timeDiffS) {
@@ -320,12 +323,15 @@ class CharacterPhysics {
       this.dampedMoveDistancePerFrame.z = THREE.MathUtils.damp(this.dampedMoveDistancePerFrame.z, this.lastMoveDistancePerFrame.z, groundFriction * window.aaa, timeDiff / 1000);
       // if (this.moveDistancePerFrame.x > 0) debugger
 
+      this.velocity.x = THREE.MathUtils.damp(this.velocity.x, this.lastTargetVelocity.x, groundFriction * window.aaa, timeDiff / 1000);
+      this.velocity.z = THREE.MathUtils.damp(this.velocity.z, this.lastTargetVelocity.z, groundFriction * window.aaa, timeDiff / 1000);
+
       // console.log('damping')
 
       // this.velocity.copy(this.lastMoveDistancePerFrame).divideScalar(timeDiff / 1000)
       // console.log(Math.round(this.velocity.length()))
 
-      this.velocity.copy(this.dampedMoveDistancePerFrame).divideScalar(timeDiff / 1000)
+      // this.velocity.copy(this.dampedMoveDistancePerFrame).divideScalar(timeDiff / 1000)
       // console.log((this.velocity.length()))
     }
   }
@@ -517,6 +523,7 @@ class CharacterPhysics {
     this.applyAvatarActionKinematics(now, timeDiffS);
 
     // console.log('update end')
+    this.lastTargetVelocity.copy(this.targetVelocity);
     this.lastMoveDistancePerFrame.copy(this.moveDistancePerFrame);
   }
   reset() {
