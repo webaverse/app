@@ -689,11 +689,6 @@ export function getVelocityDampingFactor(dampingPer60Hz, timeDiff) {
   return Math.pow(dampingPer60Hz, timeDiff / 60);
 }
 
-// https://www.rorydriscoll.com/2016/03/07/frame-rate-independent-damping-using-lerp/
-// export function Damp(source, target, smoothing, dt) {
-//   return THREE.MathUtils.lerp(source, target, 1 - THREE.MathUtils.low(smoothing, dt))
-// }
-
 export function getPlayerPrefix(playerId) {
   return playersMapName + '.' + playerId;
 }

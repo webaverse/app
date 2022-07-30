@@ -59,14 +59,9 @@ class CharacterPhysics {
   }
   /* apply the currently held keys to the character */
   applyWasd(keysDirection) {
-    // console.log('wasd')
     if (this.player.avatar) {
-      window.visKeysDirectionX = keysDirection.x;
-      // this.velocity.add(keysDirection);
       this.velocity.x = keysDirection.x;
       this.velocity.z = keysDirection.z;
-      // console.log(this.velocity.x, this.velocity.z)
-      window.visVelocityBeforeDampingX = this.velocity.x;
     }
   }
   applyGravity(timeDiffS) {
@@ -95,8 +90,6 @@ class CharacterPhysics {
       // localVector3.copy(this.velocity) // todo: rename?: this.velocity is not velocity, but move distance per frame now ?
       localVector3.copy(this.dampedVelocity)
         // .multiplyScalar(timeDiffS);
-        // .multiplyScalar(timeDiffS);
-        // .multiplyScalar(0.016);
 
       const jumpAction = this.player.getAction('jump');
       if (jumpAction?.trigger === 'jump') {
@@ -122,9 +115,6 @@ class CharacterPhysics {
           localVector3.y = 0;
         }
       }
-
-      // console.log('move')
-
       const flags = physicsScene.moveCharacterController(
         this.player.characterController,
         localVector3,
@@ -152,20 +142,6 @@ class CharacterPhysics {
           this.player.characterController.position.y = oldY;
         }
       }
-
-      // if (window.isDebugger) {
-      //   console.log(
-      //     performance.now() - window.visStartTime + '\t' + 
-      //     window.visSpeed + '\t' + 
-      //     window.visTimeDiff + '\t' + 
-      //     window.visKeysDirectionX + '\t' + 
-      //     window.visVelocityBeforeDampingX + '\t' + 
-      //     this.velocity.x + '\t' + 
-      //     timeDiffS + '\t' + 
-      //     localVector3.x + '\t' + 
-      //     this.player.characterController.position.x
-      //   )
-      // }
 
       this.player.characterController.updateMatrixWorld();
       this.player.characterController.matrixWorld.decompose(localVector, localQuaternion, localVector2);
@@ -306,14 +282,8 @@ class CharacterPhysics {
       velocity.multiplyScalar(factor);
     }
     else {
-      // console.log('damping')
-      // const factor = getVelocityDampingFactor(groundFriction, timeDiff);
-      // // const factor = getVelocityDampingFactor(window.aaa, timeDiff);
-      // this.dampedVelocity.x = this.dampedVelocity.x * factor;
-      // this.dampedVelocity.z = this.dampedVelocity.z * factor;
-
-      this.dampedVelocity.x = THREE.MathUtils.damp(this.dampedVelocity.x, this.velocity.x, groundFriction * window.aaa, timeDiff / 1000);
-      this.dampedVelocity.z = THREE.MathUtils.damp(this.dampedVelocity.z, this.velocity.z, groundFriction * window.aaa, timeDiff / 1000);
+      this.dampedVelocity.x = THREE.MathUtils.damp(this.dampedVelocity.x, this.velocity.x, groundFriction * 100, timeDiff / 1000);
+      this.dampedVelocity.z = THREE.MathUtils.damp(this.dampedVelocity.z, this.velocity.z, groundFriction * 100, timeDiff / 1000);
     }
   }
   applyAvatarPhysics(now, timeDiffS) {
