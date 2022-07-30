@@ -323,8 +323,10 @@ class CharacterPhysics {
       this.moveDistancePerFrame.z = THREE.MathUtils.damp(this.moveDistancePerFrame.z, this.lastTargetMoveDistancePerFrame.z, groundFriction * window.aaa, timeDiff / 1000);
       // if (this.targetMoveDistancePerFrame.x > 0) debugger
 
-      this.velocity.x = THREE.MathUtils.damp(this.velocity.x, this.lastTargetVelocity.x, groundFriction * window.aaa, timeDiff / 1000);
-      this.velocity.z = THREE.MathUtils.damp(this.velocity.z, this.lastTargetVelocity.z, groundFriction * window.aaa, timeDiff / 1000);
+      this.velocity.x = THREE.MathUtils.damp(this.velocity.x / 1000, this.lastTargetVelocity.x, groundFriction * window.aaa, timeDiff / 1000);
+      this.velocity.z = THREE.MathUtils.damp(this.velocity.z / 1000, this.lastTargetVelocity.z, groundFriction * window.aaa, timeDiff / 1000);
+      this.velocity.x *= 1000;
+      this.velocity.z *= 1000;
 
       // console.log('damping')
 

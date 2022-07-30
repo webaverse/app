@@ -91,8 +91,10 @@ export function applyPlayerActionsToAvatar(player, rig) {
 
   if (rig.velocity && player.characterPhysics?.velocity) {
     rig.velocity.copy(player.characterPhysics.velocity);
-    rig.velocity.x *= 100;
-    rig.velocity.z *= 100;
+    // console.log(player.characterPhysics.velocity.x, player.characterPhysics.velocity.z);
+    rig.velocity.x *= 0.1;
+    rig.velocity.z *= 0.1;
+    rig.velocity.applyQuaternion(localQuaternion.copy(player.quaternion).invert()); // todo: Don't need still ok?
   }
   // console.log('binding')
 
