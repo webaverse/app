@@ -340,9 +340,16 @@ export class AvatarRenderer {
           });
           const object = await parseVrm(this.object.arrayBuffer, this.object.srcUrl);
 
-          const glb = await avatarOptimizer.optimizeAvatarModel(object.scene);
+          // const glb = await avatarOptimizer.optimizeAvatarModel(object.scene);
 
-          // download GLB
+          const glb = object.scene;
+          console.log(
+            "GLB : ",
+            glb.children[2].children[0].geometry.morphAttributes.position[0].array
+              .filter(n => Math.abs(n) >= 0.01)
+          );
+
+          /* // download GLB
           if (true) {
             glb.updateMatrixWorld();
             const glbData = await new Promise((accept, reject) => {
@@ -362,7 +369,7 @@ export class AvatarRenderer {
             });
             const blob = new Blob([glbData], {type: 'application/octet-stream'});
             downloadFile(blob, 'avatar.glb');
-          }
+          } */
           
           // const glb = object.scene;
 
