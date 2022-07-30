@@ -255,10 +255,17 @@ const _updateIo = timeDiff => {
       }
       ioManager.lastCtrlKey = ioManager.keys.ctrl;
     }
-    if (physicsScene.getPhysicsEnabled() && movementEnabled) {
+    // window.domInfo.innerHTML += `<div style="display:;">keysDirection: --- ${window.logVector3(keysDirection)}</div>`;
+    if (/* keysDirection.length() > 0 &&  */physicsScene.getPhysicsEnabled() && movementEnabled) {
+      window.isDebugger = true;
+      window.visSpeed = game.getSpeed();
+      window.visTimeDiff = timeDiff;
+      if (!window.visStartTime) window.visStartTime = performance.now();
+      const speed = game.getSpeed() / 30;
       localPlayer.characterPhysics.applyWasd(
         keysDirection.normalize()
-          .multiplyScalar(game.getSpeed() * timeDiff / 30)
+          .multiplyScalar(speed),
+        timeDiff,
       );
     }
   }

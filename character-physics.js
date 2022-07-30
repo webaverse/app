@@ -41,8 +41,12 @@ class CharacterPhysics {
   constructor(player) {
     this.player = player;
 
+    this.targetVelocity = new THREE.Vector3();
+    this.lastTargetVelocity = new THREE.Vector3();
     this.velocity = new THREE.Vector3();
-    this.dampedVelocity = new THREE.Vector3();
+    this.moveDistancePerFrame = new THREE.Vector3();
+    this.lastMoveDistancePerFrame = new THREE.Vector3();
+    this.dampedMoveDistancePerFrame = new THREE.Vector3();
     // this.lastTimeDiff = 0; // todo:
     this.lastGrounded = null;
     this.lastGroundedTime = 0;
@@ -58,10 +62,16 @@ class CharacterPhysics {
     physicsScene.setCharacterControllerPosition(this.player.characterController, localVector);
   }
   /* apply the currently held keys to the character */
-  applyWasd(keysDirection) {
+  applyWasd(velocity, timeDiff) {
+    // console.log('wasd')
     if (this.player.avatar) {
-      this.velocity.x = keysDirection.x;
-      this.velocity.z = keysDirection.z;
+      this.targetVelocity.copy(velocity);
+      // window.visKeysDirectionX = keysDirection.x;
+      // this.velocity.add(keysDirection);
+      this.moveDistancePerFrame.x = this.targetVelocity.x * timeDiff;
+      this.moveDistancePerFrame.z = this.targetVelocity.z * timeDiff;
+      // console.log(this.velocity.x, this.velocity.z)
+      // window.visVelocityBeforeDampingX = this.velocity.x;
     }
   }
   applyGravity(timeDiffS) {
@@ -88,8 +98,10 @@ class CharacterPhysics {
       // move character controller
       const minDist = 0;
       // localVector3.copy(this.velocity) // todo: rename?: this.velocity is not velocity, but move distance per frame now ?
-      localVector3.copy(this.dampedVelocity)
+      localVector3.copy(this.dampedMoveDistancePerFrame)
         // .multiplyScalar(timeDiffS);
+
+      // console.log('set localVector3')
 
       const jumpAction = this.player.getAction('jump');
       if (jumpAction?.trigger === 'jump') {
@@ -282,8 +294,26 @@ class CharacterPhysics {
       velocity.multiplyScalar(factor);
     }
     else {
-      this.dampedVelocity.x = THREE.MathUtils.damp(this.dampedVelocity.x, this.velocity.x, groundFriction * 100, timeDiff / 1000);
-      this.dampedVelocity.z = THREE.MathUtils.damp(this.dampedVelocity.z, this.velocity.z, groundFriction * 100, timeDiff / 1000);
+      // console.log('damping')
+      // const factor = getVelocityDampingFactor(groundFriction, timeDiff);
+      // // const factor = getVelocityDampingFactor(window.aaa, timeDiff);
+      // this.dampedMoveDistancePerFrame.x = this.dampedMoveDistancePerFrame.x * factor;
+      // this.dampedMoveDistancePerFrame.z = this.dampedMoveDistancePerFrame.z * factor;
+
+      this.dampedMoveDistancePerFrame.x = THREE.MathUtils.damp(this.dampedMoveDistancePerFrame.x, this.lastMoveDistancePerFrame.x, groundFriction * window.aaa, timeDiff / 1000);
+      this.dampedMoveDistancePerFrame.z = THREE.MathUtils.damp(this.dampedMoveDistancePerFrame.z, this.lastMoveDistancePerFrame.z, groundFriction * window.aaa, timeDiff / 1000);
+      // if (this.moveDistancePerFrame.x > 0) debugger
+
+      this.velocity.x = THREE.MathUtils.damp(this.velocity.x, this.lastTargetVelocity.x, groundFriction * window.aaa, timeDiff / 1000);
+      this.velocity.z = THREE.MathUtils.damp(this.velocity.z, this.lastTargetVelocity.z, groundFriction * window.aaa, timeDiff / 1000);
+
+      // console.log('damping')
+
+      // this.velocity.copy(this.lastMoveDistancePerFrame).divideScalar(timeDiff / 1000)
+      // console.log(Math.round(this.velocity.length()))
+
+      // this.velocity.copy(this.dampedMoveDistancePerFrame).divideScalar(timeDiff / 1000)
+      // console.log((this.velocity.length()))
     }
   }
   applyAvatarPhysics(now, timeDiffS) {
@@ -469,9 +499,13 @@ class CharacterPhysics {
   }
   update(now, timeDiffS) {
     this.applyGravity(timeDiffS);
+    this.updateVelocity(timeDiffS);
     this.applyAvatarPhysics(now, timeDiffS);
     this.applyAvatarActionKinematics(now, timeDiffS);
-    this.updateVelocity(timeDiffS);
+
+    // console.log('update end')
+    this.lastTargetVelocity.copy(this.targetVelocity);
+    this.lastMoveDistancePerFrame.copy(this.moveDistancePerFrame);
   }
   reset() {
     if (this.player.avatar) {
