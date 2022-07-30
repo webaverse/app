@@ -21,12 +21,13 @@ export default () => {
   const electronicballTexture = textureLoader.load(`${baseUrl}/textures/electronic-ball2.png`);
   const noiseMap = textureLoader.load(`${baseUrl}/textures/noise.jpg`);
 
+  const objectsForPreCompile = []
+
     let currentDir=new THREE.Vector3();
     //################################################ trace narutoRun Time ########################################
     {
         let localVector = new THREE.Vector3();
         useFrame(() => {
-            
             localVector.x=0;
             localVector.y=0;
             localVector.z=-1;
@@ -38,7 +39,6 @@ export default () => {
                 }
             else{
                 narutoRunTime=0;
-                
             }
             
         });
@@ -244,6 +244,8 @@ export default () => {
         group.add(frontwave2);
         //app.add(group);
         
+        objectsForPreCompile.push(group)
+        
         let sonicBoomInApp=false;
         useFrame(({timestamp}) => {
             
@@ -253,6 +255,7 @@ export default () => {
                 if(!sonicBoomInApp){
                     //console.log('add-frontWave');
                     app.add(group);
+                    group.visible = true
                     sonicBoomInApp=true;
                 }
                 
@@ -415,6 +418,8 @@ export default () => {
             //app.updateMatrixWorld();
 
         });
+
+        objectsForPreCompile.push(group)
     }
     //########################################## flame ##########################################
     {
@@ -600,6 +605,7 @@ export default () => {
             //app.updateMatrixWorld();
 
         });
+        objectsForPreCompile.push(group)
     }
     //########################################## lightning ##########################################
     {
@@ -807,6 +813,7 @@ export default () => {
             //app.updateMatrixWorld();
 
         });
+        objectsForPreCompile.push(group)
     }
     //########################################## vertical trail ######################################
     {
@@ -1045,6 +1052,7 @@ export default () => {
           
       
       });
+      objectsForPreCompile.push(plane)
     }
     //########################################## horizontal trail ######################################
     {
@@ -1304,6 +1312,7 @@ export default () => {
           
       
       });
+      objectsForPreCompile.push(plane)
     }
     //##################################### mainBall ####################################################
     {
@@ -1472,6 +1481,7 @@ export default () => {
             //app.updateMatrixWorld();
            
         });
+        objectsForPreCompile.push(mainBall)
     }
     
     //##################################### electricity1 ##################################################
@@ -1665,6 +1675,7 @@ export default () => {
             //app.updateMatrixWorld();
         
         });
+        objectsForPreCompile.push(group)
     }
     //##################################### electricity2 ##################################################
     {
@@ -1853,6 +1864,7 @@ export default () => {
             //app.updateMatrixWorld();
         
         });
+        objectsForPreCompile.push(group)
     }
     //#################################### particle behind avatar 1 ###############################
     {
@@ -2002,6 +2014,7 @@ export default () => {
         //group.updateMatrixWorld();
         
         });
+        objectsForPreCompile.push(group)
       }
       //#################################### particle behind avatar 2 ###############################
       {
@@ -2151,7 +2164,8 @@ export default () => {
         //group.updateMatrixWorld();
         
         });
-      }
+        objectsForPreCompile.push(group)
+    }
     //#################################### shockwave2 ########################################
     {
         const localVector = new THREE.Vector3();
@@ -2332,6 +2346,7 @@ export default () => {
             
             
         });
+        objectsForPreCompile.push(group)
     }
     //##################################### front dust ################################################
     {
@@ -2607,6 +2622,7 @@ export default () => {
             app.updateMatrixWorld();
             preRotate=currentRotate;
         });
+        objectsForPreCompile.push(group)
       }
     //##################################### main ball ##################################################
     // {
@@ -3258,6 +3274,10 @@ export default () => {
 
   
   app.setComponent('renderPriority', 'low');
+
+  objectsForPreCompile.forEach((object) => {
+    renderer.compile(object, camera)
+  })
   
   return app;
 };
