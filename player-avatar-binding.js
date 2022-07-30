@@ -92,7 +92,7 @@ export function applyPlayerActionsToAvatar(player, rig) {
   if (rig.velocity && player.characterPhysics?.velocity) {
     rig.velocity.copy(player.characterPhysics.velocity).multiplyScalar(0.1);
   }
-  console.log('binding')
+  // console.log('binding')
 
   const jumpAction = player.getAction('jump');
   const doubleJumpAction = player.getAction('doubleJump');

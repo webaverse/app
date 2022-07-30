@@ -1951,7 +1951,7 @@ class Avatar {
         <div style="display:;">walkRunFactor: --- ${window.logNum(this.walkRunFactor)}</div>
       `
     }
-    console.log('applyAnimation')
+    // console.log('applyAnimation')
     _applyAnimation(this, now);
 
     if (this.poseAnimation) {

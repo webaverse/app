@@ -43,6 +43,7 @@ class CharacterPhysics {
 
     this.velocity = new THREE.Vector3();
     this.moveDistancePerFrame = new THREE.Vector3();
+    this.lastMoveDistancePerFrame = new THREE.Vector3();
     this.dampedMoveDistancePerFrame = new THREE.Vector3();
     // this.lastTimeDiff = 0; // todo:
     this.lastGrounded = null;
@@ -60,7 +61,7 @@ class CharacterPhysics {
   }
   /* apply the currently held keys to the character */
   applyWasd(keysDirection) {
-    console.log('wasd')
+    // console.log('wasd')
     if (this.player.avatar) {
       window.visKeysDirectionX = keysDirection.x;
       // this.velocity.add(keysDirection);
@@ -99,7 +100,7 @@ class CharacterPhysics {
         // .multiplyScalar(timeDiffS);
         // .multiplyScalar(0.016);
 
-      console.log('set localVector3')
+      // console.log('set localVector3')
 
       const jumpAction = this.player.getAction('jump');
       if (jumpAction?.trigger === 'jump') {
@@ -315,12 +316,13 @@ class CharacterPhysics {
       // this.dampedMoveDistancePerFrame.x = this.dampedMoveDistancePerFrame.x * factor;
       // this.dampedMoveDistancePerFrame.z = this.dampedMoveDistancePerFrame.z * factor;
 
-      this.dampedMoveDistancePerFrame.x = THREE.MathUtils.damp(this.dampedMoveDistancePerFrame.x, this.moveDistancePerFrame.x, groundFriction * window.aaa, timeDiff / 1000);
-      this.dampedMoveDistancePerFrame.z = THREE.MathUtils.damp(this.dampedMoveDistancePerFrame.z, this.moveDistancePerFrame.z, groundFriction * window.aaa, timeDiff / 1000);
+      this.dampedMoveDistancePerFrame.x = THREE.MathUtils.damp(this.dampedMoveDistancePerFrame.x, this.lastMoveDistancePerFrame.x, groundFriction * window.aaa, timeDiff / 1000);
+      this.dampedMoveDistancePerFrame.z = THREE.MathUtils.damp(this.dampedMoveDistancePerFrame.z, this.lastMoveDistancePerFrame.z, groundFriction * window.aaa, timeDiff / 1000);
+      // if (this.moveDistancePerFrame.x > 0) debugger
 
-      console.log('damping')
+      // console.log('damping')
 
-      // this.velocity.copy(this.moveDistancePerFrame).divideScalar(timeDiff / 1000)
+      // this.velocity.copy(this.lastMoveDistancePerFrame).divideScalar(timeDiff / 1000)
       // console.log(Math.round(this.velocity.length()))
 
       this.velocity.copy(this.dampedMoveDistancePerFrame).divideScalar(timeDiff / 1000)
@@ -510,11 +512,12 @@ class CharacterPhysics {
   }
   update(now, timeDiffS) {
     this.applyGravity(timeDiffS);
+    this.updateVelocity(timeDiffS);
     this.applyAvatarPhysics(now, timeDiffS);
     this.applyAvatarActionKinematics(now, timeDiffS);
-    this.updateVelocity(timeDiffS);
 
-    console.log('update end')
+    // console.log('update end')
+    this.lastMoveDistancePerFrame.copy(this.moveDistancePerFrame);
   }
   reset() {
     if (this.player.avatar) {
