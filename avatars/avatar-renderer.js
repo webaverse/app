@@ -343,9 +343,27 @@ export class AvatarRenderer {
           const glb = await avatarOptimizer.optimizeAvatarModel(object.scene);
 
           // const glb = object.scene;
+          const float32Arrays = glb.children[0].geometry.morphAttributes.position.map(bufferAttribute => {
+            return bufferAttribute.array.slice();
+          });
+          // flatten the array of flaot32arrays into a single float32array
+          let numValues = 0;
+          for (const float32Array of float32Arrays) {
+            numValues += float32Array.length;
+          }
+          const result = new Float32Array(numValues);
+          // copy in the new values
+          let offset = 0;
+          for (const float32Array of float32Arrays) {
+            result.set(float32Array, offset);
+            offset += float32Array.length;
+          }
+
+
           console.log(
-            "GLB : ",
-            glb
+            // "GLB : ",
+            result,
+            result.filter(n => Math.abs(n) >= 0.01).length,
             // glb.children[2].children[0].geometry.morphAttributes.position[0].array
               // .filter(n => Math.abs(n) >= 0.01)
           );
