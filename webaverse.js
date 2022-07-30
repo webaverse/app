@@ -399,6 +399,22 @@ const _startHacks = webaverse => {
     }
   });
 
+  window.localPlayer = localPlayer;
+  window.THREE = THREE;
+  window.physicsManager = physicsManager;
+  window.physx = physx;
+  window.metaversefileApi = metaversefileApi;
+  window.rootScene = rootScene;
+  window.loadoutManager = loadoutManager;
+  window.game = game;
+  window.cameraManager = cameraManager;
+  window.camera = camera;
+  window.ioManager = ioManager;
+  
+  window.isDebugger = false;
+
+  window.aaa = 1;
+  
   // let playerDiorama = null;
   const lastEmotionKey = {
     key: -1,

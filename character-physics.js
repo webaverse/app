@@ -42,6 +42,9 @@ class CharacterPhysics {
     this.player = player;
 
     this.velocity = new THREE.Vector3();
+    this.dampedVelocity = new THREE.Vector3();
+    this.isSetNonZeroVelocity = false; // todo: Can don't need this var?
+    // this.lastTimeDiff = 0; // todo:
     this.lastGrounded = null;
     this.lastGroundedTime = 0;
     this.lastCharacterControllerY = null;
@@ -65,6 +68,9 @@ class CharacterPhysics {
       this.velocity.z = keysDirection.z;
       // console.log(this.velocity.x, this.velocity.z)
       window.visVelocityBeforeDampingX = this.velocity.x;
+      if (!keysDirection.equals(zeroVector)) {
+        this.isSetNonZeroVelocity = true;
+      }
     }
   }
   applyGravity(timeDiffS) {
@@ -90,7 +96,8 @@ class CharacterPhysics {
       // console.log('apply avatar physics', this.player);
       // move character controller
       const minDist = 0;
-      localVector3.copy(this.velocity) // todo: rename?: this.velocity is not velocity, but move distance per frame now ?
+      // localVector3.copy(this.velocity) // todo: rename?: this.velocity is not velocity, but move distance per frame now ?
+      localVector3.copy(this.dampedVelocity)
         // .multiplyScalar(timeDiffS);
         // .multiplyScalar(timeDiffS);
         // .multiplyScalar(0.016);
@@ -294,20 +301,28 @@ class CharacterPhysics {
   }
   /* dampen the velocity to make physical sense for the current avatar state */
   applyVelocityDamping(velocity, timeDiff) {
-    // if (this.player.hasAction('fly')) {
-    //   const factor = getVelocityDampingFactor(flyFriction, timeDiff);
-    //   velocity.multiplyScalar(factor);
-    // } 
-    // else if(this.player.hasAction('swim')){
-    //   const factor = getVelocityDampingFactor(swimFriction, timeDiff);
-    //   velocity.multiplyScalar(factor);
-    // }
-    // else {
-    //   // console.log('damping')
-    //   const factor = getVelocityDampingFactor(groundFriction, timeDiff);
-    //   velocity.x *= factor;
-    //   velocity.z *= factor;
-    // }
+    if (this.isSetNonZeroVelocity) {
+      this.dampedVelocity.x = this.velocity.x;
+      this.dampedVelocity.z = this.velocity.z;
+      console.log('set dampledVelocity')
+    } else {
+      if (this.player.hasAction('fly')) {
+        const factor = getVelocityDampingFactor(flyFriction, timeDiff);
+        velocity.multiplyScalar(factor);
+      } 
+      else if(this.player.hasAction('swim')){
+        const factor = getVelocityDampingFactor(swimFriction, timeDiff);
+        velocity.multiplyScalar(factor);
+      }
+      else {
+        // console.log('damping')
+        const factor = getVelocityDampingFactor(groundFriction, timeDiff);
+        // const factor = getVelocityDampingFactor(window.aaa, timeDiff);
+        this.dampedVelocity.x = this.dampedVelocity.x * factor;
+        this.dampedVelocity.z = this.dampedVelocity.z * factor;
+        console.log('damp dampledVelocity')
+      }
+    }
   }
   applyAvatarPhysics(now, timeDiffS) {
     // const renderer = getRenderer();
@@ -492,9 +507,10 @@ class CharacterPhysics {
   }
   update(now, timeDiffS) {
     this.applyGravity(timeDiffS);
-    this.updateVelocity(timeDiffS);
     this.applyAvatarPhysics(now, timeDiffS);
     this.applyAvatarActionKinematics(now, timeDiffS);
+    this.updateVelocity(timeDiffS);
+    this.isSetNonZeroVelocity = false;
   }
   reset() {
     if (this.player.avatar) {
