@@ -1751,7 +1751,7 @@ export default () => {
     //##################################### front dust ################################################
     {
 
-        const particleCount = 10;
+        const particleCount = 12;
         let info = {
             velocity: [particleCount],
             inApp: [particleCount],
@@ -1878,16 +1878,10 @@ export default () => {
         
         const euler = new THREE.Euler();
         const quaternion = new THREE.Quaternion();
-       
-        const localVector2 = new THREE.Vector3();
-        const quaternion2 = new THREE.Quaternion();
-        quaternion2.setFromAxisAngle(new THREE.Vector3(0, 1, 0), -Math.PI / 2);
-
         let sonicBoomInApp=false;
         useFrame(({timestamp}) => {
             let count = 0;
             if (mesh) {
-                localVector2.set(currentDir.x, currentDir.y, currentDir.z).applyQuaternion(quaternion2);
                 const positionsAttribute = mesh.geometry.getAttribute('positions');
                 const opacityAttribute = mesh.geometry.getAttribute('opacity');
                 const brokenAttribute = mesh.geometry.getAttribute('broken');
@@ -1900,22 +1894,21 @@ export default () => {
                         sonicBoomInApp = true;
                     }
                     for (let i = 0; i < particleCount; i++) {
-                        scalesAttribute.setXYZ(i, 0.03 + Math.random() * 0.025, 0.03 + Math.random() * 0.025, 0.03 + Math.random() * 0.025);
-                        let rand = (1.1 + Math.random() * i * 0.025);
-                        let rand2 = (Math.random() - 0.5) * 0.25;
-                        info.velocity[i].set( rand * currentDir.x + localVector2.x * rand2, 0.3 + Math.random() * 0.3, rand * currentDir.z + localVector2.z * rand2);
-                        info.acc[i].set(-currentDir.x * 0.0012, -0.0012, -currentDir.z * 0.0012);
+                        scalesAttribute.setXYZ(i, 0.06 + Math.random() * 0.05,  0.06 + Math.random() * 0.05,  0.06 + Math.random() * 0.05);
+                        
+                        info.velocity[i].set((0.8 + Math.random()) * currentDir.x, 0, (0.8 + Math.random()) * currentDir.z);
+                        info.acc[i].set(-currentDir.x * 0.0018, 0.0008, -currentDir.z * 0.0018);
                         positionsAttribute.setXYZ(
                             i, 
-                            localPlayer.position.x + info.velocity[i].x , 
-                            localPlayer.position.y - localPlayer.avatar.height - Math.random() * 0.2, 
-                            localPlayer.position.z + info.velocity[i].z 
+                            localPlayer.position.x + 1. * currentDir.x + (Math.random() - 0.5) * 0.2 , 
+                            localPlayer.position.y - localPlayer.avatar.height, 
+                            localPlayer.position.z + 1. * currentDir.z + (Math.random() - 0.5) * 0.2
                         );
                         euler.set(Math.random() * Math.PI, Math.random() * Math.PI, Math.random() * Math.PI);
                         quaternion.setFromEuler(euler);
                         quaternionAttribute.setXYZW(i, quaternion.x, quaternion.y, quaternion.z, quaternion.w);
-                        brokenAttribute.setX(i, Math.random() * 0.5 - 0.6);
-                        opacityAttribute.setX(i, 0.8 + Math.random() * 0.2);
+                        brokenAttribute.setX(i, Math.random() - 0.6);
+                        opacityAttribute.setX(i, 1);
                         info.velocity[i].divideScalar(20);
                     }
                 }
@@ -1926,9 +1919,9 @@ export default () => {
                                                     positionsAttribute.getY(i) + info.velocity[i].y, 
                                                     positionsAttribute.getZ(i) + info.velocity[i].z
                         );
-                        scalesAttribute.setXYZ(i, scalesAttribute.getX(i) * 1.05, scalesAttribute.getY(i) * 1.05, scalesAttribute.getZ(i) * 1.05);
-                        brokenAttribute.setX(i, brokenAttribute.getX(i) + 0.035);
-                        opacityAttribute.setX(i, opacityAttribute.getX(i) - 0.02);
+                        scalesAttribute.setXYZ(i, scalesAttribute.getX(i) * 1.03, scalesAttribute.getY(i) * 1.03, scalesAttribute.getZ(i) * 1.03);
+                        brokenAttribute.setX(i, brokenAttribute.getX(i) + 0.045);
+                        opacityAttribute.setX(i, opacityAttribute.getX(i) - 0.04);
                         info.velocity[i].add(info.acc[i]);
                     }
                     else{
