@@ -60,7 +60,7 @@ class CharacterPhysics {
   }
   /* apply the currently held keys to the character */
   applyWasd(keysDirection) {
-    // console.log('wasd')
+    console.log('wasd')
     if (this.player.avatar) {
       window.visKeysDirectionX = keysDirection.x;
       // this.velocity.add(keysDirection);
@@ -98,6 +98,8 @@ class CharacterPhysics {
         // .multiplyScalar(timeDiffS);
         // .multiplyScalar(timeDiffS);
         // .multiplyScalar(0.016);
+
+      console.log('set localVector3')
 
       const jumpAction = this.player.getAction('jump');
       if (jumpAction?.trigger === 'jump') {
@@ -316,6 +318,8 @@ class CharacterPhysics {
       this.dampedMoveDistancePerFrame.x = THREE.MathUtils.damp(this.dampedMoveDistancePerFrame.x, this.moveDistancePerFrame.x, groundFriction * window.aaa, timeDiff / 1000);
       this.dampedMoveDistancePerFrame.z = THREE.MathUtils.damp(this.dampedMoveDistancePerFrame.z, this.moveDistancePerFrame.z, groundFriction * window.aaa, timeDiff / 1000);
 
+      console.log('damping')
+
       // this.velocity.copy(this.moveDistancePerFrame).divideScalar(timeDiff / 1000)
       // console.log(Math.round(this.velocity.length()))
 
@@ -509,6 +513,8 @@ class CharacterPhysics {
     this.applyAvatarPhysics(now, timeDiffS);
     this.applyAvatarActionKinematics(now, timeDiffS);
     this.updateVelocity(timeDiffS);
+
+    console.log('update end')
   }
   reset() {
     if (this.player.avatar) {
