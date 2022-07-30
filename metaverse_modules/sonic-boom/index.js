@@ -652,7 +652,7 @@ export default () => {
                 noiseTexture,
                 vec2(
                     vUv.x + uTime * 0.5,
-                    vUv.y + uTime * 5.
+                    vUv.y + uTime * 3.
                 )
             );  
   
@@ -660,7 +660,7 @@ export default () => {
                 trailTexture,
                 vec2(
                     mix(vUv.x, noise.r, 0.1),
-                    mix(vUv.y + uTime * 2.5, noise.g, 0.2)
+                    mix(vUv.y + uTime * 1.5, noise.g, 0.15)
                 )
             );  
             vec4 mask = texture2D(
