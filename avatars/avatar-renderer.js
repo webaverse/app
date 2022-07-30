@@ -341,6 +341,29 @@ export class AvatarRenderer {
           const object = await parseVrm(this.object.arrayBuffer, this.object.srcUrl);
 
           const glb = await avatarOptimizer.optimizeAvatarModel(object.scene);
+
+          // download GLB
+          if (true) {
+            glb.updateMatrixWorld();
+            const glbData = await new Promise((accept, reject) => {
+              const {gltfExporter} = exporters;
+              gltfExporter.parse(
+                glb,
+                function onCompleted(arrayBuffer) {
+                  accept(arrayBuffer);
+                }, function onError(error) {
+                  reject(error);
+                },
+                {
+                  binary: true,
+                  includeCustomExtensions: true,
+                },
+              );
+            });
+            const blob = new Blob([glbData], {type: 'application/octet-stream'});
+            downloadFile(blob, 'avatar.glb');
+          }
+          
           // const glb = object.scene;
 
           // const children = glb.children[2].children;
