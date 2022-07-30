@@ -1947,6 +1947,8 @@ class Avatar {
         <div style="display:;">velocity length: --- ${window.logNum(player.characterPhysics.velocity.length())}</div>
         <div style="display:;">velocity: --- ${window.logVector3(this.velocity)} of avatar</div>
         <div style="display:;">velocity length: --- ${window.logNum(this.velocity.length())}</div>
+        <div style="display:;">idleWalkFactor: --- ${this.idleWalkFactor.toFixed(2)}</div>
+        <div style="display:;">walkRunFactor: --- ${this.walkRunFactor.toFixed(2)}</div>
       `
     }
 
