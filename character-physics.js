@@ -42,8 +42,8 @@ class CharacterPhysics {
     this.player = player;
 
     this.velocity = new THREE.Vector3();
-    this.dampedVelocity = new THREE.Vector3();
-    this.realVelocity = new THREE.Vector3();
+    this.moveDistancePerFrame = new THREE.Vector3();
+    this.dampedMoveDistancePerFrame = new THREE.Vector3();
     // this.lastTimeDiff = 0; // todo:
     this.lastGrounded = null;
     this.lastGroundedTime = 0;
@@ -64,8 +64,8 @@ class CharacterPhysics {
     if (this.player.avatar) {
       window.visKeysDirectionX = keysDirection.x;
       // this.velocity.add(keysDirection);
-      this.velocity.x = keysDirection.x;
-      this.velocity.z = keysDirection.z;
+      this.moveDistancePerFrame.x = keysDirection.x;
+      this.moveDistancePerFrame.z = keysDirection.z;
       // console.log(this.velocity.x, this.velocity.z)
       window.visVelocityBeforeDampingX = this.velocity.x;
     }
@@ -94,7 +94,7 @@ class CharacterPhysics {
       // move character controller
       const minDist = 0;
       // localVector3.copy(this.velocity) // todo: rename?: this.velocity is not velocity, but move distance per frame now ?
-      localVector3.copy(this.dampedVelocity)
+      localVector3.copy(this.dampedMoveDistancePerFrame)
         // .multiplyScalar(timeDiffS);
         // .multiplyScalar(timeDiffS);
         // .multiplyScalar(0.016);
@@ -310,17 +310,17 @@ class CharacterPhysics {
       // console.log('damping')
       // const factor = getVelocityDampingFactor(groundFriction, timeDiff);
       // // const factor = getVelocityDampingFactor(window.aaa, timeDiff);
-      // this.dampedVelocity.x = this.dampedVelocity.x * factor;
-      // this.dampedVelocity.z = this.dampedVelocity.z * factor;
+      // this.dampedMoveDistancePerFrame.x = this.dampedMoveDistancePerFrame.x * factor;
+      // this.dampedMoveDistancePerFrame.z = this.dampedMoveDistancePerFrame.z * factor;
 
-      this.dampedVelocity.x = THREE.MathUtils.damp(this.dampedVelocity.x, this.velocity.x, groundFriction * window.aaa, timeDiff / 1000);
-      this.dampedVelocity.z = THREE.MathUtils.damp(this.dampedVelocity.z, this.velocity.z, groundFriction * window.aaa, timeDiff / 1000);
+      this.dampedMoveDistancePerFrame.x = THREE.MathUtils.damp(this.dampedMoveDistancePerFrame.x, this.moveDistancePerFrame.x, groundFriction * window.aaa, timeDiff / 1000);
+      this.dampedMoveDistancePerFrame.z = THREE.MathUtils.damp(this.dampedMoveDistancePerFrame.z, this.moveDistancePerFrame.z, groundFriction * window.aaa, timeDiff / 1000);
 
-      // this.realVelocity.copy(this.velocity).divideScalar(timeDiff / 1000)
-      // console.log(Math.round(this.realVelocity.length()))
+      // this.velocity.copy(this.moveDistancePerFrame).divideScalar(timeDiff / 1000)
+      // console.log(Math.round(this.velocity.length()))
 
-      this.realVelocity.copy(this.dampedVelocity).divideScalar(timeDiff / 1000)
-      // console.log((this.realVelocity.length()))
+      this.velocity.copy(this.dampedMoveDistancePerFrame).divideScalar(timeDiff / 1000)
+      // console.log((this.velocity.length()))
     }
   }
   applyAvatarPhysics(now, timeDiffS) {
