@@ -90,7 +90,9 @@ export function makeAvatar(app) {
 export function applyPlayerActionsToAvatar(player, rig) {
 
   if (rig.velocity && player.characterPhysics?.velocity) {
-    rig.velocity.copy(player.characterPhysics.velocity).multiplyScalar(100);
+    rig.velocity.copy(player.characterPhysics.velocity);
+    rig.velocity.x *= 100;
+    rig.velocity.z *= 100;
   }
   // console.log('binding')
 
