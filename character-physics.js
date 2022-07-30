@@ -316,7 +316,11 @@ class CharacterPhysics {
       this.dampedVelocity.x = THREE.MathUtils.damp(this.dampedVelocity.x, this.velocity.x, groundFriction * window.aaa, timeDiff / 1000);
       this.dampedVelocity.z = THREE.MathUtils.damp(this.dampedVelocity.z, this.velocity.z, groundFriction * window.aaa, timeDiff / 1000);
 
+      // this.realVelocity.copy(this.velocity).divideScalar(timeDiff / 1000)
+      // console.log(Math.round(this.realVelocity.length()))
+
       this.realVelocity.copy(this.dampedVelocity).divideScalar(timeDiff / 1000)
+      // console.log((this.realVelocity.length()))
     }
   }
   applyAvatarPhysics(now, timeDiffS) {
