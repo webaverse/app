@@ -822,9 +822,9 @@ export const optimizeAvatarModel = async (model, options = {}) => {
       } else if (type === 'skinnedMesh') {
         const skinnedMesh = new THREE.SkinnedMesh(geometry, m);
         skinnedMesh.skeleton = skeletons[0];
-        skinnedMesh.morphTargetDictionary = morphTargetDictionaryArray[0];
-        skinnedMesh.morphTargetInfluences = morphTargetInfluencesArray[0];
-        // skinnedMesh.updateMorphTargets();
+        // skinnedMesh.morphTargetDictionary = morphTargetDictionaryArray[0];
+        // skinnedMesh.morphTargetInfluences = morphTargetInfluencesArray[0];
+        skinnedMesh.updateMorphTargets();
         // console.log('got influences', skinnedMesh.morphTargetInfluences);
         return skinnedMesh;
       } else {
@@ -840,7 +840,7 @@ export const optimizeAvatarModel = async (model, options = {}) => {
 
   const object = new THREE.Object3D();
   for (const mesh of mergedMeshes) {
-    mesh.morphTargetInfluences[5] = 0.5;
+    // mesh.morphTargetInfluences[5] = 0.5;
     object.add(mesh);
   }
 
