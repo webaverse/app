@@ -413,7 +413,7 @@ const _startHacks = webaverse => {
   
   window.isDebugger = false;
 
-  window.aaa = 1;
+  window.aaa = 100;
   
   // let playerDiorama = null;
   const lastEmotionKey = {
