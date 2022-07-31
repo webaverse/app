@@ -76,9 +76,17 @@ class CharacterPhysics {
   applyGravity(timeDiffS) {
     // if (this.player) {
       if ((this.player.hasAction('jump') || this.player.hasAction('fallLoop')) && !this.player.hasAction('fly') && !this.player.hasAction('swim')) {
-        localVector.copy(physicsScene.getGravity())
-          .multiplyScalar(timeDiffS);
-        this.velocity.add(localVector);
+        
+        const gravityTargetVelocity = localVector.copy(physicsScene.getGravity());
+        const gravityTargetMoveDistancePerFrame = gravityTargetVelocity.multiplyScalar(timeDiffS);
+        this.targetVelocity.add(gravityTargetVelocity); // todo: acceleration of gravity.
+        this.targetMoveDistancePerFrame.add(gravityTargetMoveDistancePerFrame);
+
+        //// move this.applyGravity(timeDiffS); after this.updateVelocity(timeDiffS);
+        // const gravityVelocity = localVector.copy(physicsScene.getGravity());
+        // const gravityMoveDistancePerFrame = gravityVelocity.multiplyScalar(timeDiffS);
+        // this.velocity.add(gravityVelocity); // todo: acceleration of gravity.
+        // this.moveDistancePerFrame.add(gravityMoveDistancePerFrame);
       }
     // }
   }
