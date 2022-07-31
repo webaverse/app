@@ -14,7 +14,7 @@ import {world} from './world.js';
 import {buildMaterial, highlightMaterial, selectMaterial, hoverMaterial, hoverEquipmentMaterial} from './shaders.js';
 import {getRenderer, sceneLowPriority, camera} from './renderer.js';
 import {downloadFile, snapPosition, getDropUrl, handleDropJsonItem} from './util.js';
-import {maxGrabDistance, throwReleaseTime, storageHost, minFov, maxFov, throwAnimationDuration} from './constants.js';
+import {maxGrabDistance, throwReleaseTime, storageHost, minFov, maxFov, throwAnimationDuration, walkSpeed, runSpeed, narutoRunSpeed, crouchSpeed, flySpeed} from './constants.js';
 import metaversefileApi from './metaversefile-api.js';
 import * as metaverseModules from './metaverse-modules.js';
 import loadoutManager from './loadout-manager.js';
@@ -1605,15 +1605,12 @@ class GameManager extends EventTarget {
   getSpeed() {
     let speed = 0;
     
-    const walkSpeed = 2.5; // todo: Use constants.js.
-    const flySpeed = walkSpeed * 5;
-    const defaultCrouchSpeed = walkSpeed * 0.7;
     const isCrouched = gameManager.isCrouched();
     const isSwimming = gameManager.isSwimming();
     const isFlying = gameManager.isFlying();
     const isMovingBackward = gameManager.isMovingBackward();
     if (isCrouched && !isMovingBackward) {
-      speed = defaultCrouchSpeed;
+      speed = crouchSpeed;
     } else if (gameManager.isFlying()) {
       speed = flySpeed;
     } else {
@@ -1621,7 +1618,7 @@ class GameManager extends EventTarget {
     }
     const localPlayer = playersManager.getLocalPlayer();
     const sprintMultiplier = (ioManager.keys.shift && !isCrouched) ?
-      (ioManager.keys.doubleTap ? 20 : 3)
+      (ioManager.keys.doubleTap ? 20 : 3) // todo: Use constants: narutoRunSpeed, runSpeed.
     :
     ((isSwimming && !isFlying) ? 5 - localPlayer.getAction('swim').swimDamping : 1);
     speed *= sprintMultiplier;

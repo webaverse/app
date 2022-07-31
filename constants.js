@@ -110,6 +110,15 @@ export const metaverseProfileDefinition = `kjzl6cwe1jw145wm7u2sy1wpa33hglvmuy6th
 
 export const audioTimeoutTime = 10 * 1000;
 
+export const idleSpeed = 0;
+export const walkSpeed = 2.5;
+export const runSpeed = walkSpeed * 3;
+export const narutoRunSpeed = walkSpeed * 20;
+export const crouchSpeed = walkSpeed * 0.7;
+export const flySpeed = walkSpeed * 5;
+
+export const narutoRunTimeFactor = 2;
+
 export const crouchMaxTime = 200;
 export const activateMaxTime = 750;
 export const useMaxTime = 750;

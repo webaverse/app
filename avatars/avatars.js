@@ -19,6 +19,9 @@ import {
   // useMaxTime,
   aimMaxTime,
   aimTransitionMaxTime,
+  idleSpeed,
+  walkSpeed,
+  runSpeed,
   // avatarInterpolationFrameRate,
   // avatarInterpolationTimeDelay,
   // avatarInterpolationNumFrames,
@@ -27,12 +30,6 @@ import {
 import * as avatarCruncher from '../avatar-cruncher.js';
 import * as avatarSpriter from '../avatar-spriter.js';
 // import * as sceneCruncher from '../scene-cruncher.js';
-import {
-  idleFactorSpeed,
-  walkFactorSpeed,
-  runFactorSpeed,
-  // narutoRunTimeFactor,
-} from './constants.js';
 import {
   getSkinnedMeshes,
   getSkeleton,
@@ -1524,8 +1521,8 @@ class Avatar {
     const currentSpeed = localVector.set(this.velocity.x, 0, this.velocity.z).length();
     // console.log(currentSpeed)
 
-    this.idleWalkFactor = Math.min(Math.max((currentSpeed - idleFactorSpeed) / (walkFactorSpeed - idleFactorSpeed), 0), 1);
-    this.walkRunFactor = Math.min(Math.max((currentSpeed - walkFactorSpeed) / (runFactorSpeed - walkFactorSpeed), 0), 1);
+    this.idleWalkFactor = Math.min(Math.max((currentSpeed - idleSpeed) / (walkSpeed - idleSpeed), 0), 1);
+    this.walkRunFactor = Math.min(Math.max((currentSpeed - walkSpeed) / (runSpeed - walkSpeed), 0), 1);
     // console.log(this.idleWalkFactor, this.walkRunFactor)
     this.crouchFactor = Math.min(Math.max(1 - (this.crouchTime / crouchMaxTime), 0), 1);
     // console.log('current speed', currentSpeed, idleWalkFactor, walkRunFactor);

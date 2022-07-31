@@ -4,15 +4,13 @@ import * as sounds from './sounds.js';
 import audioManager from './audio-manager.js';
 
 import {
-  idleFactorSpeed,
-  walkFactorSpeed,
-  runFactorSpeed,
-  narutoRunTimeFactor,
-} from './avatars/constants.js';
-import {
   crouchMaxTime,
   eatFrameIndices,
   drinkFrameIndices,
+  idleSpeed,
+  walkSpeed,
+  runSpeed,
+  narutoRunTimeFactor,
 } from './constants.js';
 import {
   mod,
@@ -108,8 +106,9 @@ class CharacterSfx {
     const timeSeconds = timestamp/1000;
     const currentSpeed = localVector.set(this.player.avatar.velocity.x, 0, this.player.avatar.velocity.z).length();
     
-    const idleWalkFactor = Math.min(Math.max((currentSpeed - idleFactorSpeed) / (walkFactorSpeed - idleFactorSpeed), 0), 1);
-    const walkRunFactor = Math.min(Math.max((currentSpeed - walkFactorSpeed) / (runFactorSpeed - walkFactorSpeed), 0), 1);
+    // todo: Can use logics already existing in avatars.js?
+    const idleWalkFactor = Math.min(Math.max((currentSpeed - idleSpeed) / (walkSpeed - idleSpeed), 0), 1);
+    const walkRunFactor = Math.min(Math.max((currentSpeed - walkSpeed) / (runSpeed - walkSpeed), 0), 1);
     const crouchFactor = Math.min(Math.max(1 - (this.player.avatar.crouchTime / crouchMaxTime), 0), 1);
 
     const soundFiles = sounds.getSoundFiles();
