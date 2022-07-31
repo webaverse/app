@@ -171,7 +171,7 @@ function makeEncodingPass() {
       varying vec2 vUv;
       void main() {
         vec4 c = texture2D(tDiffuse, vUv);
-        // c = LinearTosRGB(c);
+        c = LinearTosRGB(c);
         // c = sRGBToLinear(c);
         // c.rgb = pow2(c.rgb, 0.8);
         // c.a = 1.;
