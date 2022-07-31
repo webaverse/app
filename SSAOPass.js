@@ -13,7 +13,7 @@ import {
 	NearestFilter,
 	NoBlending,
 	RGBAFormat,
-	sRGBEncoding,
+	LinearEncoding,
 	RepeatWrapping,
 	ShaderMaterial,
 	UniformsUtils,
@@ -75,7 +75,7 @@ class SSAOPass extends Pass {
 			minFilter: LinearFilter,
 			magFilter: LinearFilter,
 			format: RGBAFormat,
-			encoding: sRGBEncoding,
+			encoding: LinearEncoding,
 		} );
 
 		// normal render target with depth buffer
@@ -93,7 +93,7 @@ class SSAOPass extends Pass {
 			minFilter: LinearFilter,
 			magFilter: LinearFilter,
 			format: RGBAFormat,
-			encoding: sRGBEncoding,
+			encoding: LinearEncoding,
 		} );
 
 		this.blurRenderTarget = this.ssaoRenderTarget.clone();
@@ -112,7 +112,7 @@ class SSAOPass extends Pass {
 			vertexShader: SSAOShader.vertexShader,
 			fragmentShader: SSAOShader.fragmentShader,
 			blending: NoBlending,
-			encoding: sRGBEncoding,
+			encoding: LinearEncoding,
 		} );
 
 		this.ssaoMaterial.uniforms[ 'tDiffuse' ].value = this.beautyRenderTarget.texture;

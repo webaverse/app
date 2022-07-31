@@ -13,7 +13,7 @@ import {
 	// NearestFilter,
 	NoBlending,
 	RGBAFormat,
-	sRGBEncoding,
+	LinearEncoding,
 	// RepeatWrapping,
 	ShaderMaterial,
 	UniformsUtils,
@@ -125,7 +125,7 @@ class SwirlMaterial extends THREE.ShaderMaterial {
 			vertexShader,
 			fragmentShader,
 			blending: NoBlending,
-			encoding: sRGBEncoding,
+			encoding: LinearEncoding,
 		} );
 	}
 }
@@ -171,7 +171,7 @@ class OpenMaterial extends THREE.ShaderMaterial {
 			vertexShader,
 			fragmentShader,
 			blending: NoBlending,
-			encoding: sRGBEncoding,
+			encoding: LinearEncoding,
 		} );
 	}
 }
@@ -196,7 +196,7 @@ class SwirlPass extends Pass {
 				magFilter: LinearFilter,
 				format: RGBAFormat,
 				type: FloatType,
-				encoding: sRGBEncoding,
+				encoding: LinearEncoding,
 			} );
 		};
 		this.ssaoRenderTargets = [

@@ -9,7 +9,7 @@ const hackShaderName = 'anime radial'; */
 const _makeRenderTarget = (width, height) => new THREE.WebGLRenderTarget(width, height, {
   format: THREE.RGBAFormat,
   type: THREE.FloatType,
-  encoding: THREE.sRGBEncoding,
+  encoding: THREE.LinearEncoding,
 });
 class ShaderToyPass {
   constructor({type, is, code, os, renderTarget}, parent) {

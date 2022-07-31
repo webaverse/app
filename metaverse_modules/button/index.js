@@ -25,7 +25,7 @@ const eKeyMaterial = (() => {
   const texture = new THREE.Texture();
   texture.minFilter = THREE.LinearMipmapLinearFilter;
   texture.magFilter = THREE.LinearFilter;
-  texture.encoding = THREE.sRGBEncoding;
+  texture.encoding = THREE.LinearEncoding;
   texture.anisotropy = 16;
   (async () => {
     const img = await new Promise((accept, reject) => {
