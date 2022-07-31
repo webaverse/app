@@ -321,14 +321,14 @@ class CharacterPhysics {
       // this.moveDistancePerFrame.x = this.moveDistancePerFrame.x * factor;
       // this.moveDistancePerFrame.z = this.moveDistancePerFrame.z * factor;
 
-      this.moveDistancePerFrame.x = THREE.MathUtils.damp(this.moveDistancePerFrame.x, this.lastTargetMoveDistancePerFrame.x, factor * window.aaa, timeDiff / 1000);
-      this.moveDistancePerFrame.z = THREE.MathUtils.damp(this.moveDistancePerFrame.z, this.lastTargetMoveDistancePerFrame.z, factor * window.aaa, timeDiff / 1000);
-      this.moveDistancePerFrame.y = THREE.MathUtils.damp(this.moveDistancePerFrame.y, this.lastTargetMoveDistancePerFrame.y, factor * window.aaa, timeDiff / 1000);
+      this.moveDistancePerFrame.x = THREE.MathUtils.damp(this.moveDistancePerFrame.x, this.lastTargetMoveDistancePerFrame.x, factor, timeDiff / 1000);
+      this.moveDistancePerFrame.z = THREE.MathUtils.damp(this.moveDistancePerFrame.z, this.lastTargetMoveDistancePerFrame.z, factor, timeDiff / 1000);
+      this.moveDistancePerFrame.y = THREE.MathUtils.damp(this.moveDistancePerFrame.y, this.lastTargetMoveDistancePerFrame.y, factor, timeDiff / 1000);
       // if (this.targetMoveDistancePerFrame.x > 0) debugger
 
-      this.velocity.x = THREE.MathUtils.damp(this.velocity.x, this.lastTargetVelocity.x, factor * window.aaa, timeDiff / 1000);
-      this.velocity.z = THREE.MathUtils.damp(this.velocity.z, this.lastTargetVelocity.z, factor * window.aaa, timeDiff / 1000);
-      this.velocity.y = THREE.MathUtils.damp(this.velocity.y, this.lastTargetVelocity.y, factor * window.aaa, timeDiff / 1000);
+      this.velocity.x = THREE.MathUtils.damp(this.velocity.x, this.lastTargetVelocity.x, factor, timeDiff / 1000);
+      this.velocity.z = THREE.MathUtils.damp(this.velocity.z, this.lastTargetVelocity.z, factor, timeDiff / 1000);
+      this.velocity.y = THREE.MathUtils.damp(this.velocity.y, this.lastTargetVelocity.y, factor, timeDiff / 1000);
       // this.velocity.x = this.targetVelocity.x;
       // this.velocity.z = this.targetVelocity.z;
 
