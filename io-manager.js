@@ -261,7 +261,7 @@ const _updateIo = timeDiff => {
       window.visSpeed = game.getSpeed();
       window.visTimeDiff = timeDiff;
       if (!window.visStartTime) window.visStartTime = performance.now();
-      const speed = game.getSpeed() / 30;
+      const speed = game.getSpeed();
       const velocity = keysDirection.normalize().multiplyScalar(speed);
       localPlayer.characterPhysics.applyWasd(velocity, timeDiff);
     }

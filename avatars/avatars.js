@@ -1522,9 +1522,11 @@ class Avatar {
     const timeDiffS = timeDiff / 1000;
 
     const currentSpeed = localVector.set(this.velocity.x, 0, this.velocity.z).length();
+    // console.log(currentSpeed)
 
     this.idleWalkFactor = Math.min(Math.max((currentSpeed - idleFactorSpeed) / (walkFactorSpeed - idleFactorSpeed), 0), 1);
     this.walkRunFactor = Math.min(Math.max((currentSpeed - walkFactorSpeed) / (runFactorSpeed - walkFactorSpeed), 0), 1);
+    // console.log(this.idleWalkFactor, this.walkRunFactor)
     this.crouchFactor = Math.min(Math.max(1 - (this.crouchTime / crouchMaxTime), 0), 1);
     // console.log('current speed', currentSpeed, idleWalkFactor, walkRunFactor);
     this.aimRightFactor = this.aimRightTransitionTime / aimTransitionMaxTime;
@@ -1947,8 +1949,8 @@ class Avatar {
         <div style="display:;">actions: --- ${player.getActionsArray().map(n=>n.type)}</div>
         <div style="display:;">targetMoveDistancePerFrame: --- ${window.logVector3(player.characterPhysics.targetMoveDistancePerFrame)} | ${window.logNum(player.characterPhysics.targetMoveDistancePerFrame.length())} of characterPhysics ( correct )</div>
         <div style="display:;">targetMoveDistancePerFrame: --- ${window.logVector3(player.characterPhysics.moveDistancePerFrame)} | ${window.logNum(player.characterPhysics.moveDistancePerFrame.length() * 6)} damped ( length * 6 )</div>
-        <div style="display:;">velocity: --- ${window.logVector3(player.characterPhysics.velocity)} | ${window.logNum(player.characterPhysics.velocity.length())} of characterPhysics</div>
-        <div style="display:;">velocity: --- ${window.logVector3(this.velocity)} | ${window.logNum(this.velocity.length())} of avatar</div>
+        <div style="display:;">velocity: --- ${window.logVector3(player.characterPhysics.velocity)} | ${window.logNum(localVector.copy(player.characterPhysics.velocity).setY(0).length())} of characterPhysics</div>
+        <div style="display:;">velocity: --- ${window.logVector3(this.velocity)} | ${window.logNum(localVector.copy(this.velocity).setY(0).length())} of avatar</div>
         <div style="display:;">idleWalkFactor: --- ${window.logNum(this.idleWalkFactor)}</div>
         <div style="display:;">walkRunFactor: --- ${window.logNum(this.walkRunFactor)}</div>
         <div style="display:;">avatar.direction: --- ${window.logVector3(this.direction)}</div>

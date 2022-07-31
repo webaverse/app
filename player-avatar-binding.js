@@ -94,8 +94,8 @@ export function applyPlayerActionsToAvatar(player, rig) {
     // console.log(player.characterPhysics.velocity.x, player.characterPhysics.velocity.z);
     // rig.velocity.applyQuaternion(localQuaternion.copy(player.quaternion).invert()); // todo: Don't need still ok?
     // Will cause firstperson view wrong avatar.velocity.
-    rig.velocity.x *= 0.1;
-    rig.velocity.z *= 0.1;
+    // rig.velocity.x *= 0.1;
+    // rig.velocity.z *= 0.1;
     // rig.velocity.y *= 0.1;
   }
   // console.log('binding')
