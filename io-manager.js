@@ -255,18 +255,15 @@ const _updateIo = timeDiff => {
       }
       ioManager.lastCtrlKey = ioManager.keys.ctrl;
     }
-    // window.domInfo.innerHTML += `<div style="display:;">keysDirection: --- ${window.logVector3(keysDirection)}</div>`;
+    window.domInfo.innerHTML += `<div style="display:;">keysDirection: --- ${window.logVector3(keysDirection)}</div>`;
     if (/* keysDirection.length() > 0 &&  */physicsScene.getPhysicsEnabled() && movementEnabled) {
       window.isDebugger = true;
       window.visSpeed = game.getSpeed();
       window.visTimeDiff = timeDiff;
       if (!window.visStartTime) window.visStartTime = performance.now();
       const speed = game.getSpeed() / 30;
-      localPlayer.characterPhysics.applyWasd(
-        keysDirection.normalize()
-          .multiplyScalar(speed),
-        timeDiff,
-      );
+      const velocity = keysDirection.normalize().multiplyScalar(speed);
+      localPlayer.characterPhysics.applyWasd(velocity, timeDiff);
     }
   }
 };
