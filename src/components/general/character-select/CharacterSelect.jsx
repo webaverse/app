@@ -496,6 +496,7 @@ export const CharacterSelect = () => {
                             <Character
                                 character={character}
                                 highlight={character === targetCharacter}
+                                targetCharacter={targetCharacter}
                                 animate={selectCharacter === character}
                                 disabled={!character.name || (!!selectCharacter && selectCharacter !== character)}
                                 onMouseMove={onMouseMove(character)}
@@ -516,6 +517,7 @@ export const CharacterSelect = () => {
                                 <Character
                                     character={character}
                                     highlight={character === targetCharacter}
+                                    targetCharacter={targetCharacter}
                                     animate={selectCharacter === character}
                                     disabled={!character.name || (!!selectCharacter && selectCharacter !== character)}
                                     onMouseMove={onMouseMove(character)}
@@ -594,6 +596,7 @@ export const CharacterSelect = () => {
                             <Character
                                 character={character}
                                 highlight={character === targetCharacter}
+                                targetCharacter={targetCharacter}
                                 animate={selectCharacter === character}
                                 disabled={!character.name || (!!selectCharacter && selectCharacter !== character)}
                                 onMouseMove={onMouseMove(character)}

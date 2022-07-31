@@ -335,7 +335,9 @@ export const App = () => {
                     <ActionMenu setUIMode={ setUIMode } />
                 </UIMode>
                 <Settings />
-                <ClaimsNotification />
+                <UIMode hideDirection='bottom'>
+                    <ClaimsNotification />
+                </UIMode>
                 <WorldObjectsList
                     setSelectedApp={ setSelectedApp }
                     selectedApp={ selectedApp }
