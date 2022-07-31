@@ -64,16 +64,23 @@ class CharacterPhysics {
   applyWasd(velocity, timeDiff) {
     if (this.player.avatar) {
       this.targetVelocity.copy(velocity);
-      this.targetMoveDistancePerFrame.x = this.targetVelocity.x * timeDiff;
-      this.targetMoveDistancePerFrame.z = this.targetVelocity.z * timeDiff;
+      this.targetMoveDistancePerFrame.copy(this.targetVelocity).multiplyScalar(timeDiff / 1000);
     }
   }
   applyGravity(timeDiffS) {
     // if (this.player) {
       if ((this.player.hasAction('jump') || this.player.hasAction('fallLoop')) && !this.player.hasAction('fly') && !this.player.hasAction('swim')) {
-        localVector.copy(physicsScene.getGravity())
-          .multiplyScalar(timeDiffS);
-        this.velocity.add(localVector);
+        
+        const gravityTargetVelocity = localVector.copy(physicsScene.getGravity());
+        const gravityTargetMoveDistancePerFrame = gravityTargetVelocity.multiplyScalar(timeDiffS);
+        this.targetVelocity.add(gravityTargetVelocity); // todo: acceleration of gravity.
+        this.targetMoveDistancePerFrame.add(gravityTargetMoveDistancePerFrame);
+
+        //// move this.applyGravity(timeDiffS); after this.updateVelocity(timeDiffS);
+        // const gravityVelocity = localVector.copy(physicsScene.getGravity());
+        // const gravityMoveDistancePerFrame = gravityVelocity.multiplyScalar(timeDiffS);
+        // this.velocity.add(gravityVelocity); // todo: acceleration of gravity.
+        // this.moveDistancePerFrame.add(gravityMoveDistancePerFrame);
       }
     // }
   }
@@ -275,22 +282,23 @@ class CharacterPhysics {
   }
   /* dampen the velocity to make physical sense for the current avatar state */
   applyVelocityDamping(velocity, timeDiff) {
+    const doDamping = (factor) => {
+      this.moveDistancePerFrame.x = THREE.MathUtils.damp(this.moveDistancePerFrame.x, this.lastTargetMoveDistancePerFrame.x, factor, timeDiff / 1000);
+      this.moveDistancePerFrame.z = THREE.MathUtils.damp(this.moveDistancePerFrame.z, this.lastTargetMoveDistancePerFrame.z, factor, timeDiff / 1000);
+      this.moveDistancePerFrame.y = THREE.MathUtils.damp(this.moveDistancePerFrame.y, this.lastTargetMoveDistancePerFrame.y, factor, timeDiff / 1000);
+
+      this.velocity.x = THREE.MathUtils.damp(this.velocity.x, this.lastTargetVelocity.x, factor, timeDiff / 1000);
+      this.velocity.z = THREE.MathUtils.damp(this.velocity.z, this.lastTargetVelocity.z, factor, timeDiff / 1000);
+      this.velocity.y = THREE.MathUtils.damp(this.velocity.y, this.lastTargetVelocity.y, factor, timeDiff / 1000);
+    }
     if (this.player.hasAction('fly')) {
-      const factor = getVelocityDampingFactor(flyFriction, timeDiff);
-      velocity.multiplyScalar(factor);
+      doDamping(flyFriction);
     } 
     else if(this.player.hasAction('swim')){
-      const factor = getVelocityDampingFactor(swimFriction, timeDiff);
-      velocity.multiplyScalar(factor);
+      doDamping(swimFriction);
     }
     else {
-      this.moveDistancePerFrame.x = THREE.MathUtils.damp(this.moveDistancePerFrame.x, this.lastTargetMoveDistancePerFrame.x, groundFriction * 100, timeDiff / 1000);
-      this.moveDistancePerFrame.z = THREE.MathUtils.damp(this.moveDistancePerFrame.z, this.lastTargetMoveDistancePerFrame.z, groundFriction * 100, timeDiff / 1000);
-
-      this.velocity.x = THREE.MathUtils.damp(this.velocity.x / 1000, this.lastTargetVelocity.x, groundFriction * 100, timeDiff / 1000);
-      this.velocity.z = THREE.MathUtils.damp(this.velocity.z / 1000, this.lastTargetVelocity.z, groundFriction * 100, timeDiff / 1000);
-      this.velocity.x *= 1000;
-      this.velocity.z *= 1000;
+      doDamping(groundFriction);
     }
   }
   applyAvatarPhysics(now, timeDiffS) {

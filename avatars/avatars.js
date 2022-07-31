@@ -19,6 +19,9 @@ import {
   // useMaxTime,
   aimMaxTime,
   aimTransitionMaxTime,
+  idleSpeed,
+  walkSpeed,
+  runSpeed,
   // avatarInterpolationFrameRate,
   // avatarInterpolationTimeDelay,
   // avatarInterpolationNumFrames,
@@ -27,12 +30,6 @@ import {
 import * as avatarCruncher from '../avatar-cruncher.js';
 import * as avatarSpriter from '../avatar-spriter.js';
 // import * as sceneCruncher from '../scene-cruncher.js';
-import {
-  idleFactorSpeed,
-  walkFactorSpeed,
-  runFactorSpeed,
-  // narutoRunTimeFactor,
-} from './constants.js';
 import {
   getSkinnedMeshes,
   getSkeleton,
@@ -789,6 +786,7 @@ class Avatar {
       Left_toe: this.legsManager.leftLeg.toe,
       Right_toe: this.legsManager.rightLeg.toe,
 	  };
+    window.modelBoneOutputs = this.modelBoneOutputs;
 
     this.debugMesh = null;
 
@@ -1223,6 +1221,8 @@ class Avatar {
     for (const k in modelBones) {
       const modelBone = modelBones[k];
       const modelBoneOutput = modelBoneOutputs[k];
+      // console.log(111)
+      // window.modelBoneOutput = modelBoneOutput;
 
       modelBone.position.copy(modelBoneOutput.position);
       modelBone.quaternion.multiplyQuaternions(
@@ -1520,9 +1520,11 @@ class Avatar {
     const timeDiffS = timeDiff / 1000;
 
     const currentSpeed = localVector.set(this.velocity.x, 0, this.velocity.z).length();
+    // console.log(currentSpeed)
 
-    this.idleWalkFactor = Math.min(Math.max((currentSpeed - idleFactorSpeed) / (walkFactorSpeed - idleFactorSpeed), 0), 1);
-    this.walkRunFactor = Math.min(Math.max((currentSpeed - walkFactorSpeed) / (runFactorSpeed - walkFactorSpeed), 0), 1);
+    this.idleWalkFactor = Math.min(Math.max((currentSpeed - idleSpeed) / (walkSpeed - idleSpeed), 0), 1);
+    this.walkRunFactor = Math.min(Math.max((currentSpeed - walkSpeed) / (runSpeed - walkSpeed) * (0.82 / 0.55), 0), 1); // todo: `* (0.82 / 0.55)` in order to get correct backward running stepping blending. Can we adjust in animationHelpers.js instead of here?
+    // console.log(this.idleWalkFactor, this.walkRunFactor)
     this.crouchFactor = Math.min(Math.max(1 - (this.crouchTime / crouchMaxTime), 0), 1);
     // console.log('current speed', currentSpeed, idleWalkFactor, walkRunFactor);
     this.aimRightFactor = this.aimRightTransitionTime / aimTransitionMaxTime;

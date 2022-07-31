@@ -90,9 +90,8 @@ export function makeAvatar(app) {
 export function applyPlayerActionsToAvatar(player, rig) {
   if (rig.velocity && player.characterPhysics?.velocity) {
     rig.velocity.copy(player.characterPhysics.velocity);
-    rig.velocity.x *= 0.1;
-    rig.velocity.z *= 0.1;
-    rig.velocity.applyQuaternion(localQuaternion.copy(player.quaternion).invert()); // todo: Don't need still ok?
+    // rig.velocity.applyQuaternion(localQuaternion.copy(player.quaternion).invert()); // todo: Don't need still ok?
+    // Will cause firstperson view wrong avatar.velocity.
   }
 
   const jumpAction = player.getAction('jump');

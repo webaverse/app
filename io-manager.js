@@ -256,12 +256,9 @@ const _updateIo = timeDiff => {
       ioManager.lastCtrlKey = ioManager.keys.ctrl;
     }
     if (physicsScene.getPhysicsEnabled() && movementEnabled) {
-      const speed = game.getSpeed() / 30;
-      localPlayer.characterPhysics.applyWasd(
-        keysDirection.normalize()
-          .multiplyScalar(speed),
-        timeDiff,
-      );
+      const speed = game.getSpeed();
+      const velocity = keysDirection.normalize().multiplyScalar(speed);
+      localPlayer.characterPhysics.applyWasd(velocity, timeDiff);
     }
   }
 };
