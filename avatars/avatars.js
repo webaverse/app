@@ -1522,7 +1522,7 @@ class Avatar {
     // console.log(currentSpeed)
 
     this.idleWalkFactor = Math.min(Math.max((currentSpeed - idleSpeed) / (walkSpeed - idleSpeed), 0), 1);
-    this.walkRunFactor = Math.min(Math.max((currentSpeed - walkSpeed) / (runSpeed - walkSpeed), 0), 1);
+    this.walkRunFactor = Math.min(Math.max((currentSpeed - walkSpeed) / (runSpeed - walkSpeed) * (0.82 / 0.55), 0), 1); // todo: `* (0.82 / 0.55)` in order to get correct backward running stepping blending. Can we adjust in animationHelpers.js instead of here?
     // console.log(this.idleWalkFactor, this.walkRunFactor)
     this.crouchFactor = Math.min(Math.max(1 - (this.crouchTime / crouchMaxTime), 0), 1);
     // console.log('current speed', currentSpeed, idleWalkFactor, walkRunFactor);
