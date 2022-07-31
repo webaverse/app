@@ -1606,7 +1606,7 @@ class GameManager extends EventTarget {
     let speed = 0;
     
     const walkSpeed = 0.075;
-    const flySpeed = walkSpeed * 2;
+    const flySpeed = walkSpeed * 5;
     const defaultCrouchSpeed = walkSpeed * 0.7;
     const isCrouched = gameManager.isCrouched();
     const isSwimming = gameManager.isSwimming();

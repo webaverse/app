@@ -120,10 +120,15 @@ export const minFov = 60;
 export const maxFov = 120;
 export const midFov = 90;
 export const initialPosY = 1.5;
+
+// Now friction only affect damping, don't affect full speed moving.
 export const groundFriction = 0.28;
 export const airFriction = groundFriction;
-export const flyFriction = 0.5;
-export const swimFriction = 0.2;
+// export const flyFriction = 0.5;
+// export const swimFriction = 0.2;
+export const flyFriction = groundFriction;
+export const swimFriction = groundFriction;
+
 export const aimTransitionMaxTime = 150;
 
 export const jumpHeight = 3;
