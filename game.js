@@ -1608,6 +1608,7 @@ class GameManager extends EventTarget {
     const isCrouched = gameManager.isCrouched();
     const isSwimming = gameManager.isSwimming();
     const isFlying = gameManager.isFlying();
+    const isRunning = ioManager.keys.shift && !isCrouched;
     const isMovingBackward = gameManager.isMovingBackward();
     if (isCrouched && !isMovingBackward) {
       speed = crouchSpeed;
@@ -1617,13 +1618,13 @@ class GameManager extends EventTarget {
       speed = walkSpeed;
     }
     const localPlayer = playersManager.getLocalPlayer();
-    const sprintMultiplier = (ioManager.keys.shift && !isCrouched) ?
+    const sprintMultiplier = isRunning ?
       (ioManager.keys.doubleTap ? 20 : 3) // todo: Use constants: narutoRunSpeed, runSpeed.
     :
     ((isSwimming && !isFlying) ? 5 - localPlayer.getAction('swim').swimDamping : 1);
     speed *= sprintMultiplier;
     
-    const backwardMultiplier = isMovingBackward ? 0.7 : 1;
+    const backwardMultiplier = isMovingBackward ? (isRunning ? 0.8 : 0.7) : 1;
     speed *= backwardMultiplier;
     
     return speed;
