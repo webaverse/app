@@ -42,11 +42,7 @@ const CharacterHup = function(props) {
       } else {
         let neckBone;
         player.avatar.model.traverse(
-          object => {
-            if (object.type === 'Bone' && object.name === 'Head' && !neckBone) {
-              neckBone = object;
-            }
-           }
+          (object) => object.type === "Bone" && object.name === "Head" && !neckBone && (neckBone = object)
         );
         diorama = dioramaManager.createPlayerDiorama({
           target: neckBone,

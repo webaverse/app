@@ -30,7 +30,7 @@ class PlayersManager extends EventTarget {
     return this.localPlayer;
   }
   setLocalPlayer(newLocalPlayer) {
-    localPlayer = newLocalPlayer;
+    this.localPlayer = newLocalPlayer;
   }
   getRemotePlayers(){
     return this.remotePlayers;
