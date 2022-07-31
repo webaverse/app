@@ -56,7 +56,7 @@ function bindCanvas(c) {
     minFilter: THREE.LinearFilter,
     magFilter: THREE.LinearFilter,
     format: THREE.RGBAFormat,
-    encoding: THREE.LinearEncoding,
+    encoding: THREE.sRGBEncoding,
   });
   renderTarget.samples = context.MAX_SAMPLES;
   composer = new EffectComposer(renderer, renderTarget);

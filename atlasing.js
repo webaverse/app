@@ -190,7 +190,7 @@ const generateTextureAtlas = textureSpecs => {
     if (atlasImage) {
       const texture = new THREE.Texture(atlasImage);
       texture.flipY = false;
-      texture.encoding = THREE.LinearEncoding;
+      texture.encoding = THREE.sRGBEncoding;
       texture.needsUpdate = true;
       atlasTextures[textureName] = texture;
     }

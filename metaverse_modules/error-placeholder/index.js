@@ -1,4 +1,4 @@
-import {Vector3, Matrix4, Mesh, BoxGeometry, PlaneGeometry, DoubleSide, LinearEncoding, MeshBasicMaterial, NearestFilter, Texture} from 'three';
+import {Vector3, Matrix4, Mesh, BoxGeometry, PlaneGeometry, DoubleSide, sRGBEncoding, MeshBasicMaterial, NearestFilter, Texture} from 'three';
 import * as BufferGeometryUtils from 'three/examples/jsm/utils/BufferGeometryUtils.js';
 // import {scene, renderer, camera, runtime, world, physics, ui, app, appManager} from 'app';
 import metaversefile from 'metaversefile';
@@ -43,7 +43,7 @@ const material = new MeshBasicMaterial({
       img.src = imagePath;
     });
     const texture = new Texture(img);
-    texture.encoding = LinearEncoding;
+    texture.encoding = sRGBEncoding;
     texture.anisotropy = 16;
     // texture.minFilter = NearestFilter;
     // texture.magFilter = NearestFilter;
