@@ -1943,10 +1943,8 @@ class Avatar {
     if (true && player && this === player.avatar) {
       window.domInfo.innerHTML += `
         <div style="display:;">actions: --- ${player.getActionsArray().map(n=>n.type)}</div>
-        <div style="display:;">velocity: --- ${window.logVector3(player.characterPhysics.velocity)} of characterPhysics ( correct )</div>
-        <div style="display:;">velocity length: --- ${window.logNum(player.characterPhysics.velocity.length())}</div>
-        <div style="display:;">velocity: --- ${window.logVector3(this.velocity)} of avatar</div>
-        <div style="display:;">velocity length: --- ${window.logNum(this.velocity.length())}</div>
+        <div style="display:;">velocity: --- ${window.logVector3(player.characterPhysics.velocity)} | ${window.logNum(player.characterPhysics.velocity.length())} of characterPhysics</div>
+        <div style="display:;">velocity: --- ${window.logVector3(this.velocity)} | ${window.logNum(this.velocity.length())} of avatar</div>
         <div style="display:;">idleWalkFactor: --- ${this.idleWalkFactor.toFixed(2)}</div>
         <div style="display:;">walkRunFactor: --- ${this.walkRunFactor.toFixed(2)}</div>
         <div style="display:;">avatar.direction: --- ${window.logVector3(this.direction)}</div>
