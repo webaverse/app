@@ -66,9 +66,11 @@ class CharacterPhysics {
     // console.log('wasd')
     if (this.player.avatar) {
       this.targetVelocity.copy(velocity);
+      window.domInfo.innerHTML += `<div style="display:;">targetVelocity: --- ${window.logVector3(this.targetVelocity)}</div>`;
       // window.visKeysDirectionX = keysDirection.x;
       // this.velocity.add(keysDirection);
-      this.targetMoveDistancePerFrame.copy(this.targetVelocity).multiplyScalar(timeDiff / 1000)
+      this.targetMoveDistancePerFrame.copy(this.targetVelocity).multiplyScalar(timeDiff / 1000);
+      window.domInfo.innerHTML += `<div style="display:;">targetMoveDistancePerFrame: --- ${window.logVector3(this.targetMoveDistancePerFrame)}</div>`;
       // console.log(this.velocity.x, this.velocity.z)
       // window.visVelocityBeforeDampingX = this.velocity.x;
     }
@@ -109,6 +111,7 @@ class CharacterPhysics {
         // .multiplyScalar(timeDiffS);
         // .multiplyScalar(timeDiffS);
         // .multiplyScalar(0.016);
+      window.domInfo.innerHTML += `<div style="display:;">localVector3: --- ${window.logVector3(localVector3)}</div>`;
 
       // console.log('set localVector3')
 
