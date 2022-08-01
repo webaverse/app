@@ -7,6 +7,7 @@ let windDirection = new THREE.Vector3();
 const windPosition = new THREE.Vector3();
 const windNoisePos = new THREE.Vector3();
 const localVector2 = new THREE.Vector3();
+const zeroVector3 = new THREE.Vector3();
 
 const update = (timestamp, headPosition, springBoneManager) => {
     const winds = metaversefile.getWinds();
@@ -24,6 +25,14 @@ const update = (timestamp, headPosition, springBoneManager) => {
       return -1;
     }
 
+    const _handleNoWind = () =>{
+      for (const springBones of springBoneManager.springBoneGroupList) {
+        for (const o of springBones) {
+          o.gravityDir = zeroVector3;
+          o.gravityPower = 0;
+        }
+      }
+    }
     const _handleDirectional = (wind) =>{
       windDirection.set(wind.direction[0], wind.direction[1], wind.direction[2]);
       for (const springBones of springBoneManager.springBoneGroupList) {
@@ -102,7 +111,7 @@ const update = (timestamp, headPosition, springBoneManager) => {
         }
       }
     }
-    if(winds){
+    if(winds && winds.length > 0){
       let windIndex = inWindZone();
       if(windIndex !== -1){
         if(winds[windIndex].windType === 'spherical')
@@ -118,6 +127,8 @@ const update = (timestamp, headPosition, springBoneManager) => {
           }
         }
       }
+    } else {
+      _handleNoWind();
     }
 };
 export {

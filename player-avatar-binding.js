@@ -7,7 +7,7 @@ import {unFrustumCull, enableShadows} from './util.js';
 import {
   getEyePosition,
 } from './avatars/util.mjs';
-import {getLocalPlayer, remotePlayers} from './players.js';
+import {playersManager} from './players-manager.js';
 
 const appSymbol = 'app'; // Symbol('app');
 const avatarSymbol = 'avatar'; // Symbol('avatar');
@@ -54,12 +54,13 @@ export function makeAvatar(app) {
     const {skinnedVrm} = app;
 
     const _getPlayerByAppInstanceId = instanceId => {
-      const localPlayer = getLocalPlayer();
+      const remotePlayers = playersManager.getRemotePlayers(); // Might have to be removed too
+      const localPlayer = playersManager.getLocalPlayer();
       const result = localPlayer.appManager.getAppByInstanceId(instanceId);
       if (result) {
         return localPlayer;
       } else {
-        for (const remotePlayer of remotePlayers) {
+        for (const remotePlayer in remotePlayers) {
           if (remotePlayer.appManager.getAppByInstanceId(instanceId)) {
             return remotePlayer;
           }
@@ -88,6 +89,8 @@ export function makeAvatar(app) {
 }
 export function applyPlayerActionsToAvatar(player, rig) {
   const jumpAction = player.getAction('jump');
+  const doubleJumpAction = player.getAction('doubleJump');
+  const landAction = player.getAction('land');
   const flyAction = player.getAction('fly');
   const swimAction = player.getAction('swim');
   const useAction = player.getAction('use');
@@ -107,8 +110,8 @@ export function applyPlayerActionsToAvatar(player, rig) {
   // const chargeJumpAnimation = chargeJump ? chargeJump.animation : '';
   // const standCharge = player.getAction('standCharge');
   // const standChargeAnimation = standCharge ? standCharge.animation : '';
-  // const fallLoop = player.getAction('fallLoop');
-  // const fallLoopAnimation = fallLoop ? fallLoop.animation : '';
+  const fallLoopAction = player.getAction('fallLoop');
+  // const fallLoopAnimation = fallLoopAction ? fallLoopAction.animation : '';
   const hurtAction = player.getAction('hurt');
   // const swordSideSlash = player.getAction('swordSideSlash');
   // const swordSideSlashAnimation = swordSideSlash ? swordSideSlash.animation : '';
@@ -117,6 +120,11 @@ export function applyPlayerActionsToAvatar(player, rig) {
 
   rig.jumpState = !!jumpAction;
   rig.jumpTime = player.actionInterpolants.jump.get();
+  rig.doubleJumpState = !!doubleJumpAction;
+  rig.doubleJumpTime = player.actionInterpolants.doubleJump.get();
+  rig.landTime = player.actionInterpolants.land.get();
+  rig.lastLandStartTime = landAction ? landAction.time : 0;
+  rig.landWithMoving = landAction?.isMoving;
   rig.flyState = !!flyAction;
   rig.flyTime = flyAction ? player.actionInterpolants.fly.get() : -1;
   rig.activateTime = player.actionInterpolants.activate.get();
@@ -201,9 +209,11 @@ export function applyPlayerActionsToAvatar(player, rig) {
   // rig.standChargeTime = player.actionInterpolants.standCharge.get();
   // rig.standChargeAnimation = standChargeAnimation;
   // rig.standChargeState = !!standCharge;
-  // rig.fallLoopTime = player.actionInterpolants.fallLoop.get();
+  rig.fallLoopTime = player.actionInterpolants.fallLoop.get();
+  rig.fallLoopFactor = player.actionInterpolants.fallLoopTransition.getNormalized();
+  rig.fallLoopFrom = fallLoopAction ? fallLoopAction.from : '';
   // rig.fallLoopAnimation = fallLoopAnimation;
-  // rig.fallLoopState = !!fallLoop;
+  rig.fallLoopState = !!fallLoopAction;
   // rig.swordSideSlashTime = player.actionInterpolants.swordSideSlash.get();
   // rig.swordSideSlashAnimation = swordSideSlashAnimation;
   // rig.swordSideSlashState = !!swordSideSlash;
@@ -216,7 +226,19 @@ export function applyPlayerActionsToAvatar(player, rig) {
   rig.movementsTransitionTime = player.actionInterpolants.movementsTransition.get();
   rig.sprintTime = player.actionInterpolants.sprint.get();
 }
-// returns whether eyes were applied
+// returns whether headTarget were applied
+export function applyPlayerHeadTargetToAvatar(player, rig) {
+  if (player.headTargetEnabled) {
+    rig.headTarget.copy(player.headTarget);
+    rig.headTargetInverted = player.headTargetInverted;
+    rig.headTargetEnabled = true;
+    return true;
+  } else {
+    rig.headTargetEnabled = false;
+    return false;
+  }
+}
+// returns whether eyes(eyeballs) were applied
 export function applyPlayerEyesToAvatar(player, rig) {
   if (player.eyeballTargetEnabled) {
     rig.eyeballTarget.copy(player.eyeballTarget);
@@ -272,6 +294,7 @@ export function applyPlayerToAvatar(player, session, rig, mirrors) {
   
   applyPlayerModesToAvatar(player, session, rig);
   applyPlayerActionsToAvatar(player, rig);
+  applyPlayerHeadTargetToAvatar(player, rig);
   applyPlayerEyesToAvatar(player, rig) || applyMirrorsToAvatar(player, rig, mirrors);
   
   applyFacePoseToAvatar(player, rig);

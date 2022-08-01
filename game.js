@@ -19,7 +19,7 @@ import metaversefileApi from './metaversefile-api.js';
 import * as metaverseModules from './metaverse-modules.js';
 import loadoutManager from './loadout-manager.js';
 import * as sounds from './sounds.js';
-import {getLocalPlayer, setLocalPlayer} from './players.js';
+import {playersManager} from './players-manager.js';
 import physicsManager from './physics-manager.js';
 import npcManager from './npc-manager.js';
 import raycastManager from './raycast-manager.js';
@@ -55,7 +55,7 @@ let isMouseUp = false;
 
 const _getGrabAction = i => {
   const targetHand = i === 0 ? 'left' : 'right';
-  const localPlayer = getLocalPlayer();
+  const localPlayer = playersManager.getLocalPlayer();
   const grabAction = localPlayer.findAction(action => action.type === 'grab' && action.hand === targetHand);
   return grabAction;
 };
@@ -104,7 +104,7 @@ function updateGrabbedObject(o, grabMatrix, offsetMatrix, {collisionEnabled, han
 
 const _getCurrentGrabAnimation = () => {
   let currentAnimation = '';
-  const localPlayer = getLocalPlayer();
+  const localPlayer = playersManager.getLocalPlayer();
 
   const wearComponent = grabUseMesh.targetApp.getComponent('wear');
   if (wearComponent && wearComponent.grabAnimation === 'pick_up') {
@@ -344,7 +344,7 @@ const _use = () => {
 const _delete = () => {
   const grabbedObject = _getGrabbedObject(0);
   if (grabbedObject) {
-    const localPlayer = getLocalPlayer();
+    const localPlayer = playersManager.getLocalPlayer();
     localPlayer.ungrab();
     
     world.appManager.removeTrackedApp(grabbedObject.instanceId);
@@ -364,7 +364,7 @@ const _delete = () => {
 };
 const _click = e => {
   if (_getGrabbedObject(0)) {
-    const localPlayer = getLocalPlayer();
+    const localPlayer = playersManager.getLocalPlayer();
     localPlayer.ungrab();
   } else {
     if (highlightedPhysicsObject) {
@@ -385,7 +385,7 @@ const _startUse = () => {
   if (wearApp) {
     const useComponent = wearApp.getComponent('use');
     if (useComponent) {
-      const localPlayer = getLocalPlayer();
+      const localPlayer = playersManager.getLocalPlayer();
       const useAction = localPlayer.getAction('use');
       if (!useAction) {
         const {instanceId} = wearApp;
@@ -414,7 +414,7 @@ const _startUse = () => {
   }
 };
 const _endUse = () => {
-  const localPlayer = getLocalPlayer();
+  const localPlayer = playersManager.getLocalPlayer();
   const useAction = localPlayer.getAction('use');
   if (useAction) {
     const app = metaversefileApi.getAppByInstanceId(useAction.instanceId);
@@ -433,7 +433,7 @@ const _mouseup = () => {
 };
 
 const _grab = object => {
-  const localPlayer = getLocalPlayer();
+  const localPlayer = playersManager.getLocalPlayer();
   localPlayer.grab(object);
   
   gameManager.gridSnap = 0;
@@ -480,7 +480,7 @@ let lastThrowing = false;
 const _gameUpdate = (timestamp, timeDiff) => {
   const now = timestamp;
   const renderer = getRenderer();
-  const localPlayer = getLocalPlayer();
+  const localPlayer = playersManager.getLocalPlayer();
 
   const _handlePush = () => {
     if (gameManager.canPush()) {
@@ -953,31 +953,29 @@ const _gameUpdate = (timestamp, timeDiff) => {
   };
   _updateBehavior();
   
-  const _updateMouseLook = () => {
+  const _updateLook = () => {
     if (localPlayer.avatar) {
       if (mouseSelectedObject && mouseSelectedPosition) {
         // console.log('got', mouseSelectedObject.position.toArray().join(','));
-        localPlayer.avatar.eyeTarget.copy(mouseSelectedPosition);
-        localPlayer.avatar.eyeTargetInverted = true;
-        localPlayer.avatar.eyeTargetEnabled = true;
-      } else if (!cameraManager.pointerLockElement && !cameraManager.target && lastMouseEvent) {
+        localPlayer.headTarget.copy(mouseSelectedPosition);
+        localPlayer.headTargetInverted = true;
+        localPlayer.headTargetEnabled = true;
+      } else if (!cameraManager.pointerLockElement && !cameraManager.target && raycastManager.lastMouseEvent) {
         const renderer = getRenderer();
         const size = renderer.getSize(localVector);
         
-        localPlayer.avatar.eyeTarget.set(-(lastMouseEvent.clientX/size.x-0.5), (lastMouseEvent.clientY/size.y-0.5), 1)
+        localPlayer.headTarget.set(-(raycastManager.lastMouseEvent.clientX/size.x-0.5), (raycastManager.lastMouseEvent.clientY/size.y-0.5), 1)
           .unproject(camera);
-        localPlayer.avatar.eyeTargetInverted = false;
-        localPlayer.avatar.eyeTargetEnabled = true;
+        localPlayer.headTargetInverted = false;
+        localPlayer.headTargetEnabled = true;
       } else if (zTargeting?.focusTargetReticle?.position) {
-        localPlayer.avatar.eyeTarget.copy(zTargeting.focusTargetReticle.position);
-        localPlayer.avatar.eyeTargetInverted = true;
-        localPlayer.avatar.eyeTargetEnabled = true;
+        localPlayer.setTarget(zTargeting.focusTargetReticle.position);
       } else {
-        localPlayer.avatar.eyeTargetEnabled = false;
+        localPlayer.setTarget(null);
       }
     }
   };
-  _updateMouseLook();
+  _updateLook();
 
   const crosshairEl = document.getElementById('crosshair');
   if (crosshairEl) {
@@ -1007,13 +1005,12 @@ const _gameUpdate = (timestamp, timeDiff) => {
 const _pushAppUpdates = () => {
   world.appManager.pushAppUpdates();
   
-  const remotePlayers = metaversefileApi.useRemotePlayers(); // Might have to be removed too
-  for (const remotePlayer of remotePlayers) {
+  for (const remotePlayer in playersManager.getRemotePlayers()) {
     remotePlayer.appManager.pushAppUpdates();
   }
 };
 const _pushPlayerUpdates = () => {
-  const localPlayer = getLocalPlayer();
+  const localPlayer = playersManager.getLocalPlayer();
   localPlayer.pushPlayerUpdates();
 };
 
@@ -1045,7 +1042,7 @@ const _bindPointerLock = () => {
 _bindPointerLock();
 
 const _setFirstPersonAction = firstPerson => {
-  const localPlayer = getLocalPlayer();
+  const localPlayer = playersManager.getLocalPlayer();
   if (firstPerson) {
     if (!localPlayer.hasAction('firstperson')) {
       const aimAction = {
@@ -1066,7 +1063,6 @@ _setFirstPersonAction(lastFirstPerson);
   _setFirstPersonAction(firstPerson);
 }); */
 
-let lastMouseEvent = null;
 class GameManager extends EventTarget {
   constructor() {
     super();
@@ -1127,7 +1123,7 @@ class GameManager extends EventTarget {
     _mouseup();
   }
   menuAim() {
-    const localPlayer = getLocalPlayer();
+    const localPlayer = playersManager.getLocalPlayer();
     if (!localPlayer.hasAction('aim')) {
       const wearApp = loadoutManager.getSelectedApp();
       const wearAimApp = (() => {
@@ -1157,7 +1153,7 @@ class GameManager extends EventTarget {
     }
   }
   menuUnaim() {
-    const localPlayer = getLocalPlayer();
+    const localPlayer = playersManager.getLocalPlayer();
     const aimAction = localPlayer.getAction('aim');
     if (aimAction) {
       localPlayer.removeAction('aim');
@@ -1235,7 +1231,7 @@ class GameManager extends EventTarget {
   dropSelectedApp() {
     const app = loadoutManager.getSelectedApp();
     if (app) {
-      const localPlayer = getLocalPlayer();
+      const localPlayer = playersManager.getLocalPlayer();
       localPlayer.unwear(app, {
         /* dropStartPosition: localVector.copy(localPlayer.position)
           .add(localVector2.set(0, 0.5, -1).applyQuaternion(localPlayer.quaternion)),
@@ -1247,7 +1243,7 @@ class GameManager extends EventTarget {
     if (this.selectedIndex !== -1) {
       const app = loadoutManager.getSelectedApp();
       if (app) {
-        const localPlayer = getLocalPlayer();
+        const localPlayer = playersManager.getLocalPlayer();
         localPlayer.unwear(app, {
           destroy: true,
         });
@@ -1259,7 +1255,7 @@ class GameManager extends EventTarget {
     // return !!world.appManager.grabbedObjects[0] /*|| (editedObject && editedObject.isBuild)*/;
   }
   menuPush(direction) {
-    const localPlayer = getLocalPlayer();
+    const localPlayer = playersManager.getLocalPlayer();
     const grabAction = localPlayer.findAction(action => action.type === 'grab' && action.hand === 'left');
     if (grabAction) {
       const matrix = localMatrix.fromArray(grabAction.matrix);
@@ -1292,7 +1288,7 @@ class GameManager extends EventTarget {
   }
 
   menuVDown() {
-    const localPlayer = getLocalPlayer();
+    const localPlayer = playersManager.getLocalPlayer();
     if (_getGrabbedObject(0)) {
       this.menuGridSnap();
     } else {
@@ -1306,12 +1302,12 @@ class GameManager extends EventTarget {
     }
   }
   menuVUp() {
-    const localPlayer = getLocalPlayer();
+    const localPlayer = playersManager.getLocalPlayer();
     localPlayer.removeAction('dance');
   }
 
   menuBDown() {
-    const localPlayer = getLocalPlayer();
+    const localPlayer = playersManager.getLocalPlayer();
     const sssAction = localPlayer.getAction('sss');
     if (!sssAction) {
       const newSssAction = {
@@ -1338,7 +1334,7 @@ class GameManager extends EventTarget {
     } */
   }
   menuBUp() {
-    const localPlayer = getLocalPlayer();
+    const localPlayer = playersManager.getLocalPlayer();
     localPlayer.removeAction('dance');
     
     // physicsManager.setThrowState(null);
@@ -1346,7 +1342,7 @@ class GameManager extends EventTarget {
 
   menuDoubleTap() {
     if (!this.isCrouched()) {
-      const localPlayer = getLocalPlayer();
+      const localPlayer = playersManager.getLocalPlayer();
       const narutoRunAction = localPlayer.getAction('narutoRun');
       if (!narutoRunAction) {
         const newNarutoRunAction = {
@@ -1358,7 +1354,7 @@ class GameManager extends EventTarget {
     }
   }
   menuUnDoubleTap() {
-    const localPlayer = getLocalPlayer();
+    const localPlayer = playersManager.getLocalPlayer();
     const narutoRunAction = localPlayer.getAction('narutoRun');
     if (narutoRunAction) {
       localPlayer.removeAction('narutoRun');
@@ -1371,7 +1367,7 @@ class GameManager extends EventTarget {
     if (npc) {
       // console.log('check npc', npc);
       
-      const localPlayer = getLocalPlayer();
+      const localPlayer = playersManager.getLocalPlayer();
       localPlayer.isLocalPlayer = false;
       localPlayer.isNpcPlayer = true;
 
@@ -1381,18 +1377,21 @@ class GameManager extends EventTarget {
       const npcIndex = npcManager.npcs.indexOf(npc);
       npcManager.npcs[npcIndex] = localPlayer;
 
-      setLocalPlayer(npc);
+      playersManager.setLocalPlayer(npc);
     }
   }
   isFlying() {
-    const localPlayer = getLocalPlayer();
+    const localPlayer = playersManager.getLocalPlayer();
     return localPlayer.hasAction('fly');
   }
   toggleFly() {
-    const localPlayer = getLocalPlayer();
+    const localPlayer = playersManager.getLocalPlayer();
     const flyAction = localPlayer.getAction('fly');
     if (flyAction) {
       localPlayer.removeAction('fly');
+      if (!localPlayer.characterPhysics.lastGrounded) {
+        localPlayer.setControlAction({type: 'fallLoop'});
+      }
     } else {
       const flyAction = {
         type: 'fly',
@@ -1402,19 +1401,19 @@ class GameManager extends EventTarget {
     }
   }
   isCrouched() {
-    const localPlayer = getLocalPlayer();
+    const localPlayer = playersManager.getLocalPlayer();
     return localPlayer.hasAction('crouch');
   }
   isSwimming() {
-    const localPlayer = getLocalPlayer();
+    const localPlayer = playersManager.getLocalPlayer();
     return localPlayer.hasAction('swim');
   }
   isFlying() {
-    const localPlayer = getLocalPlayer();
+    const localPlayer = playersManager.getLocalPlayer();
     return localPlayer.hasAction('fly');
   }
   toggleCrouch() {
-    const localPlayer = getLocalPlayer();
+    const localPlayer = playersManager.getLocalPlayer();
     let crouchAction = localPlayer.getAction('crouch');
     if (crouchAction) {
       localPlayer.removeAction('crouch');
@@ -1460,17 +1459,21 @@ class GameManager extends EventTarget {
         this.setMouseSelectedObject(null);
       }
       if (_getGrabbedObject(0)) {
-        const localPlayer = getLocalPlayer();
+        const localPlayer = playersManager.getLocalPlayer();
         localPlayer.ungrab();
       } 
     }
   }
   isJumping() {
-    const localPlayer = getLocalPlayer();
+    const localPlayer = playersManager.getLocalPlayer();
     return localPlayer.hasAction('jump');
   }
+  isDoubleJumping() {
+    const localPlayer = playersManager.getLocalPlayer();
+    return localPlayer.hasAction('doubleJump');
+  }
   ensureJump(trigger) {
-    const localPlayer = getLocalPlayer();
+    const localPlayer = playersManager.getLocalPlayer();
 
     const wearActions = Array.from(localPlayer.getActionsState()).filter(action => action.type === 'wear');
     for (const wearAction of wearActions) {
@@ -1482,14 +1485,14 @@ class GameManager extends EventTarget {
       }
     }
 
-    const jumpAction = localPlayer.getAction('jump');
-    if (!jumpAction) {
+    if (!localPlayer.hasAction('jump') && !localPlayer.hasAction('fly') && !localPlayer.hasAction('fallLoop') && !localPlayer.hasAction('swim')) {
       const newJumpAction = {
         type: 'jump',
-        trigger:trigger
+        trigger:trigger,
+        startPositionY: localPlayer.characterController.position.y,
         // time: 0,
       };
-      localPlayer.addAction(newJumpAction);
+      localPlayer.setControlAction(newJumpAction);
     }
   }
   jump(trigger) {
@@ -1497,24 +1500,36 @@ class GameManager extends EventTarget {
     this.ensureJump(trigger);
 
     // update velocity
-    const localPlayer = getLocalPlayer();
-    localPlayer.characterPhysics.velocity.y += 6;
+    // const localPlayer = playersManager.getLocalPlayer();
+    // localPlayer.characterPhysics.velocity.y += 6; // currently using aesthetic jump movement
     
     // play sound
     // soundManager.play('jump');
 
   }
+  doubleJump() {
+    const localPlayer = playersManager.getLocalPlayer();
+    localPlayer.addAction({
+      type: 'doubleJump',
+      startPositionY: localPlayer.characterController.position.y,
+    });
+  }
   isMovingBackward() {
-    const localPlayer = getLocalPlayer();
+    const localPlayer = playersManager.getLocalPlayer();
     // return ioManager.keysDirection.z > 0 && this.isAiming();
     return localPlayer.avatar.direction.z > 0.1; // If check > 0 will cause glitch when move left/right;
+    /*
+      return localPlayer.avatar.direction.z > 0.1;
+      // If check > 0 will cause glitch when move left/right.
+      // Has a little lag after release backward key.
+    */
   }
   isAiming() {
-    const localPlayer = getLocalPlayer();
+    const localPlayer = playersManager.getLocalPlayer();
     return localPlayer.hasAction('aim');
   }
   isSitting() {
-    const localPlayer = getLocalPlayer();
+    const localPlayer = playersManager.getLocalPlayer();
     return localPlayer.hasAction('sit');
   }
   getMouseHoverObject() {
@@ -1604,7 +1619,7 @@ class GameManager extends EventTarget {
     } else {
       speed = walkSpeed;
     }
-    const localPlayer = getLocalPlayer();
+    const localPlayer = playersManager.getLocalPlayer();
     const sprintMultiplier = (ioManager.keys.shift && !isCrouched) ?
       (ioManager.keys.doubleTap ? 20 : 3)
     :
@@ -1627,7 +1642,7 @@ class GameManager extends EventTarget {
   }
   menuActivateDown() {
     if (grabUseMesh.visible) {
-      const localPlayer = getLocalPlayer();
+      const localPlayer = playersManager.getLocalPlayer();
       const activateAction = localPlayer.getAction('activate');
       if (!activateAction) {
         const animationName = _getCurrentGrabAnimation();
@@ -1640,30 +1655,38 @@ class GameManager extends EventTarget {
     }
   }
   menuActivateUp() {
-    const localPlayer = getLocalPlayer();
+    const localPlayer = playersManager.getLocalPlayer();
     localPlayer.removeAction('activate');
   }
   setAvatarQuality(quality) {
-    const localPlayer = getLocalPlayer();
+    const localPlayer = playersManager.getLocalPlayer();
     localPlayer.avatar.setQuality(quality);
   }
   playerDiorama = null;
   bindDioramaCanvas() {
     // await rendererWaitForLoad();
 
-    const localPlayer = getLocalPlayer();
+    const localPlayer = playersManager.getLocalPlayer();
     this.playerDiorama = dioramaManager.createPlayerDiorama({
-      target: localPlayer,
+      // target: localPlayer,
       // label: true,
       outline: true,
       grassBackground: true,
       // glyphBackground: true,
     });
-
     localPlayer.addEventListener('avatarchange', e => {
       this.playerDiorama.setObjects([
         e.avatar.model,
       ]);
+      let neckBone;
+      e.avatar.model.traverse(
+        (object) => {
+          if (object.type === "Bone" && object.name === "Head") {
+            return neckBone = object;
+          }
+        }
+      );
+      this.playerDiorama.setTarget(neckBone);
     });
   }
   async setVoicePack(voicePack) {
@@ -1671,7 +1694,7 @@ class GameManager extends EventTarget {
     return await localPlayer.setVoicePack(voicePack);
   }
   setVoiceEndpoint(voiceId) {
-    const localPlayer = getLocalPlayer();
+    const localPlayer = playersManager.getLocalPlayer();
     return localPlayer.setVoiceEndpoint(voiceId);
   }
   saveScene() {

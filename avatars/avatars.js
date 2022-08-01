@@ -84,7 +84,7 @@ const textEncoder = new TextEncoder();
 
 // const y180Quaternion = new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 1, 0), Math.PI);
 const maxIdleVelocity = 0.01;
-const maxEyeTargetTime = 2000;
+const maxHeadTargetTime = 2000;
 
 /* VRMSpringBoneImporter.prototype._createSpringBone = (_createSpringBone => {
   const localVector = new THREE.Vector3();
@@ -555,9 +555,10 @@ class Avatar {
     // this.allHairBones = allHairBones;
     this.hairBones = hairBones; */
     
-    this.eyeTarget = new THREE.Vector3();
-    this.eyeTargetInverted = false;
-    this.eyeTargetEnabled = false;
+    this.headTarget = new THREE.Vector3();
+    this.headTargetInverted = false;
+    this.headTargetEnabled = false;
+
     this.eyeballTarget = new THREE.Vector3();
     this.eyeballTargetPlane = new THREE.Plane();
     this.eyeballTargetEnabled = false;
@@ -906,6 +907,8 @@ class Avatar {
     this.direction = new THREE.Vector3();
     this.jumpState = false;
     this.jumpTime = NaN;
+    this.landTime = NaN;
+    this.lastLandStartTime = NaN;
     this.flyState = false;
     this.flyTime = NaN;
     this.swimTime = NaN;
@@ -918,6 +921,9 @@ class Avatar {
     this.unuseAnimation = null;
     this.unuseTime = -1;
     
+    this.idleWalkFactor = NaN;
+    this.walkRunFactor = NaN;
+    this.crouchFactor = NaN;
     this.sitState = false;
     this.sitAnimation = null;
     // this.activateState = false;
@@ -953,6 +959,7 @@ class Avatar {
     // this.standChargeTime = 0;
     this.fallLoopState = false;
     this.fallLoopTime = 0;
+    this.fallLoopFactor = 0;
     // this.swordSideSlashState = false;
     // this.swordSideSlashTime = 0;
     // this.swordTopDownSlashState = false;
@@ -977,9 +984,9 @@ class Avatar {
     this.lastIsBackward = false;
     this.lastBackwardFactor = 0;
     this.backwardAnimationSpec = null;
-    this.startEyeTargetQuaternion = new THREE.Quaternion();
-    this.lastNeedsEyeTarget = false;
-    this.lastEyeTargetTime = -Infinity;
+    this.startHeadTargetQuaternion = new THREE.Quaternion();
+    this.lastNeedsHeadTarget = false;
+    this.lastHeadTargetTime = -Infinity;
 
     this.manuallySetMouth=false;
   }
@@ -1514,10 +1521,9 @@ class Avatar {
 
     const currentSpeed = localVector.set(this.velocity.x, 0, this.velocity.z).length();
 
-    const moveFactors = {};
-    moveFactors.idleWalkFactor = Math.min(Math.max((currentSpeed - idleFactorSpeed) / (walkFactorSpeed - idleFactorSpeed), 0), 1);
-    moveFactors.walkRunFactor = Math.min(Math.max((currentSpeed - walkFactorSpeed) / (runFactorSpeed - walkFactorSpeed), 0), 1);
-    moveFactors.crouchFactor = Math.min(Math.max(1 - (this.crouchTime / crouchMaxTime), 0), 1);
+    this.idleWalkFactor = Math.min(Math.max((currentSpeed - idleFactorSpeed) / (walkFactorSpeed - idleFactorSpeed), 0), 1);
+    this.walkRunFactor = Math.min(Math.max((currentSpeed - walkFactorSpeed) / (runFactorSpeed - walkFactorSpeed), 0), 1);
+    this.crouchFactor = Math.min(Math.max(1 - (this.crouchTime / crouchMaxTime), 0), 1);
     // console.log('current speed', currentSpeed, idleWalkFactor, walkRunFactor);
     this.aimRightFactor = this.aimRightTransitionTime / aimTransitionMaxTime;
     this.aimRightFactorReverse = 1 - this.aimRightFactor;
@@ -1559,47 +1565,47 @@ class Avatar {
       ); */
     };
 
-    const _updateEyeTarget = () => {
+    const _updateHeadTarget = () => {
       const eyePosition = getEyePosition(this.modelBones);
       const globalQuaternion = localQuaternion2.setFromRotationMatrix(
-        this.eyeTargetInverted ?
+        this.headTargetInverted ?
           localMatrix.lookAt(
-            this.eyeTarget,
+            this.headTarget,
             eyePosition,
             upVector
           )
           :
           localMatrix.lookAt(
             eyePosition,
-            this.eyeTarget,
+            this.headTarget,
             upVector
           )
       );
       // this.modelBoneOutputs.Root.updateMatrixWorld();
       this.modelBoneOutputs.Neck.matrixWorld.decompose(localVector, localQuaternion, localVector2);
 
-      const needsEyeTarget = this.eyeTargetEnabled && this.modelBones.Root.quaternion.angleTo(globalQuaternion) < Math.PI * 0.4;
-      if (needsEyeTarget && !this.lastNeedsEyeTarget) {
-        this.startEyeTargetQuaternion.copy(localQuaternion);
-        this.lastEyeTargetTime = now;
-      } else if (this.lastNeedsEyeTarget && !needsEyeTarget) {
-        this.startEyeTargetQuaternion.copy(localQuaternion);
-        this.lastEyeTargetTime = now;
+      const needsHeadTarget = this.headTargetEnabled && this.modelBones.Root.quaternion.angleTo(globalQuaternion) < Math.PI * 0.4;
+      if (needsHeadTarget && !this.lastNeedsHeadTarget) {
+        this.startHeadTargetQuaternion.copy(localQuaternion);
+        this.lastHeadTargetTime = now;
+      } else if (this.lastNeedsHeadTarget && !needsHeadTarget) {
+        this.startHeadTargetQuaternion.copy(localQuaternion);
+        this.lastHeadTargetTime = now;
       }
-      this.lastNeedsEyeTarget = needsEyeTarget;
+      this.lastNeedsHeadTarget = needsHeadTarget;
 
-      const eyeTargetFactor = Math.min(Math.max((now - this.lastEyeTargetTime) / maxEyeTargetTime, 0), 1);
-      if (needsEyeTarget) {
-        localQuaternion.copy(this.startEyeTargetQuaternion)
-          .slerp(globalQuaternion, cubicBezier(eyeTargetFactor));
+      const headTargetFactor = Math.min(Math.max((now - this.lastHeadTargetTime) / maxHeadTargetTime, 0), 1);
+      if (needsHeadTarget) {
+        localQuaternion.copy(this.startHeadTargetQuaternion)
+          .slerp(globalQuaternion, cubicBezier(headTargetFactor));
         this.modelBoneOutputs.Neck.matrixWorld.compose(localVector, localQuaternion, localVector2)
         this.modelBoneOutputs.Neck.matrix.copy(this.modelBoneOutputs.Neck.matrixWorld)
           .premultiply(localMatrix2.copy(this.modelBoneOutputs.Neck.parent.matrixWorld).invert())
           .decompose(this.modelBoneOutputs.Neck.position, this.modelBoneOutputs.Neck.quaternion, localVector2);
       } else {
-        if (eyeTargetFactor < 1) {
-          localQuaternion2.copy(this.startEyeTargetQuaternion)
-            .slerp(localQuaternion, cubicBezier(eyeTargetFactor));
+        if (headTargetFactor < 1) {
+          localQuaternion2.copy(this.startHeadTargetQuaternion)
+            .slerp(localQuaternion, cubicBezier(headTargetFactor));
           localMatrix.compose(localVector.set(0, 0, 0), localQuaternion2, localVector2.set(1, 1, 1))
             .premultiply(localMatrix2.copy(this.modelBoneOutputs.Neck.parent.matrixWorld).invert())
             .decompose(localVector, localQuaternion, localVector2);
@@ -1608,11 +1614,21 @@ class Avatar {
     };
 
     const _updateEyeballTarget = () => {
+      const eyePosition = getEyePosition(this.modelBones);
+      const globalQuaternion = localQuaternion2.setFromRotationMatrix(
+        localMatrix.lookAt(
+          this.eyeballTarget,
+          eyePosition,
+          upVector
+        )
+      );
+      
       const leftEye = this.modelBoneOutputs['Eye_L'];
       const rightEye = this.modelBoneOutputs['Eye_R'];
 
       const lookerEyeballTarget = this.looker.update(now);
-      const eyeballTarget = this.eyeballTargetEnabled ? this.eyeballTarget : lookerEyeballTarget;
+      let needEyeballTarget = this.eyeballTargetEnabled && this.modelBones.Root.quaternion.angleTo(globalQuaternion) < Math.PI * 0.4;
+      const eyeballTarget = needEyeballTarget ? this.eyeballTarget : lookerEyeballTarget;
 
       if (eyeballTarget && this.firstPersonCurves) {
         const {
@@ -1921,7 +1937,7 @@ class Avatar {
         this.inputs.hmd.quaternion
       );
     }
-    _applyAnimation(this, now, moveFactors, timeDiffS);
+    _applyAnimation(this, now);
 
     if (this.poseAnimation) {
       _overwritePose(this.poseAnimation);
@@ -1945,7 +1961,7 @@ class Avatar {
     this.lerpShoulderTransforms();
     this.legsManager.Update();
 
-    _updateEyeTarget();
+    _updateHeadTarget();
     _updateEyeballTarget();
 
     this.modelBoneOutputs.Root.updateMatrixWorld();
@@ -2016,7 +2032,7 @@ class Avatar {
         // the mouth is manually overridden by the CharacterBehavior class which is attached to all players
         // this happens when a player is eating fruit or yelling while making an attack
         if (!this.manuallySetMouth) {
-          this.volume = this.volume * 0.8 + e.data * 0.2;
+          this.volume = e.data;
         }
       }
 
@@ -2074,16 +2090,16 @@ class Avatar {
         emitBuffer: true,
       });
 
-      const _localVolume = e => {
+      const _volume = e => {
         this.volume = this.volume * 0.8 + e.data * 0.2;
       }
 
-      const _localBuffer = e => {
+      const _buffer = e => {
         this.audioRecognizer.send(e.data);
       }
 
-      this.microphoneWorker.addEventListener('volume', _localVolume);
-      this.microphoneWorker.addEventListener('buffer', _localBuffer);
+      this.microphoneWorker.addEventListener('volume', _volume);
+      this.microphoneWorker.addEventListener('buffer', _buffer);
     } else {
       this.volume = -1;
     }

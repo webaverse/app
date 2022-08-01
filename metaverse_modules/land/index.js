@@ -1,9 +1,19 @@
-// import * as THREE from 'three';
+import * as THREE from 'three';
 import metaversefile from 'metaversefile';
-const {useApp, useCleanup} = metaversefile;
+const {useApp, useLocalPlayer, useCamera, useProcGenManager, useFrame, useCleanup} = metaversefile;
+
+const localVector = new THREE.Vector3();
+const localVector2 = new THREE.Vector3();
+const localVector3 = new THREE.Vector3();
+const localQuaternion = new THREE.Quaternion();
+const localMatrix = new THREE.Matrix4();
+const localMatrix2 = new THREE.Matrix4();
 
 export default e => {
   const app = useApp();
+  const localPlayer = useLocalPlayer();
+  const camera = useCamera();
+  const procGenManager = useProcGenManager();
 
   app.name = 'land';
 
@@ -39,7 +49,7 @@ export default e => {
   ];
   const passComponents = [];
   const seed = app.getComponent('seed');
-  const clipRange = app.getComponent('clipRange');
+  let clipRange = app.getComponent('clipRange');
   const physicsInstance = app.getComponent('physicsInstance');
   const wait = app.getComponent('wait');
   const debug = app.getComponent('debug');
@@ -95,6 +105,15 @@ export default e => {
       "value": debug,
     });
   }
+
+  if (clipRange) {
+    clipRange = new THREE.Box3(
+      new THREE.Vector3().fromArray(clipRange[0]),
+      new THREE.Vector3().fromArray(clipRange[1]),
+    );
+  }
+
+  const procGenInstance = procGenManager.getInstance(seed, clipRange);
 
   app.addEventListener('componentsupdate', e => {
     const {keys} = e;
@@ -152,6 +171,31 @@ export default e => {
       }
     }
     return null;
+  }
+
+  if (!renderPosition) {
+    useFrame(() => {
+      const appMatrixWorldInverse = localMatrix2.copy(app.matrixWorld).invert();
+      localMatrix
+        .copy(localPlayer.matrixWorld)
+        .premultiply(appMatrixWorldInverse)
+        .decompose(localVector, localQuaternion, localVector2);
+      const playerPosition = localVector;
+
+      localMatrix
+        .copy(camera.matrixWorld)
+        .premultiply(appMatrixWorldInverse)
+        .decompose(localVector2, localQuaternion, localVector3);
+      const cameraPosition = localVector2;
+      const cameraQuaternion = localQuaternion;
+
+      procGenInstance.dcWorkerManager.setCamera(
+        playerPosition,
+        cameraPosition,
+        cameraQuaternion,
+        camera.projectionMatrix
+      );
+    });
   }
 
   useCleanup(() => {

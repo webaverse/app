@@ -146,7 +146,32 @@ class PhysicsScene extends EventTarget {
     physicsObject.physicsMesh = physicsMesh
     return physicsObject
   }
-  addBoxGeometry(position, quaternion, size, dynamic) {
+  addPlaneGeometry(position, quaternion, dynamic) {
+    const physicsId = getNextPhysicsId()
+    physx.physxWorker.addPlaneGeometryPhysics(
+      this.scene,
+      position,
+      quaternion,
+      physicsId,
+      dynamic,
+    )
+  
+    const physicsObject = _makePhysicsObject(
+      physicsId,
+      position,
+      quaternion,
+      localVector2.set(1, 1, 1)
+    )
+    const physicsMesh = new THREE.Mesh(new THREE.PlaneGeometry(1, 1), redMaterial)
+    physicsMesh.visible = false
+    physicsObject.add(physicsMesh)
+    physicsObject.updateMatrixWorld()
+    physicsObject.physicsMesh = physicsMesh
+    return physicsObject
+  }
+  addBoxGeometry(position, quaternion, size, dynamic,
+    groupId = -1 // if not equal to -1, this BoxGeometry will not collide with CharacterController.
+  ) {
     const physicsId = getNextPhysicsId()
     physx.physxWorker.addBoxGeometryPhysics(
       this.scene,
@@ -154,7 +179,8 @@ class PhysicsScene extends EventTarget {
       quaternion,
       size,
       physicsId,
-      dynamic
+      dynamic,
+      groupId
     )
   
     const physicsObject = _makePhysicsObject(
@@ -258,13 +284,15 @@ class PhysicsScene extends EventTarget {
     physicsMesh.updateMatrixWorld()
     return physicsObject
   }
-  addConvexGeometry(mesh) {
+  addConvexGeometry(mesh, dynamic = false, external = false) {
     const physicsMesh = convertMeshToPhysicsMesh(mesh)
   
     const physicsId = getNextPhysicsId()
     physx.physxWorker.addConvexGeometryPhysics(
       this.scene,
       physicsMesh,
+      dynamic,
+      external,
       physicsId
     )
     physicsMesh.geometry = this.extractPhysicsGeometryForId(physicsId)
@@ -300,7 +328,9 @@ class PhysicsScene extends EventTarget {
     buffer,
     position,
     quaternion,
-    scale
+    scale,
+    dynamic = false,
+    external = false,
   ) {
     const physicsId = getNextPhysicsId()
     physx.physxWorker.addCookedConvexGeometryPhysics(
@@ -309,6 +339,8 @@ class PhysicsScene extends EventTarget {
       position,
       quaternion,
       scale,
+      dynamic,
+      external,
       physicsId
     )
   
@@ -351,7 +383,7 @@ class PhysicsScene extends EventTarget {
     physicsMesh.updateMatrixWorld()
     return physicsObject
   }
-  addConvexShape(shapeAddress, position, quaternion, scale, dynamic, external) {
+  addConvexShape(shapeAddress, position, quaternion, scale, dynamic = false, external = false, physicsGeometry = null) {
     const physicsId = getNextPhysicsId()
   
     physx.physxWorker.addConvexShapePhysics(
@@ -371,8 +403,11 @@ class PhysicsScene extends EventTarget {
       quaternion,
       scale
     )
-    const geometry = this.extractPhysicsGeometryForId(physicsId);
-    const physicsMesh = new THREE.Mesh(geometry, redMaterial);
+
+    if (!physicsGeometry)
+      physicsGeometry = this.extractPhysicsGeometryForId(physicsId);
+
+    const physicsMesh = new THREE.Mesh(physicsGeometry, redMaterial);
   
     physicsMesh.visible = false
     physicsObject.add(physicsMesh)
@@ -753,6 +788,36 @@ class PhysicsScene extends EventTarget {
   }
   getGravity() {
     return gravity;
+  }
+  setTrigger(id) {
+    return physx.physxWorker.setTriggerPhysics(
+      this.scene, id,
+    )
+  }
+  getTriggerEvents() {
+    const triggerEvents = physx.physxWorker.getTriggerEventsPhysics(
+      this.scene,
+    )
+    triggerEvents.forEach(triggerEvent => {
+      const {status, triggerPhysicsId, otherPhysicsId} = triggerEvent;
+      const triggerApp = metaversefileApi.getAppByPhysicsId(triggerPhysicsId);
+      const otherApp = metaversefileApi.getAppByPhysicsId(otherPhysicsId);
+      if (triggerApp) {
+        if (status === 4) {
+          triggerApp.dispatchEvent({type: 'triggerin', oppositePhysicsId: otherPhysicsId});
+        } else if (status === 16) {
+          triggerApp.dispatchEvent({type: 'triggerout', oppositePhysicsId: otherPhysicsId});
+        }
+      }
+      if (otherApp) {
+        if (status === 4) {
+          otherApp.dispatchEvent({type: 'triggerin', oppositePhysicsId: triggerPhysicsId});
+        } else if (status === 16) {
+          otherApp.dispatchEvent({type: 'triggerout', oppositePhysicsId: triggerPhysicsId});
+        }
+      }
+    })
+    return triggerEvents;
   }
 }
 
