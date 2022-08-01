@@ -47,11 +47,11 @@ const MegaHup = function({
           }
         );
         diorama = dioramaManager.createPlayerDiorama({
-          target: spineBone,
+          target: spineBone ?? npcPlayer,
           objects: [
             npcPlayer.avatar.model,
           ],
-          cameraOffset: new THREE.Vector3(-0.8, 0.4, -0.8),
+          cameraOffset: new THREE.Vector3(-0.8, 0, -0.4),
           // label: true,
           // outline: true,
           // grassBackground: true,

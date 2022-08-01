@@ -318,7 +318,7 @@ export default (app, component) => {
             _copyBoneAttachment(appAimAction);
           } else {
             if (modelBones) {
-              Avatar.applyModelBoneOutputs(modelBones, player.avatar.modelBoneOutputs, player.avatar.getTopEnabled(), player.avatar.getBottomEnabled(), player.avatar.getHandEnabled(0), player.avatar.getHandEnabled(1));
+              Avatar.applyModelBoneOutputs(player.avatar, modelBones, player.avatar.modelBoneOutputs, player.avatar.getBottomEnabled());
               modelBones.Root.updateMatrixWorld();
             } else if (wearSpec.boneAttachment) {
               _copyBoneAttachment(wearSpec);
