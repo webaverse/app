@@ -1508,6 +1508,7 @@ class Avatar {
     localEuler.set(0, -(localEuler.y + Math.PI), 0);
     positionDiff.applyEuler(localEuler);
     this.testVelocity.copy(positionDiff); // For testing only, check if the physics.velocity correct. Can't use this in formal, to calc such as idleWalkFactor/walkRunFactor, will cause aniamtions jitter in low fps.
+    this.testVelocity.y *= -1;
     // this.velocity.applyEuler(localEuler);
     this.lastVelocity.copy(this.velocity);
     this.direction.copy(positionDiff).normalize();
@@ -1960,6 +1961,7 @@ class Avatar {
         <div style="display:;">angle: --- ${window.logNum(this.getAngle())}</div>
       `
     }
+    console.log(this.testVelocity.y)
     // console.log('applyAnimation')
     _applyAnimation(this, now);
 

@@ -83,8 +83,15 @@ class CharacterPhysics {
       const fallLoopAction = this.player.getAction('fallLoop');
       if (fallLoopAction) {
         if (!this.lastFallLoopAction) {
+          console.log('start fallLoop')
           this.fallLoopStartTimeS = performance.now() / 1000; // todo: use timeS arg.
           this.lastGravityH = 0;
+          if (fallLoopAction.from === 'jump') {
+            const aestheticJumpBias = 1;
+            const t = flatGroundJumpAirTime / 1000 / 2 + aestheticJumpBias;
+            this.fallLoopStartTimeS -= t;
+            this.lastGravityH = 0.5 * physicsScene.getGravity().y * t * t; // todo: consider xyz.
+          }
         }
         const t = performance.now() / 1000 - this.fallLoopStartTimeS;
         const h = 0.5 * physicsScene.getGravity().y * t * t; // todo: consider xyz.
@@ -133,6 +140,7 @@ class CharacterPhysics {
 
       // console.log('set localVector3')
 
+      // aesthetic jump
       const jumpAction = this.player.getAction('jump');
       if (jumpAction?.trigger === 'jump') {
         const doubleJumpAction = this.player.getAction('doubleJump');
