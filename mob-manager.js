@@ -35,6 +35,8 @@ const maxInstancesPerDrawCall = 128;
 const maxDrawCallsPerGeometry = 1;
 const maxBonesPerInstance = 128;
 
+const physicsScene = physicsManager.getScene();
+
 // window.THREE = THREE;
 
 const _zeroY = v => {
@@ -91,7 +93,7 @@ function makeCharacterController(app, {
         .applyQuaternion(localQuaternion)
     );
 
-  const characterController = physicsManager.createCharacterController(
+  const characterController = physicsScene.createCharacterController(
     radius - contactOffset,
     innerHeight,
     contactOffset,
@@ -242,7 +244,7 @@ class Mob {
           halfHeight,
         } = spec;
         _getPhysicsExtraPositionQuaternion(spec, localVector, localQuaternion, localVector2, localMatrix);
-        const physicsObject = physicsManager.addCapsuleGeometry(localVector, localQuaternion, radius, halfHeight);
+        const physicsObject = physicsScene.addCapsuleGeometry(localVector, localQuaternion, radius, halfHeight);
         physicsObject.spec = spec;
         return physicsObject;
       });
@@ -250,9 +252,9 @@ class Mob {
       subApp.getPhysicsObjects = () => physicsObjects;
 
       this.cleanupFns.push(() => {
-        physicsManager.destroyCharacterController(characterController);
+        physicsScene.destroyCharacterController(characterController);
         for (const extraPhysicsObject of extraPhysicsObjects) {
-          physicsManager.removeGeometry(extraPhysicsObject);
+          physicsScene.removeGeometry(extraPhysicsObject);
         }
       });
 
@@ -289,12 +291,12 @@ class Mob {
 
         if (animation) {
           mesh.position.add(localVector.copy(animation.velocity).multiplyScalar(timeDiff/1000));
-          animation.velocity.add(localVector.copy(physicsManager.getGravity()).multiplyScalar(timeDiff/1000));
+          animation.velocity.add(localVector.copy(physicsScene.getGravity()).multiplyScalar(timeDiff/1000));
           if (mesh.position.y < 0) {
             animation = null;
           }
 
-          physicsManager.setCharacterControllerPosition(characterController, mesh.position);
+          physicsScene.setCharacterControllerPosition(characterController, mesh.position);
 
           mesh.updateMatrixWorld();
           
@@ -328,16 +330,16 @@ class Mob {
 
                 const popExtraGeometry = (() => {
                   for (const extraPhysicsObject of extraPhysicsObjects) {
-                    physicsManager.disableActor(extraPhysicsObject);
+                    physicsScene.disableActor(extraPhysicsObject);
                   }
                   return () => {
                     for (const extraPhysicsObject of extraPhysicsObjects) {
-                      physicsManager.enableActor(extraPhysicsObject);
+                      physicsScene.enableActor(extraPhysicsObject);
                     }
                   };
                 })();
 
-                const flags = physicsManager.moveCharacterController(
+                const flags = physicsScene.moveCharacterController(
                   characterController,
                   moveDelta,
                   minDist,
@@ -350,7 +352,7 @@ class Mob {
                 let grounded = !!(flags & 0x1);
                 if (!grounded) {                  
                   velocity.add(
-                    localVector.copy(physicsManager.getGravity())
+                    localVector.copy(physicsScene.getGravity())
                       .multiplyScalar(timeDiffS)
                   );
                 } else {
@@ -407,7 +409,7 @@ class Mob {
               extraPhysicsObject.position.copy(localVector);
               extraPhysicsObject.quaternion.copy(localQuaternion);
               extraPhysicsObject.updateMatrixWorld();
-              physicsManager.setTransform(extraPhysicsObject);
+              physicsScene.setTransform(extraPhysicsObject);
             }
           };
           _updateExtraPhysics();
