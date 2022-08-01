@@ -1901,9 +1901,9 @@ export default () => {
                         info.acc[i].set(-currentDir.x * 0.0018, 0.0008, -currentDir.z * 0.0018);
                         positionsAttribute.setXYZ(
                             i, 
-                            localPlayer.position.x + 1. * currentDir.x + (Math.random() - 0.5) * 0.2 , 
+                            localPlayer.position.x + 1.1 * currentDir.x + (Math.random() - 0.5) * 0.2 , 
                             localPlayer.position.y - localPlayer.avatar.height, 
-                            localPlayer.position.z + 1. * currentDir.z + (Math.random() - 0.5) * 0.2
+                            localPlayer.position.z + 1.1 * currentDir.z + (Math.random() - 0.5) * 0.2
                         );
                         euler.set(Math.random() * Math.PI, Math.random() * Math.PI, Math.random() * Math.PI);
                         quaternion.setFromEuler(euler);
@@ -1922,7 +1922,7 @@ export default () => {
                         );
                         scalesAttribute.setXYZ(i, scalesAttribute.getX(i) * 1.03, scalesAttribute.getY(i) * 1.03, scalesAttribute.getZ(i) * 1.03);
                         brokenAttribute.setX(i, brokenAttribute.getX(i) + 0.045);
-                        opacityAttribute.setX(i, opacityAttribute.getX(i) - 0.04);
+                        opacityAttribute.setX(i, opacityAttribute.getX(i) - 0.02);
                         info.velocity[i].add(info.acc[i]);
                     }
                     else{
