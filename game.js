@@ -1415,13 +1415,17 @@ class GameManager extends EventTarget {
   toggleCrouch() {
     const localPlayer = playersManager.getLocalPlayer();
     let crouchAction = localPlayer.getAction('crouch');
+    const narutoRunAction = localPlayer.getAction('narutoRun');
+    const sitAction = localPlayer.getAction('sit');
     if (crouchAction) {
       localPlayer.removeAction('crouch');
     } else {
-      const crouchAction = {
-        type: 'crouch',
-      };
-      localPlayer.addAction(crouchAction);
+      if(!narutoRunAction && !sitAction){
+        const crouchAction = {
+          type: 'crouch',
+        };
+        localPlayer.addAction(crouchAction);
+      }
     }
   }
   async handleDropJsonItemToPlayer(item, index) {
