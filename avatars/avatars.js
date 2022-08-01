@@ -976,6 +976,7 @@ class Avatar {
     this.sprintFactor = 0;
     this.lastPosition = new THREE.Vector3();
     this.velocity = new THREE.Vector3();
+    // this.testVelocity = new THREE.Vector3();
     this.lastMoveTime = 0;
     this.lastEmoteTime = 0;
     this.lastEmoteAnimation = 0;
@@ -1501,11 +1502,12 @@ class Avatar {
     const positionDiff = localVector.copy(lastPosition)
       .sub(currentPosition)
       .divideScalar(Math.max(timeDiffS, 0.001))
-      .multiplyScalar(0.1);
+      // .multiplyScalar(0.1);
     localEuler.setFromQuaternion(currentQuaternion, 'YXZ');
     localEuler.set(0, -(localEuler.y + Math.PI), 0);
     positionDiff.applyEuler(localEuler);
-    // this.velocity.copy(positionDiff);
+    // this.testVelocity.copy(positionDiff); // For testing only, check if the physics.velocity correct. Can't use this in formal, to calc such as idleWalkFactor/walkRunFactor, will cause aniamtions jitter in low fps.
+    // this.testVelocity.y *= -1;
     this.lastVelocity.copy(this.velocity);
     this.direction.copy(positionDiff).normalize();
     this.lastPosition.copy(currentPosition);

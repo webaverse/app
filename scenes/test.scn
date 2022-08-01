@@ -16,6 +16,7 @@
       }
     },
 
+    { "position": [ -8, 0, 5 ], "scale": [5, 5, 5], "start_url": "http://localhost/lib/webaverse_resource/ramp/" },
     { "position": [ 0, 0, 0 ], "start_url": "http://localhost/lib/webaverse_resource/block/grid.glb" }
   ]
 }
