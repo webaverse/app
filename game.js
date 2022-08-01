@@ -1440,6 +1440,8 @@ class GameManager extends EventTarget {
     app.instanceId = makeId(5);
     world.appManager.importApp(app);
     app.activate();
+    const localPlayer = playersManager.getLocalPlayer();
+    app.position.copy(localPlayer.position)
     // XXX set to index
   }
   selectLoadout(index) {
