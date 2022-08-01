@@ -1961,7 +1961,7 @@ class Avatar {
         <div style="display:;">angle: --- ${window.logNum(this.getAngle())}</div>
       `
     }
-    console.log(this.testVelocity.y)
+    // console.log(this.testVelocity.y)
     // console.log('applyAnimation')
     _applyAnimation(this, now);
 
