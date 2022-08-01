@@ -26,6 +26,10 @@ export function applyPlayerTransformsToAvatar(player, session, rig) {
     rig.inputs.leftGamepad.quaternion.copy(player.leftHand.quaternion);
     rig.inputs.rightGamepad.position.copy(player.rightHand.position);
     rig.inputs.rightGamepad.quaternion.copy(player.rightHand.quaternion);
+
+    // console.log(player.characterPhysics.velocity.x, player.characterPhysics.velocity.z);
+    rig.velocity.copy(player.characterPhysics.velocity);
+    // rig.velocity.applyQuaternion(localQuaternion.copy(player.quaternion).invert()); // todo: Don't need still ok? // Will cause firstperson view wrong avatar.velocity.
   }
 }
 /* export function applyPlayerMetaTransformsToAvatar(player, session, rig) {
@@ -88,18 +92,6 @@ export function makeAvatar(app) {
   return null;
 }
 export function applyPlayerActionsToAvatar(player, rig) {
-
-  if (rig.velocity && player.characterPhysics?.velocity) {
-    rig.velocity.copy(player.characterPhysics.velocity);
-    // console.log(player.characterPhysics.velocity.x, player.characterPhysics.velocity.z);
-    // rig.velocity.applyQuaternion(localQuaternion.copy(player.quaternion).invert()); // todo: Don't need still ok?
-    // Will cause firstperson view wrong avatar.velocity.
-    // rig.velocity.x *= 0.1;
-    // rig.velocity.z *= 0.1;
-    // rig.velocity.y *= 0.1;
-  }
-  // console.log('binding')
-
   const jumpAction = player.getAction('jump');
   const doubleJumpAction = player.getAction('doubleJump');
   const landAction = player.getAction('land');
