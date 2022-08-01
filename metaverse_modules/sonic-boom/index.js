@@ -682,7 +682,7 @@ export default () => {
             
             float p = 5.;
             voronoiNoise = vec4(pow(voronoiNoise.r, p), pow(voronoiNoise.g, p), pow(voronoiNoise.b, p), voronoiNoise.a);
-            gl_FragColor = trail * mask * p * vec4(0.120, 0.280, 1.920, 1.0);
+            gl_FragColor = trail * mask * 5.5 * vec4(0.120, 0.280, 1.920, 1.0);
             gl_FragColor *= voronoiNoise;
             gl_FragColor.a *= opacity;
                 
