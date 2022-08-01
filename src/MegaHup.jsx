@@ -41,8 +41,7 @@ const MegaHup = function({
       {
         let spineBone;
         npcPlayer.avatar.model.traverse(
-          object => {
-            if (object.type === 'Bone' && object.name === 'Spine' && !spineBone) {
+          object => { if (object.type === 'Bone' && object.name.toLowerCase().includes('spine') && !spineBone) {
               spineBone = object;
             }
           }

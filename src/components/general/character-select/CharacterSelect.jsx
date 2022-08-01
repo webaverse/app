@@ -265,7 +265,6 @@ export const CharacterSelect = () => {
                     Math.floor(rect.top - parentRect.top + rect.height / 2),
                 ]);
             } else {
-                console.error('ref is null')
                 setArrowPosition(null);
             }
         } else {
