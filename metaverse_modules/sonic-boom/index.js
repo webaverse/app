@@ -9,8 +9,8 @@ export default () => {
   const localPlayer = app.getComponent('player') || useLocalPlayer();
   const cameraManager = useCameraManager();
   const {renderer, camera} = useInternals();
-  let narutoRunTime=0; 
-  let lastStopSw=0;
+  let narutoRunTime = 0; 
+  let lastStopSw = 0;
 
   const nameSpec = [
     'wave2',
@@ -613,7 +613,6 @@ export default () => {
             },
             trailTexture:{ value: null},
             maskTexture:{value: null},
-            noiseTexture:{value: null},
             voronoiNoiseTexture:{value: null},
         },
         vertexShader: `\
@@ -642,26 +641,19 @@ export default () => {
           ${THREE.ShaderChunk.logdepthbuf_pars_fragment}
           uniform sampler2D trailTexture;
           uniform sampler2D maskTexture;
-          uniform sampler2D noiseTexture;
           uniform sampler2D voronoiNoiseTexture;
+          
+          
           
           uniform float uTime;
           uniform float opacity;
           varying vec2 vUv;
           void main() {
-            
             vec4 voronoiNoise = texture2D(
                 voronoiNoiseTexture,
                 vec2(
-                    0.45 * vUv.x + uTime * 0.0125,
-                    0.45 * vUv.y + uTime * 0.75
-                )
-            );  
-            vec4 noise = texture2D(
-                noiseTexture,
-                vec2(
-                    vUv.x + uTime * 0.025,
-                    vUv.y + uTime * 2.5
+                    0.45 * vUv.x,
+                    0.45 * vUv.y + uTime * 0.5
                 )
             );  
             
@@ -669,7 +661,7 @@ export default () => {
                 trailTexture,
                 vec2(
                     vUv.x,
-                    mix(vUv.y + uTime * 2.5, noise.g, 0.15)
+                    mix(2. * vUv.y + uTime * 1.5, voronoiNoise.g, 0.25)
                 )
             );  
             vec4 mask = texture2D(
@@ -679,11 +671,9 @@ export default () => {
                     1. - vUv.y
                 )
             ); 
-            
-            float p = 5.;
-            voronoiNoise = vec4(pow(voronoiNoise.r, p), pow(voronoiNoise.g, p), pow(voronoiNoise.b, p), voronoiNoise.a);
-            gl_FragColor = trail * mask * 5.5 * vec4(0.120, 0.280, 1.920, 1.0);
-            gl_FragColor *= voronoiNoise;
+            float p = 2.15;
+            voronoiNoise = vec4(pow(voronoiNoise.r, p), pow(voronoiNoise.g, p), pow(voronoiNoise.b, p), voronoiNoise.a) * 1.15;
+            gl_FragColor = mask * trail * voronoiNoise * vec4(0.120, 0.280, 1.920, 1.0);
             gl_FragColor.a *= opacity;
                 
             ${THREE.ShaderChunk.logdepthbuf_fragment}
@@ -702,7 +692,7 @@ export default () => {
     //########################################## vertical trail ######################################
     {
       const planeGeometry = new THREE.BufferGeometry();
-      let planeNumber = 50;
+      let planeNumber = 80;
       let position= new Float32Array(18 * planeNumber);
       planeGeometry.setAttribute('position', new THREE.BufferAttribute(position, 3));
 
@@ -772,14 +762,14 @@ export default () => {
             for (let i = 0; i < planeNumber; i++){
                 if(i === 0){
                     position[0] = localPlayer.position.x;
-                    position[1] = localPlayer.position.y - 1;
+                    position[1] = localPlayer.position.y - 0.7;
                     position[2] = localPlayer.position.z;
                     if (localPlayer.avatar) {
                         position[1] -= localPlayer.avatar.height;
                         position[1] += 1.18;
                     }
                     position[3] = localPlayer.position.x;
-                    position[4] = localPlayer.position.y - 2;
+                    position[4] = localPlayer.position.y - 2.3;
                     position[5] = localPlayer.position.z;
                     if (localPlayer.avatar) {
                         position[4] -= localPlayer.avatar.height;
@@ -799,7 +789,7 @@ export default () => {
                     position[14] = temp[2];
                 
                     position[15] = localPlayer.position.x;
-                    position[16] = localPlayer.position.y - 2;
+                    position[16] = localPlayer.position.y - 2.3;
                     position[17] = localPlayer.position.z;
                     if (localPlayer.avatar) {
                         position[16] -= localPlayer.avatar.height;
@@ -827,11 +817,6 @@ export default () => {
                 material.uniforms.trailTexture.value = particleTexture[nameSpec.indexOf('trail3')];
                 material.uniforms.trailTexture.value.wrapS = material.uniforms.trailTexture.value.wrapT = THREE.RepeatWrapping;
             }
-                
-            if(!material.uniforms.noiseTexture.value){
-                material.uniforms.noiseTexture.value = particleTexture[nameSpec.indexOf('noise')];
-                material.uniforms.noiseTexture.value.wrapS = material.uniforms.noiseTexture.value.wrapT = THREE.RepeatWrapping;
-            }
             if(!material.uniforms.voronoiNoiseTexture.value){
                 material.uniforms.voronoiNoiseTexture.value = particleTexture[nameSpec.indexOf('voronoiNoise')];
                 material.uniforms.voronoiNoiseTexture.value.wrapS = material.uniforms.voronoiNoiseTexture.value.wrapT = THREE.RepeatWrapping;
@@ -858,7 +843,7 @@ export default () => {
     //########################################## horizontal trail ######################################
     {
       const planeGeometry = new THREE.BufferGeometry();
-      const planeNumber = 50;
+      const planeNumber = 80;
       let position = new Float32Array(18 * planeNumber);
       planeGeometry.setAttribute('position', new THREE.BufferAttribute(position, 3));
 
@@ -936,10 +921,10 @@ export default () => {
             point2.y = localPlayer.position.y;
             point2.z = localPlayer.position.z;
             
-            point1.x -= 0.6 * localVector2.x;
-            point1.z -= 0.6 * localVector2.z;
-            point2.x += 0.6 * localVector2.x;
-            point2.z += 0.6 * localVector2.z;
+            point1.x -= 0.9 * localVector2.x;
+            point1.z -= 0.9 * localVector2.z;
+            point2.x += 0.9 * localVector2.x;
+            point2.z += 0.9 * localVector2.z;
             
            
             for(let i = 0;i < 18; i++){
