@@ -1673,20 +1673,21 @@ class GameManager extends EventTarget {
       outline: true,
       grassBackground: true,
       // glyphBackground: true,
+      cameraOffset: new THREE.Vector3(0, 0, -0.6),
     });
     localPlayer.addEventListener('avatarchange', e => {
       this.playerDiorama.setObjects([
         e.avatar.model,
       ]);
-      let neckBone;
+      let headBone;
       e.avatar.model.traverse(
         (object) => {
           if (object.type === "Bone" && object.name === "Head") {
-            return neckBone = object;
+            return headBone = object;
           }
         }
       );
-      this.playerDiorama.setTarget(neckBone);
+      this.playerDiorama.setTarget(headBone);
     });
   }
   async setVoicePack(voicePack) {

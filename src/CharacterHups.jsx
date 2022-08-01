@@ -1,4 +1,4 @@
-// import * as THREE from 'three';
+import * as THREE from 'three';
 import React, {useState, useEffect, useRef} from 'react';
 import classnames from 'classnames';
 import dioramaManager from '../diorama.js';
@@ -40,18 +40,33 @@ const CharacterHup = function(props) {
         diorama.resetCanvases();
         diorama.addCanvas(canvas);
       } else {
-        let neckBone;
+        let headBone;
         player.avatar.model.traverse(
-          (object) => object.type === "Bone" && object.name === "Head" && !neckBone && (neckBone = object)
+          (object) => object.type === "Bone" && object.name === "Head" && !headBone && (headBone = object)
         );
         diorama = dioramaManager.createPlayerDiorama({
-          target: neckBone,
+          target: headBone,
           objects: [player.avatar.model],
           grassBackground: true,
+          cameraOffset: new THREE.Vector3(0, 0, -0.6),
         });
         diorama.addCanvas(canvas);
         // chatDioramas.set(player, diorama);
         // console.log('no diorama');
+        player.addEventListener('avatarchange', e => {
+          diorama.setObjects([
+            e.avatar.model,
+          ]);
+          let headBone;
+          e.avatar.model.traverse(
+            (object) => {
+              if (object.type === "Bone" && object.name === "Head") {
+                return headBone = object;
+              }
+            }
+          );
+          diorama.setTarget(headBone);
+        });
       }
 
       return () => {
