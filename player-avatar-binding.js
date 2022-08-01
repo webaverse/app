@@ -26,17 +26,13 @@ export function applyPlayerTransformsToAvatar(player, session, rig) {
     rig.inputs.leftGamepad.quaternion.copy(player.leftHand.quaternion);
     rig.inputs.rightGamepad.position.copy(player.rightHand.position);
     rig.inputs.rightGamepad.quaternion.copy(player.rightHand.quaternion);
-
-    // console.log(player.characterPhysics.velocity.x, player.characterPhysics.velocity.z);
-    rig.velocity.copy(player.characterPhysics.velocity);
-    // rig.velocity.applyQuaternion(localQuaternion.copy(player.quaternion).invert()); // todo: Don't need still ok? // Will cause firstperson view wrong avatar.velocity.
   }
 }
-/* export function applyPlayerMetaTransformsToAvatar(player, session, rig) {
+export function applyPlayerMetaTransformsToAvatar(player, session, rig) {
   if (!session) {
     rig.velocity.copy(player.characterPhysics.velocity);
   }
-} */
+}
 export function applyPlayerModesToAvatar(player, session, rig) {
   for (let i = 0; i < 2; i++) {
     rig.setHandEnabled(i, player.hands[i].enabled);
@@ -294,7 +290,7 @@ export function applyPlayerPoseToAvatar(player, rig) {
 }
 export function applyPlayerToAvatar(player, session, rig, mirrors) {
   applyPlayerTransformsToAvatar(player, session, rig);
-  // applyPlayerMetaTransformsToAvatar(player, session, rig);
+  applyPlayerMetaTransformsToAvatar(player, session, rig);
   
   applyPlayerModesToAvatar(player, session, rig);
   applyPlayerActionsToAvatar(player, rig);

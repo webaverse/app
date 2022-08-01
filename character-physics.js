@@ -52,6 +52,9 @@ class CharacterPhysics {
     this.lastGroundedTime = 0;
     this.lastCharacterControllerY = null;
     this.sitOffset = new THREE.Vector3();
+    this.lastFallLoopAction = false;
+    this.fallLoopStartTimeS = 0;
+    this.lastGravityH = 0;
    
     this.lastPistolUse = false;
     this.lastPistolUseStartTime = -Infinity;
@@ -77,19 +80,34 @@ class CharacterPhysics {
   }
   applyGravity(timeDiffS) {
     // if (this.player) {
-      if ((this.player.hasAction('jump') || this.player.hasAction('fallLoop')) && !this.player.hasAction('fly') && !this.player.hasAction('swim')) {
-        
-        const gravityTargetVelocity = localVector.copy(physicsScene.getGravity());
-        const gravityTargetMoveDistancePerFrame = gravityTargetVelocity.multiplyScalar(timeDiffS);
-        this.targetVelocity.add(gravityTargetVelocity); // todo: acceleration of gravity.
-        this.targetMoveDistancePerFrame.add(gravityTargetMoveDistancePerFrame);
+      const fallLoopAction = this.player.getAction('fallLoop');
+      if (fallLoopAction) {
+        if (!this.lastFallLoopAction) {
+          this.fallLoopStartTimeS = performance.now() / 1000; // todo: use timeS arg.
+          this.lastGravityH = 0;
+        }
+        const t = performance.now() / 1000 - this.fallLoopStartTimeS;
+        const h = 0.5 * physicsScene.getGravity().y * t * t; // todo: consider xyz.
+        // this.velocity.y += h;
+        this.moveDistancePerFrame.y = h - this.lastGravityH;
 
-        //// move this.applyGravity(timeDiffS); after this.updateVelocity(timeDiffS);
-        // const gravityVelocity = localVector.copy(physicsScene.getGravity());
-        // const gravityMoveDistancePerFrame = gravityVelocity.multiplyScalar(timeDiffS);
-        // this.velocity.add(gravityVelocity); // todo: acceleration of gravity.
-        // this.moveDistancePerFrame.add(gravityMoveDistancePerFrame);
+        this.lastGravityH = h;
       }
+      this.lastFallLoopAction = fallLoopAction;
+
+      // if ((this.player.hasAction('jump') || this.player.hasAction('fallLoop')) && !this.player.hasAction('fly') && !this.player.hasAction('swim')) {
+        
+      //   const gravityTargetVelocity = localVector.copy(physicsScene.getGravity());
+      //   const gravityTargetMoveDistancePerFrame = gravityTargetVelocity.multiplyScalar(timeDiffS);
+      //   this.targetVelocity.add(gravityTargetVelocity); // todo: acceleration of gravity.
+      //   this.targetMoveDistancePerFrame.add(gravityTargetMoveDistancePerFrame);
+
+      //   //// move this.applyGravity(timeDiffS); after this.updateVelocity(timeDiffS);
+      //   // const gravityVelocity = localVector.copy(physicsScene.getGravity());
+      //   // const gravityMoveDistancePerFrame = gravityVelocity.multiplyScalar(timeDiffS);
+      //   // this.velocity.add(gravityVelocity); // todo: acceleration of gravity.
+      //   // this.moveDistancePerFrame.add(gravityMoveDistancePerFrame);
+      // }
     // }
   }
   updateVelocity(timeDiffS) {
@@ -536,8 +554,8 @@ class CharacterPhysics {
     _updateBowIkAnimation();
   }
   update(now, timeDiffS) {
-    this.applyGravity(timeDiffS);
     this.updateVelocity(timeDiffS);
+    this.applyGravity(timeDiffS);
     this.applyAvatarPhysics(now, timeDiffS);
     this.applyAvatarActionKinematics(now, timeDiffS);
 
