@@ -3,24 +3,44 @@ player objects load their own avatar and apps using this binding */
 
 // import * as THREE from 'three';
 import * as Z from 'zjs';
-import {RemotePlayer} from './character-controller.js';
+import {LocalPlayer, RemotePlayer} from './character-controller.js';
 import metaversefileApi from 'metaversefile';
-import {getLocalPlayer} from './players.js';
+import {makeId} from './util.js';
+import {initialPosY, playersMapName} from './constants.js';
 
-class PlayersManager {
+class PlayersManager extends EventTarget {
   constructor() {
+    super();
     this.playersArray = null;
+
+    const localPlayerId = makeId(5);
+    const localPlayersArray = new Z.Doc().getArray(playersMapName);
+    this.localPlayer = new LocalPlayer({
+      playerId: localPlayerId,
+      playersArray: localPlayersArray,
+    });
+    this.localPlayer.position.y = initialPosY;
+    this.localPlayer.updateMatrixWorld();
     
     this.remotePlayers = new Map();
     this.remotePlayersByInteger = new Map();
     this.unbindStateFn = null;
+  }
+  getLocalPlayer () {
+    return this.localPlayer;
+  }
+  setLocalPlayer(newLocalPlayer) {
+    this.localPlayer = newLocalPlayer;
+  }
+  getRemotePlayers(){
+    return this.remotePlayers;
   }
   clearRemotePlayers() {
     const lastPlayers = this.playersArray;
     if (lastPlayers) {
       const playerSpecs = lastPlayers.toJSON();
       const nonLocalPlayerSpecs = playerSpecs.filter(p => {
-        return p.playerId !== getLocalPlayer().playerId;
+        return p.playerId !== this.getLocalPlayer().playerId;
       });
       for (const nonLocalPlayer of nonLocalPlayerSpecs) {
         const remotePlayer = this.remotePlayers.get(nonLocalPlayer.playerId);
@@ -73,6 +93,7 @@ class PlayersManager {
             });
             this.remotePlayers.set(playerId, remotePlayer);
             this.remotePlayersByInteger.set(remotePlayer.playerIdInt, remotePlayer);
+            this.dispatchEvent(new MessageEvent('playeradded', { data: { player: remotePlayer } }));
           }
         }
         // console.log('players observe', added, deleted);
@@ -88,6 +109,7 @@ class PlayersManager {
             this.remotePlayers.delete(playerId);
             this.remotePlayersByInteger.delete(remotePlayer.playerIdInt);
             remotePlayer.destroy();
+            this.dispatchEvent(new MessageEvent('playerremoved', { data: { player: remotePlayer } }));
           }
         }
       };

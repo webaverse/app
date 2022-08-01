@@ -46,6 +46,7 @@ import physxWorkerManager from './physx-worker-manager.js';
 import story from './story.js';
 import zTargeting from './z-targeting.js';
 import raycastManager from './raycast-manager.js';
+import universe from './universe.js';
 
 const localVector = new THREE.Vector3();
 const localVector2 = new THREE.Vector3();
@@ -395,6 +396,20 @@ const _startHacks = webaverse => {
   
   window.isDebugger = false;
   
+  // press R to debug current state in console
+  window.addEventListener('keydown', event => {
+    if (event.key === '}') {
+      console.log('>>>>> current state');
+      console.log(universe.state);
+      console.log('>>>>> scene');
+      console.log(scene);
+      console.log('>>>>> local player');
+      console.log(localPlayer);
+      // console.log('>>>>> remotePlayers');
+      // console.log(playersManager.getRemotePlayers());
+    }
+  });
+
   // let playerDiorama = null;
   const lastEmotionKey = {
     key: -1,

@@ -1,6 +1,6 @@
 import * as THREE from 'three';
 import * as BufferGeometryUtils from 'three/examples/jsm/utils/BufferGeometryUtils.js';
-import {getLocalPlayer} from './players.js';
+import {playersManager} from './players-manager.js';
 import {alea} from './procgen/procgen.js';
 import physicsManager from './physics-manager.js';
 import {defaultMaxId} from './constants.js';
@@ -670,7 +670,7 @@ class MeshLodManager {
     return this.generator.deleteItem(itemId);
   }
   update() {
-    const localPlayer = getLocalPlayer();
+    const localPlayer = playersManager.getLocalPlayer();
     if (this.compiled) {
       this.tracker.update(localPlayer.position);
     }

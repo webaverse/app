@@ -2,7 +2,7 @@ import * as THREE from 'three';
 import {getRenderer} from './renderer.js';
 import renderSettingsManager from './rendersettings-manager.js';
 import {WebaverseShaderMaterial} from './materials.js';
-import {getLocalPlayer} from './players.js';
+import {playersManager} from './players-manager.js';
 import physicsManager from './physics-manager.js';
 
 const localVector = new THREE.Vector3();
@@ -382,7 +382,7 @@ export function snapshotMapChunk(
 ) {
   const worldDepthResolutionP3 = worldDepthResolution.clone().add(new THREE.Vector2(3, 3));
   const worldDepthVoxelSize = new THREE.Vector2(worldSize.x, worldSize.y).divide(worldDepthResolution);
-  const localPlayer = getLocalPlayer();
+  const localPlayer = playersManager.getLocalPlayer();
 
   const _makeMesh = (position, quaternion, ethers) => {
     const colorRenderTarget = new THREE.WebGLRenderTarget(
