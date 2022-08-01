@@ -13,18 +13,19 @@ import styles from './MegaHup.module.css';
 // const {useLocalPlayer} = metaversefile;
 // import {chatTextSpeed} from '../constants.js';
 
-const width = 400;
-
 const MegaHup = function({
   open = false,
   npcPlayer = null,
 }) {
   const [height, setHeight] = useState(window.innerHeight);
+  const [width, setWidth] = useState(window.innerWidth);
+
   const canvasRef = useRef();
 
   useEffect(() => {
     const resize = e => {
       setHeight(e.target.innerHeight);
+      setWidth(e.target.innerWidth);
     };
     window.addEventListener('resize', resize);
     return () => {
@@ -63,7 +64,7 @@ const MegaHup = function({
       world.appManager.addEventListener('frame', frame);
       const resize = e => {
         // console.log('diorama set size', width, window.innerHeight);
-        diorama.setSize(width, window.innerHeight);
+        diorama.setSize(window.innerWidth, window.innerHeight);
       };
       window.addEventListener('resize', resize);
 
