@@ -82,31 +82,16 @@ class CharacterPhysics {
             const aestheticJumpBias = 1;
             const t = flatGroundJumpAirTime / 1000 / 2 + aestheticJumpBias;
             this.fallLoopStartTimeS -= t;
-            this.lastGravityH = 0.5 * physicsScene.getGravity().y * t * t; // todo: consider xyz.
+            this.lastGravityH = 0.5 * physicsScene.getGravity().y * t * t;
           }
         }
         const t = performance.now() / 1000 - this.fallLoopStartTimeS;
-        const h = 0.5 * physicsScene.getGravity().y * t * t; // todo: consider xyz.
-        // this.velocity.y += h;
+        const h = 0.5 * physicsScene.getGravity().y * t * t;
         this.moveDistancePerFrame.y = h - this.lastGravityH;
 
         this.lastGravityH = h;
       }
       this.lastFallLoopAction = fallLoopAction;
-
-      // if ((this.player.hasAction('jump') || this.player.hasAction('fallLoop')) && !this.player.hasAction('fly') && !this.player.hasAction('swim')) {
-        
-      //   const gravityTargetVelocity = localVector.copy(physicsScene.getGravity());
-      //   const gravityTargetMoveDistancePerFrame = gravityTargetVelocity.multiplyScalar(timeDiffS);
-      //   this.targetVelocity.add(gravityTargetVelocity); // todo: acceleration of gravity.
-      //   this.targetMoveDistancePerFrame.add(gravityTargetMoveDistancePerFrame);
-
-      //   //// move this.applyGravity(timeDiffS); after this.updateVelocity(timeDiffS);
-      //   // const gravityVelocity = localVector.copy(physicsScene.getGravity());
-      //   // const gravityMoveDistancePerFrame = gravityVelocity.multiplyScalar(timeDiffS);
-      //   // this.velocity.add(gravityVelocity); // todo: acceleration of gravity.
-      //   // this.moveDistancePerFrame.add(gravityMoveDistancePerFrame);
-      // }
     // }
   }
   updateVelocity(timeDiffS) {

@@ -1619,7 +1619,7 @@ class GameManager extends EventTarget {
     }
     const localPlayer = playersManager.getLocalPlayer();
     const sprintMultiplier = isRunning ?
-      (ioManager.keys.doubleTap ? 20 : 3) // todo: Use constants: narutoRunSpeed, runSpeed.
+      (ioManager.keys.doubleTap ? 20 : 3)
     :
     ((isSwimming && !isFlying) ? 5 - localPlayer.getAction('swim').swimDamping : 1);
     speed *= sprintMultiplier;
