@@ -60,7 +60,7 @@ export async function loadCryptoAvatarsCharacters(
             };
         });
 
-        console.log('CAResponse', caResponse);
+        //console.log('CAResponse', caResponse);
 
         return {
             avatars: avatarsWebaverseFormat,

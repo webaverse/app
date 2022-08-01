@@ -228,6 +228,11 @@ export const CharacterSelect = () => {
     const [ text, setText ] = useState('');
     const [cryptoAvatars, setCryptoAvatars] = useState([]);
 
+    React.useEffect(() => {
+        console.log(cryptoAvatars);
+    }, [cryptoAvatars])
+
+    /*
     const refsMap = (() => {
         const map = new Map();
         for (const userTokenCharacter of userTokenCharacters) {
@@ -240,6 +245,7 @@ export const CharacterSelect = () => {
         }
         return map;
     })();
+    */
 
     const [ npcPlayerCache, setNpcPlayerCache ] = useState(new Map());
 
@@ -252,7 +258,8 @@ export const CharacterSelect = () => {
     const [scaleViewValue, setScaleViewValue] = useState(1);
 
     const targetCharacter = selectCharacter || highlightCharacter;
-
+    
+    /*
     const _updateArrowPosition = () => {
         if (targetCharacter) {
             const ref = refsMap.get(targetCharacter);
@@ -274,6 +281,7 @@ export const CharacterSelect = () => {
     useEffect(() => {
         _updateArrowPosition();
     }, [targetCharacter]);
+    */
     useEffect(() => {
         if (targetCharacter && targetCharacter !== lastTargetCharacter) {
             if (abortFn) {
@@ -411,7 +419,7 @@ export const CharacterSelect = () => {
                     characterIntroLoader.loadItem(character.avatarUrl, character, {
                         // signal,
                     }),
-                ]);
+                ]); 
                 
                 if (result) {
                     const {preloadedOnSelectMessage} = result;
@@ -501,7 +509,6 @@ export const CharacterSelect = () => {
                                 onMouseMove={onMouseMove(character)}
                                 onClick={onClick(character)}
                                 key={i}
-                                ref={refsMap.get(character)}
                             />
                         )}
                     </ul>
@@ -522,7 +529,6 @@ export const CharacterSelect = () => {
                                     onMouseMove={onMouseMove(character)}
                                     onClick={onClick(character)}
                                     key={i}
-                                    ref={refsMap.get(character)}
                                 />
                             );
                         })}
@@ -597,11 +603,10 @@ export const CharacterSelect = () => {
                                 highlight={character === targetCharacter}
                                 targetCharacter={targetCharacter}
                                 animate={selectCharacter === character}
-                                disabled={!character.name || (!!selectCharacter && selectCharacter !== character)}
+                                disabled={false}
                                 onMouseMove={onMouseMove(character)}
                                 onClick={onClick(character)}
                                 key={i}
-                                ref={refsMap.get(character)}
                             />
                             );
                         })
