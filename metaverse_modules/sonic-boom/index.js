@@ -653,15 +653,15 @@ export default () => {
             vec4 voronoiNoise = texture2D(
                 voronoiNoiseTexture,
                 vec2(
-                    0.5 * vUv.x + uTime * 0.5,
-                    0.5 * vUv.y + uTime * 1.5
+                    0.45 * vUv.x + uTime * 0.0125,
+                    0.45 * vUv.y + uTime * 0.75
                 )
             );  
             vec4 noise = texture2D(
                 noiseTexture,
                 vec2(
                     vUv.x + uTime * 0.025,
-                    vUv.y + uTime * 1.2
+                    vUv.y + uTime * 2.5
                 )
             );  
             
@@ -669,7 +669,7 @@ export default () => {
                 trailTexture,
                 vec2(
                     vUv.x,
-                    mix(vUv.y + uTime * 1.5, noise.g, 0.25)
+                    mix(vUv.y + uTime * 2.5, noise.g, 0.15)
                 )
             );  
             vec4 mask = texture2D(
@@ -678,10 +678,12 @@ export default () => {
                     vUv.x,
                     1. - vUv.y
                 )
-            );  
-            float p = 5.;
+            ); 
+            
+            float p = 5.5;
             voronoiNoise = vec4(pow(voronoiNoise.r, p), pow(voronoiNoise.g, p), pow(voronoiNoise.b, p), voronoiNoise.a);
-            gl_FragColor = trail * mask * voronoiNoise * p * vec4(0.120, 0.280, 1.920, 1.0);
+            gl_FragColor = trail * mask * p * vec4(0.120, 0.280, 1.920, 1.0);
+            gl_FragColor *= voronoiNoise;
             gl_FragColor.a *= opacity;
                 
             ${THREE.ShaderChunk.logdepthbuf_fragment}
@@ -770,14 +772,14 @@ export default () => {
             for (let i = 0; i < planeNumber; i++){
                 if(i === 0){
                     position[0] = localPlayer.position.x;
-                    position[1] = localPlayer.position.y - 0.8;
+                    position[1] = localPlayer.position.y - 1;
                     position[2] = localPlayer.position.z;
                     if (localPlayer.avatar) {
                         position[1] -= localPlayer.avatar.height;
                         position[1] += 1.18;
                     }
                     position[3] = localPlayer.position.x;
-                    position[4] = localPlayer.position.y - 2.2;
+                    position[4] = localPlayer.position.y - 2;
                     position[5] = localPlayer.position.z;
                     if (localPlayer.avatar) {
                         position[4] -= localPlayer.avatar.height;
@@ -797,7 +799,7 @@ export default () => {
                     position[14] = temp[2];
                 
                     position[15] = localPlayer.position.x;
-                    position[16] = localPlayer.position.y - 2.2;
+                    position[16] = localPlayer.position.y - 2;
                     position[17] = localPlayer.position.z;
                     if (localPlayer.avatar) {
                         position[16] -= localPlayer.avatar.height;
@@ -934,10 +936,10 @@ export default () => {
             point2.y = localPlayer.position.y;
             point2.z = localPlayer.position.z;
             
-            point1.x -= 0.8 * localVector2.x;
-            point1.z -= 0.8 * localVector2.z;
-            point2.x += 0.8 * localVector2.x;
-            point2.z += 0.8 * localVector2.z;
+            point1.x -= 0.6 * localVector2.x;
+            point1.z -= 0.6 * localVector2.z;
+            point2.x += 0.6 * localVector2.x;
+            point2.z += 0.6 * localVector2.z;
             
            
             for(let i = 0;i < 18; i++){
