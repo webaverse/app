@@ -40,7 +40,7 @@ export class CharacterHitter {
   constructor(player) {
     this.player = player;
 
-    this.lastHitTime = -Infinity;
+    // this.lastHitTime = -Infinity;
     this.lastHitTimes = new WeakMap();
     this.lastHitIndices = new WeakMap();
   }
@@ -63,9 +63,9 @@ export class CharacterHitter {
           quaternion,
         } = args;
 
-        if(this.player.isNpcPlayer) {
+        // if(this.player.isNpcPlayer) {
           physics.disableGeometryQueries(this.player.characterController);
-        }
+        // }
 
         // const collision = physx.physxWorker.collideCapsulePhysics(
         //   physx.physics,
@@ -76,17 +76,24 @@ export class CharacterHitter {
         //   1
         // );
 
-        const collision = physx.physxWorker.overlapBox(sizeXHalf, sizeYHalf, sizeZHalf, position, quaternion);
+        const collision = physx.physxWorker.overlapBoxPhysics(physx.physics, sizeXHalf, sizeYHalf, sizeZHalf, position, quaternion);
 
-        if(this.player.isNpcPlayer) {
+        // if(this.player.isNpcPlayer) {
           physics.enableGeometryQueries(this.player.characterController);
-        }
+        // }
 
         if (collision) {
+          console.log(collision);
           collision.objectIds.forEach(objectId => {
             const collisionId = objectId;
+//
+            if(collisionId === window.localPlayer.characterController.physicsId) { // workaround, because metaversefile.getPairByPhysicsId currently doesnt return localPlayer's pair
+              window.localPlayer.characterHitter.getHit(100);
+            }
+//
             const result = metaversefile.getPairByPhysicsId(collisionId);
             if (result) {
+              console.log(result);
               const [app, physicsObject] = result;
               if (app.getComponent('vincibility') !== 'invincible') {
                 const lastHitTime = this.lastHitTimes.get(app) ?? 0;
