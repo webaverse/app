@@ -13,9 +13,8 @@ import fallbackEmotes from "./fallback_emotes.json";
 let emoteTimeout = null;
 export const triggerEmote = (emoteName, player = null) => {
     player = !player ? metaversefile.useLocalPlayer() : player;
-    const narutoRunAction = player.getAction('narutoRun');
-    const flyAction = player.getAction('fly');
-    if(narutoRunAction || flyAction)
+    const landAction = player.getAction('land');
+    if(!landAction)
         return;
     const emoteHardName = emoteName.replace(/Soft$/, '');
     const emote = emotes.find(emote => emote.name === emoteHardName);
