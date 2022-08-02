@@ -11,6 +11,7 @@ import fallbackEmotes from "./fallback_emotes.json";
 
 
 let emoteTimeout = null;
+let oldEmoteValue = null;
 let lastEmotion = null;
 export const triggerEmote = (emoteName, player = null) => {
     const emoteHardName = emoteName.replace(/Soft$/, '');
@@ -20,15 +21,22 @@ export const triggerEmote = (emoteName, player = null) => {
     }
     const { emotion } = emote;
     player = !player ? metaversefile.useLocalPlayer() : player;
-
+    
     // clear old emote
     player.removeAction('emote');
     if (emoteTimeout) {
-        setFacePoseValue(lastEmotion, 0);
+        const value = oldEmoteValue ? oldEmoteValue : 0;
+        setFacePoseValue(lastEmotion, value);
         clearTimeout(emoteTimeout);
         emoteTimeout = null;
         lastEmotion = null;
+        oldEmoteValue = null;
     }
+    const facePoseActionIndex = player.findActionIndex( a => a.type === 'facepose' && a.emotion === emotion );
+    if ( facePoseActionIndex !== -1 ) {
+        oldEmoteValue = player.getAction('facepose').value
+    }
+
 
     // add new emote
     const newAction = {
@@ -46,7 +54,8 @@ export const triggerEmote = (emoteName, player = null) => {
         const actionIndex = player.findActionIndex(action => action.type === 'emote' && action.animation === emoteHardName);
         player.removeActionIndex(actionIndex);
 
-        setFacePoseValue(emotion, 0);
+        const value = oldEmoteValue ? oldEmoteValue : 0;
+        setFacePoseValue(lastEmotion, value);
 
         emoteTimeout = null;
     }, emoteAnimationDuration * 1000);
