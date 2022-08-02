@@ -731,13 +731,23 @@ export const _createAnimation = avatar => {
   physx.physxWorker.addChild(avatar.holdNodeFunc, avatar.defaultNodeTwo);
   physx.physxWorker.addChild(avatar.holdNodeFunc, avatar.holdsNodeUnitary);
 
+  avatar.usesNodeUnitary = avatar.createNode(AnimationNodeType.UNITARY, 'usesNodeUnitary');
+  for (const k in avatar.useMotiono) {
+    if (['bowIdle', 'bowDraw', 'bowLoose'].includes(k)) continue; // these motions already added to parent at above.
+    const motion = avatar.useMotiono[k];
+    physx.physxWorker.addChild(avatar.usesNodeUnitary, motion);
+  }
+  avatar.useNodeTwo = avatar.createNode(AnimationNodeType.TWO, 'useNodeTwo');
+  physx.physxWorker.addChild(avatar.useNodeTwo, avatar.holdNodeFunc);
+  physx.physxWorker.addChild(avatar.useNodeTwo, avatar.usesNodeUnitary);
+
   avatar.emotesNodeUnitary = avatar.createNode(AnimationNodeType.UNITARY, 'emotesNodeUnitary');
   for (const k in avatar.emoteMotiono) {
     const motion = avatar.emoteMotiono[k];
     physx.physxWorker.addChild(avatar.emotesNodeUnitary, motion);
   }
   avatar.emoteNodeTwo = avatar.createNode(AnimationNodeType.TWO, 'emoteNodeTwo');
-  physx.physxWorker.addChild(avatar.emoteNodeTwo, avatar.holdNodeFunc);
+  physx.physxWorker.addChild(avatar.emoteNodeTwo, avatar.useNodeTwo);
   physx.physxWorker.addChild(avatar.emoteNodeTwo, avatar.emotesNodeUnitary);
 
   avatar.dancesNodeUnitary = avatar.createNode(AnimationNodeType.UNITARY, 'dancesNodeUnitary');
@@ -769,12 +779,6 @@ export const _createAnimation = avatar => {
   avatar.actionsNodeUnitary = avatar.createNode(AnimationNodeType.UNITARY, 'actionsNodeUnitary');
   physx.physxWorker.addChild(avatar.actionsNodeUnitary, avatar.defaultNodeTwo);
 
-  // use
-  for (const k in avatar.useMotiono) {
-    if (['bowIdle', 'bowDraw', 'bowLoose'].includes(k)) continue; // these motions already added to parent at above.
-    const motion = avatar.useMotiono[k];
-    physx.physxWorker.addChild(avatar.actionsNodeUnitary, motion);
-  }
   // activate
   for (const k in avatar.activateMotiono) {
     const motion = avatar.activateMotiono[k];
@@ -886,7 +890,7 @@ export const _updateAnimation = avatar => {
   }
 
   if (avatar.useEnd) {
-    physx.physxWorker.crossFadeUnitary(avatar.actionsNodeUnitary, 0.2, avatar.defaultNodeTwo);
+    physx.physxWorker.crossFadeTwo(avatar.useNodeTwo, 0.2, 0);
   }
 
   if (avatar.useComboEnd) {
@@ -941,8 +945,10 @@ export const _updateAnimation = avatar => {
     } else {
       useAnimationName = avatar.useAnimation;
     }
-    physx.physxWorker.play(avatar.useMotiono[useAnimationName]);
-    physx.physxWorker.crossFadeUnitary(avatar.actionsNodeUnitary, 0.2, avatar.useMotiono[useAnimationName]);
+    const useMotion = avatar.useMotiono[useAnimationName];
+    physx.physxWorker.play(useMotion);
+    physx.physxWorker.crossFadeUnitary(avatar.usesNodeUnitary, 0, useMotion);
+    physx.physxWorker.crossFadeTwo(avatar.useNodeTwo, 0.2, 1);
   }
 
   // silsword
