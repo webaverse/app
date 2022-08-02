@@ -1342,7 +1342,7 @@ class GameManager extends EventTarget {
   }
 
   menuDoubleTap() {
-    if (!this.isCrouched()) {
+    if (!this.isCrouched() && !this.isEmote()) {
       const localPlayer = playersManager.getLocalPlayer();
       const narutoRunAction = localPlayer.getAction('narutoRun');
       if (!narutoRunAction) {
@@ -1412,6 +1412,13 @@ class GameManager extends EventTarget {
   isFlying() {
     const localPlayer = playersManager.getLocalPlayer();
     return localPlayer.hasAction('fly');
+  }
+  isEmote() {
+    const localPlayer = playersManager.getLocalPlayer();
+    if(localPlayer.avatar){
+      return localPlayer.avatar.emoteFactor > 0 ? true : false;
+    }
+    return false;
   }
   toggleCrouch() {
     const localPlayer = playersManager.getLocalPlayer();
@@ -1605,8 +1612,7 @@ class GameManager extends EventTarget {
     mouseDomEquipmentHoverPhysicsId = physicsId;
   }
   getSpeed() {
-    const localPlayer = playersManager.getLocalPlayer();
-    if(localPlayer.avatar && localPlayer.avatar.emoteFactor > 0){
+    if(gameManager.isEmote()){
       return 0;
     }
     let speed = 0;
