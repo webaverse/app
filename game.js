@@ -1605,6 +1605,10 @@ class GameManager extends EventTarget {
     mouseDomEquipmentHoverPhysicsId = physicsId;
   }
   getSpeed() {
+    const localPlayer = playersManager.getLocalPlayer();
+    if(localPlayer.avatar && localPlayer.avatar.emoteFactor > 0){
+      return 0;
+    }
     let speed = 0;
     
     const walkSpeed = 0.075;
@@ -1621,7 +1625,6 @@ class GameManager extends EventTarget {
     } else {
       speed = walkSpeed;
     }
-    const localPlayer = playersManager.getLocalPlayer();
     const sprintMultiplier = (ioManager.keys.shift && !isCrouched) ?
       (ioManager.keys.doubleTap ? 20 : 3)
     :
