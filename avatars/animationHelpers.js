@@ -785,19 +785,13 @@ export const _createAnimation = avatar => {
   physx.physxWorker.addChild(avatar.jumpNodeTwo, avatar.sitNodeTwo);
   physx.physxWorker.addChild(avatar.jumpNodeTwo, avatar.jumpMotion);
 
-  avatar.actionsNodeUnitary = avatar.createNode(AnimationNodeType.UNITARY, 'actionsNodeUnitary');
-  physx.physxWorker.addChild(avatar.actionsNodeUnitary, avatar.defaultNodeTwo);
-
-  //
-
   avatar.groundFlyNodeTwo = avatar.createNode(AnimationNodeType.TWO, 'groundFlyNodeTwo');
-  physx.physxWorker.addChild(avatar.groundFlyNodeTwo, avatar.actionsNodeUnitary);
+  physx.physxWorker.addChild(avatar.groundFlyNodeTwo, avatar.jumpNodeTwo);
   physx.physxWorker.addChild(avatar.groundFlyNodeTwo, avatar.idle8DFlyNodeTwo);
 
   //
 
-  // physx.physxWorker.setRootNode(avatar.mixer, avatar.groundFlyNodeTwo);
-  physx.physxWorker.setRootNode(avatar.mixer, avatar.jumpNodeTwo);
+  physx.physxWorker.setRootNode(avatar.mixer, avatar.groundFlyNodeTwo);
   // test ------
   // physx.physxWorker.setRootNode(avatar.mixer, avatar.useMotiono.bowDraw);
   // physx.physxWorker.setRootNode(avatar.mixer, avatar.bowDrawLooseNodoeTwo);
@@ -872,16 +866,10 @@ export const _updateAnimation = avatar => {
   // action end event --------------------------------------------
 
   if (avatar.flyEnd) {
-    // physx.physxWorker.crossFadeUnitary(avatar.actionsNodeUnitary, 0.2, avatar.defaultNodeTwo);
     physx.physxWorker.crossFadeTwo(avatar.groundFlyNodeTwo, 0.2, 0);
   }
   if (avatar.jumpEnd) {
     physx.physxWorker.crossFadeTwo(avatar.jumpNodeTwo, 0.2, 0);
-    // if (avatar.narutoRunState) {
-    //   physx.physxWorker.crossFadeUnitary(avatar.actionsNodeUnitary, 0.2, avatar.narutoRunMotion);
-    // } else {
-    //   physx.physxWorker.crossFadeUnitary(avatar.actionsNodeUnitary, 0.2, avatar.defaultNodeTwo);
-    // }
   }
 
   if (avatar.narutoRunEnd) {
@@ -927,7 +915,6 @@ export const _updateAnimation = avatar => {
   // action start event --------------------------------------------
 
   if (avatar.flyStart) {
-    // physx.physxWorker.crossFadeUnitary(avatar.actionsNodeUnitary, 0.2, avatar.idle8DFlyNodeTwo);
     physx.physxWorker.crossFadeTwo(avatar.groundFlyNodeTwo, 0.2, 1);
   }
 
