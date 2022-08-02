@@ -63,7 +63,7 @@
         0,
         -2
       ],
-      "start_url": "https://webaverse.github.io/mirror/"
+      "start_url": "../metaverse_modules/mirror/"
     },
     {
       "position": [
@@ -207,7 +207,7 @@
         0,
         0.7071067811865475
       ],
-      "start_url": "https://webaverse.github.io/physicscube/"
+      "start_url": "https://avaer.github.io/physicscube/"
     },
     {
       "position": [-2, 1, 1],
