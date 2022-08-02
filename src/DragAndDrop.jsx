@@ -18,6 +18,7 @@ import { isChainSupported } from './hooks/useChain';
 import { ChainContext } from './hooks/chainProvider';
 
 const APP_3D_TYPES = ['glb', 'gltf', 'vrm'];
+const timeCount = 6000;
 
 const _upload = () => new Promise((accept, reject) => {
   const input = document.createElement('input');
@@ -275,15 +276,18 @@ const DragAndDrop = () => {
     if (mintComplete) {
       setTimeout(() => {
         setMintComplete(false);
-      }, 6000);
+      }, timeCount);
     }
   }, [mintComplete]);
 
   useEffect(() => {
     if (error) {
-      setTimeout(() => {
+      let timer = setTimeout(() => {
         setError('');
-      }, 6000);
+      }, timeCount);
+      return () => {
+        clearTimeout(timer);
+      }
     }
   }, [error]);
 
@@ -316,9 +320,12 @@ const DragAndDrop = () => {
     if (!currentApp) return;
 
     if (APP_3D_TYPES.includes(currentApp.appType)) {
-      setTimeout(() => {
+      let timer = setTimeout(() => {
         createPreview();
-      }, 3000);
+      }, timeCount/2);
+      return () => {
+        clearTimeout(timer)
+      }
     }
   }, [currentApp]);
 

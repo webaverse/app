@@ -1,5 +1,3 @@
-import _CONTRACTS from 'https://contracts.webaverse.com/config/addresses.js';
-import _CONTRACT_ABIS from 'https://contracts.webaverse.com/config/abi.js';
 
 export const isLocal = window.location.host.includes('local.webaverse.com');
 
@@ -30,8 +28,6 @@ export const CONTRACTS = {
     NFT: '0x6281a08fe28a733d2A906dC851878D9786F72F21',
   },
 };
-
-export const CONTRACT_ABIS = _CONTRACT_ABIS;
 
 export const CHAIN_TYPE = {
   TEST: 'testnet',
