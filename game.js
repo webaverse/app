@@ -685,6 +685,7 @@ const _gameUpdate = (timestamp, timeDiff) => {
         mouseHighlightPhysicsMesh.updateMatrixWorld();
 
         mouseHighlightPhysicsMesh.visible = true;
+        gameManager.setMouseHoverObject(collision.app, collision.physicsId, collision.point);
       }
     }
   };
@@ -1431,7 +1432,7 @@ class GameManager extends EventTarget {
     if (flyAction) {
       localPlayer.removeAction('fly');
       if (!localPlayer.characterPhysics.lastGrounded) {
-        localPlayer.setControlAction({type: 'jump'});
+        localPlayer.setControlAction({type: 'fallLoop'});
       }
     } else {
       const flyAction = {
@@ -1444,6 +1445,14 @@ class GameManager extends EventTarget {
   isCrouched() {
     const localPlayer = getLocalPlayer();
     return localPlayer.hasAction('crouch');
+  }
+  isSwimming() {
+    const localPlayer = getLocalPlayer();
+    return localPlayer.hasAction('swim');
+  }
+  isFlying() {
+    const localPlayer = getLocalPlayer();
+    return localPlayer.hasAction('fly');
   }
   toggleCrouch() {
     const localPlayer = getLocalPlayer();
@@ -1514,12 +1523,11 @@ class GameManager extends EventTarget {
       }
     }
 
-    const jumpAction = localPlayer.getAction('jump');
-    const flyAction = localPlayer.getAction('fly');
-    if (!jumpAction && !flyAction) {
+    if (!localPlayer.hasAction('jump') && !localPlayer.hasAction('fly') && !localPlayer.hasAction('fallLoop')) {
       const newJumpAction = {
         type: 'jump',
-        trigger:trigger
+        trigger:trigger,
+        startPositionY: localPlayer.characterController.position.y,
         // time: 0,
       };
       localPlayer.setControlAction(newJumpAction);
@@ -1530,8 +1538,8 @@ class GameManager extends EventTarget {
     this.ensureJump(trigger);
 
     // update velocity
-    const localPlayer = getLocalPlayer();
-    localPlayer.characterPhysics.velocity.y += 6;
+    // const localPlayer = getLocalPlayer();
+    // localPlayer.characterPhysics.velocity.y += 6; // currently using aesthetic jump movement
     
     // play sound
     // soundManager.play('jump');
@@ -1627,6 +1635,8 @@ class GameManager extends EventTarget {
     const flySpeed = walkSpeed * 2;
     const defaultCrouchSpeed = walkSpeed * 0.7;
     const isCrouched = gameManager.isCrouched();
+    const isSwimming = gameManager.isSwimming();
+    const isFlying = gameManager.isFlying();
     const isMovingBackward = gameManager.isMovingBackward();
     if (isCrouched && !isMovingBackward) {
       speed = defaultCrouchSpeed;
@@ -1635,11 +1645,11 @@ class GameManager extends EventTarget {
     } else {
       speed = walkSpeed;
     }
-    
+    const localPlayer = getLocalPlayer();
     const sprintMultiplier = (ioManager.keys.shift && !isCrouched) ?
       (ioManager.keys.doubleTap ? 20 : 3)
     :
-      1;
+    ((isSwimming && !isFlying) ? 5 - localPlayer.getAction('swim').swimDamping : 1);
     speed *= sprintMultiplier;
     
     const backwardMultiplier = isMovingBackward ? 0.7 : 1;

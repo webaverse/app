@@ -89,7 +89,9 @@ export function makeAvatar(app) {
 export function applyPlayerActionsToAvatar(player, rig) {
   const jumpAction = player.getAction('jump');
   const activateAction = player.getAction('activate');
+  const landAction = player.getAction('land');
   const flyAction = player.getAction('fly');
+  const swimAction = player.getAction('swim');
   const useAction = player.getAction('use');
   const pickUpAction = player.getAction('pickUp');
   const narutoRunAction = player.getAction('narutoRun');
@@ -107,8 +109,8 @@ export function applyPlayerActionsToAvatar(player, rig) {
   // const chargeJumpAnimation = chargeJump ? chargeJump.animation : '';
   // const standCharge = player.getAction('standCharge');
   // const standChargeAnimation = standCharge ? standCharge.animation : '';
-  // const fallLoop = player.getAction('fallLoop');
-  // const fallLoopAnimation = fallLoop ? fallLoop.animation : '';
+  const fallLoopAction = player.getAction('fallLoop');
+  // const fallLoopAnimation = fallLoopAction ? fallLoopAction.animation : '';
   const hurtAction = player.getAction('hurt');
   // const swordSideSlash = player.getAction('swordSideSlash');
   // const swordSideSlashAnimation = swordSideSlash ? swordSideSlash.animation : '';
@@ -126,6 +128,8 @@ export function applyPlayerActionsToAvatar(player, rig) {
   rig.lastJumpState = rig.jumpState;
   //
   rig.jumpTime = player.actionInterpolants.jump.get();
+  rig.landTime = player.actionInterpolants.land.get();
+  rig.lastLandStartTime = landAction ? landAction.time : 0;
   rig.flyState = !!flyAction;
   // start/end event
   rig.flyStart = false;
@@ -150,7 +154,9 @@ export function applyPlayerActionsToAvatar(player, rig) {
   rig.lastActivateState = rig.activateState;
   //
   rig.activateTime = player.actionInterpolants.activate.get();
-
+  rig.swimState = !!swimAction;
+  rig.swimTime = swimAction ? player.actionInterpolants.swim.get() : -1;
+  
   const _handleUse = () => {
     if (useAction?.animation) {
       rig.useAnimation = useAction.animation;
@@ -309,9 +315,9 @@ export function applyPlayerActionsToAvatar(player, rig) {
   // rig.standChargeTime = player.actionInterpolants.standCharge.get();
   // rig.standChargeAnimation = standChargeAnimation;
   // rig.standChargeState = !!standCharge;
-  // rig.fallLoopTime = player.actionInterpolants.fallLoop.get();
+  rig.fallLoopTime = player.actionInterpolants.fallLoop.get();
   // rig.fallLoopAnimation = fallLoopAnimation;
-  // rig.fallLoopState = !!fallLoop;
+  rig.fallLoopState = !!fallLoopAction;
   // rig.swordSideSlashTime = player.actionInterpolants.swordSideSlash.get();
   // rig.swordSideSlashAnimation = swordSideSlashAnimation;
   // rig.swordSideSlashState = !!swordSideSlash;
@@ -322,6 +328,9 @@ export function applyPlayerActionsToAvatar(player, rig) {
   rig.hurtTime = player.actionInterpolants.hurt.get();
 
   rig.mirrorFactor = player.actionInterpolants.mirror.getNormalized();
+  rig.movementsTime = player.actionInterpolants.movements.get();
+  rig.movementsTransitionTime = player.actionInterpolants.movementsTransition.get();
+  rig.sprintTime = player.actionInterpolants.sprint.get();
 }
 // returns whether eyes were applied
 export function applyPlayerEyesToAvatar(player, rig) {
