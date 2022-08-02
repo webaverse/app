@@ -189,8 +189,13 @@ class PlayerBase extends THREE.Object3D {
       }
     });
 
+    this.headTarget = new THREE.Vector3();
+    this.headTargetInverted = false;
+    this.headTargetEnabled = false;
+    
     this.eyeballTarget = new THREE.Vector3();
     this.eyeballTargetEnabled = false;
+    
     this.voicePack = null;
     this.voiceEndpoint = null;
   }
@@ -535,6 +540,19 @@ class PlayerBase extends THREE.Object3D {
       _emitEvents();
     }
   }
+  setTarget(target) { // set both head and eyeball target;
+    if (target) {
+      this.headTarget.copy(target);
+      this.headTargetInverted = true;
+      this.headTargetEnabled = true;
+
+      this.eyeballTarget.copy(target);
+      this.eyeballTargetEnabled = true;
+    } else {
+      this.headTargetEnabled = false;
+      this.eyeballTargetEnabled = false;
+    }
+  }
   destroy() {
     this.characterHups.destroy();
     this.characterSfx.destroy();
@@ -551,6 +569,7 @@ const controlActionTypes = [ // todo: Need same as actionsNodeUnitary.children.
   'sit',
   'use',
   'dashAttack',
+  'swim',
 ];
 class StatePlayer extends PlayerBase {
   constructor({

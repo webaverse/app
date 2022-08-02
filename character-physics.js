@@ -7,7 +7,7 @@ import * as THREE from 'three';
 import physicsManager from './physics-manager.js';
 // import ioManager from './io-manager.js';
 import {getVelocityDampingFactor, applyVelocity} from './util.js';
-import {groundFriction, flyFriction, airFriction, dashAttackFriction, flatGroundJumpAirTime, jumpHeight} from './constants.js';
+import {groundFriction, flyFriction, airFriction, dashAttackFriction, swimFriction, flatGroundJumpAirTime, jumpHeight} from './constants.js';
 import {getRenderer, camera} from './renderer.js';
 // import physx from './physx.js';
 import metaversefileApi from 'metaversefile';
@@ -166,7 +166,7 @@ class CharacterPhysics {
 
           this.velocity.y = -1;
         } else {
-          if (this.lastGrounded && !this.player.hasAction('jump') && !this.player.hasAction('fly')) {
+          if (!this.player.hasAction('fallLoop') && !this.player.hasAction('jump') && !this.player.hasAction('fly') && !this.player.hasAction('swim')) {
             this.player.setControlAction({type: 'fallLoop'});
           }
         }
