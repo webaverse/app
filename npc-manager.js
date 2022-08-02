@@ -61,6 +61,7 @@ class NpcManager extends EventTarget {
     }
 
     await npcPlayer.setAvatarUrl(avatarUrl);
+    npcPlayer.avatar.app.visible = false;
 
     if (!detached) {
       this.npcs.push(npcPlayer);
@@ -158,6 +159,7 @@ class NpcManager extends EventTarget {
         const speedDistanceRate = 0.07;
         const frame = e => {
           if (npcPlayer && physicsScene.getPhysicsEnabled()) {
+            npcPlayer.avatar.app.visible = true;
             const {timestamp, timeDiff} = e.data;
             
             if (targetSpec) {
