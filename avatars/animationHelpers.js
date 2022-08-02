@@ -894,7 +894,7 @@ export const _updateAnimation = avatar => {
   }
 
   if (avatar.useComboEnd) {
-    physx.physxWorker.crossFadeUnitary(avatar.actionsNodeUnitary, 0.2, avatar.defaultNodeTwo);
+    physx.physxWorker.crossFadeTwo(avatar.useNodeTwo, 0.2, 0);
   }
 
   if (avatar.useEnvelopeEnd) {
@@ -959,8 +959,10 @@ export const _updateAnimation = avatar => {
     } else {
       useAnimationName = avatar.useAnimationCombo[avatar.useAnimationIndex];
     }
-    physx.physxWorker.play(avatar.useMotiono[useAnimationName]);
-    physx.physxWorker.crossFadeUnitary(avatar.actionsNodeUnitary, 0.2, avatar.useMotiono[useAnimationName]);
+    const useMotion = avatar.useMotiono[useAnimationName];
+    physx.physxWorker.play(useMotion);
+    physx.physxWorker.crossFadeUnitary(avatar.usesNodeUnitary, 0, useMotion);
+    physx.physxWorker.crossFadeTwo(avatar.useNodeTwo, 0.2, 1); // todo: transitions between combo attacks not smooth.
   }
 
   // bow
