@@ -972,11 +972,6 @@ class Avatar {
     // this.aimDirection = new THREE.Vector3();
     this.hurtTime = NaN;
     this.hurtAnimation = null;
-    this.moveFactors = {
-      idleWalkFactor: null,
-      walkRunFactor: null,
-      crouchFactor: null,
-    }
 
     // internal state
     this.movementsTime = 0;
@@ -1964,30 +1959,30 @@ class Avatar {
       */
      window.domInfo.innerHTML += `<div style="display:;">actions: --- ${localPlayer.getActionsArray().map(n=>n.type)}</div>`;
       window.domInfo.innerHTML += `<div style="display:;">mirrorFactor: --- ${this.mirrorFactor.toFixed(2)}</div>`;
-      window.domInfo.innerHTML += `<div style="display:;">walkRunFactor: --- ${this.moveFactors.walkRunFactor.toFixed(2)}</div>`;
+      window.domInfo.innerHTML += `<div style="display:;">walkRunFactor: --- ${this.walkRunFactor.toFixed(2)}</div>`;
       // window.domInfo.innerHTML += `<div style="display:;">currentSpeed: --- ${this.currentSpeed.toFixed(2)}</div>`;
       // window.domInfo.innerHTML += `<div style="display:;">avatar.direction: --- ${window.logVector3(this.direction)}</div>`;
       // window.domInfo.innerHTML += `<div style="display:;">velocity: --- ${window.logVector3(localPlayer.characterPhysics.velocity)} - ${window.logNum(localPlayer.characterPhysics.velocity.length())}</div>`;
       // window.domInfo.innerHTML += `<div style="display:;">angle: --- ${window.logNum(this.getAngle())}</div>`;
       // window.domInfo.innerHTML += `<div style="display:;">velocity: --- ${window.logVector3(localPlayer.characterPhysics.velocity)}</div>`;
       // window.domInfo.innerHTML += `<div style="display:;">useEnvelopeFactor: --- ${this.useEnvelopeFactor.toFixed(2)}</div>`;
-      // window.domInfo.innerHTML += `<div style="display:;">idleWalkFactor: --- ${moveFactors.idleWalkFactor.toFixed(2)}</div>`;
-      // window.domInfo.innerHTML += `<div style="display:;">walkRunFactor: --- ${moveFactors.walkRunFactor.toFixed(2)}</div>`;
-      // window.domInfo.innerHTML += `<div style="display:;">crouchFactor: --- ${moveFactors.crouchFactor.toFixed(2)}</div>`;
+      // window.domInfo.innerHTML += `<div style="display:;">idleWalkFactor: --- ${this.idleWalkFactor.toFixed(2)}</div>`;
+      // window.domInfo.innerHTML += `<div style="display:;">walkRunFactor: --- ${this.walkRunFactor.toFixed(2)}</div>`;
+      // window.domInfo.innerHTML += `<div style="display:;">crouchFactor: --- ${this.crouchFactor.toFixed(2)}</div>`;
       // window.domInfo.innerHTML += `<div style="display:;">jumpState: --- ${this.jumpState}</div>`;
       // window.domInfo.innerHTML += `<div style="display:;">jumpTime: --- ${Math.floor(this.jumpTime)}</div>`;
-      // window.domInfo.innerHTML += `<div style="display:;">idleFactor: --- ${moveFactors.idleFactor?.toFixed(2)}</div>`;
+      // window.domInfo.innerHTML += `<div style="display:;">idleFactor: --- ${this.idleFactor?.toFixed(2)}</div>`;
       // window.domInfo.innerHTML += `<div style="display:;">flyState: --- ${this.flyState}</div>`;
       // window.domInfo.innerHTML += `<div style="display:;">flyTime: --- ${Math.floor(this.flyTime)}</div>`;
-      // window.domInfo.innerHTML += `<div style="display:;">flyFactor: --- ${moveFactors.flyFactor?.toFixed(2)}</div>`;
+      // window.domInfo.innerHTML += `<div style="display:;">flyFactor: --- ${this.flyFactor?.toFixed(2)}</div>`;
       // window.domInfo.innerHTML += `<div style="display:none;">flyTransitionTime: --- ${Math.floor(this.flyTransitionTime)}</div>`;
       // window.domInfo.innerHTML += `<div style="display:;">flyDashFactor: --- ${this.flyDashFactor?.toFixed(2)}</div>`;
       // window.domInfo.innerHTML += `<div style="display:;">landState: --- ${this.landState}</div>`;
-      // window.domInfo.innerHTML += `<div style="display:;">landFactor: --- ${moveFactors.landFactor?.toFixed(2)}</div>`;
+      // window.domInfo.innerHTML += `<div style="display:;">landFactor: --- ${this.landFactor?.toFixed(2)}</div>`;
       // window.domInfo.innerHTML += `<div style="display:none;">landTime: --- ${Math.floor(this.landTime)}</div>`;
       // window.domInfo.innerHTML += `<div style="display:none;">landTransitionTime: --- ${Math.floor(this.landTransitionTime)}</div>`;
       // window.domInfo.innerHTML += `<div style="display:;">sitState: --- ${this.sitState}</div>`;
-      // window.domInfo.innerHTML += `<div style="display:;">sitFactor: --- ${moveFactors.sitFactor?.toFixed(2)}</div>`;
+      // window.domInfo.innerHTML += `<div style="display:;">sitFactor: --- ${this.sitFactor?.toFixed(2)}</div>`;
       // window.domInfo.innerHTML += `<div style="display:none;">sitTime: --- ${Math.floor(this.sitTime)}</div>`;
       // window.domInfo.innerHTML += `<div style="display:;">chargeJumpState: --- ${this.chargeJumpState}</div>`;
       // window.domInfo.innerHTML += `<div style="display:;">danceState: --- ${this.danceState}</div>`;
@@ -1999,7 +1994,7 @@ class Avatar {
       // window.domInfo.innerHTML += `<div style="display:;">hurtAnimation: --- ${this.hurtAnimation}</div>`;
       // window.domInfo.innerHTML += `<div style="display:;">poseAnimation: --- ${this.poseAnimation}</div>`;
       // window.domInfo.innerHTML += `<div style="display:;">sitAnimation: --- ${this.sitAnimation}</div>`;
-      // window.domInfo.innerHTML += `<div style="display:;">useFactor: --- ${moveFactors.useFactor?.toFixed(2)}</div>`;
+      // window.domInfo.innerHTML += `<div style="display:;">useFactor: --- ${this.useFactor?.toFixed(2)}</div>`;
       // window.domInfo.innerHTML += `<div style="display:;">useTransitionTime: --- ${Math.floor(this.useTransitionTime)}</div>`;
       // window.domInfo.innerHTML += `<div style="display:;">useTime: --- ${Math.floor(this.useTime)}</div>`;
       // window.domInfo.innerHTML += `<div style="display:;">useAnimation: --- ${this.useAnimation}</div>`;

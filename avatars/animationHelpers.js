@@ -847,21 +847,21 @@ export const _updateAnimation = avatar => {
   physx.physxWorker.setWeight(avatar.bowRightMotion, mirrorRightFactorReverse);
   physx.physxWorker.setWeight(avatar.bowRightMirrorMotion, mirrorRightFactor);
 
-  physx.physxWorker.setFactor(avatar._8DirectionsWalkRunNodeTwo, avatar.moveFactors.walkRunFactor);
-  physx.physxWorker.setFactor(avatar.idle8DWalkRunNodeTwo, avatar.moveFactors.idleWalkFactor);
-  physx.physxWorker.setFactor(avatar.idle8DCrouchNodeTwo, avatar.moveFactors.idleWalkFactor);
-  physx.physxWorker.setFactor(avatar.defaultNodeTwo, avatar.moveFactors.crouchFactor);
-  physx.physxWorker.setFactor(avatar.idle8DBowNodeTwo, avatar.moveFactors.idleWalkFactor);
+  physx.physxWorker.setFactor(avatar._8DirectionsWalkRunNodeTwo, avatar.walkRunFactor);
+  physx.physxWorker.setFactor(avatar.idle8DWalkRunNodeTwo, avatar.idleWalkFactor);
+  physx.physxWorker.setFactor(avatar.idle8DCrouchNodeTwo, avatar.idleWalkFactor);
+  physx.physxWorker.setFactor(avatar.defaultNodeTwo, avatar.crouchFactor);
+  physx.physxWorker.setFactor(avatar.idle8DBowNodeTwo, avatar.idleWalkFactor);
 
   physx.physxWorker.setWeight(avatar.flyForwardNodeTwo, forwardFactor);
   physx.physxWorker.setWeight(avatar.flyDodgeBackwardMotion, backwardFactor);
   physx.physxWorker.setWeight(avatar.flyDodgeLeftMotion, leftFactor);
   physx.physxWorker.setWeight(avatar.flyDodgeRightMotion, rightFactor);
 
-  physx.physxWorker.setFactor(avatar.idle8DFlyNodeTwo, avatar.moveFactors.walkRunFactor);
+  physx.physxWorker.setFactor(avatar.idle8DFlyNodeTwo, avatar.walkRunFactor);
   physx.physxWorker.setFactor(avatar.flyForwardNodeTwo, avatar.flyDashFactor);
 
-  physx.physxWorker.setArg(avatar.holdNodeFunc, avatar.moveFactors.walkRunFactor * 0.7 + avatar.moveFactors.crouchFactor * (1 - avatar.moveFactors.idleWalkFactor) * 0.5);
+  physx.physxWorker.setArg(avatar.holdNodeFunc, avatar.walkRunFactor * 0.7 + avatar.crouchFactor * (1 - avatar.idleWalkFactor) * 0.5);
 
   // action end event --------------------------------------------
 
