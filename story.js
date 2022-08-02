@@ -432,6 +432,7 @@ story.listenHack = () => {
     done && currentConversation.finish();
   };
   window.document.addEventListener('click', async e => {
+    return;
     if (cameraManager.pointerLockElement) {
       if (e.button === 0 && (cameraManager.focus && zTargeting.focusTargetReticle)) {
         const app = metaversefile.getAppByPhysicsId(zTargeting.focusTargetReticle.physicsId);
