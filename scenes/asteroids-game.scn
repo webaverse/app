@@ -1,0 +1,59 @@
+{
+  "objects": [
+    {
+      "type": "application/spawnpoint",
+      "content": {
+        "position": [0, 0, 3]
+      }
+    },
+    {
+      "type": "application/light",
+      "content": {
+        "lightType": "ambient",
+        "args": [[255, 255, 255], 0.1]
+      }
+    },
+    {
+      "type": "application/light",
+      "content": {
+        "lightType": "directional",
+        "args": [[255, 255, 255], 0.7],
+        "position": [0, 10, 0]
+      }
+    },
+    {
+      "position": [0, 0, 0],
+      "start_url": "https://webaverse.github.io/asteroids/"
+    }, 
+    {
+      "position": [
+        0,
+        0,
+        0
+      ],
+      "start_url": "https://webaverse.github.io/sky-milkyway/",
+      "scale": [1000, 1000, 1000]
+    },
+    {
+      "position": [0, 0, 0],
+      "start_url": "https://webaverse.github.io/dust-particles/"
+    },
+    {
+      "position": [30, -20, 0],
+      "start_url": "https://webaverse.github.io/dust-particles/"
+    },
+    {
+      "position": [800, -600, -800],
+      "scale": [500, 500, 500],
+      "start_url": "https://webaverse.github.io/planets/"
+    },
+    {
+      "position": [27, -9, 5],
+      "start_url": "https://webaverse.github.io/sword/"
+    },
+    {
+      "position": [61, -49, -15],
+      "start_url": "https://webaverse.github.io/Spaceship/"
+    }
+  ]
+}
