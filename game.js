@@ -1430,18 +1430,18 @@ class GameManager extends EventTarget {
     return await this.handleDropUrlToPlayer(u, index);
   }
   async handleDropJsonToPlayer(j, index) {
+    const localPlayer = playersManager.getLocalPlayer();
     const u = getDropUrl(j);
-    return await this.handleDropUrlToPlayer(u, index);
+    return await this.handleDropUrlToPlayer(u, index, localPlayer.position);
   }
-  async handleDropUrlToPlayer(u, index) {
+  async handleDropUrlToPlayer(u, index, position) {
     const app = await metaversefileApi.createAppAsync({
       start_url: u,
+      position: position
     });
     app.instanceId = makeId(5);
     world.appManager.importApp(app);
     app.activate();
-    const localPlayer = playersManager.getLocalPlayer();
-    app.position.copy(localPlayer.position)
     // XXX set to index
   }
   selectLoadout(index) {
