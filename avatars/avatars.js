@@ -959,6 +959,7 @@ class Avatar {
     // this.standChargeTime = 0;
     this.fallLoopState = false;
     this.fallLoopTime = 0;
+    this.fallLoopFactor = 0;
     // this.swordSideSlashState = false;
     // this.swordSideSlashTime = 0;
     // this.swordTopDownSlashState = false;

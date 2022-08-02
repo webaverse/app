@@ -892,6 +892,7 @@ class InterpolatedPlayer extends StatePlayer {
       narutoRun: new BinaryInterpolant(() => this.hasAction('narutoRun'), avatarInterpolationTimeDelay, avatarInterpolationNumFrames),
       fly: new BinaryInterpolant(() => this.hasAction('fly'), avatarInterpolationTimeDelay, avatarInterpolationNumFrames),
       jump: new BinaryInterpolant(() => this.hasAction('jump'), avatarInterpolationTimeDelay, avatarInterpolationNumFrames),
+      land: new BinaryInterpolant(() => this.hasAction('land'), avatarInterpolationTimeDelay, avatarInterpolationNumFrames),
       dance: new BinaryInterpolant(() => this.hasAction('dance'), avatarInterpolationTimeDelay, avatarInterpolationNumFrames),
       emote: new BinaryInterpolant(() => this.hasAction('emote'), avatarInterpolationTimeDelay, avatarInterpolationNumFrames),
       // throw: new BinaryInterpolant(() => this.hasAction('throw'), avatarInterpolationTimeDelay, avatarInterpolationNumFrames),
@@ -915,6 +916,8 @@ class InterpolatedPlayer extends StatePlayer {
       narutoRun: new InfiniteActionInterpolant(() => this.actionBinaryInterpolants.narutoRun.get(), 0),
       fly: new InfiniteActionInterpolant(() => this.actionBinaryInterpolants.fly.get(), 0),
       jump: new InfiniteActionInterpolant(() => this.actionBinaryInterpolants.jump.get(), 0),
+      land: new InfiniteActionInterpolant(() => this.actionBinaryInterpolants.land.get(), 0),
+      fallLoop: new InfiniteActionInterpolant(() => this.hasAction('fallLoop'), 0),
       dance: new InfiniteActionInterpolant(() => this.actionBinaryInterpolants.dance.get(), 0),
       emote: new InfiniteActionInterpolant(() => this.actionBinaryInterpolants.emote.get(), 0),
       // throw: new UniActionInterpolant(() => this.actionBinaryInterpolants.throw.get(), 0, throwMaxTime),
@@ -924,6 +927,18 @@ class InterpolatedPlayer extends StatePlayer {
       // swordSideSlash: new InfiniteActionInterpolant(() => this.actionBinaryInterpolants.swordSideSlash.get(), 0),
       // swordTopDownSlash: new InfiniteActionInterpolant(() => this.actionBinaryInterpolants.swordTopDownSlash.get(), 0),
       hurt: new InfiniteActionInterpolant(() => this.actionBinaryInterpolants.hurt.get(), 0),
+      movements: new InfiniteActionInterpolant(() => {
+        const ioManager = metaversefile.useIoManager();
+        return  ioManager.keys.up || ioManager.keys.down || ioManager.keys.left || ioManager.keys.right;
+      }, 0),
+      movementsTransition: new BiActionInterpolant(() => {
+        const ioManager = metaversefile.useIoManager();
+        return  ioManager.keys.up || ioManager.keys.down || ioManager.keys.left || ioManager.keys.right;
+      }, 0, crouchMaxTime),
+      sprint: new BiActionInterpolant(() => {
+        const ioManager = metaversefile.useIoManager();
+        return  ioManager.keys.shift;
+      }, 0, crouchMaxTime),
     };
     this.actionInterpolantsArray = Object.keys(this.actionInterpolants).map(k => this.actionInterpolants[k]);
     
@@ -985,7 +1000,7 @@ class UninterpolatedPlayer extends StatePlayer {
       }, 0, 200),
       swim: new InfiniteActionInterpolant(() => this.hasAction('swim'), 0),
       jump: new InfiniteActionInterpolant(() => this.hasAction('jump'), 0),
-      land: new InfiniteActionInterpolant(() => !this.hasAction('jump') && !this.hasAction('fallLoop'), 0),
+      land: new InfiniteActionInterpolant(() => !this.hasAction('jump') && !this.hasAction('fallLoop') && !this.hasAction('fly'), 0),
       dance: new BiActionInterpolant(() => this.hasAction('dance'), 0, crouchMaxTime),
       emote: new BiActionInterpolant(() => this.hasAction('emote'), 0, crouchMaxTime),
       movements: new InfiniteActionInterpolant(() => {
@@ -1004,6 +1019,7 @@ class UninterpolatedPlayer extends StatePlayer {
       // chargeJump: new InfiniteActionInterpolant(() => this.hasAction('chargeJump'), 0),
       // standCharge: new InfiniteActionInterpolant(() => this.hasAction('standCharge'), 0),
       fallLoop: new InfiniteActionInterpolant(() => this.hasAction('fallLoop'), 0),
+      fallLoopTransition: new BiActionInterpolant(() => this.hasAction('fallLoop'), 0, 300),
       // swordSideSlash: new InfiniteActionInterpolant(() => this.hasAction('swordSideSlash'), 0),
       // swordTopDownSlash: new InfiniteActionInterpolant(() => this.hasAction('swordTopDownSlash'), 0),
       hurt: new InfiniteActionInterpolant(() => this.hasAction('hurt'), 0),
