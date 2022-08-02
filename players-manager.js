@@ -38,7 +38,7 @@ class PlayersManager extends EventTarget {
   clearRemotePlayers() {
     const lastPlayers = this.playersArray;
     if (lastPlayers) {
-      const playerSpecs = lastPlayers.toJSON();
+      const playerSpecs = [...lastPlayers.binding.e]
       const nonLocalPlayerSpecs = playerSpecs.filter(p => {
         return p.playerId !== this.getLocalPlayer().playerId;
       });

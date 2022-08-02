@@ -603,7 +603,7 @@ class StatePlayer extends PlayerBase {
   }
   bindCommonObservers() {
     const actions = this.getActionsState();
-    let lastActions = actions.toJSON();
+    let lastActions = [...actions.binding.e]
     const observeActionsFn = () => {
       const nextActions = Array.from(this.getActionsState());
       for (const nextAction of nextActions) {
