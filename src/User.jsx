@@ -5,7 +5,7 @@ import { discordClientId } from '../constants';
 import { parseQuery } from '../util.js';
 
 // import Modal from './components/modal';
-// import WebaWallet from './components/wallet';
+import WebaWallet from './components/wallet';
 
 import blockchainManager from '../blockchain-manager.js';
 import { AppContext } from './components/app';
@@ -25,7 +25,7 @@ export const User = ({ className, setLoginFrom }) => {
     const [ loggingIn, setLoggingIn ] = useState(false);
     const [ loginError, setLoginError ] = useState(null);
     const [ autoLoginRequestMade, setAutoLoginRequestMade ] = useState(false);
-    const { isConnected, currentAddress, connectWallet, errorMessage, wrongChain, getAccounts, getAccountDetails } = account;
+    const { isConnected, currentAddress, connectWallet, disconnectWallet, errorMessage, wrongChain, getAccounts, getAccountDetails } = account;
     const { selectedChain } = chain;
     const [address, setAddress] = useState();
     async function _setAddress(address) {
@@ -264,14 +264,15 @@ export const User = ({ className, setLoginFrom }) => {
                     className={[styles.address, avatarUrl ? styles.avatarPadRight : undefined].join(' ')}
                 >{ensName || address || currentAddress || ''} <img className={styles.verifiedIcon} src="./images/verified.svg" /></div>
             </div>
-                {/* <div className={styles.logoutBtn}
+                <div className={styles.logoutBtn}
                     onClick={e => {
                         e.preventDefault();
                         e.stopPropagation();
-                        WebaWallet.logout();
-                        _setAddress(null);
+                        disconnectWallet();
+                        // WebaWallet.logout();
+                        // _setAddress(null);
                     }}
-                >Logout</div> */}
+                >Logout</div>
                 </div>
             }            
             <div className={ classnames(

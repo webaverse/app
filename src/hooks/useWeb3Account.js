@@ -71,6 +71,18 @@ export default function useWeb3Account(currentChain = DEFAULT_CHAIN) {
     }
   };
 
+  const disconnectWallet = async () => {
+    try {
+      setCurrentAddress();
+      setErrorMessage([]);
+
+      return null;
+
+    } catch (error) {
+      console.log(error);
+    }
+  };
+
   const getAccountDetails = async (address = currentAddress) => {
     const provider = getProvider();
     var check = ethers.utils.getAddress(address);
@@ -119,6 +131,7 @@ export default function useWeb3Account(currentChain = DEFAULT_CHAIN) {
     errorMessage,
     getAccounts,
     connectWallet,
+    disconnectWallet,
     addRPCToWallet,
     chains: CHAINS,
     getAccountDetails,
