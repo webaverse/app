@@ -1412,15 +1412,21 @@ class GameManager extends EventTarget {
     const localPlayer = playersManager.getLocalPlayer();
     return localPlayer.hasAction('fly');
   }
+  isDancing() {
+    const localPlayer = playersManager.getLocalPlayer();
+    return localPlayer.hasAction('dance');
+  }
+  isNarutoRun() {
+    const localPlayer = playersManager.getLocalPlayer();
+    return localPlayer.hasAction('narutoRun');
+  }
   toggleCrouch() {
     const localPlayer = playersManager.getLocalPlayer();
     let crouchAction = localPlayer.getAction('crouch');
-    const narutoRunAction = localPlayer.getAction('narutoRun');
-    const sitAction = localPlayer.getAction('sit');
     if (crouchAction) {
       localPlayer.removeAction('crouch');
     } else {
-      if(!narutoRunAction && !sitAction){
+      if(!this.isNarutoRun() && !this.isSitting() && !this.isDancing()){
         const crouchAction = {
           type: 'crouch',
         };
