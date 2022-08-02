@@ -13,7 +13,7 @@ require('three/examples/jsm/loaders/MMDLoader.js');
 const {FBXLoader, MMDLoader} = THREE;
 global.FBXLoader = FBXLoader;
 global.MMDLoader = MMDLoader;
-const {CharsetEncoder} = require('three/examples/jsm/libs/mmdparser.js');
+// const {CharsetEncoder} = require('three/examples/jsm/libs/mmdparser.js');
 
 (async () => {
   const nodeFetch = await import('node-fetch');
@@ -147,7 +147,7 @@ const {CharsetEncoder} = require('three/examples/jsm/libs/mmdparser.js');
 
     // mmd
     const mmdLoader = new MMDLoader();
-    const charsetEncoder = new CharsetEncoder();
+    // const charsetEncoder = new CharsetEncoder();
     const mmdPoses = [];
     for (const name of vpdFileNames) {
       // console.log('try', name);
