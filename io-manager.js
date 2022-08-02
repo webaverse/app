@@ -559,6 +559,8 @@ ioManager.keydown = e => {
       // if (controlsManager.isPossessed()) {
         if (!game.isJumping()) {
           game.jump('jump');
+        } else if (!game.isDoubleJumping()) {
+          game.doubleJump();
         }
       // }
       break;

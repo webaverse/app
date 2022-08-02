@@ -1000,6 +1000,7 @@ class UninterpolatedPlayer extends StatePlayer {
       }, 0, 200),
       swim: new InfiniteActionInterpolant(() => this.hasAction('swim'), 0),
       jump: new InfiniteActionInterpolant(() => this.hasAction('jump'), 0),
+      doubleJump: new InfiniteActionInterpolant(() => this.hasAction('doubleJump'), 0),
       land: new InfiniteActionInterpolant(() => !this.hasAction('jump') && !this.hasAction('fallLoop') && !this.hasAction('fly'), 0),
       dance: new BiActionInterpolant(() => this.hasAction('dance'), 0, crouchMaxTime),
       emote: new BiActionInterpolant(() => this.hasAction('emote'), 0, crouchMaxTime),
@@ -1127,6 +1128,8 @@ class LocalPlayer extends UninterpolatedPlayer {
     const self = this;
     this.playersArray.doc.transact(function tx() {
       self.playerMap = new Z.Map();
+
+      self.appManager.bindState(self.getAppsState());
       self.playersArray.push([self.playerMap]);
       self.playerMap.set('playerId', self.playerId);
 
@@ -1152,9 +1155,12 @@ class LocalPlayer extends UninterpolatedPlayer {
       if (oldAvatar !== undefined && oldAvatar !== null && oldAvatar !== '') {
         self.playerMap.set('avatar', oldAvatar);
       }
+
+      if(self.voiceEndpoint) {
+        const voiceSpec = JSON.stringify({audioUrl: self.voiceEndpoint.audioUrl, indexUrl: self.voiceEndpoint.indexUrl, endpointUrl: self.voiceEndpoint ? self.voiceEndpoint.url : ''});
+        self.playerMap.set('voiceSpec', voiceSpec);
+      }
     });
-    
-    this.appManager.bindState(this.getAppsState());
   }
   grab(app, hand = 'left') {
     const localPlayer = metaversefile.useLocalPlayer();

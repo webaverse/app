@@ -511,6 +511,7 @@ export const cloneModelBones = modelBones => {
 export const decorateAnimation = animation => {
   animation.isIdle = /idle/i.test(animation.name);
   animation.isJump = /^jump/i.test(animation.name);
+  animation.isDoubleJump = /^jump_double/i.test(animation.name);
   animation.isSitting = /sitting/i.test(animation.name);
   animation.isFloat  = /treading/i.test(animation.name);
   animation.isPistol  = /pistol aiming/i.test(animation.name);

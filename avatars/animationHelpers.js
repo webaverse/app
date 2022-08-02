@@ -61,6 +61,7 @@ let animationStepIndices;
 // let animationsBaseModel;
 let createdWasmAnimations = false;
 let jumpAnimation;
+let doubleJumpAnimation;
 let fallLoopAnimation;
 let floatAnimation;
 let useAnimations;
@@ -309,6 +310,7 @@ export const loadPromise = (async () => {
   // swordTopDownSlash = animations.find(a => a.isSwordTopDownSlash)
 
   jumpAnimation = animations.find(a => a.isJump);
+  doubleJumpAnimation = animations.find(a => a.isDoubleJump);
   fallLoopAnimation = animations.index['falling.fbx'];
   // sittingAnimation = animations.find(a => a.isSitting);
   floatAnimation = animations.find(a => a.isFloat);

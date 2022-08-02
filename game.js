@@ -1507,6 +1507,10 @@ class GameManager extends EventTarget {
     const localPlayer = getLocalPlayer();
     return localPlayer.hasAction('jump');
   }
+  isDoubleJumping() {
+    const localPlayer = getLocalPlayer();
+    return localPlayer.hasAction('doubleJump');
+  }
   ensureJump(trigger) {
     const localPlayer = getLocalPlayer();
 
@@ -1541,6 +1545,13 @@ class GameManager extends EventTarget {
     // play sound
     // soundManager.play('jump');
 
+  }
+  doubleJump() {
+    const localPlayer = getLocalPlayer();
+    localPlayer.addAction({
+      type: 'doubleJump',
+      startPositionY: localPlayer.characterController.position.y,
+    });
   }
   isMovingBackward() {
     const localPlayer = getLocalPlayer();
