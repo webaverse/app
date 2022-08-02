@@ -130,6 +130,15 @@ export function applyPlayerActionsToAvatar(player, rig) {
   //
   rig.jumpTime = player.actionInterpolants.jump.get();
   rig.doubleJumpState = !!doubleJumpAction;
+  // start/end event
+  rig.doubleJumpStart = false;
+  rig.doubleJumpEnd = false;
+  if (rig.doubleJumpState !== rig.lastDoubleJumpState) {
+    if (rig.doubleJumpState) rig.doubleJumpStart = true;
+    else rig.doubleJumpEnd = true;
+  }
+  rig.lastDoubleJumpState = rig.doubleJumpState;
+  //
   rig.doubleJumpTime = player.actionInterpolants.doubleJump.get();
   rig.landTime = player.actionInterpolants.land.get();
   rig.lastLandStartTime = landAction ? landAction.time : 0;

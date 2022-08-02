@@ -582,6 +582,10 @@ export const _createAnimation = avatar => {
   physx.physxWorker.setTimeBias(avatar.jumpMotion, 0.7);
   physx.physxWorker.setSpeed(avatar.jumpMotion, 0.6);
 
+  avatar.doubleJumpMotion = avatar.createMotion(doubleJumpAnimation.ptr, 'doubleJumpMotion');
+  physx.physxWorker.setLoop(avatar.doubleJumpMotion, AnimationLoopType.LoopOnce);
+  physx.physxWorker.stop(avatar.doubleJumpMotion);
+
   // use
   avatar.useMotiono = {};
   for (const k in useAnimations) {
@@ -785,8 +789,12 @@ export const _createAnimation = avatar => {
   physx.physxWorker.addChild(avatar.jumpNodeTwo, avatar.sitNodeTwo);
   physx.physxWorker.addChild(avatar.jumpNodeTwo, avatar.jumpMotion);
 
+  avatar.doubleJumpNodeTwo = avatar.createNode(AnimationNodeType.TWO, 'doubleJumpNodeTwo');
+  physx.physxWorker.addChild(avatar.doubleJumpNodeTwo, avatar.jumpNodeTwo);
+  physx.physxWorker.addChild(avatar.doubleJumpNodeTwo, avatar.doubleJumpMotion);
+
   avatar.groundFlyNodeTwo = avatar.createNode(AnimationNodeType.TWO, 'groundFlyNodeTwo');
-  physx.physxWorker.addChild(avatar.groundFlyNodeTwo, avatar.jumpNodeTwo);
+  physx.physxWorker.addChild(avatar.groundFlyNodeTwo, avatar.doubleJumpNodeTwo);
   physx.physxWorker.addChild(avatar.groundFlyNodeTwo, avatar.idle8DFlyNodeTwo);
 
   //
@@ -868,8 +876,13 @@ export const _updateAnimation = avatar => {
   if (avatar.flyEnd) {
     physx.physxWorker.crossFadeTwo(avatar.groundFlyNodeTwo, 0.2, 0);
   }
+
   if (avatar.jumpEnd) {
     physx.physxWorker.crossFadeTwo(avatar.jumpNodeTwo, 0.2, 0);
+  }
+
+  if (avatar.doubleJumpEnd) {
+    physx.physxWorker.crossFadeTwo(avatar.doubleJumpNodeTwo, 0.2, 0);
   }
 
   if (avatar.narutoRunEnd) {
@@ -921,6 +934,11 @@ export const _updateAnimation = avatar => {
   if (avatar.jumpStart) {
     physx.physxWorker.play(avatar.jumpMotion);
     physx.physxWorker.crossFadeTwo(avatar.jumpNodeTwo, 0.2, 1);
+  }
+
+  if (avatar.doubleJumpStart) {
+    physx.physxWorker.play(avatar.doubleJumpMotion);
+    physx.physxWorker.crossFadeTwo(avatar.doubleJumpNodeTwo, 0.2, 1);
   }
 
   if (avatar.narutoRunStart) {
