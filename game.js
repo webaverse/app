@@ -1431,8 +1431,11 @@ class GameManager extends EventTarget {
   }
   async handleDropJsonToPlayer(j, index) {
     const localPlayer = playersManager.getLocalPlayer();
+    localVector.copy(localPlayer.position);
+    if(localPlayer.avatar)
+      localVector.y -= localPlayer.avatar.height;
     const u = getDropUrl(j);
-    return await this.handleDropUrlToPlayer(u, index, localPlayer.position);
+    return await this.handleDropUrlToPlayer(u, index, localVector);
   }
   async handleDropUrlToPlayer(u, index, position) {
     const app = await metaversefileApi.createAppAsync({
