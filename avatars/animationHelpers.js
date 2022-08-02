@@ -586,6 +586,8 @@ export const _createAnimation = avatar => {
   physx.physxWorker.setLoop(avatar.doubleJumpMotion, AnimationLoopType.LoopOnce);
   physx.physxWorker.stop(avatar.doubleJumpMotion);
 
+  avatar.fallLoopMotion = avatar.createMotion(fallLoopAnimation.ptr, 'fallLoopMotion');
+
   // use
   avatar.useMotiono = {};
   for (const k in useAnimations) {
@@ -797,9 +799,13 @@ export const _createAnimation = avatar => {
   physx.physxWorker.addChild(avatar.groundFlyNodeTwo, avatar.doubleJumpNodeTwo);
   physx.physxWorker.addChild(avatar.groundFlyNodeTwo, avatar.idle8DFlyNodeTwo);
 
+  avatar.fallLoopNodeTwo = avatar.createNode(AnimationNodeType.TWO, 'fallLoopNodeTwo');
+  physx.physxWorker.addChild(avatar.fallLoopNodeTwo, avatar.groundFlyNodeTwo);
+  physx.physxWorker.addChild(avatar.fallLoopNodeTwo, avatar.fallLoopMotion);
+
   //
 
-  physx.physxWorker.setRootNode(avatar.mixer, avatar.groundFlyNodeTwo);
+  physx.physxWorker.setRootNode(avatar.mixer, avatar.fallLoopNodeTwo);
   // test ------
   // physx.physxWorker.setRootNode(avatar.mixer, avatar.useMotiono.bowDraw);
   // physx.physxWorker.setRootNode(avatar.mixer, avatar.bowDrawLooseNodoeTwo);
@@ -873,6 +879,10 @@ export const _updateAnimation = avatar => {
 
   // action end event --------------------------------------------
 
+  if (avatar.fallLoopEnd) {
+    physx.physxWorker.crossFadeTwo(avatar.fallLoopNodeTwo, 0.2, 0);
+  }
+
   if (avatar.flyEnd) {
     physx.physxWorker.crossFadeTwo(avatar.groundFlyNodeTwo, 0.2, 0);
   }
@@ -926,6 +936,10 @@ export const _updateAnimation = avatar => {
   }
 
   // action start event --------------------------------------------
+
+  if (avatar.fallLoopStart) {
+    physx.physxWorker.crossFadeTwo(avatar.fallLoopNodeTwo, 0.2, 1);
+  }
 
   if (avatar.flyStart) {
     physx.physxWorker.crossFadeTwo(avatar.groundFlyNodeTwo, 0.2, 1);
