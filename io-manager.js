@@ -45,7 +45,6 @@ const physicsScene = physicsManager.getScene();
 //
 
 const ioManager = new EventTarget();
-const localPlayer = metaversefile.useLocalPlayer();
 
 ioManager.lastAxes = [[0, 0, 0, 0], [0, 0, 0, 0]];
 ioManager.lastButtons = [[0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0]];
@@ -219,6 +218,8 @@ const _updateIo = timeDiff => {
     }
   } else {
     keysDirection.set(0, 0, 0);
+
+    const localPlayer = metaversefile.useLocalPlayer();
   
     _updateHorizontal(keysDirection);
     if (keysDirection.equals(zeroVector)) {
@@ -539,6 +540,7 @@ ioManager.keydown = e => {
         if (game.canRotate()) {
           game.menuRotate(1);
         } else {
+          const localPlayer = metaversefile.useLocalPlayer();
           if(localPlayer.hasAction('use')) localPlayer.removeAction('use');
           game.dropSelectedApp();
         }
