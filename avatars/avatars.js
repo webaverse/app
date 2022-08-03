@@ -22,6 +22,7 @@ import {
   idleSpeed,
   walkSpeed,
   runSpeed,
+  groundFriction,
   // avatarInterpolationFrameRate,
   // avatarInterpolationTimeDelay,
   // avatarInterpolationNumFrames,
@@ -445,8 +446,6 @@ class Avatar {
 
     this.vrmExtension = object?.parser?.json?.extensions?.VRM;
     this.firstPersonCurves = getFirstPersonCurves(this.vrmExtension); 
-
-    this.lastVelocity = new THREE.Vector3();
 
     const {
       skinnedMeshes,
@@ -975,8 +974,9 @@ class Avatar {
     this.sprintTime = 0;
     this.sprintFactor = 0;
     this.lastPosition = new THREE.Vector3();
+    this.targetVelocity = new THREE.Vector3();
+    this.lastTargetVelocity = new THREE.Vector3();
     this.velocity = new THREE.Vector3();
-    this.testVelocity = new THREE.Vector3();
     this.lastMoveTime = 0;
     this.lastEmoteTime = 0;
     this.lastEmoteAnimation = 0;
@@ -1498,7 +1498,7 @@ class Avatar {
   }
 
   setVelocity(timeDiffS, lastPosition, currentPosition, currentQuaternion) {
-    // console.log('direction')
+    // console.log('setVelocity')
     // Set the velocity, which will be considered by the animation controller
     const positionDiff = localVector.copy(lastPosition)
       .sub(currentPosition)
@@ -1507,12 +1507,15 @@ class Avatar {
     localEuler.setFromQuaternion(currentQuaternion, 'YXZ');
     localEuler.set(0, -(localEuler.y + Math.PI), 0);
     positionDiff.applyEuler(localEuler);
-    this.testVelocity.copy(positionDiff); // For testing only, check if the physics.velocity correct. Can't use this in formal, to calc such as idleWalkFactor/walkRunFactor, will cause aniamtions jitter in low fps.
-    this.testVelocity.y *= -1;
+    this.targetVelocity.copy(positionDiff);
+    this.targetVelocity.y *= -1;
     // this.velocity.applyEuler(localEuler);
-    this.lastVelocity.copy(this.velocity);
     this.direction.copy(positionDiff).normalize();
     this.lastPosition.copy(currentPosition);
+
+    this.velocity.x = THREE.MathUtils.damp(this.velocity.x, this.lastTargetVelocity.x, groundFriction, timeDiffS);
+    this.velocity.z = THREE.MathUtils.damp(this.velocity.z, this.lastTargetVelocity.z, groundFriction, timeDiffS);
+    this.velocity.y = THREE.MathUtils.damp(this.velocity.y, this.lastTargetVelocity.y, groundFriction, timeDiffS);
 
     if (this.velocity.length() > maxIdleVelocity) {
       this.lastMoveTime = performance.now();
@@ -1520,8 +1523,20 @@ class Avatar {
   }
 
   update(timestamp, timeDiff) {
+    // console.log('update')
     const now = timestamp;
     const timeDiffS = timeDiff / 1000;
+    
+    // for the local player we want to update the velocity immediately
+    // on remote players this is called from the RemotePlayer -> observePlayerFn
+    if (this.isLocalPlayer) {
+      this.setVelocity(
+        timeDiffS,
+        this.lastPosition,
+        this.inputs.hmd.position,
+        this.inputs.hmd.quaternion
+      );
+    }
 
     const currentSpeed = localVector.set(this.velocity.x, 0, this.velocity.z).length();
     // console.log(currentSpeed)
@@ -1932,17 +1947,6 @@ class Avatar {
     if (this.getTopEnabled() || this.getHandEnabled(0) || this.getHandEnabled(1)) {
       _motionControls.call(this)
     }
-    
-    // for the local player we want to update the velocity immediately
-    // on remote players this is called from the RemotePlayer -> observePlayerFn
-    if (this.isLocalPlayer) {
-      this.setVelocity(
-        timeDiffS,
-        this.lastPosition,
-        this.inputs.hmd.position,
-        this.inputs.hmd.quaternion
-      );
-    }
 
     const player = window.localPlayer;
     // const player = window.npcPlayers[0];
@@ -1953,7 +1957,7 @@ class Avatar {
         <div style="display:;">targetMoveDistancePerFrame: --- ${window.logVector3(player.characterPhysics.moveDistancePerFrame)} | ${window.logNum(player.characterPhysics.moveDistancePerFrame.length() * 6)} damped ( length * 6 )</div>
         <div style="display:;">velocity: --- ${window.logVector3(player.characterPhysics.velocity)} | ${window.logNum(player.characterPhysics.velocity.length())} | ${window.logNum(localVector.copy(player.characterPhysics.velocity).setY(0).length())} of characterPhysics</div>
         <div style="display:;">velocity: --- ${window.logVector3(this.velocity)} | ${window.logNum(this.velocity.length())} | ${window.logNum(localVector.copy(this.velocity).setY(0).length())} of avatar</div>
-        <div style="display:;">velocity: --- ${window.logVector3(this.testVelocity)} | ${window.logNum(this.testVelocity.length())} | ${window.logNum(localVector.copy(this.testVelocity).setY(0).length())} of avatar test</div>
+        <div style="display:;">velocity: --- ${window.logVector3(this.targetVelocity)} | ${window.logNum(this.targetVelocity.length())} | ${window.logNum(localVector.copy(this.targetVelocity).setY(0).length())} of avatar test</div>
         <div style="display:;">idleWalkFactor: --- ${window.logNum(this.idleWalkFactor)}</div>
         <div style="display:;">walkRunFactor: --- ${window.logNum(this.walkRunFactor)}</div>
         <div style="display:;">avatar.direction: --- ${window.logVector3(this.direction)}</div>
@@ -1961,7 +1965,7 @@ class Avatar {
         <div style="display:;">angle: --- ${window.logNum(this.getAngle())}</div>
       `
     }
-    // console.log(this.testVelocity.y)
+    // console.log(this.targetVelocity.y)
     // console.log('applyAnimation')
     _applyAnimation(this, now);
 
@@ -2031,6 +2035,8 @@ class Avatar {
       }
       this.debugMesh.visible = debug.enabled;
     }
+
+    this.lastTargetVelocity.copy(this.targetVelocity);
   }
 
   isAudioEnabled() {

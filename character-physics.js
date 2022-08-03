@@ -362,8 +362,9 @@ class CharacterPhysics {
       // const testMoveDistancePerFrameY = this.velocity.y * timeDiffS;
 
       // console.log(
-      //   this.moveDistancePerFrame.x === testMoveDistancePerFrameX ? 0 : (this.moveDistancePerFrame.x > testMoveDistancePerFrameX ? 1 : 2),
-      //   Math.abs(this.moveDistancePerFrame.x - testMoveDistancePerFrameX) < 1e-6 ? 0 : Math.abs(this.moveDistancePerFrame.x - testMoveDistancePerFrameX),
+      //   // this.moveDistancePerFrame.x === testMoveDistancePerFrameX ? 0 : (this.moveDistancePerFrame.x > testMoveDistancePerFrameX ? 1 : 2),
+      //   // Math.abs(this.moveDistancePerFrame.x - testMoveDistancePerFrameX) < 1e-6 ? 0 : Math.abs(this.moveDistancePerFrame.x - testMoveDistancePerFrameX),
+      //   Math.abs(this.moveDistancePerFrame.x - testMoveDistancePerFrameX) < 1e-6 ? 0 : (this.moveDistancePerFrame.x > testMoveDistancePerFrameX ? 1 : 2),
       //   // '-',
       //   // this.moveDistancePerFrame.z, testMoveDistancePerFrameZ,
       //   // '-',
