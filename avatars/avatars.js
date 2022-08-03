@@ -446,8 +446,6 @@ class Avatar {
     this.vrmExtension = object?.parser?.json?.extensions?.VRM;
     this.firstPersonCurves = getFirstPersonCurves(this.vrmExtension); 
 
-    this.lastVelocity = new THREE.Vector3();
-
     const {
       skinnedMeshes,
       skeleton,
@@ -1510,7 +1508,6 @@ class Avatar {
     this.testVelocity.copy(positionDiff); // For testing only, check if the physics.velocity correct. Can't use this in formal, to calc such as idleWalkFactor/walkRunFactor, will cause aniamtions jitter in low fps.
     this.testVelocity.y *= -1;
     // this.velocity.applyEuler(localEuler);
-    this.lastVelocity.copy(this.velocity);
     this.direction.copy(positionDiff).normalize();
     this.lastPosition.copy(currentPosition);
 
