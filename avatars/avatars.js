@@ -1513,9 +1513,9 @@ class Avatar {
     this.direction.copy(positionDiff).normalize();
     this.lastPosition.copy(currentPosition);
 
-    this.velocity.x = THREE.MathUtils.damp(this.velocity.x, this.lastTargetVelocity.x, groundFriction, timeDiffS);
-    this.velocity.z = THREE.MathUtils.damp(this.velocity.z, this.lastTargetVelocity.z, groundFriction, timeDiffS);
-    this.velocity.y = THREE.MathUtils.damp(this.velocity.y, this.lastTargetVelocity.y, groundFriction, timeDiffS);
+    this.velocity.x = THREE.MathUtils.damp(this.velocity.x, this.lastTargetVelocity.x, window.aaa, timeDiffS);
+    this.velocity.z = THREE.MathUtils.damp(this.velocity.z, this.lastTargetVelocity.z, window.aaa, timeDiffS);
+    this.velocity.y = THREE.MathUtils.damp(this.velocity.y, this.lastTargetVelocity.y, window.aaa, timeDiffS);
 
     if (this.velocity.length() > maxIdleVelocity) {
       this.lastMoveTime = performance.now();
@@ -1543,6 +1543,7 @@ class Avatar {
 
     this.idleWalkFactor = Math.min(Math.max((currentSpeed - idleSpeed) / (walkSpeed - idleSpeed), 0), 1);
     this.walkRunFactor = Math.min(Math.max((currentSpeed - walkSpeed) / (runSpeed - walkSpeed), 0), 1);
+    console.log(this.idleWalkFactor > 1e-6 ? this.idleWalkFactor : 0)
     // console.log(this.idleWalkFactor, this.walkRunFactor)
     this.crouchFactor = Math.min(Math.max(1 - (this.crouchTime / crouchMaxTime), 0), 1);
     // console.log('current speed', currentSpeed, idleWalkFactor, walkRunFactor);
