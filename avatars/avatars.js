@@ -1496,7 +1496,7 @@ class Avatar {
   }
 
   setVelocity(timeDiffS, lastPosition, currentPosition, currentQuaternion) {
-    // console.log('direction')
+    // console.log('setVelocity')
     // Set the velocity, which will be considered by the animation controller
     const positionDiff = localVector.copy(lastPosition)
       .sub(currentPosition)
@@ -1519,6 +1519,17 @@ class Avatar {
   update(timestamp, timeDiff) {
     const now = timestamp;
     const timeDiffS = timeDiff / 1000;
+    
+    // for the local player we want to update the velocity immediately
+    // on remote players this is called from the RemotePlayer -> observePlayerFn
+    if (this.isLocalPlayer) {
+      this.setVelocity(
+        timeDiffS,
+        this.lastPosition,
+        this.inputs.hmd.position,
+        this.inputs.hmd.quaternion
+      );
+    }
 
     const currentSpeed = localVector.set(this.velocity.x, 0, this.velocity.z).length();
     // console.log(currentSpeed)
@@ -1928,17 +1939,6 @@ class Avatar {
     }
     if (this.getTopEnabled() || this.getHandEnabled(0) || this.getHandEnabled(1)) {
       _motionControls.call(this)
-    }
-    
-    // for the local player we want to update the velocity immediately
-    // on remote players this is called from the RemotePlayer -> observePlayerFn
-    if (this.isLocalPlayer) {
-      this.setVelocity(
-        timeDiffS,
-        this.lastPosition,
-        this.inputs.hmd.position,
-        this.inputs.hmd.quaternion
-      );
     }
 
     const player = window.localPlayer;
