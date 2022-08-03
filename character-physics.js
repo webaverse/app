@@ -180,8 +180,8 @@ class CharacterPhysics {
         this.player.characterController.position
       );
       const positionXZAfter = localVector2D2.set(this.player.characterController.position.x, this.player.characterController.position.z);
-      const wantMoveDistancePerFrameXY = localVector2D3.set(this.wantMoveDistancePerFrame.x, this.wantMoveDistancePerFrame.z);
-      const movedRatio = (positionXZAfter.sub(positionXZBefore).length()) / wantMoveDistancePerFrameXY.length(); // todo: consider Y axis movement?
+      const wantMoveDistancePerFrameXZ = localVector2D3.set(this.wantMoveDistancePerFrame.x, this.wantMoveDistancePerFrame.z);
+      const movedRatio = (positionXZAfter.sub(positionXZBefore).length()) / wantMoveDistancePerFrameXZ.length(); // todo: consider Y axis movement?
       console.log(movedRatio.toFixed(2));
       this.velocity.copy(this.wantVelocity);
       if (movedRatio < 1) this.velocity.multiplyScalar(movedRatio); // todo: multiply targetVelocity.
