@@ -11,6 +11,7 @@ import vite from 'vite';
 import wsrtc from 'wsrtc/wsrtc-server.mjs';
 import metaversefile from 'metaversefile/plugins/rollup.js';
 import glob from 'glob';
+import Babel from '@babel/core';
 
 const SERVER_ADDR = '0.0.0.0';
 const SERVER_NAME = 'local.webaverse.com';
@@ -57,14 +58,26 @@ async function dynamicImporter(o, req, res, next) {
     if (req.headers['sec-fetch-dest'] === 'script') {
       let id = await totum.resolveId(loadUrl, reqURL.href);
       if (!id) {
+        console.error('\nFailed to load', loadUrl, reqURL.href);
         res.status(500);
         return res.end('Failed to load');
       }
 
       id = id.replace('/@proxy/', '');
-      const {code, map} = await totum.load(id);
-      res.writeHead(200, {'Content-Type': 'application/javascript'});
-      res.end(code);
+      const {code} = await totum.load(id);
+      if (process.env.NODE_ENV === 'production') {
+        const src = Babel.transform(code, {
+          plugins: [
+            ['babel-plugin-custom-import-path-transform',
+              {
+                caller: id,
+                transformImportPath: './packages/totum/plugins/moduleRewrite.js',
+              }],
+          ],
+        });
+        res.writeHead(200, {'Content-Type': 'application/javascript'});
+        res.end(src.code);
+      }
     } else {
       req.originalUrl = loadUrl;
       return /^\/(?:@proxy)\//.test(req.originalUrl) ? proxyReq(loadUrl, res) : res.redirect(req.originalUrl);
@@ -152,7 +165,7 @@ function proxyReq(u, res) {
       req.originalUrl = req.originalUrl.replace(/^\/(login)/, '/');
       return res.redirect(req.originalUrl);
     } else {
-      isProduction && /^\/@import/.test(o.pathname)
+      isProduction && (/^\/@import/.test(o.pathname))
         ? dynamicImporter(o, req, res, next) : next();
     }
   });
@@ -181,7 +194,7 @@ function proxyReq(u, res) {
     /** Setup static assets */
     if (isProduction) {
       app.use(express.static('dist'));
-      app.use(express.static('dist/assets'));
+      // app.use(express.static('dist/assets'));
 
       app.use('*', (req, res) => {
         const o = url.parse(req.originalUrl, true);
@@ -191,7 +204,24 @@ function proxyReq(u, res) {
         glob(`dist/**/${fileName}`, (err, files) => {
           const _404 = err || files.length === 0;
           if (files.length > 0) {
-            return res.sendFile(path.resolve('.', files[0]));
+            const file = path.resolve('.', files[0]);
+            // console.log(file);
+            if (file.endsWith('worker.js')) {
+              const code = fs.readFileSync(file).toString();
+              if (process.env.NODE_ENV === 'production') {
+                const src = Babel.transform(code, {
+                  plugins: [
+                    ['babel-plugin-custom-import-path-transform',
+                      {
+                        transformImportPath: './packages/totum/plugins/moduleRewrite.js',
+                      }],
+                  ],
+                });
+                res.writeHead(200, {'Content-Type': 'application/javascript'});
+                return res.end(src.code);
+              }
+            }
+            return res.sendFile(file);
           } else if (_404) {
             res.status(404).end();
           }

@@ -36,6 +36,12 @@ const entryPoints = [
     replaceExpression: '.',
     glob: true,
   },
+  {
+    path: './*worker.js',
+    exclude: [],
+    replaceExpression: '.',
+    glob: true,
+  },
 ];
 
 // entryPoints = [];
