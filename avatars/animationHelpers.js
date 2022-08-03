@@ -1391,14 +1391,12 @@ export const _applyAnimation = (avatar, now) => {
     } = spec;
 
     if (avatar.activateTime > 0) {
-      const player = metaversefile.getPlayerByAppInstanceId(avatar.app.getComponent('instanceId'));
+      const localPlayer = metaversefile.useLocalPlayer();
 
       let defaultAnimation = 'grab_forward';
 
-      const activateAction = player && player.getAction('activate');
-      // the action can be unset on remote player while this is still happening
-      // null check to prevent a frame of empty action at the end of the pickup
-      if (activateAction && activateAction.animationName) {
+      const activateAction = localPlayer.getAction('activate');
+      if (activateAction.animationName) {
         defaultAnimation = activateAction.animationName;
       }
 

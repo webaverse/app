@@ -485,7 +485,8 @@ class AppManager extends EventTarget {
     if (removeIndex !== -1) {
       this.appsArray.delete(removeIndex, 1);
     } else {
-      console.warn('invalid remove instance id', instanceId);
+      console.warn('invalid remove instance id', {instanceId, appsJson});
+      debugger;
     }
   }
   removeTrackedApp(removeInstanceId) {
