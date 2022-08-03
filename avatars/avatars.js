@@ -446,8 +446,6 @@ class Avatar {
     this.vrmExtension = object?.parser?.json?.extensions?.VRM;
     this.firstPersonCurves = getFirstPersonCurves(this.vrmExtension); 
 
-    this.lastVelocity = new THREE.Vector3();
-
     const {
       skinnedMeshes,
       skeleton,
@@ -1505,7 +1503,6 @@ class Avatar {
     positionDiff.applyEuler(localEuler);
     // this.testVelocity.copy(positionDiff); // For testing only, check if the physics.velocity correct. Can't use this in formal, to calc such as idleWalkFactor/walkRunFactor, will cause aniamtions jitter in low fps.
     // this.testVelocity.y *= -1;
-    this.lastVelocity.copy(this.velocity);
     this.direction.copy(positionDiff).normalize();
     this.lastPosition.copy(currentPosition);
 
@@ -1517,6 +1514,17 @@ class Avatar {
   update(timestamp, timeDiff) {
     const now = timestamp;
     const timeDiffS = timeDiff / 1000;
+    
+    // for the local player we want to update the velocity immediately
+    // on remote players this is called from the RemotePlayer -> observePlayerFn
+    if (this.isLocalPlayer) {
+      this.setVelocity(
+        timeDiffS,
+        this.lastPosition,
+        this.inputs.hmd.position,
+        this.inputs.hmd.quaternion
+      );
+    }
 
     const currentSpeed = localVector.set(this.velocity.x, 0, this.velocity.z).length();
 
@@ -1925,17 +1933,7 @@ class Avatar {
     if (this.getTopEnabled() || this.getHandEnabled(0) || this.getHandEnabled(1)) {
       _motionControls.call(this)
     }
-    
-    // for the local player we want to update the velocity immediately
-    // on remote players this is called from the RemotePlayer -> observePlayerFn
-    if (this.isLocalPlayer) {
-      this.setVelocity(
-        timeDiffS,
-        this.lastPosition,
-        this.inputs.hmd.position,
-        this.inputs.hmd.quaternion
-      );
-    }
+
     _applyAnimation(this, now);
 
     if (this.poseAnimation) {

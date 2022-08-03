@@ -21,6 +21,9 @@ const localQuaternion = new THREE.Quaternion();
 const localQuaternion2 = new THREE.Quaternion();
 // const localEuler = new THREE.Euler();
 const localMatrix = new THREE.Matrix4();
+const localVector2D = new THREE.Vector2();
+const localVector2D2 = new THREE.Vector2();
+const localVector2D3 = new THREE.Vector2();
 
 // const localOffset = new THREE.Vector3();
 // const localOffset2 = new THREE.Vector3();
@@ -43,10 +46,11 @@ class CharacterPhysics {
 
     this.targetVelocity = new THREE.Vector3();
     this.lastTargetVelocity = new THREE.Vector3();
+    this.wantVelocity = new THREE.Vector3();
     this.velocity = new THREE.Vector3();
     this.targetMoveDistancePerFrame = new THREE.Vector3();
     this.lastTargetMoveDistancePerFrame = new THREE.Vector3();
-    this.moveDistancePerFrame = new THREE.Vector3();
+    this.wantMoveDistancePerFrame = new THREE.Vector3();
     this.lastGrounded = null;
     this.lastGroundedTime = 0;
     this.lastCharacterControllerY = null;
@@ -86,7 +90,7 @@ class CharacterPhysics {
         }
         const t = nowS - this.fallLoopStartTimeS;
         const h = 0.5 * physicsScene.getGravity().y * t * t;
-        this.moveDistancePerFrame.y = h - this.lastGravityH;
+        this.wantMoveDistancePerFrame.y = h - this.lastGravityH;
 
         this.lastGravityH = h;
       }
@@ -106,7 +110,7 @@ class CharacterPhysics {
       // console.log('apply avatar physics', this.player);
       // move character controller
       const minDist = 0;
-      localVector3.copy(this.moveDistancePerFrame)
+      localVector3.copy(this.wantMoveDistancePerFrame)
 
       // aesthetic jump
       const jumpAction = this.player.getAction('jump');
@@ -133,6 +137,8 @@ class CharacterPhysics {
           localVector3.y = 0;
         }
       }
+
+      const positionXZBefore = localVector2D.set(this.player.characterController.position.x, this.player.characterController.position.z);
       const flags = physicsScene.moveCharacterController(
         this.player.characterController,
         localVector3,
@@ -140,6 +146,13 @@ class CharacterPhysics {
         timeDiffS,
         this.player.characterController.position
       );
+      const positionXZAfter = localVector2D2.set(this.player.characterController.position.x, this.player.characterController.position.z);
+      const wantMoveDistancePerFrameXY = localVector2D3.set(this.wantMoveDistancePerFrame.x, this.wantMoveDistancePerFrame.z);
+      const movedRatio = (positionXZAfter.sub(positionXZBefore).length()) / wantMoveDistancePerFrameXY.length(); // todo: consider Y axis movement?
+      console.log(movedRatio.toFixed(2));
+      this.velocity.copy(this.wantVelocity);
+      if (movedRatio < 1) this.velocity.multiplyScalar(movedRatio); // todo: multiply targetVelocity.
+
       // const collided = flags !== 0;
       let grounded = !!(flags & 0x1); 
 
@@ -292,13 +305,13 @@ class CharacterPhysics {
   /* dampen the velocity to make physical sense for the current avatar state */
   applyVelocityDamping(velocity, timeDiffS) {
     const doDamping = (factor) => {
-      this.moveDistancePerFrame.x = THREE.MathUtils.damp(this.moveDistancePerFrame.x, this.lastTargetMoveDistancePerFrame.x, factor, timeDiffS);
-      this.moveDistancePerFrame.z = THREE.MathUtils.damp(this.moveDistancePerFrame.z, this.lastTargetMoveDistancePerFrame.z, factor, timeDiffS);
-      this.moveDistancePerFrame.y = THREE.MathUtils.damp(this.moveDistancePerFrame.y, this.lastTargetMoveDistancePerFrame.y, factor, timeDiffS);
+      this.wantMoveDistancePerFrame.x = THREE.MathUtils.damp(this.wantMoveDistancePerFrame.x, this.lastTargetMoveDistancePerFrame.x, factor, timeDiffS);
+      this.wantMoveDistancePerFrame.z = THREE.MathUtils.damp(this.wantMoveDistancePerFrame.z, this.lastTargetMoveDistancePerFrame.z, factor, timeDiffS);
+      this.wantMoveDistancePerFrame.y = THREE.MathUtils.damp(this.wantMoveDistancePerFrame.y, this.lastTargetMoveDistancePerFrame.y, factor, timeDiffS);
 
-      velocity.x = THREE.MathUtils.damp(velocity.x, this.lastTargetVelocity.x, factor, timeDiffS);
-      velocity.z = THREE.MathUtils.damp(velocity.z, this.lastTargetVelocity.z, factor, timeDiffS);
-      velocity.y = THREE.MathUtils.damp(velocity.y, this.lastTargetVelocity.y, factor, timeDiffS);
+      this.wantVelocity.x = THREE.MathUtils.damp(this.wantVelocity.x, this.lastTargetVelocity.x, factor, timeDiffS);
+      this.wantVelocity.z = THREE.MathUtils.damp(this.wantVelocity.z, this.lastTargetVelocity.z, factor, timeDiffS);
+      this.wantVelocity.y = THREE.MathUtils.damp(this.wantVelocity.y, this.lastTargetVelocity.y, factor, timeDiffS);
     }
     if (this.player.hasAction('fly')) {
       doDamping(flyFriction);
