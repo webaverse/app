@@ -524,32 +524,6 @@ class StatePlayer extends PlayerBase {
     this.unbindFns = [];
     
     this.bindState(playersArray);
-// console.log(this);
-
-    const self = this;
-    this.appManager.addEventListener('appadd', e => {
-      const app = e.data;
-      console.log(app);
-      app.addEventListener('hit', e => {
-        console.log(e);
-        if (!self.hasAction('hurt')) {
-          const newAction = {
-            type: 'hurt',
-            animation: 'pain_back',
-          };
-          // console.log('add hurtAction', 'localPlayer')
-          self.addAction(newAction);
-          // console.log('remove use', 'localPlayer')
-          self.removeAction('use'); // todo: setControlAction() ?
-
-          setTimeout(() => {
-            // self.removeAction('hurt');
-          // }, hurtAnimationDuration * 1000);
-          }, 0);
-        }
-      })
-      // }
-    })
   }
   isBound() {
     return !!this.playersArray;

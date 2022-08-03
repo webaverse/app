@@ -63,45 +63,39 @@ export class CharacterHitter {
           quaternion,
         } = args;
 
-        // if(this.player.isNpcPlayer) {
-          physics.disableGeometryQueries(this.player.characterController);
-        // }
-
-        // const collision = physx.physxWorker.collideCapsulePhysics(
-        //   physx.physics,
-        //   hitRadius,
-        //   hitHalfHeight,
-        //   position, //this.player.position,
-        //   quaternion, //this.player.quaternion,
-        //   1
-        // );
-
+        physics.disableGeometryQueries(this.player.characterController);
         const collision = physx.physxWorker.overlapBoxPhysics(physx.physics, sizeXHalf, sizeYHalf, sizeZHalf, position, quaternion);
-
-        // if(this.player.isNpcPlayer) {
-          physics.enableGeometryQueries(this.player.characterController);
-        // }
+        physics.enableGeometryQueries(this.player.characterController);
 
         if (collision) {
-          console.log(collision);
+          // console.log(collision);
           collision.objectIds.forEach(objectId => {
             const collisionId = objectId;
-//
-            if(collisionId === window.localPlayer.characterController.physicsId) { // workaround, because metaversefile.getPairByPhysicsId currently doesnt return localPlayer's pair
-              window.localPlayer.characterHitter.getHit(100);
+
+            // workaround, because metaversefile.getPairByPhysicsId currently doesnt return localPlayer's pair
+            if(collisionId === window.localPlayer.characterController.physicsId) {
+              const lastHitTimeLP = this.lastHitTimes.get(window.localPlayer) ?? 0;
+              const lastHitIndexLP = this.lastHitIndices.get(window.localPlayer) ?? -1;
+              const timeDiffLP = timestamp - lastHitTimeLP;
+              const useActionLP = this.player.getAction('use');
+              if (useActionLP.index !== lastHitIndexLP || timeDiffLP > 500) {
+                window.localPlayer.characterHitter.getHit(100);
+              }
+              this.lastHitTimes.set(window.localPlayer, timestamp);
+              this.lastHitIndices.set(window.localPlayer, useActionLP.index);
+              return;
             }
-//
+
             const result = metaversefile.getPairByPhysicsId(collisionId);
             if (result) {
-              console.log(result);
               const [app, physicsObject] = result;
+              
               if (app.getComponent('vincibility') !== 'invincible') {
                 const lastHitTime = this.lastHitTimes.get(app) ?? 0;
                 const lastHitIndex = this.lastHitIndices.get(app) ?? -1;
                 const timeDiff = timestamp - lastHitTime;
                 const useAction = this.player.getAction('use');
                 if (useAction.index !== lastHitIndex || timeDiff > 1000) {
-                  console.log(objectId);
                   const damage = typeof useAction.damage === 'number' ? useAction.damage : 10;
                   const hitDirection = app.position.clone()
                     .sub(position);
@@ -130,50 +124,7 @@ export class CharacterHitter {
                 }
               }
             }
-            
-    //       const collisionId = collision.objectId;
-    //       if(collisionId === window.localPlayer.characterController.physicsId) { // workaround, because metaversefile.getPairByPhysicsId currently doesnt return localPlayer's pair
-    //         window.localPlayer.characterHitter.getHit(100);
-    //       }
-
-    //       const result = metaversefile.getPairByPhysicsId(collisionId);
-    //       if (result) {
-    //         const [app, physicsObject] = result;
-    //         const timeDiff = timestamp - this.lastHitTime;
-    //         if (timeDiff > 1000) {
-    //           const useAction = this.player.getAction('use');
-    //           const damage = typeof useAction.damage === 'number' ? useAction.damage : 0;
-    //           const hitDirection = app.position.clone()
-    //             .sub(this.player.position);
-    //           hitDirection.y = 0;
-    //           hitDirection.normalize();
-    
-    //           const damageMeshOffsetDistance = 1.5;
-    //           const hitPosition = localVector.copy(this.player.position)
-    //             .add(localVector2.set(0, 0, -damageMeshOffsetDistance).applyQuaternion(this.player.quaternion))
-    //             .clone();
-    //           localEuler.setFromQuaternion(camera.quaternion, 'YXZ');
-    //           localEuler.x = 0;
-    //           localEuler.z = 0;
-    //           const hitQuaternion = localQuaternion.setFromEuler(localEuler);
-    // console.log('HIT');
-    //           // const willDie = app.willDieFrom(damage);
-    //           app.hit(damage, {
-    //             type: 'sword',
-    //             collisionId,
-    //             physicsObject,
-    //             hitPosition,
-    //             hitQuaternion,
-    //             hitDirection,
-    //             // willDie,
-    //           });
-            
-    //           this.lastHitTime = timestamp;
-
-    //           return collision;
-    //         }
-    //       }
-    });
+          });
           return null;
         }
       }
@@ -225,11 +176,12 @@ export class CharacterHitter {
   }
   getHit(damage) {
     // debugger
+    this.player.removeAction('use');
     const newAction = {
       type: 'hurt',
       animation: Math.random() < 0.5 ? 'pain_arch' : 'pain_back',
     };
-    console.log('add hurtAction', 'character-hitter.js')
+    // console.log('add hurtAction', 'character-hitter.js')
     const hurtAction = this.player.addAction(newAction);
 
     const emotions = [

@@ -970,67 +970,32 @@ const _gameUpdate = (timestamp, timeDiff) => {
     const useAction = player.getAction('use');
     if (useAction) {
       const _handleSword = () => {
+        const wearApp = player.isLocalPlayer? loadoutManager.getSelectedApp() : window.swordApp;
+        if (wearApp && player.avatar?.useTime > 100) {
+          const useComponent = wearApp.getComponent('use');
+          if (useComponent) {
+            const damageBoxSize = useComponent.damageBoxSize ?? defaultDamageBoxSize;
+            const damageBoxPosition = useComponent.damageBoxPosition ?? defaultDamageBoxPosition;
+            const damageBoxQuaternion = useComponent.damageBoxQuaternion ?? defaultDamageBoxQuaternion;
+            const sizeXHalf = damageBoxSize[0] / 2;
+            const sizeYHalf = damageBoxSize[1] / 2;
+            const sizeZHalf = damageBoxSize[2] / 2;
+            localQuaternion.fromArray(damageBoxQuaternion).multiply(wearApp.quaternion);
+            localVector.copy(wearApp.position).add(localVector2.fromArray(damageBoxPosition).applyQuaternion(localQuaternion));
 
-        // if(player.isLocalPlayer) {
-        //   localVector.copy(player.position)
-        //     .add(localVector2.set(0, 0, -hitboxOffsetDistance).applyQuaternion(player.quaternion));
-
-        //     player.characterHitter.attemptHit({
-        //     type: 'sword',
-        //     args: {
-        //       hitRadius,
-        //       hitHalfHeight,
-        //       position: localVector,
-        //       quaternion: player.quaternion,
-        //     },
-        //     timestamp,
-        //   });
-        // } else if(player.isNpcPlayer) {
-
-          // localVector.copy(player.position)
-          //   .add(localVector2.set(0, 0, -hitboxOffsetDistance).applyQuaternion(player.quaternion));
-
-          //   player.characterHitter.attemptHit({
-          //   type: 'sword',
-          //   args: {
-          //     hitRadius,
-          //     hitHalfHeight,
-          //     position: localVector,
-          //     quaternion: player.quaternion,
-          //   },
-          //   timestamp,
-          // });
-
-          
-          const wearApp = player.isLocalPlayer? loadoutManager.getSelectedApp() : window.swordApp;
-          if (wearApp && player.avatar?.useTime > 100) {
-            const useComponent = wearApp.getComponent('use');
-            if (useComponent) {
-              console.log('useComponent', useComponent);
-              const damageBoxSize = useComponent.damageBoxSize ?? defaultDamageBoxSize;
-              const damageBoxPosition = useComponent.damageBoxPosition ?? defaultDamageBoxPosition;
-              const damageBoxQuaternion = useComponent.damageBoxQuaternion ?? defaultDamageBoxQuaternion;
-              const sizeXHalf = damageBoxSize[0] / 2;
-              const sizeYHalf = damageBoxSize[1] / 2;
-              const sizeZHalf = damageBoxSize[2] / 2;
-              localQuaternion.fromArray(damageBoxQuaternion).multiply(wearApp.quaternion);
-              localVector.copy(wearApp.position).add(localVector2.fromArray(damageBoxPosition).applyQuaternion(localQuaternion));
-
-              player.characterHitter.attemptHit({
-                type: 'sword',
-                args: {
-                  sizeXHalf,
-                  sizeYHalf,
-                  sizeZHalf,
-                  position: localVector,
-                  quaternion: localQuaternion,
-                },
-                timestamp,
-              });
-            }
+            player.characterHitter.attemptHit({
+              type: 'sword',
+              args: {
+                sizeXHalf,
+                sizeYHalf,
+                sizeZHalf,
+                position: localVector,
+                quaternion: localQuaternion,
+              },
+              timestamp,
+            });
           }
-          //
-        // }
+        }
       };
 
       switch (useAction.behavior) {
