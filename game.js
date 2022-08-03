@@ -1631,8 +1631,6 @@ class GameManager extends EventTarget {
     const backwardMultiplier = isMovingBackward ? 0.7 : 1;
     speed *= backwardMultiplier;
 
-    console.log(speed)
-    
     return speed;
   }
   getClosestObject() {
