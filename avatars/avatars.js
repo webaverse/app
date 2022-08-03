@@ -1960,6 +1960,7 @@ class Avatar {
      window.domInfo.innerHTML += `<div style="display:;">actions: --- ${localPlayer.getActionsArray().map(n=>n.type)}</div>`;
       window.domInfo.innerHTML += `<div style="display:;">mirrorFactor: --- ${this.mirrorFactor.toFixed(2)}</div>`;
       window.domInfo.innerHTML += `<div style="display:;">walkRunFactor: --- ${this.walkRunFactor.toFixed(2)}</div>`;
+      window.domInfo.innerHTML += `<div style="display:;">landWithMoving: --- ${this.landWithMoving}</div>`;
       // window.domInfo.innerHTML += `<div style="display:;">currentSpeed: --- ${this.currentSpeed.toFixed(2)}</div>`;
       // window.domInfo.innerHTML += `<div style="display:;">avatar.direction: --- ${window.logVector3(this.direction)}</div>`;
       // window.domInfo.innerHTML += `<div style="display:;">velocity: --- ${window.logVector3(localPlayer.characterPhysics.velocity)} - ${window.logNum(localPlayer.characterPhysics.velocity.length())}</div>`;

@@ -1,5 +1,5 @@
 import {Vector3, Quaternion, AnimationClip, LoopOnce, MathUtils, LoopRepeat} from 'three';
-// import metaversefile from 'metaversefile';
+import metaversefile from 'metaversefile';
 import {/* VRMSpringBoneImporter, VRMLookAtApplyer, */ VRMCurveMapper} from '@pixiv/three-vrm/lib/three-vrm.module.js';
 // import easing from '../easing.js';
 import {easing} from '../math-utils.js';
@@ -588,6 +588,15 @@ export const _createAnimation = avatar => {
 
   avatar.fallLoopMotion = avatar.createMotion(fallLoopAnimation.ptr, 'fallLoopMotion');
 
+  avatar.landMotion = avatar.createMotion(animations.index['landing.fbx'].ptr, 'landMotion');
+  physx.physxWorker.setLoop(avatar.landMotion, AnimationLoopType.LoopOnce);
+  physx.physxWorker.stop(avatar.landMotion);
+  physx.physxWorker.setSpeed(avatar.landMotion, 0.75);
+  avatar.land2Motion = avatar.createMotion(animations.index['landing 2.fbx'].ptr, 'land2Motion');
+  physx.physxWorker.setLoop(avatar.land2Motion, AnimationLoopType.LoopOnce);
+  physx.physxWorker.stop(avatar.land2Motion);
+  physx.physxWorker.setSpeed(avatar.land2Motion, 1.7);
+
   // use
   avatar.useMotiono = {};
   for (const k in useAnimations) {
@@ -803,9 +812,17 @@ export const _createAnimation = avatar => {
   physx.physxWorker.addChild(avatar.fallLoopNodeTwo, avatar.groundFlyNodeTwo);
   physx.physxWorker.addChild(avatar.fallLoopNodeTwo, avatar.fallLoopMotion);
 
+  avatar.landsNodeUnitary = avatar.createNode(AnimationNodeType.UNITARY, 'landsNodeUnitary');
+  physx.physxWorker.addChild(avatar.landsNodeUnitary, avatar.landMotion);
+  physx.physxWorker.addChild(avatar.landsNodeUnitary, avatar.land2Motion);
+  //
+  avatar.landNodeTwo = avatar.createNode(AnimationNodeType.TWO, 'landNodeTwo');
+  physx.physxWorker.addChild(avatar.landNodeTwo, avatar.fallLoopNodeTwo);
+  physx.physxWorker.addChild(avatar.landNodeTwo, avatar.landsNodeUnitary);
+
   //
 
-  physx.physxWorker.setRootNode(avatar.mixer, avatar.fallLoopNodeTwo);
+  physx.physxWorker.setRootNode(avatar.mixer, avatar.landNodeTwo);
   // test ------
   // physx.physxWorker.setRootNode(avatar.mixer, avatar.useMotiono.bowDraw);
   // physx.physxWorker.setRootNode(avatar.mixer, avatar.bowDrawLooseNodoeTwo);
@@ -821,6 +838,8 @@ export const _createAnimation = avatar => {
 
 export const _updateAnimation = avatar => {
   const timeS = performance.now() / 1000;
+
+  const player = metaversefile.getPlayerByAppInstanceId(avatar.app.getComponent('instanceId'));
 
   const angle = avatar.getAngle();
   const forwardFactor = 1 - MathUtils.clamp(Math.abs(angle) / (Math.PI / 2), 0, 1);
@@ -879,6 +898,15 @@ export const _updateAnimation = avatar => {
 
   // action end event --------------------------------------------
 
+  if (avatar.landEnd) {
+    if (player === window.localPlayer) console.log('landEnd', avatar.landWithMoving);
+    if (!avatar.landWithMoving) {
+      physx.physxWorker.crossFadeTwo(avatar.landNodeTwo, 0.05, 0);
+    } else {
+      physx.physxWorker.crossFadeTwo(avatar.landNodeTwo, 0.15, 0);
+    }
+  }
+
   if (avatar.fallLoopEnd) {
     physx.physxWorker.crossFadeTwo(avatar.fallLoopNodeTwo, 0.2, 0);
   }
@@ -936,6 +964,21 @@ export const _updateAnimation = avatar => {
   }
 
   // action start event --------------------------------------------
+
+  if (avatar.landStart) {
+    if (player === window.localPlayer) console.log('landStart', avatar.landWithMoving);
+    if (!avatar.landWithMoving) {
+      const landMotion = avatar.landMotion;
+      physx.physxWorker.play(landMotion);
+      physx.physxWorker.crossFadeUnitary(avatar.landsNodeUnitary, 0, landMotion);
+      physx.physxWorker.crossFadeTwo(avatar.landNodeTwo, 0, 1);
+    } else {
+      const landMotion = avatar.land2Motion;
+      physx.physxWorker.play(landMotion);
+      physx.physxWorker.crossFadeUnitary(avatar.landsNodeUnitary, 0, landMotion);
+      physx.physxWorker.crossFadeTwo(avatar.landNodeTwo, 0.1, 1);
+    }
+  }
 
   if (avatar.fallLoopStart) {
     physx.physxWorker.crossFadeTwo(avatar.fallLoopNodeTwo, 0.2, 1);
@@ -1100,6 +1143,9 @@ export const _updateAnimation = avatar => {
     }
     if (motion === avatar.useMotiono.bowLoose) {
       physx.physxWorker.crossFadeTwo(avatar.idle8DWalkRun_BowIdle8DDrawLooseNodeTwo, 0.2, 0);
+    }
+    if (motion === avatar.landMotion || motion === avatar.land2Motion) {
+      player?.removeAction('land');
     }
   }
 };

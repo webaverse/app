@@ -965,7 +965,7 @@ export default () => {
     if (result) {
       return localPlayer;
     } else {
-      const remotePlayers = useRemotePlayers();
+      const remotePlayers = metaversefile.useRemotePlayers();
       for (const remotePlayer of remotePlayers) {
         const remoteApp = remotePlayer.appManager.getAppByInstanceId(instanceId);
         if (remoteApp) {
