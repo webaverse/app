@@ -167,6 +167,7 @@ class CharacterPhysics {
 
       // console.log('move')
 
+      const positionBefore = new THREE.Vector3().copy(this.player.characterController.position);
       const flags = physicsScene.moveCharacterController(
         this.player.characterController,
         localVector3,
@@ -174,6 +175,10 @@ class CharacterPhysics {
         timeDiffS,
         this.player.characterController.position
       );
+      const positionAfter = new THREE.Vector3().copy(this.player.characterController.position);
+      const movedRatio = (positionAfter.sub(positionBefore).length()) / localVector3.length(); // todo: don't consider Y axis movement?
+      // console.log(movedRatio);
+      if (movedRatio < 1) this.velocity.multiplyScalar(movedRatio); // todo: multiply targetVelocity.
       // const collided = flags !== 0;
       let grounded = !!(flags & 0x1); 
 
