@@ -357,6 +357,19 @@ class CharacterPhysics {
       // this.velocity.x = this.targetVelocity.x;
       // this.velocity.z = this.targetVelocity.z;
 
+      // const testMoveDistancePerFrameX = this.velocity.x * timeDiffS;
+      // const testMoveDistancePerFrameZ = this.velocity.z * timeDiffS;
+      // const testMoveDistancePerFrameY = this.velocity.y * timeDiffS;
+
+      // console.log(
+      //   this.moveDistancePerFrame.x === testMoveDistancePerFrameX ? 0 : (this.moveDistancePerFrame.x > testMoveDistancePerFrameX ? 1 : 2),
+      //   Math.abs(this.moveDistancePerFrame.x - testMoveDistancePerFrameX) < 1e-6 ? 0 : Math.abs(this.moveDistancePerFrame.x - testMoveDistancePerFrameX),
+      //   // '-',
+      //   // this.moveDistancePerFrame.z, testMoveDistancePerFrameZ,
+      //   // '-',
+      //   // this.moveDistancePerFrame.y, testMoveDistancePerFrameY,
+      // )
+
       // console.log('damping')
 
       // this.velocity.copy(this.lastTargetMoveDistancePerFrame).divideScalar(timeDiffS)
