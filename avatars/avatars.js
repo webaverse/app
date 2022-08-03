@@ -1947,7 +1947,7 @@ class Avatar {
       window.domInfo.innerHTML += `
         <div style="display:;">actions: --- ${player.getActionsArray().map(n=>n.type)}</div>
         <div style="display:;">targetMoveDistancePerFrame: --- ${window.logVector3(player.characterPhysics.targetMoveDistancePerFrame)} | ${window.logNum(player.characterPhysics.targetMoveDistancePerFrame.length())} of characterPhysics ( correct )</div>
-        <div style="display:;">targetMoveDistancePerFrame: --- ${window.logVector3(player.characterPhysics.moveDistancePerFrame)} | ${window.logNum(player.characterPhysics.moveDistancePerFrame.length() * 6)} damped ( length * 6 )</div>
+        <div style="display:;">targetMoveDistancePerFrame: --- ${window.logVector3(player.characterPhysics.wantMoveDistancePerFrame)} | ${window.logNum(player.characterPhysics.wantMoveDistancePerFrame.length() * 6)} damped ( length * 6 )</div>
         <div style="display:;">velocity: --- ${window.logVector3(player.characterPhysics.velocity)} | ${window.logNum(player.characterPhysics.velocity.length())} | ${window.logNum(localVector.copy(player.characterPhysics.velocity).setY(0).length())} of characterPhysics</div>
         <div style="display:;">velocity: --- ${window.logVector3(this.velocity)} | ${window.logNum(this.velocity.length())} | ${window.logNum(localVector.copy(this.velocity).setY(0).length())} of avatar</div>
         <div style="display:;">velocity: --- ${window.logVector3(this.testVelocity)} | ${window.logNum(this.testVelocity.length())} | ${window.logNum(localVector.copy(this.testVelocity).setY(0).length())} of avatar test</div>

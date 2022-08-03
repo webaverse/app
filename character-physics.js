@@ -43,10 +43,11 @@ class CharacterPhysics {
 
     this.targetVelocity = new THREE.Vector3();
     this.lastTargetVelocity = new THREE.Vector3();
+    this.wantVelocity = new THREE.Vector3();
     this.velocity = new THREE.Vector3();
     this.targetMoveDistancePerFrame = new THREE.Vector3();
     this.lastTargetMoveDistancePerFrame = new THREE.Vector3();
-    this.moveDistancePerFrame = new THREE.Vector3();
+    this.wantMoveDistancePerFrame = new THREE.Vector3();
     // this.lastTimeDiff = 0; // todo:
     this.lastGrounded = null;
     this.lastGroundedTime = 0;
@@ -96,7 +97,7 @@ class CharacterPhysics {
         const t = nowS - this.fallLoopStartTimeS;
         const h = 0.5 * physicsScene.getGravity().y * t * t; // todo: consider xyz.
         // this.velocity.y += h;
-        this.moveDistancePerFrame.y = h - this.lastGravityH;
+        this.wantMoveDistancePerFrame.y = h - this.lastGravityH;
 
         this.lastGravityH = h;
       }
@@ -113,7 +114,7 @@ class CharacterPhysics {
       //   // const gravityVelocity = localVector.copy(physicsScene.getGravity());
       //   // const gravityMoveDistancePerFrame = gravityVelocity.multiplyScalar(timeDiffS);
       //   // this.velocity.add(gravityVelocity); // todo: acceleration of gravity.
-      //   // this.moveDistancePerFrame.add(gravityMoveDistancePerFrame);
+      //   // this.wantMoveDistancePerFrame.add(gravityMoveDistancePerFrame);
       // }
     // }
   }
@@ -131,7 +132,7 @@ class CharacterPhysics {
       // move character controller
       const minDist = 0;
       // localVector3.copy(this.velocity) // todo: rename?: this.velocity is not velocity, but move distance per frame now ?
-      localVector3.copy(this.moveDistancePerFrame)
+      localVector3.copy(this.wantMoveDistancePerFrame)
         // .multiplyScalar(timeDiffS);
         // .multiplyScalar(timeDiffS);
         // .multiplyScalar(0.016);
@@ -167,7 +168,7 @@ class CharacterPhysics {
 
       // console.log('move')
 
-      const positionBefore = new THREE.Vector3().copy(this.player.characterController.position);
+      const positionXZBefore = new THREE.Vector2(this.player.characterController.position.x, this.player.characterController.position.z);
       const flags = physicsScene.moveCharacterController(
         this.player.characterController,
         localVector3,
@@ -175,9 +176,11 @@ class CharacterPhysics {
         timeDiffS,
         this.player.characterController.position
       );
-      const positionAfter = new THREE.Vector3().copy(this.player.characterController.position);
-      const movedRatio = (positionAfter.sub(positionBefore).length()) / localVector3.length(); // todo: don't consider Y axis movement?
-      // console.log(movedRatio);
+      const positionXZAfter = new THREE.Vector2(this.player.characterController.position.x, this.player.characterController.position.z);
+      const wantMoveDistancePerFrameXY = new THREE.Vector2(this.wantMoveDistancePerFrame.x, this.wantMoveDistancePerFrame.z);
+      const movedRatio = (positionXZAfter.sub(positionXZBefore).length()) / wantMoveDistancePerFrameXY.length(); // todo: consider Y axis movement?
+      console.log(movedRatio.toFixed(2));
+      this.velocity.copy(this.wantVelocity);
       if (movedRatio < 1) this.velocity.multiplyScalar(movedRatio); // todo: multiply targetVelocity.
       // const collided = flags !== 0;
       let grounded = !!(flags & 0x1); 
@@ -348,17 +351,17 @@ class CharacterPhysics {
       // console.log('damping')
       // const factor = getVelocityDampingFactor(groundFriction, timeDiff);
       // // const factor = getVelocityDampingFactor(window.aaa, timeDiff);
-      // this.moveDistancePerFrame.x = this.moveDistancePerFrame.x * factor;
-      // this.moveDistancePerFrame.z = this.moveDistancePerFrame.z * factor;
+      // this.wantMoveDistancePerFrame.x = this.wantMoveDistancePerFrame.x * factor;
+      // this.wantMoveDistancePerFrame.z = this.wantMoveDistancePerFrame.z * factor;
 
-      this.moveDistancePerFrame.x = THREE.MathUtils.damp(this.moveDistancePerFrame.x, this.lastTargetMoveDistancePerFrame.x, factor, timeDiffS);
-      this.moveDistancePerFrame.z = THREE.MathUtils.damp(this.moveDistancePerFrame.z, this.lastTargetMoveDistancePerFrame.z, factor, timeDiffS);
-      this.moveDistancePerFrame.y = THREE.MathUtils.damp(this.moveDistancePerFrame.y, this.lastTargetMoveDistancePerFrame.y, factor, timeDiffS);
+      this.wantMoveDistancePerFrame.x = THREE.MathUtils.damp(this.wantMoveDistancePerFrame.x, this.lastTargetMoveDistancePerFrame.x, factor, timeDiffS);
+      this.wantMoveDistancePerFrame.z = THREE.MathUtils.damp(this.wantMoveDistancePerFrame.z, this.lastTargetMoveDistancePerFrame.z, factor, timeDiffS);
+      this.wantMoveDistancePerFrame.y = THREE.MathUtils.damp(this.wantMoveDistancePerFrame.y, this.lastTargetMoveDistancePerFrame.y, factor, timeDiffS);
       // if (this.targetMoveDistancePerFrame.x > 0) debugger
 
-      this.velocity.x = THREE.MathUtils.damp(this.velocity.x, this.lastTargetVelocity.x, factor, timeDiffS);
-      this.velocity.z = THREE.MathUtils.damp(this.velocity.z, this.lastTargetVelocity.z, factor, timeDiffS);
-      this.velocity.y = THREE.MathUtils.damp(this.velocity.y, this.lastTargetVelocity.y, factor, timeDiffS);
+      this.wantVelocity.x = THREE.MathUtils.damp(this.wantVelocity.x, this.lastTargetVelocity.x, factor, timeDiffS);
+      this.wantVelocity.z = THREE.MathUtils.damp(this.wantVelocity.z, this.lastTargetVelocity.z, factor, timeDiffS);
+      this.wantVelocity.y = THREE.MathUtils.damp(this.wantVelocity.y, this.lastTargetVelocity.y, factor, timeDiffS);
       // this.velocity.x = this.targetVelocity.x;
       // this.velocity.z = this.targetVelocity.z;
 
@@ -367,13 +370,13 @@ class CharacterPhysics {
       // const testMoveDistancePerFrameY = this.velocity.y * timeDiffS;
 
       // console.log(
-      //   // this.moveDistancePerFrame.x === testMoveDistancePerFrameX ? 0 : (this.moveDistancePerFrame.x > testMoveDistancePerFrameX ? 1 : 2),
-      //   // Math.abs(this.moveDistancePerFrame.x - testMoveDistancePerFrameX) < 1e-6 ? 0 : Math.abs(this.moveDistancePerFrame.x - testMoveDistancePerFrameX),
-      //   Math.abs(this.moveDistancePerFrame.x - testMoveDistancePerFrameX) < 1e-6 ? 0 : (this.moveDistancePerFrame.x > testMoveDistancePerFrameX ? 1 : 2),
+      //   // this.wantMoveDistancePerFrame.x === testMoveDistancePerFrameX ? 0 : (this.wantMoveDistancePerFrame.x > testMoveDistancePerFrameX ? 1 : 2),
+      //   // Math.abs(this.wantMoveDistancePerFrame.x - testMoveDistancePerFrameX) < 1e-6 ? 0 : Math.abs(this.wantMoveDistancePerFrame.x - testMoveDistancePerFrameX),
+      //   Math.abs(this.wantMoveDistancePerFrame.x - testMoveDistancePerFrameX) < 1e-6 ? 0 : (this.wantMoveDistancePerFrame.x > testMoveDistancePerFrameX ? 1 : 2),
       //   // '-',
-      //   // this.moveDistancePerFrame.z, testMoveDistancePerFrameZ,
+      //   // this.wantMoveDistancePerFrame.z, testMoveDistancePerFrameZ,
       //   // '-',
-      //   // this.moveDistancePerFrame.y, testMoveDistancePerFrameY,
+      //   // this.wantMoveDistancePerFrame.y, testMoveDistancePerFrameY,
       // )
 
       // console.log('damping')
@@ -381,7 +384,7 @@ class CharacterPhysics {
       // this.velocity.copy(this.lastTargetMoveDistancePerFrame).divideScalar(timeDiffS)
       // console.log(Math.round(this.velocity.length()))
 
-      // this.velocity.copy(this.moveDistancePerFrame).divideScalar(timeDiffS)
+      // this.velocity.copy(this.wantMoveDistancePerFrame).divideScalar(timeDiffS)
       // console.log((this.velocity.length()))
     }
     if (this.player.hasAction('fly')) {
