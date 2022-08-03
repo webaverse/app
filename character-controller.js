@@ -1118,6 +1118,7 @@ class LocalPlayer extends UninterpolatedPlayer {
     this.playersArray.doc.transact(function tx() {
       self.playerMap = new Z.Map();
 
+      self.appManager.bindState(self.getAppsState());
       self.playerMap.set('playerId', self.playerId);
 
       self.position.toArray(self.transform, 0);
@@ -1148,7 +1149,6 @@ class LocalPlayer extends UninterpolatedPlayer {
         self.playerMap.set('voiceSpec', voiceSpec);
       }
       self.playersArray.push([self.playerMap]);
-      self.appManager.bindState(self.getAppsState());
     });
   }
   grab(app, hand = 'left') {
