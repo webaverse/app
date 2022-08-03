@@ -21,6 +21,9 @@ const localQuaternion = new THREE.Quaternion();
 const localQuaternion2 = new THREE.Quaternion();
 // const localEuler = new THREE.Euler();
 const localMatrix = new THREE.Matrix4();
+const localVector2D = new THREE.Vector2();
+const localVector2D2 = new THREE.Vector2();
+const localVector2D3 = new THREE.Vector2();
 
 // const localOffset = new THREE.Vector3();
 // const localOffset2 = new THREE.Vector3();
@@ -168,7 +171,7 @@ class CharacterPhysics {
 
       // console.log('move')
 
-      const positionXZBefore = new THREE.Vector2(this.player.characterController.position.x, this.player.characterController.position.z);
+      const positionXZBefore = localVector2D.set(this.player.characterController.position.x, this.player.characterController.position.z);
       const flags = physicsScene.moveCharacterController(
         this.player.characterController,
         localVector3,
@@ -176,12 +179,13 @@ class CharacterPhysics {
         timeDiffS,
         this.player.characterController.position
       );
-      const positionXZAfter = new THREE.Vector2(this.player.characterController.position.x, this.player.characterController.position.z);
-      const wantMoveDistancePerFrameXY = new THREE.Vector2(this.wantMoveDistancePerFrame.x, this.wantMoveDistancePerFrame.z);
+      const positionXZAfter = localVector2D2.set(this.player.characterController.position.x, this.player.characterController.position.z);
+      const wantMoveDistancePerFrameXY = localVector2D3.set(this.wantMoveDistancePerFrame.x, this.wantMoveDistancePerFrame.z);
       const movedRatio = (positionXZAfter.sub(positionXZBefore).length()) / wantMoveDistancePerFrameXY.length(); // todo: consider Y axis movement?
       console.log(movedRatio.toFixed(2));
       this.velocity.copy(this.wantVelocity);
       if (movedRatio < 1) this.velocity.multiplyScalar(movedRatio); // todo: multiply targetVelocity.
+
       // const collided = flags !== 0;
       let grounded = !!(flags & 0x1); 
 
