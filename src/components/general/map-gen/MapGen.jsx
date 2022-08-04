@@ -3,26 +3,26 @@ import React, { useState, useEffect, useRef, useContext } from 'react';
 import classnames from 'classnames';
 import metaversefile from 'metaversefile';
 const {useLocalPlayer, useLoreAIScene} = metaversefile;
-// import {world} from '../../../../world.js';
-// import webaverse from '../../../../webaverse.js';
+// import {world} from '@engine/world.js';
+// import webaverse from '@engine/webaverse.js';
 import {registerIoEventHandler, unregisterIoEventHandler} from '../io-handler';
 import {MiniHup} from '../../../MiniHup.jsx';
 // import {RpgText} from '../../../RpgText.jsx';
-import {getRenderer, rootScene, scene, sceneLowPriority} from '../../../../renderer.js';
-import game from '../../../../game.js';
-import {world} from '../../../../world.js';
-import universe from '../../../../universe.js';
-import cameraManager from '../../../../camera-manager.js';
-import story from '../../../../story.js';
-// import raycastManager from '../../../../raycast-manager.js';
-import {snapshotMapChunk} from '../../../../scene-cruncher.js';
+import {getRenderer, rootScene, scene, sceneLowPriority} from '@engine/rendering/renderer.js';
+import game from '@engine/game.js';
+import {world} from '@engine/world.js';
+import universe from '@engine/universe.js';
+import cameraManager from '@engine/camera-manager.js';
+import story from '@engine/ai/story.js';
+// import raycastManager from '@engine/raycast-manager.js';
+import {snapshotMapChunk} from '@engine/optimization/scene-cruncher.js';
 import {Text} from 'troika-three-text';
 // import alea from '../../../../alea.js';
 // import easing from '../../../../easing.js';
-import musicManager from '../../../../music-manager.js';
-import {buildMaterial} from '../../../../shaders.js';
-import {chatManager} from '../../../../chat-manager.js';
-import physicsManager from '../../../../physics-manager.js';
+import musicManager from '@engine/audio/music-manager.js';
+import {buildMaterial} from '@engine/rendering/shaders.js';
+import {chatManager} from '@engine/ui/chat-manager.js';
+import physicsManager from '@engine/physics/physics-manager.js';
 import {
   makeRng,
   // numBlocksPerChunk,
@@ -32,7 +32,7 @@ import {
   // MapBlock,
   createMapChunk,
   createMapChunkMesh,
-} from '../../../../procgen/procgen.js';
+} from '@engine/procgen/procgen.js';
 import styles from './map-gen.module.css';
 import { AppContext } from '../../app';
 
@@ -1045,7 +1045,7 @@ export const MapGen = () => {
           (async () => {
             // terrain app
             const terrainApp = await metaversefile.createAppAsync({
-              start_url: '../metaverse_modules/land/',
+              start_url: '../metaverse-modules/land/',
               components: {
                 seed,
                 physicsInstance,

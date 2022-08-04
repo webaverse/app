@@ -1,7 +1,7 @@
 import React, { forwardRef, useEffect, useState, useRef, useContext } from 'react';
 import classnames from 'classnames';
 import styles from './spritesheet.module.css';
-import spritesheetManager from '../../../../spritesheet-manager.js';
+import spritesheetManager from '@engine/rendering/spritesheet-manager.js';
 
 //
 

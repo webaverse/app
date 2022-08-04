@@ -1,7 +1,7 @@
 import React, {useState, useEffect, useRef} from 'react';
 import classnames from 'classnames';
 import style from './LoadingBox.module.css';
-import {loadImage} from '../util.js';
+import {loadImage} from '@engine/utils/util.js';
 
 const loadManager = new EventTarget();
 const _updateLoadManager = () => {

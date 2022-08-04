@@ -1,6 +1,6 @@
 import {
   bindCanvas,
-} from './renderer.js';
+} from '@engine/rendering/renderer.js';
 
 window.addEventListener('message', e => {
   const method = e.data?.method;

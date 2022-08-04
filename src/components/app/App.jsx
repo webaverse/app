@@ -1,17 +1,16 @@
-
 import React, { useState, useEffect, useRef, createContext } from 'react';
 import classnames from 'classnames';
 
-import { defaultPlayerSpec } from '../../../constants';
+import { defaultPlayerSpec } from '@engine/constants.js';
 
-import game from '../../../game';
-import sceneNames from '../../../scenes/scenes.json';
-import { parseQuery } from '../../../util.js'
-import Webaverse from '../../../webaverse.js';
-import universe from '../../../universe.js';
-import metaversefileApi from '../../../metaversefile-api';
-import cameraManager from '../../../camera-manager';
-import { world } from '../../../world';
+import game from '@engine/game';
+import sceneNames from '@scenes/scenes.json';
+import { parseQuery } from '@engine/utils/util.js'
+import Webaverse from '@engine/webaverse.js';
+import universe from '@engine/universe.js';
+import metaversefileApi from '@engine/metaversefile-api';
+import cameraManager from '@engine/camera-manager';
+import { world } from '@engine/world';
 
 import { ActionMenu } from '../general/action-menu';
 import { Crosshair } from '../general/crosshair';
@@ -32,12 +31,12 @@ import Header from '../../Header.jsx';
 import QuickMenu from '../../QuickMenu.jsx';
 import {ClaimsNotification} from '../../ClaimsNotification.jsx';
 import {DomRenderer} from '../../DomRenderer.jsx';
-// import * as voices from '../../../voices';
-import {handleStoryKeyControls} from '../../../story';
+// import * as voices from '@engine/audio/voices';
+import {handleStoryKeyControls} from '@engine/ai/story';
 
 import styles from './App.module.css';
 import '../../fonts.css';
-import raycastManager from '../../../raycast-manager';
+import raycastManager from '@engine/raycast-manager';
 
 //
 

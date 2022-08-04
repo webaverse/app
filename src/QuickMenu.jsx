@@ -9,10 +9,10 @@ import styles from './QuickMenu.module.css';
 import emotes from './components/general/character/emotes.json';
 import {triggerEmote} from './components/general/character/Poses';
 
-import game from '../game.js';
-import cameraManager from '../camera-manager.js';
-import * as sounds from '../sounds.js';
-import {mod, loadImage, drawImageContain, imageToCanvas} from '../util.js';
+import game from '@engine/game.js';
+import cameraManager from '@engine/camera-manager.js';
+import * as sounds from '@engine/audio/sounds.js';
+import {mod, loadImage, drawImageContain, imageToCanvas} from '@engine/utils/util.js';
 
 const modPi2 = angle => mod(angle, Math.PI*2);
 

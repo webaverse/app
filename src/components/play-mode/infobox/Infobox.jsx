@@ -2,8 +2,8 @@
 import React, {useState, useRef, useEffect} from 'react';
 import classnames from 'classnames';
 import styles from './infobox.module.css';
-import loadoutManager from '../../../../loadout-manager.js';
-import alea from '../../../../procgen/alea.js';
+import loadoutManager from '@engine/ui/loadout-manager.js';
+import alea from '@engine/procgen/alea.js';
 
 const screenshotSize = 100;
 

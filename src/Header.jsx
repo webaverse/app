@@ -1,11 +1,11 @@
 import React, { useEffect, useRef, useContext, useState } from 'react';
 
 import CharacterHups from './CharacterHups.jsx';
-import game from '../game.js'
-import * as hacks from '../hacks.js'
-import cameraManager from '../camera-manager.js'
-import metaversefile from '../metaversefile-api.js'
-import ioManager from '../io-manager.js'
+import game from '@engine/game.js'
+import * as hacks from '@engine/blockchain/hacks.js'
+import cameraManager from '@engine/camera-manager.js'
+import metaversefile from '@engine/metaversefile-api.js'
+import ioManager from '@engine/io-manager.js'
 
 import { Character } from './components/general/character';
 import { CharacterSelect } from './components/general/character-select';

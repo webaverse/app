@@ -1,7 +1,7 @@
 
 import React, { useEffect } from 'react'
 
-import ioManager from '../../../../io-manager.js';
+import ioManager from '@engine/io-manager.js';
 
 //
 

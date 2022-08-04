@@ -2,10 +2,10 @@
 import React, { useContext, useEffect, useState } from 'react';
 import classnames from 'classnames';
 
-import { world } from '../../../../world.js'
-import game from '../../../../game.js'
-import metaversefile from '../../../../metaversefile-api.js';
-import cameraManager from '../../../../camera-manager.js';
+import { world } from '@engine/world.js'
+import game from '@engine/game.js'
+import metaversefile from '@engine/metaversefile-api.js';
+import cameraManager from '@engine/camera-manager.js';
 
 import { NumberInput } from '../number-input';
 import { AppContext } from '../../app';
@@ -14,7 +14,7 @@ import { registerIoEventHandler, unregisterIoEventHandler } from '../../general/
 import { ComponentEditor } from './ComponentEditor.jsx';
 
 import styles from './world-objects-list.module.css';
-import physicsManager from '../../../../physics-manager.js';
+import physicsManager from '@engine/physics/physics-manager.js';
 
 //
 

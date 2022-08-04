@@ -1,9 +1,9 @@
 
 import React, { useState, useEffect, useRef, useContext } from 'react'
 
-import * as codeAi from '../../../../ai/code/code-ai';
+import * as codeAi from '@engine/ai/code-ai';
 import metaversefile from 'metaversefile';
-import game from '../../../../game';
+import game from '@engine/game';
 
 import { registerIoEventHandler, unregisterIoEventHandler } from '../../general/io-handler';
 import { AppContext } from '../../app';

@@ -1,6 +1,0 @@
-{
-  "name": "WebXR Cube",
-  "description": "A simple WebXR cube.",
-  "xr_type": "webxr-site@0.0.1",
-  "start_url": "cube.html"
-}

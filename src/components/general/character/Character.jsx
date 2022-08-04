@@ -1,9 +1,9 @@
 import React, { useEffect, useState, useRef, useContext } from 'react';
 import classnames from 'classnames';
 
-import { defaultPlayerName } from '../../../../ai/lore/lore-model.js';
-import * as sounds from '../../../../sounds.js';
-// import cameraManager from '../../../../camera-manager.js';
+import { defaultPlayerName } from '@engine/ai/lore-model.js';
+import * as sounds from '@engine/audio/sounds.js';
+// import cameraManager from '@engine/camera-manager.js';
 import {
     hp,
     mp,
@@ -13,7 +13,7 @@ import {
     spr,
     dex,
     lck,
-} from '../../../../player-stats.js';
+} from '@engine/player-stats.js';
 
 import { AppContext } from '../../app';
 

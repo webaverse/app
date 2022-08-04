@@ -1,17 +1,17 @@
 import * as THREE from 'three';
 import React, {useState, useEffect, useRef} from 'react';
 import classnames from 'classnames';
-// import dioramaManager from '../diorama.js';
-// import game from '../game.js';
-import dioramaManager from '../diorama.js';
-// import {NpcPlayer} from '../character-controller.js';
-import {world} from '../world.js';
+// import dioramaManager from '@engine/ui/diorama.js';
+// import game from '@engine/game.js';
+import dioramaManager from '@engine/ui/diorama.js';
+// import {NpcPlayer} from '@engine/character/character-controller.js';
+import {world} from '@engine/world.js';
 import styles from './MegaHup.module.css';
 // import {RpgText} from './RpgText.jsx';
-// import {chatTextSpeed} from '../constants.js';
+// import {chatTextSpeed} from '@engine/constants.js';
 // import metaversefile from 'metaversefile';
 // const {useLocalPlayer} = metaversefile;
-// import {chatTextSpeed} from '../constants.js';
+// import {chatTextSpeed} from '@engine/constants.js';
 
 const MegaHup = function({
   open = false,

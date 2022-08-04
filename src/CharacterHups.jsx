@@ -1,13 +1,13 @@
 // import * as THREE from 'three';
 import React, {useState, useEffect, useRef} from 'react';
 import classnames from 'classnames';
-import dioramaManager from '../diorama.js';
+import dioramaManager from '@engine/ui/diorama.js';
 import {RpgText} from './RpgText.jsx';
 import styles from './CharacterHups.module.css';
 // import metaversefile from 'metaversefile';
 // const {useLocalPlayer} = metaversefile;
-import {chatTextSpeed} from '../constants.js';
-import {playersManager} from '../players-manager.js';
+import {chatTextSpeed} from '@engine/constants.js';
+import {playersManager} from '@engine/players-manager.js';
 
 // const localVector = new THREE.Vector3();
 // const localVector2 = new THREE.Vector3();

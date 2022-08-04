@@ -2,8 +2,8 @@
 import React, { useEffect, useState } from 'react';
 import classNames from 'classnames';
 
-import game from '../../../../game.js';
-import metaversefileApi from '../../../../metaversefile-api'
+import game from '@engine/game.js';
+import metaversefileApi from '@engine/metaversefile-api'
 import { Switch } from './switch';
 
 import styles from './settings.module.css';

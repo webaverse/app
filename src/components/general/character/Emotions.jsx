@@ -2,7 +2,7 @@
 import React, { useEffect, useState, useRef } from 'react';
 import classnames from 'classnames';
 
-import metaversefile from '../../../../metaversefile-api.js';
+import metaversefile from '@engine/metaversefile-api.js';
 
 import styles from './emotions.module.css';
 

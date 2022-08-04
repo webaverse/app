@@ -2,7 +2,7 @@ import * as THREE from 'three';
 import React, {useState, useEffect} from 'react';
 import classnames from 'classnames';
 import style from './FocusBar.module.css';
-import cameraManager from '../camera-manager.js';
+import cameraManager from '@engine/camera-manager.js';
 
 const FocusBar = () => {
   // const { state, setState, } = useContext( AppContext )

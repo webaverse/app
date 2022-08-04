@@ -1,16 +1,16 @@
 
 import React, { useEffect, useState } from 'react';
 import classNames from 'classnames';
-// import { voicePacksUrl, voiceEndpointsUrl, defaultVoicePackName } from '../../../../constants';
-// import game from '../../../../game';
+// import { voicePacksUrl, voiceEndpointsUrl, defaultVoicePackName } from '@engine/constants';
+// import game from '@engine/game';
 import { Slider } from './slider';
-import * as voices from '../../../../voices';
+import * as voices from '@engine/audio/voices';
 // import {localPlayer} from '../../../../players';
-import overrides from '../../../../overrides';
+import overrides from '@engine/overrides';
 
 import styles from './settings.module.css';
 
-import audioManager from '../../../../audio-manager.js';
+import audioManager from '@engine/audio/audio-manager.js';
 
 //
 

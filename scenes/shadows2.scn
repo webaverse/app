@@ -80,7 +80,7 @@
             "value": {
                 "name": "Silk",
                 "quantity": 20,
-                "start_url": "../metaverse_modules/silk/"
+                "start_url": "../metaverse-modules/silk/"
             }
           }
         ]

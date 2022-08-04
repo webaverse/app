@@ -1,7 +1,7 @@
 import React, {useEffect, useState, useRef} from 'react';
 import classnames from 'classnames';
 
-import { screenshotObjectApp } from '../../../../object-screenshotter';
+import { screenshotObjectApp } from '@engine/rendering/object-screenshotter';
 
 import styles from './object-screenshot.module.css';
 

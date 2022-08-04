@@ -2,14 +2,14 @@
 import React, {useState, useRef, useEffect} from 'react';
 // import classnames from 'classnames';
 import styles from './quests.module.css';
-import {scene} from '../../../../renderer.js';
-import {screenshotScene} from '../../../../scene-screenshotter.js';
-import questManager from '../../../../quest-manager.js';
+import {scene} from '@engine/rendering/renderer.js';
+import {screenshotScene} from '@engine/rendering/scene-screenshotter.js';
+import questManager from '@engine/ai/quest-manager.js';
 import {Spritesheet} from '../../general/spritesheet';
 import metaversefile from 'metaversefile';
-import * as metaverseModules from '../../../../metaverse-modules.js';
-// import spritesheetManager from '../../../../spritesheet-manager.js';
-// import alea from '../../../../procgen/alea.js';
+import * as metaverseModules from '@metaverse-modules/index.js';
+// import spritesheetManager from '@engine/rendering/spritesheet-manager.js';
+// import alea from '@engine/procgen/alea.js';
 
 const screenshotWidth = 150;
 const screenshotHeight = 100;

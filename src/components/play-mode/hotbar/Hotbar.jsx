@@ -4,10 +4,10 @@ import { AppContext } from '../../app';
 import styles from './hotbar.module.css';
 import {HotBox} from '../hotbox/HotBox.jsx';
 
-import game from '../../../../game.js';
-import loadoutManager from '../../../../loadout-manager.js';
+import game from '@engine/game.js';
+import loadoutManager from '@engine/ui/loadout-manager.js';
 import {registerIoEventHandler, unregisterIoEventHandler} from '../../general/io-handler/IoHandler.jsx';
-import {hotbarSize, numLoadoutSlots} from '../../../../constants.js';
+import {hotbarSize, numLoadoutSlots} from '@engine/constants.js';
 
 export const Hotbar = ({ className }) => {
     const { state, setState } = useContext( AppContext );

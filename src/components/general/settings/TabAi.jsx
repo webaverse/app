@@ -3,9 +3,9 @@ import React, { useEffect, useState } from 'react';
 import classNames from 'classnames';
 
 import { Switch } from './switch';
-import loreAI from '../../../../ai/lore/lore-ai';
-import preauthenticator from '../../../../preauthenticator';
-import debug from '../../../../debug';
+import loreAI from '@engine/ai/lore-ai';
+import preauthenticator from '@engine/utils/preauthenticator';
+import debug from '@engine/utils/debug';
 
 import styles from './settings.module.css';
 

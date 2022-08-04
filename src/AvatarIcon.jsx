@@ -2,20 +2,20 @@ import React, { useEffect, useRef, useContext, useState } from 'react';
 import classnames from 'classnames';
 
 import { AppContext } from './components/app';
-import {world} from '../world.js';
+import {world} from '@engine/world.js';
 import {
   hp,
   mp,
   xp,
   level,
-} from '../player-stats.js';
+} from '@engine/player-stats.js';
 
 import styles from './AvatarIcon.module.css';
 import {PlaceholderImg} from './PlaceholderImg.jsx';
-import { playersManager } from '../players-manager.js';
-import { AvatarIconer } from '../avatar-iconer.js';
-import cameraManager from '../camera-manager.js'
-import * as sounds from '../sounds.js'
+import { playersManager } from '@engine/players-manager.js';
+import { AvatarIconer } from '@engine/rendering/avatar-iconer.js';
+import cameraManager from '@engine/camera-manager.js'
+import * as sounds from '@engine/audio/sounds.js'
 
 const characterIconSize = 100;
 const pixelRatio = window.devicePixelRatio;

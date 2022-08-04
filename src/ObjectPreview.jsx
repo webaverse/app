@@ -2,9 +2,9 @@ import * as THREE from 'three';
 import React, {useEffect, useRef} from 'react';
 import classnames from 'classnames';
 import style from './ObjectPreview.module.css';
-import dioramaManager from '../diorama.js';
+import dioramaManager from '@engine/ui/diorama.js';
 import {OrbitControls} from 'three/examples/jsm/controls/OrbitControls.js';
-import {fitCameraToBoundingBox} from '../util.js';
+import {fitCameraToBoundingBox} from '@engine/utils/util.js';
 
 const canvasWidth = 300;
 const canvasHeight = 400;

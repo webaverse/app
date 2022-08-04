@@ -6,17 +6,17 @@ import styles from './character-select.module.css';
 import { AppContext } from '../../app';
 import { MegaHup } from '../../../MegaHup.jsx';
 import { LightArrow } from '../../../LightArrow.jsx';
-import { world } from '../../../../world.js';
-import { LocalPlayer } from '../../../../character-controller.js';
-import * as sounds from '../../../../sounds.js';
-import { chatManager } from '../../../../chat-manager.js';
-import musicManager from '../../../../music-manager.js';
+import { world } from '@engine/world.js';
+import { LocalPlayer } from '@engine/character/character-controller.js';
+import * as sounds from '@engine/audio/sounds.js';
+import { chatManager } from '@engine/ui/chat-manager.js';
+import musicManager from '@engine/audio/music-manager.js';
 import { CachedLoader } from '../../../CachedLoader.jsx';
 import { RpgText } from '../../../RpgText.jsx';
-import { chatTextSpeed } from '../../../../constants.js';
-import { VoiceEndpointVoicer } from '../../../../voice-output/voice-endpoint-voicer.js';
-import * as voices from '../../../../voices.js';
-import {getVoiceEndpointUrl} from '../../../../voice-output/voice-endpoint-voicer.js';
+import { chatTextSpeed } from '@engine/constants.js';
+import { VoiceEndpointVoicer } from '@engine/audio/voice-endpoint-voicer.js';
+import * as voices from '@engine/audio/voices.js';
+import {getVoiceEndpointUrl} from '@engine/audio/voice-endpoint-voicer.js';
 
 //
 
@@ -46,7 +46,7 @@ const characters = {
         {
             name: 'Scillia',
             previewUrl: './images/characters/upstreet/small/scillia.png',
-            avatarUrl: './avatars/scillia_drophunter_v15_vian.vrm',
+            avatarUrl: '@engine/avatars/scillia_drophunter_v15_vian.vrm',
             voice: `Sweetie Belle`,
             voicePack: `ShiShi voice pack`,
             class: 'Drop Hunter',
@@ -60,7 +60,7 @@ const characters = {
         {
             name: 'Drake',
             previewUrl: './images/characters/upstreet/small/drake.png',
-            avatarUrl: './avatars/Drake_hacker_v8_Guilty.vrm',
+            avatarUrl: '@engine/avatars/Drake_hacker_v8_Guilty.vrm',
             voice: `Shining Armor`,
             voicePack: `Andrew voice pack`,
             class: 'Neural Hacker',
@@ -71,7 +71,7 @@ const characters = {
         {
             name: 'Hyacinth',
             previewUrl: './images/characters/upstreet/small/hyacinth.png',
-            avatarUrl: './avatars/hya_influencer_v2_vian.vrm',
+            avatarUrl: '@engine/avatars/hya_influencer_v2_vian.vrm',
             voice: `Maud Pie`,
             voicePack: `Tiffany voice pack`,
             class: 'Beast Painter',
@@ -82,7 +82,7 @@ const characters = {
         {
             name: 'Juniper',
             previewUrl: './images/characters/upstreet/small/juniper.png',
-            avatarUrl: './avatars/jun_engineer_v1_vian.vrm',
+            avatarUrl: '@engine/avatars/jun_engineer_v1_vian.vrm',
             voice: `Cadance`,
             voicePack: `Tiffany voice pack`,
             class: 'Academy Engineer',
@@ -93,7 +93,7 @@ const characters = {
         {
             name: 'Anemone',
             previewUrl: './images/characters/upstreet/small/anemone.png',
-            avatarUrl: './avatars/ann.vrm',
+            avatarUrl: '@engine/avatars/ann.vrm',
             voice: `Trixie`,
             voicePack: `ShiShi voice pack`,
             class: 'Lisk Witch',

@@ -1,9 +1,9 @@
 import React, {useState, useEffect} from 'react';
 import * as THREE from 'three';
 import classnames from 'classnames';
-import {getRenderer} from '../renderer.js';
+import {getRenderer} from '@engine/rendering/renderer.js';
 import metaversefile from 'metaversefile';
-import performanceTracker from '../performance-tracker.js';
+import performanceTracker from '@engine/utils/performance-tracker.js';
 import style from './Stats.module.css';
 
 const localVector = new THREE.Vector3();

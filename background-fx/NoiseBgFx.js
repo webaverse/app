@@ -3,7 +3,7 @@ import {
   fullscreenGeometry,
   fullscreenVertexShader,
 } from './common.js';
-import {getRenderer} from '../renderer.js';
+import {getRenderer} from '@engine/rendering/renderer.js';
 
 export const noiseFragmentShader = `\
   //Based on Andrew Baldwin's noise tutorial: http://thndl.com/?15

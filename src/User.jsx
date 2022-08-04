@@ -2,17 +2,17 @@ import React, { useState, useEffect, useContext } from 'react';
 import classnames from 'classnames';
 
 // import * as ceramicApi from '../ceramic.js';
-import { discordClientId } from '../constants';
-import { parseQuery } from '../util.js';
+import { discordClientId } from '@engine/constants';
+import { parseQuery } from '@engine/utils/util.js';
 // import Modal from './components/modal';
 import WebaWallet from './components/wallet';
 
-import blockchainManager from '../blockchain-manager.js';
+import blockchainManager from '@engine/blockchain/blockchain-manager.js';
 import { AppContext } from './components/app';
 
 import styles from './User.module.css';
 
-import * as sounds from '../sounds.js';
+import * as sounds from '@engine/audio/sounds.js';
 
 //
 

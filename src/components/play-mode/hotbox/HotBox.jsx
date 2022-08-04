@@ -1,7 +1,7 @@
 import React, {useState, useRef, useEffect} from 'react';
 import classnames from 'classnames';
 import styles from './HotBox.module.css';
-import loadoutManager from '../../../../loadout-manager.js';
+import loadoutManager from '@engine/ui/loadout-manager.js';
 
 export const HotBox = ({
   index,

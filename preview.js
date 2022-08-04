@@ -1,5 +1,5 @@
 /* eslint-disable no-useless-escape */
-import {storageHost, inappPreviewHost} from './constants';
+import {storageHost, inappPreviewHost} from '@engine/constants';
 
 const queue = [];
 let running = false;

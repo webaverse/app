@@ -4,7 +4,7 @@
 import React, { useContext, useEffect, useState } from 'react';
 import classnames from 'classnames';
 
-import { tokensHost } from '../../constants';
+import { tokensHost } from '@engine/constants.js';
 import { AppContext } from '../components/app';
 
 import styles from '../Header.module.css';

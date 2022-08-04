@@ -1,12 +1,12 @@
 import * as THREE from 'three';
 import React, {useState, useEffect, useRef} from 'react';
-import gameManager from '../game.js';
-import {camera} from '../renderer.js';
-import cameraManager from '../camera-manager.js';
-import {playersManager} from '../players-manager.js';
+import gameManager from '@engine/game.js';
+import {camera} from '@engine/rendering/renderer.js';
+import cameraManager from '@engine/camera-manager.js';
+import {playersManager} from '@engine/players-manager.js';
 
 // import {CharacterBanner} from './CharacterBanner.jsx';
-import domRenderEngine, {DomRenderEngine} from '../dom-renderer.jsx';
+import domRenderEngine, {DomRenderEngine} from '@engine/ui/dom-renderer.jsx';
 
 const floatFactor = 0.05;
 const floatTime = 3000;

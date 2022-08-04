@@ -5,13 +5,13 @@ import { AppContext } from '../../app';
 import { MegaHotBox } from '../../play-mode/mega-hotbox';
 import { CachedLoader } from '../../../CachedLoader.jsx';
 import { Spritesheet } from '../spritesheet/';
-import { createLandIcon } from '../../../../land-iconer.js';
-import game from '../../../../game.js';
-import { transparentPngUrl } from '../../../../constants.js';
-import * as sounds from '../../../../sounds.js';
-import { mod } from '../../../../util.js';
-import dropManager from '../../../../drop-manager';
-import cardsManager from '../../../../cards-manager.js';
+import { createLandIcon } from '@engine/rendering/land-iconer.js';
+import game from '@engine/game.js';
+import { transparentPngUrl } from '@engine/constants.js';
+import * as sounds from '@engine/audio/sounds.js';
+import { mod } from '@engine/utils/util.js';
+import dropManager from '@engine/drop-manager';
+import cardsManager from '@engine/ui/cards-manager.js';
 
 //
 
@@ -56,7 +56,7 @@ const objects = {
         },
         /* {
             name: 'Silk',
-            start_url: './metaverse_modules/silk/',
+            start_url: './metaverse-modules/silk/',
             level: 1,
         }, */
     ],
@@ -64,7 +64,7 @@ const objects = {
 const landTokenObjects = [
     {
         name: 'Metaveris',
-        start_url: '/metaverse_components/land/',
+        start_url: '/components/land/',
         description: 'Starting parcel',
         seed: 'lol',
         renderPosition: [0, 0, 0],

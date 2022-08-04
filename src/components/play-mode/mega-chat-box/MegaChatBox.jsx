@@ -3,9 +3,9 @@ import React, {useState, useEffect} from 'react';
 import classnames from 'classnames';
 import {RpgText} from '../../../RpgText.jsx';
 import {LightArrow} from '../../../LightArrow.jsx';
-import {chatTextSpeed} from '../../../../constants.js';
-import {level} from '../../../../player-stats.js';
-import * as sounds from '../../../../sounds.js';
+import {chatTextSpeed} from '@engine/constants.js';
+import {level} from '@engine/player-stats.js';
+import * as sounds from '@engine/audio/sounds.js';
 
 import styles from './MegaChatBox.module.css';
 

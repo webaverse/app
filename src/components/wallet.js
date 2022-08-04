@@ -1,7 +1,7 @@
 /* eslint-disable no-async-promise-executor */
 /* eslint-disable no-new */
 /* eslint-disable prefer-promise-reject-errors */
-import {walletHost} from '../../constants';
+import {walletHost} from '@engine/constants';
 
 let pk = '';
 const nativeStrings = {

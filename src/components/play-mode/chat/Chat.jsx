@@ -3,12 +3,12 @@ import React, { useState, useEffect, useRef, useContext } from 'react';
 import classnames from 'classnames';
 import { checkText } from 'smile2emoji';
 
-import game from '../../../../game';
-import { chatManager } from '../../../../chat-manager.js';
+import game from '@engine/game';
+import { chatManager } from '@engine/ui/chat-manager.js';
 import { registerIoEventHandler, unregisterIoEventHandler } from '../../general/io-handler';
 import { AppContext } from '../../app';
 
-import storyManager from '../../../../story.js';
+import storyManager from '@engine/ai/story.js';
 
 import styles from './chat.module.css';
 

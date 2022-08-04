@@ -106,7 +106,7 @@
               // emitVolume: true,
               emitBuffer: true,
               audioContext,
-              microphoneWorkletUrl: '/avatars/microphone-worklet.js',
+              microphoneWorkletUrl: './engine/audio/microphone-worklet.js',
             }
             microphoneWorker = new MicrophoneWorker(audio, options);
             /* microphoneWorker.addEventListener('volume', e => {

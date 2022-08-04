@@ -1,7 +1,7 @@
 // import * as THREE from 'three';
 import React, {useState, useEffect} from 'react';
-import * as sounds from '../sounds.js';
-import storyManager from '../story.js';
+import * as sounds from '@engine/audio/sounds.js';
+import storyManager from '@engine/ai/story.js';
 import {registerIoEventHandler, unregisterIoEventHandler} from './components/general/io-handler';
 import {MegaChatBox} from './components/play-mode/mega-chat-box';
 
