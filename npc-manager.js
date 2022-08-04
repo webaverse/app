@@ -172,12 +172,13 @@ class NpcManager extends EventTarget {
               if (targetSpec.type === 'moveto' && distance < 2) {
                 targetSpec = null;
               } else {
-                const speed = Math.max(0,
+                const speed = THREE.MathUtils.clamp(
                   THREE.MathUtils.mapLinear(
                     distance,
                     2, 3.5,
                     walkSpeed, runSpeed,
-                  )
+                  ),
+                  0, runSpeed,
                 );
                 console.log(distance, speed)
                 const velocity = v.normalize().multiplyScalar(speed);
