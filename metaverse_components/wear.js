@@ -159,6 +159,9 @@ export default (app, component) => {
   
               // skeleton = bindSpec.skeleton;
               modelBones = bindSpec.modelBones;
+              for (const k in modelBones){
+                modelBones[k].initialPosition = modelBones[k].position.clone();
+              }
             }
           }
           
@@ -195,7 +198,12 @@ export default (app, component) => {
 
       app.scale.copy(initialScale);
       app.updateMatrixWorld();
-
+      for (const k in modelBones){
+        const modelBone = modelBones[k];
+        modelBone.position.copy(modelBone.initialPosition);
+        modelBone.quaternion.copy(modelBone.initialQuaternion);
+      }
+      
       wearSpec = null;
       modelBones = null;
     }
