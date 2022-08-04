@@ -47,6 +47,7 @@ import story from './story.js';
 import zTargeting from './z-targeting.js';
 import raycastManager from './raycast-manager.js';
 import universe from './universe.js';
+import npcManager from './npc-manager.js';
 
 const localVector = new THREE.Vector3();
 const localVector2 = new THREE.Vector3();
@@ -393,9 +394,10 @@ const _startHacks = webaverse => {
   window.cameraManager = cameraManager;
   window.camera = camera;
   window.ioManager = ioManager;
-  
+  window.npcManager = npcManager;
+
   window.isDebugger = false;
-  
+
   // press R to debug current state in console
   window.addEventListener('keydown', event => {
     if (event.key === '}') {
