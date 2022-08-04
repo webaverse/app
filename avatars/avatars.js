@@ -1981,7 +1981,7 @@ class Avatar {
     // update wind in simulation
     const _updateWind = () =>{
       const headPosition = localVector.setFromMatrixPosition(this.modelBoneOutputs.Head.matrixWorld);
-      wind.update(timestamp, headPosition, this.springBoneManager)
+      this.springBoneManager && wind.update(timestamp, headPosition, this.springBoneManager)
     }
     _updateWind();
 
