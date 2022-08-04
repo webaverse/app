@@ -43,6 +43,7 @@ const localMatrix2 = new THREE.Matrix4();
 const localMatrix3 = new THREE.Matrix4();
 // const localBox = new THREE.Box3();
 const localRay = new THREE.Ray();
+const identityVector = new THREE.Vector3();
 
 //
 
@@ -1371,6 +1372,7 @@ class GameManager extends EventTarget {
       const localPlayer = playersManager.getLocalPlayer();
       localPlayer.isLocalPlayer = false;
       localPlayer.isNpcPlayer = true;
+      localPlayer.characterPhysics.applyWasd(identityVector, 0);
 
       npc.isLocalPlayer = true;
       npc.isNpcPlayer = false;
