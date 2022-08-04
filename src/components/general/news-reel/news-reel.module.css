@@ -1,0 +1,150 @@
+.newsReel {
+  --width: 480px;
+
+  position: fixed;
+  display: flex;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  width: 500px;
+  height: 100vh;
+  flex-direction: column;
+
+  /* background-image: linear-gradient(to bottom, #222, #111); */
+  /* justify-content: center;
+  align-items: center;
+  z-index: 2; */
+  color: #FFF;
+}
+.newsReel h1,
+.newsReel h2,
+.newsReel p {
+  position: relative;
+  display: block;
+  margin: 10px 0;
+  margin-left: -350px;
+  margin-right: 470px;
+  padding: 30px;
+}
+.newsReel h1 {
+  /* width: 100vw;
+  height: 100vh; */
+  font-family: WinchesterCaps;
+  font-size: 30px;
+  letter-spacing: 3px;
+  z-index: 1;
+}
+.newsReel h1::after {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  background-image: linear-gradient(to bottom, #333, #111);
+  transform: skew(-15deg, 0);
+  content: '';
+  z-index: -1;
+}
+.newsReel h2 {
+  /* width: 100vw;
+  height: 100vh; */
+  font-family: PlazaRegular;
+  font-size: 40px;
+  letter-spacing: 7px;
+  background-image: linear-gradient(to bottom, #222, #111);
+  z-index: 1;
+}
+.newsReel p {
+  /* width: 100vw;
+  height: 100vh; */
+  font-family: 'SF Movie Poster';
+  /* font-family: 'FuturaLT-Condensed'; */
+  /* font-family: 'FuturaStd-Heavy'; */
+  /* font-family: 'GillSans'; */
+  /* font-family: 'SanvitoPro-Regular'; */
+  font-size: 30px;
+  letter-spacing: 2px;
+  line-height: 1;
+  background-image: linear-gradient(to bottom, #222, #111);
+  z-index: -1;
+}
+.newsReel .background {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: right;
+  /* width: 100vw;
+  height: 100vh; */
+  /* -webkit-mask-image:-webkit-linear-gradient(right, rgba(0,0,0,1), rgba(0,0,0,0)); */
+  /* mask-image: linear-gradient(to bottom, rgba(0,0,0,1), rgba(0,0,0,0)); */
+}
+.newsReel .styles {
+  /* width: 100vw;
+  height: 100vh; */
+}
+
+.newsReel .imageGrid {
+  display: flex;
+  position: absolute;
+  top: 0;
+  right: 0;
+  background-color: #000;
+  flex-flow: row wrap;
+  align-content: flex-start;
+  width: var(--width);
+  height: 100%;
+}
+.newsReel .imageGrid .imageGridItem {
+  position: relative;
+  /* object-fit: cover; */
+  display: flex;
+  cursor: pointer;
+  overflow: hidden;
+  white-space: nowrap;
+  /* transform: translate3d(0, 0, 0); */
+  /* transition: transform 1s cubic-bezier(0, 1, 0, 1); */
+  /* transition: filter 1s cubic-bezier(0, 1, 0, 1); */
+}
+.newsReel .imageGrid .imageGridItem:hover {
+  filter: brightness(0.7);
+  /* transform: translate3d(0, 0, 0) scale3d(1.15, 1.15, 1.15); */
+  /* z-index: 1; */
+}
+.newsReel .imageGrid .imageGridItem:hover {
+  transform: 0;
+}
+.newsReel .imageGrid .imageGridItem .content {
+  display: flex;
+  width: 300px;
+  /* transition: filter 1s cubic-bezier(0, 1, 0, 1); */
+  /* transform: translate3d(0, 0, 0); */
+}
+.newsReel .imageGrid .imageGridItem:hover .content {
+  /* transform: translate3d(150px, 0, 0); */
+}
+.newsReel .imageGrid .imageGridItem .img {
+  position: relative;
+  /* transform: translate3d(150px, 0, 0); */
+  transition: opacity 2s cubic-bezier(0, 1, 0, 1);
+}
+.newsReel .imageGrid .imageGridItem:hover .img {
+  opacity: 0;
+}
+.newsReel .imageGrid .imageGridItem .text {
+  position: absolute;
+  top: 0;
+  left: 0;
+  /* left: -150px; */
+  width: 100%;
+  height: 100%;
+  padding: 10px;
+  background-image: linear-gradient(to bottom, #111, #000);
+  /* font-family: WinchesterCaps; */
+  font-family: 'SF Movie Poster';
+  font-size: 30px;
+  letter-spacing: 2px;
+  color: #FFF;
+}
