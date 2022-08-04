@@ -174,7 +174,6 @@ const funGridMaterial = new THREE.ShaderMaterial({
         discard;
       } else {
         gl_FragColor = vec4(c, a);
-        gl_FragColor = sRGBToLinear(gl_FragColor);
       }
 
       /* gl_FragColor.rb += uvGridModY.xy * 0.1;
