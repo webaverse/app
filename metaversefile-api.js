@@ -982,6 +982,13 @@ export default () => {
           return remotePlayer;
         }
       }
+      for (let i = 0; i < npcManager.npcs.length; i++) {
+        const npcPlayer = npcManager.npcs[i];
+        const remoteApp = npcPlayer.appManager.getAppByInstanceId(instanceId);
+        if (remoteApp) {
+          return npcPlayer;
+        }
+      }
       return null;
     }
   },
