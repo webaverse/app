@@ -270,14 +270,15 @@ class AppManager extends EventTarget {
   bindTrackedApp(trackedApp, app) {
     // console.log('bind tracked app', trackedApp.get('instanceId'));
     const _observe = (e, origin) => {
-      if (origin !== 'push') {
-        if (e.changes.keys.has('transform')) {
-          app.position.fromArray(trackedApp.get('transform'));
-          app.quaternion.fromArray(trackedApp.get('transform'), 3);
-          app.scale.fromArray(trackedApp.get('transform'), 7);
-          app.updateMatrixWorld();
-        }
-      }
+      // ! bellow code is bugged
+      // if (origin !== 'push') {
+      //   if (e.changes.keys.has('transform')) {
+      //     app.position.fromArray(trackedApp.get('transform'));
+      //     app.quaternion.fromArray(trackedApp.get('transform'), 3);
+      //     app.scale.fromArray(trackedApp.get('transform'), 7);
+      //     app.updateMatrixWorld();
+      //   }
+      // }
     };
     trackedApp.observe(_observe);
     
