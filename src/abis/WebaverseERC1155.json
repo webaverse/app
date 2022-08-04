@@ -444,26 +444,6 @@
     {
       "inputs": [
         {
-          "internalType": "uint256",
-          "name": "",
-          "type": "uint256"
-        }
-      ],
-      "name": "serverVoucher",
-      "outputs": [
-        {
-          "internalType": "bool",
-          "name": "",
-          "type": "bool"
-        }
-      ],
-      "stateMutability": "view",
-      "type": "function",
-      "constant": true
-    },
-    {
-      "inputs": [
-        {
           "internalType": "address",
           "name": "operator",
           "type": "address"
@@ -500,11 +480,6 @@
               "internalType": "uint256",
               "name": "tokenId",
               "type": "uint256"
-            },
-            {
-              "internalType": "string",
-              "name": "metadatahash",
-              "type": "string"
             },
             {
               "internalType": "uint256",
@@ -745,61 +720,6 @@
           "type": "address"
         },
         {
-          "internalType": "bytes",
-          "name": "data",
-          "type": "bytes"
-        },
-        {
-          "components": [
-            {
-              "internalType": "uint256",
-              "name": "tokenId",
-              "type": "uint256"
-            },
-            {
-              "internalType": "string",
-              "name": "metadatahash",
-              "type": "string"
-            },
-            {
-              "internalType": "uint256",
-              "name": "balance",
-              "type": "uint256"
-            },
-            {
-              "internalType": "uint256",
-              "name": "nonce",
-              "type": "uint256"
-            },
-            {
-              "internalType": "uint256",
-              "name": "expiry",
-              "type": "uint256"
-            },
-            {
-              "internalType": "bytes",
-              "name": "signature",
-              "type": "bytes"
-            }
-          ],
-          "internalType": "struct WebaverseVoucher.NFTVoucher",
-          "name": "voucher",
-          "type": "tuple"
-        }
-      ],
-      "name": "mintfromVoucher",
-      "outputs": [],
-      "stateMutability": "nonpayable",
-      "type": "function"
-    },
-    {
-      "inputs": [
-        {
-          "internalType": "address",
-          "name": "to",
-          "type": "address"
-        },
-        {
           "internalType": "string[]",
           "name": "uris",
           "type": "string[]"
@@ -888,11 +808,6 @@
               "type": "uint256"
             },
             {
-              "internalType": "string",
-              "name": "metadatahash",
-              "type": "string"
-            },
-            {
               "internalType": "uint256",
               "name": "balance",
               "type": "uint256"
@@ -947,11 +862,6 @@
               "internalType": "uint256",
               "name": "tokenId",
               "type": "uint256"
-            },
-            {
-              "internalType": "string",
-              "name": "metadatahash",
-              "type": "string"
             },
             {
               "internalType": "uint256",
