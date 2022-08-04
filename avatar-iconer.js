@@ -50,7 +50,7 @@ class AvatarIconer extends EventTarget {
       import {emotions} from './src/components/general/character/Emotions.jsx';
 
       const allEmotions = [''].concat(emotions);
-      const cameraOffset = new THREE.Vector3(0, 0.05, -0.35);
+      const cameraOffset = new THREE.Vector3(0, 0.075, -0.18);
       `,
       async function(start_url, width, height) {
         const player = await npcManager.createNpcAsync({

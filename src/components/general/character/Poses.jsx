@@ -11,6 +11,8 @@ import fallbackEmotes from "./fallback_emotes.json";
 
 
 let emoteTimeout = null;
+let oldEmoteValue = null;
+let lastEmotion = null;
 export const triggerEmote = (emoteName, player = null) => {
     const emoteHardName = emoteName.replace(/Soft$/, '');
     const emote = emotes.find(emote => emote.name === emoteHardName);
@@ -19,12 +21,22 @@ export const triggerEmote = (emoteName, player = null) => {
     }
     const { emotion } = emote;
     player = !player ? metaversefile.useLocalPlayer() : player;
+    const facePoseActionIndex = player.findActionIndex( a => a.type === 'facepose' && a.emotion === emotion );
+    if ( facePoseActionIndex !== -1 ) {
+        oldEmoteValue = player.getAction('facepose').value
+    }
+    else{
+        oldEmoteValue = null;
+    }
 
     // clear old emote
     player.removeAction('emote');
     if (emoteTimeout) {
+        const value = oldEmoteValue ? oldEmoteValue : 0;
+        setFacePoseValue(lastEmotion, value);
         clearTimeout(emoteTimeout);
         emoteTimeout = null;
+        lastEmotion = null;
     }
 
     // add new emote
@@ -35,6 +47,7 @@ export const triggerEmote = (emoteName, player = null) => {
     player.addAction(newAction);
 
     setFacePoseValue(emotion, 1);
+    lastEmotion = emotion;
 
     const emoteAnimation = emoteAnimations[emoteHardName];
     const emoteAnimationDuration = emoteAnimation.duration;
@@ -42,7 +55,8 @@ export const triggerEmote = (emoteName, player = null) => {
         const actionIndex = player.findActionIndex(action => action.type === 'emote' && action.animation === emoteHardName);
         player.removeActionIndex(actionIndex);
 
-        setFacePoseValue(emotion, 0);
+        const value = oldEmoteValue ? oldEmoteValue : 0;
+        setFacePoseValue(lastEmotion, value);
 
         emoteTimeout = null;
     }, emoteAnimationDuration * 1000);

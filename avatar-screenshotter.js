@@ -84,10 +84,83 @@ export const screenshotPlayer = async ({
       _animate(now, timeDiff);
     };
   };
+  const localVector = new THREE.Vector3();
+  const localVector2 = new THREE.Vector3();
+  
   const _updateTarget = (timestamp, timeDiff) => {
+    
+    //v1
+    // let height = null;
+    // player.avatar.object.scene.traverse(o => {
+    //   // console.log(o.name, o.isMesh);
+    //   if (o.isMesh && o.geometry.boundingBox && !height) {
+    //     var boundingBox = new THREE.Box3();
+    //     var mesh = o;
+    //     boundingBox.copy( mesh.geometry.boundingBox );
+    //     mesh.updateMatrixWorld( true ); // ensure world matrix is up to date
+    //     boundingBox.applyMatrix4( mesh.matrixWorld );
+    //     height = boundingBox.max.y;
+    //   }
+    // });
+    // const headPosition = localVector.setFromMatrixPosition(player.avatar.modelBoneOutputs.Left_shoulder.matrixWorld);
+    // console.log(height - headPosition.y);
+
+
+    //v2
+    // const headPosition = localVector.setFromMatrixPosition(player.avatar.modelBones.Neck.matrixWorld);
+    // let tempMesh = null;
+    // player.avatar.object.scene.traverse(o => {
+    //   if (o.isMesh) {
+    //     tempMesh = o;
+    //   }
+    // });
+    // if(!tempMesh.geometry.boundingBox){
+    //   tempMesh.geometry.computeBoundingBox()
+    //   tempMesh.geometry.computeBoundingSphere()
+    // }
+    // console.log(tempMesh.geometry.boundingBox.max.y - headPosition.y);
+    // console.log(tempMesh.geometry.boundingBox.max.y, headPosition.y);
+    // console.log(player.avatar.modelBones)
+    // console.log('Neck correct:', headPosition.y)
+
+    //v3
+    // const bbox = new THREE.Box3().setFromObject(player.avatar.modelBones.Head);
+    // console.log(bbox)
+
     target.matrixWorld.copy(player.avatar.modelBones.Head.matrixWorld)
       .decompose(target.position, target.quaternion, target.scale);
-    target.position.set(player.position.x, target.position.y, player.position.z);
+
+    const decapitatePosition = localVector.setFromMatrixPosition(player.avatar.modelBones.Head.savedMatrixWorld);
+    let maxY = 0;
+    let tempMesh = null;
+    player.avatar.model.traverse(o => {
+      if (o.isMesh) {
+        for(let i = 0; i < o.geometry.attributes.position.array.length; i++){
+          if(i % 3 === 1){
+            maxY = (o.geometry.attributes.position.array[i] > maxY) ? o.geometry.attributes.position.array[i] : maxY; 
+            tempMesh = o;
+          }
+        } 
+      }
+    });
+    maxY += tempMesh.position.y;
+    
+    
+    let headHeight = maxY - decapitatePosition.y;
+    
+    console.log('decapitatePosition:', decapitatePosition.y);
+    console.log('maxY:', maxY)
+    console.log('headHeight:', headHeight)
+    
+    const fov = 50 * ( Math.PI / 180 );
+    let cameraZ = Math.abs( headHeight / 10 * Math.tan( fov * 2 ) );
+
+    let offset = Math.pow(1. + headHeight, 1.8);
+    console.log(offset)
+    // offset = offset > 2 ? 2 : offset;
+    cameraZ *= offset;
+
+    target.position.set(player.position.x, target.position.y, player.position.z - cameraZ);
     target.quaternion.copy(player.quaternion);
     target.matrixWorld.compose(target.position, target.quaternion, target.scale);
   };

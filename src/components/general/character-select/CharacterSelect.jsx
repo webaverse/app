@@ -71,7 +71,7 @@ const characters = {
         {
             name: 'Hyacinth',
             previewUrl: './images/characters/upstreet/small/hyacinth.png',
-            avatarUrl: './avatars/hya_influencer_v2_vian.vrm',
+            avatarUrl: './avatars/dog.vrm',
             voice: `Maud Pie`,
             voicePack: `Tiffany voice pack`,
             class: 'Beast Painter',

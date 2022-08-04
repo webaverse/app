@@ -34,7 +34,7 @@ class OffscreenEngine {
         });
   
         iframe.allow = 'cross-origin-isolated';
-        iframe.src = `${inappPreviewHost}/engine.html#id=${this.id}`;
+        iframe.src = `https://local.webaverse.com/engine.html#id=${this.id}`;
         document.body.appendChild(iframe);
         this.iframe = iframe;
   
