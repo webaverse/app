@@ -150,11 +150,9 @@ class CharacterPhysics {
       const wantMoveDistancePerFrameXZ = localVector2D3.set(this.wantMoveDistancePerFrame.x, this.wantMoveDistancePerFrame.z);
       const wantMoveDistancePerFrameXZLength = wantMoveDistancePerFrameXZ.length();
       if (wantMoveDistancePerFrameXZLength > 0) {
-        const movedRatio = (positionXZAfter.sub(positionXZBefore).length()) / wantMoveDistancePerFrameXZLength; // todo: consider Y axis movement?
-        // console.log(movedRatio.toFixed(2));
+        const movedRatio = (positionXZAfter.sub(positionXZBefore).length()) / wantMoveDistancePerFrameXZLength;
         this.velocity.copy(this.wantVelocity);
-        if (this.player === window.npcPlayer) debugger
-        if (movedRatio < 1) this.velocity.multiplyScalar(movedRatio); // todo: multiply targetVelocity.
+        if (movedRatio < 1) this.velocity.multiplyScalar(movedRatio);
       }
 
       // const collided = flags !== 0;

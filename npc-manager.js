@@ -39,12 +39,6 @@ class NpcManager extends EventTarget {
     });
     npcPlayer.name = name;
 
-    if (!window.npcPlayers) {
-      window.npcPlayers = [];
-      window.npcPlayer = npcPlayer;
-    }
-    window.npcPlayers.push(npcPlayer);
-
     let matrixNeedsUpdate = false;
     if (position) {
       npcPlayer.position.copy(position);
@@ -179,7 +173,6 @@ class NpcManager extends EventTarget {
                     walkSpeed, runSpeed,
                   )
                 );
-                console.log(distance, speed)
                 const velocity = v.normalize().multiplyScalar(speed);
                 npcPlayer.characterPhysics.applyWasd(velocity, timeDiff);
               }
