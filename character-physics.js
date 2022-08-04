@@ -148,10 +148,14 @@ class CharacterPhysics {
       );
       const positionXZAfter = localVector2D2.set(this.player.characterController.position.x, this.player.characterController.position.z);
       const wantMoveDistancePerFrameXZ = localVector2D3.set(this.wantMoveDistancePerFrame.x, this.wantMoveDistancePerFrame.z);
-      const movedRatio = (positionXZAfter.sub(positionXZBefore).length()) / wantMoveDistancePerFrameXZ.length(); // todo: consider Y axis movement?
-      console.log(movedRatio.toFixed(2));
-      this.velocity.copy(this.wantVelocity);
-      if (movedRatio < 1) this.velocity.multiplyScalar(movedRatio); // todo: multiply targetVelocity.
+      const wantMoveDistancePerFrameXZLength = wantMoveDistancePerFrameXZ.length();
+      if (wantMoveDistancePerFrameXZLength > 0) {
+        const movedRatio = (positionXZAfter.sub(positionXZBefore).length()) / wantMoveDistancePerFrameXZLength; // todo: consider Y axis movement?
+        // console.log(movedRatio.toFixed(2));
+        this.velocity.copy(this.wantVelocity);
+        if (this.player === window.npcPlayer) debugger
+        if (movedRatio < 1) this.velocity.multiplyScalar(movedRatio); // todo: multiply targetVelocity.
+      }
 
       // const collided = flags !== 0;
       let grounded = !!(flags & 0x1); 
