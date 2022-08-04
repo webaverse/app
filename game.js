@@ -25,6 +25,7 @@ import npcManager from './npc-manager.js';
 import raycastManager from './raycast-manager.js';
 import zTargeting from './z-targeting.js';
 import Avatar from './avatars/avatars.js';
+import {makeId} from './util.js'
 
 const localVector = new THREE.Vector3();
 const localVector2 = new THREE.Vector3();
@@ -42,6 +43,7 @@ const localMatrix2 = new THREE.Matrix4();
 const localMatrix3 = new THREE.Matrix4();
 // const localBox = new THREE.Box3();
 const localRay = new THREE.Ray();
+const identityVector = new THREE.Vector3();
 
 //
 
@@ -1370,6 +1372,7 @@ class GameManager extends EventTarget {
       const localPlayer = playersManager.getLocalPlayer();
       localPlayer.isLocalPlayer = false;
       localPlayer.isNpcPlayer = true;
+      localPlayer.characterPhysics.applyWasd(identityVector, 0);
 
       npc.isLocalPlayer = true;
       npc.isNpcPlayer = false;
@@ -1436,6 +1439,7 @@ class GameManager extends EventTarget {
     const app = await metaversefileApi.createAppAsync({
       start_url: u,
     });
+    app.instanceId = makeId(5);
     world.appManager.importApp(app);
     app.activate();
     // XXX set to index
