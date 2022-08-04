@@ -22,6 +22,7 @@ import { ZoneTitleCard } from '../general/zone-title-card';
 import { Quests } from '../play-mode/quests';
 import { MapGen } from '../general/map-gen/MapGen.jsx';
 import { UIMode } from '../general/ui-mode';
+import { NewsReel } from '../general/news-reel';
 import { LoadingBox } from '../../LoadingBox.jsx';
 import { FocusBar } from '../../FocusBar.jsx';
 import { DragAndDrop } from '../../DragAndDrop.jsx';
@@ -353,6 +354,7 @@ export const App = () => {
                 <MapGen />
                 <Quests />
                 <LoadingBox />
+                <NewsReel />
                 <FocusBar />
                 <DragAndDrop />
                 <BuildVersion />
