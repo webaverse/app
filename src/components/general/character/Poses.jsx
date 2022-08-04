@@ -16,7 +16,8 @@ export const triggerEmote = (emoteName, player = null) => {
     const isGrounded = player.characterPhysics.lastGrounded;
     const narutoRunAction = player.getAction('narutoRun');
     const flyAction = player.getAction('fly');
-    if(narutoRunAction || flyAction || !isGrounded)
+    const danceAction = player.getAction('dance');
+    if(narutoRunAction || flyAction || !isGrounded || danceAction)
         return;
     const emoteHardName = emoteName.replace(/Soft$/, '');
     const emote = emotes.find(emote => emote.name === emoteHardName);
