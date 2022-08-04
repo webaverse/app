@@ -77,6 +77,7 @@ class CharacterPhysics {
       // window.visKeysDirectionX = keysDirection.x;
       // this.velocity.add(keysDirection);
       this.targetMoveDistancePerFrame.copy(this.targetVelocity).multiplyScalar(timeDiff / 1000);
+      if (this.player === window.npcPlayer) if (this.targetMoveDistancePerFrame.x !== 0) debugger
       window.domInfo.innerHTML += `<div style="display:;">targetMoveDistancePerFrame: --- ${window.logVector3(this.targetMoveDistancePerFrame)}</div>`;
       // console.log(this.velocity.x, this.velocity.z)
       // window.visVelocityBeforeDampingX = this.velocity.x;
@@ -135,6 +136,7 @@ class CharacterPhysics {
       // move character controller
       const minDist = 0;
       // localVector3.copy(this.velocity) // todo: rename?: this.velocity is not velocity, but move distance per frame now ?
+      // if (this.player === window.npcPlayer) console.log(this.wantMoveDistancePerFrame.x)
       localVector3.copy(this.wantMoveDistancePerFrame)
         // .multiplyScalar(timeDiffS);
         // .multiplyScalar(timeDiffS);
@@ -181,10 +183,14 @@ class CharacterPhysics {
       );
       const positionXZAfter = localVector2D2.set(this.player.characterController.position.x, this.player.characterController.position.z);
       const wantMoveDistancePerFrameXZ = localVector2D3.set(this.wantMoveDistancePerFrame.x, this.wantMoveDistancePerFrame.z);
-      const movedRatio = (positionXZAfter.sub(positionXZBefore).length()) / wantMoveDistancePerFrameXZ.length(); // todo: consider Y axis movement?
-      console.log(movedRatio.toFixed(2));
-      this.velocity.copy(this.wantVelocity);
-      if (movedRatio < 1) this.velocity.multiplyScalar(movedRatio); // todo: multiply targetVelocity.
+      const wantMoveDistancePerFrameXZLength = wantMoveDistancePerFrameXZ.length();
+      if (wantMoveDistancePerFrameXZLength > 0) {
+        const movedRatio = (positionXZAfter.sub(positionXZBefore).length()) / wantMoveDistancePerFrameXZLength; // todo: consider Y axis movement?
+        // console.log(movedRatio.toFixed(2));
+        this.velocity.copy(this.wantVelocity);
+        if (this.player === window.npcPlayer) debugger
+        if (movedRatio < 1) this.velocity.multiplyScalar(movedRatio); // todo: multiply targetVelocity.
+      }
 
       // const collided = flags !== 0;
       let grounded = !!(flags & 0x1); 
@@ -362,6 +368,7 @@ class CharacterPhysics {
       this.wantMoveDistancePerFrame.z = THREE.MathUtils.damp(this.wantMoveDistancePerFrame.z, this.lastTargetMoveDistancePerFrame.z, factor, timeDiffS);
       this.wantMoveDistancePerFrame.y = THREE.MathUtils.damp(this.wantMoveDistancePerFrame.y, this.lastTargetMoveDistancePerFrame.y, factor, timeDiffS);
       // if (this.targetMoveDistancePerFrame.x > 0) debugger
+      // if (this.player === window.npcPlayer) if (this.wantMoveDistancePerFrame.x !== 0) debugger
 
       this.wantVelocity.x = THREE.MathUtils.damp(this.wantVelocity.x, this.lastTargetVelocity.x, factor, timeDiffS);
       this.wantVelocity.z = THREE.MathUtils.damp(this.wantVelocity.z, this.lastTargetVelocity.z, factor, timeDiffS);
