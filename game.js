@@ -1683,7 +1683,7 @@ class GameManager extends EventTarget {
       let neckBone;
       e.avatar.model.traverse(
         (object) => {
-          if (object.type === "Bone" && object.name === "Head") {
+          if (object.type === "Bone" && object.name.toUpperCase().includes("HEAD")) {
             return neckBone = object;
           }
         }
