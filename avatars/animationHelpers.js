@@ -419,6 +419,13 @@ export const _applyAnimation = (avatar, now) => {
   const landTimeSeconds = timeSeconds - avatar.lastLandStartTime / 1000 + 0.8; // in order to align landing 2.fbx with walk/run
   const {idleWalkFactor, walkRunFactor, crouchFactor} = avatar;
 
+  if (!avatar.testaaa) {
+    const player = metaversefile.getPlayerByAppInstanceId(avatar.app.getComponent('instanceId'));
+    console.log({player});
+
+    avatar.testaaa = true;
+  }
+
   /* const _getAnimationKey = crouchState => {
     if (crouchState) {
       return 'crouch';
