@@ -129,22 +129,40 @@ class NpcManager extends EventTarget {
     let targetSpec = null;
     if (mode === 'attached') {
       const _listenEvents = () => {
-        const hittrackeradd = e => {
-          app.hitTracker.addEventListener('hit', e => {
-            if (!npcPlayer.hasAction('hurt')) {
-              const newAction = {
-                type: 'hurt',
-                animation: 'pain_back',
-              };
-              npcPlayer.addAction(newAction);
-              
-              setTimeout(() => {
-                npcPlayer.removeAction('hurt');
-              }, hurtAnimationDuration * 1000);
-            }
-          });
-        };
-        app.addEventListener('hittrackeradded', hittrackeradd);
+        // const hittrackeradd = e => {
+        //   app.hitTracker.addEventListener('hit', e => {
+        //     if (!npcPlayer.hasAction('hurt')) {
+        //       const newAction = {
+        //         type: 'hurt',
+        //         animation: 'pain_back',
+        //       };
+        //       npcPlayer.addAction(newAction);
+
+        //       setTimeout(() => {
+        //         npcPlayer.removeAction('hurt');
+        //       }, hurtAnimationDuration * 1000);
+        //     }
+        //   });
+        // };
+        // app.addEventListener('hittrackeradded', hittrackeradd);
+
+        app.addEventListener('hit', e => {
+          if (!npcPlayer.hasAction('hurt')) {
+            const newAction = {
+              type: 'hurt',
+              animation: 'pain_back',
+            };
+            // console.log('add hurtAction', 'npc-manager.js')
+            npcPlayer.addAction(newAction);
+            // console.log('remove use', 'npc-manager.js')
+            npcPlayer.removeAction('use'); // todo: setControlAction() ?
+
+            setTimeout(() => {
+              // npcPlayer.removeAction('hurt');
+            // }, hurtAnimationDuration * 1000);
+            }, 0);
+          }
+        })
 
         const activate = () => {
           if (targetSpec?.object !== localPlayer) {

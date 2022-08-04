@@ -360,6 +360,16 @@ export function applyPlayerActionsToAvatar(player, rig) {
   // rig.swordTopDownSlashTime = player.actionInterpolants.swordTopDownSlash.get();
   // rig.swordTopDownSlashAnimation = swordTopDownSlashAnimation;
   // rig.swordTopDownSlashState = !!swordTopDownSlash;
+  rig.hurtState = !!hurtAction;
+  // start/end event
+  rig.hurtStart = false;
+  rig.hurtEnd = false;
+  if (rig.hurtState !== rig.lastHurtState) {
+    if (rig.hurtState) rig.hurtStart = true;
+    else rig.hurtEnd = true;
+  }
+  rig.lastHurtState = rig.hurtState;
+  //
   rig.hurtAnimation = (hurtAction?.animation) || '';
   rig.hurtTime = player.actionInterpolants.hurt.get();
 

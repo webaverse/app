@@ -626,6 +626,16 @@ export const _createAnimation = avatar => {
       physx.physxWorker.stop(avatar.sitMotiono[k]);
     }
   }
+  // hurt
+  avatar.hurtMotiono = {};
+  for (const k in hurtAnimations) {
+    const animation = hurtAnimations[k];
+    if (animation) {
+      avatar.hurtMotiono[k] = avatar.createMotion(animation.ptr, k);
+      physx.physxWorker.setLoop(avatar.hurtMotiono[k], AnimationLoopType.LoopOnce);
+      physx.physxWorker.stop(avatar.hurtMotiono[k]);
+    }
+  }
   // emote
   avatar.emoteMotiono = {};
   for (const k in emoteAnimations) {
@@ -763,6 +773,15 @@ export const _createAnimation = avatar => {
   physx.physxWorker.addChild(avatar.holdNodeFunc, avatar.activateNodeTwo);
   physx.physxWorker.addChild(avatar.holdNodeFunc, avatar.holdsNodeUnitary);
 
+  avatar.hurtsNodeUnitary = avatar.createNode(AnimationNodeType.UNITARY, 'hurtsNodeUnitary');
+  for (const k in avatar.hurtMotiono) {
+    const motion = avatar.hurtMotiono[k];
+    physx.physxWorker.addChild(avatar.hurtsNodeUnitary, motion);
+  }
+  avatar.hurtNodeTwo = avatar.createNode(AnimationNodeType.TWO, 'hurtNodeTwo');
+  physx.physxWorker.addChild(avatar.hurtNodeTwo, avatar.holdNodeFunc);
+  physx.physxWorker.addChild(avatar.hurtNodeTwo, avatar.hurtsNodeUnitary);
+
   avatar.usesNodeUnitary = avatar.createNode(AnimationNodeType.UNITARY, 'usesNodeUnitary');
   for (const k in avatar.useMotiono) {
     if (['bowIdle', 'bowDraw', 'bowLoose'].includes(k)) continue; // these motions already added to parent at above.
@@ -771,7 +790,7 @@ export const _createAnimation = avatar => {
     physx.physxWorker.addChild(avatar.usesNodeUnitary, motion);
   }
   avatar.useNodeTwo = avatar.createNode(AnimationNodeType.TWO, 'useNodeTwo');
-  physx.physxWorker.addChild(avatar.useNodeTwo, avatar.holdNodeFunc);
+  physx.physxWorker.addChild(avatar.useNodeTwo, avatar.hurtNodeTwo);
   physx.physxWorker.addChild(avatar.useNodeTwo, avatar.usesNodeUnitary);
 
   avatar.useCombosNodeUnitary = avatar.createNode(AnimationNodeType.UNITARY, 'useCombosNodeUnitary');
@@ -965,6 +984,10 @@ export const _updateAnimation = avatar => {
     physx.physxWorker.crossFadeTwo(avatar.emoteNodeTwo, 0.2, 0);
   }
 
+  if (avatar.hurtEnd) {
+    physx.physxWorker.crossFadeTwo(avatar.hurtNodeTwo, 0.2, 0);
+  }
+
   if (avatar.danceEnd) {
     physx.physxWorker.crossFadeTwo(avatar.danceNodeTwo, 0.2, 0);
   }
@@ -1065,6 +1088,14 @@ export const _updateAnimation = avatar => {
     physx.physxWorker.crossFadeTwo(avatar.emoteNodeTwo, 0.2, 1);
   }
 
+  // hurt
+  if (avatar.hurtStart) {
+    const hurtMotion = avatar.hurtMotiono[avatar.hurtAnimation];
+    physx.physxWorker.play(hurtMotion);
+    physx.physxWorker.crossFadeUnitary(avatar.hurtsNodeUnitary, 0, hurtMotion);
+    physx.physxWorker.crossFadeTwo(avatar.hurtNodeTwo, 0.2, 1);
+  }
+
   // dance
   if (avatar.danceStart) {
     const danceMotion = avatar.danceMotiono[avatar.danceAnimation || defaultDanceAnimation];
@@ -1157,6 +1188,13 @@ export const _updateAnimation = avatar => {
     if (motion === avatar.landMotion || motion === avatar.land2Motion) {
       // console.log('land finished', player);
       player?.removeAction('land');
+    }
+    for (const key in avatar.hurtMotiono) {
+      const hurtMotion = avatar.hurtMotiono[key];
+      if (motion === hurtMotion) {
+        player?.removeAction('hurt');
+        break;
+      }
     }
   }
 };
