@@ -34,6 +34,7 @@ import npcManager from './npc-manager.js';
 import mobManager from './mob-manager.js';
 import universe from './universe.js';
 import {PathFinder} from './npc-utils.js';
+import { playersManager } from './players-manager.js';
 import {getLocalPlayer, remotePlayers} from './players.js';
 import loaders from './loaders.js';
 import * as voices from './voices.js';
@@ -965,14 +966,20 @@ export default () => {
     if (result) {
       return localPlayer;
     } else {
-      const remotePlayers = metaversefile.useRemotePlayers();
-      for (const remotePlayer of remotePlayers) {
+      for (let i = 0; i < npcManager.npcs.length; i++) {
+        const npcPlayer = npcManager.npcs[i];
+        const remoteApp = npcPlayer.appManager.getAppByInstanceId(instanceId);
+        if (remoteApp) {
+          return npcPlayer;
+        }
+      }
+      for (const remotePlayer in playersManager.getRemotePlayers()) {
         const remoteApp = remotePlayer.appManager.getAppByInstanceId(instanceId);
         if (remoteApp) {
           return remotePlayer;
         }
       }
-      return null;
+      return null
     }
   },
   getAppByInstanceId(instanceId) {

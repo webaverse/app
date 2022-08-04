@@ -425,6 +425,9 @@ export const loadPromise = (async () => {
 });
 
 export const _createAnimation = avatar => {
+  // const player = metaversefile.getPlayerByAppInstanceId(avatar.app.getComponent('instanceId'));
+  // console.log({player});
+
   if (!createdWasmAnimations) {
     for (const spec of avatar.animationMappings) {
       physx.physxWorker.createAnimationMapping(
@@ -1145,6 +1148,7 @@ export const _updateAnimation = avatar => {
       physx.physxWorker.crossFadeTwo(avatar.idle8DWalkRun_BowIdle8DDrawLooseNodeTwo, 0.2, 0);
     }
     if (motion === avatar.landMotion || motion === avatar.land2Motion) {
+      // console.log('land finished', player);
       player?.removeAction('land');
     }
   }
