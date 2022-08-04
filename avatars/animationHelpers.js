@@ -506,27 +506,32 @@ export const _createAnimation = avatar => {
       return avatar.nodes.filter(n => n.node === node)[0];
     };
 
-    avatar.logActiveNodes = node => {
-      const children = window.physxWorker.getChildren(node);
-      let maxWeight = 0;
-      let maxIndex = -1;
-      children.forEach((child, i) => {
-        const weight = window.physxWorker.getWeight(child);
-        if (weight === 1) console.log(1);
-        if (weight > maxWeight) {
-          maxWeight = weight;
-          maxIndex = i;
-        }
-      });
-      if (maxIndex >= 0) {
-        const maxWeightNode = children[maxIndex];
-        const nodeObject = avatar.getNode(maxWeightNode);
-        if (nodeObject) {
-          console.log(nodeObject, maxWeight);
-          avatar.logActiveNodes(maxWeightNode);
-        } else {
-          const motionObject = avatar.getMotion(maxWeightNode);
-          console.log(motionObject, maxWeight);
+    avatar.logActiveNodes = (node, maxWeight) => {
+      const nodeObject = avatar.getNode(node);
+      if (nodeObject) {
+        console.log(nodeObject, maxWeight);
+      } else {
+        const motionObject = avatar.getMotion(node);
+        console.log(motionObject, maxWeight);
+      }
+      {
+        const children = window.physxWorker.getChildren(node);
+        let maxWeight = 0;
+        let maxIndex = -1;
+        children.forEach((child, i) => {
+          const weight = window.physxWorker.getWeight(child);
+          if (weight === 1) console.log(1);
+          if (weight > maxWeight) {
+            maxWeight = weight;
+            maxIndex = i;
+          }
+        });
+        if (maxIndex >= 0) {
+          const maxWeightNode = children[maxIndex];
+          const nodeObject = avatar.getNode(maxWeightNode);
+          if (nodeObject) {
+            avatar.logActiveNodes(maxWeightNode, maxWeight);
+          }
         }
       }
     };

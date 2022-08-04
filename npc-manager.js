@@ -38,7 +38,10 @@ class NpcManager extends EventTarget {
     });
     npcPlayer.name = name;
 
-    if (!window.npcPlayers) window.npcPlayers = []
+    if (!window.npcPlayers) {
+      window.npcPlayers = [];
+      window.npcPlayer = npcPlayer;
+    }
     window.npcPlayers.push(npcPlayer);
 
     let matrixNeedsUpdate = false;
