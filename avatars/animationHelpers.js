@@ -822,13 +822,8 @@ export const _createAnimation = avatar => {
 
   //
 
-  physx.physxWorker.setRootNode(avatar.mixer, avatar.landNodeTwo);
-  // test ------
-  // physx.physxWorker.setRootNode(avatar.mixer, avatar.useMotiono.bowDraw);
-  // physx.physxWorker.setRootNode(avatar.mixer, avatar.bowDrawLooseNodoeTwo);
-  // physx.physxWorker.setRootNode(avatar.mixer, avatar.bowIdle8DDrawLooseNodeOverwrite);
-  // physx.physxWorker.setRootNode(avatar.mixer, avatar.idle8DWalkRun_BowIdle8DDrawLooseNodeTwo);
-  // end test ------
+  avatar.rootNode = avatar.landNodeTwo;
+  physx.physxWorker.setRootNode(avatar.mixer, avatar.rootNode);
 
   // --------------------------------------------------------------------------
 
