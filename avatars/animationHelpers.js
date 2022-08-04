@@ -766,6 +766,7 @@ export const _createAnimation = avatar => {
   avatar.usesNodeUnitary = avatar.createNode(AnimationNodeType.UNITARY, 'usesNodeUnitary');
   for (const k in avatar.useMotiono) {
     if (['bowIdle', 'bowDraw', 'bowLoose'].includes(k)) continue; // these motions already added to parent at above.
+    if (['swordSideSlash', 'swordSideSlashStep', 'swordTopDownSlash', 'swordTopDownSlashStep'].includes(k)) continue; // these motions will add to useCombosNodeUnitary at blow.
     const motion = avatar.useMotiono[k];
     physx.physxWorker.addChild(avatar.usesNodeUnitary, motion);
   }
@@ -773,13 +774,20 @@ export const _createAnimation = avatar => {
   physx.physxWorker.addChild(avatar.useNodeTwo, avatar.holdNodeFunc);
   physx.physxWorker.addChild(avatar.useNodeTwo, avatar.usesNodeUnitary);
 
+  avatar.useCombosNodeUnitary = avatar.createNode(AnimationNodeType.UNITARY, 'useCombosNodeUnitary');
+  physx.physxWorker.addChild(avatar.useCombosNodeUnitary, avatar.useNodeTwo);
+  physx.physxWorker.addChild(avatar.useCombosNodeUnitary, avatar.useMotiono.swordSideSlash);
+  physx.physxWorker.addChild(avatar.useCombosNodeUnitary, avatar.useMotiono.swordSideSlashStep);
+  physx.physxWorker.addChild(avatar.useCombosNodeUnitary, avatar.useMotiono.swordTopDownSlash);
+  physx.physxWorker.addChild(avatar.useCombosNodeUnitary, avatar.useMotiono.swordTopDownSlashStep);
+
   avatar.emotesNodeUnitary = avatar.createNode(AnimationNodeType.UNITARY, 'emotesNodeUnitary');
   for (const k in avatar.emoteMotiono) {
     const motion = avatar.emoteMotiono[k];
     physx.physxWorker.addChild(avatar.emotesNodeUnitary, motion);
   }
   avatar.emoteNodeTwo = avatar.createNode(AnimationNodeType.TWO, 'emoteNodeTwo');
-  physx.physxWorker.addChild(avatar.emoteNodeTwo, avatar.useNodeTwo);
+  physx.physxWorker.addChild(avatar.emoteNodeTwo, avatar.useCombosNodeUnitary);
   physx.physxWorker.addChild(avatar.emoteNodeTwo, avatar.emotesNodeUnitary);
 
   avatar.dancesNodeUnitary = avatar.createNode(AnimationNodeType.UNITARY, 'dancesNodeUnitary');
@@ -939,7 +947,7 @@ export const _updateAnimation = avatar => {
   }
 
   if (avatar.useComboEnd) {
-    physx.physxWorker.crossFadeTwo(avatar.useNodeTwo, 0.2, 0);
+    physx.physxWorker.crossFadeUnitary(avatar.useCombosNodeUnitary, 0.2, avatar.useNodeTwo);
   }
 
   if (avatar.useEnvelopeEnd) {
@@ -1029,8 +1037,7 @@ export const _updateAnimation = avatar => {
     }
     const useMotion = avatar.useMotiono[useAnimationName];
     physx.physxWorker.play(useMotion);
-    physx.physxWorker.crossFadeUnitary(avatar.usesNodeUnitary, 0, useMotion);
-    physx.physxWorker.crossFadeTwo(avatar.useNodeTwo, 0.2, 1); // todo: transitions between combo attacks not smooth.
+    physx.physxWorker.crossFadeUnitary(avatar.useCombosNodeUnitary, 0.2, useMotion);
   }
 
   // bow
