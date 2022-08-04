@@ -8,7 +8,7 @@ import hpManager from '@engine/hp-manager.js';
 import {alea} from '@engine/procgen/procgen.js';
 import {createRelativeUrl} from '@engine/utils/util.js';
 import dropManager from '@engine/drop-manager.js';
-import loaders from '@engine/loaders.js';
+import loaders from '@engine/loaders/index.js';
 import {InstancedBatchedMesh, InstancedGeometryAllocator} from '@engine/geometry/instancing.js';
 import {createTextureAtlas} from '@engine/optimization/atlasing.js';
 

@@ -3,7 +3,7 @@ import metaversefileApi from '@engine/metaversefile-api.js';
 import {getExt, makePromise, parseQuery, fitCameraToBoundingBox} from '@engine/utils/util.js';
 import Avatar from '@engine/avatars/avatars.js';
 // import * as icons from './icons.js';
-import GIF from '@thirdparty/gif.js';
+import GIF from '@engine/loaders/gif.js';
 // import App from './webaverse';
 // import {defaultRendererUrl} from '@engine/constants.js'
 import * as WebMWriter from 'webm-writer';

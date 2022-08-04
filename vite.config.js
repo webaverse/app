@@ -14,7 +14,6 @@ export default defineConfig({
       '@engine': path.resolve(__dirname, './engine'),
       '@client': path.resolve(__dirname, './src'),
       '@public': path.resolve(__dirname, './public'),
-      '@thirdparty': path.resolve(__dirname, './thirdparty'),
       '@scenes': path.resolve(__dirname, './scenes'),
       '@background-fx': path.resolve(__dirname, './background-fx'),
       '@metaverse-modules': path.resolve(__dirname, './metaverse-modules'),

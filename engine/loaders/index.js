@@ -9,8 +9,8 @@ import {KTX2Loader} from 'three/examples/jsm/loaders/KTX2Loader.js';
 import {MeshoptDecoder} from 'three/examples/jsm/libs/meshopt_decoder.module.js';
 import {getRenderer} from '@engine/rendering/renderer.js';
 import {ShadertoyLoader} from '@engine/rendering/shadertoy.js';
-import {GIFLoader} from '@thirdparty/GIFLoader.js';
-import {VOXLoader} from '@thirdparty/VOXLoader.js';
+import {GIFLoader} from './GIFLoader.js';
+import {VOXLoader} from './VOXLoader.js';
 import {memoize} from '@engine/utils/util.js';
 
 class MozLightMapExtension {

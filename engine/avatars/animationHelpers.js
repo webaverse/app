@@ -3,7 +3,7 @@ import metaversefile from 'metaversefile';
 import {/* VRMSpringBoneImporter, VRMLookAtApplyer, */ VRMCurveMapper} from '@pixiv/three-vrm/lib/three-vrm.module.js';
 // import easing from '@engine/utils/easing.js';
 import {easing} from '@engine/utils/math-utils.js';
-import loaders from '@engine/loaders.js';
+import loaders from '@engine/loaders/index.js';
 import {zbdecode} from 'zjs/encoding.mjs';
 
 import {

@@ -7,7 +7,7 @@ const cbs = {};
 let nextId = 0;
 class GIFLoader {
   constructor() {
-    const worker = new Worker('./thirdparty/GIFLoader.worker.js', {
+    const worker = new Worker('./engine/loaders/GIFLoader.worker.js', {
       type: 'module',
     });
     /* window.worker = worker;

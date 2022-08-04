@@ -15,7 +15,7 @@ export const generatePreview = async (url, ext, type, width, height, resolve, re
   const previewHost = inappPreviewHost;
   running = true;
   // check for existing iframe
-  var iframe = document.querySelector(`iframe[src^="${previewHost}/screenshot.html"]`);
+  var iframe = document.querySelector(`iframe[src^="${previewHost}/engine/rendering/screenshot.html"]`);
 
   // else create new iframe
   if (!iframe) {
@@ -31,7 +31,7 @@ export const generatePreview = async (url, ext, type, width, height, resolve, re
   }
 
   // create URL
-  var ssUrl = `${previewHost}/screenshot.html?url=${url}&ext=${ext}&type=${type}&width=${width}&height=${height}`;
+  var ssUrl = `${previewHost}/engine/rendering/screenshot.html?url=${url}&ext=${ext}&type=${type}&width=${width}&height=${height}`;
 
   // set src attr for iframe
   iframe.src = ssUrl;

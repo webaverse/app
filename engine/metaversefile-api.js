@@ -35,7 +35,7 @@ import mobManager from '@engine/mob-manager.js';
 import universe from '@engine/universe.js';
 import {PathFinder} from '@engine/ai/npc-utils.js';
 import {playersManager} from '@engine/players-manager.js';
-import loaders from '@engine/loaders.js';
+import loaders from '@engine/loaders/index.js';
 import * as voices from '@engine/audio/voices.js';
 import * as procgen from '@engine/procgen/procgen.js';
 import {getHeight} from '@engine/avatars/util.mjs';

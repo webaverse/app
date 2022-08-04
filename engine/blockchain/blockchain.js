@@ -1,13 +1,13 @@
-import Web3 from '@thirdparty/web3.min.js';
-import bip39 from '@thirdparty/bip39.js';
-import hdkeySpec from '@thirdparty/hdkey.js';
-const hdkey = hdkeySpec.default;
-import ethereumJsTx from '@thirdparty/ethereumjs-tx.js';
+import Web3 from './web3.min.js';
+import bip39 from './bip39.js';
+import hdkeySpec from './hdkey.js';
+import ethereumJsTx from './ethereumjs-tx.js';
 import { makePromise } from '@engine/utils/util.js';
 import { chainName, web3MainnetSidechainEndpoint, web3TestnetSidechainEndpoint, polygonVigilKey } from '@engine/constants.js';
-const { Transaction, Common } = ethereumJsTx;
 import addresses from 'https://contracts.webaverse.com/config/addresses.js';
 import abis from 'https://contracts.webaverse.com/config/abi.js';
+const hdkey = hdkeySpec.default;
+const { Transaction, Common } = ethereumJsTx;
 
 export const Networks = {
   mainnet: {

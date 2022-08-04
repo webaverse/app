@@ -2,7 +2,7 @@ import * as THREE from 'three';
 import {camera} from '@engine/rendering/renderer.js';
 import {WebaverseShaderMaterial} from '@engine/rendering/materials.js';
 // import {world} from '@engine/world.js';
-import loaders from '@engine/loaders.js';
+import loaders from '@engine/loaders/index.js';
 
 // const baseUrl = import.meta.url.replace(/(\/)[^\/\\]*$/, '$1');
 const urlPrefix = `https://webaverse.github.io/fx-textures/`;
