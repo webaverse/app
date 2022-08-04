@@ -84,7 +84,26 @@ export const screenshotPlayer = async ({
       _animate(now, timeDiff);
     };
   };
+  const localVector = new THREE.Vector3();
   const _updateTarget = (timestamp, timeDiff) => {
+    const decapitatePosition = localVector.setFromMatrixPosition(player.avatar.modelBones.Head.savedMatrixWorld);
+    let avatarHighestPos = 0;
+    let tempMesh = null;
+    player.avatar.model.traverse(o => {
+      if (o.isMesh) {
+        for(let i = 0; i < o.geometry.attributes.position.array.length / 3; i++){
+          avatarHighestPos = (o.geometry.attributes.position.array[i * 3 + 1] > avatarHighestPos) ? o.geometry.attributes.position.array[i * 3 + 1] : avatarHighestPos; 
+          tempMesh = o;
+        }
+      }
+    });
+    avatarHighestPos += tempMesh.position.y;
+    let headHeight = avatarHighestPos - decapitatePosition.y;
+    const fov = 50 * ( Math.PI / 180 );
+    let cameraZ = headHeight / 2 / Math.tan( fov / 2 );
+    cameraZ *= 1.5;
+    cameraOffset.z = -cameraZ;
+    
     target.matrixWorld.copy(player.avatar.modelBones.Head.matrixWorld)
       .decompose(target.position, target.quaternion, target.scale);
     target.position.set(player.position.x, target.position.y, player.position.z);
