@@ -101,7 +101,6 @@
   position: relative;
   /* object-fit: cover; */
   display: flex;
-  cursor: pointer;
   overflow: hidden;
   white-space: nowrap;
   /* transform: translate3d(0, 0, 0); */
@@ -116,15 +115,18 @@
 .newsReel .imageGrid .imageGridItem:hover {
   transform: 0;
 }
-.newsReel .imageGrid .imageGridItem .content {
-  display: flex;
-  width: 300px;
-  /* transition: filter 1s cubic-bezier(0, 1, 0, 1); */
-  /* transform: translate3d(0, 0, 0); */
+
+/* */
+
+.newsReel .imageGrid .imageGridItem .content.visible {
+  cursor: pointer;
 }
-.newsReel .imageGrid .imageGridItem:hover .content {
-  /* transform: translate3d(150px, 0, 0); */
+.newsReel .imageGrid .imageGridItem .content:not(.visible) .text {
+  visibility: hidden;
 }
+
+/* */
+
 .newsReel .imageGrid .imageGridItem .img {
   position: relative;
   /* transform: translate3d(150px, 0, 0); */

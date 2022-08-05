@@ -22,6 +22,7 @@ const conceptHeight = Math.floor(conceptWidth / conceptNaturalWidth * conceptNat
 
 //
 
+const conceptRate = 0.5;
 class ConceptManager {
   constructor({
     concepts = [],
@@ -29,9 +30,14 @@ class ConceptManager {
     this.concepts = concepts.slice();
   }
   getConcept() {
-    const conceptIndex = Math.floor(Math.random() * this.concepts.length);
-    const concept = this.concepts.splice(conceptIndex, 1)[0];
-    return concept;
+    const f = Math.random();
+    if (f < conceptRate) {
+      const conceptIndex = Math.floor(Math.random() * this.concepts.length);
+      const concept = this.concepts.splice(conceptIndex, 1)[0];
+      return concept;
+    } else {
+      return null;
+    }
   }
   freeConcept(concept) {
     this.concepts.push(concept);
@@ -145,7 +151,7 @@ const Glyphs = () => {
 
 const Concept = ({
   concept: initialConcept,
-  concepts,
+  // concepts,
   index = -1,
 } = {}) => {
   const [concept, setConcept] = useState(initialConcept);
@@ -157,8 +163,10 @@ const Concept = ({
       flash,
     }) => {
       const oldConcept = concept;
-      conceptManager.freeConcept(oldConcept);
-      
+      if (oldConcept) {
+        conceptManager.freeConcept(oldConcept);
+      }
+
       const newConcept = conceptManager.getConcept();
       setConcept(newConcept);
 
@@ -191,7 +199,7 @@ const Concept = ({
     };
   }, []);
 
-  const conceptSrc = `/images/concepts/${concept}`;
+  const conceptSrc = concept ? `/images/concepts/${concept}` : null;
 
   return (
     <div
@@ -202,12 +210,18 @@ const Concept = ({
       }}
       key={index}
     >
-      <div className={styles.content}>
+      <div className={classnames(styles.content, concept ? styles.visible : null)}>
         <div className={styles.text}>Character creator</div>
-        <img src={conceptSrc} className={styles.img} style={{
-          width: conceptWidth,
-          height: conceptHeight,
-        }} />
+        {conceptSrc ? (
+          <img
+            src={conceptSrc}
+            className={styles.img}
+            style={{
+              width: conceptWidth,
+              height: conceptHeight,
+            }}
+          />
+        ) : null}
       </div>
     </div>
   );
@@ -241,7 +255,7 @@ const NewsImageGrid = ({
         // console.log('num concepts update', {numConceptsWidth, numConceptsHeight, numConceptsWidth, gridRect});
         
         const newConcepts = [];
-        const concepts = conceptsJson;
+        // const concepts = conceptsJson;
         for (let i = 0; i < numConcepts; i++) {
           const concept = conceptManager.getConcept();
           newConcepts.push(concept);
@@ -273,7 +287,12 @@ const NewsImageGrid = ({
       <div className={styles.imageGrid} ref={gridRef}>
         {concepts.map((concept, index) => {
           return (
-            <Concept concept={concept} concepts={concepts} index={index} key={index} />
+            <Concept
+              concept={concept}
+              // concepts={concepts}
+              index={index}
+              key={index}
+            />
           );
         })}
       </div>
