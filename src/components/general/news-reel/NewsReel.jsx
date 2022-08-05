@@ -152,12 +152,23 @@ const Glyphs = () => {
 //
 
 const Concept = ({
-  concept: initialConcept,
+  // concept: initialConcept,
   // concepts,
+  // hovered,
+  onMouseEnter,
+  onMouseLeave,
   index = -1,
 } = {}) => {
-  const [concept, setConcept] = useState(initialConcept);
+  const [concept, setConcept] = useState(null);
   const [flash, setFlash] = useState(false);
+
+  /* hovered={hoveredConceptIndex === index}
+  onMouseEnter={() => {
+    setHoveredConceptIndex(index);
+  }}
+  onMouseLeave={() => {
+    setHoveredConceptIndex(-1);
+  }} */
 
   let timeout1 = 0;
   useEffect(() => {
@@ -210,6 +221,8 @@ const Concept = ({
         width: conceptWidth,
         height: conceptHeight,
       }}
+      onMouseEnter={onMouseEnter}
+      onMouseLeave={onMouseLeave}
       key={index}
     >
       <div className={classnames(styles.content, concept ? styles.visible : null)}>
@@ -232,8 +245,10 @@ const Concept = ({
 //
 
 const NewsImageGrid = ({
-} = {}) => {
-  const [concepts, setConcepts] = useState([]);
+  hoveredConcept,
+  setHoveredConcept,
+}) => {
+  // const [concepts, setConcepts] = useState([]);
   const [numConceptsWidth, setNumConceptsWidth] = useState(0);
   const [numConceptsHeight, setNumConceptsHeight] = useState(0);
   const gridRef = useRef();
@@ -252,17 +267,6 @@ const NewsImageGrid = ({
         (newNumConceptsWidth !== numConceptsWidth || newNumConceptsHeight !== numConceptsHeight) ||
         force
       ) {
-        const numConcepts = newNumConceptsWidth * newNumConceptsHeight;
-
-        // console.log('num concepts update', {numConceptsWidth, numConceptsHeight, numConceptsWidth, gridRect});
-        
-        const newConcepts = [];
-        // const concepts = conceptsJson;
-        for (let i = 0; i < numConcepts; i++) {
-          const concept = conceptManager.getConcept();
-          newConcepts.push(concept);
-        }
-        setConcepts(newConcepts);
         setNumConceptsWidth(newNumConceptsWidth);
         setNumConceptsHeight(newNumConceptsHeight);
       }
@@ -283,6 +287,12 @@ const NewsImageGrid = ({
     };
   }, [gridRef.current, numConceptsWidth, numConceptsHeight]);
 
+  const numConcepts = numConceptsWidth * numConceptsHeight;
+  const concepts = Array(numConcepts);
+  for (let i = 0; i < numConcepts; i++) {
+    concepts[i] = null;
+  }
+
   return (
     <>
       <Glyphs />
@@ -290,8 +300,15 @@ const NewsImageGrid = ({
         {concepts.map((concept, index) => {
           return (
             <Concept
-              concept={concept}
+              // concept={concept}
               // concepts={concepts}
+              // hovered={hoveredConceptIndex === index}
+              onMouseEnter={() => {
+                setHoveredConcept(concept);
+              }}
+              onMouseLeave={() => {
+                setHoveredConcept(null);
+              }}
               index={index}
               key={index}
             />
@@ -305,6 +322,8 @@ const NewsImageGrid = ({
 //
 
 export const NewsReel = () => {
+  const [hoveredConcept, setHoveredConcept] = useState(null);
+  
   return (
     <div className={styles.newsReel}>
       <h2>Offline Dev Alpha {version}</h2>
@@ -315,7 +334,10 @@ export const NewsReel = () => {
       <p>watch out of bugs, watch out of the lisk ;)</p>
       <sub>signed, lisk</sub> */}
       {/* <img className={styles.background} src="/images/field.png" /> */}
-      <NewsImageGrid />
+      <NewsImageGrid
+        hoveredConcept={hoveredConcept}
+        setHoveredConcept={setHoveredConcept}
+      />
     </div>
   );
 };
