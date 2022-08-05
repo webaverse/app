@@ -989,7 +989,7 @@ export default () => {
           return remotePlayer;
         }
       }
-      return null
+      return null;
     }
   },
   getAppByInstanceId(instanceId) {

@@ -2241,7 +2241,7 @@ const physxWorker = (() => {
     const outputBufferOffsetMain = Module._updateAnimationMixer(
       mixer, timeS,
     )
-    const values = [];
+    const resultValues = [];
     const headMain = outputBufferOffsetMain / Float32Array.BYTES_PER_ELEMENT;
     for (let i = 0; i < 53; i++) {
       let value;
@@ -2257,19 +2257,19 @@ const physxWorker = (() => {
         const w = Module.HEAPF32[head + 4];
         value = [x, y, z, w];
       }
-      values.push(value);
+      resultValues.push(value);
     }
 
     let outputBufferOffset = Module.HEAPU32[headMain + 53];
     const head = outputBufferOffset / Float32Array.BYTES_PER_ELEMENT;
     const finishedFlag = Module.HEAPF32[head];
-    values.push(finishedFlag);
+    resultValues.push(finishedFlag);
 
     outputBufferOffset = Module.HEAPU32[headMain + 54];
-    const motion = outputBufferOffset; // = motion's ptr
-    values.push(motion);
+    const motionPtr = outputBufferOffset;
+    resultValues.push(motionPtr);
 
-    return values;
+    return resultValues;
   }
   w.createAnimationMapping = (isPosition, index, isFirstBone, isLastBone, isTop, isArm) => {
     Module._createAnimationMapping(
@@ -2379,6 +2379,7 @@ const physxWorker = (() => {
   w.setTimeBias = (motion, timeBias) => Module._setTimeBias(motion, timeBias);
   w.setSpeed = (motion, speed) => Module._setSpeed(motion, speed);
   w.setLoop = (motion, loopType) => Module._setLoop(motion, loopType);
+
   // End AnimationSystem
 
   return w;

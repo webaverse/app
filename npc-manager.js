@@ -140,23 +140,17 @@ class NpcManager extends EventTarget {
         // };
         // app.addEventListener('hittrackeradded', hittrackeradd);
 
-        app.addEventListener('hit', e => {
+        const handleHitEvent = e => {
           if (!npcPlayer.hasAction('hurt')) {
             const newAction = {
               type: 'hurt',
               animation: 'pain_back',
             };
-            // console.log('add hurtAction', 'npc-manager.js')
             npcPlayer.addAction(newAction);
-            // console.log('remove use', 'npc-manager.js')
-            npcPlayer.removeAction('use'); // todo: setControlAction() ?
-
-            setTimeout(() => {
-              // npcPlayer.removeAction('hurt');
-            // }, hurtAnimationDuration * 1000);
-            }, 0);
-          }
-        })
+            npcPlayer.removeAction('use');
+          };
+        };
+        app.addEventListener('hit', handleHitEvent);
 
         const activate = () => {
           if (targetSpec?.object !== localPlayer) {
@@ -212,7 +206,8 @@ class NpcManager extends EventTarget {
         world.appManager.addEventListener('frame', frame);
 
         cancelFns.push(() => {
-          app.removeEventListener('hittrackeradded', hittrackeradd);
+          // app.removeEventListener('hittrackeradded', hittrackeradd);
+          app.removeEventListener('hit', handleHitEvent);
           app.removeEventListener('activate', activate);
           world.appManager.removeEventListener('frame', frame);
         });

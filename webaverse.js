@@ -311,7 +311,7 @@ export default class Webaverse extends EventTarget {
           const physicsScene = physicsManager.getScene();
           if (this.contentLoaded && physicsScene.getPhysicsEnabled()) {
             physicsScene.simulatePhysics(timeDiffCapped);
-            // physicsScene.getTriggerEvents();
+            physicsScene.getTriggerEvents();
             localPlayer.updatePhysics(timestamp, timeDiffCapped);
           }
 
