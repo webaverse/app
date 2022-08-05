@@ -109,10 +109,6 @@
 }
 .newsReel .imageGrid .imageGridItem:hover {
   filter: brightness(0.7);
-  /* transform: translate3d(0, 0, 0) scale3d(1.15, 1.15, 1.15); */
-  /* z-index: 1; */
-}
-.newsReel .imageGrid .imageGridItem:hover {
   transform: 0;
 }
 
@@ -130,7 +126,7 @@
 .newsReel .imageGrid .imageGridItem .img {
   position: relative;
   /* transform: translate3d(150px, 0, 0); */
-  transition: opacity 2s cubic-bezier(0, 1, 0, 1);
+  transition: opacity 1s cubic-bezier(0, 1, 0, 1);
 }
 .newsReel .imageGrid .imageGridItem:hover .img {
   opacity: 0;
