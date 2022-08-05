@@ -19,6 +19,7 @@ import {GrassBgFxMesh} from './background-fx/GrassBgFx.js';
 const localVector = new THREE.Vector3();
 const localVector2 = new THREE.Vector3();
 const localVector3 = new THREE.Vector3();
+const localVector4 = new THREE.Vector3();
 const localVector2D = new THREE.Vector2();
 const localEuler = new THREE.Euler();
 const localVector2D2 = new THREE.Vector2();
@@ -51,6 +52,10 @@ const mapTime = (speedHistogram = new SpeedHistogram(), time = 0) => {
 class SpeedHistogram {
   constructor() {
     this.elements = [];
+
+    this.lerpAlpha = 0;
+    this.lastCrouch = null;
+    this.lastNR = null;
   }
   add(speed, duration) {
     this.elements.push({speed, duration});
@@ -675,6 +680,7 @@ const createPlayerDiorama = ({
       const oldClearColor = renderer.getClearColor(localColor);
       const oldClearAlpha = renderer.getClearAlpha();
 
+      
       const _render = () => {
         if (autoCamera) {
           // set up side camera
@@ -702,9 +708,37 @@ const createPlayerDiorama = ({
             localVector2.set(0, cameraOffset.y, 0)
               .applyQuaternion(targetQuaternion)
           );
+          // handle player diorama
+          const lerp = (a, b, x) => {
+              return a + (b - a) * x;
+          }
           if(this.player){
             const headPosition = localVector3.setFromMatrixPosition(this.player.avatar.modelBones.Head.matrixWorld);
-            sideCamera.position.y -= this.player.position.y - headPosition.y;
+            if(this.player.hasAction('sit')){
+              sideCamera.position.y -= this.player.position.y - headPosition.y;
+            }
+            else{
+              const isNarutoRun = this.player.hasAction('narutoRun');
+              const isCrouch = this.player.hasAction('crouch');
+              
+              if(this.lastCrouch !== isCrouch || this.lastNR !== isNarutoRun){
+                this.lerpAlpha = 0.01;
+              }
+              else{
+                if(this.lerpAlpha < 1){
+                  this.lerpAlpha += 0.05;
+                }
+              }
+              sideCamera.position.x = lerp(sideCamera.position.x, sideCamera.position.x - (this.player.position.x - headPosition.x), this.lerpAlpha);
+              sideCamera.position.z = lerp(sideCamera.position.z, sideCamera.position.z - (this.player.position.z - headPosition.z), this.lerpAlpha);
+              sideCamera.position.y = lerp(sideCamera.position.y, sideCamera.position.y - (this.player.position.y - headPosition.y), this.lerpAlpha);
+              
+             
+              this.lastNR = isNarutoRun;
+              this.lastCrouch = isCrouch;
+            }
+
+            
           }
           
           sideCamera.updateMatrixWorld();
