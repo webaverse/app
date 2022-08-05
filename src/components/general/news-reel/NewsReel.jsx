@@ -10,6 +10,17 @@ import conceptsJson from './concepts.json';
 
 const numGlyphs = 10;
 const glyphWidth = 7;
+
+const minTimeoutTime = 2 * 1000;
+const maxTimeoutTime = 5 * 1000;
+
+const conceptNaturalWidth = 1024;
+const conceptNaturalHeight = 1008;
+const conceptWidth = 150;
+const conceptHeight = Math.floor(conceptWidth / conceptNaturalWidth * conceptNaturalHeight);
+
+//
+
 const glyphHeight = glyphWidth;
 const useGlyphs = (() => {
   let glyphs = null;
@@ -27,6 +38,8 @@ const useGlyphs = (() => {
   };
 })();
 
+//
+
 const Glyph = ({
   position = [0, 0],
   animationDelay,
@@ -35,16 +48,28 @@ const Glyph = ({
 } = {}) => {
   const canvasRef = useRef();
 
+  /* let animation = null;
+  const interval = setInterval(() => {
+    if (!animation) {
+      animation = {
+        start: Date.now(),
+      };
+    }
+  }, 200); */
+
   useEffect(() => {
     const canvas = canvasRef.current;
     if (canvas) {
       const glyphs = useGlyphs();
-      const index = Math.floor(Math.random() * numGlyphs);
-      const glyph = glyphs[index];
-      // console.log('render glyph', index, glyph);
-
       const ctx = canvas.getContext('2d');
-      ctx.drawImage(glyph, 0, 0, canvas.width, canvas.height);
+
+      const _render = () => {
+        const index = Math.floor(Math.random() * numGlyphs);
+        const glyph = glyphs[index];
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        ctx.drawImage(glyph, 0, 0, canvas.width, canvas.height);
+      };
+      _render();
     }
   }, [canvasRef.current]);
 
@@ -92,9 +117,6 @@ const Glyphs = () => {
         animationDelay={animationDelay}
         animationDuration={animationDuration}
         scale={scale}
-        // onAnimationEnd={() => {
-        //   console.log('got animation end');
-        // }}
         key={i}
       />
     );
@@ -108,21 +130,71 @@ const Glyphs = () => {
 
 //
 
-const NewsImageGrid = ({
+const Concept = ({
+  concept: initialConcept,
+  concepts,
+  index = -1,
+} = {}) => {
+  const [concept, setConcept] = useState(initialConcept);
 
+  useEffect(() => {
+    // if (canvas) {
+      const _render = () => {
+        const conceptIndex = Math.floor(Math.random() * concepts.length);
+        const concept = concepts[conceptIndex];
+        setConcept(concept);
+        // console.log('render concept', concept.length);
+      };
+      _render();
+  
+      let timeout = 0;
+      const _recurse = () => {
+        const timeoutTime = (Math.random() * (maxTimeoutTime - minTimeoutTime)) + minTimeoutTime;
+        // console.log('timeout time', timeoutTime);
+        timeout = setTimeout(() => {
+          _render();
+          _recurse();
+        }, timeoutTime);
+      };
+      _recurse();
+      
+      return () => {
+        clearTimeout(timeout);
+      };
+    // }
+  }, []);
+
+  const conceptSrc = `/images/concepts/${concept}`;
+
+  return (
+    <div
+      className={styles.imageGridItem}
+      style={{
+        width: conceptWidth,
+        height: conceptHeight,
+      }}
+      key={index}
+    >
+      <div className={styles.content}>
+        <div className={styles.text}>Character creator</div>
+        <img src={conceptSrc} className={styles.img} style={{
+          width: conceptWidth,
+          height: conceptHeight,
+        }} />
+      </div>
+    </div>
+  );
+};
+
+//
+
+const NewsImageGrid = ({
 } = {}) => {
   const [concepts, setConcepts] = useState([]);
   const [numConceptsWidth, setNumConceptsWidth] = useState(0);
   const [numConceptsHeight, setNumConceptsHeight] = useState(0);
   const gridRef = useRef();
-
-  // console.log('render concepts', concepts.length);
-
-  const conceptNaturalWidth = 1024;
-  const conceptNaturalHeight = 1008;
-  const conceptWidth = 150;
-  const conceptHeight = Math.floor(conceptWidth / conceptNaturalWidth * conceptNaturalHeight);
-
+  
   // console.log('concept height', conceptHeight);
 
   const _updateConcepts = ({
@@ -142,10 +214,10 @@ const NewsImageGrid = ({
         // console.log('num concepts update', {numConceptsWidth, numConceptsHeight, numConceptsWidth, gridRect});
         
         const newConcepts = [];
-        const candidates = conceptsJson.slice();
+        const concepts = conceptsJson//.slice();
         for (let i = 0; i < numConcepts; i++) {
-          const conceptIndex = Math.floor(Math.random() * candidates.length);
-          const concept = candidates.splice(conceptIndex, 1)[0];
+          const conceptIndex = Math.floor(Math.random() * concepts.length);
+          const concept = concepts[conceptIndex];
           newConcepts.push(concept);
         }
         setConcepts(newConcepts);
@@ -163,16 +235,9 @@ const NewsImageGrid = ({
     }
     globalThis.addEventListener('resize', resize);
     
-    let animation = null;
-    const interval = setInterval(() => {
-      /* _updateConcepts({
-        force: true,
-      }); */
-    }, 200);
-    
     return () => {
       globalThis.removeEventListener('resize', resize);
-      clearInterval(interval);
+      // clearInterval(interval);
     };
   }, [gridRef.current, numConceptsWidth, numConceptsHeight]);
 
@@ -182,22 +247,7 @@ const NewsImageGrid = ({
       <div className={styles.imageGrid} ref={gridRef}>
         {concepts.map((concept, index) => {
           return (
-            <div
-              className={styles.imageGridItem}
-              style={{
-                width: conceptWidth,
-                height: conceptHeight,
-              }}
-              key={index}
-            >
-              <div className={styles.content}>
-                <div className={styles.text}>Character creator</div>
-                <img src={`/images/concepts/${concept}`} className={styles.img} style={{
-                  width: conceptWidth,
-                  height: conceptHeight,
-                }} />
-              </div>
-            </div>
+            <Concept concept={concept} concepts={concepts} index={index} key={index} />
           );
         })}
       </div>
