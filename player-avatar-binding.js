@@ -305,7 +305,6 @@ export function applyPlayerActionsToAvatar(player, rig) {
   }
   rig.lastHoldState = rig.holdState;
   //
-  // if (rig.holdState) rig.unuseAnimation = null;
   rig.danceState = !!danceAction;
   // start/end event
   rig.danceStart = false;

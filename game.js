@@ -412,8 +412,6 @@ const _startUse = () => {
           index = _getNextUseIndex(animationCombo);
         }
 
-        console.log('useCombo index:', index);
-        
         const newUseAction = {
           type: 'use',
           instanceId,

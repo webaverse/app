@@ -2245,7 +2245,7 @@ const physxWorker = (() => {
     )
     // console.log(outputBufferOffsetMain)
     // debugger
-    const values = [];
+    const resultValues = [];
     const headMain = outputBufferOffsetMain / Float32Array.BYTES_PER_ELEMENT;
     for (let i = 0; i < 53; i++) {
       let value;
@@ -2261,21 +2261,21 @@ const physxWorker = (() => {
         const w = Module.HEAPF32[head + 4];
         value = [x, y, z, w];
       }
-      values.push(value);
+      resultValues.push(value);
     }
 
     let outputBufferOffset = Module.HEAPU32[headMain + 53];
     let head = outputBufferOffset / Float32Array.BYTES_PER_ELEMENT;
     const finishedFlag = Module.HEAPF32[head];
-    values.push(finishedFlag);
+    resultValues.push(finishedFlag);
 
     // if (finishedFlag) debugger
     outputBufferOffset = Module.HEAPU32[headMain + 54];
     // head = outputBufferOffset / Float32Array.BYTES_PER_ELEMENT;
     // const finishedAnimationIndex = Module.HEAPF32[head];
     // values.push(finishedAnimationIndex);
-    const motion = outputBufferOffset; // = motion's ptr
-    values.push(motion);
+    const motionPtr = outputBufferOffset;
+    values.push(motionPtr);
 
     // console.log(finishedFlag);
     // if (finishedFlag) {
@@ -2283,7 +2283,7 @@ const physxWorker = (() => {
     //   debugger
     // }
 
-    return values;
+    return resultValues;
   }
   w.createAnimationMapping = (isPosition, index, isFirstBone, isLastBone, isTop, isArm) => {
     Module._createAnimationMapping(
