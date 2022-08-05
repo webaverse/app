@@ -1420,6 +1420,10 @@ class GameManager extends EventTarget {
     }
     return false;
   }
+  isDancing() {
+    const localPlayer = playersManager.getLocalPlayer();
+    return localPlayer.hasAction('dance');
+  }
   toggleCrouch() {
     const localPlayer = playersManager.getLocalPlayer();
     let crouchAction = localPlayer.getAction('crouch');
@@ -1612,7 +1616,7 @@ class GameManager extends EventTarget {
     mouseDomEquipmentHoverPhysicsId = physicsId;
   }
   getSpeed() {
-    if(gameManager.isEmote()){
+    if(gameManager.isEmote() || gameManager.isDancing()){
       return 0;
     }
     let speed = 0;
