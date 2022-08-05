@@ -45,7 +45,7 @@ export const BuildVersionLayer = ({
     >
       <div className={styles.wrap}>
         <div className={styles.text}>Dev Alpha</div>
-        <div className={styles.subtext}>Season 0.51</div>
+        <div className={styles.subtext}>Season 0.51_dev</div>
       </div>
     </div>
   );
