@@ -1314,8 +1314,8 @@ export default () => {
 
         for(let i = 0; i < count; i++) 
         {
-            var theta = THREE.Math.randFloatSpread(360); 
-            var phi = THREE.Math.randFloatSpread(360); 
+            var theta = 2 * Math.PI * Math.random();
+            var phi = 2 * Math.PI * Math.random();
 
             positions[i * 3 + 0] = 0.1*Math.sin(theta) * Math.cos(phi);
             positions[i * 3 + 1] = 0.1*Math.sin(theta) * Math.sin(phi);
