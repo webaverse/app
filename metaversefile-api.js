@@ -34,8 +34,7 @@ import npcManager from './npc-manager.js';
 import mobManager from './mob-manager.js';
 import universe from './universe.js';
 import {PathFinder} from './npc-utils.js';
-import { playersManager } from './players-manager.js';
-import {getLocalPlayer, remotePlayers} from './players.js';
+import {playersManager} from './players-manager.js';
 import loaders from './loaders.js';
 import * as voices from './voices.js';
 import * as procgen from './procgen/procgen.js';
@@ -185,11 +184,11 @@ class App extends THREE.Object3D {
     });
   }
   wear() {
-    const localPlayer = getLocalPlayer();
+    const localPlayer = playersManager.getLocalPlayer();
     localPlayer.wear(this);
   }
   unwear() {
-    const localPlayer = getLocalPlayer();
+    const localPlayer = playersManager.getLocalPlayer();
     localPlayer.unwear(this);
   }
   use() {
@@ -210,7 +209,7 @@ const defaultModules = {
   modules,
 };
 
-const localPlayer = getLocalPlayer();
+const localPlayer = playersManager.getLocalPlayer();
 const loreAIScene = loreAI.createScene(localPlayer);
 const _bindAppManagerToLoreAIScene = (appManager, loreAIScene) => {
   const bindings = new WeakMap();
@@ -506,7 +505,7 @@ metaversefile.setApi({
     recursion++;
     if (recursion === 1) {
       // scene.directionalLight.castShadow = false;
-      const localPlayer = getLocalPlayer();
+      const localPlayer = playersManager.getLocalPlayer();
       if (localPlayer.avatar) {
         wasDecapitated = localPlayer.avatar.decapitated;
         localPlayer.avatar.undecapitate();
@@ -517,7 +516,7 @@ metaversefile.setApi({
     recursion--;
     if (recursion === 0) {
       // console.log('was decap', wasDecapitated);
-      const localPlayer = getLocalPlayer();
+      const localPlayer = playersManager.getLocalPlayer();
       if (localPlayer.avatar && wasDecapitated) {
         localPlayer.avatar.decapitate();
         localPlayer.avatar.skeleton.update();
@@ -535,17 +534,17 @@ metaversefile.setApi({
     }
   },
   useLocalPlayer() {
-    return getLocalPlayer();
+    return playersManager.getLocalPlayer();
   },
   useRemotePlayer(playerId) {
-    let player = remotePlayers.get(playerId);
+    let player = playersManager.getRemotePlayers().get(playerId);
     /* if (!player) {
       player = new RemotePlayer();
     } */
     return player;
   },
   useRemotePlayers() {
-    return Array.from(remotePlayers.values());
+    return Array.from(playersManager.getRemotePlayers().values());
   },
   useNpcManager() {
     return npcManager;
@@ -579,6 +578,11 @@ metaversefile.setApi({
       const localQuaternion = new THREE.Quaternion();
       const localMatrix = new THREE.Matrix4(); */
       // const localMatrix2 = new THREE.Matrix4();
+      physicsScene.addPlaneGeometry = (addPlaneGeometry => function(position, quaternion, dynamic) {
+        const physicsObject = addPlaneGeometry.call(this, position, quaternion, dynamic);
+        app.physicsObjects.push(physicsObject);
+        return physicsObject;
+      })(physicsScene.addPlaneGeometry);
       physicsScene.addBoxGeometry = (addBoxGeometry => function(position, quaternion, size, dynamic) {
         /* const basePosition = position;
         const baseQuaternion = quaternion;
@@ -717,6 +721,12 @@ metaversefile.setApi({
         app.physicsObjects.push(physicsObject);
         return physicsObject;
       })(physicsScene.addConvexGeometry);
+      physicsScene.addConvexShape = (addConvexShape => function(mesh) {
+        const physicsObject = addConvexShape.apply(this, arguments);
+        // app.add(physicsObject);
+        app.physicsObjects.push(physicsObject);
+        return physicsObject;
+      })(physicsScene.addConvexShape);
       physicsScene.addCookedConvexGeometry = (addCookedConvexGeometry => function(buffer, position, quaternion, scale) {
         const physicsObject = addCookedConvexGeometry.apply(this, arguments);
         // app.add(physicsObject);
@@ -857,7 +867,7 @@ metaversefile.setApi({
         matrixNeedsUpdate = true;
       }
       if (in_front) {
-        const localPlayer = getLocalPlayer();
+        const localPlayer = playersManager.getLocalPlayer();
         app.position.copy(localPlayer.position).add(new THREE.Vector3(0, 0, -1).applyQuaternion(localPlayer.quaternion));
         app.quaternion.copy(localPlayer.quaternion);
         app.scale.setScalar(1);
@@ -984,7 +994,7 @@ export default () => {
   },
   getAppByInstanceId(instanceId) {
     // local
-    const localPlayer = getLocalPlayer();
+    const localPlayer = playersManager.getLocalPlayer();
     let result = world.appManager.getAppByInstanceId(instanceId) || localPlayer.appManager.getAppByInstanceId(instanceId);
     if (result) {
       return result;
@@ -999,8 +1009,7 @@ export default () => {
     }
 
     // remote
-    const remotePlayers = metaversefile.useRemotePlayers();
-    for (const remotePlayer of remotePlayers) {
+    for (const remotePlayer in playersManager.getRemotePlayers()) {
       const remoteApp = remotePlayer.appManager.getAppByInstanceId(instanceId);
       if (remoteApp) {
         return remoteApp;
@@ -1012,7 +1021,7 @@ export default () => {
   },
   getAppByPhysicsId(physicsId) {
     // local player
-    const localPlayer = getLocalPlayer();
+    const localPlayer = playersManager.getLocalPlayer();
     let result = world.appManager.getAppByPhysicsId(physicsId);
     if (result) {
       return result;
@@ -1025,8 +1034,7 @@ export default () => {
     }
 
     // remote player
-    const remotePlayers = metaversefile.useRemotePlayers();
-    for (const remotePlayer of remotePlayers) {
+    for (const remotePlayer in playersManager.getRemotePlayers()) {
       const remoteApp = remotePlayer.appManager.getAppByPhysicsId(physicsId);
       if (remoteApp) {
         return remoteApp;
@@ -1048,7 +1056,7 @@ export default () => {
   },
   getPhysicsObjectByPhysicsId(physicsId) {
     // local player
-    const localPlayer = getLocalPlayer();
+    const localPlayer = playersManager.getLocalPlayer();
     let result = world.appManager.getPhysicsObjectByPhysicsId(physicsId);
     if (result) {
       return result;
@@ -1061,8 +1069,7 @@ export default () => {
     }
 
     // remote player
-    const remotePlayers = metaversefile.useRemotePlayers();
-    for (const remotePlayer of remotePlayers) {
+    for (const remotePlayer in playersManager.getRemotePlayers()) {
       const remotePhysicsObject = remotePlayer.appManager.getPhysicsObjectByPhysicsId(physicsId);
       if (remotePhysicsObject) {
         return remotePhysicsObject;
@@ -1084,7 +1091,7 @@ export default () => {
   },
   getPairByPhysicsId(physicsId) {
     // local player
-    const localPlayer = getLocalPlayer();
+    const localPlayer = playersManager.getLocalPlayer();
     let result = world.appManager.getPairByPhysicsId(physicsId);
     if (result) {
       // console.log('return 1');
@@ -1099,8 +1106,7 @@ export default () => {
     }
 
     // remote player
-    const remotePlayers = metaversefile.useRemotePlayers();
-    for (const remotePlayer of remotePlayers) {
+    for (const remotePlayer in playersManager.getRemotePlayers()) {
       const remotePair = remotePlayer.appManager.getPairByPhysicsId(physicsId);
       if (remotePair) {
         // console.log('return 3');

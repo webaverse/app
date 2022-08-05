@@ -159,6 +159,9 @@ export default (app, component) => {
   
               // skeleton = bindSpec.skeleton;
               modelBones = bindSpec.modelBones;
+              for (const k in modelBones){
+                modelBones[k].initialPosition = modelBones[k].position.clone();
+              }
             }
           }
           
@@ -195,7 +198,12 @@ export default (app, component) => {
 
       app.scale.copy(initialScale);
       app.updateMatrixWorld();
-
+      for (const k in modelBones){
+        const modelBone = modelBones[k];
+        modelBone.position.copy(modelBone.initialPosition);
+        modelBone.quaternion.copy(modelBone.initialQuaternion);
+      }
+      
       wearSpec = null;
       modelBones = null;
     }
@@ -318,7 +326,7 @@ export default (app, component) => {
             _copyBoneAttachment(appAimAction);
           } else {
             if (modelBones) {
-              Avatar.applyModelBoneOutputs(modelBones, player.avatar.modelBoneOutputs, player.avatar.getTopEnabled(), player.avatar.getBottomEnabled(), player.avatar.getHandEnabled(0), player.avatar.getHandEnabled(1));
+              Avatar.applyModelBoneOutputs(player.avatar, modelBones, player.avatar.modelBoneOutputs, player.avatar.getBottomEnabled());
               modelBones.Root.updateMatrixWorld();
             } else if (wearSpec.boneAttachment) {
               _copyBoneAttachment(wearSpec);

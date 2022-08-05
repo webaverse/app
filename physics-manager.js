@@ -146,6 +146,29 @@ class PhysicsScene extends EventTarget {
     physicsObject.physicsMesh = physicsMesh
     return physicsObject
   }
+  addPlaneGeometry(position, quaternion, dynamic) {
+    const physicsId = getNextPhysicsId()
+    physx.physxWorker.addPlaneGeometryPhysics(
+      this.scene,
+      position,
+      quaternion,
+      physicsId,
+      dynamic,
+    )
+  
+    const physicsObject = _makePhysicsObject(
+      physicsId,
+      position,
+      quaternion,
+      localVector2.set(1, 1, 1)
+    )
+    const physicsMesh = new THREE.Mesh(new THREE.PlaneGeometry(1, 1), redMaterial)
+    physicsMesh.visible = false
+    physicsObject.add(physicsMesh)
+    physicsObject.updateMatrixWorld()
+    physicsObject.physicsMesh = physicsMesh
+    return physicsObject
+  }
   addBoxGeometry(position, quaternion, size, dynamic,
     groupId = -1 // if not equal to -1, this BoxGeometry will not collide with CharacterController.
   ) {
@@ -305,7 +328,9 @@ class PhysicsScene extends EventTarget {
     buffer,
     position,
     quaternion,
-    scale
+    scale,
+    dynamic = false,
+    external = false,
   ) {
     const physicsId = getNextPhysicsId()
     physx.physxWorker.addCookedConvexGeometryPhysics(
@@ -314,6 +339,8 @@ class PhysicsScene extends EventTarget {
       position,
       quaternion,
       scale,
+      dynamic,
+      external,
       physicsId
     )
   
@@ -356,7 +383,7 @@ class PhysicsScene extends EventTarget {
     physicsMesh.updateMatrixWorld()
     return physicsObject
   }
-  addConvexShape(shapeAddress, position, quaternion, scale, dynamic, external) {
+  addConvexShape(shapeAddress, position, quaternion, scale, dynamic = false, external = false, physicsGeometry = null) {
     const physicsId = getNextPhysicsId()
   
     physx.physxWorker.addConvexShapePhysics(
@@ -376,8 +403,11 @@ class PhysicsScene extends EventTarget {
       quaternion,
       scale
     )
-    const geometry = this.extractPhysicsGeometryForId(physicsId);
-    const physicsMesh = new THREE.Mesh(geometry, redMaterial);
+
+    if (!physicsGeometry)
+      physicsGeometry = this.extractPhysicsGeometryForId(physicsId);
+
+    const physicsMesh = new THREE.Mesh(physicsGeometry, redMaterial);
   
     physicsMesh.visible = false
     physicsObject.add(physicsMesh)
@@ -586,8 +616,11 @@ class PhysicsScene extends EventTarget {
         position,
         physicsId
       )
+    
+    radius = radius + contactOffset;
+    height = height + radius * 2;
   
-    const halfHeight = height / 2
+    const halfHeight = height / 2;
     const physicsObject = new THREE.Object3D()
     const physicsMesh = new THREE.Mesh(
       new CapsuleGeometry(radius, radius, halfHeight * 2),

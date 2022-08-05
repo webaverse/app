@@ -3,7 +3,7 @@ import React, {useState, useEffect, useRef} from 'react';
 import gameManager from '../game.js';
 import {camera} from '../renderer.js';
 import cameraManager from '../camera-manager.js';
-import {getLocalPlayer} from '../players.js';
+import {playersManager} from '../players-manager.js';
 
 // import {CharacterBanner} from './CharacterBanner.jsx';
 import domRenderEngine, {DomRenderEngine} from '../dom-renderer.jsx';
@@ -146,7 +146,7 @@ const DomRendererChild = ({
       const endTime = startTime + transtionTime;
 
       const _updateVisibility = () => {
-        const localPlayer = getLocalPlayer();
+        const localPlayer = playersManager.getLocalPlayer();
         const distance = localPlayer.position.distanceTo(dom.position);
         const isInRange = distance < range;
         if (isInRange && !visible) {
