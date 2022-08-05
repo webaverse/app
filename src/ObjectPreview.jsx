@@ -1,5 +1,5 @@
 import * as THREE from 'three';
-import React, {useEffect, useRef, forwardRef} from 'react';
+import React, {useEffect, useRef} from 'react';
 import classnames from 'classnames';
 import style from './ObjectPreview.module.css';
 import dioramaManager from '../diorama.js';
@@ -11,12 +11,11 @@ const canvasHeight = 400;
 
 const localBox = new THREE.Box3();
 
-const ObjectPreview = forwardRef(({
+const ObjectPreview = ({
   object = null,
   className = null,
-  width = canvasWidth,
-  height = canvasHeight,
-}, canvasRef) => {
+}) => {
+  const canvasRef = useRef();
 
   useEffect(() => {
     const canvas = canvasRef.current;
@@ -51,7 +50,7 @@ const ObjectPreview = forwardRef(({
           );
           camera.updateMatrixWorld();
         
-          camera.aspect = width / height;
+          camera.aspect = canvasWidth / canvasHeight;
           camera.updateProjectionMatrix();
         };
         _initCamera();
@@ -80,9 +79,9 @@ const ObjectPreview = forwardRef(({
   }, [canvasRef, object]);
 
   return (
-    <canvas className={classnames(className, style.objectPreview)} width={width} height={height} ref={canvasRef} />
+    <canvas className={classnames(className, style.objectPreview)} width={canvasWidth} height={canvasHeight} ref={canvasRef} />
   )
-});
+};
 export {
   ObjectPreview,
 };

@@ -30,7 +30,7 @@ return '/@proxy/' + dataUrlPrefix + encodeURIComponent(content).replace(/\%/g, '
 
 //
 
-const userTokenCharacters = Array(7);
+const userTokenCharacters = Array(5);
 for (let i = 0; i < userTokenCharacters.length; i++) {
     userTokenCharacters[i] = {
         name: '',
@@ -408,6 +408,10 @@ export const CharacterSelect = () => {
             <div
                 className={classnames(styles.menu, opened ? styles.open : null)}
             >
+                <MegaHup
+                    open={opened}
+                    npcPlayer={opened ? npcPlayer : null}
+                />
                 <div className={styles.heading}>
                     <h1>Character select</h1>
                 </div>
@@ -462,11 +466,6 @@ export const CharacterSelect = () => {
             {(opened && text) ?
               <RpgText className={styles.text} styles={styles} text={text} textSpeed={chatTextSpeed} />
             : null}
-
-            <MegaHup
-              open={opened}
-              npcPlayer={opened ? npcPlayer : null}
-            />
         </div>
     );
 };

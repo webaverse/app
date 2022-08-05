@@ -7,7 +7,7 @@ import {unFrustumCull, enableShadows} from './util.js';
 import {
   getEyePosition,
 } from './avatars/util.mjs';
-import {getLocalPlayer, remotePlayers} from './players.js';
+import {playersManager} from './players-manager.js';
 
 const appSymbol = 'app'; // Symbol('app');
 const avatarSymbol = 'avatar'; // Symbol('avatar');
@@ -54,12 +54,13 @@ export function makeAvatar(app) {
     const {skinnedVrm} = app;
 
     const _getPlayerByAppInstanceId = instanceId => {
-      const localPlayer = getLocalPlayer();
+      const remotePlayers = playersManager.getRemotePlayers(); // Might have to be removed too
+      const localPlayer = playersManager.getLocalPlayer();
       const result = localPlayer.appManager.getAppByInstanceId(instanceId);
       if (result) {
         return localPlayer;
       } else {
-        for (const remotePlayer of remotePlayers) {
+        for (const remotePlayer in remotePlayers) {
           if (remotePlayer.appManager.getAppByInstanceId(instanceId)) {
             return remotePlayer;
           }
