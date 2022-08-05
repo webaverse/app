@@ -1,5 +1,6 @@
 // import * as THREE from 'three';
 import React, { useState, useEffect, useRef } from 'react';
+import classnames from 'classnames';
 import styles from './news-reel.module.css';
 import version from '../../../../version.json';
 import {generateGlyph} from '../../../../glyph-generator.js';
@@ -11,8 +12,8 @@ import conceptsJson from './concepts.json';
 const numGlyphs = 10;
 const glyphWidth = 7;
 
-const minTimeoutTime = 2 * 1000;
-const maxTimeoutTime = 5 * 1000;
+const minTimeoutTime = 4 * 1000;
+const maxTimeoutTime = 10 * 1000;
 
 const conceptNaturalWidth = 1024;
 const conceptNaturalHeight = 1008;
@@ -127,27 +128,43 @@ const Concept = ({
   index = -1,
 } = {}) => {
   const [concept, setConcept] = useState(initialConcept);
+  const [flash, setFlash] = useState(false);
 
+  let timeout1 = 0;
   useEffect(() => {
-    const _render = () => {
+    const _render = ({
+      flash,
+    }) => {
       const conceptIndex = Math.floor(Math.random() * concepts.length);
       const concept = concepts[conceptIndex];
       setConcept(concept);
-    };
-    _render();
 
-    let timeout = 0;
+      if (flash) {
+        setFlash(true);
+        timeout1 = setTimeout(() => {
+          setFlash(false);
+        }, 0);
+      }
+    };
+    _render({
+      flash: false,
+    });
+
+    let timeout2 = 0;
     const _recurse = () => {
       const timeoutTime = (Math.random() * (maxTimeoutTime - minTimeoutTime)) + minTimeoutTime;
-      timeout = setTimeout(() => {
-        _render();
+      timeout2 = setTimeout(() => {
+        _render({
+          flash: true,
+        });
         _recurse();
       }, timeoutTime);
     };
     _recurse();
     
     return () => {
-      clearTimeout(timeout);
+      clearTimeout(timeout1);
+      clearTimeout(timeout2);
     };
   }, []);
 
@@ -155,7 +172,7 @@ const Concept = ({
 
   return (
     <div
-      className={styles.imageGridItem}
+      className={classnames(styles.imageGridItem, flash ? styles.flash : null)}
       style={{
         width: conceptWidth,
         height: conceptHeight,

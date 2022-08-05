@@ -180,14 +180,24 @@
 /* */
 
 .newsReel .imageGrid .imageGridItem.flash {
-  filter: brightness(10);
-  transition: filter 1s ease-in-out;
+  filter: brightness(0);
 }
 .newsReel .imageGrid .imageGridItem:not(.flash) {
   filter: brightness(1);
-  /* transition: filter 1s cubic-bezier(0, 1, 0, 1); */
-  transition: filter 1s ease-in-out;
+  transition: filter 1s ease-out;
 }
+
+/* */
+
+.newsReel .imageGrid .imageGridItem.flash .content {
+  transform: scale(1.15);
+}
+.newsReel .imageGrid .imageGridItem:not(.flash) .content {
+  transform: translate3d(0, 0, 0);
+  transition: transform 1s ease-out;
+}
+
+/* */
 
 @keyframes glyph-filter {
   0% {
