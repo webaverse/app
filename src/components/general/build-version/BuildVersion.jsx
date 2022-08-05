@@ -8,6 +8,7 @@ import styles from './build-version.module.css';
 export const BuildVersionLayer = ({
   color,
   backgroundImage,
+  textShadow,
   clear = false,
   animate = false,
 }) => {
@@ -36,6 +37,7 @@ export const BuildVersionLayer = ({
         // backgroundImage,
         // background: `url(${backgroundImage})`,
         backgroundImage: backgroundImage ? `url(${backgroundImage})` : null,
+        textShadow,
         // we need to special case dash prefixed properties in React
         // '-webkit-text-fill-color',
         // WebkitTextFillColor: color,
@@ -52,7 +54,8 @@ export const BuildVersionLayer = ({
 export const BuildVersion = () => {
   return (
     <div className={styles.buildVersions}>
-      <BuildVersionLayer color="#000000" />
+      {/* <BuildVersionLayer color="#111111" textShadow="0 0 10px #67009c" /> */}
+      <BuildVersionLayer color="#000" textShadow="0 0 10px #7801a2" />
       {/* <BuildVersionLayer color="#FFFFFF" backgroundImage="images/ui/line-highlight-white.svg" clear animate /> */}
       <BuildVersionLayer color="#FFFFFF" backgroundImage="images/ui/line-slash.svg" clear animate />
     </div>
