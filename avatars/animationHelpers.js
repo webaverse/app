@@ -755,22 +755,13 @@ export const _createAnimation = avatar => {
   physx.physxWorker.addChild(avatar.defaultNodeTwoPtr, avatar.idle8DWalkRun_BowIdle8DDrawLooseNodeTwoPtr);
   physx.physxWorker.addChild(avatar.defaultNodeTwoPtr, avatar.idle8DCrouchNodeTwoPtr);
 
-  avatar.activatesNodeSolitaryPtr = avatar.createNode(AnimationNodeType.SOLITARY, 'activatesNodeSolitaryPtr');
-  for (const k in avatar.activateMotionPtro) {
-    const motion = avatar.activateMotionPtro[k];
-    physx.physxWorker.addChild(avatar.activatesNodeSolitaryPtr, motion);
-  }
-  avatar.activateNodeTwoPtr = avatar.createNode(AnimationNodeType.TWO, 'activateNodeTwoPtr');
-  physx.physxWorker.addChild(avatar.activateNodeTwoPtr, avatar.defaultNodeTwoPtr);
-  physx.physxWorker.addChild(avatar.activateNodeTwoPtr, avatar.activatesNodeSolitaryPtr);
-
   avatar.holdsNodeSolitaryPtr = avatar.createNode(AnimationNodeType.SOLITARY, 'holdsNodeSolitaryPtr');
   for (const k in avatar.holdMotionPtro) {
     const motion = avatar.holdMotionPtro[k];
     physx.physxWorker.addChild(avatar.holdsNodeSolitaryPtr, motion);
   }
   avatar.holdNodeFuncPtr = avatar.createNode(AnimationNodeType.FUNC, 'holdNodeFuncPtr');
-  physx.physxWorker.addChild(avatar.holdNodeFuncPtr, avatar.activateNodeTwoPtr);
+  physx.physxWorker.addChild(avatar.holdNodeFuncPtr, avatar.defaultNodeTwoPtr);
   physx.physxWorker.addChild(avatar.holdNodeFuncPtr, avatar.holdsNodeSolitaryPtr);
 
   avatar.hurtsNodeSolitaryPtr = avatar.createNode(AnimationNodeType.SOLITARY, 'hurtsNodeSolitaryPtr');
@@ -855,9 +846,18 @@ export const _createAnimation = avatar => {
   physx.physxWorker.addChild(avatar.landNodeTwoPtr, avatar.fallLoopNodeTwoPtr);
   physx.physxWorker.addChild(avatar.landNodeTwoPtr, avatar.landsNodeSolitaryPtr);
 
+  avatar.activatesNodeSolitaryPtr = avatar.createNode(AnimationNodeType.SOLITARY, 'activatesNodeSolitaryPtr');
+  for (const k in avatar.activateMotionPtro) {
+    const motion = avatar.activateMotionPtro[k];
+    physx.physxWorker.addChild(avatar.activatesNodeSolitaryPtr, motion);
+  }
+  avatar.activateNodeTwoPtr = avatar.createNode(AnimationNodeType.TWO, 'activateNodeTwoPtr');
+  physx.physxWorker.addChild(avatar.activateNodeTwoPtr, avatar.landNodeTwoPtr);
+  physx.physxWorker.addChild(avatar.activateNodeTwoPtr, avatar.activatesNodeSolitaryPtr);
+
   //
 
-  avatar.rootNodePtr = avatar.landNodeTwoPtr;
+  avatar.rootNodePtr = avatar.activateNodeTwoPtr;
   physx.physxWorker.setRootNode(avatar.mixer, avatar.rootNodePtr);
 
   // --------------------------------------------------------------------------
