@@ -1959,6 +1959,7 @@ class Avatar {
       */
       window.domInfo.innerHTML += `<div style="display:;">actions: --- ${window.localPlayer.getActionsArray().map(n=>n.type)}</div>`;
       window.domInfo.innerHTML += `<div style="display:;">mirrorFactor: --- ${this.mirrorFactor.toFixed(2)}</div>`;
+      window.domInfo.innerHTML += `<div style="display:;">idleWalkFactor: --- ${this.idleWalkFactor.toFixed(2)}</div>`;
       window.domInfo.innerHTML += `<div style="display:;">walkRunFactor: --- ${this.walkRunFactor.toFixed(2)}</div>`;
       window.domInfo.innerHTML += `<div style="display:;">landWithMoving: --- ${this.landWithMoving}</div>`;
       // window.domInfo.innerHTML += `<div style="display:;">currentSpeed: --- ${this.currentSpeed.toFixed(2)}</div>`;
@@ -1967,8 +1968,6 @@ class Avatar {
       // window.domInfo.innerHTML += `<div style="display:;">angle: --- ${window.logNum(this.getAngle())}</div>`;
       // window.domInfo.innerHTML += `<div style="display:;">velocity: --- ${window.logVector3(localPlayer.characterPhysics.velocity)}</div>`;
       // window.domInfo.innerHTML += `<div style="display:;">useEnvelopeFactor: --- ${this.useEnvelopeFactor.toFixed(2)}</div>`;
-      // window.domInfo.innerHTML += `<div style="display:;">idleWalkFactor: --- ${this.idleWalkFactor.toFixed(2)}</div>`;
-      // window.domInfo.innerHTML += `<div style="display:;">walkRunFactor: --- ${this.walkRunFactor.toFixed(2)}</div>`;
       // window.domInfo.innerHTML += `<div style="display:;">crouchFactor: --- ${this.crouchFactor.toFixed(2)}</div>`;
       // window.domInfo.innerHTML += `<div style="display:;">jumpState: --- ${this.jumpState}</div>`;
       // window.domInfo.innerHTML += `<div style="display:;">jumpTime: --- ${Math.floor(this.jumpTime)}</div>`;
