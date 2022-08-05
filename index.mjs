@@ -50,7 +50,7 @@ function makeId(length) {
 
 async function dynamicImporter(o, req, res, next) {
   try {
-    const loadUrl = o.pathname.slice(o.pathname.lastIndexOf('/@import'), o.pathname.length).replace('/@import', '');
+    const loadUrl = decodeURI(o.pathname.slice(o.pathname.lastIndexOf('/@import'), o.pathname.length).replace('/@import', ''));
     const fullUrl = req.protocol + '://' + req.get('host') + loadUrl;
     const reqURL = new URL(fullUrl);
 
@@ -59,6 +59,7 @@ async function dynamicImporter(o, req, res, next) {
       let id = await totum.resolveId(loadUrl, reqURL.href);
       if (!id) {
         console.error('\nFailed to load', loadUrl, reqURL.href);
+        console.log('\n------------------------------------------------------------------');
         res.status(500);
         return res.end('Failed to load');
       }
