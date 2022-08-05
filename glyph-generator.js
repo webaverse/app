@@ -153,7 +153,9 @@ export const generateGlyph = seed => {
   const size = renderer.getSize(localVector2D);
   const pixelRatio = renderer.getPixelRatio();
   const rng = alea(seed);
-  glyphMaterial.uniforms.iTime.value = rng();
+  const iTime = rng();
+  // console.log('rng time', iTime);
+  glyphMaterial.uniforms.iTime.value = iTime * 1000;
   glyphMaterial.uniforms.iTime.needsUpdate = true;
 
   {
