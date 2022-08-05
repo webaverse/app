@@ -32,7 +32,7 @@ import Header from '../../Header.jsx';
 import QuickMenu from '../../QuickMenu.jsx';
 import {ClaimsNotification} from '../../ClaimsNotification.jsx';
 import {DomRenderer} from '../../DomRenderer.jsx';
-// import * as voices from '../../../voices';
+import {BuildVersion} from '../general/build-version/BuildVersion.jsx';
 import {handleStoryKeyControls} from '../../../story';
 
 import styles from './App.module.css';
@@ -355,6 +355,7 @@ export const App = () => {
                 <LoadingBox />
                 <FocusBar />
                 <DragAndDrop />
+                <BuildVersion />
                 <Stats app={ app } />
             </AppContext.Provider>
         </div>
