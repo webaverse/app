@@ -97,6 +97,8 @@ export function applyPlayerActionsToAvatar(player, rig) {
   // const swordSideSlashAnimation = swordSideSlash ? swordSideSlash.animation : '';
   // const swordTopDownSlash = player.getAction('swordTopDownSlash');
   // const swordTopDownSlashAnimation = swordTopDownSlash ? swordTopDownSlash.animation : '';
+  const dodgeLeftAction = player.getAction('dodgeLeft');
+  const dodgeRightAction = player.getAction('dodgeRight');
 
   rig.jumpState = !!jumpAction;
   // start/end event
@@ -305,6 +307,24 @@ export function applyPlayerActionsToAvatar(player, rig) {
   rig.hurtTime = player.actionInterpolants.hurt.get();
 
   rig.mirrorFactor = player.actionInterpolants.mirror.getNormalized();
+
+  rig.dodgeLeftState = !! dodgeLeftAction;
+  rig.dodgeLeftStart = false;
+  rig.dodgeLeftEnd = false;
+  if(rig.dodgeLeftState !== rig.lastDodgeLeftState) {
+    if(rig.dodgeLeftState) rig.dodgeLeftStart = true;
+    else rig.dodgeLeftEnd = true;
+  }
+  rig.lastDodgeLeftState = rig.dodgeLeftState;
+
+  rig.dodgeRightState = !! dodgeRightAction;
+  rig.dodgeRightStart = false;
+  rig.dodgeRightEnd = false;
+  if(rig.dodgeRightState !== rig.lastDodgeRightState) {
+    if(rig.dodgeRightState) rig.dodgeRightStart = true;
+    else rig.dodgeRightEnd = true;
+  }
+  rig.lastDodgeRightState = rig.dodgeRightState;
 }
 // returns whether eyes were applied
 export function applyPlayerEyesToAvatar(player, rig) {

@@ -1014,7 +1014,27 @@ const _gameUpdate = (timestamp, timeDiff) => {
   for(const npc of npcManager.npcs) {
     _updateBehavior(npc);
   }
-  
+
+  const _updateDodge = () => { 
+    const dodgeLeftAction = localPlayer.hasAction('dodgeLeft');
+    const dodgeRightAction = localPlayer.hasAction('dodgeRight');
+    if(!dodgeLeftAction && ioManager.keys.left) {
+      localPlayer.addAction({type: 'dodgeLeft'});
+      localPlayer.characterPhysics.velocity.x -= 20;
+      console.log('dodge in game.js and ioManager')
+    } else if(dodgeLeftAction && !ioManager.keys.left) {
+      localPlayer.removeAction('dodgeLeft');
+    }
+    if(!dodgeRightAction && ioManager.keys.right) {
+      localPlayer.addAction({type: 'dodgeRight'});
+      localPlayer.characterPhysics.velocity.x += 20;
+      console.log('dodge in game.js and ioManager')
+    } else if(dodgeRightAction && !ioManager.keys.right) {
+      localPlayer.removeAction('dodgeRight');
+    }
+  };
+  _updateDodge();
+
   const _updateMouseLook = () => {
     if (localPlayer.avatar) {
       if (mouseSelectedObject && mouseSelectedPosition) {

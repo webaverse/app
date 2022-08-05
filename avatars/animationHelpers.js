@@ -563,6 +563,11 @@ export const _createAnimation = avatar => {
   physx.physxWorker.setLoop(avatar.activateMotion, AnimationLoopType.LoopOnce);
   physx.physxWorker.stop(avatar.activateMotion);
 
+  avatar.dodgeLeftMotion = physx.physxWorker.createMotion(avatar.mixer, animations.index['fly_dodge_left.fbx'].pointer);
+  avatar.motions.push({pointer: avatar.dodgeLeftMotion, name: 'dodgeLeftMotion'});
+  avatar.dodgeRightMotion = physx.physxWorker.createMotion(avatar.mixer, animations.index['fly_dodge_right.fbx'].pointer);
+  avatar.motions.push({pointer: avatar.dodgeRightMotion, name: 'dodgeRightMotion'});
+
   avatar.useMotiono = {};
   for (const k in useAnimations) {
     const animation = useAnimations[k];
@@ -710,6 +715,8 @@ export const _createAnimation = avatar => {
   physx.physxWorker.addChild(avatar.actionsNodeUnitary, avatar.jumpMotion);
   physx.physxWorker.addChild(avatar.actionsNodeUnitary, avatar.narutoRunMotion);
   physx.physxWorker.addChild(avatar.actionsNodeUnitary, avatar.activateMotion);
+  physx.physxWorker.addChild(avatar.actionsNodeUnitary, avatar.dodgeLeftMotion);
+  physx.physxWorker.addChild(avatar.actionsNodeUnitary, avatar.dodgeRightMotion);
   // useMotiono
   physx.physxWorker.addChild(avatar.actionsNodeUnitary, avatar.useMotiono.drink);
   // // sword
@@ -883,6 +890,13 @@ export const _updateAnimation = avatar => {
     physx.physxWorker.crossFadeUnitary(avatar.actionsNodeUnitary, 0.2, avatar.defaultNodeTwo);
   }
 
+  if (avatar.dodgeLeftEnd) {
+    physx.physxWorker.crossFadeUnitary(avatar.actionsNodeUnitary, 0.1, avatar.defaultNodeTwo);
+  }
+  if (avatar.dodgeRightEnd) {
+    physx.physxWorker.crossFadeUnitary(avatar.actionsNodeUnitary, 0.1, avatar.defaultNodeTwo);
+  }
+
   // test ---
 
   // if (avatar.hurtEnd) {
@@ -956,6 +970,16 @@ export const _updateAnimation = avatar => {
   // dance
   if (avatar.danceStart) {
     physx.physxWorker.crossFadeUnitary(avatar.actionsNodeUnitary, 0.2, avatar.danceMotiono[avatar.danceAnimation || defaultDanceAnimation]);
+  }
+
+  // dodge
+  if (avatar.dodgeLeftStart) {
+    physx.physxWorker.play(avatar.dodgeLeftMotion);
+    physx.physxWorker.crossFadeUnitary(avatar.actionsNodeUnitary, 0.1, avatar.dodgeLeftMotion);
+  }
+  if (avatar.dodgeRightStart) {
+    physx.physxWorker.play(avatar.dodgeRightMotion);
+    physx.physxWorker.crossFadeUnitary(avatar.actionsNodeUnitary, 0.1, avatar.dodgeRightMotion);
   }
 
   // test ---
