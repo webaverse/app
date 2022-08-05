@@ -65,7 +65,7 @@ let doubleJumpAnimation;
 let fallLoopAnimation;
 let floatAnimation;
 let useAnimations;
-let aimAnimations;
+let useComboAnimations;
 let sitAnimations;
 let danceAnimations;
 let emoteAnimations;
@@ -316,7 +316,7 @@ export const loadPromise = (async () => {
   floatAnimation = animations.find(a => a.isFloat);
   // rifleAnimation = animations.find(a => a.isRifle);
   // hitAnimation = animations.find(a => a.isHit);
-  aimAnimations = {
+  useComboAnimations = {
     swordSideIdle: animations.index['sword_idle_side.fbx'],
     swordSideIdleStatic: animations.index['sword_idle_side_static.fbx'],
     swordSideSlash: animations.index['sword_side_slash.fbx'],
@@ -324,8 +324,10 @@ export const loadPromise = (async () => {
     swordTopDownSlash: animations.index['sword_topdown_slash.fbx'],
     swordTopDownSlashStep: animations.index['sword_topdown_slash_step.fbx'],
     swordUndraw: animations.index['sword_undraw.fbx'],
+    dashAttack: animations.find(a => a.isDashAttack),
   };
-  useAnimations = mergeAnimations({
+  window.useComboAnimations = useComboAnimations;
+  useAnimations = {
     combo: animations.find(a => a.isCombo),
     slash: animations.find(a => a.isSlash),
     dashAttack: animations.find(a => a.isDashAttack),
@@ -336,10 +338,10 @@ export const loadPromise = (async () => {
     drink: animations.find(a => a.isDrinking),
     throw: animations.find(a => a.isThrow),
     pickUpThrow: animations.find(a => a.isPickUpThrow),
-    bowDraw: animations.find(a => a.isBowDraw),
+    bowDraw: animations.find(a => a.isBowDraw), // todo: separate to bowAnimations.
     bowIdle: animations.find(a => a.isBowIdle),
     bowLoose: animations.find(a => a.isBowLoose),
-  }, aimAnimations);
+  };
   window.useAnimations = useAnimations;
   sitAnimations = {
     chair: animations.find(a => a.isSitting),
@@ -616,6 +618,16 @@ export const _createAnimation = avatar => {
     }
   }
   physx.physxWorker.setSpeed(avatar.useMotionPtro.combo, 1.3);
+  // useCombo
+  avatar.useComboMotionPtro = {};
+  for (const k in useComboAnimations) {
+    const animation = useComboAnimations[k];
+    if (animation) {
+      avatar.useComboMotionPtro[k] = avatar.createMotion(animation.ptr, k);
+      physx.physxWorker.setLoop(avatar.useComboMotionPtro[k], AnimationLoopType.LoopOnce);
+      physx.physxWorker.stop(avatar.useComboMotionPtro[k]);
+    }
+  }
   // sit
   avatar.sitMotionPtro = {};
   for (const k in sitAnimations) {
@@ -776,7 +788,6 @@ export const _createAnimation = avatar => {
   avatar.usesNodeSolitaryPtr = avatar.createNode(AnimationNodeType.SOLITARY, 'usesNodeSolitaryPtr');
   for (const k in avatar.useMotionPtro) {
     if (['bowIdle', 'bowDraw', 'bowLoose'].includes(k)) continue; // these motions already added to parent at above.
-    if (['swordSideSlash', 'swordSideSlashStep', 'swordTopDownSlash', 'swordTopDownSlashStep'].includes(k)) continue; // these motions will add to useCombosNodeSolitaryPtr at blow.
     const motion = avatar.useMotionPtro[k];
     physx.physxWorker.addChild(avatar.usesNodeSolitaryPtr, motion);
   }
@@ -786,10 +797,10 @@ export const _createAnimation = avatar => {
 
   avatar.useCombosNodeSolitaryPtr = avatar.createNode(AnimationNodeType.SOLITARY, 'useCombosNodeSolitaryPtr');
   physx.physxWorker.addChild(avatar.useCombosNodeSolitaryPtr, avatar.useNodeTwoPtr);
-  physx.physxWorker.addChild(avatar.useCombosNodeSolitaryPtr, avatar.useMotionPtro.swordSideSlash);
-  physx.physxWorker.addChild(avatar.useCombosNodeSolitaryPtr, avatar.useMotionPtro.swordSideSlashStep);
-  physx.physxWorker.addChild(avatar.useCombosNodeSolitaryPtr, avatar.useMotionPtro.swordTopDownSlash);
-  physx.physxWorker.addChild(avatar.useCombosNodeSolitaryPtr, avatar.useMotionPtro.swordTopDownSlashStep);
+  for (const k in avatar.useComboMotionPtro) {
+    const motion = avatar.useComboMotionPtro[k];
+    physx.physxWorker.addChild(avatar.useCombosNodeSolitaryPtr, motion);
+  }
 
   avatar.emotesNodeSolitaryPtr = avatar.createNode(AnimationNodeType.SOLITARY, 'emotesNodeSolitaryPtr');
   for (const k in avatar.emoteMotionPtro) {
@@ -1058,7 +1069,7 @@ export const _updateAnimation = avatar => {
     } else {
       useAnimationName = avatar.useAnimationCombo[avatar.useAnimationIndex];
     }
-    const useMotion = avatar.useMotionPtro[useAnimationName];
+    const useMotion = avatar.useComboMotionPtro[useAnimationName];
     physx.physxWorker.play(useMotion);
     physx.physxWorker.crossFadeSolitary(avatar.useCombosNodeSolitaryPtr, 0.2, useMotion);
   }
@@ -1167,11 +1178,12 @@ export const _updateAnimation = avatar => {
       if ([
         avatar.useMotionPtro.drink,
         avatar.useMotionPtro.combo,
-        avatar.useMotionPtro.swordSideSlash,
-        avatar.useMotionPtro.swordSideSlashStep,
-        avatar.useMotionPtro.swordTopDownSlash,
-        avatar.useMotionPtro.swordTopDownSlashStep,
         avatar.useMotionPtro.dashAttack,
+        avatar.useComboMotionPtro.swordSideSlash,
+        avatar.useComboMotionPtro.swordSideSlashStep,
+        avatar.useComboMotionPtro.swordTopDownSlash,
+        avatar.useComboMotionPtro.swordTopDownSlashStep,
+        avatar.useComboMotionPtro.dashAttack,
       ].includes(motion)) {
         game.handleAnimationEnd();
       }

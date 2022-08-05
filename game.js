@@ -412,8 +412,9 @@ const _startUse = () => {
 
         wearApp.use();
         
+        // debugger
         if (
-          localPlayer.avatar?.moveFactors?.walkRunFactor >= 1 &&
+          localPlayer.avatar?.walkRunFactor >= 1 &&
           (
             animation === 'combo' ||
             animationCombo?.length > 0
