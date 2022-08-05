@@ -148,3 +148,63 @@
   letter-spacing: 2px;
   color: #FFF;
 }
+
+/* */
+
+@keyframes glyph-position {
+  0% {
+    top: calc( 0px - 100px );
+  }
+  40% {
+  }
+  50% {
+  }
+  60% {
+  }
+  100% {
+    top: calc( 100vh + 100px );
+  }
+}
+
+.newsReel .glyph {
+  image-rendering: pixelated;
+  animation: glyph-filter 1s ease-out infinite;
+  /* animation: glyph-filter 1s cubic-bezier(1, 0, 1, 0) infinite; */
+}
+
+/* */
+
+.newsReel .glyph {
+  position: absolute;
+  top: 0;
+  left: 0;
+  z-index: 1;
+}
+
+@keyframes glyph-filter {
+  0% {
+    top: calc( 0px - 100px );
+    filter: invert(0);
+  }
+  40% {
+    filter: invert(0);
+  }
+  50% {
+    filter: invert(1);
+  }
+  60% {
+    filter: invert(1);
+  }
+  100% {
+    top: calc( 100vh + 100px );
+    filter: invert(0);
+  }
+}
+
+.newsReel .glyph .canvas {
+  width: 128px;
+  height: 128px;
+  image-rendering: pixelated;
+  animation: glyph-filter 1s ease-out infinite;
+  /* animation: glyph-filter 1s cubic-bezier(1, 0, 1, 0) infinite; */
+}
