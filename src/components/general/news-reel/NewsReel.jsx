@@ -162,14 +162,6 @@ const Concept = ({
   const [concept, setConcept] = useState(null);
   const [flash, setFlash] = useState(false);
 
-  /* hovered={hoveredConceptIndex === index}
-  onMouseEnter={() => {
-    setHoveredConceptIndex(index);
-  }}
-  onMouseLeave={() => {
-    setHoveredConceptIndex(-1);
-  }} */
-
   let timeout1 = 0;
   useEffect(() => {
     const _render = ({

@@ -35,14 +35,10 @@ animate background position from left to right, 3s, looping
         background-position-x: 125px;
     }
 }
-/* .buildVersion.animate {
-    -webkit-animation: animate-build-version 1s infinite;
-    animation: animate-build-version 1s infinite;
-} */
 /* same as the above, except cubic-bezier(0, 1, 0, 1) */
 .buildVersion.animate {
-    -webkit-animation: animate-build-version 1s cubic-bezier(0, 1, 1, 0) infinite;
-    animation: animate-build-version 1s cubic-bezier(0, 1, 1, 0) infinite;
+    -webkit-animation: animate-build-version 2s cubic-bezier(0, 1, 1, 0) infinite;
+    animation: animate-build-version 2s cubic-bezier(0, 1, 1, 0) infinite;
 }
 
 .buildVersion .text,
