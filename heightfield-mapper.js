@@ -5,7 +5,7 @@ import {WebaverseShaderMaterial} from './materials.js';
 //
 
 const maxAnisotropy = 16;
-const fullScreenQuadGeometry = new THREE.PlaneBufferGeometry(2, 2);
+/* const fullScreenQuadGeometry = new THREE.PlaneBufferGeometry(2, 2);
 const fullscreenVertexShader = `\
   varying vec2 vUv;
 
@@ -13,11 +13,15 @@ const fullscreenVertexShader = `\
     vUv = uv;
     gl_Position = vec4(position.xy, 0., 1.0);
   }
-`;
+`; */
 
 //
 
-const localVector2D = new THREE.Vector2();
+const localVector = new THREE.Vector3();
+// const localVector2 = new THREE.Vector3();
+// const localVector2D = new THREE.Vector2();
+// const localQuaternion = new THREE.Quaternion();
+// const localMatrix = new THREE.Matrix4();
 
 //
 
@@ -37,27 +41,48 @@ const _makeHeightfieldRenderTarget = (w, h) => new THREE.WebGLRenderTarget(w, h,
   // flipY: false,
 });
 
-export class HeightfieldMapper {
+export class HeightfieldMapper /* extends EventTarget */ {
   constructor({
-    chunkSize,
-    terrainSize,
-    range,
+    procGenInstance,
+    size,
+    debug = false,
   }) {
-    this.chunkSize = chunkSize;
-    this.terrainSize = terrainSize;
-    this.range = range;
+    // super();
 
-    this.heightfieldRenderTarget = _makeHeightfieldRenderTarget(terrainSize, terrainSize);
-    this.heightfieldFourTapRenderTarget = _makeHeightfieldRenderTarget(terrainSize, terrainSize);
+    this.procGenInstance = procGenInstance;
+    this.size = size;
+    // this.debug = debug;
+
+    this.lastUpdateCoord = new THREE.Vector3(NaN, NaN, NaN);
+    
+    this.queued = false;
+    this.queuedPosition = new THREE.Vector3();
+
+    this.heightfieldRenderTarget = _makeHeightfieldRenderTarget(size, size);
+    this.heightfieldFourTapRenderTarget = _makeHeightfieldRenderTarget(size, size);
+    this.heightfieldTexture = new THREE.DataTexture(
+      new Float32Array(size * size),
+      size,
+      size,
+      THREE.RedFormat,
+      THREE.FloatType,
+      THREE.UVMapping,
+      THREE.ClampToEdgeWrapping,
+      THREE.ClampToEdgeWrapping,
+      THREE.LinearFilter,
+      THREE.LinearFilter,
+    );
+    this.heightfieldTexture.flipY = true;
+
     this.heightfieldMinPosition = new THREE.Vector2();
 
-    this.blankChunkData = new Float32Array(chunkSize * chunkSize);
+    // this.blankChunkData = new Float32Array(chunkSize * chunkSize);
 
-    this.heightfieldScene = (() => {
+    /* this.heightfieldScene = (() => {
       const chunkPlaneGeometry = new THREE.PlaneBufferGeometry(1, 1)
         .rotateX(-Math.PI / 2)
         .translate(0.5, 0, 0.5)
-        .scale(this.chunkSize, 1, this.chunkSize);
+        // .scale(this.chunkSize, 1, this.chunkSize);
       const fullscreenMatrixVertexShader = `\
         uniform float uHeightfieldSize;  
         varying vec2 vUv;
@@ -101,7 +126,7 @@ export class HeightfieldMapper {
             needsUpdate: true,
           },
           uHeightfieldSize: {
-            value: terrainSize,
+            value: size,
             needsUpdate: true,
           },
         },
@@ -116,14 +141,6 @@ export class HeightfieldMapper {
       scene3.update = (heightfieldLocalWritePosition, heightfield) => {
         fullscreenQuadMesh3.position.copy(heightfieldLocalWritePosition);
         fullscreenQuadMesh3.updateMatrixWorld();
-        
-        /* const heightfieldDrawTexture = new THREE.DataTexture(
-          new Uint8ClampedArray(this.chunkSize * this.chunkSize),
-          this.chunkSize,
-          this.chunkSize,
-          THREE.RedFormat,
-          THREE.UnsignedByteType
-        ); */
 
         heightfieldDrawTexture.image.data.set(heightfield);
         heightfieldDrawTexture.needsUpdate = true;
@@ -135,7 +152,7 @@ export class HeightfieldMapper {
 
         // console.log('render heightfield', heightfieldLocalWritePosition.x, heightfieldLocalWritePosition.y, heightfield);
       };
-      scene3.camera = new THREE.OrthographicCamera(0, terrainSize, 0, -terrainSize, -1000, 1000);
+      scene3.camera = new THREE.OrthographicCamera(0, size, 0, -size, -1000, 1000);
       scene3.camera.quaternion.setFromAxisAngle(new THREE.Vector3(1, 0, 0), -Math.PI / 2);
       scene3.camera.updateMatrixWorld();
       return scene3;
@@ -163,7 +180,7 @@ export class HeightfieldMapper {
             needsUpdate: true,
           },
           uHeightfieldSize: {
-            value: terrainSize,
+            value: size,
             needsUpdate: true,
           },
           uHeightfieldMinPosition: {
@@ -180,41 +197,116 @@ export class HeightfieldMapper {
       scene.add(fourTapQuadMesh);
       scene.mesh = fourTapQuadMesh;
       return scene;
-    })();
+    })(); */
 
-    if (range) {
-      this.#setRange(range);
+    this.debugMesh = null;
+    if (debug) {
+      this.debugMesh = (() => {
+        const planeGeometry = new THREE.PlaneBufferGeometry(
+          size - 1,
+          size - 1,
+          size - 1,
+          size - 1
+        )
+        .translate(
+          -0.5,
+          0.5,
+          0
+        )
+        .rotateX(-Math.PI / 2);
+
+        const fullscreenVertexShader = `\
+          uniform sampler2D uHeightfield;  
+          varying vec2 vUv;
+
+          void main() {
+            vUv = uv;
+            vec3 p = position;
+            float textureHeight = texture2D(uHeightfield, vUv).r;
+            p.y += textureHeight;
+            gl_Position = projectionMatrix * modelViewMatrix * vec4(p, 1.0);
+          }
+        `;
+        const fullscreenFragmentShader = `\
+          /* uniform sampler2D uHeightfield;
+          uniform vec2 uHeightfieldBase;
+          uniform vec2 uHeightfieldMinPosition;
+          uniform float uHeightfieldSize; */
+          varying vec2 vUv;
+
+          void main() {
+            /* vec2 pos2D = vUv;
+            vec2 posDiff = pos2D - 0.5 - (uHeightfieldMinPosition) / uHeightfieldSize;
+            vec2 uvHeightfield = posDiff;
+            uvHeightfield = mod(uvHeightfield, 1.); */
+
+            // gl_FragColor = vec4(vUv.x, 0., vUv.y, 0.5);
+            gl_FragColor = vec4(vUv.x, 0., vUv.y, 1.);
+          }
+        `;
+        const debugMaterial = new WebaverseShaderMaterial({
+          uniforms: {
+            uHeightfield: {
+              value: this.heightfieldTexture,
+              needsUpdate: true,
+            },
+          },
+          vertexShader: fullscreenVertexShader,
+          fragmentShader: fullscreenFragmentShader,
+          side: THREE.DoubleSide,
+          // transparent: true,
+        });
+        const debugMesh = new THREE.Mesh(planeGeometry, debugMaterial);
+        debugMesh.frustumCulled = false;
+        return debugMesh;
+      })();
     }
   }
-  #setRange = (() => {
-    const localVector = new THREE.Vector3();
-    return function(range) {
-      localVector.copy(range.min)
-        .divideScalar(this.chunkSize);
-      this.updateCoord(localVector);
-    };
-  })();
-  updateCoord(min1xCoord, target = null) {
-    // console.log('heightfield update coord', min1xCoord.x, min1xCoord.y, min1xCoord.z, new Error().stack);
-    // const oldHeightfieldPosition = localVector2D.copy(this.heightfieldMinPosition);
-    const newHeightfieldPosition = localVector2D.set(min1xCoord.x, min1xCoord.z)
-      .multiplyScalar(this.chunkSize);
+  update(position) {
+    if (!this.updating) {
+      (async () => {
+        this.updating = true;
+      
+        const coord = localVector.copy(position);
+        coord.x = Math.floor(coord.x);
+        coord.y = 0;
+        coord.z = Math.floor(coord.z);
+        if (!this.lastUpdateCoord.equals(coord)) {
+          this.lastUpdateCoord.copy(coord);
 
-    // const delta = target && target.copy(newHeightfieldPosition)
-    //   .sub(oldHeightfieldPosition);
+          if (this.debugMesh) {
+            const lod = 1;
+            const heightfield = await this.procGenInstance.dcWorkerManager.getHeightfieldRange(
+              coord.x - this.size / 2,
+              coord.z - this.size / 2,
+              this.size,
+              this.size,
+              lod
+            );
 
-    // update scenes
-    this.heightfieldFourTapScene.mesh.material.uniforms.uHeightfieldMinPosition.value.copy(newHeightfieldPosition);
-    this.heightfieldFourTapScene.mesh.material.uniforms.uHeightfieldMinPosition.needsUpdate = true;
+            this.heightfieldTexture.image.data.set(heightfield);
+            this.heightfieldTexture.needsUpdate = true;
 
-    this.heightfieldMinPosition.copy(newHeightfieldPosition);
+            this.debugMesh.position.copy(coord);
+            this.debugMesh.updateMatrixWorld();
+          }
+        }
 
-    // return delta;
+        this.updating = false;
+        
+        if (this.queued) {
+          this.queued = false;
+          this.update(this.queuedPosition);
+        }
+      })();
+    } else {
+      this.queued = true;
+      this.queuedPosition.copy(position);
+    }
   }
   renderHeightfieldUpdate(worldModPosition, heightfield) {
     const renderer = getRenderer();
     const context = renderer.getContext();
-    // const camera = useCamera();
 
     {
       // update
@@ -234,7 +326,7 @@ export class HeightfieldMapper {
       context.enable(context.SAMPLE_ALPHA_TO_COVERAGE);
     }
   }
-  clearHeightfieldChunk(worldModPosition) {
+  /* clearHeightfieldChunk(worldModPosition) {
     const renderer = getRenderer();
     const context = renderer.getContext();
     // const camera = useCamera();
@@ -256,8 +348,8 @@ export class HeightfieldMapper {
       renderer.setRenderTarget(oldRenderTarget);
       context.enable(context.SAMPLE_ALPHA_TO_COVERAGE);
     }
-  }
-  updateFourTapHeightfield() {
+  } */
+  /* updateFourTapHeightfield() {
     const renderer = getRenderer();
     const context = renderer.getContext();
 
@@ -278,5 +370,5 @@ export class HeightfieldMapper {
       renderer.setRenderTarget(oldRenderTarget);
       context.enable(context.SAMPLE_ALPHA_TO_COVERAGE);
     }
-  }
+  } */
 }

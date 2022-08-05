@@ -582,7 +582,7 @@ class AppManager extends EventTarget {
       app.quaternion.toArray(transform, 3);
       app.scale.toArray(transform, 7);
       
-      dstTrackedApp = this.addTrackedAppInternal(
+      dstTrackedApp = self.addTrackedAppInternal(
         instanceId,
         contentId,
         transform,

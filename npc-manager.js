@@ -2,11 +2,13 @@ import * as THREE from 'three';
 import Avatar from './avatars/avatars.js';
 import physicsManager from './physics-manager.js';
 import {LocalPlayer} from './character-controller.js';
-import {getLocalPlayer} from './players.js';
+import {getLocalPlayer, remotePlayers} from './players.js';
 import * as voices from './voices.js';
 import {world} from './world.js';
 import {chatManager} from './chat-manager.js';
-import {createRelativeUrl} from './util.js';
+import {makeId, createRelativeUrl} from './util.js';
+import { triggerEmote } from './src/components/general/character/Poses.jsx';
+import validEmotionMapping from "./validEmotionMapping.json";
 
 const localVector = new THREE.Vector3();
 
@@ -121,22 +123,40 @@ class NpcManager extends EventTarget {
     let targetSpec = null;
     if (mode === 'attached') {
       const _listenEvents = () => {
-        const hittrackeradd = e => {
-          app.hitTracker.addEventListener('hit', e => {
-            if (!npcPlayer.hasAction('hurt')) {
-              const newAction = {
-                type: 'hurt',
-                animation: 'pain_back',
-              };
-              npcPlayer.addAction(newAction);
-              
-              setTimeout(() => {
-                npcPlayer.removeAction('hurt');
-              }, hurtAnimationDuration * 1000);
-            }
-          });
-        };
-        app.addEventListener('hittrackeradded', hittrackeradd);
+        // const hittrackeradd = e => {
+        //   app.hitTracker.addEventListener('hit', e => {
+        //     if (!npcPlayer.hasAction('hurt')) {
+        //       const newAction = {
+        //         type: 'hurt',
+        //         animation: 'pain_back',
+        //       };
+        //       npcPlayer.addAction(newAction);
+
+        //       setTimeout(() => {
+        //         npcPlayer.removeAction('hurt');
+        //       }, hurtAnimationDuration * 1000);
+        //     }
+        //   });
+        // };
+        // app.addEventListener('hittrackeradded', hittrackeradd);
+
+        app.addEventListener('hit', e => {
+          if (!npcPlayer.hasAction('hurt')) {
+            const newAction = {
+              type: 'hurt',
+              animation: 'pain_back',
+            };
+            // console.log('add hurtAction', 'npc-manager.js')
+            npcPlayer.addAction(newAction);
+            // console.log('remove use', 'npc-manager.js')
+            npcPlayer.removeAction('use'); // todo: setControlAction() ?
+
+            setTimeout(() => {
+              // npcPlayer.removeAction('hurt');
+            // }, hurtAnimationDuration * 1000);
+            }, 0);
+          }
+        })
 
         const activate = () => {
           if (targetSpec?.object !== localPlayer) {
@@ -174,8 +194,7 @@ class NpcManager extends EventTarget {
               }
             }
 
-            npcPlayer.eyeballTarget.copy(localPlayer.position);
-            npcPlayer.eyeballTargetEnabled = true;
+            npcPlayer.setTarget(localPlayer.position);
 
             /* if (isNaN(npcPlayer.position.x)) {
               debugger;
@@ -230,7 +249,20 @@ class NpcManager extends EventTarget {
         character.addEventListener('say', e => {
           console.log('got character say', e.data);
           const {message, emote, action, object, target} = e.data;
-          chatManager.addPlayerMessage(npcPlayer, message);
+          const chatId = makeId(5);
+
+          const m = {
+            type: 'chat',
+            chatId,
+            playerId: localPlayer.playerId,
+            playerName: localPlayer.name,
+            message,
+          };
+
+          chatManager.addPlayerMessage(npcPlayer, m);
+          if (emote !== 'none' && validEmotionMapping[emote]!== undefined) {
+            triggerEmote(validEmotionMapping[emote], npcPlayer);
+          }
           if (emote === 'supersaiyan' || action === 'supersaiyan' || /supersaiyan/i.test(object) || /supersaiyan/i.test(target)) {
             const newSssAction = {
               type: 'sss',
