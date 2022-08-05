@@ -1398,7 +1398,9 @@ class GameManager extends EventTarget {
         type: 'fly',
         time: 0,
       };
-      localPlayer.setControlAction(flyAction);
+      if(!localPlayer.hasAction('sit')){
+        localPlayer.setControlAction(flyAction);
+      }
     }
   }
   isCrouched() {
@@ -1477,17 +1479,17 @@ class GameManager extends EventTarget {
   ensureJump(trigger) {
     const localPlayer = playersManager.getLocalPlayer();
 
-    const wearActions = Array.from(localPlayer.getActionsState()).filter(action => action.type === 'wear');
-    for (const wearAction of wearActions) {
-      const instanceId = wearAction.instanceId;
-      const app = metaversefileApi.getAppByInstanceId(instanceId);
-      const sitComponent = app.getComponent('sit');
-      if (sitComponent) {
-        app.unwear();
-      }
-    }
+    // const wearActions = Array.from(localPlayer.getActionsState()).filter(action => action.type === 'wear');
+    // for (const wearAction of wearActions) {
+    //   const instanceId = wearAction.instanceId;
+    //   const app = metaversefileApi.getAppByInstanceId(instanceId);
+    //   const sitComponent = app.getComponent('sit');
+    //   if (sitComponent) {
+    //     app.unwear();
+    //   }
+    // }
 
-    if (!localPlayer.hasAction('jump') && !localPlayer.hasAction('fly') && !localPlayer.hasAction('fallLoop') && !localPlayer.hasAction('swim')) {
+    if (!localPlayer.hasAction('jump') && !localPlayer.hasAction('fly') && !localPlayer.hasAction('fallLoop') && !localPlayer.hasAction('swim') && !localPlayer.hasAction('sit')) {
       const newJumpAction = {
         type: 'jump',
         trigger:trigger,
