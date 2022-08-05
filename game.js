@@ -384,7 +384,7 @@ const _getNextUseIndex = animationCombo => {
   }
 }
 const _startUse = () => {
-  const localPlayer = getLocalPlayer();
+  const localPlayer = playersManager.getLocalPlayer();
   const wearApp = loadoutManager.getSelectedApp();
   if (wearApp &&  !localPlayer.hasAction('jump') && !localPlayer.hasAction('fly') && !localPlayer.hasAction('narutoRun')) { // will add jump/fly/narutoRun specific useAnimations afterwards.
     const useComponent = wearApp.getComponent('use');
@@ -1449,7 +1449,7 @@ class GameManager extends EventTarget {
     return localPlayer.hasAction('crouch');
   }
   isBowing() {
-    const localPlayer = getLocalPlayer();
+    const localPlayer = playersManager.getLocalPlayer();
     return localPlayer.getAction('use')?.animationEnvelope?.length > 0;
   }
   isSwimming() {
