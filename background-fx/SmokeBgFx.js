@@ -103,7 +103,7 @@ class SmokeBgFxMesh extends THREE.Mesh {
   constructor() {
     const geometry = fullscreenGeometry;
 
-    const noise3DTexture = new THREE.DataTexture3D(null, 0, 0, 0);
+    const noise3DTexture = new THREE.Data3DTexture(null, 0, 0, 0);
     (async () => {
       const res = await fetch('textures/noise3d.bin');
       const arrayBuffer = await res.arrayBuffer();
@@ -126,7 +126,7 @@ class SmokeBgFxMesh extends THREE.Mesh {
       index += Uint16Array.BYTES_PER_ELEMENT;
       
       const data = new Uint8Array(arrayBuffer, 20);
-      const noise3DTexture = new THREE.DataTexture3D(data, width, height, depth);
+      const noise3DTexture = new THREE.Data3DTexture(data, width, height, depth);
       noise3DTexture.minFilter = THREE.LinearFilter;
       noise3DTexture.magFilter = THREE.LinearFilter;
       noise3DTexture.wrapS = THREE.RepeatWrapping;
