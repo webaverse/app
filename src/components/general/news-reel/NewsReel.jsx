@@ -1,6 +1,7 @@
 // import * as THREE from 'three';
 import React, { useState, useEffect, useRef, useContext } from 'react';
 import styles from './news-reel.module.css';
+import version from '../../../../version.json';
 
 import conceptsJson from './concepts.json';
 
@@ -105,13 +106,13 @@ const NewsImageGrid = ({
 export const NewsReel = () => {
   return (
     <div className={styles.newsReel}>
-      <h2>Offline Dev Alpha S.05</h2>
-      <p>The steet is generating!</p>
+      <h2>Offline Dev Alpha {version}</h2>
+      {/* <p>The steet is generating!</p>
       <p>Try worlds, weapons, charas, AIs, and unannounced secret features in this pre-season alpha. Webaverse is built in the open.</p>
       <p>Ambition can't wait and your heart is pure? Build on your own instance. Your content will carry over to the multiplayer Street.</p>
       <p>And DW! On your parcels will be able to have your own annoying popups!!</p>
       <p>watch out of bugs, watch out of the lisk ;)</p>
-      <sub>signed, lisk</sub>
+      <sub>signed, lisk</sub> */}
       {/* <img className={styles.background} src="/images/field.png" /> */}
       <NewsImageGrid />
     </div>
