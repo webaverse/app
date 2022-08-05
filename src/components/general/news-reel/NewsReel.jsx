@@ -48,15 +48,6 @@ const Glyph = ({
 } = {}) => {
   const canvasRef = useRef();
 
-  /* let animation = null;
-  const interval = setInterval(() => {
-    if (!animation) {
-      animation = {
-        start: Date.now(),
-      };
-    }
-  }, 200); */
-
   useEffect(() => {
     const canvas = canvasRef.current;
     if (canvas) {
@@ -138,30 +129,26 @@ const Concept = ({
   const [concept, setConcept] = useState(initialConcept);
 
   useEffect(() => {
-    // if (canvas) {
-      const _render = () => {
-        const conceptIndex = Math.floor(Math.random() * concepts.length);
-        const concept = concepts[conceptIndex];
-        setConcept(concept);
-        // console.log('render concept', concept.length);
-      };
-      _render();
-  
-      let timeout = 0;
-      const _recurse = () => {
-        const timeoutTime = (Math.random() * (maxTimeoutTime - minTimeoutTime)) + minTimeoutTime;
-        // console.log('timeout time', timeoutTime);
-        timeout = setTimeout(() => {
-          _render();
-          _recurse();
-        }, timeoutTime);
-      };
-      _recurse();
-      
-      return () => {
-        clearTimeout(timeout);
-      };
-    // }
+    const _render = () => {
+      const conceptIndex = Math.floor(Math.random() * concepts.length);
+      const concept = concepts[conceptIndex];
+      setConcept(concept);
+    };
+    _render();
+
+    let timeout = 0;
+    const _recurse = () => {
+      const timeoutTime = (Math.random() * (maxTimeoutTime - minTimeoutTime)) + minTimeoutTime;
+      timeout = setTimeout(() => {
+        _render();
+        _recurse();
+      }, timeoutTime);
+    };
+    _recurse();
+    
+    return () => {
+      clearTimeout(timeout);
+    };
   }, []);
 
   const conceptSrc = `/images/concepts/${concept}`;
