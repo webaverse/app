@@ -1,4 +1,3 @@
-
 import React, { forwardRef, useEffect, useState, useRef, useContext } from 'react';
 import classnames from 'classnames';
 import metaversefile from 'metaversefile';
@@ -14,21 +13,21 @@ import musicManager from '../../../../music-manager.js';
 import { CachedLoader } from '../../../CachedLoader.jsx';
 import { RpgText } from '../../../RpgText.jsx';
 import { chatTextSpeed } from '../../../../constants.js';
-import { VoiceEndpointVoicer } from '../../../../voice-output/voice-endpoint-voicer.js';
+import { VoiceEndpointVoicer, getVoiceEndpointUrl } from '../../../../voice-output/voice-endpoint-voicer.js';
 import * as voices from '../../../../voices.js';
-import {getVoiceEndpointUrl} from '../../../../voice-output/voice-endpoint-voicer.js';
 
 //
+import { loadCryptoAvatarsCharacters } from './cryptoavatars-loader.js';
+import { getMainnetAddress } from '../../../../blockchain.js';
+import npcManager from '../../../../npc-manager.js';
 
 function typeContentToUrl(type, content) {
-if (typeof content === 'object') {
-    content = JSON.stringify(content);
+    if (typeof content === 'object') {
+        content = JSON.stringify(content);
+    }
+    const dataUrlPrefix = 'data:' + type + ',';
+    return '/@proxy/' + dataUrlPrefix + encodeURIComponent(content).replace(/\%/g, '%25')//.replace(/\\//g, '%2F');
 }
-const dataUrlPrefix = 'data:' + type + ',';
-return '/@proxy/' + dataUrlPrefix + encodeURIComponent(content).replace(/\%/g, '%25')//.replace(/\\//g, '%2F');
-}
-
-//
 
 const userTokenCharacters = Array(5);
 for (let i = 0; i < userTokenCharacters.length; i++) {
@@ -111,6 +110,7 @@ const Character = forwardRef(({
     highlight,
     animate,
     disabled,
+    targetCharacter,
     onMouseMove,
     onClick,
 }, ref) => {
@@ -121,6 +121,7 @@ const Character = forwardRef(({
                 highlight ? styles.highlight : null,
                 animate ? styles.animate : null,
                 disabled ? styles.disabled : null,
+                character.name
             )}
             onMouseMove={e => {
                 if (!disabled) {
@@ -134,24 +135,36 @@ const Character = forwardRef(({
             }}
             ref={ref}
         >
-            {character?.previewUrl ? <img className={styles.img} src={character.previewUrl} /> : null}
+            {character && character.previewUrl ? (
+                <img
+                    crossOrigin="anonymous"
+                    className={styles.img}
+                    src={character.previewUrl}
+                />
+            ) : null}
+            {character && character.canBeUsed === false ? (
+                <img className={styles.disabled} src=" ./images/disabled.png" />
+            ) : null}
             <div className={styles.wrap}>
-                <div className={styles.name}>{character?.name ?? ''}</div>
-                <div className={styles.description}>{character?.class ?? ''}</div>
+                <div className={styles.name}>{(character && character.name) || ''}</div>
+                <div className={styles.description}>{(character && character.class) || ''}</div>
             </div>
+            <LightArrow visible={targetCharacter === character} />
         </li>
     );
-});
+  }
+);
 
 export const CharacterSelect = () => {
     const { state, setState } = useContext( AppContext );
     const [ highlightCharacter, setHighlightCharacter ] = useState(null);
     const [ selectCharacter, setSelectCharacter ] = useState(null);
-    const [ lastTargetCharacter, setLastTargetCharacter ] = useState(null);
-    const [ abortFn, setAbortFn ] = useState(null);
     const [ arrowPosition, setArrowPosition ] = useState(null);
-    const [ enabled, setEnabled ] = useState(false);
+    const [ arrowPosition2, setArrowPosition2 ] = useState(null);
     const [ npcPlayer, setNpcPlayer ] = useState(null);
+    const [ abortFn, setAbortFn ] = useState(null);
+    const [ enabled, setEnabled ] = useState(false);
+    const [ lastTargetCharacter, setLastTargetCharacter ] = useState(null);
     const [ npcLoader, setNpcLoader ] = useState(() => new CachedLoader({
         loadFn: async (url, targetCharacter, {signal = null} = {}) => {
             let live = true;
@@ -160,7 +173,7 @@ export const CharacterSelect = () => {
             });
 
             const npcApp = await metaversefile.createAppAsync({
-                start_url: typeContentToUrl('application/npc', targetCharacter),
+                start_url: typeContentToUrl('application/npc', {...targetCharacter, detached: true}),
             });
             return npcApp.npcPlayer;
         },
@@ -213,7 +226,13 @@ export const CharacterSelect = () => {
     // const [ messageAudioCache, setMessageAudioCache ] = useState(new Map());
     // const [ selectAudioCache, setSelectAudioCache ] = useState(new Map());
     const [ text, setText ] = useState('');
+    const [cryptoAvatars, setCryptoAvatars] = useState([]);
 
+    React.useEffect(() => {
+        console.log(cryptoAvatars);
+    }, [cryptoAvatars])
+
+    /*
     const refsMap = (() => {
         const map = new Map();
         for (const userTokenCharacter of userTokenCharacters) {
@@ -226,12 +245,25 @@ export const CharacterSelect = () => {
         }
         return map;
     })();
+    */
+
+    const [ npcPlayerCache, setNpcPlayerCache ] = useState(new Map());
+
+    const [caPagination, setCaPagination] = useState({});
+    const [caItemsPerPage, setCaItemsPerPage] = useState(5);
+    const [caCollection, setCaCollection] = useState(
+        '0xc1def47cf1e15ee8c2a92f4e0e968372880d18d1'
+    );
+    const [caOwnership, setCaOwnership] = useState(null);
+    const [scaleViewValue, setScaleViewValue] = useState(1);
 
     const targetCharacter = selectCharacter || highlightCharacter;
+    
+    /*
     const _updateArrowPosition = () => {
         if (targetCharacter) {
             const ref = refsMap.get(targetCharacter);
-            const el = ref.current;
+            const el = ref?.current;
             if (el) {
                 const rect = el.getBoundingClientRect();
                 const parentRect = el.offsetParent.getBoundingClientRect();
@@ -249,6 +281,7 @@ export const CharacterSelect = () => {
     useEffect(() => {
         _updateArrowPosition();
     }, [targetCharacter]);
+    */
     useEffect(() => {
         if (targetCharacter && targetCharacter !== lastTargetCharacter) {
             if (abortFn) {
@@ -329,7 +362,6 @@ export const CharacterSelect = () => {
             setLastTargetCharacter(targetCharacter);
         }
     }, [targetCharacter, lastTargetCharacter, abortFn]);
-
     const opened = state.openedPanel === 'CharacterSelect';
     useEffect(() => {
         if (opened) {
@@ -361,7 +393,7 @@ export const CharacterSelect = () => {
             setText('');
         }
     }, [opened, enabled]);
-    
+
     const onMouseMove = character => e => {
         if (enabled) {
             setHighlightCharacter(character);
@@ -387,7 +419,7 @@ export const CharacterSelect = () => {
                     characterIntroLoader.loadItem(character.avatarUrl, character, {
                         // signal,
                     }),
-                ]);
+                ]); 
                 
                 if (result) {
                     const {preloadedOnSelectMessage} = result;
@@ -403,17 +435,64 @@ export const CharacterSelect = () => {
         }
     };
 
+    /** ------------------------- CRYPTOAVATARS IMPLEMENTATION ------------------------ */
+    const getCryptoAvatars = async (
+        url = undefined,
+        itemsPerPage = caItemsPerPage
+    ) => {
+            const caResponse = await loadCryptoAvatarsCharacters(
+            url,
+            caOwnership,
+            caCollection,
+            itemsPerPage
+        );
+        setCaPagination(caResponse.pagination);
+        setCryptoAvatars(caResponse.avatars);
+        return caResponse.avatars;
+    };
+
+    const caSelectCollection = (event) => {
+        setCaCollection(event.target.value);
+    };
+
+    const changeCaItemsPerPage = (event) => {
+        setCaItemsPerPage(event.target.value);
+    };
+
+    const caNavigation = (event) => {
+        if (event.target.value === 'next') getCryptoAvatars(caPagination.next);
+        else getCryptoAvatars(caPagination.prev);
+    };
+
+    const caAvatarsFilter = async (event) => {
+        if (event.target.value === 'all') {
+        setCaOwnership(null);
+        return;
+        }
+
+        if (event.target.value === 'owned') {
+        const userAddress = await getMainnetAddress();
+        if (userAddress) setCaOwnership(userAddress.toLowerCase());
+        return;
+        }
+
+        setCaOwnership('free');
+    };
+
+    useEffect(() => {
+        getCryptoAvatars();
+    }, [caCollection, caOwnership, caItemsPerPage]);
+    /** ------------------------------------------------------------------------------- */
+
     return (
         <div className={styles.characterSelect}>
-            <div
-                className={classnames(styles.menu, opened ? styles.open : null)}
-            >
+            <div className={classnames(styles.menu, opened ? styles.open : null)}>
                 <MegaHup
                     open={opened}
                     npcPlayer={opened ? npcPlayer : null}
                 />
                 <div className={styles.heading}>
-                    <h1>Character select</h1>
+                <h1>Character select</h1>
                 </div>
                 <div className={styles.section}>
                     <div className={styles.subheading}>
@@ -424,12 +503,12 @@ export const CharacterSelect = () => {
                             <Character
                                 character={character}
                                 highlight={character === targetCharacter}
+                                targetCharacter={targetCharacter}
                                 animate={selectCharacter === character}
                                 disabled={!character.name || (!!selectCharacter && selectCharacter !== character)}
                                 onMouseMove={onMouseMove(character)}
                                 onClick={onClick(character)}
                                 key={i}
-                                ref={refsMap.get(character)}
                             />
                         )}
                     </ul>
@@ -444,28 +523,99 @@ export const CharacterSelect = () => {
                                 <Character
                                     character={character}
                                     highlight={character === targetCharacter}
+                                    targetCharacter={targetCharacter}
                                     animate={selectCharacter === character}
                                     disabled={!character.name || (!!selectCharacter && selectCharacter !== character)}
                                     onMouseMove={onMouseMove(character)}
                                     onClick={onClick(character)}
                                     key={i}
-                                    ref={refsMap.get(character)}
                                 />
                             );
                         })}
-                        <LightArrow
-                            enabled={!!arrowPosition}
-                            animate={!!selectCharacter}
-                            x={arrowPosition?.[0] ?? 0}
-                            y={arrowPosition?.[1] ?? 0}
-                        />
+                    </ul>
+                </div>
+                <div className={styles.section}>
+                    <div className={styles.subheading}>
+                        <h2>CryptoAvatars</h2>
+                        <div className={styles.cryptoavatars}>
+                        <>Collection:</>
+                        <div className={styles.select}>
+                            <select onChange={caSelectCollection}>
+                            <option value="0xc1def47cf1e15ee8c2a92f4e0e968372880d18d1">
+                                CryptoAvatars ETH
+                            </option>
+                            <option value="0xd047666daea0b7275e8d4f51fcff755aa05c3f0a">
+                                CryptoAvatars POLYGON
+                            </option>
+                            <option value="0x28ccbe824455a3b188c155b434e4e628babb6ffa">
+                                The User Collection
+                            </option>
+                            </select>
+                        </div>
+                        <>Ownership:</>
+                        <div className={styles.select}>
+                            <select onChange={caAvatarsFilter}>
+                            <option value="all">ALL</option>
+                            <option value="owned">Owned</option>
+                            <option value="opensource">Free use</option>
+                            </select>
+                        </div>
+                        <>Avatars per page:</>
+                        <div className={styles.select}>
+                            <select onChange={changeCaItemsPerPage}>
+                            <option value="5">5</option>
+                            <option value="10">10</option>
+                            <option value="20">25</option>
+                            </select>
+                        </div>
+                        <div>
+                            <>Pages </>
+                            {caPagination.prev && (
+                            <button
+                                value="prev"
+                                className={styles.button}
+                                onClick={caNavigation}
+                            >
+                                {'<'}
+                            </button>
+                            )}
+                            <>
+                            {caPagination.currentPage || 0} / {caPagination.totalPages}
+                            </>
+                            {caPagination.next && (
+                            <button
+                                value="next"
+                                className={styles.button}
+                                onClick={caNavigation}
+                            >
+                                {'>'}
+                            </button>
+                            )}
+                        </div>
+                        </div>
+                    </div>
+                    <ul className={styles.list}>
+                        {cryptoAvatars.length > 0 ? (
+                        cryptoAvatars.map((character, i) => {
+                            return (
+                            <Character
+                                character={character}
+                                highlight={character === targetCharacter}
+                                targetCharacter={targetCharacter}
+                                animate={selectCharacter === character}
+                                disabled={false}
+                                onMouseMove={onMouseMove(character)}
+                                onClick={onClick(character)}
+                                key={i}
+                            />
+                            );
+                        })
+                        ) : (
+                        <>No avatars found</>
+                        )}
                     </ul>
                 </div>
             </div>
-
-            {(opened && text) ?
-              <RpgText className={styles.text} styles={styles} text={text} textSpeed={chatTextSpeed} />
-            : null}
         </div>
     );
 };
