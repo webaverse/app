@@ -1747,7 +1747,7 @@ class GameManager extends EventTarget {
       lastUseIndex = 0;
     }
 
-    const localPlayer = getLocalPlayer();
+    const localPlayer = playersManager.getLocalPlayer();
     localPlayer.removeAction('dashAttack');
   }
   update = _gameUpdate;
