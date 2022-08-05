@@ -103,8 +103,12 @@ void mainImage( out vec4 fragColor, in vec2 fragCoord )
    
     //draw letters
     float b = letter(uv, 1.0 / (dims));
-    
-    fragColor = vec4(vec3(1.-b), b);
+    vec3 c = hueRotate(vec3(1., 0., 0.), uv.y * PI * 2.);
+
+    // fragColor = vec4(c, b);
+    fragColor = vec4(0., 0., 0., 1.);
+    // fragColor = vec4(vec3(1.-b) * c, b);
+    // fragColor = vec4(c, b);
     if (b < 0.5) {
       discard;
     }
