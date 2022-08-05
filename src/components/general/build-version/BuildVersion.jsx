@@ -56,7 +56,7 @@ export const BuildVersion = () => {
   return (
     <div className={styles.buildVersions}>
       {/* <BuildVersionLayer color="#111111" textShadow="0 0 10px #67009c" /> */}
-      <BuildVersionLayer color="#000" textShadow="0 0 10px #7801a2" />
+      <BuildVersionLayer color="#000" textShadow="0 0 10px #FFF" />
       {/* <BuildVersionLayer color="#FFFFFF" backgroundImage="images/ui/line-highlight-white.svg" clear animate /> */}
       <BuildVersionLayer color="#FFFFFF" backgroundImage="images/ui/line-slash.svg" clear animate />
     </div>
