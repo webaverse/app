@@ -728,7 +728,7 @@ const createPlayerDiorama = ({
               const isCrouch = player.hasAction('crouch');
               
               if (this.lastCrouch !== isCrouch || this.lastNR !== isNarutoRun) {
-                this.lerpAlpha = 0.01;
+                this.lerpAlpha = 0;
               }
               else {
                 if (this.lerpAlpha < 1) {
