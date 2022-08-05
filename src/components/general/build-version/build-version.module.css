@@ -1,0 +1,26 @@
+.buildVersion {
+    display: flex;
+    position: fixed;
+    bottom: 30px;
+    right: 0;
+    width: 325px;
+    color: #FFF;
+    text-align: center;
+    flex-direction: column;
+}
+
+.buildVersion .text,
+.buildVersion .subtext
+{
+    background: url("/images/ui/line-highlight-black.svg");
+    -webkit-background-clip: text;
+    /* -webkit-text-fill-color: transparent; */
+    font-family: WinchesterCaps;
+    line-height: 1;
+}
+.buildVersion .text {
+    font-size: 44px;
+}
+.buildVersion .subtext {
+    font-size: 22px;
+}
