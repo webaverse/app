@@ -2,6 +2,7 @@
 import React from 'react';
 import classnames from 'classnames';
 import styles from './build-version.module.css';
+import version from '../../../../version.json';
 
 //
 
@@ -45,7 +46,7 @@ export const BuildVersionLayer = ({
     >
       <div className={styles.wrap}>
         <div className={styles.text}>Dev Alpha</div>
-        <div className={styles.subtext}>Season 0.51_dev</div>
+        <div className={styles.subtext}>Season {version}</div>
       </div>
     </div>
   );
