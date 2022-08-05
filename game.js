@@ -392,7 +392,26 @@ const _startUse = () => {
       if (!useAction) {
         const {instanceId} = wearApp;
         const {boneAttachment, animation, animationCombo, animationEnvelope, ik, behavior, position, quaternion, scale} = useComponent;
-        const index = _getNextUseIndex(animationCombo);
+        let index = 0;
+
+        if ( // dashAttack
+          localPlayer.avatar?.walkRunFactor >= 1 &&
+          (
+            animation === 'combo' ||
+            animationCombo?.length > 0
+          )
+        ) {
+          localPlayer.addAction({type: 'dashAttack'});
+          localVector.copy(cameraManager.lastNonzeroDirectionVectorRotated).setY(0)
+            .normalize()
+            .multiplyScalar(10);
+          localPlayer.characterPhysics.applyWasd(localVector);
+        } else {
+          index = _getNextUseIndex(animationCombo);
+        }
+
+        console.log('useCombo index:', index);
+        
         const newUseAction = {
           type: 'use',
           instanceId,
@@ -411,21 +430,6 @@ const _startUse = () => {
         localPlayer.addAction(newUseAction);
 
         wearApp.use();
-        
-        // debugger
-        if (
-          localPlayer.avatar?.walkRunFactor >= 1 &&
-          (
-            animation === 'combo' ||
-            animationCombo?.length > 0
-          )
-        ) {
-          localPlayer.addAction({type: 'dashAttack'});
-          localVector.copy(cameraManager.lastNonzeroDirectionVectorRotated).setY(0)
-            .normalize()
-            .multiplyScalar(10);
-          localPlayer.characterPhysics.applyWasd(localVector);
-        }
       }
     }
   }
