@@ -53,10 +53,6 @@ const mapTime = (speedHistogram = new SpeedHistogram(), time = 0) => {
 class SpeedHistogram {
   constructor() {
     this.elements = [];
-
-    this.lerpAlpha = 0;
-    this.lastCrouch = null;
-    this.lastNR = null;
   }
   add(speed, duration) {
     this.elements.push({speed, duration});
@@ -515,6 +511,9 @@ const createPlayerDiorama = ({
   let outlineRenderTarget = null;
   let lastDisabledTime = 0;
   const sideCamera = new THREE.PerspectiveCamera();
+  let lerpAlpha = 0;
+  let lastCrouch = null;
+  let lastNR = null;
 
   const diorama = {
     width: 0,
@@ -727,20 +726,20 @@ const createPlayerDiorama = ({
               const isNarutoRun = player.hasAction('narutoRun');
               const isCrouch = player.hasAction('crouch');
               
-              if (this.lastCrouch !== isCrouch || this.lastNR !== isNarutoRun) {
-                this.lerpAlpha = 0;
+              if (lastCrouch !== isCrouch || lastNR !== isNarutoRun) {
+                lerpAlpha = 0;
               }
               else {
-                if (this.lerpAlpha < 1) {
-                  this.lerpAlpha += 0.05;
+                if (lerpAlpha < 1) {
+                  lerpAlpha += 0.05;
                 }
               }
               localVector4.copy(player.position).sub(headPosition);
               localVector5.copy(sideCamera.position).sub(localVector4);
-              sideCamera.position.lerp(localVector5, this.lerpAlpha);
+              sideCamera.position.lerp(localVector5, lerpAlpha);
               
-              this.lastNR = isNarutoRun;
-              this.lastCrouch = isCrouch;
+              lastNR = isNarutoRun;
+              lastCrouch = isCrouch;
             }
           }
           
