@@ -305,6 +305,7 @@ export const Equipment = () => {
     const [inventoryObject, setInventoryObject] = useState([]);
     const [ faceIndex, setFaceIndex ] = useState(1);
     const { selectedChain, supportedChain } = useContext(ChainContext)
+    const { getTokens, mintfromVoucher } = useNFTContract(account.currentAddress);
     const [ claims, setClaims ] = useState([]);
     const [nfts, setNfts] = useState(null);
 
@@ -335,6 +336,7 @@ export const Equipment = () => {
           async function queryOpensea() {
             fetch(
               `https://api.opensea.io/api/v1/assets?owner=${account.currentAddress}&limit=${50}`,
+            //   `https://api.opensea.io/api/v1/assets?owner=${account.currentAddress}&limit=${50}&asset_contract_address=${}`,
              // { headers: { "X-API-KEY": "6a7ceb45f3c44c84be65779ad2907046" } }
             // WARNING: without opensea api key this API is rate-limited
              ).then((res) => res.json())
@@ -356,10 +358,10 @@ export const Equipment = () => {
         }
 
         async function setupInventory() {
-            const inventoryItems = nfts.map((token, i) => {
+            const tokens = await getTokens();
+            const inventoryItems = tokens.map((token, i) => {
                 return {
                     name: token.name ?? "",
-                    start_url: token.url ?? "",
                     start_url: token.url ?? (token.animation_url !== "" ? token.animation_url : token.collection.banner_image_url),
                     level: token.level ?? 1,
                     claimed: true
