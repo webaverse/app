@@ -155,7 +155,7 @@
 
 @keyframes glyph-position {
   0% {
-    top: calc( 0px - 100px );
+    transform: translateY( calc( 0px - 100px ) );
   }
   40% {
   }
@@ -164,15 +164,14 @@
   60% {
   }
   100% {
-    top: calc( 100vh + 100px );
+    transform: translateY( calc( 100vh + 100px ) );
   }
 }
 
 .newsReel .glyph {
   position: absolute;
   image-rendering: pixelated;
-  animation: glyph-filter 1s ease-out infinite;
-  /* animation: glyph-filter 1s cubic-bezier(1, 0, 1, 0) infinite; */
+  animation: glyph-position 3s linear infinite;
   top: 0;
   left: 0;
   pointer-events: none;
@@ -196,14 +195,13 @@
 }
 .newsReel .imageGrid .imageGridItem:not(.flash) .content {
   transform: translate3d(0, 0, 0);
-  transition: transform 1s ease-out;
+  transition: transform 2s ease-out;
 }
 
 /* */
 
 @keyframes glyph-filter {
   0% {
-    top: calc( 0px - 100px );
     filter: invert(0);
   }
   40% {
@@ -216,7 +214,6 @@
     filter: invert(1);
   }
   100% {
-    top: calc( 100vh + 100px );
     filter: invert(0);
   }
 }

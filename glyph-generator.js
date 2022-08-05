@@ -9,6 +9,7 @@ const localColor = new THREE.Color();
 
 const glyphFragmentShader = `\
 uniform float iTime;
+uniform vec3 uColor;
 varying vec2 tex_coords;
 
 /*
@@ -103,12 +104,10 @@ void mainImage( out vec4 fragColor, in vec2 fragCoord )
    
     //draw letters
     float b = letter(uv, 1.0 / (dims));
-    vec3 c = hueRotate(vec3(1., 0., 0.), uv.y * PI * 2.);
+    // vec3 c = hueRotate(vec3(1., 0., 0.), uv.y * PI * 2.);
 
-    // fragColor = vec4(c, b);
-    fragColor = vec4(0., 0., 0., 1.);
-    // fragColor = vec4(vec3(1.-b) * c, b);
-    // fragColor = vec4(c, b);
+    // fragColor = vec4(0., 0., 0., 1.);
+    fragColor = vec4(uColor, 1.);
     if (b < 0.5) {
       discard;
     }
@@ -127,6 +126,10 @@ const glyphMaterial = new THREE.ShaderMaterial({
       value: 0,
       needsUpdate: true,
     },
+    uColor: {
+      value: new THREE.Color(0x000000),
+      needsUpdate: true,
+    },
   },
   vertexShader: fullscreenVertexShader,
   fragmentShader: glyphFragmentShader,
@@ -142,7 +145,9 @@ glyphScene.add(glyphMesh);
 
 const glyphCamera = new THREE.OrthographicCamera();
 
-export const generateGlyph = seed => {
+export const generateGlyph = (seed, {
+  color = 0x000000,
+} = {}) => {
   const canvas = document.createElement('canvas');
   canvas.width = glyphSize;
   canvas.height = glyphSize;
@@ -154,9 +159,10 @@ export const generateGlyph = seed => {
   const pixelRatio = renderer.getPixelRatio();
   const rng = alea(seed);
   const iTime = rng();
-  // console.log('rng time', iTime);
   glyphMaterial.uniforms.iTime.value = iTime * 1000;
   glyphMaterial.uniforms.iTime.needsUpdate = true;
+  glyphMaterial.uniforms.uColor.value.setHex(color);
+  glyphMaterial.uniforms.uColor.needsUpdate = true;
 
   {
     // push old state

@@ -19,6 +19,7 @@ const conceptNaturalWidth = 1024;
 const conceptNaturalHeight = 1008;
 const conceptWidth = 150;
 const conceptHeight = Math.floor(conceptWidth / conceptNaturalWidth * conceptNaturalHeight);
+const imageGridWidth = 480;
 
 //
 
@@ -57,8 +58,9 @@ const useGlyphs = (() => {
       glyphs = Array(numGlyphs);
       for (let i = 0; i < numGlyphs; i++) {
         glyphs[i] = generateGlyph(i + '', {
-          width: glyphWidth,
-          height: glyphHeight,
+          // width: glyphWidth,
+          // height: glyphHeight,
+          color: 0x111111,
         });
       }
     }
@@ -96,7 +98,7 @@ const Glyph = ({
     <div
       className={styles.glyph}
       style={{
-        top: `${position[1]}px`,
+        // top: `${position[1]}px`,
         left: `${position[0]}px`,
         animationDelay,
         animationDuration,
@@ -119,7 +121,7 @@ const Glyph = ({
 const Glyphs = () => {
   const glyphs = Array(numGlyphs);
   for (let i = 0; i < numGlyphs; i++) {
-    const x = Math.random() * 300;
+    const x = -conceptWidth + (Math.random() * (imageGridWidth + (conceptWidth * 2)));
     const y = Math.random() * 300;
     const animationDelay = (Math.random() * 1) + 's';
     
