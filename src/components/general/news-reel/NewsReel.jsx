@@ -22,6 +22,27 @@ const conceptHeight = Math.floor(conceptWidth / conceptNaturalWidth * conceptNat
 
 //
 
+class ConceptManager {
+  constructor({
+    concepts = [],
+  } = {}) {
+    this.concepts = concepts.slice();
+  }
+  getConcept() {
+    const conceptIndex = Math.floor(Math.random() * this.concepts.length);
+    const concept = this.concepts.splice(conceptIndex, 1)[0];
+    return concept;
+  }
+  freeConcept(concept) {
+    this.concepts.push(concept);
+  }
+}
+const conceptManager = new ConceptManager({
+  concepts: conceptsJson,
+});
+
+//
+
 const glyphHeight = glyphWidth;
 const useGlyphs = (() => {
   let glyphs = null;
@@ -135,9 +156,11 @@ const Concept = ({
     const _render = ({
       flash,
     }) => {
-      const conceptIndex = Math.floor(Math.random() * concepts.length);
-      const concept = concepts[conceptIndex];
-      setConcept(concept);
+      const oldConcept = concept;
+      conceptManager.freeConcept(oldConcept);
+      
+      const newConcept = conceptManager.getConcept();
+      setConcept(newConcept);
 
       if (flash) {
         setFlash(true);
@@ -218,10 +241,9 @@ const NewsImageGrid = ({
         // console.log('num concepts update', {numConceptsWidth, numConceptsHeight, numConceptsWidth, gridRect});
         
         const newConcepts = [];
-        const concepts = conceptsJson//.slice();
+        const concepts = conceptsJson;
         for (let i = 0; i < numConcepts; i++) {
-          const conceptIndex = Math.floor(Math.random() * concepts.length);
-          const concept = concepts[conceptIndex];
+          const concept = conceptManager.getConcept();
           newConcepts.push(concept);
         }
         setConcepts(newConcepts);
