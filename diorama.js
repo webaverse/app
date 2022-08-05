@@ -20,6 +20,7 @@ const localVector = new THREE.Vector3();
 const localVector2 = new THREE.Vector3();
 const localVector3 = new THREE.Vector3();
 const localVector4 = new THREE.Vector3();
+const localVector5 = new THREE.Vector3();
 const localVector2D = new THREE.Vector2();
 const localEuler = new THREE.Euler();
 const localVector2D2 = new THREE.Vector2();
@@ -504,6 +505,7 @@ const createPlayerDiorama = ({
   autoCamera = true,
   detached = false,
   flipY = false,
+  player = null,
 } = {}) => {
   // _ensureSideSceneCompiled();
 
@@ -524,6 +526,9 @@ const createPlayerDiorama = ({
     },
     setObjects(newObjects) {
       objects = newObjects;
+    },
+    setPlayer(newPlayer) {
+      player = newPlayer;
     },
     getCanvases() {
       return canvases;
@@ -708,37 +713,35 @@ const createPlayerDiorama = ({
             localVector2.set(0, cameraOffset.y, 0)
               .applyQuaternion(targetQuaternion)
           );
+          
+          
           // handle player diorama
-          const lerp = (a, b, x) => {
-              return a + (b - a) * x;
-          }
-          if(this.player){
-            const headPosition = localVector3.setFromMatrixPosition(this.player.avatar.modelBones.Head.matrixWorld);
-            if(this.player.hasAction('sit')){
-              sideCamera.position.y -= this.player.position.y - headPosition.y;
+          // player needs to be set for the diorama so that the camera can update continuously
+          // player is not set for avatar icons since it's a one-time render
+          if (player) {
+            const headPosition = localVector3.setFromMatrixPosition(player.avatar.modelBones.Head.matrixWorld);
+            if (player.hasAction('sit')) {
+              sideCamera.position.y -= player.position.y - headPosition.y;
             }
-            else{
-              const isNarutoRun = this.player.hasAction('narutoRun');
-              const isCrouch = this.player.hasAction('crouch');
+            else {
+              const isNarutoRun = player.hasAction('narutoRun');
+              const isCrouch = player.hasAction('crouch');
               
-              if(this.lastCrouch !== isCrouch || this.lastNR !== isNarutoRun){
+              if (this.lastCrouch !== isCrouch || this.lastNR !== isNarutoRun) {
                 this.lerpAlpha = 0.01;
               }
-              else{
-                if(this.lerpAlpha < 1){
+              else {
+                if (this.lerpAlpha < 1) {
                   this.lerpAlpha += 0.05;
                 }
               }
-              sideCamera.position.x = lerp(sideCamera.position.x, sideCamera.position.x - (this.player.position.x - headPosition.x), this.lerpAlpha);
-              sideCamera.position.z = lerp(sideCamera.position.z, sideCamera.position.z - (this.player.position.z - headPosition.z), this.lerpAlpha);
-              sideCamera.position.y = lerp(sideCamera.position.y, sideCamera.position.y - (this.player.position.y - headPosition.y), this.lerpAlpha);
+              localVector4.copy(player.position).sub(headPosition);
+              localVector5.copy(sideCamera.position).sub(localVector4);
+              sideCamera.position.lerp(localVector5, this.lerpAlpha);
               
-             
               this.lastNR = isNarutoRun;
               this.lastCrouch = isCrouch;
             }
-
-            
           }
           
           sideCamera.updateMatrixWorld();

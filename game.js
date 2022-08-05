@@ -1675,25 +1675,16 @@ class GameManager extends EventTarget {
       outline: true,
       grassBackground: true,
       // glyphBackground: true,
-      cameraOffset: new THREE.Vector3(0.3, 0, -0.8)
+      cameraOffset: new THREE.Vector3(0.3, 0, -0.8),
     });
     localPlayer.addEventListener('avatarchange', e => {
       this.playerDiorama.setObjects([
         e.avatar.model,
       ]);
-      // let neckBone;
-      // e.avatar.model.traverse(
-      //   (object) => {
-      //     if (object.type === "Bone" && object.name === "Head") {
-      //       return neckBone = object;
-      //     }
-      //   }
-      // );
-      // this.playerDiorama.setTarget(neckBone);
       this.playerDiorama.setTarget(e.avatar.modelBones.Root);
       localVector.set(0.3, e.avatar.height, -0.8);
       this.playerDiorama.setCameraOffset(localVector);
-      this.playerDiorama.player = localPlayer;
+      this.playerDiorama.setPlayer(localPlayer);
     });
   }
   async setVoicePack(voicePack) {
