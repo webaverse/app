@@ -702,6 +702,10 @@ const createPlayerDiorama = ({
             localVector2.set(0, cameraOffset.y, 0)
               .applyQuaternion(targetQuaternion)
           );
+          if(this.player){
+            const headPosition = localVector3.setFromMatrixPosition(this.player.avatar.modelBones.Head.matrixWorld);
+            sideCamera.position.y -= this.player.position.y - headPosition.y;
+          }
           
           sideCamera.updateMatrixWorld();
         }
