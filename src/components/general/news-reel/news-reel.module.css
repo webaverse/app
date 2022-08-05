@@ -177,6 +177,18 @@
   z-index: 1;
 }
 
+/* */
+
+.newsReel .imageGrid .imageGridItem.flash {
+  filter: brightness(10);
+  transition: filter 1s ease-in-out;
+}
+.newsReel .imageGrid .imageGridItem:not(.flash) {
+  filter: brightness(1);
+  /* transition: filter 1s cubic-bezier(0, 1, 0, 1); */
+  transition: filter 1s ease-in-out;
+}
+
 @keyframes glyph-filter {
   0% {
     top: calc( 0px - 100px );
