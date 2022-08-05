@@ -755,81 +755,81 @@ export const _createAnimation = avatar => {
   physx.physxWorker.addChild(avatar.defaultNodeTwoPtr, avatar.idle8DWalkRun_BowIdle8DDrawLooseNodeTwoPtr);
   physx.physxWorker.addChild(avatar.defaultNodeTwoPtr, avatar.idle8DCrouchNodeTwoPtr);
 
-  avatar.activatesNodeUnitaryPtr = avatar.createNode(AnimationNodeType.UNITARY, 'activatesNodeUnitaryPtr');
+  avatar.activatesNodeSolitaryPtr = avatar.createNode(AnimationNodeType.SOLITARY, 'activatesNodeSolitaryPtr');
   for (const k in avatar.activateMotionPtro) {
     const motion = avatar.activateMotionPtro[k];
-    physx.physxWorker.addChild(avatar.activatesNodeUnitaryPtr, motion);
+    physx.physxWorker.addChild(avatar.activatesNodeSolitaryPtr, motion);
   }
   avatar.activateNodeTwoPtr = avatar.createNode(AnimationNodeType.TWO, 'activateNodeTwoPtr');
   physx.physxWorker.addChild(avatar.activateNodeTwoPtr, avatar.defaultNodeTwoPtr);
-  physx.physxWorker.addChild(avatar.activateNodeTwoPtr, avatar.activatesNodeUnitaryPtr);
+  physx.physxWorker.addChild(avatar.activateNodeTwoPtr, avatar.activatesNodeSolitaryPtr);
 
-  avatar.holdsNodeUnitaryPtr = avatar.createNode(AnimationNodeType.UNITARY, 'holdsNodeUnitaryPtr');
+  avatar.holdsNodeSolitaryPtr = avatar.createNode(AnimationNodeType.SOLITARY, 'holdsNodeSolitaryPtr');
   for (const k in avatar.holdMotionPtro) {
     const motion = avatar.holdMotionPtro[k];
-    physx.physxWorker.addChild(avatar.holdsNodeUnitaryPtr, motion);
+    physx.physxWorker.addChild(avatar.holdsNodeSolitaryPtr, motion);
   }
   avatar.holdNodeFuncPtr = avatar.createNode(AnimationNodeType.FUNC, 'holdNodeFuncPtr');
   physx.physxWorker.addChild(avatar.holdNodeFuncPtr, avatar.activateNodeTwoPtr);
-  physx.physxWorker.addChild(avatar.holdNodeFuncPtr, avatar.holdsNodeUnitaryPtr);
+  physx.physxWorker.addChild(avatar.holdNodeFuncPtr, avatar.holdsNodeSolitaryPtr);
 
-  avatar.hurtsNodeUnitaryPtr = avatar.createNode(AnimationNodeType.UNITARY, 'hurtsNodeUnitaryPtr');
+  avatar.hurtsNodeSolitaryPtr = avatar.createNode(AnimationNodeType.SOLITARY, 'hurtsNodeSolitaryPtr');
   for (const k in avatar.hurtMotionPtro) {
     const motion = avatar.hurtMotionPtro[k];
-    physx.physxWorker.addChild(avatar.hurtsNodeUnitaryPtr, motion);
+    physx.physxWorker.addChild(avatar.hurtsNodeSolitaryPtr, motion);
   }
   avatar.hurtNodeTwoPtr = avatar.createNode(AnimationNodeType.TWO, 'hurtNodeTwoPtr');
   physx.physxWorker.addChild(avatar.hurtNodeTwoPtr, avatar.holdNodeFuncPtr);
-  physx.physxWorker.addChild(avatar.hurtNodeTwoPtr, avatar.hurtsNodeUnitaryPtr);
+  physx.physxWorker.addChild(avatar.hurtNodeTwoPtr, avatar.hurtsNodeSolitaryPtr);
 
-  avatar.usesNodeUnitaryPtr = avatar.createNode(AnimationNodeType.UNITARY, 'usesNodeUnitaryPtr');
+  avatar.usesNodeSolitaryPtr = avatar.createNode(AnimationNodeType.SOLITARY, 'usesNodeSolitaryPtr');
   for (const k in avatar.useMotionPtro) {
     if (['bowIdle', 'bowDraw', 'bowLoose'].includes(k)) continue; // these motions already added to parent at above.
-    if (['swordSideSlash', 'swordSideSlashStep', 'swordTopDownSlash', 'swordTopDownSlashStep'].includes(k)) continue; // these motions will add to useCombosNodeUnitaryPtr at blow.
+    if (['swordSideSlash', 'swordSideSlashStep', 'swordTopDownSlash', 'swordTopDownSlashStep'].includes(k)) continue; // these motions will add to useCombosNodeSolitaryPtr at blow.
     const motion = avatar.useMotionPtro[k];
-    physx.physxWorker.addChild(avatar.usesNodeUnitaryPtr, motion);
+    physx.physxWorker.addChild(avatar.usesNodeSolitaryPtr, motion);
   }
   avatar.useNodeTwoPtr = avatar.createNode(AnimationNodeType.TWO, 'useNodeTwoPtr');
   physx.physxWorker.addChild(avatar.useNodeTwoPtr, avatar.hurtNodeTwoPtr);
-  physx.physxWorker.addChild(avatar.useNodeTwoPtr, avatar.usesNodeUnitaryPtr);
+  physx.physxWorker.addChild(avatar.useNodeTwoPtr, avatar.usesNodeSolitaryPtr);
 
-  avatar.useCombosNodeUnitaryPtr = avatar.createNode(AnimationNodeType.UNITARY, 'useCombosNodeUnitaryPtr');
-  physx.physxWorker.addChild(avatar.useCombosNodeUnitaryPtr, avatar.useNodeTwoPtr);
-  physx.physxWorker.addChild(avatar.useCombosNodeUnitaryPtr, avatar.useMotionPtro.swordSideSlash);
-  physx.physxWorker.addChild(avatar.useCombosNodeUnitaryPtr, avatar.useMotionPtro.swordSideSlashStep);
-  physx.physxWorker.addChild(avatar.useCombosNodeUnitaryPtr, avatar.useMotionPtro.swordTopDownSlash);
-  physx.physxWorker.addChild(avatar.useCombosNodeUnitaryPtr, avatar.useMotionPtro.swordTopDownSlashStep);
+  avatar.useCombosNodeSolitaryPtr = avatar.createNode(AnimationNodeType.SOLITARY, 'useCombosNodeSolitaryPtr');
+  physx.physxWorker.addChild(avatar.useCombosNodeSolitaryPtr, avatar.useNodeTwoPtr);
+  physx.physxWorker.addChild(avatar.useCombosNodeSolitaryPtr, avatar.useMotionPtro.swordSideSlash);
+  physx.physxWorker.addChild(avatar.useCombosNodeSolitaryPtr, avatar.useMotionPtro.swordSideSlashStep);
+  physx.physxWorker.addChild(avatar.useCombosNodeSolitaryPtr, avatar.useMotionPtro.swordTopDownSlash);
+  physx.physxWorker.addChild(avatar.useCombosNodeSolitaryPtr, avatar.useMotionPtro.swordTopDownSlashStep);
 
-  avatar.emotesNodeUnitaryPtr = avatar.createNode(AnimationNodeType.UNITARY, 'emotesNodeUnitaryPtr');
+  avatar.emotesNodeSolitaryPtr = avatar.createNode(AnimationNodeType.SOLITARY, 'emotesNodeSolitaryPtr');
   for (const k in avatar.emoteMotionPtro) {
     const motion = avatar.emoteMotionPtro[k];
-    physx.physxWorker.addChild(avatar.emotesNodeUnitaryPtr, motion);
+    physx.physxWorker.addChild(avatar.emotesNodeSolitaryPtr, motion);
   }
   avatar.emoteNodeTwoPtr = avatar.createNode(AnimationNodeType.TWO, 'emoteNodeTwoPtr');
-  physx.physxWorker.addChild(avatar.emoteNodeTwoPtr, avatar.useCombosNodeUnitaryPtr);
-  physx.physxWorker.addChild(avatar.emoteNodeTwoPtr, avatar.emotesNodeUnitaryPtr);
+  physx.physxWorker.addChild(avatar.emoteNodeTwoPtr, avatar.useCombosNodeSolitaryPtr);
+  physx.physxWorker.addChild(avatar.emoteNodeTwoPtr, avatar.emotesNodeSolitaryPtr);
 
-  avatar.dancesNodeUnitaryPtr = avatar.createNode(AnimationNodeType.UNITARY, 'dancesNodeUnitaryPtr');
+  avatar.dancesNodeSolitaryPtr = avatar.createNode(AnimationNodeType.SOLITARY, 'dancesNodeSolitaryPtr');
   for (const k in avatar.danceMotionPtro) {
     const motion = avatar.danceMotionPtro[k];
-    physx.physxWorker.addChild(avatar.dancesNodeUnitaryPtr, motion);
+    physx.physxWorker.addChild(avatar.dancesNodeSolitaryPtr, motion);
   }
   avatar.danceNodeTwoPtr = avatar.createNode(AnimationNodeType.TWO, 'danceNodeTwoPtr');
   physx.physxWorker.addChild(avatar.danceNodeTwoPtr, avatar.emoteNodeTwoPtr);
-  physx.physxWorker.addChild(avatar.danceNodeTwoPtr, avatar.dancesNodeUnitaryPtr);
+  physx.physxWorker.addChild(avatar.danceNodeTwoPtr, avatar.dancesNodeSolitaryPtr);
 
   avatar.narutoRunNodeTwoPtr = avatar.createNode(AnimationNodeType.TWO, 'narutoRunNodeTwoPtr');
   physx.physxWorker.addChild(avatar.narutoRunNodeTwoPtr, avatar.danceNodeTwoPtr);
   physx.physxWorker.addChild(avatar.narutoRunNodeTwoPtr, avatar.narutoRunMotionPtr);
 
-  avatar.sitsNodeUnitaryPtr = avatar.createNode(AnimationNodeType.UNITARY, 'sitsNodeUnitaryPtr');
+  avatar.sitsNodeSolitaryPtr = avatar.createNode(AnimationNodeType.SOLITARY, 'sitsNodeSolitaryPtr');
   for (const k in avatar.sitMotionPtro) {
     const motion = avatar.sitMotionPtro[k];
-    physx.physxWorker.addChild(avatar.sitsNodeUnitaryPtr, motion);
+    physx.physxWorker.addChild(avatar.sitsNodeSolitaryPtr, motion);
   }
   avatar.sitNodeTwoPtr = avatar.createNode(AnimationNodeType.TWO, 'sitNodeTwoPtr');
   physx.physxWorker.addChild(avatar.sitNodeTwoPtr, avatar.narutoRunNodeTwoPtr);
-  physx.physxWorker.addChild(avatar.sitNodeTwoPtr, avatar.sitsNodeUnitaryPtr);
+  physx.physxWorker.addChild(avatar.sitNodeTwoPtr, avatar.sitsNodeSolitaryPtr);
 
   avatar.jumpNodeTwoPtr = avatar.createNode(AnimationNodeType.TWO, 'jumpNodeTwoPtr');
   physx.physxWorker.addChild(avatar.jumpNodeTwoPtr, avatar.sitNodeTwoPtr);
@@ -847,13 +847,13 @@ export const _createAnimation = avatar => {
   physx.physxWorker.addChild(avatar.fallLoopNodeTwoPtr, avatar.groundFlyNodeTwoPtr);
   physx.physxWorker.addChild(avatar.fallLoopNodeTwoPtr, avatar.fallLoopMotionPtr);
 
-  avatar.landsNodeUnitaryPtr = avatar.createNode(AnimationNodeType.UNITARY, 'landsNodeUnitaryPtr');
-  physx.physxWorker.addChild(avatar.landsNodeUnitaryPtr, avatar.landMotionPtr);
-  physx.physxWorker.addChild(avatar.landsNodeUnitaryPtr, avatar.land2MotionPtr);
+  avatar.landsNodeSolitaryPtr = avatar.createNode(AnimationNodeType.SOLITARY, 'landsNodeSolitaryPtr');
+  physx.physxWorker.addChild(avatar.landsNodeSolitaryPtr, avatar.landMotionPtr);
+  physx.physxWorker.addChild(avatar.landsNodeSolitaryPtr, avatar.land2MotionPtr);
   //
   avatar.landNodeTwoPtr = avatar.createNode(AnimationNodeType.TWO, 'landNodeTwoPtr');
   physx.physxWorker.addChild(avatar.landNodeTwoPtr, avatar.fallLoopNodeTwoPtr);
-  physx.physxWorker.addChild(avatar.landNodeTwoPtr, avatar.landsNodeUnitaryPtr);
+  physx.physxWorker.addChild(avatar.landNodeTwoPtr, avatar.landsNodeSolitaryPtr);
 
   //
 
@@ -966,7 +966,7 @@ export const _updateAnimation = avatar => {
   }
 
   if (avatar.useComboEnd) {
-    physx.physxWorker.crossFadeUnitary(avatar.useCombosNodeUnitaryPtr, 0.2, avatar.useNodeTwoPtr);
+    physx.physxWorker.crossFadeSolitary(avatar.useCombosNodeSolitaryPtr, 0.2, avatar.useNodeTwoPtr);
   }
 
   if (avatar.useEnvelopeEnd) {
@@ -1004,12 +1004,12 @@ export const _updateAnimation = avatar => {
     if (!avatar.landWithMoving) {
       const landMotionPtr = avatar.landMotionPtr;
       physx.physxWorker.play(landMotionPtr);
-      physx.physxWorker.crossFadeUnitary(avatar.landsNodeUnitaryPtr, 0, landMotionPtr);
+      physx.physxWorker.crossFadeSolitary(avatar.landsNodeSolitaryPtr, 0, landMotionPtr);
       physx.physxWorker.crossFadeTwo(avatar.landNodeTwoPtr, 0, 1);
     } else {
       const landMotionPtr = avatar.land2MotionPtr;
       physx.physxWorker.play(landMotionPtr);
-      physx.physxWorker.crossFadeUnitary(avatar.landsNodeUnitaryPtr, 0, landMotionPtr);
+      physx.physxWorker.crossFadeSolitary(avatar.landsNodeSolitaryPtr, 0, landMotionPtr);
       physx.physxWorker.crossFadeTwo(avatar.landNodeTwoPtr, 0.1, 1);
     }
   }
@@ -1046,7 +1046,7 @@ export const _updateAnimation = avatar => {
     }
     const useMotion = avatar.useMotionPtro[useAnimationName];
     physx.physxWorker.play(useMotion);
-    physx.physxWorker.crossFadeUnitary(avatar.usesNodeUnitaryPtr, 0, useMotion);
+    physx.physxWorker.crossFadeSolitary(avatar.usesNodeSolitaryPtr, 0, useMotion);
     physx.physxWorker.crossFadeTwo(avatar.useNodeTwoPtr, 0.2, 1);
   }
 
@@ -1060,7 +1060,7 @@ export const _updateAnimation = avatar => {
     }
     const useMotion = avatar.useMotionPtro[useAnimationName];
     physx.physxWorker.play(useMotion);
-    physx.physxWorker.crossFadeUnitary(avatar.useCombosNodeUnitaryPtr, 0.2, useMotion);
+    physx.physxWorker.crossFadeSolitary(avatar.useCombosNodeSolitaryPtr, 0.2, useMotion);
   }
 
   // bow
@@ -1076,7 +1076,7 @@ export const _updateAnimation = avatar => {
   if (avatar.sitStart) {
     const sitMotion = avatar.sitMotionPtro[avatar.sitAnimation || defaultSitAnimation];
     physx.physxWorker.play(sitMotion);
-    physx.physxWorker.crossFadeUnitary(avatar.sitsNodeUnitaryPtr, 0, sitMotion);
+    physx.physxWorker.crossFadeSolitary(avatar.sitsNodeSolitaryPtr, 0, sitMotion);
     physx.physxWorker.crossFadeTwo(avatar.sitNodeTwoPtr, 0.2, 1);
   }
 
@@ -1084,7 +1084,7 @@ export const _updateAnimation = avatar => {
   if (avatar.emoteStart) {
     const emoteMotion = avatar.emoteMotionPtro[avatar.emoteAnimation || defaultEmoteAnimation];
     physx.physxWorker.play(emoteMotion);
-    physx.physxWorker.crossFadeUnitary(avatar.emotesNodeUnitaryPtr, 0, emoteMotion);
+    physx.physxWorker.crossFadeSolitary(avatar.emotesNodeSolitaryPtr, 0, emoteMotion);
     physx.physxWorker.crossFadeTwo(avatar.emoteNodeTwoPtr, 0.2, 1);
   }
 
@@ -1092,7 +1092,7 @@ export const _updateAnimation = avatar => {
   if (avatar.hurtStart) {
     const hurtMotion = avatar.hurtMotionPtro[avatar.hurtAnimation];
     physx.physxWorker.play(hurtMotion);
-    physx.physxWorker.crossFadeUnitary(avatar.hurtsNodeUnitaryPtr, 0, hurtMotion);
+    physx.physxWorker.crossFadeSolitary(avatar.hurtsNodeSolitaryPtr, 0, hurtMotion);
     physx.physxWorker.crossFadeTwo(avatar.hurtNodeTwoPtr, 0.2, 1);
   }
 
@@ -1100,7 +1100,7 @@ export const _updateAnimation = avatar => {
   if (avatar.danceStart) {
     const danceMotion = avatar.danceMotionPtro[avatar.danceAnimation || defaultDanceAnimation];
     physx.physxWorker.play(danceMotion);
-    physx.physxWorker.crossFadeUnitary(avatar.dancesNodeUnitaryPtr, 0, danceMotion);
+    physx.physxWorker.crossFadeSolitary(avatar.dancesNodeSolitaryPtr, 0, danceMotion);
     physx.physxWorker.crossFadeTwo(avatar.danceNodeTwoPtr, 0.2, 1);
   }
 
@@ -1108,7 +1108,7 @@ export const _updateAnimation = avatar => {
   if (avatar.holdStart) {
     const holdMotion = avatar.holdMotionPtro[avatar.holdAnimation || defaultHoldAnimation];
     physx.physxWorker.play(holdMotion);
-    physx.physxWorker.crossFadeUnitary(avatar.holdsNodeUnitaryPtr, 0, holdMotion);
+    physx.physxWorker.crossFadeSolitary(avatar.holdsNodeSolitaryPtr, 0, holdMotion);
     // physx.physxWorker.crossFadeTwo(avatar.holdNodeFuncPtr, 0.2, 1); // todo: crossFade
     physx.physxWorker.setFactor(avatar.holdNodeFuncPtr, 1);
   }
@@ -1117,7 +1117,7 @@ export const _updateAnimation = avatar => {
   if (avatar.activateStart) {
     const activateMotion = avatar.activateMotionPtro[avatar.activateAnimation || defaultActivateAnimation];
     physx.physxWorker.play(activateMotion);
-    physx.physxWorker.crossFadeUnitary(avatar.activatesNodeUnitaryPtr, 0, activateMotion);
+    physx.physxWorker.crossFadeSolitary(avatar.activatesNodeSolitaryPtr, 0, activateMotion);
     physx.physxWorker.crossFadeTwo(avatar.activateNodeTwoPtr, 0.2, 1);
   }
 

@@ -560,7 +560,7 @@ class PlayerBase extends THREE.Object3D {
     this.characterBehavior.destroy();
   }
 }
-const controlActionTypes = [ // todo: Need same as actionsNodeUnitary.children.
+const controlActionTypes = [ // todo: Need same as actionsNodeSolitary.children.
   'jump',
   'fallLoop',
   'land',

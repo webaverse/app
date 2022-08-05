@@ -183,7 +183,7 @@ export const defaultPlayerSpec = {
 export const AnimationNodeType = {
   LIST: 1,
   TWO: 2,
-  UNITARY: 3,
+  SOLITARY: 3,
   OVERWRITE: 4,
   FUNC: 5,
 };

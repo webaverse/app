@@ -2401,8 +2401,8 @@ const physxWorker = (() => {
       parentNode, duration, targetFactor,
     )
   }
-  w.crossFadeUnitary = (parentNode, duration, targetNode) => {
-    Module._crossFadeUnitary(
+  w.crossFadeSolitary = (parentNode, duration, targetNode) => {
+    Module._crossFadeSolitary(
       parentNode, duration, targetNode,
     )
   }
