@@ -67,16 +67,14 @@ const _getGrabbedObject = i => {
   return result;
 };
 
-const _unwearAppIfHasSitComponent = (localPlayer) => {
-  const wearActions = Array.from(localPlayer.getActionsState()).filter(action => action.type === 'wear');
-    for (const wearAction of wearActions) {
-      const instanceId = wearAction.instanceId;
-      const app = metaversefileApi.getAppByInstanceId(instanceId);
-      const sitComponent = app.getComponent('sit');
-      if (sitComponent) {
-        app.unwear();
-      }
-    }
+const _unwearAppIfHasSitComponent = (player) => {
+  const wearAction = player.getAction('wear');
+  const instanceId = wearAction.instanceId;
+  const app = metaversefileApi.getAppByInstanceId(instanceId);
+  const sitComponent = app.getComponent('sit');
+  if (sitComponent) {
+    app.unwear();
+  }
 }
 
 // returns whether we actually snapped
@@ -1410,9 +1408,9 @@ class GameManager extends EventTarget {
         type: 'fly',
         time: 0,
       };
-      if (localPlayer.hasAction('sit')) {
-       _unwearAppIfHasSitComponent(localPlayer);
-      }
+
+      _unwearAppIfHasSitComponent(localPlayer);
+
       localPlayer.setControlAction(flyAction);
     }
   }
