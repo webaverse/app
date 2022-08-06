@@ -7,9 +7,9 @@ const worldSize = 2;
 const hackShaderName = 'anime radial'; */
 
 const _makeRenderTarget = (width, height) => new THREE.WebGLRenderTarget(width, height, {
-  format: THREE.RGBAFormat,
-  type: THREE.FloatType,
-  encoding: THREE.sRGBEncoding,
+  // format: THREE.RGBAFormat,
+  // type: THREE.FloatType,
+  // encoding: THREE.sRGBEncoding,
 });
 class ShaderToyPass {
   constructor({type, is, code, os, renderTarget}, parent) {
@@ -84,10 +84,15 @@ class ShaderToyPass {
           
           ${this.code}
 
+          vec4 sRGBToLinear( in vec4 value ) {
+            return vec4( mix( pow( value.rgb * 0.9478672986 + vec3( 0.0521327014 ), vec3( 2.4 ) ), value.rgb * 0.0773993808, vec3( lessThanEqual( value.rgb, vec3( 0.04045 ) ) ) ), value.a );
+          }
+
           void main() {
             vec2 fragCoord = vUv * iResolution.xy;
             mainImage(fragColor, fragCoord);
             fragColor.a = 1.;
+            fragColor = sRGBToLinear(fragColor);
             // ${this.type === 'image' ? `fragColor.a = 1.;` : ''};
             // fragColor = vec4(vUv, 0.0, 1.0);
           }
