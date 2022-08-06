@@ -749,9 +749,9 @@ const planeWarpedGeometry2 = planeGeometry.clone()
 const camera2 = new THREE.PerspectiveCamera(60, 1, 0.1, 1000);
 const scene2 = new THREE.Scene();
 scene2.autoUpdate = false;
-const ambientLight = new THREE.AmbientLight(0xFFFFFF, 2);
+const ambientLight = new THREE.AmbientLight(0xFFFFFF, 1);
 scene2.add(ambientLight);
-const directionalLight = new THREE.DirectionalLight(0xFFFFFF, 2);
+const directionalLight = new THREE.DirectionalLight(0xFFFFFF, 3);
 directionalLight.position.set(1, 2, 3);
 scene2.add(directionalLight);
 
