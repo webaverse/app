@@ -119,66 +119,36 @@ export function applyPlayerActionsToAvatar(player, rig) {
   // const swordTopDownSlash = player.getAction('swordTopDownSlash');
   // const swordTopDownSlashAnimation = swordTopDownSlash ? swordTopDownSlash.animation : '';
 
-  rig.jumpState = !!jumpAction;
-  // start/end event
-  rig.jumpStart = false;
-  rig.jumpEnd = false;
-  if (rig.jumpState !== rig.lastJumpState) {
-    if (rig.jumpState) rig.jumpStart = true;
-    else rig.jumpEnd = true;
+  const checkStartEndEvents = actionName => {
+    rig[actionName + 'Start'] = false;
+    rig[actionName + 'End'] = false;
+    if (rig[actionName + 'State'] !== rig[actionName + 'LastState']) {
+      if (rig[actionName + 'State']) rig[actionName + 'Start'] = true;
+      else rig[actionName + 'End'] = true;
+    }
+    rig[actionName + 'LastState'] = rig[actionName + 'State'];
   }
-  rig.lastJumpState = rig.jumpState;
-  //
+
+  rig.jumpState = !!jumpAction;
+  checkStartEndEvents('jump');
   rig.jumpTime = player.actionInterpolants.jump.get();
   rig.doubleJumpState = !!doubleJumpAction;
-  // start/end event
-  rig.doubleJumpStart = false;
-  rig.doubleJumpEnd = false;
-  if (rig.doubleJumpState !== rig.lastDoubleJumpState) {
-    if (rig.doubleJumpState) rig.doubleJumpStart = true;
-    else rig.doubleJumpEnd = true;
-  }
-  rig.lastDoubleJumpState = rig.doubleJumpState;
-  //
+  checkStartEndEvents('doubleJump');
   rig.doubleJumpTime = player.actionInterpolants.doubleJump.get();
   rig.landState = !!landAction;
-  // start/end event
-  rig.landStart = false;
-  rig.landEnd = false;
-  if (rig.landState !== rig.lastLandState) {
-    if (rig.landState) rig.landStart = true;
-    else rig.landEnd = true;
-  }
-  rig.lastLandState = rig.landState;
-  //
+  checkStartEndEvents('land');
   rig.landTime = player.actionInterpolants.land.get();
   rig.lastLandStartTime = landAction ? landAction.time : 0;
   if (landAction) {
     rig.landWithMoving = landAction.isMoving;
   }
   rig.flyState = !!flyAction;
-  // start/end event
-  rig.flyStart = false;
-  rig.flyEnd = false;
-  if (rig.flyState !== rig.lastFlyState) {
-    if (rig.flyState) rig.flyStart = true;
-    else rig.flyEnd = true;
-  }
-  rig.lastFlyState = rig.flyState;
-  //
+  checkStartEndEvents('fly');
   rig.flyTime = flyAction ? player.actionInterpolants.fly.get() : -1;
   rig.flyDashFactor = player.actionInterpolants.flyDash.getNormalized();
   rig.activateState = !!activateAction;
   rig.activateAnimation = activateAction ? activateAction.animationName : '';
-  // start/end event
-  rig.activateStart = false;
-  rig.activateEnd = false;
-  if (rig.activateState !== rig.lastActivateState) {
-    if (rig.activateState) rig.activateStart = true;
-    else rig.activateEnd = true;
-  }
-  rig.lastActivateState = rig.activateState;
-  //
+  checkStartEndEvents('activate');
   rig.activateTime = player.actionInterpolants.activate.get();
   rig.swimState = !!swimAction;
   rig.swimTime = swimAction ? player.actionInterpolants.swim.get() : -1;
@@ -200,35 +170,11 @@ export function applyPlayerActionsToAvatar(player, rig) {
     }
     rig.useState = useAction?.animation;
     // console.log(JSON.stringify(rig.useState));
-    // start/end event
-    rig.useStart = false;
-    rig.useEnd = false;
-    if (rig.useState !== rig.lastUseState) {
-      if (rig.useState) rig.useStart = true;
-      else rig.useEnd = true;
-    }
-    rig.lastUseState = rig.useState;
-    //
+    checkStartEndEvents('use');
     rig.useComboState = useAction?.animationCombo;
-    // start/end event
-    rig.useComboStart = false;
-    rig.useComboEnd = false;
-    if (rig.useComboState !== rig.lastUseComboState) { // after index changed, will same array values but different array
-      if (rig.useComboState) rig.useComboStart = true;
-      else rig.useComboEnd = true;
-    }
-    rig.lastUseComboState = rig.useComboState;
-    //
+    checkStartEndEvents('useCombo'); // after index changed, will same array values but different array
     rig.useEnvelopeState = useAction?.animationEnvelope;
-    // start/end event
-    rig.useEnvelopeStart = false;
-    rig.useEnvelopeEnd = false;
-    if (rig.useEnvelopeState !== rig.lastUseEnvelopeState) {
-      if (rig.useEnvelopeState) rig.useEnvelopeStart = true;
-      else rig.useEnvelopeEnd = true;
-    }
-    rig.lastUseEnvelopeState = rig.useEnvelopeState;
-    //
+    checkStartEndEvents('useEnvelope');
     rig.useEnvelopeFactor = player.actionInterpolants.useEnvelope.getNormalized();
     if (useAction?.animationEnvelope) {
       rig.useAnimationEnvelope = useAction.animationEnvelope;
@@ -265,15 +211,7 @@ export function applyPlayerActionsToAvatar(player, rig) {
   rig.vowels[4] = player.characterBehavior.manuallySetMouth ? 0 : rig.vowels[4];
 
   rig.narutoRunState = !!narutoRunAction && !crouchAction;
-  // start/end event
-  rig.narutoRunStart = false;
-  rig.narutoRunEnd = false;
-  if (rig.narutoRunState !== rig.lastNarutoRunState) {
-    if (rig.narutoRunState) rig.narutoRunStart = true;
-    else rig.narutoRunEnd = true;
-  }
-  rig.lastNarutoRunState = rig.narutoRunState;
-  //
+  checkStartEndEvents('narutoRun');
   rig.narutoRunTime = player.actionInterpolants.narutoRun.get();
   rig.aimState = !!aimAction;
   rig.aimTime = player.actionInterpolants.aim.get();
@@ -283,53 +221,21 @@ export function applyPlayerActionsToAvatar(player, rig) {
   // rig.aimDirection.set(0, 0, -1);
   // aimAction && rig.aimDirection.applyQuaternion(rig.inputs.hmd.quaternion);
   rig.sitState = !!sitAction;
-  // start/end event
-  rig.sitStart = false;
-  rig.sitEnd = false;
-  if (rig.sitState !== rig.lastSitState) {
-    if (rig.sitState) rig.sitStart = true;
-    else rig.sitEnd = true;
-  }
-  rig.lastSitState = rig.sitState;
-  //
+  checkStartEndEvents('sit');
   rig.sitAnimation = sitAnimation;
 
   // XXX this needs to be based on the current loadout index
   rig.holdState = wearAction?.holdAnimation === 'pick_up_idle';
-  // start/end event
-  rig.holdStart = false;
-  rig.holdEnd = false;
-  if (rig.holdState !== rig.lastHoldState) {
-    if (rig.holdState) rig.holdStart = true;
-    else rig.holdEnd = true;
-  }
-  rig.lastHoldState = rig.holdState;
-  //
+  checkStartEndEvents('hold');
   // if (rig.holdState) rig.unuseAnimation = null;
   rig.danceState = !!danceAction;
-  // start/end event
-  rig.danceStart = false;
-  rig.danceEnd = false;
-  if (rig.danceState !== rig.lastDanceState) {
-    if (rig.danceState) rig.danceStart = true;
-    else rig.danceEnd = true;
-  }
-  rig.lastDanceState = rig.danceState;
-  //
+  checkStartEndEvents('dance');
   rig.danceFactor = player.actionInterpolants.dance.get();
   if (danceAction) {
     rig.danceAnimation = danceAnimation;
   }
   rig.emoteState = !!emoteAction;
-  // start/end event
-  rig.emoteStart = false;
-  rig.emoteEnd = false;
-  if (rig.emoteState !== rig.lastEmoteState) {
-    if (rig.emoteState) rig.emoteStart = true;
-    else rig.emoteEnd = true;
-  }
-  rig.lastEmoteState = rig.emoteState;
-  //
+  checkStartEndEvents('emote');
   rig.emoteFactor = player.actionInterpolants.emote.get();
   rig.emoteAnimation = emoteAnimation;
   // rig.throwState = !!throwAction;
@@ -346,15 +252,7 @@ export function applyPlayerActionsToAvatar(player, rig) {
   rig.fallLoopFrom = fallLoopAction ? fallLoopAction.from : '';
   // rig.fallLoopAnimation = fallLoopAnimation;
   rig.fallLoopState = !!fallLoopAction;
-  // start/end event
-  rig.fallLoopStart = false;
-  rig.fallLoopEnd = false;
-  if (rig.fallLoopState !== rig.lastFallLoopState) {
-    if (rig.fallLoopState) rig.fallLoopStart = true;
-    else rig.fallLoopEnd = true;
-  }
-  rig.lastFallLoopState = rig.fallLoopState;
-  //
+  checkStartEndEvents('fallLoop');
   // rig.swordSideSlashTime = player.actionInterpolants.swordSideSlash.get();
   // rig.swordSideSlashAnimation = swordSideSlashAnimation;
   // rig.swordSideSlashState = !!swordSideSlash;
@@ -362,15 +260,7 @@ export function applyPlayerActionsToAvatar(player, rig) {
   // rig.swordTopDownSlashAnimation = swordTopDownSlashAnimation;
   // rig.swordTopDownSlashState = !!swordTopDownSlash;
   rig.hurtState = !!hurtAction;
-  // start/end event
-  rig.hurtStart = false;
-  rig.hurtEnd = false;
-  if (rig.hurtState !== rig.lastHurtState) {
-    if (rig.hurtState) rig.hurtStart = true;
-    else rig.hurtEnd = true;
-  }
-  rig.lastHurtState = rig.hurtState;
-  //
+  checkStartEndEvents('hurt');
   rig.hurtAnimation = (hurtAction?.animation) || '';
   rig.hurtTime = player.actionInterpolants.hurt.get();
 
