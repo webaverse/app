@@ -1238,6 +1238,11 @@ class GameManager extends EventTarget {
           .add(localVector2.set(0, 0.5, -1).applyQuaternion(localPlayer.quaternion)),
         dropDirection: zeroVector, */
       });
+      app.dispatchEvent({
+        type: 'use',
+        use: false,
+      });
+      localPlayer.removeAction('use');
     }
   }
   deleteSelectedApp() {
