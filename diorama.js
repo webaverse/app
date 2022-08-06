@@ -20,10 +20,10 @@ const localVector = new THREE.Vector3();
 const localVector2 = new THREE.Vector3();
 const localVector3 = new THREE.Vector3();
 const localVector2D = new THREE.Vector2();
-const localEuler = new THREE.Euler();
-const localVector2D2 = new THREE.Vector2();
+// const localVector2D2 = new THREE.Vector2();
 const localVector4D = new THREE.Vector4();
 const localQuaternion = new THREE.Quaternion();
+const localQuaternion2 = new THREE.Quaternion();
 const localMatrix = new THREE.Matrix4();
 const localColor = new THREE.Color();
 
@@ -680,11 +680,16 @@ const createPlayerDiorama = ({
           // set up side camera
           target.matrixWorld.decompose(localVector, localQuaternion, localVector2);
           const targetPosition = localVector;
-          const targetEuler = localEuler.setFromQuaternion(localQuaternion);
-          if(!detached) {
-            targetEuler._y += Math.PI;
+          const targetQuaternion = localQuaternion;
+
+          if (flipY) {
+            targetQuaternion.premultiply(
+              localQuaternion2.setFromAxisAngle(
+                localVector2.set(0, 1, 0),
+                Math.PI,
+              )
+            );
           }
-          const targetQuaternion = localQuaternion.setFromEuler(targetEuler)
 
           sideCamera.position.copy(targetPosition)
             .add(
@@ -702,7 +707,6 @@ const createPlayerDiorama = ({
             localVector2.set(0, cameraOffset.y, 0)
               .applyQuaternion(targetQuaternion)
           );
-          
           sideCamera.updateMatrixWorld();
         }
 

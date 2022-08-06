@@ -1682,6 +1682,7 @@ class GameManager extends EventTarget {
       outline: true,
       grassBackground: true,
       // glyphBackground: true,
+      flipY: true,
     });
     localPlayer.addEventListener('avatarchange', e => {
       this.playerDiorama.setObjects([
