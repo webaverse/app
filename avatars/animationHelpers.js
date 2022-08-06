@@ -66,6 +66,7 @@ let fallLoopAnimation;
 let floatAnimation;
 let useAnimations;
 let useComboAnimations;
+let bowAnimations;
 let sitAnimations;
 let danceAnimations;
 let emoteAnimations;
@@ -338,11 +339,14 @@ export const loadPromise = (async () => {
     drink: animations.find(a => a.isDrinking),
     throw: animations.find(a => a.isThrow),
     pickUpThrow: animations.find(a => a.isPickUpThrow),
-    bowDraw: animations.find(a => a.isBowDraw), // todo: separate to bowAnimations.
+  };
+  window.useAnimations = useAnimations;
+  bowAnimations = {
+    bowDraw: animations.find(a => a.isBowDraw),
     bowIdle: animations.find(a => a.isBowIdle),
     bowLoose: animations.find(a => a.isBowLoose),
   };
-  window.useAnimations = useAnimations;
+  window.bowAnimations = bowAnimations;
   sitAnimations = {
     chair: animations.find(a => a.isSitting),
     saddle: animations.find(a => a.isSitting),
@@ -627,6 +631,16 @@ export const _createAnimation = avatar => {
         physx.physxWorker.stop(avatar.useComboMotionPtro[k]);
       }
     }
+    // bow
+    avatar.bowMotionPtro = {};
+    for (const k in bowAnimations) {
+      const animation = bowAnimations[k];
+      if (animation) {
+        avatar.bowMotionPtro[k] = avatar.createMotion(animation.ptr, k);
+        physx.physxWorker.setLoop(avatar.bowMotionPtro[k], AnimationLoopType.LoopOnce);
+        physx.physxWorker.stop(avatar.bowMotionPtro[k]);
+      }
+    }
     // sit
     avatar.sitMotionPtro = {};
     for (const k in sitAnimations) {
@@ -746,12 +760,12 @@ export const _createAnimation = avatar => {
     physx.physxWorker.addChild(avatar.idle8DFlyNodeTwoPtr, avatar._8DirectionsFlyNodeListPtr);
 
     avatar.idle8DBowNodeTwoPtr = avatar.createNode(AnimationNodeType.TWO, 'idle8DBowNodeTwoPtr');
-    physx.physxWorker.addChild(avatar.idle8DBowNodeTwoPtr, avatar.useMotionPtro.bowIdle);
+    physx.physxWorker.addChild(avatar.idle8DBowNodeTwoPtr, avatar.bowMotionPtro.bowIdle);
     physx.physxWorker.addChild(avatar.idle8DBowNodeTwoPtr, avatar._8DirectionsBowNodeListPtr);
 
     avatar.bowDrawLooseNodoeTwoPtr = avatar.createNode(AnimationNodeType.TWO, 'bowDrawLooseNodoeTwoPtr');
-    physx.physxWorker.addChild(avatar.bowDrawLooseNodoeTwoPtr, avatar.useMotionPtro.bowDraw);
-    physx.physxWorker.addChild(avatar.bowDrawLooseNodoeTwoPtr, avatar.useMotionPtro.bowLoose);
+    physx.physxWorker.addChild(avatar.bowDrawLooseNodoeTwoPtr, avatar.bowMotionPtro.bowDraw);
+    physx.physxWorker.addChild(avatar.bowDrawLooseNodoeTwoPtr, avatar.bowMotionPtro.bowLoose);
 
     // avatar.bowIdle8DDrawLooseNodeOverwritePtr = avatar.createNode(WebaverseAnimationNodeOverwrite, 'bowIdleDrawLoose', {filters: ['isTop']}); // js version
     // avatar.bowIdle8DDrawLooseNodeOverwritePtr = avatar.createNode(AnimationNodeType.TWO); // ~~todo: NodeType.Overwrite~~
@@ -778,7 +792,6 @@ export const _createAnimation = avatar => {
 
     avatar.usesNodeSolitaryPtr = avatar.createNode(AnimationNodeType.SOLITARY, 'usesNodeSolitaryPtr');
     for (const k in avatar.useMotionPtro) {
-      if (['bowIdle', 'bowDraw', 'bowLoose'].includes(k)) continue; // these motions already added to parent at above.
       const motion = avatar.useMotionPtro[k];
       physx.physxWorker.addChild(avatar.usesNodeSolitaryPtr, motion);
     }
@@ -984,7 +997,7 @@ export const _updateAnimation = avatar => {
 
     if (avatar.useEnvelopeEnd) {
       console.log('useEnvelopeEnd');
-      physx.physxWorker.play(avatar.useMotionPtro.bowLoose);
+      physx.physxWorker.play(avatar.bowMotionPtro.bowLoose);
       physx.physxWorker.setFactor(avatar.bowDrawLooseNodoeTwoPtr, 1);
       physx.physxWorker.crossFadeTwo(avatar.bowIdle8DDrawLooseNodeOverwritePtr, 0.2, 1);
     }
@@ -1079,7 +1092,7 @@ export const _updateAnimation = avatar => {
     // bow
     if (avatar.useEnvelopeStart) {
       console.log('useEnvelopeStart');
-      physx.physxWorker.play(avatar.useMotionPtro.bowDraw);
+      physx.physxWorker.play(avatar.bowMotionPtro.bowDraw);
       physx.physxWorker.setFactor(avatar.bowDrawLooseNodoeTwoPtr, 0);
       physx.physxWorker.setFactor(avatar.bowIdle8DDrawLooseNodeOverwritePtr, 1);
       physx.physxWorker.crossFadeTwo(avatar.idle8DWalkRun_BowIdle8DDrawLooseNodeTwoPtr, 0.2, 1);
@@ -1197,10 +1210,10 @@ export const _updateAnimation = avatar => {
 
       handleAnimationEnd(motion, 'finished');
 
-      if (avatar.useEnvelopeState && motion === avatar.useMotionPtro.bowDraw) {
+      if (avatar.useEnvelopeState && motion === avatar.bowMotionPtro.bowDraw) {
         physx.physxWorker.crossFadeTwo(avatar.bowIdle8DDrawLooseNodeOverwritePtr, 0.2, 0);
       }
-      if (motion === avatar.useMotionPtro.bowLoose) {
+      if (motion === avatar.bowMotionPtro.bowLoose) {
         physx.physxWorker.crossFadeTwo(avatar.idle8DWalkRun_BowIdle8DDrawLooseNodeTwoPtr, 0.2, 0);
       }
       if (motion === avatar.landMotionPtr || motion === avatar.land2MotionPtr) {
