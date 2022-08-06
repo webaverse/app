@@ -84,7 +84,7 @@ export const TabAi = ({ active }) => {
     };
 
     async function saveSettings () {
-        
+
         const settings = {
             apiType:        apiType,
             apiKey:         apiKey,
@@ -138,7 +138,7 @@ export const TabAi = ({ active }) => {
         settings = settings ?? DefaultSettings;
 
         const apiType = settings.apiType ?? DefaultSettings.apiType;
-        const apiKey = settings.apiKey;
+        const apiKey = settings.apiKey ?? '';
 
         updateLoreEndpoint(apiType);
 
