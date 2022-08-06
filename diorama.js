@@ -5,7 +5,7 @@ import * as BufferGeometryUtils from 'three/examples/jsm/utils/BufferGeometryUti
 // import {fitCameraToBoundingBox} from './util.js';
 import {Text} from 'troika-three-text';
 // import {defaultDioramaSize} from './constants.js';
-import {fullscreenGeometry, gradients} from './background-fx/common.js';
+import {fullscreenGeometry} from './background-fx/common.js';
 import {OutlineBgFxMesh} from './background-fx/OutlineBgFx.js';
 import {NoiseBgFxMesh} from './background-fx/NoiseBgFx.js';
 import {PoisonBgFxMesh} from './background-fx/PoisonBgFx.js';
@@ -454,9 +454,9 @@ sideScene.add(textObject);
 };
 _addPreviewLights(sideScene); */
 const autoLights = (() => {
-  const ambientLight = new THREE.AmbientLight(0xffffff, 2);
+  const ambientLight = new THREE.AmbientLight(0xffffff, 1);
 
-  const directionalLight = new THREE.DirectionalLight(0xffffff, 2);
+  const directionalLight = new THREE.DirectionalLight(0xffffff, 3);
   directionalLight.position.set(1, 2, 3);
   directionalLight.updateMatrixWorld();
 
