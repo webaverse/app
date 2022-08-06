@@ -228,10 +228,6 @@ export const CharacterSelect = () => {
     const [ text, setText ] = useState('');
     const [cryptoAvatars, setCryptoAvatars] = useState([]);
 
-    React.useEffect(() => {
-        console.log(cryptoAvatars);
-    }, [cryptoAvatars])
-
     const [ npcPlayerCache, setNpcPlayerCache ] = useState(new Map());
 
     const [caPagination, setCaPagination] = useState({});
