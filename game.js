@@ -67,6 +67,18 @@ const _getGrabbedObject = i => {
   return result;
 };
 
+const _unwearAppIfHasSitComponent = (localPlayer) => {
+  const wearActions = Array.from(localPlayer.getActionsState()).filter(action => action.type === 'wear');
+    for (const wearAction of wearActions) {
+      const instanceId = wearAction.instanceId;
+      const app = metaversefileApi.getAppByInstanceId(instanceId);
+      const sitComponent = app.getComponent('sit');
+      if (sitComponent) {
+        app.unwear();
+      }
+    }
+}
+
 // returns whether we actually snapped
 function updateGrabbedObject(o, grabMatrix, offsetMatrix, {collisionEnabled, handSnapEnabled, physx, gridSnap}) {
   grabMatrix.decompose(localVector, localQuaternion, localVector2);
@@ -1398,6 +1410,9 @@ class GameManager extends EventTarget {
         type: 'fly',
         time: 0,
       };
+      if (localPlayer.hasAction('sit')) {
+       _unwearAppIfHasSitComponent(localPlayer);
+      }
       localPlayer.setControlAction(flyAction);
     }
   }
@@ -1477,15 +1492,7 @@ class GameManager extends EventTarget {
   ensureJump(trigger) {
     const localPlayer = playersManager.getLocalPlayer();
 
-    const wearActions = Array.from(localPlayer.getActionsState()).filter(action => action.type === 'wear');
-    for (const wearAction of wearActions) {
-      const instanceId = wearAction.instanceId;
-      const app = metaversefileApi.getAppByInstanceId(instanceId);
-      const sitComponent = app.getComponent('sit');
-      if (sitComponent) {
-        app.unwear();
-      }
-    }
+    _unwearAppIfHasSitComponent(localPlayer);
 
     if (!localPlayer.hasAction('jump') && !localPlayer.hasAction('fly') && !localPlayer.hasAction('fallLoop') && !localPlayer.hasAction('swim')) {
       const newJumpAction = {
