@@ -683,7 +683,7 @@ const createPlayerDiorama = ({
           const targetQuaternion = localQuaternion;
 
           if (flipY) {
-            targetQuaternion.premultiply(
+            targetQuaternion.multiply(
               localQuaternion2.setFromAxisAngle(
                 localVector2.set(0, 1, 0),
                 Math.PI,
