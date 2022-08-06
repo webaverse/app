@@ -2265,7 +2265,7 @@ const physxWorker = (() => {
     }
 
     let outputBufferOffset = Module.HEAPU32[headMain + 53];
-    let head = outputBufferOffset / Float32Array.BYTES_PER_ELEMENT;
+    const head = outputBufferOffset / Float32Array.BYTES_PER_ELEMENT;
     const finishedFlag = Module.HEAPF32[head];
     resultValues.push(finishedFlag);
 
@@ -2275,7 +2275,7 @@ const physxWorker = (() => {
     // const finishedAnimationIndex = Module.HEAPF32[head];
     // values.push(finishedAnimationIndex);
     const motionPtr = outputBufferOffset;
-    values.push(motionPtr);
+    resultValues.push(motionPtr);
 
     // console.log(finishedFlag);
     // if (finishedFlag) {
