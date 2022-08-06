@@ -391,19 +391,12 @@ export const loadPromise = (async () => {
       crouch: animations.find(a => a.isCrouch),
     }; */
   activateAnimations = {
-    // todo: handle activateAnimations.grab_forward.speedFactor
-    // grab_forward: {animation: animations.index['grab_forward.fbx'], speedFactor: 1.2},
-    // grab_down: {animation: animations.index['grab_down.fbx'], speedFactor: 1.7},
-    // grab_up: {animation: animations.index['grab_up.fbx'], speedFactor: 1.2},
-    // grab_left: {animation: animations.index['grab_left.fbx'], speedFactor: 1.2},
-    // grab_right: {animation: animations.index['grab_right.fbx'], speedFactor: 1.2},
-    // pick_up: {animation: animations.index['pick_up.fbx'], speedFactor: 1},
-    grab_forward: animations.index['grab_forward.fbx'],
-    grab_down: animations.index['grab_down.fbx'],
-    grab_up: animations.index['grab_up.fbx'],
-    grab_left: animations.index['grab_left.fbx'],
-    grab_right: animations.index['grab_right.fbx'],
-    pick_up: animations.index['pick_up.fbx'],
+    grab_forward: {animation: animations.index['grab_forward.fbx'], speedFactor: 1.2},
+    grab_down: {animation: animations.index['grab_down.fbx'], speedFactor: 1.7},
+    grab_up: {animation: animations.index['grab_up.fbx'], speedFactor: 1.2},
+    grab_left: {animation: animations.index['grab_left.fbx'], speedFactor: 1.2},
+    grab_right: {animation: animations.index['grab_right.fbx'], speedFactor: 1.2},
+    pick_up: {animation: animations.index['pick_up.fbx'], speedFactor: 1},
   };
   narutoRunAnimations = {
     narutoRun: animations.find(a => a.isNarutoRun),
@@ -690,11 +683,12 @@ export const _createAnimation = avatar => {
     // activate
     avatar.activateMotionPtro = {};
     for (const k in activateAnimations) {
-      const animation = activateAnimations[k];
-      if (animation) {
-        avatar.activateMotionPtro[k] = avatar.createMotion(animation.ptr, k);
+      const animationWithSpeedFactor = activateAnimations[k];
+      if (animationWithSpeedFactor) {
+        avatar.activateMotionPtro[k] = avatar.createMotion(animationWithSpeedFactor.animation.ptr, k);
         physx.physxWorker.setLoop(avatar.activateMotionPtro[k], AnimationLoopType.LoopOnce);
         physx.physxWorker.stop(avatar.activateMotionPtro[k]);
+        physx.physxWorker.setSpeed(avatar.activateMotionPtro[k], animationWithSpeedFactor.speedFactor);
       }
     }
   };
