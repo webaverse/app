@@ -84,10 +84,10 @@ export const TabAi = ({ active }) => {
     };
 
     async function saveSettings () {
-
+        
         const settings = {
             apiType:        apiType,
-            apiKey:         '',
+            apiKey:         apiKey,
         };
 
         if (_apiTypeNeedsApiKey(apiType) && apiKeyEnabled && !apiKey) {
@@ -138,12 +138,13 @@ export const TabAi = ({ active }) => {
         settings = settings ?? DefaultSettings;
 
         const apiType = settings.apiType ?? DefaultSettings.apiType;
+        const apiKey = settings.apiKey;
 
         updateLoreEndpoint(apiType);
 
         // set react state
         setApiType( apiType );
-        setApiKey( '' );
+        setApiKey( apiKey );
 
         // console.log('set api', settings.apiType ?? DefaultSettings.apiType, keyString ?? DefaultSettings.apiKey);
 
@@ -154,7 +155,6 @@ export const TabAi = ({ active }) => {
     function applySettings () {
 
         saveSettings();
-        setApiKey( '' );
 
         setChangesNotSaved( false );
 
