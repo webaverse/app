@@ -175,6 +175,9 @@ export const CharacterSelect = () => {
             const npcApp = await metaversefile.createAppAsync({
                 start_url: typeContentToUrl('application/npc', {...targetCharacter, detached: true}),
             });
+
+            console.log("NPC APP: ", npcApp)
+
             return npcApp.npcPlayer;
         },
     }));
@@ -368,7 +371,7 @@ export const CharacterSelect = () => {
             setSelectCharacter(null);
 
             const timeout = setTimeout(() => {
-                _updateArrowPosition();
+               // _updateArrowPosition();
             }, 1000);
             return () => {
                 clearTimeout(timeout);
@@ -389,7 +392,7 @@ export const CharacterSelect = () => {
         if (!opened) {
             setHighlightCharacter(null);
             setSelectCharacter(null);
-            setArrowPosition(null);
+            //setArrowPosition(null);
             setText('');
         }
     }, [opened, enabled]);

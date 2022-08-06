@@ -39,27 +39,29 @@ const MegaHup = function({
       let live = true;
       let diorama = null;
       {
-        let spineBone;
+        let targetBone;
         npcPlayer.avatar.model.traverse(
-          object => { if (object.type === 'Bone' && object.name.toLowerCase().includes('head') && !spineBone) {
-              spineBone = object;
+          object => { if (object.type === 'Bone' && object.name.toLowerCase().includes('head') && !targetBone) {
+            targetBone = object;
             }
           }
         );
         diorama = dioramaManager.createPlayerDiorama({
-          target: spineBone ?? npcPlayer,
+          target: targetBone ?? npcPlayer,
           objects: [
             npcPlayer.avatar.model,
           ],
-          cameraOffset: new THREE.Vector3(-0.8, 0, -0.6),
+          cameraOffset: new THREE.Vector3(-0.8, 0, -1),
           // label: true,
           // outline: true,
           // grassBackground: true,
           // glyphBackground: true,
           dotsBackground: true,
         });
+
         diorama.addCanvas(canvas);
         diorama.enabled = true;
+        
       }
 
       const frame = e => {

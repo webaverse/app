@@ -130,6 +130,7 @@ export const screenshotPlayer = async ({
     _preAnimate();
     _updateTarget(now, timeDiff);
     diorama.update(now, timeDiff);
+    console.log("RENDEREEEEEED!");
   };
   _render();
 
