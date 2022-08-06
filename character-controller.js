@@ -749,7 +749,7 @@ class StatePlayer extends PlayerBase {
       this.characterPhysics.setPosition(position);
     }
   }
-  getActionsWithType(type) {
+  getActionsByType(type) {
    const actions = this.getActionsState(); 
    const typedActions = Array.from(actions).filter(action => action.type === type);
    return typedActions;
