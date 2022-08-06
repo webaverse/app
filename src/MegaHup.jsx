@@ -58,10 +58,8 @@ const MegaHup = function({
           // glyphBackground: true,
           dotsBackground: true,
         });
-
         diorama.addCanvas(canvas);
         diorama.enabled = true;
-        
       }
 
       const frame = e => {
