@@ -68,7 +68,7 @@ const _getGrabbedObject = i => {
 };
 
 const _unwearAppIfHasSitComponent = (player) => {
-  const wearActions = player.getActionsWithType('wear');
+  const wearActions = player.getActionsByType('wear');
   for (const wearAction of wearActions) {
     const instanceId = wearAction.instanceId;
     const app = metaversefileApi.getAppByInstanceId(instanceId);
