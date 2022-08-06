@@ -710,7 +710,8 @@ export function getPlayerPrefix(playerId) {
 export function fitCameraToBoundingBox(camera, box, fitOffset = 1) {
   const size = box.getSize(localVector);
   const center = box.getCenter(localVector2);
-
+  center.x = 0;
+  center.z = 0;
   const maxSize = Math.max(size.x, size.y, size.z);
   const fitHeightDistance =
     maxSize / (2 * Math.atan((Math.PI * camera.fov) / 360));
