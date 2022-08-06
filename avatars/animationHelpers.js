@@ -54,7 +54,7 @@ import game from '../game.js';
 
 // const identityQuaternion = new Quaternion();
 
-const isDebugger = false; // Used for debug only codes.Don’t create new data structures on the avatar, to not add any more gc sweep depth in product codes.
+const isDebugger = true; // Used for debug only codes.Don’t create new data structures on the avatar, to not add any more gc sweep depth in product codes.
 
 let animations;
 let animationStepIndices;
@@ -185,6 +185,7 @@ async function loadAnimations() {
   for (const animation of animations) {
     animations.index[animation.name] = animation;
   }
+  window.animations = animations;
 
   /* const animationIndices = animationStepIndices.find(i => i.name === 'Fast Run.fbx');
           for (let i = 0; i < animationIndices.leftFootYDeltas.length; i++) {
@@ -325,6 +326,7 @@ export const loadPromise = (async () => {
     swordUndraw: animations.index['sword_undraw.fbx'],
     dashAttack: animations.find(a => a.isDashAttack),
   };
+  window.useComboAnimations = useComboAnimations;
   useAnimations = {
     combo: animations.find(a => a.isCombo),
     slash: animations.find(a => a.isSlash),
@@ -340,6 +342,7 @@ export const loadPromise = (async () => {
     bowIdle: animations.find(a => a.isBowIdle),
     bowLoose: animations.find(a => a.isBowLoose),
   };
+  window.useAnimations = useAnimations;
   sitAnimations = {
     chair: animations.find(a => a.isSitting),
     saddle: animations.find(a => a.isSitting),
@@ -424,6 +427,9 @@ export const loadPromise = (async () => {
 });
 
 export const _createAnimation = avatar => {
+  // const player = metaversefile.getPlayerByAppInstanceId(avatar.app.getComponent('instanceId'));
+  // console.log({player});
+
   if (!createdWasmAnimations) { // note: just need to create wasm animations only once globally.
     for (const spec of avatar.animationMappings) {
       physx.physxWorker.createAnimationMapping(
@@ -442,7 +448,8 @@ export const _createAnimation = avatar => {
       animation.index = animationIndex;
       const animationPtr = physx.physxWorker.createAnimation(animation.duration);
       animation.ptr = animationPtr;
-      for (const spec of avatar.animationMappings) {
+      // for (const k in animation.interpolants) { // maybe wrong interpolant index order
+      for (const spec of avatar.animationMappings) { // correct interpolant index order
         const {
           animationTrackName: k,
         } = spec;
@@ -465,7 +472,7 @@ export const _createAnimation = avatar => {
 
   avatar.mixer = physx.physxWorker.createAnimationMixer();
 
-  // test ---
+  // util ---
 
   avatar.createMotion = (animationPtr, name) => {
     const motionPtr = physx.physxWorker.createMotion(avatar.mixer, animationPtr);
@@ -534,6 +541,8 @@ export const _createAnimation = avatar => {
       }
     };
   }
+
+  // end util ---
 
   const createMotions = () => {
     avatar.idleMotionPtr = avatar.createMotion(animations.index['idle.fbx'].ptr, 'idleMotionPtr');
@@ -744,7 +753,9 @@ export const _createAnimation = avatar => {
     physx.physxWorker.addChild(avatar.bowDrawLooseNodoeTwoPtr, avatar.useMotionPtro.bowDraw);
     physx.physxWorker.addChild(avatar.bowDrawLooseNodoeTwoPtr, avatar.useMotionPtro.bowLoose);
 
-    avatar.bowIdle8DDrawLooseNodeOverwritePtr = avatar.createNode(AnimationNodeType.OVERWRITE, 'bowIdle8DDrawLooseNodeOverwritePtr');
+    // avatar.bowIdle8DDrawLooseNodeOverwritePtr = avatar.createNode(WebaverseAnimationNodeOverwrite, 'bowIdleDrawLoose', {filters: ['isTop']}); // js version
+    // avatar.bowIdle8DDrawLooseNodeOverwritePtr = avatar.createNode(AnimationNodeType.TWO); // ~~todo: NodeType.Overwrite~~
+    avatar.bowIdle8DDrawLooseNodeOverwritePtr = avatar.createNode(AnimationNodeType.OVERWRITE, 'bowIdle8DDrawLooseNodeOverwritePtr'); // todo: Selectable filters.
     physx.physxWorker.addChild(avatar.bowIdle8DDrawLooseNodeOverwritePtr, avatar.idle8DBowNodeTwoPtr);
     physx.physxWorker.addChild(avatar.bowIdle8DDrawLooseNodeOverwritePtr, avatar.bowDrawLooseNodoeTwoPtr);
 
@@ -859,6 +870,11 @@ export const _createAnimation = avatar => {
 
   avatar.rootNodePtr = avatar.holdNodeFuncPtr;
   physx.physxWorker.setRootNode(avatar.mixer, avatar.rootNodePtr);
+
+  // --------------------------------------------------------------------------
+
+  // avatar.mixer.addEventListener('finished', event => {
+  // });
 };
 
 export const _updateAnimation = avatar => {
@@ -926,6 +942,7 @@ export const _updateAnimation = avatar => {
 
   const handleActionEndEvents = () => {
     if (avatar.landEnd) {
+      // if (player === window.localPlayer) console.log('landEnd', avatar.landWithMoving);
       if (!avatar.landWithMoving) {
         physx.physxWorker.crossFadeTwo(avatar.landNodeTwoPtr, 0.05, 0);
       } else {
@@ -996,6 +1013,7 @@ export const _updateAnimation = avatar => {
 
   const handleActionStartEvents = () => {
     if (avatar.landStart) {
+      // if (player === window.localPlayer) console.log('landStart', avatar.landWithMoving);
       if (!avatar.landWithMoving) {
         const landMotionPtr = avatar.landMotionPtr;
         physx.physxWorker.play(landMotionPtr);
@@ -1104,6 +1122,7 @@ export const _updateAnimation = avatar => {
       const holdMotion = avatar.holdMotionPtro[avatar.holdAnimation || defaultHoldAnimation];
       physx.physxWorker.play(holdMotion);
       physx.physxWorker.crossFadeSolitary(avatar.holdsNodeSolitaryPtr, 0, holdMotion);
+      // physx.physxWorker.crossFadeTwo(avatar.holdNodeFuncPtr, 0.2, 1); // todo: crossFade
       physx.physxWorker.setFactor(avatar.holdNodeFuncPtr, 1);
     }
 
@@ -1149,9 +1168,17 @@ export const _updateAnimation = avatar => {
 
   const handleFinishedEvent = () => {
     const finishedFlag = resultValues[53];
+    // console.log(finishedFlag)
     if (finishedFlag) {
       const motion = resultValues[54];
-      if (isDebugger) console.log('---finished', avatar.getMotion(motion));
+      // if (isDebugger) console.log('---finished', avatar.getMotion(motion));
+
+      // this.dispatchEvent({
+      //   type: 'finished',
+      //   motion,
+      // });
+      // debugger;
+      // console.log('finished');
 
       const handleAnimationEnd = (motion, trigger) => {
         if ([
@@ -1177,6 +1204,7 @@ export const _updateAnimation = avatar => {
         physx.physxWorker.crossFadeTwo(avatar.idle8DWalkRun_BowIdle8DDrawLooseNodeTwoPtr, 0.2, 0);
       }
       if (motion === avatar.landMotionPtr || motion === avatar.land2MotionPtr) {
+        // console.log('land finished', player);
         player?.removeAction('land');
       }
       for (const key in avatar.hurtMotionPtro) {
