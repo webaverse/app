@@ -72,8 +72,8 @@ const _unwearAppIfHasSitComponent = (player) => {
   for (const wearAction of wearActions) {
     const instanceId = wearAction.instanceId;
     const app = metaversefileApi.getAppByInstanceId(instanceId);
-    const sitComponent = app.getComponent('sit');
-    if (sitComponent) {
+    const hasSitComponent = app.hasComponent('sit');
+    if (hasSitComponent) {
       app.unwear();
     }
   }
