@@ -1,5 +1,5 @@
 import * as THREE from 'three';
-import metaversefile from './metaversefile-api.js';
+// import metaversefile from './metaversefile-api.js';
 // import Avatar from './avatars/avatars.js';
 import npcManager from './npc-manager.js';
 import dioramaManager from './diorama.js';
@@ -7,11 +7,14 @@ import dioramaManager from './diorama.js';
 const FPS = 60;
 
 const _makeLights = () => {
-  const directionalLight = new THREE.DirectionalLight(0xFFFFFF, 5);
-  directionalLight.position.set(1, 1.5, -2);
+  const ambientLight = new THREE.AmbientLight(0xFFFFFF, 1);
+  
+  const directionalLight = new THREE.DirectionalLight(0xFFFFFF, 3);
+  directionalLight.position.set(-1, 0, -1);
   directionalLight.updateMatrixWorld();
 
   return [
+    ambientLight,
     directionalLight,
   ];
 };
