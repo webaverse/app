@@ -1,5 +1,5 @@
-import * as THREE from 'three';
-import metaversefile from 'metaversefile'
+// import * as THREE from 'three';
+// import metaversefile from 'metaversefile'
 import {emotions} from './src/components/general/character/Emotions';
 import offscreenEngineManager from './offscreen-engine-manager.js';
 
