@@ -338,7 +338,6 @@ export const loadPromise = (async () => {
     throw: animations.find(a => a.isThrow),
     pickUpThrow: animations.find(a => a.isPickUpThrow),
   };
-  window.useAnimations = useAnimations;
   bowAnimations = {
     bowDraw: animations.find(a => a.isBowDraw),
     bowIdle: animations.find(a => a.isBowIdle),
