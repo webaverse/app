@@ -112,7 +112,10 @@ const createObjectSpriteInternal = (app, {
       if (physicsObjects.length > 0) {
         const physicsObject = physicsObjects[0];
         const {physicsMesh} = physicsObject;
-        fitCameraToBoundingBox(sideCamera, physicsMesh.geometry.boundingBox, 1.2);
+        const box = physicsMesh.geometry.boundingBox.clone();
+        box.getCenter = () => app.position; //set box center to app position
+        fitCameraToBoundingBox(sideCamera, box, 1.2);
+        sideCamera.position.y += box.max.y / 2; //move camera position to object center
       } else {
         sideCamera.quaternion.setFromRotationMatrix(
           localMatrix.lookAt(
