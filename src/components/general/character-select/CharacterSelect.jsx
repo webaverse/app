@@ -175,9 +175,6 @@ export const CharacterSelect = () => {
             const npcApp = await metaversefile.createAppAsync({
                 start_url: typeContentToUrl('application/npc', {...targetCharacter, detached: true}),
             });
-
-            console.log("NPC APP: ", npcApp)
-
             return npcApp.npcPlayer;
         },
     }));
@@ -235,21 +232,6 @@ export const CharacterSelect = () => {
         console.log(cryptoAvatars);
     }, [cryptoAvatars])
 
-    /*
-    const refsMap = (() => {
-        const map = new Map();
-        for (const userTokenCharacter of userTokenCharacters) {
-            map.set(userTokenCharacter, useRef(null));
-        }
-        for (const k in characters) {
-            for (const character of characters[k]) {
-                map.set(character, useRef(null));
-            }
-        }
-        return map;
-    })();
-    */
-
     const [ npcPlayerCache, setNpcPlayerCache ] = useState(new Map());
 
     const [caPagination, setCaPagination] = useState({});
@@ -262,29 +244,6 @@ export const CharacterSelect = () => {
 
     const targetCharacter = selectCharacter || highlightCharacter;
     
-    /*
-    const _updateArrowPosition = () => {
-        if (targetCharacter) {
-            const ref = refsMap.get(targetCharacter);
-            const el = ref?.current;
-            if (el) {
-                const rect = el.getBoundingClientRect();
-                const parentRect = el.offsetParent.getBoundingClientRect();
-                setArrowPosition([
-                    Math.floor(rect.left - parentRect.left + rect.width / 2 + 40),
-                    Math.floor(rect.top - parentRect.top + rect.height / 2),
-                ]);
-            } else {
-                setArrowPosition(null);
-            }
-        } else {
-            setArrowPosition(null);
-        }
-    };
-    useEffect(() => {
-        _updateArrowPosition();
-    }, [targetCharacter]);
-    */
     useEffect(() => {
         if (targetCharacter && targetCharacter !== lastTargetCharacter) {
             if (abortFn) {
@@ -369,13 +328,6 @@ export const CharacterSelect = () => {
     useEffect(() => {
         if (opened) {
             setSelectCharacter(null);
-
-            const timeout = setTimeout(() => {
-               // _updateArrowPosition();
-            }, 1000);
-            return () => {
-                clearTimeout(timeout);
-            };
         }
     }, [opened, targetCharacter]);
     useEffect(() => {
@@ -392,7 +344,6 @@ export const CharacterSelect = () => {
         if (!opened) {
             setHighlightCharacter(null);
             setSelectCharacter(null);
-            //setArrowPosition(null);
             setText('');
         }
     }, [opened, enabled]);
@@ -489,11 +440,12 @@ export const CharacterSelect = () => {
 
     return (
         <div className={styles.characterSelect}>
+            <div className={classnames(styles.menuBackground, opened ? styles.open : null)}>
+            <MegaHup
+                open={opened}
+                npcPlayer={opened ? npcPlayer : null}
+            />
             <div className={classnames(styles.menu, opened ? styles.open : null)}>
-                <MegaHup
-                    open={opened}
-                    npcPlayer={opened ? npcPlayer : null}
-                />
                 <div className={styles.heading}>
                 <h1>Character select</h1>
                 </div>
@@ -618,6 +570,7 @@ export const CharacterSelect = () => {
                         )}
                     </ul>
                 </div>
+            </div>
             </div>
         </div>
     );
