@@ -41,6 +41,7 @@ import * as procgen from './procgen/procgen.js';
 import {getHeight} from './avatars/util.mjs';
 import performanceTracker from './performance-tracker.js';
 import renderSettingsManager from './rendersettings-manager.js';
+import sceneSettingsManager from './scenesettings-manager.js';
 import questManager from './quest-manager.js';
 import {murmurhash3} from './procgen/murmurhash3.js';
 import debug from './debug.js';
@@ -174,6 +175,9 @@ class App extends THREE.Object3D {
     } else {
       return null;
     }
+  }
+  getSceneSettings() {
+    return sceneSettingsManager;
   }
   activate({
     physicsId = -1,
@@ -386,6 +390,9 @@ metaversefile.setApi({
   },
   useRenderSettings() {
     return renderSettingsManager;
+  },
+  useSceneSettingsManager() {
+    return sceneSettingsManager;
   },
   useScene() {
     return scene;
@@ -1214,8 +1221,8 @@ export default () => {
   async addModule(app, m) {
     // wait to make sure module initialization happens in a clean tick loop,
     // even when adding a module from inside of another module's initialization
-    await Promise.resolve();
 
+    await Promise.resolve();
     app.name = m.name ?? (m.contentId ? m.contentId.match(/([^\/\.]*)$/)[1] : '');
     app.description = m.description ?? '';
     app.appType = m.type ?? '';

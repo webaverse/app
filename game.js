@@ -26,6 +26,7 @@ import raycastManager from './raycast-manager.js';
 import zTargeting from './z-targeting.js';
 import Avatar from './avatars/avatars.js';
 import {makeId} from './util.js'
+import sceneSettingsManager from './scenesettings-manager.js';
 
 const localVector = new THREE.Vector3();
 const localVector2 = new THREE.Vector3();
@@ -1354,7 +1355,8 @@ class GameManager extends EventTarget {
   }
 
   menuDoubleTap() {
-    if (!this.isCrouched()) {
+    const sceneSettings = sceneSettingsManager.getSceneSettings();
+    if (sceneSettings.allowNarutoRun && !this.isCrouched()) {
       const localPlayer = playersManager.getLocalPlayer();
       const narutoRunAction = localPlayer.getAction('narutoRun');
       if (!narutoRunAction) {
@@ -1406,14 +1408,17 @@ class GameManager extends EventTarget {
         localPlayer.setControlAction({type: 'fallLoop'});
       }
     } else {
-      const flyAction = {
-        type: 'fly',
-        time: 0,
-      };
+      const sceneSettings = sceneSettingsManager.getSceneSettings();
+      if (sceneSettings.allowFlying) {
+        const flyAction = {
+          type: 'fly',
+          time: 0,
+        };
 
-      _unwearAppIfHasSitComponent(localPlayer);
+        _unwearAppIfHasSitComponent(localPlayer);
 
-      localPlayer.setControlAction(flyAction);
+        localPlayer.setControlAction(flyAction);
+      }
     }
   }
   isCrouched() {
