@@ -173,6 +173,8 @@
   z-index: 1;
   outline: none;
   color: #FFF;
+  background-color: #000;
+
   vertical-align: middle;
 }
 
