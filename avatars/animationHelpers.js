@@ -54,7 +54,7 @@ import game from '../game.js';
 
 // const identityQuaternion = new Quaternion();
 
-const isDebugger = true; // Used for debug only codes.Don’t create new data structures on the avatar, to not add any more gc sweep depth in product codes.
+const isDebugger = true; // Used for debug only codes. Don’t create new data structures on the avatar, to not add any more gc sweep depth in product codes.
 
 let animations;
 let animationStepIndices;
@@ -467,12 +467,12 @@ export const _createAnimation = avatar => {
     createdWasmAnimations = true;
   }
 
-  avatar.mixer = physx.physxWorker.createAnimationMixer();
+  avatar.mixerPtr = physx.physxWorker.createAnimationMixer();
 
   // util ---
 
   avatar.createMotion = (animationPtr, name) => {
-    const motionPtr = physx.physxWorker.createMotion(avatar.mixer, animationPtr);
+    const motionPtr = physx.physxWorker.createMotion(avatar.mixerPtr, animationPtr);
     if (isDebugger) {
       avatar.motions.push({
         motionPtr,
@@ -484,7 +484,7 @@ export const _createAnimation = avatar => {
   };
 
   avatar.createNode = (type, name) => {
-    const nodePtr = physx.physxWorker.createNode(avatar.mixer, type);
+    const nodePtr = physx.physxWorker.createNode(avatar.mixerPtr, type);
     if (isDebugger) {
       avatar.nodes.push({
         nodePtr,
@@ -876,11 +876,11 @@ export const _createAnimation = avatar => {
   createNodes();
 
   avatar.rootNodePtr = avatar.holdNodeFuncPtr;
-  physx.physxWorker.setRootNode(avatar.mixer, avatar.rootNodePtr);
+  physx.physxWorker.setRootNode(avatar.mixerPtr, avatar.rootNodePtr);
 
   // --------------------------------------------------------------------------
 
-  // avatar.mixer.addEventListener('finished', event => {
+  // avatar.mixerPtr.addEventListener('finished', event => {
   // });
 };
 
@@ -1145,7 +1145,7 @@ export const _updateAnimation = avatar => {
 
   let resultValues;
   const doUpdate = () => {
-    resultValues = physx.physxWorker.updateAnimationMixer(avatar.mixer, timeS);
+    resultValues = physx.physxWorker.updateAnimationMixer(avatar.mixerPtr, timeS);
     let index = 0;
     for (const spec of avatar.animationMappings) {
       const {
