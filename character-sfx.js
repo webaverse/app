@@ -86,23 +86,24 @@ class CharacterSfx {
     this.oldNarutoRunSound = null;
     this.lastEmote = null;
 
-    if (this.player.isLocalPlayer) {
-      const wearupdate = e => {
-        sounds.playSoundName(e.wear ? 'itemEquip' : 'itemUnequip');
-      };
-      player.addEventListener('wearupdate', wearupdate);
-      this.cleanup = () => {
-        player.removeEventListener('wearupdate', wearupdate);
-      };
-    }
-
     this.currentStep = null;
     this.currentSwimmingHand = null;
     this.setSwimmingHand = true;
+    this.setEquipSound = false;
   }
   update(timestamp, timeDiffS) {
     if (!this.player.avatar) {
       return;
+    }
+    if (this.player.isLocalPlayer && !this.setEquipSound) {
+      const wearupdate = e => {
+        sounds.playSoundName(e.wear ? 'itemEquip' : 'itemUnequip');
+      };
+      this.player.addEventListener('wearupdate', wearupdate);
+      this.cleanup = () => {
+        this.player.removeEventListener('wearupdate', wearupdate);
+      };
+      this.setEquipSound = true;
     }
     
     const timeSeconds = timestamp/1000;
