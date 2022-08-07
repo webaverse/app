@@ -20,6 +20,8 @@ import * as voices from '../../../../voices.js';
 import { loadCryptoAvatarsCharacters } from './cryptoavatars-loader.js';
 import { getMainnetAddress } from '../../../../blockchain.js';
 
+import chevronIcon from '../../../../public/images/chevron2.svg';
+
 function typeContentToUrl(type, content) {
 if (typeof content === 'object') {
     content = JSON.stringify(content);
@@ -432,6 +434,7 @@ export const CharacterSelect = () => {
         getCryptoAvatars();
     }, [caCollection, caOwnership, caItemsPerPage]);
     /** ------------------------------------------------------------------------------- */
+    const chevronImgSrc = `./images/chevron.svg`;
 
     return (
         <div className={styles.characterSelect}>
@@ -441,6 +444,7 @@ export const CharacterSelect = () => {
                 npcPlayer={opened ? npcPlayer : null}
             />
             <div className={classnames(styles.menu, opened ? styles.open : null)}>
+                <div onClick={() => setState({ openedPanel: 'CharacterPanel' })} className={classnames(styles.closeMenu, opened ? styles.open : null)}><h1>Close <img src={chevronImgSrc} /></h1></div>
                 <div className={styles.heading}>
                 <h1>Character select</h1>
                 </div>

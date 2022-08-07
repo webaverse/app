@@ -8,6 +8,27 @@
   background-image: linear-gradient(to bottom, #222, #000);
   overflow: hidden;
 }
+.characterSelect .closeMenu {
+  position: fixed;
+  top: 16px;
+  left: 50%;
+  -webkit-transform: translateX(-50%);
+  transform: translateX(-50%);
+  cursor: pointer;
+  z-index: 100;
+  color: #FFF;
+  display: none;
+}
+
+.characterSelect .closeMenu.open {
+  display: inline-block;
+}
+
+.characterSelect .closeMenu img {
+  transform: rotate(-90deg);
+  height: 20px;
+  margin-left: 8px;
+}
 .characterSelect .menuBackground.open {
   transform: translateY(calc(-100vh));
 }
