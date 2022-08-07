@@ -1225,14 +1225,11 @@ class LocalPlayer extends UninterpolatedPlayer {
   pushPlayerUpdates() {
     const self = this;
     this.playersArray.doc.transact(() => {
-        /* if (isNaN(this.position.x) || isNaN(this.position.y) || isNaN(this.position.z)) {
-          debugger;
-        } */
-      if(!this.matrixWorld.equals(this.lastMatrix)) {
+      if (!this.matrixWorld.equals(this.lastMatrix)) {
         self.position.toArray(self.transform);      
         self.quaternion.toArray(self.transform, 3);
         self.playerMap.set('transform', self.transform);
-        this.matrixWorld.copy(this.lastMatrix)
+        this.lastMatrix.copy(this.matrixWorld);
       }
     }, 'push');
 
