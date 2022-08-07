@@ -1,11 +1,13 @@
 import * as THREE from 'three';
 import {getRenderer, camera, scene} from './renderer.js';
+// import * as notifications from './notifications.js';
 import physicsManager from './physics-manager.js';
-import {shakeAnimationSpeed, minFov, maxFov, midFov} from './constants.js';
+import {shakeAnimationSpeed} from './constants.js';
 import Simplex from './simplex-noise.js';
 import {playersManager} from './players-manager.js';
 // import alea from './alea.js';
 // import * as sounds from './sounds.js';
+import {minFov, maxFov, midFov} from './constants.js';
 // import { updateRaycasterFromMouseEvent } from './util.js';
 import easing from './easing.js';
 
@@ -233,6 +235,19 @@ class CameraManager extends EventTarget {
             const _pointerlockerror = err => {
               reject(err);
               _cleanup();
+              
+              /* notifications.addNotification(`\
+                <i class="icon fa fa-mouse-pointer"></i>
+                <div class=wrap>
+                  <div class=label>Whoa there!</div>
+                  <div class=text>
+                    Hold up champ! The browser wants you to slow down.
+                  </div>
+                  <div class=close-button>✕</div>
+                </div>
+              `, {
+                timeout: 3000,
+              }); */
             };
             document.addEventListener('pointerlockerror', _pointerlockerror);
             const _cleanup = () => {
