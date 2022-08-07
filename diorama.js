@@ -15,6 +15,7 @@ import {DotsBgFxMesh} from './background-fx/DotsBgFx.js';
 import {LightningBgFxMesh} from './background-fx/LightningBgFx.js';
 import {RadialBgFxMesh} from './background-fx/RadialBgFx.js';
 import {GrassBgFxMesh} from './background-fx/GrassBgFx.js';
+import {playersManager} from './players-manager.js';
 
 const localVector = new THREE.Vector3();
 const localVector2 = new THREE.Vector3();
@@ -23,12 +24,11 @@ const localVector2D = new THREE.Vector2();
 // const localVector2D2 = new THREE.Vector2();
 const localVector4D = new THREE.Vector4();
 const localQuaternion = new THREE.Quaternion();
-const localQuaternion2 = new THREE.Quaternion();
 const localMatrix = new THREE.Matrix4();
 const localColor = new THREE.Color();
 
 // this function maps the speed histogram to a position, integrated up to the given timestamp
-const mapTime = (speedHistogram = new SpeedHistogram(), time = 0) => {
+const mapTime = (speedHistogram = new SpeedHistogram, time = 0) => {
   const {elements} = speedHistogram;
   const totalDistance = speedHistogram.totalDistance();
   // const totalDuration = speedHistogram.totalDuration();
@@ -498,7 +498,6 @@ const createPlayerDiorama = ({
   dotsBackground = false,
   autoCamera = true,
   detached = false,
-  flipY = false,
 } = {}) => {
   // _ensureSideSceneCompiled();
 
@@ -681,15 +680,6 @@ const createPlayerDiorama = ({
           target.matrixWorld.decompose(localVector, localQuaternion, localVector2);
           const targetPosition = localVector;
           const targetQuaternion = localQuaternion;
-
-          if (flipY) {
-            targetQuaternion.multiply(
-              localQuaternion2.setFromAxisAngle(
-                localVector2.set(0, 1, 0),
-                Math.PI,
-              )
-            );
-          }
 
           sideCamera.position.copy(targetPosition)
             .add(
