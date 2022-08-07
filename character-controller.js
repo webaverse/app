@@ -867,11 +867,12 @@ class StatePlayer extends PlayerBase {
     });
   }
   destroy() {
-    this.unbindState();
     this.appManager.unbindState();
 
     this.appManager.destroy();
-  
+    
+    this.unbindState();
+
     super.destroy();
   }
 }
