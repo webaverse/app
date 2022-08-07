@@ -32,7 +32,6 @@ import {
   bindCanvas,
   getComposer,
 } from './renderer.js';
-import * as audioManager from './audio-manager.js';
 import transformControls from './transform-controls.js';
 import * as metaverseModules from './metaverse-modules.js';
 import dioramaManager from './diorama.js';
@@ -47,6 +46,7 @@ import physxWorkerManager from './physx-worker-manager.js';
 import story from './story.js';
 import zTargeting from './z-targeting.js';
 import raycastManager from './raycast-manager.js';
+import universe from './universe.js';
 
 const localVector = new THREE.Vector3();
 const localVector2 = new THREE.Vector3();
@@ -83,7 +83,6 @@ export default class Webaverse extends EventTarget {
         physx.waitForLoad(),
         Avatar.waitForLoad(),
         physxWorkerManager.waitForLoad(),
-        audioManager.waitForLoad(),
         sounds.waitForLoad(),
         zTargeting.waitForLoad(),
         particleSystemManager.waitForLoad(),
@@ -309,8 +308,10 @@ export default class Webaverse extends EventTarget {
           // this.injectRigInput();
           
           const localPlayer = metaversefileApi.useLocalPlayer();
-          if (this.contentLoaded && physicsManager.getPhysicsEnabled()) {
-            physicsManager.simulatePhysics(timeDiffCapped);
+          const physicsScene = physicsManager.getScene();
+          if (this.contentLoaded && physicsScene.getPhysicsEnabled()) {
+            physicsScene.simulatePhysics(timeDiffCapped);
+            physicsScene.getTriggerEvents();
             localPlayer.updatePhysics(timestamp, timeDiffCapped);
           }
 
@@ -378,6 +379,20 @@ export default class Webaverse extends EventTarget {
 const _startHacks = webaverse => {
   const localPlayer = metaversefileApi.useLocalPlayer();
   const vpdAnimations = Avatar.getAnimations().filter(animation => animation.name.endsWith('.vpd'));
+
+  // press R to debug current state in console
+  window.addEventListener('keydown', event => {
+    if (event.key === '}') {
+      console.log('>>>>> current state');
+      console.log(universe.state);
+      console.log('>>>>> scene');
+      console.log(scene);
+      console.log('>>>>> local player');
+      console.log(localPlayer);
+      // console.log('>>>>> remotePlayers');
+      // console.log(playersManager.getRemotePlayers());
+    }
+  });
 
   // let playerDiorama = null;
   const lastEmotionKey = {

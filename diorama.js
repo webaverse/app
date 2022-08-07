@@ -15,12 +15,13 @@ import {DotsBgFxMesh} from './background-fx/DotsBgFx.js';
 import {LightningBgFxMesh} from './background-fx/LightningBgFx.js';
 import {RadialBgFxMesh} from './background-fx/RadialBgFx.js';
 import {GrassBgFxMesh} from './background-fx/GrassBgFx.js';
+import {playersManager} from './players-manager.js';
 
 const localVector = new THREE.Vector3();
 const localVector2 = new THREE.Vector3();
 const localVector3 = new THREE.Vector3();
 const localVector2D = new THREE.Vector2();
-const localVector2D2 = new THREE.Vector2();
+// const localVector2D2 = new THREE.Vector2();
 const localVector4D = new THREE.Vector4();
 const localQuaternion = new THREE.Quaternion();
 const localMatrix = new THREE.Matrix4();

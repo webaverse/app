@@ -21,8 +21,11 @@ import cameraManager from './camera-manager.js';
 import npcManager from './npc-manager.js';
 import {chatManager} from './chat-manager.js';
 import {mod} from './util.js';
-import {getLocalPlayer} from './players.js';
+import {playersManager} from './players-manager.js';
 import {alea} from './procgen/procgen.js';
+
+import { triggerEmote } from './src/components/general/character/Poses.jsx';
+import validEmotionMapping from "./validEmotionMapping.json";
 
 const localVector2D = new THREE.Vector2();
 
@@ -116,12 +119,13 @@ class Conversation extends EventTarget {
 
     cameraManager.setDynamicTarget(this.localPlayer.avatar.modelBones.Head, this.remotePlayer?.avatar.modelBones.Head);
   }
-  addRemotePlayerMessage(text, type = 'chat') {
+  addRemotePlayerMessage(text, emote, type = 'chat') {
     const message = {
       type,
       player: this.remotePlayer,
       name: this.remotePlayer.name,
       text,
+      emote,
     };
     this.messages.push(message);
 
@@ -136,6 +140,10 @@ class Conversation extends EventTarget {
     })();
 
     cameraManager.setDynamicTarget(this.remotePlayer.avatar.modelBones.Head, this.localPlayer.avatar.modelBones.Head);
+
+    if (emote !== 'none' && validEmotionMapping[emote]!== undefined) {
+      triggerEmote(validEmotionMapping[emote], this.remotePlayer);
+    }
   }
   async wrapProgress(fn) {
     if (!this.progressing) {
@@ -159,11 +167,12 @@ class Conversation extends EventTarget {
       const aiScene = metaversefile.useLoreAIScene();
       const {
         value: comment,
+        emote,
         done,
       } = await aiScene.generateChatMessage(this.messages, this.remotePlayer.name);
       
       if (!this.messages.some(m => m.text === comment && m.player === this.remotePlayer)) {
-        this.addRemotePlayerMessage(comment);
+        this.addRemotePlayerMessage(comment, emote);
         done && this.finish();
       } else {
         this.finish();
@@ -215,7 +224,11 @@ class Conversation extends EventTarget {
     }
 
     // say the option
-    this.addLocalPlayerMessage(option, 'option');
+    this.addLocalPlayerMessage(option.message, 'option');
+
+    if (option.emote !== 'none' && validEmotionMapping[option.emote]!== undefined) {
+      triggerEmote(validEmotionMapping[option.emote], this.localPlayer);
+    }
     
     // clear options
     this.#setOptions(null);
@@ -415,7 +428,7 @@ story.handleWheel = e => {
 };
 
 const _startConversation = (comment, remotePlayer, done) => {
-  const localPlayer = getLocalPlayer();
+  const localPlayer = playersManager.getLocalPlayer();
   currentConversation = new Conversation(localPlayer, remotePlayer);
   currentConversation.addEventListener('close', () => {
     currentConversation = null;
@@ -506,7 +519,7 @@ story.startCinematicIntro = () => {
   };
 
   const range = 30;
-  const localPlayer = getLocalPlayer();
+  const localPlayer = playersManager.getLocalPlayer();
   const center = localPlayer.position.clone()
     .add(
       new THREE.Vector3(0, range/4, 0)

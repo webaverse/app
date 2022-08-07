@@ -3,7 +3,7 @@ import {getRenderer, camera, scene} from './renderer.js';
 import physicsManager from './physics-manager.js';
 import {shakeAnimationSpeed, minFov, maxFov, midFov} from './constants.js';
 import Simplex from './simplex-noise.js';
-import {getLocalPlayer} from './players.js';
+import {playersManager} from './players-manager.js';
 // import alea from './alea.js';
 // import * as sounds from './sounds.js';
 // import { updateRaycasterFromMouseEvent } from './util.js';
@@ -44,6 +44,8 @@ const maxFocusTime = 300;
 const cameraOffset = new THREE.Vector3();
 let cameraOffsetTargetZ = cameraOffset.z;
 let cameraOffsetLimitZ = Infinity;
+
+const physicsScene = physicsManager.getScene();
 
 // let cameraOffsetZ = cameraOffset.z;
 const rayVectorZero = new THREE.Vector3(0,0,0);
@@ -417,7 +419,7 @@ class CameraManager extends EventTarget {
         cameraOffsetTargetZ = -1;
         cameraOffset.z = cameraOffsetTargetZ;
 
-        const localPlayer = getLocalPlayer();
+        const localPlayer = playersManager.getLocalPlayer();
         const targetPosition = localVector.copy(localPlayer.position)
           .add(localVector2.set(0, 0, -cameraOffsetTargetZ).applyQuaternion(localPlayer.quaternion));
         const targetQuaternion = localPlayer.quaternion;
@@ -460,7 +462,7 @@ class CameraManager extends EventTarget {
   updatePost(timestamp, timeDiff) {
     const renderer = getRenderer();
     const session = renderer.xr.getSession();
-    const localPlayer = getLocalPlayer();
+    const localPlayer = playersManager.getLocalPlayer();
 
     if (this.target) {
       const _setLerpDelta = (position, quaternion) => {
@@ -562,7 +564,7 @@ class CameraManager extends EventTarget {
           const halfExtents = localVector2.set(0.5, 0.5, 0.1);
           const maxHits = 1;
 
-          const result = physicsManager.sweepBox(
+          const result = physicsScene.sweepBox(
             localVector3.copy(localPlayer.position)
               .add(localVector4.copy(direction).multiplyScalar(backOffset)),
             camera.quaternion,

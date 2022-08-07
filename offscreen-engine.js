@@ -3,49 +3,55 @@ import {inappPreviewHost} from './constants.js';
 
 class OffscreenEngine {
   constructor() {
-    const id = getRandomString();
+    this.id = getRandomString();
+    this.frame = null;
     this.port = null;
 
-    const iframe = document.createElement('iframe');
-    iframe.width = '0px';
-    iframe.height = '0px';
-    iframe.style.cssText = `\
-      border: 0;
-    `;
-
-    this.iframe = iframe;
-    this.live = true;
-
-    const setport = new Promise((resolve, reject) => {
-      const message = (e) => {
-        if (e.data?.method === 'engineReady' && e.data.id === id && e.data.port instanceof MessagePort){
-          window.removeEventListener('message', message);
-          resolve(e.data.port);
-        }
-      };
-      window.addEventListener('message', message);
-    });
-
-    const loading = new Promise((resolve, reject) => {
-      iframe.onload = () => {
-        resolve();
-        iframe.onload = null;
-        iframe.onerror = null;
-      };
-      iframe.onerror = reject;
-    });
-
-    this.loadPromise = Promise.all([loading, setport]);
-
-    iframe.src = `${inappPreviewHost}/engine.html#id=${id}`;
-    document.body.appendChild(iframe);
+    this.loadPromise = null;
   }
-  waitForLoad() {
-    return this.loadPromise.then(([, port]) => {
-      this.port = port;
-      this.port.start();
-      return port;
-    });
+  async waitForLoad() {
+    if (!this.loadPromise) {
+      this.loadPromise = (async () => {
+        const iframe = document.createElement('iframe');
+        iframe.width = '0px';
+        iframe.height = '0px';
+        iframe.style.cssText = `\
+          border: 0;
+        `;
+    
+        // this.live = true;
+    
+        const messageChannel = new MessageChannel();
+        const {port1, port2} = messageChannel;
+    
+        const iframeLoadPromise = new Promise((resolve, reject) => {
+          iframe.onload = () => {
+            resolve();
+            iframe.onload = null;
+            iframe.onerror = null;
+          };
+          iframe.onerror = reject;
+        });
+  
+        iframe.allow = 'cross-origin-isolated';
+        iframe.src = `${inappPreviewHost}/engine.html#id=${this.id}`;
+        document.body.appendChild(iframe);
+        this.iframe = iframe;
+  
+        await iframeLoadPromise;
+  
+        iframe.contentWindow.postMessage({
+          method: 'initializeEngine',
+          port: port2,
+        }, '*', [port2]);
+  
+        return port1;
+      })();
+    }
+    const port = await this.loadPromise;
+    port.start();
+    this.port = port;
+    return port;
   }
   createFunction(o) {
     if (!Array.isArray(o)) {
@@ -158,7 +164,8 @@ export default _default_export_;`;
     return callRemoteFn;
   }
   destroy() {
-    this.live = false;
+    // this.live = false;
+    
     if (this.iframe) {
       this.iframe.parentElement.removeChild(this.iframe);
       this.iframe = null;

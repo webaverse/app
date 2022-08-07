@@ -1,3 +1,6 @@
+/* this file implements the top-level world procedural generation context.
+it starts the workers and routes calls for the procgen system. */
+
 import {murmurhash3} from './procgen/procgen.js';
 import {DcWorkerManager} from './dc-worker-manager.js';
 import {LodChunkTracker} from './lod.js';
@@ -25,44 +28,48 @@ class ProcGenInstance {
     this.range = range;
 
     this.lightmapper = null;
+    this.heightfieldMapper = null;
 
     if (range) {
-      this.dcWorkerManager.setRange(range);
+      this.dcWorkerManager.setClipRange(range);
     }
   }
-  getChunkTracker({
-    numLods = 1,
-    trackY = false,
-    relod = false,
-  } = {}) {
+  getChunkTracker(opts = {}) {
+    const opts2 = structuredClone(opts);
     const {chunkSize, range} = this;
-    const tracker = new LodChunkTracker({
-      chunkSize,
-      numLods,
-      trackY,
-      relod,
-      range,
-    });
+    opts2.chunkSize = chunkSize;
+    opts2.range = range;
+    opts2.dcWorkerManager = this.dcWorkerManager;
+
+    const tracker = new LodChunkTracker(opts2);
     return tracker;
   }
-  getLightMapper() {
+  getLightMapper({
+    size,
+    debug = false,
+  }) {
     if (!this.lightmapper) {
-      const {chunkSize, range} = this;
+      // const {chunkSize, range} = this;
       this.lightmapper = new LightMapper({
-        chunkSize,
-        terrainSize,
-        range,
+        // chunkSize,
+        // terrainSize,
+        // range,
+        procGenInstance: this,
+        size,
+        debug,
       });
     }
     return this.lightmapper;
   }
-  getHeightfieldMapper() {
-    if (!this.lightmapper) {
-      const {chunkSize, range} = this;
+  getHeightfieldMapper({
+    size,
+    debug = false,
+  } = {}) {
+    if (!this.heightfieldMapper) {
       this.heightfieldMapper = new HeightfieldMapper({
-        chunkSize,
-        terrainSize,
-        range,
+        procGenInstance: this,
+        size,
+        debug,
       });
     }
     return this.heightfieldMapper;

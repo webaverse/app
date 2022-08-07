@@ -2,12 +2,12 @@
 import React, { useState, useEffect, useContext, useRef } from 'react';
 import classnames from 'classnames';
 
-import { world } from '../../../../world'
 import universe from '../../../../universe'
 import voiceInput from '../../../../voice-input/voice-input';
 import sceneNames from '../../../../scenes/scenes.json';
 
 import { AppContext } from '../../app';
+import {makeId} from '../../../../util.js';
 
 import styles from './scene-menu.module.css';
 
@@ -23,7 +23,7 @@ sceneNames.forEach( ( name ) => {
 
 //
 
-export const SceneMenu = ({ multiplayerConnected, selectedScene, setSelectedScene, selectedRoom, setSelectedRoom }) => {
+export const SceneMenu = ({ className, multiplayerConnected, selectedScene, setSelectedScene, selectedRoom, setSelectedRoom }) => {
 
     const { state, setState } = useContext( AppContext );
     const sceneNameInputRef = useRef( null );
@@ -96,38 +96,33 @@ export const SceneMenu = ({ multiplayerConnected, selectedScene, setSelectedScen
     };
 
     const handleRoomCreateBtnClick = async () => {
+        const sceneName = selectedScene.trim();
+        const data = null; // Z.encodeStateAsUpdate( world.getState( true ) );
 
-        alert( 'todo' );
-        // const roomName = _makeName();
-        // const data = null; // Z.encodeStateAsUpdate( world.getState( true ) );
+        const roomName = makeId(5);
 
-        // const res = await fetch( universe.getWorldsHost() + roomName, { method: 'POST', body: data } );
-
-        // if ( res.ok ) {
-
-        //     refreshRooms();
-        //     setSelectedRoom( roomName );
-        //     universe.pushUrl( `/?src=${ encodeURIComponent( sceneName ) }&room=${ roomName }` );
-
-        //     /* this.parent.sendMessage([
-        //         MESSAGE.ROOMSTATE,
-        //         data,
-        //     ]); */
-
-        // } else {
-
-        //     const text = await res.text();
-        //     console.warn( 'error creating room', res.status, text );
-
-        // }
-
-    };
+        const res = await fetch(universe.getWorldsHost() + roomName, {
+          method: 'POST',
+          body: data,
+        });
+    
+        if (res.ok) {
+          refreshRooms();
+          setSelectedRoom(roomName);
+          universe.pushUrl(
+            `/?src=${encodeURIComponent(sceneName)}&room=${roomName}`,
+          );
+        } else {
+          const text = await res.text();
+          console.warn('error creating room', res.status, text);
+        }
+      };
 
     const handleRoomSelect = ( room ) => {
 
         setState({ openedPanel: null });
 
-        if ( ! world.isConnected() ) {
+        if ( ! universe.isConnected() ) {
 
             universe.pushUrl( `/?src=${ encodeURIComponent( selectedScene ) }&room=${ room.name }` );
 
@@ -261,7 +256,7 @@ export const SceneMenu = ({ multiplayerConnected, selectedScene, setSelectedScen
     //
 
     return (
-        <div className={ styles.location } onClick={ stopPropagation } >
+        <div className={ classnames( className, styles.location ) } onClick={ stopPropagation } >
             <div className={ styles.row }>
                 <div className={ styles.buttonWrap } onClick={ handleSceneMenuOpen.bind( this, null ) } >
                     <button className={ classnames( styles.button, styles.primary, state.openedPanel === 'SceneMenuPanel' ? null : styles.disabled ) } >
@@ -313,7 +308,7 @@ export const SceneMenu = ({ multiplayerConnected, selectedScene, setSelectedScen
                         </div>
                         {
                             rooms.map( ( room, i ) => (
-                                <div className={ styles.room } onClick={ ( e ) => { handleRoomSelect( e, room ) } } key={ i } >
+                                <div className={ styles.room } onClick={ ( e ) => { handleRoomSelect( room ) } } key={ i } >
                                     <img className={ styles.image } src="images/world.jpg" />
                                     <div className={ styles.name } >{ room.name }</div>
                                     <div className={ styles.delete } >

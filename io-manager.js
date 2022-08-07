@@ -9,7 +9,6 @@ import metaversefile from 'metaversefile';
 import cameraManager from './camera-manager.js';
 // import controlsManager from './controls-manager.js';
 import game from './game.js';
-// import physicsManager from './physics-manager.js';
 import {world} from './world.js';
 import voiceInput from './voice-input/voice-input.js';
 // import * as universe from './universe.js';
@@ -19,25 +18,31 @@ import {getRenderer, /*renderer2,*/ scene, camera, dolly, getContainerElement} f
 import physicsManager from './physics-manager.js';
 /* import {menuActions} from './mithril-ui/store/actions.js';
 import {menuState} from './mithril-ui/store/state.js'; */
-import physx from './physx.js';
+// import physx from './physx.js';
 // import {airFriction, flyFriction} from './constants.js';
 import transformControls from './transform-controls.js';
 import storyManager from './story.js';
 // import domRenderer from './dom-renderer.jsx';
 import raycastManager from './raycast-manager.js';
 
-const localVector = new THREE.Vector3();
+// const localVector = new THREE.Vector3();
 // const localVector2 = new THREE.Vector3();
 const localVector3 = new THREE.Vector3();
-const localVector2D = new THREE.Vector2();
-const localVector2D2 = new THREE.Vector2();
-const localQuaternion = new THREE.Quaternion();
+// const localVector2D = new THREE.Vector2();
+// const localVector2D2 = new THREE.Vector2();
+// const localQuaternion = new THREE.Quaternion();
 const localQuaternion2 = new THREE.Quaternion();
 const localEuler = new THREE.Euler();
 const localMatrix2 = new THREE.Matrix4();
 const localMatrix3 = new THREE.Matrix4();
 const localRaycaster = new THREE.Raycaster();
 const zeroVector = new THREE.Vector3();
+
+//
+
+const physicsScene = physicsManager.getScene();
+
+//
 
 const ioManager = new EventTarget();
 
@@ -225,7 +230,18 @@ const _updateIo = timeDiff => {
       cameraManager.lastNonzeroDirectionVector.copy(keysDirection);
     }
     
-    if (localPlayer.hasAction('fly')) {
+    if (localPlayer.hasAction('swim')){
+      if(ioManager.keys.shift && keysDirection.length() > 0){
+        localPlayer.getAction('swim').animationType = 'freestyle';
+      }
+      else if(!ioManager.keys.shift && keysDirection.length() > 0){
+        localPlayer.getAction('swim').animationType = 'breaststroke';
+      }
+      else{
+        localPlayer.getAction('swim').animationType = 'null';
+      }
+    }
+    if (localPlayer.hasAction('fly') || localPlayer.hasAction('swim')) {
       keysDirection.applyQuaternion(camera.quaternion);
       _updateVertical(keysDirection);
     } else {
@@ -236,11 +252,10 @@ const _updateIo = timeDiff => {
       
       if (ioManager.keys.ctrl && !ioManager.lastCtrlKey) {
         game.toggleCrouch();
-        // physicsManager.setCrouchState(!physicsManager.getCrouchState());
       }
       ioManager.lastCtrlKey = ioManager.keys.ctrl;
     }
-    if (keysDirection.length() > 0 && physicsManager.getPhysicsEnabled() && movementEnabled) {
+    if (keysDirection.length() > 0 && physicsScene.getPhysicsEnabled() && movementEnabled) {
       localPlayer.characterPhysics.applyWasd(
         keysDirection.normalize()
           .multiplyScalar(game.getSpeed() * timeDiff)
@@ -543,9 +558,9 @@ ioManager.keydown = e => {
       // if (controlsManager.isPossessed()) {
         if (!game.isJumping()) {
           game.jump('jump');
-        } /* else {
-          physicsManager.setGlide(!physicsManager.getGlideState() && !game.isFlying());
-        } */
+        } else if (!game.isDoubleJumping()) {
+          game.doubleJump();
+        }
       // }
       break;
     }
@@ -605,7 +620,7 @@ ioManager.wheel = e => {
   if (storyManager.handleWheel(e)) {
     // nothing
   } else {
-    if (physicsManager.getPhysicsEnabled()) {
+    if (physicsScene.getPhysicsEnabled()) {
       const renderer = getRenderer();
       if (renderer && (e.target === renderer.domElement || e.target.id === 'app')) {
         cameraManager.handleWheelEvent(e);
@@ -765,6 +780,9 @@ ioManager.click = e => {
   }
   raycastManager.setLastMouseEvent(e);
 };
+ioManager.dblclick = e => {
+  // nothing
+};
 // let mouseDown = false;
 let lastMouseButtons = 0;
 ioManager.mousedown = e => {
@@ -778,7 +796,7 @@ ioManager.mousedown = e => {
     }
   } else {
     if ((changedButtons & 1) && (e.buttons & 1)) { // left
-      const raycaster = raycastManager.getMouseRaycaster(e, localRaycaster);
+      const raycaster = raycastManager.getMouseRaycaster(e);
       if (raycaster) {
         transformControls.handleMouseDown(raycaster);
       }
@@ -852,7 +870,7 @@ ioManager.bindInput = () => {
   }); */
   /* window.addEventListener('wheel', e => {
     // console.log('target', e.target);
-    if (physicsManager.getPhysicsEnabled()) {
+    if (physicsScene.getPhysicsEnabled()) {
       const renderer = getRenderer();
       if (renderer && (e.target === renderer.domElement || e.target.id === 'app')) {
         cameraManager.handleWheelEvent(e);
