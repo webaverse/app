@@ -947,8 +947,8 @@ class InterpolatedPlayer extends StatePlayer {
       quaternion: this.quaternionInterpolant.get(),
     };
   }
-  update(timestamp, timeDiff) {
-    if(!this.avatar) return; // avatar takes time to load, ignore until it does
+  /* update(timestamp, timeDiff) {
+    if (!this.avatar) return; // avatar takes time to load, ignore until it does
 
     this.updateInterpolation(timeDiff);
 
@@ -963,7 +963,7 @@ class InterpolatedPlayer extends StatePlayer {
     this.characterBehavior.update(timestamp, timeDiffS);
 
     this.avatar.update(timestamp, timeDiff);
-  }
+  } */
   updateInterpolation(timeDiff) {
     this.positionInterpolant.update(timeDiff);
     this.quaternionInterpolant.update(timeDiff);
