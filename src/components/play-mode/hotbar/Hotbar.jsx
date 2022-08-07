@@ -43,7 +43,6 @@ export const Hotbar = ({ className }) => {
     const onDrop = index => e => {
         e.preventDefault();
         e.stopPropagation();
-        
         game.handleDropJsonItemToPlayer(e.dataTransfer.items[0], index);
     };
     const onTopClick = e => {
@@ -52,6 +51,7 @@ export const Hotbar = ({ className }) => {
 
         setState({
             openedPanel: 'CharacterPanel',
+            openedTab: 'Inventory'
         });
     };
     const onBottomClick = index => e => {

@@ -130,7 +130,7 @@ const Canvas = ({
 
 export const App = () => {
 
-    const [ state, setState ] = useState({ openedPanel: null });
+    const [ state, setState ] = useState({ openedPanel: null, openedTab: null });
     const [ uiMode, setUIMode ] = useState( 'normal' );
 
     const canvasRef = useRef( null );
