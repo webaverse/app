@@ -39,19 +39,12 @@ const MegaHup = function({
       let live = true;
       let diorama = null;
       {
-        let targetBone;
-        npcPlayer.avatar.model.traverse(
-          object => { if (object.type === 'Bone' && object.name.toLowerCase().includes('head') && !targetBone) {
-            targetBone = object;
-            }
-          }
-        );
         diorama = dioramaManager.createPlayerDiorama({
-          target: targetBone ?? npcPlayer,
+          target: npcPlayer,
           objects: [
             npcPlayer.avatar.model,
           ],
-          cameraOffset: new THREE.Vector3(-0.8, 0, -1),
+          cameraOffset: new THREE.Vector3(-0.8, 0, -0.4),
           // label: true,
           // outline: true,
           // grassBackground: true,

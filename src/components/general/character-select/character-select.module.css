@@ -1,23 +1,23 @@
 .characterSelect .menuBackground {
   background-image: linear-gradient(to bottom, #222, #000);
   position: fixed;
-  bottom: calc(-100vh + 200px);
+  bottom: calc(-100vh);
   left: 0px;
   width: 100vw;
-  height: calc(100vh - 200px);
+  height: calc(100vh);
   background-image: linear-gradient(to bottom, #222, #000);
   overflow: hidden;
 }
 .characterSelect .menuBackground.open {
-  transform: translateY(calc(-100vh + 200px));
+  transform: translateY(calc(-100vh));
 }
 .characterSelect .menu {
   display: flex;
   position: fixed;
-  bottom: calc(-100vh + 200px);
+  bottom: calc(-100vh);
   left: 0px;
   width: 100vw;
-  height: calc(100vh - 200px);
+  height: calc(100vh);
   color: #FFF;
   flex-direction: column;
   /* transform: translateY(100vh); */
@@ -28,7 +28,7 @@
   width: calc(100vw - 400px);
 }
 .characterSelect .menu.open {
-  transform: translateY(calc(-100vh + 200px));
+  transform: translateY(calc(-100vh));
 }
 .characterSelect .menu .heading {
   padding: 15px 20px;

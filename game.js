@@ -1690,19 +1690,12 @@ class GameManager extends EventTarget {
       let neckBone;
       e.avatar.model.traverse(
         (object) => {
-          // changed the === "Head" to includes('Head') as 
-          // we cannot always certain that the bone name of the head mesh
-          // is named exactly "Head"
-          if (object.type === "Bone" && object.name.includes('Head')) {
+          if (object.type === "Bone" && object.name === "Head") {
             return neckBone = object;
           }
         }
       );
-      // Put a check on the neckbone variable so if it is not found
-      // the main scene won't crash.
-      if(neckBone) {
-        this.playerDiorama.setTarget(neckBone);
-      }
+      this.playerDiorama.setTarget(neckBone);
     });
   }
   async setVoicePack(voicePack) {
