@@ -86,7 +86,7 @@ export const screenshotPlayer = async ({
   };
   const localVector = new THREE.Vector3();
   const _updateTarget = (timestamp, timeDiff) => {
-    const decapitatePosition = localVector.setFromMatrixPosition(player.avatar.modelBones.Head.savedMatrixWorld);
+    const neckPosition = localVector.setFromMatrixPosition(player.avatar.modelBones.Head.savedMatrixWorld);
     let avatarHighestPos = 0;
     let tempMesh = null;
     player.avatar.model.traverse(o => {
@@ -98,7 +98,7 @@ export const screenshotPlayer = async ({
       }
     });
     avatarHighestPos += tempMesh.position.y;
-    let headHeight = avatarHighestPos - decapitatePosition.y;
+    let headHeight = avatarHighestPos - neckPosition.y;
     const fov = 50 * ( Math.PI / 180 );
     let cameraZ = headHeight / 2 / Math.tan( fov / 2 );
     cameraZ *= 1.5; //multiply offset so that avatar does't fill the icon
