@@ -876,7 +876,7 @@ class Avatar {
 
     this.audioWorker = null;
     this.microphoneWorker = null;
-    this.volume = -1;
+    this.volume = 0;
 
     this.shoulderTransforms.Start();
     this.legsManager.Start();
@@ -1734,7 +1734,7 @@ class Avatar {
     };
 
     const _updateVisemes = () => {
-      const volumeValue = this.volume !== -1 ? Math.min(this.volume * 12, 1) : -1;
+      const volumeValue = Math.min(this.volume * 12, 1);
       // console.log('got volume value', this.volume, volumeValue);
       const blinkValue = this.blinker.update(now);
       for (const visemeMapping of this.skinnedMeshesVisemeMappings) {
@@ -2060,7 +2060,7 @@ class Avatar {
       this.audioWorker.addEventListener('volume', _volume);
       this.audioWorker.addEventListener('buffer', _buffer);
     } else {
-      this.volume = -1;
+      this.volume = 0;
     }
   }
   getAudioInput() {
@@ -2107,7 +2107,7 @@ class Avatar {
       this.microphoneWorker.addEventListener('volume', _volume);
       this.microphoneWorker.addEventListener('buffer', _buffer);
     } else {
-      this.volume = -1;
+      this.volume = 0;
     }
   }
   isMicrophoneEnabled() {
