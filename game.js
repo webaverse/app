@@ -387,6 +387,7 @@ const _startUse = () => {
     const useComponent = wearApp.getComponent('use');
     if (useComponent) {
       const localPlayer = playersManager.getLocalPlayer();
+      localPlayer.removeAction('dance');
       const useAction = localPlayer.getAction('use');
       if (!useAction) {
         const {instanceId} = wearApp;
@@ -1293,13 +1294,16 @@ class GameManager extends EventTarget {
     if (_getGrabbedObject(0)) {
       this.menuGridSnap();
     } else {
-      localPlayer.removeAction('dance');
+      const useAction = localPlayer.getAction('use');
+      if (!useAction){
+        localPlayer.removeAction('dance');
 
-      const newAction = {
-        type: 'dance',
-        animation: 'dansu',
-      };
-      localPlayer.addAction(newAction);
+        const newAction = {
+          type: 'dance',
+          animation: 'dansu',
+        };
+        localPlayer.addAction(newAction);
+      }
     }
   }
   menuVUp() {
