@@ -19,14 +19,13 @@ import * as voices from '../../../../voices.js';
 //
 import { loadCryptoAvatarsCharacters } from './cryptoavatars-loader.js';
 import { getMainnetAddress } from '../../../../blockchain.js';
-import npcManager from '../../../../npc-manager.js';
 
 function typeContentToUrl(type, content) {
-    if (typeof content === 'object') {
-        content = JSON.stringify(content);
-    }
-    const dataUrlPrefix = 'data:' + type + ',';
-    return '/@proxy/' + dataUrlPrefix + encodeURIComponent(content).replace(/\%/g, '%25')//.replace(/\\//g, '%2F');
+if (typeof content === 'object') {
+    content = JSON.stringify(content);
+}
+const dataUrlPrefix = 'data:' + type + ',';
+return '/@proxy/' + dataUrlPrefix + encodeURIComponent(content).replace(/\%/g, '%25')//.replace(/\\//g, '%2F');
 }
 
 const userTokenCharacters = Array(5);
