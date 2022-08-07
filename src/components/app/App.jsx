@@ -210,7 +210,9 @@ export const App = () => {
             if ( event.ctrlKey && event.code === 'KeyH' ) {
 
                 setUIMode( uiMode === 'normal' ? 'none' : 'normal' );
-                setPopupNotification('Press CTR+H to toggle the UI tools');
+                if(uiMode === 'normal') {
+                    setPopupNotification('Press CTRL + H to unhide UI');
+                }
                 return false;
 
             }

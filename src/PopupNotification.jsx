@@ -16,12 +16,15 @@ const PopupNotification = function ({
 
   React.useEffect(() => {
     if(popupNotification) {
+      const timeoutFade = setTimeout(() => {
+        ref.current.style.opacity = 0;
+      }, 3000)
       const timeout = setTimeout(() => {
         ref.current.style.opacity = 0;
         setPopupNotification(null);
-      }, 5000)
+      }, 3500)
       return () => {
-        clearTimeout(timeout);
+        clearTimeout(timeout,timeoutFade);
       };
     }
   }, [popupNotification])
