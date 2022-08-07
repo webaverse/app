@@ -67,16 +67,25 @@ const _getGrabbedObject = i => {
   return result;
 };
 
-const _unwearAppIfHasSitComponent = (player) => {
+const _isActionableOnSittableApp = (player, actionType) => {
+  let isActionable = true;
+
   const wearActions = player.getActionsByType('wear');
   for (const wearAction of wearActions) {
     const instanceId = wearAction.instanceId;
     const app = metaversefileApi.getAppByInstanceId(instanceId);
     const hasSitComponent = app.hasComponent('sit');
     if (hasSitComponent) {
-      app.unwear();
+      const actionable = app.getComponent(actionType + 'able');
+      if (!actionable) {
+        isActionable = false;
+      } else {
+        app.unwear();
+      }
     }
   }
+
+  return isActionable;
 }
 
 // returns whether we actually snapped
@@ -1411,9 +1420,11 @@ class GameManager extends EventTarget {
         time: 0,
       };
 
-      _unwearAppIfHasSitComponent(localPlayer);
+      const isFlyable = _isActionableOnSittableApp(localPlayer, 'fly');
 
-      localPlayer.setControlAction(flyAction);
+      if (isFlyable) {
+        localPlayer.setControlAction(flyAction);
+      }
     }
   }
   isCrouched() {
@@ -1492,9 +1503,9 @@ class GameManager extends EventTarget {
   ensureJump(trigger) {
     const localPlayer = playersManager.getLocalPlayer();
 
-    _unwearAppIfHasSitComponent(localPlayer);
+    const isJumpable = _isActionableOnSittableApp(localPlayer, 'jump');
 
-    if (!localPlayer.hasAction('jump') && !localPlayer.hasAction('fly') && !localPlayer.hasAction('fallLoop') && !localPlayer.hasAction('swim')) {
+    if (isJumpable && !localPlayer.hasAction('jump') && !localPlayer.hasAction('fly') && !localPlayer.hasAction('fallLoop') && !localPlayer.hasAction('swim')) {
       const newJumpAction = {
         type: 'jump',
         trigger:trigger,
