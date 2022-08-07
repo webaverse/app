@@ -596,6 +596,8 @@ export const MapGen = () => {
 
                   case 77: { // M
 
+                      break; // XXX
+
                       if ( state.openedPanel === 'MapGenPanel' ) {
 
                           setState({ openedPanel: null });
