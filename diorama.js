@@ -686,11 +686,9 @@ const createPlayerDiorama = ({
           }
           const targetQuaternion = localQuaternion.setFromEuler(targetEuler)
 
-          let scaleViewOffset = 1;
-
           sideCamera.position.copy(targetPosition)
             .add(
-              localVector2.set(cameraOffset.x * scaleViewOffset, 0, cameraOffset.z * scaleViewOffset)
+              localVector2.set(cameraOffset.x, 0, cameraOffset.z)
                 .applyQuaternion(targetQuaternion)
             );
           sideCamera.quaternion.setFromRotationMatrix(
@@ -701,7 +699,7 @@ const createPlayerDiorama = ({
             )
           );
           sideCamera.position.add(
-            localVector2.set(0, cameraOffset.y * scaleViewOffset, 0)
+            localVector2.set(0, cameraOffset.y, 0)
               .applyQuaternion(targetQuaternion)
           );
           
