@@ -582,6 +582,27 @@ const physxWorker = (() => {
 
     return newUpdates
   }
+  w.setTriggerPhysics = (physics, id) => {
+    return Module._setTriggerPhysics(
+      physics, id,
+    )
+  }
+  w.getTriggerEventsPhysics = (physics) => {
+    const triggerCount = Module._getTriggerEventsPhysics(
+      physics,
+      scratchStack.ptr,
+    )
+    const triggerEvents = [];
+    if (triggerCount > 0) {
+      for (let i = 0; i < triggerCount; i++) {
+        const status = scratchStack.u32[i * 3 + 0];
+        const triggerPhysicsId = scratchStack.u32[i * 3 + 1];
+        const otherPhysicsId = scratchStack.u32[i * 3 + 2];
+        triggerEvents.push({status, triggerPhysicsId, otherPhysicsId});
+      }
+    }
+    return triggerEvents;
+  }
 
   w.createMaterial = (physics, mat) => {
     const material = scratchStack.f32.subarray(0, 3);
@@ -596,7 +617,7 @@ const physxWorker = (() => {
     return materialAddress;
   };
   w.destroyMaterial = (physics, materialAddress) => {
-    Module._destroyMaterial(physics, materialAddress);
+    Module._destroyMaterialPhysics(physics, materialAddress);
   };
   w.getDefaultMaterial = (() => {
     let defaultMaterial = null;
@@ -1160,17 +1181,16 @@ const physxWorker = (() => {
       .copy(q)
       .premultiply(capsuleUpQuaternion)
       .toArray(scratchStack.f32, 3)
-    // physx.currentChunkMesh.matrixWorld.decompose(localVector, localQuaternion, localVector2);
-    localVector.set(0, 0, 0).toArray(scratchStack.f32, 7)
-    localQuaternion.set(0, 0, 0, 1).toArray(scratchStack.f32, 10)
+    // localVector.set(0, 0, 0).toArray(scratchStack.f32, 7)
+    // localQuaternion.set(0, 0, 0, 1).toArray(scratchStack.f32, 10)
 
     const positionOffset = scratchStack.f32.byteOffset
     const quaternionOffset =
       scratchStack.f32.byteOffset + 3 * Float32Array.BYTES_PER_ELEMENT
-    const meshPositionOffset =
-      scratchStack.f32.byteOffset + 7 * Float32Array.BYTES_PER_ELEMENT
-    const meshQuaternionOffset =
-      scratchStack.f32.byteOffset + 10 * Float32Array.BYTES_PER_ELEMENT
+    // const meshPositionOffset =
+    //   scratchStack.f32.byteOffset + 7 * Float32Array.BYTES_PER_ELEMENT
+    // const meshQuaternionOffset =
+    //   scratchStack.f32.byteOffset + 10 * Float32Array.BYTES_PER_ELEMENT
 
     const outputBufferOffset = Module._overlapCapsulePhysics(
       physics,
@@ -1178,8 +1198,8 @@ const physxWorker = (() => {
       halfHeight,
       positionOffset,
       quaternionOffset,
-      meshPositionOffset,
-      meshQuaternionOffset
+      // meshPositionOffset,
+      // meshQuaternionOffset
     )
 
     let head = outputBufferOffset / Float32Array.BYTES_PER_ELEMENT
@@ -1198,26 +1218,25 @@ const physxWorker = (() => {
   w.collideBoxPhysics = (physics, hx, hy, hz, p, q, maxIter) => {
     p.toArray(scratchStack.f32, 0)
     localQuaternion.copy(q).toArray(scratchStack.f32, 3)
-    // physx.currentChunkMesh.matrixWorld.decompose(localVector, localQuaternion, localVector2);
-    localVector.set(0, 0, 0).toArray(scratchStack.f32, 7)
-    localQuaternion.set(0, 0, 0, 1).toArray(scratchStack.f32, 10)
+    // localVector.set(0, 0, 0).toArray(scratchStack.f32, 7)
+    // localQuaternion.set(0, 0, 0, 1).toArray(scratchStack.f32, 10)
 
     const positionOffset = scratchStack.f32.byteOffset
     const quaternionOffset =
       scratchStack.f32.byteOffset + 3 * Float32Array.BYTES_PER_ELEMENT
-    const meshPositionOffset =
+    /* const meshPositionOffset =
       scratchStack.f32.byteOffset + 7 * Float32Array.BYTES_PER_ELEMENT
     const meshQuaternionOffset =
-      scratchStack.f32.byteOffset + 10 * Float32Array.BYTES_PER_ELEMENT
+      scratchStack.f32.byteOffset + 10 * Float32Array.BYTES_PER_ELEMENT; */
 
     const hitOffset =
-      scratchStack.f32.byteOffset + 14 * Float32Array.BYTES_PER_ELEMENT
+      scratchStack.f32.byteOffset + 7 * Float32Array.BYTES_PER_ELEMENT
     const directionOffset =
-      scratchStack.f32.byteOffset + 15 * Float32Array.BYTES_PER_ELEMENT
+      scratchStack.f32.byteOffset + 8 * Float32Array.BYTES_PER_ELEMENT
     const groundedOffset =
-      scratchStack.f32.byteOffset + 18 * Float32Array.BYTES_PER_ELEMENT
+      scratchStack.f32.byteOffset + 11 * Float32Array.BYTES_PER_ELEMENT
     const idOffset =
-      scratchStack.f32.byteOffset + 19 * Float32Array.BYTES_PER_ELEMENT
+      scratchStack.f32.byteOffset + 12 * Float32Array.BYTES_PER_ELEMENT
 
     Module._collideBoxPhysics(
       physics,
@@ -1226,8 +1245,8 @@ const physxWorker = (() => {
       hz,
       positionOffset,
       quaternionOffset,
-      meshPositionOffset,
-      meshQuaternionOffset,
+      // meshPositionOffset,
+      // meshQuaternionOffset,
       maxIter,
       hitOffset,
       directionOffset,
@@ -1256,10 +1275,10 @@ const physxWorker = (() => {
     const positionOffset = scratchStack.f32.byteOffset
     const quaternionOffset =
       scratchStack.f32.byteOffset + 3 * Float32Array.BYTES_PER_ELEMENT
-    const meshPositionOffset =
-      scratchStack.f32.byteOffset + 7 * Float32Array.BYTES_PER_ELEMENT
-    const meshQuaternionOffset =
-      scratchStack.f32.byteOffset + 10 * Float32Array.BYTES_PER_ELEMENT
+    // const meshPositionOffset =
+    //   scratchStack.f32.byteOffset + 7 * Float32Array.BYTES_PER_ELEMENT
+    // const meshQuaternionOffset =
+    //   scratchStack.f32.byteOffset + 10 * Float32Array.BYTES_PER_ELEMENT
 
     const hitOffset =
       scratchStack.f32.byteOffset + 14 * Float32Array.BYTES_PER_ELEMENT
@@ -1276,8 +1295,8 @@ const physxWorker = (() => {
       halfHeight,
       positionOffset,
       quaternionOffset,
-      meshPositionOffset,
-      meshQuaternionOffset,
+      // meshPositionOffset,
+      // meshQuaternionOffset,
       maxIter,
       hitOffset,
       directionOffset,
@@ -1299,21 +1318,23 @@ const physxWorker = (() => {
       .copy(q)
       .premultiply(capsuleUpQuaternion)
       .toArray(scratchStack.f32, 3)
-    localVector.set(0, 0, 0).toArray(scratchStack.f32, 7)
-    localQuaternion.set(0, 0, 0, 1).toArray(scratchStack.f32, 10)
+    // localVector.set(0, 0, 0).toArray(scratchStack.f32, 7)
+    // localQuaternion.set(0, 0, 0, 1).toArray(scratchStack.f32, 10)
 
     const positionOffset = scratchStack.f32.byteOffset
     const quaternionOffset =
       scratchStack.f32.byteOffset + 3 * Float32Array.BYTES_PER_ELEMENT
-    const meshPositionOffset =
+    const directionOffset =
       scratchStack.f32.byteOffset + 7 * Float32Array.BYTES_PER_ELEMENT
-    const meshQuaternionOffset =
-      scratchStack.f32.byteOffset + 10 * Float32Array.BYTES_PER_ELEMENT
+    // const meshPositionOffset =
+    //   scratchStack.f32.byteOffset + 7 * Float32Array.BYTES_PER_ELEMENT
+    // const meshQuaternionOffset =
+    //   scratchStack.f32.byteOffset + 10 * Float32Array.BYTES_PER_ELEMENT
 
     const hitOffset =
-      scratchStack.f32.byteOffset + 14 * Float32Array.BYTES_PER_ELEMENT
+      scratchStack.f32.byteOffset + 10 * Float32Array.BYTES_PER_ELEMENT
     const idOffset =
-      scratchStack.f32.byteOffset + 15 * Float32Array.BYTES_PER_ELEMENT
+      scratchStack.f32.byteOffset + 11 * Float32Array.BYTES_PER_ELEMENT
 
     Module._getCollisionObjectPhysics(
       physics,
@@ -1321,15 +1342,16 @@ const physxWorker = (() => {
       halfHeight,
       positionOffset,
       quaternionOffset,
-      meshPositionOffset,
-      meshQuaternionOffset,
+      directionOffset,
+      // meshPositionOffset,
+      // meshQuaternionOffset,
       hitOffset,
       idOffset
     )
 
-    return scratchStack.u32[14]
+    return scratchStack.u32[10]
       ? {
-          objectId: scratchStack.u32[15],
+          objectId: scratchStack.u32[11],
         }
       : null
   }
@@ -1585,7 +1607,7 @@ const physxWorker = (() => {
     const scaleBuffer = scratchStack.f32.subarray(7, 10)
     scale.toArray(scaleBuffer)
 
-    const shape = Module._createShapePhysics(
+    const shape = Module._createConvexShapePhysics(
       physics,
       buffer2.byteOffset,
       buffer2.byteLength,
@@ -2016,13 +2038,40 @@ const physxWorker = (() => {
     )
     allocator.freeAll()
   }
+  w.addPlaneGeometryPhysics = (
+    physics,
+    position,
+    quaternion,
+    id,
+    dynamic,
+  ) => {
+    const allocator = new Allocator(Module)
+    const p = allocator.alloc(Float32Array, 3)
+    const q = allocator.alloc(Float32Array, 4)
+
+    position.toArray(p)
+    quaternion.toArray(q)
+
+    const materialAddress = w.getDefaultMaterial(physics);
+
+    Module._addPlaneGeometryPhysics(
+      physics,
+      p.byteOffset,
+      q.byteOffset,
+      id,
+      materialAddress,
+      +dynamic,
+    )
+    allocator.freeAll()
+  }
   w.addBoxGeometryPhysics = (
     physics,
     position,
     quaternion,
     size,
     id,
-    dynamic
+    dynamic,
+    groupId = -1 // if not equal to -1, this BoxGeometry will not collide with CharacterController.
   ) => {
     const allocator = new Allocator(Module)
     const p = allocator.alloc(Float32Array, 3)
@@ -2042,7 +2091,8 @@ const physxWorker = (() => {
       s.byteOffset,
       id,
       materialAddress,
-      +dynamic
+      +dynamic,
+      groupId,
     )
     allocator.freeAll()
   }

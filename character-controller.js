@@ -1,7 +1,7 @@
 /*
 this file is responisible for maintaining player state that is network-replicated.
 */
-
+import {murmurhash3} from './procgen/murmurhash3.js';
 import {WsAudioDecoder} from 'wsrtc/ws-codec.js';
 import {ensureAudioContext, getAudioContext} from 'wsrtc/ws-audio-context.js';
 import {getAudioDataBuffer} from 'wsrtc/ws-util.js';
@@ -574,6 +574,7 @@ class StatePlayer extends PlayerBase {
     super();
 
     this.playerId = playerId;
+    this.playerIdInt = murmurhash3(playerId);
     this.playersArray = null;
     this.playerMap = null;
     this.microphoneMediaStream = null;
@@ -583,7 +584,6 @@ class StatePlayer extends PlayerBase {
     this.unbindFns = [];
     
     this.transform = new Float32Array(7);
-
     this.bindState(playersArray);
   }
   isBound() {
@@ -649,13 +649,11 @@ class StatePlayer extends PlayerBase {
     
     // blindly add to new state
     this.playersArray = nextPlayersArray;
-    if (this.playersArray) {
-      this.attachState(oldState);
-      this.bindCommonObservers();
-    }
+    this.attachState(oldState);
+    this.bindCommonObservers();
   }
   getAvatarInstanceId() {
-    return this.playerMap?.get('avatar');
+    return this.playerMap.get('avatar');
   }
   // serializers
   getPosition() {
@@ -671,7 +669,6 @@ class StatePlayer extends PlayerBase {
     }
     const cancelFn = makeCancelFn();
     this.syncAvatarCancelFn = cancelFn;
-    
     const instanceId = this.getAvatarInstanceId();
     
     // remove last app
@@ -751,6 +748,11 @@ class StatePlayer extends PlayerBase {
     if (this.characterController) {
       this.characterPhysics.setPosition(position);
     }
+  }
+  getActionsByType(type) {
+   const actions = this.getActionsState(); 
+   const typedActions = Array.from(actions).filter(action => action.type === type);
+   return typedActions;
   }
   getActions() {
     return this.getActionsState();
@@ -856,7 +858,7 @@ class StatePlayer extends PlayerBase {
       }
       
       const avatar = self.getAvatarInstanceId();
-      if (j?.avatar?.instanceId) {
+      if (avatar) {
         this.playerMap.set('avatar', avatar);
       }
       
@@ -889,13 +891,14 @@ class InterpolatedPlayer extends StatePlayer {
       narutoRun: new BinaryInterpolant(() => this.hasAction('narutoRun'), avatarInterpolationTimeDelay, avatarInterpolationNumFrames),
       fly: new BinaryInterpolant(() => this.hasAction('fly'), avatarInterpolationTimeDelay, avatarInterpolationNumFrames),
       jump: new BinaryInterpolant(() => this.hasAction('jump'), avatarInterpolationTimeDelay, avatarInterpolationNumFrames),
+      doubleJump: new BinaryInterpolant(() => this.hasAction('doubleJump'), avatarInterpolationTimeDelay, avatarInterpolationNumFrames),
       land: new BinaryInterpolant(() => this.hasAction('land'), avatarInterpolationTimeDelay, avatarInterpolationNumFrames),
       dance: new BinaryInterpolant(() => this.hasAction('dance'), avatarInterpolationTimeDelay, avatarInterpolationNumFrames),
       emote: new BinaryInterpolant(() => this.hasAction('emote'), avatarInterpolationTimeDelay, avatarInterpolationNumFrames),
       // throw: new BinaryInterpolant(() => this.hasAction('throw'), avatarInterpolationTimeDelay, avatarInterpolationNumFrames),
       // chargeJump: new BinaryInterpolant(() => this.hasAction('chargeJump'), avatarInterpolationTimeDelay, avatarInterpolationNumFrames),
       // standCharge: new BinaryInterpolant(() => this.hasAction('standCharge'), avatarInterpolationTimeDelay, avatarInterpolationNumFrames),
-      // fallLoop: new BinaryInterpolant(() => this.hasAction('fallLoop'), avatarInterpolationTimeDelay, avatarInterpolationNumFrames),
+      fallLoop: new BinaryInterpolant(() => this.hasAction('fallLoop'), avatarInterpolationTimeDelay, avatarInterpolationNumFrames),
       // swordSideSlash: new BinaryInterpolant(() => this.hasAction('swordSideSlash'), avatarInterpolationTimeDelay, avatarInterpolationNumFrames),
       // swordTopDownSlash: new BinaryInterpolant(() => this.hasAction('swordTopDownSlash'), avatarInterpolationTimeDelay, avatarInterpolationNumFrames),
       hurt: new BinaryInterpolant(() => this.hasAction('hurt'), avatarInterpolationTimeDelay, avatarInterpolationNumFrames),
@@ -913,8 +916,10 @@ class InterpolatedPlayer extends StatePlayer {
       narutoRun: new InfiniteActionInterpolant(() => this.actionBinaryInterpolants.narutoRun.get(), 0),
       fly: new InfiniteActionInterpolant(() => this.actionBinaryInterpolants.fly.get(), 0),
       jump: new InfiniteActionInterpolant(() => this.actionBinaryInterpolants.jump.get(), 0),
+      doubleJump: new InfiniteActionInterpolant(() => this.actionBinaryInterpolants.doubleJump.get(), 0),
       land: new InfiniteActionInterpolant(() => this.actionBinaryInterpolants.land.get(), 0),
       fallLoop: new InfiniteActionInterpolant(() => this.hasAction('fallLoop'), 0),
+      fallLoopTransition: new BiActionInterpolant(() => this.actionBinaryInterpolants.fallLoop.get(), 0, 300),
       dance: new InfiniteActionInterpolant(() => this.actionBinaryInterpolants.dance.get(), 0),
       emote: new InfiniteActionInterpolant(() => this.actionBinaryInterpolants.emote.get(), 0),
       // throw: new UniActionInterpolant(() => this.actionBinaryInterpolants.throw.get(), 0, throwMaxTime),
@@ -944,8 +949,8 @@ class InterpolatedPlayer extends StatePlayer {
       quaternion: this.quaternionInterpolant.get(),
     };
   }
-  update(timestamp, timeDiff) {
-    if(!this.avatar) return; // avatar takes time to load, ignore until it does
+  /* update(timestamp, timeDiff) {
+    if (!this.avatar) return; // avatar takes time to load, ignore until it does
 
     this.updateInterpolation(timeDiff);
 
@@ -960,7 +965,7 @@ class InterpolatedPlayer extends StatePlayer {
     this.characterBehavior.update(timestamp, timeDiffS);
 
     this.avatar.update(timestamp, timeDiff);
-  }
+  } */
   updateInterpolation(timeDiff) {
     this.positionInterpolant.update(timeDiff);
     this.quaternionInterpolant.update(timeDiff);
@@ -992,7 +997,8 @@ class UninterpolatedPlayer extends StatePlayer {
       fly: new InfiniteActionInterpolant(() => this.hasAction('fly'), 0),
       swim: new InfiniteActionInterpolant(() => this.hasAction('swim'), 0),
       jump: new InfiniteActionInterpolant(() => this.hasAction('jump'), 0),
-      land: new InfiniteActionInterpolant(() => !this.hasAction('jump') && !this.hasAction('fallLoop'), 0),
+      doubleJump: new InfiniteActionInterpolant(() => this.hasAction('doubleJump'), 0),
+      land: new InfiniteActionInterpolant(() => !this.hasAction('jump') && !this.hasAction('fallLoop') && !this.hasAction('fly'), 0),
       dance: new BiActionInterpolant(() => this.hasAction('dance'), 0, crouchMaxTime),
       emote: new BiActionInterpolant(() => this.hasAction('emote'), 0, crouchMaxTime),
       movements: new InfiniteActionInterpolant(() => {
@@ -1011,6 +1017,7 @@ class UninterpolatedPlayer extends StatePlayer {
       // chargeJump: new InfiniteActionInterpolant(() => this.hasAction('chargeJump'), 0),
       // standCharge: new InfiniteActionInterpolant(() => this.hasAction('standCharge'), 0),
       fallLoop: new InfiniteActionInterpolant(() => this.hasAction('fallLoop'), 0),
+      fallLoopTransition: new BiActionInterpolant(() => this.hasAction('fallLoop'), 0, 300),
       // swordSideSlash: new InfiniteActionInterpolant(() => this.hasAction('swordSideSlash'), 0),
       // swordTopDownSlash: new InfiniteActionInterpolant(() => this.hasAction('swordTopDownSlash'), 0),
       hurt: new InfiniteActionInterpolant(() => this.hasAction('hurt'), 0),
@@ -1070,8 +1077,11 @@ class LocalPlayer extends UninterpolatedPlayer {
     const self = this;
     this.playersArray.doc.transact(function tx() {
       const oldInstanceId = self.playerMap.get('avatar');
-      
-      self.playerMap.set('avatar', app.instanceId);
+      if(app.instanceId){
+        self.playerMap.set('avatar', app.instanceId);
+      } else {
+        throw new Error('app.instanceId is null');
+      }
 
       if (oldInstanceId) {
         self.appManager.removeTrackedAppInternal(oldInstanceId);
@@ -1114,7 +1124,7 @@ class LocalPlayer extends UninterpolatedPlayer {
     const self = this;
     this.playersArray.doc.transact(function tx() {
       self.playerMap = new Z.Map();
-      self.playersArray.push([self.playerMap]);
+
       self.playerMap.set('playerId', self.playerId);
 
       self.position.toArray(self.transform, 0);
@@ -1139,12 +1149,16 @@ class LocalPlayer extends UninterpolatedPlayer {
       if (oldAvatar !== undefined && oldAvatar !== null && oldAvatar !== '') {
         self.playerMap.set('avatar', oldAvatar);
       }
+
+      if(self.voiceEndpoint) {
+        const voiceSpec = JSON.stringify({audioUrl: self.voiceEndpoint.audioUrl, indexUrl: self.voiceEndpoint.indexUrl, endpointUrl: self.voiceEndpoint ? self.voiceEndpoint.url : ''});
+        self.playerMap.set('voiceSpec', voiceSpec);
+      }
+      self.playersArray.push([self.playerMap]);
+      self.appManager.bindState(self.getAppsState());
     });
-    
-    this.appManager.bindState(this.getAppsState());
   }
   grab(app, hand = 'left') {
-    const localPlayer = metaversefile.useLocalPlayer();
     const {position, quaternion} = _getSession() ?
       localPlayer[hand === 'left' ? 'leftHand' : 'rightHand']
     :
@@ -1162,7 +1176,7 @@ class LocalPlayer extends UninterpolatedPlayer {
         .premultiply(localMatrix2.compose(position, quaternion, localVector.set(1, 1, 1)).invert())
         .toArray()
     };
-    localPlayer.addAction(grabAction);
+    this.addAction(grabAction);
     
     const physicsObjects = app.getPhysicsObjects();
     for (const physicsObject of physicsObjects) {
@@ -1213,12 +1227,12 @@ class LocalPlayer extends UninterpolatedPlayer {
   pushPlayerUpdates() {
     const self = this;
     this.playersArray.doc.transact(() => {
-      /* if (isNaN(this.position.x) || isNaN(this.position.y) || isNaN(this.position.z)) {
-        debugger;
-      } */
-      self.position.toArray(self.transform);      
-      self.quaternion.toArray(self.transform, 3);
-      self.playerMap.set('transform', self.transform);
+      if (!this.matrixWorld.equals(this.lastMatrix)) {
+        self.position.toArray(self.transform);      
+        self.quaternion.toArray(self.transform, 3);
+        self.playerMap.set('transform', self.transform);
+        this.lastMatrix.copy(this.matrixWorld);
+      }
     }, 'push');
 
     this.appManager.updatePhysics();
@@ -1344,7 +1358,7 @@ class RemotePlayer extends InterpolatedPlayer {
     if (index !== -1) {
       this.playerMap = this.playersArray.get(index, Z.Map);
     } else {
-      console.warn('binding to nonexistent player object', this.playersArray.toJSON());
+      throw new Error('binding to nonexistent player object', this.playersArray.toJSON());
     }
     let lastTimestamp = performance.now();
     let lastPosition = new THREE.Vector3();
@@ -1382,20 +1396,31 @@ class RemotePlayer extends InterpolatedPlayer {
           actionBinaryInterpolant.snapshot(timeDiff);
         }
 
-        this.avatar?.setVelocity(
-          timeDiff / 1000,
-          this.lastPosition,
-          this.positionInterpolant.get(),
-          this.quaternionInterpolant.get()
-          );
+        if(this.avatar){
+          localVector.copy(this.position);
+          localVector.y -= this.avatar.height * 0.5;
+          physicsScene.setCharacterControllerPosition(this.characterController, localVector);
+          
+          this.avatar.setVelocity(
+            timeDiff / 1000,
+            this.lastPosition,
+            this.positionInterpolant.get(),
+            this.quaternionInterpolant.get()
+            );
+          }
         this.lastPosition.copy(this.position);
       }
     }
     this.playerMap.observe(observePlayerFn);
     this.unbindFns.push(this.playerMap.unobserve.bind(this.playerMap, observePlayerFn));
-
     this.appManager.bindState(this.getAppsState());
-    this.syncAvatar();
+    this.appManager.loadApps().then(() => {
+      if(!this.voicer || !this.voiceEndpoint){
+        let voiceSpec = JSON.parse(this.playerMap.get('voiceSpec'));
+        this.loadVoiceEndpoint(voiceSpec.endpointUrl);
+      }
+      this.syncAvatar();
+    });
   }
   update(timestamp, timeDiff) {
     if(!this.avatar) return // console.log("no avatar"); // avatar takes time to load, ignore until it does

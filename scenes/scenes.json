@@ -33,10 +33,12 @@
   "range.scn",
   "stage.scn",
   "theatre_Piano.scn",
+  "trigger.scn",
   "crypt.scn",
   "spacepod.scn",
   "plaza.scn",
   "wind-sample.scn",
   "snow-city.scn",
-  "traffic.scn"
+  "traffic.scn",
+  "asteroids-game.scn"
 ]

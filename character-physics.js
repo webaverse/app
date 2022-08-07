@@ -43,6 +43,7 @@ class CharacterPhysics {
 
     this.velocity = new THREE.Vector3();
     this.lastGrounded = null;
+    this.lastGroundedTime = 0;
     this.lastCharacterControllerY = null;
     this.sitOffset = new THREE.Vector3();
    
@@ -88,10 +89,19 @@ class CharacterPhysics {
 
       const jumpAction = this.player.getAction('jump');
       if (jumpAction?.trigger === 'jump') {
-        const jumpTime = this.player.actionInterpolants.jump.get();
-        localVector3.y = Math.sin(jumpTime * (Math.PI / flatGroundJumpAirTime)) * jumpHeight + jumpAction.startPositionY - this.lastCharacterControllerY;
-        if (jumpTime >= flatGroundJumpAirTime) {
-          this.player.setControlAction({type: 'fallLoop'});
+        const doubleJumpAction = this.player.getAction('doubleJump');
+        if (doubleJumpAction) {
+          const doubleJumpTime = this.player.actionInterpolants.doubleJump.get();
+          localVector3.y = Math.sin(doubleJumpTime * (Math.PI / flatGroundJumpAirTime)) * jumpHeight + doubleJumpAction.startPositionY - this.lastCharacterControllerY;
+          if (doubleJumpTime >= flatGroundJumpAirTime) {
+            this.player.setControlAction({type: 'fallLoop', from: 'jump'});
+          }
+        } else {
+          const jumpTime = this.player.actionInterpolants.jump.get();
+          localVector3.y = Math.sin(jumpTime * (Math.PI / flatGroundJumpAirTime)) * jumpHeight + jumpAction.startPositionY - this.lastCharacterControllerY;
+          if (jumpTime >= flatGroundJumpAirTime) {
+            this.player.setControlAction({type: 'fallLoop', from: 'jump'});
+          }
         }
       }
         
@@ -157,16 +167,26 @@ class CharacterPhysics {
         }
 
         if (grounded) {
+          this.lastGroundedTime = now;
           if (!this.lastGrounded) {
             if (this.player.hasAction('jump') || this.player.hasAction('fallLoop')) {
-              this.player.setControlAction({type: 'land', time: now});
+              this.player.setControlAction({
+                type: 'land',
+                time: now,
+                isMoving: this.player.avatar.idleWalkFactor > 0,
+              });
+              this.player.removeAction('doubleJump');
             }
           };
 
           this.velocity.y = -1;
         } else {
-          if (!this.player.hasAction('fallLoop') && !this.player.hasAction('jump') && !this.player.hasAction('fly') && !this.player.hasAction('swim')) {
-            this.player.setControlAction({type: 'fallLoop'});
+          const lastGroundedTimeDiff = now - this.lastGroundedTime;
+          if (lastGroundedTimeDiff > 200) {
+            if (!this.player.hasAction('fallLoop') && !this.player.hasAction('jump') && !this.player.hasAction('fly') && !this.player.hasAction('swim')) {
+              this.player.setControlAction({type: 'fallLoop'});
+              this.velocity.y = 0;
+            }
           }
         }
       } else {

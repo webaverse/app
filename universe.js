@@ -14,7 +14,6 @@ import physicsManager from './physics-manager.js';
 import physxWorkerManager from './physx-worker-manager.js';
 import physx from './physx.js';
 import {playersManager} from './players-manager.js';
-import {getLocalPlayer} from './players.js';
 import sceneNames from './scenes/scenes.json';
 import {parseQuery} from './util.js';
 import {world} from './world.js';
@@ -135,6 +134,7 @@ class Universe extends EventTarget {
   // called by enterWorld() in universe.js
   // This is called in single player mode instead of connectRoom
   connectState(state) {
+    this.state = state;
     state.setResolvePriority(1);
     playersManager.clearRemotePlayers();
     playersManager.bindState(state.getArray(playersMapName));
@@ -145,7 +145,7 @@ class Universe extends EventTarget {
 
     world.appManager.bindState(appsArray);
 
-    const localPlayer = getLocalPlayer();
+    const localPlayer = playersManager.getLocalPlayer();
     localPlayer.bindState(state.getArray(playersMapName));
   }
 
@@ -153,11 +153,12 @@ class Universe extends EventTarget {
   // This is called when a user joins a multiplayer room
   // either from single player or directly from a link
   async connectRoom(u, state = new Z.Doc()) {
+    this.state = state;
     // Players cannot be initialized until the physx worker is loaded
     // Otherwise you will receive allocation errors because the module instance is undefined
     await physx.waitForLoad();
     await physxWorkerManager.waitForLoad();
-    const localPlayer = getLocalPlayer();
+    const localPlayer = playersManager.getLocalPlayer();
 
     state.setResolvePriority(1);
 

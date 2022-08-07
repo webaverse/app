@@ -21,7 +21,7 @@ import cameraManager from './camera-manager.js';
 import npcManager from './npc-manager.js';
 import {chatManager} from './chat-manager.js';
 import {mod} from './util.js';
-import {getLocalPlayer} from './players.js';
+import {playersManager} from './players-manager.js';
 import {alea} from './procgen/procgen.js';
 
 import { triggerEmote } from './src/components/general/character/Poses.jsx';
@@ -428,7 +428,7 @@ story.handleWheel = e => {
 };
 
 const _startConversation = (comment, remotePlayer, done) => {
-  const localPlayer = getLocalPlayer();
+  const localPlayer = playersManager.getLocalPlayer();
   currentConversation = new Conversation(localPlayer, remotePlayer);
   currentConversation.addEventListener('close', () => {
     currentConversation = null;
@@ -519,7 +519,7 @@ story.startCinematicIntro = () => {
   };
 
   const range = 30;
-  const localPlayer = getLocalPlayer();
+  const localPlayer = playersManager.getLocalPlayer();
   const center = localPlayer.position.clone()
     .add(
       new THREE.Vector3(0, range/4, 0)

@@ -921,6 +921,9 @@ class Avatar {
     this.unuseAnimation = null;
     this.unuseTime = -1;
     
+    this.idleWalkFactor = NaN;
+    this.walkRunFactor = NaN;
+    this.crouchFactor = NaN;
     this.sitState = false;
     this.sitAnimation = null;
     // this.activateState = false;
@@ -956,6 +959,7 @@ class Avatar {
     // this.standChargeTime = 0;
     this.fallLoopState = false;
     this.fallLoopTime = 0;
+    this.fallLoopFactor = 0;
     // this.swordSideSlashState = false;
     // this.swordSideSlashTime = 0;
     // this.swordTopDownSlashState = false;
@@ -1517,10 +1521,9 @@ class Avatar {
 
     const currentSpeed = localVector.set(this.velocity.x, 0, this.velocity.z).length();
 
-    const moveFactors = {};
-    moveFactors.idleWalkFactor = Math.min(Math.max((currentSpeed - idleFactorSpeed) / (walkFactorSpeed - idleFactorSpeed), 0), 1);
-    moveFactors.walkRunFactor = Math.min(Math.max((currentSpeed - walkFactorSpeed) / (runFactorSpeed - walkFactorSpeed), 0), 1);
-    moveFactors.crouchFactor = Math.min(Math.max(1 - (this.crouchTime / crouchMaxTime), 0), 1);
+    this.idleWalkFactor = Math.min(Math.max((currentSpeed - idleFactorSpeed) / (walkFactorSpeed - idleFactorSpeed), 0), 1);
+    this.walkRunFactor = Math.min(Math.max((currentSpeed - walkFactorSpeed) / (runFactorSpeed - walkFactorSpeed), 0), 1);
+    this.crouchFactor = Math.min(Math.max(1 - (this.crouchTime / crouchMaxTime), 0), 1);
     // console.log('current speed', currentSpeed, idleWalkFactor, walkRunFactor);
     this.aimRightFactor = this.aimRightTransitionTime / aimTransitionMaxTime;
     this.aimRightFactorReverse = 1 - this.aimRightFactor;
@@ -1934,7 +1937,7 @@ class Avatar {
         this.inputs.hmd.quaternion
       );
     }
-    _applyAnimation(this, now, moveFactors, timeDiffS);
+    _applyAnimation(this, now);
 
     if (this.poseAnimation) {
       _overwritePose(this.poseAnimation);

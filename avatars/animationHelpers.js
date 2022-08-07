@@ -60,6 +60,7 @@ let animations;
 let animationStepIndices;
 // let animationsBaseModel;
 let jumpAnimation;
+let doubleJumpAnimation;
 let fallLoopAnimation;
 let floatAnimation;
 let useAnimations;
@@ -306,6 +307,7 @@ export const loadPromise = (async () => {
   // swordTopDownSlash = animations.find(a => a.isSwordTopDownSlash)
 
   jumpAnimation = animations.find(a => a.isJump);
+  doubleJumpAnimation = animations.find(a => a.isDoubleJump);
   fallLoopAnimation = animations.index['falling.fbx'];
   // sittingAnimation = animations.find(a => a.isSitting);
   floatAnimation = animations.find(a => a.isFloat);
@@ -410,12 +412,12 @@ export const loadPromise = (async () => {
   console.log('load avatar animations error', err);
 });
 
-export const _applyAnimation = (avatar, now, moveFactors, timeDiffS) => {
+export const _applyAnimation = (avatar, now) => {
   // const runSpeed = 0.5;
   const angle = avatar.getAngle();
   const timeSeconds = now / 1000;
   const landTimeSeconds = timeSeconds - avatar.lastLandStartTime / 1000 + 0.8; // in order to align landing 2.fbx with walk/run
-  const {idleWalkFactor, walkRunFactor, crouchFactor} = moveFactors;
+  const {idleWalkFactor, walkRunFactor, crouchFactor} = avatar;
 
   /* const _getAnimationKey = crouchState => {
     if (crouchState) {
@@ -760,6 +762,23 @@ export const _applyAnimation = (avatar, now, moveFactors, timeDiffS) => {
     _getHorizontalBlend(k, lerpFn, isPosition, dst);
   };
   const _getApplyFn = () => {
+    if (avatar.doubleJumpState) {
+      return spec => {
+        const {
+          animationTrackName: k,
+          dst,
+          isPosition,
+        } = spec;
+
+        const t2 = avatar.doubleJumpTime / 1000;
+        const src2 = doubleJumpAnimation.interpolants[k];
+        const v2 = src2.evaluate(t2);
+
+        dst.fromArray(v2);
+
+        _clearXZ(dst, isPosition);
+      };
+    }
     if (avatar.jumpState) {
       return spec => {
         const {
@@ -785,25 +804,6 @@ export const _applyAnimation = (avatar, now, moveFactors, timeDiffS) => {
           const v2 = src2.evaluate(t2);
           dst.fromArray(v2);
         }
-      };
-    }
-
-    if (avatar.fallLoopState) {
-      return spec => {
-        const {
-          animationTrackName: k,
-          dst,
-          // isTop,
-          isPosition,
-        } = spec;
-
-        const t2 = (avatar.fallLoopTime / 1000);
-        const src2 = fallLoopAnimation.interpolants[k];
-        const v2 = src2.evaluate(t2);
-
-        dst.fromArray(v2);
-
-        _clearXZ(dst, isPosition);
       };
     }
 
@@ -1238,7 +1238,7 @@ export const _applyAnimation = (avatar, now, moveFactors, timeDiffS) => {
       isPosition,
     } = spec;
 
-    if (idleWalkFactor === 0) {
+    if (!avatar.landWithMoving) {
       const animationSpeed = 0.75;
       const landTimeS = avatar.landTime / 1000;
       const landingAnimation = animations.index['landing.fbx'];
@@ -1274,29 +1274,54 @@ export const _applyAnimation = (avatar, now, moveFactors, timeDiffS) => {
         const src2 = landingAnimation.interpolants[k];
         const v2 = src2.evaluate(t2);
 
-        const t3 = landTimeS * animationSpeed;
-        const src3 = fallLoopAnimation.interpolants[k];
-        const v3 = src3.evaluate(t3);
-
+        /* Calculating the time since the player landed on the ground. */
         let f3 = landTimeS / 0.1;
         f3 = MathUtils.clamp(f3, 0, 1);
 
+        /* Calculating the time remaining until the landing animation is complete. */
         let f2 = (landingAnimationDuration - landTimeS) / 0.15;
         f2 = MathUtils.clamp(f2, 0, 1);
 
+        const f = Math.min(f3, f2);
+
         if (!isPosition) {
-          localQuaternion3.fromArray(v3);
           localQuaternion2.fromArray(v2);
-          localQuaternion3.slerp(localQuaternion2, f3);
-          dst.slerp(localQuaternion3, f2);
+          dst.slerp(localQuaternion2, f);
         } else {
-          localVector3.fromArray(v3);
           localVector2.fromArray(v2);
-          localVector3.lerp(localVector2, f3);
-          dst.lerp(localVector3, f2);
+          dst.lerp(localVector2, f);
           _clearXZ(dst, isPosition);
         }
       }
+    }
+  };
+
+  const _blendFallLoop = spec => {
+    const {
+      animationTrackName: k,
+      dst,
+      isPosition,
+      lerpFn,
+    } = spec;
+
+    if (avatar.fallLoopFactor > 0) {
+      const t2 = (avatar.fallLoopTime / 1000);
+      const src2 = fallLoopAnimation.interpolants[k];
+      const v2 = src2.evaluate(t2);
+      const f = MathUtils.clamp(t2 / 0.3, 0, 1);
+
+      if (avatar.fallLoopFrom === 'jump') {
+        dst.fromArray(v2);
+      } else {
+        lerpFn
+          .call(
+            dst,
+            localQuaternion.fromArray(v2),
+            f,
+          );
+      }
+
+      _clearXZ(dst, isPosition);
     }
   };
 
@@ -1366,12 +1391,14 @@ export const _applyAnimation = (avatar, now, moveFactors, timeDiffS) => {
     } = spec;
 
     if (avatar.activateTime > 0) {
-      const localPlayer = metaversefile.useLocalPlayer();
+      const player = metaversefile.getPlayerByAppInstanceId(avatar.app.getComponent('instanceId'));
 
       let defaultAnimation = 'grab_forward';
 
-      const activateAction = localPlayer.getAction('activate');
-      if (activateAction.animationName) {
+      const activateAction = player && player.getAction('activate');
+      // the action can be unset on remote player while this is still happening
+      // null check to prevent a frame of empty action at the end of the pickup
+      if (activateAction && activateAction.animationName) {
         defaultAnimation = activateAction.animationName;
       }
 
@@ -1400,17 +1427,18 @@ export const _applyAnimation = (avatar, now, moveFactors, timeDiffS) => {
     } = spec;
 
     applyFn(spec);
-    _blendLand(spec);
     _blendFly(spec);
+    _blendFallLoop(spec);
+    _blendLand(spec);
     _blendActivateAction(spec);
     _blendSwim(spec);
 
     // ignore all animation position except y
     if (isPosition) {
-      if (avatar.swimState || (!avatar.jumpState && !avatar.fallLoopState)) {
+      if (avatar.swimState) {
         // animations position is height-relative
         dst.y *= avatar.height; // XXX avatar could be made perfect by measuring from foot to hips instead
-      } else if (avatar.jumpState) {
+      } else if (avatar.jumpState || avatar.doubleJumpState || avatar.fallLoopState) {
         // force height in the jump case to overide the animation
         dst.y = avatar.height * 0.55;
       } else {

@@ -2,11 +2,11 @@ import * as THREE from 'three';
 import Avatar from './avatars/avatars.js';
 import physicsManager from './physics-manager.js';
 import {LocalPlayer} from './character-controller.js';
-import {getLocalPlayer, remotePlayers} from './players.js';
+import {playersManager} from './players-manager.js';
 import * as voices from './voices.js';
 import {world} from './world.js';
 import {chatManager} from './chat-manager.js';
-import {createRelativeUrl} from './util.js';
+import {makeId, createRelativeUrl} from './util.js';
 import { triggerEmote } from './src/components/general/character/Poses.jsx';
 import validEmotionMapping from "./validEmotionMapping.json";
 
@@ -79,7 +79,7 @@ class NpcManager extends EventTarget {
   }
 
   async addNpcApp(app, srcUrl) {
-    const localPlayer = getLocalPlayer();
+    const localPlayer = playersManager.getLocalPlayer();
 
     let live = true;
     let json = null;
@@ -229,9 +229,18 @@ class NpcManager extends EventTarget {
           bio: npcBio,
         });
         character.addEventListener('say', e => {
-          console.log('got character say', e.data);
           const {message, emote, action, object, target} = e.data;
-          chatManager.addPlayerMessage(npcPlayer, message);
+          const chatId = makeId(5);
+
+          const m = {
+            type: 'chat',
+            chatId,
+            playerId: localPlayer.playerId,
+            playerName: localPlayer.name,
+            message,
+          };
+
+          chatManager.addPlayerMessage(npcPlayer, m);
           if (emote !== 'none' && validEmotionMapping[emote]!== undefined) {
             triggerEmote(validEmotionMapping[emote], npcPlayer);
           }
@@ -289,15 +298,14 @@ class NpcManager extends EventTarget {
 
       // voice endpoint setup
       const _setVoiceEndpoint = () => {
-        const voice = voices.voiceEndpoints.find(v => v.name === npcVoiceName);
+        const voice = voices.voiceEndpoints.find(v => v.name.toLowerCase().replaceAll(' ', '') === npcVoiceName.toLowerCase().replaceAll(' ', ''));
         if (voice) {
           newNpcPlayer.setVoiceEndpoint(voice.drive_id);
         } else {
-          console.warn('unknown voice name', npcVoiceName, voices.voiceEndpoints);
+          console.error('*** unknown voice name', npcVoiceName, voices.voiceEndpoints);
         }
       };
       _setVoiceEndpoint();
-
       // wearables
       const _updateWearables = async () => {
         const wearablePromises = npcWear.map(wear => (async () => {
