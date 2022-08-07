@@ -1688,7 +1688,6 @@ class GameManager extends EventTarget {
         e.avatar.model,
       ]);
       let neckBone;
-      
       e.avatar.model.traverse(
         (object) => {
           // changed the === "Head" to includes('Head') as 

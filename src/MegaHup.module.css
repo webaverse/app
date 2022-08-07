@@ -1,7 +1,7 @@
 .megaHup {
   display: flex;
   position: fixed;
-  top: -200px;
+  bottom: 0;
   right: -35%;
   flex-direction: column;
   /* position: absolute;
