@@ -185,7 +185,7 @@ class PlayerBase extends THREE.Object3D {
     this.appManager.addEventListener('appremove', e => {
       if (!this.detached) {
         const app = e.data;
-        app.parent.remove(app);
+        app.parent && app.parent.remove(app);
       }
     });
 
@@ -758,16 +758,12 @@ class StatePlayer extends PlayerBase {
     return this.getActionsState();
   }
   getActionsState() {
-    try {
-      let actionsArray = this.playerMap.has(actionsMapName) ? this.playerMap.get(actionsMapName, Z.Array) : null;
-      if (!actionsArray) {
-        actionsArray = new Z.Array();
-        this.playerMap.set(actionsMapName, actionsArray);
-      }
-      return actionsArray;
-    } catch (e) {
-      console.error(e);
+    let actionsArray = this.playerMap.has(actionsMapName) ? this.playerMap.get(actionsMapName, Z.Array) : null;
+    if (!actionsArray) {
+      actionsArray = new Z.Array();
+      this.playerMap.set(actionsMapName, actionsArray);
     }
+    return actionsArray;
   }
   getActionsArray() {
     return this.isBound() ? Array.from(this.getActionsState()) : [];
@@ -871,9 +867,11 @@ class StatePlayer extends PlayerBase {
     });
   }
   destroy() {
-    this.appManager.unbindState();
-    this.appManager.destroy();
     this.unbindState();
+    this.appManager.unbindState();
+
+    this.appManager.destroy();
+  
     super.destroy();
   }
 }
