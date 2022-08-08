@@ -292,7 +292,7 @@ class SwirlPass extends Pass {
 		const openStartTime = 3;
 		if (uTime < openStartTime) {
 			this.swirlMaterial.uniforms[ 'tDiffuse' ].value = this.first ?
-				readBuffer // screen
+				readBuffer.texture // screen
 			:
 				this.ssaoRenderTargets[0].texture; // feedback
 			this.swirlMaterial.uniforms[ 'tDiffuse' ].needsUpdate = true;
@@ -303,7 +303,7 @@ class SwirlPass extends Pass {
 			this.swirlMaterial.blending = NoBlending;
 			this.renderPass( renderer, this.swirlMaterial, this.ssaoRenderTargets[1] );
 		} else {
-			this.openMaterial.uniforms[ 'tDiffuse' ].value = readBuffer; // screen
+			this.openMaterial.uniforms[ 'tDiffuse' ].value = readBuffer.texture; // screen
 			this.openMaterial.uniforms[ 'tDiffuse' ].needsUpdate = true;
 
 			this.openMaterial.uniforms[ 'uTime' ].value = uTime - openStartTime;
