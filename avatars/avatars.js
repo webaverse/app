@@ -1981,6 +1981,7 @@ class Avatar {
     // update wind in simulation
     const _updateWind = () =>{
       const headPosition = localVector.setFromMatrixPosition(this.modelBoneOutputs.Head.matrixWorld);
+      // The avatar may not have spring bones, so we should make sure the avatar has springBone before update the wind effect
       this.springBoneManager && wind.update(timestamp, headPosition, this.springBoneManager)
     }
     _updateWind();
