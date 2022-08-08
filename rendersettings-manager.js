@@ -44,11 +44,9 @@ class RenderSettingsManager {
   }
   addExtraPass(pass) {
     this.extraPasses.push(pass);
-    // this.extraPasses.set(k, v);
   }
   removeExtraPass(pass) {
     this.extraPasses.splice(this.extraPasses.indexOf(pass), 1);
-    // this.extraPasses.delete(k);
   }
   makeRenderSettings(json) {
     return new RenderSettings(json);
@@ -114,7 +112,6 @@ class RenderSettingsManager {
         passes = passes.slice();
         passes.push(...this.extraPasses);
       }
-      // global.setPasses = passes;
       postProcessing.setPasses(passes);
     }
 
