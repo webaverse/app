@@ -54,7 +54,7 @@ import game from '../game.js';
 
 // const identityQuaternion = new Quaternion();
 
-const isDebugger = false; // Used for debug only codes.Don’t create new data structures on the avatar, to not add any more gc sweep depth in product codes.
+const isDebugger = false; // Used for debug only codes. Don’t create new data structures on the avatar, to not add any more gc sweep depth in product codes.
 
 let animations;
 let animationStepIndices;
@@ -179,12 +179,16 @@ async function loadAnimations() {
   const arrayBuffer = await res.arrayBuffer();
   const uint8Array = new Uint8Array(arrayBuffer);
   const animationsJson = zbdecode(uint8Array);
-  animations = animationsJson.animations
-    .map(a => AnimationClip.parse(a));
+  animations = animationsJson.animations; // .map(a => AnimationClip.parse(a));
   animationStepIndices = animationsJson.animationStepIndices;
   animations.index = {};
   for (const animation of animations) {
     animations.index[animation.name] = animation;
+
+    animation.tracks.index = {};
+    for (const track of animation.tracks) {
+      animation.tracks.index[track.name] = track;
+    }
   }
 
   /* const animationIndices = animationStepIndices.find(i => i.name === 'Fast Run.fbx');
@@ -443,12 +447,13 @@ export const _createAnimation = avatar => {
           animationTrackName: k,
         } = spec;
 
-        const interpolant = animation.interpolants[k];
+        const track = animation.tracks.index[k];
+        const valueSize = track.type === 'vector' ? 3 : 4;
         physx.physxWorker.createInterpolant(
-          animation.index,
-          interpolant.parameterPositions,
-          interpolant.sampleValues,
-          interpolant.valueSize,
+          animationIndex,
+          track.times,
+          track.values,
+          valueSize,
         );
       }
       animationIndex++;
@@ -459,12 +464,12 @@ export const _createAnimation = avatar => {
     createdWasmAnimations = true;
   }
 
-  avatar.mixer = physx.physxWorker.createAnimationMixer();
+  avatar.mixerPtr = physx.physxWorker.createAnimationMixer();
 
   // util ---
 
   avatar.createMotion = (animationPtr, name) => {
-    const motionPtr = physx.physxWorker.createMotion(avatar.mixer, animationPtr);
+    const motionPtr = physx.physxWorker.createMotion(avatar.mixerPtr, animationPtr);
     if (isDebugger) {
       avatar.motions.push({
         motionPtr,
@@ -476,7 +481,7 @@ export const _createAnimation = avatar => {
   };
 
   avatar.createNode = (type, name) => {
-    const nodePtr = physx.physxWorker.createNode(avatar.mixer, type);
+    const nodePtr = physx.physxWorker.createNode(avatar.mixerPtr, type);
     if (isDebugger) {
       avatar.nodes.push({
         nodePtr,
@@ -866,7 +871,7 @@ export const _createAnimation = avatar => {
   createNodes();
 
   avatar.rootNodePtr = avatar.holdNodeFuncPtr;
-  physx.physxWorker.setRootNode(avatar.mixer, avatar.rootNodePtr);
+  physx.physxWorker.setRootNode(avatar.mixerPtr, avatar.rootNodePtr);
 };
 
 export const _updateAnimation = avatar => {
@@ -1127,7 +1132,7 @@ export const _updateAnimation = avatar => {
 
   let resultValues;
   const doUpdate = () => {
-    resultValues = physx.physxWorker.updateAnimationMixer(avatar.mixer, timeS);
+    resultValues = physx.physxWorker.updateAnimationMixer(avatar.mixerPtr, timeS);
     let index = 0;
     for (const spec of avatar.animationMappings) {
       const {
