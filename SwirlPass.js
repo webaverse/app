@@ -101,6 +101,15 @@ class SwirlMaterial extends THREE.ShaderMaterial {
 			}
 			void main() {
 				mainImage(gl_FragColor, vUv);
+				
+				// gl_FragColor = texture(tDiffuse, vUv);
+				// gl_FragColor.a = 1.;
+
+				// gl_FragColor = vec4(1., 0., 0., 1.0);
+				// gl_FragColor += vec4(vUv.x, 0., vUv.y, .0) * 0.01;
+
+				// gl_FragColor.r += vUv.x;
+				// gl_FragColor.b += vUv.y;
 			}
 		`;
 		
