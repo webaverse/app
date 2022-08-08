@@ -157,7 +157,6 @@ class PlayerBase extends THREE.Object3D {
     this.name = defaultPlayerName;
     this.bio = defaultPlayerBio;
     this.characterHups = new CharacterHups(this);
-    // this.characterSfx = new CharacterSfx(this);
     this.characterFx = new CharacterFx(this);
     this.characterHitter = new CharacterHitter(this);
     this.characterBehavior = new CharacterBehavior(this);
