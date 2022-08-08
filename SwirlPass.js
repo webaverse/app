@@ -313,9 +313,9 @@ class SwirlPass extends Pass {
 			this.renderPass( renderer, this.openMaterial, this.ssaoRenderTargets[1] );
 		}
 
-		// render blur
-
+		// render swirl
 		this.copyMaterial.uniforms[ 'tDiffuse' ].value = this.ssaoRenderTargets[1].texture;
+		this.copyMaterial.uniforms[ 'tDiffuse' ].needsUpdate = true;
 		this.copyMaterial.blending = NoBlending;
 		this.renderPass( renderer, this.copyMaterial, this.renderToScreen ? null : writeBuffer );
 	  
