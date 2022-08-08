@@ -427,6 +427,20 @@ class PhysicsScene extends EventTarget {
   disableActor(physicsObject) {
     physx.physxWorker.disableActorPhysics(this.scene, physicsObject.physicsId)
   }
+  enableAppPhysics(app){
+    const physicsObjects = app.getPhysicsObjects();
+    for (let i = 0; i < physicsObjects.length; i++) {
+      const physicsObject = physicsObjects[i]
+      this.enableActor(physicsObject);
+    } 
+  }
+  disableAppPhysics(app){
+    const physicsObjects = app.getPhysicsObjects();
+    for (let i = 0; i < physicsObjects.length; i++) {
+      const physicsObject = physicsObjects[i]
+      this.disableActor(physicsObject);
+    } 
+  }
   disableGeometry(physicsObject) {
     physx.physxWorker.disableGeometryPhysics(
       this.scene,
