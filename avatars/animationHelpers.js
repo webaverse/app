@@ -57,6 +57,7 @@ import game from '../game.js';
 const isDebugger = true; // Used for debug only codes. Don’t create new data structures on the avatar, to not add any more gc sweep depth in product codes.
 
 let animations;
+let animationsJson;
 let animationStepIndices;
 // let animationsBaseModel;
 let createdWasmAnimations = false;
@@ -178,7 +179,7 @@ async function loadAnimations() {
   const res = await fetch('/animations/animations.z');
   const arrayBuffer = await res.arrayBuffer();
   const uint8Array = new Uint8Array(arrayBuffer);
-  const animationsJson = zbdecode(uint8Array);
+  animationsJson = zbdecode(uint8Array);
   animations = animationsJson.animations
     .map(a => AnimationClip.parse(a));
   animationStepIndices = animationsJson.animationStepIndices;
@@ -187,6 +188,17 @@ async function loadAnimations() {
     animations.index[animation.name] = animation;
   }
   window.animations = animations;
+
+  animationsJson.animations.index = {};
+  for (const animation of animationsJson.animations) {
+    animationsJson.animations.index[animation.name] = animation;
+
+    animation.tracks.index = {};
+    for (const track of animation.tracks) {
+      animation.tracks.index[track.name] = track;
+    }
+  }
+  window.animationsJson = animationsJson;
 
   /* const animationIndices = animationStepIndices.find(i => i.name === 'Fast Run.fbx');
           for (let i = 0; i < animationIndices.leftFootYDeltas.length; i++) {
@@ -440,24 +452,54 @@ export const _createAnimation = avatar => {
     }
 
     let animationIndex = 0;
-    for (const fileName in animations.index) {
+    // for (const fileName in animations.index) {
+    for (const fileName in animationsJson.animations.index) {
       const animation = animations.index[fileName];
-      animation.index = animationIndex;
+      // const animation = animationsJson.animations.index[fileName];
+
+      // animation.index = animationIndex;
       const animationPtr = physx.physxWorker.createAnimation(animation.duration);
-      animation.ptr = animationPtr;
+      animation.ptr = animationPtr; // todo: animationJson.ptr. ( change animations to animationJson directly ? )
       // for (const k in animation.interpolants) { // maybe wrong interpolant index order
       for (const spec of avatar.animationMappings) { // correct interpolant index order
         const {
           animationTrackName: k,
         } = spec;
 
-        const interpolant = animation.interpolants[k];
+        // const interpolant = animation.interpolants[k];
+        // physx.physxWorker.createInterpolant( // todo: only need createInterpolant once globally
+        //   animation.index, // todo: use ptr instead of index.
+        //   interpolant.parameterPositions,
+        //   interpolant.sampleValues,
+        //   interpolant.valueSize,
+        // );
+
+        // ------
+
+        const animationJson = animationsJson.animations.index[fileName];
+        const track = animationJson.tracks.index[k];
+        const valueSize = track.type === 'vector' ? 3 : 4;
         physx.physxWorker.createInterpolant( // todo: only need createInterpolant once globally
-          animation.index, // todo: use ptr instead of index.
-          interpolant.parameterPositions,
-          interpolant.sampleValues,
-          interpolant.valueSize,
+          animationIndex, // todo: use ptr instead of index.
+          track.times,
+          track.values,
+          valueSize,
         );
+
+        // // console.log(interpolant.parameterPositions);
+        // // console.log(track.times);
+        // for (let i = 0; i < interpolant.parameterPositions.length; i++) {
+        //   if (interpolant.parameterPositions[i] !== track.times[i]) debugger
+        // }
+        // // console.log(interpolant.valueSize);
+        // // console.log(valueSize);
+        // if (interpolant.valueSize !== valueSize) debugger
+        // // console.log(interpolant.sampleValues);
+        // // console.log(track.values);
+        // for (let i = 0; i < interpolant.sampleValues.length; i++) {
+        //   if (interpolant.sampleValues[i] !== track.values[i]) debugger
+        // }
+        // // debugger
       }
       animationIndex++;
     }
