@@ -876,9 +876,10 @@ export const _applyAnimation = (avatar, now) => {
       return spec => {
         const {
           animationTrackName: k,
+          boneName,
           dst,
           lerpFn,
-          // isTop,
+          isTop,
           isPosition,
         } = spec;
 
@@ -891,13 +892,26 @@ export const _applyAnimation = (avatar, now) => {
         const v2 = src2.evaluate(t2);
 
         const emoteFactorS = avatar.emoteFactor / crouchMaxTime;
-        const f = Math.min(Math.max(emoteFactorS, 0), 1);
-        lerpFn
-          .call(
-            dst,
-            localQuaternion.fromArray(v2),
-            f,
-          );
+        let f = Math.min(Math.max(emoteFactorS, 0), 1);
+
+        if (boneName === 'Spine' || boneName === 'Chest' || boneName === 'UpperChest' || boneName === 'Neck' || boneName === 'Head') {
+          if (!isPosition) {
+            dst.premultiply(localQuaternion.fromArray(v2));
+          } else {
+            dst.lerp(localVector.fromArray(v2), f);
+          }
+        } else {
+          if (!isTop) {
+            f *= (1 - idleWalkFactor);
+          }
+
+          lerpFn
+            .call(
+              dst,
+              localQuaternion.fromArray(v2),
+              f,
+            );
+        }
 
         _clearXZ(dst, isPosition);
       };
