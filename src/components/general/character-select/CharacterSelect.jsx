@@ -358,6 +358,7 @@ export const CharacterSelect = () => {
             setHighlightCharacter(null);
             setSelectCharacter(null);
             setArrowPosition(null);
+            setNpcPlayer(null)
             setText('');
         }
     }, [opened, enabled]);
