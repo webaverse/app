@@ -117,7 +117,7 @@ class SwirlMaterial extends THREE.ShaderMaterial {
 			// defines: Object.assign( {}, SSAOShader.defines ),
 			uniforms: {
 			  tDiffuse: {
-				  value: new THREE.Texture(),
+				  value: null,
 					needsUpdate: false,
 				},
 				uTime: {
