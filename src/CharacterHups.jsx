@@ -34,28 +34,23 @@ const CharacterHup = function(props) {
     if (canvasRef.current) {
       const canvas = canvasRef.current;
       const player = hup.parent.player;
-      let {diorama, avatar} = chatDioramas.get(player) ?? {diorama: null, avatar: null};
-      if (diorama && player.avatar.model === avatar) {
-        // console.log('got diorama', diorama);
+      let diorama = chatDioramas.get(player);
+      if (diorama) {
         diorama.resetCanvases();
         diorama.addCanvas(canvas);
       } else {
-        let neckBone;
-        player.avatar.model.traverse(
-          (object) => object.type === "Bone" && object.name === "Head" && !neckBone && (neckBone = object)
-        );
         diorama = dioramaManager.createPlayerDiorama({
-          target: neckBone,
+          target: player,
           objects: [player.avatar.model],
           grassBackground: true,
         });
         diorama.addCanvas(canvas);
-        // chatDioramas.set(player, diorama);
-        // console.log('no diorama');
+        chatDioramas.set(player, diorama);
       }
 
       return () => {
         diorama.destroy();
+        chatDioramas.delete(player);
       };
     }
   }, [canvasRef]);
