@@ -245,13 +245,12 @@ const _updateIo = timeDiff => {
       keysDirection.applyQuaternion(camera.quaternion);
       _updateVertical(keysDirection);
     } else {
-      const isGrounded = localPlayer.characterPhysics.lastGrounded;
       const cameraEuler = camera.rotation.clone();
       cameraEuler.x = 0;
       cameraEuler.z = 0;
       keysDirection.applyEuler(cameraEuler);
       
-      if (ioManager.keys.ctrl && !ioManager.lastCtrlKey && isGrounded) {
+      if (ioManager.keys.ctrl && !ioManager.lastCtrlKey && game.isGrounded()) {
         game.toggleCrouch();
       }
       ioManager.lastCtrlKey = ioManager.keys.ctrl;
