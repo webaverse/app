@@ -570,12 +570,12 @@ export const decorateAnimation = animation => {
   // animation.isSwordTopDownSlash = /sword_topdown_slash/i.test(animation.name);
   animation.isHurt = /pain/.test(animation.name);
 
-  animation.interpolants = {};
-  animation.tracks.forEach(track => {
-    const i = track.createInterpolant();
-    i.name = track.name;
-    animation.interpolants[track.name] = i;
-  });
+  // animation.interpolants = {};
+  // animation.tracks.forEach(track => {
+  //   const i = track.createInterpolant();
+  //   i.name = track.name;
+  //   animation.interpolants[track.name] = i;
+  // });
 };
 
 // retargeting

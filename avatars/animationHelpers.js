@@ -179,12 +179,16 @@ async function loadAnimations() {
   const arrayBuffer = await res.arrayBuffer();
   const uint8Array = new Uint8Array(arrayBuffer);
   const animationsJson = zbdecode(uint8Array);
-  animations = animationsJson.animations
-    .map(a => AnimationClip.parse(a));
+  animations = animationsJson.animations; // .map(a => AnimationClip.parse(a));
   animationStepIndices = animationsJson.animationStepIndices;
   animations.index = {};
   for (const animation of animations) {
     animations.index[animation.name] = animation;
+
+    animation.tracks.index = {};
+    for (const track of animation.tracks) {
+      animation.tracks.index[track.name] = track;
+    }
   }
   window.animations = animations;
 
@@ -451,12 +455,13 @@ export const _createAnimation = avatar => {
           animationTrackName: k,
         } = spec;
 
-        const interpolant = animation.interpolants[k];
-        physx.physxWorker.createInterpolant( // todo: only need createInterpolant once globally
-          animation.index, // todo: use ptr instead of index.
-          interpolant.parameterPositions,
-          interpolant.sampleValues,
-          interpolant.valueSize,
+        const track = animation.tracks.index[k];
+        const valueSize = track.type === 'vector' ? 3 : 4;
+        physx.physxWorker.createInterpolant(
+          animationIndex, // todo: use ptr instead of index.
+          track.times,
+          track.values,
+          valueSize,
         );
       }
       animationIndex++;
