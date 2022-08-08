@@ -153,11 +153,11 @@ class PlayerHand extends THREE.Object3D {
 class PlayerBase extends THREE.Object3D {
   constructor() {
     super();
-    this.isLocalPlayer = !this.npc;
+
     this.name = defaultPlayerName;
     this.bio = defaultPlayerBio;
     this.characterHups = new CharacterHups(this);
-    this.characterSfx = new CharacterSfx(this);
+    // this.characterSfx = new CharacterSfx(this);
     this.characterFx = new CharacterFx(this);
     this.characterHitter = new CharacterHitter(this);
     this.characterBehavior = new CharacterBehavior(this);
@@ -1037,10 +1037,11 @@ class LocalPlayer extends UninterpolatedPlayer {
   constructor(opts) {
     super(opts);
 
-    // this.isLocalPlayer = !opts.npc;
+    this.isLocalPlayer = !opts.npc;
     this.isNpcPlayer = !!opts.npc;
     this.detached = !!opts.detached;
-
+    
+    this.characterSfx = new CharacterSfx(this);
     this.characterPhysics = new CharacterPhysics(this);
   }
   async setPlayerSpec(playerSpec) {
