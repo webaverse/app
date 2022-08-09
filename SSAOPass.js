@@ -39,6 +39,8 @@ class SSAOPass extends Pass {
 
 		super();
 
+		this.isSSAOPass = true;
+
 		this.width = ( width !== undefined ) ? width : 512;
 		this.height = ( height !== undefined ) ? height : 512;
 		this.depthPass = depthPass;
