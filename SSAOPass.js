@@ -74,8 +74,8 @@ class SSAOPass extends Pass {
 		this.beautyRenderTarget = new WebGLRenderTarget( this.width, this.height, {
 			minFilter: LinearFilter,
 			magFilter: LinearFilter,
-			format: RGBAFormat,
-			encoding: sRGBEncoding,
+			// format: RGBAFormat,
+			// encoding: sRGBEncoding,
 		} );
 
 		// normal render target with depth buffer
@@ -92,8 +92,8 @@ class SSAOPass extends Pass {
 		this.ssaoRenderTarget = new WebGLRenderTarget( this.width, this.height, {
 			minFilter: LinearFilter,
 			magFilter: LinearFilter,
-			format: RGBAFormat,
-			encoding: sRGBEncoding,
+			// format: RGBAFormat,
+			// encoding: sRGBEncoding,
 		} );
 
 		this.blurRenderTarget = this.ssaoRenderTarget.clone();
@@ -112,7 +112,7 @@ class SSAOPass extends Pass {
 			vertexShader: SSAOShader.vertexShader,
 			fragmentShader: SSAOShader.fragmentShader,
 			blending: NoBlending,
-			encoding: sRGBEncoding,
+			// encoding: sRGBEncoding,
 		} );
 
 		this.ssaoMaterial.uniforms[ 'tDiffuse' ].value = this.beautyRenderTarget.texture;
