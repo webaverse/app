@@ -397,14 +397,17 @@ class PlayerBase extends THREE.Object3D {
       };
       _transplantNewApp();
 
-      const _initPhysics = () => {
-        const physicsObjects = app.getPhysicsObjects();
-        for (const physicsObject of physicsObjects) {
-          physicsScene.disableGeometryQueries(physicsObject);
-          physicsScene.disableGeometry(physicsObject);
+      const _disableAppPhysics = () => {
+        // don't disable physics if the app is a pet
+        if (!app.hasComponent('pet')) {
+          const physicsObjects = app.getPhysicsObjects();
+          for (const physicsObject of physicsObjects) {
+            physicsScene.disableGeometryQueries(physicsObject);
+            physicsScene.disableGeometry(physicsObject);
+          }
         }
       };
-      _initPhysics();
+      _disableAppPhysics();
 
       const wearComponent = app.getComponent('wear');
       const holdAnimation = wearComponent? wearComponent.holdAnimation : null;
