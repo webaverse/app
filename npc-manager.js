@@ -90,6 +90,7 @@ class NpcManager extends EventTarget {
         if (npcPlayer && physicsScene.getPhysicsEnabled()) {
           const {timestamp, timeDiff} = e.data;
           if (npcPlayer.targetSpec) {
+            npcPlayer.targetSpec.object = localPlayer;
             const target = npcPlayer.targetSpec.object;
             const v = localVector.setFromMatrixPosition(target.matrixWorld)
               .sub(npcPlayer.position);
