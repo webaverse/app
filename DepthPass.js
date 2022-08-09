@@ -26,6 +26,14 @@ const oldMaterialCache = new WeakMap();
  * Depth-of-field post-process with bokeh shader
  */
 
+const _makeNormalRenderTarget = (width, height) => {
+	return new WebGLRenderTarget(width, height, {
+		minFilter: NearestFilter,
+		magFilter: NearestFilter,
+		format: RGBAFormat,
+		depthTexture: new DepthTexture(width, height),
+	});
+};
 class DepthPass extends Pass {
 
 	constructor( scenes, camera, {width, height, onBeforeRenderScene} ) {
@@ -48,12 +56,7 @@ class DepthPass extends Pass {
 
 		// normal render target with depth buffer
 
-		this.normalRenderTarget = new WebGLRenderTarget( this.width, this.height, {
-			minFilter: NearestFilter,
-			magFilter: NearestFilter,
-			format: RGBAFormat,
-			depthTexture: depthTexture
-		} );
+		this.normalRenderTarget = _makeNormalRenderTarget(this.width, this.height);
 
     this.normalMaterial = new MeshNormalMaterial();
 		this.normalMaterial.blending = NoBlending;
