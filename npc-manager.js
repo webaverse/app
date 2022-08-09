@@ -127,7 +127,6 @@ class NpcManager extends EventTarget {
         
 
   async addNpcApp(app, srcUrl) {
-    const localPlayer = playersManager.getLocalPlayer();
 
     let live = true;
     let json = null;
@@ -189,6 +188,7 @@ class NpcManager extends EventTarget {
         app.addEventListener('hittrackeradded', hittrackeradd);
 
         const activate = () => {
+          const localPlayer = playersManager.getLocalPlayer();
           if (npcPlayer.targetSpec?.object !== localPlayer) {
             npcPlayer.targetSpec = {
               type: 'follow',
