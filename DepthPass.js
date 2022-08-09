@@ -40,6 +40,8 @@ class DepthPass extends Pass {
 
 		super();
 
+		this.isDepthPass = true;
+
     this.scenes = scenes;
     this.camera = camera;
     this.width = width;
