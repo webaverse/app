@@ -67,8 +67,20 @@ const _getGrabbedObject = i => {
   return result;
 };
 
-const _isActionableOnSittableApp = (player, actionType) => {
-  let isActionable = true;
+const _unwearAppIfHasSitComponent = (player) => {
+  const wearActions = player.getActionsByType('wear');
+  for (const wearAction of wearActions) {
+    const instanceId = wearAction.instanceId;
+    const app = metaversefileApi.getAppByInstanceId(instanceId);
+    const hasSitComponent = app.hasComponent('sit');
+    if (hasSitComponent) {
+        app.unwear();
+    }
+  }
+}
+
+const _isSittableAppJumpable = (player) => {
+  let isJumpable = true;
 
   const wearActions = player.getActionsByType('wear');
   for (const wearAction of wearActions) {
@@ -76,17 +88,17 @@ const _isActionableOnSittableApp = (player, actionType) => {
     const app = metaversefileApi.getAppByInstanceId(instanceId);
     const hasSitComponent = app.hasComponent('sit');
     if (hasSitComponent) {
-      const actionable = app.getComponent(actionType + 'able');
-      if (!actionable) {
-        isActionable = false;
+      const jumpable = app.getComponent('jumpable');
+      if (!jumpable) {
+        isJumpable = false;
       } else {
         app.unwear();
       }
     }
   }
 
-  return isActionable;
-}
+  return isJumpable;
+};
 
 // returns whether we actually snapped
 function updateGrabbedObject(o, grabMatrix, offsetMatrix, {collisionEnabled, handSnapEnabled, physx, gridSnap}) {
@@ -1420,11 +1432,9 @@ class GameManager extends EventTarget {
         time: 0,
       };
 
-      const isFlyable = _isActionableOnSittableApp(localPlayer, 'fly');
+      _unwearAppIfHasSitComponent(localPlayer);
 
-      if (isFlyable) {
-        localPlayer.setControlAction(flyAction);
-      }
+      localPlayer.setControlAction(flyAction);
     }
   }
   isCrouched() {
@@ -1503,7 +1513,7 @@ class GameManager extends EventTarget {
   ensureJump(trigger) {
     const localPlayer = playersManager.getLocalPlayer();
 
-    const isJumpable = _isActionableOnSittableApp(localPlayer, 'jump');
+    const isJumpable = _isSittableAppJumpable(localPlayer);
 
     if (isJumpable && !localPlayer.hasAction('jump') && !localPlayer.hasAction('fly') && !localPlayer.hasAction('fallLoop') && !localPlayer.hasAction('swim')) {
       const newJumpAction = {
