@@ -85,17 +85,19 @@ export const screenshotPlayer = async ({
     };
   };
   const localVector = new THREE.Vector3();
+  const boundingBox = new THREE.Box3();
   const _updateTarget = (timestamp, timeDiff) => {
     const neckPosition = localVector.setFromMatrixPosition(player.avatar.modelBones.Head.savedMatrixWorld);
     let avatarHighestPos = 0;
     let tempMesh = null;
-    
     player.avatar.model.traverse(o => {
       if (o.isMesh) {
-        if(o.geometry){
-          if(!o.geometry.boundingBox){
-            o.geometry.computeBoundingBox();
-          }
+        if(!o.geometry.boundingBox){
+          const position = o.geometry.attributes.position;
+          boundingBox.setFromBufferAttribute( position );
+          avatarHighestPos = (boundingBox.max.y > avatarHighestPos) ? boundingBox.max.y : avatarHighestPos;
+        }
+        else{
           avatarHighestPos = (o.geometry.boundingBox.max.y > avatarHighestPos) ? o.geometry.boundingBox.max.y : avatarHighestPos;
         }
         if(o.isSkinnedMesh){
@@ -107,11 +109,11 @@ export const screenshotPlayer = async ({
 
     let headHeight = avatarHighestPos - neckPosition.y;
     let cameraZ = headHeight / (2 * Math.atan((Math.PI * 50) / 360));
-    cameraZ *= 1.37; //multiply offset so that avatar does't fill the icon
-    const headRatio = (headHeight / avatarHighestPos);
-    cameraZ *= 1. - Math.pow(headRatio, 4);
-    const posYoffset = (headRatio * 0.1); //ascend target position based on head size
+    const offset = 1.25;
+    cameraZ *= offset; //multiply offset so that avatar does't fill the icon
     cameraOffset.z = -cameraZ;
+    const headRatio = headHeight / avatarHighestPos;
+    const posYoffset = headHeight * headRatio * 0.3; //ascend target position based on head size
     
     target.matrixWorld.copy(player.avatar.modelBones.Head.matrixWorld)
       .decompose(target.position, target.quaternion, target.scale);
