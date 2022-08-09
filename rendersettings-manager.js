@@ -8,7 +8,9 @@ class RenderSettings {
   constructor(json) {
     this.background = this.#makeBackground(json.background);
     this.fog = this.#makeFog(json.fog);
-    this.passes = postProcessing.makePasses(json);
+    const {passes, internalPasses} = postProcessing.makePasses(json);
+    this.passes = passes;
+    this.internalPasses = internalPasses;
   }
   #makeBackground(background) {
     if (background) {
@@ -107,17 +109,18 @@ class RenderSettingsManager {
     if (postProcessing) {
       let {
         passes = postProcessing.defaultPasses,
+        internalPasses = postProcessing.defaultInternalPasses,
       } = (renderSettings ?? {});
       if (this.extraPasses.length > 0) {
         passes = passes.slice();
         passes.push(...this.extraPasses);
       }
-      postProcessing.setPasses(passes);
+      postProcessing.setPasses(passes, internalPasses);
     }
 
     return () => {
       renderSettingsCleanup();
-      postProcessing && postProcessing.setPasses(postProcessing.defaultPasses);
+      postProcessing && postProcessing.setPasses(postProcessing.defaultPasses, postProcessing.defaultInternalPasses);
     };
   }
 }
