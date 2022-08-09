@@ -89,20 +89,28 @@ export const screenshotPlayer = async ({
     const neckPosition = localVector.setFromMatrixPosition(player.avatar.modelBones.Head.savedMatrixWorld);
     let avatarHighestPos = 0;
     let tempMesh = null;
+    
     player.avatar.model.traverse(o => {
       if (o.isMesh) {
-        for(let i = 0; i < o.geometry.attributes.position.array.length / 3; i++){
-          avatarHighestPos = (o.geometry.attributes.position.array[i * 3 + 1] > avatarHighestPos) ? o.geometry.attributes.position.array[i * 3 + 1] : avatarHighestPos; 
+        if(o.geometry){
+          if(!o.geometry.boundingBox){
+            o.geometry.computeBoundingBox();
+          }
+          avatarHighestPos = (o.geometry.boundingBox.max.y > avatarHighestPos) ? o.geometry.boundingBox.max.y : avatarHighestPos;
+        }
+        if(o.isSkinnedMesh){
           tempMesh = o;
         }
       }
     });
     avatarHighestPos += tempMesh.position.y;
+
     let headHeight = avatarHighestPos - neckPosition.y;
-    const fov = 50 * ( Math.PI / 180 );
-    let cameraZ = headHeight / 2 / Math.tan( fov / 2 );
-    cameraZ *= 1.5; //multiply offset so that avatar does't fill the icon
-    const posYoffset = (headHeight * 0.1); //ascend target position based on head size
+    let cameraZ = headHeight / (2 * Math.atan((Math.PI * 50) / 360));
+    cameraZ *= 1.37; //multiply offset so that avatar does't fill the icon
+    const headRatio = (headHeight / avatarHighestPos);
+    cameraZ *= 1. - Math.pow(headRatio, 4);
+    const posYoffset = (headRatio * 0.1); //ascend target position based on head size
     cameraOffset.z = -cameraZ;
     
     target.matrixWorld.copy(player.avatar.modelBones.Head.matrixWorld)
