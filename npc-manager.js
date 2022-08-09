@@ -66,7 +66,7 @@ class NpcManager extends EventTarget {
     if (!detached) {
       this.npcs.push(npcPlayer);
     }
-
+    
     return npcPlayer;
   }
 
@@ -78,6 +78,52 @@ class NpcManager extends EventTarget {
       this.npcs.splice(removeIndex, 1);
     }
   }
+  update(){
+    const slowdownFactor = 0.4;
+    const walkSpeed = 0.075 * slowdownFactor;
+    const runSpeed = walkSpeed * 8;
+    const speedDistanceRate = 0.07;
+    const frame = e => {
+      const localPlayer = playersManager.getLocalPlayer();
+      for(const npcPlayer of this.npcs){
+        if (npcPlayer && physicsScene.getPhysicsEnabled()) {
+          const {timestamp, timeDiff} = e.data;
+          if (npcPlayer.targetSpec) {
+            npcPlayer.targetSpec.object = localPlayer;
+            const target = npcPlayer.targetSpec.object;
+            const v = localVector.setFromMatrixPosition(target.matrixWorld)
+              .sub(npcPlayer.position);
+            v.y = 0;
+            const distance = v.length();
+            if (npcPlayer.targetSpec.type === 'moveto' && distance < 2) {
+              npcPlayer.targetSpec = null;
+            } else {
+              const speed = Math.min(Math.max(walkSpeed + ((distance - 1.5) * speedDistanceRate), 0), runSpeed);
+              v.normalize()
+                .multiplyScalar(speed * timeDiff);
+              npcPlayer.characterPhysics.applyWasd(v);
+            }
+          }
+          npcPlayer.setTarget(localPlayer.position);
+  
+          /* if (isNaN(npcPlayer.position.x)) {
+            debugger;
+          } */
+          npcPlayer.updatePhysics(timestamp, timeDiff);
+          /* if (isNaN(npcPlayer.position.x)) {
+            debugger;
+          } */
+          npcPlayer.updateAvatar(timestamp, timeDiff);
+          /* if (isNaN(npcPlayer.position.x)) {
+            debugger;
+          } */
+        }
+      }
+      
+    };
+    world.appManager.addEventListener('frame', frame);
+  }
+        
 
   async addNpcApp(app, srcUrl) {
     const localPlayer = playersManager.getLocalPlayer();
@@ -121,7 +167,7 @@ class NpcManager extends EventTarget {
     };
 
     // events
-    let targetSpec = null;
+    
     if (mode === 'attached') {
       const _listenEvents = () => {
         const hittrackeradd = e => {
@@ -142,58 +188,17 @@ class NpcManager extends EventTarget {
         app.addEventListener('hittrackeradded', hittrackeradd);
 
         const activate = () => {
-          if (targetSpec?.object !== localPlayer) {
-            targetSpec = {
+          if (npcPlayer.targetSpec?.object !== localPlayer) {
+            npcPlayer.targetSpec = {
               type: 'follow',
               object: localPlayer,
             };
           } else {
-            targetSpec = null;
+            npcPlayer.targetSpec = null;
           }
         };
         app.addEventListener('activate', activate);
-
-        const slowdownFactor = 0.4;
-        const walkSpeed = 0.075 * slowdownFactor;
-        const runSpeed = walkSpeed * 8;
-        const speedDistanceRate = 0.07;
-        const frame = e => {
-          if (npcPlayer && physicsScene.getPhysicsEnabled()) {
-            const {timestamp, timeDiff} = e.data;
-            
-            if (targetSpec) {
-              const target = targetSpec.object;
-              const v = localVector.setFromMatrixPosition(target.matrixWorld)
-                .sub(npcPlayer.position);
-              v.y = 0;
-              const distance = v.length();
-              if (targetSpec.type === 'moveto' && distance < 2) {
-                targetSpec = null;
-              } else {
-                const speed = Math.min(Math.max(walkSpeed + ((distance - 1.5) * speedDistanceRate), 0), runSpeed);
-                v.normalize()
-                  .multiplyScalar(speed * timeDiff);
-                npcPlayer.characterPhysics.applyWasd(v);
-              }
-            }
-
-            npcPlayer.setTarget(localPlayer.position);
-
-            /* if (isNaN(npcPlayer.position.x)) {
-              debugger;
-            } */
-            npcPlayer.updatePhysics(timestamp, timeDiff);
-            /* if (isNaN(npcPlayer.position.x)) {
-              debugger;
-            } */
-            npcPlayer.updateAvatar(timestamp, timeDiff);
-            /* if (isNaN(npcPlayer.position.x)) {
-              debugger;
-            } */
-          }
-        };
-        world.appManager.addEventListener('frame', frame);
-
+        
         cancelFns.push(() => {
           app.removeEventListener('hittrackeradded', hittrackeradd);
           app.removeEventListener('activate', activate);
@@ -337,4 +342,5 @@ class NpcManager extends EventTarget {
   }
 }
 const npcManager = new NpcManager();
+npcManager.update();
 export default npcManager;
