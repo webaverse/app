@@ -2,6 +2,9 @@ import * as React from "react";
 import styles from "./PopupNotification.module.css";
 import { AppContext } from "./components/app";
 
+const timeoutFadeDelay = 3000;
+const timeoutDisplayDelay = 3500;
+
 const PopupNotification = function ({
   popupNotification
 }) {
@@ -15,19 +18,16 @@ const PopupNotification = function ({
   }, [popupNotification]);
 
   React.useEffect(() => {
-      let timeout;
-      let timeoutFade;
       if ( popupNotification ) {
-          timeout = setTimeout(() => {
+          const timeoutFade = setTimeout(() => {
               ref.current.style.opacity = 0;
-          }, 3000);
-          timeoutFade = setTimeout(() => {
-              ref.current.style.opacity = 0;
+          }, timeoutFadeDelay);
+          const timeoutDisplay = setTimeout(() => {
               setPopupNotification(null);
-          }, 3500);
+          }, timeoutDisplayDelay);
           return () => {
-              clearTimeout(timeout);
               clearTimeout(timeoutFade);
+              clearTimeout(timeoutDisplay);
           };
       }
   }, [popupNotification]);
