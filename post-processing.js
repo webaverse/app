@@ -220,17 +220,6 @@ webaverseRenderPass.onAfterRender = () => {
 };
 const encodingPass = new EncodingPass();
 
-/* function makeSwirlPass(swirlJson) {
-  const renderer = getRenderer();
-  const size = renderer.getSize(localVector2D)
-    .multiplyScalar(renderer.getPixelRatio());
-  const resolution = size;
-
-  const swirlPass = new SwirlPass(rootScene, camera, resolution.x, resolution.y);
-  // swirlPass.enabled = false;
-  return swirlPass;
-} */
-
 class PostProcessing extends EventTarget {
   constructor() {
     super();
@@ -239,38 +228,34 @@ class PostProcessing extends EventTarget {
       webaverseRenderPass,
       encodingPass,
     ];
-    // this.defaultPasses.initialized = false;
-    this.defaultPasses.depthPass = null;
-    this.defaultPasses.ssaoPass = null;
-    // this.defaultPasses.swirlPass = null;
+    this.defaultInternalPasses = [];
   }
   bindCanvas() {
-    this.setPasses(this.defaultPasses);
+    this.setPasses(this.defaultPasses, this.defaultInternalPasses);
   }
   makePasses(rendersettings) {
     const passes = [];
-    // passes.id = getRandomString(5);
-    passes.initialized = false;
-    passes.depthPass = null;
-    passes.ssaoPass = null;
-    // passes.swirlPass = null;
+    const internalPasses = [];
 
     passes.push(webaverseRenderPass);
     
     if (rendersettings) {
       const {ssao, dof, hdr, bloom, /* postPostProcessScene, */ /* swirl, */ webaWater} = rendersettings;
+      let depthPass = null;
       if (ssao || dof) {
-        passes.depthPass = makeDepthPass({ssao, dof});
+        depthPass = makeDepthPass({ssao, dof});
+        internalPasses.push(depthPass);
       }
       if (ssao) {
-        passes.ssaoPass = makeSsaoRenderPass(ssao, passes.depthPass);
+        const ssaoPass = makeSsaoRenderPass(ssao, depthPass);
+        internalPasses.push(ssaoPass);
       }
-      if (webaWater){
+      if (webaWater) {
         const webaWaterPass = makeWebaWaterPass(webaWater);
         passes.push(webaWaterPass);
       }
       if (dof) {
-        const dofPass = makeDofPass(dof, passes.depthPass);
+        const dofPass = makeDofPass(dof, depthPass);
         passes.push(dofPass);
       }
       if (hdr) {
@@ -281,10 +266,6 @@ class PostProcessing extends EventTarget {
         const bloomPass = makeBloomPass(bloom);
         passes.push(bloomPass);
       }
-      /* if (swirl) {
-        const swirlPass = makeSwirlPass(swirl);
-        passes.push(swirlPass);
-      } */
       /* if (postPostProcessScene) {
         const {postPerspectiveScene, postOrthographicScene} = postPostProcessScene;
         if (postPerspectiveScene) {
@@ -300,40 +281,48 @@ class PostProcessing extends EventTarget {
     
     passes.push(encodingPass);
 
-    return passes;
+    return {
+      passes,
+      internalPasses,
+    };
   }
-  setPasses(passes) {
+  setPasses(passes, internalPasses) {
     const composer = getComposer();
 
-    composer.passes = passes;
-    {
-      const w = Math.floor(composer._width * composer._pixelRatio);
-      const h = Math.floor(composer._height * composer._pixelRatio);
-      for (const pass of composer.passes) {
-        if (!pass.getSize) {
-          (() => {
-            let localW = 0;
-            let localH = 0;
-            pass.setSize = (setSize => function(newW, newH) {
-              localW = newW;
-              localH = newH;
-              return setSize.apply(this, arguments);
-            })(pass.setSize);
-            pass.getSize = function(target) {
-              return target.set(localW, localH);
-            };
-          })();
-        }
-
-        const oldSize = pass.getSize(localVector2D);
-        const newSize = localVector2D2.set(w, h);
-        if (!newSize.equals(oldSize)) {
-          pass.setSize(w, h);
-        }
+    const w = composer._width * composer._pixelRatio;
+    const h = composer._height * composer._pixelRatio;
+    const _updateSize = pass => {
+      if (!pass.getSize) {
+        (() => {
+          let localW = 0;
+          let localH = 0;
+          pass.setSize = (setSize => function(newW, newH) {
+            localW = newW;
+            localH = newH;
+            return setSize.call(this, newW, newH);
+          })(pass.setSize);
+          pass.getSize = function(target) {
+            return target.set(localW, localH);
+          };
+        })();
       }
+
+      const oldSize = pass.getSize(localVector2D);
+      const newSize = localVector2D2.set(w, h);
+      if (!newSize.equals(oldSize)) {
+        pass.setSize(w, h);
+      }
+    };
+    for (const pass of passes) {
+      _updateSize(pass);
     }
-    webaverseRenderPass.internalRenderPass = composer.passes.ssaoPass;
-    webaverseRenderPass.internalDepthPass = composer.passes.depthPass;
+    for (const internalPass of internalPasses) {
+      _updateSize(internalPass);
+    }
+
+    composer.passes = passes;
+    webaverseRenderPass.internalRenderPass = internalPasses.find(pass => pass.isSSAOPass) ?? null;
+    webaverseRenderPass.internalDepthPass = internalPasses.find(pass => pass.isDepthPass) ?? null;
 
     // this.dispatchEvent(new MessageEvent('update'));
   }
