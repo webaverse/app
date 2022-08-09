@@ -61,7 +61,7 @@ export const ActionMenu = ({ setUIMode, className }) => {
     const handleModeBtnClick = () => {
 
         setUIMode( uiMode === 'normal' ? 'none' : 'normal' );
-        if(uiMode === 'normal') {
+        if ( uiMode === 'normal' ) {
             setPopupNotification('Press CTRL + H to unhide UI');
         }
 
