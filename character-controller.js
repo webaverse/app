@@ -1172,11 +1172,6 @@ class LocalPlayer extends UninterpolatedPlayer {
     this.addAction(grabAction);
     
     physicsScene.disableAppPhysics(app)
-    // const physicsObjects = app.getPhysicsObjects();
-    // for (const physicsObject of physicsObjects) {
-    //   physicsScene.disableGeometry(physicsObject);
-    //   physicsScene.disableGeometryQueries(physicsObject);
-    // }
 
     app.dispatchEvent({
       type: 'grabupdate',
@@ -1192,10 +1187,7 @@ class LocalPlayer extends UninterpolatedPlayer {
         const app = metaversefile.getAppByInstanceId(action.instanceId);
 
         physicsScene.enableAppPhysics(app)
-        // const physicsObjects = app.getPhysicsObjects();
-        // for (const physicsObject of physicsObjects) {
-        //   physicsScene.enableGeometryQueries(physicsObject);
-        // }
+
         this.removeActionIndex(i + removeOffset);
         removeOffset -= 1;
 
