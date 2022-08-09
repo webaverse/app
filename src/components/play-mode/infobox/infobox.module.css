@@ -9,6 +9,7 @@
   color: #FFF;
   transform: translateY(0);
   transition: cubic-bezier(0, 1, 0, 1) 1s transform;
+  z-index: 1;
 }
 .infobox:not(.selected) {
   transform: translateY(150px);
