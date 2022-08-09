@@ -71,9 +71,21 @@ const SSAOShader = {
 
 		#include <packing>
 
+		float linearizeDepth(in float depth) {
+			float a = cameraFar / (cameraFar - cameraNear);
+			float b = cameraFar * cameraNear / (cameraNear - cameraFar);
+			return a + b / depth;
+		}
+		float linearizeDepth2(in float depthValue) {
+			float invClipZ = linearizeDepth(exp2(depthValue * log2(cameraFar + 1.0)) - 1.0);
+			return invClipZ;
+		}
+
 		float getDepth( const in vec2 screenPosition ) {
 
-			return texture2D( tDepth, screenPosition ).x;
+			float depth = texture2D( tDepth, screenPosition ).x;
+			depth = linearizeDepth2(depth);
+			return depth;
 
 		}
 
@@ -82,7 +94,14 @@ const SSAOShader = {
 			#if PERSPECTIVE_CAMERA == 1
 
 				float fragCoordZ = texture2D( tDepth, screenPosition ).x;
-				float viewZ = perspectiveDepthToViewZ( fragCoordZ, cameraNear, cameraFar );
+
+				#ifdef USE_LOGDEPTHBUF
+			  float invClipZ = linearizeDepth2(fragCoordZ);
+				#else
+			  float invClipZ = fragCoordZ;
+				#endif
+
+				float viewZ = perspectiveDepthToViewZ( invClipZ, cameraNear, cameraFar );
 				return viewZToOrthographicDepth( viewZ, cameraNear, cameraFar );
 
 			#else
@@ -210,12 +229,29 @@ const SSAODepthShader = {
 
 		#include <packing>
 
+		float linearizeDepth(in float depth) {
+			float a = cameraFar / (cameraFar - cameraNear);
+			float b = cameraFar * cameraNear / (cameraNear - cameraFar);
+			return a + b / depth;
+		}
+		float linearizeDepth2(in float depthValue) {
+			float invClipZ = linearizeDepth(exp2(depthValue * log2(cameraFar + 1.0)) - 1.0);
+			return invClipZ;
+		}
+
 		float getLinearDepth( const in vec2 screenPosition ) {
 
 			#if PERSPECTIVE_CAMERA == 1
 
 				float fragCoordZ = texture2D( tDepth, screenPosition ).x;
-				float viewZ = perspectiveDepthToViewZ( fragCoordZ, cameraNear, cameraFar );
+
+				#ifdef USE_LOGDEPTHBUF
+			  float invClipZ = linearizeDepth2(fragCoordZ);
+				#else
+			  float invClipZ = fragCoordZ;
+				#endif
+
+				float viewZ = perspectiveDepthToViewZ( invClipZ, cameraNear, cameraFar );
 				return viewZToOrthographicDepth( viewZ, cameraNear, cameraFar );
 
 			#else
