@@ -67,6 +67,7 @@ class NpcManager extends EventTarget {
     }
 
     await npcPlayer.setAvatarUrl(avatarUrl);
+    npcPlayer.updateAvatar(0, 0);
 
     if (!detached) {
       this.npcs.push(npcPlayer);
