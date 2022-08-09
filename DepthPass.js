@@ -47,8 +47,6 @@ class DepthPass extends Pass {
     this.width = width;
     this.height = height;
 		this.onBeforeRenderScene = onBeforeRenderScene;
-    const depthTexture = new DepthTexture();
-		// depthTexture.type = UnsignedShortType;
 
 		/* this.beautyRenderTarget = new WebGLRenderTarget( this.width, this.height, {
 			minFilter: LinearFilter,
