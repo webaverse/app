@@ -67,6 +67,18 @@ class DepthPass extends Pass {
     this.originalClearColor = new Color();
 	}
 
+	setSize(width, height) {
+		this.width = width;
+		this.height = height;
+
+		this.normalRenderTarget.dispose();
+		this.normalRenderTarget.depthTexture.dispose();
+
+		this.normalRenderTarget.setSize( width, height );
+		this.normalRenderTarget.depthTexture.image.width = width;
+		this.normalRenderTarget.depthTexture.image.height = height;
+	}
+
   renderOverride( renderer, overrideMaterial, renderTarget, clearColor, clearAlpha ) {
     renderer.getClearColor( this.originalClearColor );
     const originalClearAlpha = renderer.getClearAlpha();
