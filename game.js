@@ -494,6 +494,8 @@ const _gameUpdate = (timestamp, timeDiff) => {
   const now = timestamp;
   const renderer = getRenderer();
   const localPlayer = playersManager.getLocalPlayer();
+  const pickUpAction = localPlayer.getAction('pickUp');
+  const activateAction = localPlayer.getAction('activate');
 
   const _handlePush = () => {
     if (gameManager.canPush()) {
@@ -561,7 +563,6 @@ const _gameUpdate = (timestamp, timeDiff) => {
   zTargeting.update(timestamp, timeDiff);
 
   const _handlePickUp = () => {
-    const pickUpAction = localPlayer.getAction('pickUp');
     if (pickUpAction) {
       const {instanceId} = pickUpAction;
       const app = metaversefileApi.getAppByInstanceId(instanceId);
@@ -608,7 +609,6 @@ const _gameUpdate = (timestamp, timeDiff) => {
     } /* else {
 
     } */
-    ioManager.setMovementEnabled(!pickUpAction);
   }
   _handlePickUp();
 
@@ -1014,6 +1014,8 @@ const _gameUpdate = (timestamp, timeDiff) => {
     isMouseUp = false;
   };
   _updateUse();
+  
+  ioManager.setMovementEnabled(!pickUpAction && !activateAction);
 };
 const _pushAppUpdates = () => {
   world.appManager.pushAppUpdates();
