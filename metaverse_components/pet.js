@@ -1,8 +1,11 @@
 import * as THREE from 'three';
 import metaversefile from 'metaversefile';
+import physicsManager from '../physics-manager.js';
+import { playersManager } from '../players-manager.js';
 
 const localVector = new THREE.Vector3();
 const localVector2 = new THREE.Vector3();
+const localVector4D = new THREE.Vector4();
 const localQuaternion = new THREE.Quaternion();
 const localQuaternion2 = new THREE.Quaternion();
 const localQuaternion3 = new THREE.Quaternion();
@@ -11,6 +14,17 @@ const localMatrix = new THREE.Matrix4();
 
 export default (app, component) => {
   const {useFrame, useCleanup, useLocalPlayer, useRemotePlayers, getPlayerByAppInstanceId, useActivate} = metaversefile;
+
+  const physicsScene = physicsManager.getScene();
+  const characterController = physicsScene.createCharacterController(
+          0.5,
+          0.01,
+          0.1,
+          0.5,
+          app.position,
+          new THREE.Vector3(0, 0, 0),
+        );
+
 
   let petSpec = null;
   let petMixer = null;
@@ -101,9 +115,56 @@ export default (app, component) => {
   };
   const minDistance = 1;
   const _isFar = distance => (distance - minDistance) > 0.01;
+  let lastGravityH = 0;
+  let fallLoopStartTimeS = 0;
+  let grounded = false;
+  const startFallingPosition = new THREE.Vector3();
   useFrame(({timestamp, timeDiff}) => {
     // components
     const _updateAnimation = () => {
+      // console.log(physicsScene.getGravity());
+      const timeDiffS = timeDiff / 1000;
+      if(fallLoopStartTimeS === 0) {
+          fallLoopStartTimeS = timestamp / 1000;
+          startFallingPosition.copy(app.position);
+      }
+      // characterController.characterPhysics.applyGravity(timeDiffs);
+        const t = timestamp/1000 - fallLoopStartTimeS;
+        // console.log(t)
+        const h = 0.5 * physicsScene.getGravity().y * t * t;
+        app.position.y = startFallingPosition.y + (grounded ? (h - lastGravityH) : 0);
+        app.updateMatrixWorld();
+        
+      localVector.copy(app.position);
+      const flags = physicsScene.moveCharacterController(
+        characterController,
+        localVector,
+        minDistance,
+        timeDiffS,
+        app.position
+      );
+
+      lastGravityH = h;
+      
+      grounded = !!(flags & 0x1);
+
+      if(grounded) {
+        console.log('Hello')
+      }
+
+      fallLoopStartTimeS = timestamp / 1000;
+
+
+
+      // if (!grounded) {
+      //    if (fallLoopStartTimeS === 0) {
+      //   }
+      // }else{
+      //   fallLoopStartTimeS = 0;
+      // }
+      // console.log(h);
+      // app.position.set()
+
       // const petComponent = app.getComponent('pet');
       if (petComponent) {
         if (rootBone) {
