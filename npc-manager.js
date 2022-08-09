@@ -20,6 +20,7 @@ class NpcManager extends EventTarget {
     super();
 
     this.npcs = [];
+    this.init();
   }
 
   async createNpcAsync({
@@ -66,7 +67,6 @@ class NpcManager extends EventTarget {
     if (!detached) {
       this.npcs.push(npcPlayer);
     }
-    
     return npcPlayer;
   }
 
@@ -78,7 +78,7 @@ class NpcManager extends EventTarget {
       this.npcs.splice(removeIndex, 1);
     }
   }
-  update(){
+  init(){
     const slowdownFactor = 0.4;
     const walkSpeed = 0.075 * slowdownFactor;
     const runSpeed = walkSpeed * 8;
@@ -198,7 +198,7 @@ class NpcManager extends EventTarget {
           }
         };
         app.addEventListener('activate', activate);
-        
+
         cancelFns.push(() => {
           app.removeEventListener('hittrackeradded', hittrackeradd);
           app.removeEventListener('activate', activate);
@@ -342,5 +342,4 @@ class NpcManager extends EventTarget {
   }
 }
 const npcManager = new NpcManager();
-npcManager.update();
 export default npcManager;
