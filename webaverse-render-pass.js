@@ -1,4 +1,4 @@
-import * as THREE from 'three';
+// import * as THREE from 'three';
 import {Pass} from 'three/examples/jsm/postprocessing/Pass.js';
 import {
   // scene,
@@ -25,9 +25,8 @@ class WebaverseRenderPass extends Pass {
       this.internalDepthPass.setSize(width, height);
     }
     if (this.internalRenderPass) {
-      this.internalRenderPass.setSize(width,height);
+      this.internalRenderPass.setSize(width, height);
     }
-
 	}
   render(renderer, renderTarget, readBuffer, deltaTime, maskActive) {
     this.onBeforeRender && this.onBeforeRender();
