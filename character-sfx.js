@@ -97,6 +97,8 @@ class CharacterSfx {
     this.currentStep = null;
     this.currentSwimmingHand = null;
     this.setSwimmingHand = true;
+
+    this.lastLandState = false;
   }
   update(timestamp, timeDiffS) {
     if (!this.player.avatar) {
@@ -122,9 +124,13 @@ class CharacterSfx {
         if(this.player.hasAction('jump') && this.player.getAction('jump').trigger === 'jump'){
           this.playGrunt('jump'); 
         }
-      } else if (this.lastJumpState && !this.player.avatar.jumpState) {
+      } /*else if (this.lastJumpState && !this.player.avatar.jumpState) {
+        sounds.playSoundName('land');
+      }*/
+      if(this.player.avatar.landState && !this.lastLandState){
         sounds.playSoundName('land');
       }
+      this.lastLandState = this.player.avatar.landState;
       this.lastJumpState = this.player.avatar.jumpState;
     };
     _handleJump();

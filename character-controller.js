@@ -749,6 +749,11 @@ class StatePlayer extends PlayerBase {
       this.characterPhysics.setPosition(position);
     }
   }
+  getActionsByType(type) {
+   const actions = this.getActionsState(); 
+   const typedActions = Array.from(actions).filter(action => action.type === type);
+   return typedActions;
+  }
   getActions() {
     return this.getActionsState();
   }
@@ -942,8 +947,8 @@ class InterpolatedPlayer extends StatePlayer {
       quaternion: this.quaternionInterpolant.get(),
     };
   }
-  update(timestamp, timeDiff) {
-    if(!this.avatar) return; // avatar takes time to load, ignore until it does
+  /* update(timestamp, timeDiff) {
+    if (!this.avatar) return; // avatar takes time to load, ignore until it does
 
     this.updateInterpolation(timeDiff);
 
@@ -958,7 +963,7 @@ class InterpolatedPlayer extends StatePlayer {
     this.characterBehavior.update(timestamp, timeDiffS);
 
     this.avatar.update(timestamp, timeDiff);
-  }
+  } */
   updateInterpolation(timeDiff) {
     this.positionInterpolant.update(timeDiff);
     this.quaternionInterpolant.update(timeDiff);
@@ -1220,14 +1225,11 @@ class LocalPlayer extends UninterpolatedPlayer {
   pushPlayerUpdates() {
     const self = this;
     this.playersArray.doc.transact(() => {
-        /* if (isNaN(this.position.x) || isNaN(this.position.y) || isNaN(this.position.z)) {
-          debugger;
-        } */
-      if(!this.matrixWorld.equals(this.lastMatrix)) {
+      if (!this.matrixWorld.equals(this.lastMatrix)) {
         self.position.toArray(self.transform);      
         self.quaternion.toArray(self.transform, 3);
         self.playerMap.set('transform', self.transform);
-        this.matrixWorld.copy(this.lastMatrix)
+        this.lastMatrix.copy(this.matrixWorld);
       }
     }, 'push');
 

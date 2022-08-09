@@ -17,7 +17,7 @@ const origSceneList = [];
 
 sceneNames.forEach( ( name ) => {
 
-    origSceneList.push( `./scenes/${ name } `);
+    origSceneList.push( `./scenes/${ name }`);
 
 });
 
