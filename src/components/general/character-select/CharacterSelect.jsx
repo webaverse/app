@@ -355,10 +355,10 @@ export const CharacterSelect = () => {
             setEnabled(false);
         }
         if (!opened) {
+            setNpcPlayer(null);
             setHighlightCharacter(null);
             setSelectCharacter(null);
             setArrowPosition(null);
-            setNpcPlayer(null)
             setText('');
         }
     }, [opened, enabled]);
