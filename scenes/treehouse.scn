@@ -302,6 +302,25 @@
         1
       ],
       "start_url": "https://webaverse.github.io/machine-gun/"
+    },
+    {
+      "position": [
+        -6,
+        0,
+        25
+      ],
+      "quaternion": [
+        0,
+        0.702,
+        0,
+        0.712
+      ],
+      "scale": [
+        1,
+        1,
+        1
+      ],
+      "start_url": "https://webaverse.github.io/dummy/"
     }
   ]
 }
