@@ -34,7 +34,7 @@ export default e => {
   let particleSystem = null;
   const particles = [];
 
-  let abort = false;
+  let live = true;
   e.waitUntil((async () => {
     {
       const localParticleSystem = particleSystemManager.createParticleSystem({
@@ -43,7 +43,7 @@ export default e => {
         maxParticles: numParticles,
       });
       await localParticleSystem.waitForLoad();
-      if (!abort){
+      if (live){
         scene.add(localParticleSystem);
         particleSystem = localParticleSystem;
       }
@@ -61,7 +61,7 @@ export default e => {
       particles.push(particle);
       return particle;
     };
-    if (!abort){
+    if (live){
       const particleName = particleNames[Math.floor(rng() * particleNames.length)];
       const dropParticle = _addParticle(particleName, app.position);
     
@@ -82,7 +82,7 @@ export default e => {
   })());
 
   useCleanup(() => {
-    abort = true;
+    live = false;
     if (particleSystem){
       scene.remove(particleSystem);
       particleSystem.destroy();
