@@ -114,11 +114,16 @@ const _bindSkeleton = (dstModel, srcObject) => {
     }
   });
 };
+// const updateEvent = new MessageEvent('update');
 
-export class AvatarRenderer {
+export class AvatarRenderer /* extends EventTarget */ {
   constructor(object, {
     quality = defaultAvatarQuality,
   } = {})	{
+    // super();
+    
+    //
+
     this.object = object;
     this.quality = quality;
     
@@ -226,6 +231,7 @@ export class AvatarRenderer {
         return glbData;
       }
     ]);
+    this.loadPromise = null;
 
     this.setQuality(quality);
   }
@@ -252,73 +258,83 @@ export class AvatarRenderer {
   async setQuality(quality) {
     this.quality = quality;
 
-    // XXX destroy the old avatars?
+    // XXX destroy old avatars?
     this.scene.clear();
     this.scene.add(this.placeholderMesh);
 
-    switch (this.quality) {
-      case 1: {
-        if (!this.spriteAvatarMeshPromise) {
-          this.spriteAvatarMeshPromise = (async () => {
-            const textureImages = await this.createSpriteAvatarMesh([this.object.arrayBuffer, this.object.srcUrl], {
-              signal: this.abortController.signal,
-            });
-            this.spriteAvatarMesh = avatarSpriter.createSpriteAvatarMeshFromTextures(textureImages);
-          })();
+    const loadPromise = (async () => {
+      switch (this.quality) {
+        case 1: {
+          if (!this.spriteAvatarMeshPromise) {
+            this.spriteAvatarMeshPromise = (async () => {
+              const textureImages = await this.createSpriteAvatarMesh([this.object.arrayBuffer, this.object.srcUrl], {
+                signal: this.abortController.signal,
+              });
+              this.spriteAvatarMesh = avatarSpriter.createSpriteAvatarMeshFromTextures(textureImages);
+            })();
+          }
+          await this.spriteAvatarMeshPromise;
+          break;
         }
-        await this.spriteAvatarMeshPromise;
-        break;
-      }
-      case 2: {
-        if (!this.crunchedModelPromise) {
-          this.crunchedModelPromise = (async () => {
-            const glbData = await this.crunchAvatarModel([this.object.arrayBuffer, this.object.srcUrl], {
-              signal: this.abortController.signal,
-            });
-            const object = await new Promise((accept, reject) => {
-              const {gltfLoader} = loaders;
-              gltfLoader.parse(glbData, this.object.srcUrl, accept, reject);
-            });
-            const glb = object.scene;
-            this.crunchedModel = glb;
-          })();
+        case 2: {
+          if (!this.crunchedModelPromise) {
+            this.crunchedModelPromise = (async () => {
+              const glbData = await this.crunchAvatarModel([this.object.arrayBuffer, this.object.srcUrl], {
+                signal: this.abortController.signal,
+              });
+              const object = await new Promise((accept, reject) => {
+                const {gltfLoader} = loaders;
+                gltfLoader.parse(glbData, this.object.srcUrl, accept, reject);
+              });
+              const glb = object.scene;
+              this.crunchedModel = glb;
+            })();
+          }
+          await this.crunchedModelPromise;
+          break;
         }
-        await this.crunchedModelPromise;
-        break;
-      }
-      case 3: {
-        if (!this.optimizedModelPromise) {
-          this.optimizedModelPromise = (async () => {
-            const glbData = await this.optimizeAvatarModel([this.object.arrayBuffer, this.object.srcUrl], {
-              signal: this.abortController.signal,
-            });
-            const object = await new Promise((accept, reject) => {
-              const {gltfLoader} = loaders;
-              gltfLoader.parse(glbData, this.object.srcUrl, accept, reject);
-            });
-            const glb = object.scene;
+        case 3: {
+          if (!this.optimizedModelPromise) {
+            this.optimizedModelPromise = (async () => {
+              const glbData = await this.optimizeAvatarModel([this.object.arrayBuffer, this.object.srcUrl], {
+                signal: this.abortController.signal,
+              });
+              const object = await new Promise((accept, reject) => {
+                const {gltfLoader} = loaders;
+                gltfLoader.parse(glbData, this.object.srcUrl, accept, reject);
+              });
+              const glb = object.scene;
 
-            _bindSkeleton(glb, this.object);
-            this.optimizedModel = glb;
-            this.optimizedModel.updateMatrixWorld();
-          })();
+              _bindSkeleton(glb, this.object);
+              this.optimizedModel = glb;
+              this.optimizedModel.updateMatrixWorld();
+            })();
+          }
+          await this.optimizedModelPromise;
+          break;
         }
-        await this.optimizedModelPromise;
-        break;
+        case 4: {
+          break;
+        }
+        default: {
+          throw new Error('unknown avatar quality: ' + this.quality);
+        }
       }
-      case 4: {
-        break;
-      }
-      default: {
-        throw new Error('unknown avatar quality: ' + this.quality);
-      }
-    }
+    })();
+    // if (!this.loadPromise) {
+    this.loadPromise = loadPromise;
+    // }
 
     // remove the old placeholder mesh
     this.scene.remove(this.placeholderMesh);
     // add the new avatar mesh
     const currentMesh = this.getCurrentMesh();
     this.scene.add(currentMesh);
+
+    // this.dispatchEvent(updateEvent);
+  }
+  waitForLoad() {
+    return this.loadPromise;
   }
   destroy() {
     // nothing
