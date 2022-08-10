@@ -222,24 +222,21 @@ export class AvatarRenderer {
     this.scene.clear();
     this.scene.add(this.placeholderMesh);
 
-    // console.log('set quality', quality, new Error().stack);
-
     switch (this.quality) {
       case 1: {
         if (!this.spriteAvatarMesh) {
+          this.spriteAvatarMesh = {};
+
           const textureImages = await this.createSpriteAvatarMesh([this.object.arrayBuffer, this.object.srcUrl]);
           this.spriteAvatarMesh = avatarSpriter.createSpriteAvatarMeshFromTextures(textureImages);
-          // this.spriteAvatarMesh.visible = false;
-          // this.spriteAvatarMesh.enabled = true; // XXX
           this.scene.add(this.spriteAvatarMesh);
         }
         break;
       }
       case 2: {
         if (!this.crunchedModel) {
-          if (!this.object.arrayBuffer) {
-            debugger;
-          }
+          this.crunchedModel = {};
+
           const glbData = await this.crunchAvatarModel([this.object.arrayBuffer, this.object.srcUrl]);
           const glb = await new Promise((accept, reject) => {
             const {gltfLoader} = loaders;
@@ -248,66 +245,24 @@ export class AvatarRenderer {
             }, reject);
           });
           this.crunchedModel = glb;
-          // this.crunchedModel.visible = false;
-          // this.crunchedModel.enabled = true; // XXX
           this.scene.add(this.crunchedModel);
         }
         break;
       }
       case 3: {
         if (!this.optimizedModel) {
-          this.optimizedModel = true;
+          this.optimizedModel = {};
 
           const parseVrm = (arrayBuffer, srcUrl) => new Promise((accept, reject) => {
-            const { gltfLoader } = loaders;
-            gltfLoader.parse(arrayBuffer, srcUrl, object => {
-              accept(object);
-            }, reject);
+            const {gltfLoader} = loaders;
+            gltfLoader.parse(arrayBuffer, srcUrl, accept, reject);
           });
           const object = await parseVrm(this.object.arrayBuffer, this.object.srcUrl);
 
           const glb = await avatarOptimizer.optimizeAvatarModel(object.scene);
 
-          /* const parseVrm = (arrayBuffer, srcUrl) => new Promise((accept, reject) => {
-            const { gltfLoader } = loaders;
-            gltfLoader.parse(arrayBuffer, srcUrl, object => {
-              accept(object);
-            }, reject);
-          });
-          const object = await parseVrm(this.object.arrayBuffer, this.object.srcUrl);
-          object.scene.updateMatrixWorld();
-          const glbData = await new Promise((accept, reject) => {
-            const {gltfExporter} = exporters;
-            gltfExporter.parse(
-              object.scene,
-              function onCompleted(arrayBuffer) {
-                accept(arrayBuffer);
-              }, function onError(error) {
-                reject(error);
-              },
-              {
-                binary: true,
-                includeCustomExtensions: true,
-              },
-            );
-          }); */
-
-          /* const glb = await new Promise((accept, reject) => {
-            const {gltfLoader} = loaders;
-            gltfLoader.parse(glbData, this.object.srcUrl, object => {
-              // window.o15 = object;
-              accept(object.scene);
-            }, reject);
-          }); */
-
           _bindSkeleton(glb, this.object);
           this.optimizedModel = glb;
-          
-          // object.scene.position.x = -10;
-          // object.scene.updateMatrixWorld();
-          // this.scene.add(object.scene);
-          
-          // window.glb = glb;
 
           this.optimizedModel.updateMatrixWorld();
           this.scene.add(this.optimizedModel);
@@ -322,48 +277,28 @@ export class AvatarRenderer {
       }
     }
 
+    // remove the old placeholder mesh
     this.scene.remove(this.placeholderMesh);
-
-    // this.#updateVisibility();
-  }
-  /* #updateVisibility() {
-    this.object.visible = false;
-    if (this.spriteAvatarMesh) {
-      this.spriteAvatarMesh.visible = false;
-    }
-    if (this.crunchedModel) {
-      this.crunchedModel.visible = false;
-    }
-    if (this.optimizedModel) {
-      this.optimizedModel.visible = false;
-    }
-
+    // add the new avatar mesh
     switch (this.quality) {
       case 1: {
-        if (this.spriteAvatarMesh && this.spriteAvatarMesh.enabled) {
-          this.spriteAvatarMesh.visible = true;
-        }
+        this.scene.add(this.spriteAvatarMesh);
         break;
       }
       case 2: {
-        if (this.crunchedModel && this.crunchedModel.enabled) {
-          this.crunchedModel.visible = true;
-        }
+        this.scene.add(this.crunchedModel);
         break;
       }
       case 3: {
-        if (this.optimizedModel && this.optimizedModel.enabled) {
-          this.optimizedModel.visible = true;
-        }
+        this.scene.add(this.optimizedModel);
         break;
       }
       case 4: {
-        this.object.visible = true;
         break;
       }
       default: {
         throw new Error('unknown avatar quality: ' + this.quality);
       }
     }
-  } */
+  }
 }
