@@ -412,36 +412,7 @@ class Avatar {
     this.isLocalPlayer = options.isLocalPlayer !== undefined ? options.isLocalPlayer : true;
     this.object = object;
 
-    const model = (() => {
-      let o = object;
-      if (o && !o.isMesh) {
-        o = o.scene;
-      }
-      /* if (!o) {
-        const scene = new THREE.Scene();
-
-        const skinnedMesh = new THREE.Object3D();
-        skinnedMesh.isSkinnedMesh = true;
-        skinnedMesh.skeleton = null;
-        skinnedMesh.bind = function(skeleton) {
-          this.skeleton = skeleton;
-        };
-        skinnedMesh.bind(_importSkeleton(skeletonString));
-        scene.add(skinnedMesh);
-
-        const hips = _findHips(skinnedMesh.skeleton);
-        const armature = _findArmature(hips);
-        scene.add(armature);
-
-        o = scene;
-      } */
-      return o;
-    })();
-
-    // if (!model.parent) {
-      console.log('model parent', model.parent, new Error().stack);
-    // }
-
+    const model = object.scene;
     this.model = model; // XXX still needed?
     this.model.visible = false;
     
