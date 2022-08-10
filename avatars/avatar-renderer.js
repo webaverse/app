@@ -264,7 +264,7 @@ export class AvatarRenderer /* extends EventTarget */ {
     this.scene.clear();
     this.scene.add(this.placeholderMesh);
 
-    const loadPromise = (async () => {
+    this.loadPromise = (async () => {
       switch (this.quality) {
         case 1: {
           if (!this.spriteAvatarMeshPromise) {
@@ -323,9 +323,8 @@ export class AvatarRenderer /* extends EventTarget */ {
         }
       }
     })();
-    // if (!this.loadPromise) {
-    this.loadPromise = loadPromise;
-    // }
+
+    await this.loadPromise;
 
     // remove the old placeholder mesh
     this.scene.remove(this.placeholderMesh);
