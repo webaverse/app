@@ -128,6 +128,16 @@ export class AvatarRenderer {
     this.placeholderMesh = _makeAvatarPlaceholderMesh();
 
     //
+
+    this.spriteAvatarMeshPromise = null;
+    this.crunchedModelPromise = null;
+    this.optimizedModelPromise = null;
+
+    this.spriteAvatarMesh = null;
+    this.crunchedModel = null;
+    this.optimizedModel = null;
+
+    //
     
     this.createSpriteAvatarMesh = offscreenEngineManager.createFunction([
       `\
@@ -224,49 +234,48 @@ export class AvatarRenderer {
 
     switch (this.quality) {
       case 1: {
-        if (!this.spriteAvatarMesh) {
-          this.spriteAvatarMesh = {};
-
-          const textureImages = await this.createSpriteAvatarMesh([this.object.arrayBuffer, this.object.srcUrl]);
-          this.spriteAvatarMesh = avatarSpriter.createSpriteAvatarMeshFromTextures(textureImages);
-          this.scene.add(this.spriteAvatarMesh);
+        if (!this.spriteAvatarMeshPromise) {
+          this.spriteAvatarMeshPromise = (async () => {
+            const textureImages = await this.createSpriteAvatarMesh([this.object.arrayBuffer, this.object.srcUrl]);
+            this.spriteAvatarMesh = avatarSpriter.createSpriteAvatarMeshFromTextures(textureImages);
+          })();
         }
+        await this.spriteAvatarMeshPromise;
         break;
       }
       case 2: {
-        if (!this.crunchedModel) {
-          this.crunchedModel = {};
-
-          const glbData = await this.crunchAvatarModel([this.object.arrayBuffer, this.object.srcUrl]);
-          const glb = await new Promise((accept, reject) => {
-            const {gltfLoader} = loaders;
-            gltfLoader.parse(glbData, this.object.srcUrl, object => {
-              accept(object.scene);
-            }, reject);
-          });
-          this.crunchedModel = glb;
-          this.scene.add(this.crunchedModel);
+        if (!this.crunchedModelPromise) {
+          this.crunchedModelPromise = (async () => {
+            const glbData = await this.crunchAvatarModel([this.object.arrayBuffer, this.object.srcUrl]);
+            const glb = await new Promise((accept, reject) => {
+              const {gltfLoader} = loaders;
+              gltfLoader.parse(glbData, this.object.srcUrl, object => {
+                accept(object.scene);
+              }, reject);
+            });
+            this.crunchedModel = glb;
+          })();
         }
+        await this.crunchedModelPromise;
         break;
       }
       case 3: {
-        if (!this.optimizedModel) {
-          this.optimizedModel = {};
+        if (!this.optimizedModelPromise) {
+          this.optimizedModelPromise = (async () => {
+            const parseVrm = (arrayBuffer, srcUrl) => new Promise((accept, reject) => {
+              const {gltfLoader} = loaders;
+              gltfLoader.parse(arrayBuffer, srcUrl, accept, reject);
+            });
+            const object = await parseVrm(this.object.arrayBuffer, this.object.srcUrl);
 
-          const parseVrm = (arrayBuffer, srcUrl) => new Promise((accept, reject) => {
-            const {gltfLoader} = loaders;
-            gltfLoader.parse(arrayBuffer, srcUrl, accept, reject);
-          });
-          const object = await parseVrm(this.object.arrayBuffer, this.object.srcUrl);
+            const glb = await avatarOptimizer.optimizeAvatarModel(object.scene);
 
-          const glb = await avatarOptimizer.optimizeAvatarModel(object.scene);
-
-          _bindSkeleton(glb, this.object);
-          this.optimizedModel = glb;
-
-          this.optimizedModel.updateMatrixWorld();
-          this.scene.add(this.optimizedModel);
+            _bindSkeleton(glb, this.object);
+            this.optimizedModel = glb;
+            this.optimizedModel.updateMatrixWorld();
+          })();
         }
+        await this.optimizedModelPromise;
         break;
       }
       case 4: {
