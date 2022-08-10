@@ -6,6 +6,7 @@ import * as avatarSpriter from '../avatar-spriter.js';
 import offscreenEngineManager from '../offscreen-engine-manager.js';
 import loaders from '../loaders.js';
 // import exporters from '../exporters.js';
+import {abortError} from '../lock-manager.js';
 import {
   defaultAvatarQuality,
 } from '../constants.js';
@@ -156,8 +157,9 @@ export class AvatarRenderer /* extends EventTarget */ {
 
     //
     
-    // XXX support signal in offscreenEngineManager.createFunction(...)(..., {signal})
+    // XXX add frustum culling in update()
     // XXX integrate more cleanly with totum VRM type (do not double-parse)
+    // XXX unlock avatar icon
     this.createSpriteAvatarMesh = offscreenEngineManager.createFunction([
       `\
       import * as THREE from 'three';
@@ -353,6 +355,6 @@ export class AvatarRenderer /* extends EventTarget */ {
     return this.loadPromise;
   }
   destroy() {
-    // nothing
+    this.abortController.abort(abortError);
   }
 }
