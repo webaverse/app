@@ -656,9 +656,9 @@ export const optimizeAvatarModel = async (model, options = {}) => {
 
   // XXX this should anti-index flattened index ranges for the multi-materials case
 
-  return object;
+  // return object;
 
-  /* const glbData = await new Promise((accept, reject) => {
+  const glbData = await new Promise((accept, reject) => {
     const {gltfExporter} = exporters;
     gltfExporter.parse(
       object,
@@ -676,5 +676,5 @@ export const optimizeAvatarModel = async (model, options = {}) => {
       },
     );
   });
-  return glbData; */
+  return glbData;
 };
