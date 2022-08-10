@@ -5,12 +5,16 @@ import * as avatarCruncher from '../avatar-cruncher.js';
 import * as avatarSpriter from '../avatar-spriter.js';
 import offscreenEngineManager from '../offscreen-engine-manager.js';
 import loaders from '../loaders.js';
+import {camera} from '../renderer.js';
 // import exporters from '../exporters.js';
 import {abortError} from '../lock-manager.js';
 import {
   defaultAvatarQuality,
 } from '../constants.js';
 // import { downloadFile } from '../util.js';
+
+// const localBox = new THREE.Box3();
+const localSphere = new THREE.Sphere();
 
 const avatarPlaceholderImagePromise = (async () => {
   const avatarPlaceholderImage = new Image();
@@ -124,6 +128,35 @@ const _unfrustumCull = o => {
     }
   });
 };
+/* const _getMergedBoundingBox = o => {
+  const box = new THREE.Box3();
+  o.updateMatrixWorld();
+  o.traverse(o => {
+    if (o.isMesh) {
+      if (!o.geometry.boundingBox) {
+        debugger;
+      }
+      if (!o.geometry.boundingSphere) {
+        debugger;
+      }
+      box.expandByObject(o);
+    }
+  });
+  return box;
+}; */
+const _getMergedBoundingSphere = o => {
+  const sphere = new THREE.Sphere();
+  o.updateMatrixWorld();
+  o.traverse(o => {
+    if (o.isMesh) {
+      sphere.union(
+        localSphere.copy(o.geometry.boundingSphere)
+          .applyMatrix4(o.matrixWorld)
+      );
+    }
+  });
+  return sphere;
+};
 
 export class AvatarRenderer /* extends EventTarget */ {
   constructor(object, {
@@ -139,6 +172,7 @@ export class AvatarRenderer /* extends EventTarget */ {
     //
 
     this.scene = new THREE.Object3D();
+    this.scene.name = 'avatarRendererScene';
     this.placeholderMesh = _makeAvatarPlaceholderMesh();
 
     //
@@ -282,6 +316,9 @@ export class AvatarRenderer /* extends EventTarget */ {
               });
               const glb = avatarSpriter.createSpriteAvatarMeshFromTextures(textureImages);
               _unfrustumCull(glb);
+              // glb.boundingBox = _getMergedBoundingBox(glb);
+              glb.boundingSphere = _getMergedBoundingSphere(glb);
+
               this.spriteAvatarMesh = glb;
             })();
           }
@@ -300,6 +337,8 @@ export class AvatarRenderer /* extends EventTarget */ {
               });
               const glb = object.scene;
               _unfrustumCull(glb);
+              // glb.boundingBox = _getMergedBoundingBox(glb);
+              glb.boundingSphere = _getMergedBoundingSphere(glb);
 
               _bindSkeleton(glb, this.object);
               this.crunchedModel = glb;
@@ -320,6 +359,8 @@ export class AvatarRenderer /* extends EventTarget */ {
               });
               const glb = object.scene;
               _unfrustumCull(glb);
+              // glb.boundingBox = _getMergedBoundingBox(glb);
+              glb.boundingSphere = _getMergedBoundingSphere(glb);
 
               _bindSkeleton(glb, this.object);
               this.optimizedModel = glb;
@@ -348,8 +389,18 @@ export class AvatarRenderer /* extends EventTarget */ {
 
     // this.dispatchEvent(updateEvent);
   }
-  update() {
-    
+  updateFrustumCull(matrix, frustum) {
+    const currentMesh = this.getCurrentMesh();
+    if (currentMesh) {
+      // const boundingBox = localBox.copy(currentMesh.boundingBox)
+      //   .applyMatrix4(matrix);
+      const boundingSphere = localSphere.copy(currentMesh.boundingSphere)
+        .applyMatrix4(matrix);
+
+      // const inFrustum = frustum.intersectsBox(boundingBox);
+      const inFrustum = frustum.intersectsSphere(boundingSphere);
+      this.scene.visible = inFrustum;
+    }
   }
   waitForLoad() {
     return this.loadPromise;
