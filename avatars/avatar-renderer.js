@@ -228,8 +228,6 @@ export class AvatarRenderer /* extends EventTarget */ {
         // const parsedObject = await parseVrm(glbData, srcUrl);
         // console.log('compare skeletons', object, parsedObject);
 
-        console.log('optimize avatar model glb data', glbData);
-
         return glbData;
       }
     ]);
