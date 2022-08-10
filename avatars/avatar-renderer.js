@@ -152,7 +152,7 @@ export class AvatarRenderer {
       `,
       async function(arrayBuffer, srcUrl) {
         const parseVrm = (arrayBuffer, srcUrl) => new Promise((accept, reject) => {
-          const { gltfLoader } = loaders;
+          const {gltfLoader} = loaders;
           gltfLoader.parse(arrayBuffer, srcUrl, object => {
             accept(object.scene);
           }, reject);
@@ -172,7 +172,7 @@ export class AvatarRenderer {
       `,
       async function(arrayBuffer, srcUrl) {
         const parseVrm = (arrayBuffer, srcUrl) => new Promise((accept, reject) => {
-          const { gltfLoader } = loaders;
+          const {gltfLoader} = loaders;
           gltfLoader.parse(arrayBuffer, srcUrl, object => {
             accept(object.scene);
           }, reject);
@@ -193,10 +193,8 @@ export class AvatarRenderer {
       `,
       async function(arrayBuffer, srcUrl) {
         const parseVrm = (arrayBuffer, srcUrl) => new Promise((accept, reject) => {
-          const { gltfLoader } = loaders;
-          gltfLoader.parse(arrayBuffer, srcUrl, object => {
-            accept(object);
-          }, reject);
+          const {gltfLoader} = loaders;
+          gltfLoader.parse(arrayBuffer, srcUrl, accept, reject);
         });
 
         const object = await parseVrm(arrayBuffer, srcUrl);
