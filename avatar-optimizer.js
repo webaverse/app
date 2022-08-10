@@ -319,21 +319,14 @@ export const mergeGeometryTextureAtlas = (mergeable, textureSize) => {
   const attributeLayouts = _makeAttributeLayoutsFromGeometries(geometries);
 
   const _makeMorphAttributeLayoutsFromGeometries = geometries => {
-    // console.log('got geomtries', geometries);
-    /* for (const geometry of geometries) {
-      geometry.
-    } */
-    
     // create morph layouts
     const morphAttributeLayouts = [];
     for (const g of geometries) {
       const morphAttributes = g.morphAttributes;
-      // console.log('got keys', Object.keys(morphAttributes));
       for (const morphAttributeName in morphAttributes) {
         const morphAttribute = morphAttributes[morphAttributeName];
         let morphLayout = morphAttributeLayouts.find(l => l.name === morphAttributeName);
         if (!morphLayout) {
-          // console.log('missing morph layout', morphAttributeName, morphAttribute);
           morphLayout = new MorphAttributeLayout(
             morphAttributeName,
             morphAttribute[0].array.constructor,
@@ -343,7 +336,7 @@ export const mergeGeometryTextureAtlas = (mergeable, textureSize) => {
           morphAttributeLayouts.push(morphLayout);
         }
 
-        for (let i = 1; i < morphAttribute.length; i++) {
+        /* for (let i = 1; i < morphAttribute.length; i++) {
           const attribute = morphAttribute[i];
           if (attribute.count !== morphAttribute[0].count) {
             debugger;
@@ -354,24 +347,23 @@ export const mergeGeometryTextureAtlas = (mergeable, textureSize) => {
           if (attribute.array.constructor !== morphAttribute[0].array.constructor) {
             debugger;
           }
-        }
+        } */
 
         morphLayout.count += morphAttribute[0].count * morphAttribute[0].itemSize;
       }
     }
 
-    for (let i = 0; i < geometries.length; i++) {
+    /* for (let i = 0; i < geometries.length; i++) {
       const g = geometries[i];
       for (const k in g.morphAttributes) {
         const morphAttribute = g.morphAttributes[k];
         console.log('got morph attr', i, k, morphAttribute);
       }
-    }
+    } */
 
     return morphAttributeLayouts;
   };
   const morphAttributeLayouts = _makeMorphAttributeLayoutsFromGeometries(geometries);
-  // console.log('got attribute layouts', attributeLayouts, morphAttributeLayouts);
 
   const _forceGeometriesAttributeLayouts = (attributeLayouts, geometries) => {
     for (const layout of attributeLayouts) {
@@ -379,9 +371,6 @@ export const mergeGeometryTextureAtlas = (mergeable, textureSize) => {
         let gAttribute = g.attributes[layout.name];
         if (!gAttribute) {
           if (layout.name === 'skinIndex' || layout.name === 'skinWeight') {
-            console.log('force layout', layout);
-            debugger;
-
             gAttribute = layout.makeDefault(g);
             g.setAttribute(layout.name, gAttribute);
 
@@ -397,9 +386,6 @@ export const mergeGeometryTextureAtlas = (mergeable, textureSize) => {
       for (const g of geometries) {
         let morphAttribute = g.morphAttributes[morphLayout.name];
         if (!morphAttribute) {
-          console.log('missing morph attribute', morphLayout, morphAttribute);
-          debugger;
-
           morphAttribute = morphLayout.makeDefault(g);
           g.morphAttributes[morphLayout.name] = morphAttribute;
 
@@ -427,132 +413,12 @@ export const mergeGeometryTextureAtlas = (mergeable, textureSize) => {
       }
       // sanity check
       if (attributeDataIndex !== layout.count) {
-        console.warn('desynced attribute data 1', layout.name, attributeDataIndex, layout.count);
-        debugger;
+        console.error('desynced attribute data', layout.name, attributeDataIndex, layout.count);
       }
       geometry.setAttribute(layout.name, attribute);
     }
   };
-  /* function mergeBufferAttributes( attributes ) {
-
-    let TypedArray;
-    let itemSize;
-    let normalized;
-    let arrayLength = 0;
-  
-    for ( let i = 0; i < attributes.length; ++ i ) {
-  
-      const attribute = attributes[ i ];
-  
-      if ( attribute.isInterleavedBufferAttribute ) {
-  
-        console.error( 'THREE.BufferGeometryUtils: .mergeBufferAttributes() failed. InterleavedBufferAttributes are not supported.' );
-        return null;
-  
-      }
-  
-      if ( TypedArray === undefined ) TypedArray = attribute.array.constructor;
-      if ( TypedArray !== attribute.array.constructor ) {
-  
-        console.error( 'THREE.BufferGeometryUtils: .mergeBufferAttributes() failed. BufferAttribute.array must be of consistent array types across matching attributes.' );
-        return null;
-  
-      }
-  
-      if ( itemSize === undefined ) itemSize = attribute.itemSize;
-      if ( itemSize !== attribute.itemSize ) {
-  
-        console.error( 'THREE.BufferGeometryUtils: .mergeBufferAttributes() failed. BufferAttribute.itemSize must be consistent across matching attributes.' );
-        return null;
-  
-      }
-  
-      if ( normalized === undefined ) normalized = attribute.normalized;
-      if ( normalized !== attribute.normalized ) {
-  
-        console.error( 'THREE.BufferGeometryUtils: .mergeBufferAttributes() failed. BufferAttribute.normalized must be consistent across matching attributes.' );
-        return null;
-  
-      }
-  
-      arrayLength += attribute.array.length;
-  
-    }
-  
-    const array = new TypedArray( arrayLength );
-    let offset = 0;
-  
-    for ( let i = 0; i < attributes.length; ++ i ) {
-  
-      array.set( attributes[ i ].array, offset );
-  
-      offset += attributes[ i ].array.length;
-  
-    }
-  
-    return new THREE.BufferAttribute( array, itemSize, normalized );
-  
-  }
   const _mergeMorphAttributes = (geometry, geometries, objects, morphAttributeLayouts) => {
-    // collect
-    const morphAttributesUsed = new Set( Object.keys( geometries[ 0 ].morphAttributes ) );
-    const morphAttributes = {};
-    for (const geometry of geometries) {
-      for ( const name in geometry.morphAttributes ) {
-
-        if ( ! morphAttributesUsed.has( name ) ) {
-
-          console.error( 'THREE.BufferGeometryUtils: .mergeBufferGeometries() failed with geometry at index ' + i + '.  .morphAttributes must be consistent throughout all geometries.' );
-          return null;
-
-        }
-
-        if ( morphAttributes[ name ] === undefined ) morphAttributes[ name ] = [];
-
-        morphAttributes[ name ].push( geometry.morphAttributes[ name ] );
-
-      }
-    }
-
-    // merge
-    for ( const name in morphAttributes ) {
-
-      const numMorphTargets = morphAttributes[ name ][ 0 ].length;
-  
-      if ( numMorphTargets === 0 ) break;
-  
-      geometry.morphAttributes = geometry.morphAttributes || {};
-      geometry.morphAttributes[ name ] = [];
-  
-      for ( let i = 0; i < numMorphTargets; ++ i ) {
-  
-        const morphAttributesToMerge = [];
-  
-        for ( let j = 0; j < morphAttributes[ name ].length; ++ j ) {
-  
-          morphAttributesToMerge.push( morphAttributes[ name ][ j ][ i ] );
-  
-        }
-  
-        const mergedMorphAttribute = mergeBufferAttributes( morphAttributesToMerge );
-  
-        if ( ! mergedMorphAttribute ) {
-  
-          console.error( 'THREE.BufferGeometryUtils: .mergeBufferGeometries() failed while trying to merge the ' + name + ' morphAttribute.' );
-          return null;
-  
-        }
-  
-        geometry.morphAttributes[ name ].push( mergedMorphAttribute );
-  
-      }
-  
-    }
-  }; */
-  const _mergeMorphAttributes = (geometry, geometries, objects, morphAttributeLayouts) => {
-    // console.log('morphAttributeLayouts', morphAttributeLayouts);
-    // globalThis.morphAttributeLayouts = morphAttributeLayouts;
-
     for (const morphLayout of morphAttributeLayouts) {
       const morphsArray = Array(morphLayout.arraySize);
       for (let i = 0; i < morphLayout.arraySize; i++) {
@@ -560,71 +426,27 @@ export const mergeGeometryTextureAtlas = (mergeable, textureSize) => {
         const morphAttribute = new THREE.BufferAttribute(morphData, morphLayout.itemSize);
         morphsArray[i] = morphAttribute;
         let morphDataIndex = 0;
-        
-        /* const geometries2 = geometries.slice();
-        // randomize the order of geometries2
-        for (let j = 0; j < geometries2.length; j++) {
-          const j2 = Math.floor(Math.random() * geometries2.length);
-          const tmp = geometries2[j];
-          geometries2[j] = geometries2[j2];
-          geometries2[j2] = tmp;
-        } */
 
-        console.log('num geos', geometries);
-        
-        let first = 0;
         for (let j = 0; j < geometries.length; j++) {
-          // const object = objects[i];
           const g = geometries[j];
           
-          // const r = Math.random();
-
           let gMorphAttribute = g.morphAttributes[morphLayout.name];
-          if (gMorphAttribute.length !== morphsArray.length) {
-            debugger;
-          }
           gMorphAttribute = gMorphAttribute?.[i];
-          if (gMorphAttribute.count !== g.attributes.position.count) {
-            debugger;
-          }
           if (gMorphAttribute) {
-            // console.log('src', first, g, gMorphAttribute, morphAttribute, object);
             morphData.set(gMorphAttribute.array, morphDataIndex);
             
-            const nz = gMorphAttribute.array.filter(n => Math.abs(n) >= 0.01);
-            console.log('case 1', first, nz.length);
-            
-            /* if (first === 2 || first === 1) {
-              for (let i = 0; i < gMorphAttribute.array.length; i++) {
-                // morphData[morphDataIndex + i] = r;
-                // morphData[morphDataIndex + i] *= 100;
-              }
-            } */
-
-            /* for (let i = 0; i < morphData.length; i++) {
-              morphData[i] = Math.random();
-            } */
-            if ((gMorphAttribute.count * gMorphAttribute.itemSize) !== gMorphAttribute.array.length) {
-              debugger;
-            }
             morphDataIndex += gMorphAttribute.count * gMorphAttribute.itemSize;
           } else {
-            console.log('case 2');
-            debugger;
             const matchingAttribute = g.attributes[morphLayout.name];
             morphDataIndex += matchingAttribute.count * matchingAttribute.itemSize;
           }
-
-          first++;
         }
         // sanity check
         if (morphDataIndex !== morphLayout.count) {
-          console.warn('desynced morph data 2', morphLayout.name, morphDataIndex, morphLayout.count);
-          debugger;
+          console.error('desynced morph data', morphLayout.name, morphDataIndex, morphLayout.count);
         }
       }
       geometry.morphAttributes[morphLayout.name] = morphsArray;
-      // geometry.morphTargetsRelative = true;
     }
   };
   const _mergeIndices = (geometry, geometries) => {
@@ -640,9 +462,6 @@ export const mergeGeometryTextureAtlas = (mergeable, textureSize) => {
       const srcIndexData = g.index.array;
       for (let i = 0; i < srcIndexData.length; i++) {
         indexData[indexOffset++] = srcIndexData[i] + positionOffset;
-      }
-      if (g.attributes.position.count !== g.morphAttributes.position[0].count) {
-        debugger;
       }
       positionOffset += g.attributes.position.count;
     }
@@ -758,12 +577,6 @@ export const mergeGeometryTextureAtlas = (mergeable, textureSize) => {
 };
 
 export const optimizeAvatarModel = async (model, options = {}) => {
-  /* if (!model) {
-    debugger;
-  }
-  if (!model.traverse) {
-    debugger;
-  } */
   const textureSize = options.textureSize ?? defaultTextureSize;
 
   const mergeables = getMergeableObjects(model);
@@ -789,9 +602,6 @@ export const optimizeAvatarModel = async (model, options = {}) => {
       atlasTextures,
     } = mergeGeometryTextureAtlas(mergeable, textureSize);
 
-    /* const m = new THREE.MeshPhongMaterial({
-      color: 0xFF0000,
-    }); */
     const m = material;
     const _updateMaterial = () => {
       if (atlasTextures) {
@@ -810,7 +620,6 @@ export const optimizeAvatarModel = async (model, options = {}) => {
       m.needsUpdate = true;
     };
     _updateMaterial();
-    // console.log('got material', m);
 
     const _makeMesh = () => {
       if (type === 'mesh') {
@@ -822,7 +631,6 @@ export const optimizeAvatarModel = async (model, options = {}) => {
         skinnedMesh.morphTargetDictionary = morphTargetDictionaryArray[0];
         skinnedMesh.morphTargetInfluences = morphTargetInfluencesArray[0];
         // skinnedMesh.updateMorphTargets();
-        // console.log('got influences', skinnedMesh.morphTargetInfluences);
         return skinnedMesh;
       } else {
         throw new Error(`unknown type ${type}`);
@@ -835,23 +643,16 @@ export const optimizeAvatarModel = async (model, options = {}) => {
   };
   const mergedMeshes = mergeables.map((mergeable, i) => _mergeMesh(mergeable, i));
 
+  // construct a new object with the merged meshes
   const object = new THREE.Object3D();
   for (const mesh of mergedMeshes) {
     object.add(mesh);
   }
-
-  /* // also need skeletons or else the parse will crash
-  const skeletons = getSkeletons(model);
-  for (const skeleton of skeletons) {
-    object.add(skeleton);
-  } */
-
-  // same as above, but for bones
+  // also need to keep the bones
   const bones = getBones(model);
   for (const bone of bones) {
     object.add(bone);
   }
-  // console.log('got bones', model, bones);
 
   // XXX this should anti-index flattened index ranges for the multi-materials case
 
