@@ -359,6 +359,7 @@ export const Equipment = () => {
 
         async function setupInventory() {
             const tokens = await getTokens();
+            console.log("claimed", tokens)
             const inventoryItems = tokens.map((token, i) => {
                 return {
                     name: token.name ?? "",

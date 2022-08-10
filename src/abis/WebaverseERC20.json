@@ -436,6 +436,11 @@
               "type": "uint256"
             },
             {
+              "internalType": "string",
+              "name": "metadataurl",
+              "type": "string"
+            },
+            {
               "internalType": "uint256",
               "name": "balance",
               "type": "uint256"
@@ -588,6 +593,11 @@
               "type": "uint256"
             },
             {
+              "internalType": "string",
+              "name": "metadataurl",
+              "type": "string"
+            },
+            {
               "internalType": "uint256",
               "name": "balance",
               "type": "uint256"
@@ -642,6 +652,11 @@
               "internalType": "uint256",
               "name": "tokenId",
               "type": "uint256"
+            },
+            {
+              "internalType": "string",
+              "name": "metadataurl",
+              "type": "string"
             },
             {
               "internalType": "uint256",

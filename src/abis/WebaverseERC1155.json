@@ -482,6 +482,11 @@
               "type": "uint256"
             },
             {
+              "internalType": "string",
+              "name": "metadataurl",
+              "type": "string"
+            },
+            {
               "internalType": "uint256",
               "name": "balance",
               "type": "uint256"
@@ -687,6 +692,36 @@
     {
       "inputs": [
         {
+          "internalType": "uint256",
+          "name": "tokenId",
+          "type": "uint256"
+        }
+      ],
+      "name": "getTokenAttr",
+      "outputs": [
+        {
+          "internalType": "string",
+          "name": "",
+          "type": "string"
+        },
+        {
+          "internalType": "string",
+          "name": "",
+          "type": "string"
+        },
+        {
+          "internalType": "string",
+          "name": "",
+          "type": "string"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function",
+      "constant": true
+    },
+    {
+      "inputs": [
+        {
           "internalType": "address",
           "name": "to",
           "type": "address"
@@ -736,6 +771,71 @@
         }
       ],
       "name": "mintBatch",
+      "outputs": [],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "address",
+          "name": "claimer",
+          "type": "address"
+        },
+        {
+          "internalType": "string",
+          "name": "dropName",
+          "type": "string"
+        },
+        {
+          "internalType": "string",
+          "name": "dropLevel",
+          "type": "string"
+        },
+        {
+          "internalType": "bytes",
+          "name": "data",
+          "type": "bytes"
+        },
+        {
+          "components": [
+            {
+              "internalType": "uint256",
+              "name": "tokenId",
+              "type": "uint256"
+            },
+            {
+              "internalType": "string",
+              "name": "metadataurl",
+              "type": "string"
+            },
+            {
+              "internalType": "uint256",
+              "name": "balance",
+              "type": "uint256"
+            },
+            {
+              "internalType": "uint256",
+              "name": "nonce",
+              "type": "uint256"
+            },
+            {
+              "internalType": "uint256",
+              "name": "expiry",
+              "type": "uint256"
+            },
+            {
+              "internalType": "bytes",
+              "name": "signature",
+              "type": "bytes"
+            }
+          ],
+          "internalType": "struct WebaverseVoucher.NFTVoucher",
+          "name": "voucher",
+          "type": "tuple"
+        }
+      ],
+      "name": "mintServerDrop",
       "outputs": [],
       "stateMutability": "nonpayable",
       "type": "function"
@@ -801,11 +901,21 @@
           "type": "address"
         },
         {
+          "internalType": "bytes",
+          "name": "data",
+          "type": "bytes"
+        },
+        {
           "components": [
             {
               "internalType": "uint256",
               "name": "tokenId",
               "type": "uint256"
+            },
+            {
+              "internalType": "string",
+              "name": "metadataurl",
+              "type": "string"
             },
             {
               "internalType": "uint256",
@@ -834,13 +944,7 @@
         }
       ],
       "name": "claim",
-      "outputs": [
-        {
-          "internalType": "uint256",
-          "name": "",
-          "type": "uint256"
-        }
-      ],
+      "outputs": [],
       "stateMutability": "nonpayable",
       "type": "function"
     },
@@ -862,6 +966,11 @@
               "internalType": "uint256",
               "name": "tokenId",
               "type": "uint256"
+            },
+            {
+              "internalType": "string",
+              "name": "metadataurl",
+              "type": "string"
             },
             {
               "internalType": "uint256",

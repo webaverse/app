@@ -51,7 +51,7 @@
             },
             {
               "internalType": "string",
-              "name": "metadatahash",
+              "name": "metadataurl",
               "type": "string"
             },
             {

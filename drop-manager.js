@@ -1,6 +1,10 @@
 import * as THREE from 'three';
 import metaversefile from 'metaversefile';
 import generateStats from './procgen/stats.js';
+import { getVoucherFromServer } from './src/hooks/voucherHelpers'
+import { uploadMetadata } from './util.js';
+import {registerLoad} from './src/LoadingBox.jsx';
+const FILE_ADDRESS = 'https://ipfs.webaverse.com/ipfs/';
 
 const r = () => -1 + Math.random() * 2;
 
@@ -10,7 +14,7 @@ class DropManager extends EventTarget {
 
     this.claims = [];
   }
-  createDropApp({
+  async createDropApp({
     start_url,
     components = [],
     type = 'minor', // 'minor', 'major', 'key'
@@ -23,6 +27,9 @@ class DropManager extends EventTarget {
     angularVelocity = new THREE.Vector3(0, 0.001, 0),
     voucher = 'fakeVoucher', // XXX should really throw if no voucher
   }) {
+    console.log("drops", components)
+    // const ipfshash = await uploadMetadata(components[0].value, components[1].value) //current components[0] => name. components[1] => url
+    if(voucher == 'fakeVoucher') voucher = await getVoucherFromServer(components[1].value);
     // const r = () => (-0.5+Math.random())*2;
     const dropComponent = {
       key: 'drop',
@@ -34,6 +41,10 @@ class DropManager extends EventTarget {
       },
     };
     components.push(dropComponent);
+    components = [...components, {
+        key: 'voucher',
+        value: voucher
+    }]
     
     const trackedApp = metaversefile.addTrackedApp(
       start_url,
@@ -44,13 +55,14 @@ class DropManager extends EventTarget {
     );
     return trackedApp;
   }
-  addClaim(name, contentId, voucher) {
+  addClaim(name, type, contentId, voucher) {
     const result = generateStats(contentId);
     const {/*art, */stats} = result;
     const {level} = stats;
     const start_url = contentId;
     const claim = {
       name,
+      type,
       start_url,
       level,
       voucher,
@@ -64,7 +76,8 @@ class DropManager extends EventTarget {
     }));
   }
   pickupApp(app) {
-    this.addClaim(app.name, app.contentId, app.getComponent('voucher'));
+    console.log("pcikyo", app)
+    this.addClaim(app.name, app.type, app.contentId, app.getComponent('voucher'));
   }
   dropToken(contractAddress, tokenId, voucher) {
     // XXX engine implements this

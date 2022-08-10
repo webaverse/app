@@ -1072,6 +1072,40 @@ export const handleUpload = async (item, { onProgress = null } = {}) => {
   console.log('upload complete:', u);
   return u;
 };
+export const uploadMetadata = async (name, url) => { // upload metadata of server drops
+    const description = "Webaverse drops"
+    const metadataFileName = `${name}-metadata.json`;
+      let metadata = {
+          name,
+          description,
+          image: url
+        }
+
+      const type = 'upload';
+      let load = null;
+      // const json_hash = await handleBlobUpload(metadataFileName, JSON.stringify(metadata) )
+      // handleBlobUpload
+      // new Blob([JSON.stringify(metadata)], {type: 'text/plain'});
+      const json_hash = await handleBlobUpload(metadataFileName, new Blob([JSON.stringify(metadata)], {type: 'text/plain'}), {
+        onTotal(total) {
+          load = registerLoad(type, metadataFileName, 0, total);
+        },
+        onProgress(e) {
+          if (load) {
+            load.update(e.loaded, e.total);
+          } else {
+            load = registerLoad(type, metadataFileName, e.loaded, e.total);
+          }
+        },
+      });
+
+      if (load) {
+        load.end();
+      }
+
+      const metadatahash = json_hash.split(FILE_ADDRESS)[1].split('/')[0];
+      return metadatahash;
+}
 
 export const loadImage = (u) =>
   new Promise((resolve, reject) => {
