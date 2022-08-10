@@ -418,10 +418,10 @@ class Avatar {
     
     {
       this.renderer = new AvatarRenderer(object);
-      scene.add(this.renderer.scene); // XXX debug
+      scene.add(this.renderer.scene);
       this.renderer.scene.updateMatrixWorld();
-      globalThis.avatarRenderer = this.renderer;
-      globalThis.scene = scene;
+      // globalThis.avatarRenderer = this.renderer;
+      // globalThis.scene = scene;
     }
 
     this.spriteMegaAvatarMesh = null;
@@ -1811,15 +1811,14 @@ class Avatar {
     };
 
 
-    const _updateSubAvatars = () => {
+    /* const _updateSubAvatars = () => {
       if (this.spriteAvatarMesh) {
         this.spriteAvatarMesh.update(timestamp, timeDiff, {
           playerAvatar: this,
           camera,
         });
       }
-    };
-
+    }; */
 
     const _motionControls = () => {
       this.sdkInputs.hmd.position.copy(this.inputs.hmd.position);
@@ -1948,7 +1947,7 @@ class Avatar {
     this.emoter.update(now);
     
     this.options.visemes && _updateVisemes();
-    _updateSubAvatars();
+    // _updateSubAvatars();
 
     const debug = metaversefile.useDebug();
     if (debug.enabled && !this.debugMesh) {
@@ -2132,7 +2131,7 @@ class Avatar {
   } */
 
   destroy() {
-    if (this.spriteAvatarMesh) {
+    /* if (this.spriteAvatarMesh) {
       scene.remove(this.spriteAvatarMesh);
     }
     if (this.crunchedModel) {
@@ -2140,7 +2139,9 @@ class Avatar {
     }
     if (this.optimizedModel) {
       scene.remove(this.optimizedModel);
-    }
+    } */
+    this.renderer.destroy();
+    scene.remove(this.renderer.scene);
 
     this.setAudioEnabled(false);
   }
