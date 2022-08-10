@@ -10,12 +10,6 @@ import {
   defaultAvatarQuality,
 } from '../constants.js';
 // import { downloadFile } from '../util.js';
-import { clone } from '../util.js';
-
-/* window.morphTargetDictionaries = [];
-window.morphTargetInfluences = [];
-window.srcMorphTargetDictionaries = [];
-window.srcMorphTargetInfluences = []; */
 
 const avatarPlaceholderImagePromise = (async () => {
   const avatarPlaceholderImage = new Image();
@@ -110,60 +104,13 @@ const _bindSkeleton = (dstModel, srcObject) => {
       // bind the skeleton
       const {skeleton: dstSkeleton} = o;
       const srcSkeleton = _findSrcSkeletonFromDstSkeleton(dstSkeleton);
-      /* if (!srcSkeleton) {
-        debugger;
-      } */
       o.skeleton = srcSkeleton;
     }
     if (o.isMesh) {
-      // also bind the blend shapes
-      // skinnedMesh.skeleton = skeletons[0];
+      // bind the blend shapes
       const skinnedMesh = _findSkinnedMeshInSrc();
-      // console.log('map blend shapes', o, skinnedMesh);
-      
-      o.morphTargetDictionary = clone(skinnedMesh.morphTargetDictionary);
-      o.morphTargetInfluences = clone(skinnedMesh.morphTargetInfluences);
-      
-      /* window.morphTargetDictionaries.push(o.morphTargetDictionary);
-      window.morphTargetInfluences.push(o.morphTargetInfluences);
-      window.srcMorphTargetDictionaries.push(skinnedMesh.morphTargetDictionary);
-      window.srcMorphTargetInfluences.push(skinnedMesh.morphTargetInfluences); */
-
-      // o.geometry.morphAttributes = skinnedMesh.geometry.morphAttributes;
-      // o.morphAttributes = skinnedMesh.morphAttributes;
-      // o.morphAttributesRelative = skinnedMesh.morphAttributesRelative;
-
-      /* o.geometry.morphAttributes.position.forEach(attr => {
-        attr.onUploadCallback = () => {
-          console.log('upload callback');
-        };
-
-        for (let i = 0; i < attr.array.length; i++) {
-          // if ((attr.array[i]) != 0) {
-            // attr.array[i] *= 10;
-            // attr.array[i] = Math.random();
-          // }
-        }
-      }); */
-
-      // o.onBeforeRender = () => {debugger;}
-      /* o.material.onBeforeCompile = (shader) => {
-        console.log('compile avatar shader', shader);
-      }; */
-      // window.o = o;
-
-      const _frame = () => {
-        window.requestAnimationFrame(_frame);
-      
-        /* if (o.morphTargetInfluences.length !== skinnedMesh.morphTargetInfluences.length) {
-          debugger;
-        } */
-        for (let i = 0; i < o.morphTargetInfluences.length; i++) {
-          o.morphTargetInfluences[i] = skinnedMesh.morphTargetInfluences[i];
-          // o.morphTargetInfluences[i] = 1;
-        }
-      };
-      _frame();
+      o.morphTargetDictionary = skinnedMesh.morphTargetDictionary;
+      o.morphTargetInfluences = skinnedMesh.morphTargetInfluences;
     }
   });
 };
@@ -190,10 +137,6 @@ export class AvatarRenderer {
 
       `,
       async function(arrayBuffer, srcUrl) {
-        if (!arrayBuffer) {
-          debugger;
-        }
-
         const parseVrm = (arrayBuffer, srcUrl) => new Promise((accept, reject) => {
           const { gltfLoader } = loaders;
           gltfLoader.parse(arrayBuffer, srcUrl, object => {
@@ -202,9 +145,6 @@ export class AvatarRenderer {
         });
 
         const skinnedMesh = await parseVrm(arrayBuffer, srcUrl);
-        if (!skinnedMesh) {
-          debugger;
-        }
         const textureImages = avatarSpriter.renderSpriteImages(skinnedMesh);
         return textureImages;
       }
@@ -217,10 +157,6 @@ export class AvatarRenderer {
 
       `,
       async function(arrayBuffer, srcUrl) {
-        if (!arrayBuffer) {
-          debugger;
-        }
-
         const parseVrm = (arrayBuffer, srcUrl) => new Promise((accept, reject) => {
           const { gltfLoader } = loaders;
           gltfLoader.parse(arrayBuffer, srcUrl, object => {
@@ -229,9 +165,6 @@ export class AvatarRenderer {
         });
 
         const model = await parseVrm(arrayBuffer, srcUrl);
-        if (!model) {
-          debugger;
-        }
         const glbData = await avatarCruncher.crunchAvatarModel(model);
         return glbData;
       }
@@ -245,10 +178,6 @@ export class AvatarRenderer {
 
       `,
       async function(arrayBuffer, srcUrl) {
-        if (!arrayBuffer) {
-          debugger;
-        }
-
         const parseVrm = (arrayBuffer, srcUrl) => new Promise((accept, reject) => {
           const { gltfLoader } = loaders;
           gltfLoader.parse(arrayBuffer, srcUrl, object => {
@@ -298,9 +227,6 @@ export class AvatarRenderer {
     switch (this.quality) {
       case 1: {
         if (!this.spriteAvatarMesh) {
-          if (!this.object.arrayBuffer) {
-            debugger;
-          }
           const textureImages = await this.createSpriteAvatarMesh([this.object.arrayBuffer, this.object.srcUrl]);
           this.spriteAvatarMesh = avatarSpriter.createSpriteAvatarMeshFromTextures(textureImages);
           // this.spriteAvatarMesh.visible = false;
