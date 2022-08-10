@@ -138,10 +138,10 @@ window.innerHeight = canvas.height;
 window.devicePixelRatio = 1;
 bindCanvas(canvas);
 
-const match = location.hash.match(/^#id=(.+)$/);
+/* const match = location.hash.match(/^#id=(.+)$/);
 const id = match ? match[1] : null;
 if (id) {
   // nothing
 } else {
   throw new Error('no id in engine worker');
-}
+} */
