@@ -116,6 +116,14 @@ const _bindSkeleton = (dstModel, srcObject) => {
 };
 // const updateEvent = new MessageEvent('update');
 
+const _unfrustumCull = o => {
+  o.traverse(o => {
+    if (o.isMesh) {
+      o.frustumCulled = false;
+    }
+  });
+};
+
 export class AvatarRenderer /* extends EventTarget */ {
   constructor(object, {
     quality = defaultAvatarQuality,
@@ -270,7 +278,9 @@ export class AvatarRenderer /* extends EventTarget */ {
               const textureImages = await this.createSpriteAvatarMesh([this.object.arrayBuffer, this.object.srcUrl], {
                 signal: this.abortController.signal,
               });
-              this.spriteAvatarMesh = avatarSpriter.createSpriteAvatarMeshFromTextures(textureImages);
+              const glb = avatarSpriter.createSpriteAvatarMeshFromTextures(textureImages);
+              _unfrustumCull(glb);
+              this.spriteAvatarMesh = glb;
             })();
           }
           await this.spriteAvatarMeshPromise;
@@ -287,6 +297,9 @@ export class AvatarRenderer /* extends EventTarget */ {
                 gltfLoader.parse(glbData, this.object.srcUrl, accept, reject);
               });
               const glb = object.scene;
+              _unfrustumCull(glb);
+
+              _bindSkeleton(glb, this.object);
               this.crunchedModel = glb;
             })();
           }
@@ -304,10 +317,11 @@ export class AvatarRenderer /* extends EventTarget */ {
                 gltfLoader.parse(glbData, this.object.srcUrl, accept, reject);
               });
               const glb = object.scene;
+              _unfrustumCull(glb);
 
               _bindSkeleton(glb, this.object);
               this.optimizedModel = glb;
-              this.optimizedModel.updateMatrixWorld();
+              // this.optimizedModel.updateMatrixWorld();
             })();
           }
           await this.optimizedModelPromise;
@@ -331,6 +345,9 @@ export class AvatarRenderer /* extends EventTarget */ {
     this.scene.add(currentMesh);
 
     // this.dispatchEvent(updateEvent);
+  }
+  update() {
+    
   }
   waitForLoad() {
     return this.loadPromise;
