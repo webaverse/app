@@ -5,20 +5,21 @@ import * as avatarCruncher from '../avatar-cruncher.js';
 import * as avatarSpriter from '../avatar-spriter.js';
 import offscreenEngineManager from '../offscreen-engine-manager.js';
 import loaders from '../loaders.js';
-import exporters from '../exporters.js';
+// import exporters from '../exporters.js';
 import {
   defaultAvatarQuality,
 } from '../constants.js';
-import { downloadFile } from '../util.js';
+// import { downloadFile } from '../util.js';
+import { clone } from '../util.js';
 
-window.morphTargetDictionaries = [];
+/* window.morphTargetDictionaries = [];
 window.morphTargetInfluences = [];
 window.srcMorphTargetDictionaries = [];
-window.srcMorphTargetInfluences = [];
+window.srcMorphTargetInfluences = []; */
 
 const avatarPlaceholderImagePromise = (async () => {
   const avatarPlaceholderImage = new Image();
-  avatarPlaceholderImage.src = '/avatars/images/user.png';
+  avatarPlaceholderImage.src = '/images/user.png';
   await new Promise((accept, reject) => {
     avatarPlaceholderImage.onload = accept;
     avatarPlaceholderImage.onerror = reject;
@@ -41,7 +42,6 @@ const _makeAvatarPlaceholderMesh = () => {
   return mesh; 
 };
 const _bindSkeleton = (dstModel, srcObject) => {
-  // console.log('bind skeleton', dstModel, srcObject);
   const srcModel = srcObject.scene;
   
   const _findBoneInSrc = (srcBoneName) => {
@@ -110,9 +110,9 @@ const _bindSkeleton = (dstModel, srcObject) => {
       // bind the skeleton
       const {skeleton: dstSkeleton} = o;
       const srcSkeleton = _findSrcSkeletonFromDstSkeleton(dstSkeleton);
-      if (!srcSkeleton) {
+      /* if (!srcSkeleton) {
         debugger;
-      }
+      } */
       o.skeleton = srcSkeleton;
     }
     if (o.isMesh) {
@@ -121,13 +121,13 @@ const _bindSkeleton = (dstModel, srcObject) => {
       const skinnedMesh = _findSkinnedMeshInSrc();
       // console.log('map blend shapes', o, skinnedMesh);
       
-      // o.morphTargetDictionary = skinnedMesh.morphTargetDictionary;
-      // o.morphTargetInfluences = skinnedMesh.morphTargetInfluences;
+      o.morphTargetDictionary = clone(skinnedMesh.morphTargetDictionary);
+      o.morphTargetInfluences = clone(skinnedMesh.morphTargetInfluences);
       
-      window.morphTargetDictionaries.push(o.morphTargetDictionary);
+      /* window.morphTargetDictionaries.push(o.morphTargetDictionary);
       window.morphTargetInfluences.push(o.morphTargetInfluences);
       window.srcMorphTargetDictionaries.push(skinnedMesh.morphTargetDictionary);
-      window.srcMorphTargetInfluences.push(skinnedMesh.morphTargetInfluences);
+      window.srcMorphTargetInfluences.push(skinnedMesh.morphTargetInfluences); */
 
       // o.geometry.morphAttributes = skinnedMesh.geometry.morphAttributes;
       // o.morphAttributes = skinnedMesh.morphAttributes;
@@ -155,12 +155,12 @@ const _bindSkeleton = (dstModel, srcObject) => {
       const _frame = () => {
         window.requestAnimationFrame(_frame);
       
-        if (o.morphTargetInfluences.length !== skinnedMesh.morphTargetInfluences.length) {
+        /* if (o.morphTargetInfluences.length !== skinnedMesh.morphTargetInfluences.length) {
           debugger;
-        }
+        } */
         for (let i = 0; i < o.morphTargetInfluences.length; i++) {
-          // o.morphTargetInfluences[i] = skinnedMesh.morphTargetInfluences[i];
-          o.morphTargetInfluences[i] = 1;
+          o.morphTargetInfluences[i] = skinnedMesh.morphTargetInfluences[i];
+          // o.morphTargetInfluences[i] = 1;
         }
       };
       _frame();
