@@ -13,7 +13,7 @@ let playEffect = false;
 export default () => {
   let player = null;
   const app = useApp();
-  const {camera} = useInternals();
+  const {camera, renderer} = useInternals();
   app.playEffect = (p) =>{
     playEffect = true;
     player = p;
@@ -229,13 +229,22 @@ export default () => {
               idAttribute.setX(i,i);
           }
           idAttribute.needsUpdate = true;
+          app.add(flashMesh);
+          // flashMaterial.onBeforeCompile = () => {
+          //   console.log('compile flashMaterial')
+          // }
+          renderer.compile(flashMesh, camera)
       }
       addInstancedMesh();
       const pixel = new THREE.Points(pixelGeometry, pixelMaterial);
       group.add(pixel);
+      app.add(group);
+      // pixelMaterial.onBeforeCompile = () => {
+      //   console.log('compile pixelMaterial')
+      // }
+      renderer.compile(group, camera)
 
-      let storeMaterial = false;
-      let particleAlreadyInScene= false;
+      let particleAlreadyInScene= true;
       let circlePlay = false;
       let materialStartTime = -1;
       let healMaterial = [];
@@ -280,6 +289,7 @@ export default () => {
 
             if(playEffect){
                 if(!particleAlreadyInScene){
+                  // console.log('add app');
                   app.add(flashMesh);
                   app.add(group);
                   particleAlreadyInScene=true;
@@ -415,6 +425,7 @@ export default () => {
                     healMaterial[i].g = 0;
                     healMaterial[i].b = 0;
                     if(particleAlreadyInScene){
+                      // console.log('remove app');
                       app.remove(group);
                       app.remove(flashMesh);
                       particleAlreadyInScene=false;
