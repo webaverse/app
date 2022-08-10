@@ -65,8 +65,6 @@ const localVector3 = new THREE.Vector3();
 // const localVector4 = new THREE.Vector3();
 // const localVector5 = new THREE.Vector3();
 // const localVector6 = new THREE.Vector3();     
-
-
 const localQuaternion = new THREE.Quaternion();
 const localQuaternion2 = new THREE.Quaternion();
 // const localQuaternion3 = new THREE.Quaternion();
@@ -77,7 +75,8 @@ const localEuler = new THREE.Euler(0, 0, 0, 'YXZ');
 const localEuler2 = new THREE.Euler(0, 0, 0, 'YXZ');
 const localMatrix = new THREE.Matrix4();
 const localMatrix2 = new THREE.Matrix4();
-// const localPlane = new THREE.Plane();   
+// const localPlane = new THREE.Plane();
+const localFrustum = new THREE.Frustum();
 
 const textEncoder = new TextEncoder();
 
@@ -420,8 +419,6 @@ class Avatar {
       this.renderer = new AvatarRenderer(object);
       scene.add(this.renderer.scene);
       this.renderer.scene.updateMatrixWorld();
-      // globalThis.avatarRenderer = this.renderer;
-      // globalThis.scene = scene;
     }
 
     this.spriteMegaAvatarMesh = null;
@@ -1810,16 +1807,6 @@ class Avatar {
       }
     };
 
-
-    /* const _updateSubAvatars = () => {
-      if (this.spriteAvatarMesh) {
-        this.spriteAvatarMesh.update(timestamp, timeDiff, {
-          playerAvatar: this,
-          camera,
-        });
-      }
-    }; */
-
     const _motionControls = () => {
       this.sdkInputs.hmd.position.copy(this.inputs.hmd.position);
       this.sdkInputs.hmd.quaternion.copy(this.inputs.hmd.quaternion);
@@ -1947,7 +1934,27 @@ class Avatar {
     this.emoter.update(now);
     
     this.options.visemes && _updateVisemes();
-    // _updateSubAvatars();
+    
+    const _updateRendererFrustumCull = () => {
+      const localMatrix = new THREE.Matrix4();
+      const localMatrix2 = new THREE.Matrix4();
+
+      localMatrix.makeTranslation(
+        this.inputs.hmd.position.x,
+        this.inputs.hmd.position.y - this.height / 2,
+        this.inputs.hmd.position.z
+      );
+
+      // XXX this can be optimized by initializing the frustum only once per frame and passing it in
+      const projScreenMatrix = localMatrix2.multiplyMatrices(
+        camera.projectionMatrix,
+        camera.matrixWorldInverse
+      );
+      localFrustum.setFromProjectionMatrix(projScreenMatrix);
+      
+      this.renderer.updateFrustumCull(localMatrix, localFrustum);
+    };
+    _updateRendererFrustumCull();
 
     const debug = metaversefile.useDebug();
     if (debug.enabled && !this.debugMesh) {
@@ -2131,15 +2138,6 @@ class Avatar {
   } */
 
   destroy() {
-    /* if (this.spriteAvatarMesh) {
-      scene.remove(this.spriteAvatarMesh);
-    }
-    if (this.crunchedModel) {
-      scene.remove(this.crunchedModel);
-    }
-    if (this.optimizedModel) {
-      scene.remove(this.optimizedModel);
-    } */
     this.renderer.destroy();
     scene.remove(this.renderer.scene);
 
