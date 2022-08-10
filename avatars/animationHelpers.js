@@ -1007,8 +1007,8 @@ export const _updateAnimation = avatar => {
     }
 
     if (avatar.emoteEnd) {
-      // physx.physxWorker.crossFadeTwo(avatar.emoteNodeFuncPtr, 0.2, 0);
-      physx.physxWorker.setFactor(avatar.emoteNodeFuncPtr, 0);
+      physx.physxWorker.crossFadeTwo(avatar.emoteNodeFuncPtr, 0.2, 0);
+      // physx.physxWorker.setFactor(avatar.emoteNodeFuncPtr, 0);
     }
 
     if (avatar.hurtEnd) {
@@ -1112,8 +1112,8 @@ export const _updateAnimation = avatar => {
       const emoteMotion = avatar.emoteMotionPtro[avatar.emoteAnimation || defaultEmoteAnimation];
       physx.physxWorker.play(emoteMotion);
       physx.physxWorker.crossFadeSolitary(avatar.emotesNodeSolitaryPtr, 0, emoteMotion);
-      // physx.physxWorker.crossFadeTwo(avatar.emoteNodeFuncPtr, 0.2, 1);
-      physx.physxWorker.setFactor(avatar.emoteNodeFuncPtr, 1);
+      physx.physxWorker.crossFadeTwo(avatar.emoteNodeFuncPtr, 0.2, 1);
+      // physx.physxWorker.setFactor(avatar.emoteNodeFuncPtr, 1);
     }
 
     // hurt
