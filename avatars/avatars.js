@@ -396,8 +396,8 @@ const _makeDebugMesh = (avatar) => {
 // scene.add(testMesh);
 
 class Avatar {
-	constructor(object, options = {}) {
-    if (!object) {
+	constructor(avatarRenderer, options = {}) {
+    /* if (!object) {
       object = {};
     }
     if (!object.parser) {
@@ -406,20 +406,26 @@ class Avatar {
           extensions: {},
         },
       };
-    }
+    } */
     
+    this.avatarRenderer = avatarRenderer;
     this.isLocalPlayer = options.isLocalPlayer !== undefined ? options.isLocalPlayer : true;
+    const object = avatarRenderer.controlObject;
     this.object = object;
 
-    const model = object.scene;
+    if (!this.object) {
+      debugger;
+    }
+
+    const model = this.object.scene;
     this.model = model; // XXX still needed?
     this.model.visible = false;
     
-    {
+    /* {
       this.renderer = new AvatarRenderer(object);
       scene.add(this.renderer.scene);
       this.renderer.scene.updateMatrixWorld();
-    }
+    } */
 
     this.spriteMegaAvatarMesh = null;
     this.crunchedModel = null;
@@ -1390,7 +1396,7 @@ class Avatar {
     return localEuler.y;
   }
   async setQuality(quality) {
-    await this.renderer.setQuality(quality);
+    await this.avatarRenderer.setQuality(quality);
   }
   lerpShoulderTransforms() {
     if (this.shoulderTransforms.handsEnabled[0]) {
@@ -1952,7 +1958,7 @@ class Avatar {
       );
       localFrustum.setFromProjectionMatrix(projScreenMatrix);
       
-      this.renderer.updateFrustumCull(localMatrix, localFrustum);
+      this.avatarRenderer.updateFrustumCull(localMatrix, localFrustum);
     };
     _updateRendererFrustumCull();
 
@@ -2138,8 +2144,8 @@ class Avatar {
   } */
 
   destroy() {
-    this.renderer.destroy();
-    scene.remove(this.renderer.scene);
+    this.avatarRenderer.destroy();
+    scene.remove(this.avatarRenderer.scene);
 
     this.setAudioEnabled(false);
   }
