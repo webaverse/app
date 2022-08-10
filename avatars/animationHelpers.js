@@ -27,19 +27,13 @@ import {
 } from '../util.js';
 
 import {
-  // idleFactorSpeed,
-  // walkFactorSpeed,
-  // runFactorSpeed,
-  narutoRunTimeFactor,
-} from './constants.js';
-
-import {
   crouchMaxTime,
   // useMaxTime,
   aimMaxTime,
   // avatarInterpolationFrameRate,
   // avatarInterpolationTimeDelay,
   // avatarInterpolationNumFrames,
+  narutoRunTimeFactor,
 } from '../constants.js';
 
 const localVector = new Vector3();
