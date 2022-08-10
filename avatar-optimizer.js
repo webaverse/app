@@ -538,7 +538,7 @@ export const mergeGeometryTextureAtlas = (mergeable, textureSize) => {
       t.wrapS = originalTexture.wrapS;
       t.wrapT = originalTexture.wrapT;
       t.mapping = originalTexture.mapping;
-      // t.encoding = originalTexture.encoding;
+      t.encoding = originalTexture.encoding;
 
       t.flipY = false;
       t.needsUpdate = true;
