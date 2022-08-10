@@ -1,16 +1,14 @@
 /* this file implements avatar optimization and THREE.js Object management + rendering */
 import * as THREE from 'three';
+import {VRMMaterialImporter/*, MToonMaterial*/} from '@pixiv/three-vrm/lib/three-vrm.module';
 import * as avatarOptimizer from '../avatar-optimizer.js';
 import * as avatarCruncher from '../avatar-cruncher.js';
 import * as avatarSpriter from '../avatar-spriter.js';
 import offscreenEngineManager from '../offscreen-engine-manager.js';
 import loaders from '../loaders.js';
-import {camera} from '../renderer.js';
 // import exporters from '../exporters.js';
 import {abortError} from '../lock-manager.js';
-import {
-  defaultAvatarQuality,
-} from '../constants.js';
+// import {defaultAvatarQuality} from '../constants.js';
 // import { downloadFile } from '../util.js';
 
 // const localBox = new THREE.Box3();
@@ -36,11 +34,67 @@ const geometry = new THREE.PlaneBufferGeometry(0.1, 0.1);
 const material = new THREE.MeshBasicMaterial({
   map: avatarPlaceholderTexture,
 });
-const _makeAvatarPlaceholderMesh = () => {
-  const mesh = new THREE.Mesh(geometry, material);
-  return mesh; 
+const _makeAvatarPlaceholderMesh = () => new THREE.Mesh(geometry, material);
+const parseVrm = (arrayBuffer, srcUrl) => new Promise((accept, reject) => {
+  const {gltfLoader} = loaders;
+  gltfLoader.parse(arrayBuffer, srcUrl, accept, reject);
+});
+const _cloneVrm = async () => {
+  const vrm = await parseVrm(arrayBuffer, srcUrl);
+  vrm.cloneVrm = _cloneVrm;
+  vrm.arrayBuffer = arrayBuffer;
+  vrm.srcUrl = srcUrl;
+  return vrm;
 };
+const _unfrustumCull = o => {
+  if (o.isMesh) {
+    o.frustumCulled = false;
+  }
+};
+const _toonShaderify = async o => {
+  await new VRMMaterialImporter().convertGLTFMaterials(o);
+};
+const _prepVrm = (vrm) => {
+  // app.add(vrm);
+  // vrm.updateMatrixWorld();
+  _forAllMeshes(vrm, o => {
+    _addAnisotropy(o, 16);
+    // _limitShadeColor(o);
+    _unfrustumCull(o);
+  });
+};
+
+const mapTypes = [
+  'alphaMap',
+  'aoMap',
+  'bumpMap',
+  'displacementMap',
+  'emissiveMap',
+  'envMap',
+  'lightMap',
+  'map',
+  'metalnessMap',
+  'normalMap',
+  'roughnessMap',
+];
+const _addAnisotropy = (o, anisotropyLevel) => {
+  for (const mapType of mapTypes) {
+    if (o.material[mapType]) {
+      o.material[mapType].anisotropy = anisotropyLevel;
+    }
+  }
+};
+const _forAllMeshes = (o, fn) => {
+  o.traverse(o => {
+    if (o.isMesh) {
+      fn(o);
+    }
+  });
+};
+
 const _bindSkeleton = (dstModel, srcObject) => {
+  console.log('bind skeleton', {dstModel, srcObject});
+
   const srcModel = srcObject.scene;
   
   const _findBoneInSrc = (srcBoneName) => {
@@ -105,14 +159,14 @@ const _bindSkeleton = (dstModel, srcObject) => {
     return result;
   };
   dstModel.traverse(o => {
+    // bind skinned meshes to skeletons
     if (o.isSkinnedMesh) {
-      // bind the skeleton
       const {skeleton: dstSkeleton} = o;
       const srcSkeleton = _findSrcSkeletonFromDstSkeleton(dstSkeleton);
       o.skeleton = srcSkeleton;
     }
+    // bind blend shapes to controls
     if (o.isMesh) {
-      // bind the blend shapes
       const skinnedMesh = _findSkinnedMeshInSrc();
       o.morphTargetDictionary = skinnedMesh.morphTargetDictionary;
       o.morphTargetInfluences = skinnedMesh.morphTargetInfluences;
@@ -121,13 +175,6 @@ const _bindSkeleton = (dstModel, srcObject) => {
 };
 // const updateEvent = new MessageEvent('update');
 
-const _unfrustumCull = o => {
-  o.traverse(o => {
-    if (o.isMesh) {
-      o.frustumCulled = false;
-    }
-  });
-};
 /* const _getMergedBoundingBox = o => {
   const box = new THREE.Box3();
   o.updateMatrixWorld();
@@ -158,15 +205,19 @@ const _getMergedBoundingSphere = o => {
   return sphere;
 };
 
+const defaultAvatarQuality = 4;
 export class AvatarRenderer /* extends EventTarget */ {
-  constructor(object, {
+  constructor({
+    arrayBuffer,
+    srcUrl,
     quality = defaultAvatarQuality,
   } = {})	{
     // super();
     
     //
 
-    this.object = object;
+    this.arrayBuffer = arrayBuffer;
+    this.srcUrl = srcUrl;
     this.quality = quality;
     
     //
@@ -180,14 +231,25 @@ export class AvatarRenderer /* extends EventTarget */ {
     this.spriteAvatarMeshPromise = null;
     this.crunchedModelPromise = null;
     this.optimizedModelPromise = null;
+    this.meshPromise = null;
 
     this.spriteAvatarMesh = null;
     this.crunchedModel = null;
     this.optimizedModel = null;
+    this.mesh = null;
+
+    //
+
+    this.controlObject = null;
+    this.controlObjectLoaded = false;
 
     //
 
     this.abortController = new AbortController();
+
+    //
+
+    this.skeletonBindingsMap = new Map();
 
     //
     
@@ -201,7 +263,10 @@ export class AvatarRenderer /* extends EventTarget */ {
       import loaders from './loaders.js';
 
       `,
-      async function(arrayBuffer, srcUrl) {
+      async function({
+        arrayBuffer,
+        srcUrl,
+      }) {
         const parseVrm = (arrayBuffer, srcUrl) => new Promise((accept, reject) => {
           const {gltfLoader} = loaders;
           gltfLoader.parse(arrayBuffer, srcUrl, object => {
@@ -211,7 +276,9 @@ export class AvatarRenderer /* extends EventTarget */ {
 
         const skinnedMesh = await parseVrm(arrayBuffer, srcUrl);
         const textureImages = avatarSpriter.renderSpriteImages(skinnedMesh);
-        return textureImages;
+        return {
+          textureImages,
+        };
       }
     ]);
     this.crunchAvatarModel = offscreenEngineManager.createFunction([
@@ -221,7 +288,10 @@ export class AvatarRenderer /* extends EventTarget */ {
       import loaders from './loaders.js';
 
       `,
-      async function(arrayBuffer, srcUrl) {
+      async function({
+        arrayBuffer,
+        srcUrl,
+      }) {
         const parseVrm = (arrayBuffer, srcUrl) => new Promise((accept, reject) => {
           const {gltfLoader} = loaders;
           gltfLoader.parse(arrayBuffer, srcUrl, object => {
@@ -231,7 +301,9 @@ export class AvatarRenderer /* extends EventTarget */ {
 
         const model = await parseVrm(arrayBuffer, srcUrl);
         const glbData = await avatarCruncher.crunchAvatarModel(model);
-        return glbData;
+        return {
+          glbData,
+        };
       }
     ]);
     this.optimizeAvatarModel = offscreenEngineManager.createFunction([
@@ -242,7 +314,10 @@ export class AvatarRenderer /* extends EventTarget */ {
       import exporters from './exporters.js';
 
       `,
-      async function(arrayBuffer, srcUrl) {
+      async function({
+        arrayBuffer,
+        srcUrl,
+      }) {
         const parseVrm = (arrayBuffer, srcUrl) => new Promise((accept, reject) => {
           const {gltfLoader} = loaders;
           gltfLoader.parse(arrayBuffer, srcUrl, accept, reject);
@@ -252,34 +327,16 @@ export class AvatarRenderer /* extends EventTarget */ {
         
         const model = object.scene;
         const glbData = await avatarOptimizer.optimizeAvatarModel(model);
-
-        /* const glbData = await new Promise((accept, reject) => {
-          const {gltfExporter} = exporters;
-          gltfExporter.parse(
-            object.scene,
-            function onCompleted(arrayBuffer) {
-              accept(arrayBuffer);
-            }, function onError(error) {
-              reject(error);
-            },
-            {
-              binary: true,
-              includeCustomExtensions: true,
-            },
-          );
-        }); */
-
-        // const parsedObject = await parseVrm(glbData, srcUrl);
-        // console.log('compare skeletons', object, parsedObject);
-
-        return glbData;
+        return {
+          glbData,
+        };
       }
     ]);
     this.loadPromise = null;
 
     this.setQuality(quality);
   }
-  getCurrentMesh() {
+  #getCurrentMesh() {
     switch (this.quality) {
       case 1: {
         return this.spriteAvatarMesh;
@@ -290,12 +347,30 @@ export class AvatarRenderer /* extends EventTarget */ {
       case 3: {
         return this.optimizedModel;
       }
-      /* case 4: {
-        break;
-      } */
+      case 4: {
+        return this.mesh;
+      }
       default: {
         return null;
-        // throw new Error('unknown avatar quality: ' + this.quality);
+      }
+    }
+  }
+  async #ensureControlObject() {
+    if (!this.controlObjectLoaded) {
+      this.controlObjectLoaded = true;
+      this.controlObject = await parseVrm(this.arrayBuffer, this.srcUrl);
+    }
+  }
+  #bindControlObject() {
+    for (const glb of [
+      this.spriteAvatarMesh,
+      this.crunchedModel,
+      this.optimizedModel,
+      this.mesh,
+    ]) {
+      if (!!glb && !this.skeletonBindingsMap.has(glb)) {
+        _bindSkeleton(glb, this.controlObject);
+        this.skeletonBindingsMap.set(glb, true);
       }
     }
   }
@@ -311,15 +386,27 @@ export class AvatarRenderer /* extends EventTarget */ {
         case 1: {
           if (!this.spriteAvatarMeshPromise) {
             this.spriteAvatarMeshPromise = (async () => {
-              const textureImages = await this.createSpriteAvatarMesh([this.object.arrayBuffer, this.object.srcUrl], {
-                signal: this.abortController.signal,
-              });
-              const glb = avatarSpriter.createSpriteAvatarMeshFromTextures(textureImages);
-              _unfrustumCull(glb);
-              // glb.boundingBox = _getMergedBoundingBox(glb);
-              glb.boundingSphere = _getMergedBoundingSphere(glb);
-
-              this.spriteAvatarMesh = glb;
+              await Promise.all([
+                (async () => {
+                  const {
+                    textureImages,
+                  } = await this.createSpriteAvatarMesh([
+                    {
+                      arrayBuffer: this.arrayBuffer,
+                      srcUrl: this.srcUrl,
+                    }
+                  ], {
+                    signal: this.abortController.signal,
+                  });
+                  const glb = avatarSpriter.createSpriteAvatarMeshFromTextures(textureImages);
+                  _forAllMeshes(glb, _unfrustumCull);
+                  glb.boundingSphere = _getMergedBoundingSphere(glb);
+    
+                  this.spriteAvatarMesh = glb;
+                })(),
+                this.#ensureControlObject(),
+              ]);
+              this.#bindControlObject();
             })();
           }
           await this.spriteAvatarMeshPromise;
@@ -328,20 +415,31 @@ export class AvatarRenderer /* extends EventTarget */ {
         case 2: {
           if (!this.crunchedModelPromise) {
             this.crunchedModelPromise = (async () => {
-              const glbData = await this.crunchAvatarModel([this.object.arrayBuffer, this.object.srcUrl], {
-                signal: this.abortController.signal,
-              });
-              const object = await new Promise((accept, reject) => {
-                const {gltfLoader} = loaders;
-                gltfLoader.parse(glbData, this.object.srcUrl, accept, reject);
-              });
-              const glb = object.scene;
-              _unfrustumCull(glb);
-              // glb.boundingBox = _getMergedBoundingBox(glb);
-              glb.boundingSphere = _getMergedBoundingSphere(glb);
-
-              _bindSkeleton(glb, this.object);
-              this.crunchedModel = glb;
+              await Promise.all([
+                (async () => {
+                  const {
+                    glbData,
+                  } = await this.crunchAvatarModel([
+                    {
+                      arrayBuffer: this.arrayBuffer,
+                      srcUrl: this.srcUrl,
+                    },
+                  ], {
+                    signal: this.abortController.signal,
+                  });
+                  const object = await new Promise((accept, reject) => {
+                    const {gltfLoader} = loaders;
+                    gltfLoader.parse(glbData, this.srcUrl, accept, reject);
+                  });
+                  const glb = object.scene;
+                  _forAllMeshes(glb, _unfrustumCull);
+                  glb.boundingSphere = _getMergedBoundingSphere(glb);
+  
+                  this.crunchedModel = glb;
+                })(),
+                this.#ensureControlObject(),
+              ]);
+              this.#bindControlObject();
             })();
           }
           await this.crunchedModelPromise;
@@ -350,27 +448,72 @@ export class AvatarRenderer /* extends EventTarget */ {
         case 3: {
           if (!this.optimizedModelPromise) {
             this.optimizedModelPromise = (async () => {
-              const glbData = await this.optimizeAvatarModel([this.object.arrayBuffer, this.object.srcUrl], {
-                signal: this.abortController.signal,
-              });
-              const object = await new Promise((accept, reject) => {
-                const {gltfLoader} = loaders;
-                gltfLoader.parse(glbData, this.object.srcUrl, accept, reject);
-              });
-              const glb = object.scene;
-              _unfrustumCull(glb);
-              // glb.boundingBox = _getMergedBoundingBox(glb);
-              glb.boundingSphere = _getMergedBoundingSphere(glb);
+              await Promise.all([
+                (async () => {
+                  // console.log('optimized model promise 1');
+                  const {
+                    glbData,
+                  } = await this.optimizeAvatarModel([
+                    {
+                      arrayBuffer: this.arrayBuffer,
+                      srcUrl: this.srcUrl,
+                    },
+                  ], {
+                    signal: this.abortController.signal,
+                  });
+                  // console.log('optimized model promise 2');
+                  const object = await new Promise((accept, reject) => {
+                    const {gltfLoader} = loaders;
+                    gltfLoader.parse(glbData, this.srcUrl, accept, reject);
+                  });
+                  // console.log('optimized model promise 3');
+                  const glb = object.scene;
+                  _forAllMeshes(glb, _unfrustumCull);
+                  glb.boundingSphere = _getMergedBoundingSphere(glb);
 
-              _bindSkeleton(glb, this.object);
-              this.optimizedModel = glb;
-              // this.optimizedModel.updateMatrixWorld();
+                  this.optimizedModel = glb;
+                  // console.log('optimized model promise 4');
+                })(),
+                this.#ensureControlObject(),
+              ]);
+              this.#bindControlObject();
             })();
           }
           await this.optimizedModelPromise;
           break;
         }
         case 4: {
+          if (!this.meshPromise) {
+            this.meshPromise = (async () => {
+              await Promise.all([
+                (async () => {
+                  const glbData = this.arrayBuffer;
+                  const object = await new Promise((accept, reject) => {
+                    const {gltfLoader} = loaders;
+                    gltfLoader.parse(glbData, this.srcUrl, accept, reject);
+                  });
+                  const glb = object.scene;
+
+                  //
+
+                  // const skinnedVrmBase = await _cloneVrm();
+                  // app.skinnedVrm = skinnedVrmBase;
+                  await _toonShaderify(object);
+                  _prepVrm(object.scene);
+                  _forAllMeshes(glb, _unfrustumCull);
+
+                  //
+
+                  glb.boundingSphere = _getMergedBoundingSphere(glb);
+
+                  this.mesh = glb;
+                })(),
+                this.#ensureControlObject(),
+              ]);
+              this.#bindControlObject();
+            })();
+          }
+          await this.meshPromise;
           break;
         }
         default: {
@@ -384,13 +527,17 @@ export class AvatarRenderer /* extends EventTarget */ {
     // remove the old placeholder mesh
     this.scene.remove(this.placeholderMesh);
     // add the new avatar mesh
-    const currentMesh = this.getCurrentMesh();
+    const currentMesh = this.#getCurrentMesh();
+    /* console.log('got current mesh', currentMesh);
+    if (!currentMesh) {
+      debugger;
+    } */
     this.scene.add(currentMesh);
 
     // this.dispatchEvent(updateEvent);
   }
   updateFrustumCull(matrix, frustum) {
-    const currentMesh = this.getCurrentMesh();
+    const currentMesh = this.#getCurrentMesh();
     if (currentMesh) {
       // const boundingBox = localBox.copy(currentMesh.boundingBox)
       //   .applyMatrix4(matrix);
