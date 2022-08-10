@@ -810,9 +810,9 @@ export const _createAnimation = avatar => {
       const motion = avatar.emoteMotionPtro[k];
       physx.physxWorker.addChild(avatar.emotesNodeSolitaryPtr, motion);
     }
-    avatar.emoteNodeTwoPtr = avatar.createNode(AnimationNodeType.TWO, 'emoteNodeTwoPtr');
-    physx.physxWorker.addChild(avatar.emoteNodeTwoPtr, avatar.useCombosNodeSolitaryPtr);
-    physx.physxWorker.addChild(avatar.emoteNodeTwoPtr, avatar.emotesNodeSolitaryPtr);
+    avatar.emoteNodeFuncPtr = avatar.createNode(AnimationNodeType.FUNC, 'emoteNodeFuncPtr');
+    physx.physxWorker.addChild(avatar.emoteNodeFuncPtr, avatar.useCombosNodeSolitaryPtr);
+    physx.physxWorker.addChild(avatar.emoteNodeFuncPtr, avatar.emotesNodeSolitaryPtr);
 
     avatar.dancesNodeSolitaryPtr = avatar.createNode(AnimationNodeType.SOLITARY, 'dancesNodeSolitaryPtr');
     for (const k in avatar.danceMotionPtro) {
@@ -820,7 +820,7 @@ export const _createAnimation = avatar => {
       physx.physxWorker.addChild(avatar.dancesNodeSolitaryPtr, motion);
     }
     avatar.danceNodeTwoPtr = avatar.createNode(AnimationNodeType.TWO, 'danceNodeTwoPtr');
-    physx.physxWorker.addChild(avatar.danceNodeTwoPtr, avatar.emoteNodeTwoPtr);
+    physx.physxWorker.addChild(avatar.danceNodeTwoPtr, avatar.emoteNodeFuncPtr);
     physx.physxWorker.addChild(avatar.danceNodeTwoPtr, avatar.dancesNodeSolitaryPtr);
 
     avatar.narutoRunNodeTwoPtr = avatar.createNode(AnimationNodeType.TWO, 'narutoRunNodeTwoPtr');
@@ -949,6 +949,7 @@ export const _updateAnimation = avatar => {
     physx.physxWorker.setFactor(avatar.flyForwardNodeTwoPtr, avatar.flyDashFactor);
 
     physx.physxWorker.setArg(avatar.holdNodeFuncPtr, avatar.walkRunFactor * 0.7 + avatar.crouchFactor * (1 - avatar.idleWalkFactor) * 0.5);
+    physx.physxWorker.setArg(avatar.emoteNodeFuncPtr, avatar.idleWalkFactor);
   };
   updateValues();
 
@@ -1006,7 +1007,8 @@ export const _updateAnimation = avatar => {
     }
 
     if (avatar.emoteEnd) {
-      physx.physxWorker.crossFadeTwo(avatar.emoteNodeTwoPtr, 0.2, 0);
+      // physx.physxWorker.crossFadeTwo(avatar.emoteNodeFuncPtr, 0.2, 0);
+      physx.physxWorker.setFactor(avatar.emoteNodeFuncPtr, 0);
     }
 
     if (avatar.hurtEnd) {
@@ -1110,7 +1112,8 @@ export const _updateAnimation = avatar => {
       const emoteMotion = avatar.emoteMotionPtro[avatar.emoteAnimation || defaultEmoteAnimation];
       physx.physxWorker.play(emoteMotion);
       physx.physxWorker.crossFadeSolitary(avatar.emotesNodeSolitaryPtr, 0, emoteMotion);
-      physx.physxWorker.crossFadeTwo(avatar.emoteNodeTwoPtr, 0.2, 1);
+      // physx.physxWorker.crossFadeTwo(avatar.emoteNodeFuncPtr, 0.2, 1);
+      physx.physxWorker.setFactor(avatar.emoteNodeFuncPtr, 1);
     }
 
     // hurt
