@@ -221,11 +221,33 @@ export class AvatarRenderer {
         // const parsedObject = await parseVrm(glbData, srcUrl);
         // console.log('compare skeletons', object, parsedObject);
 
+        console.log('optimize avatar model glb data', glbData);
+
         return glbData;
       }
     ]);
 
     this.setQuality(quality);
+  }
+  getCurrentMesh() {
+    switch (this.quality) {
+      case 1: {
+        return this.spriteAvatarMesh;
+      }
+      case 2: {
+        return this.crunchedModel;
+      }
+      case 3: {
+        return this.optimizedModel;
+      }
+      /* case 4: {
+        break;
+      } */
+      default: {
+        return null;
+        // throw new Error('unknown avatar quality: ' + this.quality);
+      }
+    }
   }
   async setQuality(quality) {
     this.quality = quality;
@@ -295,25 +317,10 @@ export class AvatarRenderer {
     // remove the old placeholder mesh
     this.scene.remove(this.placeholderMesh);
     // add the new avatar mesh
-    switch (this.quality) {
-      case 1: {
-        this.scene.add(this.spriteAvatarMesh);
-        break;
-      }
-      case 2: {
-        this.scene.add(this.crunchedModel);
-        break;
-      }
-      case 3: {
-        this.scene.add(this.optimizedModel);
-        break;
-      }
-      case 4: {
-        break;
-      }
-      default: {
-        throw new Error('unknown avatar quality: ' + this.quality);
-      }
-    }
+    const currentMesh = this.getCurrentMesh();
+    this.scene.add(currentMesh);
+  }
+  destroy() {
+    // nothing
   }
 }
