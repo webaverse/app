@@ -148,6 +148,8 @@ export class AvatarRenderer /* extends EventTarget */ {
 
     //
     
+    // XXX support signal in offscreenEngineManager.createFunction(...)(..., {signal})
+    // XXX integrate more cleanly with totum VRM type (do not double-parse)
     this.createSpriteAvatarMesh = offscreenEngineManager.createFunction([
       `\
       import * as THREE from 'three';
