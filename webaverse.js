@@ -579,7 +579,7 @@ const _startHacks = webaverse => {
       webaverse.dispatchEvent(new MessageEvent('titlecardhackchange', {
         data: {
           titleCardHack: webaverse.titleCardHack,
-        }
+        },
       }));
     } else if (e.code === 'Home') { // home
       const localPlayer = metaversefileApi.useLocalPlayer();
