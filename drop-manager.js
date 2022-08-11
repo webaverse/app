@@ -2,9 +2,9 @@ import * as THREE from 'three';
 import metaversefile from 'metaversefile';
 import generateStats from './procgen/stats.js';
 import { getVoucherFromServer } from './src/hooks/voucherHelpers'
-import { uploadMetadata } from './util.js';
-import {registerLoad} from './src/LoadingBox.jsx';
-const FILE_ADDRESS = 'https://ipfs.webaverse.com/ipfs/';
+// import { uploadMetadata } from './util.js';
+// import {registerLoad} from './src/LoadingBox.jsx';
+// const FILE_ADDRESS = 'https://ipfs.webaverse.com/ipfs/';
 
 const r = () => -1 + Math.random() * 2;
 
@@ -27,9 +27,7 @@ class DropManager extends EventTarget {
     angularVelocity = new THREE.Vector3(0, 0.001, 0),
     voucher = 'fakeVoucher', // XXX should really throw if no voucher
   }) {
-    console.log("drops", components)
-    // const ipfshash = await uploadMetadata(components[0].value, components[1].value) //current components[0] => name. components[1] => url
-    if(voucher == 'fakeVoucher') voucher = await getVoucherFromServer(components[1].value);
+    if(voucher == 'fakeVoucher') voucher = await getVoucherFromServer(components[1].value); //current components[0] => name. components[1] => url
     // const r = () => (-0.5+Math.random())*2;
     const dropComponent = {
       key: 'drop',

@@ -166,63 +166,8 @@ export default function useNFTContract(currentAccount) {
     setMinting(true);
     setError('');
     try {
-      let imageURI;
-      let avatarURI;
-
       const signer = await getSigner();
-    //   const name = app.name;
-    //   const ext = 'testType';
-    //   //   const hash = currentApp.contentId.split(FILE_ADDRESS)[1].split('/')[0];
-    //   const description = 'testDescription';
-
-    //   const metadataFileName = `${name}-metadata.json`;
-    //   let metadata;
-    //   if (previewImage) { // 3D object
-    //     imageURI = previewImage;
-    //     avatarURI = 'testcontentID';
-
-    //     metadata = {
-    //       name,
-    //       description,
-    //       image: imageURI,
-    //       animation_url: avatarURI,
-    //     };
-    //   } else { // image object
-    //     imageURI = 'testcontentID';
-    //     avatarURI = '';
-
-    //     metadata = {
-    //       name,
-    //       description,
-    //       image: imageURI,
-    //     };
-    //   }
-
-    //   const type = 'upload';
-    //   let load = null;
-    //   // const json_hash = await handleBlobUpload(metadataFileName, JSON.stringify(metadata) )
-    //   // handleBlobUpload
-    //   // new Blob([JSON.stringify(metadata)], {type: 'text/plain'});
-    //   const json_hash = await handleBlobUpload(metadataFileName, new Blob([JSON.stringify(metadata)], {type: 'text/plain'}), {
-    //     onTotal(total) {
-    //       load = registerLoad(type, metadataFileName, 0, total);
-    //     },
-    //     onProgress(e) {
-    //       if (load) {
-    //         load.update(e.loaded, e.total);
-    //       } else {
-    //         load = registerLoad(type, metadataFileName, e.loaded, e.total);
-    //       }
-    //     },
-    //   });
-    //   if (load) {
-    //     load.end();
-    //   }
-
-    //   const metadataHash = json_hash.split(FILE_ADDRESS)[1].split('/')[0];
-      console.log("mintNFT", app)
       const webaverseContract = new ethers.Contract(WebaversecontractAddress, WebaverseABI, signer);
-      // const NFTcontract = new ethers.Contract(NFTcontractAddress, NFTABI, signer);
       const FTcontract = new ethers.Contract(FTcontractAddress, FTABI, signer);
 
       const bigMintFee = await webaverseContract.mintFee();
@@ -286,11 +231,6 @@ export default function useNFTContract(currentAccount) {
     const tokenIdsOf = await getTokenIdsOf();
     return await Promise.all(tokenIdsOf.map(async tokenId => {
       const token = await getToken(tokenId);
-      console.log("ttt", token)
-    //   const metadatajson = await fetch(token).then(res => res.json());
-    //   const {name, image, animation_url} = metadatajson;
-    //   const url = animation_url || image;
-
       const [url, name, level] = token;
 
       return {

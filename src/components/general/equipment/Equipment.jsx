@@ -16,8 +16,6 @@ import dropManager from '../../../../drop-manager';
 import cardsManager from '../../../../cards-manager.js';
 import { isChainSupported } from '../../../hooks/useChain';
 
-//
-
 const size = 2048;
 const numFrames = 128;
 const width = 400;
@@ -330,7 +328,6 @@ export const Equipment = () => {
     const open = state.openedPanel === 'CharacterPanel';
 
     useEffect(() => {
-        console.log('account', account);
         if (account && account.currentAddress) {
             console.log('querying opensea');
           async function queryOpensea() {
@@ -359,7 +356,6 @@ export const Equipment = () => {
 
         async function setupInventory() {
             const tokens = await getTokens();
-            console.log("claimed", tokens)
             const inventoryItems = tokens.map((token, i) => {
                 return {
                     name: token.name ?? "",
@@ -378,8 +374,6 @@ export const Equipment = () => {
     }
 
   }, [open, state.openedPanel, selectedChain, nfts]);
-
-    
 
     const onMouseEnter = object => () => {
         setHoverObject(object);
@@ -634,7 +628,6 @@ export const Equipment = () => {
                 mintEnabled={isChainSupported(selectedChain) && account.currentAddress}
                 onMint={() => {
                     mintClaim(selectObject);
-                    console.log("mint object", selectObject)
                 }}
                 onClose={e => {
                     setSelectObject(null);
