@@ -53,7 +53,14 @@ export const crunchAvatarModel = async (model, options = {}) => {
       accept(arrayBuffer);
     }, function onError(error) {
       reject(error);
-    }
+    },
+    {
+      binary: true,
+      // onlyVisible: false,
+      // forceIndices: true,
+      // truncateDrawRange: false,
+      includeCustomExtensions: true,
+    },
   );
   });
   return glbData;
