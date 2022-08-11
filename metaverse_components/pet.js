@@ -1,5 +1,6 @@
 import * as THREE from 'three';
 import metaversefile from 'metaversefile';
+import physicsManager from '../physics-manager';
 
 const localVector = new THREE.Vector3();
 const localVector2 = new THREE.Vector3();
@@ -11,6 +12,17 @@ const localMatrix = new THREE.Matrix4();
 
 export default (app, component) => {
   const {useFrame, useCleanup, useLocalPlayer, useRemotePlayers, getPlayerByAppInstanceId, useActivate} = metaversefile;
+
+  const physicsScene = physicsManager.getScene();
+
+  const characterController = physicsScene.createCharacterController(
+    0.5,
+    0.5,
+    0.1,
+    0.5,
+    app.position,
+    new THREE.Vector3(0, 0, 0),
+  );
 
   let petSpec = null;
   let petMixer = null;
@@ -101,7 +113,59 @@ export default (app, component) => {
   };
   const minDistance = 1;
   const _isFar = distance => (distance - minDistance) > 0.01;
+
+  let fallLoopStartTimeS = 0;
+  let lastGravityH = 0;
+  const startFallingPosition = new THREE.Vector3(0, 0, 0);
+
   useFrame(({timestamp, timeDiff}) => {
+    const nowS = timestamp / 1000;
+    const timeDiffS = timeDiff / 1000;
+    const timeDiffCapped = Math.min(Math.max(timeDiff, 0), 100);
+    const timeDiffSCapped = timeDiffCapped / 1000;
+
+    // if(fallLoopStartTimeS == 0){
+    //   fallLoopStartTimeS = nowS;
+    //   startFallingPosition.copy(app.position);
+    //   localVector.set(0, 0, 0);
+    // }
+    // const t = nowS - fallLoopStartTimeS;
+    // const h = 0.5 * physicsScene.getGravity().y * t * t;
+
+    // localVector.set(app.position.x, -9.8 * timeDiffCapped, app.position.z).normalize();
+    // localVector.set(0, h - lastGravityH, 0);
+    localVector.set(0, -1, 0);
+    // console.log("X : ", localVector.x);
+    // console.log("Y : ", localVector.y);
+    // console.log("Z : ", localVector.z);
+    // localVector.setY(-1);
+    // localVector.y = -0.03;
+    const flags = physicsScene.moveCharacterController(
+      characterController,
+      localVector,
+      0,
+      timeDiffS,
+      app.position
+    );
+
+    // app.position.y = startFallingPosition.y + h;
+    app.updateMatrixWorld();
+
+
+    // lastGravityH = h;
+
+    // console.log(localVector.x)
+    let grounded = !!(flags & 0x1);
+    if (!grounded) {
+      console.log('Not Grounded');
+    }else {
+      console.log('Grounded');
+      // fallLoopStartTimeS = 0;
+      // startFallingPosition.set(0, 0, 0);
+      // localVector.set(0, 0, 0);
+      // lastGravityH = 0;
+    }
+
     // components
     const _updateAnimation = () => {
       // const petComponent = app.getComponent('pet');
@@ -169,7 +233,7 @@ export default (app, component) => {
         }
       }
     };
-    _updateAnimation();
+    // _updateAnimation();
     
     const _updateLook = () => {
       let nearestPlayer = useLocalPlayer();
@@ -233,7 +297,7 @@ export default (app, component) => {
         }
       }
     };
-    _updateLook();
+    // _updateLook();
   });
   
   useActivate(() => {
