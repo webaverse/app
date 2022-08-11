@@ -1252,6 +1252,8 @@ class Avatar {
       }
     }
     modelBones.Root.updateMatrixWorld();
+    avatar.model.updateMatrixWorld();
+    avatar.skeleton.update();
   }
   static modelBoneRenames = {
     spine: 'Spine',
