@@ -366,7 +366,7 @@ export default () => {
         const attributeSpecs = [];
         attributeSpecs.push({name: 'id', itemSize: 1});
         attributeSpecs.push({name: 'scales', itemSize: 1});
-        const geometry2 = new THREE.CylinderBufferGeometry(0.5, 0.1, 4.5, 50, 50, true);
+        const geometry2 = new THREE.CylinderBufferGeometry(0.5, 0.1, 4., 50, 50, true);
         const geometry = _getGeometry(geometry2, attributeSpecs, particleCount);
         const idAttribute = geometry.getAttribute('id');
         idAttribute.setX(0, 0);
@@ -544,8 +544,8 @@ export default () => {
                     group.position.y -= localPlayer.avatar.height;
                     group.position.y += 0.65;
                 }
-                group.position.x -= 2.2 * currentDir.x;
-                group.position.z -= 2.2 * currentDir.z;
+                group.position.x -= 2. * currentDir.x;
+                group.position.z -= 2. * currentDir.z;
                 flameMaterial.uniforms.uTime.value = timestamp / 20000;
                 if(Math.abs(localPlayer.rotation.x) > 0){
                     let temp = localPlayer.rotation.y + Math.PI;
