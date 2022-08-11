@@ -1252,8 +1252,7 @@ class Avatar {
       }
     }
     modelBones.Root.updateMatrixWorld();
-    avatar.skeleton.update();
-    
+    // Offset skinned meshes to skeleton reference node's transform
     const refObject = avatar.skeleton.bones[0].parent;
     for (let mesh of avatar.skinnedMeshes) {
       mesh.position.copy(refObject.position);
