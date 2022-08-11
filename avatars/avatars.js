@@ -1252,15 +1252,16 @@ class Avatar {
       }
     }
     modelBones.Root.updateMatrixWorld();
-    // Offset skinned meshes to skeleton reference node's transform
-    const refObject = avatar.skeleton.bones[0];
-    refObject.matrixWorld.decompose(localVector, localQuaternion, localVector2);
-    for (let mesh of avatar.skinnedMeshes) {
+  }
+  static offsetSkinnedMeshToReferenceNode(referenceNode, skinnedMeshes) {
+    // offset scene transform to skeleton
+    referenceNode.matrixWorld.decompose(localVector, localQuaternion, localVector2);
+    for (let mesh of skinnedMeshes) {
       mesh.position.copy(localVector);
       mesh.quaternion.copy(localQuaternion);
       mesh.scale.copy(localVector2);
+      mesh.updateMatrixWorld();
     }
-    avatar.model.updateMatrixWorld();
   }
   static modelBoneRenames = {
     spine: 'Spine',
@@ -1981,7 +1982,10 @@ class Avatar {
       // this.getTopEnabled(),
       this.getBottomEnabled(),
     );
-    // this.modelBones.Root.updateMatrixWorld();
+    Avatar.offsetSkinnedMeshToReferenceNode(
+      this.foundModelBones.Root,
+      this.skinnedMeshes
+    );
 
 
     // this.springBoneTimeStep.update(timeDiff);

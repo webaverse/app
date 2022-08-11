@@ -36,6 +36,7 @@ export default (app, component) => {
   let modelBones = null;
   let appAimAnimationMixers = null;
   let player = null;
+  let skinnedMeshes = null;
 
   const initialScale = app.scale.clone();
 
@@ -160,6 +161,7 @@ export default (app, component) => {
               const bindSpec = Avatar.bindAvatar(app.glb);
   
               // skeleton = bindSpec.skeleton;
+              skinnedMeshes = bindSpec.skinnedMeshes;
               modelBones = bindSpec.modelBones;
               for (const k in modelBones){
                 modelBones[k].initialPosition = modelBones[k].position.clone();
@@ -198,9 +200,13 @@ export default (app, component) => {
         physicsScene.enableActor(physicsObject);
       }
 
-      app.glb.scene.position.copy(identityVector);
-      app.glb.scene.quaternion.copy(identityQuaternion);
-      app.glb.scene.scale.copy(identityScale);
+      if (skinnedMeshes) {
+        for (let mesh of skinnedMeshes) {
+          mesh.position.copy(identityVector);
+          mesh.quaternion.copy(identityQuaternion);
+          mesh.scale.copy(identityScale);
+        }
+      }
 
       app.scale.copy(initialScale);
       app.updateMatrixWorld();
@@ -331,23 +337,17 @@ export default (app, component) => {
           if (appAimAction?.boneAttachment && wearSpec.boneAttachment) {
             _copyBoneAttachment(appAimAction);
           } else {
-            if (modelBones) {
+            if (modelBones && skinnedMeshes) {
               Avatar.applyModelBoneOutputs(player.avatar, modelBones, player.avatar.modelBoneOutputs, player.avatar.getBottomEnabled());
-              modelBones.Root.updateMatrixWorld();
+              Avatar.offsetSkinnedMeshToReferenceNode(
+                player.avatar.modelBones.Root,
+                skinnedMeshes
+              );
             } else if (wearSpec.boneAttachment) {
               _copyBoneAttachment(wearSpec);
             }
           }
         }
-      }
-      // offset mesh transform to skeleton
-      if (app.glb && wearSpec.skinnedMesh) {
-        const refObject = player.avatar.skeleton.bones[0];
-        refObject.matrixWorld.decompose(localVector, localQuaternion, localVector2);
-        app.glb.scene.position.copy(localVector);
-        app.glb.scene.quaternion.copy(localQuaternion);
-        app.glb.scene.scale.copy(localVector2);
-        app.glb.scene.updateMatrixWorld();
       }
     }
 
