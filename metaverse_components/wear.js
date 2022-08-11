@@ -20,6 +20,8 @@ const localMatrix = new THREE.Matrix4();
 //
 
 const identityVector = new THREE.Vector3();
+const identityQuaternion = new THREE.Quaternion();
+const identityScale = new THREE.Vector3(1, 1, 1);
 
 //
 
