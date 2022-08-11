@@ -1252,15 +1252,6 @@ class Avatar {
       }
     }
     modelBones.Root.updateMatrixWorld();
-    // Offset skinned meshes to skeleton reference node's transform
-    const refObject = avatar.skeleton.bones[0];
-    refObject.matrixWorld.decompose(localVector, localQuaternion, localVector2);
-    for (let mesh of avatar.skinnedMeshes) {
-      mesh.position.copy(localVector);
-      mesh.quaternion.copy(localQuaternion);
-      mesh.scale.copy(localVector2);
-    }
-    avatar.model.updateMatrixWorld();
   }
   static modelBoneRenames = {
     spine: 'Spine',
