@@ -970,15 +970,10 @@ export default () => {
                 cameraBillboardQuaternion: {
                     value: new THREE.Quaternion(),
                 },
-                electricityTexture1: {
+                sphereTexture: {
                     type: "t",
                     value: sphereTexture
-                },
-                electricityTexture2: {
-                    type: "t",
-                    value: electricityTexture2
-                },
-
+                }
             },
             vertexShader: `
                 ${THREE.ShaderChunk.common}
@@ -1008,12 +1003,12 @@ export default () => {
                 uniform float uTime;
                 uniform float opacity;
 
-                uniform sampler2D electricityTexture1;
+                uniform sampler2D sphereTexture;
                 
                 varying vec2 vUv;
                 
                 void main() {
-                    vec4 tex = texture2D(electricityTexture1, vUv); 
+                    vec4 tex = texture2D(sphereTexture, vUv); 
                     gl_FragColor = tex;
                     gl_FragColor.rgb *= vec3(0.9, 1., 1.2);
                     if(opacity > 0.){
@@ -1037,7 +1032,7 @@ export default () => {
             lights: false,
         });
         material.freeze();
-        const geometry = new THREE.PlaneGeometry( 1.9, 1.9 );
+        const geometry = new THREE.PlaneGeometry( 1.85, 1.85 );
         const mainBall = new THREE.Mesh( geometry, material );
         // app.add(mainBall);
         let sonicBoomInApp=false;
