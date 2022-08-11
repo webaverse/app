@@ -10,7 +10,6 @@ import {world} from './world.js';
 // import cameraManager from './camera-manager.js';
 import physx from './physx.js';
 import audioManager from './audio-manager.js';
-import Avatar from './avatars/avatars.js';
 import metaversefile from 'metaversefile';
 import {
   actionsMapName,
@@ -259,8 +258,11 @@ class PlayerBase extends THREE.Object3D {
     return false;
   }
   async setVoicePack({audioUrl, indexUrl}) {
-    const voiceSpec = JSON.stringify({audioUrl, indexUrl, endpointUrl: this.voiceEndpoint ? self.voiceEndpoint.url : ''});
-    this.playerMap.set('voiceSpec', voiceSpec);
+    const self = this;
+    // this.playersArray.doc.transact(function tx() {
+    const voiceSpec = JSON.stringify({audioUrl, indexUrl, endpointUrl: self.voiceEndpoint ? self.voiceEndpoint.url : ''});
+    self.playerMap.set('voiceSpec', voiceSpec);
+    // });
     await this.loadVoicePack({audioUrl, indexUrl})
   }
   async loadVoicePack({audioUrl, indexUrl}) {
@@ -271,8 +273,25 @@ class PlayerBase extends THREE.Object3D {
     this.updateVoicer();
   }
   setVoiceEndpoint(voiceId) {
-    if (voiceId) {
-      const url = getVoiceEndpointUrl(voiceId);
+    if (!voiceId) throw new Error('voice Id is null')
+    const self = this;
+    const url = `${voiceEndpointBaseUrl}?voice=${encodeURIComponent(voiceId)}`;
+    this.playersArray.doc.transact(function tx() {
+      let oldVoiceSpec = self.playerMap.get('voiceSpec');
+      if (oldVoiceSpec) {
+        oldVoiceSpec = JSON.parse(oldVoiceSpec);
+        const voiceSpec = JSON.stringify({audioUrl: oldVoiceSpec.audioUrl, indexUrl: oldVoiceSpec.indexUrl, endpointUrl: url});
+        self.playerMap.set('voiceSpec', voiceSpec);
+      } else {
+        const voiceSpec = JSON.stringify({audioUrl: self.voicePack?.audioUrl, indexUrl: self.voicePack?.indexUrl, endpointUrl: url})
+        self.playerMap.set('voiceSpec', voiceSpec);
+      }
+    });
+    this.loadVoiceEndpoint(url)
+  }
+
+  loadVoiceEndpoint(url) {
+    if (url) {
       this.voiceEndpoint = new VoiceEndpoint(url);
     } else {
       this.voiceEndpoint = null;
@@ -280,7 +299,7 @@ class PlayerBase extends THREE.Object3D {
     this.updateVoicer();
   }
   getVoice() {
-    return this.voiceEndpoint || this.voicePack || null;
+    return this.voiceEndpoint || this.voicePack;
   }
   updateVoicer() {
     const voice = this.getVoice();
@@ -828,7 +847,7 @@ class StatePlayer extends PlayerBase {
     }
     if (mediaStream) {
       this.avatar.setAudioEnabled(true);
-      const audioContext = Avatar.getAudioContext();
+      const audioContext = audioManager.getAudioContext();
       const mediaStreamSource = audioContext.createMediaStreamSource(mediaStream);
       mediaStreamSource.connect(this.avatar.getAudioInput());
       this.microphoneMediaStream = mediaStreamSource;
