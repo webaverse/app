@@ -314,7 +314,6 @@ export class HeightfieldMapper /* extends EventTarget */ {
       
       // push state
       const oldRenderTarget = renderer.getRenderTarget();
-      context.disable(context.SAMPLE_ALPHA_TO_COVERAGE);
 
       // render
       renderer.setRenderTarget(this.heightfieldRenderTarget);
@@ -323,7 +322,6 @@ export class HeightfieldMapper /* extends EventTarget */ {
 
       // pop state
       renderer.setRenderTarget(oldRenderTarget);
-      context.enable(context.SAMPLE_ALPHA_TO_COVERAGE);
     }
   }
   /* clearHeightfieldChunk(worldModPosition) {
@@ -337,7 +335,6 @@ export class HeightfieldMapper /* extends EventTarget */ {
       
       // push state
       const oldRenderTarget = renderer.getRenderTarget();
-      context.disable(context.SAMPLE_ALPHA_TO_COVERAGE);
 
       // render
       renderer.setRenderTarget(this.heightfieldRenderTarget);
@@ -346,7 +343,6 @@ export class HeightfieldMapper /* extends EventTarget */ {
 
       // pop state
       renderer.setRenderTarget(oldRenderTarget);
-      context.enable(context.SAMPLE_ALPHA_TO_COVERAGE);
     }
   } */
   /* updateFourTapHeightfield() {
@@ -359,7 +355,6 @@ export class HeightfieldMapper /* extends EventTarget */ {
       
       // push state
       const oldRenderTarget = renderer.getRenderTarget();
-      context.disable(context.SAMPLE_ALPHA_TO_COVERAGE);
 
       // render
       renderer.setRenderTarget(this.heightfieldFourTapRenderTarget);
@@ -368,7 +363,6 @@ export class HeightfieldMapper /* extends EventTarget */ {
 
       // pop state
       renderer.setRenderTarget(oldRenderTarget);
-      context.enable(context.SAMPLE_ALPHA_TO_COVERAGE);
     }
   } */
 }

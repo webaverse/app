@@ -158,16 +158,6 @@ const _makeRenderTargetMesh = (renderTarget, worldWidth, worldHeight) => {
     side: THREE.DoubleSide,
   });
   const mesh = new THREE.Mesh(geometry, material);
-  mesh.onBeforeRender = () => {
-    const renderer = getRenderer();
-    const context = renderer.getContext();
-    context.disable(context.SAMPLE_ALPHA_TO_COVERAGE);
-  };
-  mesh.onAfterRender = () => {
-    const renderer = getRenderer();
-    const context = renderer.getContext();
-    context.enable(context.SAMPLE_ALPHA_TO_COVERAGE);
-  };
   return mesh;
 };
 /* let numRenderTargetMeshes = 0;
@@ -307,19 +297,9 @@ class ShadertoyRenderer {
     this.frame++;
 
     if (this.loaded) {
-      // console.log('update start');
-
-      const renderer = getRenderer();
-      const context = renderer.getContext();
-      context.disable(context.SAMPLE_ALPHA_TO_COVERAGE);
-
       for (const renderPass of this.renderPasses) {
         renderPass.update();
       }
-      
-      context.enable(context.SAMPLE_ALPHA_TO_COVERAGE);
-      
-      // console.log('update end');
     }
   }
 }
