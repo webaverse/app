@@ -1252,8 +1252,15 @@ class Avatar {
       }
     }
     modelBones.Root.updateMatrixWorld();
-    avatar.model.updateMatrixWorld();
     avatar.skeleton.update();
+    
+    const refObject = avatar.skeleton.bones[0].parent;
+    for (let mesh of avatar.skinnedMeshes) {
+      mesh.position.copy(refObject.position);
+      mesh.quaternion.copy(refObject.quaternion);
+      mesh.scale.copy(refObject.scale);
+    }
+    avatar.model.updateMatrixWorld();
   }
   static modelBoneRenames = {
     spine: 'Spine',
