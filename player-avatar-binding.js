@@ -49,43 +49,39 @@ export function applyPlayerModesToAvatar(player, session, rig) {
     rig.velocity.length() < 0.001,
   );
 }
-export function makeAvatar(app) {
-  if (app) {
-    const {skinnedVrm} = app;
-
-    const _getPlayerByAppInstanceId = instanceId => {
-      const remotePlayers = playersManager.getRemotePlayers(); // Might have to be removed too
-      const localPlayer = playersManager.getLocalPlayer();
-      const result = localPlayer.appManager.getAppByInstanceId(instanceId);
-      if (result) {
-        return localPlayer;
-      } else {
-        for (const remotePlayer in remotePlayers) {
-          if (remotePlayer.appManager.getAppByInstanceId(instanceId)) {
-            return remotePlayer;
-          }
-        }
+const _getPlayerByAppInstanceId = instanceId => {
+  const remotePlayers = playersManager.getRemotePlayers(); // Might have to be removed too
+  const localPlayer = playersManager.getLocalPlayer();
+  const result = localPlayer.appManager.getAppByInstanceId(instanceId);
+  if (result) {
+    return localPlayer;
+  } else {
+    for (const remotePlayer in remotePlayers) {
+      if (remotePlayer.appManager.getAppByInstanceId(instanceId)) {
+        return remotePlayer;
       }
     }
-
-    const player = _getPlayerByAppInstanceId(app.instanceId);
-    if (skinnedVrm) {
-      const avatar = new Avatar(skinnedVrm, {
-        isLocalPlayer: !player || !player.isRemotePlayer,
-        fingers: true,
-        hair: true,
-        visemes: true,
-        debug: false,
-      });
-      avatar[appSymbol] = app;
-
-      unFrustumCull(app);
-      enableShadows(app);
-
-      return avatar;
-    }
   }
-  return null;
+};
+export function makeAvatar(app) {
+  if (app?.renderer) { // comes from vrm type handler
+    const player = _getPlayerByAppInstanceId(app.instanceId);
+    const avatar = new Avatar(app.renderer, {
+      isLocalPlayer: !player || !player.isRemotePlayer,
+      fingers: true,
+      hair: true,
+      visemes: true,
+      debug: false,
+    });
+    avatar[appSymbol] = app;
+
+    unFrustumCull(app);
+    enableShadows(app);
+
+    return avatar;
+  } else {
+    return null;
+  }
 }
 export function applyPlayerActionsToAvatar(player, rig) {
   const jumpAction = player.getAction('jump');
