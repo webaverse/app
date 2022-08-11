@@ -505,7 +505,7 @@ class PlayerBase extends THREE.Object3D {
       
       const _removeApp = () => {
         this.removeActionIndex(wearActionIndex);
-        
+
         if (this.appManager.hasTrackedApp(app.instanceId)) {
           if (destroy) {
             this.appManager.removeApp(app);
