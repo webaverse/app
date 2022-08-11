@@ -68,6 +68,18 @@ const _getGrabbedObject = i => {
   return result;
 };
 
+const _unwearAppIfHasSitComponent = (player) => {
+  const wearActions = player.getActionsByType('wear');
+  for (const wearAction of wearActions) {
+    const instanceId = wearAction.instanceId;
+    const app = metaversefileApi.getAppByInstanceId(instanceId);
+    const hasSitComponent = app.hasComponent('sit');
+    if (hasSitComponent) {
+      app.unwear();
+    }
+  }
+}
+
 // returns whether we actually snapped
 function updateGrabbedObject(o, grabMatrix, offsetMatrix, {collisionEnabled, handSnapEnabled, physx, gridSnap}) {
   grabMatrix.decompose(localVector, localQuaternion, localVector2);
@@ -1420,6 +1432,9 @@ class GameManager extends EventTarget {
         type: 'fly',
         time: 0,
       };
+
+      _unwearAppIfHasSitComponent(localPlayer);
+
       localPlayer.setControlAction(flyAction);
     }
   }
@@ -1503,15 +1518,7 @@ class GameManager extends EventTarget {
   ensureJump(trigger) {
     const localPlayer = playersManager.getLocalPlayer();
 
-    const wearActions = Array.from(localPlayer.getActionsState()).filter(action => action.type === 'wear');
-    for (const wearAction of wearActions) {
-      const instanceId = wearAction.instanceId;
-      const app = metaversefileApi.getAppByInstanceId(instanceId);
-      const sitComponent = app.getComponent('sit');
-      if (sitComponent) {
-        app.unwear();
-      }
-    }
+    _unwearAppIfHasSitComponent(localPlayer);
 
     if (!localPlayer.hasAction('jump') && !localPlayer.hasAction('fly') && !localPlayer.hasAction('fallLoop') && !localPlayer.hasAction('swim')) {
       const newJumpAction = {
@@ -1650,7 +1657,7 @@ class GameManager extends EventTarget {
     }
     const localPlayer = playersManager.getLocalPlayer();
     const sprintMultiplier = (ioManager.keys.shift && !isCrouched && !isBowing) ?
-      (ioManager.keys.doubleTap ? 20 : 3)
+      (localPlayer.hasAction('narutoRun') ? 20 : 3)
     :
     ((isSwimming && !isFlying) ? 5 - localPlayer.getAction('swim').swimDamping : 1);
     speed *= sprintMultiplier;
@@ -1697,26 +1704,19 @@ class GameManager extends EventTarget {
 
     const localPlayer = playersManager.getLocalPlayer();
     this.playerDiorama = dioramaManager.createPlayerDiorama({
-      // target: localPlayer,
+      target: localPlayer,
       // label: true,
       outline: true,
       grassBackground: true,
       // glyphBackground: true,
     });
     localPlayer.addEventListener('avatarchange', e => {
+      const localPlayer = playersManager.getLocalPlayer();
+      this.playerDiorama.setTarget(localPlayer);
       this.playerDiorama.setObjects([
         e.avatar.model,
       ]);
-      let neckBone;
-      e.avatar.model.traverse(
-        (object) => {
-          if (object.type === "Bone" && object.name === "Head") {
-            return neckBone = object;
-          }
-        }
-      );
-      this.playerDiorama.setTarget(neckBone);
-    });
+    })
   }
   async setVoicePack(voicePack) {
     const localPlayer = metaversefileApi.useLocalPlayer();

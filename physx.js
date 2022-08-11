@@ -2289,9 +2289,9 @@ const physxWorker = (() => {
     )
     return ptr;
   }
-  w.createNode = (mixer, type = AnimationNodeType.LIST) => {
+  w.createNode = (mixer, type = AnimationNodeType.LIST, index = 0) => {
     const ptr = Module._createNode(
-      mixer, type,
+      mixer, type, index,
     )
     return ptr;
   }
