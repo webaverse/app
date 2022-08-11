@@ -1399,8 +1399,10 @@ export const _applyAnimation = (avatar, now) => {
   const _blendActivateAction = spec => {
     const {
       animationTrackName: k,
+      boneName,
       dst,
-      // isTop,
+      isTop,
+      isPosition,
       lerpFn,
     } = spec;
 
@@ -1421,14 +1423,26 @@ export const _applyAnimation = (avatar, now) => {
       const t2 = ((avatar.activateTime / 1000) * activateAnimations[defaultAnimation].speedFactor) % activateAnimation.duration;
       const v2 = src2.evaluate(t2);
 
-      const f = avatar.activateTime > 0 ? Math.min(cubicBezier(t2), 1) : (1 - Math.min(cubicBezier(t2), 1));
+      let f = avatar.activateTime > 0 ? Math.min(cubicBezier(t2), 1) : (1 - Math.min(cubicBezier(t2), 1));
 
-      lerpFn
-        .call(
-          dst,
-          localQuaternion.fromArray(v2),
-          f,
-        );
+      if (boneName === 'Spine' || boneName === 'Chest' || boneName === 'UpperChest' || boneName === 'Neck' || boneName === 'Head') {
+        if (!isPosition) {
+          dst.premultiply(localQuaternion.fromArray(v2));
+        } else {
+          dst.lerp(localVector.fromArray(v2), f);
+        }
+      } else {
+        if (!isTop) {
+          f *= (1 - idleWalkFactor);
+        }
+
+        lerpFn
+          .call(
+            dst,
+            localQuaternion.fromArray(v2),
+            f,
+          );
+      }
     }
   };
 
