@@ -20,6 +20,8 @@ const localMatrix = new THREE.Matrix4();
 //
 
 const identityVector = new THREE.Vector3();
+const identityQuaternion = new THREE.Quaternion();
+const identityScale = new THREE.Vector3(1, 1, 1);
 
 //
 
@@ -196,6 +198,10 @@ export default (app, component) => {
         physicsScene.enableActor(physicsObject);
       }
 
+      app.glb.scene.position.copy(identityVector);
+      app.glb.scene.quaternion.copy(identityQuaternion);
+      app.glb.scene.scale.copy(identityScale);
+
       app.scale.copy(initialScale);
       app.updateMatrixWorld();
       for (const k in modelBones){
@@ -333,6 +339,15 @@ export default (app, component) => {
             }
           }
         }
+      }
+      // offset mesh transform to skeleton
+      if (app.glb && wearSpec.skinnedMesh) {
+        const refObject = player.avatar.skeleton.bones[0];
+        refObject.matrixWorld.decompose(localVector, localQuaternion, localVector2);
+        app.glb.scene.position.copy(localVector);
+        app.glb.scene.quaternion.copy(localQuaternion);
+        app.glb.scene.scale.copy(localVector2);
+        app.glb.scene.updateMatrixWorld();
       }
     }
 
