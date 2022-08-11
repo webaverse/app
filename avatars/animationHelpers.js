@@ -1020,7 +1020,8 @@ export const _updateAnimation = avatar => {
     }
 
     if (avatar.holdEnd) {
-      physx.physxWorker.setFactor(avatar.holdNodeFuncPtr, 0);
+      physx.physxWorker.crossFadeTwo(avatar.holdNodeFuncPtr, 0.2, 0);
+      // physx.physxWorker.setFactor(avatar.holdNodeFuncPtr, 0);
     }
   };
   handleActionEndEvents();
@@ -1137,8 +1138,8 @@ export const _updateAnimation = avatar => {
       const holdMotion = avatar.holdMotionPtro[avatar.holdAnimation || defaultHoldAnimation];
       physx.physxWorker.play(holdMotion);
       physx.physxWorker.crossFadeSolitary(avatar.holdsNodeSolitaryPtr, 0, holdMotion);
-      // physx.physxWorker.crossFadeTwo(avatar.holdNodeFuncPtr, 0.2, 1); // todo: crossFade
-      physx.physxWorker.setFactor(avatar.holdNodeFuncPtr, 1);
+      physx.physxWorker.crossFadeTwo(avatar.holdNodeFuncPtr, 0.2, 1);
+      // physx.physxWorker.setFactor(avatar.holdNodeFuncPtr, 1);
     }
 
     // activate
