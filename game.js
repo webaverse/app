@@ -1541,6 +1541,10 @@ class GameManager extends EventTarget {
     const localPlayer = playersManager.getLocalPlayer();
     return localPlayer.hasAction('sit');
   }
+  isGrounded() {
+    const localPlayer = playersManager.getLocalPlayer();
+    return localPlayer.characterPhysics.lastGrounded;
+  }
   getMouseHoverObject() {
     return mouseHoverObject;
   }

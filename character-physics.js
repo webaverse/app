@@ -202,7 +202,7 @@ class CharacterPhysics {
 
         // Patch fix to fix vehicles and mounts for now
         let rideMesh = null;
-        controlledApp.glb.scene.traverse(o => {
+        controlledApp.traverse(o => {
           if (rideMesh === null && o.isSkinnedMesh) {
             rideMesh = o;
           }
