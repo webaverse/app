@@ -33,9 +33,7 @@ export default () => {
     {
         let localVector = new THREE.Vector3();
         useFrame(() => {
-            localVector.x = 0;
-            localVector.y = 0;
-            localVector.z = -1;
+            localVector.set(0, 0, -1);
             currentDir = localVector.applyQuaternion(localPlayer.quaternion);
             currentDir.normalize();
             if (localPlayer.hasAction('narutoRun')){
