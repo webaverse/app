@@ -74,7 +74,7 @@ const _unwearAppIfHasSitComponent = (player) => {
     const app = metaversefileApi.getAppByInstanceId(instanceId);
     const hasSitComponent = app.hasComponent('sit');
     if (hasSitComponent) {
-        app.unwear();
+      app.unwear();
     }
   }
 }
