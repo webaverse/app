@@ -11,18 +11,41 @@ const localEuler = new THREE.Euler();
 const localMatrix = new THREE.Matrix4();
 
 export default (app, component) => {
-  const {useFrame, useCleanup, useLocalPlayer, useRemotePlayers, getPlayerByAppInstanceId, useActivate} = metaversefile;
+  const {
+    useFrame,
+    useCleanup,
+    useLocalPlayer,
+    useRemotePlayers,
+    getPlayerByAppInstanceId,
+    useActivate,
+  } = metaversefile;
+
+  // app.rotation.y += Math.PI / 2;
+
+
+  const petHeight = 0.5;
 
   const physicsScene = physicsManager.getScene();
+  const heightFactor = 1;
+  const baseRadius = 0.2;
+  const radius = (baseRadius / heightFactor) * petHeight;
+  const capsuleHeight = petHeight - radius * 2;
 
+  const contactOffset = (0.1 / heightFactor) * petHeight;
+  const stepOffset = (0.5 / heightFactor) * petHeight;
+
+  const capsulePosition = app.position.clone();
+  capsulePosition.y += 5;
+  
   const characterController = physicsScene.createCharacterController(
-    0.5,
-    0.5,
-    0.1,
-    0.5,
-    app.position,
-    new THREE.Vector3(0, 0, 0),
-  );
+    radius - contactOffset,
+    capsuleHeight,
+    contactOffset,
+    stepOffset,
+    capsulePosition
+    );
+    
+  // const physicsObject = physicsScene.addCapsuleGeometry(app.position, app.quaternion, 0.2, 0.05);
 
   let petSpec = null;
   let petMixer = null;
@@ -36,23 +59,25 @@ export default (app, component) => {
   const petComponent = component;
   const _makePetMixer = () => {
     let petMixer, idleAction;
-    
+
     let firstMesh = null;
-    app.glb.scene.traverse(o => {
+    app.glb.scene.traverse((o) => {
       if (firstMesh === null && o.isMesh) {
         firstMesh = o;
       }
     });
     petMixer = new THREE.AnimationMixer(firstMesh);
-    
-    const idleAnimation = petComponent.idleAnimation ? app.glb.animations.find(a => a.name === petComponent.idleAnimation) : null;
+
+    const idleAnimation = petComponent.idleAnimation
+      ? app.glb.animations.find((a) => a.name === petComponent.idleAnimation)
+      : null;
     if (idleAnimation) {
       idleAction = petMixer.clipAction(idleAnimation);
       idleAction.play();
     } else {
       idleAction = null;
     }
-    
+
     return {
       petMixer,
       idleAction,
@@ -71,27 +96,35 @@ export default (app, component) => {
       walkAction = null;
       runAction = null;
       rootBone = null;
-      
+
       const m = _makePetMixer();
       petMixer = m.petMixer;
       idleAction = m.idleAction;
       player = null;
     }
   };
-  app.addEventListener('wearupdate', e => {
+  app.addEventListener('wearupdate', (e) => {
     if (e.wear) {
       player = getPlayerByAppInstanceId(app.instanceId);
       if (app.glb) {
-        const {animations} = app.glb;
-        
+        const { animations } = app.glb;
+
         petSpec = app.getComponent('pet');
         if (petSpec) {
-          const walkAnimation = (petSpec.walkAnimation && petSpec.walkAnimation !== petSpec.idleAnimation) ? animations.find(a => a.name === petSpec.walkAnimation) : null;
+          const walkAnimation =
+            petSpec.walkAnimation &&
+            petSpec.walkAnimation !== petSpec.idleAnimation
+              ? animations.find((a) => a.name === petSpec.walkAnimation)
+              : null;
           if (walkAnimation) {
             walkAction = petMixer.clipAction(walkAnimation);
             walkAction.play();
           }
-          const runAnimation = (petSpec.runAnimation && petSpec.runAnimation !== petSpec.idleAnimation) ? animations.find(a => a.name === petSpec.runAnimation) : null;
+          const runAnimation =
+            petSpec.runAnimation &&
+            petSpec.runAnimation !== petSpec.idleAnimation
+              ? animations.find((a) => a.name === petSpec.runAnimation)
+              : null;
           if (runAnimation) {
             runAction = petMixer.clipAction(runAnimation);
             runAction.play();
@@ -102,7 +135,7 @@ export default (app, component) => {
       _unwear();
     }
   });
-  
+
   const smoothVelocity = new THREE.Vector3();
   const lastLookQuaternion = new THREE.Quaternion();
   const _getAppDistance = () => {
@@ -112,46 +145,41 @@ export default (app, component) => {
     return distance;
   };
   const minDistance = 1;
-  const _isFar = distance => (distance - minDistance) > 0.01;
+  const _isFar = (distance) => distance - minDistance > 0.01;
 
   let fallLoopStartTimeS = 0;
   let lastGravityH = 0;
   const startFallingPosition = new THREE.Vector3(0, 0, 0);
 
-  useFrame(({timestamp, timeDiff}) => {
+  useFrame(({ timestamp, timeDiff }) => {
     const nowS = timestamp / 1000;
     const timeDiffS = timeDiff / 1000;
     const timeDiffCapped = Math.min(Math.max(timeDiff, 0), 100);
     const timeDiffSCapped = timeDiffCapped / 1000;
 
-    // if(fallLoopStartTimeS == 0){
-    //   fallLoopStartTimeS = nowS;
-    //   startFallingPosition.copy(app.position);
-    //   localVector.set(0, 0, 0);
-    // }
-    // const t = nowS - fallLoopStartTimeS;
-    // const h = 0.5 * physicsScene.getGravity().y * t * t;
+    // smoothVelocity.multiplyScalar(2);
+
+    if (fallLoopStartTimeS == 0) {
+      fallLoopStartTimeS = nowS;
+      startFallingPosition.copy(app.position);
+      localVector.set(0, 0, 0);
+    }
+    const t = nowS - fallLoopStartTimeS;
+    const h = 0.5 * physicsScene.getGravity().y * t * t;
 
     // localVector.set(app.position.x, -9.8 * timeDiffCapped, app.position.z).normalize();
-    // localVector.set(0, h - lastGravityH, 0);
-    localVector.set(0, -1, 0);
-    // console.log("X : ", localVector.x);
-    // console.log("Y : ", localVector.y);
-    // console.log("Z : ", localVector.z);
-    // localVector.setY(-1);
-    // localVector.y = -0.03;
+    localVector.set(0, h - lastGravityH, 0);
+    smoothVelocity.add(localVector);
     const flags = physicsScene.moveCharacterController(
       characterController,
-      localVector,
+      smoothVelocity,
       0,
       timeDiffS,
       app.position
     );
-    
 
-    // app.position.y = startFallingPosition.y + h;
-    app.updateMatrixWorld();
-
+    // app.position.y -= 0.5;
+    // app.updateMatrixWorld();
 
     // lastGravityH = h;
 
@@ -159,13 +187,16 @@ export default (app, component) => {
     let grounded = !!(flags & 0x1);
     if (!grounded) {
       console.log('Not Grounded');
-    }else {
+    } else {
       console.log('Grounded');
-      // fallLoopStartTimeS = 0;
-      // startFallingPosition.set(0, 0, 0);
-      // localVector.set(0, 0, 0);
-      // lastGravityH = 0;
+      if (fallLoopStartTimeS != 0) {
+        app.position.y -= petHeight / 2 - 0.11;
+      }
+      fallLoopStartTimeS = 0;
+      startFallingPosition.set(0, 0, 0);
+      lastGravityH = 0;
     }
+
 
     // components
     const _updateAnimation = () => {
@@ -175,25 +206,31 @@ export default (app, component) => {
           rootBone.quaternion.copy(rootBone.originalQuaternion);
           rootBone.updateMatrixWorld();
         }
-        if (petMixer) { // animated pet
-          if (petSpec) { // activated pet
+        if (petMixer) {
+          // animated pet
+          if (petSpec) {
+            // activated pet
             const speed = 0.0014;
 
             const distance = _getAppDistance();
             const moveDelta = localVector;
             moveDelta.setScalar(0);
-            if (_isFar(distance)) { // handle rounding errors
+            if (_isFar(distance)) {
+              // handle rounding errors
               const position = player.position.clone();
               position.y = 0;
-              const direction = position.clone()
-                .sub(app.position)
-                .normalize();
+              const direction = position.clone().sub(app.position).normalize();
               const maxMoveDistance = distance - minDistance;
               const moveDistance = Math.min(speed * timeDiff, maxMoveDistance);
-              moveDelta.copy(direction)
-                .multiplyScalar(moveDistance);
+              moveDelta.copy(direction).multiplyScalar(moveDistance);
               app.position.add(moveDelta);
-              app.quaternion.slerp(localQuaternion.setFromUnitVectors(localVector2.set(0, 0, 1), direction), 0.1);
+              app.quaternion.slerp(
+                localQuaternion.setFromUnitVectors(
+                  localVector2.set(0, 0, 1),
+                  direction
+                ),
+                0.1
+              );
               app.updateMatrixWorld();
             } /* else {
               // console.log('check', head === drop, component.attractedTo === 'fruit', typeof component.eatSpeed === 'number');
@@ -206,15 +243,21 @@ export default (app, component) => {
               }
             } */
             smoothVelocity.lerp(moveDelta, 0.3);
-            
+
             const walkSpeed = 0.01;
             const runSpeed = 0.03;
-            const currentSpeed = smoothVelocity.length();
+            const currentSpeed = smoothVelocity.length(); 
             if (walkAction) {
               walkAction.weight = Math.min(currentSpeed / walkSpeed, 1);
             }
             if (runAction) {
-              runAction.weight = Math.min(Math.max((currentSpeed - walkSpeed) / (runSpeed - walkSpeed), 0), 1);
+              runAction.weight = Math.min(
+                Math.max(
+                  (currentSpeed - walkSpeed) / (runSpeed - walkSpeed),
+                  0
+                ),
+                1
+              );
             }
             if (idleAction) {
               if (walkAction || runAction) {
@@ -223,7 +266,8 @@ export default (app, component) => {
                 idleAction.weight = 1;
               }
             }
-          } else { // unactivated pet
+          } else {
+            // unactivated pet
             if (idleAction) {
               idleAction.weight = 1;
             }
@@ -234,8 +278,8 @@ export default (app, component) => {
         }
       }
     };
-    // _updateAnimation();
-    
+    _updateAnimation();
+
     const _updateLook = () => {
       let nearestPlayer = useLocalPlayer();
       let nearestDistance = app.position.distanceTo(nearestPlayer.position);
@@ -253,13 +297,15 @@ export default (app, component) => {
       const lookComponent = app.getComponent('look');
       if (lookComponent && app.glb) {
         let skinnedMesh = null;
-        app.glb.scene.traverse(o => {
+        app.glb.scene.traverse((o) => {
           if (skinnedMesh === null && o.isSkinnedMesh) {
             skinnedMesh = o;
           }
         });
         if (skinnedMesh) {
-          const bone = skinnedMesh.skeleton.bones.find(bone => bone.name === lookComponent.rootBone);
+          const bone = skinnedMesh.skeleton.bones.find(
+            (bone) => bone.name === lookComponent.rootBone
+          );
           if (bone) {
             rootBone = bone;
             if (!bone.originalQuaternion) {
@@ -268,27 +314,45 @@ export default (app, component) => {
             if (!bone.originalWorldScale) {
               bone.originalWorldScale = bone.getWorldScale(new THREE.Vector3());
             }
-            
+
             if (!bone.quaternion.equals(lastLookQuaternion)) {
-              const {position} = nearestPlayer;
-              localQuaternion2.setFromRotationMatrix(
-                localMatrix.lookAt(
-                  position,
-                  bone.getWorldPosition(localVector),
-                  localVector2.set(0, 1, 0)
+              const { position } = nearestPlayer;
+              localQuaternion2
+                .setFromRotationMatrix(
+                  localMatrix.lookAt(
+                    position,
+                    bone.getWorldPosition(localVector),
+                    localVector2.set(0, 1, 0)
+                  )
                 )
-              ).premultiply(localQuaternion.copy(app.quaternion).invert());
+                .premultiply(localQuaternion.copy(app.quaternion).invert());
               localEuler.setFromQuaternion(localQuaternion2, 'YXZ');
-              localEuler.y = Math.min(Math.max(localEuler.y, -Math.PI*0.5), Math.PI*0.5);
-              localQuaternion2.setFromEuler(localEuler)
+              localEuler.y = Math.min(
+                Math.max(localEuler.y, -Math.PI * 0.5),
+                Math.PI * 0.5
+              );
+              localQuaternion2
+                .setFromEuler(localEuler)
                 .premultiply(app.quaternion);
-              
-              bone.matrixWorld.decompose(localVector, localQuaternion, localVector2);
-              localQuaternion.copy(localQuaternion2)
-                .multiply(localQuaternion3.copy(bone.originalQuaternion).invert())
+
+              bone.matrixWorld.decompose(
+                localVector,
+                localQuaternion,
+                localVector2
+              );
+              localQuaternion
+                .copy(localQuaternion2)
+                .multiply(
+                  localQuaternion3.copy(bone.originalQuaternion).invert()
+                )
                 .normalize();
-              bone.matrixWorld.compose(localVector, localQuaternion, bone.originalWorldScale);
-              bone.matrix.copy(bone.matrixWorld)
+              bone.matrixWorld.compose(
+                localVector,
+                localQuaternion,
+                bone.originalWorldScale
+              );
+              bone.matrix
+                .copy(bone.matrixWorld)
                 .premultiply(localMatrix.copy(bone.parent.matrixWorld).invert())
                 .decompose(bone.position, bone.quaternion, bone.scale);
               bone.updateMatrixWorld();
@@ -298,16 +362,16 @@ export default (app, component) => {
         }
       }
     };
-    // _updateLook();
+    _updateLook();
   });
-  
+
   useActivate(() => {
     app.wear();
   });
-  
+
   useCleanup(() => {
     _unwear();
   });
-  
+
   return app;
 };
