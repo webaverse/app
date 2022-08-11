@@ -488,13 +488,14 @@ export const _createAnimation = avatar => {
     return motionPtr;
   };
 
-  avatar.createNode = (type, name) => {
-    const nodePtr = physx.physxWorker.createNode(avatar.mixerPtr, type);
+  avatar.createNode = (type, name, index) => {
+    const nodePtr = physx.physxWorker.createNode(avatar.mixerPtr, type, index);
     if (isDebugger) {
       avatar.nodes.push({
         nodePtr,
         name,
         type,
+        index,
       });
     }
     return nodePtr;
@@ -810,7 +811,7 @@ export const _createAnimation = avatar => {
       const motion = avatar.emoteMotionPtro[k];
       physx.physxWorker.addChild(avatar.emotesNodeSolitaryPtr, motion);
     }
-    avatar.emoteNodeFuncPtr = avatar.createNode(AnimationNodeType.FUNC, 'emoteNodeFuncPtr');
+    avatar.emoteNodeFuncPtr = avatar.createNode(AnimationNodeType.FUNC, 'emoteNodeFuncPtr', 1);
     physx.physxWorker.addChild(avatar.emoteNodeFuncPtr, avatar.useCombosNodeSolitaryPtr);
     physx.physxWorker.addChild(avatar.emoteNodeFuncPtr, avatar.emotesNodeSolitaryPtr);
 
@@ -874,7 +875,7 @@ export const _createAnimation = avatar => {
       const motion = avatar.holdMotionPtro[k];
       physx.physxWorker.addChild(avatar.holdsNodeSolitaryPtr, motion);
     }
-    avatar.holdNodeFuncPtr = avatar.createNode(AnimationNodeType.FUNC, 'holdNodeFuncPtr');
+    avatar.holdNodeFuncPtr = avatar.createNode(AnimationNodeType.FUNC, 'holdNodeFuncPtr', 0);
     physx.physxWorker.addChild(avatar.holdNodeFuncPtr, avatar.activateNodeTwoPtr);
     physx.physxWorker.addChild(avatar.holdNodeFuncPtr, avatar.holdsNodeSolitaryPtr);
   };
