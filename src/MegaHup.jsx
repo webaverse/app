@@ -19,6 +19,7 @@ const MegaHup = function({
 }) {
   const [height, setHeight] = useState(window.innerHeight);
   const [width, setWidth] = useState(window.innerWidth);
+
   const canvasRef = useRef();
 
   useEffect(() => {
