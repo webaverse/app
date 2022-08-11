@@ -982,6 +982,13 @@ export default () => {
           return remotePlayer;
         }
       }
+      for (let i = 0; i < npcManager.npcs.length; i++) {
+        const npcPlayer = npcManager.npcs[i];
+        const remoteApp = npcPlayer.appManager.getAppByInstanceId(instanceId);
+        if (remoteApp) {
+          return npcPlayer;
+        }
+      }
       return null;
     }
   },
@@ -1125,7 +1132,7 @@ export default () => {
     return getHeight(obj);
   },
   useInternals() {
-    /* if (!iframeContainer) {
+    if (!iframeContainer) {
       iframeContainer = document.getElementById('iframe-container');
       
       iframeContainer.getFov = () => camera.projectionMatrix.elements[ 5 ] * (window.innerHeight / 2);
@@ -1143,7 +1150,7 @@ export default () => {
         `;
       };
       iframeContainer.updateSize();
-    } */
+    }
 
     const renderer = getRenderer();
     return {
