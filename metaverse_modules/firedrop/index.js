@@ -33,6 +33,8 @@ export default e => {
 
   let particleSystem = null;
   const particles = [];
+
+  let live = true;
   e.waitUntil((async () => {
     {
       const localParticleSystem = particleSystemManager.createParticleSystem({
@@ -41,10 +43,12 @@ export default e => {
         maxParticles: numParticles,
       });
       await localParticleSystem.waitForLoad();
-      scene.add(localParticleSystem);
-      particleSystem = localParticleSystem;
+      if (live){
+        scene.add(localParticleSystem);
+        particleSystem = localParticleSystem;
+      }
     }
-    
+
     const _addParticle = (particleName, position) => {
       const duration = 1000;
       const loop = true;
@@ -57,27 +61,32 @@ export default e => {
       particles.push(particle);
       return particle;
     };
-    const particleName = particleNames[Math.floor(rng() * particleNames.length)];
-    const dropParticle = _addParticle(particleName, app.position);
-  
-    const result = physicsManager.raycast(dropParticle.position, downQuaternion);
-    if (result) {
-      const basePoint = new THREE.Vector3().fromArray(result.point);
-      const numExtraParticles = numParticles - 1;
-      for (let i = 0; i < numExtraParticles; i++) {
-        const particleName = particleNames[Math.floor(rng() * particleNames.length)];
-        _addParticle(
-          particleName,
-          basePoint.clone()
-            .add(new THREE.Vector3(r(3), size * 0.25, r(3)))
-        );
+    if (live){
+      const particleName = particleNames[Math.floor(rng() * particleNames.length)];
+      const dropParticle = _addParticle(particleName, app.position);
+    
+      const result = physicsManager.raycast(dropParticle.position, downQuaternion);
+      if (result) {
+        const basePoint = new THREE.Vector3().fromArray(result.point);
+        const numExtraParticles = numParticles - 1;
+        for (let i = 0; i < numExtraParticles; i++) {
+          const particleName = particleNames[Math.floor(rng() * particleNames.length)];
+          _addParticle(
+            particleName,
+            basePoint.clone()
+              .add(new THREE.Vector3(r(3), size * 0.25, r(3)))
+          );
+        }
       }
     }
   })());
 
   useCleanup(() => {
-    scene.remove(particleSystem);
-    particleSystem.destroy();
+    live = false;
+    if (particleSystem){
+      scene.remove(particleSystem);
+      particleSystem.destroy();
+    }
   });
   
   return app;
