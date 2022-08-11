@@ -147,6 +147,7 @@ export default (app, component) => {
       timeDiffS,
       app.position
     );
+    
 
     // app.position.y = startFallingPosition.y + h;
     app.updateMatrixWorld();
