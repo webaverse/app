@@ -368,7 +368,7 @@ export default () => {
         const attributeSpecs = [];
         attributeSpecs.push({name: 'id', itemSize: 1});
         attributeSpecs.push({name: 'scales', itemSize: 1});
-        const geometry2 = new THREE.CylinderBufferGeometry(0.47, 0.1, 4.5, 50, 50, true);
+        const geometry2 = new THREE.CylinderBufferGeometry(0.5, 0.1, 4.5, 50, 50, true);
         const geometry = _getGeometry(geometry2, attributeSpecs, particleCount);
         const idAttribute = geometry.getAttribute('id');
         idAttribute.setX(0, 0);
@@ -743,14 +743,14 @@ export default () => {
             for (let i = 0; i < planeNumber; i++){
                 if(i === 0){
                     position[0] = localPlayer.position.x;
-                    position[1] = localPlayer.position.y - 0.95;
+                    position[1] = localPlayer.position.y - 0.9;
                     position[2] = localPlayer.position.z;
                     if (localPlayer.avatar) {
                         position[1] -= localPlayer.avatar.height;
                         position[1] += 1.18;
                     }
                     position[3] = localPlayer.position.x;
-                    position[4] = localPlayer.position.y - 2.15;
+                    position[4] = localPlayer.position.y - 2.2;
                     position[5] = localPlayer.position.z;
                     if (localPlayer.avatar) {
                         position[4] -= localPlayer.avatar.height;
@@ -770,7 +770,7 @@ export default () => {
                     position[14] = temp[2];
                 
                     position[15] = localPlayer.position.x;
-                    position[16] = localPlayer.position.y - 2.15;
+                    position[16] = localPlayer.position.y - 2.2;
                     position[17] = localPlayer.position.z;
                     if (localPlayer.avatar) {
                         position[16] -= localPlayer.avatar.height;
@@ -1021,7 +1021,8 @@ export default () => {
                     if(opacity > 0.){
                         gl_FragColor.rg -= vec2(opacity);
                     }
-                    gl_FragColor.a -= opacity * 0.5;
+                    if(opacity > 0.5)
+                        gl_FragColor.a -= opacity * 2.;
                     // gl_FragColor.a *= opacity;
                     ${THREE.ShaderChunk.logdepthbuf_fragment}
                     
@@ -1071,7 +1072,7 @@ export default () => {
                     mainBall.scale.x /= 1.03;
                     mainBall.scale.y /= 1.03;
                     mainBall.scale.z /= 1.03;
-                    mainBall.material.uniforms.opacity.value += 0.03;
+                    mainBall.material.uniforms.opacity.value += 0.02;
                     const rand = Math.random() * 0.1;
                     mainBall.material.uniforms.uSize.value = 1 + rand;
                 }
