@@ -77,6 +77,8 @@ const mapTypes = [
   'normalMap',
   'roughnessMap',
 ];
+const minQuality = 1;
+const maxQuality = 4;
 const _addAnisotropy = (o, anisotropyLevel) => {
   for (const mapType of mapTypes) {
     if (o.material[mapType]) {
@@ -535,6 +537,12 @@ export class AvatarRenderer /* extends EventTarget */ {
     this.scene.add(currentMesh);
 
     // this.dispatchEvent(updateEvent);
+  }
+  adjustQuality(delta) {
+    const newQuality = Math.min(Math.max(this.quality + delta, minQuality), maxQuality);
+    if (newQuality !== this.quality) {
+      this.setQuality(newQuality);
+    }
   }
   updateFrustumCull(matrix, frustum) {
     const currentMesh = this.#getCurrentMesh();
