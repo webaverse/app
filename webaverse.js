@@ -581,6 +581,12 @@ const _startHacks = webaverse => {
           titleCardHack: webaverse.titleCardHack,
         }
       }));
+    } else if (e.code === 'Home') { // home
+      const localPlayer = metaversefileApi.useLocalPlayer();
+      localPlayer.avatar.avatarRenderer.adjustQuality(-1);
+    } else if (e.code === 'End') { // home
+      const localPlayer = metaversefileApi.useLocalPlayer();
+      localPlayer.avatar.avatarRenderer.adjustQuality(1);
     } else {
       const match = e.code.match(/^Numpad([0-9])$/);
       if (match) {
