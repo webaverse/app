@@ -4,10 +4,12 @@
 
 // SKIP & LIMIT supported for pagination on URL params
 
+const caEthCollectionAddress = '0xc1def47cf1e15ee8c2a92f4e0e968372880d18d1';
+
 export async function loadCryptoAvatarsCharacters(
     url = undefined,
     ownership = undefined,
-    collectionAddress = '0xc1def47cf1e15ee8c2a92f4e0e968372880d18d1',
+    collectionAddress = caEthCollectionAddress,
     itemsPerPage = 5,
 ) {
     const apiUrl = !url

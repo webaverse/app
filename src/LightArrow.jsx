@@ -253,8 +253,6 @@ export const LightArrow = function({
         className,
       )}
       style={{
-        left: `75%`,
-        top: `50%`,
         opacity: visible ? 1 : 0,
       }}
       onClick={onClick}

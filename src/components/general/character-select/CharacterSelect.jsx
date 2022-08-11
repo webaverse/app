@@ -104,6 +104,11 @@ const characters = {
     ],
 };
 
+/** ---- CRYPTOAVATARS COLLECTION ADDRESSES ------ */
+const caEthCollectionAddress = '0xc1def47cf1e15ee8c2a92f4e0e968372880d18d1';
+const caPolygonCollectionAddress = '0xd047666daea0b7275e8d4f51fcff755aa05c3f0a';
+const caUserCollectionAddress = '0x28ccbe824455a3b188c155b434e4e628babb6ffa';
+
 //
 
 const Character = forwardRef(({
@@ -144,7 +149,7 @@ const Character = forwardRef(({
                 />
             ) : null}
             {character && character.canBeUsed === false ? (
-                <img className={styles.disabled} src=" ./images/disabled.png" />
+                <img className={styles.disabled} src=" ./images/disabled.svg" />
             ) : null}
             <div className={styles.wrap}>
                 <div className={styles.name}>{(character && character.name) || ''}</div>
@@ -160,8 +165,6 @@ export const CharacterSelect = () => {
     const { state, setState } = useContext( AppContext );
     const [ highlightCharacter, setHighlightCharacter ] = useState(null);
     const [ selectCharacter, setSelectCharacter ] = useState(null);
-    const [ arrowPosition, setArrowPosition ] = useState(null);
-    const [ arrowPosition2, setArrowPosition2 ] = useState(null);
     const [ npcPlayer, setNpcPlayer ] = useState(null);
     const [ abortFn, setAbortFn ] = useState(null);
     const [ enabled, setEnabled ] = useState(false);
@@ -233,9 +236,7 @@ export const CharacterSelect = () => {
 
     const [caPagination, setCaPagination] = useState({});
     const [caItemsPerPage, setCaItemsPerPage] = useState(5);
-    const [caCollection, setCaCollection] = useState(
-        '0xc1def47cf1e15ee8c2a92f4e0e968372880d18d1'
-    );
+    const [caCollection, setCaCollection] = useState(caEthCollectionAddress);
     const [caOwnership, setCaOwnership] = useState(null);
     const [scaleViewValue, setScaleViewValue] = useState(1);
 
@@ -495,13 +496,13 @@ export const CharacterSelect = () => {
                         <>Collection:</>
                         <div className={styles.select}>
                             <select onChange={caSelectCollection}>
-                            <option value="0xc1def47cf1e15ee8c2a92f4e0e968372880d18d1">
+                            <option value={caEthCollectionAddress}>
                                 CryptoAvatars ETH
                             </option>
-                            <option value="0xd047666daea0b7275e8d4f51fcff755aa05c3f0a">
+                            <option value={caPolygonCollectionAddress}>
                                 CryptoAvatars POLYGON
                             </option>
-                            <option value="0x28ccbe824455a3b188c155b434e4e628babb6ffa">
+                            <option value={caUserCollectionAddress}>
                                 The User Collection
                             </option>
                             </select>
