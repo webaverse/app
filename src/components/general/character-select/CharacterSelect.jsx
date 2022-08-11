@@ -17,7 +17,7 @@ import { VoiceEndpointVoicer, getVoiceEndpointUrl } from '../../../../voice-outp
 import * as voices from '../../../../voices.js';
 
 //
-import { loadCryptoAvatarsCharacters } from './cryptoavatars-loader.js';
+import { getCryptoAvatars } from '../../../../cryptoavatars-util';
 import { getMainnetAddress } from '../../../../blockchain.js';
 
 import chevronIcon from '../../../../public/images/chevron2.svg';
@@ -388,19 +388,11 @@ export const CharacterSelect = () => {
     };
 
     /** ------------------------- CRYPTOAVATARS IMPLEMENTATION ------------------------ */
-    const getCryptoAvatars = async (
-        url = undefined,
-        itemsPerPage = caItemsPerPage
-    ) => {
-            const caResponse = await loadCryptoAvatarsCharacters(
-            url,
-            caOwnership,
-            caCollection,
-            itemsPerPage
-        );
-        setCaPagination(caResponse.pagination);
-        setCryptoAvatars(caResponse.avatars);
-        return caResponse.avatars;
+    const caLoadAvatars = (url) => {
+        getCryptoAvatars(url, caOwnership, caCollection, caItemsPerPage).then((res) => {
+            setCaPagination(res?.pagination);
+            setCryptoAvatars(res?.avatars);
+        });
     };
 
     const caSelectCollection = (event) => {
@@ -412,8 +404,9 @@ export const CharacterSelect = () => {
     };
 
     const caNavigation = (event) => {
-        if (event.target.value === 'next') getCryptoAvatars(caPagination.next);
-        else getCryptoAvatars(caPagination.prev);
+        console.log(event.target.value);
+        if (event.target.value === 'next') caLoadAvatars(caPagination.next);
+        else caLoadAvatars(caPagination.prev);
     };
 
     const caAvatarsFilter = async (event) => {
@@ -432,7 +425,7 @@ export const CharacterSelect = () => {
     };
 
     useEffect(() => {
-        getCryptoAvatars();
+        caLoadAvatars();
     }, [caCollection, caOwnership, caItemsPerPage]);
     /** ------------------------------------------------------------------------------- */
     const chevronImgSrc = `./images/chevron.svg`;

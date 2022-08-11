@@ -6,7 +6,7 @@
 
 const caEthCollectionAddress = '0xc1def47cf1e15ee8c2a92f4e0e968372880d18d1';
 
-export async function loadCryptoAvatarsCharacters(
+async function loadCryptoAvatarsCharacters(
     url = undefined,
     ownership = undefined,
     collectionAddress = caEthCollectionAddress,
@@ -15,7 +15,7 @@ export async function loadCryptoAvatarsCharacters(
     const apiUrl = !url
         ? 'https://api.cryptoavatars.io/v1/nfts/avatars/list?skip=0&limit=' + itemsPerPage
         : url;
-
+        
     var filter = {
         collectionAddress,
         owner: ownership,
@@ -78,6 +78,21 @@ export async function loadCryptoAvatarsCharacters(
         console.error('Error fetching data form CryptoAvatars', err);
     }
 }
+
+export async function getCryptoAvatars(
+    url = undefined,
+    ownership,
+    collection,
+    itemsPerPage
+  ) {
+        const caResponse = await loadCryptoAvatarsCharacters(
+        url,
+        ownership,
+        collection,
+        itemsPerPage
+    );
+    return caResponse;
+  };
 
 /*
 
