@@ -81,12 +81,16 @@ function getComposer() {
   return composer;
 }
 
-const scene = new THREE.Object3D();
+const scene = new THREE.Scene();
 scene.name = 'scene';
-const sceneHighPriority = new THREE.Object3D();
+const sceneHighPriority = new THREE.Scene();
 sceneHighPriority.name = 'highPriorioty';
-const sceneLowPriority = new THREE.Object3D();
+const sceneLowPriority = new THREE.Scene();
 sceneLowPriority.name = 'lowPriorioty';
+const sceneLowerPriority = new THREE.Scene();
+sceneLowerPriority.name = 'lowerPriorioty';
+const sceneLowestPriority = new THREE.Scene();
+sceneLowestPriority.name = 'lowestPriorioty';
 const rootScene = new THREE.Scene();
 rootScene.name = 'root';
 rootScene.autoUpdate = false;
@@ -97,6 +101,8 @@ rootScene.autoUpdate = false;
 rootScene.add(sceneHighPriority);
 rootScene.add(scene);
 rootScene.add(sceneLowPriority);
+rootScene.add(sceneLowerPriority);
+rootScene.add(sceneLowestPriority);
 
 // const orthographicScene = new THREE.Scene();
 // const avatarScene = new THREE.Scene();
@@ -223,6 +229,8 @@ export {
   /*orbitControls, renderer2,*/
   sceneHighPriority,
   sceneLowPriority,
+  sceneLowerPriority,
+  sceneLowestPriority,
   // iframeContainer,
   // iframeContainer2,
   // appManager,

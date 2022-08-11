@@ -9,21 +9,23 @@ import loadoutManager from '../../../../loadout-manager.js';
 import {registerIoEventHandler, unregisterIoEventHandler} from '../../general/io-handler/IoHandler.jsx';
 import {hotbarSize, numLoadoutSlots} from '../../../../constants.js';
 
-export const Hotbar = () => {
+export const Hotbar = ({ className }) => {
     const { state, setState } = useContext( AppContext );
     const open =  state.openedPanel === 'CharacterPanel';
 
     useEffect(() => {
         if (open) {
             const keydown = e => {
-                switch (e.which) {
-                    case 82: { // R
-                        game.dropSelectedApp();
-                        return false;
-                    }
-                    case 46: { // delete
-                        game.deleteSelectedApp();
-                        return false;
+                if (!e.ctrlKey) {
+                    switch (e.which) {
+                        case 82: { // R
+                            game.dropSelectedApp();
+                            return false;
+                        }
+                        case 46: { // delete
+                            game.deleteSelectedApp();
+                            return false;
+                        }
                     }
                 }
             };
@@ -58,7 +60,7 @@ export const Hotbar = () => {
 
     return (
         <div
-            className={ classnames(styles.hotbar, open ? styles.open : null) }
+            className={ classnames( className, styles.hotbar, open ? styles.open : null ) }
             onClick={onTopClick}
         >
 

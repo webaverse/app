@@ -11,7 +11,7 @@ import styles from './settings.module.css';
 
 //
 
-const ApiTypes = [ 'NONE', 'AI21', 'GOOSEAI', 'OPENAI' ];
+const ApiTypes = [ 'NONE', 'AI21', 'GOOSEAI', 'OPENAI', 'CONVAI' ];
 const DefaultSettings = {
     apiType: ApiTypes[0],
     apiKey: '',
@@ -64,10 +64,11 @@ export const TabAi = ({ active }) => {
             case 'AI21': return `https://ai.webaverse.com/ai21/v1/engines/j1-large/completions`;
             case 'GOOSEAI': return `https://ai.webaverse.com/gooseai/v1/engines/gpt-neo-20b/completions`;
             case 'OPENAI': return `https://api.openai.com/v1/engines/text-davinci-002/completions`;
+            case 'CONVAI': return `https://api.convai.com/webaverse`
             default: return null;
         }
     };
-    const _apiTypeNeedsApiKey = apiType => apiType === 'OPENAI';
+    const _apiTypeNeedsApiKey = apiType => apiType === 'OPENAI' || apiType === 'CONVAI';
 
     function updateLoreEndpoint(apiType) {
         const url = _getApiUrl(apiType);
@@ -86,7 +87,7 @@ export const TabAi = ({ active }) => {
 
         const settings = {
             apiType:        apiType,
-            apiKey:         '',
+            apiKey:         apiKey,
         };
 
         if (_apiTypeNeedsApiKey(apiType) && apiKeyEnabled && !apiKey) {
@@ -137,12 +138,13 @@ export const TabAi = ({ active }) => {
         settings = settings ?? DefaultSettings;
 
         const apiType = settings.apiType ?? DefaultSettings.apiType;
+        const apiKey = settings.apiKey ?? '';
 
         updateLoreEndpoint(apiType);
 
         // set react state
         setApiType( apiType );
-        setApiKey( '' );
+        setApiKey( apiKey );
 
         // console.log('set api', settings.apiType ?? DefaultSettings.apiType, keyString ?? DefaultSettings.apiKey);
 
@@ -153,7 +155,6 @@ export const TabAi = ({ active }) => {
     function applySettings () {
 
         saveSettings();
-        setApiKey( '' );
 
         setChangesNotSaved( false );
 

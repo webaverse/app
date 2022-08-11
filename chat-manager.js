@@ -30,34 +30,27 @@ class ChatManager extends EventTarget {
     this.voiceRunning = false;
     this.voiceQueue = [];
   }
-  addPlayerMessage(player, message = '', {timeout = 3000} = {}) {
-    const chatId = makeId(5);
-    const match = _getEmotion(message);
+  addPlayerMessage(player, m, {timeout = 3000} = {}) {
+    const match = _getEmotion(m.message);
     const emotion = match ? match.emotion : null;
     const value = emotion ? 1 : 0;
-    const m = {
-      type: 'chat',
-      chatId,
-      playerName: player.name,
-      message,
-    };
     player.addAction(m);
     
-    const _addEmotion = () => {
+    const _addFacePose = () => {
       if (emotion) {
         player.addAction({
-          type: 'emote',
+          type: 'facepose',
           emotion,
           value: 1,
         });
       }
     };
-    _addEmotion();
-    const _removeEmotion = () => {
+    _addFacePose();
+    const _removeFacePose = () => {
       if (emotion) {
-        const emoteActionIndex = player.findActionIndex(action => action.type === 'emote' && action.value === value);
-        if (emoteActionIndex !== -1) {
-          player.removeActionIndex(emoteActionIndex);
+        const facePoseActionIndex = player.findActionIndex(action => action.type === 'facepose' && action.value === value);
+        if (facePoseActionIndex !== -1) {
+          player.removeActionIndex(facePoseActionIndex);
         }
       }
     };
@@ -72,7 +65,7 @@ class ChatManager extends EventTarget {
     const localTimeout = setTimeout(() => {
       this.removePlayerMessage(player, m);
       
-      _removeEmotion();
+      _removeFacePose();
     }, timeout);
     m.cleanup = () => {
       clearTimeout(localTimeout);
@@ -81,8 +74,17 @@ class ChatManager extends EventTarget {
     return m;
   }
   addMessage(message, opts) {
+    const chatId = makeId(5);
     const localPlayer = metaversefileApi.useLocalPlayer();
-    return this.addPlayerMessage(localPlayer, message, opts);
+    const m = {
+      type: 'chat',
+      chatId,
+      playerId: localPlayer.playerId,
+      playerName: localPlayer.name,
+      message,
+    };
+
+    return this.addPlayerMessage(localPlayer, m, opts);
   }
   removePlayerMessage(player, m) {
     m.cleanup();

@@ -1,6 +1,6 @@
 import * as THREE from 'three';
 import {
-  planeGeometry,
+  fullscreenGeometry,
   gradients,
   fullscreenVertexShader,
 } from './common.js';
@@ -229,7 +229,7 @@ class LightningBgFxMesh extends THREE.Mesh {
     material.uniforms.iChannel0.value.wrapT = THREE.RepeatWrapping;
     material.uniforms.iChannel1.value.wrapS = THREE.RepeatWrapping;
     material.uniforms.iChannel1.value.wrapT = THREE.RepeatWrapping;
-    super(planeGeometry, material);
+    super(fullscreenGeometry, material);
     
     this.frustumCulled = false;
   }

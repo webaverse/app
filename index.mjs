@@ -7,6 +7,9 @@ import express from 'express';
 import vite from 'vite';
 import wsrtc from 'wsrtc/wsrtc-server.mjs';
 
+const SERVER_ADDR = '0.0.0.0';
+const SERVER_NAME = 'local.webaverse.com';
+
 Error.stackTraceLimit = 300;
 const cwd = process.cwd();
 
@@ -36,7 +39,7 @@ function makeId(length) {
   return result;
 }
 
-const _proxyUrl = (req, res, u) => {
+/* const _proxyUrl = (req, res, u) => {
   const proxyReq = /https/.test(u) ? https.request(u) : http.request(u);
   proxyReq.on('response', proxyRes => {
     for (const header in proxyRes.headers) {
@@ -51,7 +54,7 @@ const _proxyUrl = (req, res, u) => {
     res.end();
   });
   proxyReq.end();
-};
+}; */
 
 (async () => {
   const app = express();
@@ -128,12 +131,12 @@ const _proxyUrl = (req, res, u) => {
   app.use(viteServer.middlewares);
   
   await new Promise((accept, reject) => {
-    httpServer.listen(port, '0.0.0.0', () => {
+    httpServer.listen(port, SERVER_ADDR, () => {
       accept();
     });
     httpServer.on('error', reject);
   });
-  console.log(`  > Local: http${isHttps ? 's' : ''}://localhost:${port}/`);
+  console.log(`  > Local: http${isHttps ? 's' : ''}://${SERVER_NAME}:${port}/`);
   
   const wsServer = (() => {
     if (isHttps) {
@@ -153,6 +156,8 @@ const _proxyUrl = (req, res, u) => {
     };
     for (const object of objects) {
       let {start_url, type, content, position = [0, 0, 0], quaternion = [0, 0, 0, 1], scale = [1, 1, 1]} = object;
+
+      const transform = Float32Array.from([...position, ...quaternion, ...scale]);
       const instanceId = makeId(5);
       if (!start_url && type && content) {
         start_url = `data:${type},${encodeURI(JSON.stringify(content))}`;
@@ -160,27 +165,23 @@ const _proxyUrl = (req, res, u) => {
       const appObject = {
         instanceId,
         contentId: start_url,
-        position,
-        quaternion,
-        scale,
+        transform,
         components: JSON.stringify([]),
       };
       result[appsMapName].push(appObject);
     }
     return result;
   })();
-  const initialRoomNames = [
-    'Erithor',
-  ];
+  const initialRoomNames = [];
   wsrtc.bindServer(wsServer, {
     initialRoomState,
     initialRoomNames,
   });
   await new Promise((accept, reject) => {
-    wsServer.listen(wsPort, '0.0.0.0', () => {
+    wsServer.listen(wsPort, SERVER_ADDR, () => {
       accept();
     });
     wsServer.on('error', reject);
   });
-  console.log(`  > World: ws${isHttps ? 's' : ''}://localhost:${wsPort}/`);
+  console.log(`  > World: ws${isHttps ? 's' : ''}://${SERVER_NAME}:${wsPort}/`);
 })();

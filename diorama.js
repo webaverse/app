@@ -5,7 +5,7 @@ import * as BufferGeometryUtils from 'three/examples/jsm/utils/BufferGeometryUti
 // import {fitCameraToBoundingBox} from './util.js';
 import {Text} from 'troika-three-text';
 // import {defaultDioramaSize} from './constants.js';
-import {planeGeometry, gradients} from './background-fx/common.js';
+import {fullscreenGeometry, gradients} from './background-fx/common.js';
 import {OutlineBgFxMesh} from './background-fx/OutlineBgFx.js';
 import {NoiseBgFxMesh} from './background-fx/NoiseBgFx.js';
 import {PoisonBgFxMesh} from './background-fx/PoisonBgFx.js';
@@ -15,12 +15,13 @@ import {DotsBgFxMesh} from './background-fx/DotsBgFx.js';
 import {LightningBgFxMesh} from './background-fx/LightningBgFx.js';
 import {RadialBgFxMesh} from './background-fx/RadialBgFx.js';
 import {GrassBgFxMesh} from './background-fx/GrassBgFx.js';
+import {playersManager} from './players-manager.js';
 
 const localVector = new THREE.Vector3();
 const localVector2 = new THREE.Vector3();
 const localVector3 = new THREE.Vector3();
 const localVector2D = new THREE.Vector2();
-const localVector2D2 = new THREE.Vector2();
+// const localVector2D2 = new THREE.Vector2();
 const localVector4D = new THREE.Vector4();
 const localQuaternion = new THREE.Quaternion();
 const localMatrix = new THREE.Matrix4();
@@ -280,7 +281,7 @@ const labelMesh = (() => {
     }
     g.setAttribute('color', new THREE.BufferAttribute(colors, 3));
   };
-  const g1 = planeGeometry.clone()
+  const g1 = fullscreenGeometry.clone()
     .applyMatrix4(
       new THREE.Matrix4()
         .makeShear(0, 0, sk1, 0, 0, 0)
@@ -294,7 +295,7 @@ const labelMesh = (() => {
         .makeTranslation(p1.x, p1.y, p1.z)
     );
   _decorateGeometry(g1, new THREE.Color(0xFFFFFF), speed1);
-  const g2 = planeGeometry.clone()
+  const g2 = fullscreenGeometry.clone()
     .applyMatrix4(
       new THREE.Matrix4()
         .makeShear(0, 0, sk2, 0, 0, 0)
@@ -496,6 +497,7 @@ const createPlayerDiorama = ({
   glyphBackground = false,
   dotsBackground = false,
   autoCamera = true,
+  detached = false,
 } = {}) => {
   // _ensureSideSceneCompiled();
 
@@ -681,7 +683,7 @@ const createPlayerDiorama = ({
 
           sideCamera.position.copy(targetPosition)
             .add(
-              localVector2.copy(cameraOffset)
+              localVector2.set(cameraOffset.x, 0, cameraOffset.z)
                 .applyQuaternion(targetQuaternion)
             );
           sideCamera.quaternion.setFromRotationMatrix(
@@ -690,6 +692,10 @@ const createPlayerDiorama = ({
               targetPosition,
               localVector3.set(0, 1, 0)
             )
+          );
+          sideCamera.position.add(
+            localVector2.set(0, cameraOffset.y, 0)
+              .applyQuaternion(targetQuaternion)
           );
           sideCamera.updateMatrixWorld();
         }
@@ -844,9 +850,10 @@ const createPlayerDiorama = ({
       renderer.setClearColor(oldClearColor, oldClearAlpha);
     },
     destroy() {
-      dioramas.splice(dioramas.indexOf(diorama), 1);
-
-      // postProcessing.removeEventListener('update', recompile);
+      const index = dioramas.indexOf(diorama);
+      if (index !== -1) {
+        dioramas.splice(index, 1);
+      }
     },
   };
 
@@ -869,7 +876,9 @@ const createPlayerDiorama = ({
     player.addEventListener('avatarchange', avatarchange);
   } */
 
-  dioramas.push(diorama);
+  if (!detached) {
+    dioramas.push(diorama);
+  }
   return diorama;
 };
 

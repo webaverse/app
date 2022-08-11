@@ -1,0 +1,59 @@
+.buildVersions {
+    display: flex;
+    flex-direction: column;
+}
+
+.buildVersion {
+    display: flex;
+    position: fixed;
+    bottom: 30px;
+    right: 0;
+    width: 325px;
+    text-align: center;
+    flex-direction: column;
+
+    /* make the background image completely be contained inside the div */
+    background-size: 100% 100%;
+    background-repeat: no-repeat;
+    background-position: center;
+    background-origin: content-box;
+}
+
+.buildVersion.clear {
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+}
+
+/*
+animate background position from left to right, 3s, looping
+*/
+@keyframes animate-build-version {
+    0% {
+        background-position-x: -125px;
+    }
+    100% {
+        background-position-x: 125px;
+    }
+}
+/* .buildVersion.animate {
+    -webkit-animation: animate-build-version 1s infinite;
+    animation: animate-build-version 1s infinite;
+} */
+/* same as the above, except cubic-bezier(0, 1, 0, 1) */
+.buildVersion.animate {
+    -webkit-animation: animate-build-version 1s cubic-bezier(0, 1, 1, 0) infinite;
+    animation: animate-build-version 1s cubic-bezier(0, 1, 1, 0) infinite;
+}
+
+.buildVersion .text,
+.buildVersion .subtext
+{
+    font-family: WinchesterCaps;
+    line-height: 1;
+}
+.buildVersion .text {
+    font-size: 44px;
+}
+.buildVersion .subtext {
+    font-size: 22px;
+}

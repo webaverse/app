@@ -1,7 +1,8 @@
-import {Vector3, Quaternion, AnimationClip} from 'three';
+import {Vector3, Quaternion, AnimationClip, MathUtils} from 'three';
 import metaversefile from 'metaversefile';
-import {VRMSpringBoneImporter, VRMLookAtApplyer, VRMCurveMapper} from '@pixiv/three-vrm/lib/three-vrm.module.js';
-import easing from '../easing.js';
+import {/* VRMSpringBoneImporter, VRMLookAtApplyer, */ VRMCurveMapper} from '@pixiv/three-vrm/lib/three-vrm.module.js';
+// import easing from '../easing.js';
+import {easing} from '../math-utils.js';
 import loaders from '../loaders.js';
 import {zbdecode} from 'zjs/encoding.mjs';
 
@@ -26,9 +27,9 @@ import {
 } from '../util.js';
 
 import {
-  idleFactorSpeed,
-  walkFactorSpeed,
-  runFactorSpeed,
+  // idleFactorSpeed,
+  // walkFactorSpeed,
+  // runFactorSpeed,
   narutoRunTimeFactor,
 } from './constants.js';
 
@@ -44,6 +45,7 @@ import {
 const localVector = new Vector3();
 const localVector2 = new Vector3();
 const localVector3 = new Vector3();
+const localVector4 = new Vector3();
 
 const localQuaternion = new Quaternion();
 const localQuaternion2 = new Quaternion();
@@ -52,59 +54,45 @@ const localQuaternion4 = new Quaternion();
 const localQuaternion5 = new Quaternion();
 const localQuaternion6 = new Quaternion();
 
+const identityQuaternion = new Quaternion();
+
 let animations;
 let animationStepIndices;
-let animationsBaseModel;
+// let animationsBaseModel;
 let jumpAnimation;
+let doubleJumpAnimation;
+let fallLoopAnimation;
 let floatAnimation;
 let useAnimations;
 let aimAnimations;
 let sitAnimations;
 let danceAnimations;
-let throwAnimations;
+let emoteAnimations;
+let pickUpAnimations;
+// let throwAnimations;
 // let crouchAnimations;
 let activateAnimations;
 let narutoRunAnimations;
 // let jumpAnimationSegments;
 // let chargeJump;
 // let standCharge;
-let fallLoop;
+// let fallLoop;
 // let swordSideSlash;
 // let swordTopDownSlash;
 let hurtAnimations;
+let holdAnimations;
 
 const defaultSitAnimation = 'chair';
-const defaultUseAnimation = 'combo';
+// const defaultUseAnimation = 'combo';
 const defaultDanceAnimation = 'dansu';
-const defaultThrowAnimation = 'throw';
+const defaultEmoteAnimation = 'angry';
+// const defaultThrowAnimation = 'throw';
 // const defaultCrouchAnimation = 'crouch';
-const defaultActivateAnimation = 'activate';
+// const defaultActivateAnimation = 'activate';
 const defaultNarutoRunAnimation = 'narutoRun';
 // const defaultchargeJumpAnimation = 'chargeJump';
 // const defaultStandChargeAnimation = 'standCharge';
 // const defaultHurtAnimation = 'pain_back';
-
-const angles = {
-  horizontalWalkAnimationAngles: null,
-  horizontalWalkAnimationAnglesMirror: null,
-  horizontalRunAnimationAngles: null,
-  horizontalRunAnimationAnglesMirror: null,
-};
-const anglesOther = {
-  horizontalWalkAnimationAngles: null,
-  horizontalWalkAnimationAnglesMirror: null,
-  horizontalRunAnimationAngles: null,
-  horizontalRunAnimationAnglesMirror: null,
-};
-
-let idleAnimation;
-let idleAnimationOther;
-
-let angleFactor = 0;
-let mirrorFactor;
-
-let activeAvatar;
-let activeMoveFactors;
 
 const animationsAngleArrays = {
   walk: [
@@ -216,17 +204,17 @@ async function loadSkeleton() {
 
   let o;
   try {
-    o = await new Promise((accept, reject) => {
+    o = await new Promise((resolve, reject) => {
       const {gltfLoader} = loaders;
       gltfLoader.load(srcUrl, () => {
-        accept();
+        resolve();
       }, function onprogress() { }, reject);
     });
   } catch (err) {
     console.warn(err);
   }
   if (o) {
-    animationsBaseModel = o;
+    // animationsBaseModel = o;
   }
 }
 
@@ -319,6 +307,8 @@ export const loadPromise = (async () => {
   // swordTopDownSlash = animations.find(a => a.isSwordTopDownSlash)
 
   jumpAnimation = animations.find(a => a.isJump);
+  doubleJumpAnimation = animations.find(a => a.isDoubleJump);
+  fallLoopAnimation = animations.index['falling.fbx'];
   // sittingAnimation = animations.find(a => a.isSitting);
   floatAnimation = animations.find(a => a.isFloat);
   // rifleAnimation = animations.find(a => a.isRifle);
@@ -341,6 +331,7 @@ export const loadPromise = (async () => {
     eat: animations.find(a => a.isEating),
     drink: animations.find(a => a.isDrinking),
     throw: animations.find(a => a.isThrow),
+    pickUpThrow: animations.find(a => a.isPickUpThrow),
     bowDraw: animations.find(a => a.isBowDraw),
     bowIdle: animations.find(a => a.isBowIdle),
     bowLoose: animations.find(a => a.isBowLoose),
@@ -354,9 +345,37 @@ export const loadPromise = (async () => {
     dansu: animations.find(a => a.isDancing),
     powerup: animations.find(a => a.isPowerUp),
   };
-  throwAnimations = {
-    throw: animations.find(a => a.isThrow),
+  emoteAnimations = {
+    alert: animations.find(a => a.isAlert),
+    alertSoft: animations.find(a => a.isAlertSoft),
+    angry: animations.find(a => a.isAngry),
+    angrySoft: animations.find(a => a.isAngrySoft),
+    embarrassed: animations.find(a => a.isEmbarrassed),
+    embarrassedSoft: animations.find(a => a.isEmbarrassedSoft),
+    headNod: animations.find(a => a.isHeadNod),
+    headNodSoft: animations.find(a => a.isHeadNodSingle),
+    headShake: animations.find(a => a.isHeadShake),
+    headShakeSoft: animations.find(a => a.isHeadShakeSingle),
+    sad: animations.find(a => a.isSad),
+    sadSoft: animations.find(a => a.isSadSoft),
+    surprise: animations.find(a => a.isSurprise),
+    surpriseSoft: animations.find(a => a.isSurpriseSoft),
+    victory: animations.find(a => a.isVictory),
+    victorySoft: animations.find(a => a.isVictorySoft),
   };
+  pickUpAnimations = {
+    pickUp: animations.find(a => a.isPickUp),
+    pickUpIdle: animations.find(a => a.isPickUpIdle),
+    pickUpThrow: animations.find(a => a.isPickUpThrow),
+    putDown: animations.find(a => a.isPutDown),
+    pickUpZelda: animations.find(a => a.isPickUpZelda),
+    pickUpIdleZelda: animations.find(a => a.isPickUpIdleZelda),
+    putDownZelda: animations.find(a => a.isPutDownZelda),
+  };
+  /* throwAnimations = {
+    throw: animations.find(a => a.isThrow),
+    pickUpThrow: animations.find(a => a.isPickUpThrow),
+  }; */
   /* crouchAnimations = {
       crouch: animations.find(a => a.isCrouch),
     }; */
@@ -366,6 +385,7 @@ export const loadPromise = (async () => {
     grab_up: {animation: animations.index['grab_up.fbx'], speedFactor: 1.2},
     grab_left: {animation: animations.index['grab_left.fbx'], speedFactor: 1.2},
     grab_right: {animation: animations.index['grab_right.fbx'], speedFactor: 1.2},
+    pick_up: {animation: animations.index['pick_up.fbx'], speedFactor: 1},
   };
   narutoRunAnimations = {
     narutoRun: animations.find(a => a.isNarutoRun),
@@ -373,6 +393,9 @@ export const loadPromise = (async () => {
   hurtAnimations = {
     pain_back: animations.index['pain_back.fbx'],
     pain_arch: animations.index['pain_arch.fbx'],
+  };
+  holdAnimations = {
+    pick_up_idle: animations.index['pick_up_idle.fbx'],
   };
   {
     const down10QuaternionArray = new Quaternion()
@@ -389,325 +412,224 @@ export const loadPromise = (async () => {
   console.log('load avatar animations error', err);
 });
 
-const _getMirrorAnimationAngles = (animationAngles, key) => {
-  const animations = animationAngles.map(({animation}) => animation);
-  const animationAngleArrayMirror = animationsAngleArraysMirror[key];
+export const _applyAnimation = (avatar, now) => {
+  // const runSpeed = 0.5;
+  const angle = avatar.getAngle();
+  const timeSeconds = now / 1000;
+  const landTimeSeconds = timeSeconds - avatar.lastLandStartTime / 1000 + 0.8; // in order to align landing 2.fbx with walk/run
+  const {idleWalkFactor, walkRunFactor, crouchFactor} = avatar;
 
-  const backwardIndex = animations.findIndex(a => a.isBackward);
-  if (backwardIndex !== -1) {
-    // const backwardAnimationAngle = animationAngles[backwardIndex];
-    // const angleToBackwardAnimation = Math.abs(angleDifference(angle, backwardAnimationAngle.angle));
-    // if (angleToBackwardAnimation < Math.PI * 0.3) {
-    const sideIndex = backwardIndex === 0 ? 1 : 0;
-    const wrongAngle = animationAngles[sideIndex].angle;
-    const newAnimationAngle = animationAngleArrayMirror.find(animationAngle => animationAngle.matchAngle === wrongAngle);
-    animationAngles = animationAngles.slice();
-    animationAngles[sideIndex] = newAnimationAngle;
-    // animations[sideIndex] = newAnimationAngle.animation;
+  /* const _getAnimationKey = crouchState => {
+    if (crouchState) {
+      return 'crouch';
+    } else {
+      if (currentSpeed >= runSpeed) {
+        return 'run';
+      } else {
+        return 'walk';
+      }
+    }
+  }; */
+  const _getMirrorAnimationAngles = (animationAngles, key) => {
+    const animations = animationAngles.map(({animation}) => animation);
+    const animationAngleArrayMirror = animationsAngleArraysMirror[key];
+
+    const backwardIndex = animations.findIndex(a => a.isBackward);
+    if (backwardIndex !== -1) {
+      // const backwardAnimationAngle = animationAngles[backwardIndex];
+      // const angleToBackwardAnimation = Math.abs(angleDifference(angle, backwardAnimationAngle.angle));
+      // if (angleToBackwardAnimation < Math.PI * 0.3) {
+      const sideIndex = backwardIndex === 0 ? 1 : 0;
+      const wrongAngle = animationAngles[sideIndex].angle;
+      const newAnimationAngle = animationAngleArrayMirror.find(animationAngle => animationAngle.matchAngle === wrongAngle);
+      animationAngles = animationAngles.slice();
+      animationAngles[sideIndex] = newAnimationAngle;
+      // animations[sideIndex] = newAnimationAngle.animation;
+      // return {
+      // return animationAngles;
+      // angleToBackwardAnimation,
+      // };
+      // }
+    }
     // return {
-    // return animationAngles;
-    // angleToBackwardAnimation,
-    // };
-    // }
-  }
-  // return {
-  return animationAngles;
-  // angleToBackwardAnimation: Infinity,
-  // ;
-};
+    return animationAngles;
+    // angleToBackwardAnimation: Infinity,
+    // ;
+  };
+  const _getAngleToBackwardAnimation = animationAngles => {
+    const animations = animationAngles.map(({animation}) => animation);
 
-const _getAngleToBackwardAnimation = (angle, animationAngles) => {
-  const animations = animationAngles.map(({animation}) => animation);
-
-  const backwardIndex = animations.findIndex(a => a.isBackward);
-  if (backwardIndex !== -1) {
-    const backwardAnimationAngle = animationAngles[backwardIndex];
-    const angleToBackwardAnimation = Math.abs(angleDifference(angle, backwardAnimationAngle.angle));
-    return angleToBackwardAnimation;
-  } else {
-    return Infinity;
-  }
-};
-
-const _getIdleAnimation = key => animationsIdleArrays[key].animation;
-/* const _getIdleAnimation = key => {
+    const backwardIndex = animations.findIndex(a => a.isBackward);
+    if (backwardIndex !== -1) {
+      const backwardAnimationAngle = animationAngles[backwardIndex];
+      const angleToBackwardAnimation = Math.abs(angleDifference(angle, backwardAnimationAngle.angle));
+      return angleToBackwardAnimation;
+    } else {
+      return Infinity;
+    }
+  };
+  const _getIdleAnimation = key => animationsIdleArrays[key].animation;
+  /* const _getIdleAnimation = key => {
     if (key === 'walk' || key === 'run') {
       const name = animationsIdleArrays[key].name;
-      return activeAvatar.retargetedAnimations.find(a => a.name === name);
+      return avatar.retargetedAnimations.find(a => a.name === name);
     } else {
       return animationsIdleArrays[key].animation;
     }
   }; */
-
-const _getHorizontalBlend = (k, lerpFn, isPosition, target, now) => {
-  _get7wayBlend(
-    activeAvatar,
-    angles,
-    idleAnimation,
-    activeMoveFactors,
-    k,
-    lerpFn,
-    isPosition,
-    localQuaternion,
-    now,
-  );
-  _get7wayBlend(
-    activeAvatar,
-    anglesOther,
-    idleAnimationOther,
-    activeMoveFactors,
-    k,
-    lerpFn,
-    isPosition,
-    localQuaternion2,
-    now,
-  );
-
-  // _get5wayBlend(keyAnimationAnglesOther, keyAnimationAnglesOtherMirror, idleAnimationOther, mirrorFactor, angleFactor, speedFactor, k, lerpFn, localQuaternion2);
-
-  lerpFn
-    .call(
-      target.copy(localQuaternion),
-      localQuaternion2,
-      activeMoveFactors.crouchFactor,
-    );
-};
-
-const _get7wayBlend = (
-  avatar,
-  angles,
-  idleAnimation,
-  // mirrorFactor,
-  // angleFactor,
-  moveFactors,
-  k,
-  lerpFn,
-  isPosition,
-  target,
-  now,
-) => {
-  const timeSeconds = now / 1000;
-
-  const {
+  const _get7wayBlend = (
     horizontalWalkAnimationAngles,
     horizontalWalkAnimationAnglesMirror,
     horizontalRunAnimationAngles,
     horizontalRunAnimationAnglesMirror,
-  } = angles;
-  const {idleWalkFactor, walkRunFactor} = moveFactors;
-  // WALK
-  // normal horizontal walk blend
-  {
-    const t1 = timeSeconds % horizontalWalkAnimationAngles[0].animation.duration;
-    const src1 = horizontalWalkAnimationAngles[0].animation.interpolants[k];
-    const v1 = src1.evaluate(t1);
+    idleAnimation,
+    // mirrorFactor,
+    // angleFactor,
+    // walkRunFactor,
+    // idleWalkFactor,
+    k,
+    lerpFn,
+    isPosition,
+    target,
+  ) => {
+    // WALK
+    // normal horizontal walk blend
+    {
+      const t1 = landTimeSeconds % horizontalWalkAnimationAngles[0].animation.duration;
+      const src1 = horizontalWalkAnimationAngles[0].animation.interpolants[k];
+      const v1 = src1.evaluate(t1);
 
-    const t2 = timeSeconds % horizontalWalkAnimationAngles[1].animation.duration;
-    const src2 = horizontalWalkAnimationAngles[1].animation.interpolants[k];
-    const v2 = src2.evaluate(t2);
+      const t2 = landTimeSeconds % horizontalWalkAnimationAngles[1].animation.duration;
+      const src2 = horizontalWalkAnimationAngles[1].animation.interpolants[k];
+      const v2 = src2.evaluate(t2);
 
-    lerpFn
-      .call(
-        localQuaternion3.fromArray(v2),
-        localQuaternion4.fromArray(v1),
-        angleFactor,
-      );
-  }
-
-  // mirror horizontal blend (backwards walk)
-  {
-    const t1 = timeSeconds % horizontalWalkAnimationAnglesMirror[0].animation.duration;
-    const src1 = horizontalWalkAnimationAnglesMirror[0].animation.interpolants[k];
-    const v1 = src1.evaluate(t1);
-
-    const t2 = timeSeconds % horizontalWalkAnimationAnglesMirror[1].animation.duration;
-    const src2 = horizontalWalkAnimationAnglesMirror[1].animation.interpolants[k];
-    const v2 = src2.evaluate(t2);
-
-    lerpFn
-      .call(
-        localQuaternion4.fromArray(v2),
-        localQuaternion5.fromArray(v1),
-        angleFactor,
-      );
-  }
-
-  // blend mirrors together to get a smooth walk
-  lerpFn
-    .call(
-      localQuaternion5.copy(localQuaternion3), // Result is in localQuaternion5
-      localQuaternion4,
-      mirrorFactor,
-    );
-
-  // RUN
-  // normal horizontal run blend
-  {
-    const t1 = timeSeconds % horizontalRunAnimationAngles[0].animation.duration;
-    const src1 = horizontalRunAnimationAngles[0].animation.interpolants[k];
-    const v1 = src1.evaluate(t1);
-
-    const t2 = timeSeconds % horizontalRunAnimationAngles[1].animation.duration;
-    const src2 = horizontalRunAnimationAngles[1].animation.interpolants[k];
-    const v2 = src2.evaluate(t2);
-
-    lerpFn
-      .call(
-        localQuaternion3.fromArray(v2),
-        localQuaternion4.fromArray(v1),
-        angleFactor,
-      );
-  }
-
-  // mirror horizontal blend (backwards run)
-  {
-    const t1 = timeSeconds % horizontalRunAnimationAnglesMirror[0].animation.duration;
-    const src1 = horizontalRunAnimationAnglesMirror[0].animation.interpolants[k];
-    const v1 = src1.evaluate(t1);
-
-    const t2 = timeSeconds % horizontalRunAnimationAnglesMirror[1].animation.duration;
-    const src2 = horizontalRunAnimationAnglesMirror[1].animation.interpolants[k];
-    const v2 = src2.evaluate(t2);
-
-    lerpFn
-      .call(
-        localQuaternion4.fromArray(v2),
-        localQuaternion6.fromArray(v1),
-        angleFactor,
-      );
-  }
-
-  // blend mirrors together to get a smooth run
-  lerpFn
-    .call(
-      localQuaternion6.copy(localQuaternion3), // Result is in localQuaternion6
-      localQuaternion4,
-      mirrorFactor,
-    );
-
-  // Blend walk/run
-  lerpFn
-    .call(
-      localQuaternion4.copy(localQuaternion5), // Result is in localQuaternion4
-      localQuaternion6,
-      walkRunFactor,
-    );
-
-  // blend the smooth walk/run with idle
-  {
-    const timeSinceLastMove = now - avatar.lastMoveTime;
-    const timeSinceLastMoveSeconds = timeSinceLastMove / 1000;
-    const t3 = timeSinceLastMoveSeconds % idleAnimation.duration;
-    const src3 = idleAnimation.interpolants[k];
-    const v3 = src3.evaluate(t3);
-
-    target.fromArray(v3);
-    if (isPosition) {
-      // target.x = 0;
-      // target.z = 0;
-
-      localQuaternion4.x = 0;
-      localQuaternion4.z = 0;
+      lerpFn
+        .call(
+          localQuaternion3.fromArray(v2),
+          localQuaternion4.fromArray(v1),
+          angleFactor,
+        );
     }
 
+    // mirror horizontal blend (backwards walk)
+    {
+      const t1 = landTimeSeconds % horizontalWalkAnimationAnglesMirror[0].animation.duration;
+      const src1 = horizontalWalkAnimationAnglesMirror[0].animation.interpolants[k];
+      const v1 = src1.evaluate(t1);
+
+      const t2 = landTimeSeconds % horizontalWalkAnimationAnglesMirror[1].animation.duration;
+      const src2 = horizontalWalkAnimationAnglesMirror[1].animation.interpolants[k];
+      const v2 = src2.evaluate(t2);
+
+      lerpFn
+        .call(
+          localQuaternion4.fromArray(v2),
+          localQuaternion5.fromArray(v1),
+          angleFactor,
+        );
+    }
+
+    // blend mirrors together to get a smooth walk
     lerpFn
       .call(
-        target,
+        localQuaternion5.copy(localQuaternion3), // Result is in localQuaternion5
         localQuaternion4,
-        idleWalkFactor,
+        mirrorFactor,
       );
-  }
-};
 
-const prepAngles = angle => {
-  angles.horizontalWalkAnimationAngles = getClosest2AnimationAngles('walk', angle);
-  angles.horizontalWalkAnimationAnglesMirror = _getMirrorAnimationAngles(angles.horizontalWalkAnimationAngles, 'walk');
+    // RUN
+    // normal horizontal run blend
+    {
+      const t1 = landTimeSeconds % horizontalRunAnimationAngles[0].animation.duration;
+      const src1 = horizontalRunAnimationAngles[0].animation.interpolants[k];
+      const v1 = src1.evaluate(t1);
 
-  angles.horizontalRunAnimationAngles = getClosest2AnimationAngles('run', angle);
-  angles.horizontalRunAnimationAnglesMirror = _getMirrorAnimationAngles(angles.horizontalRunAnimationAngles, 'run');
+      const t2 = landTimeSeconds % horizontalRunAnimationAngles[1].animation.duration;
+      const src2 = horizontalRunAnimationAngles[1].animation.interpolants[k];
+      const v2 = src2.evaluate(t2);
 
-  anglesOther.horizontalWalkAnimationAngles = getClosest2AnimationAngles('crouch', angle);
-  anglesOther.horizontalWalkAnimationAnglesMirror = _getMirrorAnimationAngles(anglesOther.horizontalWalkAnimationAngles, 'crouch');
-
-  anglesOther.horizontalRunAnimationAngles = getClosest2AnimationAngles('crouch', angle);
-  anglesOther.horizontalRunAnimationAnglesMirror = _getMirrorAnimationAngles(anglesOther.horizontalRunAnimationAngles, 'crouch');
-
-  const angleToClosestAnimation = Math.abs(angleDifference(angle, angles.horizontalWalkAnimationAnglesMirror[0].angle));
-  const angleBetweenAnimations = Math.abs(angleDifference(angles.horizontalWalkAnimationAnglesMirror[0].angle, angles.horizontalWalkAnimationAnglesMirror[1].angle));
-  angleFactor = (angleBetweenAnimations - angleToClosestAnimation) / angleBetweenAnimations;
-};
-
-const _blendFly = spec => {
-  const {
-    animationTrackName: k,
-    dst,
-    // isTop,
-    lerpFn,
-  } = spec;
-
-  if (activeAvatar.flyState || (activeAvatar.flyTime >= 0 && activeAvatar.flyTime < 1000)) {
-    const t2 = activeAvatar.flyTime / 1000;
-    const f = activeAvatar.flyState ? Math.min(cubicBezier(t2), 1) : (1 - Math.min(cubicBezier(t2), 1));
-    const src2 = floatAnimation.interpolants[k];
-    const v2 = src2.evaluate(t2 % floatAnimation.duration);
-
-    lerpFn
-      .call(
-        dst,
-        localQuaternion.fromArray(v2),
-        f,
-      );
-  }
-};
-
-const _blendActivateAction = spec => {
-  const {
-    animationTrackName: k,
-    dst,
-    // isTop,
-    lerpFn,
-  } = spec;
-
-  if (activeAvatar.activateTime > 0) {
-    const localPlayer = metaversefile.useLocalPlayer();
-
-    let defaultAnimation = 'grab_forward';
-
-    if (localPlayer.getAction('activate').animationName) {
-      defaultAnimation = localPlayer.getAction('activate').animationName;
+      lerpFn
+        .call(
+          localQuaternion3.fromArray(v2),
+          localQuaternion4.fromArray(v1),
+          angleFactor,
+        );
     }
 
-    const activateAnimation = activateAnimations[defaultAnimation].animation;
-    const src2 = activateAnimation.interpolants[k];
-    const t2 = ((activeAvatar.activateTime / 1000) * activateAnimations[defaultAnimation].speedFactor) % activateAnimation.duration;
-    const v2 = src2.evaluate(t2);
+    // mirror horizontal blend (backwards run)
+    {
+      const t1 = landTimeSeconds % horizontalRunAnimationAnglesMirror[0].animation.duration;
+      const src1 = horizontalRunAnimationAnglesMirror[0].animation.interpolants[k];
+      const v1 = src1.evaluate(t1);
 
-    const f = activeAvatar.activateTime > 0 ? Math.min(cubicBezier(t2), 1) : (1 - Math.min(cubicBezier(t2), 1));
+      const t2 = landTimeSeconds % horizontalRunAnimationAnglesMirror[1].animation.duration;
+      const src2 = horizontalRunAnimationAnglesMirror[1].animation.interpolants[k];
+      const v2 = src2.evaluate(t2);
 
+      lerpFn
+        .call(
+          localQuaternion4.fromArray(v2),
+          localQuaternion6.fromArray(v1),
+          angleFactor,
+        );
+    }
+
+    // blend mirrors together to get a smooth run
     lerpFn
       .call(
-        dst,
-        localQuaternion.fromArray(v2),
-        f,
+        localQuaternion6.copy(localQuaternion3), // Result is in localQuaternion6
+        localQuaternion4,
+        mirrorFactor,
       );
-  }
-};
 
-export const _applyAnimation = (avatar, now, moveFactors) => {
-  activeMoveFactors = moveFactors;
-  // const runSpeed = 0.5;
-  activeAvatar = avatar;
-  const angle = avatar.getAngle();
+    // Blend walk/run
+    lerpFn
+      .call(
+        localQuaternion4.copy(localQuaternion5), // Result is in localQuaternion4
+        localQuaternion6,
+        walkRunFactor,
+      );
 
-  prepAngles(angle);
+    // blend the smooth walk/run with idle
+    {
+      const timeSinceLastMove = now - avatar.lastMoveTime;
+      const timeSinceLastMoveSeconds = timeSinceLastMove / 1000;
+      const t3 = timeSinceLastMoveSeconds % idleAnimation.duration;
+      const src3 = idleAnimation.interpolants[k];
+      const v3 = src3.evaluate(t3);
 
-  idleAnimation = _getIdleAnimation('walk');
-  idleAnimationOther = _getIdleAnimation('crouch');
+      target.fromArray(v3);
+      if (isPosition) {
+        // target.x = 0;
+        // target.z = 0;
+
+        localQuaternion4.x = 0;
+        localQuaternion4.z = 0;
+      }
+
+      lerpFn
+        .call(
+          target,
+          localQuaternion4,
+          idleWalkFactor,
+        );
+    }
+  };
+
+  // stand
+  // const key = _getAnimationKey(false);
+  const keyWalkAnimationAngles = getClosest2AnimationAngles('walk', angle);
+  const keyWalkAnimationAnglesMirror = _getMirrorAnimationAngles(keyWalkAnimationAngles, 'walk');
+
+  const keyRunAnimationAngles = getClosest2AnimationAngles('run', angle);
+  const keyRunAnimationAnglesMirror = _getMirrorAnimationAngles(keyRunAnimationAngles, 'run');
+
+  const idleAnimation = _getIdleAnimation('walk');
 
   /* // walk sound effect
     {
       const soundManager = metaversefile.useSoundManager();
-      const currAniTime = timeSeconds % idleAnimation.duration;
+      const currAniTime = landTimeSeconds % idleAnimation.duration;
 
       if (currentSpeed > 0.1) {
         if (key === 'walk') {
@@ -745,34 +667,89 @@ export const _applyAnimation = (avatar, now, moveFactors) => {
       }
     } */
 
-  const isBackward = _getAngleToBackwardAnimation(angle, angles.horizontalWalkAnimationAnglesMirror) < Math.PI * 0.4;
-  if (isBackward !== activeAvatar.lastIsBackward) {
-    activeAvatar.backwardAnimationSpec = {
-      startFactor: activeAvatar.lastBackwardFactor,
+  // crouch
+  // const keyOther = _getAnimationKey(true);
+  const keyAnimationAnglesOther = getClosest2AnimationAngles('crouch', angle);
+  const keyAnimationAnglesOtherMirror = _getMirrorAnimationAngles(keyAnimationAnglesOther, 'crouch');
+  const idleAnimationOther = _getIdleAnimation('crouch');
+
+  const angleToClosestAnimation = Math.abs(angleDifference(angle, keyWalkAnimationAnglesMirror[0].angle));
+  const angleBetweenAnimations = Math.abs(angleDifference(keyWalkAnimationAnglesMirror[0].angle, keyWalkAnimationAnglesMirror[1].angle));
+  const angleFactor = (angleBetweenAnimations - angleToClosestAnimation) / angleBetweenAnimations;
+  const isBackward = _getAngleToBackwardAnimation(keyWalkAnimationAnglesMirror) < Math.PI * 0.4;
+  if (isBackward !== avatar.lastIsBackward) {
+    avatar.backwardAnimationSpec = {
+      startFactor: avatar.lastBackwardFactor,
       endFactor: isBackward ? 1 : 0,
       startTime: now,
       endTime: now + 150,
     };
-    activeAvatar.lastIsBackward = isBackward;
+    avatar.lastIsBackward = isBackward;
   }
-
-  if (activeAvatar.backwardAnimationSpec) {
-    const f = (now - activeAvatar.backwardAnimationSpec.startTime) / (activeAvatar.backwardAnimationSpec.endTime - activeAvatar.backwardAnimationSpec.startTime);
+  let mirrorFactor;
+  if (avatar.backwardAnimationSpec) {
+    const f = (now - avatar.backwardAnimationSpec.startTime) / (avatar.backwardAnimationSpec.endTime - avatar.backwardAnimationSpec.startTime);
     if (f >= 1) {
-      mirrorFactor = activeAvatar.backwardAnimationSpec.endFactor;
-      activeAvatar.backwardAnimationSpec = null;
+      mirrorFactor = avatar.backwardAnimationSpec.endFactor;
+      avatar.backwardAnimationSpec = null;
     } else {
-      mirrorFactor = activeAvatar.backwardAnimationSpec.startFactor +
-                Math.pow(
-                  f,
-                  0.5,
-                ) * (activeAvatar.backwardAnimationSpec.endFactor - activeAvatar.backwardAnimationSpec.startFactor);
+      mirrorFactor = avatar.backwardAnimationSpec.startFactor +
+        Math.pow(
+          f,
+          0.5,
+        ) * (avatar.backwardAnimationSpec.endFactor - avatar.backwardAnimationSpec.startFactor);
     }
   } else {
     mirrorFactor = isBackward ? 1 : 0;
   }
-  activeAvatar.lastBackwardFactor = mirrorFactor;
+  avatar.lastBackwardFactor = mirrorFactor;
 
+  if (avatar.emoteAnimation !== avatar.lastEmoteAnimation) {
+    avatar.lastEmoteTime = avatar.emoteAnimation ? now : 0;
+  }
+  avatar.lastEmoteAnimation = avatar.emoteAnimation;
+
+  const _getHorizontalBlend = (k, lerpFn, isPosition, target) => {
+    _get7wayBlend(
+      keyWalkAnimationAngles,
+      keyWalkAnimationAnglesMirror,
+      keyRunAnimationAngles,
+      keyRunAnimationAnglesMirror,
+      idleAnimation,
+      // mirrorFactor,
+      // angleFactor,
+      // walkRunFactor,
+      // idleWalkFactor,
+      k,
+      lerpFn,
+      isPosition,
+      localQuaternion,
+    );
+    _get7wayBlend(
+      keyAnimationAnglesOther,
+      keyAnimationAnglesOtherMirror,
+      keyAnimationAnglesOther,
+      keyAnimationAnglesOtherMirror,
+      idleAnimationOther,
+      // mirrorFactor,
+      // angleFactor,
+      // walkRunFactor,
+      // idleWalkFactor,
+      k,
+      lerpFn,
+      isPosition,
+      localQuaternion2,
+    );
+
+    // _get5wayBlend(keyAnimationAnglesOther, keyAnimationAnglesOtherMirror, idleAnimationOther, mirrorFactor, angleFactor, speedFactor, k, lerpFn, localQuaternion2);
+
+    lerpFn
+      .call(
+        target.copy(localQuaternion),
+        localQuaternion2,
+        crouchFactor,
+      );
+  };
   const _handleDefault = spec => {
     const {
       animationTrackName: k,
@@ -782,25 +759,55 @@ export const _applyAnimation = (avatar, now, moveFactors) => {
       isPosition,
     } = spec;
 
-    _getHorizontalBlend(k, lerpFn, isPosition, dst, now);
+    _getHorizontalBlend(k, lerpFn, isPosition, dst);
   };
   const _getApplyFn = () => {
-    if (activeAvatar.jumpState) {
+    if (avatar.doubleJumpState) {
+      return spec => {
+        const {
+          animationTrackName: k,
+          dst,
+          isPosition,
+        } = spec;
+
+        const t2 = avatar.doubleJumpTime / 1000;
+        const src2 = doubleJumpAnimation.interpolants[k];
+        const v2 = src2.evaluate(t2);
+
+        dst.fromArray(v2);
+
+        _clearXZ(dst, isPosition);
+      };
+    }
+    if (avatar.jumpState) {
       return spec => {
         const {
           animationTrackName: k,
           dst,
           // isTop,
+          isPosition,
+          isArm,
         } = spec;
 
-        const t2 = activeAvatar.jumpTime / 1000 * 0.6 + 0.7;
+        const t2 = avatar.jumpTime / 1000;
         const src2 = jumpAnimation.interpolants[k];
         const v2 = src2.evaluate(t2);
 
         dst.fromArray(v2);
+
+        _clearXZ(dst, isPosition);
+
+        if (avatar.holdState && isArm) {
+          const holdAnimation = holdAnimations['pick_up_idle'];
+          const src2 = holdAnimation.interpolants[k];
+          const t2 = (now / 1000) % holdAnimation.duration;
+          const v2 = src2.evaluate(t2);
+          dst.fromArray(v2);
+        }
       };
     }
-    if (activeAvatar.sitState) {
+
+    if (avatar.sitState) {
       return spec => {
         const {
           animationTrackName: k,
@@ -808,14 +815,14 @@ export const _applyAnimation = (avatar, now, moveFactors) => {
           // isTop,
         } = spec;
 
-        const sitAnimation = sitAnimations[activeAvatar.sitAnimation || defaultSitAnimation];
+        const sitAnimation = sitAnimations[avatar.sitAnimation || defaultSitAnimation];
         const src2 = sitAnimation.interpolants[k];
         const v2 = src2.evaluate(1);
 
         dst.fromArray(v2);
       };
     }
-    if (activeAvatar.narutoRunState) {
+    if (avatar.narutoRunState) {
       return spec => {
         const {
           animationTrackName: k,
@@ -826,7 +833,7 @@ export const _applyAnimation = (avatar, now, moveFactors) => {
 
         const narutoRunAnimation = narutoRunAnimations[defaultNarutoRunAnimation];
         const src2 = narutoRunAnimation.interpolants[k];
-        const t2 = (activeAvatar.narutoRunTime / 1000 * narutoRunTimeFactor) % narutoRunAnimation.duration;
+        const t2 = (avatar.narutoRunTime / 1000 * narutoRunTimeFactor) % narutoRunAnimation.duration;
         const v2 = src2.evaluate(t2);
 
         dst.fromArray(v2);
@@ -835,7 +842,7 @@ export const _applyAnimation = (avatar, now, moveFactors) => {
       };
     }
 
-    if (activeAvatar.danceTime > 0) {
+    if (avatar.danceFactor > 0) {
       return spec => {
         const {
           animationTrackName: k,
@@ -847,13 +854,13 @@ export const _applyAnimation = (avatar, now, moveFactors) => {
 
         _handleDefault(spec);
 
-        const danceAnimation = danceAnimations[activeAvatar.danceAnimation || defaultDanceAnimation];
+        const danceAnimation = danceAnimations[avatar.danceAnimation || defaultDanceAnimation];
         const src2 = danceAnimation.interpolants[k];
         const t2 = (now / 1000) % danceAnimation.duration;
         const v2 = src2.evaluate(t2);
 
-        const danceTimeS = activeAvatar.danceTime / crouchMaxTime;
-        const f = Math.min(Math.max(danceTimeS, 0), 1);
+        const danceFactorS = avatar.danceFactor / crouchMaxTime;
+        const f = Math.min(Math.max(danceFactorS, 0), 1);
         lerpFn
           .call(
             dst,
@@ -865,25 +872,55 @@ export const _applyAnimation = (avatar, now, moveFactors) => {
       };
     }
 
-    /* if (activeAvatar.fallLoopState) {
-          return spec => {
-            const {
-              animationTrackName: k,
+    if (avatar.emoteFactor > 0) {
+      return spec => {
+        const {
+          animationTrackName: k,
+          boneName,
+          dst,
+          lerpFn,
+          isTop,
+          isPosition,
+        } = spec;
+
+        _handleDefault(spec);
+
+        const emoteAnimation = emoteAnimations[avatar.emoteAnimation || defaultEmoteAnimation];
+        const src2 = emoteAnimation.interpolants[k];
+        const emoteTime = now - avatar.lastEmoteTime;
+        const t2 = Math.min(emoteTime / 1000, emoteAnimation.duration);
+        const v2 = src2.evaluate(t2);
+
+        const emoteFactorS = avatar.emoteFactor / crouchMaxTime;
+        let f = Math.min(Math.max(emoteFactorS, 0), 1);
+
+        if (boneName === 'Spine' || boneName === 'Chest' || boneName === 'UpperChest' || boneName === 'Neck' || boneName === 'Head') {
+          if (!isPosition) {
+            dst.premultiply(localQuaternion.fromArray(v2));
+          } else {
+            dst.lerp(localVector.fromArray(v2), f);
+          }
+        } else {
+          if (!isTop) {
+            f *= (1 - idleWalkFactor);
+          }
+
+          lerpFn
+            .call(
               dst,
-              // isTop,
-            } = spec;
+              localQuaternion.fromArray(v2),
+              f,
+            );
+        }
 
-            const t2 = (activeAvatar.fallLoopTime/1000) ;
-            const src2 = fallLoop.interpolants[k];
-            const v2 = src2.evaluate(t2);
+        _clearXZ(dst, isPosition);
+      };
+    }
 
-            dst.fromArray(v2);
-          };
-        } */
     if (
-      activeAvatar.useAnimation ||
-            activeAvatar.useAnimationCombo.length > 0 ||
-            activeAvatar.useAnimationEnvelope.length > 0
+      avatar.useAnimation ||
+      avatar.useAnimationCombo.length > 0 ||
+      avatar.useAnimationEnvelope.length > 0
     ) {
       return spec => {
         const {
@@ -895,27 +932,27 @@ export const _applyAnimation = (avatar, now, moveFactors) => {
 
         let useAnimation;
         let t2;
-        const useTimeS = activeAvatar.useTime / 1000;
-        if (activeAvatar.useAnimation) {
-          const useAnimationName = activeAvatar.useAnimation;
+        const useTimeS = avatar.useTime / 1000;
+        if (avatar.useAnimation) {
+          const useAnimationName = avatar.useAnimation;
           useAnimation = useAnimations[useAnimationName];
           t2 = Math.min(useTimeS, useAnimation.duration);
-        } else if (activeAvatar.useAnimationCombo.length > 0) {
-          const useAnimationName = activeAvatar.useAnimationCombo[activeAvatar.useAnimationIndex];
+        } else if (avatar.useAnimationCombo.length > 0) {
+          const useAnimationName = avatar.useAnimationCombo[avatar.useAnimationIndex];
           useAnimation = useAnimations[useAnimationName];
           t2 = Math.min(useTimeS, useAnimation.duration);
-        } else if (activeAvatar.useAnimationEnvelope.length > 0) {
+        } else if (avatar.useAnimationEnvelope.length > 0) {
           let totalTime = 0;
-          for (let i = 0; i < activeAvatar.useAnimationEnvelope.length - 1; i++) {
-            const animationName = activeAvatar.useAnimationEnvelope[i];
+          for (let i = 0; i < avatar.useAnimationEnvelope.length - 1; i++) {
+            const animationName = avatar.useAnimationEnvelope[i];
             const animation = useAnimations[animationName];
             totalTime += animation.duration;
           }
 
           if (totalTime > 0) {
             let animationTimeBase = 0;
-            for (let i = 0; i < activeAvatar.useAnimationEnvelope.length - 1; i++) {
-              const animationName = activeAvatar.useAnimationEnvelope[i];
+            for (let i = 0; i < avatar.useAnimationEnvelope.length - 1; i++) {
+              const animationName = avatar.useAnimationEnvelope[i];
               const animation = useAnimations[animationName];
               if (useTimeS < (animationTimeBase + animation.duration)) {
                 useAnimation = animation;
@@ -926,7 +963,7 @@ export const _applyAnimation = (avatar, now, moveFactors) => {
             if (useAnimation !== undefined) { // first iteration
               t2 = Math.min(useTimeS - animationTimeBase, useAnimation.duration);
             } else { // loop
-              const secondLastAnimationName = activeAvatar.useAnimationEnvelope[activeAvatar.useAnimationEnvelope.length - 2];
+              const secondLastAnimationName = avatar.useAnimationEnvelope[avatar.useAnimationEnvelope.length - 2];
               useAnimation = useAnimations[secondLastAnimationName];
               t2 = (useTimeS - animationTimeBase) % useAnimation.duration;
             }
@@ -966,7 +1003,7 @@ export const _applyAnimation = (avatar, now, moveFactors) => {
           }
         }
       };
-    } else if (activeAvatar.hurtAnimation) {
+    } else if (avatar.hurtAnimation) {
       return spec => {
         const {
           animationTrackName: k,
@@ -975,11 +1012,11 @@ export const _applyAnimation = (avatar, now, moveFactors) => {
           isPosition,
         } = spec;
 
-        const hurtAnimation = (activeAvatar.hurtAnimation && hurtAnimations[activeAvatar.hurtAnimation]);
+        const hurtAnimation = (avatar.hurtAnimation && hurtAnimations[avatar.hurtAnimation]);
         _handleDefault(spec);
-        const hurtTimeS = activeAvatar.hurtTime / 1000;
+        const hurtTimeS = avatar.hurtTime / 1000;
         const t2 = Math.min(hurtTimeS, hurtAnimation.duration);
-        // console.log('hurtAnimation', activeAvatar.hurtAnimation, activeAvatar.hurtTime, hurtAnimation.duration, hurtTimeS, t2);
+        // console.log('hurtAnimation', avatar.hurtAnimation, avatar.hurtTime, hurtAnimation.duration, hurtTimeS, t2);
         if (!isPosition) {
           if (hurtAnimation) {
             const src2 = hurtAnimation.interpolants[k];
@@ -1008,7 +1045,7 @@ export const _applyAnimation = (avatar, now, moveFactors) => {
             .add(localVector2.fromArray(v2));
         }
       };
-    } else if (activeAvatar.aimAnimation) {
+    } else if (avatar.aimAnimation) {
       return spec => {
         const {
           animationTrackName: k,
@@ -1017,9 +1054,9 @@ export const _applyAnimation = (avatar, now, moveFactors) => {
           isPosition,
         } = spec;
 
-        const aimAnimation = (activeAvatar.aimAnimation && aimAnimations[activeAvatar.aimAnimation]);
+        const aimAnimation = (avatar.aimAnimation && aimAnimations[avatar.aimAnimation]);
         _handleDefault(spec);
-        const t2 = (activeAvatar.aimTime / aimMaxTime) % aimAnimation.duration;
+        const t2 = (avatar.aimTime / aimMaxTime) % aimAnimation.duration;
         if (!isPosition) {
           if (aimAnimation) {
             const src2 = aimAnimation.interpolants[k];
@@ -1048,7 +1085,7 @@ export const _applyAnimation = (avatar, now, moveFactors) => {
             .add(localVector2.fromArray(v2));
         }
       };
-    } else if (activeAvatar.unuseAnimation && activeAvatar.unuseTime >= 0) {
+    } else if (avatar.unuseAnimation && avatar.unuseTime >= 0) {
       return spec => {
         const {
           animationTrackName: k,
@@ -1060,8 +1097,8 @@ export const _applyAnimation = (avatar, now, moveFactors) => {
 
         _handleDefault(spec);
 
-        const unuseTimeS = activeAvatar.unuseTime / 1000;
-        const unuseAnimationName = activeAvatar.unuseAnimation;
+        const unuseTimeS = avatar.unuseTime / 1000;
+        const unuseAnimationName = avatar.unuseAnimation;
         const unuseAnimation = useAnimations[unuseAnimationName];
         const t2 = Math.min(unuseTimeS, unuseAnimation.duration);
         const f = Math.min(Math.max(unuseTimeS / unuseAnimation.duration, 0), 1);
@@ -1108,15 +1145,106 @@ export const _applyAnimation = (avatar, now, moveFactors) => {
         }
 
         if (f >= 1) {
-          activeAvatar.useAnimation = '';
+          avatar.useAnimation = '';
+        }
+      };
+    } else if (avatar.holdState) {
+      return spec => {
+        const {
+          animationTrackName: k,
+          dst,
+          lerpFn,
+          boneName,
+          isTop,
+          isPosition,
+          isArm,
+        } = spec;
+
+        _handleDefault(spec);
+
+        const holdAnimation = holdAnimations['pick_up_idle'];
+        const src2 = holdAnimation.interpolants[k];
+        const t2 = (now / 1000) % holdAnimation.duration;
+        const v2 = src2.evaluate(t2);
+
+        if (isTop) {
+          if (boneName === 'Left_arm' || boneName === 'Right_arm') {
+            dst.fromArray(v2);
+          } else {
+            if (isArm) {
+              dst
+                .slerp(identityQuaternion, walkRunFactor * 0.7 + crouchFactor * (1 - idleWalkFactor) * 0.5)
+                .premultiply(localQuaternion2.fromArray(v2));
+            } else {
+              dst
+                .premultiply(localQuaternion2.fromArray(v2));
+            }
+          }
+        }
+      };
+    } else if (avatar.pickUpState) {
+      return spec => {
+        const {
+          animationTrackName: k,
+          dst,
+          /* lerpFn,
+          isTop,
+          isPosition, */
+        } = spec;
+
+        const pickUpAnimation = pickUpAnimations['pickUpZelda'];
+        const pickUpIdleAnimation = pickUpAnimations['pickUpIdleZelda'];
+
+        const t2 = avatar.pickUpTime / 1000;
+        if (t2 < pickUpAnimation.duration) {
+          const src2 = pickUpAnimation.interpolants[k];
+          const v2 = src2.evaluate(t2);
+
+          dst.fromArray(v2);
+        } else {
+          const t3 = (t2 - pickUpAnimation.duration) % pickUpIdleAnimation.duration;
+          const src2 = pickUpIdleAnimation.interpolants[k];
+          const v2 = src2.evaluate(t3);
+
+          dst.fromArray(v2);
         }
       };
     }
     return _handleDefault;
   };
   const applyFn = _getApplyFn();
+  const _blendFly = spec => {
+    const {
+      animationTrackName: k,
+      dst,
+      // isTop,
+      isArm,
+      lerpFn,
+    } = spec;
 
-  for (const spec of activeAvatar.animationMappings) {
+    if (avatar.flyState || (avatar.flyTime >= 0 && avatar.flyTime < 1000)) {
+      const t2 = avatar.flyTime / 1000;
+      const f = avatar.flyState ? Math.min(cubicBezier(t2), 1) : (1 - Math.min(cubicBezier(t2), 1));
+      const src2 = floatAnimation.interpolants[k];
+      const v2 = src2.evaluate(t2 % floatAnimation.duration);
+
+      lerpFn
+        .call(
+          dst,
+          localQuaternion.fromArray(v2),
+          f,
+        );
+
+      if (avatar.holdState && isArm) {
+        const holdAnimation = holdAnimations['pick_up_idle'];
+        const src2 = holdAnimation.interpolants[k];
+        const t2 = (now / 1000) % holdAnimation.duration;
+        const v2 = src2.evaluate(t2);
+        dst.fromArray(v2);
+      }
+    }
+  };
+  const _blendLand = spec => {
     const {
       animationTrackName: k,
       dst,
@@ -1124,18 +1252,212 @@ export const _applyAnimation = (avatar, now, moveFactors) => {
       isPosition,
     } = spec;
 
+    if (!avatar.landWithMoving) {
+      const animationSpeed = 0.75;
+      const landTimeS = avatar.landTime / 1000;
+      const landingAnimation = animations.index['landing.fbx'];
+      const landingAnimationDuration = landingAnimation.duration / animationSpeed;
+      const landFactor = landTimeS / landingAnimationDuration;
+
+      if (landFactor > 0 && landFactor <= 1) {
+        const t2 = landTimeS * animationSpeed;
+        const src2 = landingAnimation.interpolants[k];
+        const v2 = src2.evaluate(t2);
+
+        let f = (landingAnimationDuration - landTimeS) / 0.05; // 0.05 = 3 frames
+        f = MathUtils.clamp(f, 0, 1);
+
+        if (!isPosition) {
+          localQuaternion.fromArray(v2);
+          dst.slerp(localQuaternion, f);
+        } else {
+          localVector.fromArray(v2);
+          _clearXZ(localVector, isPosition);
+          dst.lerp(localVector, f);
+        }
+      }
+    } else {
+      const animationSpeed = 0.95;
+      const landTimeS = avatar.landTime / 1000;
+      const landingAnimation = animations.index['landing 2.fbx'];
+      const landingAnimationDuration = landingAnimation.duration / animationSpeed;
+      const landFactor = landTimeS / landingAnimationDuration;
+
+      if (landFactor > 0 && landFactor <= 1) {
+        const t2 = landTimeS * animationSpeed;
+        const src2 = landingAnimation.interpolants[k];
+        const v2 = src2.evaluate(t2);
+
+        /* Calculating the time since the player landed on the ground. */
+        let f3 = landTimeS / 0.1;
+        f3 = MathUtils.clamp(f3, 0, 1);
+
+        /* Calculating the time remaining until the landing animation is complete. */
+        let f2 = (landingAnimationDuration - landTimeS) / 0.15;
+        f2 = MathUtils.clamp(f2, 0, 1);
+
+        const f = Math.min(f3, f2);
+
+        if (!isPosition) {
+          localQuaternion2.fromArray(v2);
+          dst.slerp(localQuaternion2, f);
+        } else {
+          localVector2.fromArray(v2);
+          dst.lerp(localVector2, f);
+          _clearXZ(dst, isPosition);
+        }
+      }
+    }
+  };
+
+  const _blendFallLoop = spec => {
+    const {
+      animationTrackName: k,
+      dst,
+      isPosition,
+      lerpFn,
+    } = spec;
+
+    if (avatar.fallLoopFactor > 0) {
+      const t2 = (avatar.fallLoopTime / 1000);
+      const src2 = fallLoopAnimation.interpolants[k];
+      const v2 = src2.evaluate(t2);
+      const f = MathUtils.clamp(t2 / 0.3, 0, 1);
+
+      if (avatar.fallLoopFrom === 'jump') {
+        dst.fromArray(v2);
+      } else {
+        lerpFn
+          .call(
+            dst,
+            localQuaternion.fromArray(v2),
+            f,
+          );
+      }
+
+      _clearXZ(dst, isPosition);
+    }
+  };
+
+  const _blendSwim = spec => {
+    const {
+      animationTrackName: k,
+      dst,
+      isPosition,
+      isFirstBone,
+    } = spec;
+
+    if (avatar.swimState) {
+      const swimTimeS = avatar.swimTime / 1000;
+      const movementsTimeS = avatar.movementsTime / 1000;
+      // if (isFirstBone) {
+      //   // const swimSpeed = 1 + idleWalkFactor + walkRunFactor;
+      //   // avatar.swimAnimTime += timeDiffS * swimSpeed;
+      //   // avatar.swimAnimTime = avatar.movementsTime / 1000 * swimSpeed;
+      // }
+
+      const src2 = floatAnimation.interpolants[k];
+      const v2 = src2.evaluate(swimTimeS % floatAnimation.duration);
+
+      const src3 = animations.index['Swimming.fbx'].interpolants[k];
+      const v3 = src3.evaluate(movementsTimeS * 1 % animations.index['Swimming.fbx'].duration);
+
+      const src4 = animations.index['freestyle.fbx'].interpolants[k];
+      const v4 = src4.evaluate(movementsTimeS * 2 % animations.index['freestyle.fbx'].duration);
+
+      const f = MathUtils.clamp(swimTimeS / 0.2, 0, 1);
+      // if (isPosition) console.log(f);
+
+      if (!isPosition) {
+        localQuaternion2.fromArray(v2);
+        localQuaternion3.fromArray(v3);
+        localQuaternion4.fromArray(v4);
+        // // can't use idleWalkFactor & walkRunFactor here, otherwise "Impulsive breaststroke swim animation" will turn into "freestyle animation" when speed is fast,
+        // // and will turn into "floating" a little when speed is slow.
+        // localQuaternion3.slerp(localQuaternion4, walkRunFactor);
+        // localQuaternion2.slerp(localQuaternion3, idleWalkFactor);
+        localQuaternion3.slerp(localQuaternion4, avatar.sprintFactor);
+        localQuaternion2.slerp(localQuaternion3, avatar.movementsTransitionFactor);
+        dst.slerp(localQuaternion2, f);
+      } else {
+        const liftSwims = 0.05; // lift swims height, prevent head sink in water
+        localVector2.fromArray(v2);
+        localVector3.fromArray(v3);
+        // localVector3.y += 0.21; // align Swimming.fbx's height to freestyle.fbx
+        localVector3.y += 0.03; // align Swimming.fbx's height to freestyle.fbx
+        localVector3.y += liftSwims;
+        localVector4.fromArray(v4);
+        localVector4.y += liftSwims;
+        // localVector3.lerp(localVector4, walkRunFactor);
+        // localVector2.lerp(localVector3, idleWalkFactor);
+        localVector3.lerp(localVector4, avatar.sprintFactor);
+        localVector2.lerp(localVector3, avatar.movementsTransitionFactor);
+        dst.lerp(localVector2, f);
+      }
+    }
+  };
+  const _blendActivateAction = spec => {
+    const {
+      animationTrackName: k,
+      dst,
+      // isTop,
+      lerpFn,
+    } = spec;
+
+    if (avatar.activateTime > 0) {
+      const player = metaversefile.getPlayerByAppInstanceId(avatar.app.getComponent('instanceId'));
+
+      let defaultAnimation = 'grab_forward';
+
+      const activateAction = player && player.getAction('activate');
+      // the action can be unset on remote player while this is still happening
+      // null check to prevent a frame of empty action at the end of the pickup
+      if (activateAction && activateAction.animationName) {
+        defaultAnimation = activateAction.animationName;
+      }
+
+      const activateAnimation = activateAnimations[defaultAnimation].animation;
+      const src2 = activateAnimation.interpolants[k];
+      const t2 = ((avatar.activateTime / 1000) * activateAnimations[defaultAnimation].speedFactor) % activateAnimation.duration;
+      const v2 = src2.evaluate(t2);
+
+      const f = avatar.activateTime > 0 ? Math.min(cubicBezier(t2), 1) : (1 - Math.min(cubicBezier(t2), 1));
+
+      lerpFn
+        .call(
+          dst,
+          localQuaternion.fromArray(v2),
+          f,
+        );
+    }
+  };
+
+  for (const spec of avatar.animationMappings) {
+    const {
+      // animationTrackName: k,
+      dst,
+      // isTop,
+      isPosition,
+    } = spec;
+
     applyFn(spec);
     _blendFly(spec);
+    _blendFallLoop(spec);
+    _blendLand(spec);
     _blendActivateAction(spec);
+    _blendSwim(spec);
 
     // ignore all animation position except y
     if (isPosition) {
-      if (!activeAvatar.jumpState) {
+      if (avatar.swimState) {
         // animations position is height-relative
-        dst.y *= activeAvatar.height; // XXX this could be made perfect by measuring from foot to hips instead
-      } else {
+        dst.y *= avatar.height; // XXX avatar could be made perfect by measuring from foot to hips instead
+      } else if (avatar.jumpState || avatar.doubleJumpState || avatar.fallLoopState) {
         // force height in the jump case to overide the animation
-        dst.y = activeAvatar.height * 0.55;
+        dst.y = avatar.height * 0.55;
+      } else {
+        // animations position is height-relative
+        dst.y *= avatar.height; // XXX avatar could be made perfect by measuring from foot to hips instead
       }
     }
   }
@@ -1144,7 +1466,8 @@ export const _applyAnimation = (avatar, now, moveFactors) => {
 export {
   animations,
   animationStepIndices,
- cubicBezier
+  emoteAnimations,
+  // cubicBezier,
 };
 
 export const getClosest2AnimationAngles = (key, angle) => {
@@ -1164,12 +1487,20 @@ export const _findArmature = bone => {
       return bone;
     }
   }
-  return null; // can't happen
+  // return null; // can't happen
 };
 
 export const _getLerpFn = isPosition => isPosition ? Vector3.prototype.lerp : Quaternion.prototype.slerp;
 
 export function getFirstPersonCurves(vrmExtension) {
+  const DEG2RAD = Math.PI / 180; // MathUtils.DEG2RAD;
+  function _importCurveMapperBone(map) {
+    return new VRMCurveMapper(
+      typeof map.xRange === 'number' ? DEG2RAD * map.xRange : undefined,
+      typeof map.yRange === 'number' ? DEG2RAD * map.yRange : undefined,
+      map.curve,
+    );
+  }
   if (vrmExtension) {
     const {firstPerson} = vrmExtension;
     const {
@@ -1180,14 +1511,6 @@ export function getFirstPersonCurves(vrmExtension) {
       // lookAtTypeName,
     } = firstPerson;
 
-    const DEG2RAD = Math.PI / 180; // MathUtils.DEG2RAD;
-    function _importCurveMapperBone(map) {
-      return new VRMCurveMapper(
-        typeof map.xRange === 'number' ? DEG2RAD * map.xRange : undefined,
-        typeof map.yRange === 'number' ? DEG2RAD * map.yRange : undefined,
-        map.curve,
-      );
-    }
     const lookAtHorizontalInnerCurve = _importCurveMapperBone(lookAtHorizontalInner);
     const lookAtHorizontalOuterCurve = _importCurveMapperBone(lookAtHorizontalOuter);
     const lookAtVerticalDownCurve = _importCurveMapperBone(lookAtVerticalDown);

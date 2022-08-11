@@ -1,25 +1,20 @@
-import React from "react";
-import "./modal.css";
+import React from 'react';
+import classnames from 'classnames';
+import styles from './modal.module.css';
 
 export default class Modal extends React.Component {
   onClose = e => {
     this.props.onClose && this.props.onClose(e);
   };
   render() {
-    if (!this.props.show) {
-      return null;
-    }
-    return (
-      <div className="modal" id="modal">
-        {/* <h2>Modal Window</h2> */}
-        <div className="content">{this.props.children}
+    const open = this.props.show;
 
-        {/* <div className="actions">
-          <button className="toggle-button" onClick={this.onClose}>
-            close
-          </button>
-        </div> */}
-        </div>
+    return (
+      <div className={classnames(
+        styles.modal,
+        open ? styles.open : null
+      )}>
+        {this.props.children}
       </div>
     );
   }

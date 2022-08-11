@@ -1,6 +1,6 @@
 import * as THREE from 'three';
 import {
-  planeGeometry,
+  fullscreenGeometry,
   fullscreenVertexShader,
 } from './common.js';
 import {getRenderer} from '../renderer.js';
@@ -117,7 +117,7 @@ export const noiseFragmentShader = `\
 
 class NoiseBgFxMesh extends THREE.Mesh {
   constructor() {
-    const geometry = planeGeometry;
+    const geometry = fullscreenGeometry;
     const material = new THREE.ShaderMaterial({
       uniforms: {
         iTime: {
