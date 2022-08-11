@@ -339,7 +339,7 @@ export default (app, component) => {
           } else {
             if (modelBones && skinnedMeshes) {
               Avatar.applyModelBoneOutputs(player.avatar, modelBones, player.avatar.modelBoneOutputs, player.avatar.getBottomEnabled());
-              Avatar.offsetSkinnedMeshToReferenceNode(
+              Avatar.offsetSkinnedMeshesToReferenceNode(
                 player.avatar.modelBones.Root,
                 skinnedMeshes
               );

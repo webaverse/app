@@ -1253,7 +1253,7 @@ class Avatar {
     }
     modelBones.Root.updateMatrixWorld();
   }
-  static offsetSkinnedMeshToReferenceNode(referenceNode, skinnedMeshes) {
+  static offsetSkinnedMeshesToReferenceNode(referenceNode, skinnedMeshes) {
     // offset scene transform to skeleton
     referenceNode.matrixWorld.decompose(localVector, localQuaternion, localVector2);
     for (let mesh of skinnedMeshes) {
@@ -1982,7 +1982,7 @@ class Avatar {
       // this.getTopEnabled(),
       this.getBottomEnabled(),
     );
-    Avatar.offsetSkinnedMeshToReferenceNode(
+    Avatar.offsetSkinnedMeshesToReferenceNode(
       this.foundModelBones.Root,
       this.skinnedMeshes
     );
