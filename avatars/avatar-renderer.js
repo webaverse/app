@@ -53,18 +53,16 @@ const _makeAvatarPlaceholderMesh = (() => {
     const angles = new Float32Array(planeGeometry.attributes.position.count).fill(-100);
     planeGeometry.setAttribute('angle', new THREE.BufferAttribute(angles, 1));
   }
-  const ringGeometry = new THREE.RingGeometry(0.125, 0.14, 32, 1);
+  const ringGeometry = new THREE.RingGeometry(0.135, 0.15, 32, 1);
   {
     const angles = new Float32Array(ringGeometry.attributes.position.count);
     // compute the angle, starting from the 0 at the top of the ring
     for (let i = 0; i < ringGeometry.attributes.position.count; i++) {
       const x = ringGeometry.attributes.position.array[i * 3];
       const y = ringGeometry.attributes.position.array[i * 3 + 1];
-      let angle = (Math.atan2(-x, -y) + Math.PI) / (Math.PI * 2);
-      // angle = Math.min(Math.max(angle, 0.1), 0.9); // exactly 1 interferes with mod
+      const angle = (Math.atan2(-x, -y) + Math.PI) / (Math.PI * 2);
       angles[i] = angle;
     }
-    // console.log('got angles', angles);
     ringGeometry.setAttribute('angle', new THREE.BufferAttribute(angles, 1));
   }
   const geometry = BufferGeometryUtils.mergeBufferGeometries([
@@ -105,7 +103,7 @@ const _makeAvatarPlaceholderMesh = (() => {
         vUv = uv;
         vAngle = angle;
         if (angle > -50.) {
-          vAngle = mod(angle - uTime, 1.);
+          vAngle = mod(vAngle - uTime, 1.);
           vAngle = min(max(vAngle - 0.5, 0.), 1.) * 2.;
         } else {
           float t = uTime;
@@ -139,6 +137,7 @@ const _makeAvatarPlaceholderMesh = (() => {
       void main() {
         if (vAngle > -50.) {
           float f = vAngle;
+          // f = pow(f, 0.2);
           // float f = (vAngle - uTime);
           // f = mod(f, 1.);
 
@@ -172,7 +171,7 @@ const _makeAvatarPlaceholderMesh = (() => {
   return () => {
     const mesh = new THREE.Mesh(geometry, material);
     let startTime = 0;
-    const animationTime = 1500;
+    const animationTime = 1000;
     mesh.start = () => {
       startTime = performance.now();
     };
