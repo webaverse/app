@@ -162,9 +162,7 @@ class PlayerBase extends THREE.Object3D {
 
     this.avatar = null;
     
-    this.appManager = new AppManager({
-      appsMap: null,
-    });
+    this.appManager = world.appManager;
     this.appManager.addEventListener('appadd', e => {
       if (!this.detached) {
         const app = e.data;
@@ -679,6 +677,13 @@ class StatePlayer extends PlayerBase {
   getQuaternion() {
     return this.playerMap.get('quaternion') ?? [0, 0, 0, 1];
   }
+  updatePhysicsStatus() {
+    if (this.isLocalPlayer) {
+      physicsScene.disableGeometryQueries(this.characterController);
+    } else {
+      physicsScene.enableGeometryQueries(this.characterController);
+    }
+  }
   async syncAvatar() {
     if (this.syncAvatarCancelFn) {
       this.syncAvatarCancelFn.cancel();
@@ -715,9 +720,8 @@ class StatePlayer extends PlayerBase {
         
         loadPhysxCharacterController.call(this);
         
-        if (this.isLocalPlayer) {
-          physicsScene.disableGeometryQueries(this.characterController);
-        }
+        this.updatePhysicsStatus();
+        app.getPhysicsObjects = () => [this.characterController];
       })();
       
       this.dispatchEvent({
