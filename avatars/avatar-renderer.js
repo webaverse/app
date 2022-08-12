@@ -258,85 +258,107 @@ export class AvatarRenderer /* extends EventTarget */ {
     // XXX add frustum culling in update()
     // XXX integrate more cleanly with totum VRM type (do not double-parse)
     // XXX unlock avatar icon
-    this.createSpriteAvatarMesh = offscreenEngineManager.createFunction([
-      `\
-      import * as THREE from 'three';
-      import * as avatarSpriter from './avatar-spriter.js';
-      import loaders from './loaders.js';
-
-      `,
-      async function({
-        arrayBuffer,
-        srcUrl,
-      }) {
-        const parseVrm = (arrayBuffer, srcUrl) => new Promise((accept, reject) => {
-          const {gltfLoader} = loaders;
-          gltfLoader.parse(arrayBuffer, srcUrl, object => {
-            accept(object.scene);
-          }, reject);
-        });
-
-        const skinnedMesh = await parseVrm(arrayBuffer, srcUrl);
-        const textureImages = avatarSpriter.renderSpriteImages(skinnedMesh);
-        return {
-          textureImages,
-        };
-      }
-    ]);
-    this.crunchAvatarModel = offscreenEngineManager.createFunction([
-      `\
-      import * as THREE from 'three';
-      import * as avatarCruncher from './avatar-cruncher.js';
-      import loaders from './loaders.js';
-
-      `,
-      async function({
-        arrayBuffer,
-        srcUrl,
-      }) {
-        const parseVrm = (arrayBuffer, srcUrl) => new Promise((accept, reject) => {
-          const {gltfLoader} = loaders;
-          gltfLoader.parse(arrayBuffer, srcUrl, object => {
-            accept(object.scene);
-          }, reject);
-        });
-
-        const model = await parseVrm(arrayBuffer, srcUrl);
-        const glbData = await avatarCruncher.crunchAvatarModel(model);
-        return {
-          glbData,
-        };
-      }
-    ]);
-    this.optimizeAvatarModel = offscreenEngineManager.createFunction([
-      `\
-      import * as THREE from 'three';
-      import * as avatarOptimizer from './avatar-optimizer.js';
-      import loaders from './loaders.js';
-      import exporters from './exporters.js';
-
-      `,
-      async function({
-        arrayBuffer,
-        srcUrl,
-      }) {
-        const parseVrm = (arrayBuffer, srcUrl) => new Promise((accept, reject) => {
-          const {gltfLoader} = loaders;
-          gltfLoader.parse(arrayBuffer, srcUrl, accept, reject);
-        });
-
-        const object = await parseVrm(arrayBuffer, srcUrl);
-        
-        const model = object.scene;
-        const glbData = await avatarOptimizer.optimizeAvatarModel(model);
-        return {
-          glbData,
-        };
-      }
-    ]);
+    this.createSpriteAvatarMeshFn = null;
+    this.crunchAvatarModelFn = null;
+    this.optimizeAvatarModelFn = null;
     this.loadPromise = null;
 
     this.setQuality(quality);
+  }
+  createSpriteAvatarMesh() {
+    if (!this.createSpriteAvatarMeshFn) {
+      this.createSpriteAvatarMeshFn = offscreenEngineManager.createFunction([
+        `\
+        import * as THREE from 'three';
+        import * as avatarSpriter from './avatar-spriter.js';
+        import loaders from './loaders.js';
+        import {maxAvatarQuality} from './constants.js';
+        import {AvatarRenderer} from './avatars/avatar-renderer.js';
+  
+        `,
+        async function({
+          arrayBuffer,
+          srcUrl,
+        }) {
+          const avatarRenderer = new AvatarRenderer({
+            arrayBuffer,
+            srcUrl,
+            quality: maxAvatarQuality,
+          });
+          await avatarRenderer.waitForLoad();
+  
+          const textureCanvases = avatarSpriter.renderSpriteImages(avatarRenderer);
+          const textureImages = await Promise.all(textureCanvases.map(canvas => {
+            return createImageBitmap(canvas);
+          }));
+          return {
+            textureImages,
+          };
+        }
+      ]);
+    }
+    return this.createSpriteAvatarMeshFn.apply(this, arguments);
+  }
+  crunchAvatarModel() {
+    if (!this.crunchAvatarModelFn) {
+      this.crunchAvatarModelFn = offscreenEngineManager.createFunction([
+        `\
+        import * as THREE from 'three';
+        import * as avatarCruncher from './avatar-cruncher.js';
+        import loaders from './loaders.js';
+  
+        `,
+        async function({
+          arrayBuffer,
+          srcUrl,
+        }) {
+          const parseVrm = (arrayBuffer, srcUrl) => new Promise((accept, reject) => {
+            const {gltfLoader} = loaders;
+            gltfLoader.parse(arrayBuffer, srcUrl, object => {
+              accept(object.scene);
+            }, reject);
+          });
+  
+          const model = await parseVrm(arrayBuffer, srcUrl);
+          const glbData = await avatarCruncher.crunchAvatarModel(model);
+          return {
+            glbData,
+          };
+        }
+      ]);
+    }
+    return this.crunchAvatarModelFn.apply(this, arguments);
+  }
+  optimizeAvatarModel() {
+    if (!this.optimizeAvatarModelFn) {
+      this.optimizeAvatarModelFn = offscreenEngineManager.createFunction([
+        `\
+        import * as THREE from 'three';
+        import * as avatarOptimizer from './avatar-optimizer.js';
+        import loaders from './loaders.js';
+        import exporters from './exporters.js';
+  
+        `,
+        async function({
+          arrayBuffer,
+          srcUrl,
+        }) {
+          const parseVrm = (arrayBuffer, srcUrl) => new Promise((accept, reject) => {
+            const {gltfLoader} = loaders;
+            gltfLoader.parse(arrayBuffer, srcUrl, accept, reject);
+          });
+  
+          const object = await parseVrm(arrayBuffer, srcUrl);
+          
+          const model = object.scene;
+          const glbData = await avatarOptimizer.optimizeAvatarModel(model);
+          return {
+            glbData,
+          };
+        }
+      ]);
+    }
+    return this.optimizeAvatarModelFn.apply(this, arguments);
   }
   #getCurrentMesh() {
     switch (this.quality) {
