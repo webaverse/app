@@ -27,19 +27,13 @@ import {
 } from '../util.js';
 
 import {
-  // idleFactorSpeed,
-  // walkFactorSpeed,
-  // runFactorSpeed,
-  narutoRunTimeFactor,
-} from './constants.js';
-
-import {
   crouchMaxTime,
   // useMaxTime,
   aimMaxTime,
   // avatarInterpolationFrameRate,
   // avatarInterpolationTimeDelay,
   // avatarInterpolationNumFrames,
+  narutoRunTimeFactor,
 } from '../constants.js';
 
 const localVector = new Vector3();
@@ -876,9 +870,10 @@ export const _applyAnimation = (avatar, now) => {
       return spec => {
         const {
           animationTrackName: k,
+          boneName,
           dst,
           lerpFn,
-          // isTop,
+          isTop,
           isPosition,
         } = spec;
 
@@ -891,13 +886,26 @@ export const _applyAnimation = (avatar, now) => {
         const v2 = src2.evaluate(t2);
 
         const emoteFactorS = avatar.emoteFactor / crouchMaxTime;
-        const f = Math.min(Math.max(emoteFactorS, 0), 1);
-        lerpFn
-          .call(
-            dst,
-            localQuaternion.fromArray(v2),
-            f,
-          );
+        let f = Math.min(Math.max(emoteFactorS, 0), 1);
+
+        if (boneName === 'Spine' || boneName === 'Chest' || boneName === 'UpperChest' || boneName === 'Neck' || boneName === 'Head') {
+          if (!isPosition) {
+            dst.premultiply(localQuaternion.fromArray(v2));
+          } else {
+            dst.lerp(localVector.fromArray(v2), f);
+          }
+        } else {
+          if (!isTop) {
+            f *= (1 - idleWalkFactor);
+          }
+
+          lerpFn
+            .call(
+              dst,
+              localQuaternion.fromArray(v2),
+              f,
+            );
+        }
 
         _clearXZ(dst, isPosition);
       };
@@ -1385,8 +1393,10 @@ export const _applyAnimation = (avatar, now) => {
   const _blendActivateAction = spec => {
     const {
       animationTrackName: k,
+      boneName,
       dst,
-      // isTop,
+      isTop,
+      isPosition,
       lerpFn,
     } = spec;
 
@@ -1407,14 +1417,26 @@ export const _applyAnimation = (avatar, now) => {
       const t2 = ((avatar.activateTime / 1000) * activateAnimations[defaultAnimation].speedFactor) % activateAnimation.duration;
       const v2 = src2.evaluate(t2);
 
-      const f = avatar.activateTime > 0 ? Math.min(cubicBezier(t2), 1) : (1 - Math.min(cubicBezier(t2), 1));
+      let f = avatar.activateTime > 0 ? Math.min(cubicBezier(t2), 1) : (1 - Math.min(cubicBezier(t2), 1));
 
-      lerpFn
-        .call(
-          dst,
-          localQuaternion.fromArray(v2),
-          f,
-        );
+      if (boneName === 'Spine' || boneName === 'Chest' || boneName === 'UpperChest' || boneName === 'Neck' || boneName === 'Head') {
+        if (!isPosition) {
+          dst.premultiply(localQuaternion.fromArray(v2));
+        } else {
+          dst.lerp(localVector.fromArray(v2), f);
+        }
+      } else {
+        if (!isTop) {
+          f *= (1 - idleWalkFactor);
+        }
+
+        lerpFn
+          .call(
+            dst,
+            localQuaternion.fromArray(v2),
+            f,
+          );
+      }
     }
   };
 
