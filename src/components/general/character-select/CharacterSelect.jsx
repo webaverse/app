@@ -46,7 +46,7 @@ const characters = {
         {
             name: 'Scillia',
             previewUrl: './images/characters/upstreet/small/scillia.png',
-            avatarUrl: './avatars/scillia_drophunter_v15_vian.vrm',
+            avatarUrl: './avatars/scilly_drophunter_v31.6_Guilty.vrm',
             voice: `Sweetie Belle`,
             voicePack: `ShiShi voice pack`,
             class: 'Drop Hunter',
