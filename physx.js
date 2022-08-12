@@ -1586,6 +1586,9 @@ const physxWorker = (() => {
     allocator.freeAll()
     return result
   }
+  w.addHeightFieldGeometryPhysics = (physics, id) => {
+    Module._addHeightFieldGeometryPhysics(id)
+  }
   w.addCookedConvexGeometryPhysics = (
     physics,
     buffer,
