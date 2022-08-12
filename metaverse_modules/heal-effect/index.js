@@ -1,9 +1,8 @@
 import * as THREE from 'three';
 
 import metaversefile from 'metaversefile';
-const {useApp, useFrame, useInternal,useMaterials} = metaversefile;
-const {WebaverseShaderMaterial} = useMaterials();
-
+const {useApp, useFrame, useInternals} = metaversefile;
+import {WebaverseShaderMaterial} from '../../materials.js';
 const baseUrl = import.meta.url.replace(/(\/)[^\/\\]*$/, '$1');
 
 const textureLoader = new THREE.TextureLoader();
