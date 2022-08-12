@@ -407,21 +407,21 @@ export const Equipment = () => {
                 };
             }
             
-            if(state.openedTab) {
+            if (state.openedTab) {
                 let selectedTab;
                 switch (state.openedTab) {
-                case 'Inventory':
-                    selectedTab = 0;
-                    break;
-                case 'Account':
-                    selectedTab = 1;
-                    break;
-                case 'Land':
-                    selectedTab = 2;
-                    break;
-                default:
-                    selectedTab = 1;
-                    break;
+                    case 'Inventory':
+                        selectedTab = 0;
+                        break;
+                    case 'Account':
+                        selectedTab = 1;
+                        break;
+                    case 'Land':
+                        selectedTab = 2;
+                        break;
+                    default:
+                        selectedTab = 1;
+                        break;
                 }
                 const delta = selectedTab - selectedMenuIndex;
                 setFaceIndex(faceIndex + delta);
