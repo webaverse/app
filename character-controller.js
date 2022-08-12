@@ -397,14 +397,17 @@ class PlayerBase extends THREE.Object3D {
       };
       _transplantNewApp();
 
-      const _initPhysics = () => {
-        const physicsObjects = app.getPhysicsObjects();
-        for (const physicsObject of physicsObjects) {
-          physicsScene.disableGeometryQueries(physicsObject);
-          physicsScene.disableGeometry(physicsObject);
+      const _disableAppPhysics = () => {
+        // don't disable physics if the app is a pet
+        if (!app.hasComponent('pet')) {
+          const physicsObjects = app.getPhysicsObjects();
+          for (const physicsObject of physicsObjects) {
+            physicsScene.disableGeometryQueries(physicsObject);
+            physicsScene.disableGeometry(physicsObject);
+          }
         }
       };
-      _initPhysics();
+      _disableAppPhysics();
 
       const wearComponent = app.getComponent('wear');
       const holdAnimation = wearComponent? wearComponent.holdAnimation : null;
@@ -494,14 +497,16 @@ class PlayerBase extends THREE.Object3D {
         _setAppTransform();
       }
 
-      const _deinitPhysics = () => {
-        const physicsObjects = app.getPhysicsObjects();
-        for (const physicsObject of physicsObjects) {
-          physicsScene.enableGeometryQueries(physicsObject);
-          physicsScene.enableGeometry(physicsObject);
+      const _enableAppPhysics = () => {
+        if (!app.hasComponent('pet')) {
+          const physicsObjects = app.getPhysicsObjects();
+          for (const physicsObject of physicsObjects) {
+            physicsScene.enableGeometryQueries(physicsObject);
+            physicsScene.enableGeometry(physicsObject);
+          }
         }
       };
-      _deinitPhysics();
+      _enableAppPhysics();
       
       const _removeApp = () => {
         this.removeActionIndex(wearActionIndex);
@@ -1176,11 +1181,7 @@ class LocalPlayer extends UninterpolatedPlayer {
     };
     this.addAction(grabAction);
     
-    const physicsObjects = app.getPhysicsObjects();
-    for (const physicsObject of physicsObjects) {
-      //physicsScene.disableGeometry(physicsObject);
-      physicsScene.disableGeometryQueries(physicsObject);
-    }
+    physicsScene.disableAppPhysics(app)
 
     app.dispatchEvent({
       type: 'grabupdate',
@@ -1194,10 +1195,9 @@ class LocalPlayer extends UninterpolatedPlayer {
       const action = actions[i];
       if (action.type === 'grab') {
         const app = metaversefile.getAppByInstanceId(action.instanceId);
-        const physicsObjects = app.getPhysicsObjects();
-        for (const physicsObject of physicsObjects) {
-          physicsScene.enableGeometryQueries(physicsObject);
-        }
+
+        physicsScene.enableAppPhysics(app)
+
         this.removeActionIndex(i + removeOffset);
         removeOffset -= 1;
 
