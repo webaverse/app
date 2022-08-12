@@ -633,7 +633,7 @@ class AppManager extends EventTarget {
         const _updatePhysicsObjects = () => {
           // update attached physics objects with a relative transform
           const physicsObjects = app.getPhysicsObjects();
-          if (physicsObjects.length > 0) {
+          if (physicsObjects.length > 0 && !app.isGroupComponent) {
             const lastMatrixInverse = localMatrix.copy(app.lastMatrix).invert();
 
             for (const physicsObject of physicsObjects) {
