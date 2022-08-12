@@ -730,8 +730,6 @@ export class AvatarRenderer /* extends EventTarget */ {
       } catch (err) {
         caughtError = err;
       }
-      // remove the placeholder mesh
-      this.scene.remove(this.placeholderMesh);
       // handle errors
       if (caughtError) {
         if (caughtError.isAbortError) {
@@ -743,6 +741,9 @@ export class AvatarRenderer /* extends EventTarget */ {
         this.abortController = null;
       }
     }
+
+    // remove the placeholder mesh
+    this.scene.remove(this.placeholderMesh);
 
     // add the new avatar mesh
     const currentMesh = this.#getCurrentMesh();
