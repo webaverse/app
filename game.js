@@ -1390,6 +1390,9 @@ class GameManager extends EventTarget {
       npc.isLocalPlayer = true;
       npc.isNpcPlayer = false;
 
+      npc.updatePhysicsStatus();
+      localPlayer.updatePhysicsStatus();
+
       const npcIndex = npcManager.npcs.indexOf(npc);
       npcManager.npcs[npcIndex] = localPlayer;
 
