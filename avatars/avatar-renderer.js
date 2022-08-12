@@ -451,7 +451,7 @@ export class AvatarRenderer /* extends EventTarget */ {
                   _forAllMeshes(glb, _unfrustumCull);
                   glb.boundingSphere = _getMergedBoundingSphere(glb);
 
-                  // console.log('got texture images glb', {textureImages, glb});
+                  /* // console.log('got texture images glb', {textureImages, glb});
                   const canvasesPerRow = 4;
                   const canvasSize = 256;
                   for (let i = 0; i < textureImages.length; i++) {
@@ -473,7 +473,7 @@ export class AvatarRenderer /* extends EventTarget */ {
                       z-index: 1;
                     `;
                     document.body.appendChild(canvas);
-                  }
+                  } */
     
                   this.spriteAvatarMesh = glb;
                 })(),
