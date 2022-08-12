@@ -739,6 +739,7 @@ const planeWarpedGeometry2 = planeGeometry.clone()
     new THREE.Quaternion(),
     new THREE.Vector3().setScalar(spriteScaleFactor),
   ));
+planeWarpedGeometry2.computeBoundingSphere();
 
 const camera2 = new THREE.PerspectiveCamera(60, 1, 0.1, 1000);
 const scene2 = new THREE.Scene();
