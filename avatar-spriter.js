@@ -1487,8 +1487,8 @@ class AvatarSpriteDepthMaterial extends THREE.MeshNormalMaterial {
   }
 }
 
-export const renderSpriteImages = skinnedVrm => {
-  const localRig = new Avatar(skinnedVrm, {
+export const renderSpriteImages = avatarRenderer => {
+  const localRig = new Avatar(avatarRenderer, {
     fingers: true,
     hair: true,
     visemes: true,
@@ -1504,8 +1504,8 @@ export const renderSpriteImages = skinnedVrm => {
     value: 1,
   });
   
-  const skinnedModel = skinnedVrm.scene;
-  skinnedModel.traverse(o => {
+  const model = avatarRenderer.scene;
+  model.traverse(o => {
     if (o.isMesh) {
       o.frustumCulled = false;
     }
@@ -1513,7 +1513,7 @@ export const renderSpriteImages = skinnedVrm => {
 
   const skeleton = (() => {
     let skeleton = null;
-    skinnedModel.traverse(o => {
+    model.traverse(o => {
       if (skeleton === null && o.isSkinnedMesh) {
         skeleton = o.skeleton;
       }
@@ -1525,8 +1525,8 @@ export const renderSpriteImages = skinnedVrm => {
   const {renderer, scene} = metaversefile.useInternals();
   const pixelRatio = renderer.getPixelRatio();
   const _renderSpriteFrame = () => {
-    const oldParent = skinnedModel.parent;
-    scene2.add(skinnedModel);
+    const oldParent = model.parent;
+    scene2.add(model);
 
     const rendererSize = renderer.getSize(localVector2D);
     if (rendererSize.x >= texSize && rendererSize.y >= texSize) {
@@ -1545,9 +1545,9 @@ export const renderSpriteImages = skinnedVrm => {
     }
 
     if (oldParent) {
-      oldParent.add(skinnedModel);
+      oldParent.add(model);
     } else {
-      skinnedModel.parent.remove(skinnedModel);
+      model.parent.remove(model);
     }
   };
 
@@ -1691,6 +1691,6 @@ export const createSpriteAvatarMeshFromTextures = spriteImages => {
   return spriteAvatarMesh;
 };
 export const createSpriteAvatarMesh = skinnedVrm => {
-  const spriteImages = renderSpriteImages(skinnedVrm);
+  let spriteImages = renderSpriteImages(skinnedVrm);
   return createSpriteAvatarMeshFromTextures(spriteImages);
 };
