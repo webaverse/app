@@ -9,7 +9,7 @@ import loaders from '../loaders.js';
 // import exporters from '../exporters.js';
 import {abortError} from '../lock-manager.js';
 import {/*defaultAvatarQuality,*/ minAvatarQuality, maxAvatarQuality} from '../constants.js';
-const defaultAvatarQuality = 1;
+const defaultAvatarQuality = 4;
 // import {downloadFile} from '../util.js';
 
 // const localBox = new THREE.Box3();
