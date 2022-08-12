@@ -38,6 +38,7 @@ import {handleStoryKeyControls} from '../../../story';
 import styles from './App.module.css';
 import '../../fonts.css';
 import raycastManager from '../../../raycast-manager';
+import { PopupNotification } from '../../PopupNotification';
 
 //
 
@@ -140,6 +141,9 @@ export const App = () => {
     const [ selectedRoom, setSelectedRoom ] = useState( _getCurrentRoom() );
     const [ apps, setApps ] = useState( world.appManager.getApps().slice() );
 
+    // Popup notification state
+    const [ popupNotification, setPopupNotification ] = useState(null);
+
     //
 
     const selectApp = ( app, physicsId, position ) => {
@@ -206,6 +210,9 @@ export const App = () => {
             if ( event.ctrlKey && event.code === 'KeyH' ) {
 
                 setUIMode( uiMode === 'normal' ? 'none' : 'normal' );
+                if(uiMode === 'normal') {
+                    setPopupNotification('Press CTRL + H to unhide UI');
+                }
                 return false;
 
             }
@@ -326,8 +333,9 @@ export const App = () => {
             onDragEnd={onDragEnd}
             onDragOver={onDragOver}
         >
-            <AppContext.Provider value={{ state, setState, app, setSelectedApp, selectedApp, uiMode }}>
+            <AppContext.Provider value={{ state, setState, app, setSelectedApp, selectedApp, uiMode, setPopupNotification, popupNotification }}>
                 <Header setSelectedApp={ setSelectedApp } selectedApp={ selectedApp } />
+                <PopupNotification popupNotification={ popupNotification } />
                 <DomRenderer />
                 <Canvas app={app} />
                 <Crosshair />

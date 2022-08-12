@@ -10,7 +10,7 @@ import styles from './action-menu.module.css';
 
 export const ActionMenu = ({ setUIMode, className }) => {
 
-    const { state, setState, app, uiMode } = useContext( AppContext );
+    const { state, setState, app, uiMode, setPopupNotification } = useContext( AppContext );
     const [ xrSupported, setXrSupported ] = useState( false );
 
     //
@@ -61,6 +61,9 @@ export const ActionMenu = ({ setUIMode, className }) => {
     const handleModeBtnClick = () => {
 
         setUIMode( uiMode === 'normal' ? 'none' : 'normal' );
+        if ( uiMode === 'normal' ) {
+            setPopupNotification('Press CTRL + H to unhide UI');
+        }
 
     };
 
