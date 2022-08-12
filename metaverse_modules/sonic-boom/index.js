@@ -12,28 +12,42 @@ export default () => {
   let narutoRunTime = 0; 
   let lastStopSw = 0;
 
-  const textureLoader = new THREE.TextureLoader()
-  const wave2 = textureLoader.load(`${baseUrl}/textures/wave2.jpeg`)
-  const wave20 = textureLoader.load(`${baseUrl}/textures/wave20.png`)
-  const wave9 = textureLoader.load(`${baseUrl}/textures/wave9.png`)
-  const electronicballTexture = textureLoader.load(`${baseUrl}/textures/electronic-ball2.png`);
-  const noiseTexture = textureLoader.load(`${baseUrl}/textures/noise.jpg`);
-  const electricityTexture1 = textureLoader.load(`${baseUrl}/textures/electricityTexture1.png`);
-  const electricityTexture2 = textureLoader.load(`${baseUrl}/textures/electricityTexture2.png`);
-  const trailTexture = textureLoader.load(`${baseUrl}/textures/trail3.png`);
-  trailTexture.wrapS = trailTexture.wrapT = THREE.RepeatWrapping;
-  const maskTexture = textureLoader.load(`${baseUrl}/textures/mask.png`);
-  const voronoiNoiseTexture = textureLoader.load(`${baseUrl}/textures/voronoiNoise.jpg`);
-  voronoiNoiseTexture.wrapS = voronoiNoiseTexture.wrapT = THREE.RepeatWrapping;
-  const sphereTexture = textureLoader.load(`${baseUrl}/textures/sphere.png`)
- 
+  const nameSpec = [
+    'wave2',
+    'wave20',
+    'wave9',
+    'electronic-ball2',
+    'noise',
+    'electricityTexture1',
+    'electricityTexture2',
+    'trail',
+    'mask',
+    'voronoiNoise',
+    'sphere'
+  ]
+  const particleTexture = [];
+  const _loadAllTexture = async names => {
+    for(const name of names){
+        const texture = await new Promise((accept, reject) => {
+            const {ktx2Loader} = useLoaders();
+            const u = `${baseUrl}/textures/${name}.ktx2`;
+            ktx2Loader.load(u, accept, function onProgress() {}, reject);
+        });
+        particleTexture.push(texture);
+    }
+  };
+  _loadAllTexture(nameSpec);
+  
+  
   
     let currentDir = new THREE.Vector3();
     //################################################ trace narutoRun Time ########################################
     {
         let localVector = new THREE.Vector3();
         useFrame(() => {
-            localVector.set(0, 0, -1);
+            localVector.x = 0;
+            localVector.y = 0;
+            localVector.z = -1;
             currentDir = localVector.applyQuaternion(localPlayer.quaternion);
             currentDir.normalize();
             if (localPlayer.hasAction('narutoRun')){
@@ -96,11 +110,11 @@ export default () => {
               },
               waveTexture: {
                 type: "t",
-                value: wave2
+                value: null
               },
               waveTexture2: {
                 type: "t",
-                value: wave20
+                value: null
               },
               
             },
@@ -234,6 +248,10 @@ export default () => {
 
                 group.scale.set(1, 1, 1);
                 material.uniforms.uTime.value = timestamp / 5000;
+                if(!material.uniforms.waveTexture.value)
+                    material.uniforms.waveTexture.value = particleTexture[nameSpec.indexOf('wave2')];
+                if(!material.uniforms.waveTexture2.value)
+                    material.uniforms.waveTexture2.value = particleTexture[nameSpec.indexOf('wave20')];
             }
             else{
                 if(sonicBoomInApp){
@@ -294,7 +312,7 @@ export default () => {
             uniforms: {
                 perlinnoise: {
                     type: "t",
-                    value: wave2
+                    value: null
                 },
                 uTime: {
                     type: "f",
@@ -343,6 +361,8 @@ export default () => {
                 group.position.z -= 2.2 * currentDir.z;
                 group.scale.set(1, 1, 1);
                 windMaterial.uniforms.uTime.value = timestamp / 10000;
+                if(!windMaterial.uniforms.perlinnoise.value)
+                    windMaterial.uniforms.perlinnoise.value = particleTexture[nameSpec.indexOf('wave2')];
             }
             else{
                 if(sonicBoomInApp){
@@ -366,7 +386,7 @@ export default () => {
         const attributeSpecs = [];
         attributeSpecs.push({name: 'id', itemSize: 1});
         attributeSpecs.push({name: 'scales', itemSize: 1});
-        const geometry2 = new THREE.CylinderBufferGeometry(0.5, 0.1, 4., 50, 50, true);
+        const geometry2 = new THREE.CylinderBufferGeometry(0.5, 0.1, 4.5, 50, 50, true);
         const geometry = _getGeometry(geometry2, attributeSpecs, particleCount);
         const idAttribute = geometry.getAttribute('id');
         idAttribute.setX(0, 0);
@@ -378,7 +398,7 @@ export default () => {
             uniforms: {
                 perlinnoise: {
                     type: "t",
-                    value: wave9
+                    value: null
                 },
                 color: {
                     value: new THREE.Vector3(0.120, 0.280, 1.920)
@@ -442,7 +462,7 @@ export default () => {
                     pos *= rotZ;
                     pos *= rotX;
                     if(id > 0.5){
-                        pos.y *= 1.3; 
+                        pos.y *= 1.5; 
                     }
                     gl_Position = projectionMatrix * modelViewMatrix * vec4( pos, 1.0 );
                     ${THREE.ShaderChunk.logdepthbuf_vertex}
@@ -544,9 +564,11 @@ export default () => {
                     group.position.y -= localPlayer.avatar.height;
                     group.position.y += 0.65;
                 }
-                group.position.x -= 2. * currentDir.x;
-                group.position.z -= 2. * currentDir.z;
+                group.position.x -= 2.2 * currentDir.x;
+                group.position.z -= 2.2 * currentDir.z;
                 flameMaterial.uniforms.uTime.value = timestamp / 20000;
+                if(!flameMaterial.uniforms.perlinnoise.value)
+                    flameMaterial.uniforms.perlinnoise.value = particleTexture[nameSpec.indexOf('wave9')];
                 if(Math.abs(localPlayer.rotation.x) > 0){
                     let temp = localPlayer.rotation.y + Math.PI;
                     for(let i = 0; i < 5; i++){
@@ -590,9 +612,9 @@ export default () => {
             opacity: {
                 value: 0,
             },
-            trailTexture:{ value: trailTexture},
-            maskTexture:{value: maskTexture},
-            voronoiNoiseTexture:{value: voronoiNoiseTexture},
+            trailTexture:{ value: null},
+            maskTexture:{value: null},
+            voronoiNoiseTexture:{value: null},
         },
         vertexShader: `\
              
@@ -640,18 +662,18 @@ export default () => {
                 trailTexture,
                 vec2(
                     vUv.x,
-                    mix(2. * vUv.y + uTime * 1.5, voronoiNoise.g, 0.25)
+                    mix(2. * vUv.y + uTime * 1.5, voronoiNoise.g, 0.5)
                 )
             );  
             vec4 mask = texture2D(
                 maskTexture,
                 vec2(
                     vUv.x,
-                    vUv.y
+                    1. - vUv.y
                 )
             ); 
-            float p = 2.15;
-            voronoiNoise = vec4(pow(voronoiNoise.r, p), pow(voronoiNoise.g, p), pow(voronoiNoise.b, p), voronoiNoise.a) * 1.15;
+            float p = 3.5;
+            voronoiNoise = vec4(pow(voronoiNoise.r, p), pow(voronoiNoise.g, p), pow(voronoiNoise.b, p), voronoiNoise.a) * 1.4;
             gl_FragColor = mask * trail * voronoiNoise * vec4(0.120, 0.280, 1.920, 1.0);
             gl_FragColor.a *= opacity;
                 
@@ -741,14 +763,14 @@ export default () => {
             for (let i = 0; i < planeNumber; i++){
                 if(i === 0){
                     position[0] = localPlayer.position.x;
-                    position[1] = localPlayer.position.y - 0.9;
+                    position[1] = localPlayer.position.y - 0.85;
                     position[2] = localPlayer.position.z;
                     if (localPlayer.avatar) {
                         position[1] -= localPlayer.avatar.height;
                         position[1] += 1.18;
                     }
                     position[3] = localPlayer.position.x;
-                    position[4] = localPlayer.position.y - 2.2;
+                    position[4] = localPlayer.position.y - 2.25;
                     position[5] = localPlayer.position.z;
                     if (localPlayer.avatar) {
                         position[4] -= localPlayer.avatar.height;
@@ -768,7 +790,7 @@ export default () => {
                     position[14] = temp[2];
                 
                     position[15] = localPlayer.position.x;
-                    position[16] = localPlayer.position.y - 2.2;
+                    position[16] = localPlayer.position.y - 2.25;
                     position[17] = localPlayer.position.z;
                     if (localPlayer.avatar) {
                         position[16] -= localPlayer.avatar.height;
@@ -791,7 +813,19 @@ export default () => {
             plane.geometry.dynamic = true;
             plane.geometry.attributes.position.needsUpdate = true;
             
-            material.uniforms.uTime.value = timestamp / 1000;  
+            material.uniforms.uTime.value = timestamp / 1000;
+            if(!material.uniforms.trailTexture.value){
+                material.uniforms.trailTexture.value = particleTexture[nameSpec.indexOf('trail')];
+                material.uniforms.trailTexture.value.wrapS = material.uniforms.trailTexture.value.wrapT = THREE.RepeatWrapping;
+            }
+            if(!material.uniforms.voronoiNoiseTexture.value){
+                material.uniforms.voronoiNoiseTexture.value = particleTexture[nameSpec.indexOf('voronoiNoise')];
+                material.uniforms.voronoiNoiseTexture.value.wrapS = material.uniforms.voronoiNoiseTexture.value.wrapT = THREE.RepeatWrapping;
+            }
+            if(!material.uniforms.maskTexture.value){
+                material.uniforms.maskTexture.value = particleTexture[nameSpec.indexOf('mask')];
+            }
+                
         }
         else{
             if(sonicBoomInApp){
@@ -888,10 +922,10 @@ export default () => {
             point2.y = localPlayer.position.y;
             point2.z = localPlayer.position.z;
             
-            point1.x -= 0.8 * localVector2.x;
-            point1.z -= 0.8 * localVector2.z;
-            point2.x += 0.8 * localVector2.x;
-            point2.z += 0.8 * localVector2.z;
+            point1.x -= 0.9 * localVector2.x;
+            point1.z -= 0.9 * localVector2.z;
+            point2.x += 0.9 * localVector2.x;
+            point2.z += 0.9 * localVector2.z;
             
            
             for(let i = 0;i < 18; i++){
@@ -972,7 +1006,7 @@ export default () => {
                 },
                 sphereTexture: {
                     type: "t",
-                    value: sphereTexture
+                    value: null
                 }
             },
             vertexShader: `
@@ -1032,7 +1066,7 @@ export default () => {
             lights: false,
         });
         material.freeze();
-        const geometry = new THREE.PlaneGeometry( 1.85, 1.85 );
+        const geometry = new THREE.PlaneGeometry( 1.95, 1.95 );
         const mainBall = new THREE.Mesh( geometry, material );
         // app.add(mainBall);
         let sonicBoomInApp=false;
@@ -1079,6 +1113,9 @@ export default () => {
                     mainBall.position.y -= localPlayer.avatar.height;
                     mainBall.position.y += 0.65;
                 }
+                if(!material.uniforms.sphereTexture.value){
+                    material.uniforms.sphereTexture.value = particleTexture[nameSpec.indexOf('sphere')];
+                }
                 material.uniforms.cameraBillboardQuaternion.value.copy(camera.quaternion);
                 
             }
@@ -1119,11 +1156,11 @@ export default () => {
                 },
                 electricityTexture1: {
                     type: "t",
-                    value: electricityTexture1
+                    value: null
                 },
                 electricityTexture2: {
                     type: "t",
-                    value: electricityTexture2
+                    value: null
                 },
 
             },
@@ -1263,7 +1300,12 @@ export default () => {
                 }
                 material.uniforms.uTime.value = timestamp / 1000;
                 material.uniforms.cameraBillboardQuaternion.value.copy(camera.quaternion);
-
+                if(!material.uniforms.electricityTexture1.value){
+                    material.uniforms.electricityTexture1.value = particleTexture[nameSpec.indexOf('electricityTexture1')];
+                }
+                if(!material.uniforms.electricityTexture2.value){
+                    material.uniforms.electricityTexture2.value = particleTexture[nameSpec.indexOf('electricityTexture2')];
+                }
                 const scalesAttribute = electricity.geometry.getAttribute('scales');
                 const textureRotationAttribute = electricity.geometry.getAttribute('textureRotation');
                 scalesAttribute.setX(0, 0.8 + Math.random() * 0.2);
@@ -1318,7 +1360,7 @@ export default () => {
                 },
                 electronicballTexture: {
                     type: "t",
-                    value: electronicballTexture
+                    value: null
                 },
 
             },
@@ -1468,6 +1510,9 @@ export default () => {
 
                 material.uniforms.uTime.value = timestamp / 1000;
                 material.uniforms.cameraBillboardQuaternion.value.copy(camera.quaternion);
+                if(!material.uniforms.electronicballTexture.value){
+                    material.uniforms.electronicballTexture.value = particleTexture[nameSpec.indexOf('electronic-ball2')];
+                }
             }
             else{
                 if(sonicBoomInApp){
@@ -1693,7 +1738,7 @@ export default () => {
             uniforms: {
                 uTime: { value: 0 },
                 opacity: { value: 0 },
-                noiseMap: {value: noiseTexture}
+                noiseMap: {value: null}
 
             },
             vertexShader: `
@@ -1827,9 +1872,9 @@ export default () => {
                         info.acc[i].set(-currentDir.x * 0.0018, 0.0008, -currentDir.z * 0.0018);
                         positionsAttribute.setXYZ(
                             i, 
-                            localPlayer.position.x + 1.2 * currentDir.x + (Math.random() - 0.5) * 0.2 , 
+                            localPlayer.position.x + 1.1 * currentDir.x + (Math.random() - 0.5) * 0.2 , 
                             localPlayer.position.y - localPlayer.avatar.height, 
-                            localPlayer.position.z + 1.2 * currentDir.z + (Math.random() - 0.5) * 0.2
+                            localPlayer.position.z + 1.1 * currentDir.z + (Math.random() - 0.5) * 0.2
                         );
                         euler.set(Math.random() * Math.PI, Math.random() * Math.PI, Math.random() * Math.PI);
                         quaternion.setFromEuler(euler);
@@ -1860,6 +1905,11 @@ export default () => {
                 opacityAttribute.needsUpdate = true;
                 brokenAttribute.needsUpdate = true;
                 quaternionAttribute.needsUpdate = true;
+                if(!material.uniforms.noiseMap.value){
+                    material.uniforms.noiseMap.value = particleTexture[nameSpec.indexOf('noise')];
+                }
+                
+    
             }
             if(lastStopSw === 1  && narutoRunTime === 0){
                 lastStopSw = 0;
