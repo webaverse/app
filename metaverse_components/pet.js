@@ -1,4 +1,5 @@
 import * as THREE from 'three';
+import { CapsuleGeometry } from '../CapsuleGeometry.js';
 import metaversefile from 'metaversefile';
 import physicsManager from '../physics-manager';
 
@@ -10,9 +11,12 @@ const localQuaternion3 = new THREE.Quaternion();
 const localEuler = new THREE.Euler();
 const localMatrix = new THREE.Matrix4();
 
+const physicsIds = [];
+
 export default (app, component) => {
   const {
     useFrame,
+    usePhysics,
     useCleanup,
     useLocalPlayer,
     useRemotePlayers,
@@ -21,30 +25,53 @@ export default (app, component) => {
   } = metaversefile;
 
   // app.rotation.y += Math.PI / 2;
+  const physics = usePhysics();
 
-
-  const petHeight = 0.5;
+  let petHeight = 0.1;
 
   const physicsScene = physicsManager.getScene();
   const heightFactor = 1;
-  const baseRadius = 0.2;
-  const radius = (baseRadius / heightFactor) * petHeight;
+  const baseRadius = 0.01;
+  let radius = (baseRadius / heightFactor) * petHeight;
   const capsuleHeight = petHeight - radius * 2;
 
   const contactOffset = (0.1 / heightFactor) * petHeight;
   const stepOffset = (0.5 / heightFactor) * petHeight;
 
+  radius = radius + contactOffset;
+  petHeight = petHeight + radius * 2;
+
   const capsulePosition = app.position.clone();
-  capsulePosition.y += 5;
-  
+  // capsulePosition.updateMatrixWorld();
+
   const characterController = physicsScene.createCharacterController(
     radius - contactOffset,
     capsuleHeight,
     contactOffset,
     stepOffset,
     capsulePosition
-    );
-    
+  );
+
+  // const capsuleGeometry = new CapsuleGeometry(
+  //   radius - contactOffset,
+  //   radius - contactOffset,
+  //   capsuleHeight,
+  //   contactOffset,
+  //   stepOffset
+  // );
+  // const debugCapsuleMesh = new THREE.Mesh(
+  //   capsuleGeometry,
+  //   new THREE.MeshBasicMaterial()
+  // );
+
+  const debugCapsuleMesh = characterController.children[0];
+  debugCapsuleMesh.visible = true;
+
+  app.add(debugCapsuleMesh);
+
+  const debugCapsuleId = physics.addGeometry(debugCapsuleMesh);
+  physicsIds.push(debugCapsuleId);
+
   // const physicsObject = physicsScene.addCapsuleGeometry(app.position, app.quaternion, 0.2, 0.05);
 
   let petSpec = null;
@@ -168,13 +195,13 @@ export default (app, component) => {
     const h = 0.5 * physicsScene.getGravity().y * t * t;
 
     // localVector.set(app.position.x, -9.8 * timeDiffCapped, app.position.z).normalize();
-    localVector.set(0, h - lastGravityH, 0);
-    smoothVelocity.add(localVector);
+    const displacement = localVector.set(0, h - lastGravityH, 0);
+    smoothVelocity.add(displacement);
     const flags = physicsScene.moveCharacterController(
       characterController,
       smoothVelocity,
       0,
-      timeDiffS,
+      timeDiffSCapped,
       app.position
     );
 
@@ -189,14 +216,13 @@ export default (app, component) => {
       console.log('Not Grounded');
     } else {
       console.log('Grounded');
-      if (fallLoopStartTimeS != 0) {
-        app.position.y -= petHeight / 2 - 0.11;
+      if (fallLoopStartTimeS !== 0) {
+        // app.position.y -= petHeight / 2;
       }
       fallLoopStartTimeS = 0;
       startFallingPosition.set(0, 0, 0);
       lastGravityH = 0;
     }
-
 
     // components
     const _updateAnimation = () => {
@@ -246,7 +272,7 @@ export default (app, component) => {
 
             const walkSpeed = 0.01;
             const runSpeed = 0.03;
-            const currentSpeed = smoothVelocity.length(); 
+            const currentSpeed = smoothVelocity.length();
             if (walkAction) {
               walkAction.weight = Math.min(currentSpeed / walkSpeed, 1);
             }
