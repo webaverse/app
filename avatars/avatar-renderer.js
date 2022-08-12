@@ -6,6 +6,7 @@ import * as avatarCruncher from '../avatar-cruncher.js';
 import * as avatarSpriter from '../avatar-spriter.js';
 import offscreenEngineManager from '../offscreen-engine-manager.js';
 import loaders from '../loaders.js';
+import {camera} from '../renderer.js';
 // import exporters from '../exporters.js';
 import {abortError} from '../lock-manager.js';
 import {/*defaultAvatarQuality,*/ minAvatarQuality, maxAvatarQuality} from '../constants.js';
@@ -263,7 +264,33 @@ export class AvatarRenderer /* extends EventTarget */ {
 
     this.setQuality(quality);
   }
-  createSpriteAvatarMesh() {
+  createSpriteAvatarMesh([{
+    arrayBuffer,
+    srcUrl,
+  }], {signal}) {
+    return (async () => {
+      /* console.log('avatar renderer 1', {
+        arrayBuffer,
+        srcUrl,
+      }); */
+      const avatarRenderer = new AvatarRenderer({
+        arrayBuffer,
+        srcUrl,
+        quality: maxAvatarQuality,
+      });
+      await avatarRenderer.waitForLoad();
+  
+      const textureCanvases = avatarSpriter.renderSpriteImages(avatarRenderer);
+      const textureImages = await Promise.all(textureCanvases.map(canvas => {
+        return createImageBitmap(canvas, {
+          imageOrientation: 'flipY',
+        });
+      }));
+      return {
+        textureImages,
+      };
+    })();
+
     if (!this.createSpriteAvatarMeshFn) {
       this.createSpriteAvatarMeshFn = offscreenEngineManager.createFunction([
         `\
