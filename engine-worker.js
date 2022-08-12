@@ -1,6 +1,5 @@
-import {
-  bindCanvas,
-} from './renderer.js';
+import {bindCanvas} from './renderer.js';
+import {getJsDataUrl} from './util.js';
 
 window.addEventListener('message', e => {
   const method = e.data?.method;
@@ -85,7 +84,7 @@ const _bindPort = port => {
           let error = null;
           let result = null;
           try {
-            const u = `data:application/javascript;charset=utf-8,${encodeURIComponent(src)}`;
+            const u = getJsDataUrl(src);
             const module = await import2(u);
             if (typeof module.default === 'function') {
               const fn = module.default;
