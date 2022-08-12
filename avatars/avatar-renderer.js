@@ -423,6 +423,30 @@ export class AvatarRenderer /* extends EventTarget */ {
                   const glb = avatarSpriter.createSpriteAvatarMeshFromTextures(textureImages);
                   _forAllMeshes(glb, _unfrustumCull);
                   glb.boundingSphere = _getMergedBoundingSphere(glb);
+
+                  // console.log('got texture images glb', {textureImages, glb});
+                  const canvasesPerRow = 4;
+                  const canvasSize = 256;
+                  for (let i = 0; i < textureImages.length; i++) {
+                    const textureImage = textureImages[i];
+                    const x = i % canvasesPerRow;
+                    const y = Math.floor(i / canvasesPerRow);
+
+                    const canvas = document.createElement('canvas');
+                    canvas.width = textureImage.width;
+                    canvas.height = textureImage.height;
+                    const ctx = canvas.getContext('2d');
+                    ctx.drawImage(textureImage, 0, 0);
+                    canvas.style.cssText = `\
+                      position: absolute;
+                      top: ${y * canvasSize}px;
+                      left: ${x * canvasSize}px;
+                      width: ${canvasSize}px;
+                      height: ${canvasSize}px;
+                      z-index: 1;
+                    `;
+                    document.body.appendChild(canvas);
+                  }
     
                   this.spriteAvatarMesh = glb;
                 })(),
