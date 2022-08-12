@@ -1958,6 +1958,7 @@ class Avatar {
       );
       localFrustum.setFromProjectionMatrix(projScreenMatrix);
       
+      this.avatarRenderer.updateAvatar(timestamp, timeDiff, this);
       this.avatarRenderer.updateFrustumCull(localMatrix, localFrustum);
     };
     _updateRendererFrustumCull();
