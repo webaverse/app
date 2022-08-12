@@ -1,3 +1,6 @@
+/* eslint-disable node/no-deprecated-api */
+/* eslint-disable camelcase */
+/* eslint-disable promise/param-names */
 import http from 'http';
 import https from 'https';
 import url from 'url';
@@ -6,6 +9,9 @@ import fs from 'fs';
 import express from 'express';
 import vite from 'vite';
 import wsrtc from 'wsrtc/wsrtc-server.mjs';
+import metaversefile from 'metaversefile/plugins/rollup.js';
+import glob from 'glob';
+import Babel from '@babel/core';
 
 const SERVER_ADDR = '0.0.0.0';
 const SERVER_NAME = 'local.webaverse.com';
@@ -14,13 +20,16 @@ Error.stackTraceLimit = 300;
 const cwd = process.cwd();
 
 const isProduction = process.argv[2] === '-p';
+process.env.MODULE_URL = process.env.MODULE_URL || 'https://local.webaverse.com/';
+process.env.NODE_ENV = isProduction ? 'production' : process.env.NODE_ENV;
+const totum = metaversefile();
 
 const _isMediaType = p => /\.(?:png|jpe?g|gif|svg|glb|mp3|wav|webm|mp4|mov)$/.test(p);
 
 const _tryReadFile = p => {
   try {
     return fs.readFileSync(p);
-  } catch(err) {
+  } catch (err) {
     // console.warn(err);
     return null;
   }
@@ -37,6 +46,65 @@ function makeId(length) {
     result += characters.charAt(Math.floor(Math.random() * characters.length));
   }
   return result;
+}
+
+async function dynamicImporter(o, req, res, next) {
+  try {
+    const loadUrl = decodeURI(o.pathname.slice(o.pathname.lastIndexOf('/@import'), o.pathname.length).replace('/@import', ''));
+    const fullUrl = req.protocol + '://' + req.get('host') + loadUrl;
+    const reqURL = new URL(fullUrl);
+
+    /** Check intiator */
+    if (req.headers['sec-fetch-dest'] === 'script') {
+      let id = await totum.resolveId(loadUrl, reqURL.href);
+      if (!id) {
+        console.error('\nFailed to load', loadUrl, reqURL.href);
+        console.log('\n------------------------------------------------------------------');
+        res.status(500);
+        return res.end('Failed to load');
+      }
+
+      id = id.replace('/@proxy/', '');
+      const {code} = await totum.load(id);
+      if (process.env.NODE_ENV === 'production') {
+        const src = Babel.transform(code, {
+          plugins: [
+            ['babel-plugin-custom-import-path-transform',
+              {
+                caller: id,
+                transformImportPath: './packages/totum/plugins/moduleRewrite.js',
+              }],
+          ],
+        });
+        res.writeHead(200, {'Content-Type': 'application/javascript'});
+        res.end(src.code);
+      }
+    } else {
+      req.originalUrl = loadUrl;
+      return /^\/(?:@proxy)\//.test(req.originalUrl) ? proxyReq(loadUrl, res) : res.redirect(req.originalUrl);
+    }
+  } catch (e) {
+    console.log(e);
+    res.status(500).end(e.stack);
+  }
+}
+
+function proxyReq(u, res) {
+  u = u.replace(/^\/@proxy\//, '');
+  const proxyReq = /https/.test(u) ? https.request(u) : http.request(u);
+  proxyReq.on('response', proxyRes => {
+    for (const header in proxyRes.headers) {
+      res.setHeader(header, proxyRes.headers[header]);
+    }
+    res.statusCode = proxyRes.statusCode;
+    proxyRes.pipe(res);
+  });
+  proxyReq.on('error', err => {
+    console.error(err);
+    res.statusCode = 500;
+    res.end();
+  });
+  proxyReq.end();
 }
 
 /* const _proxyUrl = (req, res, u) => {
@@ -64,31 +132,22 @@ function makeId(length) {
     res.setHeader('Cross-Origin-Resource-Policy', 'cross-origin');
 
     const o = url.parse(req.originalUrl, true);
-    if (/^\/(?:@proxy|public)\//.test(o.pathname) && o.query['import'] === undefined) {
+
+    /** Replace any double / caused due to both proxy & import */
+    o.pathname = o.pathname.replace(/(?<!(http:|https:))\/\//g, '/');
+
+    if (/^\/(?:@proxy|public)\//.test(o.pathname) && o.query.import === undefined) {
       const u = o.pathname
         .replace(/^\/@proxy\//, '')
         .replace(/^\/public/, '')
         .replace(/^(https?:\/(?!\/))/, '$1/');
-      if (_isMediaType(o.pathname)) {
-        const proxyReq = /https/.test(u) ? https.request(u) : http.request(u);
-        proxyReq.on('response', proxyRes => {
-          for (const header in proxyRes.headers) {
-            res.setHeader(header, proxyRes.headers[header]);
-          }
-          res.statusCode = proxyRes.statusCode;
-          proxyRes.pipe(res);
-        });
-        proxyReq.on('error', err => {
-          console.error(err);
-          res.statusCode = 500;
-          res.end();
-        });
-        proxyReq.end();
+      if (_isMediaType(o.pathname) && !/^\/(?:@proxy)\//.test(o.pathname)) {
+        proxyReq(u, res);
       } else {
         req.originalUrl = u;
-        next();
+        isProduction ? dynamicImporter(o, req, res, next) : next();
       }
-    } else if (o.query['noimport'] !== undefined) {
+    } else if (o.query.noimport !== undefined) {
       const p = path.join(cwd, path.resolve(o.pathname));
       const rs = fs.createReadStream(p);
       rs.on('error', err => {
@@ -104,10 +163,11 @@ function makeId(length) {
       rs.pipe(res);
       // _proxyUrl(req, res, req.originalUrl);
     } else if (/^\/login/.test(o.pathname)) {
-      req.originalUrl = req.originalUrl.replace(/^\/(login)/,'/');
+      req.originalUrl = req.originalUrl.replace(/^\/(login)/, '/');
       return res.redirect(req.originalUrl);
     } else {
-      next();
+      isProduction && (/^\/@import/.test(o.pathname))
+        ? dynamicImporter(o, req, res, next) : next();
     }
   });
 
@@ -117,19 +177,62 @@ function makeId(length) {
 
   const _makeHttpServer = () => isHttps ? https.createServer(certs, app) : http.createServer(app);
   const httpServer = _makeHttpServer();
-  const viteServer = await vite.createServer({
-    server: {
-      middlewareMode: 'html',
-      force:true,
-      hmr: {
-        server: httpServer,
-        port,
-        overlay: false,
+
+  if (!isProduction) {
+    const viteServer = await vite.createServer({
+      server: {
+        middlewareMode: 'html',
+        force: true,
+        hmr: {
+          server: httpServer,
+          port,
+          overlay: false,
+        },
       },
+    });
+    app.use(viteServer.middlewares);
+  } else if (isProduction) {
+    /** Setup static assets */
+    if (isProduction) {
+      app.use(express.static('dist'));
+      // app.use(express.static('dist/assets'));
+
+      app.use('*', (req, res) => {
+        const o = url.parse(req.originalUrl, true);
+
+        const fileName = path.parse(o.pathname).base;
+
+        glob(`dist/**/${fileName}`, (err, files) => {
+          const _404 = err || files.length === 0;
+          if (files.length > 0) {
+            const file = path.resolve('.', files[0]);
+            // console.log(file);
+            if (file.endsWith('worker.js')) {
+              const code = fs.readFileSync(file).toString();
+              if (process.env.NODE_ENV === 'production') {
+                const src = Babel.transform(code, {
+                  plugins: [
+                    ['babel-plugin-custom-import-path-transform',
+                      {
+                        transformImportPath: './packages/totum/plugins/moduleRewrite.js',
+                      }],
+                  ],
+                });
+                res.writeHead(200, {'Content-Type': 'application/javascript'});
+                return res.end(src.code);
+              }
+            }
+            return res.sendFile(file);
+          } else if (_404) {
+            res.status(404).end();
+          }
+        });
+      });
+
+      app.enable('view cache');
     }
-  });
-  app.use(viteServer.middlewares);
-  
+  }
+
   await new Promise((accept, reject) => {
     httpServer.listen(port, SERVER_ADDR, () => {
       accept();
@@ -137,7 +240,7 @@ function makeId(length) {
     httpServer.on('error', reject);
   });
   console.log(`  > Local: http${isHttps ? 's' : ''}://${SERVER_NAME}:${port}/`);
-  
+
   const wsServer = (() => {
     if (isHttps) {
       return https.createServer(certs);
@@ -146,10 +249,10 @@ function makeId(length) {
     }
   })();
   const initialRoomState = (() => {
-    const s = fs.readFileSync('./scenes/gunroom.scn', 'utf8');
+    const s = fs.readFileSync(`./${isProduction ? 'dist/' : ''}scenes/gunroom.scn`, 'utf8');
     const j = JSON.parse(s);
     const {objects} = j;
-    
+
     const appsMapName = 'apps';
     const result = {
       [appsMapName]: [],
