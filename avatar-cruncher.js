@@ -37,15 +37,8 @@ export const crunchAvatarModel = async (model, options = {}) => {
     } = mergeGeometryTextureAtlas(mergeable, textureSize);
 
     // const m = material;
-    const m = new THREE.MeshStandardMaterial();
-    console.log('swap materials crunch', {material, m});
+    const m = new THREE.MeshBasicMaterial();
     m.roughness = 1;
-    // m.alphaTest = 0.1;
-    // m.side = THREE.BackSide;
-    // m.side = THREE.DoubleSide;
-    // m.alphaToCoverage = true;
-    // m.alphaTest = 1;
-    // m.transparent = false;
     m.transparent = true;
     const _updateMaterial = () => {
       if (atlasTextures) {
