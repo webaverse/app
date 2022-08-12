@@ -1,5 +1,6 @@
 /* this file implements avatar optimization and THREE.js Object management + rendering */
 import * as THREE from 'three';
+import * as BufferGeometryUtils from 'three/examples/jsm/utils/BufferGeometryUtils.js';
 import {VRMMaterialImporter/*, MToonMaterial*/} from '@pixiv/three-vrm/lib/three-vrm.module';
 import * as avatarOptimizer from '../avatar-optimizer.js';
 import * as avatarCruncher from '../avatar-cruncher.js';
@@ -14,6 +15,7 @@ import {/*defaultAvatarQuality,*/ minAvatarQuality, maxAvatarQuality} from '../c
 const defaultAvatarQuality = 4;
 // import {downloadFile} from '../util.js';
 
+const localVector = new THREE.Vector3();
 const localVector2 = new THREE.Vector3();
 const localQuaternion = new THREE.Quaternion();
 const localEuler = new THREE.Euler();
@@ -44,7 +46,29 @@ const avatarPlaceholderTexture = new THREE.Texture();
   avatarPlaceholderTexture.needsUpdate = true;
 })();
 const _makeAvatarPlaceholderMesh = (() => {
-  const geometry = new THREE.PlaneBufferGeometry(0.2, 0.2);
+  const planeGeometry = new THREE.PlaneBufferGeometry(0.2, 0.2);
+  {
+    const angles = new Float32Array(planeGeometry.attributes.position.count).fill(-100);
+    planeGeometry.setAttribute('angle', new THREE.BufferAttribute(angles, 1));
+  }
+  const ringGeometry = new THREE.RingGeometry(0.125, 0.14, 10, 1);
+  {
+    const angles = new Float32Array(ringGeometry.attributes.position.count);
+    // compute the angle, starting from the 0 at the top of the ring
+    for (let i = 0; i < ringGeometry.attributes.position.count; i++) {
+      // localVector.fromArray(ringGeometry.attributes.position.array, i * 3);
+      // const {x, y} = localVector;
+      const x = ringGeometry.attributes.position.array[i * 3];
+      const y = ringGeometry.attributes.position.array[i * 3 + 1];
+      const angle = Math.atan2(y, x);
+      angles[i] = angle;
+    }
+    ringGeometry.setAttribute('angle', new THREE.BufferAttribute(angles, 1));
+  }
+  const geometry = BufferGeometryUtils.mergeBufferGeometries([
+    planeGeometry,
+    ringGeometry,
+  ]);
   const material = new WebaverseShaderMaterial({
     uniforms: {
       map: {
@@ -53,24 +77,29 @@ const _makeAvatarPlaceholderMesh = (() => {
       },
     },
     vertexShader: `\
+      attribute float angle;
       varying vec2 vUv;
+      varying float vAngle;
+
       void main() {
         vUv = uv;
+        vAngle = angle;
         gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
       }
     `,
     fragmentShader: `\
       uniform sampler2D map;
       varying vec2 vUv;
+      varying float vAngle;
 
       const vec4 green = vec4(${new THREE.Color(0x66bb6a).toArray().map(n => n.toFixed(8)).join(', ')}, 1.0);
 
       void main() {
-        if (vUv.x >= -1.) {
+        if (vAngle > -50.) {
+          gl_FragColor = green;
+        } else {
           vec4 c = texture2D(map, vUv);
           gl_FragColor = c;
-        } else {
-          gl_FragColor = green;
         }
         if (gl_FragColor.a < 0.9) {
           discard;
@@ -104,7 +133,8 @@ const _unfrustumCull = o => {
 };
 const _setDepthWrite = o => {
   o.material.depthWrite = true;
-  o.material.alphaTest = 0.9;
+  o.material.alphaToCoverage = true;
+  // o.material.alphaTest = 0.5;
 };
 const _toonShaderify = async o => {
   await new VRMMaterialImporter().convertGLTFMaterials(o);
