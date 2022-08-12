@@ -474,7 +474,6 @@ export class AvatarRenderer /* extends EventTarget */ {
             this.optimizedModelPromise = (async () => {
               await Promise.all([
                 (async () => {
-                  // console.log('optimized model promise 1');
                   const {
                     glbData,
                   } = await this.optimizeAvatarModel([
@@ -485,18 +484,15 @@ export class AvatarRenderer /* extends EventTarget */ {
                   ], {
                     signal: this.abortController.signal,
                   });
-                  // console.log('optimized model promise 2');
                   const object = await new Promise((accept, reject) => {
                     const {gltfLoader} = loaders;
                     gltfLoader.parse(glbData, this.srcUrl, accept, reject);
                   });
-                  // console.log('optimized model promise 3');
                   const glb = object.scene;
                   _forAllMeshes(glb, _unfrustumCull);
                   glb.boundingSphere = _getMergedBoundingSphere(glb);
 
                   this.optimizedModel = glb;
-                  // console.log('optimized model promise 4');
                 })(),
                 this.#ensureControlObject(),
               ]);
@@ -518,15 +514,9 @@ export class AvatarRenderer /* extends EventTarget */ {
                   });
                   const glb = object.scene;
 
-                  //
-
-                  // const skinnedVrmBase = await _cloneVrm();
-                  // app.skinnedVrm = skinnedVrmBase;
                   await _toonShaderify(object);
                   _prepVrm(object.scene);
                   _forAllMeshes(glb, _unfrustumCull);
-
-                  //
 
                   glb.boundingSphere = _getMergedBoundingSphere(glb);
 
@@ -552,16 +542,15 @@ export class AvatarRenderer /* extends EventTarget */ {
     this.scene.remove(this.placeholderMesh);
     // add the new avatar mesh
     const currentMesh = this.#getCurrentMesh();
-    /* console.log('got current mesh', currentMesh);
     if (!currentMesh) {
       debugger;
-    } */
+    }
     this.scene.add(currentMesh);
 
     // this.dispatchEvent(updateEvent);
   }
   adjustQuality(delta) {
-    const newQuality = Math.min(Math.max(this.quality + delta, minQuality), maxQuality);
+    const newQuality = Math.min(Math.max(this.quality + delta, minAvatarQuality), maxAvatarQuality);
     if (newQuality !== this.quality) {
       this.setQuality(newQuality);
     }
@@ -569,12 +558,9 @@ export class AvatarRenderer /* extends EventTarget */ {
   updateFrustumCull(matrix, frustum) {
     const currentMesh = this.#getCurrentMesh();
     if (currentMesh) {
-      // const boundingBox = localBox.copy(currentMesh.boundingBox)
-      //   .applyMatrix4(matrix);
       const boundingSphere = localSphere.copy(currentMesh.boundingSphere)
         .applyMatrix4(matrix);
 
-      // const inFrustum = frustum.intersectsBox(boundingBox);
       const inFrustum = frustum.intersectsSphere(boundingSphere);
       this.scene.visible = inFrustum;
     }
