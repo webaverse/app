@@ -1250,6 +1250,7 @@ class GameManager extends EventTarget {
           .add(localVector2.set(0, 0.5, -1).applyQuaternion(localPlayer.quaternion)),
         dropDirection: zeroVector, */
       });
+      _endUse();
     }
   }
   deleteSelectedApp() {
