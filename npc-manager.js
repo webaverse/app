@@ -185,14 +185,16 @@ class NpcManager extends EventTarget {
             /* if (isNaN(npcPlayer.position.x)) {
               debugger;
             } */
-            npcPlayer.updatePhysics(timestamp, timeDiff);
-            /* if (isNaN(npcPlayer.position.x)) {
-              debugger;
-            } */
-            npcPlayer.updateAvatar(timestamp, timeDiff);
-            /* if (isNaN(npcPlayer.position.x)) {
-              debugger;
-            } */
+            if (!npcPlayer.isLocalPlayer) { // local player is updated in universe.js
+              npcPlayer.updatePhysics(timestamp, timeDiff);
+              /* if (isNaN(npcPlayer.position.x)) {
+                debugger;
+              } */
+              npcPlayer.updateAvatar(timestamp, timeDiff);
+              /* if (isNaN(npcPlayer.position.x)) {
+                debugger;
+              } */
+            }
           }
         };
         world.appManager.addEventListener('frame', frame);
