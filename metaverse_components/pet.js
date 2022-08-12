@@ -11,6 +11,12 @@ const localQuaternion3 = new THREE.Quaternion();
 const localEuler = new THREE.Euler();
 const localMatrix = new THREE.Matrix4();
 
+const downQuaternion = new THREE.Quaternion(
+  0.7071068, 0, 0, 0.7071068
+);
+
+let lastZDirection = 0;
+
 const physicsIds = [];
 
 export default (app, component) => {
@@ -27,29 +33,24 @@ export default (app, component) => {
   // app.rotation.y += Math.PI / 2;
   const physics = usePhysics();
 
-  let petHeight = 0.1;
+  const petHeight = 0.01;
+  const petWidth = 1.04;
 
   const physicsScene = physicsManager.getScene();
   const heightFactor = 1;
-  const baseRadius = 0.01;
-  let radius = (baseRadius / heightFactor) * petHeight;
+  const baseRadius = 0.2;
+  const radius = (baseRadius / heightFactor) * petHeight;
   const capsuleHeight = petHeight - radius * 2;
 
   const contactOffset = (0.1 / heightFactor) * petHeight;
   const stepOffset = (0.5 / heightFactor) * petHeight;
-
-  radius = radius + contactOffset;
-  petHeight = petHeight + radius * 2;
-
-  const capsulePosition = app.position.clone();
-  // capsulePosition.updateMatrixWorld();
 
   const characterController = physicsScene.createCharacterController(
     radius - contactOffset,
     capsuleHeight,
     contactOffset,
     stepOffset,
-    capsulePosition
+    app.position
   );
 
   // const capsuleGeometry = new CapsuleGeometry(
@@ -69,8 +70,8 @@ export default (app, component) => {
 
   app.add(debugCapsuleMesh);
 
-  const debugCapsuleId = physics.addGeometry(debugCapsuleMesh);
-  physicsIds.push(debugCapsuleId);
+  // const debugCapsuleId = physics.addGeometry(debugCapsuleMesh);
+  // physicsIds.push(debugCapsuleId);
 
   // const physicsObject = physicsScene.addCapsuleGeometry(app.position, app.quaternion, 0.2, 0.05);
 
@@ -166,10 +167,17 @@ export default (app, component) => {
   const smoothVelocity = new THREE.Vector3();
   const lastLookQuaternion = new THREE.Quaternion();
   const _getAppDistance = () => {
-    const position = localVector.copy(player.position);
-    position.y = 0;
+    const position = player.position.clone();
+
+    // setting the height of the y as the height of the ground
+    const collisionToGround = physics.raycast(position, downQuaternion);
+    if (collisionToGround) {
+      position.y = collisionToGround.point[1];
+    }
+    // position.y = 0;
+
     const distance = app.position.distanceTo(position);
-    return distance;
+    return { distance, position };
   };
   const minDistance = 1;
   const _isFar = (distance) => distance - minDistance > 0.01;
@@ -184,8 +192,6 @@ export default (app, component) => {
     const timeDiffCapped = Math.min(Math.max(timeDiff, 0), 100);
     const timeDiffSCapped = timeDiffCapped / 1000;
 
-    // smoothVelocity.multiplyScalar(2);
-
     if (fallLoopStartTimeS == 0) {
       fallLoopStartTimeS = nowS;
       startFallingPosition.copy(app.position);
@@ -194,7 +200,6 @@ export default (app, component) => {
     const t = nowS - fallLoopStartTimeS;
     const h = 0.5 * physicsScene.getGravity().y * t * t;
 
-    // localVector.set(app.position.x, -9.8 * timeDiffCapped, app.position.z).normalize();
     const displacement = localVector.set(0, h - lastGravityH, 0);
     smoothVelocity.add(displacement);
     const flags = physicsScene.moveCharacterController(
@@ -205,28 +210,20 @@ export default (app, component) => {
       app.position
     );
 
-    // app.position.y -= 0.5;
-    // app.updateMatrixWorld();
+    lastGravityH = h;
 
-    // lastGravityH = h;
-
-    // console.log(localVector.x)
     let grounded = !!(flags & 0x1);
-    if (!grounded) {
-      console.log('Not Grounded');
-    } else {
-      console.log('Grounded');
-      if (fallLoopStartTimeS !== 0) {
-        // app.position.y -= petHeight / 2;
-      }
+    if (grounded) {
       fallLoopStartTimeS = 0;
       startFallingPosition.set(0, 0, 0);
       lastGravityH = 0;
-    }
+    } 
 
     // components
     const _updateAnimation = () => {
-      // const petComponent = app.getComponent('pet');
+      // making sure the nose of the pet hits the physics object in front of it
+      app.position.z -= (petWidth / 2) * lastZDirection;
+
       if (petComponent) {
         if (rootBone) {
           rootBone.quaternion.copy(rootBone.originalQuaternion);
@@ -238,14 +235,14 @@ export default (app, component) => {
             // activated pet
             const speed = 0.0014;
 
-            const distance = _getAppDistance();
+            const { distance, position } = _getAppDistance();
+
             const moveDelta = localVector;
             moveDelta.setScalar(0);
+
             if (_isFar(distance)) {
               // handle rounding errors
-              const position = player.position.clone();
-              position.y = 0;
-              const direction = position.clone().sub(app.position).normalize();
+              const direction = position.sub(app.position).normalize();
               const maxMoveDistance = distance - minDistance;
               const moveDistance = Math.min(speed * timeDiff, maxMoveDistance);
               moveDelta.copy(direction).multiplyScalar(moveDistance);
@@ -257,6 +254,9 @@ export default (app, component) => {
                 ),
                 0.1
               );
+
+              lastZDirection = direction.z;
+
               app.updateMatrixWorld();
             } /* else {
               // console.log('check', head === drop, component.attractedTo === 'fruit', typeof component.eatSpeed === 'number');
