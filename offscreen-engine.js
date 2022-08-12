@@ -1,10 +1,23 @@
-import {getRandomString} from './util.js';
+import {getRandomString, getJsDataUrl} from './util.js';
 import {inappPreviewHost} from './constants.js';
 
-class OffscreenEngine {
+const _formatElement = e => {
+  if (typeof e === 'string') {
+    return e;
+  } else if (typeof e === 'function') {
+    return `\
+const _default_export_ = ${e.toString()};
+export default _default_export_;`;
+  } else {
+    console.warn('invalid element', e);
+    throw new Error('invalid element');
+  }
+};
+const _formatArray = a => a.map(e => _formatElement(e)).join('\n');
+
+class OffscreenEngineProxy {
   constructor() {
-    this.id = getRandomString();
-    this.frame = null;
+    this.iframe = null;
     this.port = null;
 
     this.loadPromise = null;
@@ -57,19 +70,6 @@ class OffscreenEngine {
     if (!Array.isArray(o)) {
       o = [o];
     }
-    const _formatElement = e => {
-      if (typeof e === 'string') {
-        return e;
-      } else if (typeof e === 'function') {
-        return `\
-const _default_export_ = ${e.toString()};
-export default _default_export_;`;
-      } else {
-        console.warn('invalid element', e);
-        throw new Error('invalid element');
-      }
-    };
-    const _formatArray = a => a.map(e => _formatElement(e)).join('\n');
 
     const id = getRandomString();
     const handlerId = getRandomString();
@@ -102,7 +102,7 @@ export default _default_export_;`;
     })();
     
     const self = this;
-    async function callRemoteFn(args = [], {
+    async function callProxyFn(args = [], {
       signal = null,
     } = {}) {
       await loadPromise;
@@ -161,7 +161,7 @@ export default _default_export_;`;
       });
       return result;
     }
-    return callRemoteFn;
+    return callProxyFn;
   }
   destroy() {
     // this.live = false;
@@ -176,7 +176,40 @@ export default _default_export_;`;
     }
   }
 }
+/* class OffscreenEngineDirect {
+  constructor() {
+    // nothing
+  }
+  createFunction(o) {
+    if (!Array.isArray(o)) {
+      o = [o];
+    }
+
+    let fn = null;
+    const loadPromise = (async () => {
+      let src = _formatArray(o);
+      const u = getJsDataUrl(src);
+      const module = await import2(u);
+      fn = module.default;
+      // console.log('loaded fn', fn, src);
+    })();
+    
+    async function callDirectFn(args = [], {
+      signal = null,
+    } = {}) {
+      await loadPromise;
+      signal.throwIfAborted();
+      const result = await fn.apply(this, args);
+      return result;
+    }
+    return callDirectFn;
+  }
+  destroy() {
+    // nothing
+  }
+} */
 
 export {
-  OffscreenEngine,
+  OffscreenEngineProxy,
+  // OffscreenEngineDirect,
 };
