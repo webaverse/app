@@ -49,9 +49,10 @@ const _cloneVrm = async () => {
   return vrm;
 };
 const _unfrustumCull = o => {
-  if (o.isMesh) {
-    o.frustumCulled = false;
-  }
+  o.frustumCulled = false;
+};
+const _setDepthWrite = (o, depthWrite) => {
+  o.material.depthWrite = depthWrite;
 };
 const _toonShaderify = async o => {
   await new VRMMaterialImporter().convertGLTFMaterials(o);
@@ -244,7 +245,7 @@ export class AvatarRenderer /* extends EventTarget */ {
 
     //
 
-    this.abortController = new AbortController();
+    this.abortController = null;
 
     //
 
@@ -422,12 +423,25 @@ export class AvatarRenderer /* extends EventTarget */ {
     }
   }
   async setQuality(quality) {
+    // set new quality
     this.quality = quality;
 
+    // cancel old load
+    if (this.abortController) {
+      this.abortController.abort(abortError);
+      this.abortController = null;
+    }
+
+    // clear old avatar scene
     // XXX destroy old avatars?
     this.scene.clear();
+    // add placeholder
     this.scene.add(this.placeholderMesh);
 
+    // start loading
+    this.abortController = new AbortController();
+
+    // load
     this.loadPromise = (async () => {
       switch (this.quality) {
         case 1: {
@@ -480,7 +494,16 @@ export class AvatarRenderer /* extends EventTarget */ {
               this.#bindControlObject();
             })();
           }
-          await this.spriteAvatarMeshPromise;
+          {
+            try {
+              await this.spriteAvatarMeshPromise;
+            } catch (err) {
+              if (err.isAbortError) {
+                this.spriteAvatarMeshPromise = null;
+              }
+              throw err;
+            }
+          }
           break;
         }
         case 2: {
@@ -502,9 +525,54 @@ export class AvatarRenderer /* extends EventTarget */ {
                     const {gltfLoader} = loaders;
                     gltfLoader.parse(glbData, this.srcUrl, accept, reject);
                   });
+                  // downloadFile(new Blob([glbData], {type: 'application/octet-stream'}), 'avatar.glb');
                   const glb = object.scene;
-                  _forAllMeshes(glb, _unfrustumCull);
+                  _forAllMeshes(glb, o => {
+                    _unfrustumCull(o);
+                    _setDepthWrite(o, true);
+                  });
                   glb.boundingSphere = _getMergedBoundingSphere(glb);
+
+                  /* glb.traverse(o => {
+                    if (o.isMesh) {
+                      // o.material.side = THREE.BackSide;
+
+                      console.log('load material', o.material);
+
+                      const map = o.material.map;
+                      if (map) {
+                        // draw the ImageBitmap to a canvas
+                        const canvas = document.createElement('canvas');
+                        canvas.width = map.image.width;
+                        canvas.height = map.image.height;
+                        const ctx = canvas.getContext('2d');
+                        ctx.drawImage(map.image, 0, 0);
+
+                        // set alpha to 255 for all pixels
+                        {
+                          const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+                          const {data} = imageData;
+                          for (let i = 0; i < data.length; i += 4) {
+                            data[i + 3] = 255;
+                          }
+                          ctx.putImageData(imageData, 0, 0);
+                        }
+
+                        document.body.appendChild(canvas);
+                        // 300px absolute top left
+                        canvas.style.cssText = `\
+                          position: absolute;
+                          top: 0;
+                          left: 0;
+                          width: 400px;
+                          height: 400px;
+                        `;
+
+                        map.image = canvas;
+                        map.needsUpdate = true;
+                      }
+                    }
+                  }); */
   
                   this.crunchedModel = glb;
                 })(),
@@ -513,7 +581,16 @@ export class AvatarRenderer /* extends EventTarget */ {
               this.#bindControlObject();
             })();
           }
-          await this.crunchedModelPromise;
+          {
+            try {
+              await this.crunchedModelPromise;
+            } catch (err) {
+              if (err.isAbortError) {
+                this.crunchedModelPromise = null;
+              }
+              throw err;
+            }
+          }
           break;
         }
         case 3: {
@@ -546,7 +623,16 @@ export class AvatarRenderer /* extends EventTarget */ {
               this.#bindControlObject();
             })();
           }
-          await this.optimizedModelPromise;
+          {
+            try {
+              await this.optimizedModelPromise;
+            } catch (err) {
+              if (err.isAbortError) {
+                this.optimizedModelPromise = null;
+              }
+              throw err;
+            }
+          }
           break;
         }
         case 4: {
@@ -574,7 +660,16 @@ export class AvatarRenderer /* extends EventTarget */ {
               this.#bindControlObject();
             })();
           }
-          await this.meshPromise;
+          {
+            try {
+              await this.meshPromise;
+            } catch (err) {
+              if (err.isAbortError) {
+                this.meshPromise = null;
+              }
+              throw err;
+            }
+          }
           break;
         }
         default: {
@@ -582,19 +677,31 @@ export class AvatarRenderer /* extends EventTarget */ {
         }
       }
     })();
+    {
+      // wait for load
+      let caughtError = null;
+      try {
+        await this.loadPromise;
+      } catch (err) {
+        caughtError = err;
+      }
+      // remove the placeholder mesh
+      this.scene.remove(this.placeholderMesh);
+      // handle errors
+      if (caughtError) {
+        if (caughtError.isAbortError) {
+          return; // bail
+        } else {
+          throw caughtError;
+        }
+      } else {
+        this.abortController = null;
+      }
+    }
 
-    await this.loadPromise;
-
-    // remove the old placeholder mesh
-    this.scene.remove(this.placeholderMesh);
     // add the new avatar mesh
     const currentMesh = this.#getCurrentMesh();
-    if (!currentMesh) {
-      debugger;
-    }
     this.scene.add(currentMesh);
-
-    // this.dispatchEvent(updateEvent);
   }
   adjustQuality(delta) {
     const newQuality = Math.min(Math.max(this.quality + delta, minAvatarQuality), maxAvatarQuality);
@@ -604,11 +711,13 @@ export class AvatarRenderer /* extends EventTarget */ {
   }
   updateAvatar(timestamp, timeDiff, avatar) {
     const currentMesh = this.#getCurrentMesh();
-    if (currentMesh === this.spriteAvatarMesh) {
-      this.spriteAvatarMesh.update(timestamp, timeDiff, {
-        avatar,
-        camera,
-      });
+    if (currentMesh) {
+      if (currentMesh === this.spriteAvatarMesh) {
+        this.spriteAvatarMesh.update(timestamp, timeDiff, {
+          avatar,
+          camera,
+        });
+      }
     }
   }
   updateFrustumCull(matrix, frustum) {
