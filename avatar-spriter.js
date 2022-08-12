@@ -480,7 +480,7 @@ class SpriteAvatarMesh extends THREE.Mesh {
     }
   }
   update(timestamp, timeDiff, {
-    playerAvatar: avatar,
+    avatar,
     camera,
   }) {
     const velocityScaleFactor = 10; // because avatars multiply velocity by 0.1
@@ -1688,6 +1688,7 @@ export const createSpriteAvatarMeshFromTextures = spriteImages => {
     return t;
   });
   const spriteAvatarMesh = new SpriteAvatarMesh(spriteTextures);
+  spriteAvatarMesh.frustumCulled = false;
   return spriteAvatarMesh;
 };
 export const createSpriteAvatarMesh = skinnedVrm => {
