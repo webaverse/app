@@ -8,8 +8,9 @@ import offscreenEngineManager from '../offscreen-engine-manager.js';
 import loaders from '../loaders.js';
 // import exporters from '../exporters.js';
 import {abortError} from '../lock-manager.js';
-// import {defaultAvatarQuality} from '../constants.js';
-// import { downloadFile } from '../util.js';
+import {/*defaultAvatarQuality,*/ minAvatarQuality, maxAvatarQuality} from '../constants.js';
+const defaultAvatarQuality = 1;
+// import {downloadFile} from '../util.js';
 
 // const localBox = new THREE.Box3();
 const localSphere = new THREE.Sphere();
@@ -77,8 +78,6 @@ const mapTypes = [
   'normalMap',
   'roughnessMap',
 ];
-const minQuality = 1;
-const maxQuality = 4;
 const _addAnisotropy = (o, anisotropyLevel) => {
   for (const mapType of mapTypes) {
     if (o.material[mapType]) {
@@ -207,7 +206,6 @@ const _getMergedBoundingSphere = o => {
   return sphere;
 };
 
-const defaultAvatarQuality = 4;
 export class AvatarRenderer /* extends EventTarget */ {
   constructor({
     arrayBuffer,
