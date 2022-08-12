@@ -75,6 +75,14 @@ switch ( origin ) {
         _inappPreviewHost = 'https://staging.webaverse.online';
         break;
     }
+    case 'https://dev-staging.webaverse.com': {
+        _inappPreviewHost = 'https://dev-staging.webaverse.online';
+        break;
+    }
+    case 'https://dev2.webaverse.com': {
+        _inappPreviewHost = 'https://dev2.webaverse.online';
+        break;
+    }
     default: {
         _inappPreviewHost = 'https://app.webaverse.online';
     }
