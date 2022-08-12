@@ -604,6 +604,15 @@ export class AvatarRenderer /* extends EventTarget */ {
       this.setQuality(newQuality);
     }
   }
+  updateAvatar(timestamp, timeDiff, avatar) {
+    const currentMesh = this.#getCurrentMesh();
+    if (currentMesh === this.spriteAvatarMesh) {
+      this.spriteAvatarMesh.update(timestamp, timeDiff, {
+        avatar,
+        camera,
+      });
+    }
+  }
   updateFrustumCull(matrix, frustum) {
     const currentMesh = this.#getCurrentMesh();
     if (currentMesh) {
