@@ -95,8 +95,6 @@ const _forAllMeshes = (o, fn) => {
 };
 
 const _bindSkeleton = (dstModel, srcObject) => {
-  console.log('bind skeleton', {dstModel, srcObject});
-
   const srcModel = srcObject.scene;
   
   const _findBoneInSrc = (srcBoneName) => {
