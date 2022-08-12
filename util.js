@@ -1228,3 +1228,5 @@ export const splitLinesToWidth = (() => {
     return lines;
   };
 })();
+
+export const getJsDataUrl = src => `data:application/javascript;charset=utf-8,${encodeURIComponent(src)}`
