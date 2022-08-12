@@ -28,11 +28,11 @@ export function applyPlayerTransformsToAvatar(player, session, rig) {
     rig.inputs.rightGamepad.quaternion.copy(player.rightHand.quaternion);
   }
 }
-/* export function applyPlayerMetaTransformsToAvatar(player, session, rig) {
+export function applyPlayerMetaTransformsToAvatar(player, session, rig) {
   if (!session) {
     rig.velocity.copy(player.characterPhysics.velocity);
   }
-} */
+}
 export function applyPlayerModesToAvatar(player, session, rig) {
   for (let i = 0; i < 2; i++) {
     rig.setHandEnabled(i, player.hands[i].enabled);
@@ -214,6 +214,7 @@ export function applyPlayerActionsToAvatar(player, rig) {
   rig.fallLoopFrom = fallLoopAction ? fallLoopAction.from : '';
   // rig.fallLoopAnimation = fallLoopAnimation;
   rig.fallLoopState = !!fallLoopAction;
+  rig.landState = !!landAction;
   // rig.swordSideSlashTime = player.actionInterpolants.swordSideSlash.get();
   // rig.swordSideSlashAnimation = swordSideSlashAnimation;
   // rig.swordSideSlashState = !!swordSideSlash;
@@ -290,7 +291,7 @@ export function applyPlayerPoseToAvatar(player, rig) {
 }
 export function applyPlayerToAvatar(player, session, rig, mirrors) {
   applyPlayerTransformsToAvatar(player, session, rig);
-  // applyPlayerMetaTransformsToAvatar(player, session, rig);
+  applyPlayerMetaTransformsToAvatar(player, session, rig);
   
   applyPlayerModesToAvatar(player, session, rig);
   applyPlayerActionsToAvatar(player, rig);

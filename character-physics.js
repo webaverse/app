@@ -21,6 +21,9 @@ const localQuaternion = new THREE.Quaternion();
 const localQuaternion2 = new THREE.Quaternion();
 // const localEuler = new THREE.Euler();
 const localMatrix = new THREE.Matrix4();
+const localVector2D = new THREE.Vector2();
+const localVector2D2 = new THREE.Vector2();
+const localVector2D3 = new THREE.Vector2();
 
 // const localOffset = new THREE.Vector3();
 // const localOffset2 = new THREE.Vector3();
@@ -41,11 +44,20 @@ class CharacterPhysics {
   constructor(player) {
     this.player = player;
 
+    this.targetVelocity = new THREE.Vector3();
+    this.lastTargetVelocity = new THREE.Vector3();
+    this.wantVelocity = new THREE.Vector3();
     this.velocity = new THREE.Vector3();
+    this.targetMoveDistancePerFrame = new THREE.Vector3();
+    this.lastTargetMoveDistancePerFrame = new THREE.Vector3();
+    this.wantMoveDistancePerFrame = new THREE.Vector3();
     this.lastGrounded = null;
     this.lastGroundedTime = 0;
     this.lastCharacterControllerY = null;
     this.sitOffset = new THREE.Vector3();
+    this.lastFallLoopAction = false;
+    this.fallLoopStartTimeS = 0;
+    this.lastGravityH = 0;
    
     this.lastPistolUse = false;
     this.lastPistolUseStartTime = -Infinity;
@@ -56,23 +68,37 @@ class CharacterPhysics {
     physicsScene.setCharacterControllerPosition(this.player.characterController, localVector);
   }
   /* apply the currently held keys to the character */
-  applyWasd(keysDirection) {
+  applyWasd(velocity, timeDiff) {
     if (this.player.avatar) {
-      this.velocity.add(keysDirection);
+      this.targetVelocity.copy(velocity);
+      this.targetMoveDistancePerFrame.copy(this.targetVelocity).multiplyScalar(timeDiff / 1000);
     }
   }
-  applyGravity(timeDiffS) {
+  applyGravity(nowS) {
     // if (this.player) {
-      if ((this.player.hasAction('jump') || this.player.hasAction('fallLoop')) && !this.player.hasAction('fly') && !this.player.hasAction('swim')) {
-        localVector.copy(physicsScene.getGravity())
-          .multiplyScalar(timeDiffS);
-        this.velocity.add(localVector);
+      const fallLoopAction = this.player.getAction('fallLoop');
+      if (fallLoopAction) {
+        if (!this.lastFallLoopAction) {
+          this.fallLoopStartTimeS = nowS;
+          this.lastGravityH = 0;
+          if (fallLoopAction.from === 'jump') {
+            const aestheticJumpBias = 1;
+            const t = flatGroundJumpAirTime / 1000 / 2 + aestheticJumpBias;
+            this.fallLoopStartTimeS -= t;
+            this.lastGravityH = 0.5 * physicsScene.getGravity().y * t * t;
+          }
+        }
+        const t = nowS - this.fallLoopStartTimeS;
+        const h = 0.5 * physicsScene.getGravity().y * t * t;
+        this.wantMoveDistancePerFrame.y = h - this.lastGravityH;
+
+        this.lastGravityH = h;
       }
+      this.lastFallLoopAction = fallLoopAction;
     // }
   }
   updateVelocity(timeDiffS) {
-    const timeDiff = timeDiffS * 1000;
-    this.applyVelocityDamping(this.velocity, timeDiff);
+    this.applyVelocityDamping(this.velocity, timeDiffS);
   }
   applyAvatarPhysicsDetail(
     velocityAvatarDirection,
@@ -84,9 +110,9 @@ class CharacterPhysics {
       // console.log('apply avatar physics', this.player);
       // move character controller
       const minDist = 0;
-      localVector3.copy(this.velocity)
-        .multiplyScalar(timeDiffS);
+      localVector3.copy(this.wantMoveDistancePerFrame)
 
+      // aesthetic jump
       const jumpAction = this.player.getAction('jump');
       if (jumpAction?.trigger === 'jump') {
         const doubleJumpAction = this.player.getAction('doubleJump');
@@ -111,6 +137,8 @@ class CharacterPhysics {
           localVector3.y = 0;
         }
       }
+
+      const positionXZBefore = localVector2D.set(this.player.characterController.position.x, this.player.characterController.position.z);
       const flags = physicsScene.moveCharacterController(
         this.player.characterController,
         localVector3,
@@ -118,6 +146,15 @@ class CharacterPhysics {
         timeDiffS,
         this.player.characterController.position
       );
+      const positionXZAfter = localVector2D2.set(this.player.characterController.position.x, this.player.characterController.position.z);
+      const wantMoveDistancePerFrameXZ = localVector2D3.set(this.wantMoveDistancePerFrame.x, this.wantMoveDistancePerFrame.z);
+      const wantMoveDistancePerFrameXZLength = wantMoveDistancePerFrameXZ.length();
+      if (wantMoveDistancePerFrameXZLength > 0) {
+        const movedRatio = (positionXZAfter.sub(positionXZBefore).length()) / wantMoveDistancePerFrameXZLength;
+        this.velocity.copy(this.wantVelocity);
+        if (movedRatio < 1) this.velocity.multiplyScalar(movedRatio);
+      }
+
       // const collided = flags !== 0;
       let grounded = !!(flags & 0x1); 
 
@@ -202,7 +239,7 @@ class CharacterPhysics {
 
         // Patch fix to fix vehicles and mounts for now
         let rideMesh = null;
-        controlledApp.glb.scene.traverse(o => {
+        controlledApp.traverse(o => {
           if (rideMesh === null && o.isSkinnedMesh) {
             rideMesh = o;
           }
@@ -268,19 +305,24 @@ class CharacterPhysics {
     }
   }
   /* dampen the velocity to make physical sense for the current avatar state */
-  applyVelocityDamping(velocity, timeDiff) {
+  applyVelocityDamping(velocity, timeDiffS) {
+    const doDamping = (factor) => {
+      this.wantMoveDistancePerFrame.x = THREE.MathUtils.damp(this.wantMoveDistancePerFrame.x, this.lastTargetMoveDistancePerFrame.x, factor, timeDiffS);
+      this.wantMoveDistancePerFrame.z = THREE.MathUtils.damp(this.wantMoveDistancePerFrame.z, this.lastTargetMoveDistancePerFrame.z, factor, timeDiffS);
+      this.wantMoveDistancePerFrame.y = THREE.MathUtils.damp(this.wantMoveDistancePerFrame.y, this.lastTargetMoveDistancePerFrame.y, factor, timeDiffS);
+
+      this.wantVelocity.x = THREE.MathUtils.damp(this.wantVelocity.x, this.lastTargetVelocity.x, factor, timeDiffS);
+      this.wantVelocity.z = THREE.MathUtils.damp(this.wantVelocity.z, this.lastTargetVelocity.z, factor, timeDiffS);
+      this.wantVelocity.y = THREE.MathUtils.damp(this.wantVelocity.y, this.lastTargetVelocity.y, factor, timeDiffS);
+    }
     if (this.player.hasAction('fly')) {
-      const factor = getVelocityDampingFactor(flyFriction, timeDiff);
-      velocity.multiplyScalar(factor);
+      doDamping(flyFriction);
     } 
     else if(this.player.hasAction('swim')){
-      const factor = getVelocityDampingFactor(swimFriction, timeDiff);
-      velocity.multiplyScalar(factor);
+      doDamping(swimFriction);
     }
     else {
-      const factor = getVelocityDampingFactor(groundFriction, timeDiff);
-      velocity.x *= factor;
-      velocity.z *= factor;
+      doDamping(groundFriction);
     }
   }
   applyAvatarPhysics(now, timeDiffS) {
@@ -465,10 +507,14 @@ class CharacterPhysics {
     _updateBowIkAnimation();
   }
   update(now, timeDiffS) {
-    this.applyGravity(timeDiffS);
+    const nowS = now / 1000;
     this.updateVelocity(timeDiffS);
+    this.applyGravity(nowS);
     this.applyAvatarPhysics(now, timeDiffS);
     this.applyAvatarActionKinematics(now, timeDiffS);
+
+    this.lastTargetVelocity.copy(this.targetVelocity);
+    this.lastTargetMoveDistancePerFrame.copy(this.targetMoveDistancePerFrame);
   }
   reset() {
     if (this.player.avatar) {

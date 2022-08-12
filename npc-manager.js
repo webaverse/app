@@ -9,6 +9,7 @@ import {chatManager} from './chat-manager.js';
 import {makeId, createRelativeUrl} from './util.js';
 import { triggerEmote } from './src/components/general/character/Poses.jsx';
 import validEmotionMapping from "./validEmotionMapping.json";
+import { runSpeed, walkSpeed } from './constants.js';
 
 const localVector = new THREE.Vector3();
 
@@ -61,6 +62,7 @@ class NpcManager extends EventTarget {
     }
 
     await npcPlayer.setAvatarUrl(avatarUrl);
+    npcPlayer.updateAvatar(0, 0);
 
     if (!detached) {
       this.npcs.push(npcPlayer);
@@ -152,10 +154,6 @@ class NpcManager extends EventTarget {
         };
         app.addEventListener('activate', activate);
 
-        const slowdownFactor = 0.4;
-        const walkSpeed = 0.075 * slowdownFactor;
-        const runSpeed = walkSpeed * 8;
-        const speedDistanceRate = 0.07;
         const frame = e => {
           if (npcPlayer && physicsScene.getPhysicsEnabled()) {
             const {timestamp, timeDiff} = e.data;
@@ -169,10 +167,16 @@ class NpcManager extends EventTarget {
               if (targetSpec.type === 'moveto' && distance < 2) {
                 targetSpec = null;
               } else {
-                const speed = Math.min(Math.max(walkSpeed + ((distance - 1.5) * speedDistanceRate), 0), runSpeed);
-                v.normalize()
-                  .multiplyScalar(speed * timeDiff);
-                npcPlayer.characterPhysics.applyWasd(v);
+                const speed = THREE.MathUtils.clamp(
+                  THREE.MathUtils.mapLinear(
+                    distance,
+                    2, 3.5,
+                    walkSpeed, runSpeed,
+                  ),
+                  0, runSpeed,
+                );
+                const velocity = v.normalize().multiplyScalar(speed);
+                npcPlayer.characterPhysics.applyWasd(velocity, timeDiff);
               }
             }
 
