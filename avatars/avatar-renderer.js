@@ -22,6 +22,8 @@ const localEuler = new THREE.Euler();
 const localMatrix =  new THREE.Matrix4();
 const localSphere = new THREE.Sphere();
 
+const greenColor = new THREE.Color(0x43a047);
+
 const avatarPlaceholderImagePromise = (async () => {
   const avatarPlaceholderImage = new Image();
   avatarPlaceholderImage.src = '/images/user.png';
@@ -51,18 +53,18 @@ const _makeAvatarPlaceholderMesh = (() => {
     const angles = new Float32Array(planeGeometry.attributes.position.count).fill(-100);
     planeGeometry.setAttribute('angle', new THREE.BufferAttribute(angles, 1));
   }
-  const ringGeometry = new THREE.RingGeometry(0.125, 0.14, 10, 1);
+  const ringGeometry = new THREE.RingGeometry(0.125, 0.14, 32, 1);
   {
     const angles = new Float32Array(ringGeometry.attributes.position.count);
     // compute the angle, starting from the 0 at the top of the ring
     for (let i = 0; i < ringGeometry.attributes.position.count; i++) {
-      // localVector.fromArray(ringGeometry.attributes.position.array, i * 3);
-      // const {x, y} = localVector;
       const x = ringGeometry.attributes.position.array[i * 3];
       const y = ringGeometry.attributes.position.array[i * 3 + 1];
-      const angle = Math.atan2(y, x);
+      let angle = (Math.atan2(-x, -y) + Math.PI) / (Math.PI * 2);
+      // angle = Math.min(Math.max(angle, 0.1), 0.9); // exactly 1 interferes with mod
       angles[i] = angle;
     }
+    // console.log('got angles', angles);
     ringGeometry.setAttribute('angle', new THREE.BufferAttribute(angles, 1));
   }
   const geometry = BufferGeometryUtils.mergeBufferGeometries([
@@ -71,48 +73,113 @@ const _makeAvatarPlaceholderMesh = (() => {
   ]);
   const material = new WebaverseShaderMaterial({
     uniforms: {
+      uTime: {
+        value: 0,
+        needsUpdate: true,
+      },
       map: {
         value: avatarPlaceholderTexture,
         needsUpdate: true,
       },
     },
     vertexShader: `\
+      uniform float uTime;
       attribute float angle;
       varying vec2 vUv;
       varying float vAngle;
 
+      /* float getBezierT(float x, float a, float b, float c, float d) {
+        return float(sqrt(3.) * 
+          sqrt(-4. * b * d + 4. * b * x + 3. * c * c + 2. * c * d - 8. * c * x - d * d + 4. * d * x) 
+            + 6. * b - 9. * c + 3. * d) 
+            / (6. * (b - 2. * c + d));
+      }
+      float easing(float x) {
+        return getBezierT(x, 0., 1., 0., 1.);
+      } */
+
+      const float q = 0.1;
+
       void main() {
+        vec3 p = position;
         vUv = uv;
         vAngle = angle;
-        gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
+        if (angle > -50.) {
+          vAngle = mod(angle - uTime, 1.);
+          vAngle = min(max(vAngle - 0.5, 0.), 1.) * 2.;
+        } else {
+          float t = uTime;
+          t = mod(t * 2., 1.);
+          float f = t < q ?
+            pow(t/q, 0.1)
+          :
+            1. - (t - q)/(1. - q);
+
+          p *= (1. + f * 0.2);
+        }
+        gl_Position = projectionMatrix * modelViewMatrix * vec4(p, 1.0);
       }
     `,
     fragmentShader: `\
+      uniform float uTime;
       uniform sampler2D map;
       varying vec2 vUv;
       varying float vAngle;
 
-      const vec4 green = vec4(${new THREE.Color(0x66bb6a).toArray().map(n => n.toFixed(8)).join(', ')}, 1.0);
+      #define PI 3.1415926535897932384626433832795
+
+      const vec4 green = vec4(${
+        greenColor.clone()
+          // .multiplyScalar(1.3)
+          .toArray()
+          .map(n => n.toFixed(8))
+          .join(', ')
+      }, 1.0);
 
       void main() {
         if (vAngle > -50.) {
+          float f = vAngle;
+          // float f = (vAngle - uTime);
+          // f = mod(f, 1.);
+
           gl_FragColor = green;
+          gl_FragColor.rgb *= pow(f * 1.3, 0.5);
+          /* if (f < 0.) {
+            gl_FragColor.r = 1.;
+          }
+          if (f > 1.) {
+            gl_FragColor.b = 1.;
+          } */
+          // gl_FragColor = green;
+          // gl_FragColor.r = f;
+          gl_FragColor.a = f;
         } else {
           vec4 c = texture2D(map, vUv);
           gl_FragColor = c;
-        }
-        if (gl_FragColor.a < 0.9) {
-          discard;
+          gl_FragColor.rgb = (1. - gl_FragColor.rgb) * green.rgb;
+          
+          if (gl_FragColor.a < 0.9) {
+            discard;
+          }
         }
       }
     `,
     side: THREE.DoubleSide,
     // alphaTest: 0.9,
-    // alphaToCoverage: true,
+    alphaToCoverage: true,
     transparent: true,
   });
   return () => {
     const mesh = new THREE.Mesh(geometry, material);
+    let startTime = 0;
+    const animationTime = 1500;
+    mesh.start = () => {
+      startTime = performance.now();
+    };
+    mesh.update = (timestamp) => {
+      material.uniforms.uTime.value = ((timestamp - startTime) / animationTime) % 1;
+      material.uniforms.uTime.needsUpdate = true;
+    };
     mesh.frustumCulled = false;
     return mesh;
   };
@@ -510,6 +577,7 @@ export class AvatarRenderer /* extends EventTarget */ {
     this.scene.clear();
     // add placeholder
     this.scene.add(this.placeholderMesh);
+    this.placeholderMesh.start();
 
     // start loading
     this.abortController = new AbortController();
@@ -773,7 +841,7 @@ export class AvatarRenderer /* extends EventTarget */ {
     }
 
     // remove the placeholder mesh
-    this.scene.remove(this.placeholderMesh);
+    this.placeholderMesh.parent.remove(this.placeholderMesh);
 
     // add the new avatar mesh
     const currentMesh = this.#getCurrentMesh();
@@ -804,6 +872,8 @@ export class AvatarRenderer /* extends EventTarget */ {
       localEuler.z = 0;
       this.placeholderMesh.quaternion.setFromEuler(localEuler);
       this.placeholderMesh.updateMatrixWorld();
+
+      this.placeholderMesh.update(timestamp);
     }
 
     // update avatar
