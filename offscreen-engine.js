@@ -150,7 +150,7 @@ class OffscreenEngineProxy {
         if (signal) {
           const abort = () => {
             // XXX we can post the abort to the worker process to make it stop faster
-            reject(new Error('abort'));
+            reject(signal.reason);
             _cleanup();
           };
           signal.addEventListener('abort', abort);
