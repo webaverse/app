@@ -151,6 +151,12 @@
   font-family: 'PlazaRegular';
   font-size: 20px;
   letter-spacing: 0.5px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  width: 131px;
+  margin-top: 10px;
+  margin-bottom: 2px;
 }
 
 .characterSelect .cryptoavatars {
