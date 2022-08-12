@@ -6,6 +6,7 @@ import * as avatarCruncher from '../avatar-cruncher.js';
 import * as avatarSpriter from '../avatar-spriter.js';
 import offscreenEngineManager from '../offscreen-engine-manager.js';
 import loaders from '../loaders.js';
+import {WebaverseShaderMaterial} from '../materials.js';
 import {camera} from '../renderer.js';
 // import exporters from '../exporters.js';
 import {abortError} from '../lock-manager.js';
@@ -13,7 +14,10 @@ import {/*defaultAvatarQuality,*/ minAvatarQuality, maxAvatarQuality} from '../c
 const defaultAvatarQuality = 4;
 // import {downloadFile} from '../util.js';
 
-// const localBox = new THREE.Box3();
+const localVector2 = new THREE.Vector3();
+const localQuaternion = new THREE.Quaternion();
+const localEuler = new THREE.Euler();
+const localMatrix =  new THREE.Matrix4();
 const localSphere = new THREE.Sphere();
 
 const avatarPlaceholderImagePromise = (async () => {
@@ -29,14 +33,61 @@ const waitForAvatarPlaceholderImage = () => avatarPlaceholderImagePromise;
 const avatarPlaceholderTexture = new THREE.Texture();
 (async() => {
   const avatarPlaceholderImage = await waitForAvatarPlaceholderImage();
+  /* avatarPlaceholderImage.style.cssText = `\
+    position: absolute;
+    top: 0;
+    left: 0;
+    z-index: 1;
+  `;
+  document.body.appendChild(avatarPlaceholderImage); */
   avatarPlaceholderTexture.image = avatarPlaceholderImage;
   avatarPlaceholderTexture.needsUpdate = true;
 })();
-const geometry = new THREE.PlaneBufferGeometry(0.1, 0.1);
-const material = new THREE.MeshBasicMaterial({
-  map: avatarPlaceholderTexture,
-});
-const _makeAvatarPlaceholderMesh = () => new THREE.Mesh(geometry, material);
+const _makeAvatarPlaceholderMesh = (() => {
+  const geometry = new THREE.PlaneBufferGeometry(0.2, 0.2);
+  const material = new WebaverseShaderMaterial({
+    uniforms: {
+      map: {
+        value: avatarPlaceholderTexture,
+        needsUpdate: true,
+      },
+    },
+    vertexShader: `\
+      varying vec2 vUv;
+      void main() {
+        vUv = uv;
+        gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
+      }
+    `,
+    fragmentShader: `\
+      uniform sampler2D map;
+      varying vec2 vUv;
+
+      const vec4 green = vec4(${new THREE.Color(0x66bb6a).toArray().map(n => n.toFixed(8)).join(', ')}, 1.0);
+
+      void main() {
+        if (vUv.x >= -1.) {
+          vec4 c = texture2D(map, vUv);
+          gl_FragColor = c;
+        } else {
+          gl_FragColor = green;
+        }
+        if (gl_FragColor.a < 0.9) {
+          discard;
+        }
+      }
+    `,
+    side: THREE.DoubleSide,
+    // alphaTest: 0.9,
+    // alphaToCoverage: true,
+    transparent: true,
+  });
+  return () => {
+    const mesh = new THREE.Mesh(geometry, material);
+    mesh.frustumCulled = false;
+    return mesh;
+  };
+})();
 const parseVrm = (arrayBuffer, srcUrl) => new Promise((accept, reject) => {
   const {gltfLoader} = loaders;
   gltfLoader.parse(arrayBuffer, srcUrl, accept, reject);
@@ -51,20 +102,12 @@ const _cloneVrm = async () => {
 const _unfrustumCull = o => {
   o.frustumCulled = false;
 };
-const _setDepthWrite = (o, depthWrite) => {
-  o.material.depthWrite = depthWrite;
+const _setDepthWrite = o => {
+  o.material.depthWrite = true;
+  o.material.alphaTest = 0.9;
 };
 const _toonShaderify = async o => {
   await new VRMMaterialImporter().convertGLTFMaterials(o);
-};
-const _prepVrm = (vrm) => {
-  // app.add(vrm);
-  // vrm.updateMatrixWorld();
-  _forAllMeshes(vrm, o => {
-    _addAnisotropy(o, 16);
-    // _limitShadeColor(o);
-    _unfrustumCull(o);
-  });
 };
 
 const mapTypes = [
@@ -529,7 +572,7 @@ export class AvatarRenderer /* extends EventTarget */ {
                   const glb = object.scene;
                   _forAllMeshes(glb, o => {
                     _unfrustumCull(o);
-                    _setDepthWrite(o, true);
+                    _setDepthWrite(o);
                   });
                   glb.boundingSphere = _getMergedBoundingSphere(glb);
 
@@ -648,8 +691,10 @@ export class AvatarRenderer /* extends EventTarget */ {
                   const glb = object.scene;
 
                   await _toonShaderify(object);
-                  _prepVrm(object.scene);
-                  _forAllMeshes(glb, _unfrustumCull);
+                  _forAllMeshes(glb, o => {
+                    _addAnisotropy(o, 16);
+                    _unfrustumCull(o);
+                  });
 
                   glb.boundingSphere = _getMergedBoundingSphere(glb);
 
@@ -710,6 +755,27 @@ export class AvatarRenderer /* extends EventTarget */ {
     }
   }
   updateAvatar(timestamp, timeDiff, avatar) {
+    // update placeholder
+    {
+      this.placeholderMesh.position.copy(avatar.inputs.hmd.position);
+      // this.placeholderMesh.position.y -= avatar.height;
+
+      localQuaternion
+        .setFromRotationMatrix(
+          localMatrix.lookAt(
+            camera.position,
+            this.placeholderMesh.position,
+            localVector2.set(0, 1, 0)
+          )
+        )
+      localEuler.setFromQuaternion(localQuaternion, 'YXZ');
+      localEuler.x = 0;
+      localEuler.z = 0;
+      this.placeholderMesh.quaternion.setFromEuler(localEuler);
+      this.placeholderMesh.updateMatrixWorld();
+    }
+
+    // update avatar
     const currentMesh = this.#getCurrentMesh();
     if (currentMesh) {
       if (currentMesh === this.spriteAvatarMesh) {
