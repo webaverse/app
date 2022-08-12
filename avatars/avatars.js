@@ -1601,7 +1601,7 @@ class Avatar {
         this.modelBoneOutputs.Neck.matrixWorld.compose(localVector, localQuaternion, localVector2)
         this.modelBoneOutputs.Neck.matrix.copy(this.modelBoneOutputs.Neck.matrixWorld)
           .premultiply(localMatrix2.copy(this.modelBoneOutputs.Neck.parent.matrixWorld).invert())
-          .decompose(this.modelBoneOutputs.Neck.position, this.modelBoneOutputs.Neck.quaternion, localVector2);
+          .decompose(localVector, this.modelBoneOutputs.Neck.quaternion, localVector2);
       } else {
         if (headTargetFactor < 1) {
           localQuaternion2.copy(this.startHeadTargetQuaternion)
