@@ -15,6 +15,9 @@ const downQuaternion = new THREE.Quaternion(-0.7071067811865476, 0, 0, 0.7071067
 
 const lastDirection = new THREE.Vector3();
 
+const HEIGHT_FOLLOW_LIMIT = 0.9;
+const PET_WIDTH = 1.04;
+
 export default (app, component) => {
   const {
     useFrame,
@@ -26,19 +29,17 @@ export default (app, component) => {
     useActivate,
   } = metaversefile;
 
-  // app.rotation.y += Math.PI / 2;
   const physics = usePhysics();
-  const petHeight = 0.01;
-  const petWidth = 1.04;
+  const petCapsuleHeight = 0.01;
 
   const physicsScene = physicsManager.getScene();
   const heightFactor = 1;
   const baseRadius = 0.2;
-  const radius = (baseRadius / heightFactor) * petHeight;
-  const capsuleHeight = petHeight - radius * 2;
+  const radius = (baseRadius / heightFactor) * petCapsuleHeight;
+  const capsuleHeight = petCapsuleHeight - radius * 2;
 
-  const contactOffset = (0.1 / heightFactor) * petHeight;
-  const stepOffset = (0.5 / heightFactor) * petHeight;
+  const contactOffset = (0.1 / heightFactor) * petCapsuleHeight;
+  const stepOffset = (0.5 / heightFactor) * petCapsuleHeight;
 
   const characterController = physicsScene.createCharacterController(
     radius - contactOffset,
@@ -198,8 +199,8 @@ export default (app, component) => {
     // components
     const _updateAnimation = () => {
       // making sure the nose of the pet hits the physics object in front of it
-      app.position.x -= (petWidth / 2) * lastDirection.x;
-      app.position.z -= (petWidth / 2) * lastDirection.z;
+      app.position.x -= (PET_WIDTH / 2) * lastDirection.x;
+      app.position.z -= (PET_WIDTH / 2) * lastDirection.z;
 
       if (petComponent) {
         if (rootBone) {
@@ -220,9 +221,11 @@ export default (app, component) => {
             if (_isFar(distance)) {
               // handle rounding errors
               const diff = position.sub(app.position);
-              if (Math.abs(diff.y) > 1) {
+
+              if (Math.abs(diff.y) >= HEIGHT_FOLLOW_LIMIT) {
                 diff.y = 0;
               }
+
               const direction = diff.normalize();
               const maxMoveDistance = distance - minDistance;
               const moveDistance = Math.min(speed * timeDiff, maxMoveDistance);
