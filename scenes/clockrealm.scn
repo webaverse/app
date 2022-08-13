@@ -3,10 +3,10 @@
     {
       "type": "application/spawnpoint",
       "content": {
-        "position": [0,3,2]
+        "position": [0, 3, 2]
       }
     },
-		{
+    {
       "type": "application/light",
       "content": {
         "lightType": "ambient",
@@ -21,7 +21,7 @@
         "position": [1, 2, 3],
         "shadow": [50, 4096, 0.1, 1000, 0, 0.2]
       }
-	      },
+    },
     {
       "type": "application/rendersettings",
       "content": {
@@ -55,186 +55,73 @@
       }
     },
     {
-      "position": [
-        0,
-        0,
-        0
-      ],
+      "position": [0, 0, 0],
       "start_url": "https://webaverse.github.io/atmospheric-sky/"
     },
     {
-      "position": [
-        2,
-        2,
-        -2
-      ],
-      "quaternion": [
-        0,
-        0,
-        0,
-        180
-      ],
+      "position": [2, 2, -2],
+      "quaternion": [0, 0, 0, 180],
       "start_url": "https://helloama.github.io/ClockRealm/PhettaPlushie.vrm"
     },
     {
-      "position": [
-        0,
-        0,
-        0
-    ],
-      "scale": [
-        5,
-        5,
-        5,
-        5
-      ],
+      "position": [0, 0, 0],
+      "scale": [5, 5, 5, 5],
       "physics": true,
       "start_url": "https://helloama.github.io/ClockRealm/mainfloor.glb"
-	},
+    },
     {
-      "position": [
-        0,
-        0,
-        0
-      ],
-       "scale": [
-        5,
-        5,
-        5,
-        5
-      ],
+      "position": [0, 0, 0],
+      "scale": [5, 5, 5, 5],
       "physics": true,
       "start_url": "https://helloama.github.io/ClockRealm/flooritems.glb"
-	},
+    },
     {
-      "position": [
-        0,
-        0,
-        0
-      ],
-       "scale": [
-        5,
-        5,
-        5,
-        5
-      ],
+      "position": [0, 0, 0],
+      "scale": [5, 5, 5, 5],
       "physics": true,
       "start_url": "https://helloama.github.io/ClockRealm/ClockSpin.glb"
-	},
+    },
     {
-      "position": [
-        0,
-        0,
-        0
-      ],
-      "physics": true,
-      "start_url": "https://helloama.github.io/ClockRealm/terrarian.glb"
-	},
-    {
-      "position": [
-        0,
-        0,
-        0
-      ],
-       "scale": [
-        5,
-        5,
-        5,
-        5
-      ],
+      "position": [0, 0, 0],
+      "scale": [5, 5, 5, 5],
       "physics": true,
       "start_url": "https://helloama.github.io/ClockRealm/clockman.glb"
     },
     {
-      "position": [
-        0,
-        0,
-        0
-      ],
-       "scale": [
-        5,
-        5,
-        5,
-        5
-      ],
+      "position": [0, 0, 0],
+      "scale": [5, 5, 5, 5],
       "physics": true,
       "start_url": "https://helloama.github.io/ClockRealm/dancingalien.glb"
     },
     {
-      "position": [
-        0,
-        0,
-        1000
-      ],
-       "scale": [
-        5,
-        5,
-        5,
-        5
-      ],
+      "position": [0, 0, 1000],
+      "scale": [5, 5, 5, 5],
       "physics": true,
       "start_url": "https://helloama.github.io/ClockRealm/skyitems.glb"
     },
     {
-      "position": [
-        0,
-        0,
-        0
-      ],
-       "scale": [
-        5,
-        5,
-        5,
-        5
-      ],
+      "position": [0, 0, 0],
+      "scale": [5, 5, 5, 5],
       "physics": true,
       "start_url": "https://helloama.github.io/ClockRealm/MiniClockLOTSOF.glb"
-	},
+    },
     {
-      "position": [
-        5,
-        2,
-        1
-      ],
-       "scale": [
-        5,
-        5,
-        5,
-        5
-      ],
+      "position": [5, 2, 1],
+      "scale": [5, 5, 5, 5],
       "physics": true,
       "start_url": "https://helloama.github.io/ClockRealm/MiniClockLOTSOF.glb"
-	},
+    },
     {
-      "position": [
-        0,
-        4,
-        -5
-      ],
-       "scale": [
-        5,
-        5,
-        5,
-        5
-      ],
+      "position": [0, 4, -5],
+      "scale": [5, 5, 5, 5],
       "physics": true,
       "start_url": "https://helloama.github.io/ClockRealm/Android444.glb"
-    	},
-  {
-      "position": [
-        80,
-        0,
-        5
-      ],
-       "scale": [
-        5,
-        5,
-        5,
-        5
-      ],
+    },
+    {
+      "position": [80, 0, 5],
+      "scale": [5, 5, 5, 5],
       "physics": true,
       "start_url": "https://helloama.github.io/ClockRealm/dancingalien.glb"
     }
-	
   ]
 }
