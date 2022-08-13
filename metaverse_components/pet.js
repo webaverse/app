@@ -15,7 +15,7 @@ const downQuaternion = new THREE.Quaternion(-0.7071067811865476, 0, 0, 0.7071067
 
 const lastDirection = new THREE.Vector3();
 
-const HEIGHT_FOLLOW_LIMIT = 0.9;
+const HEIGHT_FOLLOW_LIMIT_Y = 0.9;
 const PET_WIDTH = 1.04;
 
 export default (app, component) => {
@@ -222,7 +222,7 @@ export default (app, component) => {
               // handle rounding errors
               const diff = position.sub(app.position);
 
-              if (Math.abs(diff.y) >= HEIGHT_FOLLOW_LIMIT) {
+              if (Math.abs(diff.y) >= HEIGHT_FOLLOW_LIMIT_Y) {
                 diff.y = 0;
               }
 
