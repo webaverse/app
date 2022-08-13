@@ -113,11 +113,13 @@ class CharacterFx {
 
     const _initHairMeshes = () => {
       this.hairMeshes = [];
-      this.player.avatar.object.scene.traverse(o => {
+      const avatarRenderer = this.player.avatar.avatarRenderer;
+      const model = avatarRenderer.quality === 4 ? avatarRenderer.mesh : null;
+      model && model.traverse(o => {
         // console.log(o.name, o.isMesh);
         if (o.isSkinnedMesh) {
           const {geometry, skeleton} = o;
-          const skeletonBoneHariBooleans = skeleton.bones.map(bone => /hair/i.test(bone.name));
+          const skeletonBoneHairBooleans = skeleton.bones.map(bone => /hair/i.test(bone.name));
           const {attributes, index: indexAttribute} = geometry;
           const indices = indexAttribute.array;
           const {skinIndex, skinWeight} = attributes;
@@ -130,7 +132,7 @@ class CharacterFx {
             for (let j = 0; j < itemSize; j++) {
               const skinIndex = skinIndices[index * itemSize + j];
               const skinWeight = skinWeights[index * itemSize + j];
-              if (skinWeight !== 0 && skeletonBoneHariBooleans[skinIndex]) {
+              if (skinWeight !== 0 && skeletonBoneHairBooleans[skinIndex]) {
                 this.hairMeshes.push(o);
                 done = true;
                 break;
