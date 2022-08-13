@@ -26,7 +26,7 @@ import raycastManager from './raycast-manager.js';
 import zTargeting from './z-targeting.js';
 import Avatar from './avatars/avatars.js';
 import {makeId} from './util.js'
-import sceneSettingsManager from './scenesettings-manager.js';
+import gameSettingsManager from './gamesettings-manager.js';
 
 const localVector = new THREE.Vector3();
 const localVector2 = new THREE.Vector3();
@@ -1357,8 +1357,8 @@ class GameManager extends EventTarget {
   }
 
   menuDoubleTap() {
-    const sceneSettings = sceneSettingsManager.getSceneSettings();
-    if (sceneSettings.allowNarutoRun && !this.isCrouched()) {
+    const gameSettings = gameSettingsManager.getGameSettings();
+    if (gameSettings.allowNarutoRun && !this.isCrouched()) {
       const localPlayer = playersManager.getLocalPlayer();
       const narutoRunAction = localPlayer.getAction('narutoRun');
       if (!narutoRunAction) {
@@ -1411,8 +1411,8 @@ class GameManager extends EventTarget {
         localPlayer.setControlAction({type: 'fallLoop'});
       }
     } else {
-      const sceneSettings = sceneSettingsManager.getSceneSettings();
-      if (sceneSettings.allowFlying) {
+      const gameSettings = gameSettingsManager.getGameSettings();
+      if (gameSettings.allowFlying) {
         const flyAction = {
           type: 'fly',
           time: 0,

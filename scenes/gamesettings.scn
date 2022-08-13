@@ -32,7 +32,7 @@
       "start_url": "https://webaverse.github.io/street/"
     },
     {
-      "type": "application/scenesettings",
+      "type": "application/gamesettings",
       "content": {
         "allowFlying": false,
         "allowNarutoRun": false

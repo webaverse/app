@@ -41,7 +41,7 @@ import * as procgen from './procgen/procgen.js';
 import {getHeight} from './avatars/util.mjs';
 import performanceTracker from './performance-tracker.js';
 import renderSettingsManager from './rendersettings-manager.js';
-import sceneSettingsManager from './scenesettings-manager.js';
+import gameSettingsManager from './gamesettings-manager.js';
 import questManager from './quest-manager.js';
 import {murmurhash3} from './procgen/murmurhash3.js';
 import debug from './debug.js';
@@ -176,8 +176,8 @@ class App extends THREE.Object3D {
       return null;
     }
   }
-  getSceneSettings() {
-    return sceneSettingsManager;
+  getGameSettings() {
+    return gameSettingsManager;
   }
   activate({
     physicsId = -1,
@@ -391,8 +391,8 @@ metaversefile.setApi({
   useRenderSettings() {
     return renderSettingsManager;
   },
-  useSceneSettingsManager() {
-    return sceneSettingsManager;
+  useGameSettingsManager() {
+    return gameSettingsManager;
   },
   useScene() {
     return scene;
