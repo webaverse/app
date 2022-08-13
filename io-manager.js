@@ -250,16 +250,15 @@ const _updateIo = timeDiff => {
       cameraEuler.z = 0;
       keysDirection.applyEuler(cameraEuler);
       
-      if (ioManager.keys.ctrl && !ioManager.lastCtrlKey) {
+      if (ioManager.keys.ctrl && !ioManager.lastCtrlKey && game.isGrounded()) {
         game.toggleCrouch();
       }
       ioManager.lastCtrlKey = ioManager.keys.ctrl;
     }
-    if (keysDirection.length() > 0 && physicsScene.getPhysicsEnabled() && movementEnabled) {
-      localPlayer.characterPhysics.applyWasd(
-        keysDirection.normalize()
-          .multiplyScalar(game.getSpeed() * timeDiff)
-      );
+    if (physicsScene.getPhysicsEnabled() && movementEnabled) {
+      const speed = game.getSpeed();
+      const velocity = keysDirection.normalize().multiplyScalar(speed);
+      localPlayer.characterPhysics.applyWasd(velocity, timeDiff);
     }
   }
 };
