@@ -410,7 +410,7 @@ export const _applyAnimation = (avatar, now) => {
   // const runSpeed = 0.5;
   const angle = avatar.getAngle();
   const timeSeconds = now / 1000;
-  const landTimeSeconds = timeSeconds - avatar.lastLandStartTime / 1000 + 0.8; // in order to align landing 2.fbx with walk/run
+  const landTimeSeconds = timeSeconds; // in order to align landing 2.fbx with walk/run
   const {idleWalkFactor, walkRunFactor, crouchFactor} = avatar;
 
   /* const _getAnimationKey = crouchState => {
@@ -591,6 +591,7 @@ export const _applyAnimation = (avatar, now) => {
       const t3 = timeSinceLastMoveSeconds % idleAnimation.duration;
       const src3 = idleAnimation.interpolants[k];
       const v3 = src3.evaluate(t3);
+      // if (isPosition) console.log(t3);
 
       target.fromArray(v3);
       if (isPosition) {

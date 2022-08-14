@@ -398,6 +398,7 @@ const _makeDebugMesh = (avatar) => {
 
 class Avatar {
 	constructor(object, options = {}) {
+    console.log('Avatar');
     if (!object) {
       object = {};
     }
@@ -1407,6 +1408,7 @@ class Avatar {
     return localEuler.y;
   }
   async setQuality(quality) {
+    console.log({quality}); 
 
     this.model.visible = false;
     if ( this.crunchedModel ) this.crunchedModel.visible = false;

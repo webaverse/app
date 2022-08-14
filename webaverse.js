@@ -405,6 +405,7 @@ const _startHacks = webaverse => {
   window.physx = physx;
   window.metaversefileApi = metaversefileApi;
   window.rootScene = rootScene;
+  window.scene = scene;
   window.loadoutManager = loadoutManager;
   window.game = game;
   window.cameraManager = cameraManager;
