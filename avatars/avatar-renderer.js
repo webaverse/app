@@ -20,7 +20,9 @@ const localVector2 = new THREE.Vector3();
 const localQuaternion = new THREE.Quaternion();
 const localEuler = new THREE.Euler();
 const localMatrix =  new THREE.Matrix4();
+const localMatrix2 =  new THREE.Matrix4();
 const localSphere = new THREE.Sphere();
+const localFrustum = new THREE.Frustum();
 
 const greenColor = new THREE.Color(0x43a047);
 
@@ -48,6 +50,7 @@ const avatarPlaceholderTexture = new THREE.Texture();
   avatarPlaceholderTexture.needsUpdate = true;
 })();
 const _makeAvatarPlaceholderMesh = (() => {
+  // geometry
   const planeGeometry = new THREE.PlaneBufferGeometry(0.2, 0.2);
   {
     const angles = new Float32Array(planeGeometry.attributes.position.count).fill(-100);
@@ -69,6 +72,8 @@ const _makeAvatarPlaceholderMesh = (() => {
     planeGeometry,
     ringGeometry,
   ]);
+
+  // material
   const material = new WebaverseShaderMaterial({
     uniforms: {
       uTime: {
@@ -168,6 +173,8 @@ const _makeAvatarPlaceholderMesh = (() => {
     alphaToCoverage: true,
     transparent: true,
   });
+
+  // make fn
   return () => {
     const mesh = new THREE.Mesh(geometry, material);
     let startTime = 0;
@@ -175,7 +182,7 @@ const _makeAvatarPlaceholderMesh = (() => {
     mesh.start = () => {
       startTime = performance.now();
     };
-    mesh.update = (timestamp) => {
+    mesh.update = timestamp => {
       material.uniforms.uTime.value = ((timestamp - startTime) / animationTime) % 1;
       material.uniforms.uTime.needsUpdate = true;
     };
@@ -313,24 +320,7 @@ const _bindSkeleton = (dstModel, srcObject) => {
     }
   });
 };
-// const updateEvent = new MessageEvent('update');
 
-/* const _getMergedBoundingBox = o => {
-  const box = new THREE.Box3();
-  o.updateMatrixWorld();
-  o.traverse(o => {
-    if (o.isMesh) {
-      if (!o.geometry.boundingBox) {
-        debugger;
-      }
-      if (!o.geometry.boundingSphere) {
-        debugger;
-      }
-      box.expandByObject(o);
-    }
-  });
-  return box;
-}; */
 const _getMergedBoundingSphere = o => {
   const sphere = new THREE.Sphere();
   o.updateMatrixWorld();
@@ -349,6 +339,7 @@ export class AvatarRenderer /* extends EventTarget */ {
   constructor({
     arrayBuffer,
     srcUrl,
+    camera,
     quality = defaultAvatarQuality,
   } = {})	{
     // super();
@@ -357,6 +348,7 @@ export class AvatarRenderer /* extends EventTarget */ {
 
     this.arrayBuffer = arrayBuffer;
     this.srcUrl = srcUrl;
+    this.camera = camera;
     this.quality = quality;
     
     //
@@ -402,7 +394,7 @@ export class AvatarRenderer /* extends EventTarget */ {
 
     this.setQuality(quality);
   }
-  createSpriteAvatarMesh([{
+  createSpriteAvatarMesh([{ // XXX for debugging; this should be done off-thread
     arrayBuffer,
     srcUrl,
   }], {signal}) {
@@ -411,14 +403,8 @@ export class AvatarRenderer /* extends EventTarget */ {
         arrayBuffer,
         srcUrl,
       }); */
-      const avatarRenderer = new AvatarRenderer({
-        arrayBuffer,
-        srcUrl,
-        quality: maxAvatarQuality,
-      });
-      await avatarRenderer.waitForLoad();
   
-      const textureCanvases = avatarSpriter.renderSpriteImages(avatarRenderer);
+      const textureCanvases = await avatarSpriter.renderSpriteImages(arrayBuffer, srcUrl);
       const textureImages = await Promise.all(textureCanvases.map(canvas => {
         return createImageBitmap(canvas, {
           imageOrientation: 'flipY',
@@ -450,7 +436,7 @@ export class AvatarRenderer /* extends EventTarget */ {
           });
           await avatarRenderer.waitForLoad();
   
-          const textureCanvases = avatarSpriter.renderSpriteImages(avatarRenderer);
+          const textureCanvases = await avatarSpriter.renderSpriteImages(avatarRenderer);
           const textureImages = await Promise.all(textureCanvases.map(canvas => {
             return createImageBitmap(canvas);
           }));
@@ -852,7 +838,24 @@ export class AvatarRenderer /* extends EventTarget */ {
       this.setQuality(newQuality);
     }
   }
-  updateAvatar(timestamp, timeDiff, avatar) {
+  update(timestamp, timeDiff, avatar) {
+    localMatrix.makeTranslation(
+      avatar.inputs.hmd.position.x,
+      avatar.inputs.hmd.position.y - this.height / 2,
+      avatar.inputs.hmd.position.z
+    );
+
+    // XXX this can be optimized by initializing the frustum only once per frame and passing it in
+    const projScreenMatrix = localMatrix2.multiplyMatrices(
+      this.camera.projectionMatrix,
+      this.camera.matrixWorldInverse
+    );
+    localFrustum.setFromProjectionMatrix(projScreenMatrix);
+    
+    this.#updateAvatar(timestamp, timeDiff, avatar);
+    this.#updateFrustumCull(localMatrix, localFrustum);
+  }
+  #updateAvatar(timestamp, timeDiff, avatar) {
     // update placeholder
     {
       this.placeholderMesh.position.copy(avatar.inputs.hmd.position);
@@ -861,7 +864,7 @@ export class AvatarRenderer /* extends EventTarget */ {
       localQuaternion
         .setFromRotationMatrix(
           localMatrix.lookAt(
-            camera.position,
+            this.camera.position,
             this.placeholderMesh.position,
             localVector2.set(0, 1, 0)
           )
@@ -877,16 +880,11 @@ export class AvatarRenderer /* extends EventTarget */ {
 
     // update avatar
     const currentMesh = this.#getCurrentMesh();
-    if (currentMesh) {
-      if (currentMesh === this.spriteAvatarMesh) {
-        this.spriteAvatarMesh.update(timestamp, timeDiff, {
-          avatar,
-          camera,
-        });
-      }
+    if (currentMesh && currentMesh === this.spriteAvatarMesh) {
+      this.spriteAvatarMesh.update(timestamp, timeDiff, avatar, this.camera);
     }
   }
-  updateFrustumCull(matrix, frustum) {
+  #updateFrustumCull(matrix, frustum) {
     const currentMesh = this.#getCurrentMesh();
     if (currentMesh) {
       const boundingSphere = localSphere.copy(currentMesh.boundingSphere)
