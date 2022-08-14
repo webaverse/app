@@ -383,12 +383,14 @@ class CharacterPhysics {
       this.wantMoveDistancePerFrame.x = THREE.MathUtils.damp(this.wantMoveDistancePerFrame.x, this.lastTargetMoveDistancePerFrame.x, factor, timeDiffS);
       this.wantMoveDistancePerFrame.z = THREE.MathUtils.damp(this.wantMoveDistancePerFrame.z, this.lastTargetMoveDistancePerFrame.z, factor, timeDiffS);
       this.wantMoveDistancePerFrame.y = THREE.MathUtils.damp(this.wantMoveDistancePerFrame.y, this.lastTargetMoveDistancePerFrame.y, factor, timeDiffS);
+      // this.wantMoveDistancePerFrame.y = this.targetMoveDistancePerFrame.y;
       // if (this.targetMoveDistancePerFrame.x > 0) debugger
       // if (this.player === window.npcPlayer) if (this.wantMoveDistancePerFrame.x !== 0) debugger
 
       this.wantVelocity.x = THREE.MathUtils.damp(this.wantVelocity.x, this.lastTargetVelocity.x, factor, timeDiffS);
       this.wantVelocity.z = THREE.MathUtils.damp(this.wantVelocity.z, this.lastTargetVelocity.z, factor, timeDiffS);
       this.wantVelocity.y = THREE.MathUtils.damp(this.wantVelocity.y, this.lastTargetVelocity.y, factor, timeDiffS);
+      // this.wantVelocity.y = this.targetVelocity.y;
       // this.velocity.x = this.targetVelocity.x;
       // this.velocity.z = this.targetVelocity.z;
 
