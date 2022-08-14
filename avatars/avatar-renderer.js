@@ -394,51 +394,24 @@ export class AvatarRenderer /* extends EventTarget */ {
 
     this.setQuality(quality);
   }
-  createSpriteAvatarMesh([{ // XXX for debugging; this should be done off-thread
-    arrayBuffer,
-    srcUrl,
-  }], {signal}) {
-    return (async () => {
-      /* console.log('avatar renderer 1', {
-        arrayBuffer,
-        srcUrl,
-      }); */
-  
-      const textureCanvases = await avatarSpriter.renderSpriteImages(arrayBuffer, srcUrl);
-      const textureImages = await Promise.all(textureCanvases.map(canvas => {
-        return createImageBitmap(canvas, {
-          imageOrientation: 'flipY',
-        });
-      }));
-      return {
-        textureImages,
-      };
-    })();
-
+  createSpriteAvatarMesh() {
     if (!this.createSpriteAvatarMeshFn) {
       this.createSpriteAvatarMeshFn = offscreenEngineManager.createFunction([
         `\
         import * as THREE from 'three';
         import * as avatarSpriter from './avatar-spriter.js';
-        import loaders from './loaders.js';
-        import {maxAvatarQuality} from './constants.js';
-        import {AvatarRenderer} from './avatars/avatar-renderer.js';
   
         `,
         async function({
           arrayBuffer,
           srcUrl,
         }) {
-          const avatarRenderer = new AvatarRenderer({
-            arrayBuffer,
-            srcUrl,
-            quality: maxAvatarQuality,
-          });
-          await avatarRenderer.waitForLoad();
   
-          const textureCanvases = await avatarSpriter.renderSpriteImages(avatarRenderer);
+          const textureCanvases = await avatarSpriter.renderSpriteImages(arrayBuffer, srcUrl);
           const textureImages = await Promise.all(textureCanvases.map(canvas => {
-            return createImageBitmap(canvas);
+            return createImageBitmap(canvas, {
+              imageOrientation: 'flipY',
+            });
           }));
           return {
             textureImages,
