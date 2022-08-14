@@ -5,6 +5,7 @@ import physicsManager from '../physics-manager';
 
 const localVector = new THREE.Vector3();
 const localVector2 = new THREE.Vector3();
+const localFollowPosition = new THREE.Vector3();
 const localQuaternion = new THREE.Quaternion();
 const localQuaternion2 = new THREE.Quaternion();
 const localQuaternion3 = new THREE.Quaternion();
@@ -15,8 +16,9 @@ const downQuaternion = new THREE.Quaternion(-0.7071067811865476, 0, 0, 0.7071067
 
 const lastDirection = new THREE.Vector3();
 
-const HEIGHT_FOLLOW_LIMIT_Y = 0.9;
-const PET_WIDTH = 1.04;
+const _calculateHeightFollowLimit = (width) => {
+  return Math.sqrt(width * width);
+}
 
 export default (app, component) => {
   const {
@@ -30,16 +32,21 @@ export default (app, component) => {
   } = metaversefile;
 
   const physics = usePhysics();
-  const petCapsuleHeight = 0.01;
+  const character = app.getComponent('character');
+
+  const PET_HEIGHT = character ? character.height : 0.5;
+  const PET_WIDTH = character ? character.width : 1;
+
+  const HEIGHT_FOLLOW_LIMIT = _calculateHeightFollowLimit(PET_WIDTH);
 
   const physicsScene = physicsManager.getScene();
-  const heightFactor = 1;
+  const heightFactor = 1.6;
   const baseRadius = 0.2;
-  const radius = (baseRadius / heightFactor) * petCapsuleHeight;
-  const capsuleHeight = petCapsuleHeight - radius * 2;
+  const radius = (baseRadius / heightFactor) * PET_HEIGHT;
+  const capsuleHeight = PET_HEIGHT - radius * 2;
 
-  const contactOffset = (0.1 / heightFactor) * petCapsuleHeight;
-  const stepOffset = (0.5 / heightFactor) * petCapsuleHeight;
+  const contactOffset = (0.1 / heightFactor) * PET_HEIGHT;
+  const stepOffset = (0.5 / heightFactor) * PET_HEIGHT;
 
   const characterController = physicsScene.createCharacterController(
     radius - contactOffset,
@@ -50,6 +57,8 @@ export default (app, component) => {
   );
   // const debugCapsuleMesh = characterController.children[0];
   // debugCapsuleMesh.visible = true;
+  // debugCapsuleMesh.position.copy(app.position);
+  // debugCapsuleMesh.quaternion.copy(app.quaternion);
 
   // app.add(debugCapsuleMesh);
 
@@ -144,18 +153,19 @@ export default (app, component) => {
 
   const smoothVelocity = new THREE.Vector3();
   const lastLookQuaternion = new THREE.Quaternion();
-  const _getAppDistance = () => {
-    const position = player.position.clone();
+
+  const _getFollowPosition = () => {
+    const followPosition = localFollowPosition.copy(player.position);
 
     // setting the height of the y as the height of the ground
-    const collisionToGround = physics.raycast(position, downQuaternion);
+    const collisionToGround = physics.raycast(followPosition, downQuaternion);
     if (collisionToGround) {
-      position.y = collisionToGround.point[1];
+      followPosition.y = collisionToGround.point[1];
     }
 
-    const distance = app.position.distanceTo(position);
-    return { distance, position };
+    return followPosition;
   };
+
   const minDistance = 1;
   const _isFar = (distance) => distance - minDistance > 0.01;
 
@@ -198,9 +208,10 @@ export default (app, component) => {
 
     // components
     const _updateAnimation = () => {
-      // making sure the nose of the pet hits the physics object in front of it
+      // offsetting the pet
       app.position.x -= (PET_WIDTH / 2) * lastDirection.x;
       app.position.z -= (PET_WIDTH / 2) * lastDirection.z;
+      app.position.y -= capsuleHeight / 2;
 
       if (petComponent) {
         if (rootBone) {
@@ -213,16 +224,17 @@ export default (app, component) => {
             // activated pet
             const speed = 0.0014;
 
-            const { distance, position } = _getAppDistance();
+            const followPosition = _getFollowPosition();
+            const distance = app.position.distanceTo(followPosition);
 
             const moveDelta = localVector;
             moveDelta.setScalar(0);
 
             if (_isFar(distance)) {
               // handle rounding errors
-              const diff = position.sub(app.position);
+              const diff = followPosition.sub(app.position);
 
-              if (Math.abs(diff.y) >= HEIGHT_FOLLOW_LIMIT_Y) {
+              if (Math.abs(diff.y) >= HEIGHT_FOLLOW_LIMIT) {
                 diff.y = 0;
               }
 
@@ -239,7 +251,7 @@ export default (app, component) => {
                 0.1
               );
 
-              lastDirection.copy(direction);
+              // lastDirection.copy(direction);
 
               app.updateMatrixWorld();
             } /* else {
