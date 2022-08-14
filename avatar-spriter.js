@@ -5,10 +5,14 @@ import metaversefile from 'metaversefile';
 // import * as BufferGeometryUtils from 'three/examples/jsm/utils/BufferGeometryUtils.js';
 import {DoubleSidedPlaneGeometry, CameraGeometry} from './geometries.js';
 import {WebaverseShaderMaterial} from './materials.js';
+import {getRenderer, scene, camera} from './renderer.js';
 import Avatar from './avatars/avatars.js';
-import {mod, angleDifference} from './util.js';
+import {AvatarRenderer} from './avatars/avatar-renderer.js';
+import {mod, angleDifference, makePromise} from './util.js';
+import {world} from './world.js';
+import {maxAvatarQuality} from './constants.js';
 
-const preview = false; // whether to draw debug meshes
+const preview = true; // whether to draw debug meshes
 
 const cameraGeometry = new CameraGeometry();
 const cameraMaterial = new THREE.MeshBasicMaterial({
@@ -18,7 +22,6 @@ const cameraMesh = new THREE.Mesh(
   cameraGeometry,
   cameraMaterial,
 );
-// scene.add(cameraMesh);
 
 const localVector = new THREE.Vector3();
 const localVector2 = new THREE.Vector3();
@@ -54,22 +57,91 @@ const alphaTest = 0.9;
 
 const planeSpriteMeshes = [];
 const spriteAvatarMeshes = [];
+const globalUpdate = (timestamp, timeDiff, camera) => {
+  if (preview) {
+    for (const planeSpriteMesh of planeSpriteMeshes) {
+      const {duration} = planeSpriteMesh.spriteSpec;
+      const uTime = (timestamp/1000 % duration) / duration;
+      if (isNaN(uTime)) {
+        debugger;
+      }
+      [planeSpriteMesh.material, planeSpriteMesh.customPostMaterial].forEach(material => {
+        if (material?.uniforms) {
+          material.uniforms.uTime.value = uTime;
+          material.uniforms.uTime.needsUpdate = true;
+        }
+      });
+    }
+
+    for (const spriteAvatarMesh of spriteAvatarMeshes) {
+      const {duration} = spriteAvatarMesh.spriteSpec;
+      const uTime = (timestamp/1000 % duration) / duration;
+      if (isNaN(uTime)) {
+        debugger;
+      }
+
+      {
+        localQuaternion
+          .setFromRotationMatrix(
+            localMatrix.lookAt(
+              spriteAvatarMesh.getWorldPosition(localVector),
+              camera.position,
+              localVector2.set(0, 1, 0)
+            )
+          )
+          // .premultiply(app.quaternion.clone().invert());
+        localEuler.setFromQuaternion(localQuaternion, 'YXZ');
+        localEuler.x = 0;
+        localEuler.z = 0;
+        spriteAvatarMesh.quaternion.setFromEuler(localEuler);
+        spriteAvatarMesh.updateMatrixWorld();
+      }
+
+      [
+        spriteAvatarMesh.material,
+        spriteAvatarMesh.customPostMaterial,
+      ].forEach(material => {
+        if (material?.uniforms) {
+          material.uniforms.uTime.value = uTime;
+          material.uniforms.uTime.needsUpdate = true;
+
+          material.uniforms.uY.value = mod(localEuler.y + Math.PI*2/numAngles/2, Math.PI*2) / (Math.PI*2);
+          material.uniforms.uY.needsUpdate = true;
+        }
+      });
+    }
+  }
+};
+const _ensureScheduleGlobalUpdate = (() => {
+  let scheduled = false;
+  return () => {
+    if (!scheduled) {
+      scene.add(cameraMesh);
+      world.appManager.addEventListener('frame', e => {
+        const {timestamp, timeDiff} = e.data;
+        globalUpdate(timestamp, timeDiff, camera);
+      });
+      scheduled = true;
+    }
+  };
+})();
+
 class SpriteAnimationPlaneMesh extends THREE.Mesh {
   constructor(tex, {angleIndex}) {
     const planeSpriteMaterial = new WebaverseShaderMaterial({
       uniforms: {
         uTex: {
-          type: 't',
+          // type: 't',
           value: tex,
-          // needsUpdate: true,
+          needsUpdate: true,
         },
         uTime: {
-          type: 'f',
+          // type: 'f',
           value: 0,
           needsUpdate: true,
         },
         uAngleIndex: {
-          type: 'f',
+          // type: 'f',
           value: angleIndex,
           needsUpdate: true,
         },
@@ -166,11 +238,14 @@ class SpriteAnimationPlaneMesh extends THREE.Mesh {
               vec2(x, -y)/${numSlots.toFixed(8)} +
               vec2(1.-vUv.x, vUv.y)/${numSlots.toFixed(8)}
           );
+
           // gl_FragColor.r = 1.;
           // gl_FragColor.a = 1.;
+
           if (gl_FragColor.a < ${alphaTest}) {
             discard;
           }
+
           gl_FragColor.a = 1.;
         }
       `,
@@ -302,8 +377,10 @@ class SpriteAnimation360Mesh extends THREE.Mesh {
               vec2(x, -y)/${numSlots.toFixed(8)} +
               vec2(1.-vUv.x, vUv.y)/${numSlots.toFixed(8)}
           );
+
           // gl_FragColor.r = 1.;
           // gl_FragColor.a = 1.;
+
           if (gl_FragColor.a < ${alphaTest}) {
             discard;
           }
@@ -332,17 +409,17 @@ class SpriteAvatarMesh extends THREE.Mesh {
     const avatarMegaSpriteMaterial = new WebaverseShaderMaterial({
       uniforms: {
         uTex: {
-          type: 't',
+          // type: 't',
           value: tex,
           needsUpdate: true,
         },
         uTime: {
-          type: 'f',
+          // type: 'f',
           value: 0,
           needsUpdate: true,
         },
         uY: {
-          type: 'f',
+          // type: 'f',
           value: 0,
           needsUpdate: true,
         },
@@ -440,8 +517,10 @@ class SpriteAvatarMesh extends THREE.Mesh {
               vec2(x, -y)/${numSlots.toFixed(8)} +
               vec2(1.-vUv.x, vUv.y)/${numSlots.toFixed(8)}
           );
+
           // gl_FragColor.r = 1.;
           // gl_FragColor.a = 1.;
+
           if (gl_FragColor.a < ${alphaTest}) {
             discard;
           }
@@ -479,59 +558,8 @@ class SpriteAvatarMesh extends THREE.Mesh {
       return false;
     }
   }
-  update(timestamp, timeDiff, {
-    avatar,
-    camera,
-  }) {
+  update(timestamp, timeDiff, avatar, camera) {
     const velocityScaleFactor = 10; // because avatars multiply velocity by 0.1
-
-    if (preview) {
-      for (const planeSpriteMesh of planeSpriteMeshes) {
-        const {duration} = planeSpriteMesh.spriteSpec;
-        const uTime = (timestamp/1000 % duration) / duration;
-        [planeSpriteMesh.material, planeSpriteMesh.customPostMaterial].forEach(material => {
-          if (material?.uniforms) {
-            material.uniforms.uTime.value = uTime;
-            material.uniforms.uTime.needsUpdate = true;
-          }
-        });
-      }
-
-      for (const spriteAvatarMesh of spriteAvatarMeshes) {
-        const {duration} = spriteAvatarMesh.spriteSpec;
-        const uTime = (timestamp/1000 % duration) / duration;
-
-        {
-          localQuaternion
-            .setFromRotationMatrix(
-              localMatrix.lookAt(
-                spriteAvatarMesh.getWorldPosition(localVector),
-                camera.position,
-                localVector2.set(0, 1, 0)
-              )
-            )
-            // .premultiply(app.quaternion.clone().invert());
-          localEuler.setFromQuaternion(localQuaternion, 'YXZ');
-          localEuler.x = 0;
-          localEuler.z = 0;
-          spriteAvatarMesh.quaternion.setFromEuler(localEuler);
-          spriteAvatarMesh.updateMatrixWorld();
-        }
-
-        [
-          spriteAvatarMesh.material,
-          spriteAvatarMesh.customPostMaterial,
-        ].forEach(material => {
-          if (material?.uniforms) {
-            material.uniforms.uTime.value = uTime;
-            material.uniforms.uTime.needsUpdate = true;
-
-            material.uniforms.uY.value = mod(localEuler.y + Math.PI*2/numAngles/2, Math.PI*2) / (Math.PI*2);
-            material.uniforms.uY.needsUpdate = true;
-          }
-        });
-      }
-    }
 
     // matrix transform
     this.position.copy(avatar.inputs.hmd.position);
@@ -808,11 +836,15 @@ const getSpriteSpecs = () => {
                 .add(new THREE.Vector3(0, 0, -distance).applyEuler(euler));
               camera2.lookAt(new THREE.Vector3(0, localRig.height*cameraHeightFactor, positionOffset));
               camera2.updateMatrixWorld();
+
+              // console.log('update walk position offset', positionOffset, camera2.position.toArray().join(','));
               
               localRig.inputs.hmd.position.set(0, localRig.height, positionOffset);
               localRig.inputs.hmd.updateMatrixWorld();
-    
+
               localRig.update(timestamp, timeDiffMs);
+  
+              // globalThis.localRig = localRig;
             },
           };
         },
@@ -1487,7 +1519,27 @@ class AvatarSpriteDepthMaterial extends THREE.MeshNormalMaterial {
   }
 }
 
-export const renderSpriteImages = avatarRenderer => {
+const _waitForKey = async () => {
+  const p = makePromise();
+  const keydown = e => {
+    if (e.which === 8) { // backspace
+      p.accept();
+    }
+  };
+  window.addEventListener('keydown', keydown);
+  await p;
+  window.removeEventListener('keydown', keydown);
+};
+
+export const renderSpriteImages = async (arrayBuffer, srcUrl) => {
+  const avatarRenderer = new AvatarRenderer({
+    arrayBuffer,
+    srcUrl,
+    camera: camera2,
+    quality: maxAvatarQuality,
+  });
+  await avatarRenderer.waitForLoad();
+
   const localRig = new Avatar(avatarRenderer, {
     fingers: true,
     hair: true,
@@ -1500,18 +1552,22 @@ export const renderSpriteImages = avatarRenderer => {
   localRig.setTopEnabled(false);
   localRig.setBottomEnabled(false);
   localRig.faceposes.push({
-    emotion: "emotion-2",
+    emotion: 'emotion-2',
     value: 1,
   });
+
+  if (preview) {
+    _ensureScheduleGlobalUpdate();
+  }
   
   const model = avatarRenderer.scene;
-  model.traverse(o => {
+  /* model.traverse(o => {
     if (o.isMesh) {
       o.frustumCulled = false;
     }
-  });
+  }); */
 
-  const skeleton = (() => {
+  /* const skeleton = (() => {
     let skeleton = null;
     model.traverse(o => {
       if (skeleton === null && o.isSkinnedMesh) {
@@ -1519,10 +1575,12 @@ export const renderSpriteImages = avatarRenderer => {
       }
     });
     return skeleton;
-  })();
-  const rootBone = skeleton.bones.find(b => b.name === 'Root');
+  })(); */
+  // const rootBone = skeleton.bones.find(b => b.name === 'Root');
+  // console.log('got skeleton bones', rootBone, skeleton.bones.map(b => b.name));
 
-  const {renderer, scene} = metaversefile.useInternals();
+  // const {renderer, scene} = metaversefile.useInternals();
+  const renderer = getRenderer();
   const pixelRatio = renderer.getPixelRatio();
   const _renderSpriteFrame = () => {
     const oldParent = model.parent;
@@ -1555,7 +1613,8 @@ export const renderSpriteImages = avatarRenderer => {
   let canvasIndex2 = 0;
   const spriteImages = [];
   // console.time('render');
-  for (const spriteSpec of spriteSpecs) {
+  for (let i = 0 ; i < spriteSpecs.length; i++) {
+    const spriteSpec = spriteSpecs[i];
     const {name, duration} = spriteSpec;
 
     // console.log('spritesheet', name);
@@ -1564,6 +1623,15 @@ export const renderSpriteImages = avatarRenderer => {
     canvas.width = size;
     canvas.height = size;
     const ctx = canvas.getContext('2d');
+    document.body.appendChild(canvas);
+    canvas.style.cssText = `\
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 512px;
+      height: 512px;
+      z-index: 1;
+    `;
     
     let tex;
     if (preview) {
@@ -1578,9 +1646,7 @@ export const renderSpriteImages = avatarRenderer => {
     const timeDiff = 1000/60; // 60 FPS
     // console.log('compute time diff', timeDiff);
     let angleIndex = 0;
-    for (let angle = 0; angle < Math.PI*2; angle += Math.PI*2/numAngles) {
-      // console.log('angle', angle/(Math.PI*2)*360);
-      
+    for (let angle = 0; angle < Math.PI*2; angle += Math.PI*2/numAngles) {      
       const durationS = duration * 1000;
       const _getCurrentFrame = timestamp => {
         const result = Math.min(Math.floor(timestamp / durationS * numFrames), numFrames);
@@ -1606,7 +1672,7 @@ export const renderSpriteImages = avatarRenderer => {
           }
         }
       }
-      const initialPositionOffset = localRig.inputs.hmd.position.z;
+      // const initialPositionOffset = localRig.inputs.hmd.position.z;
       
       spriteGenerator.reset && spriteGenerator.reset();
 
@@ -1620,17 +1686,6 @@ export const renderSpriteImages = avatarRenderer => {
 
         _renderSpriteFrame();
 
-        if (preview) {
-          const positionOffset = localRig.inputs.hmd.position.z;
-          rootBone.position.set(0, 0, positionOffset - initialPositionOffset);
-          rootBone.updateMatrixWorld();
-
-          cameraMesh.position.copy(camera2.position);
-          cameraMesh.position.z -= initialPositionOffset;
-          cameraMesh.quaternion.copy(camera2.quaternion);
-          cameraMesh.updateMatrixWorld();
-        }
-
         const x = angleIndex % numSlots;
         const y = (angleIndex - x) / numSlots;
         ctx.drawImage(
@@ -1642,7 +1697,23 @@ export const renderSpriteImages = avatarRenderer => {
           tex.needsUpdate = true;
         }
 
-        // await _timeout(50);
+        if (preview && i > 0) {
+          // const angleDegrees = angle/(Math.PI*2)*360;
+          // console.log('frame', spriteSpec, angleDegrees);
+
+          scene.add(model);
+
+          cameraMesh.position.copy(camera2.position);
+          // cameraMesh.position.z -= initialPositionOffset;
+          cameraMesh.quaternion.copy(camera2.quaternion);
+          cameraMesh.updateMatrixWorld();
+
+          // globalThis.model = model;
+          // globalThis.cameraMesh = cameraMesh;
+
+          // pause for preview
+          await _waitForKey();
+        }
       }
 
       if (preview) {
@@ -1650,10 +1721,13 @@ export const renderSpriteImages = avatarRenderer => {
           angleIndex: startAngleIndex,
         });
         planeSpriteMesh.position.set(-canvasIndex*worldSize, 2, -canvasIndex2*worldSize);
-        planeSpriteMesh.updateMatrixWorld();
         planeSpriteMesh.spriteSpec = spriteSpec;
         scene.add(planeSpriteMesh);
+        planeSpriteMesh.updateMatrixWorld();
+        planeSpriteMesh.frustumCulled = false;
         planeSpriteMeshes.push(planeSpriteMesh);
+
+        console.log('add plane sprite mesh', planeSpriteMesh);
       }
 
       spriteGenerator.cleanup && spriteGenerator.cleanup();
@@ -1668,9 +1742,10 @@ export const renderSpriteImages = avatarRenderer => {
         0,
         -canvasIndex2*worldSize,
       );
-      spriteAvatarMesh.updateMatrixWorld();
       spriteAvatarMesh.spriteSpec = spriteSpec;
       scene.add(spriteAvatarMesh); 
+      spriteAvatarMesh.updateMatrixWorld();
+      spriteAvatarMesh.frustumCulled = false;
       spriteAvatarMeshes.push(spriteAvatarMesh);
     }
     
@@ -1691,7 +1766,7 @@ export const createSpriteAvatarMeshFromTextures = spriteImages => {
   spriteAvatarMesh.frustumCulled = false;
   return spriteAvatarMesh;
 };
-export const createSpriteAvatarMesh = skinnedVrm => {
-  let spriteImages = renderSpriteImages(skinnedVrm);
+/* export const createSpriteAvatarMesh = skinnedVrm => {
+  let spriteImages = renderSpriteImages(skinnedVrm); // XXX make this non-async
   return createSpriteAvatarMeshFromTextures(spriteImages);
-};
+}; */
