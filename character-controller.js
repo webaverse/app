@@ -85,13 +85,18 @@ const baseRadius = 0.3;
 function loadPhysxCharacterController() {
   const avatarHeight = this.avatar.height;
   const radius = baseRadius/heightFactor * avatarHeight;
-  const height = avatarHeight - radius*2;
+  var height = avatarHeight - radius*2;
+  
+  // avatar.height is the height of eye from the floor
+  // convert to full height by adding some more
+  const heightOffset = radius;
+  this.yOffset = -heightOffset / 2; // add this after physx cct position output
+  height = height + heightOffset; 
 
   const contactOffset = 0.1/heightFactor * avatarHeight;
   const stepOffset = 0.5/heightFactor * avatarHeight;
 
-  const position = this.position.clone()
-    .add(new THREE.Vector3(0, -avatarHeight/2, 0));
+  const position = this.position.clone();
 
   if (this.characterController) {
     physicsScene.destroyCharacterController(this.characterController);

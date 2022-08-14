@@ -118,6 +118,7 @@ class CharacterPhysics {
         timeDiffS,
         this.player.characterController.position
       );
+      this.player.characterController.position.y += this.player.yOffset;
       // const collided = flags !== 0;
       let grounded = !!(flags & 0x1); 
 
@@ -130,6 +131,7 @@ class CharacterPhysics {
           0,
           localVector4,
         );
+        localVector4.y += this.player.yOffset;
         const newGrounded = !!(flags & 0x1); 
         if (newGrounded) {
           grounded = true;

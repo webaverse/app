@@ -46,7 +46,7 @@ export const getHeight = (() => {
   return function(object) {
     const modelBones = getModelBones(object);
     return getEyePosition(modelBones)
-      .sub(modelBones.Root.getWorldPosition(localVector))
+      .sub(modelBones.Root.parent.getWorldPosition(localVector))
       .y;
   };
 })();

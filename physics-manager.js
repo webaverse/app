@@ -630,10 +630,6 @@ class PhysicsScene extends EventTarget {
         position,
         physicsId
       )
-    
-    radius = radius + contactOffset;
-    height = height + radius * 2;
-  
     const halfHeight = height / 2;
     const physicsObject = new THREE.Object3D()
     const physicsMesh = new THREE.Mesh(
