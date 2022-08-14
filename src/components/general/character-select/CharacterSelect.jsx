@@ -437,11 +437,13 @@ export const CharacterSelect = () => {
                 open={opened}
                 npcPlayer={opened ? npcPlayer : null}
             />
-            <div className={classnames(styles.menu, opened ? styles.open : null)}>
-                <div onClick={() => setState({ openedPanel: 'CharacterPanel' })} className={classnames(styles.closeMenu, opened ? styles.open : null)}><h1>Close <img src={chevronImgSrc} /></h1></div>
-                <div className={styles.heading}>
-                <h1>Character select</h1>
+            <div className={styles.heading}>
+                <div onClick={() => setState({ openedPanel: 'CharacterPanel' })} className={classnames(styles.closeMenu, opened ? styles.open : null)}>
+                    <h1>Close <img src={chevronImgSrc} /></h1>
                 </div>
+                <h1>Character select</h1>
+            </div>
+            <div className={classnames(styles.menu, opened ? styles.open : null)}>
                 <div className={styles.section}>
                     <div className={styles.subheading}>
                         <h2>Tokens</h2>

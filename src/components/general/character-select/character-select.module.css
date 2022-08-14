@@ -11,6 +11,7 @@
 .characterSelect .closeMenu {
   position: fixed;
   top: 16px;
+  font-size: 10px;
   left: 50%;
   -webkit-transform: translateX(-50%);
   transform: translateX(-50%);
@@ -28,6 +29,7 @@
   transform: rotate(-90deg);
   height: 20px;
   margin-left: 8px;
+  height: 15px;
 }
 .characterSelect .menuBackground.open {
   transform: translateY(calc(-100vh));
@@ -44,6 +46,8 @@
   /* transform: translateY(100vh); */
   transition: transform 1s cubic-bezier(0, 1, 0, 1);
   overflow: scroll;
+  box-sizing: border-box;
+  padding-top: 60px;
 }
 .characterSelect .menu .area {
   width: calc(100vw - 400px);
@@ -51,8 +55,12 @@
 .characterSelect .menu.open {
   transform: translateY(calc(-100vh));
 }
-.characterSelect .menu .heading {
+.characterSelect .heading {
   padding: 15px 20px;
+  background: #202020;
+  z-index:10000000;
+  position: fixed;
+  width: 100vw;
 }
 .characterSelect .menu .subheading
 {
@@ -66,6 +74,7 @@
   font-family: 'WinchesterCaps';
   letter-spacing: 1px;
   white-space: nowrap;
+  color: #FFF;
 }
 .characterSelect ul.reset,
 .characterSelect ul.reset li,
@@ -78,6 +87,7 @@
 
 .section {
   z-index:100000;
+  margin-bottom: 20px;
 }
 
 @keyframes character-animation {
