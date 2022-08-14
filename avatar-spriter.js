@@ -1519,7 +1519,7 @@ class AvatarSpriteDepthMaterial extends THREE.MeshNormalMaterial {
   }
 }
 
-const _waitForKey = async () => {
+/* const _waitForKey = async () => {
   const p = makePromise();
   const keydown = e => {
     if (e.which === 8) { // backspace
@@ -1529,7 +1529,11 @@ const _waitForKey = async () => {
   window.addEventListener('keydown', keydown);
   await p;
   window.removeEventListener('keydown', keydown);
-};
+}; */
+const frameTimeDiff = 1000 / 60; // 60 FPS
+const _waitForIdle = () => new Promise(resolve => {
+  requestIdleCallback(resolve);
+});
 
 export const renderSpriteImages = async (arrayBuffer, srcUrl) => {
   const avatarRenderer = new AvatarRenderer({
@@ -1642,8 +1646,6 @@ export const renderSpriteImages = async (arrayBuffer, srcUrl) => {
     
     // console.log('generate sprite', name);
 
-    // const timeDiff = duration * 1000 / numFrames;
-    const timeDiff = 1000/60; // 60 FPS
     // console.log('compute time diff', timeDiff);
     let angleIndex = 0;
     for (let angle = 0; angle < Math.PI*2; angle += Math.PI*2/numAngles) {      
@@ -1667,8 +1669,8 @@ export const renderSpriteImages = async (arrayBuffer, srcUrl) => {
         const startNow = now;
         for (let j = 0; j < numFrames; j++) {
           while (_getCurrentFrame(now - startNow) < j) {
-            spriteGenerator.update(now, timeDiff);
-            now += timeDiff;
+            spriteGenerator.update(now, frameTimeDiff);
+            now += frameTimeDiff;
           }
         }
       }
@@ -1680,8 +1682,8 @@ export const renderSpriteImages = async (arrayBuffer, srcUrl) => {
       const startNow = now;
       for (let j = 0; j < numFrames; j++, angleIndex++) {
         while (_getCurrentFrame(now - startNow) < j) {
-          spriteGenerator.update(now, timeDiff);
-          now += timeDiff;
+          spriteGenerator.update(now, frameTimeDiff);
+          now += frameTimeDiff;
         }
 
         _renderSpriteFrame();
@@ -1695,9 +1697,7 @@ export const renderSpriteImages = async (arrayBuffer, srcUrl) => {
         );
         if (preview) {
           tex.needsUpdate = true;
-        }
 
-        if (preview && i > 0) {
           // const angleDegrees = angle/(Math.PI*2)*360;
           // console.log('frame', spriteSpec, angleDegrees);
 
@@ -1712,7 +1712,8 @@ export const renderSpriteImages = async (arrayBuffer, srcUrl) => {
           // globalThis.cameraMesh = cameraMesh;
 
           // pause for preview
-          await _waitForKey();
+          // await _waitForKey();
+          await _waitForIdle();
         }
       }
 
