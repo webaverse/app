@@ -12,7 +12,7 @@ import {mod, angleDifference, makePromise} from './util.js';
 import {world} from './world.js';
 import {maxAvatarQuality} from './constants.js';
 
-const preview = true; // whether to draw debug meshes
+const preview = false; // whether to draw debug meshes
 
 const cameraGeometry = new CameraGeometry();
 const cameraMaterial = new THREE.MeshBasicMaterial({
