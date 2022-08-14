@@ -17,99 +17,25 @@ import { VoiceEndpointVoicer, getVoiceEndpointUrl } from '../../../../voice-outp
 import * as voices from '../../../../voices.js';
 
 //
-import { getCryptoAvatars } from '../../../../cryptoavatars-util';
-import { getMainnetAddress } from '../../../../blockchain.js';
 
-import chevronIcon from '../../../../public/images/chevron2.svg';
+import { getMainnetAddress } from '../../../../blockchain.js';
+import { 
+    cryptoavatarsCharactersUtil, 
+    upstreetCharactersUtil, 
+    tokensCharactersUtil } 
+from '../../../../utils';
 
 function typeContentToUrl(type, content) {
-if (typeof content === 'object') {
-    content = JSON.stringify(content);
+    if (typeof content === 'object') {
+        content = JSON.stringify(content);
+    }
+    const dataUrlPrefix = 'data:' + type + ',';
+    return '/@proxy/' + dataUrlPrefix + encodeURIComponent(content).replace(/\%/g, '%25')//.replace(/\\//g, '%2F');
 }
-const dataUrlPrefix = 'data:' + type + ',';
-return '/@proxy/' + dataUrlPrefix + encodeURIComponent(content).replace(/\%/g, '%25')//.replace(/\\//g, '%2F');
-}
-
-const userTokenCharacters = Array(5);
-for (let i = 0; i < userTokenCharacters.length; i++) {
-    userTokenCharacters[i] = {
-        name: '',
-        previewUrl: '',
-        avatarUrl: '',
-        voice: '',
-        class: '',
-        bio: '',
-    };
-}
-const characters = {
-    upstreet: [
-        {
-            name: 'Scillia',
-            previewUrl: './images/characters/upstreet/small/scillia.png',
-            avatarUrl: './avatars/scillia_drophunter_v15_vian.vrm',
-            voice: `Sweetie Belle`,
-            voicePack: `ShiShi voice pack`,
-            class: 'Drop Hunter',
-            bio: `Her nickname is Scilly or SLY. 13/F drop hunter. She is an adventurer, swordfighter and fan of potions. She is exceptionally skilled and can go Super Saiyan.`,
-            themeSongUrl: `https://webaverse.github.io/music/themes/149274046-smooth-adventure-quest.mp3`,
-            // "Scilly is short for "Saga Cybernetic Lifeform Interface" or SLY. It's a complicated name, but it means I'm the best at what I do: Collecting data from living organisms and machines to help my development.)"
-            // "She's not like other girls. She doesn't spend her time talking about boys, or clothes, or anything else that isn't important. No, she spends her time adventuring, swordfighting and looking for new and interesting potions to try."
-            // "I'm not saying I don't like boys, but they're just not as interesting as swords."
-            detached: true,
-        },
-        {
-            name: 'Drake',
-            previewUrl: './images/characters/upstreet/small/drake.png',
-            avatarUrl: './avatars/Drake_hacker_v8_Guilty.vrm',
-            voice: `Shining Armor`,
-            voicePack: `Andrew voice pack`,
-            class: 'Neural Hacker',
-            bio: `His nickname is DRK. 15/M hacker. Loves guns. Likes plotting new hacks. He has the best equipment and is always ready for a fight.`,
-            themeSongUrl: `https://webaverse.github.io/music/themes/129079005-im-gonna-find-it-mystery-sci-f.mp3`,
-            detached: true,
-        },
-        {
-            name: 'Hyacinth',
-            previewUrl: './images/characters/upstreet/small/hyacinth.png',
-            avatarUrl: './avatars/hya_influencer_v2_vian.vrm',
-            voice: `Maud Pie`,
-            voicePack: `Tiffany voice pack`,
-            class: 'Beast Painter',
-            bio: `Scillia's mentor. 15/F beast tamer. She is quite famous. She is known for releasing beasts on her enemies when she get angry.`,
-            themeSongUrl: `https://webaverse.github.io/music/themes/092909594-fun-electro-dance-groove-racin.mp3`,
-            detached: true,
-        },
-        {
-            name: 'Juniper',
-            previewUrl: './images/characters/upstreet/small/juniper.png',
-            avatarUrl: './avatars/jun_engineer_v1_vian.vrm',
-            voice: `Cadance`,
-            voicePack: `Tiffany voice pack`,
-            class: 'Academy Engineer',
-            bio: `She is an engineer. 17/F engineer. She is new on the street. She has a strong moral compass and it the voice of reason in the group.`,
-            themeSongUrl: `https://webaverse.github.io/music/themes/092958842-groovy-jazzy-band-fun-light-su.mp3`,
-            detached: true,
-        },
-        {
-            name: 'Anemone',
-            previewUrl: './images/characters/upstreet/small/anemone.png',
-            avatarUrl: './avatars/ann.vrm',
-            voice: `Trixie`,
-            voicePack: `ShiShi voice pack`,
-            class: 'Lisk Witch',
-            bio: `A witch studying to make the best potions. 13/F. She is exceptionally skilled and sells her potions on the black market, but she is very shy.`,
-            themeSongUrl: `https://webaverse.github.io/music/themes/158618260-ghost-catcher-scary-funny-adve.mp3`,
-            detached: true,
-        },
-    ],
-};
-
-/** ---- CRYPTOAVATARS COLLECTION ADDRESSES ------ */
-const caEthCollectionAddress = '0xc1def47cf1e15ee8c2a92f4e0e968372880d18d1';
-const caPolygonCollectionAddress = '0xd047666daea0b7275e8d4f51fcff755aa05c3f0a';
-const caUserCollectionAddress = '0x28ccbe824455a3b188c155b434e4e628babb6ffa';
 
 //
+
+const chevronImgSrc = `./images/chevron.svg`;
 
 const Character = forwardRef(({
     character,
@@ -230,14 +156,19 @@ export const CharacterSelect = () => {
     // const [ messageAudioCache, setMessageAudioCache ] = useState(new Map());
     // const [ selectAudioCache, setSelectAudioCache ] = useState(new Map());
     const [ text, setText ] = useState('');
+
     const [cryptoAvatars, setCryptoAvatars] = useState([]);
+    const [upstreatCharacters, setUpstreatCharacters] = useState([]);
+    const [tokensCharacters, setTokesCharacters] = useState([]);
 
     const [ npcPlayerCache, setNpcPlayerCache ] = useState(new Map());
 
     const [caPagination, setCaPagination] = useState({});
     const [caItemsPerPage, setCaItemsPerPage] = useState(5);
-    const [caCollection, setCaCollection] = useState(caEthCollectionAddress);
+    const [caCollection, setCaCollection] = useState();
     const [caOwnership, setCaOwnership] = useState(null);
+    const [caFilters, setCaFilters] = useState({});
+    const [caUrl, setCaUrl] = useState(undefined);
     const [scaleViewValue, setScaleViewValue] = useState(1);
 
     const targetCharacter = selectCharacter || highlightCharacter;
@@ -387,27 +318,39 @@ export const CharacterSelect = () => {
         }
     };
 
-    /** ------------------------- CRYPTOAVATARS IMPLEMENTATION ------------------------ */
-    const caLoadAvatars = (url) => {
-        getCryptoAvatars(url, caOwnership, caCollection, caItemsPerPage).then((res) => {
-            setCaPagination(res?.pagination);
-            setCryptoAvatars(res?.avatars);
+    useEffect( () => {
+        // GET TOKENS CHARACTERS
+        tokensCharactersUtil.getTokenCharacters().then( (res) => {
+            if (res) {
+                setTokesCharacters(res);
+            }
         });
-    };
+        // GET UPSTREET CHARACTERS
+        upstreetCharactersUtil.getUpstreetCharacters().then( (res) => {
+            if (res) {
+                setUpstreatCharacters(res.upstreet);
+            }
+        });
+    }, [] );
 
-    const caSelectCollection = (event) => {
-        setCaCollection(event.target.value);
-    };
+    /** ------------------------- CRYPTOAVATARS IMPLEMENTATION ------------------------ */
 
-    const changeCaItemsPerPage = (event) => {
-        setCaItemsPerPage(event.target.value);
-    };
-
-    const caNavigation = (event) => {
-        console.log(event.target.value);
-        if (event.target.value === 'next') caLoadAvatars(caPagination.next);
-        else caLoadAvatars(caPagination.prev);
-    };
+    // GET CRYPTOAVATARS CHARACTERS
+    useEffect(() => {
+        // GET CHARACTERS
+        cryptoavatarsCharactersUtil.getCryptoAvatars(caUrl, caOwnership, caCollection, caItemsPerPage).then((res) => {
+            if (res) {
+                setCaPagination(res?.pagination);
+                setCryptoAvatars(res?.avatars);
+            }
+        });
+        // GET FILTERS
+        cryptoavatarsCharactersUtil.getCryptoAvatarsFilters().then((res) => {
+            if (res) {
+                setCaFilters(res);
+            }
+        });
+    }, [caUrl, caCollection, caOwnership, caItemsPerPage] );
 
     const caAvatarsFilter = async (event) => {
         if (event.target.value === 'all') {
@@ -424,11 +367,7 @@ export const CharacterSelect = () => {
         setCaOwnership('free');
     };
 
-    useEffect(() => {
-        caLoadAvatars();
-    }, [caCollection, caOwnership, caItemsPerPage]);
     /** ------------------------------------------------------------------------------- */
-    const chevronImgSrc = `./images/chevron.svg`;
 
     return (
         <div className={styles.characterSelect}>
@@ -438,7 +377,7 @@ export const CharacterSelect = () => {
                 npcPlayer={opened ? npcPlayer : null}
             />
             <div className={styles.heading}>
-                <div onClick={() => setState({ openedPanel: 'CharacterPanel' })} className={classnames(styles.closeMenu, opened ? styles.open : null)}>
+                <div onClick={() => setState({ openedPanel: 'CharacterPanel' })} className={styles.closeMenu}>
                     <h1>Close <img src={chevronImgSrc} /></h1>
                 </div>
                 <h1>Character select</h1>
@@ -449,17 +388,23 @@ export const CharacterSelect = () => {
                         <h2>Tokens</h2>
                     </div>
                     <ul className={styles.list}>
-                        {userTokenCharacters.map((character, i) =>
-                            <Character
-                                character={character}
-                                highlight={character === targetCharacter}
-                                targetCharacter={targetCharacter}
-                                animate={selectCharacter === character}
-                                disabled={!character.name || (!!selectCharacter && selectCharacter !== character)}
-                                onMouseMove={onMouseMove(character)}
-                                onClick={onClick(character)}
-                                key={i}
-                            />
+                        { tokensCharacters && tokensCharacters.length > 0 ? (
+                            tokensCharacters.map((character, i) => {
+                                return (
+                                    <Character
+                                        character={character}
+                                        highlight={character === targetCharacter}
+                                        targetCharacter={targetCharacter}
+                                        animate={selectCharacter === character}
+                                        disabled={!character.name || (!!selectCharacter && selectCharacter !== character)}
+                                        onMouseMove={onMouseMove(character)}
+                                        onClick={onClick(character)}
+                                        key={i}
+                                    />
+                                );
+                            })
+                        ) : (
+                            <>No characters found.</>
                         )}
                     </ul>
                 </div>
@@ -468,20 +413,24 @@ export const CharacterSelect = () => {
                         <h2>From Upstreet</h2>
                     </div>
                     <ul className={styles.list}>
-                        {characters.upstreet.map((character, i) => {
-                            return (
-                                <Character
-                                    character={character}
-                                    highlight={character === targetCharacter}
-                                    targetCharacter={targetCharacter}
-                                    animate={selectCharacter === character}
-                                    disabled={!character.name || (!!selectCharacter && selectCharacter !== character)}
-                                    onMouseMove={onMouseMove(character)}
-                                    onClick={onClick(character)}
-                                    key={i}
-                                />
-                            );
-                        })}
+                        { upstreatCharacters && upstreatCharacters.length > 0 ? (
+                            upstreatCharacters.map((character, i) => {
+                                return (
+                                    <Character
+                                        character={character}
+                                        highlight={character === targetCharacter}
+                                        targetCharacter={targetCharacter}
+                                        animate={selectCharacter === character}
+                                        disabled={!character.name || (!!selectCharacter && selectCharacter !== character)}
+                                        onMouseMove={onMouseMove(character)}
+                                        onClick={onClick(character)}
+                                        key={i}
+                                    />
+                                );
+                            }) 
+                        ) : (
+                            <>No characters found.</>
+                        )}
                     </ul>
                 </div>
                 <div className={styles.section}>
@@ -490,21 +439,20 @@ export const CharacterSelect = () => {
                         <div className={styles.cryptoavatars}>
                         <>Collection:</>
                         <div className={styles.select}>
-                            <select onChange={caSelectCollection}>
-                            <option value={caEthCollectionAddress}>
-                                CryptoAvatars ETH
-                            </option>
-                            <option value={caPolygonCollectionAddress}>
-                                CryptoAvatars POLYGON
-                            </option>
-                            <option value={caUserCollectionAddress}>
-                                The User Collection
-                            </option>
+                            <select onChange={(e) => setCaCollection(e.target.value)}>
+                                { caFilters?.collections && caFilters.collections.map((collection, i) => {  
+                                    return (
+                                        <option key={i} value={collection?.address}>
+                                        {collection?.name}
+                                        </option>  
+                                    );
+                                  }
+                                )}
                             </select>
                         </div>
                         <>Ownership:</>
                         <div className={styles.select}>
-                            <select onChange={caAvatarsFilter}>
+                            <select onChange={(e) => setCaItemsPerPage(e.target.value)}>
                             <option value="all">ALL</option>
                             <option value="owned">Owned</option>
                             <option value="opensource">Free use</option>
@@ -512,7 +460,7 @@ export const CharacterSelect = () => {
                         </div>
                         <>Avatars per page:</>
                         <div className={styles.select}>
-                            <select onChange={changeCaItemsPerPage}>
+                            <select onChange={(e) => setCaItemsPerPage(e.target.value)}>
                             <option value="5">5</option>
                             <option value="10">10</option>
                             <option value="20">25</option>
@@ -521,47 +469,45 @@ export const CharacterSelect = () => {
                         <div>
                             <>Pages </>
                             {caPagination.prev && (
-                            <button
-                                value="prev"
-                                className={styles.button}
-                                onClick={caNavigation}
-                            >
-                                {'<'}
-                            </button>
+                                <button
+                                    className={styles.button}
+                                    onClick={(e) => setCaUrl(caPagination.prev)}
+                                >
+                                    {'<'}
+                                </button> 
                             )}
                             <>
                             {caPagination.currentPage || 0} / {caPagination.totalPages}
                             </>
                             {caPagination.next && (
-                            <button
-                                value="next"
-                                className={styles.button}
-                                onClick={caNavigation}
-                            >
-                                {'>'}
-                            </button>
+                                <button
+                                    className={styles.button}
+                                    onClick={(e) => setCaUrl(caPagination.next)}
+                                >
+                                    {'>'}
+                                </button>
                             )}
                         </div>
                         </div>
                     </div>
                     <ul className={styles.list}>
-                        {cryptoAvatars.length > 0 ? (
-                        cryptoAvatars.map((character, i) => {
-                            return (
-                            <Character
-                                character={character}
-                                highlight={character === targetCharacter}
-                                targetCharacter={targetCharacter}
-                                animate={selectCharacter === character}
-                                disabled={false}
-                                onMouseMove={onMouseMove(character)}
-                                onClick={onClick(character)}
-                                key={i}
-                            />
-                            );
-                        })
+                        { cryptoAvatars && cryptoAvatars.length > 0 ? ( 
+                            cryptoAvatars.map((character, i) => {
+                                return (
+                                    <Character
+                                        character={character}
+                                        highlight={character === targetCharacter}
+                                        targetCharacter={targetCharacter}
+                                        animate={selectCharacter === character}
+                                        disabled={false}
+                                        onMouseMove={onMouseMove(character)}
+                                        onClick={onClick(character)}
+                                        key={i}
+                                    />
+                                );
+                            })
                         ) : (
-                        <>No avatars found</>
+                            <>No characters found.</>
                         )}
                     </ul>
                 </div>

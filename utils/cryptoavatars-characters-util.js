@@ -4,12 +4,17 @@
 
 // SKIP & LIMIT supported for pagination on URL params
 
-const caEthCollectionAddress = '0xc1def47cf1e15ee8c2a92f4e0e968372880d18d1';
+export const cryptoavatarsCharactersUtil = {
+    getCryptoAvatars,
+    getCryptoAvatarsFilters
+};
+
+const defaultCollectionAddress = '0xc1def47cf1e15ee8c2a92f4e0e968372880d18d1';
 
 async function loadCryptoAvatarsCharacters(
     url = undefined,
     ownership = undefined,
-    collectionAddress = caEthCollectionAddress,
+    collectionAddress = defaultCollectionAddress,
     itemsPerPage = 5,
 ) {
     const apiUrl = !url
@@ -79,7 +84,7 @@ async function loadCryptoAvatarsCharacters(
     }
 }
 
-export async function getCryptoAvatars(
+async function getCryptoAvatars(
     url = undefined,
     ownership,
     collection,
@@ -93,6 +98,30 @@ export async function getCryptoAvatars(
     );
     return caResponse;
   };
+
+  const cryptoAvatarsFilters = {
+    collections: [
+        {
+            name: 'CryptoAvatars ETH',
+            address: '0xc1def47cf1e15ee8c2a92f4e0e968372880d18d1'
+            
+        },
+        {
+            name: 'CryptoAvatars POLYGON',
+            address: '0xd047666daea0b7275e8d4f51fcff755aa05c3f0a'
+            
+        },
+        {
+            name: 'The User Collection',
+            address: '0x28ccbe824455a3b188c155b434e4e628babb6ffa'
+            
+        }
+    ],
+};
+
+async function getCryptoAvatarsFilters() {
+    return await cryptoAvatarsFilters;
+}
 
 /*
 
