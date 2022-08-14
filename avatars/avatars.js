@@ -907,10 +907,14 @@ class Avatar {
     this.direction = new THREE.Vector3();
     this.jumpState = false;
     this.jumpTime = NaN;
-    this.landTime = NaN;
-    this.lastLandStartTime = NaN;
+    this.doubleJumpState = false;
+    this.doubleJumpTime = NaN;
+    this.landTime = Infinity;
+    this.lastLandStartTime = 0;
+    this.landWithMoving = false;
     this.flyState = false;
     this.flyTime = NaN;
+    this.swimState = false;
     this.swimTime = NaN;
     this.swimAnimTime = 0;
 
