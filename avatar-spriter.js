@@ -1627,7 +1627,7 @@ export const renderSpriteImages = async (arrayBuffer, srcUrl) => {
     canvas.width = size;
     canvas.height = size;
     const ctx = canvas.getContext('2d');
-    document.body.appendChild(canvas);
+    /* document.body.appendChild(canvas);
     canvas.style.cssText = `\
       position: absolute;
       top: 0;
@@ -1635,7 +1635,7 @@ export const renderSpriteImages = async (arrayBuffer, srcUrl) => {
       width: 512px;
       height: 512px;
       z-index: 1;
-    `;
+    `; */
     
     let tex;
     if (preview) {
