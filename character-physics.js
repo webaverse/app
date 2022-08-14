@@ -189,22 +189,24 @@ class CharacterPhysics {
       const wantMoveDistancePerFrameY = this.wantMoveDistancePerFrame.y;
       const wantMoveDistancePerFrameXZLength = wantMoveDistancePerFrameXZ.length();
       const wantMoveDistancePerFrameYLength = wantMoveDistancePerFrameY;
-      // if (wantMoveDistancePerFrameXZLength > 0) {
-        const movedRatioXZ = (positionXZAfter.sub(positionXZBefore).length()) / wantMoveDistancePerFrameXZLength; // todo: consider Y axis movement?
-        const movedRatioY = (positionYAfter - positionYBefore) / wantMoveDistancePerFrameYLength;
-        console.log(movedRatioY)
-        // console.log(movedRatioXZ.toFixed(2));
-        this.velocity.copy(this.wantVelocity);
-        if (this.player === window.npcPlayer) debugger
+      this.velocity.copy(this.wantVelocity);
+      if (wantMoveDistancePerFrameXZLength > 0) { // prevent divide 0, and reduce calculations.
+        const movedRatioXZ = (positionXZAfter.sub(positionXZBefore).length()) / wantMoveDistancePerFrameXZLength;
+        console.log(movedRatioXZ.toFixed(2));
+        // if (this.player === window.npcPlayer) debugger
         // if (movedRatioXZ < 1) this.velocity.multiplyScalar(movedRatioXZ); // todo: multiply targetVelocity.
         if (movedRatioXZ < 1) {
           this.velocity.x *= movedRatioXZ;
           this.velocity.z *= movedRatioXZ;
         }
+      }
+      if (wantMoveDistancePerFrameYLength > 0) { // prevent divide 0, and reduce calculations.
+        const movedRatioY = (positionYAfter - positionYBefore) / wantMoveDistancePerFrameYLength;
+        // console.log(movedRatioY)
         if (movedRatioY < 1) {
           this.velocity.y *= movedRatioY;
         }
-      // }
+      }
 
       // const collided = flags !== 0;
       let grounded = !!(flags & 0x1); 
