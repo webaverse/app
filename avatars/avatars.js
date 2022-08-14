@@ -1499,7 +1499,7 @@ class Avatar {
     }
   }
 
-  setVelocity(timeDiffS, lastPosition, currentPosition, currentQuaternion) {
+  setVelocity(timestamp, timeDiffS, lastPosition, currentPosition, currentQuaternion) {
     // console.log('setVelocity')
     // Set the velocity, which will be considered by the animation controller
     const positionDiff = localVector.copy(lastPosition)
@@ -1515,8 +1515,8 @@ class Avatar {
     this.direction.copy(positionDiff).normalize();
     this.lastPosition.copy(currentPosition);
 
-    if (this.velocity.length() > maxIdleVelocity) {
-      this.lastMoveTime = performance.now();
+    if (localVector.copy(this.velocity).setY(0).length() > maxIdleVelocity) {
+      this.lastMoveTime = timestamp;
     }
   }
 
@@ -1528,6 +1528,7 @@ class Avatar {
     // on remote players this is called from the RemotePlayer -> observePlayerFn
     if (this.isLocalPlayer) {
       this.setVelocity(
+        timestamp,
         timeDiffS,
         this.lastPosition,
         this.inputs.hmd.position,
