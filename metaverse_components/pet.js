@@ -251,7 +251,7 @@ export default (app, component) => {
                 0.1
               );
 
-              // lastDirection.copy(direction);
+              lastDirection.copy(direction);
 
               app.updateMatrixWorld();
             } /* else {
