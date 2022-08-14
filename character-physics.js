@@ -102,6 +102,7 @@ class CharacterPhysics {
         const h = 0.5 * physicsScene.getGravity().y * t * t; // todo: consider xyz.
         // this.velocity.y += h;
         this.wantMoveDistancePerFrame.y = h - this.lastGravityH;
+        // todo: this.wantVelocity.y = ???
 
         this.lastGravityH = h;
       }
@@ -174,6 +175,7 @@ class CharacterPhysics {
       // console.log('move')
 
       const positionXZBefore = localVector2D.set(this.player.characterController.position.x, this.player.characterController.position.z);
+      const positionYBefore = this.player.characterController.position.y;
       const flags = physicsScene.moveCharacterController(
         this.player.characterController,
         localVector3,
@@ -182,15 +184,27 @@ class CharacterPhysics {
         this.player.characterController.position
       );
       const positionXZAfter = localVector2D2.set(this.player.characterController.position.x, this.player.characterController.position.z);
+      const positionYAfter = this.player.characterController.position.y;
       const wantMoveDistancePerFrameXZ = localVector2D3.set(this.wantMoveDistancePerFrame.x, this.wantMoveDistancePerFrame.z);
+      const wantMoveDistancePerFrameY = this.wantMoveDistancePerFrame.y;
       const wantMoveDistancePerFrameXZLength = wantMoveDistancePerFrameXZ.length();
-      if (wantMoveDistancePerFrameXZLength > 0) {
-        const movedRatio = (positionXZAfter.sub(positionXZBefore).length()) / wantMoveDistancePerFrameXZLength; // todo: consider Y axis movement?
-        // console.log(movedRatio.toFixed(2));
+      const wantMoveDistancePerFrameYLength = wantMoveDistancePerFrameY;
+      // if (wantMoveDistancePerFrameXZLength > 0) {
+        const movedRatioXZ = (positionXZAfter.sub(positionXZBefore).length()) / wantMoveDistancePerFrameXZLength; // todo: consider Y axis movement?
+        const movedRatioY = (positionYAfter - positionYBefore) / wantMoveDistancePerFrameYLength;
+        console.log(movedRatioY)
+        // console.log(movedRatioXZ.toFixed(2));
         this.velocity.copy(this.wantVelocity);
         if (this.player === window.npcPlayer) debugger
-        if (movedRatio < 1) this.velocity.multiplyScalar(movedRatio); // todo: multiply targetVelocity.
-      }
+        // if (movedRatioXZ < 1) this.velocity.multiplyScalar(movedRatioXZ); // todo: multiply targetVelocity.
+        if (movedRatioXZ < 1) {
+          this.velocity.x *= movedRatioXZ;
+          this.velocity.z *= movedRatioXZ;
+        }
+        if (movedRatioY < 1) {
+          this.velocity.y *= movedRatioY;
+        }
+      // }
 
       // const collided = flags !== 0;
       let grounded = !!(flags & 0x1); 
@@ -267,7 +281,7 @@ class CharacterPhysics {
             }
           };
 
-          this.velocity.y = -1;
+          // this.velocity.y = -1;
         } else {
           const lastGroundedTimeDiff = now - this.lastGroundedTime;
           if (lastGroundedTimeDiff > 200) {

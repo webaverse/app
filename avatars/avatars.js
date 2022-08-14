@@ -1517,7 +1517,7 @@ class Avatar {
     this.direction.copy(positionDiff).normalize();
     this.lastPosition.copy(currentPosition);
 
-    if (localVector.copy(this.velocity).setY(0).length() > maxIdleVelocity) {
+    if (this.velocity.length() > maxIdleVelocity) {
       this.lastMoveTime = timestamp;
     }
   }
