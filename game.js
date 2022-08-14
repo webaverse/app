@@ -1505,7 +1505,7 @@ class GameManager extends EventTarget {
       const newJumpAction = {
         type: 'jump',
         trigger:trigger,
-        startPositionY: localPlayer.characterController.position.y,
+        startPositionY: localPlayer.characterPhysics.characterController.position.y,
         // time: 0,
       };
       localPlayer.setControlAction(newJumpAction);
@@ -1527,7 +1527,7 @@ class GameManager extends EventTarget {
     const localPlayer = playersManager.getLocalPlayer();
     localPlayer.addAction({
       type: 'doubleJump',
-      startPositionY: localPlayer.characterController.position.y,
+      startPositionY: localPlayer.characterPhysics.characterController.position.y,
     });
   }
   isMovingBackward() {
