@@ -24,7 +24,7 @@ import {
   // avatarInterpolationNumFrames,
 } from '../constants.js';
 // import {FixedTimeStep} from '../interpolants.js';
-import {AvatarRenderer} from './avatar-renderer.js';
+// import {AvatarRenderer} from './avatar-renderer.js';
 // import * as sceneCruncher from '../scene-cruncher.js';
 import {
   idleFactorSpeed,
@@ -57,7 +57,6 @@ import Nodder from './Nodder.js'
 import Looker from './Looker.js'
 
 import * as wind from './simulation/wind.js';
-
 
 const localVector = new THREE.Vector3();
 const localVector2 = new THREE.Vector3();
@@ -319,8 +318,8 @@ const _makeDebugMesh = (avatar) => {
   mesh.setFromAvatar = avatar => {
     for (const k in avatar.modelBoneOutputs) {
       const modelBone = avatar.modelBoneOutputs[k];
+      
       const meshBone = modelBoneToMeshBoneMap.get(modelBone);
-
       (modelBone.parent ?
         modelBone.parent.matrixWorld
       :
@@ -1940,28 +1939,8 @@ class Avatar {
     this.emoter.update(now);
     
     this.options.visemes && _updateVisemes();
-    
-    const _updateRendererFrustumCull = () => {
-      const localMatrix = new THREE.Matrix4();
-      const localMatrix2 = new THREE.Matrix4();
-
-      localMatrix.makeTranslation(
-        this.inputs.hmd.position.x,
-        this.inputs.hmd.position.y - this.height / 2,
-        this.inputs.hmd.position.z
-      );
-
-      // XXX this can be optimized by initializing the frustum only once per frame and passing it in
-      const projScreenMatrix = localMatrix2.multiplyMatrices(
-        camera.projectionMatrix,
-        camera.matrixWorldInverse
-      );
-      localFrustum.setFromProjectionMatrix(projScreenMatrix);
-      
-      this.avatarRenderer.updateAvatar(timestamp, timeDiff, this);
-      this.avatarRenderer.updateFrustumCull(localMatrix, localFrustum);
-    };
-    _updateRendererFrustumCull();
+  
+    this.avatarRenderer.update(timestamp, timeDiff, this);
 
     const debug = metaversefile.useDebug();
     if (debug.enabled && !this.debugMesh) {
