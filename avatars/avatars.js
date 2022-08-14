@@ -1935,13 +1935,36 @@ class Avatar {
     // on remote players this is called from the RemotePlayer -> observePlayerFn
     if (this.isLocalPlayer) {
       this.setVelocity(
-	timestamp,
+	      timestamp,
         timeDiffS,
         this.lastPosition,
         this.inputs.hmd.position,
         this.inputs.hmd.quaternion
       );
     }
+    
+    const player = window.localPlayer;
+    // const player = window.npcPlayers[0];
+    if (true && player && this === player.avatar) {
+      window.domInfo.innerHTML += `
+        <div style="display:;">actions: --- ${player.getActionsArray().map(n=>n.type)}</div>
+        <div style="display:;">velocity: --- ${window.logVector3(player.characterPhysics.velocity)} | ${window.logNum(player.characterPhysics.velocity.length())} | ${window.logNum(localVector.copy(player.characterPhysics.velocity).setY(0).length())} of characterPhysics</div>
+        <div style="display:;">velocity: --- ${window.logVector3(this.velocity)} | ${window.logNum(this.velocity.length())} | ${window.logNum(localVector.copy(this.velocity).setY(0).length())} of avatar</div>
+        <div style="display:;">idleWalkFactor: --- ${window.logNum(this.idleWalkFactor)}</div>
+        <div style="display:;">walkRunFactor: --- ${window.logNum(this.walkRunFactor)}</div>
+        <div style="display:;">avatar.direction: --- ${window.logVector3(this.direction)}</div>
+        <div style="display:;">player.direction: --- ${window.logVector3(player.getWorldDirection(localVector))}</div>
+        <div style="display:;">angle: --- ${window.logNum(this.getAngle())}</div>
+      `
+      /*
+        <div style="display:;">targetMoveDistancePerFrame: --- ${window.logVector3(player.characterPhysics.targetMoveDistancePerFrame)} | ${window.logNum(player.characterPhysics.targetMoveDistancePerFrame.length())} of characterPhysics ( correct )</div>
+        <div style="display:;">targetMoveDistancePerFrame: --- ${window.logVector3(player.characterPhysics.wantMoveDistancePerFrame)} | ${window.logNum(player.characterPhysics.wantMoveDistancePerFrame.length() * 6)} damped ( length * 6 )</div>
+        <div style="display:;">velocity: --- ${window.logVector3(this.testVelocity)} | ${window.logNum(this.testVelocity.length())} | ${window.logNum(localVector.copy(this.testVelocity).setY(0).length())} of avatar test</div>
+      */
+    }
+    // console.log(this.testVelocity.y)
+    // console.log('applyAnimation')
+
     _applyAnimation(this, now);
 
     if (this.poseAnimation) {
