@@ -1492,39 +1492,9 @@ class Avatar {
     }
   }
 
-  setVelocity(timeDiffS, lastPosition, currentPosition, currentQuaternion) {
-    // Set the velocity, which will be considered by the animation controller
-    const positionDiff = localVector.copy(lastPosition)
-      .sub(currentPosition)
-      .divideScalar(Math.max(timeDiffS, 0.001))
-      // .multiplyScalar(0.1);
-    localEuler.setFromQuaternion(currentQuaternion, 'YXZ');
-    localEuler.set(0, -(localEuler.y + Math.PI), 0);
-    positionDiff.applyEuler(localEuler);
-    // this.testVelocity.copy(positionDiff); // For testing only, check if the physics.velocity correct. Can't use this in formal, to calc such as idleWalkFactor/walkRunFactor, will cause aniamtions jitter in low fps.
-    // this.testVelocity.y *= -1;
-    this.direction.copy(positionDiff).normalize();
-    this.lastPosition.copy(currentPosition);
-
-    if (this.velocity.length() > maxIdleVelocity) {
-      this.lastMoveTime = performance.now();
-    }
-  }
-
   update(timestamp, timeDiff) {
     const now = timestamp;
     const timeDiffS = timeDiff / 1000;
-    
-    // for the local player we want to update the velocity immediately
-    // on remote players this is called from the RemotePlayer -> observePlayerFn
-    if (this.isLocalPlayer) {
-      this.setVelocity(
-        timeDiffS,
-        this.lastPosition,
-        this.inputs.hmd.position,
-        this.inputs.hmd.quaternion
-      );
-    }
 
     const currentSpeed = localVector.set(this.velocity.x, 0, this.velocity.z).length();
 
@@ -1539,6 +1509,29 @@ class Avatar {
     this.movementsTransitionFactor = Math.min(Math.max(this.movementsTransitionTime / crouchMaxTime, 0), 1);
     this.sprintFactor = Math.min(Math.max(this.sprintTime / crouchMaxTime, 0), 1);
     
+    const _updateHmdPosition = () => {
+      const currentPosition = this.inputs.hmd.position;
+      const currentQuaternion = this.inputs.hmd.quaternion;
+      
+      const positionDiff = localVector.copy(this.lastPosition)
+        .sub(currentPosition)
+        .divideScalar(timeDiffS)
+        .multiplyScalar(0.1);
+      localEuler.setFromQuaternion(currentQuaternion, 'YXZ');
+      localEuler.x = 0;
+      localEuler.z = 0;
+      localEuler.y += Math.PI;
+      localEuler2.set(-localEuler.x, -localEuler.y, -localEuler.z, localEuler.order);
+      positionDiff.applyEuler(localEuler2);
+      this.velocity.copy(positionDiff);
+      this.lastPosition.copy(currentPosition);
+      this.direction.copy(positionDiff).normalize();
+
+      if (this.velocity.length() > maxIdleVelocity) {
+        this.lastMoveTime = now;
+      }
+    };
+
     const _overwritePose = poseName => {
       const poseAnimation = animations.index[poseName];
       // const noiseAnimation = animations.index['t-pose_rot.fbx'];
@@ -1934,6 +1927,7 @@ class Avatar {
       _motionControls.call(this)
     }
 
+    _updateHmdPosition();
     _applyAnimation(this, now);
 
     if (this.poseAnimation) {
