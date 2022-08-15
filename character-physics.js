@@ -95,13 +95,16 @@ class CharacterPhysics {
             const aestheticJumpBias = 1;
             const t = flatGroundJumpAirTime / 1000 / 2 + aestheticJumpBias;
             this.fallLoopStartTimeS -= t;
-            this.lastGravityH = 0.5 * physicsScene.getGravity().y * t * t; // todo: consider xyz.
+            const previousT = t - timeDiffS;
+            this.lastGravityH = 0.5 * physicsScene.getGravity().y * previousT * previousT; // todo: consider xyz.
           }
         }
         const t = nowS - this.fallLoopStartTimeS;
         const h = 0.5 * physicsScene.getGravity().y * t * t; // todo: consider xyz.
         // this.velocity.y += h;
         this.wantMoveDistancePerFrame.y = h - this.lastGravityH;
+        // console.log(this.wantMoveDistancePerFrame.y)
+        // debugger
         // todo: this.wantVelocity.y = ???
 
         this.lastGravityH = h;
