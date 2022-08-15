@@ -271,10 +271,10 @@ class SSAOPass extends Pass {
 
 			case SSAOPass.OUTPUT.Depth:
 
-				// this.renderPass( renderer, this.depthRenderMaterial, this.renderToScreen ? null : writeBuffer );
-				this.copyMaterial.uniforms[ 'tDiffuse' ].value = this.depthPass.normalRenderTarget.depthTexture;
-				this.copyMaterial.blending = NoBlending;
-				this.renderPass( renderer, this.copyMaterial, this.renderToScreen ? null : writeBuffer );
+				this.renderPass( renderer, this.depthRenderMaterial, this.renderToScreen ? null : writeBuffer );
+				// this.copyMaterial.uniforms[ 'tDiffuse' ].value = this.depthPass.normalRenderTarget.depthTexture;
+				// this.copyMaterial.blending = NoBlending;
+				// this.renderPass( renderer, this.copyMaterial, this.renderToScreen ? null : writeBuffer );
 
 				break;
 
