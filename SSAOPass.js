@@ -160,16 +160,16 @@ class SSAOPass extends Pass {
 
 		// material for rendering the depth
 
-		/* this.depthRenderMaterial = new ShaderMaterial( {
+		this.depthRenderMaterial = new ShaderMaterial( {
 			defines: Object.assign( {}, SSAODepthShader.defines ),
 			uniforms: UniformsUtils.clone( SSAODepthShader.uniforms ),
 			vertexShader: SSAODepthShader.vertexShader,
 			fragmentShader: SSAODepthShader.fragmentShader,
 			blending: NoBlending
 		} );
-		this.depthRenderMaterial.uniforms[ 'tDepth' ].value = this.normalRenderTarget.depthTexture;
+		this.depthRenderMaterial.uniforms[ 'tDepth' ].value = this.depthPass.normalRenderTarget.depthTexture;
 		this.depthRenderMaterial.uniforms[ 'cameraNear' ].value = this.camera.near;
-		this.depthRenderMaterial.uniforms[ 'cameraFar' ].value = this.camera.far; */
+		this.depthRenderMaterial.uniforms[ 'cameraFar' ].value = this.camera.far;
 
 		// material for rendering the content of a render target
 
