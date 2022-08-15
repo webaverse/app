@@ -143,13 +143,8 @@ class NpcManager extends EventTarget {
           if (npcPlayer.isNpcInParty) {
             return;
           }
-          
           const localPlayer = playersManager.getLocalPlayer();
-
-          console.log('activate', targetSpec?.object);
-          if (targetSpec?.object !== localPlayer) {
-            localPlayer.addPartyPlayer(npcPlayer);
-          }
+          localPlayer.addPartyPlayer(npcPlayer);
         };
         app.addEventListener('activate', activate);
 

@@ -1266,7 +1266,6 @@ class LocalPlayer extends UninterpolatedPlayer {
     if (target) {
       {
         const activate = () => {
-          console.log('activate', target);
           target.removePartyPlayer(this);
         };
         this.activateFunc = activate;
@@ -1314,7 +1313,6 @@ class LocalPlayer extends UninterpolatedPlayer {
     }
   }
   addPartyPlayer(player) {
-    console.log('addPartyPlayer', player);
     if (this.partyPlayers.length == 2) {
       return false;
     }
@@ -1322,12 +1320,9 @@ class LocalPlayer extends UninterpolatedPlayer {
     this.partyPlayers.push(player);
     player.isNpcInParty = true;
 
-    // world.appManager.transplantApp(player.#getApp(), this.appManager);
-
     return true;
   }
   removePartyPlayer(player) {
-    console.log('removePartyPlayer', this, player);
     if (player.isMainPlayer) {
       return;
     }
@@ -1337,17 +1332,13 @@ class LocalPlayer extends UninterpolatedPlayer {
       this.partyPlayers.splice(removeIndex, 1);
       player.isNpcInParty = false;
 
-      // this.appManager.transplantApp(player.#getApp(), world.appManager);
-
       return true;
     }
     return false;
   }
   switchCharacter() {
-    console.log('switchCharacter', this, this.partyPlayers, this.partyPlayers[0]);
     const nextPlayer = this.partyPlayers[0];
     if (nextPlayer) {
-      console.log('check next character', nextPlayer);
 
       this.isLocalPlayer = false;
       this.isNpcPlayer = true;
@@ -1359,7 +1350,6 @@ class LocalPlayer extends UninterpolatedPlayer {
       this.updatePhysicsStatus();
 
       nextPlayer.#setFollowerSpec(null);
-      //this.#setFollowerSpec(nextPlayer);
 
       this.partyPlayers.shift();
       this.partyPlayers.push(this);
@@ -1374,8 +1364,6 @@ class LocalPlayer extends UninterpolatedPlayer {
         if(partyPlayer.isMainPlayer) {
           continue;
         }
-
-        // this.appManager.transplantApp(partyPlayer.#getApp(), nextPlayer.appManager);
       }
 
       return nextPlayer;
