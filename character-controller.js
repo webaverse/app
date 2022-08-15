@@ -146,6 +146,8 @@ class Character extends THREE.Object3D {
       this.rightHand,
     ];
 
+    this.detached = false;
+
     this.appManager = new AppManager({
       appsMap: null,
     });
@@ -562,9 +564,7 @@ class AvatarCharacter extends Character {
     this.avatarEpoch = 0;
     this.syncAvatarCancelFn = null;
     this.unbindFns = [];
-
-    this.detached = false;
-    
+ 
     this.transform = new Float32Array(7);
     this.bindState(playersArray);
   }
