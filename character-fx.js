@@ -66,6 +66,9 @@ const _makeKiHairMaterial = () => {
       float glowFactor = 1. + sin(iTime * PI * 2. * 3.) * 0.5;
       gl_FragColor.rgb *= 0.5 + glowFactor * 0.5;
       gl_FragColor.a = 1.;
+
+      #include <tonemapping_fragment>
+      #include <encodings_fragment>
     }
   `);
 
