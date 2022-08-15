@@ -25,7 +25,7 @@ import {
 } from 'three';
 import { Pass, FullScreenQuad } from 'three/examples/jsm/postprocessing/Pass.js';
 import { SimplexNoise } from 'three/examples/jsm/math/SimplexNoise.js';
-import { SSAOShader, SSAOBlurShader/*, SSAODepthShader */ } from './SSAOShader.js';
+import { SSAOShader, SSAOBlurShader, SSAODepthShader } from './SSAOShader.js';
 import { CopyShader } from 'three/examples/jsm/shaders/CopyShader.js';
 
 // const oldParentCache = new WeakMap();
