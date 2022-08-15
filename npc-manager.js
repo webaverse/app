@@ -80,8 +80,6 @@ class NpcManager extends EventTarget {
   }
 
   async addNpcApp(app, srcUrl) {
-    const localPlayer = playersManager.getLocalPlayer();
-
     let live = true;
     let json = null;
     let npcPlayer = null;
@@ -142,33 +140,27 @@ class NpcManager extends EventTarget {
         app.addEventListener('hittrackeradded', hittrackeradd);
 
         const activate = () => {
+          if (npcPlayer.isNpcInParty) {
+            return;
+          }
+          
+          const localPlayer = playersManager.getLocalPlayer();
+
           console.log('activate', targetSpec?.object);
           if (targetSpec?.object !== localPlayer) {
-            if (localPlayer.addPartyPlayer(npcPlayer)) {
-              const removeIndex = this.npcs.indexOf(npcPlayer);
-              if (removeIndex !== -1) {
-                this.npcs.slice(removeIndex, 1);
-              }
-            }
-            /*targetSpec = {
-              type: 'follow',
-              object: localPlayer,
-            };*/
-          } else {
-            //targetSpec = null;
-            if (localPlayer.removePartyPlayer(npcPlayer)) {
-              this.npcs.push(npcPlayer);
-            }
+            localPlayer.addPartyPlayer(npcPlayer);
           }
         };
         app.addEventListener('activate', activate);
 
-        const slowdownFactor = 0.4;
-        const walkSpeed = 0.075 * slowdownFactor;
-        const runSpeed = walkSpeed * 8;
-        const speedDistanceRate = 0.07;
         const frame = e => {
+          const localPlayer = playersManager.getLocalPlayer();
+
           if (npcPlayer && physicsScene.getPhysicsEnabled()) {
+            if (npcPlayer.isNpcInParty) {
+              return;
+            }
+            
             const {timestamp, timeDiff} = e.data;
             
             if (targetSpec) {
@@ -179,11 +171,6 @@ class NpcManager extends EventTarget {
               const distance = v.length();
               if (targetSpec.type === 'moveto' && distance < 2) {
                 targetSpec = null;
-              } else {
-                const speed = Math.min(Math.max(walkSpeed + ((distance - 1.5) * speedDistanceRate), 0), runSpeed);
-                v.normalize()
-                  .multiplyScalar(speed * timeDiff);
-                npcPlayer.characterPhysics.applyWasd(v);
               }
             }
 
@@ -240,6 +227,8 @@ class NpcManager extends EventTarget {
           bio: npcBio,
         });
         character.addEventListener('say', e => {
+          const localPlayer = playersManager.getLocalPlayer();
+
           const {message, emote, action, object, target} = e.data;
           const chatId = makeId(5);
 

@@ -321,6 +321,7 @@ class PlayerBase extends THREE.Object3D {
   wear(app, {
     loadoutIndex = -1,
   } = {}) {
+    console.log('wear', app);
     const _getNextLoadoutIndex = () => {
       let loadoutIndex = -1;
       const usedIndexes = Array(8).fill(false);
@@ -1024,8 +1025,10 @@ class LocalPlayer extends UninterpolatedPlayer {
   constructor(opts) {
     super(opts);
 
+    this.isMainPlayer = !!opts.mainPlayer; // main player is not in the npc pool
     this.isLocalPlayer = !opts.npc;
     this.isNpcPlayer = !!opts.npc;
+    this.isNpcInParty = false; // whether npc's in party
     this.detached = !!opts.detached;
 
     this.partyPlayers = [];
@@ -1245,30 +1248,96 @@ class LocalPlayer extends UninterpolatedPlayer {
   destroy() {
     super.destroy();
     this.characterPhysics.destroy();
+
+    for (const partyPlayer of this.partyPlayers) {
+      this.removePartyPlayer(partyPlayer);
+    }
   }
   // party system
-  addPartyPlayer(npcPlayer) {
-    console.log('addPartyPlayer', npcPlayer);
+  #setFollowerSpec(target) {
+    let avatarApp = this.avatar.app;
+    if (!this.isMainPlayer) {
+      avatarApp = this.npcApp;
+    }
+    if (target) {
+      {
+        const activate = () => {
+          console.log('activate', target);
+          target.removePartyPlayer(this);
+        };
+        this.activateFunc = activate;
+        avatarApp.addEventListener('activate', activate);
+      }
+
+      this.targetSpec = {
+        type: 'follow',
+        object: target,
+      };
+      const slowdownFactor = 0.4;
+      const walkSpeed = 0.075 * slowdownFactor;
+      const runSpeed = walkSpeed * 8;
+      const speedDistanceRate = 0.07;
+      const frame = e => {
+        if (physicsScene.getPhysicsEnabled()) {
+          const {timestamp, timeDiff} = e.data;
+          
+          if (this.targetSpec) {
+            const target = this.targetSpec.object;
+            const v = localVector.setFromMatrixPosition(target.matrixWorld)
+              .sub(this.position);
+            v.y = 0;
+            const distance = v.length();
+            {
+              const speed = Math.min(Math.max(walkSpeed + ((distance - 1.5) * speedDistanceRate), 0), runSpeed);
+              v.normalize()
+                .multiplyScalar(speed * timeDiff);
+                this.characterPhysics.applyWasd(v);
+            }
+            this.setTarget(target);
+          }
+
+          this.updatePhysics(timestamp, timeDiff);
+          this.updateAvatar(timestamp, timeDiff);
+        }
+      };
+      this.followFrame = frame;
+      world.appManager.addEventListener('frame', frame);
+    }
+    else {
+      this.targetSpec = null;
+      world.appManager.removeEventListener('frame', this.followFrame);
+      avatarApp.removeEventListener('activate', this.activateFunc);
+    }
+  }
+  addPartyPlayer(player) {
+    console.log('addPartyPlayer', player);
     if (this.partyPlayers.length == 2) {
       return false;
     }
-    this.partyPlayers.push(npcPlayer);
+    player.#setFollowerSpec(this);
+    this.partyPlayers.push(player);
+    player.isNpcInParty = true;
     return true;
   }
   removePartyPlayer(player) {
-    console.log('removePartyPlayer', player);
+    console.log('removePartyPlayer', this, player);
+    if (player.isMainPlayer) {
+      return;
+    }
     const removeIndex = this.partyPlayers.indexOf(player);
     if (removeIndex !== -1) {
-      this.partyPlayers.slice(removeIndex, 1);
+      player.#setFollowerSpec(null);
+      this.partyPlayers.splice(removeIndex, 1);
+      player.isNpcInParty = false;
       return true;
     }
     return false;
   }
   switchCharacter() {
-    console.log('switchCharacter');
+    console.log('switchCharacter', this, this.partyPlayers, this.partyPlayers[0]);
     const nextPlayer = this.partyPlayers[0];
     if (nextPlayer) {
-      // console.log('check follower', nextPlayer);
+      console.log('check next character', nextPlayer);
 
       this.isLocalPlayer = false;
       this.isNpcPlayer = true;
@@ -1279,12 +1348,14 @@ class LocalPlayer extends UninterpolatedPlayer {
       nextPlayer.updatePhysicsStatus();
       this.updatePhysicsStatus();
 
-      for(let i = 0; i < this.partyPlayers.length - 1; i++) {
-        this.partyPlayers[i] = this.partyPlayers[i + 1];
-      }
-      this.partyPlayers[this.partyPlayers.length - 1] = this;
+      nextPlayer.#setFollowerSpec(null);
+      this.#setFollowerSpec(nextPlayer);
+
+      this.partyPlayers.shift();
+      this.partyPlayers.push(this);
 
       nextPlayer.partyPlayers = this.partyPlayers;
+      this.partyPlayers = [];
 
       return nextPlayer;
     }
