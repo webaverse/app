@@ -258,7 +258,7 @@ const _updateIo = timeDiff => {
     if (keysDirection.length() > 0 && physicsScene.getPhysicsEnabled() && movementEnabled) {
       localPlayer.characterPhysics.applyWasd(
         keysDirection.normalize()
-          .multiplyScalar(game.getSpeed() * timeDiff)
+          .multiplyScalar(timeDiff / 1000)
       );
     }
   }

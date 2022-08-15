@@ -576,6 +576,15 @@ class CharacterPhysics {
     this.updateVelocity(timeDiffS);
     this.applyCharacterPhysics(now, timeDiffS);
     this.applyCharacterActionKinematics(now, timeDiffS);
+    if (this.velocity.x > 0) {
+      window.frame ++;
+    } else {
+      window.frame = 0;
+    }
+    console.log(window.frame, this.velocity.x.toFixed(2))
+    // 60 fps:  847 '14.14'
+    // ~10 fps: 129 '14.17'
+    if (window.localPlayer?.position.x > 100) debugger
   }
   reset() {
     if (this.character.avatar) {
