@@ -55,7 +55,7 @@ class CharacterPhysics {
     this.characterHeight = characterHeight;
 
     const radius = this.characterWidth / 2;
-    var height = this.characterHeight - radius * 2;
+    let height = this.characterHeight - radius * 2;
 
     // avatar.height is the height of eye from the floor
     // convert to full height by adding some more
