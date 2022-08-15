@@ -57,6 +57,7 @@ class DepthPass extends Pass {
 		// normal render target with depth buffer
 
 		this.normalRenderTarget = _makeNormalRenderTarget(this.width, this.height);
+		this.normalRenderTarget.name = 'DepthPass.normal';
 
     this.normalMaterial = new MeshNormalMaterial();
 		this.normalMaterial.blending = NoBlending;
