@@ -80,12 +80,12 @@ class SSAOPass extends Pass {
 		// const depthTexture = new DepthTexture();
 		// depthTexture.type = UnsignedShortType;
 
-		this.beautyRenderTarget = new WebGLRenderTarget( this.width, this.height, {
+		this.beautyRenderTarget = new WebGLRenderTarget(this.width, this.height, {
 			minFilter: LinearFilter,
 			magFilter: LinearFilter,
 			// format: RGBAFormat,
-			// encoding: sRGBEncoding,
-		} );
+			encoding: sRGBEncoding,
+		});
 		this.beautyRenderTarget.name = 'SSAO.beauty';
 
 		// normal render target with depth buffer
@@ -106,7 +106,6 @@ class SSAOPass extends Pass {
 				minFilter: LinearFilter,
 				magFilter: LinearFilter,
 				// format: RGBAFormat,
-				// encoding: sRGBEncoding,
 			}
 		);
 		this.ssaoRenderTarget.name = 'SSAO.ssao';
@@ -128,7 +127,6 @@ class SSAOPass extends Pass {
 			vertexShader: SSAOShader.vertexShader,
 			fragmentShader: SSAOShader.fragmentShader,
 			blending: NoBlending,
-			// encoding: sRGBEncoding,
 		} );
 
 		this.ssaoMaterial.uniforms[ 'tDiffuse' ].value = this.beautyRenderTarget.texture;
@@ -185,7 +183,7 @@ class SSAOPass extends Pass {
 			blendEquation: AddEquation,
 			blendSrcAlpha: DstAlphaFactor,
 			blendDstAlpha: ZeroFactor,
-			blendEquationAlpha: AddEquation
+			blendEquationAlpha: AddEquation,
 		} );
 
 		this.fsQuad = new FullScreenQuad( null );
