@@ -110,7 +110,7 @@ class NpcManager extends EventTarget {
     const hurtAnimation = animations.find(a => a.isHurt);
     const hurtAnimationDuration = hurtAnimation.duration;
 
-    app.getPhysicsObjects = () => npcPlayer ? [npcPlayer.characterController] : [];
+    app.getPhysicsObjects = () => npcPlayer ? [npcPlayer.characterPhysics.characterController] : [];
     app.getLoreSpec = () => {
       const name = json.name ?? 'Anon';
       const description = json.bio ?? '';

@@ -126,7 +126,7 @@ class App extends THREE.Object3D {
     return this.components.some(component => component.key === key);
   }
   removeComponent(key) {
-    const index = this.components.findIndex(component => component.type === key);
+    const index = this.components.findIndex(component => component.key === key);
     if (index !== -1) {
       this.components.splice(index, 1);
       this.dispatchEvent({

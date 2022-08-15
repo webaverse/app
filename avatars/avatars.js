@@ -642,6 +642,7 @@ class Avatar {
 
     // height is defined as eyes to root
     this.height = getHeight(object);
+    this.width = 0.36; // TODO : calculate this instead of hard coding it
     this.shoulderWidth = modelBones.Left_arm.getWorldPosition(new THREE.Vector3()).distanceTo(modelBones.Right_arm.getWorldPosition(new THREE.Vector3()));
     this.leftArmLength = this.shoulderTransforms.leftArm.armLength;
     this.rightArmLength = this.shoulderTransforms.rightArm.armLength;
@@ -908,10 +909,14 @@ class Avatar {
     this.direction = new THREE.Vector3();
     this.jumpState = false;
     this.jumpTime = NaN;
-    this.landTime = NaN;
-    this.lastLandStartTime = NaN;
+    this.doubleJumpState = false;
+    this.doubleJumpTime = NaN;
+    this.landTime = Infinity;
+    this.lastLandStartTime = 0;
+    this.landWithMoving = false;
     this.flyState = false;
     this.flyTime = NaN;
+    this.swimState = false;
     this.swimTime = NaN;
     this.swimAnimTime = 0;
 
@@ -1497,7 +1502,7 @@ class Avatar {
     }
   }
 
-  setVelocity(timeDiffS, lastPosition, currentPosition, currentQuaternion) {
+  setVelocity(timestamp, timeDiffS, lastPosition, currentPosition, currentQuaternion) {
     // Set the velocity, which will be considered by the animation controller
     const positionDiff = localVector.copy(lastPosition)
       .sub(currentPosition)
@@ -1512,7 +1517,7 @@ class Avatar {
     this.lastPosition.copy(currentPosition);
 
     if (this.velocity.length() > maxIdleVelocity) {
-      this.lastMoveTime = performance.now();
+      this.lastMoveTime = timestamp;
     }
   }
 
@@ -1932,6 +1937,7 @@ class Avatar {
     // on remote players this is called from the RemotePlayer -> observePlayerFn
     if (this.isLocalPlayer) {
       this.setVelocity(
+	timestamp,
         timeDiffS,
         this.lastPosition,
         this.inputs.hmd.position,
