@@ -141,10 +141,9 @@ class NpcManager extends EventTarget {
         app.addEventListener('hittrackeradded', hittrackeradd);
 
         const activate = () => {
-          if (npcPlayer.isNpcInParty) {
-            return;
+          if (!npcPlayer.isNpcInParty) {
+            partyManager.addPartyPlayer(npcPlayer);
           }
-          partyManager.addPartyPlayer(npcPlayer);
         };
         app.addEventListener('activate', activate);
 
@@ -152,36 +151,34 @@ class NpcManager extends EventTarget {
           const localPlayer = playersManager.getLocalPlayer();
 
           if (npcPlayer && physicsScene.getPhysicsEnabled()) {
-            if (npcPlayer.isNpcInParty) {
-              return;
-            }
+            if (!npcPlayer.isNpcInParty) {
+              const {timestamp, timeDiff} = e.data;
             
-            const {timestamp, timeDiff} = e.data;
-            
-            if (targetSpec) {
-              const target = targetSpec.object;
-              const v = localVector.setFromMatrixPosition(target.matrixWorld)
-                .sub(npcPlayer.position);
-              v.y = 0;
-              const distance = v.length();
-              if (targetSpec.type === 'moveto' && distance < 2) {
-                targetSpec = null;
+              if (targetSpec) {
+                const target = targetSpec.object;
+                const v = localVector.setFromMatrixPosition(target.matrixWorld)
+                  .sub(npcPlayer.position);
+                v.y = 0;
+                const distance = v.length();
+                if (targetSpec.type === 'moveto' && distance < 2) {
+                  targetSpec = null;
+                }
               }
+
+              npcPlayer.setTarget(localPlayer.position);
+
+              /* if (isNaN(npcPlayer.position.x)) {
+                debugger;
+              } */
+              npcPlayer.updatePhysics(timestamp, timeDiff);
+              /* if (isNaN(npcPlayer.position.x)) {
+                debugger;
+              } */
+              npcPlayer.updateAvatar(timestamp, timeDiff);
+              /* if (isNaN(npcPlayer.position.x)) {
+                debugger;
+              } */
             }
-
-            npcPlayer.setTarget(localPlayer.position);
-
-            /* if (isNaN(npcPlayer.position.x)) {
-              debugger;
-            } */
-            npcPlayer.updatePhysics(timestamp, timeDiff);
-            /* if (isNaN(npcPlayer.position.x)) {
-              debugger;
-            } */
-            npcPlayer.updateAvatar(timestamp, timeDiff);
-            /* if (isNaN(npcPlayer.position.x)) {
-              debugger;
-            } */
           }
         };
         world.appManager.addEventListener('frame', frame);

@@ -1074,6 +1074,10 @@ class LocalPlayer extends UninterpolatedPlayer {
       self.syncAvatar();
     });
   }
+  getInstanceId() {
+    const instanceId = this.playerMap.get('avatar');
+    return instanceId;
+  }
   setMicMediaStream(mediaStream) {
     if (this.microphoneMediaStream) {
       this.microphoneMediaStream.disconnect();

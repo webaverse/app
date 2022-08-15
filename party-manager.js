@@ -12,6 +12,9 @@ class PartyManager extends EventTarget {
     super();
     
     this.partyPlayers = [];
+    this.targetMap = new Map();
+    this.onFrameMap = new Map();
+    this.onActivateMap = new Map();
   }
 
   destroy() {
@@ -53,27 +56,23 @@ class PartyManager extends EventTarget {
   addPartyPlayer(newPlayer) {
     const localPlayer = playersManager.getLocalPlayer();
 
-    if (this.partyPlayers.length == 2) {
-      return false;
+    if (this.partyPlayers.length < 2) { // 3 max members
+        this.#setFollowTarget(newPlayer, localPlayer);
+        this.partyPlayers.push(newPlayer);
+        newPlayer.isNpcInParty = true;
+    
+        this.#queueFollow(localPlayer);
+    
+        return true;  
     }
-    this.#setFollowTarget(newPlayer, localPlayer);
-    this.partyPlayers.push(newPlayer);
-    newPlayer.isNpcInParty = true;
-
-    this.#queueFollow(localPlayer);
-
-    return true;
+    return false;
   }
 
   #removePartyPlayer(player) {
-    if (player.isMainPlayer) {
-      return;
-    }
-
-    const removeIndex = this.partyPlayers.indexOf(player);
-    if (removeIndex !== -1) {
+    const playerIndex = this.partyPlayers.indexOf(player);
+    if (!player.isMainPlayer && playerIndex !== -1) {
       this.#setFollowTarget(player, null);
-      this.partyPlayers.splice(removeIndex, 1);
+      this.partyPlayers.splice(playerIndex, 1);
       player.isNpcInParty = false;
 
       const localPlayer = playersManager.getLocalPlayer();
@@ -103,58 +102,58 @@ class PartyManager extends EventTarget {
 
   // player follows target after this call
   // if target is null, it stops following
-  #setFollowTarget(player, target) {
-    let avatarApp = this.#getPlayerApp(player);
+  #setFollowTarget(newPlayer, targetPlayer) {
+    let avatarApp = this.#getPlayerApp(newPlayer);
 
-    if(player.targetSpec) {
-      player.targetSpec = null;
-      world.appManager.removeEventListener('frame', player.followFrame);
-      avatarApp.removeEventListener('activate', player.activateFunc);
+    const targetObj = this.targetMap.get(newPlayer.getInstanceId());
+    if(targetObj) {
+      this.targetMap.delete(newPlayer.getInstanceId());
+      const onFrame = this.onFrameMap.get(newPlayer.getInstanceId());
+      const onActivate = this.onActivateMap.get(newPlayer.getInstanceId());
+      world.appManager.removeEventListener('frame', onFrame);
+      avatarApp.removeEventListener('activate', onActivate);
     }
 
-    if (target) {
+    if (targetPlayer) {
       {
         const activate = () => {
-          this.#removePartyPlayer(player);
+          this.#removePartyPlayer(newPlayer);
         };
-        player.activateFunc = activate;
+        this.onActivateMap.set(newPlayer.getInstanceId(), activate);
         avatarApp.addEventListener('activate', activate);
       }
 
       {
-        player.targetSpec = {
-            type: 'follow',
-            object: target,
-          };
-          const slowdownFactor = 0.4;
-          const walkSpeed = 0.075 * slowdownFactor;
-          const runSpeed = walkSpeed * 8;
-          const speedDistanceRate = 0.07;
-          const frame = e => {
-            if (physicsScene.getPhysicsEnabled()) {
-              const {timestamp, timeDiff} = e.data;
-              
-              if (player.targetSpec) {
-                const target = player.targetSpec.object;
-                const v = localVector.setFromMatrixPosition(target.matrixWorld)
-                  .sub(player.position);
-                v.y = 0;
-                const distance = v.length();
-                {
-                  const speed = Math.min(Math.max(walkSpeed + ((distance - 1.5) * speedDistanceRate), 0), runSpeed);
-                  v.normalize()
-                    .multiplyScalar(speed * timeDiff);
-                    player.characterPhysics.applyWasd(v);
-                }
-                player.setTarget(target);
+        this.targetMap.set(newPlayer.getInstanceId(), targetPlayer);
+        const slowdownFactor = 0.4;
+        const walkSpeed = 0.075 * slowdownFactor;
+        const runSpeed = walkSpeed * 8;
+        const speedDistanceRate = 0.07;
+        const frame = e => {
+          if (physicsScene.getPhysicsEnabled()) {
+            const {timestamp, timeDiff} = e.data;
+  
+            const targetObj = this.targetMap.get(newPlayer.getInstanceId());
+            if (targetObj) {
+              const v = localVector.setFromMatrixPosition(targetPlayer.matrixWorld)
+                  .sub(newPlayer.position);
+              v.y = 0;
+              const distance = v.length();
+              {
+                const speed = Math.min(Math.max(walkSpeed + ((distance - 1.5) * speedDistanceRate), 0), runSpeed);
+                v.normalize()
+                  .multiplyScalar(speed * timeDiff);
+                  newPlayer.characterPhysics.applyWasd(v);
               }
-    
-              player.updatePhysics(timestamp, timeDiff);
-              player.updateAvatar(timestamp, timeDiff);
+              newPlayer.setTarget(targetObj);
             }
-          };
-          player.followFrame = frame;
-          world.appManager.addEventListener('frame', frame);
+
+            newPlayer.updatePhysics(timestamp, timeDiff);
+            newPlayer.updateAvatar(timestamp, timeDiff);
+          }
+        };
+        this.onFrameMap.set(newPlayer.getInstanceId(), frame);
+        world.appManager.addEventListener('frame', frame);
       }
     }
   }
