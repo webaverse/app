@@ -1027,6 +1027,8 @@ class LocalPlayer extends UninterpolatedPlayer {
     this.isLocalPlayer = !opts.npc;
     this.isNpcPlayer = !!opts.npc;
     this.detached = !!opts.detached;
+
+    this.partyPlayers = [];
   }
   async setPlayerSpec(playerSpec) {
     const p = this.setAvatarUrl(playerSpec.avatarUrl);
@@ -1243,6 +1245,50 @@ class LocalPlayer extends UninterpolatedPlayer {
   destroy() {
     super.destroy();
     this.characterPhysics.destroy();
+  }
+  // party system
+  addPartyPlayer(npcPlayer) {
+    console.log('addPartyPlayer', npcPlayer);
+    if (this.partyPlayers.length == 2) {
+      return false;
+    }
+    this.partyPlayers.push(npcPlayer);
+    return true;
+  }
+  removePartyPlayer(player) {
+    console.log('removePartyPlayer', player);
+    const removeIndex = this.partyPlayers.indexOf(player);
+    if (removeIndex !== -1) {
+      this.partyPlayers.slice(removeIndex, 1);
+      return true;
+    }
+    return false;
+  }
+  switchCharacter() {
+    console.log('switchCharacter');
+    const nextPlayer = this.partyPlayers[0];
+    if (nextPlayer) {
+      // console.log('check follower', nextPlayer);
+
+      this.isLocalPlayer = false;
+      this.isNpcPlayer = true;
+
+      nextPlayer.isLocalPlayer = true;
+      nextPlayer.isNpcPlayer = false;
+
+      nextPlayer.updatePhysicsStatus();
+      this.updatePhysicsStatus();
+
+      for(let i = 0; i < this.partyPlayers.length - 1; i++) {
+        this.partyPlayers[i] = this.partyPlayers[i + 1];
+      }
+      this.partyPlayers[this.partyPlayers.length - 1] = this;
+
+      nextPlayer.partyPlayers = this.partyPlayers;
+
+      return nextPlayer;
+    }
+    return null;
   }
   /* teleportTo = (() => {
     const localVector = new THREE.Vector3();

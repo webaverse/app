@@ -1377,24 +1377,11 @@ class GameManager extends EventTarget {
   menuSwitchCharacter() {
     sounds.playSoundName('menuReady');
 
-    const npc = npcManager.npcs[0];
-    if (npc) {
-      // console.log('check npc', npc);
-      
-      const localPlayer = playersManager.getLocalPlayer();
-      localPlayer.isLocalPlayer = false;
-      localPlayer.isNpcPlayer = true;
-
-      npc.isLocalPlayer = true;
-      npc.isNpcPlayer = false;
-
-      npc.updatePhysicsStatus();
-      localPlayer.updatePhysicsStatus();
-
-      const npcIndex = npcManager.npcs.indexOf(npc);
-      npcManager.npcs[npcIndex] = localPlayer;
-
-      playersManager.setLocalPlayer(npc);
+    // Switch to next character among party
+    const localPlayer = playersManager.getLocalPlayer();
+    const nextPlayer = localPlayer.switchCharacter();
+    if (nextPlayer) {
+      playersManager.setLocalPlayer(nextPlayer);
     }
   }
   isFlying() {

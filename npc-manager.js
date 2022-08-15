@@ -142,13 +142,23 @@ class NpcManager extends EventTarget {
         app.addEventListener('hittrackeradded', hittrackeradd);
 
         const activate = () => {
+          console.log('activate', targetSpec?.object);
           if (targetSpec?.object !== localPlayer) {
-            targetSpec = {
+            if (localPlayer.addPartyPlayer(npcPlayer)) {
+              const removeIndex = this.npcs.indexOf(npcPlayer);
+              if (removeIndex !== -1) {
+                this.npcs.slice(removeIndex, 1);
+              }
+            }
+            /*targetSpec = {
               type: 'follow',
               object: localPlayer,
-            };
+            };*/
           } else {
-            targetSpec = null;
+            //targetSpec = null;
+            if (localPlayer.removePartyPlayer(npcPlayer)) {
+              this.npcs.push(npcPlayer);
+            }
           }
         };
         app.addEventListener('activate', activate);
