@@ -337,6 +337,9 @@ export default e => {
             c *= min(max(1.-pow(timeDiff*${(animationSpeed * 1).toFixed(8)}, 2.), 0.), 1.);
             c = pow4(c, 6.) * 2.;
             gl_FragColor = c;
+
+            #include <tonemapping_fragment>
+            #include <encodings_fragment>
           } else {
             discard;
           }
