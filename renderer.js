@@ -116,13 +116,13 @@ camera.name = 'sceneCamera';
 avatarCamera.near = 0.2;
 avatarCamera.updateProjectionMatrix(); */
 
-const dolly = new THREE.Object3D();
+/* const dolly = new THREE.Object3D();
 // fixes a bug: avatar glitching when dropped exactly at an axis
 const epsilon = 0.000001;
 dolly.position.set(epsilon, epsilon, epsilon);
-dolly.add(camera);
+dolly.add(camera); */
 // dolly.add(avatarCamera);
-scene.add(dolly);
+scene.add(camera);
 
 // const orthographicCamera = new THREE.OrthographicCamera(-1, 1, 1, -1, 0.01, 100);
 // scene.add(orthographicCamera);
