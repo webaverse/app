@@ -191,26 +191,25 @@ class CharacterPhysics {
         localVector2
       );
       localQuaternion.copy(this.character.quaternion);
+      // avatar facing direction
+      if (velocityAvatarDirection) {
+        const horizontalVelocity = localVector5.set(
+          this.velocity.x,
+          0,
+          this.velocity.z
+        );
+        if (horizontalVelocity.lengthSq() > 0.001) {
+          localQuaternion.setFromRotationMatrix(
+            localMatrix.lookAt(zeroVector, horizontalVelocity, upVector)
+          );
+        }
+      } else {
+        localQuaternion.copy(camera.quaternion);
+      }
       localVector.y += this.characterHeight * 0.5;
 
       // capsule physics
       if (!this.character.hasAction('sit')) {
-        // avatar facing direction
-        if (velocityAvatarDirection) {
-          const horizontalVelocity = localVector5.set(
-            this.velocity.x,
-            0,
-            this.velocity.z
-          );
-          if (horizontalVelocity.lengthSq() > 0.001) {
-            localQuaternion.setFromRotationMatrix(
-              localMatrix.lookAt(zeroVector, horizontalVelocity, upVector)
-            );
-          }
-        } else {
-          localQuaternion.copy(camera.quaternion);
-        }
-
         if (grounded) {
           this.lastGroundedTime = now;
           if (!this.lastGrounded) {
@@ -292,7 +291,7 @@ class CharacterPhysics {
 
         localMatrix
           .copy(sitPos.matrixWorld)
-          .decompose(localVector, localQuaternion, localVector2);
+          .decompose(localVector, localQuaternion2, localVector2);
 
         localVector.add(this.sitOffset);
         localVector.y += this.characterHeight * 0.5;
@@ -303,9 +302,9 @@ class CharacterPhysics {
         );
         localVector.y += this.characterHeight * 0.5;
 
-        localQuaternion.premultiply(
-          localQuaternion2.setFromAxisAngle(localVector3.set(0, 1, 0), Math.PI)
-        );
+        // localQuaternion.premultiply(
+        //   localQuaternion2.setFromAxisAngle(localVector3.set(0, 1, 0), Math.PI)
+        // );
       }
       // localOffset2.set(0, 0.05, 0); // Feet offset: Or feet will be in ground, only cosmetical, works for all avatars
       // localVector.add(localOffset2);
