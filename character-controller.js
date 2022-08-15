@@ -686,7 +686,7 @@ class StatePlayer extends PlayerBase {
         this.characterPhysics.loadCharacterController(this.avatar.width, this.avatar.height);
         
         this.updatePhysicsStatus();
-        app.getPhysicsObjects = () => [this.characterPhysics.characterController];
+        app.addPhysicsObject(this.characterPhysics.characterController);
       })();
       
       this.dispatchEvent({

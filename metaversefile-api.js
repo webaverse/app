@@ -165,6 +165,19 @@ class App extends THREE.Object3D {
   getPhysicsObjects() {
     return this.physicsObjects;
   }
+  addPhysicsObject(object) {
+    this.physicsObjects.push(object);
+  }
+  removePhysicsObject(object) {
+    const removeIndex = this.physicsObjects.indexOf(object);
+    if (removeIndex !== -1) {
+      this.physicsObjects.splice(removeIndex);
+    }
+  }
+  setPhysicsObject(object) {
+    this.physicsObjects.length = 0;
+    this.physicsObjects.push(object);
+  }
   hit(damage, opts) {
     this.hitTracker && this.hitTracker.hit(damage, opts);
   }
