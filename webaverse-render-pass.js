@@ -12,8 +12,8 @@ class WebaverseRenderPass extends Pass {
   constructor() {
     super();
 
-    this.needsSwap = true;
-    this.clear = true;
+    this.clear = false;
+    this.needsSwap = false;
 
     this.internalDepthPass = null;
     this.internalRenderPass = null;
