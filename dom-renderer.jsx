@@ -28,21 +28,34 @@ class DomItem extends THREE.Object3D {
     this.animation = null;
 
     const floatNode = new THREE.Object3D();
-    floatNode.name = 'floatNode';
-    this.floatNode = floatNode;
+    floatNode.name = 'domRendererFloatNode';
     this.add(floatNode);
+    this.floatNode = floatNode;
 
-    const iframeMesh = new IFrameMesh({
+    const innerNode = new THREE.Object3D();
+    innerNode.name = 'domRendererInnerNode';
+    floatNode.add(innerNode);
+    this.innerNode = innerNode;
+
+    const backgroundMesh = new BackgroundMesh({
       width,
       height,
     });
-    iframeMesh.name = 'domPunchThroughNode';
-    this.iframeMesh = iframeMesh;
-    floatNode.add(iframeMesh);
+    backgroundMesh.name = 'domRendererBackgroundNode';
+    this.backgroundMesh = backgroundMesh;
+    innerNode.add(backgroundMesh);
+
+    const punchoutMesh = new PunchoutMesh({
+      width,
+      height,
+    });
+    punchoutMesh.name = 'domRendererPunchoutNode';
+    this.punchoutMesh = punchoutMesh;
+    innerNode.add(punchoutMesh);
 
     const p = position;
     const q = quaternion;
-    const hs = new THREE.Vector3(iframeMesh.worldWidth, iframeMesh.worldHeight, 0.01)
+    const hs = new THREE.Vector3(punchoutMesh.worldWidth, punchoutMesh.worldHeight, 0.01)
       .multiplyScalar(0.5);
     const dynamic = false;
     const physicsObject = physicsScene.addBoxGeometry(
@@ -85,20 +98,24 @@ class DomItem extends THREE.Object3D {
     if (this.value > 0) {
       const w = this.value;
       const shiftOffset = (1 - w) * this.worldWidth/2;
-      this.iframeMesh.position.x = -shiftOffset;
-      this.iframeMesh.scale.set(w, 1, 1);
-      this.iframeMesh.updateMatrixWorld();
+      this.innerNode.position.x = -shiftOffset;
+      this.innerNode.scale.set(w, 1, 1);
+      this.innerNode.updateMatrixWorld();
       
-      this.iframeMesh.material.opacity = 1 - this.value;
+      this.backgroundMesh.material.uniforms.opacity.value = this.value;
+      this.backgroundMesh.material.uniforms.opacity.needsUpdate = true;
+
+      this.punchoutMesh.material.uniforms.opacity.value = 1 - this.value;
+      this.punchoutMesh.material.uniforms.opacity.needsUpdate = true;
       
-      this.physicsObject.position.setFromMatrixPosition(this.iframeMesh.matrixWorld);
-      this.physicsObject.quaternion.setFromRotationMatrix(this.iframeMesh.matrixWorld);
+      this.physicsObject.position.setFromMatrixPosition(this.innerNode.matrixWorld);
+      this.physicsObject.quaternion.setFromRotationMatrix(this.innerNode.matrixWorld);
       this.physicsObject.updateMatrixWorld();
       physicsScene.setTransform(this.physicsObject);
 
-      this.visible = true;
+      // this.visible = true;
     } else {
-      this.visible = false;
+      // this.visible = false;
     }
   }
   onBeforeRaycast() {
@@ -119,7 +136,7 @@ class DomItem extends THREE.Object3D {
   }
 }
 
-class IFrameMesh extends THREE.Mesh {
+class BackgroundMesh extends THREE.Mesh {
   constructor({
     width,
     height,
@@ -128,24 +145,77 @@ class IFrameMesh extends THREE.Mesh {
     const worldWidth = width * scaleFactor;
     const worldHeight = height * scaleFactor;
     const geometry = new THREE.PlaneBufferGeometry(worldWidth, worldHeight);
-    const material = new THREE.MeshBasicMaterial({
-      color: 0xFFFFFF,
-      side: THREE.DoubleSide,
-      opacity: 0,
+    const material = new THREE.ShaderMaterial({
       transparent: true,
-      blending: THREE.MultiplyBlending
+      uniforms: {
+        opacity: {
+          value: 0,
+          needsUpdate: true,
+        },
+      },
+      vertexShader: `\
+        void main() {
+          gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
+        }
+      `,
+      fragmentShader: `\
+        uniform float opacity;
+
+        void main() {
+          gl_FragColor = vec4(0., 0., 0., opacity);
+        }
+      `,
+      side: THREE.DoubleSide,
+      depthWrite: false,
     });
     super(geometry, material);
 
-    this.frustumCulled = false;
-    this.onBeforeRender = renderer => {
-      const context = renderer.getContext();
-      context.disable(context.SAMPLE_ALPHA_TO_COVERAGE);
-    };
-    this.onAfterRender = renderer => {
-      const context = renderer.getContext();
-      context.enable(context.SAMPLE_ALPHA_TO_COVERAGE);
-    };
+    // this.frustumCulled = false;
+    this.worldWidth = worldWidth;
+    this.worldHeight = worldHeight;
+  }
+}
+
+class PunchoutMesh extends THREE.Mesh {
+  constructor({
+    width,
+    height,
+  }) {
+    const scaleFactor = DomRenderEngine.getScaleFactor(width, height);
+    const worldWidth = width * scaleFactor;
+    const worldHeight = height * scaleFactor;
+    const geometry = new THREE.PlaneBufferGeometry(worldWidth, worldHeight);
+    const material = new THREE.ShaderMaterial({
+      // color: 0xFFFFFF,
+      // side: THREE.DoubleSide,
+      // opacity: 0,
+      transparent: true,
+      blending: THREE.MultiplyBlending,
+      uniforms: {
+        opacity: {
+          value: 1,
+          needsUpdate: true,
+        },
+      },
+      vertexShader: `\
+        void main() {
+          gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
+        }
+      `,
+      fragmentShader: `\
+        uniform float opacity;
+
+        void main() {
+          gl_FragColor = vec4(1., 1., 1., opacity);
+        }
+      `,
+      side: THREE.DoubleSide,
+      // depthTest: false,
+      // depthWrite: false,
+    });
+    super(geometry, material);
+
+    // this.frustumCulled = false;
     this.worldWidth = worldWidth;
     this.worldHeight = worldHeight;
   }
@@ -176,6 +246,8 @@ export class DomRenderEngine extends EventTarget {
     this.physicsObjects.push(dom.physicsObject);
 
     this.dispatchEvent(new MessageEvent('update'));
+
+    globalThis.dom = dom;
 
     return dom;
   }
