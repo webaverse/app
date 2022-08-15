@@ -1,6 +1,6 @@
 
-import React, { useEffect } from 'react'
-
+import React, { useEffect, useContext, useState } from 'react';
+import { AppContext } from '../../app';
 import ioManager from '../../../../io-manager.js';
 
 //
@@ -37,34 +37,19 @@ function unregisterIoEventHandler ( type, fn ) {
 
 function IoHandler () {
 
+    const { characterLoaded } = useContext( AppContext );
+    
     useEffect( () => {
 
-        const cleanups = types.map( ( type ) => {
+        if ( characterLoaded ) {
 
-            const fn = ( event ) => {
+            const cleanups = types.map( ( type ) => {
 
-                let broke = false;
+                const fn = ( event ) => {
 
-                // type
+                    let broke = false;
 
-                for ( let i = 0; i < ioEventHandlers[ type ].length; i ++ ) {
-
-                    const result = ioEventHandlers[ type ][ i ]( event );
-
-                    if ( result === false ) {
-
-                        broke = true;
-                        break;
-
-                    }
-
-                }
-
-                // all
-
-                if ( ! broke ) {
-
-                    const type = '';
+                    // type
 
                     for ( let i = 0; i < ioEventHandlers[ type ].length; i ++ ) {
 
@@ -79,44 +64,65 @@ function IoHandler () {
 
                     }
 
-                }
+                    // all
 
-                // default
+                    if ( ! broke ) {
 
-                if ( ! broke ) {
+                        const type = '';
 
-                    ioManager[ type ]( event );
+                        for ( let i = 0; i < ioEventHandlers[ type ].length; i ++ ) {
 
-                } else if ( event.cancelable ) {
+                            const result = ioEventHandlers[ type ][ i ]( event );
 
-                    event.stopPropagation();
-                    event.preventDefault();
+                            if ( result === false ) {
 
-                }
+                                broke = true;
+                                break;
 
-            };
+                            }
 
-            window.addEventListener( type, fn, { passive: type === 'wheel' });
+                        }
+
+                    }
+
+                    // default
+
+                    if ( ! broke ) {
+
+                        ioManager[ type ]( event );
+
+                    } else if ( event.cancelable ) {
+
+                        event.stopPropagation();
+                        event.preventDefault();
+
+                    }
+
+                };
+
+                window.addEventListener( type, fn, { passive: type === 'wheel' });
+
+                return () => {
+
+                    window.removeEventListener( type, fn );
+
+                };
+
+            });
 
             return () => {
 
-                window.removeEventListener( type, fn );
+                for ( const fn of cleanups ) {
+
+                    fn();
+
+                }
 
             };
 
-        });
+        }
 
-        return () => {
-
-            for ( const fn of cleanups ) {
-
-                fn();
-
-            }
-
-        };
-
-    }, [] );
+    }, [characterLoaded] );
 
     //
 
