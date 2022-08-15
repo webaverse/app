@@ -687,6 +687,7 @@ class StatePlayer extends PlayerBase {
         this.characterPhysics.loadCharacterController(this.avatar.width, this.avatar.height);
         
         this.updatePhysicsStatus();
+        app.getPhysicsObjects = () => [this.characterPhysics.characterController];
       })();
       
       this.dispatchEvent({
@@ -1029,8 +1030,6 @@ class LocalPlayer extends UninterpolatedPlayer {
     this.isNpcPlayer = !!opts.npc;
     this.isNpcInParty = false; // whether npc's in party
     this.detached = !!opts.detached;
-
-    this.partyPlayers = [];
   }
   async setPlayerSpec(playerSpec) {
     const p = this.setAvatarUrl(playerSpec.avatarUrl);
@@ -1247,132 +1246,6 @@ class LocalPlayer extends UninterpolatedPlayer {
   destroy() {
     super.destroy();
     this.characterPhysics.destroy();
-
-    for (const partyPlayer of this.partyPlayers) {
-      this.removePartyPlayer(partyPlayer);
-    }
-  }
-  // party system
-  #getApp() {
-    let avatarApp = this.avatar.app;
-    if (!this.isMainPlayer) {
-      avatarApp = this.npcApp;
-    }
-    return avatarApp;
-  }
-  #setFollowerSpec(target) {
-    let avatarApp = this.#getApp();
-    if (target) {
-      {
-        const activate = () => {
-          target.removePartyPlayer(this);
-        };
-        this.activateFunc = activate;
-        avatarApp.addEventListener('activate', activate);
-      }
-
-      this.targetSpec = {
-        type: 'follow',
-        object: target,
-      };
-      const slowdownFactor = 0.4;
-      const walkSpeed = 0.075 * slowdownFactor;
-      const runSpeed = walkSpeed * 8;
-      const speedDistanceRate = 0.07;
-      const frame = e => {
-        if (physicsScene.getPhysicsEnabled()) {
-          const {timestamp, timeDiff} = e.data;
-          
-          if (this.targetSpec) {
-            const target = this.targetSpec.object;
-            const v = localVector.setFromMatrixPosition(target.matrixWorld)
-              .sub(this.position);
-            v.y = 0;
-            const distance = v.length();
-            {
-              const speed = Math.min(Math.max(walkSpeed + ((distance - 1.5) * speedDistanceRate), 0), runSpeed);
-              v.normalize()
-                .multiplyScalar(speed * timeDiff);
-                this.characterPhysics.applyWasd(v);
-            }
-            this.setTarget(target);
-          }
-
-          this.updatePhysics(timestamp, timeDiff);
-          this.updateAvatar(timestamp, timeDiff);
-        }
-      };
-      this.followFrame = frame;
-      world.appManager.addEventListener('frame', frame);
-    }
-    else {
-      this.targetSpec = null;
-      world.appManager.removeEventListener('frame', this.followFrame);
-      avatarApp.removeEventListener('activate', this.activateFunc);
-    }
-  }
-  addPartyPlayer(player) {
-    if (this.partyPlayers.length == 2) {
-      return false;
-    }
-    player.#setFollowerSpec(this);
-    this.partyPlayers.push(player);
-    player.isNpcInParty = true;
-
-    this.#queueFollow();
-
-    return true;
-  }
-  removePartyPlayer(player) {
-    if (player.isMainPlayer) {
-      return;
-    }
-    const removeIndex = this.partyPlayers.indexOf(player);
-    if (removeIndex !== -1) {
-      player.#setFollowerSpec(null);
-      this.partyPlayers.splice(removeIndex, 1);
-      player.isNpcInParty = false;
-
-      this.#queueFollow();
-
-      return true;
-    }
-    return false;
-  }
-  #queueFollow() {
-    let headPlayer = this;
-    for(const partyPlayer of this.partyPlayers) {
-      partyPlayer.#setFollowerSpec(null);
-      partyPlayer.#setFollowerSpec(headPlayer);
-      headPlayer = partyPlayer;
-    }
-  }
-  switchCharacter() {
-    const nextPlayer = this.partyPlayers[0];
-    if (nextPlayer) {
-
-      this.isLocalPlayer = false;
-      this.isNpcPlayer = true;
-
-      nextPlayer.isLocalPlayer = true;
-      nextPlayer.isNpcPlayer = false;
-
-      nextPlayer.updatePhysicsStatus();
-      this.updatePhysicsStatus();
-
-      nextPlayer.#setFollowerSpec(null);
-
-      this.partyPlayers.shift();
-      this.partyPlayers.push(this);
-
-      nextPlayer.partyPlayers = this.partyPlayers;
-      this.partyPlayers = [];
-
-      nextPlayer.#queueFollow();
-
-      return nextPlayer;
-    }
-    return null;
   }
   /* teleportTo = (() => {
     const localVector = new THREE.Vector3();

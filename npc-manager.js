@@ -3,6 +3,7 @@ import Avatar from './avatars/avatars.js';
 import physicsManager from './physics-manager.js';
 import {LocalPlayer} from './character-controller.js';
 import {playersManager} from './players-manager.js';
+import {partyManager} from './party-manager.js';
 import * as voices from './voices.js';
 import {world} from './world.js';
 import {chatManager} from './chat-manager.js';
@@ -143,8 +144,7 @@ class NpcManager extends EventTarget {
           if (npcPlayer.isNpcInParty) {
             return;
           }
-          const localPlayer = playersManager.getLocalPlayer();
-          localPlayer.addPartyPlayer(npcPlayer);
+          partyManager.addPartyPlayer(npcPlayer);
         };
         app.addEventListener('activate', activate);
 
