@@ -576,13 +576,17 @@ class CharacterPhysics {
     this.updateVelocity(timeDiffS);
     this.applyCharacterPhysics(now, timeDiffS);
     this.applyCharacterActionKinematics(now, timeDiffS);
+
     if (this.velocity.x > 0) {
       window.frame ++;
     } else {
       window.frame = 0;
-      window.startTime = performance.now();
+      window.startTime = now;
     }
-    console.log(window.frame, performance.now() - window.startTime, this.velocity.x)
+
+    const totalTimeS = (now - window.startTime) / 1000;
+    const timeDiffS2 = (now - window.lastTime) / 1000;
+    console.log(window.frame, totalTimeS, timeDiffS2, this.velocity.x, window.localPlayer?.position.x);
     // 60 fps:  849 14136.929999828339 14.137128000000004
     // ~10 fps: 138 14137.984999895096 14.137040999999993
 
@@ -591,6 +595,8 @@ class CharacterPhysics {
     // ~10 fps: 129 '14.17'
 
     if (window.localPlayer?.position.x > 100) debugger
+
+    window.lastTime = now
   }
   reset() {
     if (this.character.avatar) {
