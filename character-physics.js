@@ -37,7 +37,6 @@ const groundStickOffset = 0.03;
 
 const physicsScene = physicsManager.getScene();
 
-const CHARACTER_CONTROLLER_HEIGHT_FACTOR = 1.6;
 class CharacterPhysics {
   constructor(character) {
     this.character = character;
@@ -55,15 +54,20 @@ class CharacterPhysics {
     this.characterWidth = characterWidth;
     this.characterHeight = characterHeight;
 
-    const radius = (this.characterWidth / CHARACTER_CONTROLLER_HEIGHT_FACTOR) * this.characterHeight;
-    const height = this.characterHeight - radius * 2;
+    const radius = this.characterWidth / 2;
+    var height = this.characterHeight - radius * 2;
 
-    const contactOffset = (0.1 / CHARACTER_CONTROLLER_HEIGHT_FACTOR) * this.characterHeight;
-    const stepOffset = (0.5 / CHARACTER_CONTROLLER_HEIGHT_FACTOR) * this.characterHeight;
+    // avatar.height is the height of eye from the floor
+    // convert to full height by adding some more
+    const heightOffset = radius * 2;
+    this.yOffset = -heightOffset / 2; // add this after physx cct position output
+    height = height + heightOffset; 
+
+    const contactOffset = 0.1 * this.characterHeight;
+    const stepOffset = 0.5 * this.characterHeight;
 
     const position = this.character.position
-      .clone()
-      .add(new THREE.Vector3(0, -this.characterHeight / 2, 0));
+      .clone();
 
     if (this.characterController) {
       physicsScene.destroyCharacterController(this.characterController);
@@ -79,7 +83,6 @@ class CharacterPhysics {
   }
   setPosition(p) {
     localVector.copy(p);
-    localVector.y -= this.characterHeight * 0.5;
     physicsScene.setCharacterControllerPosition(
       this.characterController,
       localVector
@@ -157,6 +160,7 @@ class CharacterPhysics {
         timeDiffS,
         this.characterController.position
       );
+      this.characterController.position.y += this.yOffset;
       // const collided = flags !== 0;
       let grounded = !!(flags & 0x1);
 
@@ -175,6 +179,7 @@ class CharacterPhysics {
           0,
           localVector4
         );
+        localVector4.y += this.yOffset;
         const newGrounded = !!(flags & 0x1);
         if (newGrounded) {
           grounded = true;

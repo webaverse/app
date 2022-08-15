@@ -639,9 +639,12 @@ class Avatar {
       rightToe: _getOffset(modelBones.Right_toe),
     });
 
+    // default avatar body height/width ratio
+    const heightFactor = 1.6;
+    const widthFactor = 0.6;
     // height is defined as eyes to root
     this.height = getHeight(object);
-    this.width = 0.36; // TODO : calculate this instead of hard coding it
+    this.width = widthFactor/heightFactor * this.height;
     this.shoulderWidth = modelBones.Left_arm.getWorldPosition(new THREE.Vector3()).distanceTo(modelBones.Right_arm.getWorldPosition(new THREE.Vector3()));
     this.leftArmLength = this.shoulderTransforms.leftArm.armLength;
     this.rightArmLength = this.shoulderTransforms.rightArm.armLength;
