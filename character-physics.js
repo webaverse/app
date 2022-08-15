@@ -59,7 +59,7 @@ class CharacterPhysics {
 
     // avatar.height is the height of eye from the floor
     // convert to full height by adding some more
-    const heightOffset = radius * 2;
+    const heightOffset = radius * 1.5;
     this.yOffset = -heightOffset / 2; // add this after physx cct position output
     height = height + heightOffset; 
 
