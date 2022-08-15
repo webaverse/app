@@ -17,6 +17,7 @@ class PartyManager extends EventTarget {
 
     const partychange = () => {
       // queue all party members to follow main player in a line
+      // console.log('partychange');
       const localPlayer = playersManager.getLocalPlayer();
       let headPlayer = localPlayer;
       for(const partyPlayer of this.partyPlayers) {
@@ -91,6 +92,8 @@ class PartyManager extends EventTarget {
 
       newPlayer.addEventListener('activate', activate);
 
+      this.dispatchEvent(new MessageEvent('partychange'));
+
       return true;
     }
     return false;
@@ -111,50 +114,56 @@ class PartyManager extends EventTarget {
   // if target is null, it stops following
   #setFollowTarget(newPlayer, targetPlayer) {
     const targetObj = this.targetMap.get(newPlayer.getInstanceId());
+
+    const slowdownFactor = 0.4;
+    const walkSpeed = 0.075 * slowdownFactor;
+    const runSpeed = walkSpeed * 8;
+    const speedDistanceRate = 0.07;
+    const frame = e => {
+      if (physicsScene.getPhysicsEnabled()) {
+        const {timestamp, timeDiff} = e.data;
+        const targetPlayer = this.targetMap.get(newPlayer.getInstanceId());
+        
+        if (targetPlayer) {
+          // console.log('    ', newPlayer.name, '->', targetPlayer.name);
+          const v = localVector.setFromMatrixPosition(targetPlayer.matrixWorld)
+              .sub(newPlayer.position);
+          v.y = 0;
+          const distance = v.length();
+          {
+            const speed = Math.min(Math.max(walkSpeed + ((distance - 1.5) * speedDistanceRate), 0), runSpeed);
+            v.normalize()
+              .multiplyScalar(speed * timeDiff);
+              newPlayer.characterPhysics.applyWasd(v);
+          }
+          newPlayer.setTarget(targetPlayer);
+        }
+
+        newPlayer.updatePhysics(timestamp, timeDiff);
+        newPlayer.updateAvatar(timestamp, timeDiff);
+      }
+    };
+
+    const removeTarget = () => {
+      this.targetMap.delete(newPlayer.getInstanceId());
+      const onFrame = this.onFrameMap.get(newPlayer.getInstanceId());
+      world.appManager.removeEventListener('frame', onFrame);
+    };
+
+    const setTarget = () => {
+      this.targetMap.set(newPlayer.getInstanceId(), targetPlayer);
+      world.appManager.addEventListener('frame', frame);
+      this.onFrameMap.set(newPlayer.getInstanceId(), frame);
+    };
     
     if(targetObj) {
       // remove previous target
-      this.targetMap.delete(newPlayer.getInstanceId());
-
-      const onFrame = this.onFrameMap.get(newPlayer.getInstanceId());
-      world.appManager.removeEventListener('frame', onFrame);
+      removeTarget();
     }
 
     if (targetPlayer) {
       // console.log(newPlayer.name, '--->', targetPlayer.name);
-      this.targetMap.set(newPlayer.getInstanceId(), targetPlayer);
-
-      const slowdownFactor = 0.4;
-      const walkSpeed = 0.075 * slowdownFactor;
-      const runSpeed = walkSpeed * 8;
-      const speedDistanceRate = 0.07;
-      const frame = e => {
-        if (physicsScene.getPhysicsEnabled()) {
-          const {timestamp, timeDiff} = e.data;
-          const targetPlayer = this.targetMap.get(newPlayer.getInstanceId());
-          
-          if (targetPlayer) {
-            // console.log('    ', newPlayer.name, '->', targetPlayer.name);
-            const v = localVector.setFromMatrixPosition(targetPlayer.matrixWorld)
-                .sub(newPlayer.position);
-            v.y = 0;
-            const distance = v.length();
-            {
-              const speed = Math.min(Math.max(walkSpeed + ((distance - 1.5) * speedDistanceRate), 0), runSpeed);
-              v.normalize()
-                .multiplyScalar(speed * timeDiff);
-                newPlayer.characterPhysics.applyWasd(v);
-            }
-            newPlayer.setTarget(targetPlayer);
-          }
-
-          newPlayer.updatePhysics(timestamp, timeDiff);
-          newPlayer.updateAvatar(timestamp, timeDiff);
-        }
-      };
-
-      this.onFrameMap.set(newPlayer.getInstanceId(), frame);
-      world.appManager.addEventListener('frame', frame);
+      setTarget();
     }
   }
 }
