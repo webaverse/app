@@ -27,29 +27,27 @@ class PartyManager extends EventTarget {
   switchCharacter() {
     const localPlayer = playersManager.getLocalPlayer();
     
-    if (this.partyPlayers.length == 0) {
-        return null;
+    if (this.partyPlayers.length != 0) {
+      const nextPlayer = this.partyPlayers.shift();
+
+      localPlayer.isLocalPlayer = false;
+      localPlayer.isNpcPlayer = true;
+
+      nextPlayer.isLocalPlayer = true;
+      nextPlayer.isNpcPlayer = false;
+
+      nextPlayer.updatePhysicsStatus();
+      localPlayer.updatePhysicsStatus();
+
+      this.#setFollowTarget(nextPlayer, null);
+
+      this.partyPlayers.push(localPlayer);
+
+      this.#queueFollow(nextPlayer);
+
+      return nextPlayer;
     }
-    
-    const nextPlayer = this.partyPlayers.shift();
-
-    localPlayer.isLocalPlayer = false;
-    localPlayer.isNpcPlayer = true;
-
-    nextPlayer.isLocalPlayer = true;
-    nextPlayer.isNpcPlayer = false;
-
-    nextPlayer.updatePhysicsStatus();
-    localPlayer.updatePhysicsStatus();
-
-    this.#setFollowTarget(nextPlayer, null);
-
-    this.partyPlayers.push(localPlayer);
-
-    this.#queueFollow(nextPlayer);
-
-    return nextPlayer;
-      
+    return null;
   }
 
   // add new player to party
