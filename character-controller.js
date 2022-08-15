@@ -667,6 +667,13 @@ class StatePlayer extends PlayerBase {
   getQuaternion() {
     return this.quaternion.toArray(localArray4) ?? [0, 0, 0, 1];
   }
+  updatePhysicsStatus() {
+    if (this.isLocalPlayer) {
+      physicsScene.disableGeometryQueries(this.characterController);
+    } else {
+      physicsScene.enableGeometryQueries(this.characterController);
+    }
+  }
   async syncAvatar() {
     if (this.syncAvatarCancelFn) {
       this.syncAvatarCancelFn.cancel();
@@ -699,12 +706,21 @@ class StatePlayer extends PlayerBase {
           app,
           avatar,
         });
+
+        const activate = () => {
+          this.dispatchEvent({
+            type: 'activate'
+          });
+        };
+        app.addEventListener('activate', activate);
+        this.addEventListener('avatarchange', () => {
+          app.removeEventListener('activate', activate);
+        });
         
         loadPhysxCharacterController.call(this);
         
-        if (this.isLocalPlayer) {
-          physicsScene.disableGeometryQueries(this.characterController);
-        }
+        this.updatePhysicsStatus();
+        app.addPhysicsObject(this.characterController);
       })();
       
       this.dispatchEvent({
@@ -1042,8 +1058,10 @@ class LocalPlayer extends UninterpolatedPlayer {
   constructor(opts) {
     super(opts);
 
+    this.isMainPlayer = !!opts.mainPlayer; // main player is not in the npc pool
     this.isLocalPlayer = !opts.npc;
     this.isNpcPlayer = !!opts.npc;
+    this.isNpcInParty = false; // whether npc's in party
     this.detached = !!opts.detached;
 
     this.characterPhysics = new CharacterPhysics(this);
@@ -1091,6 +1109,10 @@ class LocalPlayer extends UninterpolatedPlayer {
       }
       self.syncAvatar();
     });
+  }
+  getInstanceId() {
+    const instanceId = this.playerMap.get('avatar');
+    return instanceId;
   }
   setMicMediaStream(mediaStream) {
     if (this.microphoneMediaStream) {

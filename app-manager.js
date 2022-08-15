@@ -353,30 +353,36 @@ class AppManager extends EventTarget {
     return this.apps.find(app => app.instanceId === instanceId);
   }
   getAppByPhysicsId(physicsId) {
-    for (const app of this.apps) {
-      if (app.getPhysicsObjects && app.getPhysicsObjects().some(o => o.physicsId === physicsId)) {
-        return app;
+    for (const appManager of appManagers) {
+      for (const app of appManager.apps) {
+        if (app.getPhysicsObjects && app.getPhysicsObjects().some(o => o.physicsId === physicsId)) {
+          return app;
+        }
       }
     }
     return null;
   }
   getPhysicsObjectByPhysicsId(physicsId) {
-    for (const app of this.apps) {
-      const physicsObjects = app.getPhysicsObjects();
-      for (const physicsObject of physicsObjects) {
-        if (physicsObject.physicsId === physicsId) {
-          return physicsObject;
+    for (const appManager of appManagers) {
+      for (const app of appManager.apps) {
+        const physicsObjects = app.getPhysicsObjects();
+        for (const physicsObject of physicsObjects) {
+          if (physicsObject.physicsId === physicsId) {
+            return physicsObject;
+          }
         }
       }
     }
     return null;
   }
   getPairByPhysicsId(physicsId) {
-    for (const app of this.apps) {
-      const physicsObjects = app.getPhysicsObjects();
-      for (const physicsObject of physicsObjects) {
-        if (physicsObject.physicsId === physicsId) {
-          return [app, physicsObject];
+    for (const appManager of appManagers) {
+      for (const app of appManager.apps) {
+        const physicsObjects = app.getPhysicsObjects();
+        for (const physicsObject of physicsObjects) {
+          if (physicsObject.physicsId === physicsId) {
+            return [app, physicsObject];
+          }
         }
       }
     }

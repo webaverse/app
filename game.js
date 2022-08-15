@@ -20,6 +20,7 @@ import * as metaverseModules from './metaverse-modules.js';
 import loadoutManager from './loadout-manager.js';
 import * as sounds from './sounds.js';
 import {playersManager} from './players-manager.js';
+import {partyManager} from './party-manager.js';
 import physicsManager from './physics-manager.js';
 import npcManager from './npc-manager.js';
 import raycastManager from './raycast-manager.js';
@@ -1377,22 +1378,8 @@ class GameManager extends EventTarget {
   menuSwitchCharacter() {
     sounds.playSoundName('menuReady');
 
-    const npc = npcManager.npcs[0];
-    if (npc) {
-      // console.log('check npc', npc);
-      
-      const localPlayer = playersManager.getLocalPlayer();
-      localPlayer.isLocalPlayer = false;
-      localPlayer.isNpcPlayer = true;
-
-      npc.isLocalPlayer = true;
-      npc.isNpcPlayer = false;
-
-      const npcIndex = npcManager.npcs.indexOf(npc);
-      npcManager.npcs[npcIndex] = localPlayer;
-
-      playersManager.setLocalPlayer(npc);
-    }
+    // Switch to next character among party
+    partyManager.dispatchEvent(new MessageEvent('switchcharacter'));
   }
   isFlying() {
     const localPlayer = playersManager.getLocalPlayer();

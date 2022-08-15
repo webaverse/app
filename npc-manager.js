@@ -3,6 +3,7 @@ import Avatar from './avatars/avatars.js';
 import physicsManager from './physics-manager.js';
 import {LocalPlayer} from './character-controller.js';
 import {playersManager} from './players-manager.js';
+import {partyManager} from './party-manager.js';
 import * as voices from './voices.js';
 import {world} from './world.js';
 import {chatManager} from './chat-manager.js';
@@ -80,8 +81,6 @@ class NpcManager extends EventTarget {
   }
 
   async addNpcApp(app, srcUrl) {
-    const localPlayer = playersManager.getLocalPlayer();
-
     let live = true;
     let json = null;
     let npcPlayer = null;
@@ -142,54 +141,52 @@ class NpcManager extends EventTarget {
         app.addEventListener('hittrackeradded', hittrackeradd);
 
         const activate = () => {
-          if (targetSpec?.object !== localPlayer) {
-            targetSpec = {
-              type: 'follow',
-              object: localPlayer,
-            };
+          if (!npcPlayer.isNpcInParty) {
+            partyManager.dispatchEvent(new MessageEvent('addplayer', {
+              data: {
+                player: npcPlayer,
+              },
+            }));
           } else {
-            targetSpec = null;
+            npcPlayer.dispatchEvent({
+              type: 'activate'
+            });
           }
         };
         app.addEventListener('activate', activate);
 
-        const slowdownFactor = 0.4;
-        const walkSpeed = 0.075 * slowdownFactor;
-        const runSpeed = walkSpeed * 8;
-        const speedDistanceRate = 0.07;
         const frame = e => {
+          const localPlayer = playersManager.getLocalPlayer();
+
           if (npcPlayer && physicsScene.getPhysicsEnabled()) {
-            const {timestamp, timeDiff} = e.data;
+            if (!npcPlayer.isNpcInParty) {
+              const {timestamp, timeDiff} = e.data;
             
-            if (targetSpec) {
-              const target = targetSpec.object;
-              const v = localVector.setFromMatrixPosition(target.matrixWorld)
-                .sub(npcPlayer.position);
-              v.y = 0;
-              const distance = v.length();
-              if (targetSpec.type === 'moveto' && distance < 2) {
-                targetSpec = null;
-              } else {
-                const speed = Math.min(Math.max(walkSpeed + ((distance - 1.5) * speedDistanceRate), 0), runSpeed);
-                v.normalize()
-                  .multiplyScalar(speed * timeDiff);
-                npcPlayer.characterPhysics.applyWasd(v);
+              if (targetSpec) {
+                const target = targetSpec.object;
+                const v = localVector.setFromMatrixPosition(target.matrixWorld)
+                  .sub(npcPlayer.position);
+                v.y = 0;
+                const distance = v.length();
+                if (targetSpec.type === 'moveto' && distance < 2) {
+                  targetSpec = null;
+                }
               }
+
+              npcPlayer.setTarget(localPlayer.position);
+
+              /* if (isNaN(npcPlayer.position.x)) {
+                debugger;
+              } */
+              npcPlayer.updatePhysics(timestamp, timeDiff);
+              /* if (isNaN(npcPlayer.position.x)) {
+                debugger;
+              } */
+              npcPlayer.updateAvatar(timestamp, timeDiff);
+              /* if (isNaN(npcPlayer.position.x)) {
+                debugger;
+              } */
             }
-
-            npcPlayer.setTarget(localPlayer.position);
-
-            /* if (isNaN(npcPlayer.position.x)) {
-              debugger;
-            } */
-            npcPlayer.updatePhysics(timestamp, timeDiff);
-            /* if (isNaN(npcPlayer.position.x)) {
-              debugger;
-            } */
-            npcPlayer.updateAvatar(timestamp, timeDiff);
-            /* if (isNaN(npcPlayer.position.x)) {
-              debugger;
-            } */
           }
         };
         world.appManager.addEventListener('frame', frame);
@@ -230,6 +227,8 @@ class NpcManager extends EventTarget {
           bio: npcBio,
         });
         character.addEventListener('say', e => {
+          const localPlayer = playersManager.getLocalPlayer();
+
           const {message, emote, action, object, target} = e.data;
           const chatId = makeId(5);
 

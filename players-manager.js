@@ -16,6 +16,7 @@ class PlayersManager extends EventTarget {
     const localPlayerId = makeId(5);
     const localPlayersArray = new Z.Doc().getArray(playersMapName);
     this.localPlayer = new LocalPlayer({
+      mainPlayer: true,
       playerId: localPlayerId,
       playersArray: localPlayersArray,
     });
