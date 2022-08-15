@@ -55,7 +55,7 @@ function bindCanvas(c) {
   const renderTarget = new THREE.WebGLRenderTarget(width * pixelRatio, height * pixelRatio, {
     minFilter: THREE.LinearFilter,
     magFilter: THREE.LinearFilter,
-    format: THREE.RGBAFormat,
+    // format: THREE.RGBAFormat,
     encoding: THREE.sRGBEncoding,
   });
   renderTarget.name = 'effectComposerRenderTarget';
