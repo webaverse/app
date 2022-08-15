@@ -153,7 +153,7 @@ function makeWebaWaterPass(webaWater) {
   return webaWaterPass;
 }
 
-class EncodingPass extends ShaderPass {
+/* class EncodingPass extends ShaderPass {
   constructor() {
     super({
       uniforms: {
@@ -184,7 +184,7 @@ class EncodingPass extends ShaderPass {
       depthWrite: false,
     });
   }
-}
+} */
 
 const webaverseRenderPass = new WebaverseRenderPass();
 const _isDecapitated = () => (
@@ -218,7 +218,7 @@ webaverseRenderPass.onAfterRender = () => {
     }
   }
 };
-const encodingPass = new EncodingPass();
+// const encodingPass = new EncodingPass();
 
 class PostProcessing extends EventTarget {
   constructor() {
@@ -226,7 +226,7 @@ class PostProcessing extends EventTarget {
 
     this.defaultPasses = [
       webaverseRenderPass,
-      encodingPass,
+      // encodingPass,
     ];
     this.defaultInternalPasses = [];
   }
@@ -279,7 +279,7 @@ class PostProcessing extends EventTarget {
       } */
     }
     
-    passes.push(encodingPass);
+    // passes.push(encodingPass);
 
     return {
       passes,
