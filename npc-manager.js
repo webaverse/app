@@ -149,7 +149,11 @@ class NpcManager extends EventTarget {
 
         const activate = () => {
           if (!npcPlayer.isNpcInParty) {
-            partyManager.addPartyPlayer(npcPlayer);
+            partyManager.dispatchEvent(new MessageEvent('addplayer', {
+              data: {
+                player: npcPlayer,
+              },
+            }));
           }
         };
         app.addEventListener('activate', activate);

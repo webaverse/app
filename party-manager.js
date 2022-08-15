@@ -15,21 +15,66 @@ class PartyManager extends EventTarget {
     this.targetMap = new Map();
     this.onFrameMap = new Map();
 
-    const partychange = () => {
+    const partyupdate = () => {
       // queue all party members to follow main player in a line
-      // console.log('partychange');
+      // console.log('partyupdate');
       const localPlayer = playersManager.getLocalPlayer();
       let headPlayer = localPlayer;
       for(const partyPlayer of this.partyPlayers) {
         this.#setFollowTarget(partyPlayer, headPlayer);
         headPlayer = partyPlayer;
       }
-    }
+    };
+    this.addEventListener('partyupdate', partyupdate);
 
-    this.addEventListener('partychange', partychange);
+    const switchcharacter = () => {
+      // switch to next character
+      const localPlayer = playersManager.getLocalPlayer();
+    
+      if (this.partyPlayers.length != 0) {
+        const nextPlayer = this.partyPlayers.shift();
+
+        localPlayer.isLocalPlayer = false;
+        localPlayer.isNpcPlayer = true;
+
+        nextPlayer.isLocalPlayer = true;
+        nextPlayer.isNpcPlayer = false;
+
+        nextPlayer.updatePhysicsStatus();
+        localPlayer.updatePhysicsStatus();
+
+        this.#setFollowTarget(nextPlayer, null);
+
+        this.partyPlayers.push(localPlayer);
+
+        playersManager.setLocalPlayer(nextPlayer);
+
+        this.dispatchEvent(new MessageEvent('partyupdate'));
+      }
+    };
+    this.addEventListener('switchcharacter', switchcharacter);
+
+    const addplayer = (e) => {
+      const {
+        player
+      } = e.data;
+      this.#addPartyPlayer(player);
+    };
+    this.addEventListener('addplayer', addplayer);
+
+    const removeplayer = (e) => {
+      const {
+        player
+      } = e.data;
+      this.#removePartyPlayer(player);
+    };
+    this.addEventListener('removeplayer', removeplayer);
 
     this.cleanup = () => {
-      this.removeEventListener('partychange', partychange);
+      this.removeEventListener('partyupdate', partyupdate);
+      this.removeEventListener('switchcharacter', switchcharacter);
+      this.removeEventListener('addplayer', addplayer);
+      this.removeEventListener('removeplayer', removeplayer);
     }
   }
 
@@ -40,33 +85,8 @@ class PartyManager extends EventTarget {
     }
   }
 
-  // switch to next character and returns main character
-  switchCharacter() {
-    const localPlayer = playersManager.getLocalPlayer();
-    
-    if (this.partyPlayers.length != 0) {
-      const nextPlayer = this.partyPlayers.shift();
-
-      localPlayer.isLocalPlayer = false;
-      localPlayer.isNpcPlayer = true;
-
-      nextPlayer.isLocalPlayer = true;
-      nextPlayer.isNpcPlayer = false;
-
-      nextPlayer.updatePhysicsStatus();
-      localPlayer.updatePhysicsStatus();
-
-      this.#setFollowTarget(nextPlayer, null);
-
-      this.partyPlayers.push(localPlayer);
-
-      return nextPlayer;
-    }
-    return null;
-  }
-
   // add new player to party
-  addPartyPlayer(newPlayer) {
+  #addPartyPlayer(newPlayer) {
     const localPlayer = playersManager.getLocalPlayer();
 
     if (this.partyPlayers.length < 2) { // 3 max members
@@ -82,17 +102,21 @@ class PartyManager extends EventTarget {
         else {
           // console.log('deactivate', newPlayer.name);
 
-          this.#removePartyPlayer(newPlayer);
+          this.dispatchEvent(new MessageEvent('removeplayer', {
+            data: {
+              player: newplayer,
+            },
+          }));
           
           newPlayer.removeEventListener('activate', activate);
           
-          this.dispatchEvent(new MessageEvent('partychange'));
+          this.dispatchEvent(new MessageEvent('partyupdate'));
         }
       };
 
       newPlayer.addEventListener('activate', activate);
 
-      this.dispatchEvent(new MessageEvent('partychange'));
+      this.dispatchEvent(new MessageEvent('partyupdate'));
 
       return true;
     }
