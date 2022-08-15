@@ -28,8 +28,8 @@ const hitAttemptEvent = new MessageEvent('hitattempt', {
 });
 
 export class CharacterHitter {
-  constructor(player) {
-    this.player = player;
+  constructor(character) {
+    this.character = character;
 
     this.lastHitTime = -Infinity;
   }
@@ -63,16 +63,16 @@ export class CharacterHitter {
             const [app, physicsObject] = result;
             const timeDiff = timestamp - this.lastHitTime;
             if (timeDiff > 1000) {
-              const useAction = this.player.getAction('use');
+              const useAction = this.character.getAction('use');
               const damage = typeof useAction.damage === 'number' ? useAction.damage : 10;
               const hitDirection = app.position.clone()
-                .sub(this.player.position);
+                .sub(this.character.position);
               hitDirection.y = 0;
               hitDirection.normalize();
     
               const damageMeshOffsetDistance = 1.5;
-              const hitPosition = localVector.copy(this.player.position)
-                .add(localVector2.set(0, 0, -damageMeshOffsetDistance).applyQuaternion(this.player.quaternion))
+              const hitPosition = localVector.copy(this.character.position)
+                .add(localVector2.set(0, 0, -damageMeshOffsetDistance).applyQuaternion(this.character.quaternion))
                 .clone();
               localEuler.setFromQuaternion(camera.quaternion, 'YXZ');
               localEuler.x = 0;
@@ -109,14 +109,14 @@ export class CharacterHitter {
               const hitPosition = new THREE.Vector3().fromArray(result.point);
               const hitQuaternion = new THREE.Quaternion().setFromRotationMatrix(
                 localMatrix.lookAt(
-                  this.player.position,
+                  this.character.position,
                   hitPosition,
                   localVector.set(0, 1, 0)
                 )
               );
 
               const hitDirection = targetApp.position.clone()
-                .sub(this.player.position);
+                .sub(this.character.position);
               // hitDirection.y = 0;
               hitDirection.normalize();
               
@@ -149,7 +149,7 @@ export class CharacterHitter {
       type: 'hurt',
       animation: Math.random() < 0.5 ? 'pain_arch' : 'pain_back',
     };
-    const hurtAction = this.player.addAction(newAction);
+    const hurtAction = this.character.addAction(newAction);
 
     const emotions = [
       // 'joy',
@@ -160,7 +160,7 @@ export class CharacterHitter {
       'surprise',
     ];
     const emotion = emotions[Math.floor(Math.random() * emotions.length)];
-    const faceposeAction = this.player.addAction({
+    const faceposeAction = this.character.addAction({
       type: 'facepose',
       emotion,
       value: 1,
@@ -175,7 +175,7 @@ export class CharacterHitter {
     ];
     const gruntType = gruntTypes[Math.floor(Math.random() * gruntTypes.length)];
     // console.log('play grunt', emotion, gruntType);
-    this.player.characterSfx.playGrunt(gruntType);
+    this.character.characterSfx.playGrunt(gruntType);
 
     {
       const damageMeshApp = metaversefile.createApp();
@@ -185,7 +185,7 @@ export class CharacterHitter {
         const m = modules['damageMesh'];
         await damageMeshApp.addModule(m);
       })();
-      damageMeshApp.position.copy(this.player.position);
+      damageMeshApp.position.copy(this.character.position);
       localEuler.setFromQuaternion(camera.quaternion, 'YXZ');
       localEuler.x = 0;
       localEuler.z = 0;
@@ -198,12 +198,12 @@ export class CharacterHitter {
     const hurtAnimation = animations.find(a => a.isHurt);
     const hurtAnimationDuration = hurtAnimation.duration;
     setTimeout(() => {
-      const hurtActionIndex = this.player.indexOfAction(hurtAction);
-      this.player.removeActionIndex(hurtActionIndex);
+      const hurtActionIndex = this.character.indexOfAction(hurtAction);
+      this.character.removeActionIndex(hurtActionIndex);
     }, hurtAnimationDuration * 1000);
     setTimeout(() => {
-      const faceposeActionIndex = this.player.indexOfAction(faceposeAction);
-      this.player.removeActionIndex(faceposeActionIndex);
+      const faceposeActionIndex = this.character.indexOfAction(faceposeAction);
+      this.character.removeActionIndex(faceposeActionIndex);
     }, 1000);
   }
   update() {

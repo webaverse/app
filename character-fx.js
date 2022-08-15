@@ -82,9 +82,10 @@ const _makeKiHairMaterial = () => {
   return material;
 };
 
-class CharacterFx {
-  constructor(player) {
-    this.player = player;
+// TODO : Create a new class called "AvatarCharacterFx" which inherits from this class
+export class CharacterFx {
+  constructor(character) {
+    this.character = character;
 
     // this.lastJumpState = false;
     // this.lastStepped = [false, false];
@@ -97,21 +98,21 @@ class CharacterFx {
     this.lastSSS = false;
   }
   update(timestamp, timeDiffS) {
-    if (!this.player.avatar) {
+    if (!this.character.avatar) {
       return;
     }
 
     const timeS = timestamp/1000;
 
-    const powerupAction = this.player.getAction('dance');
+    const powerupAction = this.character.getAction('dance');
     const isPowerup = !!powerupAction && powerupAction.animation === 'powerup';
-    const sssAction = this.player.getAction('sss');
+    const sssAction = this.character.getAction('sss');
     const isSSS = !!sssAction;
 
 
     const _initHairMeshes = () => {
       this.hairMeshes = [];
-      this.player.avatar.object.scene.traverse(o => {
+      this.character.avatar.object.scene.traverse(o => {
         // console.log(o.name, o.isMesh);
         if (o.isSkinnedMesh) {
           const {geometry, skeleton} = o;
@@ -154,7 +155,7 @@ class CharacterFx {
         hairMesh.material.vertexShader = kiHairMaterial.vertexShader;
         hairMesh.material.fragmentShader = kiHairMaterial.fragmentShader; */
       }
-      for (const springBones of this.player.avatar.springBoneManager.springBoneGroupList) {
+      for (const springBones of this.character.avatar.springBoneManager.springBoneGroupList) {
         for (const o of springBones) {
           o.kiOriginalGravityDir = o.gravityDir.clone();
           o.kiOriginalGravityPower = o.gravityPower;
@@ -170,7 +171,7 @@ class CharacterFx {
       for (const hairMesh of this.hairMeshes) {
         hairMesh.material = hairMesh.kiOriginalMaterial;
       }
-      for (const springBones of this.player.avatar.springBoneManager.springBoneGroupList) {
+      for (const springBones of this.character.avatar.springBoneManager.springBoneGroupList) {
         for (const o of springBones) {
           o.gravityDir.copy(o.kiOriginalGravityDir);
           o.gravityPower = o.kiOriginalGravityPower;
@@ -191,17 +192,17 @@ class CharacterFx {
           hairMesh.material.uniforms.iTime.value = timeS;
           hairMesh.material.uniforms.iTime.needsUpdate = true;
 
-          hairMesh.material.uniforms.uHeadCenter.value.setFromMatrixPosition(this.player.avatar.modelBoneOutputs.Head.matrixWorld);
+          hairMesh.material.uniforms.uHeadCenter.value.setFromMatrixPosition(this.character.avatar.modelBoneOutputs.Head.matrixWorld);
           hairMesh.material.uniforms.uHeadCenter.needsUpdate = true;
         }
 
-        if (this.player.avatar.springBoneManager) {
-          const headPosition = localVector.setFromMatrixPosition(this.player.avatar.modelBoneOutputs.Head.matrixWorld);
+        if (this.character.avatar.springBoneManager) {
+          const headPosition = localVector.setFromMatrixPosition(this.character.avatar.modelBoneOutputs.Head.matrixWorld);
           const octave = Math.sin(timeS * Math.PI * 2 * 4) // +
             // Math.sin(timeS * Math.PI * 2 * 4) +
             // Math.sin(timeS * Math.PI * 2 * 8);
           const gravityPower = 0.4 + (1 + octave)*0.5 * 0.5;
-          for (const springBones of this.player.avatar.springBoneManager.springBoneGroupList) {
+          for (const springBones of this.character.avatar.springBoneManager.springBoneGroupList) {
             for (const o of springBones) {
               const gravityDir = localVector2.setFromMatrixPosition(o.bone.matrixWorld)
                 .sub(headPosition)
@@ -234,9 +235,9 @@ class CharacterFx {
 
     this.lastSSS = isSSS;
     const _updateSonicBoomMesh = () => {
-      if (!this.sonicBoom  && !this.player.isNpcPlayer) {
+      if (!this.sonicBoom  && !this.character.isNpcPlayer) {
         this.sonicBoom = metaversefile.createApp();
-        this.sonicBoom.setComponent('player', this.player);
+        this.sonicBoom.setComponent('player', this.character);
         (async () => {
           const {modules} = metaversefile.useDefaultModules();
           const m = modules['sonicBoom'];
@@ -247,10 +248,10 @@ class CharacterFx {
     };
     _updateSonicBoomMesh();
     const _updateNameplate = () => {
-      if(!this.nameplate && !this.player.isNpcPlayer && !this.player.isLocalPlayer){
+      if(!this.nameplate && !this.character.isNpcPlayer && !this.character.isLocalPlayer){
         (async () => {
         this.nameplate = metaversefile.createApp();
-        this.nameplate.setComponent('player', this.player);
+        this.nameplate.setComponent('player', this.character);
           const {modules} = metaversefile.useDefaultModules();
           const m = modules['nameplate'];
           await this.nameplate.addModule(m);
@@ -261,21 +262,21 @@ class CharacterFx {
     _updateNameplate();
     const _updateHealEffectMesh = () => {
       
-      if(this.player.hasAction('cure')){
+      if(this.character.hasAction('cure')){
         if (!this.healEffect) {
           this.healEffect = metaversefile.createApp();
           (async () => {
             const {modules} = metaversefile.useDefaultModules();
             const m = modules['healEffect'];
             await this.healEffect.addModule(m);
-            this.healEffect.playEffect(this.player);
-            this.player.removeAction('cure')
+            this.healEffect.playEffect(this.character);
+            this.character.removeAction('cure')
           })();
           sceneLowPriority.add(this.healEffect);
         }
         else{
-          this.healEffect.playEffect(this.player);
-          this.player.removeAction('cure')
+          this.healEffect.playEffect(this.character);
+          this.character.removeAction('cure')
         }
         
       }
@@ -303,7 +304,3 @@ class CharacterFx {
     }
   }
 }
-
-export {
-  CharacterFx,
-};
