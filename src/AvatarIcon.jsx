@@ -14,14 +14,14 @@ import styles from './AvatarIcon.module.css';
 import {PlaceholderImg} from './PlaceholderImg.jsx';
 import { playersManager } from '../players-manager.js';
 import { AvatarIconer } from '../avatar-iconer.js';
-import cameraManager from '../camera-manager.js'
-import * as sounds from '../sounds.js'
+import cameraManager from '../camera-manager.js';
+import * as sounds from '../sounds.js';
 
 const characterIconSize = 100;
 const pixelRatio = window.devicePixelRatio;
 
 const CharacterIcon = () => {
-  const [loaded, setLoaded] = useState(false);
+  const { characterLoaded, setCharacterLoaded } = useContext( AppContext );
   const canvasRef = useRef();
 
   useEffect(() => {
@@ -37,28 +37,23 @@ const CharacterIcon = () => {
       const frame = () => {
         if (avatarIconer.enabled) {
           avatarIconer.update();
+          setCharacterLoaded(true);
         }
       };
       world.appManager.addEventListener('frame', frame);
 
-      const enabledchange = e => {
-        setLoaded(e.data.enabled);
-      };
-      avatarIconer.addEventListener('enabledchange', enabledchange);
-
       return () => {
         avatarIconer.destroy();
         world.appManager.removeEventListener('frame', frame);
-        avatarIconer.removeEventListener('enabledchange', enabledchange);
       };
     }
-  }, [canvasRef]);
+  }, [canvasRef, characterLoaded]);
 
   return (
       <div
         className={classnames(
           styles.characterIcon,
-          loaded ? styles.loaded : null,
+          characterLoaded ? styles.loaded : null,
         )}
         onMouseEnter={e => {
           sounds.playSoundName('menuClick');

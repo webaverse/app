@@ -132,6 +132,7 @@ export const App = () => {
 
     const [ state, setState ] = useState({ openedPanel: null });
     const [ uiMode, setUIMode ] = useState( 'normal' );
+    const [ characterLoaded, setCharacterLoaded ] = useState( false );
 
     const canvasRef = useRef( null );
     const app = useWebaverseApp();
@@ -326,7 +327,7 @@ export const App = () => {
             onDragEnd={onDragEnd}
             onDragOver={onDragOver}
         >
-            <AppContext.Provider value={{ state, setState, app, setSelectedApp, selectedApp, uiMode }}>
+            <AppContext.Provider value={{ state, setState, app, setSelectedApp, selectedApp, uiMode, characterLoaded, setCharacterLoaded }}>
                 <Header setSelectedApp={ setSelectedApp } selectedApp={ selectedApp } />
                 <DomRenderer />
                 <Canvas app={app} />

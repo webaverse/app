@@ -44,11 +44,14 @@
 
 .characterIcon .placeholderImg {
   position: absolute;
-  top: 10px;
-  left: 10px;
-  width: calc( var(--canvas-size) - 10px * 2);
-  height: calc( var(--canvas-size) - 10px * 2);
+  top: 3px;
+  left: 3px;
+  width: calc( var(--canvas-size) - 3px * 2);
+  height: calc( var(--canvas-size) - 3px * 2);
+  border-radius: 50%;
+  padding: 10px;
   z-index: 1;
+  background-color: rgba(220,220,220,0.6);
 }
 .characterIcon.loaded .placeholderImg {
   display: none;

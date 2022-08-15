@@ -17,6 +17,7 @@ import { chatTextSpeed } from '../../../../constants.js';
 import { VoiceEndpointVoicer } from '../../../../voice-output/voice-endpoint-voicer.js';
 import * as voices from '../../../../voices.js';
 import {getVoiceEndpointUrl} from '../../../../voice-output/voice-endpoint-voicer.js';
+import { PlaceholderImg } from '../../../PlaceholderImg';
 
 //
 
@@ -144,7 +145,7 @@ const Character = forwardRef(({
 });
 
 export const CharacterSelect = () => {
-    const { state, setState } = useContext( AppContext );
+    const { state, setState, setCharacterLoaded } = useContext( AppContext );
     const [ highlightCharacter, setHighlightCharacter ] = useState(null);
     const [ selectCharacter, setSelectCharacter ] = useState(null);
     const [ lastTargetCharacter, setLastTargetCharacter ] = useState(null);
@@ -376,6 +377,7 @@ export const CharacterSelect = () => {
 
             setTimeout(() => {
                 setState({ openedPanel: null });
+                setCharacterLoaded(false);
             }, 1000);
 
             (async () => {
@@ -409,6 +411,12 @@ export const CharacterSelect = () => {
             <div
                 className={classnames(styles.menu, opened ? styles.open : null)}
             >
+                { targetCharacter && !npcPlayer && (
+                    <PlaceholderImg 
+                        className={styles.placeholderImg} 
+                        src="./images/arc-white.svg"
+                    />
+                )}
                 <MegaHup
                     open={opened}
                     npcPlayer={opened ? npcPlayer : null}
