@@ -14,7 +14,6 @@ class PartyManager extends EventTarget {
     this.partyPlayers = [];
     this.targetMap = new Map();
     this.onFrameMap = new Map();
-    this.activateMap = new Map();
 
     const partychange = () => {
       // queue all party members to follow main player in a line
@@ -74,6 +73,24 @@ class PartyManager extends EventTarget {
       this.partyPlayers.push(newPlayer);
       newPlayer.isNpcInParty = true;
 
+      let activated = false;
+      const activate = () => {
+        if(!activated) {
+          activated = true;
+        }
+        else {
+          // console.log('deactivate', newPlayer.name);
+
+          this.#removePartyPlayer(newPlayer);
+          
+          newPlayer.removeEventListener('activate', activate);
+          
+          this.dispatchEvent(new MessageEvent('partychange'));
+        }
+      };
+
+      newPlayer.addEventListener('activate', activate);
+
       return true;
     }
     return false;
@@ -94,62 +111,50 @@ class PartyManager extends EventTarget {
   // if target is null, it stops following
   #setFollowTarget(newPlayer, targetPlayer) {
     const targetObj = this.targetMap.get(newPlayer.getInstanceId());
+    
     if(targetObj) {
+      // remove previous target
       this.targetMap.delete(newPlayer.getInstanceId());
+
       const onFrame = this.onFrameMap.get(newPlayer.getInstanceId());
       world.appManager.removeEventListener('frame', onFrame);
     }
 
     if (targetPlayer) {
-      {
-        const activate = () => {
-          if (!this.activateMap.has(newPlayer.getInstanceId())) {
-            // ignore first 'activate' event
-            this.activateMap.set(newPlayer.getInstanceId(), true);
-          } else {
-            this.activateMap.delete(newPlayer.getInstanceId());
+      // console.log(newPlayer.name, '--->', targetPlayer.name);
+      this.targetMap.set(newPlayer.getInstanceId(), targetPlayer);
 
-            this.#removePartyPlayer(newPlayer);
-            partyManager.dispatchEvent(new MessageEvent('partychange'));
-
-            newPlayer.removeEventListener('activate', activate);
-          }
-        };
-        newPlayer.addEventListener('activate', activate);
-      }
-
-      {
-        this.targetMap.set(newPlayer.getInstanceId(), targetPlayer);
-        const slowdownFactor = 0.4;
-        const walkSpeed = 0.075 * slowdownFactor;
-        const runSpeed = walkSpeed * 8;
-        const speedDistanceRate = 0.07;
-        const frame = e => {
-          if (physicsScene.getPhysicsEnabled()) {
-            const {timestamp, timeDiff} = e.data;
-  
-            const targetObj = this.targetMap.get(newPlayer.getInstanceId());
-            if (targetObj) {
-              const v = localVector.setFromMatrixPosition(targetPlayer.matrixWorld)
-                  .sub(newPlayer.position);
-              v.y = 0;
-              const distance = v.length();
-              {
-                const speed = Math.min(Math.max(walkSpeed + ((distance - 1.5) * speedDistanceRate), 0), runSpeed);
-                v.normalize()
-                  .multiplyScalar(speed * timeDiff);
-                  newPlayer.characterPhysics.applyWasd(v);
-              }
-              newPlayer.setTarget(targetObj);
+      const slowdownFactor = 0.4;
+      const walkSpeed = 0.075 * slowdownFactor;
+      const runSpeed = walkSpeed * 8;
+      const speedDistanceRate = 0.07;
+      const frame = e => {
+        if (physicsScene.getPhysicsEnabled()) {
+          const {timestamp, timeDiff} = e.data;
+          const targetPlayer = this.targetMap.get(newPlayer.getInstanceId());
+          
+          if (targetPlayer) {
+            // console.log('    ', newPlayer.name, '->', targetPlayer.name);
+            const v = localVector.setFromMatrixPosition(targetPlayer.matrixWorld)
+                .sub(newPlayer.position);
+            v.y = 0;
+            const distance = v.length();
+            {
+              const speed = Math.min(Math.max(walkSpeed + ((distance - 1.5) * speedDistanceRate), 0), runSpeed);
+              v.normalize()
+                .multiplyScalar(speed * timeDiff);
+                newPlayer.characterPhysics.applyWasd(v);
             }
-
-            newPlayer.updatePhysics(timestamp, timeDiff);
-            newPlayer.updateAvatar(timestamp, timeDiff);
+            newPlayer.setTarget(targetPlayer);
           }
-        };
-        this.onFrameMap.set(newPlayer.getInstanceId(), frame);
-        world.appManager.addEventListener('frame', frame);
-      }
+
+          newPlayer.updatePhysics(timestamp, timeDiff);
+          newPlayer.updateAvatar(timestamp, timeDiff);
+        }
+      };
+
+      this.onFrameMap.set(newPlayer.getInstanceId(), frame);
+      world.appManager.addEventListener('frame', frame);
     }
   }
 }
