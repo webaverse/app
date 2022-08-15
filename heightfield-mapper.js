@@ -306,7 +306,6 @@ export class HeightfieldMapper /* extends EventTarget */ {
   }
   renderHeightfieldUpdate(worldModPosition, heightfield) {
     const renderer = getRenderer();
-    const context = renderer.getContext();
 
     {
       // update
@@ -314,7 +313,6 @@ export class HeightfieldMapper /* extends EventTarget */ {
       
       // push state
       const oldRenderTarget = renderer.getRenderTarget();
-      context.disable(context.SAMPLE_ALPHA_TO_COVERAGE);
 
       // render
       renderer.setRenderTarget(this.heightfieldRenderTarget);
@@ -323,12 +321,10 @@ export class HeightfieldMapper /* extends EventTarget */ {
 
       // pop state
       renderer.setRenderTarget(oldRenderTarget);
-      context.enable(context.SAMPLE_ALPHA_TO_COVERAGE);
     }
   }
   /* clearHeightfieldChunk(worldModPosition) {
     const renderer = getRenderer();
-    const context = renderer.getContext();
     // const camera = useCamera();
 
     {
@@ -337,7 +333,6 @@ export class HeightfieldMapper /* extends EventTarget */ {
       
       // push state
       const oldRenderTarget = renderer.getRenderTarget();
-      context.disable(context.SAMPLE_ALPHA_TO_COVERAGE);
 
       // render
       renderer.setRenderTarget(this.heightfieldRenderTarget);
@@ -346,12 +341,10 @@ export class HeightfieldMapper /* extends EventTarget */ {
 
       // pop state
       renderer.setRenderTarget(oldRenderTarget);
-      context.enable(context.SAMPLE_ALPHA_TO_COVERAGE);
     }
   } */
   /* updateFourTapHeightfield() {
     const renderer = getRenderer();
-    const context = renderer.getContext();
 
     {
       // update
@@ -359,7 +352,6 @@ export class HeightfieldMapper /* extends EventTarget */ {
       
       // push state
       const oldRenderTarget = renderer.getRenderTarget();
-      context.disable(context.SAMPLE_ALPHA_TO_COVERAGE);
 
       // render
       renderer.setRenderTarget(this.heightfieldFourTapRenderTarget);
@@ -368,7 +360,6 @@ export class HeightfieldMapper /* extends EventTarget */ {
 
       // pop state
       renderer.setRenderTarget(oldRenderTarget);
-      context.enable(context.SAMPLE_ALPHA_TO_COVERAGE);
     }
   } */
 }
