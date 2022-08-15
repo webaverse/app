@@ -158,11 +158,11 @@ const _setRendererSize = (width, height, pixelRatio) => {
       renderer.xr.isPresenting = false;
     }
 
-    const {
+    /* const {
       width,
       height,
       pixelRatio,
-    } = _getCanvasDimensions();
+    } = _getCanvasDimensions(); */
     renderer.setSize(width, height);
     renderer.setPixelRatio(pixelRatio);
 
