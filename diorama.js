@@ -826,7 +826,7 @@ const createPlayerDiorama = ({
           for (const canvas of canvases) {
             const {width, height, ctx} = canvas;
             ctx.clearRect(0, 0, width, height);
-            ctx.filter = 'brightness(1.25)';
+            // ctx.filter = 'brightness(1.25)';
             ctx.drawImage(
               renderer.domElement,
               0,
