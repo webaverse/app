@@ -2,12 +2,12 @@
 set the avatar state from the player state */
 
 import * as THREE from 'three';
-import Avatar from './avatars/avatars.js';
-import {unFrustumCull, enableShadows} from './util.js';
+import AvatarAnimator from './avatars/avatars.js';
 import {
-  getEyePosition,
+    getEyePosition
 } from './avatars/util.mjs';
-import {playersManager} from './players-manager.js';
+import { playersManager } from './players-manager.js';
+import { enableShadows, unFrustumCull } from './util.js';
 
 const appSymbol = 'app'; // Symbol('app');
 const avatarSymbol = 'avatar'; // Symbol('avatar');
@@ -70,7 +70,7 @@ export function makeAvatar(app) {
 
     const player = _getPlayerByAppInstanceId(app.instanceId);
     if (skinnedVrm) {
-      const avatar = new Avatar(skinnedVrm, {
+      const avatar = new AvatarAnimator(skinnedVrm, {
         isLocalPlayer: !player || !player.isRemotePlayer,
         fingers: true,
         hair: true,

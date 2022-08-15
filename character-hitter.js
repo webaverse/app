@@ -1,9 +1,9 @@
 import * as THREE from 'three';
-import {scene, camera} from './renderer.js';
 import physics from './physics-manager.js';
+import { camera, scene } from './renderer.js';
 // import physx from './physx.js';
-import Avatar from './avatars/avatars.js';
 import metaversefile from 'metaversefile';
+import AvatarAnimator from './avatars/avatars.js';
 import * as metaverseModules from './metaverse-modules.js';
 
 const localVector = new THREE.Vector3();
@@ -194,7 +194,7 @@ export class CharacterHitter {
       scene.add(damageMeshApp);
     }
 
-    const animations = Avatar.getAnimations();
+    const animations = AvatarAnimator.getAnimations();
     const hurtAnimation = animations.find(a => a.isHurt);
     const hurtAnimationDuration = hurtAnimation.duration;
     setTimeout(() => {

@@ -115,7 +115,7 @@ function makeCancelFn() {
   this.physicsObject = physicsObject;
 } */
 
-class PlayerHand extends THREE.Object3D {
+class CharacterHand extends THREE.Object3D {
   constructor() {
     super();
 
@@ -124,29 +124,28 @@ class PlayerHand extends THREE.Object3D {
     this.enabled = false;
   }
 }
-class PlayerBase extends THREE.Object3D {
+class Character extends THREE.Object3D {
   constructor() {
     super();
 
     this.name = defaultPlayerName;
     this.bio = defaultPlayerBio;
+
+    this.characterPhysics = new CharacterPhysics(this);
+
     this.characterHups = new CharacterHups(this);
     this.characterSfx = new CharacterSfx(this);
     this.characterFx = new CharacterFx(this);
     this.characterHitter = new CharacterHitter(this);
     this.characterBehavior = new CharacterBehavior(this);
 
-    this.leftHand = new PlayerHand();
-    this.rightHand = new PlayerHand();
+    this.leftHand = new CharacterHand();
+    this.rightHand = new CharacterHand();
     this.hands = [
       this.leftHand,
       this.rightHand,
     ];
 
-    this.detached = false;
-
-    this.avatar = null;
-    
     this.appManager = new AppManager({
       appsMap: null,
     });
@@ -303,7 +302,7 @@ class PlayerBase extends THREE.Object3D {
     const avatarApp = this.getAvatarApp();
     const npcComponent = avatarApp.getComponent('npc');
     const npcThemeSongUrl = npcComponent?.themeSongUrl;
-    return await PlayerBase.fetchThemeSong(npcThemeSongUrl);
+    return await Character.fetchThemeSong(npcThemeSongUrl);
   }
   static async fetchThemeSong(npcThemeSongUrl) {
     if (npcThemeSongUrl) {
@@ -545,24 +544,26 @@ const controlActionTypes = [
   'sit',
   'swim',
 ];
-class StatePlayer extends PlayerBase {
+class AvatarCharacter extends Character {
   constructor({
     playerId = makeId(5),
     playersArray = new Z.Doc().getArray(playersMapName),
   } = {}) {
     super();
 
+    this.avatar = null;
+
     this.playerId = playerId;
     this.playerIdInt = murmurhash3(playerId);
     this.playersArray = null;
     this.playerMap = null;
     this.microphoneMediaStream = null;
-
-    this.characterPhysics = new CharacterPhysics(this);
-    
+ 
     this.avatarEpoch = 0;
     this.syncAvatarCancelFn = null;
     this.unbindFns = [];
+
+    this.detached = false;
     
     this.transform = new Float32Array(7);
     this.bindState(playersArray);
@@ -856,7 +857,7 @@ class StatePlayer extends PlayerBase {
     super.destroy();
   }
 }
-class InterpolatedPlayer extends StatePlayer {
+class InterpolatedPlayer extends AvatarCharacter {
   constructor(opts) {
     super(opts);
     this.positionInterpolant = new PositionInterpolant(() => this.getPosition(), avatarInterpolationTimeDelay, avatarInterpolationNumFrames);
@@ -956,7 +957,7 @@ class InterpolatedPlayer extends StatePlayer {
     }
   }
 }
-class UninterpolatedPlayer extends StatePlayer {
+class UninterpolatedPlayer extends AvatarCharacter {
   constructor(opts) {
     super(opts);
     

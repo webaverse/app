@@ -1,61 +1,45 @@
+import { VRMSpringBoneImporter } from '@pixiv/three-vrm/lib/three-vrm.module.js';
 import * as THREE from 'three';
-import {VRMSpringBoneImporter} from '@pixiv/three-vrm/lib/three-vrm.module.js';
-import {fixSkeletonZForward} from './vrarmik/SkeletonUtils.js';
-import PoseManager from './vrarmik/PoseManager.js';
-import ShoulderTransforms from './vrarmik/ShoulderTransforms.js';
-import LegsManager from './vrarmik/LegsManager.js';
-import {scene, camera} from '../renderer.js';
-import MicrophoneWorker from './microphone-worker.js';
-import {AudioRecognizer} from '../audio-recognizer.js';
 import audioManager from '../audio-manager.js';
+import { AudioRecognizer } from '../audio-recognizer.js';
+import { camera, scene } from '../renderer.js';
 import {
   // angleDifference,
   // getVelocityDampingFactor,
-  getNextPhysicsId,
+  getNextPhysicsId
 } from '../util.js';
+import MicrophoneWorker from './microphone-worker.js';
+import LegsManager from './vrarmik/LegsManager.js';
+import PoseManager from './vrarmik/PoseManager.js';
+import ShoulderTransforms from './vrarmik/ShoulderTransforms.js';
+import { fixSkeletonZForward } from './vrarmik/SkeletonUtils.js';
 // import Simplex from '../simplex-noise.js';
 import {
-  crouchMaxTime,
-  // useMaxTime,
-  aimMaxTime,
-  aimTransitionMaxTime,
-  // avatarInterpolationFrameRate,
-  // avatarInterpolationTimeDelay,
-  // avatarInterpolationNumFrames,
+  aimTransitionMaxTime, crouchMaxTime
 } from '../constants.js';
 // import {FixedTimeStep} from '../interpolants.js';
 import * as avatarCruncher from '../avatar-cruncher.js';
 import * as avatarSpriter from '../avatar-spriter.js';
 // import * as sceneCruncher from '../scene-cruncher.js';
+import metaversefile from 'metaversefile';
+import { easing } from '../math-utils.js';
 import {
-  idleFactorSpeed,
-  walkFactorSpeed,
-  runFactorSpeed,
-  // narutoRunTimeFactor,
+  idleFactorSpeed, runFactorSpeed, walkFactorSpeed
 } from './constants.js';
 import {
-  getSkinnedMeshes,
-  getSkeleton,
   getEyePosition,
-  getHeight,
+  getHeight, getModelBones, getSkeleton, getSkinnedMeshes,
   // makeBoneMap,
-  getTailBones,
-  getModelBones,
-  // cloneModelBones,
-  // decorateAnimation,
-  // retargetAnimation,
-  // animationBoneToModelBone,
+  getTailBones
 } from './util.mjs';
-import {easing} from '../math-utils.js';
-import metaversefile from 'metaversefile';
 
-import { getFirstPersonCurves, getClosest2AnimationAngles, loadPromise, _findArmature, _getLerpFn, _applyAnimation } from './animationHelpers.js'
+import { getClosest2AnimationAngles, getFirstPersonCurves, loadPromise, _applyAnimation, _findArmature, _getLerpFn } from './animationHelpers.js';
 
 import { animationMappingConfig } from './AnimationMapping.js';
-import Emoter from './Emoter.js'
-import Blinker from './Blinker.js'
-import Nodder from './Nodder.js'
-import Looker from './Looker.js'
+import Blinker from './Blinker.js';
+import Emoter from './Emoter.js';
+import Looker from './Looker.js';
+import Nodder from './Nodder.js';
 
 import * as wind from './simulation/wind.js';
 
@@ -133,7 +117,7 @@ const upVector = new THREE.Vector3(0, 1, 0);
 // const infinityUpVector = new THREE.Vector3(0, Infinity, 0);
 import {
   animations,
-  animationStepIndices,
+  animationStepIndices
 } from './animationHelpers.js';
 
 const cubicBezier = easing(0, 1, 0, 1);
@@ -399,7 +383,7 @@ const _makeDebugMesh = (avatar) => {
 
 
 
-class Avatar {
+class AvatarAnimator {
 	constructor(object, options = {}) {
     if (!object) {
       object = {};
@@ -464,7 +448,7 @@ class Avatar {
       armatureQuaternion,
       armatureMatrixInverse,
       // retargetedAnimations,
-    } = Avatar.bindAvatar(object);
+    } = AvatarAnimator.bindAvatar(object);
     this.skinnedMeshes = skinnedMeshes;
     this.skeleton = skeleton;
     this.modelBones = modelBones;
@@ -1971,7 +1955,7 @@ class Avatar {
     _updateEyeballTarget();
 
     this.modelBoneOutputs.Root.updateMatrixWorld();
-    Avatar.applyModelBoneOutputs(
+    AvatarAnimator.applyModelBoneOutputs(
       this,
       this.foundModelBones,
       this.modelBoneOutputs,
@@ -2184,10 +2168,10 @@ class Avatar {
     this.setAudioEnabled(false);
   }
 }
-Avatar.waitForLoad = () => loadPromise;
-Avatar.getAnimations = () => animations;
-Avatar.getAnimationStepIndices = () => animationStepIndices;
-Avatar.getAnimationMappingConfig = () => animationMappingConfig;
+AvatarAnimator.waitForLoad = () => loadPromise;
+AvatarAnimator.getAnimations = () => animations;
+AvatarAnimator.getAnimationStepIndices = () => animationStepIndices;
+AvatarAnimator.getAnimationMappingConfig = () => animationMappingConfig;
 
-Avatar.getClosest2AnimationAngles = getClosest2AnimationAngles;
-export default Avatar;
+AvatarAnimator.getClosest2AnimationAngles = getClosest2AnimationAngles;
+export default AvatarAnimator;

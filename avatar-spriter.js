@@ -3,9 +3,9 @@ import * as THREE from 'three';
 import metaversefile from 'metaversefile';
 const {useApp, useFrame, useLocalPlayer, usePhysics, useGeometries, useMaterials, useAvatarAnimations, useCleanup} = metaversefile;
 // import * as BufferGeometryUtils from 'three/examples/jsm/utils/BufferGeometryUtils.js';
-import {DoubleSidedPlaneGeometry, CameraGeometry} from './geometries.js';
-import {WebaverseShaderMaterial} from './materials.js';
-import Avatar from './avatars/avatars.js';
+import AvatarAnimator from './avatars/avatars.js';
+import { CameraGeometry, DoubleSidedPlaneGeometry } from './geometries.js';
+import { WebaverseShaderMaterial } from './materials.js';
 
 const preview = false; // whether to draw debug meshes
 
@@ -758,7 +758,7 @@ scene2.add(directionalLight);
 let spriteSpecs = null;
 const getSpriteSpecs = () => {
   if (spriteSpecs === null) {
-    const animations = Avatar.getAnimations();
+    const animations = AvatarAnimator.getAnimations();
     const walkAnimation = animations.find(a => a.name === 'walking.fbx');
     const walkBackwardAnimation = animations.find(a => a.name === 'walking backwards.fbx');
     const runAnimation = animations.find(a => a.name === 'Fast Run.fbx');
@@ -1508,7 +1508,7 @@ class AvatarSpriteDepthMaterial extends THREE.MeshNormalMaterial {
 }
 
 const _renderSpriteImages = skinnedVrm => {
-  const localRig = new Avatar(skinnedVrm, {
+  const localRig = new AvatarAnimator(skinnedVrm, {
     fingers: true,
     hair: true,
     visemes: true,
@@ -1707,5 +1707,6 @@ function createSpriteMegaMesh(skinnedVrm) {
 }
 
 export {
-  createSpriteMegaMesh
+    createSpriteMegaMesh
 };
+

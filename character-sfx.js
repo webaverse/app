@@ -1,24 +1,17 @@
 import * as THREE from 'three';
-import Avatar from './avatars/avatars.js';
-import * as sounds from './sounds.js';
 import audioManager from './audio-manager.js';
+import AvatarAnimator from './avatars/avatars.js';
+import * as sounds from './sounds.js';
 
 import {
-  idleFactorSpeed,
-  walkFactorSpeed,
-  runFactorSpeed,
-  narutoRunTimeFactor,
+    idleFactorSpeed, narutoRunTimeFactor, runFactorSpeed, walkFactorSpeed
 } from './avatars/constants.js';
 import {
-  crouchMaxTime,
-  eatFrameIndices,
-  drinkFrameIndices,
+    crouchMaxTime, drinkFrameIndices, eatFrameIndices
 } from './constants.js';
 import {
-  mod,
-  selectVoice,
-  // loadJson,
-  // loadAudioBuffer,
+    mod,
+    selectVoice
 } from './util.js';
 
 const localVector = new THREE.Vector3();
@@ -148,12 +141,12 @@ class CharacterSfx {
             return 'naruto run.fbx';
           } else {
             const animationAngles = isCrouching ?
-              Avatar.getClosest2AnimationAngles('crouch', this.player.avatar.getAngle())
+              AvatarAnimator.getClosest2AnimationAngles('crouch', this.player.avatar.getAngle())
             :
               (isRunning ?
-                Avatar.getClosest2AnimationAngles('run', this.player.avatar.getAngle())
+                AvatarAnimator.getClosest2AnimationAngles('run', this.player.avatar.getAngle())
               :
-                Avatar.getClosest2AnimationAngles('walk', this.player.avatar.getAngle())
+                AvatarAnimator.getClosest2AnimationAngles('walk', this.player.avatar.getAngle())
               );
             return animationAngles[0].name;
           }
@@ -169,9 +162,9 @@ class CharacterSfx {
             return soundFiles.walk;
           }
         })();
-        const animations = Avatar.getAnimations();
+        const animations = AvatarAnimator.getAnimations();
         const animation = animations.find(a => a.name === walkRunAnimationName);
-        const animationStepIndices = Avatar.getAnimationStepIndices();
+        const animationStepIndices = AvatarAnimator.getAnimationStepIndices();
         const animationIndices = animationStepIndices.find(i => i.name === walkRunAnimationName);
         const {leftStepIndices, rightStepIndices} = animationIndices;
 
@@ -589,5 +582,6 @@ class CharacterSfx {
 }
 
 export {
-  CharacterSfx,
+    CharacterSfx,
 };
+
