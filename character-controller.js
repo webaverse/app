@@ -682,6 +682,16 @@ class StatePlayer extends PlayerBase {
           app,
           avatar,
         });
+
+        const activate = () => {
+          this.dispatchEvent({
+            type: 'activate'
+          });
+        };
+        app.addEventListener('activate', activate);
+        this.addEventListener('avatarchange', () => {
+          app.removeEventListener('activate', activate);
+        });
         
         this.characterPhysics.loadCharacterController(this.avatar.width, this.avatar.height);
         

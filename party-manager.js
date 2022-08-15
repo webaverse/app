@@ -15,6 +15,7 @@ class PartyManager extends EventTarget {
     this.targetMap = new Map();
     this.onFrameMap = new Map();
     this.onActivateMap = new Map();
+    this.activateMap = new Map();
   }
 
   destroy() {
@@ -55,13 +56,13 @@ class PartyManager extends EventTarget {
     const localPlayer = playersManager.getLocalPlayer();
 
     if (this.partyPlayers.length < 2) { // 3 max members
-        this.#setFollowTarget(newPlayer, localPlayer);
-        this.partyPlayers.push(newPlayer);
-        newPlayer.isNpcInParty = true;
-    
-        this.#queueFollow(localPlayer);
-    
-        return true;  
+      this.#setFollowTarget(newPlayer, localPlayer);
+      this.partyPlayers.push(newPlayer);
+      newPlayer.isNpcInParty = true;
+
+      this.#queueFollow(localPlayer);
+
+      return true;
     }
     return false;
   }
@@ -90,35 +91,32 @@ class PartyManager extends EventTarget {
     }
   }
 
-  #getPlayerApp(player) {
-    let avatarApp = player.avatar.app;
-    if (!player.isMainPlayer) {
-      avatarApp = player.npcApp;
-    }
-    return avatarApp;
-  }
-
   // player follows target after this call
   // if target is null, it stops following
   #setFollowTarget(newPlayer, targetPlayer) {
-    let avatarApp = this.#getPlayerApp(newPlayer);
-
     const targetObj = this.targetMap.get(newPlayer.getInstanceId());
     if(targetObj) {
       this.targetMap.delete(newPlayer.getInstanceId());
       const onFrame = this.onFrameMap.get(newPlayer.getInstanceId());
       const onActivate = this.onActivateMap.get(newPlayer.getInstanceId());
       world.appManager.removeEventListener('frame', onFrame);
-      avatarApp.removeEventListener('activate', onActivate);
+      newPlayer.removeEventListener('activate', onActivate);
     }
 
     if (targetPlayer) {
       {
         const activate = () => {
-          this.#removePartyPlayer(newPlayer);
+          if (!this.activateMap.has(newPlayer.getInstanceId())) {
+            // ignore first 'activate' event
+            this.activateMap.set(newPlayer.getInstanceId(), true);
+          } else {
+            this.activateMap.delete(newPlayer.getInstanceId());
+            
+            this.#removePartyPlayer(newPlayer);
+          }
         };
         this.onActivateMap.set(newPlayer.getInstanceId(), activate);
-        avatarApp.addEventListener('activate', activate);
+        newPlayer.addEventListener('activate', activate);
       }
 
       {

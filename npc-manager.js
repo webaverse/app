@@ -59,6 +59,13 @@ class NpcManager extends EventTarget {
     npcPlayer.npcApp = npcApp; // for lore AI
     if (npcApp) {
       npcApp.npcPlayer = npcPlayer; // for character select
+
+      const activate = () => {
+        npcPlayer.dispatchEvent({
+          type: 'activate'
+        });
+      };
+      npcApp.addEventListener('activate', activate);
     }
 
     await npcPlayer.setAvatarUrl(avatarUrl);
