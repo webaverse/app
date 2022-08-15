@@ -643,6 +643,13 @@ class StatePlayer extends PlayerBase {
   getQuaternion() {
     return this.quaternion.toArray(localArray4) ?? [0, 0, 0, 1];
   }
+  updatePhysicsStatus() {
+    if (this.isLocalPlayer) {
+      physicsScene.disableGeometryQueries(this.characterPhysics.characterController);
+    } else {
+      physicsScene.enableGeometryQueries(this.characterPhysics.characterController);
+    }
+  }
   async syncAvatar() {
     if (this.syncAvatarCancelFn) {
       this.syncAvatarCancelFn.cancel();
@@ -678,9 +685,8 @@ class StatePlayer extends PlayerBase {
         
         this.characterPhysics.loadCharacterController(this.avatar.width, this.avatar.height);
         
-        if (this.isLocalPlayer) {
-          physicsScene.disableGeometryQueries(this.characterPhysics.characterController);
-        }
+        this.updatePhysicsStatus();
+        app.getPhysicsObjects = () => [this.characterPhysics.characterController];
       })();
       
       this.dispatchEvent({
