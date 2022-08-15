@@ -226,7 +226,7 @@ export {
   camera,
   // orthographicCamera,
   // avatarCamera,
-  dolly,
+  // dolly,
   /*orbitControls, renderer2,*/
   sceneHighPriority,
   sceneLowPriority,
