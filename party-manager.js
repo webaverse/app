@@ -104,7 +104,7 @@ class PartyManager extends EventTarget {
 
           this.dispatchEvent(new MessageEvent('removeplayer', {
             data: {
-              player: newplayer,
+              player: newPlayer,
             },
           }));
           
