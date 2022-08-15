@@ -98,12 +98,16 @@ class SSAOPass extends Pass {
 
 		// ssao render target
 
-		this.ssaoRenderTarget = new WebGLRenderTarget( this.width, this.height, {
-			minFilter: LinearFilter,
-			magFilter: LinearFilter,
-			// format: RGBAFormat,
-			// encoding: sRGBEncoding,
-		} );
+		this.ssaoRenderTarget = new WebGLRenderTarget(
+			this.width,
+			this.height,
+			{
+				minFilter: LinearFilter,
+				magFilter: LinearFilter,
+				// format: RGBAFormat,
+				// encoding: sRGBEncoding,
+			}
+		);
 
 		this.blurRenderTarget = this.ssaoRenderTarget.clone();
 
