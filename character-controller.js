@@ -321,7 +321,6 @@ class PlayerBase extends THREE.Object3D {
   wear(app, {
     loadoutIndex = -1,
   } = {}) {
-    console.log('wear', app);
     const _getNextLoadoutIndex = () => {
       let loadoutIndex = -1;
       const usedIndexes = Array(8).fill(false);
