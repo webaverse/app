@@ -168,17 +168,23 @@ class CharacterPhysics {
 
         if (grounded) {
           this.lastGroundedTime = now;
-          if (!this.lastGrounded) {
-            if (this.player.hasAction('jump') || this.player.hasAction('fallLoop')) {
-              this.player.setControlAction({
-                type: 'land',
-                time: now,
-                isMoving: this.player.avatar.idleWalkFactor > 0,
-              });
-              this.player.removeAction('doubleJump');
-            }
-          };
-
+          // if (!this.lastGrounded) {
+          //   if (this.player.hasAction('jump') || this.player.hasAction('fallLoop')) {
+          //     this.player.setControlAction({
+          //       type: 'land',
+          //       time: now,
+          //       isMoving: this.player.avatar.idleWalkFactor > 0,
+          //     });
+          //   }
+          // };
+          if(this.player.hasAction('doubleJump') || this.player.hasAction('jump') || this.player.hasAction('fallLoop')){
+            this.player.setControlAction({
+              type: 'land',
+              time: now,
+              isMoving: this.player.avatar.idleWalkFactor > 0,
+            });
+            this.player.removeAction('doubleJump');
+          }
           this.velocity.y = -1;
         } else {
           const lastGroundedTimeDiff = now - this.lastGroundedTime;
