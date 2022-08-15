@@ -153,7 +153,7 @@ const _setSizes = () => {
 
 const _setRendererSize = (width, height, pixelRatio) => {
   const renderer = getRenderer();
-  if (renderer) {
+  // if (renderer) {
     // pause XR since it gets in the way of resize
     if (renderer.xr.getSession()) {
       renderer.xr.isPresenting = false;
@@ -171,7 +171,7 @@ const _setRendererSize = (width, height, pixelRatio) => {
     if (renderer.xr.getSession()) {
       renderer.xr.isPresenting = true;
     }
-  }
+  // }
 };
 const _setComposerSize = (width, height, pixelRatio) => {
   const composer = getComposer();
