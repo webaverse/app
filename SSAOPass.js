@@ -86,6 +86,7 @@ class SSAOPass extends Pass {
 			// format: RGBAFormat,
 			// encoding: sRGBEncoding,
 		} );
+		this.beautyRenderTarget.name = 'SSAO.beauty';
 
 		// normal render target with depth buffer
 
@@ -108,8 +109,10 @@ class SSAOPass extends Pass {
 				// encoding: sRGBEncoding,
 			}
 		);
+		this.ssaoRenderTarget.name = 'SSAO.ssao';
 
 		this.blurRenderTarget = this.ssaoRenderTarget.clone();
+		this.blurRenderTarget.name = 'SSAO.blur';
 
 		// ssao material
 
