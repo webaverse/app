@@ -208,7 +208,7 @@ class SSAOPass extends Pass {
 		this.normalMaterial.dispose();
 		this.blurMaterial.dispose();
 		this.copyMaterial.dispose();
-		// this.depthRenderMaterial.dispose();
+		this.depthRenderMaterial.dispose();
 
 		// dipsose full screen quad
 
