@@ -1406,7 +1406,6 @@ class GameManager extends EventTarget {
       if (!localPlayer.characterPhysics.lastGrounded) {
         localPlayer.setControlAction({type: 'fallLoop'});
       }
-      localPlayer.removeAction('doubleJump');
     } else {
       const flyAction = {
         type: 'fly',
