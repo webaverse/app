@@ -1319,6 +1319,8 @@ class LocalPlayer extends UninterpolatedPlayer {
     this.partyPlayers.push(player);
     player.isNpcInParty = true;
 
+    this.#queueFollow();
+
     return true;
   }
   removePartyPlayer(player) {
@@ -1331,9 +1333,19 @@ class LocalPlayer extends UninterpolatedPlayer {
       this.partyPlayers.splice(removeIndex, 1);
       player.isNpcInParty = false;
 
+      this.#queueFollow();
+
       return true;
     }
     return false;
+  }
+  #queueFollow() {
+    let headPlayer = this;
+    for(const partyPlayer of this.partyPlayers) {
+      partyPlayer.#setFollowerSpec(null);
+      partyPlayer.#setFollowerSpec(headPlayer);
+      headPlayer = partyPlayer;
+    }
   }
   switchCharacter() {
     const nextPlayer = this.partyPlayers[0];
@@ -1356,14 +1368,7 @@ class LocalPlayer extends UninterpolatedPlayer {
       nextPlayer.partyPlayers = this.partyPlayers;
       this.partyPlayers = [];
 
-      for(const partyPlayer of nextPlayer.partyPlayers) {
-        partyPlayer.#setFollowerSpec(null);
-        partyPlayer.#setFollowerSpec(nextPlayer);
-
-        if(partyPlayer.isMainPlayer) {
-          continue;
-        }
-      }
+      nextPlayer.#queueFollow();
 
       return nextPlayer;
     }
