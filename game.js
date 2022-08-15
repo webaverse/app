@@ -1382,6 +1382,7 @@ class GameManager extends EventTarget {
     const nextPlayer = partyManager.switchCharacter();
     if (nextPlayer) {
       playersManager.setLocalPlayer(nextPlayer);
+      partyManager.dispatchEvent(new MessageEvent('partychange'));
     }
   }
   isFlying() {

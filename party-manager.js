@@ -14,11 +14,27 @@ class PartyManager extends EventTarget {
     this.partyPlayers = [];
     this.targetMap = new Map();
     this.onFrameMap = new Map();
-    this.onActivateMap = new Map();
     this.activateMap = new Map();
+
+    const partychange = () => {
+      // queue all party members to follow main player in a line
+      const localPlayer = playersManager.getLocalPlayer();
+      let headPlayer = localPlayer;
+      for(const partyPlayer of this.partyPlayers) {
+        this.#setFollowTarget(partyPlayer, headPlayer);
+        headPlayer = partyPlayer;
+      }
+    }
+
+    this.addEventListener('partychange', partychange);
+
+    this.cleanup = () => {
+      this.removeEventListener('partychange', partychange);
+    }
   }
 
   destroy() {
+    this.cleanup();
     for (const player of this.partyPlayers) {
       this.#removePartyPlayer(player);
     }
@@ -44,8 +60,6 @@ class PartyManager extends EventTarget {
 
       this.partyPlayers.push(localPlayer);
 
-      this.#queueFollow(nextPlayer);
-
       return nextPlayer;
     }
     return null;
@@ -60,8 +74,6 @@ class PartyManager extends EventTarget {
       this.partyPlayers.push(newPlayer);
       newPlayer.isNpcInParty = true;
 
-      this.#queueFollow(localPlayer);
-
       return true;
     }
     return false;
@@ -73,22 +85,9 @@ class PartyManager extends EventTarget {
       this.#setFollowTarget(player, null);
       this.partyPlayers.splice(playerIndex, 1);
       player.isNpcInParty = false;
-
-      const localPlayer = playersManager.getLocalPlayer();
-      this.#queueFollow(localPlayer);
-
       return true;
     }
     return false;
-  }
-
-  // queue all party members to follow main player in a line
-  #queueFollow(mainPlayer) {
-    let headPlayer = mainPlayer;
-    for(const partyPlayer of this.partyPlayers) {
-      this.#setFollowTarget(partyPlayer, headPlayer);
-      headPlayer = partyPlayer;
-    }
   }
 
   // player follows target after this call
@@ -98,9 +97,7 @@ class PartyManager extends EventTarget {
     if(targetObj) {
       this.targetMap.delete(newPlayer.getInstanceId());
       const onFrame = this.onFrameMap.get(newPlayer.getInstanceId());
-      const onActivate = this.onActivateMap.get(newPlayer.getInstanceId());
       world.appManager.removeEventListener('frame', onFrame);
-      newPlayer.removeEventListener('activate', onActivate);
     }
 
     if (targetPlayer) {
@@ -111,11 +108,13 @@ class PartyManager extends EventTarget {
             this.activateMap.set(newPlayer.getInstanceId(), true);
           } else {
             this.activateMap.delete(newPlayer.getInstanceId());
-            
+
             this.#removePartyPlayer(newPlayer);
+            partyManager.dispatchEvent(new MessageEvent('partychange'));
+
+            newPlayer.removeEventListener('activate', activate);
           }
         };
-        this.onActivateMap.set(newPlayer.getInstanceId(), activate);
         newPlayer.addEventListener('activate', activate);
       }
 
