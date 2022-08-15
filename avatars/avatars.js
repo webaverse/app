@@ -562,11 +562,12 @@ class Avatar {
     this.eyeballTarget = new THREE.Vector3();
     this.eyeballTargetPlane = new THREE.Plane();
     this.eyeballTargetEnabled = false;
-
+    this.springBoneManager = null;
     if (options.hair) {
-      this.springBoneManager = new VRMSpringBoneImporter().import(object);
-    } else {
-      this.springBoneManager = null;
+      (async () => {
+        this.springBoneManager = await (new VRMSpringBoneImporter()).import(object);
+        console.log('springBoneManager is', this.springBoneManager);
+      });
     }
     /* this.springBoneTimeStep = new FixedTimeStep(timeDiff => {
       // console.log('update hairs', new Error().stack);
@@ -1986,6 +1987,7 @@ class Avatar {
 
     // update wind in simulation
     const _updateWind = () =>{
+      if(!this.springBoneManager) return;
       const headPosition = localVector.setFromMatrixPosition(this.modelBoneOutputs.Head.matrixWorld);
       // The avatar may not have spring bones, so we should make sure the avatar has springBone before updating the wind effect
       this.springBoneManager && wind.update(timestamp, headPosition, this.springBoneManager)

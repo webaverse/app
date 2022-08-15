@@ -52,7 +52,7 @@ function bindCanvas(c) {
   renderer.xr.enabled = true;
 
   // initialize post-processing
-  const renderTarget = new THREE.WebGLMultisampleRenderTarget(width * pixelRatio, height * pixelRatio, {
+  const renderTarget = new THREE.WebGLRenderTarget(width * pixelRatio, height * pixelRatio, {
     minFilter: THREE.LinearFilter,
     magFilter: THREE.LinearFilter,
     format: THREE.RGBAFormat,

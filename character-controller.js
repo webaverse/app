@@ -395,6 +395,17 @@ class PlayerBase extends THREE.Object3D {
       };
       _addAction();
 
+      const _enablePetDestroy = () => {
+        if (app.hasComponent('pet')) {
+          const destroy = () => {
+            app.removeEventListener('die', destroy);
+            this.unwear(app, {destroy: true});
+          };
+          app.addEventListener('die', destroy);
+        }
+      };
+      _enablePetDestroy();
+
       const _emitEvents = () => {
         app.dispatchEvent({
           type: 'wearupdate',
