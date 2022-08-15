@@ -169,7 +169,7 @@ class CharacterPhysics {
         if (grounded) {
           this.lastGroundedTime = now;
           if (!this.lastGrounded) {
-            if(this.player.hasAction('doubleJump') || this.player.hasAction('jump') || this.player.hasAction('fallLoop')){
+            if (this.player.hasAction('jump') || this.player.hasAction('fallLoop')) {
               this.player.setControlAction({
                 type: 'land',
                 time: now,
