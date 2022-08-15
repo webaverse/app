@@ -1416,11 +1416,8 @@ const arrowVsh = `
 
   varying float vDepth;
 
-  ${THREE.ShaderChunk.logdepthbuf_pars_vertex}
-
   void main() {
     gl_Position = projectionMatrix * modelViewMatrix * rotationMatrix(vec3(0, 1, 0), -uTime * PI * 2.0) * vec4(position + vec3(0., 1., 0.) * (0.5 + sin(uTime * PI * 2.0)*0.5), 1.);
-    ${THREE.ShaderChunk.logdepthbuf_vertex}
   }
 `;
 const arrowFsh = `
@@ -1432,11 +1429,12 @@ const arrowFsh = `
   // varying float vDepth;
   
   vec3 grey = vec3(0.5);
-  ${THREE.ShaderChunk.logdepthbuf_pars_fragment}
 
   void main() {
     gl_FragColor = vec4(mix(grey, uColor, 1.0 - (0.5 + sin(uTime * PI * 2.0)*0.5)), 1.0);
-    ${THREE.ShaderChunk.logdepthbuf_fragment}
+    
+    #include <tonemapping_fragment>
+    #include <encodings_fragment>
   }
 `;
 const arrowMaterial = new THREE.ShaderMaterial({
@@ -1467,8 +1465,6 @@ const glowMaterial = new THREE.ShaderMaterial({
     },
   },
   vertexShader: `\
-    ${THREE.ShaderChunk.common}
-
     precision highp float;
     precision highp int;
     
@@ -1476,7 +1472,6 @@ const glowMaterial = new THREE.ShaderMaterial({
 
     varying vec2 vUv;
     varying vec3 vColor;
-    ${THREE.ShaderChunk.logdepthbuf_pars_vertex}
 
     void main() {
       vec4 mvPosition = modelViewMatrix * vec4(position, 1.0);
@@ -1484,14 +1479,9 @@ const glowMaterial = new THREE.ShaderMaterial({
 
       vUv = uv;
       vColor = color;
-
-      ${THREE.ShaderChunk.logdepthbuf_vertex}
-
     }
   `,
   fragmentShader: `\
-  
-
     precision highp float;
     precision highp int;
 
@@ -1500,12 +1490,11 @@ const glowMaterial = new THREE.ShaderMaterial({
     varying vec2 vUv;
     varying vec3 vColor;
 
-    ${THREE.ShaderChunk.logdepthbuf_pars_fragment}
-
     void main() {
       gl_FragColor = vec4(vColor, 1. - vUv.y);
 
-      ${THREE.ShaderChunk.logdepthbuf_fragment}
+      #include <tonemapping_fragment>
+      #include <encodings_fragment>
     }
   `,
   transparent: true,
@@ -1516,7 +1505,6 @@ const glowMaterial = new THREE.ShaderMaterial({
 
 const copyScenePlaneGeometry = new THREE.PlaneGeometry(2, 2);
 const copySceneVertexShader = `#version 300 es
-${THREE.ShaderChunk.common}
   precision highp float;
   
   in vec3 position;
@@ -1525,13 +1513,9 @@ ${THREE.ShaderChunk.common}
   uniform mat4 projectionMatrix;
   out vec2 vUv;
 
-  ${THREE.ShaderChunk.logdepthbuf_pars_vertex}
-
   void main() {
     vUv = uv;
     gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
-    
-    ${THREE.ShaderChunk.logdepthbuf_vertex}
   }
 `;
 const copyScene = (() => {
@@ -1552,11 +1536,8 @@ const copyScene = (() => {
         in vec2 vUv;
         out vec4 fragColor;
 
-        ${THREE.ShaderChunk.logdepthbuf_pars_fragment}
-
         void main() {
           fragColor = texture(tex, vUv);
-          ${THREE.ShaderChunk.logdepthbuf_fragment}
         }
       `,
       depthWrite: false,
