@@ -105,7 +105,7 @@ class CharacterPhysics {
   }
   updateVelocity(timeDiffS) {
     const timeDiff = timeDiffS * 1000;
-    this.applyVelocityDamping(this.velocity, timeDiff);
+    // this.applyVelocityDamping(this.velocity, timeDiff);
   }
   applyCharacterPhysicsDetail(velocityAvatarDirection, updateRig, now, timeDiffS) {
     if (this.character.avatar) {
