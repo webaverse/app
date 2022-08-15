@@ -58,6 +58,7 @@ function bindCanvas(c) {
     format: THREE.RGBAFormat,
     encoding: THREE.sRGBEncoding,
   });
+  renderTarget.name = 'effectComposerRenderTarget';
   renderTarget.samples = context.MAX_SAMPLES; // XXX make this based on the antialiasing settings
   composer = new EffectComposer(renderer, renderTarget);
 
