@@ -580,10 +580,16 @@ class CharacterPhysics {
       window.frame ++;
     } else {
       window.frame = 0;
+      window.startTime = performance.now();
     }
-    console.log(window.frame, this.velocity.x.toFixed(2))
+    console.log(window.frame, performance.now() - window.startTime, this.velocity.x)
+    // 60 fps:  849 14136.929999828339 14.137128000000004
+    // ~10 fps: 138 14137.984999895096 14.137040999999993
+
+    // console.log(window.frame, this.velocity.x.toFixed(2))
     // 60 fps:  847 '14.14'
     // ~10 fps: 129 '14.17'
+
     if (window.localPlayer?.position.x > 100) debugger
   }
   reset() {
