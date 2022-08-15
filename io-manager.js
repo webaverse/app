@@ -14,7 +14,7 @@ import voiceInput from './voice-input/voice-input.js';
 // import * as universe from './universe.js';
 // import {toggle as inventoryToggle} from './inventory.js';
 import {isInIframe, getVelocityDampingFactor} from './util.js';
-import {getRenderer, /*renderer2,*/ scene, camera, dolly, getContainerElement} from './renderer.js';
+import {getRenderer, /*renderer2,*/ scene, camera, getContainerElement} from './renderer.js';
 import physicsManager from './physics-manager.js';
 /* import {menuActions} from './mithril-ui/store/actions.js';
 import {menuState} from './mithril-ui/store/state.js'; */
@@ -159,22 +159,22 @@ const _updateIo = timeDiff => {
               .applyEuler(localEuler)
               .multiplyScalar(0.05);
 
-            dolly.matrix
+            camera.matrix
               // .premultiply(localMatrix2.makeTranslation(-xrCamera.position.x, -xrCamera.position.y, -xrCamera.position.z))
               .premultiply(localMatrix3.makeTranslation(localVector3.x, localVector3.y, localVector3.z))
               // .premultiply(localMatrix2.copy(localMatrix2).invert())
-              .decompose(dolly.position, dolly.quaternion, dolly.scale);
+              .decompose(camera.position, camera.quaternion, camera.scale);
             ioManager.currentWalked = true;
           }
           
           ioManager.currentWeaponGrabs[1] = buttons[1] > 0.5;
         } else if (handedness === 'right') {
           const _applyRotation = r => {
-            dolly.matrix
+            camera.matrix
               .premultiply(localMatrix2.makeTranslation(-xrCamera.position.x, -xrCamera.position.y, -xrCamera.position.z))
               .premultiply(localMatrix3.makeRotationFromQuaternion(localQuaternion2.setFromAxisAngle(localVector3.set(0, 1, 0), r)))
               .premultiply(localMatrix2.copy(localMatrix2).invert())
-              .decompose(dolly.position, dolly.quaternion, dolly.scale);
+              .decompose(camera.position, camera.quaternion, camera.scale);
           };
           if (
             (axes[0] < -0.75 && !(ioManager.lastAxes[index][0] < -0.75)) ||

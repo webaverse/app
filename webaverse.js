@@ -28,7 +28,7 @@ import {
   sceneLowPriority,
   rootScene,
   camera,
-  dolly,
+  // dolly,
   bindCanvas,
   getComposer,
 } from './renderer.js';
@@ -339,7 +339,7 @@ export default class Webaverse extends EventTarget {
           const xrCamera = session ? renderer.xr.getCamera(camera) : camera;
           localMatrix.multiplyMatrices(xrCamera.projectionMatrix, /*localMatrix2.multiplyMatrices(*/xrCamera.matrixWorldInverse/*, physx.worldContainer.matrixWorld)*/);
           localMatrix2.copy(xrCamera.matrix)
-            .premultiply(dolly.matrix)
+            .premultiply(camera.matrix)
             .decompose(localVector, localQuaternion, localVector2);
           
           lastTimestamp = timestamp;

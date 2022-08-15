@@ -8,7 +8,7 @@ import {getAudioDataBuffer} from 'wsrtc/ws-util.js';
 
 import * as THREE from 'three';
 import * as Z from 'zjs';
-import {getRenderer, scene, camera, dolly} from './renderer.js';
+import {getRenderer, scene, camera} from './renderer.js';
 import physicsManager from './physics-manager.js';
 import {world} from './world.js';
 // import cameraManager from './camera-manager.js';
