@@ -1254,11 +1254,15 @@ class LocalPlayer extends UninterpolatedPlayer {
     }
   }
   // party system
-  #setFollowerSpec(target) {
+  #getApp() {
     let avatarApp = this.avatar.app;
     if (!this.isMainPlayer) {
       avatarApp = this.npcApp;
     }
+    return avatarApp;
+  }
+  #setFollowerSpec(target) {
+    let avatarApp = this.#getApp();
     if (target) {
       {
         const activate = () => {
@@ -1317,6 +1321,9 @@ class LocalPlayer extends UninterpolatedPlayer {
     player.#setFollowerSpec(this);
     this.partyPlayers.push(player);
     player.isNpcInParty = true;
+
+    // world.appManager.transplantApp(player.#getApp(), this.appManager);
+
     return true;
   }
   removePartyPlayer(player) {
@@ -1329,6 +1336,9 @@ class LocalPlayer extends UninterpolatedPlayer {
       player.#setFollowerSpec(null);
       this.partyPlayers.splice(removeIndex, 1);
       player.isNpcInParty = false;
+
+      // this.appManager.transplantApp(player.#getApp(), world.appManager);
+
       return true;
     }
     return false;
@@ -1349,13 +1359,24 @@ class LocalPlayer extends UninterpolatedPlayer {
       this.updatePhysicsStatus();
 
       nextPlayer.#setFollowerSpec(null);
-      this.#setFollowerSpec(nextPlayer);
+      //this.#setFollowerSpec(nextPlayer);
 
       this.partyPlayers.shift();
       this.partyPlayers.push(this);
 
       nextPlayer.partyPlayers = this.partyPlayers;
       this.partyPlayers = [];
+
+      for(const partyPlayer of nextPlayer.partyPlayers) {
+        partyPlayer.#setFollowerSpec(null);
+        partyPlayer.#setFollowerSpec(nextPlayer);
+
+        if(partyPlayer.isMainPlayer) {
+          continue;
+        }
+
+        // this.appManager.transplantApp(partyPlayer.#getApp(), nextPlayer.appManager);
+      }
 
       return nextPlayer;
     }
