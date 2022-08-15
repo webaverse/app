@@ -21,7 +21,7 @@ const characterIconSize = 100;
 const pixelRatio = window.devicePixelRatio;
 
 const CharacterIcon = () => {
-  const { characterLoaded, setCharacterLoaded } = useContext( AppContext );
+  const { avatarLoaded, setAvatarLoaded } = useContext( AppContext );
   const canvasRef = useRef();
 
   useEffect(() => {
@@ -37,7 +37,7 @@ const CharacterIcon = () => {
       const frame = () => {
         if (avatarIconer.enabled) {
           avatarIconer.update();
-          setCharacterLoaded(true);
+          setAvatarLoaded(true);
         }
       };
       world.appManager.addEventListener('frame', frame);
@@ -47,13 +47,13 @@ const CharacterIcon = () => {
         world.appManager.removeEventListener('frame', frame);
       };
     }
-  }, [canvasRef, characterLoaded]);
+  }, [canvasRef, avatarLoaded]);
 
   return (
       <div
         className={classnames(
           styles.characterIcon,
-          characterLoaded ? styles.loaded : null,
+          avatarLoaded ? styles.loaded : null,
         )}
         onMouseEnter={e => {
           sounds.playSoundName('menuClick');

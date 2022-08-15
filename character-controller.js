@@ -563,6 +563,7 @@ class StatePlayer extends PlayerBase {
     this.avatarEpoch = 0;
     this.syncAvatarCancelFn = null;
     this.unbindFns = [];
+    this.localPlayerLoaded = false;
     
     this.transform = new Float32Array(7);
     this.bindState(playersArray);
@@ -1040,7 +1041,11 @@ class LocalPlayer extends UninterpolatedPlayer {
       this.appManager.removeTrackedApp(avatarApp.instanceId);
       return;
     }
+    this.localPlayerLoaded = avatarApp ? true : false;
     this.#setAvatarAppFromOwnAppManager(avatarApp);
+  }
+  waitForLoad() {
+    return this.localPlayerLoaded;
   }
   getAvatarApp() {
     const instanceId = this.playerMap.get('avatar');

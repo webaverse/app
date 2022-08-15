@@ -1,6 +1,6 @@
 
-import React, { useEffect, useContext, useState } from 'react';
-import { AppContext } from '../../app';
+import React, { useEffect, useState } from 'react';
+import metaversefile from 'metaversefile';
 import ioManager from '../../../../io-manager.js';
 
 //
@@ -37,11 +37,21 @@ function unregisterIoEventHandler ( type, fn ) {
 
 function IoHandler () {
 
-    const { characterLoaded } = useContext( AppContext );
+    const [ playerLoaded, setPlayerLoaded ] = useState( false );
+
+    const localPlayer = metaversefile.useLocalPlayer();
+    
+    (async () => {
+        const playerLoaded = await localPlayer.waitForLoad();
+        if ( playerLoaded ) { 
+            setPlayerLoaded(true);
+            // console.log("Player Loaded");
+        }
+    })();
     
     useEffect( () => {
 
-        if ( characterLoaded ) {
+        if ( playerLoaded ) {
 
             const cleanups = types.map( ( type ) => {
 
@@ -122,7 +132,7 @@ function IoHandler () {
 
         }
 
-    }, [characterLoaded] );
+    }, [playerLoaded] );
 
     //
 
