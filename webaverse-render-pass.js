@@ -13,7 +13,7 @@ class WebaverseRenderPass extends Pass {
     super();
 
     this.clear = false;
-    this.needsSwap = false;
+    this.needsSwap = true;
 
     this.internalDepthPass = null;
     this.internalRenderPass = null;
