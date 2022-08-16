@@ -39,7 +39,7 @@ class PartyManager extends EventTarget {
 
   // add new player to party
   addPlayer(newPlayer) {
-    console.log('addPlayer', newPlayer);
+    // console.log('addPlayer', newPlayer);
     if (newPlayer.isMainPlayer && partyPlayers.length !== 0) {
       console.warn('main player should be single');
       debugger;
