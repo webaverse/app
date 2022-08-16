@@ -116,6 +116,7 @@ function makeHdrPass({
   adaptToneMappingPass.setMaxLuminance(maxLuminance);
   adaptToneMappingPass.setMinLuminance(minLuminance);
   adaptToneMappingPass.setMiddleGrey(middleGrey);
+  adaptToneMappingPass.needsSwap = true;
   // adaptToneMappingPass.enabled = hqDefault;
   // adaptToneMappingPass.copyUniforms["opacity"].value = 0.5;
   return adaptToneMappingPass;
