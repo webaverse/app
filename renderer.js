@@ -60,6 +60,7 @@ function bindCanvas(c) {
   });
   renderTarget.name = 'effectComposerRenderTarget';
   renderTarget.samples = context.MAX_SAMPLES; // XXX make this based on the antialiasing settings
+  renderTarget.texture.generateMipmaps = false;
   composer = new EffectComposer(renderer, renderTarget);
 
   // initialize camera
