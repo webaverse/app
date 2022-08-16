@@ -1359,7 +1359,7 @@ class RemotePlayer extends InterpolatedPlayer {
       throw new Error('binding to nonexistent player object', this.playersArray.toJSON());
     }
     let lastTimestamp = performance.now();
-    let lastPosition = new THREE.Vector3();
+    // let lastPosition = new THREE.Vector3();
     const observePlayerFn = (e) => {
       if (e.changes.keys.has('avatar')) {
         this.syncAvatar();
