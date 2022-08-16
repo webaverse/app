@@ -255,11 +255,15 @@ const _updateIo = timeDiff => {
       }
       ioManager.lastCtrlKey = ioManager.keys.ctrl;
     }
-    if (keysDirection.length() > 0 && physicsScene.getPhysicsEnabled() && movementEnabled) {
-      localPlayer.characterPhysics.applyWasd(
-        keysDirection.normalize()
-          .multiplyScalar(game.getSpeed() * timeDiff)
-      );
+    if (physicsScene.getPhysicsEnabled() && movementEnabled) {
+      if (keysDirection.length() > 0) {
+        const direction = keysDirection.normalize();
+        const maxSpeed = game.getSpeed();
+        const acceleration = maxSpeed * 0.1;
+        localPlayer.characterPhysics.applyWasd(true, timeDiff, direction, maxSpeed, acceleration);
+      } else {
+        localPlayer.characterPhysics.applyWasd(false, timeDiff);
+      }
     }
   }
 };

@@ -43,6 +43,8 @@ class CharacterPhysics {
     this.character = character;
 
     this.velocity = new THREE.Vector3();
+    this.displacementPerFrame = new THREE.Vector3();
+
     this.lastGrounded = null;
     this.lastGroundedTime = 0;
     this.lastCharacterControllerY = null;
@@ -86,9 +88,17 @@ class CharacterPhysics {
     );
   }
   /* apply the currently held keys to the character */
-  applyWasd(keysDirection) {
+  applyWasd(isApply, timeDiff, direction, maxSpeed, acceleration) {
     if (this.character.avatar) {
-      this.velocity.add(keysDirection);
+      const t = timeDiff / 1000;
+      const v0 = this.velocity.length();
+      const a = acceleration;
+      const dx = v0 * t + 0.5 * a * t * t;
+      this.displacementPerFrame.copy(direction).multiplyScalar(dx);
+
+      const v = v0 + a;
+      const vCapped = (v > maxSpeed) ? maxSpeed : v;
+      this.velocity.copy(direction).multiplyScalar(vCapped);
     }
   }
   applyGravity(timeDiffS) {
@@ -105,13 +115,14 @@ class CharacterPhysics {
   }
   updateVelocity(timeDiffS) {
     const timeDiff = timeDiffS * 1000;
-    this.applyVelocityDamping(this.velocity, timeDiff);
+    // this.applyVelocityDamping(this.velocity, timeDiff);
   }
   applyCharacterPhysicsDetail(velocityAvatarDirection, updateRig, now, timeDiffS) {
     if (this.character.avatar) {
       // move character controller
       const minDist = 0;
-      localVector3.copy(this.velocity).multiplyScalar(timeDiffS);
+      // localVector3.copy(this.velocity).multiplyScalar(timeDiffS);
+      localVector3.copy(this.displacementPerFrame);
 
       const jumpAction = this.character.getAction('jump');
       if (jumpAction?.trigger === 'jump') {
