@@ -1379,7 +1379,7 @@ class GameManager extends EventTarget {
     sounds.playSoundName('menuReady');
 
     // Switch to next character among party
-    partyManager.dispatchEvent(new MessageEvent('switchcharacter'));
+    partyManager.switchCharacter();
   }
   isFlying() {
     const localPlayer = playersManager.getLocalPlayer();
