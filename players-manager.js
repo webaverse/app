@@ -4,6 +4,7 @@ player objects load their own avatar and apps using this binding */
 // import * as THREE from 'three';
 import * as Z from 'zjs';
 import {LocalPlayer, RemotePlayer} from './character-controller.js';
+import {partyManager} from './party-manager.js';
 import metaversefileApi from 'metaversefile';
 import {makeId} from './util.js';
 import {initialPosY, playersMapName} from './constants.js';
@@ -22,6 +23,8 @@ class PlayersManager extends EventTarget {
     });
     this.localPlayer.position.y = initialPosY;
     this.localPlayer.updateMatrixWorld();
+
+    partyManager.addPlayer(this.localPlayer);
     
     this.remotePlayers = new Map();
     this.remotePlayersByInteger = new Map();

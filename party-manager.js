@@ -1,5 +1,4 @@
 import * as THREE from 'three';
-import * as Z from 'zjs';
 
 import physicsManager from './physics-manager.js';
 import {world} from './world.js';
@@ -9,160 +8,132 @@ const localVector = new THREE.Vector3();
 
 const physicsScene = physicsManager.getScene();
 const partyPlayers = [];
-const targetMap = new Z.Map();
-const frameFnMap = new Map();
 
 class PartyManager extends EventTarget {
   constructor() {
     super();
 
-    this.cleanup = () => {
-    }
+    this.removeFns = [];
   }
 
   switchCharacter() {
     // switch to next character
-    const localPlayer = playersManager.getLocalPlayer();
-  
-    if (partyPlayers.length != 0) {
-      const nextPlayer = partyPlayers.shift();
+    if (partyPlayers.length >= 2) {
+      const headPlayer = partyPlayers.shift();
+      const nextPlayer = partyPlayers[0];
 
-      localPlayer.isLocalPlayer = false;
-      localPlayer.isNpcPlayer = true;
+      headPlayer.isLocalPlayer = false;
+      headPlayer.isNpcPlayer = true;
 
       nextPlayer.isLocalPlayer = true;
       nextPlayer.isNpcPlayer = false;
 
       nextPlayer.updatePhysicsStatus();
-      localPlayer.updatePhysicsStatus();
+      headPlayer.updatePhysicsStatus();
 
-      this.#setFollowTarget(nextPlayer, null);
-
-      partyPlayers.push(localPlayer);
+      partyPlayers.push(headPlayer);
 
       playersManager.setLocalPlayer(nextPlayer);
-
-      this.#queueParty();
     }
   }
 
   // add new player to party
   addPlayer(newPlayer) {
-    // console.log('addPartyPlayer', newPlayer);
-    const localPlayer = playersManager.getLocalPlayer();
-
-    if (partyPlayers.length < 2) { // 3 max members
-      this.#setFollowTarget(newPlayer, localPlayer);
+    console.log('addPlayer', newPlayer);
+    if (newPlayer.isMainPlayer && partyPlayers.length !== 0) {
+      console.warn('main player should be single');
+      debugger;
+    }
+    
+    if (partyPlayers.length < 3) { // 3 max members
       partyPlayers.push(newPlayer);
-      newPlayer.isNpcInParty = true;
+
+      const getTargetPlayer = (player) => {
+        const playerIndex = partyPlayers.indexOf(player);
+        if (playerIndex > 0) {
+          return partyPlayers[playerIndex - 1];
+        }
+        return null;
+      };
+
+      const frame = ((player) => {
+        const slowdownFactor = 0.4;
+        const walkSpeed = 0.075 * slowdownFactor;
+        const runSpeed = walkSpeed * 8;
+        const speedDistanceRate = 0.07;
+        return (e) => {
+          if (physicsScene.getPhysicsEnabled()) {
+            const {timestamp, timeDiff} = e.data;
+            const targetPlayer = getTargetPlayer(player);
+            
+            if (targetPlayer) {
+              // console.log('    ', player.name, '->', targetPlayer.name);
+              const v = localVector.setFromMatrixPosition(targetPlayer.matrixWorld)
+                  .sub(player.position);
+              v.y = 0;
+              const distance = v.length();
+              {
+                const speed = Math.min(Math.max(walkSpeed + ((distance - 1.5) * speedDistanceRate), 0), runSpeed);
+                v.normalize()
+                  .multiplyScalar(speed * timeDiff);
+                  player.characterPhysics.applyWasd(v);
+              }
+              player.setTarget(targetPlayer);
+            }
+    
+            player.updatePhysics(timestamp, timeDiff);
+            player.updateAvatar(timestamp, timeDiff);
+          }
+        };
+      })(newPlayer);
+
+      const removeFn = ((player) => {
+        return () => {
+          const playerIndex = partyPlayers.indexOf(player);
+          if (!player.isMainPlayer && playerIndex !== -1) {
+            world.appManager.removeEventListener('frame', frame);
+            partyPlayers.splice(playerIndex, 1);
+            player.isNpcInParty = false;
+            return true;
+          }
+          return false;
+        };
+      })(newPlayer);
+
+      this.removeFns.push(removeFn);
+      
+      if (newPlayer.isNpcPlayer) {
+        newPlayer.isNpcInParty = true;
+      }
+
+      world.appManager.addEventListener('frame', frame);
 
       const activate = () => {
         // console.log('deactivate', newPlayer.name);
-
-        this.#removePlayer(newPlayer);
-        
-        newPlayer.removeEventListener('activate', activate);
-        
-        this.#queueParty();
+        if (removeFn()) {
+          const removeIndex = this.removeFns.indexOf(removeFn);
+          if (removeIndex !== -1) {
+            this.removeFns.splice(removeIndex, 1);
+          }
+          newPlayer.removeEventListener('activate', activate);
+        }
       };
-
       newPlayer.addEventListener('activate', activate);
-
-      this.#queueParty();
 
       return true;
     }
     return false;
-  }
-
-  #queueParty() {
-    // queue all party members to follow main player in a line
-    // console.log('queueParty');
-    const localPlayer = playersManager.getLocalPlayer();
-    let headPlayer = localPlayer;
-    for(const partyPlayer of partyPlayers) {
-      this.#setFollowTarget(partyPlayer, headPlayer);
-      headPlayer = partyPlayer;
-    }
   }
 
   clear() {
     // console.log('clear');
-    for (const player of partyPlayers) {
-      this.#removePlayer(player);
-    }
-  }
-
-  destroy() {
-    this.cleanup();
-  }
-
-  #removePlayer(player) {
-    const playerIndex = partyPlayers.indexOf(player);
-    if (!player.isMainPlayer && playerIndex !== -1) {
-      this.#setFollowTarget(player, null);
-      partyPlayers.splice(playerIndex, 1);
-      player.isNpcInParty = false;
-      return true;
-    }
-    return false;
-  }
-
-  // player follows target after this call
-  // if target is null, it stops following
-  #setFollowTarget(newPlayer, targetPlayer) {
-    const targetObj = targetMap.get(newPlayer.getInstanceId());
-
-    const slowdownFactor = 0.4;
-    const walkSpeed = 0.075 * slowdownFactor;
-    const runSpeed = walkSpeed * 8;
-    const speedDistanceRate = 0.07;
-    const frame = e => {
-      if (physicsScene.getPhysicsEnabled()) {
-        const {timestamp, timeDiff} = e.data;
-        const targetPlayer = targetMap.get(newPlayer.getInstanceId());
-        
-        if (targetPlayer) {
-          // console.log('    ', newPlayer.name, '->', targetPlayer.name);
-          const v = localVector.setFromMatrixPosition(targetPlayer.matrixWorld)
-              .sub(newPlayer.position);
-          v.y = 0;
-          const distance = v.length();
-          {
-            const speed = Math.min(Math.max(walkSpeed + ((distance - 1.5) * speedDistanceRate), 0), runSpeed);
-            v.normalize()
-              .multiplyScalar(speed * timeDiff);
-              newPlayer.characterPhysics.applyWasd(v);
-          }
-          newPlayer.setTarget(targetPlayer);
+    for (const removeFn of this.removeFns) {
+      if (removeFn()) {
+        const removeIndex = this.removeFns.indexOf(removeFn);
+        if (removeIndex !== -1) {
+          this.removeFns.splice(removeIndex, 1);
         }
-
-        newPlayer.updatePhysics(timestamp, timeDiff);
-        newPlayer.updateAvatar(timestamp, timeDiff);
       }
-    };
-
-    const removeTarget = () => {
-      targetMap.delete(newPlayer.getInstanceId());
-      const onFrame = frameFnMap.get(newPlayer.getInstanceId());
-      world.appManager.removeEventListener('frame', onFrame);
-      frameFnMap.delete(newPlayer.getInstanceId());
-    };
-
-    const setTarget = () => {
-      targetMap.set(newPlayer.getInstanceId(), targetPlayer);
-      world.appManager.addEventListener('frame', frame);
-      frameFnMap.set(newPlayer.getInstanceId(), frame);
-    };
-    
-    if(targetObj) {
-      // remove previous target
-      removeTarget();
-    }
-
-    if (targetPlayer) {
-      // console.log(newPlayer.name, '--->', targetPlayer.name);
-      setTarget();
     }
   }
 }
