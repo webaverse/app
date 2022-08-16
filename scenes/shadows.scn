@@ -24,9 +24,9 @@
           "args": [[255, 255, 255], 0.01]
         },
         "ssao": {
-          "kernelRadius": 16,
-          "minDistance": 0.005,
-          "maxDistance": 0.1
+          "kernelRadius": 8,
+          "minDistance": 0.0015,
+          "maxDistance": 0.05
         },
         "dof": {
           "focus": 3.0,
