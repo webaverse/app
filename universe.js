@@ -14,6 +14,7 @@ import physicsManager from './physics-manager.js';
 import physxWorkerManager from './physx-worker-manager.js';
 import physx from './physx.js';
 import {playersManager} from './players-manager.js';
+import {partyManager} from './party-manager.js';
 import sceneNames from './scenes/scenes.json';
 import {parseQuery} from './util.js';
 import {world} from './world.js';
@@ -136,6 +137,9 @@ class Universe extends EventTarget {
   connectState(state) {
     this.state = state;
     state.setResolvePriority(1);
+
+    partyManager.clear();
+
     playersManager.clearRemotePlayers();
     playersManager.bindState(state.getArray(playersMapName));
 

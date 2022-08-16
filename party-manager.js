@@ -6,6 +6,7 @@ import {playersManager} from './players-manager.js';
 const localVector = new THREE.Vector3();
 
 const physicsScene = physicsManager.getScene();
+const frameFnMap = new Map();
 
 class PartyManager extends EventTarget {
   constructor() {
@@ -13,7 +14,6 @@ class PartyManager extends EventTarget {
     
     this.partyPlayers = [];
     this.targetMap = new Map();
-    this.onFrameMap = new Map();
 
     const partyupdate = () => {
       // queue all party members to follow main player in a line
@@ -78,15 +78,20 @@ class PartyManager extends EventTarget {
     }
   }
 
-  destroy() {
-    this.cleanup();
+  clear() {
+    // console.log('clear');
     for (const player of this.partyPlayers) {
       this.#removePartyPlayer(player);
     }
   }
 
+  destroy() {
+    this.cleanup();
+  }
+
   // add new player to party
   #addPartyPlayer(newPlayer) {
+    // console.log('addPartyPlayer', newPlayer);
     const localPlayer = playersManager.getLocalPlayer();
 
     if (this.partyPlayers.length < 2) { // 3 max members
@@ -94,24 +99,18 @@ class PartyManager extends EventTarget {
       this.partyPlayers.push(newPlayer);
       newPlayer.isNpcInParty = true;
 
-      let activated = false;
       const activate = () => {
-        if(!activated) {
-          activated = true;
-        }
-        else {
-          // console.log('deactivate', newPlayer.name);
+        // console.log('deactivate', newPlayer.name);
 
-          this.dispatchEvent(new MessageEvent('removeplayer', {
-            data: {
-              player: newPlayer,
-            },
-          }));
-          
-          newPlayer.removeEventListener('activate', activate);
-          
-          this.dispatchEvent(new MessageEvent('partyupdate'));
-        }
+        this.dispatchEvent(new MessageEvent('removeplayer', {
+          data: {
+            player: newPlayer,
+          },
+        }));
+        
+        newPlayer.removeEventListener('activate', activate);
+        
+        this.dispatchEvent(new MessageEvent('partyupdate'));
       };
 
       newPlayer.addEventListener('activate', activate);
@@ -170,14 +169,15 @@ class PartyManager extends EventTarget {
 
     const removeTarget = () => {
       this.targetMap.delete(newPlayer.getInstanceId());
-      const onFrame = this.onFrameMap.get(newPlayer.getInstanceId());
+      const onFrame = frameFnMap.get(newPlayer.getInstanceId());
       world.appManager.removeEventListener('frame', onFrame);
+      frameFnMap.delete(newPlayer.getInstanceId());
     };
 
     const setTarget = () => {
       this.targetMap.set(newPlayer.getInstanceId(), targetPlayer);
       world.appManager.addEventListener('frame', frame);
-      this.onFrameMap.set(newPlayer.getInstanceId(), frame);
+      frameFnMap.set(newPlayer.getInstanceId(), frame);
     };
     
     if(targetObj) {
