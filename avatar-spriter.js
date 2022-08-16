@@ -478,7 +478,8 @@ class SpriteMegaAvatarMesh extends THREE.Mesh {
     playerAvatar: avatar,
     camera,
   }) {
-    const velocityScaleFactor = 10; // because avatars multiply velocity by 0.1
+    // const velocityScaleFactor = 10; // because avatars multiply velocity by 0.1
+    const velocityScaleFactor = 1;
 
     if (preview) {
       for (const planeSpriteMesh of planeSpriteMeshes) {
