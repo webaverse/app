@@ -549,6 +549,7 @@ class SpriteMegaAvatarMesh extends THREE.Mesh {
 
     // select the texture
     const spriteSpecName = (() => {
+      debugger
       const playerSide = _getPlayerSide();
       const currentSpeed = localVector.set(avatar.velocity.x * velocityScaleFactor, 0, avatar.velocity.z * velocityScaleFactor)
         .length();
@@ -636,6 +637,7 @@ class SpriteMegaAvatarMesh extends THREE.Mesh {
       }
     })();
     this.setTexture(spriteSpecName);
+    console.log(spriteSpecName)
 
     if (spriteSpecName !== this.lastSpriteSpecName) {
       this.lastSpriteSpecName = spriteSpecName;
@@ -805,6 +807,7 @@ const getSpriteSpecs = () => {
           return {
             reset() {},
             update(timestamp, timeDiffMs) {
+              // debugger
               positionOffset -= walkSpeed/1000 * timeDiffMs;
     
               const euler = new THREE.Euler(0, angle, 0, 'YXZ');

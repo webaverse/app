@@ -1516,8 +1516,8 @@ class Avatar {
     this.testVelocity.y *= -1;
     if (!isBoundPlayer) {
       this.velocity.copy(this.testVelocity);
-      this.velocity.x *= 1 / 3; // walk speed 2.5
-      this.velocity.z *= 1 / 3; // walk speed 2.5
+      // this.velocity.x *= 1 / 3; // walk speed 2.5 // wrong, don't need modify.SS
+      // this.velocity.z *= 1 / 3; // walk speed 2.5 // wrong, don't need modify.SS
     }
     // this.velocity.applyEuler(localEuler);
     this.direction.copy(positionDiff).normalize();
@@ -1527,6 +1527,7 @@ class Avatar {
       this.lastMoveTime = timestamp;
     }
     // if (this.velocity.x > 100) debugger
+    // if (this.velocity.x === 2.5) debugger
   }
 
   update(timestamp, timeDiff, isBoundPlayer = true) {
@@ -1552,7 +1553,10 @@ class Avatar {
 
     this.idleWalkFactor = Math.min(Math.max((currentSpeed - idleSpeed) / (walkSpeed - idleSpeed), 0), 1);
     this.walkRunFactor = Math.min(Math.max((currentSpeed - walkSpeed) / (runSpeed - walkSpeed), 0), 1);
-    if (this.idleWalkFactor >= 0.9 && this.walkRunFactor < 1 && this.velocity.x > 0.1) console.log( this.velocity.x)
+    // if (this.idleWalkFactor >= 0.9 && this.walkRunFactor < 1 && this.velocity.x > 0.1) {
+    //   console.log( this.velocity.x)
+    //   debugger
+    // }
     // console.log(this.walkRunFactor)
     // console.log(this.idleWalkFactor, this.walkRunFactor)
     this.crouchFactor = Math.min(Math.max(1 - (this.crouchTime / crouchMaxTime), 0), 1);
@@ -1889,6 +1893,7 @@ class Avatar {
 
     const _updateSubAvatars = () => {
       if (this.spriteMegaAvatarMesh) {
+        // debugger
         this.spriteMegaAvatarMesh.update(timestamp, timeDiff, {
           playerAvatar: this,
           camera,
