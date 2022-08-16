@@ -10,7 +10,7 @@ import {fitCameraToBoundingBox} from './util.js';
 
 const localVector = new THREE.Vector3();
 const localVector2 = new THREE.Vector3();
-// const localVector3 = new THREE.Vector3();
+const localVector3 = new THREE.Vector3();
 // const localVector2D = new THREE.Vector2();
 // const localVector2D2 = new THREE.Vector2();
 const localVector4D = new THREE.Vector4();
@@ -101,19 +101,24 @@ const createObjectSpriteInternal = (app, {
     
       // set up side camera
       const angle = (i / numFrames) * Math.PI * 2;
-      sideCamera.position.copy(app.position)
+      const physicsObjects = app.getPhysicsObjects();
+      if (physicsObjects.length > 0) {
+        const physicsObject = physicsObjects[0];
+        const {physicsMesh} = physicsObject;
+        sideCamera.position.copy(physicsMesh.geometry.boundingBox.getCenter(localVector3))
         .add(
           localVector.set(Math.cos(angle), 0, Math.sin(angle))
             .applyQuaternion(app.quaternion)
             .multiplyScalar(2)
         );
-
-      const physicsObjects = app.getPhysicsObjects();
-      if (physicsObjects.length > 0) {
-        const physicsObject = physicsObjects[0];
-        const {physicsMesh} = physicsObject;
         fitCameraToBoundingBox(sideCamera, physicsMesh.geometry.boundingBox, 1.2);
       } else {
+        sideCamera.position.copy(app.position)
+        .add(
+          localVector.set(Math.cos(angle), 0, Math.sin(angle))
+            .applyQuaternion(app.quaternion)
+            .multiplyScalar(2)
+        );
         sideCamera.quaternion.setFromRotationMatrix(
           localMatrix.lookAt(
             sideCamera.position,
