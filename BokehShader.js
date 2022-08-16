@@ -7,7 +7,7 @@
  const BokehShader = {
 
 	defines: {
-		'DEPTH_PACKING': 0,
+		'DEPTH_PACKING': 1,
 		'PERSPECTIVE_CAMERA': 1,
 	},
 
@@ -134,7 +134,6 @@
 			col += texture2D( tColor, vUv.xy + ( vec2(  0.0,   0.4  ) * aspectcorrect ) * dofblur4 );
 
 			gl_FragColor = col / 41.0;
-			gl_FragColor.g = 0.2;
 			gl_FragColor.a = 1.0;
 
 		}`
