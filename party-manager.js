@@ -8,16 +8,13 @@ import {playersManager} from './players-manager.js';
 const localVector = new THREE.Vector3();
 
 const physicsScene = physicsManager.getScene();
+const partyPlayers = [];
+const targetMap = new Z.Map();
 const frameFnMap = new Map();
-
-const stateMap = new Z.Map();
 
 class PartyManager extends EventTarget {
   constructor() {
     super();
-    
-    this.partyPlayers = [];
-    this.targetMap = new Map();
 
     this.cleanup = () => {
     }
@@ -27,8 +24,8 @@ class PartyManager extends EventTarget {
     // switch to next character
     const localPlayer = playersManager.getLocalPlayer();
   
-    if (this.partyPlayers.length != 0) {
-      const nextPlayer = this.partyPlayers.shift();
+    if (partyPlayers.length != 0) {
+      const nextPlayer = partyPlayers.shift();
 
       localPlayer.isLocalPlayer = false;
       localPlayer.isNpcPlayer = true;
@@ -41,7 +38,7 @@ class PartyManager extends EventTarget {
 
       this.#setFollowTarget(nextPlayer, null);
 
-      this.partyPlayers.push(localPlayer);
+      partyPlayers.push(localPlayer);
 
       playersManager.setLocalPlayer(nextPlayer);
 
@@ -54,9 +51,9 @@ class PartyManager extends EventTarget {
     // console.log('addPartyPlayer', newPlayer);
     const localPlayer = playersManager.getLocalPlayer();
 
-    if (this.partyPlayers.length < 2) { // 3 max members
+    if (partyPlayers.length < 2) { // 3 max members
       this.#setFollowTarget(newPlayer, localPlayer);
-      this.partyPlayers.push(newPlayer);
+      partyPlayers.push(newPlayer);
       newPlayer.isNpcInParty = true;
 
       const activate = () => {
@@ -83,7 +80,7 @@ class PartyManager extends EventTarget {
     // console.log('queueParty');
     const localPlayer = playersManager.getLocalPlayer();
     let headPlayer = localPlayer;
-    for(const partyPlayer of this.partyPlayers) {
+    for(const partyPlayer of partyPlayers) {
       this.#setFollowTarget(partyPlayer, headPlayer);
       headPlayer = partyPlayer;
     }
@@ -91,7 +88,7 @@ class PartyManager extends EventTarget {
 
   clear() {
     // console.log('clear');
-    for (const player of this.partyPlayers) {
+    for (const player of partyPlayers) {
       this.#removePlayer(player);
     }
   }
@@ -101,10 +98,10 @@ class PartyManager extends EventTarget {
   }
 
   #removePlayer(player) {
-    const playerIndex = this.partyPlayers.indexOf(player);
+    const playerIndex = partyPlayers.indexOf(player);
     if (!player.isMainPlayer && playerIndex !== -1) {
       this.#setFollowTarget(player, null);
-      this.partyPlayers.splice(playerIndex, 1);
+      partyPlayers.splice(playerIndex, 1);
       player.isNpcInParty = false;
       return true;
     }
@@ -114,7 +111,7 @@ class PartyManager extends EventTarget {
   // player follows target after this call
   // if target is null, it stops following
   #setFollowTarget(newPlayer, targetPlayer) {
-    const targetObj = this.targetMap.get(newPlayer.getInstanceId());
+    const targetObj = targetMap.get(newPlayer.getInstanceId());
 
     const slowdownFactor = 0.4;
     const walkSpeed = 0.075 * slowdownFactor;
@@ -123,7 +120,7 @@ class PartyManager extends EventTarget {
     const frame = e => {
       if (physicsScene.getPhysicsEnabled()) {
         const {timestamp, timeDiff} = e.data;
-        const targetPlayer = this.targetMap.get(newPlayer.getInstanceId());
+        const targetPlayer = targetMap.get(newPlayer.getInstanceId());
         
         if (targetPlayer) {
           // console.log('    ', newPlayer.name, '->', targetPlayer.name);
@@ -146,14 +143,14 @@ class PartyManager extends EventTarget {
     };
 
     const removeTarget = () => {
-      this.targetMap.delete(newPlayer.getInstanceId());
+      targetMap.delete(newPlayer.getInstanceId());
       const onFrame = frameFnMap.get(newPlayer.getInstanceId());
       world.appManager.removeEventListener('frame', onFrame);
       frameFnMap.delete(newPlayer.getInstanceId());
     };
 
     const setTarget = () => {
-      this.targetMap.set(newPlayer.getInstanceId(), targetPlayer);
+      targetMap.set(newPlayer.getInstanceId(), targetPlayer);
       world.appManager.addEventListener('frame', frame);
       frameFnMap.set(newPlayer.getInstanceId(), frame);
     };
