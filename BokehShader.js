@@ -55,37 +55,12 @@
 
 		#include <packing>
 
-		/* float getDepth( const in vec2 screenPosition ) {
+		float getDepth( const in vec2 screenPosition ) {
 			#if DEPTH_PACKING == 1
 			return unpackRGBAToDepth( texture2D( tDepth, screenPosition ) );
 			#else
-			float logDepthBufFC = 2.0 / ( log( farClip + 1.0 ) / log(2.) );
-			float depth_value = texture2D( tDepth, screenPosition ).x;
-			float C = 1.;
-			// float z = pow(2., depth_value / logDepthBufFC / 0.5);
-			float z = (pow(C*farClip+1.,depth_value)-1.)/C;
-			z /= farClip;
-			return z;
+			return texture2D( tDepth, screenPosition ).x;
 			#endif
-		} */
-
-		float linearize_depth(in float depth){
-			float a = farClip / (farClip - nearClip);
-			float b = farClip * nearClip / (nearClip - farClip);
-			return a + b / depth;
-		}
-		
-		float reconstruct_depth(const in vec2 uv){
-				float depth = texture2D(tDepth, uv).x;
-				return pow(2.0, depth * log2(farClip + 1.0)) - 1.0;
-		}
-		
-		float getDepth(vec2 uv) {
-				#if defined( USE_LOGDEPTHBUF ) && defined( USE_LOGDEPTHBUF_EXT )
-						return linearize_depth(reconstruct_depth(uv));
-				#else
-						return texture2D(tDepth, uv).x;
-				#endif
 		}
 
 		float getViewZ( const in float depth ) {
@@ -103,11 +78,6 @@
 
 			float viewZ = getViewZ( getDepth( vUv ) );
 
-			if (viewZ < (-farClip + 1.)) {
-        gl_FragColor = texture2D( tColor, vUv.xy );
-				gl_FragColor.a = 1.;
-			} else {
-
 			float factor = ( focus + viewZ ); // viewZ is <= 0, so this is a difference equation
 
 			vec2 dofblur = vec2 ( clamp( factor * aperture, -maxblur, maxblur ) );
@@ -118,7 +88,7 @@
 
 			vec4 col = vec4( 0.0 );
 
-			col = texture2D( tColor, vUv.xy );
+			col += texture2D( tColor, vUv.xy );
 			col += texture2D( tColor, vUv.xy + ( vec2(  0.0,   0.4  ) * aspectcorrect ) * dofblur );
 			col += texture2D( tColor, vUv.xy + ( vec2(  0.15,  0.37 ) * aspectcorrect ) * dofblur );
 			col += texture2D( tColor, vUv.xy + ( vec2(  0.29,  0.29 ) * aspectcorrect ) * dofblur );
@@ -163,11 +133,10 @@
 			col += texture2D( tColor, vUv.xy + ( vec2( -0.29, -0.29 ) * aspectcorrect ) * dofblur4 );
 			col += texture2D( tColor, vUv.xy + ( vec2(  0.0,   0.4  ) * aspectcorrect ) * dofblur4 );
 
-			// col = vec4(factor * 5.);
-
 			gl_FragColor = col / 41.0;
+			gl_FragColor.g = 0.2;
 			gl_FragColor.a = 1.0;
-      }
+
 		}`
 
 };
