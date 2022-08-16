@@ -174,12 +174,15 @@ export default (app, component) => {
   };
   app.addEventListener('wearupdate', wearupdate);
   app.addEventListener('destroy', () => {
-    const remotePlayers = metaversefile.useRemotePlayers();
+    /* const remotePlayers = metaversefile.useRemotePlayers();
     const {npcs} = npcManager;
     const players = (player ? [player] : [])
       .concat(remotePlayers)
       .concat(npcs);
-    for (const player of players) {
+    for (const player of players) { */
+
+    // in case of npc destruction, there might be no wear action to remove
+    if (player?.isBound()) {
       const wearActionIndex = player.findActionIndex(action => {
         return action.type === 'wear' && action.instanceId === app.instanceId;
       });
