@@ -107,6 +107,9 @@ export default e => {
         void main() {
           vec3 c = (color1*(1. - vUv.y) + color2*vUv.y);
           gl_FragColor = vec4(c * vColor, 1.0);
+
+          #include <tonemapping_fragment>
+          #include <encodings_fragment>
         }
       `,
       side: THREE.DoubleSide,
