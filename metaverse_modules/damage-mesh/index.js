@@ -21,7 +21,7 @@ export default e => {
       constructor(material) {
         const text = new Text();
         text.material = material;
-        const derivedMaterial = text.material;
+        // const derivedMaterial = text.material;
         // text._derivedMaterial = createTextDerivedMaterial(material);
         this.text = text;
       }
