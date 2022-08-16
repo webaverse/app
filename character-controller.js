@@ -1163,7 +1163,7 @@ class LocalPlayer extends UninterpolatedPlayer {
   }
   grab(app, hand = 'left') {
     const {position, quaternion} = _getSession() ?
-      localPlayer[hand === 'left' ? 'leftHand' : 'rightHand']
+      this[hand === 'left' ? 'leftHand' : 'rightHand']
     :
       camera;
 
