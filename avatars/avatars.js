@@ -59,14 +59,12 @@ import Looker from './Looker.js'
 
 import * as wind from './simulation/wind.js';
 
-
 const localVector = new THREE.Vector3();
 const localVector2 = new THREE.Vector3();
 const localVector3 = new THREE.Vector3();
 // const localVector4 = new THREE.Vector3();
 // const localVector5 = new THREE.Vector3();
 // const localVector6 = new THREE.Vector3();     
-
 
 const localQuaternion = new THREE.Quaternion();
 const localQuaternion2 = new THREE.Quaternion();
@@ -1501,25 +1499,6 @@ class Avatar {
     }
   }
 
-  setVelocity(timestamp, timeDiffS, lastPosition, currentPosition, currentQuaternion) {
-    // Set the velocity, which will be considered by the animation controller
-    const positionDiff = localVector.copy(lastPosition)
-      .sub(currentPosition)
-      .divideScalar(Math.max(timeDiffS, 0.001))
-      .multiplyScalar(0.1);
-    localEuler.setFromQuaternion(currentQuaternion, 'YXZ');
-    localEuler.set(0, -(localEuler.y + Math.PI), 0);
-    positionDiff.applyEuler(localEuler);
-    this.velocity.copy(positionDiff);
-    this.lastVelocity.copy(this.velocity);
-    this.direction.copy(positionDiff).normalize();
-    this.lastPosition.copy(currentPosition);
-
-    if (this.velocity.length() > maxIdleVelocity) {
-      this.lastMoveTime = timestamp;
-    }
-  }
-
   update(timestamp, timeDiff) {
     const now = timestamp;
     const timeDiffS = timeDiff / 1000;
@@ -1931,18 +1910,24 @@ class Avatar {
     if (this.getTopEnabled() || this.getHandEnabled(0) || this.getHandEnabled(1)) {
       _motionControls.call(this)
     }
-    
-    // for the local player we want to update the velocity immediately
-    // on remote players this is called from the RemotePlayer -> observePlayerFn
-    if (this.isLocalPlayer) {
-      this.setVelocity(
-	timestamp,
-        timeDiffS,
-        this.lastPosition,
-        this.inputs.hmd.position,
-        this.inputs.hmd.quaternion
-      );
+
+    // Set the velocity, which will be considered by the animation controller
+    const positionDiff = localVector.copy(this.lastPosition)
+      .sub(this.inputs.hmd.position)
+      .divideScalar(Math.max(timeDiffS, 0.001))
+      .multiplyScalar(0.1);
+    localEuler.setFromQuaternion(this.inputs.hmd.quaternion, 'YXZ');
+    localEuler.set(0, -(localEuler.y + Math.PI), 0);
+    positionDiff.applyEuler(localEuler);
+    this.velocity.copy(positionDiff);
+    this.lastVelocity.copy(this.velocity);
+    this.direction.copy(positionDiff).normalize();
+    this.lastPosition.copy(this.inputs.hmd.position);
+
+    if (this.velocity.length() > maxIdleVelocity) {
+      this.lastMoveTime = now;
     }
+
     _applyAnimation(this, now);
 
     if (this.poseAnimation) {

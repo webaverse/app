@@ -29,7 +29,7 @@ export function applyPlayerTransformsToAvatar(player, session, rig) {
   }
 }
 /* export function applyPlayerMetaTransformsToAvatar(player, session, rig) {
-  if (!session) {
+  if (player.characterPhysics && !session) {
     rig.velocity.copy(player.characterPhysics.velocity);
   }
 } */
@@ -71,7 +71,7 @@ export function makeAvatar(app) {
     const player = _getPlayerByAppInstanceId(app.instanceId);
     if (skinnedVrm) {
       const avatar = new Avatar(skinnedVrm, {
-        isLocalPlayer: !player || !player.isRemotePlayer,
+        isLocalPlayer: player !== undefined && !player.isRemotePlayer,
         fingers: true,
         hair: true,
         visemes: true,

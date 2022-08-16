@@ -564,7 +564,7 @@ class StatePlayer extends PlayerBase {
     this.syncAvatarCancelFn = null;
     this.unbindFns = [];
     
-    this.transform = new Float32Array(7);
+    this.transform = new Float32Array(10);
     this.bindState(playersArray);
   }
   isBound() {
@@ -1197,17 +1197,14 @@ class LocalPlayer extends UninterpolatedPlayer {
   } */
   lastMatrix = new THREE.Matrix4();
   pushPlayerUpdates() {
-    const self = this;
-    this.playersArray.doc.transact(() => {
-      if (!this.matrixWorld.equals(this.lastMatrix)) {
-        self.position.toArray(self.transform);      
-        self.quaternion.toArray(self.transform, 3);
-        self.playerMap.set('transform', self.transform);
-        this.lastMatrix.copy(this.matrixWorld);
-      }
-    }, 'push');
-
     this.appManager.updatePhysics();
+    if (!this.matrixWorld.equals(this.lastMatrix)) {
+      this.position.toArray(this.transform);      
+      this.quaternion.toArray(this.transform, 3);
+      this.characterPhysics.velocity.toArray(this.transform, 7);
+      this.playerMap.set('transform', this.transform);
+      this.lastMatrix.copy(this.matrixWorld);
+    }
   }
   updatePhysics(timestamp, timeDiff) {
     if (this.avatar) {
@@ -1278,7 +1275,6 @@ class RemotePlayer extends InterpolatedPlayer {
     this.audioWorkletNode = null;
     this.audioWorkerLoaded = false;
     this.isRemotePlayer = true;
-    this.lastPosition = new THREE.Vector3();
   }
     // The audio worker handles hups and incoming voices
   // This includes the microphone from the owner of this instance
@@ -1333,7 +1329,7 @@ class RemotePlayer extends InterpolatedPlayer {
       throw new Error('binding to nonexistent player object', this.playersArray.toJSON());
     }
     let lastTimestamp = performance.now();
-    let lastPosition = new THREE.Vector3();
+    const velocity = new THREE.Vector3(0, 0, 0);
     const observePlayerFn = (e) => {
       if (e.changes.keys.has('avatar')) {
         this.syncAvatar();
@@ -1352,7 +1348,7 @@ class RemotePlayer extends InterpolatedPlayer {
         this.name = e.changes.keys.get('name').value;
       }
 
-      if (e.changes.keys.has('transform')) {
+      if (!this.isLocalPlayer && e.changes.keys.has('transform')) {
         const transform = e.changes.keys.get('transform').value;
         const timestamp = performance.now();
         const timeDiff = timestamp - lastTimestamp;
@@ -1360,6 +1356,7 @@ class RemotePlayer extends InterpolatedPlayer {
 
         this.position.fromArray(transform);
         this.quaternion.fromArray(transform, 3);
+        velocity.fromArray(transform, 7);
 
         this.positionInterpolant.snapshot(timeDiff);
         this.quaternionInterpolant.snapshot(timeDiff);
@@ -1372,15 +1369,7 @@ class RemotePlayer extends InterpolatedPlayer {
           localVector.copy(this.position);
           localVector.y -= this.avatar.height * 0.5;
           physicsScene.setCharacterControllerPosition(this.characterPhysics.characterController, localVector);
-          
-          this.avatar.setVelocity(
-            timeDiff / 1000,
-            this.lastPosition,
-            this.positionInterpolant.get(),
-            this.quaternionInterpolant.get()
-            );
-          }
-        this.lastPosition.copy(this.position);
+        }
       }
     }
     this.playerMap.observe(observePlayerFn);
@@ -1396,17 +1385,16 @@ class RemotePlayer extends InterpolatedPlayer {
   }
   update(timestamp, timeDiff) {
     if(!this.avatar) return // console.log("no avatar"); // avatar takes time to load, ignore until it does
-
-    this.updateInterpolation(timeDiff);
-
-    const mirrors = metaversefile.getMirrors();
-    applyPlayerToAvatar(this, null, this.avatar, mirrors);
-
+    
     const timeDiffS = timeDiff / 1000;
     this.characterSfx.update(timestamp, timeDiffS);
     this.characterFx.update(timestamp, timeDiffS);
     this.characterHitter.update(timestamp, timeDiffS);
     this.characterBehavior.update(timestamp, timeDiffS);
+
+    const mirrors = metaversefile.getMirrors();
+    applyPlayerToAvatar(this, null, this.avatar, mirrors);
+    this.updateInterpolation(timeDiff);
 
     this.avatar.update(timestamp, timeDiff);
   }
