@@ -1982,7 +1982,7 @@ class Avatar {
       `
     }
     // console.log(player.characterPhysics.velocity.y)
-    // console.log(this.testVelocity.y)
+    // console.log(this.velocity.x.toFixed(2))
     // console.log('applyAnimation')
     _applyAnimation(this, now);
 

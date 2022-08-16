@@ -549,7 +549,6 @@ class SpriteMegaAvatarMesh extends THREE.Mesh {
 
     // select the texture
     const spriteSpecName = (() => {
-      debugger
       const playerSide = _getPlayerSide();
       const currentSpeed = localVector.set(avatar.velocity.x * velocityScaleFactor, 0, avatar.velocity.z * velocityScaleFactor)
         .length();
@@ -623,6 +622,7 @@ class SpriteMegaAvatarMesh extends THREE.Mesh {
           }
         } else if (spriteSpecBaseName === 'run') {
           if (playerSide === 'forward') {
+            debugger
             return 'run';
           } else if (playerSide === 'backward') {
             return 'run backward';
@@ -636,8 +636,11 @@ class SpriteMegaAvatarMesh extends THREE.Mesh {
         throw new Error('unhandled case');
       }
     })();
+    // if (spriteSpecName === 'run') debugger
+    // console.log(spriteSpecName, avatar.velocity.x.toFixed(2))
+    console.log(spriteSpecName, window.logVector3(avatar.velocity))
     this.setTexture(spriteSpecName);
-    console.log(spriteSpecName)
+    // console.log(spriteSpecName)
 
     if (spriteSpecName !== this.lastSpriteSpecName) {
       this.lastSpriteSpecName = spriteSpecName;
