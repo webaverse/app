@@ -6,6 +6,7 @@ const {useApp, useFrame, useLocalPlayer, usePhysics, useGeometries, useMaterials
 import {DoubleSidedPlaneGeometry, CameraGeometry} from './geometries.js';
 import {WebaverseShaderMaterial} from './materials.js';
 import Avatar from './avatars/avatars.js';
+import { walkSpeed, runSpeed, crouchSpeed, narutoRunSpeed } from './constants.js';
 
 const preview = false; // whether to draw debug meshes
 
@@ -38,10 +39,6 @@ const worldSize = 2;
 const distance = 2.2; // render distance
 
 // avatar animation constants
-const walkSpeed = 3;
-const runSpeed = 9;
-const crouchSpeed = 2;
-const narutoRunSpeed = 59;
 const maxCrouchTime = 200;
 
 const cameraHeightFactor = 0.8; // the height of the camera in avatar space
@@ -795,7 +792,7 @@ const getSpriteSpecs = () => {
               localRig.inputs.hmd.position.set(0, localRig.height, positionOffset);
               localRig.inputs.hmd.updateMatrixWorld();
     
-              localRig.update(timestamp, timeDiffMs);
+              localRig.update(timestamp, timeDiffMs, false);
             },
           };
         },
@@ -819,7 +816,7 @@ const getSpriteSpecs = () => {
               localRig.inputs.hmd.position.set(0, localRig.height, positionOffset);
               localRig.inputs.hmd.updateMatrixWorld();
     
-              localRig.update(timestamp, timeDiffMs);
+              localRig.update(timestamp, timeDiffMs, false);
             },
           };
         },
@@ -843,7 +840,7 @@ const getSpriteSpecs = () => {
               localRig.inputs.hmd.position.set(positionOffset, localRig.height, 0);
               localRig.inputs.hmd.updateMatrixWorld();
     
-              localRig.update(timestamp, timeDiffMs);
+              localRig.update(timestamp, timeDiffMs, false);
             },
           };
         },
@@ -867,7 +864,7 @@ const getSpriteSpecs = () => {
               localRig.inputs.hmd.position.set(positionOffset, localRig.height, 0);
               localRig.inputs.hmd.updateMatrixWorld();
     
-              localRig.update(timestamp, timeDiffMs);
+              localRig.update(timestamp, timeDiffMs, false);
             },
           };
         },
@@ -891,7 +888,7 @@ const getSpriteSpecs = () => {
               localRig.inputs.hmd.position.set(0, localRig.height, positionOffset);
               localRig.inputs.hmd.updateMatrixWorld();
     
-              localRig.update(timestamp, timeDiffMs);
+              localRig.update(timestamp, timeDiffMs, false);
             },
           };
         },
@@ -915,7 +912,7 @@ const getSpriteSpecs = () => {
               localRig.inputs.hmd.position.set(0, localRig.height, positionOffset);
               localRig.inputs.hmd.updateMatrixWorld();
     
-              localRig.update(timestamp, timeDiffMs);
+              localRig.update(timestamp, timeDiffMs, false);
             },
           };
         },
@@ -939,7 +936,7 @@ const getSpriteSpecs = () => {
               localRig.inputs.hmd.position.set(positionOffset, localRig.height, 0);
               localRig.inputs.hmd.updateMatrixWorld();
     
-              localRig.update(timestamp, timeDiffMs);
+              localRig.update(timestamp, timeDiffMs, false);
             },
           };
         },
@@ -963,7 +960,7 @@ const getSpriteSpecs = () => {
               localRig.inputs.hmd.position.set(positionOffset, localRig.height, 0);
               localRig.inputs.hmd.updateMatrixWorld();
     
-              localRig.update(timestamp, timeDiffMs);
+              localRig.update(timestamp, timeDiffMs, false);
             },
           };
         },
@@ -987,7 +984,7 @@ const getSpriteSpecs = () => {
               localRig.inputs.hmd.position.set(0, localRig.height, positionOffset);
               localRig.inputs.hmd.updateMatrixWorld();
     
-              localRig.update(timestamp, timeDiffMs);
+              localRig.update(timestamp, timeDiffMs, false);
             },
           };
         },
@@ -1012,7 +1009,7 @@ const getSpriteSpecs = () => {
     
               localRig.crouchTime = 0;
     
-              localRig.update(timestamp, timeDiffMs);
+              localRig.update(timestamp, timeDiffMs, false);
             },
             reset() {},
             cleanup() {
@@ -1041,7 +1038,7 @@ const getSpriteSpecs = () => {
     
               localRig.crouchTime = 0;
     
-              localRig.update(timestamp, timeDiffMs);
+              localRig.update(timestamp, timeDiffMs, false);
             },
             reset() {},
             cleanup() {
@@ -1070,7 +1067,7 @@ const getSpriteSpecs = () => {
     
               localRig.crouchTime = 0;
     
-              localRig.update(timestamp, timeDiffMs);
+              localRig.update(timestamp, timeDiffMs, false);
             },
             reset() {},
             cleanup() {
@@ -1099,7 +1096,7 @@ const getSpriteSpecs = () => {
     
               localRig.crouchTime = 0;
     
-              localRig.update(timestamp, timeDiffMs);
+              localRig.update(timestamp, timeDiffMs, false);
             },
             reset() {},
             cleanup() {
@@ -1128,7 +1125,7 @@ const getSpriteSpecs = () => {
     
               localRig.crouchTime = 0;
     
-              localRig.update(timestamp, timeDiffMs);
+              localRig.update(timestamp, timeDiffMs, false);
             },
             reset() {},
             cleanup() {
@@ -1163,7 +1160,7 @@ const getSpriteSpecs = () => {
     
               narutoRunTime += timeDiffMs;
     
-              localRig.update(timestamp, timeDiffMs);
+              localRig.update(timestamp, timeDiffMs, false);
             },
             reset() {
               narutoRunTime = 0;
@@ -1206,7 +1203,7 @@ const getSpriteSpecs = () => {
               // console.log('got jump time', jumpTime, timeDiffMs, jumpIncrementSpeed);
     
               // console.log('local rig update', timeDiffMs);
-              localRig.update(timestamp, timeDiffMs);
+              localRig.update(timestamp, timeDiffMs, false);
             },
             reset() {
               jumpTime = defaultJumpTime;
@@ -1237,7 +1234,7 @@ const getSpriteSpecs = () => {
               localRig.inputs.hmd.position.set(-positionOffsetDiff, localRig.height, positionOffsetDiff);
               localRig.inputs.hmd.updateMatrixWorld();
     
-              localRig.update(timestamp, timeDiffMs);
+              localRig.update(timestamp, timeDiffMs, false);
             },
           };
         },
@@ -1262,7 +1259,7 @@ const getSpriteSpecs = () => {
               localRig.inputs.hmd.position.set(positionOffsetDiff, localRig.height, positionOffsetDiff);
               localRig.inputs.hmd.updateMatrixWorld();
     
-              localRig.update(timestamp, timeDiffMs);
+              localRig.update(timestamp, timeDiffMs, false);
             },
           };
         },
@@ -1287,7 +1284,7 @@ const getSpriteSpecs = () => {
               localRig.inputs.hmd.position.set(-positionOffsetDiff, localRig.height, positionOffsetDiff);
               localRig.inputs.hmd.updateMatrixWorld();
     
-              localRig.update(timestamp, timeDiffMs);
+              localRig.update(timestamp, timeDiffMs, false);
             },
           };
         },
@@ -1312,7 +1309,7 @@ const getSpriteSpecs = () => {
               localRig.inputs.hmd.position.set(positionOffsetDiff, localRig.height, positionOffsetDiff);
               localRig.inputs.hmd.updateMatrixWorld();
     
-              localRig.update(timestamp, timeDiffMs);
+              localRig.update(timestamp, timeDiffMs, false);
             },
           };
         },
@@ -1339,7 +1336,7 @@ const getSpriteSpecs = () => {
     
               localRig.crouchTime = 0;
     
-              localRig.update(timestamp, timeDiffMs);
+              localRig.update(timestamp, timeDiffMs, false);
             },
             cleanup() {
               localRig.crouchTime = maxCrouchTime;
@@ -1369,7 +1366,7 @@ const getSpriteSpecs = () => {
     
               localRig.crouchTime = 0;
     
-              localRig.update(timestamp, timeDiffMs);
+              localRig.update(timestamp, timeDiffMs, false);
             },
             cleanup() {
               localRig.crouchTime = maxCrouchTime;

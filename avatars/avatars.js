@@ -1501,7 +1501,7 @@ class Avatar {
     }
   }
 
-  setVelocity(timestamp, timeDiffS, lastPosition, currentPosition, currentQuaternion) {
+  setVelocity(timestamp, timeDiffS, lastPosition, currentPosition, currentQuaternion, isBoundPlayer) {
     // console.log('setVelocity')
     // Set the velocity, which will be considered by the animation controller
     const positionDiff = localVector.copy(lastPosition)
@@ -1511,8 +1511,14 @@ class Avatar {
     localEuler.setFromQuaternion(currentQuaternion, 'YXZ');
     localEuler.set(0, -(localEuler.y + Math.PI), 0);
     positionDiff.applyEuler(localEuler);
+    // console.log(positionDiff.x);
     this.testVelocity.copy(positionDiff); // For testing only, check if the physics.velocity correct. Can't use this in formal, to calc such as idleWalkFactor/walkRunFactor, will cause aniamtions jitter in low fps.
     this.testVelocity.y *= -1;
+    if (!isBoundPlayer) {
+      this.velocity.copy(this.testVelocity);
+      // this.velocity.x *= 0.1;
+      // this.velocity.z *= 0.1;
+    }
     // this.velocity.applyEuler(localEuler);
     this.direction.copy(positionDiff).normalize();
     this.lastPosition.copy(currentPosition);
@@ -1520,9 +1526,10 @@ class Avatar {
     if (this.velocity.length() > maxIdleVelocity) {
       this.lastMoveTime = timestamp;
     }
+    // if (this.velocity.x > 100) debugger
   }
 
-  update(timestamp, timeDiff) {
+  update(timestamp, timeDiff, isBoundPlayer = true) {
     const now = timestamp;
     const timeDiffS = timeDiff / 1000;
     
@@ -1534,15 +1541,18 @@ class Avatar {
         timeDiffS,
         this.lastPosition,
         this.inputs.hmd.position,
-        this.inputs.hmd.quaternion
+        this.inputs.hmd.quaternion,
+        isBoundPlayer,
       );
     }
 
     const currentSpeed = localVector.set(this.velocity.x, 0, this.velocity.z).length();
+    // console.log(this.velocity.x.toFixed(2))
     // console.log(currentSpeed)
 
     this.idleWalkFactor = Math.min(Math.max((currentSpeed - idleSpeed) / (walkSpeed - idleSpeed), 0), 1);
     this.walkRunFactor = Math.min(Math.max((currentSpeed - walkSpeed) / (runSpeed - walkSpeed), 0), 1);
+    // console.log(this.walkRunFactor)
     // console.log(this.idleWalkFactor, this.walkRunFactor)
     this.crouchFactor = Math.min(Math.max(1 - (this.crouchTime / crouchMaxTime), 0), 1);
     // console.log('current speed', currentSpeed, idleWalkFactor, walkRunFactor);
