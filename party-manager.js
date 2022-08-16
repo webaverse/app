@@ -7,20 +7,20 @@ import {playersManager} from './players-manager.js';
 const localVector = new THREE.Vector3();
 
 const physicsScene = physicsManager.getScene();
-const partyPlayers = [];
 
 class PartyManager extends EventTarget {
   constructor() {
     super();
-
+    
+    this.partyPlayers = [];
     this.removeFns = [];
   }
 
   switchCharacter() {
     // switch to next character
-    if (partyPlayers.length >= 2) {
-      const headPlayer = partyPlayers.shift();
-      const nextPlayer = partyPlayers[0];
+    if (this.partyPlayers.length >= 2) {
+      const headPlayer = this.partyPlayers.shift();
+      const nextPlayer = this.partyPlayers[0];
 
       headPlayer.isLocalPlayer = false;
       headPlayer.isNpcPlayer = true;
@@ -31,7 +31,7 @@ class PartyManager extends EventTarget {
       nextPlayer.updatePhysicsStatus();
       headPlayer.updatePhysicsStatus();
 
-      partyPlayers.push(headPlayer);
+      this.partyPlayers.push(headPlayer);
 
       playersManager.setLocalPlayer(nextPlayer);
     }
@@ -40,18 +40,18 @@ class PartyManager extends EventTarget {
   // add new player to party
   addPlayer(newPlayer) {
     // console.log('addPlayer', newPlayer);
-    if (newPlayer.isMainPlayer && partyPlayers.length !== 0) {
+    if (newPlayer.isMainPlayer && this.partyPlayers.length !== 0) {
       console.warn('main player should be single');
       debugger;
     }
     
-    if (partyPlayers.length < 3) { // 3 max members
-      partyPlayers.push(newPlayer);
+    if (this.partyPlayers.length < 3) { // 3 max members
+      this.partyPlayers.push(newPlayer);
 
       const getTargetPlayer = (player) => {
-        const playerIndex = partyPlayers.indexOf(player);
+        const playerIndex = this.partyPlayers.indexOf(player);
         if (playerIndex > 0) {
-          return partyPlayers[playerIndex - 1];
+          return this.partyPlayers[playerIndex - 1];
         }
         return null;
       };
@@ -89,10 +89,10 @@ class PartyManager extends EventTarget {
 
       const removeFn = ((player) => {
         return () => {
-          const playerIndex = partyPlayers.indexOf(player);
+          const playerIndex = this.partyPlayers.indexOf(player);
           if (!player.isMainPlayer && playerIndex !== -1) {
             world.appManager.removeEventListener('frame', frame);
-            partyPlayers.splice(playerIndex, 1);
+            this.partyPlayers.splice(playerIndex, 1);
             player.isNpcInParty = false;
             return true;
           }
@@ -123,6 +123,10 @@ class PartyManager extends EventTarget {
       return true;
     }
     return false;
+  }
+
+  getMainPlayer() {
+    return this.partyPlayers.find((player) => player.isMainPlayer);
   }
 
   clear() {

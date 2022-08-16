@@ -8,6 +8,7 @@ import {
   getEyePosition,
 } from './avatars/util.mjs';
 import {playersManager} from './players-manager.js';
+import {partyManager} from './party-manager.js';
 
 const appSymbol = 'app'; // Symbol('app');
 const avatarSymbol = 'avatar'; // Symbol('avatar');
@@ -55,10 +56,10 @@ export function makeAvatar(app) {
 
     const _getPlayerByAppInstanceId = instanceId => {
       const remotePlayers = playersManager.getRemotePlayers(); // Might have to be removed too
-      const localPlayer = playersManager.getLocalPlayer();
-      const result = localPlayer.appManager.getAppByInstanceId(instanceId);
+      const mainPlayer = partyManager.getMainPlayer();
+      const result = mainPlayer.appManager.getAppByInstanceId(instanceId);
       if (result) {
-        return localPlayer;
+        return mainPlayer;
       } else {
         for (const remotePlayer in remotePlayers) {
           if (remotePlayer.appManager.getAppByInstanceId(instanceId)) {
