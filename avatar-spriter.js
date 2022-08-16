@@ -1542,7 +1542,7 @@ const _renderSpriteImages = skinnedVrm => {
   const {renderer, scene} = metaversefile.useInternals();
   const pixelRatio = renderer.getPixelRatio();
   const _renderSpriteFrame = () => {
-    console.log('_renderSpriteFrame');
+    // console.log('_renderSpriteFrame');
     const oldParent = skinnedModel.parent;
     scene2.add(skinnedModel);
 

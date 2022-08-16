@@ -1516,8 +1516,8 @@ class Avatar {
     this.testVelocity.y *= -1;
     if (!isBoundPlayer) {
       this.velocity.copy(this.testVelocity);
-      this.velocity.x *= 0.3;
-      this.velocity.z *= 0.3;
+      this.velocity.x *= 1 / 3; // walk speed 2.5
+      this.velocity.z *= 1 / 3; // walk speed 2.5
     }
     // this.velocity.applyEuler(localEuler);
     this.direction.copy(positionDiff).normalize();
@@ -1552,6 +1552,7 @@ class Avatar {
 
     this.idleWalkFactor = Math.min(Math.max((currentSpeed - idleSpeed) / (walkSpeed - idleSpeed), 0), 1);
     this.walkRunFactor = Math.min(Math.max((currentSpeed - walkSpeed) / (runSpeed - walkSpeed), 0), 1);
+    if (this.idleWalkFactor >= 0.9 && this.walkRunFactor < 1 && this.velocity.x > 0.1) console.log( this.velocity.x)
     // console.log(this.walkRunFactor)
     // console.log(this.idleWalkFactor, this.walkRunFactor)
     this.crouchFactor = Math.min(Math.max(1 - (this.crouchTime / crouchMaxTime), 0), 1);
