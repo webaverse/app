@@ -1250,6 +1250,7 @@ class GameManager extends EventTarget {
           .add(localVector2.set(0, 0.5, -1).applyQuaternion(localPlayer.quaternion)),
         dropDirection: zeroVector, */
       });
+      _endUse();
     }
   }
   deleteSelectedApp() {
@@ -1445,12 +1446,18 @@ class GameManager extends EventTarget {
     return await this.handleDropUrlToPlayer(u, index);
   }
   async handleDropJsonToPlayer(j, index) {
+    const localPlayer = playersManager.getLocalPlayer();
+    localVector.copy(localPlayer.position);
+    if (localPlayer.avatar) {
+      localVector.y -= localPlayer.avatar.height;
+    }
     const u = getDropUrl(j);
-    return await this.handleDropUrlToPlayer(u, index);
+    return await this.handleDropUrlToPlayer(u, index, localVector);
   }
-  async handleDropUrlToPlayer(u, index) {
+  async handleDropUrlToPlayer(u, index, position) {
     const app = await metaversefileApi.createAppAsync({
       start_url: u,
+      position: position
     });
     app.instanceId = makeId(5);
     world.appManager.importApp(app);
@@ -1498,7 +1505,7 @@ class GameManager extends EventTarget {
       const newJumpAction = {
         type: 'jump',
         trigger:trigger,
-        startPositionY: localPlayer.characterController.position.y,
+        startPositionY: localPlayer.characterPhysics.characterController.position.y,
         // time: 0,
       };
       localPlayer.setControlAction(newJumpAction);
@@ -1520,7 +1527,7 @@ class GameManager extends EventTarget {
     const localPlayer = playersManager.getLocalPlayer();
     localPlayer.addAction({
       type: 'doubleJump',
-      startPositionY: localPlayer.characterController.position.y,
+      startPositionY: localPlayer.characterPhysics.characterController.position.y,
     });
   }
   isMovingBackward() {
@@ -1540,6 +1547,10 @@ class GameManager extends EventTarget {
   isSitting() {
     const localPlayer = playersManager.getLocalPlayer();
     return localPlayer.hasAction('sit');
+  }
+  isGrounded() {
+    const localPlayer = playersManager.getLocalPlayer();
+    return localPlayer.characterPhysics.lastGrounded;
   }
   getMouseHoverObject() {
     return mouseHoverObject;

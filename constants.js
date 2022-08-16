@@ -164,15 +164,12 @@ export const defaultWorldSeed = 100;
 export const defaultVoiceEndpoint = `Sweetie Belle`;
 export const defaultVoicePackName = `ShiShi voice pack`;
 
-// export const defaultAvatarUrl = './avatars/scilly_drophunter_v30.5_Guilty.vrm';
-// export const defaultAvatarUrl = './avatars/scilly_drophunter_v31_Guilty.vrm';
 // export const defaultAvatarUrl = './avatars/ann_liskwitch_v3.1_guiltyallShapeKeys.vrm';
-// export const defaultAvatarUrl = './avatars/scillia_drophunter_v25_gloria_vian.vrm';
 // export const defaultAvatarUrl = './avatars/ann.vrm';
 export const defaultPlayerSpec = {
   name: 'Scillia',
   previewUrl: './images/characters/upstreet/small/scillia.png',
-  avatarUrl: './avatars/scilly_drophunter_v31.6_Guilty.vrm',
+  avatarUrl: './avatars/scilly_drophunter_v31.7_fuji.vrm',
   voice: defaultVoiceEndpoint,
   voicePack: defaultVoicePackName,
   class: 'Drop Hunter',

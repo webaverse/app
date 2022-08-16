@@ -83,33 +83,7 @@ function makeCancelFn() {
     },
   };
 }
-const heightFactor = 1.6;
-const baseRadius = 0.3;
-function loadPhysxCharacterController() {
-  const avatarHeight = this.avatar.height;
-  const radius = baseRadius/heightFactor * avatarHeight;
-  const height = avatarHeight - radius*2;
 
-  const contactOffset = 0.1/heightFactor * avatarHeight;
-  const stepOffset = 0.5/heightFactor * avatarHeight;
-
-  const position = this.position.clone()
-    .add(new THREE.Vector3(0, -avatarHeight/2, 0));
-
-  if (this.characterController) {
-    physicsScene.destroyCharacterController(this.characterController);
-    this.characterController = null;
-    // this.characterControllerObject = null;
-  }
-  this.characterController = physicsScene.createCharacterController(
-    radius - contactOffset,
-    height,
-    contactOffset,
-    stepOffset,
-    position
-  );
-  // this.characterControllerObject = new THREE.Object3D();
-}
 /* function loadPhysxAuxCharacterCapsule() {
   const avatarHeight = this.avatar.height;
   const radius = baseRadius/heightFactor * avatarHeight;
@@ -397,14 +371,17 @@ class PlayerBase extends THREE.Object3D {
       };
       _transplantNewApp();
 
-      const _initPhysics = () => {
-        const physicsObjects = app.getPhysicsObjects();
-        for (const physicsObject of physicsObjects) {
-          physicsScene.disableGeometryQueries(physicsObject);
-          physicsScene.disableGeometry(physicsObject);
+      const _disableAppPhysics = () => {
+        // don't disable physics if the app is a pet
+        if (!app.hasComponent('pet')) {
+          const physicsObjects = app.getPhysicsObjects();
+          for (const physicsObject of physicsObjects) {
+            physicsScene.disableGeometryQueries(physicsObject);
+            physicsScene.disableGeometry(physicsObject);
+          }
         }
       };
-      _initPhysics();
+      _disableAppPhysics();
 
       const wearComponent = app.getComponent('wear');
       const holdAnimation = wearComponent? wearComponent.holdAnimation : null;
@@ -494,14 +471,16 @@ class PlayerBase extends THREE.Object3D {
         _setAppTransform();
       }
 
-      const _deinitPhysics = () => {
-        const physicsObjects = app.getPhysicsObjects();
-        for (const physicsObject of physicsObjects) {
-          physicsScene.enableGeometryQueries(physicsObject);
-          physicsScene.enableGeometry(physicsObject);
+      const _enableAppPhysics = () => {
+        if (!app.hasComponent('pet')) {
+          const physicsObjects = app.getPhysicsObjects();
+          for (const physicsObject of physicsObjects) {
+            physicsScene.enableGeometryQueries(physicsObject);
+            physicsScene.enableGeometry(physicsObject);
+          }
         }
       };
-      _deinitPhysics();
+      _enableAppPhysics();
       
       const _removeApp = () => {
         this.removeActionIndex(wearActionIndex);
@@ -578,6 +557,8 @@ class StatePlayer extends PlayerBase {
     this.playersArray = null;
     this.playerMap = null;
     this.microphoneMediaStream = null;
+
+    this.characterPhysics = new CharacterPhysics(this);
     
     this.avatarEpoch = 0;
     this.syncAvatarCancelFn = null;
@@ -695,10 +676,10 @@ class StatePlayer extends PlayerBase {
           avatar,
         });
         
-        loadPhysxCharacterController.call(this);
+        this.characterPhysics.loadCharacterController(this.avatar.width, this.avatar.height);
         
         if (this.isLocalPlayer) {
-          physicsScene.disableGeometryQueries(this.characterController);
+          physicsScene.disableGeometryQueries(this.characterPhysics.characterController);
         }
       })();
       
@@ -745,7 +726,7 @@ class StatePlayer extends PlayerBase {
     camera.quaternion.copy(quaternion);
     camera.updateMatrixWorld();
 
-    if (this.characterController) {
+    if (this.characterPhysics.characterController) {
       this.characterPhysics.setPosition(position);
     }
   }
@@ -1040,8 +1021,6 @@ class LocalPlayer extends UninterpolatedPlayer {
     this.isLocalPlayer = !opts.npc;
     this.isNpcPlayer = !!opts.npc;
     this.detached = !!opts.detached;
-
-    this.characterPhysics = new CharacterPhysics(this);
   }
   async setPlayerSpec(playerSpec) {
     const p = this.setAvatarUrl(playerSpec.avatarUrl);
@@ -1392,7 +1371,7 @@ class RemotePlayer extends InterpolatedPlayer {
         if(this.avatar){
           localVector.copy(this.position);
           localVector.y -= this.avatar.height * 0.5;
-          physicsScene.setCharacterControllerPosition(this.characterController, localVector);
+          physicsScene.setCharacterControllerPosition(this.characterPhysics.characterController, localVector);
           
           this.avatar.setVelocity(
             timeDiff / 1000,

@@ -250,7 +250,7 @@ const _updateIo = timeDiff => {
       cameraEuler.z = 0;
       keysDirection.applyEuler(cameraEuler);
       
-      if (ioManager.keys.ctrl && !ioManager.lastCtrlKey) {
+      if (ioManager.keys.ctrl && !ioManager.lastCtrlKey && game.isGrounded()) {
         game.toggleCrouch();
       }
       ioManager.lastCtrlKey = ioManager.keys.ctrl;
