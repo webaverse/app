@@ -1516,8 +1516,8 @@ class Avatar {
     this.testVelocity.y *= -1;
     if (!isBoundPlayer) {
       this.velocity.copy(this.testVelocity);
-      // this.velocity.x *= 0.1;
-      // this.velocity.z *= 0.1;
+      this.velocity.x *= 0.3;
+      this.velocity.z *= 0.3;
     }
     // this.velocity.applyEuler(localEuler);
     this.direction.copy(positionDiff).normalize();
