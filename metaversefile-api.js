@@ -17,7 +17,7 @@ import {world} from './world.js';
 import ERC721 from './erc721-abi.json';
 import ERC1155 from './erc1155-abi.json';
 import {web3} from './blockchain.js';
-import {moduleUrls, modules} from './metaverse-modules.js';
+import {importModule} from './metaverse-modules.js';
 import {componentTemplates} from './metaverse-components.js';
 import postProcessing from './post-processing.js';
 import {getRandomString, memoize} from './util.js';
@@ -205,8 +205,7 @@ class App extends THREE.Object3D {
 }
 
 const defaultModules = {
-  moduleUrls,
-  modules,
+  importModule,
 };
 
 const localPlayer = playersManager.getLocalPlayer();

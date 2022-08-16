@@ -33,7 +33,7 @@ import {
   getComposer,
 } from './renderer.js';
 import transformControls from './transform-controls.js';
-import * as metaverseModules from './metaverse-modules.js';
+// import * as metaverseModules from './metaverse-modules.js';
 import dioramaManager from './diorama.js';
 import * as voices from './voices.js';
 import performanceTracker from './performance-tracker.js';
@@ -87,7 +87,6 @@ export default class Webaverse extends EventTarget {
         zTargeting.waitForLoad(),
         particleSystemManager.waitForLoad(),
         transformControls.waitForLoad(),
-        metaverseModules.waitForLoad(),
         voices.waitForLoad(),
         musicManager.waitForLoad(),
         WebaWallet.waitForLoad(),
