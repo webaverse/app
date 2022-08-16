@@ -2,15 +2,16 @@ import {
 	AdditiveBlending,
 	Color,
 	MeshBasicMaterial,
+	NoBlending,
 	ShaderMaterial,
 	UniformsUtils,
 	Vector2,
 	Vector3,
 	WebGLRenderTarget
 } from 'three';
-import { Pass, FullScreenQuad } from './Pass.js';
-import { CopyShader } from '../shaders/CopyShader.js';
-import { LuminosityHighPassShader } from '../shaders/LuminosityHighPassShader.js';
+import { Pass, FullScreenQuad } from 'three/examples/jsm/postprocessing/Pass.js';
+import { CopyShader } from 'three/examples/jsm/shaders/CopyShader.js';
+import { LuminosityHighPassShader } from 'three/examples/jsm/shaders/LuminosityHighPassShader.js';
 
 /**
  * UnrealBloomPass is inspired by the bloom pass of Unreal Engine. It creates a
@@ -133,10 +134,40 @@ class UnrealBloomPass extends Pass {
 		this.copyUniforms[ 'opacity' ].value = 1.0;
 
 		this.materialCopy = new ShaderMaterial( {
-			uniforms: this.copyUniforms,
-			vertexShader: copyShader.vertexShader,
-			fragmentShader: copyShader.fragmentShader,
-			blending: AdditiveBlending,
+			uniforms: {
+				tex: {
+					value: null,
+					needsUpdate: false,
+				},
+				bloomTexture: {
+					value: null,
+					needsUpdate: false,
+				},
+			},
+			vertexShader: `\
+			  varying vec2 vUv;
+
+				void main() {
+					vUv = uv;
+					gl_Position = projectionMatrix * modelViewMatrix * vec4( position, 1.0 );
+				}
+			`,
+			fragmentShader: `\
+			  uniform sampler2D tex;
+				uniform sampler2D bloomTexture;
+			  varying vec2 vUv;
+
+				void main() {
+					vec4 color = texture2D( tex, vUv );
+					vec4 bloomColor = texture2D( bloomTexture, vUv );
+					vec3 c = color.rgb + bloomColor.rgb * 0.5;
+					// c *= 0.9;
+					float a = color.a;
+					gl_FragColor = vec4(c, a);
+				}
+			`,
+			// blending: AdditiveBlending,
+			blending: NoBlending,
 			depthTest: false,
 			depthWrite: false,
 			transparent: true
@@ -206,7 +237,7 @@ class UnrealBloomPass extends Pass {
 
 		// Render input to screen
 
-		if ( this.renderToScreen ) {
+		/* if ( this.renderToScreen ) {
 
 			this.fsQuad.material = this.basic;
 			this.basic.map = readBuffer.texture;
@@ -215,7 +246,7 @@ class UnrealBloomPass extends Pass {
 			renderer.clear();
 			this.fsQuad.render( renderer );
 
-		}
+		} */
 
 		// 1. Extract Bright Areas
 
@@ -265,7 +296,10 @@ class UnrealBloomPass extends Pass {
 		// Blend it additively over the input texture
 
 		this.fsQuad.material = this.materialCopy;
-		this.copyUniforms[ 'tDiffuse' ].value = this.renderTargetsHorizontal[ 0 ].texture;
+		this.materialCopy.uniforms.tex.value = readBuffer.texture;
+		this.materialCopy.uniforms.tex.needsUpdate = true;
+		this.materialCopy.uniforms.bloomTexture.value = this.renderTargetsHorizontal[ 0 ].texture;
+		this.materialCopy.uniforms.bloomTexture.needsUpdate = true;
 
 		if ( maskActive ) renderer.state.buffers.stencil.setTest( true );
 
