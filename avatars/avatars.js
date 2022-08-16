@@ -1966,7 +1966,7 @@ class Avatar {
       `
     }
     // console.log(player.characterPhysics.velocity.y)
-    console.log(this.testVelocity.y)
+    // console.log(this.testVelocity.y)
     // console.log('applyAnimation')
     _applyAnimation(this, now);
 

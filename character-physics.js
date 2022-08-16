@@ -197,7 +197,7 @@ class CharacterPhysics {
       this.velocity.copy(this.wantVelocity);
       if (wantMoveDistancePerFrameXZLength > 0) { // prevent divide 0, and reduce calculations.
         const movedRatioXZ = (positionXZAfter.sub(positionXZBefore).length()) / wantMoveDistancePerFrameXZLength;
-        console.log(movedRatioXZ.toFixed(2));
+        // console.log(movedRatioXZ.toFixed(2));
         // if (this.player === window.npcPlayer) debugger
         // if (movedRatioXZ < 1) this.velocity.multiplyScalar(movedRatioXZ); // todo: multiply targetVelocity.
         if (movedRatioXZ < 1) {
