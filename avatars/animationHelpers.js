@@ -591,7 +591,6 @@ export const _applyAnimation = (avatar, now) => {
       const t3 = timeSinceLastMoveSeconds % idleAnimation.duration;
       const src3 = idleAnimation.interpolants[k];
       const v3 = src3.evaluate(t3);
-      // if (isPosition) console.log(t3);
 
       target.fromArray(v3);
       if (isPosition) {

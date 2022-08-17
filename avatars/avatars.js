@@ -398,7 +398,6 @@ const _makeDebugMesh = (avatar) => {
 
 class Avatar {
 	constructor(object, options = {}) {
-    console.log('Avatar');
     if (!object) {
       object = {};
     }
@@ -786,7 +785,6 @@ class Avatar {
       Left_toe: this.legsManager.leftLeg.toe,
       Right_toe: this.legsManager.rightLeg.toe,
 	  };
-    window.modelBoneOutputs = this.modelBoneOutputs;
 
     this.debugMesh = null;
 
@@ -1226,8 +1224,6 @@ class Avatar {
     for (const k in modelBones) {
       const modelBone = modelBones[k];
       const modelBoneOutput = modelBoneOutputs[k];
-      // console.log(111)
-      // window.modelBoneOutput = modelBoneOutput;
 
       modelBone.position.copy(modelBoneOutput.position);
       modelBone.quaternion.multiplyQuaternions(
@@ -1409,7 +1405,6 @@ class Avatar {
     return localEuler.y;
   }
   async setQuality(quality) {
-    console.log({quality}); 
 
     this.model.visible = false;
     if ( this.crunchedModel ) this.crunchedModel.visible = false;
@@ -1503,7 +1498,6 @@ class Avatar {
   }
 
   setVelocity(timestamp, timeDiffS, lastPosition, currentPosition, currentQuaternion, isBoundPlayer) {
-    // console.log('setVelocity')
     // Set the velocity, which will be considered by the animation controller
     const positionDiff = localVector.copy(lastPosition)
       .sub(currentPosition)
@@ -1512,23 +1506,17 @@ class Avatar {
     localEuler.setFromQuaternion(currentQuaternion, 'YXZ');
     localEuler.set(0, -(localEuler.y + Math.PI), 0);
     positionDiff.applyEuler(localEuler);
-    // console.log(positionDiff.x);
     this.calcedVelocity.copy(positionDiff); // For testing only, check if the physics.velocity correct. Can't use this in formal, to calc such as idleWalkFactor/walkRunFactor, will cause aniamtions jitter in low fps.
     this.calcedVelocity.y *= -1;
     if (!isBoundPlayer) {
       this.velocity.copy(this.calcedVelocity);
-      // this.velocity.x *= 1 / 3; // walk speed 2.5 // wrong, don't need modify.SS
-      // this.velocity.z *= 1 / 3; // walk speed 2.5 // wrong, don't need modify.SS
     }
-    // this.velocity.applyEuler(localEuler);
     this.direction.copy(positionDiff).normalize();
     this.lastPosition.copy(currentPosition);
 
     if (this.velocity.length() > maxIdleVelocity) {
       this.lastMoveTime = timestamp;
     }
-    // if (this.velocity.x > 100) debugger
-    // if (this.velocity.x === 2.5) debugger
   }
 
   update(timestamp, timeDiff, isBoundPlayer = true) {
@@ -1549,17 +1537,9 @@ class Avatar {
     }
 
     const currentSpeed = localVector.set(this.velocity.x, 0, this.velocity.z).length();
-    // console.log(this.velocity.x.toFixed(2))
-    // console.log(currentSpeed)
 
     this.idleWalkFactor = Math.min(Math.max((currentSpeed - idleSpeed) / (walkSpeed - idleSpeed), 0), 1);
     this.walkRunFactor = Math.min(Math.max((currentSpeed - walkSpeed) / (runSpeed - walkSpeed), 0), 1);
-    // if (this.idleWalkFactor >= 0.9 && this.walkRunFactor < 1 && this.velocity.x > 0.1) {
-    //   console.log( this.velocity.x)
-    //   debugger
-    // }
-    // console.log(this.walkRunFactor)
-    // console.log(this.idleWalkFactor, this.walkRunFactor)
     this.crouchFactor = Math.min(Math.max(1 - (this.crouchTime / crouchMaxTime), 0), 1);
     // console.log('current speed', currentSpeed, idleWalkFactor, walkRunFactor);
     this.aimRightFactor = this.aimRightTransitionTime / aimTransitionMaxTime;
@@ -1894,7 +1874,6 @@ class Avatar {
 
     const _updateSubAvatars = () => {
       if (this.spriteMegaAvatarMesh) {
-        // debugger
         this.spriteMegaAvatarMesh.update(timestamp, timeDiff, {
           playerAvatar: this,
           camera,
@@ -1964,27 +1943,7 @@ class Avatar {
     if (this.getTopEnabled() || this.getHandEnabled(0) || this.getHandEnabled(1)) {
       _motionControls.call(this)
     }
-
-    const player = window.localPlayer;
-    // const player = window.npcPlayers[0];
-    if (true && player && this === player.avatar) {
-      window.domInfo.innerHTML += `
-        <div style="display:;">actions: --- ${player.getActionsArray().map(n=>n.type)}</div>
-        <div style="display:;">targetMoveDistancePerFrame: --- ${window.logVector3(player.characterPhysics.targetMoveDistancePerFrame)} | ${window.logNum(player.characterPhysics.targetMoveDistancePerFrame.length())} of characterPhysics ( correct )</div>
-        <div style="display:;">targetMoveDistancePerFrame: --- ${window.logVector3(player.characterPhysics.wantMoveDistancePerFrame)} | ${window.logNum(player.characterPhysics.wantMoveDistancePerFrame.length() * 6)} damped ( length * 6 )</div>
-        <div style="display:;">velocity: --- ${window.logVector3(player.characterPhysics.velocity)} | ${window.logNum(player.characterPhysics.velocity.length())} | ${window.logNum(localVector.copy(player.characterPhysics.velocity).setY(0).length())} of characterPhysics</div>
-        <div style="display:;">velocity: --- ${window.logVector3(this.velocity)} | ${window.logNum(this.velocity.length())} | ${window.logNum(localVector.copy(this.velocity).setY(0).length())} of avatar</div>
-        <div style="display:;">velocity: --- ${window.logVector3(this.calcedVelocity)} | ${window.logNum(this.calcedVelocity.length())} | ${window.logNum(localVector.copy(this.calcedVelocity).setY(0).length())} of avatar test</div>
-        <div style="display:;">idleWalkFactor: --- ${window.logNum(this.idleWalkFactor)}</div>
-        <div style="display:;">walkRunFactor: --- ${window.logNum(this.walkRunFactor)}</div>
-        <div style="display:;">avatar.direction: --- ${window.logVector3(this.direction)}</div>
-        <div style="display:;">player.direction: --- ${window.logVector3(player.getWorldDirection(localVector))}</div>
-        <div style="display:;">angle: --- ${window.logNum(this.getAngle())}</div>
-      `
-    }
-    // console.log(player.characterPhysics.velocity.y)
-    // console.log(this.velocity.x.toFixed(2))
-    // console.log('applyAnimation')
+    
     _applyAnimation(this, now);
 
     if (this.poseAnimation) {

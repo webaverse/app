@@ -9,7 +9,7 @@ import {chatManager} from './chat-manager.js';
 import {makeId, createRelativeUrl} from './util.js';
 import { triggerEmote } from './src/components/general/character/Poses.jsx';
 import validEmotionMapping from "./validEmotionMapping.json";
-import { runSpeed, walkSpeed } from './constants.js';
+import {runSpeed, walkSpeed} from './constants.js';
 
 const localVector = new THREE.Vector3();
 
@@ -38,12 +38,6 @@ class NpcManager extends EventTarget {
       detached,
     });
     npcPlayer.name = name;
-
-    if (!window.npcPlayers) {
-      window.npcPlayers = [];
-      window.npcPlayer = npcPlayer;
-    }
-    window.npcPlayers.push(npcPlayer);
 
     let matrixNeedsUpdate = false;
     if (position) {
@@ -181,7 +175,6 @@ class NpcManager extends EventTarget {
                   ),
                   0, runSpeed,
                 );
-                console.log(distance, speed)
                 const velocity = v.normalize().multiplyScalar(speed);
                 npcPlayer.characterPhysics.applyWasd(velocity, timeDiff);
               }

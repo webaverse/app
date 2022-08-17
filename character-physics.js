@@ -100,17 +100,9 @@ class CharacterPhysics {
   }
   /* apply the currently held keys to the character */
   applyWasd(velocity, timeDiff) {
-    // console.log('wasd')
     if (this.character.avatar) {
       this.targetVelocity.copy(velocity);
-      window.domInfo.innerHTML += `<div style="display:;">targetVelocity: --- ${window.logVector3(this.targetVelocity)}</div>`;
-      // window.visKeysDirectionX = keysDirection.x;
-      // this.velocity.add(keysDirection);
       this.targetMoveDistancePerFrame.copy(this.targetVelocity).multiplyScalar(timeDiff / 1000);
-      if (this.character === window.npcPlayer) if (this.targetMoveDistancePerFrame.x !== 0) debugger
-      window.domInfo.innerHTML += `<div style="display:;">targetMoveDistancePerFrame: --- ${window.logVector3(this.targetMoveDistancePerFrame)}</div>`;
-      // console.log(this.velocity.x, this.velocity.z)
-      // window.visVelocityBeforeDampingX = this.velocity.x;
     }
   }
   applyGravity(nowS, timeDiffS) {
@@ -118,7 +110,6 @@ class CharacterPhysics {
       const fallLoopAction = this.character.getAction('fallLoop');
       if (fallLoopAction) {
         if (!this.lastFallLoopAction) {
-          // console.log('start fallLoop')
           this.fallLoopStartTimeS = nowS;
           this.lastGravityH = 0;
           if (fallLoopAction.from === 'jump') {
@@ -126,34 +117,16 @@ class CharacterPhysics {
             const t = flatGroundJumpAirTime / 1000 / 2 + aestheticJumpBias;
             this.fallLoopStartTimeS -= t;
             const previousT = t - timeDiffS;
-            this.lastGravityH = 0.5 * physicsScene.getGravity().y * previousT * previousT; // todo: consider xyz.
+            this.lastGravityH = 0.5 * physicsScene.getGravity().y * previousT * previousT;
           }
         }
         const t = nowS - this.fallLoopStartTimeS;
-        const h = 0.5 * physicsScene.getGravity().y * t * t; // todo: consider xyz.
-        // this.velocity.y += h;
+        const h = 0.5 * physicsScene.getGravity().y * t * t;
         this.wantMoveDistancePerFrame.y = h - this.lastGravityH;
-        // console.log(this.wantMoveDistancePerFrame.y)
-        // debugger
-        // todo: this.wantVelocity.y = ???
 
         this.lastGravityH = h;
       }
       this.lastFallLoopAction = fallLoopAction;
-
-      // if ((this.character.hasAction('jump') || this.character.hasAction('fallLoop')) && !this.character.hasAction('fly') && !this.character.hasAction('swim')) {
-        
-      //   const gravityTargetVelocity = localVector.copy(physicsScene.getGravity());
-      //   const gravityTargetMoveDistancePerFrame = gravityTargetVelocity.multiplyScalar(timeDiffS);
-      //   this.targetVelocity.add(gravityTargetVelocity); // todo: acceleration of gravity.
-      //   this.targetMoveDistancePerFrame.add(gravityTargetMoveDistancePerFrame);
-
-      //   //// move this.applyGravity(timeDiffS); after this.updateVelocity(timeDiffS);
-      //   // const gravityVelocity = localVector.copy(physicsScene.getGravity());
-      //   // const gravityMoveDistancePerFrame = gravityVelocity.multiplyScalar(timeDiffS);
-      //   // this.velocity.add(gravityVelocity); // todo: acceleration of gravity.
-      //   // this.wantMoveDistancePerFrame.add(gravityMoveDistancePerFrame);
-      // }
     // }
   }
   updateVelocity(timeDiffS) {
@@ -161,18 +134,9 @@ class CharacterPhysics {
   }
   applyCharacterPhysicsDetail(velocityAvatarDirection, updateRig, now, timeDiffS) {
     if (this.character.avatar) {
-      // console.log('apply avatar physics', this.character);
       // move character controller
       const minDist = 0;
-      // localVector3.copy(this.velocity) // todo: rename?: this.velocity is not velocity, but move distance per frame now ?
-      // if (this.character === window.npcPlayer) console.log(this.wantMoveDistancePerFrame.x)
-      localVector3.copy(this.wantMoveDistancePerFrame)
-        // .multiplyScalar(timeDiffS);
-        // .multiplyScalar(timeDiffS);
-        // .multiplyScalar(0.016);
-      window.domInfo.innerHTML += `<div style="display:;">localVector3: --- ${window.logVector3(localVector3)}</div>`;
-
-      // console.log('set localVector3')
+      localVector3.copy(this.wantMoveDistancePerFrame);
 
       // aesthetic jump
       const jumpAction = this.character.getAction('jump');
@@ -213,8 +177,6 @@ class CharacterPhysics {
         }
       }
 
-      // console.log('move')
-
       const positionXZBefore = localVector2D.set(this.characterController.position.x, this.characterController.position.z);
       const positionYBefore = this.characterController.position.y;
       const flags = physicsScene.moveCharacterController(
@@ -233,9 +195,6 @@ class CharacterPhysics {
       this.velocity.copy(this.wantVelocity);
       if (wantMoveDistancePerFrameXZLength > 0) { // prevent divide 0, and reduce calculations.
         const movedRatioXZ = (positionXZAfter.sub(positionXZBefore).length()) / wantMoveDistancePerFrameXZLength;
-        // console.log(movedRatioXZ.toFixed(2));
-        // if (this.character === window.npcPlayer) debugger
-        // if (movedRatioXZ < 1) this.velocity.multiplyScalar(movedRatioXZ); // todo: multiply targetVelocity.
         if (movedRatioXZ < 1) {
           this.velocity.x *= movedRatioXZ;
           this.velocity.z *= movedRatioXZ;
@@ -243,7 +202,6 @@ class CharacterPhysics {
       }
       if (wantMoveDistancePerFrameYLength > 0) { // prevent divide 0, and reduce calculations.
         const movedRatioY = (positionYAfter - positionYBefore) / wantMoveDistancePerFrameYLength;
-        // console.log(movedRatioY)
         if (movedRatioY < 1) {
           this.velocity.y *= movedRatioY;
         }
@@ -435,56 +393,18 @@ class CharacterPhysics {
   /* dampen the velocity to make physical sense for the current avatar state */
   applyVelocityDamping(velocity, timeDiffS) {
     const doDamping = (factor) => {
-      // console.log('damping')
-      // const factor = getVelocityDampingFactor(groundFriction, timeDiff);
-      // // const factor = getVelocityDampingFactor(window.aaa, timeDiff);
-      // this.wantMoveDistancePerFrame.x = this.wantMoveDistancePerFrame.x * factor;
-      // this.wantMoveDistancePerFrame.z = this.wantMoveDistancePerFrame.z * factor;
-
       this.wantMoveDistancePerFrame.x = THREE.MathUtils.damp(this.wantMoveDistancePerFrame.x, this.lastTargetMoveDistancePerFrame.x, factor, timeDiffS);
       this.wantMoveDistancePerFrame.z = THREE.MathUtils.damp(this.wantMoveDistancePerFrame.z, this.lastTargetMoveDistancePerFrame.z, factor, timeDiffS);
-      // this.wantMoveDistancePerFrame.y = THREE.MathUtils.damp(this.wantMoveDistancePerFrame.y, this.lastTargetMoveDistancePerFrame.y, factor, timeDiffS);
       this.wantMoveDistancePerFrame.y = this.targetMoveDistancePerFrame.y;
-      // if (this.targetMoveDistancePerFrame.x > 0) debugger
-      // if (this.character === window.npcPlayer) if (this.wantMoveDistancePerFrame.x !== 0) debugger
 
       this.wantVelocity.x = THREE.MathUtils.damp(this.wantVelocity.x, this.lastTargetVelocity.x, factor, timeDiffS);
       this.wantVelocity.z = THREE.MathUtils.damp(this.wantVelocity.z, this.lastTargetVelocity.z, factor, timeDiffS);
-      // this.wantVelocity.y = THREE.MathUtils.damp(this.wantVelocity.y, this.lastTargetVelocity.y, factor, timeDiffS);
       this.wantVelocity.y = this.targetVelocity.y;
-      // this.velocity.x = this.targetVelocity.x;
-      // this.velocity.z = this.targetVelocity.z;
-
-      // const testMoveDistancePerFrameX = this.velocity.x * timeDiffS;
-      // const testMoveDistancePerFrameZ = this.velocity.z * timeDiffS;
-      // const testMoveDistancePerFrameY = this.velocity.y * timeDiffS;
-
-      // console.log(
-      //   // this.wantMoveDistancePerFrame.x === testMoveDistancePerFrameX ? 0 : (this.wantMoveDistancePerFrame.x > testMoveDistancePerFrameX ? 1 : 2),
-      //   // Math.abs(this.wantMoveDistancePerFrame.x - testMoveDistancePerFrameX) < 1e-6 ? 0 : Math.abs(this.wantMoveDistancePerFrame.x - testMoveDistancePerFrameX),
-      //   Math.abs(this.wantMoveDistancePerFrame.x - testMoveDistancePerFrameX) < 1e-6 ? 0 : (this.wantMoveDistancePerFrame.x > testMoveDistancePerFrameX ? 1 : 2),
-      //   // '-',
-      //   // this.wantMoveDistancePerFrame.z, testMoveDistancePerFrameZ,
-      //   // '-',
-      //   // this.wantMoveDistancePerFrame.y, testMoveDistancePerFrameY,
-      // )
-
-      // console.log('damping')
-
-      // this.velocity.copy(this.lastTargetMoveDistancePerFrame).divideScalar(timeDiffS)
-      // console.log(Math.round(this.velocity.length()))
-
-      // this.velocity.copy(this.wantMoveDistancePerFrame).divideScalar(timeDiffS)
-      // console.log((this.velocity.length()))
     }
     if (this.character.hasAction('fly')) {
-      // const factor = getVelocityDampingFactor(flyFriction, timeDiff);
-      // velocity.multiplyScalar(factor);
       doDamping(flyFriction);
     } 
     else if(this.character.hasAction('swim')){
-      // const factor = getVelocityDampingFactor(swimFriction, timeDiff);
-      // velocity.multiplyScalar(factor);
       doDamping(swimFriction);
     }
     else {
@@ -715,7 +635,6 @@ class CharacterPhysics {
     this.applyCharacterPhysics(now, timeDiffS);
     this.applyCharacterActionKinematics(now, timeDiffS);
 
-    // console.log('update end')
     this.lastTargetVelocity.copy(this.targetVelocity);
     this.lastTargetMoveDistancePerFrame.copy(this.targetMoveDistancePerFrame);
   }

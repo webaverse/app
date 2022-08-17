@@ -478,7 +478,6 @@ class SpriteMegaAvatarMesh extends THREE.Mesh {
     playerAvatar: avatar,
     camera,
   }) {
-    // const velocityScaleFactor = 10; // because avatars multiply velocity by 0.1
     const velocityScaleFactor = 1;
 
     if (preview) {
@@ -623,7 +622,6 @@ class SpriteMegaAvatarMesh extends THREE.Mesh {
           }
         } else if (spriteSpecBaseName === 'run') {
           if (playerSide === 'forward') {
-            // debugger
             return 'run';
           } else if (playerSide === 'backward') {
             return 'run backward';
@@ -637,11 +635,7 @@ class SpriteMegaAvatarMesh extends THREE.Mesh {
         throw new Error('unhandled case');
       }
     })();
-    // if (spriteSpecName === 'run') debugger
-    // console.log(spriteSpecName, avatar.velocity.x.toFixed(2))
-    console.log(spriteSpecName, window.logVector3(avatar.velocity))
     this.setTexture(spriteSpecName);
-    // console.log(spriteSpecName)
 
     if (spriteSpecName !== this.lastSpriteSpecName) {
       this.lastSpriteSpecName = spriteSpecName;
@@ -811,7 +805,6 @@ const getSpriteSpecs = () => {
           return {
             reset() {},
             update(timestamp, timeDiffMs) {
-              // debugger
               positionOffset -= walkSpeed/1000 * timeDiffMs;
     
               const euler = new THREE.Euler(0, angle, 0, 'YXZ');
@@ -1549,7 +1542,6 @@ const _renderSpriteImages = skinnedVrm => {
   const {renderer, scene} = metaversefile.useInternals();
   const pixelRatio = renderer.getPixelRatio();
   const _renderSpriteFrame = () => {
-    // console.log('_renderSpriteFrame');
     const oldParent = skinnedModel.parent;
     scene2.add(skinnedModel);
 
@@ -1577,7 +1569,6 @@ const _renderSpriteImages = skinnedVrm => {
   };
 
   const spriteSpecs = getSpriteSpecs();
-  console.log('getSpriteSpecs()');
   let canvasIndex2 = 0;
   const spriteImages = [];
   // console.time('render');

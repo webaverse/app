@@ -1641,7 +1641,7 @@ class GameManager extends EventTarget {
     }
     const localPlayer = playersManager.getLocalPlayer();
     const sprintMultiplier = isRunning ?
-      (localPlayer.hasAction('narutoRun') ? 20 : 3) // todo: Use constants: narutoRunSpeed, runSpeed.
+      (localPlayer.hasAction('narutoRun') ? 20 : 3)
     :
     ((isSwimming && !isFlying) ? 5 - localPlayer.getAction('swim').swimDamping : 1);
     speed *= sprintMultiplier;

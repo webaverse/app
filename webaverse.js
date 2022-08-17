@@ -297,15 +297,10 @@ export default class Webaverse extends EventTarget {
     const animate = (timestamp, frame) => {
       performanceTracker.startFrame();
 
-      window.domInfo.innerHTML = '';
-      window.isDebugger = false;
-      // console.log('---animate')
-
       const _frame = () => {
         timestamp = timestamp ?? performance.now();
         const timeDiff = timestamp - lastTimestamp;
         const timeDiffCapped = Math.min(Math.max(timeDiff, 0), 100);
-        // const timeDiffCapped = timeDiff;
 
         performanceTracker.setGpuPrefix('pre');
         const _pre = () => {
@@ -399,23 +394,6 @@ const _startHacks = webaverse => {
     }
   });
 
-  window.localPlayer = localPlayer;
-  window.THREE = THREE;
-  window.physicsManager = physicsManager;
-  window.physx = physx;
-  window.metaversefileApi = metaversefileApi;
-  window.rootScene = rootScene;
-  window.scene = scene;
-  window.loadoutManager = loadoutManager;
-  window.game = game;
-  window.cameraManager = cameraManager;
-  window.camera = camera;
-  window.ioManager = ioManager;
-  
-  window.isDebugger = false;
-
-  window.aaa = 100;
-  
   // let playerDiorama = null;
   const lastEmotionKey = {
     key: -1,

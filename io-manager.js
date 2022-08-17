@@ -255,14 +255,8 @@ const _updateIo = timeDiff => {
       }
       ioManager.lastCtrlKey = ioManager.keys.ctrl;
     }
-    window.domInfo.innerHTML += `<div style="display:;">keysDirection: --- ${window.logVector3(keysDirection)}</div>`;
-    if (/* keysDirection.length() > 0 &&  */physicsScene.getPhysicsEnabled() && movementEnabled) {
-      window.isDebugger = true;
-      window.visSpeed = game.getSpeed();
-      window.visTimeDiff = timeDiff;
-      if (!window.visStartTime) window.visStartTime = performance.now();
+    if (physicsScene.getPhysicsEnabled() && movementEnabled) {
       const speed = game.getSpeed();
-      window.domInfo.innerHTML += `<div style="display:;">speed: --- ${window.logNum(speed)}</div>`;
       const velocity = keysDirection.normalize().multiplyScalar(speed);
       localPlayer.characterPhysics.applyWasd(velocity, timeDiff);
     }

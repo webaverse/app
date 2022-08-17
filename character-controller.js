@@ -1016,7 +1016,6 @@ class UninterpolatedPlayer extends StatePlayer {
 }
 class LocalPlayer extends UninterpolatedPlayer {
   constructor(opts) {
-    console.log('LocalPlayer');
     super(opts);
 
     this.isLocalPlayer = !opts.npc;
