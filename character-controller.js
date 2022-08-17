@@ -48,7 +48,7 @@ import {
 } from './ai/lore/lore-model.js';
 // import * as sounds from './sounds.js';
 import musicManager from './music-manager.js';
-import {makeId, clone, unFrustumCull, enableShadows} from './util.js';
+import {makeId, clone} from './util.js';
 import overrides from './overrides.js';
 // import * as voices from './voices.js';
 
@@ -1056,6 +1056,10 @@ class LocalPlayer extends UninterpolatedPlayer {
 
     await p;
   }
+  getAvatarApp() {
+    const instanceId = this.playerMap.get('avatar');
+    return this.appManager.getAppByInstanceId(instanceId);
+  }
   setAvatarApp(app) {
     this.#setAvatarAppFromOwnAppManager(app);
   }
@@ -1069,10 +1073,6 @@ class LocalPlayer extends UninterpolatedPlayer {
     }
     this.#setAvatarAppFromOwnAppManager(avatarApp);
   }
-  getAvatarApp() {
-    const instanceId = this.playerMap.get('avatar');
-    return this.appManager.getAppByInstanceId(instanceId);
-  }
   /* importAvatarApp(app, srcAppManager) {
     srcAppManager.transplantApp(app, this.appManager);
     this.#setAvatarAppFromOwnAppManager(app);
@@ -1081,10 +1081,10 @@ class LocalPlayer extends UninterpolatedPlayer {
     const self = this;
     this.playersArray.doc.transact(function tx() {
       const oldInstanceId = self.playerMap.get('avatar');
-      if(app.instanceId){
+      if (app.instanceId){
         self.playerMap.set('avatar', app.instanceId);
       } else {
-        throw new Error('app.instanceId is null');
+        throw new Error('app.instanceId is invalid');
       }
 
       if (oldInstanceId) {
