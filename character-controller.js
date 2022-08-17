@@ -1044,7 +1044,7 @@ class LocalPlayer extends UninterpolatedPlayer {
 
     this.isLocalPlayer = !opts.npc;
     this.isNpcPlayer = !!opts.npc;
-    this.detached = !!opts.detached;
+    this.detached = opts.detached ?? false;
 
     this.characterPhysics = new CharacterPhysics(this);
   }
