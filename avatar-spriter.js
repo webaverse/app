@@ -1540,7 +1540,7 @@ export const renderSpriteImages = async (arrayBuffer, srcUrl) => {
   const avatarRenderer = new AvatarRenderer({
     arrayBuffer,
     srcUrl,
-    camera: camera2,
+    // camera: camera2, // do not frustum cull
     quality: maxAvatarQuality,
   });
   await avatarRenderer.waitForLoad();
