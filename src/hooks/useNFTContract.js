@@ -162,44 +162,133 @@ export default function useNFTContract(currentAccount) {
     }
   }
 
-  async function mintfromVoucher(app, previewImage = 'testimageurl', callback = () => {}) {
+  async function mintfromVoucher(app, callback = () => {}) { //server drop
     setMinting(true);
     setError('');
-    try {
-      const signer = await getSigner();
-      const webaverseContract = new ethers.Contract(WebaversecontractAddress, WebaverseABI, signer);
-      const FTcontract = new ethers.Contract(FTcontractAddress, FTABI, signer);
-
-      const bigMintFee = await webaverseContract.mintFee();
-      const mintfee = BigNumber.from(bigMintFee).toNumber();
-      if (mintfee > 0) { // webaverse side chain mintfee != 0
-        const FTapprovetx = await FTcontract.approve(NFTcontractAddress, mintfee); // mintfee = 10 default
-        const FTapproveres = await FTapprovetx.wait();
-        if (FTapproveres.transactionHash) {
-          try {
-            const res = await webaverseContract.claimServerDrop(currentAccount, app.name, app.level.toString(), '0x', app.voucher);
-            callback(res);
-          } catch (err) {
-            console.warn('minting to webaverse contract failed');
-            setError('Mint Failed');
-          }
-        }
-      } else { // mintfee = 0 for Polygon not webaverse sidechain
-        console.log("aa", app.name, app.level)
+    if(app.type === "major") {
         try {
-          const res = await webaverseContract.claimServerDrop(currentAccount, app.name, app.level.toString(), '0x', app.voucher);
-          callback(res);
+        const signer = await getSigner();
+        const webaverseContract = new ethers.Contract(
+            WebaversecontractAddress,
+            WebaverseABI,
+            signer
+        );
+        const FTcontract = new ethers.Contract(FTcontractAddress, FTABI, signer);
+
+        const bigMintFee = await webaverseContract.mintFee();
+        const mintfee = BigNumber.from(bigMintFee).toNumber();
+        if (mintfee > 0) {
+            // webaverse side chain mintfee != 0
+            const FTapprovetx = await FTcontract.approve(
+            WebaversecontractAddress,
+            mintfee
+            ); // mintfee = 10 default
+            const FTapproveres = await FTapprovetx.wait();
+            if (FTapproveres.transactionHash) {
+                if(app.serverDrop === true) {
+                    try {
+                    const res = await webaverseContract.claimServerDropNFT(
+                        currentAccount,
+                        app.name,
+                        app.level.toString(),
+                        "0x",
+                        app.voucher
+                    );
+                    callback(res);
+                    } catch (err) {
+                    console.warn("NFT minting to webaverse contract failed");
+                    setError("NFT Mint Failed");
+                    }
+                } else {
+                    try {
+                    const res = await webaverseContract.claim_NFT(
+                        currentAccount,
+                        "0x",
+                        app.voucher
+                    );
+                    callback(res);
+                    } catch (err) {
+                    console.warn("NFT claiming to webaverse contract failed");
+                    setError("NFT Mint Failed");
+                    }
+                }
+            }
+        } else {
+            if (app.serverDrop === true) {
+                try {
+                const res = await webaverseContract.claimServerDropNFT(
+                    currentAccount,
+                    app.name,
+                    app.level.toString(),
+                    "0x",
+                    app.voucher
+                );
+                callback(res);
+                } catch (err) {
+                console.warn("NFT minting to webaverse contract failed");
+                setError("NFT Mint Failed");
+                }
+            } else {
+                try {
+                const res = await webaverseContract.claim_NFT(
+                    currentAccount,
+                    "0x",
+                    app.voucher
+                );
+                callback(res);
+                } catch (err) {
+                console.warn("NFT claiming to webaverse contract failed");
+                setError("NFT Mint Failed");
+                }
+            }
+            }
+        setMinting(false);
         } catch (err) {
-          console.warn('minting to webaverse contract failed');
-          setError('Mint Failed');
+        console.warn("NFT minting to webaverse contract failed");
+        setError("NFT Mint Failed");
+        setMinting(false);
         }
-      }
-      setMinting(false);
-    } catch (err) {
-      console.warn('minting to webaverse contract failed');
-      setError('Mint Failed');
-      setMinting(false);
     }
+    if (app.type === "minor") {
+        try {
+            const signer = await getSigner();
+            const webaverseContract = new ethers.Contract(
+            WebaversecontractAddress,
+            WebaverseABI,
+            signer
+            );
+
+            if (app.serverDrop === true) {
+            try {
+                const res = await webaverseContract.claimServerDropFT(
+                currentAccount,
+                app.voucher
+                );
+                callback(res);
+            } catch (err) {
+                console.warn("FT minting to webaverse contract failed");
+                setError("Mint Failed");
+            }
+            } else {
+            try {
+                const res = await webaverseContract.claim_FT(
+                currentAccount,
+                app.voucher
+                );
+                callback(res);
+            } catch (err) {
+                console.warn("FT claiming to webaverse contract failed");
+                setError("Mint Failed");
+            }
+            }
+            setMinting(false);
+        } catch (err) {
+            console.warn("FT minting to webaverse contract failed");
+            setError("FT Failed");
+            setMinting(false);
+        }
+    }
+
   }
 
   async function totalSupply() {

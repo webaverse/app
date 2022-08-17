@@ -300,12 +300,12 @@ export const Equipment = () => {
     const { state, account } = useContext( AppContext );
     const [ hoverObject, setHoverObject ] = useState(null);
     const [ selectObject, setSelectObject ] = useState(null);
-    const [inventoryObject, setInventoryObject] = useState([]);
+    const [ inventoryObject, setInventoryObject ] = useState([]);
     const [ faceIndex, setFaceIndex ] = useState(1);
     const { selectedChain, supportedChain } = useContext(ChainContext)
     const { getTokens, mintfromVoucher } = useNFTContract(account.currentAddress);
     const [ claims, setClaims ] = useState([]);
-    const [nfts, setNfts] = useState(null);
+    const [ nfts, setNfts ] = useState(null);
 
     const [ cachedLoader, setCachedLoader ] = useState(() => new CachedLoader({
         async loadFn(url, value, {signal}) {            
@@ -419,6 +419,7 @@ export const Equipment = () => {
     };
 
     const mintClaim = (e) => {
+        console.log("mintfomrddd",e)
         mintfromVoucher(e);
     }
     const selectClassName = styles[`select-${selectedMenuIndex}`];

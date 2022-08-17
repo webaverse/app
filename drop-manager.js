@@ -27,12 +27,17 @@ class DropManager extends EventTarget {
     angularVelocity = new THREE.Vector3(0, 0.001, 0),
     voucher = 'fakeVoucher', // XXX should really throw if no voucher
   }) {
-    if(voucher == 'fakeVoucher') voucher = await getVoucherFromServer(components[1].value); //current components[0] => name. components[1] => url
+    let serverDrop = false;
+    if(voucher == 'fakeVoucher') {
+        voucher = await getVoucherFromServer(components[1].value); //current components[0] => name. components[1] => url
+        serverDrop = true;
+    }
     // const r = () => (-0.5+Math.random())*2;
     const dropComponent = {
       key: 'drop',
       value: {
         type,
+        serverDrop,
         voucher,
         velocity: velocity.toArray(),
         angularVelocity: angularVelocity.toArray(),
@@ -53,7 +58,7 @@ class DropManager extends EventTarget {
     );
     return trackedApp;
   }
-  addClaim(name, type, contentId, voucher) {
+  addClaim(name, type, serverDrop, contentId, voucher) {
     const result = generateStats(contentId);
     const {/*art, */stats} = result;
     const {level} = stats;
@@ -61,6 +66,7 @@ class DropManager extends EventTarget {
     const claim = {
       name,
       type,
+      serverDrop,
       start_url,
       level,
       voucher,
@@ -75,7 +81,7 @@ class DropManager extends EventTarget {
   }
   pickupApp(app) {
     console.log("pcikyo", app)
-    this.addClaim(app.name, app.type, app.contentId, app.getComponent('voucher'));
+    this.addClaim(app.name, app.type, app.getComponent('drop').serverDrop, app.contentId, app.getComponent('voucher'));
   }
   dropToken(contractAddress, tokenId, voucher) {
     // XXX engine implements this
