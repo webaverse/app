@@ -7,7 +7,7 @@ import * as avatarCruncher from '../avatar-cruncher.js';
 import * as avatarSpriter from '../avatar-spriter.js';
 import offscreenEngineManager from '../offscreen-engine-manager.js';
 import loaders from '../loaders.js';
-import {camera} from '../renderer.js';
+// import {camera} from '../renderer.js';
 import {WebaverseShaderMaterial} from '../materials.js';
 // import exporters from '../exporters.js';
 import {abortError} from '../lock-manager.js';
@@ -342,7 +342,7 @@ export class AvatarRenderer /* extends EventTarget */ {
   constructor({
     arrayBuffer,
     srcUrl,
-    camera,
+    camera = null, // if null, do not frustum cull
     quality = defaultAvatarQuality,
   } = {})	{
     // super();
