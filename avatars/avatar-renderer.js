@@ -815,25 +815,12 @@ export class AvatarRenderer /* extends EventTarget */ {
     }
   }
   update(timestamp, timeDiff, avatar) {
-    localMatrix.makeTranslation(
-      avatar.inputs.hmd.position.x,
-      avatar.inputs.hmd.position.y - this.height / 2,
-      avatar.inputs.hmd.position.z
-    );
-
-    // XXX this can be optimized by initializing the frustum only once per frame and passing it in
-    const projScreenMatrix = localMatrix2.multiplyMatrices(
-      this.camera.projectionMatrix,
-      this.camera.matrixWorldInverse
-    );
-    localFrustum.setFromProjectionMatrix(projScreenMatrix);
-    
+    this.#updatePlaceholder(timestamp, timeDiff, avatar);
     this.#updateAvatar(timestamp, timeDiff, avatar);
-    this.#updateFrustumCull(localMatrix, localFrustum);
+    this.#updateFrustumCull(avatar);
   }
-  #updateAvatar(timestamp, timeDiff, avatar) {
-    // update placeholder
-    {
+  #updatePlaceholder(timestamp, timeDiff, avatar) {
+    if (this.camera) {
       this.placeholderMesh.position.copy(avatar.inputs.hmd.position);
       // this.placeholderMesh.position.y -= avatar.height;
 
@@ -844,7 +831,7 @@ export class AvatarRenderer /* extends EventTarget */ {
             this.placeholderMesh.position,
             localVector2.set(0, 1, 0)
           )
-        )
+        );
       localEuler.setFromQuaternion(localQuaternion, 'YXZ');
       localEuler.x = 0;
       localEuler.z = 0;
@@ -853,21 +840,39 @@ export class AvatarRenderer /* extends EventTarget */ {
 
       this.placeholderMesh.update(timestamp);
     }
-
-    // update avatar
-    const currentMesh = this.#getCurrentMesh();
-    if (currentMesh && currentMesh === this.spriteAvatarMesh) {
-      this.spriteAvatarMesh.update(timestamp, timeDiff, avatar, this.camera);
+  }
+  #updateAvatar(timestamp, timeDiff, avatar) {
+    if (this.camera) {
+      const currentMesh = this.#getCurrentMesh();
+      if (currentMesh && currentMesh === this.spriteAvatarMesh) {
+        this.spriteAvatarMesh.update(timestamp, timeDiff, avatar, this.camera);
+      }
     }
   }
-  #updateFrustumCull(matrix, frustum) {
-    const currentMesh = this.#getCurrentMesh();
-    if (currentMesh) {
-      const boundingSphere = localSphere.copy(currentMesh.boundingSphere)
-        .applyMatrix4(matrix);
+  #updateFrustumCull(avatar) {
+    if (this.camera) {
+      const currentMesh = this.#getCurrentMesh();
+      if (currentMesh) {
+        // XXX this can be optimized by initializing the frustum only once per frame and passing it in
+        const projScreenMatrix = localMatrix2.multiplyMatrices(
+          this.camera.projectionMatrix,
+          this.camera.matrixWorldInverse
+        );
+        localFrustum.setFromProjectionMatrix(projScreenMatrix);
 
-      const inFrustum = frustum.intersectsSphere(boundingSphere);
-      this.scene.visible = inFrustum;
+        localMatrix.makeTranslation(
+          avatar.inputs.hmd.position.x,
+          avatar.inputs.hmd.position.y - this.height / 2,
+          avatar.inputs.hmd.position.z
+        );
+        const boundingSphere = localSphere.copy(currentMesh.boundingSphere)
+          .applyMatrix4(localMatrix);
+        this.scene.visible = localFrustum.intersectsSphere(boundingSphere);
+      } else {
+        this.scene.visible = true;
+      }
+    } else {
+      this.scene.visible = true;
     }
   }
   waitForLoad() {
