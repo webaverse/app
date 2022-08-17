@@ -21,6 +21,7 @@ const localVector6 = new THREE.Vector3();
 // const localQuaternion3 = new THREE.Quaternion();
 const localMatrix = new THREE.Matrix4();
 const localMatrix2 = new THREE.Matrix4();
+const zeroFog = new THREE.FogExp2(new THREE.Color(0,0,0));
 
 export function jsonParse(s, d = null) {
   try {
@@ -208,7 +209,7 @@ export class WaitQueue {
 
 export function pushFog(scene) {
   const fog = scene.fog;
-  scene.fog = new THREE.FogExp2(new THREE.Color(0,0,0));
+  scene.fog = zeroFog;
   return () => {
     scene.fog = fog;
   };
