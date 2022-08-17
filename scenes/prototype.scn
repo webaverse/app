@@ -63,6 +63,9 @@
       "physics": true,
       "start_url": "https://webaverse.github.io/proto-sandbox/",
       "dynamic": false
+    },
+    {
+      "start_url": "../metaverse_modules/rain"
     }
   ]
 }
