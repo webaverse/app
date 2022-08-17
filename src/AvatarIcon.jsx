@@ -24,9 +24,7 @@ const CharacterIcon = () => {
   const [loaded, setLoaded] = useState(false);
   const canvasRef = useRef();
 
-  useEffect(() => {
-    return;
-    
+  useEffect(() => {    
     const canvas = canvasRef.current;
     if (canvas) {
       const localPlayer = playersManager.getLocalPlayer();
