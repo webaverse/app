@@ -88,14 +88,12 @@ export const screenshotPlayer = async ({
   const _updateTarget = (timestamp, timeDiff) => {
     const neckPosition = localVector.setFromMatrixPosition(player.avatar.modelBones.Head.savedMatrixWorld);
     let headHeight = player.avatar.avatarHighestPos - neckPosition.y;
-    console.log('head height: ', headHeight, player.avatar.shoulderWidth)
-    const max = headHeight > player.avatar.shoulderWidth ? headHeight : player.avatar.shoulderWidth;
+    const max = headHeight > player.avatar.shoulderWidth ? headHeight : player.avatar.shoulderWidth; // check whether head width is bigger than head height
     let cameraZ = max / (2 * Math.atan((Math.PI * 50) / 360));
-    const headRatio = headHeight / player.avatar.avatarHighestPos;
-    const offset = 1.25;
+    const offset = 1.2;
     cameraZ *= offset; //multiply offset so that avatar does't fill the icon
     cameraOffset.z = -cameraZ;
-    cameraOffset.y = headHeight * 0.35;
+    cameraOffset.y = headHeight * 0.3;
 
     target.matrixWorld.copy(player.avatar.modelBones.Head.matrixWorld)
       .decompose(target.position, target.quaternion, target.scale);
