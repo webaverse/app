@@ -550,11 +550,11 @@ export async function contentIdToFile(contentId) {
   }
 }
 
-export const addDefaultLights = (scene, { shadowMap = false } = {}) => {
-  const ambientLight = new THREE.AmbientLight(0xffffff, 2);
+export const addDefaultLights = (scene/*, { shadowMap = false } = {} */) => {
+  const ambientLight = new THREE.AmbientLight(0xffffff, 1);
   scene.add(ambientLight);
   scene.ambientLight = ambientLight;
-  const directionalLight = new THREE.DirectionalLight(0xffffff, 2);
+  const directionalLight = new THREE.DirectionalLight(0xffffff, 3);
   directionalLight.position.set(1, 2, 3);
   scene.add(directionalLight);
   scene.directionalLight = directionalLight;
