@@ -3,7 +3,6 @@ import {getRenderer, scene} from './renderer.js';
 // import * as BufferGeometryUtils from 'three/examples/jsm/utils/BufferGeometryUtils.js';
 // import {world} from './world.js';
 import {fitCameraToBoundingBox} from './util.js';
-import {WebaverseScene} from './webaverse-scene.js';
 // import {Text} from 'troika-three-text';
 // import {defaultDioramaSize} from './constants.js';
 // import postProcessing from './post-processing.js';
@@ -31,7 +30,7 @@ const _addPreviewLights = scene => {
   scene.add(directionalLight);
 };
 
-const sideScene = new WebaverseScene();
+const sideScene = new THREE.Scene();
 sideScene.autoUpdate = false;
 _addPreviewLights(sideScene);
 const sideCamera = new THREE.PerspectiveCamera();

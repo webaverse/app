@@ -2,7 +2,6 @@ import * as THREE from 'three';
 // import {world} from './world.js';
 import {getRenderer} from './renderer.js';
 import easing from './easing.js';
-import {WebaverseScene} from './webaverse-scene.js';
 // import {createObjectSprite} from './object-spriter.js';
 
 const cubicBezier = easing(0, 1, 0, 1);
@@ -290,7 +289,7 @@ const localVector2D = new THREE.Vector2();
 const localVector4D = new THREE.Vector4();
 
 const _makeLoadoutRendererScene = () => {
-  const scene = new WebaverseScene();
+  const scene = new THREE.Scene();
 
   const fullScreenQuadMesh = new THREE.Mesh(
     new THREE.PlaneBufferGeometry(2, 2),

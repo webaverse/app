@@ -1,6 +1,5 @@
 import * as THREE from 'three';
 import {getRenderer} from './renderer.js';
-import {WebaverseScene} from './webaverse-scene.js';
 
 //
 
@@ -28,7 +27,7 @@ const _addPreviewLights = scene => {
   scene.add(directionalLight);
 };
 
-const sideScene = new WebaverseScene();
+const sideScene = new THREE.Scene();
 sideScene.autoUpdate = false;
 _addPreviewLights(sideScene);
 const sideCamera = new THREE.PerspectiveCamera(fov);

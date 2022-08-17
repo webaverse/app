@@ -6,7 +6,6 @@ import {WebaverseShaderMaterial} from './materials.js';
 import renderSettingsManager from './rendersettings-manager.js';
 import {snapshotMapChunk} from './scene-cruncher.js';
 import metaversefile from 'metaversefile';
-import {WebaverseScene} from './webaverse-scene.js';
 
 const resolution = 2048;
 const worldSize = 10000;
@@ -132,7 +131,7 @@ class ScenePreviewer extends THREE.Object3D {
     this.size = size;
     this.enterNormals = enterNormals;
 
-    const previewScene = new WebaverseScene();
+    const previewScene = new THREE.Scene();
     previewScene.name = 'previewScene';
     previewScene.autoUpdate = false;
     this.previewScene = previewScene;

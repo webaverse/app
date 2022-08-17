@@ -1,12 +1,11 @@
 import * as THREE from 'three';
 import {getRenderer} from './renderer.js';
 import renderSettingsManager from './rendersettings-manager.js';
-import {WebaverseScene} from './webaverse-scene.js';
 
 const localVector4D = new THREE.Vector4();
 const localColor = new THREE.Color();
 
-const sideScene = new WebaverseScene();
+const sideScene = new THREE.Scene();
 sideScene.autoUpdate = false;
 
 export function screenshotScene(scene, camera, width, height, ctx) {
