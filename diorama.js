@@ -3,7 +3,6 @@ import {getRenderer} from './renderer.js';
 import * as BufferGeometryUtils from 'three/examples/jsm/utils/BufferGeometryUtils.js';
 // import {world} from './world.js';
 // import {fitCameraToBoundingBox} from './util.js';
-import {pushFog} from './util.js';
 import {Text} from 'troika-three-text';
 // import {defaultDioramaSize} from './constants.js';
 import {fullscreenGeometry} from './background-fx/common.js';
@@ -707,9 +706,7 @@ const createPlayerDiorama = ({
         renderer.setRenderTarget(outlineRenderTarget);
         renderer.setClearColor(0x000000, 0);
         renderer.clear();
-        const popFog = pushFog(outlineRenderScene);
         renderer.render(outlineRenderScene, sideCamera);
-        popFog();
         
         // set up side scene
         _addObjectsToScene(sideScene);
@@ -821,9 +818,7 @@ const createPlayerDiorama = ({
             renderer.setClearColor(clearColor, clearAlpha);
           }
           renderer.clear();
-          const popFog = pushFog(sideScene);
           renderer.render(sideScene, sideCamera);
-          popFog();
         };
         _render();
         const _copyFrame = () => {

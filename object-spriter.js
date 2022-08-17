@@ -2,7 +2,7 @@ import * as THREE from 'three';
 import {getRenderer, scene} from './renderer.js';
 // import * as BufferGeometryUtils from 'three/examples/jsm/utils/BufferGeometryUtils.js';
 // import {world} from './world.js';
-import {fitCameraToBoundingBox, pushFog} from './util.js';
+import {fitCameraToBoundingBox} from './util.js';
 // import {Text} from 'troika-three-text';
 // import {defaultDioramaSize} from './constants.js';
 // import postProcessing from './post-processing.js';
@@ -126,9 +126,7 @@ const createObjectSpriteInternal = (app, {
       
       // render side scene
       renderer.setViewport(x*frameSize, y*frameSize, frameSize, frameSize);
-      const popFog = pushFog(sideScene);
       renderer.render(sideScene, sideCamera);
-      popFog();
     }
 
     if (originalParent) {

@@ -2,7 +2,6 @@ import * as THREE from 'three';
 // import {world} from './world.js';
 import {getRenderer} from './renderer.js';
 import easing from './easing.js';
-import { pushFog } from './util.js';
 // import {createObjectSprite} from './object-spriter.js';
 
 const cubicBezier = easing(0, 1, 0, 1);
@@ -436,9 +435,7 @@ class LoadoutRenderer {
 
           renderer.setViewport(0, 0, this.width, this.height);
           renderer.clear();
-          const popFog = pushFog(this.scene);
           renderer.render(this.scene, this.camera);
-          popFog();
         }
 
         // pop old state

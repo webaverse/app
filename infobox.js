@@ -1,7 +1,6 @@
 import * as THREE from 'three';
 // import {world} from './world.js';
 import {getRenderer} from './renderer.js';
-import { pushFog } from './util.js';
 // import easing from './easing.js';
 // import {createObjectSprite} from './object-spriter.js';
 
@@ -314,9 +313,7 @@ class InfoboxRenderer {
 
         renderer.setViewport(0, 0, this.width, this.height);
         renderer.clear();
-        const popFog = pushFog(this.scene);
         renderer.render(this.scene, this.camera);
-        popFog();
       }
 
       // pop old state

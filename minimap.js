@@ -9,7 +9,7 @@ import {
   camera,
 } from './renderer.js';
 import universe from './universe.js';
-import {pushFog, waitForFrame} from './util.js';
+import {waitForFrame} from './util.js';
 import metaversefileApi from 'metaversefile';
 
 const localVector = new THREE.Vector3();
@@ -359,9 +359,7 @@ class MiniMap {
       this.topCamera.updateMatrixWorld();
       
       renderer.setViewport((dx+1) * this.width/3, (-dy+1) * this.height/3, this.width/3, this.height/3);
-      const popFog = pushFog(rootScene);
       renderer.render(rootScene, this.topCamera);
-      popFog();
     };
     const _copy = (srcRenderTarget, px, py, dx, dy) => {
       // set up copy scene
@@ -371,9 +369,7 @@ class MiniMap {
       this.copyScene.fullScreenQuadMesh.material.uniforms.uTex.needsUpdate = true;
 
       renderer.setViewport((dx+1) * this.width/3, (-dy+1) * this.height/3, this.width/3, this.height/3);
-      const popFog = pushFog(this.copyScene);
       renderer.render(this.copyScene, this.topCamera);
-      popFog();
     };
     const _swapBuffers = () => {
       const tempRenderTarget = this.mapRenderTarget;
@@ -512,9 +508,7 @@ class MiniMap {
       this.camera.updateMatrixWorld();
       this.camera.setRadiusFactor(speedFactor);
       
-      const popFog = pushFog(this.scene);
       renderer.render(this.scene, this.camera);
-      popFog();
     };
     _renderMiniMap();
 

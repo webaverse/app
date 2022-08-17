@@ -95,6 +95,7 @@ sceneLowestPriority.name = 'lowestPriorioty';
 const rootScene = new THREE.Scene();
 rootScene.name = 'root';
 rootScene.autoUpdate = false;
+rootScene.fog = new THREE.FogExp2(0x000000, 0);
 // const postSceneOrthographic = new THREE.Scene();
 // postSceneOrthographic.name = 'postOrthographic';
 // const postScenePerspective = new THREE.Scene();
