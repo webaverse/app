@@ -19,9 +19,6 @@ import {
   // useMaxTime,
   aimMaxTime,
   aimTransitionMaxTime,
-  idleSpeed,
-  walkSpeed,
-  runSpeed,
   // avatarInterpolationFrameRate,
   // avatarInterpolationTimeDelay,
   // avatarInterpolationNumFrames,
@@ -30,6 +27,12 @@ import {
 import * as avatarCruncher from '../avatar-cruncher.js';
 import * as avatarSpriter from '../avatar-spriter.js';
 // import * as sceneCruncher from '../scene-cruncher.js';
+import {
+  idleFactorSpeed,
+  walkFactorSpeed,
+  runFactorSpeed,
+  // narutoRunTimeFactor,
+} from './constants.js';
 import {
   getSkinnedMeshes,
   getSkeleton,
@@ -447,6 +450,8 @@ class Avatar {
     this.vrmExtension = object?.parser?.json?.extensions?.VRM;
     this.firstPersonCurves = getFirstPersonCurves(this.vrmExtension); 
 
+    this.lastVelocity = new THREE.Vector3();
+
     const {
       skinnedMeshes,
       skeleton,
@@ -637,6 +642,7 @@ class Avatar {
 
     // height is defined as eyes to root
     this.height = getHeight(object);
+    this.width = 0.36; // TODO : calculate this instead of hard coding it
     this.shoulderWidth = modelBones.Left_arm.getWorldPosition(new THREE.Vector3()).distanceTo(modelBones.Right_arm.getWorldPosition(new THREE.Vector3()));
     this.leftArmLength = this.shoulderTransforms.leftArm.armLength;
     this.rightArmLength = this.shoulderTransforms.rightArm.armLength;
@@ -785,7 +791,6 @@ class Avatar {
       Left_toe: this.legsManager.leftLeg.toe,
       Right_toe: this.legsManager.rightLeg.toe,
 	  };
-    window.modelBoneOutputs = this.modelBoneOutputs;
 
     this.debugMesh = null;
 
@@ -979,7 +984,6 @@ class Avatar {
     this.sprintFactor = 0;
     this.lastPosition = new THREE.Vector3();
     this.velocity = new THREE.Vector3();
-    this.testVelocity = new THREE.Vector3();
     this.lastMoveTime = 0;
     this.lastEmoteTime = 0;
     this.lastEmoteAnimation = 0;
@@ -1225,8 +1229,6 @@ class Avatar {
     for (const k in modelBones) {
       const modelBone = modelBones[k];
       const modelBoneOutput = modelBoneOutputs[k];
-      // console.log(111)
-      // window.modelBoneOutput = modelBoneOutput;
 
       modelBone.position.copy(modelBoneOutput.position);
       modelBone.quaternion.multiplyQuaternions(
@@ -1501,24 +1503,18 @@ class Avatar {
     }
   }
 
-  setVelocity(timestamp, timeDiffS, lastPosition, currentPosition, currentQuaternion, isBoundPlayer) {
+  setVelocity(timeDiffS, lastPosition, currentPosition, currentQuaternion) {
     // console.log('setVelocity')
     // Set the velocity, which will be considered by the animation controller
     const positionDiff = localVector.copy(lastPosition)
       .sub(currentPosition)
       .divideScalar(Math.max(timeDiffS, 0.001))
-      // .multiplyScalar(0.1);
+      .multiplyScalar(0.1);
     localEuler.setFromQuaternion(currentQuaternion, 'YXZ');
     localEuler.set(0, -(localEuler.y + Math.PI), 0);
     positionDiff.applyEuler(localEuler);
-    // console.log(positionDiff.x);
     this.testVelocity.copy(positionDiff); // For testing only, check if the physics.velocity correct. Can't use this in formal, to calc such as idleWalkFactor/walkRunFactor, will cause aniamtions jitter in low fps.
     this.testVelocity.y *= -1;
-    if (!isBoundPlayer) {
-      this.velocity.copy(this.testVelocity);
-      // this.velocity.x *= 1 / 3; // walk speed 2.5 // wrong, don't need modify.SS
-      // this.velocity.z *= 1 / 3; // walk speed 2.5 // wrong, don't need modify.SS
-    }
     // this.velocity.applyEuler(localEuler);
     this.direction.copy(positionDiff).normalize();
     this.lastPosition.copy(currentPosition);
@@ -1538,12 +1534,10 @@ class Avatar {
     // on remote players this is called from the RemotePlayer -> observePlayerFn
     if (this.isLocalPlayer) {
       this.setVelocity(
-        timestamp,
         timeDiffS,
         this.lastPosition,
         this.inputs.hmd.position,
-        this.inputs.hmd.quaternion,
-        isBoundPlayer,
+        this.inputs.hmd.quaternion
       );
     }
 
@@ -1553,11 +1547,6 @@ class Avatar {
 
     this.idleWalkFactor = Math.min(Math.max((currentSpeed - idleSpeed) / (walkSpeed - idleSpeed), 0), 1);
     this.walkRunFactor = Math.min(Math.max((currentSpeed - walkSpeed) / (runSpeed - walkSpeed), 0), 1);
-    // if (this.idleWalkFactor >= 0.9 && this.walkRunFactor < 1 && this.velocity.x > 0.1) {
-    //   console.log( this.velocity.x)
-    //   debugger
-    // }
-    // console.log(this.walkRunFactor)
     // console.log(this.idleWalkFactor, this.walkRunFactor)
     this.crouchFactor = Math.min(Math.max(1 - (this.crouchTime / crouchMaxTime), 0), 1);
     // console.log('current speed', currentSpeed, idleWalkFactor, walkRunFactor);
@@ -1637,7 +1626,7 @@ class Avatar {
         this.modelBoneOutputs.Neck.matrixWorld.compose(localVector, localQuaternion, localVector2)
         this.modelBoneOutputs.Neck.matrix.copy(this.modelBoneOutputs.Neck.matrixWorld)
           .premultiply(localMatrix2.copy(this.modelBoneOutputs.Neck.parent.matrixWorld).invert())
-          .decompose(this.modelBoneOutputs.Neck.position, this.modelBoneOutputs.Neck.quaternion, localVector2);
+          .decompose(localVector, this.modelBoneOutputs.Neck.quaternion, localVector2);
       } else {
         if (headTargetFactor < 1) {
           localQuaternion2.copy(this.startHeadTargetQuaternion)
@@ -1963,26 +1952,19 @@ class Avatar {
     if (this.getTopEnabled() || this.getHandEnabled(0) || this.getHandEnabled(1)) {
       _motionControls.call(this)
     }
-
-    const player = window.localPlayer;
-    // const player = window.npcPlayers[0];
-    if (true && player && this === player.avatar) {
-      window.domInfo.innerHTML += `
-        <div style="display:;">actions: --- ${player.getActionsArray().map(n=>n.type)}</div>
-        <div style="display:;">targetMoveDistancePerFrame: --- ${window.logVector3(player.characterPhysics.targetMoveDistancePerFrame)} | ${window.logNum(player.characterPhysics.targetMoveDistancePerFrame.length())} of characterPhysics ( correct )</div>
-        <div style="display:;">targetMoveDistancePerFrame: --- ${window.logVector3(player.characterPhysics.wantMoveDistancePerFrame)} | ${window.logNum(player.characterPhysics.wantMoveDistancePerFrame.length() * 6)} damped ( length * 6 )</div>
-        <div style="display:;">velocity: --- ${window.logVector3(player.characterPhysics.velocity)} | ${window.logNum(player.characterPhysics.velocity.length())} | ${window.logNum(localVector.copy(player.characterPhysics.velocity).setY(0).length())} of characterPhysics</div>
-        <div style="display:;">velocity: --- ${window.logVector3(this.velocity)} | ${window.logNum(this.velocity.length())} | ${window.logNum(localVector.copy(this.velocity).setY(0).length())} of avatar</div>
-        <div style="display:;">velocity: --- ${window.logVector3(this.testVelocity)} | ${window.logNum(this.testVelocity.length())} | ${window.logNum(localVector.copy(this.testVelocity).setY(0).length())} of avatar test</div>
-        <div style="display:;">idleWalkFactor: --- ${window.logNum(this.idleWalkFactor)}</div>
-        <div style="display:;">walkRunFactor: --- ${window.logNum(this.walkRunFactor)}</div>
-        <div style="display:;">avatar.direction: --- ${window.logVector3(this.direction)}</div>
-        <div style="display:;">player.direction: --- ${window.logVector3(player.getWorldDirection(localVector))}</div>
-        <div style="display:;">angle: --- ${window.logNum(this.getAngle())}</div>
-      `
+    
+    // for the local player we want to update the velocity immediately
+    // on remote players this is called from the RemotePlayer -> observePlayerFn
+    if (this.isLocalPlayer) {
+      this.setVelocity(
+	timestamp,
+        timeDiffS,
+        this.lastPosition,
+        this.inputs.hmd.position,
+        this.inputs.hmd.quaternion
+      );
     }
-    // console.log(player.characterPhysics.velocity.y)
-    // console.log(this.velocity.x.toFixed(2))
+    // console.log(this.testVelocity.y)
     // console.log('applyAnimation')
     _applyAnimation(this, now);
 
@@ -2028,7 +2010,8 @@ class Avatar {
     // update wind in simulation
     const _updateWind = () =>{
       const headPosition = localVector.setFromMatrixPosition(this.modelBoneOutputs.Head.matrixWorld);
-      wind.update(timestamp, headPosition, this.springBoneManager)
+      // The avatar may not have spring bones, so we should make sure the avatar has springBone before updating the wind effect
+      this.springBoneManager && wind.update(timestamp, headPosition, this.springBoneManager)
     }
     _updateWind();
 

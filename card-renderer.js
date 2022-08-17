@@ -115,7 +115,7 @@ export const generateObjectCard = async ({
   objectImage = await _getCanvasDataUrl(objectImage);
 
   let minterAvatarPreview = await screenshotAvatarUrl({
-    start_url: `./avatars/scillia_drophunter_v15_vian.vrm`,
+    start_url: `./avatars/scilly_drophunter_v31.7_fuji.vrm`,
   });
   minterAvatarPreview = await _getCanvasDataUrl(minterAvatarPreview);
 
