@@ -84,7 +84,19 @@ export const screenshotPlayer = async ({
       _animate(now, timeDiff);
     };
   };
+  const localVector = new THREE.Vector3();
   const _updateTarget = (timestamp, timeDiff) => {
+    const neckPosition = localVector.setFromMatrixPosition(player.avatar.modelBones.Head.savedMatrixWorld);
+    let headHeight = player.avatar.avatarHighestPos - neckPosition.y;
+    console.log('head height: ', headHeight, player.avatar.shoulderWidth)
+    const max = headHeight > player.avatar.shoulderWidth ? headHeight : player.avatar.shoulderWidth;
+    let cameraZ = max / (2 * Math.atan((Math.PI * 50) / 360));
+    const headRatio = headHeight / player.avatar.avatarHighestPos;
+    const offset = 1.25;
+    cameraZ *= offset; //multiply offset so that avatar does't fill the icon
+    cameraOffset.z = -cameraZ;
+    cameraOffset.y = headHeight * 0.35;
+
     target.matrixWorld.copy(player.avatar.modelBones.Head.matrixWorld)
       .decompose(target.position, target.quaternion, target.scale);
     target.position.set(player.position.x, target.position.y, player.position.z);

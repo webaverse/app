@@ -639,6 +639,31 @@ class Avatar {
       rightToe: _getOffset(modelBones.Right_toe),
     });
 
+    this.localVector01 = new THREE.Vector3();
+    this.boundingBox = new THREE.Box3();
+    // const neckPosition = this.localVector01.setFromMatrixPosition(this.modelBones.Head.savedMatrixWorld);
+    const shoulderPosition = this.localVector01.setFromMatrixPosition(this.modelBones.Left_shoulder.matrixWorld);
+    let avatarHighestPos = 0;
+    let tempMesh = null;
+    this.model.traverse(o => {
+      if (o.isMesh) {
+        if(!o.geometry.boundingBox){
+          const position = o.geometry.attributes.position;
+          this.boundingBox.setFromBufferAttribute( position );
+          avatarHighestPos = (this.boundingBox.max.y > avatarHighestPos) ? this.boundingBox.max.y : avatarHighestPos;
+        }
+        else{
+          avatarHighestPos = (o.geometry.boundingBox.max.y > avatarHighestPos) ? o.geometry.boundingBox.max.y : avatarHighestPos;
+        }
+        if(o.isSkinnedMesh){
+          tempMesh = o;
+        }
+      }
+    });
+    avatarHighestPos += tempMesh.position.y;
+    this.avatarHighestPos = avatarHighestPos;
+    console.log(this.avatarHighestPos)
+
     // height is defined as eyes to root
     this.height = getHeight(object);
     this.width = 0.36; // TODO : calculate this instead of hard coding it
