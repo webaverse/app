@@ -65,7 +65,9 @@ const localVector2 = new THREE.Vector3();
 const localVector3 = new THREE.Vector3();
 // const localVector4 = new THREE.Vector3();
 // const localVector5 = new THREE.Vector3();
-// const localVector6 = new THREE.Vector3();     
+// const localVector6 = new THREE.Vector3(); 
+
+const localBBox = new THREE.Box3();
 
 
 const localQuaternion = new THREE.Quaternion();
@@ -639,15 +641,15 @@ class Avatar {
       rightToe: _getOffset(modelBones.Right_toe),
     });
 
-    this.boundingBox = new THREE.Box3();
+    
     let avatarHighestPos = 0;
     let tempMesh = null;
     this.model.traverse(o => {
       if (o.isMesh) {
         if(!o.geometry.boundingBox){
           const position = o.geometry.attributes.position;
-          this.boundingBox.setFromBufferAttribute( position );
-          avatarHighestPos = (this.boundingBox.max.y > avatarHighestPos) ? this.boundingBox.max.y : avatarHighestPos;
+          localBBox.setFromBufferAttribute( position );
+          avatarHighestPos = (localBBox.max.y > avatarHighestPos) ? localBBox.max.y : avatarHighestPos;
         }
         else{
           avatarHighestPos = (o.geometry.boundingBox.max.y > avatarHighestPos) ? o.geometry.boundingBox.max.y : avatarHighestPos;
