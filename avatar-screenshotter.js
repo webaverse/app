@@ -1,12 +1,22 @@
 import * as THREE from 'three';
-// import metaversefile from './metaversefile-api.js';
-// import Avatar from './avatars/avatars.js';
-import npcManager from './npc-manager.js';
-import dioramaManager from './diorama.js';
+import Avatar from './avatars/avatars.js';
+import {AvatarRenderer} from './avatars/avatar-renderer.js';
+// import npcManager from './npc-manager.js';
+// import dioramaManager from './diorama.js';
+import {getRenderer} from './renderer.js';
+import {fetchArrayBuffer, addDefaultLights} from './util.js';
 
-const FPS = 60;
+const localVector = new THREE.Vector3();
+const localVector2D = new THREE.Vector2();
+const localVector4D = new THREE.Vector4();
+const localQuaternion = new THREE.Quaternion();
+const localMatrix = new THREE.Matrix4();
 
-const _makeLights = () => {
+const upVector = new THREE.Vector3(0, 1, 0);
+
+// const FPS = 60;
+
+/* const _makeLights = () => {
   const ambientLight = new THREE.AmbientLight(0xFFFFFF, 1);
   
   const directionalLight = new THREE.DirectionalLight(0xFFFFFF, 3);
@@ -17,42 +27,62 @@ const _makeLights = () => {
     ambientLight,
     directionalLight,
   ];
-};
+}; */
 
 export const screenshotAvatarUrl = async ({
   start_url,
   width = 300,
   height = 300,
   canvas,
-  cameraOffset,
   emotion,
 }) => {
-  const player = await npcManager.createNpcAsync({
-    name: 'sceenshot-npc',
-    avatarUrl: start_url,
-    detached: true,
+  const arrayBuffer = await fetchArrayBuffer(start_url);
+  
+  const avatarRenderer = new AvatarRenderer({
+    arrayBuffer,
+    srcUrl,
+    quality: maxAvatarQuality,
   });
+  await avatarRenderer.waitForLoad();
+  
+  const avatar = createAvatarForScreenshot(avatarRenderer);
 
-  const result = await screenshotPlayer({
-    player,
+  const result = await screenshotAvatar({
+    avatar,
     width,
     height,
     canvas,
-    cameraOffset,
     emotion,
   });
-  player.destroy();
+  avatar.destroy();
   return result;
 };
-export const screenshotPlayer = async ({
-  player,
+export const createAvatarForScreenshot = avatarRenderer => {
+  const avatar = new Avatar(avatarRenderer, {
+    fingers: true,
+    hair: true,
+    visemes: true,
+    debug: false,
+  });
+  avatar.setTopEnabled(false);
+  avatar.setHandEnabled(0, false);
+  avatar.setHandEnabled(1, false);
+  avatar.setBottomEnabled(false);
+  avatar.inputs.hmd.position.y = avatar.height;
+  avatar.inputs.hmd.quaternion.setFromAxisAngle(new THREE.Vector3(0, 1, 0), Math.PI);
+  avatar.inputs.hmd.updateMatrixWorld();
+  return avatar;
+}
+
+export const screenshotAvatar = async ({
+  avatar,
   width = 300,
   height = 300,
   canvas,
-  cameraOffset,
+  // cameraOffset,
   emotion,
 }) => {
-  player.position.set(0, 1.5, 0);
+  /* player.position.set(0, 1.5, 0);
   player.quaternion.identity();
   player.scale.set(1, 1, 1);
   player.updateMatrixWorld();
@@ -64,41 +94,38 @@ export const screenshotPlayer = async ({
     player.position.y = player.avatar.height;
     player.updateMatrixWorld();
   };
-  _setTransform();
+  _setTransform(); */
 
-  const _initializeAnimation = () => {
-    player.avatar.setTopEnabled(false);
-    player.avatar.setHandEnabled(0, false);
-    player.avatar.setHandEnabled(1, false);
-    player.avatar.setBottomEnabled(false);
-    player.avatar.inputs.hmd.position.y = player.avatar.height;
-    player.avatar.inputs.hmd.quaternion.setFromAxisAngle(new THREE.Vector3(0, 1, 0), Math.PI);
-    player.avatar.inputs.hmd.updateMatrixWorld();
+  const model = avatar.avatarRenderer.scene;
+
+  // initialize scene
+  const camera2 = new THREE.PerspectiveCamera(60, 1, 0.1, 1000);
+  const scene2 = new THREE.Scene();
+  scene2.autoUpdate = false;
+  /* const ambientLight = new THREE.AmbientLight(0xFFFFFF, 1);
+  scene2.add(ambientLight);
+  const directionalLight = new THREE.DirectionalLight(0xFFFFFF, 3);
+  directionalLight.position.set(1, 2, 3);
+  scene2.add(directionalLight); */
+  addDefaultLights(scene2);
+
+  // update avatar
+  const _updateAvatar = () => {
+    // set emotion
+    avatar.faceposes.length = 0;  
     if (emotion) {
-      player.clearActions();
-      player.addAction({
-        type: 'facepose',
+      avatar.faceposes.push({
         emotion,
+        value: 1,
       });
     }
-  };
-  const _preAnimate = () => {
-    for (let i = 0; i < FPS*2; i++) {
-      _animate(now, timeDiff);
-    };
-  };
-  const _updateTarget = (timestamp, timeDiff) => {
-    target.matrixWorld.copy(player.avatar.modelBones.Head.matrixWorld)
-      .decompose(target.position, target.quaternion, target.scale);
-    target.position.set(player.position.x, target.position.y, player.position.z);
-    target.quaternion.copy(player.quaternion);
-    target.matrixWorld.compose(target.position, target.quaternion, target.scale);
-  };
-  const _animate = (timestamp, timeDiff) => {
-    player.updateAvatar(timestamp, timeDiff);
-  };
 
-  // rendering
+    // update avatar
+    avatar.update(0, 0);
+  };
+  _updateAvatar();
+
+  // initialize canvas
   let writeCanvas;
   if (canvas) {
     writeCanvas = canvas;
@@ -108,36 +135,69 @@ export const screenshotPlayer = async ({
     writeCanvas.height = height;
   }
 
-  const localLights = _makeLights();
-  const objects = localLights.concat([
-    player.avatar.model,
-  ]);
-  const target = new THREE.Object3D();
-  const diorama = dioramaManager.createPlayerDiorama({
-    // target: player,
-    target,
-    cameraOffset,
-    objects,
-    lights: false,
-    // label: true,
-    // outline: true,
-    // grassBackground: true,
-    // glyphBackground: true,
-    detached: true,
-  });
-  diorama.addCanvas(writeCanvas);
-  diorama.setClearColor(0xFFFFFF, 1);
-
+  // render
+  const renderer = getRenderer();
+  const pixelRatio = renderer.getPixelRatio();
   const _render = () => {
-    _initializeAnimation();
-    _preAnimate();
-    _updateTarget(now, timeDiff);
-    diorama.update(now, timeDiff);
+    // set up scene
+    const oldParent = model.parent;
+    scene2.add(model);
+
+    // set up camera
+    const cameraOffset = new THREE.Vector3(0, 0.05, 0.35);
+
+    avatar.modelBones.Head.matrixWorld
+      .decompose(camera2.position, camera2.quaternion, camera2.scale);
+    const targetPosition = localVector.copy(camera2.position);
+    targetPosition.y += cameraOffset.y
+    camera2.position.add(cameraOffset);
+    camera2.quaternion.setFromRotationMatrix(
+      localMatrix.lookAt(
+        camera2.position,
+        targetPosition,
+        upVector,
+      )
+    );
+
+    const rendererSize = renderer.getSize(localVector2D);
+    const {width, height} = writeCanvas;
+    const ctx = writeCanvas.getContext('2d');
+    if (rendererSize.x >= width && rendererSize.y >= height) {
+      // push old renderer state
+      const oldViewport = renderer.getViewport(localVector4D);
+      const oldClearAlpha = renderer.getClearAlpha();
+      
+      renderer.setViewport(0, 0, width/pixelRatio, height/pixelRatio);
+      renderer.setClearAlpha(0);
+      renderer.clear();
+      renderer.render(scene2, camera2);
+
+      // copy to canvas
+      ctx.clearRect(0, 0, width, height);
+      ctx.drawImage(
+        renderer.domElement,
+        0,
+        rendererSize.y * pixelRatio - height * pixelRatio,
+        width * pixelRatio,
+        height * pixelRatio,
+        0,
+        0,
+        width,
+        height
+      );
+
+      // pop old renderer state
+      renderer.setViewport(oldViewport);
+      renderer.setClearAlpha(oldClearAlpha);
+    }
+
+    if (oldParent) {
+      oldParent.add(model);
+    } else {
+      model.parent.remove(model);
+    }
   };
   _render();
-
-  diorama.destroy();
-  // player.destroy();
 
   return writeCanvas;
 };
