@@ -11,6 +11,7 @@ import {
 import universe from './universe.js';
 import {waitForFrame} from './util.js';
 import metaversefileApi from 'metaversefile';
+import {WebaverseScene} from './webaverse-scene.js';
 
 const localVector = new THREE.Vector3();
 const localVector2 = new THREE.Vector3();
@@ -157,7 +158,7 @@ const _makeMapRenderTarget = (w, h) => new THREE.WebGLRenderTarget(w, h, {
 
 
 const _makeCopyScene = () => {
-  const scene = new THREE.Scene();
+  const scene = new WebaverseScene();
   
   // full screen quad mesh
   const fullScreenQuadMesh = new THREE.Mesh(
@@ -185,7 +186,7 @@ const _makeCopyScene = () => {
   return scene;
 };
 const _makeScene = (worldWidth, worldHeight, minZoom) => {
-  const scene = new THREE.Scene();
+  const scene = new WebaverseScene();
   
   // floor map mesh
   const floorMesh = new THREE.Mesh(

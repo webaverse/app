@@ -1,6 +1,7 @@
 import * as THREE from 'three';
 import {scene, camera, getRenderer} from './renderer.js';
 import {copyScenePlaneGeometry, copySceneVertexShader, copyScene, copySceneCamera} from './shaders.js';
+import {WebaverseScene} from './webaverse-scene.js';
 
 /* const size = 1024;
 const worldSize = 2;
@@ -101,7 +102,7 @@ class ShaderToyPass {
         depthTest: false,
       })
     );
-    this.scene = new THREE.Scene();
+    this.scene = new WebaverseScene();
     this.scene.autoUpdate = false;
     this.scene.add(this.mesh);
     

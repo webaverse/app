@@ -1,6 +1,7 @@
 import * as THREE from 'three';
 import {alea} from './procgen/procgen.js';
 import {getRenderer} from './renderer.js';
+import {WebaverseScene} from './webaverse-scene.js';
 import {fullscreenGeometry, fullscreenVertexShader} from './background-fx/common.js';
 
 const localVector2D = new THREE.Vector2();
@@ -104,7 +105,7 @@ const glyphMaterial = new THREE.ShaderMaterial({
 const glyphMesh = new THREE.Mesh(fullscreenGeometry, glyphMaterial);
 glyphMesh.frustumCulled = false;
 
-const glyphScene = new THREE.Scene();
+const glyphScene = new WebaverseScene();
 glyphScene.name = 'glyphScene';
 glyphScene.autoUpdate = false;
 

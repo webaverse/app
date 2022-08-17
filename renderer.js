@@ -83,22 +83,22 @@ function getComposer() {
   return composer;
 }
 
-const scene = new THREE.Scene();
+const scene = new WebaverseScene();
 scene.name = 'scene';
-const sceneHighPriority = new THREE.Scene();
+const sceneHighPriority = new WebaverseScene();
 sceneHighPriority.name = 'highPriorioty';
-const sceneLowPriority = new THREE.Scene();
+const sceneLowPriority = new WebaverseScene();
 sceneLowPriority.name = 'lowPriorioty';
-const sceneLowerPriority = new THREE.Scene();
+const sceneLowerPriority = new WebaverseScene();
 sceneLowerPriority.name = 'lowerPriorioty';
-const sceneLowestPriority = new THREE.Scene();
+const sceneLowestPriority = new WebaverseScene();
 sceneLowestPriority.name = 'lowestPriorioty';
 const rootScene = new WebaverseScene();
 rootScene.name = 'root';
 rootScene.autoUpdate = false;
-// const postSceneOrthographic = new THREE.Scene();
+// const postSceneOrthographic = new WebaverseScene();
 // postSceneOrthographic.name = 'postOrthographic';
-// const postScenePerspective = new THREE.Scene();
+// const postScenePerspective = new WebaverseScene();
 // postScenePerspective.name = 'postPerspective';
 rootScene.add(sceneHighPriority);
 rootScene.add(scene);
@@ -106,8 +106,8 @@ rootScene.add(sceneLowPriority);
 rootScene.add(sceneLowerPriority);
 rootScene.add(sceneLowestPriority);
 
-// const orthographicScene = new THREE.Scene();
-// const avatarScene = new THREE.Scene();
+// const orthographicScene = new WebaverseScene();
+// const avatarScene = new WebaverseScene();
 
 const camera = new THREE.PerspectiveCamera(minFov, 1, 0.1, 10000);
 camera.position.set(0, 1.6, 0);

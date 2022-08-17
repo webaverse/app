@@ -1,6 +1,7 @@
 import * as THREE from 'three';
 // import easing from './easing.js';
 import metaversefile from 'metaversefile';
+import {WebaverseScene} from './webaverse-scene.js';
 const {useApp, useFrame, useLocalPlayer, usePhysics, useGeometries, useMaterials, useAvatarAnimations, useCleanup} = metaversefile;
 // import * as BufferGeometryUtils from 'three/examples/jsm/utils/BufferGeometryUtils.js';
 import {DoubleSidedPlaneGeometry, CameraGeometry} from './geometries.js';
@@ -747,7 +748,7 @@ const planeWarpedGeometry2 = planeGeometry.clone()
   ));
 
 const camera2 = new THREE.PerspectiveCamera(60, 1, 0.1, 1000);
-const scene2 = new THREE.Scene();
+const scene2 = new WebaverseScene();
 scene2.autoUpdate = false;
 const ambientLight = new THREE.AmbientLight(0xFFFFFF, 1);
 scene2.add(ambientLight);

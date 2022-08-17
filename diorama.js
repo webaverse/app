@@ -1,5 +1,6 @@
 import * as THREE from 'three';
 import {getRenderer} from './renderer.js';
+import {WebaverseScene} from './webaverse-scene.js';
 import * as BufferGeometryUtils from 'three/examples/jsm/utils/BufferGeometryUtils.js';
 // import {world} from './world.js';
 // import {fitCameraToBoundingBox} from './util.js';
@@ -424,12 +425,12 @@ const skinnedRedMaterial = (() => {
   return material;
 })();
 
-const outlineRenderScene = new THREE.Scene();
+const outlineRenderScene = new WebaverseScene();
 outlineRenderScene.name = 'outlineRenderScene';
 outlineRenderScene.autoUpdate = false;
 outlineRenderScene.overrideMaterial = skinnedRedMaterial;
 
-const sideScene = new THREE.Scene();
+const sideScene = new WebaverseScene();
 sideScene.name = 'sideScene';
 sideScene.autoUpdate = false;
 sideScene.add(lightningMesh);

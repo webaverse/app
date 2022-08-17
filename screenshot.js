@@ -6,6 +6,7 @@ import Avatar from './avatars/avatars.js';
 import GIF from './gif.js';
 // import App from './webaverse';
 // import {defaultRendererUrl} from './constants.js'
+import {WebaverseScene} from './webaverse-scene.js';
 import * as WebMWriter from 'webm-writer';
 const defaultWidth = 512;
 const defaultHeight = 512;
@@ -32,7 +33,7 @@ const _makeRenderer = (width, height) => {
   });
   renderer.setSize(width, height);
 
-  const scene = new THREE.Scene();
+  const scene = new WebaverseScene();
   scene.autoUpdate = false;
 
   /* const cubeMesh = new THREE.Mesh(new THREE.BoxBufferGeometry(1, 1, 1), new THREE.MeshBasicMaterial({

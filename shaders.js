@@ -1,4 +1,5 @@
 import * as THREE from 'three';
+import {WebaverseScene} from './webaverse-scene';
 
 /* const _makeHeightfieldShader = land => ({
   uniforms: {
@@ -1532,7 +1533,7 @@ const copyScene = (() => {
       depthTest: false,
     }),
   );
-  const scene = new THREE.Scene();
+  const scene = new WebaverseScene();
   scene.autoUpdate = false;
   scene.add(mesh);
   scene.mesh = mesh;
