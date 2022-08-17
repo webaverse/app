@@ -7,6 +7,7 @@ import * as THREE from 'three';
 import {EffectComposer} from 'three/examples/jsm/postprocessing/EffectComposer.js';
 import {makePromise} from './util.js';
 import {minFov} from './constants.js';
+import {WebaverseScene} from './webaverse-scene.js';
 
 // XXX enable this when the code is stable; then, we will have many more places to add missing matrix updates
 // THREE.Object3D.DefaultMatrixAutoUpdate = false;
@@ -92,10 +93,9 @@ const sceneLowerPriority = new THREE.Scene();
 sceneLowerPriority.name = 'lowerPriorioty';
 const sceneLowestPriority = new THREE.Scene();
 sceneLowestPriority.name = 'lowestPriorioty';
-const rootScene = new THREE.Scene();
+const rootScene = new WebaverseScene();
 rootScene.name = 'root';
 rootScene.autoUpdate = false;
-rootScene.fog = new THREE.FogExp2(0x000000, 0);
 // const postSceneOrthographic = new THREE.Scene();
 // postSceneOrthographic.name = 'postOrthographic';
 // const postScenePerspective = new THREE.Scene();
