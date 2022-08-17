@@ -850,7 +850,7 @@ class StatePlayer extends PlayerBase {
   destroy() {
     this.unbindState();
     this.appManager.unbindState();
-
+    this.characterPhysics.destroy();
     this.appManager.destroy();
   
     super.destroy();

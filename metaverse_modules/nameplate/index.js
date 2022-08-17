@@ -66,11 +66,22 @@ export default () => {
   let instIndex = -1;
   let plateToCameraAngle = 0;
 
+  const nameplateMatrix = new THREE.Matrix4();
+  const localMatrix = new THREE.Matrix4();
+  const localMatrix2 = new THREE.Matrix4();
+  const localMatrix3 = new THREE.Matrix4();
+  const plateToCamera = new THREE.Vector3();
+  const localVector = new THREE.Vector3();
+  
+
   (async () => {
     if (!nameplateMesh) {
       await createNameplateMesh();
-      app.add(nameplateMesh);
+      
     }
+    app.add(nameplateMesh);
+    console.log(app);
+    
     instIndex = createNameplateInstance();
     const font = './fonts/GeosansLight.ttf';
     const fontSize = 0.2;
@@ -93,40 +104,51 @@ export default () => {
   })();
 
   useFrame(() => {
-    if (instIndex < 0 || !textGroup) return;
-    const nameplateMatrix = new THREE.Matrix4();
-    nameplateMesh.getMatrixAt(instIndex, nameplateMatrix);
-    const plateToCamera = new THREE.Vector3().subVectors(
-      camera.position,
-      new THREE.Vector3().setFromMatrixPosition(nameplateMatrix),
-    );
-    if (!lastPlateToCamera.equals(plateToCamera)) {
-      plateToCameraAngle = Math.atan2(plateToCamera.x, plateToCamera.z);
-      lastPlateToCamera.copy(plateToCamera);
+    
+    if (instIndex >= 0 && !!textGroup) {
+      
+      
+      nameplateMesh.getMatrixAt(instIndex, nameplateMatrix);
+      
+      plateToCamera.subVectors(
+        camera.position,
+        localVector.setFromMatrixPosition(nameplateMatrix),
+      );
+
+      if (!lastPlateToCamera.equals(plateToCamera)) {
+        plateToCameraAngle = Math.atan2(plateToCamera.x, plateToCamera.z);
+        lastPlateToCamera.copy(plateToCamera);
+      }
+
+      nameplateMatrix.copy(
+        localMatrix
+          .multiplyMatrices(
+            localMatrix2.makeScale(30, 30, 30),
+            localMatrix3.makeRotationY(plateToCameraAngle),
+          )
+          .setPosition(
+            player.position.x,
+            player.position.y + 0.4,
+            player.position.z,
+          ),
+      );
+
+      nameplateMesh.setMatrixAt(instIndex, nameplateMatrix);
+      nameplateMesh.instanceMatrix.needsUpdate = true;
+      
+      textGroup.position.set(
+        player.position.x,
+        player.position.y + 0.52,
+        player.position.z,
+      );
+      textGroup.rotation.y = plateToCameraAngle;
+      textGroup.updateMatrixWorld(true);
+
+      app.updateMatrixWorld(true);
     }
-    nameplateMatrix.copy(
-      new Matrix4()
-        .multiplyMatrices(
-          new Matrix4().makeScale(30, 30, 30),
-          new Matrix4().makeRotationY(plateToCameraAngle),
-        )
-        .setPosition(
-          player.position.x,
-          player.position.y + 0.4,
-          player.position.z,
-        ),
-    );
-    nameplateMesh.setMatrixAt(instIndex, nameplateMatrix);
-    nameplateMesh.instanceMatrix.needsUpdate = true;
-    textGroup.position.set(
-      player.position.x,
-      player.position.y + 0.52,
-      player.position.z,
-    );
-    textGroup.rotation.y = plateToCameraAngle;
-    textGroup.updateMatrixWorld(true);
-    app.updateMatrixWorld(true);
   });
+
+  
 
   return app;
 };
