@@ -205,6 +205,15 @@ export class WaitQueue {
     rects,
   };
 }; */
+
+export function pushFog(scene) {
+  const fog = scene.fog;
+  scene.fog = new THREE.FogExp2(new THREE.Color(0,0,0));
+  return () => {
+    scene.fog = fog;
+  };
+}
+
 export function mergeMeshes(meshes, geometries, textures) {
   const size = 512;
   const images = textures.map((texture) => texture && texture.image);

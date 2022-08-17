@@ -3,6 +3,7 @@ import {getRenderer} from './renderer.js';
 import * as BufferGeometryUtils from 'three/examples/jsm/utils/BufferGeometryUtils.js';
 // import {world} from './world.js';
 // import {fitCameraToBoundingBox} from './util.js';
+import {pushFog} from './util.js';
 import {Text} from 'troika-three-text';
 // import {defaultDioramaSize} from './constants.js';
 import {fullscreenGeometry} from './background-fx/common.js';
@@ -15,7 +16,6 @@ import {DotsBgFxMesh} from './background-fx/DotsBgFx.js';
 import {LightningBgFxMesh} from './background-fx/LightningBgFx.js';
 import {RadialBgFxMesh} from './background-fx/RadialBgFx.js';
 import {GrassBgFxMesh} from './background-fx/GrassBgFx.js';
-import {playersManager} from './players-manager.js';
 
 const localVector = new THREE.Vector3();
 const localVector2 = new THREE.Vector3();
@@ -707,7 +707,9 @@ const createPlayerDiorama = ({
         renderer.setRenderTarget(outlineRenderTarget);
         renderer.setClearColor(0x000000, 0);
         renderer.clear();
+        const popFog = pushFog(outlineRenderScene);
         renderer.render(outlineRenderScene, sideCamera);
+        popFog();
         
         // set up side scene
         _addObjectsToScene(sideScene);
@@ -819,7 +821,9 @@ const createPlayerDiorama = ({
             renderer.setClearColor(clearColor, clearAlpha);
           }
           renderer.clear();
+          const popFog = pushFog(sideScene);
           renderer.render(sideScene, sideCamera);
+          popFog();
         };
         _render();
         const _copyFrame = () => {
