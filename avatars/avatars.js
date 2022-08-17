@@ -646,15 +646,15 @@ class Avatar {
     let tempMesh = null;
     this.model.traverse(o => {
       if (o.isMesh) {
-        if(!o.geometry.boundingBox){
+        if (!o.geometry.boundingBox) {
           const position = o.geometry.attributes.position;
           localBBox.setFromBufferAttribute( position );
           avatarHighestPos = (localBBox.max.y > avatarHighestPos) ? localBBox.max.y : avatarHighestPos;
         }
-        else{
+        else {
           avatarHighestPos = (o.geometry.boundingBox.max.y > avatarHighestPos) ? o.geometry.boundingBox.max.y : avatarHighestPos;
         }
-        if(o.isSkinnedMesh){
+        if (o.isSkinnedMesh) {
           tempMesh = o;
         }
       }
