@@ -879,6 +879,6 @@ export class AvatarRenderer /* extends EventTarget */ {
     return this.loadPromise;
   }
   destroy() {
-    this.abortController.abort(abortError);
+    this.abortController && this.abortController.abort(abortError);
   }
 }
