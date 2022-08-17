@@ -21,6 +21,9 @@ const localQuaternion = new THREE.Quaternion();
 const localQuaternion2 = new THREE.Quaternion();
 // const localEuler = new THREE.Euler();
 const localMatrix = new THREE.Matrix4();
+const localVector2D = new THREE.Vector2();
+const localVector2D2 = new THREE.Vector2();
+const localVector2D3 = new THREE.Vector2();
 
 // const localOffset = new THREE.Vector3();
 // const localOffset2 = new THREE.Vector3();
@@ -42,11 +45,21 @@ class CharacterPhysics {
   constructor(character) {
     this.character = character;
 
+    this.targetVelocity = new THREE.Vector3();
+    this.lastTargetVelocity = new THREE.Vector3();
+    this.wantVelocity = new THREE.Vector3();
     this.velocity = new THREE.Vector3();
+    this.targetMoveDistancePerFrame = new THREE.Vector3();
+    this.lastTargetMoveDistancePerFrame = new THREE.Vector3();
+    this.wantMoveDistancePerFrame = new THREE.Vector3();
+    // this.lastTimeDiff = 0; // todo:
     this.lastGrounded = null;
     this.lastGroundedTime = 0;
     this.lastCharacterControllerY = null;
     this.sitOffset = new THREE.Vector3();
+    this.lastFallLoopAction = false;
+    this.fallLoopStartTimeS = 0;
+    this.lastGravityH = 0;
 
     this.lastPistolUse = false;
     this.lastPistolUseStartTime = -Infinity;
@@ -86,14 +99,23 @@ class CharacterPhysics {
     );
   }
   /* apply the currently held keys to the character */
-  applyWasd(keysDirection) {
+  applyWasd(velocity, timeDiff) {
+    // console.log('wasd')
     if (this.character.avatar) {
-      this.velocity.add(keysDirection);
+      this.targetVelocity.copy(velocity);
+      window.domInfo.innerHTML += `<div style="display:;">targetVelocity: --- ${window.logVector3(this.targetVelocity)}</div>`;
+      // window.visKeysDirectionX = keysDirection.x;
+      // this.velocity.add(keysDirection);
+      this.targetMoveDistancePerFrame.copy(this.targetVelocity).multiplyScalar(timeDiff / 1000);
+      if (this.character === window.npcPlayer) if (this.targetMoveDistancePerFrame.x !== 0) debugger
+      window.domInfo.innerHTML += `<div style="display:;">targetMoveDistancePerFrame: --- ${window.logVector3(this.targetMoveDistancePerFrame)}</div>`;
+      // console.log(this.velocity.x, this.velocity.z)
+      // window.visVelocityBeforeDampingX = this.velocity.x;
     }
   }
-  applyGravity(timeDiffS) {
-    // if (this.player) {
-      const fallLoopAction = this.player.getAction('fallLoop');
+  applyGravity(nowS, timeDiffS) {
+    // if (this.character) {
+      const fallLoopAction = this.character.getAction('fallLoop');
       if (fallLoopAction) {
         if (!this.lastFallLoopAction) {
           // console.log('start fallLoop')
@@ -119,7 +141,7 @@ class CharacterPhysics {
       }
       this.lastFallLoopAction = fallLoopAction;
 
-      // if ((this.player.hasAction('jump') || this.player.hasAction('fallLoop')) && !this.player.hasAction('fly') && !this.player.hasAction('swim')) {
+      // if ((this.character.hasAction('jump') || this.character.hasAction('fallLoop')) && !this.character.hasAction('fly') && !this.character.hasAction('swim')) {
         
       //   const gravityTargetVelocity = localVector.copy(physicsScene.getGravity());
       //   const gravityTargetMoveDistancePerFrame = gravityTargetVelocity.multiplyScalar(timeDiffS);
@@ -135,15 +157,24 @@ class CharacterPhysics {
     // }
   }
   updateVelocity(timeDiffS) {
-    const timeDiff = timeDiffS * 1000;
-    this.applyVelocityDamping(this.velocity, timeDiff);
+    this.applyVelocityDamping(this.velocity, timeDiffS);
   }
   applyCharacterPhysicsDetail(velocityAvatarDirection, updateRig, now, timeDiffS) {
     if (this.character.avatar) {
+      // console.log('apply avatar physics', this.character);
       // move character controller
       const minDist = 0;
-      localVector3.copy(this.velocity).multiplyScalar(timeDiffS);
+      // localVector3.copy(this.velocity) // todo: rename?: this.velocity is not velocity, but move distance per frame now ?
+      // if (this.character === window.npcPlayer) console.log(this.wantMoveDistancePerFrame.x)
+      localVector3.copy(this.wantMoveDistancePerFrame)
+        // .multiplyScalar(timeDiffS);
+        // .multiplyScalar(timeDiffS);
+        // .multiplyScalar(0.016);
+      window.domInfo.innerHTML += `<div style="display:;">localVector3: --- ${window.logVector3(localVector3)}</div>`;
 
+      // console.log('set localVector3')
+
+      // aesthetic jump
       const jumpAction = this.character.getAction('jump');
       if (jumpAction?.trigger === 'jump') {
         const doubleJumpAction = this.character.getAction('doubleJump');
@@ -156,8 +187,7 @@ class CharacterPhysics {
             doubleJumpAction.startPositionY -
             this.lastCharacterControllerY;
           if (doubleJumpTime >= flatGroundJumpAirTime) {
-            this.player.setControlAction({type: 'fallLoop', from: 'jump'});
-            console.log('fallLoop from doubleJump')
+            this.character.setControlAction({ type: 'fallLoop', from: 'jump' });
           }
         } else {
           const jumpTime = this.character.actionInterpolants.jump.get();
@@ -167,8 +197,7 @@ class CharacterPhysics {
             jumpAction.startPositionY -
             this.lastCharacterControllerY;
           if (jumpTime >= flatGroundJumpAirTime) {
-            this.player.setControlAction({type: 'fallLoop', from: 'jump'});
-            console.log('fallLoop from jump')
+            this.character.setControlAction({ type: 'fallLoop', from: 'jump' });
           }
         }
       }
@@ -186,8 +215,8 @@ class CharacterPhysics {
 
       // console.log('move')
 
-      const positionXZBefore = localVector2D.set(this.player.characterController.position.x, this.player.characterController.position.z);
-      const positionYBefore = this.player.characterController.position.y;
+      const positionXZBefore = localVector2D.set(this.characterController.position.x, this.characterController.position.z);
+      const positionYBefore = this.characterController.position.y;
       const flags = physicsScene.moveCharacterController(
         this.characterController,
         localVector3,
@@ -195,8 +224,8 @@ class CharacterPhysics {
         timeDiffS,
         this.characterController.position
       );
-      const positionXZAfter = localVector2D2.set(this.player.characterController.position.x, this.player.characterController.position.z);
-      const positionYAfter = this.player.characterController.position.y;
+      const positionXZAfter = localVector2D2.set(this.characterController.position.x, this.characterController.position.z);
+      const positionYAfter = this.characterController.position.y;
       const wantMoveDistancePerFrameXZ = localVector2D3.set(this.wantMoveDistancePerFrame.x, this.wantMoveDistancePerFrame.z);
       const wantMoveDistancePerFrameY = this.wantMoveDistancePerFrame.y;
       const wantMoveDistancePerFrameXZLength = wantMoveDistancePerFrameXZ.length();
@@ -205,7 +234,7 @@ class CharacterPhysics {
       if (wantMoveDistancePerFrameXZLength > 0) { // prevent divide 0, and reduce calculations.
         const movedRatioXZ = (positionXZAfter.sub(positionXZBefore).length()) / wantMoveDistancePerFrameXZLength;
         // console.log(movedRatioXZ.toFixed(2));
-        // if (this.player === window.npcPlayer) debugger
+        // if (this.character === window.npcPlayer) debugger
         // if (movedRatioXZ < 1) this.velocity.multiplyScalar(movedRatioXZ); // todo: multiply targetVelocity.
         if (movedRatioXZ < 1) {
           this.velocity.x *= movedRatioXZ;
@@ -290,7 +319,7 @@ class CharacterPhysics {
             }
           }
 
-          // this.velocity.y = -1;
+          this.velocity.y = -1;
         } else {
           const lastGroundedTimeDiff = now - this.lastGroundedTime;
           if (lastGroundedTimeDiff > 200) {
@@ -417,7 +446,7 @@ class CharacterPhysics {
       // this.wantMoveDistancePerFrame.y = THREE.MathUtils.damp(this.wantMoveDistancePerFrame.y, this.lastTargetMoveDistancePerFrame.y, factor, timeDiffS);
       this.wantMoveDistancePerFrame.y = this.targetMoveDistancePerFrame.y;
       // if (this.targetMoveDistancePerFrame.x > 0) debugger
-      // if (this.player === window.npcPlayer) if (this.wantMoveDistancePerFrame.x !== 0) debugger
+      // if (this.character === window.npcPlayer) if (this.wantMoveDistancePerFrame.x !== 0) debugger
 
       this.wantVelocity.x = THREE.MathUtils.damp(this.wantVelocity.x, this.lastTargetVelocity.x, factor, timeDiffS);
       this.wantVelocity.z = THREE.MathUtils.damp(this.wantVelocity.z, this.lastTargetVelocity.z, factor, timeDiffS);
@@ -448,12 +477,12 @@ class CharacterPhysics {
       // this.velocity.copy(this.wantMoveDistancePerFrame).divideScalar(timeDiffS)
       // console.log((this.velocity.length()))
     }
-    if (this.player.hasAction('fly')) {
+    if (this.character.hasAction('fly')) {
       // const factor = getVelocityDampingFactor(flyFriction, timeDiff);
       // velocity.multiplyScalar(factor);
       doDamping(flyFriction);
     } 
-    else if(this.player.hasAction('swim')){
+    else if(this.character.hasAction('swim')){
       // const factor = getVelocityDampingFactor(swimFriction, timeDiff);
       // velocity.multiplyScalar(factor);
       doDamping(swimFriction);
@@ -680,10 +709,15 @@ class CharacterPhysics {
     _updateBowIkAnimation();
   }
   update(now, timeDiffS) {
-    this.applyGravity(timeDiffS);
+    const nowS = now / 1000;
     this.updateVelocity(timeDiffS);
+    this.applyGravity(nowS, timeDiffS);
     this.applyCharacterPhysics(now, timeDiffS);
     this.applyCharacterActionKinematics(now, timeDiffS);
+
+    // console.log('update end')
+    this.lastTargetVelocity.copy(this.targetVelocity);
+    this.lastTargetMoveDistancePerFrame.copy(this.targetMoveDistancePerFrame);
   }
   reset() {
     if (this.character.avatar) {

@@ -623,7 +623,7 @@ class SpriteMegaAvatarMesh extends THREE.Mesh {
           }
         } else if (spriteSpecBaseName === 'run') {
           if (playerSide === 'forward') {
-            debugger
+            // debugger
             return 'run';
           } else if (playerSide === 'backward') {
             return 'run backward';

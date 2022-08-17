@@ -27,19 +27,13 @@ import {
 } from '../util.js';
 
 import {
-  // idleFactorSpeed,
-  // walkFactorSpeed,
-  // runFactorSpeed,
-  narutoRunTimeFactor,
-} from './constants.js';
-
-import {
   crouchMaxTime,
   // useMaxTime,
   aimMaxTime,
   // avatarInterpolationFrameRate,
   // avatarInterpolationTimeDelay,
   // avatarInterpolationNumFrames,
+  narutoRunTimeFactor,
 } from '../constants.js';
 
 const localVector = new Vector3();
@@ -416,7 +410,7 @@ export const _applyAnimation = (avatar, now) => {
   // const runSpeed = 0.5;
   const angle = avatar.getAngle();
   const timeSeconds = now / 1000;
-  const landTimeSeconds = timeSeconds; // in order to align landing 2.fbx with walk/run
+  const landTimeSeconds = timeSeconds - avatar.lastLandStartTime / 1000 + 0.8; // in order to align landing 2.fbx with walk/run
   const {idleWalkFactor, walkRunFactor, crouchFactor} = avatar;
 
   /* const _getAnimationKey = crouchState => {
