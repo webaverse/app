@@ -689,7 +689,7 @@ const createPlayerDiorama = ({
             let headHeight = target.avatar.avatarHighestPos - target.avatar.avatarNeckPosition.y;
             const max = headHeight > target.avatar.shoulderWidth ? headHeight : target.avatar.shoulderWidth; // check whether head width is bigger than head height
             zOffset = max / (2 * Math.atan((Math.PI * 50) / 360));
-            const offset = 1.3;
+            const offset = 1.1;
             zOffset *= offset; //multiply offset so that avatar does't fill the icon
             yOffset += headHeight * 0.3;
           }
