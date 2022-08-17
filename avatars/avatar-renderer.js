@@ -166,6 +166,9 @@ const _makeAvatarPlaceholderMesh = (() => {
             discard;
           }
         }
+
+        #include <tonemapping_fragment>
+        #include <encodings_fragment>
       }
     `,
     side: THREE.DoubleSide,
