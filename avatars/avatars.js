@@ -980,7 +980,7 @@ class Avatar {
     this.sprintFactor = 0;
     this.lastPosition = new THREE.Vector3();
     this.velocity = new THREE.Vector3();
-    this.testVelocity = new THREE.Vector3();
+    this.calcedVelocity = new THREE.Vector3();
     this.lastMoveTime = 0;
     this.lastEmoteTime = 0;
     this.lastEmoteAnimation = 0;
@@ -1513,10 +1513,10 @@ class Avatar {
     localEuler.set(0, -(localEuler.y + Math.PI), 0);
     positionDiff.applyEuler(localEuler);
     // console.log(positionDiff.x);
-    this.testVelocity.copy(positionDiff); // For testing only, check if the physics.velocity correct. Can't use this in formal, to calc such as idleWalkFactor/walkRunFactor, will cause aniamtions jitter in low fps.
-    this.testVelocity.y *= -1;
+    this.calcedVelocity.copy(positionDiff); // For testing only, check if the physics.velocity correct. Can't use this in formal, to calc such as idleWalkFactor/walkRunFactor, will cause aniamtions jitter in low fps.
+    this.calcedVelocity.y *= -1;
     if (!isBoundPlayer) {
-      this.velocity.copy(this.testVelocity);
+      this.velocity.copy(this.calcedVelocity);
       // this.velocity.x *= 1 / 3; // walk speed 2.5 // wrong, don't need modify.SS
       // this.velocity.z *= 1 / 3; // walk speed 2.5 // wrong, don't need modify.SS
     }
@@ -1974,7 +1974,7 @@ class Avatar {
         <div style="display:;">targetMoveDistancePerFrame: --- ${window.logVector3(player.characterPhysics.wantMoveDistancePerFrame)} | ${window.logNum(player.characterPhysics.wantMoveDistancePerFrame.length() * 6)} damped ( length * 6 )</div>
         <div style="display:;">velocity: --- ${window.logVector3(player.characterPhysics.velocity)} | ${window.logNum(player.characterPhysics.velocity.length())} | ${window.logNum(localVector.copy(player.characterPhysics.velocity).setY(0).length())} of characterPhysics</div>
         <div style="display:;">velocity: --- ${window.logVector3(this.velocity)} | ${window.logNum(this.velocity.length())} | ${window.logNum(localVector.copy(this.velocity).setY(0).length())} of avatar</div>
-        <div style="display:;">velocity: --- ${window.logVector3(this.testVelocity)} | ${window.logNum(this.testVelocity.length())} | ${window.logNum(localVector.copy(this.testVelocity).setY(0).length())} of avatar test</div>
+        <div style="display:;">velocity: --- ${window.logVector3(this.calcedVelocity)} | ${window.logNum(this.calcedVelocity.length())} | ${window.logNum(localVector.copy(this.calcedVelocity).setY(0).length())} of avatar test</div>
         <div style="display:;">idleWalkFactor: --- ${window.logNum(this.idleWalkFactor)}</div>
         <div style="display:;">walkRunFactor: --- ${window.logNum(this.walkRunFactor)}</div>
         <div style="display:;">avatar.direction: --- ${window.logVector3(this.direction)}</div>
