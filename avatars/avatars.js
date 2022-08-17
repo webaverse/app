@@ -661,6 +661,7 @@ class Avatar {
     });
     avatarHighestPos += tempMesh.position.y;
     this.avatarHighestPos = avatarHighestPos;
+    this.avatarNeckPosition = new THREE.Vector3().setFromMatrixPosition(modelBones.Head.savedMatrixWorld);
 
     // height is defined as eyes to root
     this.height = getHeight(object);

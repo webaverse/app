@@ -84,10 +84,8 @@ export const screenshotPlayer = async ({
       _animate(now, timeDiff);
     };
   };
-  const localVector = new THREE.Vector3();
   const _updateTarget = (timestamp, timeDiff) => {
-    const neckPosition = localVector.setFromMatrixPosition(player.avatar.modelBones.Head.savedMatrixWorld);
-    let headHeight = player.avatar.avatarHighestPos - neckPosition.y;
+    let headHeight = player.avatar.avatarHighestPos - player.avatar.avatarNeckPosition.y;
     const max = headHeight > player.avatar.shoulderWidth ? headHeight : player.avatar.shoulderWidth; // check whether head width is bigger than head height
     let cameraZ = max / (2 * Math.atan((Math.PI * 50) / 360));
     const offset = 1.2;

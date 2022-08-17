@@ -20,6 +20,7 @@ import {playersManager} from './players-manager.js';
 const localVector = new THREE.Vector3();
 const localVector2 = new THREE.Vector3();
 const localVector3 = new THREE.Vector3();
+const localVector4 = new THREE.Vector3();
 const localVector2D = new THREE.Vector2();
 // const localVector2D2 = new THREE.Vector2();
 const localVector4D = new THREE.Vector4();
@@ -482,7 +483,7 @@ const _makeOutlineRenderTarget = (w, h) => new THREE.WebGLRenderTarget(w, h, {
 const createPlayerDiorama = ({
   objects = [],
   target = new THREE.Object3D(),
-  cameraOffset = new THREE.Vector3(0.3, 0, -0.5),
+  cameraOffset = new THREE.Vector3(0.3, 0, 0),
   clearColor = null,
   clearAlpha = 1,
   lights = true,
@@ -680,10 +681,21 @@ const createPlayerDiorama = ({
           target.matrixWorld.decompose(localVector, localQuaternion, localVector2);
           const targetPosition = localVector;
           const targetQuaternion = localQuaternion;
-
+          let yOffset = 0;
+          let zOffset = 0;
+          if (target.avatar) {
+            const headPosition = localVector3.setFromMatrixPosition(target.avatar.modelBones.Head.matrixWorld);
+            yOffset = - (target.position.y - headPosition.y);
+            let headHeight = target.avatar.avatarHighestPos - target.avatar.avatarNeckPosition.y;
+            const max = headHeight > target.avatar.shoulderWidth ? headHeight : target.avatar.shoulderWidth; // check whether head width is bigger than head height
+            zOffset = max / (2 * Math.atan((Math.PI * 50) / 360));
+            const offset = 1.3;
+            zOffset *= offset; //multiply offset so that avatar does't fill the icon
+            yOffset += headHeight * 0.3;
+          }
           sideCamera.position.copy(targetPosition)
             .add(
-              localVector2.set(cameraOffset.x, 0, cameraOffset.z)
+              localVector2.set(cameraOffset.x, 0, cameraOffset.z - zOffset)
                 .applyQuaternion(targetQuaternion)
             );
           sideCamera.quaternion.setFromRotationMatrix(
@@ -697,6 +709,7 @@ const createPlayerDiorama = ({
             localVector2.set(0, cameraOffset.y, 0)
               .applyQuaternion(targetQuaternion)
           );
+          sideCamera.position.y += yOffset;
           sideCamera.updateMatrixWorld();
         }
 
