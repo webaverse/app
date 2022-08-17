@@ -205,7 +205,6 @@ export class WaitQueue {
     rects,
   };
 }; */
-
 export function mergeMeshes(meshes, geometries, textures) {
   const size = 512;
   const images = textures.map((texture) => texture && texture.image);
