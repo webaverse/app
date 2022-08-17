@@ -8,7 +8,7 @@ import {WebaverseShaderMaterial} from './materials.js';
 import {getRenderer, scene, camera} from './renderer.js';
 import Avatar from './avatars/avatars.js';
 import {AvatarRenderer} from './avatars/avatar-renderer.js';
-import {mod, angleDifference, makePromise} from './util.js';
+import {mod, angleDifference, addDefaultLights} from './util.js';
 import {world} from './world.js';
 import {maxAvatarQuality} from './constants.js';
 
@@ -772,11 +772,12 @@ planeWarpedGeometry2.computeBoundingSphere();
 const camera2 = new THREE.PerspectiveCamera(60, 1, 0.1, 1000);
 const scene2 = new THREE.Scene();
 scene2.autoUpdate = false;
-const ambientLight = new THREE.AmbientLight(0xFFFFFF, 1);
+/* const ambientLight = new THREE.AmbientLight(0xFFFFFF, 1);
 scene2.add(ambientLight);
 const directionalLight = new THREE.DirectionalLight(0xFFFFFF, 3);
 directionalLight.position.set(1, 2, 3);
-scene2.add(directionalLight);
+scene2.add(directionalLight); */
+addDefaultLights(scene2);
 
 let spriteSpecs = null;
 const getSpriteSpecs = () => {
