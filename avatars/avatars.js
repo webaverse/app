@@ -19,6 +19,9 @@ import {
   // useMaxTime,
   aimMaxTime,
   aimTransitionMaxTime,
+  idleSpeed,
+  walkSpeed,
+  runSpeed,
   // avatarInterpolationFrameRate,
   // avatarInterpolationTimeDelay,
   // avatarInterpolationNumFrames,
@@ -27,12 +30,6 @@ import {
 import * as avatarCruncher from '../avatar-cruncher.js';
 import * as avatarSpriter from '../avatar-spriter.js';
 // import * as sceneCruncher from '../scene-cruncher.js';
-import {
-  idleFactorSpeed,
-  walkFactorSpeed,
-  runFactorSpeed,
-  // narutoRunTimeFactor,
-} from './constants.js';
 import {
   getSkinnedMeshes,
   getSkeleton,
@@ -448,8 +445,6 @@ class Avatar {
 
     this.vrmExtension = object?.parser?.json?.extensions?.VRM;
     this.firstPersonCurves = getFirstPersonCurves(this.vrmExtension); 
-
-    this.lastVelocity = new THREE.Vector3();
 
     const {
       skinnedMeshes,
@@ -983,6 +978,7 @@ class Avatar {
     this.sprintFactor = 0;
     this.lastPosition = new THREE.Vector3();
     this.velocity = new THREE.Vector3();
+    // this.testVelocity = new THREE.Vector3();
     this.lastMoveTime = 0;
     this.lastEmoteTime = 0;
     this.lastEmoteAnimation = 0;
@@ -1506,12 +1502,13 @@ class Avatar {
     const positionDiff = localVector.copy(lastPosition)
       .sub(currentPosition)
       .divideScalar(Math.max(timeDiffS, 0.001))
-      .multiplyScalar(0.1);
+      // .multiplyScalar(0.1);
     localEuler.setFromQuaternion(currentQuaternion, 'YXZ');
     localEuler.set(0, -(localEuler.y + Math.PI), 0);
     positionDiff.applyEuler(localEuler);
     this.velocity.copy(positionDiff);
-    this.lastVelocity.copy(this.velocity);
+    // this.testVelocity.copy(positionDiff); // For testing only, check if the physics.velocity correct. Can't use this in formal, to calc such as idleWalkFactor/walkRunFactor, will cause aniamtions jitter in low fps.
+    // this.testVelocity.y *= -1;
     this.direction.copy(positionDiff).normalize();
     this.lastPosition.copy(currentPosition);
 
@@ -1524,10 +1521,21 @@ class Avatar {
     const now = timestamp;
     const timeDiffS = timeDiff / 1000;
 
+    // for the local player we want to update the velocity immediately
+    // on remote players this is called from the RemotePlayer -> observePlayerFn
+    if (this.isLocalPlayer) {
+      this.setVelocity(
+        timeDiffS,
+        this.lastPosition,
+        this.inputs.hmd.position,
+        this.inputs.hmd.quaternion
+      );
+    }
+
     const currentSpeed = localVector.set(this.velocity.x, 0, this.velocity.z).length();
 
-    this.idleWalkFactor = Math.min(Math.max((currentSpeed - idleFactorSpeed) / (walkFactorSpeed - idleFactorSpeed), 0), 1);
-    this.walkRunFactor = Math.min(Math.max((currentSpeed - walkFactorSpeed) / (runFactorSpeed - walkFactorSpeed), 0), 1);
+    this.idleWalkFactor = Math.min(Math.max((currentSpeed - idleSpeed) / (walkSpeed - idleSpeed), 0), 1);
+    this.walkRunFactor = Math.min(Math.max((currentSpeed - walkSpeed) / (runSpeed - walkSpeed), 0), 1);
     this.crouchFactor = Math.min(Math.max(1 - (this.crouchTime / crouchMaxTime), 0), 1);
     // console.log('current speed', currentSpeed, idleWalkFactor, walkRunFactor);
     this.aimRightFactor = this.aimRightTransitionTime / aimTransitionMaxTime;
