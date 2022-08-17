@@ -1230,3 +1230,13 @@ export const splitLinesToWidth = (() => {
 })();
 
 export const getJsDataUrl = src => `data:application/javascript;charset=utf-8,${encodeURIComponent(src)}`
+
+export const fetchArrayBuffer = async srcUrl => {
+  const res = await fetch(srcUrl);
+  if (res.ok) {
+    const arrayBuffer = await res.arrayBuffer();
+    return arrayBuffer;
+  } else {
+    throw new Error('failed to load: ' + res.status + ' ' + srcUrl);
+  }
+};
