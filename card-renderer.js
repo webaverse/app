@@ -4,6 +4,7 @@ import {screenshotObjectApp} from './object-screenshotter.js';
 import {screenshotAvatarUrl} from './avatar-screenshotter.js';
 import {generateGlyph} from './glyph-generator.js';
 import {splitLinesToWidth} from './util.js';
+import {defaultPlayerSpec} from './constant.js';
 
 const cardsSvgUrl = `./images/cards-01.svg`;
 
@@ -115,7 +116,7 @@ export const generateObjectCard = async ({
   objectImage = await _getCanvasDataUrl(objectImage);
 
   let minterAvatarPreview = await screenshotAvatarUrl({
-    start_url: `./avatars/scilly_drophunter_v31.7_fuji.vrm`,
+    start_url: defaultPlayerSpec.avatarUrl,
   });
   minterAvatarPreview = await _getCanvasDataUrl(minterAvatarPreview);
 
