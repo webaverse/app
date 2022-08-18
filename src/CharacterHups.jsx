@@ -41,7 +41,9 @@ const CharacterHup = function(props) {
       } else {
         diorama = dioramaManager.createPlayerDiorama({
           target: player,
-          objects: [player.avatar.model],
+          objects: [
+            player.avatar.avatarRenderer.scene,
+          ],
           grassBackground: true,
         });
         diorama.addCanvas(canvas);
