@@ -291,15 +291,15 @@ const _bindSkeleton = (dstModel, srcObject) => {
   const _findSrcSkeletonFromDstSkeleton = skeleton => {
     return _findSrcSkeletonFromBoneName(skeleton.bones[0].name);
   };
-  const _findSkinnedMeshInSrc = () => {
+  const _findMorphMeshInSrc = () => {
     let result = null;
     const _recurse = o => {
-      if (o.isSkinnedMesh) {
+      if (o.isMesh && o.morphTargetDictionary && o.morphTargetInfluences) {
         result = o;
         return false;
       }
       for (const child of o.children) {
-        if (_recurse(child) === false) {
+        if (!_recurse(child)) {
           return false;
         }
       }
@@ -317,9 +317,9 @@ const _bindSkeleton = (dstModel, srcObject) => {
     }
     // bind blend shapes to controls
     if (o.isMesh) {
-      const skinnedMesh = _findSkinnedMeshInSrc();
-      o.morphTargetDictionary = skinnedMesh.morphTargetDictionary;
-      o.morphTargetInfluences = skinnedMesh.morphTargetInfluences;
+      const morphMesh = _findMorphMeshInSrc();
+      o.morphTargetDictionary = morphMesh.morphTargetDictionary;
+      o.morphTargetInfluences = morphMesh.morphTargetInfluences;
     }
   });
 };
