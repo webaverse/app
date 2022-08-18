@@ -35,5 +35,6 @@ const importModule = async moduleName => {
   return m;
 };
 export {
+  moduleUrls,
   importModule,
 };
