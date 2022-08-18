@@ -1058,10 +1058,9 @@ class LocalPlayer extends UninterpolatedPlayer {
   constructor(opts) {
     super(opts);
 
-    this.isMainPlayer = !!opts.mainPlayer; // main player is not in the npc pool
     this.isLocalPlayer = !opts.npc;
     this.isNpcPlayer = !!opts.npc;
-    this.isNpcInParty = false; // whether npc's in party
+    this.isInParty = false; // whether npc's in party
     this.detached = !!opts.detached;
 
     this.characterPhysics = new CharacterPhysics(this);
@@ -1145,7 +1144,7 @@ class LocalPlayer extends UninterpolatedPlayer {
       oldAvatar,
       oldApps,
     } = oldState;
-    
+
     const self = this;
     this.playersArray.doc.transact(function tx() {
       self.playerMap = new Z.Map();
@@ -1181,6 +1180,18 @@ class LocalPlayer extends UninterpolatedPlayer {
       }
       self.playersArray.push([self.playerMap]);
       self.appManager.bindState(self.getAppsState());
+    });
+  }
+  deleteState(playerId) {
+    const self = this;
+    this.playersArray.doc.transact(function tx() {
+      for (let i = 0; i < self.playersArray.length; i++) {
+        const playerMap = self.playersArray.get(i, Z.Map);
+        if (playerMap.get('playerId') === playerId) {
+          self.playersArray.delete(i);
+          break;
+        }
+      }
     });
   }
   grab(app, hand = 'left') {

@@ -6,7 +6,7 @@ import { defaultPlayerSpec } from '../../../constants';
 
 import game from '../../../game';
 import sceneNames from '../../../scenes/scenes.json';
-import { parseQuery } from '../../../util.js'
+import { makeId, parseQuery } from '../../../util.js'
 import Webaverse from '../../../webaverse.js';
 import universe from '../../../universe.js';
 import metaversefileApi from '../../../metaversefile-api';
@@ -38,6 +38,8 @@ import {handleStoryKeyControls} from '../../../story';
 import styles from './App.module.css';
 import '../../fonts.css';
 import raycastManager from '../../../raycast-manager';
+import npcManager from '../../../npc-manager';
+import metaversefile from '../../../metaversefile-api';
 
 //
 
@@ -57,6 +59,20 @@ const _startApp = async ( weba, canvas ) => {
     // console.log('set player spec', defaultPlayerSpec);
     await localPlayer.setPlayerSpec(defaultPlayerSpec);
 
+    const createPlayerNpc = () => {
+        const app = metaversefile.createApp();
+        app.instanceId = makeId(5);
+        app.name = 'player';
+        app.contentId = defaultPlayerSpec.avatarUrl;
+        return app;    
+    };
+    const playerApp = createPlayerNpc();
+    world.appManager.importApp(playerApp);
+    npcManager.addPlayerApp(playerApp, localPlayer, {
+        name: 'Anon',
+        voice: 'Maud Pie',
+        bio: 'Main player.'
+    });
 };
 
 const _getCurrentSceneSrc = () => {

@@ -986,7 +986,8 @@ export default () => {
     return world.appManager.removeTrackedApp.apply(world.appManager, arguments);
   },
   getPlayerByAppInstanceId(instanceId) {
-    let result = partyManager.getMainPlayer().appManager.getAppByInstanceId(instanceId);
+    const localPlayer = playersManager.getLocalPlayer();
+    let result = localPlayer.appManager.getAppByInstanceId(instanceId);
     if (result) {
       return localPlayer;
     } else {
@@ -1008,8 +1009,8 @@ export default () => {
   },
   getAppByInstanceId(instanceId) {
     // local
-    const mainPlayer = partyManager.getMainPlayer();
-    let result = world.appManager.getAppByInstanceId(instanceId) || mainPlayer.appManager.getAppByInstanceId(instanceId);
+    const localPlayer = playersManager.getLocalPlayer();
+    let result = world.appManager.getAppByInstanceId(instanceId) || localPlayer.appManager.getAppByInstanceId(instanceId);
     if (result) {
       return result;
     }
@@ -1035,14 +1036,14 @@ export default () => {
   },
   getAppByPhysicsId(physicsId) {
     // local player
-    const mainPlayer = partyManager.getMainPlayer();
+    const localPlayer = playersManager.getLocalPlayer();
     let result = world.appManager.getAppByPhysicsId(physicsId);
     if (result) {
       return result;
     }
-
+  
     // local app
-    result = mainPlayer.appManager.getAppByPhysicsId(physicsId);
+    result = localPlayer.appManager.getAppByPhysicsId(physicsId);
     if (result) {
       return result;
     }
@@ -1070,14 +1071,14 @@ export default () => {
   },
   getPhysicsObjectByPhysicsId(physicsId) {
     // local player
-    const mainPlayer = partyManager.getMainPlayer();
+    const localPlayer = playersManager.getLocalPlayer();
     let result = world.appManager.getPhysicsObjectByPhysicsId(physicsId);
     if (result) {
       return result;
     }
 
     // local app
-    result = mainPlayer.appManager.getPhysicsObjectByPhysicsId(physicsId);
+    result = localPlayer.appManager.getPhysicsObjectByPhysicsId(physicsId);
     if (result) {
       return result;
     }
@@ -1105,7 +1106,7 @@ export default () => {
   },
   getPairByPhysicsId(physicsId) {
     // local player
-    const mainPlayer = partyManager.getMainPlayer();
+    const localPlayer = playersManager.getLocalPlayer();
     let result = world.appManager.getPairByPhysicsId(physicsId);
     if (result) {
       // console.log('return 1');
@@ -1113,7 +1114,7 @@ export default () => {
     }
 
     // local app
-    result = mainPlayer.appManager.getPairByPhysicsId(physicsId);
+    result = localPlayer.appManager.getPairByPhysicsId(physicsId);
     if (result) {
       // console.log('return 2');
       return result;

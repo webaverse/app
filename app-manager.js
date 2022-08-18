@@ -63,7 +63,7 @@ class AppManager extends EventTarget {
   } */
   getPeerOwnerAppManager(instanceId) {
     for (const appManager of appManagers) {
-      if (appManager !== this && appManager.appsArray.doc === this.appsArray.doc && appManager.hasTrackedApp(instanceId)) {
+      if (appManager !== this && /*appManager.appsArray.doc === this.appsArray.doc &&*/ appManager.hasTrackedApp(instanceId)) {
         return appManager;
       }
     }

@@ -56,10 +56,10 @@ export function makeAvatar(app) {
 
     const _getPlayerByAppInstanceId = instanceId => {
       const remotePlayers = playersManager.getRemotePlayers(); // Might have to be removed too
-      const mainPlayer = partyManager.getMainPlayer();
-      const result = mainPlayer.appManager.getAppByInstanceId(instanceId);
+      const localPlayer = playersManager.getLocalPlayer();
+      const result = localPlayer.appManager.getAppByInstanceId(instanceId);
       if (result) {
-        return mainPlayer;
+        return localPlayer;
       } else {
         for (const remotePlayer in remotePlayers) {
           if (remotePlayer.appManager.getAppByInstanceId(instanceId)) {

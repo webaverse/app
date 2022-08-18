@@ -56,17 +56,8 @@ class NpcManager extends EventTarget {
       npcPlayer.updateMatrixWorld();
     }
 
-    npcPlayer.npcApp = npcApp; // for lore AI
-    if (npcApp) {
-      npcApp.npcPlayer = npcPlayer; // for character select
-    }
-
     await npcPlayer.setAvatarUrl(avatarUrl);
     npcPlayer.updateAvatar(0, 0);
-
-    if (!detached) {
-      this.npcs.push(npcPlayer);
-    }
 
     return npcPlayer;
   }
@@ -80,10 +71,13 @@ class NpcManager extends EventTarget {
     }
   }
 
-  async addNpcApp(app, srcUrl) {
+  async addPlayerApp(app, npcPlayer, json) {
+    npcPlayer.npcApp = app; // for lore AI, and party system
+    if (app) {
+      app.npcPlayer = npcPlayer; // for character select
+    }
+
     let live = true;
-    let json = null;
-    let npcPlayer = null;
     let character = null;
     const cancelFns = [
       () => {
@@ -109,7 +103,7 @@ class NpcManager extends EventTarget {
     const hurtAnimation = animations.find(a => a.isHurt);
     const hurtAnimationDuration = hurtAnimation.duration;
 
-    app.getPhysicsObjects = () => npcPlayer ? [npcPlayer.characterController] : [];
+    app.setPhysicsObject(npcPlayer.characterController);
     app.getLoreSpec = () => {
       const name = json.name ?? 'Anon';
       const description = json.bio ?? '';
@@ -141,7 +135,7 @@ class NpcManager extends EventTarget {
         app.addEventListener('hittrackeradded', hittrackeradd);
 
         const activate = () => {
-          if (!npcPlayer.isNpcInParty) {
+          if (!npcPlayer.isInParty) {
             partyManager.addPlayer(npcPlayer);
           } else {
             npcPlayer.dispatchEvent({
@@ -155,21 +149,23 @@ class NpcManager extends EventTarget {
           const localPlayer = playersManager.getLocalPlayer();
 
           if (npcPlayer && physicsScene.getPhysicsEnabled()) {
-            if (!npcPlayer.isNpcInParty) {
+            if (!npcPlayer.isInParty) {
               const {timestamp, timeDiff} = e.data;
             
-              if (targetSpec) {
-                const target = targetSpec.object;
-                const v = localVector.setFromMatrixPosition(target.matrixWorld)
-                  .sub(npcPlayer.position);
-                v.y = 0;
-                const distance = v.length();
-                if (targetSpec.type === 'moveto' && distance < 2) {
-                  targetSpec = null;
+              if (!npcPlayer.isLocalPlayer) {
+                if (targetSpec) {
+                  const target = targetSpec.object;
+                  const v = localVector.setFromMatrixPosition(target.matrixWorld)
+                    .sub(npcPlayer.position);
+                  v.y = 0;
+                  const distance = v.length();
+                  if (targetSpec.type === 'moveto' && distance < 2) {
+                    targetSpec = null;
+                  }
                 }
+  
+                npcPlayer.setTarget(localPlayer.position);
               }
-
-              npcPlayer.setTarget(localPlayer.position);
 
               /* if (isNaN(npcPlayer.position.x)) {
                 debugger;
@@ -198,15 +194,6 @@ class NpcManager extends EventTarget {
 
     // load
     if (mode === 'attached') {
-      // load json
-      const res = await fetch(srcUrl);
-      if (!live) return;
-      json = await res.json();
-      if (!live) return;
-
-      // npc pameters
-      let avatarUrl = json.avatarUrl;
-      avatarUrl = createRelativeUrl(avatarUrl, srcUrl);
       const npcName = json.name ?? 'Anon';
       const npcVoiceName = json.voice ?? 'Shining armor';
       const npcBio = json.bio ?? 'A generic avatar.';
@@ -268,18 +255,11 @@ class NpcManager extends EventTarget {
       };
       _addToAiScene();
 
-      // create npc
-      const newNpcPlayer = await npcManager.createNpcAsync({
-        name: npcName,
-        npcApp: app,
-        // avatarApp: vrmApp,
-        avatarUrl,
-        position: app.position.clone()
-          .add(new THREE.Vector3(0, 1, 0)),
-        quaternion: app.quaternion,
-        scale: app.scale,
-        detached: npcDetached,
-      });
+      const newNpcPlayer = npcPlayer;
+
+      if (!npcDetached) {
+        this.npcs.push(npcPlayer);
+      }
 
       // attach to scene
       const _addPlayerAvatarToApp = () => {
@@ -317,10 +297,43 @@ class NpcManager extends EventTarget {
         await wearablePromises;
       };
       await _updateWearables();
-      if (!live) return;
+    }
+  }
+
+  async addNpcApp(app, srcUrl) {
+    let json = null;
+
+    const mode = app.getComponent('mode') ?? 'attached';
+
+    // load
+    if (mode === 'attached') {
+      // load json
+      const res = await fetch(srcUrl);
+      json = await res.json();
+      //if (!live) return;
+
+      const npcName = json.name ?? 'Anon';
+
+      // npc pameters
+      let avatarUrl = json.avatarUrl;
+      avatarUrl = createRelativeUrl(avatarUrl, srcUrl);
+
+      const npcDetached = !!json.detached;
       
-      // latch
-      npcPlayer = newNpcPlayer;
+      // create npc
+      const newNpcPlayer = await npcManager.createNpcAsync({
+        name: npcName,
+        npcApp: app,
+        // avatarApp: vrmApp,
+        avatarUrl,
+        position: app.position.clone()
+          .add(new THREE.Vector3(0, 1, 0)),
+        quaternion: app.quaternion,
+        scale: app.scale,
+        detached: npcDetached,
+      });
+
+      this.addPlayerApp(app, newNpcPlayer, json);
     }
   }
   removeNpcApp(app) {

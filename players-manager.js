@@ -17,7 +17,6 @@ class PlayersManager extends EventTarget {
     const localPlayerId = makeId(5);
     const localPlayersArray = new Z.Doc().getArray(playersMapName);
     this.localPlayer = new LocalPlayer({
-      mainPlayer: true,
       playerId: localPlayerId,
       playersArray: localPlayersArray,
     });
@@ -70,9 +69,9 @@ class PlayersManager extends EventTarget {
     this.playersArray = nextPlayersArray;
     
     if (this.playersArray) {
-      const localPlayer = metaversefileApi.useLocalPlayer();
       
       const playersObserveFn = e => {
+        const localPlayer = this.localPlayer;
         const {added, deleted, delta, keys} = e.changes;
         for (const item of added.values()) {
           let playerMap = item.content.type;
