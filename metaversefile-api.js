@@ -46,7 +46,7 @@ import renderSettingsManager from './rendersettings-manager.js';
 import questManager from './quest-manager.js';
 import {murmurhash3} from './procgen/murmurhash3.js';
 import debug from './debug.js';
-import * as sceneCruncher from './scene-cruncher.js';
+// import * as sceneCruncher from './scene-cruncher.js';
 import * as scenePreviewer from './scene-previewer.js';
 import * as sounds from './sounds.js';
 import * as lodder from './lod.js';
