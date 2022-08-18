@@ -45,13 +45,13 @@ class CharacterPhysics {
   constructor(character) {
     this.character = character;
 
-    this.targetVelocity = new THREE.Vector3();
-    this.lastTargetVelocity = new THREE.Vector3();
-    this.wantVelocity = new THREE.Vector3();
-    this.velocity = new THREE.Vector3();
-    this.targetMoveDistancePerFrame = new THREE.Vector3();
-    this.lastTargetMoveDistancePerFrame = new THREE.Vector3();
-    this.wantMoveDistancePerFrame = new THREE.Vector3();
+    this.targetVelocity = new THREE.Vector3(); // note: set by user input ( WASD ).
+    this.lastTargetVelocity = new THREE.Vector3(); // note: targetVelocity of last frame.
+    this.wantVelocity = new THREE.Vector3(); // note: damped lastTargetVelocity ( mainly used for smooth animation transition ).
+    this.velocity = new THREE.Vector3(); // after moveCharacterController, the result actual velocity.
+    this.targetMoveDistancePerFrame = new THREE.Vector3(); // note: see velocity.
+    this.lastTargetMoveDistancePerFrame = new THREE.Vector3(); // note: see velocity.
+    this.wantMoveDistancePerFrame = new THREE.Vector3(); // note: see velocity.
     // this.lastTimeDiff = 0; // todo:
     this.lastGrounded = null;
     this.lastGroundedTime = 0;
@@ -136,7 +136,7 @@ class CharacterPhysics {
     if (this.character.avatar) {
       // move character controller
       const minDist = 0;
-      localVector3.copy(this.wantMoveDistancePerFrame);
+      localVector3.copy(this.wantMoveDistancePerFrame); // todo: use wantMoveDistancePerFrame directly ?
 
       // aesthetic jump
       const jumpAction = this.character.getAction('jump');
