@@ -11,3 +11,4 @@
 - [ ] I am not adding any irrelevant code or assets
 - [ ] I am only including the changes needed to implement the change
 - [ ] I have playtested and intentionally tried to find error cases but couldn't
+- [ ] I have completed the entire (QA checklist)[https://github.com/webaverse/app/issues/3153] on my PR
