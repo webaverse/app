@@ -4,7 +4,7 @@ import {screenshotObjectApp} from './object-screenshotter.js';
 import {screenshotAvatarUrl} from './avatar-screenshotter.js';
 import {generateGlyph} from './glyph-generator.js';
 import {splitLinesToWidth} from './util.js';
-import {defaultPlayerSpec} from './constant.js';
+import {defaultPlayerSpec} from './constants.js';
 
 const cardsSvgUrl = `./images/cards-01.svg`;
 
