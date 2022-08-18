@@ -52,7 +52,6 @@ class CharacterPhysics {
     this.targetMoveDistancePerFrame = new THREE.Vector3(); // note: see velocity.
     this.lastTargetMoveDistancePerFrame = new THREE.Vector3(); // note: see velocity.
     this.wantMoveDistancePerFrame = new THREE.Vector3(); // note: see velocity.
-    // this.lastTimeDiff = 0; // todo:
     this.lastGrounded = null;
     this.lastGroundedTime = 0;
     this.lastCharacterControllerY = null;
@@ -136,7 +135,7 @@ class CharacterPhysics {
     if (this.character.avatar) {
       // move character controller
       const minDist = 0;
-      localVector3.copy(this.wantMoveDistancePerFrame); // todo: use wantMoveDistancePerFrame directly ?
+      localVector3.copy(this.wantMoveDistancePerFrame);
 
       // aesthetic jump
       const jumpAction = this.character.getAction('jump');
