@@ -110,20 +110,33 @@ export const generateObjectCard = async ({
   const url = contentId;
   const type = appType;
 
-  let objectImage = await screenshotObjectApp({
-    app,
-  });
-  objectImage = await _getCanvasDataUrl(objectImage);
+  const [
+    objectImage,
+    minterAvatarPreview,
+    glyphImage,
+  ] = await Promise.all([
+    (async () => {
+      let objectImage = await screenshotObjectApp({
+        app,
+      });
+      objectImage = await _getCanvasDataUrl(objectImage);
+      return objectImage;
+    })(),
+    (async () => {
+      let minterAvatarPreview = await screenshotAvatarUrl({
+        start_url: defaultPlayerSpec.avatarUrl,
+      });
+      minterAvatarPreview = await _getCanvasDataUrl(minterAvatarPreview);
+      return minterAvatarPreview;
+    })(),
+    (async () => {
+      let glyphImage = generateGlyph(url);
+      glyphImage = await _getCanvasDataUrl(glyphImage);
+      return glyphImage;
+    })(),
+  ]);
 
-  let minterAvatarPreview = await screenshotAvatarUrl({
-    start_url: defaultPlayerSpec.avatarUrl,
-  });
-  minterAvatarPreview = await _getCanvasDataUrl(minterAvatarPreview);
-
-  let glyphImage = generateGlyph(url);
-  glyphImage = await _getCanvasDataUrl(glyphImage);
-
-  const minterUsername = 'Scillia';
+  const minterUsername = defaultPlayerSpec.name;
   const cardImg = await generateCard({
     stats,
     width,
