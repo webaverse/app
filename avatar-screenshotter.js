@@ -3,13 +3,14 @@ import Avatar from './avatars/avatars.js';
 import {AvatarRenderer} from './avatars/avatar-renderer.js';
 // import npcManager from './npc-manager.js';
 // import dioramaManager from './diorama.js';
+import {maxAvatarQuality} from './constants.js';
 import {getRenderer} from './renderer.js';
 import {fetchArrayBuffer, addDefaultLights} from './util.js';
 
 const localVector = new THREE.Vector3();
 const localVector2D = new THREE.Vector2();
 const localVector4D = new THREE.Vector4();
-const localQuaternion = new THREE.Quaternion();
+// const localQuaternion = new THREE.Quaternion();
 const localMatrix = new THREE.Matrix4();
 
 const upVector = new THREE.Vector3(0, 1, 0);
@@ -40,7 +41,7 @@ export const screenshotAvatarUrl = async ({
   
   const avatarRenderer = new AvatarRenderer({
     arrayBuffer,
-    srcUrl,
+    srcUrl: start_url,
     quality: maxAvatarQuality,
   });
   await avatarRenderer.waitForLoad();
