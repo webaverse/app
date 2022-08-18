@@ -137,7 +137,6 @@ export const generateObjectCard = async ({
     glyphImage,
     flipY,
   });
-  // _previewImage(cardImg, width, height);
   return cardImg;
 };
 
@@ -263,12 +262,6 @@ export const generateCard = async ({
       stopEls[3].style.cssText = `stop-color:${spec.art.colors[1]}`;
     }
   }
-
-  /* const blob = new Blob([svg.outerHTML], {
-    type: 'image/svg+xml',
-  });
-  const objectUrl = URL.createObjectURL(blob);
-  return objectUrl; */
 
   const image = await new Promise((accept, reject) => {
     const image = document.createElement('img');
