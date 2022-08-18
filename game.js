@@ -1697,7 +1697,7 @@ class GameManager extends EventTarget {
       const localPlayer = playersManager.getLocalPlayer();
       this.playerDiorama.setTarget(localPlayer);
       this.playerDiorama.setObjects([
-        e.avatar.model,
+        e.avatar.avatarRenderer.scene,
       ]);
     })
   }
