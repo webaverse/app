@@ -1711,12 +1711,31 @@ class GameManager extends EventTarget {
     return localPlayer.setVoiceEndpoint(voiceId);
   }
   saveScene() {
-    const scene = world.appManager.exportJSON();
-    const s = JSON.stringify(scene, null, 2);
+    const scene = { objects: world.appManager.exportJSON() }
+
+    // The internal world serialization isn't exactly the same as .scn file format
+    // So we do a bit of transformation to make it match
+    // Internally we are sending a packed PQS transform, but .scn use separate PQS since it is easier to read
+    for (let object of scene.objects) {
+      const transform = Array.from(object.transform);
+      const position = [ transform[0], transform[1], transform[2]];
+      const quaternion = [ transform[3], transform[4], transform[5], transform[6]];
+      object['position'] = position;
+      object['quaternion'] = quaternion;
+      // The contentId is by default set to the start_url, which is the key loaded in .scn files
+      object['start_url'] = object['contentId'];
+      delete object['contentId'];
+      if(object['components'] && object['components'].length === 0) {
+        delete object['components'];
+      }
+      delete object['transform'];
+    }
+
+    const s = JSON.stringify(scene, null, 2)
     const blob = new Blob([s], {
       type: 'application/json',
     });
-    downloadFile(blob, 'scene.json');
+    downloadFile(blob, 'scene.scn');
     // console.log('got scene', scene);
   }
   update = _gameUpdate;
