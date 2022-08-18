@@ -1715,7 +1715,7 @@ class GameManager extends EventTarget {
     const blob = new Blob([s], {
       type: 'application/json',
     });
-    downloadFile(blob, 'scene.json');
+    downloadFile(blob, 'scene.scn');
     // console.log('got scene', scene);
   }
   update = _gameUpdate;

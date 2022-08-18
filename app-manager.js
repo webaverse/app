@@ -665,11 +665,14 @@ class AppManager extends EventTarget {
     // iterate over appsArray
     for (const trackedApp of this.appsArray) {
       const transform = trackedApp.get('transform');
-      const components = trackedApp.get('components') ?? [];
+      const position = [ transform[0], transform[1], transform[2]];
+      const quaternion = [ transform[3], transform[4], transform[5], transform[6]];
+      const components = trackedApp.get('components');
       const object = {
-        transform,
-        components,
+        position,
+        quaternion
       };
+      if(components && components.length > 0) object.components = components;
       // console.log('got app object', object);
     
       let contentId = trackedApp.get('contentId');
@@ -680,13 +683,13 @@ class AppManager extends EventTarget {
         object.type = type;
         object.content = jsonParse(content) ?? {};
       } else {
-        object.contentId = contentId;
+        object.start_url = contentId;
       }
 
       objects.push(object);
     }
 
-    return objects;
+    return { objects };
   }
   destroy() {
     if (!this.isBound()) {
