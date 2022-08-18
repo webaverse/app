@@ -292,9 +292,17 @@ const _bindSkeleton = (dstModel, srcObject) => {
     return _findSrcSkeletonFromBoneName(skeleton.bones[0].name);
   };
   const _findMorphMeshInSrc = () => {
+    const srcBlendShapeGroups = srcObject?.userData?.gltfExtensions?.VRM?.blendShapeGroups;
+    const numSrcBlendShapeGroups = srcBlendShapeGroups?.length ?? 0;
+
     let result = null;
     const _recurse = o => {
-      if (o.isMesh && o.morphTargetDictionary && o.morphTargetInfluences) {
+      if (
+        o.isMesh &&
+        o.morphTargetDictionary &&
+        o.morphTargetInfluences &&
+        o.morphTargetInfluences.length >= numSrcBlendShapeGroups
+      ) {
         result = o;
         return false;
       }
