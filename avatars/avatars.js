@@ -1516,7 +1516,7 @@ class Avatar {
     this.calcedVelocity.copy(positionDiff); // For testing only, check if the physics.velocity correct. Can't use this in formal, to calc such as idleWalkFactor/walkRunFactor, will cause aniamtions jitter in low fps.
     this.calcedVelocity.y *= -1;
     if (!isBoundPlayer) {
-      this.velocity.copy(this.calcedVelocity);
+      this.velocity.copy(this.calcedVelocity); // If this avatar not bound to player ( such as in `avatar-spriter.js` ), then have to use `calcedVelocity`, and because of the fps in `avatar-spriter.js` always 60 fps, so no animations jitter in low fps problem.
       // this.velocity.x *= 1 / 3; // walk speed 2.5 // wrong, don't need modify.SS
       // this.velocity.z *= 1 / 3; // walk speed 2.5 // wrong, don't need modify.SS
     }
