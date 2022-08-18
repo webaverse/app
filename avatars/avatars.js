@@ -2038,7 +2038,7 @@ class Avatar {
       const _volume = e => {
         // the mouth is manually overridden by the CharacterBehavior class which is attached to all players
         // this happens when a player is eating fruit or yelling while making an attack
-        if (!this.manuallySetMouth && e.data > 0.001) {
+        if (!this.manuallySetMouth) {
           this.volume = e.data;
         }
       }

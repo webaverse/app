@@ -491,6 +491,7 @@ class CharacterSfx {
         if (this.oldGrunt === audioBufferSourceNode) {
           this.oldGrunt = null;
         }
+        this.player.avatar.setAudioEnabled(false);
       });
 
       audioBufferSourceNode.start(0, offset, duration);
@@ -578,6 +579,7 @@ class CharacterSfx {
         if (this.oldGrunt === audioBufferSourceNode) {
           this.oldGrunt = null;
         }
+        this.player.avatar.setAudioEnabled(false);
       });
 
       audioBufferSourceNode.start(0, offset, duration);
