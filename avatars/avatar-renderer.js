@@ -329,6 +329,9 @@ const _getMergedBoundingSphere = o => {
   o.updateMatrixWorld();
   o.traverse(o => {
     if (o.isMesh) {
+      if (!o.geometry.boundingSphere) {
+        o.geometry.computeBoundingSphere();
+      }
       sphere.union(
         localSphere.copy(o.geometry.boundingSphere)
           .applyMatrix4(o.matrixWorld)
