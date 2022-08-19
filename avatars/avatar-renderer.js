@@ -611,30 +611,6 @@ export class AvatarRenderer /* extends EventTarget */ {
                   const glb = avatarSpriter.createSpriteAvatarMeshFromTextures(textureImages);
                   _forAllMeshes(glb, _unfrustumCull);
                   glb.boundingSphere = _getMergedBoundingSphere(glb);
-
-                  /* // console.log('got texture images glb', {textureImages, glb});
-                  const canvasesPerRow = 4;
-                  const canvasSize = 256;
-                  for (let i = 0; i < textureImages.length; i++) {
-                    const textureImage = textureImages[i];
-                    const x = i % canvasesPerRow;
-                    const y = Math.floor(i / canvasesPerRow);
-
-                    const canvas = document.createElement('canvas');
-                    canvas.width = textureImage.width;
-                    canvas.height = textureImage.height;
-                    const ctx = canvas.getContext('2d');
-                    ctx.drawImage(textureImage, 0, 0);
-                    canvas.style.cssText = `\
-                      position: absolute;
-                      top: ${y * canvasSize}px;
-                      left: ${x * canvasSize}px;
-                      width: ${canvasSize}px;
-                      height: ${canvasSize}px;
-                      z-index: 1;
-                    `;
-                    document.body.appendChild(canvas);
-                  } */
     
                   this.spriteAvatarMesh = glb;
                 })(),
@@ -681,47 +657,6 @@ export class AvatarRenderer /* extends EventTarget */ {
                     _setDepthWrite(o);
                   });
                   glb.boundingSphere = _getMergedBoundingSphere(glb);
-
-                  /* glb.traverse(o => {
-                    if (o.isMesh) {
-                      // o.material.side = THREE.BackSide;
-
-                      console.log('load material', o.material);
-
-                      const map = o.material.map;
-                      if (map) {
-                        // draw the ImageBitmap to a canvas
-                        const canvas = document.createElement('canvas');
-                        canvas.width = map.image.width;
-                        canvas.height = map.image.height;
-                        const ctx = canvas.getContext('2d');
-                        ctx.drawImage(map.image, 0, 0);
-
-                        // set alpha to 255 for all pixels
-                        {
-                          const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
-                          const {data} = imageData;
-                          for (let i = 0; i < data.length; i += 4) {
-                            data[i + 3] = 255;
-                          }
-                          ctx.putImageData(imageData, 0, 0);
-                        }
-
-                        document.body.appendChild(canvas);
-                        // 300px absolute top left
-                        canvas.style.cssText = `\
-                          position: absolute;
-                          top: 0;
-                          left: 0;
-                          width: 400px;
-                          height: 400px;
-                        `;
-
-                        map.image = canvas;
-                        map.needsUpdate = true;
-                      }
-                    }
-                  }); */
   
                   this.crunchedModel = glb;
                 })(),
