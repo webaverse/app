@@ -141,10 +141,11 @@ export const MegaHotBox = ({
       };
     }, []);
 
-    const claimEnable = () => {
-        if(!selectedMenuIndex && selectObject ) {
+    const isClaimedOrUnable = () => {
+        console.log("index", selectedMenuIndex)
+        if((selectedMenuIndex == 0) && selectObject ) {
                 return selectObject.claimed ?? false;
-            }
+        } else return true;
     }
 
     return (
@@ -162,7 +163,7 @@ export const MegaHotBox = ({
           <div className={ styles.description }>{description}</div>
         </div>
         <div className={ styles.buttons }>
-            {!claimEnable() && (
+            { !isClaimedOrUnable() && (
             
             <BigButton
               highlight={false}
