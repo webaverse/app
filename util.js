@@ -580,14 +580,14 @@ export const unFrustumCull = (o) => {
   });
 };
 
-export const enableShadows = (o) => {
+/* export const enableShadows = (o) => {
   o.traverse((o) => {
     if (o.isMesh) {
       o.castShadow = true;
       o.receiveShadow = true;
     }
   });
-};
+}; */
 
 export const capitalize = (s) => s[0].toUpperCase() + s.slice(1);
 
