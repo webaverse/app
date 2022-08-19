@@ -1041,7 +1041,7 @@ export default () => {
     if (result) {
       return result;
     }
-  
+
     // local app
     result = localPlayer.appManager.getAppByPhysicsId(physicsId);
     if (result) {

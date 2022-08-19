@@ -1144,7 +1144,7 @@ class LocalPlayer extends UninterpolatedPlayer {
       oldAvatar,
       oldApps,
     } = oldState;
-
+    
     const self = this;
     this.playersArray.doc.transact(function tx() {
       self.playerMap = new Z.Map();

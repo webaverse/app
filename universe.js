@@ -137,7 +137,6 @@ class Universe extends EventTarget {
   connectState(state) {
     this.state = state;
     state.setResolvePriority(1);
-
     playersManager.clearRemotePlayers();
     playersManager.bindState(state.getArray(playersMapName));
 
