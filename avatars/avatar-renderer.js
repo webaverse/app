@@ -548,6 +548,8 @@ export class AvatarRenderer /* extends EventTarget */ {
     }
   }
   setControlled(controlled) {
+    this.isControlled = controlled;
+    
     if (controlled) {
       for (const glb of [
         this.spriteAvatarMesh,
