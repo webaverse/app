@@ -35,7 +35,6 @@ import mobManager from './mob-manager.js';
 import universe from './universe.js';
 import {PathFinder} from './npc-utils.js';
 import {playersManager} from './players-manager.js';
-import {partyManager} from './party-manager.js';
 import loaders from './loaders.js';
 import * as voices from './voices.js';
 import * as procgen from './procgen/procgen.js';
