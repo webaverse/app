@@ -42,16 +42,15 @@ class PartyManager extends EventTarget {
       transplantToWorld();
       this.partyPlayers.shift();
 
+      headPlayer.deleteState(headPlayer.playerId);
 
-      const state = headPlayer.detachState();
-      
       playersManager.setLocalPlayer(nextPlayer);
-      
-      nextPlayer.deleteState(nextPlayer.playerId);
-      nextPlayer.unbindCommonObservers();
-      nextPlayer.attachState(state);
-      nextPlayer.bindCommonObservers();
 
+      this.dispatchEvent(new MessageEvent('playerselected', {
+        data: {
+          player: nextPlayer,
+        }
+      }));
 
       nextPlayer.updatePhysicsStatus();
       headPlayer.updatePhysicsStatus();
