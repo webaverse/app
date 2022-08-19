@@ -13,7 +13,8 @@ import validEmotionMapping from "./validEmotionMapping.json";
 
 const localVector = new THREE.Vector3();
 
-const physicsScene = physicsManager.getScene();
+const updatePhysicsFnMap = new WeakMap();
+const updateAvatarsFnMap = new WeakMap();
 const cancelFnMap = new WeakMap();
 
 class NpcManager extends EventTarget {
@@ -68,6 +69,24 @@ class NpcManager extends EventTarget {
     const removeIndex = this.npcs.indexOf(npcPlayer);
     if (removeIndex !== -1) {
       this.npcs.splice(removeIndex, 1);
+    }
+  }
+
+  updatePhysics(timestamp, timeDiff) {
+    for (const npc of this.npcs) {
+      const updatePhysicsFn = updatePhysicsFnMap.get(npc.npcApp);
+      if (updatePhysicsFn) {
+        updatePhysicsFn(timestamp, timeDiff);
+      }
+    }
+  }
+
+  updateAvatar(timestamp, timeDiff) {
+    for (const npc of this.npcs) {
+      const updateAvatarsFn = updateAvatarsFnMap.get(npc.npcApp);
+      if (updateAvatarsFn) {
+        updateAvatarsFn(timestamp, timeDiff);
+      }
     }
   }
 
@@ -145,28 +164,25 @@ class NpcManager extends EventTarget {
         };
         app.addEventListener('activate', activate);
 
-        const slowdownFactor = 0.4;
-        const walkSpeed = 0.075 * slowdownFactor;
-        const runSpeed = walkSpeed * 8;
-        const speedDistanceRate = 0.07;
-        const frame = e => {
+        const updatePhysicsFn = (timestamp, timeDiff) => {
+          const slowdownFactor = 0.4;
+          const walkSpeed = 0.075 * slowdownFactor;
+          const runSpeed = walkSpeed * 8;
+          const speedDistanceRate = 0.07;
+
           const localPlayer = playersManager.getLocalPlayer();
+          if (npcPlayer) {
 
-          if (npcPlayer && physicsScene.getPhysicsEnabled()) {
-            const {timestamp, timeDiff} = e.data;
-
-            let target = null;
             if (!npcPlayer.isLocalPlayer) {
+              let target = null;
               if (npcPlayer.isInParty) { // if party, follow in a line
                 target = partyManager.getTargetPlayer(npcPlayer);
               } else {
                 if (targetSpec) { // if npc, look to targetSpec
-                  taret = targetSpec.object;
+                  target = targetSpec.object;
                 }
               }
-            }
 
-            if (!npcPlayer.isLocalPlayer) {
               npcPlayer.setTarget(localPlayer.position);
               if (target) {
                 const v = localVector.setFromMatrixPosition(target.matrixWorld)
@@ -177,7 +193,8 @@ class NpcManager extends EventTarget {
                   const speed = Math.min(Math.max(walkSpeed + ((distance - 1.5) * speedDistanceRate), 0), runSpeed);
                   v.normalize()
                     .multiplyScalar(speed * timeDiff);
-                    player.characterPhysics.applyWasd(v);
+
+                  npcPlayer.characterPhysics.applyWasd(v);
 
                   npcPlayer.setTarget(target.position);
                 } else {
@@ -195,18 +212,23 @@ class NpcManager extends EventTarget {
             /* if (isNaN(npcPlayer.position.x)) {
               debugger;
             } */
-            npcPlayer.updateAvatar(timestamp, timeDiff);
-            /* if (isNaN(npcPlayer.position.x)) {
-              debugger;
-            } */
           }
         };
-        world.appManager.addEventListener('frame', frame);
+        const updateAvatarFn = (timestamp, timeDiff) => {
+          npcPlayer.updateAvatar(timestamp, timeDiff);
+          /* if (isNaN(npcPlayer.position.x)) {
+            debugger;
+          } */
+        };
+
+        updatePhysicsFnMap.set(app, updatePhysicsFn);
+        updateAvatarsFnMap.set(app, updateAvatarFn);
 
         cancelFns.push(() => {
           app.removeEventListener('hittrackeradded', hittrackeradd);
           app.removeEventListener('activate', activate);
-          world.appManager.removeEventListener('frame', frame);
+          updatePhysicsFnMap.delete(app);
+          updateAvatarsFnMap.delete(app);
         });
       };
       _listenEvents();
