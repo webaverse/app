@@ -17,7 +17,7 @@ class DropManager extends EventTarget {
   async createDropApp({
     start_url,
     components = [],
-    type = 'minor', // 'minor', 'major', 'key'
+    type = 'major', // 'minor', 'major', 'key'
     position,
     quaternion,
     scale,
@@ -70,9 +70,20 @@ class DropManager extends EventTarget {
       start_url,
       level,
       voucher,
+      pickupTime: Date.now()
     };
     this.claims.push(claim);
 
+    this.dispatchEvent(new MessageEvent('claimschange', {
+      data: {
+        claims: this.claims,
+      },
+    }));
+  }
+  removeClaim(claimedDrop) {
+    const restClaims = this.claims.filter((each) => JSON.stringify(each) !== JSON.stringify(claimedDrop))
+    console.log("reset", restClaims)
+    this.claims = restClaims
     this.dispatchEvent(new MessageEvent('claimschange', {
       data: {
         claims: this.claims,

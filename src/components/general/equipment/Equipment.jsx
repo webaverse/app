@@ -356,7 +356,7 @@ export const Equipment = () => {
 
         async function setupInventory() {
             const tokens = await getTokens();
-            const inventoryItems = tokens.map((token, i) => {
+            const inventoryItems = tokens.map((token, id) => {
                 return {
                     name: token.name ?? "",
                     start_url: token.url ?? (token.animation_url !== "" ? token.animation_url : token.collection.banner_image_url),
@@ -373,7 +373,7 @@ export const Equipment = () => {
         });
     }
 
-  }, [open, state.openedPanel, selectedChain, nfts]);
+  }, [open, state.openedPanel, selectedChain, nfts, claims]);
 
     const onMouseEnter = object => () => {
         setHoverObject(object);
@@ -418,14 +418,18 @@ export const Equipment = () => {
         sounds.playSoundName('menuNext');
     };
 
-    const mintClaim = (e) => {
+    const mintClaim = async (e) => {
         console.log("mintfomrddd",e)
-        mintfromVoucher(e);
+        await mintfromVoucher(e, () => {
+        }, () => {
+            dropManager.removeClaim(e);
+        });
     }
     const selectClassName = styles[`select-${selectedMenuIndex}`];
 
     useEffect(() => {
         const claimschange = e => {
+
             const {claims} = e.data;
             setClaims(claims.slice());
         };
@@ -433,7 +437,7 @@ export const Equipment = () => {
         return () => {
             dropManager.removeEventListener('claimschange', claimschange);
         };
-    }, [claims]);
+    }, []);
 
     useEffect(() => {
         if (cachedLoader) {

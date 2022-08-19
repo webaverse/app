@@ -22,6 +22,7 @@ const ClaimsNotification = () => {
 
   useEffect(() => {
     const claimschange = e => {
+       console.log("notify", e) 
       console.log('set num claims', e.data.claims.length);
       setNumClaims(e.data.claims.length);
     };

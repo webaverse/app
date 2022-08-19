@@ -162,10 +162,10 @@ export default function useNFTContract(currentAccount) {
     }
   }
 
-  async function mintfromVoucher(app, callback = () => {}) { //server drop
+  async function mintfromVoucher(app, callback = () => {}, afterminting = f => f) { //server drop
     setMinting(true);
     setError('');
-    if(app.type === "major") {
+    if(app.type !== "major") {
         try {
         const signer = await getSigner();
         const webaverseContract = new ethers.Contract(
@@ -216,14 +216,19 @@ export default function useNFTContract(currentAccount) {
         } else {
             if (app.serverDrop === true) {
                 try {
-                const res = await webaverseContract.claimServerDropNFT(
-                    currentAccount,
-                    app.name,
-                    app.level.toString(),
-                    "0x",
-                    app.voucher
-                );
-                callback(res);
+                    const claimtx = await webaverseContract.claimServerDropNFT(
+                        currentAccount,
+                        app.name,
+                        app.level.toString(),
+                        "0x",
+                        app.voucher                                 
+                    );
+                    callback();
+                    const res = await claimtx.wait();
+                    if (res.transactionHash) {
+                        // afterminting(app);
+                        afterminting();
+                    }
                 } catch (err) {
                 console.warn("NFT minting to webaverse contract failed");
                 setError("NFT Mint Failed");
@@ -249,7 +254,7 @@ export default function useNFTContract(currentAccount) {
         setMinting(false);
         }
     }
-    if (app.type === "minor") {
+    if (app.type !== "minor") {
         try {
             const signer = await getSigner();
             const webaverseContract = new ethers.Contract(
