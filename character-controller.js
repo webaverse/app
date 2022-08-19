@@ -164,6 +164,21 @@ class Character extends THREE.Object3D {
     this.voicePack = null;
     this.voiceEndpoint = null;
   }
+  // serializers
+  getPosition() {
+    return this.position.toArray(localArray3) ?? [0, 0, 0];
+  }
+  getQuaternion() {
+    return this.quaternion.toArray(localArray4) ?? [0, 0, 0, 1];
+  }
+  setSpawnPoint(position, quaternion) {
+    this.position.copy(position);
+    this.quaternion.copy(quaternion);
+
+    if (this.characterPhysics.characterController) {
+      this.characterPhysics.setPosition(position);
+    }
+  }
   findAction(fn) {
     const actions = this.getActionsState();
     for (const action of actions) {
@@ -525,8 +540,6 @@ class Character extends THREE.Object3D {
   }
 }
 
-
-
 const controlActionTypes = [
   'jump',
   'fallLoop',
@@ -766,6 +779,13 @@ class AvatarCharacter extends StateCharacter {
     this.rightHand = new AvatarHand();
     this.hands = [this.leftHand, this.rightHand];
   }
+  setSpawnPoint(position, quaternion) {
+    super.setSpawnPoint(position, quaternion);
+    
+    camera.position.copy(position);
+    camera.quaternion.copy(quaternion);
+    camera.updateMatrixWorld();
+  }
   async syncAvatar() {
     if (this.syncAvatarCancelFn) {
       this.syncAvatarCancelFn.cancel();
@@ -850,25 +870,6 @@ class AvatarCharacter extends StateCharacter {
     }
 
     this.syncAvatarCancelFn = null;
-  }
-  // serializers
-  getPosition() {
-    return this.position.toArray(localArray3) ?? [0, 0, 0];
-  }
-  getQuaternion() {
-    return this.quaternion.toArray(localArray4) ?? [0, 0, 0, 1];
-  }
-  setSpawnPoint(position, quaternion) {
-    this.position.copy(position);
-    this.quaternion.copy(quaternion);
-
-    camera.position.copy(position);
-    camera.quaternion.copy(quaternion);
-    camera.updateMatrixWorld();
-
-    if (this.characterPhysics.characterController) {
-      this.characterPhysics.setPosition(position);
-    }
   }
   destroy() {
     this.avatarFace.destroy();
