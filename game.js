@@ -417,6 +417,7 @@ const _startUse = () => {
           quaternion,
           scale,
         };
+        console.log(newUseAction);
         // console.log('new use action', newUseAction, useComponent, {animation, animationCombo, animationEnvelope});
         // console.log('add use', 'game.js')
         localPlayer.addAction(newUseAction);
@@ -970,7 +971,8 @@ const _gameUpdate = (timestamp, timeDiff) => {
     const useAction = player.getAction('use');
     if (useAction) {
       const _handleSword = () => {
-        const wearApp = player.isLocalPlayer? loadoutManager.getSelectedApp() : window.swordApp;
+        const wearApp = player.appManager.getAppByInstanceId(useAction.instanceId);
+        
         if (wearApp && player.avatar?.useTime > 100) {
           const useComponent = wearApp.getComponent('use');
           if (useComponent) {
@@ -1033,7 +1035,7 @@ const _gameUpdate = (timestamp, timeDiff) => {
       localPlayer.removeAction('dodgeRight');
     }
   };
-  _updateDodge();
+  // _updateDodge();
 
   const _updateMouseLook = () => {
     if (localPlayer.avatar) {

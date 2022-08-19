@@ -5,6 +5,7 @@ import physx from './physx.js';
 import Avatar from './avatars/avatars.js';
 import metaversefile from 'metaversefile';
 import * as metaverseModules from './metaverse-modules.js';
+import * as sounds from './sounds.js';
 
 const localVector = new THREE.Vector3();
 const localVector2 = new THREE.Vector3();
@@ -200,16 +201,12 @@ export class CharacterHitter {
     });
 
     const gruntTypes = [
-      'hurt',
-      'scream',
-      'attack',
-      'angry',
-      'gasp',
+      'hurt'
     ];
     const gruntType = gruntTypes[Math.floor(Math.random() * gruntTypes.length)];
     // console.log('play grunt', emotion, gruntType);
     this.player.characterSfx.playGrunt(gruntType);
-
+    sounds.playSoundName('enemyCut');
     {
       const damageMeshApp = metaversefile.createApp();
       (async () => {
