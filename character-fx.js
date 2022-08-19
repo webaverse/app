@@ -2,8 +2,8 @@
 this file implements avatar transformation effects/shaders.
 */
 
-import metaversefile from 'metaversefile';
 import * as THREE from 'three';
+import metaversefile from 'metaversefile';
 import {sceneLowPriority} from './renderer.js';
 
 const localVector = new THREE.Vector3();

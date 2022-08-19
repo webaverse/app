@@ -3,11 +3,11 @@ set the avatar state from the character state */
 
 import * as THREE from 'three';
 import Avatar from './avatars/avatars.js';
+import {unFrustumCull, enableShadows} from './util.js';
 import {
-  getEyePosition
+  getEyePosition,
 } from './avatars/util.mjs';
 import {playersManager} from './players-manager.js';
-import {enableShadows, unFrustumCull} from './util.js';
 
 const appSymbol = 'app'; // Symbol('app');
 const avatarSymbol = 'avatar'; // Symbol('avatar');

@@ -1,9 +1,9 @@
 import * as THREE from 'three';
+import {scene, camera} from './renderer.js';
 import physics from './physics-manager.js';
-import { camera, scene } from './renderer.js';
 // import physx from './physx.js';
-import metaversefile from 'metaversefile';
 import Avatar from './avatars/avatars.js';
+import metaversefile from 'metaversefile';
 import * as metaverseModules from './metaverse-modules.js';
 
 const localVector = new THREE.Vector3();

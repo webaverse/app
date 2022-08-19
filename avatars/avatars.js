@@ -1,18 +1,18 @@
-import {VRMSpringBoneImporter} from '@pixiv/three-vrm/lib/three-vrm.module.js';
 import * as THREE from 'three';
+import {VRMSpringBoneImporter} from '@pixiv/three-vrm/lib/three-vrm.module.js';
+import {fixSkeletonZForward} from './vrarmik/SkeletonUtils.js';
+import PoseManager from './vrarmik/PoseManager.js';
+import ShoulderTransforms from './vrarmik/ShoulderTransforms.js';
+import LegsManager from './vrarmik/LegsManager.js';
+import {scene, camera} from '../renderer.js';
+import MicrophoneWorker from './microphone-worker.js';
+import {AudioRecognizer} from '../audio-recognizer.js';
 import audioManager from '../audio-manager.js';
-import {AudioRecognizer } from '../audio-recognizer.js';
-import {camera, scene} from '../renderer.js';
 import {
   // angleDifference,
   // getVelocityDampingFactor,
-  getNextPhysicsId
+  getNextPhysicsId,
 } from '../util.js';
-import MicrophoneWorker from './microphone-worker.js';
-import LegsManager from './vrarmik/LegsManager.js';
-import PoseManager from './vrarmik/PoseManager.js';
-import ShoulderTransforms from './vrarmik/ShoulderTransforms.js';
-import {fixSkeletonZForward} from './vrarmik/SkeletonUtils.js';
 // import Simplex from '../simplex-noise.js';
 import {
   crouchMaxTime,
@@ -26,25 +26,35 @@ import {
 // import {FixedTimeStep} from '../interpolants.js';
 // import {AvatarRenderer} from './avatar-renderer.js';
 // import * as sceneCruncher from '../scene-cruncher.js';
-import metaversefile from 'metaversefile';
-import {easing} from '../math-utils.js';
 import {
-  idleFactorSpeed, runFactorSpeed, walkFactorSpeed
+  idleFactorSpeed,
+  walkFactorSpeed,
+  runFactorSpeed,
+  // narutoRunTimeFactor,
 } from './constants.js';
 import {
+  getSkinnedMeshes,
+  getSkeleton,
   getEyePosition,
-  getHeight, getModelBones, getSkeleton, getSkinnedMeshes,
+  getHeight,
   // makeBoneMap,
-  getTailBones
+  getTailBones,
+  getModelBones,
+  // cloneModelBones,
+  // decorateAnimation,
+  // retargetAnimation,
+  // animationBoneToModelBone,
 } from './util.mjs';
+import {easing} from '../math-utils.js';
+import metaversefile from 'metaversefile';
 
-import {getClosest2AnimationAngles, getFirstPersonCurves, loadPromise, _applyAnimation, _findArmature, _getLerpFn} from './animationHelpers.js';
+import { getFirstPersonCurves, getClosest2AnimationAngles, loadPromise, _findArmature, _getLerpFn, _applyAnimation } from './animationHelpers.js'
 
-import {animationMappingConfig} from './AnimationMapping.js';
-import Blinker from './Blinker.js';
-import Emoter from './Emoter.js';
-import Looker from './Looker.js';
-import Nodder from './Nodder.js';
+import { animationMappingConfig } from './AnimationMapping.js';
+import Emoter from './Emoter.js'
+import Blinker from './Blinker.js'
+import Nodder from './Nodder.js'
+import Looker from './Looker.js'
 
 import * as wind from './simulation/wind.js';
 

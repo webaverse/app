@@ -5,18 +5,21 @@ import audioManager from './audio-manager.js';
 
 import {
   idleFactorSpeed,
-  narutoRunTimeFactor,
-  runFactorSpeed,
   walkFactorSpeed,
+  runFactorSpeed,
+  narutoRunTimeFactor,
 } from './avatars/constants.js';
-
 import {
   crouchMaxTime,
-  drinkFrameIndices,
   eatFrameIndices,
+  drinkFrameIndices,
 } from './constants.js';
-
-import { mod, selectVoice } from './util.js';
+import {
+  mod,
+  selectVoice,
+  // loadJson,
+  // loadAudioBuffer,
+} from './util.js';
 
 const localVector = new THREE.Vector3();
 
