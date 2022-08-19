@@ -1,8 +1,8 @@
-import { VRMSpringBoneImporter } from '@pixiv/three-vrm/lib/three-vrm.module.js';
+import {VRMSpringBoneImporter} from '@pixiv/three-vrm/lib/three-vrm.module.js';
 import * as THREE from 'three';
 import audioManager from '../audio-manager.js';
-import { AudioRecognizer } from '../audio-recognizer.js';
-import { camera, scene } from '../renderer.js';
+import {AudioRecognizer } from '../audio-recognizer.js';
+import {camera, scene} from '../renderer.js';
 import {
   // angleDifference,
   // getVelocityDampingFactor,
@@ -12,7 +12,7 @@ import MicrophoneWorker from './microphone-worker.js';
 import LegsManager from './vrarmik/LegsManager.js';
 import PoseManager from './vrarmik/PoseManager.js';
 import ShoulderTransforms from './vrarmik/ShoulderTransforms.js';
-import { fixSkeletonZForward } from './vrarmik/SkeletonUtils.js';
+import {fixSkeletonZForward} from './vrarmik/SkeletonUtils.js';
 // import Simplex from '../simplex-noise.js';
 import {
   crouchMaxTime,
@@ -27,7 +27,7 @@ import {
 // import {AvatarRenderer} from './avatar-renderer.js';
 // import * as sceneCruncher from '../scene-cruncher.js';
 import metaversefile from 'metaversefile';
-import { easing } from '../math-utils.js';
+import {easing} from '../math-utils.js';
 import {
   idleFactorSpeed, runFactorSpeed, walkFactorSpeed
 } from './constants.js';
@@ -38,9 +38,9 @@ import {
   getTailBones
 } from './util.mjs';
 
-import { getClosest2AnimationAngles, getFirstPersonCurves, loadPromise, _applyAnimation, _findArmature, _getLerpFn } from './animationHelpers.js';
+import {getClosest2AnimationAngles, getFirstPersonCurves, loadPromise, _applyAnimation, _findArmature, _getLerpFn} from './animationHelpers.js';
 
-import { animationMappingConfig } from './AnimationMapping.js';
+import {animationMappingConfig} from './AnimationMapping.js';
 import Blinker from './Blinker.js';
 import Emoter from './Emoter.js';
 import Looker from './Looker.js';

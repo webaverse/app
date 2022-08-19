@@ -1,18 +1,22 @@
 import * as THREE from 'three';
-import audioManager from './audio-manager.js';
 import Avatar from './avatars/avatars.js';
 import * as sounds from './sounds.js';
+import audioManager from './audio-manager.js';
 
 import {
-  idleFactorSpeed, narutoRunTimeFactor, runFactorSpeed, walkFactorSpeed
+  idleFactorSpeed,
+  narutoRunTimeFactor,
+  runFactorSpeed,
+  walkFactorSpeed,
 } from './avatars/constants.js';
+
 import {
-  crouchMaxTime, drinkFrameIndices, eatFrameIndices
+  crouchMaxTime,
+  drinkFrameIndices,
+  eatFrameIndices,
 } from './constants.js';
-import {
-  mod,
-  selectVoice
-} from './util.js';
+
+import { mod, selectVoice } from './util.js';
 
 const localVector = new THREE.Vector3();
 

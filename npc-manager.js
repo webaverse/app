@@ -1,14 +1,14 @@
 import * as THREE from 'three';
 import Avatar from './avatars/avatars.js';
-import { LocalPlayer } from './character-controller.js';
-import { chatManager } from './chat-manager.js';
+import {LocalPlayer} from './character-controller.js';
+import {chatManager} from './chat-manager.js';
 import physicsManager from './physics-manager.js';
-import { playersManager } from './players-manager.js';
-import { triggerEmote } from './src/components/general/character/Poses.jsx';
-import { createRelativeUrl, makeId } from './util.js';
+import {playersManager} from './players-manager.js';
+import {triggerEmote} from './src/components/general/character/Poses.jsx';
+import {createRelativeUrl, makeId} from './util.js';
 import validEmotionMapping from "./validEmotionMapping.json";
 import * as voices from './voices.js';
-import { world } from './world.js';
+import {world} from './world.js';
 
 const localVector = new THREE.Vector3();
 
