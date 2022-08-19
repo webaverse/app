@@ -36,7 +36,7 @@ import {CharacterPhysics} from './character-physics.js';
 import {CharacterHups} from './character-hups.js';
 import {CharacterHitter} from './character-hitter.js';
 import {AvatarCharacterSfx} from './character-sfx.js';
-import {AvatarCharacterFace} from './character-behavior.js';
+import {AvatarCharacterFace} from './character-face.js';
 import {AvatarCharacterFx} from './character-fx.js';
 import {VoicePack, VoicePackVoicer} from './voice-output/voice-pack-voicer.js';
 import {VoiceEndpoint, VoiceEndpointVoicer} from './voice-output/voice-endpoint-voicer.js';
