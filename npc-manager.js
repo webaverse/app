@@ -1,6 +1,5 @@
 import * as THREE from 'three';
 import Avatar from './avatars/avatars.js';
-import physicsManager from './physics-manager.js';
 import {LocalPlayer} from './character-controller.js';
 import {playersManager} from './players-manager.js';
 import {partyManager} from './party-manager.js';
@@ -10,6 +9,7 @@ import {chatManager} from './chat-manager.js';
 import {makeId, createRelativeUrl} from './util.js';
 import { triggerEmote } from './src/components/general/character/Poses.jsx';
 import validEmotionMapping from "./validEmotionMapping.json";
+import metaversefile from './metaversefile-api.js';
 
 const localVector = new THREE.Vector3();
 
@@ -22,6 +22,37 @@ class NpcManager extends EventTarget {
     super();
 
     this.npcs = [];
+  }
+
+  async initDefaultPlayer(defaultPlayerSpec) {
+    const localPlayer = metaversefile.useLocalPlayer();
+    // console.log('set player spec', defaultPlayerSpec);
+    await localPlayer.setPlayerSpec(defaultPlayerSpec);
+
+    const createPlayerNpc = () => {
+      const app = metaversefile.createApp();
+      app.instanceId = makeId(5);
+      app.name = 'player';
+      app.contentId = defaultPlayerSpec.avatarUrl;
+      return app;
+    };
+    const playerApp = createPlayerNpc();
+
+    const importPlayerToNpcManager = () => {
+      this.addPlayerApp(playerApp, localPlayer, {
+        name: 'Anon',
+        voice: 'Maud Pie',
+        bio: 'Main player.'
+      });
+
+      world.appManager.importApp(playerApp);
+      world.appManager.transplantApp(playerApp, partyManager.appManager);
+
+      playerApp.addEventListener('destroy', () => {
+        this.removeNpcApp(playerApp);
+      });
+    };
+    importPlayerToNpcManager();
   }
 
   async createNpcAsync({

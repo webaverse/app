@@ -6,10 +6,9 @@ import { defaultPlayerSpec } from '../../../constants';
 
 import game from '../../../game';
 import sceneNames from '../../../scenes/scenes.json';
-import { makeId, parseQuery } from '../../../util.js'
+import { parseQuery } from '../../../util.js'
 import Webaverse from '../../../webaverse.js';
 import universe from '../../../universe.js';
-import metaversefileApi from '../../../metaversefile-api';
 import cameraManager from '../../../camera-manager';
 import { world } from '../../../world';
 
@@ -39,8 +38,6 @@ import styles from './App.module.css';
 import '../../fonts.css';
 import raycastManager from '../../../raycast-manager';
 import npcManager from '../../../npc-manager';
-import metaversefile from '../../../metaversefile-api';
-import {partyManager} from '../../../party-manager.js';
 
 //
 
@@ -56,35 +53,8 @@ const _startApp = async ( weba, canvas ) => {
     universe.handleUrlUpdate();
     await weba.startLoop();
 
-    const localPlayer = metaversefileApi.useLocalPlayer();
-    // console.log('set player spec', defaultPlayerSpec);
-    await localPlayer.setPlayerSpec(defaultPlayerSpec);
+    await npcManager.initDefaultPlayer(defaultPlayerSpec);
 
-    const createPlayerNpc = () => {
-        const app = metaversefile.createApp();
-        app.instanceId = makeId(5);
-        app.name = 'player';
-        app.contentId = defaultPlayerSpec.avatarUrl;
-        return app;
-    };
-    const playerApp = createPlayerNpc();
-
-    const importPlayerToNpcManager = () => {
-        npcManager.addPlayerApp(playerApp, localPlayer, {
-            name: 'Anon',
-            voice: 'Maud Pie',
-            bio: 'Main player.'
-        });
-
-        world.appManager.importApp(playerApp);
-        world.appManager.transplantApp(playerApp, partyManager.appManager);
-
-        playerApp.addEventListener('destroy', () => {
-            npcManager.removeNpcApp(playerApp);
-        });
-    };
-    importPlayerToNpcManager();
-    
 };
 
 const _getCurrentSceneSrc = () => {
