@@ -298,6 +298,12 @@ class NpcManager extends EventTarget {
       };
       await _updateWearables();
     }
+
+    this.dispatchEvent(new MessageEvent('npccreated', {
+      data: {
+        npc: npcPlayer,
+      }
+    }));
   }
 
   async addNpcApp(app, srcUrl) {

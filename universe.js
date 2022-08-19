@@ -9,6 +9,7 @@ import WSRTC from 'wsrtc/wsrtc.js';
 import * as Z from 'zjs';
 
 import {appsMapName, initialPosY, playersMapName} from './constants.js';
+import npcManager from './npc-manager.js';
 import {loadOverworld} from './overworld.js';
 import physicsManager from './physics-manager.js';
 import physxWorkerManager from './physx-worker-manager.js';
@@ -146,8 +147,12 @@ class Universe extends EventTarget {
 
     world.appManager.bindState(appsArray);
 
-    const localPlayer = playersManager.getLocalPlayer();
-    localPlayer.bindState(state.getArray(playersMapName));
+    npcManager.addEventListener('npccreated', async e => {
+      const {
+        npc,
+      } = e.data;
+      npc.bindState(state.getArray(playersMapName));
+    });
   }
 
   // called by enterWorld() in universe.js
