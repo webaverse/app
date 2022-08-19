@@ -414,6 +414,12 @@ class Avatar {
 
     this.lastVelocity = new THREE.Vector3();
 
+    //
+
+    avatarRenderer.setControlled(true);
+
+    //
+
     const {
       skinnedMeshes,
       skeleton,
