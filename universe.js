@@ -9,8 +9,8 @@ import WSRTC from 'wsrtc/wsrtc.js';
 import * as Z from 'zjs';
 
 import {appsMapName, initialPosY, playersMapName} from './constants.js';
-import {partyManager} from './party-manager.js';
 import {loadOverworld} from './overworld.js';
+import {partyManager} from './party-manager.js';
 import physicsManager from './physics-manager.js';
 import physxWorkerManager from './physx-worker-manager.js';
 import physx from './physx.js';
@@ -145,20 +145,10 @@ class Universe extends EventTarget {
     const appsArray = state.get(appsMapName, Z.Array);
 
     world.appManager.bindState(appsArray);
+    partyManager.appManager.appsArray.doc = appsArray.doc; // YYY any clever way to do this?
 
-    {
-      const localPlayer = playersManager.getLocalPlayer();
-      if (localPlayer.npcApp) {
-        world.appManager.importApp(localPlayer.npcApp);
-      }
-      localPlayer.bindState(state.getArray(playersMapName));
-      partyManager.addEventListener('playerselected', async e => {
-        const {
-          player,
-        } = e.data;
-        player.bindState(state.getArray(playersMapName));
-      });
-    }
+    const localPlayer = playersManager.getLocalPlayer();
+    localPlayer.bindState(state.getArray(playersMapName));
   }
 
   // called by enterWorld() in universe.js

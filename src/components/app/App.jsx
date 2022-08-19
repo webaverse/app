@@ -40,6 +40,7 @@ import '../../fonts.css';
 import raycastManager from '../../../raycast-manager';
 import npcManager from '../../../npc-manager';
 import metaversefile from '../../../metaversefile-api';
+import {partyManager} from '../../../party-manager.js';
 
 //
 
@@ -67,12 +68,23 @@ const _startApp = async ( weba, canvas ) => {
         return app;
     };
     const playerApp = createPlayerNpc();
-    npcManager.addPlayerApp(playerApp, localPlayer, {
-        name: 'Anon',
-        voice: 'Maud Pie',
-        bio: 'Main player.'
-    });
-    world.appManager.importApp(localPlayer.npcApp);
+
+    const importPlayerToNpcManager = () => {
+        npcManager.addPlayerApp(playerApp, localPlayer, {
+            name: 'Anon',
+            voice: 'Maud Pie',
+            bio: 'Main player.'
+        });
+
+        world.appManager.importApp(playerApp);
+        world.appManager.transplantApp(playerApp, partyManager.appManager);
+
+        playerApp.addEventListener('destroy', () => {
+            npcManager.removeNpcApp(playerApp);
+        });
+    };
+    importPlayerToNpcManager();
+    
 };
 
 const _getCurrentSceneSrc = () => {

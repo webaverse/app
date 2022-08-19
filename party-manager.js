@@ -1,5 +1,6 @@
 import * as THREE from 'three';
 
+import {AppManager} from './app-manager.js';
 import physicsManager from './physics-manager.js';
 import {world} from './world.js';
 import {playersManager} from './players-manager.js';
@@ -14,6 +15,8 @@ class PartyManager extends EventTarget {
     
     this.partyPlayers = [];
     this.removeFns = [];
+
+    this.appManager = new AppManager();
   }
 
   switchCharacter() {
@@ -29,17 +32,17 @@ class PartyManager extends EventTarget {
       nextPlayer.isNpcPlayer = false;
 
       
-      const transplantToWorld = () => {
-        // transplant apps to world
+      const transplantToParty = () => {
+        // transplant apps to party
         const localPlayer = headPlayer;
         for (let i = 0; i < this.partyPlayers.length; i++) {
           const player = this.partyPlayers[i];
           if (localPlayer.playerId !== player.playerId) {
-            this.transplantAppToWorld(player.npcApp, localPlayer);
+            this.transplantToParty(player.npcApp, localPlayer);
           }
         }
       };
-      transplantToWorld();
+      transplantToParty();
       this.partyPlayers.shift();
 
       headPlayer.deleteState(headPlayer.playerId);
@@ -57,17 +60,17 @@ class PartyManager extends EventTarget {
 
       this.partyPlayers.push(headPlayer);
 
-      // transplant npc's to player
-      const transplantToLocal = () => {
+      // transplant players to local player
+      const transplantToLocalPlayer = () => {
         const localPlayer = playersManager.getLocalPlayer();
         for (let i = 0; i < this.partyPlayers.length; i++) {
           const player = this.partyPlayers[i];
           if (localPlayer.playerId !== player.playerId) {
-            this.transplantAppToLocal(player.npcApp, localPlayer);
+            this.transplantPartyToLocalPlayer(player.npcApp, localPlayer);
           }
         }
       };
-      transplantToLocal();
+      transplantToLocalPlayer();
     }
   }
 
@@ -123,7 +126,7 @@ class PartyManager extends EventTarget {
           const playerIndex = this.partyPlayers.indexOf(player);
           if (playerIndex > 0) {
             world.appManager.removeEventListener('frame', frame);
-            this.transplantAppToWorld(player.npcApp);
+            this.transplantToWorld(player.npcApp);
             this.partyPlayers.splice(playerIndex, 1);
             player.isInParty = false;
             return true;
@@ -152,7 +155,7 @@ class PartyManager extends EventTarget {
 
       if (this.partyPlayers.length >= 2) {
         const headPlayer = this.partyPlayers[0];
-        this.transplantAppToLocal(newPlayer.npcApp, headPlayer);
+        this.transplantNpcToLocalPlayer(newPlayer.npcApp, headPlayer);
       }
 
       return true;
@@ -160,23 +163,30 @@ class PartyManager extends EventTarget {
     return false;
   }
 
-  transplantAppToLocal(app, headPlayer) {
-    if (world.appManager.hasTrackedApp(app.instanceId)) {
-      world.appManager.transplantApp(app, headPlayer.appManager);
+  transplantApp(app, srcAppManager, dstAppManager) {
+    if (srcAppManager.hasTrackedApp(app.instanceId)) {
+      srcAppManager.transplantApp(app, dstAppManager);
     } else {
-      console.warn('need to transplant unowned app', app, world.appManager, headPlayer.appManager);
+      console.warn('need to transplant unowned app', app, srcAppManager, dstAppManager);
       debugger;
     }
   }
 
-  transplantAppToWorld(app, localPlayer = null) {
-    const headPlayer = localPlayer ? localPlayer : this.partyPlayers[0];
-    if (headPlayer.appManager.hasTrackedApp(app.instanceId)) {
-      headPlayer.appManager.transplantApp(app, world.appManager);
-    } else {
-      console.warn('need to transplant unowned app', app, world.appManager, headPlayer.appManager);
-      debugger;
-    }
+  transplantNpcToLocalPlayer(app, headPlayer) {
+    this.transplantApp(app, world.appManager, headPlayer.appManager);
+  }
+
+  transplantPartyToLocalPlayer(app, headPlayer) {
+    this.transplantApp(app, this.appManager, headPlayer.appManager);
+  }
+
+  transplantToWorld(app) {
+    const headPlayer = this.partyPlayers[0];
+    this.transplantApp(app, headPlayer.appManager, world.appManager);
+  }
+
+  transplantToParty(app, localPlayer) {
+    this.transplantApp(app, localPlayer.appManager, this.appManager);
   }
 
   clear() {

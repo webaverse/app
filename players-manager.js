@@ -28,6 +28,7 @@ class PlayersManager extends EventTarget {
     this.remotePlayers = new Map();
     this.remotePlayersByInteger = new Map();
     this.unbindStateFn = null;
+    this.removeListenerFn = null;
   }
   getLocalPlayer () {
     return this.localPlayer;
@@ -60,15 +61,30 @@ class PlayersManager extends EventTarget {
     if(this.unbindStateFn != null) {
       this.unbindStateFn();
     }
-      this.playersArray = null;
-      this.unbindStateFn = null;
+    if (this.removeListenerFn) {
+      this.removeListenerFn();
     }
+    this.playersArray = null;
+    this.unbindStateFn = null;
+    this.removeListenerFn = null;
+  }
   bindState(nextPlayersArray) {
     this.unbindState();
-    
+
     this.playersArray = nextPlayersArray;
     
     if (this.playersArray) {
+      const partySelectedFn = e => {
+        const {
+          player,
+        } = e.data;
+        player.bindState(this.playersArray);
+      };
+
+      partyManager.addEventListener('playerselected', partySelectedFn);
+      this.removeListenerFn = () => {
+        partyManager.removeEventListener('playerselected', partySelectedFn);
+      }
       
       const playersObserveFn = e => {
         const localPlayer = this.localPlayer;
