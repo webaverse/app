@@ -484,14 +484,14 @@ class CharacterSfx {
         this.oldGrunt.stop();
         this.oldGrunt = null;
       }
-
+      this.player.avatar.isGrunting = true;
       this.oldGrunt=audioBufferSourceNode;
       // clean the oldGrunt if voice end
       audioBufferSourceNode.addEventListener('ended', () => {
         if (this.oldGrunt === audioBufferSourceNode) {
           this.oldGrunt = null;
         }
-        this.player.avatar.setAudioEnabled(false);
+        this.player.avatar.isGrunting = false;
       });
 
       audioBufferSourceNode.start(0, offset, duration);
@@ -572,14 +572,14 @@ class CharacterSfx {
         this.oldGrunt.stop();
         this.oldGrunt = null;
       }
-
+      this.player.avatar.isGrunting = true;
       this.oldGrunt=audioBufferSourceNode;
       // clean the oldGrunt if voice end
       audioBufferSourceNode.addEventListener('ended', () => {
         if (this.oldGrunt === audioBufferSourceNode) {
           this.oldGrunt = null;
         }
-        this.player.avatar.setAudioEnabled(false);
+        this.player.avatar.isGrunting = false;
       });
 
       audioBufferSourceNode.start(0, offset, duration);
