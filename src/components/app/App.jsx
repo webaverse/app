@@ -64,15 +64,15 @@ const _startApp = async ( weba, canvas ) => {
         app.instanceId = makeId(5);
         app.name = 'player';
         app.contentId = defaultPlayerSpec.avatarUrl;
-        return app;    
+        return app;
     };
     const playerApp = createPlayerNpc();
-    world.appManager.importApp(playerApp);
     npcManager.addPlayerApp(playerApp, localPlayer, {
         name: 'Anon',
         voice: 'Maud Pie',
         bio: 'Main player.'
     });
+    world.appManager.importApp(localPlayer.npcApp);
 };
 
 const _getCurrentSceneSrc = () => {

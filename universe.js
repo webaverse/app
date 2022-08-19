@@ -146,14 +146,19 @@ class Universe extends EventTarget {
 
     world.appManager.bindState(appsArray);
 
-    const localPlayer = playersManager.getLocalPlayer();
-    localPlayer.bindState(state.getArray(playersMapName));
-    partyManager.addEventListener('playerselected', async e => {
-      const {
-        player,
-      } = e.data;
-      player.bindState(state.getArray(playersMapName));
-    });
+    {
+      const localPlayer = playersManager.getLocalPlayer();
+      if (localPlayer.npcApp) {
+        world.appManager.importApp(localPlayer.npcApp);
+      }
+      localPlayer.bindState(state.getArray(playersMapName));
+      partyManager.addEventListener('playerselected', async e => {
+        const {
+          player,
+        } = e.data;
+        player.bindState(state.getArray(playersMapName));
+      });
+    }
   }
 
   // called by enterWorld() in universe.js
