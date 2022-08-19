@@ -536,25 +536,12 @@ const controlActionTypes = [
   'sit',
   'swim',
 ];
-class AvatarCharacter extends Character {
+class StateCharacter extends Character {
   constructor({
     playerId = makeId(5),
     playersArray = new Z.Doc().getArray(playersMapName),
   } = {}) {
     super();
-
-    this.avatar = null;
-
-    this.avatarFace = new AvatarCharacterFace(this);
-    this.avatarCharacterFx = new AvatarCharacterFx(this);
-    this.avatarCharacterSfx = new AvatarCharacterSfx(this);
-
-    this.leftHand = new AvatarHand();
-    this.rightHand = new AvatarHand();
-    this.hands = [
-      this.leftHand,
-      this.rightHand,
-    ];
 
     this.playerId = playerId;
     this.playerIdInt = murmurhash3(playerId);
@@ -637,101 +624,7 @@ class AvatarCharacter extends Character {
   }
   getAvatarInstanceId() {
     return this.playerMap.get('avatar');
-  }
-  // serializers
-  getPosition() {
-    return this.position.toArray(localArray3) ?? [0, 0, 0];
-  }
-  getQuaternion() {
-    return this.quaternion.toArray(localArray4) ?? [0, 0, 0, 1];
-  }
-  async syncAvatar() {
-    if (this.syncAvatarCancelFn) {
-      this.syncAvatarCancelFn.cancel();
-      this.syncAvatarCancelFn = null;
-    }
-    const cancelFn = makeCancelFn();
-    this.syncAvatarCancelFn = cancelFn;
-    const instanceId = this.getAvatarInstanceId();
-    
-    // remove last app
-    if (this.avatar) {
-      const oldPeerOwnerAppManager = this.appManager.getPeerOwnerAppManager(this.avatar.app.instanceId);
-      if (oldPeerOwnerAppManager) {
-        // console.log('transplant last app');
-        this.appManager.transplantApp(this.avatar.app, oldPeerOwnerAppManager);
-      } else {
-        // console.log('remove last app', this.avatar.app);
-        // this.appManager.removeTrackedApp(this.avatar.app.instanceId);
-      }
-    }
-    
-    const _setNextAvatarApp = app => {
-      (() => {
-        const avatar = switchAvatar(this.avatar, app);
-        if (!cancelFn.isLive()) return;
-        this.avatar = avatar;
-
-        this.dispatchEvent({
-          type: 'avatarchange',
-          app,
-          avatar,
-        });
-        
-        this.characterPhysics.loadCharacterController(this.avatar.width, this.avatar.height);
-        
-        if (this.isLocalPlayer) {
-          physicsScene.disableGeometryQueries(this.characterPhysics.characterController);
-        }
-      })();
-      
-      this.dispatchEvent({
-        type: 'avatarupdate',
-        app,
-      });
-    };
-    
-    if (instanceId) {
-      // add next app from player app manager
-      const nextAvatarApp = this.appManager.getAppByInstanceId(instanceId);
-      // console.log('add next avatar local', nextAvatarApp);
-      if (nextAvatarApp) {
-        _setNextAvatarApp(nextAvatarApp);
-      } else {
-        // add next app from world app manager
-        const nextAvatarApp = world.appManager.getAppByInstanceId(instanceId);
-        // console.log('add next avatar world', nextAvatarApp);
-        if (nextAvatarApp) {
-          world.appManager.transplantApp(nextAvatarApp, this.appManager);
-          _setNextAvatarApp(nextAvatarApp);
-        } else {
-          // add next app from currently loading apps
-          const addPromise = this.appManager.pendingAddPromises.get(instanceId);
-          if (addPromise) {
-            const nextAvatarApp = await addPromise;
-            if (!cancelFn.isLive()) return;
-            _setNextAvatarApp(nextAvatarApp);
-          } else {
-            console.warn('switching avatar to instanceId that does not exist in any app manager', instanceId);
-          }
-        }
-      }
-    }
-    
-    this.syncAvatarCancelFn = null;
-  }
-  setSpawnPoint(position, quaternion) {
-    this.position.copy(position);
-    this.quaternion.copy(quaternion);
-
-    camera.position.copy(position);
-    camera.quaternion.copy(quaternion);
-    camera.updateMatrixWorld();
-
-    if (this.characterPhysics.characterController) {
-      this.characterPhysics.setPosition(position);
-    }
-  }
+  } 
   getActionsByType(type) {
    const actions = this.getActionsState(); 
    const typedActions = Array.from(actions).filter(action => action.type === type);
@@ -854,15 +747,138 @@ class AvatarCharacter extends Character {
     this.appManager.unbindState();
 
     this.appManager.destroy();
-
-    this.avatarCharacterSfx.destroy();
-    this.avatarCharacterFx.destroy();
-
-    this.avatarFace.destroy();
   
     super.destroy();
   }
 }
+
+class AvatarCharacter extends StateCharacter {
+  constructor() {
+    super();
+
+    this.avatar = null; 
+
+    this.avatarFace = new AvatarCharacterFace(this);
+    this.avatarCharacterFx = new AvatarCharacterFx(this);
+    this.avatarCharacterSfx = new AvatarCharacterSfx(this);
+
+    this.leftHand = new AvatarHand();
+    this.rightHand = new AvatarHand();
+    this.hands = [this.leftHand, this.rightHand];
+  }
+  async syncAvatar() {
+    if (this.syncAvatarCancelFn) {
+      this.syncAvatarCancelFn.cancel();
+      this.syncAvatarCancelFn = null;
+    }
+    const cancelFn = makeCancelFn();
+    this.syncAvatarCancelFn = cancelFn;
+    const instanceId = this.getAvatarInstanceId();
+
+    // remove last app
+    if (this.avatar) {
+      const oldPeerOwnerAppManager = this.appManager.getPeerOwnerAppManager(
+        this.avatar.app.instanceId
+      );
+      if (oldPeerOwnerAppManager) {
+        // console.log('transplant last app');
+        this.appManager.transplantApp(this.avatar.app, oldPeerOwnerAppManager);
+      } else {
+        // console.log('remove last app', this.avatar.app);
+        // this.appManager.removeTrackedApp(this.avatar.app.instanceId);
+      }
+    }
+
+    const _setNextAvatarApp = (app) => {
+      (() => {
+        const avatar = switchAvatar(this.avatar, app);
+        if (!cancelFn.isLive()) return;
+        this.avatar = avatar;
+
+        this.dispatchEvent({
+          type: 'avatarchange',
+          app,
+          avatar,
+        });
+
+        this.characterPhysics.loadCharacterController(
+          this.avatar.width,
+          this.avatar.height
+        );
+
+        if (this.isLocalPlayer) {
+          physicsScene.disableGeometryQueries(
+            this.characterPhysics.characterController
+          );
+        }
+      })();
+
+      this.dispatchEvent({
+        type: 'avatarupdate',
+        app,
+      });
+    };
+
+    if (instanceId) {
+      // add next app from player app manager
+      const nextAvatarApp = this.appManager.getAppByInstanceId(instanceId);
+      // console.log('add next avatar local', nextAvatarApp);
+      if (nextAvatarApp) {
+        _setNextAvatarApp(nextAvatarApp);
+      } else {
+        // add next app from world app manager
+        const nextAvatarApp = world.appManager.getAppByInstanceId(instanceId);
+        // console.log('add next avatar world', nextAvatarApp);
+        if (nextAvatarApp) {
+          world.appManager.transplantApp(nextAvatarApp, this.appManager);
+          _setNextAvatarApp(nextAvatarApp);
+        } else {
+          // add next app from currently loading apps
+          const addPromise = this.appManager.pendingAddPromises.get(instanceId);
+          if (addPromise) {
+            const nextAvatarApp = await addPromise;
+            if (!cancelFn.isLive()) return;
+            _setNextAvatarApp(nextAvatarApp);
+          } else {
+            console.warn(
+              'switching avatar to instanceId that does not exist in any app manager',
+              instanceId
+            );
+          }
+        }
+      }
+    }
+
+    this.syncAvatarCancelFn = null;
+  }
+  // serializers
+  getPosition() {
+    return this.position.toArray(localArray3) ?? [0, 0, 0];
+  }
+  getQuaternion() {
+    return this.quaternion.toArray(localArray4) ?? [0, 0, 0, 1];
+  }
+  setSpawnPoint(position, quaternion) {
+    this.position.copy(position);
+    this.quaternion.copy(quaternion);
+
+    camera.position.copy(position);
+    camera.quaternion.copy(quaternion);
+    camera.updateMatrixWorld();
+
+    if (this.characterPhysics.characterController) {
+      this.characterPhysics.setPosition(position);
+    }
+  }
+  destroy() {
+    this.avatarFace.destroy();
+    this.avatarCharacterSfx.destroy();
+    this.avatarCharacterFx.destroy();
+
+    super.destroy();
+  }
+}
+
 class InterpolatedPlayer extends AvatarCharacter {
   constructor(opts) {
     super(opts);
