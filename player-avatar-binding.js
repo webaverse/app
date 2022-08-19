@@ -3,11 +3,11 @@ set the avatar state from the player state */
 
 import * as THREE from 'three';
 import Avatar from './avatars/avatars.js';
-import {unFrustumCull, enableShadows} from './util.js';
+// import {unFrustumCull, enableShadows} from './util.js';
 import {
   getEyePosition,
 } from './avatars/util.mjs';
-import {playersManager} from './players-manager.js';
+// import {playersManager} from './players-manager.js';
 
 const appSymbol = 'app'; // Symbol('app');
 const avatarSymbol = 'avatar'; // Symbol('avatar');
@@ -49,7 +49,7 @@ export function applyPlayerModesToAvatar(player, session, rig) {
     rig.velocity.length() < 0.001,
   );
 }
-const _getPlayerByAppInstanceId = instanceId => {
+/* const _getPlayerByAppInstanceId = instanceId => {
   const remotePlayers = playersManager.getRemotePlayers(); // Might have to be removed too
   const localPlayer = playersManager.getLocalPlayer();
   const result = localPlayer.appManager.getAppByInstanceId(instanceId);
@@ -62,12 +62,10 @@ const _getPlayerByAppInstanceId = instanceId => {
       }
     }
   }
-};
+}; */
 export function makeAvatar(app) {
-  if (app?.renderer) { // comes from vrm type handler
-    const player = _getPlayerByAppInstanceId(app.instanceId);
-    const avatar = new Avatar(app.renderer, {
-      isLocalPlayer: !player || !player.isRemotePlayer,
+  if (app?.appType === 'vrm') {
+    const avatar = new Avatar(app.avatarRenderer, {
       fingers: true,
       hair: true,
       visemes: true,
@@ -75,8 +73,8 @@ export function makeAvatar(app) {
     });
     avatar[appSymbol] = app;
 
-    unFrustumCull(app);
-    enableShadows(app);
+    // unFrustumCull(app);
+    // enableShadows(app);
 
     return avatar;
   } else {
@@ -301,12 +299,15 @@ export function applyPlayerToAvatar(player, session, rig, mirrors) {
 export function switchAvatar(oldAvatar, newApp) {
   let result;
 
-  oldAvatar && oldAvatar[appSymbol].toggleBoneUpdates(true);
+  oldAvatar && oldAvatar[appSymbol].removeComponent('controlled');
 
   if (newApp) {
-    newApp.toggleBoneUpdates(true);
+    newApp.setComponent('controlled', true);
+
     if (!newApp[avatarSymbol]) {
       newApp[avatarSymbol] = makeAvatar(newApp);
+    } else {
+      throw new Error('already had an avatar');
     }
     result = newApp[avatarSymbol];
   } else {
@@ -314,25 +315,3 @@ export function switchAvatar(oldAvatar, newApp) {
   }
   return result;
 }
-/* export async function switchAvatar(oldAvatar, newApp) {
-  let result;
-  const promises = [];
-  if (oldAvatar) {
-    promises.push((async () => {
-      await oldAvatar[appSymbol].setSkinning(false);
-    })());
-  }
-  if (newApp) {
-    // promises.push((async () => {
-    newApp.toggleBoneUpdates(true);
-      if (!newApp[avatarSymbol]) {
-        newApp[avatarSymbol] = makeAvatar(newApp);
-      }
-      result = newApp[avatarSymbol];
-    // })());
-  } else {
-    result = null;
-  }
-  await Promise.all(promises);
-  return result;
-} */
