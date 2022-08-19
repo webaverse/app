@@ -697,7 +697,10 @@ export class AvatarRenderer /* extends EventTarget */ {
                     gltfLoader.parse(glbData, this.srcUrl, accept, reject);
                   });
                   const glb = object.scene;
-                  _forAllMeshes(glb, _unfrustumCull);
+                  _forAllMeshes(glb, o => {
+                    _enableShadows(o);
+                    _unfrustumCull(o);
+                  });
                   glb.boundingSphere = _getMergedBoundingSphere(glb);
 
                   this.optimizedModel = glb;
@@ -734,6 +737,7 @@ export class AvatarRenderer /* extends EventTarget */ {
                   await _toonShaderify(object);
                   _forAllMeshes(glb, o => {
                     _addAnisotropy(o, 16);
+                    _enableShadows(o);
                     _unfrustumCull(o);
                   });
 
