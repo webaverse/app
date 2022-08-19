@@ -61,6 +61,7 @@ class AvatarIconer extends EventTarget {
           arrayBuffer,
           srcUrl: start_url,
           quality: maxAvatarQuality,
+          controlled: true,
         });
         await avatarRenderer.waitForLoad();
 
