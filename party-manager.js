@@ -80,52 +80,12 @@ class PartyManager extends EventTarget {
     if (this.partyPlayers.length < 3) { // 3 max members
       // console.log('addPlayer', newPlayer, this);
       this.partyPlayers.push(newPlayer);
-      
-      const getTargetPlayer = (player) => {
-        const playerIndex = this.partyPlayers.indexOf(player);
-        if (playerIndex > 0) {
-          return this.partyPlayers[playerIndex - 1];
-        }
-        return null;
-      };
-
-      const frame = ((player) => {
-        const slowdownFactor = 0.4;
-        const walkSpeed = 0.075 * slowdownFactor;
-        const runSpeed = walkSpeed * 8;
-        const speedDistanceRate = 0.07;
-        return (e) => {
-          if (physicsScene.getPhysicsEnabled()) {
-            const {timestamp, timeDiff} = e.data;
-            const targetPlayer = getTargetPlayer(player);
-            
-            if (targetPlayer) {
-              // console.log('    ', player.name, '->', targetPlayer.name);
-              const v = localVector.setFromMatrixPosition(targetPlayer.matrixWorld)
-                  .sub(player.position);
-              v.y = 0;
-              const distance = v.length();
-              {
-                const speed = Math.min(Math.max(walkSpeed + ((distance - 1.5) * speedDistanceRate), 0), runSpeed);
-                v.normalize()
-                  .multiplyScalar(speed * timeDiff);
-                  player.characterPhysics.applyWasd(v);
-              }
-              player.setTarget(targetPlayer);
-            }
-    
-            player.updatePhysics(timestamp, timeDiff);
-            player.updateAvatar(timestamp, timeDiff);
-          }
-        };
-      })(newPlayer);
 
       const removeFn = () => {
         // console.log('removeFn', player);
         const player = newPlayer;
         const playerIndex = this.partyPlayers.indexOf(player);
         if (playerIndex > 0) {
-          world.appManager.removeEventListener('frame', frame);
           this.transplantPartyAppToWorld(player.npcApp);
           this.partyPlayers.splice(playerIndex, 1);
           player.isInParty = false;
@@ -137,8 +97,6 @@ class PartyManager extends EventTarget {
       this.removeFns.push(removeFn);
       
       newPlayer.isInParty = true;
-
-      world.appManager.addEventListener('frame', frame);
 
       const activate = () => {
         // console.log('deactivate', newPlayer.name);
@@ -160,6 +118,14 @@ class PartyManager extends EventTarget {
       return true;
     }
     return false;
+  }
+
+  getTargetPlayer(player) {
+    const playerIndex = this.partyPlayers.indexOf(player);
+    if (playerIndex > 0) {
+      return this.partyPlayers[playerIndex - 1];
+    }
+    return null;
   }
 
   transplantApp(app, srcAppManager, dstAppManager) {

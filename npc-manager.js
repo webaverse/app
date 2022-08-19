@@ -145,40 +145,60 @@ class NpcManager extends EventTarget {
         };
         app.addEventListener('activate', activate);
 
+        const slowdownFactor = 0.4;
+        const walkSpeed = 0.075 * slowdownFactor;
+        const runSpeed = walkSpeed * 8;
+        const speedDistanceRate = 0.07;
         const frame = e => {
           const localPlayer = playersManager.getLocalPlayer();
 
           if (npcPlayer && physicsScene.getPhysicsEnabled()) {
-            if (!npcPlayer.isInParty) {
-              const {timestamp, timeDiff} = e.data;
-            
-              if (!npcPlayer.isLocalPlayer) {
-                if (targetSpec) {
-                  const target = targetSpec.object;
-                  const v = localVector.setFromMatrixPosition(target.matrixWorld)
-                    .sub(npcPlayer.position);
-                  v.y = 0;
-                  const distance = v.length();
+            const {timestamp, timeDiff} = e.data;
+
+            let target = null;
+            if (!npcPlayer.isLocalPlayer) {
+              if (npcPlayer.isInParty) { // if party, follow in a line
+                target = partyManager.getTargetPlayer(npcPlayer);
+              } else {
+                if (targetSpec) { // if npc, look to targetSpec
+                  taret = targetSpec.object;
+                }
+              }
+            }
+
+            if (!npcPlayer.isLocalPlayer) {
+              npcPlayer.setTarget(localPlayer.position);
+              if (target) {
+                const v = localVector.setFromMatrixPosition(target.matrixWorld)
+                  .sub(npcPlayer.position);
+                v.y = 0;
+                const distance = v.length();
+                if (npcPlayer.isInParty) { // follow
+                  const speed = Math.min(Math.max(walkSpeed + ((distance - 1.5) * speedDistanceRate), 0), runSpeed);
+                  v.normalize()
+                    .multiplyScalar(speed * timeDiff);
+                    player.characterPhysics.applyWasd(v);
+
+                  npcPlayer.setTarget(target.position);
+                } else {
                   if (targetSpec.type === 'moveto' && distance < 2) {
                     targetSpec = null;
                   }
                 }
-  
-                npcPlayer.setTarget(localPlayer.position);
               }
-
-              /* if (isNaN(npcPlayer.position.x)) {
-                debugger;
-              } */
-              npcPlayer.updatePhysics(timestamp, timeDiff);
-              /* if (isNaN(npcPlayer.position.x)) {
-                debugger;
-              } */
-              npcPlayer.updateAvatar(timestamp, timeDiff);
-              /* if (isNaN(npcPlayer.position.x)) {
-                debugger;
-              } */
             }
+
+            /* if (isNaN(npcPlayer.position.x)) {
+              debugger;
+            } */
+            npcPlayer.updatePhysics(timestamp, timeDiff);
+            /* if (isNaN(npcPlayer.position.x)) {
+              debugger;
+            } */
+            npcPlayer.updateAvatar(timestamp, timeDiff);
+            /* if (isNaN(npcPlayer.position.x)) {
+              debugger;
+            } */
           }
         };
         world.appManager.addEventListener('frame', frame);
