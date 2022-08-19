@@ -10,6 +10,7 @@ import {makeId, createRelativeUrl} from './util.js';
 import { triggerEmote } from './src/components/general/character/Poses.jsx';
 import validEmotionMapping from "./validEmotionMapping.json";
 import metaversefile from './metaversefile-api.js';
+import {defaultNpcContent} from './constants.js';
 
 const localVector = new THREE.Vector3();
 
@@ -39,11 +40,7 @@ class NpcManager extends EventTarget {
     const playerApp = createPlayerNpc();
 
     const importPlayerToNpcManager = () => {
-      this.addPlayerApp(playerApp, localPlayer, {
-        name: 'Anon',
-        voice: 'Maud Pie',
-        bio: 'Main player.'
-      });
+      this.addPlayerApp(playerApp, localPlayer, defaultNpcContent);
 
       world.appManager.importApp(playerApp);
       world.appManager.transplantApp(playerApp, partyManager.appManager);
