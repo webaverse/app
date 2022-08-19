@@ -141,6 +141,53 @@ class LoadoutManager extends EventTarget {
     }
   }
 }
+
 const loadoutManager = new LoadoutManager();
 
 export default loadoutManager;
+
+export class NpcLoadoutManager extends EventTarget {
+  constructor(npcPlayer) {
+    super();
+
+    this.apps = Array(numSlots).fill(null);
+    this.selectedIndex = -1;
+
+    npcPlayer.addEventListener('wearupdate', e => {
+      const {app, wear, loadoutIndex} = e;
+
+      if (wear) {
+        this.apps[loadoutIndex] = app;
+        this.setSelectedIndex(loadoutIndex);
+      } else {
+        for (let i = 0; i < this.apps.length; i++) {
+          const a = this.apps[i];
+          if (a === app) {
+            this.apps[i] = null;
+            const nextIndex = this.getNextUsedIndex();
+            this.setSelectedIndex(nextIndex);
+            break;
+          }
+        }
+      }
+    });
+  }
+  getSelectedApp() {
+    if (this.selectedIndex !== -1) {
+      return this.apps[this.selectedIndex];
+    } else {
+      return null;
+    }
+  }
+  setSelectedIndex(index) {
+    if (index === -1 || this.apps[index]) {
+      this.selectedIndex = index;
+    }
+    this.dispatchEvent(new MessageEvent('selectedchange', {
+      data: {
+        index,
+        app: this.apps[index],
+      },
+    }));
+  }
+}
