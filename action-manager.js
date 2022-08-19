@@ -22,6 +22,7 @@ import metaversefile from 'metaversefile';
 import physicsManager from './physics-manager.js';
 import {makeId, clone, unFrustumCull, enableShadows} from './util.js';
 
+
 const localMatrix = new THREE.Matrix4();
 const localMatrix2 = new THREE.Matrix4();
 
@@ -37,14 +38,68 @@ const controlActionTypes = [
   'swim',
 ];
 
+const hurtAnimations = [
+  'pain_arch',
+  'pain_back',
+];
+
+const _getSession = () => {
+  const renderer = getRenderer();
+  const session = renderer.xr.getSession();
+  return session;
+};
+
 const physicsScene = physicsManager.getScene();
 
 class CharacterActions{
-    constructor(target){
+    constructor(character, avatar){
       //this.playerMap = new Z.Map();
       this.actions = new Z.Array();
-      this.character = target;
+      this.character = character;
+      this.avatar = avatar;
+
+      // actual actions
+      this.faceposeActions = [];
+      this.grabActions = [];
+
+      this.chatAction = null;
+      this.wearAction = null;
+     
+
+      this.jumpAction = null;
+      this.doubleJumpAction = null;
+      this.landAction = null;
+      this.flyAction = null;
+      this.swimAction = null;
+      this.useAction = null;
+      this.pickUpAction = null;
+      this.narutoRunAction = null;
+      this.sitAction = null;
+      //this.sitAnimation = sitAction ? sitAction.animation : '';
+      this.danceAction = null;
+      //this.danceAnimation = danceAction ? danceAction.animation : '';
+      this.emoteAction = null;
+      //this.emoteAnimation = emoteAction ? emoteAction.animation : '';
+      this.aimAction = null;
+      this.crouchAction = null;
+      this.wearAction = null;
+      this.fallLoopAction = null; 
+      this.hurtAction = null;
+
+      // this.throwAction = player.getAction('throw');
+      // this.chargeJump = player.getAction('chargeJump');
+      // this.chargeJumpAnimation = chargeJump ? chargeJump.animation : '';
+      // this.standCharge = player.getAction('standCharge');
+      // this.standChargeAnimation = standCharge ? standCharge.animation : '';
+      // this.fallLoopAnimation = fallLoopAction ? fallLoopAction.animation : '';
+      // this.swordSideSlash = player.getAction('swordSideSlash');
+      // this.swordSideSlashAnimation = swordSideSlash ? swordSideSlash.animation : '';
+      // this.swordTopDownSlash = player.getAction('swordTopDownSlash');
+      // this.swordTopDownSlashAnimation = swordTopDownSlash ? swordTopDownSlash.animation : '';
       
+
+      
+
       this._interpolants = new UninterpolatedActions(this); // missing interpolatedActions
       //avatarBind?
     }
@@ -176,9 +231,9 @@ class CharacterActions{
     // #endregion
     
     // #region new section: define actions here
-    // usage example player.actions.grab(objectId)
+    // usage example player.actions.grab(app,pos,quat,"left")
     // trying to think a way here to be useful not only for local player but for any mob
-    //
+    // still need to debug, should we use left and right or just 1 action that holds both?
     grab(app, position, quaternion, hand = 'left'){
       console.log("grabs manager")
 
@@ -186,15 +241,14 @@ class CharacterActions{
       app.savedRotation = app.rotation.clone();
       app.startQuaternion = quaternion.clone();
 
-      const grabAction = {
+      this.grabActions.push({
         type: 'grab',
         hand,
         instanceId: app.instanceId,
         matrix: localMatrix.copy(app.matrixWorld)
         .premultiply(localMatrix2.compose(position, quaternion, localVector.set(1, 1, 1)).invert())
         .toArray()
-      };
-      this.add(grabAction);
+      });
 
       physicsScene.disableAppPhysics(app);
 
@@ -203,40 +257,49 @@ class CharacterActions{
         grab: true,
       });
     }
-    
-    ungrabAction(){
-      let removeOffset = 0;
-      const actions = Array.from(this.actions);
-      for (let i = 0; i < actions.length; i++) {
-        const action = actions[i];
-        if (action.type === 'grab') {
 
-          // pending: do we want to remove app from here? or just handle animations?
-          const app = metaversefile.getAppByInstanceId(action.instanceId);
+    // still need debug this one, should we consider in argument both hands?
+    ungrab(){
+
+      //const actions = [];
+      //if (this.grabLeftAction) actions.push(this.grabLeftAction);
+      //if (this.grabRightAction) actions.push(this.grabRightAction);
+      this.grabActions.forEach(action => {
+        const app = metaversefile.getAppByInstanceId(action.instanceId);
           physicsScene.enableAppPhysics(app)
           app.dispatchEvent({
-            type: 'grabupdate',
-            grab: false,
-          });
-          
-          this.removeAtIndex(i + removeOffset);
-          removeOffset -= 1;
-        }
-      }
+          type: 'grabupdate',
+          grab: false,
+        });
+      });
+
     }
     
-    facepose(emotion, value){
-
+    facepose(emotion, value = 0){
+      this.faceposeActions.push({
+        type: 'facepose',
+        emotion,
+        value
+      })
     }
-    wear(instanceId, loadoutIndex, holdAnimation){
-
+    wear(app, loadoutIndex, holdAnimation){
+      const wearComponent = app.getComponent('wear');
+      const holdAnimation = wearComponent? wearComponent.holdAnimation : null;
+      this.wearAction = {
+        type: 'wear',
+        instanceId: app.instanceId,
+        loadoutIndex,
+        holdAnimation,
+      };
+      _addAction();
     }
+    
     hurt(animation){
         //animation: Math.random() < 0.5 ? 'pain_arch' : 'pain_back',
     }
-    chat(text){
+    // chat(text){
 
-    }
+    // }
     use(instanceId,
         animation,
         animationCombo,
@@ -295,11 +358,12 @@ class CharacterActions{
     // #endregion
 
     _update(){
+      const session = _getSession();
       this._interpolants.updateInterpolation();
+      applyPlayerToAvatar(this, session, this.avatar, mirrors);
     }
     
 }
-
 
 
 class UninterpolatedActions{
@@ -307,7 +371,7 @@ class UninterpolatedActions{
     this.init(charActions);
   }
   init(charActions) {
-    const character = charActions.character;
+    const {character} = charActions;
     this.actionInterpolants = {
       crouch: new BiActionInterpolant(() => charActions.has('crouch'), 0, crouchMaxTime),
       activate: new UniActionInterpolant(() => charActions.has('activate'), 0, activateMaxTime),
