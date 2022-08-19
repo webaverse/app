@@ -45,7 +45,7 @@ class PartyManager extends EventTarget {
       transplantToParty();
       this.partyPlayers.shift();
 
-      headPlayer.deleteState(headPlayer.playerId);
+      headPlayer.deletePlayerId(headPlayer.playerId);
 
       playersManager.setLocalPlayer(nextPlayer);
 
@@ -189,12 +189,11 @@ class PartyManager extends EventTarget {
 
   clear() {
     // console.log('clear');
-    for (const removeFn of this.removeFns) {
-      if (removeFn()) {
-        const removeIndex = this.removeFns.indexOf(removeFn);
-        if (removeIndex !== -1) {
-          this.removeFns.splice(removeIndex, 1);
-        }
+    const removedFns = this.removeFns.filter(removeFn => removeFn());
+    for (const removedFn of removedFns) {
+      const removeIndex = this.removeFns.indexOf(removedFn);
+      if (removeIndex !== -1) {
+        this.removeFns.splice(removeIndex, 1);
       }
     }
   }

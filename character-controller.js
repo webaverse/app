@@ -1178,7 +1178,7 @@ class LocalPlayer extends UninterpolatedPlayer {
       self.appManager.bindState(self.getAppsState());
     });
   }
-  deleteState(playerId) {
+  deletePlayerId(playerId) {
     const self = this;
     this.playersArray.doc.transact(function tx() {
       for (let i = 0; i < self.playersArray.length; i++) {
