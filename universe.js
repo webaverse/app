@@ -8,7 +8,7 @@ import metaversefile from 'metaversefile';
 import WSRTC from 'wsrtc/wsrtc.js';
 import * as Z from 'zjs';
 
-import {appsMapName, initialPosY, playersMapName} from './constants.js';
+import {appsMapName, partyMapName, initialPosY, playersMapName} from './constants.js';
 import {loadOverworld} from './overworld.js';
 import {partyManager} from './party-manager.js';
 import physicsManager from './physics-manager.js';
@@ -145,7 +145,9 @@ class Universe extends EventTarget {
     const appsArray = state.get(appsMapName, Z.Array);
 
     world.appManager.bindState(appsArray);
-    partyManager.appManager.appsArray.doc = appsArray.doc; // YYY any clever way to do this?
+
+    const partyMap = state.get(partyMapName, Z.Map);
+    partyManager.bindState(partyMap);
 
     const localPlayer = playersManager.getLocalPlayer();
     localPlayer.bindState(state.getArray(playersMapName));

@@ -104,6 +104,7 @@ export const worldMapName = 'world';
 export const actionsMapName = 'actions';
 export const playersMapName = 'players';
 export const appsMapName = 'apps';
+export const partyMapName = 'party';
 
 export const ceramicNodeUrl = `https://ceramic-clay.3boxlabs.com`;
 export const metaverseProfileDefinition = `kjzl6cwe1jw145wm7u2sy1wpa33hglvmuy6th9lys7x4iadaizn4zqgpp3tmu34`;

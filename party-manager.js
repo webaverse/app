@@ -4,6 +4,7 @@ import {AppManager} from './app-manager.js';
 import physicsManager from './physics-manager.js';
 import {world} from './world.js';
 import {playersManager} from './players-manager.js';
+import {appsMapName} from './constants.js'
 
 const localVector = new THREE.Vector3();
 
@@ -126,6 +127,10 @@ class PartyManager extends EventTarget {
       return this.partyPlayers[playerIndex - 1];
     }
     return null;
+  }
+
+  bindState(appsMap) {
+    appsMap.set(appsMapName, this.appManager.appsArray);
   }
 
   transplantApp(app, srcAppManager, dstAppManager) {
