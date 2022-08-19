@@ -41,7 +41,7 @@ import {AvatarCharacterFx} from './character-fx.js';
 import {VoicePack, VoicePackVoicer} from './voice-output/voice-pack-voicer.js';
 import {VoiceEndpoint, VoiceEndpointVoicer} from './voice-output/voice-endpoint-voicer.js';
 import {BinaryInterpolant, BiActionInterpolant, UniActionInterpolant, InfiniteActionInterpolant, PositionInterpolant, QuaternionInterpolant} from './interpolants.js';
-import {applyPlayerToAvatar, switchAvatar} from './player-avatar-binding.js';
+import {applyCharacterToAvatar, switchAvatar} from './player-avatar-binding.js';
 import {
   defaultPlayerName,
   defaultPlayerBio,
