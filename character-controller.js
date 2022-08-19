@@ -1,20 +1,33 @@
 /*
 this file is responisible for maintaining player state that is network-replicated.
 */
-import {murmurhash3} from './procgen/murmurhash3.js';
-import {WsAudioDecoder} from 'wsrtc/ws-codec.js';
 import {ensureAudioContext, getAudioContext} from 'wsrtc/ws-audio-context.js';
+import {WsAudioDecoder} from 'wsrtc/ws-codec.js';
 import {getAudioDataBuffer} from 'wsrtc/ws-util.js';
+import {murmurhash3} from './procgen/murmurhash3.js';
 
 import * as THREE from 'three';
 import * as Z from 'zjs';
-import {getRenderer, scene, camera} from './renderer.js';
 import physicsManager from './physics-manager.js';
+import {camera, getRenderer, scene} from './renderer.js';
 import {world} from './world.js';
 // import cameraManager from './camera-manager.js';
 // import physx from './physx.js';
-import audioManager from './audio-manager.js';
 import metaversefile from 'metaversefile';
+import {
+  defaultPlayerBio, defaultPlayerName
+} from './ai/lore/lore-model.js';
+import {AppManager} from './app-manager.js';
+import audioManager from './audio-manager.js';
+
+import {CharacterHitter} from './character-hitter.js';
+import {CharacterHups} from './character-hups.js';
+import {CharacterPhysics} from './character-physics.js';
+
+import {AvatarCharacterFace} from './character-behavior.js';
+import {AvatarCharacterFx} from './character-fx.js';
+import {AvatarCharacterSfx} from './character-sfx.js';
+
 import {
   actionsMapName,
   appsMapName,
@@ -31,25 +44,14 @@ import {
   voiceEndpointBaseUrl,
   numLoadoutSlots,
 } from './constants.js';
-import {AppManager} from './app-manager.js';
-import {CharacterPhysics} from './character-physics.js';
-import {CharacterHups} from './character-hups.js';
-import {CharacterSfx} from './character-sfx.js';
-import {CharacterHitter} from './character-hitter.js';
-import {CharacterBehavior} from './character-behavior.js';
-import {CharacterFx} from './character-fx.js';
-import {VoicePack, VoicePackVoicer} from './voice-output/voice-pack-voicer.js';
+import {BiActionInterpolant, BinaryInterpolant, InfiniteActionInterpolant, PositionInterpolant, QuaternionInterpolant, UniActionInterpolant} from './interpolants.js';
+import {applyCharacterToAvatar, switchAvatar} from './player-avatar-binding.js';
 import {VoiceEndpoint, VoiceEndpointVoicer} from './voice-output/voice-endpoint-voicer.js';
-import {BinaryInterpolant, BiActionInterpolant, UniActionInterpolant, InfiniteActionInterpolant, PositionInterpolant, QuaternionInterpolant} from './interpolants.js';
-import {applyPlayerToAvatar, switchAvatar} from './player-avatar-binding.js';
-import {
-  defaultPlayerName,
-  defaultPlayerBio,
-} from './ai/lore/lore-model.js';
+import {VoicePack, VoicePackVoicer} from './voice-output/voice-pack-voicer.js';
 // import * as sounds from './sounds.js';
 import musicManager from './music-manager.js';
-import {makeId, clone} from './util.js';
 import overrides from './overrides.js';
+import {clone, makeId} from './util.js';
 // import * as voices from './voices.js';
 
 const localVector = new THREE.Vector3();
