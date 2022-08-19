@@ -1,14 +1,14 @@
 import * as THREE from 'three';
 import Avatar from './avatars/avatars.js';
+import { LocalPlayer } from './character-controller.js';
+import { chatManager } from './chat-manager.js';
 import physicsManager from './physics-manager.js';
-import {LocalPlayer} from './character-controller.js';
-import {playersManager} from './players-manager.js';
-import * as voices from './voices.js';
-import {world} from './world.js';
-import {chatManager} from './chat-manager.js';
-import {makeId, createRelativeUrl} from './util.js';
+import { playersManager } from './players-manager.js';
 import { triggerEmote } from './src/components/general/character/Poses.jsx';
+import { createRelativeUrl, makeId } from './util.js';
 import validEmotionMapping from "./validEmotionMapping.json";
+import * as voices from './voices.js';
+import { world } from './world.js';
 
 const localVector = new THREE.Vector3();
 
@@ -110,7 +110,7 @@ class NpcManager extends EventTarget {
     const hurtAnimation = animations.find(a => a.isHurt);
     const hurtAnimationDuration = hurtAnimation.duration;
 
-    app.getPhysicsObjects = () => npcPlayer ? [npcPlayer.characterController] : [];
+    app.getPhysicsObjects = () => npcPlayer ? [npcPlayer.characterPhysics.characterController] : [];
     app.getLoreSpec = () => {
       const name = json.name ?? 'Anon';
       const description = json.bio ?? '';

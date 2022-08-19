@@ -33,26 +33,26 @@ const CharacterHup = function(props) {
 
     if (canvasRef.current) {
       const canvas = canvasRef.current;
-      const player = hup.parent.player;
-      let diorama = chatDioramas.get(player);
+      const character = hup.parent.character;
+      let diorama = chatDioramas.get(character);
       if (diorama) {
         diorama.resetCanvases();
         diorama.addCanvas(canvas);
       } else {
         diorama = dioramaManager.createPlayerDiorama({
-          target: player,
+          target: character,
           objects: [
-            player.avatar.avatarRenderer.scene,
+            character.avatar.avatarRenderer.scene,
           ],
           grassBackground: true,
         });
         diorama.addCanvas(canvas);
-        chatDioramas.set(player, diorama);
+        chatDioramas.set(character, diorama);
       }
 
       return () => {
         diorama.destroy();
-        chatDioramas.delete(player);
+        chatDioramas.delete(character);
       };
     }
   }, [canvasRef]);
@@ -89,8 +89,8 @@ const CharacterHup = function(props) {
     }
     hup.addEventListener('voicestart', voicestart);
     function destroy(e) {
-      const player = hup.parent.player;
-      chatDioramas.delete(player);
+      const character = hup.parent.character;
+      chatDioramas.delete(character);
 
       setLocalOpen(false);
     }
@@ -128,7 +128,7 @@ const CharacterHup = function(props) {
       />
       <div className={styles.name}>
         <div className={styles.bar} />
-        <h1>{hup.playerName}</h1>
+        <h1>{hup.characterName}</h1>
         <h2>Lv. 9</h2>
         {/* <div className={styles.stats}>
           <div className={styles.stat}>
@@ -180,19 +180,19 @@ export default function CharacterHups({
       remotePlayer.characterHups.addEventListener('hupremove', hupremove);
     }
 
-    const handlePlayerAdd = (e) => {
-      e.data.player.characterHups.addEventListener('hupadd', hupadd);
-      e.data.player.characterHups.addEventListener('hupremove', hupremove);
+    const handleCharacterAdd = (e) => {
+      e.data.character.characterHups.addEventListener('hupadd', hupadd);
+      e.data.character.characterHups.addEventListener('hupremove', hupremove);
 
     }
 
-    const handlePlayerRemove = (e) => {
-      e.data.player.characterHups.removeEventListener('hupadd', hupadd);
-      e.data.player.characterHups.removeEventListener('hupremove', hupremove);
+    const handleCharacterRemove = (e) => {
+      e.data.character.characterHups.removeEventListener('hupadd', hupadd);
+      e.data.character.characterHups.removeEventListener('hupremove', hupremove);
     }
 
-    playersManager.addEventListener('playeradded', handlePlayerAdd);
-    playersManager.addEventListener('playerremoved', handlePlayerRemove);
+    playersManager.addEventListener('playeradded', handleCharacterAdd);
+    playersManager.addEventListener('playerremoved', handleCharacterRemove);
 
     return () => {
       localPlayer.characterHups.removeEventListener('hupadd', hupadd);

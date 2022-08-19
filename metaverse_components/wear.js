@@ -1,5 +1,5 @@
-import * as THREE from 'three';
 import metaversefile from 'metaversefile';
+import * as THREE from 'three';
 import Avatar from '../avatars/avatars.js';
 // import {world} from '../world.js';
 import physicsManager from '../physics-manager.js';

@@ -1,20 +1,33 @@
 /*
 this file is responisible for maintaining player state that is network-replicated.
 */
-import {murmurhash3} from './procgen/murmurhash3.js';
-import {WsAudioDecoder} from 'wsrtc/ws-codec.js';
 import {ensureAudioContext, getAudioContext} from 'wsrtc/ws-audio-context.js';
+import {WsAudioDecoder} from 'wsrtc/ws-codec.js';
 import {getAudioDataBuffer} from 'wsrtc/ws-util.js';
+import {murmurhash3} from './procgen/murmurhash3.js';
 
 import * as THREE from 'three';
 import * as Z from 'zjs';
-import {getRenderer, scene, camera} from './renderer.js';
 import physicsManager from './physics-manager.js';
+import {camera, getRenderer, scene} from './renderer.js';
 import {world} from './world.js';
 // import cameraManager from './camera-manager.js';
 // import physx from './physx.js';
-import audioManager from './audio-manager.js';
 import metaversefile from 'metaversefile';
+import {
+  defaultPlayerBio, defaultPlayerName
+} from './ai/lore/lore-model.js';
+import {AppManager} from './app-manager.js';
+import audioManager from './audio-manager.js';
+
+import {CharacterHitter} from './character-hitter.js';
+import {CharacterHups} from './character-hups.js';
+import {CharacterPhysics} from './character-physics.js';
+
+import {AvatarCharacterFace} from './character-behavior.js';
+import {AvatarCharacterFx} from './character-fx.js';
+import {AvatarCharacterSfx} from './character-sfx.js';
+
 import {
   actionsMapName,
   appsMapName,
@@ -31,25 +44,14 @@ import {
   voiceEndpointBaseUrl,
   numLoadoutSlots,
 } from './constants.js';
-import {AppManager} from './app-manager.js';
-import {CharacterPhysics} from './character-physics.js';
-import {CharacterHups} from './character-hups.js';
-import {CharacterSfx} from './character-sfx.js';
-import {CharacterHitter} from './character-hitter.js';
-import {CharacterBehavior} from './character-behavior.js';
-import {CharacterFx} from './character-fx.js';
-import {VoicePack, VoicePackVoicer} from './voice-output/voice-pack-voicer.js';
+import {BiActionInterpolant, BinaryInterpolant, InfiniteActionInterpolant, PositionInterpolant, QuaternionInterpolant, UniActionInterpolant} from './interpolants.js';
+import {applyCharacterToAvatar, switchAvatar} from './player-avatar-binding.js';
 import {VoiceEndpoint, VoiceEndpointVoicer} from './voice-output/voice-endpoint-voicer.js';
-import {BinaryInterpolant, BiActionInterpolant, UniActionInterpolant, InfiniteActionInterpolant, PositionInterpolant, QuaternionInterpolant} from './interpolants.js';
-import {applyPlayerToAvatar, switchAvatar} from './player-avatar-binding.js';
-import {
-  defaultPlayerName,
-  defaultPlayerBio,
-} from './ai/lore/lore-model.js';
+import {VoicePack, VoicePackVoicer} from './voice-output/voice-pack-voicer.js';
 // import * as sounds from './sounds.js';
 import musicManager from './music-manager.js';
-import {makeId, clone} from './util.js';
 import overrides from './overrides.js';
+import {clone, makeId} from './util.js';
 // import * as voices from './voices.js';
 
 const localVector = new THREE.Vector3();
@@ -83,33 +85,7 @@ function makeCancelFn() {
     },
   };
 }
-const heightFactor = 1.6;
-const baseRadius = 0.3;
-function loadPhysxCharacterController() {
-  const avatarHeight = this.avatar.height;
-  const radius = baseRadius/heightFactor * avatarHeight;
-  const height = avatarHeight - radius*2;
 
-  const contactOffset = 0.1/heightFactor * avatarHeight;
-  const stepOffset = 0.5/heightFactor * avatarHeight;
-
-  const position = this.position.clone()
-    .add(new THREE.Vector3(0, -avatarHeight/2, 0));
-
-  if (this.characterController) {
-    physicsScene.destroyCharacterController(this.characterController);
-    this.characterController = null;
-    // this.characterControllerObject = null;
-  }
-  this.characterController = physicsScene.createCharacterController(
-    radius - contactOffset,
-    height,
-    contactOffset,
-    stepOffset,
-    position
-  );
-  // this.characterControllerObject = new THREE.Object3D();
-}
 /* function loadPhysxAuxCharacterCapsule() {
   const avatarHeight = this.avatar.height;
   const radius = baseRadius/heightFactor * avatarHeight;
@@ -141,7 +117,7 @@ function loadPhysxCharacterController() {
   this.physicsObject = physicsObject;
 } */
 
-class PlayerHand extends THREE.Object3D {
+class AvatarHand extends THREE.Object3D {
   constructor() {
     super();
 
@@ -150,29 +126,20 @@ class PlayerHand extends THREE.Object3D {
     this.enabled = false;
   }
 }
-class PlayerBase extends THREE.Object3D {
+class Character extends THREE.Object3D {
   constructor() {
     super();
 
     this.name = defaultPlayerName;
     this.bio = defaultPlayerBio;
-    this.characterHups = new CharacterHups(this);
-    this.characterSfx = new CharacterSfx(this);
-    this.characterFx = new CharacterFx(this);
-    this.characterHitter = new CharacterHitter(this);
-    this.characterBehavior = new CharacterBehavior(this);
 
-    this.leftHand = new PlayerHand();
-    this.rightHand = new PlayerHand();
-    this.hands = [
-      this.leftHand,
-      this.rightHand,
-    ];
+    this.characterPhysics = new CharacterPhysics(this);
+
+    this.characterHups = new CharacterHups(this);
+    this.characterHitter = new CharacterHitter(this);
 
     this.detached = false;
-
-    this.avatar = null;
-    
+ 
     this.appManager = new AppManager({
       appsMap: null,
     });
@@ -329,7 +296,7 @@ class PlayerBase extends THREE.Object3D {
     const avatarApp = this.getAvatarApp();
     const npcComponent = avatarApp.getComponent('npc');
     const npcThemeSongUrl = npcComponent?.themeSongUrl;
-    return await PlayerBase.fetchThemeSong(npcThemeSongUrl);
+    return await Character.fetchThemeSong(npcThemeSongUrl);
   }
   static async fetchThemeSong(npcThemeSongUrl) {
     if (npcThemeSongUrl) {
@@ -557,11 +524,11 @@ class PlayerBase extends THREE.Object3D {
   }
   destroy() {
     this.characterHups.destroy();
-    this.characterSfx.destroy();
-    this.characterFx.destroy();
-    this.characterBehavior.destroy();
   }
 }
+
+
+
 const controlActionTypes = [
   'jump',
   'fallLoop',
@@ -571,19 +538,32 @@ const controlActionTypes = [
   'sit',
   'swim',
 ];
-class StatePlayer extends PlayerBase {
+class AvatarCharacter extends Character {
   constructor({
     playerId = makeId(5),
     playersArray = new Z.Doc().getArray(playersMapName),
   } = {}) {
     super();
 
+    this.avatar = null;
+
+    this.avatarFace = new AvatarCharacterFace(this);
+    this.avatarCharacterFx = new AvatarCharacterFx(this);
+    this.avatarCharacterSfx = new AvatarCharacterSfx(this);
+
+    this.leftHand = new AvatarHand();
+    this.rightHand = new AvatarHand();
+    this.hands = [
+      this.leftHand,
+      this.rightHand,
+    ];
+
     this.playerId = playerId;
     this.playerIdInt = murmurhash3(playerId);
     this.playersArray = null;
     this.playerMap = null;
     this.microphoneMediaStream = null;
-    
+ 
     this.avatarEpoch = 0;
     this.syncAvatarCancelFn = null;
     this.unbindFns = [];
@@ -700,10 +680,10 @@ class StatePlayer extends PlayerBase {
           avatar,
         });
         
-        loadPhysxCharacterController.call(this);
+        this.characterPhysics.loadCharacterController(this.avatar.width, this.avatar.height);
         
         if (this.isLocalPlayer) {
-          physicsScene.disableGeometryQueries(this.characterController);
+          physicsScene.disableGeometryQueries(this.characterPhysics.characterController);
         }
       })();
       
@@ -750,7 +730,7 @@ class StatePlayer extends PlayerBase {
     camera.quaternion.copy(quaternion);
     camera.updateMatrixWorld();
 
-    if (this.characterController) {
+    if (this.characterPhysics.characterController) {
       this.characterPhysics.setPosition(position);
     }
   }
@@ -876,11 +856,16 @@ class StatePlayer extends PlayerBase {
     this.appManager.unbindState();
 
     this.appManager.destroy();
+
+    this.avatarCharacterSfx.destroy();
+    this.avatarCharacterFx.destroy();
+
+    this.avatarFace.destroy();
   
     super.destroy();
   }
 }
-class InterpolatedPlayer extends StatePlayer {
+class InterpolatedPlayer extends AvatarCharacter {
   constructor(opts) {
     super(opts);
     this.positionInterpolant = new PositionInterpolant(() => this.getPosition(), avatarInterpolationTimeDelay, avatarInterpolationNumFrames);
@@ -965,7 +950,7 @@ class InterpolatedPlayer extends StatePlayer {
     this.characterFx.update(timestamp, timeDiffS);
     this.characterPhysics.update(timestamp, timeDiffS);
     this.characterHitter.update(timestamp, timeDiffS);
-    this.characterBehavior.update(timestamp, timeDiffS);
+    this.avatarFace.update(timestamp, timeDiffS);
 
     this.avatar.update(timestamp, timeDiff);
   } */
@@ -980,7 +965,7 @@ class InterpolatedPlayer extends StatePlayer {
     }
   }
 }
-class UninterpolatedPlayer extends StatePlayer {
+class UninterpolatedPlayer extends AvatarCharacter {
   constructor(opts) {
     super(opts);
     
@@ -1045,8 +1030,6 @@ class LocalPlayer extends UninterpolatedPlayer {
     this.isLocalPlayer = !opts.npc;
     this.isNpcPlayer = !!opts.npc;
     this.detached = opts.detached ?? false;
-
-    this.characterPhysics = new CharacterPhysics(this);
   }
   async setPlayerSpec(playerSpec) {
     const p = this.setAvatarUrl(playerSpec.avatarUrl);
@@ -1245,16 +1228,16 @@ class LocalPlayer extends UninterpolatedPlayer {
   updateAvatar(timestamp, timeDiff) {
     if (this.avatar) {
       const timeDiffS = timeDiff / 1000;
-      this.characterSfx.update(timestamp, timeDiffS);
-      this.characterFx.update(timestamp, timeDiffS);
+      this.avatarCharacterSfx.update(timestamp, timeDiffS);
+      this.avatarCharacterFx.update(timestamp, timeDiffS);
       this.characterHitter.update(timestamp, timeDiffS);
-      this.characterBehavior.update(timestamp, timeDiffS);
+      this.avatarFace.update(timestamp, timeDiffS);
 
       this.updateInterpolation(timeDiff);
 
       const session = _getSession();
       const mirrors = metaversefile.getMirrors();
-      applyPlayerToAvatar(this, session, this.avatar, mirrors);
+      applyCharacterToAvatar(this, session, this.avatar, mirrors);
 
       this.avatar.update(timestamp, timeDiff);
 
@@ -1398,7 +1381,7 @@ class RemotePlayer extends InterpolatedPlayer {
         if(this.avatar){
           localVector.copy(this.position);
           localVector.y -= this.avatar.height * 0.5;
-          physicsScene.setCharacterControllerPosition(this.characterController, localVector);
+          physicsScene.setCharacterControllerPosition(this.characterPhysics.characterController, localVector);
           
           this.avatar.setVelocity(
             timeDiff / 1000,
@@ -1427,13 +1410,13 @@ class RemotePlayer extends InterpolatedPlayer {
     this.updateInterpolation(timeDiff);
 
     const mirrors = metaversefile.getMirrors();
-    applyPlayerToAvatar(this, null, this.avatar, mirrors);
+    applyCharacterToAvatar(this, null, this.avatar, mirrors);
 
     const timeDiffS = timeDiff / 1000;
-    this.characterSfx.update(timestamp, timeDiffS);
-    this.characterFx.update(timestamp, timeDiffS);
+    this.avatarCharacterSfx.update(timestamp, timeDiffS);
+    this.avatarCharacterFx.update(timestamp, timeDiffS);
     this.characterHitter.update(timestamp, timeDiffS);
-    this.characterBehavior.update(timestamp, timeDiffS);
+    this.avatarFace.update(timestamp, timeDiffS);
 
     this.avatar.update(timestamp, timeDiff);
   }
@@ -1508,3 +1491,4 @@ export {
   RemotePlayer,
   // NpcPlayer,
 };
+
