@@ -38,7 +38,7 @@ class PartyManager extends EventTarget {
         for (let i = 0; i < this.partyPlayers.length; i++) {
           const player = this.partyPlayers[i];
           if (localPlayer.playerId !== player.playerId) {
-            this.transplantToParty(player.npcApp, localPlayer);
+            this.transplantPartyAppToParty(player.npcApp, localPlayer);
           }
         }
       };
@@ -61,16 +61,16 @@ class PartyManager extends EventTarget {
       this.partyPlayers.push(headPlayer);
 
       // transplant players to local player
-      const transplantToLocalPlayer = () => {
+      const transplantToPlayer = () => {
         const localPlayer = playersManager.getLocalPlayer();
         for (let i = 0; i < this.partyPlayers.length; i++) {
           const player = this.partyPlayers[i];
           if (localPlayer.playerId !== player.playerId) {
-            this.transplantPartyToLocalPlayer(player.npcApp, localPlayer);
+            this.transplantPartyAppToPlayer(player.npcApp, localPlayer);
           }
         }
       };
-      transplantToLocalPlayer();
+      transplantToPlayer();
     }
   }
 
@@ -120,20 +120,19 @@ class PartyManager extends EventTarget {
         };
       })(newPlayer);
 
-      const removeFn = ((player) => {
-        return () => {
-          // console.log('removeFn', player);
-          const playerIndex = this.partyPlayers.indexOf(player);
-          if (playerIndex > 0) {
-            world.appManager.removeEventListener('frame', frame);
-            this.transplantToWorld(player.npcApp);
-            this.partyPlayers.splice(playerIndex, 1);
-            player.isInParty = false;
-            return true;
-          }
-          return false;
-        };
-      })(newPlayer);
+      const removeFn = () => {
+        // console.log('removeFn', player);
+        const player = newPlayer;
+        const playerIndex = this.partyPlayers.indexOf(player);
+        if (playerIndex > 0) {
+          world.appManager.removeEventListener('frame', frame);
+          this.transplantPartyAppToWorld(player.npcApp);
+          this.partyPlayers.splice(playerIndex, 1);
+          player.isInParty = false;
+          return true;
+        }
+        return false;
+      };
 
       this.removeFns.push(removeFn);
       
@@ -155,7 +154,7 @@ class PartyManager extends EventTarget {
 
       if (this.partyPlayers.length >= 2) {
         const headPlayer = this.partyPlayers[0];
-        this.transplantNpcToLocalPlayer(newPlayer.npcApp, headPlayer);
+        this.transplantWorldAppToPlayer(newPlayer.npcApp, headPlayer);
       }
 
       return true;
@@ -167,25 +166,24 @@ class PartyManager extends EventTarget {
     if (srcAppManager.hasTrackedApp(app.instanceId)) {
       srcAppManager.transplantApp(app, dstAppManager);
     } else {
-      console.warn('need to transplant unowned app', app, srcAppManager, dstAppManager);
-      debugger;
+      throw new Error('transplant unowned app');
     }
   }
 
-  transplantNpcToLocalPlayer(app, headPlayer) {
+  transplantWorldAppToPlayer(app, headPlayer) {
     this.transplantApp(app, world.appManager, headPlayer.appManager);
   }
 
-  transplantPartyToLocalPlayer(app, headPlayer) {
+  transplantPartyAppToPlayer(app, headPlayer) {
     this.transplantApp(app, this.appManager, headPlayer.appManager);
   }
 
-  transplantToWorld(app) {
+  transplantPartyAppToWorld(app) {
     const headPlayer = this.partyPlayers[0];
     this.transplantApp(app, headPlayer.appManager, world.appManager);
   }
 
-  transplantToParty(app, localPlayer) {
+  transplantPartyAppToParty(app, localPlayer) {
     this.transplantApp(app, localPlayer.appManager, this.appManager);
   }
 
