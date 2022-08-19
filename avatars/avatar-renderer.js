@@ -238,9 +238,7 @@ const _addAnisotropy = (o, anisotropyLevel) => {
 };
 const _forAllMeshes = (o, fn) => {
   o.traverse(o => {
-    if (o.isMesh) {
-      fn(o);
-    }
+    o.isMesh && fn(o);
   });
 };
 
