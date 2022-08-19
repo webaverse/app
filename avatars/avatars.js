@@ -1138,12 +1138,12 @@ class Avatar {
     for (const k in preRotations) {
       preRotations[k].invert();
     }
-	  fixSkeletonZForward(armature.children[0], {
-	    preRotations,
-	  });
-	  model.traverse(o => {
-	    if (o.isSkinnedMesh) {
-	      /* o.bind(
+    fixSkeletonZForward(armature.children[0], {
+      preRotations,
+    });
+    model.traverse(o => {
+      if (o.isSkinnedMesh) {
+        /* o.bind(
           (
             o.skeleton.bones.length === skeleton.bones.length &&
             o.skeleton.bones.every((bone, i) => bone === skeleton.bones[i])
@@ -1152,23 +1152,23 @@ class Avatar {
           :
             o.skeleton
         ); */
-	      // o.bind(skeleton);
+        // o.bind(skeleton);
         o.bind(o.skeleton);
-	    }
-	  });
+      }
+    });
     if (flipY) {
       modelBones.Hips.quaternion.premultiply(new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(1, 0, 0), -Math.PI/2));
     }
-	  if (!flipZ) {
-	    /* ['Left_arm', 'Right_arm'].forEach((name, i) => {
-		    const bone = modelBones[name];
-		    if (bone) {
-		      bone.quaternion.premultiply(new Quaternion().setFromAxisAngle(new Vector3(0, 0, 1), (i === 0 ? 1 : -1) * Math.PI*0.25));
-		    }
-		  }); */
-		} else {
-		  modelBones.Hips.quaternion.premultiply(new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 1, 0), Math.PI));
-		}
+    if (!flipZ) {
+      /* ['Left_arm', 'Right_arm'].forEach((name, i) => {
+        const bone = modelBones[name];
+        if (bone) {
+          bone.quaternion.premultiply(new Quaternion().setFromAxisAngle(new Vector3(0, 0, 1), (i === 0 ? 1 : -1) * Math.PI*0.25));
+        }
+      }); */
+    } else {
+      modelBones.Hips.quaternion.premultiply(new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 1, 0), Math.PI));
+    }
     modelBones.Right_arm.quaternion.premultiply(qr.clone().invert());
     modelBones.Right_elbow.quaternion
       .premultiply(qr)
@@ -1177,7 +1177,7 @@ class Avatar {
     modelBones.Left_elbow.quaternion
       .premultiply(ql)
       .premultiply(ql2.clone().invert());
-	  model.updateMatrixWorld(true);
+    model.updateMatrixWorld(true);
     
     modelBones.Root.traverse(bone => {
       bone.initialQuaternion = bone.quaternion.clone();
