@@ -130,7 +130,7 @@ const upVector = new THREE.Vector3(0, 1, 0);
 // const infinityUpVector = new THREE.Vector3(0, Infinity, 0);
 import {
   animations,
-  animationStepIndices
+  animationStepIndices,
 } from './animationHelpers.js';
 
 const cubicBezier = easing(0, 1, 0, 1);
