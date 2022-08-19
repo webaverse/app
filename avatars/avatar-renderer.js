@@ -207,6 +207,10 @@ const _cloneVrm = async () => {
 const _unfrustumCull = o => {
   o.frustumCulled = false;
 };
+const _enableShadows = o => {
+  o.castShadow = true;
+  o.receiveShadow = true;
+};
 const _setDepthWrite = o => {
   o.material.depthWrite = true;
   o.material.alphaToCoverage = true;
@@ -242,7 +246,7 @@ const _forAllMeshes = (o, fn) => {
   });
 };
 
-const _bindSkeleton = (dstModel, srcObject) => {
+const _bindControl = (dstModel, srcObject) => {
   const srcModel = srcObject.scene;
   
   const _findBoneInSrc = (srcBoneName) => {
@@ -314,20 +318,41 @@ const _bindSkeleton = (dstModel, srcObject) => {
     _recurse(srcModel);
     return result;
   };
+
+  const uncontrolFns = [];
   dstModel.traverse(o => {
     // bind skinned meshes to skeletons
     if (o.isSkinnedMesh) {
-      const {skeleton: dstSkeleton} = o;
-      const srcSkeleton = _findSrcSkeletonFromDstSkeleton(dstSkeleton);
-      o.skeleton = srcSkeleton;
+      const oldSkeleton = o.skeleton;
+      const newSkeleton = _findSrcSkeletonFromDstSkeleton(oldSkeleton);
+
+      o.skeleton = newSkeleton;
+
+      uncontrolFns.push(() => {
+        o.skeleton = oldSkeleton;
+      });
     }
     // bind blend shapes to controls
     if (o.isMesh) {
+      const oldMorphTargetDictionary = o.morphTargetDictionary;
+      const oldMorphTargetInfluences = o.morphTargetInfluences;
+
       const morphMesh = _findMorphMeshInSrc();
       o.morphTargetDictionary = morphMesh.morphTargetDictionary;
       o.morphTargetInfluences = morphMesh.morphTargetInfluences;
+
+      uncontrolFns.push(() => {
+        o.morphTargetDictionary = oldMorphTargetDictionary;
+        o.morphTargetInfluences = oldMorphTargetInfluences;
+      });
     }
   });
+  return () => {
+    for (const uncontrolFn of uncontrolFns) {
+      uncontrolFn();
+    }
+    uncontrolFns.length = 0;
+  };
 };
 
 const _getMergedBoundingSphere = o => {
@@ -353,6 +378,7 @@ export class AvatarRenderer /* extends EventTarget */ {
     srcUrl,
     camera = null, // if null, do not frustum cull
     quality = defaultAvatarQuality,
+    controlled = false,
   } = {})	{
     // super();
     
@@ -362,6 +388,7 @@ export class AvatarRenderer /* extends EventTarget */ {
     this.srcUrl = srcUrl;
     this.camera = camera;
     this.quality = quality;
+    this.isControlled = controlled;
     
     //
 
@@ -385,6 +412,7 @@ export class AvatarRenderer /* extends EventTarget */ {
 
     this.controlObject = null;
     this.controlObjectLoaded = false;
+    this.uncontrolFnMap = new Map();
 
     //
 
@@ -392,13 +420,6 @@ export class AvatarRenderer /* extends EventTarget */ {
 
     //
 
-    this.skeletonBindingsMap = new Map();
-
-    //
-    
-    // XXX add frustum culling in update()
-    // XXX integrate more cleanly with totum VRM type (do not double-parse)
-    // XXX unlock avatar icon
     this.createSpriteAvatarMeshFn = null;
     this.crunchAvatarModelFn = null;
     this.optimizeAvatarModelFn = null;
@@ -517,20 +538,37 @@ export class AvatarRenderer /* extends EventTarget */ {
     if (!this.controlObjectLoaded) {
       this.controlObjectLoaded = true;
       this.controlObject = await parseVrm(this.arrayBuffer, this.srcUrl);
+      /* this.controlObject.scene.traverse(o => {
+        if (o.isMesh) {
+          o.onBeforeRender = () => {
+            debugger;
+          };
+        }
+      }); */
+    }
+  }
+  setControlled(controlled) {
+    if (controlled) {
+      for (const glb of [
+        this.spriteAvatarMesh,
+        this.crunchedModel,
+        this.optimizedModel,
+        this.mesh,
+      ]) {
+        if (!!glb && !this.uncontrolFnMap.has(glb)) {
+          const uncontrolFn = _bindControl(glb, this.controlObject);
+          this.uncontrolFnMap.set(glb, uncontrolFn);
+        }
+      }
+    } else {
+      for (const uncontrolFn of this.uncontrolFnMap.values()) {
+        uncontrolFn();
+      }
+      this.uncontrolFnMap.clear();
     }
   }
   #bindControlObject() {
-    for (const glb of [
-      this.spriteAvatarMesh,
-      this.crunchedModel,
-      this.optimizedModel,
-      this.mesh,
-    ]) {
-      if (!!glb && !this.skeletonBindingsMap.has(glb)) {
-        _bindSkeleton(glb, this.controlObject);
-        this.skeletonBindingsMap.set(glb, true);
-      }
-    }
+    this.setControlled(this.isControlled);
   }
   async setQuality(quality) {
     // set new quality
