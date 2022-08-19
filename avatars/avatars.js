@@ -4,7 +4,7 @@ import {fixSkeletonZForward} from './vrarmik/SkeletonUtils.js';
 import PoseManager from './vrarmik/PoseManager.js';
 import ShoulderTransforms from './vrarmik/ShoulderTransforms.js';
 import LegsManager from './vrarmik/LegsManager.js';
-import {scene, camera} from '../renderer.js';
+import {scene} from '../renderer.js';
 import MicrophoneWorker from './microphone-worker.js';
 import {AudioRecognizer} from '../audio-recognizer.js';
 import audioManager from '../audio-manager.js';
@@ -288,9 +288,9 @@ const _makeDebugMesh = (avatar) => {
   attributes.Right_ankle.add(attributes.Right_toe);
 
   const mesh = attributes.Root;
-  const modelBoneToMeshBoneMap = new Map();
+  // const modelBoneToMeshBoneMap = new Map();
 
-  mesh.wrapToAvatar = avatar => {
+  /* mesh.wrapToAvatar = avatar => {
     avatar.modelBoneOutputs.Root.updateMatrixWorld();
 
     for (const k in avatar.modelBoneOutputs) {
@@ -314,8 +314,8 @@ const _makeDebugMesh = (avatar) => {
       );
       modelBoneToMeshBoneMap.set(modelBone, meshBone);
     }
-  };
-  mesh.setFromAvatar = avatar => {
+  }; */
+  /* mesh.setFromAvatar = avatar => {
     for (const k in avatar.modelBoneOutputs) {
       const modelBone = avatar.modelBoneOutputs[k];
       
@@ -344,8 +344,8 @@ const _makeDebugMesh = (avatar) => {
       meshBone.matrix.decompose(meshBone.position, meshBone.quaternion, meshBone.scale);
     }
     mesh.updateMatrixWorld();
-  };
-  mesh.serializeSkeleton = () => {
+  }; */
+  /* mesh.serializeSkeleton = () => {
     const buffers = [];
 
     const _recurse = meshBone => {
@@ -384,7 +384,7 @@ const _makeDebugMesh = (avatar) => {
       offset += buffer.byteLength;
     }
     return result;
-  };
+  }; */
   return mesh;
 };
 
@@ -396,35 +396,13 @@ const _makeDebugMesh = (avatar) => {
 
 class Avatar {
 	constructor(avatarRenderer, options = {}) {
-    /* if (!object) {
-      object = {};
-    }
-    if (!object.parser) {
-      object.parser = {
-        json: {
-          extensions: {},
-        },
-      };
-    } */
-    
     this.avatarRenderer = avatarRenderer;
-    this.isLocalPlayer = options.isLocalPlayer !== undefined ? options.isLocalPlayer : true;
     const object = avatarRenderer.controlObject;
     this.object = object;
-
-    if (!this.object) {
-      debugger;
-    }
 
     const model = this.object.scene;
     this.model = model; // XXX still needed?
     this.model.visible = false;
-    
-    /* {
-      this.renderer = new AvatarRenderer(object);
-      scene.add(this.renderer.scene);
-      this.renderer.scene.updateMatrixWorld();
-    } */
 
     this.spriteMegaAvatarMesh = null;
     this.crunchedModel = null;
