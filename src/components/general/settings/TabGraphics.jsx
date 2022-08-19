@@ -6,6 +6,8 @@ import game from '../../../../game.js';
 import metaversefileApi from '../../../../metaversefile-api'
 import { Switch } from './switch';
 
+import localStorageManager from '../../../../localStorage-manager.js';
+
 import styles from './settings.module.css';
 
 //
@@ -65,13 +67,13 @@ export const TabGraphics = ({ active }) => {
             }
         };
 
-        localStorage.setItem( 'GfxSettings', JSON.stringify( settings ) );
+        localStorageManager.setItem( 'GfxSettings', JSON.stringify( settings ) );
 
     };
 
     function loadSettings () {
 
-        const settingsString = localStorage.getItem( 'GfxSettings' );
+        const settingsString = localStorageManager.getItem( 'GfxSettings' );
         let settings;
 
         try {
