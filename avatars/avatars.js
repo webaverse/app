@@ -1863,17 +1863,13 @@ class Avatar {
       _motionControls.call(this)
     }
     
-    // for the local player we want to update the velocity immediately
-    // on remote players this is called from the RemotePlayer -> observePlayerFn
-    if (this.isLocalPlayer) {
-      this.setVelocity(
-	timestamp,
-        timeDiffS,
-        this.lastPosition,
-        this.inputs.hmd.position,
-        this.inputs.hmd.quaternion
-      );
-    }
+    this.setVelocity(
+      timestamp,
+      timeDiffS,
+      this.lastPosition,
+      this.inputs.hmd.position,
+      this.inputs.hmd.quaternion
+    );
     _applyAnimation(this, now);
 
     if (this.poseAnimation) {
