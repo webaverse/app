@@ -47,6 +47,7 @@ import story from './story.js';
 import zTargeting from './z-targeting.js';
 import raycastManager from './raycast-manager.js';
 import universe from './universe.js';
+import npcManager from './npc-manager.js';
 
 const localVector = new THREE.Vector3();
 const localVector2 = new THREE.Vector3();
@@ -306,19 +307,18 @@ export default class Webaverse extends EventTarget {
           ioManager.update(timeDiffCapped);
           // this.injectRigInput();
           
-          const localPlayer = metaversefileApi.useLocalPlayer();
           const physicsScene = physicsManager.getScene();
           if (this.contentLoaded && physicsScene.getPhysicsEnabled()) {
             physicsScene.simulatePhysics(timeDiffCapped);
             physicsScene.getTriggerEvents();
-            localPlayer.updatePhysics(timestamp, timeDiffCapped);
+            npcManager.updatePhysics(timestamp, timeDiffCapped);
           }
 
           transformControls.update();
           raycastManager.update(timestamp, timeDiffCapped);
           game.update(timestamp, timeDiffCapped);
-          
-          localPlayer.updateAvatar(timestamp, timeDiffCapped);
+
+          npcManager.updateAvatar(timestamp, timeDiffCapped);
           playersManager.updateRemotePlayers(timestamp, timeDiffCapped);
           
           world.appManager.tick(timestamp, timeDiffCapped, frame);
