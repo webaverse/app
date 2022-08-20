@@ -338,13 +338,15 @@ const _bindControl = (dstModel, srcObject) => {
       const oldMorphTargetInfluences = o.morphTargetInfluences;
 
       const morphMesh = _findMorphMeshInSrc();
-      o.morphTargetDictionary = morphMesh.morphTargetDictionary;
-      o.morphTargetInfluences = morphMesh.morphTargetInfluences;
+      if (morphMesh) {
+        o.morphTargetDictionary = morphMesh.morphTargetDictionary;
+        o.morphTargetInfluences = morphMesh.morphTargetInfluences;
 
-      uncontrolFns.push(() => {
-        o.morphTargetDictionary = oldMorphTargetDictionary;
-        o.morphTargetInfluences = oldMorphTargetInfluences;
-      });
+        uncontrolFns.push(() => {
+          o.morphTargetDictionary = oldMorphTargetDictionary;
+          o.morphTargetInfluences = oldMorphTargetInfluences;
+        });
+      }
     }
   });
   return () => {
