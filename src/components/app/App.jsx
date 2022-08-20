@@ -9,6 +9,7 @@ import sceneNames from '../../../scenes/scenes.json';
 import { parseQuery } from '../../../util.js'
 import Webaverse from '../../../webaverse.js';
 import universe from '../../../universe.js';
+import metaversefileApi from '../../../metaversefile-api';
 import cameraManager from '../../../camera-manager';
 import { world } from '../../../world';
 
@@ -37,7 +38,6 @@ import {handleStoryKeyControls} from '../../../story';
 import styles from './App.module.css';
 import '../../fonts.css';
 import raycastManager from '../../../raycast-manager';
-import npcManager from '../../../npc-manager';
 
 //
 
@@ -53,7 +53,9 @@ const _startApp = async ( weba, canvas ) => {
     universe.handleUrlUpdate();
     await weba.startLoop();
 
-    await npcManager.initDefaultPlayer(defaultPlayerSpec);
+    const localPlayer = metaversefileApi.useLocalPlayer();
+    // console.log('set player spec', defaultPlayerSpec);
+    await localPlayer.setPlayerSpec(defaultPlayerSpec);
 
 };
 
