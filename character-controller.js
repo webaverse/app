@@ -637,7 +637,7 @@ class StateCharacter extends Character {
   }
   getAvatarInstanceId() {
     return this.playerMap.get('avatar');
-  }
+  } 
   getActionsByType(type) {
    const actions = this.getActionsState(); 
    const typedActions = Array.from(actions).filter(action => action.type === type);
@@ -820,32 +820,17 @@ class AvatarCharacter extends StateCharacter {
           app,
           avatar,
         });
-        
-        const activate = () => {
-          this.dispatchEvent({
-            type: 'activate'
-          });
-        };
-        app.addEventListener('activate', activate);
-        this.addEventListener('avatarchange', () => {
-          app.removeEventListener('activate', activate);
-        });
 
         this.characterPhysics.loadCharacterController(
           this.avatar.width,
           this.avatar.height
         );
 
-        const updatePhysicsStatus = () => {
-          if (this.isLocalPlayer) {
-            physicsScene.disableGeometryQueries(this.characterController);
-          } else {
-            physicsScene.enableGeometryQueries(this.characterController);
-          }
-        };
-
-        updatePhysicsStatus();
-        app.addPhysicsObject(this.characterController);
+        if (this.isLocalPlayer) {
+          physicsScene.disableGeometryQueries(
+            this.characterPhysics.characterController
+          );
+        }
       })();
 
       this.dispatchEvent({
@@ -1059,7 +1044,6 @@ class LocalPlayer extends UninterpolatedPlayer {
 
     this.isLocalPlayer = !opts.npc;
     this.isNpcPlayer = !!opts.npc;
-    this.isInParty = false; // whether npc's in party
     this.detached = opts.detached ?? false;
   }
   async setPlayerSpec(playerSpec) {
@@ -1174,18 +1158,6 @@ class LocalPlayer extends UninterpolatedPlayer {
       }
       self.playersArray.push([self.playerMap]);
       self.appManager.bindState(self.getAppsState());
-    });
-  }
-  deletePlayerId(playerId) {
-    const self = this;
-    this.playersArray.doc.transact(function tx() {
-      for (let i = 0; i < self.playersArray.length; i++) {
-        const playerMap = self.playersArray.get(i, Z.Map);
-        if (playerMap.get('playerId') === playerId) {
-          self.playersArray.delete(i);
-          break;
-        }
-      }
     });
   }
   grab(app, hand = 'left') {
