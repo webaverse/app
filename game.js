@@ -1454,15 +1454,24 @@ class GameManager extends EventTarget {
     const u = getDropUrl(j);
     return await this.handleDropUrlToPlayer(u, index, localVector);
   }
+  async handleDropClaimToPlayer(j) {
+    j.app.dropApp();
+  }
   async handleDropUrlToPlayer(u, index, position) {
-    const app = await metaversefileApi.createAppAsync({
-      start_url: u,
-      position: position
-    });
-    app.instanceId = makeId(5);
-    world.appManager.importApp(app);
-    app.activate();
-    // XXX set to index
+    if(u === '/mnt/d/webaverse/2022-08-20/app/metaverse_modules/silk/index.js'){
+      console.log(u);
+    }
+    else{
+      const app = await metaversefileApi.createAppAsync({
+        start_url: u,
+        position: position
+      });
+      app.instanceId = makeId(5);
+      world.appManager.importApp(app);
+      app.activate();
+      // XXX set to index
+    }
+    
   }
   selectLoadout(index) {
     loadoutManager.setSelectedIndex(index);

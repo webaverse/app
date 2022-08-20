@@ -353,6 +353,11 @@ export const Equipment = () => {
 
         setSelectObject(object);
     };
+    const onDoubleClickClaim = object => () => {
+        game.handleDropClaimToPlayer(object);
+
+        setSelectObject(object);
+    };
     const menuLeft = () => {
         setFaceIndex(faceIndex - 1);
 
@@ -446,7 +451,7 @@ export const Equipment = () => {
                         onMouseEnter={onMouseEnter}
                         onMouseDown={onMouseDown}
                         onDragStart={onDragStart}
-                        onDoubleClick={onDoubleClick}
+                        onDoubleClick={onDoubleClickClaim}
                         menuLeft={menuLeft}
                         menuRight={menuRight}
                         highlights={true}

@@ -23,6 +23,23 @@ const gracePickupTime = 1000;
 
 export default app => {
   const dropComponent = app.getComponent('drop');
+  let grounded = false;
+  const startTime = performance.now();
+  let animation = null;
+  let pickedUp = false;
+  let velocity = dropComponent.velocity ? new THREE.Vector3().fromArray(dropComponent.velocity) : new THREE.Vector3();
+  const localPlayer = metaversefile.useLocalPlayer();
+  app.dropApp = () =>{
+    grounded = false;
+    animation = null;
+    pickedUp = false;
+    app.scale.set(1, 1, 1)
+    app.position.copy(localPlayer.position)
+    velocity = dropComponent.velocity ? new THREE.Vector3().fromArray(dropComponent.velocity) : new THREE.Vector3();
+    world.appManager.addApp(app);
+    const dropManager = metaversefile.useDropManager();
+    dropManager.dropClaim(app)
+  }
   if (dropComponent) {
     let rotY = 0;
 
@@ -54,16 +71,12 @@ export default app => {
       // app.destroy();
     };
 
-    const velocity = dropComponent.velocity ? new THREE.Vector3().fromArray(dropComponent.velocity) : new THREE.Vector3();
+    // const velocity = dropComponent.velocity ? new THREE.Vector3().fromArray(dropComponent.velocity) : new THREE.Vector3();
     // const angularVelocity = dropComponent.angularVelocity ? new THREE.Vector3().fromArray(dropComponent.angularVelocity) : new THREE.Vector3();
-    let grounded = false;
-    const startTime = performance.now();
-    let animation = null;
-    let pickedUp = false;
+    
     metaversefile.useFrame(e => {
       const {timestamp, timeDiff} = e;
       const timeDiffS = timeDiff / 1000;
-      const localPlayer = metaversefile.useLocalPlayer();
       
       // animate and check for collisions
       if (!grounded) {
