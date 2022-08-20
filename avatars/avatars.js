@@ -4,7 +4,7 @@ import {fixSkeletonZForward} from './vrarmik/SkeletonUtils.js';
 import PoseManager from './vrarmik/PoseManager.js';
 import ShoulderTransforms from './vrarmik/ShoulderTransforms.js';
 import LegsManager from './vrarmik/LegsManager.js';
-import {scene, camera} from '../renderer.js';
+import {scene} from '../renderer.js';
 import MicrophoneWorker from './microphone-worker.js';
 import {AudioRecognizer} from '../audio-recognizer.js';
 import audioManager from '../audio-manager.js';
@@ -17,15 +17,14 @@ import {
 import {
   crouchMaxTime,
   // useMaxTime,
-  aimMaxTime,
+  // aimMaxTime,
   aimTransitionMaxTime,
   // avatarInterpolationFrameRate,
   // avatarInterpolationTimeDelay,
   // avatarInterpolationNumFrames,
 } from '../constants.js';
 // import {FixedTimeStep} from '../interpolants.js';
-import * as avatarCruncher from '../avatar-cruncher.js';
-import * as avatarSpriter from '../avatar-spriter.js';
+// import {AvatarRenderer} from './avatar-renderer.js';
 // import * as sceneCruncher from '../scene-cruncher.js';
 import {
   idleFactorSpeed,
@@ -59,15 +58,12 @@ import Looker from './Looker.js'
 
 import * as wind from './simulation/wind.js';
 
-
 const localVector = new THREE.Vector3();
 const localVector2 = new THREE.Vector3();
 const localVector3 = new THREE.Vector3();
 // const localVector4 = new THREE.Vector3();
 // const localVector5 = new THREE.Vector3();
 // const localVector6 = new THREE.Vector3();     
-
-
 const localQuaternion = new THREE.Quaternion();
 const localQuaternion2 = new THREE.Quaternion();
 // const localQuaternion3 = new THREE.Quaternion();
@@ -78,7 +74,8 @@ const localEuler = new THREE.Euler(0, 0, 0, 'YXZ');
 const localEuler2 = new THREE.Euler(0, 0, 0, 'YXZ');
 const localMatrix = new THREE.Matrix4();
 const localMatrix2 = new THREE.Matrix4();
-// const localPlane = new THREE.Plane();   
+// const localPlane = new THREE.Plane();
+const localFrustum = new THREE.Frustum();
 
 const textEncoder = new TextEncoder();
 
@@ -291,9 +288,9 @@ const _makeDebugMesh = (avatar) => {
   attributes.Right_ankle.add(attributes.Right_toe);
 
   const mesh = attributes.Root;
-  const modelBoneToMeshBoneMap = new Map();
+  // const modelBoneToMeshBoneMap = new Map();
 
-  mesh.wrapToAvatar = avatar => {
+  /* mesh.wrapToAvatar = avatar => {
     avatar.modelBoneOutputs.Root.updateMatrixWorld();
 
     for (const k in avatar.modelBoneOutputs) {
@@ -317,12 +314,12 @@ const _makeDebugMesh = (avatar) => {
       );
       modelBoneToMeshBoneMap.set(modelBone, meshBone);
     }
-  };
-  mesh.setFromAvatar = avatar => {
+  }; */
+  /* mesh.setFromAvatar = avatar => {
     for (const k in avatar.modelBoneOutputs) {
       const modelBone = avatar.modelBoneOutputs[k];
+      
       const meshBone = modelBoneToMeshBoneMap.get(modelBone);
-
       (modelBone.parent ?
         modelBone.parent.matrixWorld
       :
@@ -347,8 +344,8 @@ const _makeDebugMesh = (avatar) => {
       meshBone.matrix.decompose(meshBone.position, meshBone.quaternion, meshBone.scale);
     }
     mesh.updateMatrixWorld();
-  };
-  mesh.serializeSkeleton = () => {
+  }; */
+  /* mesh.serializeSkeleton = () => {
     const buffers = [];
 
     const _recurse = meshBone => {
@@ -387,7 +384,7 @@ const _makeDebugMesh = (avatar) => {
       offset += buffer.byteLength;
     }
     return result;
-  };
+  }; */
   return mesh;
 };
 
@@ -397,59 +394,27 @@ const _makeDebugMesh = (avatar) => {
 // const testMesh = new THREE.Mesh(g, m);
 // scene.add(testMesh);
 
-
-
 class Avatar {
-	constructor(object, options = {}) {
-    if (!object) {
-      object = {};
-    }
-    if (!object.parser) {
-      object.parser = {
-        json: {
-          extensions: {},
-        },
-      };
-    }
-    
-    this.isLocalPlayer = options.isLocalPlayer !== undefined ? options.isLocalPlayer : true;
+	constructor(avatarRenderer, options = {}) {
+    this.avatarRenderer = avatarRenderer;
+    const object = avatarRenderer.controlObject;
     this.object = object;
 
-    const model = (() => {
-      let o = object;
-      if (o && !o.isMesh) {
-        o = o.scene;
-      }
-      /* if (!o) {
-        const scene = new THREE.Scene();
+    const model = this.object.scene;
+    this.model = model; // XXX still needed?
 
-        const skinnedMesh = new THREE.Object3D();
-        skinnedMesh.isSkinnedMesh = true;
-        skinnedMesh.skeleton = null;
-        skinnedMesh.bind = function(skeleton) {
-          this.skeleton = skeleton;
-        };
-        skinnedMesh.bind(_importSkeleton(skeletonString));
-        scene.add(skinnedMesh);
-
-        const hips = _findHips(skinnedMesh.skeleton);
-        const armature = _findArmature(hips);
-        scene.add(armature);
-
-        o = scene;
-      } */
-      return o;
-    })();
-
-    this.model = model;
-    this.spriteMegaAvatarMesh = null;
-    this.crunchedModel = null;
     this.options = options;
 
     this.vrmExtension = object?.parser?.json?.extensions?.VRM;
     this.firstPersonCurves = getFirstPersonCurves(this.vrmExtension); 
 
     this.lastVelocity = new THREE.Vector3();
+
+    //
+
+    avatarRenderer.setControlled(true);
+
+    //
 
     const {
       skinnedMeshes,
@@ -459,10 +424,10 @@ class Avatar {
       flipZ,
       flipY,
       flipLeg,
-      tailBones,
-      armature,
-      armatureQuaternion,
-      armatureMatrixInverse,
+      // tailBones,
+      // armature,
+      // armatureQuaternion,
+      // armatureMatrixInverse,
       // retargetedAnimations,
     } = Avatar.bindAvatar(object);
     this.skinnedMeshes = skinnedMeshes;
@@ -641,6 +606,7 @@ class Avatar {
 
     // height is defined as eyes to root
     this.height = getHeight(object);
+    this.width = 0.36; // TODO : calculate this instead of hard coding it
     this.shoulderWidth = modelBones.Left_arm.getWorldPosition(new THREE.Vector3()).distanceTo(modelBones.Right_arm.getWorldPosition(new THREE.Vector3()));
     this.leftArmLength = this.shoulderTransforms.leftArm.armLength;
     this.rightArmLength = this.shoulderTransforms.rightArm.armLength;
@@ -877,6 +843,8 @@ class Avatar {
     this.audioWorker = null;
     this.microphoneWorker = null;
     this.volume = 0;
+
+    // this.quality = 4;
 
     this.shoulderTransforms.Start();
     this.legsManager.Start();
@@ -1173,27 +1141,37 @@ class Avatar {
     for (const k in preRotations) {
       preRotations[k].invert();
     }
-	  fixSkeletonZForward(armature.children[0], {
-	    preRotations,
-	  });
-	  model.traverse(o => {
-	    if (o.isSkinnedMesh) {
-	      o.bind((o.skeleton.bones.length === skeleton.bones.length && o.skeleton.bones.every((bone, i) => bone === skeleton.bones[i])) ? skeleton : o.skeleton);
-	    }
-	  });
+    fixSkeletonZForward(armature.children[0], {
+      preRotations,
+    });
+    model.traverse(o => {
+      if (o.isSkinnedMesh) {
+        /* o.bind(
+          (
+            o.skeleton.bones.length === skeleton.bones.length &&
+            o.skeleton.bones.every((bone, i) => bone === skeleton.bones[i])
+          ) ?
+            skeleton
+          :
+            o.skeleton
+        ); */
+        // o.bind(skeleton);
+        o.bind(o.skeleton);
+      }
+    });
     if (flipY) {
       modelBones.Hips.quaternion.premultiply(new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(1, 0, 0), -Math.PI/2));
     }
-	  if (!flipZ) {
-	    /* ['Left_arm', 'Right_arm'].forEach((name, i) => {
-		    const bone = modelBones[name];
-		    if (bone) {
-		      bone.quaternion.premultiply(new Quaternion().setFromAxisAngle(new Vector3(0, 0, 1), (i === 0 ? 1 : -1) * Math.PI*0.25));
-		    }
-		  }); */
-		} else {
-		  modelBones.Hips.quaternion.premultiply(new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 1, 0), Math.PI));
-		}
+    if (!flipZ) {
+      /* ['Left_arm', 'Right_arm'].forEach((name, i) => {
+        const bone = modelBones[name];
+        if (bone) {
+          bone.quaternion.premultiply(new Quaternion().setFromAxisAngle(new Vector3(0, 0, 1), (i === 0 ? 1 : -1) * Math.PI*0.25));
+        }
+      }); */
+    } else {
+      modelBones.Hips.quaternion.premultiply(new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 1, 0), Math.PI));
+    }
     modelBones.Right_arm.quaternion.premultiply(qr.clone().invert());
     modelBones.Right_elbow.quaternion
       .premultiply(qr)
@@ -1202,7 +1180,7 @@ class Avatar {
     modelBones.Left_elbow.quaternion
       .premultiply(ql)
       .premultiply(ql2.clone().invert());
-	  model.updateMatrixWorld(true);
+    model.updateMatrixWorld(true);
     
     modelBones.Root.traverse(bone => {
       bone.initialQuaternion = bone.quaternion.clone();
@@ -1408,40 +1386,7 @@ class Avatar {
     return localEuler.y;
   }
   async setQuality(quality) {
-
-    this.model.visible = false;
-    if ( this.crunchedModel ) this.crunchedModel.visible = false;
-    if ( this.spriteMegaAvatarMesh ) this.spriteMegaAvatarMesh.visible = false;
-
-    switch (quality) {
-      case 1: {
-        const skinnedMesh = await this.object.cloneVrm();
-        this.spriteMegaAvatarMesh = this.spriteMegaAvatarMesh ?? avatarSpriter.createSpriteMegaMesh( skinnedMesh );
-        scene.add( this.spriteMegaAvatarMesh );
-        this.spriteMegaAvatarMesh.visible = true;
-        break;
-      }
-      case 2: {
-        this.crunchedModel = this.crunchedModel ?? avatarCruncher.crunchAvatarModel( this.model );
-        this.crunchedModel.frustumCulled = false;
-        scene.add( this.crunchedModel );
-        this.crunchedModel.visible = true;
-        break;
-      }
-      case 3: {
-        console.log('not implemented'); // XXX
-        this.model.visible = true;
-        break;
-      }
-      case 4: {
-        console.log('not implemented'); // XXX
-        this.model.visible = true;
-        break;
-      }
-      default: {
-        throw new Error('unknown avatar quality: ' + quality);
-      }
-    }
+    await this.avatarRenderer.setQuality(quality);
   }
   lerpShoulderTransforms() {
     if (this.shoulderTransforms.handsEnabled[0]) {
@@ -1858,17 +1803,6 @@ class Avatar {
       }
     };
 
-
-    const _updateSubAvatars = () => {
-      if (this.spriteMegaAvatarMesh) {
-        this.spriteMegaAvatarMesh.update(timestamp, timeDiff, {
-          playerAvatar: this,
-          camera,
-        });
-      }
-    };
-
-
     const _motionControls = () => {
       this.sdkInputs.hmd.position.copy(this.inputs.hmd.position);
       this.sdkInputs.hmd.quaternion.copy(this.inputs.hmd.quaternion);
@@ -1931,17 +1865,13 @@ class Avatar {
       _motionControls.call(this)
     }
     
-    // for the local player we want to update the velocity immediately
-    // on remote players this is called from the RemotePlayer -> observePlayerFn
-    if (this.isLocalPlayer) {
-      this.setVelocity(
-	timestamp,
-        timeDiffS,
-        this.lastPosition,
-        this.inputs.hmd.position,
-        this.inputs.hmd.quaternion
-      );
-    }
+    this.setVelocity(
+      timestamp,
+      timeDiffS,
+      this.lastPosition,
+      this.inputs.hmd.position,
+      this.inputs.hmd.quaternion
+    );
     _applyAnimation(this, now);
 
     if (this.poseAnimation) {
@@ -1996,7 +1926,8 @@ class Avatar {
     this.emoter.update(now);
     
     this.options.visemes && _updateVisemes();
-    _updateSubAvatars();
+  
+    this.avatarRenderer.update(timestamp, timeDiff, this);
 
     const debug = metaversefile.useDebug();
     if (debug.enabled && !this.debugMesh) {
@@ -2180,6 +2111,9 @@ class Avatar {
   } */
 
   destroy() {
+    this.avatarRenderer.destroy();
+    scene.remove(this.avatarRenderer.scene);
+
     this.setAudioEnabled(false);
   }
 }

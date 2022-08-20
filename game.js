@@ -477,9 +477,8 @@ let grabUseMesh = null;
 const _gameInit = () => {
   grabUseMesh = metaversefileApi.createApp();
   (async () => {
-    await metaverseModules.waitForLoad();
-    const {modules} = metaversefileApi.useDefaultModules();
-    const m = modules['button'];
+    const {importModule} = metaversefileApi.useDefaultModules();
+    const m = await importModule('button');
     await grabUseMesh.addModule(m);
   })();
   grabUseMesh.targetApp = null;
@@ -1492,7 +1491,7 @@ class GameManager extends EventTarget {
       const newJumpAction = {
         type: 'jump',
         trigger:trigger,
-        startPositionY: localPlayer.characterController.position.y,
+        startPositionY: localPlayer.characterPhysics.characterController.position.y,
         // time: 0,
       };
       localPlayer.setControlAction(newJumpAction);
@@ -1514,7 +1513,7 @@ class GameManager extends EventTarget {
     const localPlayer = playersManager.getLocalPlayer();
     localPlayer.addAction({
       type: 'doubleJump',
-      startPositionY: localPlayer.characterController.position.y,
+      startPositionY: localPlayer.characterPhysics.characterController.position.y,
     });
   }
   isMovingBackward() {
@@ -1685,7 +1684,7 @@ class GameManager extends EventTarget {
       const localPlayer = playersManager.getLocalPlayer();
       this.playerDiorama.setTarget(localPlayer);
       this.playerDiorama.setObjects([
-        e.avatar.model,
+        e.avatar.avatarRenderer.scene,
       ]);
     })
   }
@@ -1703,7 +1702,7 @@ class GameManager extends EventTarget {
     const blob = new Blob([s], {
       type: 'application/json',
     });
-    downloadFile(blob, 'scene.json');
+    downloadFile(blob, 'scene.scn');
     // console.log('got scene', scene);
   }
   update = _gameUpdate;

@@ -17,7 +17,7 @@ import {world} from './world.js';
 import ERC721 from './erc721-abi.json';
 import ERC1155 from './erc1155-abi.json';
 import {web3} from './blockchain.js';
-import {moduleUrls, modules} from './metaverse-modules.js';
+import {moduleUrls, importModule} from './metaverse-modules.js';
 import {componentTemplates} from './metaverse-components.js';
 import postProcessing from './post-processing.js';
 import {getRandomString, memoize} from './util.js';
@@ -26,8 +26,7 @@ import JSON6 from 'json-6';
 import * as geometries from './geometries.js';
 import * as materials from './materials.js';
 import meshLodManager from './mesh-lodder.js';
-import * as avatarCruncher from './avatar-cruncher.js';
-import * as avatarSpriter from './avatar-spriter.js';
+import {AvatarRenderer} from './avatars/avatar-renderer.js';
 import {chatManager} from './chat-manager.js';
 import loreAI from './ai/lore/lore-ai.js';
 import npcManager from './npc-manager.js';
@@ -44,7 +43,6 @@ import renderSettingsManager from './rendersettings-manager.js';
 import questManager from './quest-manager.js';
 import {murmurhash3} from './procgen/murmurhash3.js';
 import debug from './debug.js';
-import * as sceneCruncher from './scene-cruncher.js';
 import * as scenePreviewer from './scene-previewer.js';
 import * as sounds from './sounds.js';
 import * as lodder from './lod.js';
@@ -53,7 +51,6 @@ import particleSystemManager from './particle-system.js';
 import domRenderEngine from './dom-renderer.jsx';
 import dropManager from './drop-manager.js';
 import hitManager from './character-hitter.js';
-// import dcWorkerManager from './dc-worker-manager.js';
 import procGenManager from './procgen-manager.js';
 import cardsManager from './cards-manager.js';
 import * as instancing from './instancing.js';
@@ -219,7 +216,7 @@ class App extends THREE.Object3D {
 
 const defaultModules = {
   moduleUrls,
-  modules,
+  importModule,
 };
 
 const localPlayer = playersManager.getLocalPlayer();
@@ -462,6 +459,12 @@ metaversefile.setApi({
   useVoices() {
     return voices;
   },
+  useAvatarRenderer() {
+    return AvatarRenderer;
+  },
+  /* useAvatarOptimizer() {
+    return avatarOptimizer;
+  },
   useAvatarCruncher() {
     return avatarCruncher;
   },
@@ -470,7 +473,7 @@ metaversefile.setApi({
   },
   useSceneCruncher() {
     return sceneCruncher;
-  },
+  }, */
   useScenePreviewer() {
     return scenePreviewer;
   },
@@ -928,7 +931,7 @@ metaversefile.setApi({
         onWaitPromise(p);
       }
     }
-    
+
     return app;
   },
   createApp(spec) {

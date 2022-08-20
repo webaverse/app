@@ -297,13 +297,9 @@ class ShadertoyRenderer {
     this.frame++;
 
     if (this.loaded) {
-      // console.log('update start');
-
       for (const renderPass of this.renderPasses) {
         renderPass.update();
       }
-      
-      // console.log('update end');
     }
   }
 }

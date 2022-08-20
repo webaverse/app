@@ -71,21 +71,9 @@ const SSAOShader = {
 
 		#include <packing>
 
-		float linearizeDepth(in float depth) {
-			float a = cameraFar / (cameraFar - cameraNear);
-			float b = cameraFar * cameraNear / (cameraNear - cameraFar);
-			return a + b / depth;
-		}
-		float linearizeDepth2(in float depthValue) {
-			float invClipZ = linearizeDepth(exp2(depthValue * log2(cameraFar + 1.0)) - 1.0);
-			return invClipZ;
-		}
-
 		float getDepth( const in vec2 screenPosition ) {
 
-			float depth = texture2D( tDepth, screenPosition ).x;
-			depth = linearizeDepth2(depth);
-			return depth;
+			return texture2D( tDepth, screenPosition ).x;
 
 		}
 
@@ -94,14 +82,7 @@ const SSAOShader = {
 			#if PERSPECTIVE_CAMERA == 1
 
 				float fragCoordZ = texture2D( tDepth, screenPosition ).x;
-
-				#ifdef USE_LOGDEPTHBUF
-			  float invClipZ = linearizeDepth2(fragCoordZ);
-				#else
-			  float invClipZ = fragCoordZ;
-				#endif
-
-				float viewZ = perspectiveDepthToViewZ( invClipZ, cameraNear, cameraFar );
+				float viewZ = perspectiveDepthToViewZ( fragCoordZ, cameraNear, cameraFar );
 				return viewZToOrthographicDepth( viewZ, cameraNear, cameraFar );
 
 			#else
@@ -229,29 +210,12 @@ const SSAODepthShader = {
 
 		#include <packing>
 
-		float linearizeDepth(in float depth) {
-			float a = cameraFar / (cameraFar - cameraNear);
-			float b = cameraFar * cameraNear / (cameraNear - cameraFar);
-			return a + b / depth;
-		}
-		float linearizeDepth2(in float depthValue) {
-			float invClipZ = linearizeDepth(exp2(depthValue * log2(cameraFar + 1.0)) - 1.0);
-			return invClipZ;
-		}
-
 		float getLinearDepth( const in vec2 screenPosition ) {
 
 			#if PERSPECTIVE_CAMERA == 1
 
 				float fragCoordZ = texture2D( tDepth, screenPosition ).x;
-
-				#ifdef USE_LOGDEPTHBUF
-			  float invClipZ = linearizeDepth2(fragCoordZ);
-				#else
-			  float invClipZ = fragCoordZ;
-				#endif
-
-				float viewZ = perspectiveDepthToViewZ( invClipZ, cameraNear, cameraFar );
+				float viewZ = perspectiveDepthToViewZ( fragCoordZ, cameraNear, cameraFar );
 				return viewZToOrthographicDepth( viewZ, cameraNear, cameraFar );
 
 			#else
@@ -262,10 +226,14 @@ const SSAODepthShader = {
 
 		}
 
+		const float depthDistance = 200.;
+
 		void main() {
 
 			float depth = getLinearDepth( vUv );
-			gl_FragColor = vec4( vec3( 1.0 - depth ), 1.0 );
+			depth *= depthDistance;
+			depth = 1. - depth;
+			gl_FragColor = vec4( depth, 0., 0., 1. );
 
 		}`
 

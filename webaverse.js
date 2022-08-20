@@ -33,7 +33,7 @@ import {
   getComposer,
 } from './renderer.js';
 import transformControls from './transform-controls.js';
-import * as metaverseModules from './metaverse-modules.js';
+// import * as metaverseModules from './metaverse-modules.js';
 import dioramaManager from './diorama.js';
 import * as voices from './voices.js';
 import performanceTracker from './performance-tracker.js';
@@ -88,7 +88,6 @@ export default class Webaverse extends EventTarget {
         zTargeting.waitForLoad(),
         particleSystemManager.waitForLoad(),
         transformControls.waitForLoad(),
-        metaverseModules.waitForLoad(),
         voices.waitForLoad(),
         musicManager.waitForLoad(),
         WebaWallet.waitForLoad(),
@@ -580,8 +579,14 @@ const _startHacks = webaverse => {
       webaverse.dispatchEvent(new MessageEvent('titlecardhackchange', {
         data: {
           titleCardHack: webaverse.titleCardHack,
-        }
+        },
       }));
+    } else if (e.code === 'Home') { // home
+      const localPlayer = metaversefileApi.useLocalPlayer();
+      localPlayer.avatar.avatarRenderer.adjustQuality(-1);
+    } else if (e.code === 'End') { // home
+      const localPlayer = metaversefileApi.useLocalPlayer();
+      localPlayer.avatar.avatarRenderer.adjustQuality(1);
     } else {
       const match = e.code.match(/^Numpad([0-9])$/);
       if (match) {

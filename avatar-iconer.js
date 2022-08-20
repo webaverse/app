@@ -2,6 +2,7 @@
 // import metaversefile from 'metaversefile'
 import {emotions} from './src/components/general/character/Emotions';
 import offscreenEngineManager from './offscreen-engine-manager.js';
+import {fetchArrayBuffer} from './util';
 
 const allEmotions = [''].concat(emotions);
 
@@ -43,39 +44,45 @@ class AvatarIconer extends EventTarget {
 
     this.getEmotionCanvases = offscreenEngineManager.createFunction([
       `\
-      import * as THREE from 'three';
-      import metaversefile from './metaversefile-api.js';
-      import npcManager from './npc-manager.js';
-      import {screenshotPlayer} from './avatar-screenshotter.js';
+      import {fetchArrayBuffer} from './util.js';
+      import {AvatarRenderer} from './avatars/avatar-renderer.js';
+      import {createAvatarForScreenshot, screenshotAvatar} from './avatar-screenshotter.js';
+      import {maxAvatarQuality} from './constants.js';
       import {emotions} from './src/components/general/character/Emotions.jsx';
 
       const allEmotions = [''].concat(emotions);
-      const cameraOffset = new THREE.Vector3(0, 0.05, -0.35);
       `,
       async function(start_url, width, height) {
-        const player = await npcManager.createNpcAsync({
-          name: 'avatar-iconer-npc',
-          avatarUrl: start_url,
-          detached: true,
+        // const cameraOffset = new THREE.Vector3(0, 0.05, -0.35);
+
+        const arrayBuffer = await fetchArrayBuffer(start_url);
+
+        const avatarRenderer = new AvatarRenderer({
+          arrayBuffer,
+          srcUrl: start_url,
+          quality: maxAvatarQuality,
+          controlled: true,
         });
-  
+        await avatarRenderer.waitForLoad();
+
+        const avatar = createAvatarForScreenshot(avatarRenderer);
+
         const emotionCanvases = await Promise.all(allEmotions.map(async emotion => {
           const canvas = document.createElement('canvas');
           canvas.width = width;
           canvas.height = height;
   
-          await screenshotPlayer({
-            player,
+          await screenshotAvatar({
+            avatar,
             canvas,
-            cameraOffset,
             emotion,
           });
 
           const imageBitmap = await createImageBitmap(canvas);
           return imageBitmap;
         }));
-  
-        player.destroy();
+
+        avatar.destroy();
 
         return emotionCanvases;
       }

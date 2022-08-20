@@ -1,6 +1,6 @@
-class CharacterBehavior {
-    constructor(player) {
-        this.player = player;
+export class AvatarCharacterFace {
+    constructor(character) {
+        this.character = character;
         this.mouthMovementState=null;
         this.mouthMovementStartTime=0;
         this.mouthMovementAttackTime=0;
@@ -10,19 +10,19 @@ class CharacterBehavior {
     }
     
     update(timestamp, timeDiffS) {
-        if (!this.player.avatar) {
+        if (!this.character.avatar) {
             return;
         }
         //#################################### manually set mouth movement ##########################################
         const _handleMouthMovementAttack=()=>{
-            this.player.avatar.volume = ((timestamp/1000 - this.mouthMovementStartTime) / this.mouthMovementAttackTime)/12;
+            this.character.avatar.volume = ((timestamp/1000 - this.mouthMovementStartTime) / this.mouthMovementAttackTime)/12;
             if(timestamp/1000 - this.mouthMovementStartTime >= this.mouthMovementAttackTime){
                 this.mouthMovementState = 'decay';
                 this.mouthMovementStartTime = timestamp/1000;
             }
         }
         const _handleMouthMovementDecay=()=>{
-            this.player.avatar.volume = (1 - ((timestamp/1000 - this.mouthMovementStartTime) / this.mouthMovementDecayTime) * 0.8)/12;
+            this.character.avatar.volume = (1 - ((timestamp/1000 - this.mouthMovementStartTime) / this.mouthMovementDecayTime) * 0.8)/12;
             if(timestamp/1000 - this.mouthMovementStartTime >= this.mouthMovementDecayTime){
                 this.mouthMovementState='sustain';
                 this.mouthMovementStartTime = timestamp/1000;
@@ -35,7 +35,7 @@ class CharacterBehavior {
             } 
         }
         const _handleMouthMovementRelease=()=>{
-            this.player.avatar.volume = (0.2 - ((timestamp/1000 - this.mouthMovementStartTime) / this.mouthMovementReleaseTime) * 0.2)/12;
+            this.character.avatar.volume = (0.2 - ((timestamp/1000 - this.mouthMovementStartTime) / this.mouthMovementReleaseTime) * 0.2)/12;
             if(timestamp/1000 - this.mouthMovementStartTime >= this.mouthMovementReleaseTime){
                 this.mouthMovementState=null;
                 this.manuallySetMouth=false;
@@ -81,7 +81,3 @@ class CharacterBehavior {
         // nothing
     }
   }
-  
-  export {
-    CharacterBehavior,
-  };

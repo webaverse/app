@@ -520,14 +520,10 @@ const highlightVertexShader = `
     varying vec3 vPos;
     varying vec3 vNormal;
 
-    ${THREE.ShaderChunk.logdepthbuf_pars_vertex}
-
     void main() {
       vec4 mvPosition = modelViewMatrix * vec4(position, 1.0);
       vec3 newPosition = position + normal * vec3( uVertexOffset, uVertexOffset, uVertexOffset );
       gl_Position = projectionMatrix * modelViewMatrix * vec4(newPosition, 1.0);
-
-      ${THREE.ShaderChunk.logdepthbuf_vertex}
 
       vViewPosition = -mvPosition.xyz;
       vUv = uv;
@@ -546,8 +542,6 @@ const highlightGridFragmentShader = `
 
   varying vec3 vPos;
   varying vec3 vNormal;
-
-  ${THREE.ShaderChunk.logdepthbuf_pars_fragment}
 
   float edgeFactor(vec2 uv) {
     float divisor = 0.5;
@@ -585,7 +579,8 @@ const highlightGridFragmentShader = `
     float f2 = 1. + d/10.0;
     gl_FragColor = vec4(c, 0.5 + max(f, 0.3) * f2 * 0.5);
 
-    ${THREE.ShaderChunk.logdepthbuf_fragment}
+    #include <tonemapping_fragment>
+    #include <encodings_fragment>
   }
 `;
 
@@ -601,8 +596,6 @@ const selectFragmentShader = `\
   varying vec2 vWorldUv;
   varying vec3 vPos;
   varying vec3 vNormal;
-
-  ${THREE.ShaderChunk.logdepthbuf_pars_fragment}
 
   float edgeFactor(vec2 uv) {
     float divisor = 0.5;
@@ -626,7 +619,8 @@ const selectFragmentShader = `\
     float f2 = max(1. - (d)/10.0, 0.);
     gl_FragColor = vec4(c, 0.1 + f2 * 0.7);
 
-    ${THREE.ShaderChunk.logdepthbuf_fragment}
+    #include <tonemapping_fragment>
+    #include <encodings_fragment>
   }
 `;
 
@@ -653,7 +647,6 @@ const damageFragmentShader = `\
   varying vec3 vPos;
   varying vec3 vNormal;
 
-  ${THREE.ShaderChunk.logdepthbuf_pars_fragment}
   float edgeFactor(vec2 uv) {
     float divisor = 0.5;
     float power = 0.5;
@@ -685,7 +678,8 @@ const damageFragmentShader = `\
     float f2 = 1. + d/10.0;
     gl_FragColor = vec4(c, 0.5 + max(f, 0.3) * f2 * 0.5 * uTime);
 
-    ${THREE.ShaderChunk.logdepthbuf_fragment}
+    #include <tonemapping_fragment>
+    #include <encodings_fragment>
   }
 `;
 
@@ -880,7 +874,6 @@ const portalMaterial = new THREE.ShaderMaterial({
     },
   },
   vertexShader: `\
-    ${THREE.ShaderChunk.common}
     precision highp float;
     precision highp int;
 
@@ -912,8 +905,6 @@ const portalMaterial = new THREE.ShaderMaterial({
     varying float vParticle;
     varying float vBar;
     // varying float vUserDelta;
-
-    ${THREE.ShaderChunk.logdepthbuf_pars_vertex}
 
     void main() {
       vec3 p = position;
@@ -981,8 +972,6 @@ const portalMaterial = new THREE.ShaderMaterial({
       vParticle = particle;
       vBar = bar;
       // vUserDelta = max(abs(modelPosition.x - uUserPosition.x), abs(modelPosition.z - uUserPosition.z));
-
-      ${THREE.ShaderChunk.logdepthbuf_vertex}
     }
   `,
   fragmentShader: `\
@@ -1016,8 +1005,6 @@ const portalMaterial = new THREE.ShaderMaterial({
     varying float vParticle;
     varying float vBar;
     // varying float vUserDelta;
-
-    ${THREE.ShaderChunk.logdepthbuf_pars_fragment}
 
     float edgeFactor(vec2 uv) {
       float divisor = 0.5;
@@ -1080,7 +1067,8 @@ const portalMaterial = new THREE.ShaderMaterial({
       }
       gl_FragColor = vec4(c, a);
 
-      ${THREE.ShaderChunk.logdepthbuf_fragment}
+      #include <tonemapping_fragment>
+      #include <encodings_fragment>
     }
   `,
   transparent: true,

@@ -591,18 +591,18 @@ const createPlayerDiorama = ({
         grassBackground = true;
       }
     },
-    triggerLoad() {
+    /* triggerLoad() {
       Promise.all([
-        /* (async () => {
+        (async () => {
           await renderer.compileAsync(player.avatar.model, outlineRenderScene);
         })(),
         (async () => {
           await renderer.compileAsync(player.avatar.model, sideScene);
-        })(), */
+        })(),
       ]).then(() => {
-        // this.loaded = true;
+        this.loaded = true;
       });
-    },
+    }, */
     setCameraOffset(newCameraOffset) {
       cameraOffset.copy(newCameraOffset);
     },

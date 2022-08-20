@@ -7,6 +7,7 @@ import * as THREE from 'three';
 import {EffectComposer} from 'three/examples/jsm/postprocessing/EffectComposer.js';
 import {makePromise} from './util.js';
 import {minFov} from './constants.js';
+import {WebaverseScene} from './webaverse-scene.js';
 
 // XXX enable this when the code is stable; then, we will have many more places to add missing matrix updates
 // THREE.Object3D.DefaultMatrixAutoUpdate = false;
@@ -46,7 +47,6 @@ function bindCanvas(c) {
   renderer.sortObjects = false;
   renderer.physicallyCorrectLights = true;
   renderer.outputEncoding = THREE.sRGBEncoding;
-  renderer.gammaFactor = 2.2;
   renderer.shadowMap.enabled = true;
   renderer.shadowMap.type = THREE.PCFSoftShadowMap;
   renderer.xr.enabled = true;
@@ -55,11 +55,12 @@ function bindCanvas(c) {
   const renderTarget = new THREE.WebGLRenderTarget(width * pixelRatio, height * pixelRatio, {
     minFilter: THREE.LinearFilter,
     magFilter: THREE.LinearFilter,
-    format: THREE.RGBAFormat,
+    // format: THREE.RGBAFormat,
     encoding: THREE.sRGBEncoding,
   });
   renderTarget.name = 'effectComposerRenderTarget';
   renderTarget.samples = context.MAX_SAMPLES; // XXX make this based on the antialiasing settings
+  renderTarget.texture.generateMipmaps = false;
   composer = new EffectComposer(renderer, renderTarget);
 
   // initialize camera
@@ -92,7 +93,7 @@ const sceneLowerPriority = new THREE.Scene();
 sceneLowerPriority.name = 'lowerPriorioty';
 const sceneLowestPriority = new THREE.Scene();
 sceneLowestPriority.name = 'lowestPriorioty';
-const rootScene = new THREE.Scene();
+const rootScene = new WebaverseScene();
 rootScene.name = 'root';
 rootScene.autoUpdate = false;
 // const postSceneOrthographic = new THREE.Scene();

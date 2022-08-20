@@ -4,8 +4,8 @@ this file implements post processing.
 
 import * as THREE from 'three';
 // import {Pass} from 'three/examples/jsm/postprocessing/Pass.js';
-import {ShaderPass} from 'three/examples/jsm/postprocessing/ShaderPass.js';
-import {UnrealBloomPass} from 'three/examples/jsm/postprocessing/UnrealBloomPass.js';
+// import {ShaderPass} from 'three/examples/jsm/postprocessing/ShaderPass.js';
+import {UnrealBloomPass} from './UnrealBloomPass.js';
 import {AdaptiveToneMappingPass} from 'three/examples/jsm/postprocessing/AdaptiveToneMappingPass.js';
 import { WebaWaterPass } from 'three/examples/jsm/postprocessing/WebaWaterPass.js';
 // import {BloomPass} from 'three/examples/jsm/postprocessing/BloomPass.js';
@@ -116,6 +116,7 @@ function makeHdrPass({
   adaptToneMappingPass.setMaxLuminance(maxLuminance);
   adaptToneMappingPass.setMinLuminance(minLuminance);
   adaptToneMappingPass.setMiddleGrey(middleGrey);
+  adaptToneMappingPass.needsSwap = true;
   // adaptToneMappingPass.enabled = hqDefault;
   // adaptToneMappingPass.copyUniforms["opacity"].value = 0.5;
   return adaptToneMappingPass;

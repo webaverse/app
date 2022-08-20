@@ -8,7 +8,7 @@ import {
   /*accountsHost, loginEndpoint,*/ audioTimeoutTime,
 } from './constants.js';
 // import { getRenderer } from './renderer.js';
-import { IdAllocator } from './id-allocator';
+import {IdAllocator} from './id-allocator.js';
 
 const localVector = new THREE.Vector3();
 const localVector2 = new THREE.Vector3();
@@ -550,11 +550,11 @@ export async function contentIdToFile(contentId) {
   }
 }
 
-export const addDefaultLights = (scene, { shadowMap = false } = {}) => {
-  const ambientLight = new THREE.AmbientLight(0xffffff, 2);
+export const addDefaultLights = (scene/*, { shadowMap = false } = {} */) => {
+  const ambientLight = new THREE.AmbientLight(0xffffff, 1);
   scene.add(ambientLight);
   scene.ambientLight = ambientLight;
-  const directionalLight = new THREE.DirectionalLight(0xffffff, 2);
+  const directionalLight = new THREE.DirectionalLight(0xffffff, 4);
   directionalLight.position.set(1, 2, 3);
   scene.add(directionalLight);
   scene.directionalLight = directionalLight;
@@ -580,14 +580,14 @@ export const unFrustumCull = (o) => {
   });
 };
 
-export const enableShadows = (o) => {
+/* export const enableShadows = (o) => {
   o.traverse((o) => {
     if (o.isMesh) {
       o.castShadow = true;
       o.receiveShadow = true;
     }
   });
-};
+}; */
 
 export const capitalize = (s) => s[0].toUpperCase() + s.slice(1);
 
@@ -1228,3 +1228,15 @@ export const splitLinesToWidth = (() => {
     return lines;
   };
 })();
+
+export const getJsDataUrl = src => `data:application/javascript;charset=utf-8,${encodeURIComponent(src)}`
+
+export const fetchArrayBuffer = async srcUrl => {
+  const res = await fetch(srcUrl);
+  if (res.ok) {
+    const arrayBuffer = await res.arrayBuffer();
+    return arrayBuffer;
+  } else {
+    throw new Error('failed to load: ' + res.status + ' ' + srcUrl);
+  }
+};

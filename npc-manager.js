@@ -355,8 +355,14 @@ class NpcManager extends EventTarget {
       // wearables
       const _updateWearables = async () => {
         const wearablePromises = npcWear.map(wear => (async () => {
-          const {start_url} = wear;
-          const app = await newNpcPlayer.appManager.addTrackedApp(start_url);
+          const {start_url, components} = wear;
+          const app = await newNpcPlayer.appManager.addTrackedApp(
+            start_url,
+            undefined,
+            undefined,
+            undefined,
+            components,
+          );
           /* const app = await metaversefile.createAppAsync({
             start_url,
           }); */
