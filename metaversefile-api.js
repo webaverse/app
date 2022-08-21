@@ -29,6 +29,7 @@ import meshLodManager from './mesh-lodder.js';
 import {AvatarRenderer} from './avatars/avatar-renderer.js';
 import {chatManager} from './chat-manager.js';
 import loreAI from './ai/lore/lore-ai.js';
+import imageAI from './ai/image/image-ai.js';
 import npcManager from './npc-manager.js';
 import mobManager from './mob-manager.js';
 import universe from './universe.js';
@@ -455,6 +456,9 @@ metaversefile.setApi({
   },
   useLoreAIScene() {
     return loreAIScene;
+  },
+  useImageAI() {
+    return imageAI;
   },
   useVoices() {
     return voices;
