@@ -11,7 +11,7 @@ import physicsManager from './physics-manager.js';
 import metaversefile from 'metaversefile';
 import * as metaverseModules from './metaverse-modules.js';
 import {jsonParse} from './util.js';
-import {worldMapName} from './constants.js';
+import {appsMapName} from './constants.js';
 
 const localVector = new THREE.Vector3();
 const localVector2 = new THREE.Vector3();
@@ -33,7 +33,7 @@ const physicsScene = physicsManager.getScene();
 const appManagers = [];
 class AppManager extends EventTarget {
   constructor({
-    appsArray = new Z.Doc().getArray(worldMapName),
+    appsArray = new Z.Doc().getArray(appsMapName),
   } = {}) {
     super();
     
