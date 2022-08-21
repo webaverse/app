@@ -993,7 +993,7 @@ class Avatar {
     this.lastNeedsHeadTarget = false;
     this.lastHeadTargetTime = -Infinity;
 
-    this.manuallySetMouth=false;
+    this.disableAudioWorkerSetVolume=false;
   }
   static bindAvatar(object) {
     const model = object.scene;
@@ -2038,7 +2038,7 @@ class Avatar {
       const _volume = e => {
         // the mouth is manually overridden by the CharacterBehavior class which is attached to all players
         // this happens when a player is eating fruit or yelling while making an attack
-        if (!this.manuallySetMouth && this.isGrunting) {
+        if (!this.disableAudioWorkerSetVolume) {
           this.volume = e.data;
         }
       }
