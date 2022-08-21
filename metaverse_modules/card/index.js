@@ -18,10 +18,10 @@ function getCardFrontTexture(appUrl) {
     const imageBitmap = await cardsManager.getCardsImage(
       appUrl,
       {
-          width,
-          flipY: true,
-          // signal,
-      }
+        width,
+        flipY: true,
+        // signal,
+      },
     );
     texture.image = imageBitmap;
     texture.needsUpdate = true;
@@ -43,7 +43,7 @@ function getCardBackTexture() {
   img.onerror = err => {
     console.warn(err);
   };
-  img.src = `images/cardback-01.svg`;
+  img.src = 'images/cardback-01.svg';
 
   return texture;
 }
@@ -148,10 +148,10 @@ const _makeCardMesh = ({
 
       void main() {
         vec4 diffuseColor;
-        if (vSide == 0) {
-          diffuseColor = uFrontTexLoaded == 1 ? texture2D(uFrontTex, vUv) : vec4(vec3(0.0), 1.0);
+        if (vSide === 0) {
+          diffuseColor = uFrontTexLoaded === 1 ? texture2D(uFrontTex, vUv) : vec4(vec3(0.0), 1.0);
         } else {
-          diffuseColor = uBackTexLoaded == 1 ? texture2D(uBackTex, vUv) : vec4(vec3(0.0), 1.0);
+          diffuseColor = uBackTexLoaded === 1 ? texture2D(uBackTex, vUv) : vec4(vec3(0.0), 1.0);
         }
         gl_FragColor = diffuseColor;
         if (gl_FragColor.a < 0.1) {

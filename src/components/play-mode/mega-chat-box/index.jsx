@@ -1,3 +1,3 @@
 
-import { MegaChatBox } from './MegaChatBox';
-export { MegaChatBox };
+import {MegaChatBox} from './MegaChatBox';
+export {MegaChatBox};

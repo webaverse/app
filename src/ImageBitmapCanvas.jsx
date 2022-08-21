@@ -25,7 +25,7 @@ export const ImageBitmapCanvas = ({
       } else {
         ctx.clearRect(0, 0, canvas.width, canvas.height);
       }
-    } 
+    }
   }, [frontCanvasRef, imageBitmap]);
 
   useEffect(() => {
@@ -37,9 +37,9 @@ export const ImageBitmapCanvas = ({
       } else {
         ctx.clearRect(0, 0, canvas.width, canvas.height);
       }
-    } 
+    }
   }, [backCanvasRef, backImageBitmap]);
-  
+
   const _getStyle = front => {
     return {
       transform: `rotateY(${(rotateY + ((+flip ^ +front) ? 0 : Math.PI)).toFixed(8)}rad) rotateX(${rotateX.toFixed(8)}rad)`,
@@ -50,7 +50,8 @@ export const ImageBitmapCanvas = ({
     <div
       className={classnames(styles.imageBitmapCanvas, className)}
     >
-      {backImageBitmap ? (
+      {backImageBitmap
+        ? (
         <canvas
           className={classnames(canvasClassName, styles.canvas, styles.backCanvas)}
           style={_getStyle(false)}
@@ -58,8 +59,10 @@ export const ImageBitmapCanvas = ({
           height={backImageBitmap.height}
           ref={backCanvasRef}
         />
-      ) : null}
-      {imageBitmap ? (
+          )
+        : null}
+      {imageBitmap
+        ? (
         <canvas
           className={classnames(canvasClassName, styles.canvas, styles.frontCanvas)}
           style={_getStyle(true)}
@@ -67,7 +70,8 @@ export const ImageBitmapCanvas = ({
           height={imageBitmap.height}
           ref={frontCanvasRef}
         />
-      ) : null}
+          )
+        : null}
     </div>
   );
 };

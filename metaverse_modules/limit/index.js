@@ -34,7 +34,7 @@ function createCylindersGeometry(front) {
     radialSegments,
     heightSegments,
     openEnded,
-  ).translate(0, height/2, 0);
+  ).translate(0, height / 2, 0);
 
   const geometries = [];
   const _push = i => {
@@ -44,7 +44,7 @@ function createCylindersGeometry(front) {
     const instances = new Float32Array(g.attributes.position.count).fill(i);
     g.setAttribute('instance', new THREE.BufferAttribute(instances, 1));
     geometries.push(g);
-  }
+  };
   if (!front) {
     for (let i = 0; i < numCylinders; i++) {
       _push(i);
@@ -57,7 +57,7 @@ function createCylindersGeometry(front) {
 
   const geometry = BufferGeometryUtils.mergeBufferGeometries(geometries);
   return geometry;
-};
+}
 const vertexShader = `\
 precision highp float;
 precision highp int;
@@ -264,10 +264,10 @@ const _makeCylindersMesh = () => {
       const Root = localPlayer.avatar.modelBones.Root;
       object.position.setFromMatrixPosition(Root.matrixWorld);
       object.updateMatrixWorld();
-      
+
       frontMesh.visible = true;
       backMesh.visible = true;
-    
+
       frontMaterial.uniforms.uTime.value = f;
       frontMaterial.uniforms.uTime.needsUpdate = true;
       backMaterial.uniforms.uTime.value = f;
@@ -287,6 +287,6 @@ export default () => {
   useFrame(({timestamp, timeDiff}) => {
     mesh.update(timestamp, timeDiff);
   });
-  
+
   return app;
 };

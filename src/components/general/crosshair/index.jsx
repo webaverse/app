@@ -1,3 +1,3 @@
 
-import { Crosshair } from './Corsshair';
-export { Crosshair };
+import {Crosshair} from './Corsshair';
+export {Crosshair};

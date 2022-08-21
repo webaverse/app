@@ -92,7 +92,7 @@ class OutlineBgFxMesh extends THREE.Mesh {
           needsUpdate: true,
         },
         outline_threshold: {
-          value: .5,
+          value: 0.5,
           needsUpdate: true,
         },
       },
@@ -105,6 +105,7 @@ class OutlineBgFxMesh extends THREE.Mesh {
     super(geometry, material);
     this.frustumCulled = false;
   }
+
   update(timestamp, timeDiff, width, height, texture) {
     const timestampS = timestamp / 1000;
 

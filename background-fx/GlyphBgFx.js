@@ -354,9 +354,10 @@ class GlyphBgFxMesh extends THREE.Mesh {
       alphaToCoverage: true,
     });
     super(fullscreenGeometry, material);
-    
+
     this.frustumCulled = false;
   }
+
   update(timestamp, timeDiff, width, height) {
     const timestampS = timestamp / 1000;
 

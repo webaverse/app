@@ -1,7 +1,7 @@
 import React, {useEffect, useState, useRef} from 'react';
 import classnames from 'classnames';
 
-import { screenshotObjectApp } from '../../../../object-screenshotter';
+import {screenshotObjectApp} from '../../../../object-screenshotter';
 
 import styles from './object-screenshot.module.css';
 
@@ -29,15 +29,17 @@ export const ObjectScreenshot = ({app, visible, width, height, className = ''}) 
 
   const isVisible = useOnScreen(canvasRef);
 
-  useEffect(async () => {
-    if (!isVisible) return;
-    if (!canvasRef.current) return;
-    if (!isScreenshotted) {
-      const canvas = await screenshotObjectApp({app, clearAlpha: 0, width, height});
-      canvasRef.current.innerHTML = '';
-      canvasRef.current.appendChild(canvas);
-      setIsScreenshotted(true);
-    }
+  useEffect(() => {
+    (async () => {
+      if (!isVisible) return;
+      if (!canvasRef.current) return;
+      if (!isScreenshotted) {
+        const canvas = await screenshotObjectApp({app, clearAlpha: 0, width, height});
+        canvasRef.current.innerHTML = '';
+        canvasRef.current.appendChild(canvas);
+        setIsScreenshotted(true);
+      }
+    })();
   }, [app, isVisible]);
 
   //
