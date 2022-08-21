@@ -146,6 +146,8 @@ export const voicePacksUrl = `https://webaverse.github.io/voicepacks/all_packs.j
 export const voiceEndpointBaseUrl = `https://voice.webaverse.com/tts`;
 export const voiceEndpointsUrl = `https://raw.githubusercontent.com/webaverse/tiktalknet/main/model_lists/all_models.json`;
 
+export const imageAIEndpointUrl = `https://stable-diffusion.webaverse.com`;
+
 export const chatTextSpeed = 15;
 export const shakeAnimationSpeed = 30;
 
