@@ -19,7 +19,7 @@ const numPointSets = 2;
 
 // const localVector2D = new THREE.Vector2();
 
-const lastPartPositions = Array(numPointSets);
+let lastPartPositions = Array(numPointSets);
 for (let i = 0; i < numPointSets; i++) {
   lastPartPositions[i] = new THREE.Vector3();
 }
@@ -36,11 +36,11 @@ const _updatePoints = (player, pointSets) => {
     const partPosition = player.position.clone()
       .add(
         offset.clone()
-          .applyQuaternion(player.quaternion),
+          .applyQuaternion(player.quaternion)
       );
     const lastPartPosition = lastPartPositions[pointSetIndex];
     const quaternion = new THREE.Quaternion().setFromRotationMatrix(
-      new THREE.Matrix4().lookAt(lastPartPosition, partPosition, upVector),
+      new THREE.Matrix4().lookAt(lastPartPosition, partPosition, upVector)
     );
 
     points[0].position.copy(partPosition);
@@ -50,7 +50,7 @@ const _updatePoints = (player, pointSets) => {
       const point = points[i];
       const nextPoint = points[i - 1];
       const pointQuaternion = new THREE.Quaternion().setFromRotationMatrix(
-        new THREE.Matrix4().lookAt(point.position, nextPoint.position, upVector),
+        new THREE.Matrix4().lookAt(point.position, nextPoint.position, upVector)
       );
       point.position.copy(nextPoint.position)
         .add(new THREE.Vector3(0, 0, segmentLength).applyQuaternion(pointQuaternion));
@@ -64,7 +64,7 @@ const _setPoints = (geometry, pointSets) => {
   for (let pointSetIndex = 0; pointSetIndex < pointSets.length; pointSetIndex++) {
     const points = pointSets[pointSetIndex];
     const partVertexOffset = pointSetIndex * verticesPerPart;
-
+    
     for (let heightSegment = 0; heightSegment < points.length; heightSegment++) {
       const {
         position,
@@ -95,14 +95,14 @@ function createSilksGeometry() {
   ); */
   geometry.setAttribute(
     'p',
-    new THREE.BufferAttribute(new Float32Array(geometry.attributes.position.count * 3), 3),
+    new THREE.BufferAttribute(new Float32Array(geometry.attributes.position.count * 3), 3)
   );
   geometry.setAttribute(
     'q',
-    new THREE.BufferAttribute(new Float32Array(geometry.attributes.position.count * 4), 4),
+    new THREE.BufferAttribute(new Float32Array(geometry.attributes.position.count * 4), 4)
   );
   return geometry;
-}
+};
 /* const _incrementUvs = (geometry, duv) => {
   for (let i = 0; i < geometry.attributes.uv.count; i++) {
     localVector2D.fromArray(geometry.attributes.uv.array, i * 2)
@@ -126,7 +126,7 @@ const _makeSilksMesh = () => {
   // _setOffsets(geometry2, 1);
   const geometry = BufferGeometryUtils.mergeBufferGeometries([geometry1, geometry2]);
   // _setOffsets(geometry, 1);
-
+  
   const material = new WebaverseShaderMaterial({
     uniforms: {
       uTime: {
@@ -277,6 +277,6 @@ export default () => {
   useFrame(({timestamp, timeDiff}) => {
     mesh.update(timestamp, timeDiff);
   });
-
+  
   return mesh;
 };

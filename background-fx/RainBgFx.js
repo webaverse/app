@@ -1,5 +1,5 @@
 import * as THREE from 'three';
-import { fullscreenGeometry, fullscreenVertexShader } from './common.js';
+import {fullscreenGeometry, fullscreenVertexShader} from './common.js';
 
 const fragmentShader = `\
 /*
@@ -348,13 +348,12 @@ class RainBgFxMesh extends THREE.Mesh {
         }, */
       },
       vertexShader: fullscreenVertexShader,
-      fragmentShader,
+      fragmentShader: fragmentShader,
       depthWrite: false,
       depthTest: false,
     });
     super(fullscreenGeometry, material);
   }
-
   update(timestamp, timeDiff) {
     const timestampS = timestamp / 1000;
     this.material.uniforms.iTime.value = timestampS;

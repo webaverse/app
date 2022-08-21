@@ -1,3 +1,3 @@
 
-import {ZoneTitleCard} from './ZoneTitleCard';
-export {ZoneTitleCard};
+import { ZoneTitleCard } from './ZoneTitleCard';
+export { ZoneTitleCard };

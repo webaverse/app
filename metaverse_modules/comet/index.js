@@ -75,7 +75,7 @@ function createShockwaveGeometry() {
     Math.PI / 2, // thetaLength
   )
     .rotateX(Math.PI)
-    .translate(0, radius - radius / 2, 0)
+    .translate(0, radius - radius/2, 0)
     .scale(1, 2, 1);
 
   for (let i = 0; i < g.attributes.uv.count; i++) {
@@ -86,7 +86,7 @@ function createShockwaveGeometry() {
 
   const instances = new Float32Array(g.attributes.position.count).fill(-1);
   g.setAttribute('instance', new THREE.BufferAttribute(instances, 1));
-
+  
   return g;
 }
 function createCylindersGeometry(front) {
@@ -103,7 +103,7 @@ function createCylindersGeometry(front) {
     radialSegments,
     heightSegments,
     openEnded,
-  ).translate(0, height / 2, 0);
+  ).translate(0, height/2, 0);
 
   const geometries = [];
   const _push = i => {
@@ -111,7 +111,7 @@ function createCylindersGeometry(front) {
     const instances = new Float32Array(g.attributes.position.count).fill(i);
     g.setAttribute('instance', new THREE.BufferAttribute(instances, 1));
     geometries.push(g);
-  };
+  }
   if (!front) {
     for (let i = 0; i < numCylinders; i++) {
       _push(i);
@@ -352,7 +352,7 @@ const _makeCometMesh = () => {
     side: THREE.FrontSide,
     transparent: true,
   });
-
+  
   const frontMesh = new THREE.Mesh(frontGeometry, frontMaterial);
   object.add(frontMesh);
   const backMesh = new THREE.Mesh(backGeometry, backMaterial);
@@ -378,7 +378,7 @@ const _makeCometMesh = () => {
     } else {
       const scaleFactor = Math.pow(
         Math.min(Math.max(timeSinceLastExplosion / 1000, 0), 1),
-        0.1,
+        0.1
       );
       object.scale.setScalar(scaleFactor * explosionScaleFactor);
     }
@@ -426,7 +426,7 @@ const _makeCometMesh = () => {
       const f = (timestamp / maxTime) % maxTime;
       const timeSinceLastExplosion2 = (timestamp - explosionStartTime) / 1000;
       const opacityFactor = isNaN(explosionStartTime) ? 1 : Math.min(Math.max(1 - timeSinceLastExplosion2, 0), 1);
-
+      
       frontMaterial.uniforms.uTime.value = f;
       frontMaterial.uniforms.uTime.needsUpdate = true;
       frontMaterial.uniforms.uOpacity.value = opacityFactor;
@@ -469,7 +469,7 @@ export default () => {
         components: [
           {
             key: 'appName',
-            value: 'Silsword',
+            value: 'Silsword'
           },
           {
             key: 'appUrl',
@@ -511,6 +511,6 @@ export default () => {
       dropMesh.parent.remove(dropMesh);
     }
   }); */
-
+  
   return app;
 };

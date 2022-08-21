@@ -1,11 +1,12 @@
-import React, {useState, useEffect, useRef, useContext} from 'react';
+
+import React, { useState, useEffect, useRef, useContext } from 'react';
 import classnames from 'classnames';
-import {checkText} from 'smile2emoji';
+import { checkText } from 'smile2emoji';
 
 import game from '../../../../game';
-import {chatManager} from '../../../../chat-manager.js';
-import {registerIoEventHandler, unregisterIoEventHandler} from '../../general/io-handler';
-import {AppContext} from '../../app';
+import { chatManager } from '../../../../chat-manager.js';
+import { registerIoEventHandler, unregisterIoEventHandler } from '../../general/io-handler';
+import { AppContext } from '../../app';
 
 import storyManager from '../../../../story.js';
 
@@ -13,119 +14,172 @@ import styles from './chat.module.css';
 
 //
 
-function ChatInput() {
-  const {state, setState} = useContext(AppContext);
-  const [value, setValue] = useState('');
-  const inputRef = useRef();
+function ChatInput () {
 
-  //
+    const { state, setState } = useContext( AppContext );
+    const [ value, setValue ] = useState('');
+    const inputRef = useRef();
 
-  const stopPropagation = event => {
-    event.stopPropagation();
-  };
+    //
 
-  const handleMessageChange = event => {
-    setValue(event.target.value);
-  };
+    const stopPropagation = ( event ) => {
 
-  //
+        event.stopPropagation();
 
-  useEffect(() => {
-    const handleActiveKey = event => {
-      if (game.inputFocused() && document.activeElement !== inputRef.current) {
-        return true;
-      } else {
-        switch (event.which) {
-          case 13: { // enter
-            if (storyManager.getConversation()) {
+    };
 
-              // nothing; handled in StoryTime
+    const handleMessageChange = ( event ) => {
 
-            } else if (state.openedPanel !== 'ChatPanel') {
-              setState({openedPanel: 'ChatPanel'});
+        setValue( event.target.value );
+
+    };
+
+    //
+
+    useEffect( () => {
+
+        const handleActiveKey = ( event ) => {
+
+            if ( game.inputFocused() && document.activeElement !== inputRef.current ) {
+                
+                return true;
+
+            
             } else {
-              if (document.activeElement !== inputRef.current) return true;
 
-              if (value) {
-                const text = checkText(value);
-                chatManager.addMessage(text, {timeout: 3000});
-              }
+                switch ( event.which ) {
 
-              setValue('');
-              setState({openedPanel: null});
+                    case 13: { // enter
+
+                        if (storyManager.getConversation()) {
+
+                            // nothing; handled in StoryTime
+
+                        } else if ( state.openedPanel !== 'ChatPanel' ) {
+
+                            setState({ openedPanel: 'ChatPanel' });
+
+                        } else {
+
+                            if ( document.activeElement !== inputRef.current ) return true;
+
+                            if ( value ) {
+
+                                const text = checkText( value );
+                                chatManager.addMessage( text, { timeout: 3000 });
+
+                            }
+
+                            setValue('');
+                            setState({ openedPanel: null });
+
+                        }
+
+                        return true;
+
+                    }
+
+                }
+
+                return false;
+            
             }
 
-            return true;
-          }
-        }
+        };
 
-        return false;
-      }
-    };
+        const handleAnytimeKey = ( event ) => {
 
-    const handleAnytimeKey = event => {
-      switch (event.which) {
-        case 186: { // semicolon
-          if (event.shiftKey) {
-            if (state.openedPanel !== 'ChatPanel') {
-              setValue(':');
-              setState({openedPanel: 'ChatPanel'});
+            switch ( event.which ) {
+
+                case 186: { // semicolon
+
+                    if ( event.shiftKey ) {
+
+                        if ( state.openedPanel !== 'ChatPanel' ) {
+
+                            setValue(':');
+                            setState({ openedPanel: 'ChatPanel' });
+
+                        }
+
+                        return true;
+
+                    }
+
+                }
+
             }
 
-            return true;
-          }
+            return false;
+
+        };
+
+        const handleKeyUp = ( event ) => {
+
+            let handled = handleActiveKey( event );
+
+            if ( ! handled ) {
+
+                handled = handleAnytimeKey( event );
+
+            }
+
+            if ( handled ) {
+
+                return false;
+
+            } else {
+
+                return true;
+
+            }
+
+        };
+
+        registerIoEventHandler( 'keyup', handleKeyUp );
+
+        return () => {
+
+            unregisterIoEventHandler( 'keyup', handleKeyUp );
+
+        };
+
+    }, [ value, state.openedPanel ] );
+
+    useEffect(() => {
+
+        if ( inputRef.current ) {
+
+            if ( state.openedPanel === 'ChatPanel' ) {
+
+                inputRef.current.focus();
+
+            } else {
+
+                inputRef.current.blur();
+
+            }
+
         }
-      }
 
-      return false;
-    };
+    }, [ state.openedPanel, inputRef.current ] );
 
-    const handleKeyUp = event => {
-      let handled = handleActiveKey(event);
+    //
 
-      if (!handled) {
-        handled = handleAnytimeKey(event);
-      }
+	return (
+        <div className={ classnames( styles.chat, state.openedPanel === 'ChatPanel' ? styles.open : null ) } onClick={ stopPropagation } >
+            <img src="images/webpencil.svg" className={ styles.background } />
+            <input
+                type="text"
+                className={ styles.input }
+                value={ value }
+                onChange={ handleMessageChange }
+                ref={ inputRef }
+            />
+        </div>
+    );
 
-      if (handled) {
-        return false;
-      } else {
-        return true;
-      }
-    };
-
-    registerIoEventHandler('keyup', handleKeyUp);
-
-    return () => {
-      unregisterIoEventHandler('keyup', handleKeyUp);
-    };
-  }, [value, state.openedPanel]);
-
-  useEffect(() => {
-    if (inputRef.current) {
-      if (state.openedPanel === 'ChatPanel') {
-        inputRef.current.focus();
-      } else {
-        inputRef.current.blur();
-      }
-    }
-  }, [state.openedPanel, inputRef.current]);
-
-  //
-
-  return (
-    <div className={ classnames(styles.chat, state.openedPanel === 'ChatPanel' ? styles.open : null) } onClick={ stopPropagation } >
-      <img src="images/webpencil.svg" className={ styles.background } />
-      <input
-        type="text"
-        className={ styles.input }
-        value={ value }
-        onChange={ handleMessageChange }
-        ref={ inputRef }
-      />
-    </div>
-  );
-}
+};
 
 /* function ChatMessages() {
 
@@ -197,7 +251,7 @@ function ChatInput() {
 
     }, [messageGroups]);
 
-  return (
+	return (
         <div className={styles['chat-messages']}>
             {
                 messageGroups.map((messageGroup, i) => {
@@ -232,10 +286,12 @@ function ChatInput() {
 //
 
 export const Chat = () => {
-  return (
-    <>
-      <ChatInput />
-      {/* <ChatMessages /> */}
-    </>
-  );
+
+    return (
+        <>
+            <ChatInput />
+            {/* <ChatMessages /> */}
+        </>
+    );
+
 };

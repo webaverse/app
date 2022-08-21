@@ -1,10 +1,10 @@
 import * as THREE from 'three';
 import * as ThreeVrm from '@pixiv/three-vrm';
+const {MToonMaterial} = ThreeVrm;
 // window.ThreeVrm = ThreeVrm;
 // import easing from './easing.js';
 // import {StreetGeometry} from './StreetGeometry.js';
 import metaversefile from 'metaversefile';
-const {MToonMaterial} = ThreeVrm;
 const {useApp, useFrame, useActivate, useGeometries, useLoaders, usePhysics, useProcGen, addTrackedApp, useDefaultModules, useCleanup} = metaversefile;
 
 // const baseUrl = import.meta.url.replace(/(\/)[^\/\\]*$/, '$1');
@@ -27,12 +27,12 @@ const _makeBlueSphere = () => {
     shadeShift: 0,
     lightColorAttenuation: 0,
     indirectLightIntensity: 0,
-
+    
     rimLightingMix: 1,
     rimFresnelPower: 2,
     rimLift: -0.1,
     rimColor: new THREE.Vector4().fromArray(new THREE.Color(0xFFFFFF).toArray().concat([1])),
-
+    
     // outlineWidth: 0.5,
     // outlineScaledMaxDistance: 0.5,
     outlineColor: new THREE.Vector4().fromArray(new THREE.Color(0x000000).toArray().concat([1])),
@@ -46,7 +46,7 @@ const _makeBlueSphere = () => {
   const group = new THREE.Group();
   const m1 = new THREE.Mesh(geometry, material);
   group.add(m1);
-
+  
   /* const m2 = new THREE.Mesh(geometry, material2);
   m2.scale.multiplyScalar(1.05);
   m2.updateMatrixWorld
@@ -64,8 +64,8 @@ export default () => {
 
   app.name = 'infinistreet';
 
-  const activateCb = null;
-  const frameCb = null;
+  let activateCb = null;
+  let frameCb = null;
   useActivate(() => {
     activateCb && activateCb();
   });
@@ -76,13 +76,13 @@ export default () => {
   const [dx, dy] = app.getComponent('delta');
 
   const children = [];
-  const physicsIds = [];
+  let physicsIds = [];
   const _render = (dx, dy) => {
     const numPoints = 3;
     // const range = 100;
     const stepRange = 0.2;
     const segmentLength = 30;
-
+    
     const rng = alea(['street', dx, dy].join(':'));
     const r = () => -1 + 2 * rng();
 
@@ -97,7 +97,7 @@ export default () => {
       direction.normalize();
       point.add(
         localVector.copy(direction)
-          .multiplyScalar(segmentLength),
+          .multiplyScalar(segmentLength)
       );
       /* splinePoints[i] = new THREE.Vector3(
         rng() * range,
@@ -152,7 +152,7 @@ export default () => {
       4, // radialSegments
       false, // closed
     ).applyMatrix4(
-      new THREE.Matrix4().makeTranslation(dx * chunkWorldSize, 0, dy * chunkWorldSize),
+      new THREE.Matrix4().makeTranslation(dx * chunkWorldSize, 0, dy * chunkWorldSize)
     );
 
     // geometry.computeFaceNormals();
@@ -190,7 +190,7 @@ export default () => {
       _render(dx, dy);
     }
   });
-
+  
   const _cleanup = () => {
     for (const child of children) {
       app.remove(child);

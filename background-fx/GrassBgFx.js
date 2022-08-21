@@ -321,10 +321,9 @@ class GrassBgFxMesh extends THREE.Mesh {
       alphaToCoverage: true,
     });
     super(fullscreenGeometry, material);
-
+    
     this.frustumCulled = false;
   }
-
   update(timestamp, timeDiff, width, height) {
     const timestampS = timestamp / 1000;
 
@@ -335,7 +334,7 @@ class GrassBgFxMesh extends THREE.Mesh {
 
     this.material.uniforms.uColor1.value.set(colors[0]);
     this.material.uniforms.uColor1.needsUpdate = true;
-
+    
     this.material.uniforms.uColor2.value.set(colors[colors.length - 1]);
     this.material.uniforms.uColor2.needsUpdate = true;
   }

@@ -121,8 +121,8 @@ const MiniHup = function({
       <RpgText className={styles.text} styles={styles} text={text} textSpeed={chatTextSpeed} />
       <canvas
         className={styles.canvas}
-        width={defaultHupSize * pixelRatio}
-        height={defaultHupSize * pixelRatio}
+        width={defaultHupSize*pixelRatio}
+        height={defaultHupSize*pixelRatio}
         ref={canvasRef}
       />
     </div>

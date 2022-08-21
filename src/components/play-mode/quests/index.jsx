@@ -1,3 +1,3 @@
 
-import {Quests} from './Quests';
-export {Quests};
+import { Quests } from './Quests';
+export { Quests };

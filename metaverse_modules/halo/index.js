@@ -15,10 +15,10 @@ function mod(a, n) {
 }
 
 function makeShape(shape, x, y, width, height, radius) {
-  shape.absarc(x - width / 2, y + height / 2, radius, Math.PI, Math.PI / 2, true);
-  shape.absarc(x + width / 2, y + height / 2, radius, Math.PI / 2, 0, true);
-  shape.absarc(x + width / 2, y - height / 2, radius, 0, -Math.PI / 2, true);
-  shape.absarc(x - width / 2, y - height / 2, radius, -Math.PI / 2, -Math.PI, true);
+  shape.absarc(x - width/2, y + height/2, radius, Math.PI, Math.PI / 2, true);
+  shape.absarc(x + width/2, y + height/2, radius, Math.PI / 2, 0, true);
+  shape.absarc(x + width/2, y - height/2, radius, 0, -Math.PI / 2, true);
+  shape.absarc(x - width/2, y - height/2, radius, -Math.PI / 2, -Math.PI, true);
   return shape;
 }
 function createBoxWithRoundedEdges(width, height, radius, innerFactor) {
@@ -91,14 +91,14 @@ function createAngledBox() {
   geometry.setAttribute('f', new THREE.BufferAttribute(fs, 1));
 
   return geometry;
-}
+};
 const _makeRoundMesh = () => {
   const {WebaverseShaderMaterial} = useMaterials();
   const {easing} = useMathUtils();
   const cubicBezier = easing(0, 1, 0, 1);
 
-  const w = menuWidth + menuRadius * 2;
-  const h = menuHeight + menuRadius * 2;
+  const w = menuWidth + menuRadius*2;
+  const h = menuHeight + menuRadius*2;
   const geometry = createBoxWithRoundedEdges(w, h, menuRadius, 0.95);
   const boundingBox = new THREE.Box3().setFromObject(new THREE.Mesh(geometry));
   // console.log('got bounding box', boundingBox);
@@ -110,7 +110,7 @@ const _makeRoundMesh = () => {
           boundingBox.min.x,
           boundingBox.min.y,
           boundingBox.max.x - boundingBox.min.x,
-          boundingBox.max.y - boundingBox.min.y,
+          boundingBox.max.y - boundingBox.min.y
         ),
         needsUpdate: true,
       },
@@ -349,6 +349,6 @@ export default () => {
   useFrame(({timestamp, timeDiff}) => {
     mesh.update(timestamp, timeDiff);
   });
-
+  
   return mesh;
 };

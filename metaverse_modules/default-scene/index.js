@@ -14,58 +14,58 @@ const localVector = new THREE.Vector3();
 
 const defaultApps = [
   {
-    type: 'application/light',
-    content: {
-      lightType: 'ambient',
-      args: [[255, 255, 255], 2],
-    },
+    "type": "application/light",
+    "content": {
+      "lightType": "ambient",
+      "args": [[255, 255, 255], 2]
+    }
   },
   {
-    type: 'application/light',
-    content: {
-      lightType: 'directional',
-      args: [[255, 255, 255], 2],
-      position: [1, 2, 3],
-    },
+    "type": "application/light",
+    "content": {
+      "lightType": "directional",
+      "args": [[255, 255, 255], 2],
+      "position": [1, 2, 3]
+    }
   },
   {
-    type: 'application/rendersettings',
-    content: {
-      fog: {
-        fogType: 'exp',
-        args: [[255, 255, 255], 0.01],
+    "type": "application/rendersettings",
+    "content": {
+      "fog": {
+        "fogType": "exp",
+        "args": [[255, 255, 255], 0.01]
       },
-      ssao: {
-        kernelRadius: 16,
-        minDistance: 0.005,
-        maxDistance: 0.1,
+      "ssao": {
+        "kernelRadius": 16,
+        "minDistance": 0.005,
+        "maxDistance": 0.1
       },
-      dof: {
-        focus: 2.0,
-        aperture: 0.0001,
-        maxblur: 0.005,
+      "dof": {
+        "focus": 2.0,
+        "aperture": 0.0001,
+        "maxblur": 0.005
       },
-      hdr: {
-        adaptive: true,
-        resolution: 256,
-        adaptionRate: 100,
-        maxLuminance: 10,
-        minLuminance: 0,
-        middleGrey: 3,
+      "hdr": {
+        "adaptive": true,
+        "resolution": 256,
+        "adaptionRate": 100,
+        "maxLuminance": 10,
+        "minLuminance": 0,
+        "middleGrey": 3
       },
-      bloom: {
-        strength: 0.1,
-        radius: 0.5,
-        threshold: 0.9,
-      },
-    },
+      "bloom": {
+        "strength": 0.1,
+        "radius": 0.5,
+        "threshold": 0.9
+      }
+    }
   },
   {
-    type: 'application/spawnpoint',
-    content: {
-      position: [0, 10, 0],
-      quaternion: [0, 0, 0, 1],
-    },
+    "type": "application/spawnpoint",
+    "content": {
+      "position": [0, 10, 0],
+      "quaternion": [0, 0, 0, 1]
+    }
   },
 ];
 
@@ -82,7 +82,7 @@ export default e => {
 
   let x = baseX;
   let y = baseY;
-  const subApps = [];
+  let subApps = [];
 
   const makeComponents = (x, y) => {
     const chunk = procGen.createMapChunk(undefined, x, y);
@@ -94,14 +94,14 @@ export default e => {
     const worldWidth = width * voxelWorldSize;
     const worldHeight = width * voxelWorldSize;
     const exitBlocks = chunk.getExitBlocks();
-
+    
     const coords = [x, y];
     const dx = x - baseX;
     const dy = y - baseY;
     const delta = [dx, dy];
     const bounds = [
-      [dx * worldWidth - worldWidth / 2, 0, dy * worldHeight - worldHeight / 2],
-      [dx * worldWidth + worldWidth / 2, 16, dy * worldHeight + worldHeight / 2],
+      [dx*worldWidth - worldWidth/2, 0, dy*worldHeight - worldHeight/2],
+      [dx*worldWidth + worldWidth/2, 16, dy*worldHeight + worldHeight/2],
     ];
     const exits = exitBlocks.map(b => b.getLocalPosition(localVector).toArray());
     const components = {
@@ -166,7 +166,7 @@ export default e => {
             app.add(infinistreet);
             subApps.push(infinistreet);
           })(),
-        ]),
+        ])
     );
   })());
 

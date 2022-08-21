@@ -1,3 +1,3 @@
 
-import {Equipment} from './Equipment';
-export {Equipment};
+import { Equipment } from './Equipment';
+export { Equipment };

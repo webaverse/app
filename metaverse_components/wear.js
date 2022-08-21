@@ -29,7 +29,7 @@ const physicsScene = physicsManager.getScene();
 
 export default (app, component) => {
   const {useActivate} = metaversefile;
-
+  
   let wearSpec = null;
   let modelBones = null;
   let appAimAnimationMixers = null;
@@ -49,12 +49,12 @@ export default (app, component) => {
       if (wearSpec) {
         // const {app, wearSpec} = e.data;
         // console.log('got wear spec', [wearSpec.skinnedMesh, app.glb]);
-
+        
         const physicsObjects = app.getPhysicsObjects();
         for (const physicsObject of physicsObjects) {
           physicsScene.disableActor(physicsObject);
         }
-
+        
         if (app.glb) {
           if (wearSpec.skinnedMesh) {
             let skinnedMesh = null;
@@ -65,11 +65,11 @@ export default (app, component) => {
             });
             if (skinnedMesh && player.avatar) {
               app.position.set(0, 0, 0);
-              app.quaternion.identity(); // .setFromAxisAngle(new THREE.Vector3(0, 1, 0), Math.PI);
-              app.scale.copy(initialScale);// .multiplyScalar(wearableScale);
+              app.quaternion.identity(); //.setFromAxisAngle(new THREE.Vector3(0, 1, 0), Math.PI);
+              app.scale.copy(initialScale)//.multiplyScalar(wearableScale);
               app.updateMatrix();
               app.matrixWorld.copy(app.matrix);
-
+              
               // this adds pseudo-VRM onto our GLB assuming a mixamo rig
               // used for the glb wearable skinning feature
               const _mixamoRigToFakeVRMHack = () => {
@@ -156,15 +156,15 @@ export default (app, component) => {
               };
               _mixamoRigToFakeVRMHack();
               const bindSpec = Avatar.bindAvatar(app.glb);
-
+  
               // skeleton = bindSpec.skeleton;
               modelBones = bindSpec.modelBones;
-              for (const k in modelBones) {
+              for (const k in modelBones){
                 modelBones[k].initialPosition = modelBones[k].position.clone();
               }
             }
           }
-
+          
           // app.wear();
         }
       }
@@ -201,12 +201,12 @@ export default (app, component) => {
 
       app.scale.copy(initialScale);
       app.updateMatrixWorld();
-      for (const k in modelBones) {
+      for (const k in modelBones){
         const modelBone = modelBones[k];
         modelBone.position.copy(modelBone.initialPosition);
         modelBone.quaternion.copy(modelBone.initialQuaternion);
       }
-
+      
       wearSpec = null;
       modelBones = null;
     }
@@ -258,7 +258,7 @@ export default (app, component) => {
         localVector2.copy(upVector).normalize(),
       ));
 
-      localMatrix.lookAt(eyeVector, targetVector, upVector);
+      localMatrix.lookAt(eyeVector, targetVector, upVector)
       app.quaternion.setFromRotationMatrix(localMatrix);
       app.quaternion.multiply(playerQuaternion);
     }
@@ -292,7 +292,7 @@ export default (app, component) => {
             app.glb.scene.traverse(o => {
               if (o.isMesh) {
                 const mixer = new THREE.AnimationMixer(o);
-
+                
                 const action = mixer.clipAction(clip);
                 action.setLoop(0, 0);
                 action.play();
