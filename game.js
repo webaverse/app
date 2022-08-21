@@ -111,6 +111,8 @@ function updateGrabbedObject(o, grabMatrix, offsetMatrix, {collisionEnabled, han
     o.quaternion.copy(localQuaternion3);
   }
 
+  o.updateMatrixWorld();
+
   return {
     handSnap,
   };
@@ -543,7 +545,6 @@ const _gameUpdate = (timestamp, timeDiff) => {
       if (grabbedObject && !_isWear(grabbedObject)) {
         const {position, quaternion} = renderer.xr.getSession() ? localPlayer[hand === 'left' ? 'leftHand' : 'rightHand'] : camera;
         localMatrix.compose(position, quaternion, localVector.set(1, 1, 1));
-        grabbedObject.updateMatrixWorld();
 
         updateGrabbedObject(grabbedObject, localMatrix, localMatrix3.fromArray(grabAction.matrix), {
           collisionEnabled: true,
