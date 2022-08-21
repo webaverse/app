@@ -6,10 +6,6 @@ class ImageAI {
     n,
     noise,
   } = {}) {
-    // const res = await fetch('/images/buster.PNG');
-    // const body = await res.arrayBuffer();
-    // const res2 = await fetch('https://stable-diffusion.webaverse.com/image?s=A fantasy anime video game, trending on artstation', {method: 'POST', body});
-    
     const url = new URL(imageAIEndpointUrl);
     url.pathname = '/image';
     url.searchParams.set('s', prompt);
@@ -21,8 +17,6 @@ class ImageAI {
     }
     
     const img = await loadImage(url);
-    // document.body.appendChild(img);
-    // img.style.cssText = `position: absolute; top: 0; left: 0; z-index: 100;`;
     return img;
   }
   async img2img(image, prompt, {
