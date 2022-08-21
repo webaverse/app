@@ -28,6 +28,13 @@ const freestyleOffset = 900 / 2;
 const breaststrokeDuration = 1066.6666666666666;
 const breaststrokeOffset = 433.3333333333333;
 
+let comboAnimationOffset={
+  'swordSideSlash': 350,
+  'swordSideSlashStep': 150,
+  'swordTopDownSlash': 100,
+  'swordTopDownSlashStep': 150
+}
+
 
 // HACK: this is used to dynamically control the step offset for a particular animation
 // it is useful during development to adjust sync between animations and sound
@@ -76,8 +83,8 @@ class CharacterSfx {
     this.narutoRunFinishTime = 0;
     this.narutoRunTrailSoundStartTime = 0;
     this.narutoRunTurnSoundStartTime = 0;
-    this.currentQ=new THREE.Quaternion();
-    this.preQ=new THREE.Quaternion();
+    this.currentQ = new THREE.Quaternion();
+    this.preQ = new THREE.Quaternion();
     this.arr = [0, 0, 0, 0];
 
     this.startRunningTime = 0;
@@ -101,6 +108,10 @@ class CharacterSfx {
     this.setSwimmingHand = true;
 
     this.lastLandState = false;
+
+    this.lastCombo = false;
+    this.playComboTime = 0;
+    this.playComboGrunt = false;
   }
   update(timestamp, timeDiffS) {
     if (!this.player.avatar) {
@@ -342,6 +353,21 @@ class CharacterSfx {
   
     };
     _handleNarutoRun();
+
+    // combo
+    const _handleCombo = () => {
+      const currentCombo = this.player.avatar.useAnimationCombo[this.player.avatar.useAnimationIndex];
+      if (currentCombo && currentCombo !== this.lastCombo) {
+        this.playComboTime = timestamp;
+        this.playComboGrunt = false;
+      }
+      this.lastCombo = currentCombo;
+      if (timestamp - this.playComboTime >= comboAnimationOffset[currentCombo] && !this.playComboGrunt) {
+        this.playGrunt('attack');
+        this.playComboGrunt = true;
+      }
+    };
+    _handleCombo();
     
 
     const _handleGasp = () =>{
