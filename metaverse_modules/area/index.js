@@ -18,37 +18,37 @@ const oneVector = new THREE.Vector3(1, 1, 1);
 
 const _makePlaneGeometry = (width, height) => {
   return new THREE.PlaneBufferGeometry(width, height)
-    .applyMatrix4(localMatrix.makeTranslation(0, height/2, 0));
+    .applyMatrix4(localMatrix.makeTranslation(0, height / 2, 0));
 };
 const _makeAreaMesh = (width, height, depth) => {
   const geometries = [
     _makePlaneGeometry(width, height)
-      .applyMatrix4(localMatrix.makeTranslation(0, 0, depth/2)),
+      .applyMatrix4(localMatrix.makeTranslation(0, 0, depth / 2)),
     _makePlaneGeometry(depth, height)
-      .applyMatrix4(localMatrix.makeTranslation(0, 0, width/2))
-      .applyMatrix4(localMatrix.makeRotationAxis(localVector.set(0, 1, 0), Math.PI/2)),
+      .applyMatrix4(localMatrix.makeTranslation(0, 0, width / 2))
+      .applyMatrix4(localMatrix.makeRotationAxis(localVector.set(0, 1, 0), Math.PI / 2)),
     _makePlaneGeometry(width, height)
-      .applyMatrix4(localMatrix.makeTranslation(0, 0, depth/2))
+      .applyMatrix4(localMatrix.makeTranslation(0, 0, depth / 2))
       .applyMatrix4(localMatrix.makeRotationAxis(localVector.set(0, 1, 0), Math.PI)),
     _makePlaneGeometry(depth, height)
-      .applyMatrix4(localMatrix.makeTranslation(0, 0, width/2))
-      .applyMatrix4(localMatrix.makeRotationAxis(localVector.set(0, 1, 0), Math.PI*3/2)),
+      .applyMatrix4(localMatrix.makeTranslation(0, 0, width / 2))
+      .applyMatrix4(localMatrix.makeRotationAxis(localVector.set(0, 1, 0), Math.PI * 3 / 2)),
 
     _makePlaneGeometry(width, height)
-      .applyMatrix4(localMatrix.makeRotationAxis(localVector.set(1, 0, 0), Math.PI/4))
-      .applyMatrix4(localMatrix.makeTranslation(0, 0, depth/2)),
+      .applyMatrix4(localMatrix.makeRotationAxis(localVector.set(1, 0, 0), Math.PI / 4))
+      .applyMatrix4(localMatrix.makeTranslation(0, 0, depth / 2)),
     _makePlaneGeometry(depth, height)
-      .applyMatrix4(localMatrix.makeRotationAxis(localVector.set(1, 0, 0), Math.PI/4))
-      .applyMatrix4(localMatrix.makeTranslation(0, 0, width/2))
-      .applyMatrix4(localMatrix.makeRotationAxis(localVector.set(0, 1, 0), Math.PI/2)),
+      .applyMatrix4(localMatrix.makeRotationAxis(localVector.set(1, 0, 0), Math.PI / 4))
+      .applyMatrix4(localMatrix.makeTranslation(0, 0, width / 2))
+      .applyMatrix4(localMatrix.makeRotationAxis(localVector.set(0, 1, 0), Math.PI / 2)),
     _makePlaneGeometry(width, height)
-      .applyMatrix4(localMatrix.makeRotationAxis(localVector.set(1, 0, 0), Math.PI/4))
-      .applyMatrix4(localMatrix.makeTranslation(0, 0, depth/2))
+      .applyMatrix4(localMatrix.makeRotationAxis(localVector.set(1, 0, 0), Math.PI / 4))
+      .applyMatrix4(localMatrix.makeTranslation(0, 0, depth / 2))
       .applyMatrix4(localMatrix.makeRotationAxis(localVector.set(0, 1, 0), Math.PI)),
     _makePlaneGeometry(depth, height)
-      .applyMatrix4(localMatrix.makeRotationAxis(localVector.set(1, 0, 0), Math.PI/4))
-      .applyMatrix4(localMatrix.makeTranslation(0, 0, width/2))
-      .applyMatrix4(localMatrix.makeRotationAxis(localVector.set(0, 1, 0), Math.PI*3/2)),
+      .applyMatrix4(localMatrix.makeRotationAxis(localVector.set(1, 0, 0), Math.PI / 4))
+      .applyMatrix4(localMatrix.makeTranslation(0, 0, width / 2))
+      .applyMatrix4(localMatrix.makeRotationAxis(localVector.set(0, 1, 0), Math.PI * 3 / 2)),
   ];
   const geometry = BufferGeometryUtils.mergeBufferGeometries(geometries);
   const material = new THREE.MeshNormalMaterial({

@@ -18,7 +18,7 @@ export default e => {
   if (range) {
     range = new THREE.Box3(
       new THREE.Vector3(range[0][0], range[0][1], range[0][2]),
-      new THREE.Vector3(range[1][0], range[1][1], range[1][2])
+      new THREE.Vector3(range[1][0], range[1][1], range[1][2]),
     );
   }
 

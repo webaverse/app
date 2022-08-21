@@ -1,10 +1,10 @@
 import React, {useState, useRef, useEffect} from 'react';
 import classnames from 'classnames';
 import styles from './MegaHotBox.module.css';
-import { BigButton } from '../../../BigButton';
-import { PlaceholderImg } from '../../../PlaceholderImg';
-import { ImageBitmapCanvas } from '../../../ImageBitmapCanvas';
-import { loadImage } from '../../../../util.js';
+import {BigButton} from '../../../BigButton';
+import {PlaceholderImg} from '../../../PlaceholderImg';
+import {ImageBitmapCanvas} from '../../../ImageBitmapCanvas';
+import {loadImage} from '../../../../util.js';
 
 const cardFlipAnimationTime = 200;
 
@@ -111,61 +111,61 @@ export const MegaHotBox = ({
   onActivate = null,
   onClose = null,
 }) => {
-    const [ backImageBitmap, setBackImageBitmap ] = useState(null);
+  const [backImageBitmap, setBackImageBitmap] = useState(null);
 
-    useEffect(() => {
-      let live = true;
-      (async () => {
-        const img = await loadImage('./images/cardback-01.svg');
-        if (!live) return;
-        
-        const canvas = document.createElement('canvas');
-        canvas.width = img.width;
-        canvas.height = img.height;
-        const ctx = canvas.getContext('2d');
-        // console.log('got canvas size', canvas.width, canvas.height);
-        ctx.drawImage(img, 0, 0);
+  useEffect(() => {
+    let live = true;
+    (async () => {
+      const img = await loadImage('./images/cardback-01.svg');
+      if (!live) return;
 
-        setBackImageBitmap(canvas);
-        
-        /* const imageBitmap = await createImageBitmap(canvas);
+      const canvas = document.createElement('canvas');
+      canvas.width = img.width;
+      canvas.height = img.height;
+      const ctx = canvas.getContext('2d');
+      // console.log('got canvas size', canvas.width, canvas.height);
+      ctx.drawImage(img, 0, 0);
+
+      setBackImageBitmap(canvas);
+
+      /* const imageBitmap = await createImageBitmap(canvas);
         if (!live) return;
         setBackImageBitmap(imageBitmap); */
-      })();
-      return () => {
-        live = false;
-      };
-    }, []);
+    })();
+    return () => {
+      live = false;
+    };
+  }, []);
 
-    return (
-      <div className={ classnames(styles.megaHotBox, open ? styles.open : null) } >
-        <div className={ styles.box } />
+  return (
+    <div className={ classnames(styles.megaHotBox, open ? styles.open : null) } >
+      <div className={ styles.box } />
 
-        <Card
-          imageBitmap={imageBitmap}
-          backImageBitmap={backImageBitmap}
-        />
+      <Card
+        imageBitmap={imageBitmap}
+        backImageBitmap={backImageBitmap}
+      />
 
-        <div className={ styles.label }>
-          <div className={ styles.background } />
-          <div className={ styles.name }>{name}</div>
-          <div className={ styles.description }>{description}</div>
-        </div>
-        <div className={ styles.buttons }>
-          <BigButton
-            highlight={false}
-            onClick={e => {
-              onActivate && onActivate(e);
-              onClose && onClose(e);
-            }}
-          >Equip</BigButton>
-          <BigButton
-            highlight={false}
-            onClick={e => {
-              onClose && onClose(e);
-            }}
-          >Close</BigButton>
-        </div>
+      <div className={ styles.label }>
+        <div className={ styles.background } />
+        <div className={ styles.name }>{name}</div>
+        <div className={ styles.description }>{description}</div>
       </div>
-    );
+      <div className={ styles.buttons }>
+        <BigButton
+          highlight={false}
+          onClick={e => {
+            onActivate && onActivate(e);
+            onClose && onClose(e);
+          }}
+        >Equip</BigButton>
+        <BigButton
+          highlight={false}
+          onClick={e => {
+            onClose && onClose(e);
+          }}
+        >Close</BigButton>
+      </div>
+    </div>
+  );
 };

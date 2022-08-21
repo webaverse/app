@@ -7,9 +7,9 @@ export const CharacterBanner = () => {
       className={styles.menu}
       width={600}
       height={400}
-  >
-      <h1>Ann's shop</h1>
+    >
+      <h1>Ann&apos;s shop</h1>
       <p>You break it you buy it!</p>
-  </div>
+    </div>
   );
 };

@@ -84,37 +84,41 @@ const LoadingBox = () => {
   const [load, setLoad] = useState(null);
   const canvasRef = useRef();
 
-  useEffect(async () => {
-    const [
-      upRight,
-      up,
-      down,
-    ] = await Promise.all([
-      './images/ui/upright.png',
-      './images/ui/up.png',
-      './images/ui/down.png',
-    ].map(loadImage));
+  useEffect(() => {
+    (async () => {
+      const [
+        upRight,
+        up,
+        down,
+      ] = await Promise.all([
+        './images/ui/upright.png',
+        './images/ui/up.png',
+        './images/ui/down.png',
+      ].map(loadImage));
 
-    setImages({
-      upRight,
-      up,
-      down,
-    });
+      setImages({
+        upRight,
+        up,
+        down,
+      });
+    })();
   }, []);
 
-  useEffect(async () => {
-    function update(e) {
-      const load = loads.length > 0 ? loads[0] : null;
-      setOpen(!!load);
-      setLoad(load);
+  useEffect(() => {
+    (async () => {
+      function update(e) {
+        const load = loads.length > 0 ? loads[0] : null;
+        setOpen(!!load);
+        setLoad(load);
 
-      const progress = _getCurrentProgress();
-      setProgress(progress);
-    }
-    loadManager.addEventListener('update', update);
-    return () => {
-      loadManager.removeEventListener('update', update);
-    };
+        const progress = _getCurrentProgress();
+        setProgress(progress);
+      }
+      loadManager.addEventListener('update', update);
+      return () => {
+        loadManager.removeEventListener('update', update);
+      };
+    })();
   }, []);
 
   useEffect(() => {
@@ -126,43 +130,43 @@ const LoadingBox = () => {
 
       const _frame = () => {
         const now = performance.now();
-        const f = (now / 1000) % 1
+        const f = (now / 1000) % 1;
 
         // const _render = f => {
-          ctx.resetTransform();
-          ctx.clearRect(0, 0, canvas.width, canvas.height);
+        ctx.resetTransform();
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-          if (load) {
-            if (load.type === 'download') {
-              const w = canvas.width;
-              const h = canvas.height * up.height / up.width;
+        if (load) {
+          if (load.type === 'download') {
+            const w = canvas.width;
+            const h = canvas.height * up.height / up.width;
 
-              let fx = (-0.5 + f) * h*2.5;
+            const fx = (-0.5 + f) * h * 2.5;
 
-              // ctx.filter = `hue-rotate(145deg)`;
+            // ctx.filter = `hue-rotate(145deg)`;
 
-              ctx.resetTransform();
-              ctx.translate(w / 2, h / 2);
-              ctx.rotate(Math.PI);
-              ctx.translate(-w / 2, -h / 2);
-              ctx.drawImage(up, 0, 0, up.width, up.height, 0, -fx, w, h);
+            ctx.resetTransform();
+            ctx.translate(w / 2, h / 2);
+            ctx.rotate(Math.PI);
+            ctx.translate(-w / 2, -h / 2);
+            ctx.drawImage(up, 0, 0, up.width, up.height, 0, -fx, w, h);
 
-              const w2 = canvas.width;
-              const h2 = canvas.height * down.height / down.width;
+            const w2 = canvas.width;
+            const h2 = canvas.height * down.height / down.width;
 
-              ctx.resetTransform();
-              ctx.drawImage(down, 0, 0, down.width, down.height, 0, fx + h - h2/2, w2, h2);
-            } else {
-              const fx = (-0.5 + f) * 2 * 130;
+            ctx.resetTransform();
+            ctx.drawImage(down, 0, 0, down.width, down.height, 0, fx + h - h2 / 2, w2, h2);
+          } else {
+            const fx = (-0.5 + f) * 2 * 130;
 
-              ctx.resetTransform();
-              ctx.rotate(Math.PI/4);
-              ctx.drawImage(up, 0, 0, up.width, up.height, -3, - fx*Math.SQRT2, up.width * Math.SQRT2, up.height * Math.SQRT2);
-            
-              ctx.resetTransform();
-              ctx.drawImage(upRight, fx, -fx);
-            }
+            ctx.resetTransform();
+            ctx.rotate(Math.PI / 4);
+            ctx.drawImage(up, 0, 0, up.width, up.height, -3, -fx * Math.SQRT2, up.width * Math.SQRT2, up.height * Math.SQRT2);
+
+            ctx.resetTransform();
+            ctx.drawImage(upRight, fx, -fx);
           }
+        }
         // };
         /* _render(f + 0.75);
         _render(f + 0.5);
@@ -180,7 +184,7 @@ const LoadingBox = () => {
 
   const name = load ? capitalize(load.type + 'ing') : 'Loading';
   const detail = (open && progress.total > 0) ? `${formatBytes(progress.progress)} / ${formatBytes(progress.total)}` : '';
-  
+
   return (
     <div className={classnames(style.loadingBox, open ? style.open : null)}>
       <canvas className={style.canvas} width={size} height={size} ref={canvasRef} />

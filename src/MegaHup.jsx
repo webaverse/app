@@ -83,14 +83,16 @@ const MegaHup = function({
   return (
     <div className={classnames(styles.megaHup, open ? styles.open : null)}>
       {/* <RpgText className={styles.text} styles={styles} text={text} textSpeed={chatTextSpeed} /> */}
-      {npcPlayer ? (
+      {npcPlayer
+        ? (
         <canvas
           className={styles.canvas}
           width={width}
           height={height}
           ref={canvasRef}
         />
-      ) : null}
+          )
+        : null}
     </div>
   );
 };

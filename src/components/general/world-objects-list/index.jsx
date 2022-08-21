@@ -1,3 +1,3 @@
 
-import { WorldObjectsList } from './WorldObjectsList';
-export { WorldObjectsList };
+import {WorldObjectsList} from './WorldObjectsList';
+export {WorldObjectsList};

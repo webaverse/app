@@ -1,20 +1,20 @@
 import * as THREE from 'three';
 import metaversefile from 'metaversefile';
-const {useApp, useFrame} = metaversefile;
+const { useApp, useFrame } = metaversefile;
 
 const size = 0.5;
 const scale = 0.3;
 const q90 = new THREE.Quaternion()
   .setFromUnitVectors(
     new THREE.Vector3(0, 0, 1),
-    new THREE.Vector3(0, 1, 0)
+    new THREE.Vector3(0, 1, 0),
   );
-  
+
 const localVector = new THREE.Vector3();
 const localVector2 = new THREE.Vector3();
 const localVector3 = new THREE.Vector3();
-const localVector4 = new THREE.Vector3();
-const localQuaternion = new THREE.Quaternion();
+// const localVector4 = new THREE.Vector3();
+// const localQuaternion = new THREE.Quaternion();
 const localMatrix = new THREE.Matrix4();
 
 const arrowGeometry = new THREE.PlaneBufferGeometry(size, size)
@@ -22,8 +22,8 @@ const arrowGeometry = new THREE.PlaneBufferGeometry(size, size)
     new THREE.Matrix4()
       .makeRotationFromQuaternion(
         new THREE.Quaternion()
-          .setFromAxisAngle(new THREE.Vector3(0, 0, 1), Math.PI)
-      )
+          .setFromAxisAngle(new THREE.Vector3(0, 0, 1), Math.PI),
+      ),
   );
 const arrowMaterial = (() => {
   const u = `${import.meta.url.replace(/(\/)[^\/]*$/, '$1')}_Down Tap Note 16x16.png`;
@@ -185,20 +185,20 @@ export default () => {
 
   const tailMesh = (() => {
     const width = 0.47;
-    const height = width*1245/576;
+    const height = width * 1245 / 576;
     const geometry = new THREE.BufferGeometry();
     const positions = new Float32Array(2 * 3 * 64);
     const positionsAttribute = new THREE.BufferAttribute(positions, 3);
     geometry.setAttribute('position', positionsAttribute);
-    const uvs = new Float32Array(positions.length/3*2);
+    const uvs = new Float32Array(positions.length / 3 * 2);
     const uvsAttribute = new THREE.BufferAttribute(uvs, 2);
     geometry.setAttribute('uv', uvsAttribute);
-    const indices = new Uint16Array(positions.length/3);
+    const indices = new Uint16Array(positions.length / 3);
     const indexAttribute = new THREE.BufferAttribute(indices, 1);
     geometry.setIndex(indexAttribute);
-    let positionIndex = 0;
-    let indexIndex = 0;
-    let maxIndexIndex = 0;
+    const positionIndex = 0;
+    const indexIndex = 0;
+    const maxIndexIndex = 0;
     const tailMesh = new THREE.Mesh(geometry, tailMaterial);
     // tailMesh.position.y = -height/2;
     // tailMesh.drawMode = THREE.TriangleStripDrawMode;
@@ -230,10 +230,10 @@ export default () => {
           indices[indexIndex++] = i;
         }
       }
-      
+
       positionsAttribute.needsUpdate = true;
       indexAttribute.needsUpdate = true;
-      
+
       // maxPositionIndex = Math.max(positionIndex, maxPositionIndex);
       maxIndexIndex = Math.max(indexIndex, maxIndexIndex);
       geometry.setDrawRange(0, maxIndexIndex);
@@ -252,38 +252,38 @@ export default () => {
       while (points.length > 16) {
         points.shift();
       }
-      
+
       if (points.length >= 2) {
         let positionIndex = 0;
         let uvIndex = 0;
         let indexIndex = 0;
-        for (let i = points.length-1; i >= 0; i--) {
-          const {position, quaternion, index} = points[i];
+        for (let i = points.length - 1; i >= 0; i--) {
+          const { position, quaternion, index } = points[i];
           localVector.copy(position)
             .add(
-              localVector2.set(-width*scale/2, 0, 0)
-                .applyQuaternion(quaternion)
-              )
+              localVector2.set(-width * scale / 2, 0, 0)
+                .applyQuaternion(quaternion),
+            )
             .toArray(positions, positionIndex);
           positionIndex += 3;
           localVector.copy(position)
             .add(
-              localVector2.set(width*scale/2, 0, 0)
-                .applyQuaternion(quaternion)
-              )
+              localVector2.set(width * scale / 2, 0, 0)
+                .applyQuaternion(quaternion),
+            )
             .toArray(positions, positionIndex);
           positionIndex += 3;
-          
+
           if (i % 2 === 0) {
             indices[indexIndex++] = i;
-            indices[indexIndex++] = i+1;
-            indices[indexIndex++] = i+2;
+            indices[indexIndex++] = i + 1;
+            indices[indexIndex++] = i + 2;
           } else {
-            indices[indexIndex++] = i+2;
-            indices[indexIndex++] = i+1;
+            indices[indexIndex++] = i + 2;
+            indices[indexIndex++] = i + 1;
             indices[indexIndex++] = i;
           }
-          
+
           const y = -index * 0.2;
           uvs[uvIndex++] = 0;
           uvs[uvIndex++] = y;
@@ -303,17 +303,17 @@ export default () => {
 
   // const angle = new THREE.Euler(Math.random()*Math.PI*2, Math.random()*Math.PI*2, Math.random()*Math.PI*2, 'YXZ');
   // const direction = new THREE.Euler(Math.random()*Math.PI*2, Math.random()*Math.PI*2, Math.random()*Math.PI*2, 'YXZ');
-  let azimuth = Math.PI/2;
+  let azimuth = Math.PI / 2;
   let inclination = 1;
   const r = 0.3;
-  let da = 0;
-  let di = 0.2;
+  const da = 0;
+  const di = 0.2;
   const lastPosition = new THREE.Vector3(0, 0, 1);
-  useFrame(({timestamp}) => {
+  useFrame(({ timestamp }) => {
     mesh.position.set(
       r * Math.cos(azimuth) * Math.sin(inclination),
       r * Math.sin(azimuth) * Math.sin(inclination),
-      r * Math.cos(inclination)
+      r * Math.cos(inclination),
     );
 
     mesh.quaternion.setFromRotationMatrix(
@@ -321,27 +321,27 @@ export default () => {
         lastPosition,
         mesh.position,
         localVector3.copy(mesh.position)
-          .multiplyScalar(-1)
-      )
+          .multiplyScalar(-1),
+      ),
     ).multiply(q90);
     lastPosition.copy(mesh.position);
     azimuth += da;
-    azimuth %= Math.PI*2;
+    azimuth %= Math.PI * 2;
     inclination += di;
-    inclination %= Math.PI*2;
+    inclination %= Math.PI * 2;
     mesh.updateMatrixWorld();
     /* mesh.quaternion.setFromEuler(angle);
     mesh.position.set(0, 0, -1).applyQuaternion(mesh.quaternion);
     angle.x += direction.x * 0.01;
     angle.y += direction.y * 0.01;
     angle.z += direction.z * 0.01; */
-    
-	  mesh.material.uniforms.uTime.value = (timestamp % 30000) / 30000;
+
+    mesh.material.uniforms.uTime.value = (timestamp % 30000) / 30000;
     mesh.material.uniforms.uTime.needsUpdate = true;
-	  // tailMesh.material.uniforms.uTime.value = (timestamp % 1000) / 1000;
+    // tailMesh.material.uniforms.uTime.value = (timestamp % 1000) / 1000;
     // tailMesh.material.uniforms.uTime.needsUpdate = true;
     tailMesh.update();
-	});
+  });
 
   return app;
 };

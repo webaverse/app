@@ -68,7 +68,7 @@ const CharacterHup = function(props) {
           newHups.splice(hupIndex, 1);
           setHups(newHups);
         }
-      };
+      }
       hupEl.addEventListener('transitionend', transitionend);
 
       return () => {
@@ -115,15 +115,15 @@ const CharacterHup = function(props) {
 
   return (
     <div
-      className={classnames(styles['character-hup'], localOpen ? styles['open'] : null)}
+      className={classnames(styles['character-hup'], localOpen ? styles.open : null)}
       style={{
         top: `${index * defaultHupSize}px`,
       }}
       ref={hupRef}
     >
       <canvas
-        width={defaultHupSize*pixelRatio}
-        height={defaultHupSize*pixelRatio}
+        width={defaultHupSize * pixelRatio}
+        height={defaultHupSize * pixelRatio}
         ref={canvasRef}
       />
       <div className={styles.name}>
@@ -149,7 +149,7 @@ const CharacterHup = function(props) {
 export default function CharacterHups({
   localPlayer,
   npcs,
-  remotePlayers
+  remotePlayers,
 }) {
   const [hups, setHups] = useState([]);
 
@@ -180,16 +180,15 @@ export default function CharacterHups({
       remotePlayer.characterHups.addEventListener('hupremove', hupremove);
     }
 
-    const handleCharacterAdd = (e) => {
+    const handleCharacterAdd = e => {
       e.data.character.characterHups.addEventListener('hupadd', hupadd);
       e.data.character.characterHups.addEventListener('hupremove', hupremove);
+    };
 
-    }
-
-    const handleCharacterRemove = (e) => {
+    const handleCharacterRemove = e => {
       e.data.character.characterHups.removeEventListener('hupadd', hupadd);
       e.data.character.characterHups.removeEventListener('hupremove', hupremove);
-    }
+    };
 
     playersManager.addEventListener('playeradded', handleCharacterAdd);
     playersManager.addEventListener('playerremoved', handleCharacterRemove);
@@ -223,4 +222,4 @@ export default function CharacterHups({
       })}
     </div>
   );
-};
+}

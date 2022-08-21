@@ -1,3 +1,3 @@
 
-import { KeyInput } from './KeyInput';
-export { KeyInput };
+import {KeyInput} from './KeyInput';
+export {KeyInput};

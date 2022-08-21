@@ -1,3 +1,3 @@
 
-import { CharacterSelect } from './CharacterSelect';
-export { CharacterSelect };
+import {CharacterSelect} from './CharacterSelect';
+export {CharacterSelect};
