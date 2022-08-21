@@ -19,10 +19,10 @@ export default e => {
 
   const landApps = [
     {
-      "start_url": "https://webaverse.github.io/dual-contouring-terrain/"
+      start_url: 'https://webaverse.github.io/dual-contouring-terrain/',
     },
     {
-      "start_url": "https://webaverse.github.io/water/"
+      start_url: 'https://webaverse.github.io/water/',
     },
     /* {
       "start_url": "https://webaverse.github.io/silk-grass/"
@@ -57,52 +57,52 @@ export default e => {
   const renderPosition = app.getComponent('renderPosition');
   if (renderPosition !== undefined) {
     passComponents.push({
-      "key": "renderPosition",
-      "value": renderPosition,
+      key: 'renderPosition',
+      value: renderPosition,
     });
   }
   const minLodRange = app.getComponent('minLodRange');
   if (minLodRange !== undefined) {
     passComponents.push({
-      "key": "minLodRange",
-      "value": minLodRange,
+      key: 'minLodRange',
+      value: minLodRange,
     });
   }
   const lods = app.getComponent('lods');
   if (lods !== undefined) {
     passComponents.push({
-      "key": "lods",
-      "value": lods,
+      key: 'lods',
+      value: lods,
     });
   }
   if (seed !== undefined) {
     passComponents.push({
-      "key": "seed",
-      "value": seed,
+      key: 'seed',
+      value: seed,
     });
   }
   if (clipRange !== undefined) {
     passComponents.push({
-      "key": "clipRange",
-      "value": clipRange,
+      key: 'clipRange',
+      value: clipRange,
     });
   }
   if (physicsInstance !== undefined) {
     passComponents.push({
-      "key": "physicsInstance",
-      "value": physicsInstance,
+      key: 'physicsInstance',
+      value: physicsInstance,
     });
   }
   if (wait !== undefined) {
     passComponents.push({
-      "key": "wait",
-      "value": wait,
+      key: 'wait',
+      value: wait,
     });
   }
   if (debug !== undefined) {
     passComponents.push({
-      "key": "debug",
-      "value": debug,
+      key: 'debug',
+      value: debug,
     });
   }
 
@@ -134,11 +134,11 @@ export default e => {
       const components2 = (components ?? []).concat(passComponents);
 
       const keys = [];
-      const componentsupdate = (e) => {
+      const componentsupdate = e => {
         keys.push(...e.keys);
       };
       app.addEventListener('componentsupdate', componentsupdate);
-      
+
       const subApp = await metaversefile.createAppAsync({
         start_url,
         parent: app,
@@ -171,7 +171,7 @@ export default e => {
       }
     }
     return null;
-  }
+  };
 
   if (!renderPosition) {
     useFrame(() => {
@@ -193,7 +193,7 @@ export default e => {
         playerPosition,
         cameraPosition,
         cameraQuaternion,
-        camera.projectionMatrix
+        camera.projectionMatrix,
       );
     });
   }

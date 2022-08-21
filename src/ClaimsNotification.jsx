@@ -10,7 +10,7 @@ import classnames from 'classnames';
 // import game from '../game.js';
 // import {getRenderer} from '../renderer.js';
 // import metaversefile from 'metaversefile';
-import { AppContext } from './components/app';
+import {AppContext} from './components/app';
 
 import styles from './ClaimsNotification.module.css';
 

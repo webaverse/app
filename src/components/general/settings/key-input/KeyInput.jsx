@@ -1,81 +1,63 @@
 
 import classNames from 'classnames';
-import React, { useState } from 'react';
+import React, {useState} from 'react';
 
 import styles from './key-input.module.css';
 
 //
 
-export const KeyInput = ({ value, setValue, className }) => {
+export const KeyInput = ({value, setValue, className}) => {
+  const [active, setActive] = useState(false);
+  const keysList = new Map();
 
-    const [ active, setActive ] = useState( false );
-    const keysList = new Map();
+  const updateValue = () => {
+    let value = '';
+    let index = 0;
 
-    const updateValue = () => {
+    keysList.forEach((key, keyIndex) => {
+      let keyName = '';
 
-        let value = '';
-        let index = 0;
+      if (keyIndex === ' ') {
+        keyName = 'space';
+      } else {
+        keyName = keyIndex;
+      }
 
-        keysList.forEach( ( key, keyIndex ) => {
+      value += keyName;
+      index++;
+      if (index < keysList.size) value += '+';
+    });
 
-            let keyName = '';
+    setValue(value);
+  };
 
-            if ( keyIndex === ' ' ) {
+  const handleKeyDown = event => {
+    keysList.set(event.key, true);
+    updateValue();
+  };
 
-                keyName = 'space';
+  const handleKeyUp = event => {
+    keysList.delete(event.key);
+  };
 
-            } else {
+  const handleWindowClick = () => {
+    setActive(false);
+    window.removeEventListener('keydown', handleKeyDown);
+    window.removeEventListener('keyup', handleKeyUp);
+    window.removeEventListener('click', handleWindowClick);
+  };
 
-                keyName = keyIndex;
+  const handleClick = event => {
+    event.stopPropagation();
+    setActive(true);
+    window.addEventListener('keydown', handleKeyDown);
+    window.addEventListener('keyup', handleKeyUp);
+    window.addEventListener('mousedown', handleWindowClick);
+  };
 
-            }
+  //
 
-            value += keyName;
-            index ++;
-            if ( index < keysList.size ) value += '+';
-
-        });
-
-        setValue( value );
-
-    };
-
-    const handleKeyDown = ( event ) => {
-
-        keysList.set( event.key, true );
-        updateValue();
-
-    };
-
-    const handleKeyUp = ( event ) => {
-
-        keysList.delete( event.key );
-
-    };
-
-    const handleWindowClick = () => {
-
-        setActive( false );
-        window.removeEventListener( 'keydown', handleKeyDown );
-        window.removeEventListener( 'keyup', handleKeyUp );
-        window.removeEventListener( 'click', handleWindowClick );
-
-    };
-
-    const handleClick = ( event ) => {
-
-        event.stopPropagation();
-        setActive( true );
-        window.addEventListener( 'keydown', handleKeyDown );
-        window.addEventListener( 'keyup', handleKeyUp );
-        window.addEventListener( 'mousedown', handleWindowClick );
-
-    };
-
-    //
-
-    return (
-        <div className={ classNames( className, styles.keyInput, active ? styles.active : null ) } onClick={ handleClick }>{ value }</div>
-    );
-
+  return (
+    <div className={ classNames(className, styles.keyInput, active ? styles.active : null) } onClick={ handleClick }>{ value }</div>
+  );
 };

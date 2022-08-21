@@ -40,13 +40,15 @@ export const MegaChatBox = ({
           <div className={styles.level}>Lv. {level}</div>
         </div>
         <RpgText className={styles.text} styles={styles} textSpeed={chatTextSpeed} text={currentMessage ? currentMessage.text : ''}></RpgText>
-        {finished ? (
+        {finished
+          ? (
           <LightArrow
             className={styles.lightArrow}
             up
             onClick={onClick}
           />
-        ) : (
+            )
+          : (
           <div
             className={classnames(
               styles.nextBlink,
@@ -62,7 +64,7 @@ export const MegaChatBox = ({
               src="./images/ui/down.svg"
             />
           </div>
-        )}
+            )}
       </div>
       <div className={classnames(
         styles.options,
@@ -71,10 +73,11 @@ export const MegaChatBox = ({
         selectedOptionIndex !== -1 ? styles.selected : null,
       )}>
         <div className={styles.inner}>
-          {options ? options.map((option, i) => {
-            const hovered = i === hoverIndex;
-            const selected = i === selectedOptionIndex;
-            return (
+          {options
+            ? options.map((option, i) => {
+              const hovered = i === hoverIndex;
+              const selected = i === selectedOptionIndex;
+              return (
               <div
                 className={classnames(
                   styles.option,
@@ -93,8 +96,9 @@ export const MegaChatBox = ({
                 <div className={styles.value}>{option.message}</div>
                 <img className={styles.arrow} src="./images/ui/left-red.svg" />
               </div>
-            );
-          }) : null}
+              );
+            })
+            : null}
         </div>
       </div>
     </div>

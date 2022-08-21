@@ -14,7 +14,7 @@ import cameraManager from '../camera-manager.js';
 import * as sounds from '../sounds.js';
 import {mod, loadImage, drawImageContain, imageToCanvas} from '../util.js';
 
-const modPi2 = angle => mod(angle, Math.PI*2);
+const modPi2 = angle => mod(angle, Math.PI * 2);
 
 //
 
@@ -22,27 +22,27 @@ const localVector2D = new THREE.Vector2();
 
 //
 
-const chevronImgSrc = `./images/chevron2.svg`;
+const chevronImgSrc = './images/chevron2.svg';
 
 const size = 500;
 const pixelRatio = window.devicePixelRatio;
 const pixelSize = size * pixelRatio;
 
 const numSlices = emotes.length;
-const sliceSize = Math.PI*2/numSlices;
-const interval = Math.PI*0.01;
+const sliceSize = Math.PI * 2 / numSlices;
+const interval = Math.PI * 0.01;
 
 const centerCoords = [
   size / 2 - 15,
   size / 2 - 15,
 ];
 
-const outerRadius = pixelSize/2;
-const innerRadius = pixelSize/4;
+const outerRadius = pixelSize / 2;
+const innerRadius = pixelSize / 4;
 const radiusCenter = (outerRadius + innerRadius) / 2;
 
-const outerRadiusSoft = pixelSize/4 - 10;
-const innerRadiusSoft = pixelSize/8;
+const outerRadiusSoft = pixelSize / 4 - 10;
+const innerRadiusSoft = pixelSize / 8;
 const radiusCenterSoft = (outerRadiusSoft + innerRadiusSoft) / 2;
 
 const iconSize = 80;
@@ -74,18 +74,22 @@ export default function QuickMenu() {
     }
   };
 
-  useEffect(async () => {
-    const emoteIconImages = await Promise.all(emotes.map(async ({icon}) => {
-      const img = await loadImage(`./images/poses/${icon}`);
-      const canvas = imageToCanvas(img, iconSize, iconSize);
-      return canvas;
-    }));
-    setEmoteIconImages(emoteIconImages);
+  useEffect(() => {
+    (async () => {
+      const emoteIconImages = await Promise.all(emotes.map(async ({icon}) => {
+        const img = await loadImage(`./images/poses/${icon}`);
+        const canvas = imageToCanvas(img, iconSize, iconSize);
+        return canvas;
+      }));
+      setEmoteIconImages(emoteIconImages);
+    })();
   }, []);
-  useEffect(async () => {
-    const img = await loadImage(chevronImgSrc);
-    const canvas = imageToCanvas(img, chevronSize, chevronSize);
-    setChevronImage(canvas);
+  useEffect(() => {
+    (async () => {
+      const img = await loadImage(chevronImgSrc);
+      const canvas = imageToCanvas(img, chevronSize, chevronSize);
+      setChevronImage(canvas);
+    })();
   }, []);
 
   useEffect(() => {
@@ -118,7 +122,7 @@ export default function QuickMenu() {
           if (open) {
             /* const emote = _getSelectedEmote();
             emote && triggerEmote(emote); */
-            
+
             setOpen(false);
             setDown(false);
 
@@ -127,7 +131,7 @@ export default function QuickMenu() {
         }
       }
       registerIoEventHandler('keyup', keyup);
-      
+
       function mousemove(e) {
         const {movementX, movementY} = e;
 
@@ -140,26 +144,26 @@ export default function QuickMenu() {
         return false;
       }
       registerIoEventHandler('mousemove', mousemove);
-      
+
       function mousedown(e) {
         setDown(true);
 
         return false;
       }
       registerIoEventHandler('mousedown', mousedown);
-      
+
       function mouseup(e) {
         setDown(false);
         const emote = _getSelectedEmote();
         emote && triggerEmote(emote);
         setOpen(false);
-        
+
         sounds.playSoundName('menuNext');
 
         return false;
       }
       registerIoEventHandler('mouseup', mouseup);
-      
+
       function wheel(e) {
         // nothing
         return false;
@@ -184,62 +188,62 @@ export default function QuickMenu() {
       ctx.textBaseline = 'middle';
 
       ctx.clearRect(0, 0, pixelSize, pixelSize);
-    
+
       for (let i = 0; i < numSlices; i++) {
-        const startAngle = i*sliceSize + interval - Math.PI/2;
-        const endAngle = (i+1)*sliceSize - interval - Math.PI/2;
-        
+        const startAngle = i * sliceSize + interval - Math.PI / 2;
+        const endAngle = (i + 1) * sliceSize - interval - Math.PI / 2;
+
         {
           const selected = i === selectedSlice && selectedDepth === 0;
           ctx.fillStyle = selected ? '#4fc3f7' : '#111';
           ctx.beginPath();
-          ctx.arc(pixelSize/2, pixelSize/2, outerRadiusSoft, startAngle, endAngle, false);
-          ctx.arc(pixelSize/2, pixelSize/2, innerRadiusSoft, endAngle, startAngle, true);
+          ctx.arc(pixelSize / 2, pixelSize / 2, outerRadiusSoft, startAngle, endAngle, false);
+          ctx.arc(pixelSize / 2, pixelSize / 2, innerRadiusSoft, endAngle, startAngle, true);
           ctx.fill();
         }
         {
           const selected = i === selectedSlice && selectedDepth === 1;
           ctx.fillStyle = selected ? '#4fc3f7' : '#111';
           ctx.beginPath();
-          ctx.arc(pixelSize/2, pixelSize/2, outerRadius, startAngle, endAngle, false);
-          ctx.arc(pixelSize/2, pixelSize/2, innerRadius, endAngle, startAngle, true);
+          ctx.arc(pixelSize / 2, pixelSize / 2, outerRadius, startAngle, endAngle, false);
+          ctx.arc(pixelSize / 2, pixelSize / 2, innerRadius, endAngle, startAngle, true);
           ctx.fill();
         }
         {
-          const midAngle = (startAngle + endAngle)/2;
+          const midAngle = (startAngle + endAngle) / 2;
 
           // soft chevron
           {
             ctx.save();
             ctx.globalAlpha = 0.3;
             ctx.translate(
-              pixelSize/2 + Math.cos(midAngle)*radiusCenterSoft,
-              pixelSize/2 + Math.sin(midAngle)*radiusCenterSoft
+              pixelSize / 2 + Math.cos(midAngle) * radiusCenterSoft,
+              pixelSize / 2 + Math.sin(midAngle) * radiusCenterSoft,
             );
             ctx.rotate(midAngle + Math.PI);
-            ctx.translate(-chevronSize/2, -chevronSize/2);
+            ctx.translate(-chevronSize / 2, -chevronSize / 2);
             ctx.drawImage(
               chevronImage,
               0,
-              0
+              0,
             );
             ctx.restore();
           }
-          
+
           // hard icon
           ctx.drawImage(
             emoteIconImages[i],
-            pixelSize/2 + Math.cos(midAngle)*radiusCenter - iconSize/2,
-            pixelSize/2 + Math.sin(midAngle)*radiusCenter - iconSize/2 - pixelSize/30
+            pixelSize / 2 + Math.cos(midAngle) * radiusCenter - iconSize / 2,
+            pixelSize / 2 + Math.sin(midAngle) * radiusCenter - iconSize / 2 - pixelSize / 30,
           );
 
           // hard label
-          ctx.font = (pixelSize/30) + 'px Muli';
+          ctx.font = (pixelSize / 30) + 'px Muli';
           ctx.fillStyle = '#FFF';
           ctx.fillText(
             emotes[i].name,
-            pixelSize/2 + Math.cos(midAngle)*radiusCenter,
-            pixelSize/2 + Math.sin(midAngle)*radiusCenter + pixelSize/20
+            pixelSize / 2 + Math.cos(midAngle) * radiusCenter,
+            pixelSize / 2 + Math.sin(midAngle) * radiusCenter + pixelSize / 20,
           );
         }
       }
@@ -248,12 +252,12 @@ export default function QuickMenu() {
   useEffect(() => {
     _render();
   }, [canvasRef.current, selectedSlice, selectedDepth, emoteIconImages, chevronImage]);
-  
+
   useEffect(() => {
     localVector2D.fromArray(coords);
     const centerDistance = localVector2D.length() * pixelRatio;
-    const angle = modPi2(Math.atan2(coords[1], coords[0]) + Math.PI/2);
-    const sliceIndex = Math.floor(angle/sliceSize);
+    const angle = modPi2(Math.atan2(coords[1], coords[0]) + Math.PI / 2);
+    const sliceIndex = Math.floor(angle / sliceSize);
 
     if (centerDistance > innerRadius) {
       setSelectedSlice(sliceIndex);
@@ -269,7 +273,7 @@ export default function QuickMenu() {
 
   //
 
-	return (
+  return (
     <div className={classnames(
       styles.quickMenu,
       open ? styles.open : null,
@@ -290,4 +294,4 @@ export default function QuickMenu() {
       </div>
     </div>
   );
-};
+}

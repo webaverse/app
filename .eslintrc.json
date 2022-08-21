@@ -1,23 +1,72 @@
 {
-    "extends": [
-      "semistandard"
-    ],
-    "rules": {
-        "semi": ["warn", "always"],
-        "eol-last": ["warn", "always"],
-        "no-unused-vars": ["warn"],
-        "comma-dangle": ["warn", "always-multiline"],
-        "object-curly-spacing": ["warn", "never"],
-        "linebreak-style": ["warn", "unix"],
-        "space-before-function-paren": ["warn", {
-            "anonymous": "never",
-            "named": "never",
-            "asyncArrow": "always"
-        }],
-        "arrow-parens": ["warn", "as-needed"],
-        "number-literal-case": "off"
-    },
-    "env": {
-        "browser": true
+  "extends": ["semistandard", "eslint:recommended", "plugin:react/recommended"],
+  "parserOptions": {
+    "ecmaVersion": "latest",
+    "sourceType": "module"
+  },
+  "settings": {
+    "react": {
+      "version": "detect"
     }
+  },
+  "globals": { "webkitSpeechRecognition": false },
+  "ignorePatterns": [
+    "packages/*",
+    "node_modules/*",
+    "dist/*",
+    "build/*",
+    "coverage/*",
+    "*.d.ts",
+    "bip39.js",
+    "hdkey.js",
+    "web3.min.js",
+    "ethereumjs-util.js",
+    "ethereumjs-tx.js",
+    "simplex-noise.js",
+    "*/simplex.js",
+    "*/murmurhash3.js",
+    "*/color-scheme.js",
+    "gif.js",
+    "gif.worker.js",
+    "gifuct-js.js",
+    "GIFLoader.worker.js",
+    "CapsuleGeometry.js",
+    "VOXLoader.js",
+    "public/*"
+  ],
+  "rules": {
+    "react/prop-types": "off",
+    "camelcase": "off",
+    "no-tabs": "off",
+    "prefer-regex-literals": "off",
+    "promise/param-names": "off",
+    "prefer-const": "warn",
+    "no-prototype-builtins": "off",
+    "react/display-name": "off",
+    "no-lone-blocks": "off",
+    "semi": ["error", "always"],
+    "eol-last": ["error", "always"],
+    "no-unused-vars": ["warn"],
+    "comma-dangle": ["warn", "always-multiline"],
+    "object-curly-spacing": ["warn", "never"],
+    "linebreak-style": ["warn", "unix"],
+    "no-inner-declarations": ["off"],
+    "no-case-declarations": ["off"],
+    "no-cond-assign": ["off"],
+    "no-useless-escape": ["off"],
+    "space-before-function-paren": [
+      "warn",
+      {
+        "anonymous": "never",
+        "named": "never",
+        "asyncArrow": "always"
+      }
+    ],
+    "arrow-parens": ["warn", "as-needed"],
+    "number-literal-case": "off"
+  },
+  "env": {
+    "browser": true,
+    "es2021": true
+  }
 }

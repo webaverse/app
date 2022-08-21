@@ -1,22 +1,25 @@
 import React from 'react';
-import ReactDOM from 'react-dom';
+import ReactDOM from 'react-dom/client';
 
-import { App } from './components/app';
-import { ErrorPage } from './components/general/error-page';
+import {App} from './components/app';
+import {ErrorPage} from './components/general/error-page';
 
 //
 
 const WebWorkerSupport = !navigator.userAgent.match(/(Firefox|MSIE)/);
 
-ReactDOM.render(
+const root = ReactDOM.createRoot(document.getElementById('root'));
+
+root.render(
   <React.StrictMode>
     {
-        WebWorkerSupport ? (
-            <App />
-        ) : (
-            <ErrorPage errors={[ 'WebWorker modules' ]} />
-        )
+      WebWorkerSupport
+        ? (
+        <App />
+          )
+        : (
+        <ErrorPage errors={['WebWorker modules']} />
+          )
     }
-    </React.StrictMode>,
-    document.getElementById('root'),
+  </React.StrictMode>
 );

@@ -1,3 +1,3 @@
 
-import { ActionMenu } from './ActionMenu';
-export { ActionMenu };
+import {ActionMenu} from './ActionMenu';
+export {ActionMenu};

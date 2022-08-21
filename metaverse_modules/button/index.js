@@ -7,13 +7,13 @@ const keyRadius = 0.045;
 const keyInnerFactor = 0.8;
 const keyGeometry = new THREE.PlaneBufferGeometry(keySize, keySize);
 function makeShape(shape, x, y, width, height, radius) {
-  shape.absarc( x - width/2, y + height/2, radius, Math.PI, Math.PI / 2, true );
-  shape.absarc( x + width/2, y + height/2, radius, Math.PI / 2, 0, true );
-  shape.absarc( x + width/2, y - height/2, radius, 0, -Math.PI / 2, true );
-  shape.absarc( x - width/2, y - height/2, radius, -Math.PI / 2, -Math.PI, true );
+  shape.absarc(x - width / 2, y + height / 2, radius, Math.PI, Math.PI / 2, true);
+  shape.absarc(x + width / 2, y + height / 2, radius, Math.PI / 2, 0, true);
+  shape.absarc(x + width / 2, y - height / 2, radius, 0, -Math.PI / 2, true);
+  shape.absarc(x - width / 2, y - height / 2, radius, -Math.PI / 2, -Math.PI, true);
   return shape;
 }
-function createBoxWithRoundedEdges( width, height, radius, innerFactor) {
+function createBoxWithRoundedEdges(width, height, radius, innerFactor) {
   const shape = makeShape(new THREE.Shape(), 0, 0, width, height, radius);
   const hole = makeShape(new THREE.Path(), 0, 0, width * innerFactor, height * innerFactor, radius);
   shape.holes.push(hole);
@@ -50,7 +50,7 @@ const eKeyMaterial = (() => {
   });
   return material;
 })();
-const keyCircleGeometry = createBoxWithRoundedEdges(keySize - keyRadius*2, keySize - keyRadius*2, keyRadius, keyInnerFactor);
+const keyCircleGeometry = createBoxWithRoundedEdges(keySize - keyRadius * 2, keySize - keyRadius * 2, keyRadius, keyInnerFactor);
 const keyCircleMaterial = new THREE.ShaderMaterial({
   uniforms: {
     uColor: {
@@ -62,7 +62,7 @@ const keyCircleMaterial = new THREE.ShaderMaterial({
       value: 0,
       needsUpdate: true,
     },
-    /*uTimeCubic: {
+    /* uTimeCubic: {
       type: 'f',
       value: 0,
       needsUpdate: true,
@@ -131,7 +131,7 @@ const keyCircleMaterial = new THREE.ShaderMaterial({
 
 export default () => {
   const app = useApp();
-  
+
   const keyMesh = (() => {
     const geometry = keyGeometry;
     const material = eKeyMaterial;
@@ -141,7 +141,7 @@ export default () => {
   })();
   keyMesh.position.z = 0.01;
   app.add(keyMesh);
-  
+
   const keyCircleMesh = (() => {
     const geometry = keyCircleGeometry;
     const material = keyCircleMaterial.clone();
@@ -151,17 +151,17 @@ export default () => {
   })();
   keyCircleMesh.position.z = 0.01;
   app.add(keyCircleMesh);
-  
+
   app.addEventListener('componentupdate', e => {
     if (e.key === 'value') {
       const f = e.value || 0;
-      keyMesh.scale.setScalar(1 - f*0.3);
-      keyCircleMesh.scale.setScalar(1 - f*0.2);
+      keyMesh.scale.setScalar(1 - f * 0.3);
+      keyCircleMesh.scale.setScalar(1 - f * 0.2);
       keyCircleMesh.material.uniforms.uTime.value = f;
       keyCircleMesh.material.uniforms.uTime.needsUpdate = true;
     }
   });
-  
+
   /* useFrame(() => {
     const f = (Date.now()%1000)/1000;
     keyMesh.scale.setScalar(1 - f*0.3);
