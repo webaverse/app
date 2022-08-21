@@ -164,13 +164,6 @@ class Character extends THREE.Object3D {
     this.voicePack = null;
     this.voiceEndpoint = null;
   }
-  // serializers
-  getPosition() {
-    return this.position.toArray(localArray3) ?? [0, 0, 0];
-  }
-  getQuaternion() {
-    return this.quaternion.toArray(localArray4) ?? [0, 0, 0, 1];
-  }
   setSpawnPoint(position, quaternion) {
     this.position.copy(position);
     this.quaternion.copy(quaternion);
