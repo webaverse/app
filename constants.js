@@ -104,6 +104,7 @@ export const worldMapName = 'world';
 export const actionsMapName = 'actions';
 export const playersMapName = 'players';
 export const appsMapName = 'apps';
+export const partyMapName = 'party';
 
 export const ceramicNodeUrl = `https://ceramic-clay.3boxlabs.com`;
 export const metaverseProfileDefinition = `kjzl6cwe1jw145wm7u2sy1wpa33hglvmuy6th9lys7x4iadaizn4zqgpp3tmu34`;
@@ -145,6 +146,8 @@ export const voicePacksUrl = `https://webaverse.github.io/voicepacks/all_packs.j
 export const voiceEndpointBaseUrl = `https://voice.webaverse.com/tts`;
 export const voiceEndpointsUrl = `https://raw.githubusercontent.com/webaverse/tiktalknet/main/model_lists/all_models.json`;
 
+export const imageAIEndpointUrl = `https://stable-diffusion.webaverse.com`;
+
 export const chatTextSpeed = 15;
 export const shakeAnimationSpeed = 30;
 
@@ -178,4 +181,10 @@ export const defaultPlayerSpec = {
   class: 'Drop Hunter',
   bio: `Her nickname is Scilly or SLY. 13/F drop hunter. She is an adventurer, swordfighter and fan of potions. She is exceptionally skilled and can go Super Saiyan.`,
   themeSongUrl: `https://webaverse.github.io/music/themes/149274046-smooth-adventure-quest.mp3`,
+};
+
+export const defaultNpcContent = {
+  name: 'Anon',
+  voice: defaultVoiceEndpoint,
+  bio: `Maud Pie`
 };

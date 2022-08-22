@@ -29,6 +29,7 @@ import meshLodManager from './mesh-lodder.js';
 import {AvatarRenderer} from './avatars/avatar-renderer.js';
 import {chatManager} from './chat-manager.js';
 import loreAI from './ai/lore/lore-ai.js';
+import imageAI from './ai/image/image-ai.js';
 import npcManager from './npc-manager.js';
 import mobManager from './mob-manager.js';
 import universe from './universe.js';
@@ -161,6 +162,19 @@ class App extends THREE.Object3D {
   }
   getPhysicsObjects() {
     return this.physicsObjects;
+  }
+  addPhysicsObject(object) {
+    this.physicsObjects.push(object);
+  }
+  removePhysicsObject(object) {
+    const removeIndex = this.physicsObjects.indexOf(object);
+    if (removeIndex !== -1) {
+      this.physicsObjects.splice(removeIndex);
+    }
+  }
+  setPhysicsObject(object) {
+    this.physicsObjects.length = 0;
+    this.physicsObjects.push(object);
   }
   hit(damage, opts) {
     this.hitTracker && this.hitTracker.hit(damage, opts);
@@ -442,6 +456,9 @@ metaversefile.setApi({
   },
   useLoreAIScene() {
     return loreAIScene;
+  },
+  useImageAI() {
+    return imageAI;
   },
   useVoices() {
     return voices;
@@ -975,6 +992,7 @@ export default () => {
     return world.appManager.removeTrackedApp.apply(world.appManager, arguments);
   },
   getPlayerByAppInstanceId(instanceId) {
+    const localPlayer = playersManager.getLocalPlayer();
     let result = localPlayer.appManager.getAppByInstanceId(instanceId);
     if (result) {
       return localPlayer;

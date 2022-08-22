@@ -402,17 +402,19 @@ class Avatar {
 
     const model = this.object.scene;
     this.model = model; // XXX still needed?
-    this.model.visible = false;
 
-    this.spriteMegaAvatarMesh = null;
-    this.crunchedModel = null;
-    this.optimizedModel = null;
     this.options = options;
 
     this.vrmExtension = object?.parser?.json?.extensions?.VRM;
     this.firstPersonCurves = getFirstPersonCurves(this.vrmExtension); 
 
     this.lastVelocity = new THREE.Vector3();
+
+    //
+
+    avatarRenderer.setControlled(true);
+
+    //
 
     const {
       skinnedMeshes,

@@ -1063,16 +1063,27 @@ export const handleUpload = async (item, { onProgress = null } = {}) => {
   return u;
 };
 
-export const loadImage = (u) =>
-  new Promise((resolve, reject) => {
-    const img = new Image();
-    img.onload = () => {
-      resolve(img);
-    };
-    img.onerror = reject;
-    img.crossOrigin = 'Anonymous';
-    img.src = u;
-  });
+export const loadImage = (u) => new Promise((resolve, reject) => {
+  const img = new Image();
+  img.onload = () => {
+    resolve(img);
+  };
+  img.onerror = reject;
+  img.crossOrigin = 'Anonymous';
+  img.src = u;
+});
+export const blob2img = async blob => {
+  const url = URL.createObjectURL(blob);
+  try {
+    const img = await loadImage(url);
+    return img;
+  } finally {
+    URL.revokeObjectURL(url);
+  }
+};
+export const canvas2blob = async (canvas, type, quality) => new Promise((resolve, reject) => {
+  canvas.toBlob(resolve, type, quality);
+});
 export const drawImageContain = (ctx, img) => {
   const imgWidth = img.width;
   const imgHeight = img.height;
@@ -1095,6 +1106,27 @@ export const drawImageContain = (ctx, img) => {
     y = 0;
   }
   ctx.drawImage(img, x, y, width, height);
+};
+export const makeSquareImage = img => {
+  const newSize = img.width >= img.height ? img.width : img.height;
+
+  const canvas = document.createElement('canvas');
+  canvas.width = newSize;
+  canvas.height = newSize;
+
+  // get the top left color of the image
+  const ctx = canvas.getContext('2d');
+  ctx.drawImage(img, 0, 0, 1, 1, 0, 0, 1, 1);
+  const imageData = ctx.getImageData(0, 0, 1, 1);
+
+  // fill the canvas with the top left color
+  ctx.fillStyle = `rgb(${imageData.data[0]}, ${imageData.data[1]}, ${imageData.data[2]})`;
+  ctx.fillRect(0, 0, newSize, newSize);
+
+  // draw the image in the center
+  drawImageContain(ctx, img);
+  
+  return canvas;
 };
 export const imageToCanvas = (img, w, h) => {
   const canvas = document.createElement('canvas');

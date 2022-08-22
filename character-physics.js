@@ -583,7 +583,10 @@ class CharacterPhysics {
     }
   }
   destroy() {
-    // nothing
+    if (this.characterController) {
+      physicsScene.destroyCharacterController(this.characterController);
+      this.characterController = null;
+    }
   }
 }
 
