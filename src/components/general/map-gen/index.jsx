@@ -1,3 +1,3 @@
 
-import {MapGen} from './MapGen';
-export {MapGen};
+import { MapGen } from './MapGen';
+export { MapGen };

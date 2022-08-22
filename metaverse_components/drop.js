@@ -28,7 +28,7 @@ export default app => {
 
     const glowHeight = 5;
     const glowGeometry = new THREE.CylinderBufferGeometry(0.01, 0.01, glowHeight)
-      .applyMatrix4(new THREE.Matrix4().makeTranslation(0, glowHeight / 2, 0));
+      .applyMatrix4(new THREE.Matrix4().makeTranslation(0, glowHeight/2, 0));
     const colors = new Float32Array(glowGeometry.attributes.position.array.length);
     glowGeometry.setAttribute('color', new THREE.BufferAttribute(colors, 3));
     const color = new THREE.Color(rarityColorsArray[Math.floor(Math.random() * rarityColorsArray.length)]);
@@ -64,19 +64,19 @@ export default app => {
       const {timestamp, timeDiff} = e;
       const timeDiffS = timeDiff / 1000;
       const localPlayer = metaversefile.useLocalPlayer();
-
+      
       // animate and check for collisions
       if (!grounded) {
         app.position
           .add(
             localVector.copy(velocity)
-              .multiplyScalar(timeDiffS),
+              .multiplyScalar(timeDiffS)
           );
         velocity.add(
           localVector.copy(physicsScene.getGravity())
-            .multiplyScalar(timeDiffS),
+            .multiplyScalar(timeDiffS)
         );
-
+        
         const groundHeight = 0.3;
         if (app.position.y <= groundHeight) {
           app.position.y = groundHeight;
@@ -179,7 +179,7 @@ export default app => {
         localEuler.set(0, rotY, 0, 'YXZ');
         app.quaternion.setFromEuler(localEuler);
       }
-
+      
       app.updateMatrixWorld();
     });
   }

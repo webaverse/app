@@ -11,7 +11,7 @@ import game from '../game.js';
 import {getRenderer} from '../renderer.js';
 import cameraManager from '../camera-manager.js';
 import metaversefile from 'metaversefile';
-import {AppContext} from './components/app';
+import { AppContext } from './components/app';
 
 const _upload = () => new Promise((accept, reject) => {
   const input = document.createElement('input');
@@ -69,7 +69,7 @@ const uploadCreateApp = async (item, {
           physics: true,
         },
       });
-    } catch (err) {
+    } catch(err) {
       console.warn(err);
     }
     load.end();
@@ -85,7 +85,7 @@ const uploadCreateApp = async (item, {
 };
 
 const DragAndDrop = () => {
-  const {state, setState} = useContext(AppContext);
+  const { state, setState, } = useContext( AppContext )
   const [queue, setQueue] = useState([]);
   const [currentApp, setCurrentApp] = useState(null);
 
@@ -99,7 +99,7 @@ const DragAndDrop = () => {
             const app = await _upload();
             setQueue(queue.concat([app]));
           })();
-
+  
           return false;
         }
         case 27: { // esc
@@ -156,19 +156,19 @@ const DragAndDrop = () => {
           if (app) {
             if (drop) {
               world.appManager.importApp(app);
-              setState({openedPanel: null});
+              setState({ openedPanel: null });
             } else {
               setQueue(queue.concat([app]));
             }
           }
         }));
-
+      
         /* let arrowLoader = metaverseUi.makeArrowLoader();
         arrowLoader.position.copy(position);
         arrowLoader.quaternion.copy(quaternion);
         scene.add(arrowLoader);
         arrowLoader.updateMatrixWorld();
-
+      
         if (arrowLoader) {
           scene.remove(arrowLoader);
           arrowLoader.destroy();
@@ -188,7 +188,7 @@ const DragAndDrop = () => {
       // console.log('set app', app);
       setCurrentApp(app);
       setQueue(queue.slice(1));
-      setState({openedPanel: null});
+      setState({ openedPanel: null });
 
       if (cameraManager.pointerLockElement) {
         cameraManager.exitPointerLock();

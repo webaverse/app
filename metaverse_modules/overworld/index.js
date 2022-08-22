@@ -17,10 +17,10 @@ export default e => {
       name: 'street',
       position: [0, 0, 0],
       quaternion: [0, 0, 0, 1],
-      start_url: '../metaverse_modules/scene-preview/',
+      start_url: "../metaverse_modules/scene-preview/",
       components: [
         {
-          key: 'size',
+          key: "size",
           value: [300, 150, 300],
         },
         /* {
@@ -28,8 +28,8 @@ export default e => {
           value: [0, 1.5, -150]
         }, */
         {
-          key: 'sceneUrl',
-          value: './scenes/street.scn',
+          key: "sceneUrl",
+          value: "./scenes/street.scn"
         },
         /* {
           key: "focus",
@@ -42,10 +42,10 @@ export default e => {
       name: 'shadows',
       position: [0, 0, 0],
       quaternion: [0, 1, 0, 0],
-      start_url: '../metaverse_modules/scene-preview/',
+      start_url: "../metaverse_modules/scene-preview/",
       components: [
         {
-          key: 'size',
+          key: "size",
           value: [200, 150, 200],
         },
         /* {
@@ -53,8 +53,8 @@ export default e => {
           value: [0, 0, 0]
         }, */
         {
-          key: 'sceneUrl',
-          value: './scenes/shadows.scn',
+          key: "sceneUrl",
+          value: "./scenes/shadows.scn"
         },
       ],
       chunkPriority: -1,
@@ -64,18 +64,18 @@ export default e => {
   const _getChunkComponentValue = (chunk, key) => _getChunkComponent(chunk, key)?.value;
   const _setChunksLinearPositions = chunks => {
     if (chunks.length > 0) {
-      const firstSize = _getChunkComponentValue(chunks[0], 'size');
-      let z = firstSize[2] / 2;
+      const firstSize = _getChunkComponentValue(chunks[0], 'size'); 
+      let z = firstSize[2]/2;
       for (const chunk of chunks) {
         const size = _getChunkComponentValue(chunk, 'size');
-        z -= size[2] / 2;
+        z -= size[2]/2;
         chunk.position[2] = z;
-        z -= size[2] / 2;
+        z -= size[2]/2;
       }
     }
   };
   _setChunksLinearPositions(chunks);
-
+  
   const _setChunkFocus = focusChunk => {
     for (const chunk of chunks) {
       const value = chunk === focusChunk;
@@ -97,10 +97,10 @@ export default e => {
       const chunkPosition = chunk.position;
       const chunkSize = _getChunkComponentValue(chunk, 'size');
       if (
-        position.x >= chunkPosition[0] - chunkSize[0] / 2 &&
-        position.x <= chunkPosition[0] + chunkSize[0] / 2 &&
-        position.z >= chunkPosition[2] - chunkSize[2] / 2 &&
-        position.z <= chunkPosition[2] + chunkSize[2] / 2
+        position.x >= chunkPosition[0] - chunkSize[0]/2 &&
+        position.x <= chunkPosition[0] + chunkSize[0]/2 &&
+        position.z >= chunkPosition[2] - chunkSize[2]/2 &&
+        position.z <= chunkPosition[2] + chunkSize[2]/2
       ) {
         return chunk;
       }
@@ -113,10 +113,10 @@ export default e => {
       const chunkPosition = chunk.position;
       const chunkSize = _getChunkComponentValue(chunk, 'size');
       if (
-        position.x >= chunkPosition[0] - chunkSize[0] / 2 + range &&
-        position.x <= chunkPosition[0] + chunkSize[0] / 2 - range &&
-        position.z >= chunkPosition[2] - chunkSize[2] / 2 + range &&
-        position.z <= chunkPosition[2] + chunkSize[2] / 2 - range
+        position.x >= chunkPosition[0] - chunkSize[0]/2 + range &&
+        position.x <= chunkPosition[0] + chunkSize[0]/2 - range &&
+        position.z >= chunkPosition[2] - chunkSize[2]/2 + range &&
+        position.z <= chunkPosition[2] + chunkSize[2]/2 - range
       ) {
         result.push(chunk);
       }
@@ -139,10 +139,10 @@ export default e => {
       const chunkAppPosition = chunkApp.position;
       const chunkAppSize = localVector.fromArray(_getChunkComponentValue(chunkApp, 'size'));
       if (
-        position.x >= chunkAppPosition.x - chunkAppSize.x / 2 &&
-        position.x <= chunkAppPosition.x + chunkAppSize.x / 2 &&
-        position.z >= chunkAppPosition.z - chunkAppSize.z / 2 &&
-        position.z <= chunkAppPosition.z + chunkAppSize.z / 2
+        position.x >= chunkAppPosition.x - chunkAppSize.x/2 &&
+        position.x <= chunkAppPosition.x + chunkAppSize.x/2 &&
+        position.z >= chunkAppPosition.z - chunkAppSize.z/2 &&
+        position.z <= chunkAppPosition.z + chunkAppSize.z/2
       ) {
         return chunkApp;
       }
@@ -162,10 +162,10 @@ export default e => {
       const chunkAppPosition = chunkApp.position;
       const chunkAppSize = localVector.fromArray(_getChunkComponentValue(chunkApp, 'size'));
       if (
-        position.x >= chunkAppPosition.x - chunkAppSize.x / 2 + range &&
-        position.x <= chunkAppPosition.x + chunkAppSize.x / 2 - range &&
-        position.z >= chunkAppPosition.z - chunkAppSize.z / 2 + range &&
-        position.z <= chunkAppPosition.z + chunkAppSize.z / 2 - range
+        position.x >= chunkAppPosition.x - chunkAppSize.x/2 + range &&
+        position.x <= chunkAppPosition.x + chunkAppSize.x/2 - range &&
+        position.z >= chunkAppPosition.z - chunkAppSize.z/2 + range &&
+        position.z <= chunkAppPosition.z + chunkAppSize.z/2 - range
       ) {
         result.push(chunkApp);
       }
@@ -218,8 +218,8 @@ export default e => {
   } */
 
   _setChunkFocusFromPosition(localPlayer.position);
-  const chunksInRange = _getChunksInRange(localPlayer.position, range);
-  const {
+  let chunksInRange = _getChunksInRange(localPlayer.position, range);
+  let {
     chunkApps,
     chunkAppPromises,
   } = _reifyChunks(chunksInRange);
@@ -253,7 +253,7 @@ export default e => {
     Promise.all(chunkAppPromises)
       .then(() => {
         console.log('all chunk apps loaded');
-      }),
+      })
   );
 
   useFrame(() => {

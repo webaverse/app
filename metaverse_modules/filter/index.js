@@ -25,7 +25,7 @@ function quantizeGeometry(g, n) {
     localVector.x = Math.round(localVector.x / n) * n;
     localVector.y = Math.round(localVector.y / n) * n;
     localVector.z = Math.round(localVector.z / n) * n;
-
+    
     localVector.toArray(positions, i);
   }
   g.attributes.position.needsUpdate = true;
@@ -174,7 +174,7 @@ const funGridMaterial = new THREE.ShaderMaterial({
         discard;
       } else {
         gl_FragColor = vec4(c, a);
-        //gl_FragColor = sRGBToLinear(gl_FragColor);
+        gl_FragColor = sRGBToLinear(gl_FragColor);
       }
 
       /* gl_FragColor.rb += uvGridModY.xy * 0.1;
@@ -209,7 +209,7 @@ export default () => {
 
     const delta = app.getComponent('delta');
     const [dx, dy] = delta;
-
+    
     const bounds = app.getComponent('bounds');
     const [min, max] = bounds;
     const [minX, minY, minZ] = min;
@@ -240,7 +240,7 @@ export default () => {
         throw new Error('invalid normal');
       }
     };
-
+    
     {
       const geometries = wallNormals.map(wallNormal => {
         let g = null;
@@ -268,18 +268,18 @@ export default () => {
 
           if (normal.equals(wallNormal)) {
             const position = new THREE.Vector3(
-              -width / 2 +
+              -width/2 +
                 (0.5 * -normal.x) +
                 localVector.x +
                 (normal.x === -1 ? voxelWorldSize : 0) +
-                (normal.z * voxelWorldSize / 2),
-              voxelWorldSize / 2 +
+                (normal.z * voxelWorldSize/2),
+              voxelWorldSize/2 +
                 localVector.y,
-              -depth / 2 +
+              -depth/2 +
                 (0.5 * -normal.z) +
                 localVector.z +
                 (normal.z === -1 ? voxelWorldSize : 0) +
-                (normal.x * voxelWorldSize / 2),
+                (normal.x * voxelWorldSize/2),
             );
 
             const faceQuaternion = new THREE.Quaternion()
@@ -288,7 +288,7 @@ export default () => {
                   zeroVector,
                   normal.clone().multiplyScalar(-1),
                   upVector,
-                ),
+                )
               ).invert();
             position.applyQuaternion(faceQuaternion);
 
@@ -321,11 +321,11 @@ export default () => {
           for (const localExitSpec of localNormalExitSpecs) {
             const {position, normal, size} = localExitSpec;
 
-            wallShape.lineTo(position.x - size.x / 2, position.y - size.y / 2);
-            wallShape.lineTo(position.x + size.x / 2, position.y - size.y / 2);
-            wallShape.lineTo(position.x + size.x / 2, position.y + size.y / 2);
-            wallShape.lineTo(position.x - size.x / 2, position.y + size.y / 2);
-            wallShape.lineTo(position.x - size.x / 2, position.y - size.y / 2);
+            wallShape.lineTo(position.x - size.x/2, position.y - size.y/2);
+            wallShape.lineTo(position.x + size.x/2, position.y - size.y/2);
+            wallShape.lineTo(position.x + size.x/2, position.y + size.y/2);
+            wallShape.lineTo(position.x - size.x/2, position.y + size.y/2);
+            wallShape.lineTo(position.x - size.x/2, position.y - size.y/2);
             wallShape.lineTo(-outerWidth / 2, -outerHeight / 2);
           }
 
@@ -336,12 +336,12 @@ export default () => {
               wallNormal,
               zeroVector,
               upVector,
-            ),
+            )
           );
 
           g = new THREE.ShapeGeometry(wallShape)
             .applyMatrix4(
-              localMatrix.compose(offset, quaternion, oneVector),
+              localMatrix.compose(offset, quaternion, oneVector)
             );
         } else {
           const offset = localVector.multiplyVectors(dims, wallNormal.clone().multiplyScalar(-1))
@@ -351,12 +351,12 @@ export default () => {
               wallNormal,
               zeroVector,
               upVector,
-            ),
+            )
           );
           const scale = _getScaleFromNormal(wallNormal, localVector2);
           g = new THREE.PlaneBufferGeometry(1, 1, 1)
             .applyMatrix4(
-              localMatrix.compose(offset, quaternion, scale),
+              localMatrix.compose(offset, quaternion, scale)
             );
         }
         return quantizeGeometry(g, voxelWorldSize);
@@ -381,7 +381,7 @@ export default () => {
       for (let i = 0; i < blocks.length; i++) {
         data[i] = blocks[i].toUint8();
       }
-
+      
       const mesh = createMapChunkMesh(x, y, data);
       mesh.position.set(dx * chunkWorldSize, 0, dy * chunkWorldSize);
       app.add(mesh);

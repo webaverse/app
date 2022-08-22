@@ -24,7 +24,7 @@ export default () => {
   const _updateGeometry = timestamp => {
     const time = timeOffset + timestamp * 0.002;
     const k = 1;
-    for (let i = 0; i < silkMesh.geometry.attributes.position.array.length; i += 3) {
+    for (var i = 0; i < silkMesh.geometry.attributes.position.array.length; i += 3) {
       const p = localVector.fromArray(silkMesh.geometry.attributes.position.array, i);
       const f = 0.5 + 0.2 * simplex.noise3D(p.x * k + time, p.y * k, p.z * k);
       p.normalize().multiplyScalar(f);

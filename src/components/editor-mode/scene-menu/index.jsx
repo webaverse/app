@@ -1,3 +1,3 @@
 
-import {SceneMenu} from './SceneMenu';
-export {SceneMenu};
+import { SceneMenu } from './SceneMenu';
+export { SceneMenu };

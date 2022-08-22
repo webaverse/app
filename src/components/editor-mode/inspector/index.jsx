@@ -1,3 +1,3 @@
 
-import {Inspector} from './Inspector';
-export {Inspector};
+import { Inspector } from './Inspector';
+export { Inspector };

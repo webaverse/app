@@ -1,3 +1,4 @@
+import {partyManager} from './party-manager.js';
 import {playersManager} from './players-manager.js';
 import {LoadoutRenderer} from './loadout-renderer.js';
 import {InfoboxRenderer} from './infobox.js';
@@ -24,9 +25,38 @@ class LoadoutManager extends EventTarget {
     this.hotbarRenderers = [];
     this.infoboxRenderer = null;
     this.selectedIndex = -1;
-  
+    this.removeLastWearUpdateFn = null;
+
+    const playerSelectedFn = e => {
+      const {
+        player,
+      } = e.data;
+
+      this.bindPlayer(player);
+    };
+
+    const playerDeselectedFn = e => {
+      const {
+        player,
+      } = e.data;
+
+      this.unbindPlayer(player);
+    };
+
+    partyManager.addEventListener('playerselected', playerSelectedFn);
+    partyManager.addEventListener('playerdeselected', playerDeselectedFn);
+    this.removeListenerFn = () => {
+      partyManager.removeEventListener('playerselected', playerSelectedFn);
+      partyManager.removeEventListener('playerdeselected', playerDeselectedFn);
+    };
+    
+    // this is the initial event for the first player
     const localPlayer = playersManager.getLocalPlayer();
-    localPlayer.addEventListener('wearupdate', e => {
+    this.bindPlayer(localPlayer);
+  }
+  bindPlayer(player) {
+    const localPlayer = player;
+    const wearupdate = e => {
       const {app, wear, loadoutIndex} = e;
 
       this.ensureRenderers();
@@ -46,9 +76,18 @@ class LoadoutManager extends EventTarget {
             this.setSelectedIndex(nextIndex);
             break;
           }
-        }
+        }      
       }
-    });
+    };
+    localPlayer.addEventListener('wearupdate', wearupdate);
+    this.removeLastWearUpdateFn = () => {localPlayer.removeEventListener('wearupdate', wearupdate);};
+  }
+
+  unbindPlayer(player) {
+    if (this.removeLastWearUpdateFn) {
+      this.removeLastWearUpdateFn();
+      this.removeLastWearUpdateFn = null;
+    }
   }
   ensureRenderers() {
     if (this.hotbarRenderers.length === 0) {

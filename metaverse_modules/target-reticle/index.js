@@ -81,9 +81,9 @@ function createTargetReticleGeometry() {
   const _setZooms = g => {
     const zooms = new Float32Array(g.attributes.position.count);
     baseGeometry.setAttribute('zoom', new THREE.BufferAttribute(zooms, 1));
-  };
+  }
   _setZooms(baseGeometry);
-
+  
   const _setUvs = g => {
     const positions = g.attributes.position.array;
     const uvs = g.attributes.uv.array;
@@ -91,7 +91,7 @@ function createTargetReticleGeometry() {
       localVector.fromArray(positions, i * 3);
       localVector2D.set(
         (localVector.x + triangleHalfSize) / triangleSize,
-        localVector.y / triangleHalfSize,
+        localVector.y / triangleHalfSize
       ).toArray(uvs, i * 2);
     }
     return g;
@@ -113,29 +113,29 @@ function createTargetReticleGeometry() {
       baseGeometry.clone()
         .rotateZ(0)
         .translate(0, innerRadius, 0),
-      new THREE.Vector2(0, 1),
+      new THREE.Vector2(0, 1)
     ),
     _setNormal2s(
       baseGeometry.clone()
         .rotateZ(Math.PI / 2)
         .translate(-innerRadius, 0, 0),
-      new THREE.Vector2(-1, 0),
+      new THREE.Vector2(-1, 0)
     ),
     _setNormal2s(
       baseGeometry.clone()
         .rotateZ(Math.PI)
         .translate(0, -innerRadius, 0),
-      new THREE.Vector2(0, -1),
+      new THREE.Vector2(0, -1)
     ),
     _setNormal2s(
       baseGeometry.clone()
         .rotateZ(Math.PI * 3 / 2)
         .translate(innerRadius, 0, 0),
-      new THREE.Vector2(1, 0),
+      new THREE.Vector2(1, 0)
     ),
   ];
   return BufferGeometryUtils.mergeBufferGeometries(geometries);
-}
+};
 function createTargetReticleGeometries(count) {
   const geometry = createTargetReticleGeometry();
   const geometries = Array(count);
@@ -382,7 +382,7 @@ const _makeTargetReticleMesh = () => {
     const numReticles = reticles.length;
     for (let i = 0; i < numReticles; i++) {
       const reticle = reticles[i];
-
+      
       const position = reticle.position;
       const quaternion = localQuaternion.copy(camera.quaternion).invert();
       const type = reticle.type;
@@ -410,6 +410,6 @@ export default () => {
   useFrame(({timestamp, timeDiff}) => {
     mesh.update(timestamp, timeDiff);
   });
-
+  
   return mesh;
 };

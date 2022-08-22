@@ -50,7 +50,7 @@ const material = new MeshBasicMaterial({
     texture.needsUpdate = true;
     material.map = texture;
     material.needsUpdate = true;
-  } catch (err) {
+  } catch(err) {
     console.warn(err);
     material.color = redColor;
     material.needsUpdate = true;
@@ -60,19 +60,19 @@ const material = new MeshBasicMaterial({
 export default () => {
   const app = useApp();
   // const physics = usePhysics();
-
-  // let physicsIds = [];
+	
+	// let physicsIds = [];
 
   const mesh = new Mesh(geometry, material);
   app.add(mesh);
-
+  
   /* const physicsId = physics.addGeometry(mesh);
   physicsIds.push(physicsId); */
-
-  useActivate(() => {
-    removeApp(app);
+	
+	useActivate(() => {
+		removeApp(app);
     app.destroy();
-  });
+	});
 
   return app;
 };

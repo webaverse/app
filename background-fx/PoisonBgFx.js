@@ -519,7 +519,6 @@ class PoisonBgFxMesh extends THREE.Mesh {
     super(geometry, material);
     this.frustumCulled = false;
   }
-
   update(timestamp, timeDiff, width, height) {
     const timestampS = timestamp / 1000;
     this.material.uniforms.iTime.value = timestampS;

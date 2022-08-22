@@ -16,7 +16,7 @@ const particleNames = [
   'Elements - Fire 008 Up Projectile Loop noCT noRSZ.mov',
   // 'Elements - Fire 047 Up Wide loop.mov',
 ];
-const downQuaternion = new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(1, 0, 0), -Math.PI / 2);
+const downQuaternion = new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(1, 0, 0), -Math.PI/2);
 
 export default e => {
   const app = useApp();
@@ -43,7 +43,7 @@ export default e => {
         maxParticles: numParticles,
       });
       await localParticleSystem.waitForLoad();
-      if (live) {
+      if (live){
         scene.add(localParticleSystem);
         particleSystem = localParticleSystem;
       }
@@ -61,10 +61,10 @@ export default e => {
       particles.push(particle);
       return particle;
     };
-    if (live) {
+    if (live){
       const particleName = particleNames[Math.floor(rng() * particleNames.length)];
       const dropParticle = _addParticle(particleName, app.position);
-
+    
       const result = physicsManager.raycast(dropParticle.position, downQuaternion);
       if (result) {
         const basePoint = new THREE.Vector3().fromArray(result.point);
@@ -74,7 +74,7 @@ export default e => {
           _addParticle(
             particleName,
             basePoint.clone()
-              .add(new THREE.Vector3(r(3), size * 0.25, r(3))),
+              .add(new THREE.Vector3(r(3), size * 0.25, r(3)))
           );
         }
       }
@@ -83,11 +83,11 @@ export default e => {
 
   useCleanup(() => {
     live = false;
-    if (particleSystem) {
+    if (particleSystem){
       scene.remove(particleSystem);
       particleSystem.destroy();
     }
   });
-
+  
   return app;
 };

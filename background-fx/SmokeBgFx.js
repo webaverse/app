@@ -124,7 +124,7 @@ class SmokeBgFxMesh extends THREE.Mesh {
       index++;
       const binFormat = file.getUint16(index, true);
       index += Uint16Array.BYTES_PER_ELEMENT;
-
+      
       const data = new Uint8Array(arrayBuffer, 20);
       const noise3DTexture = new THREE.Data3DTexture(data, width, height, depth);
       noise3DTexture.minFilter = THREE.LinearFilter;
@@ -133,7 +133,7 @@ class SmokeBgFxMesh extends THREE.Mesh {
       noise3DTexture.wrapT = THREE.RepeatWrapping;
       noise3DTexture.wrapR = THREE.RepeatWrapping;
       noise3DTexture.needsUpdate = true;
-
+      
       material.uniforms.iChannel0.value = noise3DTexture;
       material.uniforms.iChannel0.needsUpdate = true;
     })();
@@ -164,10 +164,9 @@ class SmokeBgFxMesh extends THREE.Mesh {
     super(geometry, material);
     this.frustumCulled = false;
   }
-
   update(timestamp, timeDiff, width, height) {
     const timestampS = timestamp / 1000;
-
+    
     this.material.uniforms.iTime.value = timestampS;
     this.material.uniforms.iTime.needsUpdate = true;
 

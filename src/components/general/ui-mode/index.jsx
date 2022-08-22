@@ -1,3 +1,3 @@
 
-import {UIMode} from './UIMode';
-export {UIMode};
+import { UIMode } from './UIMode';
+export { UIMode };

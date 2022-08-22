@@ -1,3 +1,3 @@
 
-import {Character} from './Character';
-export {Character};
+import { Character } from './Character';
+export { Character };

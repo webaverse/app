@@ -1,3 +1,3 @@
 
-import {NumberInput} from './NumberInput';
-export {NumberInput};
+import { NumberInput } from './NumberInput';
+export { NumberInput };

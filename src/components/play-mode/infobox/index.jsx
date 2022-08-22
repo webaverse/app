@@ -1,3 +1,3 @@
 
-import {Infobox} from './Infobox';
-export {Infobox};
+import { Infobox } from './Infobox';
+export { Infobox };

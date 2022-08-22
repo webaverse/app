@@ -1,4 +1,3 @@
-/* eslint-disable prefer-const */
 /* eslint-disable no-async-promise-executor */
 /* eslint-disable no-new */
 /* eslint-disable prefer-promise-reject-errors */
@@ -98,7 +97,7 @@ class Wallet {
     const parcel = await this.sign({
       ...data,
       ...{
-        action,
+        action: action,
       },
     });
 

@@ -46,10 +46,10 @@ const ObjectPreview = ({
           fitCameraToBoundingBox(
             camera,
             localBox.setFromObject(object),
-            1.2,
+            1.2
           );
           camera.updateMatrixWorld();
-
+        
           camera.aspect = canvasWidth / canvasHeight;
           camera.updateProjectionMatrix();
         };
@@ -60,7 +60,7 @@ const ObjectPreview = ({
         const controls = new OrbitControls(camera, canvas);
         // controls.update() must be called after any manual changes to the camera's transform
         // camera.position.set( 0, 20, 100 );
-
+        
         const _updateControls = () => {
           controls.update();
           frame = requestAnimationFrame(_updateControls);
@@ -80,7 +80,7 @@ const ObjectPreview = ({
 
   return (
     <canvas className={classnames(className, style.objectPreview)} width={canvasWidth} height={canvasHeight} ref={canvasRef} />
-  );
+  )
 };
 export {
   ObjectPreview,

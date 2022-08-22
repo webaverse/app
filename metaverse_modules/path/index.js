@@ -45,13 +45,13 @@ export default () => {
       // point.y += r() * stepRange;
       position.y += 100;
       position.z += r() * stepRange;
-
+      
       const result = physics.raycast(
         position,
         new THREE.Quaternion().setFromAxisAngle(
           new THREE.Vector3(1, 0, 0),
-          -Math.PI / 2,
-        ),
+          -Math.PI / 2
+        )
       );
       const p = position.clone();
       if (result) {
@@ -87,7 +87,7 @@ export default () => {
   };
   (async () => {
     await waitForSceneLoaded();
-
+  
     const pathMesh = _makePathMesh();
     app.add(pathMesh);
     pathMesh.matrix.copy(app.matrixWorld).invert()

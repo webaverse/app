@@ -1,3 +1,3 @@
 
-import {ObjectScreenshot} from './ObjectScreenshot';
-export {ObjectScreenshot};
+import { ObjectScreenshot } from './ObjectScreenshot';
+export { ObjectScreenshot };

@@ -3,7 +3,7 @@ import * as THREE from 'three';
 // import easing from './easing.js';
 import metaversefile from 'metaversefile';
 // import {getCaretAtPoint} from 'troika-three-text';
-const {useApp, useInternals, useMaterials, useFrame, /* usePhysics, */ useText} = metaversefile;
+const {useApp, useInternals, useMaterials, useFrame, /*usePhysics,*/ useText} = metaversefile;
 
 const localVector4D = new THREE.Vector4();
 
@@ -11,7 +11,7 @@ let multiText = null;
 
 export default e => {
   const app = useApp();
-  const {/* renderer, */scene/*, camera */} = useInternals();
+  const {/*renderer, */scene/*, camera*/} = useInternals();
   // const physics = usePhysics();
   const {WebaverseShaderMaterial} = useMaterials();
   const Text = useText();
@@ -25,7 +25,6 @@ export default e => {
         // text._derivedMaterial = createTextDerivedMaterial(material);
         this.text = text;
       }
-
       makeText() {
         const text = new Text();
         text.material = this.text.material;
@@ -179,13 +178,13 @@ export default e => {
       textMesh.material.uniforms.uCharacters.value = text.length;
       textMesh.material.uniforms.uCharacters.needsUpdate = true;
 
-      for (let i = 0; i < textMesh.geometry.attributes.aTroikaGlyphBounds.count * 0.5; i++) {
+      for (let i = 0; i < textMesh.geometry.attributes.aTroikaGlyphBounds.count*0.5; i++) {
         localVector4D.fromArray(textMesh.geometry.attributes.aTroikaGlyphBounds.array, i * 4)
-          .toArray(textMesh.geometry.attributes.aTroikaGlyphBounds.array, textMesh.geometry.attributes.aTroikaGlyphBounds.array.length * 0.5 + i * 4);
+          .toArray(textMesh.geometry.attributes.aTroikaGlyphBounds.array, textMesh.geometry.attributes.aTroikaGlyphBounds.array.length*0.5 + i * 4);
       }
 
       textMesh.position.set(-width * 0.5, height * 0.5, 0);
-
+      
       return textMesh;
     }
 
@@ -199,7 +198,7 @@ export default e => {
         if (textMeshSpec && timestamp >= textMeshSpec.endTime) {
           for (const textMesh of textMeshSpec.textMeshes) {
             textMesh.geometry.dispose();
-          }
+          } 
           textMeshSpec = null;
           scene.remove(app);
           frameHandlers.splice(frameHandlers.indexOf(frameHandler), 1);

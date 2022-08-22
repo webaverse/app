@@ -25,29 +25,23 @@ export const Tab = ({className, type, left, right, top, bottom, index, disabled,
       disabled ? styles.disabled : null,
       open === type ? styles.open : null,
     )} onClick={onclick}>
-      {left
-        ? <>
+      {left ? <>
         {before}
-        {panels
-          ? <div className={styles.panels} onClick={stopPropagation} ref={panelsRef}>
+        {panels ? <div className={styles.panels} onClick={stopPropagation} ref={panelsRef}>
           <div className={styles['panels-wrap']}>
             {panels}
           </div>
-        </div>
-          : null}
+        </div> : null}
         {label}
         {after}
-      </>
-        : <>
+      </> : <>
         {before}
         {label}
-        {panels
-          ? <div className={styles.panels} onClick={stopPropagation} ref={panelsRef}>
+        {panels ? <div className={styles.panels} onClick={stopPropagation} ref={panelsRef}>
           <div className={styles['panels-wrap']}>
             {panels}
           </div>
-        </div>
-          : null}
+        </div> : null}
         {after}
       </>}
     </div>

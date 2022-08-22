@@ -72,7 +72,7 @@ export const StoryTime = () => {
       });
     }
     storyManager.addEventListener('conversationstart', conversationstart);
-
+    
     return () => {
       storyManager.removeEventListener('conversationstart', conversationstart);
     };
@@ -81,6 +81,7 @@ export const StoryTime = () => {
   useEffect(() => {
     if (message) {
       const handleKeyDown = event => {
+
         if (event.which === 13) { // enter
           _continue();
 
