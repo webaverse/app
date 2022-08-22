@@ -142,7 +142,6 @@ export const MegaHotBox = ({
     }, []);
 
     const isClaimedOrUnable = () => {
-        console.log("index", selectedMenuIndex)
         if((selectedMenuIndex == 0) && selectObject ) {
                 return selectObject.claimed ?? false;
         } else return true;

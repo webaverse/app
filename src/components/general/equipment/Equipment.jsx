@@ -329,7 +329,6 @@ export const Equipment = () => {
 
     useEffect(() => {
         if (account && account.currentAddress) {
-            console.log('querying opensea');
           async function queryOpensea() {
             fetch(
               `https://api.opensea.io/api/v1/assets?owner=${account.currentAddress}&limit=${50}`,
@@ -419,7 +418,6 @@ export const Equipment = () => {
     };
 
     const mintClaim = async (e) => {
-        console.log("mintfomrddd",e)
         await mintfromVoucher(e, () => {
         }, () => {
             dropManager.removeClaim(e);

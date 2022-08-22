@@ -82,7 +82,6 @@ class DropManager extends EventTarget {
   }
   removeClaim(claimedDrop) {
     const restClaims = this.claims.filter((each) => JSON.stringify(each) !== JSON.stringify(claimedDrop))
-    console.log("reset", restClaims)
     this.claims = restClaims
     this.dispatchEvent(new MessageEvent('claimschange', {
       data: {
@@ -91,7 +90,6 @@ class DropManager extends EventTarget {
     }));
   }
   pickupApp(app) {
-    console.log("pcikyo", app)
     this.addClaim(app.name, app.type, app.getComponent('drop').serverDrop, app.contentId, app.getComponent('voucher'));
   }
   dropToken(contractAddress, tokenId, voucher) {
