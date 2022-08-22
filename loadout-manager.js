@@ -27,14 +27,7 @@ class LoadoutManager extends EventTarget {
     this.selectedIndex = -1;
     this.removeLastWearUpdateFn = null;
 
-    const playerDeselectedFn = e => {
-      if (this.removeLastWearUpdateFn) {
-        this.removeLastWearUpdateFn();
-        this.removeLastWearUpdateFn = null;
-      }
-    };
-
-    const playerSelectedFn = e => {
+    const bindPlayerFn = e => {
       const {
         player,
       } = e.data;
@@ -67,16 +60,23 @@ class LoadoutManager extends EventTarget {
       this.removeLastWearUpdateFn = () => {localPlayer.removeEventListener('wearupdate', wearupdate);};
     };
 
-    partyManager.addEventListener('playerselected', playerSelectedFn);
-    partyManager.addEventListener('playerdeselected', playerDeselectedFn);
+    const unbindPlayerFn = e => {
+      if (this.removeLastWearUpdateFn) {
+        this.removeLastWearUpdateFn();
+        this.removeLastWearUpdateFn = null;
+      }
+    };
+
+    partyManager.addEventListener('playerselected', bindPlayerFn);
+    partyManager.addEventListener('playerdeselected', unbindPlayerFn);
     this.removeListenerFn = () => {
-      partyManager.removeEventListener('playerselected', playerSelectedFn);
-      partyManager.removeEventListener('playerdeselected', playerDeselectedFn);
+      partyManager.removeEventListener('playerselected', bindPlayerFn);
+      partyManager.removeEventListener('playerdeselected', unbindPlayerFn);
     };
     
     // this is the initial event for the first player
     const localPlayer = playersManager.getLocalPlayer();
-    playerSelectedFn({data: {player: localPlayer}});
+    bindPlayerFn({data: {player: localPlayer}});
   }
   ensureRenderers() {
     if (this.hotbarRenderers.length === 0) {
