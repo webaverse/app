@@ -27,56 +27,67 @@ class LoadoutManager extends EventTarget {
     this.selectedIndex = -1;
     this.removeLastWearUpdateFn = null;
 
-    const bindPlayerFn = e => {
+    const playerSelectedFn = e => {
       const {
         player,
       } = e.data;
 
-      const localPlayer = player;
-      const wearupdate = e => {
-        const {app, wear, loadoutIndex} = e;
-
-        this.ensureRenderers();
-        if (wear) {
-          this.apps[loadoutIndex] = app;
-          this.setSelectedIndex(loadoutIndex);
-        } else {
-          for (let i = 0; i < this.apps.length; i++) {
-            const a = this.apps[i];
-            if (a === app) {
-              const hotbarRenderer = this.hotbarRenderers[i];
-              hotbarRenderer.setSpritesheet(null);
-
-              this.apps[i] = null;
-
-              const nextIndex = this.getNextUsedIndex();
-              this.setSelectedIndex(nextIndex);
-              break;
-            }
-          }
-        }
-      };
-      localPlayer.addEventListener('wearupdate', wearupdate);
-      this.removeLastWearUpdateFn = () => {localPlayer.removeEventListener('wearupdate', wearupdate);};
+      this.bindPlayer(player);
     };
 
-    const unbindPlayerFn = e => {
-      if (this.removeLastWearUpdateFn) {
-        this.removeLastWearUpdateFn();
-        this.removeLastWearUpdateFn = null;
-      }
+    const playerDeselectedFn = e => {
+      const {
+        player,
+      } = e.data;
+
+      this.unbindPlayer(player);
     };
 
-    partyManager.addEventListener('playerselected', bindPlayerFn);
-    partyManager.addEventListener('playerdeselected', unbindPlayerFn);
+    partyManager.addEventListener('playerselected', playerSelectedFn);
+    partyManager.addEventListener('playerdeselected', playerDeselectedFn);
     this.removeListenerFn = () => {
-      partyManager.removeEventListener('playerselected', bindPlayerFn);
-      partyManager.removeEventListener('playerdeselected', unbindPlayerFn);
+      partyManager.removeEventListener('playerselected', playerSelectedFn);
+      partyManager.removeEventListener('playerdeselected', playerDeselectedFn);
     };
     
     // this is the initial event for the first player
     const localPlayer = playersManager.getLocalPlayer();
-    bindPlayerFn({data: {player: localPlayer}});
+    this.bindPlayer(localPlayer);
+  }
+  bindPlayer(player) {
+    const localPlayer = player;
+    const wearupdate = e => {
+      const {app, wear, loadoutIndex} = e;
+
+      this.ensureRenderers();
+      if (wear) {
+        this.apps[loadoutIndex] = app;
+        this.setSelectedIndex(loadoutIndex);
+      } else {
+        for (let i = 0; i < this.apps.length; i++) {
+          const a = this.apps[i];
+          if (a === app) {
+            const hotbarRenderer = this.hotbarRenderers[i];
+            hotbarRenderer.setSpritesheet(null);
+
+            this.apps[i] = null;
+
+            const nextIndex = this.getNextUsedIndex();
+            this.setSelectedIndex(nextIndex);
+            break;
+          }
+        }      
+      }
+    };
+    localPlayer.addEventListener('wearupdate', wearupdate);
+    this.removeLastWearUpdateFn = () => {localPlayer.removeEventListener('wearupdate', wearupdate);};
+  }
+
+  unbindPlayer(player) {
+    if (this.removeLastWearUpdateFn) {
+      this.removeLastWearUpdateFn();
+      this.removeLastWearUpdateFn = null;
+    }
   }
   ensureRenderers() {
     if (this.hotbarRenderers.length === 0) {
