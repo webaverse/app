@@ -3,17 +3,18 @@
 import {emotions} from './src/components/general/character/Emotions';
 import offscreenEngineManager from './offscreen-engine-manager.js';
 import {fetchArrayBuffer} from './util';
+import {partyManager} from './party-manager';
+import {playersManager} from './players-manager';
 
 const allEmotions = [''].concat(emotions);
 
 class AvatarIconer extends EventTarget {
-  constructor(player, {
+  constructor({
     width = 150,
     height = 150,
   } = {}) {
     super();
 
-    this.player = player;
     this.width = width;
     this.height = height;
 
@@ -24,23 +25,34 @@ class AvatarIconer extends EventTarget {
     this.enabled = false;
 
     this.canvases = [];
-    
-    const avatarchange = e => {
-      this.renderAvatarApp(e.app);
-    };
-    player.addEventListener('avatarchange', avatarchange);
-    
-    const actionupdate = e => {
-      this.updateEmotionFromActions();
-    };
-    player.addEventListener('actionadd', actionupdate);
-    player.addEventListener('actionremove', actionupdate);
+    this.cleanup = null;
 
-    this.cleanup = () => {
-      player.removeEventListener('avatarchange', avatarchange);
-      player.removeEventListener('actionadd', actionupdate);
-      player.removeEventListener('actionremove', actionupdate);
+    const playerSelectedFn = e => {
+      const {
+        player,
+      } = e.data;
+
+      this.bindPlayer(player);
     };
+
+    const playerDeselectedFn = e => {
+      const {
+        player,
+      } = e.data;
+
+      this.unbindPlayer(player);
+    };
+
+    partyManager.addEventListener('playerselected', playerSelectedFn);
+    partyManager.addEventListener('playerdeselected', playerDeselectedFn);
+    this.removeListenerFn = () => {
+      partyManager.removeEventListener('playerselected', playerSelectedFn);
+      partyManager.removeEventListener('playerdeselected', playerDeselectedFn);
+    };
+
+    // this is the initial event for the first player
+    const localPlayer = playersManager.getLocalPlayer();
+    this.bindPlayer(localPlayer);
 
     this.getEmotionCanvases = offscreenEngineManager.createFunction([
       `\
@@ -87,10 +99,39 @@ class AvatarIconer extends EventTarget {
         return emotionCanvases;
       }
     ]);
+  }
+  
+  bindPlayer(player) {
+    this.player = player;
+    
+    const avatarchange = e => {
+      this.renderAvatarApp(e.app);
+    };
+    player.addEventListener('avatarchange', avatarchange);
+    
+    const actionupdate = e => {
+      this.updateEmotionFromActions();
+    };
+    player.addEventListener('actionadd', actionupdate);
+    player.addEventListener('actionremove', actionupdate);
+
+    this.cleanup = () => {
+      player.removeEventListener('avatarchange', avatarchange);
+      player.removeEventListener('actionadd', actionupdate);
+      player.removeEventListener('actionremove', actionupdate);
+    };
 
     const avatarApp = player.getAvatarApp();
     this.renderAvatarApp(avatarApp);
   }
+
+  unbindPlayer(player) {
+    if (this.cleanup) {
+      this.cleanup();
+      this.cleanup = null;
+    }
+  }
+
   async renderAvatarApp(srcAvatarApp) {
     const lastEnabled = this.enabled;
 
@@ -197,7 +238,10 @@ class AvatarIconer extends EventTarget {
     }
   }
   destroy() {
-    this.cleanup();
+    if (cleanup) {
+      this.cleanup();
+    }
+    this.removeListenerFn();
   }
 }
 export {
