@@ -3,7 +3,8 @@
 import {emotions} from './src/components/general/character/Emotions';
 import offscreenEngineManager from './offscreen-engine-manager.js';
 import {fetchArrayBuffer} from './util';
-import {partyManager} from './party-manager';
+import {avatarManager} from './avatar-manager';
+import {partyManager} from './party-manager'
 import {playersManager} from './players-manager';
 
 const allEmotions = [''].concat(emotions);
@@ -15,6 +16,7 @@ class AvatarIconer extends EventTarget {
   } = {}) {
     super();
 
+    this.player = playersManager.getLocalPlayer();
     this.width = width;
     this.height = height;
 
@@ -32,27 +34,30 @@ class AvatarIconer extends EventTarget {
         player,
       } = e.data;
 
-      this.bindPlayer(player);
+      this.player = player;
+      const avatarApp = this.player.getAvatarApp();
+      this.renderAvatarApp(avatarApp);
     };
-
-    const playerDeselectedFn = e => {
-      const {
-        player,
-      } = e.data;
-
-      this.unbindPlayer(player);
-    };
-
     partyManager.addEventListener('playerselected', playerSelectedFn);
-    partyManager.addEventListener('playerdeselected', playerDeselectedFn);
-    this.removeListenerFn = () => {
+
+    const avatarchange = e => {
+      this.renderAvatarApp(e.data.app);
+    };
+    avatarManager.addEventListener('avatarchange', avatarchange);
+    
+    const actionupdate = e => {
+      this.updateEmotionFromActions();
+    };
+    avatarManager.addEventListener('actionupdate', actionupdate);
+
+    this.cleanup = () => {
       partyManager.removeEventListener('playerselected', playerSelectedFn);
-      partyManager.removeEventListener('playerdeselected', playerDeselectedFn);
+      avatarManager.removeEventListener('avatarchange', avatarchange);
+      avatarManager.removeEventListener('actionupdate', actionupdate);
     };
 
-    // this is the initial event for the first player
-    const localPlayer = playersManager.getLocalPlayer();
-    this.bindPlayer(localPlayer);
+    const avatarApp = this.player.getAvatarApp();
+    this.renderAvatarApp(avatarApp);
 
     this.getEmotionCanvases = offscreenEngineManager.createFunction([
       `\
@@ -238,10 +243,7 @@ class AvatarIconer extends EventTarget {
     }
   }
   destroy() {
-    if (cleanup) {
-      this.cleanup();
-    }
-    this.removeListenerFn();
+    this.cleanup();
   }
 }
 export {
