@@ -28,12 +28,17 @@ const freestyleOffset = 900 / 2;
 const breaststrokeDuration = 1066.6666666666666;
 const breaststrokeOffset = 433.3333333333333;
 
-let comboAnimationOffset={
+const silswordAnimationOffset = {
   'swordSideSlash': 350,
   'swordSideSlashStep': 150,
   'swordTopDownSlash': 100,
   'swordTopDownSlashStep': 150
-}
+};
+const swordAnimationOffset = [
+  950, 
+  950, 
+  950
+];
 
 
 // HACK: this is used to dynamically control the step offset for a particular animation
@@ -69,8 +74,9 @@ const _getActionFrameIndex = (f, frameTimes) => {
   return i;
 };
 
-class CharacterSfx {
+class CharacterSfx extends EventTarget{
   constructor(player) {
+    super();
     this.player = player;
 
     this.lastJumpState = false;
@@ -111,7 +117,7 @@ class CharacterSfx {
 
     this.lastCombo = false;
     this.playComboTime = 0;
-    this.playComboGrunt = false;
+    this.currentComboIndex = -1;
   }
   update(timestamp, timeDiffS) {
     if (!this.player.avatar) {
@@ -355,17 +361,72 @@ class CharacterSfx {
     _handleNarutoRun();
 
     // combo
+    const dispatchComboSoundEvent = (combo, indexOfCombo) =>{
+      this.dispatchEvent(new MessageEvent('comboSoundEmit', {
+        data: {
+          combo: combo,
+          indexOfCombo: indexOfCombo
+        },
+      }));
+    }
     const _handleCombo = () => {
-      const currentCombo = this.player.avatar.useAnimationCombo[this.player.avatar.useAnimationIndex];
-      if (currentCombo && currentCombo !== this.lastCombo) {
-        this.playComboTime = timestamp;
-        this.playComboGrunt = false;
+      let currentCombo;
+      if(this.player.hasAction('use') && this.player.getAction('use').behavior === 'sword'){
+        currentCombo = this.player.getAction('use').animation ? 
+          this.player.getAction('use').animation 
+          : 
+          this.player.getAction('use').animationCombo[this.player.avatar.useAnimationIndex]
+      }
+      if (currentCombo) {
+        if (currentCombo !== this.lastCombo) {
+          this.playComboTime = timestamp;
+          this.playComboGrunt = false;
+          this.currentComboIndex = -1;
+        }
+        if (currentCombo === 'combo') { // sword
+          switch (this.currentComboIndex) {
+            case -1: { 
+              this.currentComboIndex = 0;
+            }
+            case 0: { 
+              if(timestamp - this.playComboTime >= swordAnimationOffset[this.currentComboIndex]){
+                this.playComboTime = timestamp;
+                this.playGrunt('attack');
+                this.currentComboIndex = 1;
+                // dispatchComboSoundEvent(currentCombo, this.currentComboIndex);
+              }
+              break;
+            }
+            case 1: { 
+              if(timestamp - this.playComboTime >= swordAnimationOffset[this.currentComboIndex]){
+                this.playComboTime = timestamp;
+                this.playGrunt('attack');
+                this.currentComboIndex = 2;
+                // dispatchComboSoundEvent(currentCombo, this.currentComboIndex);
+              }
+              break;
+            }
+            case 2: { 
+              if(timestamp - this.playComboTime >= swordAnimationOffset[this.currentComboIndex]){
+                this.playComboTime = timestamp;
+                this.playGrunt('attack');
+                this.currentComboIndex = 3;
+                // dispatchComboSoundEvent(currentCombo, this.currentComboIndex);
+              }
+              break;
+            }
+          }
+        }
+        else { // silsword
+          if (timestamp - this.playComboTime >= silswordAnimationOffset[currentCombo] && this.currentComboIndex !== this.player.avatar.useAnimationIndex) {
+            this.playGrunt('attack');
+            this.playComboGrunt = true;
+            this.currentComboIndex = this.player.avatar.useAnimationIndex;
+            dispatchComboSoundEvent(currentCombo, this.currentComboIndex);
+          }
+        }
       }
       this.lastCombo = currentCombo;
-      if (timestamp - this.playComboTime >= comboAnimationOffset[currentCombo] && !this.playComboGrunt) {
-        this.playGrunt('attack');
-        this.playComboGrunt = true;
-      }
     };
     _handleCombo();
     
@@ -485,12 +546,12 @@ class CharacterSfx {
         }
       }
       
-      if(index===undefined){
+      if (index === undefined) {
         let voice = selectVoice(voiceFiles);
         duration = voice.duration;
         offset = voice.offset;
       }
-      else{
+      else {
         duration = voiceFiles[index].duration;
         offset = voiceFiles[index].offset;
       } 
@@ -506,7 +567,7 @@ class CharacterSfx {
       audioBufferSourceNode.connect(this.player.avatar.getAudioInput());
 
       // if the oldGrunt are still playing
-      if(this.oldGrunt){
+      if (this.oldGrunt) {
         this.oldGrunt.stop();
         this.oldGrunt = null;
       }
@@ -572,12 +633,12 @@ class CharacterSfx {
         }
       }
       
-      if(index===undefined){
+      if (index === undefined) {
         let voice = selectVoice(voiceFiles);
         duration = voice.duration;
         offset = voice.offset;
       }
-      else{
+      else {
         duration = voiceFiles[index].duration;
         offset = voiceFiles[index].offset;
       } 
@@ -593,7 +654,7 @@ class CharacterSfx {
       audioBufferSourceNode.connect(this.player.avatar.getAudioInput());
 
       // if the oldGrunt are still playing
-      if(this.oldGrunt){
+      if (this.oldGrunt) {
         this.oldGrunt.stop();
         this.oldGrunt = null;
       }
