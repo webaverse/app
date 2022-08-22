@@ -380,7 +380,6 @@ class CharacterSfx extends EventTarget{
       if (currentCombo) {
         if (currentCombo !== this.lastCombo) {
           this.playComboTime = timestamp;
-          this.playComboGrunt = false;
           this.currentComboIndex = -1;
         }
         if (currentCombo === 'combo') { // sword
@@ -420,7 +419,6 @@ class CharacterSfx extends EventTarget{
         else { // silsword
           if (timestamp - this.playComboTime >= silswordAnimationOffset[currentCombo] && this.currentComboIndex !== this.player.avatar.useAnimationIndex) {
             this.playGrunt('attack');
-            this.playComboGrunt = true;
             this.currentComboIndex = this.player.avatar.useAnimationIndex;
             dispatchComboSoundEvent(currentCombo, this.currentComboIndex);
           }
