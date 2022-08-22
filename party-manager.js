@@ -50,6 +50,11 @@ class PartyManager extends EventTarget {
 
       playersManager.setLocalPlayer(nextPlayer);
 
+      this.dispatchEvent(new MessageEvent('playerdeselected', {
+        data: {
+          player: headPlayer,
+        }
+      }));
       this.dispatchEvent(new MessageEvent('playerselected', {
         data: {
           player: nextPlayer,
@@ -85,6 +90,14 @@ class PartyManager extends EventTarget {
     if (this.partyPlayers.length < 3) { // 3 max members
       // console.log('addPlayer', newPlayer, this);
       this.partyPlayers.push(newPlayer);
+
+      if (this.partyPlayers.length === 1) {
+        this.dispatchEvent(new MessageEvent('playerselected', {
+          data: {
+            player: newPlayer,
+          }
+        }));
+      }
 
       const removeFn = () => {
         // console.log('removeFn', player);
