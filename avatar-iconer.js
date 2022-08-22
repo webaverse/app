@@ -105,37 +105,6 @@ class AvatarIconer extends EventTarget {
       }
     ]);
   }
-  
-  bindPlayer(player) {
-    this.player = player;
-    
-    const avatarchange = e => {
-      this.renderAvatarApp(e.app);
-    };
-    player.addEventListener('avatarchange', avatarchange);
-    
-    const actionupdate = e => {
-      this.updateEmotionFromActions();
-    };
-    player.addEventListener('actionadd', actionupdate);
-    player.addEventListener('actionremove', actionupdate);
-
-    this.cleanup = () => {
-      player.removeEventListener('avatarchange', avatarchange);
-      player.removeEventListener('actionadd', actionupdate);
-      player.removeEventListener('actionremove', actionupdate);
-    };
-
-    const avatarApp = player.getAvatarApp();
-    this.renderAvatarApp(avatarApp);
-  }
-
-  unbindPlayer(player) {
-    if (this.cleanup) {
-      this.cleanup();
-      this.cleanup = null;
-    }
-  }
 
   async renderAvatarApp(srcAvatarApp) {
     const lastEnabled = this.enabled;
