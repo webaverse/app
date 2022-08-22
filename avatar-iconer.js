@@ -27,7 +27,6 @@ class AvatarIconer extends EventTarget {
     this.enabled = false;
 
     this.canvases = [];
-    this.cleanup = null;
 
     const playerSelectedFn = e => {
       const {
@@ -55,9 +54,6 @@ class AvatarIconer extends EventTarget {
       avatarManager.removeEventListener('avatarchange', avatarchange);
       avatarManager.removeEventListener('actionupdate', actionupdate);
     };
-
-    const avatarApp = this.player.getAvatarApp();
-    this.renderAvatarApp(avatarApp);
 
     this.getEmotionCanvases = offscreenEngineManager.createFunction([
       `\
@@ -104,6 +100,9 @@ class AvatarIconer extends EventTarget {
         return emotionCanvases;
       }
     ]);
+
+    const avatarApp = this.player.getAvatarApp();
+    this.renderAvatarApp(avatarApp);
   }
 
   async renderAvatarApp(srcAvatarApp) {
