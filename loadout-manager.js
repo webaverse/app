@@ -72,7 +72,7 @@ class LoadoutManager extends EventTarget {
     this.removeListenerFn = () => {
       partyManager.removeEventListener('playerselected', playerSelectedFn);
       partyManager.removeEventListener('playerdeselected', playerDeselectedFn);
-    }
+    };
     
     const localPlayer = playersManager.getLocalPlayer();
     playerSelectedFn({data: {player: localPlayer}});
