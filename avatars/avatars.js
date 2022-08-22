@@ -1918,22 +1918,22 @@ class Avatar extends EventDispatcher {
     
 
     _updateHmdPosition();
-    if (this === window.localPlayer.avatar) {
-      window.avatar = this;
-      window.mixer = this.mixer;
-      // window.motiono = this.motiono;
-    }
-    // const player = window.localPlayer;
-    const player = window.npcPlayers[0];
-    if (true && player && this === player.avatar) {
-      // console.log(window.logNum(this.getAngle()));
+    // if (this === window.localPlayer.avatar) {
+    //   window.avatar = this;
+    //   window.mixer = this.mixer;
+    //   // window.motiono = this.motiono;
+    // }
+    // // const player = window.localPlayer;
+    // const player = window.npcPlayers[0];
+    // if (true && player && this === player.avatar) {
+    //   // console.log(window.logNum(this.getAngle()));
 
-      /*
-        <div style="display:;">keysDirection: --- ${false&&window.logVector3(window.ioManager?.keysDirection)}</div>
-      */
-     window.domInfo.innerHTML += `<div style="display:;">actions: --- ${player.getActionsArray().map(n=>n.type)}</div>`;
-      window.domInfo.innerHTML += `<div style="display:;">mirrorFactor: --- ${this.mirrorFactor.toFixed(2)}</div>`;
-      window.domInfo.innerHTML += `<div style="display:;">walkRunFactor: --- ${this.moveFactors.walkRunFactor.toFixed(2)}</div>`;
+    //   /*
+    //     <div style="display:;">keysDirection: --- ${false&&window.logVector3(window.ioManager?.keysDirection)}</div>
+    //   */
+    //  window.domInfo.innerHTML += `<div style="display:;">actions: --- ${player.getActionsArray().map(n=>n.type)}</div>`;
+    //   window.domInfo.innerHTML += `<div style="display:;">mirrorFactor: --- ${this.mirrorFactor.toFixed(2)}</div>`;
+    //   window.domInfo.innerHTML += `<div style="display:;">walkRunFactor: --- ${this.moveFactors.walkRunFactor.toFixed(2)}</div>`;
       // window.domInfo.innerHTML += `<div style="display:;">avatar.direction: --- ${window.logVector3(this.direction)}</div>`;
       // window.domInfo.innerHTML += `<div style="display:;">velocity: --- ${window.logVector3(player.characterPhysics.velocity)} - ${window.logNum(player.characterPhysics.velocity.length())}</div>`;
       // window.domInfo.innerHTML += `<div style="display:;">angle: --- ${window.logNum(this.getAngle())}</div>`;
@@ -1990,7 +1990,7 @@ class Avatar extends EventDispatcher {
       // window.domInfo.innerHTML += `<div style="display:;">narutoRunTime: --- ${Math.floor(this.narutoRunTime)}</div>`;
       // window.domInfo.innerHTML += `<div style="display:;">blendList.length: --- ${this.blendList?.length}</div>`;
       // window.domInfo.innerHTML += `<div s  tyle="display:;">blendList: --- ${this.blendList?.map(applyFn=>applyFn.name.slice('applyFn'.length))}</div>`;
-    }
+    // }
     _updateAnimation(this);
     // _applyAnimation(this, now, moveFactors);
 

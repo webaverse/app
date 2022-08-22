@@ -1,5 +1,5 @@
 import {Vector3, Quaternion, AnimationClip, LoopOnce, MathUtils, LoopRepeat} from 'three';
-// import metaversefile from 'metaversefile';
+import metaversefile from 'metaversefile';
 import {/* VRMSpringBoneImporter, VRMLookAtApplyer, */ VRMCurveMapper} from '@pixiv/three-vrm/lib/three-vrm.module.js';
 // import easing from '../easing.js';
 import {easing} from '../math-utils.js';
@@ -1019,6 +1019,8 @@ export const _updateAnimation = avatar => {
     index++;
   }
 
+  const playerApp = metaversefile.getPlayerByAppInstanceId(avatar.app.instanceId);
+
   // finished event
   const finishedFlag = values[53];
   // console.log(finishedFlag)
@@ -1048,7 +1050,8 @@ export const _updateAnimation = avatar => {
         game.handleAnimationEnd();
 
         // console.log('remove use', 'animationHelper.js')
-        window.npcPlayer.removeAction('use');
+        // window.npcPlayer.removeAction('use');
+        playerApp.removeAction('use');
       }
     };
 
@@ -1061,7 +1064,8 @@ export const _updateAnimation = avatar => {
       physx.physxWorker.crossFadeTwo(avatar.idle8DWalkRun_BowIdle8DDrawLooseNodeTwo, 0.2, 0);
     }
     if (motion === avatar.hurtMotion) {
-      window.npcPlayer.removeAction('hurt'); // test
+      playerApp.removeAction('hurt');
+      // window.npcPlayer.removeAction('hurt'); // test
       physx.physxWorker.crossFadeUnitary(avatar.actionsNodeUnitary, 0.2, avatar.defaultNodeTwo);
     }
   }

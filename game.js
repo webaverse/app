@@ -417,7 +417,6 @@ const _startUse = () => {
           quaternion,
           scale,
         };
-        console.log(newUseAction);
         // console.log('new use action', newUseAction, useComponent, {animation, animationCombo, animationEnvelope});
         // console.log('add use', 'game.js')
         localPlayer.addAction(newUseAction);
@@ -1018,14 +1017,23 @@ const _gameUpdate = (timestamp, timeDiff) => {
   }
 
   const _updateDodge = () => { 
+    // todo
     const dodgeLeftAction = localPlayer.hasAction('dodgeLeft');
     const dodgeRightAction = localPlayer.hasAction('dodgeRight');
     if(!dodgeLeftAction && ioManager.keys.left) {
-      localPlayer.addAction({type: 'dodgeLeft'});
-      localPlayer.characterPhysics.velocity.x -= 20;
+      // localPlayer.addAction({type: 'dodgeLeft'});
+      // localVector.copy(cameraManager.lastNonzeroDirectionVectorRotated)
+      //   .setY(0)
+      //   .multiply(localVector2.set(1, 0, 0))
+      //   .normalize()
+      //   .multiplyScalar(10);
+      localVector.set(-1, 0, 0)
+        // .applyQuaternion(localPlayer.quaternion)
+        .setY(0)
+      localPlayer.characterPhysics.applyWasd(localVector);
       console.log('dodge in game.js and ioManager')
     } else if(dodgeLeftAction && !ioManager.keys.left) {
-      localPlayer.removeAction('dodgeLeft');
+      // localPlayer.removeAction('dodgeLeft');
     }
     if(!dodgeRightAction && ioManager.keys.right) {
       localPlayer.addAction({type: 'dodgeRight'});

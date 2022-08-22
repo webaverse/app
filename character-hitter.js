@@ -69,28 +69,29 @@ export class CharacterHitter {
         physics.enableGeometryQueries(this.player.characterController);
 
         if (collision) {
-          // console.log(collision);
+          const localPlayer = metaversefile.useLocalPlayer();
+
           collision.objectIds.forEach(objectId => {
             const collisionId = objectId;
+            const isLocalPlayer = collisionId === localPlayer.characterController.physicsId;
 
             // workaround, because metaversefile.getPairByPhysicsId currently doesnt return localPlayer's pair
-            if(collisionId === window.localPlayer.characterController.physicsId) {
-              const lastHitTimeLP = this.lastHitTimes.get(window.localPlayer) ?? 0;
-              const lastHitIndexLP = this.lastHitIndices.get(window.localPlayer) ?? -1;
+            if(isLocalPlayer) {
+              const lastHitTimeLP = this.lastHitTimes.get(localPlayer) ?? 0;
+              const lastHitIndexLP = this.lastHitIndices.get(localPlayer) ?? -1;
               const timeDiffLP = timestamp - lastHitTimeLP;
               const useActionLP = this.player.getAction('use');
               if (useActionLP.index !== lastHitIndexLP || timeDiffLP > 500) {
-                window.localPlayer.characterHitter.getHit(100);
+                localPlayer.characterHitter.getHit(100);
               }
-              this.lastHitTimes.set(window.localPlayer, timestamp);
-              this.lastHitIndices.set(window.localPlayer, useActionLP.index);
+              this.lastHitTimes.set(localPlayer, timestamp);
+              this.lastHitIndices.set(localPlayer, useActionLP.index);
               return;
             }
 
             const result = metaversefile.getPairByPhysicsId(collisionId);
             if (result) {
               const [app, physicsObject] = result;
-              
               if (app.getComponent('vincibility') !== 'invincible') {
                 const lastHitTime = this.lastHitTimes.get(app) ?? 0;
                 const lastHitIndex = this.lastHitIndices.get(app) ?? -1;

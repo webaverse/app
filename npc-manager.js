@@ -36,10 +36,6 @@ class NpcManager extends EventTarget {
     });
     npcPlayer.name = name;
 
-    npcPlayer.addEventListener('wearupdate', e => {
-      console.log(e);
-    });
-
     if (!window.npcPlayers) {
       window.npcPlayers = [];
       window.npcPlayer = npcPlayer;
@@ -172,7 +168,6 @@ class NpcManager extends EventTarget {
         })
 
         const activate = () => {
-          console.log(npcPlayer);
           if (targetSpec?.object !== localPlayer) {
             targetSpec = {
               type: 'follow',
@@ -186,30 +181,80 @@ class NpcManager extends EventTarget {
 
         const animationCombo = ['swordSideSlash', 'swordSideSlashStep', 'swordTopDownSlash', 'swordTopDownSlashStep'];
         let lastSwordActionTime = 0;
-        let swordActionIndex = 0;
+        let lastUseIndex = 0;
 
+        const _getNextUseIndex = animationCombo => {
+          if (Array.isArray(animationCombo)) {
+            return (lastUseIndex++) % animationCombo.length;
+          } else {
+            return 0;
+          }
+        }
 
         const addSwordAction = (timestamp) => {
-          const swordApp = npcPlayer.loadoutmanager.getSelectedApp();
-          npcPlayer.addAction({
-            animationCombo,
-            behavior: 'sword',
-            boneAttachment: 'leftHand',
-            index: swordActionIndex,
-            instanceId: swordApp.instanceId,
-            position: [-0.07, -0.03, 0],
-            quaternion: [0.7071067811865475, 0, 0, 0.7071067811865476],
-            scale: [1, 1, 1],
-            type: 'use',
-          });
+          const wearApp = npcPlayer.loadoutmanager.getSelectedApp();
+          if(wearApp) {
+            const useComponent = wearApp.getComponent('use');
+            if (useComponent) {
+              const useAction = npcPlayer.getAction('use');
+              if (!useAction) {
+                const {instanceId} = wearApp;
+                const {boneAttachment, animation, animationCombo, animationEnvelope, ik, behavior, position, quaternion, scale} = useComponent;
+                const index = _getNextUseIndex(animationCombo);
+                const newUseAction = {
+                  type: 'use',
+                  instanceId,
+                  animation,
+                  animationCombo,
+                  animationEnvelope,
+                  ik,
+                  behavior,
+                  boneAttachment,
+                  index,
+                  position,
+                  quaternion,
+                  scale,
+                };
+                npcPlayer.addAction(newUseAction);
+                wearApp.use();
+              }
+            }
+          }
+
+          
+
+          // npcPlayer.addAction({
+          //   animationCombo,
+          //   behavior: 'sword',
+          //   boneAttachment: 'leftHand',
+          //   index: swordActionIndex,
+          //   instanceId: wearApp.instanceId,
+          //   position: [-0.07, -0.03, 0],
+          //   quaternion: [0.7071067811865475, 0, 0, 0.7071067811865476],
+          //   scale: [1, 1, 1],
+          //   type: 'use',
+          // });
           lastSwordActionTime = timestamp;
-          if(++swordActionIndex > animationCombo.length - 1) swordActionIndex = 0;
+          // if(++swordActionIndex > animationCombo.length - 1) swordActionIndex = 0;
+        };
+        const removeSwordAction = () => {
+          const useAction = npcPlayer.getAction('use');
+          if(useAction) {
+            const app = npcPlayer.loadoutmanager.getSelectedApp();
+            app.dispatchEvent({
+              type: 'use',
+              use: false,
+            });
+            npcPlayer.removeAction('use');
+          }
         };
 
         const slowdownFactor = 0.4;
         const walkSpeed = 0.075 * slowdownFactor;
         const runSpeed = walkSpeed * 8;
         const speedDistanceRate = 0.07;
+        const attackDistance = 1.5;
+        const swordActionDuration = 500;
         
         const frame = e => {
           if (npcPlayer && physicsManager.getPhysicsEnabled()) {
@@ -227,8 +272,8 @@ class NpcManager extends EventTarget {
               } else {
                 if (!npcPlayer.hasAction('hurt')) {
                   
-                  if(distance <= 1.5) {
-                    if(timestamp > lastSwordActionTime + 850) {
+                  if(distance <= attackDistance) {
+                    if(!npcPlayer.hasAction('use')) {
                       addSwordAction(timestamp);
                     }
                   } else if(!npcPlayer.hasAction('use')) {
@@ -237,19 +282,10 @@ class NpcManager extends EventTarget {
                       .multiplyScalar(speed * timeDiff);
                     npcPlayer.characterPhysics.applyWasd(v);
                   }
-
-
-                  
-                    
-                  
-                    
-                  
-                  
                 }
-
-                
-
-                
+                if(timestamp > lastSwordActionTime + swordActionDuration) {
+                  removeSwordAction();
+                }
               }
             }
 
