@@ -40,6 +40,7 @@ class AvatarManager extends EventTarget {
   bindPlayer(player) {
     this.player = player;
     
+    // forward player messages on player change
     const avatarchange = e => {
       this.dispatchEvent(new MessageEvent('avatarchange', {
         data: e,
@@ -75,7 +76,7 @@ class AvatarManager extends EventTarget {
     }
   }
   destroy() {
-    if (cleanup) {
+    if (this.cleanup) {
       this.cleanup();
       this.cleanup = null;
     }
