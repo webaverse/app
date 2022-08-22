@@ -373,9 +373,9 @@ class CharacterSfx extends EventTarget{
       let currentCombo;
       if(this.player.hasAction('use') && this.player.getAction('use').behavior === 'sword'){
         currentCombo = this.player.getAction('use').animation ? 
-          this.player.getAction('use').animation 
+          this.player.getAction('use').animation // sword
           : 
-          this.player.getAction('use').animationCombo[this.player.avatar.useAnimationIndex]
+          this.player.getAction('use').animationCombo[this.player.avatar.useAnimationIndex] // silsword
       }
       if (currentCombo) {
         if (currentCombo !== this.lastCombo) {
