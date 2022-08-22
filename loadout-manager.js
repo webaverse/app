@@ -1,3 +1,4 @@
+import {partyManager} from './party-manager.js';
 import {playersManager} from './players-manager.js';
 import {LoadoutRenderer} from './loadout-renderer.js';
 import {InfoboxRenderer} from './infobox.js';
@@ -24,31 +25,57 @@ class LoadoutManager extends EventTarget {
     this.hotbarRenderers = [];
     this.infoboxRenderer = null;
     this.selectedIndex = -1;
-  
-    const localPlayer = playersManager.getLocalPlayer();
-    localPlayer.addEventListener('wearupdate', e => {
-      const {app, wear, loadoutIndex} = e;
+    this.removeLastWearUpdateFn = null;
 
-      this.ensureRenderers();
-      if (wear) {
-        this.apps[loadoutIndex] = app;
-        this.setSelectedIndex(loadoutIndex);
-      } else {
-        for (let i = 0; i < this.apps.length; i++) {
-          const a = this.apps[i];
-          if (a === app) {
-            const hotbarRenderer = this.hotbarRenderers[i];
-            hotbarRenderer.setSpritesheet(null);
+    const playerDeselectedFn = e => {
+      if (this.removeLastWearUpdateFn) {
+        this.removeLastWearUpdateFn();
+        this.removeLastWearUpdateFn = null;
+      }
+    };
 
-            this.apps[i] = null;
+    const playerSelectedFn = e => {
+      const {
+        player,
+      } = e.data;
 
-            const nextIndex = this.getNextUsedIndex();
-            this.setSelectedIndex(nextIndex);
-            break;
+      const localPlayer = player;
+      const wearupdate = e => {
+        const {app, wear, loadoutIndex} = e;
+
+        this.ensureRenderers();
+        if (wear) {
+          this.apps[loadoutIndex] = app;
+          this.setSelectedIndex(loadoutIndex);
+        } else {
+          for (let i = 0; i < this.apps.length; i++) {
+            const a = this.apps[i];
+            if (a === app) {
+              const hotbarRenderer = this.hotbarRenderers[i];
+              hotbarRenderer.setSpritesheet(null);
+
+              this.apps[i] = null;
+
+              const nextIndex = this.getNextUsedIndex();
+              this.setSelectedIndex(nextIndex);
+              break;
+            }
           }
         }
-      }
-    });
+      };
+      localPlayer.addEventListener('wearupdate', wearupdate);
+      this.removeLastWearUpdateFn = () => {localPlayer.removeEventListener('wearupdate', wearupdate);};
+    };
+
+    partyManager.addEventListener('playerselected', playerSelectedFn);
+    partyManager.addEventListener('playerdeselected', playerDeselectedFn);
+    this.removeListenerFn = () => {
+      partyManager.removeEventListener('playerselected', playerSelectedFn);
+      partyManager.removeEventListener('playerdeselected', playerDeselectedFn);
+    }
+    
+    const localPlayer = playersManager.getLocalPlayer();
+    playerSelectedFn({data: {player: localPlayer}});
   }
   ensureRenderers() {
     if (this.hotbarRenderers.length === 0) {
