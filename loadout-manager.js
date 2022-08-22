@@ -74,6 +74,7 @@ class LoadoutManager extends EventTarget {
       partyManager.removeEventListener('playerdeselected', playerDeselectedFn);
     };
     
+    // this is the initial event for the first player
     const localPlayer = playersManager.getLocalPlayer();
     playerSelectedFn({data: {player: localPlayer}});
   }
