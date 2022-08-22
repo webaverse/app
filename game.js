@@ -1376,10 +1376,10 @@ class GameManager extends EventTarget {
     }
   }
   menuSwitchCharacter() {
-    sounds.playSoundName('menuReady');
-
-    // Switch to next character among party
-    partyManager.switchCharacter();
+    const switched = partyManager.switchCharacter();
+    if (switched) {
+      sounds.playSoundName('menuReady');
+    }
   }
   isFlying() {
     const localPlayer = playersManager.getLocalPlayer();

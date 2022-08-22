@@ -72,6 +72,10 @@ class PartyManager extends EventTarget {
         }
       };
       transplantToPlayer();
+
+      return true;
+    } else {
+      return false;
     }
   }
 
