@@ -42,19 +42,14 @@ class AvatarManager extends EventTarget {
     
     const avatarchange = e => {
       this.dispatchEvent(new MessageEvent('avatarchange', {
-        data: {
-          app: e.app,
-          target: e.target,
-          avatar: e.avatar,
-        },
+        data: e,
       }));
     };
     player.addEventListener('avatarchange', avatarchange);
     
     const actionupdate = e => {
       this.dispatchEvent(new MessageEvent('actionupdate', {
-        data: {
-        },
+        data: e,
       }));
     };
     player.addEventListener('actionadd', actionupdate);
