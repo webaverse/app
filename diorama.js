@@ -1,5 +1,5 @@
 import * as THREE from 'three';
-import {getRenderer} from './renderer.js';
+import {getRenderer, rootScene} from './renderer.js';
 import * as BufferGeometryUtils from 'three/examples/jsm/utils/BufferGeometryUtils.js';
 // import {world} from './world.js';
 // import {fitCameraToBoundingBox} from './util.js';
@@ -15,7 +15,8 @@ import {DotsBgFxMesh} from './background-fx/DotsBgFx.js';
 import {LightningBgFxMesh} from './background-fx/LightningBgFx.js';
 import {RadialBgFxMesh} from './background-fx/RadialBgFx.js';
 import {GrassBgFxMesh} from './background-fx/GrassBgFx.js';
-import {playersManager} from './players-manager.js';
+import {WebaverseScene} from './webaverse-scene.js';
+import universe from './universe.js';
 
 const localVector = new THREE.Vector3();
 const localVector2 = new THREE.Vector3();
@@ -429,7 +430,9 @@ outlineRenderScene.name = 'outlineRenderScene';
 outlineRenderScene.autoUpdate = false;
 outlineRenderScene.overrideMaterial = skinnedRedMaterial;
 
-const sideScene = new THREE.Scene();
+const sideSceneLights = new THREE.Object3D();
+
+const sideScene = new WebaverseScene();
 sideScene.name = 'sideScene';
 sideScene.autoUpdate = false;
 sideScene.add(lightningMesh);
@@ -443,6 +446,7 @@ sideScene.add(dotsMesh);
 sideScene.add(outlineMesh);
 sideScene.add(labelMesh);
 sideScene.add(textObject);
+sideScene.add(sideSceneLights);
 /* const _addPreviewLights = scene => {
   const ambientLight = new THREE.AmbientLight(0xffffff, 2);
   scene.add(ambientLight);
@@ -465,6 +469,14 @@ const autoLights = (() => {
     directionalLight,
   ];
 })();
+
+let sceneLightsMap = new WeakMap(); // clone of root scene lights
+const worldload = e => {
+  sceneLightsMap = new WeakMap();
+  sideSceneLights.children.length = 0;
+}
+universe.addEventListener('worldload', worldload);
+
 /* let sideSceneCompiled = false;
 const _ensureSideSceneCompiled = () => {
   if (!sideSceneCompiled) {
@@ -633,13 +645,32 @@ const createPlayerDiorama = ({
         outlineRenderTarget = _makeOutlineRenderTarget(this.width * pixelRatio, this.height * pixelRatio);
       }
 
-      const _addObjectsToScene = scene => {
+      const _addObjectsToScene = (scene) => {
         for (const object of objects) {
           scene.add(object);
         }
+      };
+
+      const _addAutoLightsToScene = (scene) => {
         if (lights) {
           for (const autoLight of autoLights) {
             scene.add(autoLight);
+          }
+        }
+      };
+
+      const _addRootLightsToScene = (scene, rootScene) => {
+        if (lights) {
+          if (rootScene) {
+            rootScene.traverseVisible(o => {
+              if (o.isLight) {
+                if (!sceneLightsMap.get(o)) {
+                  const light = o.clone();
+                  sceneLightsMap.set(o, light);
+                  sideSceneLights.add(light);
+                }
+              }
+            });
           }
         }
       };
@@ -702,6 +733,7 @@ const createPlayerDiorama = ({
 
         // set up side avatar scene
         _addObjectsToScene(outlineRenderScene);
+        _addAutoLightsToScene(outlineRenderScene);
         // outlineRenderScene.add(world.lights);
         // render side avatar scene
         renderer.setRenderTarget(outlineRenderTarget);
@@ -711,6 +743,7 @@ const createPlayerDiorama = ({
         
         // set up side scene
         _addObjectsToScene(sideScene);
+        _addRootLightsToScene(outlineRenderScene, rootScene);
         // sideScene.add(world.lights);
     
         const _renderGrass = () => {
