@@ -1894,7 +1894,7 @@ class Avatar {
         <div style="display:;">velocity: --- ${window.logVector3(this.calcedVelocity)} | ${window.logNum(this.calcedVelocity.length())} | ${window.logNum(localVector.copy(this.calcedVelocity).setY(0).length())} of avatar calced</div>
     */
     // console.log(this.calcedVelocity.y)
-    console.log(this.velocity.x.toFixed(2))
+    console.log(this.velocity.z.toFixed(2))
     // console.log('applyAnimation')
     
     _applyAnimation(this, now);
