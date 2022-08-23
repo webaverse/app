@@ -18,6 +18,10 @@
 <body>
   <div id=iframe-container></div>
   <div id="root"></div>
+  <div>
+    <button style="position: fixed; left: 0; top: 0; z-index: 999999;" onclick="domInfo.style.display = domInfo.style.display === 'none' ? 'block' : 'none';">toggle</button>
+    <div id="domInfo" style="position: fixed; left: 0; top: 140px; background: rgba(0,0,0,.5); color: white; padding: 5px; width: 600px; pointer-events: none; font-family: Consolas,'Courier New',Courier,FreeMono,monospace;z-index: 999999; display: /* none */;"></div>
+  </div>
   <script type=module src="/pre.js"></script>
   <script type=module src="/src/main.jsx"></script>
 </body>
