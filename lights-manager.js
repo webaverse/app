@@ -1,5 +1,3 @@
-import * as THREE from 'three';
-
 class LightsManager extends EventTarget {
   constructor() {
     super();
