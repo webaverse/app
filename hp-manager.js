@@ -119,9 +119,8 @@ const makeHitTracker = ({
       {
         const damageMeshApp = metaversefileApi.createApp();
         (async () => {
-          await metaverseModules.waitForLoad();
-          const {modules} = metaversefileApi.useDefaultModules();
-          const m = modules['damageMesh'];
+          const {importModule} = metaversefileApi.useDefaultModules();
+          const m = await importModule('damageMesh');
           await damageMeshApp.addModule(m);
         })();
         damageMeshApp.position.copy(hitPosition);
