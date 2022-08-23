@@ -36,7 +36,7 @@ import {CharacterPhysics} from './character-physics.js';
 import {CharacterHups} from './character-hups.js';
 import {CharacterHitter} from './character-hitter.js';
 import {AvatarCharacterSfx} from './character-sfx.js';
-import {AvatarCharacterFace} from './character-behavior.js';
+import {AvatarCharacterFace} from './character-face.js';
 import {AvatarCharacterFx} from './character-fx.js';
 import {VoicePack, VoicePackVoicer} from './voice-output/voice-pack-voicer.js';
 import {VoiceEndpoint, VoiceEndpointVoicer} from './voice-output/voice-endpoint-voicer.js';
@@ -1417,14 +1417,7 @@ class RemotePlayer extends InterpolatedPlayer {
           localVector.copy(this.position);
           localVector.y -= this.avatar.height * 0.5;
           physicsScene.setCharacterControllerPosition(this.characterPhysics.characterController, localVector);
-          
-          this.avatar.setVelocity(
-            timeDiff / 1000,
-            this.lastPosition,
-            this.positionInterpolant.get(),
-            this.quaternionInterpolant.get()
-            );
-          }
+        }
         this.lastPosition.copy(this.position);
       }
     }

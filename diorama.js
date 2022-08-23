@@ -15,7 +15,8 @@ import {DotsBgFxMesh} from './background-fx/DotsBgFx.js';
 import {LightningBgFxMesh} from './background-fx/LightningBgFx.js';
 import {RadialBgFxMesh} from './background-fx/RadialBgFx.js';
 import {GrassBgFxMesh} from './background-fx/GrassBgFx.js';
-import {playersManager} from './players-manager.js';
+import {WebaverseScene} from './webaverse-scene.js';
+import {lightsManager} from './lights-manager.js';
 
 const localVector = new THREE.Vector3();
 const localVector2 = new THREE.Vector3();
@@ -429,7 +430,7 @@ outlineRenderScene.name = 'outlineRenderScene';
 outlineRenderScene.autoUpdate = false;
 outlineRenderScene.overrideMaterial = skinnedRedMaterial;
 
-const sideScene = new THREE.Scene();
+const sideScene = new WebaverseScene();
 sideScene.name = 'sideScene';
 sideScene.autoUpdate = false;
 sideScene.add(lightningMesh);
@@ -637,11 +638,30 @@ const createPlayerDiorama = ({
         for (const object of objects) {
           scene.add(object);
         }
+      };
+
+      const _addAutoLightsToScene = scene => {
         if (lights) {
           for (const autoLight of autoLights) {
             scene.add(autoLight);
           }
         }
+      };
+
+      const _addRootLightsToScene = scene => {
+        const restoreFn = [];
+        for (const light of lightsManager.lights) {
+          const oldParent = light.parent;
+          restoreFn.push(() => {
+            oldParent.add(light);
+          });
+          scene.add(light);
+        }
+        return () => {
+          for (const fn of restoreFn) {
+            fn();
+          }
+        };
       };
 
       // push old state
@@ -702,6 +722,7 @@ const createPlayerDiorama = ({
 
         // set up side avatar scene
         _addObjectsToScene(outlineRenderScene);
+        _addAutoLightsToScene(outlineRenderScene);
         // outlineRenderScene.add(world.lights);
         // render side avatar scene
         renderer.setRenderTarget(outlineRenderTarget);
@@ -711,6 +732,7 @@ const createPlayerDiorama = ({
         
         // set up side scene
         _addObjectsToScene(sideScene);
+        const restoreRootLightsFn = _addRootLightsToScene(sideScene);
         // sideScene.add(world.lights);
     
         const _renderGrass = () => {
@@ -841,6 +863,8 @@ const createPlayerDiorama = ({
           }
         };
         _copyFrame();
+
+        restoreRootLightsFn();
       };
       _render();
 

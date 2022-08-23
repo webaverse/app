@@ -1081,6 +1081,14 @@ export const blob2img = async blob => {
     URL.revokeObjectURL(url);
   }
 };
+export const img2canvas = img => {
+  const canvas = document.createElement('canvas');
+  canvas.width = img.width;
+  canvas.height = img.height;
+  const ctx = canvas.getContext('2d');
+  ctx.drawImage(img, 0, 0);
+  return canvas;
+};
 export const canvas2blob = async (canvas, type, quality) => new Promise((resolve, reject) => {
   canvas.toBlob(resolve, type, quality);
 });

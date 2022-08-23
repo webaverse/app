@@ -14,7 +14,7 @@ import {world} from './world.js';
 import {buildMaterial, highlightMaterial, selectMaterial, hoverMaterial, hoverEquipmentMaterial} from './shaders.js';
 import {getRenderer, sceneLowPriority, camera} from './renderer.js';
 import {downloadFile, snapPosition, getDropUrl, handleDropJsonItem} from './util.js';
-import {maxGrabDistance, throwReleaseTime, storageHost, minFov, maxFov, throwAnimationDuration} from './constants.js';
+import {maxGrabDistance, throwReleaseTime, storageHost, minFov, maxFov, throwAnimationDuration, walkSpeed, runSpeed, narutoRunSpeed, crouchSpeed, flySpeed} from './constants.js';
 import metaversefileApi from './metaversefile-api.js';
 import * as metaverseModules from './metaverse-modules.js';
 import loadoutManager from './loadout-manager.js';
@@ -1613,28 +1613,26 @@ class GameManager extends EventTarget {
   getSpeed() {
     let speed = 0;
     
-    const walkSpeed = 0.075;
-    const flySpeed = walkSpeed * 2;
-    const defaultCrouchSpeed = walkSpeed * 0.7;
     const isCrouched = gameManager.isCrouched();
     const isSwimming = gameManager.isSwimming();
     const isFlying = gameManager.isFlying();
+    const isRunning = ioManager.keys.shift && !isCrouched;
     const isMovingBackward = gameManager.isMovingBackward();
     if (isCrouched && !isMovingBackward) {
-      speed = defaultCrouchSpeed;
+      speed = crouchSpeed;
     } else if (gameManager.isFlying()) {
       speed = flySpeed;
     } else {
       speed = walkSpeed;
     }
     const localPlayer = playersManager.getLocalPlayer();
-    const sprintMultiplier = (ioManager.keys.shift && !isCrouched) ?
+    const sprintMultiplier = isRunning ?
       (localPlayer.hasAction('narutoRun') ? 20 : 3)
     :
     ((isSwimming && !isFlying) ? 5 - localPlayer.getAction('swim').swimDamping : 1);
     speed *= sprintMultiplier;
     
-    const backwardMultiplier = isMovingBackward ? 0.7 : 1;
+    const backwardMultiplier = isMovingBackward ? (isRunning ? 0.8 : 0.7) : 1;
     speed *= backwardMultiplier;
     
     return speed;
