@@ -630,7 +630,7 @@ class StateCharacter extends Character {
   }
   getAvatarInstanceId() {
     return this.playerMap.get('avatar');
-  }
+  } 
   getActionsByType(type) {
    const actions = this.getActionsState(); 
    const typedActions = Array.from(actions).filter(action => action.type === type);
