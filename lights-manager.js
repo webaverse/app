@@ -11,6 +11,13 @@ class LightsManager extends EventTarget {
     this.lights.push(light);
   }
 
+  removeLight(light) {
+    const removeIndex = this.lights.indexOf(light);
+    if (removeIndex !== -1) {
+      this.lights.splice(removeIndex, 1);
+    }
+  }
+
   clear() {
     this.lights.length = 0;
   }
