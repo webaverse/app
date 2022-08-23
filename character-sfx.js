@@ -362,7 +362,7 @@ class CharacterSfx extends EventTarget{
 
     // combo
     const dispatchComboSoundEvent = (combo, indexOfCombo) =>{
-      this.dispatchEvent(new MessageEvent('comboSoundEmit', {
+      this.dispatchEvent(new MessageEvent('meleewhoosh', {
         data: {
           combo: combo,
           indexOfCombo: indexOfCombo
