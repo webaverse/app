@@ -383,37 +383,12 @@ class CharacterSfx extends EventTarget{
           this.currentComboIndex = -1;
         }
         if (currentCombo === 'combo') { // sword
-          switch (this.currentComboIndex) {
-            case -1: { 
-              this.currentComboIndex = 0;
-            }
-            case 0: { 
-              if(timestamp - this.playComboTime >= swordAnimationOffset[this.currentComboIndex]){
-                this.playComboTime = timestamp;
-                this.playGrunt('attack');
-                this.currentComboIndex = 1;
-                // dispatchComboSoundEvent(currentCombo, this.currentComboIndex);
-              }
-              break;
-            }
-            case 1: { 
-              if(timestamp - this.playComboTime >= swordAnimationOffset[this.currentComboIndex]){
-                this.playComboTime = timestamp;
-                this.playGrunt('attack');
-                this.currentComboIndex = 2;
-                // dispatchComboSoundEvent(currentCombo, this.currentComboIndex);
-              }
-              break;
-            }
-            case 2: { 
-              if(timestamp - this.playComboTime >= swordAnimationOffset[this.currentComboIndex]){
-                this.playComboTime = timestamp;
-                this.playGrunt('attack');
-                this.currentComboIndex = 3;
-                // dispatchComboSoundEvent(currentCombo, this.currentComboIndex);
-              }
-              break;
-            }
+          this.currentComboIndex = this.currentComboIndex < 0 ? 0 : this.currentComboIndex;
+          if(timestamp - this.playComboTime >= swordAnimationOffset[this.currentComboIndex]){
+            this.playComboTime = timestamp;
+            this.playGrunt('attack');
+            this.currentComboIndex++;
+            // dispatchComboSoundEvent(currentCombo, this.currentComboIndex);
           }
         }
         else { // silsword
