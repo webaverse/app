@@ -57,6 +57,7 @@ import cardsManager from './cards-manager.js';
 import * as instancing from './instancing.js';
 import * as atlasing from './atlasing.js';
 import ioManager from './io-manager.js';
+import {lightsManager} from './lights-manager.js';
 
 const localVector2D = new THREE.Vector2();
 
@@ -444,6 +445,9 @@ metaversefile.setApi({
         return world.appManager.apps;
       },
     };
+  },
+  useLightsManager() {
+    return lightsManager;
   },
   useChatManager() {
     return chatManager;

@@ -9,6 +9,7 @@ import WSRTC from 'wsrtc/wsrtc.js';
 import * as Z from 'zjs';
 
 import {appsMapName, partyMapName, initialPosY, playersMapName} from './constants.js';
+import {lightsManager} from './lights-manager.js';
 import {loadOverworld} from './overworld.js';
 import {partyManager} from './party-manager.js';
 import physicsManager from './physics-manager.js';
@@ -49,6 +50,7 @@ class Universe extends EventTarget {
 
     const _doLoad = async () => {
       // world.clear();
+      lightsManager.clear();
 
       const promises = [];
       const {src, room} = worldSpec;

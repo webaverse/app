@@ -16,7 +16,7 @@ import {LightningBgFxMesh} from './background-fx/LightningBgFx.js';
 import {RadialBgFxMesh} from './background-fx/RadialBgFx.js';
 import {GrassBgFxMesh} from './background-fx/GrassBgFx.js';
 import {WebaverseScene} from './webaverse-scene.js';
-import universe from './universe.js';
+import {lightsManager} from './lights-manager.js';
 
 const localVector = new THREE.Vector3();
 const localVector2 = new THREE.Vector3();
@@ -648,18 +648,14 @@ const createPlayerDiorama = ({
         }
       };
 
-      const _addRootLightsToScene = (scene, rootScene) => {
+      const _addRootLightsToScene = scene => {
         const restoreFn = [];
-        if (rootScene) {
-          rootScene.traverseVisible(o => {
-            if (o.isLight) {
-              const oldParent = o.parent;
-              restoreFn.push(() => {
-                oldParent.add(o);
-              });
-              scene.add(o);
-            }
+        for (const light of lightsManager.lights) {
+          const oldParent = light.parent;
+          restoreFn.push(() => {
+            oldParent.add(light);
           });
+          scene.add(light);
         }
         return restoreFn;
       };
@@ -732,7 +728,7 @@ const createPlayerDiorama = ({
         
         // set up side scene
         _addObjectsToScene(sideScene);
-        const restoreRootLightsFn = _addRootLightsToScene(sideScene, rootScene);
+        const restoreRootLightsFn = _addRootLightsToScene(sideScene);
         // sideScene.add(world.lights);
     
         const _renderGrass = () => {
