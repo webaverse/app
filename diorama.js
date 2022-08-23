@@ -430,8 +430,6 @@ outlineRenderScene.name = 'outlineRenderScene';
 outlineRenderScene.autoUpdate = false;
 outlineRenderScene.overrideMaterial = skinnedRedMaterial;
 
-const sideSceneLights = new THREE.Object3D();
-
 const sideScene = new WebaverseScene();
 sideScene.name = 'sideScene';
 sideScene.autoUpdate = false;
@@ -446,7 +444,6 @@ sideScene.add(dotsMesh);
 sideScene.add(outlineMesh);
 sideScene.add(labelMesh);
 sideScene.add(textObject);
-sideScene.add(sideSceneLights);
 /* const _addPreviewLights = scene => {
   const ambientLight = new THREE.AmbientLight(0xffffff, 2);
   scene.add(ambientLight);
@@ -469,13 +466,6 @@ const autoLights = (() => {
     directionalLight,
   ];
 })();
-
-let sceneLightsMap = new WeakMap(); // clone of root scene lights
-const worldload = e => {
-  sceneLightsMap = new WeakMap();
-  sideSceneLights.children.length = 0;
-}
-universe.addEventListener('worldload', worldload);
 
 /* let sideSceneCompiled = false;
 const _ensureSideSceneCompiled = () => {
@@ -660,19 +650,21 @@ const createPlayerDiorama = ({
       };
 
       const _addRootLightsToScene = (scene, rootScene) => {
+        const restoreFn = [];
         if (lights) {
           if (rootScene) {
             rootScene.traverseVisible(o => {
               if (o.isLight) {
-                if (!sceneLightsMap.get(o)) {
-                  const light = o.clone();
-                  sceneLightsMap.set(o, light);
-                  sideSceneLights.add(light);
-                }
+                const oldParent = o.parent;
+                restoreFn.push(() => {
+                  oldParent.add(o);
+                })
+                sideScene.add(o);
               }
             });
           }
         }
+        return restoreFn;
       };
 
       // push old state
@@ -743,7 +735,7 @@ const createPlayerDiorama = ({
         
         // set up side scene
         _addObjectsToScene(sideScene);
-        _addRootLightsToScene(outlineRenderScene, rootScene);
+        const restoreRootLightsFn = _addRootLightsToScene(outlineRenderScene, rootScene);
         // sideScene.add(world.lights);
     
         const _renderGrass = () => {
@@ -874,6 +866,10 @@ const createPlayerDiorama = ({
           }
         };
         _copyFrame();
+
+        for (const fn of restoreRootLightsFn) {
+          fn();
+        }
       };
       _render();
 
