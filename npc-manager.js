@@ -9,6 +9,7 @@ import {chatManager} from './chat-manager.js';
 import {makeId, createRelativeUrl} from './util.js';
 import { triggerEmote } from './src/components/general/character/Poses.jsx';
 import validEmotionMapping from "./validEmotionMapping.json";
+import { NpcLoadoutManager } from './loadout-manager.js';
 
 const localVector = new THREE.Vector3();
 
@@ -59,6 +60,8 @@ class NpcManager extends EventTarget {
     if (npcApp) {
       npcApp.npcPlayer = npcPlayer; // for character select
     }
+
+    npcPlayer.loadoutmanager = new NpcLoadoutManager(npcPlayer);
 
     await npcPlayer.setAvatarUrl(avatarUrl);
     npcPlayer.updateAvatar(0, 0);
@@ -153,31 +156,102 @@ class NpcManager extends EventTarget {
         };
         app.addEventListener('activate', activate);
 
+        let lastSwordActionTime = 0;
+        let lastUseIndex = 0;
+
+        const _getNextUseIndex = animationCombo => {
+          if (Array.isArray(animationCombo)) {
+            return (lastUseIndex++) % animationCombo.length;
+          } else {
+            return 0;
+          }
+        }
+
+        const addSwordAction = (timestamp) => {
+          const wearApp = npcPlayer.loadoutmanager.getSelectedApp();
+          if(wearApp) {
+            const useComponent = wearApp.getComponent('use');
+            if (useComponent) {
+              const useAction = npcPlayer.getAction('use');
+              if (!useAction) {
+                const {instanceId} = wearApp;
+                const {boneAttachment, animation, animationCombo, animationEnvelope, ik, behavior, position, quaternion, scale} = useComponent;
+                const index = _getNextUseIndex(animationCombo);
+                const newUseAction = {
+                  type: 'use',
+                  instanceId,
+                  animation,
+                  animationCombo,
+                  animationEnvelope,
+                  ik,
+                  behavior,
+                  boneAttachment,
+                  index,
+                  position,
+                  quaternion,
+                  scale,
+                };
+                npcPlayer.addAction(newUseAction);
+                wearApp.use();
+              }
+            }
+          }
+          lastSwordActionTime = timestamp;
+        };
+        const removeSwordAction = () => {
+          const useAction = npcPlayer.getAction('use');
+          if(useAction) {
+            const app = npcPlayer.loadoutmanager.getSelectedApp();
+            app.dispatchEvent({
+              type: 'use',
+              use: false,
+            });
+            npcPlayer.removeAction('use');
+          }
+        };
+
         const slowdownFactor = 0.4;
         const walkSpeed = 0.075 * slowdownFactor;
         const runSpeed = walkSpeed * 8;
         const speedDistanceRate = 0.07;
+        const attackDistance = 1.5;
+        const swordActionDuration = 500;
+
         const frame = e => {
-          if (npcPlayer && physicsScene.getPhysicsEnabled()) {
+          if (npcPlayer) {
             const {timestamp, timeDiff} = e.data;
-            
+
             if (targetSpec) {
               const target = targetSpec.object;
               const v = localVector.setFromMatrixPosition(target.matrixWorld)
                 .sub(npcPlayer.position);
               v.y = 0;
               const distance = v.length();
+              // console.log(distance);
               if (targetSpec.type === 'moveto' && distance < 2) {
                 targetSpec = null;
               } else {
-                const speed = Math.min(Math.max(walkSpeed + ((distance - 1.5) * speedDistanceRate), 0), runSpeed);
-                v.normalize()
-                  .multiplyScalar(speed * timeDiff);
-                npcPlayer.characterPhysics.applyWasd(v);
+                if (!npcPlayer.hasAction('hurt')) {
+                  
+                  if(distance <= attackDistance) {
+                    if(!npcPlayer.hasAction('use')) {
+                      addSwordAction(timestamp);
+                    }
+                  } else if(!npcPlayer.hasAction('use')) {
+                    const speed = Math.min(Math.max(walkSpeed + ((distance - 0.5) * speedDistanceRate), 0), runSpeed);
+                    v.normalize()
+                      .multiplyScalar(speed * timeDiff);
+                    npcPlayer.characterPhysics.applyWasd(v);
+                  }
+                }
+                if(timestamp > lastSwordActionTime + swordActionDuration) {
+                  removeSwordAction();
+                }
               }
             }
 
-            npcPlayer.setTarget(localPlayer.position);
+            npcPlayer.eyeballTarget.copy(localPlayer.position);
+            npcPlayer.eyeballTargetEnabled = true;
 
             /* if (isNaN(npcPlayer.position.x)) {
               debugger;

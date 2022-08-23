@@ -175,3 +175,13 @@ export const defaultPlayerSpec = {
   bio: `Her nickname is Scilly or SLY. 13/F drop hunter. She is an adventurer, swordfighter and fan of potions. She is exceptionally skilled and can go Super Saiyan.`,
   themeSongUrl: `https://webaverse.github.io/music/themes/149274046-smooth-adventure-quest.mp3`,
 };
+const comboAnimations = [
+  {name: 'swordSideSlash', duration: 1.6666666269302368},
+  {name: 'swordSideSlashStep', duration: 1},
+  {name: 'swordTopDownSlash', duration: 0.9333333373069763},
+  {name: 'swordTopDownSlashStep', duration: 1},
+];
+
+export const getAnimationDuration = name => {
+  return comboAnimations.filter(animation => animation.name === name);
+}

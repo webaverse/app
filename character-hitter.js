@@ -1,10 +1,11 @@
 import * as THREE from 'three';
 import {scene, camera} from './renderer.js';
 import physics from './physics-manager.js';
-// import physx from './physx.js';
+import physx from './physx.js';
 import Avatar from './avatars/avatars.js';
 import metaversefile from 'metaversefile';
 import * as metaverseModules from './metaverse-modules.js';
+import * as sounds from './sounds.js';
 
 const localVector = new THREE.Vector3();
 const localVector2 = new THREE.Vector3();
@@ -31,7 +32,8 @@ export class CharacterHitter {
   constructor(player) {
     this.player = player;
 
-    this.lastHitTime = -Infinity;
+    this.lastHitTimes = new WeakMap();
+    this.lastHitIndices = new WeakMap();
   }
   attemptHit({
     type,
@@ -45,58 +47,79 @@ export class CharacterHitter {
     switch (type) {
       case 'sword': {
         const {
-          hitRadius,
-          hitHalfHeight,
+          sizeXHalf,
+          sizeYHalf,
+          sizeZHalf,
           position,
           quaternion,
         } = args;
-        const collision = physicsScene.getCollisionObject(
-          hitRadius,
-          hitHalfHeight,
-          position,
-          quaternion,
-        );
-        if (collision) {
-          const collisionId = collision.objectId;
-          const result = metaversefile.getPairByPhysicsId(collisionId);
-          if (result) {
-            const [app, physicsObject] = result;
-            const timeDiff = timestamp - this.lastHitTime;
-            if (timeDiff > 1000) {
-              const useAction = this.player.getAction('use');
-              const damage = typeof useAction.damage === 'number' ? useAction.damage : 10;
-              const hitDirection = app.position.clone()
-                .sub(this.player.position);
-              hitDirection.y = 0;
-              hitDirection.normalize();
-    
-              const damageMeshOffsetDistance = 1.5;
-              const hitPosition = localVector.copy(this.player.position)
-                .add(localVector2.set(0, 0, -damageMeshOffsetDistance).applyQuaternion(this.player.quaternion))
-                .clone();
-              localEuler.setFromQuaternion(camera.quaternion, 'YXZ');
-              localEuler.x = 0;
-              localEuler.z = 0;
-              const hitQuaternion = localQuaternion.setFromEuler(localEuler);
-    
-              // const willDie = app.willDieFrom(damage);
-              app.hit(damage, {
-                type: 'sword',
-                collisionId,
-                physicsObject,
-                hitPosition,
-                hitQuaternion,
-                hitDirection,
-                // willDie,
-              });
-            
-              this.lastHitTime = timestamp;
 
-              return collision;
+        // physics.getScene().disableGeometryQueries(this.player.characterController);
+        const collision = physics.getScene().overlapBox(sizeXHalf, sizeYHalf, sizeZHalf, position, quaternion);
+        // physics.getScene().enableGeometryQueries(this.player.characterController);
+
+        if (collision) {
+          console.log(collision.objectIds.length > 0 ? collision.objectIds[0] : null)
+          const localPlayer = metaversefile.useLocalPlayer();
+
+          collision.objectIds.forEach(objectId => {
+            const collisionId = objectId;
+            // const isLocalPlayer = collisionId === localPlayer.characterController.physicsId;
+
+            // workaround, because metaversefile.getPairByPhysicsId currently doesnt return localPlayer's pair
+            if(false && isLocalPlayer) {
+              const lastHitTimeLP = this.lastHitTimes.get(localPlayer) ?? 0;
+              const lastHitIndexLP = this.lastHitIndices.get(localPlayer) ?? -1;
+              const timeDiffLP = timestamp - lastHitTimeLP;
+              const useActionLP = this.player.getAction('use');
+              if (useActionLP.index !== lastHitIndexLP || timeDiffLP > 500) {
+                localPlayer.characterHitter.getHit(100);
+              }
+              this.lastHitTimes.set(localPlayer, timestamp);
+              this.lastHitIndices.set(localPlayer, useActionLP.index);
+              return;
             }
-          }
+
+            const result = metaversefile.getPairByPhysicsId(collisionId);
+            if (result) {
+              const [app, physicsObject] = result;
+              if (app.getComponent('vincibility') !== 'invincible') {
+                const lastHitTime = this.lastHitTimes.get(app) ?? 0;
+                const lastHitIndex = this.lastHitIndices.get(app) ?? -1;
+                const timeDiff = timestamp - lastHitTime;
+                const useAction = this.player.getAction('use');
+                if (useAction.index !== lastHitIndex || timeDiff > 1000) {
+                  const damage = typeof useAction.damage === 'number' ? useAction.damage : 10;
+                  const hitDirection = app.position.clone()
+                    .sub(position);
+                  hitDirection.y = 0;
+                  hitDirection.normalize();
+  
+                  const hitPosition = position.clone();
+                  localEuler.setFromQuaternion(camera.quaternion, 'YXZ');
+                  localEuler.x = 0;
+                  localEuler.z = 0;
+                  const hitQuaternion = localQuaternion.setFromEuler(localEuler);
+  
+                  // const willDie = app.willDieFrom(damage);
+                  app.hit(damage, {
+                    type: 'sword',
+                    collisionId,
+                    physicsObject,
+                    hitPosition,
+                    hitQuaternion,
+                    hitDirection,
+                    // willDie,
+                  });
+  
+                  this.lastHitTimes.set(app, timestamp);
+                  this.lastHitIndices.set(app, useAction.index);
+                }
+              }
+            }
+          });
+          return null;
         }
-        return null;
       }
       case 'bullet': {
         const result = physics.raycast(args.position, args.quaternion);
