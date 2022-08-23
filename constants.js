@@ -111,6 +111,15 @@ export const metaverseProfileDefinition = `kjzl6cwe1jw145wm7u2sy1wpa33hglvmuy6th
 
 export const audioTimeoutTime = 10 * 1000;
 
+export const idleSpeed = 0;
+export const walkSpeed = 2.5;
+export const runSpeed = walkSpeed * 3;
+export const narutoRunSpeed = walkSpeed * 20;
+export const crouchSpeed = walkSpeed * 0.7;
+export const flySpeed = walkSpeed * 5;
+
+export const narutoRunTimeFactor = 2;
+
 export const crouchMaxTime = 200;
 export const activateMaxTime = 750;
 export const useMaxTime = 750;
@@ -121,10 +130,16 @@ export const minFov = 60;
 export const maxFov = 120;
 export const midFov = 90;
 export const initialPosY = 1.5;
-export const groundFriction = 0.28;
+
+// Now friction only affect damping, don't affect full speed moving.
+// export const groundFriction = 0.28;
+export const groundFriction = 25;
 export const airFriction = groundFriction;
-export const flyFriction = 0.5;
-export const swimFriction = 0.2;
+// export const flyFriction = 0.5;
+// export const swimFriction = 0.2;
+export const flyFriction = groundFriction;
+export const swimFriction = groundFriction;
+
 export const aimTransitionMaxTime = 150;
 
 export const jumpHeight = 3;
@@ -147,6 +162,7 @@ export const voiceEndpointBaseUrl = `https://voice.webaverse.com/tts`;
 export const voiceEndpointsUrl = `https://raw.githubusercontent.com/webaverse/tiktalknet/main/model_lists/all_models.json`;
 
 export const imageAIEndpointUrl = `https://stable-diffusion.webaverse.com`;
+export const imageCaptionAIEndpointUrl = `https://clip.webaverse.com`;
 
 export const chatTextSpeed = 15;
 export const shakeAnimationSpeed = 30;
