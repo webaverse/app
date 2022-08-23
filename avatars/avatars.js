@@ -602,7 +602,6 @@ class Avatar {
     // height is defined as eyes to root
     this.height = getHeight(object);
     this.shoulderWidth = modelBones.Left_arm.getWorldPosition(new THREE.Vector3()).distanceTo(modelBones.Right_arm.getWorldPosition(new THREE.Vector3()));
-    this.width = this.shoulderWidth; 
 
     this.leftArmLength = this.shoulderTransforms.leftArm.armLength;
     this.rightArmLength = this.shoulderTransforms.rightArm.armLength;

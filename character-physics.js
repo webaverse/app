@@ -62,12 +62,12 @@ class CharacterPhysics {
     this.lastPistolUse = false;
     this.lastPistolUseStartTime = -Infinity;
   }
-  loadCharacterController(width, height) {
-    this.characterWidth = width;
-    this.characterHeight = height;
+  loadCharacterController(characterWidth, characterHeight) {
+    this.characterWidth = characterWidth;
+    this.characterHeight = characterHeight;
 
-    this.capsuleWidth = width / 2;
-    this.capsuleHeight = height - width;
+    this.capsuleWidth = characterWidth / 2;
+    this.capsuleHeight = characterHeight - characterWidth;
 
     const contactOffset = 0.01 * this.capsuleHeight;
     const stepOffset = 0.1 * this.capsuleHeight;
@@ -89,7 +89,7 @@ class CharacterPhysics {
   }
   setPosition(p) {
     localVector.copy(p);
-    localVector.y -= this.characterHeight / 2;
+    localVector.y -= this.characterHeight * 0.5;
     physicsScene.setCharacterControllerPosition(
       this.characterController,
       localVector
@@ -240,7 +240,7 @@ class CharacterPhysics {
       localQuaternion.copy(this.character.quaternion);
 
       // adjusting the position of the character
-      const halfCharacterHeight = this.characterHeight / 2;
+      const halfCharacterHeight = this.characterHeight * 0.5;
       localVector.y += halfCharacterHeight;
 
       // capsule physics
@@ -345,13 +345,13 @@ class CharacterPhysics {
           .decompose(localVector, localQuaternion, localVector2);
 
         localVector.add(this.sitOffset);
-        localVector.y += this.characterHeight / 2;
+        localVector.y += this.characterHeight * 0.5;
 
         physicsScene.setCharacterControllerPosition(
           this.characterController,
           localVector
         );
-        localVector.y += this.characterHeight / 2;
+        localVector.y += this.characterHeight * 0.5;
 
         localQuaternion.premultiply(
           localQuaternion2.setFromAxisAngle(localVector3.set(0, 1, 0), Math.PI)
