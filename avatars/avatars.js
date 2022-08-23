@@ -1874,6 +1874,7 @@ class Avatar {
       */
     }
     // console.log(this.calcedVelocity.y)
+    console.log(this.velocity.x.toFixed(2));
     // console.log('applyAnimation')
     
     _applyAnimation(this, now);
