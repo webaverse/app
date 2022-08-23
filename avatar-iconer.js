@@ -33,9 +33,7 @@ class AvatarIconer extends EventTarget {
         player,
       } = e.data;
 
-      this.player = player;
-      const avatarApp = this.player.getAvatarApp();
-      this.renderAvatarApp(avatarApp);
+      this.bindPlayer(player);
     };
     partyManager.addEventListener('playerselected', playerSelectedFn);
 
@@ -101,6 +99,12 @@ class AvatarIconer extends EventTarget {
       }
     ]);
 
+    const avatarApp = this.player.getAvatarApp();
+    this.renderAvatarApp(avatarApp);
+  }
+
+  bindPlayer(player) {
+    this.player = player;
     const avatarApp = this.player.getAvatarApp();
     this.renderAvatarApp(avatarApp);
   }

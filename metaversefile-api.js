@@ -34,6 +34,8 @@ import npcManager from './npc-manager.js';
 import mobManager from './mob-manager.js';
 import universe from './universe.js';
 import {PathFinder} from './npc-utils.js';
+import {avatarManager} from './avatar-manager.js';
+import {partyManager} from './party-manager.js';
 import {playersManager} from './players-manager.js';
 import loaders from './loaders.js';
 import * as voices from './voices.js';
@@ -566,11 +568,17 @@ metaversefile.setApi({
   useRemotePlayers() {
     return Array.from(playersManager.getRemotePlayers().values());
   },
+  usePartyManager() {
+    return partyManager;
+  },
   useNpcManager() {
     return npcManager;
   },
   useMobManager() {
     return mobManager;
+  },
+  useAvatarManager() {
+    return avatarManager;
   },
   usePathFinder() {
     return PathFinder;

@@ -858,25 +858,6 @@ const createPlayerDiorama = ({
     },
   };
 
-  /* function recompile() {
-    diorama.triggerLoad();
-  }
-  const compile = () => {
-    diorama.triggerLoad();
-    postProcessing.addEventListener('update', recompile);
-  }
-  if (player.avatar) {
-    compile();
-  } else {
-    function avatarchange() {
-      if (player.avatar) {
-        compile();
-        player.removeEventListener('avatarchange', avatarchange);
-      }
-    }
-    player.addEventListener('avatarchange', avatarchange);
-  } */
-
   if (!detached) {
     dioramas.push(diorama);
   }
