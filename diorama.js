@@ -635,13 +635,13 @@ const createPlayerDiorama = ({
         outlineRenderTarget = _makeOutlineRenderTarget(this.width * pixelRatio, this.height * pixelRatio);
       }
 
-      const _addObjectsToScene = (scene) => {
+      const _addObjectsToScene = scene => {
         for (const object of objects) {
           scene.add(object);
         }
       };
 
-      const _addAutoLightsToScene = (scene) => {
+      const _addAutoLightsToScene = scene => {
         if (lights) {
           for (const autoLight of autoLights) {
             scene.add(autoLight);
@@ -659,7 +659,7 @@ const createPlayerDiorama = ({
                 restoreFn.push(() => {
                   oldParent.add(o);
                 })
-                sideScene.add(o);
+                scene.add(o);
               }
             });
           }
@@ -735,7 +735,7 @@ const createPlayerDiorama = ({
         
         // set up side scene
         _addObjectsToScene(sideScene);
-        const restoreRootLightsFn = _addRootLightsToScene(outlineRenderScene, rootScene);
+        const restoreRootLightsFn = _addRootLightsToScene(sideScene, rootScene);
         // sideScene.add(world.lights);
     
         const _renderGrass = () => {
