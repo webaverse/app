@@ -30,6 +30,7 @@ import {AvatarRenderer} from './avatars/avatar-renderer.js';
 import {chatManager} from './chat-manager.js';
 import loreAI from './ai/lore/lore-ai.js';
 import imageAI from './ai/image/image-ai.js';
+import audioAI from './ai/audio/audio-ai.js';
 import npcManager from './npc-manager.js';
 import mobManager from './mob-manager.js';
 import universe from './universe.js';
@@ -463,6 +464,9 @@ metaversefile.setApi({
   },
   useImageAI() {
     return imageAI;
+  },
+  useAudioAI() {
+    return audioAI;
   },
   useVoices() {
     return voices;
