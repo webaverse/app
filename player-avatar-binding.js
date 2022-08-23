@@ -28,11 +28,11 @@ export function applyCharacterTransformsToAvatar(character, session, rig) {
     rig.inputs.rightGamepad.quaternion.copy(character.rightHand.quaternion);
   }
 }
-/* export function applyPlayerMetaTransformsToAvatar(player, session, rig) {
+export function applyCharacterMetaTransformsToAvatar(character, session, rig) {
   if (!session) {
-    rig.velocity.copy(player.characterPhysics.velocity);
+    rig.velocity.copy(character.characterPhysics.velocity);
   }
-} */
+}
 export function applyCharacterModesToAvatar(character, session, rig) {
   for (let i = 0; i < 2; i++) {
     rig.setHandEnabled(i, character.hands[i].enabled);
@@ -285,6 +285,7 @@ export function applyCharacterPoseToAvatar(character, rig) {
 }
 export function applyCharacterToAvatar(character, session, rig, mirrors) {
   applyCharacterTransformsToAvatar(character, session, rig);
+  applyCharacterMetaTransformsToAvatar(character, session, rig);
   
   applyCharacterModesToAvatar(character, session, rig);
   applyCharacterActionsToAvatar(character, rig);

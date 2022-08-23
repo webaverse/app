@@ -11,6 +11,7 @@ import { triggerEmote } from './src/components/general/character/Poses.jsx';
 import validEmotionMapping from "./validEmotionMapping.json";
 import metaversefile from './metaversefile-api.js';
 import {defaultNpcContent} from './constants.js';
+import {runSpeed, walkSpeed} from './constants.js';
 
 const localVector = new THREE.Vector3();
 
@@ -193,11 +194,6 @@ class NpcManager extends EventTarget {
         app.addEventListener('activate', activate);
 
         const updatePhysicsFn = (timestamp, timeDiff) => {
-          const slowdownFactor = 0.4;
-          const walkSpeed = 0.075 * slowdownFactor;
-          const runSpeed = walkSpeed * 8;
-          const speedDistanceRate = 0.07;
-
           const localPlayer = playersManager.getLocalPlayer();
           if (npcPlayer) {
 
@@ -218,11 +214,16 @@ class NpcManager extends EventTarget {
                 v.y = 0;
                 const distance = v.length();
                 if (npcPlayer.isInParty) { // follow
-                  const speed = Math.min(Math.max(walkSpeed + ((distance - 1.5) * speedDistanceRate), 0), runSpeed);
-                  v.normalize()
-                    .multiplyScalar(speed * timeDiff);
-
-                  npcPlayer.characterPhysics.applyWasd(v);
+                  const speed = THREE.MathUtils.clamp(
+                    THREE.MathUtils.mapLinear(
+                      distance,
+                      2, 3.5,
+                      walkSpeed, runSpeed,
+                    ),
+                    0, runSpeed,
+                  );
+                  const velocity = v.normalize().multiplyScalar(speed);
+                  npcPlayer.characterPhysics.applyWasd(velocity, timeDiff);
 
                   npcPlayer.setTarget(target.position);
                 } else {
