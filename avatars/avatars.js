@@ -993,7 +993,7 @@ class Avatar {
     this.lastNeedsHeadTarget = false;
     this.lastHeadTargetTime = -Infinity;
 
-    this.disableAudioWorkerSetVolume=false;
+    this.disableAudioWorkerSetVolume = true;
   }
   static bindAvatar(object) {
     const model = object.scene;
