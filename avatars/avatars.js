@@ -19,6 +19,9 @@ import {
   // useMaxTime,
   // aimMaxTime,
   aimTransitionMaxTime,
+  idleSpeed,
+  walkSpeed,
+  runSpeed,
   // avatarInterpolationFrameRate,
   // avatarInterpolationTimeDelay,
   // avatarInterpolationNumFrames,
@@ -26,12 +29,6 @@ import {
 // import {FixedTimeStep} from '../interpolants.js';
 // import {AvatarRenderer} from './avatar-renderer.js';
 // import * as sceneCruncher from '../scene-cruncher.js';
-import {
-  idleFactorSpeed,
-  walkFactorSpeed,
-  runFactorSpeed,
-  // narutoRunTimeFactor,
-} from './constants.js';
 import {
   getSkinnedMeshes,
   getSkeleton,
@@ -407,8 +404,6 @@ class Avatar {
 
     this.vrmExtension = object?.parser?.json?.extensions?.VRM;
     this.firstPersonCurves = getFirstPersonCurves(this.vrmExtension); 
-
-    this.lastVelocity = new THREE.Vector3();
 
     //
 
@@ -948,7 +943,6 @@ class Avatar {
     this.movementsTransitionFactor = NaN;
     this.sprintTime = 0;
     this.sprintFactor = 0;
-    this.lastPosition = new THREE.Vector3();
     this.velocity = new THREE.Vector3();
     this.lastMoveTime = 0;
     this.lastEmoteTime = 0;
@@ -1445,19 +1439,11 @@ class Avatar {
     }
   }
 
-  setVelocity(timestamp, timeDiffS, lastPosition, currentPosition, currentQuaternion) {
-    // Set the velocity, which will be considered by the animation controller
-    const positionDiff = localVector.copy(lastPosition)
-      .sub(currentPosition)
-      .divideScalar(Math.max(timeDiffS, 0.001))
-      .multiplyScalar(0.1);
-    localEuler.setFromQuaternion(currentQuaternion, 'YXZ');
-    localEuler.set(0, -(localEuler.y + Math.PI), 0);
-    positionDiff.applyEuler(localEuler);
-    this.velocity.copy(positionDiff);
-    this.lastVelocity.copy(this.velocity);
-    this.direction.copy(positionDiff).normalize();
-    this.lastPosition.copy(currentPosition);
+  setDirection(timestamp) {
+    this.direction.copy(this.velocity);
+    localEuler.setFromQuaternion(this.inputs.hmd.quaternion, 'YXZ');
+    localEuler.set(0, -localEuler.y, 0);
+    this.direction.applyEuler(localEuler);
 
     if (this.velocity.length() > maxIdleVelocity) {
       this.lastMoveTime = timestamp;
@@ -1468,10 +1454,12 @@ class Avatar {
     const now = timestamp;
     const timeDiffS = timeDiff / 1000;
 
+    this.setDirection(timestamp);
+
     const currentSpeed = localVector.set(this.velocity.x, 0, this.velocity.z).length();
 
-    this.idleWalkFactor = Math.min(Math.max((currentSpeed - idleFactorSpeed) / (walkFactorSpeed - idleFactorSpeed), 0), 1);
-    this.walkRunFactor = Math.min(Math.max((currentSpeed - walkFactorSpeed) / (runFactorSpeed - walkFactorSpeed), 0), 1);
+    this.idleWalkFactor = Math.min(Math.max((currentSpeed - idleSpeed) / (walkSpeed - idleSpeed), 0), 1);
+    this.walkRunFactor = Math.min(Math.max((currentSpeed - walkSpeed) / (runSpeed - walkSpeed), 0), 1);
     this.crouchFactor = Math.min(Math.max(1 - (this.crouchTime / crouchMaxTime), 0), 1);
     // console.log('current speed', currentSpeed, idleWalkFactor, walkRunFactor);
     this.aimRightFactor = this.aimRightTransitionTime / aimTransitionMaxTime;
@@ -1864,20 +1852,14 @@ class Avatar {
     if (this.getTopEnabled() || this.getHandEnabled(0) || this.getHandEnabled(1)) {
       _motionControls.call(this)
     }
-    
-    this.setVelocity(
-      timestamp,
-      timeDiffS,
-      this.lastPosition,
-      this.inputs.hmd.position,
-      this.inputs.hmd.quaternion
-    );
 
     const player = window.localPlayer;
     // const player = window.npcPlayers[0];
     if (true && player && this === player.avatar) {
       window.domInfo.innerHTML += `
         <div style="display:;">actions: --- ${player.getActionsArray().map(n=>n.type)}</div>
+        <div style="display:;">targetMoveDistancePerFrame: --- ${window.logVector3(player.characterPhysics.targetMoveDistancePerFrame)} | ${window.logNum(player.characterPhysics.targetMoveDistancePerFrame.length())} of characterPhysics ( correct )</div>
+        <div style="display:;">targetMoveDistancePerFrame: --- ${window.logVector3(player.characterPhysics.wantMoveDistancePerFrame)} | ${window.logNum(player.characterPhysics.wantMoveDistancePerFrame.length() * 6)} damped ( length * 6 )</div>
         <div style="display:;">velocity: --- ${window.logVector3(player.characterPhysics.velocity)} | ${window.logNum(player.characterPhysics.velocity.length())} | ${window.logNum(localVector.copy(player.characterPhysics.velocity).setY(0).length())} of characterPhysics</div>
         <div style="display:;">velocity: --- ${window.logVector3(this.velocity)} | ${window.logNum(this.velocity.length())} | ${window.logNum(localVector.copy(this.velocity).setY(0).length())} of avatar</div>
         <div style="display:;">idleWalkFactor: --- ${window.logNum(this.idleWalkFactor)}</div>
@@ -1887,12 +1869,10 @@ class Avatar {
         <div style="display:;">angle: --- ${window.logNum(this.getAngle())}</div>
         <div style="display:;">hmd.quaternion: --- ${window.logVector4(this.inputs.hmd.quaternion)}</div>
       `
-    }
-    /*
-        <div style="display:;">targetMoveDistancePerFrame: --- ${window.logVector3(player.characterPhysics.targetMoveDistancePerFrame)} | ${window.logNum(player.characterPhysics.targetMoveDistancePerFrame.length())} of characterPhysics ( correct )</div>
-        <div style="display:;">targetMoveDistancePerFrame: --- ${window.logVector3(player.characterPhysics.wantMoveDistancePerFrame)} | ${window.logNum(player.characterPhysics.wantMoveDistancePerFrame.length() * 6)} damped ( length * 6 )</div>
+      /*
         <div style="display:;">velocity: --- ${window.logVector3(this.calcedVelocity)} | ${window.logNum(this.calcedVelocity.length())} | ${window.logNum(localVector.copy(this.calcedVelocity).setY(0).length())} of avatar calced</div>
-    */
+      */
+    }
     // console.log(this.calcedVelocity.y)
     // console.log('applyAnimation')
     

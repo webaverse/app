@@ -21,6 +21,9 @@ const localQuaternion = new THREE.Quaternion();
 const localQuaternion2 = new THREE.Quaternion();
 // const localEuler = new THREE.Euler();
 const localMatrix = new THREE.Matrix4();
+const localVector2D = new THREE.Vector2();
+const localVector2D2 = new THREE.Vector2();
+const localVector2D3 = new THREE.Vector2();
 
 // const localOffset = new THREE.Vector3();
 // const localOffset2 = new THREE.Vector3();
@@ -42,11 +45,20 @@ class CharacterPhysics {
   constructor(character) {
     this.character = character;
 
-    this.velocity = new THREE.Vector3();
+    this.targetVelocity = new THREE.Vector3(); // note: set by user input ( WASD ).
+    this.lastTargetVelocity = new THREE.Vector3(); // note: targetVelocity of last frame.
+    this.wantVelocity = new THREE.Vector3(); // note: damped lastTargetVelocity ( mainly used for smooth animation transition ).
+    this.velocity = new THREE.Vector3(); // after moveCharacterController, the result actual velocity.
+    this.targetMoveDistancePerFrame = new THREE.Vector3(); // note: see velocity.
+    this.lastTargetMoveDistancePerFrame = new THREE.Vector3(); // note: see velocity.
+    this.wantMoveDistancePerFrame = new THREE.Vector3(); // note: see velocity.
     this.lastGrounded = null;
     this.lastGroundedTime = 0;
     this.lastCharacterControllerY = null;
     this.sitOffset = new THREE.Vector3();
+    this.lastFallLoopAction = false;
+    this.fallLoopStartTimeS = 0;
+    this.lastGravityH = 0;
 
     this.lastPistolUse = false;
     this.lastPistolUseStartTime = -Infinity;
@@ -86,33 +98,47 @@ class CharacterPhysics {
     );
   }
   /* apply the currently held keys to the character */
-  applyWasd(keysDirection) {
+  applyWasd(velocity, timeDiff) {
     if (this.character.avatar) {
-      this.velocity.add(keysDirection);
+      this.targetVelocity.copy(velocity);
+      this.targetMoveDistancePerFrame.copy(this.targetVelocity).multiplyScalar(timeDiff / 1000);
     }
   }
-  applyGravity(timeDiffS) {
-    // if (this.player) {
-    if (
-      (this.character.hasAction('jump') || this.character.hasAction('fallLoop')) &&
-      !this.character.hasAction('fly') &&
-      !this.character.hasAction('swim')
-    ) {
-      localVector.copy(physicsScene.getGravity()).multiplyScalar(timeDiffS);
-      this.velocity.add(localVector);
-    }
+  applyGravity(nowS, timeDiffS) {
+    // if (this.character) {
+      const fallLoopAction = this.character.getAction('fallLoop');
+      if (fallLoopAction) {
+        if (!this.lastFallLoopAction) {
+          this.fallLoopStartTimeS = nowS;
+          this.lastGravityH = 0;
+          if (fallLoopAction.from === 'jump') {
+            const aestheticJumpBias = 1;
+            const t = flatGroundJumpAirTime / 1000 / 2 + aestheticJumpBias;
+            this.fallLoopStartTimeS -= t;
+            const previousT = t - timeDiffS;
+            this.lastGravityH = 0.5 * physicsScene.getGravity().y * previousT * previousT;
+          }
+        }
+        const t = nowS - this.fallLoopStartTimeS;
+        const h = 0.5 * physicsScene.getGravity().y * t * t;
+        this.wantMoveDistancePerFrame.y = h - this.lastGravityH;
+
+        this.lastGravityH = h;
+      }
+      this.lastFallLoopAction = fallLoopAction;
     // }
   }
   updateVelocity(timeDiffS) {
-    const timeDiff = timeDiffS * 1000;
-    this.applyVelocityDamping(this.velocity, timeDiff);
+    this.applyVelocityDamping(this.velocity, timeDiffS);
   }
   applyCharacterPhysicsDetail(velocityAvatarDirection, updateRig, now, timeDiffS) {
     if (this.character.avatar) {
+      // console.log('apply avatar physics', this.character);
       // move character controller
       const minDist = 0;
-      localVector3.copy(this.velocity).multiplyScalar(timeDiffS);
+      localVector3.copy(this.wantMoveDistancePerFrame);
 
+      // aesthetic jump
       const jumpAction = this.character.getAction('jump');
       if (jumpAction?.trigger === 'jump') {
         const doubleJumpAction = this.character.getAction('doubleJump');
@@ -150,6 +176,9 @@ class CharacterPhysics {
           localVector3.y = 0;
         }
       }
+
+      const positionXZBefore = localVector2D.set(this.characterController.position.x, this.characterController.position.z);
+      const positionYBefore = this.characterController.position.y;
       const flags = physicsScene.moveCharacterController(
         this.characterController,
         localVector3,
@@ -157,6 +186,27 @@ class CharacterPhysics {
         timeDiffS,
         this.characterController.position
       );
+      const positionXZAfter = localVector2D2.set(this.characterController.position.x, this.characterController.position.z);
+      const positionYAfter = this.characterController.position.y;
+      const wantMoveDistancePerFrameXZ = localVector2D3.set(this.wantMoveDistancePerFrame.x, this.wantMoveDistancePerFrame.z);
+      const wantMoveDistancePerFrameY = this.wantMoveDistancePerFrame.y;
+      const wantMoveDistancePerFrameXZLength = wantMoveDistancePerFrameXZ.length();
+      const wantMoveDistancePerFrameYLength = wantMoveDistancePerFrameY;
+      this.velocity.copy(this.wantVelocity);
+      if (wantMoveDistancePerFrameXZLength > 0) { // prevent divide 0, and reduce calculations.
+        const movedRatioXZ = (positionXZAfter.sub(positionXZBefore).length()) / wantMoveDistancePerFrameXZLength;
+        if (movedRatioXZ < 1) {
+          this.velocity.x *= movedRatioXZ;
+          this.velocity.z *= movedRatioXZ;
+        }
+      }
+      if (wantMoveDistancePerFrameYLength > 0) { // prevent divide 0, and reduce calculations.
+        const movedRatioY = (positionYAfter - positionYBefore) / wantMoveDistancePerFrameYLength;
+        if (movedRatioY < 1) {
+          this.velocity.y *= movedRatioY;
+        }
+      }
+
       // const collided = flags !== 0;
       let grounded = !!(flags & 0x1);
 
@@ -227,7 +277,7 @@ class CharacterPhysics {
             }
           }
 
-          this.velocity.y = -1;
+          // this.velocity.y = -1;
         } else {
           const lastGroundedTimeDiff = now - this.lastGroundedTime;
           if (lastGroundedTimeDiff > 200) {
@@ -311,7 +361,7 @@ class CharacterPhysics {
       // localVector.add(localOffset2);
       localMatrix.compose(localVector, localQuaternion, localVector2);
 
-      // apply to player
+      // apply to character
       if (updateRig) {
         this.character.matrix.copy(localMatrix);
       } else {
@@ -324,13 +374,13 @@ class CharacterPhysics {
       );
       this.character.matrixWorld.copy(this.character.matrix);
 
-      // this.player.updateMatrixWorld();
+      // this.character.updateMatrixWorld();
 
       /* if (this.avatar) {
-        if (this.player.hasAction('jump')) {
+        if (this.character.hasAction('jump')) {
           this.avatar.setFloorHeight(-0xFFFFFF);
         } else {
-          this.avatar.setFloorHeight(localVector.y - this.player.avatar.height);
+          this.avatar.setFloorHeight(localVector.y - this.character.avatar.height);
         }
         this.avatar.updateMatrixWorld();
       } */
@@ -341,17 +391,26 @@ class CharacterPhysics {
     }
   }
   /* dampen the velocity to make physical sense for the current avatar state */
-  applyVelocityDamping(velocity, timeDiff) {
+  applyVelocityDamping(velocity, timeDiffS) {
+    const doDamping = (factor) => {
+      this.wantMoveDistancePerFrame.x = THREE.MathUtils.damp(this.wantMoveDistancePerFrame.x, this.lastTargetMoveDistancePerFrame.x, factor, timeDiffS);
+      this.wantMoveDistancePerFrame.z = THREE.MathUtils.damp(this.wantMoveDistancePerFrame.z, this.lastTargetMoveDistancePerFrame.z, factor, timeDiffS);
+      this.wantMoveDistancePerFrame.y = THREE.MathUtils.damp(this.wantMoveDistancePerFrame.y, this.lastTargetMoveDistancePerFrame.y, factor, timeDiffS);
+      // this.wantMoveDistancePerFrame.y = this.targetMoveDistancePerFrame.y;
+
+      this.wantVelocity.x = THREE.MathUtils.damp(this.wantVelocity.x, this.lastTargetVelocity.x, factor, timeDiffS);
+      this.wantVelocity.z = THREE.MathUtils.damp(this.wantVelocity.z, this.lastTargetVelocity.z, factor, timeDiffS);
+      this.wantVelocity.y = THREE.MathUtils.damp(this.wantVelocity.y, this.lastTargetVelocity.y, factor, timeDiffS);
+      // this.wantVelocity.y = this.targetVelocity.y;
+    }
     if (this.character.hasAction('fly')) {
-      const factor = getVelocityDampingFactor(flyFriction, timeDiff);
-      velocity.multiplyScalar(factor);
-    } else if (this.character.hasAction('swim')) {
-      const factor = getVelocityDampingFactor(swimFriction, timeDiff);
-      velocity.multiplyScalar(factor);
-    } else {
-      const factor = getVelocityDampingFactor(groundFriction, timeDiff);
-      velocity.x *= factor;
-      velocity.z *= factor;
+      doDamping(flyFriction);
+    } 
+    else if(this.character.hasAction('swim')){
+      doDamping(swimFriction);
+    }
+    else {
+      doDamping(groundFriction);
     }
   }
   applyCharacterPhysics(now, timeDiffS) {
@@ -359,10 +418,10 @@ class CharacterPhysics {
     // const session = renderer.xr.getSession();
 
     /* if (session) {
-      if (ioManager.currentWalked || this.player.hasAction('jump')) {
+      if (ioManager.currentWalked || this.character.hasAction('jump')) {
         // const originalPosition = avatarWorldObject.position.clone();
 
-        this.applyAvatarPhysicsDetail(false, false, now, timeDiffS);
+        this.applyCharacterPhysicsDetail(false, false, now, timeDiffS);
 
         // dolly.position.add(
           // avatarWorldObject.position.clone().sub(originalPosition)
@@ -560,10 +619,10 @@ class CharacterPhysics {
         this.character.rightHand.position.lerp(targetPosition, v);
         this.character.rightHand.quaternion.slerp(targetQuaternion, v);
 
-        /* this.player.rightHand.quaternion.slerp(localQuaternion, v);
-        this.player.rightHand.position.add(
+        /* this.character.rightHand.quaternion.slerp(localQuaternion, v);
+        this.character.rightHand.position.add(
           localVector.set(0, 0, -fakeArmLength)
-            .applyQuaternion(this.player.rightHand.quaternion)
+            .applyQuaternion(this.character.rightHand.quaternion)
         ); */
 
         this.character.rightHand.updateMatrixWorld();
@@ -572,10 +631,14 @@ class CharacterPhysics {
     _updateBowIkAnimation();
   }
   update(now, timeDiffS) {
-    this.applyGravity(timeDiffS);
+    const nowS = now / 1000;
     this.updateVelocity(timeDiffS);
+    this.applyGravity(nowS, timeDiffS);
     this.applyCharacterPhysics(now, timeDiffS);
     this.applyCharacterActionKinematics(now, timeDiffS);
+
+    this.lastTargetVelocity.copy(this.targetVelocity);
+    this.lastTargetMoveDistancePerFrame.copy(this.targetMoveDistancePerFrame);
   }
   reset() {
     if (this.character.avatar) {
@@ -583,10 +646,7 @@ class CharacterPhysics {
     }
   }
   destroy() {
-    if (this.characterController) {
-      physicsScene.destroyCharacterController(this.characterController);
-      this.characterController = null;
-    }
+    // nothing
   }
 }
 
