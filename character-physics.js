@@ -133,7 +133,6 @@ class CharacterPhysics {
   }
   applyCharacterPhysicsDetail(velocityAvatarDirection, updateRig, now, timeDiffS) {
     if (this.character.avatar) {
-      // console.log('apply avatar physics', this.character);
       // move character controller
       const minDist = 0;
       localVector3.copy(this.wantMoveDistancePerFrame);
@@ -646,7 +645,10 @@ class CharacterPhysics {
     }
   }
   destroy() {
-    // nothing
+    if (this.characterController) {
+      physicsScene.destroyCharacterController(this.characterController);
+      this.characterController = null;
+    }
   }
 }
 

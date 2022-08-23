@@ -1852,30 +1852,6 @@ class Avatar {
     if (this.getTopEnabled() || this.getHandEnabled(0) || this.getHandEnabled(1)) {
       _motionControls.call(this)
     }
-
-    const player = window.localPlayer;
-    // const player = window.npcPlayers[0];
-    if (true && player && this === player.avatar) {
-      window.domInfo.innerHTML += `
-        <div style="display:;">actions: --- ${player.getActionsArray().map(n=>n.type)}</div>
-        <div style="display:;">targetMoveDistancePerFrame: --- ${window.logVector3(player.characterPhysics.targetMoveDistancePerFrame)} | ${window.logNum(player.characterPhysics.targetMoveDistancePerFrame.length())} of characterPhysics ( correct )</div>
-        <div style="display:;">targetMoveDistancePerFrame: --- ${window.logVector3(player.characterPhysics.wantMoveDistancePerFrame)} | ${window.logNum(player.characterPhysics.wantMoveDistancePerFrame.length() * 6)} damped ( length * 6 )</div>
-        <div style="display:;">velocity: --- ${window.logVector3(player.characterPhysics.velocity)} | ${window.logNum(player.characterPhysics.velocity.length())} | ${window.logNum(localVector.copy(player.characterPhysics.velocity).setY(0).length())} of characterPhysics</div>
-        <div style="display:;">velocity: --- ${window.logVector3(this.velocity)} | ${window.logNum(this.velocity.length())} | ${window.logNum(localVector.copy(this.velocity).setY(0).length())} of avatar</div>
-        <div style="display:;">idleWalkFactor: --- ${window.logNum(this.idleWalkFactor)}</div>
-        <div style="display:;">walkRunFactor: --- ${window.logNum(this.walkRunFactor)}</div>
-        <div style="display:;">avatar.direction: --- ${window.logVector3(this.direction)}</div>
-        <div style="display:;">player.direction: --- ${window.logVector3(player.getWorldDirection(localVector))}</div>
-        <div style="display:;">angle: --- ${window.logNum(this.getAngle())}</div>
-        <div style="display:;">hmd.quaternion: --- ${window.logVector4(this.inputs.hmd.quaternion)}</div>
-      `
-      /*
-        <div style="display:;">velocity: --- ${window.logVector3(this.calcedVelocity)} | ${window.logNum(this.calcedVelocity.length())} | ${window.logNum(localVector.copy(this.calcedVelocity).setY(0).length())} of avatar calced</div>
-      */
-    }
-    // console.log(this.calcedVelocity.y)
-    console.log(this.velocity.x.toFixed(2));
-    // console.log('applyAnimation')
     
     _applyAnimation(this, now);
 

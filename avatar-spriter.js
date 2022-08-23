@@ -842,8 +842,6 @@ const getSpriteSpecs = () => {
               localRig.inputs.hmd.updateMatrixWorld();
 
               localRig.velocity.set(0, 0, moveDistancePerFrame).divideScalar(Math.max(timeDiffMs / 1000, 0.001));
-              // console.log(localRig.velocity.length());
-              // console.log(walkSpeed, timeDiffMs.toFixed(2), positionOffset.toFixed(2));
 
               localRig.update(timestamp, timeDiffMs);
   
@@ -1630,7 +1628,6 @@ export const renderSpriteImages = async (arrayBuffer, srcUrl) => {
   const renderer = getRenderer();
   const pixelRatio = renderer.getPixelRatio();
   const _renderSpriteFrame = () => {
-    // console.log('_renderSpriteFrame');
     const oldParent = model.parent;
     scene2.add(model);
 
@@ -1658,7 +1655,6 @@ export const renderSpriteImages = async (arrayBuffer, srcUrl) => {
   };
 
   const spriteSpecs = getSpriteSpecs();
-  console.log('getSpriteSpecs()');
   let canvasIndex2 = 0;
   const spriteImages = [];
   // console.time('render');
