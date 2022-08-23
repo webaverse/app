@@ -1856,7 +1856,7 @@ class Avatar {
 
     const player = window.localPlayer;
     // const player = window.npcPlayers[0];
-    if (false && player && this === player.avatar) {
+    if (true && player && this === player.avatar) {
       window.domInfo.innerHTML += `
         <div style="display:;">actions: --- ${player.getActionsArray().map(n=>n.type)}</div>
         <div style="display:;">velocity: --- ${window.logVector3(player.characterPhysics.velocity)} | ${window.logNum(player.characterPhysics.velocity.length())} | ${window.logNum(localVector.copy(player.characterPhysics.velocity).setY(0).length())} of characterPhysics</div>
@@ -1875,7 +1875,7 @@ class Avatar {
         <div style="display:;">velocity: --- ${window.logVector3(this.calcedVelocity)} | ${window.logNum(this.calcedVelocity.length())} | ${window.logNum(localVector.copy(this.calcedVelocity).setY(0).length())} of avatar calced</div>
     */
     // console.log(this.calcedVelocity.y)
-    console.log(this.velocity.z.toFixed(2))
+    // console.log(this.velocity.z.toFixed(2))
     // console.log('applyAnimation')
     
     _applyAnimation(this, now);
