@@ -58,13 +58,12 @@ class DropManager extends EventTarget {
     );
     return trackedApp;
   }
-  addClaim(app, name, type, serverDrop, contentId, voucher) {
+  addClaim(name, type, serverDrop, contentId, voucher) {
     const result = generateStats(contentId);
     const {/*art, */stats} = result;
     const {level} = stats;
     const start_url = contentId;
     const claim = {
-      app,
       name,
       type,
       serverDrop,
@@ -90,16 +89,8 @@ class DropManager extends EventTarget {
       },
     }));
   }
-  dropClaim(app){
-    this.claims = this.claims.filter(claim => claim.app !== app)
-    this.dispatchEvent(new MessageEvent('claimschange', {
-      data: {
-        claims: this.claims,
-      },
-    }));
-  }
   pickupApp(app) {
-    this.addClaim(app, app.name, app.type, app.getComponent('drop').serverDrop, app.contentId, app.getComponent('voucher'));
+    this.addClaim(app.name, app.type, app.getComponent('drop').serverDrop, app.contentId, app.getComponent('voucher'));
   }
   dropToken(contractAddress, tokenId, voucher) {
     // XXX engine implements this

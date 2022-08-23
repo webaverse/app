@@ -1432,9 +1432,6 @@ class GameManager extends EventTarget {
     const u = getDropUrl(j);
     return await this.handleDropUrlToPlayer(u, index);
   }
-  async handleDropClaimToPlayer(j) {
-    j.app.dropApp();
-  }
   async handleDropUrlToPlayer(u, index) {
     const app = await metaversefileApi.createAppAsync({
       start_url: u,
