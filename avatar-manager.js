@@ -53,13 +53,27 @@ class AvatarManager extends EventTarget {
         data: e,
       }));
     };
+    const actionadd = e => {
+      this.dispatchEvent(new MessageEvent('actionadd', {
+        data: e,
+      }));
+    };
+    const actionremove = e => {
+      this.dispatchEvent(new MessageEvent('actionremove', {
+        data: e,
+      }));
+    };
     player.addEventListener('actionadd', actionupdate);
+    player.addEventListener('actionadd', actionadd);
     player.addEventListener('actionremove', actionupdate);
+    player.addEventListener('actionremove', actionremove);
 
     this.cleanup = () => {
       player.removeEventListener('avatarchange', avatarchange);
       player.removeEventListener('actionadd', actionupdate);
       player.removeEventListener('actionremove', actionupdate);
+      player.removeEventListener('actionadd', actionadd);
+      player.removeEventListener('actionremove', actionremove);
     };
 
     this.dispatchEvent(new MessageEvent('playerselected', {
