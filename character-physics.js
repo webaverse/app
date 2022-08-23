@@ -37,7 +37,6 @@ const groundStickOffset = 0.03;
 
 const physicsScene = physicsManager.getScene();
 
-const CHARACTER_CONTROLLER_HEIGHT_FACTOR = 1.6;
 class CharacterPhysics {
   constructor(character) {
     this.character = character;
@@ -51,27 +50,26 @@ class CharacterPhysics {
     this.lastPistolUse = false;
     this.lastPistolUseStartTime = -Infinity;
   }
-  loadCharacterController(characterWidth, characterHeight) {
-    this.characterWidth = characterWidth;
-    this.characterHeight = characterHeight;
+  loadCharacterController(width, height) {
+    this.characterWidth = width;
+    this.characterHeight = height;
 
-    const radius = (this.characterWidth / CHARACTER_CONTROLLER_HEIGHT_FACTOR) * this.characterHeight;
-    const height = this.characterHeight - radius * 2;
+    this.capsuleWidth = width / 2;
+    this.capsuleHeight = height - width;
 
-    const contactOffset = (0.1 / CHARACTER_CONTROLLER_HEIGHT_FACTOR) * this.characterHeight;
-    const stepOffset = (0.5 / CHARACTER_CONTROLLER_HEIGHT_FACTOR) * this.characterHeight;
+    const contactOffset = 0.01 * this.capsuleHeight;
+    const stepOffset = 0.1 * this.capsuleHeight;
 
-    const position = this.character.position
-      .clone()
-      .add(new THREE.Vector3(0, -this.characterHeight / 2, 0));
+    const position = this.character.position.clone();
 
     if (this.characterController) {
       physicsScene.destroyCharacterController(this.characterController);
       this.characterController = null;
     }
+
     this.characterController = physicsScene.createCharacterController(
-      radius - contactOffset,
-      height,
+      this.capsuleWidth,
+      this.capsuleHeight,
       contactOffset,
       stepOffset,
       position
@@ -79,7 +77,7 @@ class CharacterPhysics {
   }
   setPosition(p) {
     localVector.copy(p);
-    localVector.y -= this.characterHeight * 0.5;
+    localVector.y -= this.characterHeight / 2;
     physicsScene.setCharacterControllerPosition(
       this.characterController,
       localVector
@@ -191,7 +189,10 @@ class CharacterPhysics {
         localVector2
       );
       localQuaternion.copy(this.character.quaternion);
-      localVector.y += this.characterHeight * 0.5;
+
+      // adjusting the position of the character
+      const halfCharacterHeight = this.characterHeight / 2;
+      localVector.y += halfCharacterHeight;
 
       // capsule physics
       if (!this.character.hasAction('sit')) {
@@ -295,13 +296,13 @@ class CharacterPhysics {
           .decompose(localVector, localQuaternion, localVector2);
 
         localVector.add(this.sitOffset);
-        localVector.y += this.characterHeight * 0.5;
+        localVector.y += this.characterHeight / 2;
 
         physicsScene.setCharacterControllerPosition(
           this.characterController,
           localVector
         );
-        localVector.y += this.characterHeight * 0.5;
+        localVector.y += this.characterHeight / 2;
 
         localQuaternion.premultiply(
           localQuaternion2.setFromAxisAngle(localVector3.set(0, 1, 0), Math.PI)
