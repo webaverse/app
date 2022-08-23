@@ -650,18 +650,16 @@ const createPlayerDiorama = ({
 
       const _addRootLightsToScene = (scene, rootScene) => {
         const restoreFn = [];
-        if (lights) {
-          if (rootScene) {
-            rootScene.traverseVisible(o => {
-              if (o.isLight) {
-                const oldParent = o.parent;
-                restoreFn.push(() => {
-                  oldParent.add(o);
-                })
-                scene.add(o);
-              }
-            });
-          }
+        if (rootScene) {
+          rootScene.traverseVisible(o => {
+            if (o.isLight) {
+              const oldParent = o.parent;
+              restoreFn.push(() => {
+                oldParent.add(o);
+              });
+              scene.add(o);
+            }
+          });
         }
         return restoreFn;
       };
