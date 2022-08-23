@@ -466,7 +466,6 @@ const autoLights = (() => {
     directionalLight,
   ];
 })();
-
 /* let sideSceneCompiled = false;
 const _ensureSideSceneCompiled = () => {
   if (!sideSceneCompiled) {
