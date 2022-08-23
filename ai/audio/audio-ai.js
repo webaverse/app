@@ -16,6 +16,4 @@ class AudioAI {
   }
 }
 const audioAI = new AudioAI();
-globalThis.audioAI = audioAI;
-globalThis.audioManager = audioManager;
 export default audioAI;
