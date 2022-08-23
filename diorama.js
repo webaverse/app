@@ -657,7 +657,11 @@ const createPlayerDiorama = ({
           });
           scene.add(light);
         }
-        return restoreFn;
+        return () => {
+          for (const fn of restoreFn) {
+            fn();
+          }
+        };
       };
 
       // push old state
@@ -860,9 +864,7 @@ const createPlayerDiorama = ({
         };
         _copyFrame();
 
-        for (const fn of restoreRootLightsFn) {
-          fn();
-        }
+        restoreRootLightsFn();
       };
       _render();
 
