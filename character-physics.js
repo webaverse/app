@@ -124,7 +124,7 @@ class CharacterPhysics {
             console.log({jumpEndSpeed})
 
             const t = -jumpEndSpeed / physicsScene.getGravity().y;
-            this.fallLoopStartTimeS -= t; // adjust start time, in order to match velocity.y between aethetic jump and normal fall.
+            this.fallLoopStartTimeS -= t; // adjust start time, in order to match velocity.y between aesthetic jump and normal fall.
             const previousT = t - timeDiffS;
             this.lastGravityH = 0.5 * physicsScene.getGravity().y * previousT * previousT;
           }
