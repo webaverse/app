@@ -1,3 +1,8 @@
+/*
+avatar manager forwards avatar related events from local player
+this is an utility class, to smoothly support same interface
+even when local player is changed on party player switch
+*/
 // import * as THREE from 'three';
 // import metaversefile from 'metaversefile'
 import {partyManager} from './party-manager';
