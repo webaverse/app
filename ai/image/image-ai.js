@@ -5,9 +5,15 @@ class ImageAI {
   async txt2img(prompt, {
     n,
     noise,
+    clear,
+    color,
   } = {}) {
     const url = new URL(imageAIEndpointUrl);
-    url.pathname = '/image';
+    if (!clear) {
+      url.pathname = '/image';
+    } else {
+      url.pathname = '/mod';
+    }
     url.searchParams.set('s', prompt);
     if (n !== undefined) {
       url.searchParams.set('n', n);
@@ -15,7 +21,10 @@ class ImageAI {
     if (noise !== undefined) {
       url.searchParams.set('noise', noise);
     }
-    
+    if (color !== undefined) {
+      url.searchParams.set('color', color);
+    }
+
     const img = await loadImage(url);
     return img;
   }
