@@ -42,10 +42,19 @@ for (let i = 0; i < userTokenCharacters.length; i++) {
         bio: '',
     };
 }
-const characters = JSON.parse(JSON.stringify(charactersManager.characters)); // deep clone
-
-//
-
+const fillCharacters = (characters) => {
+    // adds additional character information for dynamic npcApp creation and selection support
+    const viewCharacters = JSON.parse(JSON.stringify(characters)); // deep clone
+    for (const [packName, pack] of Object.entries(viewCharacters)) {
+        for (const character of pack) {
+            character.detached = true; // diorama character doesn't need to be attached to npc-manager
+            character.packName = packName;
+        }
+    }
+    return viewCharacters;
+};
+const characters = fillCharacters(charactersManager.characters);  
+          
 const Character = forwardRef(({
     character,
     highlight,
@@ -99,7 +108,6 @@ export const CharacterSelect = () => {
                 live = false;
             });
 
-            targetCharacter.detached = true; // diorama character doesn't need to be attached to npc-manager
             const npcApp = await metaversefile.createAppAsync({
                 start_url: typeContentToUrl('application/npc', targetCharacter),
             });
@@ -179,6 +187,7 @@ export const CharacterSelect = () => {
                 setArrowPosition([
                     Math.floor(rect.left - parentRect.left + rect.width / 2 + 40),
                     Math.floor(rect.top - parentRect.top + rect.height / 2),
+                    targetCharacter.packName,
                 ]);
             } else {
                 setArrowPosition(null);
@@ -376,33 +385,37 @@ export const CharacterSelect = () => {
                         )}
                     </ul>
                 </div>
-                <div className={styles.section}>
-                    <div className={styles.subheading}>
-                        <h2>From Upstreet</h2>
-                    </div>
-                    <ul className={styles.list}>
-                        {characters.upstreet.map((character, i) => {
-                            return (
-                                <Character
-                                    character={character}
-                                    highlight={character === targetCharacter}
-                                    animate={selectCharacter === character}
-                                    disabled={!character.name || (!!selectCharacter && selectCharacter !== character)}
-                                    onMouseMove={onMouseMove(character)}
-                                    onClick={onClick(character)}
-                                    key={i}
-                                    ref={refsMap.get(character)}
+                {Object.keys(characters).map((packName) => {
+                    return (
+                        <div className={styles.section} key={packName}>
+                            <div className={styles.subheading}>
+                                <h2>From {packName}</h2>
+                            </div>
+                            <ul className={styles.list}>
+                                {characters[packName].map((character, i) => {
+                                    return (
+                                        <Character
+                                            character={character}
+                                            highlight={character === targetCharacter}
+                                            animate={selectCharacter === character}
+                                            disabled={!character.name || (!!selectCharacter && selectCharacter !== character)}
+                                            onMouseMove={onMouseMove(character)}
+                                            onClick={onClick(character)}
+                                            key={i}
+                                            ref={refsMap.get(character)}
+                                        />
+                                    );
+                                })}
+                                <LightArrow
+                                    enabled={!!arrowPosition && arrowPosition[2] === packName}
+                                    animate={!!selectCharacter}
+                                    x={arrowPosition?.[0] ?? 0}
+                                    y={arrowPosition?.[1] ?? 0}
                                 />
-                            );
-                        })}
-                        <LightArrow
-                            enabled={!!arrowPosition}
-                            animate={!!selectCharacter}
-                            x={arrowPosition?.[0] ?? 0}
-                            y={arrowPosition?.[1] ?? 0}
-                        />
-                    </ul>
-                </div>
+                            </ul>
+                        </div>
+                    );
+                })}
                 {(opened && text) ? (
                     <RpgText className={styles.text} styles={styles} text={text} textSpeed={chatTextSpeed} />
                 ) : null}
