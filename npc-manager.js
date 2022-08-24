@@ -154,11 +154,9 @@ class NpcManager extends EventTarget {
 
     app.setPhysicsObject(npcPlayer.characterPhysics.characterController);
     app.getLoreSpec = () => {
-      const name = json.name ?? 'Anon';
-      const description = json.bio ?? '';
       return {
-        name,
-        description,
+        name: json.name,
+        description: json.bio,
       }
     };
 
@@ -266,9 +264,9 @@ class NpcManager extends EventTarget {
 
     // load
     if (mode === 'attached') {
-      const npcName = json.name ?? 'Anon';
-      const npcVoiceName = json.voice ?? 'Shining armor';
-      const npcBio = json.bio ?? 'A generic avatar.';
+      const npcName = json.name;
+      const npcVoiceName = json.voice;
+      const npcBio = json.bio;
       const npcDetached = !!json.detached;
       let npcWear = json.wear ?? [];
       if (!Array.isArray(npcWear)) {
@@ -390,7 +388,7 @@ class NpcManager extends EventTarget {
       json = await res.json();
       //if (!live) return;
 
-      const npcName = json.name ?? 'Anon';
+      const npcName = json.name;
 
       // npc pameters
       let avatarUrl = json.avatarUrl;
