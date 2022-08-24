@@ -1,30 +1,25 @@
-const XMLHttpRequest = require('xhr2');
-global.XMLHttpRequest = XMLHttpRequest;
-const encoding = require('encoding-japanese');
-const path = require('path');
-const fs = require('fs');
-const express = require('express');
-const THREE = require('three');
-global.THREE = THREE;
-const fflate = require('three/examples/js/libs/fflate.min.js');
-globalThis.fflate = fflate;
-require('three/examples/js/loaders/FBXLoader.js');
-require('three/examples/js/loaders/MMDLoader.js');
-const {FBXLoader, MMDLoader} = THREE;
-global.FBXLoader = FBXLoader;
-global.MMDLoader = MMDLoader;
-const {CharsetEncoder} = require('three/examples/js/libs/mmdparser.js');
+import path from 'path';
+import fs from 'fs';
+import express from 'express';
+import encoding from 'encoding-japanese';
+
+import * as THREE from 'three';
+import {FBXLoader} from 'three/examples/jsm/loaders/FBXLoader.js';
+import {MMDLoader} from 'three/examples/jsm/loaders/MMDLoader.js';
+import {CharsetEncoder} from 'three/examples/jsm/libs/mmdparser.module.js';
+
+import {getHeight, modelBoneToAnimationBone} from './avatars/util.mjs';
+import {zbencode, zbdecode} from 'zjs/encoding.mjs';
+
+class ProgressEvent {
+  constructor(type, options) {
+    this.type = type;
+    this.options = options;
+  }
+}
+globalThis.ProgressEvent = ProgressEvent;
 
 (async () => {
-  const nodeFetch = await import('node-fetch');
-  globalThis.fetch = nodeFetch.default;
-  const {Request, Response, Headers} = nodeFetch;
-  globalThis.Request = Request;
-  globalThis.Response = Response;
-  globalThis.Headers = Headers;
-  const {getHeight, animationBoneToModelBone, modelBoneToAnimationBone} = await import('./avatars/util.mjs');
-  const {zbencode, zbdecode} = await import('zjs/encoding.mjs');
-
   const idleAnimationName = 'idle.fbx';
   const reversibleAnimationNames = [
     'left strafe walking.fbx',
