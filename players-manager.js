@@ -1,4 +1,5 @@
-/* player manager binds y.js data to player objects
+/* PlayerManager manages local and remote players.
+player manager binds y.js data to player objects
 player objects load their own avatar and apps using this binding */
 
 // import * as THREE from 'three';

@@ -1,3 +1,11 @@
+/*
+npc manager provides features for instances of all npcs.
+npcs includes,
+  - character npcs in party system
+  - world npcs
+  - detached npcs for player select view
+*/
+
 import * as THREE from 'three';
 import Avatar from './avatars/avatars.js';
 import {LocalPlayer} from './character-controller.js';
