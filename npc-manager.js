@@ -1,14 +1,9 @@
 /*
-npc manager provides features for instances of all npcs.
+npc manager tracks instances of all npcs.
 npcs includes,
   - character npcs in party system
   - world npcs
   - detached npcs for player select view
-
-features includes,
-  - create npc app
-  - destroy npc app
-  - query all npcs
 */
 
 import * as THREE from 'three';
