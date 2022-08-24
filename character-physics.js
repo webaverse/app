@@ -115,7 +115,17 @@ class CharacterPhysics {
           if (fallLoopAction.from === 'jump') {
             const aestheticJumpBias = 0;
             const flatGroundJumpAirTime = 1000; // jumpAnimation.duration * 1000;
-            const t = flatGroundJumpAirTime / 1000 / 2 + aestheticJumpBias;
+            // const flatGroundJumpAirTime = jumpAnimation.duration * 1000;
+            // const t = flatGroundJumpAirTime / 1000 / 2 + aestheticJumpBias;
+
+            // calc jump end speed
+            const dt = 0.001;
+            const dy = Math.sin((flatGroundJumpAirTime - dt * 1000) / flatGroundJumpAirTime * Math.PI) * jumpHeight -
+                       Math.sin((flatGroundJumpAirTime) / flatGroundJumpAirTime * Math.PI) * jumpHeight;
+            const speed = dy / dt;
+            console.log({speed})
+
+            const t = -speed / physicsScene.getGravity().y;
             this.fallLoopStartTimeS -= t;
             const previousT = t - timeDiffS;
             this.lastGravityH = 0.5 * physicsScene.getGravity().y * previousT * previousT;
@@ -124,6 +134,7 @@ class CharacterPhysics {
         const t = nowS - this.fallLoopStartTimeS;
         const h = 0.5 * physicsScene.getGravity().y * t * t;
         this.wantMoveDistancePerFrame.y = h - this.lastGravityH;
+        // console.log(t, h, this.wantMoveDistancePerFrame.y, this.character.avatar.calcedVelocity.y);
 
         this.lastGravityH = h;
       }
@@ -142,6 +153,7 @@ class CharacterPhysics {
       // aesthetic jump
       const jumpAction = this.character.getAction('jump');
       const flatGroundJumpAirTime = 1000; // jumpAnimation.duration * 1000;
+      // const flatGroundJumpAirTime = jumpAnimation.duration * 1000;
       if (jumpAction?.trigger === 'jump') {
         const doubleJumpAction = this.character.getAction('doubleJump');
         if (doubleJumpAction) {
@@ -167,12 +179,6 @@ class CharacterPhysics {
             this.character.setControlAction({ type: 'fallLoop', from: 'jump' });
             console.log('fallLoop from jump')
           }
-          // test
-          const dt = 0.001;
-          const dy = Math.sin(flatGroundJumpAirTime / flatGroundJumpAirTime * Math.PI) * jumpHeight -
-                     Math.sin((flatGroundJumpAirTime + dt * 1000) / flatGroundJumpAirTime * Math.PI) * jumpHeight;
-          const speed = dy / dt;
-          console.log(speed)
         }
       }
 
