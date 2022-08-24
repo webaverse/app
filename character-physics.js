@@ -113,20 +113,18 @@ class CharacterPhysics {
           this.fallLoopStartTimeS = nowS;
           this.lastGravityH = 0;
           if (fallLoopAction.from === 'jump') {
-            const aestheticJumpBias = 0;
-            const flatGroundJumpAirTime = 1000; // jumpAnimation.duration * 1000;
-            // const flatGroundJumpAirTime = jumpAnimation.duration * 1000;
-            // const t = flatGroundJumpAirTime / 1000 / 2 + aestheticJumpBias;
+            // const flatGroundJumpAirTime = 1000;
+            const flatGroundJumpAirTime = jumpAnimation.duration * 1000;
 
-            // calc jump end speed
+            // calc aesthetic jump end speed
             const dt = 0.001;
             const dy = Math.sin((flatGroundJumpAirTime - dt * 1000) / flatGroundJumpAirTime * Math.PI) * jumpHeight -
                        Math.sin((flatGroundJumpAirTime) / flatGroundJumpAirTime * Math.PI) * jumpHeight;
-            const speed = dy / dt;
-            console.log({speed})
+            const jumpEndSpeed = dy / dt;
+            console.log({jumpEndSpeed})
 
-            const t = -speed / physicsScene.getGravity().y;
-            this.fallLoopStartTimeS -= t;
+            const t = -jumpEndSpeed / physicsScene.getGravity().y;
+            this.fallLoopStartTimeS -= t; // adjust start time, in order to match velocity.y between aethetic jump and normal fall.
             const previousT = t - timeDiffS;
             this.lastGravityH = 0.5 * physicsScene.getGravity().y * previousT * previousT;
           }
@@ -152,8 +150,8 @@ class CharacterPhysics {
 
       // aesthetic jump
       const jumpAction = this.character.getAction('jump');
-      const flatGroundJumpAirTime = 1000; // jumpAnimation.duration * 1000;
-      // const flatGroundJumpAirTime = jumpAnimation.duration * 1000;
+      // const flatGroundJumpAirTime = 1000;
+      const flatGroundJumpAirTime = jumpAnimation.duration * 1000;
       if (jumpAction?.trigger === 'jump') {
         const doubleJumpAction = this.character.getAction('doubleJump');
         if (doubleJumpAction) {
