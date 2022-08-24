@@ -20,7 +20,7 @@ const localVector4 = new THREE.Vector3();
 const localVector5 = new THREE.Vector3();
 const localQuaternion = new THREE.Quaternion();
 const localQuaternion2 = new THREE.Quaternion();
-// const localEuler = new THREE.Euler();
+const localEuler = new THREE.Euler();
 const localMatrix = new THREE.Matrix4();
 const localVector2D = new THREE.Vector2();
 const localVector2D2 = new THREE.Vector2();
@@ -149,6 +149,13 @@ class CharacterPhysics {
       localVector3.copy(this.wantMoveDistancePerFrame);
 
       // aesthetic jump
+      const result = physicsScene.raycast(
+        this.characterController.position,
+        localQuaternion.setFromEuler(localEuler.set(-Math.PI / 2, 0, 0))
+      )
+      const height = result ? Math.max(0, result.distance - this.character.avatar.height / 2) : Infinity;
+      console.log(height)
+      //
       const jumpAction = this.character.getAction('jump');
       // const flatGroundJumpAirTime = 1000;
       const flatGroundJumpAirTime = jumpAnimation.duration * 1000;
