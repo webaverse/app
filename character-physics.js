@@ -7,10 +7,11 @@ import * as THREE from 'three';
 import physicsManager from './physics-manager.js';
 // import ioManager from './io-manager.js';
 import {getVelocityDampingFactor, applyVelocity} from './util.js';
-import {groundFriction, flyFriction, airFriction, swimFriction, flatGroundJumpAirTime, jumpHeight} from './constants.js';
+import {groundFriction, flyFriction, airFriction, swimFriction, jumpHeight} from './constants.js';
 import {getRenderer, camera} from './renderer.js';
 // import physx from './physx.js';
 import metaversefileApi from 'metaversefile';
+import {jumpAnimation} from './avatars/animationHelpers.js';
 
 const localVector = new THREE.Vector3();
 const localVector2 = new THREE.Vector3();
@@ -113,6 +114,7 @@ class CharacterPhysics {
           this.lastGravityH = 0;
           if (fallLoopAction.from === 'jump') {
             const aestheticJumpBias = 1;
+            const flatGroundJumpAirTime = jumpAnimation.duration * 1000;
             const t = flatGroundJumpAirTime / 1000 / 2 + aestheticJumpBias;
             this.fallLoopStartTimeS -= t;
             const previousT = t - timeDiffS;
@@ -139,6 +141,7 @@ class CharacterPhysics {
 
       // aesthetic jump
       const jumpAction = this.character.getAction('jump');
+      const flatGroundJumpAirTime = jumpAnimation.duration * 1000;
       if (jumpAction?.trigger === 'jump') {
         const doubleJumpAction = this.character.getAction('doubleJump');
         if (doubleJumpAction) {
