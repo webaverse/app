@@ -1853,6 +1853,18 @@ class Avatar {
       _motionControls.call(this)
     }
     
+    //
+
+
+    if (!this.calcedVelocity) {
+      this.calcedVelocity = new THREE.Vector3();
+      this.lastPosition = new THREE.Vector3();
+    }
+    const positionDiff = localVector.copy(this.lastPosition)
+      .sub(this.inputs.hmd.position);
+    this.calcedVelocity.copy(positionDiff).divideScalar(timeDiffS);
+    this.lastPosition.copy(this.inputs.hmd.position);
+    
 
     const player = window.localPlayer;
     // const player = window.npcPlayers[0];
@@ -1861,6 +1873,7 @@ class Avatar {
         <div style="display:;">actions: --- ${player.getActionsArray().map(n=>n.type)}</div>
         <div style="display:;">velocity: --- ${window.logVector3(player.characterPhysics.velocity)} | ${window.logNum(player.characterPhysics.velocity.length())} | ${window.logNum(localVector.copy(player.characterPhysics.velocity).setY(0).length())} of characterPhysics</div>
         <div style="display:;">velocity: --- ${window.logVector3(this.velocity)} | ${window.logNum(this.velocity.length())} | ${window.logNum(localVector.copy(this.velocity).setY(0).length())} of avatar</div>
+        <div style="display:;">velocity: --- ${window.logVector3(this.calcedVelocity)} | ${window.logNum(this.calcedVelocity.length())} | ${window.logNum(localVector.copy(this.calcedVelocity).setY(0).length())} of avatar calced</div>
         <div style="display:;">idleWalkFactor: --- ${window.logNum(this.idleWalkFactor)}</div>
         <div style="display:;">walkRunFactor: --- ${window.logNum(this.walkRunFactor)}</div>
         <div style="display:;">avatar.direction: --- ${window.logVector3(this.direction)}</div>
@@ -1872,9 +1885,8 @@ class Avatar {
     /*
         <div style="display:;">targetMoveDistancePerFrame: --- ${window.logVector3(player.characterPhysics.targetMoveDistancePerFrame)} | ${window.logNum(player.characterPhysics.targetMoveDistancePerFrame.length())} of characterPhysics ( correct )</div>
         <div style="display:;">targetMoveDistancePerFrame: --- ${window.logVector3(player.characterPhysics.wantMoveDistancePerFrame)} | ${window.logNum(player.characterPhysics.wantMoveDistancePerFrame.length() * 6)} damped ( length * 6 )</div>
-        <div style="display:;">velocity: --- ${window.logVector3(this.calcedVelocity)} | ${window.logNum(this.calcedVelocity.length())} | ${window.logNum(localVector.copy(this.calcedVelocity).setY(0).length())} of avatar calced</div>
     */
-    // console.log(this.calcedVelocity.y)
+    console.log(this.calcedVelocity.y.toFixed(2))
     // console.log(this.velocity.z.toFixed(2))
     // console.log('applyAnimation')
     
