@@ -184,25 +184,3 @@ export const defaultWorldSeed = 100;
 export const minAvatarQuality = 1;
 export const maxAvatarQuality = 4;
 export const defaultAvatarQuality = 3;
-
-export const defaultVoiceEndpoint = `Sweetie Belle`;
-export const defaultVoicePackName = `ShiShi voice pack`;
-
-// export const defaultAvatarUrl = './avatars/ann_liskwitch_v3.1_guiltyallShapeKeys.vrm';
-// export const defaultAvatarUrl = './avatars/ann.vrm';
-export const defaultPlayerSpec = {
-  name: 'Scillia',
-  previewUrl: './images/characters/upstreet/small/scillia.png',
-  avatarUrl: './avatars/scilly_drophunter_v31.7_fuji.vrm',
-  voice: defaultVoiceEndpoint,
-  voicePack: defaultVoicePackName,
-  class: 'Drop Hunter',
-  bio: `Her nickname is Scilly or SLY. 13/F drop hunter. She is an adventurer, swordfighter and fan of potions. She is exceptionally skilled and can go Super Saiyan.`,
-  themeSongUrl: `https://webaverse.github.io/music/themes/149274046-smooth-adventure-quest.mp3`,
-};
-
-export const defaultNpcContent = {
-  name: 'Anon',
-  voice: defaultVoiceEndpoint,
-  bio: `Maud Pie`
-};

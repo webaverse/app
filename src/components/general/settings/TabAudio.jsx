@@ -1,7 +1,6 @@
 
 import React, { useEffect, useState } from 'react';
 import classNames from 'classnames';
-// import { voicePacksUrl, voiceEndpointsUrl, defaultVoicePackName } from '../../../../constants';
 // import game from '../../../../game';
 import { Slider } from './slider';
 import * as voices from '../../../../voices';

@@ -10,8 +10,8 @@ import {makeId, createRelativeUrl} from './util.js';
 import { triggerEmote } from './src/components/general/character/Poses.jsx';
 import validEmotionMapping from "./validEmotionMapping.json";
 import metaversefile from './metaversefile-api.js';
-import {defaultNpcContent} from './constants.js';
 import {runSpeed, walkSpeed} from './constants.js';
+import {charactersManager} from './avatars/characters-manager.js';
 
 const localVector = new THREE.Vector3();
 
@@ -26,7 +26,8 @@ class NpcManager extends EventTarget {
     this.npcs = [];
   }
 
-  async initDefaultPlayer(defaultPlayerSpec) {
+  async initDefaultPlayer() {
+    const defaultPlayerSpec = charactersManager.defaultCharacterSpec;
     const localPlayer = metaversefile.useLocalPlayer();
     // console.log('set player spec', defaultPlayerSpec);
     await localPlayer.setPlayerSpec(defaultPlayerSpec);
@@ -41,7 +42,7 @@ class NpcManager extends EventTarget {
     const playerApp = createPlayerNpc();
 
     const importPlayerToNpcManager = () => {
-      this.addPlayerApp(playerApp, localPlayer, defaultNpcContent);
+      this.addPlayerApp(playerApp, localPlayer, defaultPlayerSpec);
 
       world.appManager.importApp(playerApp);
       world.appManager.transplantApp(playerApp, partyManager.appManager);

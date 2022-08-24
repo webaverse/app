@@ -4,7 +4,7 @@ import {screenshotObjectApp} from './object-screenshotter.js';
 import {screenshotAvatarUrl} from './avatar-screenshotter.js';
 import {generateGlyph} from './glyph-generator.js';
 import {splitLinesToWidth} from './util.js';
-import {defaultPlayerSpec} from './constants.js';
+import {charactersManager} from './avatars/characters-manager.js';
 
 const cardsSvgUrl = `./images/cards-01.svg`;
 
@@ -124,7 +124,7 @@ export const generateObjectCard = async ({
     })(),
     (async () => {
       let minterAvatarPreview = await screenshotAvatarUrl({
-        start_url: defaultPlayerSpec.avatarUrl,
+        start_url: charactersManager.defaultPlayerSpec.avatarUrl,
       });
       minterAvatarPreview = await _getCanvasDataUrl(minterAvatarPreview);
       return minterAvatarPreview;
@@ -136,7 +136,7 @@ export const generateObjectCard = async ({
     })(),
   ]);
 
-  const minterUsername = defaultPlayerSpec.name;
+  const minterUsername = charactersManager.defaultPlayerSpec.name;
   const cardImg = await generateCard({
     stats,
     width,
