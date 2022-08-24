@@ -31,7 +31,7 @@ const hitAttemptEvent = new MessageEvent('hitattempt', {
 export class CharacterHitter {
   constructor(player) {
     this.player = player;
-
+console.log(this.player);
     this.lastHitTimes = new WeakMap();
     this.lastHitIndices = new WeakMap();
   }
@@ -43,6 +43,7 @@ export class CharacterHitter {
     hitAttemptEventData.type = type;
     hitAttemptEventData.args = args;
     hitManager.dispatchEvent(hitAttemptEvent);
+    const localPlayer = metaversefile.useLocalPlayer();
 
     switch (type) {
       case 'sword': {
@@ -54,20 +55,19 @@ export class CharacterHitter {
           quaternion,
         } = args;
 
-        // physics.getScene().disableGeometryQueries(this.player.characterController);
+        if(this.player.isNpcPlayer) physics.getScene().enableGeometryQueries(localPlayer.characterPhysics.characterController);
+        physics.getScene().disableGeometryQueries(this.player.characterPhysics.characterController);
         const collision = physics.getScene().overlapBox(sizeXHalf, sizeYHalf, sizeZHalf, position, quaternion);
-        // physics.getScene().enableGeometryQueries(this.player.characterController);
-
+        physics.getScene().enableGeometryQueries(this.player.characterPhysics.characterController);
+        if(this.player.isNpcPlayer) physics.getScene().disableGeometryQueries(localPlayer.characterPhysics.characterController);
+        
         if (collision) {
-          console.log(collision.objectIds.length > 0 ? collision.objectIds[0] : null)
-          const localPlayer = metaversefile.useLocalPlayer();
-
           collision.objectIds.forEach(objectId => {
             const collisionId = objectId;
-            // const isLocalPlayer = collisionId === localPlayer.characterController.physicsId;
+            const isLocalPlayer = collisionId === localPlayer.characterPhysics.characterController.physicsId;
 
             // workaround, because metaversefile.getPairByPhysicsId currently doesnt return localPlayer's pair
-            if(false && isLocalPlayer) {
+            if(isLocalPlayer) {
               const lastHitTimeLP = this.lastHitTimes.get(localPlayer) ?? 0;
               const lastHitIndexLP = this.lastHitIndices.get(localPlayer) ?? -1;
               const timeDiffLP = timestamp - lastHitTimeLP;
@@ -83,7 +83,7 @@ export class CharacterHitter {
             const result = metaversefile.getPairByPhysicsId(collisionId);
             if (result) {
               const [app, physicsObject] = result;
-              if (app.getComponent('vincibility') !== 'invincible') {
+              if (app.appType === 'npc') {
                 const lastHitTime = this.lastHitTimes.get(app) ?? 0;
                 const lastHitIndex = this.lastHitIndices.get(app) ?? -1;
                 const timeDiff = timestamp - lastHitTime;
@@ -175,11 +175,8 @@ export class CharacterHitter {
     const hurtAction = this.player.addAction(newAction);
 
     const emotions = [
-      // 'joy',
-      // 'fun',
       'sorrow',
       'angry',
-      // 'neutral',
       'surprise',
     ];
     const emotion = emotions[Math.floor(Math.random() * emotions.length)];
@@ -191,15 +188,11 @@ export class CharacterHitter {
 
     const gruntTypes = [
       'hurt',
-      'scream',
-      'attack',
-      'angry',
-      'gasp',
     ];
     const gruntType = gruntTypes[Math.floor(Math.random() * gruntTypes.length)];
     // console.log('play grunt', emotion, gruntType);
     this.player.characterSfx.playGrunt(gruntType);
-
+    sounds.playSoundName('enemyCut');
     {
       const damageMeshApp = metaversefile.createApp();
       (async () => {

@@ -1061,13 +1061,13 @@ const _gameUpdate = (timestamp, timeDiff) => {
         if(animation.length > 0) {
           const animationDuration = animation[0].duration;
           const useTime = player.actionInterpolants.use.get();
-          if (useTime / 1000 >= animationDuration) {
+          if (useTime / 1000 >= 0.6) {
             _endUse(player);
           }
         }
       }
     }
-    isMouseUp = false;
+    // isMouseUp = false;
   };
   _updateUse(localPlayer);
   for(const npc of npcManager.npcs) {
