@@ -43,11 +43,15 @@ export const getEyePosition = (() => {
 })();
 export const getHeight = (() => {
   const localVector = new THREE.Vector3();
+  const localBox = new THREE.Box3();
   return function(object) {
     const modelBones = getModelBones(object);
+    const headBoundingBox = localBox.setFromObject(modelBones.Head, true);
+    let headHeight = headBoundingBox.max.y - headBoundingBox.min.y;
+    headHeight = headHeight < 0 ? 0 : headHeight;
     return getEyePosition(modelBones)
       .sub(modelBones.Root.getWorldPosition(localVector))
-      .y;
+      .y + headHeight / 2;
   };
 })();
 export const makeBoneMap = object => {
