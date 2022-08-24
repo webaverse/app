@@ -301,7 +301,6 @@ export const loadPromise = (async () => {
   // swordTopDownSlash = animations.find(a => a.isSwordTopDownSlash)
 
   jumpAnimation = animations.find(a => a.isJump);
-  window.jumpAnimation = jumpAnimation;
   doubleJumpAnimation = animations.find(a => a.isDoubleJump);
   fallLoopAnimation = animations.index['falling.fbx'];
   // sittingAnimation = animations.find(a => a.isSitting);

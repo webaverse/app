@@ -113,7 +113,6 @@ class CharacterPhysics {
           this.fallLoopStartTimeS = nowS;
           this.lastGravityH = 0;
           if (fallLoopAction.from === 'jump') {
-            // const flatGroundJumpAirTime = 1000;
             const flatGroundJumpAirTime = jumpAnimation.duration * 1000;
 
             // calc aesthetic jump end speed
@@ -121,7 +120,6 @@ class CharacterPhysics {
             const dy = Math.sin((flatGroundJumpAirTime - dt * 1000) / flatGroundJumpAirTime * Math.PI) * jumpHeight -
                        Math.sin((flatGroundJumpAirTime) / flatGroundJumpAirTime * Math.PI) * jumpHeight;
             const jumpEndSpeed = dy / dt;
-            console.log({jumpEndSpeed})
 
             const t = -jumpEndSpeed / physicsScene.getGravity().y;
             this.fallLoopStartTimeS -= t; // adjust start time, in order to match velocity.y between aethetic jump and normal fall.
@@ -132,7 +130,6 @@ class CharacterPhysics {
         const t = nowS - this.fallLoopStartTimeS;
         const h = 0.5 * physicsScene.getGravity().y * t * t;
         this.wantMoveDistancePerFrame.y = h - this.lastGravityH;
-        // console.log(t, h, this.wantMoveDistancePerFrame.y, this.character.avatar.calcedVelocity.y);
 
         this.lastGravityH = h;
       }
@@ -150,7 +147,6 @@ class CharacterPhysics {
 
       // aesthetic jump
       const jumpAction = this.character.getAction('jump');
-      // const flatGroundJumpAirTime = 1000;
       const flatGroundJumpAirTime = jumpAnimation.duration * 1000;
       if (jumpAction?.trigger === 'jump') {
         const doubleJumpAction = this.character.getAction('doubleJump');
@@ -164,7 +160,6 @@ class CharacterPhysics {
             this.lastCharacterControllerY;
           if (doubleJumpTime >= flatGroundJumpAirTime) {
             this.character.setControlAction({ type: 'fallLoop', from: 'jump' });
-            console.log('fallLoop from jump')
           }
         } else {
           const jumpTime = this.character.actionInterpolants.jump.get();
@@ -175,7 +170,6 @@ class CharacterPhysics {
             this.lastCharacterControllerY;
           if (jumpTime >= flatGroundJumpAirTime) {
             this.character.setControlAction({ type: 'fallLoop', from: 'jump' });
-            console.log('fallLoop from jump')
           }
         }
       }
