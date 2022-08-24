@@ -158,7 +158,7 @@ class CharacterPhysics {
         } else {
           const jumpTime = this.character.actionInterpolants.jump.get();
           localVector3.y =
-            Math.sin(jumpTime * (Math.PI / flatGroundJumpAirTime)) *
+            Math.sin(jumpTime / flatGroundJumpAirTime * Math.PI) *
               jumpHeight +
             jumpAction.startPositionY -
             this.lastCharacterControllerY;
