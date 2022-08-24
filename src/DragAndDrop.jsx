@@ -3,7 +3,7 @@ import React, {useState, useEffect, useContext, useRef} from 'react';
 import classnames from 'classnames';
 import style from './DragAndDrop.module.css';
 import {world} from '../world.js';
-import {getRandomString, handleUpload, handleBlobUpload} from '../util.js';
+import {getRandomString, handleUpload, handleBlobUpload, getObjectJson} from '../util.js';
 import {registerIoEventHandler, unregisterIoEventHandler} from './components/general/io-handler/IoHandler.jsx';
 import {GenericLoadingMessage, LoadingIndicator, registerLoad} from './LoadingBox.jsx';
 import {ObjectPreview} from './ObjectPreview.jsx';
@@ -168,8 +168,12 @@ const DragAndDrop = () => {
           const app = await uploadCreateApp(item, {
             drop,
           });
+          const j = getObjectJson();
           if (app) {
-            if (drop) {
+            if (j && j.claimed) {
+              world.appManager.importClaimedApp(app, j);
+              setState({ openedPanel: null });
+            } else if (drop) {
               world.appManager.importApp(app);
               setState({ openedPanel: null });
             } else {

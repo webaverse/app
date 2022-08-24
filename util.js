@@ -23,6 +23,7 @@ const localMatrix = new THREE.Matrix4();
 const localMatrix2 = new THREE.Matrix4();
 const ipfsFileURL = 'https://ipfs.webaverse.com/';
 const ipfsFolderURL = 'https://ipfs.webaverse.com/ipfs';
+let objectJson = null;
 
 export function jsonParse(s, d = null) {
   try {
@@ -935,6 +936,7 @@ export const handleDropJsonItem = async (item) => {
       item.getAsString(accept);
     });
     const j = jsonParse(s);
+    setObjectJson(j);
     if (j) {
       const u = getDropUrl(j);
       return u;
@@ -944,6 +946,12 @@ export const handleDropJsonItem = async (item) => {
     } */
   }
   return null;
+};
+const setObjectJson = (json) => {
+  objectJson = json;
+}
+export const getObjectJson = () => {
+  return objectJson;
 };
 export const handleBlobUpload = async (name, blob, progress) => {
   const formData = new FormData();
