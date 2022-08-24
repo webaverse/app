@@ -113,8 +113,8 @@ class CharacterPhysics {
           this.fallLoopStartTimeS = nowS;
           this.lastGravityH = 0;
           if (fallLoopAction.from === 'jump') {
-            const aestheticJumpBias = 1;
-            const flatGroundJumpAirTime = jumpAnimation.duration * 1000;
+            const aestheticJumpBias = 0;
+            const flatGroundJumpAirTime = 1000; // jumpAnimation.duration * 1000;
             const t = flatGroundJumpAirTime / 1000 / 2 + aestheticJumpBias;
             this.fallLoopStartTimeS -= t;
             const previousT = t - timeDiffS;
@@ -141,7 +141,7 @@ class CharacterPhysics {
 
       // aesthetic jump
       const jumpAction = this.character.getAction('jump');
-      const flatGroundJumpAirTime = jumpAnimation.duration * 1000;
+      const flatGroundJumpAirTime = 1000; // jumpAnimation.duration * 1000;
       if (jumpAction?.trigger === 'jump') {
         const doubleJumpAction = this.character.getAction('doubleJump');
         if (doubleJumpAction) {
@@ -154,6 +154,7 @@ class CharacterPhysics {
             this.lastCharacterControllerY;
           if (doubleJumpTime >= flatGroundJumpAirTime) {
             this.character.setControlAction({ type: 'fallLoop', from: 'jump' });
+            console.log('fallLoop from jump')
           }
         } else {
           const jumpTime = this.character.actionInterpolants.jump.get();
@@ -164,7 +165,14 @@ class CharacterPhysics {
             this.lastCharacterControllerY;
           if (jumpTime >= flatGroundJumpAirTime) {
             this.character.setControlAction({ type: 'fallLoop', from: 'jump' });
+            console.log('fallLoop from jump')
           }
+          // test
+          const dt = 0.001;
+          const dy = Math.sin(flatGroundJumpAirTime / flatGroundJumpAirTime * Math.PI) * jumpHeight -
+                     Math.sin((flatGroundJumpAirTime + dt * 1000) / flatGroundJumpAirTime * Math.PI) * jumpHeight;
+          const speed = dy / dt;
+          console.log(speed)
         }
       }
 
