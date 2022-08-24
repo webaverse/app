@@ -154,18 +154,20 @@ class CharacterPhysics {
         localQuaternion.setFromEuler(localEuler.set(-Math.PI / 2, 0, 0))
       )
       const height = result ? Math.max(0, result.distance - this.character.avatar.height / 2) : Infinity;
+      // const heightFactor = THREE.MathUtils.clamp(height / jumpHeight, 0, 1);
       console.log(height)
       //
       const jumpAction = this.character.getAction('jump');
       // const flatGroundJumpAirTime = 1000;
-      const flatGroundJumpAirTime = jumpAnimation.duration * 1000;
+      let flatGroundJumpAirTime = height > jumpHeight * 2 ? jumpAnimation.duration * 1000 : 666;
+      // flatGroundJumpAirTime -= flatGroundJumpAirTime / 2 * heightFactor
       if (jumpAction?.trigger === 'jump') {
         const doubleJumpAction = this.character.getAction('doubleJump');
         if (doubleJumpAction) {
           const doubleJumpTime =
             this.character.actionInterpolants.doubleJump.get();
           localVector3.y =
-            Math.sin(doubleJumpTime * (Math.PI / flatGroundJumpAirTime)) *
+            Math.sin(doubleJumpTime / flatGroundJumpAirTime * Math.PI) *
               jumpHeight +
             doubleJumpAction.startPositionY -
             this.lastCharacterControllerY;
