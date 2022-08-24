@@ -1,13 +1,5 @@
 import characterPackFilenames from '../characters/characters.json';
 
-function typeContentToUrl(type, content) {
-  if (typeof content === 'object') {
-    content = JSON.stringify(content);
-  }
-  const dataUrlPrefix = 'data:' + type + ',';
-  return '/@proxy/' + dataUrlPrefix + encodeURIComponent(content).replace(/\%/g, '%25')//.replace(/\\//g, '%2F');
-}
-    
 class CharactersManager extends EventTarget {
   constructor() {
     super();
@@ -23,6 +15,12 @@ class CharactersManager extends EventTarget {
       return objects;
     };
 
+    const loadNpc = async (srcUrl) => {
+      const res = await fetch(srcUrl);
+      const j = await res.json();
+      return j;
+    };
+
     const extractPackName = (filename) => {
       return filename.replace(/\.[^/.]+$/, "")
     }
@@ -30,7 +28,15 @@ class CharactersManager extends EventTarget {
     // list npc file names
     for (const packFilename of characterPackFilenames) {
       const packName = extractPackName(packFilename);
-      this.characters[packName] = await loadPack('./characters/' + packFilename);
+      const pack = await loadPack('./characters/' + packFilename);
+      
+      const characters = [];
+      for (const characterObj of pack) {
+        const characterName = characterObj.name;
+        const character = await loadNpc('./characters/' + characterName);
+        characters.push(character);
+      }
+      this.characters[packName] = characters;
     }
 
     // load default spec

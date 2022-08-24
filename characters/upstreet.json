@@ -1,0 +1,19 @@
+{
+  "objects": [
+    {
+      "name": "Scillia.npc"
+    },
+    {
+      "name": "Drake.npc"
+    },
+    {
+      "name": "Hyacinth.npc"
+    },
+    {
+      "name": "Juniper.npc"
+    },
+    {
+      "name": "Anemone.npc"
+    }
+  ]
+}

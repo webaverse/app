@@ -1,0 +1,10 @@
+{
+  "name": "Anemone",
+  "previewUrl": "./images/characters/upstreet/small/anemone.png",
+  "avatarUrl": "./avatars/ann.vrm",
+  "voice": "Trixie",
+  "voicePack": "ShiShi voice pack",
+  "class": "Lisk Witch",
+  "bio": "A witch studying to make the best potions. 13/F. She is exceptionally skilled and sells her potions on the black market, but she is very shy.",
+  "themeSongUrl": "https://webaverse.github.io/music/themes/158618260-ghost-catcher-scary-funny-adve.mp3"
+}
