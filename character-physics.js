@@ -166,6 +166,7 @@ class CharacterPhysics {
       // const flatGroundJumpAirTime = jumpAnimation.duration * 1000;
       const targetFlatGroundJumpAirTime = height > jumpHeight * 2 ? jumpAnimation.duration * 1000 : 666;
       this.flatGroundJumpAirTime = THREE.MathUtils.damp(this.flatGroundJumpAirTime, targetFlatGroundJumpAirTime, window.aaa, timeDiffS);
+      window.jumpAnimationRatio = this.flatGroundJumpAirTime / (jumpAnimation.duration * 1000)
       // console.log(this.flatGroundJumpAirTime)
       // flatGroundJumpAirTime -= flatGroundJumpAirTime / 2 * heightFactor
       if (jumpAction?.trigger === 'jump') {

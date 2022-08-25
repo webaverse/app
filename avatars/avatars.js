@@ -1886,7 +1886,7 @@ class Avatar {
         <div style="display:;">targetMoveDistancePerFrame: --- ${window.logVector3(player.characterPhysics.targetMoveDistancePerFrame)} | ${window.logNum(player.characterPhysics.targetMoveDistancePerFrame.length())} of characterPhysics ( correct )</div>
         <div style="display:;">targetMoveDistancePerFrame: --- ${window.logVector3(player.characterPhysics.wantMoveDistancePerFrame)} | ${window.logNum(player.characterPhysics.wantMoveDistancePerFrame.length() * 6)} damped ( length * 6 )</div>
     */
-    console.log(window.logNum(this.calcedVelocity.y))
+    // console.log(window.logNum(this.calcedVelocity.y))
     // console.log(this.velocity.z.toFixed(2))
     // console.log('applyAnimation')
     
