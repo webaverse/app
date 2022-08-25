@@ -1,3 +1,3 @@
 
-import { MagicMenu } from './MagicMenu';
-export { MagicMenu };
+import { AiMenu } from './AiMenu';
+export { AiMenu };

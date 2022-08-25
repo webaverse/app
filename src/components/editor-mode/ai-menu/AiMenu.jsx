@@ -8,19 +8,19 @@ import game from '../../../../game';
 import { registerIoEventHandler, unregisterIoEventHandler } from '../../general/io-handler';
 import { AppContext } from '../../app';
 
-import styles from './magic-menu.module.css';
+import styles from './ai-menu.module.css';
 
 //
 
-export function MagicMenu () {
+export function AiMenu () {
 
     const { state, setState } = useContext( AppContext );
     const [page, setPage] = useState('input');
     const [input, setInput] = useState('');
     const [output, setOutput] = useState('');
     const [compiling, setCompiling] = useState(false);
-    const [loading, setLoading] = useState(false);
-    const [needsFocus, setNeedsFocus] = useState(false);
+    // const [loading, setLoading] = useState(false);
+    // const [needsFocus, setNeedsFocus] = useState(false);
     const [ai, setAi] = useState(null);
     const inputTextarea = useRef();
     const outputTextarea = useRef();
@@ -57,7 +57,7 @@ export function MagicMenu () {
                 setAi(newAi);
                 setPage('output');
                 setOutput('');
-                setNeedsFocus(true);
+                // setNeedsFocus(true);
 
                 newAi.addEventListener('update', e => {
 
@@ -122,7 +122,7 @@ export function MagicMenu () {
 
         const handleKeyUp = ( event ) => {
 
-            if ( event.which === 13 && window.document.activeElement !== outputTextarea.current && state.openedPanel === 'MagicPanel' ) { // enter
+            if ( event.which === 13 && window.document.activeElement !== outputTextarea.current && state.openedPanel === 'AiPanel' ) { // enter
 
                 if ( page === 'input' ) {
 
@@ -142,7 +142,7 @@ export function MagicMenu () {
 
                 if ( game.inputFocused() ) return true;
 
-                setState({ openedPanel: ( state.openedPanel === 'MagicPanel' ? null : 'MagicPanel' ) });
+                setState({ openedPanel: ( state.openedPanel === 'AiPanel' ? null : 'AiPanel' ) });
 
                 if ( page === 'input' ) {
 
@@ -207,7 +207,7 @@ export function MagicMenu () {
     //
 
     return (
-        <div className={ styles.MagicMenu + ' ' + ( state.openedPanel === 'MagicPanel' ? styles.open : '' ) } onClick={ stopPropagation } >
+        <div className={ styles.AiMenu + ' ' + ( state.openedPanel === 'AiPanel' ? styles.open : '' ) } onClick={ stopPropagation } >
             <div className={styles.container}>
                 <textarea className={styles.textarea} value={input} rows={1} autoComplete="off" autoCorrect="off" autoCapitalize="off" spellCheck="false" onFocus={e => {
                     if (page !== 'input') {

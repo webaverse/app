@@ -1,5 +1,4 @@
-
-.MagicMenu {
+.AiMenu {
     position: absolute;
     top: 0;
     bottom: 0;
@@ -13,12 +12,12 @@
     visibility: hidden;
 }
 
-.MagicMenu .container {
+.AiMenu .container {
     display: flex;
     flex-direction: column;
 }
 
-.MagicMenu .container .textarea {
+.AiMenu .container .textarea {
     height: auto;
     margin-bottom: 10px;
     padding: 20px;
@@ -29,7 +28,7 @@
     box-shadow: 0 5px 20px #00000080;
 }
 
-.MagicMenu .container .output {
+.AiMenu .container .output {
     height: 500px;
     margin-bottom: 10px;
     padding: 20px;
@@ -40,11 +39,11 @@
     outline: none;
 }
 
-.MagicMenu .container .buttons {
+.AiMenu .container .buttons {
     display: flex;
 }
 
-.MagicMenu .container .button {
+.AiMenu .container .button {
     padding: 15px 20px;
     border: 0;
     background-color: #7E57C2;
@@ -52,15 +51,15 @@
     font-size: 16px;
 }
 
-.MagicMenu .container .button.disabled {
+.AiMenu .container .button.disabled {
     background-color: #CCC;
 }
 
-.MagicMenu .container .button + .button {
+.AiMenu .container .button + .button {
     margin-left: 5px;
 }
 
-.MagicMenu.open {
+.AiMenu.open {
     visibility: visible;
 }
 
