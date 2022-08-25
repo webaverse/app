@@ -1,24 +1,4 @@
-
-.MagicMenu {
-    position: absolute;
-    top: 0;
-    bottom: 0;
-    left: 0;
-    right: 0;
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-    align-items: center;
-    z-index: 1;
-    visibility: hidden;
-}
-
-.MagicMenu .container {
-    display: flex;
-    flex-direction: column;
-}
-
-.MagicMenu .container .textarea {
+.codeAiPanel .textarea {
     height: auto;
     margin-bottom: 10px;
     padding: 20px;
@@ -29,7 +9,7 @@
     box-shadow: 0 5px 20px #00000080;
 }
 
-.MagicMenu .container .output {
+.codeAiPanel .output {
     height: 500px;
     margin-bottom: 10px;
     padding: 20px;
@@ -40,11 +20,13 @@
     outline: none;
 }
 
-.MagicMenu .container .buttons {
+/* */
+
+.codeAiPanel .buttons {
     display: flex;
 }
 
-.MagicMenu .container .button {
+.codeAiPanel .button {
     padding: 15px 20px;
     border: 0;
     background-color: #7E57C2;
@@ -52,18 +34,20 @@
     font-size: 16px;
 }
 
-.MagicMenu .container .button.disabled {
+.codeAiPanel .button.disabled {
     background-color: #CCC;
 }
 
-.MagicMenu .container .button + .button {
+.codeAiPanel .button + .button {
     margin-left: 5px;
 }
 
-.MagicMenu.open {
+.codeAiPanel.open {
     visibility: visible;
 }
 
-.button.loading {
+/* */
+
+.codeAiPanel .button.loading {
     background-color: #CCC;
 }

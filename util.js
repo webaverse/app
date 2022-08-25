@@ -1128,7 +1128,10 @@ export const makeSquareImage = img => {
   const imageData = ctx.getImageData(0, 0, 1, 1);
 
   // fill the canvas with the top left color
-  ctx.fillStyle = `rgb(${imageData.data[0]}, ${imageData.data[1]}, ${imageData.data[2]})`;
+  ctx.fillStyle = imageData.data[4] > 0 ?
+    `rgb(${imageData.data[0]}, ${imageData.data[1]}, ${imageData.data[2]})`
+  :
+    '#fff';
   ctx.fillRect(0, 0, newSize, newSize);
 
   // draw the image in the center
