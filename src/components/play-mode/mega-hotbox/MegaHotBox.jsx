@@ -112,7 +112,6 @@ export const MegaHotBox = ({
   selectObject = null,
   imageBitmap = null,
   onActivate = null,
-  onDrop = null,
   onClose = null,
   onMint = null
 }) => {
