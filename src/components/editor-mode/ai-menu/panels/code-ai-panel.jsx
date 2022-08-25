@@ -120,7 +120,7 @@ export function CodeAiPanel() {
             return false;
         }
 
-        if (event.which === 191) { // /
+        /* if (event.which === 191) { // /
             if (game.inputFocused()) {
                 return true;
             } else {
@@ -136,7 +136,7 @@ export function CodeAiPanel() {
                 }
                 return false;
             }
-        }
+        } */
 
         return true;
     };

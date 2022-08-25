@@ -56,14 +56,15 @@ class SSAOPass extends Pass {
 		this.noiseTexture = null;
 		this.output = 0;
 
-		/* // debug hack
+		// debug hack
 		window.addEventListener('keydown', e => {
 			if (e.which === 36) { // numpad 7
 				const keys = Object.keys(SSAOPass.OUTPUT);
 				this.output = (this.output + 1) % keys.length;
 				console.log(keys[this.output]);
 			}
-		}); */
+		});
+
 
 		this.minDistance = 0.005;
 		this.maxDistance = 0.1;
