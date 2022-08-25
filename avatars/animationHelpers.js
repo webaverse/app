@@ -938,7 +938,7 @@ export const _applyAnimation = (avatar, now) => {
           useAnimation = useAnimations[useAnimationName];
           t2 = Math.min(useTimeS, useAnimation.duration);
         } else if (avatar.useAnimationCombo.length > 0) {
-          const useAnimationName = avatar.useAnimationCombo[avatar.useAnimationIndex]; //
+          const useAnimationName = avatar.useAnimationCombo[avatar.useAnimationIndex];
           useAnimation = useAnimations[useAnimationName];
           t2 = Math.min(useTimeS, useAnimation.duration);
         } else if (avatar.useAnimationEnvelope.length > 0) {
@@ -986,7 +986,7 @@ export const _applyAnimation = (avatar, now) => {
               .premultiply(localQuaternion2.fromArray(v3).invert())
               .premultiply(localQuaternion2.fromArray(v2));
           } else {
-            const src2 = useAnimation.interpolants[k]; //
+            const src2 = useAnimation.interpolants[k];
             const v2 = src2.evaluate(t2);
             localVector2.fromArray(v2);
             _clearXZ(localVector2, isPosition);

@@ -59,7 +59,7 @@ const triggerDamageAnimation = collisionId => {
 };
 
 const makeHitTracker = ({
-  totalHp = 10000,
+  totalHp = 100,
 } = {}) => {
   const hitTracker = new THREE.Object3D();
   hitTracker.name = 'hitTracker';

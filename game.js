@@ -1056,22 +1056,39 @@ const _gameUpdate = (timestamp, timeDiff) => {
         _endUse(player);
       }
 
-      if(useAction.animationCombo.length > 0) {
-        const animation = getAnimationDuration(useAction.animationCombo[useAction.index]);
-        if(animation.length > 0) {
-          const animationDuration = animation[0].duration;
-          const useTime = player.actionInterpolants.use.get();
-          if (useTime / 1000 >= 0.6) {
-            _endUse(player);
-          }
+      if(useAction.animationCombo?.length > 0) {
+        const useTime = player.actionInterpolants.use.get();
+        if (useTime >= 500) {
+          _endUse(player);
+        }
+      } else if(useAction?.animation) {
+        const useTime = player.actionInterpolants.use.get();
+        if(useTime > getAnimationDuration(useAction.animation) * 1000) {
+          _endUse(player);
         }
       }
     }
-    // isMouseUp = false;
+    isMouseUp = false;
   };
   _updateUse(localPlayer);
+
+  const _updateUseNpc = player => {
+    const useAction = player.getAction('use');
+    if(useAction?.animationCombo?.length > 0) {
+      const useTime = player.actionInterpolants.use.get();
+      if (useTime >= 600) {
+        _endUse(player);
+      }
+    } else if(useAction?.animation) {
+      const useTime = player.actionInterpolants.use.get();
+      if(useTime > getAnimationDuration(useAction.animation) * 1000 + 100) {
+        _endUse(player);
+      }
+    }
+  };
+
   for(const npc of npcManager.npcs) {
-    _updateUse(npc);
+    _updateUseNpc(npc);
   }
 };
 const _pushAppUpdates = () => {

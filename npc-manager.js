@@ -10,6 +10,7 @@ import {makeId, createRelativeUrl} from './util.js';
 import { triggerEmote } from './src/components/general/character/Poses.jsx';
 import validEmotionMapping from "./validEmotionMapping.json";
 import { NpcLoadoutManager } from './loadout-manager.js';
+import { getAnimationDuration } from './constants.js';
 
 const localVector = new THREE.Vector3();
 
@@ -127,23 +128,6 @@ class NpcManager extends EventTarget {
     let targetSpec = null;
     if (mode === 'attached') {
       const _listenEvents = () => {
-        // const hittrackeradd = e => {
-        //   app.hitTracker.addEventListener('hit', e => {
-        //     if (!npcPlayer.hasAction('hurt')) {
-        //       const newAction = {
-        //         type: 'hurt',
-        //         animation: 'pain_back',
-        //       };
-        //       npcPlayer.addAction(newAction);
-              
-        //       setTimeout(() => {
-        //         npcPlayer.removeAction('hurt');
-        //       }, hurtAnimationDuration * 1000);
-        //     }
-        //   });
-        // };
-        // app.addEventListener('hittrackeradded', hittrackeradd);
-
         app.addEventListener('hit', e => {
           if (!npcPlayer.hasAction('hurt')) {
             const newAction = {
@@ -251,11 +235,8 @@ class NpcManager extends EventTarget {
                 const hurtAction = npcPlayer.getAction('hurt');
                 const useAction = npcPlayer.getAction('use');
                 if (!hurtAction) {
-                  
                   if(distance <= attackDistance) {
-                    if(!useAction) {
                       addSwordAction(timestamp);
-                    }
                   } else if(!useAction) {
                     const speed = Math.min(Math.max(walkSpeed + ((distance - 0.5) * speedDistanceRate), 0), runSpeed);
                     v.normalize()
@@ -263,7 +244,11 @@ class NpcManager extends EventTarget {
                     npcPlayer.characterPhysics.applyWasd(v);
                   }
                 }
-                if(useAction && timestamp > lastSwordActionTime + swordActionDuration) {
+                if(useAction?.animationCombo?.length > 0 
+                  && timestamp > lastSwordActionTime + swordActionDuration) {
+                  removeSwordAction();
+                } else if(useAction?.animation
+                  && timestamp > lastSwordActionTime + getAnimationDuration(useAction.animation) * 1000) {
                   removeSwordAction();
                 }
               }

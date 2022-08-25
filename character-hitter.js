@@ -1,7 +1,7 @@
 import * as THREE from 'three';
 import {scene, camera} from './renderer.js';
 import physics from './physics-manager.js';
-import physx from './physx.js';
+// import physx from './physx.js';
 import Avatar from './avatars/avatars.js';
 import metaversefile from 'metaversefile';
 import * as metaverseModules from './metaverse-modules.js';
@@ -31,7 +31,7 @@ const hitAttemptEvent = new MessageEvent('hitattempt', {
 export class CharacterHitter {
   constructor(player) {
     this.player = player;
-console.log(this.player);
+
     this.lastHitTimes = new WeakMap();
     this.lastHitIndices = new WeakMap();
   }
@@ -73,7 +73,8 @@ console.log(this.player);
               const timeDiffLP = timestamp - lastHitTimeLP;
               const useActionLP = this.player.getAction('use');
               if (useActionLP.index !== lastHitIndexLP || timeDiffLP > 500) {
-                localPlayer.characterHitter.getHit(100);
+                const damage = typeof useActionLP.damage === 'number' ? useActionLP.damage : 10;
+                localPlayer.characterHitter.getHit(damage);
               }
               this.lastHitTimes.set(localPlayer, timestamp);
               this.lastHitIndices.set(localPlayer, useActionLP.index);
