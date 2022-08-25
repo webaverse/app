@@ -13,6 +13,8 @@ import {getRenderer, camera} from './renderer.js';
 import metaversefileApi from 'metaversefile';
 import {jumpAnimation} from './avatars/animationHelpers.js';
 
+console.log({jumpAnimation})
+
 const localVector = new THREE.Vector3();
 const localVector2 = new THREE.Vector3();
 const localVector3 = new THREE.Vector3();
@@ -45,6 +47,7 @@ const CHARACTER_CONTROLLER_HEIGHT_FACTOR = 1.6;
 class CharacterPhysics {
   constructor(character) {
     this.character = character;
+    console.log({jumpAnimation})
 
     this.targetVelocity = new THREE.Vector3(); // note: set by user input ( WASD ).
     this.lastTargetVelocity = new THREE.Vector3(); // note: targetVelocity of last frame.
@@ -60,13 +63,16 @@ class CharacterPhysics {
     this.lastFallLoopAction = false;
     this.fallLoopStartTimeS = 0;
     this.lastGravityH = 0;
+    this.flatGroundJumpAirTime = NaN;
 
     this.lastPistolUse = false;
     this.lastPistolUseStartTime = -Infinity;
   }
   loadCharacterController(characterWidth, characterHeight) {
+    console.log({jumpAnimation})
     this.characterWidth = characterWidth;
     this.characterHeight = characterHeight;
+    this.flatGroundJumpAirTime = jumpAnimation.duration;
 
     const radius = (this.characterWidth / CHARACTER_CONTROLLER_HEIGHT_FACTOR) * this.characterHeight;
     const height = this.characterHeight - radius * 2;
@@ -114,12 +120,12 @@ class CharacterPhysics {
           this.lastGravityH = 0;
           if (fallLoopAction.from === 'jump') {
             // const flatGroundJumpAirTime = 1000;
-            const flatGroundJumpAirTime = jumpAnimation.duration * 1000;
+            // const flatGroundJumpAirTime = jumpAnimation.duration * 1000;
 
             // calc aesthetic jump end speed
             const dt = 0.001;
-            const dy = Math.sin((flatGroundJumpAirTime - dt * 1000) / flatGroundJumpAirTime * Math.PI) * jumpHeight -
-                       Math.sin((flatGroundJumpAirTime) / flatGroundJumpAirTime * Math.PI) * jumpHeight;
+            const dy = Math.sin((this.flatGroundJumpAirTime - dt * 1000) / this.flatGroundJumpAirTime * Math.PI) * jumpHeight -
+                       Math.sin((this.flatGroundJumpAirTime) / this.flatGroundJumpAirTime * Math.PI) * jumpHeight;
             const jumpEndSpeed = dy / dt;
             console.log({jumpEndSpeed})
 
@@ -155,11 +161,14 @@ class CharacterPhysics {
       )
       const height = result ? Math.max(0, result.distance - this.character.avatar.height / 2) : Infinity;
       // const heightFactor = THREE.MathUtils.clamp(height / jumpHeight, 0, 1);
-      console.log(height)
+      // console.log(height)
       //
       const jumpAction = this.character.getAction('jump');
       // const flatGroundJumpAirTime = 1000;
-      let flatGroundJumpAirTime = height > jumpHeight * 2 ? jumpAnimation.duration * 1000 : 666;
+      // const flatGroundJumpAirTime = jumpAnimation.duration * 1000;
+      const targetFlatGroundJumpAirTime = height > jumpHeight * 2 ? jumpAnimation.duration * 1000 : 666;
+      this.flatGroundJumpAirTime = THREE.MathUtils.damp(this.flatGroundJumpAirTime, targetFlatGroundJumpAirTime, window.aaa, timeDiffS);
+      // console.log(this.flatGroundJumpAirTime)
       // flatGroundJumpAirTime -= flatGroundJumpAirTime / 2 * heightFactor
       if (jumpAction?.trigger === 'jump') {
         const doubleJumpAction = this.character.getAction('doubleJump');
@@ -167,22 +176,22 @@ class CharacterPhysics {
           const doubleJumpTime =
             this.character.actionInterpolants.doubleJump.get();
           localVector3.y =
-            Math.sin(doubleJumpTime / flatGroundJumpAirTime * Math.PI) *
+            Math.sin(doubleJumpTime / this.flatGroundJumpAirTime * Math.PI) *
               jumpHeight +
             doubleJumpAction.startPositionY -
             this.lastCharacterControllerY;
-          if (doubleJumpTime >= flatGroundJumpAirTime) {
+          if (doubleJumpTime >= this.flatGroundJumpAirTime) {
             this.character.setControlAction({ type: 'fallLoop', from: 'jump' });
             console.log('fallLoop from jump')
           }
         } else {
           const jumpTime = this.character.actionInterpolants.jump.get();
           localVector3.y =
-            Math.sin(jumpTime / flatGroundJumpAirTime * Math.PI) *
+            Math.sin(jumpTime / this.flatGroundJumpAirTime * Math.PI) *
               jumpHeight +
             jumpAction.startPositionY -
             this.lastCharacterControllerY;
-          if (jumpTime >= flatGroundJumpAirTime) {
+          if (jumpTime >= this.flatGroundJumpAirTime) {
             this.character.setControlAction({ type: 'fallLoop', from: 'jump' });
             console.log('fallLoop from jump')
           }
