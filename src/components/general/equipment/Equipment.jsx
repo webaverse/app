@@ -360,7 +360,7 @@ export const Equipment = () => {
                         name: token.name ?? "",
                         start_url: token.url ?? (token.animation_url !== "" ? token.animation_url : token.collection.banner_image_url),
                         level: token.level ?? 1,
-                        type:  "major",
+                        type:  "major", // "major", "minor" - TODO: create a part for minors in the inventory
                         claimed: true
                     };
                 });

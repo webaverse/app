@@ -601,7 +601,7 @@ class AppManager extends EventTarget {
     });
   }
   importClaimedApp(app, json) {
-    console.log("app+ json", app, json)
+    console.log("app,json", app, json)
     const dropManager = metaversefile.useDropManager();
     dropManager.createDropApp({
       type: json.type,
