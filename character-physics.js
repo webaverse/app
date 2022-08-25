@@ -13,8 +13,6 @@ import {getRenderer, camera} from './renderer.js';
 import metaversefileApi from 'metaversefile';
 import {jumpAnimation} from './avatars/animationHelpers.js';
 
-console.log({jumpAnimation})
-
 const localVector = new THREE.Vector3();
 const localVector2 = new THREE.Vector3();
 const localVector3 = new THREE.Vector3();
@@ -46,7 +44,6 @@ const physicsScene = physicsManager.getScene();
 class CharacterPhysics {
   constructor(character) {
     this.character = character;
-    console.log({jumpAnimation})
 
     this.targetVelocity = new THREE.Vector3(); // note: set by user input ( WASD ).
     this.lastTargetVelocity = new THREE.Vector3(); // note: targetVelocity of last frame.
@@ -68,7 +65,6 @@ class CharacterPhysics {
     this.lastPistolUseStartTime = -Infinity;
   }
   loadCharacterController(characterWidth, characterHeight) {
-    console.log({jumpAnimation})
     this.characterWidth = characterWidth;
     this.characterHeight = characterHeight;
     this.flatGroundJumpAirTime = jumpAnimation.duration;
