@@ -244,6 +244,7 @@ class CharacterPhysics {
         !grounded &&
         !this.character.getAction('jump') &&
         !this.character.getAction('fly') &&
+        !this.character.getAction('fallLoop') &&
         !this.character.hasAction('swim')
       ) {
         // prevent jump when go down slope
