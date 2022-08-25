@@ -1,246 +1,145 @@
+import React, {useState, useContext, useEffect} from 'react';
+import classnames from 'classnames';
+import {registerIoEventHandler, unregisterIoEventHandler} from '../../general/io-handler';
+import {AppContext} from '../../app';
 
-import React, { useState, useEffect, useRef, useContext } from 'react'
-
-import * as codeAi from '../../../../ai/code/code-ai';
-import metaversefile from 'metaversefile';
-import game from '../../../../game';
-
-import { registerIoEventHandler, unregisterIoEventHandler } from '../../general/io-handler';
-import { AppContext } from '../../app';
+import {ImageAiPanel} from './panels/image-ai-panel.jsx';
+import {AudioAiPanel} from './panels/audio-ai-panel.jsx';
+import {ModelAiPanel} from './panels/model-ai-panel.jsx';
+import {CameraAiPanel} from './panels/camera-ai-panel.jsx';
+import {CodeAiPanel} from './panels/code-ai-panel.jsx';
 
 import styles from './ai-menu.module.css';
+
+import game from '../../../../game';
 
 //
 
 export function AiMenu () {
-
-    const { state, setState } = useContext( AppContext );
-    const [page, setPage] = useState('input');
-    const [input, setInput] = useState('');
-    const [output, setOutput] = useState('');
-    const [compiling, setCompiling] = useState(false);
-    // const [loading, setLoading] = useState(false);
-    // const [needsFocus, setNeedsFocus] = useState(false);
-    const [ai, setAi] = useState(null);
-    const inputTextarea = useRef();
-    const outputTextarea = useRef();
+    const {state, setState} = useContext( AppContext );
+    const [panel, setPanel] = useState('image');
 
     //
 
-    const stopPropagation = ( event ) => {
-
+    const stopPropagation = (event) => {
         event.stopPropagation();
-
-    };
-
-    const _compile = async () => {
-
-        if ( ! compiling ) {
-
-            setCompiling( true );
-
-            const oldAi = ai;
-
-            if ( oldAi ) {
-
-                oldAi.destroy();
-                setAi(null);
-
-            }
-
-            let newAi = null;
-
-            try {
-
-                const input = inputTextarea.current.value;
-                newAi = codeAi.generateStream(input);
-                setAi(newAi);
-                setPage('output');
-                setOutput('');
-                // setNeedsFocus(true);
-
-                newAi.addEventListener('update', e => {
-
-                    const s = e.data;
-                    console.log('got data', {s});
-                    setOutput(s);
-
-                });
-
-                await new Promise((accept, reject) => {
-
-                    newAi.addEventListener('done', e => {
-
-                        console.log('ai done');
-                        accept();
-
-                    });
-
-                });
-
-            } catch(err) {
-
-                console.warn('ai error', err);
-                setPage('input');
-
-            } finally {
-
-                console.log('ai finally', newAi);
-                setCompiling(false);
-
-                if (newAi) {
-
-                    newAi.destroy();
-                    setAi(null);
-
-                }
-
-            }
-
-        }
-
-    };
-
-    const _run = () => {
-
-        const output = outputTextarea.current.value;
-        const dataUri = metaversefile.createModule(output);
-
-        (async () => {
-
-            // await metaversefile.load(dataUri);
-
-        })();
-
-        setState({ openedPanel: null });
-
     };
 
     //
 
-    useEffect( () => {
-
-        const handleKeyUp = ( event ) => {
-
-            if ( event.which === 13 && window.document.activeElement !== outputTextarea.current && state.openedPanel === 'AiPanel' ) { // enter
-
-                if ( page === 'input' ) {
-
+    useEffect(() => {
+        const handleKeyUp = (event) => {
+            /* if (
+                event.which === 13 && // enter
+                window.document.activeElement !== outputTextarea.current &&
+                state.openedPanel === 'AiPanel'
+            ) {
+                if (panel === 'input') {
                     _compile();
-
-                } else if ( page === 'output' ) {
-
+                } else if (panel === 'output') {
                     _run();
-
                 }
-
                 return false;
+            } */
 
-            }
-
-            if ( event.which === 191 ) { // /
-
-                if ( game.inputFocused() ) return true;
-
-                setState({ openedPanel: ( state.openedPanel === 'AiPanel' ? null : 'AiPanel' ) });
-
-                if ( page === 'input' ) {
-
-                    inputTextarea.current.focus();
-
-                } else if ( page === 'output' ) {
-
-                    if ( document.activeElement ) {
-
-                        document.activeElement.blur();
-
-                    }
-
+            if (event.which === 191) { // /
+                if (game.inputFocused()) {
+                    return true;
+                } else {
+                    const newOpened = state.openedPanel !== 'AiPanel';
+                    const newOpenedPanel = newOpened ? 'AiPanel' : null;
+                    setState({
+                        openedPanel: newOpenedPanel,
+                    });
+                    return false;
                 }
-
-                return false;
-
             }
 
             return true;
-
         };
 
-        registerIoEventHandler( 'keyup', handleKeyUp );
-
-        //
+        registerIoEventHandler('keyup', handleKeyUp);
 
         return () => {
-
-            unregisterIoEventHandler( 'keyup', handleKeyUp );
-
+            unregisterIoEventHandler('keyup', handleKeyUp);
         };
-
-    }, [] );
-
-    useEffect( () => {
-
-        function all ( event ) {
-
-            if ( window.document.activeElement === inputTextarea.current || event.target === inputTextarea.current ) {
-
-                return false;
-
-            } else {
-
-                return true;
-
-            }
-
-        };
-
-        registerIoEventHandler( '', all );
-
-        return () => {
-
-            unregisterIoEventHandler( '', all );
-
-        };
-
-    }, [] );
+    }, [state.openedPanel]);
 
     //
 
     return (
-        <div className={ styles.AiMenu + ' ' + ( state.openedPanel === 'AiPanel' ? styles.open : '' ) } onClick={ stopPropagation } >
+        <div
+            className={classnames(styles.AiMenu, state.openedPanel === 'AiPanel' ? styles.open : '')}
+            onClick={stopPropagation}
+        >
             <div className={styles.container}>
-                <textarea className={styles.textarea} value={input} rows={1} autoComplete="off" autoCorrect="off" autoCapitalize="off" spellCheck="false" onFocus={e => {
-                    if (page !== 'input') {
-                        setPage('input');
-                        const oldAi = ai;
-                        if (oldAi) {
-                            oldAi.destroy();
-                            setAi(null);
-                        }
-                        setCompiling(false);
-                    }
-                }} onChange={e => { console.log( e.target.value ); setInput(e.target.value); }} placeholder="Ask for it..." ref={inputTextarea} />
+                <div className={styles.panelButtons}>
+                    <div className={classnames(styles.panelButton, panel === 'image' ? styles.selected : null)} onClick={() => {
+                        setPanel('image');
+                    }}>
+                        <div className={styles.block}>
+                            <img src={'/images/ui/paintbrush.svg'} className={styles.icon} />
+                        </div>
+                    </div>
+                    <div className={classnames(styles.panelButton, panel === 'audio' ? styles.selected : null)} onClick={() => {
+                        setPanel('audio');
+                    }}>
+                        <div className={styles.block}>
+                            <img src={'/images/ui/audio-speaker.svg'} className={styles.icon} />
+                        </div>
+                    </div>
+                    <div className={classnames(styles.panelButton, panel === 'model' ? styles.selected : null)} onClick={() => {
+                        setPanel('model');
+                    }}>
+                        <div className={styles.block}>
+                            <img src={'/images/ui/sword.svg'} className={styles.icon} />
+                        </div>
+                    </div>
+                    <div className={classnames(styles.panelButton, panel === 'camera' ? styles.selected : null)} onClick={() => {
+                        setPanel('camera');
+                    }}>
+                        <div className={styles.block}>
+                            <img src={'/images/ui/camera.svg'} className={styles.icon} />
+                        </div>
+                    </div>
+                    <div className={classnames(styles.panelButton, panel === 'code' ? styles.selected : null)} onClick={() => {
+                        setPanel('code');
+                    }}>
+                        <div className={styles.block}>
+                            <img src={'/images/ui/magic-scroll.svg'} className={styles.icon} />
+                        </div>
+                    </div>
+                </div>
                 {
                     (() => {
-                        switch (page) {
-                            case 'input': {
+                        switch (panel) {
+                            case 'image': {
                                 return (
-                                    <>
-                                        <div className={styles.buttons}>
-                                            <button className={styles.button + ' ' + (compiling ? styles.disabled : '')} onClick={_compile}>Generate</button>
-                                        </div>
-                                    </>
+                                    <ImageAiPanel />
                                 );
                             }
-                            case 'output': {
+                            case 'audio': {
                                 return (
-                                    <>
-                                        <textarea className={styles.output} value={output} autoComplete="off" autoCorrect="off" autoCapitalize="off" spellCheck="false" onChange={e => { setOutput(e.target.value); }} placeholder="" ref={outputTextarea} />
-                                        <div className={styles.buttons}>
-                                            <button className={styles.button} onClick={_run}>Run</button>
-                                        </div>
-                                    </>
+                                    <AudioAiPanel />
                                 );
+                            }
+                            case 'model': {
+                                return (
+                                    <ModelAiPanel />
+                                );
+                            }
+                            case 'camera': {
+                                return (
+                                    <CameraAiPanel />
+                                );
+                            }
+                            case 'code': {
+                                return (
+                                    <CodeAiPanel />
+                                );
+                            }
+                            default: {
+                                return null;
                             }
                         }
                     })()
@@ -248,5 +147,4 @@ export function AiMenu () {
             </div>
         </div>
     );
-
 };

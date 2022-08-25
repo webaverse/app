@@ -5,64 +5,61 @@
     left: 0;
     right: 0;
     display: flex;
+    margin-top: 200px;
     flex-direction: column;
-    justify-content: center;
     align-items: center;
     z-index: 1;
-    visibility: hidden;
+    clip-path: polygon(0 0, 200% 0, 100% 100%, 0% 100%);
+    transition: clip-path 2s cubic-bezier(0, 1, 0, 1);
 }
-
+.AiMenu:not(.open) {
+    clip-path: polygon(0 0, 0 0, -100% 100%, 0% 100%);
+    pointer-events: none;
+}
 .AiMenu .container {
     display: flex;
     flex-direction: column;
+    width: 512px;
 }
 
-.AiMenu .container .textarea {
-    height: auto;
-    margin-bottom: 10px;
-    padding: 20px;
-    background-color: #EEE;
-    border: 0;
-    font-size: 16px;
-    outline: none;
-    box-shadow: 0 5px 20px #00000080;
-}
+/* */
 
-.AiMenu .container .output {
-    height: 500px;
-    margin-bottom: 10px;
-    padding: 20px;
-    background-color: #333;
-    border: 0;
-    color: #FFF;
-    font-size: 16px;
-    outline: none;
-}
-
-.AiMenu .container .buttons {
+.AiMenu .panelButtons {
     display: flex;
+    /* margin-bottom: 5px; */
+}
+.AiMenu .panelButtons .panelButton {
+    display: flex;
+    width: 50px;
+    height: 50px;
+    cursor: pointer;
 }
 
-.AiMenu .container .button {
-    padding: 15px 20px;
-    border: 0;
-    background-color: #7E57C2;
-    color: #FFF;
-    font-size: 16px;
+.AiMenu .panelButtons .panelButton .block {
+    display: flex;
+    width: inherit;
+    height: inherit;
+    padding-right: 5px;
+    padding-bottom: 5px;
+    justify-content: center;
+    align-items: center;
 }
 
-.AiMenu .container .button.disabled {
-    background-color: #CCC;
+.AiMenu .panelButtons .panelButton .block .icon {
+    background-color: #000;
+}
+.AiMenu .panelButtons .panelButton:hover .block .icon,
+.AiMenu .panelButtons .panelButton.selected .block .icon
+{
+    background-color: #4caf50;
+}
+.AiMenu .panelButtons .panelButton:active .block .icon {
+    background-color: #388e3c;
 }
 
-.AiMenu .container .button + .button {
-    margin-left: 5px;
-}
+/* */
 
-.AiMenu.open {
-    visibility: visible;
-}
-
-.button.loading {
-    background-color: #CCC;
+.AiMenu .panel {
+    display: flex;
+    flex-direction: column;
 }
