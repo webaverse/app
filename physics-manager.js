@@ -630,11 +630,11 @@ class PhysicsScene extends EventTarget {
         position,
         physicsId
       )
-    
-    const halfHeight = height / 2;
+
+    const characterHeight = height + radius * 2;
     const physicsObject = new THREE.Object3D()
     const physicsMesh = new THREE.Mesh(
-      new CapsuleGeometry(radius, radius, halfHeight * 2),
+      new CapsuleGeometry(radius, radius, characterHeight),
       redMaterial
     )
     physicsMesh.visible = false
