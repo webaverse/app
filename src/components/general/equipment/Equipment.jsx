@@ -345,34 +345,35 @@ export const Equipment = () => {
         }
     }, [account]);
 
-  useEffect(() => {
-    if(open && nfts) {
-        if (!supportedChain) {
-            console.log("unsupported chain!");
-            setInventoryObject(nfts);
-            return;
-        }
+    useEffect(() => {
+        if(open && nfts) {
+            if (!supportedChain) {
+                console.log("unsupported chain!");
+                setInventoryObject(nfts);
+                return;
+            }
 
-        async function setupInventory() {
-            const tokens = await getTokens();
-            const inventoryItems = tokens.map((token, id) => {
-                return {
-                    name: token.name ?? "",
-                    start_url: token.url ?? (token.animation_url !== "" ? token.animation_url : token.collection.banner_image_url),
-                    level: token.level ?? 1,
-                    claimed: true
-                };
+            async function setupInventory() {
+                const tokens = await getTokens();
+                const inventoryItems = tokens.map((token, id) => {
+                    return {
+                        name: token.name ?? "",
+                        start_url: token.url ?? (token.animation_url !== "" ? token.animation_url : token.collection.banner_image_url),
+                        level: token.level ?? 1,
+                        type:  "major",
+                        claimed: true
+                    };
+                });
+                setInventoryObject(inventoryItems);
+            }
+
+            setupInventory().catch((error)=> {
+                console.warn('unable to retrieve inventory')
+                setInventoryObject([]);
             });
-            setInventoryObject(inventoryItems);
         }
 
-        setupInventory().catch((error)=> {
-            console.warn('unable to retrieve inventory')
-            setInventoryObject([]);
-        });
-    }
-
-  }, [open, state.openedPanel, selectedChain, nfts, claims]);
+    }, [open, state.openedPanel, selectedChain, nfts, claims]);
 
     const onMouseEnter = object => () => {
         setHoverObject(object);

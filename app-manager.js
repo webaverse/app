@@ -600,6 +600,28 @@ class AppManager extends EventTarget {
       self.bindTrackedApp(dstTrackedApp, app);
     });
   }
+  importClaimedApp(app, json) {
+    console.log("app+ json", app, json)
+    const dropManager = metaversefile.useDropManager();
+    dropManager.createDropApp({
+      type: json.type,
+      start_url: json.start_url,
+      components: [
+        {
+          key: 'appName',
+          value: json.name
+        },
+        {
+          key: 'appUrl',
+          value: json.start_url,
+        }
+      ],
+      position: app.position.clone()
+        .add(new THREE.Vector3(0, 0.7, 0)),
+      quaternion: app.quaternion,
+      scale: app.scale
+    });
+  }
   hasApp(app) {
     return this.apps.includes(app);
   }
