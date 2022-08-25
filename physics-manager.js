@@ -632,7 +632,7 @@ class PhysicsScene extends EventTarget {
       )
     
     const doubleRadius = radius * 2;
-    const halfHeight = (height + radius * 2) / 2;
+    const halfHeight = (height + doubleRadius) / 2;
     const physicsObject = new THREE.Object3D()
     const physicsMesh = new THREE.Mesh(
       new CapsuleGeometry(doubleRadius, doubleRadius, halfHeight * 2),
