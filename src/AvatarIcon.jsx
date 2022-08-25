@@ -12,7 +12,6 @@ import {
 
 import styles from './AvatarIcon.module.css';
 import {PlaceholderImg} from './PlaceholderImg.jsx';
-import { playersManager } from '../players-manager.js';
 import { AvatarIconer } from '../avatar-iconer.js';
 import cameraManager from '../camera-manager.js'
 import * as sounds from '../sounds.js'
@@ -27,8 +26,7 @@ const CharacterIcon = () => {
   useEffect(() => {    
     const canvas = canvasRef.current;
     if (canvas) {
-      const localPlayer = playersManager.getLocalPlayer();
-      const avatarIconer = new AvatarIconer(localPlayer, {
+      const avatarIconer = new AvatarIconer({
         width: characterIconSize * pixelRatio,
         height: characterIconSize * pixelRatio,
       });

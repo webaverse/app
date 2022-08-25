@@ -27,6 +27,7 @@ import raycastManager from './raycast-manager.js';
 import zTargeting from './z-targeting.js';
 import Avatar from './avatars/avatars.js';
 import {makeId} from './util.js'
+import { avatarManager } from './avatar-manager.js';
 
 const localVector = new THREE.Vector3();
 const localVector2 = new THREE.Vector3();
@@ -1671,19 +1672,31 @@ class GameManager extends EventTarget {
   bindDioramaCanvas() {
     // await rendererWaitForLoad();
 
-    const localPlayer = playersManager.getLocalPlayer();
     this.playerDiorama = dioramaManager.createPlayerDiorama({
-      target: localPlayer,
       // label: true,
       outline: true,
       grassBackground: true,
       // glyphBackground: true,
     });
-    localPlayer.addEventListener('avatarchange', e => {
+
+    const playerSelectedFn = e => {
+      const {
+        player,
+      } = e.data;
+
+      const localPlayer = player;
+      this.playerDiorama.setTarget(localPlayer);
+      this.playerDiorama.setObjects([
+        localPlayer.avatar.avatarRenderer.scene,
+      ]);
+    };
+    partyManager.addEventListener('playerselected', playerSelectedFn);
+
+    avatarManager.addEventListener('avatarchange', e => {
       const localPlayer = playersManager.getLocalPlayer();
       this.playerDiorama.setTarget(localPlayer);
       this.playerDiorama.setObjects([
-        e.avatar.avatarRenderer.scene,
+        e.data.avatar.avatarRenderer.scene,
       ]);
     })
   }
