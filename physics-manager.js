@@ -630,7 +630,7 @@ class PhysicsScene extends EventTarget {
         position,
         physicsId
       )
-    
+
     const characterHeight = height + radius * 2;
     const physicsObject = new THREE.Object3D()
     const physicsMesh = new THREE.Mesh(
