@@ -65,7 +65,7 @@
 .AiMenu .panelButtons .panelButton .block .inner .icon {
     width: 100%;
     height: 100%;
-    filter: invert(20%);
+    filter: invert(25%);
 }
 .AiMenu .panelButtons .panelButton:hover .block .inner .icon,
 .AiMenu .panelButtons .panelButton.selected .block .inner .icon
