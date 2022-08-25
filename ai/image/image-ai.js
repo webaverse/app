@@ -97,27 +97,32 @@ const rng = () => (Math.random() * 2) - 1;
 
 class ImageGenerator {
   constructor() {
-    this.debug = false;
   }
+  #debug = false;
   setDebug(debug) {
-    this.debug = debug;
+    this.#debug = debug;
   }
   #makeUnseededMethod({
     promptFn,
   }) {
     const self = this;
 
-    return async function(
+    return function(
       name,
     ) {
       const prompt = promptFn(name);
 
-      let img2 = await imageAI.txt2img(prompt);
-      if (self.debug) {
-        document.body.appendChild(img2); 
-        img2.style.cssText = `position: absolute; top: 0; right: 0; z-index: 100;`;
-      }
-      return img2;
+      return {
+        prompt,
+        async generate() {
+          let img2 = await imageAI.txt2img(prompt);
+          if (self.#debug) {
+            document.body.appendChild(img2);
+            img2.style.cssText = `position: absolute; top: 0; right: 0; z-index: 100;`;
+          }
+          return img2;
+        },
+      };
     };
   }
   #makeSeededMethod({
@@ -134,7 +139,7 @@ class ImageGenerator {
   }) {
     const self = this;
 
-    return async function(
+    return function(
       name,
     ) {
       const canvas = createSeedImage(
@@ -147,16 +152,23 @@ class ImageGenerator {
         seedOptions,
       );
       const prompt = promptFn(name);
-      if (self.debug) {
-        document.body.appendChild(canvas);
-        canvas.style.cssText = `position: absolute; top: 0; left: 0; z-index: 100;`;
-      }
-      let img2 = await imageAI.img2img(canvas, prompt);
-      if (self.debug) {
-        document.body.appendChild(img2);
-        img2.style.cssText = `position: absolute; top: 0; right: 0; z-index: 100;`;
-      }
-      return img2;
+
+      return {
+        canvas,
+        prompt,
+        async generate() {
+          if (self.#debug) {
+            document.body.appendChild(canvas);
+            canvas.style.cssText = `position: absolute; top: 0; left: 0; z-index: 100;`;
+          }
+          let img2 = await imageAI.img2img(canvas, prompt);
+          if (self.#debug) {
+            document.body.appendChild(img2);
+            img2.style.cssText = `position: absolute; top: 0; right: 0; z-index: 100;`;
+          }
+          return img2;
+        },
+      };
     };
   }
   character = this.#makeSeededMethod({
