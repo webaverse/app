@@ -1,6 +1,89 @@
 .imageAiPanel {
 
 }
+
+/* */
+
+.imageAiPanel .textarea {
+  width: 100%;
+}
 .imageAiPanel .canvas {
+  margin-bottom: 5px;
   background-color: #333;
+}
+
+/* */
+
+.imageAiPanel .wrap {
+  display: flex;
+  position: relative;
+  flex-direction: column;
+}
+
+.imageAiPanel .wrap .leftPanel,
+.imageAiPanel .wrap .rightPanel
+{
+  display: flex;
+  position: absolute;
+  width: 200px;
+  height: 50px;
+  flex-direction: column;
+}
+.imageAiPanel .wrap .leftPanel {
+  left: 0;
+  margin-left: -200px;
+}
+.imageAiPanel .wrap .rightPanel {
+  right: 0;
+  margin-right: -200px;
+}
+
+/* .imageAiPanel .wrap .leftPanel .items .item {
+  margin-right: 5px;
+}
+.imageAiPanel .wrap .rightPanel .items .item {
+  margin-left: 5px;
+} */
+
+/* */
+
+.imageAiPanel .items {
+  display: flex;
+  flex-direction: column;
+}
+.imageAiPanel .items .item {
+  /* margin: 0 5px; */
+  padding: 5px;
+  background-color: #000;
+  color: #FFF;
+  font-size: 16px;
+  line-height: 1.6;
+  cursor: pointer;
+  user-select: none;
+}
+.imageAiPanel .items .item:hover {
+  background-color: #1e88e5;
+}
+.imageAiPanel .items .item:active {
+  background-color: #1565c0;
+}
+
+/* */
+
+.imageAiPanel .colors {
+  display: flex;
+  background-color: #000;
+  flex-flow: wrap;
+}
+.imageAiPanel .colors .color {
+  width: 22px;
+  height: 22px;
+  margin: 2px;
+  border: 2px solid #666;
+  cursor: pointer;
+}
+.imageAiPanel .colors .color:hover,
+.imageAiPanel .colors .color.selected
+{
+  border-color: #FFF;
 }
