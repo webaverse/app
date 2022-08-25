@@ -68,7 +68,7 @@ export default (app, component) => {
   };
   app.addEventListener('wearupdate', e => {
     if (e.wear) {
-      player = getPlayerByAppInstanceId(app.instanceId);
+      player = e.player;
       if (app.glb) {
         const {animations} = app.glb;
         
