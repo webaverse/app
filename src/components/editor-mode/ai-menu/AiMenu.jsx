@@ -7,6 +7,7 @@ import {ImageAiPanel} from './panels/image-ai-panel.jsx';
 import {AudioAiPanel} from './panels/audio-ai-panel.jsx';
 import {ModelAiPanel} from './panels/model-ai-panel.jsx';
 import {CameraAiPanel} from './panels/camera-ai-panel.jsx';
+import {LoreAiPanel} from './panels/lore-ai-panel.jsx';
 import {CodeAiPanel} from './panels/code-ai-panel.jsx';
 
 import styles from './ai-menu.module.css';
@@ -102,6 +103,13 @@ export function AiMenu () {
                             <img src={'/images/ui/camera.svg'} className={styles.icon} />
                         </div>
                     </div>
+                    <div className={classnames(styles.panelButton, panel === 'lore' ? styles.selected : null)} onClick={() => {
+                        setPanel('lore');
+                    }}>
+                        <div className={styles.block}>
+                            <img src={'/images/ui/brain.svg'} className={styles.icon} />
+                        </div>
+                    </div>
                     <div className={classnames(styles.panelButton, panel === 'code' ? styles.selected : null)} onClick={() => {
                         setPanel('code');
                     }}>
@@ -131,6 +139,11 @@ export function AiMenu () {
                             case 'camera': {
                                 return (
                                     <CameraAiPanel />
+                                );
+                            }
+                            case 'lore': {
+                                return (
+                                    <LoreAiPanel />
                                 );
                             }
                             case 'code': {
