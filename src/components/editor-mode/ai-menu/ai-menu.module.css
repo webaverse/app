@@ -9,6 +9,7 @@
     flex-direction: column;
     align-items: center;
     z-index: 1;
+    pointer-events: none;
     clip-path: polygon(0 0, 200% 0, 100% 100%, 0% 100%);
     transition: clip-path 2s cubic-bezier(0, 1, 0, 1);
 }
@@ -18,8 +19,9 @@
 }
 .AiMenu .container {
     display: flex;
-    flex-direction: column;
     width: 512px;
+    flex-direction: column;
+    pointer-events: auto;
 }
 
 /* */
