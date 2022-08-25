@@ -3,6 +3,31 @@ import {imageAIEndpointUrl, imageCaptionAIEndpointUrl} from '../../constants.js'
 import materialColors from '../../material-colors.json';
 import ColorScheme from '../../color-scheme.js';
 
+const highlightString = `trending`;
+// const highlightString = `art championship winner`;
+const artPlatforms = {
+  character: [
+    `ArtStation`,
+    // `Pixiv`,
+    // `Fanbox`,
+    // `Skeb`,
+  ],
+  item: [
+    `ArtStation`,
+  ],
+  render: [
+    `SketchFab`,
+    // `Unreal Engine`,
+    // `Octane`,
+  ],
+};
+const artPlatformsStrings = {};
+for (const k in artPlatforms) {
+  artPlatformsStrings[k] = artPlatforms[k].join(', ');
+}
+
+//
+
 const baseColors = Object.keys(materialColors).map(k => materialColors[k][400].slice(1));
 /* const baseColors = Object.keys(materialColors).map(k => {
   const v = materialColors[k];
@@ -70,7 +95,7 @@ const createSeedImage = (
 };
 const rng = () => (Math.random() * 2) - 1;
 
-class ImageCreator {
+class ImageGenerator {
   constructor() {
     this.debug = false;
   }
@@ -134,70 +159,70 @@ class ImageCreator {
       return img2;
     };
   }
-  makeCharacter = this.#makeSeededMethod({
+  character = this.#makeSeededMethod({
     seedArgs: [512, 512, 64, 128, 1, 256],
     promptFn() {
-      return `anime style video game character concept, full body`;
+      return `anime style video game character concept, full body, ${highlightString} on ${artPlatformsStrings.character}`;
     },
   })
-  makeBackpack = this.#makeSeededMethod({
+  backpack = this.#makeSeededMethod({
     seedArgs: [512, 512, 64, 128, 1, 256],
     promptFn(name = 'backpack') {
-      return `video game item concept render, ${name}`;
+      return `video game item concept render, ${highlightString} on ${artPlatformsStrings.item}, ${name}`;
     },
   })
-  makeSword = this.#makeSeededMethod({
+  sword = this.#makeSeededMethod({
     seedArgs: [512, 512, 32, 128, 1, 256, {
       // monochrome: true,
     }],
     promptFn(name = 'huge sword') {
-      return `video game item concept render, ${name}`;
+      return `video game item concept render, ${highlightString} on ${artPlatformsStrings.item}, ${name}`;
     },
   })
-  makeRifle = this.#makeSeededMethod({
+  rifle = this.#makeSeededMethod({
     seedArgs: [512, 512, 128, 64, 1, 256],
     promptFn(name = 'rifle') {
-      return `video game item concept art render, ${name}`;
+      return `video game item concept art render, ${highlightString} on ${artPlatformsStrings.item}, ${name}`;
     },
   })
-  makePistol = this.#makeSeededMethod({
+  pistol = this.#makeSeededMethod({
     seedArgs: [512, 512, 64, 64, 1, 256],
     promptFn(name = 'pistol') {
-      return `video game item concept art render, ${name}`;
+      return `video game item concept art render, ${highlightString} on ${artPlatformsStrings.item}, ${name}`;
     },
   })
-  makePotion = this.#makeSeededMethod({
+  potion = this.#makeSeededMethod({
     seedArgs: [512, 512, 64, 64, 1, 256],
     promptFn(name = 'potion') {
-      return `video game item concept art render, ${name}`;
+      return `video game item concept art render, ${highlightString} on ${artPlatformsStrings.item}, ${name}`;
     },
   })
-  makeChestArmor = this.#makeSeededMethod({
+  chestArmor = this.#makeSeededMethod({
     seedArgs: [512, 512, 64, 128, 1, 256],
     promptFn(name = 'chest armor') {
-      return `video game item concept art, ${name}`;
+      return `video game item concept art, ${highlightString} on ${artPlatformsStrings.item}, ${name}`;
     },
   })
-  makeLegArmor = this.#makeSeededMethod({
+  legArmor = this.#makeSeededMethod({
     seedArgs: [512, 512, 64, 128, 1, 256],
     promptFn(name = 'leg armor') {
-      return `video game item concept art, ${name}`;
+      return `video game item concept art, ${highlightString} on ${artPlatformsStrings.item}, ${name}`;
     },
   })
-  makeHelmet = this.#makeSeededMethod({
+  helmet = this.#makeSeededMethod({
     seedArgs: [512, 512, 64, 64, 1, 256],
     promptFn(name = 'helmet') {
-      return `video game item concept art, ${name}`;
+      return `video game item concept art, ${highlightString} on ${artPlatformsStrings.item}, ${name}`;
     },
   })
-  makeLocation = this.#makeUnseededMethod({
+  location = this.#makeUnseededMethod({
     promptFn(name = 'magical jungle') {
-      return `anime style video game location concept art, screenshot, without text, ${name}`;
+      return `anime style video game location concept art, screenshot, without text, ${highlightString} on ${artPlatformsStrings.item}, ${name}`;
     },
   })
-  makeMap = this.#makeUnseededMethod({
+  map = this.#makeUnseededMethod({
     promptFn(name = 'sakura forest') {
-      return `anime style map page side render, without text, trending on ArtStation, ${name}`;
+      return `anime style map page side render, without text, ${highlightString} on ${artPlatformsStrings.item}, ${name}`;
     },
   })
 }
@@ -291,7 +316,7 @@ class ImageAI {
     const text = await res.text();
     return text;
   }
-  creator = new ImageCreator();
+  generator = new ImageGenerator();
 }
 const imageAI = new ImageAI();
 // globalThis.imageAI = imageAI; // XXX hack
