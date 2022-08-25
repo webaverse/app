@@ -26,7 +26,7 @@ export function LoreAiPanel() {
         <div className={classnames(styles.panel, styles.lorePanel)}>
             {/* <textarea className={styles.textarea} placeholder="insects chirp in a windy field"></textarea> */}
             <div className={styles.buttons}>
-                <button className={styles.button} onClick={_generate}>Generate</button>
+                <button className={styles.button} onClick={_generate}>Generate lore</button>
             </div>
         </div>
     );

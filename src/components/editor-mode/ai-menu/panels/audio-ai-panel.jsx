@@ -27,7 +27,7 @@ export function AudioAiPanel() {
             <textarea className={styles.textarea} placeholder="insects chirp in a windy field"></textarea>
             <audio className={styles.audio} ref={audioRef} />
             <div className={styles.buttons}>
-                <button className={styles.button} onClick={_generate}>Generate</button>
+                <button className={styles.button} onClick={_generate}>Generate sound</button>
             </div>
         </div>
     );

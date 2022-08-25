@@ -41,7 +41,7 @@ export function ImageAiPanel() {
             <textarea className={styles.textarea} placeholder="mysterious forest"></textarea>
             <canvas width={size} height={size} className={styles.canvas} ref={canvasRef} />
             <div className={styles.buttons}>
-                <button className={styles.button} onClick={_generate}>Generate</button>
+                <button className={styles.button} onClick={_generate}>Generate image</button>
             </div>
         </div>
     );

@@ -28,11 +28,11 @@ export function ModelAiPanel() {
     
     return (
           <div className={classnames(styles.panel, styles.modelAiPanel)}>
-                <textarea className={styles.textarea} placeholder="mysterious forest"></textarea>
+                <textarea className={styles.textarea} placeholder="cool backpack"></textarea>
                 <canvas width={size} height={size} className={styles.canvas} ref={canvasRef} />
                 <div className={styles.buttons}>
-                    <button className={styles.button} onClick={_generate}>Generate</button>
+                    <button className={styles.button} onClick={_generate}>Generate model</button>
                 </div>
           </div>
-      );
-  }
+    );
+}

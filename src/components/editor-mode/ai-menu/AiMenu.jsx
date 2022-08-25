@@ -16,9 +16,11 @@ import game from '../../../../game';
 
 //
 
+const defaultPanel = 'image';
+
 export function AiMenu () {
     const {state, setState} = useContext( AppContext );
-    const [panel, setPanel] = useState('image');
+    const [panel, setPanel] = useState(defaultPanel);
 
     //
 
@@ -52,6 +54,9 @@ export function AiMenu () {
                     setState({
                         openedPanel: newOpenedPanel,
                     });
+                    if (newOpened) {
+                        setPanel(defaultPanel);
+                    }
                     return false;
                 }
             }

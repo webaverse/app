@@ -152,7 +152,7 @@ export function CodeAiPanel() {
   
   return (
     <div className={styles.textarea}>
-      <textarea className={styles.textarea} value={input} rows={1} autoComplete="off" autoCorrect="off" autoCapitalize="off" spellCheck="false" onFocus={e => {
+      <textarea className={styles.textarea} value={input} autoComplete="off" autoCorrect="off" autoCapitalize="off" spellCheck="false" onFocus={e => {
         if (page !== 'input') {
             setPage('input');
             const oldAi = ai;
@@ -162,7 +162,7 @@ export function CodeAiPanel() {
             }
             setCompiling(false);
         }
-      }} onChange={e => { console.log( e.target.value ); setInput(e.target.value); }} placeholder="Ask for it..." ref={inputTextarea} />
+      }} onChange={e => { console.log( e.target.value ); setInput(e.target.value); }} placeholder="Teleport me to the nearest object" ref={inputTextarea} />
       {
         (() => {
             switch (page) {
@@ -170,7 +170,7 @@ export function CodeAiPanel() {
                     return (
                         <>
                             <div className={styles.buttons}>
-                                <button className={styles.button + ' ' + (compiling ? styles.disabled : '')} onClick={_compile}>Generate</button>
+                                <button className={styles.button + ' ' + (compiling ? styles.disabled : '')} onClick={_compile}>Generate code</button>
                             </div>
                         </>
                     );
@@ -180,7 +180,7 @@ export function CodeAiPanel() {
                         <>
                             <textarea className={styles.output} value={output} autoComplete="off" autoCorrect="off" autoCapitalize="off" spellCheck="false" onChange={e => { setOutput(e.target.value); }} placeholder="" ref={outputTextarea} />
                             <div className={styles.buttons}>
-                                <button className={styles.button} onClick={_run}>Run</button>
+                                <button className={styles.button} onClick={_run}>Run code</button>
                             </div>
                         </>
                     );
