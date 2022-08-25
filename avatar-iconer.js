@@ -3,17 +3,20 @@
 import {emotions} from './src/components/general/character/Emotions';
 import offscreenEngineManager from './offscreen-engine-manager.js';
 import {fetchArrayBuffer} from './util';
+import {avatarManager} from './avatar-manager';
+import {partyManager} from './party-manager'
+import {playersManager} from './players-manager';
 
 const allEmotions = [''].concat(emotions);
 
 class AvatarIconer extends EventTarget {
-  constructor(player, {
+  constructor({
     width = 150,
     height = 150,
   } = {}) {
     super();
 
-    this.player = player;
+    this.player = playersManager.getLocalPlayer();
     this.width = width;
     this.height = height;
 
@@ -24,22 +27,30 @@ class AvatarIconer extends EventTarget {
     this.enabled = false;
 
     this.canvases = [];
-    
-    const avatarchange = e => {
-      this.renderAvatarApp(e.app);
+
+    const playerSelectedFn = e => {
+      const {
+        player,
+      } = e.data;
+
+      this.bindPlayer(player);
     };
-    player.addEventListener('avatarchange', avatarchange);
+    partyManager.addEventListener('playerselected', playerSelectedFn);
+
+    const avatarchange = e => {
+      this.renderAvatarApp(e.data.app);
+    };
+    avatarManager.addEventListener('avatarchange', avatarchange);
     
     const actionupdate = e => {
       this.updateEmotionFromActions();
     };
-    player.addEventListener('actionadd', actionupdate);
-    player.addEventListener('actionremove', actionupdate);
+    avatarManager.addEventListener('actionupdate', actionupdate);
 
     this.cleanup = () => {
-      player.removeEventListener('avatarchange', avatarchange);
-      player.removeEventListener('actionadd', actionupdate);
-      player.removeEventListener('actionremove', actionupdate);
+      partyManager.removeEventListener('playerselected', playerSelectedFn);
+      avatarManager.removeEventListener('avatarchange', avatarchange);
+      avatarManager.removeEventListener('actionupdate', actionupdate);
     };
 
     this.getEmotionCanvases = offscreenEngineManager.createFunction([
@@ -88,9 +99,16 @@ class AvatarIconer extends EventTarget {
       }
     ]);
 
-    const avatarApp = player.getAvatarApp();
+    const avatarApp = this.player.getAvatarApp();
     this.renderAvatarApp(avatarApp);
   }
+
+  bindPlayer(player) {
+    this.player = player;
+    const avatarApp = this.player.getAvatarApp();
+    this.renderAvatarApp(avatarApp);
+  }
+
   async renderAvatarApp(srcAvatarApp) {
     const lastEnabled = this.enabled;
 

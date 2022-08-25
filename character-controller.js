@@ -832,7 +832,7 @@ class AvatarCharacter extends StateCharacter {
         });
 
         this.characterPhysics.loadCharacterController(
-          this.avatar.width,
+          this.avatar.shoulderWidth,
           this.avatar.height
         );
 

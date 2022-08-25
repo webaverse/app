@@ -403,6 +403,9 @@ class AppManager extends EventTarget {
     return null;
   }
   hasTrackedApp(instanceId) {
+    if (!this.appsArray) {
+      throw new Error('AppManager should be bound');
+    }
     for (const app of this.appsArray) {
       if (app.get('instanceId') === instanceId) {
         return true;

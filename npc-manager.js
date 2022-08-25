@@ -24,6 +24,7 @@ class NpcManager extends EventTarget {
     super();
 
     this.npcs = [];
+    this.detachedNpcs = [];
   }
 
   async initDefaultPlayer(defaultPlayerSpec) {
@@ -108,10 +109,22 @@ class NpcManager extends EventTarget {
         updatePhysicsFn(timestamp, timeDiff);
       }
     }
+    for (const npc of this.detachedNpcs) {
+      const updatePhysicsFn = updatePhysicsFnMap.get(npc.npcApp);
+      if (updatePhysicsFn) {
+        updatePhysicsFn(timestamp, timeDiff);
+      }
+    }
   }
 
   updateAvatar(timestamp, timeDiff) {
     for (const npc of this.npcs) {
+      const updateAvatarsFn = updateAvatarsFnMap.get(npc.npcApp);
+      if (updateAvatarsFn) {
+        updateAvatarsFn(timestamp, timeDiff);
+      }
+    }
+    for (const npc of this.detachedNpcs) {
       const updateAvatarsFn = updateAvatarsFnMap.get(npc.npcApp);
       if (updateAvatarsFn) {
         updateAvatarsFn(timestamp, timeDiff);
@@ -330,6 +343,8 @@ class NpcManager extends EventTarget {
 
       if (!npcDetached) {
         this.npcs.push(npcPlayer);
+      } else {
+        this.detachedNpcs.push(npcPlayer);
       }
 
       // attach to scene
