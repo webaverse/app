@@ -1,6 +1,15 @@
 .modelAiPanel {
 
 }
+
+/* */
+
+.modelAiPanel .textarea {
+  width: 100%;
+}
+
+/* */
+
 .modelAiPanel .canvas {
   background-color: #333;
 }
