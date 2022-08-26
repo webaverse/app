@@ -18,11 +18,43 @@ import cameraManager from '../../../../camera-manager';
 
 //
 
-const defaultPanel = 'image';
+const panels = [
+    {
+        name: 'image',
+        iconUrl: `/images/ui/paintbrush.svg`,
+        component: ImageAiPanel,
+    },
+    {
+        name: 'audio',
+        iconUrl: `/images/ui/audio-speaker.svg`,
+        component: AudioAiPanel,
+    },
+    {
+        name: 'model',
+        iconUrl: `/images/ui/sword.svg`,
+        component: ModelAiPanel,
+    },
+    {
+        name: 'camera',
+        iconUrl: `/images/ui/camera.svg`,
+        component: CameraAiPanel,
+    },
+    {
+        name: 'lore',
+        iconUrl: `/images/ui/brain.svg`,
+        component: LoreAiPanel,
+    },
+    {
+        name: 'code',
+        iconUrl: `/images/ui/magic-scroll.svg`,
+        component: CodeAiPanel,
+    },
+];
+const defaultPanel = panels[0];
 
 export function AiMenu () {
-    const {state, setState} = useContext( AppContext );
-    const [panel, setPanel] = useState(defaultPanel);
+    const {state, setState} = useContext(AppContext);
+    const [selectedPanel, setSelectedPanel] = useState(defaultPanel);
     const [lastOpenedPanel, setLastOpenedPanel] = useState(state.openedPanel);
 
     //
@@ -36,17 +68,17 @@ export function AiMenu () {
     // key bindings
     useEffect(() => {
         const handleKeyUp = (event) => {
-            if (event.which === 191) { // /
-                if (game.inputFocused()) {
-                    return true;
-                } else {
+            if (game.inputFocused()) {
+                return true;
+            } else {
+                if (event.which === 191) { // /
                     const newOpened = state.openedPanel !== 'AiPanel';
                     const newOpenedPanel = newOpened ? 'AiPanel' : null;
                     setState({
                         openedPanel: newOpenedPanel,
                     });
                     if (newOpened) {
-                        setPanel(defaultPanel);
+                        setSelectedPanel(defaultPanel);
                     } else {
                         if (!cameraManager.pointerLockElement) {
                             cameraManager.requestPointerLock();
@@ -54,10 +86,29 @@ export function AiMenu () {
                     }
 
                     return false;
-                }
-            }
+                } else if (event.which === 37) { // left
+                    let panelIndex = panels.indexOf(selectedPanel);
+                    panelIndex--;
+                    if (panelIndex < 0) {
+                        panelIndex = panels.length - 1;
+                    }
+                    setSelectedPanel(panels[panelIndex]);
+                    sounds.playSoundName('menuBeepLow');
 
-            return true;
+                    return false;
+                } else if (event.which === 39) { // right
+                    let panelIndex = panels.indexOf(selectedPanel);
+                    panelIndex++;
+                    if (panelIndex >= panels.length) {
+                        panelIndex = 0;
+                    }
+                    setSelectedPanel(panels[panelIndex]);
+                    sounds.playSoundName('menuBeepLow');
+                    
+                    return false;
+                }
+                return true;
+            }
         };
 
         registerIoEventHandler('keyup', handleKeyUp);
@@ -65,7 +116,7 @@ export function AiMenu () {
         return () => {
             unregisterIoEventHandler('keyup', handleKeyUp);
         };
-    }, [state.openedPanel]);
+    }, [state.openedPanel, selectedPanel]);
 
     // sound effects
     useEffect(() => {
@@ -87,106 +138,26 @@ export function AiMenu () {
         >
             <div className={styles.container}>
                 <div className={styles.panelButtons}>
-                    <div className={classnames(styles.panelButton, panel === 'image' ? styles.selected : null)} onClick={() => {
-                        setPanel('image');
-                        sounds.playSoundName('menuBeepLow');
-                    }}>
-                        <div className={styles.block}>
-                            <div className={styles.inner}>
-                                <img src={'/images/ui/paintbrush.svg'} className={styles.icon} />
+                    {panels.map((panel, i) => {
+                        return (
+                            <div
+                                className={classnames(styles.panelButton, panel === selectedPanel ? styles.selected : null)}
+                                onClick={() => {
+                                    setSelectedPanel(panel);
+                                    sounds.playSoundName('menuBeepLow');
+                                }}
+                                key={i}
+                            >
+                                <div className={styles.block}>
+                                    <div className={styles.inner}>
+                                        <img src={panel.iconUrl} className={styles.icon} />
+                                    </div>
+                                </div>
                             </div>
-                        </div>
-                    </div>
-                    <div className={classnames(styles.panelButton, panel === 'audio' ? styles.selected : null)} onClick={() => {
-                        setPanel('audio');
-                        sounds.playSoundName('menuBeepLow');
-                    }}>
-                        <div className={styles.block}>
-                            <div className={styles.inner}>
-                                <img src={'/images/ui/audio-speaker.svg'} className={styles.icon} />
-                            </div>
-                        </div>
-                    </div>
-                    <div className={classnames(styles.panelButton, panel === 'model' ? styles.selected : null)} onClick={() => {
-                        setPanel('model');
-                        sounds.playSoundName('menuBeepLow');
-                    }}>
-                        <div className={styles.block}>
-                            <div className={styles.inner}>
-                                <img src={'/images/ui/sword.svg'} className={styles.icon} />
-                            </div>
-                        </div>
-                    </div>
-                    <div className={classnames(styles.panelButton, panel === 'camera' ? styles.selected : null)} onClick={() => {
-                        setPanel('camera');
-                        sounds.playSoundName('menuBeepLow');
-                    }}>
-                        <div className={styles.block}>
-                            <div className={styles.inner}>
-                                <img src={'/images/ui/camera.svg'} className={styles.icon} />
-                            </div>
-                        </div>
-                    </div>
-                    <div className={classnames(styles.panelButton, panel === 'lore' ? styles.selected : null)} onClick={() => {
-                        setPanel('lore');
-                        sounds.playSoundName('menuBeepLow');
-                    }}>
-                        <div className={styles.block}>
-                            <div className={styles.inner}>
-                                <img src={'/images/ui/brain.svg'} className={styles.icon} />
-                            </div>
-                        </div>
-                    </div>
-                    <div className={classnames(styles.panelButton, panel === 'code' ? styles.selected : null)} onClick={() => {
-                        setPanel('code');
-                        sounds.playSoundName('menuBeepLow');
-                    }}>
-                        <div className={styles.block}>
-                            <div className={styles.inner}>
-                                <img src={'/images/ui/magic-scroll.svg'} className={styles.icon} />
-                            </div>
-                        </div>
-                    </div>
+                        );
+                    })}
                 </div>
-                {
-                    (() => {
-                        switch (panel) {
-                            case 'image': {
-                                return (
-                                    <ImageAiPanel />
-                                );
-                            }
-                            case 'audio': {
-                                return (
-                                    <AudioAiPanel />
-                                );
-                            }
-                            case 'model': {
-                                return (
-                                    <ModelAiPanel />
-                                );
-                            }
-                            case 'camera': {
-                                return (
-                                    <CameraAiPanel />
-                                );
-                            }
-                            case 'lore': {
-                                return (
-                                    <LoreAiPanel />
-                                );
-                            }
-                            case 'code': {
-                                return (
-                                    <CodeAiPanel />
-                                );
-                            }
-                            default: {
-                                return null;
-                            }
-                        }
-                    })()
-                }
+                <selectedPanel.component />
             </div>
         </div>
     );
