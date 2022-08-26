@@ -42,15 +42,6 @@ export function ImageAiPanel() {
 
     //
 
-    /* useEffect(() => {
-        const canvas = canvasRef.current;
-        if (canvas) {
-            
-        }
-    }, [canvasRef.current]); */
-
-    //
-
     const _setPreset = preset => {
         // console.log('got generator 1', imageAI.generator, preset, imageAI.generator[preset]);
         const gen = imageAI.generator[preset]();
@@ -75,9 +66,13 @@ export function ImageAiPanel() {
                 let img;
                 const localPrompt = prompt || defaultPrompt;
                 if (_canvasHasContent(canvas)) {
-                    img = await imageAI.img2img(canvas, localPrompt);
+                    img = await imageAI.img2img(canvas, localPrompt, {
+                        noise,
+                    });
                 } else {
-                    img = await imageAI.txt2img(localPrompt);
+                    img = await imageAI.txt2img(localPrompt, {
+                        noise,
+                    });
                 }
 
                 const ctx = canvas.getContext('2d');
@@ -89,6 +84,7 @@ export function ImageAiPanel() {
     };
     const _clear = () => {
         setPrompt('');
+        setNoise(defaultNoise);
 
         const canvas = canvasRef.current;
         const ctx = canvas.getContext('2d');
@@ -169,8 +165,8 @@ export function ImageAiPanel() {
                         >Clear</button>
                     </div>
                     <div className={styles.options}>
-                        <label className={styles.option}>
-                            <span>Noise</span>
+                        <label className={styles.label}>
+                            <span className={styles.text}>Noise</span>
                             <input
                                 type='range'
                                 className={styles.range}
@@ -179,9 +175,11 @@ export function ImageAiPanel() {
                                 step={0.01}
                                 value={noise}
                                 onChange={e => {
-                                    setNoise(e.target.value);
+                                    const newNoise = parseFloat(e.target.value);
+                                    setNoise(newNoise);
                                 }}
                             />
+                            <span className={styles.value}>{noise}</span>
                         </label>
                     </div>
                 </div>

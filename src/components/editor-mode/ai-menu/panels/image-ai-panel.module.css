@@ -11,7 +11,9 @@
 }
 .imageAiPanel .canvas {
   margin-bottom: 5px;
-  background-color: #333;
+  background-image: url('/images/checkerboard.svg');
+  background-size: 16px;
+  background-repeat: repeat;
 }
 
 /* */
@@ -108,11 +110,19 @@
 
 /* */
 
-.imageAiPanel .options .option {
+.imageAiPanel .options .label {
   display: flex;
   margin-left: auto;
   background: #111;
 }
-.imageAiPanel .options .option .label {
+.imageAiPanel .options .label .text,
+.imageAiPanel .options .label .value
+{
+  display: flex;
+  /* justify-content: center; */
   margin: 0 10px;
+  color: #FFF;
+}
+.imageAiPanel .options .label .value {
+  width: 30px;
 }

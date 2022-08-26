@@ -350,7 +350,7 @@ export const Equipment = () => {
     };
     const onDoubleClick = object => () => {
         game.handleDropJsonToPlayer(object);
-
+        
         setSelectObject(object);
     };
     const menuLeft = () => {
