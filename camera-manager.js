@@ -225,6 +225,10 @@ class CameraManager extends EventTarget {
         await new Promise((accept, reject) => {
           const renderer = getRenderer();
           if (document.pointerLockElement !== renderer.domElement) {
+            if (document.activeElement) {
+              document.activeElement.blur();
+            }
+
             const _pointerlockchange = e => {
               // if (localPointerLockEpoch === this.pointerLockEpoch) {
                 accept();
