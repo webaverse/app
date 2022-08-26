@@ -1,0 +1,54 @@
+.codeAiPanel .textarea {
+    width: 100%;
+    height: auto;
+    margin-bottom: 10px;
+    /* padding: 20px; */
+    font-size: 16px;
+    /* background-color: #EEE;
+    border: 0;
+    box-shadow: 0 5px 20px #00000080;
+    outline: none; */
+}
+
+.codeAiPanel .output {
+    height: 500px;
+    margin-bottom: 10px;
+    padding: 20px;
+    /* background-color: #333; */
+    border: 0;
+    color: #FFF;
+    font-size: 16px;
+    outline: none;
+}
+
+/* */
+
+.codeAiPanel .buttons {
+    display: flex;
+}
+
+.codeAiPanel .button {
+    padding: 15px 20px;
+    border: 0;
+    background-color: #7E57C2;
+    color: #FFF;
+    font-size: 16px;
+}
+
+.codeAiPanel .button.disabled {
+    background-color: #CCC;
+}
+
+.codeAiPanel .button + .button {
+    margin-left: 5px;
+}
+
+.codeAiPanel.open {
+    visibility: visible;
+}
+
+/* */
+
+.codeAiPanel .button.loading {
+    background-color: #CCC;
+}

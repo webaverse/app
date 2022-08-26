@@ -159,7 +159,7 @@ export default function Header() {
 
                         setState({ openedPanel: ( state.openedPanel === 'CharacterPanel' ? null : 'CharacterPanel' ) });
 
-                        if ( state.openedPanel === 'CharacterPanel' && ! cameraManager.pointerLockElement ) {
+                        if ( state.openedPanel === 'CharacterPanel' && !cameraManager.pointerLockElement ) {
 
                             cameraManager.requestPointerLock();
 

@@ -55,6 +55,11 @@ const soundFiles = {
   refill: _getSoundFiles(/OOT_MagicRefill/),
   explosion: _getSoundFiles(/OOT_Bomb_Blow/),
 
+  menuBeepLow: _getSoundFiles(/pd_beep1/),
+  menuBeepHigh: _getSoundFiles(/pd_beep2/),
+  menuSweepIn: _getSoundFiles(/pd_sweep1/),
+  menuSweepOut: _getSoundFiles(/pd_sweep2/),
+
   water: _getSoundFiles(/^water\//),
 };
 
