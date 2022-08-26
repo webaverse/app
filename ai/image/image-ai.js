@@ -111,7 +111,7 @@ class ImageGenerator {
   }) {
     const self = this;
 
-    return function(
+    function pregenerate(
       name,
     ) {
       const prompt = promptFn(name);
@@ -127,7 +127,9 @@ class ImageGenerator {
           return img2;
         },
       };
-    };
+    }
+    pregenerate.defaultPrompt = promptFn();
+    return pregenerate;
   }
   #makeSeededMethod({
     seedArgs: [
@@ -143,7 +145,7 @@ class ImageGenerator {
   }) {
     const self = this;
 
-    return function(
+    function pregenerate(
       name,
     ) {
       const canvas = createSeedImage(
@@ -173,7 +175,9 @@ class ImageGenerator {
           return img2;
         },
       };
-    };
+    }
+    pregenerate.defaultPrompt = promptFn();
+    return pregenerate;
   }
   character = this.#makeSeededMethod({
     seedArgs: [512, 512, 64, 128, 1, 256],
@@ -246,6 +250,8 @@ class ImageGenerator {
 class ImageAI {
   async txt2img(prompt, {
     n,
+    width,
+    height,
     noise,
     clear,
     color,
@@ -260,6 +266,12 @@ class ImageAI {
     if (n !== undefined) {
       url.searchParams.set('n', n);
     }
+    if (width !== undefined) {
+      url.searchParams.set('w', width);
+    }
+    if (height !== undefined) {
+      url.searchParams.set('h', height);
+    }
     if (noise !== undefined) {
       url.searchParams.set('noise', noise);
     }
@@ -272,6 +284,8 @@ class ImageAI {
   }
   async img2img(image, prompt, {
     n,
+    width,
+    height,
     noise,
     transferType = 'image/jpeg',
   } = {}) {
@@ -289,6 +303,12 @@ class ImageAI {
     url.searchParams.set('s', prompt);
     if (n !== undefined) {
       url.searchParams.set('n', n);
+    }
+    if (width !== undefined) {
+      url.searchParams.set('w', width);
+    }
+    if (height !== undefined) {
+      url.searchParams.set('h', height);
     }
     if (noise !== undefined) {
       url.searchParams.set('noise', noise);

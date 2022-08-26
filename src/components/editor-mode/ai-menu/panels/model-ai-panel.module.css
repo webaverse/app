@@ -13,7 +13,44 @@
 /* */
 
 .modelAiPanel .canvas {
+  margin-bottom: 5px;
   background-image: url('/images/checkerboard.svg');
-  background-size: 16px;
+  background-size: 32px;
   background-repeat: repeat;
+  image-rendering: pixelated;
+}
+
+/* */
+
+.modelAiPanel .bottom {
+  display: flex;
+}
+
+/* */
+
+.modelAiPanel .buttons {
+  display: flex;
+}
+.modelAiPanel .options {
+  display: flex;
+  flex: 1;
+}
+
+/* */
+
+.modelAiPanel .options .label {
+  display: flex;
+  margin-left: auto;
+  background: #111;
+}
+.modelAiPanel .options .label .text,
+.modelAiPanel .options .label .value
+{
+  display: flex;
+  /* justify-content: center; */
+  margin: 0 10px;
+  color: #FFF;
+}
+.modelAiPanel .options .label .value {
+  width: 30px;
 }

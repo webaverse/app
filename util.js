@@ -1115,6 +1115,15 @@ export const drawImageContain = (ctx, img) => {
   }
   ctx.drawImage(img, x, y, width, height);
 };
+export const canvasHasContent = canvas => {
+  if (canvas) {
+    const ctx = canvas.getContext('2d');
+    const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+    return imageData.data.some(n => n !== 0);
+  } else {
+    return true;
+  }
+};
 export const makeSquareImage = img => {
   const newSize = img.width >= img.height ? img.width : img.height;
 

@@ -2,6 +2,7 @@ import React, {useState, useEffect, useRef} from 'react';
 import classnames from 'classnames';
 import imageAI from '../../../../../ai/image/image-ai';
 import materialColors from '../../../../../material-colors';
+import {canvasHasContent} from '../../../../../util';
 import styles from './image-ai-panel.module.css';
 
 import * as sounds from '../../../../../sounds';
@@ -30,15 +31,6 @@ export function ImageAiPanel() {
     const _stopPropagation = e => {
         e.stopPropagation();
     };
-    const _canvasHasContent = canvas => {
-        if (canvas) {
-            const ctx = canvas.getContext('2d');
-            const imageData = ctx.getImageData(0, 0, size, size);
-            return imageData.data.some(n => n !== 0);
-        } else {
-            return true;
-        }
-    };
 
     //
 
@@ -65,7 +57,7 @@ export function ImageAiPanel() {
                 const canvas = canvasRef.current;
                 let img;
                 const localPrompt = prompt || defaultPrompt;
-                if (_canvasHasContent(canvas)) {
+                if (canvasHasContent(canvas)) {
                     img = await imageAI.img2img(canvas, localPrompt, {
                         noise,
                     });
@@ -89,7 +81,7 @@ export function ImageAiPanel() {
         const canvas = canvasRef.current;
         const ctx = canvas.getContext('2d');
         ctx.clearRect(0, 0, canvas.width, canvas.height);
-    }
+    };
 
     //
     
