@@ -377,17 +377,17 @@ class CharacterPhysics {
     _updateFakeHands();
 
     const _updatePistolIkAnimation = () => {
-      const kickbackTime = 300;
       const kickbackExponent = 0.05;
       const fakeArmLength = 0.2;
-
+      const smgUse = !!useAction && useAction.ik === 'smg';
+      const kickbackTime = smgUse ? 100 : 300;
       const pistolUse = !!useAction && useAction.ik === 'pistol';
-      // console.log('got use action', !!pistolUse, useAction?.ik);
-      if (!this.lastPistolUse && pistolUse) {
+      if (!this.lastPistolUse && (pistolUse || smgUse)) {
         this.lastPistolUseStartTime = now;
       }
-      this.lastPistolUse = pistolUse;
-
+      if(!(smgUse || pistolUse))
+        this.lastPistolUseStartTime = -Infinity;
+      this.lastPistolUse = pistolUse || smgUse;
       if (isFinite(this.lastPistolUseStartTime)) {
         const lastUseTimeDiff = now - this.lastPistolUseStartTime;
         const f = Math.min(Math.max(lastUseTimeDiff / kickbackTime, 0), 1);
@@ -420,10 +420,11 @@ class CharacterPhysics {
         this.player.leftHand.updateMatrixWorld();
 
         if (f >= 1) {
-          this.lastPistolUseStartTime = -Infinity;
+          this.lastPistolUseStartTime = smgUse ? now : -Infinity;
         }
       }
     };
+
     _updatePistolIkAnimation();
 
     const _updateBowIkAnimation = () => {
