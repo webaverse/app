@@ -276,30 +276,6 @@ body {
   animation-timing-function: ease-in;
 }
 
-.header input[type=range] {
-  margin: 0 30px;
-}
-input[type=range] {
-  -webkit-appearance: none; /* Hides the slider so that custom slider can be made */
-  /* width: 100%; // Specific width is required for Firefox. */
-  /* background: #333; /* Otherwise white in Chrome */
-  /* box-shadow: inset 0 -1px #000; /* Otherwise thick black border */
-  background: repeating-linear-gradient(to right, #333, #333 110px, #666 110px, #666 115px);
-}
-input[type=range]::-webkit-slider-thumb {
-  -webkit-appearance: none;
-}
-input[type=range]::-webkit-slider-thumb {
-  -webkit-appearance: none;
-  border: 1px solid #000000;
-  height: 36px;
-  width: 16px;
-  border-radius: 3px;
-  background: #ffffff;
-  cursor: pointer;
-  margin-top: -14px; /* You need to specify a margin in Chrome, but in Firefox and IE it is automatic */
-  box-shadow: 1px 1px 1px #000000, 0px 0px 1px #0d0d0d; /* Add cool effects */
-}
 .header .panel-subheader {
   display: flex;
   padding-left: 20px;
