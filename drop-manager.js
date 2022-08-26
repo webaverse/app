@@ -1,7 +1,7 @@
 import * as THREE from 'three';
 import metaversefile from 'metaversefile';
 import generateStats from './procgen/stats.js';
-import { getVoucherFromServer } from './src/hooks/voucherHelpers'
+import { getVoucherFromServer, getVoucherFromUserAccount } from './src/hooks/voucherHelpers'
 // import { uploadMetadata } from './util.js';
 // import {registerLoad} from './src/LoadingBox.jsx';
 // const FILE_ADDRESS = 'https://ipfs.webaverse.com/ipfs/';
@@ -31,6 +31,9 @@ class DropManager extends EventTarget {
     if(voucher == 'fakeVoucher') {
         voucher = await getVoucherFromServer(components[1].value); //current components[0] => name. components[1] => url
         serverDrop = true;
+    } else if(voucher == 'claimVoucher') {
+        voucher = await getVoucherFromUserAccount(components[1].value)
+        serverDrop = false;
     }
     // const r = () => (-0.5+Math.random())*2;
     const dropComponent = {
@@ -59,6 +62,7 @@ class DropManager extends EventTarget {
     return trackedApp;
   }
   addClaim(name, type, serverDrop, contentId, voucher) {
+
     const result = generateStats(contentId);
     const {/*art, */stats} = result;
     const {level} = stats;
@@ -72,6 +76,7 @@ class DropManager extends EventTarget {
       voucher,
       pickupTime: Date.now()
     };
+    console.log("addClaim", claim)
     this.claims.push(claim);
 
     this.dispatchEvent(new MessageEvent('claimschange', {
