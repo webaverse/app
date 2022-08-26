@@ -12,7 +12,9 @@ import {CodeAiPanel} from './panels/code-ai-panel.jsx';
 
 import styles from './ai-menu.module.css';
 
+import * as sounds from '../../../../sounds';
 import game from '../../../../game';
+import cameraManager from '../../../../camera-manager';
 
 //
 
@@ -21,6 +23,7 @@ const defaultPanel = 'image';
 export function AiMenu () {
     const {state, setState} = useContext( AppContext );
     const [panel, setPanel] = useState(defaultPanel);
+    const [lastOpenedPanel, setLastOpenedPanel] = useState(state.openedPanel);
 
     //
 
@@ -30,21 +33,9 @@ export function AiMenu () {
 
     //
 
+    // key bindings
     useEffect(() => {
         const handleKeyUp = (event) => {
-            /* if (
-                event.which === 13 && // enter
-                window.document.activeElement !== outputTextarea.current &&
-                state.openedPanel === 'AiPanel'
-            ) {
-                if (panel === 'input') {
-                    _compile();
-                } else if (panel === 'output') {
-                    _run();
-                }
-                return false;
-            } */
-
             if (event.which === 191) { // /
                 if (game.inputFocused()) {
                     return true;
@@ -56,7 +47,12 @@ export function AiMenu () {
                     });
                     if (newOpened) {
                         setPanel(defaultPanel);
+                    } else {
+                        if (!cameraManager.pointerLockElement) {
+                            cameraManager.requestPointerLock();
+                        }
                     }
+
                     return false;
                 }
             }
@@ -71,6 +67,17 @@ export function AiMenu () {
         };
     }, [state.openedPanel]);
 
+    // sound effects
+    useEffect(() => {
+        if (state.openedPanel === 'AiPanel') {
+            sounds.playSoundName('menuSweepIn');
+        } else if (lastOpenedPanel === 'AiPanel') {
+            sounds.playSoundName('menuSweepOut');
+        }
+
+        setLastOpenedPanel(state.openedPanel);
+    }, [state.openedPanel, lastOpenedPanel]);
+
     //
 
     return (
@@ -82,6 +89,7 @@ export function AiMenu () {
                 <div className={styles.panelButtons}>
                     <div className={classnames(styles.panelButton, panel === 'image' ? styles.selected : null)} onClick={() => {
                         setPanel('image');
+                        sounds.playSoundName('menuBeepLow');
                     }}>
                         <div className={styles.block}>
                             <div className={styles.inner}>
@@ -91,6 +99,7 @@ export function AiMenu () {
                     </div>
                     <div className={classnames(styles.panelButton, panel === 'audio' ? styles.selected : null)} onClick={() => {
                         setPanel('audio');
+                        sounds.playSoundName('menuBeepLow');
                     }}>
                         <div className={styles.block}>
                             <div className={styles.inner}>
@@ -100,6 +109,7 @@ export function AiMenu () {
                     </div>
                     <div className={classnames(styles.panelButton, panel === 'model' ? styles.selected : null)} onClick={() => {
                         setPanel('model');
+                        sounds.playSoundName('menuBeepLow');
                     }}>
                         <div className={styles.block}>
                             <div className={styles.inner}>
@@ -109,6 +119,7 @@ export function AiMenu () {
                     </div>
                     <div className={classnames(styles.panelButton, panel === 'camera' ? styles.selected : null)} onClick={() => {
                         setPanel('camera');
+                        sounds.playSoundName('menuBeepLow');
                     }}>
                         <div className={styles.block}>
                             <div className={styles.inner}>
@@ -118,6 +129,7 @@ export function AiMenu () {
                     </div>
                     <div className={classnames(styles.panelButton, panel === 'lore' ? styles.selected : null)} onClick={() => {
                         setPanel('lore');
+                        sounds.playSoundName('menuBeepLow');
                     }}>
                         <div className={styles.block}>
                             <div className={styles.inner}>
@@ -127,6 +139,7 @@ export function AiMenu () {
                     </div>
                     <div className={classnames(styles.panelButton, panel === 'code' ? styles.selected : null)} onClick={() => {
                         setPanel('code');
+                        sounds.playSoundName('menuBeepLow');
                     }}>
                         <div className={styles.block}>
                             <div className={styles.inner}>
