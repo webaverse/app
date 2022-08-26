@@ -8,6 +8,7 @@ import {
   getEyePosition,
 } from './avatars/util.mjs';
 // import {playersManager} from './players-manager.js';
+import { getCharacterQuality } from './settings.js';
 
 const appSymbol = 'app'; // Symbol('app');
 const avatarSymbol = 'avatar'; // Symbol('avatar');
@@ -72,6 +73,7 @@ export function makeAvatar(app) {
       debug: false,
     });
     avatar[appSymbol] = app;
+    app.avatarRenderer.setQuality(getCharacterQuality());
 
     // unFrustumCull(app);
     // enableShadows(app);

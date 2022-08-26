@@ -1665,7 +1665,22 @@ class GameManager extends EventTarget {
     localPlayer.removeAction('activate');
   }
   setAvatarQuality(quality) {
+    for (const app of world.appManager.apps) {
+      const player = app.npcPlayer;
+      if (player && player.avatar) {
+        player.avatar.setQuality(quality);
+      }
+      if (app.appType === 'vrm' && app.avatarRenderer) {
+        app.avatarRenderer.setQuality(quality);
+      }
+    }
     const localPlayer = playersManager.getLocalPlayer();
+    for (const app of localPlayer.appManager.apps) {
+      const player = app.npcPlayer;
+      if (player && player.avatar) {
+        player.avatar.setQuality(quality);
+      }
+    }
     localPlayer.avatar.setQuality(quality);
   }
   playerDiorama = null;

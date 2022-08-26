@@ -3,6 +3,7 @@ import React, { useEffect, useState } from 'react';
 import classNames from 'classnames';
 
 import game from '../../../../game.js';
+import {getSettings} from '../../../../settings.js';
 import metaversefileApi from '../../../../metaversefile-api'
 import { Switch } from './switch';
 
@@ -71,20 +72,7 @@ export const TabGraphics = ({ active }) => {
 
     function loadSettings () {
 
-        const settingsString = localStorage.getItem( 'GfxSettings' );
-        let settings;
-
-        try {
-
-            settings = JSON.parse( settingsString );
-
-        } catch ( err ) {
-
-            settings = DefaultSettings;
-
-        }
-
-        settings = settings ?? DefaultSettings;
+        const settings = getSettings();
 
         setResolution( settings.resolution ?? DefaultSettings.resolution );
         setAntialias( settings.antialias ?? DefaultSettings.antialias );
