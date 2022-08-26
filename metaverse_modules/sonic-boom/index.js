@@ -1050,7 +1050,7 @@ export default () => {
             lights: false,
         });
         material.freeze();
-        const geometry = new THREE.PlaneGeometry( 1.85, 1.85 );
+        const geometry = new THREE.PlaneGeometry( 1.75, 1.75 );
         const mainBall = new THREE.Mesh( geometry, material );
         // app.add(mainBall);
         let sonicBoomInApp=false;
