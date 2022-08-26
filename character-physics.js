@@ -644,7 +644,7 @@ class CharacterPhysics {
   update(now, timeDiffS) {
     const nowS = now / 1000;
     
-    const result = physicsScene.raycast(
+    const result = physicsScene.raycast( // todo: raycast only when jump.
       this.characterController.position,
       localQuaternion.setFromEuler(localEuler.set(-Math.PI / 2, 0, 0))
     )
