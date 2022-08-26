@@ -121,13 +121,14 @@ class CharacterPhysics {
             // const flatGroundJumpAirTime = jumpAnimation.duration * 1000;
 
             // calc aesthetic jump end speed
-            const dt = 0.001;
-            const dy = Math.sin((this.flatGroundJumpAirTime - dt * 1000) / this.flatGroundJumpAirTime * Math.PI) * jumpHeight -
-                       Math.sin((this.flatGroundJumpAirTime) / this.flatGroundJumpAirTime * Math.PI) * jumpHeight;
-            const jumpEndSpeed = dy / dt;
-            console.log({jumpEndSpeed})
+            // const dt = 0.001;
+            // const dy = Math.sin((this.flatGroundJumpAirTime - dt * 1000) / this.flatGroundJumpAirTime * Math.PI) * jumpHeight -
+            //            Math.sin((this.flatGroundJumpAirTime) / this.flatGroundJumpAirTime * Math.PI) * jumpHeight;
+            // const jumpEndSpeed = dy / dt;
+            // console.log({jumpEndSpeed})
+            const jumpEndSpeed = this.character.avatar.calcedVelocity.y;
 
-            const t = -jumpEndSpeed / physicsScene.getGravity().y;
+            const t = jumpEndSpeed / physicsScene.getGravity().y;
             this.fallLoopStartTimeS -= t; // adjust start time, in order to match velocity.y between aesthetic jump and normal fall.
             const previousT = t - timeDiffS;
             this.lastGravityH = 0.5 * physicsScene.getGravity().y * previousT * previousT;
@@ -672,7 +673,12 @@ class CharacterPhysics {
     // const flatGroundJumpAirTime = 1000;
     // const flatGroundJumpAirTime = jumpAnimation.duration * 1000;
     // const targetFlatGroundJumpAirTime = height > jumpHeight * 2 ? jumpAnimation.duration * 1000 : 666;
-    const targetFlatGroundJumpAirTime = height > jumpHeight * 2 ? jumpAnimation.duration * 1000 : 666;
+    const targetFlatGroundJumpAirTime = THREE.MathUtils.clamp(
+      THREE.MathUtils.mapLinear(height, jumpHeight * 2, 10, 666, jumpAnimation.duration * 1000),
+      666,
+      jumpAnimation.duration * 1000
+    )
+    // console.log(targetFlatGroundJumpAirTime)
     this.flatGroundJumpAirTime = THREE.MathUtils.damp(this.flatGroundJumpAirTime, targetFlatGroundJumpAirTime, window.aaa, timeDiffS);
     // this.flatGroundJumpAirTime = targetFlatGroundJumpAirTime;
     window.jumpAnimationRatio = this.flatGroundJumpAirTime / (jumpAnimation.duration * 1000)
