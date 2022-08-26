@@ -1115,6 +1115,15 @@ export const drawImageContain = (ctx, img) => {
   }
   ctx.drawImage(img, x, y, width, height);
 };
+export const canvasHasContent = canvas => {
+  if (canvas) {
+    const ctx = canvas.getContext('2d');
+    const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+    return imageData.data.some(n => n !== 0);
+  } else {
+    return true;
+  }
+};
 export const makeSquareImage = img => {
   const newSize = img.width >= img.height ? img.width : img.height;
 
@@ -1128,7 +1137,10 @@ export const makeSquareImage = img => {
   const imageData = ctx.getImageData(0, 0, 1, 1);
 
   // fill the canvas with the top left color
-  ctx.fillStyle = `rgb(${imageData.data[0]}, ${imageData.data[1]}, ${imageData.data[2]})`;
+  ctx.fillStyle = imageData.data[4] > 0 ?
+    `rgb(${imageData.data[0]}, ${imageData.data[1]}, ${imageData.data[2]})`
+  :
+    '#fff';
   ctx.fillRect(0, 0, newSize, newSize);
 
   // draw the image in the center

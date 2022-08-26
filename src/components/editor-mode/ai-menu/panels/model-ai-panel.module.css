@@ -1,0 +1,105 @@
+.modelAiPanel {
+  display: flex;
+  flex-direction: column;
+}
+
+/* */
+
+.modelAiPanel .textarea {
+  width: 100%;
+  margin-bottom: 3px;
+}
+
+/* */
+
+.modelAiPanel .canvas {
+  margin-bottom: 5px;
+  background-image: url('/images/checkerboard.svg');
+  background-size: 32px;
+  background-repeat: repeat;
+  image-rendering: pixelated;
+}
+
+/* */
+
+.modelAiPanel .wrap {
+  display: flex;
+  position: relative;
+  flex-direction: column;
+}
+
+/* .modelAiPanel .wrap .leftPanel, */
+.modelAiPanel .wrap .rightPanel
+{
+  display: flex;
+  position: absolute;
+  width: 200px;
+  height: 50px;
+  flex-direction: column;
+}
+/* .modelAiPanel .wrap .leftPanel {
+  left: 0;
+  margin-left: -200px;
+} */
+.modelAiPanel .wrap .rightPanel {
+  right: 0;
+  margin-right: -200px;
+}
+
+/* */
+
+.modelAiPanel .items {
+  display: flex;
+  flex-direction: column;
+}
+.modelAiPanel .items .item {
+  /* margin: 0 5px; */
+  padding: 5px;
+  background-color: #000;
+  color: #FFF;
+  font-size: 16px;
+  line-height: 1.6;
+  cursor: pointer;
+  user-select: none;
+}
+.modelAiPanel .items .item:hover {
+  background-color: #1e88e5;
+}
+.modelAiPanel .items .item:active {
+  background-color: #1565c0;
+}
+
+/* */
+
+.modelAiPanel .bottom {
+  display: flex;
+}
+
+/* */
+
+.modelAiPanel .buttons {
+  display: flex;
+}
+.modelAiPanel .options {
+  display: flex;
+  flex: 1;
+}
+
+/* */
+
+.modelAiPanel .options .label {
+  display: flex;
+  margin-left: auto;
+  background: #111;
+}
+.modelAiPanel .options .label .text,
+.modelAiPanel .options .label .value
+{
+  display: flex;
+  /* justify-content: center; */
+  margin: 0 10px;
+  color: #FFF;
+}
+.modelAiPanel .options .label .value {
+  width: 30px;
+}
