@@ -983,6 +983,7 @@ export default () => {
                     position[i * 3 + 1] = localPlayer.position.y;
                     position[i * 3 + 2] = localPlayer.position.z;
                 }
+                plane.geometry.attributes.position.needsUpdate = true;
                 app.remove(plane);
                 sonicBoomInApp = false;
             }
@@ -1852,9 +1853,9 @@ export default () => {
                         info.acc[i].set(-currentDir.x * 0.0018, 0.0008, -currentDir.z * 0.0018);
                         positionsAttribute.setXYZ(
                             i, 
-                            localPlayer.position.x + 1.1 * currentDir.x + (Math.random() - 0.5) * 0.2 , 
+                            localPlayer.position.x + 1.2 * currentDir.x + (Math.random() - 0.5) * 0.2 , 
                             localPlayer.position.y - localPlayer.avatar.height, 
-                            localPlayer.position.z + 1.1 * currentDir.z + (Math.random() - 0.5) * 0.2
+                            localPlayer.position.z + 1.2 * currentDir.z + (Math.random() - 0.5) * 0.2
                         );
                         euler.set(Math.random() * Math.PI, Math.random() * Math.PI, Math.random() * Math.PI);
                         quaternion.setFromEuler(euler);
