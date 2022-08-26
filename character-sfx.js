@@ -101,6 +101,8 @@ class CharacterSfx {
     this.setSwimmingHand = true;
 
     this.lastLandState = false;
+
+    this.lastDoubleJump = false;
   }
   update(timestamp, timeDiffS) {
     if (!this.player.avatar) {
@@ -117,6 +119,11 @@ class CharacterSfx {
     const soundFiles = sounds.getSoundFiles();
     // const soundFileAudioBuffer = sounds.getSoundFileAudioBuffer();
 
+    // doubleJump
+    if (this.player.hasAction('doubleJump') && this.lastDoubleJump !== this.player.hasAction('doubleJump')) {
+      sounds.playSoundName('doubleJump');
+    }
+    this.lastDoubleJump = this.player.hasAction('doubleJump');
     // jump
     const _handleJump = () => {
       if (this.player.avatar.jumpState && !this.lastJumpState) {
