@@ -1,19 +1,20 @@
 .codeAiPanel .textarea {
+    width: 100%;
     height: auto;
     margin-bottom: 10px;
-    padding: 20px;
-    background-color: #EEE;
-    border: 0;
+    /* padding: 20px; */
     font-size: 16px;
-    outline: none;
+    /* background-color: #EEE;
+    border: 0;
     box-shadow: 0 5px 20px #00000080;
+    outline: none; */
 }
 
 .codeAiPanel .output {
     height: 500px;
     margin-bottom: 10px;
     padding: 20px;
-    background-color: #333;
+    /* background-color: #333; */
     border: 0;
     color: #FFF;
     font-size: 16px;
