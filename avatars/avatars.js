@@ -73,6 +73,7 @@ const localMatrix = new THREE.Matrix4();
 const localMatrix2 = new THREE.Matrix4();
 // const localPlane = new THREE.Plane();
 const localFrustum = new THREE.Frustum();
+const localVector2D = new THREE.Vector2();
 
 const textEncoder = new TextEncoder();
 
@@ -1440,12 +1441,12 @@ class Avatar {
   }
 
   setDirection(timestamp) {
-    this.direction.copy(this.velocity);
+    this.direction.copy(this.velocity).setY(0);
     localEuler.setFromQuaternion(this.inputs.hmd.quaternion, 'YXZ');
     localEuler.set(0, -localEuler.y, 0);
     this.direction.applyEuler(localEuler);
 
-    if (this.velocity.length() > maxIdleVelocity) {
+    if (localVector2D.set(this.velocity.x, this.velocity.z).length() > maxIdleVelocity) {
       this.lastMoveTime = timestamp;
     }
   }

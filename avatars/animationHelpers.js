@@ -783,7 +783,7 @@ export const _applyAnimation = (avatar, now) => {
           isArm,
         } = spec;
 
-        const t2 = avatar.jumpTime / 1000;
+        const t2 = avatar.jumpTime / 1000 / window.jumpAnimationRatio;
         const src2 = jumpAnimation.interpolants[k];
         const v2 = src2.evaluate(t2);
 
