@@ -41,17 +41,26 @@ export const getEyePosition = (() => {
       // .add(localVector2.set(0, 0.06, 0));
   }
 })();
-export const getHeight = (() => {
+export const getAvatarHeight = (() => {
   const localVector = new THREE.Vector3();
   const localBox = new THREE.Box3();
-  return function(object) {
-    const modelBones = getModelBones(object);
+  return function(modelBones) {
+    const avatarHeight = getEyePosition(modelBones).sub(
+      modelBones.Root.getWorldPosition(localVector)
+    ).y;
     const headBoundingBox = localBox.setFromObject(modelBones.Head, true);
     let headHeight = headBoundingBox.max.y - headBoundingBox.min.y;
-    headHeight = headHeight < 0 ? 0 : headHeight;
-    return getEyePosition(modelBones)
-      .sub(modelBones.Root.getWorldPosition(localVector))
-      .y + headHeight / 2;
+    headHeight = headHeight < 0 ? 0 : headHeight; // head height will be zero in vrm initialization
+    return avatarHeight + headHeight / 2;
+  };
+})();
+export const getAvatarWidth = (() => {
+  const localVector1 = new THREE.Vector3();
+  const localVector2 = new THREE.Vector3();
+  return function (modelBones) {
+    return modelBones.Left_arm.getWorldPosition(localVector1).distanceTo(
+      modelBones.Right_arm.getWorldPosition(localVector2)
+    );
   };
 })();
 export const makeBoneMap = object => {

@@ -41,7 +41,7 @@ import {playersManager} from './players-manager.js';
 import loaders from './loaders.js';
 import * as voices from './voices.js';
 import * as procgen from './procgen/procgen.js';
-import {getHeight} from './avatars/util.mjs';
+import {getAvatarHeight, getAvatarWidth, getModelBones} from './avatars/util.mjs';
 import performanceTracker from './performance-tracker.js';
 import renderSettingsManager from './rendersettings-manager.js';
 import questManager from './quest-manager.js';
@@ -475,6 +475,14 @@ metaversefile.setApi({
   },
   useAvatarRenderer() {
     return AvatarRenderer;
+  },
+  useAvatarSize(obj) {
+    const model = obj.scene;
+    model.updateMatrixWorld();
+    const modelBones = getModelBones(obj);
+    const height = getAvatarHeight(modelBones);
+    const width = getAvatarWidth(modelBones);
+    return {height, width};
   },
   /* useAvatarOptimizer() {
     return avatarOptimizer;
@@ -1164,9 +1172,6 @@ export default () => {
 
     // default
     return null;
-  },
-  getAvatarHeight(obj) {
-    return getHeight(obj);
   },
   useInternals() {
     if (!iframeContainer) {
