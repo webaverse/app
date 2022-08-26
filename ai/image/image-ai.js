@@ -1,5 +1,5 @@
 import {loadImage, makeSquareImage, blob2img, img2canvas, canvas2blob} from '../../util.js';
-import {imageAIEndpointUrl, imageCaptionAIEndpointUrl} from '../../constants.js';
+import {imageAIEndpointUrl, imageCaptionAIEndpointUrl, defaultImageAICanvasSize} from '../../constants.js';
 import materialColors from '../../material-colors.json';
 import ColorScheme from '../../color-scheme.js';
 
@@ -98,7 +98,11 @@ const rng = () => (Math.random() * 2) - 1;
 class ImageGenerator {
   constructor() {
   }
+  // #canvasSize = defaultImageAICanvasSize;
   #debug = false;
+  // setCanvasSize(size) {
+  //   this.#canvasSize = size;
+  // }
   setDebug(debug) {
     this.#debug = debug;
   }
