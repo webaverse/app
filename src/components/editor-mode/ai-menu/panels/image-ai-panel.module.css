@@ -1,11 +1,13 @@
 .imageAiPanel {
-
+  display: flex;
+  flex-direction: column;
 }
 
 /* */
 
 .imageAiPanel .textarea {
   width: 100%;
+  margin-bottom: 3px;
 }
 .imageAiPanel .canvas {
   margin-bottom: 5px;

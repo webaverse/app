@@ -1,11 +1,13 @@
 .modelAiPanel {
-
+  display: flex;
+  flex-direction: column;
 }
 
 /* */
 
 .modelAiPanel .textarea {
   width: 100%;
+  margin-bottom: 3px;
 }
 
 /* */
