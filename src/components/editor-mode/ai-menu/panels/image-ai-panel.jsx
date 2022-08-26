@@ -7,17 +7,40 @@ import styles from './image-ai-panel.module.css';
 
 import * as sounds from '../../../../../sounds';
 
+//
+
 const size = 512;
 const defaultPrompt = `mysterious forest`;
 const defaultNoise = 0.85;
 
-const presetNames = Object.keys(imageAI.generator);
+//
+
 const baseColors = Object.keys(materialColors)
   .map(k => materialColors[k][400].slice(1))
   .concat([
     'FFFFFF',
     '000000',
   ]);
+
+//
+
+const presetNames = Object.keys(imageAI.generator);
+const Preset = ({
+    preset,
+    setSelectedPreset,
+}) => {
+    return (
+        <div
+            className={styles.item}
+            onClick={e => {
+                setSelectedPreset(preset);
+                sounds.playSoundName('menuBeepHigh');
+            }}
+        >{preset}</div>
+    );
+};
+
+//
 
 export function ImageAiPanel() {
     const [prompt, setPrompt] = useState('');
@@ -35,18 +58,16 @@ export function ImageAiPanel() {
     //
 
     const _setPreset = preset => {
-        // console.log('got generator 1', imageAI.generator, preset, imageAI.generator[preset]);
         const gen = imageAI.generator[preset]();
-        // console.log('got generator 2', gen);
 
         setPrompt(gen.prompt);
 
-        const canvas = canvasRef.current;
-        const ctx = canvas.getContext('2d');
+        const canvasEl = canvasRef.current;
+        const ctx = canvasEl.getContext('2d');
         if (gen.canvas) {
-            ctx.drawImage(gen.canvas, 0, 0, canvas.width, canvas.height);
+            ctx.drawImage(gen.canvas, 0, 0, canvasEl.width, canvasEl.height);
         } else {
-            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            ctx.clearRect(0, 0, canvasEl.width, canvasEl.height);
         }
     };
     const _generate = async () => {
@@ -54,11 +75,11 @@ export function ImageAiPanel() {
             setGenerating(true);
 
             try {
-                const canvas = canvasRef.current;
+                const canvasEl = canvasRef.current;
                 let img;
                 const localPrompt = prompt || defaultPrompt;
-                if (canvasHasContent(canvas)) {
-                    img = await imageAI.img2img(canvas, localPrompt, {
+                if (canvasHasContent(canvasEl)) {
+                    img = await imageAI.img2img(canvasEl, localPrompt, {
                         noise,
                     });
                 } else {
@@ -67,8 +88,8 @@ export function ImageAiPanel() {
                     });
                 }
 
-                const ctx = canvas.getContext('2d');
-                ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+                const ctx = canvasEl.getContext('2d');
+                ctx.drawImage(img, 0, 0, canvasEl.width, canvasEl.height);
             } finally {
                 setGenerating(false);
             }
@@ -78,9 +99,9 @@ export function ImageAiPanel() {
         setPrompt('');
         setNoise(defaultNoise);
 
-        const canvas = canvasRef.current;
-        const ctx = canvas.getContext('2d');
-        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        const canvasEl = canvasRef.current;
+        const ctx = canvasEl.getContext('2d');
+        ctx.clearRect(0, 0, canvasEl.width, canvasEl.height);
     };
 
     //
@@ -130,18 +151,13 @@ export function ImageAiPanel() {
                     }}>Cut</div>
                 </div>
                 <div className={classnames(styles.items, styles.rightPanel)}>
-                    {presetNames.map((preset, i) => {
-                        return (
-                            <div
-                              className={styles.item}
-                              onClick={e => {
-                                  _setPreset(preset);
-                                  sounds.playSoundName('menuBeepHigh');
-                              }}
-                              key={i}
-                            >{preset}</div>
-                        );
-                    })}
+                    {presetNames.map((preset, i) =>
+                        <Preset
+                            preset={preset}
+                            setSelectedPreset={_setPreset}
+                            key={i}
+                        />
+                    )}
                 </div>
                 <canvas width={size} height={size} className={styles.canvas} ref={canvasRef} />
                 <div className={styles.bottom}>
