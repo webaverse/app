@@ -25,6 +25,9 @@ export function ImageAiPanel() {
 
     //
 
+    const _stopPropagation = e => {
+        e.stopPropagation();
+    };
     const _canvasHasContent = canvas => {
         if (canvas) {
             const ctx = canvas.getContext('2d');
@@ -100,6 +103,7 @@ export function ImageAiPanel() {
               onChange={e => {
                 setPrompt(e.target.value);
               }}
+              onKeyDown={_stopPropagation}
               placeholder={defaultPrompt}
               disabled={generating}
             ></textarea>
