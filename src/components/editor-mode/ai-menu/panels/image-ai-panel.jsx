@@ -4,7 +4,11 @@ import imageAI from '../../../../../ai/image/image-ai';
 import materialColors from '../../../../../material-colors';
 import styles from './image-ai-panel.module.css';
 
+import * as sounds from '../../../../../sounds';
+
 const size = 512;
+const defaultPrompt = `mysterious forest`;
+
 const presetNames = Object.keys(imageAI.generator);
 const baseColors = Object.keys(materialColors)
   .map(k => materialColors[k][400].slice(1))
@@ -14,42 +18,96 @@ const baseColors = Object.keys(materialColors)
   ]);
 
 export function ImageAiPanel() {
+    const [prompt, setPrompt] = useState('');
     const [selectedColor, setSelectedColor] = useState(baseColors[0]);
+    const [generating, setGenerating] = useState(false);
     const canvasRef = useRef();
 
     //
 
-    useEffect(() => {
+    const _canvasHasContent = canvas => {
+        if (canvas) {
+            const ctx = canvas.getContext('2d');
+            const imageData = ctx.getImageData(0, 0, size, size);
+            return imageData.data.some(n => n !== 0);
+        } else {
+            return true;
+        }
+    };
+
+    //
+
+    /* useEffect(() => {
         const canvas = canvasRef.current;
         if (canvas) {
             
         }
-    }, [canvasRef.current]);
+    }, [canvasRef.current]); */
 
     //
 
-    const _generate = () => {
-        /* const output = outputTextarea.current.value;
-        const dataUri = metaversefile.createModule(output);
+    const _setPreset = preset => {
+        // console.log('got generator 1', imageAI.generator, preset, imageAI.generator[preset]);
+        const gen = imageAI.generator[preset]();
+        // console.log('got generator 2', gen);
 
-        (async () => {
+        setPrompt(gen.prompt);
 
-            // XXX unlock this
-            // await metaversefile.load(dataUri);
-
-        })();
-
-        setState({ openedPanel: null }); */
+        const canvas = canvasRef.current;
+        const ctx = canvas.getContext('2d');
+        if (gen.canvas) {
+            ctx.drawImage(gen.canvas, 0, 0, canvas.width, canvas.height);
+        } else {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+        }
     };
+    const _generate = async () => {
+        if (!generating) {
+            setGenerating(true);
+
+            try {
+                const canvas = canvasRef.current;
+                let img;
+                const localPrompt = prompt || defaultPrompt;
+                if (_canvasHasContent(canvas)) {
+                    img = await imageAI.img2img(canvas, localPrompt);
+                } else {
+                    img = await imageAI.txt2img(localPrompt);
+                }
+
+                const ctx = canvas.getContext('2d');
+                ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+            } finally {
+                setGenerating(false);
+            }
+        }
+    };
+    const _clear = () => {
+        setPrompt('');
+
+        const canvas = canvasRef.current;
+        const ctx = canvas.getContext('2d');
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+    }
 
     //
     
     return (
         <div className={classnames(styles.panel, styles.imageAiPanel)}>
-            <textarea className={styles.textarea} placeholder="mysterious forest"></textarea>
+            <textarea
+              className={styles.textarea}
+              value={prompt}
+              onChange={e => {
+                setPrompt(e.target.value);
+              }}
+              placeholder={defaultPrompt}
+              disabled={generating}
+            ></textarea>
             <div className={styles.wrap}>
                 <div className={classnames(styles.items, styles.leftPanel)}>
-                    <div className={styles.item}>Draw</div>
+                    <div className={styles.item} onClick={e => {
+                        sounds.playSoundName('menuBeepHigh');
+                    }}>Draw</div>
                     <div className={styles.colors}>
                         {baseColors.map((color, i) => {
                             return (
@@ -60,26 +118,48 @@ export function ImageAiPanel() {
                                     }}
                                     onClick={e => {
                                         setSelectedColor(color);
+                                        sounds.playSoundName('menuBeepHigh');
                                     }}
                                     key={i}
                                 />
                             );
                         })}
                     </div>
-                    <div className={styles.item}>Erase</div>
-                    <div className={styles.item}>Move</div>
-                    <div className={styles.item}>Cut</div>
+                    <div className={styles.item} onClick={e => {
+                        sounds.playSoundName('menuBeepHigh');
+                    }}>Erase</div>
+                    <div className={styles.item} onClick={e => {
+                        sounds.playSoundName('menuBeepHigh');
+                    }}>Move</div>
+                    <div className={styles.item} onClick={e => {
+                        sounds.playSoundName('menuBeepHigh');
+                    }}>Cut</div>
                 </div>
                 <div className={classnames(styles.items, styles.rightPanel)}>
                     {presetNames.map((preset, i) => {
                         return (
-                            <div className={styles.item} key={i}>{preset}</div>
+                            <div
+                              className={styles.item}
+                              onClick={e => {
+                                  _setPreset(preset);
+                                  sounds.playSoundName('menuBeepHigh');
+                              }}
+                              key={i}
+                            >{preset}</div>
                         );
                     })}
                 </div>
                 <canvas width={size} height={size} className={styles.canvas} ref={canvasRef} />
                 <div className={styles.buttons}>
-                    <button className={styles.button} onClick={_generate}>Generate image</button>
+                    <button
+                        className={styles.button}
+                        onClick={_generate}
+                        disabled={generating}
+                    >Generate image</button>
+                    <button
+                        className={styles.button}
+                        onClick={_clear}
+                    >Clear</button>
                 </div>
             </div>
         </div>
