@@ -210,6 +210,8 @@ class CharacterPhysics {
 
       const positionXZBefore = localVector2D.set(this.characterController.position.x, this.characterController.position.z);
       const positionYBefore = this.characterController.position.y;
+      //
+      if (localVector3.y !== 0) console.log(1, localVector3.y)
       const flags = physicsScene.moveCharacterController(
         this.characterController,
         localVector3,
@@ -217,6 +219,7 @@ class CharacterPhysics {
         timeDiffS,
         this.characterController.position
       );
+      //
       const positionXZAfter = localVector2D2.set(this.characterController.position.x, this.characterController.position.z);
       const positionYAfter = this.characterController.position.y;
       const wantMoveDistancePerFrameXZ = localVector2D3.set(this.wantMoveDistancePerFrame.x, this.wantMoveDistancePerFrame.z);
@@ -250,9 +253,11 @@ class CharacterPhysics {
       ) {
         // prevent jump when go down slope
         const oldY = this.characterController.position.y;
+        localVector3.set(0, -groundStickOffset, 0);
+        if (localVector3.y !== 0) console.log(2, localVector3.y)
         const flags = physicsScene.moveCharacterController(
           this.characterController,
-          localVector3.set(0, -groundStickOffset, 0),
+          localVector3,
           minDist,
           0,
           localVector4
