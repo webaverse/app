@@ -648,7 +648,7 @@ class CharacterPhysics {
       jumpAnimation.duration * 1000
     )
     // console.log(targetFlatGroundJumpAirTime)
-    this.flatGroundJumpAirTime = THREE.MathUtils.damp(this.flatGroundJumpAirTime, targetFlatGroundJumpAirTime, window.aaa, timeDiffS);
+    this.flatGroundJumpAirTime = THREE.MathUtils.damp(this.flatGroundJumpAirTime, targetFlatGroundJumpAirTime, 1, timeDiffS);
     // this.flatGroundJumpAirTime = targetFlatGroundJumpAirTime;
     window.jumpAnimationRatio = this.flatGroundJumpAirTime / (jumpAnimation.duration * 1000)
     // console.log(this.flatGroundJumpAirTime)
