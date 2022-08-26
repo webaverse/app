@@ -1,4 +1,4 @@
-import audioManager from '../../audio-manager.js';
+// import audioManager from '../../audio-manager.js';
 import {audioAIEndpointUrl} from '../../constants.js';
 
 class AudioAI {
@@ -8,11 +8,11 @@ class AudioAI {
     url.searchParams.set('s', prompt);
 
     const res = await fetch(url);
-    const arrayBuffer = await res.arrayBuffer();
-    
-    const audioContext = audioManager.getAudioContext();
+    const blob = await res.blob();
+    return blob;
+    /* const audioContext = audioManager.getAudioContext();
     const audioData = await audioContext.decodeAudioData(arrayBuffer);
-    return audioData;
+    return audioData; */
   }
 }
 const audioAI = new AudioAI();

@@ -163,6 +163,8 @@ export const voiceEndpointsUrl = `https://raw.githubusercontent.com/webaverse/ti
 export const imageAIEndpointUrl = `https://stable-diffusion.webaverse.com`;
 export const imageCaptionAIEndpointUrl = `https://clip.webaverse.com`;
 
+export const defaultImageAICanvasSize = 512;
+
 export const audioAIEndpointUrl = `https://diffsound.webaverse.com`;
 
 export const chatTextSpeed = 15;
