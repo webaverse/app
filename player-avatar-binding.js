@@ -73,7 +73,6 @@ export function makeAvatar(app) {
       debug: false,
     });
     avatar[appSymbol] = app;
-    app.avatarRenderer.setQuality(getCharacterQuality());
 
     // unFrustumCull(app);
     // enableShadows(app);
