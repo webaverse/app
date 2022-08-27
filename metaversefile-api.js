@@ -41,7 +41,7 @@ import {playersManager} from './players-manager.js';
 import loaders from './loaders.js';
 import * as voices from './voices.js';
 import * as procgen from './procgen/procgen.js';
-import {getHeight, getModelBones} from './avatars/util.mjs';
+import {getHeight} from './avatars/util.mjs';
 import performanceTracker from './performance-tracker.js';
 import renderSettingsManager from './rendersettings-manager.js';
 import questManager from './quest-manager.js';
@@ -64,9 +64,6 @@ import {lightsManager} from './lights-manager.js';
 import {getCharacterQuality} from './settings.js';
 
 const localVector2D = new THREE.Vector2();
-const localVector = new THREE.Vector3();
-const localVector2 = new THREE.Vector3();
-const localQuaternion = new THREE.Quaternion();
 
 class App extends THREE.Object3D {
   constructor() {
@@ -579,19 +576,6 @@ metaversefile.setApi({
   },
   useRemotePlayers() {
     return Array.from(playersManager.getRemotePlayers().values());
-  },
-  useCharacterQuality() {
-    return getCharacterQuality();
-  },
-  useInitVrmObject(avatarRenderer, app) {
-    avatarRenderer.setControlled(true);
-    const object = avatarRenderer.controlObject;
-    const modelBones = getModelBones(object);
-    app.matrixWorld.decompose(localVector, localQuaternion, localVector2);
-    modelBones.Root.position.copy(localVector);
-    modelBones.Root.quaternion.copy(localQuaternion);
-    modelBones.Root.scale.copy(localVector2);
-    modelBones.Root.updateMatrixWorld();
   },
   usePartyManager() {
     return partyManager;
