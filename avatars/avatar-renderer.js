@@ -5,10 +5,7 @@ import {VRMMaterialImporter/*, MToonMaterial*/} from '@pixiv/three-vrm/lib/three
 import * as avatarOptimizer from '../avatar-optimizer.js';
 import * as avatarCruncher from '../avatar-cruncher.js';
 import * as avatarSpriter from '../avatar-spriter.js';
-<<<<<<< HEAD
 import {getAvatarHeight, getAvatarWidth, getModelBones} from './util.mjs';
-=======
->>>>>>> master
 import offscreenEngineManager from '../offscreen-engine-manager.js';
 import loaders from '../loaders.js';
 // import {camera} from '../renderer.js';
