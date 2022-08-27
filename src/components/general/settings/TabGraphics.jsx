@@ -3,7 +3,9 @@ import React, { useEffect, useState } from 'react';
 import classNames from 'classnames';
 
 import game from '../../../../game.js';
+import {convertCharacterQualityToValue, getSettings} from '../../../../settings.js';
 import metaversefileApi from '../../../../metaversefile-api'
+import settingsManager from '../../../../settings-manager.js';
 import { Switch } from './switch';
 
 import styles from './settings.module.css';
@@ -71,20 +73,7 @@ export const TabGraphics = ({ active }) => {
 
     function loadSettings () {
 
-        const settingsString = localStorage.getItem( 'GfxSettings' );
-        let settings;
-
-        try {
-
-            settings = JSON.parse( settingsString );
-
-        } catch ( err ) {
-
-            settings = DefaultSettings;
-
-        }
-
-        settings = settings ?? DefaultSettings;
+        const settings = getSettings();
 
         setResolution( settings.resolution ?? DefaultSettings.resolution );
         setAntialias( settings.antialias ?? DefaultSettings.antialias );
@@ -103,10 +92,7 @@ export const TabGraphics = ({ active }) => {
 
         // set avatar style
 
-        let avatarStyle = 4;
-        if ( characterDetails === 'HIGH' ) avatarStyle = 3;
-        if ( characterDetails === 'MEDIUM' ) avatarStyle = 2;
-        if ( characterDetails === 'LOW' ) avatarStyle = 1;
+        let avatarStyle = convertCharacterQualityToValue(characterDetails);
 
         const localPlayer = metaversefileApi.useLocalPlayer();
 
@@ -159,6 +145,12 @@ export const TabGraphics = ({ active }) => {
     }, [ resolution, antialias, viewRange, shadowQuality, postprocessing, depthOfField, hdr, bloom, characterDetails, hairPhysics ] );
 
     useEffect( () => {
+
+        settingsManager.addEventListener('change', e => {
+
+            loadSettings();
+
+        });
 
         loadSettings();
 
