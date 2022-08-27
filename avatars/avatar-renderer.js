@@ -5,14 +5,15 @@ import {VRMMaterialImporter/*, MToonMaterial*/} from '@pixiv/three-vrm/lib/three
 import * as avatarOptimizer from '../avatar-optimizer.js';
 import * as avatarCruncher from '../avatar-cruncher.js';
 import * as avatarSpriter from '../avatar-spriter.js';
+import {getModelBones} from './util.mjs';
 import offscreenEngineManager from '../offscreen-engine-manager.js';
 import loaders from '../loaders.js';
 // import {camera} from '../renderer.js';
 import {WebaverseShaderMaterial} from '../materials.js';
 // import exporters from '../exporters.js';
 import {abortError} from '../lock-manager.js';
-import {/*defaultAvatarQuality,*/ minAvatarQuality, maxAvatarQuality} from '../constants.js';
-const defaultAvatarQuality = 4;
+import {minAvatarQuality, maxAvatarQuality} from '../constants.js';
+import {getCharacterQuality} from '../settings.js';
 // import {downloadFile} from '../util.js';
 
 const localVector = new THREE.Vector3();
@@ -379,7 +380,7 @@ export class AvatarRenderer /* extends EventTarget */ {
     arrayBuffer,
     srcUrl,
     camera = null, // if null, do not frustum cull
-    quality = defaultAvatarQuality,
+    quality,
     controlled = false,
   } = {})	{
     // super();
@@ -389,6 +390,9 @@ export class AvatarRenderer /* extends EventTarget */ {
     this.arrayBuffer = arrayBuffer;
     this.srcUrl = srcUrl;
     this.camera = camera;
+    if (quality === undefined) {
+      quality = getCharacterQuality();
+    }
     this.quality = quality;
     this.isControlled = controlled;
     
@@ -428,6 +432,16 @@ export class AvatarRenderer /* extends EventTarget */ {
     this.loadPromise = null;
 
     this.setQuality(quality);
+  }
+  initControlObject(app) {
+    this.setControlled(true);
+    const object = this.controlObject;
+    const modelBones = getModelBones(object);
+    app.matrixWorld.decompose(localVector, localQuaternion, localVector2);
+    modelBones.Root.position.copy(localVector);
+    modelBones.Root.quaternion.copy(localQuaternion);
+    modelBones.Root.scale.copy(localVector2);
+    modelBones.Root.updateMatrixWorld();
   }
   createSpriteAvatarMesh() {
     if (!this.createSpriteAvatarMeshFn) {
