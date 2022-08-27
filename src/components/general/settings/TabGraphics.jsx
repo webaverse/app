@@ -5,10 +5,10 @@ import classNames from 'classnames';
 import game from '../../../../game.js';
 import {convertCharacterQualityToValue, getSettings} from '../../../../settings.js';
 import metaversefileApi from '../../../../metaversefile-api'
+import settingsManager from '../../../../settings-manager.js';
 import { Switch } from './switch';
 
 import styles from './settings.module.css';
-import settingsManager from '../../../../settings-manager.js';
 
 //
 
