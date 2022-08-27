@@ -1,4 +1,5 @@
 import {minAvatarQuality, maxAvatarQuality} from './constants.js';
+import settingsManager from './settings-manager.js';
 
 const DefaultSettings = {
   resolution:         'HIGH',
@@ -67,6 +68,11 @@ function getCharacterQuality() {
 
 function saveSettings(settings) {
   localStorage.setItem( 'GfxSettings', JSON.stringify( settings ) );
+  settingsManager.dispatchEvent(new MessageEvent('change', {
+    data: {
+      settings: settings
+    }
+  }));
 }
 
 export {

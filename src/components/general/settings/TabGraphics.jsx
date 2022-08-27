@@ -8,6 +8,7 @@ import metaversefileApi from '../../../../metaversefile-api'
 import { Switch } from './switch';
 
 import styles from './settings.module.css';
+import settingsManager from '../../../../settings-manager.js';
 
 //
 
@@ -147,6 +148,12 @@ export const TabGraphics = ({ active }) => {
     }, [ resolution, antialias, viewRange, shadowQuality, postprocessing, depthOfField, hdr, bloom, characterDetails, hairPhysics ] );
 
     useEffect( () => {
+
+        settingsManager.addEventListener('change', e => {
+
+            loadSettings();
+
+        });
 
         loadSettings();
 
