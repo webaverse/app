@@ -380,7 +380,7 @@ export class AvatarRenderer /* extends EventTarget */ {
     arrayBuffer,
     srcUrl,
     camera = null, // if null, do not frustum cull
-    quality = undefined,
+    quality,
     controlled = false,
   } = {})	{
     // super();
