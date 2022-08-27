@@ -1665,23 +1665,29 @@ class GameManager extends EventTarget {
     localPlayer.removeAction('activate');
   }
   setAvatarQuality(quality) {
-    for (const app of world.appManager.apps) {
-      const player = app.npcPlayer;
-      if (player && player.avatar) {
-        player.avatar.setQuality(quality);
-      }
-      if (app.appType === 'vrm' && app.avatarRenderer) {
-        app.avatarRenderer.setQuality(quality);
-      }
-    }
+    // local player
     const localPlayer = playersManager.getLocalPlayer();
+    localPlayer.avatar.setQuality(quality);
+
+    // party members
     for (const app of localPlayer.appManager.apps) {
       const player = app.npcPlayer;
       if (player && player.avatar) {
         player.avatar.setQuality(quality);
       }
     }
-    localPlayer.avatar.setQuality(quality);
+
+    for (const app of world.appManager.apps) {
+      // npcs
+      const player = app.npcPlayer;
+      if (player && player.avatar) {
+        player.avatar.setQuality(quality);
+      }
+      // vrm objects
+      if (app.appType === 'vrm' && app.avatarRenderer) {
+        app.avatarRenderer.setQuality(quality);
+      }
+    }
   }
   playerDiorama = null;
   bindDioramaCanvas() {
