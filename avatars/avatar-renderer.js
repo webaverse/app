@@ -390,10 +390,10 @@ export class AvatarRenderer /* extends EventTarget */ {
     this.arrayBuffer = arrayBuffer;
     this.srcUrl = srcUrl;
     this.camera = camera;
-    this.quality = quality;
     if (quality === useSettingAvatarQuality) {
-      this.quality = getCharacterQuality();
+      quality = getCharacterQuality();
     }
+    this.quality = quality;
     this.isControlled = controlled;
     
     //
@@ -433,7 +433,7 @@ export class AvatarRenderer /* extends EventTarget */ {
 
     this.setQuality(quality);
   }
-  iniitControlObject(app) {
+  initControlObject(app) {
     this.setControlled(true);
     const object = this.controlObject;
     const modelBones = getModelBones(object);
