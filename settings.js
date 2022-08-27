@@ -1,4 +1,4 @@
-
+import {minAvatarQuality, maxAvatarQuality} from './constants.js';
 
 const DefaultSettings = {
   resolution:         'HIGH',
@@ -6,14 +6,14 @@ const DefaultSettings = {
   viewRange:          'HIGH',
   shadowQuality:      'HIGH',
   postprocessing: {
-      enabled:        'ON',
-      depthOfField:   'ON',
-      hdr:            'ON',
-      bloom:          'ON'
+    enabled:        'ON',
+    depthOfField:   'ON',
+    hdr:            'ON',
+    bloom:          'ON'
   },
   character: {
-      details:        'HIGH',
-      hairPhysics:    'ON'
+    details:        'HIGH',
+    hairPhysics:    'ON'
   }
 };
 
@@ -32,11 +32,25 @@ function getSettings() {
   return settings;
 }
 
-function getCharacterQuality() {
+function adjustCharacterQuality(delta) {
   const settings = getSettings();
+  const quality = convertCharacterQualityToValue(settings.character.details);
+  const newQuality = Math.min(Math.max(quality + delta, minAvatarQuality), maxAvatarQuality);
+  if (newQuality !== quality) {
+    settings.character.details = convertCharacterQualityToSetting(newQuality);
+    saveSettings(settings);
+  }
+  return newQuality;
+}
 
-  const characterDetails = settings.character.details;
+function convertCharacterQualityToSetting(quality) {
+  if ( quality === 3 ) return 'HIGH';
+  if ( quality === 2 ) return 'MEDIUM';
+  if ( quality === 1 ) return 'LOW';
+  return 'ULTRA';
+};
 
+function convertCharacterQualityToValue(characterDetails) {
   let avatarStyle = 4;
   if ( characterDetails === 'HIGH' ) avatarStyle = 3;
   if ( characterDetails === 'MEDIUM' ) avatarStyle = 2;
@@ -45,7 +59,19 @@ function getCharacterQuality() {
   return avatarStyle;
 }
 
+function getCharacterQuality() {
+  const settings = getSettings();
+
+  return convertCharacterQualityToValue(settings.character.details);
+}
+
+function saveSettings(settings) {
+  localStorage.setItem( 'GfxSettings', JSON.stringify( settings ) );
+}
+
 export {
   getSettings,
   getCharacterQuality,
+  adjustCharacterQuality,
+  saveSettings,
 };
