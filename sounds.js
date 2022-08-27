@@ -7,6 +7,7 @@ const soundFiles = {
   walk: _getSoundFiles(/^walk\//),
   run: _getSoundFiles(/^run\//),
   jump: _getSoundFiles(/^jump\//),
+  doubleJump: _getSoundFiles(/^doubleJump\//),
   land: _getSoundFiles(/^land\//),
   narutoRun: _getSoundFiles(/^narutoRun\//),
   sonicBoom: _getSoundFiles(/^sonicBoom\//),
