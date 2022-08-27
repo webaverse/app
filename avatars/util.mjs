@@ -46,11 +46,10 @@ export const getAvatarHeight = (() => {
   const localBox = new THREE.Box3();
   return function(modelBones) {
     const avatarHeight = getEyePosition(modelBones).sub(
-      modelBones.Root.getWorldPosition(localVector)
+      localVector.setFromMatrixPosition(modelBones.Root.matrixWorld)
     ).y;
     const headBoundingBox = localBox.setFromObject(modelBones.Head);
     let headHeight = headBoundingBox.max.y - headBoundingBox.min.y;
-    // console.log(headBoundingBox);
     headHeight = headHeight < 0 ? 0 : headHeight; // head height will be zero in vrm initialization
     return avatarHeight + headHeight / 2;
   };
