@@ -61,7 +61,6 @@ import * as instancing from './instancing.js';
 import * as atlasing from './atlasing.js';
 import ioManager from './io-manager.js';
 import {lightsManager} from './lights-manager.js';
-import {getCharacterQuality} from './settings.js';
 
 const localVector2D = new THREE.Vector2();
 
