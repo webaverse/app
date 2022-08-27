@@ -476,14 +476,6 @@ metaversefile.setApi({
   useAvatarRenderer() {
     return AvatarRenderer;
   },
-  useAvatarSize(obj) {
-    const model = obj.scene;
-    model.updateMatrixWorld();
-    const modelBones = getModelBones(obj);
-    const height = getAvatarHeight(modelBones);
-    const width = getAvatarWidth(modelBones);
-    return {height, width};
-  },
   /* useAvatarOptimizer() {
     return avatarOptimizer;
   },
