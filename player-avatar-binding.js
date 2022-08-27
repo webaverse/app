@@ -8,7 +8,6 @@ import {
   getEyePosition,
 } from './avatars/util.mjs';
 // import {playersManager} from './players-manager.js';
-import { getCharacterQuality } from './settings.js';
 
 const appSymbol = 'app'; // Symbol('app');
 const avatarSymbol = 'avatar'; // Symbol('avatar');
