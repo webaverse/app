@@ -12,7 +12,7 @@ import loaders from '../loaders.js';
 import {WebaverseShaderMaterial} from '../materials.js';
 // import exporters from '../exporters.js';
 import {abortError} from '../lock-manager.js';
-import {useSettingAvatarQuality, minAvatarQuality, maxAvatarQuality} from '../constants.js';
+import {minAvatarQuality, maxAvatarQuality} from '../constants.js';
 import {getCharacterQuality} from '../settings.js';
 // import {downloadFile} from '../util.js';
 
@@ -380,7 +380,7 @@ export class AvatarRenderer /* extends EventTarget */ {
     arrayBuffer,
     srcUrl,
     camera = null, // if null, do not frustum cull
-    quality = useSettingAvatarQuality,
+    quality = undefined,
     controlled = false,
   } = {})	{
     // super();
@@ -390,7 +390,7 @@ export class AvatarRenderer /* extends EventTarget */ {
     this.arrayBuffer = arrayBuffer;
     this.srcUrl = srcUrl;
     this.camera = camera;
-    if (quality === useSettingAvatarQuality) {
+    if (quality === undefined) {
       quality = getCharacterQuality();
     }
     this.quality = quality;

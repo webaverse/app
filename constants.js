@@ -185,7 +185,6 @@ export const defaultWorldSeed = 100;
 
 export const minAvatarQuality = 1;
 export const maxAvatarQuality = 4;
-export const useSettingAvatarQuality = 5;
 export const defaultAvatarQuality = 3;
 
 export const defaultVoiceEndpoint = `Sweetie Belle`;
