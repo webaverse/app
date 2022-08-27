@@ -45,18 +45,26 @@ function adjustCharacterQuality(delta) {
 }
 
 function convertCharacterQualityToSetting(quality) {
-  if ( quality === 3 ) return 'HIGH';
-  if ( quality === 2 ) return 'MEDIUM';
-  if ( quality === 1 ) return 'LOW';
-  return 'ULTRA';
+  if (quality === 3) {
+    return 'HIGH';
+  } else if (quality === 2) {
+    return 'MEDIUM';
+  } else if (quality === 1) {
+    return 'LOW';
+  } else {
+    return 'ULTRA';
+  }
 };
 
 function convertCharacterQualityToValue(characterDetails) {
   let avatarStyle = 4;
-  if ( characterDetails === 'HIGH' ) avatarStyle = 3;
-  if ( characterDetails === 'MEDIUM' ) avatarStyle = 2;
-  if ( characterDetails === 'LOW' ) avatarStyle = 1;
-
+  if (characterDetails === 'HIGH') {
+    avatarStyle = 3;
+  } else if (characterDetails === 'MEDIUM') {
+    avatarStyle = 2;
+  } else if (characterDetails === 'LOW') {
+    avatarStyle = 1;
+  }
   return avatarStyle;
 }
 
@@ -80,4 +88,5 @@ export {
   getCharacterQuality,
   adjustCharacterQuality,
   saveSettings,
+  convertCharacterQualityToValue,
 };

@@ -3,7 +3,7 @@ import React, { useEffect, useState } from 'react';
 import classNames from 'classnames';
 
 import game from '../../../../game.js';
-import {getSettings} from '../../../../settings.js';
+import {convertCharacterQualityToValue, getSettings} from '../../../../settings.js';
 import metaversefileApi from '../../../../metaversefile-api'
 import { Switch } from './switch';
 
@@ -92,10 +92,7 @@ export const TabGraphics = ({ active }) => {
 
         // set avatar style
 
-        let avatarStyle = 4;
-        if ( characterDetails === 'HIGH' ) avatarStyle = 3;
-        if ( characterDetails === 'MEDIUM' ) avatarStyle = 2;
-        if ( characterDetails === 'LOW' ) avatarStyle = 1;
+        let avatarStyle = convertCharacterQualityToValue(characterDetails);
 
         const localPlayer = metaversefileApi.useLocalPlayer();
 
