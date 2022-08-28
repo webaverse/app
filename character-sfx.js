@@ -484,14 +484,14 @@ class CharacterSfx {
         this.oldGrunt.stop();
         this.oldGrunt = null;
       }
-      this.player.characterBehavior.disableAudioWorkerSetVolume = false;
+      this.player.characterBehavior.enableAudioWorkerSetVolume = true;
       this.oldGrunt=audioBufferSourceNode;
       // clean the oldGrunt if voice end
       audioBufferSourceNode.addEventListener('ended', () => {
         if (this.oldGrunt === audioBufferSourceNode) {
           this.oldGrunt = null;
         }
-        this.player.characterBehavior.disableAudioWorkerSetVolume = true;
+        this.player.characterBehavior.enableAudioWorkerSetVolume = false;
       });
 
       audioBufferSourceNode.start(0, offset, duration);
@@ -572,14 +572,14 @@ class CharacterSfx {
         this.oldGrunt.stop();
         this.oldGrunt = null;
       }
-      this.player.characterBehavior.disableAudioWorkerSetVolume = false;
+      this.player.characterBehavior.enableAudioWorkerSetVolume = true;
       this.oldGrunt=audioBufferSourceNode;
       // clean the oldGrunt if voice end
       audioBufferSourceNode.addEventListener('ended', () => {
         if (this.oldGrunt === audioBufferSourceNode) {
           this.oldGrunt = null;
         }
-        this.player.characterBehavior.disableAudioWorkerSetVolume = true;
+        this.player.characterBehavior.enableAudioWorkerSetVolume = false;
       });
 
       audioBufferSourceNode.start(0, offset, duration);

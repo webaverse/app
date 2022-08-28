@@ -172,11 +172,11 @@ export function applyPlayerActionsToAvatar(player, rig) {
   };
   _handlePickUp();
 
-  rig.disableAudioWorkerSetVolume  = player.characterBehavior.disableAudioWorkerSetVolume;
-  rig.vowels[1] = player.characterBehavior.disableAudioWorkerSetVolume ? 0 : rig.vowels[1];
-  rig.vowels[2] = player.characterBehavior.disableAudioWorkerSetVolume ? 0 : rig.vowels[2];
-  rig.vowels[3] = player.characterBehavior.disableAudioWorkerSetVolume ? 0 : rig.vowels[3];
-  rig.vowels[4] = player.characterBehavior.disableAudioWorkerSetVolume ? 0 : rig.vowels[4];
+  rig.enableAudioWorkerSetVolume  = player.characterBehavior.enableAudioWorkerSetVolume;
+  rig.vowels[1] = !player.characterBehavior.enableAudioWorkerSetVolume ? 0 : rig.vowels[1];
+  rig.vowels[2] = !player.characterBehavior.enableAudioWorkerSetVolume ? 0 : rig.vowels[2];
+  rig.vowels[3] = !player.characterBehavior.enableAudioWorkerSetVolume ? 0 : rig.vowels[3];
+  rig.vowels[4] = !player.characterBehavior.enableAudioWorkerSetVolume ? 0 : rig.vowels[4];
 
   rig.narutoRunState = !!narutoRunAction && !crouchAction;
   rig.narutoRunTime = player.actionInterpolants.narutoRun.get();
