@@ -954,6 +954,7 @@ class Avatar {
     this.startHeadTargetQuaternion = new THREE.Quaternion();
     this.lastNeedsHeadTarget = false;
     this.lastHeadTargetTime = -Infinity;
+    this.jumpDurationRatio = 1;
 
     this.manuallySetMouth=false;
   }

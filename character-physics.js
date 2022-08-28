@@ -68,6 +68,7 @@ class CharacterPhysics {
     this.fallLoopStartTimeS = 0;
     this.lastGravityH = 0;
     this.flatGroundJumpAirTime = NaN;
+    this.jumpDurationRatio = 1;
 
     this.lastPistolUse = false;
     this.lastPistolUseStartTime = -Infinity;
@@ -690,7 +691,7 @@ class CharacterPhysics {
     // console.log(targetFlatGroundJumpAirTime)
     this.flatGroundJumpAirTime = THREE.MathUtils.damp(this.flatGroundJumpAirTime, targetFlatGroundJumpAirTime, window.aaa, timeDiffS);
     // this.flatGroundJumpAirTime = targetFlatGroundJumpAirTime;
-    window.jumpAnimationRatio = this.flatGroundJumpAirTime / (jumpAnimation.duration * 1000)
+    this.jumpDurationRatio = this.flatGroundJumpAirTime / (jumpAnimation.duration * 1000)
     // console.log(this.flatGroundJumpAirTime)
     // flatGroundJumpAirTime -= flatGroundJumpAirTime / 2 * heightFactor
 
