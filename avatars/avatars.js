@@ -33,7 +33,8 @@ import {
   getSkinnedMeshes,
   getSkeleton,
   getEyePosition,
-  getHeight,
+  getAvatarHeight,
+  getAvatarWidth,
   // makeBoneMap,
   getTailBones,
   getModelBones,
@@ -601,8 +602,8 @@ class Avatar {
     });
 
     // height is defined as eyes to root
-    this.height = getHeight(object);
-    this.shoulderWidth = modelBones.Left_arm.getWorldPosition(new THREE.Vector3()).distanceTo(modelBones.Right_arm.getWorldPosition(new THREE.Vector3()));
+    this.height = getAvatarHeight(modelBones);
+    this.shoulderWidth = getAvatarWidth(modelBones);
 
     this.leftArmLength = this.shoulderTransforms.leftArm.armLength;
     this.rightArmLength = this.shoulderTransforms.rightArm.armLength;

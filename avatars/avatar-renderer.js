@@ -5,6 +5,7 @@ import {VRMMaterialImporter/*, MToonMaterial*/} from '@pixiv/three-vrm/lib/three
 import * as avatarOptimizer from '../avatar-optimizer.js';
 import * as avatarCruncher from '../avatar-cruncher.js';
 import * as avatarSpriter from '../avatar-spriter.js';
+import {getAvatarHeight, getAvatarWidth, getModelBones} from './util.mjs';
 import offscreenEngineManager from '../offscreen-engine-manager.js';
 import loaders from '../loaders.js';
 // import {camera} from '../renderer.js';
@@ -428,6 +429,14 @@ export class AvatarRenderer /* extends EventTarget */ {
     this.loadPromise = null;
 
     this.setQuality(quality);
+  }
+  getAvatarSize() {
+    const model = this.controlObject.scene;
+    model.updateMatrixWorld();
+    const modelBones = getModelBones(this.controlObject);
+    const height = getAvatarHeight(modelBones);
+    const width = getAvatarWidth(modelBones);
+    return {height, width};
   }
   createSpriteAvatarMesh() {
     if (!this.createSpriteAvatarMeshFn) {

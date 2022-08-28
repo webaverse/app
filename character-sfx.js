@@ -100,6 +100,8 @@ export class AvatarCharacterSfx {
     this.setSwimmingHand = true;
 
     this.lastLandState = false;
+
+    this.lastDoubleJump = false;
   }
   update(timestamp, timeDiffS) {
     if (!this.character.avatar) {
@@ -116,6 +118,13 @@ export class AvatarCharacterSfx {
     const soundFiles = sounds.getSoundFiles();
     // const soundFileAudioBuffer = sounds.getSoundFileAudioBuffer();
 
+    // doubleJump
+    const doubleJumpAction = this.character.getAction('doubleJump');
+    const doubleJumpState = !!doubleJumpAction;
+    if (doubleJumpState && this.lastDoubleJump !== doubleJumpState) {
+      sounds.playSoundName('doubleJump');
+    }
+    this.lastDoubleJump = doubleJumpState;
     // jump
     const _handleJump = () => {
       if (this.character.avatar.jumpState && !this.lastJumpState) {
