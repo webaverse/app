@@ -129,8 +129,8 @@ class CharacterPhysics {
             // const dy = Math.sin((this.flatGroundJumpAirTime - dt * 1000) / this.flatGroundJumpAirTime * Math.PI) * jumpHeight -
             //            Math.sin((this.flatGroundJumpAirTime) / this.flatGroundJumpAirTime * Math.PI) * jumpHeight;
             // const jumpEndSpeed = dy / dt;
-            // console.log({jumpEndSpeed})
             const jumpEndSpeed = this.lastVelocity.y;
+            console.log({jumpEndSpeed})
 
             const t = jumpEndSpeed / physicsScene.getGravity().y;
             this.fallLoopStartTimeS -= t; // adjust start time, in order to match velocity.y between aesthetic jump and normal fall.
