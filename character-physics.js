@@ -155,7 +155,6 @@ class CharacterPhysics {
     if (this.character.avatar) {
       // move character controller
       const minDist = 0;
-      localVector3.copy(this.wantMoveDistancePerFrame);
 
       // aesthetic jump
       const jumpAction = this.character.getAction('jump');
@@ -164,7 +163,7 @@ class CharacterPhysics {
         if (doubleJumpAction) {
           const doubleJumpTime =
             this.character.actionInterpolants.doubleJump.get();
-          localVector3.y =
+          this.wantMoveDistancePerFrame.y =
             Math.sin(doubleJumpTime / this.flatGroundJumpAirTime * Math.PI) *
               jumpHeight +
             doubleJumpAction.startPositionY -
@@ -175,7 +174,7 @@ class CharacterPhysics {
           }
         } else {
           const jumpTime = this.character.actionInterpolants.jump.get();
-          localVector3.y =
+          this.wantMoveDistancePerFrame.y =
             Math.sin(jumpTime / this.flatGroundJumpAirTime * Math.PI) *
               jumpHeight +
             jumpAction.startPositionY -
@@ -187,14 +186,14 @@ class CharacterPhysics {
         }
       }
 
-      // console.log('got local vector', this.velocity.toArray().join(','), localVector3.toArray().join(','), timeDiffS);
+      // console.log('got local vector', this.velocity.toArray().join(','), this.wantMoveDistancePerFrame.toArray().join(','), timeDiffS);
       if (
         this.character.hasAction('swim') &&
         this.character.getAction('swim').onSurface &&
         !this.character.hasAction('fly')
       ) {
         if (this.character.characterPhysics.velocity.y > 0) {
-          localVector3.y = 0;
+          this.wantMoveDistancePerFrame.y = 0;
         }
       }
 
@@ -202,13 +201,14 @@ class CharacterPhysics {
       //
       const flags = physicsScene.moveCharacterController(
         this.characterController,
-        localVector3,
+        this.wantMoveDistancePerFrame,
         minDist,
         timeDiffS,
         this.characterController.position
       );
       //
-      this.velocity.copy(this.characterController.position).sub(positionBefore).divideScalar(Math.max(0.001, timeDiffS));
+      const speed = localVector.copy(this.characterController.position).sub(positionBefore).length() / Math.max(0.001, timeDiffS);
+      this.velocity.copy(this.wantMoveDistancePerFrame).normalize().multiplyScalar(speed);
 
       // const collided = flags !== 0;
       let grounded = !!(flags & 0x1);
@@ -220,6 +220,7 @@ class CharacterPhysics {
         !this.character.getAction('fallLoop') &&
         !this.character.hasAction('swim')
       ) {
+        localVector3.copy(this.wantMoveDistancePerFrame);
         // prevent jump when go down slope
         const oldY = this.characterController.position.y;
         localVector3.set(0, -groundStickOffset, 0);
