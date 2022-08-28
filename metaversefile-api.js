@@ -403,6 +403,9 @@ metaversefile.setApi({
   usePostPerspectiveScene() {
     return postScenePerspective;
   }, */
+  getMirrors() {
+    return mirrors;
+  },
   getWinds() {
     return winds;
   },
@@ -414,9 +417,6 @@ metaversefile.setApi({
     if (index !== -1) {
       winds.splice(index, 1);
     }
-  },
-  getMirrors() {
-    return mirrors;
   },
   registerMirror(mirror) {
     mirrors.push(mirror);
