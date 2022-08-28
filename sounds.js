@@ -12,6 +12,7 @@ const soundFiles = {
   sonicBoom: _getSoundFiles(/^sonicBoom\//),
   chomp: _getSoundFiles(/^food\/chomp/),
   combat: _getSoundFiles(/^combat\//),
+  meleewhoosh: _getSoundFiles(/^combat\/sword_slash/),
   gulp: _getSoundFiles(/^food\/gulp/),
   enemyDeath: _getSoundFiles(/ff7_enemy_death/),
   enemyCut: _getSoundFiles(/ff7_cut/),

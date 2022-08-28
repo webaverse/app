@@ -361,11 +361,10 @@ class CharacterSfx extends EventTarget{
     _handleNarutoRun();
 
     // combo
-    const dispatchComboSoundEvent = (combo, indexOfCombo) =>{
+    const dispatchComboSoundEvent = (soundIndex) =>{
       this.dispatchEvent(new MessageEvent('meleewhoosh', {
         data: {
-          combo: combo,
-          indexOfCombo: indexOfCombo
+          index: soundIndex
         },
       }));
     }
@@ -395,7 +394,8 @@ class CharacterSfx extends EventTarget{
           if (timestamp - this.playComboTime >= silswordAnimationOffset[currentCombo] && this.currentComboIndex !== this.player.avatar.useAnimationIndex) {
             this.playGrunt('attack');
             this.currentComboIndex = this.player.avatar.useAnimationIndex;
-            dispatchComboSoundEvent(currentCombo, this.currentComboIndex);
+            const soundIndex = this.currentComboIndex * 4 + Math.floor(Math.random() * 4);
+            dispatchComboSoundEvent(soundIndex);
           }
         }
       }
