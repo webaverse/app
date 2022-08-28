@@ -117,6 +117,30 @@ class CharacterPhysics {
   }
   applyGravity(nowS, timeDiffS) {
     // if (this.character) {
+      const result = physicsScene.raycast( // Handle different jump animation duration. Jump from low: 666ms duration. Jump from high: jumpAnimation.duration ( usually longer than 666ms ).
+        this.characterController.position,
+        localQuaternion.setFromEuler(localEuler.set(-Math.PI / 2, 0, 0))
+      )
+      const height = result ? Math.max(0, result.distance - this.character.avatar.height / 2) : Infinity;
+      // const heightFactor = THREE.MathUtils.clamp(height / jumpHeight, 0, 1);
+      // console.log(height)
+      //
+      const jumpAction = this.character.getAction('jump');
+      // const flatGroundJumpAirTime = 1000;
+      // const flatGroundJumpAirTime = jumpAnimation.duration * 1000;
+      // const targetFlatGroundJumpAirTime = height > jumpHeight * 2 ? jumpAnimation.duration * 1000 : 666;
+      const targetFlatGroundJumpAirTime = THREE.MathUtils.clamp(
+        THREE.MathUtils.mapLinear(height, jumpHeight * 2, 10, 666, jumpAnimation.duration * 1000),
+        666,
+        jumpAnimation.duration * 1000
+      )
+      // console.log(targetFlatGroundJumpAirTime)
+      this.flatGroundJumpAirTime = THREE.MathUtils.damp(this.flatGroundJumpAirTime, targetFlatGroundJumpAirTime, window.aaa, timeDiffS);
+      // this.flatGroundJumpAirTime = targetFlatGroundJumpAirTime;
+      this.jumpDurationRatio = this.flatGroundJumpAirTime / (jumpAnimation.duration * 1000)
+      // console.log(this.flatGroundJumpAirTime)
+      // flatGroundJumpAirTime -= flatGroundJumpAirTime / 2 * heightFactor
+
       const fallLoopAction = this.character.getAction('fallLoop');
       if (fallLoopAction) {
         if (!this.lastFallLoopAction) {
@@ -670,31 +694,6 @@ class CharacterPhysics {
   }
   update(now, timeDiffS) {
     const nowS = now / 1000;
-    
-    const result = physicsScene.raycast( // todo: raycast only when jump.
-      this.characterController.position,
-      localQuaternion.setFromEuler(localEuler.set(-Math.PI / 2, 0, 0))
-    )
-    const height = result ? Math.max(0, result.distance - this.character.avatar.height / 2) : Infinity;
-    // const heightFactor = THREE.MathUtils.clamp(height / jumpHeight, 0, 1);
-    // console.log(height)
-    //
-    const jumpAction = this.character.getAction('jump');
-    // const flatGroundJumpAirTime = 1000;
-    // const flatGroundJumpAirTime = jumpAnimation.duration * 1000;
-    // const targetFlatGroundJumpAirTime = height > jumpHeight * 2 ? jumpAnimation.duration * 1000 : 666;
-    const targetFlatGroundJumpAirTime = THREE.MathUtils.clamp(
-      THREE.MathUtils.mapLinear(height, jumpHeight * 2, 10, 666, jumpAnimation.duration * 1000),
-      666,
-      jumpAnimation.duration * 1000
-    )
-    // console.log(targetFlatGroundJumpAirTime)
-    this.flatGroundJumpAirTime = THREE.MathUtils.damp(this.flatGroundJumpAirTime, targetFlatGroundJumpAirTime, window.aaa, timeDiffS);
-    // this.flatGroundJumpAirTime = targetFlatGroundJumpAirTime;
-    this.jumpDurationRatio = this.flatGroundJumpAirTime / (jumpAnimation.duration * 1000)
-    // console.log(this.flatGroundJumpAirTime)
-    // flatGroundJumpAirTime -= flatGroundJumpAirTime / 2 * heightFactor
-
     this.updateVelocity(timeDiffS);
     this.applyGravity(nowS, timeDiffS);
     this.applyCharacterPhysics(now, timeDiffS);
