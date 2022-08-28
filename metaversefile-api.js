@@ -354,6 +354,7 @@ let recursion = 0;
 let wasDecapitated = false;
 // const apps = [];
 const mirrors = [];
+const winds = [];
 metaversefile.setApi({
   // apps,
   async import(s) {
@@ -402,20 +403,20 @@ metaversefile.setApi({
   usePostPerspectiveScene() {
     return postScenePerspective;
   }, */
-  getMirrors() {
-    return mirrors;
-  },
   getWinds() {
-    return world.winds;
+    return winds;
   },
   setWinds(wind) {
-    world.winds.push(wind);
+    winds.push(wind);
   },
   removeWind(wind) {
-    const index = world.winds.indexOf(wind);
-    if (index > -1) {
-      world.winds.splice(index, 1);
+    const index = winds.indexOf(wind);
+    if (index !== -1) {
+      winds.splice(index, 1);
     }
+  },
+  getMirrors() {
+    return mirrors;
   },
   registerMirror(mirror) {
     mirrors.push(mirror);
