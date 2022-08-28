@@ -372,16 +372,16 @@ class CharacterSfx extends EventTarget{
       let currentCombo;
       if(this.player.hasAction('use') && this.player.getAction('use').behavior === 'sword'){
         currentCombo = this.player.getAction('use').animation ? 
-          this.player.getAction('use').animation // sword
+          this.player.getAction('use').animation // the sword app that has animation property in use action
           : 
-          this.player.getAction('use').animationCombo[this.player.avatar.useAnimationIndex] // silsword
+          this.player.getAction('use').animationCombo[this.player.avatar.useAnimationIndex] // the sword app that has animationCombo property in use action
       }
       if (currentCombo) {
         if (currentCombo !== this.lastCombo) {
           this.playComboTime = timestamp;
           this.currentComboIndex = -1;
         }
-        if (currentCombo === 'combo') { // sword
+        if (currentCombo === 'combo') { // the sword app that has animation property in use action
           this.currentComboIndex = this.currentComboIndex < 0 ? 0 : this.currentComboIndex;
           if(timestamp - this.playComboTime >= swordAnimationOffset[this.currentComboIndex]){
             this.playComboTime = timestamp;
@@ -390,7 +390,7 @@ class CharacterSfx extends EventTarget{
             // dispatchComboSoundEvent(currentCombo, this.currentComboIndex);
           }
         }
-        else { // silsword
+        else { // the sword app that has animationCombo property in use action
           if (timestamp - this.playComboTime >= silswordAnimationOffset[currentCombo] && this.currentComboIndex !== this.player.avatar.useAnimationIndex) {
             this.playGrunt('attack');
             this.currentComboIndex = this.player.avatar.useAnimationIndex;
