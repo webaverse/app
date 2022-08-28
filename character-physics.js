@@ -52,7 +52,8 @@ class CharacterPhysics {
     this.lastTargetVelocity = new THREE.Vector3(); // note: targetVelocity of last frame.
     this.wantVelocity = new THREE.Vector3(); // note: damped lastTargetVelocity ( mainly used for smooth animation transition ).
     this.velocity = new THREE.Vector3(); // after moveCharacterController, the result actual velocity.
-    this.lastVelocity = new THREE.Vector3();
+    this.calcedVelocity = new THREE.Vector3(); // Calculated from position diff. Is frame rate dependent. Can't use this to calculate such as idleWalkFactor/walkRunFactor, will cause aniamtions jitter in low fps.
+    // this.lastCalcedVelocity = new THREE.Vector3();
     this.targetMoveDistancePerFrame = new THREE.Vector3(); // note: see velocity.
     this.lastTargetMoveDistancePerFrame = new THREE.Vector3(); // note: see velocity.
     this.wantMoveDistancePerFrame = new THREE.Vector3(); // note: see velocity.
@@ -64,6 +65,7 @@ class CharacterPhysics {
     this.fallLoopStartTimeS = 0;
     this.lastGravityH = 0;
     this.flatGroundJumpAirTime = NaN;
+    this.jumpDurationRatio = 1;
 
     this.lastPistolUse = false;
     this.lastPistolUseStartTime = -Infinity;
@@ -111,16 +113,37 @@ class CharacterPhysics {
   }
   applyGravity(nowS, timeDiffS) {
     // if (this.character) {
+      const result = physicsScene.raycast( // Handle different jump animation duration. Jump from low: 666ms duration. Jump from high: jumpAnimation.duration ( usually longer than 666ms ).
+        this.characterController.position,
+        localQuaternion.setFromEuler(localEuler.set(-Math.PI / 2, 0, 0))
+      )
+      const height = result ? Math.max(0, result.distance - this.character.avatar.height / 2) : Infinity;
+      // const heightFactor = THREE.MathUtils.clamp(height / jumpHeight, 0, 1);
+      // console.log(height)
+      //
+      const jumpAction = this.character.getAction('jump');
+      // const flatGroundJumpAirTime = 1000;
+      // const flatGroundJumpAirTime = jumpAnimation.duration * 1000;
+      // const targetFlatGroundJumpAirTime = height > jumpHeight * 2 ? jumpAnimation.duration * 1000 : 666;
+      const targetFlatGroundJumpAirTime = THREE.MathUtils.clamp(
+        THREE.MathUtils.mapLinear(height, jumpHeight * 2, 10, 666, jumpAnimation.duration * 1000),
+        666,
+        jumpAnimation.duration * 1000
+      )
+      // console.log(targetFlatGroundJumpAirTime)
+      this.flatGroundJumpAirTime = THREE.MathUtils.damp(this.flatGroundJumpAirTime, targetFlatGroundJumpAirTime, window.aaa, timeDiffS);
+      // this.flatGroundJumpAirTime = targetFlatGroundJumpAirTime;
+      this.jumpDurationRatio = this.flatGroundJumpAirTime / (jumpAnimation.duration * 1000)
+      // console.log(this.flatGroundJumpAirTime)
+      // flatGroundJumpAirTime -= flatGroundJumpAirTime / 2 * heightFactor
+
       const fallLoopAction = this.character.getAction('fallLoop');
       if (fallLoopAction) {
         if (!this.lastFallLoopAction) {
           this.fallLoopStartTimeS = nowS;
           this.lastGravityH = 0;
           if (fallLoopAction.from === 'jump') {
-
-            // calc aesthetic jump end speed
-            const jumpEndSpeed = this.lastVelocity.y;
-
+            const jumpEndSpeed = this.calcedVelocity.y;
             const t = jumpEndSpeed / physicsScene.getGravity().y;
             this.fallLoopStartTimeS -= t; // adjust start time, in order to match velocity.y between aesthetic jump and normal fall.
             const previousT = t - timeDiffS;
@@ -143,7 +166,6 @@ class CharacterPhysics {
     if (this.character.avatar) {
       // move character controller
       const minDist = 0;
-      localVector3.copy(this.wantMoveDistancePerFrame);
 
       // aesthetic jump
       const jumpAction = this.character.getAction('jump');
@@ -152,7 +174,7 @@ class CharacterPhysics {
         if (doubleJumpAction) {
           const doubleJumpTime =
             this.character.actionInterpolants.doubleJump.get();
-          localVector3.y =
+          this.wantMoveDistancePerFrame.y =
             Math.sin(doubleJumpTime / this.flatGroundJumpAirTime * Math.PI) *
               jumpHeight +
             doubleJumpAction.startPositionY -
@@ -162,7 +184,7 @@ class CharacterPhysics {
           }
         } else {
           const jumpTime = this.character.actionInterpolants.jump.get();
-          localVector3.y =
+          this.wantMoveDistancePerFrame.y =
             Math.sin(jumpTime / this.flatGroundJumpAirTime * Math.PI) *
               jumpHeight +
             jumpAction.startPositionY -
@@ -173,28 +195,52 @@ class CharacterPhysics {
         }
       }
 
-      // console.log('got local vector', this.velocity.toArray().join(','), localVector3.toArray().join(','), timeDiffS);
+      // console.log('got local vector', this.velocity.toArray().join(','), this.wantMoveDistancePerFrame.toArray().join(','), timeDiffS);
       if (
         this.character.hasAction('swim') &&
         this.character.getAction('swim').onSurface &&
         !this.character.hasAction('fly')
       ) {
         if (this.character.characterPhysics.velocity.y > 0) {
-          localVector3.y = 0;
+          this.wantMoveDistancePerFrame.y = 0;
         }
       }
 
       positionBefore.copy(this.characterController.position);
+      const positionXZBefore = localVector2D.set(this.characterController.position.x, this.characterController.position.z);
+      const positionYBefore = this.characterController.position.y;
       //
       const flags = physicsScene.moveCharacterController(
         this.characterController,
-        localVector3,
+        this.wantMoveDistancePerFrame,
         minDist,
         timeDiffS,
         this.characterController.position
       );
       //
-      this.velocity.copy(this.characterController.position).sub(positionBefore).divideScalar(Math.max(0.001, timeDiffS));
+      const positionXZAfter = localVector2D2.set(this.characterController.position.x, this.characterController.position.z);
+      const positionYAfter = this.characterController.position.y;
+      const wantMoveDistancePerFrameXZ = localVector2D3.set(this.wantMoveDistancePerFrame.x, this.wantMoveDistancePerFrame.z);
+      const wantMoveDistancePerFrameY = this.wantMoveDistancePerFrame.y;
+      const wantMoveDistancePerFrameXZLength = wantMoveDistancePerFrameXZ.length();
+      const wantMoveDistancePerFrameYLength = wantMoveDistancePerFrameY;
+      this.velocity.copy(this.wantVelocity);
+      if (wantMoveDistancePerFrameXZLength > 0) { // prevent divide 0, and reduce calculations.
+        const movedRatioXZ = (positionXZAfter.sub(positionXZBefore).length()) / wantMoveDistancePerFrameXZLength;
+        if (movedRatioXZ < 1) {
+          this.velocity.x *= movedRatioXZ;
+          this.velocity.z *= movedRatioXZ;
+        }
+      }
+      if (wantMoveDistancePerFrameYLength > 0) { // prevent divide 0, and reduce calculations.
+        const movedRatioY = (positionYAfter - positionYBefore) / wantMoveDistancePerFrameYLength;
+        if (movedRatioY < 1) {
+          this.velocity.y *= movedRatioY;
+        }
+      }
+      //
+      const speed = localVector.copy(this.characterController.position).sub(positionBefore).length() / Math.max(0.001, timeDiffS);
+      this.calcedVelocity.copy(this.wantMoveDistancePerFrame).normalize().multiplyScalar(speed);
 
       // const collided = flags !== 0;
       let grounded = !!(flags & 0x1);
@@ -206,6 +252,7 @@ class CharacterPhysics {
         !this.character.getAction('fallLoop') &&
         !this.character.hasAction('swim')
       ) {
+        localVector3.copy(this.wantMoveDistancePerFrame);
         // prevent jump when go down slope
         const oldY = this.characterController.position.y;
         localVector3.set(0, -groundStickOffset, 0);
@@ -629,37 +676,12 @@ class CharacterPhysics {
   }
   update(now, timeDiffS) {
     const nowS = now / 1000;
-    
-    const result = physicsScene.raycast(
-      this.characterController.position,
-      localQuaternion.setFromEuler(localEuler.set(-Math.PI / 2, 0, 0))
-    )
-    const height = result ? Math.max(0, result.distance - this.character.avatar.height / 2) : Infinity;
-    // const heightFactor = THREE.MathUtils.clamp(height / jumpHeight, 0, 1);
-    // console.log(height)
-    //
-    const jumpAction = this.character.getAction('jump');
-    // const flatGroundJumpAirTime = 1000;
-    // const flatGroundJumpAirTime = jumpAnimation.duration * 1000;
-    // const targetFlatGroundJumpAirTime = height > jumpHeight * 2 ? jumpAnimation.duration * 1000 : 666;
-    const targetFlatGroundJumpAirTime = THREE.MathUtils.clamp(
-      THREE.MathUtils.mapLinear(height, jumpHeight * 2, 10, 666, jumpAnimation.duration * 1000),
-      666,
-      jumpAnimation.duration * 1000
-    )
-    // console.log(targetFlatGroundJumpAirTime)
-    this.flatGroundJumpAirTime = THREE.MathUtils.damp(this.flatGroundJumpAirTime, targetFlatGroundJumpAirTime, 1, timeDiffS);
-    // this.flatGroundJumpAirTime = targetFlatGroundJumpAirTime;
-    window.jumpAnimationRatio = this.flatGroundJumpAirTime / (jumpAnimation.duration * 1000)
-    // console.log(this.flatGroundJumpAirTime)
-    // flatGroundJumpAirTime -= flatGroundJumpAirTime / 2 * heightFactor
-
     this.updateVelocity(timeDiffS);
     this.applyGravity(nowS, timeDiffS);
     this.applyCharacterPhysics(now, timeDiffS);
     this.applyCharacterActionKinematics(now, timeDiffS);
 
-    this.lastVelocity.copy(this.velocity);
+    // this.lastCalcedVelocity.copy(this.calcedVelocity);
     this.lastTargetVelocity.copy(this.targetVelocity);
     this.lastTargetMoveDistancePerFrame.copy(this.targetMoveDistancePerFrame);
   }
