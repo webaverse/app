@@ -55,7 +55,8 @@ class CharacterPhysics {
     this.lastTargetVelocity = new THREE.Vector3(); // note: targetVelocity of last frame.
     this.wantVelocity = new THREE.Vector3(); // note: damped lastTargetVelocity ( mainly used for smooth animation transition ).
     this.velocity = new THREE.Vector3(); // after moveCharacterController, the result actual velocity.
-    this.lastVelocity = new THREE.Vector3();
+    this.calcedVelocity = new THREE.Vector3(); // Calculated from position diff. Is frame rate dependent. Can't use this to calculate such as idleWalkFactor/walkRunFactor, will cause aniamtions jitter in low fps.
+    // this.lastCalcedVelocity = new THREE.Vector3();
     this.targetMoveDistancePerFrame = new THREE.Vector3(); // note: see velocity.
     this.lastTargetMoveDistancePerFrame = new THREE.Vector3(); // note: see velocity.
     this.wantMoveDistancePerFrame = new THREE.Vector3(); // note: see velocity.
@@ -129,7 +130,8 @@ class CharacterPhysics {
             // const dy = Math.sin((this.flatGroundJumpAirTime - dt * 1000) / this.flatGroundJumpAirTime * Math.PI) * jumpHeight -
             //            Math.sin((this.flatGroundJumpAirTime) / this.flatGroundJumpAirTime * Math.PI) * jumpHeight;
             // const jumpEndSpeed = dy / dt;
-            const jumpEndSpeed = this.lastVelocity.y;
+            // const jumpEndSpeed = this.lastCalcedVelocity.y;
+            const jumpEndSpeed = this.calcedVelocity.y;
             console.log({jumpEndSpeed})
 
             const t = jumpEndSpeed / physicsScene.getGravity().y;
@@ -198,6 +200,8 @@ class CharacterPhysics {
       }
 
       positionBefore.copy(this.characterController.position);
+      const positionXZBefore = localVector2D.set(this.characterController.position.x, this.characterController.position.z);
+      const positionYBefore = this.characterController.position.y;
       //
       const flags = physicsScene.moveCharacterController(
         this.characterController,
@@ -207,8 +211,29 @@ class CharacterPhysics {
         this.characterController.position
       );
       //
+      const positionXZAfter = localVector2D2.set(this.characterController.position.x, this.characterController.position.z);
+      const positionYAfter = this.characterController.position.y;
+      const wantMoveDistancePerFrameXZ = localVector2D3.set(this.wantMoveDistancePerFrame.x, this.wantMoveDistancePerFrame.z);
+      const wantMoveDistancePerFrameY = this.wantMoveDistancePerFrame.y;
+      const wantMoveDistancePerFrameXZLength = wantMoveDistancePerFrameXZ.length();
+      const wantMoveDistancePerFrameYLength = wantMoveDistancePerFrameY;
+      this.velocity.copy(this.wantVelocity);
+      if (wantMoveDistancePerFrameXZLength > 0) { // prevent divide 0, and reduce calculations.
+        const movedRatioXZ = (positionXZAfter.sub(positionXZBefore).length()) / wantMoveDistancePerFrameXZLength;
+        if (movedRatioXZ < 1) {
+          this.velocity.x *= movedRatioXZ;
+          this.velocity.z *= movedRatioXZ;
+        }
+      }
+      if (wantMoveDistancePerFrameYLength > 0) { // prevent divide 0, and reduce calculations.
+        const movedRatioY = (positionYAfter - positionYBefore) / wantMoveDistancePerFrameYLength;
+        if (movedRatioY < 1) {
+          this.velocity.y *= movedRatioY;
+        }
+      }
+      //
       const speed = localVector.copy(this.characterController.position).sub(positionBefore).length() / Math.max(0.001, timeDiffS);
-      this.velocity.copy(this.wantMoveDistancePerFrame).normalize().multiplyScalar(speed);
+      this.calcedVelocity.copy(this.wantMoveDistancePerFrame).normalize().multiplyScalar(speed);
 
       // const collided = flags !== 0;
       let grounded = !!(flags & 0x1);
@@ -674,7 +699,7 @@ class CharacterPhysics {
     this.applyCharacterPhysics(now, timeDiffS);
     this.applyCharacterActionKinematics(now, timeDiffS);
 
-    this.lastVelocity.copy(this.velocity);
+    // this.lastCalcedVelocity.copy(this.calcedVelocity);
     this.lastTargetVelocity.copy(this.targetVelocity);
     this.lastTargetMoveDistancePerFrame.copy(this.targetMoveDistancePerFrame);
   }
