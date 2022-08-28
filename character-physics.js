@@ -52,7 +52,6 @@ class CharacterPhysics {
     this.wantVelocity = new THREE.Vector3(); // note: damped lastTargetVelocity ( mainly used for smooth animation transition ).
     this.velocity = new THREE.Vector3(); // after moveCharacterController, the result actual velocity.
     this.calcedVelocity = new THREE.Vector3(); // Calculated from position diff. Is frame rate dependent. Can't use this to calculate such as idleWalkFactor/walkRunFactor, will cause aniamtions jitter in low fps.
-    // this.lastCalcedVelocity = new THREE.Vector3();
     this.targetMoveDistancePerFrame = new THREE.Vector3(); // note: see velocity.
     this.lastTargetMoveDistancePerFrame = new THREE.Vector3(); // note: see velocity.
     this.wantMoveDistancePerFrame = new THREE.Vector3(); // note: see velocity.
