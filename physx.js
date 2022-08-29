@@ -1586,8 +1586,12 @@ const physxWorker = (() => {
     allocator.freeAll()
     return result
   }
-  w.addHeightFieldGeometryPhysics = (physics, id) => {
-    Module._addHeightFieldGeometryPhysics(id)
+  w.cookHeightFieldGeometryPhysics = () => {
+    Module._cookHeightFieldGeometryPhysics(
+      scratchStack.u32.byteOffset,
+      scratchStack.u32.byteOffset + Uint32Array.BYTES_PER_ELEMENT,
+      scratchStack.u32.byteOffset + Uint32Array.BYTES_PER_ELEMENT * 2
+    )
   }
   w.addCookedConvexGeometryPhysics = (
     physics,

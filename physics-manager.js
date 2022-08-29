@@ -202,12 +202,12 @@ class PhysicsScene extends EventTarget {
     physicsObject.physicsMesh = physicsMesh
     return physicsObject
   }
-  addHeightFieldGeometry() {
+  cookHeightFieldGeometry() {
     /* console_test
-      physicsManager.getScene().addHeightFieldGeometry()
+      physicsManager.getScene().cookHeightFieldGeometry()
     */
     const physicsId = getNextPhysicsId()
-    physx.physxWorker.addHeightFieldGeometryPhysics(
+    physx.physxWorker.cookHeightFieldGeometryPhysics(
       this.scene,
       physicsId,
     )
