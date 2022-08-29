@@ -323,7 +323,9 @@ export const loadPromise = (async () => {
     swordUndraw: animations.index['sword_undraw.fbx'],
   };
   useAnimations = mergeAnimations({
-    combo: animations.find(a => a.isCombo),
+    combo0: animations.find(a => a.isCombo0),
+    combo1: animations.find(a => a.isCombo1),
+    combo2: animations.find(a => a.isCombo2),
     slash: animations.find(a => a.isSlash),
     rifle: animations.find(a => a.isRifle),
     pistol: animations.find(a => a.isPistol),

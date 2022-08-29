@@ -517,7 +517,9 @@ export const decorateAnimation = animation => {
   animation.isPistol  = /pistol aiming/i.test(animation.name);
   animation.isRifle  = /rifle aiming/i.test(animation.name);
   animation.isSlash  = /slash/i.test(animation.name);
-  animation.isCombo  = /combo/i.test(animation.name);
+  animation.isCombo0  = /combo_0/i.test(animation.name);
+  animation.isCombo1  = /combo_1/i.test(animation.name);
+  animation.isCombo2  = /combo_2/i.test(animation.name);
   animation.isMagic = /magic/i.test(animation.name);
   animation.isSkateboarding = /skateboarding/i.test(animation.name);
   animation.isThrow = /throw/i.test(animation.name);
