@@ -1691,6 +1691,55 @@ const physxWorker = (() => {
     return shapeAddress;
   };
 
+  w.addHeightFieldGeometryPhysics = (physics, dynamic, external, id) => {
+    // mesh.updateMatrixWorld()
+
+    Module._cookHeightFieldGeometryPhysics(
+      scratchStack.u32.byteOffset,
+      scratchStack.u32.byteOffset + Uint32Array.BYTES_PER_ELEMENT,
+      scratchStack.u32.byteOffset + Uint32Array.BYTES_PER_ELEMENT * 2
+    )
+
+    const dataPtr = scratchStack.u32[0]
+    const dataLength = scratchStack.u32[1]
+    const streamPtr = scratchStack.u32[2]
+
+    const heightField = Module._createHeightFieldPhysics(
+      physics,
+      dataPtr,
+      dataLength,
+      streamPtr,
+    )
+
+    return heightField;
+
+    // const positionBuffer = scratchStack.f32.subarray(3, 6)
+    // mesh.getWorldPosition(localVector).toArray(positionBuffer)
+    // const quaternionBuffer = scratchStack.f32.subarray(6, 10)
+    // mesh.getWorldQuaternion(localQuaternion).toArray(quaternionBuffer)
+    // const scaleBuffer = scratchStack.f32.subarray(10, 13)
+    // mesh.getWorldScale(localVector2).toArray(scaleBuffer)
+    // /* const mat = scratchStack.f32.subarray(13, 16)
+    // mat[0] = physicsMaterial[0]
+    // mat[1] = physicsMaterial[1]
+    // mat[2] = physicsMaterial[2] */
+
+    // const materialAddress = w.getDefaultMaterial(physics);
+
+    // Module._addHeightFieldGeometryPhysics(
+    //   physics,
+    //   shape,
+    //   positionBuffer.byteOffset,
+    //   quaternionBuffer.byteOffset,
+    //   scaleBuffer.byteOffset,
+    //   id,
+    //   materialAddress,
+    //   +dynamic,
+    //   +external,
+    //   shape,
+    // )
+  }
+
   w.getGeometryPhysics = (physics, id) => {
     const allocator = new Allocator(Module)
     const positionsBuffer = allocator.alloc(Float32Array, 1024 * 1024 * 2)
