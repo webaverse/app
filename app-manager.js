@@ -604,6 +604,7 @@ class AppManager extends EventTarget {
     console.log("app+ json", app, json)
     const dropManager = metaversefile.useDropManager();
     dropManager.createDropApp({
+      tokenId: json.tokenId,
       type: json.type,
       start_url: json.start_url,
       components: [
@@ -616,10 +617,11 @@ class AppManager extends EventTarget {
           value: json.start_url,
         },
         {
-            key: 'voucher',
-            value: 'claimVoucher', // fakeVoucher is for ServerDrop, claimVoucher is for UserClaim
+          key: 'voucher',
+          value: 'claimVoucher', // fakeVoucher is for ServerDrop, claimVoucher is for UserClaim
         },
       ],
+      voucher: "claimVoucher",
       position: app.position.clone()
         .add(new THREE.Vector3(0, 0.7, 0)),
       quaternion: app.quaternion,

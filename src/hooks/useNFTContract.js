@@ -328,6 +328,7 @@ export default function useNFTContract(currentAccount) {
       const [url, name, level] = token;
 
       return {
+        tokenId,
         url,
         name,
         level

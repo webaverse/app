@@ -357,6 +357,7 @@ export const Equipment = () => {
                 const tokens = await getTokens();
                 const inventoryItems = tokens.map((token, id) => {
                     return {
+                        tokenId: token.tokenId,
                         name: token.name ?? "",
                         start_url: token.url ?? (token.animation_url !== "" ? token.animation_url : token.collection.banner_image_url),
                         level: token.level ?? 1,
