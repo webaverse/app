@@ -398,6 +398,8 @@ const _startHacks = webaverse => {
 
   window.isDebugger = false;
 
+  physicsManager.getScene().addHeightFieldGeometry();
+
   // press R to debug current state in console
   window.addEventListener('keydown', event => {
     if (event.key === '}') {
