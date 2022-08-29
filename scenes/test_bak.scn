@@ -1,0 +1,35 @@
+{
+  "objects": [
+    {
+      "type": "application/light",
+      "content": {
+        "lightType": "ambient",
+        "args": [[255, 255, 255], 2]
+      }
+    },
+    {
+      "type": "application/light",
+      "content": {
+        "lightType": "directional",
+        "args": [[255, 255, 255], 2],
+        "position": [1, 2, 3]
+      }
+    },
+
+    { "position": [ 0, 1, -5 ], "start_url": "http://localhost/lib/webaverse_resource/bow/" },
+    { "position": [ 1.5, 1, -5 ], "start_url": "http://localhost/lib/webaverse_resource/pistol/" },
+    { "position": [ 3, 1, -5 ], "start_url": "http://localhost/lib/webaverse_resource/rifle/" },
+    { "position": [ 4.5, 1, -5 ], "start_url": "http://localhost/lib/webaverse_resource/potion/" },
+    
+    { "position": [-1.5, 1, -5], "quaternion": [0, 0.7071067811865475, 0, 0.7071067811865476], "start_url": "http://localhost/lib/webaverse_resource/sword/" },
+    { "position": [-3, 1, -5], "quaternion": [0, 0.7071067811865475, 0, 0.7071067811865476], "start_url": "http://localhost/lib/webaverse_resource/silsword/" },
+    
+    { "position": [ 5, 0, 5 ], "start_url": "http://localhost/lib/webaverse_resource/ramp/" },
+    { "position": [ -8, 0, 5 ], "quaternion": [0.14943813247359922, 0, 0, 0.9887710779360422], "scale": [5, 5, 5], "start_url": "http://localhost/lib/webaverse_resource/ramp/" },
+
+    { "position": [ 0, -0, 0 ], "quaternion": [0, 0, 0.7071067811865475, 0.7071067811865476], "scale": [1, 1, 1], "start_url": "http://localhost/lib/webaverse_resource/physicsplane_test/" },
+    { "position": [ 10, -5, 0 ], "quaternion": [0, 0, 0, 1], "scale": [1, 1, 1], "start_url": "http://localhost/lib/webaverse_resource/physicsconvex_test/" },
+
+    { "position": [ 0, 0, 0 ], "quaternion": [0, 0, 0, 1], "scale": [1, 1, 1], "start_url": "http://localhost/lib/webaverse_resource/physicsheightfield_test/" }
+  ]
+}

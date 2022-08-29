@@ -1711,7 +1711,7 @@ const physxWorker = (() => {
       streamPtr,
     )
 
-    return heightField;
+    // return heightField;
 
     // const positionBuffer = scratchStack.f32.subarray(3, 6)
     // mesh.getWorldPosition(localVector).toArray(positionBuffer)
@@ -1724,20 +1724,17 @@ const physxWorker = (() => {
     // mat[1] = physicsMaterial[1]
     // mat[2] = physicsMaterial[2] */
 
-    // const materialAddress = w.getDefaultMaterial(physics);
+    const materialAddress = w.getDefaultMaterial(physics);
 
-    // Module._addHeightFieldGeometryPhysics(
-    //   physics,
-    //   shape,
-    //   positionBuffer.byteOffset,
-    //   quaternionBuffer.byteOffset,
-    //   scaleBuffer.byteOffset,
-    //   id,
-    //   materialAddress,
-    //   +dynamic,
-    //   +external,
-    //   shape,
-    // )
+    Module._addHeightFieldGeometryPhysics(
+      physics,
+      heightField,
+      id,
+      materialAddress,
+      +dynamic,
+      +external,
+      heightField,
+    )
   }
 
   w.getGeometryPhysics = (physics, id) => {
