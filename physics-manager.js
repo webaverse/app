@@ -202,35 +202,6 @@ class PhysicsScene extends EventTarget {
     physicsObject.physicsMesh = physicsMesh
     return physicsObject
   }
-  cookHeightFieldGeometry() {
-    /* console_test
-      physicsManager.getScene().cookHeightFieldGeometry()
-    */
-    const physicsId = getNextPhysicsId()
-    physx.physxWorker.cookHeightFieldGeometryPhysics(
-      this.scene,
-      physicsId,
-    )
-  
-    // const physicsObject = _makePhysicsObject(
-    //   physicsId,
-    //   position,
-    //   quaternion,
-    //   localVector2.set(1, 1, 1)
-    // )
-    // const physicsMesh = new THREE.Mesh(new THREE.BoxGeometry(2, 2, 2), redMaterial)
-    // physicsMesh.scale.copy(size)
-    // physicsMesh.visible = false
-    // physicsObject.add(physicsMesh)
-    // physicsObject.updateMatrixWorld()
-    // const { bounds } = this.getGeometryForPhysicsId(physicsId)
-    // physicsMesh.geometry.boundingBox = new THREE.Box3(
-    //   new THREE.Vector3().fromArray(bounds, 0),
-    //   new THREE.Vector3().fromArray(bounds, 3)
-    // )
-    // physicsObject.physicsMesh = physicsMesh
-    // return physicsObject
-  }
   extractPhysicsGeometryForId(physicsId) {
     const physicsGeometry = this.getGeometryForPhysicsId(physicsId)
     const { positions, indices, bounds } = physicsGeometry
@@ -445,6 +416,35 @@ class PhysicsScene extends EventTarget {
     return physicsObject
   }
   
+  cookHeightFieldGeometry() {
+    /* console_test
+      physicsManager.getScene().cookHeightFieldGeometry()
+    */
+    const physicsId = getNextPhysicsId()
+    physx.physxWorker.cookHeightFieldGeometryPhysics(
+      this.scene,
+      physicsId,
+    )
+  
+    // const physicsObject = _makePhysicsObject(
+    //   physicsId,
+    //   position,
+    //   quaternion,
+    //   localVector2.set(1, 1, 1)
+    // )
+    // const physicsMesh = new THREE.Mesh(new THREE.BoxGeometry(2, 2, 2), redMaterial)
+    // physicsMesh.scale.copy(size)
+    // physicsMesh.visible = false
+    // physicsObject.add(physicsMesh)
+    // physicsObject.updateMatrixWorld()
+    // const { bounds } = this.getGeometryForPhysicsId(physicsId)
+    // physicsMesh.geometry.boundingBox = new THREE.Box3(
+    //   new THREE.Vector3().fromArray(bounds, 0),
+    //   new THREE.Vector3().fromArray(bounds, 3)
+    // )
+    // physicsObject.physicsMesh = physicsMesh
+    // return physicsObject
+  }
   addHeightFieldGeometry(dynamic = false, external = false) {
     // const physicsMesh = convertMeshToPhysicsMesh(mesh)
   
