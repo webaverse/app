@@ -361,7 +361,8 @@ export const Equipment = () => {
                         name: token.name ?? "",
                         start_url: token.url ?? (token.animation_url !== "" ? token.animation_url : token.collection.banner_image_url),
                         level: token.level ?? 1,
-                        type: "major",
+                        // type: "major",
+                        type: "minor",
                         claimed: true
                     };
                 });

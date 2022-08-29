@@ -27,6 +27,7 @@ class DropManager extends EventTarget {
       .multiplyScalar(5),
     angularVelocity = new THREE.Vector3(0, 0.001, 0),
     voucher = 'fakeVoucher', // XXX should really throw if no voucher
+    signerAddress = null
   }) {
     // console.log("start, com",start_url, components[1].value)
     console.log("createDrop", voucher)
@@ -35,7 +36,7 @@ class DropManager extends EventTarget {
         voucher = await getVoucherFromServer(start_url); //current components[0] => name. components[1] => url
         serverDrop = true;
     } else if(voucher == 'claimVoucher') {
-        voucher = await getVoucherFromUserAccount(tokenId)
+        voucher = await getVoucherFromUserAccount(tokenId, signerAddress)
         serverDrop = false;
     }
     // const r = () => (-0.5+Math.random())*2;

@@ -16,6 +16,7 @@ import useNFTContract from './hooks/useNFTContract';
 import NFTDetailsForm from './components/web3/NFTDetailsForm';
 import { isChainSupported } from './hooks/useChain';
 import { ChainContext } from './hooks/chainProvider';
+import { AccountContext } from './hooks/web3AccountProvider';
 
 const APP_3D_TYPES = ['glb', 'gltf', 'vrm'];
 const timeCount = 6000;
@@ -161,7 +162,7 @@ const DragAndDrop = () => {
               )
           );
         const quaternion = camera.quaternion.clone(); */
-
+        
         const items = Array.from(e.dataTransfer.items);
         await Promise.all(items.map(async item => {
           const drop = _isJsonItem(item);
@@ -171,7 +172,7 @@ const DragAndDrop = () => {
           const j = getObjectJson();
           if (app) {
             if (j && j.claimed) {
-              world.appManager.importClaimedApp(app, j);
+              world.appManager.importClaimedApp(app, j, account.currentAddress);
               setState({ openedPanel: null });
             } else if (drop) {
               world.appManager.importApp(app);
@@ -199,8 +200,7 @@ const DragAndDrop = () => {
       window.removeEventListener('dragover', dragover);
       window.removeEventListener('drop', drop);
     };
-  }, []);
-
+  });
   useEffect(async () => {
     if (queue.length > 0 && !currentApp) {
       const app = queue[0];
@@ -213,7 +213,9 @@ const DragAndDrop = () => {
       }
     }
   }, [queue, currentApp]);
-
+  const getUserAddress = () => {
+    return account;
+  }
   const _currentAppClick = e => {
     e.preventDefault();
     e.stopPropagation();

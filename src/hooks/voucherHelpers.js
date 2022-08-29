@@ -27,8 +27,8 @@ export async function getVoucherFromServer(metadataurl) {
     return voucher;
 }
 
-export async function getVoucherFromUserAccount(tokenId) {
-    // const account = useContext(AccountContext);
+export async function getVoucherFromUserAccount(tokenId, signer) {
+    console.log("signer", signer)
     
     // const tokenId = 1;
     const metadataurl = "https://ipfs.webaverse.com/"  // temp url - not used
@@ -46,7 +46,7 @@ export async function getVoucherFromUserAccount(tokenId) {
         },
         body: JSON.stringify({ 
             signData: {tokenId, metadataurl, balance, nonce, expiry},
-            signer: account.currentAddress
+            signer
         })
     });
     const voucher = await response.json();

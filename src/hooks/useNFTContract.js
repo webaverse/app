@@ -235,18 +235,22 @@ export default function useNFTContract(currentAccount) {
                 }
             } else {
                 try {
-                const res = await webaverseContract.claim_NFT(
-                    currentAccount,
-                    "0x",
-                    app.voucher
-                );
-                callback(res);
+                    const minttx = await webaverseContract.claim_NFT(
+                        currentAccount,
+                        "0x",
+                        app.voucher
+                    );
+                    callback();
+                    const res = await minttx.wait();
+                    if (res.transactionHash) {
+                        afterminting();
+                    }
                 } catch (err) {
                 console.warn("NFT claiming to webaverse contract failed");
                 setError("NFT Mint Failed");
                 }
             }
-            }
+        }
         setMinting(false);
         } catch (err) {
         console.warn("NFT minting to webaverse contract failed");
@@ -264,27 +268,27 @@ export default function useNFTContract(currentAccount) {
             );
 
             if (app.serverDrop === true) {
-            try {
-                const res = await webaverseContract.claimServerDropFT(
-                currentAccount,
-                app.voucher
-                );
-                callback(res);
-            } catch (err) {
-                console.warn("FT minting to webaverse contract failed");
-                setError("Mint Failed");
-            }
+                try {
+                    const res = await webaverseContract.claimServerDropFT(
+                    currentAccount,
+                    app.voucher
+                    );
+                    callback(res);
+                } catch (err) {
+                    console.warn("FT minting to webaverse contract failed");
+                    setError("Mint Failed");
+                }
             } else {
-            try {
-                const res = await webaverseContract.claim_FT(
-                currentAccount,
-                app.voucher
-                );
-                callback(res);
-            } catch (err) {
-                console.warn("FT claiming to webaverse contract failed");
-                setError("Mint Failed");
-            }
+                try {
+                    const res = await webaverseContract.claim_FT(
+                    currentAccount,
+                    app.voucher
+                    );
+                    callback(res);
+                } catch (err) {
+                    console.warn("FT claiming to webaverse contract failed");
+                    setError("Mint Failed");
+                }
             }
             setMinting(false);
         } catch (err) {

@@ -600,7 +600,7 @@ class AppManager extends EventTarget {
       self.bindTrackedApp(dstTrackedApp, app);
     });
   }
-  importClaimedApp(app, json) {
+  importClaimedApp(app, json, signerAddress) {
     console.log("app+ json", app, json)
     const dropManager = metaversefile.useDropManager();
     dropManager.createDropApp({
@@ -625,7 +625,8 @@ class AppManager extends EventTarget {
       position: app.position.clone()
         .add(new THREE.Vector3(0, 0.7, 0)),
       quaternion: app.quaternion,
-      scale: app.scale
+      scale: app.scale,
+      signerAddress
     });
   }
   hasApp(app) {
