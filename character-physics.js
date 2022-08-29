@@ -257,8 +257,12 @@ class CharacterPhysics {
         }
       }
       //
-      const speed = localVector.copy(this.characterController.position).sub(positionBefore).length() / Math.max(0.001, timeDiffS);
-      this.calcedVelocity.copy(this.wantMoveDistancePerFrame).normalize().multiplyScalar(speed);
+      if (timeDiffS > 0) {
+        const speed = localVector.copy(this.characterController.position).sub(positionBefore).length() / timeDiffS;
+        this.calcedVelocity.copy(this.wantMoveDistancePerFrame).normalize().multiplyScalar(speed);
+      } else {
+        this.calcedVelocity.set(0, 0, 0);
+      }
 
       // const collided = flags !== 0;
       let grounded = !!(flags & 0x1);
