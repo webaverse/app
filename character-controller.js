@@ -739,10 +739,10 @@ class StatePlayer extends PlayerBase {
     return this.getActionsState();
   }
   getActionsState() {
-    let actionsArray = this.playerMap.has(actionsMapName) ? this.playerMap.get(actionsMapName, Z.Array) : null;
+    let actionsArray = this.playerMap?.has(actionsMapName) ? this.playerMap?.get(actionsMapName, Z.Array) : null;
     if (!actionsArray) {
       actionsArray = new Z.Array();
-      this.playerMap.set(actionsMapName, actionsArray);
+      this.playerMap?.set(actionsMapName, actionsArray);
     }
     return actionsArray;
   }

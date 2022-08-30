@@ -273,7 +273,7 @@ class NpcManager extends EventTarget {
         world.appManager.addEventListener('frame', frame);
 
         cancelFns.push(() => {
-          app.removeEventListener('hittrackeradded', hittrackeradd);
+          // app.removeEventListener('hittrackeradded', hittrackeradd); // listener and handler added nowhere
           app.removeEventListener('activate', activate);
           world.appManager.removeEventListener('frame', frame);
         });
