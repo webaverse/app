@@ -1,6 +1,6 @@
 // import * as THREE from 'three';
 import {chunkMinForPosition, getLockChunkId} from './util.js';
-import {LockManager, abortError} from './lock-manager.js';
+import {abortError} from './lock-manager.js';
 
 //
 
