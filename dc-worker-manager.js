@@ -30,7 +30,7 @@ export class DcWorkerManager {
 
     this.workers = [];
     this.nextWorker = 0;
-    this.locks = new LockManager();
+    // this.locks = new LockManager();
     this.loadPromise = null;
 
     // trigger load
