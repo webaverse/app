@@ -416,7 +416,7 @@ class PhysicsScene extends EventTarget {
     return physicsObject
   }
 
-  addHeightFieldGeometry(width, height, dynamic = false, external = false) {
+  addHeightFieldGeometry(width, height, heightScale, rowScale, columnScale, dynamic = false, external = false) {
     // width and height must int.
 
     // const physicsMesh = convertMeshToPhysicsMesh(mesh)
@@ -427,6 +427,9 @@ class PhysicsScene extends EventTarget {
       // physicsMesh,
       width,
       height,
+      heightScale,
+      rowScale,
+      columnScale,
       dynamic,
       external,
       physicsId

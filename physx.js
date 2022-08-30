@@ -1684,7 +1684,7 @@ const physxWorker = (() => {
     return shapeAddress;
   };
 
-  w.addHeightFieldGeometryPhysics = (physics, width, height, dynamic, external, id) => {
+  w.addHeightFieldGeometryPhysics = (physics, width, height, heightScale, rowScale, columnScale, dynamic, external, id) => {
     // width and height must int.
 
     // mesh.updateMatrixWorld()
@@ -1726,6 +1726,9 @@ const physxWorker = (() => {
     Module._addHeightFieldGeometryPhysics(
       physics,
       heightField,
+      heightScale,
+      rowScale,
+      columnScale,
       id,
       materialAddress,
       +dynamic,
