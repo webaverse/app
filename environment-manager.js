@@ -1,18 +1,18 @@
 class EnvironmentManager {
   constructor() {
-    this.winds = [];
+    this.windZones = [];
     
   }
-  getWinds () {
-    return this.winds;
+  getWindZones () {
+    return this.windZones;
   }
-  setWinds (wind) {
-    this.winds.push(wind);
+  addWindZone (wind) {
+    this.windZones.push(wind);
   }
-  removeWind (wind) {
-    const index = this.winds.indexOf(wind);
+  removeWindZone (wind) {
+    const index = this.windZones.indexOf(wind);
     if (index > -1) {
-        this.winds.splice(index, 1);
+        this.windZones.splice(index, 1);
     }
   }
 }

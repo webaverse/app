@@ -12,7 +12,7 @@ const zeroVector3 = new THREE.Vector3();
 
 const update = (timestamp, headPosition, springBoneManager) => {
     const environmentManager = metaversefile.useEnvironmentManager();
-    const winds = environmentManager.getWinds();
+    const winds = environmentManager.getWindZones();
     const timeS = timestamp / 1000;
     
     const inWindZone = () =>{
