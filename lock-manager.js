@@ -1,9 +1,9 @@
-import {makePromise} from './util.js';
+// import {makePromise} from './util.js';
 
 export const abortError = new Error('aborted');
 abortError.isAbortError = true;
 
-const unlockedEvent = new MessageEvent('unlocked');
+/* const unlockedEvent = new MessageEvent('unlocked');
 
 export class Lock extends EventTarget {
   constructor() {
@@ -75,6 +75,4 @@ export class LockManager {
       throw error;
     }
   }
-}
-// const locks = new LockManager();
-// export default locks;
+} */
