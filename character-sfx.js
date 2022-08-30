@@ -28,6 +28,18 @@ const freestyleOffset = 900 / 2;
 const breaststrokeDuration = 1066.6666666666666;
 const breaststrokeOffset = 433.3333333333333;
 
+const silswordAnimationOffset = {
+  'swordSideSlash': 350,
+  'swordSideSlashStep': 150,
+  'swordTopDownSlash': 100,
+  'swordTopDownSlashStep': 150
+};
+const swordAnimationOffset = [
+  950, 
+  950, 
+  950
+];
+
 
 // HACK: this is used to dynamically control the step offset for a particular animation
 // it is useful during development to adjust sync between animations and sound
@@ -62,8 +74,9 @@ const _getActionFrameIndex = (f, frameTimes) => {
   return i;
 };
 
-class CharacterSfx {
+class CharacterSfx extends EventTarget{
   constructor(player) {
+    super();
     this.player = player;
 
     this.lastJumpState = false;
@@ -76,8 +89,8 @@ class CharacterSfx {
     this.narutoRunFinishTime = 0;
     this.narutoRunTrailSoundStartTime = 0;
     this.narutoRunTurnSoundStartTime = 0;
-    this.currentQ=new THREE.Quaternion();
-    this.preQ=new THREE.Quaternion();
+    this.currentQ = new THREE.Quaternion();
+    this.preQ = new THREE.Quaternion();
     this.arr = [0, 0, 0, 0];
 
     this.startRunningTime = 0;
@@ -86,21 +99,15 @@ class CharacterSfx {
     this.oldNarutoRunSound = null;
     this.lastEmote = null;
 
-    if (this.player.isLocalPlayer) {
-      const wearupdate = e => {
-        sounds.playSoundName(e.wear ? 'itemEquip' : 'itemUnequip');
-      };
-      player.addEventListener('wearupdate', wearupdate);
-      this.cleanup = () => {
-        player.removeEventListener('wearupdate', wearupdate);
-      };
-    }
-
     this.currentStep = null;
     this.currentSwimmingHand = null;
     this.setSwimmingHand = true;
 
     this.lastLandState = false;
+
+    this.lastCombo = false;
+    this.playComboTime = 0;
+    this.currentComboIndex = -1;
   }
   update(timestamp, timeDiffS) {
     if (!this.player.avatar) {
@@ -342,6 +349,50 @@ class CharacterSfx {
   
     };
     _handleNarutoRun();
+
+    // combo
+    const dispatchComboSoundEvent = (soundIndex) =>{
+      this.dispatchEvent(new MessageEvent('meleewhoosh', {
+        data: {
+          index: soundIndex
+        },
+      }));
+    }
+    const _handleCombo = () => {
+      let currentCombo;
+      if(this.player.hasAction('use') && this.player.getAction('use').behavior === 'sword'){
+        currentCombo = this.player.getAction('use').animation ? 
+          this.player.getAction('use').animation // the sword app that has animation property in use action
+          : 
+          this.player.getAction('use').animationCombo[this.player.avatar.useAnimationIndex] // the sword app that has animationCombo property in use action
+      }
+      if (currentCombo) {
+        if (currentCombo !== this.lastCombo) {
+          this.playComboTime = timestamp;
+          this.currentComboIndex = -1;
+        }
+        if (currentCombo === 'combo') { // the sword app that has animation property in use action
+          this.currentComboIndex = this.currentComboIndex < 0 ? 0 : this.currentComboIndex;
+          if(timestamp - this.playComboTime >= swordAnimationOffset[this.currentComboIndex]){
+            this.playComboTime = timestamp;
+            this.playGrunt('attack');
+            this.currentComboIndex++;
+            const soundIndex = this.currentComboIndex * 4 + Math.floor(Math.random() * 4);
+            dispatchComboSoundEvent(soundIndex);
+          }
+        }
+        else { // the sword app that has animationCombo property in use action
+          if (timestamp - this.playComboTime >= silswordAnimationOffset[currentCombo] && this.currentComboIndex !== this.player.avatar.useAnimationIndex) {
+            this.playGrunt('attack');
+            this.currentComboIndex = this.player.avatar.useAnimationIndex;
+            const soundIndex = this.currentComboIndex * 4 + Math.floor(Math.random() * 4);
+            dispatchComboSoundEvent(soundIndex);
+          }
+        }
+      }
+      this.lastCombo = currentCombo;
+    };
+    _handleCombo();
     
 
     const _handleGasp = () =>{
@@ -459,12 +510,12 @@ class CharacterSfx {
         }
       }
       
-      if(index===undefined){
+      if (index === undefined) {
         let voice = selectVoice(voiceFiles);
         duration = voice.duration;
         offset = voice.offset;
       }
-      else{
+      else {
         duration = voiceFiles[index].duration;
         offset = voiceFiles[index].offset;
       } 
@@ -480,7 +531,7 @@ class CharacterSfx {
       audioBufferSourceNode.connect(this.player.avatar.getAudioInput());
 
       // if the oldGrunt are still playing
-      if(this.oldGrunt){
+      if (this.oldGrunt) {
         this.oldGrunt.stop();
         this.oldGrunt = null;
       }
@@ -546,12 +597,12 @@ class CharacterSfx {
         }
       }
       
-      if(index===undefined){
+      if (index === undefined) {
         let voice = selectVoice(voiceFiles);
         duration = voice.duration;
         offset = voice.offset;
       }
-      else{
+      else {
         duration = voiceFiles[index].duration;
         offset = voiceFiles[index].offset;
       } 
@@ -567,7 +618,7 @@ class CharacterSfx {
       audioBufferSourceNode.connect(this.player.avatar.getAudioInput());
 
       // if the oldGrunt are still playing
-      if(this.oldGrunt){
+      if (this.oldGrunt) {
         this.oldGrunt.stop();
         this.oldGrunt = null;
       }

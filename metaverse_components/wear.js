@@ -29,6 +29,7 @@ const physicsScene = physicsManager.getScene();
 
 export default (app, component) => {
   const {useActivate} = metaversefile;
+  const sounds = metaversefile.useSound();
   
   let wearSpec = null;
   let modelBones = null;
@@ -40,9 +41,9 @@ export default (app, component) => {
   // const localPlayer = metaversefile.useLocalPlayer();
 
   const wearupdate = e => {
+    sounds.playSoundName(e.wear ? 'itemEquip' : 'itemUnequip');
     if (e.wear) {
       player = e.player;
-
       wearSpec = app.getComponent('wear');
       initialScale.copy(app.scale);
       // console.log('wear activate', app, wearSpec, e);
