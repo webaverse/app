@@ -59,6 +59,7 @@ import cardsManager from './cards-manager.js';
 import * as instancing from './instancing.js';
 import * as atlasing from './atlasing.js';
 import ioManager from './io-manager.js';
+import {environmentManager} from './environment-manager';
 
 const localVector2D = new THREE.Vector2();
 
@@ -405,17 +406,8 @@ metaversefile.setApi({
   getMirrors() {
     return mirrors;
   },
-  getWinds() {
-    return world.winds;
-  },
-  setWinds(wind) {
-    world.winds.push(wind);
-  },
-  removeWind(wind) {
-    const index = world.winds.indexOf(wind);
-    if (index > -1) {
-      world.winds.splice(index, 1);
-    }
+  useEnvironmentManager() {
+    return environmentManager;
   },
   registerMirror(mirror) {
     mirrors.push(mirror);

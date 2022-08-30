@@ -9,8 +9,10 @@ const windNoisePos = new THREE.Vector3();
 const localVector2 = new THREE.Vector3();
 const zeroVector3 = new THREE.Vector3();
 
+
 const update = (timestamp, headPosition, springBoneManager) => {
-    const winds = metaversefile.getWinds();
+    const environmentManager = metaversefile.useEnvironmentManager();
+    const winds = environmentManager.getWinds();
     const timeS = timestamp / 1000;
     
     const inWindZone = () =>{
