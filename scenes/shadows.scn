@@ -24,20 +24,20 @@
           "args": [[255, 255, 255], 0.01]
         },
         "ssao": {
-          "kernelRadius": 16,
-          "minDistance": 0.005,
-          "maxDistance": 0.1
+          "kernelRadius": 8,
+          "minDistance": 0.004,
+          "maxDistance": 0.05
         },
         "dof": {
           "focus": 3.0,
-          "aperture": 0.00002,
+          "aperture": 0.00005,
           "maxblur": 0.005
         },
         "hdr": {
           "adaptive": true,
           "resolution": 256,
           "adaptionRate": 100,
-          "maxLuminance": 10,
+          "maxLuminance": 20,
           "minLuminance": 0,
           "middleGrey": 3
         },
@@ -76,7 +76,7 @@
         0,
         1
       ],
-      "start_url": "https://webaverse.github.io/mirror/",
+      "start_url": "../mirror/",
       "dynamic": true
     },
     {

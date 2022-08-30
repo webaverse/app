@@ -187,6 +187,9 @@ void main() {
   if (gl_FragColor.a <= 0.05) {
     discard;
   } */
+
+  #include <tonemapping_fragment>
+  #include <encodings_fragment>
 }
 `;
 const _makeCylindersMesh = () => {

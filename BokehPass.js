@@ -89,7 +89,7 @@ class BokehPass extends Pass {
 	}
 
 	render( renderer, writeBuffer, readBuffer/*, deltaTime, maskActive*/ ) {
-    renderer.getClearColor( this._oldClearColor );
+		renderer.getClearColor( this._oldClearColor );
 		const oldClearAlpha = renderer.getClearAlpha();
 		const oldAutoClear = renderer.autoClear;
 		renderer.autoClear = false;

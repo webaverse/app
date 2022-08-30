@@ -18,7 +18,7 @@ class Hup extends EventTarget {
     this.hupId = ++nextHupId;
 
     this.actionIds = [];
-    this.playerName = '';
+    this.characterName = '';
     this.fullText = '';
     this.emote = null;
     this.live = false;
@@ -28,9 +28,9 @@ class Hup extends EventTarget {
     return action.type === 'chat';
   }
   mergeAction(action) {
-    const {playerName, message, emote} = action;
-    if (playerName) {
-      this.playerName = playerName;
+    const {characterName, message, emote} = action;
+    if (characterName) {
+      this.characterName = characterName;
     }
   
     this.actionIds.push(action.actionId);
@@ -46,7 +46,7 @@ class Hup extends EventTarget {
         message,
       },
     }));
-    const preloadedMessage = this.parent.player.voicer.preloadMessage(message);
+    const preloadedMessage = this.parent.character.voicer.preloadMessage(message);
     await chatManager.waitForVoiceTurn(() => {
       if (message) {
         if (this.fullText.length > 0) {
@@ -62,7 +62,7 @@ class Hup extends EventTarget {
           fullText: this.fullText,
         },
       }));
-      return this.parent.player.voicer.start(preloadedMessage);
+      return this.parent.character.voicer.start(preloadedMessage);
     });
     // this.parent.player === metaversefile.useLocalPlayer() && console.log('emit voice end');
     this.dispatchEvent(new MessageEvent('voiceend', {
@@ -93,15 +93,15 @@ class Hup extends EventTarget {
     this.dispatchEvent(new MessageEvent('destroy'));
   }
 }
-class CharacterHups extends EventTarget {
-  constructor(player) {
+export class CharacterHups extends EventTarget {
+  constructor(character) {
     super();
     
-    this.player = player;
+    this.character = character;
 
     this.hups = [];
 
-    player.addEventListener('actionadd', e => {
+    this.character.addEventListener('actionadd', e => {
       const {action} = e;
       const {type, actionId} = action;
       // console.log('action add', action);
@@ -132,7 +132,7 @@ class CharacterHups extends EventTarget {
           
           this.dispatchEvent(new MessageEvent('hupremove', {
             data: {
-              player,
+              character,
               hup: newHup,
             },
           }));
@@ -140,14 +140,14 @@ class CharacterHups extends EventTarget {
         this.hups.push(newHup);
         this.dispatchEvent(new MessageEvent('hupadd', {
           data: {
-            player,
+            character,
             hup: newHup,
           },
         }));
         newHup.updateVoicer(action.message, action.emote);
       }
     });
-    player.addEventListener('actionremove', e => {
+    this.character.addEventListener('actionremove', e => {
       const {action} = e;
       const {actionId} = action;
       // console.log('action remove', action);
@@ -159,7 +159,7 @@ class CharacterHups extends EventTarget {
     });
   }
   addChatHupAction(text) {
-    this.player.addAction({
+    this.character.addAction({
       type: 'chat',
       text,
     });
@@ -171,7 +171,3 @@ class CharacterHups extends EventTarget {
     // nothing
   }
 }
-
-export {
-  CharacterHups,
-};

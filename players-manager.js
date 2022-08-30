@@ -4,6 +4,7 @@ player objects load their own avatar and apps using this binding */
 // import * as THREE from 'three';
 import * as Z from 'zjs';
 import {LocalPlayer, RemotePlayer} from './character-controller.js';
+import {partyManager} from './party-manager.js';
 import metaversefileApi from 'metaversefile';
 import {makeId} from './util.js';
 import {initialPosY, playersMapName} from './constants.js';
@@ -21,10 +22,13 @@ class PlayersManager extends EventTarget {
     });
     this.localPlayer.position.y = initialPosY;
     this.localPlayer.updateMatrixWorld();
+
+    partyManager.addPlayer(this.localPlayer);
     
     this.remotePlayers = new Map();
     this.remotePlayersByInteger = new Map();
     this.unbindStateFn = null;
+    this.removeListenerFn = null;
   }
   getLocalPlayer () {
     return this.localPlayer;
@@ -57,18 +61,33 @@ class PlayersManager extends EventTarget {
     if(this.unbindStateFn != null) {
       this.unbindStateFn();
     }
-      this.playersArray = null;
-      this.unbindStateFn = null;
+    if (this.removeListenerFn) {
+      this.removeListenerFn();
     }
+    this.playersArray = null;
+    this.unbindStateFn = null;
+    this.removeListenerFn = null;
+  }
   bindState(nextPlayersArray) {
     this.unbindState();
-    
+
     this.playersArray = nextPlayersArray;
     
     if (this.playersArray) {
-      const localPlayer = metaversefileApi.useLocalPlayer();
+      const partySelectedFn = e => {
+        const {
+          player,
+        } = e.data;
+        player.bindState(this.playersArray);
+      };
+
+      partyManager.addEventListener('playerselected', partySelectedFn);
+      this.removeListenerFn = () => {
+        partyManager.removeEventListener('playerselected', partySelectedFn);
+      }
       
       const playersObserveFn = e => {
+        const localPlayer = this.localPlayer;
         const {added, deleted, delta, keys} = e.changes;
         for (const item of added.values()) {
           let playerMap = item.content.type;

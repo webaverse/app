@@ -1,18 +1,22 @@
-import * as THREE from 'three';
-import metaversefile from 'metaversefile'
+// import * as THREE from 'three';
+// import metaversefile from 'metaversefile'
 import {emotions} from './src/components/general/character/Emotions';
 import offscreenEngineManager from './offscreen-engine-manager.js';
+import {fetchArrayBuffer} from './util';
+import {avatarManager} from './avatar-manager';
+import {partyManager} from './party-manager'
+import {playersManager} from './players-manager';
 
 const allEmotions = [''].concat(emotions);
 
 class AvatarIconer extends EventTarget {
-  constructor(player, {
+  constructor({
     width = 150,
     height = 150,
   } = {}) {
     super();
 
-    this.player = player;
+    this.player = playersManager.getLocalPlayer();
     this.width = width;
     this.height = height;
 
@@ -23,67 +27,88 @@ class AvatarIconer extends EventTarget {
     this.enabled = false;
 
     this.canvases = [];
-    
-    const avatarchange = e => {
-      this.renderAvatarApp(e.app);
+
+    const playerSelectedFn = e => {
+      const {
+        player,
+      } = e.data;
+
+      this.bindPlayer(player);
     };
-    player.addEventListener('avatarchange', avatarchange);
+    partyManager.addEventListener('playerselected', playerSelectedFn);
+
+    const avatarchange = e => {
+      this.renderAvatarApp(e.data.app);
+    };
+    avatarManager.addEventListener('avatarchange', avatarchange);
     
     const actionupdate = e => {
       this.updateEmotionFromActions();
     };
-    player.addEventListener('actionadd', actionupdate);
-    player.addEventListener('actionremove', actionupdate);
+    avatarManager.addEventListener('actionupdate', actionupdate);
 
     this.cleanup = () => {
-      player.removeEventListener('avatarchange', avatarchange);
-      player.removeEventListener('actionadd', actionupdate);
-      player.removeEventListener('actionremove', actionupdate);
+      partyManager.removeEventListener('playerselected', playerSelectedFn);
+      avatarManager.removeEventListener('avatarchange', avatarchange);
+      avatarManager.removeEventListener('actionupdate', actionupdate);
     };
 
     this.getEmotionCanvases = offscreenEngineManager.createFunction([
       `\
-      import * as THREE from 'three';
-      import metaversefile from './metaversefile-api.js';
-      import npcManager from './npc-manager.js';
-      import {screenshotPlayer} from './avatar-screenshotter.js';
+      import {fetchArrayBuffer} from './util.js';
+      import {AvatarRenderer} from './avatars/avatar-renderer.js';
+      import {createAvatarForScreenshot, screenshotAvatar} from './avatar-screenshotter.js';
+      import {maxAvatarQuality} from './constants.js';
       import {emotions} from './src/components/general/character/Emotions.jsx';
 
       const allEmotions = [''].concat(emotions);
-      const cameraOffset = new THREE.Vector3(0, 0.05, -0.35);
       `,
       async function(start_url, width, height) {
-        const player = await npcManager.createNpcAsync({
-          name: 'avatar-iconer-npc',
-          avatarUrl: start_url,
-          detached: true,
+        // const cameraOffset = new THREE.Vector3(0, 0.05, -0.35);
+
+        const arrayBuffer = await fetchArrayBuffer(start_url);
+
+        const avatarRenderer = new AvatarRenderer({
+          arrayBuffer,
+          srcUrl: start_url,
+          quality: maxAvatarQuality,
+          controlled: true,
         });
-  
+        await avatarRenderer.waitForLoad();
+
+        const avatar = createAvatarForScreenshot(avatarRenderer);
+
         const emotionCanvases = await Promise.all(allEmotions.map(async emotion => {
           const canvas = document.createElement('canvas');
           canvas.width = width;
           canvas.height = height;
   
-          await screenshotPlayer({
-            player,
+          await screenshotAvatar({
+            avatar,
             canvas,
-            cameraOffset,
             emotion,
           });
 
           const imageBitmap = await createImageBitmap(canvas);
           return imageBitmap;
         }));
-  
-        player.destroy();
+
+        avatar.destroy();
 
         return emotionCanvases;
       }
     ]);
 
-    const avatarApp = player.getAvatarApp();
+    const avatarApp = this.player.getAvatarApp();
     this.renderAvatarApp(avatarApp);
   }
+
+  bindPlayer(player) {
+    this.player = player;
+    const avatarApp = this.player.getAvatarApp();
+    this.renderAvatarApp(avatarApp);
+  }
+
   async renderAvatarApp(srcAvatarApp) {
     const lastEnabled = this.enabled;
 

@@ -28,12 +28,12 @@ import {
   sceneLowPriority,
   rootScene,
   camera,
-  dolly,
+  // dolly,
   bindCanvas,
   getComposer,
 } from './renderer.js';
 import transformControls from './transform-controls.js';
-import * as metaverseModules from './metaverse-modules.js';
+// import * as metaverseModules from './metaverse-modules.js';
 import dioramaManager from './diorama.js';
 import * as voices from './voices.js';
 import performanceTracker from './performance-tracker.js';
@@ -88,7 +88,6 @@ export default class Webaverse extends EventTarget {
         zTargeting.waitForLoad(),
         particleSystemManager.waitForLoad(),
         transformControls.waitForLoad(),
-        metaverseModules.waitForLoad(),
         voices.waitForLoad(),
         musicManager.waitForLoad(),
         WebaWallet.waitForLoad(),
@@ -310,19 +309,18 @@ export default class Webaverse extends EventTarget {
           ioManager.update(timeDiffCapped);
           // this.injectRigInput();
           
-          const localPlayer = metaversefileApi.useLocalPlayer();
           const physicsScene = physicsManager.getScene();
           if (this.contentLoaded && physicsScene.getPhysicsEnabled()) {
             physicsScene.simulatePhysics(timeDiffCapped);
             physicsScene.getTriggerEvents();
-            localPlayer.updatePhysics(timestamp, timeDiffCapped);
+            npcManager.updatePhysics(timestamp, timeDiffCapped);
           }
 
           transformControls.update();
           raycastManager.update(timestamp, timeDiffCapped);
           game.update(timestamp, timeDiffCapped);
-          
-          localPlayer.updateAvatar(timestamp, timeDiffCapped);
+
+          npcManager.updateAvatar(timestamp, timeDiffCapped);
           playersManager.updateRemotePlayers(timestamp, timeDiffCapped);
           
           world.appManager.tick(timestamp, timeDiffCapped, frame);
@@ -342,7 +340,7 @@ export default class Webaverse extends EventTarget {
           const xrCamera = session ? renderer.xr.getCamera(camera) : camera;
           localMatrix.multiplyMatrices(xrCamera.projectionMatrix, /*localMatrix2.multiplyMatrices(*/xrCamera.matrixWorldInverse/*, physx.worldContainer.matrixWorld)*/);
           localMatrix2.copy(xrCamera.matrix)
-            .premultiply(dolly.matrix)
+            .premultiply(camera.matrix)
             .decompose(localVector, localQuaternion, localVector2);
           
           lastTimestamp = timestamp;
@@ -600,8 +598,14 @@ const _startHacks = webaverse => {
       webaverse.dispatchEvent(new MessageEvent('titlecardhackchange', {
         data: {
           titleCardHack: webaverse.titleCardHack,
-        }
+        },
       }));
+    } else if (e.code === 'Home') { // home
+      const localPlayer = metaversefileApi.useLocalPlayer();
+      localPlayer.avatar.avatarRenderer.adjustQuality(-1);
+    } else if (e.code === 'End') { // home
+      const localPlayer = metaversefileApi.useLocalPlayer();
+      localPlayer.avatar.avatarRenderer.adjustQuality(1);
     } else {
       const match = e.code.match(/^Numpad([0-9])$/);
       if (match) {

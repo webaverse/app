@@ -17,7 +17,7 @@ import {world} from './world.js';
 import ERC721 from './erc721-abi.json';
 import ERC1155 from './erc1155-abi.json';
 import {web3} from './blockchain.js';
-import {moduleUrls, modules} from './metaverse-modules.js';
+import {moduleUrls, importModule} from './metaverse-modules.js';
 import {componentTemplates} from './metaverse-components.js';
 import postProcessing from './post-processing.js';
 import {getRandomString, memoize} from './util.js';
@@ -26,25 +26,27 @@ import JSON6 from 'json-6';
 import * as geometries from './geometries.js';
 import * as materials from './materials.js';
 import meshLodManager from './mesh-lodder.js';
-import * as avatarCruncher from './avatar-cruncher.js';
-import * as avatarSpriter from './avatar-spriter.js';
+import {AvatarRenderer} from './avatars/avatar-renderer.js';
 import {chatManager} from './chat-manager.js';
 import loreAI from './ai/lore/lore-ai.js';
+import imageAI from './ai/image/image-ai.js';
+import audioAI from './ai/audio/audio-ai.js';
 import npcManager from './npc-manager.js';
 import mobManager from './mob-manager.js';
 import universe from './universe.js';
 import {PathFinder} from './npc-utils.js';
+import {avatarManager} from './avatar-manager.js';
+import {partyManager} from './party-manager.js';
 import {playersManager} from './players-manager.js';
 import loaders from './loaders.js';
 import * as voices from './voices.js';
 import * as procgen from './procgen/procgen.js';
-import {getHeight} from './avatars/util.mjs';
+import {getAvatarHeight, getAvatarWidth, getModelBones} from './avatars/util.mjs';
 import performanceTracker from './performance-tracker.js';
 import renderSettingsManager from './rendersettings-manager.js';
 import questManager from './quest-manager.js';
 import {murmurhash3} from './procgen/murmurhash3.js';
 import debug from './debug.js';
-import * as sceneCruncher from './scene-cruncher.js';
 import * as scenePreviewer from './scene-previewer.js';
 import * as sounds from './sounds.js';
 import * as lodder from './lod.js';
@@ -53,12 +55,12 @@ import particleSystemManager from './particle-system.js';
 import domRenderEngine from './dom-renderer.jsx';
 import dropManager from './drop-manager.js';
 import hitManager from './character-hitter.js';
-// import dcWorkerManager from './dc-worker-manager.js';
 import procGenManager from './procgen-manager.js';
 import cardsManager from './cards-manager.js';
 import * as instancing from './instancing.js';
 import * as atlasing from './atlasing.js';
 import ioManager from './io-manager.js';
+import {lightsManager} from './lights-manager.js';
 
 const localVector2D = new THREE.Vector2();
 
@@ -126,7 +128,7 @@ class App extends THREE.Object3D {
     return this.components.some(component => component.key === key);
   }
   removeComponent(key) {
-    const index = this.components.findIndex(component => component.type === key);
+    const index = this.components.findIndex(component => component.key === key);
     if (index !== -1) {
       this.components.splice(index, 1);
       this.dispatchEvent({
@@ -164,6 +166,19 @@ class App extends THREE.Object3D {
   }
   getPhysicsObjects() {
     return this.physicsObjects;
+  }
+  addPhysicsObject(object) {
+    this.physicsObjects.push(object);
+  }
+  removePhysicsObject(object) {
+    const removeIndex = this.physicsObjects.indexOf(object);
+    if (removeIndex !== -1) {
+      this.physicsObjects.splice(removeIndex);
+    }
+  }
+  setPhysicsObject(object) {
+    this.physicsObjects.length = 0;
+    this.physicsObjects.push(object);
   }
   hit(damage, opts) {
     this.hitTracker && this.hitTracker.hit(damage, opts);
@@ -206,7 +221,7 @@ class App extends THREE.Object3D {
 
 const defaultModules = {
   moduleUrls,
-  modules,
+  importModule,
 };
 
 const localPlayer = playersManager.getLocalPlayer();
@@ -434,6 +449,9 @@ metaversefile.setApi({
       },
     };
   },
+  useLightsManager() {
+    return lightsManager;
+  },
   useChatManager() {
     return chatManager;
   },
@@ -446,8 +464,20 @@ metaversefile.setApi({
   useLoreAIScene() {
     return loreAIScene;
   },
+  useImageAI() {
+    return imageAI;
+  },
+  useAudioAI() {
+    return audioAI;
+  },
   useVoices() {
     return voices;
+  },
+  useAvatarRenderer() {
+    return AvatarRenderer;
+  },
+  /* useAvatarOptimizer() {
+    return avatarOptimizer;
   },
   useAvatarCruncher() {
     return avatarCruncher;
@@ -457,7 +487,7 @@ metaversefile.setApi({
   },
   useSceneCruncher() {
     return sceneCruncher;
-  },
+  }, */
   useScenePreviewer() {
     return scenePreviewer;
   },
@@ -546,11 +576,17 @@ metaversefile.setApi({
   useRemotePlayers() {
     return Array.from(playersManager.getRemotePlayers().values());
   },
+  usePartyManager() {
+    return partyManager;
+  },
   useNpcManager() {
     return npcManager;
   },
   useMobManager() {
     return mobManager;
+  },
+  useAvatarManager() {
+    return avatarManager;
   },
   usePathFinder() {
     return PathFinder;
@@ -915,7 +951,7 @@ metaversefile.setApi({
         onWaitPromise(p);
       }
     }
-    
+
     return app;
   },
   createApp(spec) {
@@ -972,6 +1008,7 @@ export default () => {
     return world.appManager.removeTrackedApp.apply(world.appManager, arguments);
   },
   getPlayerByAppInstanceId(instanceId) {
+    const localPlayer = playersManager.getLocalPlayer();
     let result = localPlayer.appManager.getAppByInstanceId(instanceId);
     if (result) {
       return localPlayer;
@@ -1127,9 +1164,6 @@ export default () => {
 
     // default
     return null;
-  },
-  getAvatarHeight(obj) {
-    return getHeight(obj);
   },
   useInternals() {
     if (!iframeContainer) {

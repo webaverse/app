@@ -14,18 +14,20 @@ import {world} from './world.js';
 import {buildMaterial, highlightMaterial, selectMaterial, hoverMaterial, hoverEquipmentMaterial} from './shaders.js';
 import {getRenderer, sceneLowPriority, camera} from './renderer.js';
 import {downloadFile, snapPosition, getDropUrl, handleDropJsonItem} from './util.js';
-import {maxGrabDistance, throwReleaseTime, storageHost, minFov, maxFov, throwAnimationDuration} from './constants.js';
+import {maxGrabDistance, throwReleaseTime, storageHost, minFov, maxFov, throwAnimationDuration, walkSpeed, runSpeed, narutoRunSpeed, crouchSpeed, flySpeed} from './constants.js';
 import metaversefileApi from './metaversefile-api.js';
 import * as metaverseModules from './metaverse-modules.js';
 import loadoutManager from './loadout-manager.js';
 import * as sounds from './sounds.js';
 import {playersManager} from './players-manager.js';
+import {partyManager} from './party-manager.js';
 import physicsManager from './physics-manager.js';
 import npcManager from './npc-manager.js';
 import raycastManager from './raycast-manager.js';
 import zTargeting from './z-targeting.js';
 import Avatar from './avatars/avatars.js';
 import {makeId} from './util.js'
+import { avatarManager } from './avatar-manager.js';
 
 const localVector = new THREE.Vector3();
 const localVector2 = new THREE.Vector3();
@@ -109,6 +111,8 @@ function updateGrabbedObject(o, grabMatrix, offsetMatrix, {collisionEnabled, han
   } else {
     o.quaternion.copy(localQuaternion3);
   }
+
+  o.updateMatrixWorld();
 
   return {
     handSnap,
@@ -476,9 +480,8 @@ let grabUseMesh = null;
 const _gameInit = () => {
   grabUseMesh = metaversefileApi.createApp();
   (async () => {
-    await metaverseModules.waitForLoad();
-    const {modules} = metaversefileApi.useDefaultModules();
-    const m = modules['button'];
+    const {importModule} = metaversefileApi.useDefaultModules();
+    const m = await importModule('button');
     await grabUseMesh.addModule(m);
   })();
   grabUseMesh.targetApp = null;
@@ -543,7 +546,6 @@ const _gameUpdate = (timestamp, timeDiff) => {
       if (grabbedObject && !_isWear(grabbedObject)) {
         const {position, quaternion} = renderer.xr.getSession() ? localPlayer[hand === 'left' ? 'leftHand' : 'rightHand'] : camera;
         localMatrix.compose(position, quaternion, localVector.set(1, 1, 1));
-        grabbedObject.updateMatrixWorld();
 
         updateGrabbedObject(grabbedObject, localMatrix, localMatrix3.fromArray(grabAction.matrix), {
           collisionEnabled: true,
@@ -1375,23 +1377,9 @@ class GameManager extends EventTarget {
     }
   }
   menuSwitchCharacter() {
-    sounds.playSoundName('menuReady');
-
-    const npc = npcManager.npcs[0];
-    if (npc) {
-      // console.log('check npc', npc);
-      
-      const localPlayer = playersManager.getLocalPlayer();
-      localPlayer.isLocalPlayer = false;
-      localPlayer.isNpcPlayer = true;
-
-      npc.isLocalPlayer = true;
-      npc.isNpcPlayer = false;
-
-      const npcIndex = npcManager.npcs.indexOf(npc);
-      npcManager.npcs[npcIndex] = localPlayer;
-
-      playersManager.setLocalPlayer(npc);
+    const switched = partyManager.switchCharacter();
+    if (switched) {
+      sounds.playSoundName('menuReady');
     }
   }
   isFlying() {
@@ -1505,7 +1493,7 @@ class GameManager extends EventTarget {
       const newJumpAction = {
         type: 'jump',
         trigger:trigger,
-        startPositionY: localPlayer.characterController.position.y,
+        startPositionY: localPlayer.characterPhysics.characterController.position.y,
         // time: 0,
       };
       localPlayer.setControlAction(newJumpAction);
@@ -1527,13 +1515,13 @@ class GameManager extends EventTarget {
     const localPlayer = playersManager.getLocalPlayer();
     localPlayer.addAction({
       type: 'doubleJump',
-      startPositionY: localPlayer.characterController.position.y,
+      startPositionY: localPlayer.characterPhysics.characterController.position.y,
     });
   }
   isMovingBackward() {
     const localPlayer = playersManager.getLocalPlayer();
     // return ioManager.keysDirection.z > 0 && this.isAiming();
-    return localPlayer.avatar.direction.z > 0.1; // If check > 0 will cause glitch when move left/right;
+    return localPlayer.avatar?.direction.z > 0.1; // If check > 0 will cause glitch when move left/right;
     /*
       return localPlayer.avatar.direction.z > 0.1;
       // If check > 0 will cause glitch when move left/right.
@@ -1625,28 +1613,26 @@ class GameManager extends EventTarget {
   getSpeed() {
     let speed = 0;
     
-    const walkSpeed = 0.075;
-    const flySpeed = walkSpeed * 2;
-    const defaultCrouchSpeed = walkSpeed * 0.7;
     const isCrouched = gameManager.isCrouched();
     const isSwimming = gameManager.isSwimming();
     const isFlying = gameManager.isFlying();
+    const isRunning = ioManager.keys.shift && !isCrouched;
     const isMovingBackward = gameManager.isMovingBackward();
     if (isCrouched && !isMovingBackward) {
-      speed = defaultCrouchSpeed;
+      speed = crouchSpeed;
     } else if (gameManager.isFlying()) {
       speed = flySpeed;
     } else {
       speed = walkSpeed;
     }
     const localPlayer = playersManager.getLocalPlayer();
-    const sprintMultiplier = (ioManager.keys.shift && !isCrouched) ?
+    const sprintMultiplier = isRunning ?
       (localPlayer.hasAction('narutoRun') ? 20 : 3)
     :
     ((isSwimming && !isFlying) ? 5 - localPlayer.getAction('swim').swimDamping : 1);
     speed *= sprintMultiplier;
     
-    const backwardMultiplier = isMovingBackward ? 0.7 : 1;
+    const backwardMultiplier = isMovingBackward ? (isRunning ? 0.8 : 0.7) : 1;
     speed *= backwardMultiplier;
     
     return speed;
@@ -1686,19 +1672,31 @@ class GameManager extends EventTarget {
   bindDioramaCanvas() {
     // await rendererWaitForLoad();
 
-    const localPlayer = playersManager.getLocalPlayer();
     this.playerDiorama = dioramaManager.createPlayerDiorama({
-      target: localPlayer,
       // label: true,
       outline: true,
       grassBackground: true,
       // glyphBackground: true,
     });
-    localPlayer.addEventListener('avatarchange', e => {
+
+    const playerSelectedFn = e => {
+      const {
+        player,
+      } = e.data;
+
+      const localPlayer = player;
+      this.playerDiorama.setTarget(localPlayer);
+      this.playerDiorama.setObjects([
+        localPlayer.avatar.avatarRenderer.scene,
+      ]);
+    };
+    partyManager.addEventListener('playerselected', playerSelectedFn);
+
+    avatarManager.addEventListener('avatarchange', e => {
       const localPlayer = playersManager.getLocalPlayer();
       this.playerDiorama.setTarget(localPlayer);
       this.playerDiorama.setObjects([
-        e.avatar.model,
+        e.data.avatar.avatarRenderer.scene,
       ]);
     })
   }
@@ -1716,7 +1714,7 @@ class GameManager extends EventTarget {
     const blob = new Blob([s], {
       type: 'application/json',
     });
-    downloadFile(blob, 'scene.json');
+    downloadFile(blob, 'scene.scn');
     // console.log('got scene', scene);
   }
   update = _gameUpdate;

@@ -276,6 +276,9 @@ void mainImage(out vec4 fragColor, in vec2 uv) {
 	fragColor = color;
 
   fragColor.a *= (1. - vDistance) * 2. * uOpacity;
+
+  #include <tonemapping_fragment>
+  #include <encodings_fragment>
 }
 
 void main() {

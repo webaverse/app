@@ -26,19 +26,27 @@ const oldMaterialCache = new WeakMap();
  * Depth-of-field post-process with bokeh shader
  */
 
+const _makeNormalRenderTarget = (width, height) => {
+	return new WebGLRenderTarget(width, height, {
+		minFilter: NearestFilter,
+		magFilter: NearestFilter,
+		format: RGBAFormat,
+		depthTexture: new DepthTexture(width, height),
+	});
+};
 class DepthPass extends Pass {
 
 	constructor( scenes, camera, {width, height, onBeforeRenderScene} ) {
 
 		super();
 
+		this.isDepthPass = true;
+
     this.scenes = scenes;
     this.camera = camera;
     this.width = width;
     this.height = height;
 		this.onBeforeRenderScene = onBeforeRenderScene;
-    const depthTexture = new DepthTexture();
-		// depthTexture.type = UnsignedShortType;
 
 		/* this.beautyRenderTarget = new WebGLRenderTarget( this.width, this.height, {
 			minFilter: LinearFilter,
@@ -48,12 +56,8 @@ class DepthPass extends Pass {
 
 		// normal render target with depth buffer
 
-		this.normalRenderTarget = new WebGLRenderTarget( this.width, this.height, {
-			minFilter: NearestFilter,
-			magFilter: NearestFilter,
-			format: RGBAFormat,
-			depthTexture: depthTexture
-		} );
+		this.normalRenderTarget = _makeNormalRenderTarget(this.width, this.height);
+		this.normalRenderTarget.name = 'DepthPass.normal';
 
     this.normalMaterial = new MeshNormalMaterial();
 		this.normalMaterial.blending = NoBlending;
@@ -62,6 +66,18 @@ class DepthPass extends Pass {
 		this.customScene.autoUpdate = false;
     this._visibilityCache = new Map();
     this.originalClearColor = new Color();
+	}
+
+	setSize(width, height) {
+		this.width = width;
+		this.height = height;
+
+		this.normalRenderTarget.dispose();
+		this.normalRenderTarget.depthTexture.dispose();
+
+		this.normalRenderTarget.setSize( width, height );
+		this.normalRenderTarget.depthTexture.image.width = width;
+		this.normalRenderTarget.depthTexture.image.height = height;
 	}
 
   renderOverride( renderer, overrideMaterial, renderTarget, clearColor, clearAlpha ) {

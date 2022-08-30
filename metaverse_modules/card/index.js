@@ -157,6 +157,9 @@ const _makeCardMesh = ({
         if (gl_FragColor.a < 0.1) {
           discard;
         }
+
+        #include <tonemapping_fragment>
+        #include <encodings_fragment>
       }
     `,
     // side: THREE.DoubleSide,

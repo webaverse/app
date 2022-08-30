@@ -8,8 +8,9 @@ import metaversefile from 'metaversefile';
 import WSRTC from 'wsrtc/wsrtc.js';
 import * as Z from 'zjs';
 
-import {appsMapName, initialPosY, playersMapName} from './constants.js';
+import {appsMapName, partyMapName, initialPosY, playersMapName} from './constants.js';
 import {loadOverworld} from './overworld.js';
+import {partyManager} from './party-manager.js';
 import physicsManager from './physics-manager.js';
 import physxWorkerManager from './physx-worker-manager.js';
 import physx from './physx.js';
@@ -144,6 +145,9 @@ class Universe extends EventTarget {
     const appsArray = state.get(appsMapName, Z.Array);
 
     world.appManager.bindState(appsArray);
+
+    const partyMap = state.get(partyMapName, Z.Map);
+    partyManager.bindState(partyMap);
 
     const localPlayer = playersManager.getLocalPlayer();
     localPlayer.bindState(state.getArray(playersMapName));

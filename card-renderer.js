@@ -4,6 +4,7 @@ import {screenshotObjectApp} from './object-screenshotter.js';
 import {screenshotAvatarUrl} from './avatar-screenshotter.js';
 import {generateGlyph} from './glyph-generator.js';
 import {splitLinesToWidth} from './util.js';
+import {defaultPlayerSpec} from './constants.js';
 
 const cardsSvgUrl = `./images/cards-01.svg`;
 
@@ -109,20 +110,33 @@ export const generateObjectCard = async ({
   const url = contentId;
   const type = appType;
 
-  let objectImage = await screenshotObjectApp({
-    app,
-  });
-  objectImage = await _getCanvasDataUrl(objectImage);
+  const [
+    objectImage,
+    minterAvatarPreview,
+    glyphImage,
+  ] = await Promise.all([
+    (async () => {
+      let objectImage = await screenshotObjectApp({
+        app,
+      });
+      objectImage = await _getCanvasDataUrl(objectImage);
+      return objectImage;
+    })(),
+    (async () => {
+      let minterAvatarPreview = await screenshotAvatarUrl({
+        start_url: defaultPlayerSpec.avatarUrl,
+      });
+      minterAvatarPreview = await _getCanvasDataUrl(minterAvatarPreview);
+      return minterAvatarPreview;
+    })(),
+    (async () => {
+      let glyphImage = generateGlyph(url);
+      glyphImage = await _getCanvasDataUrl(glyphImage);
+      return glyphImage;
+    })(),
+  ]);
 
-  let minterAvatarPreview = await screenshotAvatarUrl({
-    start_url: `./avatars/scillia_drophunter_v15_vian.vrm`,
-  });
-  minterAvatarPreview = await _getCanvasDataUrl(minterAvatarPreview);
-
-  let glyphImage = generateGlyph(url);
-  glyphImage = await _getCanvasDataUrl(glyphImage);
-
-  const minterUsername = 'Scillia';
+  const minterUsername = defaultPlayerSpec.name;
   const cardImg = await generateCard({
     stats,
     width,
@@ -136,7 +150,6 @@ export const generateObjectCard = async ({
     glyphImage,
     flipY,
   });
-  // _previewImage(cardImg, width, height);
   return cardImg;
 };
 
@@ -262,12 +275,6 @@ export const generateCard = async ({
       stopEls[3].style.cssText = `stop-color:${spec.art.colors[1]}`;
     }
   }
-
-  /* const blob = new Blob([svg.outerHTML], {
-    type: 'image/svg+xml',
-  });
-  const objectUrl = URL.createObjectURL(blob);
-  return objectUrl; */
 
   const image = await new Promise((accept, reject) => {
     const image = document.createElement('img');

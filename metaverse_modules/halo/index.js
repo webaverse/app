@@ -193,6 +193,9 @@ const _makeRoundMesh = () => {
         } else {
           discard;
         }
+
+        #include <tonemapping_fragment>
+        #include <encodings_fragment>
       }
     `,
     side: THREE.DoubleSide,
@@ -315,6 +318,9 @@ const _makeAngleMesh = () => {
         } else {
           discard;
         }
+
+        #include <tonemapping_fragment>
+        #include <encodings_fragment>
       }
     `,
     side: THREE.DoubleSide,

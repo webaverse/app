@@ -113,15 +113,10 @@ export const TabGraphics = ({ active }) => {
         function setAvatarQuality () {
 
             game.setAvatarQuality( avatarStyle );
-            localPlayer.removeEventListener( 'avatarchange', setAvatarQuality );
 
         };
 
-        if ( ! localPlayer.avatar ) {
-
-            localPlayer.addEventListener( 'avatarchange', setAvatarQuality );
-
-        } else {
+        if ( localPlayer.avatar ) {
 
             setAvatarQuality();
 

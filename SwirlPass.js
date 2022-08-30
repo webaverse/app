@@ -108,7 +108,7 @@ class SwirlMaterial extends THREE.ShaderMaterial {
 			// defines: Object.assign( {}, SSAOShader.defines ),
 			uniforms: {
 			  tDiffuse: {
-				  value: new THREE.Texture(),
+				  value: null,
 					needsUpdate: false,
 				},
 				uTime: {
@@ -160,7 +160,7 @@ class OpenMaterial extends THREE.ShaderMaterial {
 			// defines: Object.assign( {}, SSAOShader.defines ),
 			uniforms: {
 			  tDiffuse: {
-				  value: new THREE.Texture(),
+				  value: null,
 					needsUpdate: false,
 				},
 				uTime: {
@@ -283,7 +283,7 @@ class SwirlPass extends Pass {
 		const openStartTime = 3;
 		if (uTime < openStartTime) {
 			this.swirlMaterial.uniforms[ 'tDiffuse' ].value = this.first ?
-				readBuffer // screen
+				readBuffer.texture // screen
 			:
 				this.ssaoRenderTargets[0].texture; // feedback
 			this.swirlMaterial.uniforms[ 'tDiffuse' ].needsUpdate = true;
@@ -294,7 +294,7 @@ class SwirlPass extends Pass {
 			this.swirlMaterial.blending = NoBlending;
 			this.renderPass( renderer, this.swirlMaterial, this.ssaoRenderTargets[1] );
 		} else {
-			this.openMaterial.uniforms[ 'tDiffuse' ].value = readBuffer; // screen
+			this.openMaterial.uniforms[ 'tDiffuse' ].value = readBuffer.texture; // screen
 			this.openMaterial.uniforms[ 'tDiffuse' ].needsUpdate = true;
 
 			this.openMaterial.uniforms[ 'uTime' ].value = uTime - openStartTime;
@@ -304,9 +304,9 @@ class SwirlPass extends Pass {
 			this.renderPass( renderer, this.openMaterial, this.ssaoRenderTargets[1] );
 		}
 
-		// render blur
-
+		// render swirl
 		this.copyMaterial.uniforms[ 'tDiffuse' ].value = this.ssaoRenderTargets[1].texture;
+		this.copyMaterial.uniforms[ 'tDiffuse' ].needsUpdate = true;
 		this.copyMaterial.blending = NoBlending;
 		this.renderPass( renderer, this.copyMaterial, this.renderToScreen ? null : writeBuffer );
 	  

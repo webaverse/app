@@ -8,7 +8,9 @@ class RenderSettings {
   constructor(json) {
     this.background = this.#makeBackground(json.background);
     this.fog = this.#makeFog(json.fog);
-    this.passes = postProcessing.makePasses(json);
+    const {passes, internalPasses} = postProcessing.makePasses(json);
+    this.passes = passes;
+    this.internalPasses = internalPasses;
   }
   #makeBackground(background) {
     if (background) {
@@ -40,6 +42,13 @@ class RenderSettings {
 class RenderSettingsManager {
   constructor() {
     this.fog = new THREE.FogExp2(0x000000, 0);
+    this.extraPasses = [];
+  }
+  addExtraPass(pass) {
+    this.extraPasses.push(pass);
+  }
+  removeExtraPass(pass) {
+    this.extraPasses.splice(this.extraPasses.indexOf(pass), 1);
   }
   makeRenderSettings(json) {
     return new RenderSettings(json);
@@ -94,19 +103,24 @@ class RenderSettingsManager {
   push(srcScene, dstScene = srcScene, {
     postProcessing = null,
   } = {}) {
-    const renderSettings = this.findRenderSettings(srcScene);
+    let renderSettings = this.findRenderSettings(srcScene);
     const renderSettingsCleanup = this.applyRenderSettingsToScene(renderSettings, dstScene);
 
     if (postProcessing) {
-      const {
-        passes = null,
+      let {
+        passes = postProcessing.defaultPasses,
+        internalPasses = postProcessing.defaultInternalPasses,
       } = (renderSettings ?? {});
-      postProcessing.setPasses(passes);
+      if (this.extraPasses.length > 0) {
+        passes = passes.slice();
+        passes.push(...this.extraPasses);
+      }
+      postProcessing.setPasses(passes, internalPasses);
     }
 
     return () => {
       renderSettingsCleanup();
-      postProcessing && postProcessing.setPasses(null);
+      postProcessing && postProcessing.setPasses(postProcessing.defaultPasses, postProcessing.defaultInternalPasses);
     };
   }
 }

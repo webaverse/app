@@ -6,7 +6,7 @@ import styles from './character-select.module.css';
 import { AppContext } from '../../app';
 import { MegaHup } from '../../../MegaHup.jsx';
 import { LightArrow } from '../../../LightArrow.jsx';
-import { world } from '../../../../world.js';
+// import { world } from '../../../../world.js';
 import { LocalPlayer } from '../../../../character-controller.js';
 import * as sounds from '../../../../sounds.js';
 import { chatManager } from '../../../../chat-manager.js';
@@ -462,11 +462,10 @@ export const CharacterSelect = () => {
                         />
                     </ul>
                 </div>
+                {(opened && text) ? (
+                    <RpgText className={styles.text} styles={styles} text={text} textSpeed={chatTextSpeed} />
+                ) : null}
             </div>
-
-            {(opened && text) ?
-              <RpgText className={styles.text} styles={styles} text={text} textSpeed={chatTextSpeed} />
-            : null}
         </div>
     );
 };

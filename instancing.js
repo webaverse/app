@@ -408,6 +408,7 @@ export class GeometryAllocator {
     distanceArray.length = 0;
 
     if (this.boundingType) {
+      // XXX this can be optimized by initializing the frustum only once per frame and passing it in
       const projScreenMatrix = localMatrix.multiplyMatrices(
         camera.projectionMatrix,
         camera.matrixWorldInverse

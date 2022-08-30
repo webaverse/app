@@ -231,6 +231,9 @@ const _makeSilksMesh = () => {
         } else {
           discard;
         } */
+
+        #include <tonemapping_fragment>
+        #include <encodings_fragment>
       }
     `,
     // side: THREE.DoubleSide,

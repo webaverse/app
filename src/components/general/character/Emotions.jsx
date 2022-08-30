@@ -3,6 +3,7 @@ import React, { useEffect, useState, useRef } from 'react';
 import classnames from 'classnames';
 
 import metaversefile from '../../../../metaversefile-api.js';
+import {avatarManager} from '../../../../avatar-manager.js';
 
 import styles from './emotions.module.css';
 
@@ -97,7 +98,7 @@ export const Emotions = ({
 
         const actionadd = e => {
 
-            const {action} = e;
+            const {action} = e.data;
             if (action.type === 'facepose') {
                 const {emotion, value} = action;
                 const emotionIndex = emotions.indexOf(emotion);
@@ -108,11 +109,11 @@ export const Emotions = ({
             }
 
         };
-        localPlayer.addEventListener('actionadd', actionadd);
+        avatarManager.addEventListener('actionadd', actionadd);
 
         const actionremove = e => {
 
-            const {action} = e;
+            const {action} = e.data;
             if (action.type === 'facepose') {
                 const {emotion} = action;
                 const emotionIndex = emotions.indexOf(emotion);
@@ -123,12 +124,12 @@ export const Emotions = ({
             }
 
         };
-        localPlayer.addEventListener('actionremove', actionremove);
+        avatarManager.addEventListener('actionremove', actionremove);
     
         return () => {
 
-            localPlayer.removeEventListener('actionadd', actionadd);
-            localPlayer.removeEventListener('actionremove', actionremove);
+            avatarManager.removeEventListener('actionadd', actionadd);
+            avatarManager.removeEventListener('actionremove', actionremove);
 
         };
 

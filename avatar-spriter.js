@@ -1,11 +1,16 @@
 import * as THREE from 'three';
 // import easing from './easing.js';
 import metaversefile from 'metaversefile';
-const {useApp, useFrame, useLocalPlayer, usePhysics, useGeometries, useMaterials, useAvatarAnimations, useCleanup} = metaversefile;
+// const {useApp, useFrame, useLocalPlayer, usePhysics, useGeometries, useMaterials, useAvatarAnimations, useCleanup} = metaversefile;
 // import * as BufferGeometryUtils from 'three/examples/jsm/utils/BufferGeometryUtils.js';
 import {DoubleSidedPlaneGeometry, CameraGeometry} from './geometries.js';
 import {WebaverseShaderMaterial} from './materials.js';
+import {getRenderer, scene, camera} from './renderer.js';
 import Avatar from './avatars/avatars.js';
+import {AvatarRenderer} from './avatars/avatar-renderer.js';
+import {mod, angleDifference, addDefaultLights} from './util.js';
+import {world} from './world.js';
+import {maxAvatarQuality, walkSpeed, runSpeed, crouchSpeed, narutoRunSpeed} from './constants.js';
 
 const preview = false; // whether to draw debug meshes
 
@@ -17,7 +22,6 @@ const cameraMesh = new THREE.Mesh(
   cameraGeometry,
   cameraMaterial,
 );
-// scene.add(cameraMesh);
 
 const localVector = new THREE.Vector3();
 const localVector2 = new THREE.Vector3();
@@ -38,10 +42,6 @@ const worldSize = 2;
 const distance = 2.2; // render distance
 
 // avatar animation constants
-const walkSpeed = 3;
-const runSpeed = 9;
-const crouchSpeed = 2;
-const narutoRunSpeed = 59;
 const maxCrouchTime = 200;
 
 const cameraHeightFactor = 0.8; // the height of the camera in avatar space
@@ -53,22 +53,91 @@ const alphaTest = 0.9;
 
 const planeSpriteMeshes = [];
 const spriteAvatarMeshes = [];
-class SpritePlaneMesh extends THREE.Mesh {
+const globalUpdate = (timestamp, timeDiff, camera) => {
+  if (preview) {
+    for (const planeSpriteMesh of planeSpriteMeshes) {
+      const {duration} = planeSpriteMesh.spriteSpec;
+      const uTime = (timestamp/1000 % duration) / duration;
+      if (isNaN(uTime)) {
+        debugger;
+      }
+      [planeSpriteMesh.material, planeSpriteMesh.customPostMaterial].forEach(material => {
+        if (material?.uniforms) {
+          material.uniforms.uTime.value = uTime;
+          material.uniforms.uTime.needsUpdate = true;
+        }
+      });
+    }
+
+    for (const spriteAvatarMesh of spriteAvatarMeshes) {
+      const {duration} = spriteAvatarMesh.spriteSpec;
+      const uTime = (timestamp/1000 % duration) / duration;
+      if (isNaN(uTime)) {
+        debugger;
+      }
+
+      {
+        localQuaternion
+          .setFromRotationMatrix(
+            localMatrix.lookAt(
+              spriteAvatarMesh.getWorldPosition(localVector),
+              camera.position,
+              localVector2.set(0, 1, 0)
+            )
+          )
+          // .premultiply(app.quaternion.clone().invert());
+        localEuler.setFromQuaternion(localQuaternion, 'YXZ');
+        localEuler.x = 0;
+        localEuler.z = 0;
+        spriteAvatarMesh.quaternion.setFromEuler(localEuler);
+        spriteAvatarMesh.updateMatrixWorld();
+      }
+
+      [
+        spriteAvatarMesh.material,
+        spriteAvatarMesh.customPostMaterial,
+      ].forEach(material => {
+        if (material?.uniforms) {
+          material.uniforms.uTime.value = uTime;
+          material.uniforms.uTime.needsUpdate = true;
+
+          material.uniforms.uY.value = mod(localEuler.y + Math.PI*2/numAngles/2, Math.PI*2) / (Math.PI*2);
+          material.uniforms.uY.needsUpdate = true;
+        }
+      });
+    }
+  }
+};
+const _ensureScheduleGlobalUpdate = (() => {
+  let scheduled = false;
+  return () => {
+    if (!scheduled) {
+      scene.add(cameraMesh);
+      world.appManager.addEventListener('frame', e => {
+        const {timestamp, timeDiff} = e.data;
+        globalUpdate(timestamp, timeDiff, camera);
+      });
+      scheduled = true;
+    }
+  };
+})();
+
+class SpriteAnimationPlaneMesh extends THREE.Mesh {
   constructor(tex, {angleIndex}) {
     const planeSpriteMaterial = new WebaverseShaderMaterial({
       uniforms: {
         uTex: {
-          type: 't',
+          // type: 't',
           value: tex,
-          // needsUpdate: true,
+          needsUpdate: true,
         },
         uTime: {
-          type: 'f',
+          // type: 'f',
           value: 0,
           needsUpdate: true,
         },
         uAngleIndex: {
-          type: 'f',
+          // type: 'f',
           value: angleIndex,
           needsUpdate: true,
         },
@@ -165,11 +234,14 @@ class SpritePlaneMesh extends THREE.Mesh {
               vec2(x, -y)/${numSlots.toFixed(8)} +
               vec2(1.-vUv.x, vUv.y)/${numSlots.toFixed(8)}
           );
+
           // gl_FragColor.r = 1.;
           // gl_FragColor.a = 1.;
+
           if (gl_FragColor.a < ${alphaTest}) {
             discard;
           }
+
           gl_FragColor.a = 1.;
         }
       `,
@@ -188,7 +260,7 @@ class SpritePlaneMesh extends THREE.Mesh {
     return this;
   }
 }
-class SpriteAvatarMesh extends THREE.Mesh {
+class SpriteAnimation360Mesh extends THREE.Mesh {
   constructor(tex) {
     const avatarSpriteMaterial = new WebaverseShaderMaterial({
       uniforms: {
@@ -301,8 +373,10 @@ class SpriteAvatarMesh extends THREE.Mesh {
               vec2(x, -y)/${numSlots.toFixed(8)} +
               vec2(1.-vUv.x, vUv.y)/${numSlots.toFixed(8)}
           );
+
           // gl_FragColor.r = 1.;
           // gl_FragColor.a = 1.;
+
           if (gl_FragColor.a < ${alphaTest}) {
             discard;
           }
@@ -320,29 +394,28 @@ class SpriteAvatarMesh extends THREE.Mesh {
     this.customPostMaterial = new AvatarSpriteDepthMaterial(undefined, {
       tex,
     });
-    // return spriteAvatarMesh;
 
     this.lastSpriteSpecName = '';
     this.lastSpriteSpecTimestamp = 0;
   }
 }
-class SpriteMegaAvatarMesh extends THREE.Mesh {
+class SpriteAvatarMesh extends THREE.Mesh {
   constructor(texs) {
     const tex = texs[0];
     const avatarMegaSpriteMaterial = new WebaverseShaderMaterial({
       uniforms: {
         uTex: {
-          type: 't',
+          // type: 't',
           value: tex,
           needsUpdate: true,
         },
         uTime: {
-          type: 'f',
+          // type: 'f',
           value: 0,
           needsUpdate: true,
         },
         uY: {
-          type: 'f',
+          // type: 'f',
           value: 0,
           needsUpdate: true,
         },
@@ -440,8 +513,10 @@ class SpriteMegaAvatarMesh extends THREE.Mesh {
               vec2(x, -y)/${numSlots.toFixed(8)} +
               vec2(1.-vUv.x, vUv.y)/${numSlots.toFixed(8)}
           );
+
           // gl_FragColor.r = 1.;
           // gl_FragColor.a = 1.;
+
           if (gl_FragColor.a < ${alphaTest}) {
             discard;
           }
@@ -462,7 +537,9 @@ class SpriteMegaAvatarMesh extends THREE.Mesh {
     this.texs = texs;
   }
   setTexture(name) {
-    const tex = this.texs.find(t => t.name === name);
+    const spriteSpecs = getSpriteSpecs();
+    const spriteSpecIndex = spriteSpecs.findIndex(spriteSpec => spriteSpec.name === name);
+    const tex = this.texs[spriteSpecIndex];
     if (tex) {
       this.material.uniforms.uTex.value = tex;
       this.material.uniforms.uTex.needsUpdate = true;
@@ -477,59 +554,7 @@ class SpriteMegaAvatarMesh extends THREE.Mesh {
       return false;
     }
   }
-  update(timestamp, timeDiff, {
-    playerAvatar: avatar,
-    camera,
-  }) {
-    const velocityScaleFactor = 10; // because avatars multiply velocity by 0.1
-
-    if (preview) {
-      for (const planeSpriteMesh of planeSpriteMeshes) {
-        const {duration} = planeSpriteMesh.spriteSpec;
-        const uTime = (timestamp/1000 % duration) / duration;
-        [planeSpriteMesh.material, planeSpriteMesh.customPostMaterial].forEach(material => {
-          if (material?.uniforms) {
-            material.uniforms.uTime.value = uTime;
-            material.uniforms.uTime.needsUpdate = true;
-          }
-        });
-      }
-
-      for (const spriteAvatarMesh of spriteAvatarMeshes) {
-        const {duration} = spriteAvatarMesh.spriteSpec;
-        const uTime = (timestamp/1000 % duration) / duration;
-
-        {
-          localQuaternion
-            .setFromRotationMatrix(
-              localMatrix.lookAt(
-                spriteAvatarMesh.getWorldPosition(localVector),
-                camera.position,
-                localVector2.set(0, 1, 0)
-              )
-            )
-            // .premultiply(app.quaternion.clone().invert());
-          localEuler.setFromQuaternion(localQuaternion, 'YXZ');
-          localEuler.x = 0;
-          localEuler.z = 0;
-          spriteAvatarMesh.quaternion.setFromEuler(localEuler);
-          spriteAvatarMesh.updateMatrixWorld();
-        }
-
-        [
-          spriteAvatarMesh.material,
-          spriteAvatarMesh.customPostMaterial,
-        ].forEach(material => {
-          if (material?.uniforms) {
-            material.uniforms.uTime.value = uTime;
-            material.uniforms.uTime.needsUpdate = true;
-
-            material.uniforms.uY.value = mod(localEuler.y + Math.PI*2/numAngles/2, Math.PI*2) / (Math.PI*2);
-            material.uniforms.uY.needsUpdate = true;
-          }
-        });
-      }
-    }
+  update(timestamp, timeDiff, avatar, camera) {
 
     // matrix transform
     this.position.copy(avatar.inputs.hmd.position);
@@ -553,7 +578,7 @@ class SpriteMegaAvatarMesh extends THREE.Mesh {
     // select the texture
     const spriteSpecName = (() => {
       const playerSide = _getPlayerSide();
-      const currentSpeed = localVector.set(avatar.velocity.x * velocityScaleFactor, 0, avatar.velocity.z * velocityScaleFactor)
+      const currentSpeed = localVector.set(avatar.velocity.x, 0, avatar.velocity.z)
         .length();
 
       if (avatar.jumpState) {
@@ -590,7 +615,7 @@ class SpriteMegaAvatarMesh extends THREE.Mesh {
           }
         }
       } else {
-        const currentSpeed = localVector.set(avatar.velocity.x * velocityScaleFactor, 0, avatar.velocity.z * velocityScaleFactor)
+        const currentSpeed = localVector.set(avatar.velocity.x, 0, avatar.velocity.z)
           .length();
         const idleSpeedDistance = currentSpeed;
         const walkSpeedDistance = Math.abs(walkSpeed - currentSpeed);
@@ -682,14 +707,6 @@ class SpriteMegaAvatarMesh extends THREE.Mesh {
   }
 }
 
-function mod(a, n) {
-  return ((a % n) + n) % n;
-}
-function angleDifference(angle1, angle2) {
-  let a = angle2 - angle1;
-  a = mod(a + Math.PI, Math.PI*2) - Math.PI;
-  return a;
-}
 const animationAngles = [
   {name: 'left', angle: Math.PI/2},
   {name: 'right', angle: -Math.PI/2},
@@ -745,15 +762,17 @@ const planeWarpedGeometry2 = planeGeometry.clone()
     new THREE.Quaternion(),
     new THREE.Vector3().setScalar(spriteScaleFactor),
   ));
+planeWarpedGeometry2.computeBoundingSphere();
 
 const camera2 = new THREE.PerspectiveCamera(60, 1, 0.1, 1000);
 const scene2 = new THREE.Scene();
 scene2.autoUpdate = false;
-const ambientLight = new THREE.AmbientLight(0xFFFFFF, 2);
+/* const ambientLight = new THREE.AmbientLight(0xFFFFFF, 1);
 scene2.add(ambientLight);
-const directionalLight = new THREE.DirectionalLight(0xFFFFFF, 2);
+const directionalLight = new THREE.DirectionalLight(0xFFFFFF, 3);
 directionalLight.position.set(1, 2, 3);
-scene2.add(directionalLight);
+scene2.add(directionalLight); */
+addDefaultLights(scene2);
 
 let spriteSpecs = null;
 const getSpriteSpecs = () => {
@@ -782,7 +801,6 @@ const getSpriteSpecs = () => {
         init({angle, avatar: localRig}) {
           let positionOffset = 0;
           return {
-            reset() {},
             update(timestamp, timeDiffMs) {
               // positionOffset -= walkSpeed/1000 * timeDiffMs;
               
@@ -795,6 +813,8 @@ const getSpriteSpecs = () => {
               localRig.inputs.hmd.position.set(0, localRig.height, positionOffset);
               localRig.inputs.hmd.updateMatrixWorld();
     
+              localRig.velocity.set(0, 0, 0).divideScalar(Math.max(timeDiffMs / 1000, 0.001));
+    
               localRig.update(timestamp, timeDiffMs);
             },
           };
@@ -806,20 +826,26 @@ const getSpriteSpecs = () => {
         init({angle, avatar: localRig}) {
           let positionOffset = 0;
           return {
-            reset() {},
             update(timestamp, timeDiffMs) {
-              positionOffset -= walkSpeed/1000 * timeDiffMs;
+              const moveDistancePerFrame = -walkSpeed/1000 * timeDiffMs;
+              positionOffset += moveDistancePerFrame;
     
               const euler = new THREE.Euler(0, angle, 0, 'YXZ');
               camera2.position.set(0, localRig.height*cameraHeightFactor, positionOffset)
                 .add(new THREE.Vector3(0, 0, -distance).applyEuler(euler));
               camera2.lookAt(new THREE.Vector3(0, localRig.height*cameraHeightFactor, positionOffset));
               camera2.updateMatrixWorld();
+
+              // console.log('update walk position offset', positionOffset, camera2.position.toArray().join(','));
               
               localRig.inputs.hmd.position.set(0, localRig.height, positionOffset);
               localRig.inputs.hmd.updateMatrixWorld();
-    
+
+              localRig.velocity.set(0, 0, moveDistancePerFrame).divideScalar(Math.max(timeDiffMs / 1000, 0.001));
+
               localRig.update(timestamp, timeDiffMs);
+  
+              // globalThis.localRig = localRig;
             },
           };
         },
@@ -830,9 +856,9 @@ const getSpriteSpecs = () => {
         init({angle, avatar: localRig}) {
           let positionOffset = 0;
           return {
-            reset() {},
             update(timestamp, timeDiffMs) {
-              positionOffset -= walkSpeed/1000 * timeDiffMs;
+              const moveDistancePerFrame = -walkSpeed/1000 * timeDiffMs;
+              positionOffset += moveDistancePerFrame;
     
               const euler = new THREE.Euler(0, angle, 0, 'YXZ');
               camera2.position.set(positionOffset, localRig.height*cameraHeightFactor, 0)
@@ -842,6 +868,8 @@ const getSpriteSpecs = () => {
               
               localRig.inputs.hmd.position.set(positionOffset, localRig.height, 0);
               localRig.inputs.hmd.updateMatrixWorld();
+
+              localRig.velocity.set(moveDistancePerFrame, 0, 0).divideScalar(Math.max(timeDiffMs / 1000, 0.001));
     
               localRig.update(timestamp, timeDiffMs);
             },
@@ -854,9 +882,9 @@ const getSpriteSpecs = () => {
         init({angle, avatar: localRig}) {
           let positionOffset = 0;
           return {
-            reset() {},
             update(timestamp, timeDiffMs) {
-              positionOffset += walkSpeed/1000 * timeDiffMs;
+              const moveDistancePerFrame = walkSpeed/1000 * timeDiffMs;
+              positionOffset += moveDistancePerFrame;
     
               const euler = new THREE.Euler(0, angle, 0, 'YXZ');
               camera2.position.set(positionOffset, localRig.height*cameraHeightFactor, 0)
@@ -866,6 +894,8 @@ const getSpriteSpecs = () => {
               
               localRig.inputs.hmd.position.set(positionOffset, localRig.height, 0);
               localRig.inputs.hmd.updateMatrixWorld();
+
+              localRig.velocity.set(moveDistancePerFrame, 0, 0).divideScalar(Math.max(timeDiffMs / 1000, 0.001));
     
               localRig.update(timestamp, timeDiffMs);
             },
@@ -878,9 +908,9 @@ const getSpriteSpecs = () => {
         init({angle, avatar: localRig}) {
           let positionOffset = 0;
           return {
-            reset() {},
             update(timestamp, timeDiffMs) {
-              positionOffset += walkSpeed/1000 * timeDiffMs;
+              const moveDistancePerFrame = walkSpeed/1000 * timeDiffMs;
+              positionOffset += moveDistancePerFrame;
     
               const euler = new THREE.Euler(0, angle, 0, 'YXZ');
               camera2.position.set(0, localRig.height*cameraHeightFactor, positionOffset)
@@ -890,6 +920,8 @@ const getSpriteSpecs = () => {
               
               localRig.inputs.hmd.position.set(0, localRig.height, positionOffset);
               localRig.inputs.hmd.updateMatrixWorld();
+
+              localRig.velocity.set(0, 0, moveDistancePerFrame).divideScalar(Math.max(timeDiffMs / 1000, 0.001));
     
               localRig.update(timestamp, timeDiffMs);
             },
@@ -902,9 +934,9 @@ const getSpriteSpecs = () => {
         init({angle, avatar: localRig}) {
           let positionOffset = 0;
           return {
-            reset() {},
             update(timestamp, timeDiffMs) {
-              positionOffset -= runSpeed/1000 * timeDiffMs;
+              const moveDistancePerFrame = -runSpeed/1000 * timeDiffMs;
+              positionOffset += moveDistancePerFrame;
     
               const euler = new THREE.Euler(0, angle, 0, 'YXZ');
               camera2.position.set(0, localRig.height*cameraHeightFactor, positionOffset)
@@ -914,6 +946,8 @@ const getSpriteSpecs = () => {
               
               localRig.inputs.hmd.position.set(0, localRig.height, positionOffset);
               localRig.inputs.hmd.updateMatrixWorld();
+
+              localRig.velocity.set(0, 0, moveDistancePerFrame).divideScalar(Math.max(timeDiffMs / 1000, 0.001));
     
               localRig.update(timestamp, timeDiffMs);
             },
@@ -926,9 +960,9 @@ const getSpriteSpecs = () => {
         init({angle, avatar: localRig}) {
           let positionOffset = 0;
           return {
-            reset() {},
             update(timestamp, timeDiffMs) {
-              positionOffset -= runSpeed/1000 * timeDiffMs;
+              const moveDistancePerFrame = -runSpeed/1000 * timeDiffMs;
+              positionOffset += moveDistancePerFrame;
               
               const euler = new THREE.Euler(0, angle, 0, 'YXZ');
               camera2.position.set(positionOffset, localRig.height*cameraHeightFactor, 0)
@@ -938,6 +972,8 @@ const getSpriteSpecs = () => {
               
               localRig.inputs.hmd.position.set(positionOffset, localRig.height, 0);
               localRig.inputs.hmd.updateMatrixWorld();
+    
+              localRig.velocity.set(moveDistancePerFrame, 0, 0).divideScalar(Math.max(timeDiffMs / 1000, 0.001));
     
               localRig.update(timestamp, timeDiffMs);
             },
@@ -950,9 +986,9 @@ const getSpriteSpecs = () => {
         init({angle, avatar: localRig}) {
           let positionOffset = 0;
           return {
-            reset() {},
             update(timestamp, timeDiffMs) {
-              positionOffset += runSpeed/1000 * timeDiffMs;
+              const moveDistancePerFrame = runSpeed/1000 * timeDiffMs;
+              positionOffset += moveDistancePerFrame;
               
               const euler = new THREE.Euler(0, angle, 0, 'YXZ');
               camera2.position.set(positionOffset, localRig.height*cameraHeightFactor, 0)
@@ -962,6 +998,8 @@ const getSpriteSpecs = () => {
               
               localRig.inputs.hmd.position.set(positionOffset, localRig.height, 0);
               localRig.inputs.hmd.updateMatrixWorld();
+
+              localRig.velocity.set(moveDistancePerFrame, 0, 0).divideScalar(Math.max(timeDiffMs / 1000, 0.001));
     
               localRig.update(timestamp, timeDiffMs);
             },
@@ -974,9 +1012,9 @@ const getSpriteSpecs = () => {
         init({angle, avatar: localRig}) {
           let positionOffset = 0;
           return {
-            reset() {},
             update(timestamp, timeDiffMs) {
-              positionOffset += runSpeed/1000 * timeDiffMs;
+              const moveDistancePerFrame = runSpeed/1000 * timeDiffMs;
+              positionOffset += moveDistancePerFrame;
               
               const euler = new THREE.Euler(0, angle, 0, 'YXZ');
               camera2.position.set(0, localRig.height*cameraHeightFactor, positionOffset)
@@ -986,6 +1024,8 @@ const getSpriteSpecs = () => {
               
               localRig.inputs.hmd.position.set(0, localRig.height, positionOffset);
               localRig.inputs.hmd.updateMatrixWorld();
+    
+              localRig.velocity.set(0, 0, moveDistancePerFrame).divideScalar(Math.max(timeDiffMs / 1000, 0.001));
     
               localRig.update(timestamp, timeDiffMs);
             },
@@ -1010,11 +1050,12 @@ const getSpriteSpecs = () => {
               localRig.inputs.hmd.position.set(0, localRig.height, positionOffset);
               localRig.inputs.hmd.updateMatrixWorld();
     
+              localRig.velocity.set(0, 0, 0).divideScalar(Math.max(timeDiffMs / 1000, 0.001));
+    
               localRig.crouchTime = 0;
     
               localRig.update(timestamp, timeDiffMs);
             },
-            reset() {},
             cleanup() {
               localRig.crouchTime = maxCrouchTime;
             },
@@ -1028,7 +1069,8 @@ const getSpriteSpecs = () => {
           let positionOffset = 0;
           return {
             update(timestamp, timeDiffMs) {
-              positionOffset -= crouchSpeed/1000 * timeDiffMs;
+              const moveDistancePerFrame = -crouchSpeed/1000 * timeDiffMs;
+              positionOffset += moveDistancePerFrame;
               
               const euler = new THREE.Euler(0, angle, 0, 'YXZ');
               camera2.position.set(0, localRig.height*cameraHeightFactor, positionOffset)
@@ -1038,12 +1080,13 @@ const getSpriteSpecs = () => {
               
               localRig.inputs.hmd.position.set(0, localRig.height, positionOffset);
               localRig.inputs.hmd.updateMatrixWorld();
+
+              localRig.velocity.set(0, 0, moveDistancePerFrame).divideScalar(Math.max(timeDiffMs / 1000, 0.001));
     
               localRig.crouchTime = 0;
     
               localRig.update(timestamp, timeDiffMs);
             },
-            reset() {},
             cleanup() {
               localRig.crouchTime = maxCrouchTime;
             },
@@ -1057,7 +1100,8 @@ const getSpriteSpecs = () => {
           let positionOffset = 0;
           return {
             update(timestamp, timeDiffMs) {
-              positionOffset -= crouchSpeed/1000 * timeDiffMs;
+              const moveDistancePerFrame = -crouchSpeed/1000 * timeDiffMs;
+              positionOffset += moveDistancePerFrame;
               
               const euler = new THREE.Euler(0, angle, 0, 'YXZ');
               camera2.position.set(positionOffset, localRig.height*cameraHeightFactor, 0)
@@ -1067,12 +1111,13 @@ const getSpriteSpecs = () => {
               
               localRig.inputs.hmd.position.set(positionOffset, localRig.height, 0);
               localRig.inputs.hmd.updateMatrixWorld();
+
+              localRig.velocity.set(moveDistancePerFrame, 0, 0).divideScalar(Math.max(timeDiffMs / 1000, 0.001));
     
               localRig.crouchTime = 0;
     
               localRig.update(timestamp, timeDiffMs);
             },
-            reset() {},
             cleanup() {
               localRig.crouchTime = maxCrouchTime;
             },
@@ -1086,7 +1131,8 @@ const getSpriteSpecs = () => {
           let positionOffset = 0;
           return {
             update(timestamp, timeDiffMs) {
-              positionOffset += crouchSpeed/1000 * timeDiffMs;
+              const moveDistancePerFrame = crouchSpeed/1000 * timeDiffMs;
+              positionOffset += moveDistancePerFrame;
               
               const euler = new THREE.Euler(0, angle, 0, 'YXZ');
               camera2.position.set(positionOffset, localRig.height*cameraHeightFactor, 0)
@@ -1096,12 +1142,13 @@ const getSpriteSpecs = () => {
               
               localRig.inputs.hmd.position.set(positionOffset, localRig.height, 0);
               localRig.inputs.hmd.updateMatrixWorld();
+
+              localRig.velocity.set(moveDistancePerFrame, 0, 0).divideScalar(Math.max(timeDiffMs / 1000, 0.001));
     
               localRig.crouchTime = 0;
     
               localRig.update(timestamp, timeDiffMs);
             },
-            reset() {},
             cleanup() {
               localRig.crouchTime = maxCrouchTime;
             },
@@ -1115,7 +1162,8 @@ const getSpriteSpecs = () => {
           let positionOffset = 0;
           return {
             update(timestamp, timeDiffMs) {
-              positionOffset += crouchSpeed/1000 * timeDiffMs;
+              const moveDistancePerFrame = crouchSpeed/1000 * timeDiffMs;
+              positionOffset += moveDistancePerFrame;
               
               const euler = new THREE.Euler(0, angle, 0, 'YXZ');
               camera2.position.set(0, localRig.height*cameraHeightFactor, positionOffset)
@@ -1125,12 +1173,13 @@ const getSpriteSpecs = () => {
               
               localRig.inputs.hmd.position.set(0, localRig.height, positionOffset);
               localRig.inputs.hmd.updateMatrixWorld();
+
+              localRig.velocity.set(0, 0, moveDistancePerFrame).divideScalar(Math.max(timeDiffMs / 1000, 0.001));
     
               localRig.crouchTime = 0;
     
               localRig.update(timestamp, timeDiffMs);
             },
-            reset() {},
             cleanup() {
               localRig.crouchTime = maxCrouchTime;
             },
@@ -1147,7 +1196,8 @@ const getSpriteSpecs = () => {
     
           return {
             update(timestamp, timeDiffMs) {
-              positionOffset -= narutoRunSpeed/1000 * timeDiffMs * 10;
+              const moveDistancePerFrame = -narutoRunSpeed/1000 * timeDiffMs * 10;
+              positionOffset += moveDistancePerFrame;
               
               const euler = new THREE.Euler(0, angle, 0, 'YXZ');
               camera2.position.set(0, localRig.height*cameraHeightFactor, positionOffset)
@@ -1157,6 +1207,8 @@ const getSpriteSpecs = () => {
               
               localRig.inputs.hmd.position.set(0, localRig.height, positionOffset);
               localRig.inputs.hmd.updateMatrixWorld();
+
+              localRig.velocity.set(0, 0, moveDistancePerFrame).divideScalar(Math.max(timeDiffMs / 1000, 0.001));
     
               localRig.narutoRunState = true;
               localRig.narutoRunTime = narutoRunTime;
@@ -1180,8 +1232,7 @@ const getSpriteSpecs = () => {
         init({angle, avatar: localRig}) {
           let positionOffset = 0;
     
-          const defaultJumpTime = 0;
-          let jumpTime = defaultJumpTime;
+          let jumpTime = 0;
           // const jumpIncrementSpeed = 400;
     
           return {
@@ -1197,6 +1248,8 @@ const getSpriteSpecs = () => {
               
               localRig.inputs.hmd.position.set(0, localRig.height, positionOffset);
               localRig.inputs.hmd.updateMatrixWorld();
+
+              localRig.velocity.set(0, 0, 0).divideScalar(Math.max(timeDiffMs / 1000, 0.001));
     
               localRig.jumpState = true;
               localRig.jumpTime = jumpTime;
@@ -1209,7 +1262,7 @@ const getSpriteSpecs = () => {
               localRig.update(timestamp, timeDiffMs);
             },
             reset() {
-              jumpTime = defaultJumpTime;
+              jumpTime = 0;
             },
             cleanup() {
               localRig.jumpState = false;
@@ -1507,8 +1560,32 @@ class AvatarSpriteDepthMaterial extends THREE.MeshNormalMaterial {
   }
 }
 
-const _renderSpriteImages = skinnedVrm => {
-  const localRig = new Avatar(skinnedVrm, {
+/* const _waitForKey = async () => {
+  const p = makePromise();
+  const keydown = e => {
+    if (e.which === 8) { // backspace
+      p.accept();
+    }
+  };
+  window.addEventListener('keydown', keydown);
+  await p;
+  window.removeEventListener('keydown', keydown);
+}; */
+const frameTimeDiff = 1000 / 60; // 60 FPS
+const _waitForIdle = () => new Promise(resolve => {
+  requestIdleCallback(resolve);
+});
+
+export const renderSpriteImages = async (arrayBuffer, srcUrl) => {
+  const avatarRenderer = new AvatarRenderer({
+    arrayBuffer,
+    srcUrl,
+    // camera: camera2, // do not frustum cull
+    quality: maxAvatarQuality,
+  });
+  await avatarRenderer.waitForLoad();
+
+  const localRig = new Avatar(avatarRenderer, {
     fingers: true,
     hair: true,
     visemes: true,
@@ -1520,33 +1597,39 @@ const _renderSpriteImages = skinnedVrm => {
   localRig.setTopEnabled(false);
   localRig.setBottomEnabled(false);
   localRig.faceposes.push({
-    emotion: "emotion-2",
+    emotion: 'emotion-2',
     value: 1,
   });
+
+  if (preview) {
+    _ensureScheduleGlobalUpdate();
+  }
   
-  const skinnedModel = skinnedVrm.scene;
-  skinnedModel.traverse(o => {
+  const model = avatarRenderer.scene;
+  /* model.traverse(o => {
     if (o.isMesh) {
       o.frustumCulled = false;
     }
-  });
+  }); */
 
-  const skeleton = (() => {
+  /* const skeleton = (() => {
     let skeleton = null;
-    skinnedModel.traverse(o => {
+    model.traverse(o => {
       if (skeleton === null && o.isSkinnedMesh) {
         skeleton = o.skeleton;
       }
     });
     return skeleton;
-  })();
-  const rootBone = skeleton.bones.find(b => b.name === 'Root');
+  })(); */
+  // const rootBone = skeleton.bones.find(b => b.name === 'Root');
+  // console.log('got skeleton bones', rootBone, skeleton.bones.map(b => b.name));
 
-  const {renderer, scene} = metaversefile.useInternals();
+  // const {renderer, scene} = metaversefile.useInternals();
+  const renderer = getRenderer();
   const pixelRatio = renderer.getPixelRatio();
   const _renderSpriteFrame = () => {
-    const oldParent = skinnedModel.parent;
-    scene2.add(skinnedModel);
+    const oldParent = model.parent;
+    scene2.add(model);
 
     const rendererSize = renderer.getSize(localVector2D);
     if (rendererSize.x >= texSize && rendererSize.y >= texSize) {
@@ -1565,9 +1648,9 @@ const _renderSpriteImages = skinnedVrm => {
     }
 
     if (oldParent) {
-      oldParent.add(skinnedModel);
+      oldParent.add(model);
     } else {
-      skinnedModel.parent.remove(skinnedModel);
+      model.parent.remove(model);
     }
   };
 
@@ -1575,7 +1658,8 @@ const _renderSpriteImages = skinnedVrm => {
   let canvasIndex2 = 0;
   const spriteImages = [];
   // console.time('render');
-  for (const spriteSpec of spriteSpecs) {
+  for (let i = 0 ; i < spriteSpecs.length; i++) {
+    const spriteSpec = spriteSpecs[i];
     const {name, duration} = spriteSpec;
 
     // console.log('spritesheet', name);
@@ -1583,23 +1667,29 @@ const _renderSpriteImages = skinnedVrm => {
     const canvas = document.createElement('canvas');
     canvas.width = size;
     canvas.height = size;
-    // canvas.style.cssText = `position: fixed; top: ${canvasIndex2*1024}px; left: 0; width: 1024px; height: 1024px; z-index: 10;`;
     const ctx = canvas.getContext('2d');
-    const tex = new THREE.Texture(canvas);
-    tex.name = name;
-    // tex.minFilter = THREE.NearestFilter;
-    // tex.magFilter = THREE.NearestFilter;
+    /* document.body.appendChild(canvas);
+    canvas.style.cssText = `\
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 512px;
+      height: 512px;
+      z-index: 1;
+    `; */
+    
+    let tex;
+    if (preview) {
+      tex = new THREE.Texture(canvas);
+      tex.name = name;
+    }
     let canvasIndex = 0;
     
     // console.log('generate sprite', name);
 
-    // const timeDiff = duration * 1000 / numFrames;
-    const timeDiff = 1000/60; // 60 FPS
     // console.log('compute time diff', timeDiff);
     let angleIndex = 0;
-    for (let angle = 0; angle < Math.PI*2; angle += Math.PI*2/numAngles) {
-      // console.log('angle', angle/(Math.PI*2)*360);
-      
+    for (let angle = 0; angle < Math.PI*2; angle += Math.PI*2/numAngles) {      
       const durationS = duration * 1000;
       const _getCurrentFrame = timestamp => {
         const result = Math.min(Math.floor(timestamp / durationS * numFrames), numFrames);
@@ -1616,40 +1706,28 @@ const _renderSpriteImages = skinnedVrm => {
       // pre-run the animation one cycle first, to stabilize the hair physics
       let now = 0;
       const startAngleIndex = angleIndex;
-      // localRig.springBoneManager.reset();
       {
         const startNow = now;
         for (let j = 0; j < numFrames; j++) {
           while (_getCurrentFrame(now - startNow) < j) {
-            spriteGenerator.update(now, timeDiff);
-            now += timeDiff;
+            spriteGenerator.update(now, frameTimeDiff);
+            now += frameTimeDiff;
           }
         }
       }
-      const initialPositionOffset = localRig.inputs.hmd.position.z;
+      // const initialPositionOffset = localRig.inputs.hmd.position.z;
       
-      spriteGenerator.reset();
+      spriteGenerator.reset && spriteGenerator.reset();
 
       // now perform the real capture
       const startNow = now;
       for (let j = 0; j < numFrames; j++, angleIndex++) {
         while (_getCurrentFrame(now - startNow) < j) {
-          spriteGenerator.update(now, timeDiff);
-          now += timeDiff;
+          spriteGenerator.update(now, frameTimeDiff);
+          now += frameTimeDiff;
         }
 
         _renderSpriteFrame();
-
-        if (preview) {
-          const positionOffset = localRig.inputs.hmd.position.z;
-          rootBone.position.set(0, 0, positionOffset - initialPositionOffset);
-          rootBone.updateMatrixWorld();
-
-          cameraMesh.position.copy(camera2.position);
-          cameraMesh.position.z -= initialPositionOffset;
-          cameraMesh.quaternion.copy(camera2.quaternion);
-          cameraMesh.updateMatrixWorld();
-        }
 
         const x = angleIndex % numSlots;
         const y = (angleIndex - x) / numSlots;
@@ -1658,20 +1736,40 @@ const _renderSpriteImages = skinnedVrm => {
           0, renderer.domElement.height - texSize, texSize, texSize,
           x * texSize, y * texSize, texSize, texSize
         );
-        tex.needsUpdate = true;
+        if (preview) {
+          tex.needsUpdate = true;
 
-        // await _timeout(50);
+          // const angleDegrees = angle/(Math.PI*2)*360;
+          // console.log('frame', spriteSpec, angleDegrees);
+
+          scene.add(model);
+
+          cameraMesh.position.copy(camera2.position);
+          // cameraMesh.position.z -= initialPositionOffset;
+          cameraMesh.quaternion.copy(camera2.quaternion);
+          cameraMesh.updateMatrixWorld();
+
+          // globalThis.model = model;
+          // globalThis.cameraMesh = cameraMesh;
+
+          // pause for preview
+          // await _waitForKey();
+          await _waitForIdle();
+        }
       }
 
       if (preview) {
-        const planeSpriteMesh = new SpritePlaneMesh(tex, {
+        const planeSpriteMesh = new SpriteAnimationPlaneMesh(tex, {
           angleIndex: startAngleIndex,
         });
         planeSpriteMesh.position.set(-canvasIndex*worldSize, 2, -canvasIndex2*worldSize);
-        planeSpriteMesh.updateMatrixWorld();
         planeSpriteMesh.spriteSpec = spriteSpec;
         scene.add(planeSpriteMesh);
+        planeSpriteMesh.updateMatrixWorld();
+        planeSpriteMesh.frustumCulled = false;
         planeSpriteMeshes.push(planeSpriteMesh);
+
+        console.log('add plane sprite mesh', planeSpriteMesh);
       }
 
       spriteGenerator.cleanup && spriteGenerator.cleanup();
@@ -1680,32 +1778,37 @@ const _renderSpriteImages = skinnedVrm => {
     }
 
     if (preview) {
-      const spriteAvatarMesh = new SpriteAvatarMesh(tex);
+      const spriteAvatarMesh = new SpriteAnimation360Mesh(tex);
       spriteAvatarMesh.position.set(
         -canvasIndex*worldSize,
         0,
         -canvasIndex2*worldSize,
       );
-      spriteAvatarMesh.updateMatrixWorld();
       spriteAvatarMesh.spriteSpec = spriteSpec;
       scene.add(spriteAvatarMesh); 
+      spriteAvatarMesh.updateMatrixWorld();
+      spriteAvatarMesh.frustumCulled = false;
       spriteAvatarMeshes.push(spriteAvatarMesh);
     }
     
     canvasIndex2++;
 
-    spriteImages.push(tex);
+    spriteImages.push(canvas);
   }
-  // console.timeEnd('render');
 
   return spriteImages;
 };
-function createSpriteMegaMesh(skinnedVrm) {
-  const spriteImages = _renderSpriteImages(skinnedVrm);
-  const spriteMegaAvatarMesh = new SpriteMegaAvatarMesh(spriteImages);
-  return spriteMegaAvatarMesh;
-}
-
-export {
-  createSpriteMegaMesh
+export const createSpriteAvatarMeshFromTextures = spriteImages => {
+  const spriteTextures = spriteImages.map(img => {
+    const t = new THREE.Texture(img);
+    t.needsUpdate = true;
+    return t;
+  });
+  const spriteAvatarMesh = new SpriteAvatarMesh(spriteTextures);
+  spriteAvatarMesh.frustumCulled = false;
+  return spriteAvatarMesh;
 };
+/* export const createSpriteAvatarMesh = skinnedVrm => {
+  let spriteImages = renderSpriteImages(skinnedVrm); // XXX make this non-async
+  return createSpriteAvatarMeshFromTextures(spriteImages);
+}; */
