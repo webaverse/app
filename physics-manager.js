@@ -415,50 +415,25 @@ class PhysicsScene extends EventTarget {
     physicsMesh.updateMatrixWorld();
     return physicsObject
   }
-  
-  cookHeightFieldGeometry() {
-    /* console_test
-      physicsManager.getScene().cookHeightFieldGeometry()
-    */
-    const physicsId = getNextPhysicsId()
-    physx.physxWorker.cookHeightFieldGeometryPhysics(
-      this.scene,
-      physicsId,
-    )
-  
-    // const physicsObject = _makePhysicsObject(
-    //   physicsId,
-    //   position,
-    //   quaternion,
-    //   localVector2.set(1, 1, 1)
-    // )
-    // const physicsMesh = new THREE.Mesh(new THREE.BoxGeometry(2, 2, 2), redMaterial)
-    // physicsMesh.scale.copy(size)
-    // physicsMesh.visible = false
-    // physicsObject.add(physicsMesh)
-    // physicsObject.updateMatrixWorld()
-    // const { bounds } = this.getGeometryForPhysicsId(physicsId)
-    // physicsMesh.geometry.boundingBox = new THREE.Box3(
-    //   new THREE.Vector3().fromArray(bounds, 0),
-    //   new THREE.Vector3().fromArray(bounds, 3)
-    // )
-    // physicsObject.physicsMesh = physicsMesh
-    // return physicsObject
-  }
-  addHeightFieldGeometry(dynamic = false, external = false) {
+
+  addHeightFieldGeometry(width, height, dynamic = false, external = false) {
+    // width and height must int.
+
     // const physicsMesh = convertMeshToPhysicsMesh(mesh)
-  
+
     const physicsId = getNextPhysicsId()
     const heightField = physx.physxWorker.addHeightFieldGeometryPhysics(
       this.scene,
       // physicsMesh,
+      width,
+      height,
       dynamic,
       external,
       physicsId
     )
     console.log({heightField})
     // physicsMesh.geometry = this.extractPhysicsGeometryForId(physicsId)
-  
+
     // const physicsObject = _makePhysicsObject(
     //   physicsId,
     //   mesh.position,
