@@ -2,49 +2,42 @@
 it starts the workers and routes calls for the procgen system. */
 
 import {murmurhash3} from './procgen/procgen.js';
-import {DcWorkerManager} from './dc-worker-manager.js';
+import {PGWorkerManager} from './pg-worker-manager.js';
 import {LodChunkTracker} from './lod.js';
-import {LightMapper} from './light-mapper.js';
-import {HeightfieldMapper} from './heightfield-mapper.js';
 import {defaultChunkSize} from './constants.js';
-
-const chunkSize = defaultChunkSize;
-const terrainWidthInChunks = 4;
-const terrainSize = chunkSize * terrainWidthInChunks;
 
 class ProcGenInstance {
   constructor(instance, {
     chunkSize,
-    range,
   }) {
     this.chunkSize = chunkSize;
 
     const seed = typeof instance === 'string' ? murmurhash3(instance) : Math.floor(Math.random() * 0xFFFFFF);
-    this.dcWorkerManager = new DcWorkerManager({
+    this.pgWorkerManager = new PGWorkerManager({
       chunkSize,
       seed,
       instance,
     });
-    this.range = range;
 
-    this.lightmapper = null;
-    this.heightfieldMapper = null;
-
-    if (range) {
-      this.dcWorkerManager.setClipRange(range);
-    }
+    // this.lightmapper = null;
+    // this.heightfieldMapper = null;
   }
-  getChunkTracker(opts = {}) {
+  setClipRange() {
+    this.pgWorkerManager.setClipRange(range);
+  }
+  async createLodChunkTracker(opts = {}) {
+    await this.pgWorkerManager.waitForLoad();
+
     const opts2 = structuredClone(opts);
-    const {chunkSize, range} = this;
+    const {chunkSize} = this;
     opts2.chunkSize = chunkSize;
-    opts2.range = range;
-    opts2.dcWorkerManager = this.dcWorkerManager;
+    // opts2.range = range;
+    opts2.pgWorkerManager = this.pgWorkerManager;
 
     const tracker = new LodChunkTracker(opts2);
     return tracker;
   }
-  getLightMapper({
+  /* async getLightMapper({
     size,
     debug = false,
   }) {
@@ -61,7 +54,7 @@ class ProcGenInstance {
     }
     return this.lightmapper;
   }
-  getHeightfieldMapper({
+  async getHeightfieldMapper({
     size,
     debug = false,
   } = {}) {
@@ -73,7 +66,7 @@ class ProcGenInstance {
       });
     }
     return this.heightfieldMapper;
-  }
+  } */
 }
 
 class ProcGenManager {
@@ -83,13 +76,12 @@ class ProcGenManager {
     this.instances = new Map();
     this.chunkSize = chunkSize;
   }
-  getInstance(key, range) {
+  getInstance(key) {
     let instance = this.instances.get(key);
     if (!instance) {
       const {chunkSize} = this;
       instance = new ProcGenInstance(key, {
         chunkSize,
-        range,
       });
       this.instances.set(key, instance);
     }
