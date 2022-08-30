@@ -17,6 +17,7 @@ import NFTDetailsForm from './components/web3/NFTDetailsForm';
 import { isChainSupported } from './hooks/useChain';
 import { ChainContext } from './hooks/chainProvider';
 import { AccountContext } from './hooks/web3AccountProvider';
+import Web3 from '../web3.min.js';
 
 const APP_3D_TYPES = ['glb', 'gltf', 'vrm'];
 const timeCount = 6000;
@@ -96,7 +97,7 @@ const DragAndDrop = () => {
   const {state, setState, account, chain} = useContext(AppContext);
   const [queue, setQueue] = useState([]);
   const [currentApp, setCurrentApp] = useState(null);
-  const {mintNFT, minting, error, setError} = useNFTContract(account.currentAddress);
+  const {mintNFT, minting, error, setError, WebaversecontractAddress} = useNFTContract(account.currentAddress);
   const [mintComplete, setMintComplete] = useState(false);
   const [pendingTx, setPendingTx] = useState(false);
   const [previewImage, setPreviewImage] = useState(null);
@@ -172,7 +173,7 @@ const DragAndDrop = () => {
           const j = getObjectJson();
           if (app) {
             if (j && j.claimed) {
-              world.appManager.importClaimedApp(app, j, account.currentAddress);
+              world.appManager.importClaimedApp(app, j, account.currentAddress, WebaversecontractAddress);
               setState({ openedPanel: null });
             } else if (drop) {
               world.appManager.importApp(app);

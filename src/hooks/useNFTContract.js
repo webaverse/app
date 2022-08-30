@@ -353,5 +353,6 @@ export default function useNFTContract(currentAccount) {
     getTokenIdsOf,
     error,
     setError,
+    WebaversecontractAddress
   };
 }

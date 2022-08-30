@@ -600,7 +600,7 @@ class AppManager extends EventTarget {
       self.bindTrackedApp(dstTrackedApp, app);
     });
   }
-  importClaimedApp(app, json, signerAddress) {
+  importClaimedApp(app, json, signerAddress, WebaversecontractAddress) {
     console.log("app+ json", app, json)
     const dropManager = metaversefile.useDropManager();
     dropManager.createDropApp({
@@ -626,7 +626,8 @@ class AppManager extends EventTarget {
         .add(new THREE.Vector3(0, 0.7, 0)),
       quaternion: app.quaternion,
       scale: app.scale,
-      signerAddress
+      signerAddress,
+      WebaversecontractAddress
     });
   }
   hasApp(app) {
