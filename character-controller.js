@@ -1136,10 +1136,21 @@ class LocalPlayer extends UninterpolatedPlayer {
     });
   }
   grab(app, hand = 'left') {
-    const {position, quaternion} = _getSession() ?
-      localPlayer[hand === 'left' ? 'leftHand' : 'rightHand']
-    :
-      camera;
+    // const {position, quaternion} = _getSession() ?
+    //   this[hand === 'left' ? 'leftHand' : 'rightHand']
+    // :
+    //   camera;
+    let position   = null,
+        quaternion = null;
+
+    if(_getSession()) {
+      const h = this[hand === 'left' ? 'leftHand' : 'rightHand'];
+      position = h.position;
+      quaternion = h.quaternion;
+    } else {
+      position = this.position;
+      quaternion = camera.quaternion;
+    }
 
     app.updateMatrixWorld();
     app.savedRotation = app.rotation.clone();
