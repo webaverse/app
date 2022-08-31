@@ -33,6 +33,7 @@ const localVector3 = new THREE.Vector3();
 const localVector4 = new THREE.Vector3();
 const localVector5 = new THREE.Vector3();
 const localVector6 = new THREE.Vector3();
+const localVector7 = new THREE.Vector3();
 // const localVector2D = new THREE.Vector2();
 const localQuaternion = new THREE.Quaternion();
 const localQuaternion2 = new THREE.Quaternion();
@@ -81,7 +82,7 @@ const _unwearAppIfHasSitComponent = (player) => {
 
 // returns whether we actually snapped
 function updateGrabbedObject(o, grabMatrix, offsetMatrix, {collisionEnabled, handSnapEnabled, physx, gridSnap}) {
-  // object, playerMatrix, objectMatrix
+  
   grabMatrix.decompose(localVector, localQuaternion, localVector2);
   
   offsetMatrix.decompose(localVector3, localQuaternion2, localVector4);
@@ -108,10 +109,17 @@ function updateGrabbedObject(o, grabMatrix, offsetMatrix, {collisionEnabled, han
   }
 
   {
-    // o.position.applyQuaternion(localQuaternion);
+    const pObj = o.getPhysicsObjects()[0];
+    const bb = pObj.physicsMesh.geometry.boundingBox;
+    const d = localVector7.copy(bb.max.sub(bb.min));
+    const {x, y, z} = d;
+    const col = physicsScene.overlapBox(x, y, z, pObj.position, pObj.quaternion);
+    if(col.objectIds.length > 0) {
+      console.log(col);
+    }
   }
 
-  const handSnap = !handSnapEnabled || offset >= maxGrabDistance; // || !!collision;
+  const handSnap = !handSnapEnabled || offset >= maxGrabDistance || !!collision;
   if (handSnap) {
     snapPosition(o, gridSnap);
     o.quaternion.setFromEuler(o.savedRotation);
