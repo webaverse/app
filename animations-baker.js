@@ -554,7 +554,7 @@ const {CharsetEncoder} = require('three/examples/js/libs/mmdparser.js');
         }
       });
       // console.log('got bones', bones.map(b => b.name));
-      const rootBone = bones.find(b => b.name === 'mixamorigRightShoulder');; // not really a bone
+      const rootBone = object; // not really a bone
       const leftHandBone = bones.find(b => b.name === 'mixamorigLeftHand');
       const rightHandBone = bones.find(b => b.name === 'mixamorigRightHand');
       const epsilon = 0.2;
