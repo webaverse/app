@@ -23,7 +23,6 @@ export const setFacePoseValue = (emotion, value) => {
         localPlayer.removeActionIndex( facePoseActionIndex );
 
     }
-
     const emoteList = localPlayer.getActionsState().binding.e.filter(a => a.type === 'facepose');
     const emoteSum = emoteList.reduce((sum, emote) => {
         return sum + emote.value;
@@ -123,7 +122,7 @@ export const Emotions = ({
     useEffect( () => {
 
         const actionadd = e => {
-            
+
             const {action} = e;
             if (action.type === 'facepose') {
                 const {emotion, value} = action;
