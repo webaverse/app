@@ -403,6 +403,10 @@ const _startHacks = webaverse => {
   // const columnScale = 1; // z axis
   // physicsManager.getScene().addHeightFieldGeometry(numRows, numColumns, heightScale, rowScale, columnScale);
 
+  // physicsManager.getScene().addHeightFieldGeometry(2, 2, [0, 0, 1, 1], 1, 1, 1);
+  // physicsManager.getScene().addHeightFieldGeometry(2, 2, [0, 1, 0, 1], 1, 1, 1);
+  // physicsManager.getScene().addHeightFieldGeometry(3, 3, [0, 0, 0, 1, 1, 1, 10, 10, 10], 1, 1, 1);
+
   // press R to debug current state in console
   window.addEventListener('keydown', event => {
     if (event.key === '}') {
