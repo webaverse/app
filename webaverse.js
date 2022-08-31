@@ -396,12 +396,12 @@ const _startHacks = webaverse => {
 
   window.isDebugger = false;
 
-  const numRows = 10; // x axis
-  const numColumns = 5; // z axis
-  const heightScale = 1;
-  const rowScale = 1; // x axis
-  const columnScale = 1; // z axis
-  physicsManager.getScene().addHeightFieldGeometry(numRows, numColumns, heightScale, rowScale, columnScale);
+  // const numRows = 10; // x axis
+  // const numColumns = 5; // z axis
+  // const heightScale = 1;
+  // const rowScale = 1; // x axis
+  // const columnScale = 1; // z axis
+  // physicsManager.getScene().addHeightFieldGeometry(numRows, numColumns, heightScale, rowScale, columnScale);
 
   // press R to debug current state in console
   window.addEventListener('keydown', event => {
