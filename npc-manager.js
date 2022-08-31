@@ -142,11 +142,11 @@ class NpcManager extends EventTarget {
         };
         app.addEventListener('hittrackeradded', hittrackeradd);
 
-        let npcActive = false;
-        const activate = () => {
-          npcActive = true;
-        };
-        app.addEventListener('activate', activate);
+        // let npcActive = false;
+        // const activate = () => {
+        //   npcActive = true;
+        // };
+        // app.addEventListener('activate', activate);
 
         const getRandomTarget = maxDistance => {
           const n = () => (Math.random() - 0.5) * 2 * maxDistance;
@@ -163,24 +163,23 @@ class NpcManager extends EventTarget {
         const frame = e => {
           if (npcPlayer && physicsScene.getPhysicsEnabled()) {
             const {timestamp, timeDiff} = e.data;
-            if(npcActive) {
-              if(!target) {
-                target = getRandomTarget(4);
+            if(!target) {
+              target = getRandomTarget(4);
+            } else {
+              timePassed += timeDiff;
+              v = localVector2.copy(target).sub(npcPlayer.position);
+              v.y = 0;
+              const distance = v.length();
+              if(distance < 0.5 || timePassed > 5000) {
+                target = null;
+                timePassed = 0;
               } else {
-                timePassed += timeDiff;
-                v = localVector2.copy(target).sub(npcPlayer.position);
-                v.y = 0;
-                const distance = v.length();
-                if(distance < 0.5 || timePassed > 5000) {
-                  target = null;
-                  timePassed = 0;
-                } else {
-                  const speed = Math.min(Math.max(walkSpeed + ((distance - 0.3) * speedDistanceRate), 0), runSpeed);
-                  v.normalize().multiplyScalar(speed * timeDiff);
-                  npcPlayer.characterPhysics.applyWasd(v);
-                }
+                const speed = Math.min(Math.max(walkSpeed + ((distance - 0.3) * speedDistanceRate), 0), runSpeed);
+                v.normalize().multiplyScalar(speed * timeDiff);
+                npcPlayer.characterPhysics.applyWasd(v);
               }
             }
+            
 
             // if (targetSpec) {
             //   const target = targetSpec.object;
