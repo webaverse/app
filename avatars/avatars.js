@@ -134,6 +134,7 @@ const upVector = new THREE.Vector3(0, 1, 0);
 import {
   animations,
   animationStepIndices,
+  animationComboIndices,
 } from './animationHelpers.js';
 
 const cubicBezier = easing(0, 1, 0, 1);
@@ -2187,6 +2188,7 @@ class Avatar {
 Avatar.waitForLoad = () => loadPromise;
 Avatar.getAnimations = () => animations;
 Avatar.getAnimationStepIndices = () => animationStepIndices;
+Avatar.getanimationComboIndices = () => animationComboIndices;
 Avatar.getAnimationMappingConfig = () => animationMappingConfig;
 
 Avatar.getClosest2AnimationAngles = getClosest2AnimationAngles;

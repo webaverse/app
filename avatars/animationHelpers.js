@@ -58,6 +58,7 @@ const identityQuaternion = new Quaternion();
 
 let animations;
 let animationStepIndices;
+let animationComboIndices;
 // let animationsBaseModel;
 let jumpAnimation;
 let doubleJumpAnimation;
@@ -179,6 +180,7 @@ async function loadAnimations() {
   animations = animationsJson.animations
     .map(a => AnimationClip.parse(a));
   animationStepIndices = animationsJson.animationStepIndices;
+  animationComboIndices = animationsJson.animationComboIndices;
   animations.index = {};
   for (const animation of animations) {
     animations.index[animation.name] = animation;
@@ -1480,6 +1482,7 @@ export const _applyAnimation = (avatar, now) => {
 export {
   animations,
   animationStepIndices,
+  animationComboIndices,
   emoteAnimations,
   // cubicBezier,
 };
