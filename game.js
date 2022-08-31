@@ -81,9 +81,13 @@ const _unwearAppIfHasSitComponent = (player) => {
 
 // returns whether we actually snapped
 function updateGrabbedObject(o, grabMatrix, offsetMatrix, {collisionEnabled, handSnapEnabled, physx, gridSnap}) {
+  // object, playerMatrix, objectMatrix
   grabMatrix.decompose(localVector, localQuaternion, localVector2);
+  
   offsetMatrix.decompose(localVector3, localQuaternion2, localVector4);
+  
   const offset = localVector3.length();
+  
   localMatrix.multiplyMatrices(grabMatrix, offsetMatrix)
     .decompose(localVector5, localQuaternion3, localVector6);
 
@@ -98,11 +102,16 @@ function updateGrabbedObject(o, grabMatrix, offsetMatrix, {collisionEnabled, han
       collision = null;
     }
   }
+
   if (!collision) {
     o.position.copy(localVector5);
   }
 
-  const handSnap = !handSnapEnabled || offset >= maxGrabDistance || !!collision;
+  {
+    // o.position.applyQuaternion(localQuaternion);
+  }
+
+  const handSnap = !handSnapEnabled || offset >= maxGrabDistance; // || !!collision;
   if (handSnap) {
     snapPosition(o, gridSnap);
     o.quaternion.setFromEuler(o.savedRotation);
@@ -542,6 +551,7 @@ const _gameUpdate = (timestamp, timeDiff) => {
       const grabbedObject = _getGrabbedObject(i);
       if (grabbedObject && !_isWear(grabbedObject)) {
 
+        const avatarHeight = localPlayer.avatar ? localPlayer.avatar.height : 0;
         let position   = null,
             quaternion = null;
 
@@ -550,7 +560,7 @@ const _gameUpdate = (timestamp, timeDiff) => {
           position = h.position;
           quaternion = h.quaternion;
         } else {
-          position = localPlayer.position;
+          position = localVector2.copy(localPlayer.position).add(localVector3.set(0, avatarHeight, 0));
           quaternion = camera.quaternion;
         }
 

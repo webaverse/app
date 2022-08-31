@@ -54,6 +54,7 @@ import overrides from './overrides.js';
 
 const localVector = new THREE.Vector3();
 const localVector2 = new THREE.Vector3();
+const localVector3 = new THREE.Vector3();
 // const localQuaternion = new THREE.Quaternion();
 // const localQuaternion2 = new THREE.Quaternion();
 const localMatrix = new THREE.Matrix4();
@@ -1140,6 +1141,7 @@ class LocalPlayer extends UninterpolatedPlayer {
     //   this[hand === 'left' ? 'leftHand' : 'rightHand']
     // :
     //   camera;
+    const avatarHeight = this.avatar ? this.avatar.height : 0;
     let position   = null,
         quaternion = null;
 
@@ -1148,7 +1150,7 @@ class LocalPlayer extends UninterpolatedPlayer {
       position = h.position;
       quaternion = h.quaternion;
     } else {
-      position = this.position;
+      position = localVector2.copy(this.position).add(localVector3.set(0, avatarHeight, 0));
       quaternion = camera.quaternion;
     }
 
