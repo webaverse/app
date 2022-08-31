@@ -553,6 +553,8 @@ const {CharsetEncoder} = require('three/examples/js/libs/mmdparser.js');
           bones.push(bone);
         }
       });
+      // console.log('got bones', bones.map(b => b.name));
+      const rootBone = bones.find(b => b.name === 'mixamorigRightShoulder');; // not really a bone
       const leftHandBone = bones.find(b => b.name === 'mixamorigLeftHand');
       const rightHandBone = bones.find(b => b.name === 'mixamorigRightHand');
       const epsilon = 0.2;
@@ -617,6 +619,7 @@ const {CharsetEncoder} = require('three/examples/js/libs/mmdparser.js');
             bone.quaternion.copy(bone.initialQuaternion);
           }
         }
+        rootBone.updateMatrixWorld(true);
         const fbxScale = 100;
         const leftHand = new THREE.Vector3().setFromMatrixPosition(leftHandBone.matrixWorld).divideScalar(fbxScale);
         const rightHand = new THREE.Vector3().setFromMatrixPosition(rightHandBone.matrixWorld).divideScalar(fbxScale);
@@ -635,6 +638,7 @@ const {CharsetEncoder} = require('three/examples/js/libs/mmdparser.js');
         lastRightHandPos.set(rightHand.x, rightHand.y, rightHand.z);
       }
 
+      
       console.log('got', leftHandDeltas, rightHandDeltas, maxLeftDeltaIndex, maxRightDeltaIndex);
       
       return {
