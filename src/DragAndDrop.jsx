@@ -18,6 +18,8 @@ import { isChainSupported } from './hooks/useChain';
 import { ChainContext } from './hooks/chainProvider';
 import { AccountContext } from './hooks/web3AccountProvider';
 import Web3 from '../web3.min.js';
+import ioManager from '../io-manager.js';
+
 
 const APP_3D_TYPES = ['glb', 'gltf', 'vrm'];
 const timeCount = 6000;
@@ -173,9 +175,14 @@ const DragAndDrop = () => {
           const j = getObjectJson();
           if (app) {
             if (j && j.claimed) {
-              world.appManager.importClaimedApp(app, j, account.currentAddress, WebaversecontractAddress);
+              if(ioManager.keys.ctrl) {
+                world.appManager.importClaimedApp(app, j, account.currentAddress, WebaversecontractAddress);
+              } else {
+                world.appManager.importApp(app);
+              }
               setState({ openedPanel: null });
             } else if (drop) {
+                console.log("swapns drop", j, drop)
               world.appManager.importApp(app);
               setState({ openedPanel: null });
             } else {
