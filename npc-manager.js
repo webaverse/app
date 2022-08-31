@@ -11,6 +11,7 @@ import { triggerEmote } from './src/components/general/character/Poses.jsx';
 import validEmotionMapping from "./validEmotionMapping.json";
 
 const localVector = new THREE.Vector3();
+const localVector2 = new THREE.Vector3();
 
 const physicsScene = physicsManager.getScene();
 const cancelFnMap = new WeakMap();
@@ -141,41 +142,61 @@ class NpcManager extends EventTarget {
         };
         app.addEventListener('hittrackeradded', hittrackeradd);
 
+        let npcActive = false;
         const activate = () => {
-          if (targetSpec?.object !== localPlayer) {
-            targetSpec = {
-              type: 'follow',
-              object: localPlayer,
-            };
-          } else {
-            targetSpec = null;
-          }
+          npcActive = true;
         };
         app.addEventListener('activate', activate);
+
+        const getRandomTarget = maxDistance => {
+          const n = () => (Math.random() - 0.5) * 2 * maxDistance;
+          return localVector.set(n(), 0, n());
+        };
 
         const slowdownFactor = 0.4;
         const walkSpeed = 0.075 * slowdownFactor;
         const runSpeed = walkSpeed * 8;
         const speedDistanceRate = 0.07;
+        let target = null;
+        let v = null;
+        let timePassed = 0;
         const frame = e => {
           if (npcPlayer && physicsScene.getPhysicsEnabled()) {
             const {timestamp, timeDiff} = e.data;
-            
-            if (targetSpec) {
-              const target = targetSpec.object;
-              const v = localVector.setFromMatrixPosition(target.matrixWorld)
-                .sub(npcPlayer.position);
-              v.y = 0;
-              const distance = v.length();
-              if (targetSpec.type === 'moveto' && distance < 2) {
-                targetSpec = null;
+            if(npcActive) {
+              if(!target) {
+                target = getRandomTarget(4);
               } else {
-                const speed = Math.min(Math.max(walkSpeed + ((distance - 1.5) * speedDistanceRate), 0), runSpeed);
-                v.normalize()
-                  .multiplyScalar(speed * timeDiff);
-                npcPlayer.characterPhysics.applyWasd(v);
+                timePassed += timeDiff;
+                v = localVector2.copy(target).sub(npcPlayer.position);
+                v.y = 0;
+                const distance = v.length();
+                if(distance < 0.5 || timePassed > 5000) {
+                  target = null;
+                  timePassed = 0;
+                } else {
+                  const speed = Math.min(Math.max(walkSpeed + ((distance - 0.3) * speedDistanceRate), 0), runSpeed);
+                  v.normalize().multiplyScalar(speed * timeDiff);
+                  npcPlayer.characterPhysics.applyWasd(v);
+                }
               }
             }
+
+            // if (targetSpec) {
+            //   const target = targetSpec.object;
+            //   const v = localVector.setFromMatrixPosition(target.matrixWorld)
+            //     .sub(npcPlayer.position);
+            //   v.y = 0;
+            //   const distance = v.length();
+            //   if (targetSpec.type === 'moveto' && distance < 2) {
+            //     targetSpec = null;
+            //   } else {
+            //     const speed = Math.min(Math.max(walkSpeed + ((distance - 1.5) * speedDistanceRate), 0), runSpeed);
+            //     v.normalize()
+            //       .multiplyScalar(speed * timeDiff);
+            //     npcPlayer.characterPhysics.applyWasd(v);
+            //   }
+            // }
 
             npcPlayer.setTarget(localPlayer.position);
 
