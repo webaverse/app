@@ -1,7 +1,7 @@
 import * as THREE from 'three';
 import metaversefile from 'metaversefile';
 import generateStats from './procgen/stats.js';
-import { getVoucherFromServer, getVoucherFromUserAccount } from './src/hooks/voucherHelpers'
+import { getVoucherFromServer, getVoucherFromUser } from './src/hooks/voucherHelpers'
 // import { uploadMetadata } from './util.js';
 // import {registerLoad} from './src/LoadingBox.jsx';
 // const FILE_ADDRESS = 'https://ipfs.webaverse.com/ipfs/';
@@ -35,8 +35,7 @@ class DropManager extends EventTarget {
         voucher = await getVoucherFromServer(start_url); 
         serverDrop = true;
     } else if(voucher == 'claimVoucher') {
-        voucher = await getVoucherFromUserAccount(tokenId, signerAddress, WebaversecontractAddress)
-        console.log("UserDrop", voucher)
+        voucher = await getVoucherFromUser(tokenId, signerAddress, WebaversecontractAddress)
         serverDrop = false;
     }
     const dropComponent = {
