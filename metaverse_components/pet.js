@@ -64,6 +64,7 @@ export default (app, component) => {
       petMixer = m.petMixer;
       idleAction = m.idleAction;
       player = null;
+      app.removeEventListener('die', _destroy);
     }
   };
   app.addEventListener('wearupdate', e => {
@@ -84,6 +85,10 @@ export default (app, component) => {
             runAction = petMixer.clipAction(runAnimation);
             runAction.play();
           }
+          const _destroy = () => {
+            player.unwear(app, {destroy: true});
+          };
+          app.addEventListener('die', _destroy);
         }
       }
     } else {
