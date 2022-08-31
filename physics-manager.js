@@ -422,7 +422,6 @@ class PhysicsScene extends EventTarget {
     const physicsId = getNextPhysicsId()
     const heightField = physx.physxWorker.addHeightFieldGeometryPhysics(
       this.scene,
-      // physicsMesh,
       numRows,
       numColumns,
       heights,
@@ -433,7 +432,6 @@ class PhysicsScene extends EventTarget {
       external,
       physicsId
     )
-    console.log({heightField})
     // physicsMesh.geometry = this.extractPhysicsGeometryForId(physicsId)
 
     const physicsObject = _makePhysicsObject(

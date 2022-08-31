@@ -1685,11 +1685,8 @@ const physxWorker = (() => {
   };
 
   w.addHeightFieldGeometryPhysics = (physics, numRows, numColumns, heights, heightScale, rowScale, columnScale, dynamic, external, id) => {
-    // numRows and numColumns must int.
+    // numRows, numColumns and heights must be int.
 
-    // mesh.updateMatrixWorld()
-
-    // heights
     const numVerts = numRows * numColumns;
     for (let i = 0; i < numVerts; i++) {
       scratchStack.u32[i] = heights[i];
@@ -1714,19 +1711,6 @@ const physxWorker = (() => {
       dataLength,
       streamPtr,
     )
-
-    // return heightField;
-
-    // const positionBuffer = scratchStack.f32.subarray(3, 6)
-    // mesh.getWorldPosition(localVector).toArray(positionBuffer)
-    // const quaternionBuffer = scratchStack.f32.subarray(6, 10)
-    // mesh.getWorldQuaternion(localQuaternion).toArray(quaternionBuffer)
-    // const scaleBuffer = scratchStack.f32.subarray(10, 13)
-    // mesh.getWorldScale(localVector2).toArray(scaleBuffer)
-    // /* const mat = scratchStack.f32.subarray(13, 16)
-    // mat[0] = physicsMaterial[0]
-    // mat[1] = physicsMaterial[1]
-    // mat[2] = physicsMaterial[2] */
 
     const materialAddress = w.getDefaultMaterial(physics);
 

@@ -413,13 +413,6 @@ export const _applyAnimation = (avatar, now) => {
   const landTimeSeconds = timeSeconds - avatar.lastLandStartTime / 1000 + 0.8; // in order to align landing 2.fbx with walk/run
   const {idleWalkFactor, walkRunFactor, crouchFactor} = avatar;
 
-  if (!avatar.testaaa) {
-    const player = metaversefile.getPlayerByAppInstanceId(avatar.app.getComponent('instanceId'));
-    console.log({player});
-
-    avatar.testaaa = true;
-  }
-
   /* const _getAnimationKey = crouchState => {
     if (crouchState) {
       return 'crouch';
@@ -1169,7 +1162,7 @@ export const _applyAnimation = (avatar, now) => {
         const v2 = src2.evaluate(t2);
 
         if (isTop) {
-          if (boneName === 'Left_arm' /* 8 */ || boneName === 'Right_arm' /* 27 */) {
+          if (boneName === 'Left_arm' || boneName === 'Right_arm') {
             dst.fromArray(v2);
           } else {
             if (isArm) {
