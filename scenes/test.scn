@@ -12,9 +12,11 @@
       "content": {
         "lightType": "directional",
         "args": [[255, 255, 255], 2],
-        "position": [1, 2, 3]
+        "position": [100, 2, 3]
       }
     },
+
+    { "position": [ 0, 0, 0 ], "scale": [ 1, 1, 1 ], "start_url": "http://localhost/lib/webaverse_resource/physicsheightfield/" },
 
     { "position": [ 0, 0, 0 ], "scale": [1, 1, 1], "start_url": "http://localhost/lib/webaverse_resource/block/grid.glb" }
   ]
