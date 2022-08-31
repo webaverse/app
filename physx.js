@@ -1684,14 +1684,22 @@ const physxWorker = (() => {
     return shapeAddress;
   };
 
-  w.addHeightFieldGeometryPhysics = (physics, width, height, heightScale, rowScale, columnScale, dynamic, external, id) => {
-    // width and height must int.
+  w.addHeightFieldGeometryPhysics = (physics, numRows, numColumns, heightScale, rowScale, columnScale, dynamic, external, id) => {
+    // numRows and numColumns must int.
 
     // mesh.updateMatrixWorld()
 
+    // heights
+    const numVerts = numRows * numColumns;
+    for (let i = 0; i < numVerts; i++) {
+      const height = 1
+      scratchStack.u32[i] = height;
+    }
+
     Module._cookHeightFieldGeometryPhysics(
-      width,
-      height,
+      numRows,
+      numColumns,
+      scratchStack.ptr,
       scratchStack.u32.byteOffset,
       scratchStack.u32.byteOffset + Uint32Array.BYTES_PER_ELEMENT,
       scratchStack.u32.byteOffset + Uint32Array.BYTES_PER_ELEMENT * 2
