@@ -534,6 +534,121 @@ const {CharsetEncoder} = require('three/examples/js/libs/mmdparser.js');
     });
     // console.log('got animations', animations);
 
+    const comboAnimationNames = [
+      'sword_side_slash.fbx',
+      'sword_side_slash_step.fbx',
+      'sword_topdown_slash.fbx',
+      'sword_topdown_slash_step.fbx',
+    ];
+    const animationComboIndices = comboAnimationNames.map(comboAnimationName => {
+      const animation = animations.find(a => a.name === comboAnimationName);
+      const {tracks, object} = animation;
+      // console.log('got interpolants', object, animation.name);
+      const bones = [];
+      object.traverse(o => {
+        if (o.isBone) {
+          const bone = o;
+          bone.initialPosition = bone.position.clone();
+          bone.initialQuaternion = bone.quaternion.clone();
+          bones.push(bone);
+        }
+      });
+      // console.log('got bones', bones.map(b => b.name));
+      const rootBone = bones.find(b => b.name === 'mixamorigRightShoulder');; // not really a bone
+      const leftHandBone = bones.find(b => b.name === 'mixamorigLeftHand');
+      const rightHandBone = bones.find(b => b.name === 'mixamorigRightHand');
+      const epsilon = 0.2;
+      const allOnesEpsilon = arr => arr.every(v => Math.abs(1 - v) < epsilon);
+
+      const bonePositionInterpolants = {};
+      const boneQuaternionInterpolants = {};
+      const tracksToRemove = [];
+      for (const track of tracks) {
+        if (/\.position$/.test(track.name)) {
+          const boneName = track.name.replace(/\.position$/, '');
+          // const bone = bones.find(b => b.name === boneName);
+          const boneInterpolant = new THREE.LinearInterpolant(track.times, track.values, track.getValueSize());
+          bonePositionInterpolants[boneName] = boneInterpolant;
+        } else if (/\.quaternion$/.test(track.name)) {
+          const boneName = track.name.replace(/\.quaternion$/, '');
+          // const bone = bones.find(b => b.name === boneName);
+          const boneInterpolant = new THREE.QuaternionLinearInterpolant(track.times, track.values, track.getValueSize());
+          boneQuaternionInterpolants[boneName] = boneInterpolant;
+        } else if (/\.scale$/.test(track.name)) {
+          if (allOnesEpsilon(track.values)) {
+            const index = tracks.indexOf(track);
+            tracksToRemove.push(index);
+          } else {
+            throw new Error(`This track has invalid values.  All scale transforms must be set to 1. Aborting.\n Animation: ${animation.name}, Track: ${track.name}, values: \n ${track.values}`);
+          }
+        } else {
+          console.warn('unknown track name', animation.name, track);
+        }
+      }
+      // remove scale transform tracks as they won't be used;
+      let i = tracksToRemove.length;
+      while (i--) {
+        tracks.splice(tracksToRemove[i], 1);
+      }
+
+      const walkBufferSize = 256;
+      const leftHandDeltas = new Float32Array(walkBufferSize);
+      const rightHandDeltas = new Float32Array(walkBufferSize);
+
+      let lastRightHandPos = new THREE.Vector3();
+      let lastLeftHandPos = new THREE.Vector3();
+
+      let maxRightDeltaIndex = 0;
+      let maxLeftDeltaIndex = 0;
+
+      for (let i = 0; i < walkBufferSize; i++) {
+        const f = i / (walkBufferSize - 1);
+        for (const bone of bones) {
+          const positionInterpolant = bonePositionInterpolants[bone.name];
+          const quaternionInterpolant = boneQuaternionInterpolants[bone.name];
+          if (positionInterpolant) {
+            const pv = positionInterpolant.evaluate(f * animation.duration);
+            bone.position.fromArray(pv);
+          } else {
+            bone.position.copy(bone.initialPosition);
+          }
+          if (quaternionInterpolant) {
+            const qv = quaternionInterpolant.evaluate(f * animation.duration);
+            bone.quaternion.fromArray(qv);
+          } else {
+            bone.quaternion.copy(bone.initialQuaternion);
+          }
+        }
+        rootBone.updateMatrixWorld(true);
+        const fbxScale = 100;
+        const leftHand = new THREE.Vector3().setFromMatrixPosition(leftHandBone.matrixWorld).divideScalar(fbxScale);
+        const rightHand = new THREE.Vector3().setFromMatrixPosition(rightHandBone.matrixWorld).divideScalar(fbxScale);
+        
+        const leftHandDelta = i === 0 ? 0 : lastLeftHandPos.distanceTo(leftHand);
+        const rightHandDelta = i === 0 ? 0 : lastRightHandPos.distanceTo(rightHand);
+        
+        leftHandDeltas[i] = leftHandDelta * 1000;
+        rightHandDeltas[i] = rightHandDelta * 1000;
+
+        maxRightDeltaIndex = rightHandDeltas[i] > rightHandDeltas[maxRightDeltaIndex] ? i : maxRightDeltaIndex;
+        maxLeftDeltaIndex = leftHandDeltas[i] > leftHandDeltas[maxRightDeltaIndex] ? i : maxLeftDeltaIndex;
+
+
+        lastLeftHandPos.set(leftHand.x, leftHand.y, leftHand.z);
+        lastRightHandPos.set(rightHand.x, rightHand.y, rightHand.z);
+      }
+
+      console.log('got', leftHandDeltas, rightHandDeltas, maxLeftDeltaIndex, maxRightDeltaIndex);
+      
+      return {
+        maxRightDeltaIndex,
+        maxLeftDeltaIndex,
+        leftHandDeltas,
+        rightHandDeltas,
+        name: animation.name,
+      };
+    });
+
     // format
     const animationsJson = animations.map(a => a.toJSON())
       .concat(mmdAnimationsJson);
@@ -547,6 +662,7 @@ const {CharsetEncoder} = require('three/examples/js/libs/mmdparser.js');
     const animationsUint8Array = zbencode({
       animations: animationsJson,
       animationStepIndices,
+      animationComboIndices,
     });
     zbdecode(animationsUint8Array);
     console.log('exporting animations');
