@@ -24,6 +24,33 @@ export const setFacePoseValue = (emotion, value) => {
 
     }
 
+    const emoteList = localPlayer.getActionsState().binding.e.filter(a => a.type === 'facepose');
+    const emoteSum = emoteList.reduce((sum, emote) => {
+        return sum + emote.value;
+    }, 0);
+
+    if (emoteSum + value > 1) {
+        const r = ((emoteSum + value) - 1) / emoteList.length;
+        for (const emote of emoteList) {
+            const v = emote.value - r;
+            const e = emote.emotion;
+            const index = localPlayer.findActionIndex( a => a.type === 'facepose' && a.emotion === e );
+            localPlayer.removeActionIndex( index );
+            if ( v > 0 ) {
+                const newAction = {
+                    type: 'facepose',
+                    emotion: e,
+                    value: v,
+                };
+                localPlayer.addAction(newAction);
+            }
+            localPlayer.dispatchEvent({
+                type: 'actionadd',
+                action: localPlayer.getActionsState(),
+            });
+        }
+    }
+
     if ( value > 0 ) {
 
         const newAction = {
@@ -96,7 +123,7 @@ export const Emotions = ({
     useEffect( () => {
 
         const actionadd = e => {
-
+            
             const {action} = e;
             if (action.type === 'facepose') {
                 const {emotion, value} = action;
