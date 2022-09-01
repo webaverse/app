@@ -579,9 +579,9 @@ export class LodChunkTracker {
     
     this.listeners = {
       postUpdate: [],
-      chunkDataRequest: [],
+      // chunkDataRequest: [],
       chunkAdd: [],
-      chunkRemove: new Map(),
+      chunkRemove: [],
     };
 
     if (debug) {
@@ -678,20 +678,21 @@ export class LodChunkTracker {
   onPostUpdate(fn) {
     this.listeners.postUpdate.push(fn);
   }
-  onChunkDataRequest(fn) {
+  /* onChunkDataRequest(fn) {
     this.listeners.chunkDataRequest.push(fn);
-  }
+  } */
   onChunkAdd(fn) {
     this.listeners.chunkAdd.push(fn);
   }
-  onChunkRemove(chunk, fn) {
-    const hash = _getHashChunk(chunk);
+  onChunkRemove(fn) {
+    /* const hash = _getHashChunk(chunk);
     let list = this.listeners.chunkRemove.get(hash);
     if (!list) {
       list = [];
       this.listeners.chunkRemove.set(hash, list);
     }
-    list.push(fn);
+    list.push(fn); */
+    this.listeners.chunkRemove.push(fn);
   }
 
   // unlisteners
@@ -701,7 +702,7 @@ export class LodChunkTracker {
       this.listeners.postUpdate.splice(index, 1);
     }
   }
-  offChunkDataRequest(fn) {
+  /* offChunkDataRequest(fn) {
     const index = this.listeners.chunkDataRequest.indexOf(fn);
     if (index !== -1) {
       this.listeners.chunkDataRequest.splice(index, 1);
@@ -726,7 +727,7 @@ export class LodChunkTracker {
         }
       }
     }
-  }
+  } */
 
   // emitter
   postUpdate(result) {
@@ -734,7 +735,7 @@ export class LodChunkTracker {
       listener(result);
     }
   }
-  chunkDataRequest(result) {
+  /* chunkDataRequest(result) {
     for (const listener of this.listeners.chunkDataRequest) {
       listener(result);
     }
@@ -752,6 +753,17 @@ export class LodChunkTracker {
       for (const listener of list) {
         listener(chunk);
       }
+    }
+  } */
+  
+  handleChunkAdd(dataRequest) {
+    for (const listener of this.listeners.chunkAdd) {
+      listener(dataRequest);
+    }
+  }
+  handleChunkRemove(dataRequest) {
+    for (const listener of this.listeners.chunkRemove) {
+      listener(dataRequest);
     }
   }
 
@@ -790,6 +802,16 @@ export class LodChunkTracker {
     this.displayChunks = leafNodes;
     // console.log('got leaf nodes', leafNodes);
     // debugger;
+
+    for (const newDataRequest of newDataRequests) {
+      this.handleChunkAdd(newDataRequest);
+    }
+    /* for (const keepDataRequest of keepDataRequests) {
+      this.handleKeepChunk(keepDataRequest);
+    } */
+    for (const cancelDataRequest of cancelDataRequests) {
+      this.handleChunkRemove(cancelDataRequest);
+    }
 
     /* // data requests
     {
