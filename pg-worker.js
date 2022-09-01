@@ -221,7 +221,7 @@ const _handleMethod = async ({method, args, instance: instanceKey, taskId}) => {
         instance,
         taskId,
         position.x,
-        position.y,
+        // position.y,
         position.z,
         lod,
       );
@@ -243,13 +243,20 @@ const _handleMethod = async ({method, args, instance: instanceKey, taskId}) => {
       }
     }
     case 'generateLiquidChunk': {
-      const {chunkPosition, lodArray} = args;
+      const {chunkPosition, lod} = args;
       const instance = instances.get(instanceKey);
       if (!instance) throw new Error('generateLiquidChunk : instance not found');
       
       localVector.fromArray(chunkPosition)
         .multiplyScalar(chunkWorldSize);
-      const meshData = await pg.createLiquidChunkMeshAsync(instance, taskId, localVector.x, localVector.y, localVector.z, lodArray);
+      const meshData = await pg.createLiquidChunkMeshAsync(
+        instance,
+        taskId,
+        localVector.x,
+        // localVector.y,
+        localVector.z,
+        lod,
+      );
       const meshData2 = _cloneLiquidMeshData(meshData);
       meshData && pg.free(meshData.bufferAddress);
 
