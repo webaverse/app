@@ -28,17 +28,6 @@ const freestyleOffset = 900 / 2;
 const breaststrokeDuration = 1066.6666666666666;
 const breaststrokeOffset = 433.3333333333333;
 
-const silswordAnimationOffset = {
-  'swordSideSlash': 350,
-  'swordSideSlashStep': 150,
-  'swordTopDownSlash': 100,
-  'swordTopDownSlashStep': 150
-};
-const swordAnimationOffset = [
-  950, 
-  950, 
-  950
-];
 const aimAnimations = {
   swordSideIdle: 'sword_idle_side.fbx',
   swordSideIdleStatic: 'sword_idle_side_static.fbx',
@@ -250,39 +239,6 @@ class CharacterSfx extends EventTarget{
       _handleStep();
     }
 
-    //############################################################################# testBake #############################################################################
-    const _testBake = () => {
-      if (this.player.hasAction('use') && this.player.getAction('use').behavior === 'sword') {
-        const comboAnimationName = aimAnimations[this.player.getAction('use').animationCombo[this.player.avatar.useAnimationIndex]];
-        if (comboAnimationName && comboAnimationName !== this.lastSwordComboName) {
-          this.swordComboStartTime = timeSeconds;
-          this.alreadyPlayComboSound = false;
-        }
-        if (comboAnimationName) {
-          const animations = Avatar.getAnimations();
-          const animation = animations.find(a => a.name === comboAnimationName);
-          const animationComboIndices = Avatar.getanimationComboIndices();
-          const animationIndices = animationComboIndices.find(i => i.name === comboAnimationName);
-          const {leftHandDeltas, rightHandDeltas, maxLeftDeltaIndex, maxRightDeltaIndex} = animationIndices;
-          
-          const ratio = (timeSeconds - this.swordComboStartTime) / animation.duration;
-          if (ratio <= 1 && !this.alreadyPlayComboSound) {
-            const index = Math.floor(ratio * rightHandDeltas.length);
-            if (index > maxRightDeltaIndex) {
-              this.alreadyPlayComboSound = true;
-              this.playGrunt('attack');
-
-            }
-          }
-        }
-        this.lastSwordComboName = comboAnimationName;
-      }
-      
-    };
-
-    _testBake();
-    //#################################################################################################################################################################
-
     const _handleSwim = () => {
       if(this.player.hasAction('swim')){
           // const candidateAudios = soundFiles.water;
@@ -407,43 +363,40 @@ class CharacterSfx extends EventTarget{
         },
       }));
     }
-    // const _handleCombo = () => {
-    //   let currentCombo;
-    //   if(this.player.hasAction('use') && this.player.getAction('use').behavior === 'sword'){
-    //     currentCombo = this.player.getAction('use').animation ? 
-    //       this.player.getAction('use').animation // the sword app that has animation property in use action
-    //       : 
-    //       this.player.getAction('use').animationCombo[this.player.avatar.useAnimationIndex] // the sword app that has animationCombo property in use action
-    //   }
-    //   if (currentCombo) {
-    //     if (currentCombo !== this.lastCombo) {
-    //       this.playComboTime = timestamp;
-    //       this.currentComboIndex = -1;
-    //     }
-    //     if (currentCombo === 'combo') { // the sword app that has animation property in use action
-    //       this.currentComboIndex = this.currentComboIndex < 0 ? 0 : this.currentComboIndex;
-    //       if(timestamp - this.playComboTime >= swordAnimationOffset[this.currentComboIndex]){
-    //         this.playComboTime = timestamp;
-    //         this.playGrunt('attack');
-    //         this.currentComboIndex++;
-    //         const soundIndex = this.currentComboIndex * 4 + Math.floor(Math.random() * 4);
-    //         dispatchComboSoundEvent(soundIndex);
-    //       }
-    //     }
-    //     else { // the sword app that has animationCombo property in use action
-    //       if (timestamp - this.playComboTime >= silswordAnimationOffset[currentCombo] && this.currentComboIndex !== this.player.avatar.useAnimationIndex) {
-    //         this.playGrunt('attack');
-    //         this.currentComboIndex = this.player.avatar.useAnimationIndex;
-    //         const soundIndex = this.currentComboIndex * 4 + Math.floor(Math.random() * 4);
-    //         dispatchComboSoundEvent(soundIndex);
-    //       }
-    //     }
-    //   }
-    //   this.lastCombo = currentCombo;
-    // };
-    // _handleCombo();
-    
+    const _handleCombo = () => {
+      if (this.player.hasAction('use') && this.player.getAction('use').behavior === 'sword' && this.player.getAction('use').animationCombo) {
+        const comboAnimationName = aimAnimations[this.player.getAction('use').animationCombo[this.player.avatar.useAnimationIndex]];
+        if (comboAnimationName && comboAnimationName !== this.lastSwordComboName) {
+          this.swordComboStartTime = timeSeconds;
+          this.alreadyPlayComboSound = false;
+        }
+        if (comboAnimationName) {
+          const animations = Avatar.getAnimations();
+          const animation = animations.find(a => a.name === comboAnimationName);
+          const animationComboIndices = Avatar.getanimationComboIndices();
+          const animationIndices = animationComboIndices.find(i => i.name === comboAnimationName);
+          const handDeltas = this.player.getAction('use').boneAttachment === 'leftHand' ? animationIndices.rightHandDeltas : animationIndices.leftHandDeltas;
+          const maxDeltaIndex = this.player.getAction('use').boneAttachment === 'leftHand' ? animationIndices.maxRightDeltaIndex : animationIndices.maxLeftDeltaIndex;
+          
+          const ratio = (timeSeconds - this.swordComboStartTime) / animation.duration;
+          if (ratio <= 1 && !this.alreadyPlayComboSound) {
+            const index = Math.floor(ratio * handDeltas.length);
+            if (index > maxDeltaIndex) {
+              this.alreadyPlayComboSound = true;
+              this.playGrunt('attack');
+              const soundIndex = this.player.avatar.useAnimationIndex * 4 + Math.floor(Math.random() * 4);
+              dispatchComboSoundEvent(soundIndex);
 
+            }
+          }
+        }
+        this.lastSwordComboName = comboAnimationName;
+      }
+      
+    };
+
+    _handleCombo();
+    
     const _handleGasp = () =>{
       const isRunning = currentSpeed > 0.5;
       if(isRunning){
