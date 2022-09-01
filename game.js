@@ -38,6 +38,7 @@ const localVector7 = new THREE.Vector3();
 const localQuaternion = new THREE.Quaternion();
 const localQuaternion2 = new THREE.Quaternion();
 const localQuaternion3 = new THREE.Quaternion();
+const localQuaternion4 = new THREE.Quaternion();
 const localEuler = new THREE.Euler();
 const localMatrix = new THREE.Matrix4();
 const localMatrix2 = new THREE.Matrix4();
@@ -82,44 +83,40 @@ const _unwearAppIfHasSitComponent = (player) => {
 
 // returns whether we actually snapped
 function updateGrabbedObject(o, grabMatrix, offsetMatrix, {collisionEnabled, handSnapEnabled, physx, gridSnap}) {
-  
   grabMatrix.decompose(localVector, localQuaternion, localVector2);
-  
   offsetMatrix.decompose(localVector3, localQuaternion2, localVector4);
-  
   const offset = localVector3.length();
-  
   localMatrix.multiplyMatrices(grabMatrix, offsetMatrix)
     .decompose(localVector5, localQuaternion3, localVector6);
 
-  let collision = collisionEnabled && physicsScene.raycast(localVector, localQuaternion);
-  if (collision) {
-    // console.log('got collision', collision);
-    const {point} = collision;
-    o.position.fromArray(point)
-      // .add(localVector2.set(0, 0.01, 0));
+  // old method refactored
+  // let collision = collisionEnabled && physicsScene.raycast(localVector, localQuaternion);
+  // if (collision) {
+  //   const {point} = collision;
+  //   localVector7.fromArray(point);
+    
+  //   if (localVector7.distanceTo(localVector) > offset) {
+  //     o.position.copy(localVector5);
+  //   } else {
+  //     o.position.copy(localVector7);
+  //   }
+  // }
 
-    if (o.position.distanceTo(localVector) > offset) {
-      collision = null;
+  // new, consistent snap within offset or on shift
+  localQuaternion4.set(-0.7071067811865475, 0, 0, 0.7071067811865476);
+  const downCollision = collisionEnabled && physicsScene.raycast(localVector5, localQuaternion4);
+  if(downCollision) {
+    const {point} = downCollision;
+    localVector7.fromArray(point);
+    if (ioManager.keys.shift) {
+      o.position.copy(localVector5.setY(localVector7.y));
+    } else {
+      if(localVector5.y < localVector7.y) localVector5.setY(localVector7.y);
+      o.position.copy(localVector5);
     }
   }
 
-  if (!collision) {
-    o.position.copy(localVector5);
-  }
-
-  {
-    const pObj = o.getPhysicsObjects()[0];
-    const bb = pObj.physicsMesh.geometry.boundingBox;
-    const d = localVector7.copy(bb.max.sub(bb.min));
-    const {x, y, z} = d;
-    const col = physicsScene.overlapBox(x, y, z, pObj.position, pObj.quaternion);
-    if(col.objectIds.length > 0) {
-      console.log(col);
-    }
-  }
-
-  const handSnap = !handSnapEnabled || offset >= maxGrabDistance || !!collision;
+  const handSnap = !handSnapEnabled || offset >= maxGrabDistance || !!downCollision;
   if (handSnap) {
     snapPosition(o, gridSnap);
     o.quaternion.setFromEuler(o.savedRotation);
