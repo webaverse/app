@@ -6,6 +6,8 @@ import {PGWorkerManager} from './pg-worker-manager.js';
 import {LodChunkTracker} from './lod.js';
 import {defaultChunkSize} from './constants.js';
 
+const _getMinHash2D = min => (min << 16) | min;
+
 class ProcGenInstance {
   constructor(instance, {
     chunkSize,
@@ -86,6 +88,9 @@ class ProcGenManager {
       this.instances.set(key, instance);
     }
     return instance;
+  }
+  getNodeHash(node) {
+    return _getMinHash2D(node.min);
   }
 }
 const procGenManager = new ProcGenManager();
