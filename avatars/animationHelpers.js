@@ -458,7 +458,8 @@ export const _createAnimation = avatar => {
         const track = animation.tracks.index[k];
         const valueSize = track.type === 'vector' ? 3 : 4;
         physx.physxWorker.createInterpolant(
-          animationIndex, // todo: use ptr instead of index.
+          // animationIndex, // todo: use ptr instead of index.
+          animation.name,
           track.times,
           track.values,
           valueSize,
