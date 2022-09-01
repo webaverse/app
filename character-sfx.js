@@ -109,9 +109,6 @@ class CharacterSfx extends EventTarget{
 
     this.lastLandState = false;
 
-    this.lastCombo = false;
-    this.playComboTime = 0;
-    this.currentComboIndex = -1;
   }
   update(timestamp, timeDiffS) {
     if (!this.player.avatar) {
