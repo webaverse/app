@@ -201,6 +201,13 @@ const DragAndDrop = () => {
                         //TODO remove first copy when twice drop
                         j.voucher = await getVoucherFromUser(j.tokenId, account.currentAddress, WebaversecontractAddress)
                         console.log("drop app", app, j)
+                        for (const worldApp of world.appManager.getApps()) {
+                          if (worldApp.getComponent('voucher')) {
+                            if(worldApp.getComponent('voucher').tokenId === j.tokenId) {
+                              world.appManager.removeApp(worldApp)
+                            }
+                          }
+                        }
                         // world.appManager.importAddedUserVoucherApp(app, j); // already claimed but permanent-drop
                     } catch (err) {
                         console.log("eer", err)
