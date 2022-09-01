@@ -2296,8 +2296,21 @@ const physxWorker = (() => {
   //   )
   //   return ptr;
   // }
-  w.createAnimation = (duration) => {
+  w.createAnimation = (name, duration) => {
+    // https://rob-blackbourn.github.io/blog/webassembly/wasm/strings/javascript/c/libc/wasm-libc/clang/2020/06/20/wasm-string-passing.html
+    // https://stackoverflow.com/questions/20024690/is-there-byte-data-type-in-c
+    // Encode the string in utf-8.
+    const encoder = new TextEncoder() // todo: reuse ?
+    const bytes = encoder.encode(name)
+    // console.log(name, bytes)
+    const nameByteLength = bytes.length;
+    for (let i = 0; i < nameByteLength; i++) {
+      scratchStack.u8[i] = bytes[i];
+    }
+
     const ptr = Module._createAnimation(
+      scratchStack.ptr,
+      nameByteLength,
       duration,
     )
     return ptr;
