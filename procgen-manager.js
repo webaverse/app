@@ -39,6 +39,13 @@ class ProcGenInstance {
     const tracker = new LodChunkTracker(opts2);
     return tracker;
   }
+  async generateTerrainChunk(position, lod, {signal} = {}) {
+    await this.pgWorkerManager.waitForLoad();
+    
+    const result = await this.pgWorkerManager.generateTerrainChunk(position, lod, {signal});
+    // console.log('got result', result);
+    return result;
+  }
   /* async getLightMapper({
     size,
     debug = false,
