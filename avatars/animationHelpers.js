@@ -783,7 +783,7 @@ export const _applyAnimation = (avatar, now) => {
           isArm,
         } = spec;
 
-        const t2 = avatar.jumpTime / 1000;
+        const t2 = avatar.jumpTime / 1000 / avatar.jumpDurationRatio;
         const src2 = jumpAnimation.interpolants[k];
         const v2 = src2.evaluate(t2);
 
@@ -1475,6 +1475,7 @@ export {
   animations,
   animationStepIndices,
   emoteAnimations,
+  jumpAnimation,
   // cubicBezier,
 };
 
