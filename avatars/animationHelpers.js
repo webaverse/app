@@ -474,6 +474,7 @@ export const _createAnimation = avatar => {
   }
 
   avatar.mixerPtr = physx.physxWorker.createAnimationMixer();
+  physx.physxWorker.initAvatar(avatar.mixerPtr);
 
   // util ---
 
@@ -549,45 +550,87 @@ export const _createAnimation = avatar => {
   // end util ---
 
   const createMotions = () => {
-    avatar.idleMotionPtr = avatar.createMotion(animations.index['idle.fbx'].ptr, 'idleMotionPtr');
+    // avatar.idleMotionPtr = avatar.createMotion(animations.index['idle.fbx'].ptr, 'idleMotionPtr');
 
-    avatar.walkForwardMotionPtr = avatar.createMotion(animations.index['walking.fbx'].ptr, 'walkForwardMotionPtr');
-    avatar.walkBackwardMotionPtr = avatar.createMotion(animations.index['walking backwards.fbx'].ptr, 'walkBackwardMotionPtr');
-    avatar.walkLeftMotionPtr = avatar.createMotion(animations.index['left strafe walking.fbx'].ptr, 'walkLeftMotionPtr');
-    avatar.walkRightMotionPtr = avatar.createMotion(animations.index['right strafe walking.fbx'].ptr, 'walkRightMotionPtr');
-    avatar.walkLeftMirrorMotionPtr = avatar.createMotion(animations.index['right strafe walking reverse.fbx'].ptr, 'walkLeftMirrorMotionPtr');
-    avatar.walkRightMirrorMotionPtr = avatar.createMotion(animations.index['left strafe walking reverse.fbx'].ptr, 'walkRightMirrorMotionPtr');
+    // avatar.walkForwardMotionPtr = avatar.createMotion(animations.index['walking.fbx'].ptr, 'walkForwardMotionPtr');
+    // avatar.walkBackwardMotionPtr = avatar.createMotion(animations.index['walking backwards.fbx'].ptr, 'walkBackwardMotionPtr');
+    // avatar.walkLeftMotionPtr = avatar.createMotion(animations.index['left strafe walking.fbx'].ptr, 'walkLeftMotionPtr');
+    // avatar.walkRightMotionPtr = avatar.createMotion(animations.index['right strafe walking.fbx'].ptr, 'walkRightMotionPtr');
+    // avatar.walkLeftMirrorMotionPtr = avatar.createMotion(animations.index['right strafe walking reverse.fbx'].ptr, 'walkLeftMirrorMotionPtr');
+    // avatar.walkRightMirrorMotionPtr = avatar.createMotion(animations.index['left strafe walking reverse.fbx'].ptr, 'walkRightMirrorMotionPtr');
 
-    avatar.runForwardMotionPtr = avatar.createMotion(animations.index['Fast Run.fbx'].ptr, 'runForwardMotionPtr');
-    avatar.runBackwardMotionPtr = avatar.createMotion(animations.index['running backwards.fbx'].ptr, 'runBackwardMotionPtr');
-    avatar.runLeftMotionPtr = avatar.createMotion(animations.index['left strafe.fbx'].ptr, 'runLeftMotionPtr');
-    avatar.runRightMotionPtr = avatar.createMotion(animations.index['right strafe.fbx'].ptr, 'runRightMotionPtr');
-    avatar.runLeftMirrorMotionPtr = avatar.createMotion(animations.index['right strafe reverse.fbx'].ptr, 'runLeftMirrorMotionPtr');
-    avatar.runRightMirrorMotionPtr = avatar.createMotion(animations.index['left strafe reverse.fbx'].ptr, 'runRightMirrorMotionPtr');
+    // avatar.runForwardMotionPtr = avatar.createMotion(animations.index['Fast Run.fbx'].ptr, 'runForwardMotionPtr');
+    // avatar.runBackwardMotionPtr = avatar.createMotion(animations.index['running backwards.fbx'].ptr, 'runBackwardMotionPtr');
+    // avatar.runLeftMotionPtr = avatar.createMotion(animations.index['left strafe.fbx'].ptr, 'runLeftMotionPtr');
+    // avatar.runRightMotionPtr = avatar.createMotion(animations.index['right strafe.fbx'].ptr, 'runRightMotionPtr');
+    // avatar.runLeftMirrorMotionPtr = avatar.createMotion(animations.index['right strafe reverse.fbx'].ptr, 'runLeftMirrorMotionPtr');
+    // avatar.runRightMirrorMotionPtr = avatar.createMotion(animations.index['left strafe reverse.fbx'].ptr, 'runRightMirrorMotionPtr');
 
-    avatar.crouchForwardMotionPtr = avatar.createMotion(animations.index['Sneaking Forward.fbx'].ptr, 'crouchForwardMotionPtr');
-    avatar.crouchBackwardMotionPtr = avatar.createMotion(animations.index['Sneaking Forward reverse.fbx'].ptr, 'crouchBackwardMotionPtr');
-    avatar.crouchLeftMotionPtr = avatar.createMotion(animations.index['Crouched Sneaking Left.fbx'].ptr, 'crouchLeftMotionPtr');
-    avatar.crouchRightMotionPtr = avatar.createMotion(animations.index['Crouched Sneaking Right.fbx'].ptr, 'crouchRightMotionPtr');
-    avatar.crouchLeftMirrorMotionPtr = avatar.createMotion(animations.index['Crouched Sneaking Right reverse.fbx'].ptr, 'crouchLeftMirrorMotionPtr');
-    avatar.crouchRightMirrorMotionPtr = avatar.createMotion(animations.index['Crouched Sneaking Left reverse.fbx'].ptr, 'crouchRightMirrorMotionPtr');
+    // avatar.crouchForwardMotionPtr = avatar.createMotion(animations.index['Sneaking Forward.fbx'].ptr, 'crouchForwardMotionPtr');
+    // avatar.crouchBackwardMotionPtr = avatar.createMotion(animations.index['Sneaking Forward reverse.fbx'].ptr, 'crouchBackwardMotionPtr');
+    // avatar.crouchLeftMotionPtr = avatar.createMotion(animations.index['Crouched Sneaking Left.fbx'].ptr, 'crouchLeftMotionPtr');
+    // avatar.crouchRightMotionPtr = avatar.createMotion(animations.index['Crouched Sneaking Right.fbx'].ptr, 'crouchRightMotionPtr');
+    // avatar.crouchLeftMirrorMotionPtr = avatar.createMotion(animations.index['Crouched Sneaking Right reverse.fbx'].ptr, 'crouchLeftMirrorMotionPtr');
+    // avatar.crouchRightMirrorMotionPtr = avatar.createMotion(animations.index['Crouched Sneaking Left reverse.fbx'].ptr, 'crouchRightMirrorMotionPtr');
 
-    avatar.bowForwardMotionPtr = avatar.createMotion(animations.index['Standing Aim Walk Forward.fbx'].ptr, 'bowForwardMotionPtr');
-    avatar.bowBackwardMotionPtr = avatar.createMotion(animations.index['Standing Aim Walk Forward reverse.fbx'].ptr, 'bowBackwardMotionPtr');
-    avatar.bowLeftMotionPtr = avatar.createMotion(animations.index['Standing Aim Walk Left.fbx'].ptr, 'bowLeftMotionPtr');
-    avatar.bowRightMotionPtr = avatar.createMotion(animations.index['Standing Aim Walk Right.fbx'].ptr, 'bowRightMotionPtr');
-    avatar.bowLeftMirrorMotionPtr = avatar.createMotion(animations.index['Standing Aim Walk Right reverse.fbx'].ptr, 'bowLeftMirrorMotionPtr');
-    avatar.bowRightMirrorMotionPtr = avatar.createMotion(animations.index['Standing Aim Walk Left reverse.fbx'].ptr, 'bowRightMirrorMotionPtr');
+    // avatar.bowForwardMotionPtr = avatar.createMotion(animations.index['Standing Aim Walk Forward.fbx'].ptr, 'bowForwardMotionPtr');
+    // avatar.bowBackwardMotionPtr = avatar.createMotion(animations.index['Standing Aim Walk Forward reverse.fbx'].ptr, 'bowBackwardMotionPtr');
+    // avatar.bowLeftMotionPtr = avatar.createMotion(animations.index['Standing Aim Walk Left.fbx'].ptr, 'bowLeftMotionPtr');
+    // avatar.bowRightMotionPtr = avatar.createMotion(animations.index['Standing Aim Walk Right.fbx'].ptr, 'bowRightMotionPtr');
+    // avatar.bowLeftMirrorMotionPtr = avatar.createMotion(animations.index['Standing Aim Walk Right reverse.fbx'].ptr, 'bowLeftMirrorMotionPtr');
+    // avatar.bowRightMirrorMotionPtr = avatar.createMotion(animations.index['Standing Aim Walk Left reverse.fbx'].ptr, 'bowRightMirrorMotionPtr');
 
-    avatar.crouchIdleMotionPtr = avatar.createMotion(animations.index['Crouch Idle.fbx'].ptr, 'crouchIdleMotionPtr');
-    avatar.flyMotionPtr = avatar.createMotion(floatAnimation.ptr, 'flyMotionPtr');
-    avatar.flyIdleMotionPtr = avatar.createMotion(animations.index['fly_idle.fbx'].ptr, 'flyIdleMotionPtr');
-    avatar.flyDodgeForwardMotionPtr = avatar.createMotion(animations.index['fly_dodge_forward.fbx'].ptr, 'flyDodgeForwardMotionPtr');
-    avatar.flyDodgeBackwardMotionPtr = avatar.createMotion(animations.index['fly_dodge_backward.fbx'].ptr, 'flyDodgeBackwardMotionPtr');
-    avatar.flyDodgeLeftMotionPtr = avatar.createMotion(animations.index['fly_dodge_left.fbx'].ptr, 'flyDodgeLeftMotionPtr');
-    avatar.flyDodgeRightMotionPtr = avatar.createMotion(animations.index['fly_dodge_right.fbx'].ptr, 'flyDodgeRightMotionPtr');
-    avatar.flyDashMotionPtr = avatar.createMotion(animations.index['fly_dash_forward.fbx'].ptr, 'flyDashMotionPtr');
-    avatar.narutoRunMotionPtr = avatar.createMotion(narutoRunAnimations[defaultNarutoRunAnimation].ptr, 'narutoRunMotionPtr');
+    // avatar.crouchIdleMotionPtr = avatar.createMotion(animations.index['Crouch Idle.fbx'].ptr, 'crouchIdleMotionPtr');
+    // avatar.flyMotionPtr = avatar.createMotion(floatAnimation.ptr, 'flyMotionPtr');
+    // avatar.flyIdleMotionPtr = avatar.createMotion(animations.index['fly_idle.fbx'].ptr, 'flyIdleMotionPtr');
+    // avatar.flyDodgeForwardMotionPtr = avatar.createMotion(animations.index['fly_dodge_forward.fbx'].ptr, 'flyDodgeForwardMotionPtr');
+    // avatar.flyDodgeBackwardMotionPtr = avatar.createMotion(animations.index['fly_dodge_backward.fbx'].ptr, 'flyDodgeBackwardMotionPtr');
+    // avatar.flyDodgeLeftMotionPtr = avatar.createMotion(animations.index['fly_dodge_left.fbx'].ptr, 'flyDodgeLeftMotionPtr');
+    // avatar.flyDodgeRightMotionPtr = avatar.createMotion(animations.index['fly_dodge_right.fbx'].ptr, 'flyDodgeRightMotionPtr');
+    // avatar.flyDashMotionPtr = avatar.createMotion(animations.index['fly_dash_forward.fbx'].ptr, 'flyDashMotionPtr');
+    // avatar.narutoRunMotionPtr = avatar.createMotion(narutoRunAnimations[defaultNarutoRunAnimation].ptr, 'narutoRunMotionPtr');
+
+    avatar.idleMotionPtr = physx.physxWorker.getMotion(avatar.mixerPtr, 'idle');
+
+    avatar.walkForwardMotionPtr = physx.physxWorker.getMotion(avatar.mixerPtr, 'walkForward');
+    avatar.walkBackwardMotionPtr = physx.physxWorker.getMotion(avatar.mixerPtr, 'walkBackward');
+    avatar.walkLeftMotionPtr = physx.physxWorker.getMotion(avatar.mixerPtr, 'walkLeft');
+    avatar.walkRightMotionPtr = physx.physxWorker.getMotion(avatar.mixerPtr, 'walkRight');
+    avatar.walkLeftMirrorMotionPtr = physx.physxWorker.getMotion(avatar.mixerPtr, 'walkLeftMirror');
+    avatar.walkRightMirrorMotionPtr = physx.physxWorker.getMotion(avatar.mixerPtr, 'walkRightMirror');
+
+    avatar.runForwardMotionPtr = physx.physxWorker.getMotion(avatar.mixerPtr, 'runForward');
+    avatar.runBackwardMotionPtr = physx.physxWorker.getMotion(avatar.mixerPtr, 'runBackward');
+    avatar.runLeftMotionPtr = physx.physxWorker.getMotion(avatar.mixerPtr, 'runLeft');
+    avatar.runRightMotionPtr = physx.physxWorker.getMotion(avatar.mixerPtr, 'runRight');
+    avatar.runLeftMirrorMotionPtr = physx.physxWorker.getMotion(avatar.mixerPtr, 'runLeftMirror');
+    avatar.runRightMirrorMotionPtr = physx.physxWorker.getMotion(avatar.mixerPtr, 'runRightMirror');
+
+    avatar.crouchForwardMotionPtr = physx.physxWorker.getMotion(avatar.mixerPtr, 'crouchForward');
+    avatar.crouchBackwardMotionPtr = physx.physxWorker.getMotion(avatar.mixerPtr, 'crouchBackward');
+    avatar.crouchLeftMotionPtr = physx.physxWorker.getMotion(avatar.mixerPtr, 'crouchLeft');
+    avatar.crouchRightMotionPtr = physx.physxWorker.getMotion(avatar.mixerPtr, 'crouchRight');
+    avatar.crouchLeftMirrorMotionPtr = physx.physxWorker.getMotion(avatar.mixerPtr, 'crouchLeftMirror');
+    avatar.crouchRightMirrorMotionPtr = physx.physxWorker.getMotion(avatar.mixerPtr, 'crouchRightMirror');
+
+    avatar.bowForwardMotionPtr = physx.physxWorker.getMotion(avatar.mixerPtr, 'bowForward');
+    avatar.bowBackwardMotionPtr = physx.physxWorker.getMotion(avatar.mixerPtr, 'bowBackward');
+    avatar.bowLeftMotionPtr = physx.physxWorker.getMotion(avatar.mixerPtr, 'bowLeft');
+    avatar.bowRightMotionPtr = physx.physxWorker.getMotion(avatar.mixerPtr, 'bowRight');
+    avatar.bowLeftMirrorMotionPtr = physx.physxWorker.getMotion(avatar.mixerPtr, 'bowLeftMirror');
+    avatar.bowRightMirrorMotionPtr = physx.physxWorker.getMotion(avatar.mixerPtr, 'bowRightMirror');
+
+    avatar.crouchIdleMotionPtr = physx.physxWorker.getMotion(avatar.mixerPtr, 'crouchIdle');
+    avatar.flyMotionPtr = physx.physxWorker.getMotion(avatar.mixerPtr, 'fly');
+    avatar.flyIdleMotionPtr = physx.physxWorker.getMotion(avatar.mixerPtr, 'flyIdle');
+    avatar.flyDodgeForwardMotionPtr = physx.physxWorker.getMotion(avatar.mixerPtr, 'flyDodgeForward');
+    avatar.flyDodgeBackwardMotionPtr = physx.physxWorker.getMotion(avatar.mixerPtr, 'flyDodgeBackward');
+    avatar.flyDodgeLeftMotionPtr = physx.physxWorker.getMotion(avatar.mixerPtr, 'flyDodgeLeft');
+    avatar.flyDodgeRightMotionPtr = physx.physxWorker.getMotion(avatar.mixerPtr, 'flyDodgeRight');
+    avatar.flyDashMotionPtr = physx.physxWorker.getMotion(avatar.mixerPtr, 'flyDash');
+    avatar.narutoRunMotionPtr = physx.physxWorker.getMotion(avatar.mixerPtr, 'narutoRun');
+
+    //
 
     avatar.jumpMotionPtr = avatar.createMotion(jumpAnimation.ptr, 'jumpMotionPtr');
     physx.physxWorker.setLoop(avatar.jumpMotionPtr, AnimationLoopType.LoopOnce);

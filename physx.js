@@ -2235,6 +2235,11 @@ const physxWorker = (() => {
 
   // AnimationSystem
 
+  w.initAvatar = (mixerPtr) => {
+    Module._initAvatar(
+      mixerPtr,
+    )
+  }
   w.createAnimationMixer = () => {
     const ptr = Module._createAnimationMixer(
     )
@@ -2320,6 +2325,38 @@ const physxWorker = (() => {
       mixer, animation,
     )
     return ptr;
+  }
+  w.getAnimation = (name) => {
+    const encoder = new TextEncoder() // todo: reuse ?
+    const bytes = encoder.encode(name)
+    const nameByteLength = bytes.length;
+    for (let i = 0; i < nameByteLength; i++) {
+      scratchStack.u8[i] = bytes[i];
+    }
+
+    const ptr = Module._getAnimation(
+      scratchStack.ptr, nameByteLength,
+    )
+    return ptr;
+  }
+  w.createMotion = (mixer, animation) => {
+    const ptr = Module._createMotion(
+      mixer, animation,
+    )
+    return ptr;
+  }
+  w.getMotion = (mixerPtr, name) => {
+    const encoder = new TextEncoder() // todo: reuse ?
+    const bytes = encoder.encode(name)
+    const nameByteLength = bytes.length;
+    for (let i = 0; i < nameByteLength; i++) {
+      scratchStack.u8[i] = bytes[i];
+    }
+
+    const motionPtr = Module._getMotion(
+      mixerPtr, scratchStack.ptr, nameByteLength,
+    )
+    return motionPtr;
   }
   w.createNode = (mixer, type = AnimationNodeType.LIST, index = 0) => {
     // debugger
