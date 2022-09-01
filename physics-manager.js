@@ -415,6 +415,40 @@ class PhysicsScene extends EventTarget {
     physicsMesh.updateMatrixWorld();
     return physicsObject
   }
+
+  addHeightFieldGeometry(mesh, numRows, numColumns, heights, heightScale, rowScale, columnScale, dynamic = false, external = false) {
+    const physicsMesh = convertMeshToPhysicsMesh(mesh)
+
+    const physicsId = getNextPhysicsId()
+    const heightField = physx.physxWorker.addHeightFieldGeometryPhysics(
+      this.scene,
+      numRows,
+      numColumns,
+      heights,
+      heightScale,
+      rowScale,
+      columnScale,
+      dynamic,
+      external,
+      physicsId
+    )
+    // physicsMesh.geometry = this.extractPhysicsGeometryForId(physicsId)
+
+    const physicsObject = _makePhysicsObject(
+      physicsId,
+      mesh.position,
+      mesh.quaternion,
+      mesh.scale
+    )
+    physicsObject.add(physicsMesh)
+    physicsMesh.position.set(0, 0, 0)
+    physicsMesh.quaternion.set(0, 0, 0, 1)
+    physicsMesh.scale.set(1, 1, 1)
+    physicsMesh.updateMatrixWorld()
+    physicsObject.physicsMesh = physicsMesh
+    return physicsObject
+  }
+
   getGeometryForPhysicsId(physicsId) {
     return physx.physxWorker.getGeometryPhysics(this.scene, physicsId);
   }
