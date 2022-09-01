@@ -639,7 +639,7 @@ const {CharsetEncoder} = require('three/examples/js/libs/mmdparser.js');
       }
 
       
-      console.log('got', leftHandDeltas, rightHandDeltas, maxLeftDeltaIndex, maxRightDeltaIndex);
+      // console.log('got', leftHandDeltas, rightHandDeltas, maxLeftDeltaIndex, maxRightDeltaIndex);
       
       return {
         maxRightDeltaIndex,
