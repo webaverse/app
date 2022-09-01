@@ -150,7 +150,7 @@ class NpcManager extends EventTarget {
 
         const getRandomTarget = maxDistance => {
           const n = () => (Math.random() - 0.5) * 2 * maxDistance;
-          return localVector.set(n(), 0, n());
+          return new THREE.Vector3(n(), 0, n());
         };
 
         const slowdownFactor = 0.4;
@@ -164,7 +164,7 @@ class NpcManager extends EventTarget {
           if (npcPlayer && physicsScene.getPhysicsEnabled()) {
             const {timestamp, timeDiff} = e.data;
             if(!target) {
-              target = getRandomTarget(4);
+              target = getRandomTarget(10);
             } else {
               timePassed += timeDiff;
               v = localVector2.copy(target).sub(npcPlayer.position);
