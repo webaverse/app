@@ -19,7 +19,7 @@ import { ChainContext } from './hooks/chainProvider';
 import { AccountContext } from './hooks/web3AccountProvider';
 import Web3 from '../web3.min.js';
 import ioManager from '../io-manager.js';
-
+import dropManager from '../drop-manager';
 
 const APP_3D_TYPES = ['glb', 'gltf', 'vrm'];
 const timeCount = 6000;
@@ -173,20 +173,36 @@ const DragAndDrop = () => {
             drop,
           });
           const j = getObjectJson();
+        //   if (app) {
+        //     console.log("DragAndDrop", app, j)
+        //     console.log(j.voucher)
+        //     if (j && j.claimed) {
+        //       if(ioManager.keys.ctrl) {
+        //         world.appManager.importClaimedApp(app, j, account.currentAddress, WebaversecontractAddress);
+        //       } else {
+        //         world.appManager.importApp(app);
+        //       }
+        //       setState({ openedPanel: null });
+        //     } else if (drop) {
+        //         console.log("swapns drop", j, drop)
+        //       world.appManager.importApp(app);
+        //       setState({ openedPanel: null });
+        //     } else {
+        //       setQueue(queue.concat([app]));
+        //     }
+        //   }
           if (app) {
-            if (j && j.claimed) {
-              if(ioManager.keys.ctrl) {
-                world.appManager.importClaimedApp(app, j, account.currentAddress, WebaversecontractAddress);
-              } else {
-                world.appManager.importApp(app);
-              }
-              setState({ openedPanel: null });
-            } else if (drop) {
-                console.log("swapns drop", j, drop)
-              world.appManager.importApp(app);
-              setState({ openedPanel: null });
-            } else {
-              setQueue(queue.concat([app]));
+            if (j && j.voucher) { // has voucher = claimable
+                world.appManager.importHadVoucherApp(app, j)
+                dropManager.removeClaim(j)
+                setState({ openedPanel: null });
+            } else if (j && j.voucher == undefined) { // already claimed 
+                if (ioManager.keys.ctrl) {
+                    world.appManager.importNeedUserVoucherApp(app, j, account.currentAddress, WebaversecontractAddress); // already claimed but permanent-drop
+                } else {
+                    world.appManager.importApp(app); // already claimed but safe-drop
+                }
+                setState({ openedPanel: null });
             }
           }
         }));

@@ -31,11 +31,21 @@ class DropManager extends EventTarget {
     WebaversecontractAddress = null,
   }) {
     let serverDrop = false;
-    if(voucher == 'fakeVoucher') {
+    if (voucher == 'fakeVoucher') {
         voucher = await getVoucherFromServer(start_url); 
         serverDrop = true;
-    } else if(voucher == 'claimVoucher') {
+        components = [...components, {
+            key: 'voucher',
+            value: voucher
+        }]
+    } else if (voucher == 'needUserVoucher') {
         voucher = await getVoucherFromUser(tokenId, signerAddress, WebaversecontractAddress)
+        serverDrop = false;
+        components = [...components, {
+            key: 'voucher',
+            value: voucher
+        }]
+    } else if (voucher == 'hadVoucher') {
         serverDrop = false;
     }
     const dropComponent = {
@@ -49,10 +59,6 @@ class DropManager extends EventTarget {
       },
     };
     components.push(dropComponent);
-    components = [...components, {
-        key: 'voucher',
-        value: voucher
-    }]
     
     const trackedApp = metaversefile.addTrackedApp(
       start_url,
@@ -64,7 +70,6 @@ class DropManager extends EventTarget {
     return trackedApp;
   }
   addClaim(name, type, serverDrop, contentId, voucher) {
-
     const result = generateStats(contentId);
     const {/*art, */stats} = result;
     const {level} = stats;
@@ -78,7 +83,6 @@ class DropManager extends EventTarget {
       voucher,
       pickupTime: Date.now()
     };
-    console.log("addClaim", claim)
     this.claims.push(claim);
 
     this.dispatchEvent(new MessageEvent('claimschange', {
@@ -88,8 +92,7 @@ class DropManager extends EventTarget {
     }));
   }
   removeClaim(claimedDrop) {
-    const restClaims = this.claims.filter((each) => JSON.stringify(each) !== JSON.stringify(claimedDrop))
-    this.claims = restClaims
+    this.claims = this.claims.filter((each) => JSON.stringify(each) !== JSON.stringify(claimedDrop))
     this.dispatchEvent(new MessageEvent('claimschange', {
       data: {
         claims: this.claims,

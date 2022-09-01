@@ -270,14 +270,14 @@ class AppManager extends EventTarget {
   bindTrackedApp(trackedApp, app) {
     // console.log('bind tracked app', trackedApp.get('instanceId'));
     const _observe = (e, origin) => {
-      if (origin !== 'push') {
-        if (e.changes.keys.has('transform')) {
-          app.position.fromArray(trackedApp.get('transform'));
-          app.quaternion.fromArray(trackedApp.get('transform'), 3);
-          app.scale.fromArray(trackedApp.get('transform'), 7);
-          app.updateMatrixWorld();
-        }
-      }
+    //   if (origin !== 'push') {
+    //     if (e.changes.keys.has('transform')) {
+    //       app.position.fromArray(trackedApp.get('transform'));
+    //       app.quaternion.fromArray(trackedApp.get('transform'), 3);
+    //       app.scale.fromArray(trackedApp.get('transform'), 7);
+    //       app.updateMatrixWorld();
+    //     }
+    //   }
     };
     trackedApp.observe(_observe);
     
@@ -600,7 +600,7 @@ class AppManager extends EventTarget {
       self.bindTrackedApp(dstTrackedApp, app);
     });
   }
-  importClaimedApp(app, json, signerAddress, WebaversecontractAddress) {
+  importNeedUserVoucherApp(app, json, signerAddress, WebaversecontractAddress) {
     console.log("app+ json", app, json)
     const dropManager = metaversefile.useDropManager();
     dropManager.createDropApp({
@@ -618,16 +618,44 @@ class AppManager extends EventTarget {
         },
         {
           key: 'voucher',
-          value: 'claimVoucher', // fakeVoucher is for ServerDrop, claimVoucher is for UserClaim
+          value: 'needUserVoucher', // fakeVoucher is for ServerDrop, claimVoucher is for UserClaim
         },
       ],
-      voucher: "claimVoucher",
+      voucher: "needUserVoucher",
       position: app.position.clone()
         .add(new THREE.Vector3(0, 0.7, 0)),
       quaternion: app.quaternion,
       scale: app.scale,
       signerAddress,
       WebaversecontractAddress
+    });
+  }
+  importHadVoucherApp(app, json) {
+    console.log("app+ json", app, json)
+    const dropManager = metaversefile.useDropManager();
+    dropManager.createDropApp({
+      tokenId: json.tokenId,
+      type: json.type,
+      start_url: json.start_url,
+      components: [
+        {
+          key: 'appName',
+          value: json.name
+        },
+        {
+          key: 'appUrl',
+          value: json.start_url,
+        },
+        {
+          key: 'voucher',
+          value: json.voucher, // fakeVoucher is for ServerDrop, claimVoucher is for UserClaim
+        },
+      ],
+      voucher: "hadVoucher",
+      position: app.position.clone()
+        .add(new THREE.Vector3(0, 0.7, 0)),
+      quaternion: app.quaternion,
+      scale: app.scale
     });
   }
   hasApp(app) {
