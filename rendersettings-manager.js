@@ -1,6 +1,6 @@
 import * as THREE from 'three';
 import postProcessing from './post-processing.js';
-// import {rootScene} from './renderer.js';
+import cameraManager from './camera-manager.js';
 
 const blackColor = new THREE.Color(0x000000);
 
@@ -8,6 +8,7 @@ class RenderSettings {
   constructor(json) {
     this.background = this.#makeBackground(json.background);
     this.fog = this.#makeFog(json.fog);
+    this.scene2D = this.#makeScene2D(json.scene2D);
     this.passes = postProcessing.makePasses(json);
   }
   #makeBackground(background) {
@@ -33,6 +34,28 @@ class RenderSettings {
       }
     } else {
       return null;
+    }
+  }
+  #makeScene2D(scene2D) {
+    if (scene2D) {
+      if (scene2D.perspective === 'side-scroll') {
+        console.warn('mode in development:', scene2D.perspective);
+        //console.log("setting mode", true);
+        cameraManager.modeIs2D = true;
+        return true;
+      } else if (scene2D.perspective === 'top-down') {
+        console.warn('mode unavailable:', scene2D.perspective);
+        return false;
+      } 
+      else if (scene2D.perspective === 'isometric') {
+        console.warn('mode unavailable:', scene2D.perspective);
+        return false;
+      } else {
+        console.warn('unknown perspective mode:', scene2D.perspective);
+        return false;
+      }
+    } else {
+      return false;
     }
   }
 }

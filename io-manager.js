@@ -256,6 +256,9 @@ const _updateIo = timeDiff => {
       ioManager.lastCtrlKey = ioManager.keys.ctrl;
     }
     if (keysDirection.length() > 0 && physicsScene.getPhysicsEnabled() && movementEnabled) {
+      if(cameraManager.modeIs2D) {
+        keysDirection.z = 0;
+      }
       localPlayer.characterPhysics.applyWasd(
         keysDirection.normalize()
           .multiplyScalar(game.getSpeed() * timeDiff)
@@ -739,7 +742,10 @@ ioManager.mousemove = e => {
     game.updateWeaponWheel(e);
   } else { */
     if (cameraManager.pointerLockElement) {
-      cameraManager.handleMouseMove(e);
+      if(!cameraManager.modeIs2D) {
+        cameraManager.handleMouseMove(e);
+      }
+      //cameraManager.handleMouseMove(e);
     } else {
       if (game.dragging) {
         game.menuDrag(e);

@@ -81,6 +81,14 @@ function getComposer() {
   return composer;
 }
 
+function setMode2D (enabled) {
+  if(enabled) {
+    camera = new THREE.OrthographicCamera(-aspectRatio*viewSize/2, aspectRatio*viewSize/2, viewSize/2, -viewSize/2, -1000, 100);
+    camera.position.set(0, 0, 6);
+    camera.name = 'orthographicCamera';
+  }
+}
+
 const scene = new THREE.Scene();
 scene.name = 'scene';
 const sceneHighPriority = new THREE.Scene();
@@ -107,10 +115,19 @@ rootScene.add(sceneLowestPriority);
 // const orthographicScene = new THREE.Scene();
 // const avatarScene = new THREE.Scene();
 
-const camera = new THREE.PerspectiveCamera(minFov, 1, 0.1, 30000);
-camera.position.set(0, 1.6, 0);
-camera.rotation.order = 'YXZ';
-camera.name = 'sceneCamera';
+let canvasWidth = window.innerWidth;
+let canvasHeight = window.innerHeight;
+let aspectRatio =  canvasWidth/canvasHeight;
+let viewSize = 15;
+
+const camera = new THREE.OrthographicCamera(-aspectRatio*viewSize/2, aspectRatio*viewSize/2, viewSize/2, -viewSize/2, -1000, 100);
+camera.position.set(0, 0, 6);
+camera.name = 'orthographicCamera';
+
+// const camera = new THREE.PerspectiveCamera(minFov, 1, 0.1, 30000);
+// camera.position.set(0, 1.6, 0);
+// camera.rotation.order = 'YXZ';
+// camera.name = 'sceneCamera';
 /* const avatarCamera = camera.clone();
 avatarCamera.near = 0.2;
 avatarCamera.updateProjectionMatrix(); */
@@ -120,6 +137,7 @@ const dolly = new THREE.Object3D();
 const epsilon = 0.000001;
 dolly.position.set(epsilon, epsilon, epsilon);
 dolly.add(camera);
+//dolly.add(orthographicCamera);
 // dolly.add(avatarCamera);
 scene.add(dolly);
 
@@ -217,6 +235,7 @@ export {
   getRenderer,
   getContainerElement,
   getComposer,
+  setMode2D,
   scene,
   rootScene,
   // postSceneOrthographic,
