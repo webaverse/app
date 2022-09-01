@@ -38,13 +38,6 @@ class DropManager extends EventTarget {
             key: 'voucher',
             value: voucher
         }]
-    } else if (voucher == 'needUserVoucher') {
-        voucher = await getVoucherFromUser(tokenId, signerAddress, WebaversecontractAddress)
-        serverDrop = false;
-        components = [...components, {
-            key: 'voucher',
-            value: voucher
-        }]
     } else if (voucher == 'hadVoucher') {
         serverDrop = false;
     }

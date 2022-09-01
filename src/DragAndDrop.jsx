@@ -16,10 +16,9 @@ import useNFTContract from './hooks/useNFTContract';
 import NFTDetailsForm from './components/web3/NFTDetailsForm';
 import { isChainSupported } from './hooks/useChain';
 import { ChainContext } from './hooks/chainProvider';
-import { AccountContext } from './hooks/web3AccountProvider';
-import Web3 from '../web3.min.js';
 import ioManager from '../io-manager.js';
 import dropManager from '../drop-manager';
+import { getVoucherFromUser } from './hooks/voucherHelpers'
 
 const APP_3D_TYPES = ['glb', 'gltf', 'vrm'];
 const timeCount = 6000;
@@ -198,11 +197,21 @@ const DragAndDrop = () => {
                 setState({ openedPanel: null });
             } else if (j && j.voucher == undefined) { // already claimed 
                 if (ioManager.keys.ctrl) {
-                    world.appManager.importNeedUserVoucherApp(app, j, account.currentAddress, WebaversecontractAddress); // already claimed but permanent-drop
+                    try {
+                        //TODO remove first copy when twice drop
+                        j.voucher = await getVoucherFromUser(j.tokenId, account.currentAddress, WebaversecontractAddress)
+                        console.log("drop app", app, j)
+                        // world.appManager.importAddedUserVoucherApp(app, j); // already claimed but permanent-drop
+                    } catch (err) {
+                        console.log("eer", err)
+                    }
                 } else {
+                    console.log("drop normal", app)
                     world.appManager.importApp(app); // already claimed but safe-drop
                 }
                 setState({ openedPanel: null });
+            } else {
+                setQueue(queue.concat([app]));
             }
           }
         }));

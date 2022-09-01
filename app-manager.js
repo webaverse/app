@@ -600,7 +600,7 @@ class AppManager extends EventTarget {
       self.bindTrackedApp(dstTrackedApp, app);
     });
   }
-  importNeedUserVoucherApp(app, json, signerAddress, WebaversecontractAddress) {
+  importAddedUserVoucherApp(app, json) {
     console.log("app+ json", app, json)
     const dropManager = metaversefile.useDropManager();
     dropManager.createDropApp({
@@ -618,10 +618,10 @@ class AppManager extends EventTarget {
         },
         {
           key: 'voucher',
-          value: 'needUserVoucher', // fakeVoucher is for ServerDrop, claimVoucher is for UserClaim
+          value: json.voucher, // fakeVoucher is for ServerDrop, claimVoucher is for UserClaim
         },
       ],
-      voucher: "needUserVoucher",
+      voucher: "hadVoucher",
       position: app.position.clone()
         .add(new THREE.Vector3(0, 0.7, 0)),
       quaternion: app.quaternion,
