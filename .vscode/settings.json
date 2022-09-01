@@ -1,0 +1,22 @@
+{
+  "debug.javascript.autoAttachFilter": "onlyWithFlag",
+  "debug.toolBarLocation": "docked",
+  "editor.codeActionsOnSave": {
+    "source.fixAll.eslint": true
+  },
+  "editor.defaultFormatter": "esbenp.prettier-vscode",
+  "editor.formatOnSave": true,
+  "editor.suggest.snippetsPreventQuickSuggestions": false,
+  "eslint.options": {
+    "reportUnusedDisableDirectives": "error"
+  },
+  "files.eol": "\n",
+  "files.insertFinalNewline": true,
+  "files.trimFinalNewlines": true,
+  "files.trimTrailingWhitespace": true,
+  "prettier.prettierPath": "./node_modules/prettier",
+  "search.exclude": {
+    "**/node_modules": true,
+    "yarn.lock": true
+  }
+}
