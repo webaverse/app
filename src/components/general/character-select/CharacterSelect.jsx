@@ -145,7 +145,7 @@ const Character = forwardRef(({
 });
 
 export const CharacterSelect = () => {
-    const { state, setState, setCharacterLoaded } = useContext( AppContext );
+    const { state, setState, setAvatarLoaded } = useContext( AppContext );
     const [ highlightCharacter, setHighlightCharacter ] = useState(null);
     const [ selectCharacter, setSelectCharacter ] = useState(null);
     const [ lastTargetCharacter, setLastTargetCharacter ] = useState(null);
@@ -377,7 +377,7 @@ export const CharacterSelect = () => {
 
             setTimeout(() => {
                 setState({ openedPanel: null });
-                setCharacterLoaded(false);
+                setAvatarLoaded(false);
             }, 1000);
 
             (async () => {
