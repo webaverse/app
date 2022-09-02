@@ -2353,15 +2353,28 @@ const physxWorker = (() => {
       scratchStack.u8[i] = bytes[i];
     }
 
-    const motionPtr = Module._getMotion(
+    const ptr = Module._getMotion(
       mixerPtr, scratchStack.ptr, nameByteLength,
     )
-    return motionPtr;
+    return ptr;
   }
   w.createNode = (mixer, type = AnimationNodeType.LIST, index = 0) => {
     // debugger
     const ptr = Module._createNode(
       mixer, type, index,
+    )
+    return ptr;
+  }
+  w.getNode = (mixerPtr, name) => {
+    const encoder = new TextEncoder() // todo: reuse ?
+    const bytes = encoder.encode(name)
+    const nameByteLength = bytes.length;
+    for (let i = 0; i < nameByteLength; i++) {
+      scratchStack.u8[i] = bytes[i];
+    }
+
+    const ptr = Module._getNode(
+      mixerPtr, scratchStack.ptr, nameByteLength,
     )
     return ptr;
   }

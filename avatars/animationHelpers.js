@@ -550,46 +550,6 @@ export const _createAnimation = avatar => {
   // end util ---
 
   const createMotions = () => {
-    // avatar.idleMotionPtr = avatar.createMotion(animations.index['idle.fbx'].ptr, 'idleMotionPtr');
-
-    // avatar.walkForwardMotionPtr = avatar.createMotion(animations.index['walking.fbx'].ptr, 'walkForwardMotionPtr');
-    // avatar.walkBackwardMotionPtr = avatar.createMotion(animations.index['walking backwards.fbx'].ptr, 'walkBackwardMotionPtr');
-    // avatar.walkLeftMotionPtr = avatar.createMotion(animations.index['left strafe walking.fbx'].ptr, 'walkLeftMotionPtr');
-    // avatar.walkRightMotionPtr = avatar.createMotion(animations.index['right strafe walking.fbx'].ptr, 'walkRightMotionPtr');
-    // avatar.walkLeftMirrorMotionPtr = avatar.createMotion(animations.index['right strafe walking reverse.fbx'].ptr, 'walkLeftMirrorMotionPtr');
-    // avatar.walkRightMirrorMotionPtr = avatar.createMotion(animations.index['left strafe walking reverse.fbx'].ptr, 'walkRightMirrorMotionPtr');
-
-    // avatar.runForwardMotionPtr = avatar.createMotion(animations.index['Fast Run.fbx'].ptr, 'runForwardMotionPtr');
-    // avatar.runBackwardMotionPtr = avatar.createMotion(animations.index['running backwards.fbx'].ptr, 'runBackwardMotionPtr');
-    // avatar.runLeftMotionPtr = avatar.createMotion(animations.index['left strafe.fbx'].ptr, 'runLeftMotionPtr');
-    // avatar.runRightMotionPtr = avatar.createMotion(animations.index['right strafe.fbx'].ptr, 'runRightMotionPtr');
-    // avatar.runLeftMirrorMotionPtr = avatar.createMotion(animations.index['right strafe reverse.fbx'].ptr, 'runLeftMirrorMotionPtr');
-    // avatar.runRightMirrorMotionPtr = avatar.createMotion(animations.index['left strafe reverse.fbx'].ptr, 'runRightMirrorMotionPtr');
-
-    // avatar.crouchForwardMotionPtr = avatar.createMotion(animations.index['Sneaking Forward.fbx'].ptr, 'crouchForwardMotionPtr');
-    // avatar.crouchBackwardMotionPtr = avatar.createMotion(animations.index['Sneaking Forward reverse.fbx'].ptr, 'crouchBackwardMotionPtr');
-    // avatar.crouchLeftMotionPtr = avatar.createMotion(animations.index['Crouched Sneaking Left.fbx'].ptr, 'crouchLeftMotionPtr');
-    // avatar.crouchRightMotionPtr = avatar.createMotion(animations.index['Crouched Sneaking Right.fbx'].ptr, 'crouchRightMotionPtr');
-    // avatar.crouchLeftMirrorMotionPtr = avatar.createMotion(animations.index['Crouched Sneaking Right reverse.fbx'].ptr, 'crouchLeftMirrorMotionPtr');
-    // avatar.crouchRightMirrorMotionPtr = avatar.createMotion(animations.index['Crouched Sneaking Left reverse.fbx'].ptr, 'crouchRightMirrorMotionPtr');
-
-    // avatar.bowForwardMotionPtr = avatar.createMotion(animations.index['Standing Aim Walk Forward.fbx'].ptr, 'bowForwardMotionPtr');
-    // avatar.bowBackwardMotionPtr = avatar.createMotion(animations.index['Standing Aim Walk Forward reverse.fbx'].ptr, 'bowBackwardMotionPtr');
-    // avatar.bowLeftMotionPtr = avatar.createMotion(animations.index['Standing Aim Walk Left.fbx'].ptr, 'bowLeftMotionPtr');
-    // avatar.bowRightMotionPtr = avatar.createMotion(animations.index['Standing Aim Walk Right.fbx'].ptr, 'bowRightMotionPtr');
-    // avatar.bowLeftMirrorMotionPtr = avatar.createMotion(animations.index['Standing Aim Walk Right reverse.fbx'].ptr, 'bowLeftMirrorMotionPtr');
-    // avatar.bowRightMirrorMotionPtr = avatar.createMotion(animations.index['Standing Aim Walk Left reverse.fbx'].ptr, 'bowRightMirrorMotionPtr');
-
-    // avatar.crouchIdleMotionPtr = avatar.createMotion(animations.index['Crouch Idle.fbx'].ptr, 'crouchIdleMotionPtr');
-    // avatar.flyMotionPtr = avatar.createMotion(floatAnimation.ptr, 'flyMotionPtr');
-    // avatar.flyIdleMotionPtr = avatar.createMotion(animations.index['fly_idle.fbx'].ptr, 'flyIdleMotionPtr');
-    // avatar.flyDodgeForwardMotionPtr = avatar.createMotion(animations.index['fly_dodge_forward.fbx'].ptr, 'flyDodgeForwardMotionPtr');
-    // avatar.flyDodgeBackwardMotionPtr = avatar.createMotion(animations.index['fly_dodge_backward.fbx'].ptr, 'flyDodgeBackwardMotionPtr');
-    // avatar.flyDodgeLeftMotionPtr = avatar.createMotion(animations.index['fly_dodge_left.fbx'].ptr, 'flyDodgeLeftMotionPtr');
-    // avatar.flyDodgeRightMotionPtr = avatar.createMotion(animations.index['fly_dodge_right.fbx'].ptr, 'flyDodgeRightMotionPtr');
-    // avatar.flyDashMotionPtr = avatar.createMotion(animations.index['fly_dash_forward.fbx'].ptr, 'flyDashMotionPtr');
-    // avatar.narutoRunMotionPtr = avatar.createMotion(narutoRunAnimations[defaultNarutoRunAnimation].ptr, 'narutoRunMotionPtr');
-
     avatar.idleMotionPtr = physx.physxWorker.getMotion(avatar.mixerPtr, 'idle');
 
     avatar.walkForwardMotionPtr = physx.physxWorker.getMotion(avatar.mixerPtr, 'walkForward');
@@ -635,8 +595,8 @@ export const _createAnimation = avatar => {
     avatar.jumpMotionPtr = avatar.createMotion(jumpAnimation.ptr, 'jumpMotionPtr');
     physx.physxWorker.setLoop(avatar.jumpMotionPtr, AnimationLoopType.LoopOnce);
     physx.physxWorker.stop(avatar.jumpMotionPtr);
-    physx.physxWorker.setTimeBias(avatar.jumpMotionPtr, 0.7);
-    physx.physxWorker.setSpeed(avatar.jumpMotionPtr, 0.6);
+    // physx.physxWorker.setTimeBias(avatar.jumpMotionPtr, 0.7);
+    // physx.physxWorker.setSpeed(avatar.jumpMotionPtr, 0.6);
 
     avatar.doubleJumpMotionPtr = avatar.createMotion(doubleJumpAnimation.ptr, 'doubleJumpMotionPtr');
     physx.physxWorker.setLoop(avatar.doubleJumpMotionPtr, AnimationLoopType.LoopOnce);
@@ -745,63 +705,18 @@ export const _createAnimation = avatar => {
   createMotions();
 
   const createNodes = () => {
-    avatar._8DirectionsWalkNodeListPtr = avatar.createNode(AnimationNodeType.LIST, '_8DirectionsWalkNodeListPtr');
-    physx.physxWorker.addChild(avatar._8DirectionsWalkNodeListPtr, avatar.walkForwardMotionPtr);
-    physx.physxWorker.addChild(avatar._8DirectionsWalkNodeListPtr, avatar.walkBackwardMotionPtr);
-    physx.physxWorker.addChild(avatar._8DirectionsWalkNodeListPtr, avatar.walkLeftMotionPtr);
-    physx.physxWorker.addChild(avatar._8DirectionsWalkNodeListPtr, avatar.walkRightMotionPtr);
-    physx.physxWorker.addChild(avatar._8DirectionsWalkNodeListPtr, avatar.walkLeftMirrorMotionPtr);
-    physx.physxWorker.addChild(avatar._8DirectionsWalkNodeListPtr, avatar.walkRightMirrorMotionPtr);
+    avatar._8DirectionsWalkNodeListPtr = physx.physxWorker.getNode(avatar.mixerPtr, '_8DirectionsWalkNodeList');
+    avatar._8DirectionsRunNodeListPtr = physx.physxWorker.getNode(avatar.mixerPtr, '_8DirectionsRunNodeList');
+    avatar._8DirectionsCrouchNodeListPtr = physx.physxWorker.getNode(avatar.mixerPtr, '_8DirectionsCrouchNodeList');
+    avatar._8DirectionsBowNodeListPtr = physx.physxWorker.getNode(avatar.mixerPtr, '_8DirectionsBowNodeList');
+    avatar._8DirectionsWalkRunNodeTwoPtr = physx.physxWorker.getNode(avatar.mixerPtr, '_8DirectionsWalkRunNodeTwo');
+    avatar.idle8DWalkRunNodeTwoPtr = physx.physxWorker.getNode(avatar.mixerPtr, 'idle8DWalkRunNodeTwo');
+    avatar.idle8DCrouchNodeTwoPtr = physx.physxWorker.getNode(avatar.mixerPtr, 'idle8DCrouchNodeTwo');
+    avatar.flyForwardNodeTwoPtr = physx.physxWorker.getNode(avatar.mixerPtr, 'flyForwardNodeTwo');
+    avatar._8DirectionsFlyNodeListPtr = physx.physxWorker.getNode(avatar.mixerPtr, '_8DirectionsFlyNodeList');
+    avatar.idle8DFlyNodeTwoPtr = physx.physxWorker.getNode(avatar.mixerPtr, 'idle8DFlyNodeTwo');
 
-    avatar._8DirectionsRunNodeListPtr = avatar.createNode(AnimationNodeType.LIST, '_8DirectionsRunNodeListPtr');
-    physx.physxWorker.addChild(avatar._8DirectionsRunNodeListPtr, avatar.runForwardMotionPtr);
-    physx.physxWorker.addChild(avatar._8DirectionsRunNodeListPtr, avatar.runBackwardMotionPtr);
-    physx.physxWorker.addChild(avatar._8DirectionsRunNodeListPtr, avatar.runLeftMotionPtr);
-    physx.physxWorker.addChild(avatar._8DirectionsRunNodeListPtr, avatar.runRightMotionPtr);
-    physx.physxWorker.addChild(avatar._8DirectionsRunNodeListPtr, avatar.runLeftMirrorMotionPtr);
-    physx.physxWorker.addChild(avatar._8DirectionsRunNodeListPtr, avatar.runRightMirrorMotionPtr);
-
-    avatar._8DirectionsCrouchNodeListPtr = avatar.createNode(AnimationNodeType.LIST, '_8DirectionsCrouchNodeListPtr');
-    physx.physxWorker.addChild(avatar._8DirectionsCrouchNodeListPtr, avatar.crouchForwardMotionPtr);
-    physx.physxWorker.addChild(avatar._8DirectionsCrouchNodeListPtr, avatar.crouchBackwardMotionPtr);
-    physx.physxWorker.addChild(avatar._8DirectionsCrouchNodeListPtr, avatar.crouchLeftMotionPtr);
-    physx.physxWorker.addChild(avatar._8DirectionsCrouchNodeListPtr, avatar.crouchRightMotionPtr);
-    physx.physxWorker.addChild(avatar._8DirectionsCrouchNodeListPtr, avatar.crouchLeftMirrorMotionPtr);
-    physx.physxWorker.addChild(avatar._8DirectionsCrouchNodeListPtr, avatar.crouchRightMirrorMotionPtr);
-
-    avatar._8DirectionsBowNodeListPtr = avatar.createNode(AnimationNodeType.LIST, '_8DirectionsBowNodeListPtr');
-    physx.physxWorker.addChild(avatar._8DirectionsBowNodeListPtr, avatar.bowForwardMotionPtr);
-    physx.physxWorker.addChild(avatar._8DirectionsBowNodeListPtr, avatar.bowBackwardMotionPtr);
-    physx.physxWorker.addChild(avatar._8DirectionsBowNodeListPtr, avatar.bowLeftMotionPtr);
-    physx.physxWorker.addChild(avatar._8DirectionsBowNodeListPtr, avatar.bowRightMotionPtr);
-    physx.physxWorker.addChild(avatar._8DirectionsBowNodeListPtr, avatar.bowLeftMirrorMotionPtr);
-    physx.physxWorker.addChild(avatar._8DirectionsBowNodeListPtr, avatar.bowRightMirrorMotionPtr);
-
-    avatar._8DirectionsWalkRunNodeTwoPtr = avatar.createNode(AnimationNodeType.TWO, '_8DirectionsWalkRunNodeTwoPtr');
-    physx.physxWorker.addChild(avatar._8DirectionsWalkRunNodeTwoPtr, avatar._8DirectionsWalkNodeListPtr);
-    physx.physxWorker.addChild(avatar._8DirectionsWalkRunNodeTwoPtr, avatar._8DirectionsRunNodeListPtr);
-
-    avatar.idle8DWalkRunNodeTwoPtr = avatar.createNode(AnimationNodeType.TWO, 'idle8DWalkRunNodeTwoPtr');
-    physx.physxWorker.addChild(avatar.idle8DWalkRunNodeTwoPtr, avatar.idleMotionPtr);
-    physx.physxWorker.addChild(avatar.idle8DWalkRunNodeTwoPtr, avatar._8DirectionsWalkRunNodeTwoPtr);
-
-    avatar.idle8DCrouchNodeTwoPtr = avatar.createNode(AnimationNodeType.TWO, 'idle8DCrouchNodeTwoPtr');
-    physx.physxWorker.addChild(avatar.idle8DCrouchNodeTwoPtr, avatar.crouchIdleMotionPtr);
-    physx.physxWorker.addChild(avatar.idle8DCrouchNodeTwoPtr, avatar._8DirectionsCrouchNodeListPtr);
-
-    avatar.flyForwardNodeTwoPtr = avatar.createNode(AnimationNodeType.TWO, 'flyForwardNodeTwoPtr');
-    physx.physxWorker.addChild(avatar.flyForwardNodeTwoPtr, avatar.flyDodgeForwardMotionPtr);
-    physx.physxWorker.addChild(avatar.flyForwardNodeTwoPtr, avatar.flyDashMotionPtr);
-
-    avatar._8DirectionsFlyNodeListPtr = avatar.createNode(AnimationNodeType.LIST, '_8DirectionsFlyNodeListPtr');
-    physx.physxWorker.addChild(avatar._8DirectionsFlyNodeListPtr, avatar.flyForwardNodeTwoPtr);
-    physx.physxWorker.addChild(avatar._8DirectionsFlyNodeListPtr, avatar.flyDodgeBackwardMotionPtr);
-    physx.physxWorker.addChild(avatar._8DirectionsFlyNodeListPtr, avatar.flyDodgeLeftMotionPtr);
-    physx.physxWorker.addChild(avatar._8DirectionsFlyNodeListPtr, avatar.flyDodgeRightMotionPtr);
-
-    avatar.idle8DFlyNodeTwoPtr = avatar.createNode(AnimationNodeType.TWO, 'idle8DFlyNodeTwoPtr');
-    physx.physxWorker.addChild(avatar.idle8DFlyNodeTwoPtr, avatar.flyIdleMotionPtr);
-    physx.physxWorker.addChild(avatar.idle8DFlyNodeTwoPtr, avatar._8DirectionsFlyNodeListPtr);
+    //
 
     avatar.idle8DBowNodeTwoPtr = avatar.createNode(AnimationNodeType.TWO, 'idle8DBowNodeTwoPtr');
     physx.physxWorker.addChild(avatar.idle8DBowNodeTwoPtr, avatar.bowMotionPtro.bowIdle);
