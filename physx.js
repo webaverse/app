@@ -2240,6 +2240,14 @@ const physxWorker = (() => {
       mixerPtr,
     )
   }
+  w.updateAvatar = (values) => {
+    values.forEach((value, i) => {
+      scratchStack.f32[i] = value;
+    })
+    Module._updateAvatar(
+      scratchStack.ptr,
+    )
+  }
   w.createAnimationMixer = () => {
     const ptr = Module._createAnimationMixer(
     )
