@@ -6,7 +6,15 @@ import {PGWorkerManager} from './pg-worker-manager.js';
 import {LodChunkTracker} from './lod.js';
 import {defaultChunkSize} from './constants.js';
 
-const _getMinHash2D = min => (min << 16) | min;
+//
+
+const localArray2D = Array(2);
+
+//
+
+const _getMinHash2D = min =>
+  (min.x << 16) |
+  (min.y & 0xFFFF);
 
 class ProcGenInstance {
   constructor(instance, {
@@ -42,7 +50,8 @@ class ProcGenInstance {
   async generateTerrainChunk(position, lod, {signal} = {}) {
     await this.pgWorkerManager.waitForLoad();
     
-    const result = await this.pgWorkerManager.generateTerrainChunk(position, lod, {signal});
+    position.toArray(localArray2D);
+    const result = await this.pgWorkerManager.generateTerrainChunk(localArray2D, lod, {signal});
     // console.log('got result', result);
     return result;
   }

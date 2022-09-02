@@ -9,7 +9,8 @@ const chunkWorldSize = defaultChunkSize;
 
 //
 
-const localVector = new THREE.Vector3();
+// const localVector = new THREE.Vector3();
+const localVector2D = new THREE.Vector2();
 
 //
 
@@ -215,14 +216,13 @@ const _handleMethod = async ({method, args, instance: instanceKey, taskId}) => {
       const instance = instances.get(instanceKey);
       if (!instance) throw new Error('generateTerrainChunk : instance not found');
 
-      const position = new THREE.Vector3().fromArray(chunkPosition)
+      const position = localVector2D.fromArray(chunkPosition)
         .multiplyScalar(chunkWorldSize);
       const meshData = await pg.createTerrainChunkMeshAsync(
         instance,
         taskId,
         position.x,
-        // position.y,
-        position.z,
+        position.y,
         lod,
       );
       const meshData2 = _cloneTerrainMeshData(meshData);
@@ -247,14 +247,13 @@ const _handleMethod = async ({method, args, instance: instanceKey, taskId}) => {
       const instance = instances.get(instanceKey);
       if (!instance) throw new Error('generateLiquidChunk : instance not found');
       
-      localVector.fromArray(chunkPosition)
+      const position = localVector2D.fromArray(chunkPosition)
         .multiplyScalar(chunkWorldSize);
       const meshData = await pg.createLiquidChunkMeshAsync(
         instance,
         taskId,
-        localVector.x,
-        // localVector.y,
-        localVector.z,
+        position.x,
+        position.y,
         lod,
       );
       const meshData2 = _cloneLiquidMeshData(meshData);

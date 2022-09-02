@@ -803,15 +803,15 @@ export class LodChunkTracker {
     // console.log('got leaf nodes', leafNodes);
     // debugger;
 
+    for (const cancelDataRequest of cancelDataRequests) {
+      this.handleChunkRemove(cancelDataRequest);
+    }
     for (const newDataRequest of newDataRequests) {
       this.handleChunkAdd(newDataRequest);
     }
     /* for (const keepDataRequest of keepDataRequests) {
       this.handleKeepChunk(keepDataRequest);
     } */
-    for (const cancelDataRequest of cancelDataRequests) {
-      this.handleChunkRemove(cancelDataRequest);
-    }
 
     /* // data requests
     {
