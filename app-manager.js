@@ -625,9 +625,7 @@ class AppManager extends EventTarget {
       position: app.position.clone()
         .add(new THREE.Vector3(0, 0.7, 0)),
       quaternion: app.quaternion,
-      scale: app.scale,
-      signerAddress,
-      WebaversecontractAddress
+      scale: app.scale
     });
   }
   importHadVoucherApp(app, json) {

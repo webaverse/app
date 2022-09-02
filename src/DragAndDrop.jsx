@@ -172,24 +172,6 @@ const DragAndDrop = () => {
             drop,
           });
           const j = getObjectJson();
-        //   if (app) {
-        //     console.log("DragAndDrop", app, j)
-        //     console.log(j.voucher)
-        //     if (j && j.claimed) {
-        //       if(ioManager.keys.ctrl) {
-        //         world.appManager.importClaimedApp(app, j, account.currentAddress, WebaversecontractAddress);
-        //       } else {
-        //         world.appManager.importApp(app);
-        //       }
-        //       setState({ openedPanel: null });
-        //     } else if (drop) {
-        //         console.log("swapns drop", j, drop)
-        //       world.appManager.importApp(app);
-        //       setState({ openedPanel: null });
-        //     } else {
-        //       setQueue(queue.concat([app]));
-        //     }
-        //   }
           if (app) {
             if (j && j.voucher) { // has voucher = claimable
                 world.appManager.importHadVoucherApp(app, j)
@@ -198,15 +180,19 @@ const DragAndDrop = () => {
             } else if (j && j.voucher == undefined) { // already claimed 
                 if (ioManager.keys.ctrl) {
                     try {
-                        //TODO remove first copy when twice drop
                         j.voucher = await getVoucherFromUser(j.tokenId, account.currentAddress, WebaversecontractAddress)
-                        console.log("drop app", app, j)
-                        // world.appManager.importAddedUserVoucherApp(app, j); // already claimed but permanent-drop
+                        for (const worldApp of world.appManager.getApps()) {
+                          if (worldApp.getComponent('voucher')) {
+                            if(worldApp.getComponent('voucher').tokenId === j.tokenId) {
+                              world.appManager.removeApp(worldApp)
+                            }
+                          }
+                        }
+                        world.appManager.importAddedUserVoucherApp(app, j); // already claimed but permanent-drop
                     } catch (err) {
-                        console.log("eer", err)
+                        console.log(err)
                     }
                 } else {
-                    console.log("drop normal", app)
                     world.appManager.importApp(app); // already claimed but safe-drop
                 }
                 setState({ openedPanel: null });

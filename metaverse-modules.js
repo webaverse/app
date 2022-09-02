@@ -23,8 +23,6 @@ const moduleUrls = {
   targetReticle: './metaverse_modules/target-reticle/',
   halo: './metaverse_modules/halo/',
   silks: './metaverse_modules/silks/',
-  silsword: './metaverse_modules/silsword/',
-  chest: './metaverse_modules/chest/',
   magic: './metaverse_modules/magic/',
   limit: './metaverse_modules/limit/',
   flare: './metaverse_modules/flare/',
