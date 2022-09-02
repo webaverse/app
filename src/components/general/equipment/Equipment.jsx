@@ -249,7 +249,7 @@ const EquipmentItems = ({
             <div className={styles.text}>{rightText}</div>
             <img className={styles.arrow} src="./images/chevron3.svg" />
         </div>
-        {sections.map((section, i) => {
+        {open && sections.map((section, i) => {
             const {name, tokens} = section;
 
             /* const refsMap = (() => {
@@ -439,7 +439,7 @@ export const Equipment = () => {
                                 tokens: claims,
                             },
                         ]}
-                        open={faceIndex === 0}
+                        open={open && faceIndex === 0}
                         hoverObject={hoverObject}
                         selectObject={selectObject}
                         loading={loading}
@@ -465,7 +465,7 @@ export const Equipment = () => {
                                 tokens: objects.upstreet,
                             },
                         ]}
-                        open={faceIndex === 1}
+                        open={open && faceIndex === 1}
                         hoverObject={hoverObject}
                         selectObject={selectObject}
                         loading={loading}
@@ -487,7 +487,7 @@ export const Equipment = () => {
                                 tokens: [],
                             },
                         ]}
-                        open={faceIndex === 2}
+                        open={open && faceIndex === 2}
                         hoverObject={hoverObject}
                         selectObject={selectObject}
                         loading={loading}
@@ -509,7 +509,7 @@ export const Equipment = () => {
                                 tokens: landTokenObjects,
                             },
                         ]}
-                        open={faceIndex === 3}
+                        open={open && faceIndex === 3}
                         hoverObject={hoverObject}
                         selectObject={selectObject}
                         loading={loading}
