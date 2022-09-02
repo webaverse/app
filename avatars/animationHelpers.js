@@ -428,6 +428,7 @@ export const loadPromise = (async () => {
 });
 
 export const _createAnimation = avatar => {
+  debugger
   // const player = metaversefile.getPlayerByAppInstanceId(avatar.app.getComponent('instanceId'));
   // console.log({player});
 
@@ -592,23 +593,23 @@ export const _createAnimation = avatar => {
 
     //
 
-    avatar.jumpMotionPtr = avatar.createMotion(jumpAnimation.ptr, 'jumpMotionPtr');
+    avatar.jumpMotionPtr = physx.physxWorker.getMotion(avatar.mixerPtr, 'jump');
     physx.physxWorker.setLoop(avatar.jumpMotionPtr, AnimationLoopType.LoopOnce);
     physx.physxWorker.stop(avatar.jumpMotionPtr);
     // physx.physxWorker.setTimeBias(avatar.jumpMotionPtr, 0.7);
     // physx.physxWorker.setSpeed(avatar.jumpMotionPtr, 0.6);
 
-    avatar.doubleJumpMotionPtr = avatar.createMotion(doubleJumpAnimation.ptr, 'doubleJumpMotionPtr');
+    avatar.doubleJumpMotionPtr = physx.physxWorker.getMotion(avatar.mixerPtr, 'doubleJump');
     physx.physxWorker.setLoop(avatar.doubleJumpMotionPtr, AnimationLoopType.LoopOnce);
     physx.physxWorker.stop(avatar.doubleJumpMotionPtr);
 
-    avatar.fallLoopMotionPtr = avatar.createMotion(fallLoopAnimation.ptr, 'fallLoopMotionPtr');
+    avatar.fallLoopMotionPtr = physx.physxWorker.getMotion(avatar.mixerPtr, 'fallLoop');
 
-    avatar.landMotionPtr = avatar.createMotion(animations.index['landing.fbx'].ptr, 'landMotionPtr');
+    avatar.landMotionPtr = physx.physxWorker.getMotion(avatar.mixerPtr, 'land');
     physx.physxWorker.setLoop(avatar.landMotionPtr, AnimationLoopType.LoopOnce);
     physx.physxWorker.stop(avatar.landMotionPtr);
     physx.physxWorker.setSpeed(avatar.landMotionPtr, 0.75);
-    avatar.land2MotionPtr = avatar.createMotion(animations.index['landing 2.fbx'].ptr, 'land2MotionPtr');
+    avatar.land2MotionPtr = physx.physxWorker.getMotion(avatar.mixerPtr, 'land2');
     physx.physxWorker.setLoop(avatar.land2MotionPtr, AnimationLoopType.LoopOnce);
     physx.physxWorker.stop(avatar.land2MotionPtr);
     physx.physxWorker.setSpeed(avatar.land2MotionPtr, 1.7);
@@ -618,7 +619,7 @@ export const _createAnimation = avatar => {
     for (const k in useAnimations) {
       const animation = useAnimations[k];
       if (animation) {
-        avatar.useMotionPtro[k] = avatar.createMotion(animation.ptr, k);
+        avatar.useMotionPtro[k] = physx.physxWorker.getMotion(avatar.mixerPtr, k);
         physx.physxWorker.setLoop(avatar.useMotionPtro[k], AnimationLoopType.LoopOnce);
         physx.physxWorker.stop(avatar.useMotionPtro[k]);
       }
