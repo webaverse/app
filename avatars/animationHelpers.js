@@ -908,7 +908,8 @@ export const _updateAnimation = avatar => {
     physx.physxWorker.setFactor(avatar.idle8DFlyNodeTwoPtr, avatar.walkRunFactor);
     physx.physxWorker.setFactor(avatar.flyForwardNodeTwoPtr, avatar.flyDashFactor);
 
-    physx.physxWorker.setArg(avatar.holdNodeFuncPtr, avatar.walkRunFactor * 0.7 + avatar.crouchFactor * (1 - avatar.idleWalkFactor) * 0.5);
+    const holdFactor = avatar.walkRunFactor * 0.7 + avatar.crouchFactor * (1 - avatar.idleWalkFactor) * 0.5;
+    physx.physxWorker.setArg(avatar.holdNodeFuncPtr, holdFactor);
     physx.physxWorker.setArg(avatar.emoteNodeFuncPtr, avatar.idleWalkFactor);
   };
   updateValues();
