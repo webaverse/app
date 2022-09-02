@@ -56,6 +56,7 @@ const soundFiles = {
   explosion: _getSoundFiles(/OOT_Bomb_Blow/),
 
   water: _getSoundFiles(/^water\//),
+  biomes: _getSoundFiles(/^biomes\//),
 };
 
 let soundFileAudioBuffer;

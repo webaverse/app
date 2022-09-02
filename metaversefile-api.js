@@ -59,6 +59,7 @@ import cardsManager from './cards-manager.js';
 import * as instancing from './instancing.js';
 import * as atlasing from './atlasing.js';
 import ioManager from './io-manager.js';
+import {environmentSfxManager} from './environmentSfxManager';
 
 const localVector2D = new THREE.Vector2();
 
@@ -551,6 +552,9 @@ metaversefile.setApi({
   },
   useMobManager() {
     return mobManager;
+  },
+  useEnvironmentSfxManager() {
+    return environmentSfxManager
   },
   usePathFinder() {
     return PathFinder;
