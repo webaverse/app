@@ -22,7 +22,6 @@ class EnvironmentSfxManager {
     update (timestamp, timeDiffCapped) {
         const playEnvironmentSound = () => {
             if (this.lastBiome !== this.biome) {
-                console.log(this.biome);
                 if (this.oldBaseSound) {
                     !this.oldBaseSound.paused && this.oldBaseSound.stop();
                     this.oldBaseSound = null;
