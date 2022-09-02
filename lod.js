@@ -42,7 +42,7 @@ const _getHashMinLod = (min, lod) => {
 
   return result;
 };
-const _getHashChunk = chunk => _getHashMinLod(chunk.min, chunk.lod);
+// const _getHashChunk = chunk => _getHashMinLod(chunk.min, chunk.lod);
 // const _getHashMinLodArray = (min, lodArray) => min.x + ',' + min.y + ',' + min.z + ':' + lodArray.join(',');
 // const _getHashChunkLodArray = chunk => _getHashMinLodArray(chunk.min, chunk.lodArray);
 
