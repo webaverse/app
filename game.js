@@ -1445,7 +1445,7 @@ class GameManager extends EventTarget {
     const localPlayer = playersManager.getLocalPlayer();
     localVector.copy(localPlayer.position);
     if (localPlayer.avatar) {
-      localVector.y -= localPlayer.avatar.height; 
+      localVector.y -= localPlayer.avatar.height;
     }
     const u = await handleDropJsonItem(item);
     return await this.handleDropUrlToPlayer(u, index, localVector);
