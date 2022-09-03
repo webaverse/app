@@ -428,7 +428,7 @@ export const loadPromise = (async () => {
 });
 
 export const _createAnimation = avatar => {
-  debugger
+  // debugger
   // const player = metaversefile.getPlayerByAppInstanceId(avatar.app.getComponent('instanceId'));
   // console.log({player});
 
@@ -550,7 +550,7 @@ export const _createAnimation = avatar => {
 
   // end util ---
 
-  const createMotions = () => {
+  const getMotions = () => {
     avatar.idleMotionPtr = physx.physxWorker.getMotion(avatar.mixerPtr, 'idle');
 
     avatar.walkForwardMotionPtr = physx.physxWorker.getMotion(avatar.mixerPtr, 'walkForward');
@@ -630,7 +630,7 @@ export const _createAnimation = avatar => {
     for (const k in useComboAnimations) {
       const animation = useComboAnimations[k];
       if (animation) {
-        avatar.useComboMotionPtro[k] = avatar.createMotion(animation.ptr, k);
+        avatar.useComboMotionPtro[k] = physx.physxWorker.getMotion(avatar.mixerPtr, k);
         physx.physxWorker.setLoop(avatar.useComboMotionPtro[k], AnimationLoopType.LoopOnce);
         physx.physxWorker.stop(avatar.useComboMotionPtro[k]);
       }
@@ -640,7 +640,7 @@ export const _createAnimation = avatar => {
     for (const k in bowAnimations) {
       const animation = bowAnimations[k];
       if (animation) {
-        avatar.bowMotionPtro[k] = avatar.createMotion(animation.ptr, k);
+        avatar.bowMotionPtro[k] = physx.physxWorker.getMotion(avatar.mixerPtr, k);
         physx.physxWorker.setLoop(avatar.bowMotionPtro[k], AnimationLoopType.LoopOnce);
         physx.physxWorker.stop(avatar.bowMotionPtro[k]);
       }
@@ -650,7 +650,7 @@ export const _createAnimation = avatar => {
     for (const k in sitAnimations) {
       const animation = sitAnimations[k];
       if (animation) {
-        avatar.sitMotionPtro[k] = avatar.createMotion(animation.ptr, k);
+        avatar.sitMotionPtro[k] = physx.physxWorker.getMotion(avatar.mixerPtr, k);
         physx.physxWorker.setLoop(avatar.sitMotionPtro[k], AnimationLoopType.LoopOnce);
         physx.physxWorker.stop(avatar.sitMotionPtro[k]);
       }
@@ -660,7 +660,7 @@ export const _createAnimation = avatar => {
     for (const k in hurtAnimations) {
       const animation = hurtAnimations[k];
       if (animation) {
-        avatar.hurtMotionPtro[k] = avatar.createMotion(animation.ptr, k);
+        avatar.hurtMotionPtro[k] = physx.physxWorker.getMotion(avatar.mixerPtr, k);
         physx.physxWorker.setLoop(avatar.hurtMotionPtro[k], AnimationLoopType.LoopOnce);
         physx.physxWorker.stop(avatar.hurtMotionPtro[k]);
       }
@@ -670,7 +670,7 @@ export const _createAnimation = avatar => {
     for (const k in emoteAnimations) {
       const animation = emoteAnimations[k];
       if (animation) {
-        avatar.emoteMotionPtro[k] = avatar.createMotion(animation.ptr, k);
+        avatar.emoteMotionPtro[k] = physx.physxWorker.getMotion(avatar.mixerPtr, k);
         physx.physxWorker.setLoop(avatar.emoteMotionPtro[k], AnimationLoopType.LoopOnce);
         physx.physxWorker.stop(avatar.emoteMotionPtro[k]);
       }
@@ -680,7 +680,7 @@ export const _createAnimation = avatar => {
     for (const k in danceAnimations) {
       const animation = danceAnimations[k];
       if (animation) {
-        avatar.danceMotionPtro[k] = avatar.createMotion(animation.ptr, k);
+        avatar.danceMotionPtro[k] = physx.physxWorker.getMotion(avatar.mixerPtr, k);
       }
     }
     // hold
@@ -688,7 +688,7 @@ export const _createAnimation = avatar => {
     for (const k in holdAnimations) {
       const animation = holdAnimations[k];
       if (animation) {
-        avatar.holdMotionPtro[k] = avatar.createMotion(animation.ptr, k);
+        avatar.holdMotionPtro[k] = physx.physxWorker.getMotion(avatar.mixerPtr, k);
       }
     }
     // activate
@@ -696,14 +696,14 @@ export const _createAnimation = avatar => {
     for (const k in activateAnimations) {
       const animationWithSpeedFactor = activateAnimations[k];
       if (animationWithSpeedFactor) {
-        avatar.activateMotionPtro[k] = avatar.createMotion(animationWithSpeedFactor.animation.ptr, k);
+        avatar.activateMotionPtro[k] = physx.physxWorker.getMotion(avatar.mixerPtr, k);
         physx.physxWorker.setLoop(avatar.activateMotionPtro[k], AnimationLoopType.LoopOnce);
         physx.physxWorker.stop(avatar.activateMotionPtro[k]);
         physx.physxWorker.setSpeed(avatar.activateMotionPtro[k], animationWithSpeedFactor.speedFactor);
       }
     }
   };
-  createMotions();
+  getMotions();
 
   const createNodes = () => {
     avatar._8DirectionsWalkNodeListPtr = physx.physxWorker.getNode(avatar.mixerPtr, '_8DirectionsWalkNodeList');
