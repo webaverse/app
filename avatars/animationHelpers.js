@@ -551,44 +551,44 @@ export const _createAnimation = avatar => {
   // end util ---
 
   const getMotions = () => {
-    avatar.idleMotionPtr = physx.physxWorker.getMotion(avatar.mixerPtr, 'idle');
+    // avatar.idleMotionPtr = physx.physxWorker.getMotion(avatar.mixerPtr, 'idle');
 
-    avatar.walkForwardMotionPtr = physx.physxWorker.getMotion(avatar.mixerPtr, 'walkForward');
-    avatar.walkBackwardMotionPtr = physx.physxWorker.getMotion(avatar.mixerPtr, 'walkBackward');
-    avatar.walkLeftMotionPtr = physx.physxWorker.getMotion(avatar.mixerPtr, 'walkLeft');
-    avatar.walkRightMotionPtr = physx.physxWorker.getMotion(avatar.mixerPtr, 'walkRight');
-    avatar.walkLeftMirrorMotionPtr = physx.physxWorker.getMotion(avatar.mixerPtr, 'walkLeftMirror');
-    avatar.walkRightMirrorMotionPtr = physx.physxWorker.getMotion(avatar.mixerPtr, 'walkRightMirror');
+    // avatar.walkForwardMotionPtr = physx.physxWorker.getMotion(avatar.mixerPtr, 'walkForward');
+    // avatar.walkBackwardMotionPtr = physx.physxWorker.getMotion(avatar.mixerPtr, 'walkBackward');
+    // avatar.walkLeftMotionPtr = physx.physxWorker.getMotion(avatar.mixerPtr, 'walkLeft');
+    // avatar.walkRightMotionPtr = physx.physxWorker.getMotion(avatar.mixerPtr, 'walkRight');
+    // avatar.walkLeftMirrorMotionPtr = physx.physxWorker.getMotion(avatar.mixerPtr, 'walkLeftMirror');
+    // avatar.walkRightMirrorMotionPtr = physx.physxWorker.getMotion(avatar.mixerPtr, 'walkRightMirror');
 
-    avatar.runForwardMotionPtr = physx.physxWorker.getMotion(avatar.mixerPtr, 'runForward');
-    avatar.runBackwardMotionPtr = physx.physxWorker.getMotion(avatar.mixerPtr, 'runBackward');
-    avatar.runLeftMotionPtr = physx.physxWorker.getMotion(avatar.mixerPtr, 'runLeft');
-    avatar.runRightMotionPtr = physx.physxWorker.getMotion(avatar.mixerPtr, 'runRight');
-    avatar.runLeftMirrorMotionPtr = physx.physxWorker.getMotion(avatar.mixerPtr, 'runLeftMirror');
-    avatar.runRightMirrorMotionPtr = physx.physxWorker.getMotion(avatar.mixerPtr, 'runRightMirror');
+    // avatar.runForwardMotionPtr = physx.physxWorker.getMotion(avatar.mixerPtr, 'runForward');
+    // avatar.runBackwardMotionPtr = physx.physxWorker.getMotion(avatar.mixerPtr, 'runBackward');
+    // avatar.runLeftMotionPtr = physx.physxWorker.getMotion(avatar.mixerPtr, 'runLeft');
+    // avatar.runRightMotionPtr = physx.physxWorker.getMotion(avatar.mixerPtr, 'runRight');
+    // avatar.runLeftMirrorMotionPtr = physx.physxWorker.getMotion(avatar.mixerPtr, 'runLeftMirror');
+    // avatar.runRightMirrorMotionPtr = physx.physxWorker.getMotion(avatar.mixerPtr, 'runRightMirror');
 
-    avatar.crouchForwardMotionPtr = physx.physxWorker.getMotion(avatar.mixerPtr, 'crouchForward');
-    avatar.crouchBackwardMotionPtr = physx.physxWorker.getMotion(avatar.mixerPtr, 'crouchBackward');
-    avatar.crouchLeftMotionPtr = physx.physxWorker.getMotion(avatar.mixerPtr, 'crouchLeft');
-    avatar.crouchRightMotionPtr = physx.physxWorker.getMotion(avatar.mixerPtr, 'crouchRight');
-    avatar.crouchLeftMirrorMotionPtr = physx.physxWorker.getMotion(avatar.mixerPtr, 'crouchLeftMirror');
-    avatar.crouchRightMirrorMotionPtr = physx.physxWorker.getMotion(avatar.mixerPtr, 'crouchRightMirror');
+    // avatar.crouchForwardMotionPtr = physx.physxWorker.getMotion(avatar.mixerPtr, 'crouchForward');
+    // avatar.crouchBackwardMotionPtr = physx.physxWorker.getMotion(avatar.mixerPtr, 'crouchBackward');
+    // avatar.crouchLeftMotionPtr = physx.physxWorker.getMotion(avatar.mixerPtr, 'crouchLeft');
+    // avatar.crouchRightMotionPtr = physx.physxWorker.getMotion(avatar.mixerPtr, 'crouchRight');
+    // avatar.crouchLeftMirrorMotionPtr = physx.physxWorker.getMotion(avatar.mixerPtr, 'crouchLeftMirror');
+    // avatar.crouchRightMirrorMotionPtr = physx.physxWorker.getMotion(avatar.mixerPtr, 'crouchRightMirror');
 
-    avatar.bowForwardMotionPtr = physx.physxWorker.getMotion(avatar.mixerPtr, 'bowForward');
-    avatar.bowBackwardMotionPtr = physx.physxWorker.getMotion(avatar.mixerPtr, 'bowBackward');
-    avatar.bowLeftMotionPtr = physx.physxWorker.getMotion(avatar.mixerPtr, 'bowLeft');
-    avatar.bowRightMotionPtr = physx.physxWorker.getMotion(avatar.mixerPtr, 'bowRight');
-    avatar.bowLeftMirrorMotionPtr = physx.physxWorker.getMotion(avatar.mixerPtr, 'bowLeftMirror');
-    avatar.bowRightMirrorMotionPtr = physx.physxWorker.getMotion(avatar.mixerPtr, 'bowRightMirror');
+    // avatar.bowForwardMotionPtr = physx.physxWorker.getMotion(avatar.mixerPtr, 'bowForward');
+    // avatar.bowBackwardMotionPtr = physx.physxWorker.getMotion(avatar.mixerPtr, 'bowBackward');
+    // avatar.bowLeftMotionPtr = physx.physxWorker.getMotion(avatar.mixerPtr, 'bowLeft');
+    // avatar.bowRightMotionPtr = physx.physxWorker.getMotion(avatar.mixerPtr, 'bowRight');
+    // avatar.bowLeftMirrorMotionPtr = physx.physxWorker.getMotion(avatar.mixerPtr, 'bowLeftMirror');
+    // avatar.bowRightMirrorMotionPtr = physx.physxWorker.getMotion(avatar.mixerPtr, 'bowRightMirror');
 
-    avatar.crouchIdleMotionPtr = physx.physxWorker.getMotion(avatar.mixerPtr, 'crouchIdle');
-    avatar.flyMotionPtr = physx.physxWorker.getMotion(avatar.mixerPtr, 'fly');
-    avatar.flyIdleMotionPtr = physx.physxWorker.getMotion(avatar.mixerPtr, 'flyIdle');
-    avatar.flyDodgeForwardMotionPtr = physx.physxWorker.getMotion(avatar.mixerPtr, 'flyDodgeForward');
+    // avatar.crouchIdleMotionPtr = physx.physxWorker.getMotion(avatar.mixerPtr, 'crouchIdle');
+    // avatar.flyMotionPtr = physx.physxWorker.getMotion(avatar.mixerPtr, 'fly');
+    // avatar.flyIdleMotionPtr = physx.physxWorker.getMotion(avatar.mixerPtr, 'flyIdle');
+    // avatar.flyDodgeForwardMotionPtr = physx.physxWorker.getMotion(avatar.mixerPtr, 'flyDodgeForward');
     avatar.flyDodgeBackwardMotionPtr = physx.physxWorker.getMotion(avatar.mixerPtr, 'flyDodgeBackward');
     avatar.flyDodgeLeftMotionPtr = physx.physxWorker.getMotion(avatar.mixerPtr, 'flyDodgeLeft');
     avatar.flyDodgeRightMotionPtr = physx.physxWorker.getMotion(avatar.mixerPtr, 'flyDodgeRight');
-    avatar.flyDashMotionPtr = physx.physxWorker.getMotion(avatar.mixerPtr, 'flyDash');
+    // avatar.flyDashMotionPtr = physx.physxWorker.getMotion(avatar.mixerPtr, 'flyDash');
     avatar.narutoRunMotionPtr = physx.physxWorker.getMotion(avatar.mixerPtr, 'narutoRun');
 
     //
