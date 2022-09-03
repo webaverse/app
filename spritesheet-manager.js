@@ -4,7 +4,6 @@ import offscreenEngineManager from './offscreen-engine-manager.js';
 class SpritesheetManager {
   maxConcurrentLoading = 5;
   currentlyLoading = 0;
-  isLoaderRunning = false;
   waitQueue = [];
 
   constructor() {
@@ -38,39 +37,31 @@ class SpritesheetManager {
   async getSpriteSheetForAppUrlAsync(appUrl, opts) {
     const spritesheet = this.spritesheetCache.get(appUrl);
 
-    if (spritesheet) return spritesheet
+    if (spritesheet) return spritesheet;
 
     return new Promise((resolve) => {
-      this.waitQueue.push({ url: appUrl, opts, resolve })
-      if (!this.isLoaderRunning) this.loadSpriteSheetFromQueue()
-    })
+      this.waitQueue.push({ url: appUrl, opts, resolve });
+      this.loadSpriteSheetFromQueue();
+    });
   }
 
-  async loadSpriteSheetFromQueue() {
-    if (this.currentlyLoading >= this.maxConcurrentLoading) return;
+  loadSpriteSheetFromQueue() {
+    if (this.currentlyLoading >= this.maxConcurrentLoading || this.waitQueue.length <= 0) return;
 
-    this.isLoaderRunning = true;
-
-    for (let i = 0; i < this.maxConcurrentLoading; i++) {
+    const loopCount = Math.min(this.maxConcurrentLoading, this.waitQueue.length);
+    for (let i = 0; i < loopCount; i++) {
       this.currentlyLoading++;
-      this.loadSpriteSheet((i+1)).then(() => {
-        this.currentlyLoading--
-        if (this.currentlyLoading === 0) this.isLoaderRunning = false;
+      const data = this.waitQueue.splice(0, 1)[0];
+
+      this.getSpriteSheetForAppUrlInternal([ data.url, data.opts ]).then((spritesheet) => {
+        this.currentlyLoading--;
+
+        this.spritesheetCache.set(data.url, spritesheet);
+        data.resolve(spritesheet);
+
+        this.loadSpriteSheetFromQueue();
       });
     }
-  }
-
-  async loadSpriteSheet(num) {
-    if (this.waitQueue.length <= 0) return;
-
-    this.isLoaderRunning = true;
-    const urlData = this.waitQueue.splice(0, 1)[0];
-
-    const spritesheet = await this.getSpriteSheetForAppUrlInternal([ urlData.url, urlData.opts ]);
-    this.spritesheetCache.set(urlData.url, spritesheet);
-    urlData.resolve(spritesheet)
-
-    if (this.waitQueue.length > 0) this.loadSpriteSheetFromQueue();
   }
 }
 const spritesheetManager = new SpritesheetManager();
