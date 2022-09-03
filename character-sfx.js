@@ -361,13 +361,15 @@ class CharacterSfx extends EventTarget{
       }));
     }
     const _handleCombo = () => {
-      if (this.player.hasAction('use') && this.player.getAction('use').behavior === 'sword' && this.player.getAction('use').animationCombo) {
-        const comboAnimationName = aimAnimations[this.player.getAction('use').animationCombo[this.player.avatar.useAnimationIndex]];
-        if (comboAnimationName && comboAnimationName !== this.lastSwordComboName) {
-          this.swordComboStartTime = timeSeconds;
-          this.alreadyPlayComboSound = false;
-        }
+      if (this.player.hasAction('use') && this.player.getAction('use').behavior === 'sword') {
+        const comboAnimationName = this.player.getAction('use').animationCombo ?
+          aimAnimations[this.player.getAction('use').animationCombo[this.player.avatar.useAnimationIndex]]
+          : null;
         if (comboAnimationName) {
+          if (comboAnimationName !== this.lastSwordComboName) {
+            this.swordComboStartTime = timeSeconds;
+            this.alreadyPlayComboSound = false;
+          }
           const animations = Avatar.getAnimations();
           const animation = animations.find(a => a.name === comboAnimationName);
           const animationComboIndices = Avatar.getanimationComboIndices();
