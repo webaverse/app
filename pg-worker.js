@@ -211,7 +211,7 @@ const _handleMethod = async ({method, args, instance: instanceKey, taskId}) => {
       return spec;
     }
     case 'generateTerrainChunk': {
-      const {chunkPosition, lod} = args;
+      const {chunkPosition, lod, lodArray} = args;
       const instance = instances.get(instanceKey);
       if (!instance) throw new Error('generateTerrainChunk : instance not found');
 
@@ -223,6 +223,7 @@ const _handleMethod = async ({method, args, instance: instanceKey, taskId}) => {
         position.x,
         position.y,
         lod,
+        lodArray,
       );
       const meshData2 = _cloneTerrainMeshData(meshData);
       meshData && pg.free(meshData.bufferAddress);
@@ -242,7 +243,7 @@ const _handleMethod = async ({method, args, instance: instanceKey, taskId}) => {
       }
     }
     case 'generateLiquidChunk': {
-      const {chunkPosition, lod} = args;
+      const {chunkPosition, lod, lodArray} = args;
       const instance = instances.get(instanceKey);
       if (!instance) throw new Error('generateLiquidChunk : instance not found');
       
@@ -254,6 +255,7 @@ const _handleMethod = async ({method, args, instance: instanceKey, taskId}) => {
         position.x,
         position.y,
         lod,
+        lodArray,
       );
       const meshData2 = _cloneLiquidMeshData(meshData);
       meshData && pg.free(meshData.bufferAddress);

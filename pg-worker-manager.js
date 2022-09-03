@@ -158,20 +158,22 @@ export class PGWorkerManager {
 
   //
 
-  async generateTerrainChunk(chunkPosition, lod, {signal} = {}) {
+  async generateTerrainChunk(chunkPosition, lod, lodArray, {signal} = {}) {
     const result = await this.worker.request('generateTerrainChunk', {
       instance: this.instance,
       chunkPosition,
       lod,
+      lodArray,
     }, {signal});
     // signal.throwIfAborted();
     return result;
   }
-  async generateLiquidChunk(chunkPosition, lod, {signal} = {}) {
+  async generateLiquidChunk(chunkPosition, lod, lodArray, {signal} = {}) {
     const result = await this.worker.request('generateLiquidChunk', {
       instance: this.instance,
       chunkPosition,
       lod,
+      lodArray,
     }, {signal});
     // signal.throwIfAborted();
     return result;

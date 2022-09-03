@@ -46,9 +46,9 @@ const _parseTrackerUpdate = bufferAddress => {
     const lod = dataView.getInt32(index, true);
     index += Int32Array.BYTES_PER_ELEMENT;
 
-    const lodArray = new Uint32Array(
+    const lodArray = new Int32Array(
       dataView.buffer,
-      dataView.byteOffset + index * Int32Array.BYTES_PER_ELEMENT,
+      dataView.byteOffset + index,
       2
     );
     index += Int32Array.BYTES_PER_ELEMENT * 2;
@@ -339,15 +339,18 @@ const _parseTerrainVertexBuffer = (arrayBuffer, bufferAddress) => {
     // peeks,
   };
 };
-w.createTerrainChunkMeshAsync = async (inst, taskId, x, z, lod) => {
+w.createTerrainChunkMeshAsync = async (inst, taskId, x, z, lod, lodArray) => {
   const allocator = new Allocator(Module);
 
+  const lodArray2 = allocator.alloc(Int32Array, 2);
+  lodArray2.set(lodArray);
 
   Module._createTerrainChunkMeshAsync(
     inst,
     taskId,
     x, z,
     lod,
+    lodArray2.byteOffset,
   );
   const p = makePromise();
   cbs.set(taskId, p);
