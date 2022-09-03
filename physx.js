@@ -2402,9 +2402,9 @@ const physxWorker = (() => {
       window.nodeReferenceCount[childNode] = 1;
     }
   }
-  w.setRootNode = (mixer, node) => { // input: ptr of node
+  w.setRootNode = (mixerPtr, nodePtr) => {
     Module._setRootNode(
-      mixer, node,
+      mixerPtr, nodePtr,
     )
   }
   w.createInterpolant = (animationName, parameterPositions, sampleValues, valueSize) => {
@@ -2513,37 +2513,38 @@ const physxWorker = (() => {
       parentNode, duration, targetNode,
     )
   }
-  w.setWeight = (node, weight) => { // todo: renmae: setWeight() // todo: general setProp/Attribute().
+  w.setWeight = (nodePtr, weight) => { // todo: renmae: setWeight() // todo: general setProp/Attribute().
+
     Module._setWeight(
-      node,
+      nodePtr,
       weight,
     )
   }
-  w.setFactor = (node, factor) => { // todo: general setProp/Attribute().
+  w.setFactor = (nodePtr, factor) => { // todo: general setProp/Attribute().
     Module._setFactor(
-      node,
+      nodePtr,
       factor,
     )
   }
-  w.setArg = (node, arg) => {
+  w.setArg = (nodePtr, arg) => {
     Module._setArg(
-      node,
+      nodePtr,
       arg,
     )
   }
-  w.getWeight = (node) => {
+  w.getWeight = (nodePtr) => {
     return Module._getWeight(
-      node,
+      nodePtr,
     )
   }
-  w.getFactor = (node) => {
+  w.getFactor = (nodePtr) => {
     return Module._getFactor(
-      node,
+      nodePtr,
     )
   }
-  w.getChildren = (node) => {
+  w.getChildren = (nodePtr) => {
     const count = Module._getChildren(
-      node, scratchStack.ptr,
+      nodePtr, scratchStack.ptr,
     )
     const children = [];
     for (let i = 0; i < count; i++) {
