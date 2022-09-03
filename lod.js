@@ -100,13 +100,14 @@ const _getHashMinLod = (min, lod) => {
 } */
 
 class OctreeNode {
-  constructor(min = new THREE.Vector3(), lod = 1) {
+  constructor(min = new THREE.Vector3(), lod = 1, lodArray = [0, 0]) {
     this.min = min;
     this.lod = lod;
+    this.lodArray = lodArray;
 
-    this.onload = null;
+    // this.onload = null;
   }
-  containsPoint(p) {
+  /* containsPoint(p) {
     return p.x >= this.min.x && p.x < this.min.x + this.lod &&
       p.y >= this.min.y && p.y < this.min.y + this.lod &&
       p.z >= this.min.z && p.z < this.min.z + this.lod;
@@ -123,10 +124,10 @@ class OctreeNode {
   }
   intersectsNode(p) {
     return this.containsNode(p) || p.containsNode(this);
-  }
-  load(result) {
+  } */
+  /* load(result) {
     this.onload && this.onload(result);
-  }
+  } */
   /* destroy() {
     this.dispatchEvent(new MessageEvent('destroy'));
   } */
@@ -787,10 +788,11 @@ export class LodChunkTracker {
     } = trackerUpdateSpec;
 
     const _reifyNode = nodeSpec => {
-      const {min, lod} = nodeSpec;
+      const {min, lod, lodArray} = nodeSpec;
       return new OctreeNode(
         new THREE.Vector2().fromArray(min),
         lod,
+        lodArray,
       );
     };
     leafNodes = leafNodes.map(_reifyNode);
