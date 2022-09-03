@@ -128,6 +128,7 @@ const _cloneNode = node => {
   return {
     min: node.min.slice(),
     lod: node.lod,
+    lodArray: node.lodArray.slice(),
   };
 };
 const _cloneTrackerUpdate = trackerUpdate => {
@@ -202,9 +203,7 @@ const _handleMethod = async ({method, args, instance: instanceKey, taskId}) => {
       const {instance: instanceKey, tracker, position, priority} = args;
       const instance = instances.get(instanceKey);
       const trackerUpdate = await pg.trackerUpdateAsync(instance, taskId, tracker, position, priority);
-      // console.log('got trackerUpdate 1', trackerUpdate);
       const trackerUpdate2 = _cloneTrackerUpdate(trackerUpdate);
-      // console.log('got trackerUpdate 1', trackerUpdate2);
       const spec = {
         result: trackerUpdate2,
         transfers: [],

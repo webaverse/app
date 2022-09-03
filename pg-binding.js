@@ -42,12 +42,21 @@ const _parseTrackerUpdate = bufferAddress => {
   const _parseNode = () => {
     const min = new Int32Array(Module.HEAPU8.buffer, bufferAddress + index, 2).slice();
     index += Int32Array.BYTES_PER_ELEMENT * 2;
+    
     const lod = dataView.getInt32(index, true);
     index += Int32Array.BYTES_PER_ELEMENT;
-    
+
+    const lodArray = new Uint32Array(
+      dataView.buffer,
+      dataView.byteOffset + index * Int32Array.BYTES_PER_ELEMENT,
+      2
+    );
+    index += Int32Array.BYTES_PER_ELEMENT * 2;
+
     return {
       min,
       lod,
+      lodArray,
     };
   };
   const _parseNodes = () => {
