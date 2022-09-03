@@ -31,7 +31,6 @@ export function applyCharacterTransformsToAvatar(character, session, rig) {
 export function applyCharacterMetaTransformsToAvatar(character, session, rig) {
   if (!session) {
     rig.velocity.copy(character.characterPhysics.velocity);
-    rig.jumpDurationRatio = character.characterPhysics.jumpDurationRatio;
   }
 }
 export function applyCharacterModesToAvatar(character, session, rig) {
