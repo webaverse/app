@@ -46,7 +46,7 @@ const _getHashMinLod = (min, lod) => {
 // const _getHashMinLodArray = (min, lodArray) => min.x + ',' + min.y + ',' + min.z + ':' + lodArray.join(',');
 // const _getHashChunkLodArray = chunk => _getHashMinLodArray(chunk.min, chunk.lodArray);
 
-class Dominator extends EventTarget {
+/* class Dominator extends EventTarget {
   constructor(base, onload) {
     super();
 
@@ -97,7 +97,7 @@ class Dominator extends EventTarget {
       unlisten();
     }
   }
-}
+} */
 
 class OctreeNode {
   constructor(min = new THREE.Vector3(), lod = 1) {
