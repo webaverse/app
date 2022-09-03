@@ -18,7 +18,11 @@ export default (app, component) => {
   });
   const meleewhoosh = (e) =>{
     if(using){
-      sounds.playSound(soundFiles.meleewhoosh[e.data.index]);
+      const index = e.data.index;
+      const soundRegex = new RegExp(`^combat/sword_slash${index}-[0-9]*.wav$`);
+      const soundCandidate = soundFiles.combat.filter(f => soundRegex.test(f.name));
+      const audioSpec = soundCandidate[Math.floor(Math.random() * soundCandidate.length)];
+      sounds.playSound(audioSpec);
     }
   }
   const _unwear = () => {

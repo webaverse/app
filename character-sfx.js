@@ -383,9 +383,8 @@ class CharacterSfx extends EventTarget{
             if (index > maxDeltaIndex) {
               this.alreadyPlayComboSound = true;
               this.playGrunt('attack');
-              const soundIndex = this.player.avatar.useAnimationIndex * 4 + Math.floor(Math.random() * 4);
+              const soundIndex = this.player.avatar.useAnimationIndex;
               dispatchComboSoundEvent(soundIndex);
-
             }
           }
         }
