@@ -307,18 +307,18 @@ const _parseTerrainVertexBuffer = (arrayBuffer, bufferAddress) => {
   index += Uint32Array.BYTES_PER_ELEMENT * numIndices;
 
   // skylights
-  const numSkylights = dataView.getUint32(index, true);
-  index += Uint32Array.BYTES_PER_ELEMENT;
-  const skylights = new Uint8Array(arrayBuffer, bufferAddress + index, numSkylights);
-  index += Uint8Array.BYTES_PER_ELEMENT * numSkylights;
-  index = align4(index);
+  // const numSkylights = dataView.getUint32(index, true);
+  // index += Uint32Array.BYTES_PER_ELEMENT;
+  // const skylights = new Uint8Array(arrayBuffer, bufferAddress + index, numSkylights);
+  // index += Uint8Array.BYTES_PER_ELEMENT * numSkylights;
+  // index = align4(index);
 
-  // aos
-  const numAos = dataView.getUint32(index, true);
-  index += Uint32Array.BYTES_PER_ELEMENT;
-  const aos = new Uint8Array(arrayBuffer, bufferAddress + index, numAos);
-  index += Uint8Array.BYTES_PER_ELEMENT * numAos;
-  index = align4(index);
+  // // aos
+  // const numAos = dataView.getUint32(index, true);
+  // index += Uint32Array.BYTES_PER_ELEMENT;
+  // const aos = new Uint8Array(arrayBuffer, bufferAddress + index, numAos);
+  // index += Uint8Array.BYTES_PER_ELEMENT * numAos;
+  // index = align4(index);
 
   // const numPeeks = dataView.getUint32(index, true);
   // index += Uint32Array.BYTES_PER_ELEMENT;
@@ -334,8 +334,8 @@ const _parseTerrainVertexBuffer = (arrayBuffer, bufferAddress) => {
     biomesUvs1,
     biomesUvs2,
     indices,
-    skylights,
-    aos,
+    // skylights,
+    // aos,
     // peeks,
   };
 };
