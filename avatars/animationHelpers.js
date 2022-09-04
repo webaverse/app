@@ -833,48 +833,44 @@ export const _updateAnimation = avatar => {
       avatar.danceEnd,
       avatar.holdEnd,
 
+      // action start events ---
+      avatar.landStart,
+      avatar.fallLoopStart,
+      avatar.flyStart,
+      avatar.jumpStart,
+      avatar.doubleJumpStart,
+      avatar.narutoRunStart,
+      avatar.useStart,
+      avatar.useComboStart,
+      avatar.useEnvelopeStart,
+      avatar.sitStart,
+      avatar.emoteStart,
+      avatar.hurtStart,
+      avatar.danceStart,
+      avatar.holdStart,
+      avatar.activateStart,
+
+      // other
       avatar.landWithMoving,
+      avatar.dashAttacking,
     ]);
   };
   updateValues();
 
   const handleActionStartEvents = () => {
-    if (avatar.landStart) {
-      // if (player === window.localPlayer) console.log('landStart', avatar.landWithMoving);
-      if (!avatar.landWithMoving) {
-        const landMotionPtr = avatar.landMotionPtr;
-        physx.physxWorker.play(landMotionPtr);
-        physx.physxWorker.crossFadeSolitary(avatar.landsNodeSolitaryPtr, 0, landMotionPtr);
-        physx.physxWorker.crossFadeTwo(avatar.landNodeTwoPtr, 0, 1);
-      } else {
-        const landMotionPtr = avatar.land2MotionPtr;
-        physx.physxWorker.play(landMotionPtr);
-        physx.physxWorker.crossFadeSolitary(avatar.landsNodeSolitaryPtr, 0, landMotionPtr);
-        physx.physxWorker.crossFadeTwo(avatar.landNodeTwoPtr, 0.1, 1);
-      }
-    }
-
-    if (avatar.fallLoopStart) {
-      physx.physxWorker.crossFadeTwo(avatar.fallLoopNodeTwoPtr, 0.2, 1);
-    }
-
-    if (avatar.flyStart) {
-      physx.physxWorker.crossFadeTwo(avatar.groundFlyNodeTwoPtr, 0.2, 1);
-    }
-
-    if (avatar.jumpStart) {
-      physx.physxWorker.play(avatar.jumpMotionPtr);
-      physx.physxWorker.crossFadeTwo(avatar.jumpNodeTwoPtr, 0.2, 1);
-    }
-
-    if (avatar.doubleJumpStart) {
-      physx.physxWorker.play(avatar.doubleJumpMotionPtr);
-      physx.physxWorker.crossFadeTwo(avatar.doubleJumpNodeTwoPtr, 0.2, 1);
-    }
-
-    if (avatar.narutoRunStart) {
-      physx.physxWorker.crossFadeTwo(avatar.narutoRunNodeTwoPtr, 0.2, 1);
-    }
+    // if (avatar.landStart) {
+    //   if (!avatar.landWithMoving) {
+    //     const landMotionPtr = avatar.landMotionPtr;
+    //     physx.physxWorker.play(landMotionPtr);
+    //     physx.physxWorker.crossFadeSolitary(avatar.landsNodeSolitaryPtr, 0, landMotionPtr);
+    //     physx.physxWorker.crossFadeTwo(avatar.landNodeTwoPtr, 0, 1);
+    //   } else {
+    //     const landMotionPtr = avatar.land2MotionPtr;
+    //     physx.physxWorker.play(landMotionPtr);
+    //     physx.physxWorker.crossFadeSolitary(avatar.landsNodeSolitaryPtr, 0, landMotionPtr);
+    //     physx.physxWorker.crossFadeTwo(avatar.landNodeTwoPtr, 0.1, 1);
+    //   }
+    // }
 
     // sword
     if (avatar.useStart) {
