@@ -47,11 +47,11 @@ class ProcGenInstance {
     const tracker = new LodChunkTracker(opts2);
     return tracker;
   }
-  async generateTerrainChunk(position, lod, lodArray, {signal} = {}) {
+  async generateChunk(position, lod, lodArray, {signal} = {}) {
     await this.pgWorkerManager.waitForLoad();
-    
+
     position.toArray(localArray2D);
-    const result = await this.pgWorkerManager.generateTerrainChunk(localArray2D, lod, lodArray, {signal});
+    const result = await this.pgWorkerManager.generateChunk(localArray2D, lod, lodArray, {signal});
     // console.log('got result', result);
     return result;
   }
