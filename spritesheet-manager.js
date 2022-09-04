@@ -56,7 +56,9 @@ class AssetLoadManager {
   putInQueue(promise) {
     this.pushQueueLock = this.pushQueueLock.then(() => {
       this.pushQueue.push(promise);
-      if (this.intervalID === 0) this.poll();
+      if (this.intervalID === 0) {
+        this.poll();
+      }
     });
 
     return this.pushQueueLock;
