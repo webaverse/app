@@ -799,6 +799,7 @@ export const _updateAnimation = avatar => {
     const holdFactor = avatar.walkRunFactor * 0.7 + avatar.crouchFactor * (1 - avatar.idleWalkFactor) * 0.5;
 
     physx.physxWorker.updateAvatar([
+      // values ---
       forwardFactor,
       backwardFactor,
       leftFactor,
@@ -814,82 +815,28 @@ export const _updateAnimation = avatar => {
       avatar.flyDashFactor,
 
       holdFactor,
+
+      // action end events ---
+      avatar.landEnd,
+      avatar.fallLoopEnd,
+      avatar.flyEnd,
+      avatar.jumpEnd,
+      avatar.doubleJumpEnd,
+      avatar.narutoRunEnd,
+      avatar.activateEnd,
+      avatar.useEnd,
+      avatar.useComboEnd,
+      avatar.useEnvelopeEnd,
+      avatar.sitEnd,
+      avatar.emoteEnd,
+      avatar.hurtEnd,
+      avatar.danceEnd,
+      avatar.holdEnd,
+
+      avatar.landWithMoving,
     ]);
   };
   updateValues();
-
-  const handleActionEndEvents = () => {
-    if (avatar.landEnd) {
-      // if (player === window.localPlayer) console.log('landEnd', avatar.landWithMoving);
-      if (!avatar.landWithMoving) {
-        physx.physxWorker.crossFadeTwo(avatar.landNodeTwoPtr, 0.05, 0);
-      } else {
-        physx.physxWorker.crossFadeTwo(avatar.landNodeTwoPtr, 0.15, 0);
-      }
-    }
-
-    if (avatar.fallLoopEnd) {
-      physx.physxWorker.crossFadeTwo(avatar.fallLoopNodeTwoPtr, 0.2, 0);
-    }
-
-    if (avatar.flyEnd) {
-      physx.physxWorker.crossFadeTwo(avatar.groundFlyNodeTwoPtr, 0.2, 0);
-    }
-
-    if (avatar.jumpEnd) {
-      physx.physxWorker.crossFadeTwo(avatar.jumpNodeTwoPtr, 0.2, 0);
-    }
-
-    if (avatar.doubleJumpEnd) {
-      physx.physxWorker.crossFadeTwo(avatar.doubleJumpNodeTwoPtr, 0.2, 0);
-    }
-
-    if (avatar.narutoRunEnd) {
-      physx.physxWorker.crossFadeTwo(avatar.narutoRunNodeTwoPtr, 0.2, 0);
-    }
-
-    if (avatar.activateEnd) {
-      physx.physxWorker.crossFadeTwo(avatar.activateNodeTwoPtr, 0.2, 0);
-    }
-
-    if (avatar.useEnd) {
-      physx.physxWorker.crossFadeTwo(avatar.useNodeTwoPtr, 0.2, 0);
-    }
-
-    if (avatar.useComboEnd) {
-      physx.physxWorker.crossFadeSolitary(avatar.useCombosNodeSolitaryPtr, 0.2, avatar.useNodeTwoPtr);
-    }
-
-    if (avatar.useEnvelopeEnd) {
-      console.log('useEnvelopeEnd');
-      physx.physxWorker.play(avatar.bowMotionPtro.bowLoose);
-      physx.physxWorker.setFactor(avatar.bowDrawLooseNodoeTwoPtr, 1);
-      physx.physxWorker.crossFadeTwo(avatar.bowIdle8DDrawLooseNodeOverwritePtr, 0.2, 1);
-    }
-
-    if (avatar.sitEnd) {
-      physx.physxWorker.crossFadeTwo(avatar.sitNodeTwoPtr, 0.2, 0);
-    }
-
-    if (avatar.emoteEnd) {
-      physx.physxWorker.crossFadeTwo(avatar.emoteNodeFuncPtr, 0.2, 0);
-      // physx.physxWorker.setFactor(avatar.emoteNodeFuncPtr, 0);
-    }
-
-    if (avatar.hurtEnd) {
-      physx.physxWorker.crossFadeTwo(avatar.hurtNodeTwoPtr, 0.2, 0);
-    }
-
-    if (avatar.danceEnd) {
-      physx.physxWorker.crossFadeTwo(avatar.danceNodeTwoPtr, 0.2, 0);
-    }
-
-    if (avatar.holdEnd) {
-      physx.physxWorker.crossFadeTwo(avatar.holdNodeFuncPtr, 0.2, 0);
-      // physx.physxWorker.setFactor(avatar.holdNodeFuncPtr, 0);
-    }
-  };
-  handleActionEndEvents();
 
   const handleActionStartEvents = () => {
     if (avatar.landStart) {
