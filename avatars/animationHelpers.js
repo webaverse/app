@@ -771,7 +771,7 @@ export const _createAnimation = avatar => {
   getNodes();
 
   avatar.rootNodePtr = avatar.holdNodeFuncPtr;
-  physx.physxWorker.setRootNode(avatar.mixerPtr, avatar.rootNodePtr);
+  // physx.physxWorker.setRootNode(avatar.mixerPtr, avatar.rootNodePtr);
 
   // --------------------------------------------------------------------------
 
