@@ -801,48 +801,19 @@ export const _updateAnimation = avatar => {
     physx.physxWorker.updateAvatar([
       forwardFactor,
       backwardFactor,
-      mirrorLeftFactorReverse,
-      mirrorLeftFactor,
-      mirrorRightFactorReverse,
-      mirrorRightFactor,
-
-      forwardFactor,
-      backwardFactor,
-      mirrorLeftFactorReverse,
-      mirrorLeftFactor,
-      mirrorRightFactorReverse,
-      mirrorRightFactor,
-
-      forwardFactor,
-      backwardFactor,
-      mirrorLeftFactorReverse,
-      mirrorLeftFactor,
-      mirrorRightFactorReverse,
-      mirrorRightFactor,
-
-      forwardFactor,
-      backwardFactor,
-      mirrorLeftFactorReverse,
-      mirrorLeftFactor,
-      mirrorRightFactorReverse,
-      mirrorRightFactor,
-
-      avatar.walkRunFactor,
-      avatar.idleWalkFactor,
-      avatar.idleWalkFactor,
-      avatar.crouchFactor,
-      avatar.idleWalkFactor,
-
-      forwardFactor,
-      backwardFactor,
       leftFactor,
       rightFactor,
+      mirrorLeftFactorReverse,
+      mirrorLeftFactor,
+      mirrorRightFactorReverse,
+      mirrorRightFactor,
 
+      avatar.idleWalkFactor,
       avatar.walkRunFactor,
+      avatar.crouchFactor,
       avatar.flyDashFactor,
 
       holdFactor,
-      avatar.idleWalkFactor,
     ]);
   };
   updateValues();
