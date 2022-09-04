@@ -827,40 +827,23 @@ export const _updateAnimation = avatar => {
       mirrorRightFactorReverse,
       mirrorRightFactor,
 
-      // avatar.walkRunFactor,
-      // avatar.idleWalkFactor,
-      // avatar.idleWalkFactor,
-      // avatar.crouchFactor,
-      // avatar.idleWalkFactor,
+      avatar.walkRunFactor,
+      avatar.idleWalkFactor,
+      avatar.idleWalkFactor,
+      avatar.crouchFactor,
+      avatar.idleWalkFactor,
 
-      // forwardFactor,
-      // backwardFactor,
-      // leftFactor,
-      // rightFactor,
+      forwardFactor,
+      backwardFactor,
+      leftFactor,
+      rightFactor,
 
-      // avatar.walkRunFactor,
-      // avatar.flyDashFactor,
+      avatar.walkRunFactor,
+      avatar.flyDashFactor,
 
-      // holdFactor,
-      // avatar.idleWalkFactor,
+      holdFactor,
+      avatar.idleWalkFactor,
     ]);
-
-    physx.physxWorker.setFactor(avatar._8DirectionsWalkRunNodeTwoPtr, avatar.walkRunFactor);
-    physx.physxWorker.setFactor(avatar.idle8DWalkRunNodeTwoPtr, avatar.idleWalkFactor);
-    physx.physxWorker.setFactor(avatar.idle8DCrouchNodeTwoPtr, avatar.idleWalkFactor);
-    physx.physxWorker.setFactor(avatar.defaultNodeTwoPtr, avatar.crouchFactor);
-    physx.physxWorker.setFactor(avatar.idle8DBowNodeTwoPtr, avatar.idleWalkFactor);
-
-    physx.physxWorker.setWeight(avatar.flyForwardNodeTwoPtr, forwardFactor);
-    physx.physxWorker.setWeight(avatar.flyDodgeBackwardMotionPtr, backwardFactor);
-    physx.physxWorker.setWeight(avatar.flyDodgeLeftMotionPtr, leftFactor);
-    physx.physxWorker.setWeight(avatar.flyDodgeRightMotionPtr, rightFactor);
-
-    physx.physxWorker.setFactor(avatar.idle8DFlyNodeTwoPtr, avatar.walkRunFactor);
-    physx.physxWorker.setFactor(avatar.flyForwardNodeTwoPtr, avatar.flyDashFactor);
-
-    physx.physxWorker.setArg(avatar.holdNodeFuncPtr, holdFactor);
-    physx.physxWorker.setArg(avatar.emoteNodeFuncPtr, avatar.idleWalkFactor);
   };
   updateValues();
 
