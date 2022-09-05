@@ -3,9 +3,9 @@ import * as BufferGeometryUtils from 'three/examples/jsm/utils/BufferGeometryUti
 import {getRenderer} from './renderer.js';
 // import { chunkMinForPosition, convertMeshToPhysicsMesh } from './util.js';
 // import { PEEK_FACE_INDICES } from './constants.js';
-import { ImmediateGLBufferAttribute } from './ImmediateGLBufferAttribute.js';
-import Module from './public/bin/geometry.js';
-import { Allocator } from './geometry-util.js';
+import {ImmediateGLBufferAttribute} from './ImmediateGLBufferAttribute.js';
+// import Module from './public/bin/geometry.js';
+// import { Allocator } from './geometry-util.js';
 // import { toHiraganaCase } from 'encoding-japanese';
 
 const localVector2D = new THREE.Vector2();
@@ -30,20 +30,20 @@ const PEEK_FACES = {
   BOTTOM : 5,
   NONE : 6
 };
-const peekFaceSpecs = [
+/* const peekFaceSpecs = [
   [PEEK_FACES['BACK'], PEEK_FACES['FRONT'], 0, 0, -1],
   [PEEK_FACES['FRONT'], PEEK_FACES['BACK'], 0, 0, 1],
   [PEEK_FACES['LEFT'], PEEK_FACES['RIGHT'], -1, 0, 0],
   [PEEK_FACES['RIGHT'], PEEK_FACES['LEFT'], 1, 0, 0],
   [PEEK_FACES['TOP'], PEEK_FACES['BOTTOM'], 0, 1, 0],
   [PEEK_FACES['BOTTOM'], PEEK_FACES['TOP'], 0, -1, 0],
-];
+]; */
 
 const maxNumDraws = 1024;
 
-const isPointInPillar = (vector, min, max) => {
+/* const isPointInPillar = (vector, min, max) => {
   return (vector.x >= min.x && vector.x < max.x) && (vector.z >= min.z && vector.z < max.z);
-}
+}; */
 
 const _getBoundingSize = boundingType => {
   switch (boundingType) {
@@ -243,7 +243,11 @@ function deserializeDrawListBuffer(arrayBuffer, bufferAddress){
 export class GeometryAllocator {
   constructor(
     attributeSpecs,
-    { bufferSize, boundingType = null, hasOcclusionCulling = false }
+    {
+      bufferSize,
+      boundingType = null,
+      // hasOcclusionCulling = false,
+    }
   ) {
     {
       this.geometry = new THREE.BufferGeometry();
@@ -261,6 +265,25 @@ export class GeometryAllocator {
     }
 
     this.boundingType = boundingType;
+    this.testBoundingFn = (() => {
+      if (this.boundingType === 'sphere') {
+        return (i, frustum) => {
+          localSphere.center.fromArray(this.boundingData, i * 4);
+          localSphere.radius = this.boundingData[i * 4 + 3];
+          return frustum.intersectsSphere(localSphere)
+            ? localSphere.center.distanceTo(camera.position)
+            : false;
+        };
+      } else if (this.boundingType === 'box') {
+        return (i, frustum) => {
+          localBox.min.fromArray(this.boundingData, i * 6);
+          localBox.max.fromArray(this.boundingData, i * 6 + 3);
+          return frustum.intersectsBox(localBox);
+        };
+      } else {
+        return null;
+      }
+    })();
 
     this.positionFreeList = new FreeList(bufferSize * 3, 3);
     this.indexFreeList = new FreeList(bufferSize);
@@ -273,7 +296,7 @@ export class GeometryAllocator {
     this.maxData = new Float32Array(maxNumDraws * 4);
     this.appMatrix = new THREE.Matrix4();
     // this.peeksArray = [];
-    this.hasOcclusionCulling = hasOcclusionCulling;
+    /* this.hasOcclusionCulling = hasOcclusionCulling;
     if (this.hasOcclusionCulling) {
       this.OCInstance = Module._initOcclusionCulling();
       const allocator = new Allocator(Module);
@@ -289,17 +312,17 @@ export class GeometryAllocator {
         this.chunkAllocationArrayOffset,
         chunkAllocationBufferSize
       );
-    }
+    } */
     this.numDraws = 0;
   }
   alloc(
     numPositions,
     numIndices,
     boundingObject,
-    minObject,
-    maxObject,
-    appMatrix,
-    peeks
+    // minObject,
+    // maxObject,
+    // appMatrix,
+    // peeks
   ) {
     const positionFreeListEntry = this.positionFreeList.alloc(numPositions);
     const indexFreeListEntry = this.indexFreeList.alloc(numIndices);
@@ -309,7 +332,7 @@ export class GeometryAllocator {
       this.geometry
     );
 
-    if (this.hasOcclusionCulling) {
+    /* if (this.hasOcclusionCulling) {
       minObject.applyMatrix4(this.appMatrix);
       maxObject.applyMatrix4(this.appMatrix);
 
@@ -325,7 +348,7 @@ export class GeometryAllocator {
 
       minObject.toArray(this.minData, this.numDraws * 4);
       maxObject.toArray(this.maxData, this.numDraws * 4);
-    }
+    } */
 
     const slot = indexFreeListEntry;
     this.drawStarts[this.numDraws] =
@@ -407,45 +430,25 @@ export class GeometryAllocator {
     drawCounts.length = 0;
     distanceArray.length = 0;
 
-    if (this.boundingType) {
-      // XXX this can be optimized by initializing the frustum only once per frame and passing it in
-      const projScreenMatrix = localMatrix.multiplyMatrices(
-        camera.projectionMatrix,
-        camera.matrixWorldInverse
-      );
-      localFrustum.setFromProjectionMatrix(projScreenMatrix);
-    }
+    for (let i = 0; i < this.numDraws; i++) {
+      let frustumCullVisible = true;
+      if (this.testBoundingFn) {
+        // XXX this can be optimized by initializing the frustum only once per frame and passing it in
+        const projScreenMatrix = localMatrix.multiplyMatrices(
+          camera.projectionMatrix,
+          camera.matrixWorldInverse
+        );
+        localFrustum.setFromProjectionMatrix(projScreenMatrix);
 
-    const testBoundingFn = (() => {
-      if (this.boundingType === 'sphere') {
-        return (i) => {
-          localSphere.center.fromArray(this.boundingData, i * 4);
-          localSphere.radius = this.boundingData[i * 4 + 3];
-          return localFrustum.intersectsSphere(localSphere)
-            ? localSphere.center.distanceTo(camera.position)
-            : false;
-        };
-      } else if (this.boundingType === 'box') {
-        return (i) => {
-          localBox.min.fromArray(this.boundingData, i * 6);
-          localBox.max.fromArray(this.boundingData, i * 6 + 3);
-          // console.log(localFrustum);
-          return localFrustum.intersectsBox(localBox);
-        };
-      } else {
-        return (i) => true;
+        frustumCullVisible = this.testBoundingFn(i, localFrustum);
       }
-    })();
-
-    const fullyDraw = () => {
-      for (let i = 0; i < this.numDraws; i++) {
+      if (frustumCullVisible) {
         drawStarts.push(this.drawStarts[i]);
         drawCounts.push(this.drawCounts[i]);
       }
-    };
+    }
 
-    if (this.hasOcclusionCulling) { 
-
+    /* if (this.hasOcclusionCulling) {
       const findSearchStartingChunk = () => {
         let foundId;
         let surfaceY = -Infinity;
@@ -506,7 +509,7 @@ export class GeometryAllocator {
       }
     } else {
       fullyDraw();
-    }
+    } */
   }
 }
 
@@ -702,10 +705,59 @@ export class InstancedGeometryAllocator {
     this.drawStarts = new Int32Array(geometries.length * maxDrawCallsPerGeometry);
     this.drawCounts = new Int32Array(geometries.length * maxDrawCallsPerGeometry);
     this.drawInstanceCounts = new Int32Array(geometries.length * maxDrawCallsPerGeometry);
+    
     const boundingSize = _getBoundingSize(boundingType);
     this.boundingData = new Float32Array(geometries.length * maxDrawCallsPerGeometry * boundingSize);
     const instanceBoundingSize = _getBoundingSize(instanceBoundingType);
     this.instanceBoundingData = new Float32Array(geometries.length * maxDrawCallsPerGeometry * maxInstancesPerDrawCall * instanceBoundingSize);
+ 
+    this.testBoundingFn = (() => {
+      if (this.boundingType === 'sphere') {
+        return (i, frustum) => {
+          localSphere.center.fromArray(this.boundingData, i * 4);
+          localSphere.radius = this.boundingData[i * 4 + 3];
+          return frustum.intersectsSphere(localSphere);
+        };
+      } else if (this.boundingType === 'box') {
+        return (i, frustum) => {
+          localBox.min.fromArray(this.boundingData, i * 6);
+          localBox.max.fromArray(this.boundingData, i * 6 + 3);
+          return frustum.intersectsBox(localBox);
+        };
+      } else {
+        return null;
+      }
+    })();
+    this.swapBoundingDataFn = (() => {
+      if (this.boundingType === 'sphere') {
+        return _swapBoundingDataSphere;
+      } else if (this.boundingType === 'box') {
+        return _swapBoundingDataBox;
+      } else {
+        // throw new Error('Invalid bounding type: ' + this.boundingType);
+        return null;
+      }
+    })();
+    this.testInstanceBoundingFn = (() => {
+      if (this.boundingType === 'sphere') {
+        return (j, frustum) => {
+          const sphereIndex = j;
+          localSphere.center.fromArray(this.instanceBoundingData, sphereIndex * 4);
+          localSphere.radius = this.instanceBoundingData[sphereIndex * 4 + 3];
+          return frustum.intersectsSphere(localSphere);
+        };
+      } else if (this.boundingType === 'box') {
+        return (j, frustum) => {
+          const boxIndex = j;
+          localBox.min.fromArray(this.boundingData, boxIndex * 6);
+          localBox.max.fromArray(this.boundingData, boxIndex * 6 + 3);
+          return frustum.intersectsBox(localBox);
+        };
+      } else {
+        // throw new Error('Invalid bounding type: ' + this.boundingType);
+        return null;
+      }
+    })();
 
     {
       const numGeometries = geometries.length;
@@ -882,64 +934,18 @@ export class InstancedGeometryAllocator {
     multiDrawCounts.length = this.drawCounts.length;
     multiDrawInstanceCounts.length = this.drawInstanceCounts.length;
 
-    if (this.boundingType) {
+    if (this.testBoundingFn || this.testInstanceBoundingFn) {
       const projScreenMatrix = localMatrix.multiplyMatrices(camera.projectionMatrix, camera.matrixWorldInverse);
       localFrustum.setFromProjectionMatrix(projScreenMatrix);
     }
-    const testBoundingFn = (() => {
-      if (this.boundingType === 'sphere') {
-        return (i) => {
-          localSphere.center.fromArray(this.boundingData, i * 4);
-          localSphere.radius = this.boundingData[i * 4 + 3];
-          return localFrustum.intersectsSphere(localSphere);
-        };
-      } else if (this.boundingType === 'box') {
-        return (i) => {
-          localBox.min.fromArray(this.boundingData, i * 6);
-          localBox.max.fromArray(this.boundingData, i * 6 + 3);
-          return localFrustum.intersectsBox(localBox);
-        };
-      } else {
-        return (i) => true;
-      }
-    })();
-    const swapBoundingDataFn = () => {
-      if (this.boundingType === 'sphere') {
-        return _swapBoundingDataSphere;
-      } else if (this.boundingType === 'box') {
-        return _swapBoundingDataBox;
-      } else {
-        throw new Error('Invalid bounding type: ' + this.boundingType);
-      }
-    };
 
     for (let i = 0; i < this.drawStarts.length; i++) {
-      if (testBoundingFn(i)) {
+      if (!this.testBoundingFn || this.testBoundingFn(i, localFrustum)) {
         multiDrawStarts[i] = this.drawStarts[i];
         multiDrawCounts[i] = this.drawCounts[i];
         
         if (this.instanceBoundingType) {
           const startOffset = i * this.maxInstancesPerDrawCall;
-          
-          const testInstanceBoundingFn = (() => {
-            if (this.boundingType === 'sphere') {
-              return (j) => {
-                const sphereIndex = startOffset + j;
-                localSphere.center.fromArray(this.instanceBoundingData, sphereIndex * 4);
-                localSphere.radius = this.instanceBoundingData[sphereIndex * 4 + 3];
-                return localFrustum.intersectsSphere(localSphere);
-              };
-            } else if (this.boundingType === 'box') {
-              return (j) => {
-                const boxIndex = startOffset + j;
-                localBox.min.fromArray(this.boundingData, boxIndex * 6);
-                localBox.max.fromArray(this.boundingData, boxIndex * 6 + 3);
-                return localFrustum.intersectsBox(localBox);
-              };
-            } else {
-              throw new Error('Invalid bounding type: ' + this.boundingType);
-            }
-          })();
 
           // arrange the instanced draw list :
           // - apply per-instanse frustum culling
@@ -948,14 +954,16 @@ export class InstancedGeometryAllocator {
           const maxDrawableInstances = this.drawInstanceCounts[i];
           let instancesToDraw = 0;
           for (let j = 0; j < maxDrawableInstances; j++) {
-            if (testInstanceBoundingFn(j)) {
+            if (!this.testInstanceBoundingFn || this.testInstanceBoundingFn(startOffset + j, localFrustum)) {
               instancesToDraw++;
             } else {
               // swap this instance with the last instance to remove it
               for (const texture of this.texturesArray) {
                 _swapTextureAttributes(texture, i, j, this.maxInstancesPerDrawCall);
               }
-              swapBoundingDataFn(this.instanceBoundingData, i, j, this.maxInstancesPerDrawCall);
+              if (this.swapBoundingDataFn) {
+                  this.swapBoundingDataFn(this.instanceBoundingData, i, j, this.maxInstancesPerDrawCall);
+              }
             }
           }
 
