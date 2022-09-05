@@ -2236,19 +2236,20 @@ const physxWorker = (() => {
   // AnimationSystem
 
   w.initAvatar = (mixerPtr) => {
-    Module._initAvatar(
+    const ptr = Module._initAvatar(
       mixerPtr,
     )
+    return ptr;
   }
-  w.updateAvatar = (values) => {
+  w.updateAvatar = (animationAvatarPtr, values) => {
     values.forEach((value, i) => {
       scratchStack.f32[i] = value;
     })
     Module._updateAvatar(
-      scratchStack.ptr,
+      animationAvatarPtr, scratchStack.ptr,
     )
   }
-  w.updateAvatarString = (strings) => {
+  w.updateAvatarString = (animationAvatarPtr, strings) => {
     let index = 0;
     strings.forEach((string, j) => {
       const encoder = new TextEncoder() // todo: reuse ?
@@ -2263,7 +2264,7 @@ const physxWorker = (() => {
     const numStrings = strings.length;
 
     Module._updateAvatarString(
-      scratchStack.ptr, numStrings,
+      animationAvatarPtr, scratchStack.ptr, numStrings,
     )
   }
   w.createAnimationMixer = () => {
@@ -2384,7 +2385,7 @@ const physxWorker = (() => {
     )
     return ptr;
   }
-  w.createNode = (mixer, type = AnimationNodeType.LIST, index = 0) => {
+  w.createNode = (mixer, type = AnimationNodeType.LIST, index = 0) => { // todo: rename: createAnimationNode
     // debugger
     const ptr = Module._createNode(
       mixer, type, index,
@@ -2532,7 +2533,8 @@ const physxWorker = (() => {
     )
   }
   w.setWeight = (nodePtr, weight) => { // todo: renmae: setWeight() // todo: general setProp/Attribute().
-
+    // console.log(nodePtr)
+    // if (nodePtr === 0) debugger
     Module._setWeight(
       nodePtr,
       weight,

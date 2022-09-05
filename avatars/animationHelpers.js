@@ -474,8 +474,8 @@ export const _createAnimation = avatar => {
     createdWasmAnimations = true;
   }
 
-  avatar.mixerPtr = physx.physxWorker.createAnimationMixer();
-  physx.physxWorker.initAvatar(avatar.mixerPtr);
+  avatar.mixerPtr = physx.physxWorker.createAnimationMixer(); // todo: rename: animationMixer
+  avatar.animationAvatarPtr = physx.physxWorker.initAvatar(avatar.mixerPtr);
 
   // util ---
 
@@ -800,7 +800,7 @@ export const _updateAnimation = avatar => {
 
     const useAnimationComboName = avatar.useAnimationCombo[avatar.useAnimationIndex];
     // console.log({useAnimationComboName})
-    physx.physxWorker.updateAvatarString([
+    physx.physxWorker.updateAvatarString(avatar.animationAvatarPtr, [
       defaultSitAnimation, // todo: send to wasm only once.
       defaultEmoteAnimation,
       defaultDanceAnimation,
@@ -815,7 +815,7 @@ export const _updateAnimation = avatar => {
       avatar.activateAnimation,
     ]);
 
-    physx.physxWorker.updateAvatar([
+    physx.physxWorker.updateAvatar(avatar.animationAvatarPtr, [
       // values ---
       forwardFactor,
       backwardFactor,
