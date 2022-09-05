@@ -32,6 +32,9 @@ class ProcGenInstance {
     // this.lightmapper = null;
     // this.heightfieldMapper = null;
   }
+  setCamera(worldPosition, cameraPosition, cameraQuaternion, projectionMatrix) {
+    this.pgWorkerManager.setCamera(worldPosition, cameraPosition, cameraQuaternion, projectionMatrix);
+  }
   setClipRange() {
     this.pgWorkerManager.setClipRange(range);
   }

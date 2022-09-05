@@ -3,6 +3,13 @@ import {abortError} from './lock-manager.js';
 
 //
 
+const localArray3D = Array(3);
+const localArray3D2 = Array(3);
+const localArray4D = Array(4);
+const localArray16D = Array(16);
+
+//
+
 const workerUrl = `./pg-worker.js?import`;
 const TASK_PRIORITIES = {
   tracker: -10,
@@ -106,10 +113,10 @@ export class PGWorkerManager {
     return this.loadPromise;
   }
   setCamera(worldPosition, cameraPosition, cameraQuaternion, projectionMatrix) {
-    const worldPositionArray = worldPosition.toArray();
-    const cameraPositionArray = cameraPosition.toArray();
-    const cameraQuaternionArray = cameraQuaternion.toArray();
-    const projectionMatrixArray = projectionMatrix.toArray();
+    const worldPositionArray = worldPosition.toArray(localArray3D);
+    const cameraPositionArray = cameraPosition.toArray(localArray3D2);
+    const cameraQuaternionArray = cameraQuaternion.toArray(localArray4D);
+    const projectionMatrixArray = projectionMatrix.toArray(localArray16D);
 
     this.worker.request('setCamera', {
       instance: this.instance,
