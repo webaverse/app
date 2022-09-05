@@ -801,8 +801,18 @@ export const _updateAnimation = avatar => {
     const useAnimationComboName = avatar.useAnimationCombo[avatar.useAnimationIndex];
     // console.log({useAnimationComboName})
     physx.physxWorker.updateAvatarString([
+      defaultSitAnimation, // todo: send to wasm only once.
+      defaultEmoteAnimation,
+      defaultDanceAnimation,
+      defaultHoldAnimation,
+      defaultActivateAnimation,
+      // ---
       useAnimationComboName, // todo: avatar.useAnimationCombo[avatar.useAnimationIndex]; ?
-      'ddeeff',
+      avatar.sitAnimation,
+      avatar.emoteAnimation,
+      avatar.danceAnimation,
+      avatar.holdAnimation,
+      avatar.activateAnimation,
     ]);
 
     physx.physxWorker.updateAvatar([
@@ -908,31 +918,31 @@ export const _updateAnimation = avatar => {
     //   physx.physxWorker.crossFadeSolitary(avatar.useCombosNodeSolitaryPtr, 0.2, useMotion);
     // }
 
-    // bow
-    if (avatar.useEnvelopeStart) {
-      console.log('useEnvelopeStart');
-      physx.physxWorker.play(avatar.bowMotionPtro.bowDraw);
-      physx.physxWorker.setFactor(avatar.bowDrawLooseNodoeTwoPtr, 0);
-      physx.physxWorker.setFactor(avatar.bowIdle8DDrawLooseNodeOverwritePtr, 1);
-      physx.physxWorker.crossFadeTwo(avatar.idle8DWalkRun_BowIdle8DDrawLooseNodeTwoPtr, 0.2, 1);
-    }
+    // // bow
+    // if (avatar.useEnvelopeStart) {
+    //   console.log('useEnvelopeStart');
+    //   physx.physxWorker.play(avatar.bowMotionPtro.bowDraw);
+    //   physx.physxWorker.setFactor(avatar.bowDrawLooseNodoeTwoPtr, 0);
+    //   physx.physxWorker.setFactor(avatar.bowIdle8DDrawLooseNodeOverwritePtr, 1);
+    //   physx.physxWorker.crossFadeTwo(avatar.idle8DWalkRun_BowIdle8DDrawLooseNodeTwoPtr, 0.2, 1);
+    // }
 
-    // sit
-    if (avatar.sitStart) {
-      const sitMotion = avatar.sitMotionPtro[avatar.sitAnimation || defaultSitAnimation];
-      physx.physxWorker.play(sitMotion);
-      physx.physxWorker.crossFadeSolitary(avatar.sitsNodeSolitaryPtr, 0, sitMotion);
-      physx.physxWorker.crossFadeTwo(avatar.sitNodeTwoPtr, 0.2, 1);
-    }
+    // // sit
+    // if (avatar.sitStart) {
+    //   const sitMotion = avatar.sitMotionPtro[avatar.sitAnimation || defaultSitAnimation];
+    //   physx.physxWorker.play(sitMotion);
+    //   physx.physxWorker.crossFadeSolitary(avatar.sitsNodeSolitaryPtr, 0, sitMotion);
+    //   physx.physxWorker.crossFadeTwo(avatar.sitNodeTwoPtr, 0.2, 1);
+    // }
 
-    // emote
-    if (avatar.emoteStart) {
-      const emoteMotion = avatar.emoteMotionPtro[avatar.emoteAnimation || defaultEmoteAnimation];
-      physx.physxWorker.play(emoteMotion);
-      physx.physxWorker.crossFadeSolitary(avatar.emotesNodeSolitaryPtr, 0, emoteMotion);
-      physx.physxWorker.crossFadeTwo(avatar.emoteNodeFuncPtr, 0.2, 1);
-      // physx.physxWorker.setFactor(avatar.emoteNodeFuncPtr, 1);
-    }
+    // // emote
+    // if (avatar.emoteStart) {
+    //   const emoteMotion = avatar.emoteMotionPtro[avatar.emoteAnimation || defaultEmoteAnimation];
+    //   physx.physxWorker.play(emoteMotion);
+    //   physx.physxWorker.crossFadeSolitary(avatar.emotesNodeSolitaryPtr, 0, emoteMotion);
+    //   physx.physxWorker.crossFadeTwo(avatar.emoteNodeFuncPtr, 0.2, 1);
+    //   // physx.physxWorker.setFactor(avatar.emoteNodeFuncPtr, 1);
+    // }
 
     // hurt
     if (avatar.hurtStart) {
@@ -942,30 +952,30 @@ export const _updateAnimation = avatar => {
       physx.physxWorker.crossFadeTwo(avatar.hurtNodeTwoPtr, 0.2, 1);
     }
 
-    // dance
-    if (avatar.danceStart) {
-      const danceMotion = avatar.danceMotionPtro[avatar.danceAnimation || defaultDanceAnimation];
-      physx.physxWorker.play(danceMotion);
-      physx.physxWorker.crossFadeSolitary(avatar.dancesNodeSolitaryPtr, 0, danceMotion);
-      physx.physxWorker.crossFadeTwo(avatar.danceNodeTwoPtr, 0.2, 1);
-    }
+    // // dance
+    // if (avatar.danceStart) {
+    //   const danceMotion = avatar.danceMotionPtro[avatar.danceAnimation || defaultDanceAnimation];
+    //   physx.physxWorker.play(danceMotion);
+    //   physx.physxWorker.crossFadeSolitary(avatar.dancesNodeSolitaryPtr, 0, danceMotion);
+    //   physx.physxWorker.crossFadeTwo(avatar.danceNodeTwoPtr, 0.2, 1);
+    // }
 
-    // hold
-    if (avatar.holdStart) {
-      const holdMotion = avatar.holdMotionPtro[avatar.holdAnimation || defaultHoldAnimation];
-      physx.physxWorker.play(holdMotion);
-      physx.physxWorker.crossFadeSolitary(avatar.holdsNodeSolitaryPtr, 0, holdMotion);
-      physx.physxWorker.crossFadeTwo(avatar.holdNodeFuncPtr, 0.2, 1);
-      // physx.physxWorker.setFactor(avatar.holdNodeFuncPtr, 1);
-    }
+    // // hold
+    // if (avatar.holdStart) {
+    //   const holdMotion = avatar.holdMotionPtro[avatar.holdAnimation || defaultHoldAnimation];
+    //   physx.physxWorker.play(holdMotion);
+    //   physx.physxWorker.crossFadeSolitary(avatar.holdsNodeSolitaryPtr, 0, holdMotion);
+    //   physx.physxWorker.crossFadeTwo(avatar.holdNodeFuncPtr, 0.2, 1);
+    //   // physx.physxWorker.setFactor(avatar.holdNodeFuncPtr, 1);
+    // }
 
-    // activate
-    if (avatar.activateStart) {
-      const activateMotion = avatar.activateMotionPtro[avatar.activateAnimation || defaultActivateAnimation];
-      physx.physxWorker.play(activateMotion);
-      physx.physxWorker.crossFadeSolitary(avatar.activatesNodeSolitaryPtr, 0, activateMotion);
-      physx.physxWorker.crossFadeTwo(avatar.activateNodeTwoPtr, 0.2, 1);
-    }
+    // // activate
+    // if (avatar.activateStart) {
+    //   const activateMotion = avatar.activateMotionPtro[avatar.activateAnimation || defaultActivateAnimation];
+    //   physx.physxWorker.play(activateMotion);
+    //   physx.physxWorker.crossFadeSolitary(avatar.activatesNodeSolitaryPtr, 0, activateMotion);
+    //   physx.physxWorker.crossFadeTwo(avatar.activateNodeTwoPtr, 0.2, 1);
+    // }
   };
   handleActionStartEvents();
 
