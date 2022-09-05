@@ -540,104 +540,128 @@ const {CharsetEncoder} = require('three/examples/js/libs/mmdparser.js');
       'sword_topdown_slash.fbx',
       'sword_topdown_slash_step.fbx',
     ];
+
     const animationComboIndices = comboAnimationNames.map(comboAnimationName => {
       const animation = animations.find(a => a.name === comboAnimationName);
       const {tracks, object} = animation;
       // console.log('got interpolants', object, animation.name);
-      const bones = [];
-      object.traverse(o => {
-        if (o.isBone) {
-          const bone = o;
-          bone.initialPosition = bone.position.clone();
-          bone.initialQuaternion = bone.quaternion.clone();
-          bones.push(bone);
-        }
-      });
-      // console.log('got bones', bones.map(b => b.name));
-      const rootBone = object; // not really a bone
-      const leftHandBone = bones.find(b => b.name === 'mixamorigLeftHand');
-      const rightHandBone = bones.find(b => b.name === 'mixamorigRightHand');
-      const epsilon = 0.2;
-      const allOnesEpsilon = arr => arr.every(v => Math.abs(1 - v) < epsilon);
+      
+      const validateAndRemoveScaleTracks = () => {
+        const epsilon = 0.2;
+        const allOnesEpsilon = arr => arr.every(v => Math.abs(1 - v) < epsilon);
+        const tracksToRemove = [];
 
-      const bonePositionInterpolants = {};
-      const boneQuaternionInterpolants = {};
-      const tracksToRemove = [];
-      for (const track of tracks) {
-        if (/\.position$/.test(track.name)) {
-          const boneName = track.name.replace(/\.position$/, '');
-          // const bone = bones.find(b => b.name === boneName);
-          const boneInterpolant = new THREE.LinearInterpolant(track.times, track.values, track.getValueSize());
-          bonePositionInterpolants[boneName] = boneInterpolant;
-        } else if (/\.quaternion$/.test(track.name)) {
-          const boneName = track.name.replace(/\.quaternion$/, '');
-          // const bone = bones.find(b => b.name === boneName);
-          const boneInterpolant = new THREE.QuaternionLinearInterpolant(track.times, track.values, track.getValueSize());
-          boneQuaternionInterpolants[boneName] = boneInterpolant;
-        } else if (/\.scale$/.test(track.name)) {
-          if (allOnesEpsilon(track.values)) {
-            const index = tracks.indexOf(track);
-            tracksToRemove.push(index);
-          } else {
-            throw new Error(`This track has invalid values.  All scale transforms must be set to 1. Aborting.\n Animation: ${animation.name}, Track: ${track.name}, values: \n ${track.values}`);
+        for (const track of tracks) {
+          if (/\.scale$/.test(track.name)) {
+            if (allOnesEpsilon(track.values)) {
+              const index = tracks.indexOf(track);
+              tracksToRemove.push(index);
+            } else {
+              throw new Error(`This track has invalid values.  All scale transforms must be set to 1. Aborting.\n 
+              Animation: ${animation.name}, Track: ${track.name}, values: \n 
+              ${track.values}`);
+            }
           }
-        } else {
-          console.warn('unknown track name', animation.name, track);
         }
-      }
-      // remove scale transform tracks as they won't be used;
-      let i = tracksToRemove.length;
-      while (i--) {
-        tracks.splice(tracksToRemove[i], 1);
-      }
+        // remove scale transform tracks as they won't be used;
+        let i = tracksToRemove.length;
+        while (i--) {
+          tracks.splice(tracksToRemove[i], 1);
+        }
+      };
+      validateAndRemoveScaleTracks();
+
+      const getBoneInterpolants = () => {
+        const bonePositionInterpolants = {};
+        const boneQuaternionInterpolants = {};
+
+        for (const track of tracks) {
+          if (/\.position$/.test(track.name)) {
+            const boneName = track.name.replace(/\.position$/, '');
+            // const bone = bones.find(b => b.name === boneName);
+            const boneInterpolant = new THREE.LinearInterpolant(track.times, track.values, track.getValueSize());
+            bonePositionInterpolants[boneName] = boneInterpolant;
+          } else if (/\.quaternion$/.test(track.name)) {
+            const boneName = track.name.replace(/\.quaternion$/, '');
+            // const bone = bones.find(b => b.name === boneName);
+            const boneInterpolant = new THREE.QuaternionLinearInterpolant(track.times, track.values, track.getValueSize());
+            boneQuaternionInterpolants[boneName] = boneInterpolant;
+          } else {
+            console.warn('unknown track name', animation.name, track);
+          }
+        }
+        return {bonePositionInterpolants, boneQuaternionInterpolants};
+      };
+
+      const extractBones = root => {
+        const bones = [];
+        root.traverse(o => {
+          if (o.isBone) {
+            const bone = o;
+            bone.initialPosition = bone.position.clone();
+            bone.initialQuaternion = bone.quaternion.clone();
+            bones.push(bone);
+          }
+        });
+        return bones;
+      };
 
       const walkBufferSize = 256;
+      let maxRightDeltaIndex = 0;
+      let maxLeftDeltaIndex  = 0;
+
       const leftHandDeltas = new Float32Array(walkBufferSize);
       const rightHandDeltas = new Float32Array(walkBufferSize);
+      
+      const bake = () => {
+        const rootBone = object; // not really a bone
+        const bones = extractBones(rootBone);
+        const leftHandBone = bones.find(b => b.name === 'mixamorigLeftHand');
+        const rightHandBone = bones.find(b => b.name === 'mixamorigRightHand');
 
-      let lastRightHandPos = new THREE.Vector3();
-      let lastLeftHandPos = new THREE.Vector3();
+        const {bonePositionInterpolants, boneQuaternionInterpolants} = getBoneInterpolants();
 
-      let maxRightDeltaIndex = 0;
-      let maxLeftDeltaIndex = 0;
+        let lastRightHandPos = new THREE.Vector3();
+        let lastLeftHandPos = new THREE.Vector3();
 
-      for (let i = 0; i < walkBufferSize; i++) {
-        const f = i / (walkBufferSize - 1);
-        for (const bone of bones) {
-          const positionInterpolant = bonePositionInterpolants[bone.name];
-          const quaternionInterpolant = boneQuaternionInterpolants[bone.name];
-          if (positionInterpolant) {
-            const pv = positionInterpolant.evaluate(f * animation.duration);
-            bone.position.fromArray(pv);
-          } else {
-            bone.position.copy(bone.initialPosition);
+        for (let i = 0; i < walkBufferSize; i++) {
+          const f = i / (walkBufferSize - 1);
+          for (const bone of bones) {
+            const positionInterpolant = bonePositionInterpolants[bone.name];
+            const quaternionInterpolant = boneQuaternionInterpolants[bone.name];
+            if (positionInterpolant) {
+              const pv = positionInterpolant.evaluate(f * animation.duration);
+              bone.position.fromArray(pv);
+            } else {
+              bone.position.copy(bone.initialPosition);
+            }
+            if (quaternionInterpolant) {
+              const qv = quaternionInterpolant.evaluate(f * animation.duration);
+              bone.quaternion.fromArray(qv);
+            } else {
+              bone.quaternion.copy(bone.initialQuaternion);
+            }
           }
-          if (quaternionInterpolant) {
-            const qv = quaternionInterpolant.evaluate(f * animation.duration);
-            bone.quaternion.fromArray(qv);
-          } else {
-            bone.quaternion.copy(bone.initialQuaternion);
-          }
+          rootBone.updateMatrixWorld(true);
+
+          const fbxScale = 100;
+          const leftHand = new THREE.Vector3().setFromMatrixPosition(leftHandBone.matrixWorld).divideScalar(fbxScale);
+          const rightHand = new THREE.Vector3().setFromMatrixPosition(rightHandBone.matrixWorld).divideScalar(fbxScale);
+          
+          const leftHandDelta = i === 0 ? 0 : lastLeftHandPos.distanceTo(leftHand);
+          const rightHandDelta = i === 0 ? 0 : lastRightHandPos.distanceTo(rightHand);
+          
+          leftHandDeltas[i] = leftHandDelta * 1000;
+          rightHandDeltas[i] = rightHandDelta * 1000;
+
+          maxRightDeltaIndex = rightHandDeltas[i] > rightHandDeltas[maxRightDeltaIndex] ? i : maxRightDeltaIndex;
+          maxLeftDeltaIndex = leftHandDeltas[i] > leftHandDeltas[maxRightDeltaIndex] ? i : maxLeftDeltaIndex;
+
+          lastLeftHandPos.set(leftHand.x, leftHand.y, leftHand.z);
+          lastRightHandPos.set(rightHand.x, rightHand.y, rightHand.z);
         }
-        rootBone.updateMatrixWorld(true);
-        const fbxScale = 100;
-        const leftHand = new THREE.Vector3().setFromMatrixPosition(leftHandBone.matrixWorld).divideScalar(fbxScale);
-        const rightHand = new THREE.Vector3().setFromMatrixPosition(rightHandBone.matrixWorld).divideScalar(fbxScale);
-        
-        const leftHandDelta = i === 0 ? 0 : lastLeftHandPos.distanceTo(leftHand);
-        const rightHandDelta = i === 0 ? 0 : lastRightHandPos.distanceTo(rightHand);
-        
-        leftHandDeltas[i] = leftHandDelta * 1000;
-        rightHandDeltas[i] = rightHandDelta * 1000;
-
-        maxRightDeltaIndex = rightHandDeltas[i] > rightHandDeltas[maxRightDeltaIndex] ? i : maxRightDeltaIndex;
-        maxLeftDeltaIndex = leftHandDeltas[i] > leftHandDeltas[maxRightDeltaIndex] ? i : maxLeftDeltaIndex;
-
-
-        lastLeftHandPos.set(leftHand.x, leftHand.y, leftHand.z);
-        lastRightHandPos.set(rightHand.x, rightHand.y, rightHand.z);
-      }
-
+      };
+      bake();
       
       // console.log('got', leftHandDeltas, rightHandDeltas, maxLeftDeltaIndex, maxRightDeltaIndex);
       
