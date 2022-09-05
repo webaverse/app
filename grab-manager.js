@@ -74,7 +74,7 @@ const _updateGrabbedObject = (o, grabMatrix, offsetMatrix, {collisionEnabled, ha
     if (ioManager.keys.shift) {
       o.position.copy(localVector5.setY(localVector7.y));
     } else {
-      // if(localVector5.y < localVector7.y) localVector5.setY(localVector7.y);
+      if(localVector5.y < localVector7.y) localVector5.setY(localVector7.y);
       o.position.copy(localVector5);
     }
   }
