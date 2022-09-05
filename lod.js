@@ -18,7 +18,7 @@ const localVector2D = new THREE.Vector2();
 
 // const nop = () => {};
 
-const uint16Array = new Uint16Array(1);
+// const uint16Array = new Uint16Array(1);
 /* uint64_t hashOctreeMinLod(const vm::ivec3 &min, int lod) {
     uint64_t result = uint16_t(min.x);
     result = (result << 16) | uint16_t(min.y);
@@ -26,9 +26,9 @@ const uint16Array = new Uint16Array(1);
     result = (result << 16) | uint16_t(lod);
     return result;
 } */
-const tp16 = 2 ** 16;
-const tp5 = 2 ** 5;
-const _getHashMinLod = (min, lod) => {
+// const tp16 = 2 ** 16;
+// const tp5 = 2 ** 5;
+/* const _getHashMinLod = (min, lod) => {
   let result;
   
   uint16Array[0] = min.x;
@@ -41,7 +41,7 @@ const _getHashMinLod = (min, lod) => {
   result = (result * tp5) + uint16Array[0];
 
   return result;
-};
+}; */
 // const _getHashChunk = chunk => _getHashMinLod(chunk.min, chunk.lod);
 // const _getHashMinLodArray = (min, lodArray) => min.x + ',' + min.y + ',' + min.z + ':' + lodArray.join(',');
 // const _getHashChunkLodArray = chunk => _getHashMinLodArray(chunk.min, chunk.lodArray);
@@ -296,12 +296,12 @@ const _toUint32 = value => {
 
   return leafNodes;
 }; */
-const equalsNode = (a, b) => {
+/* const equalsNode = (a, b) => {
   return a.min.equals(b.min) && a.lod === b.lod;
 };
 const equalsNodeLod = (a, b) => {
   return equalsNode(a, b) && a.lodArray.every((lod, i) => lod === b.lodArray[i]);
-};
+}; */
 const containsPoint = (a, p) => {
   return p.x >= a.min.x && p.x < a.min.x + a.lod &&
     p.y >= a.min.y && p.y < a.min.y + a.lod &&
