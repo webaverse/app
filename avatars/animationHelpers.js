@@ -798,6 +798,13 @@ export const _updateAnimation = avatar => {
 
     const holdFactor = avatar.walkRunFactor * 0.7 + avatar.crouchFactor * (1 - avatar.idleWalkFactor) * 0.5;
 
+    const useAnimationComboName = avatar.useAnimationCombo[avatar.useAnimationIndex];
+    // console.log({useAnimationComboName})
+    physx.physxWorker.updateAvatarString([
+      useAnimationComboName, // todo: avatar.useAnimationCombo[avatar.useAnimationIndex]; ?
+      'ddeeff',
+    ]);
+
     physx.physxWorker.updateAvatar([
       // values ---
       forwardFactor,
@@ -855,10 +862,7 @@ export const _updateAnimation = avatar => {
       avatar.dashAttacking,
     ]);
 
-    physx.physxWorker.updateAvatarString([
-      'abc',
-      'ddeeff',
-    ]);
+    // console.log(avatar.useComboStart, useAnimationComboName)
   };
   updateValues();
 
