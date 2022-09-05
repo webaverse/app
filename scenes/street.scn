@@ -26,6 +26,21 @@
       }
     },
     {
+      "type": "application/rendersettings",
+      "content": {
+        "scene2D": {
+          "perspective": "side-scroll",
+          "effectType": "pixelate"
+        },
+        "pixel": {
+          "pixelSize": 4
+        },
+        "background": {
+          "color": [184, 250, 255]
+        }
+      }
+    },
+    {
       "position": [
         0,
         0,

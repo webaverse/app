@@ -1,5 +1,5 @@
 import * as THREE from 'three';
-import {getRenderer, camera, scene} from './renderer.js';
+import {getRenderer, camera, scene, setCameraMode} from './renderer.js';
 // import * as notifications from './notifications.js';
 import physicsManager from './physics-manager.js';
 import {shakeAnimationSpeed} from './constants.js';
@@ -194,6 +194,7 @@ class CameraManager extends EventTarget {
     this.cinematicScript = null;
     this.cinematicScriptStartTime = -1;
     this.modeIs2D = false;
+    this.activeCamera = false;
 
     document.addEventListener('pointerlockchange', e => {
       let pointerLockElement = document.pointerLockElement;
@@ -214,6 +215,13 @@ class CameraManager extends EventTarget {
     camera.lookAt(position);
     camera.updateMatrixWorld();
   }
+  setCamera(mode) {
+    setCameraMode(mode);
+  }
+  setMode(mode) {
+    this.modeIs2D = mode;
+  }
+
   async requestPointerLock() {
     // const localPointerLockEpoch = ++this.pointerLockEpoch;
     for (const options of [

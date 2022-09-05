@@ -82,10 +82,29 @@ function getComposer() {
 }
 
 function setMode2D (enabled) {
-  if(enabled) {
+  // if(enabled) {
+  //   camera = new THREE.OrthographicCamera(-aspectRatio*viewSize/2, aspectRatio*viewSize/2, viewSize/2, -viewSize/2, -1000, 100);
+  //   camera.position.set(0, 0, 6);
+  //   camera.name = 'orthographicCamera';
+  // }
+}
+
+function setCameraMode (mode) {
+  if(mode == "orthographic") {
+    let canvasWidth = window.innerWidth;
+    let canvasHeight = window.innerHeight;
+    let aspectRatio =  canvasWidth/canvasHeight;
+    let viewSize = 15;
+
     camera = new THREE.OrthographicCamera(-aspectRatio*viewSize/2, aspectRatio*viewSize/2, viewSize/2, -viewSize/2, -1000, 100);
     camera.position.set(0, 0, 6);
     camera.name = 'orthographicCamera';
+  }
+  else {
+    camera = new THREE.PerspectiveCamera(minFov, 1, 0.1, 30000);
+    camera.position.set(0, 1.6, 0);
+    camera.rotation.order = 'YXZ';
+    camera.name = 'sceneCamera';
   }
 }
 
@@ -115,19 +134,19 @@ rootScene.add(sceneLowestPriority);
 // const orthographicScene = new THREE.Scene();
 // const avatarScene = new THREE.Scene();
 
-let canvasWidth = window.innerWidth;
-let canvasHeight = window.innerHeight;
-let aspectRatio =  canvasWidth/canvasHeight;
-let viewSize = 15;
+// let canvasWidth = window.innerWidth;
+// let canvasHeight = window.innerHeight;
+// let aspectRatio =  canvasWidth/canvasHeight;
+// let viewSize = 15;
 
-const camera = new THREE.OrthographicCamera(-aspectRatio*viewSize/2, aspectRatio*viewSize/2, viewSize/2, -viewSize/2, -1000, 100);
-camera.position.set(0, 0, 6);
-camera.name = 'orthographicCamera';
+// const orthographicCamera = new THREE.OrthographicCamera(-aspectRatio*viewSize/2, aspectRatio*viewSize/2, viewSize/2, -viewSize/2, -1000, 100);
+// orthographicCamera.position.set(0, 0, 6);
+// orthographicCamera.name = 'orthographicCamera';
 
-// const camera = new THREE.PerspectiveCamera(minFov, 1, 0.1, 30000);
-// camera.position.set(0, 1.6, 0);
-// camera.rotation.order = 'YXZ';
-// camera.name = 'sceneCamera';
+let camera = new THREE.PerspectiveCamera(minFov, 1, 0.1, 30000);
+camera.position.set(0, 1.6, 0);
+camera.rotation.order = 'YXZ';
+camera.name = 'sceneCamera';
 /* const avatarCamera = camera.clone();
 avatarCamera.near = 0.2;
 avatarCamera.updateProjectionMatrix(); */
@@ -236,6 +255,7 @@ export {
   getContainerElement,
   getComposer,
   setMode2D,
+  setCameraMode,
   scene,
   rootScene,
   // postSceneOrthographic,

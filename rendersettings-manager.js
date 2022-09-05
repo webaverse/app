@@ -42,6 +42,7 @@ class RenderSettings {
         console.warn('mode in development:', scene2D.perspective);
         //console.log("setting mode", true);
         cameraManager.modeIs2D = true;
+        cameraManager.setCamera("orthographic");
         return true;
       } else if (scene2D.perspective === 'top-down') {
         console.warn('mode unavailable:', scene2D.perspective);
@@ -55,6 +56,9 @@ class RenderSettings {
         return false;
       }
     } else {
+      cameraManager.modeIs2D = false;
+      cameraManager.setCamera("perspective");
+      //cameraManager.setMode("perspective");
       return false;
     }
   }

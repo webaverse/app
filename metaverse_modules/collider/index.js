@@ -24,6 +24,7 @@ const _makePlaneCollider = (x, z) => {
   return mesh;
 };
 
+let physicsObjects = [];
 
 export default () => {
   const app = useApp();
@@ -34,13 +35,20 @@ export default () => {
   const mesh = _makePlaneCollider(10000, 10000);
   mesh.rotation.x = -Math.PI / 2;
   mesh.visible = false;
-  physics.addGeometry(mesh);
+  let phyObj = physics.addGeometry(mesh);
   app.add(mesh);
   mesh.updateMatrixWorld();
+  physicsObjects.push(phyObj)
 
   /* useFrame(({timestamp, timeDiff}) => {
     // XXX
   }); */
+
+  useCleanup(() => {
+    physicsObjects.forEach(physicsObject => {
+      physics.removeGeometry(physicsObject);
+    });
+  });
 
   return app;
 };

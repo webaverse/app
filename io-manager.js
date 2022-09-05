@@ -741,11 +741,12 @@ ioManager.mousemove = e => {
   /* if (game.weaponWheel) {
     game.updateWeaponWheel(e);
   } else { */
+    if(cameraManager.modeIs2D) {
+      return;
+    }
+
     if (cameraManager.pointerLockElement) {
-      if(!cameraManager.modeIs2D) {
-        cameraManager.handleMouseMove(e);
-      }
-      //cameraManager.handleMouseMove(e);
+      cameraManager.handleMouseMove(e);
     } else {
       if (game.dragging) {
         game.menuDrag(e);

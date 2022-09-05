@@ -19,7 +19,11 @@
       "type": "application/rendersettings",
       "content": {
         "scene2D": {
-          "perspective": "side-scroll"
+          "perspective": "side-scroll",
+          "effectType": "pixelate"
+        },
+        "pixel": {
+          "pixelSize": 3
         },
         "background": {
           "color": [184, 250, 255]

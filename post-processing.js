@@ -8,6 +8,7 @@ import {ShaderPass} from 'three/examples/jsm/postprocessing/ShaderPass.js';
 import {UnrealBloomPass} from 'three/examples/jsm/postprocessing/UnrealBloomPass.js';
 import {AdaptiveToneMappingPass} from 'three/examples/jsm/postprocessing/AdaptiveToneMappingPass.js';
 import { WebaWaterPass } from 'three/examples/jsm/postprocessing/WebaWaterPass.js';
+import { PixelShader } from 'three/examples/jsm/shaders/PixelShader.js';
 // import {BloomPass} from 'three/examples/jsm/postprocessing/BloomPass.js';
 // import {AfterimagePass} from 'three/examples/jsm/postprocessing/AfterimagePass.js';
 import {BokehPass} from './BokehPass.js';
@@ -151,6 +152,19 @@ function makeWebaWaterPass(webaWater) {
 
   return webaWaterPass;
 }
+function makePixelPass({pixelSize = 1}) {
+  // const renderer = getRenderer();
+  // const size = renderer.getSize(localVector2D)
+  //   .multiplyScalar(renderer.getPixelRatio());
+  // const resolution = size;
+
+  const pixelPass = new ShaderPass( PixelShader );
+	pixelPass.uniforms[ 'resolution' ].value = new THREE.Vector2( window.innerWidth, window.innerHeight );
+	pixelPass.uniforms[ 'resolution' ].value.multiplyScalar( window.devicePixelRatio );
+  pixelPass.uniforms[ 'pixelSize' ].value = pixelSize;
+
+  return pixelPass;
+}
 
 function makeEncodingPass() {
   const encodingPass = new ShaderPass({
@@ -244,7 +258,7 @@ class PostProcessing extends EventTarget {
     passes.push(webaverseRenderPass);
     
     if (rendersettings) {
-      const {ssao, dof, hdr, bloom, postPostProcessScene, swirl, webaWater} = rendersettings;
+      const {ssao, dof, hdr, bloom, postPostProcessScene, swirl, webaWater, pixel} = rendersettings;
       if (ssao || dof) {
         passes.depthPass = makeDepthPass({ssao, dof});
       }
@@ -270,6 +284,10 @@ class PostProcessing extends EventTarget {
       if (swirl) {
         const swirlPass = makeSwirlPass();
         passes.push(swirlPass);
+      }
+      if (pixel) {
+        const pixelPass = makePixelPass(pixel);
+        passes.push(pixelPass);
       }
       if (postPostProcessScene) {
         const {postPerspectiveScene, postOrthographicScene} = postPostProcessScene;
