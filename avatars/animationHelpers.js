@@ -872,32 +872,32 @@ export const _updateAnimation = avatar => {
     //   }
     // }
 
-    // sword
-    if (avatar.useStart) {
-      let useAnimationName;
-      if (avatar.dashAttacking) {
-        useAnimationName = 'dashAttack';
-      } else {
-        useAnimationName = avatar.useAnimation;
-      }
-      const useMotion = avatar.useMotionPtro[useAnimationName];
-      physx.physxWorker.play(useMotion);
-      physx.physxWorker.crossFadeSolitary(avatar.usesNodeSolitaryPtr, 0, useMotion);
-      physx.physxWorker.crossFadeTwo(avatar.useNodeTwoPtr, 0.2, 1);
-    }
+    // // sword
+    // if (avatar.useStart) {
+    //   let useAnimationName;
+    //   if (avatar.dashAttacking) {
+    //     useAnimationName = 'dashAttack';
+    //   } else {
+    //     useAnimationName = avatar.useAnimation;
+    //   }
+    //   const useMotion = avatar.useMotionPtro[useAnimationName];
+    //   physx.physxWorker.play(useMotion);
+    //   physx.physxWorker.crossFadeSolitary(avatar.usesNodeSolitaryPtr, 0, useMotion);
+    //   physx.physxWorker.crossFadeTwo(avatar.useNodeTwoPtr, 0.2, 1);
+    // }
 
-    // silsword
-    if (avatar.useComboStart) {
-      let useAnimationName;
-      if (avatar.dashAttacking) {
-        useAnimationName = 'dashAttack';
-      } else {
-        useAnimationName = avatar.useAnimationCombo[avatar.useAnimationIndex];
-      }
-      const useMotion = avatar.useComboMotionPtro[useAnimationName];
-      physx.physxWorker.play(useMotion);
-      physx.physxWorker.crossFadeSolitary(avatar.useCombosNodeSolitaryPtr, 0.2, useMotion);
-    }
+    // // silsword
+    // if (avatar.useComboStart) {
+    //   let useAnimationName;
+    //   if (avatar.dashAttacking) {
+    //     useAnimationName = 'dashAttack';
+    //   } else {
+    //     useAnimationName = avatar.useAnimationCombo[avatar.useAnimationIndex];
+    //   }
+    //   const useMotion = avatar.useComboMotionPtro[useAnimationName];
+    //   physx.physxWorker.play(useMotion);
+    //   physx.physxWorker.crossFadeSolitary(avatar.useCombosNodeSolitaryPtr, 0.2, useMotion);
+    // }
 
     // bow
     if (avatar.useEnvelopeStart) {
