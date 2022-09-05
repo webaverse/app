@@ -213,6 +213,7 @@ export const App = () => {
             return true;
 
         };
+        game.setGrabUseMesh(uiMode);
 
         registerIoEventHandler( 'keydown', handleKeyDown );
 
