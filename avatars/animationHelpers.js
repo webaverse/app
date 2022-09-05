@@ -854,6 +854,11 @@ export const _updateAnimation = avatar => {
       avatar.landWithMoving,
       avatar.dashAttacking,
     ]);
+
+    physx.physxWorker.updateAvatarString([
+      'abc',
+      'ddeeff',
+    ]);
   };
   updateValues();
 

@@ -2248,6 +2248,24 @@ const physxWorker = (() => {
       scratchStack.ptr,
     )
   }
+  w.updateAvatarString = (strings) => {
+    let index = 0;
+    strings.forEach((string, j) => {
+      const encoder = new TextEncoder() // todo: reuse ?
+      const bytes = encoder.encode(string)
+      const stringByteLength = bytes.length;
+      scratchStack.u8[index++] = stringByteLength;
+      for (let i = 0; i < stringByteLength; i++) {
+        scratchStack.u8[index++] = bytes[i];
+      }
+    })
+
+    const numStrings = strings.length;
+
+    Module._updateAvatarString(
+      scratchStack.ptr, numStrings,
+    )
+  }
   w.createAnimationMixer = () => {
     const ptr = Module._createAnimationMixer(
     )
