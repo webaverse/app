@@ -230,21 +230,12 @@ export default () => {
           }
           idAttribute.needsUpdate = true;
           app.add(flashMesh);
-          // flashMaterial.onBeforeCompile = () => {
-          //   console.log('compile flashMaterial')
-          // }
-          renderer.compile(flashMesh, camera)
       }
       addInstancedMesh();
       const pixel = new THREE.Points(pixelGeometry, pixelMaterial);
       group.add(pixel);
       app.add(group);
-      // pixelMaterial.onBeforeCompile = () => {
-      //   console.log('compile pixelMaterial')
-      // }
-      renderer.compile(group, camera)
 
-      let particleAlreadyInScene= true;
       let circlePlay = false;
       let materialStartTime = -1;
       let healMaterial = [];
@@ -288,12 +279,6 @@ export default () => {
             const pixelScaleAttribute = pixel.geometry.getAttribute('scales');
 
             if(playEffect){
-                if(!particleAlreadyInScene){
-                  // console.log('add app');
-                  app.add(flashMesh);
-                  app.add(group);
-                  particleAlreadyInScene=true;
-                }
                 for (let i = 0; i < flashParticleCount; i++) {
                   dir.x = camera.position.x-player.position.x;
                   dir.y = camera.position.y-player.position.y;
@@ -424,14 +409,7 @@ export default () => {
                     healMaterial[i].r = 0;
                     healMaterial[i].g = 0;
                     healMaterial[i].b = 0;
-                    if(particleAlreadyInScene){
-                      // console.log('remove app');
-                      app.remove(group);
-                      app.remove(flashMesh);
-                      particleAlreadyInScene=false;
-                      materialStartTime = 0;
-                    }
-                    
+                    materialStartTime = 0;
                   }
                       
               }
