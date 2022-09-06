@@ -506,6 +506,7 @@ export const _updateAnimation = avatar => {
       defaultHoldAnimation,
       defaultActivateAnimation,
       // ---
+      avatar.useAnimation,
       useAnimationComboName, // todo: avatar.useAnimationCombo[avatar.useAnimationIndex]; ?
       avatar.sitAnimation,
       avatar.emoteAnimation,
