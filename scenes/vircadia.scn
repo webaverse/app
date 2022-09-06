@@ -33,6 +33,12 @@
       "physics": true,
       "start_url": "https://webaverse.github.io/block/grid.glb",
       "dynamic": false
+    },
+    {
+      "type": "application/vircadia",
+      "content": {
+        "domain": "ws://127.0.0.1:40102"
+      }
     }
   ]
 }
