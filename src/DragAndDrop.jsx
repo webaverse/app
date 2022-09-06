@@ -180,15 +180,18 @@ const DragAndDrop = () => {
             } else if (j && j.voucher == undefined) { // already claimed 
                 if (ioManager.keys.ctrl) {
                     try {
-                        j.voucher = await getVoucherFromUser(j.tokenId, account.currentAddress, WebaversecontractAddress)
-                        for (const worldApp of world.appManager.getApps()) {
-                          if (worldApp.getComponent('voucher')) {
-                            if(worldApp.getComponent('voucher').tokenId === j.tokenId) {
-                              world.appManager.removeApp(worldApp)
+                        const voucherObject = await getVoucherFromUser(j.tokenId, account.currentAddress, WebaversecontractAddress)
+                        if (voucherObject.signature != undefined) {
+                            j.voucher = voucherObject;
+                            for (const worldApp of world.appManager.getApps()) {
+                                if (worldApp.getComponent('voucher')) {
+                                    if (worldApp.getComponent('voucher').tokenId === j.tokenId) {
+                                        world.appManager.removeApp(worldApp)
+                                    }
+                                }
                             }
-                          }
+                            world.appManager.importAddedUserVoucherApp(app, j); // already claimed but permanent-drop
                         }
-                        world.appManager.importAddedUserVoucherApp(app, j); // already claimed but permanent-drop
                     } catch (err) {
                         console.log(err)
                     }

@@ -2,9 +2,6 @@ import * as THREE from 'three';
 import metaversefile from 'metaversefile';
 import generateStats from './procgen/stats.js';
 import { getVoucherFromServer, getVoucherFromUser } from './src/hooks/voucherHelpers'
-// import { uploadMetadata } from './util.js';
-// import {registerLoad} from './src/LoadingBox.jsx';
-// const FILE_ADDRESS = 'https://ipfs.webaverse.com/ipfs/';
 
 const r = () => -1 + Math.random() * 2;
 
@@ -94,9 +91,6 @@ class DropManager extends EventTarget {
   }
   pickupApp(app) {
     this.addClaim(app.name, app.type, app.getComponent('drop').serverDrop, app.contentId, app.getComponent('voucher'));
-  }
-  dropToken(contractAddress, tokenId, voucher) {
-    // XXX engine implements this
   }
   claimVoucher(contractAddress, tokenId, voucher) {
     // ui handles this
