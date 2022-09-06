@@ -1,55 +1,67 @@
-import characterPackFilenames from '../characters/characters.json';
+import {packs, defaultCharacter} from '../characters/characters.json';
+
+const loadNpc = async (srcUrl) => {
+  const res = await fetch(srcUrl);
+  const j = await res.json();
+  return j;
+};
+
+const charactersDir = '../characters/';
+
+const getCharacterFullPath = (filename) => {
+  return charactersDir + filename;
+}
 
 class CharactersManager extends EventTarget {
   constructor() {
     super();
 
-    this.characters = {};
+    this.charactersMap = null;
+    this.defaultCharacterSpec = null;
   }
 
-  async init() {
-    const loadPack = async (srcUrl) => {
-      const res = await fetch(srcUrl);
-      const j = await res.json();
-      const {objects} = j;
-      return objects;
-    };
-
-    const loadNpc = async (srcUrl) => {
-      const res = await fetch(srcUrl);
-      const j = await res.json();
-      return j;
-    };
-
-    const extractPackName = (filename) => {
-      return filename.replace(/\.[^/.]+$/, "")
+  async getDefaultSpecAsync() {
+    if (!this.defaultCharacterSpec) {
+      const characterName = defaultCharacter;
+      this.defaultCharacterSpec = await loadNpc(getCharacterFullPath(characterName));
     }
+    return this.defaultCharacterSpec;
+  }
 
-    // list npc file names
-    for (const packFilename of characterPackFilenames) {
-      const packName = extractPackName(packFilename);
-      const pack = await loadPack('./characters/' + packFilename);
-      
-      const characters = [];
-      for (const characterObj of pack) {
-        const characterName = characterObj.name;
-        const character = await loadNpc('./characters/' + characterName);
-        characters.push(character);
+  async getCharactersMapAsync() {
+    if (!this.charactersMap) {
+      this.charactersMap = {};
+
+      const loadPack = async (srcUrl) => {
+        const res = await fetch(srcUrl);
+        const j = await res.json();
+        const {objects} = j;
+        return objects;
+      };
+  
+      const extractPackName = (filename) => {
+        return filename.replace(/\.[^/.]+$/, "")
       }
-      this.characters[packName] = characters;
-    }
 
-    // load default spec
-    if (characterPackFilenames.length > 0 && this.characters[extractPackName(characterPackFilenames[0])].length > 0) {
-      this.defaultCharacterSpec = this.characters[extractPackName(characterPackFilenames[0])][0];
-    } else {
-      throw new Error('no default character spec');
+      // list npc file names
+      for (const packFilename of packs) {
+        const packName = extractPackName(packFilename);
+        const pack = await loadPack(getCharacterFullPath(packFilename));
+        
+        const characters = [];
+        for (const characterObj of pack) {
+          const characterName = characterObj.name;
+          const character = await loadNpc(getCharacterFullPath(characterName));
+          characters.push(character);
+        }
+        this.charactersMap[packName] = characters;
+      }
     }
+    return this.charactersMap;
   }
 }
 
 const charactersManager = new CharactersManager();
-await charactersManager.init();
 export {
     charactersManager
 };

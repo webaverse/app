@@ -35,7 +35,7 @@ class NpcManager extends EventTarget {
   }
 
   async initDefaultPlayer() {
-    const defaultPlayerSpec = charactersManager.defaultCharacterSpec;
+    const defaultPlayerSpec = await charactersManager.getDefaultSpecAsync();
     const localPlayer = metaversefile.useLocalPlayer();
     // console.log('set player spec', defaultPlayerSpec);
     await localPlayer.setPlayerSpec(defaultPlayerSpec);

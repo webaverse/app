@@ -110,6 +110,7 @@ export const generateObjectCard = async ({
   const url = contentId;
   const type = appType;
 
+  const defaultCharacterSpec = await charactersManager.getDefaultSpecAsync();
   const [
     objectImage,
     minterAvatarPreview,
@@ -124,7 +125,7 @@ export const generateObjectCard = async ({
     })(),
     (async () => {
       let minterAvatarPreview = await screenshotAvatarUrl({
-        start_url: charactersManager.defaultPlayerSpec.avatarUrl,
+        start_url: defaultCharacterSpec.avatarUrl,
       });
       minterAvatarPreview = await _getCanvasDataUrl(minterAvatarPreview);
       return minterAvatarPreview;
@@ -136,7 +137,7 @@ export const generateObjectCard = async ({
     })(),
   ]);
 
-  const minterUsername = charactersManager.defaultPlayerSpec.name;
+  const minterUsername = defaultCharacterSpec.name;
   const cardImg = await generateCard({
     stats,
     width,

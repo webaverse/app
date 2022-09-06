@@ -42,18 +42,18 @@ for (let i = 0; i < userTokenCharacters.length; i++) {
         bio: '',
     };
 }
-const fillCharacters = (characters) => {
+const fillCharactersMap = (charactersMap) => {
     // adds additional character information for dynamic npcApp creation and selection support
-    const viewCharacters = JSON.parse(JSON.stringify(characters)); // deep clone
-    for (const [packName, pack] of Object.entries(viewCharacters)) {
+    const viewCharactersMap = JSON.parse(JSON.stringify(charactersMap)); // deep clone
+    for (const [packName, pack] of Object.entries(viewCharactersMap)) {
         for (const character of pack) {
             character.detached = true; // diorama character doesn't need to be attached to npc-manager
             character.packName = packName;
         }
     }
-    return viewCharacters;
+    return viewCharactersMap;
 };
-const characters = fillCharacters(charactersManager.characters);  
+const charactersMap = fillCharactersMap(await charactersManager.getCharactersMapAsync());
           
 const Character = forwardRef(({
     character,
@@ -168,8 +168,8 @@ export const CharacterSelect = () => {
         for (const userTokenCharacter of userTokenCharacters) {
             map.set(userTokenCharacter, useRef(null));
         }
-        for (const k in characters) {
-            for (const character of characters[k]) {
+        for (const k in charactersMap) {
+            for (const character of charactersMap[k]) {
                 map.set(character, useRef(null));
             }
         }
@@ -385,14 +385,14 @@ export const CharacterSelect = () => {
                         )}
                     </ul>
                 </div>
-                {Object.keys(characters).map((packName) => {
+                {Object.keys(charactersMap).map((packName) => {
                     return (
                         <div className={styles.section} key={packName}>
                             <div className={styles.subheading}>
                                 <h2>From {packName}</h2>
                             </div>
                             <ul className={styles.list}>
-                                {characters[packName].map((character, i) => {
+                                {charactersMap[packName].map((character, i) => {
                                     return (
                                         <Character
                                             character={character}

@@ -1,3 +1,6 @@
-[
-  "upstreet.json"
-]
+{
+  "packs": [
+    "upstreet.json"  
+  ],
+  "defaultCharacter": "scillia.npc"
+}
