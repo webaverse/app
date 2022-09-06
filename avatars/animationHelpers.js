@@ -1016,9 +1016,11 @@ export const _updateAnimation = avatar => {
     const finishedFlag = resultValues[53];
     // console.log(finishedFlag)
     if (finishedFlag) {
-      const motionPtr = resultValues[54];
+      // const motionPtr = resultValues[54]; // tod: why still works ?
       // if (isDebugger) console.log('---finished', avatar.getMotion(motion));
-      if (isDebugger) console.log('---finished', physx.physxWorker.getMotionName(avatar.mixerPtr, motionPtr));
+      // if (isDebugger) console.log('---finished', physx.physxWorker.getMotionName(avatar.mixerPtr, motionPtr)); // tod: why still works ?
+      const finishedMotionName = physx.physxWorker.getFinishedMotionName(avatar.mixerPtr);
+      if (isDebugger) console.log('---finishedMotionName', finishedMotionName);
 
       // this.dispatchEvent({
       //   type: 'finished',
@@ -1027,36 +1029,36 @@ export const _updateAnimation = avatar => {
       // debugger;
       // console.log('finished');
 
-      const handleAnimationEnd = (motionPtr, trigger) => {
+      const handleAnimationEnd = (finishedMotionName, trigger) => {
         if ([
-          avatar.useMotionPtro.drink,
-          avatar.useMotionPtro.combo,
-          avatar.useMotionPtro.dashAttack,
-          avatar.useComboMotionPtro.swordSideSlash,
-          avatar.useComboMotionPtro.swordSideSlashStep,
-          avatar.useComboMotionPtro.swordTopDownSlash,
-          avatar.useComboMotionPtro.swordTopDownSlashStep,
-          avatar.useComboMotionPtro.dashAttack,
-        ].includes(motionPtr)) {
+          'drink',
+          'combo',
+          'dashAttack',
+          'swordSideSlash',
+          'swordSideSlashStep',
+          'swordTopDownSlash',
+          'swordTopDownSlashStep',
+          'dashAttack',
+        ].includes(finishedMotionName)) {
           game.handleAnimationEnd();
         }
       };
 
-      handleAnimationEnd(motionPtr, 'finished');
+      handleAnimationEnd(finishedMotionName, 'finished');
 
-      if (avatar.useEnvelopeState && motionPtr === avatar.bowMotionPtro.bowDraw) {
+      if (avatar.useEnvelopeState && finishedMotionName === 'bowDraw') {
         physx.physxWorker.crossFadeTwo(avatar.bowIdle8DDrawLooseNodeOverwritePtr, 0.2, 0);
       }
-      if (motionPtr === avatar.bowMotionPtro.bowLoose) {
+      if (finishedMotionName === 'bowLoose') {
         physx.physxWorker.crossFadeTwo(avatar.idle8DWalkRun_BowIdle8DDrawLooseNodeTwoPtr, 0.2, 0);
       }
-      if (motionPtr === avatar.landMotionPtr || motionPtr === avatar.land2MotionPtr) {
+      if (finishedMotionName === 'land' || finishedMotionName === 'land2') {
         // console.log('land finished', player);
         player?.removeAction('land');
       }
-      for (const key in avatar.hurtMotionPtro) {
-        const hurtMotion = avatar.hurtMotionPtro[key];
-        if (motionPtr === hurtMotion) {
+      for (const key in hurtAnimations) { // todo
+        const motionName = key;
+        if (finishedMotionName === motionName) {
           player?.removeAction('hurt');
           break;
         }

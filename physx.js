@@ -2272,9 +2272,9 @@ const physxWorker = (() => {
     )
     return ptr;
   }
-  w.updateAnimationMixer = (mixer, timeS) => {
+  w.updateAnimationMixer = (mixerPtr, timeS) => {
     const outputBufferOffsetMain = Module._updateAnimationMixer(
-      mixer, timeS,
+      mixerPtr, timeS,
     )
     // console.log(outputBufferOffsetMain)
     // debugger
@@ -2317,6 +2317,15 @@ const physxWorker = (() => {
     // }
 
     return resultValues;
+  }
+  w.getFinishedMotionName = (mixerPtr) => {
+    const nameByteLength = Module._getFinishedMotionName(
+      mixerPtr, scratchStack.ptr,
+    )
+
+    const decoder = new TextDecoder()
+    const name = decoder.decode(scratchStack.u8.slice(0, nameByteLength))
+    return name;
   }
   w.createAnimationMapping = (isPosition, index, isFirstBone, isLastBone, isTop, isArm) => {
     Module._createAnimationMapping(
