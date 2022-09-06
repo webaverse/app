@@ -813,6 +813,7 @@ export const _updateAnimation = avatar => {
       avatar.danceAnimation,
       avatar.holdAnimation,
       avatar.activateAnimation,
+      avatar.hurtAnimation,
     ]);
 
     // console.log(avatar.jumpEnd)
@@ -946,13 +947,13 @@ export const _updateAnimation = avatar => {
     //   // physx.physxWorker.setFactor(avatar.emoteNodeFuncPtr, 1);
     // }
 
-    // hurt
-    if (avatar.hurtStart) {
-      const hurtMotion = avatar.hurtMotionPtro[avatar.hurtAnimation];
-      physx.physxWorker.play(hurtMotion);
-      physx.physxWorker.crossFadeSolitary(avatar.hurtsNodeSolitaryPtr, 0, hurtMotion);
-      physx.physxWorker.crossFadeTwo(avatar.hurtNodeTwoPtr, 0.2, 1);
-    }
+    // // hurt
+    // if (avatar.hurtStart) {
+    //   const hurtMotion = avatar.hurtMotionPtro[avatar.hurtAnimation];
+    //   physx.physxWorker.play(hurtMotion);
+    //   physx.physxWorker.crossFadeSolitary(avatar.hurtsNodeSolitaryPtr, 0, hurtMotion);
+    //   physx.physxWorker.crossFadeTwo(avatar.hurtNodeTwoPtr, 0.2, 1);
+    // }
 
     // // dance
     // if (avatar.danceStart) {
