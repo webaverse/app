@@ -476,12 +476,6 @@ export const _createAnimation = avatar => {
 
   avatar.mixerPtr = physx.physxWorker.createAnimationMixer(); // todo: rename: animationMixer
   avatar.animationAvatarPtr = physx.physxWorker.initAvatar(avatar.mixerPtr);
-
-  const getNodes = () => {
-    avatar.bowIdle8DDrawLooseNodeOverwritePtr = physx.physxWorker.getNode(avatar.mixerPtr, 'bowIdle8DDrawLooseNodeOverwrite');
-    avatar.idle8DWalkRun_BowIdle8DDrawLooseNodeTwoPtr = physx.physxWorker.getNode(avatar.mixerPtr, 'idle8DWalkRun_BowIdle8DDrawLooseNodeTwo');
-  };
-  getNodes();
 };
 
 export const _updateAnimation = avatar => {
