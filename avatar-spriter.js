@@ -11,6 +11,7 @@ import {AvatarRenderer} from './avatars/avatar-renderer.js';
 import {mod, angleDifference, addDefaultLights} from './util.js';
 import {world} from './world.js';
 import {maxAvatarQuality, walkSpeed, runSpeed, crouchSpeed, narutoRunSpeed} from './constants.js';
+import { emoteAnimations } from './avatars/animationHelpers.js';
 
 const preview = false; // whether to draw debug meshes
 
@@ -36,7 +37,7 @@ const localMatrix = new THREE.Matrix4();
 const size = 4096;
 const texSize = 512;
 const numSlots = size / texSize;
-const numFrames = 7;
+const numFrames = 6;
 const numAngles = 8;
 const worldSize = 2;
 const distance = 2.2; // render distance
@@ -803,14 +804,6 @@ const getSpriteSpecs = () => {
     const rightStrafeWalkingAnimation = animations.find(a => a.name === 'right strafe walking.fbx');
     const crouchWalkLeftAnimation = animations.find(a => a.name === 'Crouched Sneaking Left.fbx');
     const crouchWalkRightAnimation = animations.find(a => a.name === 'Crouched Sneaking Right.fbx');
-    const angryAnimation = animations.find(a => a.name === 'angry.fbx');
-    const alertAnimation = animations.find(a => a.name === 'alert.fbx');
-    const victoryAnimation = animations.find(a => a.name === 'victory.fbx');
-    const surpriseAnimation = animations.find(a => a.name === 'surprise.fbx');
-    const sadAnimation = animations.find(a => a.name === 'sad.fbx');
-    const headShakeAnimation = animations.find(a => a.name === 'head_shake.fbx');
-    const headNodAnimation = animations.find(a => a.name === 'head_nod.fbx');
-    const embarrassedAnimation = animations.find(a => a.name === 'embarrassed.fbx');
     
     spriteSpecs = [
       {
@@ -1290,7 +1283,7 @@ const getSpriteSpecs = () => {
       },
       {
         name: 'angry',
-        duration: angryAnimation.duration,
+        duration: emoteAnimations.angry.duration,
         init({angle, avatar: localRig}) {
           let positionOffset = 0;
           localRig.faceposes.length = 0;  
@@ -1298,6 +1291,9 @@ const getSpriteSpecs = () => {
             emotion: 'angry',
             value: 1,
           });
+          localRig.emoteAnimation = 'angry';
+          localRig.emoteFactor = 200;
+          localRig.update(0, 0);
           return {
             update(timestamp, timeDiffMs) {
               const euler = new THREE.Euler(0, angle, 0, 'YXZ');
@@ -1318,7 +1314,7 @@ const getSpriteSpecs = () => {
       },
       {
         name: 'alert',
-        duration: alertAnimation.duration,
+        duration: emoteAnimations.alert.duration,
         init({angle, avatar: localRig}) {
           let positionOffset = 0;
           localRig.faceposes.length = 0;  
@@ -1326,6 +1322,9 @@ const getSpriteSpecs = () => {
             emotion: 'surprise',
             value: 1,
           });
+          localRig.emoteAnimation = 'alert';
+          localRig.emoteFactor = 200;
+          localRig.update(0, 0);
           return {
             update(timestamp, timeDiffMs) {
               const euler = new THREE.Euler(0, angle, 0, 'YXZ');
@@ -1346,7 +1345,7 @@ const getSpriteSpecs = () => {
       },
       {
         name: 'victory',
-        duration: victoryAnimation.duration,
+        duration: emoteAnimations.victory.duration,
         init({angle, avatar: localRig}) {
           let positionOffset = 0;
           localRig.faceposes.length = 0;  
@@ -1354,6 +1353,9 @@ const getSpriteSpecs = () => {
             emotion: 'joy',
             value: 1,
           });
+          localRig.emoteAnimation = 'victory';
+          localRig.emoteFactor = 200;
+          localRig.update(0, 0);
           return {
             update(timestamp, timeDiffMs) {
               const euler = new THREE.Euler(0, angle, 0, 'YXZ');
@@ -1374,7 +1376,7 @@ const getSpriteSpecs = () => {
       },
       {
         name: 'surprise',
-        duration: surpriseAnimation.duration,
+        duration: emoteAnimations.surprise.duration,
         init({angle, avatar: localRig}) {
           let positionOffset = 0;
           localRig.faceposes.length = 0;  
@@ -1382,6 +1384,9 @@ const getSpriteSpecs = () => {
             emotion: 'surprise',
             value: 1,
           });
+          localRig.emoteAnimation = 'surprise';
+          localRig.emoteFactor = 200;
+          localRig.update(0, 0);
           return {
             update(timestamp, timeDiffMs) {
               const euler = new THREE.Euler(0, angle, 0, 'YXZ');
@@ -1402,7 +1407,7 @@ const getSpriteSpecs = () => {
       },
       {
         name: 'sad',
-        duration: sadAnimation.duration,
+        duration: emoteAnimations.sad.duration,
         init({angle, avatar: localRig}) {
           let positionOffset = 0;
           localRig.faceposes.length = 0;  
@@ -1410,6 +1415,9 @@ const getSpriteSpecs = () => {
             emotion: 'sorrow',
             value: 1,
           });
+          localRig.emoteAnimation = 'sad';
+          localRig.emoteFactor = 200;
+          localRig.update(0, 0);
           return {
             update(timestamp, timeDiffMs) {
               const euler = new THREE.Euler(0, angle, 0, 'YXZ');
@@ -1430,7 +1438,7 @@ const getSpriteSpecs = () => {
       },
       {
         name: 'headShake',
-        duration: headShakeAnimation.duration,
+        duration: emoteAnimations.headShake.duration,
         init({angle, avatar: localRig}) {
           let positionOffset = 0;
           localRig.faceposes.length = 0;  
@@ -1438,6 +1446,9 @@ const getSpriteSpecs = () => {
             emotion: 'sorrow',
             value: 1,
           });
+          localRig.emoteAnimation = 'headShake';
+          localRig.emoteFactor = 200;
+          localRig.update(0, 0);
           return {
             update(timestamp, timeDiffMs) {
               const euler = new THREE.Euler(0, angle, 0, 'YXZ');
@@ -1458,7 +1469,7 @@ const getSpriteSpecs = () => {
       },
       {
         name: 'headNod',
-        duration: headNodAnimation.duration,
+        duration: emoteAnimations.headNod.duration,
         init({angle, avatar: localRig}) {
           let positionOffset = 0;
           localRig.faceposes.length = 0;  
@@ -1466,6 +1477,9 @@ const getSpriteSpecs = () => {
             emotion: 'fun',
             value: 1,
           });
+          localRig.emoteAnimation = 'headNod';
+          localRig.emoteFactor = 200;
+          localRig.update(0, 0);
           return {
             update(timestamp, timeDiffMs) {
               const euler = new THREE.Euler(0, angle, 0, 'YXZ');
@@ -1486,7 +1500,7 @@ const getSpriteSpecs = () => {
       },
       {
         name: 'embarrassed',
-        duration: embarrassedAnimation.duration,
+        duration: emoteAnimations.embarrassed.duration,
         init({angle, avatar: localRig}) {
           let positionOffset = 0;
           localRig.faceposes.length = 0;  
@@ -1494,6 +1508,9 @@ const getSpriteSpecs = () => {
             emotion: 'sorrow',
             value: 1,
           });
+          localRig.emoteAnimation = 'embarrassed';
+          localRig.emoteFactor = 200;
+          localRig.update(0, 0);
           return {
             update(timestamp, timeDiffMs) {
               const euler = new THREE.Euler(0, angle, 0, 'YXZ');
@@ -1673,6 +1690,7 @@ export const renderSpriteImages = async (arrayBuffer, srcUrl) => {
     visemes: true,
     debug: false,
   });
+
   for (let h = 0; h < 2; h++) {
     localRig.setHandEnabled(h, false);
   }
