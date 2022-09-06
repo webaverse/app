@@ -593,15 +593,15 @@ export const _createAnimation = avatar => {
 
     //
 
-    avatar.jumpMotionPtr = physx.physxWorker.getMotion(avatar.mixerPtr, 'jump');
-    physx.physxWorker.setLoop(avatar.jumpMotionPtr, AnimationLoopType.LoopOnce);
-    physx.physxWorker.stop(avatar.jumpMotionPtr);
+    // avatar.jumpMotionPtr = physx.physxWorker.getMotion(avatar.mixerPtr, 'jump');
+    // physx.physxWorker.setLoop(avatar.jumpMotionPtr, AnimationLoopType.LoopOnce);
+    // physx.physxWorker.stop(avatar.jumpMotionPtr);
     // physx.physxWorker.setTimeBias(avatar.jumpMotionPtr, 0.7);
     // physx.physxWorker.setSpeed(avatar.jumpMotionPtr, 0.6);
 
-    avatar.doubleJumpMotionPtr = physx.physxWorker.getMotion(avatar.mixerPtr, 'doubleJump');
-    physx.physxWorker.setLoop(avatar.doubleJumpMotionPtr, AnimationLoopType.LoopOnce);
-    physx.physxWorker.stop(avatar.doubleJumpMotionPtr);
+    // avatar.doubleJumpMotionPtr = physx.physxWorker.getMotion(avatar.mixerPtr, 'doubleJump');
+    // physx.physxWorker.setLoop(avatar.doubleJumpMotionPtr, AnimationLoopType.LoopOnce);
+    // physx.physxWorker.stop(avatar.doubleJumpMotionPtr);
 
     avatar.fallLoopMotionPtr = physx.physxWorker.getMotion(avatar.mixerPtr, 'fallLoop');
 
@@ -631,7 +631,7 @@ export const _createAnimation = avatar => {
       const animation = useComboAnimations[k];
       if (animation) {
         avatar.useComboMotionPtro[k] = physx.physxWorker.getMotion(avatar.mixerPtr, k);
-        physx.physxWorker.setLoop(avatar.useComboMotionPtro[k], AnimationLoopType.LoopOnce);
+        physx.physxWorker.setLoop(avatar.useComboMotionPtro[k], AnimationLoopType.LoopOnce); // todo: port to wasm
         physx.physxWorker.stop(avatar.useComboMotionPtro[k]);
       }
     }
@@ -748,9 +748,9 @@ export const _createAnimation = avatar => {
     avatar.sitsNodeSolitaryPtr = physx.physxWorker.getNode(avatar.mixerPtr, 'sitsNodeSolitary');
     avatar.sitNodeTwoPtr = physx.physxWorker.getNode(avatar.mixerPtr, 'sitNodeTwo');
 
-    avatar.jumpNodeTwoPtr = physx.physxWorker.getNode(avatar.mixerPtr, 'jumpNodeTwo');
+    // avatar.jumpNodeTwoPtr = physx.physxWorker.getNode(avatar.mixerPtr, 'jumpNodeTwo');
 
-    avatar.doubleJumpNodeTwoPtr = physx.physxWorker.getNode(avatar.mixerPtr, 'doubleJumpNodeTwo');
+    // avatar.doubleJumpNodeTwoPtr = physx.physxWorker.getNode(avatar.mixerPtr, 'doubleJumpNodeTwo');
 
     avatar.groundFlyNodeTwoPtr = physx.physxWorker.getNode(avatar.mixerPtr, 'groundFlyNodeTwo');
 
@@ -815,6 +815,8 @@ export const _updateAnimation = avatar => {
       avatar.activateAnimation,
     ]);
 
+    // console.log(avatar.jumpEnd)
+    // console.log(avatar.doubleJumpEnd)
     physx.physxWorker.updateAvatar(avatar.animationAvatarPtr, [
       // values ---
       forwardFactor,
@@ -1013,8 +1015,9 @@ export const _updateAnimation = avatar => {
     const finishedFlag = resultValues[53];
     // console.log(finishedFlag)
     if (finishedFlag) {
-      const motion = resultValues[54];
+      const motionPtr = resultValues[54];
       // if (isDebugger) console.log('---finished', avatar.getMotion(motion));
+      if (isDebugger) console.log('---finished', physx.physxWorker.getMotionName(avatar.mixerPtr, motionPtr));
 
       // this.dispatchEvent({
       //   type: 'finished',
@@ -1023,7 +1026,7 @@ export const _updateAnimation = avatar => {
       // debugger;
       // console.log('finished');
 
-      const handleAnimationEnd = (motion, trigger) => {
+      const handleAnimationEnd = (motionPtr, trigger) => {
         if ([
           avatar.useMotionPtro.drink,
           avatar.useMotionPtro.combo,
@@ -1033,26 +1036,26 @@ export const _updateAnimation = avatar => {
           avatar.useComboMotionPtro.swordTopDownSlash,
           avatar.useComboMotionPtro.swordTopDownSlashStep,
           avatar.useComboMotionPtro.dashAttack,
-        ].includes(motion)) {
+        ].includes(motionPtr)) {
           game.handleAnimationEnd();
         }
       };
 
-      handleAnimationEnd(motion, 'finished');
+      handleAnimationEnd(motionPtr, 'finished');
 
-      if (avatar.useEnvelopeState && motion === avatar.bowMotionPtro.bowDraw) {
+      if (avatar.useEnvelopeState && motionPtr === avatar.bowMotionPtro.bowDraw) {
         physx.physxWorker.crossFadeTwo(avatar.bowIdle8DDrawLooseNodeOverwritePtr, 0.2, 0);
       }
-      if (motion === avatar.bowMotionPtro.bowLoose) {
+      if (motionPtr === avatar.bowMotionPtro.bowLoose) {
         physx.physxWorker.crossFadeTwo(avatar.idle8DWalkRun_BowIdle8DDrawLooseNodeTwoPtr, 0.2, 0);
       }
-      if (motion === avatar.landMotionPtr || motion === avatar.land2MotionPtr) {
+      if (motionPtr === avatar.landMotionPtr || motionPtr === avatar.land2MotionPtr) {
         // console.log('land finished', player);
         player?.removeAction('land');
       }
       for (const key in avatar.hurtMotionPtro) {
         const hurtMotion = avatar.hurtMotionPtro[key];
-        if (motion === hurtMotion) {
+        if (motionPtr === hurtMotion) {
           player?.removeAction('hurt');
           break;
         }

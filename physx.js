@@ -18,8 +18,8 @@ const capsuleUpQuaternion = new THREE.Quaternion().setFromAxisAngle(
   new THREE.Vector3(0, 0, 1),
   Math.PI / 2
 )
-// const textEncoder = new TextEncoder();
-// const textDecoder = new TextDecoder();
+// const textEncoder = new TextEncoder(); // todo: re-open
+// const textDecoder = new TextDecoder(); // todo: re-open
 
 const physx = {};
 
@@ -2384,6 +2384,15 @@ const physxWorker = (() => {
       mixerPtr, scratchStack.ptr, nameByteLength,
     )
     return ptr;
+  }
+  w.getMotionName = (mixerPtr, motionPtr) => {
+    const nameByteLength = Module._getMotionName(
+      mixerPtr, motionPtr, scratchStack.ptr,
+    )
+
+    const decoder = new TextDecoder()
+    const name = decoder.decode(scratchStack.u8.slice(0, nameByteLength))
+    return name;
   }
   w.createNode = (mixer, type = AnimationNodeType.LIST, index = 0) => { // todo: rename: createAnimationNode
     // debugger
