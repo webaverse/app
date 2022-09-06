@@ -578,6 +578,7 @@ export const _updateAnimation = avatar => {
       // other
       avatar.landWithMoving,
       avatar.dashAttacking,
+      avatar.useEnvelopeState,
     ]);
 
     // console.log(avatar.useComboStart, useAnimationComboName)
@@ -648,12 +649,6 @@ export const _updateAnimation = avatar => {
 
       handleAnimationEnd(finishedMotionName, 'finished');
 
-      if (avatar.useEnvelopeState && finishedMotionName === 'bowDraw') {
-        physx.physxWorker.crossFadeTwo(avatar.bowIdle8DDrawLooseNodeOverwritePtr, 0.2, 0);
-      }
-      if (finishedMotionName === 'bowLoose') {
-        physx.physxWorker.crossFadeTwo(avatar.idle8DWalkRun_BowIdle8DDrawLooseNodeTwoPtr, 0.2, 0);
-      }
       if (finishedMotionName === 'land' || finishedMotionName === 'land2') {
         // console.log('land finished', player);
         player?.removeAction('land');
