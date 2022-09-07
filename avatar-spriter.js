@@ -554,21 +554,19 @@ class SpriteAvatarMesh extends THREE.Mesh {
   setTexture(name) {
     const spriteSpecs = getSpriteSpecs();
     const spriteSpecIndex = spriteSpecs.findIndex((spriteSpec) => spriteSpec.name === name);
-    if (spriteSpecIndex >= 0) {
-      const tex = this.texs[spriteSpecIndex];
-      if (tex) {
-        this.material.uniforms.uTex.value = tex;
-        this.material.uniforms.uTex.needsUpdate = true;
+    const tex = this.texs[spriteSpecIndex];
+    if (tex) {
+      this.material.uniforms.uTex.value = tex;
+      this.material.uniforms.uTex.needsUpdate = true;
 
-        if (this.customPostMaterial.uniforms) {
-          this.customPostMaterial.uniforms.uTex.value = tex;
-          this.customPostMaterial.uniforms.uTex.needsUpdate = true;
-        }
-
-        return true;
-      } else {
-        return false;
+      if (this.customPostMaterial.uniforms) {
+        this.customPostMaterial.uniforms.uTex.value = tex;
+        this.customPostMaterial.uniforms.uTex.needsUpdate = true;
       }
+
+      return true;
+    } else {
+      return false;
     }
   }
 
