@@ -1,12 +1,12 @@
-import * as THREE from "three";
-import metaversefile from "metaversefile";
-import { DoubleSidedPlaneGeometry, CameraGeometry } from "./geometries.js";
-import { WebaverseShaderMaterial } from "./materials.js";
-import { getRenderer, scene, camera } from "./renderer.js";
-import Avatar from "./avatars/avatars.js";
-import { AvatarRenderer } from "./avatars/avatar-renderer.js";
-import { mod, angleDifference, addDefaultLights } from "./util.js";
-import { world } from "./world.js";
+import * as THREE from 'three';
+import metaversefile from 'metaversefile';
+import { DoubleSidedPlaneGeometry, CameraGeometry } from './geometries.js';
+import { WebaverseShaderMaterial } from './materials.js';
+import { getRenderer, scene, camera } from './renderer.js';
+import Avatar from './avatars/avatars.js';
+import { AvatarRenderer } from './avatars/avatar-renderer.js';
+import { mod, angleDifference, addDefaultLights } from './util.js';
+import { world } from './world.js';
 import {
   maxAvatarQuality,
   walkSpeed,
@@ -14,8 +14,8 @@ import {
   crouchSpeed,
   narutoRunSpeed,
   crouchMaxTime,
-} from "./constants.js";
-import { emoteAnimations } from "./avatars/animationHelpers.js";
+} from './constants.js';
+import { emoteAnimations } from './avatars/animationHelpers.js';
 
 const preview = false; // whether to draw debug meshes
 
@@ -60,11 +60,11 @@ const planeSpriteMeshes = [];
 const spriteAvatarMeshes = [];
 
 const animationAngles = [
-  { name: "left", angle: Math.PI / 2 },
-  { name: "right", angle: -Math.PI / 2 },
+  { name: 'left', angle: Math.PI / 2 },
+  { name: 'right', angle: -Math.PI / 2 },
 
-  { name: "forward", angle: 0 },
-  { name: "backward", angle: Math.PI },
+  { name: 'forward', angle: 0 },
+  { name: 'backward', angle: Math.PI },
 ];
 
 const globalUpdate = (timestamp, timeDiff, camera) => {
@@ -98,7 +98,7 @@ const globalUpdate = (timestamp, timeDiff, camera) => {
           targetVector.set(0, 1, 0)
         )
       );
-      localEuler.setFromQuaternion(localQuaternion, "YXZ");
+      localEuler.setFromQuaternion(localQuaternion, 'YXZ');
       localEuler.x = 0;
       localEuler.z = 0;
       spriteAvatarMesh.quaternion.setFromEuler(localEuler);
@@ -122,7 +122,7 @@ const _ensureScheduleGlobalUpdate = (() => {
   return () => {
     if (!scheduled) {
       scene.add(cameraMesh);
-      world.appManager.addEventListener("frame", (e) => {
+      world.appManager.addEventListener('frame', (e) => {
         const { timestamp, timeDiff } = e.data;
         globalUpdate(timestamp, timeDiff, camera);
       });
@@ -274,17 +274,17 @@ class SpriteAnimation360Mesh extends THREE.Mesh {
     const avatarSpriteMaterial = new WebaverseShaderMaterial({
       uniforms: {
         uTex: {
-          type: "t",
+          type: 't',
           value: tex,
           // needsUpdate: true,
         },
         uTime: {
-          type: "f",
+          type: 'f',
           value: 0,
           needsUpdate: true,
         },
         uY: {
-          type: "f",
+          type: 'f',
           value: 0,
           needsUpdate: true,
         },
@@ -404,7 +404,7 @@ class SpriteAnimation360Mesh extends THREE.Mesh {
       tex,
     });
 
-    this.lastSpriteSpecName = "";
+    this.lastSpriteSpecName = '';
     this.lastSpriteSpecTimestamp = 0;
   }
 }
@@ -584,7 +584,7 @@ class SpriteAvatarMesh extends THREE.Mesh {
         targetVector.set(0, 1, 0)
       )
     );
-    localEuler.setFromQuaternion(localQuaternion, "YXZ");
+    localEuler.setFromQuaternion(localQuaternion, 'YXZ');
     localEuler.x = 0;
     localEuler.z = 0;
 
@@ -596,39 +596,39 @@ class SpriteAvatarMesh extends THREE.Mesh {
       const playerSide = _getPlayerSide();
       const currentSpeed = eyeVector.set(avatar.velocity.x, 0, avatar.velocity.z).length();
 
-      if (avatar.emoteAnimation !== "") {
+      if (avatar.emoteAnimation !== '') {
         return avatar.emoteAnimation;
       } else if (avatar.jumpState) {
-        return "jump";
+        return 'jump';
       } else if (avatar.narutoRunState) {
-        return "naruto run";
+        return 'naruto run';
       } else if (avatar.crouchTime === 0) {
         const crouchIdleSpeedDistance = currentSpeed;
         const crouchSpeedDistance = Math.abs(crouchSpeed - currentSpeed);
         const speedDistances = [
           {
-            name: "crouch idle",
+            name: 'crouch idle',
             distance: crouchIdleSpeedDistance,
           },
           {
-            name: "crouch",
+            name: 'crouch',
             distance: crouchSpeedDistance,
           },
         ].sort((a, b) => a.distance - b.distance);
         const closestSpeedDistance = speedDistances[0];
         const spriteSpecBaseName = closestSpeedDistance.name;
 
-        if (spriteSpecBaseName === "crouch idle") {
-          return "crouch idle";
-        } else if (spriteSpecBaseName === "crouch") {
-          if (playerSide === "forward") {
-            return "crouch walk";
-          } else if (playerSide === "backward") {
-            return "crouch walk backward";
-          } else if (playerSide === "left") {
-            return "crouch walk left";
-          } else if (playerSide === "right") {
-            return "crouch walk right";
+        if (spriteSpecBaseName === 'crouch idle') {
+          return 'crouch idle';
+        } else if (spriteSpecBaseName === 'crouch') {
+          if (playerSide === 'forward') {
+            return 'crouch walk';
+          } else if (playerSide === 'backward') {
+            return 'crouch walk backward';
+          } else if (playerSide === 'left') {
+            return 'crouch walk left';
+          } else if (playerSide === 'right') {
+            return 'crouch walk right';
           }
         }
       } else {
@@ -638,45 +638,45 @@ class SpriteAvatarMesh extends THREE.Mesh {
         const runSpeedDistance = Math.abs(runSpeed - currentSpeed);
         const speedDistances = [
           {
-            name: "idle",
+            name: 'idle',
             distance: idleSpeedDistance,
           },
           {
-            name: "walk",
+            name: 'walk',
             distance: walkSpeedDistance,
           },
           {
-            name: "run",
+            name: 'run',
             distance: runSpeedDistance,
           },
         ].sort((a, b) => a.distance - b.distance);
         const closestSpeedDistance = speedDistances[0];
         const spriteSpecBaseName = closestSpeedDistance.name;
-        if (spriteSpecBaseName === "idle") {
-          return "idle";
-        } else if (spriteSpecBaseName === "walk") {
-          if (playerSide === "forward") {
-            return "walk";
-          } else if (playerSide === "backward") {
-            return "walk backward";
-          } else if (playerSide === "left") {
-            return "walk left";
-          } else if (playerSide === "right") {
-            return "walk right";
+        if (spriteSpecBaseName === 'idle') {
+          return 'idle';
+        } else if (spriteSpecBaseName === 'walk') {
+          if (playerSide === 'forward') {
+            return 'walk';
+          } else if (playerSide === 'backward') {
+            return 'walk backward';
+          } else if (playerSide === 'left') {
+            return 'walk left';
+          } else if (playerSide === 'right') {
+            return 'walk right';
           }
-        } else if (spriteSpecBaseName === "run") {
-          if (playerSide === "forward") {
-            return "run";
-          } else if (playerSide === "backward") {
-            return "run backward";
-          } else if (playerSide === "left") {
-            return "run left";
-          } else if (playerSide === "right") {
-            return "run right";
+        } else if (spriteSpecBaseName === 'run') {
+          if (playerSide === 'forward') {
+            return 'run';
+          } else if (playerSide === 'backward') {
+            return 'run backward';
+          } else if (playerSide === 'left') {
+            return 'run left';
+          } else if (playerSide === 'right') {
+            return 'run right';
           }
         }
 
-        throw new Error("unhandled case");
+        throw new Error('unhandled case');
       }
     })();
 
@@ -687,7 +687,7 @@ class SpriteAvatarMesh extends THREE.Mesh {
       this.lastSpriteSpecTimestamp = timestamp;
     }
     const timestampDelta =
-      (spriteSpecName === "jump" ? 300 : 0) + timestamp - this.lastSpriteSpecTimestamp;
+      (spriteSpecName === 'jump' ? 300 : 0) + timestamp - this.lastSpriteSpecTimestamp;
 
     // general uniforms
     [this.material, this.customPostMaterial].forEach((material) => {
@@ -707,11 +707,11 @@ class SpriteAvatarMesh extends THREE.Mesh {
               targetVector.set(0, 1, 0)
             )
           );
-          localEuler.setFromQuaternion(localQuaternion, "YXZ");
+          localEuler.setFromQuaternion(localQuaternion, 'YXZ');
           localEuler.x = 0;
           localEuler.z = 0;
 
-          localEuler2.setFromQuaternion(avatar.inputs.hmd.quaternion, "YXZ");
+          localEuler2.setFromQuaternion(avatar.inputs.hmd.quaternion, 'YXZ');
           localEuler2.x = 0;
           localEuler2.z = 0;
 
@@ -734,7 +734,7 @@ const _getPlayerSide = () => {
       targetVector.set(0, 0, -1).applyQuaternion(localPlayer.quaternion),
       upVector
     ),
-    "YXZ"
+    'YXZ'
   );
   const forwardY = localEuler.y;
 
@@ -744,7 +744,7 @@ const _getPlayerSide = () => {
       targetVector.copy(localPlayer.characterPhysics.velocity).normalize(),
       upVector
     ),
-    "YXZ"
+    'YXZ'
   );
   const velocityY = localEuler.y;
 
@@ -796,38 +796,38 @@ let _spriteSpecs = null;
 const getSpriteSpecs = () => {
   if (_spriteSpecs === null) {
     const animations = Avatar.getAnimations();
-    const walkAnimation = animations.find((a) => a.name === "walking.fbx");
-    const walkBackwardAnimation = animations.find((a) => a.name === "walking backwards.fbx");
-    const runAnimation = animations.find((a) => a.name === "Fast Run.fbx");
-    const runBackwardAnimation = animations.find((a) => a.name === "running backwards.fbx");
-    const leftStrafeRunAnimation = animations.find((a) => a.name === "left strafe.fbx");
-    const rightStrafeRunAnimation = animations.find((a) => a.name === "right strafe.fbx");
-    const idleAnimation = animations.find((a) => a.name === "idle.fbx");
-    const crouchIdleAnimation = animations.find((a) => a.name === "Crouch Idle.fbx");
-    const crouchWalkAnimation = animations.find((a) => a.name === "Sneaking Forward.fbx");
+    const walkAnimation = animations.find((a) => a.name === 'walking.fbx');
+    const walkBackwardAnimation = animations.find((a) => a.name === 'walking backwards.fbx');
+    const runAnimation = animations.find((a) => a.name === 'Fast Run.fbx');
+    const runBackwardAnimation = animations.find((a) => a.name === 'running backwards.fbx');
+    const leftStrafeRunAnimation = animations.find((a) => a.name === 'left strafe.fbx');
+    const rightStrafeRunAnimation = animations.find((a) => a.name === 'right strafe.fbx');
+    const idleAnimation = animations.find((a) => a.name === 'idle.fbx');
+    const crouchIdleAnimation = animations.find((a) => a.name === 'Crouch Idle.fbx');
+    const crouchWalkAnimation = animations.find((a) => a.name === 'Sneaking Forward.fbx');
     const crouchWalkBackwardAnimation = animations.find(
-      (a) => a.name === "Sneaking Forward reverse.fbx"
+      (a) => a.name === 'Sneaking Forward reverse.fbx'
     );
-    const narutoRunAnimation = animations.find((a) => a.name === "naruto run.fbx");
-    const jumpAnimation = animations.find((a) => a.name === "jump.fbx");
-    const leftStrafeWalkingAnimation = animations.find((a) => a.name === "left strafe walking.fbx");
+    const narutoRunAnimation = animations.find((a) => a.name === 'naruto run.fbx');
+    const jumpAnimation = animations.find((a) => a.name === 'jump.fbx');
+    const leftStrafeWalkingAnimation = animations.find((a) => a.name === 'left strafe walking.fbx');
     const rightStrafeWalkingAnimation = animations.find(
-      (a) => a.name === "right strafe walking.fbx"
+      (a) => a.name === 'right strafe walking.fbx'
     );
-    const crouchWalkLeftAnimation = animations.find((a) => a.name === "Crouched Sneaking Left.fbx");
+    const crouchWalkLeftAnimation = animations.find((a) => a.name === 'Crouched Sneaking Left.fbx');
     const crouchWalkRightAnimation = animations.find(
-      (a) => a.name === "Crouched Sneaking Right.fbx"
+      (a) => a.name === 'Crouched Sneaking Right.fbx'
     );
 
     _spriteSpecs = [
       {
-        name: "idle",
+        name: 'idle',
         duration: idleAnimation.duration,
         init({ angle, avatar: localRig }) {
           let positionOffset = 0;
           return {
             update(timestamp, timeDiffMs) {
-              const euler = new THREE.Euler(0, angle, 0, "YXZ");
+              const euler = new THREE.Euler(0, angle, 0, 'YXZ');
               camera2.position
                 .set(0, localRig.height * cameraHeightFactor, positionOffset)
                 .add(new THREE.Vector3(0, 0, -distance).applyEuler(euler));
@@ -847,7 +847,7 @@ const getSpriteSpecs = () => {
         },
       },
       {
-        name: "walk",
+        name: 'walk',
         duration: walkAnimation.duration,
         init({ angle, avatar: localRig }) {
           let positionOffset = 0;
@@ -856,7 +856,7 @@ const getSpriteSpecs = () => {
               const moveDistancePerFrame = (-walkSpeed / 1000) * timeDiffMs;
               positionOffset += moveDistancePerFrame;
 
-              const euler = new THREE.Euler(0, angle, 0, "YXZ");
+              const euler = new THREE.Euler(0, angle, 0, 'YXZ');
               camera2.position
                 .set(0, localRig.height * cameraHeightFactor, positionOffset)
                 .add(new THREE.Vector3(0, 0, -distance).applyEuler(euler));
@@ -882,7 +882,7 @@ const getSpriteSpecs = () => {
         },
       },
       {
-        name: "walk left",
+        name: 'walk left',
         duration: leftStrafeWalkingAnimation.duration,
         init({ angle, avatar: localRig }) {
           let positionOffset = 0;
@@ -891,7 +891,7 @@ const getSpriteSpecs = () => {
               const moveDistancePerFrame = (-walkSpeed / 1000) * timeDiffMs;
               positionOffset += moveDistancePerFrame;
 
-              const euler = new THREE.Euler(0, angle, 0, "YXZ");
+              const euler = new THREE.Euler(0, angle, 0, 'YXZ');
               camera2.position
                 .set(positionOffset, localRig.height * cameraHeightFactor, 0)
                 .add(new THREE.Vector3(0, 0, -distance).applyEuler(euler));
@@ -913,7 +913,7 @@ const getSpriteSpecs = () => {
         },
       },
       {
-        name: "walk right",
+        name: 'walk right',
         duration: rightStrafeWalkingAnimation.duration,
         init({ angle, avatar: localRig }) {
           let positionOffset = 0;
@@ -922,7 +922,7 @@ const getSpriteSpecs = () => {
               const moveDistancePerFrame = (walkSpeed / 1000) * timeDiffMs;
               positionOffset += moveDistancePerFrame;
 
-              const euler = new THREE.Euler(0, angle, 0, "YXZ");
+              const euler = new THREE.Euler(0, angle, 0, 'YXZ');
               camera2.position
                 .set(positionOffset, localRig.height * cameraHeightFactor, 0)
                 .add(new THREE.Vector3(0, 0, -distance).applyEuler(euler));
@@ -944,7 +944,7 @@ const getSpriteSpecs = () => {
         },
       },
       {
-        name: "walk backward",
+        name: 'walk backward',
         duration: walkBackwardAnimation.duration,
         init({ angle, avatar: localRig }) {
           let positionOffset = 0;
@@ -953,7 +953,7 @@ const getSpriteSpecs = () => {
               const moveDistancePerFrame = (walkSpeed / 1000) * timeDiffMs;
               positionOffset += moveDistancePerFrame;
 
-              const euler = new THREE.Euler(0, angle, 0, "YXZ");
+              const euler = new THREE.Euler(0, angle, 0, 'YXZ');
               camera2.position
                 .set(0, localRig.height * cameraHeightFactor, positionOffset)
                 .add(new THREE.Vector3(0, 0, -distance).applyEuler(euler));
@@ -975,7 +975,7 @@ const getSpriteSpecs = () => {
         },
       },
       {
-        name: "run",
+        name: 'run',
         duration: runAnimation.duration,
         init({ angle, avatar: localRig }) {
           let positionOffset = 0;
@@ -984,7 +984,7 @@ const getSpriteSpecs = () => {
               const moveDistancePerFrame = (-runSpeed / 1000) * timeDiffMs;
               positionOffset += moveDistancePerFrame;
 
-              const euler = new THREE.Euler(0, angle, 0, "YXZ");
+              const euler = new THREE.Euler(0, angle, 0, 'YXZ');
               camera2.position
                 .set(0, localRig.height * cameraHeightFactor, positionOffset)
                 .add(new THREE.Vector3(0, 0, -distance).applyEuler(euler));
@@ -1006,7 +1006,7 @@ const getSpriteSpecs = () => {
         },
       },
       {
-        name: "run left",
+        name: 'run left',
         duration: leftStrafeRunAnimation.duration,
         init({ angle, avatar: localRig }) {
           let positionOffset = 0;
@@ -1015,7 +1015,7 @@ const getSpriteSpecs = () => {
               const moveDistancePerFrame = (-runSpeed / 1000) * timeDiffMs;
               positionOffset += moveDistancePerFrame;
 
-              const euler = new THREE.Euler(0, angle, 0, "YXZ");
+              const euler = new THREE.Euler(0, angle, 0, 'YXZ');
               camera2.position
                 .set(positionOffset, localRig.height * cameraHeightFactor, 0)
                 .add(new THREE.Vector3(0, 0, -distance).applyEuler(euler));
@@ -1037,7 +1037,7 @@ const getSpriteSpecs = () => {
         },
       },
       {
-        name: "run right",
+        name: 'run right',
         duration: rightStrafeRunAnimation.duration,
         init({ angle, avatar: localRig }) {
           let positionOffset = 0;
@@ -1046,7 +1046,7 @@ const getSpriteSpecs = () => {
               const moveDistancePerFrame = (runSpeed / 1000) * timeDiffMs;
               positionOffset += moveDistancePerFrame;
 
-              const euler = new THREE.Euler(0, angle, 0, "YXZ");
+              const euler = new THREE.Euler(0, angle, 0, 'YXZ');
               camera2.position
                 .set(positionOffset, localRig.height * cameraHeightFactor, 0)
                 .add(new THREE.Vector3(0, 0, -distance).applyEuler(euler));
@@ -1068,7 +1068,7 @@ const getSpriteSpecs = () => {
         },
       },
       {
-        name: "run backward",
+        name: 'run backward',
         duration: runBackwardAnimation.duration,
         init({ angle, avatar: localRig }) {
           let positionOffset = 0;
@@ -1077,7 +1077,7 @@ const getSpriteSpecs = () => {
               const moveDistancePerFrame = (runSpeed / 1000) * timeDiffMs;
               positionOffset += moveDistancePerFrame;
 
-              const euler = new THREE.Euler(0, angle, 0, "YXZ");
+              const euler = new THREE.Euler(0, angle, 0, 'YXZ');
               camera2.position
                 .set(0, localRig.height * cameraHeightFactor, positionOffset)
                 .add(new THREE.Vector3(0, 0, -distance).applyEuler(euler));
@@ -1099,7 +1099,7 @@ const getSpriteSpecs = () => {
         },
       },
       {
-        name: "crouch idle",
+        name: 'crouch idle',
         duration: crouchIdleAnimation.duration,
         init({ angle, avatar: localRig }) {
           let positionOffset = 0;
@@ -1107,7 +1107,7 @@ const getSpriteSpecs = () => {
             update(timestamp, timeDiffMs) {
               // positionOffset -= crouchSpeed/1000 * timeDiffMs;
 
-              const euler = new THREE.Euler(0, angle, 0, "YXZ");
+              const euler = new THREE.Euler(0, angle, 0, 'YXZ');
               camera2.position
                 .set(0, localRig.height * cameraHeightFactor, positionOffset)
                 .add(new THREE.Vector3(0, 0, -distance).applyEuler(euler));
@@ -1132,7 +1132,7 @@ const getSpriteSpecs = () => {
         },
       },
       {
-        name: "crouch walk",
+        name: 'crouch walk',
         duration: crouchWalkAnimation.duration,
         init({ angle, avatar: localRig }) {
           let positionOffset = 0;
@@ -1141,7 +1141,7 @@ const getSpriteSpecs = () => {
               const moveDistancePerFrame = (-crouchSpeed / 1000) * timeDiffMs;
               positionOffset += moveDistancePerFrame;
 
-              const euler = new THREE.Euler(0, angle, 0, "YXZ");
+              const euler = new THREE.Euler(0, angle, 0, 'YXZ');
               camera2.position
                 .set(0, localRig.height * cameraHeightFactor, positionOffset)
                 .add(new THREE.Vector3(0, 0, -distance).applyEuler(euler));
@@ -1168,7 +1168,7 @@ const getSpriteSpecs = () => {
         },
       },
       {
-        name: "crouch walk left",
+        name: 'crouch walk left',
         duration: crouchWalkLeftAnimation.duration,
         init({ angle, avatar: localRig }) {
           let positionOffset = 0;
@@ -1177,7 +1177,7 @@ const getSpriteSpecs = () => {
               const moveDistancePerFrame = (-crouchSpeed / 1000) * timeDiffMs;
               positionOffset += moveDistancePerFrame;
 
-              const euler = new THREE.Euler(0, angle, 0, "YXZ");
+              const euler = new THREE.Euler(0, angle, 0, 'YXZ');
               camera2.position
                 .set(positionOffset, localRig.height * cameraHeightFactor, 0)
                 .add(new THREE.Vector3(0, 0, -distance).applyEuler(euler));
@@ -1204,7 +1204,7 @@ const getSpriteSpecs = () => {
         },
       },
       {
-        name: "crouch walk right",
+        name: 'crouch walk right',
         duration: crouchWalkRightAnimation.duration,
         init({ angle, avatar: localRig }) {
           let positionOffset = 0;
@@ -1213,7 +1213,7 @@ const getSpriteSpecs = () => {
               const moveDistancePerFrame = (crouchSpeed / 1000) * timeDiffMs;
               positionOffset += moveDistancePerFrame;
 
-              const euler = new THREE.Euler(0, angle, 0, "YXZ");
+              const euler = new THREE.Euler(0, angle, 0, 'YXZ');
               camera2.position
                 .set(positionOffset, localRig.height * cameraHeightFactor, 0)
                 .add(new THREE.Vector3(0, 0, -distance).applyEuler(euler));
@@ -1240,7 +1240,7 @@ const getSpriteSpecs = () => {
         },
       },
       {
-        name: "crouch walk backward",
+        name: 'crouch walk backward',
         duration: crouchWalkBackwardAnimation.duration,
         init({ angle, avatar: localRig }) {
           let positionOffset = 0;
@@ -1249,7 +1249,7 @@ const getSpriteSpecs = () => {
               const moveDistancePerFrame = (crouchSpeed / 1000) * timeDiffMs;
               positionOffset += moveDistancePerFrame;
 
-              const euler = new THREE.Euler(0, angle, 0, "YXZ");
+              const euler = new THREE.Euler(0, angle, 0, 'YXZ');
               camera2.position
                 .set(0, localRig.height * cameraHeightFactor, positionOffset)
                 .add(new THREE.Vector3(0, 0, -distance).applyEuler(euler));
@@ -1276,7 +1276,7 @@ const getSpriteSpecs = () => {
         },
       },
       {
-        name: "naruto run",
+        name: 'naruto run',
         duration: narutoRunAnimation.duration,
         init({ angle, avatar: localRig }) {
           let positionOffset = 0;
@@ -1288,7 +1288,7 @@ const getSpriteSpecs = () => {
               const moveDistancePerFrame = (-narutoRunSpeed / 1000) * timeDiffMs * 10;
               positionOffset += moveDistancePerFrame;
 
-              const euler = new THREE.Euler(0, angle, 0, "YXZ");
+              const euler = new THREE.Euler(0, angle, 0, 'YXZ');
               camera2.position
                 .set(0, localRig.height * cameraHeightFactor, positionOffset)
                 .add(new THREE.Vector3(0, 0, -distance).applyEuler(euler));
@@ -1321,7 +1321,7 @@ const getSpriteSpecs = () => {
         },
       },
       {
-        name: "jump",
+        name: 'jump',
         duration: jumpAnimation.duration,
         init({ angle, avatar: localRig }) {
           let positionOffset = 0;
@@ -1334,7 +1334,7 @@ const getSpriteSpecs = () => {
               // const timeDiffMs = timeDiff/1000;
               // positionOffset -= walkSpeed/1000 * timeDiffMs;
 
-              const euler = new THREE.Euler(0, angle, 0, "YXZ");
+              const euler = new THREE.Euler(0, angle, 0, 'YXZ');
               camera2.position
                 .set(0, localRig.height * cameraHeightFactor, positionOffset)
                 .add(new THREE.Vector3(0, 0, -distance).applyEuler(euler));
@@ -1368,22 +1368,22 @@ const getSpriteSpecs = () => {
         },
       },
       {
-        name: "angry",
+        name: 'angry',
         duration: emoteAnimations.angry.duration,
         init({ angle, avatar: localRig }) {
           let positionOffset = 0;
           localRig.faceposes.length = 0;
           localRig.faceposes.push({
-            emotion: "angry",
+            emotion: 'angry',
             value: 1,
           });
-          localRig.emoteAnimation = "angry";
+          localRig.emoteAnimation = 'angry';
           localRig.emoteFactor = crouchMaxTime;
           localRig.update(0, 0);
           let _timestamp = 0;
           return {
             update(timestamp, timeDiffMs) {
-              const euler = new THREE.Euler(0, angle, 0, "YXZ");
+              const euler = new THREE.Euler(0, angle, 0, 'YXZ');
               camera2.position
                 .set(0, localRig.height * cameraHeightFactor, positionOffset)
                 .add(new THREE.Vector3(0, 0, -distance).applyEuler(euler));
@@ -1398,22 +1398,22 @@ const getSpriteSpecs = () => {
         },
       },
       {
-        name: "alert",
+        name: 'alert',
         duration: emoteAnimations.alert.duration,
         init({ angle, avatar: localRig }) {
           let positionOffset = 0;
           localRig.faceposes.length = 0;
           localRig.faceposes.push({
-            emotion: "surprise",
+            emotion: 'surprise',
             value: 1,
           });
-          localRig.emoteAnimation = "alert";
+          localRig.emoteAnimation = 'alert';
           localRig.emoteFactor = crouchMaxTime;
           localRig.update(0, 0);
           let _timestamp = 0;
           return {
             update(timestamp, timeDiffMs) {
-              const euler = new THREE.Euler(0, angle, 0, "YXZ");
+              const euler = new THREE.Euler(0, angle, 0, 'YXZ');
               camera2.position
                 .set(0, localRig.height * cameraHeightFactor, positionOffset)
                 .add(new THREE.Vector3(0, 0, -distance).applyEuler(euler));
@@ -1428,22 +1428,22 @@ const getSpriteSpecs = () => {
         },
       },
       {
-        name: "victory",
+        name: 'victory',
         duration: emoteAnimations.victory.duration,
         init({ angle, avatar: localRig }) {
           let positionOffset = 0;
           localRig.faceposes.length = 0;
           localRig.faceposes.push({
-            emotion: "joy",
+            emotion: 'joy',
             value: 1,
           });
-          localRig.emoteAnimation = "victory";
+          localRig.emoteAnimation = 'victory';
           localRig.emoteFactor = crouchMaxTime;
           localRig.update(0, 0);
           let _timestamp = 0;
           return {
             update(timestamp, timeDiffMs) {
-              const euler = new THREE.Euler(0, angle, 0, "YXZ");
+              const euler = new THREE.Euler(0, angle, 0, 'YXZ');
               camera2.position
                 .set(0, localRig.height * cameraHeightFactor, positionOffset)
                 .add(new THREE.Vector3(0, 0, -distance).applyEuler(euler));
@@ -1458,22 +1458,22 @@ const getSpriteSpecs = () => {
         },
       },
       {
-        name: "surprise",
+        name: 'surprise',
         duration: emoteAnimations.surprise.duration,
         init({ angle, avatar: localRig }) {
           let positionOffset = 0;
           localRig.faceposes.length = 0;
           localRig.faceposes.push({
-            emotion: "surprise",
+            emotion: 'surprise',
             value: 1,
           });
-          localRig.emoteAnimation = "surprise";
+          localRig.emoteAnimation = 'surprise';
           localRig.emoteFactor = crouchMaxTime;
           localRig.update(0, 0);
           let _timestamp = 0;
           return {
             update(timestamp, timeDiffMs) {
-              const euler = new THREE.Euler(0, angle, 0, "YXZ");
+              const euler = new THREE.Euler(0, angle, 0, 'YXZ');
               camera2.position
                 .set(0, localRig.height * cameraHeightFactor, positionOffset)
                 .add(new THREE.Vector3(0, 0, -distance).applyEuler(euler));
@@ -1488,22 +1488,22 @@ const getSpriteSpecs = () => {
         },
       },
       {
-        name: "sad",
+        name: 'sad',
         duration: emoteAnimations.sad.duration,
         init({ angle, avatar: localRig }) {
           let positionOffset = 0;
           localRig.faceposes.length = 0;
           localRig.faceposes.push({
-            emotion: "sorrow",
+            emotion: 'sorrow',
             value: 1,
           });
-          localRig.emoteAnimation = "sad";
+          localRig.emoteAnimation = 'sad';
           localRig.emoteFactor = crouchMaxTime;
           localRig.update(0, 0);
           let _timestamp = 0;
           return {
             update(timestamp, timeDiffMs) {
-              const euler = new THREE.Euler(0, angle, 0, "YXZ");
+              const euler = new THREE.Euler(0, angle, 0, 'YXZ');
               camera2.position
                 .set(0, localRig.height * cameraHeightFactor, positionOffset)
                 .add(new THREE.Vector3(0, 0, -distance).applyEuler(euler));
@@ -1518,22 +1518,22 @@ const getSpriteSpecs = () => {
         },
       },
       {
-        name: "headShake",
+        name: 'headShake',
         duration: emoteAnimations.headShake.duration,
         init({ angle, avatar: localRig }) {
           let positionOffset = 0;
           localRig.faceposes.length = 0;
           localRig.faceposes.push({
-            emotion: "sorrow",
+            emotion: 'sorrow',
             value: 1,
           });
-          localRig.emoteAnimation = "headShake";
+          localRig.emoteAnimation = 'headShake';
           localRig.emoteFactor = crouchMaxTime;
           localRig.update(0, 0);
           let _timestamp = 0;
           return {
             update(timestamp, timeDiffMs) {
-              const euler = new THREE.Euler(0, angle, 0, "YXZ");
+              const euler = new THREE.Euler(0, angle, 0, 'YXZ');
               camera2.position
                 .set(0, localRig.height * cameraHeightFactor, positionOffset)
                 .add(new THREE.Vector3(0, 0, -distance).applyEuler(euler));
@@ -1548,22 +1548,22 @@ const getSpriteSpecs = () => {
         },
       },
       {
-        name: "headNod",
+        name: 'headNod',
         duration: emoteAnimations.headNod.duration,
         init({ angle, avatar: localRig }) {
           let positionOffset = 0;
           localRig.faceposes.length = 0;
           localRig.faceposes.push({
-            emotion: "fun",
+            emotion: 'fun',
             value: 1,
           });
-          localRig.emoteAnimation = "headNod";
+          localRig.emoteAnimation = 'headNod';
           localRig.emoteFactor = crouchMaxTime;
           localRig.update(0, 0);
           let _timestamp = 0;
           return {
             update(timestamp, timeDiffMs) {
-              const euler = new THREE.Euler(0, angle, 0, "YXZ");
+              const euler = new THREE.Euler(0, angle, 0, 'YXZ');
               camera2.position
                 .set(0, localRig.height * cameraHeightFactor, positionOffset)
                 .add(new THREE.Vector3(0, 0, -distance).applyEuler(euler));
@@ -1578,22 +1578,22 @@ const getSpriteSpecs = () => {
         },
       },
       {
-        name: "embarrassed",
+        name: 'embarrassed',
         duration: emoteAnimations.embarrassed.duration,
         init({ angle, avatar: localRig }) {
           let positionOffset = 0;
           localRig.faceposes.length = 0;
           localRig.faceposes.push({
-            emotion: "sorrow",
+            emotion: 'sorrow',
             value: 1,
           });
-          localRig.emoteAnimation = "embarrassed";
+          localRig.emoteAnimation = 'embarrassed';
           localRig.emoteFactor = crouchMaxTime;
           localRig.update(0, 0);
           let _timestamp = 0;
           return {
             update(timestamp, timeDiffMs) {
-              const euler = new THREE.Euler(0, angle, 0, "YXZ");
+              const euler = new THREE.Euler(0, angle, 0, 'YXZ');
               camera2.position
                 .set(0, localRig.height * cameraHeightFactor, positionOffset)
                 .add(new THREE.Vector3(0, 0, -distance).applyEuler(euler));
@@ -1614,17 +1614,17 @@ const getSpriteSpecs = () => {
 
 const _addPlaneSpriteMaterialUniforms = (uniforms, tex, angleIndex) => {
   uniforms.uTex = {
-    type: "t",
+    type: 't',
     value: tex,
     // needsUpdate: true,
   };
   uniforms.uTime = {
-    type: "f",
+    type: 'f',
     value: 0,
     needsUpdate: true,
   };
   uniforms.uAngleIndex = {
-    type: "f",
+    type: 'f',
     value: angleIndex,
     needsUpdate: true,
   };
@@ -1648,25 +1648,25 @@ class PlaneSpriteDepthMaterial extends THREE.MeshNormalMaterial {
     this.uniforms = parameters.uniforms;
 
     parameters.vertexShader = parameters.vertexShader.replace(
-      "void main() {\n",
+      'void main() {\n',
       `\
       // attribute vec2 uv;
       varying vec2 vUv;
     ` +
-        "void main() {\n" +
+        'void main() {\n' +
         `\
       vUv = uv;
     `
     );
     parameters.fragmentShader = parameters.fragmentShader.replace(
-      "void main() {\n",
+      'void main() {\n',
       `\
       uniform float uTime;
       uniform float uAngleIndex;
       uniform sampler2D uTex;
       varying vec2 vUv;
     ` +
-        "void main() {\n" +
+        'void main() {\n' +
         `\
       float animationIndex = floor(uTime * ${numFrames.toFixed(8)});
       float i = animationIndex + uAngleIndex;
@@ -1688,17 +1688,17 @@ class PlaneSpriteDepthMaterial extends THREE.MeshNormalMaterial {
 }
 const _addAvatarSpriteMaterialUniforms = (uniforms, tex) => {
   uniforms.uTex = {
-    type: "t",
+    type: 't',
     value: tex,
     // needsUpdate: true,
   };
   uniforms.uTime = {
-    type: "f",
+    type: 'f',
     value: 0,
     needsUpdate: true,
   };
   uniforms.uY = {
-    type: "f",
+    type: 'f',
     value: 0,
     needsUpdate: true,
   };
@@ -1718,25 +1718,25 @@ class AvatarSpriteDepthMaterial extends THREE.MeshNormalMaterial {
     this.uniforms = parameters.uniforms;
 
     parameters.vertexShader = parameters.vertexShader.replace(
-      "void main() {\n",
+      'void main() {\n',
       `\
       // attribute vec2 uv;
       varying vec2 vUv;
     ` +
-        "void main() {\n" +
+        'void main() {\n' +
         `\
       vUv = uv;
     `
     );
     parameters.fragmentShader = parameters.fragmentShader.replace(
-      "void main() {\n",
+      'void main() {\n',
       `\
       uniform float uTime;
       uniform float uY;
       uniform sampler2D uTex;
       varying vec2 vUv;
     ` +
-        "void main() {\n" +
+        'void main() {\n' +
         `\
       float angleIndex = floor(uY * ${numAngles.toFixed(8)});
       float animationIndex = floor(uTime * ${numFrames.toFixed(8)});
@@ -1830,10 +1830,10 @@ export const renderSpriteImages = async (arrayBuffer, srcUrl) => {
     const spriteSpec = spriteSpecs[i];
     const { name, duration } = spriteSpec;
 
-    const canvas = document.createElement("canvas");
+    const canvas = document.createElement('canvas');
     canvas.width = size;
     canvas.height = size;
-    const ctx = canvas.getContext("2d");
+    const ctx = canvas.getContext('2d');
     /* document.body.appendChild(canvas);
     canvas.style.cssText = `\
       position: absolute;
@@ -1941,7 +1941,7 @@ export const renderSpriteImages = async (arrayBuffer, srcUrl) => {
         planeSpriteMesh.frustumCulled = false;
         planeSpriteMeshes.push(planeSpriteMesh);
 
-        console.log("add plane sprite mesh", planeSpriteMesh);
+        console.log('add plane sprite mesh', planeSpriteMesh);
       }
 
       spriteGenerator.cleanup && spriteGenerator.cleanup();
