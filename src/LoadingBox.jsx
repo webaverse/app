@@ -205,7 +205,7 @@ function GenericLoadingMessage({open, children, name, detail}) {
       <div className={style.name}>{name}</div>
       <div className={style.detail}>{detail}</div>
       {children}
-      <progress className={style.progress} value={0} max={1} />
+      {/* <progress className={style.progress} value={0} max={1} /> */}
     </div>
   </LoadingIndicator>
 }
