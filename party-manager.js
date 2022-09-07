@@ -39,7 +39,8 @@ class PartyManager extends EventTarget {
         for (let i = 0; i < this.partyPlayers.length; i++) {
           const player = this.partyPlayers[i];
           if (localPlayer.playerId !== player.playerId) {
-            this.transplantPartyAppToParty(player.npcApp, localPlayer);
+            const app = npcManager.getAppByNpc(player);
+            this.transplantPartyAppToParty(app, localPlayer);
           }
         }
       };
@@ -72,7 +73,8 @@ class PartyManager extends EventTarget {
         for (let i = 0; i < this.partyPlayers.length; i++) {
           const player = this.partyPlayers[i];
           if (localPlayer.playerId !== player.playerId) {
-            this.transplantPartyAppToPlayer(player.npcApp, localPlayer);
+            const app = npcManager.getAppByNpc(player);
+            this.transplantPartyAppToPlayer(app, localPlayer);
           }
         }
       };
@@ -104,7 +106,8 @@ class PartyManager extends EventTarget {
         const player = newPlayer;
         const playerIndex = this.partyPlayers.indexOf(player);
         if (playerIndex > 0) {
-          this.transplantPartyAppToWorld(player.npcApp);
+          const app = npcManager.getAppByNpc(player);
+          this.transplantPartyAppToWorld(app);
           this.partyPlayers.splice(playerIndex, 1);
           player.isInParty = false;
           return true;
@@ -130,7 +133,8 @@ class PartyManager extends EventTarget {
 
       if (this.partyPlayers.length >= 2) {
         const headPlayer = this.partyPlayers[0];
-        this.transplantWorldAppToPlayer(newPlayer.npcApp, headPlayer);
+        const app = npcManager.getAppByNpc(newPlayer);
+        this.transplantWorldAppToPlayer(app, headPlayer);
       }
 
       return true;

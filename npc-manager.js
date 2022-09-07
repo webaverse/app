@@ -24,7 +24,16 @@ class NpcManager extends EventTarget {
     super();
 
     this.npcs = [];
+    this.npcAppMaps = new WeakMap();
     this.detachedNpcs = [];
+  }
+
+  getAppByNpc(npc) {
+    return this.npcAppMaps.get(npc);
+  }
+
+  getNpcByApp(app) {
+    return this.npcs.find(npc => this.getAppByNpc(npc) === app);
   }
 
   async initDefaultPlayer(defaultPlayerSpec) {
@@ -56,8 +65,6 @@ class NpcManager extends EventTarget {
 
   async createNpcAsync({
     name,
-    npcApp,
-    // avatarApp,
     avatarUrl,
     position,
     quaternion,
@@ -104,13 +111,13 @@ class NpcManager extends EventTarget {
 
   updatePhysics(timestamp, timeDiff) {
     for (const npc of this.npcs) {
-      const updatePhysicsFn = updatePhysicsFnMap.get(npc.npcApp);
+      const updatePhysicsFn = updatePhysicsFnMap.get(this.getAppByNpc(npc));
       if (updatePhysicsFn) {
         updatePhysicsFn(timestamp, timeDiff);
       }
     }
     for (const npc of this.detachedNpcs) {
-      const updatePhysicsFn = updatePhysicsFnMap.get(npc.npcApp);
+      const updatePhysicsFn = updatePhysicsFnMap.get(this.getAppByNpc(npc));
       if (updatePhysicsFn) {
         updatePhysicsFn(timestamp, timeDiff);
       }
@@ -119,13 +126,13 @@ class NpcManager extends EventTarget {
 
   updateAvatar(timestamp, timeDiff) {
     for (const npc of this.npcs) {
-      const updateAvatarsFn = updateAvatarsFnMap.get(npc.npcApp);
+      const updateAvatarsFn = updateAvatarsFnMap.get(this.getAppByNpc(npc));
       if (updateAvatarsFn) {
         updateAvatarsFn(timestamp, timeDiff);
       }
     }
     for (const npc of this.detachedNpcs) {
-      const updateAvatarsFn = updateAvatarsFnMap.get(npc.npcApp);
+      const updateAvatarsFn = updateAvatarsFnMap.get(this.getAppByNpc(npc));
       if (updateAvatarsFn) {
         updateAvatarsFn(timestamp, timeDiff);
       }
@@ -133,10 +140,7 @@ class NpcManager extends EventTarget {
   }
 
   async addPlayerApp(app, npcPlayer, json) {
-    npcPlayer.npcApp = app; // for lore AI, and party system
-    if (app) {
-      app.npcPlayer = npcPlayer; // for character select
-    }
+    this.npcAppMaps.set(npcPlayer, app);
 
     let live = true;
     let character = null;
@@ -145,7 +149,7 @@ class NpcManager extends EventTarget {
         live = false;
 
         if (npcPlayer) {
-          npcManager.destroyNpc(npcPlayer);
+          this.destroyNpc(npcPlayer);
         }
         if (character) {
           world.loreAIScene.removeCharacter(character);
@@ -413,10 +417,8 @@ class NpcManager extends EventTarget {
       const npcDetached = !!json.detached;
       
       // create npc
-      const newNpcPlayer = await npcManager.createNpcAsync({
+      const newNpcPlayer = await this.createNpcAsync({
         name: npcName,
-        npcApp: app,
-        // avatarApp: vrmApp,
         avatarUrl,
         position: app.position.clone()
           .add(new THREE.Vector3(0, 1, 0)),
