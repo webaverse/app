@@ -19,49 +19,43 @@ class AssetLoadManager {
 
   maxLoaderCount = 5;
   loaderPool = [];
-  intervalID = 0;
-
-  schedulerInterval = 10;
 
   constructor() {
     for (let i = 0; i < this.maxLoaderCount; i++) {
-      this.loaderPool.push(new AssetLoader())
+      this.loaderPool.push(new AssetLoader());
     }
   }
 
-  poll() {
-    this.intervalID = setInterval(() => {
-      if (this.getQueue.length > 0) {
-        for (let i = 0; i < this.loaderPool.length; i++) {
-          if (this.loaderPool[i].isIdle && this.getIndex < this.getQueue.length - 1) {
-            this.loaderPool[i].load(this.getQueue[++this.getIndex]);
-          }
+  load() {
+    if (this.getQueue.length > 0) {
+      for (let i = 0; i < this.loaderPool.length; i++) {
+        if (this.loaderPool[i].isIdle && this.getIndex < this.getQueue.length - 1) {
+          (async () => {
+            await this.loaderPool[i].load(this.getQueue[++this.getIndex]);
+            this.load();
+          })();
         }
-      } else if (this.pushQueue.length <= 0) {
-        clearInterval(this.intervalID);
-        this.intervalID = 0;
       }
 
       if (this.getIndex > -1) {
         this.getQueue.splice(0, this.getIndex + 1);
         this.getIndex = -1;
       }
-
-      const t = this.pushQueue
+    } else if (this.pushQueue.length > 0) {
+      const t = this.pushQueue;
       this.pushQueue = this.getQueue;
       this.getQueue = t;
-    }, this.schedulerInterval);
+    }
   }
 
-  putInQueue(promise) {
-    this.pushQueueLock = this.pushQueueLock.then(() => {
+  async putInQueue(promise) {
+    this.pushQueueLock = (async () => {
+      await this.pushQueueLock;
       this.pushQueue.push(promise);
-      if (this.intervalID === 0) {
-        this.poll();
-      }
+      this.load();
     });
 
-    return this.pushQueueLock;
+    return this.pushQueueLock();
   }
 }
 
@@ -100,7 +94,10 @@ class SpritesheetManager {
 
     if (!spritesheet) {
       spritesheet = await new Promise(async (resolve) => {
-        this.loadManager.putInQueue(() => this.getSpriteSheetForAppUrlInternal([ appUrl, opts ]).then(resolve))
+        this.loadManager.putInQueue(async () => {
+          const spriteSheet = await this.getSpriteSheetForAppUrlInternal([ appUrl, opts ]);
+          resolve(spriteSheet);
+        });
       });
 
       this.spritesheetCache.set(appUrl, spritesheet);
