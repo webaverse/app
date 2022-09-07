@@ -94,6 +94,7 @@ export function applyPlayerActionsToAvatar(player, rig) {
   const flyAction = player.getAction('fly');
   const swimAction = player.getAction('swim');
   const useAction = player.getAction('use');
+  const grabAction = player.getAction('grab');
   const pickUpAction = player.getAction('pickUp');
   const narutoRunAction = player.getAction('narutoRun');
   const sitAction = player.getAction('sit');
@@ -171,6 +172,12 @@ export function applyPlayerActionsToAvatar(player, rig) {
     rig.pickUpTime = player.actionInterpolants.pickUp.get();
   };
   _handlePickUp();
+
+  const _handleGrab = () => {
+    rig.grabState = !!grabAction;
+    rig.grabTime = player.actionInterpolants.grab.get();
+  };
+  _handleGrab();
 
   rig.manuallySetMouth  = player.characterBehavior.manuallySetMouth;
   rig.vowels[1] = player.characterBehavior.manuallySetMouth ? 0 : rig.vowels[1];

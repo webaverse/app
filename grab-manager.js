@@ -23,6 +23,7 @@ const localVector4 = new THREE.Vector3();
 const localVector5 = new THREE.Vector3();
 const localVector6 = new THREE.Vector3();
 const localVector7 = new THREE.Vector3();
+const localVector8 = new THREE.Vector3();
 const localQuaternion = new THREE.Quaternion();
 const localQuaternion2 = new THREE.Quaternion();
 const localQuaternion3 = new THREE.Quaternion();
@@ -66,7 +67,7 @@ const _updateGrabbedObject = (o, grabMatrix, offsetMatrix, {collisionEnabled, ha
   localMatrix.multiplyMatrices(grabMatrix, offsetMatrix)
     .decompose(localVector5, localQuaternion3, localVector6);
 
-  localQuaternion4.set(-0.7071067811865475, 0, 0, 0.7071067811865476);
+  localQuaternion4.setFromAxisAngle(localVector8.set(1, 0, 0), -Math.PI * 0.5);
   const downCollision = collisionEnabled && physicsScene.raycast(localVector5, localQuaternion4);
   if(downCollision) {
     const {point} = downCollision;

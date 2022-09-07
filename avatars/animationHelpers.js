@@ -72,6 +72,7 @@ let pickUpAnimations;
 // let throwAnimations;
 // let crouchAnimations;
 let activateAnimations;
+let grabAnimations;
 let narutoRunAnimations;
 // let jumpAnimationSegments;
 // let chargeJump;
@@ -380,6 +381,14 @@ export const loadPromise = (async () => {
       crouch: animations.find(a => a.isCrouch),
     }; */
   activateAnimations = {
+    grab_forward: {animation: animations.index['grab_forward.fbx'], speedFactor: 1.2},
+    grab_down: {animation: animations.index['grab_down.fbx'], speedFactor: 1.7},
+    grab_up: {animation: animations.index['grab_up.fbx'], speedFactor: 1.2},
+    grab_left: {animation: animations.index['grab_left.fbx'], speedFactor: 1.2},
+    grab_right: {animation: animations.index['grab_right.fbx'], speedFactor: 1.2},
+    pick_up: {animation: animations.index['pick_up.fbx'], speedFactor: 1},
+  };
+  grabAnimations = {
     grab_forward: {animation: animations.index['grab_forward.fbx'], speedFactor: 1.2},
     grab_down: {animation: animations.index['grab_down.fbx'], speedFactor: 1.7},
     grab_up: {animation: animations.index['grab_up.fbx'], speedFactor: 1.2},
@@ -1446,6 +1455,56 @@ export const _applyAnimation = (avatar, now) => {
     }
   };
 
+  const _blendGrab = spec => {
+    const {
+      animationTrackName: k,
+      boneName,
+      dst,
+      isTop,
+      isPosition,
+      lerpFn,
+    } = spec;
+
+    if (avatar.grabTime > 0) {
+      const player = metaversefile.getPlayerByAppInstanceId(avatar.app.getComponent('instanceId'));
+
+      let defaultAnimation = 'grab_forward';
+
+      const grabAction = player && player.getAction('grab');
+      // the action can be unset on remote player while this is still happening
+      // null check to prevent a frame of empty action at the end of the pickup
+      if (grabAction && grabAction.animationName) {
+        defaultAnimation = grabAction.animationName;
+      }
+
+      const grabAnimation = grabAnimations[defaultAnimation].animation;
+      const src2 = grabAnimation.interpolants[k];
+      const t2 = ((avatar.grabTime / 1000) * grabAnimations[defaultAnimation].speedFactor) % grabAnimation.duration;
+      const v2 = src2.evaluate(t2);
+
+      let f = avatar.grabTime > 0 ? Math.min(cubicBezier(t2), 1) : (1 - Math.min(cubicBezier(t2), 1));
+
+      if (boneName === 'Spine' || boneName === 'Chest' || boneName === 'UpperChest' || boneName === 'Neck' || boneName === 'Head') {
+        if (!isPosition) {
+          dst.premultiply(localQuaternion.fromArray(v2));
+        } else {
+          dst.lerp(localVector.fromArray(v2), f);
+        }
+      } else {
+        if (!isTop) {
+          f *= (1 - idleWalkFactor);
+        }
+
+        lerpFn
+          .call(
+            dst,
+            localQuaternion.fromArray(v2),
+            f,
+          );
+      }
+    }
+  };
+
   for (const spec of avatar.animationMappings) {
     const {
       // animationTrackName: k,
@@ -1460,6 +1519,7 @@ export const _applyAnimation = (avatar, now) => {
     _blendLand(spec);
     _blendActivateAction(spec);
     _blendSwim(spec);
+    // _blendGrab(spec);
 
     // ignore all animation position except y
     if (isPosition) {

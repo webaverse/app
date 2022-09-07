@@ -994,6 +994,10 @@ class Avatar {
     this.lastHeadTargetTime = -Infinity;
 
     this.manuallySetMouth=false;
+
+    this.grabState = false;
+    this.grabTime = 0;
+    this.grabFactor = 0;
   }
   static bindAvatar(object) {
     const model = object.scene;
@@ -1536,6 +1540,7 @@ class Avatar {
     this.aimLeftFactorReverse = 1 - this.aimLeftFactor;
     this.movementsTransitionFactor = Math.min(Math.max(this.movementsTransitionTime / crouchMaxTime, 0), 1);
     this.sprintFactor = Math.min(Math.max(this.sprintTime / crouchMaxTime, 0), 1);
+    this.grabFactor = Math.min(Math.max(this.grabTime / crouchMaxTime, 0), 1);
     
     const _overwritePose = poseName => {
       const poseAnimation = animations.index[poseName];
