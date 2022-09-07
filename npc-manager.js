@@ -24,6 +24,7 @@ class NpcManager extends EventTarget {
     this.npcs = [];
     this.npcAppMaps = new WeakMap();
     this.detachedNpcs = [];
+    this.targetMap = new WeakMap();
   }
 
   getAppByNpc(npc) {
