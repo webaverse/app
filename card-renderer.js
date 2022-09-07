@@ -4,7 +4,7 @@ import {screenshotObjectApp} from './object-screenshotter.js';
 import {screenshotAvatarUrl} from './avatar-screenshotter.js';
 import {generateGlyph} from './glyph-generator.js';
 import {splitLinesToWidth} from './util.js';
-import {charactersManager} from './avatars/characters-manager.js';
+import {charactersSelectManager} from './characters-select-manager.js';
 
 const cardsSvgUrl = `./images/cards-01.svg`;
 
@@ -110,7 +110,7 @@ export const generateObjectCard = async ({
   const url = contentId;
   const type = appType;
 
-  const defaultCharacterSpec = await charactersManager.getDefaultSpecAsync();
+  const defaultCharacterSpec = await charactersSelectManager.getDefaultSpecAsync();
   const [
     objectImage,
     minterAvatarPreview,

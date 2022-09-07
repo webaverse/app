@@ -8,7 +8,7 @@ import { MegaHup } from '../../../MegaHup.jsx';
 import { LightArrow } from '../../../LightArrow.jsx';
 // import { world } from '../../../../world.js';
 import { LocalPlayer } from '../../../../character-controller.js';
-import { charactersManager } from '../../../../avatars/characters-manager';
+import { charactersSelectManager } from '../../../../characters-select-manager.js';
 import * as sounds from '../../../../sounds.js';
 import { chatManager } from '../../../../chat-manager.js';
 import musicManager from '../../../../music-manager.js';
@@ -312,7 +312,7 @@ export const CharacterSelect = () => {
         }
     }, [opened, enabled]);
     useEffect(() => {
-        charactersManager.loadCharactersMap().then((result) => {
+        charactersSelectManager.loadCharactersMap().then((result) => {
             const charactersMap = result;
             setCharactersMap(charactersMap);
         });

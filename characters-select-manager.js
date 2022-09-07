@@ -1,4 +1,4 @@
-import {packs, defaultCharacter} from '../characters/characters.json';
+import {packs, defaultCharacter} from './characters/characters.json';
 
 const loadNpc = async (srcUrl) => {
   const res = await fetch(srcUrl);
@@ -12,7 +12,7 @@ const getCharacterFullPath = (filename) => {
   return charactersDir + filename;
 }
 
-class CharactersManager {
+class CharactersSelectManager {
   constructor() {
     this.charactersMap = null;
     this.defaultCharacterSpec = null;
@@ -59,7 +59,7 @@ class CharactersManager {
   }
 }
 
-const charactersManager = new CharactersManager();
+const charactersSelectManager = new CharactersSelectManager();
 export {
-    charactersManager
+  charactersSelectManager
 };
