@@ -7,6 +7,7 @@ import * as THREE from 'three';
 import {EffectComposer} from 'three/examples/jsm/postprocessing/EffectComposer.js';
 import {makePromise} from './util.js';
 import {minFov} from './constants.js';
+import cameraManager from './camera-manager.js';
 
 // XXX enable this when the code is stable; then, we will have many more places to add missing matrix updates
 // THREE.Object3D.DefaultMatrixAutoUpdate = false;
@@ -90,6 +91,9 @@ function setMode2D (enabled) {
 }
 
 function setCameraMode (mode) {
+
+  cameraManager.setCameraToNullTarget();
+  
   if(mode == "orthographic") {
     let canvasWidth = window.innerWidth;
     let canvasHeight = window.innerHeight;
@@ -134,19 +138,19 @@ rootScene.add(sceneLowestPriority);
 // const orthographicScene = new THREE.Scene();
 // const avatarScene = new THREE.Scene();
 
-// let canvasWidth = window.innerWidth;
-// let canvasHeight = window.innerHeight;
-// let aspectRatio =  canvasWidth/canvasHeight;
-// let viewSize = 15;
+let canvasWidth = window.innerWidth;
+let canvasHeight = window.innerHeight;
+let aspectRatio =  canvasWidth/canvasHeight;
+let viewSize = 15;
 
-// const orthographicCamera = new THREE.OrthographicCamera(-aspectRatio*viewSize/2, aspectRatio*viewSize/2, viewSize/2, -viewSize/2, -1000, 100);
-// orthographicCamera.position.set(0, 0, 6);
-// orthographicCamera.name = 'orthographicCamera';
+let camera = new THREE.OrthographicCamera(-aspectRatio*viewSize/2, aspectRatio*viewSize/2, viewSize/2, -viewSize/2, -1000, 100);
+camera.position.set(0, 0, 6);
+camera.name = 'orthographicCamera';
 
-let camera = new THREE.PerspectiveCamera(minFov, 1, 0.1, 30000);
-camera.position.set(0, 1.6, 0);
-camera.rotation.order = 'YXZ';
-camera.name = 'sceneCamera';
+// let camera = new THREE.PerspectiveCamera(minFov, 1, 0.1, 30000);
+// camera.position.set(0, 1.6, 0);
+// camera.rotation.order = 'YXZ';
+// camera.name = 'sceneCamera';
 /* const avatarCamera = camera.clone();
 avatarCamera.near = 0.2;
 avatarCamera.updateProjectionMatrix(); */

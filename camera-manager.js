@@ -193,7 +193,7 @@ class CameraManager extends EventTarget {
     this.lastTimestamp = 0;
     this.cinematicScript = null;
     this.cinematicScriptStartTime = -1;
-    this.modeIs2D = false;
+    this.modeIs2D = true;
     this.activeCamera = false;
 
     document.addEventListener('pointerlockchange', e => {
@@ -280,7 +280,7 @@ class CameraManager extends EventTarget {
     document.exitPointerLock();
   }
   getMode() {
-    if (this.target || this.cinematicScript) {
+    if (this.target || this.cinematicScript || this.modeIs2D) {
       return 'isometric';
     } else {
       return cameraOffset.z > -0.5 ? 'firstperson' : 'isometric';

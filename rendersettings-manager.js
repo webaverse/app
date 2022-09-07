@@ -39,8 +39,6 @@ class RenderSettings {
   #makeScene2D(scene2D) {
     if (scene2D) {
       if (scene2D.perspective === 'side-scroll') {
-        console.warn('mode in development:', scene2D.perspective);
-        //console.log("setting mode", true);
         cameraManager.modeIs2D = true;
         cameraManager.setCamera("orthographic");
         return true;
