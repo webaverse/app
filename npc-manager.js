@@ -1,3 +1,11 @@
+/*
+npc manager tracks instances of all npcs.
+npcs includes,
+  - character npcs in party system
+  - world npcs
+  - detached npcs for player select view
+*/
+
 import * as THREE from 'three';
 import Avatar from './avatars/avatars.js';
 import {LocalPlayer} from './character-controller.js';
@@ -10,8 +18,8 @@ import {makeId, createRelativeUrl} from './util.js';
 import { triggerEmote } from './src/components/general/character/Poses.jsx';
 import validEmotionMapping from "./validEmotionMapping.json";
 import metaversefile from './metaversefile-api.js';
-import {defaultNpcContent} from './constants.js';
 import {runSpeed, walkSpeed} from './constants.js';
+import {characterSelectManager} from './characterselect-manager.js';
 
 const localVector = new THREE.Vector3();
 
@@ -27,7 +35,8 @@ class NpcManager extends EventTarget {
     this.detachedNpcs = [];
   }
 
-  async initDefaultPlayer(defaultPlayerSpec) {
+  async initDefaultPlayer() {
+    const defaultPlayerSpec = await characterSelectManager.getDefaultSpecAsync();
     const localPlayer = metaversefile.useLocalPlayer();
     // console.log('set player spec', defaultPlayerSpec);
     await localPlayer.setPlayerSpec(defaultPlayerSpec);
@@ -42,7 +51,7 @@ class NpcManager extends EventTarget {
     const playerApp = createPlayerNpc();
 
     const importPlayerToNpcManager = () => {
-      this.addPlayerApp(playerApp, localPlayer, defaultNpcContent);
+      this.addPlayerApp(playerApp, localPlayer, defaultPlayerSpec);
 
       world.appManager.importApp(playerApp);
       world.appManager.transplantApp(playerApp, partyManager.appManager);
@@ -166,11 +175,9 @@ class NpcManager extends EventTarget {
 
     app.setPhysicsObject(npcPlayer.characterPhysics.characterController);
     app.getLoreSpec = () => {
-      const name = json.name ?? 'Anon';
-      const description = json.bio ?? '';
       return {
-        name,
-        description,
+        name: json.name,
+        description: json.bio,
       }
     };
 
@@ -278,9 +285,9 @@ class NpcManager extends EventTarget {
 
     // load
     if (mode === 'attached') {
-      const npcName = json.name ?? 'Anon';
-      const npcVoiceName = json.voice ?? 'Shining armor';
-      const npcBio = json.bio ?? 'A generic avatar.';
+      const npcName = json.name;
+      const npcVoiceName = json.voice;
+      const npcBio = json.bio;
       const npcDetached = !!json.detached;
       let npcWear = json.wear ?? [];
       if (!Array.isArray(npcWear)) {
@@ -404,7 +411,7 @@ class NpcManager extends EventTarget {
       json = await res.json();
       //if (!live) return;
 
-      const npcName = json.name ?? 'Anon';
+      const npcName = json.name;
 
       // npc pameters
       let avatarUrl = json.avatarUrl;

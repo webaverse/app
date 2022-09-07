@@ -1,0 +1,10 @@
+{
+  "name": "Juniper",
+  "previewUrl": "./images/characters/upstreet/small/juniper.png",
+  "avatarUrl": "./avatars/jun_engineer_v1_vian.vrm",
+  "voice": "Cadance",
+  "voicePack": "Tiffany voice pack",
+  "class": "Academy Engineer",
+  "bio": "She is an engineer. 17/F engineer. She is new on the street. She has a strong moral compass and it the voice of reason in the group.",
+  "themeSongUrl": "https://webaverse.github.io/music/themes/092958842-groovy-jazzy-band-fun-light-su.mp3"
+}

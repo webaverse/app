@@ -1,4 +1,4 @@
-import { voicePacksUrl, voiceEndpointsUrl, defaultVoiceEndpoint, defaultVoicePackName } from './constants.js';
+import { voicePacksUrl, voiceEndpointsUrl } from './constants.js';
 import overrides from './overrides.js';
 import {playersManager} from './players-manager.js';
 import * as voices from './voices.js';
@@ -26,7 +26,10 @@ const loadPromise = (async () => {
   'userVoicePack',
 ].forEach(key => {
   overrides[key].addEventListener('change', async e => {
-    const voicePackName = overrides.overrideVoicePack.get() ?? overrides.userVoicePack.get() ?? defaultVoicePackName;
+    const voicePackName = overrides.overrideVoicePack.get() ?? overrides.userVoicePack.get() ?? null;
+    if (!voicePackName) {
+      throw new Error('no voice pack name');
+    }
     const voicePack = voices.voicePacks.find(vp => vp.name === voicePackName);
 
     const {
@@ -49,7 +52,10 @@ const loadPromise = (async () => {
   'userVoiceEndpoint',
 ].forEach(key => {
   overrides[key].addEventListener('change', async e => {
-    const voiceEndpointName = overrides.overrideVoiceEndpoint.get() ?? overrides.userVoiceEndpoint.get() ?? defaultVoiceEndpoint;
+    const voiceEndpointName = overrides.overrideVoiceEndpoint.get() ?? overrides.userVoiceEndpoint.get() ?? null;
+    if (!voiceEndpointName) {
+      throw new Error('no voice endpoint name');
+    }
     const voiceEndpoint = voices.voiceEndpoints.find(ve => ve.name === voiceEndpointName);
 
     const localPlayer = playersManager.getLocalPlayer();
