@@ -5,6 +5,7 @@ import physicsManager from './physics-manager.js';
 import {world} from './world.js';
 import {playersManager} from './players-manager.js';
 import {appsMapName} from './constants.js'
+import npcManager from './npc-manager.js';
 
 const localVector = new THREE.Vector3();
 
