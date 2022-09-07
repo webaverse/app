@@ -53,8 +53,8 @@ const fillCharactersMap = (charactersMap) => {
     }
     return viewCharactersMap;
 };
-const charactersMap = fillCharactersMap(await charactersManager.getCharactersMapAsync());
-          
+const initCharactersMap = fillCharactersMap(charactersManager.getCharactersMap());
+
 const Character = forwardRef(({
     character,
     highlight,
@@ -159,6 +159,7 @@ export const CharacterSelect = () => {
             };
         },
     }));
+    const [charactersMap, setCharactersMap] = useState(initCharactersMap);
     // const [ messageAudioCache, setMessageAudioCache ] = useState(new Map());
     // const [ selectAudioCache, setSelectAudioCache ] = useState(new Map());
     const [ text, setText ] = useState('');
@@ -312,6 +313,12 @@ export const CharacterSelect = () => {
             setText('');
         }
     }, [opened, enabled]);
+    useEffect(() => {
+        charactersManager.addEventListener('loaded', (e) => {
+            const {charactersMap} = e.data;
+            setCharactersMap(fillCharactersMap(charactersMap));
+        });
+    }, []);
     
     const onMouseMove = character => e => {
         if (enabled) {

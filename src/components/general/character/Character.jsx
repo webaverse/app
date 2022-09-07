@@ -22,6 +22,7 @@ import { Poses } from './Poses';
 import { BigButton } from '../../../BigButton';
 
 import styles from './character.module.css';
+import { charactersManager } from '../../../../avatars/characters-manager.js';
 
 const mainStatSpecs = [
     {
@@ -186,6 +187,9 @@ export const Character = ({ game, /* wearActions,*/ dioramaCanvasRef }) => {
     };
 
     function onCharacterSelectClick(e) {
+
+        charactersManager.loadCharactersMap();
+
         setState({ openedPanel: ( state.openedPanel === 'CharacterSelect' ? null : 'CharacterSelect' ) });
 
         /* if ( state.openedPanel === 'CharacterSelect' ) {

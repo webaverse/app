@@ -28,7 +28,14 @@ class CharactersManager extends EventTarget {
     return this.defaultCharacterSpec;
   }
 
-  async getCharactersMapAsync() {
+  getCharactersMap() {
+    if (this.charactersMap) {
+      return this.charactersMap;
+    }
+    return {};
+  }
+
+  async loadCharactersMap() {
     if (!this.charactersMap) {
       this.charactersMap = {};
 
@@ -57,6 +64,11 @@ class CharactersManager extends EventTarget {
         this.charactersMap[packName] = characters;
       }
     }
+    this.dispatchEvent(new MessageEvent('loaded', {
+      data: {
+        charactersMap: this.charactersMap,
+      },
+    }));
     return this.charactersMap;
   }
 }
