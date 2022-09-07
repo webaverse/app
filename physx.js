@@ -2232,11 +2232,10 @@ const physxWorker = (() => {
     }
   }
 
-
   // AnimationSystem
 
-  w.initAvatar = (mixerPtr) => {
-    const ptr = Module._initAvatar(
+  w.createAnimationAvatar = (mixerPtr) => {
+    const ptr = Module._createAnimationAvatar(
       mixerPtr,
     )
     return ptr;

@@ -475,7 +475,7 @@ export const _createAnimation = avatar => {
   }
 
   avatar.mixerPtr = physx.physxWorker.createAnimationMixer(); // todo: rename: animationMixer
-  avatar.animationAvatarPtr = physx.physxWorker.initAvatar(avatar.mixerPtr);
+  avatar.animationAvatarPtr = physx.physxWorker.createAnimationAvatar(avatar.mixerPtr);
 };
 
 export const _updateAnimation = avatar => {
