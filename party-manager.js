@@ -97,6 +97,7 @@ class PartyManager extends EventTarget {
     if (this.partyPlayers.length < 3) { // 3 max members
       // console.log('invitePlayer', newPlayer, this);
       this.partyPlayers.push(newPlayer);
+      this.partyChanged();
 
       const removeFn = () => {
         const player = newPlayer;
@@ -122,10 +123,7 @@ class PartyManager extends EventTarget {
       const activate = () => {
         // console.log('deactivate', newPlayer.name);
         if (removeFn()) {
-          const removeIndex = this.removeFns.indexOf(removeFn);
-          if (removeIndex !== -1) {
-            this.removeFns.splice(removeIndex, 1);
-          }
+          this.removeFnMap.delete(newPlayer);
           newPlayer.removeEventListener('activate', activate);
         }
       };
