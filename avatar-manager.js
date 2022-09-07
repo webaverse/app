@@ -3,9 +3,6 @@ avatar manager forwards avatar related events from local player
 this is an utility class, to smoothly support same interface
 even when local player is changed on party player switch
 */
-// import * as THREE from 'three';
-// import metaversefile from 'metaversefile'
-import {partyManager} from './party-manager';
 import {playersManager} from './players-manager';
 
 class AvatarManager extends EventTarget {
@@ -16,25 +13,19 @@ class AvatarManager extends EventTarget {
 
     const playerSelectedFn = e => {
       const {
+        oldplayer,
         player,
       } = e.data;
 
+      if (oldplayer) {
+        this.unbindPlayer(oldplayer);
+      }
       this.bindPlayer(player);
     };
 
-    const playerDeselectedFn = e => {
-      const {
-        player,
-      } = e.data;
-
-      this.unbindPlayer(player);
-    };
-
-    partyManager.addEventListener('playerselected', playerSelectedFn);
-    partyManager.addEventListener('playerdeselected', playerDeselectedFn);
+    playersManager.addEventListener('playerchange', playerSelectedFn);
     this.removeListenerFn = () => {
-      partyManager.removeEventListener('playerselected', playerSelectedFn);
-      partyManager.removeEventListener('playerdeselected', playerDeselectedFn);
+      playersManager.removeEventListener('playerchange', playerSelectedFn);
     };
 
     // this is the initial event for the first player
@@ -80,12 +71,6 @@ class AvatarManager extends EventTarget {
       player.removeEventListener('actionadd', actionadd);
       player.removeEventListener('actionremove', actionremove);
     };
-
-    this.dispatchEvent(new MessageEvent('playerselected', {
-      data: {
-        player: player,
-      },
-    }));
   }
 
   unbindPlayer(player) {

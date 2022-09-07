@@ -1,24 +1,31 @@
-import * as THREE from 'three';
-
 import {AppManager} from './app-manager.js';
-import physicsManager from './physics-manager.js';
 import {world} from './world.js';
 import {playersManager} from './players-manager.js';
-import {appsMapName} from './constants.js'
 import npcManager from './npc-manager.js';
-
-const localVector = new THREE.Vector3();
-
-const physicsScene = physicsManager.getScene();
+import {appsMapName} from './constants.js'
 
 class PartyManager extends EventTarget {
   constructor() {
     super();
     
     this.partyPlayers = [];
-    this.removeFns = [];
+    this.removeFnMap = new WeakMap();
 
     this.appManager = new AppManager();
+
+    npcManager.addEventListener('defaultplayeradd', (e) => {
+      const {player} = e.data;
+      const app = npcManager.getAppByNpc(player);
+      world.appManager.importApp(app);
+      world.appManager.transplantApp(app, this.appManager);
+
+      this.invitePlayer(player);
+    });
+
+    npcManager.addEventListener('playerinvited', (e) => {
+      const {player} = e.data;
+      this.invitePlayer(player);
+    });
   }
 
   switchCharacter() {
@@ -52,21 +59,11 @@ class PartyManager extends EventTarget {
 
       playersManager.setLocalPlayer(nextPlayer);
 
-      this.dispatchEvent(new MessageEvent('playerdeselected', {
-        data: {
-          player: headPlayer,
-        }
-      }));
-      this.dispatchEvent(new MessageEvent('playerselected', {
-        data: {
-          player: nextPlayer,
-        }
-      }));
-
       nextPlayer.updatePhysicsStatus();
       headPlayer.updatePhysicsStatus();
 
       this.partyPlayers.push(headPlayer);
+      this.partyChanged();
 
       // transplant players to local player
       const transplantToPlayer = () => {
@@ -87,36 +84,38 @@ class PartyManager extends EventTarget {
     }
   }
 
+  partyChanged() {
+    for (let i = 0; i < this.partyPlayers.length; i++) {
+      const player = this.partyPlayers[i];
+      const target = this.getTargetPlayer(player);
+      npcManager.setPartyTarget(player, target);
+    }
+  }
+
   // add new player to party
-  addPlayer(newPlayer) {
-    
+  invitePlayer(newPlayer) {
     if (this.partyPlayers.length < 3) { // 3 max members
-      // console.log('addPlayer', newPlayer, this);
+      // console.log('invitePlayer', newPlayer, this);
       this.partyPlayers.push(newPlayer);
 
-      if (this.partyPlayers.length === 1) {
-        this.dispatchEvent(new MessageEvent('playerselected', {
-          data: {
-            player: newPlayer,
-          }
-        }));
-      }
-
       const removeFn = () => {
-        // console.log('removeFn', player);
         const player = newPlayer;
+        // console.log('removeFn', player);
         const playerIndex = this.partyPlayers.indexOf(player);
         if (playerIndex > 0) {
           const app = npcManager.getAppByNpc(player);
           this.transplantPartyAppToWorld(app);
           this.partyPlayers.splice(playerIndex, 1);
+          this.partyChanged();
           player.isInParty = false;
           return true;
+        } else {
+          console.warn('remove local player');
         }
         return false;
       };
 
-      this.removeFns.push(removeFn);
+      this.removeFnMap.set(newPlayer, removeFn);
       
       newPlayer.isInParty = true;
 
@@ -182,11 +181,10 @@ class PartyManager extends EventTarget {
 
   clear() {
     // console.log('clear');
-    const removedFns = this.removeFns.filter(removeFn => removeFn());
-    for (const removedFn of removedFns) {
-      const removeIndex = this.removeFns.indexOf(removedFn);
-      if (removeIndex !== -1) {
-        this.removeFns.splice(removeIndex, 1);
+    for (const player of this.partyPlayers) {
+      const removeFn = this.removeFnMap.get(player);
+      if (removeFn()) {
+        this.removeFnMap.delete(player);
       }
     }
   }
