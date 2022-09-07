@@ -1,8 +1,5 @@
 import * as THREE from 'three';
-// import easing from './easing.js';
 import metaversefile from 'metaversefile';
-// const {useApp, useFrame, useLocalPlayer, usePhysics, useGeometries, useMaterials, useAvatarAnimations, useCleanup} = metaversefile;
-// import * as BufferGeometryUtils from 'three/examples/jsm/utils/BufferGeometryUtils.js';
 import {DoubleSidedPlaneGeometry, CameraGeometry} from './geometries.js';
 import {WebaverseShaderMaterial} from './materials.js';
 import {getRenderer, scene, camera} from './renderer.js';
@@ -24,11 +21,14 @@ const cameraMesh = new THREE.Mesh(
   cameraMaterial,
 );
 
-const localVector = new THREE.Vector3();
-const localVector2 = new THREE.Vector3();
-const localVector3 = new THREE.Vector3();
-const localVector2D = new THREE.Vector2();
-const localVector4D = new THREE.Vector4();
+let eyeVector = new THREE.Vector3();
+let targetVector = new THREE.Vector3();
+const upVector = new THREE.Vector3(0,1,0);
+
+let rendererSize = new THREE.Vector2();
+let rendererViewport = new THREE.Vector4();
+let rendererClearAlpha = 0
+
 const localQuaternion = new THREE.Quaternion();
 const localEuler = new THREE.Euler();
 const localEuler2 = new THREE.Euler();
@@ -41,7 +41,7 @@ const numFrames = 7;
 const numAngles = 8;
 const worldSize = 2;
 const distance = 2.2; // render distance
-
+const frameTimeDiff = 1000 / 60; // 60 FPS
 
 const cameraHeightFactor = 0.8; // the height of the camera in avatar space
 const spriteScaleFactor = 1.2; // scale up the final sprite by this much in world space
@@ -49,6 +49,7 @@ const spriteFootFactor = 0.07; // offset down this factor in world space
 
 // opacity factor for sprites
 const alphaTest = 0.9;
+
 
 const planeSpriteMeshes = [];
 const spriteAvatarMeshes = [];
@@ -79,9 +80,9 @@ const globalUpdate = (timestamp, timeDiff, camera) => {
         localQuaternion
           .setFromRotationMatrix(
             localMatrix.lookAt(
-              spriteAvatarMesh.getWorldPosition(localVector),
+              spriteAvatarMesh.getWorldPosition(eyeVector),
               camera.position,
-              localVector2.set(0, 1, 0)
+              targetVector.set(0, 1, 0)
             )
           )
           // .premultiply(app.quaternion.clone().invert());
@@ -564,9 +565,9 @@ class SpriteAvatarMesh extends THREE.Mesh {
     localQuaternion
       .setFromRotationMatrix(
         localMatrix.lookAt(
-          this.getWorldPosition(localVector),
+          this.getWorldPosition(eyeVector),
           camera.position,
-          localVector2.set(0, 1, 0)
+          targetVector.set(0, 1, 0)
         )
       )
     localEuler.setFromQuaternion(localQuaternion, 'YXZ');
@@ -579,7 +580,7 @@ class SpriteAvatarMesh extends THREE.Mesh {
     // select the texture
     const spriteSpecName = (() => {
       const playerSide = _getPlayerSide();
-      const currentSpeed = localVector.set(avatar.velocity.x, 0, avatar.velocity.z)
+      const currentSpeed = eyeVector.set(avatar.velocity.x, 0, avatar.velocity.z)
         .length();
 
       if(avatar.emoteAnimation !== ""){
@@ -618,7 +619,7 @@ class SpriteAvatarMesh extends THREE.Mesh {
           }
         }
       } else {
-        const currentSpeed = localVector.set(avatar.velocity.x, 0, avatar.velocity.z)
+        const currentSpeed = eyeVector.set(avatar.velocity.x, 0, avatar.velocity.z)
           .length();
         const idleSpeedDistance = currentSpeed;
         const walkSpeedDistance = Math.abs(walkSpeed - currentSpeed);
@@ -693,9 +694,9 @@ class SpriteAvatarMesh extends THREE.Mesh {
           localQuaternion
             .setFromRotationMatrix(
               localMatrix.lookAt(
-                this.getWorldPosition(localVector),
+                this.getWorldPosition(eyeVector),
                 camera.position,
-                localVector2.set(0, 1, 0)
+                targetVector.set(0, 1, 0)
               )
             )
           localEuler.setFromQuaternion(localQuaternion, 'YXZ');
@@ -727,10 +728,10 @@ const _getPlayerSide = () => {
   
   localEuler.setFromRotationMatrix(
     localMatrix.lookAt(
-      localVector.set(0, 0, 0),
-      localVector2.set(0, 0, -1)
+      eyeVector.set(0, 0, 0),
+      targetVector.set(0, 0, -1)
         .applyQuaternion(localPlayer.quaternion),
-      localVector3.set(0, 1, 0)
+      upVector
     ),
     'YXZ'
   );
@@ -738,10 +739,10 @@ const _getPlayerSide = () => {
   
   localEuler.setFromRotationMatrix(
     localMatrix.lookAt(
-      localVector.set(0, 0, 0),
-      localVector2.copy(localPlayer.characterPhysics.velocity)
+      eyeVector.set(0, 0, 0),
+      targetVector.copy(localPlayer.characterPhysics.velocity)
         .normalize(),
-      localVector3.set(0, 1, 0)
+      upVector
     ),
     'YXZ'
   );
@@ -1609,18 +1610,6 @@ class AvatarSpriteDepthMaterial extends THREE.MeshNormalMaterial {
   }
 }
 
-/* const _waitForKey = async () => {
-  const p = makePromise();
-  const keydown = e => {
-    if (e.which === 8) { // backspace
-      p.accept();
-    }
-  };
-  window.addEventListener('keydown', keydown);
-  await p;
-  window.removeEventListener('keydown', keydown);
-}; */
-const frameTimeDiff = 1000 / 60; // 60 FPS
 const _waitForIdle = () => new Promise(resolve => {
   requestIdleCallback(resolve);
 });
@@ -1646,62 +1635,42 @@ export const renderSpriteImages = async (arrayBuffer, srcUrl) => {
   }
   localRig.setTopEnabled(false);
   localRig.setBottomEnabled(false);
-  // localRig.faceposes.push({
-  //   emotion: 'emotion-2',
-  //   value: 1,
-  // });
 
   if (preview) {
     _ensureScheduleGlobalUpdate();
   }
   
   const model = avatarRenderer.scene;
-  /* model.traverse(o => {
-    if (o.isMesh) {
-      o.frustumCulled = false;
-    }
-  }); */
-
-  /* const skeleton = (() => {
-    let skeleton = null;
-    model.traverse(o => {
-      if (skeleton === null && o.isSkinnedMesh) {
-        skeleton = o.skeleton;
-      }
-    });
-    return skeleton;
-  })(); */
-  // const rootBone = skeleton.bones.find(b => b.name === 'Root');
-  // console.log('got skeleton bones', rootBone, skeleton.bones.map(b => b.name));
-
-  // const {renderer, scene} = metaversefile.useInternals();
+  
   const renderer = getRenderer();
   const pixelRatio = renderer.getPixelRatio();
+      // push old renderer state
+  renderer.getSize(rendererSize);
+  renderer.getViewport(rendererViewport);
+  rendererClearAlpha = renderer.getClearAlpha();
+
   const _renderSpriteFrame = () => {
-    const oldParent = model.parent;
+    
     scene2.add(model);
 
-    const rendererSize = renderer.getSize(localVector2D);
     if (rendererSize.x >= texSize && rendererSize.y >= texSize) {
-      // push old renderer state
-      const oldViewport = renderer.getViewport(localVector4D);
-      const oldClearAlpha = renderer.getClearAlpha();
-      
       renderer.setViewport(0, 0, texSize/pixelRatio, texSize/pixelRatio);
       renderer.setClearAlpha(0);
       renderer.clear();
       renderer.render(scene2, camera2);
 
       // pop old renderer state
-      renderer.setViewport(oldViewport);
-      renderer.setClearAlpha(oldClearAlpha);
+      renderer.setViewport(rendererViewport);
+      renderer.setClearAlpha(rendererClearAlpha);
     }
 
+    const oldParent = model.parent;
     if (oldParent) {
       oldParent.add(model);
     } else {
       model.parent.remove(model);
     }
+
   };
 
   const spriteSpecs = getSpriteSpecs();
