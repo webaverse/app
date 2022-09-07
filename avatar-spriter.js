@@ -29,6 +29,7 @@ const localVector3 = new THREE.Vector3();
 const localVector2D = new THREE.Vector2();
 const localVector4D = new THREE.Vector4();
 const localQuaternion = new THREE.Quaternion();
+const localQuaternion2 = new THREE.Quaternion();
 const localEuler = new THREE.Euler();
 const localEuler2 = new THREE.Euler();
 const localMatrix = new THREE.Matrix4();
@@ -554,20 +555,59 @@ class SpriteAvatarMesh extends THREE.Mesh {
       return false;
     }
   }
+  updateObject(timestamp, timeDiff, position, camera) {
+    localMatrix.copy(this.parent.matrixWorld).invert();
+    position.applyMatrix4(localMatrix);
+    this.position.copy(position);
+
+    this.parent.matrixWorld.decompose(
+      localVector,
+      localQuaternion,
+      localVector2
+    );
+
+    localQuaternion.invert().multiply(
+      localQuaternion2
+        .setFromRotationMatrix(
+          localMatrix.lookAt(
+            this.getWorldPosition(localVector),
+            camera.position,
+            localVector2.set(0, 1, 0)
+          )
+        )
+    );
+    localEuler.setFromQuaternion(localQuaternion, 'YXZ');
+    localEuler.x = 0;
+    localEuler.z = 0;
+
+    this.quaternion.setFromEuler(localEuler);
+    this.updateMatrixWorld();
+  }
   update(timestamp, timeDiff, avatar, camera) {
+    localMatrix.copy(this.parent.matrixWorld).invert();
+    localVector.copy(avatar.inputs.hmd.position);
+    localVector.y -= avatar.height;
+    localVector.applyMatrix4(localMatrix);
 
     // matrix transform
-    this.position.copy(avatar.inputs.hmd.position);
-    this.position.y -= avatar.height;
+    this.position.copy(localVector);
 
-    localQuaternion
-      .setFromRotationMatrix(
-        localMatrix.lookAt(
-          this.getWorldPosition(localVector),
-          camera.position,
-          localVector2.set(0, 1, 0)
+    this.parent.matrixWorld.decompose(
+      localVector,
+      localQuaternion,
+      localVector2
+    );
+
+    localQuaternion.invert().multiply(
+      localQuaternion2
+        .setFromRotationMatrix(
+          localMatrix.lookAt(
+            this.getWorldPosition(localVector),
+            camera.position,
+            localVector2.set(0, 1, 0)
+          )
         )
-      )
+    );
     localEuler.setFromQuaternion(localQuaternion, 'YXZ');
     localEuler.x = 0;
     localEuler.z = 0;

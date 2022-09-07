@@ -18,7 +18,9 @@ const defaultAvatarQuality = 4;
 
 const localVector = new THREE.Vector3();
 const localVector2 = new THREE.Vector3();
+const localVector3 = new THREE.Vector3();
 const localQuaternion = new THREE.Quaternion();
+const localQuaternion2 = new THREE.Quaternion();
 const localEuler = new THREE.Euler();
 const localMatrix =  new THREE.Matrix4();
 const localMatrix2 =  new THREE.Matrix4();
@@ -818,19 +820,62 @@ export class AvatarRenderer /* extends EventTarget */ {
     this.#updateAvatar(timestamp, timeDiff, avatar);
     this.#updateFrustumCull(avatar);
   }
-  #updatePlaceholder(timestamp, timeDiff, avatar) {
+  updateObject(timestamp, timeDiff, avatarHeight) {
+    this.scene.updateMatrixWorld();
+    // placeholder
+    localVector.set(0, avatarHeight, 0);
+    if (this.placeholderMesh.parent) {
+      localVector.applyMatrix4(this.placeholderMesh.parent.matrixWorld);
+    }
+    this.#updatePlaceholderWithPosition(
+      timestamp, timeDiff,
+      localVector
+    );
+
+    // spriter
     if (this.camera) {
-      this.placeholderMesh.position.copy(avatar.inputs.hmd.position);
+      const currentMesh = this.#getCurrentMesh();
+      if (currentMesh && currentMesh === this.spriteAvatarMesh) {
+        currentMesh.parent.getWorldPosition(localVector);
+        this.spriteAvatarMesh.updateObject(timestamp, timeDiff, localVector, this.camera);
+      }
+    }
+  }
+  #updatePlaceholder(timestamp, timeDiff, avatar) {
+    this.#updatePlaceholderWithPosition(timestamp, timeDiff, avatar.inputs.hmd.position);
+  }
+  #updatePlaceholderWithPosition(timestamp, timeDiff, headPosition) {
+    if (this.camera && this.placeholderMesh.parent) {
+      localMatrix.copy(this.placeholderMesh.parent.matrixWorld).invert();
+      headPosition.applyMatrix4(localMatrix);
+
+      this.placeholderMesh.position.copy(headPosition);
+      this.placeholderMesh.updateMatrixWorld();
       // this.placeholderMesh.position.y -= avatar.height;
 
-      localQuaternion
-        .setFromRotationMatrix(
-          localMatrix.lookAt(
-            this.camera.position,
-            this.placeholderMesh.position,
-            localVector2.set(0, 1, 0)
+      this.placeholderMesh.matrixWorld.decompose(
+        localVector,
+        localQuaternion,
+        localVector2
+      );
+      this.placeholderMesh.parent.matrixWorld.decompose(
+        localVector2,
+        localQuaternion,
+        localVector3
+      );
+
+      // placeholder orients to the mesh world position
+      // local quaternion should consider parent quaternion
+      localQuaternion.invert().multiply(
+        localQuaternion2
+          .setFromRotationMatrix(
+            localMatrix.lookAt(
+              this.camera.position,
+              localVector,
+              localVector2.set(0, 1, 0)
+            )
           )
-        );
+      );
       localEuler.setFromQuaternion(localQuaternion, 'YXZ');
       localEuler.x = 0;
       localEuler.z = 0;
