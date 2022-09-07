@@ -26,13 +26,6 @@ class CharactersManager {
     return this.defaultCharacterSpec;
   }
 
-  getCharactersMap() {
-    if (this.charactersMap) {
-      return this.charactersMap;
-    }
-    return {};
-  }
-
   async loadCharactersMap() {
     if (!this.charactersMap) {
       this.charactersMap = {};
