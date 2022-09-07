@@ -1,12 +1,12 @@
 import * as THREE from 'three';
 import metaversefile from 'metaversefile';
-import { DoubleSidedPlaneGeometry, CameraGeometry } from './geometries.js';
-import { WebaverseShaderMaterial } from './materials.js';
-import { getRenderer, scene, camera } from './renderer.js';
+import {DoubleSidedPlaneGeometry, CameraGeometry} from './geometries.js';
+import {WebaverseShaderMaterial} from './materials.js';
+import {getRenderer, scene, camera} from './renderer.js';
 import Avatar from './avatars/avatars.js';
-import { AvatarRenderer } from './avatars/avatar-renderer.js';
-import { mod, angleDifference, addDefaultLights } from './util.js';
-import { world } from './world.js';
+import {AvatarRenderer} from './avatars/avatar-renderer.js';
+import {mod, angleDifference, addDefaultLights} from './util.js';
+import {world} from './world.js';
 import {
   maxAvatarQuality,
   walkSpeed,
@@ -15,7 +15,7 @@ import {
   narutoRunSpeed,
   crouchMaxTime,
 } from './constants.js';
-import { emoteAnimations } from './avatars/animationHelpers.js';
+import {emoteAnimations} from './avatars/animationHelpers.js';
 
 const preview = false; // whether to draw debug meshes
 
@@ -60,17 +60,17 @@ const planeSpriteMeshes = [];
 const spriteAvatarMeshes = [];
 
 const animationAngles = [
-  { name: 'left', angle: Math.PI / 2 },
-  { name: 'right', angle: -Math.PI / 2 },
+  {name: 'left', angle: Math.PI / 2},
+  {name: 'right', angle: -Math.PI / 2},
 
-  { name: 'forward', angle: 0 },
-  { name: 'backward', angle: Math.PI },
+  {name: 'forward', angle: 0},
+  {name: 'backward', angle: Math.PI},
 ];
 
 const globalUpdate = (timestamp, timeDiff, camera) => {
   if (preview) {
     for (const planeSpriteMesh of planeSpriteMeshes) {
-      const { duration } = planeSpriteMesh.spriteSpec;
+      const {duration} = planeSpriteMesh.spriteSpec;
       const uTime = ((timestamp / 1000) % duration) / duration;
       if (isNaN(uTime)) {
         debugger;
@@ -84,7 +84,7 @@ const globalUpdate = (timestamp, timeDiff, camera) => {
     }
 
     for (const spriteAvatarMesh of spriteAvatarMeshes) {
-      const { duration } = spriteAvatarMesh.spriteSpec;
+      const {duration} = spriteAvatarMesh.spriteSpec;
       const uTime = ((timestamp / 1000) % duration) / duration;
 
       if (isNaN(uTime)) {
@@ -123,7 +123,7 @@ const _ensureScheduleGlobalUpdate = (() => {
     if (!scheduled) {
       scene.add(cameraMesh);
       world.appManager.addEventListener('frame', (e) => {
-        const { timestamp, timeDiff } = e.data;
+        const {timestamp, timeDiff} = e.data;
         globalUpdate(timestamp, timeDiff, camera);
       });
       scheduled = true;
@@ -132,7 +132,7 @@ const _ensureScheduleGlobalUpdate = (() => {
 })();
 
 class SpriteAnimationPlaneMesh extends THREE.Mesh {
-  constructor(tex, { angleIndex }) {
+  constructor(tex, {angleIndex}) {
     const planeSpriteMaterial = new WebaverseShaderMaterial({
       uniforms: {
         uTex: {
@@ -694,7 +694,7 @@ class SpriteAvatarMesh extends THREE.Mesh {
       if (material?.uniforms) {
         const spriteSpec = _spriteSpecs.find((s) => s.name === spriteSpecName);
         if (spriteSpec) {
-          const { duration } = spriteSpec;
+          const {duration} = spriteSpec;
           const uTime = ((timestampDelta / 1000) % duration) / duration;
 
           material.uniforms.uTime.value = uTime;
@@ -823,7 +823,7 @@ const getSpriteSpecs = () => {
       {
         name: 'idle',
         duration: idleAnimation.duration,
-        init({ angle, avatar: localRig }) {
+        init({angle, avatar: localRig}) {
           let positionOffset = 0;
           return {
             update(timestamp, timeDiffMs) {
@@ -849,7 +849,7 @@ const getSpriteSpecs = () => {
       {
         name: 'walk',
         duration: walkAnimation.duration,
-        init({ angle, avatar: localRig }) {
+        init({angle, avatar: localRig}) {
           let positionOffset = 0;
           return {
             update(timestamp, timeDiffMs) {
@@ -884,7 +884,7 @@ const getSpriteSpecs = () => {
       {
         name: 'walk left',
         duration: leftStrafeWalkingAnimation.duration,
-        init({ angle, avatar: localRig }) {
+        init({angle, avatar: localRig}) {
           let positionOffset = 0;
           return {
             update(timestamp, timeDiffMs) {
@@ -915,7 +915,7 @@ const getSpriteSpecs = () => {
       {
         name: 'walk right',
         duration: rightStrafeWalkingAnimation.duration,
-        init({ angle, avatar: localRig }) {
+        init({angle, avatar: localRig}) {
           let positionOffset = 0;
           return {
             update(timestamp, timeDiffMs) {
@@ -946,7 +946,7 @@ const getSpriteSpecs = () => {
       {
         name: 'walk backward',
         duration: walkBackwardAnimation.duration,
-        init({ angle, avatar: localRig }) {
+        init({angle, avatar: localRig}) {
           let positionOffset = 0;
           return {
             update(timestamp, timeDiffMs) {
@@ -977,7 +977,7 @@ const getSpriteSpecs = () => {
       {
         name: 'run',
         duration: runAnimation.duration,
-        init({ angle, avatar: localRig }) {
+        init({angle, avatar: localRig}) {
           let positionOffset = 0;
           return {
             update(timestamp, timeDiffMs) {
@@ -1008,7 +1008,7 @@ const getSpriteSpecs = () => {
       {
         name: 'run left',
         duration: leftStrafeRunAnimation.duration,
-        init({ angle, avatar: localRig }) {
+        init({angle, avatar: localRig}) {
           let positionOffset = 0;
           return {
             update(timestamp, timeDiffMs) {
@@ -1039,7 +1039,7 @@ const getSpriteSpecs = () => {
       {
         name: 'run right',
         duration: rightStrafeRunAnimation.duration,
-        init({ angle, avatar: localRig }) {
+        init({angle, avatar: localRig}) {
           let positionOffset = 0;
           return {
             update(timestamp, timeDiffMs) {
@@ -1070,7 +1070,7 @@ const getSpriteSpecs = () => {
       {
         name: 'run backward',
         duration: runBackwardAnimation.duration,
-        init({ angle, avatar: localRig }) {
+        init({angle, avatar: localRig}) {
           let positionOffset = 0;
           return {
             update(timestamp, timeDiffMs) {
@@ -1101,7 +1101,7 @@ const getSpriteSpecs = () => {
       {
         name: 'crouch idle',
         duration: crouchIdleAnimation.duration,
-        init({ angle, avatar: localRig }) {
+        init({angle, avatar: localRig}) {
           let positionOffset = 0;
           return {
             update(timestamp, timeDiffMs) {
@@ -1134,7 +1134,7 @@ const getSpriteSpecs = () => {
       {
         name: 'crouch walk',
         duration: crouchWalkAnimation.duration,
-        init({ angle, avatar: localRig }) {
+        init({angle, avatar: localRig}) {
           let positionOffset = 0;
           return {
             update(timestamp, timeDiffMs) {
@@ -1170,7 +1170,7 @@ const getSpriteSpecs = () => {
       {
         name: 'crouch walk left',
         duration: crouchWalkLeftAnimation.duration,
-        init({ angle, avatar: localRig }) {
+        init({angle, avatar: localRig}) {
           let positionOffset = 0;
           return {
             update(timestamp, timeDiffMs) {
@@ -1206,7 +1206,7 @@ const getSpriteSpecs = () => {
       {
         name: 'crouch walk right',
         duration: crouchWalkRightAnimation.duration,
-        init({ angle, avatar: localRig }) {
+        init({angle, avatar: localRig}) {
           let positionOffset = 0;
           return {
             update(timestamp, timeDiffMs) {
@@ -1242,7 +1242,7 @@ const getSpriteSpecs = () => {
       {
         name: 'crouch walk backward',
         duration: crouchWalkBackwardAnimation.duration,
-        init({ angle, avatar: localRig }) {
+        init({angle, avatar: localRig}) {
           let positionOffset = 0;
           return {
             update(timestamp, timeDiffMs) {
@@ -1278,7 +1278,7 @@ const getSpriteSpecs = () => {
       {
         name: 'naruto run',
         duration: narutoRunAnimation.duration,
-        init({ angle, avatar: localRig }) {
+        init({angle, avatar: localRig}) {
           let positionOffset = 0;
           let narutoRunTime = 0;
           // const narutoRunIncrementSpeed = 1000 * 4;
@@ -1323,7 +1323,7 @@ const getSpriteSpecs = () => {
       {
         name: 'jump',
         duration: jumpAnimation.duration,
-        init({ angle, avatar: localRig }) {
+        init({angle, avatar: localRig}) {
           let positionOffset = 0;
 
           let jumpTime = 0;
@@ -1370,7 +1370,7 @@ const getSpriteSpecs = () => {
       {
         name: 'angry',
         duration: emoteAnimations.angry.duration,
-        init({ angle, avatar: localRig }) {
+        init({angle, avatar: localRig}) {
           let positionOffset = 0;
           localRig.faceposes.length = 0;
           localRig.faceposes.push({
@@ -1400,7 +1400,7 @@ const getSpriteSpecs = () => {
       {
         name: 'alert',
         duration: emoteAnimations.alert.duration,
-        init({ angle, avatar: localRig }) {
+        init({angle, avatar: localRig}) {
           let positionOffset = 0;
           localRig.faceposes.length = 0;
           localRig.faceposes.push({
@@ -1430,7 +1430,7 @@ const getSpriteSpecs = () => {
       {
         name: 'victory',
         duration: emoteAnimations.victory.duration,
-        init({ angle, avatar: localRig }) {
+        init({angle, avatar: localRig}) {
           let positionOffset = 0;
           localRig.faceposes.length = 0;
           localRig.faceposes.push({
@@ -1460,7 +1460,7 @@ const getSpriteSpecs = () => {
       {
         name: 'surprise',
         duration: emoteAnimations.surprise.duration,
-        init({ angle, avatar: localRig }) {
+        init({angle, avatar: localRig}) {
           let positionOffset = 0;
           localRig.faceposes.length = 0;
           localRig.faceposes.push({
@@ -1490,7 +1490,7 @@ const getSpriteSpecs = () => {
       {
         name: 'sad',
         duration: emoteAnimations.sad.duration,
-        init({ angle, avatar: localRig }) {
+        init({angle, avatar: localRig}) {
           let positionOffset = 0;
           localRig.faceposes.length = 0;
           localRig.faceposes.push({
@@ -1520,7 +1520,7 @@ const getSpriteSpecs = () => {
       {
         name: 'headShake',
         duration: emoteAnimations.headShake.duration,
-        init({ angle, avatar: localRig }) {
+        init({angle, avatar: localRig}) {
           let positionOffset = 0;
           localRig.faceposes.length = 0;
           localRig.faceposes.push({
@@ -1550,7 +1550,7 @@ const getSpriteSpecs = () => {
       {
         name: 'headNod',
         duration: emoteAnimations.headNod.duration,
-        init({ angle, avatar: localRig }) {
+        init({angle, avatar: localRig}) {
           let positionOffset = 0;
           localRig.faceposes.length = 0;
           localRig.faceposes.push({
@@ -1580,7 +1580,7 @@ const getSpriteSpecs = () => {
       {
         name: 'embarrassed',
         duration: emoteAnimations.embarrassed.duration,
-        init({ angle, avatar: localRig }) {
+        init({angle, avatar: localRig}) {
           let positionOffset = 0;
           localRig.faceposes.length = 0;
           localRig.faceposes.push({
@@ -1828,7 +1828,7 @@ export const renderSpriteImages = async (arrayBuffer, srcUrl) => {
   const spriteImages = [];
   for (let i = 0; i < spriteSpecs.length; i++) {
     const spriteSpec = spriteSpecs[i];
-    const { name, duration } = spriteSpec;
+    const {name, duration} = spriteSpec;
 
     const canvas = document.createElement('canvas');
     canvas.width = size;
