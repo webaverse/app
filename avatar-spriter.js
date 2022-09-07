@@ -51,7 +51,7 @@ const cameraHeightFactor = 0.8; // the height of the camera in avatar space
 const spriteScaleFactor = 1.2; // scale up the final sprite by this much in world space
 const spriteFootFactor = 0.07; // offset down this factor in world space
 
-const spriteAnimationSpeed = 0.6;
+const spriteAnimationSpeed = 0.5;
 
 // opacity factor for sprites
 const alphaTest = 0.9;
