@@ -19,7 +19,7 @@ import { triggerEmote } from './src/components/general/character/Poses.jsx';
 import validEmotionMapping from "./validEmotionMapping.json";
 import metaversefile from './metaversefile-api.js';
 import {runSpeed, walkSpeed} from './constants.js';
-import {charactersSelectManager} from './characters-select-manager.js';
+import {characterSelectManager} from './characterselect-manager.js';
 
 const localVector = new THREE.Vector3();
 
@@ -35,7 +35,7 @@ class NpcManager extends EventTarget {
   }
 
   async initDefaultPlayer() {
-    const defaultPlayerSpec = await charactersSelectManager.getDefaultSpecAsync();
+    const defaultPlayerSpec = await characterSelectManager.getDefaultSpecAsync();
     const localPlayer = metaversefile.useLocalPlayer();
     // console.log('set player spec', defaultPlayerSpec);
     await localPlayer.setPlayerSpec(defaultPlayerSpec);

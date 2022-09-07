@@ -12,7 +12,7 @@ const getCharacterFullPath = (filename) => {
   return charactersDir + filename;
 }
 
-class CharactersSelectManager {
+class CharacterSelectManager {
   constructor() {
     this.charactersMap = null;
     this.defaultCharacterSpec = null;
@@ -59,7 +59,7 @@ class CharactersSelectManager {
   }
 }
 
-const charactersSelectManager = new CharactersSelectManager();
+const characterSelectManager = new CharacterSelectManager();
 export {
-  charactersSelectManager
+  characterSelectManager
 };
