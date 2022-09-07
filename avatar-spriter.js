@@ -10,7 +10,7 @@ import Avatar from './avatars/avatars.js';
 import {AvatarRenderer} from './avatars/avatar-renderer.js';
 import {mod, angleDifference, addDefaultLights} from './util.js';
 import {world} from './world.js';
-import {maxAvatarQuality, walkSpeed, runSpeed, crouchSpeed, narutoRunSpeed} from './constants.js';
+import {maxAvatarQuality, walkSpeed, runSpeed, crouchSpeed, narutoRunSpeed, crouchMaxTime} from './constants.js';
 import { emoteAnimations } from './avatars/animationHelpers.js';
 
 const preview = false; // whether to draw debug meshes
@@ -37,13 +37,11 @@ const localMatrix = new THREE.Matrix4();
 const size = 4096;
 const texSize = 512;
 const numSlots = size / texSize;
-const numFrames = 6;
+const numFrames = 7;
 const numAngles = 8;
 const worldSize = 2;
 const distance = 2.2; // render distance
 
-// avatar animation constants
-const maxCrouchTime = 200;
 
 const cameraHeightFactor = 0.8; // the height of the camera in avatar space
 const spriteScaleFactor = 1.2; // scale up the final sprite by this much in world space
@@ -1068,7 +1066,7 @@ const getSpriteSpecs = () => {
               localRig.update(timestamp, timeDiffMs);
             },
             cleanup() {
-              localRig.crouchTime = maxCrouchTime;
+              localRig.crouchTime = crouchMaxTime;
             },
           };
         },
@@ -1099,7 +1097,7 @@ const getSpriteSpecs = () => {
               localRig.update(timestamp, timeDiffMs);
             },
             cleanup() {
-              localRig.crouchTime = maxCrouchTime;
+              localRig.crouchTime = crouchMaxTime;
             },
           };
         },
@@ -1130,7 +1128,7 @@ const getSpriteSpecs = () => {
               localRig.update(timestamp, timeDiffMs);
             },
             cleanup() {
-              localRig.crouchTime = maxCrouchTime;
+              localRig.crouchTime = crouchMaxTime;
             },
           };
         },
@@ -1161,7 +1159,7 @@ const getSpriteSpecs = () => {
               localRig.update(timestamp, timeDiffMs);
             },
             cleanup() {
-              localRig.crouchTime = maxCrouchTime;
+              localRig.crouchTime = crouchMaxTime;
             },
           };
         },
@@ -1192,7 +1190,7 @@ const getSpriteSpecs = () => {
               localRig.update(timestamp, timeDiffMs);
             },
             cleanup() {
-              localRig.crouchTime = maxCrouchTime;
+              localRig.crouchTime = crouchMaxTime;
             },
           };
         },
@@ -1292,7 +1290,7 @@ const getSpriteSpecs = () => {
             value: 1,
           });
           localRig.emoteAnimation = 'angry';
-          localRig.emoteFactor = 200;
+          localRig.emoteFactor = crouchMaxTime;
           localRig.update(0, 0);
           return {
             update(timestamp, timeDiffMs) {
@@ -1301,13 +1299,7 @@ const getSpriteSpecs = () => {
                 .add(new THREE.Vector3(0, 0, -distance).applyEuler(euler));
               camera2.lookAt(new THREE.Vector3(0, localRig.height*cameraHeightFactor, positionOffset));
               camera2.updateMatrixWorld();
-              
-              localRig.inputs.hmd.position.set(0, localRig.height, positionOffset);
-              localRig.inputs.hmd.updateMatrixWorld();
-    
-              localRig.velocity.set(0, 0, 0).divideScalar(Math.max(timeDiffMs / 1000, 0.001));
-    
-              localRig.update(timestamp, timeDiffMs);
+              localRig.update(timestamp * 0.5, timeDiffMs);
             },
           };
         },
@@ -1323,22 +1315,16 @@ const getSpriteSpecs = () => {
             value: 1,
           });
           localRig.emoteAnimation = 'alert';
-          localRig.emoteFactor = 200;
+          localRig.emoteFactor = crouchMaxTime;
           localRig.update(0, 0);
           return {
             update(timestamp, timeDiffMs) {
               const euler = new THREE.Euler(0, angle, 0, 'YXZ');
-              camera2.position.set(0, localRig.height*cameraHeightFactor, positionOffset)
+              camera2.position.set(0, localRig.height * cameraHeightFactor, positionOffset)
                 .add(new THREE.Vector3(0, 0, -distance).applyEuler(euler));
-              camera2.lookAt(new THREE.Vector3(0, localRig.height*cameraHeightFactor, positionOffset));
+              camera2.lookAt(new THREE.Vector3(0, localRig.height * cameraHeightFactor, positionOffset));
               camera2.updateMatrixWorld();
-              
-              localRig.inputs.hmd.position.set(0, localRig.height, positionOffset);
-              localRig.inputs.hmd.updateMatrixWorld();
-    
-              localRig.velocity.set(0, 0, 0).divideScalar(Math.max(timeDiffMs / 1000, 0.001));
-    
-              localRig.update(timestamp, timeDiffMs);
+              localRig.update(timestamp * 0.5, timeDiffMs);
             },
           };
         },
@@ -1354,7 +1340,7 @@ const getSpriteSpecs = () => {
             value: 1,
           });
           localRig.emoteAnimation = 'victory';
-          localRig.emoteFactor = 200;
+          localRig.emoteFactor = crouchMaxTime;
           localRig.update(0, 0);
           return {
             update(timestamp, timeDiffMs) {
@@ -1363,13 +1349,7 @@ const getSpriteSpecs = () => {
                 .add(new THREE.Vector3(0, 0, -distance).applyEuler(euler));
               camera2.lookAt(new THREE.Vector3(0, localRig.height*cameraHeightFactor, positionOffset));
               camera2.updateMatrixWorld();
-              
-              localRig.inputs.hmd.position.set(0, localRig.height, positionOffset);
-              localRig.inputs.hmd.updateMatrixWorld();
-    
-              localRig.velocity.set(0, 0, 0).divideScalar(Math.max(timeDiffMs / 1000, 0.001));
-    
-              localRig.update(timestamp, timeDiffMs);
+              localRig.update(timestamp * 0.5, timeDiffMs);
             },
           };
         },
@@ -1385,22 +1365,16 @@ const getSpriteSpecs = () => {
             value: 1,
           });
           localRig.emoteAnimation = 'surprise';
-          localRig.emoteFactor = 200;
+          localRig.emoteFactor = crouchMaxTime;
           localRig.update(0, 0);
           return {
             update(timestamp, timeDiffMs) {
               const euler = new THREE.Euler(0, angle, 0, 'YXZ');
-              camera2.position.set(0, localRig.height*cameraHeightFactor, positionOffset)
+              camera2.position.set(0, localRig.height * cameraHeightFactor, positionOffset)
                 .add(new THREE.Vector3(0, 0, -distance).applyEuler(euler));
-              camera2.lookAt(new THREE.Vector3(0, localRig.height*cameraHeightFactor, positionOffset));
+              camera2.lookAt(new THREE.Vector3(0, localRig.height * cameraHeightFactor, positionOffset));
               camera2.updateMatrixWorld();
-              
-              localRig.inputs.hmd.position.set(0, localRig.height, positionOffset);
-              localRig.inputs.hmd.updateMatrixWorld();
-    
-              localRig.velocity.set(0, 0, 0).divideScalar(Math.max(timeDiffMs / 1000, 0.001));
-    
-              localRig.update(timestamp, timeDiffMs);
+              localRig.update(timestamp * 0.5, timeDiffMs);
             },
           };
         },
@@ -1416,7 +1390,7 @@ const getSpriteSpecs = () => {
             value: 1,
           });
           localRig.emoteAnimation = 'sad';
-          localRig.emoteFactor = 200;
+          localRig.emoteFactor = crouchMaxTime;
           localRig.update(0, 0);
           return {
             update(timestamp, timeDiffMs) {
@@ -1425,13 +1399,7 @@ const getSpriteSpecs = () => {
                 .add(new THREE.Vector3(0, 0, -distance).applyEuler(euler));
               camera2.lookAt(new THREE.Vector3(0, localRig.height*cameraHeightFactor, positionOffset));
               camera2.updateMatrixWorld();
-              
-              localRig.inputs.hmd.position.set(0, localRig.height, positionOffset);
-              localRig.inputs.hmd.updateMatrixWorld();
-    
-              localRig.velocity.set(0, 0, 0).divideScalar(Math.max(timeDiffMs / 1000, 0.001));
-    
-              localRig.update(timestamp, timeDiffMs);
+              localRig.update(timestamp * 0.5, timeDiffMs);
             },
           };
         },
@@ -1447,7 +1415,7 @@ const getSpriteSpecs = () => {
             value: 1,
           });
           localRig.emoteAnimation = 'headShake';
-          localRig.emoteFactor = 200;
+          localRig.emoteFactor = crouchMaxTime;
           localRig.update(0, 0);
           return {
             update(timestamp, timeDiffMs) {
@@ -1456,13 +1424,7 @@ const getSpriteSpecs = () => {
                 .add(new THREE.Vector3(0, 0, -distance).applyEuler(euler));
               camera2.lookAt(new THREE.Vector3(0, localRig.height*cameraHeightFactor, positionOffset));
               camera2.updateMatrixWorld();
-              
-              localRig.inputs.hmd.position.set(0, localRig.height, positionOffset);
-              localRig.inputs.hmd.updateMatrixWorld();
-    
-              localRig.velocity.set(0, 0, 0).divideScalar(Math.max(timeDiffMs / 1000, 0.001));
-    
-              localRig.update(timestamp, timeDiffMs);
+              localRig.update(timestamp * 0.5, timeDiffMs);
             },
           };
         },
@@ -1478,7 +1440,7 @@ const getSpriteSpecs = () => {
             value: 1,
           });
           localRig.emoteAnimation = 'headNod';
-          localRig.emoteFactor = 200;
+          localRig.emoteFactor = crouchMaxTime;
           localRig.update(0, 0);
           return {
             update(timestamp, timeDiffMs) {
@@ -1487,13 +1449,7 @@ const getSpriteSpecs = () => {
                 .add(new THREE.Vector3(0, 0, -distance).applyEuler(euler));
               camera2.lookAt(new THREE.Vector3(0, localRig.height*cameraHeightFactor, positionOffset));
               camera2.updateMatrixWorld();
-              
-              localRig.inputs.hmd.position.set(0, localRig.height, positionOffset);
-              localRig.inputs.hmd.updateMatrixWorld();
-    
-              localRig.velocity.set(0, 0, 0).divideScalar(Math.max(timeDiffMs / 1000, 0.001));
-    
-              localRig.update(timestamp, timeDiffMs);
+              localRig.update(timestamp * 0.5, timeDiffMs);
             },
           };
         },
@@ -1509,7 +1465,7 @@ const getSpriteSpecs = () => {
             value: 1,
           });
           localRig.emoteAnimation = 'embarrassed';
-          localRig.emoteFactor = 200;
+          localRig.emoteFactor = crouchMaxTime;
           localRig.update(0, 0);
           return {
             update(timestamp, timeDiffMs) {
@@ -1518,13 +1474,7 @@ const getSpriteSpecs = () => {
                 .add(new THREE.Vector3(0, 0, -distance).applyEuler(euler));
               camera2.lookAt(new THREE.Vector3(0, localRig.height*cameraHeightFactor, positionOffset));
               camera2.updateMatrixWorld();
-              
-              localRig.inputs.hmd.position.set(0, localRig.height, positionOffset);
-              localRig.inputs.hmd.updateMatrixWorld();
-    
-              localRig.velocity.set(0, 0, 0).divideScalar(Math.max(timeDiffMs / 1000, 0.001));
-    
-              localRig.update(timestamp, timeDiffMs);
+              localRig.update(timestamp * 0.5, timeDiffMs);
             },
           };
         },
