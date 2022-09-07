@@ -77,48 +77,50 @@ class Sfx extends EventTarget {
     super();
     this.player = player;
     this.oldGrunt = null;
+    this.voiceFiles = null;
     this.soundFiles = sounds.getSoundFiles();
-    this.actions = [];
+    this.player.addEventListener('voicepackloaded', this.setVoiceFiles.bind(this));
   }
-  updateActions() {
-    const actions = this.player.getActionsArray();
-    this.actions = Object.fromEntries(
-      actions.map(action => [action.type, action])
-    );
+  cleanup() {
+    this.player.removeEventListener('voicepackloaded', this.setVoiceFiles.bind(this));
+  }
+  setVoiceFiles() {
+    const actionVoices = this.player.voicePack.actionVoices;
+    const emoteVoices = this.player.voicePack.emoteVoices;
+    this.voiceFiles = {
+      actionVoices: {
+        hurt: actionVoices.filter(f => /hurt/i.test(f.name)),
+        scream: actionVoices.filter(f => /scream/i.test(f.name)),
+        attack: actionVoices.filter(f => /attack/i.test(f.name)),
+        angry: actionVoices.filter(f => /angry/i.test(f.name)),
+        gasp: actionVoices.filter(f => /gasp/i.test(f.name)),
+        jump: actionVoices.filter(f => /jump/i.test(f.name)),
+        narutoRun: actionVoices.filter(f => /nr/i.test(f.name))
+      },
+      emoteVoices: {
+        alertSoft: emoteVoices.filter(f => /alert/i.test(f.name)),
+        alert: emoteVoices.filter(f => /alert/i.test(f.name)),
+        angrySoft: emoteVoices.filter(f => /angry/i.test(f.name)),
+        angry: emoteVoices.filter(f => /angry/i.test(f.name)),
+        embarrassedSoft: emoteVoices.filter(f => /emba/i.test(f.name)),
+        embarrassed: emoteVoices.filter(f => /emba/i.test(f.name)),
+        headNodSoft: emoteVoices.filter(f => /nod/i.test(f.name)),
+        headNod: emoteVoices.filter(f => /nod/i.test(f.name)),
+        headShakeSoft: emoteVoices.filter(f => /shake/i.test(f.name)),
+        headShake: emoteVoices.filter(f => /shake/i.test(f.name)),
+        sadSoft: emoteVoices.filter(f => /sad/i.test(f.name)),
+        sad: emoteVoices.filter(f => /sad/i.test(f.name)),
+        surpriseSoft: emoteVoices.filter(f => /surprise/i.test(f.name)),
+        surprise: emoteVoices.filter(f => /surprise/i.test(f.name)),
+        victorySoft: emoteVoices.filter(f => /victory/i.test(f.name)),
+        victory: emoteVoices.filter(f => /victory/i.test(f.name))
+      }
+    };
   }
   playGrunt(type, index) {
-    if (this.player.voicePack) { // ensure voice pack loaded
-      let voiceFiles, offset, duration;
-      switch (type) {
-        case 'hurt': {
-          voiceFiles = this.player.voicePack.actionVoices.filter(f => /hurt/i.test(f.name));
-          break;
-        }
-        case 'scream': {
-          voiceFiles = this.player.voicePack.actionVoices.filter(f => /scream/i.test(f.name));
-          break;
-        }
-        case 'attack': {
-          voiceFiles = this.player.voicePack.actionVoices.filter(f => /attack/i.test(f.name));
-          break;
-        }
-        case 'angry': {
-          voiceFiles = this.player.voicePack.actionVoices.filter(f => /angry/i.test(f.name));
-          break;
-        }
-        case 'gasp': {
-          voiceFiles = this.player.voicePack.actionVoices.filter(f => /gasp/i.test(f.name));
-          break;
-        }
-        case 'jump': {
-          voiceFiles = this.player.voicePack.actionVoices.filter(f => /jump/i.test(f.name));
-          break;
-        }
-        case 'narutoRun': {
-          voiceFiles = this.player.voicePack.actionVoices.filter(f => /nr/i.test(f.name));
-          break;
-        }
-      }
+    if (this.voiceFiles) {
+      const voiceFiles = this.voiceFiles.actionVoices[type];
+      let offset, duration;
       
       if (index === undefined) {
         let voice = selectVoice(voiceFiles);
@@ -158,54 +160,9 @@ class Sfx extends EventTarget {
     }
   }
   playEmote(type, index) {
-    if (this.player.voicePack) { // ensure voice pack loaded
-      let voiceFiles, offset, duration;
-      switch (type) {
-        case 'alertSoft':
-        case 'alert': {
-          voiceFiles = this.player.voicePack.emoteVoices.filter(f => /alert/i.test(f.name));
-          break;
-        }
-        case 'angrySoft':
-        case 'angry': {
-          voiceFiles = this.player.voicePack.emoteVoices.filter(f => /angry/i.test(f.name));
-          break;
-        }
-        case 'embarrassedSoft':
-        case 'embarrassed': {
-          voiceFiles = this.player.voicePack.emoteVoices.filter(f => /emba/i.test(f.name));
-          break;
-        }
-        case 'headNodSoft':
-        case 'headNod': {
-          voiceFiles = this.player.voicePack.emoteVoices.filter(f => /nod/i.test(f.name));
-          break;
-        }
-        case 'headShakeSoft':
-        case 'headShake': {
-          voiceFiles = this.player.voicePack.emoteVoices.filter(f => /shake/i.test(f.name));
-          break;
-        }
-        case 'sadSoft':
-        case 'sad': {
-          voiceFiles = this.player.voicePack.emoteVoices.filter(f => /sad/i.test(f.name));
-          break;
-        }
-        case 'surpriseSoft':
-        case 'surprise': {
-          voiceFiles = this.player.voicePack.emoteVoices.filter(f => /surprise/i.test(f.name));
-          break;
-        }
-        case 'victorySoft':
-        case 'victory': {
-          voiceFiles = this.player.voicePack.emoteVoices.filter(f => /victory/i.test(f.name));
-          break;
-        }
-        default: {
-          voiceFiles = this.player.voicePack.emoteVoices;
-          break;
-        }
-      }
+    if (this.voiceFiles) { // ensure voice pack loaded
+      const voiceFiles = this.voiceFiles.emoteVoices[type];
+      let offset, duration;
       
       if (index === undefined) {
         let voice = selectVoice(voiceFiles);
@@ -252,12 +209,12 @@ class JumpSfx extends Sfx {
     this.lastLandState = false;
     this.lastJumpState = false;
   }
-  update(timestamp, timeDiffS, actions) {
+  update(timestamp, timeDiffS) {
     if (this.player.avatar.jumpState && !this.lastJumpState) {
       sounds.playSoundName('jump');
 
-      // play jump grunt 
-      if(actions.jump?.trigger === 'jump') {
+      const jumpAction = this.player.getAction('jump');
+      if(jumpAction?.trigger === 'jump') {
         this.playGrunt('jump'); 
       }
     }
@@ -277,35 +234,42 @@ class StepSfx extends Sfx {
     this.narutoRunFinishTime = 0;
     this.currentStep = null;
   }
-  update(timestamp, timeDiffS, actions) {
+  update(timestamp, timeDiffS) {
     const timeSeconds = timestamp/1000;
     const currentSpeed = localVector.set(this.player.avatar.velocity.x, 0, this.player.avatar.velocity.z).length();
     const idleWalkFactor = Math.min(Math.max((currentSpeed - idleFactorSpeed) / (walkFactorSpeed - idleFactorSpeed), 0), 1);
     const walkRunFactor = Math.min(Math.max((currentSpeed - walkFactorSpeed) / (runFactorSpeed - walkFactorSpeed), 0), 1);
     const crouchFactor = Math.min(Math.max(1 - (this.player.avatar.crouchTime / crouchMaxTime), 0), 1);
 
-    if (idleWalkFactor > 0.7
-    && !this.player.avatar.jumpState
-    && !this.player.avatar.fallLoopState 
-    && !this.player.avatar.flyState
-    && !actions.swim
-    && !actions.sit) {
-
+    if (
+      idleWalkFactor > 0.7 &&
+      !this.player.avatar.jumpState &&
+      !this.player.avatar.fallLoopState &&
+      !this.player.avatar.flyState &&
+      !this.player.hasAction("swim") &&
+      !this.player.hasAction("sit")
+    ) {
       const isRunning = walkRunFactor > 0.5;
       const isCrouching = crouchFactor > 0.5;
       const isNarutoRun = this.player.avatar.narutoRunState;
       const walkRunAnimationName = (() => {
         if (isNarutoRun) {
-          return 'naruto run.fbx';
+          return "naruto run.fbx";
         } else {
-          const animationAngles = isCrouching ?
-            Avatar.getClosest2AnimationAngles('crouch', this.player.avatar.getAngle())
-          :
-            (isRunning ?
-              Avatar.getClosest2AnimationAngles('run', this.player.avatar.getAngle())
-            :
-              Avatar.getClosest2AnimationAngles('walk', this.player.avatar.getAngle())
-            );
+          const animationAngles = isCrouching
+            ? Avatar.getClosest2AnimationAngles(
+                "crouch",
+                this.player.avatar.getAngle()
+              )
+            : isRunning
+            ? Avatar.getClosest2AnimationAngles(
+                "run",
+                this.player.avatar.getAngle()
+              )
+            : Avatar.getClosest2AnimationAngles(
+                "walk",
+                this.player.avatar.getAngle()
+              );
           return animationAngles[0].name;
         }
       })();
@@ -321,40 +285,62 @@ class StepSfx extends Sfx {
         }
       })();
       const animations = Avatar.getAnimations();
-      const animation = animations.find(a => a.name === walkRunAnimationName);
+      const animation = animations.find((a) => a.name === walkRunAnimationName);
       const animationStepIndices = Avatar.getAnimationStepIndices();
-      const animationIndices = animationStepIndices.find(i => i.name === walkRunAnimationName);
-      const {leftStepIndices, rightStepIndices} = animationIndices;
+      const animationIndices = animationStepIndices.find(
+        (i) => i.name === walkRunAnimationName
+      );
+      const { leftStepIndices, rightStepIndices } = animationIndices;
 
       const offset = offsets[walkRunAnimationName] ?? 0; // ?? window.lol; // check
-      const _getStepIndex = timeSeconds => {
-        const timeMultiplier = walkRunAnimationName === 'naruto run.fbx' ? narutoRunTimeFactor : 1;
-        const walkTime = (timeSeconds * timeMultiplier + offset) % animation.duration;
+      const _getStepIndex = (timeSeconds) => {
+        const timeMultiplier =
+          walkRunAnimationName === "naruto run.fbx" ? narutoRunTimeFactor : 1;
+        const walkTime =
+          (timeSeconds * timeMultiplier + offset) % animation.duration;
         const walkFactor = walkTime / animation.duration;
-        const stepIndex = Math.floor(mod(walkFactor, 1) * leftStepIndices.length);
+        const stepIndex = Math.floor(
+          mod(walkFactor, 1) * leftStepIndices.length
+        );
         return stepIndex;
       };
 
       const startIndex = _getStepIndex(this.lastWalkTime);
       const endIndex = _getStepIndex(timeSeconds);
-      for (let i = startIndex;; i++) {
+      for (let i = startIndex; ; i++) {
         i = i % leftStepIndices.length;
         if (i !== endIndex) {
-          if (leftStepIndices[i] && !this.lastStepped[0] && !this.player.avatar.narutoRunState && timeSeconds-this.narutoRunFinishTime>0.5) {
-            const candidateAudios = localSoundFiles//.filter(a => a.paused);
+          if (
+            leftStepIndices[i] &&
+            !this.lastStepped[0] &&
+            !this.player.avatar.narutoRunState &&
+            timeSeconds - this.narutoRunFinishTime > 0.5
+          ) {
+            const candidateAudios = localSoundFiles; //.filter(a => a.paused);
             if (candidateAudios.length > 0) {
-              this.currentStep = 'left';
-              const audioSpec = candidateAudios[Math.floor(Math.random() * candidateAudios.length)];
+              this.currentStep = "left";
+              const audioSpec =
+                candidateAudios[
+                  Math.floor(Math.random() * candidateAudios.length)
+                ];
               sounds.playSound(audioSpec);
             }
           }
           this.lastStepped[0] = leftStepIndices[i];
 
-          if (rightStepIndices[i] && !this.lastStepped[1] && !this.player.avatar.narutoRunState && timeSeconds-this.narutoRunFinishTime>0.5) {
-            const candidateAudios = localSoundFiles// .filter(a => a.paused);
+          if (
+            rightStepIndices[i] &&
+            !this.lastStepped[1] &&
+            !this.player.avatar.narutoRunState &&
+            timeSeconds - this.narutoRunFinishTime > 0.5
+          ) {
+            const candidateAudios = localSoundFiles; // .filter(a => a.paused);
             if (candidateAudios.length > 0) {
-              this.currentStep = 'right';
-              const audioSpec = candidateAudios[Math.floor(Math.random() * candidateAudios.length)];
+              this.currentStep = "right";
+              const audioSpec =
+                candidateAudios[
+                  Math.floor(Math.random() * candidateAudios.length)
+                ];
               sounds.playSound(audioSpec);
             }
           }
@@ -374,44 +360,38 @@ class SwimSfx extends Sfx {
     this.currentSwimmingHand = null;
     this.setSwimmingHand = true;
   }
-  update(timestamp, timeDiffS, actions) {
-    if(actions.swim){
-      if(actions.swim.animationType === 'breaststroke'){
-          if(this.setSwimmingHand && this.player.actionInterpolants.movements.get() % breaststrokeDuration <= breaststrokeOffset){ // check
-            this.setSwimmingHand = false;
-            this.currentSwimmingHand = null;
-          }
-          else if(!this.setSwimmingHand && this.player.actionInterpolants.movements.get() % breaststrokeDuration > breaststrokeOffset){
-            let regex = new RegExp('^water/swim[0-9]*.wav$');
-            const candidateAudios = this.soundFiles.water.filter(f => regex.test(f.name));
-            const audioSpec = candidateAudios[Math.floor(Math.random() * candidateAudios.length)];
-            if(actions.swim.onSurface)
-              sounds.playSound(audioSpec);
-
-            this.setSwimmingHand = true;
-            this.currentSwimmingHand = 'right';
-          }
-      }
-      else if(actions.swim.animationType === 'freestyle'){
-        let regex = new RegExp('^water/swim_fast[0-9]*.wav$');
-        const candidateAudios = this.soundFiles.water.filter(f => regex.test(f.name));
-        const audioSpec = candidateAudios[Math.floor(Math.random() * candidateAudios.length)];
-
-        if(this.setSwimmingHand && this.player.actionInterpolants.movements.get() % freestyleDuration <= freestyleOffset){
-          // console.log('left hand')
-          if(actions.swim.onSurface)
-            sounds.playSound(audioSpec);
-          this.currentSwimmingHand = 'left';
+  update(timestamp, timeDiffS) {
+    const swimAction = this.player.getAction('swim');
+    if(swimAction?.animationType === 'breaststroke') {
+        if(this.setSwimmingHand && this.player.actionInterpolants.movements.get() % breaststrokeDuration <= breaststrokeOffset){ // check
           this.setSwimmingHand = false;
+          this.currentSwimmingHand = null;
         }
-        else if(!this.setSwimmingHand && this.player.actionInterpolants.movements.get() % freestyleDuration > freestyleOffset){
-          // console.log('right hand')
-          if(actions.swim.onSurface)
+        else if(!this.setSwimmingHand && this.player.actionInterpolants.movements.get() % breaststrokeDuration > breaststrokeOffset){
+          let regex = new RegExp('^water/swim[0-9]*.wav$');
+          const candidateAudios = this.soundFiles.water.filter(f => regex.test(f.name));
+          const audioSpec = candidateAudios[Math.floor(Math.random() * candidateAudios.length)];
+          if(swimAction.onSurface)
             sounds.playSound(audioSpec);
-          this.currentSwimmingHand = 'right';
+
           this.setSwimmingHand = true;
+          this.currentSwimmingHand = 'right';
         }
-      }  
+    } else if(swimAction?.animationType === 'freestyle') {
+      let regex = new RegExp('^water/swim_fast[0-9]*.wav$');
+      const candidateAudios = this.soundFiles.water.filter(f => regex.test(f.name));
+      const audioSpec = candidateAudios[Math.floor(Math.random() * candidateAudios.length)];
+
+      if(this.setSwimmingHand && this.player.actionInterpolants.movements.get() % freestyleDuration <= freestyleOffset){
+        if(swimAction.onSurface) sounds.playSound(audioSpec);
+        this.currentSwimmingHand = 'left';
+        this.setSwimmingHand = false;
+      }
+      else if(!this.setSwimmingHand && this.player.actionInterpolants.movements.get() % freestyleDuration > freestyleOffset){
+        if(swimAction.onSurface) sounds.playSound(audioSpec);
+        this.currentSwimmingHand = 'right';
+        this.setSwimmingHand = true;
+      }
     }
   }
 }
@@ -429,7 +409,7 @@ class NarutoRunSfx extends Sfx {
     this.arr = [0, 0, 0, 0];
     this.willGasp = false;
   }
-  update(timestamp, timeDiffS, actions) {
+  update(timestamp, timeDiffS) {
     const timeSeconds = timestamp/1000;
     this.currentQ.copy(this.player.quaternion);
     let temp = this.currentQ.angleTo(this.preQ);
@@ -493,12 +473,11 @@ class ComboSfx extends Sfx {
     this.swordComboStartTime = 0;
     this.alreadyPlayComboSound = false;
   }
-  update(timestamp, timeDiffS, actions) {
+  update(timestamp, timeDiffS) {
     const timeSeconds = timestamp/1000;
-    if (actions.use?.behavior === 'sword') {
-      const comboAnimationName = actions.use.animationCombo ? // todo
-        aimAnimations[actions.use.animationCombo[this.player.avatar.useAnimationIndex]]
-        : null;
+    const useAction = this.player.getAction('use');
+    if (useAction?.behavior === 'sword' && useAction?.animationCombo) {
+      const comboAnimationName = aimAnimations[useAction.animationCombo[useAction.index]];
       if (comboAnimationName) {
         if (comboAnimationName !== this.lastSwordComboName) {
           this.swordComboStartTime = timeSeconds;
@@ -508,8 +487,8 @@ class ComboSfx extends Sfx {
         const animation = animations.find(a => a.name === comboAnimationName);
         const animationComboIndices = Avatar.getanimationComboIndices();
         const animationIndices = animationComboIndices.find(i => i.name === comboAnimationName);
-        const handDeltas = actions.use.boneAttachment === 'leftHand' ? animationIndices.rightHandDeltas : animationIndices.leftHandDeltas;
-        const maxDeltaIndex = actions.use.boneAttachment === 'leftHand' ? animationIndices.maxRightDeltaIndex : animationIndices.maxLeftDeltaIndex;
+        const handDeltas = useAction.boneAttachment === 'leftHand' ? animationIndices.rightHandDeltas : animationIndices.leftHandDeltas;
+        const maxDeltaIndex = useAction.boneAttachment === 'leftHand' ? animationIndices.maxRightDeltaIndex : animationIndices.maxLeftDeltaIndex;
         
         const ratio = (timeSeconds - this.swordComboStartTime) / animation.duration;
         if (ratio <= 1 && !this.alreadyPlayComboSound) {
@@ -537,7 +516,7 @@ class GaspSfx extends Sfx {
     this.startRunningTime = 0;
     this.willGasp = false;
   }
-  update(timestamp, timeDiffS, actions) {
+  update(timestamp, timeDiffS) {
     const timeSeconds = timestamp/1000;
     const currentSpeed = localVector.set(this.player.avatar.velocity.x, 0, this.player.avatar.velocity.z).length();
     const isRunning = currentSpeed > 0.5;
@@ -565,7 +544,7 @@ class FoodSfx extends Sfx {
     this.lastEatFrameIndex = -1;
     this.lastDrinkFrameIndex = -1;
   }
-  update(timestamp, timeDiffS, actions) {
+  update(timestamp, timeDiffS) {
     const useAction = this.player.getAction('use');
       if (useAction) {
         const _handleEat = () => {
@@ -608,7 +587,7 @@ class EmoteSfx extends Sfx {
     super(player);
     this.lastEmote = null;
   }
-  update(timestamp, timeDiffS, actions) {
+  update(timestamp, timeDiffS) {
     if(this.player.avatar.emoteAnimation && this.lastEmote !== this.player.avatar.emoteAnimation){
       this.playEmote(this.player.avatar.emoteAnimation);
     }
@@ -634,16 +613,16 @@ class CharacterSfx extends Sfx {
     if (!this.player.avatar) {
       return;
     }
-      super.updateActions();
-      this.jumpSfx.update(timestamp, timeDiffS, this.actions);
-      this.stepSfx.update(timestamp, timeDiffS, this.actions);
-      this.swimSfx.update(timestamp, timeDiffS, this.actions);
-      this.narutoRunSfx.update(timestamp, timeDiffS, this.actions);
-      this.comboSfx.update(timestamp, timeDiffS, this.actions);
-      this.gaspSfx.update(timestamp, timeDiffS, this.actions);
-      this.foodSfx.update(timestamp, timeDiffS, this.actions);
-      this.emoteSfx.update(timestamp, timeDiffS, this.actions);
+    this.jumpSfx.update(timestamp, timeDiffS);
+    this.stepSfx.update(timestamp, timeDiffS);
+    this.swimSfx.update(timestamp, timeDiffS);
+    this.narutoRunSfx.update(timestamp, timeDiffS);
+    this.comboSfx.update(timestamp, timeDiffS);
+    this.gaspSfx.update(timestamp, timeDiffS);
+    this.foodSfx.update(timestamp, timeDiffS);
+    this.emoteSfx.update(timestamp, timeDiffS);
   }
+  
   destroy() {
     this.cleanup && this.cleanup();
   }

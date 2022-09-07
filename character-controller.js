@@ -256,6 +256,7 @@ class PlayerBase extends THREE.Object3D {
       indexUrl,
     });
     this.updateVoicer();
+    this.dispatchEvent({type: 'voicepackloaded'});
   }
   setVoiceEndpoint(voiceId) {
     if (!voiceId) throw new Error('voice Id is null')
