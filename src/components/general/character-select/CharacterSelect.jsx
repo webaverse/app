@@ -42,17 +42,6 @@ for (let i = 0; i < userTokenCharacters.length; i++) {
         bio: '',
     };
 }
-const fillCharactersMap = (charactersMap) => {
-    // adds additional character information for dynamic npcApp creation and selection support
-    const viewCharactersMap = JSON.parse(JSON.stringify(charactersMap)); // deep clone
-    for (const [packName, pack] of Object.entries(viewCharactersMap)) {
-        for (const character of pack) {
-            character.detached = true; // diorama character doesn't need to be attached to npc-manager
-            character.packName = packName;
-        }
-    }
-    return viewCharactersMap;
-};
 
 const Character = forwardRef(({
     character,
@@ -95,6 +84,8 @@ export const CharacterSelect = () => {
     const { state, setState } = useContext( AppContext );
     const [ highlightCharacter, setHighlightCharacter ] = useState(null);
     const [ selectCharacter, setSelectCharacter ] = useState(null);
+    const [ highlightPack, setHighlightPack ] = useState(null);
+    const [ selectPack, setSelectPack ] = useState(null);
     const [ lastTargetCharacter, setLastTargetCharacter ] = useState(null);
     const [ abortFn, setAbortFn ] = useState(null);
     const [ arrowPosition, setArrowPosition ] = useState(null);
@@ -107,8 +98,10 @@ export const CharacterSelect = () => {
                 live = false;
             });
 
+            let detachedCharacter = JSON.parse(JSON.stringify(targetCharacter));
+            detachedCharacter.detached = true;
             const npcApp = await metaversefile.createAppAsync({
-                start_url: typeContentToUrl('application/npc', targetCharacter),
+                start_url: typeContentToUrl('application/npc', detachedCharacter),
             });
             return npcApp.npcPlayer;
         },
@@ -181,6 +174,7 @@ export const CharacterSelect = () => {
     }, [charactersMap]);
 
     const targetCharacter = selectCharacter || highlightCharacter;
+    const targetPack = selectPack || highlightPack;
     const _updateArrowPosition = () => {
         if (targetCharacter) {
             const ref = refsMap.get(targetCharacter);
@@ -191,7 +185,6 @@ export const CharacterSelect = () => {
                 setArrowPosition([
                     Math.floor(rect.left - parentRect.left + rect.width / 2 + 40),
                     Math.floor(rect.top - parentRect.top + rect.height / 2),
-                    targetCharacter.packName,
                 ]);
             } else {
                 setArrowPosition(null);
@@ -312,6 +305,8 @@ export const CharacterSelect = () => {
             setNpcPlayer(null);
             setHighlightCharacter(null);
             setSelectCharacter(null);
+            setHighlightPack(null);
+            setSelectPack(null);
             setArrowPosition(null);
             setText('');
         }
@@ -319,18 +314,20 @@ export const CharacterSelect = () => {
     useEffect(() => {
         charactersManager.loadCharactersMap().then((result) => {
             const charactersMap = result;
-            setCharactersMap(fillCharactersMap(charactersMap));
+            setCharactersMap(charactersMap);
         });
     }, []);
     
-    const onMouseMove = character => e => {
+    const onMouseMove = (character, packName) => e => {
         if (enabled) {
             setHighlightCharacter(character);
+            setHighlightPack(packName);
         }
     };
-    const onClick = character => e => {
+    const onClick = (character, packName) => e => {
         if (character && !selectCharacter) {
             setSelectCharacter(character);
+            setSelectPack(packName);
 
             sounds.playSoundName('menuBoop');
 
@@ -387,8 +384,8 @@ export const CharacterSelect = () => {
                                 highlight={character === targetCharacter}
                                 animate={selectCharacter === character}
                                 disabled={!character.name || (!!selectCharacter && selectCharacter !== character)}
-                                onMouseMove={onMouseMove(character)}
-                                onClick={onClick(character)}
+                                onMouseMove={onMouseMove(character, 'tokens')}
+                                onClick={onClick(character, 'tokens')}
                                 key={i}
                                 ref={refsMap.get(character)}
                             />
@@ -409,15 +406,15 @@ export const CharacterSelect = () => {
                                             highlight={character === targetCharacter}
                                             animate={selectCharacter === character}
                                             disabled={!character.name || (!!selectCharacter && selectCharacter !== character)}
-                                            onMouseMove={onMouseMove(character)}
-                                            onClick={onClick(character)}
+                                            onMouseMove={onMouseMove(character, packName)}
+                                            onClick={onClick(character, packName)}
                                             key={i}
                                             ref={refsMap.get(character)}
                                         />
                                     );
                                 })}
                                 <LightArrow
-                                    enabled={!!arrowPosition && arrowPosition[2] === packName}
+                                    enabled={!!arrowPosition && targetPack === packName}
                                     animate={!!selectCharacter}
                                     x={arrowPosition?.[0] ?? 0}
                                     y={arrowPosition?.[1] ?? 0}
