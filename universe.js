@@ -34,6 +34,7 @@ class Universe extends EventTarget {
   }
   async enterWorld(worldSpec) {
     this.disconnectRoom();
+    this.disconnectDomain();
     
     const localPlayer = metaversefile.useLocalPlayer();
     /* localPlayer.teleportTo(new THREE.Vector3(0, 1.5, 0), camera.quaternion, {
@@ -51,7 +52,10 @@ class Universe extends EventTarget {
 
       const promises = [];
       const {src, room} = worldSpec;
-      if (!room) {
+
+      const hasDomain = src && src.endsWith(".domain.scn");
+
+      if (!room && !hasDomain) {
         const state = new Z.Doc();
         this.connectState(state);
         
@@ -73,6 +77,11 @@ class Universe extends EventTarget {
           });
           promises.push(p);
         }
+      } else if (hasDomain) {
+        const p = (async () => {
+          await this.connectDomain(src);
+        })();
+        promises.push(p);
       } else {
         const p = (async () => {
           const roomUrl = this.getWorldsHost() + room;
@@ -208,6 +217,27 @@ class Universe extends EventTarget {
     if (this.wsrtc && this.wsrtc.state === 'open') this.wsrtc.close();
     this.wsrtc = null;
   }
+
+  // Called by enterWorld() in universe.js.
+  // This is called when a player enters a scene that has a Vircadia domain connection.
+  async connectDomain(src, state = new Z.Doc()) {
+
+    // TODO: Prepare for domain connection but don't connect until the application is loaded from the scene.
+
+    // Load as single player for starters.
+    this.connectState(state);
+    await metaversefile.createAppAsync({
+      start_url: src,
+    });
+  }
+
+  // Called by enterWorld() in universe.js, to make sure we aren't already connected.
+  async disconnectDomain() {
+
+    // TODO: Disconnect any current domain connection.
+
+  }
+
 }
 const universe = new Universe();
 

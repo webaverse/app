@@ -827,6 +827,12 @@ metaversefile.setApi({
       throw new Error('useResize cannot be called outside of render()');
     }
   },
+  connectDomain(url) {
+    console.debug("TODO connectDomain():", url);
+  },
+  disconnectDomain() {
+    console.debug("TODO disconnectDomain()");
+  },
   getNextInstanceId() {
     return getRandomString();
   },
