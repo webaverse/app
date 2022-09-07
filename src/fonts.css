@@ -57,3 +57,45 @@
   font-family: 'SanvitoPro-Regular';
   src:  url('../public/fonts/SanvitoPro-Regular.ttf');
 }
+
+/* New UI font */
+@font-face {
+  font-family: 'TTSC-Black-Italic';
+  src:  url('../public/fonts/tt-squares/TT Squares Condensed Black Italic.otf');
+}
+@font-face {
+  font-family: 'TTSC-Black';
+  src:  url('../public/fonts/tt-squares/TT Squares Condensed Black.otf');
+}
+@font-face {
+  font-family: 'TTSC-Bold-Italic';
+  src:  url('../public/fonts/tt-squares/TT Squares Condensed Bold Italic.otf');
+}
+@font-face {
+  font-family: 'TTSC-Bold';
+  src:  url('../public/fonts/tt-squares/TT Squares Condensed Bold.otf');
+}
+@font-face {
+  font-family: 'TTSC-Light-Italic';
+  src:  url('../public/fonts/tt-squares/TT Squares Condensed Light Italic.otf');
+}
+@font-face {
+  font-family: 'TTSC-Light';
+  src:  url('../public/fonts/tt-squares/TT Squares Condensed Light.otf');
+}
+@font-face {
+  font-family: 'TTSC-Regular-Italic';
+  src:  url('../public/fonts/tt-squares/TT Squares Condensed Regular Italic.otf');
+}
+@font-face {
+  font-family: 'TTSC-Regular';
+  src:  url('../public/fonts/tt-squares/TT Squares Condensed Regular.otf');
+}
+@font-face {
+  font-family: 'TTSC-Thin-Italic';
+  src:  url('../public/fonts/tt-squares/TT Squares Condensed Thin italic.otf');
+}
+@font-face {
+  font-family: 'TTSC-Thin';
+  src:  url('../public/fonts/tt-squares/TT Squares Condensed Thin.otf');
+}

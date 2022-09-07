@@ -1,0 +1,295 @@
+.avatarBoxWrap {
+    --width: 200px;
+    --canvas-size: 90px;
+    position: fixed;
+    display: flex;
+    top: 18px;
+    left: 28px;
+    user-select: none;
+    cursor: pointer;
+    z-index: 2;
+    font-family: "TTSC-Bold";
+}
+
+.avatarBoxWrap .avatarBox .canvas {
+    position: relative;
+    width: var(--canvas-size);
+    height: var(--canvas-size);
+    background: rgb(47, 78, 102) !important;
+    background: linear-gradient(
+        10deg,
+        rgba(47, 78, 102, 1) 0%,
+        rgba(19, 26, 44, 1) 100%
+    ) !important;
+    border: 2px solid #000;
+    transform: skewX(3deg);
+    z-index: 1;
+}
+
+.avatarBoxWrap .avatarBox .tab {
+    background: #000;
+    width: 32px;
+    height: 16px;
+    line-height: 16px;
+    font-size: 10px;
+    text-transform: uppercase;
+    font-family: "TTSC-Regular";
+    text-align: center;
+    color: #FFF;
+    margin: auto;
+    margin-top: -3px;
+}
+
+.avatarBoxWrap .avatarBox .placeholderImg {
+    position: absolute;
+    top: 20px;
+    left: 20px;
+    width: calc(var(--canvas-size) - 20px * 2);
+    height: calc(var(--canvas-size) - 20px * 2);
+    z-index: 2;
+}
+
+.avatarBoxWrap .avatarBox.loaded .placeholderImg {
+    display: none;
+}
+
+.avatarBoxWrap .avatarBox .meta {
+    display: block;
+    position: absolute;
+    left: calc(var(--canvas-size) - 8px * 2);
+    top: 4px;
+    z-index: 1;
+    width: var(--width);
+}
+
+.avatarBoxWrap .avatarBox .meta .info {
+    position: relative;
+    height: 30px;
+    line-height: 30px;
+    width: 180px;
+    padding: 0 12px 0 16px;
+    font-size: 18px;
+    color: #000;
+    font-weight: bold;
+}
+
+.avatarBoxWrap .avatarBox .meta .info .background {
+    width: 180px;
+    height: 30px;
+    background: #fff;
+    position: absolute;
+    border: 2px solid #000;
+    z-index: -1;
+    top: 0;
+    left: 0;
+    transform: skewX(12deg);
+}
+
+.avatarBoxWrap .avatarBox .meta .info:after {
+    display: block;
+    content: "";
+    clear: both;
+}
+
+.avatarBoxWrap .avatarBox .meta .info .name {
+    float: left;
+}
+.avatarBoxWrap .avatarBox .meta .info .level {
+    float: right;
+    color: #bc2ce4;
+}
+
+.avatarBoxWrap .avatarBox .meta .stats {
+    position: relative;
+}
+
+.avatarBoxWrap .avatarBox .meta .stats .background {
+    width: 200px;
+    height: 49px;
+    background: #000;
+    position: absolute;
+    z-index: 0;
+    top: 0;
+    left: 10px;
+    transform: skewX(12deg);
+}
+
+.avatarBoxWrap .avatarBox .meta .stats .bgCorner {
+    width: 60px;
+    height: 49px;
+    background: #000;
+    position: absolute;
+    z-index: 0;
+    top: 0;
+    right: -14px;
+    transform: skewX(16deg);
+}
+
+.avatarBoxWrap .avatarBox .meta .stat {
+    width: 200px;
+    color: #fff;
+    padding: 8px 16px 0 14px;
+    position: relative;
+}
+.avatarBoxWrap .avatarBox .meta .stat.hp {
+    margin-left: 5px;
+    transform: skewX(9deg);
+}
+.avatarBoxWrap .avatarBox .meta .stat.mp {
+    margin-left: 9px;
+}
+.avatarBoxWrap .avatarBox .meta .stat.xp {
+    margin-left: 13px;
+}
+
+.avatarBoxWrap .avatarBox .meta .label {
+    display: inline-block;
+    float: right;
+}
+
+.avatarBoxWrap .avatarBox .meta .value {
+    position: absolute;
+    right: 30px;
+    top: 4px;
+}
+
+.avatarBoxWrap .avatarBox .meta .progressBar {
+    width: 130px;
+    height: 6px;
+    background: #333333;
+    display: block;
+    overflow: 0;
+}
+.avatarBoxWrap .avatarBox .meta .progressBar > div {
+    width: 0;
+    height: 6px;
+    background: #999999;
+    display: block;
+    overflow: 0;
+    -webkit-transition: all 0.6s ease;
+    -moz-transition: all 0.6s ease;
+    -o-transition: all 0.6s ease;
+    -ms-transition: all 0.6s ease;
+    transition: all 0.6s ease;
+}
+
+.avatarBoxWrap .avatarBox .meta .stat.hp .progressBar {
+    background: #730319;
+    transform: skewX(4deg);
+}
+.avatarBoxWrap .avatarBox .meta .stat.hp .progressBar > div {
+    background: #fe364b;
+}
+
+.avatarBoxWrap .avatarBox .meta .stat.mp .progressBar {
+    background: #031f3b;
+    transform: skewX(12deg);
+}
+.avatarBoxWrap .avatarBox .meta .stat.mp .progressBar > div {
+    background: #00caf5;
+}
+
+.avatarBoxWrap .avatarBox .meta .stat.xp .progressBar {
+    background: #280847;
+    transform: skewX(14deg);
+}
+.avatarBoxWrap .avatarBox .meta .stat.xp .progressBar > div {
+    background: #bc2ce4;
+}
+
+.avatarBoxWrap .avatarBox .meta .limitBar {
+    position: relative;
+    margin-top: 3px;
+    box-sizing: border-box;
+    padding: 6px 16px;
+    width: 232px;
+}
+
+.avatarBoxWrap .avatarBox .meta .limitBar .progressBar {
+    width: 208px;
+    height: 0;
+    border-top: 4px dashed #282500;
+    background: none;
+    position: relative;
+}
+
+.avatarBoxWrap .avatarBox .meta .limitBar .progressBar > div {
+    width: 50%;
+    height: 5px;
+    position: absolute;
+    overflow: hidden;
+    left: 0;
+    top: -4px;
+    background: none;
+    -webkit-transition: all 0.6s ease;
+    -moz-transition: all 0.6s ease;
+    -o-transition: all 0.6s ease;
+    -ms-transition: all 0.6s ease;
+    transition: all 0.6s ease;
+}
+
+.avatarBoxWrap .avatarBox .meta .limitBar .progressBar > div > div {
+    width: 208px;
+    height: 0;
+    background: none;
+    border-top: 4px dashed #decf06;
+}
+
+.avatarBoxWrap .avatarBox .meta .limitBar .background {
+    width: 220px;
+    height: 15px;
+    background: #000;
+    position: absolute;
+    z-index: -1;
+    top: 0;
+    left: 10px;
+    transform: skewX(14deg);
+}
+
+.avatarBoxWrap .avatarBox .meta .limitBar .progress {
+    width: 100%;
+    height: 5px;
+    appearance: none;
+    transform: skewX(10deg);
+    display: block;
+}
+
+.avatarBoxWrap .avatarBox .meta .limitBar .progress::-webkit-progress-bar {
+    background: #3d1315;
+}
+
+.avatarBoxWrap .avatarBox .meta .limitBar .progress::-webkit-progress-value {
+    background: #ffc000;
+}
+
+.avatarBoxWrap:hover {
+    left: 30px;
+}
+
+.avatarBoxWrap:hover .avatarBox .meta .info .background {
+    background: #ffc000;
+    border: 2px solid #000;
+}
+
+.avatarBoxWrap:hover .avatarBox .meta .info * {
+    color: #FFFFFF;
+}
+
+
+@keyframes hueRotate {
+    0% {
+        filter: hue-rotate(0deg);
+    }
+    25% {
+        filter: hue-rotate(90deg);
+    }
+    50% {
+        filter: hue-rotate(180deg);
+    }
+    75% {
+        filter: hue-rotate(270deg);
+    }
+    100% {
+        filter: hue-rotate(360deg);
+    }
+}

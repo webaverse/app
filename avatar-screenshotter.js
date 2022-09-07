@@ -123,7 +123,7 @@ export const screenshotPlayer = async ({
     detached: true,
   });
   diorama.addCanvas(writeCanvas);
-  diorama.setClearColor(0xFFFFFF, 1);
+  diorama.setClearColor(0xFFFFFF, 0);
 
   const _render = () => {
     _initializeAnimation();

@@ -63,7 +63,9 @@ class AvatarIconer extends EventTarget {
           const canvas = document.createElement('canvas');
           canvas.width = width;
           canvas.height = height;
-  
+
+          const cameraOffset = new THREE.Vector3(0, 0.05, -0.55);
+          
           await screenshotPlayer({
             player,
             canvas,
