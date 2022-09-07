@@ -12,10 +12,8 @@ const getCharacterFullPath = (filename) => {
   return charactersDir + filename;
 }
 
-class CharactersManager extends EventTarget {
+class CharactersManager {
   constructor() {
-    super();
-
     this.charactersMap = null;
     this.defaultCharacterSpec = null;
   }
@@ -64,11 +62,6 @@ class CharactersManager extends EventTarget {
         this.charactersMap[packName] = characters;
       }
     }
-    this.dispatchEvent(new MessageEvent('loaded', {
-      data: {
-        charactersMap: this.charactersMap,
-      },
-    }));
     return this.charactersMap;
   }
 }

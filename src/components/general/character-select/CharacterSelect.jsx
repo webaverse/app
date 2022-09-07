@@ -1,5 +1,5 @@
 
-import React, { forwardRef, useEffect, useState, useRef, useContext } from 'react';
+import React, { forwardRef, useEffect, useState, createRef, useContext } from 'react';
 import classnames from 'classnames';
 import metaversefile from 'metaversefile';
 import styles from './character-select.module.css';
@@ -53,7 +53,6 @@ const fillCharactersMap = (charactersMap) => {
     }
     return viewCharactersMap;
 };
-const initCharactersMap = fillCharactersMap(charactersManager.getCharactersMap());
 
 const Character = forwardRef(({
     character,
@@ -159,23 +158,27 @@ export const CharacterSelect = () => {
             };
         },
     }));
-    const [charactersMap, setCharactersMap] = useState(initCharactersMap);
+    const [charactersMap, setCharactersMap] = useState({});
+    const [refsMap, setRefsMap] = useState(new Map());
     // const [ messageAudioCache, setMessageAudioCache ] = useState(new Map());
     // const [ selectAudioCache, setSelectAudioCache ] = useState(new Map());
     const [ text, setText ] = useState('');
 
-    const refsMap = (() => {
-        const map = new Map();
-        for (const userTokenCharacter of userTokenCharacters) {
-            map.set(userTokenCharacter, useRef(null));
-        }
-        for (const k in charactersMap) {
-            for (const character of charactersMap[k]) {
-                map.set(character, useRef(null));
+    useEffect(() => {
+        const refsMap = (() => {
+            const map = new Map();
+            for (const userTokenCharacter of userTokenCharacters) {
+                map.set(userTokenCharacter, createRef(null));
             }
-        }
-        return map;
-    })();
+            for (const k in charactersMap) {
+                for (const character of charactersMap[k]) {
+                    map.set(character, createRef(null));
+                }
+            }
+            return map;
+        });
+        setRefsMap(refsMap);
+    }, [charactersMap]);
 
     const targetCharacter = selectCharacter || highlightCharacter;
     const _updateArrowPosition = () => {
@@ -314,8 +317,8 @@ export const CharacterSelect = () => {
         }
     }, [opened, enabled]);
     useEffect(() => {
-        charactersManager.addEventListener('loaded', (e) => {
-            const {charactersMap} = e.data;
+        charactersManager.loadCharactersMap().then((result) => {
+            const charactersMap = result;
             setCharactersMap(fillCharactersMap(charactersMap));
         });
     }, []);
