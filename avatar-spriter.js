@@ -51,6 +51,8 @@ const cameraHeightFactor = 0.8; // the height of the camera in avatar space
 const spriteScaleFactor = 1.2; // scale up the final sprite by this much in world space
 const spriteFootFactor = 0.07; // offset down this factor in world space
 
+const spriteAnimationSpeed = 0.6;
+
 // opacity factor for sprites
 const alphaTest = 0.9;
 
@@ -1378,6 +1380,7 @@ const getSpriteSpecs = () => {
           localRig.emoteAnimation = "angry";
           localRig.emoteFactor = crouchMaxTime;
           localRig.update(0, 0);
+          let _timestamp = 0;
           return {
             update(timestamp, timeDiffMs) {
               const euler = new THREE.Euler(0, angle, 0, "YXZ");
@@ -1388,7 +1391,8 @@ const getSpriteSpecs = () => {
                 new THREE.Vector3(0, localRig.height * cameraHeightFactor, positionOffset)
               );
               camera2.updateMatrixWorld();
-              localRig.update(timestamp * 0.5, timeDiffMs);
+              localRig.update(_timestamp, timeDiffMs);
+              _timestamp += timeDiffMs * spriteAnimationSpeed;
             },
           };
         },
@@ -1406,6 +1410,7 @@ const getSpriteSpecs = () => {
           localRig.emoteAnimation = "alert";
           localRig.emoteFactor = crouchMaxTime;
           localRig.update(0, 0);
+          let _timestamp = 0;
           return {
             update(timestamp, timeDiffMs) {
               const euler = new THREE.Euler(0, angle, 0, "YXZ");
@@ -1416,7 +1421,8 @@ const getSpriteSpecs = () => {
                 new THREE.Vector3(0, localRig.height * cameraHeightFactor, positionOffset)
               );
               camera2.updateMatrixWorld();
-              localRig.update(timestamp * 0.5, timeDiffMs);
+              localRig.update(_timestamp, timeDiffMs);
+              _timestamp += timeDiffMs * spriteAnimationSpeed;
             },
           };
         },
@@ -1434,6 +1440,7 @@ const getSpriteSpecs = () => {
           localRig.emoteAnimation = "victory";
           localRig.emoteFactor = crouchMaxTime;
           localRig.update(0, 0);
+          let _timestamp = 0;
           return {
             update(timestamp, timeDiffMs) {
               const euler = new THREE.Euler(0, angle, 0, "YXZ");
@@ -1444,7 +1451,8 @@ const getSpriteSpecs = () => {
                 new THREE.Vector3(0, localRig.height * cameraHeightFactor, positionOffset)
               );
               camera2.updateMatrixWorld();
-              localRig.update(timestamp * 0.5, timeDiffMs);
+              localRig.update(_timestamp, timeDiffMs);
+              _timestamp += timeDiffMs * spriteAnimationSpeed;
             },
           };
         },
@@ -1462,6 +1470,7 @@ const getSpriteSpecs = () => {
           localRig.emoteAnimation = "surprise";
           localRig.emoteFactor = crouchMaxTime;
           localRig.update(0, 0);
+          let _timestamp = 0;
           return {
             update(timestamp, timeDiffMs) {
               const euler = new THREE.Euler(0, angle, 0, "YXZ");
@@ -1472,7 +1481,8 @@ const getSpriteSpecs = () => {
                 new THREE.Vector3(0, localRig.height * cameraHeightFactor, positionOffset)
               );
               camera2.updateMatrixWorld();
-              localRig.update(timestamp * 0.5, timeDiffMs);
+              localRig.update(_timestamp, timeDiffMs);
+              _timestamp += timeDiffMs * spriteAnimationSpeed;
             },
           };
         },
@@ -1490,6 +1500,7 @@ const getSpriteSpecs = () => {
           localRig.emoteAnimation = "sad";
           localRig.emoteFactor = crouchMaxTime;
           localRig.update(0, 0);
+          let _timestamp = 0;
           return {
             update(timestamp, timeDiffMs) {
               const euler = new THREE.Euler(0, angle, 0, "YXZ");
@@ -1500,7 +1511,8 @@ const getSpriteSpecs = () => {
                 new THREE.Vector3(0, localRig.height * cameraHeightFactor, positionOffset)
               );
               camera2.updateMatrixWorld();
-              localRig.update(timestamp * 0.5, timeDiffMs);
+              localRig.update(_timestamp, timeDiffMs);
+              _timestamp += timeDiffMs * spriteAnimationSpeed;
             },
           };
         },
@@ -1518,6 +1530,7 @@ const getSpriteSpecs = () => {
           localRig.emoteAnimation = "headShake";
           localRig.emoteFactor = crouchMaxTime;
           localRig.update(0, 0);
+          let _timestamp = 0;
           return {
             update(timestamp, timeDiffMs) {
               const euler = new THREE.Euler(0, angle, 0, "YXZ");
@@ -1528,7 +1541,8 @@ const getSpriteSpecs = () => {
                 new THREE.Vector3(0, localRig.height * cameraHeightFactor, positionOffset)
               );
               camera2.updateMatrixWorld();
-              localRig.update(timestamp * 0.5, timeDiffMs);
+              localRig.update(_timestamp, timeDiffMs);
+              _timestamp += timeDiffMs * spriteAnimationSpeed;
             },
           };
         },
@@ -1546,6 +1560,7 @@ const getSpriteSpecs = () => {
           localRig.emoteAnimation = "headNod";
           localRig.emoteFactor = crouchMaxTime;
           localRig.update(0, 0);
+          let _timestamp = 0;
           return {
             update(timestamp, timeDiffMs) {
               const euler = new THREE.Euler(0, angle, 0, "YXZ");
@@ -1556,7 +1571,8 @@ const getSpriteSpecs = () => {
                 new THREE.Vector3(0, localRig.height * cameraHeightFactor, positionOffset)
               );
               camera2.updateMatrixWorld();
-              localRig.update(timestamp * 0.5, timeDiffMs);
+              localRig.update(_timestamp, timeDiffMs);
+              _timestamp += timeDiffMs * spriteAnimationSpeed;
             },
           };
         },
@@ -1574,6 +1590,7 @@ const getSpriteSpecs = () => {
           localRig.emoteAnimation = "embarrassed";
           localRig.emoteFactor = crouchMaxTime;
           localRig.update(0, 0);
+          let _timestamp = 0;
           return {
             update(timestamp, timeDiffMs) {
               const euler = new THREE.Euler(0, angle, 0, "YXZ");
@@ -1584,7 +1601,8 @@ const getSpriteSpecs = () => {
                 new THREE.Vector3(0, localRig.height * cameraHeightFactor, positionOffset)
               );
               camera2.updateMatrixWorld();
-              localRig.update(timestamp * 0.5, timeDiffMs);
+              localRig.update(_timestamp, timeDiffMs);
+              _timestamp += timeDiffMs * spriteAnimationSpeed;
             },
           };
         },
