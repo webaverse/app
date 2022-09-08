@@ -2,49 +2,63 @@
 it starts the workers and routes calls for the procgen system. */
 
 import {murmurhash3} from './procgen/procgen.js';
-import {DcWorkerManager} from './dc-worker-manager.js';
+import {PGWorkerManager} from './pg-worker-manager.js';
 import {LodChunkTracker} from './lod.js';
-import {LightMapper} from './light-mapper.js';
-import {HeightfieldMapper} from './heightfield-mapper.js';
 import {defaultChunkSize} from './constants.js';
 
-const chunkSize = defaultChunkSize;
-const terrainWidthInChunks = 4;
-const terrainSize = chunkSize * terrainWidthInChunks;
+//
+
+const localArray2D = Array(2);
+
+//
+
+const _getMinHash2D = min =>
+  (min.x << 16) |
+  (min.y & 0xFFFF);
 
 class ProcGenInstance {
   constructor(instance, {
     chunkSize,
-    range,
   }) {
     this.chunkSize = chunkSize;
 
     const seed = typeof instance === 'string' ? murmurhash3(instance) : Math.floor(Math.random() * 0xFFFFFF);
-    this.dcWorkerManager = new DcWorkerManager({
+    this.pgWorkerManager = new PGWorkerManager({
       chunkSize,
       seed,
       instance,
     });
-    this.range = range;
 
-    this.lightmapper = null;
-    this.heightfieldMapper = null;
-
-    if (range) {
-      this.dcWorkerManager.setClipRange(range);
-    }
+    // this.lightmapper = null;
+    // this.heightfieldMapper = null;
   }
-  getChunkTracker(opts = {}) {
+  setCamera(worldPosition, cameraPosition, cameraQuaternion, projectionMatrix) {
+    this.pgWorkerManager.setCamera(worldPosition, cameraPosition, cameraQuaternion, projectionMatrix);
+  }
+  setClipRange() {
+    this.pgWorkerManager.setClipRange(range);
+  }
+  async createLodChunkTracker(opts = {}) {
+    await this.pgWorkerManager.waitForLoad();
+
     const opts2 = structuredClone(opts);
-    const {chunkSize, range} = this;
+    const {chunkSize} = this;
     opts2.chunkSize = chunkSize;
-    opts2.range = range;
-    opts2.dcWorkerManager = this.dcWorkerManager;
+    // opts2.range = range;
+    opts2.pgWorkerManager = this.pgWorkerManager;
 
     const tracker = new LodChunkTracker(opts2);
     return tracker;
   }
-  getLightMapper({
+  async generateChunk(position, lod, lodArray, {signal} = {}) {
+    await this.pgWorkerManager.waitForLoad();
+
+    position.toArray(localArray2D);
+    const result = await this.pgWorkerManager.generateChunk(localArray2D, lod, lodArray, {signal});
+    // console.log('got result', result);
+    return result;
+  }
+  /* async getLightMapper({
     size,
     debug = false,
   }) {
@@ -61,7 +75,7 @@ class ProcGenInstance {
     }
     return this.lightmapper;
   }
-  getHeightfieldMapper({
+  async getHeightfieldMapper({
     size,
     debug = false,
   } = {}) {
@@ -73,7 +87,7 @@ class ProcGenInstance {
       });
     }
     return this.heightfieldMapper;
-  }
+  } */
 }
 
 class ProcGenManager {
@@ -83,17 +97,19 @@ class ProcGenManager {
     this.instances = new Map();
     this.chunkSize = chunkSize;
   }
-  getInstance(key, range) {
+  getInstance(key) {
     let instance = this.instances.get(key);
     if (!instance) {
       const {chunkSize} = this;
       instance = new ProcGenInstance(key, {
         chunkSize,
-        range,
       });
       this.instances.set(key, instance);
     }
     return instance;
+  }
+  getNodeHash(node) {
+    return _getMinHash2D(node.min);
   }
 }
 const procGenManager = new ProcGenManager();
