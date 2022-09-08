@@ -4,6 +4,7 @@ import classNames from 'classnames';
 
 import game from '../../../../game.js';
 import metaversefileApi from '../../../../metaversefile-api'
+import settingsManager from '../../../../settings-manager.js';
 import { Switch } from './switch';
 
 import styles from './settings.module.css';
@@ -65,26 +66,13 @@ export const TabGraphics = ({ active }) => {
             }
         };
 
-        localStorage.setItem( 'GfxSettings', JSON.stringify( settings ) );
+        settingsManager.saveSettings(settings);
 
     };
 
     function loadSettings () {
 
-        const settingsString = localStorage.getItem( 'GfxSettings' );
-        let settings;
-
-        try {
-
-            settings = JSON.parse( settingsString );
-
-        } catch ( err ) {
-
-            settings = DefaultSettings;
-
-        }
-
-        settings = settings ?? DefaultSettings;
+        const settings = settingsManager.getSettings();
 
         setResolution( settings.resolution ?? DefaultSettings.resolution );
         setAntialias( settings.antialias ?? DefaultSettings.antialias );
@@ -103,12 +91,7 @@ export const TabGraphics = ({ active }) => {
 
         // set avatar style
 
-        let avatarStyle = 4;
-        if ( characterDetails === 'HIGH' ) avatarStyle = 3;
-        if ( characterDetails === 'MEDIUM' ) avatarStyle = 2;
-        if ( characterDetails === 'LOW' ) avatarStyle = 1;
-
-        const localPlayer = metaversefileApi.useLocalPlayer();
+        let avatarStyle = settingsManager.convertCharacterQualityToValue(characterDetails);
 
         function setAvatarQuality () {
 
@@ -116,7 +99,7 @@ export const TabGraphics = ({ active }) => {
 
         };
 
-        if ( localPlayer.avatar ) {
+        if ( avatarStyle !== settingsManager.getCharacterQuality() ) {
 
             setAvatarQuality();
 
@@ -159,6 +142,12 @@ export const TabGraphics = ({ active }) => {
     }, [ resolution, antialias, viewRange, shadowQuality, postprocessing, depthOfField, hdr, bloom, characterDetails, hairPhysics ] );
 
     useEffect( () => {
+
+        settingsManager.addEventListener('change', e => {
+
+            loadSettings();
+
+        });
 
         loadSettings();
 

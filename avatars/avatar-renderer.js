@@ -12,8 +12,8 @@ import loaders from '../loaders.js';
 import {WebaverseShaderMaterial} from '../materials.js';
 // import exporters from '../exporters.js';
 import {abortError} from '../lock-manager.js';
-import {/*defaultAvatarQuality,*/ minAvatarQuality, maxAvatarQuality} from '../constants.js';
-const defaultAvatarQuality = 4;
+import {minAvatarQuality, maxAvatarQuality} from '../constants.js';
+import settingsManager from '../settings-manager.js';
 // import {downloadFile} from '../util.js';
 
 const localVector = new THREE.Vector3();
@@ -380,7 +380,7 @@ export class AvatarRenderer /* extends EventTarget */ {
     arrayBuffer,
     srcUrl,
     camera = null, // if null, do not frustum cull
-    quality = defaultAvatarQuality,
+    quality,
     controlled = false,
   } = {})	{
     // super();
@@ -390,6 +390,9 @@ export class AvatarRenderer /* extends EventTarget */ {
     this.arrayBuffer = arrayBuffer;
     this.srcUrl = srcUrl;
     this.camera = camera;
+    if (quality === undefined) {
+      quality = settingsManager.getCharacterQuality();
+    }
     this.quality = quality;
     this.isControlled = controlled;
     
