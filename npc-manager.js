@@ -22,13 +22,13 @@ class NpcManager extends EventTarget {
     super();
 
     this.npcs = [];
-    this.npcAppMaps = new WeakMap();
+    this.npcAppMap = new WeakMap();
     this.detachedNpcs = [];
     this.targetMap = new WeakMap();
   }
 
   getAppByNpc(npc) {
-    return this.npcAppMaps.get(npc);
+    return this.npcAppMap.get(npc);
   }
 
   getNpcByApp(app) {
@@ -108,6 +108,7 @@ class NpcManager extends EventTarget {
     const removeIndex = this.npcs.indexOf(npcPlayer);
     if (removeIndex !== -1) {
       this.npcs.splice(removeIndex, 1);
+      this.npcAppMap.delete(npcPlayer);
     }
   }
 
@@ -150,7 +151,7 @@ class NpcManager extends EventTarget {
   }
 
   async addPlayerApp(app, npcPlayer, json) {
-    this.npcAppMaps.set(npcPlayer, app);
+    this.npcAppMap.set(npcPlayer, app);
 
     let live = true;
     let character = null;
