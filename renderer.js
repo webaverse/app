@@ -90,11 +90,11 @@ function setMode2D (enabled) {
   // }
 }
 
-function setCameraMode (mode) {
+function setCameraMode (perspective) {
 
   cameraManager.setCameraToNullTarget();
   
-  if(mode == "orthographic") {
+  if(perspective == "orthographic") {
     let canvasWidth = window.innerWidth;
     let canvasHeight = window.innerHeight;
     let aspectRatio =  canvasWidth/canvasHeight;

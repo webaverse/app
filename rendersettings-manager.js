@@ -38,9 +38,20 @@ class RenderSettings {
   }
   #makeScene2D(scene2D) {
     if (scene2D) {
+      if(scene2D.cameraMode) {
+        if(scene2D.cameraMode === "fixed") {
+          cameraManager.setCamera("orthographic", scene2D.cameraMode);
+        }
+        else {
+          cameraManager.setCamera("orthographic", "free");
+        }
+      }
+      else {
+        cameraManager.setCamera("orthographic", "free");
+      }
+
       if (scene2D.perspective === 'side-scroll') {
         cameraManager.modeIs2D = true;
-        cameraManager.setCamera("orthographic");
         return true;
       } else if (scene2D.perspective === 'top-down') {
         console.warn('mode unavailable:', scene2D.perspective);

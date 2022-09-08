@@ -16,6 +16,34 @@
       }
     },
     {
+      "type": "application/rendersettings",
+      "content": {
+          "scene2D": {
+            "perspective": "side-scroll",
+            "cameraMode": "fixed"
+          },
+          "pixel": {
+            "pixelSize": 2
+          }
+      }
+    },
+    {
+      "position": [
+        0,
+        0.75,
+        0
+      ],
+      "start_url": "/fire.gif"
+    },
+    {
+      "position": [
+        2,
+        0.75,
+        0
+      ],
+      "start_url": "../metaverse_modules/bounce-block/"
+    },
+    {
       "position": [
         0,
         0,

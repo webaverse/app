@@ -2157,7 +2157,8 @@ const physxWorker = (() => {
     )
     outPosition.fromArray(outPositions)
 
-    // console.log('got flags', flags);
+    console.log('got flags', flags);
+    //console.log()
 
     allocator.freeAll()
 

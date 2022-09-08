@@ -193,8 +193,8 @@ class CameraManager extends EventTarget {
     this.lastTimestamp = 0;
     this.cinematicScript = null;
     this.cinematicScriptStartTime = -1;
-    this.modeIs2D = true;
-    this.activeCamera = false;
+    this.modeIs2D = false;
+    this.lockCamera = false;
 
     document.addEventListener('pointerlockchange', e => {
       let pointerLockElement = document.pointerLockElement;
@@ -215,8 +215,11 @@ class CameraManager extends EventTarget {
     camera.lookAt(position);
     camera.updateMatrixWorld();
   }
-  setCamera(mode) {
-    setCameraMode(mode);
+  setCamera(perspective, mode = "free") {
+    if(mode === "fixed") {
+      this.lockCamera = true;
+    }
+    setCameraMode(perspective, mode);
   }
   setMode(mode) {
     this.modeIs2D = mode;
@@ -280,9 +283,13 @@ class CameraManager extends EventTarget {
     document.exitPointerLock();
   }
   getMode() {
-    if (this.target || this.cinematicScript || this.modeIs2D) {
+    if (this.target || this.cinematicScript) {
       return 'isometric';
-    } else {
+    } 
+    else if(this.modeIs2D) {
+      return 'side-scroll';
+    } 
+    else {
       return cameraOffset.z > -0.5 ? 'firstperson' : 'isometric';
     }
   }
@@ -615,6 +622,16 @@ class CameraManager extends EventTarget {
       };
       _lerpCameraOffset();
 
+      const _isOutOfView = () => {
+        const frustum = new THREE.Frustum()
+        const matrix = new THREE.Matrix4().multiplyMatrices(camera.projectionMatrix, camera.matrixWorldInverse)
+        frustum.setFromProjectionMatrix(matrix)
+        if (!frustum.containsPoint(localPlayer.position)) {
+            return true;
+        }
+        return false;
+      }
+
       const _setFreeCamera = () => {
         const avatarCameraOffset = session ? rayVectorZero : this.getCameraOffset();
         const avatarHeight = localPlayer.avatar ? localPlayer.avatar.height : 0;
@@ -658,10 +675,33 @@ class CameraManager extends EventTarget {
       
             break;
           }
+          case 'side-scroll': {
+            if(this.lockCamera) {
+
+              //console.log(camera.position);
+              
+              let offset = new THREE.Vector3(localPlayer.position.x, localPlayer.position.y, 0).sub(new THREE.Vector3(camera.position.x, localPlayer.position.y, 0));
+              //this.targetPosition.copy();
+              //console.log(this.targetPosition);
+
+              this.targetPosition.copy(new THREE.Vector3(0,localPlayer.position.y, 0)).add(new THREE.Vector3(0, offset.y, 0));
+        
+              break;
+            }
+            this.targetPosition.copy(localPlayer.position)
+              .sub(
+                localVector2.copy(avatarCameraOffset)
+                  .applyQuaternion(this.targetQuaternion)
+              );
+      
+            break;
+          }
           default: {
             throw new Error('invalid camera mode: ' + cameraMode);
           }
         }
+
+       
 
         const factor = Math.min((timestamp - this.lerpStartTime) / maxFocusTime, 1);
 
@@ -673,8 +713,11 @@ class CameraManager extends EventTarget {
         localEuler.z = 0;
         camera.quaternion.copy(this.sourceQuaternion)
           .slerp(localQuaternion.setFromEuler(localEuler), factor);
+          
       };
-      _setFreeCamera();
+      if(!this.lockCamera || _isOutOfView()) {
+        _setFreeCamera();
+      }
     };
       
     const _setCameraFov = () => {
