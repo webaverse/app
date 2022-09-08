@@ -106,7 +106,7 @@ class PartyManager extends EventTarget {
       this.partyChanged();
 
       const removeFns = [];
-      const removeFn = () => {
+      removeFns.push(() => {
         const player = newPlayer;
         // console.log('removeFn', player);
         const playerIndex = this.partyPlayers.indexOf(player);
@@ -121,26 +121,31 @@ class PartyManager extends EventTarget {
           console.warn('remove local player');
         }
         return false;
-      };
-      removeFns.push(removeFn);
+      });
       
       newPlayer.isInParty = true;
+
+      const removePlayer = (player) => {
+        const removeFns = this.removeFnsMap.get(player);
+        for (const removeFn of removeFns) {
+          removeFn();
+        }
+        this.removeFnsMap.delete(player);
+      }
 
       const activate = () => {
         // console.log('deactivate', newPlayer.name);
         const playerIndex = this.partyPlayers.indexOf(newPlayer);
         if (playerIndex > 0) {
-          const removeFns = this.removeFnsMap.get(newPlayer);
-          for (const removeFn of removeFns) {
-            removeFn();
-          }
-          this.removeFnsMap.delete(newPlayer);
-          newPlayer.removeEventListener('activate', activate);
+          removePlayer(newPlayer);
         } else {
           console.warn('deactive local player');
         }
       };
       newPlayer.addEventListener('activate', activate);
+      removeFns.push(() => {
+        newPlayer.removeEventListener('activate', activate);
+      });
 
       if (this.partyPlayers.length >= 2) {
         const headPlayer = this.partyPlayers[0];
