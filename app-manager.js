@@ -602,7 +602,6 @@ class AppManager extends EventTarget {
     });
   }
   importAddedUserVoucherApp(app, json) {
-    console.log("app+ json", app, json)
     const dropManager = metaversefile.useDropManager();
     const localPlayer = playersManager.getLocalPlayer();
     localVector.set(0, 0, -1);
@@ -636,7 +635,6 @@ class AppManager extends EventTarget {
     });
   }
   importHadVoucherApp(app, json) {
-    console.log("app+ json", app, json)
     const dropManager = metaversefile.useDropManager();
     const localPlayer = playersManager.getLocalPlayer();
     localVector.set(0, 0, -1);
