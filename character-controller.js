@@ -758,8 +758,8 @@ class StateCharacter extends Character {
 }
 
 class AvatarCharacter extends StateCharacter {
-  constructor() {
-    super();
+  constructor(opts) {
+    super(opts);
 
     this.avatar = null; 
 
