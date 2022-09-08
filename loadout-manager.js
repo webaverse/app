@@ -24,7 +24,7 @@ class LoadoutManager extends EventTarget {
     this.appsPerPlayer = new WeakMap();
     this.selectedIndexPerPlayer = new WeakMap();
 
-    this.apps = Array(numSlots).fill(null);
+    this.apps = null;
     this.hotbarRenderers = [];
     this.infoboxRenderer = null;
     this.selectedIndex = -1;
@@ -109,11 +109,15 @@ class LoadoutManager extends EventTarget {
       }
     };
     localPlayer.addEventListener('wearupdate', wearupdate);
-    this.removeLastWearUpdateFn = () => {localPlayer.removeEventListener('wearupdate', wearupdate);};
+    this.removeLastWearUpdateFn = () => {
+      localPlayer.removeEventListener('wearupdate', wearupdate);
+    };
   }
 
   unbindPlayer(player) {
     this.selectedIndexPerPlayer.set(player, this.selectedIndex);
+    this.selectedIndex = -1;
+    this.apps = null;
     if (this.removeLastWearUpdateFn) {
       this.removeLastWearUpdateFn();
       this.removeLastWearUpdateFn = null;
