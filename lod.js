@@ -554,7 +554,7 @@ using these results
 export class LodChunkTracker {
   constructor({
     chunkSize = defaultChunkSize,
-    lods = 1,
+    lods = 7,
     lod1Range = 2,
     pgWorkerManager = null,
     debug = false,
