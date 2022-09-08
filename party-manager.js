@@ -69,7 +69,7 @@ class PartyManager extends EventTarget {
       headPlayer.updatePhysicsStatus();
 
       this.partyPlayers.push(headPlayer);
-      this.partyChanged();
+      this.updateMemberTargets();
 
       // transplant players to local player
       const transplantToPlayer = () => {
@@ -90,7 +90,7 @@ class PartyManager extends EventTarget {
     }
   }
 
-  partyChanged() {
+  updateMemberTargets() {
     for (let i = 0; i < this.partyPlayers.length; i++) {
       const player = this.partyPlayers[i];
       const target = this.getTargetPlayer(player);
@@ -103,7 +103,7 @@ class PartyManager extends EventTarget {
     if (this.partyPlayers.length < 3) { // 3 max members
       // console.log('invitePlayer', newPlayer, this);
       this.partyPlayers.push(newPlayer);
-      this.partyChanged();
+      this.updateMemberTargets();
       newPlayer.isInParty = true;
 
       const expelPlayer = () => {
@@ -113,7 +113,7 @@ class PartyManager extends EventTarget {
         const app = npcManager.getAppByNpc(player);
         this.transplantPartyAppToWorld(app);
         this.partyPlayers.splice(playerIndex, 1);
-        this.partyChanged();
+        this.updateMemberTargets();
         player.isInParty = false;
       };
 
