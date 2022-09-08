@@ -15,7 +15,7 @@ class PartyManager extends EventTarget {
     super();
     
     this.partyPlayers = [];
-    this.removeFnMap = new WeakMap();
+    this.removeFnsMap = new WeakMap();
 
     this.appManager = new AppManager();
 
@@ -105,6 +105,7 @@ class PartyManager extends EventTarget {
       this.partyPlayers.push(newPlayer);
       this.partyChanged();
 
+      const removeFns = [];
       const removeFn = () => {
         const player = newPlayer;
         // console.log('removeFn', player);
@@ -121,16 +122,22 @@ class PartyManager extends EventTarget {
         }
         return false;
       };
-
-      this.removeFnMap.set(newPlayer, removeFn);
+      removeFns.push(removeFn);
       
       newPlayer.isInParty = true;
 
       const activate = () => {
         // console.log('deactivate', newPlayer.name);
-        if (removeFn()) {
-          this.removeFnMap.delete(newPlayer);
+        const playerIndex = this.partyPlayers.indexOf(newPlayer);
+        if (playerIndex > 0) {
+          const removeFns = this.removeFnsMap.get(newPlayer);
+          for (const removeFn of removeFns) {
+            removeFn();
+          }
+          this.removeFnsMap.delete(newPlayer);
           newPlayer.removeEventListener('activate', activate);
+        } else {
+          console.warn('deactive local player');
         }
       };
       newPlayer.addEventListener('activate', activate);
@@ -140,6 +147,8 @@ class PartyManager extends EventTarget {
         const app = npcManager.getAppByNpc(newPlayer);
         this.transplantWorldAppToPlayer(app, headPlayer);
       }
+
+      this.removeFnsMap.set(newPlayer, removeFns);
 
       return true;
     }
@@ -186,10 +195,11 @@ class PartyManager extends EventTarget {
   clear() {
     // console.log('clear');
     for (const player of this.partyPlayers) {
-      const removeFn = this.removeFnMap.get(player);
-      if (removeFn()) {
-        this.removeFnMap.delete(player);
+      const removeFns = this.removeFnsMap.get(player);
+      for (const removeFn of removeFns) {
+        removeFn();
       }
+      this.removeFnsMap.delete(player);
     }
   }
 }
