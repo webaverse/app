@@ -8,7 +8,7 @@ import {FBXLoader} from 'three/examples/jsm/loaders/FBXLoader.js';
 import {MMDLoader} from 'three/examples/jsm/loaders/MMDLoader.js';
 import {CharsetEncoder} from 'three/examples/jsm/libs/mmdparser.module.js';
 
-import {getHeight, modelBoneToAnimationBone} from './avatars/util.mjs';
+import {getAvatarHeight, getModelBones, modelBoneToAnimationBone} from './avatars/util.mjs';
 import {zbencode, zbdecode} from 'zjs/encoding.mjs';
 
 class ProgressEvent {
@@ -219,7 +219,8 @@ globalThis.ProgressEvent = ProgressEvent;
       });
       // console.log('got height', height);
       // const animation = o.animations[0];
-      return getHeight(o);
+      const modelBones = getModelBones(o);
+      return getAvatarHeight(modelBones);
     })();
     // console.log('got height', height);
     for (const name of fbxFileNames) {
