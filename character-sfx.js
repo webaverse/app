@@ -8,11 +8,11 @@ import {
   walkFactorSpeed,
   runFactorSpeed,
   narutoRunTimeFactor,
+  eatFrameIndices,
+  drinkFrameIndices,
 } from './avatars/constants.js';
 import {
   crouchMaxTime,
-  eatFrameIndices,
-  drinkFrameIndices,
 } from './constants.js';
 import {
   mod,

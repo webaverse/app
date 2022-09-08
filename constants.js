@@ -133,9 +133,6 @@ export const avatarInterpolationFrameRate = 60;
 export const avatarInterpolationTimeDelay = 1000/(avatarInterpolationFrameRate * 0.5);
 export const avatarInterpolationNumFrames = 4;
 
-export const eatFrameIndices = [500, 800, 1100];
-export const drinkFrameIndices = [400, 700, 1000];
-
 export const defaultMaxId = 8192;
 
 export const defaultMusicVolume = 0.35;
