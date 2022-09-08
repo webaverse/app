@@ -785,6 +785,12 @@ class AvatarCharacter extends StateCharacter {
       physicsScene.enableGeometryQueries(this.characterPhysics.characterController);
     }
   }
+  getPosition() {
+    return this.position.toArray(localArray3) ?? [0, 0, 0];
+  }
+  getQuaternion() {
+    return this.quaternion.toArray(localArray4) ?? [0, 0, 0, 1];
+  }
   async syncAvatar() {
     if (this.syncAvatarCancelFn) {
       this.syncAvatarCancelFn.cancel();
