@@ -21,6 +21,9 @@ class LoadoutManager extends EventTarget {
   constructor() {
     super();
 
+    this.appsPerPlayer = new WeakMap();
+    this.selectedIndexPerPlayer = new WeakMap();
+
     this.apps = Array(numSlots).fill(null);
     this.hotbarRenderers = [];
     this.infoboxRenderer = null;
@@ -49,17 +52,43 @@ class LoadoutManager extends EventTarget {
       partyManager.removeEventListener('playerselected', playerSelectedFn);
       partyManager.removeEventListener('playerdeselected', playerDeselectedFn);
     };
-    
+
+    this.ensureRenderers();
+
     // this is the initial event for the first player
     const localPlayer = playersManager.getLocalPlayer();
     this.bindPlayer(localPlayer);
   }
+  refresh() {
+    for (let i = 0; i < this.hotbarRenderers.length; i++) {
+      const app = this.apps[i];
+      const hotbarRenderer = this.hotbarRenderers[i];
+      const spritesheet = app ? _getAppSpritesheet(app) : null;
+      hotbarRenderer.setSpritesheet(spritesheet);
+      hotbarRenderer.setSelected(i === this.selectedIndex);
+    }
+
+    const index = this.selectedIndex;
+    this.dispatchEvent(new MessageEvent('selectedchange', {
+      data: {
+        index,
+        app: this.apps[index]
+      }
+    }));
+  }
   bindPlayer(player) {
+    if (!this.appsPerPlayer.get(player)) {
+      const apps = Array(numSlots).fill(null);
+      this.appsPerPlayer.set(player, apps);
+    }
+    this.apps = this.appsPerPlayer.get(player);
+    this.selectedIndex = this.selectedIndexPerPlayer.has(player) ? this.selectedIndexPerPlayer.get(player) : -1;
+    this.refresh();
+
     const localPlayer = player;
     const wearupdate = e => {
       const {app, wear, loadoutIndex} = e;
 
-      this.ensureRenderers();
       if (wear) {
         this.apps[loadoutIndex] = app;
         this.setSelectedIndex(loadoutIndex);
@@ -76,7 +105,7 @@ class LoadoutManager extends EventTarget {
             this.setSelectedIndex(nextIndex);
             break;
           }
-        }      
+        }
       }
     };
     localPlayer.addEventListener('wearupdate', wearupdate);
@@ -84,6 +113,7 @@ class LoadoutManager extends EventTarget {
   }
 
   unbindPlayer(player) {
+    this.selectedIndexPerPlayer.set(player, this.selectedIndex);
     if (this.removeLastWearUpdateFn) {
       this.removeLastWearUpdateFn();
       this.removeLastWearUpdateFn = null;
@@ -104,16 +134,12 @@ class LoadoutManager extends EventTarget {
     }
   }
   getHotbarRenderer(index) {
-    this.ensureRenderers();
     return this.hotbarRenderers[index];
   }
   getInfoboxRenderer() {
-    this.ensureRenderers();
     return this.infoboxRenderer;
   }
   getSelectedApp() {
-    this.ensureRenderers();
-    
     if (this.selectedIndex !== -1) {
       return this.apps[this.selectedIndex];
     } else {
@@ -121,8 +147,6 @@ class LoadoutManager extends EventTarget {
     }
   }
   setSelectedIndex(index) {
-    this.ensureRenderers();
-
     if (index === this.selectedIndex) {
       index = -1;
     }
