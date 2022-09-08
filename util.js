@@ -1292,3 +1292,9 @@ export const fetchArrayBuffer = async srcUrl => {
     throw new Error('failed to load: ' + res.status + ' ' + srcUrl);
   }
 };
+
+export const align = (v, N) => {
+  const r = v % N;
+  return r === 0 ? v : v - r + N;
+};
+export const align4 = v => align(v, 4);
