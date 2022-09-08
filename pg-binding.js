@@ -300,8 +300,8 @@ const _parseChunkResult = (arrayBuffer, bufferAddress) => {
     // seeds
     const numSeeds = dataView2.getUint32(index2, true);
     index2 += Uint32Array.BYTES_PER_ELEMENT;
-    const seeds = new Int32Array(arrayBuffer, bufferAddress + index2, numSeeds);
-    index2 += Int32Array.BYTES_PER_ELEMENT * numSeeds;
+    const seeds = new Float32Array(arrayBuffer, bufferAddress + index2, numSeeds);
+    index2 += Float32Array.BYTES_PER_ELEMENT * numSeeds;
   
     // indices
     const numIndices = dataView2.getUint32(index2, true);
@@ -382,20 +382,20 @@ const _parseChunkResult = (arrayBuffer, bufferAddress) => {
       indices,
     };
   };
-  const _parseBiome = () => {
+  /* const _parseBiome = () => {
     const biome = dataView.getUint8(index);
     index += Uint32Array.BYTES_PER_ELEMENT; // align to word boundary
     return biome;
-  };
+  }; */
 
   const terrainGeometry = _parseTerrainVertexBuffer();
   const waterGeometry = _parseWaterVertexBuffer();
-  const biome = _parseBiome();
+  // const biome = _parseBiome();
   return {
     bufferAddress,
     terrainGeometry,
     waterGeometry,
-    biome,
+    // biome,
   };
 };
 w.createChunkMeshAsync = async (inst, taskId, x, z, lod, lodArray) => {

@@ -23,6 +23,7 @@ const _cloneChunkResult = chunkResult => {
       terrainGeometry.biomesWeights.length * terrainGeometry.biomesWeights.constructor.BYTES_PER_ELEMENT +
       terrainGeometry.biomesUvs1.length * terrainGeometry.biomesUvs1.constructor.BYTES_PER_ELEMENT +
       terrainGeometry.biomesUvs2.length * terrainGeometry.biomesUvs2.constructor.BYTES_PER_ELEMENT +
+      terrainGeometry.seeds.length * terrainGeometry.seeds.constructor.BYTES_PER_ELEMENT +
       terrainGeometry.indices.length * terrainGeometry.indices.constructor.BYTES_PER_ELEMENT;
     return size;
   };
