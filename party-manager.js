@@ -15,7 +15,7 @@ class PartyManager extends EventTarget {
     super();
     
     this.partyPlayers = [];
-    this.removeFnsMap = new WeakMap();
+    this.removeFnMap = new WeakMap();
 
     this.appManager = new AppManager();
 
@@ -118,14 +118,11 @@ class PartyManager extends EventTarget {
       };
 
       const removePlayer = (player) => {
-        const removeFns = this.removeFnsMap.get(player);
-        for (const removeFn of removeFns) {
-          removeFn();
-        }
-        this.removeFnsMap.delete(player);
+        const removeFn = this.removeFnMap.get(player);
+        removeFn();
+        this.removeFnMap.delete(player);
       }
 
-      const removeFns = [];
       const activate = () => {
         // console.log('deactivate', newPlayer.name);
         const playerIndex = this.partyPlayers.indexOf(newPlayer);
@@ -137,9 +134,9 @@ class PartyManager extends EventTarget {
         }
       };
       newPlayer.addEventListener('activate', activate);
-      removeFns.push(() => {
+      const removeFn = () => {
         newPlayer.removeEventListener('activate', activate);
-      });
+      };
 
       if (this.partyPlayers.length >= 2) {
         const headPlayer = this.partyPlayers[0];
@@ -147,7 +144,7 @@ class PartyManager extends EventTarget {
         this.transplantWorldAppToPlayer(app, headPlayer);
       }
 
-      this.removeFnsMap.set(newPlayer, removeFns);
+      this.removeFnMap.set(newPlayer, removeFn);
 
       return true;
     }
@@ -194,11 +191,9 @@ class PartyManager extends EventTarget {
   clear() {
     // console.log('clear');
     for (const player of this.partyPlayers) {
-      const removeFns = this.removeFnsMap.get(player);
-      for (const removeFn of removeFns) {
-        removeFn();
-      }
-      this.removeFnsMap.delete(player);
+      const removeFn = this.removeFnMap.get(player);
+      removeFn();
+      this.removeFnMap.delete(player);
     }
   }
 }
