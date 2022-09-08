@@ -334,6 +334,11 @@ class AppManager extends EventTarget {
       } else if (destinationAppManager === this) {
         if (!this.apps.includes(app)) {
           this.apps.push(app);
+
+          app.dispatchEvent({
+            type: 'migrated',
+            appManager: this,
+          });
         }
       }
     });

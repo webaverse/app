@@ -134,9 +134,6 @@ class PartyManager extends EventTarget {
         }
       };
       newPlayer.addEventListener('activate', activate);
-      const removeFn = () => {
-        newPlayer.removeEventListener('activate', activate);
-      };
 
       if (this.partyPlayers.length >= 2) {
         const headPlayer = this.partyPlayers[0];
@@ -144,6 +141,33 @@ class PartyManager extends EventTarget {
         this.transplantWorldAppToPlayer(app, headPlayer);
       }
 
+      // add die listener
+      const deletePlayer = (player) => {
+        const playerIndex = this.partyPlayers.indexOf(player);
+        if (playerIndex !== -1) {
+          this.partyPlayers.splice(playerIndex, 1);
+          this.updateMemberTargets();
+        } else {
+          console.warn('failed delete player', player);
+        }
+      };
+
+      const playerApp = npcManager.getAppByNpc(newPlayer);
+      const die = () => {
+        const playerIndex = this.partyPlayers.indexOf(newPlayer);
+        if (playerIndex > 0) {
+          deletePlayer(newPlayer);
+          removePlayer(newPlayer);
+        } else {
+          console.warn('die local player');
+        }
+      };
+      app.addEventListener('die', die);
+
+      const removeFn = () => {
+        newPlayer.removeEventListener('activate', activate);
+        playerApp.removeEventListener('die', die);
+      };
       this.removeFnMap.set(newPlayer, removeFn);
 
       return true;

@@ -37,10 +37,16 @@ export class World {
       hitTracker.bind(app);
       app.dispatchEvent({type: 'hittrackeradded'});
 
+      let boundAppManager = this.appManager;
       const die = () => {
-        this.appManager.removeTrackedApp(app.instanceId);
+        boundAppManager.removeTrackedApp(app.instanceId);
       };
       app.addEventListener('die', die);
+
+      app.addEventListener('migrated', (e) => {
+        const {appManager} = e;
+        boundAppManager = appManager;
+      });
     });
 
     // This handles removal of apps from the scene when we leave the world
