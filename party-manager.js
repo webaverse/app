@@ -1,3 +1,9 @@
+/*
+party manager provides invitation, deactive, and switch player features
+characters are transplanted between world app manager and local player app manager
+*/
+import * as THREE from 'three';
+
 import {AppManager} from './app-manager.js';
 import {world} from './world.js';
 import {playersManager} from './players-manager.js';
