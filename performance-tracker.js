@@ -1,22 +1,23 @@
-import {getRenderer} from './renderer.js';
-import debug from './debug.js';
-import {waitForFrame} from './util.js';
+import { getRenderer } from "./renderer.js";
+import debug from "./debug.js";
+import { waitForFrame } from "./util.js";
+import roundround from "roundround";
 
 const getGl = () => getRenderer().getContext();
 let ext = null;
 const getExt = () => {
   if (ext === null) {
     const gl = getGl();
-    ext = gl.getExtension('EXT_disjoint_timer_query_webgl2');
+    ext = gl.getExtension("EXT_disjoint_timer_query_webgl2");
   }
   return ext;
-}
-const performanceTrackerFnSymbol = Symbol('performanceTrackerFn');
+};
+const performanceTrackerFnSymbol = Symbol("performanceTrackerFn");
 
 const numSnapshots = 10;
 
 class PerformanceTracker extends EventTarget {
-  constructor () {
+  constructor() {
     super();
 
     this.enabled = debug.enabled;
@@ -25,14 +26,19 @@ class PerformanceTracker extends EventTarget {
     this.gpuResults = new Map();
     this.currentCpuObject = null;
     this.currentGpuObject = null;
-    this.prefix = '';
+    this.prefix = "";
 
     this.snapshots = Array(numSnapshots).fill(null);
     this.snapshotIndex = 0;
     this.lastSnapshotTime = 0;
 
-    debug.addEventListener('enabledchange', e => {
+    debug.addEventListener("enabledchange", (e) => {
       this.enabled = e.data.enabled;
+      if (this.enabled) {
+        this.processQueue();
+      } else {
+        this.stopProcessQueue();
+      }
     });
   }
   startCpuObject(id, name) {
@@ -41,16 +47,16 @@ class PerformanceTracker extends EventTarget {
     if (name === undefined) {
       name = id;
     }
-    
+
     if (this.prefix) {
-      name = [this.prefix, name].join('/');
+      name = [this.prefix, name].join("/");
     }
 
     if (this.currentCpuObject?.id !== id) {
       if (this.currentCpuObject) {
         this.endCpuObject();
       }
-    
+
       let currentCpuObject = this.cpuResults.get(name);
       if (!currentCpuObject) {
         const now = performance.now();
@@ -71,15 +77,15 @@ class PerformanceTracker extends EventTarget {
     this.currentCpuObject.endTime = performance.now();
     this.currentCpuObject = null;
   }
-  startGpuObject(id, name) {
+  startGpuObject(id, name, reason) {
     if (!this.enabled) return;
 
     if (name === undefined) {
       name = id;
     }
-    
+
     if (this.prefix) {
-      name = [this.prefix, name].join('/');
+      name = [this.prefix, name].join("/");
     }
 
     if (this.currentGpuObject?.id !== id) {
@@ -92,7 +98,7 @@ class PerformanceTracker extends EventTarget {
 
       const query = gl.createQuery();
       gl.beginQuery(ext.TIME_ELAPSED_EXT, query);
-    
+
       let currentGpuObject = this.gpuResults.get(name);
       if (!currentGpuObject) {
         currentGpuObject = {
@@ -122,7 +128,7 @@ class PerformanceTracker extends EventTarget {
   startFrame() {
     if (!this.enabled) return;
 
-    this.dispatchEvent(new MessageEvent('startframe'));
+    this.dispatchEvent(new MessageEvent("startframe"));
   }
   setCpuPrefix(cpuPrefix) {
     if (!this.enabled) return;
@@ -134,58 +140,88 @@ class PerformanceTracker extends EventTarget {
 
     this.gpuPrefix = gpuPrefix;
   }
+  queue = [];
+  processor = null;
+  processQueue = () => {
+    this.stopProcessQueue();
+    this.queue.splice(0, this.queue.length);
+    const queueRR = roundround(this.queue, 0);
+
+    this.processor = setInterval(async () => {
+      const nextObj = queueRR();
+      await this.handleAppDecoration(nextObj);
+      await waitForFrame();
+    }, 1);
+  };
+  stopProcessQueue = () => {
+    if (this.processor) {
+      clearInterval(this.processor);
+    }
+  };
   decorateApp(app) {
+    if (this.queue.includes(app)) {
+      return;
+    }
+
+    this.queue.push(app);
+  }
+  handleAppDecoration(app) {
     const self = this;
-    const _makeOnBeforeRender = fn => {
-      const resultFn = function() {
-        self.startGpuObject(app.modulesHash, app.name);
-        fn && fn.apply(this, arguments);
+
+    const _makeOnBeforeRender = (fn) => {
+      const resultFn = function () {
+        self.startGpuObject(app.modulesHash, app.name, "resultFn");
+        fn.onAfterRender = () => {};
       };
       resultFn[performanceTrackerFnSymbol] = true;
       return resultFn;
     };
-    const _makeOnAfterRender = fn => {
-      const resultFn = function() {
+    const _makeOnAfterRender = (fn) => {
+      const resultFn = function () {
         if (self.currentGpuObject?.id === app.modulesHash) {
           self.endGpuObject();
+          fn.onAfterRender = () => {};
         }
-        fn && fn.apply(this, arguments);
       };
       resultFn[performanceTrackerFnSymbol] = true;
       return resultFn;
     };
 
-    const _decorateObject = o => {
+    const _decorateObject = (o) => {
       if (o.isMesh) {
         if (!o.onBeforeRender?.[performanceTrackerFnSymbol]) {
-          o.onBeforeRender = _makeOnBeforeRender(o.onBeforeRender);
+          o.onBeforeRender = _makeOnBeforeRender(o);
         }
         if (!o.onAfterRender?.[performanceTrackerFnSymbol]) {
-          o.onAfterRender = _makeOnAfterRender(o.onAfterRender);
+          o.onAfterRender = _makeOnAfterRender(o);
         }
       }
-    }
-    const _traverse = o => {
+    };
+    const _traverse = (o) => {
       _decorateObject(o);
-      
+
       for (const child of o.children) {
         if (!child.isApp) {
           _traverse(child);
         }
       }
-    }
+    };
+
     _traverse(app);
   }
   async waitForGpuResults(gpuResults) {
     const renderer = getRenderer();
     const gl = renderer.getContext();
 
-    for (const [name, object] of gpuResults) {
+    /*for (const [name, object] of gpuResults) {
       const qs = this.gpuQueries.get(object);
       for (const query of qs) {
         // wait for query result
         for (;;) {
-          const available = gl.getQueryParameter(query, gl.QUERY_RESULT_AVAILABLE);
+          const available = gl.getQueryParameter(
+            query,
+            gl.QUERY_RESULT_AVAILABLE
+          );
           if (available) {
             break;
           } else {
@@ -195,14 +231,14 @@ class PerformanceTracker extends EventTarget {
 
         // sum query result
         object.time += gl.getQueryParameter(query, gl.QUERY_RESULT);
-        
+
         // cleanup
         gl.deleteQuery(query);
       }
 
       // cleanup
       this.gpuQueries.delete(object);
-    }
+    }*/
   }
   getSmoothedSnapshot() {
     const cpu = new Map();
@@ -217,7 +253,7 @@ class PerformanceTracker extends EventTarget {
               name,
               time: 0,
               count: 0,
-            }
+            };
             cpu.set(name, current);
           }
           current.time += object.endTime - object.startTime;
@@ -230,7 +266,7 @@ class PerformanceTracker extends EventTarget {
               name,
               time: 0,
               count: 0,
-            }
+            };
             gpu.set(name, current);
           }
           current.time += object.time;
@@ -240,18 +276,21 @@ class PerformanceTracker extends EventTarget {
     }
 
     const cpuResults = Array.from(cpu.values())
-      .map(o => {
+      .map((o) => {
         return {
           name: o.name,
           time: o.time / o.count,
         };
-      }).sort((a, b) => b.time - a.time);
-    const gpuResults = Array.from(gpu.values()).map(o => {
-      return {
-        name: o.name,
-        time: o.time / o.count,
-      };
-    }).sort((a, b) => b.time - a.time);
+      })
+      .sort((a, b) => b.time - a.time);
+    const gpuResults = Array.from(gpu.values())
+      .map((o) => {
+        return {
+          name: o.name,
+          time: o.time / o.count,
+        };
+      })
+      .sort((a, b) => b.time - a.time);
     return {
       cpuResults,
       gpuResults,
@@ -261,7 +300,7 @@ class PerformanceTracker extends EventTarget {
     if (!this.enabled) return;
 
     (async () => {
-      const {cpuResults, gpuResults} = this;
+      const { cpuResults, gpuResults } = this;
 
       await this.waitForGpuResults(gpuResults);
 
@@ -273,12 +312,14 @@ class PerformanceTracker extends EventTarget {
       this.snapshotIndex = (this.snapshotIndex + 1) % numSnapshots;
 
       const now = performance.now();
-      if ((now - this.lastSnapshotTime) > 1000) {
+      if (now - this.lastSnapshotTime > 1000) {
         // console.log('get smoothed snapshot');
         const snapshot = this.getSmoothedSnapshot();
-        this.dispatchEvent(new MessageEvent('snapshot', {
-          data: snapshot,
-        }));
+        this.dispatchEvent(
+          new MessageEvent("snapshot", {
+            data: snapshot,
+          })
+        );
         this.lastSnapshotTime = now;
       }
     })();
