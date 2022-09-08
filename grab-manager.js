@@ -88,6 +88,8 @@ const _updateGrabbedObject = (o, grabMatrix, offsetMatrix, {collisionEnabled, ha
     o.quaternion.copy(localQuaternion3);
   }
 
+  o.updateMatrixWorld();
+
   return {
     handSnap,
   };
@@ -259,7 +261,6 @@ class Grabmanager extends EventTarget {
           const avatarHeight = localPlayer.avatar ? localPlayer.avatar.height : 0;
           let position   = null,
               quaternion = null;
-
           if(renderer.xr.getSession()) {
             const h = localPlayer[hand === 'left' ? 'leftHand' : 'rightHand'];
             position = h.position;
@@ -270,7 +271,6 @@ class Grabmanager extends EventTarget {
           }
 
           localMatrix.compose(position, quaternion, localVector.set(1, 1, 1));
-          grabbedObject.updateMatrixWorld();
 
           _updateGrabbedObject(grabbedObject, localMatrix, localMatrix3.fromArray(grabAction.matrix), {
             collisionEnabled: true,
