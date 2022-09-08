@@ -362,11 +362,11 @@ const _parseChunkResult = (arrayBuffer, bufferAddress) => {
     const normals = new Float32Array(arrayBuffer, bufferAddress + index2, numNormals * 3);
     index2 += Float32Array.BYTES_PER_ELEMENT * numNormals * 3;
   
-    // biomes
-    const numBiomes = dataView2.getUint32(index2, true);
+    // factors
+    const numFactors = dataView2.getUint32(index2, true);
     index2 += Uint32Array.BYTES_PER_ELEMENT;
-    const biomes = new Int32Array(arrayBuffer, bufferAddress + index2, numBiomes);
-    index2 += Int32Array.BYTES_PER_ELEMENT * numBiomes;
+    const factors = new Float32Array(arrayBuffer, bufferAddress + index2, numFactors);
+    index2 += Int32Array.BYTES_PER_ELEMENT * numFactors;
   
     // indices
     const numIndices = dataView2.getUint32(index2, true);
@@ -378,7 +378,7 @@ const _parseChunkResult = (arrayBuffer, bufferAddress) => {
       bufferAddress,
       positions,
       normals,
-      biomes,
+      factors,
       indices,
     };
   };

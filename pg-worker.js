@@ -29,10 +29,8 @@ const _cloneChunkResult = chunkResult => {
   const _getWaterGeometrySize = () => {
     let size = waterGeometry.positions.length * waterGeometry.positions.constructor.BYTES_PER_ELEMENT +
       waterGeometry.normals.length * waterGeometry.normals.constructor.BYTES_PER_ELEMENT +
-      waterGeometry.biomes.length * waterGeometry.biomes.constructor.BYTES_PER_ELEMENT +
-    // size = align4(size);
-    // size += waterGeometry.indices.length * waterGeometry.indices.constructor.BYTES_PER_ELEMENT;
-    waterGeometry.indices.length * waterGeometry.indices.constructor.BYTES_PER_ELEMENT;
+      waterGeometry.factors.length * waterGeometry.factors.constructor.BYTES_PER_ELEMENT +
+      waterGeometry.indices.length * waterGeometry.indices.constructor.BYTES_PER_ELEMENT;
     return size;
   };
 
@@ -104,10 +102,9 @@ const _cloneChunkResult = chunkResult => {
     normals.set(waterGeometry.normals);
     index += waterGeometry.normals.length * waterGeometry.normals.constructor.BYTES_PER_ELEMENT;
 
-    const biomes = new waterGeometry.biomes.constructor(arrayBuffer, index, waterGeometry.biomes.length);
-    biomes.set(waterGeometry.biomes);
-    index += waterGeometry.biomes.length * waterGeometry.biomes.constructor.BYTES_PER_ELEMENT;
-    // index = align4(index);
+    const factors = new waterGeometry.factors.constructor(arrayBuffer, index, waterGeometry.factors.length);
+    factors.set(waterGeometry.factors);
+    index += waterGeometry.factors.length * waterGeometry.factors.constructor.BYTES_PER_ELEMENT;
 
     const indices = new waterGeometry.indices.constructor(arrayBuffer, index, waterGeometry.indices.length);
     indices.set(waterGeometry.indices);
@@ -116,7 +113,7 @@ const _cloneChunkResult = chunkResult => {
     return {
       positions,
       normals,
-      biomes,
+      factors,
       indices,
     };
   };
