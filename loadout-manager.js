@@ -1,4 +1,4 @@
-import {partyManager} from './party-manager.js';
+
 import {playersManager} from './players-manager.js';
 import {LoadoutRenderer} from './loadout-renderer.js';
 import {InfoboxRenderer} from './infobox.js';
@@ -32,25 +32,19 @@ class LoadoutManager extends EventTarget {
 
     const playerSelectedFn = e => {
       const {
+        oldPlayer,
         player,
       } = e.data;
 
+      if (oldPlayer) {
+        this.unbindPlayer(oldPlayer);
+      }
       this.bindPlayer(player);
     };
 
-    const playerDeselectedFn = e => {
-      const {
-        player,
-      } = e.data;
-
-      this.unbindPlayer(player);
-    };
-
-    partyManager.addEventListener('playerselected', playerSelectedFn);
-    partyManager.addEventListener('playerdeselected', playerDeselectedFn);
+    playersManager.addEventListener('playerchange', playerSelectedFn);
     this.removeListenerFn = () => {
-      partyManager.removeEventListener('playerselected', playerSelectedFn);
-      partyManager.removeEventListener('playerdeselected', playerDeselectedFn);
+      playersManager.removeEventListener('playerchange', playerSelectedFn);
     };
 
     this.ensureRenderers();

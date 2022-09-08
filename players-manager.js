@@ -5,8 +5,6 @@ player objects load their own avatar and apps using this binding */
 // import * as THREE from 'three';
 import * as Z from 'zjs';
 import {LocalPlayer, RemotePlayer} from './character-controller.js';
-import {partyManager} from './party-manager.js';
-import metaversefileApi from 'metaversefile';
 import {makeId} from './util.js';
 import {initialPosY, playersMapName} from './constants.js';
 
@@ -14,28 +12,38 @@ class PlayersManager extends EventTarget {
   constructor() {
     super();
     this.playersArray = null;
+    this.localPlayer = null;
+    this.setLocalPlayer(this.#addLocalPlayer());
 
-    const localPlayerId = makeId(5);
-    const localPlayersArray = new Z.Doc().getArray(playersMapName);
-    this.localPlayer = new LocalPlayer({
-      playerId: localPlayerId,
-      playersArray: localPlayersArray,
-    });
-    this.localPlayer.position.y = initialPosY;
-    this.localPlayer.updateMatrixWorld();
-
-    partyManager.addPlayer(this.localPlayer);
-    
     this.remotePlayers = new Map();
     this.remotePlayersByInteger = new Map();
     this.unbindStateFn = null;
     this.removeListenerFn = null;
   }
+  #addLocalPlayer() {
+    const localPlayerId = makeId(5);
+    const localPlayersArray = new Z.Doc().getArray(playersMapName);
+    const localPlayer = new LocalPlayer({
+      playerId: localPlayerId,
+      playersArray: localPlayersArray,
+    });
+    localPlayer.position.y = initialPosY;
+    localPlayer.updateMatrixWorld();
+
+    return localPlayer;
+  }
   getLocalPlayer () {
     return this.localPlayer;
   }
   setLocalPlayer(newLocalPlayer) {
+    const oldPlayer = this.localPlayer;
     this.localPlayer = newLocalPlayer;
+    this.dispatchEvent(new MessageEvent('playerchange', {
+      data: {
+        oldPlayer: oldPlayer,
+        player: this.localPlayer,
+      }
+    }));
   }
   getRemotePlayers(){
     return this.remotePlayers;
@@ -75,16 +83,16 @@ class PlayersManager extends EventTarget {
     this.playersArray = nextPlayersArray;
     
     if (this.playersArray) {
-      const partySelectedFn = e => {
+      const playerSelectedFn = e => {
         const {
           player,
         } = e.data;
         player.bindState(this.playersArray);
       };
 
-      partyManager.addEventListener('playerselected', partySelectedFn);
+      this.addEventListener('playerchange', playerSelectedFn);
       this.removeListenerFn = () => {
-        partyManager.removeEventListener('playerselected', partySelectedFn);
+        this.removeEventListener('playerchange', playerSelectedFn);
       }
       
       const playersObserveFn = e => {

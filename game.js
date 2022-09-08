@@ -22,7 +22,6 @@ import * as sounds from './sounds.js';
 import {playersManager} from './players-manager.js';
 import {partyManager} from './party-manager.js';
 import physicsManager from './physics-manager.js';
-import npcManager from './npc-manager.js';
 import raycastManager from './raycast-manager.js';
 import zTargeting from './z-targeting.js';
 import Avatar from './avatars/avatars.js';
@@ -1690,7 +1689,7 @@ class GameManager extends EventTarget {
         localPlayer.avatar.avatarRenderer.scene,
       ]);
     };
-    partyManager.addEventListener('playerselected', playerSelectedFn);
+    playersManager.addEventListener('playerchange', playerSelectedFn);
 
     avatarManager.addEventListener('avatarchange', e => {
       const localPlayer = playersManager.getLocalPlayer();
