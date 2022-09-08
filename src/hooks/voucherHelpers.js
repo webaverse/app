@@ -18,7 +18,8 @@ export async function getVoucherFromServer(metadataurl) {
         method: 'POST',
         headers: {
             'Accept': 'application/json',
-            'Content-Type': 'application/json'
+            'Content-Type': 'application/json',
+            'x-api-key' : "dXNlcm5hbWU6MTIzNDU2Nzg5MDEyMzQ1Njc4OTAxMjM0NTY3ODkwMTIzNDU2Nzg5MA"
         },
         body: JSON.stringify({ 
             signData: {tokenId, metadataurl, balance, nonce, expiry}

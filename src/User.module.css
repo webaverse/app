@@ -205,25 +205,12 @@
 
 .userWrap {
   display: flex;
-  top: 8px;
+  top: 0;
   right: 0;
   margin-top: 10px;
   align-items: center;
   transform: none;
   transition: transform 0.3s cubic-bezier(0, 1, 0, 1);
-}
-.loginWrap {
-  background-color: #000;
-  display: flex;
-  top: 8px;
-  right: 0;
-  margin-top: 10px;
-  align-items: center;
-  transform: none;
-  border-radius: 5px;
-  transition: transform 0.3s cubic-bezier(0, 1, 0, 1);
-  cursor: pointer;
-  pointer-events: all;
 }
 .user:not(.loggedIn) .userWrap {
   transform: translate(100%, 0);
@@ -236,13 +223,8 @@
   pointer-events: all;
   cursor: pointer;
 }
-
-.userBar .address.avatarPadRight {
-  padding-left: 60px;
-}
-
 .userBar .avatarUrl {
-  position: absolute;
+  position: relative;
   z-index: 1;
 }
 .userBar .avatarUrl .img {
@@ -270,16 +252,6 @@
   display: flex;
   padding: 0 10px;
   background-color: #000;
-  /* border-radius: 5px 0 0 5px; */
-  color: #FFF;
-  line-height: 1.4;
-  align-items: center;
-}
-.userBar .loginTitle {
-  position: relative;
-  display: flex;
-  padding: 0 10px;
-  background-color: #000;
   border-radius: 5px 0 0 5px;
   color: #FFF;
   line-height: 1.4;
@@ -288,9 +260,9 @@
 .userBar .avatarUrl + .address {
   border-radius: 0;
 }
-/* .userBar:hover .address {
+.userBar:hover .address {
   background-color: #00a8fc;
-} */
+}
 .userBar .verifiedIcon {
   position: relative;
   width: 18px;
@@ -314,21 +286,17 @@
 /* */
 
 .userWrap .logoutBtn {
-  /* background: #333; */
-  background: black;
+  background: #333;
   color: #FFF;
-  /* padding: 5px; */
+  padding: 5px;
   cursor: pointer;
   pointer-events: all;
 }
-.logoutImg {
-    width: 100%;
-    height: 100%;
+.userWrap .logoutBtn:hover {
+  background: #ef5350;
+  color: white;
 }
-.loginImg {
-    width: 100%;
-    height: 100%;
-}
+
 /* */
 
 .userLoginMethodsModal {

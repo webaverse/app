@@ -66,7 +66,7 @@ export const User = ({ className, setLoginFrom }) => {
 
     const reduceAddress = (address) => {
         if(address.length > 12) {
-            return address.slice(0, 5) + "..." + address.slice(-6)
+            return address.slice(0, 7) + "..." + address.slice(-6)
         }
         return address;
     }
@@ -211,7 +211,7 @@ export const User = ({ className, setLoginFrom }) => {
 
     //
 
-    return (
+     return (
         <div
             className={ classnames(
                 styles.user,
@@ -222,9 +222,7 @@ export const User = ({ className, setLoginFrom }) => {
             ) }
         >
             {!loggedIn &&
-                <div
-                    className={styles.loginWrap}
-                    onClick={e => {
+                <div className={ styles.keyWrap } onClick={e => {
                     e.preventDefault();
                     e.stopPropagation();
 
@@ -238,23 +236,19 @@ export const User = ({ className, setLoginFrom }) => {
 
                         sounds.playSoundName('menuNext');
 
-                    }} onMouseEnter={e => {
-                        
-                        _triggerClickSound();
+                }} onMouseEnter={e => {
                     
-                    }}
-                >
-                    <div
-                        className={styles.userBar}
-                    >
-                        <div
-                            className={styles.loginTitle}
-                        >
-                            ログイン Log in
+                    _triggerClickSound();
+                
+                }}>
+                    <div className={styles.key}>
+                        <div className={styles.bow}>
+                            <img className={styles.icon} src="./images/log-in.svg" />
                         </div>
-                    </div>
-                    <div className={styles.logoutBtn}
-                    > <img className={styles.loginImg} src="./images/ui/login.svg" />
+                        <div className={styles.blade}>
+                            <div className={styles.background} />
+                            <div className={styles.text}>ログイン Log in</div>
+                        </div>
                     </div>
                 </div>
             }
@@ -268,26 +262,26 @@ export const User = ({ className, setLoginFrom }) => {
                         className={styles.userBar}
                         onClick={openUserPanel}
                     >
-                    {avatarUrl ? (
-                        <div className={styles.avatarUrl}>
-                            <img className={styles.img} src={avatarUrl} crossOrigin='Anonymous' />
-                        </div>
-                    ) : null}
-                    <div
-                        className={[styles.address, avatarUrl ? styles.avatarPadRight : undefined].join(' ')}
-                    >{reduceAddress(ensName || address || currentAddress || '')} <img className={styles.verifiedIcon} src="./images/verified.svg" /></div>
+                        {avatarUrl ? (
+                            <div
+                                className={styles.avatarUrl}
+                            >
+                                <img className={styles.img} src={avatarUrl} crossOrigin='Anonymous' />
+                            </div>
+                        ) : null}
+                        <div
+                            className={styles.address}
+                        >{reduceAddress(ensName || address || currentAddress || '')} <img className={styles.verifiedIcon} src="./images/verified.svg" /></div>
+                    </div>
+                    <div className={styles.logoutBtn}
+                        onClick={e => {
+                            e.preventDefault();
+                            e.stopPropagation();
+                            disconnectWallet();
+                        }}
+                    >Logout</div>
                 </div>
-                <div className={styles.logoutBtn}
-                    onClick={e => {
-                        e.preventDefault();
-                        e.stopPropagation();
-                        disconnectWallet();
-                        // WebaWallet.logout();
-                        // _setAddress(null);
-                    }}
-                > <img className={styles.logoutImg} src="./images/ui/logout.svg" /></div>
-                </div>
-            }            
+            }
             <div className={ classnames(
                 styles.userLoginMethodsModal,
                 open ? styles.opened : null,
@@ -300,8 +294,7 @@ export const User = ({ className, setLoginFrom }) => {
                     <img src="images/metamask.png" alt="metamask" width="28px" />
                     <span className={ styles.methodBtnText } >MetaMask</span>
                 </div>
-            </div>
-                {/* <a
+                <a
                     href={ `https://discord.com/api/oauth2/authorize?client_id=${ discordClientId }&redirect_uri=${ window.location.origin }%2Flogin&response_type=code&scope=identify` }
                     onMouseEnter={ _triggerClickSound }
                 >
