@@ -465,7 +465,7 @@ story.listenHack = () => {
             const aiScene = metaversefile.useLoreAIScene();
             if (appType === 'npc') {
               const {name, description} = app.getLoreSpec();
-              const remotePlayer = npcManager.npcs.find(npc => npc.npcApp === app);
+              const remotePlayer = npcManager.getNpcByApp(app);
 
               if (remotePlayer) {
                 const {

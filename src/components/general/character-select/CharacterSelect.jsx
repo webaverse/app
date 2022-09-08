@@ -18,6 +18,7 @@ import { chatTextSpeed } from '../../../../constants.js';
 import { VoiceEndpointVoicer } from '../../../../voice-output/voice-endpoint-voicer.js';
 import * as voices from '../../../../voices.js';
 import {getVoiceEndpointUrl} from '../../../../voice-output/voice-endpoint-voicer.js';
+import npcManager from '../../../../npc-manager.js'
 
 //
 
@@ -100,10 +101,10 @@ export const CharacterSelect = () => {
 
             let detachedCharacter = JSON.parse(JSON.stringify(targetCharacter));
             detachedCharacter.detached = true;
-            const npcApp = await metaversefile.createAppAsync({
+            const app = await metaversefile.createAppAsync({
                 start_url: typeContentToUrl('application/npc', detachedCharacter),
             });
-            return npcApp.npcPlayer;
+            return npcManager.getNpcByApp(app);
         },
     }));
     const [ themeSongLoader, setThemeSongLoader ] = useState(() => new CachedLoader({
