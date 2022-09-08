@@ -104,26 +104,18 @@ class PartyManager extends EventTarget {
       // console.log('invitePlayer', newPlayer, this);
       this.partyPlayers.push(newPlayer);
       this.partyChanged();
+      newPlayer.isInParty = true;
 
-      const removeFns = [];
-      removeFns.push(() => {
+      const expelPlayer = () => {
         const player = newPlayer;
         // console.log('removeFn', player);
         const playerIndex = this.partyPlayers.indexOf(player);
-        if (playerIndex > 0) {
-          const app = npcManager.getAppByNpc(player);
-          this.transplantPartyAppToWorld(app);
-          this.partyPlayers.splice(playerIndex, 1);
-          this.partyChanged();
-          player.isInParty = false;
-          return true;
-        } else {
-          console.warn('remove local player');
-        }
-        return false;
-      });
-      
-      newPlayer.isInParty = true;
+        const app = npcManager.getAppByNpc(player);
+        this.transplantPartyAppToWorld(app);
+        this.partyPlayers.splice(playerIndex, 1);
+        this.partyChanged();
+        player.isInParty = false;
+      };
 
       const removePlayer = (player) => {
         const removeFns = this.removeFnsMap.get(player);
@@ -133,10 +125,12 @@ class PartyManager extends EventTarget {
         this.removeFnsMap.delete(player);
       }
 
+      const removeFns = [];
       const activate = () => {
         // console.log('deactivate', newPlayer.name);
         const playerIndex = this.partyPlayers.indexOf(newPlayer);
         if (playerIndex > 0) {
+          expelPlayer(newPlayer);
           removePlayer(newPlayer);
         } else {
           console.warn('deactive local player');
