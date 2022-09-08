@@ -165,7 +165,7 @@ export default function useNFTContract(currentAccount) {
   async function mintfromVoucher(app, callback = () => {}, afterminting = f => f) { //server drop
     setMinting(true);
     setError('');
-    if(app.type !== "major") {
+    if(app.type !== "major") {  // app.type === "major"
         try {
         const signer = await getSigner();
         const webaverseContract = new ethers.Contract(
@@ -258,7 +258,7 @@ export default function useNFTContract(currentAccount) {
         setMinting(false);
         }
     }
-    if (app.type !== "minor") {
+    if (app.type !== "minor") { // app.type === "minor"
         try {
             const signer = await getSigner();
             const webaverseContract = new ethers.Contract(
