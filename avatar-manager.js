@@ -13,12 +13,12 @@ class AvatarManager extends EventTarget {
 
     const playerSelectedFn = e => {
       const {
-        oldplayer,
+        oldPlayer,
         player,
       } = e.data;
 
-      if (oldplayer) {
-        this.unbindPlayer(oldplayer);
+      if (oldPlayer) {
+        this.unbindPlayer(oldPlayer);
       }
       this.bindPlayer(player);
     };

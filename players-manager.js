@@ -40,7 +40,7 @@ class PlayersManager extends EventTarget {
     this.localPlayer = newLocalPlayer;
     this.dispatchEvent(new MessageEvent('playerchange', {
       data: {
-        oldplayer: oldPlayer,
+        oldPlayer: oldPlayer,
         player: this.localPlayer,
       }
     }));
