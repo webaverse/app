@@ -246,28 +246,28 @@ class StepSfx extends Sfx {
       !this.player.avatar.jumpState &&
       !this.player.avatar.fallLoopState &&
       !this.player.avatar.flyState &&
-      !this.player.hasAction("swim") &&
-      !this.player.hasAction("sit")
+      !this.player.hasAction('swim') &&
+      !this.player.hasAction('sit')
     ) {
       const isRunning = walkRunFactor > 0.5;
       const isCrouching = crouchFactor > 0.5;
       const isNarutoRun = this.player.avatar.narutoRunState;
       const walkRunAnimationName = (() => {
         if (isNarutoRun) {
-          return "naruto run.fbx";
+          return 'naruto run.fbx';
         } else {
           const animationAngles = isCrouching
             ? Avatar.getClosest2AnimationAngles(
-                "crouch",
+                'crouch',
                 this.player.avatar.getAngle()
               )
             : isRunning
             ? Avatar.getClosest2AnimationAngles(
-                "run",
+                'run',
                 this.player.avatar.getAngle()
               )
             : Avatar.getClosest2AnimationAngles(
-                "walk",
+                'walk',
                 this.player.avatar.getAngle()
               );
           return animationAngles[0].name;
@@ -295,7 +295,7 @@ class StepSfx extends Sfx {
       const offset = offsets[walkRunAnimationName] ?? 0; // ?? window.lol; // check
       const _getStepIndex = (timeSeconds) => {
         const timeMultiplier =
-          walkRunAnimationName === "naruto run.fbx" ? narutoRunTimeFactor : 1;
+          walkRunAnimationName === 'naruto run.fbx' ? narutoRunTimeFactor : 1;
         const walkTime =
           (timeSeconds * timeMultiplier + offset) % animation.duration;
         const walkFactor = walkTime / animation.duration;
@@ -318,7 +318,7 @@ class StepSfx extends Sfx {
           ) {
             const candidateAudios = localSoundFiles; //.filter(a => a.paused);
             if (candidateAudios.length > 0) {
-              this.currentStep = "left";
+              this.currentStep = 'left';
               const audioSpec =
                 candidateAudios[
                   Math.floor(Math.random() * candidateAudios.length)
@@ -336,7 +336,7 @@ class StepSfx extends Sfx {
           ) {
             const candidateAudios = localSoundFiles; // .filter(a => a.paused);
             if (candidateAudios.length > 0) {
-              this.currentStep = "right";
+              this.currentStep = 'right';
               const audioSpec =
                 candidateAudios[
                   Math.floor(Math.random() * candidateAudios.length)
@@ -496,12 +496,11 @@ class ComboSfx extends Sfx {
           if (index > maxDeltaIndex) {
             this.alreadyPlayComboSound = true;
             this.playGrunt('attack');
-            const soundIndex = this.player.avatar.useAnimationIndex;
-            this.dispatchEvent(new MessageEvent('meleewhoosh', {
-              data: {
-                index: soundIndex
-              },
-            }));
+            const index = useAction.index;
+            const soundRegex = new RegExp(`^combat/sword_slash${index}-[0-9]*.wav$`);
+            const soundCandidate = this.soundFiles.combat.filter(f => soundRegex.test(f.name));
+            const audioSpec = soundCandidate[Math.floor(Math.random() * soundCandidate.length)];
+            sounds.playSound(audioSpec);
           }
         }
       }
@@ -594,7 +593,6 @@ class EmoteSfx extends Sfx {
     this.lastEmote = this.player.avatar.emoteAnimation;
   }
 }
-
 
 class CharacterSfx extends Sfx {
   constructor(player) {
