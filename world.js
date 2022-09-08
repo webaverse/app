@@ -43,10 +43,11 @@ export class World {
       };
       app.addEventListener('die', die);
 
-      app.addEventListener('migrated', (e) => {
+      const migrated = (e) => {
         const {appManager} = e;
         boundAppManager = appManager;
-      });
+      };
+      app.addEventListener('migrated', migrated);
     });
 
     // This handles removal of apps from the scene when we leave the world

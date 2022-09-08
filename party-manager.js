@@ -162,7 +162,7 @@ class PartyManager extends EventTarget {
           console.warn('die local player');
         }
       };
-      app.addEventListener('die', die);
+      playerApp.addEventListener('die', die);
 
       const removeFn = () => {
         newPlayer.removeEventListener('activate', activate);
