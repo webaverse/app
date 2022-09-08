@@ -34,6 +34,9 @@ class NpcManager extends EventTarget {
     this.npcAppMap = new WeakMap();
     this.detachedNpcs = [];
     this.targetMap = new WeakMap();
+    this.loadPromise = (async () => {
+      await this.initDefaultPlayer();
+    })();
   }
 
   getAppByNpc(npc) {
@@ -42,6 +45,10 @@ class NpcManager extends EventTarget {
 
   getNpcByApp(app) {
     return this.npcs.find(npc => this.getAppByNpc(npc) === app);
+  }
+
+  async waitForLoad() {
+    await this.loadPromise;
   }
 
   async initDefaultPlayer() {
@@ -59,7 +66,7 @@ class NpcManager extends EventTarget {
     };
     const app = createPlayerApp();
 
-    const importPlayerToNpcManager = () => {
+    const addDefaultPlayer = () => {
       this.addPlayerApp(app, localPlayer, defaultPlayerSpec);
 
       this.dispatchEvent(new MessageEvent('defaultplayeradd', {
@@ -72,7 +79,7 @@ class NpcManager extends EventTarget {
         this.removeNpcApp(app);
       });
     };
-    importPlayerToNpcManager();
+    addDefaultPlayer();
   }
 
   async createNpcAsync({

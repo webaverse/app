@@ -4,6 +4,7 @@ import {LoadoutRenderer} from './loadout-renderer.js';
 import {InfoboxRenderer} from './infobox.js';
 import {createObjectSprite} from './object-spriter.js';
 import {hotbarSize, infoboxSize} from './constants.js';
+import npcManager from './npc-manager.js';
 
 const numSlots = 8;
 
@@ -23,6 +24,7 @@ class LoadoutManager extends EventTarget {
 
     this.appsPerPlayer = new WeakMap();
     this.selectedIndexPerPlayer = new WeakMap();
+    this.destroyPlayerFnMap = new WeakMap();
 
     this.apps = null;
     this.hotbarRenderers = [];
@@ -78,6 +80,21 @@ class LoadoutManager extends EventTarget {
     this.apps = this.appsPerPlayer.get(player);
     this.selectedIndex = this.selectedIndexPerPlayer.has(player) ? this.selectedIndexPerPlayer.get(player) : -1;
     this.refresh();
+
+    // delete loadout apps when player is destroyed
+    if (!this.destroyPlayerFnMap.has(player)) {
+      npcManager.waitForLoad().then(() => {
+        const playerApp = npcManager.getAppByNpc(player);
+        const destroyFn = () => {
+          this.appsPerPlayer.delete(player);
+          this.selectedIndexPerPlayer.delete(player);
+          this.destroyPlayerFnMap.delete(player);
+          playerApp.removeEventListener('destroy', destroyFn);
+        };
+        playerApp.addEventListener('destroy', destroyFn);
+        this.destroyPlayerFnMap.set(player, destroyFn);
+      });
+    }
 
     const localPlayer = player;
     const wearupdate = e => {
