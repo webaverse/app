@@ -1,5 +1,5 @@
 import * as THREE from 'three';
-import {getRenderer, camera, scene, setCameraMode} from './renderer.js';
+import {getRenderer, camera, scene, setCameraType} from './renderer.js';
 // import * as notifications from './notifications.js';
 import physicsManager from './physics-manager.js';
 import {shakeAnimationSpeed} from './constants.js';
@@ -167,6 +167,17 @@ const blueMesh = (() => {
 })();
 scene.add(blueMesh); */
 
+class Scene2D {
+  constructor(perspective, cameraMode, scrollDirection) {
+
+    this.modeIs2D = true;
+    this.perspective = perspective;
+    this.cameraMode = cameraMode;
+    this.scrollDirection = scrollDirection;
+
+  }
+}
+
 class CameraManager extends EventTarget {
   constructor() {
     super();
@@ -196,6 +207,8 @@ class CameraManager extends EventTarget {
     this.modeIs2D = false;
     this.lockCamera = false;
 
+    this.scene2D = null;
+
     document.addEventListener('pointerlockchange', e => {
       let pointerLockElement = document.pointerLockElement;
       const renderer = getRenderer();
@@ -215,16 +228,20 @@ class CameraManager extends EventTarget {
     camera.lookAt(position);
     camera.updateMatrixWorld();
   }
-  setCamera(perspective, mode = "free") {
-    if(mode === "fixed") {
-      this.lockCamera = true;
-    }
-    setCameraMode(perspective, mode);
-  }
-  setMode(mode) {
-    this.modeIs2D = mode;
-  }
+  enable2D(perspective = "side-scroll", mode = "follow", viewSize, scrollDirection = "both") {
+    const localPlayer = playersManager.getLocalPlayer();
+    localPlayer.characterPhysics.setPosition(new THREE.Vector3(0,1,0));
 
+    this.targetQuaternion = new THREE.Quaternion();
+    this.targetPosition = new THREE.Vector3();
+
+    this.scene2D = new Scene2D(perspective, mode, scrollDirection);
+    setCameraType("orthographic", viewSize);
+  }
+  disable2D() {
+    this.scene2D = null;
+    setCameraType("perspective");
+  }
   async requestPointerLock() {
     // const localPointerLockEpoch = ++this.pointerLockEpoch;
     for (const options of [
@@ -286,8 +303,8 @@ class CameraManager extends EventTarget {
     if (this.target || this.cinematicScript) {
       return 'isometric';
     } 
-    else if(this.modeIs2D) {
-      return 'side-scroll';
+    else if(this.scene2D) {
+      return this.scene2D.perspective;
     } 
     else {
       return cameraOffset.z > -0.5 ? 'firstperson' : 'isometric';
@@ -676,18 +693,19 @@ class CameraManager extends EventTarget {
             break;
           }
           case 'side-scroll': {
-            if(this.lockCamera) {
-
-              //console.log(camera.position);
-              
-              let offset = new THREE.Vector3(localPlayer.position.x, localPlayer.position.y, 0).sub(new THREE.Vector3(camera.position.x, localPlayer.position.y, 0));
-              //this.targetPosition.copy();
-              //console.log(this.targetPosition);
-
-              this.targetPosition.copy(new THREE.Vector3(0,localPlayer.position.y, 0)).add(new THREE.Vector3(0, offset.y, 0));
-        
-              break;
+            if(this.scene2D && this.scene2D.cameraMode === "fixed") {
+              if(this.scene2D.scrollDirection === "horizontal") {
+                let offset = new THREE.Vector3(localPlayer.position.x, localPlayer.position.y, 0).sub(new THREE.Vector3(camera.position.x, localPlayer.position.y, 0));
+                this.targetPosition.copy(new THREE.Vector3(localPlayer.position.x,camera.position, 0)).add(new THREE.Vector3(offset.x, 0, 0));
+                break;
+              } 
+              else if (this.scene2D.scrollDirection === "vertical") {
+                let offset = new THREE.Vector3(localPlayer.position.x, localPlayer.position.y, 0).sub(new THREE.Vector3(camera.position.x, localPlayer.position.y, 0));
+                this.targetPosition.copy(new THREE.Vector3(0,localPlayer.position.y, 0)).add(new THREE.Vector3(0, offset.y, 0));
+                break;
+              } 
             }
+            
             this.targetPosition.copy(localPlayer.position)
               .sub(
                 localVector2.copy(avatarCameraOffset)
@@ -701,8 +719,6 @@ class CameraManager extends EventTarget {
           }
         }
 
-       
-
         const factor = Math.min((timestamp - this.lerpStartTime) / maxFocusTime, 1);
 
         this.targetPosition.y -= crouchOffset;
@@ -715,9 +731,14 @@ class CameraManager extends EventTarget {
           .slerp(localQuaternion.setFromEuler(localEuler), factor);
           
       };
-      if(!this.lockCamera || _isOutOfView()) {
+      if(this.scene2D) {
+        if(this.scene2D.cameraMode === "follow" || _isOutOfView()) {
+          _setFreeCamera();
+        }
+      } else {
         _setFreeCamera();
       }
+      
     };
       
     const _setCameraFov = () => {

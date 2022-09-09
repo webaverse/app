@@ -152,7 +152,7 @@ function makeWebaWaterPass(webaWater) {
 
   return webaWaterPass;
 }
-function makePixelPass({pixelSize = 1}) {
+function makePixelPass({pixelSize = 2}) {
   // const renderer = getRenderer();
   // const size = renderer.getSize(localVector2D)
   //   .multiplyScalar(renderer.getPixelRatio());

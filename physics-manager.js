@@ -686,7 +686,7 @@ class PhysicsScene extends EventTarget {
       elapsedTime,
       position
     )
-    console.log(result);
+    //console.log(result);
     return result
   }
   setCharacterControllerPosition(

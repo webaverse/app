@@ -16,22 +16,19 @@
       }
     },
     {
-      "type": "application/rendersettings",
+      "type": "application/scene2D",
       "content": {
-          "scene2D": {
-            "perspective": "side-scroll",
-            "cameraMode": "fixed"
-          },
-          "pixel": {
-            "pixelSize": 2
-          }
+        "perspective": "side-scroll",
+        "scrollDirection": "vertical",
+        "cameraMode": "follow",
+        "viewSize": 22
       }
     },
     {
       "position": [
-        0,
+        -3,
         0.75,
-        0
+        -1
       ],
       "start_url": "/fire.gif"
     },

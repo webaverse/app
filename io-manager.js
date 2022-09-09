@@ -256,7 +256,7 @@ const _updateIo = timeDiff => {
       ioManager.lastCtrlKey = ioManager.keys.ctrl;
     }
     if (keysDirection.length() > 0 && physicsScene.getPhysicsEnabled() && movementEnabled) {
-      if(cameraManager.modeIs2D) {
+      if(cameraManager.scene2D) {
         keysDirection.z = 0;
       }
       localPlayer.characterPhysics.applyWasd(
@@ -741,7 +741,7 @@ ioManager.mousemove = e => {
   /* if (game.weaponWheel) {
     game.updateWeaponWheel(e);
   } else { */
-    if(cameraManager.modeIs2D) {
+    if(cameraManager.scene2D) {
       return;
     }
 

@@ -8,7 +8,6 @@ class RenderSettings {
   constructor(json) {
     this.background = this.#makeBackground(json.background);
     this.fog = this.#makeFog(json.fog);
-    this.scene2D = this.#makeScene2D(json.scene2D);
     this.passes = postProcessing.makePasses(json);
   }
   #makeBackground(background) {
@@ -34,41 +33,6 @@ class RenderSettings {
       }
     } else {
       return null;
-    }
-  }
-  #makeScene2D(scene2D) {
-    if (scene2D) {
-      if(scene2D.cameraMode) {
-        if(scene2D.cameraMode === "fixed") {
-          cameraManager.setCamera("orthographic", scene2D.cameraMode);
-        }
-        else {
-          cameraManager.setCamera("orthographic", "free");
-        }
-      }
-      else {
-        cameraManager.setCamera("orthographic", "free");
-      }
-
-      if (scene2D.perspective === 'side-scroll') {
-        cameraManager.modeIs2D = true;
-        return true;
-      } else if (scene2D.perspective === 'top-down') {
-        console.warn('mode unavailable:', scene2D.perspective);
-        return false;
-      } 
-      else if (scene2D.perspective === 'isometric') {
-        console.warn('mode unavailable:', scene2D.perspective);
-        return false;
-      } else {
-        console.warn('unknown perspective mode:', scene2D.perspective);
-        return false;
-      }
-    } else {
-      cameraManager.modeIs2D = false;
-      cameraManager.setCamera("perspective");
-      //cameraManager.setMode("perspective");
-      return false;
     }
   }
 }
