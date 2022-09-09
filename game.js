@@ -1665,13 +1665,13 @@ class GameManager extends EventTarget {
     localPlayer.removeAction('activate');
   }
   setAvatarQuality(quality) {
-    const applySettingToPlayerApp = app => {
+    const applySettingToApp = app => {
       const player = npcManager.getNpcByApp(app);
       if (player && player.avatar) {
         player.avatar.setQuality(quality);
-        return true;
+      } else if (app.appType === 'vrm' && app.avatarRenderer) {
+        app.avatarRenderer.setQuality(quality);
       }
-      return false;
     };
 
     // local player
@@ -1680,23 +1680,18 @@ class GameManager extends EventTarget {
 
     // party members
     for (const app of localPlayer.appManager.apps) {
-      applySettingToPlayerApp(app);
+      applySettingToApp(app);
     }
 
     // remote players
     for (const remotePlayer in playersManager.getRemotePlayers()) {
       for (const app of remotePlayer.appManager.apps) {
-        applySettingToPlayerApp(app);
+        applySettingToApp(app);
       }
     }
 
     for (const app of world.appManager.apps) {
-      // npcs
-      const isNpc = applySettingToPlayerApp(app);
-      // vrm objects
-      if (!isNpc && app.appType === 'vrm' && app.avatarRenderer) {
-        app.avatarRenderer.setQuality(quality);
-      }
+      applySettingToApp(app);
     }
   }
   playerDiorama = null;
