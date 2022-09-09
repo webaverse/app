@@ -181,14 +181,14 @@ export default function CharacterHups({
     }
 
     const handleCharacterAdd = (e) => {
-      e.data.character.characterHups.addEventListener('hupadd', hupadd);
-      e.data.character.characterHups.addEventListener('hupremove', hupremove);
+      e.data.player.characterHups.addEventListener('hupadd', hupadd);
+      e.data.player.characterHups.addEventListener('hupremove', hupremove);
 
     }
 
     const handleCharacterRemove = (e) => {
-      e.data.character.characterHups.removeEventListener('hupadd', hupadd);
-      e.data.character.characterHups.removeEventListener('hupremove', hupremove);
+      e.data.player.characterHups.removeEventListener('hupadd', hupadd);
+      e.data.player.characterHups.removeEventListener('hupremove', hupremove);
     }
 
     playersManager.addEventListener('playeradded', handleCharacterAdd);
