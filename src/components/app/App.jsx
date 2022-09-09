@@ -34,6 +34,7 @@ import {ClaimsNotification} from '../../ClaimsNotification.jsx';
 import {DomRenderer} from '../../DomRenderer.jsx';
 import {BuildVersion} from '../general/build-version/BuildVersion.jsx';
 import {handleStoryKeyControls} from '../../../story';
+import { GrabKeyIndicators } from '../../GrabKeyIndicators';
 
 import styles from './App.module.css';
 import '../../fonts.css';
@@ -354,6 +355,7 @@ export const App = () => {
                 <Quests />
                 <LoadingBox />
                 <FocusBar />
+                <GrabKeyIndicators />
                 <DragAndDrop />
                 <BuildVersion />
                 <Stats app={ app } />

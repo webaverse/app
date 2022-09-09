@@ -1,0 +1,6 @@
+.indicatorlist {
+    position: absolute;
+    top: 50%;
+    left: 30px;
+    list-style-type: none;
+}
