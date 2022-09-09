@@ -10,11 +10,19 @@
 	path = packages/totum
 	url = https://github.com/webaverse/totum.git
 	branch = main
-[submodule "packages/three-vrm"]
-	path = packages/three-vrm
-	url = https://github.com/webaverse/three-vrm
-	branch = update-to-1.0
 [submodule "packages/three"]
 	path = packages/three
 	url = https://github.com/webaverse/three
 	branch = r143
+[submodule "packages/three-vrm"]
+	path = packages/three-vrm
+	url = https://github.com/webaverse/three-vrm
+	branch = update-to-1.0
+[submodule "packages/three-vrm-springbone"]
+	path = packages/three-vrm-springbone
+	url = https://github.com/webaverse/three-vrm-springbone
+	branch = main
+[submodule "packages/three-vrm-materials-mtoon"]
+	path = packages/three-vrm-materials-mtoon
+	url = https://github.com/webaverse/three-vrm-materials-mtoon
+	branch = main
