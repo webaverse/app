@@ -3,6 +3,11 @@ import {getMergeableObjects, getBones, mergeGeometryTextureAtlas} from './avatar
 import exporters from './exporters.js';
 
 const defaultTextureSize = 4096;
+
+const localVector = new THREE.Vector3();
+const localQuaternion = new THREE.Quaternion();
+const localVector2 = new THREE.Vector3();
+
 const textureTypes = [
   'map',
   'emissiveMap',
@@ -80,15 +85,23 @@ export const crunchAvatarModel = async (model, options = {}) => {
   };
   const mergedMeshes = mergeables.map((mergeable, i) => _mergeMesh(mergeable, i));
 
-  // construct a new object with the merged meshes
-  const object = new THREE.Object3D();
+  // construct a new scene with the merged meshes
+  const scene = new THREE.Scene();
   for (const mesh of mergedMeshes) {
-    object.add(mesh);
+    scene.add(mesh);
   }
   // also need to keep the bones
   const bones = getBones(model);
   for (const bone of bones) {
-    object.add(bone);
+    // bake bone world transformation into local
+    bone.matrixWorld.decompose(localVector, localQuaternion, localVector2);
+    bone.position.copy(localVector);
+    bone.quaternion.copy(localQuaternion);
+    bone.scale.copy(localVector2);
+
+    scene.add(bone);
+
+    bone.updateMatrixWorld();
   }
 
   // XXX this should anti-index flattened index ranges for the multi-materials case
@@ -98,7 +111,7 @@ export const crunchAvatarModel = async (model, options = {}) => {
   const glbData = await new Promise((accept, reject) => {
     const {gltfExporter} = exporters;
     gltfExporter.parse(
-      object,
+      scene,
       function onCompleted(arrayBuffer) {
         accept(arrayBuffer);
       }, function onError(error) {
