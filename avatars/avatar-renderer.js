@@ -380,7 +380,7 @@ export class AvatarRenderer /* extends EventTarget */ {
     arrayBuffer,
     srcUrl,
     camera = null, // if null, do not frustum cull
-    quality,
+    quality = settingsManager.getCharacterQuality(),
     controlled = false,
   } = {})	{
     // super();
@@ -390,9 +390,6 @@ export class AvatarRenderer /* extends EventTarget */ {
     this.arrayBuffer = arrayBuffer;
     this.srcUrl = srcUrl;
     this.camera = camera;
-    if (quality === undefined) {
-      quality = settingsManager.getCharacterQuality();
-    }
     this.quality = quality;
     this.isControlled = controlled;
     
