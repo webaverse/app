@@ -298,10 +298,10 @@ const _parseChunkResult = (arrayBuffer, bufferAddress) => {
     index2 += Float32Array.BYTES_PER_ELEMENT * numBiomesUvs2 * 4;
 
     // seeds
-    const numSeeds = dataView2.getUint32(index2, true);
-    index2 += Uint32Array.BYTES_PER_ELEMENT;
-    const seeds = new Float32Array(arrayBuffer, bufferAddress + index2, numSeeds);
-    index2 += Float32Array.BYTES_PER_ELEMENT * numSeeds;
+    // const numSeeds = dataView2.getUint32(index2, true);
+    // index2 += Uint32Array.BYTES_PER_ELEMENT;
+    // const seeds = new Float32Array(arrayBuffer, bufferAddress + index2, numSeeds);
+    // index2 += Float32Array.BYTES_PER_ELEMENT * numSeeds;
   
     // indices
     const numIndices = dataView2.getUint32(index2, true);
@@ -336,7 +336,7 @@ const _parseChunkResult = (arrayBuffer, bufferAddress) => {
       biomesWeights,
       biomesUvs1,
       biomesUvs2,
-      seeds,
+      // seeds,
       indices,
       // skylights,
       // aos,

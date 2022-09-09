@@ -23,7 +23,7 @@ const _cloneChunkResult = chunkResult => {
       terrainGeometry.biomesWeights.length * terrainGeometry.biomesWeights.constructor.BYTES_PER_ELEMENT +
       terrainGeometry.biomesUvs1.length * terrainGeometry.biomesUvs1.constructor.BYTES_PER_ELEMENT +
       terrainGeometry.biomesUvs2.length * terrainGeometry.biomesUvs2.constructor.BYTES_PER_ELEMENT +
-      terrainGeometry.seeds.length * terrainGeometry.seeds.constructor.BYTES_PER_ELEMENT +
+      // terrainGeometry.seeds.length * terrainGeometry.seeds.constructor.BYTES_PER_ELEMENT +
       terrainGeometry.indices.length * terrainGeometry.indices.constructor.BYTES_PER_ELEMENT;
     return size;
   };
@@ -65,9 +65,9 @@ const _cloneChunkResult = chunkResult => {
     biomesUvs2.set(terrainGeometry.biomesUvs2);
     index += terrainGeometry.biomesUvs2.length * terrainGeometry.biomesUvs2.constructor.BYTES_PER_ELEMENT;
 
-    const seeds = new terrainGeometry.seeds.constructor(arrayBuffer, index, terrainGeometry.seeds.length);
-    seeds.set(terrainGeometry.seeds);
-    index += terrainGeometry.seeds.length * terrainGeometry.seeds.constructor.BYTES_PER_ELEMENT;
+    // const seeds = new terrainGeometry.seeds.constructor(arrayBuffer, index, terrainGeometry.seeds.length);
+    // seeds.set(terrainGeometry.seeds);
+    // index += terrainGeometry.seeds.length * terrainGeometry.seeds.constructor.BYTES_PER_ELEMENT;
 
     const indices = new terrainGeometry.indices.constructor(arrayBuffer, index, terrainGeometry.indices.length);
     indices.set(terrainGeometry.indices);
@@ -92,7 +92,7 @@ const _cloneChunkResult = chunkResult => {
       biomesWeights,
       biomesUvs1,
       biomesUvs2,
-      seeds,
+      // seeds,
       indices,
       // skylights,
       // aos,
