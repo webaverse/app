@@ -24,6 +24,7 @@ const localVector5 = new THREE.Vector3();
 const localVector6 = new THREE.Vector3();
 const localVector7 = new THREE.Vector3();
 const localVector8 = new THREE.Vector3();
+const localVector9 = new THREE.Vector3();
 const localQuaternion = new THREE.Quaternion();
 const localQuaternion2 = new THREE.Quaternion();
 const localQuaternion3 = new THREE.Quaternion();
@@ -67,14 +68,23 @@ const _updateGrabbedObject = (o, grabMatrix, offsetMatrix, {collisionEnabled, ha
   localMatrix.multiplyMatrices(grabMatrix, offsetMatrix)
     .decompose(localVector5, localQuaternion3, localVector6);
 
+
+  const collision = collisionEnabled && physicsScene.raycast(localVector, localQuaternion);
   localQuaternion4.setFromAxisAngle(localVector8.set(1, 0, 0), -Math.PI * 0.5);
   const downCollision = collisionEnabled && physicsScene.raycast(localVector5, localQuaternion4);
+  
+  if(collision) {
+    const {point} = collision;
+    localVector9.fromArray(point);
+  }
+
   if(downCollision) {
     const {point} = downCollision;
     localVector7.fromArray(point);
     if (ioManager.keys.shift) {
       o.position.copy(localVector5.setY(localVector7.y));
     } else {
+      if(localVector.distanceTo(localVector9) < offset && localVector7.y < localVector9.y) localVector5.copy(localVector9);
       if(localVector5.y < localVector7.y) localVector5.setY(localVector7.y);
       o.position.copy(localVector5);
     }
