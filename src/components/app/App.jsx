@@ -2,8 +2,6 @@
 import React, { useState, useEffect, useRef, createContext } from 'react';
 import classnames from 'classnames';
 
-import { defaultPlayerSpec } from '../../../constants';
-
 import game from '../../../game';
 import sceneNames from '../../../scenes/scenes.json';
 import { parseQuery } from '../../../util.js'
@@ -53,7 +51,7 @@ const _startApp = async ( weba, canvas ) => {
     universe.handleUrlUpdate();
     await weba.startLoop();
 
-    await npcManager.initDefaultPlayer(defaultPlayerSpec);
+    await npcManager.initDefaultPlayer();
 
 };
 

@@ -50,7 +50,7 @@ export const getAvatarHeight = (() => {
     ).y;
     const headBoundingBox = localBox.setFromObject(modelBones.Head);
     let headHeight = headBoundingBox.max.y - headBoundingBox.min.y;
-    headHeight = headHeight < 0 ? 0 : headHeight; // head height will be zero in vrm initialization
+    headHeight = Math.max(headHeight, 0);
     return avatarHeight + headHeight / 2;
   };
 })();

@@ -4,7 +4,6 @@ import {emotions} from './src/components/general/character/Emotions';
 import offscreenEngineManager from './offscreen-engine-manager.js';
 import {fetchArrayBuffer} from './util';
 import {avatarManager} from './avatar-manager';
-import {partyManager} from './party-manager'
 import {playersManager} from './players-manager';
 
 const allEmotions = [''].concat(emotions);
@@ -35,7 +34,7 @@ class AvatarIconer extends EventTarget {
 
       this.bindPlayer(player);
     };
-    partyManager.addEventListener('playerselected', playerSelectedFn);
+    playersManager.addEventListener('playerchange', playerSelectedFn);
 
     const avatarchange = e => {
       this.renderAvatarApp(e.data.app);
@@ -48,7 +47,7 @@ class AvatarIconer extends EventTarget {
     avatarManager.addEventListener('actionupdate', actionupdate);
 
     this.cleanup = () => {
-      partyManager.removeEventListener('playerselected', playerSelectedFn);
+      playersManager.removeEventListener('playerchange', playerSelectedFn);
       avatarManager.removeEventListener('avatarchange', avatarchange);
       avatarManager.removeEventListener('actionupdate', actionupdate);
     };
