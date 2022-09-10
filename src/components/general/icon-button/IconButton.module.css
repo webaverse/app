@@ -1,0 +1,63 @@
+.iconButtonWrap {
+    display: inline-block;
+    position: relative;
+    z-index: 1;
+}
+
+.iconButtonWrap * {
+    -webkit-transition: all 0.1s ease;
+    -moz-transition: all 0.1s ease;
+    -o-transition: all 0.1s ease;
+    -ms-transition: all 0.1s ease;
+    transition: all 0.1s ease;
+}
+
+.iconButtonWrap .buttonBackground {
+    height: 100%;
+    width: auto !important;
+}
+
+.iconButtonWrap .buttonBackground .buttonBackgroundColor {
+    fill: #EAF4EF;
+}
+
+.iconButtonWrap .iconWrap {
+    display: block;
+    position: absolute;
+    left: 0;
+    top: 0;
+    z-index: 1;
+    height: 100%;
+    width: 100%;
+}
+
+.iconButtonWrap .icon {
+    top: 50%;
+    left: 50%;
+    -ms-transform: translateX(-50%) translateY(-50%);
+    -webkit-transform: translateX(-50%) translateY(-50%);
+    transform: translateX(-50%) translateY(-50%);
+    position: absolute;
+    height: 48% !important;
+}
+
+.iconButtonWrap .icon * {
+    fill: #000000;
+}
+
+.iconButtonWrap:hover .buttonBackgroundColor {
+    fill: #FFC000;
+}
+
+.iconButtonWrap:hover .icon * {
+    fill: #EAF4EF;
+}
+
+.iconButtonWrap:active .buttonBackgroundColor {
+    fill: #000000;
+    stroke: #FFC000;
+}
+
+.iconButtonWrap:active .icon * {
+    fill: #FFC000;
+}
