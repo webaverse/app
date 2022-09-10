@@ -298,10 +298,10 @@ const _parseChunkResult = (arrayBuffer, bufferAddress) => {
     index2 += Float32Array.BYTES_PER_ELEMENT * numBiomesUvs2 * 4;
 
     // seeds
-    const numSeeds = dataView2.getUint32(index2, true);
-    index2 += Uint32Array.BYTES_PER_ELEMENT;
-    const seeds = new Float32Array(arrayBuffer, bufferAddress + index2, numSeeds);
-    index2 += Float32Array.BYTES_PER_ELEMENT * numSeeds;
+    // const numSeeds = dataView2.getUint32(index2, true);
+    // index2 += Uint32Array.BYTES_PER_ELEMENT;
+    // const seeds = new Float32Array(arrayBuffer, bufferAddress + index2, numSeeds);
+    // index2 += Float32Array.BYTES_PER_ELEMENT * numSeeds;
   
     // indices
     const numIndices = dataView2.getUint32(index2, true);
@@ -336,7 +336,7 @@ const _parseChunkResult = (arrayBuffer, bufferAddress) => {
       biomesWeights,
       biomesUvs1,
       biomesUvs2,
-      seeds,
+      // seeds,
       indices,
       // skylights,
       // aos,
@@ -382,20 +382,74 @@ const _parseChunkResult = (arrayBuffer, bufferAddress) => {
       indices,
     };
   };
-  /* const _parseBiome = () => {
-    const biome = dataView.getUint8(index);
-    index += Uint32Array.BYTES_PER_ELEMENT; // align to word boundary
-    return biome;
-  }; */
+  const _parseBarrierVertexBuffer = () => {
+    const bufferAddress = dataView.getUint32(index, true);
+    index += Uint32Array.BYTES_PER_ELEMENT;
+
+    const dataView2 = new DataView(arrayBuffer, bufferAddress);
+    let index2 = 0;
+
+    // positions
+    const numPositions = dataView2.getUint32(index2, true);
+    index2 += Uint32Array.BYTES_PER_ELEMENT;
+    const positions = new Float32Array(arrayBuffer, bufferAddress + index2, numPositions * 3);
+    index2 += Float32Array.BYTES_PER_ELEMENT * numPositions * 3;
+  
+    // normals
+    const numNormals = dataView2.getUint32(index2, true);
+    index2 += Uint32Array.BYTES_PER_ELEMENT;
+    const normals = new Float32Array(arrayBuffer, bufferAddress + index2, numNormals * 3);
+    index2 += Float32Array.BYTES_PER_ELEMENT * numNormals * 3;
+  
+    // positions2D
+    const numPositions2D = dataView2.getUint32(index2, true);
+    index2 += Uint32Array.BYTES_PER_ELEMENT;
+    const positions2D = new Float32Array(arrayBuffer, bufferAddress + index2, numPositions2D * 2);
+    index2 += Float32Array.BYTES_PER_ELEMENT * numPositions2D * 2;
+  
+    // indices
+    const numIndices = dataView2.getUint32(index2, true);
+    index2 += Uint32Array.BYTES_PER_ELEMENT;
+    const indices = new Uint32Array(arrayBuffer, bufferAddress + index2, numIndices);
+    index2 += Uint32Array.BYTES_PER_ELEMENT * numIndices;
+  
+    return {
+      bufferAddress,
+      positions,
+      normals,
+      positions2D,
+      indices,
+    };
+  };
+  const _parseBarrierNode = () => {
+    const bufferAddress = dataView.getUint32(index, true);
+    index += Uint32Array.BYTES_PER_ELEMENT;
+
+    const dataView2 = new DataView(arrayBuffer, bufferAddress);
+    let index2 = 0;
+
+    const min = new Int32Array(arrayBuffer, bufferAddress + index, 2);
+    index2 += 2 * Int32Array.BYTES_PER_ELEMENT; // align to word boundary
+    const lod = dataView2.getInt32(index, true);
+    index2 += Int32Array.BYTES_PER_ELEMENT;
+    
+    return {
+      bufferAddress,
+      min,
+      lod,
+    };
+  };
 
   const terrainGeometry = _parseTerrainVertexBuffer();
   const waterGeometry = _parseWaterVertexBuffer();
-  // const biome = _parseBiome();
+  const barrierGeometry = _parseBarrierVertexBuffer();
+  const barrierNode = _parseBarrierNode();
   return {
     bufferAddress,
     terrainGeometry,
     waterGeometry,
-    // biome,
+    barrierGeometry,
+    barrierNode,
   };
 };
 w.createChunkMeshAsync = async (inst, taskId, x, z, lod, lodArray) => {

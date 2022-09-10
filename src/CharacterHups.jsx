@@ -183,7 +183,6 @@ export default function CharacterHups({
     const handleCharacterAdd = (e) => {
       e.data.player.characterHups.addEventListener('hupadd', hupadd);
       e.data.player.characterHups.addEventListener('hupremove', hupremove);
-
     }
 
     const handleCharacterRemove = (e) => {
