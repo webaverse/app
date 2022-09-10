@@ -304,9 +304,9 @@ class AppManager extends EventTarget {
       const {instanceId, app} = e.data;
       
       this.unbindTrackedApp(instanceId);
-      if(app){
-      this.removeApp(app);
-      app.destroy();
+      if (app){
+        this.removeApp(app);
+        app.destroy();
       }
     });
     this.addEventListener('trackedappimport', async e => {
