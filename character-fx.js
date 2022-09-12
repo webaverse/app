@@ -158,11 +158,9 @@ export class AvatarCharacterFx {
         hairMesh.material.vertexShader = kiHairMaterial.vertexShader;
         hairMesh.material.fragmentShader = kiHairMaterial.fragmentShader; */
       }
-      for (const springBones of this.character.avatar.springBoneManager.springBoneGroupList) {
-        for (const o of springBones) {
-          o.kiOriginalGravityDir = o.gravityDir.clone();
-          o.kiOriginalGravityPower = o.gravityPower;
-        }
+      for (const joint of this.character.avatar.springBoneManager.joints) {
+        joint.settings.kiOriginalGravityDir = joint.settings.gravityDir.clone();
+        joint.settings.kiOriginalGravityPower = joint.settings.gravityPower;
       }
     };
     const _enableHairMeshes = () => {
@@ -174,11 +172,9 @@ export class AvatarCharacterFx {
       for (const hairMesh of this.hairMeshes) {
         hairMesh.material = hairMesh.kiOriginalMaterial;
       }
-      for (const springBones of this.character.avatar.springBoneManager.springBoneGroupList) {
-        for (const o of springBones) {
-          o.gravityDir.copy(o.kiOriginalGravityDir);
-          o.gravityPower = o.kiOriginalGravityPower;
-        }
+      for (const joint of this.character.avatar.springBoneManager.joints) {
+        joint.settings.gravityDir.copy(joint.settings.kiOriginalGravityDir);
+        joint.settings.gravityPower = joint.settings.kiOriginalGravityPower;
       }
     };
     const _updateHair = () => {
@@ -205,7 +201,7 @@ export class AvatarCharacterFx {
             // Math.sin(timeS * Math.PI * 2 * 4) +
             // Math.sin(timeS * Math.PI * 2 * 8);
           const gravityPower = 0.4 + (1 + octave)*0.5 * 0.5;
-          for (const springBones of this.character.avatar.springBoneManager.springBoneGroupList) {
+          for (const springBones of this.character.avatar.springBoneManager._objectSpringBonesMap) {
             for (const o of springBones) {
               const gravityDir = localVector2.setFromMatrixPosition(o.bone.matrixWorld)
                 .sub(headPosition)

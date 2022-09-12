@@ -1,7 +1,6 @@
 /* this file implements avatar optimization and THREE.js Object management + rendering */
 import * as THREE from 'three';
 import * as BufferGeometryUtils from 'three/examples/jsm/utils/BufferGeometryUtils.js';
-import {VRMMaterialImporter/*, MToonMaterial*/} from '@pixiv/three-vrm/lib/three-vrm.module';
 import * as avatarOptimizer from '../avatar-optimizer.js';
 import * as avatarCruncher from '../avatar-cruncher.js';
 import * as avatarSpriter from '../avatar-spriter.js';
@@ -217,10 +216,6 @@ const _setDepthWrite = o => {
   o.material.alphaToCoverage = true;
   // o.material.alphaTest = 0.5;
 };
-const _toonShaderify = async o => {
-  await new VRMMaterialImporter().convertGLTFMaterials(o);
-};
-
 const mapTypes = [
   'alphaMap',
   'aoMap',
@@ -747,7 +742,6 @@ export class AvatarRenderer /* extends EventTarget */ {
                   });
                   const glb = object.scene;
 
-                  await _toonShaderify(object);
                   _forAllMeshes(glb, o => {
                     _addAnisotropy(o, 16);
                     _enableShadows(o);

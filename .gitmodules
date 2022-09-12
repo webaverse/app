@@ -17,7 +17,11 @@
 [submodule "packages/three-vrm"]
 	path = packages/three-vrm
 	url = https://github.com/webaverse/three-vrm
-	branch = update-to-1.0
+	branch = main
+[submodule "packages/three-vrm-core"]
+	path = packages/three-vrm-core
+	url = https://github.com/webaverse/three-vrm-core
+	branch = main
 [submodule "packages/three-vrm-springbone"]
 	path = packages/three-vrm-springbone
 	url = https://github.com/webaverse/three-vrm-springbone

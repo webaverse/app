@@ -16,6 +16,9 @@
   "dependencies": {
     "@babel/preset-react": "^7.17.12",
     "@pixiv/three-vrm": "./packages/three-vrm",
+    "@pixiv/three-vrm-core": "./packages/three-vrm-core",
+    "@pixiv/three-vrm-springbone": "./packages/three-vrm-springbone",
+    "@pixiv/three-vrm-materials-mtoon": "./packages/three-vrm-materials-mtoon",
     "@react-three/fiber": "^7.0.29",
     "@shaderfrog/glsl-parser": "^0.1.23",
     "classnames": "^2.3.1",
