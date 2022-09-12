@@ -1374,6 +1374,7 @@ class RemotePlayer extends InterpolatedPlayer {
           physicsScene.setCharacterControllerPosition(this.characterPhysics.characterController, localVector);
           
           this.avatar.setVelocity(
+            timestamp,
             timeDiff / 1000,
             this.lastPosition,
             this.positionInterpolant.get(),
