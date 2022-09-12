@@ -1,7 +1,7 @@
 import * as THREE from 'three';
 import metaversefile from 'metaversefile';
 import generateStats from './procgen/stats.js';
-import { getVoucherFromServer, getVoucherFromUser } from './src/hooks/voucherHelpers'
+import { getVoucherFromServer } from './src/hooks/voucherHelpers'
 
 const r = () => -1 + Math.random() * 2;
 

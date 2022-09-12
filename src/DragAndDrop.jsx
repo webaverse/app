@@ -19,6 +19,7 @@ import { ChainContext } from './hooks/chainProvider';
 import ioManager from '../io-manager.js';
 import dropManager from '../drop-manager';
 import { getVoucherFromUser } from './hooks/voucherHelpers'
+import voucherManger from '../voucher-manager' 
 
 const APP_3D_TYPES = ['glb', 'gltf', 'vrm'];
 const timeCount = 6000;
@@ -102,10 +103,11 @@ const DragAndDrop = () => {
   const [mintComplete, setMintComplete] = useState(false);
   const [pendingTx, setPendingTx] = useState(false);
   const [previewImage, setPreviewImage] = useState(null);
-  const [nftName, setNFTName] = useState(null);
-  const [nftDetails, setNFTDetails] = useState(null);
+//   const [nftName, setNFTName] = useState(null);
+//   const [nftDetails, setNFTDetails] = useState(null);
   const {selectedChain} = useContext(ChainContext);
   const canvasRef = useRef(null);
+  const {addVoucherToBlackList} = voucherManger();
 
   useEffect(() => {
     function keydown(e) {
@@ -180,9 +182,10 @@ const DragAndDrop = () => {
             } else if (j && j.voucher == undefined) { // already claimed 
                 if (ioManager.keys.ctrl) {
                     try {
-                        const voucherObject = await getVoucherFromUser(j.tokenId, account.currentAddress, WebaversecontractAddress)
-                        if (voucherObject.signature != undefined) {
-                            j.voucher = voucherObject;
+                        const { voucher, expiry } = await getVoucherFromUser(j.tokenId, account.currentAddress, WebaversecontractAddress)
+                        if (voucher.signature != undefined) {
+                            addVoucherToBlackList({tokenId: j.tokenId, expiry})
+                            j.voucher = voucher;
                             for (const worldApp of world.appManager.getApps()) {
                                 if (worldApp.getComponent('voucher')) {
                                     if (worldApp.getComponent('voucher').tokenId === j.tokenId) {
@@ -193,7 +196,7 @@ const DragAndDrop = () => {
                             world.appManager.importAddedUserVoucherApp(app, j); // already claimed but permanent-drop
                         }
                     } catch (err) {
-                        console.log(err)
+                        console.log(err) // TODO notify Message
                     }
                 } else {
                     world.appManager.importApp(app); // already claimed but safe-drop

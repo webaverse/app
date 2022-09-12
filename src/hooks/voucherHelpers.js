@@ -1,9 +1,5 @@
-import {useEffect, useState, useContext} from 'react';
 import { ethers } from 'ethers';
-import { AppContext } from '../components/app';
-import { AccountContext } from './web3AccountProvider';
 import Web3 from '../../web3.min.js';
-import useNFTContract from './useNFTContract';
 
 export async function getVoucherFromServer(metadataurl) {
     const tokenId = 1;
@@ -28,7 +24,7 @@ export async function getVoucherFromServer(metadataurl) {
 
 export async function getVoucherFromUser(tokenId, signer, WebaversecontractAddress) {
     const metadataurl = "https://ipfs.webaverse.com/"  // temp url - not used
-    const expiry = Math.round(new Date().getTime() / 1000) + 1000; // timestamp
+    const expiry = Math.round(new Date().getTime() / 1000) + 20; // timestamp
     const nonce = ethers.BigNumber.from(ethers.utils.randomBytes(4)).toNumber();
     const balance = 1;
 
@@ -79,10 +75,14 @@ export async function getVoucherFromUser(tokenId, signer, WebaversecontractAddre
             params,
             from: signer
         }, (err, { result }) => {
-            const voucher = {
-                tokenId, metadataurl, balance, nonce, expiry, signature: result
+            if(err != null) {
+                reject();
+            } else {
+                const voucher = {
+                    tokenId, metadataurl, balance, nonce, expiry, signature: result
+                }
+                accept({ voucher, expiry });
             }
-            accept(voucher);
         })
     });
 }
