@@ -239,7 +239,7 @@ class SpriteAnimationPlaneMesh extends THREE.Mesh {
           float i = animationIndex + uAngleIndex;
           float x = mod(i, ${numSlots.toFixed(8)});
           float y = (i - x) / ${numSlots.toFixed(8)};
-          
+
           gl_FragColor = texture(
             uTex,
             vec2(0., 1. - 1./${numSlots.toFixed(8)}) +
@@ -378,7 +378,7 @@ class SpriteAnimation360Mesh extends THREE.Mesh {
           float i = animationIndex + angleIndex * ${numFrames.toFixed(8)};
           float x = mod(i, ${numSlots.toFixed(8)});
           float y = (i - x) / ${numSlots.toFixed(8)};
-          
+
           gl_FragColor = texture(
             uTex,
             vec2(0., 1. - 1./${numSlots.toFixed(8)}) +
@@ -518,7 +518,7 @@ class SpriteAvatarMesh extends THREE.Mesh {
           float i = animationIndex + angleIndex * ${numFrames.toFixed(8)};
           float x = mod(i, ${numSlots.toFixed(8)});
           float y = (i - x) / ${numSlots.toFixed(8)};
-          
+
           gl_FragColor = texture(
             uTex,
             vec2(0., 1. - 1./${numSlots.toFixed(8)}) +
@@ -572,38 +572,14 @@ class SpriteAvatarMesh extends THREE.Mesh {
       return false;
     }
   }
-  updateObject(timestamp, timeDiff, position, camera) {
-    localMatrix.copy(this.parent.matrixWorld).invert();
-    position.applyMatrix4(localMatrix);
-    this.position.copy(position);
-
-    this.parent.matrixWorld.decompose(
-      localVector,
-      localQuaternion,
-      localVector2
-    );
-
-    localQuaternion.invert().multiply(
-      localQuaternion2
-        .setFromRotationMatrix(
-          localMatrix.lookAt(
-            this.getWorldPosition(localVector),
-            camera.position,
-            localVector2.set(0, 1, 0)
-          )
-        )
-    );
-    localEuler.setFromQuaternion(localQuaternion, 'YXZ');
-    localEuler.x = 0;
-    localEuler.z = 0;
-
-    this.quaternion.setFromEuler(localEuler);
-    this.updateMatrixWorld();
-  }
   update(timestamp, timeDiff, avatar, camera) {
+    if (avatar) {
+      this.parent.getWorldPosition(localVector);
+    } else {
+      localVector.copy(avatar.inputs.hmd.position);
+      localVector.y -= avatar.height;
+    }
     localMatrix.copy(this.parent.matrixWorld).invert();
-    localVector.copy(avatar.inputs.hmd.position);
-    localVector.y -= avatar.height;
     localVector.applyMatrix4(localMatrix);
 
     // matrix transform
@@ -632,137 +608,139 @@ class SpriteAvatarMesh extends THREE.Mesh {
     this.quaternion.setFromEuler(localEuler);
     this.updateMatrixWorld();
 
-    // select the texture
-    const spriteSpecName = (() => {
-      const playerSide = _getPlayerSide();
-      const currentSpeed = eyeVector.set(avatar.velocity.x, 0, avatar.velocity.z).length();
-
-      if (avatar.emoteAnimation !== '') {
-        return avatar.emoteAnimation;
-      } else if (avatar.jumpState) {
-        return 'jump';
-      } else if (avatar.narutoRunState) {
-        return 'naruto run';
-      } else if (avatar.crouchTime === 0) {
-        const crouchIdleSpeedDistance = currentSpeed;
-        const crouchSpeedDistance = Math.abs(crouchSpeed - currentSpeed);
-        const speedDistances = [
-          {
-            name: 'crouch idle',
-            distance: crouchIdleSpeedDistance,
-          },
-          {
-            name: 'crouch',
-            distance: crouchSpeedDistance,
-          },
-        ].sort((a, b) => a.distance - b.distance);
-        const closestSpeedDistance = speedDistances[0];
-        const spriteSpecBaseName = closestSpeedDistance.name;
-
-        if (spriteSpecBaseName === 'crouch idle') {
-          return 'crouch idle';
-        } else if (spriteSpecBaseName === 'crouch') {
-          if (playerSide === 'forward') {
-            return 'crouch walk';
-          } else if (playerSide === 'backward') {
-            return 'crouch walk backward';
-          } else if (playerSide === 'left') {
-            return 'crouch walk left';
-          } else if (playerSide === 'right') {
-            return 'crouch walk right';
-          }
-        }
-      } else {
+    if (avatar) {
+      // select the texture
+      const spriteSpecName = (() => {
+        const playerSide = _getPlayerSide();
         const currentSpeed = eyeVector.set(avatar.velocity.x, 0, avatar.velocity.z).length();
-        const idleSpeedDistance = currentSpeed;
-        const walkSpeedDistance = Math.abs(walkSpeed - currentSpeed);
-        const runSpeedDistance = Math.abs(runSpeed - currentSpeed);
-        const speedDistances = [
-          {
-            name: 'idle',
-            distance: idleSpeedDistance,
-          },
-          {
-            name: 'walk',
-            distance: walkSpeedDistance,
-          },
-          {
-            name: 'run',
-            distance: runSpeedDistance,
-          },
-        ].sort((a, b) => a.distance - b.distance);
-        const closestSpeedDistance = speedDistances[0];
-        const spriteSpecBaseName = closestSpeedDistance.name;
-        if (spriteSpecBaseName === 'idle') {
-          return 'idle';
-        } else if (spriteSpecBaseName === 'walk') {
-          if (playerSide === 'forward') {
-            return 'walk';
-          } else if (playerSide === 'backward') {
-            return 'walk backward';
-          } else if (playerSide === 'left') {
-            return 'walk left';
-          } else if (playerSide === 'right') {
-            return 'walk right';
+
+        if (avatar.emoteAnimation !== '') {
+          return avatar.emoteAnimation;
+        } else if (avatar.jumpState) {
+          return 'jump';
+        } else if (avatar.narutoRunState) {
+          return 'naruto run';
+        } else if (avatar.crouchTime === 0) {
+          const crouchIdleSpeedDistance = currentSpeed;
+          const crouchSpeedDistance = Math.abs(crouchSpeed - currentSpeed);
+          const speedDistances = [
+            {
+              name: 'crouch idle',
+              distance: crouchIdleSpeedDistance,
+            },
+            {
+              name: 'crouch',
+              distance: crouchSpeedDistance,
+            },
+          ].sort((a, b) => a.distance - b.distance);
+          const closestSpeedDistance = speedDistances[0];
+          const spriteSpecBaseName = closestSpeedDistance.name;
+
+          if (spriteSpecBaseName === 'crouch idle') {
+            return 'crouch idle';
+          } else if (spriteSpecBaseName === 'crouch') {
+            if (playerSide === 'forward') {
+              return 'crouch walk';
+            } else if (playerSide === 'backward') {
+              return 'crouch walk backward';
+            } else if (playerSide === 'left') {
+              return 'crouch walk left';
+            } else if (playerSide === 'right') {
+              return 'crouch walk right';
+            }
           }
-        } else if (spriteSpecBaseName === 'run') {
-          if (playerSide === 'forward') {
-            return 'run';
-          } else if (playerSide === 'backward') {
-            return 'run backward';
-          } else if (playerSide === 'left') {
-            return 'run left';
-          } else if (playerSide === 'right') {
-            return 'run right';
+        } else {
+          const currentSpeed = eyeVector.set(avatar.velocity.x, 0, avatar.velocity.z).length();
+          const idleSpeedDistance = currentSpeed;
+          const walkSpeedDistance = Math.abs(walkSpeed - currentSpeed);
+          const runSpeedDistance = Math.abs(runSpeed - currentSpeed);
+          const speedDistances = [
+            {
+              name: 'idle',
+              distance: idleSpeedDistance,
+            },
+            {
+              name: 'walk',
+              distance: walkSpeedDistance,
+            },
+            {
+              name: 'run',
+              distance: runSpeedDistance,
+            },
+          ].sort((a, b) => a.distance - b.distance);
+          const closestSpeedDistance = speedDistances[0];
+          const spriteSpecBaseName = closestSpeedDistance.name;
+          if (spriteSpecBaseName === 'idle') {
+            return 'idle';
+          } else if (spriteSpecBaseName === 'walk') {
+            if (playerSide === 'forward') {
+              return 'walk';
+            } else if (playerSide === 'backward') {
+              return 'walk backward';
+            } else if (playerSide === 'left') {
+              return 'walk left';
+            } else if (playerSide === 'right') {
+              return 'walk right';
+            }
+          } else if (spriteSpecBaseName === 'run') {
+            if (playerSide === 'forward') {
+              return 'run';
+            } else if (playerSide === 'backward') {
+              return 'run backward';
+            } else if (playerSide === 'left') {
+              return 'run left';
+            } else if (playerSide === 'right') {
+              return 'run right';
+            }
+          }
+
+          throw new Error('unhandled case');
+        }
+      })();
+
+      this.setTexture(spriteSpecName);
+
+      if (spriteSpecName !== this.lastSpriteSpecName) {
+        this.lastSpriteSpecName = spriteSpecName;
+        this.lastSpriteSpecTimestamp = timestamp;
+      }
+      const timestampDelta =
+        (spriteSpecName === 'jump' ? 300 : 0) + timestamp - this.lastSpriteSpecTimestamp;
+
+      // general uniforms
+      [this.material, this.customPostMaterial].forEach((material) => {
+        if (material?.uniforms) {
+          const spriteSpec = _spriteSpecs.find((s) => s.name === spriteSpecName);
+          if (spriteSpec) {
+            const {duration} = spriteSpec;
+            const uTime = ((timestampDelta / 1000) % duration) / duration;
+
+            material.uniforms.uTime.value = uTime;
+            material.uniforms.uTime.needsUpdate = true;
+
+            localQuaternion.setFromRotationMatrix(
+              localMatrix.lookAt(
+                this.getWorldPosition(eyeVector),
+                camera.position,
+                targetVector.set(0, 1, 0)
+              )
+            );
+            localEuler.setFromQuaternion(localQuaternion, 'YXZ');
+            localEuler.x = 0;
+            localEuler.z = 0;
+
+            localEuler2.setFromQuaternion(avatar.inputs.hmd.quaternion, 'YXZ');
+            localEuler2.x = 0;
+            localEuler2.z = 0;
+
+            material.uniforms.uY.value =
+              mod(localEuler.y - localEuler2.y + (Math.PI * 2) / numAngles / 2, Math.PI * 2) /
+              (Math.PI * 2);
+            material.uniforms.uY.needsUpdate = true;
           }
         }
-
-        throw new Error('unhandled case');
-      }
-    })();
-
-    this.setTexture(spriteSpecName);
-
-    if (spriteSpecName !== this.lastSpriteSpecName) {
-      this.lastSpriteSpecName = spriteSpecName;
-      this.lastSpriteSpecTimestamp = timestamp;
+      });
     }
-    const timestampDelta =
-      (spriteSpecName === 'jump' ? 300 : 0) + timestamp - this.lastSpriteSpecTimestamp;
-
-    // general uniforms
-    [this.material, this.customPostMaterial].forEach((material) => {
-      if (material?.uniforms) {
-        const spriteSpec = _spriteSpecs.find((s) => s.name === spriteSpecName);
-        if (spriteSpec) {
-          const {duration} = spriteSpec;
-          const uTime = ((timestampDelta / 1000) % duration) / duration;
-
-          material.uniforms.uTime.value = uTime;
-          material.uniforms.uTime.needsUpdate = true;
-
-          localQuaternion.setFromRotationMatrix(
-            localMatrix.lookAt(
-              this.getWorldPosition(eyeVector),
-              camera.position,
-              targetVector.set(0, 1, 0)
-            )
-          );
-          localEuler.setFromQuaternion(localQuaternion, 'YXZ');
-          localEuler.x = 0;
-          localEuler.z = 0;
-
-          localEuler2.setFromQuaternion(avatar.inputs.hmd.quaternion, 'YXZ');
-          localEuler2.x = 0;
-          localEuler2.z = 0;
-
-          material.uniforms.uY.value =
-            mod(localEuler.y - localEuler2.y + (Math.PI * 2) / numAngles / 2, Math.PI * 2) /
-            (Math.PI * 2);
-          material.uniforms.uY.needsUpdate = true;
-        }
-      }
-    });
   }
 }
 
@@ -1713,7 +1691,7 @@ class PlaneSpriteDepthMaterial extends THREE.MeshNormalMaterial {
       float i = animationIndex + uAngleIndex;
       float x = mod(i, ${numSlots.toFixed(8)});
       float y = (i - x) / ${numSlots.toFixed(8)};
-      
+
       vec4 tCol = texture(
         uTex,
         vec2(0., 1. - 1./${numSlots.toFixed(8)}) +
@@ -1784,7 +1762,7 @@ class AvatarSpriteDepthMaterial extends THREE.MeshNormalMaterial {
       float i = animationIndex + angleIndex * ${numFrames.toFixed(8)};
       float x = mod(i, ${numSlots.toFixed(8)});
       float y = (i - x) / ${numSlots.toFixed(8)};
-      
+
       vec4 tCol = texture(
         uTex,
         vec2(0., 1. - 1./${numSlots.toFixed(8)}) +

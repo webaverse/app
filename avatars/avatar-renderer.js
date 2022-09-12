@@ -818,33 +818,19 @@ export class AvatarRenderer /* extends EventTarget */ {
   update(timestamp, timeDiff, avatar) {
     this.#updatePlaceholder(timestamp, timeDiff, avatar);
     this.#updateAvatar(timestamp, timeDiff, avatar);
-    this.#updateFrustumCull(avatar);
-  }
-  updateObject(timestamp, timeDiff, avatarHeight) {
-    this.scene.updateMatrixWorld();
-    // placeholder
-    localVector.set(0, avatarHeight, 0);
-    if (this.placeholderMesh.parent) {
-      localVector.applyMatrix4(this.placeholderMesh.parent.matrixWorld);
-    }
-    this.#updatePlaceholderWithPosition(
-      timestamp, timeDiff,
-      localVector
-    );
-
-    // spriter
-    if (this.camera) {
-      const currentMesh = this.#getCurrentMesh();
-      if (currentMesh && currentMesh === this.spriteAvatarMesh) {
-        currentMesh.parent.getWorldPosition(localVector);
-        this.spriteAvatarMesh.updateObject(timestamp, timeDiff, localVector, this.camera);
-      }
+    if (avatar) {
+      this.#updateFrustumCull(avatar);
     }
   }
   #updatePlaceholder(timestamp, timeDiff, avatar) {
-    this.#updatePlaceholderWithPosition(timestamp, timeDiff, avatar.inputs.hmd.position);
-  }
-  #updatePlaceholderWithPosition(timestamp, timeDiff, headPosition) {
+    let headPosition = null;
+    if (avatar) {
+      headPosition = avatar.inputs.hmd.position;
+    } else {
+      const {height} = this.getAvatarSize();
+      localVector.set(0, height, 0).applyMatrix4(this.scene.matrixWorld);
+      headPosition = localVector;
+    }
     if (this.camera && this.placeholderMesh.parent) {
       localMatrix.copy(this.placeholderMesh.parent.matrixWorld).invert();
       headPosition.applyMatrix4(localMatrix);
