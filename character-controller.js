@@ -1381,6 +1381,11 @@ class RemotePlayer extends InterpolatedPlayer {
             );
           }
         this.lastPosition.copy(this.position);
+
+        // to set up side camera in diorama.js, position, quaternion and scale is obtained
+        // from target.matrixworld.decompose which does not seem to be updated for remote player
+        // hence calculating/composing it here with obtainted position and quaternion data 
+        this.matrixWorld.compose(this.position, this.quaternion, localVector.set(1, 1, 1));
       }
     }
     this.playerMap.observe(observePlayerFn);
