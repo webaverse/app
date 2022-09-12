@@ -48,6 +48,7 @@ import zTargeting from './z-targeting.js';
 import raycastManager from './raycast-manager.js';
 import universe from './universe.js';
 import npcManager from './npc-manager.js';
+import settingsManager from './settings-manager.js';
 
 const localVector = new THREE.Vector3();
 const localVector2 = new THREE.Vector3();
@@ -582,11 +583,11 @@ const _startHacks = webaverse => {
         },
       }));
     } else if (e.code === 'Home') { // home
-      const localPlayer = metaversefileApi.useLocalPlayer();
-      localPlayer.avatar.avatarRenderer.adjustQuality(-1);
-    } else if (e.code === 'End') { // home
-      const localPlayer = metaversefileApi.useLocalPlayer();
-      localPlayer.avatar.avatarRenderer.adjustQuality(1);
+      const quality = settingsManager.adjustCharacterQuality(-1);
+      game.setAvatarQuality(quality);
+    } else if (e.code === 'End') { // end
+      const quality = settingsManager.adjustCharacterQuality(1);
+      game.setAvatarQuality(quality);
     } else {
       const match = e.code.match(/^Numpad([0-9])$/);
       if (match) {
