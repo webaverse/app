@@ -1479,6 +1479,7 @@ class Avatar {
 
     if (this.aimRightFactor > 0) {
       if (this.aimState) {
+        console.log('aimright');
         this.shoulderTransforms.leftShoulderAnchor.quaternion.slerp(this.shoulderTransforms.nonIKLeftShoulderAnchor.quaternion, this.aimRightFactorReverse);
         for (let key in this.shoulderTransforms.leftArm) {
           this.shoulderTransforms.leftArm[key].quaternion.slerp(this.shoulderTransforms.nonIKLeftArm[key].quaternion, this.aimRightFactorReverse);
@@ -1492,6 +1493,7 @@ class Avatar {
     }
     if (this.aimLeftFactor > 0) {
       if (this.aimState) {
+        console.log('aimleft');
         this.shoulderTransforms.rightShoulderAnchor.quaternion.slerp(this.shoulderTransforms.nonIKRightShoulderAnchor.quaternion, this.aimLeftFactorReverse);
         for (let key in this.shoulderTransforms.rightArm) {
           this.shoulderTransforms.rightArm[key].quaternion.slerp(this.shoulderTransforms.nonIKRightArm[key].quaternion, this.aimLeftFactorReverse);
@@ -1503,6 +1505,19 @@ class Avatar {
         }
       }
     }
+    // if (this.grabFactor > 0) {
+    //   if (this.grabState) {
+    //     this.shoulderTransforms.leftShoulderAnchor.quaternion.slerp(this.shoulderTransforms.nonIKLeftShoulderAnchor.quaternion, this.grabFactor);
+    //     for (let key in this.shoulderTransforms.leftArm) {
+    //       this.shoulderTransforms.leftArm[key].quaternion.slerp(this.shoulderTransforms.nonIKLeftArm[key].quaternion, this.grabFactor);
+    //     }
+    //   } else {
+    //     this.shoulderTransforms.leftShoulderAnchor.quaternion.slerp(this.shoulderTransforms.lastLeftShoulderAnchor.quaternion, this.grabFactor);
+    //     for (let key in this.shoulderTransforms.leftArm) {
+    //       this.shoulderTransforms.leftArm[key].quaternion.slerp(this.shoulderTransforms.lastLeftArm[key].quaternion, this.grabFactor);
+    //     }
+    //   }
+    // }
   }
 
   setVelocity(timestamp, timeDiffS, lastPosition, currentPosition, currentQuaternion) {
