@@ -382,38 +382,6 @@ const _parseChunkResult = (arrayBuffer, bufferAddress) => {
       indices,
     };
   };
-  const _parseCaveVertexBuffer = () => {
-    const bufferAddress = dataView.getUint32(index, true);
-    index += Uint32Array.BYTES_PER_ELEMENT;
-
-    const dataView2 = new DataView(arrayBuffer, bufferAddress);
-    let index2 = 0;
-
-    // positions
-    const numPositions = dataView2.getUint32(index2, true);
-    index2 += Uint32Array.BYTES_PER_ELEMENT;
-    const positions = new Float32Array(arrayBuffer, bufferAddress + index2, numPositions * 3);
-    index2 += Float32Array.BYTES_PER_ELEMENT * numPositions * 3;
-  
-    // normals
-    const numNormals = dataView2.getUint32(index2, true);
-    index2 += Uint32Array.BYTES_PER_ELEMENT;
-    const normals = new Float32Array(arrayBuffer, bufferAddress + index2, numNormals * 3);
-    index2 += Float32Array.BYTES_PER_ELEMENT * numNormals * 3;
-  
-    // indices
-    const numIndices = dataView2.getUint32(index2, true);
-    index2 += Uint32Array.BYTES_PER_ELEMENT;
-    const indices = new Uint32Array(arrayBuffer, bufferAddress + index2, numIndices);
-    index2 += Uint32Array.BYTES_PER_ELEMENT * numIndices;
-  
-    return {
-      bufferAddress,
-      positions,
-      normals,
-      indices,
-    };
-  };
   const _parseBarrierVertexBuffer = () => {
     const bufferAddress = dataView.getUint32(index, true);
     index += Uint32Array.BYTES_PER_ELEMENT;
@@ -474,14 +442,12 @@ const _parseChunkResult = (arrayBuffer, bufferAddress) => {
 
   const terrainGeometry = _parseTerrainVertexBuffer();
   const waterGeometry = _parseWaterVertexBuffer();
-  const caveGeometry = _parseCaveVertexBuffer();
   const barrierGeometry = _parseBarrierVertexBuffer();
   const barrierNode = _parseBarrierNode();
   return {
     bufferAddress,
     terrainGeometry,
     waterGeometry,
-    caveGeometry,
     barrierGeometry,
     barrierNode,
   };
