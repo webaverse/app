@@ -574,10 +574,10 @@ class SpriteAvatarMesh extends THREE.Mesh {
   }
   update(timestamp, timeDiff, avatar, camera) {
     if (avatar) {
-      this.parent.getWorldPosition(localVector);
-    } else {
       localVector.copy(avatar.inputs.hmd.position);
       localVector.y -= avatar.height;
+    } else {
+      this.parent.getWorldPosition(localVector);
     }
     localMatrix.copy(this.parent.matrixWorld).invert();
     localVector.applyMatrix4(localMatrix);
