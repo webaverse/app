@@ -23,9 +23,7 @@ class DropManager extends EventTarget {
       .normalize()
       .multiplyScalar(5),
     angularVelocity = new THREE.Vector3(0, 0.001, 0),
-    voucher = 'fakeVoucher', // XXX should really throw if no voucher
-    signerAddress = null,
-    WebaversecontractAddress = null,
+    voucher = 'fakeVoucher' // XXX should really throw if no voucher
   }) {
     let serverDrop = false;
     if (voucher == 'fakeVoucher') {
@@ -78,6 +76,7 @@ class DropManager extends EventTarget {
     this.dispatchEvent(new MessageEvent('claimschange', {
       data: {
         claims: this.claims,
+        addedClaim : claim,
       },
     }));
   }

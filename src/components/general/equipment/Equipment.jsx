@@ -15,6 +15,7 @@ import { ChainContext } from '../../../hooks/chainProvider';
 import dropManager from '../../../../drop-manager';
 import cardsManager from '../../../../cards-manager.js';
 import { isChainSupported } from '../../../hooks/useChain';
+import voucherManger from '../../../../voucher-manager'
 
 const size = 2048;
 const numFrames = 128;
@@ -303,9 +304,10 @@ export const Equipment = () => {
     const [ inventoryObject, setInventoryObject ] = useState([]);
     const [ faceIndex, setFaceIndex ] = useState(1);
     const { selectedChain, supportedChain } = useContext(ChainContext)
-    const { getTokens, mintfromVoucher } = useNFTContract(account.currentAddress);
+    const { getTokens, mintfromVoucher, getTokenIdsOf } = useNFTContract(account.currentAddress);
     const [ claims, setClaims ] = useState([]);
     const [ nfts, setNfts ] = useState(null);
+    const { voucherBlackList, removeVoucherFromBlackList } = voucherManger();
 
     const [ cachedLoader, setCachedLoader ] = useState(() => new CachedLoader({
         async loadFn(url, value, {signal}) {            
@@ -429,16 +431,27 @@ export const Equipment = () => {
     const selectClassName = styles[`select-${selectedMenuIndex}`];
 
     useEffect(() => {
-        const claimschange = e => {
-
-            const {claims} = e.data;
-            setClaims(claims.slice());
+        const claimschange = async (e) => {
+            console.log("change", voucherBlackList)
+            const {claims, addedClaim} = e.data;
+            const tokenIds = await getTokenIdsOf();
+            // const tokens = await getTokens();
+            console.log("tokenIds", tokenIds)
+            console.log("addedClaim", addedClaim)
+            if(addedClaim !== undefined) {
+                if(tokenIds.includes(addedClaim.voucher.tokenId)) {
+                    dropManager.removeClaim(addedClaim);
+                    removeVoucherFromBlackList(addedClaim.voucher.tokenId)
+                }
+            } else {
+                setClaims(claims.slice());
+            }
         };
         dropManager.addEventListener('claimschange', claimschange);
         return () => {
             dropManager.removeEventListener('claimschange', claimschange);
         };
-    }, []);
+    });
 
     useEffect(() => {
         if (cachedLoader) {
