@@ -15,7 +15,7 @@ const localVector2D = new THREE.Vector2();
 //
 
 const _cloneChunkResult = chunkResult => {
-  const {terrainGeometry, waterGeometry, biome} = chunkResult;
+  const {terrainGeometry, waterGeometry, barrierGeometry, barrierNode} = chunkResult;
 
   const _getTerrainGeometrySize = () => {
     let size = terrainGeometry.positions.length * terrainGeometry.positions.constructor.BYTES_PER_ELEMENT +
@@ -23,7 +23,6 @@ const _cloneChunkResult = chunkResult => {
       terrainGeometry.biomesWeights.length * terrainGeometry.biomesWeights.constructor.BYTES_PER_ELEMENT +
       terrainGeometry.biomesUvs1.length * terrainGeometry.biomesUvs1.constructor.BYTES_PER_ELEMENT +
       terrainGeometry.biomesUvs2.length * terrainGeometry.biomesUvs2.constructor.BYTES_PER_ELEMENT +
-      terrainGeometry.seeds.length * terrainGeometry.seeds.constructor.BYTES_PER_ELEMENT +
       terrainGeometry.indices.length * terrainGeometry.indices.constructor.BYTES_PER_ELEMENT;
     return size;
   };
@@ -34,10 +33,28 @@ const _cloneChunkResult = chunkResult => {
       waterGeometry.indices.length * waterGeometry.indices.constructor.BYTES_PER_ELEMENT;
     return size;
   };
+  const _getBarrierGeometrySize = () => {
+    let size = barrierGeometry.positions.length * barrierGeometry.positions.constructor.BYTES_PER_ELEMENT +
+      barrierGeometry.normals.length * barrierGeometry.normals.constructor.BYTES_PER_ELEMENT +
+      barrierGeometry.positions2D.length * barrierGeometry.positions2D.constructor.BYTES_PER_ELEMENT +
+      barrierGeometry.indices.length * barrierGeometry.indices.constructor.BYTES_PER_ELEMENT;
+    return size;
+  };
+  const _getBarrierNodeSize = () => {
+    let size = barrierNode.min.length * barrierNode.min.constructor.BYTES_PER_ELEMENT;
+    return size;
+  };
 
   const terrainGeometrySize = _getTerrainGeometrySize();
   const waterGeometrySize = _getWaterGeometrySize();
-  const arrayBuffer = new ArrayBuffer(terrainGeometrySize + waterGeometrySize);
+  const barrierGeometrySize = _getBarrierGeometrySize();
+  const barrierNodeSize = _getBarrierNodeSize();
+  const arrayBuffer = new ArrayBuffer(
+    terrainGeometrySize +
+    waterGeometrySize +
+    barrierGeometrySize +
+    barrierNodeSize
+  );
   let index = 0;
 
   const _cloneTerrainGeometry = () => {
@@ -65,9 +82,9 @@ const _cloneChunkResult = chunkResult => {
     biomesUvs2.set(terrainGeometry.biomesUvs2);
     index += terrainGeometry.biomesUvs2.length * terrainGeometry.biomesUvs2.constructor.BYTES_PER_ELEMENT;
 
-    const seeds = new terrainGeometry.seeds.constructor(arrayBuffer, index, terrainGeometry.seeds.length);
-    seeds.set(terrainGeometry.seeds);
-    index += terrainGeometry.seeds.length * terrainGeometry.seeds.constructor.BYTES_PER_ELEMENT;
+    // const seeds = new terrainGeometry.seeds.constructor(arrayBuffer, index, terrainGeometry.seeds.length);
+    // seeds.set(terrainGeometry.seeds);
+    // index += terrainGeometry.seeds.length * terrainGeometry.seeds.constructor.BYTES_PER_ELEMENT;
 
     const indices = new terrainGeometry.indices.constructor(arrayBuffer, index, terrainGeometry.indices.length);
     indices.set(terrainGeometry.indices);
@@ -92,7 +109,7 @@ const _cloneChunkResult = chunkResult => {
       biomesWeights,
       biomesUvs1,
       biomesUvs2,
-      seeds,
+      // seeds,
       indices,
       // skylights,
       // aos,
@@ -123,15 +140,54 @@ const _cloneChunkResult = chunkResult => {
       indices,
     };
   };
+  const _cloneBarrierGeometry = () => {
+    const positions = new barrierGeometry.positions.constructor(arrayBuffer, index, barrierGeometry.positions.length);
+    positions.set(barrierGeometry.positions);
+    index += barrierGeometry.positions.length * barrierGeometry.positions.constructor.BYTES_PER_ELEMENT;
+    
+    const normals = new barrierGeometry.normals.constructor(arrayBuffer, index, barrierGeometry.normals.length);
+    normals.set(barrierGeometry.normals);
+    index += barrierGeometry.normals.length * barrierGeometry.normals.constructor.BYTES_PER_ELEMENT;
+
+    const positions2D = new barrierGeometry.positions2D.constructor(arrayBuffer, index, barrierGeometry.positions2D.length);
+    positions2D.set(barrierGeometry.positions2D);
+    index += barrierGeometry.positions2D.length * barrierGeometry.positions2D.constructor.BYTES_PER_ELEMENT;
+
+    const indices = new barrierGeometry.indices.constructor(arrayBuffer, index, barrierGeometry.indices.length);
+    indices.set(barrierGeometry.indices);
+    index += barrierGeometry.indices.length * barrierGeometry.indices.constructor.BYTES_PER_ELEMENT;
+
+    return {
+      positions,
+      normals,
+      positions2D,
+      indices,
+    };
+  };
+  const _cloneBarrierNode = () => {
+    const min = new barrierNode.min.constructor(arrayBuffer, index, barrierNode.min.length);
+    min.set(barrierNode.min);
+    index += barrierNode.min.length * barrierNode.min.constructor.BYTES_PER_ELEMENT;
+
+    const {lod} = barrierNode;
+
+    return {
+      min,
+      lod,
+    };
+  };
 
   const terrainGeometry2 = _cloneTerrainGeometry();
   const waterGeometry2 = _cloneWaterGeometry();
+  const barrierGeometry2 = _cloneBarrierGeometry();
+  const barrierNode2 = _cloneBarrierNode();
 
   return {
     arrayBuffer,
     terrainGeometry: terrainGeometry2,
     waterGeometry: waterGeometry2,
-    biome,
+    barrierGeometry: barrierGeometry2,
+    barrierNode: barrierNode2,
   };
 };
 
@@ -243,6 +299,8 @@ const _handleMethod = async ({method, args, instance: instanceKey, taskId}) => {
       const _freeChunkResult = chunkResult => {
         pg.free(chunkResult.terrainGeometry.bufferAddress);
         pg.free(chunkResult.waterGeometry.bufferAddress);
+        pg.free(chunkResult.barrierGeometry.bufferAddress);
+        pg.free(chunkResult.barrierNode.bufferAddress);
         pg.free(chunkResult.bufferAddress);
       };
       _freeChunkResult(chunkResult);

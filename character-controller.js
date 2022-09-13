@@ -171,6 +171,13 @@ class Character extends THREE.Object3D {
       this.characterPhysics.setPosition(position);
     }
   }
+  // serializers
+  getPosition() {
+    return this.position.toArray(localArray3) ?? [0, 0, 0];
+  }
+  getQuaternion() {
+    return this.quaternion.toArray(localArray4) ?? [0, 0, 0, 1];
+  }
   findAction(fn) {
     const actions = this.getActionsState();
     for (const action of actions) {

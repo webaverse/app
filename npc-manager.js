@@ -257,7 +257,10 @@ class NpcManager extends EventTarget {
             );
             const velocity = v.normalize().multiplyScalar(speed);
             player.characterPhysics.applyWasd(velocity, timeDiff);
+
+            return distance;
           }
+          return 0;
         };
         const updatePhysicsFn = (timestamp, timeDiff) => {
           if (npcPlayer) {
@@ -268,9 +271,12 @@ class NpcManager extends EventTarget {
               } else {
                 if (targetSpec) { // if npc, look to targetSpec
                   const target = targetSpec.object;
-                  followTarget(npcPlayer, target, timeDiff);
-                  if (targetSpec.type === 'moveto' && distance < 2) {
-                    targetSpec = null;
+                  const distance = followTarget(npcPlayer, target, timeDiff);
+
+                  if (target) {
+                    if (targetSpec.type === 'moveto' && distance < 2) {
+                      targetSpec = null;
+                    }
                   }
                 }
               }
