@@ -56,9 +56,9 @@ const soundFiles = {
   explosion: _getSoundFiles(/OOT_Bomb_Blow/),
 
   water: _getSoundFiles(/^water\//),
-  quickMenuClick: _getSoundFiles(/UI_Scroll23/),
-  micOn: _getSoundFiles(/UI_Select11/),
-  micOff: _getSoundFiles(/UI_Select32/)
+  quickMenuClick: _getSoundFiles(/ui_scroll23/),
+  micOn: _getSoundFiles(/ui_select11/),
+  micOff: _getSoundFiles(/ui_select32/)
 };
 
 let soundFileAudioBuffer;
