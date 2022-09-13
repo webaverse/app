@@ -132,14 +132,10 @@ class LoadoutManager extends EventTarget {
   }
 
   unbindPlayer(player) {
-    if (!this.appsPerPlayer.has(player)) {
-      this.appsPerPlayer.set(player, this.apps);
-    }
+    this.appsPerPlayer.set(player, this.apps);
     this.apps = null;
 
-    if (!this.selectedIndexPerPlayer.has(player)) {
-      this.selectedIndexPerPlayer.set(player, this.selectedIndex);
-    }
+    this.selectedIndexPerPlayer.set(player, this.selectedIndex);
     this.selectedIndex = -1;
 
     if (this.removeLastWearUpdateFn) {
