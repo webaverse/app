@@ -401,6 +401,12 @@ const _parseChunkResult = (arrayBuffer, bufferAddress) => {
     const normals = new Float32Array(arrayBuffer, bufferAddress + index2, numNormals * 3);
     index2 += Float32Array.BYTES_PER_ELEMENT * numNormals * 3;
   
+    // uvs
+    const numUvs = dataView2.getUint32(index2, true);
+    index2 += Uint32Array.BYTES_PER_ELEMENT;
+    const uvs = new Float32Array(arrayBuffer, bufferAddress + index2, numUvs * 2);
+    index2 += Float32Array.BYTES_PER_ELEMENT * numUvs * 2;
+
     // positions2D
     const numPositions2D = dataView2.getUint32(index2, true);
     index2 += Uint32Array.BYTES_PER_ELEMENT;
@@ -417,6 +423,7 @@ const _parseChunkResult = (arrayBuffer, bufferAddress) => {
       bufferAddress,
       positions,
       normals,
+      uvs,
       positions2D,
       indices,
     };
@@ -429,7 +436,7 @@ const _parseChunkResult = (arrayBuffer, bufferAddress) => {
     let index2 = 0;
 
     const min = new Int32Array(arrayBuffer, bufferAddress + index, 2);
-    index2 += 2 * Int32Array.BYTES_PER_ELEMENT; // align to word boundary
+    index2 += 2 * Int32Array.BYTES_PER_ELEMENT;
     const lod = dataView2.getInt32(index, true);
     index2 += Int32Array.BYTES_PER_ELEMENT;
     

@@ -36,6 +36,7 @@ const _cloneChunkResult = chunkResult => {
   const _getBarrierGeometrySize = () => {
     let size = barrierGeometry.positions.length * barrierGeometry.positions.constructor.BYTES_PER_ELEMENT +
       barrierGeometry.normals.length * barrierGeometry.normals.constructor.BYTES_PER_ELEMENT +
+      barrierGeometry.uvs.length * barrierGeometry.uvs.constructor.BYTES_PER_ELEMENT +
       barrierGeometry.positions2D.length * barrierGeometry.positions2D.constructor.BYTES_PER_ELEMENT +
       barrierGeometry.indices.length * barrierGeometry.indices.constructor.BYTES_PER_ELEMENT;
     return size;
@@ -149,6 +150,10 @@ const _cloneChunkResult = chunkResult => {
     normals.set(barrierGeometry.normals);
     index += barrierGeometry.normals.length * barrierGeometry.normals.constructor.BYTES_PER_ELEMENT;
 
+    const uvs = new barrierGeometry.uvs.constructor(arrayBuffer, index, barrierGeometry.uvs.length);
+    uvs.set(barrierGeometry.uvs);
+    index += barrierGeometry.uvs.length * barrierGeometry.uvs.constructor.BYTES_PER_ELEMENT;
+
     const positions2D = new barrierGeometry.positions2D.constructor(arrayBuffer, index, barrierGeometry.positions2D.length);
     positions2D.set(barrierGeometry.positions2D);
     index += barrierGeometry.positions2D.length * barrierGeometry.positions2D.constructor.BYTES_PER_ELEMENT;
@@ -160,6 +165,7 @@ const _cloneChunkResult = chunkResult => {
     return {
       positions,
       normals,
+      uvs,
       positions2D,
       indices,
     };
