@@ -821,17 +821,19 @@ export class AvatarRenderer /* extends EventTarget */ {
     }
   }
   update(timestamp, timeDiff, avatar) {
+    // avatar can be undefined if it's not bound
+    // we apply the root transform if avatar is undefined
     this.#updatePlaceholder(timestamp, timeDiff, avatar);
     this.#updateAvatar(timestamp, timeDiff, avatar);
-    if (avatar) {
-      this.#updateFrustumCull(avatar);
-    }
+    this.#updateFrustumCull(avatar);
   }
   #updatePlaceholder(timestamp, timeDiff, avatar) {
     let headPosition = null;
     if (avatar) {
+      // get avatar head position
       headPosition = avatar.inputs.hmd.position;
     } else {
+      // calculate head position with zero pose if it's not bound
       localVector.set(0, this.height, 0).applyMatrix4(this.scene.matrixWorld);
       headPosition = localVector;
     }
@@ -884,6 +886,16 @@ export class AvatarRenderer /* extends EventTarget */ {
     }
   }
   #updateFrustumCull(avatar) {
+    if (avatar) {
+      // get the centroid of avatar
+      localVector.set(avatar.inputs.hmd.position.x,
+        avatar.inputs.hmd.position.y - this.height / 2,
+        avatar.inputs.hmd.position.z);
+    } else {
+      // estimate the hip position if it's not bound
+      localVector.set(0, this.height / 2, 0).applyMatrix4(this.scene.matrixWorld);
+    }
+    
     if (this.camera) {
       const currentMesh = this.#getCurrentMesh();
       if (currentMesh) {
@@ -895,9 +907,9 @@ export class AvatarRenderer /* extends EventTarget */ {
         localFrustum.setFromProjectionMatrix(projScreenMatrix);
 
         localMatrix.makeTranslation(
-          avatar.inputs.hmd.position.x,
-          avatar.inputs.hmd.position.y - this.height / 2,
-          avatar.inputs.hmd.position.z
+          localVector.x,
+          localVector.y,
+          localVector.z,
         );
         const boundingSphere = localSphere.copy(currentMesh.boundingSphere)
           .applyMatrix4(localMatrix);

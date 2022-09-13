@@ -574,9 +574,11 @@ class SpriteAvatarMesh extends THREE.Mesh {
   }
   update(timestamp, timeDiff, avatar, camera) {
     if (avatar) {
+      // get avatar root position
       localVector.copy(avatar.inputs.hmd.position);
       localVector.y -= avatar.height;
     } else {
+      // estimate world position of parent node if it's not bound
       this.parent.getWorldPosition(localVector);
     }
     localMatrix.copy(this.parent.matrixWorld).invert();
@@ -608,6 +610,7 @@ class SpriteAvatarMesh extends THREE.Mesh {
     this.quaternion.setFromEuler(localEuler);
     this.updateMatrixWorld();
 
+    // apply avatar animation if it's bound
     if (avatar) {
       // select the texture
       const spriteSpecName = (() => {
