@@ -177,6 +177,9 @@ class Grabmanager extends EventTarget {
         localPlayer.ungrab();
       } 
     }
+    this.dispatchEvent(new MessageEvent('toggleeditmode', {
+      data: { isEditMode: this.editMode }
+    }));
   }
   menuClick(e) {
     _click(e);

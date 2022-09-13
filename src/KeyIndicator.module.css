@@ -1,0 +1,36 @@
+.container {
+    display: flex;
+    align-items: flex-start;
+    margin-bottom: 8px;
+}
+.bg {
+    width: 24px;
+    height: 30px;
+    background-color: black;
+    opacity: 0.8;
+    border: 1px solid white;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+}
+.indicator {
+    color: white;
+    opacity: 1;
+    font-size: 20px;
+}
+.indicatorsvg {
+    width: 16px;
+    height: 20px;
+}
+.label {
+    height: 30px;
+    width: auto;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 16px;
+    padding-left: 8px;
+    opacity: 1;
+    color: white;
+    text-shadow: 1px 1px 2px black;
+}
