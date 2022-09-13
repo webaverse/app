@@ -95,9 +95,9 @@ const _makeAvatarPlaceholderMesh = (() => {
       varying float vAngle;
 
       /* float getBezierT(float x, float a, float b, float c, float d) {
-        return float(sqrt(3.) * 
-          sqrt(-4. * b * d + 4. * b * x + 3. * c * c + 2. * c * d - 8. * c * x - d * d + 4. * d * x) 
-            + 6. * b - 9. * c + 3. * d) 
+        return float(sqrt(3.) *
+          sqrt(-4. * b * d + 4. * b * x + 3. * c * c + 2. * c * d - 8. * c * x - d * d + 4. * d * x)
+            + 6. * b - 9. * c + 3. * d)
             / (6. * (b - 2. * c + d));
       }
       float easing(float x) {
@@ -164,7 +164,7 @@ const _makeAvatarPlaceholderMesh = (() => {
           vec4 c = texture2D(map, vUv);
           gl_FragColor = c;
           gl_FragColor.rgb = (1. - gl_FragColor.rgb) * green.rgb;
-          
+
           if (gl_FragColor.a < 0.9) {
             discard;
           }
@@ -251,7 +251,7 @@ const _forAllMeshes = (o, fn) => {
 
 const _bindControl = (dstModel, srcObject) => {
   const srcModel = srcObject.scene;
-  
+
   const _findBoneInSrc = (srcBoneName) => {
     let result = null;
     const _recurse = o => {
@@ -386,7 +386,7 @@ export class AvatarRenderer /* extends EventTarget */ {
     controlled = false,
   } = {})	{
     // super();
-    
+
     //
 
     this.arrayBuffer = arrayBuffer;
@@ -394,7 +394,7 @@ export class AvatarRenderer /* extends EventTarget */ {
     this.camera = camera;
     this.quality = quality;
     this.isControlled = controlled;
-    
+
     //
 
     this.scene = new THREE.Object3D();
@@ -418,6 +418,7 @@ export class AvatarRenderer /* extends EventTarget */ {
     this.controlObject = null;
     this.controlObjectLoaded = false;
     this.uncontrolFnMap = new Map();
+    this.height = 0;
 
     //
 
@@ -446,13 +447,13 @@ export class AvatarRenderer /* extends EventTarget */ {
         `\
         import * as THREE from 'three';
         import * as avatarSpriter from './avatar-spriter.js';
-  
+
         `,
         async function({
           arrayBuffer,
           srcUrl,
         }) {
-  
+
           const textureCanvases = await avatarSpriter.renderSpriteImages(arrayBuffer, srcUrl);
           const textureImages = await Promise.all(textureCanvases.map(canvas => {
             return createImageBitmap(canvas, {
@@ -474,7 +475,7 @@ export class AvatarRenderer /* extends EventTarget */ {
         import * as THREE from 'three';
         import * as avatarCruncher from './avatar-cruncher.js';
         import loaders from './loaders.js';
-  
+
         `,
         async function({
           arrayBuffer,
@@ -486,7 +487,7 @@ export class AvatarRenderer /* extends EventTarget */ {
               accept(object.scene);
             }, reject);
           });
-  
+
           const model = await parseVrm(arrayBuffer, srcUrl);
           const glbData = await avatarCruncher.crunchAvatarModel(model);
           return {
@@ -505,7 +506,7 @@ export class AvatarRenderer /* extends EventTarget */ {
         import * as avatarOptimizer from './avatar-optimizer.js';
         import loaders from './loaders.js';
         import exporters from './exporters.js';
-  
+
         `,
         async function({
           arrayBuffer,
@@ -515,9 +516,9 @@ export class AvatarRenderer /* extends EventTarget */ {
             const {gltfLoader} = loaders;
             gltfLoader.parse(arrayBuffer, srcUrl, accept, reject);
           });
-  
+
           const object = await parseVrm(arrayBuffer, srcUrl);
-          
+
           const model = object.scene;
           const glbData = await avatarOptimizer.optimizeAvatarModel(model);
           return {
@@ -551,6 +552,10 @@ export class AvatarRenderer /* extends EventTarget */ {
     if (!this.controlObjectLoaded) {
       this.controlObjectLoaded = true;
       this.controlObject = await parseVrm(this.arrayBuffer, this.srcUrl);
+
+      const {height} = this.getAvatarSize();
+      this.height = height;
+
       /* this.controlObject.scene.traverse(o => {
         if (o.isMesh) {
           o.onBeforeRender = () => {
@@ -562,7 +567,7 @@ export class AvatarRenderer /* extends EventTarget */ {
   }
   setControlled(controlled) {
     this.isControlled = controlled;
-    
+
     if (controlled) {
       for (const glb of [
         this.spriteAvatarMesh,
@@ -626,7 +631,7 @@ export class AvatarRenderer /* extends EventTarget */ {
                   const glb = avatarSpriter.createSpriteAvatarMeshFromTextures(textureImages);
                   _forAllMeshes(glb, _unfrustumCull);
                   glb.boundingSphere = _getMergedBoundingSphere(glb);
-    
+
                   this.spriteAvatarMesh = glb;
                 })(),
                 this.#ensureControlObject(),
@@ -672,7 +677,7 @@ export class AvatarRenderer /* extends EventTarget */ {
                     _setDepthWrite(o);
                   });
                   glb.boundingSphere = _getMergedBoundingSphere(glb);
-  
+
                   this.crunchedModel = glb;
                 })(),
                 this.#ensureControlObject(),
@@ -827,8 +832,7 @@ export class AvatarRenderer /* extends EventTarget */ {
     if (avatar) {
       headPosition = avatar.inputs.hmd.position;
     } else {
-      const {height} = this.getAvatarSize();
-      localVector.set(0, height, 0).applyMatrix4(this.scene.matrixWorld);
+      localVector.set(0, this.height, 0).applyMatrix4(this.scene.matrixWorld);
       headPosition = localVector;
     }
     if (this.camera && this.placeholderMesh.parent) {
@@ -837,7 +841,7 @@ export class AvatarRenderer /* extends EventTarget */ {
 
       this.placeholderMesh.position.copy(headPosition);
       this.placeholderMesh.updateMatrixWorld();
-      // this.placeholderMesh.position.y -= avatar.height;
+      // this.placeholderMesh.position.y -= this.height;
 
       this.placeholderMesh.matrixWorld.decompose(
         localVector,
