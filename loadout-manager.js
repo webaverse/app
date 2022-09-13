@@ -24,7 +24,7 @@ class LoadoutManager extends EventTarget {
 
     this.appsPerPlayer = new WeakMap();
     this.selectedIndexPerPlayer = new WeakMap();
-    this.destroyPlayerFnMap = new WeakMap();
+    this.trackedPlayers = [];
 
     this.apps = null;
     this.hotbarRenderers = [];
@@ -32,16 +32,16 @@ class LoadoutManager extends EventTarget {
     this.selectedIndex = -1;
     this.removeLastWearUpdateFn = null;
 
+    this.ensureRenderers();
+
     const playerSelectedFn = e => {
-      const {
-        oldPlayer,
-        player,
-      } = e.data;
+      const {oldPlayer, player} = e.data;
 
       if (oldPlayer) {
         this.unbindPlayer(oldPlayer);
       }
       this.bindPlayer(player);
+      this.trackPlayer(player);
     };
 
     playersManager.addEventListener('playerchange', playerSelectedFn);
@@ -49,11 +49,11 @@ class LoadoutManager extends EventTarget {
       playersManager.removeEventListener('playerchange', playerSelectedFn);
     };
 
-    this.ensureRenderers();
-
     // this is the initial event for the first player
-    const localPlayer = playersManager.getLocalPlayer();
-    this.bindPlayer(localPlayer);
+    npcManager.waitForLoad().then(() => {
+      const localPlayer = playersManager.getLocalPlayer();
+      this.bindPlayer(localPlayer);
+    });
   }
   refresh() {
     for (let i = 0; i < this.hotbarRenderers.length; i++) {
@@ -72,6 +72,26 @@ class LoadoutManager extends EventTarget {
       }
     }));
   }
+  trackPlayer(player) {
+    // delete loadout apps when player is destroyed
+    if (!this.trackedPlayers.includes(player)) {
+      const playerApp = npcManager.getAppByNpc(player);
+      const destroyFn = () => {
+        this.appsPerPlayer.delete(player);
+        this.selectedIndexPerPlayer.delete(player);
+
+        let removeIndex = this.trackedPlayers.indexOf(player);
+        if (removeIndex !== -1) {
+          this.trackedPlayers.splice(removeIndex, 1);
+        }
+
+        playerApp.removeEventListener('destroy', destroyFn);
+      };
+      playerApp.addEventListener('destroy', destroyFn);
+
+      this.trackedPlayers.push(player);
+    }
+  }
   bindPlayer(player) {
     if (!this.appsPerPlayer.get(player)) {
       const apps = Array(numSlots).fill(null);
@@ -80,21 +100,6 @@ class LoadoutManager extends EventTarget {
     this.apps = this.appsPerPlayer.get(player);
     this.selectedIndex = this.selectedIndexPerPlayer.has(player) ? this.selectedIndexPerPlayer.get(player) : -1;
     this.refresh();
-
-    // delete loadout apps when player is destroyed
-    if (!this.destroyPlayerFnMap.has(player)) {
-      npcManager.waitForLoad().then(() => {
-        const playerApp = npcManager.getAppByNpc(player);
-        const destroyFn = () => {
-          this.appsPerPlayer.delete(player);
-          this.selectedIndexPerPlayer.delete(player);
-          this.destroyPlayerFnMap.delete(player);
-          playerApp.removeEventListener('destroy', destroyFn);
-        };
-        playerApp.addEventListener('destroy', destroyFn);
-        this.destroyPlayerFnMap.set(player, destroyFn);
-      });
-    }
 
     const localPlayer = player;
     const wearupdate = e => {
@@ -176,7 +181,7 @@ class LoadoutManager extends EventTarget {
     if (this.selectedIndex !== -1) {
       const app = this.apps[this.selectedIndex];
       const spritesheet = _getAppSpritesheet(app);
-      
+
       const hotbarRenderer = this.hotbarRenderers[this.selectedIndex];
       hotbarRenderer.setSpritesheet(spritesheet);
       this.infoboxRenderer.setSpritesheet(spritesheet);
