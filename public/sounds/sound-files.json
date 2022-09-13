@@ -1468,5 +1468,20 @@
     "name": "water/water_river.wav",
     "offset": 231.48989583333346,
     "duration": 64.03
+  },
+  {
+    "name": "ui/UI_Scroll23.wav",
+    "offset": 97.613875,
+    "duration": 0.3414166666666667
+  },
+  {
+    "name": "ui/UI_Select11.wav",
+    "offset": 192.20966666666675,
+    "duration": 0.34725
+  },
+  {
+    "name": "ui/UI_Select32.wav",
+    "offset": 192.20966666666675,
+    "duration": 0.34725
   }
 ]

@@ -196,6 +196,7 @@ export default function QuickMenu() {
           ctx.arc(pixelSize/2, pixelSize/2, outerRadiusSoft, startAngle, endAngle, false);
           ctx.arc(pixelSize/2, pixelSize/2, innerRadiusSoft, endAngle, startAngle, true);
           ctx.fill();
+          sounds.playSoundName('quickMenuClick');
         }
         {
           const selected = i === selectedSlice && selectedDepth === 1;

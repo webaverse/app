@@ -2,6 +2,7 @@ import WSRTC from 'wsrtc/wsrtc.js';
 import {chatManager} from '../chat-manager.js';
 import universe from '../universe.js';
 import metaversefile from 'metaversefile';
+import * as sounds from '../sounds.js';
 
 class VoiceInput extends EventTarget {
   constructor() {
@@ -15,9 +16,9 @@ class VoiceInput extends EventTarget {
     return !!this.mediaStream;
   }
   async enableMic() {
+    sounds.playSoundName('micOn');
     await WSRTC.waitForReady();
     this.mediaStream = await WSRTC.getUserMedia();
-
     const localPlayer = metaversefile.useLocalPlayer();
     localPlayer.setMicMediaStream(this.mediaStream);
 
@@ -34,6 +35,7 @@ class VoiceInput extends EventTarget {
   }
   disableMic() {
     /* if (this.micEnabled()) */ {
+      sounds.playSoundName('micOff');
       const wsrtc = universe.getConnection();
       if (wsrtc) {
         wsrtc.disableMic();

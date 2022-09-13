@@ -5,6 +5,7 @@ import cameraManager from '../../../../camera-manager.js';
 import { AppContext } from '../../app';
 
 import styles from './action-menu.module.css';
+import * as sounds from '../../../../sounds.js';
 
 //
 
@@ -71,6 +72,12 @@ export const ActionMenu = ({ setUIMode, className }) => {
 
     };
 
+    const _triggerClickSound = () => {
+
+        sounds.playSoundName('menuClick');
+
+    };
+
     //
 
     useEffect( async () => {
@@ -85,33 +92,33 @@ export const ActionMenu = ({ setUIMode, className }) => {
     return (
         <div className={ classnames( className, styles.actionMenu ) } onClick={ stopPropagation } >
 
-            <div className={ styles.btnWrapper } >
+            <div className={ styles.btnWrapper } onMouseEnter={ _triggerClickSound }>
                 <div className={ classnames( styles.btn, state.openedPanel === 'WorldPanel' ? styles.wpOpened : null ) } onClick={ handleWorldBtnClick } >
                     <img src="images/webpencil.svg" className={ classnames( styles.background, styles.blue ) } />
                     <span className={ styles.text } >世 World</span>
                     <span className={ styles.key } >Z</span>
                 </div>
             </div>
-            <div className={ styles.btnWrapper } >
+            <div className={ styles.btnWrapper } onMouseEnter={ _triggerClickSound }>
                 <div className={ classnames( styles.btn, styles.settings ) } onClick={ handleSettingsBtnClick } >
                     <img src="images/webpencil.svg" className={ classnames( styles.background, styles.blue ) } />
                     <span className={ styles.text } >設定 Settings</span>
                 </div>
             </div>
-            <div className={ styles.btnWrapper } >
+            <div className={ styles.btnWrapper } onMouseEnter={ _triggerClickSound }>
                 <div className={ classnames( styles.btn, styles.mode ) } onClick={ handleCameraBtnClick } >
                     <img src="images/webpencil.svg" className={ classnames( styles.background, styles.blue ) } />
                     <span className={ styles.text } >モード Mode</span>
                 </div>
             </div>
-            <div className={ styles.btnWrapper } >
+            <div className={ styles.btnWrapper } onMouseEnter={ _triggerClickSound }>
                 <div className={ classnames( styles.btn, styles.mode ) } onClick={ handleModeBtnClick } >
                     <img src="images/webpencil.svg" className={ classnames( styles.background, styles.blue ) } />
                     <span className={ styles.text } >隠れる Hide</span>
                 </div>
             </div>
-            <div className={ styles.btnWrapper } >
-                <div className={ classnames( styles.btn, styles.vr, xrSupported ? null : styles.disabled ) } onClick={ handleVRBtnClick } >
+            <div className={ styles.btnWrapper }>
+                <div className={ classnames( styles.btn, styles.vr, xrSupported ? null : styles.disabled ) } onClick={ handleVRBtnClick } onMouseEnter={ ()=>{ if(xrSupported) _triggerClickSound} }>
                     <img src="images/webpencil.svg" className={ classnames( styles.background, styles.blue ) } />
                     <span className={ styles.text } >{ xrSupported ? '仮想現実 VR ' : '仮想現実 VR (no)' }</span>
                 </div>
