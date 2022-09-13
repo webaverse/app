@@ -827,7 +827,7 @@ export class AvatarRenderer /* extends EventTarget */ {
     this.#updateAvatar(timestamp, timeDiff, avatar);
     this.#updateFrustumCull(avatar);
   }
-  #updatePlaceholder(timestamp, timeDiff, avatar) {
+  #getAvatarHeadPosition(avatar) {
     let headPosition = null;
     if (avatar) {
       // get avatar head position
@@ -837,6 +837,22 @@ export class AvatarRenderer /* extends EventTarget */ {
       localVector.set(0, this.height, 0).applyMatrix4(this.scene.matrixWorld);
       headPosition = localVector;
     }
+    return headPosition;
+  }
+  #getAvatarCentroid(avatar) {
+    if (avatar) {
+      // get the centroid of avatar
+      localVector.set(avatar.inputs.hmd.position.x,
+        avatar.inputs.hmd.position.y - this.height / 2,
+        avatar.inputs.hmd.position.z);
+    } else {
+      // estimate the hip position if it's not bound
+      localVector.set(0, this.height / 2, 0).applyMatrix4(this.scene.matrixWorld);
+    }
+    return localVector;
+  }
+  #updatePlaceholder(timestamp, timeDiff, avatar) {
+    const headPosition = this.#getAvatarHeadPosition(avatar);
     if (this.camera && this.placeholderMesh.parent) {
       localMatrix.copy(this.placeholderMesh.parent.matrixWorld).invert();
       headPosition.applyMatrix4(localMatrix);
@@ -886,16 +902,7 @@ export class AvatarRenderer /* extends EventTarget */ {
     }
   }
   #updateFrustumCull(avatar) {
-    if (avatar) {
-      // get the centroid of avatar
-      localVector.set(avatar.inputs.hmd.position.x,
-        avatar.inputs.hmd.position.y - this.height / 2,
-        avatar.inputs.hmd.position.z);
-    } else {
-      // estimate the hip position if it's not bound
-      localVector.set(0, this.height / 2, 0).applyMatrix4(this.scene.matrixWorld);
-    }
-    
+    const centroidPosition = this.#getAvatarCentroid(avatar);
     if (this.camera) {
       const currentMesh = this.#getCurrentMesh();
       if (currentMesh) {
@@ -907,9 +914,9 @@ export class AvatarRenderer /* extends EventTarget */ {
         localFrustum.setFromProjectionMatrix(projScreenMatrix);
 
         localMatrix.makeTranslation(
-          localVector.x,
-          localVector.y,
-          localVector.z,
+          centroidPosition.x,
+          centroidPosition.y,
+          centroidPosition.z,
         );
         const boundingSphere = localSphere.copy(currentMesh.boundingSphere)
           .applyMatrix4(localMatrix);

@@ -572,7 +572,7 @@ class SpriteAvatarMesh extends THREE.Mesh {
       return false;
     }
   }
-  update(timestamp, timeDiff, avatar, camera) {
+  #getAvatarRootPosition(avatar) {
     if (avatar) {
       // get avatar root position
       localVector.copy(avatar.inputs.hmd.position);
@@ -581,11 +581,15 @@ class SpriteAvatarMesh extends THREE.Mesh {
       // estimate world position of parent node if it's not bound
       this.parent.getWorldPosition(localVector);
     }
+    return localVector;
+  }
+  update(timestamp, timeDiff, avatar, camera) {
+    const rootPosition = this.#getAvatarRootPosition(avatar);
     localMatrix.copy(this.parent.matrixWorld).invert();
-    localVector.applyMatrix4(localMatrix);
+    rootPosition.applyMatrix4(localMatrix);
 
     // matrix transform
-    this.position.copy(localVector);
+    this.position.copy(rootPosition);
 
     this.parent.matrixWorld.decompose(
       localVector,
