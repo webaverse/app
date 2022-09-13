@@ -93,12 +93,13 @@ class LoadoutManager extends EventTarget {
     }
   }
   bindPlayer(player) {
-    if (!this.appsPerPlayer.get(player)) {
-      const apps = Array(numSlots).fill(null);
-      this.appsPerPlayer.set(player, apps);
-    }
-    this.apps = this.appsPerPlayer.get(player);
-    this.selectedIndex = this.selectedIndexPerPlayer.has(player) ? this.selectedIndexPerPlayer.get(player) : -1;
+    this.apps = this.appsPerPlayer.has(player)
+      ? this.appsPerPlayer.get(player)
+      : Array(numSlots).fill(null);
+    this.selectedIndex = this.selectedIndexPerPlayer.has(player)
+      ? this.selectedIndexPerPlayer.get(player)
+      : -1;
+
     this.refresh();
 
     const localPlayer = player;
@@ -131,9 +132,16 @@ class LoadoutManager extends EventTarget {
   }
 
   unbindPlayer(player) {
-    this.selectedIndexPerPlayer.set(player, this.selectedIndex);
-    this.selectedIndex = -1;
+    if (!this.appsPerPlayer.has(player)) {
+      this.appsPerPlayer.set(player, apps);
+    }
     this.apps = null;
+
+    if (!this.selectedIndexPerPlayer.has(player)) {
+      this.selectedIndexPerPlayer.set(player, this.selectedIndex);
+    }
+    this.selectedIndex = -1;
+
     if (this.removeLastWearUpdateFn) {
       this.removeLastWearUpdateFn();
       this.removeLastWearUpdateFn = null;
