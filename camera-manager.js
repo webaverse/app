@@ -204,10 +204,8 @@ class CameraManager extends EventTarget {
     this.lastTimestamp = 0;
     this.cinematicScript = null;
     this.cinematicScriptStartTime = -1;
-    this.modeIs2D = false;
-    this.lockCamera = false;
-
     this.scene2D = null;
+    this.viewFactor = 0;
 
     document.addEventListener('pointerlockchange', e => {
       let pointerLockElement = document.pointerLockElement;
@@ -228,12 +226,16 @@ class CameraManager extends EventTarget {
     camera.lookAt(position);
     camera.updateMatrixWorld();
   }
+  getViewFactor() {
+    return this.viewFactor;
+  }
   enable2D(perspective = "side-scroll", mode = "follow", viewSize, scrollDirection = "both") {
     const localPlayer = playersManager.getLocalPlayer();
     localPlayer.characterPhysics.setPosition(new THREE.Vector3(0,1,0));
 
     this.targetQuaternion = new THREE.Quaternion();
     this.targetPosition = new THREE.Vector3();
+    this.viewFactor = viewSize;
 
     this.scene2D = new Scene2D(perspective, mode, scrollDirection);
     setCameraType("orthographic", viewSize);
@@ -696,7 +698,7 @@ class CameraManager extends EventTarget {
             if(this.scene2D && this.scene2D.cameraMode === "fixed") {
               if(this.scene2D.scrollDirection === "horizontal") {
                 let offset = new THREE.Vector3(localPlayer.position.x, localPlayer.position.y, 0).sub(new THREE.Vector3(camera.position.x, localPlayer.position.y, 0));
-                this.targetPosition.copy(new THREE.Vector3(localPlayer.position.x,camera.position, 0)).add(new THREE.Vector3(offset.x, 0, 0));
+                this.targetPosition.copy(new THREE.Vector3(localPlayer.position.x, localPlayer.position.y, 0)).add(new THREE.Vector3(offset.x, offset.y, 0));
                 break;
               } 
               else if (this.scene2D.scrollDirection === "vertical") {

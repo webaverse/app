@@ -20,7 +20,7 @@
       "content": {
         "perspective": "side-scroll",
         "scrollDirection": "vertical",
-        "cameraMode": "follow",
+        "cameraMode": "fixed",
         "viewSize": 22
       }
     },

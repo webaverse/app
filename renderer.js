@@ -211,6 +211,12 @@ const _setComposerSize = (width, height, pixelRatio) => {
 const _setCameraSize = (width, height, pixelRatio) => {
   const aspect = width / height;
   camera.aspect = aspect;
+
+  if(camera.isOrthographicCamera) {
+    camera.left = cameraManager.getViewFactor() * aspect / -2;
+    camera.right = cameraManager.getViewFactor() * aspect / 2;
+  }
+
   camera.updateProjectionMatrix();
 };
 

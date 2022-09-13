@@ -26,17 +26,12 @@
     },
     {
       "position": [
-        4,
-        0,
-        1
+        10,
+        1,
+        0
       ],
-      "quaternion": [
-        0,
-        0.7071067811865475,
-        0,
-        0.7071067811865475
-      ],
-      "start_url": "https://avatar-models.exokit.org/model49.vrm",
+      "physics": true,
+      "start_url": "https://webaverse.github.io/plane/",
       "dynamic": true
     },
     {
@@ -46,7 +41,7 @@
         0
       ],
       "physics": true,
-      "start_url": "https://webaverse.github.io/block/grid.glb",
+      "start_url": "/grid.glb",
       "dynamic": false
     }
   ]

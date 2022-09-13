@@ -25,7 +25,6 @@ class SpritesheetManager {
     let spritesheet = this.spritesheetCache.get(app.contentId);
     if (!spritesheet) {
       spritesheet = createObjectSprite(app);
-      console.log(spritesheet, "spritesheet");
       this.spritesheetCache.set(app.contentId, spritesheet);
     }
     return spritesheet;
