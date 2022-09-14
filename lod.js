@@ -776,7 +776,7 @@ export class LodChunkTracker {
       this.tracker = await this.pgWorkerManager.createTracker(this.lods, this.lod1Range);
     }
   }
-  async updateInternal(position) {
+  async updateInternal(position, currentCoord) {
     await this.ensureTracker();
 
     const trackerUpdateSpec = await this.pgWorkerManager.trackerUpdate(this.tracker, position);
@@ -886,7 +886,7 @@ export class LodChunkTracker {
       }
     } */
 
-    this.postUpdate();
+    this.postUpdate(currentCoord);
   }
   update(position) {
     // update coordinate
@@ -898,7 +898,8 @@ export class LodChunkTracker {
           this.isUpdating = true;
 
           const positionClone = position.clone();
-          await this.updateInternal(positionClone);
+          const currentCoordClone = currentCoord.clone();
+          await this.updateInternal(positionClone, currentCoordClone);
 
           this.isUpdating = false;
 
