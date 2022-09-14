@@ -192,6 +192,7 @@ const _cloneTrackerUpdate = trackerUpdate => {
     newDataRequests: trackerUpdate.newDataRequests.map(_cloneNode),
     keepDataRequests: trackerUpdate.keepDataRequests.map(_cloneNode),
     cancelDataRequests: trackerUpdate.cancelDataRequests.map(_cloneNode),
+    chunkMin: trackerUpdate.chunkMin,
   };
 };
 
