@@ -15,7 +15,7 @@ const localVector2D = new THREE.Vector2();
 //
 
 const _cloneChunkResult = chunkResult => {
-  const {terrainGeometry, waterGeometry, barrierGeometry, barrierNode} = chunkResult;
+  const {terrainGeometry, waterGeometry, barrierGeometry} = chunkResult;
 
   const _getTerrainGeometrySize = () => {
     let size = terrainGeometry.positions.length * terrainGeometry.positions.constructor.BYTES_PER_ELEMENT +
