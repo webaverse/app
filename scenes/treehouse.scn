@@ -20,8 +20,8 @@
       "content": {
         "perspective": "side-scroll",
         "scrollDirection": "vertical",
-        "cameraMode": "fixed",
-        "viewSize": 22
+        "cameraMode": "follow",
+        "viewSize": 35
       }
     },
     {
@@ -34,7 +34,7 @@
     },
     {
       "position": [
-        2,
+        20,
         0.75,
         0
       ],
@@ -54,7 +54,7 @@
         0,
         0
       ],
-      "start_url": "/demoScn.glb"
+      "start_url": "/spriteTest.glb"
     }
   ]
 }

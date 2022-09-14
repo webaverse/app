@@ -14,6 +14,7 @@ import { getNextPhysicsId, freePhysicsId, convertMeshToPhysicsMesh } from './uti
 // import {applyVelocity} from './util.js';
 // import {groundFriction} from './constants.js';
 import { CapsuleGeometry } from './geometries.js'
+import { Geometry2D } from './Geometry2D.js'
 import physxWorkerManager from './physx-worker-manager.js';
 
 // const localVector = new THREE.Vector3()
@@ -240,6 +241,391 @@ class PhysicsScene extends EventTarget {
     physicsMesh.updateMatrixWorld()
     physicsObject.physicsMesh = physicsMesh
     return physicsObject
+  }
+  addGeometry2D(mesh) {
+
+    console.log(mesh, "2dmesh");
+    let obj = mesh.children[0]
+    let bBox = new THREE.Box3();
+    bBox.setFromObject( obj );
+    let position = obj.position
+    let quaternion = obj.quaternion
+
+    console.log(bBox);
+    //let size = new THREE.Vector3((bBox.max.x), (bBox.max.y), 1);
+    //size = new THREE.Vector3(2,1,1);
+    //console.log(size);
+
+
+    //let newSize = bBox.getSize();
+    //console.log("newsize", newSize)
+    //console.log(bBox);
+    //console.log(bBox.max.x, bBox.max.z, 1)
+    //const tempMesh = new THREE.Mesh(new THREE.BoxGeometry(bBox.max.x + 1, bBox.max.z, 1), new THREE.MeshBasicMaterial());
+    //mesh.children[0].geometry.computeBoundingBox();
+    //console.log(mesh.children[0].geometry.boundingBox);
+
+		//console.log(new THREE.Box3().setFromObject(mesh.children[0]));
+
+    let target = new THREE.Vector3();
+
+    let center = new THREE.Vector3();
+
+    bBox.getSize(target);
+    bBox.getCenter(center);
+    let size = target;
+    console.log(center, "center")
+    
+    size = new THREE.Vector3(center.x + target.x - bBox.max.x, center.y + target.y-bBox.max.y, 1);
+    console.log(target, bBox);
+
+    const physicsId = getNextPhysicsId()
+    physx.physxWorker.addBoxGeometryPhysics(
+      this.scene,
+      position,
+      quaternion,
+      size,
+      physicsId,
+      false,
+      -1
+    )
+  
+    const physicsObject = _makePhysicsObject(
+      physicsId,
+      position,
+      quaternion,
+      localVector2.set(1, 1, 1)
+    )
+    const physicsMesh = new THREE.Mesh(new THREE.BoxGeometry(2, 2, 2), redMaterial)
+    physicsMesh.scale.copy(size)
+    physicsMesh.visible = false
+    physicsObject.add(physicsMesh)
+    physicsObject.updateMatrixWorld()
+    const { bounds } = this.getGeometryForPhysicsId(physicsId)
+    physicsMesh.geometry.boundingBox = new THREE.Box3(
+      new THREE.Vector3().fromArray(bounds, 0),
+      new THREE.Vector3().fromArray(bounds, 3)
+    )
+    physicsObject.physicsMesh = physicsMesh
+    return physicsObject
+
+  }
+  addGeometry2DX(mesh) {
+    console.log(mesh.name, mesh);
+
+    let obj = mesh.children[0];
+    let clonedGeom = new THREE.BufferGeometry();
+    clonedGeom = obj.geometry.clone();
+    let position = obj.geometry.getAttribute('position');
+
+    console.log(position.array.length, position.array.length /3, position.array, position, obj.geometry)
+
+    for (let i = 0; i < position.array.length; i++) {
+      //position.array[i] = i;
+      //position.array[i+1] = i;
+      //position.array[i+2] = i;
+
+      if(position.array[i] === 0) {
+        position.array[i] += 1;
+        console.log("hewn", i);
+      }
+      
+      obj.geometry.attributes.position.needsUpdate = true;
+    }
+
+    let clonedMesh = new THREE.Mesh(clonedGeom, mesh.material);
+    mesh.updateMatrixWorld();
+
+
+    const physicsMesh = convertMeshToPhysicsMesh(mesh)
+  
+    const physicsId = getNextPhysicsId()
+    physx.physxWorker.addGeometryPhysics(
+      this.scene,
+      physicsMesh,
+      physicsId
+    )
+    physicsMesh.geometry = this.extractPhysicsGeometryForId(physicsId)
+  
+    const physicsObject = _makePhysicsObject(
+      physicsId,
+      physicsMesh.position,
+      physicsMesh.quaternion,
+      physicsMesh.scale
+    )
+    physicsObject.add(physicsMesh)
+    physicsMesh.position.set(0, 0, 0)
+    physicsMesh.quaternion.set(0, 0, 0, 1)
+    physicsMesh.scale.set(1, 1, 1)
+    physicsMesh.updateMatrixWorld()
+    physicsObject.physicsMesh = physicsMesh
+    return physicsObject
+
+  //console.log(position, position.array);
+
+  }
+  add2DGeometry(mesh) {
+    console.log(mesh);
+
+    let uniforms = {
+      texture1: { value: mesh.children[0].material.map }
+    }
+
+    const vertexShader = () => {
+      return `
+          varying vec2 vUv; 
+  
+          void main() {
+              vUv = uv; 
+  
+              vec4 modelViewPosition = modelViewMatrix * vec4(position, 1.0);
+              gl_Position = projectionMatrix * modelViewPosition; 
+          }
+      `;
+  }
+  
+  const fragmentShader = () => {
+      return `
+          uniform sampler2D texture1; 
+          //uniform sampler2D texture2; 
+          varying vec2 vUv;
+  
+          void main() {
+              vec4 color1 = texture2D(texture1, vUv);
+              //vec4 color2 = texture2D(texture2, vUv);
+
+              if(color1.a < .95) {
+                discard;
+                //color1.a = 1;
+              }
+
+              if(color1.r > 50.) {
+                color1.r = 21.;
+              }
+
+              
+              
+              gl_FragColor = color1;
+
+              //if(gl_FragColor
+          }
+      `;
+  }
+
+    let material =  new THREE.ShaderMaterial({
+      uniforms: uniforms,
+      fragmentShader: fragmentShader(),
+      vertexShader: vertexShader(),
+    })
+
+    
+
+    mesh.children.forEach(mesh => { 
+      //mesh.material = material;
+    });
+
+    const canvas = document.createElement( 'canvas' );
+    let texture = mesh.children[0].material.map;
+    console.log(texture);
+    canvas.width = texture.image.width;
+    canvas.height = texture.image.height;
+    
+    const context = canvas.getContext( '2d' );
+    context.drawImage( texture.image, 0, 0 );
+    
+    const imageData = context.getImageData( 0, 0, canvas.width, canvas.height );
+    let data = imageData.data;
+    //console.log( data , "data");
+
+    let alphaCount = 0;
+    let pixelArray = [];
+    let fakeScene = null;
+
+    for (var i = data.length; i >= 0; i -= 4) {
+      if (data[i + 3] > 0) {
+          //data[i] = this.colour.R;
+          //data[i + 1] = this.colour.G;
+          //data[i + 2] = this.colour.B;
+          var x = (i / 4) % texture.image.width;
+          var y = Math.floor((i / 4) / texture.image.width);
+
+          if(data[i] + data[i + 1] + data[i + 2] > 0) {
+            
+
+            //let rata = meshO.clone();
+
+            //fakeScene.add(rata);
+            //rata.position.set(x/25, y/25, 0);
+            //rata.updateMatrixWorld();
+
+            //fakeScene.add(meshO);
+
+            
+            pixelArray.push({
+              xCoord: x,
+              yCoord: y,
+              r: data[i],
+              g: data[i + 1],
+              b: data[i + 2],
+            });
+          }
+      }
+  }
+
+  console.log(fakeScene);
+
+  const vertices = [];
+
+  let geom = new THREE.BoxBufferGeometry(.05,.05,.05);
+  let dummy = new THREE.Object3D;
+    fakeScene = new THREE.InstancedMesh( geom,new THREE.MeshBasicMaterial({color: 0xff0000}), pixelArray.length, true);
+    for (let i = 0; i < pixelArray.length; i++) {
+        let x = pixelArray[i].xCoord / 25;
+        let y = pixelArray[i].yCoord / 25;
+        let z = 0
+        dummy.position.set(x,y,z);
+        dummy.updateMatrix();
+        fakeScene.setMatrixAt(i , dummy.matrix);
+    }
+
+    fakeScene.updateMatrixWorld();
+
+  for (let i = 0; i < pixelArray.length; i++) {
+
+
+    
+    //scene.add( instancedStars );
+
+    vertices.push({
+      pos: [pixelArray[i].xCoord/50, pixelArray[i].yCoord/50, 0],
+      norm: [0,0,1],
+      uv: [1,0]
+    });
+    
+    
+  }
+
+  // const vertices = [
+  //     // front
+  //     { pos: [-1, -1,  1], norm: [ 0,  0,  1], uv: [0, 1], },
+  //     { pos: [ 1, -1,  1], norm: [ 0,  0,  1], uv: [1, 1], },
+  //     { pos: [-1,  1,  1], norm: [ 0,  0,  1], uv: [0, 0], },
+
+  //     { pos: [-1,  1,  1], norm: [ 0,  0,  1], uv: [0, 0], },
+  //     { pos: [ 1, -1,  1], norm: [ 0,  0,  1], uv: [1, 1], },
+  //     { pos: [ 1,  1,  1], norm: [ 0,  0,  1], uv: [1, 0], },
+  //     // right
+  //     { pos: [ 1, -1,  1], norm: [ 1,  0,  0], uv: [0, 1], },
+  //     { pos: [ 1, -1, -1], norm: [ 1,  0,  0], uv: [1, 1], },
+  //     { pos: [ 1,  1,  1], norm: [ 1,  0,  0], uv: [0, 0], },
+
+  //     { pos: [ 1,  1,  1], norm: [ 1,  0,  0], uv: [0, 0], },
+  //     { pos: [ 1, -1, -1], norm: [ 1,  0,  0], uv: [1, 1], },
+  //     { pos: [ 1,  1, -1], norm: [ 1,  0,  0], uv: [1, 0], },
+  //     // back
+  //     { pos: [ 1, -1, -1], norm: [ 0,  0, -1], uv: [0, 1], },
+  //     { pos: [-1, -1, -1], norm: [ 0,  0, -1], uv: [1, 1], },
+  //     { pos: [ 1,  1, -1], norm: [ 0,  0, -1], uv: [0, 0], },
+
+  //     { pos: [ 1,  1, -1], norm: [ 0,  0, -1], uv: [0, 0], },
+  //     { pos: [-1, -1, -1], norm: [ 0,  0, -1], uv: [1, 1], },
+  //     { pos: [-1,  1, -1], norm: [ 0,  0, -1], uv: [1, 0], },
+  //     // left
+  //     { pos: [-1, -1, -1], norm: [-1,  0,  0], uv: [0, 1], },
+  //     { pos: [-1, -1,  1], norm: [-1,  0,  0], uv: [1, 1], },
+  //     { pos: [-1,  1, -1], norm: [-1,  0,  0], uv: [0, 0], },
+
+  //     { pos: [-1,  1, -1], norm: [-1,  0,  0], uv: [0, 0], },
+  //     { pos: [-1, -1,  1], norm: [-1,  0,  0], uv: [1, 1], },
+  //     { pos: [-1,  1,  1], norm: [-1,  0,  0], uv: [1, 0], },
+  //     // top
+  //     { pos: [ 1,  1, -1], norm: [ 0,  1,  0], uv: [0, 1], },
+  //     { pos: [-1,  1, -1], norm: [ 0,  1,  0], uv: [1, 1], },
+  //     { pos: [ 1,  1,  1], norm: [ 0,  1,  0], uv: [0, 0], },
+
+  //     { pos: [ 1,  1,  1], norm: [ 0,  1,  0], uv: [0, 0], },
+  //     { pos: [-1,  1, -1], norm: [ 0,  1,  0], uv: [1, 1], },
+  //     { pos: [-1,  1,  1], norm: [ 0,  1,  0], uv: [1, 0], },
+  //     // bottom
+  //     { pos: [ 1, -1,  1], norm: [ 0, -1,  0], uv: [0, 1], },
+  //     { pos: [-1, -1,  1], norm: [ 0, -1,  0], uv: [1, 1], },
+  //     { pos: [ 1, -1, -1], norm: [ 0, -1,  0], uv: [0, 0], },
+
+  //     { pos: [ 1, -1, -1], norm: [ 0, -1,  0], uv: [0, 0], },
+  //     { pos: [-1, -1,  1], norm: [ 0, -1,  0], uv: [1, 1], },
+  //     { pos: [-1, -1, -1], norm: [ 0, -1,  0], uv: [1, 0], },
+  //   ];
+    const positions = [];
+    const normals = [];
+    const uvs = [];
+    for (const vertex of vertices) {
+      positions.push(...vertex.pos);
+      normals.push(...vertex.norm);
+      uvs.push(...vertex.uv);
+    }
+
+    const geometry = new THREE.BufferGeometry();
+    const positionNumComponents = 3;
+    const normalNumComponents = 3;
+    const uvNumComponents = 2;
+    geometry.addAttribute(
+        'position',
+        new THREE.BufferAttribute(new Float32Array(positions), positionNumComponents));
+    geometry.addAttribute(
+        'normal',
+        new THREE.BufferAttribute(new Float32Array(normals), normalNumComponents));
+    geometry.addAttribute(
+        'uv',
+        new THREE.BufferAttribute(new Float32Array(uvs), uvNumComponents));
+
+    // for (let i = 0; i < imageData.data.length; i++) {
+    //   //console.log(imageData.data[i]);
+    //   if(imageData.data[i] === 0) {
+    //     var x = (i / 4) % texture.image.width;
+    //     var y = Math.floor((i / 4) / texture.image.width);
+
+    //     //alphaCount++;
+    //     pixelArray.push({
+
+    //     });
+    //     //console.log("no")
+    //   }
+      
+    // }
+    //console.log(alphaCount, imageData.data.length);
+
+    //console.log(geometry);
+
+    let mesh2 = new THREE.Mesh(geometry, new THREE.MeshBasicMaterial({color: 0xff0000}));
+    return fakeScene;
+    //console.log(pixelArray);
+    this.scene.add(mesh2);
+
+    const physicsMesh = convertMeshToPhysicsMesh(mesh)
+  
+    const physicsId = getNextPhysicsId()
+    physx.physxWorker.addGeometryPhysics(
+      this.scene,
+      physicsMesh,
+      physicsId
+    )
+    physicsMesh.geometry = this.extractPhysicsGeometryForId(physicsId)
+
+    let testScale = new THREE.Vector3(physicsMesh.scale.x, physicsMesh.scale.y, 5);
+  
+    const physicsObject = _makePhysicsObject(
+      physicsId,
+      physicsMesh.position,
+      physicsMesh.quaternion,
+      testScale
+    )
+    physicsObject.add(physicsMesh)
+    physicsMesh.position.set(0, 0, 0)
+    physicsMesh.quaternion.set(0, 0, 0, 1)
+    physicsMesh.scale.set(1, 1, 1)
+    physicsMesh.updateMatrixWorld()
+    physicsObject.physicsMesh = physicsMesh
+    //return physicsObject
   }
   createMaterial(physicsMaterial) {
     return physx.physxWorker.createMaterial(this.scene, physicsMaterial)

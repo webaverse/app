@@ -230,8 +230,11 @@ class CameraManager extends EventTarget {
     return this.viewFactor;
   }
   enable2D(perspective = "side-scroll", mode = "follow", viewSize, scrollDirection = "both") {
-    const localPlayer = playersManager.getLocalPlayer();
-    localPlayer.characterPhysics.setPosition(new THREE.Vector3(0,1,0));
+    // const localPlayer = playersManager.getLocalPlayer();
+
+    // if(localPlayer) {
+    //   localPlayer.characterPhysics.setPosition(new THREE.Vector3(0,1,0));
+    // }
 
     this.targetQuaternion = new THREE.Quaternion();
     this.targetPosition = new THREE.Vector3();
