@@ -310,7 +310,7 @@ class Conversation extends EventTarget {
       const location = _location && _location !== undefined ? _location : 'Tree House'
       for (const msg of this.messages) {
         console.log(msg)
-        if (msg.type !== 'chat' || msg.text?.length <= 0) {
+        if ((msg.type !== 'chat' && msg.type !== 'option') || msg.text?.length <= 0) {
           continue;
         }
 
