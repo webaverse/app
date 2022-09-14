@@ -32,6 +32,8 @@ import {
   makeCharacterIntroPrompt,
   makeCharacterIntroStop,
   parseCharacterIntroResponse,
+  makeQuestCheckerPrompt,
+  makeQuestCheckerStop,
 } from './lore-model.js'
 
 const numGenerateTries = 5;
@@ -242,6 +244,9 @@ class AIScene {
     const stop = makeSelectTargetStop();
     let response = await this.generateFn(prompt, stop);
     console.log('select target response', {prompt, response});
+    if (response?.length === 0) {
+      return this.generateSelectTargetComment(name, description);
+    }
     response = parseSelectTargetResponse(response);
     if (response?.value?.length === 0) {
       return this.generateSelectTargetComment(name, description);
@@ -306,6 +311,20 @@ class AIScene {
     const response2 = parseCharacterIntroResponse(response);
     console.log('dialogue options parsed', {response2});
     return response2;
+  }
+  async checkIfQuestIsApplicable(location, conversation, user1, user2, tries = 0) {
+    const prompt = makeQuestCheckerPrompt(location, conversation, user1, user2);
+    const stop = makeQuestCheckerStop()
+    const response = (await this.generateFn(prompt, stop))?.trim();
+    if (response?.length <= 0) {
+      if (tries >= 5) {
+        return 'no'
+      } else {
+      return this.checkIfQuestIsApplicable(location, conversation, user1, user2, tries++);
+      }
+    }
+    console.log('response:', response)
+    return response?.trim();
   }
 }
 

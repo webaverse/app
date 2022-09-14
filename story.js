@@ -300,7 +300,29 @@ class Conversation extends EventTarget {
       this.close();
     }
   }
-  finish() {
+  finish(hasBeenChecked = /*true*/ false) {
+    if (!hasBeenChecked) {
+      const aiScene = metaversefile.useLoreAIScene();
+      let conv = ''
+      const user1 = this.messages.length >= 1 ? this.messages[0].name : 'Annon';
+      const user2 = this.messages.length >= 2 ? this.messages[1].name : 'Ann';
+      const _location = aiScene.settings[Math.floor(Math.random() * aiScene.settings.length)];
+      const location = _location && _location !== undefined ? _location : 'Tree House'
+      for (const msg of this.messages) {
+        console.log(msg)
+        if (msg.type !== 'chat' || msg.text?.length <= 0) {
+          continue;
+        }
+
+        conv += msg.name?.trim() + ': ' + msg.text?.trim() + '\n';
+      }
+
+      console.log('conversation finished', conv);
+      const isQuest = aiScene.checkIfQuestIsApplicable(location, conv, user1, user2);
+
+      //return
+    }
+
     this.finished = true;
     this.dispatchEvent(new MessageEvent('finish'));
   }
