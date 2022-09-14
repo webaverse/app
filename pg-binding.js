@@ -410,8 +410,8 @@ const _parseChunkResult = (arrayBuffer, bufferAddress) => {
     // positions2D
     const numPositions2D = dataView2.getUint32(index2, true);
     index2 += Uint32Array.BYTES_PER_ELEMENT;
-    const positions2D = new Float32Array(arrayBuffer, bufferAddress + index2, numPositions2D * 2);
-    index2 += Float32Array.BYTES_PER_ELEMENT * numPositions2D * 2;
+    const positions2D = new Int32Array(arrayBuffer, bufferAddress + index2, numPositions2D * 2);
+    index2 += Int32Array.BYTES_PER_ELEMENT * numPositions2D * 2;
   
     // indices
     const numIndices = dataView2.getUint32(index2, true);
