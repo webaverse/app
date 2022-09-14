@@ -223,26 +223,28 @@ export default () => {
     let maxY = null;
 
     useFrame(({timestamp}) => {
-        if (app.targetApp !== lastTargetApp) {
-            console.log(app.targetApp);
-            console.log(app.physicsMesh);
-            if (!app.physicsMesh.geometry.boundingBox) {
-                app.physicsMesh.geometry.computeBoundingBox();
+        if(app.targetApp && app.physicsMesh) {
+            if (app.targetApp !== lastTargetApp) {
+                // console.log(app.targetApp);
+                // console.log(app.physicsMesh);
+                if (!app.physicsMesh?.geometry.boundingBox) {
+                    app.physicsMesh.geometry.computeBoundingBox();
+                }
             }
+            
+            if (app.targetApp && app.physicsMesh) {
+                // console.log(app.targetApp, app.physicsMesh);
+                if(!maxY) maxY = app.physicsMesh.geometry.boundingBox.max.y - app.physicsMesh.position.y;
+                group.rotation.copy(camera.rotation);
+                app.position.copy(app.targetApp.position);
+                app.position.y += maxY;
+                app.targetApp.updateMatrixWorld();
+                app.updateMatrixWorld();
+            } else if (!app.targetApp && maxY) {
+                maxY = null;
+            }
+            lastTargetApp = app.targetApp;
         }
-        
-        if (app.targetApp) {
-            if(!maxY) maxY = app.physicsMesh.geometry.boundingBox.max.y - app.physicsMesh.geometry.boundingBox.min.y;
-            group.rotation.copy(camera.rotation);
-            app.position.copy(app.targetApp.position);
-            app.position.y += maxY;
-            app.targetApp.updateMatrixWorld();
-            app.updateMatrixWorld();
-        } else if (!app.targetApp && maxY) {
-            maxY = null;
-        }
-        lastTargetApp = app.targetApp;
-        
     });
 
     useCleanup(() => {

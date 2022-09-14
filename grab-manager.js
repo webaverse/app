@@ -128,7 +128,7 @@ const _click = e => {
   if (grabManager.getGrabbedObject(0)) {
     const localPlayer = playersManager.getLocalPlayer();
     localPlayer.ungrab();
-    grabManager.removeIndicatorApp();
+    grabManager.hideIndicators();
   } else {
     if (highlightedPhysicsObject) {
       grabManager.grab(highlightedPhysicsObject);
@@ -142,28 +142,36 @@ class Grabmanager extends EventTarget {
     this.gridSnap = 0;
     this.editMode = false;
     this.i = null;
+    this.transformIndicators = null;
+    this.createIndicatorApp();
   }
-  createIndicatorApp(app) {
-    const defaultModules = metaversefileApi.useDefaultModules();
-    this.indicatorApp = metaversefileApi.createAppAsync({
-      module: defaultModules.modules.grabIcon,
-      parent: sceneLowPriority
-    });
-    this.indicatorApp.then(i => {
-      i.targetApp = app;
-      i.physicsMesh = app.physicsObjects[0].physicsMesh;
-      this.i = i;
-    });
+  createIndicatorApp() {
+    const indicatorApp = metaversefileApi.createApp();
+    (async () => {
+      await metaverseModules.waitForLoad();
+      const {modules} = metaversefileApi.useDefaultModules();
+      const transformIndicators = modules['grabIcon'];
+      await indicatorApp.addModule(transformIndicators);
+    })();
+    indicatorApp.targetApp = null;
+    indicatorApp.physicsMesh = null;
+    this.transformIndicators = indicatorApp;
   }
-  removeIndicatorApp() {
-    sceneLowPriority.remove(this.i);
-    this.i = null;
+  showIndicators(object) {
+    sceneLowPriority.add(this.transformIndicators);
+    this.transformIndicators.targetApp = object;
+    this.transformIndicators.physicsMesh = object.physicsObjects[0].physicsMesh;
+  }
+  hideIndicators() {
+    this.transformIndicators.targetApp = null;
+    this.transformIndicators.physicsMesh = null;
+    sceneLowPriority.remove(this.transformIndicators);
   }
   grab(object) {
     console.log(object);
     const localPlayer = playersManager.getLocalPlayer();
     localPlayer.grab(object);
-    this.createIndicatorApp(object);
+    this.showIndicators(object);
     this.gridSnap = 0;
     this.editMode = false;
   }
