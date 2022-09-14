@@ -435,9 +435,9 @@ const _parseChunkResult = (arrayBuffer, bufferAddress) => {
     const dataView2 = new DataView(arrayBuffer, bufferAddress);
     let index2 = 0;
 
-    const min = new Int32Array(arrayBuffer, bufferAddress + index, 2);
+    const min = new Int32Array(arrayBuffer, bufferAddress + index2, 2);
     index2 += 2 * Int32Array.BYTES_PER_ELEMENT;
-    const lod = dataView2.getInt32(index, true);
+    const lod = dataView2.getInt32(index2, true);
     index2 += Int32Array.BYTES_PER_ELEMENT;
     
     return {
