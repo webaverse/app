@@ -100,17 +100,24 @@ const _parseTrackerUpdate = bufferAddress => {
       newNodes,
     };
   }; */
+  const _parseChunkMin = () => {
+    const min = new Int32Array(Module.HEAPU8.buffer, bufferAddress + index, 2).slice();
+    index += 2 * Int32Array.BYTES_PER_ELEMENT;
+    return min;
+  };
 
   const leafNodes = _parseNodes();
   const newDataRequests = _parseNodes();
   const keepDataRequests = _parseNodes();
   const cancelDataRequests = _parseNodes();
+  const chunkMin = _parseChunkMin();
 
   return {
     leafNodes,
     newDataRequests,
     keepDataRequests,
     cancelDataRequests,
+    chunkMin,
   };
 };
 w.createTracker = (inst, lod, lod1Range) => {
@@ -428,35 +435,15 @@ const _parseChunkResult = (arrayBuffer, bufferAddress) => {
       indices,
     };
   };
-  const _parseBarrierNode = () => {
-    const bufferAddress = dataView.getUint32(index, true);
-    index += Uint32Array.BYTES_PER_ELEMENT;
-
-    const dataView2 = new DataView(arrayBuffer, bufferAddress);
-    let index2 = 0;
-
-    const min = new Int32Array(arrayBuffer, bufferAddress + index2, 2);
-    index2 += 2 * Int32Array.BYTES_PER_ELEMENT;
-    const lod = dataView2.getInt32(index2, true);
-    index2 += Int32Array.BYTES_PER_ELEMENT;
-    
-    return {
-      bufferAddress,
-      min,
-      lod,
-    };
-  };
 
   const terrainGeometry = _parseTerrainVertexBuffer();
   const waterGeometry = _parseWaterVertexBuffer();
   const barrierGeometry = _parseBarrierVertexBuffer();
-  const barrierNode = _parseBarrierNode();
   return {
     bufferAddress,
     terrainGeometry,
     waterGeometry,
     barrierGeometry,
-    barrierNode,
   };
 };
 w.createChunkMeshAsync = async (inst, taskId, x, z, lod, lodArray) => {
