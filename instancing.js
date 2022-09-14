@@ -378,9 +378,9 @@ export class GeometryAllocator {
       const lastIndex = this.numDraws - 1;
 
       // copy the last index to the freed slot
+      this.drawStarts[freeIndex] = this.drawStarts[lastIndex];
+      this.drawCounts[freeIndex] = this.drawCounts[lastIndex];
       if (this.boundingType === 'sphere') {
-        this.drawStarts[freeIndex] = this.drawStarts[lastIndex];
-        this.drawCounts[freeIndex] = this.drawCounts[lastIndex];
         this.boundingData[freeIndex * 4] = this.boundingData[lastIndex * 4];
         this.boundingData[freeIndex * 4 + 1] =
           this.boundingData[lastIndex * 4 + 1];
@@ -389,8 +389,6 @@ export class GeometryAllocator {
         this.boundingData[freeIndex * 4 + 3] =
           this.boundingData[lastIndex * 4 + 3];
       } else if (this.boundingType === 'box') {
-        this.drawStarts[freeIndex] = this.drawStarts[lastIndex];
-        this.drawCounts[freeIndex] = this.drawCounts[lastIndex];
         this.boundingData[freeIndex * 6] = this.boundingData[lastIndex * 6];
         this.boundingData[freeIndex * 6 + 1] =
           this.boundingData[lastIndex * 6 + 1];
