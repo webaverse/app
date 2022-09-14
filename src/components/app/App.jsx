@@ -35,6 +35,7 @@ import {handleStoryKeyControls} from '../../../story';
 import styles from './App.module.css';
 import '../../fonts.css';
 import raycastManager from '../../../raycast-manager';
+import npcManager from '../../../npc-manager';
 
 //
 
@@ -49,6 +50,8 @@ const _startApp = async ( weba, canvas ) => {
     await weba.waitForLoad();
     universe.handleUrlUpdate();
     await weba.startLoop();
+
+    npcManager.initDefaultPlayer();
 
 };
 
