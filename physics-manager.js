@@ -242,72 +242,176 @@ class PhysicsScene extends EventTarget {
     physicsObject.physicsMesh = physicsMesh
     return physicsObject
   }
-  addGeometry2D(mesh) {
+  addGeometry2D(meshParent, worldScene) {
 
-    console.log(mesh, "2dmesh");
-    let obj = mesh.children[0]
-    let bBox = new THREE.Box3();
-    bBox.setFromObject( obj );
-    let position = obj.position
-    let quaternion = obj.quaternion
+    let meshes = new THREE.Object3D;
 
-    console.log(bBox);
-    //let size = new THREE.Vector3((bBox.max.x), (bBox.max.y), 1);
-    //size = new THREE.Vector3(2,1,1);
-    //console.log(size);
+    meshParent.children.forEach(mesh => {
+
+      //let mesh = meshParent.children[0];
+      let geo = mesh.geometry;
+      let nonIndexedGeo = geo.clone().toNonIndexed();
+
+      let position = nonIndexedGeo.getAttribute('position').array;
+      //let normal = nonIndexedGeo.getAttribute('normal').array;
+      //let uv = nonIndexedGeo.getAttribute('uv').array;
+
+      let posAr = [];
+      let posAr2 = [];
+
+      for (let i = 0; i < position.length / 3; i++) {
+        posAr2.push([
+          position[i * 3], position[i * 3 + 1], position[i * 3 + 2]
+        ]);
+      }
+
+      console.log(posAr);
+      console.log(posAr2);
+
+      var squareShape = new THREE.Shape();
+
+      
+
+      squareShape.moveTo(posAr2[0][0], posAr2[0][2]);
+
+      //posAr2.reverse();
+
+      for (let i = 1; i < posAr2.length; i++) {
+        squareShape.lineTo(posAr2[i][0], posAr2[i][2]);
+      }
 
 
-    //let newSize = bBox.getSize();
-    //console.log("newsize", newSize)
-    //console.log(bBox);
-    //console.log(bBox.max.x, bBox.max.z, 1)
-    //const tempMesh = new THREE.Mesh(new THREE.BoxGeometry(bBox.max.x + 1, bBox.max.z, 1), new THREE.MeshBasicMaterial());
-    //mesh.children[0].geometry.computeBoundingBox();
-    //console.log(mesh.children[0].geometry.boundingBox);
+      var extrudeSettings={amount:1, bevelEnabled:false};
+      var geometry = new THREE.ExtrudeGeometry( squareShape, extrudeSettings );
 
-		//console.log(new THREE.Box3().setFromObject(mesh.children[0]));
+      let dummyMesh = new THREE.Mesh(geometry, new THREE.MeshBasicMaterial({color: 0xede90c, wireframe: true}));
+      meshes.add(dummyMesh);
+      dummyMesh.position.copy(mesh.position);
+      //dummyMesh.rotation.z = Math.PI / 2;
+      let tempScale = new THREE.Vector3();
+      mesh.getWorldScale(tempScale);
+      dummyMesh.scale.copy(new THREE.Vector3(tempScale.x, tempScale.y, tempScale.z));
+      //console.log(dummyMesh.rotation);
+      
+      let tempQuat = new THREE.Quaternion();
+      let temoObj = new THREE.Object3D;
+      mesh.getWorldQuaternion( tempQuat );
+      
+      temoObj.quaternion.copy(tempQuat);
 
-    let target = new THREE.Vector3();
 
-    let center = new THREE.Vector3();
+      //dummyMesh.quaternion.copy(tempQuat);
+      
 
-    bBox.getSize(target);
-    bBox.getCenter(center);
-    let size = target;
-    console.log(center, "center")
+      //dummyMesh.rotation.z = temoObj.rotation.z;
+      //dummyMesh.rotation.x = temoObj.rotation.;
+
+      //console.log(temoObj.rotation);
+      //dummyMesh.rotation.y = -mesh.rotation.y;
+      //dummyMesh.updateMatrix();
+      
+        
+      });
+
     
-    size = new THREE.Vector3(center.x + target.x - bBox.max.x, center.y + target.y-bBox.max.y, 1);
-    console.log(target, bBox);
+    //let ara = new THREE.Object3D;
 
+    
+
+    //ara.add(dummyMesh);
+
+    meshes.position.z = -0.5;
+    //meshes.position.y = -1;
+    //ara.rotation.z = -Math.PI / 2;
+    meshes.updateMatrixWorld();
+
+    worldScene.add(meshes);
+
+
+    const physicsMesh = convertMeshToPhysicsMesh(meshes)
+  
     const physicsId = getNextPhysicsId()
-    physx.physxWorker.addBoxGeometryPhysics(
+    physx.physxWorker.addGeometryPhysics(
       this.scene,
-      position,
-      quaternion,
-      size,
-      physicsId,
-      false,
-      -1
+      physicsMesh,
+      physicsId
     )
+    physicsMesh.geometry = this.extractPhysicsGeometryForId(physicsId)
   
     const physicsObject = _makePhysicsObject(
       physicsId,
-      position,
-      quaternion,
-      localVector2.set(1, 1, 1)
+      physicsMesh.position,
+      physicsMesh.quaternion,
+      physicsMesh.scale
     )
-    const physicsMesh = new THREE.Mesh(new THREE.BoxGeometry(2, 2, 2), redMaterial)
-    physicsMesh.scale.copy(size)
-    physicsMesh.visible = false
     physicsObject.add(physicsMesh)
-    physicsObject.updateMatrixWorld()
-    const { bounds } = this.getGeometryForPhysicsId(physicsId)
-    physicsMesh.geometry.boundingBox = new THREE.Box3(
-      new THREE.Vector3().fromArray(bounds, 0),
-      new THREE.Vector3().fromArray(bounds, 3)
-    )
+    physicsMesh.position.set(0, 0, 0)
+    physicsMesh.quaternion.set(0, 0, 0, 1)
+    physicsMesh.scale.set(1, 1, 1)
+    physicsMesh.updateMatrixWorld()
     physicsObject.physicsMesh = physicsMesh
     return physicsObject
+
+
+  }
+  addGeometry2DV(meshParent) {
+
+    let physicsObjects = [];
+
+    meshParent.children.forEach(mesh => {
+      console.log(mesh, "2dmesh");
+      let obj = mesh
+      let bBox = new THREE.Box3();
+      bBox.setFromObject( obj );
+      let position = obj.position
+      let quaternion = obj.quaternion
+      
+      let target = new THREE.Vector3();
+
+      let center = new THREE.Vector3();
+
+      bBox.getSize(target);
+      bBox.getCenter(center);
+      let size = target;
+      console.log(center, "center")
+      
+      size = new THREE.Vector3(center.x + target.x - bBox.max.x, center.y + target.y-bBox.max.y, 1);
+      console.log(target, bBox);
+
+      const physicsId = getNextPhysicsId()
+      physx.physxWorker.addBoxGeometryPhysics(
+        this.scene,
+        position,
+        quaternion,
+        size,
+        physicsId,
+        false,
+        -1
+      )
+    
+      const physicsObject = _makePhysicsObject(
+        physicsId,
+        position,
+        quaternion,
+        localVector2.set(1, 1, 1)
+      )
+      const physicsMesh = new THREE.Mesh(new THREE.BoxGeometry(2, 2, 2), redMaterial)
+      physicsMesh.scale.copy(size)
+      physicsMesh.visible = false
+      physicsObject.add(physicsMesh)
+      physicsObject.updateMatrixWorld()
+      const { bounds } = this.getGeometryForPhysicsId(physicsId)
+      physicsMesh.geometry.boundingBox = new THREE.Box3(
+        new THREE.Vector3().fromArray(bounds, 0),
+        new THREE.Vector3().fromArray(bounds, 3)
+      )
+      physicsObject.physicsMesh = physicsMesh
+      physicsObjects.push(physicsObject);
+      
+      
+    });
+
+    return physicsObjects
 
   }
   addGeometry2DX(mesh) {
