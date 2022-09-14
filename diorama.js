@@ -852,6 +852,7 @@ const createPlayerDiorama = ({
     destroy() {
       const index = dioramas.indexOf(diorama);
       if (index !== -1) {
+        console.log(`remove diorama`, target)
         dioramas.splice(index, 1);
       }
     },
@@ -877,6 +878,7 @@ const createPlayerDiorama = ({
   } */
 
   if (!detached) {
+    console.log(`add diorama`, target)
     dioramas.push(diorama);
   }
   return diorama;

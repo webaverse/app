@@ -36,9 +36,11 @@ const CharacterHup = function(props) {
       const player = hup.parent.player;
       let diorama = chatDioramas.get(player);
       if (diorama) {
+        console.log(`already have a diorama`,player)
         diorama.resetCanvases();
         diorama.addCanvas(canvas);
       } else {
+        console.log(`create a diorama`, player)
         diorama = dioramaManager.createPlayerDiorama({
           target: player,
           objects: [player.avatar.model],
@@ -49,6 +51,7 @@ const CharacterHup = function(props) {
       }
 
       return () => {
+        console.log(`destroy diorama from character hups`, player)
         diorama.destroy();
         chatDioramas.delete(player);
       };
@@ -62,6 +65,7 @@ const CharacterHup = function(props) {
       function transitionend() {
         if (!localOpen) {
           const hupIndex = hups.indexOf(hup);
+          console.log(`hup removed`, hup)
           const newHups = hups.slice();
           newHups.splice(hupIndex, 1);
           setHups(newHups);
@@ -88,6 +92,7 @@ const CharacterHup = function(props) {
     hup.addEventListener('voicestart', voicestart);
     function destroy(e) {
       const player = hup.parent.player;
+      console.log('hupdestroy', hup, player);
       chatDioramas.delete(player);
 
       setLocalOpen(false);
@@ -154,11 +159,12 @@ export default function CharacterHups({
   useEffect(() => {
     function hupadd(e) {
       const newHups = hups.concat([e.data.hup]);
-      // console.log('new hups', newHups);
+      console.log('new hups', newHups);
       setHups(newHups);
     }
     function hupremove(e) {
       const oldHup = e.data.hup;
+      console.log('hupremove', oldHup, hups);
       const index = hups.indexOf(oldHup);
       const newHups = hups.slice();
       newHups.splice(index, 1);
@@ -201,7 +207,7 @@ export default function CharacterHups({
       }
       for (const remotePlayer in remotePlayers) {
         remotePlayer.characterHups.removeEventListener('hupadd', hupadd);
-        localPlayer.characterHups.removeEventListener('hupremove', hupremove);
+        remotePlayer.characterHups.removeEventListener('hupremove', hupremove);
       }
     };
   }, [localPlayer, npcs, remotePlayers, hups]);
