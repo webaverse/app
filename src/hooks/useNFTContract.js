@@ -79,21 +79,21 @@ export default function useNFTContract(currentAccount) {
         imageURI = previewImage;
         avatarURI = currentApp.contentId;
 
-        metadata = {
-          name,
-          description,
-          image: imageURI,
-          animation_url: avatarURI,
-        };
+        // metadata = {
+        //   name,
+        //   description,
+        //   image: imageURI,
+        //   animation_url: avatarURI,
+        // };
       } else { // image object
         imageURI = currentApp.contentId;
         avatarURI = '';
 
-        metadata = {
-          name,
-          description,
-          image: imageURI,
-        };
+        // metadata = {
+        //   name,
+        //   description,
+        //   image: imageURI,
+        // };
       }
 
       const type = 'upload';
@@ -101,23 +101,23 @@ export default function useNFTContract(currentAccount) {
       // const json_hash = await handleBlobUpload(metadataFileName, JSON.stringify(metadata) )
       // handleBlobUpload
       // new Blob([JSON.stringify(metadata)], {type: 'text/plain'});
-      const json_hash = await handleBlobUpload(metadataFileName, new Blob([JSON.stringify(metadata)], {type: 'text/plain'}), {
-        onTotal(total) {
-          load = registerLoad(type, metadataFileName, 0, total);
-        },
-        onProgress(e) {
-          if (load) {
-            load.update(e.loaded, e.total);
-          } else {
-            load = registerLoad(type, metadataFileName, e.loaded, e.total);
-          }
-        },
-      });
-      if (load) {
-        load.end();
-      }
+    //   const json_hash = await handleBlobUpload(metadataFileName, new Blob([JSON.stringify(metadata)], {type: 'text/plain'}), {
+    //     onTotal(total) {
+    //       load = registerLoad(type, metadataFileName, 0, total);
+    //     },
+    //     onProgress(e) {
+    //       if (load) {
+    //         load.update(e.loaded, e.total);
+    //       } else {
+    //         load = registerLoad(type, metadataFileName, e.loaded, e.total);
+    //       }
+    //     },
+    //   });
+    //   if (load) {
+    //     load.end();
+    //   }
 
-      const metadatahash = json_hash.split(FILE_ADDRESS)[1].split('/')[0];
+    //   const metadatahash = json_hash.split(FILE_ADDRESS)[1].split('/')[0];
       const Webaversecontract = new ethers.Contract(WebaversecontractAddress, WebaverseABI, signer);
       // const NFTcontract = new ethers.Contract(NFTcontractAddress, NFTABI, signer);
       const FTcontract = new ethers.Contract(FTcontractAddress, FTABI, signer);
@@ -142,7 +142,7 @@ export default function useNFTContract(currentAccount) {
         }
       } else { // mintfee = 0 for Polygon not webaverse sidechain
         try {
-          const minttx = await Webaversecontract.mint(currentAccount, 1, metadatahash, '0x');
+          const minttx = await Webaversecontract.mint(currentAccount, 1, currentApp.contentId,  name, '0x');
           //   callback(minttx);
           callback();
           const res = await minttx.wait();

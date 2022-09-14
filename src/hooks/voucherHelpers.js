@@ -2,7 +2,7 @@ import { ethers } from 'ethers';
 import Web3 from '../../web3.min.js';
 
 export async function getVoucherFromServer(metadataurl) {
-    const tokenId = 1;
+    const tokenId = 0;
     const expiry = Math.round(new Date().getTime() / 1000) + 1000;//timestamp
     const nonce = ethers.BigNumber.from(ethers.utils.randomBytes(4)).toNumber();
     const balance = 1;

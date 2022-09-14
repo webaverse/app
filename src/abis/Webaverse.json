@@ -351,6 +351,11 @@
           "type": "string"
         },
         {
+          "internalType": "string",
+          "name": "name",
+          "type": "string"
+        },
+        {
           "internalType": "bytes",
           "name": "data",
           "type": "bytes"

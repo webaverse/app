@@ -307,7 +307,7 @@ export const Equipment = () => {
     const { getTokens, mintfromVoucher, getTokenIdsOf } = useNFTContract(account.currentAddress);
     const [ claims, setClaims ] = useState([]);
     const [ nfts, setNfts ] = useState(null);
-    const { voucherBlackList, removeVoucherFromBlackList } = voucherManger();
+    const { voucherBlackList, removeVoucherFromBlackList, checkBlackList } = voucherManger();
 
     const [ cachedLoader, setCachedLoader ] = useState(() => new CachedLoader({
         async loadFn(url, value, {signal}) {            
@@ -348,6 +348,7 @@ export const Equipment = () => {
     }, [account]);
 
     useEffect(() => {
+        checkBlackList(); // check Blacklist
         if(open && nfts) {
             if (!supportedChain) {
                 console.log("unsupported chain!");
@@ -432,17 +433,11 @@ export const Equipment = () => {
 
     useEffect(() => {
         const claimschange = async (e) => {
-            console.log("change", voucherBlackList)
             const {claims, addedClaim} = e.data;
             const tokenIds = await getTokenIdsOf();
-            // const tokens = await getTokens();
-            console.log("tokenIds", tokenIds)
-            console.log("addedClaim", addedClaim)
-            if(addedClaim !== undefined) {
-                if(tokenIds.includes(addedClaim.voucher.tokenId)) {
-                    dropManager.removeClaim(addedClaim);
-                    removeVoucherFromBlackList(addedClaim.voucher.tokenId)
-                }
+            if((addedClaim !== undefined) && tokenIds.includes(addedClaim.voucher.tokenId)) {
+                dropManager.removeClaim(addedClaim);
+                removeVoucherFromBlackList(addedClaim.voucher.tokenId)
             } else {
                 setClaims(claims.slice());
             }

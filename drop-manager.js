@@ -81,10 +81,10 @@ class DropManager extends EventTarget {
     }));
   }
   removeClaim(claimedDrop) {
-    this.claims = this.claims.filter((each) => JSON.stringify(each) !== JSON.stringify(claimedDrop))
+    const newClaims = this.claims.filter((each) => JSON.stringify(each) !== JSON.stringify(claimedDrop))
     this.dispatchEvent(new MessageEvent('claimschange', {
       data: {
-        claims: this.claims,
+        claims: newClaims,
       },
     }));
   }
