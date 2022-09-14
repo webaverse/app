@@ -21,7 +21,7 @@ const localBox = new THREE.Box3();
 const localFrustum = new THREE.Frustum();
 const localDataTexture = new THREE.DataTexture();
 
-const PEEK_FACES = {
+/* const PEEK_FACES = {
   FRONT : 0,
   BACK : 1,
   LEFT : 2,
@@ -29,7 +29,7 @@ const PEEK_FACES = {
   TOP : 4,
   BOTTOM : 5,
   NONE : 6
-};
+}; */
 /* const peekFaceSpecs = [
   [PEEK_FACES['BACK'], PEEK_FACES['FRONT'], 0, 0, -1],
   [PEEK_FACES['FRONT'], PEEK_FACES['BACK'], 0, 0, 1],
@@ -119,21 +119,22 @@ export class FreeList {
   }
   alloc(size) {
     const slotSize = _getClosestPowerOf2(size);
-    let slot = this.slots.get(slotSize);
-    if (slot === undefined) {
-      slot = new FreeListArray(slotSize, this);
-      this.slots.set(slotSize, slot);
+    let freeListArray = this.slots.get(slotSize);
+    if (freeListArray === undefined) {
+      freeListArray = new FreeListArray(slotSize, this);
+      this.slots.set(slotSize, freeListArray);
     }
-    const index = slot.alloc();
+    const index = freeListArray.alloc();
     this.slotSizes.set(index, slotSize);
     return index;
   }
   free(index) {
     const slotSize = this.slotSizes.get(index);
     if (slotSize !== undefined) {
-      const slot = this.slots.get(slotSize);
-      if (slot !== undefined) {
-        slot.free(index);
+      const freeListArray = this.slots.get(slotSize);
+      if (freeListArray !== undefined) {
+        freeListArray.free(index);
+        this.slotSizes.delete(index);
       } else {
         throw new Error('invalid free slot');
       }
@@ -292,9 +293,9 @@ export class GeometryAllocator {
     this.drawCounts = new Int32Array(maxNumDraws);
     const boundingSize = _getBoundingSize(boundingType);
     this.boundingData = new Float32Array(maxNumDraws * boundingSize);
-    this.minData = new Float32Array(maxNumDraws * 4);
-    this.maxData = new Float32Array(maxNumDraws * 4);
-    this.appMatrix = new THREE.Matrix4();
+    // this.minData = new Float32Array(maxNumDraws * 4);
+    // this.maxData = new Float32Array(maxNumDraws * 4);
+    // this.appMatrix = new THREE.Matrix4();
     // this.peeksArray = [];
     /* this.hasOcclusionCulling = hasOcclusionCulling;
     if (this.hasOcclusionCulling) {
