@@ -5,7 +5,7 @@ import physicsManager from './physics-manager.js';
 import metaversefileApi from './metaversefile-api.js';
 import * as metaverseModules from './metaverse-modules.js';
 import {maxGrabDistance} from './constants.js';
-import {getRenderer, sceneLowPriority, camera} from './renderer.js';
+import {getRenderer, scene, sceneLowPriority, camera} from './renderer.js';
 import cameraManager from './camera-manager.js';
 import gameManager from './game.js';
 import { world } from './world.js';
@@ -128,6 +128,7 @@ const _click = e => {
   if (grabManager.getGrabbedObject(0)) {
     const localPlayer = playersManager.getLocalPlayer();
     localPlayer.ungrab();
+    grabManager.removeIndicatorApp();
   } else {
     if (highlightedPhysicsObject) {
       grabManager.grab(highlightedPhysicsObject);
@@ -140,11 +141,29 @@ class Grabmanager extends EventTarget {
     super();
     this.gridSnap = 0;
     this.editMode = false;
+    this.i = null;
+  }
+  createIndicatorApp(app) {
+    const defaultModules = metaversefileApi.useDefaultModules();
+    this.indicatorApp = metaversefileApi.createAppAsync({
+      module: defaultModules.modules.grabIcon,
+      parent: sceneLowPriority
+    });
+    this.indicatorApp.then(i => {
+      i.targetApp = app;
+      i.physicsMesh = app.physicsObjects[0].physicsMesh;
+      this.i = i;
+    });
+  }
+  removeIndicatorApp() {
+    sceneLowPriority.remove(this.i);
+    this.i = null;
   }
   grab(object) {
+    console.log(object);
     const localPlayer = playersManager.getLocalPlayer();
     localPlayer.grab(object);
-    
+    this.createIndicatorApp(object);
     this.gridSnap = 0;
     this.editMode = false;
   }
@@ -165,6 +184,7 @@ class Grabmanager extends EventTarget {
   }
   async toggleEditMode() {
     this.editMode = !this.editMode;
+    this.i && this.removeIndicatorApp();
     if (this.editMode) {
       if (!cameraManager.pointerLockElement) {
         await cameraManager.requestPointerLock();
