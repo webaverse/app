@@ -14,9 +14,9 @@ import cameraManager from './camera-manager.js';
 import physicsManager from './physics-manager.js';
 import Avatar from './avatars/avatars.js';
 import {world} from './world.js';
-import ERC721 from './erc721-abi.json';
-import ERC1155 from './erc1155-abi.json';
-import {web3} from './blockchain.js';
+// import ERC721 from './erc721-abi.json';
+// import ERC1155 from './erc1155-abi.json';
+// import {web3} from './blockchain.js';
 import {moduleUrls, importModule} from './metaverse-modules.js';
 import {componentTemplates} from './metaverse-components.js';
 import postProcessing from './post-processing.js';
@@ -353,10 +353,10 @@ const gradientMaps = {
   },
 };
 
-const abis = {
+/* const abis = {
   ERC721,
   ERC1155,
-};
+}; */
 
 /* debug.addEventListener('enabledchange', e => {
   document.getElementById('statsBox').style.display = e.data.enabled ? null : 'none';
@@ -807,12 +807,12 @@ metaversefile.setApi({
   useDefaultModules() {
     return defaultModules;
   },
-  useWeb3() {
+  /* useWeb3() {
     return web3.mainnet;
   },
   useAbis() {
     return abis;
-  },
+  }, */
   useMathUtils() {
     return mathUtils;
   },
