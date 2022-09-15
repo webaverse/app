@@ -1,6 +1,5 @@
 import {getRandomString, getJsDataUrl} from './util.js';
 import {inappPreviewHost} from './constants.js';
-import { abortError } from './lock-manager.js';
 
 const _formatElement = e => {
   if (typeof e === 'string') {
@@ -138,9 +137,6 @@ class OffscreenEngineProxy {
             if (!error) {
               accept(result);
             } else {
-              if (error.message === abortError.message) {
-                error.isAbortError = true;
-              }
               reject(error);
             }
             _cleanup();
@@ -153,15 +149,9 @@ class OffscreenEngineProxy {
 
         if (signal) {
           const abort = () => {
-            // early reject here and send abort to worker below
+            // XXX we can post the abort to the worker process to make it stop faster
             reject(signal.reason);
             _cleanup();
-
-            self.port.postMessage({
-              method: 'abortHandler',
-              id,
-              handlerId,
-            });
           };
           signal.addEventListener('abort', abort);
           cleanups.push(() => {

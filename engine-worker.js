@@ -1,4 +1,3 @@
-import {abortError} from './lock-manager.js';
 import {bindCanvas} from './renderer.js';
 import {getJsDataUrl} from './util.js';
 
@@ -67,7 +66,6 @@ async function import2(s) {
 
 const _bindPort = port => {
   const handlers = new Map();
-  const abortControllerMap = new Map();
   port.addEventListener('message', async e => {
     const {method, id} = e.data;
     const respond = (error = null, result = null, transfers = []) => {
@@ -104,53 +102,22 @@ const _bindPort = port => {
           break;
         }
         case 'callHandler': {
-          const {id, handlerId, args} = e.data;
+          const {handlerId, args} = e.data;
           const handler = handlers.get(handlerId);
           if (handler) {
             let error;
             let result;
             let transfers;
-            abortControllerMap.set(id, new AbortController());
-            const abortController = abortControllerMap.get(id);
             try {
-              const signal = abortController.signal;
-              const fnAsync = (signal) => {
-                if (signal.aborted){
-                  return Promise.reject(abortError);
-                }
-                return new Promise((resolve, reject) => {
-                  const abortHandler = () => {
-                    signal.removeEventListener("abort", abortHandler);
-                    reject(abortError);
-                  }
-                  signal.addEventListener("abort", abortHandler);
-                  handler.apply(null, args).then((result) => {
-                    signal.removeEventListener("abort", abortHandler);
-                    resolve(result);
-                  }).catch(err => {
-                    signal.removeEventListener("abort", abortHandler);
-                    reject(err);
-                  });
-                });
-              };
-              result = await fnAsync(signal);
+              result = await handler.apply(null, args);
               transfers = getTransferables(result);
             } catch(err) {
-              error = err.message;
+              error = err?.stack ?? (err + '');
             } finally {
-              abortControllerMap.delete(id);
               respond(error, result, transfers);
             }
           } else {
             respond(new Error('no handler registered: ' + handlerId));
-          }
-          break;
-        }
-        case 'abortHandler': {
-          const {id} = e.data;
-          const abortController = abortControllerMap.get(id);
-          if (abortController) {
-            abortController.abort(abortError);
           }
           break;
         }
