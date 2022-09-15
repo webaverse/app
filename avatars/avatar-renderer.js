@@ -583,40 +583,31 @@ export class AvatarRenderer /* extends EventTarget */ {
   #bindControlObject() {
     this.setControlled(this.isControlled);
   }
-  setQuality(quality) {
-    // cancel old load
-    if (this.abortController) {
-      this.abortController.abort(abortError);
-      // wait for previous promise to finish
-      this.loadPromise.then(() => {
-        this.loadPromise = this.#setQualityAsync(quality);
-      }).catch(err => {
-        throw err;
-      });
-    } else {
-      this.loadPromise = this.#setQualityAsync(quality);
-    }
-  }
-  async #setQualityAsync(quality) {
+  async setQuality(quality) {
     // set new quality
     this.quality = quality;
 
+    // cancel old load
+    if (this.abortController) {
+      this.abortController.abort(abortError);
+    }
+
+    // clear old avatar scene
+    // XXX destroy old avatars?
+    this.scene.clear();
+    // add placeholder
+    this.scene.add(this.placeholderMesh);
+    this.placeholderMesh.start();
+
+    // start loading
+    this.abortController = new AbortController();
+
     // load
-    const loadPromise = new Promise((accept, reject) => {
-      // clear old avatar scene
-      // XXX destroy old avatars?
-      this.scene.clear();
-      // add placeholder
-      this.scene.add(this.placeholderMesh);
-      this.placeholderMesh.start();
-
-      // start loading
-      this.abortController = new AbortController();
-
+    this.loadPromise = new Promise((accept, reject) => {
       const signal = this.abortController.signal;
       const abortHandler = () => {
-        signal.removeEventListener('abort', abortHandler);
         this.abortController = null;
+        signal.removeEventListener('abort', abortHandler);
         reject(abortError);
       };
       signal.addEventListener('abort', abortHandler);
@@ -792,7 +783,7 @@ export class AvatarRenderer /* extends EventTarget */ {
       // wait for load
       let caughtError = null;
       try {
-        await loadPromise;
+        await this.loadPromise;
       } catch (err) {
         caughtError = err;
       }
@@ -804,7 +795,6 @@ export class AvatarRenderer /* extends EventTarget */ {
           throw caughtError;
         }
       } else {
-        this.abortController = null;
       }
     }
 
