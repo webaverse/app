@@ -243,7 +243,7 @@ class AIScene {
     let response = await this.generateFn(prompt, stop);
     console.log('select target response', {prompt, response});
     response = parseSelectTargetResponse(response);
-    if (response?.value?.length === 0) {
+    if (!response?.value) {
       return this.generateSelectTargetComment(name, description);
     }
     // console.log('got comment', {prompt, response});
@@ -258,7 +258,7 @@ class AIScene {
     const stop = makeSelectCharacterStop();
     let response = await this.generateFn(prompt, stop);
     console.log('select character response', {prompt, response});
-    if (response?.length===0) {
+    if (!response) {
       return this.generateSelectCharacterComment(name, description);
     }
     const response2 = parseSelectCharacterResponse(response);
