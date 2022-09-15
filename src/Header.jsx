@@ -293,7 +293,7 @@ export default function Header() {
                         panelsRef={panelsRef}
                     /> */}
                 </div>
-                <div className={styles.panels}>
+                {/* <div className={styles.panels}>
                     <Tokens
                         nfts={nfts}
                         hacks={hacks}
@@ -301,7 +301,7 @@ export default function Header() {
                         setNfts={setNfts}
                         loginFrom={loginFrom}
                     />
-                </div>
+                </div> */}
             {/* </div> */}
         </div>
     );
