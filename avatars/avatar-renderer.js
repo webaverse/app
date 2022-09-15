@@ -27,34 +27,6 @@ const localFrustum = new THREE.Frustum();
 
 const greenColor = new THREE.Color(0x43a047);
 
-class LastMsgPromiseQueue {
-  constructor(maxPromiseNum = 2) {
-    this.nextFn = null;
-    this.promises = [];
-    this.maxPromiseNum = maxPromiseNum;
-  }
-  async push(fn) {
-    this.nextFn = fn;
-    await this.#check();
-  }
-  async #check() {
-    if (this.promises.length < this.maxPromiseNum) {
-      if (this.nextFn !== null) {
-        const fn = this.nextFn;
-        this.nextFn = null;
-        const promise = (async () => {
-          await fn();
-          const removeIndex = this.promises.indexOf(promise);
-          this.promises.splice(removeIndex, 1);
-          await this.#check();
-        })();
-        this.promises.push(promise);
-        await promise;
-      }
-    }
-  }
-}
-
 const avatarPlaceholderImagePromise = (async () => {
   const avatarPlaceholderImage = new Image();
   avatarPlaceholderImage.src = '/images/user.png';
@@ -456,7 +428,6 @@ export class AvatarRenderer /* extends EventTarget */ {
     this.optimizeAvatarModelFn = null;
     this.loadPromise = null;
 
-    this.qualityApplierQueue = new LastMsgPromiseQueue();
     this.setQuality(quality);
   }
   getAvatarSize() {
@@ -613,21 +584,20 @@ export class AvatarRenderer /* extends EventTarget */ {
     this.setControlled(this.isControlled);
   }
   async setQuality(quality) {
-    const setQualityFn = async () => {
+    if (this.abortController) {
+      this.abortController.abort(abortError);
+      this.abortController = null;
+    }
+
+    this.abortController = new AbortController();
+
+    this.loadPromise = new Promise((resolve, reject) => {
+      this.abortController.signal.addEventListener('abort', () => {
+        reject(abortError);
+      });
+
       // set new quality
       this.quality = quality;
-
-      // cancel old load
-      if (this.abortController) {
-        this.abortController.abort(abortError);
-        this.abortController = null;
-
-        try {
-          await this.loadPromise;
-        } catch (err) {
-          // ignore err as it is handled on previous request already
-        }
-      }
 
       // clear old avatar scene
       // XXX destroy old avatars?
@@ -636,11 +606,8 @@ export class AvatarRenderer /* extends EventTarget */ {
       this.scene.add(this.placeholderMesh);
       this.placeholderMesh.start();
 
-      // start loading
-      this.abortController = new AbortController();
-
       // load
-      this.loadPromise = (async () => {
+      const loadPromise = (async () => {
         switch (this.quality) {
           case 1: {
             if (!this.spriteAvatarMeshPromise) {
@@ -816,34 +783,33 @@ export class AvatarRenderer /* extends EventTarget */ {
           }
         }
       })();
-      {
-        // wait for load
-        let caughtError = null;
-        try {
-          await this.loadPromise;
-        } catch (err) {
-          caughtError = err;
-        }
-        // handle errors
-        if (caughtError) {
-          if (caughtError.isAbortError) {
-            return; // bail
-          } else {
-            throw caughtError;
-          }
-        } else {
-          this.abortController = null;
-        }
+
+      // wait for load
+      loadPromise.then(() => {
+        resolve();
+      }).catch(err => {
+        reject(err);
+      });
+    });
+    try {
+      // wait for load
+      await this.loadPromise;
+      this.abortController = null;
+    } catch (err) {
+      // handle errors
+      if (err.isAbortError) {
+        return; // bail
+      } else {
+        throw err;
       }
+    }
 
-      // remove the placeholder mesh
-      this.placeholderMesh.parent.remove(this.placeholderMesh);
+    // remove the placeholder mesh
+    this.placeholderMesh.parent.remove(this.placeholderMesh);
 
-      // add the new avatar mesh
-      const currentMesh = this.#getCurrentMesh();
-      this.scene.add(currentMesh);
-    };
-    await this.qualityApplierQueue.push(setQualityFn);
+    // add the new avatar mesh
+    const currentMesh = this.#getCurrentMesh();
+    this.scene.add(currentMesh);
   }
   adjustQuality(delta) {
     const newQuality = Math.min(Math.max(this.quality + delta, minAvatarQuality), maxAvatarQuality);
