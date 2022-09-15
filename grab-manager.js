@@ -150,7 +150,7 @@ class Grabmanager extends EventTarget {
     (async () => {
       await metaverseModules.waitForLoad();
       const {modules} = metaversefileApi.useDefaultModules();
-      const transformIndicators = modules['grabIcon'];
+      const transformIndicators = modules['transformIndicators'];
       await indicatorApp.addModule(transformIndicators);
     })();
     indicatorApp.targetApp = null;
