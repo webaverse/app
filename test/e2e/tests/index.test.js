@@ -83,14 +83,17 @@ const navigate = async (url) => {
 	// 	return (await navigator.permissions.query({ name: 'camera' })).state
 	// })
 	// console.log('Granted:', granted)
+
+	
 }
 
 const enterScene = async (url) => {
 	await navigate(url)
+	//should isSceneLoad here
   // await page.waitForSelector('div[id*="app"]', { timeout: totalTimeout })
 }
 
-describe('Simple testS', () => {
+describe('Simple tests', () => {
 	beforeAll(async () => {
 		await lanuchBrowser();
 		await enterScene(`https://${SERVER_NAME}:${port}`)
@@ -103,13 +106,17 @@ describe('Simple testS', () => {
 
 	test('should load scene', async () => {
 		console.log("passed: should load scene")
-    	expect(true).toBeTruthy();
-  	}, totalTimeout)
+		expect(true).toBeTruthy();
+	}, totalTimeout)
 
-  	describe('should character movement', () => {
+	describe('should character movement', () => {
 		test('should app selector loaded', async () => {
 			await page.waitForSelector('#app');
 			await page.focus(`#app`)
+			expect(true).toBeTruthy();
+		}, totalTimeout)
+
+		test('should character loaded', async () => {
 			expect(true).toBeTruthy();
 		}, totalTimeout)
 
@@ -187,14 +194,13 @@ describe('Simple testS', () => {
 			await page.keyboard.down("ShiftLeft")
 			await page.waitForTimeout(100)
 			let lastTime = 0
+			let isloop = true
 			//repeat until less than doubleTapTime 
-			while(performance.now() - lastTime > 150) {
+			do {
+				await page.keyboard.press("KeyW")
+				isloop = performance.now() - lastTime > 200
 				lastTime = performance.now()
-				await page.keyboard.press("KeyW")
-			}
-			if (performance.now() - lastTime < 150) {
-				await page.keyboard.press("KeyW")
-			}
+			} while (isloop);
 			await page.waitForTimeout(3000)
 			await page.keyboard.up("ShiftLeft")
 			expect(true).toBeTruthy();
