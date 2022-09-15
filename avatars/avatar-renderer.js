@@ -604,7 +604,14 @@ export class AvatarRenderer /* extends EventTarget */ {
     this.abortController = new AbortController();
 
     // load
-    this.loadPromise = (async () => {
+    this.loadPromise = new Promise((accept, reject) => {
+      const signal = this.abortController.signal;
+      const abortHandler = () => {
+        signal.removeEventListener('abort', abortHandler);
+        reject(abortError);
+      };
+      signal.addEventListener('abort', abortHandler);
+
       switch (this.quality) {
         case 1: {
           if (!this.spriteAvatarMeshPromise) {
@@ -619,7 +626,7 @@ export class AvatarRenderer /* extends EventTarget */ {
                       srcUrl: this.srcUrl,
                     }
                   ], {
-                    signal: this.abortController.signal,
+                    signal,
                   });
                   const glb = avatarSpriter.createSpriteAvatarMeshFromTextures(textureImages);
                   _forAllMeshes(glb, _unfrustumCull);
@@ -632,16 +639,14 @@ export class AvatarRenderer /* extends EventTarget */ {
               this.#bindControlObject();
             })();
           }
-          {
-            try {
-              await this.spriteAvatarMeshPromise;
-            } catch (err) {
-              if (err.isAbortError) {
-                this.spriteAvatarMeshPromise = null;
-              }
-              throw err;
+          this.spriteAvatarMeshPromise.then(() => {
+            accept();
+          }).catch(err => {
+            if (err.isAbortError) {
+              this.spriteAvatarMeshPromise = null;
             }
-          }
+            reject(err);
+          });
           break;
         }
         case 2: {
@@ -657,7 +662,7 @@ export class AvatarRenderer /* extends EventTarget */ {
                       srcUrl: this.srcUrl,
                     },
                   ], {
-                    signal: this.abortController.signal,
+                    signal,
                   });
                   const object = await new Promise((accept, reject) => {
                     const {gltfLoader} = loaders;
@@ -678,16 +683,14 @@ export class AvatarRenderer /* extends EventTarget */ {
               this.#bindControlObject();
             })();
           }
-          {
-            try {
-              await this.crunchedModelPromise;
-            } catch (err) {
-              if (err.isAbortError) {
-                this.crunchedModelPromise = null;
-              }
-              throw err;
+          this.crunchedModelPromise.then(() => {
+            accept();
+          }).catch(err => {
+            if (err.isAbortError) {
+              this.crunchedModelPromise = null;
             }
-          }
+            reject(err);
+          });
           break;
         }
         case 3: {
@@ -703,7 +706,7 @@ export class AvatarRenderer /* extends EventTarget */ {
                       srcUrl: this.srcUrl,
                     },
                   ], {
-                    signal: this.abortController.signal,
+                    signal,
                   });
                   const object = await new Promise((accept, reject) => {
                     const {gltfLoader} = loaders;
@@ -723,16 +726,14 @@ export class AvatarRenderer /* extends EventTarget */ {
               this.#bindControlObject();
             })();
           }
-          {
-            try {
-              await this.optimizedModelPromise;
-            } catch (err) {
-              if (err.isAbortError) {
-                this.optimizedModelPromise = null;
-              }
-              throw err;
+          this.optimizedModelPromise.then(() => {
+            accept();
+          }).catch(err => {
+            if (err.isAbortError) {
+              this.optimizedModelPromise = null;
             }
-          }
+            reject(err);
+          });
           break;
         }
         case 4: {
@@ -763,23 +764,21 @@ export class AvatarRenderer /* extends EventTarget */ {
               this.#bindControlObject();
             })();
           }
-          {
-            try {
-              await this.meshPromise;
-            } catch (err) {
-              if (err.isAbortError) {
-                this.meshPromise = null;
-              }
-              throw err;
+          this.meshPromise.then(() => {
+            accept();
+          }).catch(err => {
+            if (err.isAbortError) {
+              this.meshPromise = null;
             }
-          }
+            reject(err);
+          });
           break;
         }
         default: {
           throw new Error('unknown avatar quality: ' + this.quality);
         }
       }
-    })();
+    });
     {
       // wait for load
       let caughtError = null;
