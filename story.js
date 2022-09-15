@@ -84,6 +84,9 @@ class Conversation extends EventTarget {
 
     this.messages = [];
     this.finished = false;
+    this.questChecked = false;
+    this.questChecking = false;
+    this.givesQuest = false;
     this.progressing = false;
     this.deltaY = 0;
 
@@ -161,6 +164,10 @@ class Conversation extends EventTarget {
     }
   }
   progressChat() {
+    if (this.questChecking) {
+      return;
+    }
+    
     console.log('progress chat');
 
     this.wrapProgress(async () => {
@@ -180,6 +187,10 @@ class Conversation extends EventTarget {
     });
   }
   progressSelf() {
+    if (this.questChecking) {
+      return;
+    }
+
     console.log('progress self');
 
     this.wrapProgress(async () => {
@@ -198,6 +209,10 @@ class Conversation extends EventTarget {
     });
   }
   progressSelfOptions() {
+    if (this.questChecking) {
+      return;
+    }
+
     console.log('progress self options');
     
     this.wrapProgress(async () => {
@@ -216,6 +231,10 @@ class Conversation extends EventTarget {
     });
   }
   progressOptionSelect(option) {
+    if (this.questChecking) {
+      return;
+    }
+    
     if (!option) {
       option = this.options[this.hoverIndex];
       if (!option) {
@@ -241,7 +260,11 @@ class Conversation extends EventTarget {
     return this.messages[this.messages.length - n] ?? null;
   }
   progress() {
-    if (!this.finished) {
+    if (this.questChecking) {
+      return;
+    }
+
+    if (!this.finished && !this.givesQuest) {
       const lastMessage = this.#getMessageAgo(1);
       
       const _handleLocalTurn = () => {
@@ -296,12 +319,18 @@ class Conversation extends EventTarget {
           _handleOtherTurn();
         }
       }
-    } else {
+    } else if (this.givesQuest) {
+      console.log('is quest:', this.givesQuest)
       this.close();
+    } else {
+      if (!this.questChecking) {
+      this.close();
+      }
     }
   }
-  finish(hasBeenChecked = /*true*/ false) {
-    if (!hasBeenChecked) {
+  async finish() {
+    if (!this.questChecked) {
+      this.questChecking = true;
       const aiScene = metaversefile.useLoreAIScene();
       let conv = ''
       const user1 = this.messages.length >= 1 ? this.messages[0].name : 'Annon';
@@ -309,18 +338,22 @@ class Conversation extends EventTarget {
       const _location = aiScene.settings[Math.floor(Math.random() * aiScene.settings.length)];
       const location = _location && _location !== undefined ? _location : 'Tree House'
       for (const msg of this.messages) {
-        console.log(msg)
         if ((msg.type !== 'chat' && msg.type !== 'option') || msg.text?.length <= 0) {
           continue;
         }
 
         conv += msg.name?.trim() + ': ' + msg.text?.trim() + '\n';
+        this.questChecking = false;
       }
+      this.givesQuest = (await aiScene.checkIfQuestIsApplicable(location, conv, user1, user2) === 'yes');
+      console.log('isQuest:', this.givesQuest)
 
-      console.log('conversation finished', conv);
-      const isQuest = aiScene.checkIfQuestIsApplicable(location, conv, user1, user2);
-
-      //return
+      this.questChecking = false;
+      this.questChecked = true;
+      if (this.givesQuest) {
+        this.progress();
+        return
+      }
     }
 
     this.finished = true;
@@ -498,6 +531,7 @@ story.listenHack = () => {
                   done,
                 } = await aiScene.generateSelectCharacterComment(name, description);
 
+                console.log('starting conversation')
                 _startConversation(comment, remotePlayer, done);
               } else {
                 console.warn('no player associated with app', app);

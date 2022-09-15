@@ -2329,7 +2329,7 @@ ${
   return loreFileOutput;
 }
 
-const questCheckerExamples = `It defines if a chat can give a quest to the user
+const questCheckerExamples = `#It defines if a chat can give a quest to the user, there are only 2 answers, yes and no
 
 {user1}: One should never put anything in their mouth that they wouldn't want to eat.
 {user2}: I don't know about that, I'm pretty adventurous when it comes to food. 
@@ -2435,7 +2435,39 @@ Quest: no
 {user2}: Thank you, I'm really proud of it.
 {user1}: Can I help you testing it?
 {user2}: Sure, I could use an extra set of hands.
-Quest: yes`;
+Quest: yes
+
+{user1}: Quit being such a nerd and let's make some mischief!
+{user2}: I don't want to get in trouble.
+{user1}: It'll be fun, I promise.
+{user2}: Okay, but if we get caught it's your fault.
+{user2}: Let's go!
+Quest: yes
+
+{user1}: What are you working on in your cauldron today {user2}?
+{user2}: I'm trying out a new potion recipe.
+{user2}: Do you want to help me test it?
+{user1}: Sure, I love helping with potions!
+{user1}: What do I need to do?
+{user1}: Poke that frog for me.
+{user2}: Are you sure? It looks kind of poisonous.
+{user1}: I'm positive, I can handle it.
+{user2}: Okay, but don't say I didn't warn you.
+{user2}: Poke the frog with this stick.
+{user1}: Poke the frog with the stick.
+{user1}: I did it!
+{user1}: What happened?
+{user2}: Well, the frog turned into a prince.
+{user1}: That's amazing!
+{user2}: I know, right? potion-making is so much fun.
+Quest: yes
+
+{user1}: What are you working on in your cauldron today {user2}?
+{user2}: I'm trying out a new potion recipe.
+{user2}: Do you want to help me test it?
+{user1}: I'm busy now
+{user2}: Alright
+Quest: no`;
 
 export const makeQuestCheckerPrompt = (
   location,
@@ -2448,8 +2480,8 @@ export const makeQuestCheckerPrompt = (
     .replaceAll("{user1}", user1)
     .replaceAll("{user2}", user2)}
   
-  ${conversation}
-  Quest: `;
+${conversation}
+Quest:`;
 };
 export const makeQuestCheckerStop = () => {
   return ["\n"];
