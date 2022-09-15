@@ -607,7 +607,7 @@ export class AvatarRenderer /* extends EventTarget */ {
       this.placeholderMesh.start();
 
       // load
-      const loadPromise = (async () => {
+      const optimizePromise = (async () => {
         switch (this.quality) {
           case 1: {
             if (!this.spriteAvatarMeshPromise) {
@@ -785,7 +785,7 @@ export class AvatarRenderer /* extends EventTarget */ {
       })();
 
       // wait for load
-      loadPromise.then(() => {
+      optimizePromise.then(() => {
         resolve();
       }).catch(err => {
         reject(err);
