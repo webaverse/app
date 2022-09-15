@@ -43,7 +43,11 @@ const lanuchBrowser = async () => {
 	browser = await puppeteer.launch( {
 		headless: !isdebug,
 		args: [
+			'--no-sandbox',
+			// '--use-gl=egl',
 			'--use-gl=swiftshader',
+			'--disable-dev-shm-usage',
+			'--disable-setuid-sandbox',
 			'--no-sandbox',
 			'--enable-surface-synchronization',
 			'--enable-webgl',
@@ -54,6 +58,9 @@ const lanuchBrowser = async () => {
 	})
 	page = ( await browser.pages() )[ 0 ];
 	await page.setViewport( { width: width * viewScale, height: height * viewScale } );
+	page.on("pageerror", async (err) => {
+		console.log("==error==", err)
+	});
 	// page.on('console', (msg) => console.log('PAGE LOG:', msg.text()));
 }
 
@@ -97,69 +104,111 @@ describe('Simple testS', () => {
 	test('should load scene', async () => {
 		console.log("passed: should load scene")
     	expect(true).toBeTruthy();
-  }, totalTimeout)
+  	}, totalTimeout)
 
-	test('should character movement', async () => {
-		console.log("start: should character movement")
-		await page.waitForSelector('#app');
-		await page.focus(`#app`)
+  	describe('should character movement', () => {
+		test('should app selector loaded', async () => {
+			await page.waitForSelector('#app');
+			await page.focus(`#app`)
+			expect(true).toBeTruthy();
+		}, totalTimeout)
 
-		console.log("should character movement: go forward")
-		await page.keyboard.down("KeyW")
-		await page.waitForTimeout(3000)
-		await page.keyboard.up("KeyW")
+		test('should character movement: go forward', async () => {
+			await page.keyboard.down("KeyW")
+			await page.waitForTimeout(3000)
+			await page.keyboard.up("KeyW")
+			expect(true).toBeTruthy();
+		}, totalTimeout)
 
-		console.log("should character movement: go backward")
-		await page.keyboard.down("KeyS")
-		await page.waitForTimeout(3000)
-		await page.keyboard.up("KeyS")
+		test('should character movement: go backward', async () => {
+			await page.keyboard.down("KeyS")
+			await page.waitForTimeout(3000)
+			await page.keyboard.up("KeyS")
+			expect(true).toBeTruthy();
+		}, totalTimeout)
 
-		console.log("should character movement: go left")
-		await page.keyboard.down("KeyA")
-		await page.waitForTimeout(3000)
-		await page.keyboard.up("KeyA")
+		test('should character movement: go left', async () => {
+			await page.keyboard.down("KeyA")
+			await page.waitForTimeout(3000)
+			await page.keyboard.up("KeyA")
+			expect(true).toBeTruthy();
+		}, totalTimeout)
 
-		console.log("should character movement: go right")
-		await page.keyboard.down("KeyD")
-		await page.waitForTimeout(3000)
-		await page.keyboard.up("KeyD")
+		test('should character movement: go right', async () => {
+			await page.keyboard.down("KeyD")
+			await page.waitForTimeout(3000)
+			await page.keyboard.up("KeyD")
+			expect(true).toBeTruthy();
+		}, totalTimeout)
 
-		console.log("should character movement: run forward")
-		await page.keyboard.down("ShiftRight")
-		await page.waitForTimeout(1000)
-		await page.keyboard.down("KeyW")
-		await page.waitForTimeout(3000)
-		await page.keyboard.up("KeyW")
-		await page.keyboard.up("ShiftRight")
+		test('should character movement: jump', async () => {
+			await page.keyboard.press("Space")
+			await page.waitForTimeout(3000)
+			expect(true).toBeTruthy();
+		}, totalTimeout)
+		
+		test('should character movement: double jump', async () => {
+			await page.keyboard.press("Space")
+			await page.waitForTimeout(100)
+			await page.keyboard.press("Space")
+			await page.waitForTimeout(3000)
+			expect(true).toBeTruthy();
+		}, totalTimeout)
 
-		console.log("should character movement: jump")
-		await page.keyboard.press("Space")
-		await page.waitForTimeout(3000)
+		test('should character movement: crouch forward', async () => {
+			await page.keyboard.down("ControlLeft")
+			await page.keyboard.down("KeyC")
+			await page.waitForTimeout(100)
+			await page.keyboard.up("ControlLeft")
+			await page.keyboard.up("KeyC")
+			await page.waitForTimeout(100)
+			await page.keyboard.down("KeyW")
+			await page.waitForTimeout(3000)
+			await page.keyboard.up("KeyW")
+			await page.keyboard.down("ControlLeft")
+			await page.keyboard.down("KeyC")
+			await page.waitForTimeout(100)
+			await page.keyboard.up("ControlLeft")
+			await page.keyboard.up("KeyC")
+			expect(true).toBeTruthy();
+		}, totalTimeout)
 
-		console.log("should character movement: double jump")
-		await page.keyboard.press("Space")
-		await page.waitForTimeout(100)
-		await page.keyboard.press("Space")
+		test('should character movement: run forward', async () => {
+			await page.keyboard.down("ShiftRight")
+			await page.waitForTimeout(1000)
+			await page.keyboard.down("KeyW")
+			await page.waitForTimeout(3000)
+			await page.keyboard.up("KeyW")
+			await page.keyboard.up("ShiftRight")
+			expect(true).toBeTruthy();
+		}, totalTimeout)
 
-		await page.waitForTimeout(3000)
+		test('should character movement: naruto run', async () => {
+			await page.keyboard.down("ShiftLeft")
+			await page.waitForTimeout(100)
+			let lastTime = 0
+			//repeat until less than doubleTapTime 
+			while(performance.now() - lastTime > 150) {
+				lastTime = performance.now()
+				await page.keyboard.press("KeyW")
+			}
+			if (performance.now() - lastTime < 150) {
+				await page.keyboard.press("KeyW")
+			}
+			await page.waitForTimeout(3000)
+			await page.keyboard.up("ShiftLeft")
+			expect(true).toBeTruthy();
+		}, totalTimeout)
 
-		console.log("should character movement: naruto run")
-		await page.keyboard.down("ShiftLeft")
-		await page.waitForTimeout(1000)
-		await page.keyboard.press("KeyW")
-		await page.keyboard.down("KeyW")
-		await page.waitForTimeout(3000)
-		await page.keyboard.up("KeyW")
-		await page.keyboard.up("ShiftLeft")
-
-		console.log("should character movement: fly")
-		await page.keyboard.press("KeyF")
-		await page.waitForTimeout(1000)
-		await page.keyboard.down("KeyW")
-		await page.waitForTimeout(3000)
-		await page.keyboard.up("KeyW")
-		await page.keyboard.press("KeyF")
-
-    expect(true).toBeTruthy();
+		test('should character movement: fly', async () => {
+			await page.keyboard.press("KeyF")
+			await page.waitForTimeout(1000)
+			await page.keyboard.down("KeyW")
+			await page.waitForTimeout(3000)
+			await page.keyboard.up("KeyW")
+			await page.keyboard.press("KeyF")
+			expect(true).toBeTruthy();
+		}, totalTimeout)
+		
   }, totalTimeout)
 })
