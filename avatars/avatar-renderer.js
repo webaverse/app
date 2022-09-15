@@ -794,7 +794,6 @@ export class AvatarRenderer /* extends EventTarget */ {
     try {
       // wait for load
       await this.loadPromise;
-      this.abortController = null;
     } catch (err) {
       // handle errors
       if (err.isAbortError) {
@@ -803,6 +802,7 @@ export class AvatarRenderer /* extends EventTarget */ {
         throw err;
       }
     }
+    this.abortController = null;
 
     // remove the placeholder mesh
     this.placeholderMesh.parent.remove(this.placeholderMesh);
