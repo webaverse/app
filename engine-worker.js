@@ -115,20 +115,20 @@ const _bindPort = port => {
             try {
               const signal = abortController.signal;
               const fnAsync = (signal) => {
-                if (signal?.aborted){
+                if (signal.aborted){
                   return Promise.reject(abortError);
                 }
                 return new Promise((resolve, reject) => {
                   const abortHandler = () => {
-                    signal?.removeEventListener("abort", abortHandler);
+                    signal.removeEventListener("abort", abortHandler);
                     reject(abortError);
                   }
-                  signal?.addEventListener("abort", abortHandler);
+                  signal.addEventListener("abort", abortHandler);
                   handler.apply(null, args).then((result) => {
-                    signal?.removeEventListener("abort", abortHandler);
+                    signal.removeEventListener("abort", abortHandler);
                     resolve(result);
                   }).catch(err => {
-                    signal?.removeEventListener("abort", abortHandler);
+                    signal.removeEventListener("abort", abortHandler);
                     reject(err);
                   });
                 });
