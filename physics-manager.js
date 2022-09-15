@@ -248,15 +248,10 @@ class PhysicsScene extends EventTarget {
 
     meshParent.children.forEach(mesh => {
 
-      //let mesh = meshParent.children[0];
       let geo = mesh.geometry;
       let nonIndexedGeo = geo.clone().toNonIndexed();
 
       let position = nonIndexedGeo.getAttribute('position').array;
-      //let normal = nonIndexedGeo.getAttribute('normal').array;
-      //let uv = nonIndexedGeo.getAttribute('uv').array;
-
-      let posAr = [];
       let posAr2 = [];
 
       for (let i = 0; i < position.length / 3; i++) {
@@ -265,16 +260,8 @@ class PhysicsScene extends EventTarget {
         ]);
       }
 
-      console.log(posAr);
-      console.log(posAr2);
-
       var squareShape = new THREE.Shape();
-
-      
-
       squareShape.moveTo(posAr2[0][0], posAr2[0][2]);
-
-      //posAr2.reverse();
 
       for (let i = 1; i < posAr2.length; i++) {
         squareShape.lineTo(posAr2[i][0], posAr2[i][2]);
@@ -325,7 +312,7 @@ class PhysicsScene extends EventTarget {
     //ara.rotation.z = -Math.PI / 2;
     meshes.updateMatrixWorld();
 
-    worldScene.add(meshes);
+    //worldScene.add(meshes);
 
 
     const physicsMesh = convertMeshToPhysicsMesh(meshes)
@@ -354,121 +341,7 @@ class PhysicsScene extends EventTarget {
 
 
   }
-  addGeometry2DV(meshParent) {
-
-    let physicsObjects = [];
-
-    meshParent.children.forEach(mesh => {
-      console.log(mesh, "2dmesh");
-      let obj = mesh
-      let bBox = new THREE.Box3();
-      bBox.setFromObject( obj );
-      let position = obj.position
-      let quaternion = obj.quaternion
-      
-      let target = new THREE.Vector3();
-
-      let center = new THREE.Vector3();
-
-      bBox.getSize(target);
-      bBox.getCenter(center);
-      let size = target;
-      console.log(center, "center")
-      
-      size = new THREE.Vector3(center.x + target.x - bBox.max.x, center.y + target.y-bBox.max.y, 1);
-      console.log(target, bBox);
-
-      const physicsId = getNextPhysicsId()
-      physx.physxWorker.addBoxGeometryPhysics(
-        this.scene,
-        position,
-        quaternion,
-        size,
-        physicsId,
-        false,
-        -1
-      )
-    
-      const physicsObject = _makePhysicsObject(
-        physicsId,
-        position,
-        quaternion,
-        localVector2.set(1, 1, 1)
-      )
-      const physicsMesh = new THREE.Mesh(new THREE.BoxGeometry(2, 2, 2), redMaterial)
-      physicsMesh.scale.copy(size)
-      physicsMesh.visible = false
-      physicsObject.add(physicsMesh)
-      physicsObject.updateMatrixWorld()
-      const { bounds } = this.getGeometryForPhysicsId(physicsId)
-      physicsMesh.geometry.boundingBox = new THREE.Box3(
-        new THREE.Vector3().fromArray(bounds, 0),
-        new THREE.Vector3().fromArray(bounds, 3)
-      )
-      physicsObject.physicsMesh = physicsMesh
-      physicsObjects.push(physicsObject);
-      
-      
-    });
-
-    return physicsObjects
-
-  }
-  addGeometry2DX(mesh) {
-    console.log(mesh.name, mesh);
-
-    let obj = mesh.children[0];
-    let clonedGeom = new THREE.BufferGeometry();
-    clonedGeom = obj.geometry.clone();
-    let position = obj.geometry.getAttribute('position');
-
-    console.log(position.array.length, position.array.length /3, position.array, position, obj.geometry)
-
-    for (let i = 0; i < position.array.length; i++) {
-      //position.array[i] = i;
-      //position.array[i+1] = i;
-      //position.array[i+2] = i;
-
-      if(position.array[i] === 0) {
-        position.array[i] += 1;
-        console.log("hewn", i);
-      }
-      
-      obj.geometry.attributes.position.needsUpdate = true;
-    }
-
-    let clonedMesh = new THREE.Mesh(clonedGeom, mesh.material);
-    mesh.updateMatrixWorld();
-
-
-    const physicsMesh = convertMeshToPhysicsMesh(mesh)
-  
-    const physicsId = getNextPhysicsId()
-    physx.physxWorker.addGeometryPhysics(
-      this.scene,
-      physicsMesh,
-      physicsId
-    )
-    physicsMesh.geometry = this.extractPhysicsGeometryForId(physicsId)
-  
-    const physicsObject = _makePhysicsObject(
-      physicsId,
-      physicsMesh.position,
-      physicsMesh.quaternion,
-      physicsMesh.scale
-    )
-    physicsObject.add(physicsMesh)
-    physicsMesh.position.set(0, 0, 0)
-    physicsMesh.quaternion.set(0, 0, 0, 1)
-    physicsMesh.scale.set(1, 1, 1)
-    physicsMesh.updateMatrixWorld()
-    physicsObject.physicsMesh = physicsMesh
-    return physicsObject
-
-  //console.log(position, position.array);
-
-  }
-  add2DGeometry(mesh) {
+  addGeometryFromSprite(mesh) {
     console.log(mesh);
 
     let uniforms = {
@@ -608,57 +481,6 @@ class PhysicsScene extends EventTarget {
     
     
   }
-
-  // const vertices = [
-  //     // front
-  //     { pos: [-1, -1,  1], norm: [ 0,  0,  1], uv: [0, 1], },
-  //     { pos: [ 1, -1,  1], norm: [ 0,  0,  1], uv: [1, 1], },
-  //     { pos: [-1,  1,  1], norm: [ 0,  0,  1], uv: [0, 0], },
-
-  //     { pos: [-1,  1,  1], norm: [ 0,  0,  1], uv: [0, 0], },
-  //     { pos: [ 1, -1,  1], norm: [ 0,  0,  1], uv: [1, 1], },
-  //     { pos: [ 1,  1,  1], norm: [ 0,  0,  1], uv: [1, 0], },
-  //     // right
-  //     { pos: [ 1, -1,  1], norm: [ 1,  0,  0], uv: [0, 1], },
-  //     { pos: [ 1, -1, -1], norm: [ 1,  0,  0], uv: [1, 1], },
-  //     { pos: [ 1,  1,  1], norm: [ 1,  0,  0], uv: [0, 0], },
-
-  //     { pos: [ 1,  1,  1], norm: [ 1,  0,  0], uv: [0, 0], },
-  //     { pos: [ 1, -1, -1], norm: [ 1,  0,  0], uv: [1, 1], },
-  //     { pos: [ 1,  1, -1], norm: [ 1,  0,  0], uv: [1, 0], },
-  //     // back
-  //     { pos: [ 1, -1, -1], norm: [ 0,  0, -1], uv: [0, 1], },
-  //     { pos: [-1, -1, -1], norm: [ 0,  0, -1], uv: [1, 1], },
-  //     { pos: [ 1,  1, -1], norm: [ 0,  0, -1], uv: [0, 0], },
-
-  //     { pos: [ 1,  1, -1], norm: [ 0,  0, -1], uv: [0, 0], },
-  //     { pos: [-1, -1, -1], norm: [ 0,  0, -1], uv: [1, 1], },
-  //     { pos: [-1,  1, -1], norm: [ 0,  0, -1], uv: [1, 0], },
-  //     // left
-  //     { pos: [-1, -1, -1], norm: [-1,  0,  0], uv: [0, 1], },
-  //     { pos: [-1, -1,  1], norm: [-1,  0,  0], uv: [1, 1], },
-  //     { pos: [-1,  1, -1], norm: [-1,  0,  0], uv: [0, 0], },
-
-  //     { pos: [-1,  1, -1], norm: [-1,  0,  0], uv: [0, 0], },
-  //     { pos: [-1, -1,  1], norm: [-1,  0,  0], uv: [1, 1], },
-  //     { pos: [-1,  1,  1], norm: [-1,  0,  0], uv: [1, 0], },
-  //     // top
-  //     { pos: [ 1,  1, -1], norm: [ 0,  1,  0], uv: [0, 1], },
-  //     { pos: [-1,  1, -1], norm: [ 0,  1,  0], uv: [1, 1], },
-  //     { pos: [ 1,  1,  1], norm: [ 0,  1,  0], uv: [0, 0], },
-
-  //     { pos: [ 1,  1,  1], norm: [ 0,  1,  0], uv: [0, 0], },
-  //     { pos: [-1,  1, -1], norm: [ 0,  1,  0], uv: [1, 1], },
-  //     { pos: [-1,  1,  1], norm: [ 0,  1,  0], uv: [1, 0], },
-  //     // bottom
-  //     { pos: [ 1, -1,  1], norm: [ 0, -1,  0], uv: [0, 1], },
-  //     { pos: [-1, -1,  1], norm: [ 0, -1,  0], uv: [1, 1], },
-  //     { pos: [ 1, -1, -1], norm: [ 0, -1,  0], uv: [0, 0], },
-
-  //     { pos: [ 1, -1, -1], norm: [ 0, -1,  0], uv: [0, 0], },
-  //     { pos: [-1, -1,  1], norm: [ 0, -1,  0], uv: [1, 1], },
-  //     { pos: [-1, -1, -1], norm: [ 0, -1,  0], uv: [1, 0], },
-  //   ];
     const positions = [];
     const normals = [];
     const uvs = [];
@@ -681,24 +503,6 @@ class PhysicsScene extends EventTarget {
     geometry.addAttribute(
         'uv',
         new THREE.BufferAttribute(new Float32Array(uvs), uvNumComponents));
-
-    // for (let i = 0; i < imageData.data.length; i++) {
-    //   //console.log(imageData.data[i]);
-    //   if(imageData.data[i] === 0) {
-    //     var x = (i / 4) % texture.image.width;
-    //     var y = Math.floor((i / 4) / texture.image.width);
-
-    //     //alphaCount++;
-    //     pixelArray.push({
-
-    //     });
-    //     //console.log("no")
-    //   }
-      
-    // }
-    //console.log(alphaCount, imageData.data.length);
-
-    //console.log(geometry);
 
     let mesh2 = new THREE.Mesh(geometry, new THREE.MeshBasicMaterial({color: 0xff0000}));
     return fakeScene;
