@@ -300,7 +300,7 @@ export const User = ({ className, address, setAddress, setLoginFrom }) => {
                     <img src="images/metamask.png" alt="metamask" width="28px" />
                     <span className={ styles.methodBtnText } >MetaMask</span>
                 </div>
-                <a
+                {/* <a
                     href={ `https://discord.com/api/oauth2/authorize?client_id=${ discordClientId }&redirect_uri=${ window.location.origin }%2Flogin&response_type=code&scope=identify` }
                     onMouseEnter={ _triggerClickSound }
                 >
@@ -308,7 +308,7 @@ export const User = ({ className, address, setAddress, setLoginFrom }) => {
                         <img src="images/discord.png" alt="discord" width="28px" />
                         <span className={ styles.methodBtnText } >Discord</span>
                     </div>
-                </a>
+                </a> */}
                 <div className={ styles.methodBtn } onClick={ handleCancelBtnClick } onMouseEnter={ _triggerClickSound } >
                     <span className={ styles.methodBtnText } >Cancel</span>
                 </div>
