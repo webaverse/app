@@ -301,7 +301,7 @@
 
 .userLoginMethodsModal {
   position: fixed;
-  top: calc(50vh - 150px);
+  top: calc(50vh - 100px);
   left: calc(50vw - 300px / 2);
   padding: 10px;
   background-color: #000;
