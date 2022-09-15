@@ -104,14 +104,14 @@ const _bindPort = port => {
           break;
         }
         case 'callHandler': {
-          const {handlerId, args} = e.data;
+          const {id, handlerId, args} = e.data;
           const handler = handlers.get(handlerId);
           if (handler) {
             let error;
             let result;
             let transfers;
-            abortControllerMap.set(handlerId, new AbortController());
-            const abortController = abortControllerMap.get(handlerId);
+            abortControllerMap.set(id, new AbortController());
+            const abortController = abortControllerMap.get(id);
             try {
               const signal = abortController.signal;
               const fnAsync = (signal) => {
@@ -136,9 +136,9 @@ const _bindPort = port => {
               result = await fnAsync(signal);
               transfers = getTransferables(result);
             } catch(err) {
-              error = err; //err?.message;
+              error = err.message;
             } finally {
-              abortControllerMap.delete(handlerId);
+              abortControllerMap.delete(id);
               respond(error, result, transfers);
             }
           } else {
@@ -147,8 +147,8 @@ const _bindPort = port => {
           break;
         }
         case 'abortHandler': {
-          const {handlerId} = e.data;
-          const abortController = abortControllerMap.get(handlerId);
+          const {id} = e.data;
+          const abortController = abortControllerMap.get(id);
           if (abortController) {
             abortController.abort(abortError);
           }

@@ -157,7 +157,6 @@ class OffscreenEngineProxy {
             reject(signal.reason);
             _cleanup();
 
-            const id = getRandomString();
             self.port.postMessage({
               method: 'abortHandler',
               id,

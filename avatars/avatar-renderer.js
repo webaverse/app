@@ -583,31 +583,40 @@ export class AvatarRenderer /* extends EventTarget */ {
   #bindControlObject() {
     this.setControlled(this.isControlled);
   }
-  async setQuality(quality) {
-    // set new quality
-    this.quality = quality;
-
+  setQuality(quality) {
     // cancel old load
     if (this.abortController) {
       this.abortController.abort(abortError);
-      this.abortController = null;
+      // wait for previous promise to finish
+      this.loadPromise.then(() => {
+        this.loadPromise = this.#setQualityAsync(quality);
+      }).catch(err => {
+        throw err;
+      });
+    } else {
+      this.loadPromise = this.#setQualityAsync(quality);
     }
-
-    // clear old avatar scene
-    // XXX destroy old avatars?
-    this.scene.clear();
-    // add placeholder
-    this.scene.add(this.placeholderMesh);
-    this.placeholderMesh.start();
-
-    // start loading
-    this.abortController = new AbortController();
+  }
+  async #setQualityAsync(quality) {
+    // set new quality
+    this.quality = quality;
 
     // load
-    this.loadPromise = new Promise((accept, reject) => {
+    const loadPromise = new Promise((accept, reject) => {
+      // clear old avatar scene
+      // XXX destroy old avatars?
+      this.scene.clear();
+      // add placeholder
+      this.scene.add(this.placeholderMesh);
+      this.placeholderMesh.start();
+
+      // start loading
+      this.abortController = new AbortController();
+
       const signal = this.abortController.signal;
       const abortHandler = () => {
         signal.removeEventListener('abort', abortHandler);
+        this.abortController = null;
         reject(abortError);
       };
       signal.addEventListener('abort', abortHandler);
@@ -783,7 +792,7 @@ export class AvatarRenderer /* extends EventTarget */ {
       // wait for load
       let caughtError = null;
       try {
-        await this.loadPromise;
+        await loadPromise;
       } catch (err) {
         caughtError = err;
       }
