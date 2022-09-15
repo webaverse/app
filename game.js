@@ -14,7 +14,7 @@ import {world} from './world.js';
 import {buildMaterial, highlightMaterial, selectMaterial, hoverMaterial, hoverEquipmentMaterial} from './shaders.js';
 import {getRenderer, sceneLowPriority, camera} from './renderer.js';
 import {downloadFile, snapPosition, getDropUrl, handleDropJsonItem} from './util.js';
-import {maxGrabDistance, throwReleaseTime, storageHost, minFov, maxFov, throwAnimationDuration, walkSpeed, runSpeed, narutoRunSpeed, crouchSpeed, flySpeed} from './constants.js';
+import {maxGrabDistance, throwReleaseTime, storageHost, minFov, maxFov, throwAnimationDuration, walkSpeed, runSpeed, narutoRunSpeed, crouchSpeed, flySpeed, minAvatarQuality} from './constants.js';
 import metaversefileApi from './metaversefile-api.js';
 import * as metaverseModules from './metaverse-modules.js';
 import loadoutManager from './loadout-manager.js';
@@ -22,12 +22,12 @@ import * as sounds from './sounds.js';
 import {playersManager} from './players-manager.js';
 import {partyManager} from './party-manager.js';
 import physicsManager from './physics-manager.js';
-import npcManager from './npc-manager.js';
 import raycastManager from './raycast-manager.js';
 import zTargeting from './z-targeting.js';
 import Avatar from './avatars/avatars.js';
 import {makeId} from './util.js'
-import { avatarManager } from './avatar-manager.js';
+import {avatarManager} from './avatar-manager.js';
+import npcManager from './npc-manager.js';
 
 const localVector = new THREE.Vector3();
 const localVector2 = new THREE.Vector3();
@@ -1665,8 +1665,34 @@ class GameManager extends EventTarget {
     localPlayer.removeAction('activate');
   }
   setAvatarQuality(quality) {
+    const applySettingToApp = app => {
+      const player = npcManager.getNpcByApp(app);
+      if (player && player.avatar) {
+        player.avatar.setQuality(quality);
+      } else if (app.appType === 'vrm' && app.avatarRenderer) {
+        app.avatarRenderer.setQuality(quality);
+      }
+    };
+
+    // local player
     const localPlayer = playersManager.getLocalPlayer();
     localPlayer.avatar.setQuality(quality);
+
+    // party members
+    for (const app of localPlayer.appManager.apps) {
+      applySettingToApp(app);
+    }
+
+    // remote players
+    for (const remotePlayer in playersManager.getRemotePlayers()) {
+      for (const app of remotePlayer.appManager.apps) {
+        applySettingToApp(app);
+      }
+    }
+
+    for (const app of world.appManager.apps) {
+      applySettingToApp(app);
+    }
   }
   playerDiorama = null;
   bindDioramaCanvas() {
@@ -1690,7 +1716,7 @@ class GameManager extends EventTarget {
         localPlayer.avatar.avatarRenderer.scene,
       ]);
     };
-    partyManager.addEventListener('playerselected', playerSelectedFn);
+    playersManager.addEventListener('playerchange', playerSelectedFn);
 
     avatarManager.addEventListener('avatarchange', e => {
       const localPlayer = playersManager.getLocalPlayer();
