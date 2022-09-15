@@ -40,7 +40,7 @@ export const CHAINS = {
 //     chainId: '0x539',
 //     brandColor: '#5BE2A7',
 //   },
-  WEBAVERSE: {
+  /* WEBAVERSE: {
     chainName: 'Webaverse Side Chain',
     name: 'Webaverse',
     chainId: '0x53a',
@@ -52,7 +52,7 @@ export const CHAINS = {
     previewLink: '',
     brandColor: 'black',
     type: CHAIN_TYPE.PRODUCTION,
-  },
+  }, */
   //   RINKBY: {
   //     chainName: 'Rinkeby Test Network',
   //     name: 'Rinkeby',
