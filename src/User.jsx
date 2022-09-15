@@ -2,28 +2,32 @@ import React, { useState, useEffect, useContext } from 'react';
 import classnames from 'classnames';
 
 // import * as ceramicApi from '../ceramic.js';
-import { discordClientId } from '../constants';
+// import { discordClientId } from '../constants';
 import { parseQuery } from '../util.js';
 // import Modal from './components/modal';
 import WebaWallet from './components/wallet';
 
-import blockchainManager from '../blockchain-manager.js';
+// import blockchainManager from '../blockchain-manager.js';
 import { AppContext } from './components/app';
 
 import styles from './User.module.css';
 
 import * as sounds from '../sounds.js';
+// import Chains from './components/web3/chains';
 
 //
 
-export const User = ({ className, address, setAddress, setLoginFrom }) => {
+export const User = ({ className, setLoginFrom }) => {
 
-    const { state, setState } = useContext( AppContext );
+    const { state, setState, account, chain } = useContext( AppContext );
     const [ensName, setEnsName] = useState('');
     const [avatarUrl, setAvatarUrl] = useState('');
     const [ loggingIn, setLoggingIn ] = useState(false);
     const [ loginError, setLoginError ] = useState(null);
     const [ autoLoginRequestMade, setAutoLoginRequestMade ] = useState(false);
+    const { isConnected, currentAddress, connectWallet, disconnectWallet, errorMessage, wrongChain, getAccounts, getAccountDetails } = account;
+    const { selectedChain } = chain;
+    const [address, setAddress] = useState();
 
     //
 
@@ -50,33 +54,32 @@ export const User = ({ className, address, setAddress, setLoginFrom }) => {
 
     };
 
-    const _setAddress = async address => {
-        
-        if (address) {
-            // let live = true;
-            // (async () => {
-                const ensName = await blockchainManager.getEnsName(address);
-                // if (!live) return;
-                setEnsName(ensName);
+    async function handleAddress(address) {
+        const {name, avatar} = await getAccountDetails();
 
-                if ( ensName ) {
-                    const avatarUrl = await blockchainManager.getAvatarUrl(ensName);
-                    // if (!live) return;
-                    setAvatarUrl(avatarUrl);
-                }
-            // })();
-
-            /* return () => {
-                live = false;
-            }; */
-
-            // console.log('render name', {address, ensName, avatarUrl});
-        }
-
+        // if (name) {
+            setEnsName(name);
+        // }
+        // if (avatar) {
+            setAvatarUrl(avatar);
+        // }
         setAddress(address);
-    
+
+    }
+
+    const reduceAddress = (address) => {
+        if(address.length > 12) {
+            return address.slice(0, 7) + "..." + address.slice(-6)
+        }
+        return address;
     };
 
+    useEffect(() => {
+        if (currentAddress) {
+            handleAddress(currentAddress);
+        }
+    }, [currentAddress, selectedChain])
+    
     const metaMaskLogin = async ( event ) => {
 
         event.preventDefault();
@@ -94,8 +97,8 @@ export const User = ({ className, address, setAddress, setLoginFrom }) => {
 
                 try {
 
-                    const { address, profile } = await ceramicApi.login();
-                    await _setAddress(address);
+                    const address = await connectWallet();
+                    
                     setLoginFrom('metamask');
                     // setShow(false);
                     // setLoginFrom('metamask');
@@ -124,7 +127,7 @@ export const User = ({ className, address, setAddress, setLoginFrom }) => {
 
         //
 
-        const discordAutoLogin = async () => {
+        /* const discordAutoLogin = async () => {
 
             const { address, error } = await WebaWallet.loginDiscord( code, id );
 
@@ -144,15 +147,15 @@ export const User = ({ className, address, setAddress, setLoginFrom }) => {
             window.history.pushState( {}, '', window.location.origin );
             setLoggingIn( false );
 
-        };
+        }; */
 
         const metamaskAutoLogin = async () => {
 
-            const { address } = await WebaWallet.autoLogin();
+            const address = await getAccounts();
 
             if ( address ) {
 
-                await _setAddress( address );
+                await handleAddress( address );
                 setLoginFrom( 'metamask' );
                 // setShow( false );
 
@@ -166,7 +169,7 @@ export const User = ({ className, address, setAddress, setLoginFrom }) => {
 
         //
 
-        if ( ! autoLoginRequestMade ) {
+        /* if ( ! autoLoginRequestMade ) {
 
             setAutoLoginRequestMade( true );
 
@@ -198,9 +201,9 @@ export const User = ({ className, address, setAddress, setLoginFrom }) => {
 
             }
 
-        }
+        } */
 
-    }, [ address ] );
+    }, [ currentAddress ] );
 
     //
 
@@ -213,7 +216,7 @@ export const User = ({ className, address, setAddress, setLoginFrom }) => {
     //
 
     const open = state.openedPanel === 'LoginPanel';
-    const loggedIn = !!address;
+    const loggedIn = isConnected;
 
     //
 
@@ -282,8 +285,7 @@ export const User = ({ className, address, setAddress, setLoginFrom }) => {
                         onClick={e => {
                             e.preventDefault();
                             e.stopPropagation();
-                            WebaWallet.logout();
-                            _setAddress(null);
+                            disconnectWallet();
                         }}
                     >Logout</div>
                 </div>
