@@ -1,34 +1,37 @@
 .chainSelector {
-  background-color: #C900C1;
-  border-radius: 5px;
-  color: rgb(255, 255, 255);
-  margin-top: 10px;
+  background-color: #111;
+  color: #FFF;
   user-select: none;
-  width: 95px;
   position: absolute;
   top: 0;
-  line-height: 1.56;
+  left: 0;
   pointer-events: all;
   font-size: 14px;
-  text-align: center;
+  cursor: pointer;
+  z-index: 2;
+}
+.chainSelector:not(.open):hover .selectedChain {
+    background-color: #00a8fc;
+}
+.chainSelector:not(.open):active .selectedChain {
+    background-color: #1e88e5;
+}
+.chainSelector.open .selectedChain {
+    background-color: #333;
 }
 .selectedChain {
     display: flex;
-    border-radius: 5px 0px 0px 5px;
-    padding: 5px 6px 6px 8px;
-    display: grid;
-    gap: 6px;
-    text-align: center;
+}
+
+.selectedChain, .chains li button {
+    padding: 5px;
 }
 
 .selectedChain .img {
-  width: 26px;
-  height: 26px;
+  width: 22px;
+  height: 22px;
+  margin-right: 5px;
 }
-
-/* .selectedChain svg {
-    width: 100%;
-} */
 
 .chainDropDown {
     overflow: hidden;
@@ -52,7 +55,9 @@
     border-radius: 0;
     border: none;
     background: transparent;
-    text-align: center;
+    /* text-align: center; */
+    font-size: inherit;
+    text-align: left;
     cursor: pointer;
     padding: 8px;
     color: white;
@@ -61,10 +66,10 @@
 
 .chains li button:hover {
     background-color: #00a8fc;
-  }
+}
 
 .selected {
-    background-color: rgba(255, 255, 255, 0.3);
+    background-color: #333;
 }
 
 

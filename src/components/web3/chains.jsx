@@ -1,20 +1,21 @@
 import React, {useContext, useState} from 'react';
 import {ChainContext} from '../../hooks/chainProvider';
 import {isChainSupported} from '../../hooks/useChain';
-import {CHAIN_TYPE} from '../../hooks/web3-constants';
+import classnames from 'classnames';
+// import {CHAIN_TYPE} from '../../hooks/web3-constants';
 
 import styles from './chains.module.css';
 
-function Supported({chain}) {
+/* function Supported({chain}) {
   return <>{!isChainSupported(chain) && '❌' } {chain.type === CHAIN_TYPE.TEST && '🧪'}</>;
-}
+} */
 
 export default function Chains() {
   const {chains, selectedChain, selectChain} = useContext(ChainContext);
-  const {brandColor} = selectedChain;
-
+  // const {brandColor} = selectedChain;
   const [open, setOpen] = useState(false);
-  return (<div className={styles.chainSelector}>
+
+  return (<div className={classnames(styles.chainSelector, open ? styles.open : null)}>
     <div className={styles.selectedChain} onClick={() => setOpen(!open)}>
       <img className={styles.img} src={'/images/ui/repeat.svg'} />
       {selectedChain.name}

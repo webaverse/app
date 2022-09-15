@@ -160,19 +160,19 @@
   align-items: center;
 }
 
-.discord {
+/* .discord {
   margin-left: 10px;
   display: flex;
   align-items: center;
-}
+} */
 
 .metamask_text {
   margin-left: 10px;
 }
 
-.discord_text {
+/* .discord_text {
   margin-left: 10px;
-}
+} */
 
 /* */
 
@@ -207,7 +207,7 @@
   display: flex;
   top: 0;
   right: 0;
-  margin-top: 10px;
+  margin-top: 20px;
   align-items: center;
   transform: none;
   transition: transform 0.3s cubic-bezier(0, 1, 0, 1);
@@ -223,8 +223,18 @@
   pointer-events: all;
   cursor: pointer;
 }
+
+/* */
+
+.userBar .nameWrap {
+  display: flex;
+}
+
+/* */
+
 .userBar .avatarUrl {
-  position: relative;
+  position: absolute;
+  left: -50px;
   z-index: 1;
 }
 .userBar .avatarUrl .img {
@@ -257,11 +267,14 @@
   line-height: 1.4;
   align-items: center;
 }
-.userBar .avatarUrl ~ .address {
+.userBar .avatarUrl + .nameWrap .address {
   border-radius: 0;
 }
 .userBar:hover .address {
   background-color: #00a8fc;
+}
+.userBar:active .address {
+  background-color: #1e88e5;
 }
 .userBar .verifiedIcon {
   position: relative;
