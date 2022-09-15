@@ -34,6 +34,7 @@
     "stats.js": "^0.17.0",
     "three": "./packages/three",
     "troika-three-text": "^0.43.1-alpha.0",
+    "url": "^0.11.0",
     "webm-writer": "^1.0.0",
     "wsrtc": "./packages/wsrtc",
     "xhr2": "^0.2.1",
