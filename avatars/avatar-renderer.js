@@ -601,6 +601,7 @@ export class AvatarRenderer /* extends EventTarget */ {
     // cancel old load
     if (this.abortController) {
       this.abortController.abort(abortError);
+      this.abortController = null;
     }
 
     // clear old avatar scene
