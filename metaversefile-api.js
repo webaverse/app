@@ -873,6 +873,8 @@ metaversefile.setApi({
   },
   createAppInternal({
     start_url = '',
+    type = '',
+    content = '',
     module = null,
     components = [],
     position = null,
@@ -942,11 +944,28 @@ metaversefile.setApi({
     _updateComponents();
 
     // load
-    if (start_url || module) {
+    function typeContentToUrl(type, content) {
+      if (typeof content === 'object') {
+        content = JSON.stringify(content);
+      }
+      const dataUrlPrefix = 'data:' + type + ',';
+      return '/@proxy/' + dataUrlPrefix + encodeURIComponent(content).replace(/\%/g, '%25')//.replace(/\\//g, '%2F');
+    }
+    function getObjectUrl(start_url, type, content) {
+      if (start_url) {
+        return start_url;
+      } else if (type && content) {
+        return typeContentToUrl(type, content);
+      } else {
+        return null;
+      }
+    }
+    const u = getObjectUrl(start_url, type, content);
+    if (u || module) {
       const p = (async () => {
         let m;
-        if (start_url) {
-          m = await metaversefile.import(start_url);
+        if (u) {
+          m = await metaversefile.import(u);
         } else {
           m = module;
         }
