@@ -305,9 +305,12 @@ const DragAndDrop = () => {
 
   useEffect(() => {
     if (mintComplete) {
-      setTimeout(() => {
+      let timer = setTimeout(() => {
         setMintComplete(false);
       }, timeCount);
+      return () => {
+        clearTimeout(timer);
+      }
     }
   }, [mintComplete]);
 
