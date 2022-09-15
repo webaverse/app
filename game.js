@@ -33,10 +33,14 @@ const localVector3 = new THREE.Vector3();
 const localVector4 = new THREE.Vector3();
 const localVector5 = new THREE.Vector3();
 const localVector6 = new THREE.Vector3();
+const localVector7 = new THREE.Vector3();
+const localVector8 = new THREE.Vector3();
+const localVector9 = new THREE.Vector3();
 // const localVector2D = new THREE.Vector2();
 const localQuaternion = new THREE.Quaternion();
 const localQuaternion2 = new THREE.Quaternion();
 const localQuaternion3 = new THREE.Quaternion();
+const localQuaternion4 = new THREE.Quaternion();
 const localEuler = new THREE.Euler();
 const localMatrix = new THREE.Matrix4();
 const localMatrix2 = new THREE.Matrix4();
@@ -87,28 +91,36 @@ function updateGrabbedObject(o, grabMatrix, offsetMatrix, {collisionEnabled, han
   localMatrix.multiplyMatrices(grabMatrix, offsetMatrix)
     .decompose(localVector5, localQuaternion3, localVector6);
 
-  let collision = collisionEnabled && physicsScene.raycast(localVector, localQuaternion);
-  if (collision) {
-    // console.log('got collision', collision);
+  const collision = collisionEnabled && physicsScene.raycast(localVector, localQuaternion);
+  localQuaternion4.setFromAxisAngle(localVector8.set(1, 0, 0), -Math.PI * 0.5);
+  const downCollision = collisionEnabled && physicsScene.raycast(localVector5, localQuaternion4);
+  
+  if(collision) {
     const {point} = collision;
-    o.position.fromArray(point)
-      // .add(localVector2.set(0, 0.01, 0));
+    localVector9.fromArray(point);
+  }
 
-    if (o.position.distanceTo(localVector) > offset) {
-      collision = null;
+  if(downCollision) {
+    const {point} = downCollision;
+    localVector7.fromArray(point);
+    if (ioManager.keys.shift) {
+      o.position.copy(localVector5.setY(localVector7.y));
+    } else {
+      if(localVector.distanceTo(localVector9) < offset && localVector7.y < localVector9.y) localVector5.copy(localVector9);
+      if(localVector5.y < localVector7.y) localVector5.setY(localVector7.y);
+      o.position.copy(localVector5);
     }
   }
-  if (!collision) {
-    o.position.copy(localVector5);
-  }
 
-  const handSnap = !handSnapEnabled || offset >= maxGrabDistance || !!collision;
+  const handSnap = !handSnapEnabled || offset >= maxGrabDistance || !!collision || !!downCollision;
   if (handSnap) {
     snapPosition(o, gridSnap);
     o.quaternion.setFromEuler(o.savedRotation);
   } else {
     o.quaternion.copy(localQuaternion3);
   }
+
+  o.updateMatrixWorld();
 
   return {
     handSnap,
@@ -543,7 +555,6 @@ const _gameUpdate = (timestamp, timeDiff) => {
       if (grabbedObject && !_isWear(grabbedObject)) {
         const {position, quaternion} = renderer.xr.getSession() ? localPlayer[hand === 'left' ? 'leftHand' : 'rightHand'] : camera;
         localMatrix.compose(position, quaternion, localVector.set(1, 1, 1));
-        grabbedObject.updateMatrixWorld();
 
         updateGrabbedObject(grabbedObject, localMatrix, localMatrix3.fromArray(grabAction.matrix), {
           collisionEnabled: true,
