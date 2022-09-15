@@ -15,12 +15,12 @@ export default function Chains() {
 
   const [open, setOpen] = useState(false);
   return (<div className={styles.chainSelector}>
-    <div style={{background: '#C900C1' || 'black'}} className={styles.selectedChain} onClick={() => setOpen(!open)}>
-        {/* <img src={open ? '/images/ui/chainUp.svg' : '/images/ui/chainDown.svg'} />
-        <Supported chain={selectedChain} />  */}
-    {selectedChain.name}</div>
+    <div className={styles.selectedChain} onClick={() => setOpen(!open)}>
+      <img className={styles.img} src={'/images/ui/repeat.svg'} />
+      {selectedChain.name}
+    </div>
     <div className={[styles.chainDropDown, open ? styles.showChainSelector : styles.hideChainSelector].join(' ')}>
-      <ul id="chains" className={styles.chains}>
+      <ul id='chains' className={styles.chains}>
         {Object.keys(chains)
           .map(key => chains[key])
           .filter(isChainSupported)
@@ -30,7 +30,6 @@ export default function Chains() {
                     selectChain(c);
                     setOpen(false);
                 }}>
-                {/* <Supported chain={c} />  */}
                 {c.name}
                 </button>
             </li>

@@ -272,7 +272,6 @@ export const User = ({ className, setLoginFrom }) => {
                 <div
                     className={styles.userWrap}
                 >
-                    <Chains />
                     <div
                         className={styles.userBar}
                         onClick={openUserPanel}
@@ -284,6 +283,7 @@ export const User = ({ className, setLoginFrom }) => {
                                 <img className={styles.img} src={avatarUrl} crossOrigin='Anonymous' />
                             </div>
                         ) : null}
+                        <Chains />
                         <div
                             className={styles.address}
                         >{ensName || shortAddress(address) || ''} <img className={styles.verifiedIcon} src="./images/verified.svg" /></div>
