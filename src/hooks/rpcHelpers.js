@@ -108,7 +108,5 @@ export async function switchChain(chainId) {
   return await ethereum.request({
     method: RPC_METHODS.SWITCH_CHAIN,
     params: [{chainId}],
-  }).catch(error => {
-    console.warn('cant switch chain', error);
   });
 }

@@ -40,16 +40,16 @@ export default function useChain(network = DEFAULT_CHAIN) {
     };
   }, []);
 
-  const selectChain = useCallback(chain => {
+  const selectChain = useCallback(async chain => {
     if (isChainSupported(chain)) {
-      switchChain(chain.chainId).then(() => {
-        setSelectedChain(() => {
-          return {...chain};
-        });
-      }).catch(console.warn);
+      try {
+        await switchChain(chain.chainId);
+        setSelectedChain({...chain});
+      } catch (err) {
+        console.warn(err);
+      }
     }
-  }
-  , [selectedChain]);
+  }, [selectedChain]);
 
   return {
     isChainSupported,

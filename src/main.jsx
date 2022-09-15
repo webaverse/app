@@ -17,7 +17,7 @@ const Providers = ({children}) => {
             </ChainProvider>
         </AccountProvider>
     );
-}
+};
 
 //
 

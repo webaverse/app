@@ -8,7 +8,6 @@ import {
 } from './rpcHelpers';
 import {ethers} from 'ethers';
 
-
 const ACCOUNT_DATA = {
   EMAIL: 'email',
   AVATAR: 'avatar',
@@ -83,9 +82,10 @@ export default function useWeb3Account(currentChain = DEFAULT_CHAIN) {
     }
   };
 
-  const getAccountDetails = async (address = currentAddress) => {
+  const getAccountDetails = async (address) => {
     const provider = getProvider();
-    var check = ethers.utils.getAddress(address);
+    const check = ethers.utils.getAddress(address);
+
     try {
       const name = await provider.lookupAddress(check);
       if (!name) return {};
@@ -102,7 +102,8 @@ export default function useWeb3Account(currentChain = DEFAULT_CHAIN) {
       );
 
       return {...accountDetails, name};
-    } catch (error) {
+    } catch (err) {
+      console.warn(err.stack)
       return {};
     }
   };

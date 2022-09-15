@@ -5,7 +5,7 @@ import classnames from 'classnames';
 // import { discordClientId } from '../constants';
 import { parseQuery } from '../util.js';
 // import Modal from './components/modal';
-import WebaWallet from './components/wallet';
+// import WebaWallet from './components/wallet';
 
 // import blockchainManager from '../blockchain-manager.js';
 import { AppContext } from './components/app';
@@ -13,7 +13,7 @@ import { AppContext } from './components/app';
 import styles from './User.module.css';
 
 import * as sounds from '../sounds.js';
-// import Chains from './components/web3/chains';
+import Chains from './components/web3/chains';
 
 //
 
@@ -24,10 +24,10 @@ export const User = ({ className, setLoginFrom }) => {
     const [avatarUrl, setAvatarUrl] = useState('');
     const [ loggingIn, setLoggingIn ] = useState(false);
     const [ loginError, setLoginError ] = useState(null);
-    const [ autoLoginRequestMade, setAutoLoginRequestMade ] = useState(false);
+    // const [ autoLoginRequestMade, setAutoLoginRequestMade ] = useState(false);
     const { isConnected, currentAddress, connectWallet, disconnectWallet, errorMessage, wrongChain, getAccounts, getAccountDetails } = account;
     const { selectedChain } = chain;
-    const [address, setAddress] = useState();
+    const [address, setAddress] = useState('');
 
     //
 
@@ -54,24 +54,30 @@ export const User = ({ className, setLoginFrom }) => {
 
     };
 
-    async function handleAddress(address) {
-        const {name, avatar} = await getAccountDetails();
+    const resolveAvatar = url => {
+        const match = url.match(/^ipfs:\/\/(.+)/);
+        if (match) {
+            return `https://cloudflare-ipfs.com/ipfs/${match[1]}`;
+        } else {
+            return url;
+        }
+    };
 
-        // if (name) {
-            setEnsName(name);
-        // }
-        // if (avatar) {
-            setAvatarUrl(avatar);
-        // }
-        setAddress(address);
+    async function handleAddress(address) {
+        const {name, avatar} = await getAccountDetails(address);
+
+        setEnsName(name || '');
+        setAvatarUrl(avatar ? resolveAvatar(avatar) : '');
+        setAddress(address || '');
 
     }
 
-    const reduceAddress = (address) => {
-        if(address.length > 12) {
-            return address.slice(0, 7) + "..." + address.slice(-6)
+    const shortAddress = address => {
+        if (address.length > 12) {
+            return address.slice(0, 7) + `...` + address.slice(-6);
+        } else {
+            return address;
         }
-        return address;
     };
 
     useEffect(() => {
@@ -266,6 +272,7 @@ export const User = ({ className, setLoginFrom }) => {
                 <div
                     className={styles.userWrap}
                 >
+                    <Chains />
                     <div
                         className={styles.userBar}
                         onClick={openUserPanel}
@@ -279,7 +286,7 @@ export const User = ({ className, setLoginFrom }) => {
                         ) : null}
                         <div
                             className={styles.address}
-                        >{ensName || address || ''} <img className={styles.verifiedIcon} src="./images/verified.svg" /></div>
+                        >{ensName || shortAddress(address) || ''} <img className={styles.verifiedIcon} src="./images/verified.svg" /></div>
                     </div>
                     <div className={styles.logoutBtn}
                         onClick={e => {
