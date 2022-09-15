@@ -794,7 +794,6 @@ export class AvatarRenderer /* extends EventTarget */ {
         } else {
           throw caughtError;
         }
-      } else {
       }
     }
 
