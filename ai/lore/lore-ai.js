@@ -34,6 +34,9 @@ import {
   parseCharacterIntroResponse,
   makeQuestCheckerPrompt,
   makeQuestCheckerStop,
+  makeQuestPrompt,
+  makeQuestStop,
+  parseQuestResponse,
 } from './lore-model.js'
 
 const numGenerateTries = 5;
@@ -325,6 +328,13 @@ class AIScene {
     }
     console.log('response:', response)
     return response?.trim();
+  }
+  async generateQuest({location}) {
+    const prompt = makeQuestPrompt({location})
+    const stop = makeQuestStop();
+    const response = await this.generateFn(prompt, stop);
+    const response2 = parseQuestResponse(response);
+    return response2;
   }
 }
 

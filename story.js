@@ -87,6 +87,7 @@ class Conversation extends EventTarget {
     this.questChecked = false;
     this.questChecking = false;
     this.givesQuest = false;
+    this.generatingQuest = false;
     this.progressing = false;
     this.deltaY = 0;
 
@@ -164,7 +165,7 @@ class Conversation extends EventTarget {
     }
   }
   progressChat() {
-    if (this.questChecking) {
+    if (this.questChecking || this.generatingQuest) {
       return;
     }
     
@@ -187,7 +188,7 @@ class Conversation extends EventTarget {
     });
   }
   progressSelf() {
-    if (this.questChecking) {
+    if (this.questChecking || this.generatingQuest) {
       return;
     }
 
@@ -209,7 +210,7 @@ class Conversation extends EventTarget {
     });
   }
   progressSelfOptions() {
-    if (this.questChecking) {
+    if (this.questChecking || this.generatingQuest) {
       return;
     }
 
@@ -231,7 +232,7 @@ class Conversation extends EventTarget {
     });
   }
   progressOptionSelect(option) {
-    if (this.questChecking) {
+    if (this.questChecking || this.generatingQuest) {
       return;
     }
     
@@ -259,8 +260,8 @@ class Conversation extends EventTarget {
   #getMessageAgo(n) {
     return this.messages[this.messages.length - n] ?? null;
   }
-  progress() {
-    if (this.questChecking) {
+  async progress() {
+    if (this.questChecking || this.generatingQuest) {
       return;
     }
 
@@ -320,7 +321,14 @@ class Conversation extends EventTarget {
         }
       }
     } else if (this.givesQuest) {
+      this.generatingQuest = true;
       console.log('is quest:', this.givesQuest)
+      const aiScene = metaversefile.useLoreAIScene();
+      const conv = this.getConversation();
+      const location = this.getLocation();
+      const quest = await aiScene.generateQuest({location});
+      console.log('QUEST:', quest)
+      this.generatingQuest = false;
       this.close();
     } else {
       if (!this.questChecking) {
@@ -328,24 +336,34 @@ class Conversation extends EventTarget {
       }
     }
   }
+
+  getConversation() {
+    let conv = ''
+    for (const msg of this.messages) {
+      if ((msg.type !== 'chat' && msg.type !== 'option') || msg.text?.length <= 0) {
+        continue;
+      }
+
+      conv += msg.name?.trim() + ': ' + msg.text?.trim() + '\n';
+      this.questChecking = false;
+    }
+    return conv;
+  }
+  getLocation() {
+    const aiScene = metaversefile.useLoreAIScene();
+    const _location = aiScene.settings[Math.floor(Math.random() * aiScene.settings.length)];
+    return _location && _location !== undefined ? (typeof _location === 'object' ? _location.name : _location) : 'Tree House'
+  }
+
   async finish() {
     if (!this.questChecked) {
       this.questChecking = true;
       const aiScene = metaversefile.useLoreAIScene();
-      let conv = ''
+      const conv = this.getConversation();
+      const location = this.getLocation();
       const user1 = this.messages.length >= 1 ? this.messages[0].name : 'Annon';
       const user2 = this.messages.length >= 2 ? this.messages[1].name : 'Ann';
-      const _location = aiScene.settings[Math.floor(Math.random() * aiScene.settings.length)];
-      const location = _location && _location !== undefined ? _location : 'Tree House'
-      for (const msg of this.messages) {
-        if ((msg.type !== 'chat' && msg.type !== 'option') || msg.text?.length <= 0) {
-          continue;
-        }
-
-        conv += msg.name?.trim() + ': ' + msg.text?.trim() + '\n';
-        this.questChecking = false;
-      }
-      this.givesQuest = (await aiScene.checkIfQuestIsApplicable(location, conv, user1, user2) === 'yes');
+      this.givesQuest = true// (await aiScene.checkIfQuestIsApplicable(location, conv, user1, user2) === 'yes');
       console.log('isQuest:', this.givesQuest)
 
       this.questChecking = false;
