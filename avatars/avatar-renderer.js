@@ -218,13 +218,18 @@ const _setDepthWrite = o => {
   // o.material.alphaTest = 0.5;
 };
 const _toonShaderify = async (o, signal) => {
-  const abort = () => {
-    reject(signal.reason);
-    signal.removeEventListener('abort', abort);
-  };
-  signal.addEventListener('abort', abort);
-
-  await new VRMMaterialImporter().convertGLTFMaterials(o);
+  return new Promise((accept, reject) => {
+    const abort = () => {
+      reject(signal.reason);
+      signal.removeEventListener('abort', abort);
+    };
+    signal.addEventListener('abort', abort);
+  
+    const convertPromise = new VRMMaterialImporter().convertGLTFMaterials(o);
+    convertPromise.then(() => {
+      accept();
+    });
+  });
 };
 
 const mapTypes = [
