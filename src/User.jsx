@@ -40,9 +40,9 @@ export const User = ({ className, setLoginFrom }) => {
 
     }; */
 
-    const openUserPanel = e => {
+    const openUserPopover = e => {
 
-        setState({ openedPanel: 'UserPanel' });
+        setState({ openedPanel: 'UserPopover' });
     
     };
 
@@ -274,7 +274,7 @@ export const User = ({ className, setLoginFrom }) => {
                 >
                     <div
                         className={styles.userBar}
-                        onClick={openUserPanel}
+                        onClick={openUserPopover}
                     >
                         {avatarUrl ? (
                             <div
