@@ -98,13 +98,14 @@ class CharacterHups extends EventTarget {
     super();
     
     this.player = player;
+    console.log(`character hups created`, player)
 
     this.hups = [];
 
     player.addEventListener('actionadd', e => {
       const {action} = e;
       const {type, actionId} = action;
-      // console.log('action add', action);
+      console.log('action add', action, player);
 
       const oldHup = this.hups.find(hup => hup.type === type);
       // console.log('got old hup', oldHup, actionId, this.hups.map(h => h.actionIds).flat());
@@ -117,17 +118,20 @@ class CharacterHups extends EventTarget {
         let pendingVoices = 0;
         newHup.addEventListener('voicequeue', () => {
           pendingVoices++;
+          console.log(`voicequeue`, newHup)
           newHup.clearDeadTimeout();
         });
         newHup.addEventListener('voiceend', () => {
           if (--pendingVoices === 0) {
+            console.log(`voiceend`, newHup)
             newHup.startDeadTimeout();
           }
         });
         newHup.addEventListener('deadtimeout', () => {
-          newHup.destroy();
+          //newHup.destroy();
 
           const index = this.hups.indexOf(newHup);
+          console.log(`A hups removed`, newHup, player)
           this.hups.splice(index, 1);
           
           this.dispatchEvent(new MessageEvent('hupremove', {
@@ -138,6 +142,8 @@ class CharacterHups extends EventTarget {
           }));
         });
         this.hups.push(newHup);
+        console.log(`A hups added`, newHup, player)
+        console.log(`All hups`, this.hups, player)
         this.dispatchEvent(new MessageEvent('hupadd', {
           data: {
             player,
@@ -150,7 +156,7 @@ class CharacterHups extends EventTarget {
     player.addEventListener('actionremove', e => {
       const {action} = e;
       const {actionId} = action;
-      // console.log('action remove', action);
+      console.log('action remove', action, player);
 
       const oldHup = this.hups.find(hup => hup.actionIds.includes(actionId));
       if (oldHup) {
