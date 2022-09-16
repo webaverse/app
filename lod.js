@@ -785,6 +785,7 @@ export class LodChunkTracker {
       newDataRequests,
       keepDataRequests,
       cancelDataRequests,
+      chunkMin,
     } = trackerUpdateSpec;
 
     const _reifyNode = nodeSpec => {
@@ -886,7 +887,7 @@ export class LodChunkTracker {
       }
     } */
 
-    this.postUpdate();
+    this.postUpdate(chunkMin);
   }
   update(position) {
     // update coordinate

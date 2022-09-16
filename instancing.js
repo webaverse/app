@@ -11,17 +11,17 @@ import {ImmediateGLBufferAttribute} from './ImmediateGLBufferAttribute.js';
 const localVector2D = new THREE.Vector2();
 // const localVector2D2 = new THREE.Vector2();
 // const localVector3D = new THREE.Vector3();
-const localVector3D2 = new THREE.Vector3();
-const localVector3D3 = new THREE.Vector3();
-const currentChunkMin = new THREE.Vector3();
-const currentChunkMax = new THREE.Vector3();
+// const localVector3D2 = new THREE.Vector3();
+// const localVector3D3 = new THREE.Vector3();
+// const currentChunkMin = new THREE.Vector3();
+// const currentChunkMax = new THREE.Vector3();
 const localMatrix = new THREE.Matrix4();
 const localSphere = new THREE.Sphere();
 const localBox = new THREE.Box3();
 const localFrustum = new THREE.Frustum();
 const localDataTexture = new THREE.DataTexture();
 
-const PEEK_FACES = {
+/* const PEEK_FACES = {
   FRONT : 0,
   BACK : 1,
   LEFT : 2,
@@ -29,7 +29,7 @@ const PEEK_FACES = {
   TOP : 4,
   BOTTOM : 5,
   NONE : 6
-};
+}; */
 /* const peekFaceSpecs = [
   [PEEK_FACES['BACK'], PEEK_FACES['FRONT'], 0, 0, -1],
   [PEEK_FACES['FRONT'], PEEK_FACES['BACK'], 0, 0, 1],
@@ -119,21 +119,22 @@ export class FreeList {
   }
   alloc(size) {
     const slotSize = _getClosestPowerOf2(size);
-    let slot = this.slots.get(slotSize);
-    if (slot === undefined) {
-      slot = new FreeListArray(slotSize, this);
-      this.slots.set(slotSize, slot);
+    let freeListArray = this.slots.get(slotSize);
+    if (freeListArray === undefined) {
+      freeListArray = new FreeListArray(slotSize, this);
+      this.slots.set(slotSize, freeListArray);
     }
-    const index = slot.alloc();
+    const index = freeListArray.alloc();
     this.slotSizes.set(index, slotSize);
     return index;
   }
   free(index) {
     const slotSize = this.slotSizes.get(index);
     if (slotSize !== undefined) {
-      const slot = this.slots.get(slotSize);
-      if (slot !== undefined) {
-        slot.free(index);
+      const freeListArray = this.slots.get(slotSize);
+      if (freeListArray !== undefined) {
+        freeListArray.free(index);
+        this.slotSizes.delete(index);
       } else {
         throw new Error('invalid free slot');
       }
@@ -157,7 +158,7 @@ export class GeometryPositionIndexBinding {
   }
 }
 
-const chunkAllocationDataSize =      // 35
+/* const chunkAllocationDataSize =      // 35
   Int32Array.BYTES_PER_ELEMENT +     // id
   Int32Array.BYTES_PER_ELEMENT * 3 + // min
   Int32Array.BYTES_PER_ELEMENT +     // enterFace
@@ -197,9 +198,9 @@ class ChunkAllocationData {
       localOffset += Uint8Array.BYTES_PER_ELEMENT;
     }
   }
-}
+} */
 
-function deserializeChunkAllocationData(dataView, serializeId) {
+/* function deserializeChunkAllocationData(dataView, serializeId) {
   let offset = serializeId * chunkAllocationDataSize;
   let localOffset = 0;
   const id = dataView.getInt32(offset + localOffset, true);
@@ -238,7 +239,7 @@ function deserializeDrawListBuffer(arrayBuffer, bufferAddress){
   index += Int32Array.BYTES_PER_ELEMENT * numDrawCalls;
 
   return DrawCalls;
-}
+} */
 
 export class GeometryAllocator {
   constructor(
@@ -292,9 +293,9 @@ export class GeometryAllocator {
     this.drawCounts = new Int32Array(maxNumDraws);
     const boundingSize = _getBoundingSize(boundingType);
     this.boundingData = new Float32Array(maxNumDraws * boundingSize);
-    this.minData = new Float32Array(maxNumDraws * 4);
-    this.maxData = new Float32Array(maxNumDraws * 4);
-    this.appMatrix = new THREE.Matrix4();
+    // this.minData = new Float32Array(maxNumDraws * 4);
+    // this.maxData = new Float32Array(maxNumDraws * 4);
+    // this.appMatrix = new THREE.Matrix4();
     // this.peeksArray = [];
     /* this.hasOcclusionCulling = hasOcclusionCulling;
     if (this.hasOcclusionCulling) {
@@ -377,9 +378,9 @@ export class GeometryAllocator {
       const lastIndex = this.numDraws - 1;
 
       // copy the last index to the freed slot
+      this.drawStarts[freeIndex] = this.drawStarts[lastIndex];
+      this.drawCounts[freeIndex] = this.drawCounts[lastIndex];
       if (this.boundingType === 'sphere') {
-        this.drawStarts[freeIndex] = this.drawStarts[lastIndex];
-        this.drawCounts[freeIndex] = this.drawCounts[lastIndex];
         this.boundingData[freeIndex * 4] = this.boundingData[lastIndex * 4];
         this.boundingData[freeIndex * 4 + 1] =
           this.boundingData[lastIndex * 4 + 1];
@@ -388,8 +389,6 @@ export class GeometryAllocator {
         this.boundingData[freeIndex * 4 + 3] =
           this.boundingData[lastIndex * 4 + 3];
       } else if (this.boundingType === 'box') {
-        this.drawStarts[freeIndex] = this.drawStarts[lastIndex];
-        this.drawCounts[freeIndex] = this.drawCounts[lastIndex];
         this.boundingData[freeIndex * 6] = this.boundingData[lastIndex * 6];
         this.boundingData[freeIndex * 6 + 1] =
           this.boundingData[lastIndex * 6 + 1];
@@ -403,7 +402,7 @@ export class GeometryAllocator {
           this.boundingData[lastIndex * 6 + 5];
       }
 
-      if (this.hasOcclusionCulling) {
+      /* if (this.hasOcclusionCulling) {
         this.minData[freeIndex * 4 + 0] = this.minData[lastIndex * 4 + 0];
         this.minData[freeIndex * 4 + 1] = this.minData[lastIndex * 4 + 1];
         this.minData[freeIndex * 4 + 2] = this.minData[lastIndex * 4 + 2];
@@ -417,7 +416,7 @@ export class GeometryAllocator {
           lastIndex
         );
         freeChunk.serialize(this.chunkAllocationDataView, freeIndex); // free
-      }
+      } */
     }
 
     this.numDraws--;

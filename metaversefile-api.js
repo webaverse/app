@@ -14,9 +14,9 @@ import cameraManager from './camera-manager.js';
 import physicsManager from './physics-manager.js';
 import Avatar from './avatars/avatars.js';
 import {world} from './world.js';
-import ERC721 from './erc721-abi.json';
-import ERC1155 from './erc1155-abi.json';
-import {web3} from './blockchain.js';
+// import ERC721 from './erc721-abi.json';
+// import ERC1155 from './erc1155-abi.json';
+// import {web3} from './blockchain.js';
 import {moduleUrls, importModule} from './metaverse-modules.js';
 import {componentTemplates} from './metaverse-components.js';
 import postProcessing from './post-processing.js';
@@ -353,10 +353,10 @@ const gradientMaps = {
   },
 };
 
-const abis = {
+/* const abis = {
   ERC721,
   ERC1155,
-};
+}; */
 
 /* debug.addEventListener('enabledchange', e => {
   document.getElementById('statsBox').style.display = e.data.enabled ? null : 'none';
@@ -807,12 +807,12 @@ metaversefile.setApi({
   useDefaultModules() {
     return defaultModules;
   },
-  useWeb3() {
+  /* useWeb3() {
     return web3.mainnet;
   },
   useAbis() {
     return abis;
-  },
+  }, */
   useMathUtils() {
     return mathUtils;
   },
@@ -873,6 +873,8 @@ metaversefile.setApi({
   },
   createAppInternal({
     start_url = '',
+    type = '',
+    content = '',
     module = null,
     components = [],
     position = null,
@@ -942,11 +944,28 @@ metaversefile.setApi({
     _updateComponents();
 
     // load
-    if (start_url || module) {
+    function typeContentToUrl(type, content) {
+      if (typeof content === 'object') {
+        content = JSON.stringify(content);
+      }
+      const dataUrlPrefix = 'data:' + type + ',';
+      return '/@proxy/' + dataUrlPrefix + encodeURIComponent(content).replace(/\%/g, '%25')//.replace(/\\//g, '%2F');
+    }
+    function getObjectUrl(start_url, type, content) {
+      if (start_url) {
+        return start_url;
+      } else if (type && content) {
+        return typeContentToUrl(type, content);
+      } else {
+        return null;
+      }
+    }
+    const u = getObjectUrl(start_url, type, content);
+    if (u || module) {
       const p = (async () => {
         let m;
-        if (start_url) {
-          m = await metaversefile.import(start_url);
+        if (u) {
+          m = await metaversefile.import(u);
         } else {
           m = module;
         }
