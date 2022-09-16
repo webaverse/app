@@ -15,7 +15,7 @@ const localVector2D = new THREE.Vector2();
 //
 
 const _cloneChunkResult = chunkResult => {
-  const {terrainGeometry, waterGeometry, barrierGeometry, barrierNode} = chunkResult;
+  const {terrainGeometry, waterGeometry, barrierGeometry} = chunkResult;
 
   const _getTerrainGeometrySize = () => {
     let size = terrainGeometry.positions.length * terrainGeometry.positions.constructor.BYTES_PER_ELEMENT +
@@ -36,24 +36,19 @@ const _cloneChunkResult = chunkResult => {
   const _getBarrierGeometrySize = () => {
     let size = barrierGeometry.positions.length * barrierGeometry.positions.constructor.BYTES_PER_ELEMENT +
       barrierGeometry.normals.length * barrierGeometry.normals.constructor.BYTES_PER_ELEMENT +
+      barrierGeometry.uvs.length * barrierGeometry.uvs.constructor.BYTES_PER_ELEMENT +
       barrierGeometry.positions2D.length * barrierGeometry.positions2D.constructor.BYTES_PER_ELEMENT +
       barrierGeometry.indices.length * barrierGeometry.indices.constructor.BYTES_PER_ELEMENT;
-    return size;
-  };
-  const _getBarrierNodeSize = () => {
-    let size = barrierNode.min.length * barrierNode.min.constructor.BYTES_PER_ELEMENT;
     return size;
   };
 
   const terrainGeometrySize = _getTerrainGeometrySize();
   const waterGeometrySize = _getWaterGeometrySize();
   const barrierGeometrySize = _getBarrierGeometrySize();
-  const barrierNodeSize = _getBarrierNodeSize();
   const arrayBuffer = new ArrayBuffer(
     terrainGeometrySize +
     waterGeometrySize +
-    barrierGeometrySize +
-    barrierNodeSize
+    barrierGeometrySize
   );
   let index = 0;
 
@@ -149,6 +144,10 @@ const _cloneChunkResult = chunkResult => {
     normals.set(barrierGeometry.normals);
     index += barrierGeometry.normals.length * barrierGeometry.normals.constructor.BYTES_PER_ELEMENT;
 
+    const uvs = new barrierGeometry.uvs.constructor(arrayBuffer, index, barrierGeometry.uvs.length);
+    uvs.set(barrierGeometry.uvs);
+    index += barrierGeometry.uvs.length * barrierGeometry.uvs.constructor.BYTES_PER_ELEMENT;
+
     const positions2D = new barrierGeometry.positions2D.constructor(arrayBuffer, index, barrierGeometry.positions2D.length);
     positions2D.set(barrierGeometry.positions2D);
     index += barrierGeometry.positions2D.length * barrierGeometry.positions2D.constructor.BYTES_PER_ELEMENT;
@@ -160,34 +159,21 @@ const _cloneChunkResult = chunkResult => {
     return {
       positions,
       normals,
+      uvs,
       positions2D,
       indices,
-    };
-  };
-  const _cloneBarrierNode = () => {
-    const min = new barrierNode.min.constructor(arrayBuffer, index, barrierNode.min.length);
-    min.set(barrierNode.min);
-    index += barrierNode.min.length * barrierNode.min.constructor.BYTES_PER_ELEMENT;
-
-    const {lod} = barrierNode;
-
-    return {
-      min,
-      lod,
     };
   };
 
   const terrainGeometry2 = _cloneTerrainGeometry();
   const waterGeometry2 = _cloneWaterGeometry();
   const barrierGeometry2 = _cloneBarrierGeometry();
-  const barrierNode2 = _cloneBarrierNode();
 
   return {
     arrayBuffer,
     terrainGeometry: terrainGeometry2,
     waterGeometry: waterGeometry2,
     barrierGeometry: barrierGeometry2,
-    barrierNode: barrierNode2,
   };
 };
 
@@ -206,6 +192,7 @@ const _cloneTrackerUpdate = trackerUpdate => {
     newDataRequests: trackerUpdate.newDataRequests.map(_cloneNode),
     keepDataRequests: trackerUpdate.keepDataRequests.map(_cloneNode),
     cancelDataRequests: trackerUpdate.cancelDataRequests.map(_cloneNode),
+    chunkMin: trackerUpdate.chunkMin,
   };
 };
 
@@ -300,7 +287,6 @@ const _handleMethod = async ({method, args, instance: instanceKey, taskId}) => {
         pg.free(chunkResult.terrainGeometry.bufferAddress);
         pg.free(chunkResult.waterGeometry.bufferAddress);
         pg.free(chunkResult.barrierGeometry.bufferAddress);
-        pg.free(chunkResult.barrierNode.bufferAddress);
         pg.free(chunkResult.bufferAddress);
       };
       _freeChunkResult(chunkResult);

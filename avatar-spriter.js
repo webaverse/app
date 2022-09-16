@@ -31,7 +31,6 @@ const upVector = new THREE.Vector3(0, 1, 0);
 
 let rendererSize = new THREE.Vector2();
 let rendererViewport = new THREE.Vector4();
-let rendererClearAlpha = 0;
 
 const localVector = new THREE.Vector3();
 const localVector2 = new THREE.Vector3();
@@ -1822,15 +1821,16 @@ export const renderSpriteImages = async (arrayBuffer, srcUrl) => {
 
   const renderer = getRenderer();
   const pixelRatio = renderer.getPixelRatio();
-  // push old renderer state
-  renderer.getSize(rendererSize);
-  renderer.getViewport(rendererViewport);
-  rendererClearAlpha = renderer.getClearAlpha();
-
   const _renderSpriteFrame = () => {
+    const oldParent = model.parent;
     scene2.add(model);
 
+    renderer.getSize(rendererSize);
     if (rendererSize.x >= texSize && rendererSize.y >= texSize) {
+      // push old renderer state
+      renderer.getViewport(rendererViewport);
+      const oldClearAlpha = renderer.getClearAlpha();
+
       renderer.setViewport(0, 0, texSize / pixelRatio, texSize / pixelRatio);
       renderer.setClearAlpha(0);
       renderer.clear();
@@ -1838,10 +1838,9 @@ export const renderSpriteImages = async (arrayBuffer, srcUrl) => {
 
       // pop old renderer state
       renderer.setViewport(rendererViewport);
-      renderer.setClearAlpha(rendererClearAlpha);
+      renderer.setClearAlpha(oldClearAlpha);
     }
 
-    const oldParent = model.parent;
     if (oldParent) {
       oldParent.add(model);
     } else {

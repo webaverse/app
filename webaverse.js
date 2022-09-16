@@ -10,7 +10,7 @@ import physx from './physx.js';
 import ioManager from './io-manager.js';
 import physicsManager from './physics-manager.js';
 import {world} from './world.js';
-import * as blockchain from './blockchain.js';
+// import * as blockchain from './blockchain.js';
 import cameraManager from './camera-manager.js';
 import game from './game.js';
 import hpManager from './hp-manager.js';
@@ -125,7 +125,7 @@ export default class Webaverse extends EventTarget {
   }
   bindInterface() {
     ioManager.bindInterface();
-    blockchain.bindInterface();
+    // blockchain.bindInterface();
   }
   bindCanvas(c) {
     bindCanvas(c);
