@@ -270,6 +270,7 @@
 .userBar .avatarUrl + .nameWrap .address {
   border-radius: 0;
 }
+.userBar.open .address,
 .userBar:hover .address {
   background-color: #00a8fc;
 }
@@ -402,6 +403,8 @@
 .userLoginMethodsModal .methodBtn:hover .methodBtnText {
   color: #000;
 }
+
+/* */
 
 .userPopover {
   position: absolute;

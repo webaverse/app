@@ -44,7 +44,7 @@ export const User = ({ className, setLoginFrom }) => {
     const [ensName, setEnsName] = useState('');
     const [avatarUrl, setAvatarUrl] = useState('');
     const [ loggingIn, setLoggingIn ] = useState(false);
-    const [ loginError, setLoginError ] = useState(null);
+    // const [ loginError, setLoginError ] = useState(null);
     // const [ autoLoginRequestMade, setAutoLoginRequestMade ] = useState(false);
     const { isConnected, currentAddress, connectWallet, disconnectWallet, errorMessage, wrongChain, getAccounts, getAccountDetails } = account;
     const { selectedChain } = chain;
@@ -176,7 +176,7 @@ export const User = ({ className, setLoginFrom }) => {
 
         }; */
 
-        const metamaskAutoLogin = async () => {
+        /* const metamaskAutoLogin = async () => {
 
             const address = await getAccounts();
 
@@ -192,7 +192,7 @@ export const User = ({ className, setLoginFrom }) => {
 
             }
 
-        };
+        }; */
 
         //
 
@@ -250,13 +250,13 @@ export const User = ({ className, setLoginFrom }) => {
 
     return (
         <div
-            className={ classnames(
+            className={classnames(
                 styles.user,
                 loginOpen ? styles.open : null,
                 loggedIn ? styles.loggedIn : null,
                 loggingIn ? styles.loggingIn : null,
                 className
-            ) }
+            )}
         >
             {!loggedIn &&
                 <div className={ styles.keyWrap } onClick={e => {
@@ -296,7 +296,10 @@ export const User = ({ className, setLoginFrom }) => {
                 >
                     <Chains />
                     <div
-                        className={styles.userBar}
+                        className={classnames(
+                            styles.userBar,
+                            popoverOpen ? styles.open : null,
+                        )}
                         onClick={toggleUserPopover}
                     >
                         {avatarUrl ? (
@@ -319,7 +322,7 @@ export const User = ({ className, setLoginFrom }) => {
                             disconnectWallet();
                         }}
                     >Logout</div>
-                    <UserPopover open={popoverOpen }/>
+                    <UserPopover open={popoverOpen} />
                 </div>
             }
             <div className={ classnames(

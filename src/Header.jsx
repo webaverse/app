@@ -2,7 +2,7 @@ import React, { useEffect, useRef, useContext, useState } from 'react';
 
 import CharacterHups from './CharacterHups.jsx';
 import game from '../game.js'
-import * as hacks from '../hacks.js'
+// import * as hacks from '../hacks.js'
 import cameraManager from '../camera-manager.js'
 import metaversefile from '../metaversefile-api.js'
 import ioManager from '../io-manager.js'
@@ -10,7 +10,7 @@ import ioManager from '../io-manager.js'
 import { Character } from './components/general/character';
 import { CharacterSelect } from './components/general/character-select';
 import { Equipment } from './components/general/equipment';
-import { Tokens } from './tabs/tokens';
+// import { Tokens } from './tabs/tokens';
 import { registerIoEventHandler, unregisterIoEventHandler } from './components/general/io-handler';
 import { AppContext } from './components/app';
 import { AvatarIcon } from './AvatarIcon';
