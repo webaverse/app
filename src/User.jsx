@@ -17,23 +17,25 @@ import Chains from './components/web3/chains';
 
 //
 
-const UserPopover = () => {
-   return (
-    <div className={styles.userPopover}>
-        <div className={styles.section}>
-            <div className={styles.header}>Party</div>
-            <div className={styles.content}></div>
+const UserPopover = ({
+    open = false,
+}) => {
+    return (
+        <div className={classnames(styles.userPopover, open ? styles.open : null)}>
+            <div className={styles.section}>
+                <div className={styles.header}>Loadout</div>
+                <div className={styles.content}></div>
+            </div>
+            <div className={styles.section}>
+                <div className={styles.header}>Homespace</div>
+                <div className={styles.content}></div>
+            </div>
+            <div className={styles.section}>
+                <div className={styles.header}>Rewards</div>
+                <div className={styles.content}></div>
+            </div>
         </div>
-        <div className={styles.section}>
-            <div className={styles.header}>Homespace</div>
-            <div className={styles.content}></div>
-        </div>
-        <div className={styles.section}>
-            <div className={styles.header}>Rewards</div>
-            <div className={styles.content}></div>
-        </div>
-    </div>
-   );
+    );
 };
 
 export const User = ({ className, setLoginFrom }) => {
@@ -317,7 +319,7 @@ export const User = ({ className, setLoginFrom }) => {
                             disconnectWallet();
                         }}
                     >Logout</div>
-                    {popoverOpen ? <UserPopover /> : null}
+                    <UserPopover open={popoverOpen }/>
                 </div>
             }
             <div className={ classnames(

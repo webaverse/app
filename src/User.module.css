@@ -402,3 +402,33 @@
 .userLoginMethodsModal .methodBtn:hover .methodBtnText {
   color: #000;
 }
+
+.userPopover {
+  position: absolute;
+  top: 70px;
+  right: 0;
+  width: 200px;
+  padding: 10px;
+  display: flex;
+  flex-direction: column;
+  background-color: #000;
+  border-radius: 5px;
+  color: #FFF;
+  z-index: 1;
+  transition: transform 0.3s cubic-bezier(0, 1, 0, 1), opacity 1s cubic-bezier(0, 1, 0, 1);
+  pointer-events: all;
+}
+.userPopover:not(.open) {
+  transform: translateY(-10px);
+  opacity: 0;
+  pointer-events: none;
+}
+.userPopover::before {
+  position: absolute;
+  top: -15px;
+  left: calc(50% - 15px / 2);
+  content: '';
+  border-color: transparent transparent #000 transparent;
+  border-style: solid;
+  border-width: 0 15px 15px 15px;
+}
