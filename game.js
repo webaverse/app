@@ -93,11 +93,9 @@ function updateGrabbedObject(
     .multiplyMatrices(grabMatrix, offsetMatrix)
     .decompose(localVector5, localQuaternion3, localVector6);
 
-  const collision =
-    collisionEnabled && physicsScene.raycast(localVector, localQuaternion);
-    localQuaternion2.setFromAxisAngle(localVector2.set(1, 0, 0), -Math.PI * 0.5);
-  const downCollision =
-    collisionEnabled && physicsScene.raycast(localVector5, localQuaternion2);
+  const collision = collisionEnabled && physicsScene.raycast(localVector, localQuaternion);
+  localQuaternion2.setFromAxisAngle(localVector2.set(1, 0, 0), -Math.PI * 0.5);
+  const downCollision = collisionEnabled && physicsScene.raycast(localVector5, localQuaternion2);
 
   if (!!collision) {
     const { point } = collision;
