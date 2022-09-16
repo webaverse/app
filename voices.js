@@ -1,7 +1,6 @@
 import { voicePacksUrl, voiceEndpointsUrl } from './constants.js';
 import overrides from './overrides.js';
 import {playersManager} from './players-manager.js';
-import * as voices from './voices.js';
 
 const voicePacks = [];
 const voiceEndpoints = [];
@@ -30,7 +29,7 @@ const loadPromise = (async () => {
     if (!voicePackName) {
       throw new Error('no voice pack name');
     }
-    const voicePack = voices.voicePacks.find(vp => vp.name === voicePackName);
+    const voicePack = voicePacks.find(vp => vp.name === voicePackName);
 
     const {
       audioPath,
@@ -56,7 +55,7 @@ const loadPromise = (async () => {
     if (!voiceEndpointName) {
       throw new Error('no voice endpoint name');
     }
-    const voiceEndpoint = voices.voiceEndpoints.find(ve => ve.name === voiceEndpointName);
+    const voiceEndpoint = voiceEndpoints.find(ve => ve.name === voiceEndpointName);
 
     const localPlayer = playersManager.getLocalPlayer();
     localPlayer.setVoiceEndpoint(voiceEndpoint.drive_id);
