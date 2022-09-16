@@ -38,5 +38,7 @@
   "wind-sample.scn",
   "snow-city.scn",
   "traffic.scn",
-  "asteroids-game.scn"
+  "asteroids-game.scn",
+  "test-e2e-empty.scn",
+  "test-e2e-weapon.scn"
 ]

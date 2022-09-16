@@ -124,7 +124,7 @@ const Canvas = ({
     }, []);
 
     return (
-        <canvas className={ classnames( styles.canvas, domHover ? styles.domHover : null ) } ref={ canvasRef } />
+        <canvas id={"app-canvas"} className={ classnames( styles.canvas, domHover ? styles.domHover : null ) } ref={ canvasRef } />
     );
 };
 

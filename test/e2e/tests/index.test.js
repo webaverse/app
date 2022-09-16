@@ -1,5 +1,7 @@
 const puppeteer = require('puppeteer');
 const { Url } = require('url'); 
+// const metaversefileApi = require('metaversefile')
+
 
 
 const isProduction = process.argv[2] === '-p';
@@ -15,9 +17,16 @@ let browser
 let page
 const isdebug = true
 
+const printLog = (text, error) => {
+	if (isdebug) {
+		if (!error) error = ''
+		console.log(text, error)
+	}
+} 
+
 const lanuchBrowser = async () => {
 	jest.setTimeout(totalTimeout)
-  console.log("start launch browser")
+  printLog("start launch browser")
   const options = {
 		headless: isdebug,
 		devtools: !isdebug,
@@ -59,9 +68,9 @@ const lanuchBrowser = async () => {
 	page = ( await browser.pages() )[ 0 ];
 	await page.setViewport( { width: width * viewScale, height: height * viewScale } );
 	page.on("pageerror", async (err) => {
-		console.log("==error==", err)
+		printLog("==error==", err)
 	});
-	// page.on('console', (msg) => console.log('PAGE LOG:', msg.text()));
+	// page.on('console', (msg) => printLog('PAGE LOG:', msg.text()));
 }
 
 const navigate = async (url) => {
@@ -71,18 +80,18 @@ const navigate = async (url) => {
 	const context = browser.defaultBrowserContext()
 
 	const parsedUrl = new Url(url)
-	console.log('permission allow for ', parsedUrl.origin)
+	printLog('permission allow for ', parsedUrl.origin)
 	context.overridePermissions(parsedUrl.origin, ['microphone', 'camera'])
 
-	console.log('Going to ' + url)
+	printLog('Going to ' + url)
 	await page.goto(url, { waitUntil: 'load', timeout: totalTimeout })
-	console.log('Complete to ' + url)
+	printLog('Complete to ' + url)
 
 	// const granted = await page.evaluate(async () => {
 	// 	// @ts-ignore
 	// 	return (await navigator.permissions.query({ name: 'camera' })).state
 	// })
-	// console.log('Granted:', granted)
+	// printLog('Granted:', granted)
 
 	
 }
@@ -96,20 +105,19 @@ const enterScene = async (url) => {
 describe('Simple tests', () => {
 	beforeAll(async () => {
 		await lanuchBrowser();
-		await enterScene(`https://${SERVER_NAME}:${port}`)
-		console.log("enter the scene")
+		printLog("launch browser")
 	}, totalTimeout)
 
 	afterAll(async () => {
     await browser.close()
   }, totalTimeout)
 
-	test('should load scene', async () => {
-		console.log("passed: should load scene")
-		expect(true).toBeTruthy();
-	}, totalTimeout)
-
 	describe('should character movement', () => {
+		beforeAll(async () => {
+			await enterScene(`https://local.webaverse.com:3000/?src=.%2Fscenes%2Ftest-e2e-empty.scn`)
+			printLog("enter the empty scene")
+		}, totalTimeout)
+
 		test('should app selector loaded', async () => {
 			await page.waitForSelector('#app');
 			await page.focus(`#app`)
@@ -121,6 +129,7 @@ describe('Simple tests', () => {
 		}, totalTimeout)
 
 		test('should character movement: go forward', async () => {
+			printLog("should character movement: go forward")
 			await page.keyboard.down("KeyW")
 			await page.waitForTimeout(3000)
 			await page.keyboard.up("KeyW")
@@ -128,6 +137,7 @@ describe('Simple tests', () => {
 		}, totalTimeout)
 
 		test('should character movement: go backward', async () => {
+			printLog("should character movement: go backward")
 			await page.keyboard.down("KeyS")
 			await page.waitForTimeout(3000)
 			await page.keyboard.up("KeyS")
@@ -135,6 +145,7 @@ describe('Simple tests', () => {
 		}, totalTimeout)
 
 		test('should character movement: go left', async () => {
+			printLog("should character movement: go left")
 			await page.keyboard.down("KeyA")
 			await page.waitForTimeout(3000)
 			await page.keyboard.up("KeyA")
@@ -142,6 +153,7 @@ describe('Simple tests', () => {
 		}, totalTimeout)
 
 		test('should character movement: go right', async () => {
+			printLog("should character movement: go right")
 			await page.keyboard.down("KeyD")
 			await page.waitForTimeout(3000)
 			await page.keyboard.up("KeyD")
@@ -149,12 +161,14 @@ describe('Simple tests', () => {
 		}, totalTimeout)
 
 		test('should character movement: jump', async () => {
+			printLog("should character movement: jump")
 			await page.keyboard.press("Space")
 			await page.waitForTimeout(3000)
 			expect(true).toBeTruthy();
 		}, totalTimeout)
 		
 		test('should character movement: double jump', async () => {
+			printLog("should character movement: double jump")
 			await page.keyboard.press("Space")
 			await page.waitForTimeout(100)
 			await page.keyboard.press("Space")
@@ -163,6 +177,7 @@ describe('Simple tests', () => {
 		}, totalTimeout)
 
 		test('should character movement: crouch forward', async () => {
+			printLog("should character movement: crouch forward")
 			await page.keyboard.down("ControlLeft")
 			await page.keyboard.down("KeyC")
 			await page.waitForTimeout(100)
@@ -181,6 +196,7 @@ describe('Simple tests', () => {
 		}, totalTimeout)
 
 		test('should character movement: run forward', async () => {
+			printLog("should character movement: run forward")
 			await page.keyboard.down("ShiftRight")
 			await page.waitForTimeout(1000)
 			await page.keyboard.down("KeyW")
@@ -191,6 +207,7 @@ describe('Simple tests', () => {
 		}, totalTimeout)
 
 		test('should character movement: naruto run', async () => {
+			printLog("should character movement: naruto run")
 			await page.keyboard.down("ShiftLeft")
 			await page.waitForTimeout(100)
 			let lastTime = 0
@@ -198,7 +215,7 @@ describe('Simple tests', () => {
 			//repeat until less than doubleTapTime 
 			do {
 				await page.keyboard.press("KeyW")
-				isloop = performance.now() - lastTime > 200
+				isloop = performance.now() - lastTime > 500
 				lastTime = performance.now()
 			} while (isloop);
 			await page.waitForTimeout(3000)
@@ -207,6 +224,7 @@ describe('Simple tests', () => {
 		}, totalTimeout)
 
 		test('should character movement: fly', async () => {
+			printLog("should character movement: fly")
 			await page.keyboard.press("KeyF")
 			await page.waitForTimeout(1000)
 			await page.keyboard.down("KeyW")
@@ -217,4 +235,86 @@ describe('Simple tests', () => {
 		}, totalTimeout)
 		
   }, totalTimeout)
+
+	describe('should wear and use weapon', () => {
+		beforeAll(async () => {
+			await enterScene(`https://local.webaverse.com:3000/?src=.%2Fscenes%2Ftest-e2e-weapon.scn`)
+			printLog("enter the gun scene")
+			await page.click("#app-canvas")
+			await page.focus("#app-canvas")
+			await page.mouse.move(width/2, height/2);
+			await page.mouse.click(width/2, height/2);
+			await page.mouse.wheel({ deltaY: 300 });
+		}, totalTimeout)
+
+		test('should app selector loaded', async () => {
+			await page.waitForSelector('#app');
+			expect(true).toBeTruthy();
+		}, totalTimeout)
+		
+		test('should wear and use weapon: sword', async () => {
+			printLog("should wear and use weapon: sword")
+			await page.keyboard.down("KeyE")
+			await page.waitForTimeout(3000)
+			await page.keyboard.up("KeyE")
+			await page.mouse.move(width/2, height/2);
+			await page.mouse.click(width/2, height/2);
+			await page.focus("#app-canvas")
+			await page.mouse.down();
+			await page.waitForTimeout(3000)
+			await page.mouse.up();
+			await page.keyboard.press("KeyR")
+			await page.waitForTimeout(1000)
+
+			await page.keyboard.down("KeyD")
+			await page.waitForTimeout(2800)
+			await page.keyboard.up("KeyD")
+			expect(true).toBeTruthy();
+		}, totalTimeout)
+
+		// test('should wear and use weapon: silsword', async () => {
+		// 	await page.keyboard.down("KeyE")
+		// 	await page.waitForTimeout(3000)
+		// 	await page.keyboard.up("KeyE")
+		// 	await page.mouse.move(width/2, height/2);
+		// 	await page.mouse.click(width/2, height/2);
+		// 	await page.mouse.down();
+		// 	await page.waitForTimeout(3000)
+		// 	await page.mouse.up();
+		// 	await page.keyboard.press("KeyR")
+		// 	await page.waitForTimeout(1000)
+
+		// 	await page.keyboard.down("KeyD")
+		// 	await page.waitForTimeout(2800)
+		// 	await page.keyboard.up("KeyD")
+		// 	expect(true).toBeTruthy();
+		// }, totalTimeout)
+
+		// test('should wear and use weapon: pistol', async () => {
+		// 	await page.mouse.move(width/2, height/2);
+		// 	await page.keyboard.down("KeyE")
+		// 	await page.waitForTimeout(3000)
+		// 	await page.keyboard.up("KeyE")
+		// 	await page.mouse.down();
+		// 	await page.waitForTimeout(3000)
+		// 	await page.mouse.up();
+		// 	await page.keyboard.press("KeyR")
+		// 	await page.waitForTimeout(1000)
+
+		// 	await page.keyboard.down("KeyD")
+		// 	await page.waitForTimeout(2800)
+		// 	await page.keyboard.up("KeyD")
+		// 	expect(true).toBeTruthy();
+		// }, totalTimeout)
+
+		// test('should wear and use weapon: machine-gun', async () => {
+			
+		// 	expect(true).toBeTruthy();
+		// }, totalTimeout)
+
+		// test('should wear and use weapon: uzi', async () => {
+			
+		// 	expect(true).toBeTruthy();
+		// }, totalTimeout)
+	})
 })
