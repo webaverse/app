@@ -219,8 +219,19 @@ const _setDepthWrite = o => {
   o.material.alphaToCoverage = true;
   // o.material.alphaTest = 0.5;
 };
-const _toonShaderify = async o => {
-  await new VRMMaterialImporter().convertGLTFMaterials(o);
+const _toonShaderify = async (o, signal) => {
+  return new Promise((accept, reject) => {
+    const abort = () => {
+      reject(signal.reason);
+      signal.removeEventListener('abort', abort);
+    };
+    signal.addEventListener('abort', abort);
+  
+    const convertPromise = new VRMMaterialImporter().convertGLTFMaterials(o);
+    convertPromise.then(() => {
+      accept();
+    });
+  });
 };
 
 const mapTypes = [
@@ -612,6 +623,8 @@ export class AvatarRenderer /* extends EventTarget */ {
 
     // load
     this.loadPromise = (async () => {
+      const signal = this.abortController.signal;
+
       switch (this.quality) {
         case 1: {
           if (!this.spriteAvatarMeshPromise) {
@@ -626,7 +639,7 @@ export class AvatarRenderer /* extends EventTarget */ {
                       srcUrl: this.srcUrl,
                     }
                   ], {
-                    signal: this.abortController.signal,
+                    signal,
                   });
                   const glb = avatarSpriter.createSpriteAvatarMeshFromTextures(textureImages);
                   _forAllMeshes(glb, _unfrustumCull);
@@ -664,9 +677,15 @@ export class AvatarRenderer /* extends EventTarget */ {
                       srcUrl: this.srcUrl,
                     },
                   ], {
-                    signal: this.abortController.signal,
+                    signal,
                   });
                   const object = await new Promise((accept, reject) => {
+                    const abort = () => {
+                      reject(signal.reason);
+                      signal.removeEventListener('abort', abort);
+                    };
+                    signal.addEventListener('abort', abort);
+
                     const {gltfLoader} = loaders;
                     gltfLoader.parse(glbData, this.srcUrl, accept, reject);
                   });
@@ -710,9 +729,15 @@ export class AvatarRenderer /* extends EventTarget */ {
                       srcUrl: this.srcUrl,
                     },
                   ], {
-                    signal: this.abortController.signal,
+                    signal,
                   });
                   const object = await new Promise((accept, reject) => {
+                    const abort = () => {
+                      reject(signal.reason);
+                      signal.removeEventListener('abort', abort);
+                    };
+                    signal.addEventListener('abort', abort);
+
                     const {gltfLoader} = loaders;
                     gltfLoader.parse(glbData, this.srcUrl, accept, reject);
                   });
@@ -749,12 +774,18 @@ export class AvatarRenderer /* extends EventTarget */ {
                 (async () => {
                   const glbData = this.arrayBuffer;
                   const object = await new Promise((accept, reject) => {
+                    const abort = () => {
+                      reject(signal.reason);
+                      signal.removeEventListener('abort', abort);
+                    };
+                    signal.addEventListener('abort', abort);
+
                     const {gltfLoader} = loaders;
                     gltfLoader.parse(glbData, this.srcUrl, accept, reject);
                   });
                   const glb = object.scene;
 
-                  await _toonShaderify(object);
+                  await _toonShaderify(object, signal);
                   _forAllMeshes(glb, o => {
                     _addAnisotropy(o, 16);
                     _enableShadows(o);
