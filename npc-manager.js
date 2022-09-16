@@ -34,6 +34,7 @@ class NpcManager extends EventTarget {
     this.npcAppMap = new WeakMap();
     this.detachedNpcs = [];
     this.targetMap = new WeakMap();
+    this.loadPromise = null;
   }
 
   getAppByNpc(npc) {
@@ -44,35 +45,41 @@ class NpcManager extends EventTarget {
     return this.npcs.find(npc => this.getAppByNpc(npc) === app);
   }
 
-  async initDefaultPlayer() {
-    const defaultPlayerSpec = await characterSelectManager.getDefaultSpecAsync();
-    const localPlayer = metaversefile.useLocalPlayer();
-    // console.log('set player spec', defaultPlayerSpec);
-    await localPlayer.setPlayerSpec(defaultPlayerSpec);
+  async waitForLoad() {
+    await this.loadPromise;
+  }
 
-    const createPlayerApp = () => {
-      const app = metaversefile.createApp();
-      app.instanceId = makeId(5);
-      app.name = 'player';
-      app.contentId = defaultPlayerSpec.avatarUrl;
-      return app;
-    };
-    const app = createPlayerApp();
+  initDefaultPlayer() {
+    this.loadPromise = (async () => {
+      const defaultPlayerSpec = await characterSelectManager.getDefaultSpecAsync();
+      const localPlayer = metaversefile.useLocalPlayer();
+      // console.log('set player spec', defaultPlayerSpec);
+      await localPlayer.setPlayerSpec(defaultPlayerSpec);
 
-    const importPlayerToNpcManager = () => {
-      this.addPlayerApp(app, localPlayer, defaultPlayerSpec);
+      const createPlayerApp = () => {
+        const app = metaversefile.createApp();
+        app.instanceId = makeId(5);
+        app.name = 'player';
+        app.contentId = defaultPlayerSpec.avatarUrl;
+        return app;
+      };
+      const app = createPlayerApp();
 
-      this.dispatchEvent(new MessageEvent('defaultplayeradd', {
-        data: {
-          player: localPlayer,
-        }
-      }));
+      const addDefaultPlayer = () => {
+        this.addPlayerApp(app, localPlayer, defaultPlayerSpec);
 
-      app.addEventListener('destroy', () => {
-        this.removeNpcApp(app);
-      });
-    };
-    importPlayerToNpcManager();
+        this.dispatchEvent(new MessageEvent('defaultplayeradd', {
+          data: {
+            player: localPlayer,
+          }
+        }));
+
+        app.addEventListener('destroy', () => {
+          this.removeNpcApp(app);
+        });
+      };
+      addDefaultPlayer();
+    })();
   }
 
   async createNpcAsync({

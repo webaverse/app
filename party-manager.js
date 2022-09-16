@@ -168,7 +168,6 @@ class PartyManager extends EventTarget {
         newPlayer.removeEventListener('activate', activate);
         playerApp.removeEventListener('die', die);
       };
-
       this.removeFnMap.set(newPlayer, removeFn);
 
       return true;

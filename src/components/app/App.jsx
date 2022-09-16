@@ -54,7 +54,7 @@ const _startApp = async ( weba, canvas ) => {
     universe.handleUrlUpdate();
     await weba.startLoop();
 
-    await npcManager.initDefaultPlayer();
+    npcManager.initDefaultPlayer();
 
 };
 
