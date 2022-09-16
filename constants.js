@@ -168,6 +168,8 @@ export const defaultImageAICanvasSize = 512;
 
 export const audioAIEndpointUrl = `https://diffsound.webaverse.com`;
 
+export const W3S_API_KEY = `eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJkaWQ6ZXRocjoweDYyODg4RUNjQzFkQTYxZDUzZjEyYTI4MDQwRjllQzViNGJFRTMzNmMiLCJpc3MiOiJ3ZWIzLXN0b3JhZ2UiLCJpYXQiOjE2NjMzMTk1MjI2OTAsIm5hbWUiOiJ3ZWJhdmVyc2UifQ.WlpTfnrw0B6Z1Cs28Cawwx5PU04op6FLvHSxdh5j-hE`;
+
 export const chatTextSpeed = 15;
 export const shakeAnimationSpeed = 30;
 
