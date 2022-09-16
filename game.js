@@ -569,7 +569,17 @@ const _gameUpdate = (timestamp, timeDiff) => {
       const grabAction = _getGrabAction(i);
       const grabbedObject = _getGrabbedObject(i);
       if (grabbedObject && !_isWear(grabbedObject)) {
-        const {position, quaternion} = renderer.xr.getSession() ? localPlayer[hand === 'left' ? 'leftHand' : 'rightHand'] : camera;
+        let position = null,
+          quaternion = null;
+        if (renderer.xr.getSession()) {
+          const h = localPlayer[hand === "left" ? "leftHand" : "rightHand"];
+          position = h.position;
+          quaternion = h.quaternion;
+        } else {
+          position = localVector2.copy(localPlayer.position);
+          quaternion = camera.quaternion;
+        }
+        
         localMatrix.compose(position, quaternion, localVector.set(1, 1, 1));
 
         updateGrabbedObject(grabbedObject, localMatrix, localMatrix3.fromArray(grabAction.matrix), {

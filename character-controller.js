@@ -1136,31 +1136,39 @@ class LocalPlayer extends UninterpolatedPlayer {
     });
   }
   grab(app, hand = 'left') {
-    const {position, quaternion} = _getSession() ?
-      localPlayer[hand === 'left' ? 'leftHand' : 'rightHand']
-    :
-      camera;
+    if(this instanceof LocalPlayer) {
+      let position = null, quaternion = null;
 
-    app.updateMatrixWorld();
-    app.savedRotation = app.rotation.clone();
-    app.startQuaternion = quaternion.clone();
+      if(_getSession()) {
+        const h = this[hand === 'left' ? 'leftHand' : 'rightHand'];
+        position = h.position;
+        quaternion = h.quaternion;
+      } else {
+        position = this.position;
+        quaternion = camera.quaternion;
+      }
 
-    const grabAction = {
-      type: 'grab',
-      hand,
-      instanceId: app.instanceId,
-      matrix: localMatrix.copy(app.matrixWorld)
-        .premultiply(localMatrix2.compose(position, quaternion, localVector.set(1, 1, 1)).invert())
-        .toArray()
-    };
-    this.addAction(grabAction);
-    
-    physicsScene.disableAppPhysics(app)
+      app.updateMatrixWorld();
+      app.savedRotation = app.rotation.clone();
+      app.startQuaternion = quaternion.clone();
 
-    app.dispatchEvent({
-      type: 'grabupdate',
-      grab: true,
-    });
+      const grabAction = {
+        type: 'grab',
+        hand,
+        instanceId: app.instanceId,
+        matrix: localMatrix.copy(app.matrixWorld)
+          .premultiply(localMatrix2.compose(position, quaternion, localVector.set(1, 1, 1)).invert())
+          .toArray()
+      };
+      this.addAction(grabAction);
+      
+      physicsScene.disableAppPhysics(app)
+
+      app.dispatchEvent({
+        type: 'grabupdate',
+        grab: true,
+      });
+    }
   }
   ungrab() {
     const actions = Array.from(this.getActionsState());
