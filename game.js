@@ -1674,8 +1674,11 @@ class GameManager extends EventTarget {
       }
     };
 
-    // local party members
+    // local player
     const localPlayer = playersManager.getLocalPlayer();
+    localPlayer.avatar.setQuality(quality);
+
+    // party members
     for (const app of localPlayer.appManager.apps) {
       applySettingToApp(app);
     }
