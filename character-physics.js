@@ -274,21 +274,25 @@ class CharacterPhysics {
         } = sitComponent;
         this.sitOffset.fromArray(sitOffset);
 
-        applyVelocity(controlledApp.position, this.velocity, timeDiffS);
-        if (this.velocity.lengthSq() > 0) {
-          controlledApp.quaternion
-            .setFromUnitVectors(
-              localVector4.set(0, 0, -1),
-              localVector5.set(this.velocity.x, 0, this.velocity.z).normalize()
-            )
-            .premultiply(
-              localQuaternion2.setFromAxisAngle(
-                localVector3.set(0, 1, 0),
-                Math.PI
+        const customPhysics = sitComponent.customPhysics ? sitComponent.customPhysics : false;
+
+        if(!customPhysics) {
+          applyVelocity(controlledApp.position, this.velocity, timeDiffS);
+          if (this.velocity.lengthSq() > 0) {
+            controlledApp.quaternion
+              .setFromUnitVectors(
+                localVector4.set(0, 0, -1),
+                localVector5.set(this.velocity.x, 0, this.velocity.z).normalize()
               )
-            );
+              .premultiply(
+                localQuaternion2.setFromAxisAngle(
+                  localVector3.set(0, 1, 0),
+                  Math.PI
+                )
+              );
+          }
+          controlledApp.updateMatrixWorld();
         }
-        controlledApp.updateMatrixWorld();
 
         localMatrix
           .copy(sitPos.matrixWorld)
