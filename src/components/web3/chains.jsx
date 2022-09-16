@@ -2,6 +2,7 @@ import React, {useContext, useState} from 'react';
 import {ChainContext} from '../../hooks/chainProvider';
 import {isChainSupported} from '../../hooks/useChain';
 import classnames from 'classnames';
+import { AppContext } from '../app';
 // import {CHAIN_TYPE} from '../../hooks/web3-constants';
 
 import styles from './chains.module.css';
@@ -11,9 +12,15 @@ import styles from './chains.module.css';
 } */
 
 export default function Chains() {
+  const { state, setState } = useContext( AppContext );
   const {chains, selectedChain, selectChain} = useContext(ChainContext);
   // const {brandColor} = selectedChain;
-  const [open, setOpen] = useState(false);
+  // const [open, setOpen] = useState(false);
+
+  const open = state.openedPanel === 'ChainsPanel';
+  const setOpen = newOpen => {
+      setState({ openedPanel: newOpen ? 'ChainsPanel' : null });
+  };
 
   return (<div className={classnames(styles.chainSelector, open ? styles.open : null)}>
     <div className={styles.selectedChain} onClick={() => setOpen(!open)}>

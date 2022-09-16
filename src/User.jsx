@@ -17,6 +17,25 @@ import Chains from './components/web3/chains';
 
 //
 
+const UserPopover = () => {
+   return (
+    <div className={styles.userPopover}>
+        <div className={styles.section}>
+            <div className={styles.header}>Party</div>
+            <div className={styles.content}></div>
+        </div>
+        <div className={styles.section}>
+            <div className={styles.header}>Homespace</div>
+            <div className={styles.content}></div>
+        </div>
+        <div className={styles.section}>
+            <div className={styles.header}>Rewards</div>
+            <div className={styles.content}></div>
+        </div>
+    </div>
+   );
+};
+
 export const User = ({ className, setLoginFrom }) => {
 
     const { state, setState, account, chain } = useContext( AppContext );
@@ -40,10 +59,10 @@ export const User = ({ className, setLoginFrom }) => {
 
     }; */
 
-    const openUserPopover = e => {
+    const toggleUserPopover = e => {
 
-        setState({ openedPanel: 'UserPopover' });
-    
+        setState({ openedPanel: !popoverOpen ? 'UserPopover' : null });
+
     };
 
     const handleCancelBtnClick = () => {
@@ -221,7 +240,8 @@ export const User = ({ className, setLoginFrom }) => {
     
     //
 
-    const open = state.openedPanel === 'LoginPanel';
+    const loginOpen = state.openedPanel === 'LoginPanel';
+    const popoverOpen = state.openedPanel === 'UserPopover';
     const loggedIn = isConnected;
 
     //
@@ -230,7 +250,7 @@ export const User = ({ className, setLoginFrom }) => {
         <div
             className={ classnames(
                 styles.user,
-                open ? styles.open : null,
+                loginOpen ? styles.open : null,
                 loggedIn ? styles.loggedIn : null,
                 loggingIn ? styles.loggingIn : null,
                 className
@@ -241,7 +261,7 @@ export const User = ({ className, setLoginFrom }) => {
                     e.preventDefault();
                     e.stopPropagation();
 
-                        if ( !open ) {
+                        if ( !loginOpen ) {
 
                             setState({ openedPanel: 'LoginPanel' });
 
@@ -275,7 +295,7 @@ export const User = ({ className, setLoginFrom }) => {
                     <Chains />
                     <div
                         className={styles.userBar}
-                        onClick={openUserPopover}
+                        onClick={toggleUserPopover}
                     >
                         {avatarUrl ? (
                             <div
@@ -297,11 +317,12 @@ export const User = ({ className, setLoginFrom }) => {
                             disconnectWallet();
                         }}
                     >Logout</div>
+                    {popoverOpen ? <UserPopover /> : null}
                 </div>
             }
             <div className={ classnames(
                 styles.userLoginMethodsModal,
-                open ? styles.opened : null,
+                loginOpen ? styles.opened : null,
             ) } >
                 <div className={ styles.title } >
                     <span>Log in</span>
@@ -325,7 +346,7 @@ export const User = ({ className, setLoginFrom }) => {
                 </div>
             </div>
 
-            {/* <Modal onClose={ showModal } show={open && !loggingIn}>
+            {/* <Modal onClose={ showModal } show={loginOpen && !loggingIn}>
                 <div className={styles.login_options}>
                 
                     <div className={styles.loginDiv}>
