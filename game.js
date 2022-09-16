@@ -80,35 +80,63 @@ const _unwearAppIfHasSitComponent = (player) => {
 }
 
 // returns whether we actually snapped
-function updateGrabbedObject(o, grabMatrix, offsetMatrix, {collisionEnabled, handSnapEnabled, physx, gridSnap}) {
+function updateGrabbedObject(
+  o,
+  grabMatrix,
+  offsetMatrix,
+  { collisionEnabled, handSnapEnabled, physx, gridSnap }
+) {
   grabMatrix.decompose(localVector, localQuaternion, localVector2);
   offsetMatrix.decompose(localVector3, localQuaternion2, localVector4);
   const offset = localVector3.length();
-  localMatrix.multiplyMatrices(grabMatrix, offsetMatrix)
+  localMatrix
+    .multiplyMatrices(grabMatrix, offsetMatrix)
     .decompose(localVector5, localQuaternion3, localVector6);
 
-  let collision = collisionEnabled && physicsScene.raycast(localVector, localQuaternion);
-  if (collision) {
-    // console.log('got collision', collision);
-    const {point} = collision;
-    o.position.fromArray(point)
-      // .add(localVector2.set(0, 0.01, 0));
+  const collision =
+    collisionEnabled && physicsScene.raycast(localVector, localQuaternion);
+    localQuaternion2.setFromAxisAngle(localVector2.set(1, 0, 0), -Math.PI * 0.5);
+  const downCollision =
+    collisionEnabled && physicsScene.raycast(localVector5, localQuaternion2);
 
-    if (o.position.distanceTo(localVector) > offset) {
-      collision = null;
+  if (!!collision) {
+    const { point } = collision;
+    localVector6.fromArray(point);
+  }
+
+  if (!!downCollision) {
+    const { point } = downCollision;
+    localVector4.fromArray(point);
+    if (ioManager.keys.shift) {
+      o.position.copy(localVector5.setY(localVector4.y));
+    } else {
+      // if collision point is closer to the player than the grab offset and collisionDown point
+      // is below collision point then place the object at collision point
+      if (
+        localVector.distanceTo(localVector6) < offset &&
+        localVector4.y < localVector6.y
+      )
+        localVector5.copy(localVector6);
+      
+      // if grabbed object would go below another object then place object at downCollision point
+      if (localVector5.y < localVector4.y) localVector5.setY(localVector4.y);
+      o.position.copy(localVector5);
     }
   }
-  if (!collision) {
-    o.position.copy(localVector5);
-  }
 
-  const handSnap = !handSnapEnabled || offset >= maxGrabDistance || !!collision;
+  const handSnap =
+    !handSnapEnabled ||
+    offset >= maxGrabDistance ||
+    !!collision ||
+    !!downCollision;
   if (handSnap) {
     snapPosition(o, gridSnap);
     o.quaternion.setFromEuler(o.savedRotation);
   } else {
     o.quaternion.copy(localQuaternion3);
   }
+
+  o.updateMatrixWorld();
 
   return {
     handSnap,
@@ -543,7 +571,6 @@ const _gameUpdate = (timestamp, timeDiff) => {
       if (grabbedObject && !_isWear(grabbedObject)) {
         const {position, quaternion} = renderer.xr.getSession() ? localPlayer[hand === 'left' ? 'leftHand' : 'rightHand'] : camera;
         localMatrix.compose(position, quaternion, localVector.set(1, 1, 1));
-        grabbedObject.updateMatrixWorld();
 
         updateGrabbedObject(grabbedObject, localMatrix, localMatrix3.fromArray(grabAction.matrix), {
           collisionEnabled: true,
