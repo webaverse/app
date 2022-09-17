@@ -1,4 +1,4 @@
-import { voicePacksUrl, voiceEndpointsUrl } from './constants.js';
+import {voicePacksUrl, voiceEndpointsUrl} from './constants.js';
 import overrides from './overrides.js';
 import {playersManager} from './players-manager.js';
 
@@ -8,12 +8,12 @@ const voiceEndpoints = [];
 const loadPromise = (async () => {
   await Promise.all([
     (async () => {
-      const res = await fetch( voicePacksUrl );
+      const res = await fetch(voicePacksUrl);
       const j = await res.json();
       voicePacks.push(...j);
     })(),
     (async () => {
-      const res = await fetch( voiceEndpointsUrl );
+      const res = await fetch(voiceEndpointsUrl);
       const j = await res.json();
       voiceEndpoints.push(...j);
     })(),
