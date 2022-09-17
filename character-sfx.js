@@ -60,7 +60,6 @@ const _getActionFrameIndex = (f, frameTimes) => {
   return i;
 };
 
-// TODO : Create a new class called "CharacterSfx" which handles SFX of characters
 export class AvatarCharacterSfx {
   constructor(character) {
     this.character = character;
