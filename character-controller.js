@@ -769,6 +769,7 @@ class AvatarCharacter extends StateCharacter {
     super(opts);
 
     this.avatar = null; 
+    this.controlMode = 'npc';
 
     this.avatarFace = new AvatarCharacterFace(this);
     this.avatarCharacterFx = new AvatarCharacterFx(this);
@@ -777,6 +778,12 @@ class AvatarCharacter extends StateCharacter {
     this.leftHand = new AvatarHand();
     this.rightHand = new AvatarHand();
     this.hands = [this.leftHand, this.rightHand];
+  }
+  getControlMode() {
+    return this.controlMode;
+  }
+  setControlMode(mode) {
+    this.controlMode = mode;
   }
   setSpawnPoint(position, quaternion) {
     super.setSpawnPoint(position, quaternion);
@@ -1062,12 +1069,6 @@ class LocalPlayer extends UninterpolatedPlayer {
     }
     this.detached = opts.detached ?? false;
   }
-  getControlMode() {
-    return this.controlMode;
-  }
-  setControlMode(mode) {
-    this.controlMode = mode;
-  }
   async setPlayerSpec(playerSpec) {
     const p = this.setAvatarUrl(playerSpec.avatarUrl);
     
@@ -1344,6 +1345,7 @@ class RemotePlayer extends InterpolatedPlayer {
     this.audioWorkerLoaded = false;
     this.isRemotePlayer = true;
     this.lastPosition = new THREE.Vector3();
+    this.controlMode = 'remote';
   }
     // The audio worker handles hups and incoming voices
   // This includes the microphone from the owner of this instance
