@@ -277,12 +277,9 @@ export class AvatarCharacterSfx {
           }  
       }
     }
-
     _handleSwim();
 
-
     const _handleNarutoRun = () => {
-      
       this.currentQ.copy(this.character.quaternion);
      
       let temp=this.currentQ.angleTo(this.preQ);
@@ -291,8 +288,6 @@ export class AvatarCharacterSfx {
           this.arr[i]=temp;
           temp=temp2;
       }
-        
-      
       
       if(this.character.avatar.narutoRunState){
         if(this.narutoRunStartTime===0){
@@ -346,12 +341,10 @@ export class AvatarCharacterSfx {
       this.preQ.y=this.currentQ.y;
       this.preQ.z=this.currentQ.z;
       this.preQ.w=this.currentQ.w;
-  
     };
     _handleNarutoRun();
-    
 
-    const _handleGasp = () =>{
+    const _handleGasp = () => {
       const isRunning = currentSpeed > 0.5;
       if(isRunning){
         if(this.startRunningTime === 0)
@@ -368,8 +361,6 @@ export class AvatarCharacterSfx {
       if(timeSeconds - this.startRunningTime > 5 && this.startRunningTime !== 0){
         this.willGasp = true;
       }
-      
-      
     }
     _handleGasp();
 
