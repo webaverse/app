@@ -378,7 +378,7 @@ export class AvatarCharacterSfx {
           if (eatFrameIndex !== 0 && eatFrameIndex !== this.lastEatFrameIndex) {
             sounds.playSoundName('chomp');
             // control mouth movement
-            this.character.avatarFace.setMouthMoving(0.04,0.04,0.1,0.02);
+            this.character.avatarFace.setMouthMoving(0.04, 0.04, 0.1, 0.02);
           }
 
           this.lastEatFrameIndex = eatFrameIndex;
@@ -393,7 +393,7 @@ export class AvatarCharacterSfx {
           if (drinkFrameIndex !== 0 && drinkFrameIndex !== this.lastDrinkFrameIndex) {
             sounds.playSoundName('gulp');
             // control mouth movement
-            this.character.avatarFace.setMouthMoving(0.1,0.1,0.1,0.1);
+            this.character.avatarFace.setMouthMoving(0.1, 0.1, 0.1, 0.1);
           }
 
           this.lastDrinkFrameIndex = drinkFrameIndex;
@@ -417,7 +417,6 @@ export class AvatarCharacterSfx {
     };
     _handleFood();
 
-    // emote
     const _handleEmote = () => {
       if(this.character.avatar.emoteAnimation && this.lastEmote !== this.character.avatar.emoteAnimation){
         this.playEmote(this.character.avatar.emoteAnimation);
