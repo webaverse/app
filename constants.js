@@ -151,6 +151,12 @@ export const avatarInterpolationNumFrames = 4;
 
 export const eatFrameIndices = [500, 800, 1100];
 export const drinkFrameIndices = [400, 700, 1000];
+export const useFrameIndices = {
+  swordSideSlash: [0],
+  swordSideSlashStep: [0],
+  swordTopDownSlash: [0],
+  swordTopDownSlashStep: [0],
+};
 
 export const defaultMaxId = 8192;
 
