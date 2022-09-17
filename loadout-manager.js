@@ -73,7 +73,9 @@ class LoadoutManager extends EventTarget {
       }
     };
     localPlayer.addEventListener('wearupdate', wearupdate);
-    this.removeLastWearUpdateFn = () => {localPlayer.removeEventListener('wearupdate', wearupdate);};
+    this.removeLastWearUpdateFn = () => {
+      localPlayer.removeEventListener('wearupdate', wearupdate);
+    };
   }
 
   unbindPlayer(player) {
