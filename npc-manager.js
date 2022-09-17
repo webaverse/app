@@ -21,6 +21,7 @@ import {runSpeed, walkSpeed} from './constants.js';
 import {characterSelectManager} from './characterselect-manager.js';
 
 const localVector = new THREE.Vector3();
+const localVector2 = new THREE.Vector3();
 
 const updatePhysicsFnMap = new WeakMap();
 const updateAvatarsFnMap = new WeakMap();
@@ -439,13 +440,15 @@ class NpcManager extends EventTarget {
       avatarUrl = createRelativeUrl(avatarUrl, srcUrl);
 
       const npcDetached = !!json.detached;
+
+      const position = localVector.setFromMatrixPosition(app.matrixWorld)
+        .add(localVector2.set(0, 1, 0));
       
       // create npc
       const newNpcPlayer = await this.createNpcAsync({
         name: npcName,
         avatarUrl,
-        position: app.position.clone()
-          .add(new THREE.Vector3(0, 1, 0)),
+        position,
         quaternion: app.quaternion,
         scale: app.scale,
         detached: npcDetached,
