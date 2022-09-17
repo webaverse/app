@@ -8,7 +8,7 @@ import {
   /*accountsHost, loginEndpoint,*/ audioTimeoutTime,
 } from './constants.js';
 // import { getRenderer } from './renderer.js';
-import { IdAllocator } from './id-allocator';
+import { IdAllocator } from './id-allocator.js';
 
 const localVector = new THREE.Vector3();
 const localVector2 = new THREE.Vector3();
