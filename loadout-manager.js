@@ -1,4 +1,3 @@
-
 import {playersManager} from './players-manager.js';
 import {LoadoutRenderer} from './loadout-renderer.js';
 import {InfoboxRenderer} from './infobox.js';
