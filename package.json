@@ -3,6 +3,7 @@
   "version": "0.0.1",
   "description": "",
   "main": "index.mjs",
+  "type": "module",
   "scripts": {
     "start": "npm run prod",
     "dev": "node index.mjs",
