@@ -13,28 +13,19 @@ import { AppContext } from './components/app';
 import styles from './User.module.css';
 
 import * as sounds from '../sounds.js';
+import Chains from './components/web3/chains';
 
 //
 
 export const User = ({ className, address, setAddress, setLoginFrom }) => {
-
-    const { state, setState } = useContext( AppContext );
+    const { state, setState, account, chain } = useContext( AppContext );
     const [ensName, setEnsName] = useState('');
     const [avatarUrl, setAvatarUrl] = useState('');
     const [ loggingIn, setLoggingIn ] = useState(false);
-    const [ loginError, setLoginError ] = useState(null);
-    const [ autoLoginRequestMade, setAutoLoginRequestMade ] = useState(false);
-
-    //
-
-    /* const showModal = ( event ) => {
-
-        event.preventDefault();
-        // setShow( ! show );
-
-        setState({ openedPanel: 'LoginPanel' });
-
-    }; */
+    // const [ loginError, setLoginError ] = useState(null);
+    // const [ autoLoginRequestMade, setAutoLoginRequestMade ] = useState(false);
+    const { isConnected, currentAddress, connectWallet, disconnectWallet, errorMessage, wrongChain, getAccounts, getAccountDetails } = account;
+    const { selectedChain } = chain;
 
     const openUserPanel = e => {
 
@@ -50,31 +41,34 @@ export const User = ({ className, address, setAddress, setLoginFrom }) => {
 
     };
 
-    const _setAddress = async address => {
-        
-        if (address) {
-            // let live = true;
-            // (async () => {
-                const ensName = await blockchainManager.getEnsName(address);
-                // if (!live) return;
-                setEnsName(ensName);
-
-                if ( ensName ) {
-                    const avatarUrl = await blockchainManager.getAvatarUrl(ensName);
-                    // if (!live) return;
-                    setAvatarUrl(avatarUrl);
-                }
-            // })();
-
-            /* return () => {
-                live = false;
-            }; */
-
-            // console.log('render name', {address, ensName, avatarUrl});
+    const reduceAddress = (address) => {
+        if(address.length > 12) {
+            return address.slice(0, 7) + "..." + address.slice(-6)
         }
+        return address;
+    }
 
-        setAddress(address);
-    
+    useEffect(()=>{
+        if(!currentAddress) return;
+        _setAddress(currentAddress);
+    }, [currentAddress, selectedChain])
+
+    const _setAddress = async address => {
+        const {name, avatar} = await getAccountDetails();
+        console.log("name, avatar", name, avatar)
+
+        setEnsName(name || '');
+        setAvatarUrl(avatar ? resolveAvatar(avatar) : '');
+        setAddress(address || '');
+    };
+
+    const resolveAvatar = url => {
+        const match = url.match(/^ipfs:\/\/(.+)/);
+        if (match) {
+            return `https://cloudflare-ipfs.com/ipfs/${match[1]}`;
+        } else {
+            return url;
+        }
     };
 
     const metaMaskLogin = async ( event ) => {
@@ -82,140 +76,97 @@ export const User = ({ className, address, setAddress, setLoginFrom }) => {
         event.preventDefault();
         event.stopPropagation();
 
-        /* if ( address ) {
+        if ( ! loggingIn ) {
+            setLoggingIn( true );
 
-            setState({ openedPanel: ( state.openedPanel === 'UserPanel' ? null : 'UserPanel' ) });
-
-        } else { */
-
-            if ( ! loggingIn ) {
-
-                setLoggingIn( true );
-
-                try {
-
-                    const { address, profile } = await ceramicApi.login();
-                    await _setAddress(address);
-                    setLoginFrom('metamask');
-                    // setShow(false);
-                    // setLoginFrom('metamask');
-
-                } catch (err) {
-
-                    console.warn(err);
-
-                } finally {
-
-                    setState({ openedPanel: null });
-
-                    setLoggingIn(false);
-
-                }
-
+            try {
+                await connectWallet();
+                setLoginFrom('metamask');
+            } catch (err) {
+                console.warn(err);
+            } finally {
+                setState({ openedPanel: null });
+                setLoggingIn(false);
             }
-
-        // }
-
+        }
     };
 
-    useEffect( () => {
+    // useEffect( () => {
+    //     const { error, code, id, play, realmId } = parseQuery( window.location.search );
+    //     //
+    //     const discordAutoLogin = async () => {
 
-        const { error, code, id, play, realmId } = parseQuery( window.location.search );
+    //         const { address, error } = await WebaWallet.loginDiscord( code, id );
 
-        //
+    //         if ( address ) {
 
-        const discordAutoLogin = async () => {
+    //             await _setAddress( address );
+    //             // setAddress( address );
+    //             setLoginFrom( 'discord' );
+    //             // setShow( false );
 
-            const { address, error } = await WebaWallet.loginDiscord( code, id );
+    //         } else if ( error ) {
 
-            if ( address ) {
+    //             setLoginError( String( error ).toLocaleUpperCase() );
 
-                await _setAddress( address );
-                // setAddress( address );
-                setLoginFrom( 'discord' );
-                // setShow( false );
+    //         }
 
-            } else if ( error ) {
+    //         window.history.pushState( {}, '', window.location.origin );
+    //         setLoggingIn( false );
 
-                setLoginError( String( error ).toLocaleUpperCase() );
+    //     };
 
-            }
+    //     const metamaskAutoLogin = async () => {
+    //         if ( currentAddress ) {
+    //             await _setAddress( address );
+    //             setLoginFrom( 'metamask' );
+    //         } else if ( error ) {
+    //             setLoginError( String( error ).toLocaleUpperCase() );
+    //         }
+    //     };
+    //     //
+    //     if ( ! autoLoginRequestMade ) {
 
-            window.history.pushState( {}, '', window.location.origin );
-            setLoggingIn( false );
+    //         setAutoLoginRequestMade( true );
 
-        };
+    //         if ( code ) {
 
-        const metamaskAutoLogin = async () => {
+    //             setLoggingIn( true );
 
-            const { address } = await WebaWallet.autoLogin();
+    //             if ( WebaWallet.launched ) {
 
-            if ( address ) {
+    //                 discordAutoLogin();
 
-                await _setAddress( address );
-                setLoginFrom( 'metamask' );
-                // setShow( false );
+    //             } else {
 
-            } else if ( error ) {
+    //                 WebaWallet.waitForLaunch().then( discordAutoLogin );
 
-                setLoginError( String( error ).toLocaleUpperCase() );
+    //             }
 
-            }
+    //         } else {
 
-        };
+    //             if ( WebaWallet.launched ) {
 
-        //
+    //                 metamaskAutoLogin();
 
-        if ( ! autoLoginRequestMade ) {
+    //             } else {
 
-            setAutoLoginRequestMade( true );
+    //                 WebaWallet.waitForLaunch().then( metamaskAutoLogin );
 
-            if ( code ) {
+    //             }
 
-                setLoggingIn( true );
+    //         }
 
-                if ( WebaWallet.launched ) {
+    //     }
 
-                    discordAutoLogin();
-
-                } else {
-
-                    WebaWallet.waitForLaunch().then( discordAutoLogin );
-
-                }
-
-            } else {
-
-                if ( WebaWallet.launched ) {
-
-                    metamaskAutoLogin();
-
-                } else {
-
-                    WebaWallet.waitForLaunch().then( metamaskAutoLogin );
-
-                }
-
-            }
-
-        }
-
-    }, [ address ] );
-
-    //
+    // }, [ currentAddress ] );
 
     const _triggerClickSound = () => {
-
         sounds.playSoundName('menuClick');
-
     };
     
-    //
-
     const open = state.openedPanel === 'LoginPanel';
-    const loggedIn = !!address;
-
-    //
+    const loggedIn = isConnected;
 
     return (
         <div
@@ -265,25 +216,27 @@ export const User = ({ className, address, setAddress, setLoginFrom }) => {
                 >
                     <div
                         className={styles.userBar}
-                        onClick={openUserPanel}
+                        // onClick={openUserPanel}
                     >
+                        <Chains />
                         {avatarUrl ? (
                             <div
                                 className={styles.avatarUrl}
+                                onClick={openUserPanel}
                             >
-                                <img className={styles.img} src={avatarUrl} crossOrigin='Anonymous' />
+                                <img className={styles.img} src={avatarUrl} crossOrigin='anonymous'/>
                             </div>
                         ) : null}
                         <div
                             className={styles.address}
-                        >{ensName || address || ''} <img className={styles.verifiedIcon} src="./images/verified.svg" /></div>
+                            onClick={openUserPanel}
+                        >{ensName || currentAddress || ''} <img className={styles.verifiedIcon} src="./images/verified.svg" /></div>
                     </div>
                     <div className={styles.logoutBtn}
                         onClick={e => {
                             e.preventDefault();
                             e.stopPropagation();
-                            WebaWallet.logout();
-                            _setAddress(null);
+                            disconnectWallet();
                         }}
                     >Logout</div>
                 </div>

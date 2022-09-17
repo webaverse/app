@@ -207,8 +207,8 @@
   display: flex;
   top: 0;
   right: 0;
-  margin-top: 10px;
-  align-items: center;
+  margin-top: 20px;
+  align-items: start;
   transform: none;
   transition: transform 0.3s cubic-bezier(0, 1, 0, 1);
 }
@@ -219,12 +219,13 @@
 .userBar {
   display: flex;
   font-size: 14px;
-  align-items: center;
+  align-items: start;
   pointer-events: all;
   cursor: pointer;
 }
 .userBar .avatarUrl {
   position: relative;
+  margin-top: -10px;
   z-index: 1;
 }
 .userBar .avatarUrl .img {
@@ -279,9 +280,9 @@
   background-color: #FFF;
   content: '';
 }
-.userBar:hover:not(:active) .avatarUrl .img {
+/* .userBar:hover:not(:active) .avatarUrl .img {
   transform: scale(1.2, 1.2);
-}
+} */
 
 /* */
 

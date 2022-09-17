@@ -24,7 +24,8 @@ import { UIMode } from './components/general/ui-mode/index.jsx';
 
 export default function Header() {
 
-    const { state, setState, selectedApp } = useContext( AppContext );
+    const { state, setState, selectedApp, account } = useContext( AppContext );
+    const { currentAddress } = account;
     const localPlayer = metaversefile.useLocalPlayer();
     const _getWearActions = () => localPlayer.getActionsArray().filter(action => action.type === 'wear');
 
@@ -69,6 +70,7 @@ export default function Header() {
     }, []);
 
     useEffect( () => {
+        console.log("dd", currentAddress)
 
         const pointerlockchange = e => {
 
@@ -293,7 +295,7 @@ export default function Header() {
                         panelsRef={panelsRef}
                     /> */}
                 </div>
-                <div className={styles.panels}>
+                {/* <div className={styles.panels}>
                     <Tokens
                         nfts={nfts}
                         hacks={hacks}
@@ -301,7 +303,7 @@ export default function Header() {
                         setNfts={setNfts}
                         loginFrom={loginFrom}
                     />
-                </div>
+                </div> */}
             {/* </div> */}
         </div>
     );

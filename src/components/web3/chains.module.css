@@ -1,0 +1,76 @@
+
+.chainSelector {
+  background-color: #C900C1;
+  border-radius: 5px;
+  color: rgb(255, 255, 255);
+  user-select: none;
+  width: 95px;
+  top:0;
+  left: -95px;
+  line-height: 1.56;
+  pointer-events: all;
+  font-size: 14px;
+  text-align: center;
+  /* border: 2px solid black; */
+}
+.selectedChain {
+    border-radius: 5px 0px 0px 5px;
+    padding: 5px 6px 6px 8px;
+    display: grid;
+    /* grid-template-columns: 18px 1fr; */
+    gap: 6px;
+    text-align: center;
+}
+
+.selectedChain svg {
+    width: 100%;
+}
+
+.chainDropDown {
+    overflow: hidden;
+}
+
+.chains {
+    list-style-type: none;
+    margin: 0;
+    padding: 0;
+    
+}
+
+.chains li {
+    display: flex;
+    margin: 0;
+    padding: 0;
+}
+
+
+.chains li button {
+    border-radius: 0;
+    border: none;
+    background: transparent;
+    text-align: center;
+    cursor: pointer;
+    padding: 8px;
+    color: white;
+    width: 100%;
+}
+
+.chains li button:hover {
+    background-color: #00a8fc;
+  }
+
+.selected {
+    background-color: rgba(255, 255, 255, 0.3);
+}
+
+
+.showChainSelector {
+    height: auto;
+    pointer-events: all;
+    transition: 0.5s;
+}
+
+.hideChainSelector {
+    height: 0;
+    transition: 0.5s;
+}
