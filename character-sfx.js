@@ -7,6 +7,7 @@ import {
   crouchMaxTime,
   eatFrameIndices,
   drinkFrameIndices,
+  useFrameIndices,
   idleSpeed,
   walkSpeed,
   runSpeed,
@@ -69,11 +70,13 @@ export class AvatarCharacterSfx {
     this.lastWalkTime = 0;
     this.lastEatFrameIndex = -1;
     this.lastDrinkFrameIndex = -1;
+    this.lastUseFrameIndex = -1;
 
     this.narutoRunStartTime = 0;
     this.narutoRunFinishTime = 0;
     this.narutoRunTrailSoundStartTime = 0;
     this.narutoRunTurnSoundStartTime = 0;
+    
     this.currentQ=new THREE.Quaternion();
     this.preQ=new THREE.Quaternion();
     this.arr = [0, 0, 0, 0];
@@ -422,6 +425,29 @@ export class AvatarCharacterSfx {
       this.lastEmote = this.character.avatar.emoteAnimation;
     };
     _handleEmote();
+
+    const _handleUse = () => {
+      const useAction = this.character.getAction('use');
+      if (useAction) {
+        const {animationCombo, index} = useAction;
+        if (Array.isArray(animationCombo) && index !== undefined) {
+          const useAnimationName = animationCombo[index];
+          const localUseFrameIndices = useFrameIndices[useAnimationName];
+          const useFrameIndex = _getActionFrameIndex(this.character.actionInterpolants.use.get(), localUseFrameIndices);
+
+          if (useFrameIndex !== 0 && useFrameIndex !== this.lastUseFrameIndex) {
+            sounds.playSoundName('swordSlash');
+            this.playGrunt('attack');
+          }
+          this.lastUseFrameIndex = useFrameIndex;
+        } else {
+          this.lastUseFrameIndex = -1;
+        }
+      } else {
+        this.lastUseFrameIndex = -1;
+      }
+    };
+    _handleUse();
   }
   playGrunt(type) {
     if (this.character.voicePack) { // ensure voice pack loaded
