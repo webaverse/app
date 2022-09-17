@@ -8,26 +8,46 @@ import {chatTextSpeed} from '../constants.js';
 
 class VoicePack {
   constructor(files, audioBuffer) {
-    this.syllableFiles = files.filter(({name}) => /\/[0-9]+\.wav$/.test(name));
-    this.actionFiles = files.filter(({name}) => /^actions\//.test(name));
-    this.emoteFiles = files.filter(({name}) => /^emotes\//.test(name));
+    files = files.map(({name, offset, duration}) => {
+      return {
+        name,
+        offset,
+        duration,
+        nonce: 0,
+      };
+    });
+    
     this.audioBuffer = audioBuffer;
-    this.actionVoices = this.actionFiles.map(({name, offset, duration}) => {
-      return {
-        name,
-        offset,
-        duration,
-        nonce: 0,
-      };
-    });
-    this.emoteVoices = this.emoteFiles.map(({name, offset, duration}) => {
-      return {
-        name,
-        offset,
-        duration,
-        nonce: 0,
-      };
-    });
+    this.syllableFiles = files.filter(({name}) => /\/[0-9]+\.wav$/.test(name));
+    this.voiceFiles = {
+      actionVoices: {
+        hurt: files.filter(f => /hurt/i.test(f.name)),
+        scream: files.filter(f => /scream/i.test(f.name)),
+        attack: files.filter(f => /attack/i.test(f.name)),
+        angry: files.filter(f => /angry/i.test(f.name)),
+        gasp: files.filter(f => /gasp/i.test(f.name)),
+        jump: files.filter(f => /jump/i.test(f.name)),
+        narutoRun: files.filter(f => /nr/i.test(f.name))
+      },
+      emoteVoices: {
+        alertSoft: files.filter(f => /alert/i.test(f.name)),
+        alert: files.filter(f => /alert/i.test(f.name)),
+        angrySoft: files.filter(f => /angry/i.test(f.name)),
+        angry: files.filter(f => /angry/i.test(f.name)),
+        embarrassedSoft: files.filter(f => /emba/i.test(f.name)),
+        embarrassed: files.filter(f => /emba/i.test(f.name)),
+        headNodSoft: files.filter(f => /nod/i.test(f.name)),
+        headNod: files.filter(f => /nod/i.test(f.name)),
+        headShakeSoft: files.filter(f => /shake/i.test(f.name)),
+        headShake: files.filter(f => /shake/i.test(f.name)),
+        sadSoft: files.filter(f => /sad/i.test(f.name)),
+        sad: files.filter(f => /sad/i.test(f.name)),
+        surpriseSoft: files.filter(f => /surprise/i.test(f.name)),
+        surprise: files.filter(f => /surprise/i.test(f.name)),
+        victorySoft: files.filter(f => /victory/i.test(f.name)),
+        victory: files.filter(f => /victory/i.test(f.name))
+      }
+    };
   }
   static async load({
     audioUrl,

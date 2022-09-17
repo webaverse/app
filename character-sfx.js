@@ -433,49 +433,18 @@ export class AvatarCharacterSfx {
     };
     _handleEmote();
   }
-  playGrunt(type, index){
+  playGrunt(type) {
     if (this.character.voicePack) { // ensure voice pack loaded
-      let voiceFiles, offset, duration;
-      switch (type) {
-        case 'hurt': {
-          voiceFiles = this.character.voicePack.actionVoices.filter(f => /hurt/i.test(f.name));
-          break;
-        }
-        case 'scream': {
-          voiceFiles = this.character.voicePack.actionVoices.filter(f => /scream/i.test(f.name));
-          break;
-        }
-        case 'attack': {
-          voiceFiles = this.character.voicePack.actionVoices.filter(f => /attack/i.test(f.name));
-          break;
-        }
-        case 'angry': {
-          voiceFiles = this.character.voicePack.actionVoices.filter(f => /angry/i.test(f.name));
-          break;
-        }
-        case 'gasp': {
-          voiceFiles = this.character.voicePack.actionVoices.filter(f => /gasp/i.test(f.name));
-          break;
-        }
-        case 'jump': {
-          voiceFiles = this.character.voicePack.actionVoices.filter(f => /jump/i.test(f.name));
-          break;
-        }
-        case 'narutoRun': {
-          voiceFiles = this.character.voicePack.actionVoices.filter(f => /nr/i.test(f.name));
-          break;
-        }
-      }
+      const voiceFiles = this.character.voicePack.voiceFiles.actionVoices[type];
       
-      if(index===undefined){
+      // if (index === undefined) {
         let voice = selectVoice(voiceFiles);
-        duration = voice.duration;
-        offset = voice.offset;
-      }
-      else{
+        const duration = voice.duration;
+        const offset = voice.offset;
+      /* } else {
         duration = voiceFiles[index].duration;
         offset = voiceFiles[index].offset;
-      } 
+      } */
       
       const audioContext = audioManager.getAudioContext();
       const audioBufferSourceNode = audioContext.createBufferSource();
@@ -506,63 +475,16 @@ export class AvatarCharacterSfx {
   }
   playEmote(type, index){
     if (this.character.voicePack) { // ensure voice pack loaded
-      let voiceFiles, offset, duration;
-      switch (type) {
-        case 'alertSoft':
-        case 'alert': {
-          voiceFiles = this.character.voicePack.emoteVoices.filter(f => /alert/i.test(f.name));
-          break;
-        }
-        case 'angrySoft':
-        case 'angry': {
-          voiceFiles = this.character.voicePack.emoteVoices.filter(f => /angry/i.test(f.name));
-          break;
-        }
-        case 'embarrassedSoft':
-        case 'embarrassed': {
-          voiceFiles = this.character.voicePack.emoteVoices.filter(f => /emba/i.test(f.name));
-          break;
-        }
-        case 'headNodSoft':
-        case 'headNod': {
-          voiceFiles = this.character.voicePack.emoteVoices.filter(f => /nod/i.test(f.name));
-          break;
-        }
-        case 'headShakeSoft':
-        case 'headShake': {
-          voiceFiles = this.character.voicePack.emoteVoices.filter(f => /shake/i.test(f.name));
-          break;
-        }
-        case 'sadSoft':
-        case 'sad': {
-          voiceFiles = this.character.voicePack.emoteVoices.filter(f => /sad/i.test(f.name));
-          break;
-        }
-        case 'surpriseSoft':
-        case 'surprise': {
-          voiceFiles = this.character.voicePack.emoteVoices.filter(f => /surprise/i.test(f.name));
-          break;
-        }
-        case 'victorySoft':
-        case 'victory': {
-          voiceFiles = this.character.voicePack.emoteVoices.filter(f => /victory/i.test(f.name));
-          break;
-        }
-        default: {
-          voiceFiles = this.character.voicePack.emoteVoices;
-          break;
-        }
-      }
+      const voiceFiles = this.character.voicePack.voiceFiles.emoteVoices[type];
       
-      if(index===undefined){
+      // if (index === undefined) {
         let voice = selectVoice(voiceFiles);
-        duration = voice.duration;
-        offset = voice.offset;
-      }
-      else{
+        const duration = voice.duration;
+        const offset = voice.offset;
+      /* } else {
         duration = voiceFiles[index].duration;
         offset = voiceFiles[index].offset;
-      } 
+      } */
       
       const audioContext = audioManager.getAudioContext();
       const audioBufferSourceNode = audioContext.createBufferSource();
