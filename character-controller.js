@@ -769,7 +769,7 @@ class AvatarCharacter extends StateCharacter {
     super(opts);
 
     this.avatar = null; 
-    this.controlMode = 'npc';
+    this.controlMode = '';
 
     this.avatarFace = new AvatarCharacterFace(this);
     this.avatarCharacterFx = new AvatarCharacterFx(this);
