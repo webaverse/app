@@ -768,8 +768,7 @@ class AvatarCharacter extends StateCharacter {
   constructor(opts) {
     super(opts);
 
-    this.avatar = null; 
-    this.controlMode = '';
+    this.avatar = null;
 
     this.avatarFace = new AvatarCharacterFace(this);
     this.avatarCharacterFx = new AvatarCharacterFx(this);
@@ -778,12 +777,6 @@ class AvatarCharacter extends StateCharacter {
     this.leftHand = new AvatarHand();
     this.rightHand = new AvatarHand();
     this.hands = [this.leftHand, this.rightHand];
-  }
-  getControlMode() {
-    return this.controlMode;
-  }
-  setControlMode(mode) {
-    this.controlMode = mode;
   }
   setSpawnPoint(position, quaternion) {
     super.setSpawnPoint(position, quaternion);
@@ -900,7 +893,22 @@ class AvatarCharacter extends StateCharacter {
   }
 }
 
-class InterpolatedPlayer extends AvatarCharacter {
+class GamePlayer extends AvatarCharacter {
+  constructor(opts) {
+    super(opts);
+
+    this.controlMode = '';
+  }
+
+  getControlMode() {
+    return this.controlMode;
+  }
+  setControlMode(mode) {
+    this.controlMode = mode;
+  }
+}
+
+class InterpolatedPlayer extends GamePlayer {
   constructor(opts) {
     super(opts);
     this.positionInterpolant = new PositionInterpolant(() => this.getPosition(), avatarInterpolationTimeDelay, avatarInterpolationNumFrames);
@@ -1000,7 +1008,7 @@ class InterpolatedPlayer extends AvatarCharacter {
     }
   }
 }
-class UninterpolatedPlayer extends AvatarCharacter {
+class UninterpolatedPlayer extends GamePlayer {
   constructor(opts) {
     super(opts);
     
