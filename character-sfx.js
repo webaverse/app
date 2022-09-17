@@ -103,9 +103,9 @@ export class AvatarCharacterSfx {
     this.lastDoubleJump = false;
   }
   update(timestamp, timeDiffS) {
-    if (!this.character.avatar) {
+    /* if (!this.character.avatar) {
       return;
-    }
+    } */
     
     const timeSeconds = timestamp/1000;
     const currentSpeed = localVector.set(this.character.avatar.velocity.x, 0, this.character.avatar.velocity.z).length();
