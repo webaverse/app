@@ -786,7 +786,7 @@ class AvatarCharacter extends StateCharacter {
     camera.updateMatrixWorld();
   }
   updatePhysicsStatus() {
-    if (this.isPlayer) {
+    if (this.getControlMode() === 'controlled') {
       physicsScene.disableGeometryQueries(this.characterPhysics.characterController);
     } else {
       physicsScene.enableGeometryQueries(this.characterPhysics.characterController);
@@ -1055,10 +1055,18 @@ class LocalPlayer extends UninterpolatedPlayer {
   constructor(opts) {
     super(opts);
 
-    this.isPlayer = !opts.npc; // whether player controls this character
-    this.isNpc = !!opts.npc;
-    this.isInParty = false; // whether npc's in party
+    if (opts.npc) {
+      this.controlMode = 'npc';
+    } else {
+      this.controlMode = 'controlled';
+    }
     this.detached = opts.detached ?? false;
+  }
+  getControlMode() {
+    return this.controlMode;
+  }
+  setControlMode(mode) {
+    this.controlMode = mode;
   }
   async setPlayerSpec(playerSpec) {
     const p = this.setAvatarUrl(playerSpec.avatarUrl);
@@ -1521,8 +1529,7 @@ class RemotePlayer extends InterpolatedPlayer {
   constructor(opts) {
     super(opts);
   
-    this.isPlayer = false;
-    this.isNpc = true;
+    this.controlMode = 'npc';
   }
 } */
 
