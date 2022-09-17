@@ -50,7 +50,6 @@ import * as sounds from './sounds.js';
 import * as lodder from './lod.js';
 import hpManager from './hp-manager.js';
 import particleSystemManager from './particle-system.js';
-import domRenderEngine from './dom-renderer.jsx';
 import dropManager from './drop-manager.js';
 import hitManager from './character-hitter.js';
 // import dcWorkerManager from './dc-worker-manager.js';
@@ -1192,16 +1191,12 @@ export default () => {
     return JSON6;
   },
   useGradientMapsInternal() {
-    return gradientMaps;
   },
   isSceneLoaded() {
     return universe.isSceneLoaded();
   },
   async waitForSceneLoaded() {
     await universe.waitForSceneLoaded();
-  },
-  useDomRenderer() {
-    return domRenderEngine;
   },
   useDropManager() {
     return dropManager;
