@@ -768,7 +768,7 @@ class AvatarCharacter extends StateCharacter {
   constructor(opts) {
     super(opts);
 
-    this.avatar = null; 
+    this.avatar = null;
 
     this.avatarFace = new AvatarCharacterFace(this);
     this.avatarCharacterFx = new AvatarCharacterFx(this);
@@ -786,7 +786,7 @@ class AvatarCharacter extends StateCharacter {
     camera.updateMatrixWorld();
   }
   updatePhysicsStatus() {
-    if (this.isLocalPlayer) {
+    if (this.getControlMode() === 'controlled') {
       physicsScene.disableGeometryQueries(this.characterPhysics.characterController);
     } else {
       physicsScene.enableGeometryQueries(this.characterPhysics.characterController);
@@ -893,7 +893,22 @@ class AvatarCharacter extends StateCharacter {
   }
 }
 
-class InterpolatedPlayer extends AvatarCharacter {
+class GamePlayer extends AvatarCharacter {
+  constructor(opts) {
+    super(opts);
+
+    this.controlMode = '';
+  }
+
+  getControlMode() {
+    return this.controlMode;
+  }
+  setControlMode(mode) {
+    this.controlMode = mode;
+  }
+}
+
+class InterpolatedPlayer extends GamePlayer {
   constructor(opts) {
     super(opts);
     this.positionInterpolant = new PositionInterpolant(() => this.getPosition(), avatarInterpolationTimeDelay, avatarInterpolationNumFrames);
@@ -993,7 +1008,7 @@ class InterpolatedPlayer extends AvatarCharacter {
     }
   }
 }
-class UninterpolatedPlayer extends AvatarCharacter {
+class UninterpolatedPlayer extends GamePlayer {
   constructor(opts) {
     super(opts);
     
@@ -1055,9 +1070,11 @@ class LocalPlayer extends UninterpolatedPlayer {
   constructor(opts) {
     super(opts);
 
-    this.isLocalPlayer = !opts.npc;
-    this.isNpcPlayer = !!opts.npc;
-    this.isInParty = false; // whether npc's in party
+    if (opts.npc) {
+      this.controlMode = 'npc';
+    } else {
+      this.controlMode = 'controlled';
+    }
     this.detached = opts.detached ?? false;
   }
   async setPlayerSpec(playerSpec) {
@@ -1336,6 +1353,7 @@ class RemotePlayer extends InterpolatedPlayer {
     this.audioWorkerLoaded = false;
     this.isRemotePlayer = true;
     this.lastPosition = new THREE.Vector3();
+    this.controlMode = 'remote';
   }
     // The audio worker handles hups and incoming voices
   // This includes the microphone from the owner of this instance
@@ -1521,8 +1539,7 @@ class RemotePlayer extends InterpolatedPlayer {
   constructor(opts) {
     super(opts);
   
-    this.isLocalPlayer = false;
-    this.isNpcPlayer = true;
+    this.controlMode = 'npc';
   }
 } */
 

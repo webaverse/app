@@ -220,7 +220,7 @@ class NpcManager extends EventTarget {
         app.addEventListener('hittrackeradded', hittrackeradd);
 
         const activate = () => {
-          if (!npcPlayer.isInParty) {
+          if (npcPlayer.getControlMode() === 'npc') {
             this.dispatchEvent(new MessageEvent('playerinvited', {
               data: {
                 player: npcPlayer,
@@ -258,11 +258,11 @@ class NpcManager extends EventTarget {
         };
         const updatePhysicsFn = (timestamp, timeDiff) => {
           if (npcPlayer) {
-            if (!npcPlayer.isLocalPlayer) {
-              if (npcPlayer.isInParty) { // if party, follow in a line
+            if (npcPlayer.getControlMode() !== 'controlled') {
+              if (npcPlayer.getControlMode() === 'party') { // if party, follow in a line
                 const target = this.getPartyTarget(npcPlayer);
                 followTarget(npcPlayer, target, timeDiff);
-              } else {
+              } else if (npcPlayer.getControlMode() === 'npc') {
                 if (targetSpec) { // if npc, look to targetSpec
                   const target = targetSpec.object;
                   const distance = followTarget(npcPlayer, target, timeDiff);

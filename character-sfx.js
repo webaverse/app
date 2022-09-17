@@ -87,15 +87,15 @@ export class AvatarCharacterSfx {
     this.oldNarutoRunSound = null;
     this.lastEmote = null;
 
-    if (this.character.isLocalPlayer) {
-      const wearupdate = e => {
+    const wearupdate = e => {
+      if (this.character.getControlMode() === 'controlled') {
         sounds.playSoundName(e.wear ? 'itemEquip' : 'itemUnequip');
-      };
-      character.addEventListener('wearupdate', wearupdate);
-      this.cleanup = () => {
-        character.removeEventListener('wearupdate', wearupdate);
-      };
-    }
+      }
+    };
+    character.addEventListener('wearupdate', wearupdate);
+    this.cleanup = () => {
+      character.removeEventListener('wearupdate', wearupdate);
+    };
 
     this.currentStep = null;
     this.currentSwimmingHand = null;
@@ -529,6 +529,6 @@ export class AvatarCharacterSfx {
     }
   }
   destroy() {
-    this.cleanup && this.cleanup();
+    this.cleanup();
   }
 }
