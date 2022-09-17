@@ -40,11 +40,11 @@ class PartyManager extends EventTarget {
       const headPlayer = this.partyPlayers[0];
       const nextPlayer = this.partyPlayers[1];
 
-      headPlayer.isLocalPlayer = false;
-      headPlayer.isNpcPlayer = true;
+      headPlayer.isPlayer = false;
+      headPlayer.isNpc = true;
 
-      nextPlayer.isLocalPlayer = true;
-      nextPlayer.isNpcPlayer = false;
+      nextPlayer.isPlayer = true;
+      nextPlayer.isNpc = false;
 
       
       const transplantToParty = () => {

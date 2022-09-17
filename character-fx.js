@@ -238,7 +238,7 @@ export class AvatarCharacterFx {
 
     this.lastSSS = isSSS;
     const _updateSonicBoomMesh = () => {
-      if (!this.sonicBoom  && !this.character.isNpcPlayer) {
+      if (!this.sonicBoom  && !this.character.isNpc) {
         this.sonicBoom = metaversefile.createApp();
         this.sonicBoom.setComponent('player', this.character);
         (async () => {
@@ -251,7 +251,7 @@ export class AvatarCharacterFx {
     };
     _updateSonicBoomMesh();
     const _updateNameplate = () => {
-      if(!this.nameplate && !this.character.isNpcPlayer && !this.character.isLocalPlayer){
+      if(!this.nameplate && !this.character.isNpc && !this.character.isPlayer){
         (async () => {
         this.nameplate = metaversefile.createApp();
         this.nameplate.setComponent('player', this.character);

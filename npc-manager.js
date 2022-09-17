@@ -258,7 +258,7 @@ class NpcManager extends EventTarget {
         };
         const updatePhysicsFn = (timestamp, timeDiff) => {
           if (npcPlayer) {
-            if (!npcPlayer.isLocalPlayer) {
+            if (!npcPlayer.isPlayer) {
               if (npcPlayer.isInParty) { // if party, follow in a line
                 const target = this.getPartyTarget(npcPlayer);
                 followTarget(npcPlayer, target, timeDiff);

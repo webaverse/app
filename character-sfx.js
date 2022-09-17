@@ -84,7 +84,7 @@ export class AvatarCharacterSfx {
     this.oldNarutoRunSound = null;
     this.lastEmote = null;
 
-    if (this.character.isLocalPlayer) {
+    if (this.character.isPlayer) {
       const wearupdate = e => {
         sounds.playSoundName(e.wear ? 'itemEquip' : 'itemUnequip');
       };
