@@ -1,5 +1,5 @@
 /* this is the fake speech synthesis module.
-it is responsible for playing Banjo-Kazooie style character speech. */
+it is responsible for playing character grunts and Banjo-Kazooie style character speech. */
 
 import audioManager from '../audio-manager.js';
 import {loadAudioBuffer, makePromise, selectVoice} from '../util.js';
