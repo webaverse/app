@@ -87,9 +87,9 @@ const playSoundName = name => {
   const snds = soundFiles[name];
   if (snds) {
     const sound = snds[Math.floor(Math.random() * snds.length)];
-    if (!sound) {
+    /* if (!sound) {
       debugger;
-    }
+    } */
     playSound(sound);
     return true;
   } else {
