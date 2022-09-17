@@ -524,7 +524,7 @@ export const decorateAnimation = animation => {
   animation.isBowDraw = /bow draw/i.test(animation.name);
   animation.isBowIdle = /bow idle/i.test(animation.name);
   animation.isBowLoose = /bow loose/i.test(animation.name);
-  animation.isDancing = /dancing/i.test(animation.name);
+  animation.isDancing = /Boxing/i.test(animation.name);
   animation.isPowerUp = /powerup/i.test(animation.name);
   animation.isAlert = /alert/i.test(animation.name);
   animation.isAlertSoft = /alert_soft/i.test(animation.name);

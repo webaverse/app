@@ -4,34 +4,44 @@
       "type": "application/light",
       "content": {
         "lightType": "ambient",
-        "args": [[255, 255, 255], 0.5]
+        "args": [[255, 255, 255], 2]
       }
     },
     {
-      "type": "application/light",
+      "type": "application/spawnpoint",
       "content": {
-        "lightType": "directional",
-        "args": [[255, 255, 255], 5],
-        "position": [1, 2, 3],
-        "shadow": [50, 4096, 0.1, 1000, 0, 0.2]
+        "position": [-115,
+        1.15,
+        -359],
+        "quaternion": [0, 0.0,0, 0.0]
       }
     },
     {
-      "position": [
-        0,
-        0,
-        0
-      ],
-      "start_url": "https://loryhoof.github.io/sky/"
+      "type": "application/rendersettings",
+      "content": {
+        "hdr": {
+          "adaptive": true,
+          "resolution": 256,
+          "adaptionRate": 100,
+          "maxLuminance": 10,
+          "minLuminance": 0,
+          "middleGrey": 3
+        },
+         "bloom": {
+          "strength": 0.5,
+          "radius": 0.001,
+          "threshold": 1.5
+        }
+      }
     },
     {
       "position": [
         -118,
-        1,
+        0.15,
         -359
       ],
       "physics": true,
-      "start_url": "/jet",
+      "start_url": "/bmw.glb",
       "dynamic": true
     },
     {
@@ -45,7 +55,7 @@
     {
       "position": [
         0,
-        0,
+        -2,
         0
       ],
       "physics": true,

@@ -242,78 +242,49 @@ class PhysicsScene extends EventTarget {
     physicsObject.physicsMesh = physicsMesh
     return physicsObject
   }
-  addGeometry2D(meshParent, worldScene) {
-
-    let meshes = new THREE.Object3D;
-
+  addGeometry2D(meshParent, worldScene, groundLayer) {
+    const meshes = new THREE.Object3D;
     meshParent.children.forEach(mesh => {
+      if(mesh.isMesh && mesh.position.z === groundLayer) {
+        let geo = mesh.geometry;
+        let nonIndexedGeo = geo.clone().toNonIndexed();
 
-      let geo = mesh.geometry;
-      let nonIndexedGeo = geo.clone().toNonIndexed();
+        let position = nonIndexedGeo.getAttribute('position').array;
+        let posAr2 = [];
 
-      let position = nonIndexedGeo.getAttribute('position').array;
-      let posAr2 = [];
+        for (let i = 0; i < position.length / 3; i++) {
+          posAr2.push([
+            position[i * 3], position[i * 3 + 1], position[i * 3 + 2]
+          ]);
+        }
 
-      for (let i = 0; i < position.length / 3; i++) {
-        posAr2.push([
-          position[i * 3], position[i * 3 + 1], position[i * 3 + 2]
-        ]);
-      }
+        var squareShape = new THREE.Shape();
+        squareShape.moveTo(posAr2[0][0], posAr2[0][2]);
 
-      var squareShape = new THREE.Shape();
-      squareShape.moveTo(posAr2[0][0], posAr2[0][2]);
+        for (let i = 1; i < posAr2.length; i++) {
+          squareShape.lineTo(posAr2[i][0], posAr2[i][2]);
+        }
 
-      for (let i = 1; i < posAr2.length; i++) {
-        squareShape.lineTo(posAr2[i][0], posAr2[i][2]);
-      }
+        var extrudeSettings={amount:1, bevelEnabled:false};
+        var geometry = new THREE.ExtrudeGeometry( squareShape, extrudeSettings );
 
-
-      var extrudeSettings={amount:1, bevelEnabled:false};
-      var geometry = new THREE.ExtrudeGeometry( squareShape, extrudeSettings );
-
-      let dummyMesh = new THREE.Mesh(geometry, new THREE.MeshBasicMaterial({color: 0xede90c, wireframe: true}));
-      meshes.add(dummyMesh);
-      dummyMesh.position.copy(mesh.position);
-      //dummyMesh.rotation.z = Math.PI / 2;
-      let tempScale = new THREE.Vector3();
-      mesh.getWorldScale(tempScale);
-      dummyMesh.scale.copy(new THREE.Vector3(tempScale.x, tempScale.y, tempScale.z));
-      //console.log(dummyMesh.rotation);
-      
-      let tempQuat = new THREE.Quaternion();
-      let temoObj = new THREE.Object3D;
-      mesh.getWorldQuaternion( tempQuat );
-      
-      temoObj.quaternion.copy(tempQuat);
-
-
-      //dummyMesh.quaternion.copy(tempQuat);
-      
-
-      //dummyMesh.rotation.z = temoObj.rotation.z;
-      //dummyMesh.rotation.x = temoObj.rotation.;
-
-      //console.log(temoObj.rotation);
-      //dummyMesh.rotation.y = -mesh.rotation.y;
-      //dummyMesh.updateMatrix();
-      
+        let dummyMesh = new THREE.Mesh(geometry, new THREE.MeshBasicMaterial({color: 0xede90c, wireframe: true}));
+        meshes.add(dummyMesh);
+        dummyMesh.position.copy(mesh.position);
+        let tempScale = new THREE.Vector3();
+        mesh.getWorldScale(tempScale);
+        dummyMesh.scale.copy(new THREE.Vector3(tempScale.x, tempScale.y, tempScale.z));
+        let tempQuat = new THREE.Quaternion();
+        let temoObj = new THREE.Object3D;
+        mesh.getWorldQuaternion( tempQuat );
         
-      });
-
-    
-    //let ara = new THREE.Object3D;
-
-    
-
-    //ara.add(dummyMesh);
+        temoObj.quaternion.copy(tempQuat);  
+      }
+    });
 
     meshes.position.z = -0.5;
-    //meshes.position.y = -1;
-    //ara.rotation.z = -Math.PI / 2;
     meshes.updateMatrixWorld();
-
     //worldScene.add(meshes);
-
 
     const physicsMesh = convertMeshToPhysicsMesh(meshes)
   
@@ -338,8 +309,6 @@ class PhysicsScene extends EventTarget {
     physicsMesh.updateMatrixWorld()
     physicsObject.physicsMesh = physicsMesh
     return physicsObject
-
-
   }
   addGeometryFromSprite(mesh) {
     console.log(mesh);
