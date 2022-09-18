@@ -43,6 +43,32 @@ const _handleMethod = ({
         transfers: [result.buffer],
       };
     }
+    case 'meshoptSimplify': {
+      const {positions, uvs, indices, targetRatio, targetError} = args;
+      const geometry = new THREE.BufferGeometry();
+      geometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
+      geometry.setAttribute('uv', new THREE.BufferAttribute(uvs, 2));
+      geometry.setIndex(new THREE.BufferAttribute(indices, 1));
+      const mesh = new THREE.Mesh(geometry, fakeMaterial);
+      const result = physxLite.meshoptSimplify(mesh, targetRatio, targetError);
+      return {
+        result,
+        transfers: [result.buffer],
+      };
+    }
+    case 'meshoptSimplifySloppy': {
+      const {positions, uvs, indices, targetRatio, targetError} = args;
+      const geometry = new THREE.BufferGeometry();
+      geometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
+      geometry.setAttribute('uv', new THREE.BufferAttribute(uvs, 2));
+      geometry.setIndex(new THREE.BufferAttribute(indices, 1));
+      const mesh = new THREE.Mesh(geometry, fakeMaterial);
+      const result = physxLite.meshoptSimplifySloppy(mesh, targetRatio, targetError);
+      return {
+        result,
+        transfers: [result.buffer],
+      };
+    }
     default: {
       throw new Error(`unknown method: ${method}`);
     }

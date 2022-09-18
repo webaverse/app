@@ -247,6 +247,49 @@ class PhysicsScene extends EventTarget {
   destroyMaterial(materialAddress) {
     physx.physxWorker.destroyMaterial(this.scene, materialAddress);
   }
+  async meshoptSimplify(mesh, targetRatio, targetError) {
+    const indices = await physxWorkerManager.meshoptSimplify(mesh, targetRatio, targetError);
+    
+    const geometry2 = new THREE.BufferGeometry();
+    for (const key in mesh.geometry.attributes) {
+      const attribute = mesh.geometry.attributes[key];
+      geometry2.setAttribute(key, attribute);
+    }
+    geometry2.setIndex(new THREE.BufferAttribute(indices, 1));
+    
+    const mesh2 = new THREE.Mesh(geometry2, mesh.material);
+    mesh2.name = mesh.name;
+    mesh2.position.copy(mesh.position);
+    mesh2.quaternion.copy(mesh.quaternion);
+    mesh2.scale.copy(mesh.scale);
+    mesh2.matrix.copy(mesh.matrix);
+    mesh2.matrixWorld.copy(mesh.matrixWorld);
+    // console.log('compare geometries', mesh.geometry, geometry2, mesh.geometry.attributes.position === geometry2.attributes.position);
+    // return indices;
+    return mesh2;
+    // return indices;
+  }
+  async meshoptSimplifySloppy(mesh, targetRatio, targetError) {
+    const indices = await physxWorkerManager.meshoptSimplifySloppy(mesh, targetRatio, targetError);
+    
+    const geometry2 = new THREE.BufferGeometry();
+    for (const key in mesh.geometry.attributes) {
+      const attribute = mesh.geometry.attributes[key];
+      geometry2.setAttribute(key, attribute);
+    }
+    geometry2.setIndex(new THREE.BufferAttribute(indices, 1));
+    
+    const mesh2 = new THREE.Mesh(geometry2, mesh.material);
+    mesh2.name = mesh.name;
+    mesh2.position.copy(mesh.position);
+    mesh2.quaternion.copy(mesh.quaternion);
+    mesh2.scale.copy(mesh.scale);
+    mesh2.matrix.copy(mesh.matrix);
+    mesh2.matrixWorld.copy(mesh.matrixWorld);
+    // console.log('compare geometries', mesh.geometry, geometry2, mesh.geometry.attributes.position === geometry2.attributes.position);
+    // return indices;
+    return mesh2;
+  }
   cookGeometry(mesh) {
     const physicsMesh = convertMeshToPhysicsMesh(mesh);
     const buffer = physx.physxWorker.cookGeometryPhysics(physicsMesh);
