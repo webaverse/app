@@ -128,8 +128,8 @@ physxLite.meshoptSimplify = (mesh, targetRatio, targetError) => {
   const allocator = new Allocator(Module);
   const positions = allocator.alloc(Float32Array, geometry.attributes.position.count * 3);
   positions.set(geometry.attributes.position.array);
-  const uvs = allocator.alloc(Float32Array, geometry.attributes.uv.count * 2);
-  uvs.set(geometry.attributes.uv.array);
+  // const uvs = allocator.alloc(Float32Array, geometry.attributes.uv.count * 2);
+  // uvs.set(geometry.attributes.uv.array);
   const indices = allocator.alloc(Uint32Array, geometry.index.count);
   indices.set(geometry.index.array);
 
@@ -141,7 +141,7 @@ physxLite.meshoptSimplify = (mesh, targetRatio, targetError) => {
     indices.length,
     positions.byteOffset,
     geometry.attributes.position.count,
-    uvs.byteOffset,
+    // uvs.byteOffset,
     target_index_count,
     target_error,
     scratchStack.u32.byteOffset,
@@ -173,8 +173,8 @@ physxLite.meshoptSimplifySloppy = (mesh, targetRatio, targetError) => {
   const allocator = new Allocator(Module);
   const positions = allocator.alloc(Float32Array, geometry.attributes.position.count * 3);
   positions.set(geometry.attributes.position.array);
-  const uvs = allocator.alloc(Float32Array, geometry.attributes.uv.count * 2);
-  uvs.set(geometry.attributes.uv.array);
+  // const uvs = allocator.alloc(Float32Array, geometry.attributes.uv.count * 2);
+  // uvs.set(geometry.attributes.uv.array);
   const indices = allocator.alloc(Uint32Array, geometry.index.count);
   indices.set(geometry.index.array);
 
@@ -186,7 +186,7 @@ physxLite.meshoptSimplifySloppy = (mesh, targetRatio, targetError) => {
     indices.length,
     positions.byteOffset,
     geometry.attributes.position.count,
-    uvs.byteOffset,
+    // uvs.byteOffset,
     target_index_count,
     target_error,
     scratchStack.u32.byteOffset,
