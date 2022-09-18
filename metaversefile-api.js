@@ -58,6 +58,7 @@ import procGenManager from './procgen-manager.js';
 import cardsManager from './cards-manager.js';
 import * as instancing from './instancing.js';
 import * as atlasing from './atlasing.js';
+import * as spriting from './spriting.js';
 import ioManager from './io-manager.js';
 import {lightsManager} from './lights-manager.js';
 
@@ -1240,8 +1241,11 @@ export default () => {
   useInstancing() {
     return instancing;
   },
-  useAtlasing() {
+  /* useAtlasing() {
     return atlasing;
+  }, */
+  useSpriting() {
+    return spriting;
   },
   useMaterials() {
     return materials;
