@@ -1,7 +1,7 @@
 import {playersManager} from './players-manager.js';
 import {LoadoutRenderer} from './loadout-renderer.js';
 import {InfoboxRenderer} from './infobox.js';
-import {createObjectSprite} from './object-spriter.js';
+import {createObjectSpriteAnimation} from './object-spriter.js';
 import {hotbarSize, infoboxSize} from './constants.js';
 
 const numSlots = 8;
@@ -10,7 +10,7 @@ const appSpritesheetCache = new WeakMap();
 const _getAppSpritesheet = app => {
   let spritesheet = appSpritesheetCache.get(app);
   if (!spritesheet) {
-    spritesheet = createObjectSprite(app);
+    spritesheet = createObjectSpriteAnimation(app);
     appSpritesheetCache.set(app, spritesheet);
   }
   return spritesheet;

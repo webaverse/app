@@ -1,4 +1,4 @@
-import {createObjectSprite} from './object-spriter.js';
+import {createObjectSpriteAnimation} from './object-spriter.js';
 import offscreenEngineManager from './offscreen-engine-manager.js';
 
 class SpritesheetManager {
@@ -6,7 +6,7 @@ class SpritesheetManager {
     this.spritesheetCache = new Map();
     this.getSpriteSheetForAppUrlInternal = offscreenEngineManager.createFunction([
       `\
-      import {createObjectSpriteAsync} from './object-spriter.js';
+      import {createObjectSpriteAnimation} from './object-spriter.js';
       import metaversefile from './metaversefile-api.js';
       import physx from './physx.js';
       `,
@@ -16,7 +16,9 @@ class SpritesheetManager {
         const app = await metaversefile.createAppAsync({
           start_url: appUrl,
         });
-        const spritesheet = await createObjectSpriteAsync(app, opts);
+        const spritesheet = await createObjectSpriteAnimation(app, opts, {
+          type: 'imageBitmap',
+        });
         return spritesheet;
       }
     ]);
@@ -24,7 +26,7 @@ class SpritesheetManager {
   getSpriteSheetForApp(app) {
     let spritesheet = this.spritesheetCache.get(app.contentId);
     if (!spritesheet) {
-      spritesheet = createObjectSprite(app);
+      spritesheet = createObjectSpriteAnimation(app);
       this.spritesheetCache.set(app.contentId, spritesheet);
     }
     return spritesheet;

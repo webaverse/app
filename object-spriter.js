@@ -1,18 +1,10 @@
 import * as THREE from 'three';
 import {getRenderer, scene} from './renderer.js';
-// import * as BufferGeometryUtils from 'three/examples/jsm/utils/BufferGeometryUtils.js';
-// import {world} from './world.js';
 import {fitCameraToBoundingBox} from './util.js';
-// import {Text} from 'troika-three-text';
-// import {defaultDioramaSize} from './constants.js';
-// import postProcessing from './post-processing.js';
-// import gradients from './gradients.json';
 
 const localVector = new THREE.Vector3();
 const localVector2 = new THREE.Vector3();
 const localVector3 = new THREE.Vector3();
-// const localVector2D = new THREE.Vector2();
-// const localVector2D2 = new THREE.Vector2();
 const localVector4D = new THREE.Vector4();
 const localColor = new THREE.Color();
 const localMatrix = new THREE.Matrix4();
@@ -42,12 +34,12 @@ const _makeSpritesheetRenderTarget = (w, h) => new THREE.WebGLRenderTarget(w, h,
   wrapS: THREE.ClampToEdgeWrapping,
   wrapT: THREE.ClampToEdgeWrapping,
 });
-const createObjectSpriteInternal = (app, {
+const createObjectSpriteAnimation = (app, {
   // canvas,
   size = defaultSize,
   numFrames = defaultNumFrames,
 } = {}, {
-  type = 'imageBitmap',
+  type = 'texture',
 } = {}) => {
   // const {devicePixelRatio: pixelRatio} = window;
 
@@ -172,18 +164,7 @@ const createObjectSpriteInternal = (app, {
     throw new Error('Unknown type');
   }
 };
-const createObjectSprite = (app, opts) => {
-  return createObjectSpriteInternal(app, opts, {
-    type: 'texture',
-  });
-};
-const createObjectSpriteAsync = (app, opts) => {
-  return createObjectSpriteInternal(app, opts, {
-    type: 'imageBitmap',
-  });
-};
 
 export {
-  createObjectSprite,
-  createObjectSpriteAsync,
+  createObjectSpriteAnimation,
 };
