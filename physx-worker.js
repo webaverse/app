@@ -44,10 +44,10 @@ const _handleMethod = ({
       };
     }
     case 'meshoptSimplify': {
-      const {positions, uvs, indices, targetRatio, targetError} = args;
+      const {positions, /*uvs,*/ indices, targetRatio, targetError} = args;
       const geometry = new THREE.BufferGeometry();
       geometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
-      geometry.setAttribute('uv', new THREE.BufferAttribute(uvs, 2));
+      // geometry.setAttribute('uv', new THREE.BufferAttribute(uvs, 2));
       geometry.setIndex(new THREE.BufferAttribute(indices, 1));
       const mesh = new THREE.Mesh(geometry, fakeMaterial);
       const result = physxLite.meshoptSimplify(mesh, targetRatio, targetError);
@@ -57,10 +57,10 @@ const _handleMethod = ({
       };
     }
     case 'meshoptSimplifySloppy': {
-      const {positions, uvs, indices, targetRatio, targetError} = args;
+      const {positions, /*uvs,*/ indices, targetRatio, targetError} = args;
       const geometry = new THREE.BufferGeometry();
       geometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
-      geometry.setAttribute('uv', new THREE.BufferAttribute(uvs, 2));
+      // geometry.setAttribute('uv', new THREE.BufferAttribute(uvs, 2));
       geometry.setIndex(new THREE.BufferAttribute(indices, 1));
       const mesh = new THREE.Mesh(geometry, fakeMaterial);
       const result = physxLite.meshoptSimplifySloppy(mesh, targetRatio, targetError);

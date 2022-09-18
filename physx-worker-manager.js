@@ -102,7 +102,7 @@ class PhysicsWorkerManager {
 
     const result = await worker.request('meshoptSimplify', {
       positions: mesh.geometry.attributes.position.array,
-      uvs: mesh.geometry.attributes.uv.array,
+      // uvs: mesh.geometry.attributes.uv.array,
       indices: mesh.geometry.index.array,
       targetRatio,
       targetError,
@@ -118,7 +118,7 @@ class PhysicsWorkerManager {
 
     const result = await worker.request('meshoptSimplifySloppy', {
       positions: mesh.geometry.attributes.position.array,
-      uvs: mesh.geometry.attributes.uv.array,
+      // uvs: mesh.geometry.attributes.uv.array,
       indices: mesh.geometry.index.array,
       targetRatio,
       targetError,
