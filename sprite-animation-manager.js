@@ -1,10 +1,10 @@
 import {createObjectSpriteAnimation} from './object-spriter.js';
 import offscreenEngineManager from './offscreen-engine-manager.js';
 
-class SpritesheetManager {
+class SpriteAnimationManager {
   constructor() {
-    this.spritesheetCache = new Map();
-    this.getSpriteSheetForAppUrlInternal = offscreenEngineManager.createFunction([
+    this.spriteAnimationCache = new Map();
+    this.getSpriteAnimationForAppUrlInternal = offscreenEngineManager.createFunction([
       `\
       import {createObjectSpriteAnimation} from './object-spriter.js';
       import metaversefile from './metaversefile-api.js';
@@ -23,23 +23,23 @@ class SpritesheetManager {
       }
     ]);
   }
-  getSpriteSheetForApp(app) {
-    let spritesheet = this.spritesheetCache.get(app.contentId);
+  getSpriteAnimationForApp(app) {
+    let spritesheet = this.spriteAnimationCache.get(app.contentId);
     if (!spritesheet) {
       spritesheet = createObjectSpriteAnimation(app);
-      this.spritesheetCache.set(app.contentId, spritesheet);
+      this.spriteAnimationCache.set(app.contentId, spritesheet);
     }
     return spritesheet;
   }
-  async getSpriteSheetForAppUrlAsync(appUrl, opts) {
-    let spritesheet = this.spritesheetCache.get(appUrl);
+  async getSpriteAnimationForAppUrlAsync(appUrl, opts) {
+    let spritesheet = this.spriteAnimationCache.get(appUrl);
     if (!spritesheet) {
-      spritesheet = await this.getSpriteSheetForAppUrlInternal([appUrl, opts]);
-      this.spritesheetCache.set(appUrl, spritesheet);
+      spritesheet = await this.getSpriteAnimationForAppUrlInternal([appUrl, opts]);
+      this.spriteAnimationCache.set(appUrl, spritesheet);
     }
     return spritesheet;
   }
 }
-const spritesheetManager = new SpritesheetManager();
+const spriteAnimationManager = new SpriteAnimationManager();
 
-export default spritesheetManager;
+export default spriteAnimationManager;
