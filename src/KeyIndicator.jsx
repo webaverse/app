@@ -15,7 +15,7 @@ export const KeyIndicator = props => {
         ) : null}
       </div>
       <div className={styles.label}>
-        <span>{props.label}</span>
+        <span>{props.label}{props.gridSnapEnabled > 0 ? props.gridSnapEnabled : (props.gridSnapEnabled === 0 ? 'Off' : null)}</span>
       </div>
     </div>
   );

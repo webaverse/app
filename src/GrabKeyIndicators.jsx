@@ -5,7 +5,7 @@ import { KeyIndicator } from './KeyIndicator';
 
 export const GrabKeyIndicators = () => {
   const [isEditMode, setIsEditMode] = useState(false);
-  const [gridSnapEnabled, setGridSnapEnabled] = useState(false);
+  const [gridSnapEnabled, setGridSnapEnabled] = useState(0);
 
   useEffect(() => {
     const toggleEditMode = e => {
@@ -14,7 +14,7 @@ export const GrabKeyIndicators = () => {
     grabManager.addEventListener('toggleeditmode', toggleEditMode);
 
     const setGridSnap = e => {
-      setGridSnapEnabled(e.data.gridSnap > 0);
+      setGridSnapEnabled(e.data.gridSnap);
     };
     grabManager.addEventListener('setgridsnap', setGridSnap);
   });
@@ -25,7 +25,7 @@ export const GrabKeyIndicators = () => {
         <ul className={styles.indicatorlist}>
           <li><KeyIndicator indicatorSvg="./images/ui/lmb.svg" label="Take or place object"></KeyIndicator></li>
           <li><KeyIndicator indicator="X" label="Remove object"></KeyIndicator></li>
-          <li><KeyIndicator indicator="V" label="Grid Snapping: Off"></KeyIndicator></li>
+          <li><KeyIndicator indicator="V" label="Grid Snapping: " gridSnapEnabled={gridSnapEnabled}></KeyIndicator></li>
         </ul>
       ) : null}
     </div>

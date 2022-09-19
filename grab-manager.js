@@ -149,7 +149,7 @@ class Grabmanager extends EventTarget {
     const localPlayer = playersManager.getLocalPlayer();
     localPlayer.grab(object);
     this.gridSnap = 0;
-    this.editMode = false;
+    this.toggleEditMode();
   }
   getGrabAction(i) {
     const targetHand = i === 0 ? 'left' : 'right';
