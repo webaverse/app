@@ -21,11 +21,12 @@ class SpritesheetMesh extends THREE.Mesh {
   constructor({
     texture,
     worldSize,
+    worldOffset,
     numAngles,
     numSlots,
   }) {
     const geometry = new DoubleSidedPlaneGeometry(worldSize, worldSize)
-      .translate(0, worldSize / 2 / 1.5, 0);
+      .translate(worldOffset[0], worldOffset[1], worldOffset[2]);
     const material = new WebaverseShaderMaterial({
       uniforms: {
         uTex: {
@@ -326,17 +327,22 @@ const createObjectSpriteSheet = async (app, {
 
   // get size
   const physicsObjects = app.getPhysicsObjects();
-  let worldWidth, worldHeight;
+  let worldWidth, worldHeight, worldOffset;
   const fitScale = 1.2;
   if (physicsObjects.length > 0) {
     const physicsObject = physicsObjects[0];
     const {physicsMesh} = physicsObject;
+    
     const size = physicsMesh.geometry.boundingBox.getSize(localVector);
     worldWidth = Math.max(size.x, size.z);
     worldHeight = size.y;
+    
+    const center = physicsMesh.geometry.boundingBox.getCenter(localVector);
+    worldOffset = center.toArray();
   } else {
     worldWidth = 1;
     worldHeight = 1;
+    worldOffset = [0, 0, 0];
   }
   worldWidth *= fitScale;
   worldHeight *= fitScale;
@@ -399,6 +405,7 @@ const createObjectSpriteSheet = async (app, {
     numFramesPerRow,
     worldWidth,
     worldHeight,
+    worldOffset,
   };
 };
 
