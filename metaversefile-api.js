@@ -57,7 +57,7 @@ import hitManager from './character-hitter.js';
 import procGenManager from './procgen-manager.js';
 import cardsManager from './cards-manager.js';
 import * as instancing from './instancing.js';
-// import * as atlasing from './atlasing.js';
+import * as atlasing from './atlasing.js';
 import * as spriting from './spriting.js';
 import * as gpuTaskManager from './gpu-task-manager.js';
 import * as generationTaskManager from './generation-task-manager.js';
@@ -1243,9 +1243,9 @@ export default () => {
   useInstancing() {
     return instancing;
   },
-  /* useAtlasing() {
+  useAtlasing() {
     return atlasing;
-  }, */
+  },
   useSpriting() {
     return spriting;
   },
