@@ -298,6 +298,29 @@ const _handleMethod = async ({method, args, instance: instanceKey, taskId}) => {
         ],
       };
     }
+    case 'generateVegetation': {
+      const {chunkPosition, lod} = args;
+      const instance = instances.get(instanceKey);
+      if (!instance) throw new Error('generateVegetation : instance not found');
+
+      const position = localVector2D.fromArray(chunkPosition)
+        .multiplyScalar(chunkWorldSize);
+      const {
+        ps,
+        qs,
+        instances: instancesResult,
+      } = await pg.createChunkVegetationAsync(instance, taskId, position.x, position.z, lod);
+
+      const spec = {
+        result: {
+          ps,
+          qs,
+          instances: instancesResult,
+        },
+        transfers: [ps.buffer, qs.buffer, instancesResult.buffer],
+      };
+      return spec;
+    }
     /* case 'generateLiquidChunk': {
       const {chunkPosition, lod, lodArray} = args;
       const instance = instances.get(instanceKey);
@@ -326,7 +349,7 @@ const _handleMethod = async ({method, args, instance: instanceKey, taskId}) => {
         return null;
       }
     } */
-    case 'createGrassSplat': {
+    /* case 'createGrassSplat': {
       const {x, z, lod, priority} = args;
       const instance = instances.get(instanceKey);
       if (!instance) throw new Error('createGrassSplat : instance not found');
@@ -388,7 +411,7 @@ const _handleMethod = async ({method, args, instance: instanceKey, taskId}) => {
         transfers: [ps.buffer, qs.buffer, instancesResult.buffer],
       };
       return spec;
-    }
+    } */
     /* case 'drawCubeDamage': {
       const {position, quaternion, scale} = args;
       const instance = instances.get(instanceKey);
