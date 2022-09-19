@@ -424,10 +424,10 @@ export class GeometryAllocator {
     this.positionFreeList.free(geometryBinding.positionFreeListEntry);
     this.indexFreeList.free(geometryBinding.indexFreeListEntry);
   }
-  getDrawSpec(camera, drawStarts, drawCounts, distanceArray) {
+  getDrawSpec(camera, drawStarts, drawCounts/*, distanceArray*/) {
     drawStarts.length = 0;
     drawCounts.length = 0;
-    distanceArray.length = 0;
+    // distanceArray.length = 0;
 
     for (let i = 0; i < this.numDraws; i++) {
       let frustumCullVisible = true;
@@ -947,7 +947,7 @@ export class InstancedGeometryAllocator {
           const startOffset = i * this.maxInstancesPerDrawCall;
 
           // arrange the instanced draw list :
-          // - apply per-instanse frustum culling
+          // - apply per-instance frustum culling
           // - swapping the bounding data into place
           // - accumulate the real instance draw count
           const maxDrawableInstances = this.drawInstanceCounts[i];
@@ -985,10 +985,10 @@ export class BatchedMesh extends THREE.Mesh {
     
     this.isBatchedMesh = true;
     this.allocator = allocator;
-    this.distanceArray = [];
+    // this.distanceArray = [];
   }
 	getDrawSpec(camera, drawStarts, drawCounts) {
-    this.allocator.getDrawSpec(camera, drawStarts, drawCounts, this.distanceArray);
+    this.allocator.getDrawSpec(camera, drawStarts, drawCounts/*, this.distanceArray*/);
   }
 }
 
