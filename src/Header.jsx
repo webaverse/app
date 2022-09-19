@@ -70,8 +70,6 @@ export default function Header() {
     }, []);
 
     useEffect( () => {
-        console.log("dd", currentAddress)
-
         const pointerlockchange = e => {
 
             const { pointerLockElement } = e.data;

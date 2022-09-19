@@ -135,4 +135,4 @@ export const CHAIN_ID_MAP = Object.keys(CHAINS).reduce((acc, key) => {
 }, {});
 
 export const NETWORK_KEYS = Object.keys(CHAINS);
-export const DEFAULT_CHAIN = CHAINS.POLYGON_MAIN;
+export const DEFAULT_CHAIN = CHAINS.ETHEREUM_MAIN;

@@ -41,22 +41,14 @@ export const User = ({ className, address, setAddress, setLoginFrom }) => {
 
     };
 
-    const reduceAddress = (address) => {
-        if(address.length > 12) {
-            return address.slice(0, 7) + "..." + address.slice(-6)
-        }
-        return address;
-    }
-
     useEffect(()=>{
         if(!currentAddress) return;
         _setAddress(currentAddress);
     }, [currentAddress, selectedChain])
 
     const _setAddress = async address => {
-        const {name, avatar} = await getAccountDetails();
-        console.log("name, avatar", name, avatar)
-
+        const {name, avatar} = await getAccountDetails(address);
+        
         setEnsName(name || '');
         setAvatarUrl(avatar ? resolveAvatar(avatar) : '');
         setAddress(address || '');
