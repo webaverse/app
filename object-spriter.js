@@ -14,7 +14,6 @@ const localMatrix = new THREE.Matrix4();
 const defaultSize = 2048;
 const defaultNumAnimationFrames = 128;
 const defaultNumSpritesheetFrames = 8;
-const fitScale = 1.2;
 
 //
 
@@ -217,13 +216,14 @@ const createObjectSpriteAnimation = (app, {
     renderer.setClearColor(0xffffff, 0);
     renderer.clear();
 
+    const physicsObjects = app.getPhysicsObjects();
+    const fitScale = 1.2;
     for (let i = 0; i < numFrames; i++) {
       const y = Math.floor(i / numFramesPerRow);
       const x = i - y * numFramesPerRow;
     
       // set up side camera
       const angle = (i / numFrames) * Math.PI * 2;
-      const physicsObjects = app.getPhysicsObjects();
       if (physicsObjects.length > 0) {
         const physicsObject = physicsObjects[0];
         const {physicsMesh} = physicsObject;
@@ -327,6 +327,7 @@ const createObjectSpriteSheet = async (app, {
   renderer.clear();
 
   // get size
+  const fitScale = 1;
   const physicsObjects = app.getPhysicsObjects();
   let worldWidth, worldHeight, worldOffset;
   if (physicsObjects.length > 0) {
