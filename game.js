@@ -373,7 +373,16 @@ const hitboxOffsetDistance = 0.3;
 
 let grabUseMesh = null;
 const _gameInit = () => {
-  grabUseMesh = grabManager.getGrabUseMesh();
+  grabUseMesh = metaversefileApi.createApp();
+  (async () => {
+    await metaverseModules.waitForLoad();
+    const {modules} = metaversefileApi.useDefaultModules();
+    const m = modules['button'];
+    await grabUseMesh.addModule(m);
+  })();
+  grabUseMesh.targetApp = null;
+  grabUseMesh.targetPhysicsId = -1;
+  sceneLowPriority.add(grabUseMesh);
 };
 Promise.resolve()
   .then(_gameInit);
@@ -382,8 +391,39 @@ let lastActivated = false;
 let lastThrowing = false;
 const _gameUpdate = (timestamp, timeDiff) => {
   const now = timestamp;
-  const renderer = getRenderer();
   const localPlayer = playersManager.getLocalPlayer();
+
+  const _updateGrabUseMesh = () => {
+    const _isWear = o => localPlayer.findAction(action => action.type === 'wear' && action.instanceId === o.instanceId);
+
+    grabUseMesh.visible = false;
+    if (!grabManager.editMode) {
+      const avatarHeight = localPlayer.avatar ? localPlayer.avatar.height : 0;
+      localVector.copy(localPlayer.position)
+        .add(localVector2.set(0, avatarHeight * (1 - localPlayer.getCrouchFactor()) * 0.5, -0.3).applyQuaternion(localPlayer.quaternion));
+        
+      const radius = 1;
+      const halfHeight = 0.1;
+      const collision = physicsScene.getCollisionObject(radius, halfHeight, localVector, localPlayer.quaternion);
+      if (collision) {
+        const physicsId = collision.objectId;
+        const object = metaversefileApi.getAppByPhysicsId(physicsId);
+        // console.log('got collision', physicsId, object);
+        const physicsObject = metaversefileApi.getPhysicsObjectByPhysicsId(physicsId);
+        if (object && !_isWear(object) && physicsObject) {
+          grabUseMesh.position.setFromMatrixPosition(physicsObject.physicsMesh.matrixWorld);
+          grabUseMesh.quaternion.copy(camera.quaternion);
+          grabUseMesh.updateMatrixWorld();
+          grabUseMesh.targetApp = object;
+          grabUseMesh.targetPhysicsId = physicsId;
+          grabUseMesh.setComponent('value', localPlayer.actionInterpolants.activate.getNormalized());
+          
+          grabUseMesh.visible = true;
+        }
+      }
+    }
+  };
+  _updateGrabUseMesh();
 
   zTargeting.update(timestamp, timeDiff);
 
