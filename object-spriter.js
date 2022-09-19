@@ -1,5 +1,7 @@
 import * as THREE from 'three';
-import {getRenderer, scene} from './renderer.js';
+import {getRenderer} from './renderer.js';
+import {DoubleSidedPlaneGeometry} from './geometries.js';
+import {WebaverseShaderMaterial} from './materials.js';
 import {fitCameraToBoundingBox} from './util.js';
 
 const localVector = new THREE.Vector3();
@@ -12,6 +14,131 @@ const localMatrix = new THREE.Matrix4();
 const defaultSize = 2048;
 const defaultNumAnimationFrames = 128;
 const defaultNumSpritesheetFrames = 8;
+
+//
+
+class SpritesheetMesh extends THREE.Mesh {
+  constructor({
+    texture,
+    worldSize,
+    numAngles,
+    numSlots,
+  }) {
+    const geometry = new DoubleSidedPlaneGeometry(worldSize, worldSize)
+      .translate(0, worldSize / 2 / 1.5, 0);
+    const material = new WebaverseShaderMaterial({
+      uniforms: {
+        uTex: {
+          type: 't',
+          value: texture,
+          // needsUpdate: true,
+        },
+        uTime: {
+          type: 'f',
+          value: 0,
+          needsUpdate: true,
+        },
+        uY: {
+          type: 'f',
+          value: 0,
+          needsUpdate: true,
+        },
+      },
+      vertexShader: `\
+        precision highp float;
+        precision highp int;
+
+        // attribute vec3 barycentric;
+        attribute float ao;
+        attribute float skyLight;
+        attribute float torchLight;
+
+        // varying vec3 vViewPosition;
+        varying vec2 vUv;
+        varying vec3 vBarycentric;
+        varying float vAo;
+        varying float vSkyLight;
+        varying float vTorchLight;
+        varying vec3 vSelectColor;
+        varying vec2 vWorldUv;
+        varying vec3 vPos;
+        varying vec3 vNormal;
+
+        void main() {
+          vec4 mvPosition = modelViewMatrix * vec4(position, 1.0);
+          gl_Position = projectionMatrix * mvPosition;
+
+          // vViewPosition = -mvPosition.xyz;
+          vUv = uv;
+        }
+      `,
+      fragmentShader: `\
+        precision highp float;
+        precision highp int;
+
+        #define PI 3.1415926535897932384626433832795
+
+        // uniform float sunIntensity;
+        uniform sampler2D uTex;
+        // uniform vec3 uColor;
+        uniform float uTime;
+        uniform float uY;
+        // uniform vec3 sunDirection;
+        // uniform float distanceOffset;
+        float parallaxScale = 0.3;
+        float parallaxMinLayers = 50.;
+        float parallaxMaxLayers = 50.;
+
+        // varying vec3 vViewPosition;
+        varying vec2 vUv;
+        varying vec3 vBarycentric;
+        varying float vAo;
+        varying float vSkyLight;
+        varying float vTorchLight;
+        varying vec3 vSelectColor;
+        varying vec2 vWorldUv;
+        varying vec3 vPos;
+        varying vec3 vNormal;
+
+        void main() {
+          float angleIndex = floor(uY * ${numAngles.toFixed(8)});
+          float i = angleIndex;
+          float x = mod(i, ${numSlots.toFixed(8)});
+          float y = (i - x) / ${numSlots.toFixed(8)};
+
+          gl_FragColor = texture(
+            uTex,
+            vec2(0., 1. - 1./${numSlots.toFixed(8)}) +
+              vec2(x, -y)/${numSlots.toFixed(8)} +
+              vec2(1.-vUv.x, 1.-vUv.y)/${numSlots.toFixed(8)}
+          );
+
+          const float alphaTest = 0.5;
+          if (gl_FragColor.a < alphaTest) {
+            discard;
+          }
+          gl_FragColor.a = 1.;
+          // gl_FragColor.r += 0.5;
+        }
+      `,
+      transparent: true,
+      // depthWrite: false,
+      // polygonOffset: true,
+      // polygonOffsetFactor: -2,
+      // polygonOffsetUnits: 1,
+      // side: THREE.DoubleSide,
+    });
+    super(geometry, material);
+    /* this.customPostMaterial = new AvatarSpriteDepthMaterial(undefined, {
+      tex,
+    }); */
+
+    // this.lastSpriteSpecName = '';
+    // this.lastSpriteSpecTimestamp = 0;
+  }
+}
+
+//
 
 const _addPreviewLights = scene => {
   const ambientLight = new THREE.AmbientLight(0xffffff, 2);
@@ -278,4 +405,5 @@ const createObjectSpriteSheet = async (app, {
 export {
   createObjectSpriteAnimation,
   createObjectSpriteSheet,
+  SpritesheetMesh,
 };
