@@ -1,5 +1,4 @@
 import offscreenEngineManager from './offscreen-engine-manager.js';
-import {SpritesheetMesh} from './object-spriter.js';
 
 let getSpriteSheetForAppUrlInternal = null;
 const createAppUrlSpriteSheet = async (appUrl, opts) => {
@@ -33,5 +32,4 @@ const createAppUrlSpriteSheet = async (appUrl, opts) => {
 
 export {
   createAppUrlSpriteSheet,
-  SpritesheetMesh,
 };
