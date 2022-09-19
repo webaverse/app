@@ -1,7 +1,4 @@
-// errors
-
-const abortError = new Error('aborted');
-abortError.isAbortError = true;
+import {abortError} from './lock-manager.js';
 
 // events
 
