@@ -1,16 +1,16 @@
-import * as THREE from "three";
-import ioManager from "./io-manager.js";
-import { playersManager } from "./players-manager.js";
-import physicsManager from "./physics-manager.js";
-import metaversefileApi from "./metaversefile-api.js";
-import * as metaverseModules from "./metaverse-modules.js";
-import { maxGrabDistance } from "./constants.js";
-import { getRenderer, sceneLowPriority, camera } from "./renderer.js";
-import cameraManager from "./camera-manager.js";
-import gameManager from "./game.js";
-import { world } from "./world.js";
-import { makeHighlightPhysicsMesh, snapPosition } from "./util.js";
-import { buildMaterial } from "./shaders.js";
+import * as THREE from 'three';
+import ioManager from './io-manager.js';
+import { playersManager } from './players-manager.js';
+import physicsManager from './physics-manager.js';
+import metaversefileApi from './metaversefile-api.js';
+import * as metaverseModules from './metaverse-modules.js';
+import { maxGrabDistance } from './constants.js';
+import { getRenderer, sceneLowPriority, camera } from './renderer.js';
+import cameraManager from './camera-manager.js';
+import gameManager from './game.js';
+import { world } from './world.js';
+import { makeHighlightPhysicsMesh, snapPosition } from './util.js';
+import { buildMaterial } from './shaders.js';
 
 const physicsScene = physicsManager.getScene();
 
@@ -152,10 +152,10 @@ class Grabmanager extends EventTarget {
     this.editMode = false;
   }
   getGrabAction(i) {
-    const targetHand = i === 0 ? "left" : "right";
+    const targetHand = i === 0 ? 'left' : 'right';
     const localPlayer = playersManager.getLocalPlayer();
     const grabAction = localPlayer.findAction(
-      (action) => action.type === "grab" && action.hand === targetHand
+      (action) => action.type === 'grab' && action.hand === targetHand
     );
     return grabAction;
   }
@@ -182,7 +182,7 @@ class Grabmanager extends EventTarget {
       }
     }
     this.dispatchEvent(
-      new MessageEvent("toggleeditmode", {
+      new MessageEvent('toggleeditmode', {
         data: { isEditMode: this.editMode },
       })
     );
@@ -222,7 +222,7 @@ class Grabmanager extends EventTarget {
   menuPush(direction) {
     const localPlayer = playersManager.getLocalPlayer();
     const grabAction = localPlayer.findAction(
-      (action) => action.type === "grab" && action.hand === "left"
+      (action) => action.type === 'grab' && action.hand === 'left'
     );
     if (grabAction) {
       const matrix = localMatrix.fromArray(grabAction.matrix);
@@ -232,7 +232,7 @@ class Grabmanager extends EventTarget {
         .compose(localVector, localQuaternion, localVector2)
         .toArray(grabAction.matrix);
     } else {
-      console.warn("trying to push with no grab object");
+      console.warn('trying to push with no grab object');
     }
   }
 
@@ -243,7 +243,7 @@ class Grabmanager extends EventTarget {
     const _updateGrab = () => {
       const _isWear = (o) =>
         localPlayer.findAction(
-          (action) => action.type === "wear" && action.instanceId === o.instanceId);
+          (action) => action.type === 'wear' && action.instanceId === o.instanceId);
 
       for (let i = 0; i < 2; i++) {
         const grabAction = this.getGrabAction(i);
@@ -252,7 +252,7 @@ class Grabmanager extends EventTarget {
           let position = null,
             quaternion = null;
           if (renderer.xr.getSession()) {
-            const h = localPlayer[hand === "left" ? "leftHand" : "rightHand"];
+            const h = localPlayer[hand === 'left' ? 'leftHand' : 'rightHand'];
             position = h.position;
             quaternion = h.quaternion;
           } else {
