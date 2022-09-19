@@ -1,49 +1,16 @@
 import * as THREE from 'three';
 import * as BufferGeometryUtils from 'three/examples/jsm/utils/BufferGeometryUtils.js';
 import {getRenderer} from './renderer.js';
-// import { chunkMinForPosition, convertMeshToPhysicsMesh } from './util.js';
-// import { PEEK_FACE_INDICES } from './constants.js';
 import {ImmediateGLBufferAttribute} from './ImmediateGLBufferAttribute.js';
-// import Module from './public/bin/geometry.js';
-// import { Allocator } from './geometry-util.js';
-// import { toHiraganaCase } from 'encoding-japanese';
 
 const localVector2D = new THREE.Vector2();
-// const localVector2D2 = new THREE.Vector2();
-// const localVector3D = new THREE.Vector3();
-// const localVector3D2 = new THREE.Vector3();
-// const localVector3D3 = new THREE.Vector3();
-// const currentChunkMin = new THREE.Vector3();
-// const currentChunkMax = new THREE.Vector3();
 const localMatrix = new THREE.Matrix4();
 const localSphere = new THREE.Sphere();
 const localBox = new THREE.Box3();
 const localFrustum = new THREE.Frustum();
 const localDataTexture = new THREE.DataTexture();
 
-/* const PEEK_FACES = {
-  FRONT : 0,
-  BACK : 1,
-  LEFT : 2,
-  RIGHT : 3,
-  TOP : 4,
-  BOTTOM : 5,
-  NONE : 6
-}; */
-/* const peekFaceSpecs = [
-  [PEEK_FACES['BACK'], PEEK_FACES['FRONT'], 0, 0, -1],
-  [PEEK_FACES['FRONT'], PEEK_FACES['BACK'], 0, 0, 1],
-  [PEEK_FACES['LEFT'], PEEK_FACES['RIGHT'], -1, 0, 0],
-  [PEEK_FACES['RIGHT'], PEEK_FACES['LEFT'], 1, 0, 0],
-  [PEEK_FACES['TOP'], PEEK_FACES['BOTTOM'], 0, 1, 0],
-  [PEEK_FACES['BOTTOM'], PEEK_FACES['TOP'], 0, -1, 0],
-]; */
-
 const maxNumDraws = 1024;
-
-/* const isPointInPillar = (vector, min, max) => {
-  return (vector.x >= min.x && vector.x < max.x) && (vector.z >= min.z && vector.z < max.z);
-}; */
 
 const _getBoundingSize = boundingType => {
   switch (boundingType) {
@@ -158,96 +125,12 @@ export class GeometryPositionIndexBinding {
   }
 }
 
-/* const chunkAllocationDataSize =      // 35
-  Int32Array.BYTES_PER_ELEMENT +     // id
-  Int32Array.BYTES_PER_ELEMENT * 3 + // min
-  Int32Array.BYTES_PER_ELEMENT +     // enterFace
-  Uint8Array.BYTES_PER_ELEMENT * 15; // peeks
-
-class ChunkAllocationData {
-  constructor(id, min, enterFace, peeks) {
-    this.id = id; // 4 bytes
-    this.min = min; // 12 bytes
-    this.enterFace = enterFace; // 4 bytes
-    this.peeks = peeks; // 15 bytes
-  }
-  serialize(dataView, serializeId) {
-    this.id = serializeId;
-
-    let offset = serializeId * chunkAllocationDataSize;
-    let localOffset = 0;
-
-    
-    dataView.setInt32(offset + localOffset, this.id, true);
-    localOffset += Int32Array.BYTES_PER_ELEMENT;
-
-    dataView.setInt32(offset + localOffset, this.min.x, true);
-    localOffset += Int32Array.BYTES_PER_ELEMENT;
-
-    dataView.setInt32(offset + localOffset, this.min.y, true);
-    localOffset += Int32Array.BYTES_PER_ELEMENT;
-
-    dataView.setInt32(offset + localOffset, this.min.z, true);
-    localOffset += Int32Array.BYTES_PER_ELEMENT;
-
-    dataView.setInt32(offset + localOffset, this.enterFace, true);
-    localOffset += Int32Array.BYTES_PER_ELEMENT;
-
-    for (let j = 0; j < 15; j++) {
-      dataView.setUint8(offset + localOffset, this.peeks[j], true);
-      localOffset += Uint8Array.BYTES_PER_ELEMENT;
-    }
-  }
-} */
-
-/* function deserializeChunkAllocationData(dataView, serializeId) {
-  let offset = serializeId * chunkAllocationDataSize;
-  let localOffset = 0;
-  const id = dataView.getInt32(offset + localOffset, true);
-  localOffset += Int32Array.BYTES_PER_ELEMENT;
-
-  const minX = dataView.getInt32(offset + localOffset, true);
-  localOffset += Int32Array.BYTES_PER_ELEMENT;
-
-  const minY = dataView.getInt32(offset + localOffset, true);
-  localOffset += Int32Array.BYTES_PER_ELEMENT;
-
-  const minZ = dataView.getInt32(offset + localOffset, true);
-  localOffset += Int32Array.BYTES_PER_ELEMENT;
-
-  const enterFace = dataView.getInt32(offset + localOffset, true);
-  localOffset += Int32Array.BYTES_PER_ELEMENT;
-
-  const peeks = new Uint8Array(15);
-
-  for (let j = 0; j < 15; j++) {
-    peeks.set([dataView.getUint8(offset + localOffset, true)], j);
-    localOffset += Uint8Array.BYTES_PER_ELEMENT;
-  }
-
-  return new ChunkAllocationData(id, { x:minX, y:minY, z:minZ }, enterFace, peeks);
-}
-
-function deserializeDrawListBuffer(arrayBuffer, bufferAddress){
-  const dataView = new DataView(arrayBuffer, bufferAddress);
-
-  let index = 0;
-  // DrawCalls
-  const numDrawCalls = dataView.getUint32(index, true);
-  index += Uint32Array.BYTES_PER_ELEMENT;
-  const DrawCalls = new Int32Array(arrayBuffer, bufferAddress + index, numDrawCalls);
-  index += Int32Array.BYTES_PER_ELEMENT * numDrawCalls;
-
-  return DrawCalls;
-} */
-
 export class GeometryAllocator {
   constructor(
     attributeSpecs,
     {
       bufferSize,
       boundingType = null,
-      // hasOcclusionCulling = false,
     }
   ) {
     {
@@ -293,37 +176,12 @@ export class GeometryAllocator {
     this.drawCounts = new Int32Array(maxNumDraws);
     const boundingSize = _getBoundingSize(boundingType);
     this.boundingData = new Float32Array(maxNumDraws * boundingSize);
-    // this.minData = new Float32Array(maxNumDraws * 4);
-    // this.maxData = new Float32Array(maxNumDraws * 4);
-    // this.appMatrix = new THREE.Matrix4();
-    // this.peeksArray = [];
-    /* this.hasOcclusionCulling = hasOcclusionCulling;
-    if (this.hasOcclusionCulling) {
-      this.OCInstance = Module._initOcclusionCulling();
-      const allocator = new Allocator(Module);
-      const chunkAllocationBufferSize = maxNumDraws * chunkAllocationDataSize;
-      this.chunkAllocationBuffer = allocator.alloc(
-        Uint8Array,
-        chunkAllocationBufferSize
-      );
-      // console.log(this.chunkAllocationBuffer.length);
-      this.chunkAllocationArrayOffset = this.chunkAllocationBuffer.offset;
-      this.chunkAllocationDataView = new DataView(
-        Module.HEAP8.buffer,
-        this.chunkAllocationArrayOffset,
-        chunkAllocationBufferSize
-      );
-    } */
     this.numDraws = 0;
   }
   alloc(
     numPositions,
     numIndices,
     boundingObject,
-    // minObject,
-    // maxObject,
-    // appMatrix,
-    // peeks
   ) {
     const positionFreeListEntry = this.positionFreeList.alloc(numPositions);
     const indexFreeListEntry = this.indexFreeList.alloc(numIndices);
@@ -332,24 +190,6 @@ export class GeometryAllocator {
       indexFreeListEntry,
       this.geometry
     );
-
-    /* if (this.hasOcclusionCulling) {
-      minObject.applyMatrix4(this.appMatrix);
-      maxObject.applyMatrix4(this.appMatrix);
-
-      const allocatedChunk = new ChunkAllocationData(
-        this.numDraws,
-        minObject,
-        PEEK_FACES['NONE'],
-        peeks
-      );
-      allocatedChunk.serialize(this.chunkAllocationDataView, this.numDraws);
-
-      this.appMatrix = appMatrix;
-
-      minObject.toArray(this.minData, this.numDraws * 4);
-      maxObject.toArray(this.maxData, this.numDraws * 4);
-    } */
 
     const slot = indexFreeListEntry;
     this.drawStarts[this.numDraws] =
@@ -401,22 +241,6 @@ export class GeometryAllocator {
         this.boundingData[freeIndex * 6 + 5] =
           this.boundingData[lastIndex * 6 + 5];
       }
-
-      /* if (this.hasOcclusionCulling) {
-        this.minData[freeIndex * 4 + 0] = this.minData[lastIndex * 4 + 0];
-        this.minData[freeIndex * 4 + 1] = this.minData[lastIndex * 4 + 1];
-        this.minData[freeIndex * 4 + 2] = this.minData[lastIndex * 4 + 2];
-
-        this.maxData[freeIndex * 4 + 0] = this.maxData[lastIndex * 4 + 0];
-        this.maxData[freeIndex * 4 + 1] = this.maxData[lastIndex * 4 + 1];
-        this.maxData[freeIndex * 4 + 2] = this.maxData[lastIndex * 4 + 2];
-
-        const freeChunk = deserializeChunkAllocationData(
-          this.chunkAllocationDataView,
-          lastIndex
-        );
-        freeChunk.serialize(this.chunkAllocationDataView, freeIndex); // free
-      } */
     }
 
     this.numDraws--;
@@ -446,69 +270,6 @@ export class GeometryAllocator {
         drawCounts.push(this.drawCounts[i]);
       }
     }
-
-    /* if (this.hasOcclusionCulling) {
-      const findSearchStartingChunk = () => {
-        let foundId;
-        let surfaceY = -Infinity;
-        // find the chunk that the camera is inside of
-        for (let i = 0; i < this.numDraws; i++) {
-          localVector3D2.set(0, 0, 0);
-          localVector3D3.set(0, 0, 0);
-
-          const min = localVector3D2.fromArray(this.minData, i * 4); // min
-          const max = localVector3D3.fromArray(this.maxData, i * 4); // max
-
-          if (isPointInPillar(camera.position, min, max)) {
-            // we pick the chunk that has the largest height between those who are in the correct range
-            if (surfaceY < min.y && min.y <= 0 && min.y <= camera.position.y) {
-              surfaceY = min.y;
-              currentChunkMin.copy(min);
-              currentChunkMax.copy(max);
-              foundId = i;
-            }
-          }
-        }
-        return foundId;
-      };
-
-      const foundId = findSearchStartingChunk();
-     
-
-      if (foundId) {
-        const cameraView = new THREE.Vector3();
-        const drawListBuffer = Module._cullOcclusionCulling(
-          this.OCInstance,
-          this.chunkAllocationArrayOffset,
-          foundId,
-          currentChunkMin.x,
-          currentChunkMin.y,
-          currentChunkMin.z,
-          currentChunkMax.x,
-          currentChunkMax.y,
-          currentChunkMax.z,
-          camera.position.x,
-          camera.position.y,
-          camera.position.z,
-          cameraView.x,
-          cameraView.y,
-          cameraView.z,
-          this.numDraws
-        );
-        const drawCalls = deserializeDrawListBuffer(
-          Module.HEAP8.buffer,
-          Module.HEAP8.byteOffset + drawListBuffer
-        );
-        for (let i = 0; i < drawCalls.length; i++) {
-          drawStarts.push(this.drawStarts[drawCalls[i]]);
-          drawCounts.push(this.drawCounts[drawCalls[i]]);
-        }
-      } else {
-        fullyDraw();
-      }
-    } else {
-      fullyDraw();
-    } */
   }
 }
 
