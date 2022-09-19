@@ -27,7 +27,7 @@ const cameraMesh = new THREE.Mesh(cameraGeometry, cameraMaterial);
 
 const localVector = new THREE.Vector3();
 const localVector2 = new THREE.Vector3();
-const localVector3 = new THREE.Vector3(0, 1, 0);
+const localVector3 = new THREE.Vector3();
 const localVector2D = new THREE.Vector2();
 const localVector4D = new THREE.Vector4();
 const localQuaternion = new THREE.Quaternion();
@@ -753,7 +753,7 @@ const _getPlayerSide = () => {
     localMatrix.lookAt(
       localVector.set(0, 0, 0),
       localVector2.set(0, 0, -1).applyQuaternion(localPlayer.quaternion),
-      localVector3
+      localVector3.set(0, 1, 0)
     ),
     'YXZ'
   );
@@ -763,7 +763,7 @@ const _getPlayerSide = () => {
     localMatrix.lookAt(
       localVector.set(0, 0, 0),
       localVector2.copy(localPlayer.characterPhysics.velocity).normalize(),
-      localVector3
+      localVector3.set(0, 1, 0)
     ),
     'YXZ'
   );
