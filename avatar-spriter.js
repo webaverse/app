@@ -74,9 +74,9 @@ const globalUpdate = (timestamp, timeDiff, camera) => {
     for (const planeSpriteMesh of planeSpriteMeshes) {
       const {duration} = planeSpriteMesh.spriteSpec;
       const uTime = ((timestamp / 1000) % duration) / duration;
-      if (isNaN(uTime)) {
+      /* if (isNaN(uTime)) {
         debugger;
-      }
+      } */
       [planeSpriteMesh.material, planeSpriteMesh.customPostMaterial].forEach((material) => {
         if (material?.uniforms) {
           material.uniforms.uTime.value = uTime;
@@ -89,9 +89,9 @@ const globalUpdate = (timestamp, timeDiff, camera) => {
       const {duration} = spriteAvatarMesh.spriteSpec;
       const uTime = ((timestamp / 1000) % duration) / duration;
 
-      if (isNaN(uTime)) {
+      /* if (isNaN(uTime)) {
         debugger;
-      }
+      } */
 
       localQuaternion.setFromRotationMatrix(
         localMatrix.lookAt(
