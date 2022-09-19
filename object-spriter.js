@@ -14,6 +14,7 @@ const localMatrix = new THREE.Matrix4();
 const defaultSize = 2048;
 const defaultNumAnimationFrames = 128;
 const defaultNumSpritesheetFrames = 8;
+const fitScale = 1.2;
 
 //
 
@@ -232,7 +233,7 @@ const createObjectSpriteAnimation = (app, {
               .applyQuaternion(app.quaternion)
               .multiplyScalar(2)
           );
-        fitCameraToBoundingBox(sideCamera, physicsMesh.geometry.boundingBox, 1.2);
+        fitCameraToBoundingBox(sideCamera, physicsMesh.geometry.boundingBox, fitScale);
       } else {
         sideCamera.position.copy(app.position)
           .add(
@@ -328,7 +329,6 @@ const createObjectSpriteSheet = async (app, {
   // get size
   const physicsObjects = app.getPhysicsObjects();
   let worldWidth, worldHeight, worldOffset;
-  const fitScale = 1.2;
   if (physicsObjects.length > 0) {
     const physicsObject = physicsObjects[0];
     const {physicsMesh} = physicsObject;
