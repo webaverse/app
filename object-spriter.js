@@ -200,6 +200,7 @@ const createObjectSpriteSheet = async (app, {
   // get size
   const physicsObjects = app.getPhysicsObjects();
   let worldWidth, worldHeight;
+  const fitScale = 1.2;
   if (physicsObjects.length > 0) {
     const physicsObject = physicsObjects[0];
     const {physicsMesh} = physicsObject;
@@ -210,6 +211,8 @@ const createObjectSpriteSheet = async (app, {
     worldWidth = 1;
     worldHeight = 1;
   }
+  worldWidth *= fitScale;
+  worldHeight *= fitScale;
 
   // render
   for (let i = 0; i < numFrames; i++) {
@@ -227,7 +230,7 @@ const createObjectSpriteSheet = async (app, {
             .applyQuaternion(app.quaternion)
             .multiplyScalar(2)
         );
-      fitCameraToBoundingBox(sideCamera, physicsMesh.geometry.boundingBox, 1.2);
+      fitCameraToBoundingBox(sideCamera, physicsMesh.geometry.boundingBox, fitScale);
     } else {
       sideCamera.position.copy(app.position)
         .add(
