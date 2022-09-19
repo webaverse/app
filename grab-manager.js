@@ -201,6 +201,11 @@ class Grabmanager extends EventTarget {
     } else {
       this.gridSnap = 0;
     }
+    this.dispatchEvent(
+      new MessageEvent('setgridsnap', {
+        data: { gridSnap: this.gridSnap },
+      })
+    );
   }
   getGridSnap() {
     if (this.gridSnap === 0) {
