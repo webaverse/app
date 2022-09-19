@@ -203,7 +203,7 @@ const createObjectSpriteSheet = async (app, {
   if (physicsObjects.length > 0) {
     const physicsObject = physicsObjects[0];
     const {physicsMesh} = physicsObject;
-    const size = physicsMesh.geometry.boundingBox.getCenter(localVector);
+    const size = physicsMesh.geometry.boundingBox.getSize(localVector);
     worldWidth = Math.max(size.x, size.z);
     worldHeight = size.y;
   } else {
