@@ -25,12 +25,12 @@ const cameraMaterial = new THREE.MeshBasicMaterial({
 });
 const cameraMesh = new THREE.Mesh(cameraGeometry, cameraMaterial);
 
-let eyeVector = new THREE.Vector3();
-let targetVector = new THREE.Vector3();
+const eyeVector = new THREE.Vector3();
+const targetVector = new THREE.Vector3();
 const upVector = new THREE.Vector3(0, 1, 0);
 
-let rendererSize = new THREE.Vector2();
-let rendererViewport = new THREE.Vector4();
+const rendererSize = new THREE.Vector2();
+const rendererViewport = new THREE.Vector4();
 
 const localVector = new THREE.Vector3();
 const localVector2 = new THREE.Vector3();
