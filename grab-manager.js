@@ -249,8 +249,7 @@ class Grabmanager extends EventTarget {
         const grabAction = this.getGrabAction(i);
         const grabbedObject = this.getGrabbedObject(i);
         if (grabbedObject && !_isWear(grabbedObject)) {
-          let position = null,
-            quaternion = null;
+          let position = null, quaternion = null;
           if (renderer.xr.getSession()) {
             const h = localPlayer[hand === 'left' ? 'leftHand' : 'rightHand'];
             position = h.position;
