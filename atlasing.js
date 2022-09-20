@@ -227,7 +227,7 @@ const textureInitializers = {
   }, */
 };
 export const createTextureAtlas = (meshes, {
-  textures = 'map',
+  textures = ['map'],
   attributes = ['position', 'normal', 'uv'],
 } = {}) => {
   const textureSpecs = {};
