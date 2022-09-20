@@ -728,7 +728,9 @@ const createPlayerDiorama = ({
         renderer.setRenderTarget(outlineRenderTarget);
         renderer.setClearColor(0x000000, 0);
         renderer.clear();
-        renderer.render(outlineRenderScene, sideCamera);
+        if (outline) {
+          renderer.render(outlineRenderScene, sideCamera);
+        }
         
         // set up side scene
         _addObjectsToScene(sideScene);
