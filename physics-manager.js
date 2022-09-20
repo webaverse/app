@@ -244,8 +244,10 @@ class PhysicsScene extends EventTarget {
   }
   addGeometry2D(meshParent, worldScene, groundLayer) {
     const meshes = new THREE.Object3D;
+
     meshParent.children.forEach(mesh => {
       if(mesh.isMesh && mesh.position.z === groundLayer) {
+        //console.log(mesh.position.z);
         let geo = mesh.geometry;
         let nonIndexedGeo = geo.clone().toNonIndexed();
 

@@ -122,10 +122,15 @@ class NpcManager extends EventTarget {
 
     // events
     let targetSpec = null;
+    targetSpec = {
+      type: 'follow',
+      object: localPlayer,
+    };
     if (mode === 'attached') {
       const _listenEvents = () => {
         const hittrackeradd = e => {
           app.hitTracker.addEventListener('hit', e => {
+            console.log("got hit", app)
             if (!npcPlayer.hasAction('hurt')) {
               const newAction = {
                 type: 'hurt',
@@ -155,11 +160,25 @@ class NpcManager extends EventTarget {
 
         const slowdownFactor = 0.4;
         const walkSpeed = 0.075 * slowdownFactor;
-        const runSpeed = walkSpeed * 8;
+        const runSpeed = walkSpeed * (Math.random() * 10);
         const speedDistanceRate = 0.07;
+        let lastJumpTime = 0;
         const frame = e => {
           if (npcPlayer && physicsScene.getPhysicsEnabled()) {
             const {timestamp, timeDiff} = e.data;
+
+            if((timestamp - lastJumpTime) > Math.random() * 250000) {
+              lastJumpTime = timestamp;
+              if (!npcPlayer.hasAction('jump') && !npcPlayer.hasAction('fly') && !npcPlayer.hasAction('fallLoop') && !npcPlayer.hasAction('swim')) {
+                const newJumpAction = {
+                  type: 'jump',
+                  trigger:'jump',
+                  startPositionY: npcPlayer.characterPhysics.characterController.position.y,
+                  // time: 0,
+                };
+                npcPlayer.setControlAction(newJumpAction);
+              }
+            }
             
             if (targetSpec) {
               const target = targetSpec.object;
