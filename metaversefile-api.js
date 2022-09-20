@@ -58,6 +58,7 @@ import procGenManager from './procgen-manager.js';
 import cardsManager from './cards-manager.js';
 import * as geometryBuffering from './geometry-buffering.js';
 import * as geometryBatching from './geometry-batching.js';
+import * as geometryChunking from './geometry-chunking.js';
 import * as atlasing from './atlasing.js';
 import * as spriting from './spriting.js';
 import * as gpuTaskManager from './gpu-task-manager.js';
@@ -1246,6 +1247,9 @@ export default () => {
   },
   useGeometryBatching() {
     return geometryBatching;
+  },
+  useGeometryChunking() {
+    return geometryChunking;
   },
   useAtlasing() {
     return atlasing;
