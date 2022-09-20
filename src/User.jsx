@@ -14,7 +14,6 @@ import styles from './User.module.css';
 
 import * as sounds from '../sounds.js';
 import Chains from './components/web3/chains';
-
 //
 
 const UserPopover = ({
@@ -124,7 +123,7 @@ export const User = ({ className, setLoginFrom }) => {
 
                 try {
 
-                    const address = await connectWallet();
+                    await connectWallet();
                     
                     setLoginFrom('metamask');
                     // setShow(false);

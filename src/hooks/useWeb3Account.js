@@ -83,11 +83,12 @@ export default function useWeb3Account(currentChain = DEFAULT_CHAIN) {
   };
 
   const getAccountDetails = async (address) => {
-    const provider = getProvider();
+    const provider = new ethers.getDefaultProvider("mainnet");
     const check = ethers.utils.getAddress(address);
 
     try {
       const name = await provider.lookupAddress(check);
+
       if (!name) return {};
 
       const resolver = await provider.getResolver(name);
