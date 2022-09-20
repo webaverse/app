@@ -184,22 +184,9 @@ const generateTextureAtlas = textureSpecs => {
   };
   const atlasImages = _drawAtlasImages(atlas);
 
-  const atlasTextures = {};
-  for (const textureName of textureNames) {
-    const atlasImage = atlasImages[textureName];
-    if (atlasImage) {
-      const texture = new THREE.Texture(atlasImage);
-      texture.flipY = false;
-      texture.encoding = THREE.sRGBEncoding;
-      texture.needsUpdate = true;
-      atlasTextures[textureName] = texture;
-    }
-  }
-
   return {
     atlas,
     atlasImages,
-    atlasTextures,
   };
 };
 
@@ -237,14 +224,12 @@ export const createTextureAtlas = (meshes, {
   const {
     atlas,
     atlasImages,
-    atlasTextures,
   } = generateTextureAtlas(textureSpecs);
-  
+
   const canvasSize = Math.min(atlas.width, maxTextureAtlasSize);
   const canvasScale = canvasSize / atlas.width;
 
   // geometry
-
   const geometries = meshes.map((m, i) => {
     const srcGeometry = m.geometry;
 
@@ -267,10 +252,30 @@ export const createTextureAtlas = (meshes, {
     return geometry;
   });
 
+  // material
+  const material = new THREE.MeshStandardMaterial();
+  for (const textureName of textures) {
+    const atlasImage = atlasImages[textureName];
+    if (atlasImage) {
+      const texture = new THREE.Texture(atlasImage);
+      texture.flipY = false;
+      texture.encoding = THREE.sRGBEncoding;
+      texture.needsUpdate = true;
+      material[textureName] = texture;
+    }
+  }
+  material.roughness = 1;
+  material.side = THREE.DoubleSide;
+  material.transparent = true;
+  material.alphaTest = 0.5;
+  // material.alphaToCoverage = true;
+
+  // mesh
+  const meshes2 = geometries.map(geometry => new THREE.Mesh(geometry, material));
+
   return {
     atlas,
     atlasImages,
-    atlasTextures,
-    geometries,
+    meshes: meshes2,
   };
 };
