@@ -29,6 +29,7 @@ const localQuaternion3 = new THREE.Quaternion();
 const localQuaternion4 = new THREE.Quaternion();
 const localMatrix = new THREE.Matrix4();
 const localMatrix3 = new THREE.Matrix4();
+const localBox = new THREE.Box3();
 
 const rotationSnap = Math.PI / 6;
 const highlightPhysicsMesh = makeHighlightPhysicsMesh(buildMaterial);
@@ -37,6 +38,10 @@ let highlightedPhysicsId = 0;
 
 highlightPhysicsMesh.visible = false;
 sceneLowPriority.add(highlightPhysicsMesh);
+
+const getPhysicalCenter = box => {
+  return localVector9.set(box.min.x+(box.max.x - box.min.x)/2, box.min.y, box.min.z+(box.max.z - box.min.z)/2);
+}
 
 const _updateGrabbedObject = (
   o,
@@ -51,12 +56,22 @@ const _updateGrabbedObject = (
   offsetMatrix.decompose(localVector3, localQuaternion2, localVector4);
 
   // offset = distance localPlayer -> grabbed object
-  const offset = localVector3.length();
+  const offset = localVector3.length(); // check, offset should be localVector5?
 
   // Move grabbed object around pivot point
   localMatrix
     .multiplyMatrices(grabMatrix, offsetMatrix)
     .decompose(localVector5, localQuaternion3, localVector6);
+
+  const physicsObjects = o.getPhysicsObjects();
+  if(physicsObjects) {
+    const physicsObject = physicsObjects[0];
+    const geometry = physicsObject.physicsMesh.geometry;
+    geometry.computeBoundingBox();
+    localBox.copy(geometry.boundingBox); //.applyMatrix4(o.matrixWorld);
+    physicalOffset = getPhysicalCenter(localBox);
+    localBox.getSize(localVector7);
+  }
 
   // raycast from localPlayer in direction of camera angle
   const collision = collisionEnabled && physicsScene.raycast(localVector, localQuaternion);
@@ -66,29 +81,37 @@ const _updateGrabbedObject = (
   const downCollision = collisionEnabled && physicsScene.raycast(localVector5, localQuaternion2);
 
   if (!!collision) {
-    const { point } = collision;
-    localVector6.fromArray(point);
+    const cp = collision.point;
+    localVector6.fromArray(cp);
+    // console.log('collision', localVector6);
   }
 
   if (!!downCollision) {
-    const { point } = downCollision;
-    localVector4.fromArray(point);
-    if (ioManager.keys.shift) {
-      o.position.copy(localVector5.setY(localVector4.y));
-    } else {
-      // if collision point is closer to the player than the grab offset and collisionDown point
-      // is below collision point then place the object at collision point
-      if (
-        localVector.distanceTo(localVector6) < offset &&
-        localVector4.y < localVector6.y
-      )
-        localVector5.copy(localVector6);
-
-      // if grabbed object would go below another object then place object at downCollision point
-      if (localVector5.y < localVector4.y) localVector5.setY(localVector4.y);
-      o.position.copy(localVector5);
-    }
+    const dcp = downCollision.point;
+    localVector4.fromArray(dcp);
+    // console.log('downCollision', localVector4);
   }
+
+  const overlap = collisionEnabled && physicsScene.overlapBox(localVector7.x, localVector7.y, localVector7.z, localVector5, o.rotation.clone());
+  console.log(overlap);
+
+  //
+
+  // if collision point is closer to the player than the grab offset and collisionDown point
+  // is below collision point then place the object at collision point
+  if (localVector.distanceTo(localVector6) < offset && localVector4.y < localVector6.y) {
+    localVector5.copy(localVector6);
+    console.log(1);
+  }
+    
+
+  // if grabbed object would go below another object then place object at downCollision point
+  if (localVector5.y < localVector4.y) {
+    localVector5.setY(localVector4.y);
+    console.log(localVector5.y, localVector4.y);
+  }
+
+  o.position.copy(localVector5);
 
   const handSnap =
     !handSnapEnabled ||
@@ -101,7 +124,9 @@ const _updateGrabbedObject = (
   } else {
     o.quaternion.copy(localQuaternion3);
   }
-
+  // console.log(localVector.distanceTo(localVector6), offset);
+  // console.log('localVector', localVector);
+  // console.log('collision', localVector6);
   o.updateMatrixWorld();
 
   return {
