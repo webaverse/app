@@ -646,25 +646,25 @@ w.getChunkAoAsync = async (inst, taskId, x, y, z, lod) => {
 
 function _parsePQI(arrayBuffer, bufferAddress) {
   const dataView = new DataView(arrayBuffer, bufferAddress);
-
   let index = 0;
 
   const psSize = dataView.getUint32(index, true);
   index += Uint32Array.BYTES_PER_ELEMENT;
-  const ps = new Float32Array(dataView.buffer, dataView.byteOffset + index, psSize).slice();
+  const ps = new Float32Array(dataView.buffer, dataView.byteOffset + index, psSize);
   index += psSize * Float32Array.BYTES_PER_ELEMENT;
 
   const qsSize = dataView.getUint32(index, true);
   index += Uint32Array.BYTES_PER_ELEMENT;
-  const qs = new Float32Array(dataView.buffer, dataView.byteOffset + index, qsSize).slice();
+  const qs = new Float32Array(dataView.buffer, dataView.byteOffset + index, qsSize);
   index += qsSize * Float32Array.BYTES_PER_ELEMENT;
 
   const instancesSize = dataView.getUint32(index, true);
   index += Uint32Array.BYTES_PER_ELEMENT;
-  const instances = new Float32Array(dataView.buffer, dataView.byteOffset + index, instancesSize).slice();
+  const instances = new Float32Array(dataView.buffer, dataView.byteOffset + index, instancesSize);
   index += instancesSize * Float32Array.BYTES_PER_ELEMENT;
 
   return {
+    bufferAddress,
     ps,
     qs,
     instances,
