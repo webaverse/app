@@ -4,12 +4,12 @@ import {abortError} from './lock-manager.js';
 
 const geometryaddEvent = new MessageEvent('geometryadd', {
   data: {
-    geometry: null,
+    result: null,
   },
 });
 const geometryremoveEvent = new MessageEvent('geometryremove', {
   data: {
-    geometry: null,
+    result: null,
   },
 });
 
@@ -27,14 +27,14 @@ export class Generation extends EventTarget {
   finish(result) {
     this.result = result;
 
-    geometryaddEvent.data.geometry = result;
+    geometryaddEvent.data.result = result;
     this.dispatchEvent(geometryaddEvent);
   }
   cancel() {
     this.abortController.abort(abortError);
 
     if (this.result) {
-      geometryremoveEvent.data.geometry = this.result;
+      geometryremoveEvent.data.result = this.result;
       this.dispatchEvent(geometryremoveEvent);
     }
   }
