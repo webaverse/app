@@ -176,6 +176,37 @@ const _cloneChunkResult = chunkResult => {
     barrierGeometry: barrierGeometry2,
   };
 };
+const _cloneVegetationResult = vegetationResult => {
+  const {ps, qs, instances} = vegetationResult;
+
+  const _getVegetationGeometrySize = () => {
+    let size = ps.length * ps.constructor.BYTES_PER_ELEMENT +
+      qs.length * qs.constructor.BYTES_PER_ELEMENT +
+      instances.length * instances.constructor.BYTES_PER_ELEMENT;
+    return size;
+  };
+  const size = _getVegetationGeometrySize();
+
+  const arrayBuffer = new ArrayBuffer(size);
+  let index = 0;
+
+  const ps2 = new ps.constructor(arrayBuffer, index, ps.length);
+  ps2.set(ps);
+  index += ps.length * ps.constructor.BYTES_PER_ELEMENT;
+  const qs2 = new qs.constructor(arrayBuffer, index, qs.length);
+  qs2.set(qs);
+  index += qs.length * qs.constructor.BYTES_PER_ELEMENT;
+  const instances2 = new instances.constructor(arrayBuffer, index, instances.length);
+  instances2.set(instances);
+  index += instances.length * instances.constructor.BYTES_PER_ELEMENT;
+  
+  return {
+    arrayBuffer,
+    ps: ps2,
+    qs: qs2,
+    instances: instances2,
+  };
+};
 
 const instances = new Map();
 
@@ -305,19 +336,19 @@ const _handleMethod = async ({method, args, instance: instanceKey, taskId}) => {
 
       const position = localVector2D.fromArray(chunkPosition)
         .multiplyScalar(chunkWorldSize);
-      const {
-        ps,
-        qs,
-        instances: instancesResult,
-      } = await pg.createChunkVegetationAsync(instance, taskId, position.x, position.z, lod);
+      const vegetationResult = await pg.createChunkVegetationAsync(instance, taskId, position.x, position.z, lod);
+      const vegetationResult2 = _cloneVegetationResult(vegetationResult);
+
+      const _freeVegetationResult = vegetationResult => {
+        pg.free(vegetationResult.bufferAddress);
+      };
+      _freeVegetationResult(vegetationResult);
 
       const spec = {
-        result: {
-          ps,
-          qs,
-          instances: instancesResult,
-        },
-        transfers: [ps.buffer, qs.buffer, instancesResult.buffer],
+        result: vegetationResult2,
+        transfers: [
+          vegetationResult2.arrayBuffer,
+        ],
       };
       return spec;
     }
