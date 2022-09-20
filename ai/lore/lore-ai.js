@@ -32,6 +32,11 @@ import {
   makeCharacterIntroPrompt,
   makeCharacterIntroStop,
   parseCharacterIntroResponse,
+  makeQuestCheckerPrompt,
+  makeQuestCheckerStop,
+  makeQuestPrompt,
+  makeQuestStop,
+  parseQuestResponse,
 } from './lore-model.js'
 
 const numGenerateTries = 5;
@@ -242,7 +247,13 @@ class AIScene {
     const stop = makeSelectTargetStop();
     let response = await this.generateFn(prompt, stop);
     console.log('select target response', {prompt, response});
+    if (response?.length === 0) {
+      return this.generateSelectTargetComment(name, description);
+    }
     response = parseSelectTargetResponse(response);
+    if (response?.value?.length === 0) {
+      return this.generateSelectTargetComment(name, description);
+    }
     // console.log('got comment', {prompt, response});
     return response;
   }
@@ -255,6 +266,9 @@ class AIScene {
     const stop = makeSelectCharacterStop();
     let response = await this.generateFn(prompt, stop);
     console.log('select character response', {prompt, response});
+    if (response?.length===0) {
+      return this.generateSelectCharacterComment(name, description);
+    }
     const response2 = parseSelectCharacterResponse(response);
     console.log('select character parsed', {response2});
     return response2;
@@ -269,6 +283,9 @@ class AIScene {
     let response = await this.generateFn(prompt, stop);
     console.log('chat response', {prompt, response});
     const response2 = parseChatResponse(response);
+    if (!response2) {
+      return this.generateChatMessage(messages, nextCharacter);
+    }
     console.log('chat parsed', {response2});
     return response2;
   }
@@ -296,6 +313,27 @@ class AIScene {
     console.log('dialogue options response', {prompt, response});
     const response2 = parseCharacterIntroResponse(response);
     console.log('dialogue options parsed', {response2});
+    return response2;
+  }
+  async checkIfQuestIsApplicable(location, conversation, user1, user2, tries = 0) {
+    const prompt = makeQuestCheckerPrompt(location, conversation, user1, user2);
+    const stop = makeQuestCheckerStop()
+    const response = (await this.generateFn(prompt, stop))?.trim();
+    if (response?.length <= 0) {
+      if (tries >= 5) {
+        return 'no'
+      } else {
+      return this.checkIfQuestIsApplicable(location, conversation, user1, user2, tries++);
+      }
+    }
+    console.log('response:', response)
+    return response?.trim();
+  }
+  async generateQuest({conversation, location, user1, user2}) {
+    const prompt = makeQuestPrompt({conversation, location, user1, user2})
+    const stop = makeQuestStop();
+    const response = await this.generateFn(prompt, stop);
+    const response2 = parseQuestResponse(response);
     return response2;
   }
 }
@@ -386,9 +424,9 @@ class LoreAI {
       generateFn: (prompt, stop) => {
         return this.generate(prompt, {
           stop,
-          temperature: 1,
-          presence_penalty: 2,
-          frequency_penalty: 2,
+          temperature: 0.85,
+          presence_penalty: 0.1,
+          frequency_penalty: 0.1,
           // top_p,
         });
       },
