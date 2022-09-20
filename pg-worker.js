@@ -336,7 +336,13 @@ const _handleMethod = async ({method, args, instance: instanceKey, taskId}) => {
 
       const position = localVector2D.fromArray(chunkPosition)
         .multiplyScalar(chunkWorldSize);
-      const vegetationResult = await pg.createChunkVegetationAsync(instance, taskId, position.x, position.z, lod);
+      const vegetationResult = await pg.createChunkVegetationAsync(
+        instance,
+        taskId,
+        position.x,
+        position.y,
+        lod
+      );
       const vegetationResult2 = _cloneVegetationResult(vegetationResult);
 
       const _freeVegetationResult = vegetationResult => {
