@@ -62,7 +62,7 @@ const _updateGrabbedObject = (
   localMatrix
     .multiplyMatrices(grabMatrix, offsetMatrix)
     .decompose(localVector5, localQuaternion3, localVector6);
-
+  let physicalOffset = null;
   const physicsObjects = o.getPhysicsObjects();
   if(physicsObjects) {
     const physicsObject = physicsObjects[0];
