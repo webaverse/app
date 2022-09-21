@@ -469,6 +469,7 @@ class CharacterPhysics {
       const isPlayerAiming = !!aimAction && !aimAction.playerAnimation;
       const isObjectAimable = !!aimComponent;
       // const isPlayingEnvelopeIkAnimation = !!useAction && useAction.ik === 'bow';
+      
       const isHandEnabled =
         isSession ||
         (isPlayerAiming &&

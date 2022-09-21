@@ -21,6 +21,7 @@ import {runSpeed, walkSpeed} from './constants.js';
 import {characterSelectManager} from './characterselect-manager.js';
 
 const localVector = new THREE.Vector3();
+const localVector2 = new THREE.Vector3();
 
 const updatePhysicsFnMap = new WeakMap();
 const updateAvatarsFnMap = new WeakMap();
@@ -34,7 +35,6 @@ class NpcManager extends EventTarget {
     this.npcAppMap = new WeakMap();
     this.detachedNpcs = [];
     this.targetMap = new WeakMap();
-    this.loadPromise = null;
   }
 
   getAppByNpc(npc) {
@@ -45,41 +45,35 @@ class NpcManager extends EventTarget {
     return this.npcs.find(npc => this.getAppByNpc(npc) === app);
   }
 
-  async waitForLoad() {
-    await this.loadPromise;
-  }
+  async initDefaultPlayer() {
+    const defaultPlayerSpec = await characterSelectManager.getDefaultSpecAsync();
+    const localPlayer = metaversefile.useLocalPlayer();
+    // console.log('set player spec', defaultPlayerSpec);
+    await localPlayer.setPlayerSpec(defaultPlayerSpec);
 
-  initDefaultPlayer() {
-    this.loadPromise = (async () => {
-      const defaultPlayerSpec = await characterSelectManager.getDefaultSpecAsync();
-      const localPlayer = metaversefile.useLocalPlayer();
-      // console.log('set player spec', defaultPlayerSpec);
-      await localPlayer.setPlayerSpec(defaultPlayerSpec);
+    const createPlayerApp = () => {
+      const app = metaversefile.createApp();
+      app.instanceId = makeId(5);
+      app.name = 'player';
+      app.contentId = defaultPlayerSpec.avatarUrl;
+      return app;
+    };
+    const app = createPlayerApp();
 
-      const createPlayerApp = () => {
-        const app = metaversefile.createApp();
-        app.instanceId = makeId(5);
-        app.name = 'player';
-        app.contentId = defaultPlayerSpec.avatarUrl;
-        return app;
-      };
-      const app = createPlayerApp();
+    const importPlayerToNpcManager = () => {
+      this.addPlayerApp(app, localPlayer, defaultPlayerSpec);
 
-      const addDefaultPlayer = () => {
-        this.addPlayerApp(app, localPlayer, defaultPlayerSpec);
+      this.dispatchEvent(new MessageEvent('defaultplayeradd', {
+        data: {
+          player: localPlayer,
+        }
+      }));
 
-        this.dispatchEvent(new MessageEvent('defaultplayeradd', {
-          data: {
-            player: localPlayer,
-          }
-        }));
-
-        app.addEventListener('destroy', () => {
-          this.removeNpcApp(app);
-        });
-      };
-      addDefaultPlayer();
-    })();
+      app.addEventListener('destroy', () => {
+        this.removeNpcApp(app);
+      });
+    };
+    importPlayerToNpcManager();
   }
 
   async createNpcAsync({
@@ -226,7 +220,7 @@ class NpcManager extends EventTarget {
         app.addEventListener('hittrackeradded', hittrackeradd);
 
         const activate = () => {
-          if (!npcPlayer.isInParty) {
+          if (npcPlayer.getControlMode() === 'npc') {
             this.dispatchEvent(new MessageEvent('playerinvited', {
               data: {
                 player: npcPlayer,
@@ -264,11 +258,11 @@ class NpcManager extends EventTarget {
         };
         const updatePhysicsFn = (timestamp, timeDiff) => {
           if (npcPlayer) {
-            if (!npcPlayer.isLocalPlayer) {
-              if (npcPlayer.isInParty) { // if party, follow in a line
+            if (npcPlayer.getControlMode() !== 'controlled') {
+              if (npcPlayer.getControlMode() === 'party') { // if party, follow in a line
                 const target = this.getPartyTarget(npcPlayer);
                 followTarget(npcPlayer, target, timeDiff);
-              } else {
+              } else if (npcPlayer.getControlMode() === 'npc') {
                 if (targetSpec) { // if npc, look to targetSpec
                   const target = targetSpec.object;
                   const distance = followTarget(npcPlayer, target, timeDiff);
@@ -439,13 +433,15 @@ class NpcManager extends EventTarget {
       avatarUrl = createRelativeUrl(avatarUrl, srcUrl);
 
       const npcDetached = !!json.detached;
+
+      const position = localVector.setFromMatrixPosition(app.matrixWorld)
+        .add(localVector2.set(0, 1, 0));
       
       // create npc
       const newNpcPlayer = await this.createNpcAsync({
         name: npcName,
         avatarUrl,
-        position: app.position.clone()
-          .add(new THREE.Vector3(0, 1, 0)),
+        position,
         quaternion: app.quaternion,
         scale: app.scale,
         detached: npcDetached,

@@ -175,6 +175,16 @@ export class PGWorkerManager {
     // signal.throwIfAborted();
     return result;
   }
+  async generateVegetation(chunkPosition, lod, numInstances, {signal} = {}) {
+    const result = await this.worker.request('generateVegetation', {
+      instance: this.instance,
+      chunkPosition,
+      lod,
+      numInstances,
+    }, {signal});
+    // signal.throwIfAborted();
+    return result;
+  }
   /* async generateLiquidChunk(chunkPosition, lod, lodArray, {signal} = {}) {
     const result = await this.worker.request('generateLiquidChunk', {
       instance: this.instance,
@@ -226,7 +236,7 @@ export class PGWorkerManager {
 
   //
 
-  async createGrassSplat(x, z, lod, {signal} = {}) {
+  /* async createGrassSplat(x, z, lod, {signal} = {}) {
     const result = await this.worker.request('createGrassSplat', {
       instance: this.instance,
       x,
@@ -255,5 +265,5 @@ export class PGWorkerManager {
       priority: TASK_PRIORITIES.splat,
     }, {signal});
     return result;
-  }
+  } */
 }

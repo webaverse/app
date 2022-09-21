@@ -25,7 +25,7 @@ import * as mathUtils from './math-utils.js';
 import JSON6 from 'json-6';
 import * as geometries from './geometries.js';
 import * as materials from './materials.js';
-import meshLodManager from './mesh-lodder.js';
+// import meshLodManager from './mesh-lodder.js';
 import {AvatarRenderer} from './avatars/avatar-renderer.js';
 import {chatManager} from './chat-manager.js';
 import loreAI from './ai/lore/lore-ai.js';
@@ -48,7 +48,7 @@ import {murmurhash3} from './procgen/murmurhash3.js';
 import debug from './debug.js';
 import * as scenePreviewer from './scene-previewer.js';
 import * as sounds from './sounds.js';
-import * as lodder from './lod.js';
+// import * as lodder from './lod.js';
 import hpManager from './hp-manager.js';
 import particleSystemManager from './particle-system.js';
 import domRenderEngine from './dom-renderer.jsx';
@@ -56,8 +56,13 @@ import dropManager from './drop-manager.js';
 import hitManager from './character-hitter.js';
 import procGenManager from './procgen-manager.js';
 import cardsManager from './cards-manager.js';
-import * as instancing from './instancing.js';
+import * as geometryBuffering from './geometry-buffering.js';
+import * as geometryBatching from './geometry-batching.js';
+import * as geometryChunking from './geometry-chunking.js';
 import * as atlasing from './atlasing.js';
+import * as spriting from './spriting.js';
+import * as gpuTaskManager from './gpu-task-manager.js';
+import * as generationTaskManager from './generation-task-manager.js';
 import ioManager from './io-manager.js';
 import {lightsManager} from './lights-manager.js';
 
@@ -593,12 +598,12 @@ metaversefile.setApi({
   useLoaders() {
     return loaders;
   },
-  useLodder() {
+  /* useLodder() {
     return lodder;
-  },
-  useMeshLodder() {
+  }, */
+  /* useMeshLodder() {
     return meshLodManager;
-  },
+  }, */
   usePhysics(instance = null) {
     const app = currentAppRender;
     if (app) {
@@ -1237,11 +1242,26 @@ export default () => {
   useGeometries() {
     return geometries;
   },
-  useInstancing() {
-    return instancing;
+  useGeometryBuffering() {
+    return geometryBuffering;
+  },
+  useGeometryBatching() {
+    return geometryBatching;
+  },
+  useGeometryChunking() {
+    return geometryChunking;
   },
   useAtlasing() {
     return atlasing;
+  },
+  useSpriting() {
+    return spriting;
+  },
+  useGPUTask() {
+    return gpuTaskManager;
+  },
+  useGenerationTask() {
+    return generationTaskManager;
   },
   useMaterials() {
     return materials;

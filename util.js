@@ -1298,3 +1298,13 @@ export const align = (v, N) => {
   return r === 0 ? v : v - r + N;
 };
 export const align4 = v => align(v, 4);
+
+export const getClosestPowerOf2 = size => Math.ceil(Math.log2(size));
+
+export const getBoundingSize = boundingType => {
+  switch (boundingType) {
+    case 'sphere': return 4;
+    case 'box': return 6;
+    default: return 0;
+  }
+};

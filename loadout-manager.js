@@ -1,10 +1,8 @@
-
 import {playersManager} from './players-manager.js';
 import {LoadoutRenderer} from './loadout-renderer.js';
 import {InfoboxRenderer} from './infobox.js';
-import {createObjectSprite} from './object-spriter.js';
+import {createObjectSpriteAnimation} from './object-spriter.js';
 import {hotbarSize, infoboxSize} from './constants.js';
-import npcManager from './npc-manager.js';
 
 const numSlots = 8;
 
@@ -12,7 +10,7 @@ const appSpritesheetCache = new WeakMap();
 const _getAppSpritesheet = app => {
   let spritesheet = appSpritesheetCache.get(app);
   if (!spritesheet) {
-    spritesheet = createObjectSprite(app);
+    spritesheet = createObjectSpriteAnimation(app);
     appSpritesheetCache.set(app, spritesheet);
   }
   return spritesheet;
@@ -22,26 +20,22 @@ class LoadoutManager extends EventTarget {
   constructor() {
     super();
 
-    this.appsPerPlayer = new WeakMap();
-    this.selectedIndexPerPlayer = new WeakMap();
-    this.trackedPlayers = [];
-
-    this.apps = null;
+    this.apps = Array(numSlots).fill(null);
     this.hotbarRenderers = [];
     this.infoboxRenderer = null;
     this.selectedIndex = -1;
     this.removeLastWearUpdateFn = null;
 
-    this.ensureRenderers();
-
     const playerSelectedFn = e => {
-      const {oldPlayer, player} = e.data;
+      const {
+        oldPlayer,
+        player,
+      } = e.data;
 
       if (oldPlayer) {
         this.unbindPlayer(oldPlayer);
       }
       this.bindPlayer(player);
-      this.trackPlayer(player);
     };
 
     playersManager.addEventListener('playerchange', playerSelectedFn);
@@ -51,62 +45,15 @@ class LoadoutManager extends EventTarget {
   }
   initDefault() {
     // this is the initial event for the first player
-    npcManager.waitForLoad().then(() => {
-      const localPlayer = playersManager.getLocalPlayer();
-      this.bindPlayer(localPlayer);
-    });
-  }
-  refresh() {
-    for (let i = 0; i < this.hotbarRenderers.length; i++) {
-      const app = this.apps[i];
-      const hotbarRenderer = this.hotbarRenderers[i];
-      const spritesheet = app ? _getAppSpritesheet(app) : null;
-      hotbarRenderer.setSpritesheet(spritesheet);
-      hotbarRenderer.setSelected(i === this.selectedIndex);
-    }
-
-    const index = this.selectedIndex;
-    this.dispatchEvent(new MessageEvent('selectedchange', {
-      data: {
-        index,
-        app: this.apps[index]
-      }
-    }));
-  }
-  trackPlayer(player) {
-    // delete loadout apps when player is destroyed
-    if (!this.trackedPlayers.includes(player)) {
-      const playerApp = npcManager.getAppByNpc(player);
-      const destroyFn = () => {
-        this.appsPerPlayer.delete(player);
-        this.selectedIndexPerPlayer.delete(player);
-
-        let removeIndex = this.trackedPlayers.indexOf(player);
-        if (removeIndex !== -1) {
-          this.trackedPlayers.splice(removeIndex, 1);
-        }
-
-        playerApp.removeEventListener('destroy', destroyFn);
-      };
-      playerApp.addEventListener('destroy', destroyFn);
-
-      this.trackedPlayers.push(player);
-    }
+    const localPlayer = playersManager.getLocalPlayer();
+    this.bindPlayer(localPlayer);
   }
   bindPlayer(player) {
-    this.apps = this.appsPerPlayer.has(player)
-      ? this.appsPerPlayer.get(player)
-      : Array(numSlots).fill(null);
-    this.selectedIndex = this.selectedIndexPerPlayer.has(player)
-      ? this.selectedIndexPerPlayer.get(player)
-      : -1;
-
-    this.refresh();
-
     const localPlayer = player;
     const wearupdate = e => {
       const {app, wear, loadoutIndex} = e;
 
+      this.ensureRenderers();
       if (wear) {
         this.apps[loadoutIndex] = app;
         this.setSelectedIndex(loadoutIndex);
@@ -123,7 +70,7 @@ class LoadoutManager extends EventTarget {
             this.setSelectedIndex(nextIndex);
             break;
           }
-        }
+        }      
       }
     };
     localPlayer.addEventListener('wearupdate', wearupdate);
@@ -133,12 +80,6 @@ class LoadoutManager extends EventTarget {
   }
 
   unbindPlayer(player) {
-    this.appsPerPlayer.set(player, this.apps);
-    this.apps = null;
-
-    this.selectedIndexPerPlayer.set(player, this.selectedIndex);
-    this.selectedIndex = -1;
-
     if (this.removeLastWearUpdateFn) {
       this.removeLastWearUpdateFn();
       this.removeLastWearUpdateFn = null;
@@ -159,12 +100,16 @@ class LoadoutManager extends EventTarget {
     }
   }
   getHotbarRenderer(index) {
+    this.ensureRenderers();
     return this.hotbarRenderers[index];
   }
   getInfoboxRenderer() {
+    this.ensureRenderers();
     return this.infoboxRenderer;
   }
   getSelectedApp() {
+    this.ensureRenderers();
+    
     if (this.selectedIndex !== -1) {
       return this.apps[this.selectedIndex];
     } else {
@@ -172,6 +117,8 @@ class LoadoutManager extends EventTarget {
     }
   }
   setSelectedIndex(index) {
+    this.ensureRenderers();
+
     if (index === this.selectedIndex) {
       index = -1;
     }
@@ -186,7 +133,7 @@ class LoadoutManager extends EventTarget {
     if (this.selectedIndex !== -1) {
       const app = this.apps[this.selectedIndex];
       const spritesheet = _getAppSpritesheet(app);
-
+      
       const hotbarRenderer = this.hotbarRenderers[this.selectedIndex];
       hotbarRenderer.setSpritesheet(spritesheet);
       this.infoboxRenderer.setSpritesheet(spritesheet);

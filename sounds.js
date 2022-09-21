@@ -55,6 +55,7 @@ const soundFiles = {
   mpPickup: _getSoundFiles(/OOT_Get_SmallItem1/),
   refill: _getSoundFiles(/OOT_MagicRefill/),
   explosion: _getSoundFiles(/OOT_Bomb_Blow/),
+  swordSlash: _getSoundFiles(/sword_slash/),
 
   menuBeepLow: _getSoundFiles(/pd_beep1/),
   menuBeepHigh: _getSoundFiles(/pd_beep2/),
@@ -87,9 +88,6 @@ const playSoundName = name => {
   const snds = soundFiles[name];
   if (snds) {
     const sound = snds[Math.floor(Math.random() * snds.length)];
-    if (!sound) {
-      debugger;
-    }
     playSound(sound);
     return true;
   } else {

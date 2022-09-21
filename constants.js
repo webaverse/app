@@ -106,7 +106,7 @@ export const playersMapName = 'players';
 export const appsMapName = 'apps';
 export const partyMapName = 'party';
 
-export const ceramicNodeUrl = `https://ceramic-clay.3boxlabs.com`;
+// export const ceramicNodeUrl = `https://ceramic-clay.3boxlabs.com`;
 export const metaverseProfileDefinition = `kjzl6cwe1jw145wm7u2sy1wpa33hglvmuy6th9lys7x4iadaizn4zqgpp3tmu34`;
 
 export const audioTimeoutTime = 10 * 1000;
@@ -151,6 +151,12 @@ export const avatarInterpolationNumFrames = 4;
 
 export const eatFrameIndices = [500, 800, 1100];
 export const drinkFrameIndices = [400, 700, 1000];
+export const useFrameIndices = {
+  swordSideSlash: [0],
+  swordSideSlashStep: [0],
+  swordTopDownSlash: [0],
+  swordTopDownSlashStep: [0],
+};
 
 export const defaultMaxId = 8192;
 
@@ -167,6 +173,8 @@ export const imageCaptionAIEndpointUrl = `https://clip.webaverse.com`;
 export const defaultImageAICanvasSize = 512;
 
 export const audioAIEndpointUrl = `https://diffsound.webaverse.com`;
+
+export const W3S_API_KEY = `eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJkaWQ6ZXRocjoweDYyODg4RUNjQzFkQTYxZDUzZjEyYTI4MDQwRjllQzViNGJFRTMzNmMiLCJpc3MiOiJ3ZWIzLXN0b3JhZ2UiLCJpYXQiOjE2NjMzMTk1MjI2OTAsIm5hbWUiOiJ3ZWJhdmVyc2UifQ.WlpTfnrw0B6Z1Cs28Cawwx5PU04op6FLvHSxdh5j-hE`;
 
 export const chatTextSpeed = 15;
 export const shakeAnimationSpeed = 30;

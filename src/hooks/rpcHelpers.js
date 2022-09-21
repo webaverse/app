@@ -14,6 +14,7 @@ const RPC_METHODS = {
   SIGN: 'eth_signTransaction',
   CHAIN_ID: 'eth_chainId',
 };
+import {CHAINS, CHAIN_ID_MAP} from './web3-constants';
 
 export async function connectToNetwork({
   chainName = '',
@@ -103,10 +104,40 @@ export async function getChainId() {
   return chainId;
 }
 
+const getChain = chainId => {
+  const chainName = CHAIN_ID_MAP[chainId];
+  return CHAINS[chainName];
+};
+
 export async function switchChain(chainId) {
   const {ethereum} = window;
-  return await ethereum.request({
-    method: RPC_METHODS.SWITCH_CHAIN,
-    params: [{chainId}],
-  });
+  try {
+    await ethereum.request({
+      method: RPC_METHODS.SWITCH_CHAIN,
+      params: [{chainId}],
+    });
+  } catch(switchError) {
+    if (switchError.code === 4902) { // no such chain
+      const chain = getChain(chainId);
+      const {
+        rpcUrls,
+        chainName,
+        blockExplorerUrls,
+        name,
+        symbol,
+        decimals,
+      } = chain;
+      await addRPCToWallet({
+        chainId,
+        rpcUrls,
+        chainName,
+        blockExplorerUrls,
+        nativeCurrency: {
+          name,
+          symbol,
+          decimals,
+        },
+      });
+    }
+  }
 }

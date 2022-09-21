@@ -93,6 +93,38 @@ class PhysicsWorkerManager {
     });
     return result;
   }
+  async meshoptSimplify(mesh, targetRatio, targetError) {
+    await this.waitForLoad();
+    
+    const {workers} = this;
+    const worker = workers[this.nextWorker];
+    this.nextWorker = (this.nextWorker + 1) % workers.length;
+
+    const result = await worker.request('meshoptSimplify', {
+      positions: mesh.geometry.attributes.position.array,
+      // uvs: mesh.geometry.attributes.uv.array,
+      indices: mesh.geometry.index.array,
+      targetRatio,
+      targetError,
+    });
+    return result;
+  }
+  async meshoptSimplifySloppy(mesh, targetRatio, targetError) {
+    await this.waitForLoad();
+    
+    const {workers} = this;
+    const worker = workers[this.nextWorker];
+    this.nextWorker = (this.nextWorker + 1) % workers.length;
+
+    const result = await worker.request('meshoptSimplifySloppy', {
+      positions: mesh.geometry.attributes.position.array,
+      // uvs: mesh.geometry.attributes.uv.array,
+      indices: mesh.geometry.index.array,
+      targetRatio,
+      targetError,
+    });
+    return result;
+  }
 }
 const physicsWorkerManager = new PhysicsWorkerManager();
 export default physicsWorkerManager;

@@ -476,6 +476,30 @@ w.createChunkMeshAsync = async (inst, taskId, x, z, lod, lodArray) => {
     return null;
   }
 };
+w.createChunkVegetationAsync = async (inst, taskId, x, z, lod, numInstances) => {
+  Module._createChunkVegetationAsync(
+    inst,
+    taskId,
+    x, z,
+    lod,
+    numInstances
+  );
+
+  const p = makePromise();
+  cbs.set(taskId, p);
+
+  const outputBufferOffset = await p;
+
+  if (outputBufferOffset) {
+    const result = _parseInstances(
+      Module.HEAP8.buffer,
+      Module.HEAP8.byteOffset + outputBufferOffset
+    );
+    return result;
+  } else {
+    return null;
+  }
+};
 
 //
 
@@ -621,30 +645,41 @@ w.getChunkAoAsync = async (inst, taskId, x, y, z, lod) => {
   return aos2;
 }; */
 
-function _parsePQI(addr) {
-  const dataView = new DataView(Module.HEAPU8.buffer, addr);
-
+function _parseInstances(arrayBuffer, bufferAddress) {
+  const dataView = new DataView(arrayBuffer, bufferAddress);
   let index = 0;
-  const psSize = dataView.getUint32(index, true);
+
+  const numInstances = dataView.getUint32(index, true);
   index += Uint32Array.BYTES_PER_ELEMENT;
-  const ps = new Float32Array(dataView.buffer, dataView.byteOffset + index, psSize).slice();
-  index += psSize * Float32Array.BYTES_PER_ELEMENT;
-  const qsSize = dataView.getUint32(index, true);
-  index += Uint32Array.BYTES_PER_ELEMENT;
-  const qs = new Float32Array(dataView.buffer, dataView.byteOffset + index, qsSize).slice();
-  index += qsSize * Float32Array.BYTES_PER_ELEMENT;
-  const instancesSize = dataView.getUint32(index, true);
-  index += Uint32Array.BYTES_PER_ELEMENT;
-  const instances = new Float32Array(dataView.buffer, dataView.byteOffset + index, instancesSize).slice();
-  index += instancesSize * Float32Array.BYTES_PER_ELEMENT;
+
+  const instances = Array(numInstances);
+  for (let i = 0; i < numInstances; i++) {
+    const instanceId = dataView.getInt32(index, true);
+    index += Int32Array.BYTES_PER_ELEMENT;
+
+    const psSize = dataView.getUint32(index, true);
+    index += Uint32Array.BYTES_PER_ELEMENT;
+    const ps = new Float32Array(dataView.buffer, dataView.byteOffset + index, psSize);
+    index += psSize * Float32Array.BYTES_PER_ELEMENT;
+
+    const qsSize = dataView.getUint32(index, true);
+    index += Uint32Array.BYTES_PER_ELEMENT;
+    const qs = new Float32Array(dataView.buffer, dataView.byteOffset + index, qsSize);
+    index += qsSize * Float32Array.BYTES_PER_ELEMENT;
+
+    instances[i] = {
+      instanceId,
+      ps,
+      qs,
+    };
+  }
 
   return {
-    ps,
-    qs,
+    bufferAddress,
     instances,
   };
 }
-w.createGrassSplatAsync = async (inst, taskId, x, z, lod, priority) => {
+/* w.createGrassSplatAsync = async (inst, taskId, x, z, lod, priority) => {
   // const allocator = new Allocator(Module);
 
   // const allocSize = 64 * 1024;
@@ -669,16 +704,6 @@ w.createGrassSplatAsync = async (inst, taskId, x, z, lod, priority) => {
     // console.log('got result 1', _parsePQI(result));
     Module._doFree(result);
     return pqi;
-
-    /* const numElements = count[0];
-    return {
-      ps: ps.slice(0, numElements * 3),
-      qs: qs.slice(0, numElements * 4),
-      instances: instances.slice(0, numElements),
-    }; */
-  /* } finally {
-    // allocator.freeAll();
-  } */
 };
 w.createVegetationSplatAsync = async (inst, taskId, x, z, lod, priority) => {
   // const allocator = new Allocator(Module);
@@ -706,24 +731,15 @@ w.createVegetationSplatAsync = async (inst, taskId, x, z, lod, priority) => {
     // console.log('got result 2', _parsePQI(result));
     Module._doFree(result);
     return pqi;
-    /* const numElements = count[0];
-    return {
-      ps: ps.slice(0, numElements * 3),
-      qs: qs.slice(0, numElements * 4),
-      instances: instances.slice(0, numElements),
-    }; */
-  /* } finally {
-    // allocator.freeAll();
-  } */
 };
 w.createMobSplatAsync = async (inst, taskId, x, z, lod, priority) => {
   // const allocator = new Allocator(Module);
 
-  /* const allocSize = 64 * 1024;
-  const ps = allocator.alloc(Float32Array, allocSize * 3);
-  const qs = allocator.alloc(Float32Array, allocSize * 4);
-  const instances = allocator.alloc(Float32Array, allocSize);
-  const count = allocator.alloc(Uint32Array, 1); */
+  // const allocSize = 64 * 1024;
+  // const ps = allocator.alloc(Float32Array, allocSize * 3);
+  // const qs = allocator.alloc(Float32Array, allocSize * 4);
+  // const instances = allocator.alloc(Float32Array, allocSize);
+  // const count = allocator.alloc(Uint32Array, 1);
 
   // try {
     Module._createMobSplatAsync(
@@ -741,25 +757,7 @@ w.createMobSplatAsync = async (inst, taskId, x, z, lod, priority) => {
     // console.log('got result 3', _parsePQI(result));
     Module._doFree(result);
     return pqi;
-
-    /* const numElements = count[0];
-    return {
-      ps: ps.slice(0, numElements * 3),
-      qs: qs.slice(0, numElements * 4),
-      instances: instances.slice(0, numElements),
-    }; */
-  /* } finally {
-    // allocator.freeAll();
-  } */
-};
-// _parsePQI parses ps, qs, instances from a buffer
-// the buffer contains 6 entries:
-// ps size (uint32_t)
-// ps data (float32_t) * size
-// qs size (uint32_t)
-// qs data (float32_t) * size
-// instances size (uint32_t)
-// instances data (float32_t) * size
+}; */
 
 //
 
