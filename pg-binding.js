@@ -476,12 +476,13 @@ w.createChunkMeshAsync = async (inst, taskId, x, z, lod, lodArray) => {
     return null;
   }
 };
-w.createChunkVegetationAsync = async (inst, taskId, x, z, lod) => {
+w.createChunkVegetationAsync = async (inst, taskId, x, z, lod, numInstances) => {
   Module._createChunkVegetationAsync(
     inst,
     taskId,
     x, z,
     lod,
+    numInstances
   );
 
   const p = makePromise();
@@ -490,7 +491,7 @@ w.createChunkVegetationAsync = async (inst, taskId, x, z, lod) => {
   const outputBufferOffset = await p;
 
   if (outputBufferOffset) {
-    const result = _parsePQI(
+    const result = _parseInstances(
       Module.HEAP8.buffer,
       Module.HEAP8.byteOffset + outputBufferOffset
     );
@@ -644,29 +645,37 @@ w.getChunkAoAsync = async (inst, taskId, x, y, z, lod) => {
   return aos2;
 }; */
 
-function _parsePQI(arrayBuffer, bufferAddress) {
+function _parseInstances(arrayBuffer, bufferAddress) {
   const dataView = new DataView(arrayBuffer, bufferAddress);
   let index = 0;
 
-  const psSize = dataView.getUint32(index, true);
+  const numInstances = dataView.getUint32(index, true);
   index += Uint32Array.BYTES_PER_ELEMENT;
-  const ps = new Float32Array(dataView.buffer, dataView.byteOffset + index, psSize);
-  index += psSize * Float32Array.BYTES_PER_ELEMENT;
 
-  const qsSize = dataView.getUint32(index, true);
-  index += Uint32Array.BYTES_PER_ELEMENT;
-  const qs = new Float32Array(dataView.buffer, dataView.byteOffset + index, qsSize);
-  index += qsSize * Float32Array.BYTES_PER_ELEMENT;
+  const instances = Array(numInstances);
+  for (let i = 0; i < numInstances; i++) {
+    const instanceId = dataView.getInt32(index, true);
+    index += Int32Array.BYTES_PER_ELEMENT;
 
-  const instancesSize = dataView.getUint32(index, true);
-  index += Uint32Array.BYTES_PER_ELEMENT;
-  const instances = new Float32Array(dataView.buffer, dataView.byteOffset + index, instancesSize);
-  index += instancesSize * Float32Array.BYTES_PER_ELEMENT;
+    const psSize = dataView.getUint32(index, true);
+    index += Uint32Array.BYTES_PER_ELEMENT;
+    const ps = new Float32Array(dataView.buffer, dataView.byteOffset + index, psSize);
+    index += psSize * Float32Array.BYTES_PER_ELEMENT;
+
+    const qsSize = dataView.getUint32(index, true);
+    index += Uint32Array.BYTES_PER_ELEMENT;
+    const qs = new Float32Array(dataView.buffer, dataView.byteOffset + index, qsSize);
+    index += qsSize * Float32Array.BYTES_PER_ELEMENT;
+
+    instances[i] = {
+      instanceId,
+      ps,
+      qs,
+    };
+  }
 
   return {
     bufferAddress,
-    ps,
-    qs,
     instances,
   };
 }

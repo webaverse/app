@@ -177,12 +177,16 @@ const _cloneChunkResult = chunkResult => {
   };
 };
 const _cloneVegetationResult = vegetationResult => {
-  const {ps, qs, instances} = vegetationResult;
+  const {instances} = vegetationResult;
 
   const _getVegetationGeometrySize = () => {
-    let size = ps.length * ps.constructor.BYTES_PER_ELEMENT +
-      qs.length * qs.constructor.BYTES_PER_ELEMENT +
-      instances.length * instances.constructor.BYTES_PER_ELEMENT;
+    let size = 0;
+    for (let i = 0; i < instances.length; i++) {
+      const instance = instances[i];
+      const {ps, qs} = instance;
+      size += ps.length * ps.constructor.BYTES_PER_ELEMENT;
+      size += qs.length * qs.constructor.BYTES_PER_ELEMENT;
+    }
     return size;
   };
   const size = _getVegetationGeometrySize();
@@ -190,20 +194,28 @@ const _cloneVegetationResult = vegetationResult => {
   const arrayBuffer = new ArrayBuffer(size);
   let index = 0;
 
-  const ps2 = new ps.constructor(arrayBuffer, index, ps.length);
-  ps2.set(ps);
-  index += ps.length * ps.constructor.BYTES_PER_ELEMENT;
-  const qs2 = new qs.constructor(arrayBuffer, index, qs.length);
-  qs2.set(qs);
-  index += qs.length * qs.constructor.BYTES_PER_ELEMENT;
-  const instances2 = new instances.constructor(arrayBuffer, index, instances.length);
-  instances2.set(instances);
-  index += instances.length * instances.constructor.BYTES_PER_ELEMENT;
-  
+  const instances2 = Array(instances.length);
+  for (let i = 0; i < instances.length; i++) {
+    const instance = instances[i];
+    const {instanceId, ps, qs} = instance;
+
+    const ps2 = new ps.constructor(arrayBuffer, index, ps.length);
+    ps2.set(ps);
+    index += ps.length * ps.constructor.BYTES_PER_ELEMENT;
+
+    const qs2 = new qs.constructor(arrayBuffer, index, qs.length);
+    qs2.set(qs);
+    index += qs.length * qs.constructor.BYTES_PER_ELEMENT;
+
+    instances2[i] = {
+      instanceId,
+      ps: ps2,
+      qs: qs2,
+    };
+  }
+
   return {
     arrayBuffer,
-    ps: ps2,
-    qs: qs2,
     instances: instances2,
   };
 };

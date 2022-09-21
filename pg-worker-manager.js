@@ -175,11 +175,12 @@ export class PGWorkerManager {
     // signal.throwIfAborted();
     return result;
   }
-  async generateVegetation(chunkPosition, lod, {signal} = {}) {
+  async generateVegetation(chunkPosition, lod, numInstances, {signal} = {}) {
     const result = await this.worker.request('generateVegetation', {
       instance: this.instance,
       chunkPosition,
       lod,
+      numInstances,
     }, {signal});
     // signal.throwIfAborted();
     return result;

@@ -53,11 +53,11 @@ class ProcGenInstance {
     const result = await this.pgWorkerManager.generateChunk(localArray2D, lod, lodArray, {signal});
     return result;
   }
-  async generateVegetation(position, lod, {signal} = {}) {
+  async generateVegetation(position, lod, numInstances, {signal} = {}) {
     await this.pgWorkerManager.waitForLoad();
 
     position.toArray(localArray2D);
-    const result = await this.pgWorkerManager.generateVegetation(localArray2D, lod, {signal});
+    const result = await this.pgWorkerManager.generateVegetation(localArray2D, lod, numInstances, {signal});
     return result;
   }
   /* async getLightMapper({
