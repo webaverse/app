@@ -168,6 +168,7 @@ class PartyManager extends EventTarget {
       };
 
       this.removeFnMap.set(newPlayer, removeFn);
+
       return true;
     }
     return false;
