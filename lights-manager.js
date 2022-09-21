@@ -1,6 +1,8 @@
 import * as THREE from 'three';
 
-const _removeFromArray = (el, array) => {
+// const localVector = new THREE.Vector3();
+
+const _removeFromArray = (array, el) => {
   const removeIndex = array.indexOf(el);
   if (removeIndex !== -1) {
     array.splice(removeIndex, 1);
@@ -74,12 +76,15 @@ class LightsManager extends EventTarget {
     }
 
     light.position.set(0, 0, 0);
+
     lightTracker.add(light);
+
     lightTracker.light = light;
 
     if (light.target) {
       this.lightTargets.push(light.target);
     }
+
     this.lightTrackers.push(lightTracker);
     this.lights.push(light);
 
