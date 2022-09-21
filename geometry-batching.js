@@ -23,7 +23,7 @@ export class DrawCallBinding {
   getTextureOffset(name) {
     const texture = this.getTexture(name);
     const {itemSize} = texture;
-    return this.freeListEntry * this.allocator.maxInstancesPerDrawCall * itemSize;
+    return this.freeListEntry * this.allocator.maxInstancesPerGeometryPerDrawCall * itemSize;
   }
   getInstanceCount() {
     return this.allocator.getInstanceCount(this);
