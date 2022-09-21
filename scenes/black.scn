@@ -1,0 +1,44 @@
+{
+  "objects": [
+    {
+      "type": "application/light",
+      "content": {
+        "lightType": "point",
+        "args": [[0, 255, 0], 1, 10],
+        "position": [-10, 1, 0]
+      }
+    },
+    {
+      "type": "application/light",
+      "content": {
+        "lightType": "spot",
+        "args": [[0, 0, 255], 2, 0, 0.5, 1, 2],
+        "position": [-10, 1, 20]
+      }
+    },
+    {
+      "type": "application/light",
+      "content": {
+        "lightType": "rectArea",
+        "args": [[255, 0, 0], 1, 2, 2],
+        "position": [-10, 2, 40]
+      }
+    },
+    {
+      "type": "application/rendersettings",
+      "content": {
+        "background" : {
+          "color": [0, 0, 0]
+        }
+      }
+    },
+    {
+      "position": [
+        0,
+        0,
+        0
+      ],
+      "start_url": "https://webaverse.github.io/block/grid.glb"
+    }
+  ]
+}

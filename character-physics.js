@@ -456,6 +456,27 @@ class CharacterPhysics {
                 .applyQuaternion(localQuaternion)
             );
           let leftGamepadQuaternion = localQuaternion;
+
+          let tempObj1 = new THREE.Object3D;
+          tempObj1.position
+            .copy(localVector)
+            .add(
+              new THREE.Vector3()
+                .copy(leftHandOffset)
+                .multiplyScalar(handOffsetScale)
+            );
+          
+          let tempVec2 = new THREE.Vector3();
+          tempVec2
+            .copy(camera.position)
+            .add(new THREE.Vector3(0,0,-5000).applyQuaternion(camera.quaternion)
+          );
+
+          tempObj1.lookAt(tempVec2);
+
+          leftGamepadQuaternion = tempObj1.quaternion;
+
+
           if(cameraManager.scene2D) {
             let cursorPos = cameraManager.scene2D.getCursorPosition();
             let tempVec = new THREE.Vector3();
@@ -493,7 +514,27 @@ class CharacterPhysics {
                 .multiplyScalar(handOffsetScale)
                 .applyQuaternion(localQuaternion)
             );
-          const rightGamepadQuaternion = localQuaternion;
+            let rightGamepadQuaternion = localQuaternion;
+            if(cameraManager.scene2D) {
+              let cursorPos = cameraManager.scene2D.getCursorPosition();
+              let tempVec = new THREE.Vector3();
+  
+              let handOffset = rightHandOffset.clone();
+  
+              if(cameraManager.scene2D.getViewDirection() === "left") {
+                handOffset = handOffset.negate();
+              }
+              
+              tempVec
+              .copy(localVector)
+              .add(
+                new THREE.Vector3()
+                  .copy(handOffset)
+                  .multiplyScalar(handOffsetScale)
+              );
+  
+              rightGamepadQuaternion = cameraManager.scene2D.getCursorQuaternionFromOrigin(tempVec);
+            }
           /* const rightGamepadPointer = 0;
           const rightGamepadGrip = 0;
           const rightGamepadEnabled = false; */
