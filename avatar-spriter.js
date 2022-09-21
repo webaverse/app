@@ -25,15 +25,11 @@ const cameraMaterial = new THREE.MeshBasicMaterial({
 });
 const cameraMesh = new THREE.Mesh(cameraGeometry, cameraMaterial);
 
-let eyeVector = new THREE.Vector3();
-let targetVector = new THREE.Vector3();
-const upVector = new THREE.Vector3(0, 1, 0);
-
-let rendererSize = new THREE.Vector2();
-let rendererViewport = new THREE.Vector4();
-
 const localVector = new THREE.Vector3();
 const localVector2 = new THREE.Vector3();
+const localVector3 = new THREE.Vector3();
+const localVector2D = new THREE.Vector2();
+const localVector4D = new THREE.Vector4();
 const localQuaternion = new THREE.Quaternion();
 const localQuaternion2 = new THREE.Quaternion();
 const localEuler = new THREE.Euler();
@@ -95,9 +91,9 @@ const globalUpdate = (timestamp, timeDiff, camera) => {
 
       localQuaternion.setFromRotationMatrix(
         localMatrix.lookAt(
-          spriteAvatarMesh.getWorldPosition(eyeVector),
+          spriteAvatarMesh.getWorldPosition(localVector),
           camera.position,
-          targetVector.set(0, 1, 0)
+          localVector2.set(0, 1, 0)
         )
       );
       localEuler.setFromQuaternion(localQuaternion, 'YXZ');
@@ -618,7 +614,7 @@ class SpriteAvatarMesh extends THREE.Mesh {
       // select the texture
       const spriteSpecName = (() => {
         const playerSide = _getPlayerSide();
-        const currentSpeed = eyeVector.set(avatar.velocity.x, 0, avatar.velocity.z).length();
+        const currentSpeed = localVector.set(avatar.velocity.x, 0, avatar.velocity.z).length();
 
         if (avatar.emoteAnimation !== '') {
           return avatar.emoteAnimation;
@@ -656,7 +652,7 @@ class SpriteAvatarMesh extends THREE.Mesh {
             }
           }
         } else {
-          const currentSpeed = eyeVector.set(avatar.velocity.x, 0, avatar.velocity.z).length();
+          const currentSpeed = localVector.set(avatar.velocity.x, 0, avatar.velocity.z).length();
           const idleSpeedDistance = currentSpeed;
           const walkSpeedDistance = Math.abs(walkSpeed - currentSpeed);
           const runSpeedDistance = Math.abs(runSpeed - currentSpeed);
@@ -726,9 +722,9 @@ class SpriteAvatarMesh extends THREE.Mesh {
 
             localQuaternion.setFromRotationMatrix(
               localMatrix.lookAt(
-                this.getWorldPosition(eyeVector),
+                this.getWorldPosition(localVector),
                 camera.position,
-                targetVector.set(0, 1, 0)
+                localVector2.set(0, 1, 0)
               )
             );
             localEuler.setFromQuaternion(localQuaternion, 'YXZ');
@@ -755,9 +751,9 @@ const _getPlayerSide = () => {
 
   localEuler.setFromRotationMatrix(
     localMatrix.lookAt(
-      eyeVector.set(0, 0, 0),
-      targetVector.set(0, 0, -1).applyQuaternion(localPlayer.quaternion),
-      upVector
+      localVector.set(0, 0, 0),
+      localVector2.set(0, 0, -1).applyQuaternion(localPlayer.quaternion),
+      localVector3.set(0, 1, 0)
     ),
     'YXZ'
   );
@@ -765,9 +761,9 @@ const _getPlayerSide = () => {
 
   localEuler.setFromRotationMatrix(
     localMatrix.lookAt(
-      eyeVector.set(0, 0, 0),
-      targetVector.copy(localPlayer.characterPhysics.velocity).normalize(),
-      upVector
+      localVector.set(0, 0, 0),
+      localVector2.copy(localPlayer.characterPhysics.velocity).normalize(),
+      localVector3.set(0, 1, 0)
     ),
     'YXZ'
   );
@@ -1825,10 +1821,10 @@ export const renderSpriteImages = async (arrayBuffer, srcUrl) => {
     const oldParent = model.parent;
     scene2.add(model);
 
-    renderer.getSize(rendererSize);
-    if (rendererSize.x >= texSize && rendererSize.y >= texSize) {
+    renderer.getSize(localVector2D);
+    if (localVector2D.x >= texSize && localVector2D.y >= texSize) {
       // push old renderer state
-      renderer.getViewport(rendererViewport);
+      renderer.getViewport(localVector4D);
       const oldClearAlpha = renderer.getClearAlpha();
 
       renderer.setViewport(0, 0, texSize / pixelRatio, texSize / pixelRatio);
@@ -1837,7 +1833,7 @@ export const renderSpriteImages = async (arrayBuffer, srcUrl) => {
       renderer.render(scene2, camera2);
 
       // pop old renderer state
-      renderer.setViewport(rendererViewport);
+      renderer.setViewport(localVector4D);
       renderer.setClearAlpha(oldClearAlpha);
     }
 
