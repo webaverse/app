@@ -426,7 +426,7 @@ export class InstancedGeometryAllocator {
 
     this.geometry = geometry;
 
-    console.log('set geometries', geometry, Array.from(this.geometryRegistry.values()));
+    // console.log('set geometries', geometry, Array.from(this.geometryRegistry.values()));
   }
   allocDrawCall(geometryIndex, lodIndex, instanceCount, boundingObject) {
     const freeListEntry = this.freeList.alloc(1);
