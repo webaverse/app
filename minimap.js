@@ -186,6 +186,7 @@ const _makeCopyScene = () => {
 };
 const _makeScene = (worldWidth, worldHeight, minZoom) => {
   const scene = new THREE.Scene();
+  // scene.background = new THREE.Color( 0xff00ff );
   
   // floor map mesh
   const floorMesh = new THREE.Mesh(
@@ -409,6 +410,7 @@ class MiniMap {
 
             renderer.setRenderTarget(this.mapRenderTarget2);
             renderer.setViewport(0, 0, this.width, this.height);
+            renderer.setClearColor(0x000000, 0);
             renderer.clear();
 
             this.scene.floorMesh.material.uniforms.uTex.value = this.mapRenderTarget2.texture;
@@ -494,6 +496,7 @@ class MiniMap {
 
       renderer.setRenderTarget(oldRenderTarget);
       renderer.setViewport(0, 0, this.canvasWidth, this.canvasHeight);
+      renderer.setClearColor(0x000000, 0);
       renderer.clear();
       this.camera.position.copy(localPlayer.position)
         .add(localVector.set(0, cameraHeight, 0));
@@ -531,6 +534,7 @@ class MiniMap {
     };
     _copyToCanvases();
 
+    renderer.setClearColor(0x000000, 0);
     renderer.clear();
 
     // pop old state
