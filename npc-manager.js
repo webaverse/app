@@ -116,6 +116,12 @@ class NpcManager extends EventTarget {
   destroyNpc(npcPlayer) {
     npcPlayer.destroy();
 
+    this.dispatchEvent(new MessageEvent('playerremove', {
+      data: {
+        player: npcPlayer,
+      }
+    }));
+
     const removeIndex = this.npcs.indexOf(npcPlayer);
     if (removeIndex !== -1) {
       this.npcs.splice(removeIndex, 1);
@@ -163,6 +169,12 @@ class NpcManager extends EventTarget {
 
   async addPlayerApp(app, npcPlayer, json) {
     this.npcAppMap.set(npcPlayer, app);
+
+    this.dispatchEvent(new MessageEvent('playeradd', {
+      data: {
+        player: npcPlayer,
+      }
+    }));
 
     let live = true;
     let character = null;
