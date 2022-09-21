@@ -187,7 +187,6 @@ const _makeCopyScene = () => {
 };
 const _makeScene = (worldWidth, worldHeight, minZoom) => {
   const scene = new THREE.Scene();
-  // scene.background = new THREE.Color( 0xff00ff );
   
   // floor map mesh
   const floorMesh = new THREE.Mesh(
