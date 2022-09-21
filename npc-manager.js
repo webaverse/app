@@ -60,7 +60,7 @@ class NpcManager extends EventTarget {
     };
     const app = createPlayerApp();
 
-    const importPlayerToNpcManager = () => {
+    const addDefaultPlayer = () => {
       this.addPlayerApp(app, localPlayer, defaultPlayerSpec);
 
       this.dispatchEvent(new MessageEvent('defaultplayeradd', {
@@ -73,7 +73,7 @@ class NpcManager extends EventTarget {
         this.removeNpcApp(app);
       });
     };
-    importPlayerToNpcManager();
+    addDefaultPlayer();
   }
 
   async createNpcAsync({
