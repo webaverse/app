@@ -342,7 +342,7 @@ const _handleMethod = async ({method, args, instance: instanceKey, taskId}) => {
       };
     }
     case 'generateVegetation': {
-      const {chunkPosition, lod} = args;
+      const {chunkPosition, lod, numInstances} = args;
       const instance = instances.get(instanceKey);
       if (!instance) throw new Error('generateVegetation : instance not found');
 
@@ -353,7 +353,8 @@ const _handleMethod = async ({method, args, instance: instanceKey, taskId}) => {
         taskId,
         position.x,
         position.y,
-        lod
+        lod,
+        numInstances
       );
       const vegetationResult2 = _cloneVegetationResult(vegetationResult);
 
