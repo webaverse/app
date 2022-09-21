@@ -18,39 +18,26 @@ class SkyManager extends EventTarget {
   constructor() {
     super();
 
-    this.sun = new THREE.Object3D();
-    this.sun.name = 'SunTracker';
-
-    this.moon = new THREE.Object3D();
-    this.moon.name = 'MoonTracker';
+    this.skyLight = new THREE.Object3D();
+    this.skyLight.name = 'SkyLightTracker';
   }
 
-  getSun() {
-    return this.sun;
+  getSkyLight() {
+    return this.skyLight;
   }
 
-  getMoon() {
-    return this.moon;
-  }
-
-  addSunLight(light) {
+  addSkyLight(light) {
     const lightTracker = _createSkyLight(light);
-    this.sun.add(lightTracker);
+    this.skyLight.add(lightTracker);
   }
 
-  addMoonLight(light) {
-    const lightTracker = _createSkyLight(light);
-    this.moon.add(lightTracker);
+  setSkyLightPosition(position) {
+    this.skyLight.position.copy(position);
+    this.skyLight.updateMatrixWorld();
   }
 
-  setSunPosition(position) {
-    this.sun.position.copy(position);
-    this.sun.updateMatrixWorld();
-  }
-
-  setMoonPosition(position) {
-    this.moon.position.copy(position);
-    this.moon.updateMatrixWorld();
+  setSkyLightColor(color) {
+    this.skyLight.lightTracker.light.color = color;
   }
 }
 
