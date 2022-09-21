@@ -1,7 +1,7 @@
 {
   "name": "test e2e",
   "scripts": {
-    "start": "ts-node --swc run_e2e_tests.ts",
+    "start": "npm run server & npm run test-e2e",
     "server": "cd ../../ && npm run dev",
     "test-e2e": "jest --runInBand"
   },

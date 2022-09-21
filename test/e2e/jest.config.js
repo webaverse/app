@@ -11,4 +11,7 @@ module.exports = {
     "./**.test.js"
   ],
   verbose: true,
+  notifyMode: "always",
+  maxWorkers: "50%",
+  maxConcurrency: 1,
 };

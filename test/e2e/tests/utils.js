@@ -4,11 +4,10 @@ const { Url } = require('url');
 const totalTimeout = 600 * 1000
 const width = 800;
 const height = 400;
-const viewScale = 1;
 let browser
 let page
 
-const isdebug = true
+const isdebug = false
 
 const printLog = (text, error) => {
 	if (isdebug) {
@@ -24,25 +23,26 @@ const throwErrors = async (text, isQuit) => {
 
 const lanuchBrowser = async () => {
 	jest.setTimeout(totalTimeout)
-  printLog("start launch browser")
-	browser = await puppeteer.launch( {
-		// headless: !isdebug,
-		headless: true,
-		args: [
-			'--no-sandbox',
-			// '--use-gl=egl',
-			'--use-gl=swiftshader',
-			'--disable-dev-shm-usage',
-			'--disable-setuid-sandbox',
-			'--no-sandbox',
-			'--enable-surface-synchronization',
-			'--enable-webgl',
-			'--disable-web-security=1',
-			'--mute-audio'
-		],
-		// devtools: isdebug
-		devtools: false
-	})
+  	printLog("start launch browser")
+	if (!browser) {
+		browser = await puppeteer.launch( {
+			headless: !isdebug,
+			headless: true,
+			args: [
+				'--no-sandbox',
+				// '--use-gl=egl',
+				'--use-gl=swiftshader',
+				'--disable-dev-shm-usage',
+				'--disable-setuid-sandbox',
+				'--no-sandbox',
+				'--enable-surface-synchronization',
+				'--enable-webgl',
+				'--disable-web-security=1',
+				'--mute-audio'
+			],
+			devtools: isdebug
+		})
+	}
 	page = ( await browser.pages() )[ 0 ];
 	await page.setViewport( { width, height } );
 	page.on("pageerror", async (err) => {
@@ -52,7 +52,7 @@ const lanuchBrowser = async () => {
 }
 
 const closeBrowser = async() => {
-	// await browser.close()
+	await browser.close()
 }
 
 const getCurrentPage = () => {
@@ -140,8 +140,6 @@ const defineFunctions = async () => {
 			const degree = (radians * 180) / Math.PI;
 			return degree;
 		};
-
-		
 	})
 }
 
