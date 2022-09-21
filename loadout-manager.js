@@ -48,7 +48,8 @@ class LoadoutManager extends EventTarget {
     this.removeListenerFn = () => {
       playersManager.removeEventListener('playerchange', playerSelectedFn);
     };
-
+  }
+  initDefault() {
     // this is the initial event for the first player
     npcManager.waitForLoad().then(() => {
       const localPlayer = playersManager.getLocalPlayer();
