@@ -40,7 +40,7 @@ highlightPhysicsMesh.visible = false;
 sceneLowPriority.add(highlightPhysicsMesh);
 
 const getPhysicalCenter = box => {
-  return localVector9.set(box.min.x+(box.max.x - box.min.x)/2, box.min.y, box.min.z+(box.max.z - box.min.z)/2);
+  return localVector9.set(box.min.x+(box.max.x - box.min.x)/2, box.min.y+(box.max.y - box.min.y)/2, box.min.z+(box.max.z - box.min.z)/2);
 }
 
 const _updateGrabbedObject = (
@@ -62,18 +62,50 @@ const _updateGrabbedObject = (
   localMatrix
     .multiplyMatrices(grabMatrix, offsetMatrix)
     .decompose(localVector5, localQuaternion3, localVector6);
+  
+
+  // new approach below
+
   let physicalOffset = null;
   const physicsObjects = o.getPhysicsObjects();
+
+  // Compute bounding box and it's center point offset from it's app.position.
+  // THREE.Box3.getCenter() has a console error, so I calculate manually.
+  // Set localVector7 = bounding box size (width, height, depth).
   if(physicsObjects) {
     const physicsObject = physicsObjects[0];
     const geometry = physicsObject.physicsMesh.geometry;
     geometry.computeBoundingBox();
-    localBox.copy(geometry.boundingBox); //.applyMatrix4(o.matrixWorld);
-    physicalOffset = getPhysicalCenter(localBox);
-    localBox.getSize(localVector7);
+    physicalOffset = getPhysicalCenter(geometry.boundingBox);
+    geometry.boundingBox.getSize(localVector7);
   }
 
-  // raycast from localPlayer in direction of camera angle
+  // Query overlapBox with parameters:
+  // localVector7: bounding box size,
+  // localVector8: world center position of bounding box,
+  // o.rotation: app rotation
+  // note: localVector5 = position of grabbed object when moving it freely
+  const overlap = collisionEnabled && 
+    physicsScene.overlapBox(
+      localVector7.x, 
+      localVector7.y, 
+      localVector7.z, 
+      localVector8.copy(localVector5).add(physicalOffset), 
+      o.rotation.clone()
+    );
+  
+    // if there is a collision, log the object's name
+    if(overlap.objectIds.length > 0) {
+    for(const physicsId of overlap.objectIds) {
+      const obj = metaversefileApi.getAppByPhysicsId(physicsId);
+      console.log(obj.name);
+    }
+  }
+  // new approach above
+
+  // old approach below
+
+  /*// raycast from localPlayer in direction of camera angle
   const collision = collisionEnabled && physicsScene.raycast(localVector, localQuaternion);
 
   // raycast from grabbed object down perpendicularly
@@ -92,11 +124,6 @@ const _updateGrabbedObject = (
     // console.log('downCollision', localVector4);
   }
 
-  const overlap = collisionEnabled && physicsScene.overlapBox(localVector7.x, localVector7.y, localVector7.z, localVector5, o.rotation.clone());
-  console.log(overlap);
-
-  //
-
   // if collision point is closer to the player than the grab offset and collisionDown point
   // is below collision point then place the object at collision point
   if (localVector.distanceTo(localVector6) < offset && localVector4.y < localVector6.y) {
@@ -109,9 +136,14 @@ const _updateGrabbedObject = (
   if (localVector5.y < localVector4.y) {
     localVector5.setY(localVector4.y);
     console.log(localVector5.y, localVector4.y);
-  }
+  }*/
+  // old approach above
 
-  o.position.copy(localVector5);
+  // only change position without collision
+  if(!overlap.objectIds.length > 0) {
+    o.position.copy(localVector5);
+  }
+  
 
   const handSnap =
     !handSnapEnabled ||
