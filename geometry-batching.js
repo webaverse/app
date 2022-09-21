@@ -157,7 +157,7 @@ export class DrawCallBinding {
   }
 }
 
-const _swapTextureAttributes = (texture, i, j, maxInstancesPerDrawCall) => {
+/* const _swapTextureAttributes = (texture, i, j, maxInstancesPerDrawCall) => {
   const {itemSize} = texture;
   const startOffset = i * maxInstancesPerDrawCall;
   const dstStart = (startOffset + j) * itemSize;
@@ -186,19 +186,19 @@ const _swapBoundingDataBox = (instanceBoundingData, i, j, maxInstancesPerDrawCal
     srcStart,
     srcStart + 6
   );
-};
+}; */
 export class InstancedGeometryAllocator {
   constructor(geometries, instanceTextureSpecs, {
     maxInstancesPerDrawCall,
     maxDrawCallsPerGeometry,
     maxSlotsPerGeometry,
     boundingType = null,
-    instanceBoundingType = null,
+    // instanceBoundingType = null,
   }) {
     this.maxInstancesPerDrawCall = maxInstancesPerDrawCall;
     this.maxDrawCallsPerGeometry = maxDrawCallsPerGeometry;
     this.boundingType = boundingType;
-    this.instanceBoundingType = instanceBoundingType;
+    // this.instanceBoundingType = instanceBoundingType;
     
     this.drawStarts = new Int32Array(geometries.length * maxDrawCallsPerGeometry);
     this.drawCounts = new Int32Array(geometries.length * maxDrawCallsPerGeometry);
@@ -206,8 +206,8 @@ export class InstancedGeometryAllocator {
     
     const boundingSize = getBoundingSize(boundingType);
     this.boundingData = new Float32Array(geometries.length * maxDrawCallsPerGeometry * boundingSize);
-    const instanceBoundingSize = getBoundingSize(instanceBoundingType);
-    this.instanceBoundingData = new Float32Array(geometries.length * maxDrawCallsPerGeometry * maxInstancesPerDrawCall * instanceBoundingSize);
+    // const instanceBoundingSize = getBoundingSize(instanceBoundingType);
+    // this.instanceBoundingData = new Float32Array(geometries.length * maxDrawCallsPerGeometry * maxInstancesPerDrawCall * instanceBoundingSize);
  
     this.testBoundingFn = (() => {
       if (this.boundingType === 'sphere') {
@@ -226,7 +226,7 @@ export class InstancedGeometryAllocator {
         return null;
       }
     })();
-    this.swapBoundingDataFn = (() => {
+    /* this.swapBoundingDataFn = (() => {
       if (this.boundingType === 'sphere') {
         return _swapBoundingDataSphere;
       } else if (this.boundingType === 'box') {
@@ -255,23 +255,23 @@ export class InstancedGeometryAllocator {
         // throw new Error('Invalid bounding type: ' + this.boundingType);
         return null;
       }
-    })();
+    })(); */
 
     {
       const numGeometries = geometries.length;
       const geometryRegistry = Array(numGeometries);
-      let positionIndex = 0;
+      // let positionIndex = 0;
       let indexIndex = 0;
       for (let i = 0; i < numGeometries; i++) {
         const geometry = geometries[i];
 
-        const positionCount = geometry.attributes.position.count;
+        // const positionCount = geometry.attributes.position.count;
         const indexCount = geometry.index.count;
         const spec = {
-          position: {
+          /* position: {
             start: positionIndex,
             count: positionCount,
-          },
+          }, */
           index: {
             start: indexIndex,
             count: indexCount,
@@ -279,7 +279,7 @@ export class InstancedGeometryAllocator {
         };
         geometryRegistry[i] = spec;
 
-        positionIndex += positionCount;
+        // positionIndex += positionCount;
         indexIndex += indexCount;
       }
       this.geometryRegistry = geometryRegistry;
@@ -442,7 +442,7 @@ export class InstancedGeometryAllocator {
         multiDrawStarts[i] = this.drawStarts[i];
         multiDrawCounts[i] = this.drawCounts[i];
         
-        if (this.instanceBoundingType) {
+        /* if (this.instanceBoundingType) {
           const startOffset = i * this.maxInstancesPerDrawCall;
 
           // arrange the instanced draw list :
@@ -466,9 +466,9 @@ export class InstancedGeometryAllocator {
           }
 
           multiDrawInstanceCounts[i] = instancesToDraw;
-        } else {
+        } else { */
           multiDrawInstanceCounts[i] = this.drawInstanceCounts[i];
-        }
+        // }
       } else {
         multiDrawStarts[i] = 0;
         multiDrawCounts[i] = 0;
