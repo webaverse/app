@@ -233,7 +233,7 @@ export class ChunkedGeometryAllocator {
         // compute the minimum size of a texture that can hold the data
 
         /* let itemCount = numGeometries * maxDrawCallsPerGeometry * maxInstancesPerDrawCall;
-        if ( !instanced ) {
+        if (!instanced) {
           itemCount = maxSlotsPerGeometry * numGeometries;
         } */
         let itemCount = maxDrawCalls * maxInstancesPerDrawCall;

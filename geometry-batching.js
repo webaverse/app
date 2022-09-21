@@ -191,7 +191,7 @@ export class InstancedGeometryAllocator {
   constructor(geometries, instanceTextureSpecs, {
     maxInstancesPerDrawCall,
     maxDrawCallsPerGeometry,
-    maxSlotsPerGeometry,
+    // maxSlotsPerGeometry,
     boundingType = null,
     // instanceBoundingType = null,
   }) {
@@ -287,22 +287,28 @@ export class InstancedGeometryAllocator {
       this.geometry = BufferGeometryUtils.mergeBufferGeometries(geometries);
 
       this.texturesArray = instanceTextureSpecs.map(spec => {
-        const {
+        let {
           name,
           Type,
-          itemSize,
-          instanced = true
+          itemSize, // note: overridden to >= 4
+          // instanced = true
         } = spec;
 
         // compute the minimum size of a texture that can hold the data
 
-        let itemCount = numGeometries * maxDrawCallsPerGeometry * maxInstancesPerDrawCall;
-        if ( !instanced ) {
+        /* let itemCount = numGeometries * maxDrawCallsPerGeometry * maxInstancesPerDrawCall;
+        if (!instanced) {
           itemCount = maxSlotsPerGeometry * numGeometries;
-        }
+        } */
+        let itemCount = maxDrawCalls * maxInstancesPerDrawCall;
+        /* if (isNaN(itemCount)) {
+          debugger;
+        } */
         let neededItems4 = itemCount;
         if (itemSize > 4) {
           neededItems4 *= itemSize / 4;
+        } else {
+          itemSize = 4;
         }
         const textureSizePx = Math.min(Math.max(Math.pow(2, Math.ceil(Math.log2(Math.sqrt(neededItems4)))), 16), 2048);
         const itemSizeSnap = itemSize > 4 ? 4 : itemSize;
@@ -365,13 +371,13 @@ export class InstancedGeometryAllocator {
       this.freeList = new FreeList(numGeometries * maxDrawCallsPerGeometry);
     }
   }
-  allocDrawCall(geometryIndex, boundingObject) {
+  allocDrawCall(geometryIndex, instanceCount, boundingObject) {
     const freeListEntry = this.freeList.alloc(1);
     const drawCall = new DrawCallBinding(geometryIndex, freeListEntry, this);
 
     const geometrySpec = this.geometryRegistry[geometryIndex];
     const {
-      index: {
+      index: { // XXX use multiple index buffers, one for each lod
         start,
         count,
       },
@@ -379,7 +385,7 @@ export class InstancedGeometryAllocator {
 
     this.drawStarts[freeListEntry] = start * this.geometry.index.array.BYTES_PER_ELEMENT;
     this.drawCounts[freeListEntry] = count;
-    this.drawInstanceCounts[freeListEntry] = 0;
+    this.drawInstanceCounts[freeListEntry] = instanceCount;
     if (this.boundingType === 'sphere') {
       boundingObject.center.toArray(this.boundingData, freeListEntry  * 4);
       this.boundingData[freeListEntry * 4 + 3] = boundingObject.radius;
@@ -412,7 +418,7 @@ export class InstancedGeometryAllocator {
 
     this.freeList.free(freeListEntry);
   }
-  getInstanceCount(drawCall) {
+  /* getInstanceCount(drawCall) {
     return this.drawInstanceCounts[drawCall.freeListEntry];
   }
   setInstanceCount(drawCall, instanceCount) {
@@ -423,7 +429,7 @@ export class InstancedGeometryAllocator {
   }
   decrementInstanceCount(drawCall) {
     this.drawInstanceCounts[drawCall.freeListEntry]--;
-  }
+  } */
   getTexture(name) {
     return this.textures[name];
   }
