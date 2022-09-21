@@ -98,23 +98,7 @@ describe('Simple tests', () => {
 			printLog("should character movement: naruto run")
 			await getCurrentPage().keyboard.down("ShiftLeft")
 			await getCurrentPage().waitForTimeout(100)
-			// let lastTime = 0
-			// let isloop = true
-			// let pastDiff = 0
 			let repeat = 0
-			//repeat until less than doubleTapTime 
-			// do {
-			// 	await getCurrentPage().keyboard.press("KeyW")
-			// 	const currentDiff = performance.now() - lastTime
-			// 	isloop = !(currentDiff > 100 && currentDiff < 500) && !(pastDiff > 100 && pastDiff < 500)
-			// 	printLog(`doubleTapTime: ${performance.now() - lastTime}`)
-			// 	lastTime = performance.now()
-			// 	pastDiff = currentDiff
-			// 	repeat++
-			// 	if (repeat > 10) {
-			// 		isloop = false
-			// 	}
-			// } while (isloop);
 			const timer = setInterval(() => {
 				getCurrentPage().keyboard.press("KeyW")
 				repeat++
@@ -140,34 +124,47 @@ describe('Simple tests', () => {
 			const lastPosition =  await getCurrentPage().evaluate(async () => {
 				return globalWebaverse.playersManager.localPlayer.avatar.lastPosition
 			})
-			await getCurrentPage().keyboard.press("Space")
-			await getCurrentPage().waitForTimeout(100)
-			const isJump =  await getCurrentPage().evaluate(async (lastPosition) => {
-				const avatar = window.globalWebaverse.playersManager?.localPlayer?.avatar
-				const jumpState = avatar.jumpState
-				const jumpTime = avatar.jumpTime
-				const currentPosition = avatar.lastPosition
-				console.log(jumpTime, jumpState, lastPosition, currentPosition)
-				return jumpTime > 0 && jumpState && (currentPosition.y - lastPosition.y > 0)
-			}, lastPosition)
-			await getCurrentPage().waitForTimeout(2000)
-			expect(isJump).toBeTruthy();
+			const isJumpFlags = []
+			for (let i = 0; i < 3; i++) {
+				await getCurrentPage().keyboard.press("Space")
+				await getCurrentPage().waitForTimeout(100)
+				const isJump =  await getCurrentPage().evaluate(async (lastPosition) => {
+					const avatar = window.globalWebaverse.playersManager?.localPlayer?.avatar
+					const jumpState = avatar.jumpState
+					const jumpTime = avatar.jumpTime
+					const currentPosition = avatar.lastPosition
+					console.log(jumpTime, jumpState, lastPosition, currentPosition)
+					return jumpTime > 0 && jumpState && (currentPosition.y - lastPosition.y > 0)
+				}, lastPosition)
+				isJumpFlags.push(isJump)
+				await getCurrentPage().waitForTimeout(2000)
+			}
+			expect((isJumpFlags[0] || isJumpFlags[1] || isJumpFlags[2])).toBeTruthy();
 		}, totalTimeout)
 		
 		test('should character movement: double jump', async () => {
 			printLog("should character movement: double jump")
-			await getCurrentPage().keyboard.press("Space")
-			await getCurrentPage().waitForTimeout(100)
-			await getCurrentPage().keyboard.press("Space")
-			await getCurrentPage().waitForTimeout(100)
-			const isDoubleJump =  await getCurrentPage().evaluate(async () => {
-				const avatar = globalWebaverse.playersManager.localPlayer.avatar
-				const doubleJumpState = avatar.doubleJumpState
-				const doubleJumpTime = avatar.doubleJumpTime
-				return doubleJumpTime > 0 && doubleJumpState
+			const lastPosition =  await getCurrentPage().evaluate(async () => {
+				return globalWebaverse.playersManager.localPlayer.avatar.lastPosition
 			})
-			await getCurrentPage().waitForTimeout(2000)
-			expect(isDoubleJump).toBeTruthy();
+			const isDoubleJumpFlags = []
+			for (let i = 0; i < 3; i++) {
+				await getCurrentPage().keyboard.press("Space")
+				await getCurrentPage().waitForTimeout(100)
+				await getCurrentPage().keyboard.press("Space")
+				await getCurrentPage().waitForTimeout(100)
+				const isDoubleJump =  await getCurrentPage().evaluate(async (lastPosition) => {
+					const avatar = globalWebaverse.playersManager.localPlayer.avatar
+					const doubleJumpState = avatar.doubleJumpState
+					const doubleJumpTime = avatar.doubleJumpTime
+					const currentPosition = avatar.lastPosition
+					console.log(doubleJumpTime, doubleJumpState)
+					return doubleJumpTime > 0 && doubleJumpState && (currentPosition.y - lastPosition.y > 0)
+				}, lastPosition)
+				isDoubleJumpFlags.push(isDoubleJump)
+				await getCurrentPage().waitForTimeout(2000)
+			}
+			expect((isDoubleJumpFlags[0] || isDoubleJumpFlags[1] || isDoubleJumpFlags[2])).toBeTruthy();
 		}, totalTimeout)
 
 		test('should character movement: crouch', async () => {

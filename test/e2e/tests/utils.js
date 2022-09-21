@@ -27,7 +27,7 @@ const lanuchBrowser = async () => {
   printLog("start launch browser")
 	browser = await puppeteer.launch( {
 		// headless: !isdebug,
-		headless: false,
+		headless: true,
 		args: [
 			'--no-sandbox',
 			// '--use-gl=egl',
@@ -41,7 +41,7 @@ const lanuchBrowser = async () => {
 			'--mute-audio'
 		],
 		// devtools: isdebug
-		devtools: true
+		devtools: false
 	})
 	page = ( await browser.pages() )[ 0 ];
 	await page.setViewport( { width, height } );
