@@ -992,10 +992,31 @@ const _gameUpdate = (timestamp, timeDiff) => {
 
   const crosshairEl = document.getElementById('crosshair');
   if (crosshairEl) {
+    //console.log("hey")
     const visible = !!cameraManager.pointerLockElement &&
       (['camera', 'firstperson', 'thirdperson'].includes(cameraManager.getMode()) || localPlayer.hasAction('aim')) &&
       !_getGrabbedObject(0);
-    crosshairEl.style.visibility = visible ? null : 'hidden';
+
+      //const size = renderer.getSize(localVector);
+      //console.log(raycastManager.lastMouseEvent.clientX- size.x);
+      crosshairEl.style.visibility = visible ? null : 'hidden';
+
+      // if(visible) {
+      //   crosshairEl.style.left = (raycastManager.lastMouseEvent.clientX) + 'px';
+      //   crosshairEl.style.top  = (raycastManager.lastMouseEvent.clientY) + 'px';
+      // }
+      // else {
+      //   crosshairEl.style.left = 0;
+      //   crosshairEl.style.top  = 0;
+      // }
+
+      //console.log(raycastManager.lastMouseEvent.clientY);
+
+      //console.log(raycastManager.lastMouseEvent);
+      //console.log((raycastManager.lastMouseEvent.clientX/window.width-0.5) + 'px');
+
+      //console.log(raycastManager.lastMouseEvent.clientX, raycastManager.lastMouseEvent.clientY);
+    // crosshairEl.style.visibility = visible ? null : 'hidden';
   }
 
   const _updateUse = () => {

@@ -2,7 +2,7 @@
 it sets up and ticks the physics loop for our local character */
 
 import * as THREE from 'three';
-// import cameraManager from './camera-manager.js';
+import cameraManager from './camera-manager.js';
 // import {getPlayerCrouchFactor} from './character-controller.js';
 import physicsManager from './physics-manager.js';
 // import ioManager from './io-manager.js';
@@ -208,7 +208,13 @@ class CharacterPhysics {
             );
           }
         } else {
-          localQuaternion.copy(camera.quaternion);
+          //// 2D edit
+          if(cameraManager.scene2D) {
+            localQuaternion.copy(cameraManager.scene2D.getCursorQuaternionFromOrigin(this.character.position));
+          }
+          else {
+            localQuaternion.copy(camera.quaternion);
+          }
         }
 
         if (grounded) {
@@ -441,7 +447,7 @@ class CharacterPhysics {
         const avatarHeight = this.character.avatar ? this.characterHeight : 0;
         const handOffsetScale = this.character.avatar ? avatarHeight / 1.5 : 1;
         if (this.character.hands[0].enabled) {
-          const leftGamepadPosition = localVector2
+          let leftGamepadPosition = localVector2
             .copy(localVector)
             .add(
               localVector3
@@ -449,7 +455,28 @@ class CharacterPhysics {
                 .multiplyScalar(handOffsetScale)
                 .applyQuaternion(localQuaternion)
             );
-          const leftGamepadQuaternion = localQuaternion;
+          let leftGamepadQuaternion = localQuaternion;
+          if(cameraManager.scene2D) {
+            let cursorPos = cameraManager.scene2D.getCursorPosition();
+            let tempVec = new THREE.Vector3();
+
+            let handOffset = leftHandOffset.clone();
+
+            if(cameraManager.scene2D.getViewDirection() === "left") {
+              handOffset = handOffset.negate();
+            }
+            
+            tempVec
+            .copy(localVector)
+            .add(
+              new THREE.Vector3()
+                .copy(handOffset)
+                .multiplyScalar(handOffsetScale)
+            );
+
+            leftGamepadQuaternion = cameraManager.scene2D.getCursorQuaternionFromOrigin(tempVec);
+          }
+          
           /* const leftGamepadPointer = 0;
           const leftGamepadGrip = 0;
           const leftGamepadEnabled = false; */

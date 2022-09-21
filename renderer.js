@@ -259,6 +259,7 @@ export {
   // postScenePerspective,
   // avatarScene,
   camera,
+  oldCamera,
   // orthographicCamera,
   // avatarCamera,
   dolly,

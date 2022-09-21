@@ -738,12 +738,14 @@ ioManager.keyup = e => {
   }
 };
 ioManager.mousemove = e => {
+
+  //console.log(e);
   /* if (game.weaponWheel) {
     game.updateWeaponWheel(e);
   } else { */
-    if(cameraManager.scene2D) {
-      return;
-    }
+    // if(cameraManager.scene2D) {
+    //   return;
+    // }
 
     if (cameraManager.pointerLockElement) {
       cameraManager.handleMouseMove(e);

@@ -59,7 +59,7 @@ const triggerDamageAnimation = collisionId => {
 };
 
 const makeHitTracker = ({
-  totalHp = 1,
+  totalHp = 1000,
 } = {}) => {
   const hitTracker = new THREE.Object3D();
   hitTracker.name = 'hitTracker';
@@ -154,9 +154,10 @@ const makeHitTracker = ({
           // quaternion: cylinderMesh.quaternion,
         };
         // hitTracker.dispatchEvent();
-        console.log(currentApp, "currentApp");
-        currentApp.npcPlayer.characterPhysics.setPosition(new THREE.Vector3(0,1,0));
-        //currentApp.dispatchEvent(dieEvent);
+        //console.log(currentApp, "currentApp");
+        //hitTracker.hp = 10;
+        //currentApp.npcPlayer.characterPhysics.setPosition(new THREE.Vector3(0,1,0));
+        currentApp.dispatchEvent(dieEvent);
       }
     }
     return result;
