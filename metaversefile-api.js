@@ -65,6 +65,7 @@ import * as gpuTaskManager from './gpu-task-manager.js';
 import * as generationTaskManager from './generation-task-manager.js';
 import ioManager from './io-manager.js';
 import {lightsManager} from './lights-manager.js';
+import {skyManager} from './sky-manager.js';
 
 const localVector2D = new THREE.Vector2();
 
@@ -455,6 +456,9 @@ metaversefile.setApi({
   },
   useLightsManager() {
     return lightsManager;
+  },
+  useSkyManager() {
+    return skyManager;
   },
   useChatManager() {
     return chatManager;

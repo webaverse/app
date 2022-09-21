@@ -1,6 +1,6 @@
 import * as THREE from 'three';
 
-// const localVector = new THREE.Vector3();
+const localVector = new THREE.Vector3();
 
 const _removeFromArray = (array, el) => {
   const removeIndex = array.indexOf(el);
@@ -49,7 +49,7 @@ class LightsManager extends EventTarget {
     this.lightTargets = [];
   }
 
-  createLightTracker(app, light, lightType, shadow, position) {
+  createLightTracker(light, lightType, shadow, position) {
     if (
       lightType === 'directional' ||
       lightType === 'point' ||
@@ -66,7 +66,7 @@ class LightsManager extends EventTarget {
     light.lastAppMatrixWorld = new THREE.Matrix4();
     light.plane = new THREE.Plane().setFromNormalAndCoplanarPoint(
       new THREE.Vector3(0, -1, 0),
-      app.position
+      localVector
     );
 
     if (Array.isArray(position)) {
