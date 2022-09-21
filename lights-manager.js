@@ -63,6 +63,8 @@ class LightsManager extends EventTarget {
     const lightTracker = new THREE.Object3D();
     lightTracker.name = 'LightTracker';
 
+    localVector.fromArray(position);
+
     light.lastAppMatrixWorld = new THREE.Matrix4();
     light.plane = new THREE.Plane().setFromNormalAndCoplanarPoint(
       new THREE.Vector3(0, -1, 0),
@@ -70,7 +72,7 @@ class LightsManager extends EventTarget {
     );
 
     if (Array.isArray(position)) {
-      lightTracker.position.fromArray(position);
+      lightTracker.position.copy(localVector);
     } else {
       lightTracker.position.set(0, 0, 0);
     }
