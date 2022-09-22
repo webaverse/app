@@ -10,8 +10,12 @@ import game from '../../../../game.js';
 import { transparentPngUrl } from '../../../../constants.js';
 import * as sounds from '../../../../sounds.js';
 import { mod } from '../../../../util.js';
+import { ChainContext } from '../../../hooks/chainProvider';
 import dropManager from '../../../../drop-manager';
 import cardsManager from '../../../../cards-manager.js';
+import {
+  CONTRACTS, ALCHEMY_API
+} from '../../../hooks/web3-constants.js';
 
 //
 
@@ -295,12 +299,14 @@ const EquipmentItems = ({
 };
 
 export const Equipment = () => {
-    const { state, setState } = useContext( AppContext );
+    const { state, account } = useContext( AppContext );
     const [ hoverObject, setHoverObject ] = useState(null);
     const [ selectObject, setSelectObject ] = useState(null);
     // const [ spritesheet, setSpritesheet ] = useState(null);
     const [ faceIndex, setFaceIndex ] = useState(1);
+    const { selectedChain, supportedChain } = useContext(ChainContext)
     const [ claims, setClaims ] = useState([]);
+    const [ nfts, setNfts ] = useState(null);
     const [ cachedLoader, setCachedLoader ] = useState(() => new CachedLoader({
         async loadFn(url, value, {signal}) {            
             const {start_url} = value;
@@ -412,6 +418,23 @@ export const Equipment = () => {
             }
         }
     }, [open, selectObject]);
+
+    useEffect(async () => {
+        if (account && account.currentAddress) {
+            const baseURL = `${ALCHEMY_API[selectedChain.contract_name].RPC_URL}/${ALCHEMY_API[selectedChain.contract_name].API_KEY}/getNFTs/`
+            const nftList = await fetch(`${baseURL}?owner=${account.currentAddress}&contractAddresses%5B%5D=${CONTRACTS[selectedChain.contract_name].NFT}`,
+                {
+                    method: 'get',
+                    redirect: 'follow'
+                })
+                .then(response => response.json())
+                console.log("lists", nftList)
+            setNfts(nftList);
+        } else {
+            console.log('could not query NFT collections')
+        }
+
+    }, [open, selectedChain, account])
 
     useEffect(() => {
         setSelectObject(null);
