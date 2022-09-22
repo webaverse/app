@@ -7,7 +7,7 @@ const height = 400;
 let browser
 let page
 
-const isdebug = false
+const isdebug = true
 
 const printLog = (text, error) => {
 	if (isdebug) {
@@ -21,13 +21,19 @@ const throwErrors = async (text, isQuit) => {
 	throw Error(text)
 }
 
+const getDimensions = () => {
+	return {
+		width,
+		height
+	}
+}
+
 const lanuchBrowser = async () => {
 	jest.setTimeout(totalTimeout)
   	printLog("start launch browser")
 	if (!browser) {
 		browser = await puppeteer.launch( {
 			headless: !isdebug,
-			headless: true,
 			args: [
 				'--no-sandbox',
 				// '--use-gl=egl',
@@ -40,7 +46,7 @@ const lanuchBrowser = async () => {
 				'--disable-web-security=1',
 				'--mute-audio'
 			],
-			devtools: isdebug
+			devtools: true
 		})
 	}
 	page = ( await browser.pages() )[ 0 ];
@@ -128,18 +134,6 @@ const defineFunctions = async () => {
 				}, 100)
 			});
 		}
-
-		window.getAngle = ( A, B, C ) => {
-			const a = { x: A.x - B.x, y: A.z - B.z };
-			const b = { x: C.x - B.x, y: C.z - B.z };
-			if (a.x === 0 && a.z === 0 && b.x === 0 && b.z === 0) return 0;
-			const radians = Math.acos(
-				(a.x * b.x + a.z * b.z) /
-					(Math.sqrt(a.x * a.x + a.z * a.z) * Math.sqrt(b.x * b.x + b.z * b.z))
-			);
-			const degree = (radians * 180) / Math.PI;
-			return degree;
-		};
 	})
 }
 

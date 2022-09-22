@@ -1,8 +1,12 @@
-const {lanuchBrowser, enterScene, closeBrowser, printLog, totalTimeout, getCurrentPage} = require('../utils');
+const {lanuchBrowser, enterScene, closeBrowser, printLog, totalTimeout, getCurrentPage} = require('../utils/utils');
 
 describe('should character movement', () => {
 	beforeAll(async () => {
 		await lanuchBrowser();
+		//Todo: define custom functions here
+		// await page.evaluate(async () => {
+		// 	window.todo = () => {} 
+		// })
 		await enterScene(`https://local.webaverse.com:3000/?src=.%2Fscenes%2Ftest-e2e-empty.scn`)
 	}, totalTimeout)
 

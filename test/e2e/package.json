@@ -1,9 +1,9 @@
 {
   "name": "test e2e",
   "scripts": {
-    "start": "npm run server & npm run test-e2e",
+    "start": "node ./launch.js",
     "server": "cd ../../ && npm run dev",
-    "test-e2e": "jest --runInBand"
+    "test-e2e": "jest -i"
   },
   "dependencies": {
     "child_process": "^1.0.2",

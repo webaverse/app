@@ -1,9 +1,13 @@
-const {lanuchBrowser, enterScene, closeBrowser, printLog, totalTimeout, getCurrentPage} = require('../utils');
+const {lanuchBrowser, enterScene, closeBrowser, printLog, totalTimeout, getCurrentPage} = require('../utils/utils');
 
 describe('should all ui works', () => {
 
     beforeAll(async () => {
 		await lanuchBrowser();
+		//Todo: define custom functions here
+		// await page.evaluate(async () => {
+		// 	window.todo = () => {} 
+		// })
 		await enterScene(`https://local.webaverse.com:3000/`)
         await getCurrentPage().click("#root")
     	await getCurrentPage().mouse.wheel({ deltaY: 300 });
