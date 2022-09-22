@@ -8,10 +8,11 @@ export const GrabKeyIndicators = () => {
   const [gridSnapEnabled, setGridSnapEnabled] = useState(0);
 
   useEffect(() => {
-    const toggleEditMode = e => {
-      setIsEditMode(e.data.isEditMode);
-    };
-    grabManager.addEventListener('toggleeditmode', toggleEditMode);
+    const showUi = e => setIsEditMode(true);
+    const hideUi = e => setIsEditMode(false);
+
+    grabManager.addEventListener('showui', showUi);
+    grabManager.addEventListener('hideui', hideUi);
 
     const setGridSnap = e => {
       setGridSnapEnabled(e.data.gridSnap);

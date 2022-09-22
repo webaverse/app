@@ -132,6 +132,7 @@ const _click = (e) => {
   if (grabManager.getGrabbedObject(0)) {
     const localPlayer = playersManager.getLocalPlayer();
     localPlayer.ungrab();
+    grabManager.hideUi();
   } else {
     if (highlightedPhysicsObject) {
       grabManager.grab(highlightedPhysicsObject);
@@ -149,7 +150,7 @@ class Grabmanager extends EventTarget {
     const localPlayer = playersManager.getLocalPlayer();
     localPlayer.grab(object);
     this.gridSnap = 0;
-    this.toggleEditMode();
+    this.editMode = false;
   }
   getGrabAction(i) {
     const targetHand = i === 0 ? 'left' : 'right';
@@ -180,12 +181,16 @@ class Grabmanager extends EventTarget {
         const localPlayer = playersManager.getLocalPlayer();
         localPlayer.ungrab();
       }
+      this.showUi();
+    } else {
+      this.hideUi();
     }
-    this.dispatchEvent(
-      new MessageEvent('toggleeditmode', {
-        data: { isEditMode: this.editMode },
-      })
-    );
+  }
+  showUi() {
+    this.dispatchEvent(new MessageEvent('showui'));
+  }
+  hideUi() {
+    this.dispatchEvent(new MessageEvent('hideui'));
   }
   menuClick(e) {
     _click(e);
