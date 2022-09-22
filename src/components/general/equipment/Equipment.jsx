@@ -12,7 +12,9 @@ import * as sounds from '../../../../sounds.js';
 import { mod } from '../../../../util.js';
 import dropManager from '../../../../drop-manager';
 import cardsManager from '../../../../cards-manager.js';
-
+import useNFTContract from '../../../hooks/useNFTContract';
+import { ChainContext } from '../../../hooks/chainProvider';
+import { isChainSupported } from '../../../hooks/useChain';
 //
 
 const size = 2048;
@@ -119,7 +121,7 @@ const ObjectItem = ({
             />
 
             <div className={styles.row}>
-                <div className={styles.name}>{object?.name}</div>
+                <div className={styles.name}>{ object ? (object.name.length > 10) ? object.name.slice(0, 10) + ".." : object.name : ""}</div>
                 <div className={styles.level}>Lv. {object?.level}</div>
             </div>
 
@@ -295,11 +297,13 @@ const EquipmentItems = ({
 };
 
 export const Equipment = () => {
-    const { state, setState } = useContext( AppContext );
+    const { state, account } = useContext( AppContext );
     const [ hoverObject, setHoverObject ] = useState(null);
     const [ selectObject, setSelectObject ] = useState(null);
     // const [ spritesheet, setSpritesheet ] = useState(null);
     const [ faceIndex, setFaceIndex ] = useState(1);
+    const { selectedChain, supportedChain } = useContext(ChainContext)
+    const { mintfromVoucher } = useNFTContract(account.currentAddress);
     const [ claims, setClaims ] = useState([]);
     const [ cachedLoader, setCachedLoader ] = useState(() => new CachedLoader({
         async loadFn(url, value, {signal}) {            
@@ -363,6 +367,16 @@ export const Equipment = () => {
     
         sounds.playSoundName('menuNext');
     };
+    const claimToken = async () => {
+        if(isChainSupported(selectedChain) && account.currentAddress) {
+            await mintfromVoucher(selectObject, () => {
+        }, () => {
+            dropManager.removeClaim(selectObject);
+        })
+        } else {
+            alert("Please connect wallet or select Supported chain!")
+        }
+    }
     const selectClassName = styles[`select-${selectedMenuIndex}`];
 
     useEffect(() => {
