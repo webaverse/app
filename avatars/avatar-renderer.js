@@ -6,7 +6,7 @@ import * as avatarOptimizer from '../avatar-optimizer.js';
 import * as avatarCruncher from '../avatar-cruncher.js';
 import * as avatarSpriter from '../avatar-spriter.js';
 import {getAvatarHeight, getAvatarWidth, getModelBones} from './util.mjs';
-import offscreenEngineManager from '../offscreen-engine-manager.js';
+import offscreenEngineManager from '../offscreen-engine/offscreen-engine-manager.js';
 import loaders from '../loaders.js';
 // import {camera} from '../renderer.js';
 import {WebaverseShaderMaterial} from '../materials.js';
@@ -441,93 +441,14 @@ export class AvatarRenderer /* extends EventTarget */ {
     const width = getAvatarWidth(modelBones);
     return {height, width};
   }
-  createSpriteAvatarMesh() {
-    if (!this.createSpriteAvatarMeshFn) {
-      this.createSpriteAvatarMeshFn = offscreenEngineManager.createFunction([
-        `\
-        import * as THREE from 'three';
-        import * as avatarSpriter from './avatar-spriter.js';
-
-        `,
-        async function({
-          arrayBuffer,
-          srcUrl,
-        }) {
-
-          const textureCanvases = await avatarSpriter.renderSpriteImages(arrayBuffer, srcUrl);
-          const textureImages = await Promise.all(textureCanvases.map(canvas => {
-            return createImageBitmap(canvas, {
-              imageOrientation: 'flipY',
-            });
-          }));
-          return {
-            textureImages,
-          };
-        }
-      ]);
-    }
-    return this.createSpriteAvatarMeshFn.apply(this, arguments);
+  createSpriteAvatarMesh(args, options) {
+    return offscreenEngineManager.request('createSpriteAvatarMesh', args, options);
   }
-  crunchAvatarModel() {
-    if (!this.crunchAvatarModelFn) {
-      this.crunchAvatarModelFn = offscreenEngineManager.createFunction([
-        `\
-        import * as THREE from 'three';
-        import * as avatarCruncher from './avatar-cruncher.js';
-        import loaders from './loaders.js';
-
-        `,
-        async function({
-          arrayBuffer,
-          srcUrl,
-        }) {
-          const parseVrm = (arrayBuffer, srcUrl) => new Promise((accept, reject) => {
-            const {gltfLoader} = loaders;
-            gltfLoader.parse(arrayBuffer, srcUrl, object => {
-              accept(object.scene);
-            }, reject);
-          });
-
-          const model = await parseVrm(arrayBuffer, srcUrl);
-          const glbData = await avatarCruncher.crunchAvatarModel(model);
-          return {
-            glbData,
-          };
-        }
-      ]);
-    }
-    return this.crunchAvatarModelFn.apply(this, arguments);
+  crunchAvatarModel(args, options) {
+    return offscreenEngineManager.request('crunchAvatarModel', args, options);
   }
-  optimizeAvatarModel() {
-    if (!this.optimizeAvatarModelFn) {
-      this.optimizeAvatarModelFn = offscreenEngineManager.createFunction([
-        `\
-        import * as THREE from 'three';
-        import * as avatarOptimizer from './avatar-optimizer.js';
-        import loaders from './loaders.js';
-        import exporters from './exporters.js';
-
-        `,
-        async function({
-          arrayBuffer,
-          srcUrl,
-        }) {
-          const parseVrm = (arrayBuffer, srcUrl) => new Promise((accept, reject) => {
-            const {gltfLoader} = loaders;
-            gltfLoader.parse(arrayBuffer, srcUrl, accept, reject);
-          });
-
-          const object = await parseVrm(arrayBuffer, srcUrl);
-
-          const model = object.scene;
-          const glbData = await avatarOptimizer.optimizeAvatarModel(model);
-          return {
-            glbData,
-          };
-        }
-      ]);
-    }
-    return this.optimizeAvatarModelFn.apply(this, arguments);
+  optimizeAvatarModel(args, options) {
+    return offscreenEngineManager.request('optimizeAvatarModel', args, options);
   }
   #getCurrentMesh() {
     switch (this.quality) {
