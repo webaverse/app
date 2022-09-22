@@ -206,7 +206,7 @@ const _updateGrabbedObject = (
 
   // if collision point is closer to the player than the grab offset and collisionDown point
   // is below collision point then place the object at collision point
-  if (collNonGrabbedObj && !!downCollision && localVector.distanceTo(localVector6) < localVector5.length() && localVector4.y < localVector6.y) {
+  if (collNonGrabbedObj && !!downCollision && localVector.distanceTo(localVector6) < offset && localVector4.y < localVector6.y) {
     localVector5.copy(localVector6).sub(physicalOffset);
     // console.log(metaversefileApi.getAppByPhysicsId(collision.objectId));
   }
