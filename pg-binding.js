@@ -476,6 +476,30 @@ w.createChunkMeshAsync = async (inst, taskId, x, z, lod, lodArray) => {
     return null;
   }
 };
+w.createChunkGrassAsync = async (inst, taskId, x, z, lod, numInstances) => {
+  Module._createChunkGrassAsync(
+    inst,
+    taskId,
+    x, z,
+    lod,
+    numInstances
+  );
+
+  const p = makePromise();
+  cbs.set(taskId, p);
+
+  const outputBufferOffset = await p;
+
+  if (outputBufferOffset) {
+    const result = _parseInstances(
+      Module.HEAP8.buffer,
+      Module.HEAP8.byteOffset + outputBufferOffset
+    );
+    return result;
+  } else {
+    return null;
+  }
+};
 w.createChunkVegetationAsync = async (inst, taskId, x, z, lod, numInstances) => {
   Module._createChunkVegetationAsync(
     inst,
