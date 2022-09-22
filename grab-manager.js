@@ -23,6 +23,7 @@ const localVector6 = new THREE.Vector3();
 const localVector7 = new THREE.Vector3();
 const localVector8 = new THREE.Vector3();
 const localVector9 = new THREE.Vector3();
+const localVector10 = new THREE.Vector3();
 const localQuaternion = new THREE.Quaternion();
 const localQuaternion2 = new THREE.Quaternion();
 const localQuaternion3 = new THREE.Quaternion();
@@ -40,7 +41,11 @@ highlightPhysicsMesh.visible = false;
 sceneLowPriority.add(highlightPhysicsMesh);
 
 const getPhysicalCenter = box => {
-  return localVector9.set(box.min.x+(box.max.x - box.min.x)/2, box.min.y+(box.max.y - box.min.y)/2, box.min.z+(box.max.z - box.min.z)/2);
+  return localVector9.set(
+    box.min.x + (box.max.x - box.min.x) / 2,
+    box.min.y, 
+    box.min.z + (box.max.z - box.min.z) / 2
+  );
 }
 
 const _updateGrabbedObject = (
@@ -64,7 +69,7 @@ const _updateGrabbedObject = (
     .decompose(localVector5, localQuaternion3, localVector6);
   
 
-  // new approach below
+  /*// new approach below
 
   let physicalOffset = null;
   const physicsObjects = o.getPhysicsObjects();
@@ -94,18 +99,91 @@ const _updateGrabbedObject = (
       o.rotation.clone()
     );
   
-    // if there is a collision, log the object's name
-    if(overlap.objectIds.length > 0) {
+  // if there is a collision, log the object's name
+  if(overlap.objectIds.length > 0) {
     for(const physicsId of overlap.objectIds) {
       const obj = metaversefileApi.getAppByPhysicsId(physicsId);
       console.log(obj.name);
     }
   }
-  // new approach above
 
-  // old approach below
+  // only change position without collision
+  if(!overlap.objectIds.length > 0) {
+    o.position.copy(localVector5);
+  }
+  // new approach above*/
 
-  /*// raycast from localPlayer in direction of camera angle
+  // // old approach below
+
+  // let physicalOffset = null;
+  // const physicsObjects = o.getPhysicsObjects();
+
+  // // Compute bounding box and it's center point offset from it's app.position.
+  // // THREE.Box3.getCenter() has a console error, so I calculate manually.
+  // // Set localVector7 = bounding box size (width, height, depth).
+  // if(physicsObjects) {
+  //   const physicsObject = physicsObjects[0];
+  //   const geometry = physicsObject.physicsMesh.geometry;
+  //   geometry.computeBoundingBox();
+  //   physicalOffset = getPhysicalCenter(geometry.boundingBox);
+  //   geometry.boundingBox.getSize(localVector7);
+  // }
+
+
+  // // raycast from localPlayer in direction of camera angle
+  // const collision = collisionEnabled && physicsScene.raycast(localVector, localQuaternion);
+
+  // // raycast from grabbed object down perpendicularly
+  // localQuaternion2.setFromAxisAngle(localVector8.set(1, 0, 0), -Math.PI * 0.5);
+  // const downCollision = collisionEnabled && physicsScene.raycast(localVector5, localQuaternion2);
+
+  // if (!!collision) {
+  //   const {point} = collision;
+  //   localVector6.fromArray(point);
+  //   // console.log('collision', localVector6);
+  // }
+
+  // if (!!downCollision) {
+  //   const {point} = downCollision;
+  //   localVector4.fromArray(point);
+  //   // console.log('downCollision', localVector4);
+  // }
+
+  // // if collision point is closer to the player than the grab offset and collisionDown point
+  // // is below collision point then place the object at collision point
+  // if (localVector.distanceTo(localVector6) < offset && localVector4.y < localVector6.y) {
+  //   localVector5.copy(localVector6).sub(physicalOffset);
+  //   console.log('forward collision');
+  // }
+    
+
+  // // if grabbed object would go below another object then place object at downCollision point
+  // if (localVector10.copy(localVector5).add(physicalOffset).y < localVector4.y) {
+  //   localVector5.setY(localVector4.sub(physicalOffset).y);
+  //   console.log('down collision');
+  // }
+
+  //   o.position.copy(localVector5);
+
+  // // old approach above
+
+
+  let physicalOffset = null;
+  const physicsObjects = o.getPhysicsObjects();
+
+  // Compute bounding box and it's center point offset from it's app.position.
+  // THREE.Box3.getCenter() has a console error, so I calculate manually.
+  // Set localVector7 = bounding box size (width, height, depth).
+  if(physicsObjects) {
+    const physicsObject = physicsObjects[0];
+    const geometry = physicsObject.physicsMesh.geometry;
+    geometry.computeBoundingBox();
+    physicalOffset = getPhysicalCenter(geometry.boundingBox);
+    geometry.boundingBox.getSize(localVector7);
+  }
+
+
+  // raycast from localPlayer in direction of camera angle
   const collision = collisionEnabled && physicsScene.raycast(localVector, localQuaternion);
 
   // raycast from grabbed object down perpendicularly
@@ -113,37 +191,32 @@ const _updateGrabbedObject = (
   const downCollision = collisionEnabled && physicsScene.raycast(localVector5, localQuaternion2);
 
   if (!!collision) {
-    const cp = collision.point;
-    localVector6.fromArray(cp);
-    // console.log('collision', localVector6);
+    const {point} = collision;
+    localVector6.fromArray(point);
   }
 
   if (!!downCollision) {
-    const dcp = downCollision.point;
-    localVector4.fromArray(dcp);
-    // console.log('downCollision', localVector4);
+    const {point} = downCollision;
+    localVector4.fromArray(point);
   }
+
+  // Did the ray collide with any other object than the grabbed object? Need this check because on the first frame
+  // it collides with the grabbed object although physical actors are being disabled. This caused teleport issue.
+  const collNonGrabbedObj = !!collision && !o.physicsObjects.some(obj => obj.physicsId === collision.objectId);
 
   // if collision point is closer to the player than the grab offset and collisionDown point
   // is below collision point then place the object at collision point
-  if (localVector.distanceTo(localVector6) < offset && localVector4.y < localVector6.y) {
-    localVector5.copy(localVector6);
-    console.log(1);
+  if (collNonGrabbedObj && !!downCollision && localVector.distanceTo(localVector6) < localVector5.length() && localVector4.y < localVector6.y) {
+    localVector5.copy(localVector6).sub(physicalOffset);
+    // console.log(metaversefileApi.getAppByPhysicsId(collision.objectId));
   }
-    
 
   // if grabbed object would go below another object then place object at downCollision point
-  if (localVector5.y < localVector4.y) {
-    localVector5.setY(localVector4.y);
-    console.log(localVector5.y, localVector4.y);
-  }*/
-  // old approach above
-
-  // only change position without collision
-  if(!overlap.objectIds.length > 0) {
-    o.position.copy(localVector5);
+  if (!!downCollision && localVector10.copy(localVector5).add(physicalOffset).y < localVector4.y) {
+    localVector5.setY(localVector4.sub(physicalOffset).y);
   }
-  
+
+  o.position.copy(localVector5);
 
   const handSnap =
     !handSnapEnabled ||
@@ -156,9 +229,7 @@ const _updateGrabbedObject = (
   } else {
     o.quaternion.copy(localQuaternion3);
   }
-  // console.log(localVector.distanceTo(localVector6), offset);
-  // console.log('localVector', localVector);
-  // console.log('collision', localVector6);
+
   o.updateMatrixWorld();
 
   return {
