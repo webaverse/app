@@ -310,7 +310,7 @@ const _handleMethod = async ({method, args, instance: instanceKey, taskId}) => {
       return spec;
     }
     case 'generateChunk': {
-      const {chunkPosition, lod, lodArray} = args;
+      const {chunkPosition, lod, lodArray, generateFlagsInt} = args;
       const instance = instances.get(instanceKey);
       if (!instance) throw new Error('generateChunk : instance not found');
 
@@ -323,6 +323,7 @@ const _handleMethod = async ({method, args, instance: instanceKey, taskId}) => {
         position.y,
         lod,
         lodArray,
+        generateFlagsInt,
       );
       const chunkResult2 = _cloneChunkResult(chunkResult);
 
@@ -342,7 +343,7 @@ const _handleMethod = async ({method, args, instance: instanceKey, taskId}) => {
       };
     }
     case 'generateGrass': {
-      const {chunkPosition, lod, numInstances} = args;
+      const {chunkPosition, lod, numGrassInstances} = args;
       const instance = instances.get(instanceKey);
       if (!instance) throw new Error('generateGrass : instance not found');
 
@@ -354,7 +355,7 @@ const _handleMethod = async ({method, args, instance: instanceKey, taskId}) => {
         position.x,
         position.y,
         lod,
-        numInstances
+        numGrassInstances
       );
       const grassResult2 = _cloneInstancesResult(grassResult);
 
@@ -372,7 +373,7 @@ const _handleMethod = async ({method, args, instance: instanceKey, taskId}) => {
       return spec;
     }
     case 'generateVegetation': {
-      const {chunkPosition, lod, numInstances} = args;
+      const {chunkPosition, lod, numVegetationInstances} = args;
       const instance = instances.get(instanceKey);
       if (!instance) throw new Error('generateVegetation : instance not found');
 
@@ -384,7 +385,7 @@ const _handleMethod = async ({method, args, instance: instanceKey, taskId}) => {
         position.x,
         position.y,
         lod,
-        numInstances
+        numVegetationInstances
       );
       const vegetationResult2 = _cloneInstancesResult(vegetationResult);
 

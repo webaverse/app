@@ -446,7 +446,7 @@ const _parseChunkResult = (arrayBuffer, bufferAddress) => {
     barrierGeometry,
   };
 };
-w.createChunkMeshAsync = async (inst, taskId, x, z, lod, lodArray) => {
+w.createChunkMeshAsync = async (inst, taskId, x, z, lod, lodArray, generateFlagsInt) => {
   const allocator = new Allocator(Module);
 
   const lodArray2 = allocator.alloc(Int32Array, 2);
@@ -458,6 +458,7 @@ w.createChunkMeshAsync = async (inst, taskId, x, z, lod, lodArray) => {
     x, z,
     lod,
     lodArray2.byteOffset,
+    generateFlagsInt,
   );
   const p = makePromise();
   cbs.set(taskId, p);
@@ -476,13 +477,13 @@ w.createChunkMeshAsync = async (inst, taskId, x, z, lod, lodArray) => {
     return null;
   }
 };
-w.createChunkGrassAsync = async (inst, taskId, x, z, lod, numInstances) => {
+w.createChunkGrassAsync = async (inst, taskId, x, z, lod, numGrassInstances) => {
   Module._createChunkGrassAsync(
     inst,
     taskId,
     x, z,
     lod,
-    numInstances
+    numGrassInstances
   );
 
   const p = makePromise();
@@ -500,13 +501,13 @@ w.createChunkGrassAsync = async (inst, taskId, x, z, lod, numInstances) => {
     return null;
   }
 };
-w.createChunkVegetationAsync = async (inst, taskId, x, z, lod, numInstances) => {
+w.createChunkVegetationAsync = async (inst, taskId, x, z, lod, numVegetationInstances) => {
   Module._createChunkVegetationAsync(
     inst,
     taskId,
     x, z,
     lod,
-    numInstances
+    numVegetationInstances
   );
 
   const p = makePromise();

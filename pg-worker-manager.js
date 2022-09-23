@@ -22,6 +22,26 @@ let taskIds = 0;
 
 //
 
+const GenerateFlags = {
+  // none: 0,
+  terrain: 1 << 0,
+  water: 1 << 1,
+  barrier: 1 << 2,
+  vegetation: 1 << 3,
+  grass: 1 << 4,
+};
+const _generateFlagsToInt = generateFlags => {
+  let result = 0;
+  generateFlags.terrain && (result |= GenerateFlags.terrain);
+  generateFlags.water && (result |= GenerateFlags.water);
+  generateFlags.barrier && (result |= GenerateFlags.barrier);
+  generateFlags.vegetation && (result |= GenerateFlags.vegetation);
+  generateFlags.grass && (result |= GenerateFlags.grass);
+  return result;
+};
+
+//
+
 export class PGWorkerManager {
   constructor({
     chunkSize,
@@ -165,32 +185,34 @@ export class PGWorkerManager {
 
   //
 
-  async generateChunk(chunkPosition, lod, lodArray, {signal} = {}) {
+  async generateChunk(chunkPosition, lod, lodArray, generateFlags, {signal} = {}) {
+    const generateFlagsInt = _generateFlagsToInt(generateFlags);
     const result = await this.worker.request('generateChunk', {
       instance: this.instance,
       chunkPosition,
       lod,
       lodArray,
+      generateFlagsInt,
     }, {signal});
     // signal.throwIfAborted();
     return result;
   }
-  async generateGrass(chunkPosition, lod, numInstances, {signal} = {}) {
+  async generateGrass(chunkPosition, lod, numGrassInstances, {signal} = {}) {
     const result = await this.worker.request('generateGrass', {
       instance: this.instance,
       chunkPosition,
       lod,
-      numInstances,
+      numGrassInstances,
     }, {signal});
     // signal.throwIfAborted();
     return result;
   }
-  async generateVegetation(chunkPosition, lod, numInstances, {signal} = {}) {
+  async generateVegetation(chunkPosition, lod, numVegetationInstances, {signal} = {}) {
     const result = await this.worker.request('generateVegetation', {
       instance: this.instance,
       chunkPosition,
       lod,
-      numInstances,
+      numVegetationInstances,
     }, {signal});
     // signal.throwIfAborted();
     return result;

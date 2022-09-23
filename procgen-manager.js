@@ -46,11 +46,11 @@ class ProcGenInstance {
     const tracker = new LodChunkTracker(opts2);
     return tracker;
   }
-  async generateChunk(position, lod, lodArray, {signal} = {}) {
+  async generateChunk(position, lod, lodArray, generateFlags, {signal} = {}) {
     await this.pgWorkerManager.waitForLoad();
 
     position.toArray(localArray2D);
-    const result = await this.pgWorkerManager.generateChunk(localArray2D, lod, lodArray, {signal});
+    const result = await this.pgWorkerManager.generateChunk(localArray2D, lod, lodArray, generateFlags, {signal});
     return result;
   }
   async generateVegetation(position, lod, numInstances, {signal} = {}) {
