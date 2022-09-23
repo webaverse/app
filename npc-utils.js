@@ -6,7 +6,7 @@ import {
 import physicsManager from './physics-manager.js';
 
 class PathFinder {
-  constructor(voxelHeight = 1.65, heightTolerance = 0.5, maxIterDetect = 1000, maxIterStep = 1000, ignorePhysicsIds = [], debugRender = false) {
+  constructor({voxelHeight = 1.65, heightTolerance = 0.5, maxIterDetect = 1000, maxIterStep = 1000, ignorePhysicsIds = [], debugRender = false} = {}) {
     /* args:
       voxelHeight: Voxel height ( Y axis ) for collide detection, usually equal to npc's physical capsule height. X/Z axes sizes are hard-coded 1 now.
       heightTolerance: Used to check whether currentVoxel can go above to neighbor voxels.
