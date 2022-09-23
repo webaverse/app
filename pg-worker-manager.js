@@ -156,9 +156,9 @@ export class PGWorkerManager {
   }
 
   async createTracker(lod, lod1Range, {signal} = {}) {
-    if (!lod1Range) {
+    /* if (!lod1Range) {
       debugger;
-    }
+    } */
     const result = await this.worker.request('createTracker', {
       instance: this.instance,
       lod,
