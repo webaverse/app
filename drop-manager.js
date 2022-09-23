@@ -28,7 +28,6 @@ class DropManager extends EventTarget {
     let serverDrop = false;
     if (voucher == 'fakeVoucher') {
         voucher = await getVoucherFromServer(start_url); 
-        console.log("server voucher", voucher)
         serverDrop = true;
         components = [...components, {
             key: 'voucher',

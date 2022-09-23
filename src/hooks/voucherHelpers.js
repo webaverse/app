@@ -6,7 +6,7 @@ export async function getVoucherFromServer(contentURL) {
     const expiry = Math.round(new Date().getTime() / 1000) + 1000;//timestamp
     const nonce = ethers.BigNumber.from(ethers.utils.randomBytes(4)).toNumber();
     const balance = 1;
-    const response = await fetch("http://voucher.webaverse.com:8080/getServerDropVoucher", { // https://{voucherSeverip}:8081/getServerDropVoucher
+    const response = await fetch("https://voucher.webaverse.com/getServerDropVoucher", { // https://{voucherSeverip}:8081/getServerDropVoucher
         method: 'POST',
         headers: {
             'Accept': 'application/json',
