@@ -257,7 +257,19 @@ const _updateIo = timeDiff => {
     }
     if (keysDirection.length() > 0 && physicsScene.getPhysicsEnabled() && movementEnabled) {
       if(cameraManager.scene2D) {
-        keysDirection.z = 0;
+        // restricts movement, it would be better to do an axis lock in physx but that doesn't work right now.
+        switch (cameraManager.scene2D.perspective) {
+          case 'side-scroll':
+            keysDirection.z = 0;
+            break;
+          case 'isometric':
+            // nothing
+            break;
+          case 'top-down':
+            //nothing
+          default:
+            break;
+        }
       }
       localPlayer.characterPhysics.applyWasd(
         keysDirection.normalize()
@@ -743,9 +755,6 @@ ioManager.mousemove = e => {
   /* if (game.weaponWheel) {
     game.updateWeaponWheel(e);
   } else { */
-    // if(cameraManager.scene2D) {
-    //   return;
-    // }
 
     if (cameraManager.pointerLockElement) {
       cameraManager.handleMouseMove(e);

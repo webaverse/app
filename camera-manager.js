@@ -179,6 +179,7 @@ class Scene2D {
     this.lastCursorPosition = null;
     this.cursorSensitivity = 0.75;
     this.maxAimDistance = 3;
+    this.zoomFactor = 1;
 
     // document.addEventListener('click', (e) => {
     //   if(e.button === 0) { // left click
@@ -275,18 +276,12 @@ class CameraManager extends EventTarget {
     return this.viewFactor;
   }
   enable2D(perspective = "side-scroll", mode = "follow", viewSize, scrollDirection = "both") {
-    // const localPlayer = playersManager.getLocalPlayer();
-
-    // if(localPlayer) {
-    //   localPlayer.characterPhysics.setPosition(new THREE.Vector3(0,1,0));
-    // }
-
     this.targetQuaternion = new THREE.Quaternion();
     this.targetPosition = new THREE.Vector3();
     this.viewFactor = viewSize;
 
     this.scene2D = new Scene2D(perspective, mode, scrollDirection);
-    setCameraType("orthographic", viewSize);
+    setCameraType("orthographic", viewSize, perspective);
   }
   disable2D() {
     this.scene2D = null;
@@ -351,13 +346,13 @@ class CameraManager extends EventTarget {
   }
   getMode() {
     if (this.target || this.cinematicScript) {
-      return 'isometric';
+      return 'thirdperson';
     } 
     else if(this.scene2D) {
       return this.scene2D.perspective;
     } 
     else {
-      return cameraOffset.z > -0.5 ? 'firstperson' : 'isometric';
+      return cameraOffset.z > -0.5 ? 'firstperson' : 'thirdperson';
     }
   }
   getCameraOffset() {
@@ -376,7 +371,7 @@ class CameraManager extends EventTarget {
   handleMouseMove(e) {
     const {movementX, movementY} = e;
 
-    if(this.scene2D) {
+    if(this.scene2D && this.scene2D.perspective === "side-scroll") {
       const cursorPosition = this.scene2D.cursorPosition;
       let lastCursorPosition = this.scene2D.lastCursorPosition;
       const size = getRenderer().getSize(localVector);
@@ -456,8 +451,29 @@ class CameraManager extends EventTarget {
     }
   }
   handleWheelEvent(e) {
-    if (!this.target) {
+    if (!this.target && !this.scene2D) {
       cameraOffsetTargetZ = Math.min(cameraOffset.z - e.deltaY * 0.01, 0);
+    }
+    if(this.scene2D && camera.isOrthographicCamera) {
+      switch (this.scene2D.perspective) {
+        case 'isometric': {
+          this.scene2D.zoomFactor = THREE.MathUtils.clamp(this.scene2D.zoomFactor += e.deltaY * 0.01, 1, 1.5);
+          camera.zoom = this.scene2D.zoomFactor;
+          camera.updateProjectionMatrix();
+          break;
+        }
+        case 'side-scroll': {
+          // nothing yet
+          break;
+        }
+        case 'top-down': {
+          // nothing yet
+          break;
+        }        
+        default: {
+          break;
+        }
+      }
     }
   }
   addShake(position, intensity, radius, decay) {
@@ -807,7 +823,15 @@ class CameraManager extends EventTarget {
 
             break;
           }
-          case 'isometric': {
+          case 'thirdperson': {
+            this.targetPosition.copy(localPlayer.position)
+              .sub(
+                localVector2.copy(avatarCameraOffset)
+                  .applyQuaternion(this.targetQuaternion)
+              );
+            break;
+          }
+          case 'top-down': {
             this.targetPosition.copy(localPlayer.position)
               .sub(
                 localVector2.copy(avatarCameraOffset)
@@ -838,6 +862,10 @@ class CameraManager extends EventTarget {
       
             break;
           }
+          case 'isometric': {
+            this.targetPosition.copy(localPlayer.position);
+            break;
+          }
           default: {
             throw new Error('invalid camera mode: ' + cameraMode);
           }
@@ -848,12 +876,34 @@ class CameraManager extends EventTarget {
         this.targetPosition.y -= crouchOffset;
         camera.position.copy(this.sourcePosition)
           .lerp(this.targetPosition, factor);
-
+        
         localEuler.setFromQuaternion(this.targetQuaternion, 'YXZ');
         localEuler.z = 0;
-        camera.quaternion.copy(this.sourceQuaternion)
-          .slerp(localQuaternion.setFromEuler(localEuler), factor);
-          
+
+        if(!this.scene2D) {
+          camera.quaternion.copy(this.sourceQuaternion)
+            .slerp(localQuaternion.setFromEuler(localEuler), factor);
+        }
+        else {
+          switch (this.scene2D.perspective) {
+            case 'isometric': {
+              camera.rotation.order = 'YXZ';
+              camera.rotation.y = - Math.PI / 4;
+              camera.rotation.x = Math.atan( - 1 / Math.sqrt( 2 ) );
+              break;
+            }
+            case 'side-scroll': {
+              camera.quaternion.copy(this.sourceQuaternion)
+                .slerp(localQuaternion.setFromEuler(localEuler), factor);
+              break;
+            }          
+            default: {
+              camera.quaternion.copy(this.sourceQuaternion)
+                .slerp(localQuaternion.setFromEuler(localEuler), factor);
+              break;
+            }
+          }
+        }      
       };
       if(this.scene2D) {
         if(this.scene2D.cameraMode === "follow" || _isOutOfView()) {

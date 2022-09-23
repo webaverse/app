@@ -1,0 +1,76 @@
+{
+  "objects": [
+    {
+      "type": "application/light",
+      "content": {
+        "lightType": "ambient",
+        "args": [[255, 255, 255], 2]
+      }
+    },
+    {
+      "type": "application/light",
+      "content": {
+        "lightType": "directional",
+        "args": [[255, 255, 255], 2],
+        "position": [1, 2, 3],
+        "shadow": [50, 4096, 0.1, 1000, 0, 0.2]
+      }
+    },
+    {
+      "position": [
+        0,
+        1,
+        -24
+      ],
+      "quaternion": [
+        0,
+        0,
+        0,
+        1
+      ],
+      "physics": false,
+      "start_url": "https://webaverse.github.io/dummy/",
+      "dynamic": true
+    },
+    {
+      "type": "application/scene2D",
+      "content": {
+        "perspective": "isometric",
+        "viewSize": 35
+      }
+    },
+    {
+      "position": [
+        0,
+        1,
+        0
+      ],
+      "quaternion": [
+        0,
+        0,
+        0,
+        1
+      ],
+      "start_url": "https://webaverse.github.io/silsword/"
+    },
+    {
+      "type": "application/rendersettings",
+      "content": {
+        "pixel": {
+          "pixelSize": 3
+        },
+        "background": {
+          "color": [37, 150, 190]
+        }
+      }
+    },
+    {
+      "position": [
+        0,
+        0,
+        0
+      ],
+      "start_url": "https://webaverse.github.io/highlands/"
+    }
+  ]
+}

@@ -82,7 +82,7 @@ function getComposer() {
   return composer;
 }
 
-function setCameraType (perspective, vSize = 15) {
+function setCameraType (perspective, vSize = 15, mode = 'side-scroll') {
 
   //cameraManager.setCameraToNullTarget();
 
@@ -90,7 +90,7 @@ function setCameraType (perspective, vSize = 15) {
 
   dolly.position.set(epsilon, epsilon, epsilon);
   dolly.updateMatrixWorld();
-  
+
   if(perspective == "orthographic") {
     let canvasWidth = window.innerWidth;
     let canvasHeight = window.innerHeight;
@@ -100,6 +100,22 @@ function setCameraType (perspective, vSize = 15) {
     camera = new THREE.OrthographicCamera(-aspectRatio*viewSize/2, aspectRatio*viewSize/2, viewSize/2, -viewSize/2, -1000, 100);
     camera.position.set(0, 0, 6);
     camera.name = 'orthographicCamera';
+
+    switch (mode) {
+      case 'side-scroll': {
+        break;
+      }
+      case 'isometric': {
+        // camera.position.set(0, 100, 0)
+        // camera.updateMatrixWorld();
+        // dolly.position.set(0, 0, 0);
+        // dolly.updateMatrixWorld();
+        break;
+      }
+        
+      default:
+        break;
+    }
   }
   else {
     camera = oldCamera;
