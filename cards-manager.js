@@ -1,21 +1,9 @@
-import offscreenEngineManager from './offscreen-engine-manager.js';
+import offscreenEngineManager from './offscreen-engine/offscreen-engine-manager.js';
 
 const _generateObjectUrlCardRemote = (() => {
-  let generateObjectUrlCardRemoteFn = null;
-  return async function() {
-      if (!generateObjectUrlCardRemoteFn) {
-          generateObjectUrlCardRemoteFn = offscreenEngineManager.createFunction([
-              `\
-              import {generateObjectUrlCard} from './card-renderer.js';
-              `,
-              async function(o) {
-                  const imageBitmap = await generateObjectUrlCard(o);
-                  return imageBitmap;
-              }
-          ]);
-      }
-      const result = await generateObjectUrlCardRemoteFn.apply(this, arguments);
-      return result;
+  return async function(args, options) {
+    const result = await offscreenEngineManager.request('generateObjectUrlCardRemote', args, options);
+    return result;
   };
 })();
 

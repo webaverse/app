@@ -1,6 +1,8 @@
 import * as THREE from 'three';
 
-const _removeFromArray = (el, array) => {
+const localVector = new THREE.Vector3();
+
+const _removeFromArray = (array, el) => {
   const removeIndex = array.indexOf(el);
   if (removeIndex !== -1) {
     array.splice(removeIndex, 1);
@@ -43,11 +45,9 @@ class LightsManager extends EventTarget {
     super();
 
     this.lights = [];
-    this.lightTrackers = [];
-    this.lightTargets = [];
   }
 
-  createLightTracker(app, light, lightType, shadow, position) {
+  addLight(light, lightType, shadow, position) {
     if (
       lightType === 'directional' ||
       lightType === 'point' ||
@@ -58,49 +58,32 @@ class LightsManager extends EventTarget {
       }
     }
 
-    const lightTracker = new THREE.Object3D();
-    lightTracker.name = 'LightTracker';
+    if (Array.isArray(position)) {
+      localVector.fromArray(position);
+    } else {
+      localVector.set(0, 0, 0);
+    }
 
     light.lastAppMatrixWorld = new THREE.Matrix4();
     light.plane = new THREE.Plane().setFromNormalAndCoplanarPoint(
       new THREE.Vector3(0, -1, 0),
-      app.position
+      localVector
     );
+    light.position.copy(localVector);
 
-    if (Array.isArray(position)) {
-      lightTracker.position.fromArray(position);
-    } else {
-      lightTracker.position.set(0, 0, 0);
-    }
-
-    light.position.set(0, 0, 0);
-    lightTracker.add(light);
-    lightTracker.light = light;
-
-    if (light.target) {
-      this.lightTargets.push(light.target);
-    }
-    this.lightTrackers.push(lightTracker);
     this.lights.push(light);
 
-    return lightTracker;
+    return light;
   }
 
-  removeLightTracker(lightTracker) {
-    const { light } = lightTracker;
+  removeLight(light) {
     _removeFromArray(this.lights, light);
-    if (light.target) {
-      _removeFromArray(this.lightTargets, light.target);
-    }
-    _removeFromArray(this.lightTrackers, lightTracker);
   }
 
   clear() {
     this.lights.length = 0;
-    this.lightTrackers.length = 0;
-    this.lightTargets.length = 0;
   }
 }
 
 const lightsManager = new LightsManager();
-export { lightsManager };
+export {lightsManager};

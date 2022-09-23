@@ -16,7 +16,7 @@ import {LightningBgFxMesh} from './background-fx/LightningBgFx.js';
 import {RadialBgFxMesh} from './background-fx/RadialBgFx.js';
 import {GrassBgFxMesh} from './background-fx/GrassBgFx.js';
 import {WebaverseScene} from './webaverse-scene.js';
-import {lightsManager} from './lights-manager.js';
+import {lightsManager} from './engine-hooks/lights/lights-manager.js';
 
 const localVector = new THREE.Vector3();
 const localVector2 = new THREE.Vector3();
@@ -728,7 +728,9 @@ const createPlayerDiorama = ({
         renderer.setRenderTarget(outlineRenderTarget);
         renderer.setClearColor(0x000000, 0);
         renderer.clear();
-        renderer.render(outlineRenderScene, sideCamera);
+        if (outline) {
+          renderer.render(outlineRenderScene, sideCamera);
+        }
         
         // set up side scene
         _addObjectsToScene(sideScene);
