@@ -1,7 +1,7 @@
 // import * as THREE from 'three';
 // import metaversefile from 'metaversefile'
 import {emotions} from './src/components/general/character/Emotions';
-import offscreenEngineManager from './offscreen-engine-manager.js';
+import offscreenEngineManager from './offscreen-engine/offscreen-engine-manager.js';
 import {fetchArrayBuffer} from './util';
 import {avatarManager} from './avatar-manager';
 import {playersManager} from './players-manager';
@@ -52,51 +52,12 @@ class AvatarIconer extends EventTarget {
       avatarManager.removeEventListener('actionupdate', actionupdate);
     };
 
-    this.getEmotionCanvases = offscreenEngineManager.createFunction([
-      `\
-      import {fetchArrayBuffer} from './util.js';
-      import {AvatarRenderer} from './avatars/avatar-renderer.js';
-      import {createAvatarForScreenshot, screenshotAvatar} from './avatar-screenshotter.js';
-      import {maxAvatarQuality} from './constants.js';
-      import {emotions} from './src/components/general/character/Emotions.jsx';
-
-      const allEmotions = [''].concat(emotions);
-      `,
-      async function(start_url, width, height) {
-        // const cameraOffset = new THREE.Vector3(0, 0.05, -0.35);
-
-        const arrayBuffer = await fetchArrayBuffer(start_url);
-
-        const avatarRenderer = new AvatarRenderer({
-          arrayBuffer,
-          srcUrl: start_url,
-          quality: maxAvatarQuality,
-          controlled: true,
-        });
-        await avatarRenderer.waitForLoad();
-
-        const avatar = createAvatarForScreenshot(avatarRenderer);
-
-        const emotionCanvases = await Promise.all(allEmotions.map(async emotion => {
-          const canvas = document.createElement('canvas');
-          canvas.width = width;
-          canvas.height = height;
-  
-          await screenshotAvatar({
-            avatar,
-            canvas,
-            emotion,
-          });
-
-          const imageBitmap = await createImageBitmap(canvas);
-          return imageBitmap;
-        }));
-
-        avatar.destroy();
-
-        return emotionCanvases;
-      }
-    ]);
+    this.getEmotionCanvases = (() => {
+      return async function(args) {
+        const result = await offscreenEngineManager.request('getEmotionCanvases', args);
+        return result;
+      };
+    })();
 
     const avatarApp = this.player.getAvatarApp();
     this.renderAvatarApp(avatarApp);

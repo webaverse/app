@@ -176,7 +176,7 @@ const _cloneChunkResult = chunkResult => {
     barrierGeometry: barrierGeometry2,
   };
 };
-const _cloneVegetationResult = vegetationResult => {
+const _cloneInstancesResult = vegetationResult => {
   const {instances} = vegetationResult;
 
   const _getVegetationGeometrySize = () => {
@@ -341,8 +341,38 @@ const _handleMethod = async ({method, args, instance: instanceKey, taskId}) => {
         ],
       };
     }
+    case 'generateGrass': {
+      const {chunkPosition, lod, numInstances} = args;
+      const instance = instances.get(instanceKey);
+      if (!instance) throw new Error('generateGrass : instance not found');
+
+      const position = localVector2D.fromArray(chunkPosition)
+        .multiplyScalar(chunkWorldSize);
+      const grassResult = await pg.createChunkGrassAsync(
+        instance,
+        taskId,
+        position.x,
+        position.y,
+        lod,
+        numInstances
+      );
+      const grassResult2 = _cloneInstancesResult(grassResult);
+
+      const _freeInstancesResult = grassResult => {
+        pg.free(grassResult.bufferAddress);
+      };
+      _freeInstancesResult(grassResult);
+
+      const spec = {
+        result: grassResult2,
+        transfers: [
+          grassResult2.arrayBuffer,
+        ],
+      };
+      return spec;
+    }
     case 'generateVegetation': {
-      const {chunkPosition, lod} = args;
+      const {chunkPosition, lod, numInstances} = args;
       const instance = instances.get(instanceKey);
       if (!instance) throw new Error('generateVegetation : instance not found');
 
@@ -353,14 +383,15 @@ const _handleMethod = async ({method, args, instance: instanceKey, taskId}) => {
         taskId,
         position.x,
         position.y,
-        lod
+        lod,
+        numInstances
       );
-      const vegetationResult2 = _cloneVegetationResult(vegetationResult);
+      const vegetationResult2 = _cloneInstancesResult(vegetationResult);
 
-      const _freeVegetationResult = vegetationResult => {
+      const _freeInstancesResult = vegetationResult => {
         pg.free(vegetationResult.bufferAddress);
       };
-      _freeVegetationResult(vegetationResult);
+      _freeInstancesResult(vegetationResult);
 
       const spec = {
         result: vegetationResult2,

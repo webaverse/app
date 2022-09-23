@@ -154,9 +154,16 @@ const createObjectSpriteAnimation = (app, {
     };
   } else if (type === 'imageBitmap') {
     return (async () => {
-      const imageBitmap = await createImageBitmap(renderer.domElement, 0, 0, size, size, {
-        // imageOrientation: 'flipY',
-      });
+      const imageBitmap = await createImageBitmap(
+        renderer.domElement,
+        0,
+        renderer.domElement.height - size,
+        size,
+        size,
+        {
+          // imageOrientation: 'flipY',
+        }
+      );
       return {
         result: imageBitmap,
         numFrames,
@@ -270,9 +277,16 @@ const createObjectSpriteSheet = async (app, {
   renderer.setViewport(oldViewport);
   renderer.setClearColor(oldClearColor, oldClearAlpha);
 
-  const imageBitmap = await createImageBitmap(renderer.domElement, 0, 0, size, size, {
-    // imageOrientation: 'flipY',
-  });
+  const imageBitmap = await createImageBitmap(
+    renderer.domElement,
+    0,
+    renderer.domElement.height - size,
+    size,
+    size,
+    {
+      // imageOrientation: 'flipY',
+    }
+  );
   return {
     result: imageBitmap,
     numFrames,

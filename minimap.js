@@ -12,6 +12,7 @@ import universe from './universe.js';
 import {waitForFrame} from './util.js';
 import metaversefileApi from 'metaversefile';
 
+const localColor = new THREE.Color();
 const localVector = new THREE.Vector3();
 const localVector2 = new THREE.Vector3();
 const localVector3 = new THREE.Vector3();
@@ -492,9 +493,14 @@ class MiniMap {
       this.scene.floorMesh.material.uniforms.uScreenSize.value.set(this.canvasWidth * pixelRatio, this.canvasHeight * pixelRatio);
       this.scene.floorMesh.material.uniforms.uScreenSize.needsUpdate = true;
 
+      const oldClearColor = renderer.getClearColor(localColor);
+      const oldClearAlpha = renderer.getClearAlpha();
+
       renderer.setRenderTarget(oldRenderTarget);
       renderer.setViewport(0, 0, this.canvasWidth, this.canvasHeight);
+      renderer.setClearColor(0x000000, 0);
       renderer.clear();
+
       this.camera.position.copy(localPlayer.position)
         .add(localVector.set(0, cameraHeight, 0));
       this.camera.quaternion.setFromRotationMatrix(
@@ -509,6 +515,8 @@ class MiniMap {
       this.camera.setRadiusFactor(speedFactor);
       
       renderer.render(this.scene, this.camera);
+
+      renderer.setClearColor(oldClearColor, oldClearAlpha);
     };
     _renderMiniMap();
 

@@ -60,7 +60,7 @@ class NpcManager extends EventTarget {
     };
     const app = createPlayerApp();
 
-    const importPlayerToNpcManager = () => {
+    const addDefaultPlayer = () => {
       this.addPlayerApp(app, localPlayer, defaultPlayerSpec);
 
       this.dispatchEvent(new MessageEvent('defaultplayeradd', {
@@ -73,7 +73,7 @@ class NpcManager extends EventTarget {
         this.removeNpcApp(app);
       });
     };
-    importPlayerToNpcManager();
+    addDefaultPlayer();
   }
 
   async createNpcAsync({
@@ -115,6 +115,12 @@ class NpcManager extends EventTarget {
 
   destroyNpc(npcPlayer) {
     npcPlayer.destroy();
+
+    this.dispatchEvent(new MessageEvent('playerremove', {
+      data: {
+        player: npcPlayer,
+      }
+    }));
 
     const removeIndex = this.npcs.indexOf(npcPlayer);
     if (removeIndex !== -1) {
@@ -163,6 +169,12 @@ class NpcManager extends EventTarget {
 
   async addPlayerApp(app, npcPlayer, json) {
     this.npcAppMap.set(npcPlayer, app);
+
+    this.dispatchEvent(new MessageEvent('playeradd', {
+      data: {
+        player: npcPlayer,
+      }
+    }));
 
     let live = true;
     let character = null;

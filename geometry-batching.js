@@ -23,7 +23,7 @@ export class DrawCallBinding {
   getTextureOffset(name) {
     const texture = this.getTexture(name);
     const {itemSize} = texture;
-    return this.freeListEntry * this.allocator.maxInstancesPerDrawCall * itemSize;
+    return this.freeListEntry * this.allocator.maxInstancesPerGeometryPerDrawCall * itemSize;
   }
   getInstanceCount() {
     return this.allocator.getInstanceCount(this);
@@ -375,8 +375,8 @@ export class InstancedGeometryAllocator {
       let sum = 0;
       for (let i = 0; i < geometries.length; i++) {
         const lodGeometries = geometries[i];
-        const lodGeometry = lodGeometries[0];
-        const attribute = lodGeometry.attributes[name];
+        const lod0Geometry = lodGeometries[0];
+        const attribute = lod0Geometry.attributes[name];
         sum += attribute.array.length;
       }
 
@@ -384,8 +384,8 @@ export class InstancedGeometryAllocator {
       let index = 0;
       for (let i = 0; i < geometries.length; i++) {
         const lodGeometries = geometries[i];
-        const lodGeometry = lodGeometries[0];
-        const attribute = lodGeometry.attributes[name];
+        const lod0Geometry = lodGeometries[0];
+        const attribute = lod0Geometry.attributes[name];
         array.set(attribute.array, index);
         index += attribute.array.length;
       }
@@ -404,9 +404,11 @@ export class InstancedGeometryAllocator {
       }
 
       const index = new Uint32Array(sum);
+      let positionIndex = 0;
       let indexIndex = 0;
       for (let i = 0; i < geometries.length; i++) {
         const lodGeometries = geometries[i];
+
         const geometryRegistryArray = Array(lodGeometries.length);
         for (let j = 0; j < lodGeometries.length; j++) {
           const lodGeometry = lodGeometries[j];
@@ -416,17 +418,22 @@ export class InstancedGeometryAllocator {
               count: lodGeometry.index.array.length,
             },
           };
-          index.set(lodGeometry.index.array, indexIndex);
+          for (let k = 0; k < lodGeometry.index.array.length; k++) {
+            index[indexIndex + k] = lodGeometry.index.array[k] + positionIndex;
+          }
           indexIndex += lodGeometry.index.array.length;
         }
         this.geometryRegistry.set(i, geometryRegistryArray);
+
+        const lod0Geometry = lodGeometries[0];
+        positionIndex += lod0Geometry.attributes.position.array.length / 3;
       }
       geometry.setIndex(new THREE.BufferAttribute(index, 1));
     }
 
     this.geometry = geometry;
 
-    console.log('set geometries', geometry, Array.from(this.geometryRegistry.values()));
+    // console.log('set geometries', geometry, Array.from(this.geometryRegistry.values()));
   }
   allocDrawCall(geometryIndex, lodIndex, instanceCount, boundingObject) {
     const freeListEntry = this.freeList.alloc(1);
