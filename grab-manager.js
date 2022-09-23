@@ -3,13 +3,12 @@ import ioManager from './io-manager.js';
 import { playersManager } from './players-manager.js';
 import physicsManager from './physics-manager.js';
 import metaversefileApi from './metaversefile-api.js';
-import * as metaverseModules from './metaverse-modules.js';
 import { maxGrabDistance } from './constants.js';
 import { getRenderer, sceneLowPriority, camera } from './renderer.js';
 import cameraManager from './camera-manager.js';
 import gameManager from './game.js';
 import { world } from './world.js';
-import { makeHighlightPhysicsMesh, snapPosition } from './util.js';
+import { snapPosition } from './util.js';
 import { buildMaterial } from './shaders.js';
 
 const physicsScene = physicsManager.getScene();
@@ -22,8 +21,6 @@ const localVector5 = new THREE.Vector3();
 const localVector6 = new THREE.Vector3();
 const localVector7 = new THREE.Vector3();
 const localVector8 = new THREE.Vector3();
-const localVector9 = new THREE.Vector3();
-const localVector10 = new THREE.Vector3();
 const localQuaternion = new THREE.Quaternion();
 const localQuaternion2 = new THREE.Quaternion();
 const localQuaternion3 = new THREE.Quaternion();
@@ -32,15 +29,11 @@ const localMatrix3 = new THREE.Matrix4();
 const localBox = new THREE.Box3();
 
 const rotationSnap = Math.PI / 6;
-const highlightPhysicsMesh = makeHighlightPhysicsMesh(buildMaterial);
 let highlightedPhysicsObject = null;
 let highlightedPhysicsId = 0;
 
-highlightPhysicsMesh.visible = false;
-sceneLowPriority.add(highlightPhysicsMesh);
-
 const getPhysicalPosition = box => {
-  return localVector9.set(
+  return localVector7.set(
     (box.min.x + box.max.x) / 2,
     box.min.y, 
     (box.min.z + box.max.z) / 2
@@ -70,9 +63,8 @@ const _updateGrabbedObject = (
   let physicalOffset = null;
   const physicsObjects = o.getPhysicsObjects();
 
-  // Compute bounding box and it's center point offset from it's app.position.
+  // Compute physical local bounding box and it's position offset from app.position.
   // THREE.Box3.getCenter() has a console error, so I calculate manually.
-  // Set localVector7 = bounding box size (width, height, depth).
   if(physicsObjects) {
     localBox.makeEmpty();
     for(const physicsObject of physicsObjects) {
@@ -87,7 +79,7 @@ const _updateGrabbedObject = (
   const collision = collisionEnabled && physicsScene.raycast(localVector, localQuaternion);
 
   // raycast from grabbed object down perpendicularly
-  localQuaternion2.setFromAxisAngle(localVector8.set(1, 0, 0), -Math.PI * 0.5);
+  localQuaternion2.setFromAxisAngle(localVector2.set(1, 0, 0), -Math.PI * 0.5);
   const downCollision = collisionEnabled && physicsScene.raycast(localVector5, localQuaternion2);
 
   if (!!collision) {
@@ -111,7 +103,7 @@ const _updateGrabbedObject = (
   }
 
   // if grabbed object would go below another object then place object at downCollision point
-  if (!!downCollision && localVector10.copy(localVector5).add(physicalOffset).y < localVector4.y) {
+  if (!!downCollision && localVector8.copy(localVector5).add(physicalOffset).y < localVector4.y) {
     localVector5.setY(localVector4.sub(physicalOffset).y);
   }
 
@@ -213,6 +205,11 @@ class Grabmanager extends EventTarget {
         data: { isEditMode: this.editMode },
       })
     );
+  }
+  setHighlightPhysicsMesh(mesh) {
+    this.highlightPhysicsMesh = mesh;
+    this.highlightPhysicsMesh.visible = false;
+    sceneLowPriority.add(this.highlightPhysicsMesh);
   }
   menuClick(e) {
     _click(e);
@@ -332,7 +329,7 @@ class Grabmanager extends EventTarget {
     _handlePhysicsHighlight();
 
     const _updatePhysicsHighlight = () => {
-      highlightPhysicsMesh.visible = false;
+      this.highlightPhysicsMesh.visible = false;
 
       if (highlightedPhysicsObject) {
         const physicsId = highlightedPhysicsId;
@@ -342,23 +339,23 @@ class Grabmanager extends EventTarget {
         const physicsObject = metaversefileApi.getPhysicsObjectByPhysicsId(physicsId);
         if (physicsObject) {
           const { physicsMesh } = physicsObject;
-          highlightPhysicsMesh.geometry = physicsMesh.geometry;
-          highlightPhysicsMesh.matrixWorld
+          this.highlightPhysicsMesh.geometry = physicsMesh.geometry;
+          this.highlightPhysicsMesh.matrixWorld
             .copy(physicsMesh.matrixWorld)
             .decompose(
-              highlightPhysicsMesh.position,
-              highlightPhysicsMesh.quaternion,
-              highlightPhysicsMesh.scale
+              this.highlightPhysicsMesh.position,
+              this.highlightPhysicsMesh.quaternion,
+              this.highlightPhysicsMesh.scale
             );
 
-          highlightPhysicsMesh.material.uniforms.uTime.value = (timestamp % 1500) / 1500;
-          highlightPhysicsMesh.material.uniforms.uTime.needsUpdate = true;
-          highlightPhysicsMesh.material.uniforms.uColor.value.setHex(
+            this.highlightPhysicsMesh.material.uniforms.uTime.value = (timestamp % 1500) / 1500;
+            this.highlightPhysicsMesh.material.uniforms.uTime.needsUpdate = true;
+            this.highlightPhysicsMesh.material.uniforms.uColor.value.setHex(
             buildMaterial.uniforms.uColor.value.getHex()
           );
-          highlightPhysicsMesh.material.uniforms.uColor.needsUpdate = true;
-          highlightPhysicsMesh.visible = true;
-          highlightPhysicsMesh.updateMatrixWorld();
+          this.highlightPhysicsMesh.material.uniforms.uColor.needsUpdate = true;
+          this.highlightPhysicsMesh.visible = true;
+          this.highlightPhysicsMesh.updateMatrixWorld();
         }
       }
     };

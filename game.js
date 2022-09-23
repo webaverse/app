@@ -13,8 +13,8 @@ import dioramaManager from './diorama.js';
 import {world} from './world.js';
 import {buildMaterial, highlightMaterial, selectMaterial, hoverMaterial, hoverEquipmentMaterial} from './shaders.js';
 import {getRenderer, sceneLowPriority, camera} from './renderer.js';
-import {downloadFile, snapPosition, getDropUrl, handleDropJsonItem, makeId, makeHighlightPhysicsMesh} from './util.js';
-import {maxGrabDistance, throwReleaseTime, storageHost, minFov, maxFov, throwAnimationDuration} from './constants.js';
+import {downloadFile, getDropUrl, handleDropJsonItem, makeId} from './util.js';
+import {throwReleaseTime, storageHost, minFov, maxFov, throwAnimationDuration} from './constants.js';
 import metaversefileApi from './metaversefile-api.js';
 import * as metaverseModules from './metaverse-modules.js';
 import loadoutManager from './loadout-manager.js';
@@ -29,19 +29,9 @@ import grabManager from './grab-manager.js';
 
 const localVector = new THREE.Vector3();
 const localVector2 = new THREE.Vector3();
-const localVector3 = new THREE.Vector3();
-const localVector4 = new THREE.Vector3();
-const localVector5 = new THREE.Vector3();
-const localVector6 = new THREE.Vector3();
-// const localVector2D = new THREE.Vector2();
 const localQuaternion = new THREE.Quaternion();
-const localQuaternion2 = new THREE.Quaternion();
-const localQuaternion3 = new THREE.Quaternion();
 const localEuler = new THREE.Euler();
-const localMatrix = new THREE.Matrix4();
 const localMatrix2 = new THREE.Matrix4();
-const localMatrix3 = new THREE.Matrix4();
-// const localBox = new THREE.Box3();
 const localRay = new THREE.Ray();
 
 //
@@ -225,27 +215,39 @@ highlightMesh.visible = false;
 sceneLowPriority.add(highlightMesh);
 let highlightedObject = null; */
 
-const mouseHighlightPhysicsMesh = makeHighlightPhysicsMesh(highlightMaterial);
+const _makeHighlightPhysicsMesh = material => {
+  const geometry = new THREE.BoxBufferGeometry(1, 1, 1);
+  material = material.clone();
+  const mesh = new THREE.Mesh(geometry, material);
+  mesh.frustumCulled = false;
+  mesh.physicsId = 0;
+  return mesh;
+};
+
+const grabHighlightPhysicsMesh = _makeHighlightPhysicsMesh(buildMaterial);
+grabManager.setHighlightPhysicsMesh(grabHighlightPhysicsMesh);
+
+const mouseHighlightPhysicsMesh = _makeHighlightPhysicsMesh(highlightMaterial);
 mouseHighlightPhysicsMesh.visible = false;
 sceneLowPriority.add(mouseHighlightPhysicsMesh);
 let mouseHoverObject = null;
 let mouseHoverPhysicsId = 0;
 let mouseHoverPosition = null;
 
-const mouseSelectPhysicsMesh = makeHighlightPhysicsMesh(selectMaterial);
+const mouseSelectPhysicsMesh = _makeHighlightPhysicsMesh(selectMaterial);
 mouseSelectPhysicsMesh.visible = false;
 sceneLowPriority.add(mouseSelectPhysicsMesh);
 let mouseSelectedObject = null;
 let mouseSelectedPhysicsId = 0;
 let mouseSelectedPosition = null;
 
-const mouseDomHoverPhysicsMesh = makeHighlightPhysicsMesh(hoverMaterial);
+const mouseDomHoverPhysicsMesh = _makeHighlightPhysicsMesh(hoverMaterial);
 mouseDomHoverPhysicsMesh.visible = false;
 sceneLowPriority.add(mouseDomHoverPhysicsMesh);
 let mouseDomHoverObject = null;
 let mouseDomHoverPhysicsId = 0;
 
-const mouseDomEquipmentHoverPhysicsMesh = makeHighlightPhysicsMesh(hoverEquipmentMaterial);
+const mouseDomEquipmentHoverPhysicsMesh = _makeHighlightPhysicsMesh(hoverEquipmentMaterial);
 mouseDomEquipmentHoverPhysicsMesh.visible = false;
 sceneLowPriority.add(mouseDomEquipmentHoverPhysicsMesh);
 let mouseDomEquipmentHoverObject = null;

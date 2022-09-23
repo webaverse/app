@@ -1228,11 +1228,3 @@ export const splitLinesToWidth = (() => {
     return lines;
   };
 })();
-export const makeHighlightPhysicsMesh = material => {
-  const geometry = new THREE.BoxBufferGeometry(1, 1, 1);
-  material = material.clone();
-  const mesh = new THREE.Mesh(geometry, material);
-  mesh.frustumCulled = false;
-  mesh.physicsId = 0;
-  return mesh;
-};
