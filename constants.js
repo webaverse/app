@@ -3,6 +3,8 @@ export const previewExt = 'jpg';
 export const maxGrabDistance = 1.5;
 export const defaultRendererUrl = 'https://render.exokit.org/'
 
+export const apiBackendHost = 'https://api-backend.webaverse.com'; /// will be change
+
 export const transparentPngUrl = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNkYAAAAAYAAjCB0C8AAAAASUVORK5CYII=';
 
 export const rarityColors = {

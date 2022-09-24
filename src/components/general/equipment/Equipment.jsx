@@ -14,8 +14,12 @@ import { ChainContext } from '../../../hooks/chainProvider';
 import dropManager from '../../../../drop-manager';
 import cardsManager from '../../../../cards-manager.js';
 import {
-  CONTRACTS, ALCHEMY_API
+  CONTRACTS
 } from '../../../hooks/web3-constants.js';
+
+import {
+    apiBackendHost
+} from "../../../../constants"
 
 //
 
@@ -419,17 +423,33 @@ export const Equipment = () => {
         }
     }, [open, selectObject]);
 
-    useEffect(async () => {
+    useEffect(() => {
+        
+        /////////////////////// it should be in api-backend ////////////////////////////////
+        // if (account && account.currentAddress) {
+        //     const baseURL = `${ALCHEMY_API[selectedChain.contract_name].RPC_URL}/${ALCHEMY_API[selectedChain.contract_name].API_KEY}/getNFTs/`
+        //     const nftList = await fetch(`${baseURL}?owner=${account.currentAddress}&contractAddresses%5B%5D=${CONTRACTS[selectedChain.contract_name].NFT}`,
+        //         {
+        //             method: 'get',
+        //             redirect: 'follow'
+        //         })
+        //         .then(response => response.json())
+        //         console.log("lists", nftList)  
+        //     setNfts(nftList);
+        // } else {
+        //     console.log('could not query NFT collections')
+        // }
+        //////////////////////////////////////////////////////////////////////////////////////
+
         if (account && account.currentAddress) {
-            const baseURL = `${ALCHEMY_API[selectedChain.contract_name].RPC_URL}/${ALCHEMY_API[selectedChain.contract_name].API_KEY}/getNFTs/`
-            const nftList = await fetch(`${baseURL}?owner=${account.currentAddress}&contractAddresses%5B%5D=${CONTRACTS[selectedChain.contract_name].NFT}`,
-                {
-                    method: 'get',
-                    redirect: 'follow'
-                })
-                .then(response => response.json())
-                console.log("lists", nftList)
-            setNfts(nftList);
+          async function queryOpensea() {
+            fetch(
+              `${apiBackendHost}?owner=${account.currentAddress}&contractAddresses%5B%5D=${CONTRACTS[selectedChain.contract_name].NFT}`
+             ).then((res) => res.json())
+              .then(({ assets }) => { console.log('returned assets', assets); setNfts(assets); })
+              .catch(() => console.warn('could not connect to api-backend'));
+          }
+          queryOpensea();
         } else {
             console.log('could not query NFT collections')
         }

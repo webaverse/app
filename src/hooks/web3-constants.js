@@ -29,16 +29,18 @@ export const CONTRACTS = {
   },
 };
 
-export const ALCHEMY_API = {
-    polygon : {
-        API_KEY: "bN2G8nP-vDFAnRXksfpd7I7g5f9c0GqD",
-        RPC_URL: "https://polygon-mainnet.g.alchemy.com/v2"
-    },
-    mainnet : {
-        API_KEY: "70uyyvlp1kp3qp4q2mbvvyyrd3nn4puq",
-        RPC_URL: "https://eth-mainnet.alchemyapi.io/nft/v2"
-    }
-}
+///////////////// it should be in api-backend ////////////////////////////
+// export const ALCHEMY_API = {
+//     polygon : {
+//         API_KEY: "bN2G8nP-vDFAnRXksfpd7I7g5f9c0GqD",
+//         RPC_URL: "https://polygon-mainnet.g.alchemy.com/v2"
+//     },
+//     mainnet : {
+//         API_KEY: "70uyyvlp1kp3qp4q2mbvvyyrd3nn4puq",
+//         RPC_URL: "https://eth-mainnet.alchemyapi.io/nft/v2"
+//     }
+// }
+//////////////////////////////////////////////////////////////////////////
 
 export const CHAIN_TYPE = {
   TEST: 'testnet',
