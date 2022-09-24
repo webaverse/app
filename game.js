@@ -999,7 +999,7 @@ const _gameUpdate = (timestamp, timeDiff) => {
 
       //const size = renderer.getSize(localVector);
       //console.log(raycastManager.lastMouseEvent.clientX- size.x);
-      crosshairEl.style.visibility = visible ? null : 'hidden';
+      //crosshairEl.style.visibility = visible ? null : 'hidden';
 
       // if(visible) {
       //   crosshairEl.style.left = (raycastManager.lastMouseEvent.clientX) + 'px';

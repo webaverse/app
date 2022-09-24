@@ -103,13 +103,11 @@ function setCameraType (perspective, vSize = 15, mode = 'side-scroll') {
 
     switch (mode) {
       case 'side-scroll': {
+        //nothing
         break;
       }
       case 'isometric': {
-        // camera.position.set(0, 100, 0)
-        // camera.updateMatrixWorld();
-        // dolly.position.set(0, 0, 0);
-        // dolly.updateMatrixWorld();
+        //nothing
         break;
       }
         

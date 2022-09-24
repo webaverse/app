@@ -11,6 +11,7 @@ import {minFov, maxFov, midFov} from './constants.js';
 // import { updateRaycasterFromMouseEvent } from './util.js';
 import easing from './easing.js';
 import { clamp } from 'three/src/math/MathUtils.js';
+import { PathFinder } from './npc-utils.js';
 
 const cubicBezier = easing(0, 1, 0, 1);
 const cubicBezier2 = easing(0.5, 0, 0.5, 1);
@@ -180,6 +181,13 @@ class Scene2D {
     this.cursorSensitivity = 0.75;
     this.maxAimDistance = 3;
     this.zoomFactor = 1;
+    this.moveTarget = null;
+
+    this.debugMesh = null;
+
+    this.pathFinder = new PathFinder({debugRender: true});
+    this.path = null;
+    this.pathIndex = 0;
 
     // document.addEventListener('click', (e) => {
     //   if(e.button === 0) { // left click
@@ -195,6 +203,9 @@ class Scene2D {
     //   }
     // });
   }
+  getPath(vec1, vec2) {
+    return this.pathFinder.getPath(vec1, vec2);
+  }
   getCursorPosition() {
     let vector = new THREE.Vector3();
     vector.set(
@@ -204,6 +215,52 @@ class Scene2D {
     );
     vector.unproject(camera);
     return new THREE.Vector3(vector.x, vector.y, 0);
+  }
+  getScreenCursorPosition() {
+    let vector = new THREE.Vector3();
+    vector.set(
+        (this.cursorPosition.x / window.innerWidth) * 2 - 1,
+        - (this.cursorPosition.y / window.innerHeight) * 2 + 1,
+        0
+    );
+    return new THREE.Vector2(vector.x, vector.y);
+  }
+  castFromCursor() {
+    let pos = this.getScreenCursorPosition();
+    //let worldPos = this.getCursorPosition();
+    const raycaster = new THREE.Raycaster();
+    raycaster.linePrecision = 0.1;
+    const pointer = new THREE.Vector2();
+
+    pointer.x = pos.x;
+    pointer.y = pos.y;
+
+    //raycaster.setFromCamera( pointer, camera );
+
+    ////
+
+    let vector = new THREE.Vector3();
+    let dir = new THREE.Vector3();
+
+    vector.set( ( this.cursorPosition.x / window.innerWidth ) * 2 - 1, - ( this.cursorPosition.y / window.innerHeight ) * 2 + 1, - 1 ); // z = - 1 important!
+
+    vector.unproject( camera );
+
+    dir.set( 0, 0, - 1 ).transformDirection( camera.matrixWorld );
+
+    ////
+
+    raycaster.set( vector, dir );
+
+    const intersects = raycaster.intersectObjects( scene.children );
+
+    if(intersects.length > 0) {
+      let result = intersects[0];
+      console.log(result, "raycast result");
+      const flatSurface = new THREE.Vector3(0,1,0);
+      const point = intersects[0].point;
+      return point;
+    }
   }
   getCursorQuaternionFromOrigin(origin) {
     let cursorPos = this.getCursorPosition();
@@ -221,6 +278,92 @@ class Scene2D {
     let viewDir = new THREE.Vector3();
     playersManager.getLocalPlayer().getWorldDirection(viewDir);
     return viewDir.x > 0 ? "left" : "right";
+  }
+  handleCursorClick() {
+    let cursorWorldPos = this.castFromCursor();
+    if(cursorWorldPos) {
+      //cursorWorldPos.y = 1;
+      console.log(cursorWorldPos);
+      this.moveTarget = cursorWorldPos;
+      this.path = null;
+      this.pathIndex = 0;
+    }
+    else {
+      console.log("invalid target")
+    }
+  }
+  traversePath(path, t) {
+    const localPlayer = playersManager.getLocalPlayer();
+    console.log(this.pathIndex);
+    let target = path[this.pathIndex].position;
+    let dist = localPlayer.position.distanceTo(target);
+    let dir = new THREE.Vector3().subVectors(target, localPlayer.position);
+
+    if(dist > 1) {
+      localPlayer.characterPhysics.applyWasd(
+        dir.normalize()
+          .multiplyScalar(0.15 * t)
+      );
+      this.debugMesh.visible = true;
+      this.debugMesh.position.copy(path[path.length-1].position);
+      this.debugMesh.updateMatrixWorld();
+    }
+    else {
+      if(this.pathIndex < path.length-1) {
+        this.pathIndex++;
+      }
+      else {
+        this.debugMesh.visible = false;
+        this.moveTarget = null;
+        this.path = null;
+        this.pathIndex = 0;
+      }
+    }
+  }
+  moveToTarget(target, t) {
+    const localPlayer = playersManager.getLocalPlayer();
+    let origin = new THREE.Vector3(localPlayer.position.x, 1, localPlayer.position.z);
+    let dist = origin.distanceTo(target);
+    let dir = new THREE.Vector3();
+    dir.subVectors(target, origin);
+
+    if(dist > 0.1) {
+      localPlayer.characterPhysics.applyWasd(
+        dir.normalize()
+          .multiplyScalar(0.1 * t)
+      );
+      this.debugMesh.visible = true;
+      this.debugMesh.position.copy(target);
+      this.debugMesh.updateMatrixWorld();
+    }
+    else {
+      this.moveTarget = null;
+      this.path = null;
+      console.log("we arrived");
+      this.debugMesh.visible = false;
+    }
+
+  }
+  update(timeDiff) {
+    const localPlayer = playersManager.getLocalPlayer();
+
+    if(!this.debugMesh) {
+      let geom = new THREE.BoxGeometry(1,1,1);
+      let material = new THREE.MeshBasicMaterial({color: 0x00ff00});
+      this.debugMesh = new THREE.Mesh(geom, material);
+      scene.add(this.debugMesh);
+      this.debugMesh.visible = false;
+    }
+    
+    if(this.moveTarget && localPlayer) {
+      if(!this.path) {
+        this.path = this.getPath(localPlayer.position, this.moveTarget);
+        console.log(this.path);
+      }
+      else {
+        this.traversePath(this.path, timeDiff)
+      }
+    }
   }
 }
 
@@ -371,68 +514,118 @@ class CameraManager extends EventTarget {
   handleMouseMove(e) {
     const {movementX, movementY} = e;
 
-    if(this.scene2D && this.scene2D.perspective === "side-scroll") {
-      const cursorPosition = this.scene2D.cursorPosition;
-      let lastCursorPosition = this.scene2D.lastCursorPosition;
-      const size = getRenderer().getSize(localVector);
-      const sensitivity = this.scene2D.cursorSensitivity;
-      const crosshairEl = document.getElementById('crosshair');
-      const maxAimDistance = this.scene2D.maxAimDistance;
+    if(this.scene2D) {
+      switch (this.scene2D.perspective) {
+        case 'side-scroll': {
+          const cursorPosition = this.scene2D.cursorPosition;
+          let lastCursorPosition = this.scene2D.lastCursorPosition;
+          const size = getRenderer().getSize(localVector);
+          const sensitivity = this.scene2D.cursorSensitivity;
+          const crosshairEl = document.getElementById('crosshair');
+          const maxAimDistance = this.scene2D.maxAimDistance;
+
+          
+          let clampedX = THREE.MathUtils.clamp(cursorPosition.x, 0, size.x);
+          let clampedY = THREE.MathUtils.clamp(cursorPosition.y, 0, size.y);
+          clampedX += movementX * sensitivity;
+          clampedY += movementY * sensitivity;
+
+          cursorPosition.set(clampedX, clampedY);
+
+          crosshairEl.style.left = clampedX + 'px';
+          crosshairEl.style.top = clampedY + 'px';
+
+          break;
+        }
+        case 'isometric': {
+          const cursorPosition = this.scene2D.cursorPosition;
+          let lastCursorPosition = this.scene2D.lastCursorPosition;
+          const size = getRenderer().getSize(localVector);
+          const sensitivity = this.scene2D.cursorSensitivity;
+          const crosshairEl = document.getElementById('crosshair');
+          const maxAimDistance = this.scene2D.maxAimDistance;
+
+          
+          let clampedX = THREE.MathUtils.clamp(cursorPosition.x, 0, size.x);
+          let clampedY = THREE.MathUtils.clamp(cursorPosition.y, 0, size.y);
+          clampedX += movementX * sensitivity;
+          clampedY += movementY * sensitivity;
+
+          cursorPosition.set(clampedX, clampedY);
+
+          crosshairEl.style.left = clampedX + 'px';
+          crosshairEl.style.top = clampedY + 'px';
+
+          break;
+        }
+      
+        default:
+          break;
+      }
+    }
+
+    // if(this.scene2D && this.scene2D.perspective === "side-scroll") {
+    //   const cursorPosition = this.scene2D.cursorPosition;
+    //   let lastCursorPosition = this.scene2D.lastCursorPosition;
+    //   const size = getRenderer().getSize(localVector);
+    //   const sensitivity = this.scene2D.cursorSensitivity;
+    //   const crosshairEl = document.getElementById('crosshair');
+    //   const maxAimDistance = this.scene2D.maxAimDistance;
 
       
-      let clampedX = THREE.MathUtils.clamp(cursorPosition.x, 0, size.x);
-      let clampedY = THREE.MathUtils.clamp(cursorPosition.y, 0, size.y);
-      clampedX += movementX * sensitivity;
-      clampedY += movementY * sensitivity;
+    //   let clampedX = THREE.MathUtils.clamp(cursorPosition.x, 0, size.x);
+    //   let clampedY = THREE.MathUtils.clamp(cursorPosition.y, 0, size.y);
+    //   clampedX += movementX * sensitivity;
+    //   clampedY += movementY * sensitivity;
 
-      cursorPosition.set(clampedX, clampedY);
-      //const distance = this.getCursorDistanceToPoint(cursorPosition, playersManager.getLocalPlayer().position);
-      // if(!this.scene2D.lastCursorPosition) {
-      //   var width = window.innerWidth, height = window.innerHeight;
-      //   var widthHalf = width / 2, heightHalf = height / 2;
+    //   cursorPosition.set(clampedX, clampedY);
+    //   //const distance = this.getCursorDistanceToPoint(cursorPosition, playersManager.getLocalPlayer().position);
+    //   // if(!this.scene2D.lastCursorPosition) {
+    //   //   var width = window.innerWidth, height = window.innerHeight;
+    //   //   var widthHalf = width / 2, heightHalf = height / 2;
 
-      //   var pos = playersManager.getLocalPlayer().position.clone();
-      //   pos.project(camera);
-      //   pos.x = ( pos.x * widthHalf ) + widthHalf;
-      //   pos.y = - ( pos.y * heightHalf ) + heightHalf;
+    //   //   var pos = playersManager.getLocalPlayer().position.clone();
+    //   //   pos.project(camera);
+    //   //   pos.x = ( pos.x * widthHalf ) + widthHalf;
+    //   //   pos.y = - ( pos.y * heightHalf ) + heightHalf;
 
-      //   crosshairEl.style.left = pos.x + 'px';
-      //   crosshairEl.style.top = pos.y + 'px';
+    //   //   crosshairEl.style.left = pos.x + 'px';
+    //   //   crosshairEl.style.top = pos.y + 'px';
         
-      //   this.scene2D.lastCursorPosition = new THREE.Vector2(pos.x, pos.y);
+    //   //   this.scene2D.lastCursorPosition = new THREE.Vector2(pos.x, pos.y);
         
-      //   console.log("still here", this.scene2D.lastCursorPosition);
-      // }
-      // if(distance < maxAimDistance) {
-      //   this.scene2D.lastCursorPosition.set(clampedX, clampedY);
-      //   crosshairEl.style.left = clampedX + 'px';
-      //   crosshairEl.style.top = clampedY + 'px';
-      // }
-      // else {
-      //   crosshairEl.style.left = this.scene2D.lastCursorPosition.x + 'px';
-      //   crosshairEl.style.top = this.scene2D.lastCursorPosition.y + 'px';
-      // }
+    //   //   console.log("still here", this.scene2D.lastCursorPosition);
+    //   // }
+    //   // if(distance < maxAimDistance) {
+    //   //   this.scene2D.lastCursorPosition.set(clampedX, clampedY);
+    //   //   crosshairEl.style.left = clampedX + 'px';
+    //   //   crosshairEl.style.top = clampedY + 'px';
+    //   // }
+    //   // else {
+    //   //   crosshairEl.style.left = this.scene2D.lastCursorPosition.x + 'px';
+    //   //   crosshairEl.style.top = this.scene2D.lastCursorPosition.y + 'px';
+    //   // }
 
-      if(!this.scene2D.lastCursorPosition) {
-        var width = window.innerWidth, height = window.innerHeight;
-        var widthHalf = width / 2, heightHalf = height / 2;
+    //   if(!this.scene2D.lastCursorPosition) {
+    //     var width = window.innerWidth, height = window.innerHeight;
+    //     var widthHalf = width / 2, heightHalf = height / 2;
 
-        var pos = playersManager.getLocalPlayer().position.clone();
-        pos.project(camera);
-        pos.x = ( pos.x * widthHalf ) + widthHalf;
-        pos.y = - ( pos.y * heightHalf ) + heightHalf;
+    //     var pos = playersManager.getLocalPlayer().position.clone();
+    //     pos.project(camera);
+    //     pos.x = ( pos.x * widthHalf ) + widthHalf;
+    //     pos.y = - ( pos.y * heightHalf ) + heightHalf;
 
-        crosshairEl.style.left = pos.x + 'px';
-        crosshairEl.style.top = pos.y + 'px';
+    //     crosshairEl.style.left = pos.x + 'px';
+    //     crosshairEl.style.top = pos.y + 'px';
         
-        this.scene2D.lastCursorPosition = new THREE.Vector2(pos.x, pos.y);
-        cursorPosition.set(pos.x, pos.y);
-      }
+    //     this.scene2D.lastCursorPosition = new THREE.Vector2(pos.x, pos.y);
+    //     cursorPosition.set(pos.x, pos.y);
+    //   }
 
-      crosshairEl.style.left = clampedX + 'px';
-      crosshairEl.style.top = clampedY + 'px';
-      //console.log(this.scene2D.getCursorPosition());
-    }
+    //   crosshairEl.style.left = clampedX + 'px';
+    //   crosshairEl.style.top = clampedY + 'px';
+    //   //console.log(this.scene2D.getCursorPosition());
+    // }
     else {
       camera.position.add(localVector.copy(this.getCameraOffset()).applyQuaternion(camera.quaternion));
   
@@ -651,6 +844,10 @@ class CameraManager extends EventTarget {
     const renderer = getRenderer();
     const session = renderer.xr.getSession();
     const localPlayer = playersManager.getLocalPlayer();
+
+    if(this.scene2D) {
+      this.scene2D.update(timeDiff);
+    }
 
     if (this.target) {
       const _setLerpDelta = (position, quaternion) => {

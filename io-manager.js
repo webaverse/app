@@ -107,6 +107,18 @@ const _updateHorizontal = direction => {
   if (ioManager.keys.down) {
     direction.z += 1;
   }
+  if(cameraManager.scene2D) {
+    switch (cameraManager.scene2D.perspective) {
+      case 'isometric': {
+        //direction.set(direction.z, 0, -direction.x).applyQuaternion(camera.quaternion);
+        direction.set(0,0,0);
+        //direction.y = 0;
+        break
+      }    
+      default:
+        break;
+    }
+  }
 };
 const _updateVertical = direction => {
   if (ioManager.keys.space) {
@@ -808,6 +820,9 @@ ioManager.mousedown = e => {
   if (cameraManager.pointerLockElement) {
     if ((changedButtons & 1) && (e.buttons & 1)) { // left
       game.menuMouseDown();
+      if(cameraManager.scene2D) {
+        cameraManager.scene2D.handleCursorClick();
+      }
     }
     if ((changedButtons & 2) && (e.buttons & 2)) { // right
       game.menuAim();

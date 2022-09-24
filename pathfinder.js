@@ -6,8 +6,7 @@ import {
 import physicsManager from './physics-manager.js';
 
 class PathFinder {
-  constructor({voxelHeight = 1.65, heightTolerance = 0.5, maxIterDetect = 1000, maxIterStep = 1000, ignorePhysicsIds = [], debugRender = false} = {}) {
-    //const {voxelHeight 1.65, heightTolerance = 0.5, maxIterDetect = 1000, maxIterStep = 1000, ignorePhysicsIds = [], debugRender = false} = opts;
+  constructor({voxelHeight = 1.65, heightTolerance = 0.5, maxIterDetect = 1000, maxIterStep = 1000, ignorePhysicsIds = [], debugRender = false}) {
     /* args:
       voxelHeight: Voxel height ( Y axis ) for collide detection, usually equal to npc's physical capsule height. X/Z axes sizes are hard-coded 1 now.
       heightTolerance: Used to check whether currentVoxel can go above to neighbor voxels.
@@ -41,7 +40,7 @@ class PathFinder {
   }
 
   getPath(start, dest, isWalk = true) {
-    this.waypointResult = physicsManager.getScene().getPath(start, dest, isWalk, this.hy, this.heightTolerance, this.maxIterDetect, this.maxIterStep, this.ignorePhysicsIds);
+    this.waypointResult = physicsManager.getPath(start, dest, isWalk, this.hy, this.heightTolerance, this.maxIterDetect, this.maxIterStep, this.ignorePhysicsIds);
     const isFound = this.waypointResult.length > 0;
 
     if (this.debugRender) {

@@ -16,15 +16,6 @@
       }
     },
     {
-      "type": "application/spawnpoint",
-      "content": {
-        "position": [-115,
-        1.15,
-        -359],
-        "quaternion": [0, 0.0,0, 0.0]
-      }
-    },
-    {
       "type": "application/rendersettings",
       "content": {
         "hdr": {
@@ -69,6 +60,14 @@
         0
       ],
       "start_url": "https://loryhoof.github.io/sky/"
+    },
+    {
+      "position": [
+        0,
+        0,
+        0
+      ],
+      "start_url": "/boilerplate/script-basic"
     },
     {
       "position": [-119, 1.15, -359],
