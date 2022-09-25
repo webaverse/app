@@ -1,33 +1,33 @@
 
-import React, { forwardRef, useEffect, useState, createRef, useContext } from 'react';
 import classnames from 'classnames';
 import metaversefile from 'metaversefile';
-import styles from './character-select.module.css';
-import { AppContext } from '../../app';
-import { MegaHup } from '../../../MegaHup.jsx';
-import { LightArrow } from '../../../LightArrow.jsx';
-// import { world } from '../../../../world.js';
+import React, { forwardRef, Fragment, useContext, useEffect, useState } from 'react';
 import { LocalPlayer } from '../../../../character-controller.js';
-import { characterSelectManager } from '../../../../characterselect-manager.js';
-import * as sounds from '../../../../sounds.js';
 import { chatManager } from '../../../../chat-manager.js';
 import musicManager from '../../../../music-manager.js';
-import { CachedLoader } from '../../../CachedLoader.jsx';
-import { RpgText } from '../../../RpgText.jsx';
-import { chatTextSpeed } from '../../../../constants.js';
-import { VoiceEndpointVoicer } from '../../../../voice-output/voice-endpoint-voicer.js';
+import npcManager from '../../../../npc-manager.js';
+import * as sounds from '../../../../sounds.js';
+import { getVoiceEndpointUrl, VoiceEndpointVoicer } from '../../../../voice-output/voice-endpoint-voicer.js';
 import * as voices from '../../../../voices.js';
-import {getVoiceEndpointUrl} from '../../../../voice-output/voice-endpoint-voicer.js';
-import npcManager from '../../../../npc-manager.js'
+import { CachedLoader } from '../../../CachedLoader.jsx';
+import { LightArrow } from '../../../LightArrow.jsx';
+import { MegaHup } from '../../../MegaHup.jsx';
+import { AppContext } from '../../app';
+import styles from './character-select.module.css';
 
 //
 
+import { getMainnetAddress } from '../../../../blockchain.js';
+import {
+    cryptoavatarsCharactersUtil, tokensCharactersUtil, upstreetCharactersUtil
+} from '../../../../utils';
+
 function typeContentToUrl(type, content) {
-if (typeof content === 'object') {
-    content = JSON.stringify(content);
-}
-const dataUrlPrefix = 'data:' + type + ',';
-return '/@proxy/' + dataUrlPrefix + encodeURIComponent(content).replace(/\%/g, '%25')//.replace(/\\//g, '%2F');
+    if (typeof content === 'object') {
+        content = JSON.stringify(content);
+    }
+    const dataUrlPrefix = 'data:' + type + ',';
+    return '/@proxy/' + dataUrlPrefix + encodeURIComponent(content).replace(/\%/g, '%25')//.replace(/\\//g, '%2F');
 }
 
 //
@@ -43,12 +43,14 @@ for (let i = 0; i < userTokenCharacters.length; i++) {
         bio: '',
     };
 }
+const chevronImgSrc = `./images/chevron.svg`;
 
 const Character = forwardRef(({
     character,
     highlight,
     animate,
     disabled,
+    targetCharacter,
     onMouseMove,
     onClick,
 }, ref) => {
@@ -59,6 +61,7 @@ const Character = forwardRef(({
                 highlight ? styles.highlight : null,
                 animate ? styles.animate : null,
                 disabled ? styles.disabled : null,
+                character.name
             )}
             onMouseMove={e => {
                 if (!disabled) {
@@ -72,28 +75,38 @@ const Character = forwardRef(({
             }}
             ref={ref}
         >
-            {character?.previewUrl ? <img className={styles.img} src={character.previewUrl} /> : null}
+            {character && character.previewUrl ? (
+                <img
+                    crossOrigin="anonymous"
+                    className={styles.img}
+                    src={character.previewUrl}
+                />
+            ) : null}
+            {character && character.canBeUsed === false ? (
+                <img className={styles.disabled} src=" ./images/disabled.svg" />
+            ) : null}
             <div className={styles.wrap}>
-                <div className={styles.name}>{character?.name ?? ''}</div>
-                <div className={styles.description}>{character?.class ?? ''}</div>
+                <div className={styles.name}>{(character && character.name) || ''}</div>
+                <div className={styles.description}>{(character && character.class) || ''}</div>
             </div>
+            <LightArrow visible={targetCharacter === character} />
         </li>
     );
-});
+}
+);
 
 export const CharacterSelect = () => {
-    const { state, setState } = useContext( AppContext );
-    const [ highlightCharacter, setHighlightCharacter ] = useState(null);
-    const [ selectCharacter, setSelectCharacter ] = useState(null);
-    const [ highlightPack, setHighlightPack ] = useState(null);
-    const [ selectPack, setSelectPack ] = useState(null);
-    const [ lastTargetCharacter, setLastTargetCharacter ] = useState(null);
-    const [ abortFn, setAbortFn ] = useState(null);
-    const [ arrowPosition, setArrowPosition ] = useState(null);
-    const [ enabled, setEnabled ] = useState(false);
-    const [ npcPlayer, setNpcPlayer ] = useState(null);
-    const [ npcLoader, setNpcLoader ] = useState(() => new CachedLoader({
-        loadFn: async (url, targetCharacter, {signal = null} = {}) => {
+    const { state, setState } = useContext(AppContext);
+    const [highlightCharacter, setHighlightCharacter] = useState(null);
+    const [selectCharacter, setSelectCharacter] = useState(null);
+    const [highlightPack, setHighlightPack] = useState(null);
+    const [selectPack, setSelectPack] = useState(null);
+    const [lastTargetCharacter, setLastTargetCharacter] = useState(null);
+    const [npcPlayer, setNpcPlayer] = useState(null);
+    const [abortFn, setAbortFn] = useState(null);
+    const [enabled, setEnabled] = useState(false);
+    const [npcLoader, setNpcLoader] = useState(() => new CachedLoader({
+        loadFn: async (url, targetCharacter, { signal = null } = {}) => {
             let live = true;
             signal.addEventListener('abort', () => {
                 live = false;
@@ -107,19 +120,19 @@ export const CharacterSelect = () => {
             return npcManager.getNpcByApp(app);
         },
     }));
-    const [ themeSongLoader, setThemeSongLoader ] = useState(() => new CachedLoader({
-        loadFn: async (url, targetCharacter, {signal = null} = {}) => {
+    const [themeSongLoader, setThemeSongLoader] = useState(() => new CachedLoader({
+        loadFn: async (url, targetCharacter, { signal = null } = {}) => {
             let live = true;
             signal.addEventListener('abort', () => {
-              live = false;
+                live = false;
             });
             themeSong = await LocalPlayer.fetchThemeSong(targetCharacter.themeSongUrl);
             if (!live) return;
             return themeSong;
         },
     }));
-    const [ characterIntroLoader, setCharacterIntroLoader ] = useState(() => new CachedLoader({
-        loadFn: async (url, targetCharacter, {signal = null} = {}) => {
+    const [characterIntroLoader, setCharacterIntroLoader] = useState(() => new CachedLoader({
+        loadFn: async (url, targetCharacter, { signal = null } = {}) => {
             // get ai text
             let live = true;
             signal.addEventListener('abort', () => {
@@ -143,7 +156,7 @@ export const CharacterSelect = () => {
             const voiceEndpointUrl = getVoiceEndpointUrl(voiceEndpoint.drive_id);
             const preloadedMessage = VoiceEndpointVoicer.preloadMessage(voiceEndpointUrl, characterIntro.message);
             const preloadedOnSelectMessage = VoiceEndpointVoicer.preloadMessage(voiceEndpointUrl, characterIntro.onselect);
-            
+
             // return result
             return {
                 characterIntro,
@@ -156,57 +169,34 @@ export const CharacterSelect = () => {
     const [refsMap, setRefsMap] = useState(new Map());
     // const [ messageAudioCache, setMessageAudioCache ] = useState(new Map());
     // const [ selectAudioCache, setSelectAudioCache ] = useState(new Map());
-    const [ text, setText ] = useState('');
+    const [text, setText] = useState('');
 
-    useEffect(() => {
-        const refsMap = (() => {
-            const map = new Map();
-            for (const userTokenCharacter of userTokenCharacters) {
-                map.set(userTokenCharacter, createRef(null));
-            }
-            for (const k in charactersMap) {
-                for (const character of charactersMap[k]) {
-                    map.set(character, createRef(null));
-                }
-            }
-            return map;
-        });
-        setRefsMap(refsMap);
-    }, [charactersMap]);
+    const [cryptoAvatars, setCryptoAvatars] = useState([]);
+    const [upstreatCharacters, setUpstreatCharacters] = useState([]);
+    const [tokensCharacters, setTokesCharacters] = useState([]);
+
+    const [npcPlayerCache, setNpcPlayerCache] = useState(new Map());
+
+    const [caPagination, setCaPagination] = useState({});
+    const [caItemsPerPage, setCaItemsPerPage] = useState(5);
+    const [caCollection, setCaCollection] = useState();
+    const [caOwnership, setCaOwnership] = useState(null);
+    const [caFilters, setCaFilters] = useState({});
+    const [caUrl, setCaUrl] = useState(undefined);
+    const [scaleViewValue, setScaleViewValue] = useState(1);
 
     const targetCharacter = selectCharacter || highlightCharacter;
-    const targetPack = selectPack || highlightPack;
-    const _updateArrowPosition = () => {
-        if (targetCharacter) {
-            const ref = refsMap.get(targetCharacter);
-            const el = ref.current;
-            if (el) {
-                const rect = el.getBoundingClientRect();
-                const parentRect = el.offsetParent.getBoundingClientRect();
-                setArrowPosition([
-                    Math.floor(rect.left - parentRect.left + rect.width / 2 + 40),
-                    Math.floor(rect.top - parentRect.top + rect.height / 2),
-                ]);
-            } else {
-                setArrowPosition(null);
-            }
-        } else {
-            setArrowPosition(null);
-        }
-    };
-    useEffect(() => {
-        _updateArrowPosition();
-    }, [targetCharacter]);
+
     useEffect(() => {
         if (targetCharacter && targetCharacter !== lastTargetCharacter) {
             if (abortFn) {
                 abortFn();
             }
 
-            const {avatarUrl} = targetCharacter;
+            const { avatarUrl } = targetCharacter;
 
             const abortController = new AbortController();
-            const {signal} = abortController;
+            const { signal } = abortController;
             let live = true;
             signal.addEventListener('abort', () => {
                 live = false;
@@ -214,7 +204,7 @@ export const CharacterSelect = () => {
                 setText('');
                 setNpcPlayer(null);
             });
-            
+
             const loadNpcPromise = (async () => {
                 const npcPlayer = await npcLoader.loadItem(avatarUrl, targetCharacter, {
                     signal,
@@ -227,7 +217,7 @@ export const CharacterSelect = () => {
                 });
                 if (!live) return;
                 if (themeSong) {
-                  musicManager.playCurrentMusic(themeSong);
+                    musicManager.playCurrentMusic(themeSong);
                 }
             })();
             const loadCharacterIntroPromise = (async () => {
@@ -242,7 +232,7 @@ export const CharacterSelect = () => {
                         characterIntro,
                         preloadedMessage,
                     } = result;
-                    const {message} = characterIntro;
+                    const { message } = characterIntro;
                     setText(message);
 
                     await chatManager.waitForVoiceTurn(() => {
@@ -277,18 +267,10 @@ export const CharacterSelect = () => {
             setLastTargetCharacter(targetCharacter);
         }
     }, [targetCharacter, lastTargetCharacter, abortFn]);
-
     const opened = state.openedPanel === 'CharacterSelect';
     useEffect(() => {
         if (opened) {
             setSelectCharacter(null);
-
-            const timeout = setTimeout(() => {
-                _updateArrowPosition();
-            }, 1000);
-            return () => {
-                clearTimeout(timeout);
-            };
         }
     }, [opened, targetCharacter]);
     useEffect(() => {
@@ -303,23 +285,13 @@ export const CharacterSelect = () => {
             setEnabled(false);
         }
         if (!opened) {
-            setNpcPlayer(null);
             setHighlightCharacter(null);
             setSelectCharacter(null);
-            setHighlightPack(null);
-            setSelectPack(null);
-            setArrowPosition(null);
             setText('');
         }
     }, [opened, enabled]);
-    useEffect(() => {
-        characterSelectManager.loadCharactersMap().then((result) => {
-            const charactersMap = result;
-            setCharactersMap(charactersMap);
-        });
-    }, []);
-    
-    const onMouseMove = (character, packName) => e => {
+
+    const onMouseMove = character => e => {
         if (enabled) {
             setHighlightCharacter(character);
             setHighlightPack(packName);
@@ -339,17 +311,17 @@ export const CharacterSelect = () => {
             (async () => {
                 const localPlayer = metaversefile.useLocalPlayer();
                 const [
-                  _setPlayerSpec,
-                  result,
+                    _setPlayerSpec,
+                    result,
                 ] = await Promise.all([
                     localPlayer.setPlayerSpec(character),
                     characterIntroLoader.loadItem(character.avatarUrl, character, {
                         // signal,
                     }),
                 ]);
-                
+
                 if (result) {
-                    const {preloadedOnSelectMessage} = result;
+                    const { preloadedOnSelectMessage } = result;
 
                     npcPlayer && npcPlayer.voicer.stop();
                     const localPlayer = metaversefile.useLocalPlayer();
@@ -362,71 +334,200 @@ export const CharacterSelect = () => {
         }
     };
 
+    useEffect(() => {
+        // GET TOKENS CHARACTERS
+        tokensCharactersUtil.getTokenCharacters().then((res) => {
+            if (res) {
+                setTokesCharacters(res);
+            }
+        });
+        // GET UPSTREET CHARACTERS
+        upstreetCharactersUtil.getUpstreetCharacters().then((res) => {
+            if (res) {
+                setUpstreatCharacters(res.upstreet);
+            }
+        });
+    }, []);
+
+    /** ------------------------- CRYPTOAVATARS IMPLEMENTATION ------------------------ */
+
+    // GET CRYPTOAVATARS CHARACTERS
+    useEffect(() => {
+        // GET CHARACTERS
+        cryptoavatarsCharactersUtil.getCryptoAvatars(caUrl, caOwnership, caCollection, caItemsPerPage).then((res) => {
+            if (res) {
+                setCaPagination(res?.pagination);
+                setCryptoAvatars(res?.avatars);
+            }
+        });
+        // GET FILTERS
+        cryptoavatarsCharactersUtil.getCryptoAvatarsFilters().then((res) => {
+            if (res) {
+                setCaFilters(res);
+            }
+        });
+    }, [caUrl, caCollection, caOwnership, caItemsPerPage]);
+
+    const caAvatarsFilter = async (event) => {
+        if (event.target.value === 'all') {
+            setCaOwnership(null);
+            return;
+        }
+
+        if (event.target.value === 'owned') {
+            const userAddress = await getMainnetAddress();
+            if (userAddress) setCaOwnership(userAddress.toLowerCase());
+            return;
+        }
+
+        setCaOwnership('free');
+    };
+
+    /** ------------------------------------------------------------------------------- */
+
     return (
         <div className={styles.characterSelect}>
-            <div
-                className={classnames(styles.menu, opened ? styles.open : null)}
-            >
+            <div className={classnames(styles.menuBackground, opened ? styles.open : null)}>
                 <MegaHup
                     open={opened}
                     npcPlayer={opened ? npcPlayer : null}
                 />
                 <div className={styles.heading}>
+                    <div onClick={() => setState({ openedPanel: 'CharacterPanel' })} className={styles.closeMenu}>
+                        <h1>Close <img src={chevronImgSrc} /></h1>
+                    </div>
                     <h1>Character select</h1>
                 </div>
-                <div className={styles.section}>
-                    <div className={styles.subheading}>
-                        <h2>Tokens</h2>
-                    </div>
-                    <ul className={styles.list}>
-                        {userTokenCharacters.map((character, i) =>
-                            <Character
-                                character={character}
-                                highlight={character === targetCharacter}
-                                animate={selectCharacter === character}
-                                disabled={!character.name || (!!selectCharacter && selectCharacter !== character)}
-                                onMouseMove={onMouseMove(character, 'tokens')}
-                                onClick={onClick(character, 'tokens')}
-                                key={i}
-                                ref={refsMap.get(character)}
-                            />
-                        )}
-                    </ul>
-                </div>
-                {Object.keys(charactersMap).map((packName) => {
-                    return (
-                        <div className={styles.section} key={packName}>
-                            <div className={styles.subheading}>
-                                <h2>From {packName}</h2>
-                            </div>
-                            <ul className={styles.list}>
-                                {charactersMap[packName].map((character, i) => {
+                <div className={classnames(styles.menu, opened ? styles.open : null)}>
+                    <div className={styles.section}>
+                        <div className={styles.subheading}>
+                            <h2>Tokens</h2>
+                        </div>
+                        <ul className={styles.list}>
+                            {tokensCharacters && tokensCharacters.length > 0 ? (
+                                tokensCharacters.map((character, i) => {
                                     return (
                                         <Character
                                             character={character}
                                             highlight={character === targetCharacter}
+                                            targetCharacter={targetCharacter}
                                             animate={selectCharacter === character}
                                             disabled={!character.name || (!!selectCharacter && selectCharacter !== character)}
-                                            onMouseMove={onMouseMove(character, packName)}
-                                            onClick={onClick(character, packName)}
+                                            onMouseMove={onMouseMove(character)}
+                                            onClick={onClick(character)}
                                             key={i}
-                                            ref={refsMap.get(character)}
                                         />
                                     );
-                                })}
-                                <LightArrow
-                                    enabled={!!arrowPosition && targetPack === packName}
-                                    animate={!!selectCharacter}
-                                    x={arrowPosition?.[0] ?? 0}
-                                    y={arrowPosition?.[1] ?? 0}
-                                />
-                            </ul>
+                                })
+                            ) : (
+                                <Fragment>No characters found.</Fragment>
+                            )}
+                        </ul>
+                    </div>
+                    <div className={styles.section}>
+                        <div className={styles.subheading}>
+                            <h2>From Upstreet</h2>
                         </div>
-                    );
-                })}
-                {(opened && text) ? (
-                    <RpgText className={styles.text} styles={styles} text={text} textSpeed={chatTextSpeed} />
-                ) : null}
+                        <ul className={styles.list}>
+                            {upstreatCharacters && upstreatCharacters.length > 0 ? (
+                                upstreatCharacters.map((character, i) => {
+                                    return (
+                                        <Character
+                                            character={character}
+                                            highlight={character === targetCharacter}
+                                            targetCharacter={targetCharacter}
+                                            animate={selectCharacter === character}
+                                            disabled={!character.name || (!!selectCharacter && selectCharacter !== character)}
+                                            onMouseMove={onMouseMove(character)}
+                                            onClick={onClick(character)}
+                                            key={i}
+                                        />
+                                    );
+                                })
+                            ) : (
+                                <Fragment>No characters found.</Fragment>
+                            )}
+                        </ul>
+                    </div>
+                    <div className={styles.section}>
+                        <div className={styles.subheading}>
+                            <h2>CryptoAvatars</h2>
+                            <div className={styles.cryptoavatars}>
+                                <Fragment>Collection:</Fragment>
+                                <div className={styles.select}>
+                                    <select onChange={(e) => setCaCollection(e.target.value)}>
+                                        {caFilters?.collections && caFilters.collections.map((collection, i) => {
+                                            return (
+                                                <option key={i} value={collection?.address}>
+                                                    {collection?.name}
+                                                </option>
+                                            );
+                                        }
+                                        )}
+                                    </select>
+                                </div>
+                                <Fragment>Ownership:</Fragment>
+                                <div className={styles.select}>
+                                    <select onChange={(e) => setCaItemsPerPage(e.target.value)}>
+                                        <option value="all">ALL</option>
+                                        <option value="owned">Owned</option>
+                                        <option value="opensource">Free use</option>
+                                    </select>
+                                </div>
+                                <Fragment>Avatars per page:</Fragment>
+                                <div className={styles.select}>
+                                    <select onChange={(e) => setCaItemsPerPage(e.target.value)}>
+                                        <option value="5">5</option>
+                                        <option value="10">10</option>
+                                        <option value="20">25</option>
+                                    </select>
+                                </div>
+                                <div>
+                                    <Fragment>Pages </Fragment>
+                                    {caPagination.prev && (
+                                        <button
+                                            className={styles.button}
+                                            onClick={(e) => setCaUrl(caPagination.prev)}
+                                        >
+                                            {'<'}
+                                        </button>
+                                    )}
+                                    <Fragment>
+                                        {caPagination.currentPage || 0} / {caPagination.totalPages}
+                                    </Fragment>
+                                    {caPagination.next && (
+                                        <button
+                                            className={styles.button}
+                                            onClick={(e) => setCaUrl(caPagination.next)}
+                                        >
+                                            {'>'}
+                                        </button>
+                                    )}
+                                </div>
+                            </div>
+                        </div>
+                        <ul className={styles.list}>
+                            {cryptoAvatars && cryptoAvatars.length > 0 ? (
+                                cryptoAvatars.map((character, i) => {
+                                    return (
+                                        <Character
+                                            character={character}
+                                            highlight={character === targetCharacter}
+                                            targetCharacter={targetCharacter}
+                                            animate={selectCharacter === character}
+                                            disabled={false}
+                                            onMouseMove={onMouseMove(character)}
+                                            onClick={onClick(character)}
+                                            key={i}
+                                        />
+                                    );
+                                })
+                            ) : (
+                                <Fragment>No characters found.</Fragment>
+                            )}
+                        </ul>
+                    </div>
+                </div>
             </div>
         </div>
     );
