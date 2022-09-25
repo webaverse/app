@@ -21,6 +21,7 @@ import particleSystemManager from './particle-system.js';
 import loadoutManager from './loadout-manager.js';
 import questManager from './quest-manager.js';
 import mobManager from './mob-manager.js';
+import {environmentSfxManager} from './environmentSfxManager';
 import {
   getRenderer,
   scene,
@@ -324,6 +325,7 @@ export default class Webaverse extends EventTarget {
           
           world.appManager.tick(timestamp, timeDiffCapped, frame);
 
+          environmentSfxManager.update(timestamp, timeDiffCapped);
           mobManager.update(timestamp, timeDiffCapped);
           hpManager.update(timestamp, timeDiffCapped);
           questManager.update(timestamp, timeDiffCapped);

@@ -63,6 +63,7 @@ const soundFiles = {
   menuSweepOut: _getSoundFiles(/pd_sweep2/),
 
   water: _getSoundFiles(/^water\//),
+  biomes: _getSoundFiles(/^biomes\//),
 };
 
 let soundFileAudioBuffer;
