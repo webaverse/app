@@ -26,7 +26,7 @@ class LoadoutManager extends EventTarget {
 
     this.apps = null;
     this.hotbarRenderers = [];
-    this.infoboxRenderer = null;
+    this.infoBoxRenderer = null;
     this.selectedIndex = -1;
     this.removeLastWearUpdateFn = null;
 
@@ -144,15 +144,15 @@ class LoadoutManager extends EventTarget {
         this.hotbarRenderers.push(hotbarRenderer);
       }
     }
-    if (!this.infoboxRenderer) {
-      this.infoboxRenderer = new InfoboxRenderer(infoboxSize, infoboxSize);
+    if (!this.infoBoxRenderer) {
+      this.infoBoxRenderer = new InfoboxRenderer(infoboxSize, infoboxSize);
     }
   }
   getHotbarRenderer(index) {
     return this.hotbarRenderers[index];
   }
   getInfoboxRenderer() {
-    return this.infoboxRenderer;
+    return this.infoBoxRenderer;
   }
   getSelectedApp() {
     if (this.selectedIndex !== -1) {
@@ -179,7 +179,7 @@ class LoadoutManager extends EventTarget {
 
       const hotbarRenderer = this.hotbarRenderers[this.selectedIndex];
       hotbarRenderer.setSpritesheet(spritesheet);
-      this.infoboxRenderer.setSpritesheet(spritesheet);
+      this.infoBoxRenderer.setSpritesheet(spritesheet);
     }
 
     this.dispatchEvent(new MessageEvent('selectedchange', {
@@ -211,8 +211,8 @@ class LoadoutManager extends EventTarget {
     for (let i = 0; i < this.hotbarRenderers.length; i++) {
       this.hotbarRenderers[i].update(timestamp, timeDiff, i);
     }
-    if (this.infoboxRenderer !== null) {
-      this.infoboxRenderer.update(timestamp, timeDiff);
+    if (this.infoBoxRenderer !== null) {
+      this.infoBoxRenderer.update(timestamp, timeDiff);
     }
   }
 }

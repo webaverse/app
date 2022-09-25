@@ -1,5 +1,5 @@
 import React from 'react';
-import ReactDOM from 'react-dom';
+import ReactDOM from 'react-dom/client';
 
 import { App } from './components/app';
 import { ErrorPage } from './components/general/error-page';
@@ -9,7 +9,7 @@ import { AccountProvider } from './hooks/web3AccountProvider';
 //
 
 const WebWorkerSupport = !navigator.userAgent.match(/(Firefox|MSIE)/);
-const Providers = ({children}) => {
+const Providers = ({ children }) => {
     return (
         <AccountProvider>
             <ChainProvider>
@@ -19,19 +19,18 @@ const Providers = ({children}) => {
     );
 };
 
-//
+const root = ReactDOM.createRoot(document.getElementById('root'));
 
-ReactDOM.render(
-  <React.StrictMode>
-    {
-        WebWorkerSupport ? (
-            <Providers>
-                <App />
-            </Providers>
-        ) : (
-            <ErrorPage errors={[ 'WebWorker modules' ]} />
-        )
-    }
+root.render(
+    <React.StrictMode>
+        {
+            WebWorkerSupport ? (
+                <Providers>
+                    <App />
+                </Providers>
+            ) : (
+                <ErrorPage errors={['WebWorker modules']} />
+            )
+        }
     </React.StrictMode>,
-    document.getElementById('root'),
 );

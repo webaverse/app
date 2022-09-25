@@ -73,11 +73,11 @@ export const ActionMenu = ({ setUIMode, className }) => {
 
     //
 
-    useEffect( async () => {
-
-        const isXrSupported = await app.isXrSupported();
-        setXrSupported( isXrSupported );
-
+    useEffect( () => {
+        (async () => {
+            const isXrSupported = await app.isXrSupported();
+            setXrSupported( isXrSupported );
+        })();
     }, [] );
 
     //

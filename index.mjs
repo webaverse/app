@@ -4,7 +4,7 @@ import url from 'url';
 import path from 'path';
 import fs from 'fs';
 import express from 'express';
-import vite from 'vite';
+import {createServer} from 'vite';
 import wsrtc from 'wsrtc/wsrtc-server.mjs';
 
 const SERVER_ADDR = '0.0.0.0';
@@ -20,7 +20,7 @@ const _isMediaType = p => /\.(?:png|jpe?g|gif|svg|glb|mp3|wav|webm|mp4|mov)$/.te
 const _tryReadFile = p => {
   try {
     return fs.readFileSync(p);
-  } catch(err) {
+  } catch (err) {
     // console.warn(err);
     return null;
   }
@@ -63,8 +63,10 @@ function makeId(length) {
     res.setHeader('Cross-Origin-Embedder-Policy', 'require-corp');
     res.setHeader('Cross-Origin-Resource-Policy', 'cross-origin');
 
+    // eslint-disable-next-line n/no-deprecated-api
     const o = url.parse(req.originalUrl, true);
-    if (/^\/(?:@proxy|public)\//.test(o.pathname) && o.query['import'] === undefined) {
+    // url.parse is deprecated. rewrite the line above using the new syntax
+    if (/^\/(?:@proxy|public)\//.test(o.pathname) && o.query.import === undefined) {
       const u = o.pathname
         .replace(/^\/@proxy\//, '')
         .replace(/^\/public/, '')
@@ -88,7 +90,7 @@ function makeId(length) {
         req.originalUrl = u;
         next();
       }
-    } else if (o.query['noimport'] !== undefined) {
+    } else if (o.query.noimport !== undefined) {
       const p = path.join(cwd, path.resolve(o.pathname));
       const rs = fs.createReadStream(p);
       rs.on('error', err => {
@@ -104,7 +106,7 @@ function makeId(length) {
       rs.pipe(res);
       // _proxyUrl(req, res, req.originalUrl);
     } else if (/^\/login/.test(o.pathname)) {
-      req.originalUrl = req.originalUrl.replace(/^\/(login)/,'/');
+      req.originalUrl = req.originalUrl.replace(/^\/(login)/, '/');
       return res.redirect(req.originalUrl);
     } else {
       next();
@@ -117,19 +119,19 @@ function makeId(length) {
 
   const _makeHttpServer = () => isHttps ? https.createServer(certs, app) : http.createServer(app);
   const httpServer = _makeHttpServer();
-  const viteServer = await vite.createServer({
+  const viteServer = await createServer({
     server: {
-      middlewareMode: 'html',
-      force:true,
+      middlewareMode: true,
+      force: true,
       hmr: {
         server: httpServer,
         port,
         overlay: false,
       },
-    }
+    },
   });
   app.use(viteServer.middlewares);
-  
+
   await new Promise((accept, reject) => {
     httpServer.listen(port, SERVER_ADDR, () => {
       accept();
@@ -137,7 +139,7 @@ function makeId(length) {
     httpServer.on('error', reject);
   });
   console.log(`  > Local: http${isHttps ? 's' : ''}://${SERVER_NAME}:${port}/`);
-  
+
   const wsServer = (() => {
     if (isHttps) {
       return https.createServer(certs);
@@ -149,7 +151,7 @@ function makeId(length) {
     const s = fs.readFileSync('./scenes/prototype.scn', 'utf8');
     const j = JSON.parse(s);
     const {objects} = j;
-    
+
     const appsMapName = 'apps';
     const result = {
       [appsMapName]: [],

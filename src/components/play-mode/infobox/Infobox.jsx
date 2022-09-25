@@ -26,8 +26,8 @@ export const Infobox = () => {
         if (canvasRef.current) {
             const canvas = canvasRef.current;
 
-            const infoboxRenderer = loadoutManager.getInfoboxRenderer();
-            infoboxRenderer.addCanvas(canvas);
+            const infoBoxRenderer = loadoutManager.getInfoboxRenderer();
+            infoBoxRenderer.addCanvas(canvas);
 
             return () => {
                 infoBoxRenderer.removeCanvas(canvas);

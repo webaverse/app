@@ -163,14 +163,15 @@ export const TabAudio = ({ active }) => {
 
     }, [ generalVolume, musicVolume, voiceVolume, effectsVolume, voicePack, voiceEndpoint ] );
 
-    useEffect( async () => {
+    useEffect(() => {
+        (async () => {
 
         await Promise.all([
             loadVoicePack(),
             loadVoiceEndpoint(),
         ]);
         loadSettings();
-
+    })();
     }, [] );
 
     //

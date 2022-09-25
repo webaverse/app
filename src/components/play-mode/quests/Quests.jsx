@@ -54,8 +54,8 @@ export const Quest = ({
     useEffect(() => {
         const canvas = canvasRef.current;
         if (canvas) {
-            /* const infoboxRenderer = loadoutManager.getInfoboxRenderer();
-            infoboxRenderer.addCanvas(canvas); */
+            /* const infoBoxRenderer = loadoutManager.getInfoboxRenderer();
+            infoBoxRenderer.addCanvas(canvas); */
 
             const ctx = canvas.getContext('2d');
 
