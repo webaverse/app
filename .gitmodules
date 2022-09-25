@@ -1,24 +1,24 @@
 [submodule "packages/wsrtc"]
 	path = packages/wsrtc
-	url = https://github.com/webaverse/wsrtc.git
+	url = https://github.com/webaverse/wsrtc
 [submodule "packages/zjs"]
 	path = packages/zjs
-	url = https://github.com/webaverse/zjs.git
+	url = https://github.com/webaverse/zjs
 [submodule "packages/totum"]
 	path = packages/totum
-	url = https://github.com/webaverse-studios/totum.git
+	url = https://github.com/webaverse-studios/totum
 [submodule "packages/three"]
 	path = packages/three
-	url = https://github.com/webaverse-studios/three.git
+	url = https://github.com/webaverse-studios/three
 [submodule "packages/three-vrm"]
 	path = packages/three-vrm
-	url = https://github.com/webaverse/three-vrm.git
+	url = https://github.com/webaverse/three-vrm
 [submodule "packages/three-vrm-core"]
 	path = packages/three-vrm-core
-	url = https://github.com/webaverse/three-vrm-core.git
+	url = https://github.com/webaverse/three-vrm-core
 [submodule "packages/three-vrm-springbone"]
 	path = packages/three-vrm-springbone
-	url = https://github.com/webaverse/three-vrm-springbone.git
+	url = https://github.com/webaverse/three-vrm-springbone
 [submodule "packages/three-vrm-materials-mtoon"]
 	path = packages/three-vrm-materials-mtoon
-	url = https://github.com/webaverse/three-vrm-materials-mtoon.git
+	url = https://github.com/webaverse/three-vrm-materials-mtoon
