@@ -294,13 +294,11 @@ export const CharacterSelect = () => {
     const onMouseMove = character => e => {
         if (enabled) {
             setHighlightCharacter(character);
-            setHighlightPack(packName);
         }
     };
-    const onClick = (character, packName) => e => {
+    const onClick = (character) => e => {
         if (character && !selectCharacter) {
             setSelectCharacter(character);
-            setSelectPack(packName);
 
             sounds.playSoundName('menuBoop');
 
