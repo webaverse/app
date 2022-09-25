@@ -4,17 +4,17 @@ this file implements avatar transformation effects/shaders.
 
 import * as THREE from 'three';
 import metaversefile from 'metaversefile';
-import {sceneLowPriority} from './renderer.js';
+import { sceneLowPriority } from './renderer.js';
 
 const localVector = new THREE.Vector3();
 const localVector2 = new THREE.Vector3();
 const localVector3 = new THREE.Vector3();
 
 const _makeKiHairMaterial = () => {
-  let wVertex = THREE.ShaderLib["standard"].vertexShader;
-  let wFragment = THREE.ShaderLib["standard"].fragmentShader;
+  let wVertex = THREE.ShaderLib.standard.vertexShader;
+  let wFragment = THREE.ShaderLib.standard.fragmentShader;
   // let wUniforms = THREE.UniformsUtils.clone(THREE.ShaderLib["standard"].uniforms);
-  let wUniforms = {
+  const wUniforms = {
     iTime: {
       value: 0,
       needsUpdate: false,
@@ -24,21 +24,32 @@ const _makeKiHairMaterial = () => {
       needsUpdate: false,
     },
   };
-  wVertex = wVertex.replace(`#include <clipping_planes_pars_vertex>`, `\
+  wVertex = wVertex.replace(
+    '#include <clipping_planes_pars_vertex>',
+    `\
     #include <clipping_planes_pars_vertex>
     varying vec2 vUv;
     varying vec3 vWorldPosition;
-  `);
-  wVertex = wVertex.replace(`}`, `\
+  `,
+  );
+  wVertex = wVertex.replace(
+    '}',
+    `\
       vUv = uv;
     }
-  `);
-  wVertex = wVertex.replace(`#include <skinning_vertex>`, `\
+  `,
+  );
+  wVertex = wVertex.replace(
+    '#include <skinning_vertex>',
+    `\
     #include <skinning_vertex>
     vWorldPosition = transformed;
-  `);
+  `,
+  );
 
-  wFragment = wFragment.replace(`#include <clipping_planes_pars_fragment>`, `\
+  wFragment = wFragment.replace(
+    '#include <clipping_planes_pars_fragment>',
+    `\
     #include <clipping_planes_pars_fragment>
     uniform float iTime;
     uniform vec3 uHeadCenter;
@@ -46,8 +57,11 @@ const _makeKiHairMaterial = () => {
     varying vec3 vWorldPosition;
 
     // #define PI 3.1415926535897932384626433832795
-  `);
-  wFragment = wFragment.replace(`}`, `\
+  `,
+  );
+  wFragment = wFragment.replace(
+    '}',
+    `\
       // float f = dot(vNormal, normalize(vec3(1.)));
       // vec3 colorX = mix(color1, color2, f);
       // vec3 colorY = mix(color1, color2, vUv.y);
@@ -70,7 +84,8 @@ const _makeKiHairMaterial = () => {
       #include <tonemapping_fragment>
       #include <encodings_fragment>
     }
-  `);
+  `,
+  );
 
   const material = new THREE.ShaderMaterial({
     uniforms: wUniforms,
@@ -98,57 +113,58 @@ export class AvatarCharacterFx {
     this.hairMeshes = null;
     this.lastSSS = false;
   }
+
   update(timestamp, timeDiffS) {
     if (!this.character.avatar) {
       return;
     }
 
-    const timeS = timestamp/1000;
+    const timeS = timestamp / 1000;
 
     const powerupAction = this.character.getAction('dance');
     const isPowerup = !!powerupAction && powerupAction.animation === 'powerup';
     const sssAction = this.character.getAction('sss');
     const isSSS = !!sssAction;
 
-
     const _initHairMeshes = () => {
       this.hairMeshes = [];
       const avatarRenderer = this.character.avatar.avatarRenderer;
       const model = avatarRenderer.quality === 4 ? avatarRenderer.mesh : null;
-      model && model.traverse(o => {
-        // console.log(o.name, o.isMesh);
-        if (o.isSkinnedMesh) {
-          const {geometry, skeleton} = o;
-          const skeletonBoneHairBooleans = skeleton.bones.map(bone => /hair/i.test(bone.name));
-          const {attributes, index: indexAttribute} = geometry;
-          const indices = indexAttribute.array;
-          const {skinIndex, skinWeight} = attributes;
-          const skinIndices = skinIndex.array;
-          const skinWeights = skinWeight.array;
-          const {itemSize} = skinIndex;
-          let done = false;
-          for (let i = 0; i < indices.length; i++) {
-            const index = indices[i];
-            for (let j = 0; j < itemSize; j++) {
-              const skinIndex = skinIndices[index * itemSize + j];
-              const skinWeight = skinWeights[index * itemSize + j];
-              if (skinWeight !== 0 && skeletonBoneHairBooleans[skinIndex]) {
-                this.hairMeshes.push(o);
-                done = true;
+      model &&
+        model.traverse(o => {
+          // console.log(o.name, o.isMesh);
+          if (o.isSkinnedMesh) {
+            const { geometry, skeleton } = o;
+            const skeletonBoneHairBooleans = skeleton.bones.map(bone => /hair/i.test(bone.name));
+            const { attributes, index: indexAttribute } = geometry;
+            const indices = indexAttribute.array;
+            const { skinIndex, skinWeight } = attributes;
+            const skinIndices = skinIndex.array;
+            const skinWeights = skinWeight.array;
+            const { itemSize } = skinIndex;
+            let done = false;
+            for (let i = 0; i < indices.length; i++) {
+              const index = indices[i];
+              for (let j = 0; j < itemSize; j++) {
+                const skinIndex = skinIndices[index * itemSize + j];
+                const skinWeight = skinWeights[index * itemSize + j];
+                if (skinWeight !== 0 && skeletonBoneHairBooleans[skinIndex]) {
+                  this.hairMeshes.push(o);
+                  done = true;
+                  break;
+                }
+              }
+              if (done) {
                 break;
               }
             }
-            if (done) {
-              break;
-            }
           }
-        }
-      });
+        });
       for (const hairMesh of this.hairMeshes) {
         hairMesh.kiOriginalMaterial = hairMesh.material;
         const kiHairMaterial = _makeKiHairMaterial();
         hairMesh.kiMaterial = kiHairMaterial;
-        
+
         /* kiHairMaterial.uniforms.color1.value.setHex(0xfdeb44);
         kiHairMaterial.uniforms.color1.needsUpdate = true;
         kiHairMaterial.uniforms.color2.value.setHex(0xf6b01d);
@@ -158,11 +174,9 @@ export class AvatarCharacterFx {
         hairMesh.material.vertexShader = kiHairMaterial.vertexShader;
         hairMesh.material.fragmentShader = kiHairMaterial.fragmentShader; */
       }
-      for (const springBones of this.character.avatar.springBoneManager.springBoneGroupList) {
-        for (const o of springBones) {
-          o.kiOriginalGravityDir = o.gravityDir.clone();
-          o.kiOriginalGravityPower = o.gravityPower;
-        }
+      for (const joint of this.character.avatar.springBoneManager.joints) {
+        joint.settings.kiOriginalGravityDir = joint.settings.gravityDir.clone();
+        joint.settings.kiOriginalGravityPower = joint.settings.gravityPower;
       }
     };
     const _enableHairMeshes = () => {
@@ -174,11 +188,9 @@ export class AvatarCharacterFx {
       for (const hairMesh of this.hairMeshes) {
         hairMesh.material = hairMesh.kiOriginalMaterial;
       }
-      for (const springBones of this.character.avatar.springBoneManager.springBoneGroupList) {
-        for (const o of springBones) {
-          o.gravityDir.copy(o.kiOriginalGravityDir);
-          o.gravityPower = o.kiOriginalGravityPower;
-        }
+      for (const joint of this.character.avatar.springBoneManager.joints) {
+        joint.settings.gravityDir.copy(joint.settings.kiOriginalGravityDir);
+        joint.settings.gravityPower = joint.settings.kiOriginalGravityPower;
       }
     };
     const _updateHair = () => {
@@ -195,25 +207,28 @@ export class AvatarCharacterFx {
           hairMesh.material.uniforms.iTime.value = timeS;
           hairMesh.material.uniforms.iTime.needsUpdate = true;
 
-          hairMesh.material.uniforms.uHeadCenter.value.setFromMatrixPosition(this.character.avatar.modelBoneOutputs.Head.matrixWorld);
+          hairMesh.material.uniforms.uHeadCenter.value.setFromMatrixPosition(
+            this.character.avatar.modelBoneOutputs.Head.matrixWorld,
+          );
           hairMesh.material.uniforms.uHeadCenter.needsUpdate = true;
         }
 
         if (this.character.avatar.springBoneManager) {
-          const headPosition = localVector.setFromMatrixPosition(this.character.avatar.modelBoneOutputs.Head.matrixWorld);
-          const octave = Math.sin(timeS * Math.PI * 2 * 4) // +
-            // Math.sin(timeS * Math.PI * 2 * 4) +
-            // Math.sin(timeS * Math.PI * 2 * 8);
-          const gravityPower = 0.4 + (1 + octave)*0.5 * 0.5;
-          for (const springBones of this.character.avatar.springBoneManager.springBoneGroupList) {
-            for (const o of springBones) {
-              const gravityDir = localVector2.setFromMatrixPosition(o.bone.matrixWorld)
-                .sub(headPosition)
-                .normalize()
-                .lerp(localVector3.set(0, 1, 0), 0.9);
-              o.gravityDir.copy(gravityDir);
-              o.gravityPower = gravityPower;
-            }
+          const headPosition = localVector.setFromMatrixPosition(
+            this.character.avatar.modelBoneOutputs.Head.matrixWorld,
+          );
+          const octave = Math.sin(timeS * Math.PI * 2 * 4); // +
+          // Math.sin(timeS * Math.PI * 2 * 4) +
+          // Math.sin(timeS * Math.PI * 2 * 8);
+          const gravityPower = 0.4 + (1 + octave) * 0.5 * 0.5;
+          for (const joint of this.character.avatar.springBoneManager.joints) {
+            const gravityDir = localVector2
+              .setFromMatrixPosition(joint.bone.matrixWorld)
+              .sub(headPosition)
+              .normalize()
+              .lerp(localVector3.set(0, 1, 0), 0.9);
+            joint.settings.gravityDir.copy(gravityDir);
+            joint.settings.gravityPower = gravityPower;
           }
         }
       }
@@ -224,7 +239,7 @@ export class AvatarCharacterFx {
       if (isPowerup && !this.kiMesh) {
         this.kiMesh = metaversefile.createApp();
         (async () => {
-          const {importModule} = metaversefile.useDefaultModules();
+          const { importModule } = metaversefile.useDefaultModules();
           const m = await importModule('ki');
           await this.kiMesh.addModule(m);
         })();
@@ -242,7 +257,7 @@ export class AvatarCharacterFx {
         this.sonicBoom = metaversefile.createApp();
         this.sonicBoom.setComponent('player', this.character);
         (async () => {
-          const {importModule} = metaversefile.useDefaultModules();
+          const { importModule } = metaversefile.useDefaultModules();
           const m = await importModule('sonicBoom');
           await this.sonicBoom.addModule(m);
         })();
@@ -251,11 +266,11 @@ export class AvatarCharacterFx {
     };
     _updateSonicBoomMesh();
     const _updateNameplate = () => {
-      if(!this.nameplate && this.character.getControlMode() === 'remote'){
+      if (!this.nameplate && this.character.getControlMode() === 'remote') {
         (async () => {
-        this.nameplate = metaversefile.createApp();
-        this.nameplate.setComponent('player', this.character);
-          const {importModule} = metaversefile.useDefaultModules();
+          this.nameplate = metaversefile.createApp();
+          this.nameplate.setComponent('player', this.character);
+          const { importModule } = metaversefile.useDefaultModules();
           const m = await importModule('nameplate');
           await this.nameplate.addModule(m);
           sceneLowPriority.add(this.nameplate);
@@ -267,20 +282,20 @@ export class AvatarCharacterFx {
       if (!this.healEffect) {
         this.healEffect = metaversefile.createApp();
         (async () => {
-          const {modules} = metaversefile.useDefaultModules();
-          const m = modules['healEffect'];
+          const { modules } = metaversefile.useDefaultModules();
+          const m = modules.healEffect;
           await this.healEffect.addModule(m);
         })();
         sceneLowPriority.add(this.healEffect);
       }
-      if(this.player.hasAction('cure')){
+      if (this.player.hasAction('cure')) {
         this.healEffect.playEffect(this.player);
-        this.player.removeAction('cure')
+        this.player.removeAction('cure');
       }
-
     };
     _updateHealEffectMesh();
   }
+
   destroy() {
     if (this.kiMesh) {
       sceneLowPriority.remove(this.kiMesh);

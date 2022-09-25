@@ -1,5 +1,5 @@
 import * as THREE from 'three';
-import {VRMSpringBoneImporter} from '@pixiv/three-vrm/lib/three-vrm.module.js';
+import {VRMSpringBoneLoaderPlugin} from '@pixiv/three-vrm-springbone';
 import {fixSkeletonZForward} from './vrarmik/SkeletonUtils.js';
 import PoseManager from './vrarmik/PoseManager.js';
 import ShoulderTransforms from './vrarmik/ShoulderTransforms.js';
@@ -81,42 +81,6 @@ const textEncoder = new TextEncoder();
 const maxIdleVelocity = 0.01;
 const maxHeadTargetTime = 2000;
 
-/* VRMSpringBoneImporter.prototype._createSpringBone = (_createSpringBone => {
-  const localVector = new THREE.Vector3();
-  return function(a, b) {
-    const bone = _createSpringBone.apply(this, arguments);
-    const initialDragForce = bone.dragForce;
-    const initialStiffnessForce = bone.stiffnessForce;
-    // const initialGravityPower = bone.gravityPower;
-    
-    const localPlayer = metaversefile.useLocalPlayer();
-    Object.defineProperty(bone, 'stiffnessForce', {
-      get() {
-        localVector.set(localPlayer.characterPhysics.velocity.x, 0, localPlayer.characterPhysics.velocity.z);
-        const f = Math.pow(Math.min(Math.max(localVector.length()*2 - Math.abs(localPlayer.characterPhysics.velocity.y)*0.5, 0), 4), 2);
-        return initialStiffnessForce * (0.1 + 0.1*f);
-      },
-      set(v) {},
-    });
-    Object.defineProperty(bone, 'dragForce', {
-      get() {
-        return initialDragForce * 0.7;
-      },
-      set(v) {},
-    });
-    
-    return bone;
-  };
-})(VRMSpringBoneImporter.prototype._createSpringBone); */
-
-/* const _makeSimplexes = numSimplexes => {
-  const result = Array(numSimplexes);
-  for (let i = 0; i < numSimplexes; i++) {
-    result[i] = new Simplex(i + '');
-  }
-  return result;
-};
-const simplexes = _makeSimplexes(5); */
 
 const upRotation = new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(1, 0, 0), Math.PI*0.5);
 // const downRotation = new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(1, 0, 0), -Math.PI*0.5);
@@ -524,16 +488,13 @@ class Avatar {
     this.eyeballTargetPlane = new THREE.Plane();
     this.eyeballTargetEnabled = false;
 
+    this.springBoneManager = null;
     if (options.hair) {
-      this.springBoneManager = new VRMSpringBoneImporter().import(object);
-    } else {
-      this.springBoneManager = null;
+      const springBoneLoader = new VRMSpringBoneLoaderPlugin()
+      springBoneLoader._v0Import(object).then((boneManager)=>{
+        this.springBoneManager = boneManager
+      })
     }
-    /* this.springBoneTimeStep = new FixedTimeStep(timeDiff => {
-      // console.log('update hairs', new Error().stack);
-      const timeDiffS = timeDiff / 1000;
-      this.springBoneManager && this.springBoneManager.lateUpdate(timeDiffS);
-    }, 10); */
 
     const _getOffset = (bone, parent = bone?.parent) => bone && bone.getWorldPosition(new THREE.Vector3()).sub(parent.getWorldPosition(new THREE.Vector3()));
 
@@ -1809,14 +1770,14 @@ class Avatar {
         this.model.scale.set(modelScaleFactor, modelScaleFactor, modelScaleFactor);
         this.lastModelScaleFactor = modelScaleFactor;
 
-        this.springBoneManager && this.springBoneManager.springBoneGroupList.forEach(springBoneGroup => {
-          springBoneGroup.forEach(springBone => {
-            springBone._worldBoneLength = springBone.bone
-              .localToWorld(localVector.copy(springBone._initialLocalChildPosition))
-              .sub(springBone._worldPosition)
-              .length();
-          });
-        });
+        // this.springBoneManager?._objectSpringBonesMap.forEach(springBoneGroup => {
+        //   springBoneGroup.forEach(springBone => {
+        //     springBone._worldBoneLength = springBone.bone
+        //       .localToWorld(localVector.copy(springBone._initialLocalChildPosition))
+        //       .sub(springBone._worldPosition)
+        //       .length();
+        //   });
+        // });
       }
 
       if (this.options.fingers) {
@@ -1850,6 +1811,15 @@ class Avatar {
         _processFingerBones(false);
       }
     }
+
+    // update wind in simulation
+    const _updateWind = () =>{
+      const headPosition = localVector.setFromMatrixPosition(this.modelBoneOutputs.Head.matrixWorld);
+      // The avatar may not have spring bones, so we should make sure the avatar has springBone before updating the wind effect
+      wind.update(timestamp, headPosition, this.springBoneManager)
+    }
+
+
     if (this.getTopEnabled() || this.getHandEnabled(0) || this.getHandEnabled(1)) {
       _motionControls.call(this)
     }
@@ -1890,18 +1860,12 @@ class Avatar {
       this.getBottomEnabled(),
     );
     // this.modelBones.Root.updateMatrixWorld();
+    
 
-
-    // this.springBoneTimeStep.update(timeDiff);
-    this.springBoneManager && this.springBoneManager.lateUpdate(timeDiffS);
-
-    // update wind in simulation
-    const _updateWind = () =>{
-      const headPosition = localVector.setFromMatrixPosition(this.modelBoneOutputs.Head.matrixWorld);
-      // The avatar may not have spring bones, so we should make sure the avatar has springBone before updating the wind effect
-      this.springBoneManager && wind.update(timestamp, headPosition, this.springBoneManager)
+    if(this.springBoneManager){
+      this.springBoneManager.update(timeDiffS);
+      _updateWind();
     }
-    _updateWind();
 
     // XXX hook these up
     this.nodder.update(now);

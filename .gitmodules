@@ -6,10 +6,19 @@
 	url = https://github.com/webaverse/zjs.git
 [submodule "packages/totum"]
 	path = packages/totum
-	url = https://github.com/webaverse/totum.git
-[submodule "packages/three-vrm"]
-	path = packages/three-vrm
-	url = https://github.com/webaverse/three-vrm
+	url = https://github.com/webaverse-studios/totum.git
 [submodule "packages/three"]
 	path = packages/three
-	url = https://github.com/webaverse/three
+	url = https://github.com/webaverse-studios/three.git
+[submodule "packages/three-vrm"]
+	path = packages/three-vrm
+	url = https://github.com/webaverse/three-vrm.git
+[submodule "packages/three-vrm-core"]
+	path = packages/three-vrm-core
+	url = https://github.com/webaverse/three-vrm-core.git
+[submodule "packages/three-vrm-springbone"]
+	path = packages/three-vrm-springbone
+	url = https://github.com/webaverse/three-vrm-springbone.git
+[submodule "packages/three-vrm-materials-mtoon"]
+	path = packages/three-vrm-materials-mtoon
+	url = https://github.com/webaverse/three-vrm-materials-mtoon.git
