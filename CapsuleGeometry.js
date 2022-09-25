@@ -314,9 +314,9 @@ CapsuleGeometry.fromPoints = function(pointA, pointB, radiusA, radiusB, radialSe
     const radiusBottom = r1;
     let height = sphereCenterTop.distanceTo( sphereCenterBottom );
 
-    // If the big sphere contains the small one, return a SphereBufferGeometry
+    // If the big sphere contains the small one, return a SphereGeometry
     if(height < Math.abs( r0 - r1 )){
-        let g = new THREE.SphereBufferGeometry(r1, radialSegments, capsBottomSegments, thetaStart, thetaLength);
+        let g = new THREE.SphereGeometry(r1, radialSegments, capsBottomSegments, thetaStart, thetaLength);
         g.translate(r1.x, r1.y, r1.z);
         return g;
     }
@@ -362,7 +362,7 @@ CapsuleGeometry.fromPoints = function(pointA, pointB, radiusA, radiusB, radialSe
     middlePoint.lerpVectors( cylBottomPoint, cylTopPoint, 0.5 );
     translationMatrix.makeTranslation( middlePoint.x, middlePoint.y, middlePoint.z );
 
-    // Instanciate a CylinderBufferGeometry from three.js
+    // Instanciate a CylinderGeometry from three.js
     let g = new CapsuleGeometry(radiusBottom, radiusTop, height, radialSegments, heightSegments, capsTopSegments, capsBottomSegments, thetaStart, thetaLength);
 
     // applying transformations

@@ -179,7 +179,7 @@ const _makeChunkMesh = (x, y) => {
 
   let labelMesh;
   {
-    const labelGeometry = new THREE.PlaneBufferGeometry(1, 1)
+    const labelGeometry = new THREE.PlaneGeometry(1, 1)
       .applyMatrix4(
         new THREE.Matrix4().makeRotationFromQuaternion(
           new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(1, 0, 0), -Math.PI / 2)

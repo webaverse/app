@@ -50,7 +50,7 @@ const rowSize = Math.floor(canvasSize/frameSize);
 // const maxNumTextures = 8;
 
 const _makePlaneGeometry = () => {
-  const planeGeometryNonInstanced = new THREE.PlaneBufferGeometry(1, 1);
+  const planeGeometryNonInstanced = new THREE.PlaneGeometry(1, 1);
   const planeGeometry = new THREE.InstancedBufferGeometry();
   for (const k in planeGeometryNonInstanced.attributes) {
     planeGeometry.setAttribute(k, planeGeometryNonInstanced.attributes[k]);

@@ -106,7 +106,7 @@ glyphMesh.frustumCulled = false;
 
 const glyphScene = new THREE.Scene();
 glyphScene.name = 'glyphScene';
-glyphScene.autoUpdate = false;
+glyphScene.matrixWorldAutoUpdate = false;
 
 glyphScene.add(glyphMesh);
 

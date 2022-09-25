@@ -63,8 +63,8 @@ const _makeCardMesh = ({
   w *= dropItemSize;
   h *= dropItemSize;
 
-  const frontGeometry = new THREE.PlaneBufferGeometry(w, h);
-  const backGeometry = new THREE.PlaneBufferGeometry(w, h).rotateY(Math.PI);
+  const frontGeometry = new THREE.PlaneGeometry(w, h);
+  const backGeometry = new THREE.PlaneGeometry(w, h).rotateY(Math.PI);
 
   const _setSideAttribute = (g, side) => {
     const sides = new Int32Array(g.attributes.position.count).fill(side);

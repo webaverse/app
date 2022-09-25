@@ -6,7 +6,7 @@ const localVector4D = new THREE.Vector4();
 const localColor = new THREE.Color();
 
 const sideScene = new THREE.Scene();
-sideScene.autoUpdate = false;
+sideScene.matrixWorldAutoUpdate = false;
 
 export function screenshotScene(scene, camera, width, height, ctx) {
   const renderer = getRenderer();

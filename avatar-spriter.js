@@ -810,7 +810,7 @@ planeWarpedGeometry2.computeBoundingSphere();
 
 const camera2 = new THREE.PerspectiveCamera(60, 1, 0.1, 1000);
 const scene2 = new THREE.Scene();
-scene2.autoUpdate = false;
+scene2.matrixWorldAutoUpdate = false;
 addDefaultLights(scene2);
 
 let _spriteSpecs = null;

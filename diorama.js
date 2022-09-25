@@ -427,12 +427,12 @@ const skinnedRedMaterial = (() => {
 
 const outlineRenderScene = new THREE.Scene();
 outlineRenderScene.name = 'outlineRenderScene';
-outlineRenderScene.autoUpdate = false;
+outlineRenderScene.matrixWorldAutoUpdate = false;
 outlineRenderScene.overrideMaterial = skinnedRedMaterial;
 
 const sideScene = new WebaverseScene();
 sideScene.name = 'sideScene';
-sideScene.autoUpdate = false;
+sideScene.matrixWorldAutoUpdate = false;
 sideScene.add(lightningMesh);
 sideScene.add(radialMesh);
 sideScene.add(grassMesh);

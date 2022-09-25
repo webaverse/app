@@ -136,7 +136,7 @@ export class AvatarCharacterSfx {
         if(this.character.hasAction('jump') && this.character.getAction('jump').trigger === 'jump'){
           this.playGrunt('jump'); 
         }
-      } /*else if (this.lastJumpState && !this.player.avatar.jumpState) {
+      } /*else if (this.lastJumpState && !this.character.avatar.jumpState) {
         sounds.playSoundName('land');
       }*/
       if(this.character.avatar.landState && !this.lastLandState){
@@ -476,14 +476,14 @@ export class AvatarCharacterSfx {
         this.oldGrunt.stop();
         this.oldGrunt = null;
       }
-      this.player.avatar.enableAudioWorkerSetVolume = true;
+      this.character.avatar.enableAudioWorkerSetVolume = true;
       this.oldGrunt=audioBufferSourceNode;
       // clean the oldGrunt if voice end
       audioBufferSourceNode.addEventListener('ended', () => {
         if (this.oldGrunt === audioBufferSourceNode) {
           this.oldGrunt = null;
         }
-        this.player.avatar.enableAudioWorkerSetVolume = false;
+        this.character.avatar.enableAudioWorkerSetVolume = false;
       });
 
       audioBufferSourceNode.start(0, offset, duration);
@@ -517,14 +517,14 @@ export class AvatarCharacterSfx {
         this.oldGrunt.stop();
         this.oldGrunt = null;
       }
-      this.player.avatar.enableAudioWorkerSetVolume = true;
+      this.character.avatar.enableAudioWorkerSetVolume = true;
       this.oldGrunt=audioBufferSourceNode;
       // clean the oldGrunt if voice end
       audioBufferSourceNode.addEventListener('ended', () => {
         if (this.oldGrunt === audioBufferSourceNode) {
           this.oldGrunt = null;
         }
-        this.player.avatar.enableAudioWorkerSetVolume = false;
+        this.character.avatar.enableAudioWorkerSetVolume = false;
       });
 
       audioBufferSourceNode.start(0, offset, duration);

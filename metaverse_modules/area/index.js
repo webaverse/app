@@ -17,7 +17,7 @@ const localMatrix = new THREE.Matrix4();
 const oneVector = new THREE.Vector3(1, 1, 1);
 
 const _makePlaneGeometry = (width, height) => {
-  return new THREE.PlaneBufferGeometry(width, height)
+  return new THREE.PlaneGeometry(width, height)
     .applyMatrix4(localMatrix.makeTranslation(0, height/2, 0));
 };
 const _makeAreaMesh = (width, height, depth) => {

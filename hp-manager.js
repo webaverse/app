@@ -14,7 +14,7 @@ const localEuler = new THREE.Euler();
 // const localMatrix2 = new THREE.Matrix4();
 
 const _makeDamagePhysicsMesh = () => {
-  const geometry = new THREE.BoxBufferGeometry(1, 1, 1);
+  const geometry = new THREE.BoxGeometry(1, 1, 1);
   const material = damageMaterial.clone();
   const mesh = new THREE.Mesh(geometry, material);
   mesh.frustumCulled = false;

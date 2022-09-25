@@ -133,7 +133,7 @@ class ScenePreviewer extends THREE.Object3D {
 
     const previewScene = new THREE.Scene();
     previewScene.name = 'previewScene';
-    previewScene.autoUpdate = false;
+    previewScene.matrixWorldAutoUpdate = false;
     this.previewScene = previewScene;
     
     const previewContainer = new THREE.Object3D();

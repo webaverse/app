@@ -53,7 +53,7 @@ const avatarPlaceholderTexture = new THREE.Texture();
 })();
 const _makeAvatarPlaceholderMesh = (() => {
   // geometry
-  const planeGeometry = new THREE.PlaneBufferGeometry(0.2, 0.2);
+  const planeGeometry = new THREE.PlaneGeometry(0.2, 0.2);
   {
     const angles = new Float32Array(planeGeometry.attributes.position.count).fill(-100);
     planeGeometry.setAttribute('angle', new THREE.BufferAttribute(angles, 1));

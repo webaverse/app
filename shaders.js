@@ -1159,13 +1159,13 @@ const _ensureLoadMesh = p => {
   const panelGeometries = [];
   for (let x = -1 / 2; x <= 1 / 2; x++) {
     panelGeometries.push(
-      new THREE.BoxBufferGeometry(0.01, 1, 0.01)
+      new THREE.BoxGeometry(0.01, 1, 0.01)
         .applyMatrix4(new THREE.Matrix4().makeTranslation(x, 0, -1/2)),
     );
   }
   for (let h = 0; h <= 1; h++) {
     panelGeometries.push(
-      new THREE.BoxBufferGeometry(1, 0.01, 0.01)
+      new THREE.BoxGeometry(1, 0.01, 0.01)
         .applyMatrix4(new THREE.Matrix4().makeTranslation(0, h -1/2, -1/2)),
     );
   }
@@ -1287,7 +1287,7 @@ const addItem = async (position, quaternion) => {
 
     object.add(mesh);
 
-    const skirtGeometry = new THREE.CylinderBufferGeometry(radius, radius, radius, segments, 1, true)
+    const skirtGeometry = new THREE.CylinderGeometry(radius, radius, radius, segments, 1, true)
       .applyMatrix4(new THREE.Matrix4().makeTranslation(0, radius / 2, 0));
     const ys = new Float32Array(skirtGeometry.attributes.position.array.length / 3);
     for (let i = 0; i < skirtGeometry.attributes.position.array.length / 3; i++) {
@@ -1379,7 +1379,7 @@ const arrowGeometry = (() => {
     bevelOffset: 0,
     bevelSegments: 1,
   };
-  const geometry = new THREE.ExtrudeBufferGeometry(shape, extrudeSettings)
+  const geometry = new THREE.ExtrudeGeometry(shape, extrudeSettings)
     .applyMatrix4(new THREE.Matrix4().makeTranslation(0, 0.5, -0.1 / 2));
   return geometry;
 })();
@@ -1533,7 +1533,7 @@ const copyScene = (() => {
     }),
   );
   const scene = new THREE.Scene();
-  scene.autoUpdate = false;
+  scene.matrixWorldAutoUpdate = false;
   scene.add(mesh);
   scene.mesh = mesh;
   return scene;

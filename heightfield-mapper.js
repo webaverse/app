@@ -5,7 +5,7 @@ import {WebaverseShaderMaterial} from './materials.js';
 //
 
 const maxAnisotropy = 16;
-/* const fullScreenQuadGeometry = new THREE.PlaneBufferGeometry(2, 2);
+/* const fullScreenQuadGeometry = new THREE.PlaneGeometry(2, 2);
 const fullscreenVertexShader = `\
   varying vec2 vUv;
 
@@ -79,7 +79,7 @@ export class HeightfieldMapper /* extends EventTarget */ {
     // this.blankChunkData = new Float32Array(chunkSize * chunkSize);
 
     /* this.heightfieldScene = (() => {
-      const chunkPlaneGeometry = new THREE.PlaneBufferGeometry(1, 1)
+      const chunkPlaneGeometry = new THREE.PlaneGeometry(1, 1)
         .rotateX(-Math.PI / 2)
         .translate(0.5, 0, 0.5)
         // .scale(this.chunkSize, 1, this.chunkSize);
@@ -202,7 +202,7 @@ export class HeightfieldMapper /* extends EventTarget */ {
     this.debugMesh = null;
     if (debug) {
       this.debugMesh = (() => {
-        const planeGeometry = new THREE.PlaneBufferGeometry(
+        const planeGeometry = new THREE.PlaneGeometry(
           size - 1,
           size - 1,
           size - 1,

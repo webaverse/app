@@ -5,7 +5,7 @@ const {useApp, useFrame} = metaversefile;
 const keySize = 0.3;
 const keyRadius = 0.045;
 const keyInnerFactor = 0.8;
-const keyGeometry = new THREE.PlaneBufferGeometry(keySize, keySize);
+const keyGeometry = new THREE.PlaneGeometry(keySize, keySize);
 function makeShape(shape, x, y, width, height, radius) {
   shape.absarc( x - width/2, y + height/2, radius, Math.PI, Math.PI / 2, true );
   shape.absarc( x + width/2, y + height/2, radius, Math.PI / 2, 0, true );

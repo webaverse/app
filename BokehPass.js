@@ -32,7 +32,7 @@ class BokehPass extends Pass {
 
 		this.scene = scene;
 		// this.customScene = new Scene();
-		// this.customScene.autoUpdate = false;
+		// this.customScene.matrixWorldAutoUpdate = false;
 		this.camera = camera;
 		this.depthPass = depthPass;
 

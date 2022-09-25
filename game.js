@@ -213,12 +213,12 @@ const _getCurrentGrabAnimation = () => {
 const _makeTargetMesh = (() => {
   const targetMeshGeometry = (() => {
     const targetGeometry = BufferGeometryUtils.mergeBufferGeometries([
-      new THREE.BoxBufferGeometry(0.03, 0.2, 0.03)
+      new THREE.BoxGeometry(0.03, 0.2, 0.03)
         .applyMatrix4(new THREE.Matrix4().makeTranslation(0, -0.1, 0)),
-      new THREE.BoxBufferGeometry(0.03, 0.2, 0.03)
+      new THREE.BoxGeometry(0.03, 0.2, 0.03)
         .applyMatrix4(new THREE.Matrix4().makeRotationFromQuaternion(new THREE.Quaternion().setFromUnitVectors(new THREE.Vector3(0, -1, 0), new THREE.Vector3(0, 0, 1))))
         .applyMatrix4(new THREE.Matrix4().makeTranslation(0, 0, 0.1)),
-      new THREE.BoxBufferGeometry(0.03, 0.2, 0.03)
+      new THREE.BoxGeometry(0.03, 0.2, 0.03)
         .applyMatrix4(new THREE.Matrix4().makeRotationFromQuaternion(new THREE.Quaternion().setFromUnitVectors(new THREE.Vector3(0, -1, 0), new THREE.Vector3(1, 0, 0))))
         .applyMatrix4(new THREE.Matrix4().makeTranslation(0.1, 0, 0)),
     ]);
@@ -296,7 +296,7 @@ const _makeTargetMesh = (() => {
   };
 })();
 const _makeHighlightPhysicsMesh = material => {
-  const geometry = new THREE.BoxBufferGeometry(1, 1, 1);
+  const geometry = new THREE.BoxGeometry(1, 1, 1);
   material = material.clone();
   const mesh = new THREE.Mesh(geometry, material);
   mesh.frustumCulled = false;
@@ -489,7 +489,7 @@ const hitboxOffsetDistance = 0.3;
   const height = 0.2;
   const halfHeight = height/2;
   const cylinderMesh = new THREE.Mesh(
-    new THREE.CylinderBufferGeometry(radius, radius, height),
+    new THREE.CylinderGeometry(radius, radius, height),
     new THREE.MeshBasicMaterial({
       color: 0x00FFFF,
     })

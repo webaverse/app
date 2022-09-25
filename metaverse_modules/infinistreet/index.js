@@ -103,7 +103,7 @@ export default () => {
     }
     const curve = new THREE.CatmullRomCurve3(splinePoints);
 
-    /* const boxGeometry = new THREE.BoxBufferGeometry(0.25, 0.1, 0.5);
+    /* const boxGeometry = new THREE.BoxGeometry(0.25, 0.1, 0.5);
     const geometries = [];
 
     const points = curve.getPoints(numPoints);

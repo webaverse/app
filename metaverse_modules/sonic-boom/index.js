@@ -86,7 +86,7 @@ export default () => {
         const particleCount = 2;
         const attributeSpecs = [];
         attributeSpecs.push({name: 'id', itemSize: 1});
-        const geometry2 = new THREE.SphereBufferGeometry(1.4, 32, 32, 0, Math.PI * 2, 0, Math.PI / 1.4);
+        const geometry2 = new THREE.SphereGeometry(1.4, 32, 32, 0, Math.PI * 2, 0, Math.PI / 1.4);
         const geometry = _getGeometry(geometry2, attributeSpecs, particleCount);
         const idAttribute =  geometry.getAttribute('id');
         idAttribute.setX(0, 0);
@@ -216,7 +216,6 @@ export default () => {
         // material.onBeforeCompile = () => {
         //     console.log('compile frontwave material')
         // }
-        material.freeze();
         
         const group = new THREE.Group();
         group.add(frontwave);
@@ -304,7 +303,7 @@ export default () => {
         `;
         
         
-        const geometry = new THREE.CylinderBufferGeometry(0.5, 0.9, 5.3, 50, 50, true);
+        const geometry = new THREE.CylinderGeometry(0.5, 0.9, 5.3, 50, 50, true);
         const windMaterial = new THREE.ShaderMaterial({
             uniforms: {
                 perlinnoise: {
@@ -328,7 +327,6 @@ export default () => {
             fog: false,
             lights: false,
         });
-        windMaterial.freeze();
         const mesh = new THREE.Mesh(geometry, windMaterial);
         mesh.setRotationFromAxisAngle(new THREE.Vector3( 1, 0, 0 ), -90 * Math.PI / 180);
         group.add(mesh);
@@ -383,7 +381,7 @@ export default () => {
         const attributeSpecs = [];
         attributeSpecs.push({name: 'id', itemSize: 1});
         attributeSpecs.push({name: 'scales', itemSize: 1});
-        const geometry2 = new THREE.CylinderBufferGeometry(0.5, 0.1, 4.5, 50, 50, true);
+        const geometry2 = new THREE.CylinderGeometry(0.5, 0.1, 4.5, 50, 50, true);
         const geometry = _getGeometry(geometry2, attributeSpecs, particleCount);
         const idAttribute = geometry.getAttribute('id');
         idAttribute.setX(0, 0);
@@ -686,7 +684,6 @@ export default () => {
       fog: false,
       lights: false,
     });
-    trailMaterial.freeze();
     //########################################## vertical trail ######################################
     {
       const planeGeometry = new THREE.BufferGeometry();
@@ -1049,7 +1046,6 @@ export default () => {
             fog: false,
             lights: false,
         });
-        material.freeze();
         const geometry = new THREE.PlaneGeometry( 1.55, 1.55 );
         const mainBall = new THREE.Mesh( geometry, material );
         // app.add(mainBall);
@@ -1119,7 +1115,7 @@ export default () => {
         attributeSpecs.push({name: 'id', itemSize: 1});
         attributeSpecs.push({name: 'scales', itemSize: 1});
         attributeSpecs.push({name: 'textureRotation', itemSize: 1});
-        const geometry2 = new THREE.PlaneBufferGeometry(3., 3.);
+        const geometry2 = new THREE.PlaneGeometry(3., 3.);
         const geometry = _getGeometry(geometry2, attributeSpecs, particleCount);
         const idAttribute = geometry.getAttribute('id');
         for(let i = 0; i < particleCount; i++){
@@ -1228,7 +1224,6 @@ export default () => {
             fog: false,
             lights: false,
         });
-        material.freeze();
         const group = new THREE.Group();
         const electricity = new THREE.InstancedMesh(geometry, material, particleCount);
         group.add(electricity)
@@ -1323,7 +1318,7 @@ export default () => {
         attributeSpecs.push({name: 'id', itemSize: 1});
         attributeSpecs.push({name: 'scales', itemSize: 1});
         // attributeSpecs.push({name: 'textureRotation', itemSize: 1});
-        const geometry2 = new THREE.PlaneBufferGeometry(0.075, 0.075);
+        const geometry2 = new THREE.PlaneGeometry(0.075, 0.075);
         const geometry = _getGeometry(geometry2, attributeSpecs, particleCount);
         const idAttribute = geometry.getAttribute('id');
         for(let i = 0; i < particleCount; i++){
@@ -1420,7 +1415,6 @@ export default () => {
             fog: false,
             lights: false,
         });
-        material.freeze();
         const group = new THREE.Group();
         const electricityBall = new THREE.InstancedMesh(geometry, material, particleCount);
         group.add(electricityBall)
@@ -1638,7 +1632,6 @@ export default () => {
                 fog: false,
                 lights: false,
             });
-            wave.scene.children[0].material.freeze();
             // wave.scene.children[0].material.onBeforeCompile = () => {
             //     console.log('compile shock wave material')
             // }
@@ -1791,7 +1784,6 @@ export default () => {
             fog: false,
             lights: false,
         });
-        material.freeze();
         
         let mesh = null;
         let dustGeometry = null;

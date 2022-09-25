@@ -27,7 +27,7 @@ const _createGif = async ({
             worldWidth /= worldHeight;
             worldHeight = 1;
           }
-          /* const geometry = new THREE.PlaneBufferGeometry(worldWidth, worldHeight);
+          /* const geometry = new THREE.PlaneGeometry(worldWidth, worldHeight);
           geometry.boundingBox = new THREE.Box3(
             new THREE.Vector3(-worldWidth/2, -worldHeight/2, -0.1),
             new THREE.Vector3(worldWidth/2, worldHeight/2, 0.1),

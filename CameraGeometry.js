@@ -9,7 +9,7 @@ class CameraGeometry extends THREE.BufferGeometry {
   constructor() {
     super();
 
-    const boxGeometry = new THREE.BoxBufferGeometry(1, 1, 1);
+    const boxGeometry = new THREE.BoxGeometry(1, 1, 1);
     const positions = new Float32Array(boxGeometry.attributes.position.array.length * 8);
     const indices = new Uint16Array(boxGeometry.index.array.length * 8);
 

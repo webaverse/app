@@ -112,7 +112,7 @@ const planeFragmentShader = `\
   }
 `;
 export const createMapChunkMesh = (x, y, data) => {
-  const planeGeometry = new THREE.PlaneBufferGeometry(chunkWorldSize, chunkWorldSize)
+  const planeGeometry = new THREE.PlaneGeometry(chunkWorldSize, chunkWorldSize)
     .applyMatrix4(
       new THREE.Matrix4()
         .makeRotationFromQuaternion(

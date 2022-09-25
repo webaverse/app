@@ -27,7 +27,7 @@ export default app => {
     let rotY = 0;
 
     const glowHeight = 5;
-    const glowGeometry = new THREE.CylinderBufferGeometry(0.01, 0.01, glowHeight)
+    const glowGeometry = new THREE.CylinderGeometry(0.01, 0.01, glowHeight)
       .applyMatrix4(new THREE.Matrix4().makeTranslation(0, glowHeight/2, 0));
     const colors = new Float32Array(glowGeometry.attributes.position.array.length);
     glowGeometry.setAttribute('color', new THREE.BufferAttribute(colors, 3));

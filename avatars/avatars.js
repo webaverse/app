@@ -351,7 +351,7 @@ const _makeDebugMesh = (avatar) => {
 };
 
 
-// const g = new THREE.BoxBufferGeometry(0.05, 0.05, 0.05);
+// const g = new THREE.BoxGeometry(0.05, 0.05, 0.05);
 // const m = new THREE.MeshBasicMaterial({ color: 0xFF00FF });
 // const testMesh = new THREE.Mesh(g, m);
 // scene.add(testMesh);

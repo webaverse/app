@@ -354,7 +354,7 @@ export default () => {
             )
           );
           const scale = _getScaleFromNormal(wallNormal, localVector2);
-          g = new THREE.PlaneBufferGeometry(1, 1, 1)
+          g = new THREE.PlaneGeometry(1, 1, 1)
             .applyMatrix4(
               localMatrix.compose(offset, quaternion, scale)
             );

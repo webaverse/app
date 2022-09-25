@@ -280,17 +280,18 @@ export class AvatarCharacterFx {
     _updateNameplate();
     const _updateHealEffectMesh = () => {
       if (!this.healEffect) {
-        this.healEffect = metaversefile.createApp();
         (async () => {
-          const { modules } = metaversefile.useDefaultModules();
-          const m = modules.healEffect;
+          this.healEffect = metaversefile.createApp();
+          this.healEffect.setComponent('player', this.character);
+          const { importModule } = metaversefile.useDefaultModules();
+          const m = await importModule('healEffect');
           await this.healEffect.addModule(m);
+          sceneLowPriority.add(this.healEffect);
         })();
-        sceneLowPriority.add(this.healEffect);
       }
-      if (this.player.hasAction('cure')) {
-        this.healEffect.playEffect(this.player);
-        this.player.removeAction('cure');
+      if (this.character.hasAction('cure')) {
+        this.healEffect.playEffect(this.character);
+        this.character.removeAction('cure');
       }
     };
     _updateHealEffectMesh();

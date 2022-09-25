@@ -180,7 +180,7 @@ export class LightMapper /* extends EventTarget */ {
         const maxInstances = size.x * size.y * size.z;
         const instancedCubeGeometry = new THREE.InstancedBufferGeometry();
         {
-          const cubeGeometry = new THREE.BoxBufferGeometry(0.8, 0.8, 0.8);
+          const cubeGeometry = new THREE.BoxGeometry(0.8, 0.8, 0.8);
           for (const k in cubeGeometry.attributes) {
             instancedCubeGeometry.setAttribute(k, cubeGeometry.attributes[k]);
           }

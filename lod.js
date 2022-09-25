@@ -590,7 +590,7 @@ export class LodChunkTracker {
       
       /* const instancedCubeGeometry = new THREE.InstancedBufferGeometry();
       {
-        const cubeGeometry = new THREE.BoxBufferGeometry(1, 1, 1)
+        const cubeGeometry = new THREE.BoxGeometry(1, 1, 1)
           .translate(0.5, 0.5, 0.5);
         for (const k in cubeGeometry.attributes) {
           instancedCubeGeometry.setAttribute(k, cubeGeometry.attributes[k]);
@@ -600,7 +600,7 @@ export class LodChunkTracker {
 
       const instancedPlaneGeometry = new THREE.InstancedBufferGeometry();
       {
-        const planeGeometry = new THREE.PlaneBufferGeometry(1, 1)
+        const planeGeometry = new THREE.PlaneGeometry(1, 1)
           //.scale(0.9, 0.9, 0.9)
           .translate(0.5, -0.5, 0)
           .rotateX(-Math.PI / 2);

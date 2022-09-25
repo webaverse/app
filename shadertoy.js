@@ -102,7 +102,7 @@ class ShaderToyPass {
       })
     );
     this.scene = new THREE.Scene();
-    this.scene.autoUpdate = false;
+    this.scene.matrixWorldAutoUpdate = false;
     this.scene.add(this.mesh);
     
     this._copyBuffer = _makeRenderTarget(renderTarget.width, renderTarget.height);
@@ -151,7 +151,7 @@ class ShaderToyPass {
   }
 }
 const _makeRenderTargetMesh = (renderTarget, worldWidth, worldHeight) => {
-  const geometry = new THREE.PlaneBufferGeometry(worldWidth, worldHeight);
+  const geometry = new THREE.PlaneGeometry(worldWidth, worldHeight);
   const material = new THREE.MeshBasicMaterial({
     // color: 0xFF0000,
     map: renderTarget.texture,

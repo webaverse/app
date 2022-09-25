@@ -162,7 +162,7 @@ const _makeCopyScene = () => {
   
   // full screen quad mesh
   const fullScreenQuadMesh = new THREE.Mesh(
-    new THREE.PlaneBufferGeometry(2, 2),
+    new THREE.PlaneGeometry(2, 2),
     new THREE.ShaderMaterial({
       uniforms: {
         uTex: {
@@ -190,7 +190,7 @@ const _makeScene = (worldWidth, worldHeight, minZoom) => {
   
   // floor map mesh
   const floorMesh = new THREE.Mesh(
-    new THREE.PlaneBufferGeometry(worldWidth, worldHeight)
+    new THREE.PlaneGeometry(worldWidth, worldHeight)
       .applyMatrix4(new THREE.Matrix4().makeRotationX(-Math.PI / 2)),
     new THREE.ShaderMaterial({
       uniforms: {

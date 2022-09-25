@@ -28,7 +28,7 @@ const _addPreviewLights = scene => {
 };
 
 const sideScene = new THREE.Scene();
-sideScene.autoUpdate = false;
+sideScene.matrixWorldAutoUpdate = false;
 _addPreviewLights(sideScene);
 const sideCamera = new THREE.PerspectiveCamera(fov);
 

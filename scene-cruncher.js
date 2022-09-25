@@ -324,12 +324,8 @@ const _makeGeometry = (position, quaternion, worldSize, worldDepthResolution, de
 const baseMaterial = new THREE.MeshBasicMaterial({
   map: null,
   color: 0xFFFFFF,
-
-  clipping: false,
   fog: false,
-  lights: false,
 });
-baseMaterial.freeze();
 const triplanarVertexShader = `\
   precision highp float;
   precision highp int;
@@ -549,7 +545,7 @@ export function snapshotMapChunk(
     mesh2.frustumCulled = false;
     mesh2.updateMatrixWorld();
 
-    /* const cubeGeometry = new THREE.BoxBufferGeometry(0.2, 0.2, 0.2);
+    /* const cubeGeometry = new THREE.BoxGeometry(0.2, 0.2, 0.2);
     const mesh3 = new THREE.InstancedMesh(cubeGeometry, normalMaterial, cubePositions.length);
     for (let i = 0; i < cubePositions.length; i++) {
       const position = cubePositions[i];

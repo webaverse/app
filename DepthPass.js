@@ -63,7 +63,7 @@ class DepthPass extends Pass {
 		this.normalMaterial.blending = NoBlending;
 
     this.customScene = new Scene();
-		this.customScene.autoUpdate = false;
+		this.customScene.matrixWorldAutoUpdate = false;
     this._visibilityCache = new Map();
     this.originalClearColor = new Color();
 	}

@@ -16,7 +16,7 @@ const localMatrix = new THREE.Matrix4();
 const geometries = (() => {
   const result = [];
   for (let i = 0; i < 200; i += 3) {
-    result.push(new THREE.BoxBufferGeometry(1, 1, 1));
+    result.push(new THREE.BoxGeometry(1, 1, 1));
   }
   return result;
 })();

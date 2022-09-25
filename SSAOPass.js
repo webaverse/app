@@ -48,7 +48,7 @@ class SSAOPass extends Pass {
 		this.camera = camera;
 		this.scene = scene;
 		this.customScene = new Scene();
-		this.customScene.autoUpdate = false;
+		this.customScene.matrixWorldAutoUpdate = false;
 
 		this.kernelRadius = 8;
 		this.kernelSize = 32;

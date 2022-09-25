@@ -33,9 +33,9 @@ const _makeRenderer = (width, height) => {
   renderer.setSize(width, height);
 
   const scene = new THREE.Scene();
-  scene.autoUpdate = false;
+  scene.matrixWorldAutoUpdate = false;
 
-  /* const cubeMesh = new THREE.Mesh(new THREE.BoxBufferGeometry(1, 1, 1), new THREE.MeshBasicMaterial({
+  /* const cubeMesh = new THREE.Mesh(new THREE.BoxGeometry(1, 1, 1), new THREE.MeshBasicMaterial({
     color: 0x0000FF,
   }));
   scene.add(cubeMesh); */

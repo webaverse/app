@@ -17,7 +17,7 @@ const localVector4 = new THREE.Vector3();
 const localQuaternion = new THREE.Quaternion();
 const localMatrix = new THREE.Matrix4();
 
-const arrowGeometry = new THREE.PlaneBufferGeometry(size, size)
+const arrowGeometry = new THREE.PlaneGeometry(size, size)
   .applyMatrix4(
     new THREE.Matrix4()
       .makeRotationFromQuaternion(

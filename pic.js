@@ -50,7 +50,7 @@ function angleDifference(angle1, angle2) {
   // renderer.setSize(width, height);
 
   const scene = new THREE.Scene();
-  scene.autoUpdate = false;
+  scene.matrixWorldAutoUpdate = false;
 
   const camera = new THREE.PerspectiveCamera(60, width/height, 0.1, 100);
 

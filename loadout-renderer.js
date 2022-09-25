@@ -292,7 +292,7 @@ const _makeLoadoutRendererScene = () => {
   const scene = new THREE.Scene();
 
   const fullScreenQuadMesh = new THREE.Mesh(
-    new THREE.PlaneBufferGeometry(2, 2),
+    new THREE.PlaneGeometry(2, 2),
     new THREE.ShaderMaterial({
       uniforms: {
         uTex: {
