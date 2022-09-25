@@ -1,7 +1,7 @@
-import React, { forwardRef, useEffect, useState, useRef, useContext } from 'react';
+import React, {useEffect, useState, useRef} from 'react';
 import classnames from 'classnames';
 import styles from './spritesheet.module.css';
-import spritesheetManager from '../../../../spritesheet-manager.js';
+import spriteAnimationManager from '../../../../sprite-animation-manager.js';
 
 //
 
@@ -27,7 +27,7 @@ export const Spritesheet = ({
             let live = true;
             (async () => {
                 // console.log('got spritesheet 1', {startUrl, frameSize, numFramesPerRow, size, numFrames});
-                const spritesheet = await spritesheetManager.getSpriteSheetForAppUrlAsync(startUrl, {
+                const spritesheet = await spriteAnimationManager.getSpriteAnimationForAppUrlAsync(startUrl, {
                     size,
                     numFrames,
                 });

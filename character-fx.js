@@ -252,7 +252,7 @@ export class AvatarCharacterFx {
 
     this.lastSSS = isSSS;
     const _updateSonicBoomMesh = () => {
-      if (!this.sonicBoom && !this.character.isNpcPlayer) {
+      if (!this.sonicBoom && this.character.getControlMode() === 'controlled') {
         this.sonicBoom = metaversefile.createApp();
         this.sonicBoom.setComponent('player', this.character);
         (async () => {
@@ -265,7 +265,7 @@ export class AvatarCharacterFx {
     };
     _updateSonicBoomMesh();
     const _updateNameplate = () => {
-      if (!this.nameplate && !this.character.isNpcPlayer && !this.character.isLocalPlayer) {
+      if(!this.nameplate && this.character.getControlMode() === 'remote'){
         (async () => {
           this.nameplate = metaversefile.createApp();
           this.nameplate.setComponent('player', this.character);

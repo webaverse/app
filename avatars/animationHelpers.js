@@ -329,6 +329,7 @@ export const loadPromise = (async () => {
     bowDraw: animations.find(a => a.isBowDraw),
     bowIdle: animations.find(a => a.isBowIdle),
     bowLoose: animations.find(a => a.isBowLoose),
+    pickaxe: animations.find(a => a.isPickaxe),
   }, aimAnimations);
   sitAnimations = {
     chair: animations.find(a => a.isSitting),

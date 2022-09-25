@@ -5,19 +5,21 @@ import * as avatarOptimizer from '../avatar-optimizer.js';
 import * as avatarCruncher from '../avatar-cruncher.js';
 import * as avatarSpriter from '../avatar-spriter.js';
 import {getAvatarHeight, getAvatarWidth, getModelBones} from './util.mjs';
-import offscreenEngineManager from '../offscreen-engine-manager.js';
+import offscreenEngineManager from '../offscreen-engine/offscreen-engine-manager.js';
 import loaders from '../loaders.js';
 // import {camera} from '../renderer.js';
 import {WebaverseShaderMaterial} from '../materials.js';
 // import exporters from '../exporters.js';
 import {abortError} from '../lock-manager.js';
-import {/*defaultAvatarQuality,*/ minAvatarQuality, maxAvatarQuality} from '../constants.js';
-const defaultAvatarQuality = 4;
+import {minAvatarQuality, maxAvatarQuality} from '../constants.js';
+import settingsManager from '../settings-manager.js';
 // import {downloadFile} from '../util.js';
 
 const localVector = new THREE.Vector3();
 const localVector2 = new THREE.Vector3();
+const localVector3 = new THREE.Vector3();
 const localQuaternion = new THREE.Quaternion();
+const localQuaternion2 = new THREE.Quaternion();
 const localEuler = new THREE.Euler();
 const localMatrix =  new THREE.Matrix4();
 const localMatrix2 =  new THREE.Matrix4();
@@ -92,9 +94,9 @@ const _makeAvatarPlaceholderMesh = (() => {
       varying float vAngle;
 
       /* float getBezierT(float x, float a, float b, float c, float d) {
-        return float(sqrt(3.) * 
-          sqrt(-4. * b * d + 4. * b * x + 3. * c * c + 2. * c * d - 8. * c * x - d * d + 4. * d * x) 
-            + 6. * b - 9. * c + 3. * d) 
+        return float(sqrt(3.) *
+          sqrt(-4. * b * d + 4. * b * x + 3. * c * c + 2. * c * d - 8. * c * x - d * d + 4. * d * x)
+            + 6. * b - 9. * c + 3. * d)
             / (6. * (b - 2. * c + d));
       }
       float easing(float x) {
@@ -161,7 +163,7 @@ const _makeAvatarPlaceholderMesh = (() => {
           vec4 c = texture2D(map, vUv);
           gl_FragColor = c;
           gl_FragColor.rgb = (1. - gl_FragColor.rgb) * green.rgb;
-          
+
           if (gl_FragColor.a < 0.9) {
             discard;
           }
@@ -244,7 +246,7 @@ const _forAllMeshes = (o, fn) => {
 
 const _bindControl = (dstModel, srcObject) => {
   const srcModel = srcObject.scene;
-  
+
   const _findBoneInSrc = (srcBoneName) => {
     let result = null;
     const _recurse = o => {
@@ -375,11 +377,11 @@ export class AvatarRenderer /* extends EventTarget */ {
     arrayBuffer,
     srcUrl,
     camera = null, // if null, do not frustum cull
-    quality = defaultAvatarQuality,
+    quality = settingsManager.getCharacterQuality(),
     controlled = false,
   } = {})	{
     // super();
-    
+
     //
 
     this.arrayBuffer = arrayBuffer;
@@ -387,7 +389,7 @@ export class AvatarRenderer /* extends EventTarget */ {
     this.camera = camera;
     this.quality = quality;
     this.isControlled = controlled;
-    
+
     //
 
     this.scene = new THREE.Object3D();
@@ -411,6 +413,7 @@ export class AvatarRenderer /* extends EventTarget */ {
     this.controlObject = null;
     this.controlObjectLoaded = false;
     this.uncontrolFnMap = new Map();
+    this.height = 0;
 
     //
 
@@ -433,93 +436,14 @@ export class AvatarRenderer /* extends EventTarget */ {
     const width = getAvatarWidth(modelBones);
     return {height, width};
   }
-  createSpriteAvatarMesh() {
-    if (!this.createSpriteAvatarMeshFn) {
-      this.createSpriteAvatarMeshFn = offscreenEngineManager.createFunction([
-        `\
-        import * as THREE from 'three';
-        import * as avatarSpriter from './avatar-spriter.js';
-  
-        `,
-        async function({
-          arrayBuffer,
-          srcUrl,
-        }) {
-  
-          const textureCanvases = await avatarSpriter.renderSpriteImages(arrayBuffer, srcUrl);
-          const textureImages = await Promise.all(textureCanvases.map(canvas => {
-            return createImageBitmap(canvas, {
-              imageOrientation: 'flipY',
-            });
-          }));
-          return {
-            textureImages,
-          };
-        }
-      ]);
-    }
-    return this.createSpriteAvatarMeshFn.apply(this, arguments);
+  createSpriteAvatarMesh(args, options) {
+    return offscreenEngineManager.request('createSpriteAvatarMesh', args, options);
   }
-  crunchAvatarModel() {
-    if (!this.crunchAvatarModelFn) {
-      this.crunchAvatarModelFn = offscreenEngineManager.createFunction([
-        `\
-        import * as THREE from 'three';
-        import * as avatarCruncher from './avatar-cruncher.js';
-        import loaders from './loaders.js';
-  
-        `,
-        async function({
-          arrayBuffer,
-          srcUrl,
-        }) {
-          const parseVrm = (arrayBuffer, srcUrl) => new Promise((accept, reject) => {
-            const {gltfLoader} = loaders;
-            gltfLoader.parse(arrayBuffer, srcUrl, object => {
-              accept(object.scene);
-            }, reject);
-          });
-  
-          const model = await parseVrm(arrayBuffer, srcUrl);
-          const glbData = await avatarCruncher.crunchAvatarModel(model);
-          return {
-            glbData,
-          };
-        }
-      ]);
-    }
-    return this.crunchAvatarModelFn.apply(this, arguments);
+  crunchAvatarModel(args, options) {
+    return offscreenEngineManager.request('crunchAvatarModel', args, options);
   }
-  optimizeAvatarModel() {
-    if (!this.optimizeAvatarModelFn) {
-      this.optimizeAvatarModelFn = offscreenEngineManager.createFunction([
-        `\
-        import * as THREE from 'three';
-        import * as avatarOptimizer from './avatar-optimizer.js';
-        import loaders from './loaders.js';
-        import exporters from './exporters.js';
-  
-        `,
-        async function({
-          arrayBuffer,
-          srcUrl,
-        }) {
-          const parseVrm = (arrayBuffer, srcUrl) => new Promise((accept, reject) => {
-            const {gltfLoader} = loaders;
-            gltfLoader.parse(arrayBuffer, srcUrl, accept, reject);
-          });
-  
-          const object = await parseVrm(arrayBuffer, srcUrl);
-          
-          const model = object.scene;
-          const glbData = await avatarOptimizer.optimizeAvatarModel(model);
-          return {
-            glbData,
-          };
-        }
-      ]);
-    }
-    return this.optimizeAvatarModelFn.apply(this, arguments);
+  optimizeAvatarModel(args, options) {
+    return offscreenEngineManager.request('optimizeAvatarModel', args, options);
   }
   #getCurrentMesh() {
     switch (this.quality) {
@@ -544,6 +468,10 @@ export class AvatarRenderer /* extends EventTarget */ {
     if (!this.controlObjectLoaded) {
       this.controlObjectLoaded = true;
       this.controlObject = await parseVrm(this.arrayBuffer, this.srcUrl);
+
+      const {height} = this.getAvatarSize();
+      this.height = height;
+
       /* this.controlObject.scene.traverse(o => {
         if (o.isMesh) {
           o.onBeforeRender = () => {
@@ -555,7 +483,7 @@ export class AvatarRenderer /* extends EventTarget */ {
   }
   setControlled(controlled) {
     this.isControlled = controlled;
-    
+
     if (controlled) {
       for (const glb of [
         this.spriteAvatarMesh,
@@ -619,7 +547,7 @@ export class AvatarRenderer /* extends EventTarget */ {
                   const glb = avatarSpriter.createSpriteAvatarMeshFromTextures(textureImages);
                   _forAllMeshes(glb, _unfrustumCull);
                   glb.boundingSphere = _getMergedBoundingSphere(glb);
-    
+
                   this.spriteAvatarMesh = glb;
                 })(),
                 this.#ensureControlObject(),
@@ -665,7 +593,7 @@ export class AvatarRenderer /* extends EventTarget */ {
                     _setDepthWrite(o);
                   });
                   glb.boundingSphere = _getMergedBoundingSphere(glb);
-  
+
                   this.crunchedModel = glb;
                 })(),
                 this.#ensureControlObject(),
@@ -808,23 +736,69 @@ export class AvatarRenderer /* extends EventTarget */ {
     }
   }
   update(timestamp, timeDiff, avatar) {
+    // avatar can be undefined if it's not bound
+    // we apply the root transform if avatar is undefined
     this.#updatePlaceholder(timestamp, timeDiff, avatar);
     this.#updateAvatar(timestamp, timeDiff, avatar);
     this.#updateFrustumCull(avatar);
   }
+  #getAvatarHeadPosition(avatar) {
+    let headPosition = null;
+    if (avatar) {
+      // get avatar head position
+      headPosition = avatar.inputs.hmd.position;
+    } else {
+      // calculate head position with zero pose if it's not bound
+      localVector.set(0, this.height, 0).applyMatrix4(this.scene.matrixWorld);
+      headPosition = localVector;
+    }
+    return headPosition;
+  }
+  #getAvatarCentroid(avatar) {
+    if (avatar) {
+      // get the centroid of avatar
+      localVector.set(avatar.inputs.hmd.position.x,
+        avatar.inputs.hmd.position.y - this.height / 2,
+        avatar.inputs.hmd.position.z);
+    } else {
+      // estimate the hip position if it's not bound
+      localVector.set(0, this.height / 2, 0).applyMatrix4(this.scene.matrixWorld);
+    }
+    return localVector;
+  }
   #updatePlaceholder(timestamp, timeDiff, avatar) {
-    if (this.camera) {
-      this.placeholderMesh.position.copy(avatar.inputs.hmd.position);
-      // this.placeholderMesh.position.y -= avatar.height;
+    const headPosition = this.#getAvatarHeadPosition(avatar);
+    if (this.camera && this.placeholderMesh.parent) {
+      localMatrix.copy(this.placeholderMesh.parent.matrixWorld).invert();
+      headPosition.applyMatrix4(localMatrix);
 
-      localQuaternion
-        .setFromRotationMatrix(
-          localMatrix.lookAt(
-            this.camera.position,
-            this.placeholderMesh.position,
-            localVector2.set(0, 1, 0)
+      this.placeholderMesh.position.copy(headPosition);
+      this.placeholderMesh.updateMatrixWorld();
+      // this.placeholderMesh.position.y -= this.height;
+
+      this.placeholderMesh.matrixWorld.decompose(
+        localVector,
+        localQuaternion,
+        localVector2
+      );
+      this.placeholderMesh.parent.matrixWorld.decompose(
+        localVector2,
+        localQuaternion,
+        localVector3
+      );
+
+      // placeholder orients to the mesh world position
+      // local quaternion should consider parent quaternion
+      localQuaternion.invert().multiply(
+        localQuaternion2
+          .setFromRotationMatrix(
+            localMatrix.lookAt(
+              this.camera.position,
+              localVector,
+              localVector2.set(0, 1, 0)
+            )
           )
-        );
+      );
       localEuler.setFromQuaternion(localQuaternion, 'YXZ');
       localEuler.x = 0;
       localEuler.z = 0;
@@ -843,6 +817,7 @@ export class AvatarRenderer /* extends EventTarget */ {
     }
   }
   #updateFrustumCull(avatar) {
+    const centroidPosition = this.#getAvatarCentroid(avatar);
     if (this.camera) {
       const currentMesh = this.#getCurrentMesh();
       if (currentMesh) {
@@ -854,9 +829,9 @@ export class AvatarRenderer /* extends EventTarget */ {
         localFrustum.setFromProjectionMatrix(projScreenMatrix);
 
         localMatrix.makeTranslation(
-          avatar.inputs.hmd.position.x,
-          avatar.inputs.hmd.position.y - this.height / 2,
-          avatar.inputs.hmd.position.z
+          centroidPosition.x,
+          centroidPosition.y,
+          centroidPosition.z,
         );
         const boundingSphere = localSphere.copy(currentMesh.boundingSphere)
           .applyMatrix4(localMatrix);

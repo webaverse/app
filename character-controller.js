@@ -171,6 +171,13 @@ class Character extends THREE.Object3D {
       this.characterPhysics.setPosition(position);
     }
   }
+  // serializers
+  getPosition() {
+    return this.position.toArray(localArray3) ?? [0, 0, 0];
+  }
+  getQuaternion() {
+    return this.quaternion.toArray(localArray4) ?? [0, 0, 0, 1];
+  }
   findAction(fn) {
     const actions = this.getActionsState();
     for (const action of actions) {
@@ -758,10 +765,11 @@ class StateCharacter extends Character {
 }
 
 class AvatarCharacter extends StateCharacter {
-  constructor() {
-    super();
+  constructor(opts) {
+    super(opts);
 
-    this.avatar = null; 
+    this.avatar = null;
+    this.controlMode = '';
 
     this.avatarFace = new AvatarCharacterFace(this);
     this.avatarCharacterFx = new AvatarCharacterFx(this);
@@ -771,6 +779,12 @@ class AvatarCharacter extends StateCharacter {
     this.rightHand = new AvatarHand();
     this.hands = [this.leftHand, this.rightHand];
   }
+  getControlMode() {
+    return this.controlMode;
+  }
+  setControlMode(mode) {
+    this.controlMode = mode;
+  }
   setSpawnPoint(position, quaternion) {
     super.setSpawnPoint(position, quaternion);
     
@@ -779,7 +793,7 @@ class AvatarCharacter extends StateCharacter {
     camera.updateMatrixWorld();
   }
   updatePhysicsStatus() {
-    if (this.isLocalPlayer) {
+    if (this.getControlMode() === 'controlled') {
       physicsScene.disableGeometryQueries(this.characterPhysics.characterController);
     } else {
       physicsScene.enableGeometryQueries(this.characterPhysics.characterController);
@@ -1048,9 +1062,11 @@ class LocalPlayer extends UninterpolatedPlayer {
   constructor(opts) {
     super(opts);
 
-    this.isLocalPlayer = !opts.npc;
-    this.isNpcPlayer = !!opts.npc;
-    this.isInParty = false; // whether npc's in party
+    if (opts.npc) {
+      this.controlMode = 'npc';
+    } else {
+      this.controlMode = 'controlled';
+    }
     this.detached = opts.detached ?? false;
   }
   async setPlayerSpec(playerSpec) {
@@ -1180,10 +1196,16 @@ class LocalPlayer extends UninterpolatedPlayer {
     });
   }
   grab(app, hand = 'left') {
-    const {position, quaternion} = _getSession() ?
-      this[hand === 'left' ? 'leftHand' : 'rightHand']
-    :
-      camera;
+    let position = null, quaternion = null;
+
+    if(_getSession()) {
+      const h = this[hand === 'left' ? 'leftHand' : 'rightHand'];
+      position = h.position;
+      quaternion = h.quaternion;
+    } else {
+      position = this.position;
+      quaternion = camera.quaternion;
+    }
 
     app.updateMatrixWorld();
     app.savedRotation = app.rotation.clone();
@@ -1323,6 +1345,7 @@ class RemotePlayer extends InterpolatedPlayer {
     this.audioWorkerLoaded = false;
     this.isRemotePlayer = true;
     this.lastPosition = new THREE.Vector3();
+    this.controlMode = 'remote';
   }
     // The audio worker handles hups and incoming voices
   // This includes the microphone from the owner of this instance
@@ -1508,8 +1531,7 @@ class RemotePlayer extends InterpolatedPlayer {
   constructor(opts) {
     super(opts);
   
-    this.isLocalPlayer = false;
-    this.isNpcPlayer = true;
+    this.controlMode = 'npc';
   }
 } */
 

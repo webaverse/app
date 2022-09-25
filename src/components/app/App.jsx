@@ -1,5 +1,5 @@
 
-import React, { useState, useEffect, useRef, createContext } from 'react';
+import React, { useState, useEffect, useRef, useContext, createContext } from 'react';
 import classnames from 'classnames';
 
 import game from '../../../game';
@@ -37,6 +37,10 @@ import '../../fonts.css';
 import raycastManager from '../../../raycast-manager';
 import npcManager from '../../../npc-manager';
 
+import { AccountContext } from '../../hooks/web3AccountProvider';
+import { ChainContext } from '../../hooks/chainProvider';
+import loadoutManager from '../../../loadout-manager';
+
 //
 
 const _startApp = async ( weba, canvas ) => {
@@ -52,6 +56,7 @@ const _startApp = async ( weba, canvas ) => {
     await weba.startLoop();
 
     await npcManager.initDefaultPlayer();
+    loadoutManager.initDefault();
 
 };
 
@@ -135,6 +140,8 @@ export const App = () => {
     const [ selectedScene, setSelectedScene ] = useState( _getCurrentSceneSrc() );
     const [ selectedRoom, setSelectedRoom ] = useState( _getCurrentRoom() );
     const [ apps, setApps ] = useState( world.appManager.getApps().slice() );
+    const account = useContext(AccountContext);
+    const chain = useContext(ChainContext);
 
     //
 
@@ -322,7 +329,7 @@ export const App = () => {
             onDragEnd={onDragEnd}
             onDragOver={onDragOver}
         >
-            <AppContext.Provider value={{ state, setState, app, setSelectedApp, selectedApp, uiMode }}>
+            <AppContext.Provider value={{ state, setState, app, setSelectedApp, selectedApp, uiMode, account, chain }}>
                 <Header setSelectedApp={ setSelectedApp } selectedApp={ selectedApp } />
                 <DomRenderer />
                 <Canvas app={app} />

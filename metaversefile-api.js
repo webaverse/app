@@ -14,9 +14,9 @@ import cameraManager from './camera-manager.js';
 import physicsManager from './physics-manager.js';
 import Avatar from './avatars/avatars.js';
 import {world} from './world.js';
-import ERC721 from './erc721-abi.json';
-import ERC1155 from './erc1155-abi.json';
-import {web3} from './blockchain.js';
+// import ERC721 from './erc721-abi.json';
+// import ERC1155 from './erc1155-abi.json';
+// import {web3} from './blockchain.js';
 import {moduleUrls, importModule} from './metaverse-modules.js';
 import {componentTemplates} from './metaverse-components.js';
 import postProcessing from './post-processing.js';
@@ -25,7 +25,7 @@ import * as mathUtils from './math-utils.js';
 import JSON6 from 'json-6';
 import * as geometries from './geometries.js';
 import * as materials from './materials.js';
-import meshLodManager from './mesh-lodder.js';
+// import meshLodManager from './mesh-lodder.js';
 import {AvatarRenderer} from './avatars/avatar-renderer.js';
 import {chatManager} from './chat-manager.js';
 import loreAI from './ai/lore/lore-ai.js';
@@ -48,7 +48,7 @@ import {murmurhash3} from './procgen/murmurhash3.js';
 import debug from './debug.js';
 import * as scenePreviewer from './scene-previewer.js';
 import * as sounds from './sounds.js';
-import * as lodder from './lod.js';
+// import * as lodder from './lod.js';
 import hpManager from './hp-manager.js';
 import particleSystemManager from './particle-system.js';
 import domRenderEngine from './dom-renderer.jsx';
@@ -56,10 +56,16 @@ import dropManager from './drop-manager.js';
 import hitManager from './character-hitter.js';
 import procGenManager from './procgen-manager.js';
 import cardsManager from './cards-manager.js';
-import * as instancing from './instancing.js';
+import * as geometryBuffering from './geometry-buffering.js';
+import * as geometryBatching from './geometry-batching.js';
+import * as geometryChunking from './geometry-chunking.js';
 import * as atlasing from './atlasing.js';
+import * as spriting from './spriting.js';
+import * as gpuTaskManager from './gpu-task-manager.js';
+import * as generationTaskManager from './generation-task-manager.js';
 import ioManager from './io-manager.js';
-import {lightsManager} from './lights-manager.js';
+import {lightsManager} from './engine-hooks/lights/lights-manager.js';
+import {skyManager} from './engine-hooks/environment/skybox/sky-manager.js';
 
 const localVector2D = new THREE.Vector2();
 
@@ -353,10 +359,10 @@ const gradientMaps = {
   },
 };
 
-const abis = {
+/* const abis = {
   ERC721,
   ERC1155,
-};
+}; */
 
 /* debug.addEventListener('enabledchange', e => {
   document.getElementById('statsBox').style.display = e.data.enabled ? null : 'none';
@@ -450,6 +456,9 @@ metaversefile.setApi({
   },
   useLightsManager() {
     return lightsManager;
+  },
+  useSkyManager() {
+    return skyManager;
   },
   useChatManager() {
     return chatManager;
@@ -593,12 +602,12 @@ metaversefile.setApi({
   useLoaders() {
     return loaders;
   },
-  useLodder() {
+  /* useLodder() {
     return lodder;
-  },
-  useMeshLodder() {
+  }, */
+  /* useMeshLodder() {
     return meshLodManager;
-  },
+  }, */
   usePhysics(instance = null) {
     const app = currentAppRender;
     if (app) {
@@ -807,12 +816,12 @@ metaversefile.setApi({
   useDefaultModules() {
     return defaultModules;
   },
-  useWeb3() {
+  /* useWeb3() {
     return web3.mainnet;
   },
   useAbis() {
     return abis;
-  },
+  }, */
   useMathUtils() {
     return mathUtils;
   },
@@ -873,6 +882,8 @@ metaversefile.setApi({
   },
   createAppInternal({
     start_url = '',
+    type = '',
+    content = '',
     module = null,
     components = [],
     position = null,
@@ -942,11 +953,28 @@ metaversefile.setApi({
     _updateComponents();
 
     // load
-    if (start_url || module) {
+    function typeContentToUrl(type, content) {
+      if (typeof content === 'object') {
+        content = JSON.stringify(content);
+      }
+      const dataUrlPrefix = 'data:' + type + ',';
+      return '/@proxy/' + dataUrlPrefix + encodeURIComponent(content).replace(/\%/g, '%25')//.replace(/\\//g, '%2F');
+    }
+    function getObjectUrl(start_url, type, content) {
+      if (start_url) {
+        return start_url;
+      } else if (type && content) {
+        return typeContentToUrl(type, content);
+      } else {
+        return null;
+      }
+    }
+    const u = getObjectUrl(start_url, type, content);
+    if (u || module) {
       const p = (async () => {
         let m;
-        if (start_url) {
-          m = await metaversefile.import(start_url);
+        if (u) {
+          m = await metaversefile.import(u);
         } else {
           m = module;
         }
@@ -1218,11 +1246,26 @@ export default () => {
   useGeometries() {
     return geometries;
   },
-  useInstancing() {
-    return instancing;
+  useGeometryBuffering() {
+    return geometryBuffering;
+  },
+  useGeometryBatching() {
+    return geometryBatching;
+  },
+  useGeometryChunking() {
+    return geometryChunking;
   },
   useAtlasing() {
     return atlasing;
+  },
+  useSpriting() {
+    return spriting;
+  },
+  useGPUTask() {
+    return gpuTaskManager;
+  },
+  useGenerationTask() {
+    return generationTaskManager;
   },
   useMaterials() {
     return materials;

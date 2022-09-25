@@ -14,9 +14,8 @@ import {world} from './world.js';
 import {buildMaterial, highlightMaterial, selectMaterial, hoverMaterial, hoverEquipmentMaterial} from './shaders.js';
 import {getRenderer, sceneLowPriority, camera} from './renderer.js';
 import {downloadFile, snapPosition, getDropUrl, handleDropJsonItem} from './util.js';
-import {maxGrabDistance, throwReleaseTime, storageHost, minFov, maxFov, throwAnimationDuration, walkSpeed, runSpeed, narutoRunSpeed, crouchSpeed, flySpeed} from './constants.js';
+import {maxGrabDistance, throwReleaseTime, storageHost, minFov, maxFov, throwAnimationDuration, walkSpeed, runSpeed, narutoRunSpeed, crouchSpeed, flySpeed, minAvatarQuality} from './constants.js';
 import metaversefileApi from './metaversefile-api.js';
-import * as metaverseModules from './metaverse-modules.js';
 import loadoutManager from './loadout-manager.js';
 import * as sounds from './sounds.js';
 import {playersManager} from './players-manager.js';
@@ -26,7 +25,8 @@ import raycastManager from './raycast-manager.js';
 import zTargeting from './z-targeting.js';
 import Avatar from './avatars/avatars.js';
 import {makeId} from './util.js'
-import { avatarManager } from './avatar-manager.js';
+import {avatarManager} from './avatar-manager.js';
+import npcManager from './npc-manager.js';
 
 const localVector = new THREE.Vector3();
 const localVector2 = new THREE.Vector3();
@@ -81,29 +81,53 @@ const _unwearAppIfHasSitComponent = (player) => {
 }
 
 // returns whether we actually snapped
-function updateGrabbedObject(o, grabMatrix, offsetMatrix, {collisionEnabled, handSnapEnabled, physx, gridSnap}) {
+function updateGrabbedObject(
+  o,
+  grabMatrix,
+  offsetMatrix,
+  { collisionEnabled, handSnapEnabled, physx, gridSnap }
+) {
   grabMatrix.decompose(localVector, localQuaternion, localVector2);
   offsetMatrix.decompose(localVector3, localQuaternion2, localVector4);
   const offset = localVector3.length();
-  localMatrix.multiplyMatrices(grabMatrix, offsetMatrix)
+  localMatrix
+    .multiplyMatrices(grabMatrix, offsetMatrix)
     .decompose(localVector5, localQuaternion3, localVector6);
 
-  let collision = collisionEnabled && physicsScene.raycast(localVector, localQuaternion);
-  if (collision) {
-    // console.log('got collision', collision);
-    const {point} = collision;
-    o.position.fromArray(point)
-      // .add(localVector2.set(0, 0.01, 0));
+  const collision = collisionEnabled && physicsScene.raycast(localVector, localQuaternion);
+  localQuaternion2.setFromAxisAngle(localVector2.set(1, 0, 0), -Math.PI * 0.5);
+  const downCollision = collisionEnabled && physicsScene.raycast(localVector5, localQuaternion2);
 
-    if (o.position.distanceTo(localVector) > offset) {
-      collision = null;
+  if (!!collision) {
+    const { point } = collision;
+    localVector6.fromArray(point);
+  }
+
+  if (!!downCollision) {
+    const { point } = downCollision;
+    localVector4.fromArray(point);
+    if (ioManager.keys.shift) {
+      o.position.copy(localVector5.setY(localVector4.y));
+    } else {
+      // if collision point is closer to the player than the grab offset and collisionDown point
+      // is below collision point then place the object at collision point
+      if (
+        localVector.distanceTo(localVector6) < offset &&
+        localVector4.y < localVector6.y
+      )
+        localVector5.copy(localVector6);
+
+      // if grabbed object would go below another object then place object at downCollision point
+      if (localVector5.y < localVector4.y) localVector5.setY(localVector4.y);
+      o.position.copy(localVector5);
     }
   }
-  if (!collision) {
-    o.position.copy(localVector5);
-  }
 
-  const handSnap = !handSnapEnabled || offset >= maxGrabDistance || !!collision;
+  const handSnap =
+    !handSnapEnabled ||
+    offset >= maxGrabDistance ||
+    !!collision ||
+    !!downCollision;
   if (handSnap) {
     snapPosition(o, gridSnap);
     o.quaternion.setFromEuler(o.savedRotation);
@@ -543,7 +567,16 @@ const _gameUpdate = (timestamp, timeDiff) => {
       const grabAction = _getGrabAction(i);
       const grabbedObject = _getGrabbedObject(i);
       if (grabbedObject && !_isWear(grabbedObject)) {
-        const {position, quaternion} = renderer.xr.getSession() ? localPlayer[hand === 'left' ? 'leftHand' : 'rightHand'] : camera;
+        let position = null,
+          quaternion = null;
+        if (renderer.xr.getSession()) {
+          const h = localPlayer[hand === "left" ? "leftHand" : "rightHand"];
+          position = h.position;
+          quaternion = h.quaternion;
+        } else {
+          position = localVector2.copy(localPlayer.position);
+          quaternion = camera.quaternion;
+        }
         localMatrix.compose(position, quaternion, localVector.set(1, 1, 1));
 
         updateGrabbedObject(grabbedObject, localMatrix, localMatrix3.fromArray(grabAction.matrix), {
@@ -1664,8 +1697,34 @@ class GameManager extends EventTarget {
     localPlayer.removeAction('activate');
   }
   setAvatarQuality(quality) {
+    const applySettingToApp = app => {
+      const player = npcManager.getNpcByApp(app);
+      if (player && player.avatar) {
+        player.avatar.setQuality(quality);
+      } else if (app.appType === 'vrm' && app.avatarRenderer) {
+        app.avatarRenderer.setQuality(quality);
+      }
+    };
+
+    // local player
     const localPlayer = playersManager.getLocalPlayer();
     localPlayer.avatar.setQuality(quality);
+
+    // party members
+    for (const app of localPlayer.appManager.apps) {
+      applySettingToApp(app);
+    }
+
+    // remote players
+    for (const remotePlayer in playersManager.getRemotePlayers()) {
+      for (const app of remotePlayer.appManager.apps) {
+        applySettingToApp(app);
+      }
+    }
+
+    for (const app of world.appManager.apps) {
+      applySettingToApp(app);
+    }
   }
   playerDiorama = null;
   bindDioramaCanvas() {

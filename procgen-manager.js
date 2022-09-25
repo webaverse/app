@@ -12,10 +12,6 @@ const localArray2D = Array(2);
 
 //
 
-const _getMinHash2D = min =>
-  (min.x << 16) |
-  (min.y & 0xFFFF);
-
 class ProcGenInstance {
   constructor(instance, {
     chunkSize,
@@ -50,12 +46,25 @@ class ProcGenInstance {
     const tracker = new LodChunkTracker(opts2);
     return tracker;
   }
-  async generateChunk(position, lod, lodArray, {signal} = {}) {
+  async generateChunk(position, lod, lodArray, generateFlags, {signal} = {}) {
     await this.pgWorkerManager.waitForLoad();
 
     position.toArray(localArray2D);
-    const result = await this.pgWorkerManager.generateChunk(localArray2D, lod, lodArray, {signal});
-    // console.log('got result', result);
+    const result = await this.pgWorkerManager.generateChunk(localArray2D, lod, lodArray, generateFlags, {signal});
+    return result;
+  }
+  async generateVegetation(position, lod, numInstances, {signal} = {}) {
+    await this.pgWorkerManager.waitForLoad();
+
+    position.toArray(localArray2D);
+    const result = await this.pgWorkerManager.generateVegetation(localArray2D, lod, numInstances, {signal});
+    return result;
+  }
+  async generateGrass(position, lod, numInstances, {signal} = {}) {
+    await this.pgWorkerManager.waitForLoad();
+
+    position.toArray(localArray2D);
+    const result = await this.pgWorkerManager.generateGrass(localArray2D, lod, numInstances, {signal});
     return result;
   }
   /* async getLightMapper({
@@ -109,7 +118,8 @@ class ProcGenManager {
     return instance;
   }
   getNodeHash(node) {
-    return _getMinHash2D(node.min);
+    return (node.min.x << 16) |
+      (node.min.y & 0xFFFF);
   }
 }
 const procGenManager = new ProcGenManager();

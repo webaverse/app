@@ -40,13 +40,9 @@ class PartyManager extends EventTarget {
       const headPlayer = this.partyPlayers[0];
       const nextPlayer = this.partyPlayers[1];
 
-      headPlayer.isLocalPlayer = false;
-      headPlayer.isNpcPlayer = true;
+      headPlayer.setControlMode('party');
+      nextPlayer.setControlMode('controlled');
 
-      nextPlayer.isLocalPlayer = true;
-      nextPlayer.isNpcPlayer = false;
-
-      
       const transplantToParty = () => {
         // transplant apps to party
         const localPlayer = headPlayer;
@@ -104,7 +100,9 @@ class PartyManager extends EventTarget {
       // console.log('invitePlayer', newPlayer, this);
       this.partyPlayers.push(newPlayer);
       this.updateMemberTargets();
-      newPlayer.isInParty = true;
+      if (newPlayer.getControlMode() === 'npc') {
+        newPlayer.setControlMode('party');
+      }
 
       const expelPlayer = () => {
         const player = newPlayer;
@@ -114,7 +112,7 @@ class PartyManager extends EventTarget {
         this.transplantPartyAppToWorld(app);
         this.partyPlayers.splice(playerIndex, 1);
         this.updateMemberTargets();
-        player.isInParty = false;
+        newPlayer.setControlMode('npc');
       };
 
       const removePlayer = (player) => {

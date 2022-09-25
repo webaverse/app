@@ -2,28 +2,53 @@ import React, { useState, useEffect, useContext } from 'react';
 import classnames from 'classnames';
 
 // import * as ceramicApi from '../ceramic.js';
-import { discordClientId } from '../constants';
+// import { discordClientId } from '../constants';
 import { parseQuery } from '../util.js';
 // import Modal from './components/modal';
-import WebaWallet from './components/wallet';
+// import WebaWallet from './components/wallet';
 
-import blockchainManager from '../blockchain-manager.js';
+// import blockchainManager from '../blockchain-manager.js';
 import { AppContext } from './components/app';
 
 import styles from './User.module.css';
 
 import * as sounds from '../sounds.js';
+import Chains from './components/web3/chains';
 
 //
 
-export const User = ({ className, address, setAddress, setLoginFrom }) => {
+const UserPopover = ({
+    open = false,
+}) => {
+    return (
+        <div className={classnames(styles.userPopover, open ? styles.open : null)}>
+            <div className={styles.section}>
+                <div className={styles.header}>Loadout</div>
+                <div className={styles.content}></div>
+            </div>
+            <div className={styles.section}>
+                <div className={styles.header}>Homespace</div>
+                <div className={styles.content}></div>
+            </div>
+            <div className={styles.section}>
+                <div className={styles.header}>Rewards</div>
+                <div className={styles.content}></div>
+            </div>
+        </div>
+    );
+};
 
-    const { state, setState } = useContext( AppContext );
+export const User = ({ className, setLoginFrom }) => {
+
+    const { state, setState, account, chain } = useContext( AppContext );
     const [ensName, setEnsName] = useState('');
     const [avatarUrl, setAvatarUrl] = useState('');
     const [ loggingIn, setLoggingIn ] = useState(false);
-    const [ loginError, setLoginError ] = useState(null);
-    const [ autoLoginRequestMade, setAutoLoginRequestMade ] = useState(false);
+    // const [ loginError, setLoginError ] = useState(null);
+    // const [ autoLoginRequestMade, setAutoLoginRequestMade ] = useState(false);
+    const { isConnected, currentAddress, connectWallet, disconnectWallet, errorMessage, wrongChain, getAccounts, getAccountDetails } = account;
+    const { selectedChain } = chain;
+    const [address, setAddress] = useState('');
 
     //
 
@@ -36,10 +61,10 @@ export const User = ({ className, address, setAddress, setLoginFrom }) => {
 
     }; */
 
-    const openUserPanel = e => {
+    const toggleUserPopover = e => {
 
-        setState({ openedPanel: 'UserPanel' });
-    
+        setState({ openedPanel: !popoverOpen ? 'UserPopover' : null });
+
     };
 
     const handleCancelBtnClick = () => {
@@ -50,33 +75,38 @@ export const User = ({ className, address, setAddress, setLoginFrom }) => {
 
     };
 
-    const _setAddress = async address => {
-        
-        if (address) {
-            // let live = true;
-            // (async () => {
-                const ensName = await blockchainManager.getEnsName(address);
-                // if (!live) return;
-                setEnsName(ensName);
-
-                if ( ensName ) {
-                    const avatarUrl = await blockchainManager.getAvatarUrl(ensName);
-                    // if (!live) return;
-                    setAvatarUrl(avatarUrl);
-                }
-            // })();
-
-            /* return () => {
-                live = false;
-            }; */
-
-            // console.log('render name', {address, ensName, avatarUrl});
+    const resolveAvatar = url => {
+        const match = url.match(/^ipfs:\/\/(.+)/);
+        if (match) {
+            return `https://cloudflare-ipfs.com/ipfs/${match[1]}`;
+        } else {
+            return url;
         }
-
-        setAddress(address);
-    
     };
 
+    async function handleAddress(address) {
+        const {name, avatar} = await getAccountDetails(address);
+
+        setEnsName(name || '');
+        setAvatarUrl(avatar ? resolveAvatar(avatar) : '');
+        setAddress(address || '');
+
+    }
+
+    const shortAddress = address => {
+        if (address.length > 12) {
+            return address.slice(0, 7) + `...` + address.slice(-6);
+        } else {
+            return address;
+        }
+    };
+
+    useEffect(() => {
+        if (currentAddress) {
+            handleAddress(currentAddress);
+        }
+    }, [currentAddress, selectedChain])
+    
     const metaMaskLogin = async ( event ) => {
 
         event.preventDefault();
@@ -94,8 +124,8 @@ export const User = ({ className, address, setAddress, setLoginFrom }) => {
 
                 try {
 
-                    const { address, profile } = await ceramicApi.login();
-                    await _setAddress(address);
+                    const address = await connectWallet();
+                    
                     setLoginFrom('metamask');
                     // setShow(false);
                     // setLoginFrom('metamask');
@@ -124,7 +154,7 @@ export const User = ({ className, address, setAddress, setLoginFrom }) => {
 
         //
 
-        const discordAutoLogin = async () => {
+        /* const discordAutoLogin = async () => {
 
             const { address, error } = await WebaWallet.loginDiscord( code, id );
 
@@ -144,15 +174,15 @@ export const User = ({ className, address, setAddress, setLoginFrom }) => {
             window.history.pushState( {}, '', window.location.origin );
             setLoggingIn( false );
 
-        };
+        }; */
 
-        const metamaskAutoLogin = async () => {
+        /* const metamaskAutoLogin = async () => {
 
-            const { address } = await WebaWallet.autoLogin();
+            const address = await getAccounts();
 
             if ( address ) {
 
-                await _setAddress( address );
+                await handleAddress( address );
                 setLoginFrom( 'metamask' );
                 // setShow( false );
 
@@ -162,11 +192,11 @@ export const User = ({ className, address, setAddress, setLoginFrom }) => {
 
             }
 
-        };
+        }; */
 
         //
 
-        if ( ! autoLoginRequestMade ) {
+        /* if ( ! autoLoginRequestMade ) {
 
             setAutoLoginRequestMade( true );
 
@@ -198,9 +228,9 @@ export const User = ({ className, address, setAddress, setLoginFrom }) => {
 
             }
 
-        }
+        } */
 
-    }, [ address ] );
+    }, [ currentAddress ] );
 
     //
 
@@ -212,27 +242,28 @@ export const User = ({ className, address, setAddress, setLoginFrom }) => {
     
     //
 
-    const open = state.openedPanel === 'LoginPanel';
-    const loggedIn = !!address;
+    const loginOpen = state.openedPanel === 'LoginPanel';
+    const popoverOpen = state.openedPanel === 'UserPopover';
+    const loggedIn = isConnected;
 
     //
 
     return (
         <div
-            className={ classnames(
+            className={classnames(
                 styles.user,
-                open ? styles.open : null,
+                loginOpen ? styles.open : null,
                 loggedIn ? styles.loggedIn : null,
                 loggingIn ? styles.loggingIn : null,
                 className
-            ) }
+            )}
         >
             {!loggedIn &&
                 <div className={ styles.keyWrap } onClick={e => {
                     e.preventDefault();
                     e.stopPropagation();
 
-                        if ( !open ) {
+                        if ( !loginOpen ) {
 
                             setState({ openedPanel: 'LoginPanel' });
 
@@ -263,9 +294,13 @@ export const User = ({ className, address, setAddress, setLoginFrom }) => {
                 <div
                     className={styles.userWrap}
                 >
+                    <Chains />
                     <div
-                        className={styles.userBar}
-                        onClick={openUserPanel}
+                        className={classnames(
+                            styles.userBar,
+                            popoverOpen ? styles.open : null,
+                        )}
+                        onClick={toggleUserPopover}
                     >
                         {avatarUrl ? (
                             <div
@@ -274,23 +309,25 @@ export const User = ({ className, address, setAddress, setLoginFrom }) => {
                                 <img className={styles.img} src={avatarUrl} crossOrigin='Anonymous' />
                             </div>
                         ) : null}
-                        <div
-                            className={styles.address}
-                        >{ensName || address || ''} <img className={styles.verifiedIcon} src="./images/verified.svg" /></div>
+                        <div className={styles.nameWrap}>
+                            <div
+                                className={styles.address}
+                            >{ensName || shortAddress(address) || ''} <img className={styles.verifiedIcon} src="./images/verified.svg" /></div>
+                        </div>
                     </div>
                     <div className={styles.logoutBtn}
                         onClick={e => {
                             e.preventDefault();
                             e.stopPropagation();
-                            WebaWallet.logout();
-                            _setAddress(null);
+                            disconnectWallet();
                         }}
                     >Logout</div>
+                    <UserPopover open={popoverOpen} />
                 </div>
             }
             <div className={ classnames(
                 styles.userLoginMethodsModal,
-                open ? styles.opened : null,
+                loginOpen ? styles.opened : null,
             ) } >
                 <div className={ styles.title } >
                     <span>Log in</span>
@@ -300,7 +337,7 @@ export const User = ({ className, address, setAddress, setLoginFrom }) => {
                     <img src="images/metamask.png" alt="metamask" width="28px" />
                     <span className={ styles.methodBtnText } >MetaMask</span>
                 </div>
-                <a
+                {/* <a
                     href={ `https://discord.com/api/oauth2/authorize?client_id=${ discordClientId }&redirect_uri=${ window.location.origin }%2Flogin&response_type=code&scope=identify` }
                     onMouseEnter={ _triggerClickSound }
                 >
@@ -308,13 +345,13 @@ export const User = ({ className, address, setAddress, setLoginFrom }) => {
                         <img src="images/discord.png" alt="discord" width="28px" />
                         <span className={ styles.methodBtnText } >Discord</span>
                     </div>
-                </a>
+                </a> */}
                 <div className={ styles.methodBtn } onClick={ handleCancelBtnClick } onMouseEnter={ _triggerClickSound } >
                     <span className={ styles.methodBtnText } >Cancel</span>
                 </div>
             </div>
 
-            {/* <Modal onClose={ showModal } show={open && !loggingIn}>
+            {/* <Modal onClose={ showModal } show={loginOpen && !loggingIn}>
                 <div className={styles.login_options}>
                 
                     <div className={styles.loginDiv}>
