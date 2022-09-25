@@ -1,7 +1,6 @@
 
 import React, { useEffect, useState } from 'react';
 import classNames from 'classnames';
-// import { voicePacksUrl, voiceEndpointsUrl, defaultVoicePackName } from '../../../../constants';
 // import game from '../../../../game';
 import { Slider } from './slider';
 import * as voices from '../../../../voices';
@@ -11,6 +10,7 @@ import overrides from '../../../../overrides';
 import styles from './settings.module.css';
 
 import audioManager from '../../../../audio-manager.js';
+import localStorageManager from '../../../../localStorage-manager.js';
 
 //
 
@@ -61,13 +61,13 @@ export const TabAudio = ({ active }) => {
             voiceEndpoint:  voiceEndpoint,
         };
 
-        localStorage.setItem( 'AudioSettings', JSON.stringify( settings ) );
+        localStorageManager.setItem( 'AudioSettings', JSON.stringify( settings ) );
 
     };
 
     function loadSettings () {
 
-        const settingsString = localStorage.getItem( 'AudioSettings' );
+        const settingsString = localStorageManager.getItem( 'AudioSettings' );
         let settings;
 
         try {

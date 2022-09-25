@@ -8,7 +8,7 @@ import {
   /*accountsHost, loginEndpoint,*/ audioTimeoutTime,
 } from './constants.js';
 // import { getRenderer } from './renderer.js';
-import { IdAllocator } from './id-allocator';
+import {IdAllocator} from './id-allocator.js';
 
 const localVector = new THREE.Vector3();
 const localVector2 = new THREE.Vector3();
@@ -550,11 +550,11 @@ export async function contentIdToFile(contentId) {
   }
 }
 
-export const addDefaultLights = (scene, { shadowMap = false } = {}) => {
-  const ambientLight = new THREE.AmbientLight(0xffffff, 2);
+export const addDefaultLights = (scene/*, { shadowMap = false } = {} */) => {
+  const ambientLight = new THREE.AmbientLight(0xffffff, 1);
   scene.add(ambientLight);
   scene.ambientLight = ambientLight;
-  const directionalLight = new THREE.DirectionalLight(0xffffff, 2);
+  const directionalLight = new THREE.DirectionalLight(0xffffff, 4);
   directionalLight.position.set(1, 2, 3);
   scene.add(directionalLight);
   scene.directionalLight = directionalLight;
@@ -580,14 +580,14 @@ export const unFrustumCull = (o) => {
   });
 };
 
-export const enableShadows = (o) => {
+/* export const enableShadows = (o) => {
   o.traverse((o) => {
     if (o.isMesh) {
       o.castShadow = true;
       o.receiveShadow = true;
     }
   });
-};
+}; */
 
 export const capitalize = (s) => s[0].toUpperCase() + s.slice(1);
 
@@ -1063,16 +1063,35 @@ export const handleUpload = async (item, { onProgress = null } = {}) => {
   return u;
 };
 
-export const loadImage = (u) =>
-  new Promise((resolve, reject) => {
-    const img = new Image();
-    img.onload = () => {
-      resolve(img);
-    };
-    img.onerror = reject;
-    img.crossOrigin = 'Anonymous';
-    img.src = u;
-  });
+export const loadImage = (u) => new Promise((resolve, reject) => {
+  const img = new Image();
+  img.onload = () => {
+    resolve(img);
+  };
+  img.onerror = reject;
+  img.crossOrigin = 'Anonymous';
+  img.src = u;
+});
+export const blob2img = async blob => {
+  const url = URL.createObjectURL(blob);
+  try {
+    const img = await loadImage(url);
+    return img;
+  } finally {
+    URL.revokeObjectURL(url);
+  }
+};
+export const img2canvas = img => {
+  const canvas = document.createElement('canvas');
+  canvas.width = img.width;
+  canvas.height = img.height;
+  const ctx = canvas.getContext('2d');
+  ctx.drawImage(img, 0, 0);
+  return canvas;
+};
+export const canvas2blob = async (canvas, type, quality) => new Promise((resolve, reject) => {
+  canvas.toBlob(resolve, type, quality);
+});
 export const drawImageContain = (ctx, img) => {
   const imgWidth = img.width;
   const imgHeight = img.height;
@@ -1095,6 +1114,39 @@ export const drawImageContain = (ctx, img) => {
     y = 0;
   }
   ctx.drawImage(img, x, y, width, height);
+};
+export const canvasHasContent = canvas => {
+  if (canvas) {
+    const ctx = canvas.getContext('2d');
+    const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+    return imageData.data.some(n => n !== 0);
+  } else {
+    return true;
+  }
+};
+export const makeSquareImage = img => {
+  const newSize = img.width >= img.height ? img.width : img.height;
+
+  const canvas = document.createElement('canvas');
+  canvas.width = newSize;
+  canvas.height = newSize;
+
+  // get the top left color of the image
+  const ctx = canvas.getContext('2d');
+  ctx.drawImage(img, 0, 0, 1, 1, 0, 0, 1, 1);
+  const imageData = ctx.getImageData(0, 0, 1, 1);
+
+  // fill the canvas with the top left color
+  ctx.fillStyle = imageData.data[4] > 0 ?
+    `rgb(${imageData.data[0]}, ${imageData.data[1]}, ${imageData.data[2]})`
+  :
+    '#fff';
+  ctx.fillRect(0, 0, newSize, newSize);
+
+  // draw the image in the center
+  drawImageContain(ctx, img);
+  
+  return canvas;
 };
 export const imageToCanvas = (img, w, h) => {
   const canvas = document.createElement('canvas');
@@ -1228,3 +1280,31 @@ export const splitLinesToWidth = (() => {
     return lines;
   };
 })();
+
+export const getJsDataUrl = src => `data:application/javascript;charset=utf-8,${encodeURIComponent(src)}`
+
+export const fetchArrayBuffer = async srcUrl => {
+  const res = await fetch(srcUrl);
+  if (res.ok) {
+    const arrayBuffer = await res.arrayBuffer();
+    return arrayBuffer;
+  } else {
+    throw new Error('failed to load: ' + res.status + ' ' + srcUrl);
+  }
+};
+
+export const align = (v, N) => {
+  const r = v % N;
+  return r === 0 ? v : v - r + N;
+};
+export const align4 = v => align(v, 4);
+
+export const getClosestPowerOf2 = size => Math.ceil(Math.log2(size));
+
+export const getBoundingSize = boundingType => {
+  switch (boundingType) {
+    case 'sphere': return 4;
+    case 'box': return 6;
+    default: return 0;
+  }
+};

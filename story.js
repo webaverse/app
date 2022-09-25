@@ -7,7 +7,7 @@ import metaversefile from 'metaversefile';
 import {SwirlPass} from './SwirlPass.js';
 import {
   getRenderer,
-  getComposer,
+  // getComposer,
   rootScene,
   // sceneHighPriority,
   // scene,
@@ -23,9 +23,10 @@ import {chatManager} from './chat-manager.js';
 import {mod} from './util.js';
 import {playersManager} from './players-manager.js';
 import {alea} from './procgen/procgen.js';
+import renderSettingsManager from './rendersettings-manager.js';
 
-import { triggerEmote } from './src/components/general/character/Poses.jsx';
-import validEmotionMapping from "./validEmotionMapping.json";
+import {triggerEmote} from './src/components/general/character/Poses.jsx';
+import validEmotionMapping from './validEmotionMapping.json';
 
 const localVector2D = new THREE.Vector2();
 
@@ -36,27 +37,23 @@ function makeSwirlPass() {
   const size = renderer.getSize(localVector2D)
     .multiplyScalar(renderer.getPixelRatio());
   const resolution = size;
-
   const swirlPass = new SwirlPass(rootScene, camera, resolution.x, resolution.y);
-  // swirlPass.enabled = false;
   return swirlPass;
 }
+let swirlPass = null;
 const _startSwirl = () => {
-  const composer = getComposer();
-  if (!composer.swirlPass) {
-    composer.swirlPass = makeSwirlPass();
-    composer.passes.push(composer.swirlPass);
+  if (!swirlPass) {
+    swirlPass = makeSwirlPass();
+    renderSettingsManager.addExtraPass(swirlPass);
 
     sounds.playSoundName('battleTransition');
     musicManager.playCurrentMusicName('battle');
   }
 };
 const _stopSwirl = () => {
-  const composer = getComposer();
-  if (composer.swirlPass) {
-    const swirlPassIndex = composer.passes.indexOf(composer.swirlPass);
-    composer.passes.splice(swirlPassIndex, 1);
-    composer.swirlPass = null;
+  if (swirlPass) {
+    renderSettingsManager.removeExtraPass(swirlPass);
+    swirlPass = null;
 
     musicManager.stopCurrentMusic();
     return true;
@@ -550,7 +547,7 @@ story.listenHack = () => {
             const aiScene = metaversefile.useLoreAIScene();
             if (appType === 'npc') {
               const {name, description} = app.getLoreSpec();
-              const remotePlayer = npcManager.npcs.find(npc => npc.npcApp === app);
+              const remotePlayer = npcManager.getNpcByApp(app);
 
               if (remotePlayer) {
                 const {

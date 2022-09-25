@@ -14,10 +14,10 @@ import cameraManager from './camera-manager.js';
 import physicsManager from './physics-manager.js';
 import Avatar from './avatars/avatars.js';
 import {world} from './world.js';
-import ERC721 from './erc721-abi.json';
-import ERC1155 from './erc1155-abi.json';
-import {web3} from './blockchain.js';
-import {moduleUrls, modules} from './metaverse-modules.js';
+// import ERC721 from './erc721-abi.json';
+// import ERC1155 from './erc1155-abi.json';
+// import {web3} from './blockchain.js';
+import {moduleUrls, importModule} from './metaverse-modules.js';
 import {componentTemplates} from './metaverse-components.js';
 import postProcessing from './post-processing.js';
 import {getRandomString, memoize} from './util.js';
@@ -25,40 +25,47 @@ import * as mathUtils from './math-utils.js';
 import JSON6 from 'json-6';
 import * as geometries from './geometries.js';
 import * as materials from './materials.js';
-import meshLodManager from './mesh-lodder.js';
-import * as avatarCruncher from './avatar-cruncher.js';
-import * as avatarSpriter from './avatar-spriter.js';
+// import meshLodManager from './mesh-lodder.js';
+import {AvatarRenderer} from './avatars/avatar-renderer.js';
 import {chatManager} from './chat-manager.js';
 import loreAI from './ai/lore/lore-ai.js';
+import imageAI from './ai/image/image-ai.js';
+import audioAI from './ai/audio/audio-ai.js';
 import npcManager from './npc-manager.js';
 import mobManager from './mob-manager.js';
 import universe from './universe.js';
 import {PathFinder} from './npc-utils.js';
+import {avatarManager} from './avatar-manager.js';
+import {partyManager} from './party-manager.js';
 import {playersManager} from './players-manager.js';
 import loaders from './loaders.js';
 import * as voices from './voices.js';
 import * as procgen from './procgen/procgen.js';
-import {getHeight} from './avatars/util.mjs';
 import performanceTracker from './performance-tracker.js';
 import renderSettingsManager from './rendersettings-manager.js';
 import questManager from './quest-manager.js';
 import {murmurhash3} from './procgen/murmurhash3.js';
 import debug from './debug.js';
-import * as sceneCruncher from './scene-cruncher.js';
 import * as scenePreviewer from './scene-previewer.js';
 import * as sounds from './sounds.js';
-import * as lodder from './lod.js';
+// import * as lodder from './lod.js';
 import hpManager from './hp-manager.js';
 import particleSystemManager from './particle-system.js';
 import domRenderEngine from './dom-renderer.jsx';
 import dropManager from './drop-manager.js';
 import hitManager from './character-hitter.js';
-// import dcWorkerManager from './dc-worker-manager.js';
 import procGenManager from './procgen-manager.js';
 import cardsManager from './cards-manager.js';
-import * as instancing from './instancing.js';
+import * as geometryBuffering from './geometry-buffering.js';
+import * as geometryBatching from './geometry-batching.js';
+import * as geometryChunking from './geometry-chunking.js';
 import * as atlasing from './atlasing.js';
+import * as spriting from './spriting.js';
+import * as gpuTaskManager from './gpu-task-manager.js';
+import * as generationTaskManager from './generation-task-manager.js';
 import ioManager from './io-manager.js';
+import {lightsManager} from './engine-hooks/lights/lights-manager.js';
+import {skyManager} from './engine-hooks/environment/skybox/sky-manager.js';
 
 const localVector2D = new THREE.Vector2();
 
@@ -165,6 +172,19 @@ class App extends THREE.Object3D {
   getPhysicsObjects() {
     return this.physicsObjects;
   }
+  addPhysicsObject(object) {
+    this.physicsObjects.push(object);
+  }
+  removePhysicsObject(object) {
+    const removeIndex = this.physicsObjects.indexOf(object);
+    if (removeIndex !== -1) {
+      this.physicsObjects.splice(removeIndex);
+    }
+  }
+  setPhysicsObject(object) {
+    this.physicsObjects.length = 0;
+    this.physicsObjects.push(object);
+  }
   hit(damage, opts) {
     this.hitTracker && this.hitTracker.hit(damage, opts);
   }
@@ -206,7 +226,7 @@ class App extends THREE.Object3D {
 
 const defaultModules = {
   moduleUrls,
-  modules,
+  importModule,
 };
 
 const localPlayer = playersManager.getLocalPlayer();
@@ -339,10 +359,10 @@ const gradientMaps = {
   },
 };
 
-const abis = {
+/* const abis = {
   ERC721,
   ERC1155,
-};
+}; */
 
 /* debug.addEventListener('enabledchange', e => {
   document.getElementById('statsBox').style.display = e.data.enabled ? null : 'none';
@@ -434,6 +454,12 @@ metaversefile.setApi({
       },
     };
   },
+  useLightsManager() {
+    return lightsManager;
+  },
+  useSkyManager() {
+    return skyManager;
+  },
   useChatManager() {
     return chatManager;
   },
@@ -446,8 +472,20 @@ metaversefile.setApi({
   useLoreAIScene() {
     return loreAIScene;
   },
+  useImageAI() {
+    return imageAI;
+  },
+  useAudioAI() {
+    return audioAI;
+  },
   useVoices() {
     return voices;
+  },
+  useAvatarRenderer() {
+    return AvatarRenderer;
+  },
+  /* useAvatarOptimizer() {
+    return avatarOptimizer;
   },
   useAvatarCruncher() {
     return avatarCruncher;
@@ -457,7 +495,7 @@ metaversefile.setApi({
   },
   useSceneCruncher() {
     return sceneCruncher;
-  },
+  }, */
   useScenePreviewer() {
     return scenePreviewer;
   },
@@ -546,11 +584,17 @@ metaversefile.setApi({
   useRemotePlayers() {
     return Array.from(playersManager.getRemotePlayers().values());
   },
+  usePartyManager() {
+    return partyManager;
+  },
   useNpcManager() {
     return npcManager;
   },
   useMobManager() {
     return mobManager;
+  },
+  useAvatarManager() {
+    return avatarManager;
   },
   usePathFinder() {
     return PathFinder;
@@ -558,12 +602,12 @@ metaversefile.setApi({
   useLoaders() {
     return loaders;
   },
-  useLodder() {
+  /* useLodder() {
     return lodder;
-  },
-  useMeshLodder() {
+  }, */
+  /* useMeshLodder() {
     return meshLodManager;
-  },
+  }, */
   usePhysics(instance = null) {
     const app = currentAppRender;
     if (app) {
@@ -733,6 +777,12 @@ metaversefile.setApi({
         app.physicsObjects.push(physicsObject);
         return physicsObject;
       })(physicsScene.addCookedConvexGeometry);
+      physicsScene.addHeightFieldGeometry = (addHeightFieldGeometry => function(mesh) {
+        const physicsObject = addHeightFieldGeometry.apply(this, arguments);
+        // app.add(physicsObject);
+        app.physicsObjects.push(physicsObject);
+        return physicsObject;
+      })(physicsScene.addHeightFieldGeometry);
       physicsScene.removeGeometry = (removeGeometry => function(physicsObject) {
         removeGeometry.apply(this, arguments);
         
@@ -766,12 +816,12 @@ metaversefile.setApi({
   useDefaultModules() {
     return defaultModules;
   },
-  useWeb3() {
+  /* useWeb3() {
     return web3.mainnet;
   },
   useAbis() {
     return abis;
-  },
+  }, */
   useMathUtils() {
     return mathUtils;
   },
@@ -832,6 +882,8 @@ metaversefile.setApi({
   },
   createAppInternal({
     start_url = '',
+    type = '',
+    content = '',
     module = null,
     components = [],
     position = null,
@@ -901,11 +953,28 @@ metaversefile.setApi({
     _updateComponents();
 
     // load
-    if (start_url || module) {
+    function typeContentToUrl(type, content) {
+      if (typeof content === 'object') {
+        content = JSON.stringify(content);
+      }
+      const dataUrlPrefix = 'data:' + type + ',';
+      return '/@proxy/' + dataUrlPrefix + encodeURIComponent(content).replace(/\%/g, '%25')//.replace(/\\//g, '%2F');
+    }
+    function getObjectUrl(start_url, type, content) {
+      if (start_url) {
+        return start_url;
+      } else if (type && content) {
+        return typeContentToUrl(type, content);
+      } else {
+        return null;
+      }
+    }
+    const u = getObjectUrl(start_url, type, content);
+    if (u || module) {
       const p = (async () => {
         let m;
-        if (start_url) {
-          m = await metaversefile.import(start_url);
+        if (u) {
+          m = await metaversefile.import(u);
         } else {
           m = module;
         }
@@ -915,7 +984,7 @@ metaversefile.setApi({
         onWaitPromise(p);
       }
     }
-    
+
     return app;
   },
   createApp(spec) {
@@ -972,6 +1041,7 @@ export default () => {
     return world.appManager.removeTrackedApp.apply(world.appManager, arguments);
   },
   getPlayerByAppInstanceId(instanceId) {
+    const localPlayer = playersManager.getLocalPlayer();
     let result = localPlayer.appManager.getAppByInstanceId(instanceId);
     if (result) {
       return localPlayer;
@@ -1128,9 +1198,6 @@ export default () => {
     // default
     return null;
   },
-  getAvatarHeight(obj) {
-    return getHeight(obj);
-  },
   useInternals() {
     if (!iframeContainer) {
       iframeContainer = document.getElementById('iframe-container');
@@ -1179,11 +1246,26 @@ export default () => {
   useGeometries() {
     return geometries;
   },
-  useInstancing() {
-    return instancing;
+  useGeometryBuffering() {
+    return geometryBuffering;
+  },
+  useGeometryBatching() {
+    return geometryBatching;
+  },
+  useGeometryChunking() {
+    return geometryChunking;
   },
   useAtlasing() {
     return atlasing;
+  },
+  useSpriting() {
+    return spriting;
+  },
+  useGPUTask() {
+    return gpuTaskManager;
+  },
+  useGenerationTask() {
+    return generationTaskManager;
   },
   useMaterials() {
     return materials;

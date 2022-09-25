@@ -1,6 +1,6 @@
 import {Vector3, Quaternion, AnimationClip, MathUtils} from 'three';
 import metaversefile from 'metaversefile';
-import {/* VRMSpringBoneImporter, VRMLookAtApplyer, */ VRMCurveMapper} from '@pixiv/three-vrm/lib/three-vrm.module.js';
+import {VRMCurveMapper} from '@pixiv/three-vrm-core';
 // import easing from '../easing.js';
 import {easing} from '../math-utils.js';
 import loaders from '../loaders.js';
@@ -27,19 +27,13 @@ import {
 } from '../util.js';
 
 import {
-  // idleFactorSpeed,
-  // walkFactorSpeed,
-  // runFactorSpeed,
-  narutoRunTimeFactor,
-} from './constants.js';
-
-import {
   crouchMaxTime,
   // useMaxTime,
   aimMaxTime,
   // avatarInterpolationFrameRate,
   // avatarInterpolationTimeDelay,
   // avatarInterpolationNumFrames,
+  narutoRunTimeFactor,
 } from '../constants.js';
 
 const localVector = new Vector3();
@@ -335,6 +329,7 @@ export const loadPromise = (async () => {
     bowDraw: animations.find(a => a.isBowDraw),
     bowIdle: animations.find(a => a.isBowIdle),
     bowLoose: animations.find(a => a.isBowLoose),
+    pickaxe: animations.find(a => a.isPickaxe),
   }, aimAnimations);
   sitAnimations = {
     chair: animations.find(a => a.isSitting),

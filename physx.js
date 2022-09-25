@@ -1684,6 +1684,50 @@ const physxWorker = (() => {
     return shapeAddress;
   };
 
+  w.addHeightFieldGeometryPhysics = (physics, numRows, numColumns, heights, heightScale, rowScale, columnScale, dynamic, external, id) => {
+    // numRows, numColumns and heights must be int.
+
+    const numVerts = numRows * numColumns;
+    for (let i = 0; i < numVerts; i++) {
+      scratchStack.u32[i] = heights[i];
+    }
+
+    Module._cookHeightFieldGeometryPhysics(
+      numRows,
+      numColumns,
+      scratchStack.ptr,
+      scratchStack.u32.byteOffset,
+      scratchStack.u32.byteOffset + Uint32Array.BYTES_PER_ELEMENT,
+      scratchStack.u32.byteOffset + Uint32Array.BYTES_PER_ELEMENT * 2
+    )
+
+    const dataPtr = scratchStack.u32[0]
+    const dataLength = scratchStack.u32[1]
+    const streamPtr = scratchStack.u32[2]
+
+    const heightField = Module._createHeightFieldPhysics(
+      physics,
+      dataPtr,
+      dataLength,
+      streamPtr,
+    )
+
+    const materialAddress = w.getDefaultMaterial(physics);
+
+    Module._addHeightFieldGeometryPhysics(
+      physics,
+      heightField,
+      heightScale,
+      rowScale,
+      columnScale,
+      id,
+      materialAddress,
+      +dynamic,
+      +external,
+      heightField,
+    )
+  }
+
   w.getGeometryPhysics = (physics, id) => {
     const allocator = new Allocator(Module)
     const positionsBuffer = allocator.alloc(Float32Array, 1024 * 1024 * 2)

@@ -41,13 +41,26 @@ export const getEyePosition = (() => {
       // .add(localVector2.set(0, 0.06, 0));
   }
 })();
-export const getHeight = (() => {
+export const getAvatarHeight = (() => {
   const localVector = new THREE.Vector3();
-  return function(object) {
-    const modelBones = getModelBones(object);
-    return getEyePosition(modelBones)
-      .sub(modelBones.Root.getWorldPosition(localVector))
-      .y;
+  const localBox = new THREE.Box3();
+  return function(modelBones) {
+    const avatarHeight = getEyePosition(modelBones).sub(
+      localVector.setFromMatrixPosition(modelBones.Root.matrixWorld)
+    ).y;
+    const headBoundingBox = localBox.setFromObject(modelBones.Head);
+    let headHeight = headBoundingBox.max.y - headBoundingBox.min.y;
+    headHeight = Math.max(headHeight, 0);
+    return avatarHeight + headHeight / 2;
+  };
+})();
+export const getAvatarWidth = (() => {
+  const localVector1 = new THREE.Vector3();
+  const localVector2 = new THREE.Vector3();
+  return function (modelBones) {
+    return modelBones.Left_arm.getWorldPosition(localVector1).distanceTo(
+      modelBones.Right_arm.getWorldPosition(localVector2)
+    );
   };
 })();
 export const makeBoneMap = object => {
@@ -559,6 +572,7 @@ export const decorateAnimation = animation => {
   animation.isPickUpZelda = /pick_up_zelda/i.test(animation.name);
   animation.isPickUpIdleZelda = /pick_up_idle_zelda/i.test(animation.name);
   animation.isPutDownZelda = /put_down_zelda/i.test(animation.name);
+  animation.isPickaxe = /pickaxe_swing/i.test(animation.name);
   animation.isReverse = /reverse/i.test(animation.name);
   // animation.isLanding = /landing/i.test(animation.name);
   // animation.isChargeJumpFall = /charge_jump_fall/i.test(animation.name);

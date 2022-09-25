@@ -20,19 +20,7 @@ const getSingleModelGeoMat = model => {
 
 const Text = useText();
 const gltfLoader = new GLTFLoader();
-let nameplateMesh = null;
 
-async function createNameplateMesh() {
-  const nameplateModel = await gltfLoader.loadAsync('/assets/nameplate.glb');
-  const {geometry, material} = getSingleModelGeoMat(nameplateModel);
-  nameplateMesh = new THREE.InstancedMesh(geometry, material, 1000);
-}
-
-const createNameplateInstance = () => {
-  if (!nameplateMesh) return -1;
-  if (!nameplateMesh.instanceIndex) nameplateMesh.instanceIndex = 0;
-  return nameplateMesh.instanceIndex++;
-};
 
 async function getTextMesh(
   text = '',
@@ -57,11 +45,28 @@ async function getTextMesh(
 }
 
 export default () => {
+
+  let nameplateMesh = null;
+  let textGroup = null;
+  async function createNameplateMesh() {
+    const nameplateModel = await gltfLoader.loadAsync('/assets/nameplate.glb');
+    const {geometry, material} = getSingleModelGeoMat(nameplateModel);
+    nameplateMesh = new THREE.InstancedMesh(geometry, material, 1000);
+  }
+
+  const createNameplateInstance = () => {
+    if (!nameplateMesh) return -1;
+    if (!nameplateMesh.instanceIndex) nameplateMesh.instanceIndex = 0;
+    return nameplateMesh.instanceIndex++;
+  };
+
+
+
   const app = useApp();
   const camera = useCamera();
   const player = app.getComponent('player');
 
-  let textGroup = null;
+  
   const lastPlateToCamera = new THREE.Vector3();
   let instIndex = -1;
   let plateToCameraAngle = 0;
@@ -87,9 +92,11 @@ export default () => {
     );
     textMesh.position.set(0, 0, 0.001);
     textMesh.updateMatrixWorld(true);
+    if(!textGroup){
     textGroup = new THREE.Group();
-    textGroup.add(textMesh);
     app.add(textGroup);
+    }
+    textGroup.add(textMesh);
   })();
 
   useFrame(() => {

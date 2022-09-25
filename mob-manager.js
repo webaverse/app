@@ -9,7 +9,7 @@ import {alea} from './procgen/procgen.js';
 import {createRelativeUrl} from './util.js';
 import dropManager from './drop-manager.js';
 import loaders from './loaders.js';
-import {InstancedBatchedMesh, InstancedGeometryAllocator} from './instancing.js';
+import {InstancedBatchedMesh, InstancedGeometryAllocator} from './geometry-batching.js';
 import {createTextureAtlas} from './atlasing.js';
 
 const localVector = new THREE.Vector3();

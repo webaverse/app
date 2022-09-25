@@ -186,6 +186,7 @@ export const Character = ({ game, /* wearActions,*/ dioramaCanvasRef }) => {
     };
 
     function onCharacterSelectClick(e) {
+
         setState({ openedPanel: ( state.openedPanel === 'CharacterSelect' ? null : 'CharacterSelect' ) });
 
         /* if ( state.openedPanel === 'CharacterSelect' ) {

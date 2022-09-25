@@ -129,11 +129,10 @@ class ZTargeting extends THREE.Object3D {
   waitForLoad() {
     if (!this.loadPromise) {
       this.loadPromise = (async () => {
+        const {importModule} = metaverseModules;
+        const m = await importModule('targetReticle');
+        
         const targetReticleApp = metaversefile.createApp();
-        await metaverseModules.waitForLoad();
-
-        const {modules} = metaverseModules;
-        const m = modules['targetReticle'];
         await targetReticleApp.addModule(m);
         scene.add(targetReticleApp);
         this.targetReticleApp = targetReticleApp;

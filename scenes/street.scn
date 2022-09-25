@@ -4,14 +4,14 @@
       "type": "application/light",
       "content": {
         "lightType": "ambient",
-        "args": [[255, 255, 255], 2]
+        "args": [[255, 255, 255], 1]
       }
     },
     {
       "type": "application/light",
       "content": {
         "lightType": "directional",
-        "args": [[255, 255, 255], 2],
+        "args": [[255, 255, 255], 3],
         "position": [1, 2, 3]
       }
     },
@@ -92,6 +92,18 @@
         "voice": "Maud Pie",
         "bio": "13/F Lisk Witch (black mage). She is 100% quirky and is always creating crazy new potions. She has a dark streak and is known to torment her teachers when they give her bad grades.",
         "wear": [
+          {
+            "start_url": "https://webaverse.github.io/character-stats-banner/",
+            "components": [
+              {
+                "key": "wear",
+                "value": {
+                  "boneAttachment": "head",
+                  "position": [0.7, 0, 0]
+                }
+              }
+            ]
+          }
         ]
       }
     },

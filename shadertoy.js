@@ -7,9 +7,9 @@ const worldSize = 2;
 const hackShaderName = 'anime radial'; */
 
 const _makeRenderTarget = (width, height) => new THREE.WebGLRenderTarget(width, height, {
-  format: THREE.RGBAFormat,
-  type: THREE.FloatType,
-  encoding: THREE.sRGBEncoding,
+  // format: THREE.RGBAFormat,
+  // type: THREE.FloatType,
+  // encoding: THREE.sRGBEncoding,
 });
 class ShaderToyPass {
   constructor({type, is, code, os, renderTarget}, parent) {
@@ -84,10 +84,15 @@ class ShaderToyPass {
           
           ${this.code}
 
+          vec4 sRGBToLinear( in vec4 value ) {
+            return vec4( mix( pow( value.rgb * 0.9478672986 + vec3( 0.0521327014 ), vec3( 2.4 ) ), value.rgb * 0.0773993808, vec3( lessThanEqual( value.rgb, vec3( 0.04045 ) ) ) ), value.a );
+          }
+
           void main() {
             vec2 fragCoord = vUv * iResolution.xy;
             mainImage(fragColor, fragCoord);
             fragColor.a = 1.;
+            fragColor = sRGBToLinear(fragColor);
             // ${this.type === 'image' ? `fragColor.a = 1.;` : ''};
             // fragColor = vec4(vUv, 0.0, 1.0);
           }
@@ -153,16 +158,6 @@ const _makeRenderTargetMesh = (renderTarget, worldWidth, worldHeight) => {
     side: THREE.DoubleSide,
   });
   const mesh = new THREE.Mesh(geometry, material);
-  mesh.onBeforeRender = () => {
-    const renderer = getRenderer();
-    const context = renderer.getContext();
-    context.disable(context.SAMPLE_ALPHA_TO_COVERAGE);
-  };
-  mesh.onAfterRender = () => {
-    const renderer = getRenderer();
-    const context = renderer.getContext();
-    context.enable(context.SAMPLE_ALPHA_TO_COVERAGE);
-  };
   return mesh;
 };
 /* let numRenderTargetMeshes = 0;
@@ -302,19 +297,9 @@ class ShadertoyRenderer {
     this.frame++;
 
     if (this.loaded) {
-      // console.log('update start');
-
-      const renderer = getRenderer();
-      const context = renderer.getContext();
-      context.disable(context.SAMPLE_ALPHA_TO_COVERAGE);
-
       for (const renderPass of this.renderPasses) {
         renderPass.update();
       }
-      
-      context.enable(context.SAMPLE_ALPHA_TO_COVERAGE);
-      
-      // console.log('update end');
     }
   }
 }

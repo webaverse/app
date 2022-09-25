@@ -5,7 +5,7 @@ import * as BufferGeometryUtils from 'three/examples/jsm/utils/BufferGeometryUti
 // import {fitCameraToBoundingBox} from './util.js';
 import {Text} from 'troika-three-text';
 // import {defaultDioramaSize} from './constants.js';
-import {fullscreenGeometry, gradients} from './background-fx/common.js';
+import {fullscreenGeometry} from './background-fx/common.js';
 import {OutlineBgFxMesh} from './background-fx/OutlineBgFx.js';
 import {NoiseBgFxMesh} from './background-fx/NoiseBgFx.js';
 import {PoisonBgFxMesh} from './background-fx/PoisonBgFx.js';
@@ -15,7 +15,8 @@ import {DotsBgFxMesh} from './background-fx/DotsBgFx.js';
 import {LightningBgFxMesh} from './background-fx/LightningBgFx.js';
 import {RadialBgFxMesh} from './background-fx/RadialBgFx.js';
 import {GrassBgFxMesh} from './background-fx/GrassBgFx.js';
-import {playersManager} from './players-manager.js';
+import {WebaverseScene} from './webaverse-scene.js';
+import {lightsManager} from './engine-hooks/lights/lights-manager.js';
 
 const localVector = new THREE.Vector3();
 const localVector2 = new THREE.Vector3();
@@ -429,7 +430,7 @@ outlineRenderScene.name = 'outlineRenderScene';
 outlineRenderScene.autoUpdate = false;
 outlineRenderScene.overrideMaterial = skinnedRedMaterial;
 
-const sideScene = new THREE.Scene();
+const sideScene = new WebaverseScene();
 sideScene.name = 'sideScene';
 sideScene.autoUpdate = false;
 sideScene.add(lightningMesh);
@@ -454,9 +455,9 @@ sideScene.add(textObject);
 };
 _addPreviewLights(sideScene); */
 const autoLights = (() => {
-  const ambientLight = new THREE.AmbientLight(0xffffff, 2);
+  const ambientLight = new THREE.AmbientLight(0xffffff, 1);
 
-  const directionalLight = new THREE.DirectionalLight(0xffffff, 2);
+  const directionalLight = new THREE.DirectionalLight(0xffffff, 3);
   directionalLight.position.set(1, 2, 3);
   directionalLight.updateMatrixWorld();
 
@@ -591,18 +592,18 @@ const createPlayerDiorama = ({
         grassBackground = true;
       }
     },
-    triggerLoad() {
+    /* triggerLoad() {
       Promise.all([
-        /* (async () => {
+        (async () => {
           await renderer.compileAsync(player.avatar.model, outlineRenderScene);
         })(),
         (async () => {
           await renderer.compileAsync(player.avatar.model, sideScene);
-        })(), */
+        })(),
       ]).then(() => {
-        // this.loaded = true;
+        this.loaded = true;
       });
-    },
+    }, */
     setCameraOffset(newCameraOffset) {
       cameraOffset.copy(newCameraOffset);
     },
@@ -637,11 +638,32 @@ const createPlayerDiorama = ({
         for (const object of objects) {
           scene.add(object);
         }
+      };
+
+      const _addAutoLightsToScene = scene => {
         if (lights) {
           for (const autoLight of autoLights) {
             scene.add(autoLight);
           }
         }
+      };
+
+      const _addRootLightsToScene = scene => {
+        const restoreFn = [];
+        for (const light of lightsManager.lights) {
+          const oldParent = light.parent;
+          restoreFn.push(() => {
+            if(oldParent){
+              oldParent.add(light);
+            }
+          });
+          scene.add(light);
+        }
+        return () => {
+          for (const fn of restoreFn) {
+            fn();
+          }
+        };
       };
 
       // push old state
@@ -702,15 +724,19 @@ const createPlayerDiorama = ({
 
         // set up side avatar scene
         _addObjectsToScene(outlineRenderScene);
+        _addAutoLightsToScene(outlineRenderScene);
         // outlineRenderScene.add(world.lights);
         // render side avatar scene
         renderer.setRenderTarget(outlineRenderTarget);
         renderer.setClearColor(0x000000, 0);
         renderer.clear();
-        renderer.render(outlineRenderScene, sideCamera);
+        if (outline) {
+          renderer.render(outlineRenderScene, sideCamera);
+        }
         
         // set up side scene
         _addObjectsToScene(sideScene);
+        const restoreRootLightsFn = _addRootLightsToScene(sideScene);
         // sideScene.add(world.lights);
     
         const _renderGrass = () => {
@@ -826,6 +852,7 @@ const createPlayerDiorama = ({
           for (const canvas of canvases) {
             const {width, height, ctx} = canvas;
             ctx.clearRect(0, 0, width, height);
+            // ctx.filter = 'brightness(1.25)';
             ctx.drawImage(
               renderer.domElement,
               0,
@@ -840,6 +867,8 @@ const createPlayerDiorama = ({
           }
         };
         _copyFrame();
+
+        restoreRootLightsFn();
       };
       _render();
 
@@ -856,25 +885,6 @@ const createPlayerDiorama = ({
       }
     },
   };
-
-  /* function recompile() {
-    diorama.triggerLoad();
-  }
-  const compile = () => {
-    diorama.triggerLoad();
-    postProcessing.addEventListener('update', recompile);
-  }
-  if (player.avatar) {
-    compile();
-  } else {
-    function avatarchange() {
-      if (player.avatar) {
-        compile();
-        player.removeEventListener('avatarchange', avatarchange);
-      }
-    }
-    player.addEventListener('avatarchange', avatarchange);
-  } */
 
   if (!detached) {
     dioramas.push(diorama);

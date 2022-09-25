@@ -361,6 +361,9 @@ const _makeTargetReticleMesh = () => {
         // gl_FragColor = vec4(vUv.x, vUv.y, 0., 1.);
         
         gl_FragColor = vec4(c, 1.);
+
+        #include <tonemapping_fragment>
+        #include <encodings_fragment>
       }
     `,
     side: THREE.DoubleSide,

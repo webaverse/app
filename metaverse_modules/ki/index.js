@@ -10,13 +10,6 @@ const localEuler = new THREE.Euler(0, 0, 0, 'YXZ');
 
 const identityQuaternion = new THREE.Quaternion();
 
-let kiGlbApp = null;
-const loadPromise = (async () => {
-  kiGlbApp = await metaversefile.createAppAsync({
-    start_url: baseUrl + 'ki.glb',
-  });
-})();
-
 const color1 = new THREE.Color(0x59C173);
 const color2 = new THREE.Color(0xa17fe0);
 
@@ -337,6 +330,9 @@ export default e => {
             c *= min(max(1.-pow(timeDiff*${(animationSpeed * 1).toFixed(8)}, 2.), 0.), 1.);
             c = pow4(c, 6.) * 2.;
             gl_FragColor = c;
+
+            #include <tonemapping_fragment>
+            #include <encodings_fragment>
           } else {
             discard;
           }
@@ -350,11 +346,15 @@ export default e => {
 
   const object = new THREE.Object3D();
   app.add(object);
+
+  let kiGlbApp = null;
   let groundWind = null;
   let capsule = null;
   let aura = null;
   e.waitUntil((async () => {
-    await loadPromise;
+    kiGlbApp = await metaversefile.createAppAsync({
+      start_url: baseUrl + 'ki.glb',
+    });
 
     kiGlbApp.traverse(o => {
       if (o.isMesh) {
@@ -455,76 +455,82 @@ export default e => {
     // window.auraParticles = auraParticles;
 
     const _updateGroundWind = () => {
-      const positionsAttribute = groundWind.geometry.getAttribute('positions');
-      const positions = positionsAttribute.array;
+      if (groundWind) {
+        const positionsAttribute = groundWind.geometry.getAttribute('positions');
+        const positions = positionsAttribute.array;
 
-      const quaternionsAttribute = groundWind.geometry.getAttribute('quaternions');
-      const quaternions = quaternionsAttribute.array;
+        const quaternionsAttribute = groundWind.geometry.getAttribute('quaternions');
+        const quaternions = quaternionsAttribute.array;
 
-      const startTimesAttribute = groundWind.geometry.attributes.startTimes;
-      const startTimes = startTimesAttribute.array;
-      startTimes.fill(-1);
-      let startTimesIndex = 0;
-      
-      for (const particle of groundWindParticles) {
-        const index = startTimesIndex++;
-        particle.position.toArray(positions, index * 3);
-        particle.quaternion.toArray(quaternions, index * 4);
-        startTimes[index] = particle.startTime;
+        const startTimesAttribute = groundWind.geometry.attributes.startTimes;
+        const startTimes = startTimesAttribute.array;
+        startTimes.fill(-1);
+        let startTimesIndex = 0;
+        
+        for (const particle of groundWindParticles) {
+          const index = startTimesIndex++;
+          particle.position.toArray(positions, index * 3);
+          particle.quaternion.toArray(quaternions, index * 4);
+          startTimes[index] = particle.startTime;
+        }
+
+        positionsAttribute.needsUpdate = true;
+        quaternionsAttribute.needsUpdate = true;
+        startTimesAttribute.needsUpdate = true;
+        groundWind.count = groundWindParticles.length;
       }
-
-      positionsAttribute.needsUpdate = true;
-      quaternionsAttribute.needsUpdate = true;
-      startTimesAttribute.needsUpdate = true;
-      groundWind.count = groundWindParticles.length;
     };
     const _updateCapsule = () => {
-      const positionsAttribute = capsule.geometry.getAttribute('positions');
-      const positions = positionsAttribute.array;
+      if (capsule) {
+        const positionsAttribute = capsule.geometry.getAttribute('positions');
+        const positions = positionsAttribute.array;
 
-      const quaternionsAttribute = capsule.geometry.getAttribute('quaternions');
-      const quaternions = quaternionsAttribute.array;
+        const quaternionsAttribute = capsule.geometry.getAttribute('quaternions');
+        const quaternions = quaternionsAttribute.array;
 
-      const startTimesAttribute = capsule.geometry.attributes.startTimes;
-      const startTimes = startTimesAttribute.array;
-      startTimes.fill(-1);
-      let startTimesIndex = 0;
-      
-      for (const particle of capsuleParticles) {
-        const index = startTimesIndex++;
-        particle.position.toArray(positions, index * 3);
-        particle.quaternion.toArray(quaternions, index * 4);
-        startTimes[index] = particle.startTime;
+        const startTimesAttribute = capsule.geometry.attributes.startTimes;
+        const startTimes = startTimesAttribute.array;
+        startTimes.fill(-1);
+        let startTimesIndex = 0;
+        
+        for (const particle of capsuleParticles) {
+          const index = startTimesIndex++;
+          particle.position.toArray(positions, index * 3);
+          particle.quaternion.toArray(quaternions, index * 4);
+          startTimes[index] = particle.startTime;
+        }
+
+        positionsAttribute.needsUpdate = true;
+        quaternionsAttribute.needsUpdate = true;
+        startTimesAttribute.needsUpdate = true;
+        capsule.count = capsuleParticles.length;
       }
-
-      positionsAttribute.needsUpdate = true;
-      quaternionsAttribute.needsUpdate = true;
-      startTimesAttribute.needsUpdate = true;
-      capsule.count = capsuleParticles.length;
     };
     const _updateAura = () => {
-      const positionsAttribute = aura.geometry.getAttribute('positions');
-      const positions = positionsAttribute.array;
+      if (aura) {
+        const positionsAttribute = aura.geometry.getAttribute('positions');
+        const positions = positionsAttribute.array;
 
-      const quaternionsAttribute = aura.geometry.getAttribute('quaternions');
-      const quaternions = quaternionsAttribute.array;
+        const quaternionsAttribute = aura.geometry.getAttribute('quaternions');
+        const quaternions = quaternionsAttribute.array;
 
-      const startTimesAttribute = aura.geometry.attributes.startTimes;
-      const startTimes = startTimesAttribute.array;
-      startTimes.fill(-1);
-      let startTimesIndex = 0;
-      
-      for (const particle of auraParticles) {
-        const index = startTimesIndex++;
-        particle.position.toArray(positions, index * 3);
-        particle.quaternion.toArray(quaternions, index * 4);
-        startTimes[index] = particle.startTime;
+        const startTimesAttribute = aura.geometry.attributes.startTimes;
+        const startTimes = startTimesAttribute.array;
+        startTimes.fill(-1);
+        let startTimesIndex = 0;
+        
+        for (const particle of auraParticles) {
+          const index = startTimesIndex++;
+          particle.position.toArray(positions, index * 3);
+          particle.quaternion.toArray(quaternions, index * 4);
+          startTimes[index] = particle.startTime;
+        }
+
+        positionsAttribute.needsUpdate = true;
+        quaternionsAttribute.needsUpdate = true;
+        startTimesAttribute.needsUpdate = true;
+        aura.count = auraParticles.length;
       }
-
-      positionsAttribute.needsUpdate = true;
-      quaternionsAttribute.needsUpdate = true;
-      startTimesAttribute.needsUpdate = true;
-      aura.count = auraParticles.length;
     };
 
     if (now >= nextGroundWindParticleTime) {

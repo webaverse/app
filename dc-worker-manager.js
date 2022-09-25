@@ -1,6 +1,6 @@
 // import * as THREE from 'three';
 import {chunkMinForPosition, getLockChunkId} from './util.js';
-import {LockManager, abortError} from './lock-manager.js';
+import {abortError} from './lock-manager.js';
 
 //
 
@@ -30,7 +30,7 @@ export class DcWorkerManager {
 
     this.workers = [];
     this.nextWorker = 0;
-    this.locks = new LockManager();
+    // this.locks = new LockManager();
     this.loadPromise = null;
 
     // trigger load

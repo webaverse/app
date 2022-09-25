@@ -9,6 +9,8 @@ import debug from '../../../../debug';
 
 import styles from './settings.module.css';
 
+import localStorageManager from '../../../../localStorage-manager.js';
+
 //
 
 const ApiTypes = [ 'NONE', 'AI21', 'GOOSEAI', 'OPENAI', 'CONVAI' ];
@@ -113,7 +115,7 @@ export const TabAi = ({ active }) => {
             }
         }
 
-        localStorage.setItem( 'AiSettings', JSON.stringify( settings ) );
+        localStorageManager.setItem( 'AiSettings', JSON.stringify( settings ) );
 
         updateLoreEndpoint(apiType);
 
@@ -122,7 +124,7 @@ export const TabAi = ({ active }) => {
     async function loadSettings () {
 
         // load local storage
-        const settingsString = localStorage.getItem( 'AiSettings' );
+        const settingsString = localStorageManager.getItem( 'AiSettings' );
         let settings;
 
         try {

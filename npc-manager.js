@@ -1,6 +1,13 @@
+/*
+npc manager tracks instances of all npcs.
+npcs includes,
+  - character npcs in party system
+  - world npcs
+  - detached npcs for player select view
+*/
+
 import * as THREE from 'three';
 import Avatar from './avatars/avatars.js';
-import physicsManager from './physics-manager.js';
 import {LocalPlayer} from './character-controller.js';
 import {playersManager} from './players-manager.js';
 import * as voices from './voices.js';
@@ -9,10 +16,15 @@ import {chatManager} from './chat-manager.js';
 import {makeId, createRelativeUrl} from './util.js';
 import { triggerEmote } from './src/components/general/character/Poses.jsx';
 import validEmotionMapping from "./validEmotionMapping.json";
+import metaversefile from './metaversefile-api.js';
+import {runSpeed, walkSpeed} from './constants.js';
+import {characterSelectManager} from './characterselect-manager.js';
 
 const localVector = new THREE.Vector3();
+const localVector2 = new THREE.Vector3();
 
-const physicsScene = physicsManager.getScene();
+const updatePhysicsFnMap = new WeakMap();
+const updateAvatarsFnMap = new WeakMap();
 const cancelFnMap = new WeakMap();
 
 class NpcManager extends EventTarget {
@@ -20,12 +32,52 @@ class NpcManager extends EventTarget {
     super();
 
     this.npcs = [];
+    this.npcAppMap = new WeakMap();
+    this.detachedNpcs = [];
+    this.targetMap = new WeakMap();
+  }
+
+  getAppByNpc(npc) {
+    return this.npcAppMap.get(npc);
+  }
+
+  getNpcByApp(app) {
+    return this.npcs.find(npc => this.getAppByNpc(npc) === app);
+  }
+
+  async initDefaultPlayer() {
+    const defaultPlayerSpec = await characterSelectManager.getDefaultSpecAsync();
+    const localPlayer = metaversefile.useLocalPlayer();
+    // console.log('set player spec', defaultPlayerSpec);
+    await localPlayer.setPlayerSpec(defaultPlayerSpec);
+
+    const createPlayerApp = () => {
+      const app = metaversefile.createApp();
+      app.instanceId = makeId(5);
+      app.name = 'player';
+      app.contentId = defaultPlayerSpec.avatarUrl;
+      return app;
+    };
+    const app = createPlayerApp();
+
+    const addDefaultPlayer = () => {
+      this.addPlayerApp(app, localPlayer, defaultPlayerSpec);
+
+      this.dispatchEvent(new MessageEvent('defaultplayeradd', {
+        data: {
+          player: localPlayer,
+        }
+      }));
+
+      app.addEventListener('destroy', () => {
+        this.removeNpcApp(app);
+      });
+    };
+    addDefaultPlayer();
   }
 
   async createNpcAsync({
     name,
-    npcApp,
-    // avatarApp,
     avatarUrl,
     position,
     quaternion,
@@ -55,17 +107,8 @@ class NpcManager extends EventTarget {
       npcPlayer.updateMatrixWorld();
     }
 
-    npcPlayer.npcApp = npcApp; // for lore AI
-    if (npcApp) {
-      npcApp.npcPlayer = npcPlayer; // for character select
-    }
-
     await npcPlayer.setAvatarUrl(avatarUrl);
     npcPlayer.updateAvatar(0, 0);
-
-    if (!detached) {
-      this.npcs.push(npcPlayer);
-    }
 
     return npcPlayer;
   }
@@ -73,25 +116,74 @@ class NpcManager extends EventTarget {
   destroyNpc(npcPlayer) {
     npcPlayer.destroy();
 
+    this.dispatchEvent(new MessageEvent('playerremove', {
+      data: {
+        player: npcPlayer,
+      }
+    }));
+
     const removeIndex = this.npcs.indexOf(npcPlayer);
     if (removeIndex !== -1) {
       this.npcs.splice(removeIndex, 1);
+      this.npcAppMap.delete(npcPlayer);
     }
   }
 
-  async addNpcApp(app, srcUrl) {
-    const localPlayer = playersManager.getLocalPlayer();
+  setPartyTarget(player, target) {
+    this.targetMap.set(player, target);
+  }
+
+  getPartyTarget(player) {
+    return this.targetMap.get(player);
+  }
+
+  updatePhysics(timestamp, timeDiff) {
+    for (const npc of this.npcs) {
+      const updatePhysicsFn = updatePhysicsFnMap.get(this.getAppByNpc(npc));
+      if (updatePhysicsFn) {
+        updatePhysicsFn(timestamp, timeDiff);
+      }
+    }
+    for (const npc of this.detachedNpcs) {
+      const updatePhysicsFn = updatePhysicsFnMap.get(this.getAppByNpc(npc));
+      if (updatePhysicsFn) {
+        updatePhysicsFn(timestamp, timeDiff);
+      }
+    }
+  }
+
+  updateAvatar(timestamp, timeDiff) {
+    for (const npc of this.npcs) {
+      const updateAvatarsFn = updateAvatarsFnMap.get(this.getAppByNpc(npc));
+      if (updateAvatarsFn) {
+        updateAvatarsFn(timestamp, timeDiff);
+      }
+    }
+    for (const npc of this.detachedNpcs) {
+      const updateAvatarsFn = updateAvatarsFnMap.get(this.getAppByNpc(npc));
+      if (updateAvatarsFn) {
+        updateAvatarsFn(timestamp, timeDiff);
+      }
+    }
+  }
+
+  async addPlayerApp(app, npcPlayer, json) {
+    this.npcAppMap.set(npcPlayer, app);
+
+    this.dispatchEvent(new MessageEvent('playeradd', {
+      data: {
+        player: npcPlayer,
+      }
+    }));
 
     let live = true;
-    let json = null;
-    let npcPlayer = null;
     let character = null;
     const cancelFns = [
       () => {
         live = false;
 
         if (npcPlayer) {
-          npcManager.destroyNpc(npcPlayer);
+          this.destroyNpc(npcPlayer);
         }
         if (character) {
           world.loreAIScene.removeCharacter(character);
@@ -110,13 +202,11 @@ class NpcManager extends EventTarget {
     const hurtAnimation = animations.find(a => a.isHurt);
     const hurtAnimationDuration = hurtAnimation.duration;
 
-    app.getPhysicsObjects = () => npcPlayer ? [npcPlayer.characterPhysics.characterController] : [];
+    app.setPhysicsObject(npcPlayer.characterPhysics.characterController);
     app.getLoreSpec = () => {
-      const name = json.name ?? 'Anon';
-      const description = json.bio ?? '';
       return {
-        name,
-        description,
+        name: json.name,
+        description: json.bio,
       }
     };
 
@@ -142,62 +232,79 @@ class NpcManager extends EventTarget {
         app.addEventListener('hittrackeradded', hittrackeradd);
 
         const activate = () => {
-          if (targetSpec?.object !== localPlayer) {
-            targetSpec = {
-              type: 'follow',
-              object: localPlayer,
-            };
+          if (npcPlayer.getControlMode() === 'npc') {
+            this.dispatchEvent(new MessageEvent('playerinvited', {
+              data: {
+                player: npcPlayer,
+              }
+            }));
           } else {
-            targetSpec = null;
+            npcPlayer.dispatchEvent({
+              type: 'activate'
+            });
           }
         };
         app.addEventListener('activate', activate);
 
-        const slowdownFactor = 0.4;
-        const walkSpeed = 0.075 * slowdownFactor;
-        const runSpeed = walkSpeed * 8;
-        const speedDistanceRate = 0.07;
-        const frame = e => {
-          if (npcPlayer && physicsScene.getPhysicsEnabled()) {
-            const {timestamp, timeDiff} = e.data;
-            
-            if (targetSpec) {
-              const target = targetSpec.object;
-              const v = localVector.setFromMatrixPosition(target.matrixWorld)
-                .sub(npcPlayer.position);
-              v.y = 0;
-              const distance = v.length();
-              if (targetSpec.type === 'moveto' && distance < 2) {
-                targetSpec = null;
-              } else {
-                const speed = Math.min(Math.max(walkSpeed + ((distance - 1.5) * speedDistanceRate), 0), runSpeed);
-                v.normalize()
-                  .multiplyScalar(speed * timeDiff);
-                npcPlayer.characterPhysics.applyWasd(v);
+        const followTarget = (player, target, timeDiff) => {
+          if (target) {
+            const v = localVector.setFromMatrixPosition(target.matrixWorld)
+              .sub(player.position);
+            v.y = 0;
+            const distance = v.length();
+
+            const speed = THREE.MathUtils.clamp(
+              THREE.MathUtils.mapLinear(
+                distance,
+                2, 3.5,
+                walkSpeed, runSpeed,
+              ),
+              0, runSpeed,
+            );
+            const velocity = v.normalize().multiplyScalar(speed);
+            player.characterPhysics.applyWasd(velocity, timeDiff);
+
+            return distance;
+          }
+          return 0;
+        };
+        const updatePhysicsFn = (timestamp, timeDiff) => {
+          if (npcPlayer) {
+            if (npcPlayer.getControlMode() !== 'controlled') {
+              if (npcPlayer.getControlMode() === 'party') { // if party, follow in a line
+                const target = this.getPartyTarget(npcPlayer);
+                followTarget(npcPlayer, target, timeDiff);
+              } else if (npcPlayer.getControlMode() === 'npc') {
+                if (targetSpec) { // if npc, look to targetSpec
+                  const target = targetSpec.object;
+                  const distance = followTarget(npcPlayer, target, timeDiff);
+
+                  if (target) {
+                    if (targetSpec.type === 'moveto' && distance < 2) {
+                      targetSpec = null;
+                    }
+                  }
+                }
               }
+              const localPlayer = playersManager.getLocalPlayer();
+              npcPlayer.setTarget(localPlayer.position);
             }
 
-            npcPlayer.setTarget(localPlayer.position);
-
-            /* if (isNaN(npcPlayer.position.x)) {
-              debugger;
-            } */
             npcPlayer.updatePhysics(timestamp, timeDiff);
-            /* if (isNaN(npcPlayer.position.x)) {
-              debugger;
-            } */
-            npcPlayer.updateAvatar(timestamp, timeDiff);
-            /* if (isNaN(npcPlayer.position.x)) {
-              debugger;
-            } */
           }
         };
-        world.appManager.addEventListener('frame', frame);
+        const updateAvatarFn = (timestamp, timeDiff) => {
+          npcPlayer.updateAvatar(timestamp, timeDiff);
+        };
+
+        updatePhysicsFnMap.set(app, updatePhysicsFn);
+        updateAvatarsFnMap.set(app, updateAvatarFn);
 
         cancelFns.push(() => {
           app.removeEventListener('hittrackeradded', hittrackeradd);
           app.removeEventListener('activate', activate);
-          world.appManager.removeEventListener('frame', frame);
+          updatePhysicsFnMap.delete(app);
+          updateAvatarsFnMap.delete(app);
         });
       };
       _listenEvents();
@@ -205,18 +312,9 @@ class NpcManager extends EventTarget {
 
     // load
     if (mode === 'attached') {
-      // load json
-      const res = await fetch(srcUrl);
-      if (!live) return;
-      json = await res.json();
-      if (!live) return;
-
-      // npc pameters
-      let avatarUrl = json.avatarUrl;
-      avatarUrl = createRelativeUrl(avatarUrl, srcUrl);
-      const npcName = json.name ?? 'Anon';
-      const npcVoiceName = json.voice ?? 'Shining armor';
-      const npcBio = json.bio ?? 'A generic avatar.';
+      const npcName = json.name;
+      const npcVoiceName = json.voice;
+      const npcBio = json.bio;
       const npcDetached = !!json.detached;
       let npcWear = json.wear ?? [];
       if (!Array.isArray(npcWear)) {
@@ -230,6 +328,8 @@ class NpcManager extends EventTarget {
           bio: npcBio,
         });
         character.addEventListener('say', e => {
+          const localPlayer = playersManager.getLocalPlayer();
+
           const {message, emote, action, object, target} = e.data;
           const chatId = makeId(5);
 
@@ -273,18 +373,13 @@ class NpcManager extends EventTarget {
       };
       _addToAiScene();
 
-      // create npc
-      const newNpcPlayer = await npcManager.createNpcAsync({
-        name: npcName,
-        npcApp: app,
-        // avatarApp: vrmApp,
-        avatarUrl,
-        position: app.position.clone()
-          .add(new THREE.Vector3(0, 1, 0)),
-        quaternion: app.quaternion,
-        scale: app.scale,
-        detached: npcDetached,
-      });
+      const newNpcPlayer = npcPlayer;
+
+      if (!npcDetached) {
+        this.npcs.push(npcPlayer);
+      } else {
+        this.detachedNpcs.push(npcPlayer);
+      }
 
       // attach to scene
       const _addPlayerAvatarToApp = () => {
@@ -310,8 +405,14 @@ class NpcManager extends EventTarget {
       // wearables
       const _updateWearables = async () => {
         const wearablePromises = npcWear.map(wear => (async () => {
-          const {start_url} = wear;
-          const app = await newNpcPlayer.appManager.addTrackedApp(start_url);
+          const {start_url, components} = wear;
+          const app = await newNpcPlayer.appManager.addTrackedApp(
+            start_url,
+            undefined,
+            undefined,
+            undefined,
+            components,
+          );
           /* const app = await metaversefile.createAppAsync({
             start_url,
           }); */
@@ -322,10 +423,43 @@ class NpcManager extends EventTarget {
         await wearablePromises;
       };
       await _updateWearables();
-      if (!live) return;
+    }
+  }
+
+  async addNpcApp(app, srcUrl) {
+    let json = null;
+
+    const mode = app.getComponent('mode') ?? 'attached';
+
+    // load
+    if (mode === 'attached') {
+      // load json
+      const res = await fetch(srcUrl);
+      json = await res.json();
+      //if (!live) return;
+
+      const npcName = json.name;
+
+      // npc pameters
+      let avatarUrl = json.avatarUrl;
+      avatarUrl = createRelativeUrl(avatarUrl, srcUrl);
+
+      const npcDetached = !!json.detached;
+
+      const position = localVector.setFromMatrixPosition(app.matrixWorld)
+        .add(localVector2.set(0, 1, 0));
       
-      // latch
-      npcPlayer = newNpcPlayer;
+      // create npc
+      const newNpcPlayer = await this.createNpcAsync({
+        name: npcName,
+        avatarUrl,
+        position,
+        quaternion: app.quaternion,
+        scale: app.scale,
+        detached: npcDetached,
+      });
+
+      this.addPlayerApp(app, newNpcPlayer, json);
     }
   }
   removeNpcApp(app) {

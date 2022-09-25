@@ -42,6 +42,14 @@
       }
     },
     {
+      "type": "application/light",
+      "content": {
+        "lightType": "directional",
+        "args": [[255, 255, 255], 4],
+        "position": [1, 2, 3]
+      }
+    },
+    {
       "position": [3, 164 ,75],
       "quaternion": [
         0,

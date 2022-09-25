@@ -2,7 +2,7 @@ import React, { useEffect, useRef, useContext, useState } from 'react';
 
 import CharacterHups from './CharacterHups.jsx';
 import game from '../game.js'
-import * as hacks from '../hacks.js'
+// import * as hacks from '../hacks.js'
 import cameraManager from '../camera-manager.js'
 import metaversefile from '../metaversefile-api.js'
 import ioManager from '../io-manager.js'
@@ -10,7 +10,7 @@ import ioManager from '../io-manager.js'
 import { Character } from './components/general/character';
 import { CharacterSelect } from './components/general/character-select';
 import { Equipment } from './components/general/equipment';
-import { Tokens } from './tabs/tokens';
+// import { Tokens } from './tabs/tokens';
 import { registerIoEventHandler, unregisterIoEventHandler } from './components/general/io-handler';
 import { AppContext } from './components/app';
 import { AvatarIcon } from './AvatarIcon';
@@ -159,7 +159,7 @@ export default function Header() {
 
                         setState({ openedPanel: ( state.openedPanel === 'CharacterPanel' ? null : 'CharacterPanel' ) });
 
-                        if ( state.openedPanel === 'CharacterPanel' && ! cameraManager.pointerLockElement ) {
+                        if ( state.openedPanel === 'CharacterPanel' && !cameraManager.pointerLockElement ) {
 
                             cameraManager.requestPointerLock();
 
@@ -293,7 +293,7 @@ export default function Header() {
                         panelsRef={panelsRef}
                     /> */}
                 </div>
-                <div className={styles.panels}>
+                {/* <div className={styles.panels}>
                     <Tokens
                         nfts={nfts}
                         hacks={hacks}
@@ -301,7 +301,7 @@ export default function Header() {
                         setNfts={setNfts}
                         loginFrom={loginFrom}
                     />
-                </div>
+                </div> */}
             {/* </div> */}
         </div>
     );

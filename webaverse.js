@@ -10,7 +10,7 @@ import physx from './physx.js';
 import ioManager from './io-manager.js';
 import physicsManager from './physics-manager.js';
 import {world} from './world.js';
-import * as blockchain from './blockchain.js';
+// import * as blockchain from './blockchain.js';
 import cameraManager from './camera-manager.js';
 import game from './game.js';
 import hpManager from './hp-manager.js';
@@ -21,6 +21,7 @@ import particleSystemManager from './particle-system.js';
 import loadoutManager from './loadout-manager.js';
 import questManager from './quest-manager.js';
 import mobManager from './mob-manager.js';
+import {environmentSfxManager} from './environmentSfxManager';
 import {
   getRenderer,
   scene,
@@ -28,12 +29,12 @@ import {
   sceneLowPriority,
   rootScene,
   camera,
-  dolly,
+  // dolly,
   bindCanvas,
   getComposer,
 } from './renderer.js';
 import transformControls from './transform-controls.js';
-import * as metaverseModules from './metaverse-modules.js';
+// import * as metaverseModules from './metaverse-modules.js';
 import dioramaManager from './diorama.js';
 import * as voices from './voices.js';
 import performanceTracker from './performance-tracker.js';
@@ -47,6 +48,8 @@ import story from './story.js';
 import zTargeting from './z-targeting.js';
 import raycastManager from './raycast-manager.js';
 import universe from './universe.js';
+import npcManager from './npc-manager.js';
+import settingsManager from './settings-manager.js';
 
 const localVector = new THREE.Vector3();
 const localVector2 = new THREE.Vector3();
@@ -87,7 +90,6 @@ export default class Webaverse extends EventTarget {
         zTargeting.waitForLoad(),
         particleSystemManager.waitForLoad(),
         transformControls.waitForLoad(),
-        metaverseModules.waitForLoad(),
         voices.waitForLoad(),
         musicManager.waitForLoad(),
         WebaWallet.waitForLoad(),
@@ -124,7 +126,7 @@ export default class Webaverse extends EventTarget {
   }
   bindInterface() {
     ioManager.bindInterface();
-    blockchain.bindInterface();
+    // blockchain.bindInterface();
   }
   bindCanvas(c) {
     bindCanvas(c);
@@ -307,23 +309,23 @@ export default class Webaverse extends EventTarget {
           ioManager.update(timeDiffCapped);
           // this.injectRigInput();
           
-          const localPlayer = metaversefileApi.useLocalPlayer();
           const physicsScene = physicsManager.getScene();
           if (this.contentLoaded && physicsScene.getPhysicsEnabled()) {
             physicsScene.simulatePhysics(timeDiffCapped);
             physicsScene.getTriggerEvents();
-            localPlayer.updatePhysics(timestamp, timeDiffCapped);
+            npcManager.updatePhysics(timestamp, timeDiffCapped);
           }
 
           transformControls.update();
           raycastManager.update(timestamp, timeDiffCapped);
           game.update(timestamp, timeDiffCapped);
-          
-          localPlayer.updateAvatar(timestamp, timeDiffCapped);
+
+          npcManager.updateAvatar(timestamp, timeDiffCapped);
           playersManager.updateRemotePlayers(timestamp, timeDiffCapped);
           
           world.appManager.tick(timestamp, timeDiffCapped, frame);
 
+          environmentSfxManager.update(timestamp, timeDiffCapped);
           mobManager.update(timestamp, timeDiffCapped);
           hpManager.update(timestamp, timeDiffCapped);
           questManager.update(timestamp, timeDiffCapped);
@@ -339,7 +341,7 @@ export default class Webaverse extends EventTarget {
           const xrCamera = session ? renderer.xr.getCamera(camera) : camera;
           localMatrix.multiplyMatrices(xrCamera.projectionMatrix, /*localMatrix2.multiplyMatrices(*/xrCamera.matrixWorldInverse/*, physx.worldContainer.matrixWorld)*/);
           localMatrix2.copy(xrCamera.matrix)
-            .premultiply(dolly.matrix)
+            .premultiply(camera.matrix)
             .decompose(localVector, localQuaternion, localVector2);
           
           lastTimestamp = timestamp;
@@ -580,8 +582,14 @@ const _startHacks = webaverse => {
       webaverse.dispatchEvent(new MessageEvent('titlecardhackchange', {
         data: {
           titleCardHack: webaverse.titleCardHack,
-        }
+        },
       }));
+    } else if (e.code === 'Home') { // home
+      const quality = settingsManager.adjustCharacterQuality(-1);
+      game.setAvatarQuality(quality);
+    } else if (e.code === 'End') { // end
+      const quality = settingsManager.adjustCharacterQuality(1);
+      game.setAvatarQuality(quality);
     } else {
       const match = e.code.match(/^Numpad([0-9])$/);
       if (match) {

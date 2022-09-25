@@ -11,7 +11,7 @@ import physicsManager from './physics-manager.js';
 import metaversefile from 'metaversefile';
 import * as metaverseModules from './metaverse-modules.js';
 import {jsonParse} from './util.js';
-import {worldMapName} from './constants.js';
+import {appsMapName} from './constants.js';
 
 const localVector = new THREE.Vector3();
 const localVector2 = new THREE.Vector3();
@@ -33,7 +33,7 @@ const physicsScene = physicsManager.getScene();
 const appManagers = [];
 class AppManager extends EventTarget {
   constructor({
-    appsArray = new Z.Doc().getArray(worldMapName),
+    appsArray = new Z.Doc().getArray(appsMapName),
   } = {}) {
     super();
     
@@ -304,9 +304,10 @@ class AppManager extends EventTarget {
       const {instanceId, app} = e.data;
       
       this.unbindTrackedApp(instanceId);
-      
-      this.removeApp(app);
-      app.destroy();
+      if (app){
+        this.removeApp(app);
+        app.destroy();
+      }
     });
     this.addEventListener('trackedappimport', async e => {
       const {
@@ -334,6 +335,11 @@ class AppManager extends EventTarget {
       } else if (destinationAppManager === this) {
         if (!this.apps.includes(app)) {
           this.apps.push(app);
+
+          app.dispatchEvent({
+            type: 'migrated',
+            appManager: this,
+          });
         }
       }
     });
@@ -403,6 +409,9 @@ class AppManager extends EventTarget {
     return null;
   }
   hasTrackedApp(instanceId) {
+    if (!this.appsArray) {
+      throw new Error('AppManager should be bound');
+    }
     for (const app of this.appsArray) {
       if (app.get('instanceId') === instanceId) {
         return true;
@@ -665,12 +674,18 @@ class AppManager extends EventTarget {
     // iterate over appsArray
     for (const trackedApp of this.appsArray) {
       const transform = trackedApp.get('transform');
-      const components = trackedApp.get('components') ?? [];
-      const object = {
-        transform,
-        components,
-      };
-      // console.log('got app object', object);
+      const position = [ transform[0], transform[1], transform[2]];
+      const quaternion = [ transform[3], transform[4], transform[5], transform[6]];
+      const scale = [ transform[7], transform[8], transform[9]];
+
+      const components = trackedApp.get('components');
+      const object = {};
+
+      // Check for identities and skip them -- we don't need to serialize a scale 1,1,1 for example
+      if(position[0] !== 0 || position[1] !== 0 || position[2] !== 0) object.position = position;
+      if(quaternion[0] !== 0 || quaternion[1] !== 0 || quaternion[2] !== 0) object.quaternion = quaternion;
+      if(scale[0] !== 1 || scale[1] !== 1 || scale[2] !== 1) object.scale = scale;
+      if(components && components.length > 0) object.components = components;
     
       let contentId = trackedApp.get('contentId');
       const match = contentId.match(/^\/@proxy\/data:([^;,]+),([\s\S]*)$/);
@@ -680,13 +695,13 @@ class AppManager extends EventTarget {
         object.type = type;
         object.content = jsonParse(content) ?? {};
       } else {
-        object.contentId = contentId;
+        object.start_url = contentId;
       }
 
       objects.push(object);
     }
 
-    return objects;
+    return { objects };
   }
   destroy() {
     if (!this.isBound()) {

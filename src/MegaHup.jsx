@@ -42,7 +42,7 @@ const MegaHup = function({
         diorama = dioramaManager.createPlayerDiorama({
           target: npcPlayer,
           objects: [
-            npcPlayer.avatar.model,
+            npcPlayer.avatar.avatarRenderer.scene,
           ],
           cameraOffset: new THREE.Vector3(-0.8, 0, -0.4),
           // label: true,

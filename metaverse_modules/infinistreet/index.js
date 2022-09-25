@@ -1,9 +1,5 @@
 import * as THREE from 'three';
-import * as ThreeVrm from '@pixiv/three-vrm';
-const {MToonMaterial} = ThreeVrm;
-// window.ThreeVrm = ThreeVrm;
-// import easing from './easing.js';
-// import {StreetGeometry} from './StreetGeometry.js';
+import {MToonMaterial} from '@pixiv/three-vrm-materials-mtoon';
 import metaversefile from 'metaversefile';
 const {useApp, useFrame, useActivate, useGeometries, useLoaders, usePhysics, useProcGen, addTrackedApp, useDefaultModules, useCleanup} = metaversefile;
 

@@ -1,9 +1,9 @@
-import * as THREE from 'three';
+// import * as THREE from 'three';
 import {Pass} from 'three/examples/jsm/postprocessing/Pass.js';
 import {
-  scene,
-  sceneHighPriority,
-  sceneLowPriority,
+  // scene,
+  // sceneHighPriority,
+  // sceneLowPriority,
   rootScene,
   camera,
 } from './renderer.js';
@@ -12,8 +12,8 @@ class WebaverseRenderPass extends Pass {
   constructor() {
     super();
 
+    this.clear = false;
     this.needsSwap = true;
-    this.clear = true;
 
     this.internalDepthPass = null;
     this.internalRenderPass = null;
@@ -25,9 +25,8 @@ class WebaverseRenderPass extends Pass {
       this.internalDepthPass.setSize(width, height);
     }
     if (this.internalRenderPass) {
-      this.internalRenderPass.setSize(width,height);
+      this.internalRenderPass.setSize(width, height);
     }
-
 	}
   render(renderer, renderTarget, readBuffer, deltaTime, maskActive) {
     this.onBeforeRender && this.onBeforeRender();
@@ -41,7 +40,7 @@ class WebaverseRenderPass extends Pass {
       this.internalRenderPass.renderToScreen = this.renderToScreen;
       this.internalRenderPass.render(renderer, renderTarget, readBuffer, deltaTime, maskActive);
     } else {
-      renderer.setRenderTarget(renderTarget);
+      renderer.setRenderTarget(this.renderToScreen ? null : renderTarget);
       renderer.clear();
       renderer.render(rootScene, camera);
     }
