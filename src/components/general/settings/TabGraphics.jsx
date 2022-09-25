@@ -7,6 +7,8 @@ import metaversefileApi from '../../../../metaversefile-api'
 import settingsManager from '../../../../settings-manager.js';
 import { Switch } from './switch';
 
+import localStorageManager from '../../../../localStorage-manager.js';
+
 import styles from './settings.module.css';
 
 //

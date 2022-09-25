@@ -2,6 +2,8 @@
 import React, { useState, useEffect } from 'react';
 import classNames from 'classnames';
 
+import localStorageManager from '../../../../localStorage-manager.js';
+
 import { KeyInput } from './key-input';
 
 import styles from './settings.module.css';
@@ -55,13 +57,13 @@ export const TabControls = ({ active }) => {
             inventory
         };
 
-        localStorage.setItem( 'ControlsSettings', JSON.stringify( settings ) );
+        localStorageManager.setItem( 'ControlsSettings', JSON.stringify( settings ) );
 
     };
 
     function loadSettings () {
 
-        const settingsString = localStorage.getItem( 'ControlsSettings' );
+        const settingsString = localStorageManager.getItem( 'ControlsSettings' );
         let settings;
 
         try {

@@ -1,5 +1,5 @@
 import {minAvatarQuality, maxAvatarQuality} from './constants.js';
-
+import localStorageManager from './localStorage-manager.js';
 const DefaultSettings = {
   resolution:         'HIGH',
   antialias:          'NONE',
@@ -23,7 +23,7 @@ class SettingsManager extends EventTarget {
   }
 
   getSettings() {
-    const settingsString = localStorage.getItem( 'GfxSettings' );
+    const settingsString = localStorageManager.getItem( 'GfxSettings' );
     let settings;
 
     try {
@@ -79,7 +79,7 @@ class SettingsManager extends EventTarget {
   }
 
   saveSettings(settings) {
-    localStorage.setItem( 'GfxSettings', JSON.stringify( settings ) );
+    localStorageManager.setItem( 'GfxSettings', JSON.stringify( settings ) );
     this.dispatchEvent(new MessageEvent('change', {
       data: {
         settings: settings

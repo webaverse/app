@@ -10,6 +10,7 @@ import overrides from '../../../../overrides';
 import styles from './settings.module.css';
 
 import audioManager from '../../../../audio-manager.js';
+import localStorageManager from '../../../../localStorage-manager.js';
 
 //
 
@@ -60,13 +61,13 @@ export const TabAudio = ({ active }) => {
             voiceEndpoint:  voiceEndpoint,
         };
 
-        localStorage.setItem( 'AudioSettings', JSON.stringify( settings ) );
+        localStorageManager.setItem( 'AudioSettings', JSON.stringify( settings ) );
 
     };
 
     function loadSettings () {
 
-        const settingsString = localStorage.getItem( 'AudioSettings' );
+        const settingsString = localStorageManager.getItem( 'AudioSettings' );
         let settings;
 
         try {
