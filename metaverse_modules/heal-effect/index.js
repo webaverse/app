@@ -13,7 +13,7 @@ let playEffect = false;
 export default () => {
   let player = null;
   const app = useApp();
-  const {camera} = useInternals();
+  const {camera, renderer} = useInternals();
   app.playEffect = (p) =>{
     playEffect = true;
     player = p;
@@ -229,13 +229,13 @@ export default () => {
               idAttribute.setX(i,i);
           }
           idAttribute.needsUpdate = true;
+          app.add(flashMesh);
       }
       addInstancedMesh();
       const pixel = new THREE.Points(pixelGeometry, pixelMaterial);
       group.add(pixel);
+      app.add(group);
 
-      let storeMaterial = false;
-      let particleAlreadyInScene= false;
       let circlePlay = false;
       let materialStartTime = -1;
       let healMaterial = [];
@@ -279,11 +279,6 @@ export default () => {
             const pixelScaleAttribute = pixel.geometry.getAttribute('scales');
 
             if(playEffect){
-                if(!particleAlreadyInScene){
-                  app.add(flashMesh);
-                  app.add(group);
-                  particleAlreadyInScene=true;
-                }
                 for (let i = 0; i < flashParticleCount; i++) {
                   dir.x = camera.position.x-player.position.x;
                   dir.y = camera.position.y-player.position.y;
@@ -414,13 +409,7 @@ export default () => {
                     healMaterial[i].r = 0;
                     healMaterial[i].g = 0;
                     healMaterial[i].b = 0;
-                    if(particleAlreadyInScene){
-                      app.remove(group);
-                      app.remove(flashMesh);
-                      particleAlreadyInScene=false;
-                      materialStartTime = 0;
-                    }
-                    
+                    materialStartTime = 0;
                   }
                       
               }
