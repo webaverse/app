@@ -299,16 +299,6 @@ export const App = () => {
 
     useEffect( _loadUrlState, [] );
 
-    useEffect( () => {
-
-        if ( canvasRef.current ) {
-
-            _startApp( app, canvasRef.current );
-
-        }
-
-    }, [ canvasRef ] );
-
     //
 
     const onDragOver = e => {
