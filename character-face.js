@@ -38,13 +38,13 @@ export class AvatarCharacterFace {
             this.character.avatar.volume = (0.2 - ((timestamp/1000 - this.mouthMovementStartTime) / this.mouthMovementReleaseTime) * 0.2)/12;
             if(timestamp/1000 - this.mouthMovementStartTime >= this.mouthMovementReleaseTime){
                 this.mouthMovementState=null;
-                this.manuallySetMouth=false;
+                this.enableAudioWorkerSetVolume=false;
                 this.mouthMovementStartTime = -1;
             }
         }
-        const _handleMouthMovementNull=()=>{
-            this.mouthMovementState = this.manuallySetMouth ? 'attack' : null;
-            this.mouthMovementStartTime = timestamp/1000;
+        const _handleMouthMovementInit = () =>{
+            this.mouthMovementState = !this.enableAudioWorkerSetVolume ? 'attack' : null;
+            this.mouthMovementStartTime = timestamp / 1000;
         }
         switch (this.mouthMovementState) {
             case 'attack': {
@@ -63,15 +63,15 @@ export class AvatarCharacterFace {
                 _handleMouthMovementRelease();
                 break;
             }
-            case null: {
-                _handleMouthMovementNull();
+            case 'init': {
+                _handleMouthMovementInit();
                 break;
             }
         }
     }
     setMouthMoving(attack, decay, sustain, release){
-        this.mouthMovementState=null;
-        this.manuallySetMouth=true;
+        this.mouthMovementState='init';
+        this.enableAudioWorkerSetVolume=true;
         this.mouthMovementAttackTime=attack;
         this.mouthMovementDecayTime=decay;
         this.mouthMovementSustainTime=sustain;
