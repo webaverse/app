@@ -81,6 +81,9 @@ class Conversation extends EventTarget {
 
     this.messages = [];
     this.finished = false;
+    this.questChecked = false;
+    this.questChecking = false;
+    this.givesQuest = false;
     this.progressing = false;
     this.deltaY = 0;
 
@@ -158,6 +161,10 @@ class Conversation extends EventTarget {
     }
   }
   progressChat() {
+    if (this.questChecking) {
+      return;
+    }
+    
     console.log('progress chat');
 
     this.wrapProgress(async () => {
@@ -177,6 +184,10 @@ class Conversation extends EventTarget {
     });
   }
   progressSelf() {
+    if (this.questChecking) {
+      return;
+    }
+
     console.log('progress self');
 
     this.wrapProgress(async () => {
@@ -195,6 +206,10 @@ class Conversation extends EventTarget {
     });
   }
   progressSelfOptions() {
+    if (this.questChecking) {
+      return;
+    }
+
     console.log('progress self options');
     
     this.wrapProgress(async () => {
@@ -213,6 +228,10 @@ class Conversation extends EventTarget {
     });
   }
   progressOptionSelect(option) {
+    if (this.questChecking) {
+      return;
+    }
+    
     if (!option) {
       option = this.options[this.hoverIndex];
       if (!option) {
@@ -220,8 +239,10 @@ class Conversation extends EventTarget {
       }
     }
 
-    // say the option
-    this.addLocalPlayerMessage(option.message, 'option');
+    if (!this.givesQuest) {
+      // say the option
+      this.addLocalPlayerMessage(option.message, 'option');
+    }
 
     if (option.emote !== 'none' && validEmotionMapping[option.emote]!== undefined) {
       triggerEmote(validEmotionMapping[option.emote], this.localPlayer);
@@ -233,12 +254,22 @@ class Conversation extends EventTarget {
 
     // 25% chance of self elaboration, 75% chance of other character reply
     this.localTurn = Math.random() < 0.25;
+
+    if (this.givesQuest) {
+      this.finished = true;
+      this.dispatchEvent(new MessageEvent('finish'));
+      this.close();
+    }
   }
   #getMessageAgo(n) {
     return this.messages[this.messages.length - n] ?? null;
   }
-  progress() {
-    if (!this.finished) {
+  async progress() {
+    if (this.questChecking) {
+      return;
+    }
+
+    if (!this.finished && !this.givesQuest) {
       const lastMessage = this.#getMessageAgo(1);
       
       const _handleLocalTurn = () => {
@@ -294,10 +325,61 @@ class Conversation extends EventTarget {
         }
       }
     } else {
+      if (!this.questChecking) {
       this.close();
+      }
     }
   }
-  finish() {
+
+  getConversation() {
+    let conv = ''
+    for (const msg of this.messages) {
+      if ((msg.type !== 'chat' && msg.type !== 'option') || msg.text?.length <= 0) {
+        continue;
+      }
+
+      conv += msg.name?.trim() + ': ' + msg.text?.trim() + '\n';
+      this.questChecking = false;
+    }
+    return conv;
+  }
+  getLocation() {
+    const aiScene = metaversefile.useLoreAIScene();
+    const _location = aiScene.settings[Math.floor(Math.random() * aiScene.settings.length)];
+    return _location && _location !== undefined ? (typeof _location === 'object' ? _location.name : _location) : 'Tree House'
+  }
+
+  async finish() {
+    if (!this.questChecked && !this.givesQuest) {
+      this.questChecking = true;
+      const aiScene = metaversefile.useLoreAIScene();
+      const conv = this.getConversation();
+      const location = this.getLocation();
+      const user1 = this.messages.length >= 1 ? this.messages[0].name : 'Annon';
+      const user2 = this.messages.length >= 2 ? this.messages[1].name : 'Ann';
+      const _checker = (await aiScene.checkIfQuestIsApplicable(location, conv, user1, user2))?.toLowerCase()
+      let checker = _checker.trim() == 'yes';
+      if (!checker) { // Give a 5% chance of being a quest
+        checker = Math.random() < 0.05
+      }
+      this.givesQuest = checker;
+
+      this.questChecking = false;
+      this.questChecked = true;
+      if (this.givesQuest) {
+        const aiScene = metaversefile.useLoreAIScene();
+        const conv = this.getConversation();
+        const user1 = this.messages.length >= 1 ? this.messages[0].name : 'Annon';
+        const user2 = this.messages.length >= 2 ? this.messages[1].name : 'Ann';
+        const location = this.getLocation();
+        const quest = await aiScene.generateQuest({conversation: conv, location, user1, user2});
+        this.addRemotePlayerMessage('Quest: ' + quest.quest + '\n' + quest.reward, 'headNode');
+        this.#setOptions([{ message: 'Accept', emote: 'headNode' }, { message: 'Decline', emote: 'headNode' }])
+        this.#setHoverIndex(0);
+        return
+      } 
+    }
+
     this.finished = true;
     this.dispatchEvent(new MessageEvent('finish'));
   }
@@ -473,6 +555,7 @@ story.listenHack = () => {
                   done,
                 } = await aiScene.generateSelectCharacterComment(name, description);
 
+                console.log('starting conversation')
                 _startConversation(comment, remotePlayer, done);
               } else {
                 console.warn('no player associated with app', app);
