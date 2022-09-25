@@ -1126,6 +1126,19 @@ class GameManager extends EventTarget {
     this.usableObject = null;
     this.hoverEnabled = false;
   }
+  setGrabUseMesh(uiMode) {
+    if (uiMode === 'normal') {
+      this.addGrabUseMesh();
+    } else {
+      this.removeGrabUseMesh();
+    }
+  }
+  removeGrabUseMesh() {
+    sceneLowPriority.remove(grabUseMesh);
+  }
+  addGrabUseMesh() {
+    sceneLowPriority.add(grabUseMesh);
+  }
   getMenu() {
     return this.menuOpen;
   }
