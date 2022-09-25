@@ -27,6 +27,7 @@ import {
   avatarInterpolationTimeDelay,
   avatarInterpolationNumFrames,
   // groundFriction,
+  // defaultVoicePackName,
   voiceEndpointBaseUrl,
   numLoadoutSlots,
 } from './constants.js';
