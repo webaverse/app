@@ -1,10 +1,10 @@
 
-import React, { useState, useEffect, useContext } from 'react';
+import React, {useState, useEffect, useContext} from 'react';
 import classnames from 'classnames';
 
 import {RenderMirror} from './RenderMirror';
 import {RainFx} from './RainFx';
-import { AppContext } from '../../app';
+import {AppContext} from '../../app';
 
 import styles from './zone-title-card.module.css';
 
@@ -17,39 +17,38 @@ const logoImages = [
 ];
 
 export const ZoneTitleCard = () => {
+  const {app} = useContext(AppContext);
+  const [open, setOpen] = useState(false);
+  const [logoImage, setLogoImage] = useState(logoImages[Math.floor(Math.random() * logoImages.length)]);
+  const [loadProgress, setLoadProgress] = useState(false);
 
-    const { app } = useContext( AppContext );
-    const [ open, setOpen ] = useState( false );
-    const [ logoImage, setLogoImage ] = useState( logoImages[Math.floor(Math.random() * logoImages.length)] );
-    const [ loadProgress, setLoadProgress ] = useState( false );
+  useEffect(() => {
+    function titlecardhackchange(e) {
+      const {titleCardHack} = e.data;
+      setOpen(titleCardHack);
+    }
+    app.addEventListener('titlecardhackchange', titlecardhackchange);
+    return () => {
+      app.removeEventListener('titlecardhackchange', titlecardhackchange);
+    };
+  }, []);
 
-    useEffect(() => {
-        function titlecardhackchange(e) {
-            const {titleCardHack} = e.data;
-            setOpen(titleCardHack);
-        }
-        app.addEventListener('titlecardhackchange', titlecardhackchange);
-        return () => {
-            app.removeEventListener('titlecardhackchange', titlecardhackchange);
-        };
-    }, []);
+  useEffect(() => {
+    if (open) {
+      const frame = requestAnimationFrame(() => {
+        setLoadProgress((loadProgress + 0.005) % 1);
+      });
+      return () => {
+        cancelAnimationFrame(frame);
+      };
+    }
+  }, [open, loadProgress]);
 
-    useEffect(() => {
-        if (open) {
-            const frame = requestAnimationFrame(() => {
-                setLoadProgress((loadProgress + 0.005) % 1);
-            });
-            return () => {
-                cancelAnimationFrame(frame);
-            };
-        }
-    }, [open, loadProgress]);
+  const title = 'Zone Title';
+  const description = 'Zone Description';
+  const comment = 'This is a zone comment.';
 
-    const title = 'Zone Title';
-    const description = 'Zone Description';
-    const comment = 'This is a zone comment.';
-
-    return (
+  return (
         <div className={ classnames(styles.zoneTitleCard, open ? styles.open : null) } >
             <div className={ styles.leftWing }>
                 <div className={ styles.block }>
@@ -80,6 +79,5 @@ export const ZoneTitleCard = () => {
 
             <RainFx enabled={open} />
         </div>
-    );
-
+  );
 };

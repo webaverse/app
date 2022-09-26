@@ -61,11 +61,13 @@ class LoadoutManager extends EventTarget {
       npcManager.removeEventListener('playerremove', playerRemovedFn);
     };
   }
+
   initDefault() {
     // this is the initial event for the first player
     const localPlayer = playersManager.getLocalPlayer();
     this.bindPlayer(localPlayer);
   }
+
   refresh() {
     for (let i = 0; i < this.hotbarRenderers.length; i++) {
       const app = this.apps[i];
@@ -79,10 +81,11 @@ class LoadoutManager extends EventTarget {
     this.dispatchEvent(new MessageEvent('selectedchange', {
       data: {
         index,
-        app: this.apps[index]
-      }
+        app: this.apps[index],
+      },
     }));
   }
+
   bindPlayer(player) {
     this.apps = this.appsPerPlayer.has(player)
       ? this.appsPerPlayer.get(player)
@@ -134,6 +137,7 @@ class LoadoutManager extends EventTarget {
       this.removeLastWearUpdateFn = null;
     }
   }
+
   ensureRenderers() {
     if (this.hotbarRenderers.length === 0) {
       const size = hotbarSize * window.devicePixelRatio;
@@ -148,12 +152,15 @@ class LoadoutManager extends EventTarget {
       this.infoBoxRenderer = new InfoboxRenderer(infoboxSize, infoboxSize);
     }
   }
+
   getHotbarRenderer(index) {
     return this.hotbarRenderers[index];
   }
+
   getInfoboxRenderer() {
     return this.infoBoxRenderer;
   }
+
   getSelectedApp() {
     if (this.selectedIndex !== -1) {
       return this.apps[this.selectedIndex];
@@ -161,6 +168,7 @@ class LoadoutManager extends EventTarget {
       return null;
     }
   }
+
   setSelectedIndex(index) {
     if (index === this.selectedIndex) {
       index = -1;
@@ -189,6 +197,7 @@ class LoadoutManager extends EventTarget {
       },
     }));
   }
+
   /* getNextFreeIndex() {
     this.ensureRenderers();
     for (let i = 0; i < this.hotbarRenderers.length; i++) {
@@ -207,6 +216,7 @@ class LoadoutManager extends EventTarget {
     }
     return -1;
   }
+
   update(timestamp, timeDiff) {
     for (let i = 0; i < this.hotbarRenderers.length; i++) {
       this.hotbarRenderers[i].update(timestamp, timeDiff, i);

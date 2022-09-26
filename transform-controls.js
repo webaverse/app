@@ -19,7 +19,7 @@ const TransformAxisConstraints = {
   XY: new THREE.Vector3(1, 1, 0),
   YZ: new THREE.Vector3(0, 1, 1),
   XZ: new THREE.Vector3(1, 0, 1),
-  XYZ: new THREE.Vector3(1, 1, 1)
+  XYZ: new THREE.Vector3(1, 1, 1),
 };
 
 const loadPromise = (async () => {
@@ -58,7 +58,7 @@ const transformControls = {
       this.transformGizmo.position.copy(o.position);
       this.transformGizmo.quaternion.copy(o.quaternion);
       this.transformGizmo.scale.copy(o.scale);
-      
+
     }
     binding = o;
   }, */
@@ -66,7 +66,7 @@ const transformControls = {
     this.transformAxis = this.transformGizmo?.selectAxisWithRaycaster(raycaster);
     if (this.transformAxis) {
       console.log('yes transform axis');
-      
+
       const axisInfo = this.transformGizmo.selectedAxis.axisInfo;
       this.planeNormal
         .copy(axisInfo.planeNormal)
@@ -74,13 +74,13 @@ const transformControls = {
         .normalize();
       this.transformPlane.setFromNormalAndCoplanarPoint(this.planeNormal, this.transformGizmo.position);
       this.dragging = true;
-      
+
       this.startMatrix.copy(this.transformGizmo.matrix);
       raycaster.ray.intersectPlane(this.transformPlane, localVector);
       this.startMouseMatrix.compose(
         localVector,
         localQuaternion.set(0, 0, 0, 1),
-        localVector2.set(1, 1, 1)
+        localVector2.set(1, 1, 1),
       );
     } else {
       // console.log('no transform axis');
@@ -104,19 +104,19 @@ const transformControls = {
         this.startMouseMatrix.decompose(
           localVector2,
           localQuaternion,
-          localVector3
+          localVector3,
         );
         const startPosition = localVector2;
         const diffVector = localVector3.copy(endPosition)
           .sub(startPosition);
-      
+
         this.transformGizmo.matrix.copy(this.startMatrix)
           .premultiply(
             localMatrix.compose(
               diffVector,
               localQuaternion.set(0, 0, 0, 1),
-              localVector4.set(1, 1, 1)
-            )
+              localVector4.set(1, 1, 1),
+            ),
           );
 
         const constraint = TransformAxisConstraints[this.transformAxis];

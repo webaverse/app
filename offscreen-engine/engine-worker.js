@@ -8,14 +8,14 @@ import {createAppUrlSpriteSheet} from './fns/spriting-fn.js';
 import {getSpriteAnimationForAppUrlInternal} from './fns/sprite-animation-manager-fn.js';
 
 const functionMap = {
-  'createSpriteAvatarMesh': createSpriteAvatarMesh,
-  'crunchAvatarModel': crunchAvatarModel,
-  'optimizeAvatarModel': optimizeAvatarModel,
-  'createAppUrlSpriteSheet': createAppUrlSpriteSheet,
-  'getEmotionCanvases': getEmotionCanvases,
-  'generateObjectUrlCardRemote': generateObjectUrlCardRemote,
-  'getLandImage': getLandImage,
-  'getSpriteAnimationForAppUrlInternal': getSpriteAnimationForAppUrlInternal,
+  createSpriteAvatarMesh,
+  crunchAvatarModel,
+  optimizeAvatarModel,
+  createAppUrlSpriteSheet,
+  getEmotionCanvases,
+  generateObjectUrlCardRemote,
+  getLandImage,
+  getSpriteAnimationForAppUrlInternal,
 };
 
 window.addEventListener('message', e => {
@@ -87,7 +87,7 @@ const _bindPort = port => {
             try {
               result = await fn.apply(null, args);
               transfers = getTransferables(result);
-            } catch(err) {
+            } catch (err) {
               error = err?.stack ?? (err + '');
             } finally {
               respond(error, result, transfers);
@@ -98,7 +98,7 @@ const _bindPort = port => {
           break;
         }
         default: {
-          console.warn(`Unknown method: ${method}`);``
+          console.warn(`Unknown method: ${method}`); '';
           break;
         }
       }

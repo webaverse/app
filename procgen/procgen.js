@@ -17,7 +17,7 @@ import {
 } from './map-gen.js';
 import {
   createMapChunkMesh,
-} from './map-render.js'
+} from './map-render.js';
 import generateStats, {types, rarities} from './stats.js';
 
 export {

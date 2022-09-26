@@ -1,4 +1,4 @@
-import { PropertyBinding, AnimationClip } from 'three';
+import {PropertyBinding, AnimationClip} from 'three';
 
 // Modified version of Don McCurdy's AnimationUtils.clone
 // https://github.com/mrdoob/three.js/pull/14494
@@ -17,11 +17,11 @@ function parallelTraverse(a, b, callback) {
 // uuid.objectName[objectIndex].propertyName[propertyIndex]
 // Does not support property bindings that use object3D names or parent nodes
 function cloneKeyframeTrack(sourceKeyframeTrack, cloneUUIDLookup) {
-  const { nodeName: uuid, objectName, objectIndex, propertyName, propertyIndex } = PropertyBinding.parseTrackName(
-    sourceKeyframeTrack.name
+  const {nodeName: uuid, objectName, objectIndex, propertyName, propertyIndex} = PropertyBinding.parseTrackName(
+    sourceKeyframeTrack.name,
   );
 
-  let path = "";
+  let path = '';
 
   if (uuid !== undefined) {
     const clonedUUID = cloneUUIDLookup.get(uuid);
@@ -34,19 +34,19 @@ function cloneKeyframeTrack(sourceKeyframeTrack, cloneUUIDLookup) {
   }
 
   if (objectName !== undefined) {
-    path += "." + objectName;
+    path += '.' + objectName;
   }
 
   if (objectIndex !== undefined) {
-    path += "[" + objectIndex + "]";
+    path += '[' + objectIndex + ']';
   }
 
   if (propertyName !== undefined) {
-    path += "." + propertyName;
+    path += '.' + propertyName;
   }
 
   if (propertyIndex !== undefined) {
-    path += "[" + propertyIndex + "]";
+    path += '[' + propertyIndex + ']';
   }
 
   const clonedKeyframeTrack = sourceKeyframeTrack.clone();
@@ -57,7 +57,7 @@ function cloneKeyframeTrack(sourceKeyframeTrack, cloneUUIDLookup) {
 
 function cloneAnimationClip(sourceAnimationClip, cloneUUIDLookup) {
   const clonedTracks = sourceAnimationClip.tracks.map(keyframeTrack =>
-    cloneKeyframeTrack(keyframeTrack, cloneUUIDLookup)
+    cloneKeyframeTrack(keyframeTrack, cloneUUIDLookup),
   );
   return new AnimationClip(sourceAnimationClip.name, sourceAnimationClip.duration, clonedTracks);
 }
@@ -77,7 +77,7 @@ export default function cloneObject3D(source, preserveUUIDs) {
 
     if (!clonedNode) {
       throw new Error(
-        `Couldn't find the cloned node for ${sourceNode.nodeName || sourceNode.type} "${sourceNode.name}"`
+        `Couldn't find the cloned node for ${sourceNode.nodeName || sourceNode.type} "${sourceNode.name}"`,
       );
     }
 
@@ -97,7 +97,7 @@ export default function cloneObject3D(source, preserveUUIDs) {
 
     if (sourceNode.animations) {
       clonedNode.animations = sourceNode.animations.map(animationClip =>
-        cloneAnimationClip(animationClip, cloneUUIDLookup)
+        cloneAnimationClip(animationClip, cloneUUIDLookup),
       );
     }
 
@@ -113,7 +113,7 @@ export default function cloneObject3D(source, preserveUUIDs) {
 
     clonedNode.skeleton.bones = sourceBones.map(sourceBone => {
       if (!cloneLookup.has(sourceBone)) {
-        throw new Error("Required bones are not descendants of the given object.");
+        throw new Error('Required bones are not descendants of the given object.');
       }
 
       return cloneLookup.get(sourceBone);

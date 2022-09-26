@@ -124,7 +124,7 @@ export function applyCharacterActionsToAvatar(character, rig) {
   rig.activateTime = character.actionInterpolants.activate.get();
   rig.swimState = !!swimAction;
   rig.swimTime = swimAction ? character.actionInterpolants.swim.get() : -1;
-  
+
   const _handleUse = () => {
     if (useAction?.animation) {
       rig.useAnimation = useAction.animation;
@@ -166,7 +166,7 @@ export function applyCharacterActionsToAvatar(character, rig) {
   };
   _handlePickUp();
 
-  rig.enableAudioWorkerSetVolume  = character.avatarFace.enableAudioWorkerSetVolume;
+  rig.enableAudioWorkerSetVolume = character.avatarFace.enableAudioWorkerSetVolume;
   rig.vowels[1] = character.avatarFace.enableAudioWorkerSetVolume ? 0 : rig.vowels[1];
   rig.vowels[2] = character.avatarFace.enableAudioWorkerSetVolume ? 0 : rig.vowels[2];
   rig.vowels[3] = character.avatarFace.enableAudioWorkerSetVolume ? 0 : rig.vowels[3];
@@ -286,12 +286,12 @@ export function applyCharacterPoseToAvatar(character, rig) {
 export function applyCharacterToAvatar(character, session, rig, mirrors) {
   applyCharacterTransformsToAvatar(character, session, rig);
   applyCharacterMetaTransformsToAvatar(character, session, rig);
-  
+
   applyCharacterModesToAvatar(character, session, rig);
   applyCharacterActionsToAvatar(character, rig);
   applyCharacterHeadTargetToAvatar(character, rig);
   applyCharacterEyesToAvatar(character, rig) || applyMirrorsToAvatar(character, rig, mirrors);
-  
+
   applyFacePoseToAvatar(character, rig);
   applyCharacterPoseToAvatar(character, rig);
 }

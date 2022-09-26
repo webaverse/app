@@ -1,3 +1,3 @@
 
-import { EquipmentPopover } from './EquipmentPopover';
-export { EquipmentPopover };
+import {EquipmentPopover} from './EquipmentPopover';
+export {EquipmentPopover};

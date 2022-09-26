@@ -10,7 +10,7 @@ sideScene.matrixWorldAutoUpdate = false;
 
 export function screenshotScene(scene, camera, width, height, ctx) {
   const renderer = getRenderer();
-      
+
   // push old state
   // const oldRenderTarget = renderer.getRenderTarget();
   const oldViewport = renderer.getViewport(localVector4D);
@@ -30,11 +30,11 @@ export function screenshotScene(scene, camera, width, height, ctx) {
   {
     const oldParent = scene.parent;
     sideScene.add(scene);
-    
+
     const pop = renderSettingsManager.push(scene, sideScene);
     renderer.render(sideScene, camera);
     pop();
-    
+
     if (oldParent) {
       oldParent.add(scene);
     } else {
@@ -44,14 +44,14 @@ export function screenshotScene(scene, camera, width, height, ctx) {
   }
 
   // for (const ctx of contexts) {
-    ctx.clearRect(0, 0, width, height);
-    ctx.drawImage(
-      renderer.domElement,
-      0, renderer.domElement.height - height * pixelRatio,
-      width * pixelRatio, height * pixelRatio,
-      0, 0,
-      width, height
-    );
+  ctx.clearRect(0, 0, width, height);
+  ctx.drawImage(
+    renderer.domElement,
+    0, renderer.domElement.height - height * pixelRatio,
+    width * pixelRatio, height * pixelRatio,
+    0, 0,
+    width, height,
+  );
   // }
 
   // pop old state

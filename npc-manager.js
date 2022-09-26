@@ -14,8 +14,8 @@ import * as voices from './voices.js';
 import {world} from './world.js';
 import {chatManager} from './chat-manager.js';
 import {makeId, createRelativeUrl} from './util.js';
-import { triggerEmote } from './src/components/general/character/Poses.jsx';
-import validEmotionMapping from "./validEmotionMapping.json";
+import {triggerEmote} from './src/components/general/character/Poses.jsx';
+import validEmotionMapping from './validEmotionMapping.json';
 import metaversefile from './metaversefile-api.js';
 import {runSpeed, walkSpeed} from './constants.js';
 import {characterSelectManager} from './characterselect-manager.js';
@@ -66,7 +66,7 @@ class NpcManager extends EventTarget {
       this.dispatchEvent(new MessageEvent('defaultplayeradd', {
         data: {
           player: localPlayer,
-        }
+        },
       }));
 
       app.addEventListener('destroy', () => {
@@ -119,7 +119,7 @@ class NpcManager extends EventTarget {
     this.dispatchEvent(new MessageEvent('playerremove', {
       data: {
         player: npcPlayer,
-      }
+      },
     }));
 
     const removeIndex = this.npcs.indexOf(npcPlayer);
@@ -173,7 +173,7 @@ class NpcManager extends EventTarget {
     this.dispatchEvent(new MessageEvent('playeradd', {
       data: {
         player: npcPlayer,
-      }
+      },
     }));
 
     let live = true;
@@ -197,7 +197,7 @@ class NpcManager extends EventTarget {
     });
 
     const mode = app.getComponent('mode') ?? 'attached';
-    
+
     const animations = Avatar.getAnimations();
     const hurtAnimation = animations.find(a => a.isHurt);
     const hurtAnimationDuration = hurtAnimation.duration;
@@ -207,7 +207,7 @@ class NpcManager extends EventTarget {
       return {
         name: json.name,
         description: json.bio,
-      }
+      };
     };
 
     // events
@@ -222,7 +222,7 @@ class NpcManager extends EventTarget {
                 animation: 'pain_back',
               };
               npcPlayer.addAction(newAction);
-              
+
               setTimeout(() => {
                 npcPlayer.removeAction('hurt');
               }, hurtAnimationDuration * 1000);
@@ -236,11 +236,11 @@ class NpcManager extends EventTarget {
             this.dispatchEvent(new MessageEvent('playerinvited', {
               data: {
                 player: npcPlayer,
-              }
+              },
             }));
           } else {
             npcPlayer.dispatchEvent({
-              type: 'activate'
+              type: 'activate',
             });
           }
         };
@@ -342,14 +342,14 @@ class NpcManager extends EventTarget {
           };
 
           chatManager.addPlayerMessage(npcPlayer, m);
-          if (emote !== 'none' && validEmotionMapping[emote]!== undefined) {
+          if (emote !== 'none' && validEmotionMapping[emote] !== undefined) {
             triggerEmote(validEmotionMapping[emote], npcPlayer);
           }
           if (emote === 'supersaiyan' || action === 'supersaiyan' || /supersaiyan/i.test(object) || /supersaiyan/i.test(target)) {
             const newSssAction = {
               type: 'sss',
             };
-            npcPlayer.addAction(newSssAction);  
+            npcPlayer.addAction(newSssAction);
           } else if (action === 'follow' || (object === 'none' && target === localPlayer.name)) { // follow player
             targetSpec = {
               type: 'follow',
@@ -436,7 +436,7 @@ class NpcManager extends EventTarget {
       // load json
       const res = await fetch(srcUrl);
       json = await res.json();
-      //if (!live) return;
+      // if (!live) return;
 
       const npcName = json.name;
 
@@ -448,7 +448,7 @@ class NpcManager extends EventTarget {
 
       const position = localVector.setFromMatrixPosition(app.matrixWorld)
         .add(localVector2.set(0, 1, 0));
-      
+
       // create npc
       const newNpcPlayer = await this.createNpcAsync({
         name: npcName,
@@ -462,6 +462,7 @@ class NpcManager extends EventTarget {
       this.addPlayerApp(app, newNpcPlayer, json);
     }
   }
+
   removeNpcApp(app) {
     const cancelFn = cancelFnMap.get(app);
     if (cancelFn) {

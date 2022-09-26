@@ -33,6 +33,7 @@ export class CharacterHitter {
 
     this.lastHitTime = -Infinity;
   }
+
   attemptHit({
     type,
     args,
@@ -69,7 +70,7 @@ export class CharacterHitter {
                 .sub(this.character.position);
               hitDirection.y = 0;
               hitDirection.normalize();
-    
+
               const damageMeshOffsetDistance = 1.5;
               const hitPosition = localVector.copy(this.character.position)
                 .add(localVector2.set(0, 0, -damageMeshOffsetDistance).applyQuaternion(this.character.quaternion))
@@ -78,7 +79,7 @@ export class CharacterHitter {
               localEuler.x = 0;
               localEuler.z = 0;
               const hitQuaternion = localQuaternion.setFromEuler(localEuler);
-    
+
               // const willDie = app.willDieFrom(damage);
               app.hit(damage, {
                 type: 'sword',
@@ -89,7 +90,7 @@ export class CharacterHitter {
                 hitDirection,
                 // willDie,
               });
-            
+
               this.lastHitTime = timestamp;
 
               return collision;
@@ -111,15 +112,15 @@ export class CharacterHitter {
                 localMatrix.lookAt(
                   this.character.position,
                   hitPosition,
-                  localVector.set(0, 1, 0)
-                )
+                  localVector.set(0, 1, 0),
+                ),
               );
 
               const hitDirection = targetApp.position.clone()
                 .sub(this.character.position);
               // hitDirection.y = 0;
               hitDirection.normalize();
-              
+
               // const willDie = targetApp.willDieFrom(damage);
               targetApp.hit(damage, {
                 type: 'bullet',
@@ -135,7 +136,7 @@ export class CharacterHitter {
           };
           _performHit();
 
-          return result
+          return result;
         }
         return null;
       }
@@ -144,6 +145,7 @@ export class CharacterHitter {
       }
     }
   }
+
   getHit(damage) {
     const newAction = {
       type: 'hurt',
@@ -182,7 +184,7 @@ export class CharacterHitter {
       (async () => {
         await metaverseModules.waitForLoad();
         const {modules} = metaversefile.useDefaultModules();
-        const m = modules['damageMesh'];
+        const m = modules.damageMesh;
         await damageMeshApp.addModule(m);
       })();
       damageMeshApp.position.copy(this.character.position);
@@ -206,6 +208,7 @@ export class CharacterHitter {
       this.character.removeActionIndex(faceposeActionIndex);
     }, 1000);
   }
+
   update() {
     // nothing
   }

@@ -8,6 +8,7 @@ class OffscreenEngineProxy {
 
     this.loadPromise = null;
   }
+
   async waitForLoad() {
     if (!this.loadPromise) {
       this.loadPromise = (async () => {
@@ -17,12 +18,12 @@ class OffscreenEngineProxy {
         iframe.style.cssText = `\
           border: 0;
         `;
-    
+
         // this.live = true;
-    
+
         const messageChannel = new MessageChannel();
         const {port1, port2} = messageChannel;
-    
+
         const iframeLoadPromise = new Promise((resolve, reject) => {
           iframe.onload = () => {
             resolve();
@@ -31,19 +32,19 @@ class OffscreenEngineProxy {
           };
           iframe.onerror = reject;
         });
-  
+
         iframe.allow = 'cross-origin-isolated';
         iframe.src = `${inappPreviewHost}/engine.html`;
         document.body.appendChild(iframe);
         this.iframe = iframe;
-  
+
         await iframeLoadPromise;
-  
+
         iframe.contentWindow.postMessage({
           method: 'initializeEngine',
           port: port2,
         }, '*', [port2]);
-  
+
         return port1;
       })();
     }
@@ -52,6 +53,7 @@ class OffscreenEngineProxy {
     this.port = port;
     return port;
   }
+
   async request(funcName, args = [], {
     signal = null,
   } = {}) {
@@ -66,7 +68,7 @@ class OffscreenEngineProxy {
           id,
           args,
         });
-      } catch(err) {
+      } catch (err) {
         console.warn('post message error', err);
         throw err;
       }
@@ -111,9 +113,10 @@ class OffscreenEngineProxy {
     });
     return result;
   }
+
   destroy() {
     // this.live = false;
-    
+
     if (this.iframe) {
       this.iframe.parentElement.removeChild(this.iframe);
       this.iframe = null;

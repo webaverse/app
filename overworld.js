@@ -29,12 +29,12 @@ class OverworldApp {
     });
     previewer.setFocus(focus);
     const {lodMesh, skyboxMeshes, sceneObject} = previewer;
-  
+
     position && previewer.position.fromArray(position);
     quaternion && previewer.quaternion.fromArray(quaternion);
     scale && previewer.scale.fromArray(scale);
     previewer.updateMatrixWorld();
-    
+
     overworldObject.add(lodMesh);
     lodMesh.updateMatrixWorld();
 
@@ -44,9 +44,9 @@ class OverworldApp {
       overworldObject.add(skyboxMesh);
       skyboxMesh.updateMatrixWorld();
     }
-  
+
     overworldObject.add(sceneObject);
-  
+
     this.position = previewer.position;
     this.quaternion = previewer.quaternion;
     this.scale = previewer.scale;
@@ -57,6 +57,7 @@ class OverworldApp {
     this.loadPromise = previewer.loadScene(start_url)
       .then(() => {});
   }
+
   waitForLoad() {
     return this.loadPromise;
   }
@@ -69,7 +70,7 @@ const loadOverworld = async () => {
       name: 'street',
       position: [0, 0, 0],
       quaternion: [0, 0, 0, 1],
-      start_url: "./scenes/street.scn",
+      start_url: './scenes/street.scn',
       size: [300, 300, 300],
       focus: false,
       chunkPriority: -1,
@@ -78,7 +79,7 @@ const loadOverworld = async () => {
       name: 'shadows',
       position: [0, 0, 0],
       quaternion: [0, 1, 0, 0],
-      start_url: "./scenes/shadows2.scn",
+      start_url: './scenes/shadows2.scn',
       size: [200, 200, 200],
       focus: false,
       chunkPriority: -1,
@@ -89,17 +90,17 @@ const loadOverworld = async () => {
   const _setChunksLinearPositions = chunks => {
     if (chunks.length > 0) {
       const firstSize = chunks[0].size;
-      let z = firstSize[2]/2;
+      let z = firstSize[2] / 2;
       for (const chunk of chunks) {
         const size = chunk.size;
-        z -= size[2]/2;
+        z -= size[2] / 2;
         chunk.position[2] = z;
-        z -= size[2]/2;
+        z -= size[2] / 2;
       }
     }
   };
   _setChunksLinearPositions(chunks);
-  
+
   const _setChunkFocus = focusChunk => {
     for (const chunk of chunks) {
       chunk.focus = chunk === focusChunk;
@@ -111,10 +112,10 @@ const loadOverworld = async () => {
       const chunkPosition = chunk.position;
       const chunkSize = chunk.size;
       if (
-        position.x >= chunkPosition[0] - chunkSize[0]/2 &&
-        position.x <= chunkPosition[0] + chunkSize[0]/2 &&
-        position.z >= chunkPosition[2] - chunkSize[2]/2 &&
-        position.z <= chunkPosition[2] + chunkSize[2]/2
+        position.x >= chunkPosition[0] - chunkSize[0] / 2 &&
+        position.x <= chunkPosition[0] + chunkSize[0] / 2 &&
+        position.z >= chunkPosition[2] - chunkSize[2] / 2 &&
+        position.z <= chunkPosition[2] + chunkSize[2] / 2
       ) {
         return chunk;
       }
@@ -127,10 +128,10 @@ const loadOverworld = async () => {
       const chunkPosition = chunk.position;
       const chunkSize = chunk.size;
       if (
-        position.x >= chunkPosition[0] - chunkSize[0]/2 - range &&
-        position.x <= chunkPosition[0] + chunkSize[0]/2 + range &&
-        position.z >= chunkPosition[2] - chunkSize[2]/2 - range &&
-        position.z <= chunkPosition[2] + chunkSize[2]/2 + range
+        position.x >= chunkPosition[0] - chunkSize[0] / 2 - range &&
+        position.x <= chunkPosition[0] + chunkSize[0] / 2 + range &&
+        position.z >= chunkPosition[2] - chunkSize[2] / 2 - range &&
+        position.z <= chunkPosition[2] + chunkSize[2] / 2 + range
       ) {
         result.push(chunk);
       }
@@ -153,10 +154,10 @@ const loadOverworld = async () => {
       const chunkAppPosition = chunkApp.position;
       const chunkAppSize = chunkApp.size;
       if (
-        position.x >= chunkAppPosition.x - chunkAppSize.x/2 &&
-        position.x <= chunkAppPosition.x + chunkAppSize.x/2 &&
-        position.z >= chunkAppPosition.z - chunkAppSize.z/2 &&
-        position.z <= chunkAppPosition.z + chunkAppSize.z/2
+        position.x >= chunkAppPosition.x - chunkAppSize.x / 2 &&
+        position.x <= chunkAppPosition.x + chunkAppSize.x / 2 &&
+        position.z >= chunkAppPosition.z - chunkAppSize.z / 2 &&
+        position.z <= chunkAppPosition.z + chunkAppSize.z / 2
       ) {
         return chunkApp;
       }
@@ -210,8 +211,8 @@ const loadOverworld = async () => {
   //
 
   _setChunkFocusFromPosition(localPlayer.position);
-  let currentChunks = _getChunksInRange(localPlayer.position, range);
-  let {
+  const currentChunks = _getChunksInRange(localPlayer.position, range);
+  const {
     chunkApps,
     chunkAppPromises,
   } = _reifyChunks(currentChunks);

@@ -16,9 +16,11 @@ export class GeometryPositionIndexBinding {
     this.indexFreeListEntry = indexFreeListEntry;
     this.geometry = geometry;
   }
+
   getAttributeOffset(name = 'position') {
     return this.positionFreeListEntry / 3 * this.geometry.attributes[name].itemSize;
   }
+
   getIndexOffset() {
     return this.indexFreeListEntry;
   }
@@ -30,17 +32,17 @@ export class GeometryAllocator {
     {
       bufferSize,
       boundingType = null,
-    }
+    },
   ) {
     {
       this.geometry = new THREE.BufferGeometry();
       for (const attributeSpec of attributeSpecs) {
-        const { name, Type, itemSize } = attributeSpec;
+        const {name, Type, itemSize} = attributeSpec;
 
         const array = new Type(bufferSize * itemSize);
         this.geometry.setAttribute(
           name,
-          new ImmediateGLBufferAttribute(array, itemSize, false)
+          new ImmediateGLBufferAttribute(array, itemSize, false),
         );
       }
       const indices = new Uint32Array(bufferSize);
@@ -77,6 +79,7 @@ export class GeometryAllocator {
     this.boundingData = new Float32Array(maxNumDraws * boundingSize);
     this.numDraws = 0;
   }
+
   alloc(
     numPositions,
     numIndices,
@@ -87,7 +90,7 @@ export class GeometryAllocator {
     const geometryBinding = new GeometryPositionIndexBinding(
       positionFreeListEntry,
       indexFreeListEntry,
-      this.geometry
+      this.geometry,
     );
 
     const slot = indexFreeListEntry;
@@ -106,6 +109,7 @@ export class GeometryAllocator {
 
     return geometryBinding;
   }
+
   free(geometryBinding) {
     const slot = geometryBinding.indexFreeListEntry;
     const expectedStartValue =
@@ -147,7 +151,8 @@ export class GeometryAllocator {
     this.positionFreeList.free(geometryBinding.positionFreeListEntry);
     this.indexFreeList.free(geometryBinding.indexFreeListEntry);
   }
-  getDrawSpec(camera, drawStarts, drawCounts/*, distanceArray*/) {
+
+  getDrawSpec(camera, drawStarts, drawCounts/*, distanceArray */) {
     drawStarts.length = 0;
     drawCounts.length = 0;
     // distanceArray.length = 0;
@@ -158,7 +163,7 @@ export class GeometryAllocator {
         // XXX this can be optimized by initializing the frustum only once per frame and passing it in
         const projScreenMatrix = localMatrix.multiplyMatrices(
           camera.projectionMatrix,
-          camera.matrixWorldInverse
+          camera.matrixWorldInverse,
         );
         localFrustum.setFromProjectionMatrix(projScreenMatrix);
 
@@ -175,12 +180,13 @@ export class GeometryAllocator {
 export class BufferedMesh extends THREE.Mesh {
   constructor(geometry, material, allocator) {
     super(geometry, material);
-    
+
     this.isBatchedMesh = true;
     this.allocator = allocator;
     // this.distanceArray = [];
   }
-	getDrawSpec(camera, drawStarts, drawCounts) {
-    this.allocator.getDrawSpec(camera, drawStarts, drawCounts/*, this.distanceArray*/);
+
+  getDrawSpec(camera, drawStarts, drawCounts) {
+    this.allocator.getDrawSpec(camera, drawStarts, drawCounts/*, this.distanceArray */);
   }
 }

@@ -1,3 +1,3 @@
 
-import { Spritesheet } from './Spritesheet';
-export { Spritesheet };
+import {Spritesheet} from './Spritesheet';
+export {Spritesheet};

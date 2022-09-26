@@ -3,7 +3,7 @@ import useWeb3Account from './useWeb3Account';
 
 const AccountContext = createContext();
 
-function AccountProvider({ children }) {
+function AccountProvider({children}) {
   const account = useWeb3Account();
   return <AccountContext.Provider value={account}>
     {children}

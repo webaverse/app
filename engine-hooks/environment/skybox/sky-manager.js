@@ -2,12 +2,12 @@ import * as THREE from 'three';
 import {lightsManager} from '../../lights/lights-manager.js';
 
 const DIR_LIGHT_SHADOW_PARAMS = [50, 4096, 0.01, 10000, 0, 0.2];
-const _addSkyLightToLightManager = (light) => {
+const _addSkyLightToLightManager = light => {
   lightsManager.addLight(
     light,
     'directional',
     DIR_LIGHT_SHADOW_PARAMS,
-    [0, 0, 0]
+    [0, 0, 0],
   );
 };
 

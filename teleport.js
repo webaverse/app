@@ -87,7 +87,7 @@ const makeTeleportMesh = (lineMesh, index) => {
       localVector.copy(position);
       const renderer = getRenderer();
       if (renderer.xr.getSession()) {
-        localQuaternion.copy(quaternion).multiply(localQuaternion2.setFromAxisAngle(localVector2.set(1, 0, 0), Math.PI*0.25));
+        localQuaternion.copy(quaternion).multiply(localQuaternion2.setFromAxisAngle(localVector2.set(1, 0, 0), Math.PI * 0.25));
       } else {
         localQuaternion.copy(quaternion);
       }

@@ -30,15 +30,18 @@ class Quest {
             };
           }
           default: {
-            return null;
+            break;
           }
         }
       }
+      return null;
     })();
   }
+
   update(timestamp, timeDiff) {
     this.conditionsFn && this.conditionsFn();
   }
+
   destroy() {
     // nothing
   }
@@ -50,6 +53,7 @@ class QuestManager extends EventTarget {
 
     this.quests = [];
   }
+
   addQuest(questApp) {
     const quest = new Quest(questApp);
     this.quests.push(quest);
@@ -60,6 +64,7 @@ class QuestManager extends EventTarget {
     }));
     return quest;
   }
+
   removeQuest(quest) {
     const index = this.quests.indexOf(quest);
     if (index !== -1) {
@@ -73,6 +78,7 @@ class QuestManager extends EventTarget {
       }));
     }
   }
+
   update(timestamp, timeDiff) {
     for (const quest of this.quests) {
       quest.update(timestamp, timeDiff);

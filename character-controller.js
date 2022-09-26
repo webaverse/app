@@ -137,7 +137,7 @@ class Character extends THREE.Object3D {
     this.characterHitter = new CharacterHitter(this);
 
     this.detached = false;
- 
+
     this.appManager = new AppManager({
       appsMap: null,
     });
@@ -157,13 +157,14 @@ class Character extends THREE.Object3D {
     this.headTarget = new THREE.Vector3();
     this.headTargetInverted = false;
     this.headTargetEnabled = false;
-    
+
     this.eyeballTarget = new THREE.Vector3();
     this.eyeballTargetEnabled = false;
-    
+
     this.voicePack = null;
     this.voiceEndpoint = null;
   }
+
   setSpawnPoint(position, quaternion) {
     this.position.copy(position);
     this.quaternion.copy(quaternion);
@@ -172,13 +173,16 @@ class Character extends THREE.Object3D {
       this.characterPhysics.setPosition(position);
     }
   }
+
   // serializers
   getPosition() {
     return this.position.toArray(localArray3) ?? [0, 0, 0];
   }
+
   getQuaternion() {
     return this.quaternion.toArray(localArray4) ?? [0, 0, 0, 1];
   }
+
   findAction(fn) {
     const actions = this.getActionsState();
     for (const action of actions) {
@@ -188,6 +192,7 @@ class Character extends THREE.Object3D {
     }
     return null;
   }
+
   findActionIndex(fn) {
     const actions = this.getActionsState();
     let i = 0;
@@ -195,10 +200,11 @@ class Character extends THREE.Object3D {
       if (fn(action)) {
         return i;
       }
-      i++
+      i++;
     }
     return -1;
   }
+
   getAction(type) {
     const actions = this.getActionsState();
     for (const action of actions) {
@@ -208,6 +214,7 @@ class Character extends THREE.Object3D {
     }
     return null;
   }
+
   getActionByActionId(actionId) {
     const actions = this.getActionsState();
     for (const action of actions) {
@@ -217,6 +224,7 @@ class Character extends THREE.Object3D {
     }
     return null;
   }
+
   getActionIndex(type) {
     const actions = this.getActionsState();
     let i = 0;
@@ -228,6 +236,7 @@ class Character extends THREE.Object3D {
     }
     return -1;
   }
+
   indexOfAction(action) {
     const actions = this.getActionsState();
     let i = 0;
@@ -239,6 +248,7 @@ class Character extends THREE.Object3D {
     }
     return -1;
   }
+
   hasAction(type) {
     const actions = this.getActionsState();
     for (const action of actions) {
@@ -248,14 +258,16 @@ class Character extends THREE.Object3D {
     }
     return false;
   }
+
   async setVoicePack({audioUrl, indexUrl}) {
     const self = this;
     // this.playersArray.doc.transact(function tx() {
     const voiceSpec = JSON.stringify({audioUrl, indexUrl, endpointUrl: self.voiceEndpoint ? self.voiceEndpoint.url : ''});
     self.playerMap.set('voiceSpec', voiceSpec);
     // });
-    await this.loadVoicePack({audioUrl, indexUrl})
+    await this.loadVoicePack({audioUrl, indexUrl});
   }
+
   async loadVoicePack({audioUrl, indexUrl}) {
     this.voicePack = await VoicePack.load({
       audioUrl,
@@ -263,8 +275,9 @@ class Character extends THREE.Object3D {
     });
     this.updateVoicer();
   }
+
   setVoiceEndpoint(voiceId) {
-    if (!voiceId) throw new Error('voice Id is null')
+    if (!voiceId) throw new Error('voice Id is null');
     const self = this;
     const url = `${voiceEndpointBaseUrl}?voice=${encodeURIComponent(voiceId)}`;
     this.playersArray.doc.transact(function tx() {
@@ -274,11 +287,11 @@ class Character extends THREE.Object3D {
         const voiceSpec = JSON.stringify({audioUrl: oldVoiceSpec.audioUrl, indexUrl: oldVoiceSpec.indexUrl, endpointUrl: url});
         self.playerMap.set('voiceSpec', voiceSpec);
       } else {
-        const voiceSpec = JSON.stringify({audioUrl: self.voicePack?.audioUrl, indexUrl: self.voicePack?.indexUrl, endpointUrl: url})
+        const voiceSpec = JSON.stringify({audioUrl: self.voicePack?.audioUrl, indexUrl: self.voicePack?.indexUrl, endpointUrl: url});
         self.playerMap.set('voiceSpec', voiceSpec);
       }
     });
-    this.loadVoiceEndpoint(url)
+    this.loadVoiceEndpoint(url);
   }
 
   loadVoiceEndpoint(url) {
@@ -289,9 +302,11 @@ class Character extends THREE.Object3D {
     }
     this.updateVoicer();
   }
+
   getVoice() {
     return this.voiceEndpoint || this.voicePack;
   }
+
   updateVoicer() {
     const voice = this.getVoice();
     if (voice instanceof VoicePack) {
@@ -305,12 +320,14 @@ class Character extends THREE.Object3D {
       throw new Error('invalid voice');
     }
   }
+
   async fetchThemeSong() {
     const avatarApp = this.getAvatarApp();
     const npcComponent = avatarApp.getComponent('npc');
     const npcThemeSongUrl = npcComponent?.themeSongUrl;
     return await Character.fetchThemeSong(npcThemeSongUrl);
   }
+
   static async fetchThemeSong(npcThemeSongUrl) {
     if (npcThemeSongUrl) {
       return await musicManager.fetchMusic(npcThemeSongUrl);
@@ -318,12 +335,14 @@ class Character extends THREE.Object3D {
       return null;
     }
   }
+
   getCrouchFactor() {
     return 1 - 0.4 * this.actionInterpolants.crouch.getNormalized();
     /* let factor = 1;
     factor *= 1 - 0.4 * this.actionInterpolants.crouch.getNormalized();
     return factor; */
   }
+
   wear(app, {
     loadoutIndex = -1,
   } = {}) {
@@ -390,7 +409,7 @@ class Character extends THREE.Object3D {
       _disableAppPhysics();
 
       const wearComponent = app.getComponent('wear');
-      const holdAnimation = wearComponent? wearComponent.holdAnimation : null;
+      const holdAnimation = wearComponent ? wearComponent.holdAnimation : null;
       const _addAction = () => {
         this.addAction({
           type: 'wear',
@@ -420,6 +439,7 @@ class Character extends THREE.Object3D {
       _emitEvents();
     }
   }
+
   unwear(app, {
     destroy = false,
     dropStartPosition = null,
@@ -443,7 +463,7 @@ class Character extends THREE.Object3D {
             physicsObject.updateMatrixWorld();
 
             physicsScene.setTransform(physicsObject, true);
-            physicsScene.setVelocity(physicsObject, localVector.copy(dropDirection).multiplyScalar(5)/*.add(this.characterPhysics.velocity)*/, true);
+            physicsScene.setVelocity(physicsObject, localVector.copy(dropDirection).multiplyScalar(5)/* .add(this.characterPhysics.velocity) */, true);
             physicsScene.setAngularVelocity(physicsObject, zeroVector, true);
 
             app.position.copy(physicsObject.position);
@@ -457,8 +477,8 @@ class Character extends THREE.Object3D {
               localMatrix.lookAt(
                 localVector.set(0, 0, 0),
                 localVector2.set(dropDirection.x, 0, dropDirection.z).normalize(),
-                upVector
-              )
+                upVector,
+              ),
             );
             app.scale.set(1, 1, 1);
             app.updateMatrixWorld();
@@ -473,7 +493,7 @@ class Character extends THREE.Object3D {
           app.updateMatrixWorld();
         }
       };
-      if(!app.getComponent('sit') && !app.getComponent('pet')){
+      if (!app.getComponent('sit') && !app.getComponent('pet')) {
         _setAppTransform();
       }
 
@@ -487,10 +507,10 @@ class Character extends THREE.Object3D {
         }
       };
       _enableAppPhysics();
-      
+
       const _removeApp = () => {
         this.removeActionIndex(wearActionIndex);
-        
+
         if (this.appManager.hasTrackedApp(app.instanceId)) {
           if (destroy) {
             this.appManager.removeApp(app);
@@ -504,7 +524,7 @@ class Character extends THREE.Object3D {
         }
       };
       _removeApp();
-      
+
       const _emitEvents = () => {
         app.dispatchEvent({
           type: 'wearupdate',
@@ -522,6 +542,7 @@ class Character extends THREE.Object3D {
       _emitEvents();
     }
   }
+
   setTarget(target) { // set both head and eyeball target;
     if (target) {
       this.headTarget.copy(target);
@@ -535,6 +556,7 @@ class Character extends THREE.Object3D {
       this.eyeballTargetEnabled = false;
     }
   }
+
   destroy() {
     this.characterHups.destroy();
   }
@@ -561,29 +583,34 @@ class StateCharacter extends Character {
     this.playersArray = null;
     this.playerMap = null;
     this.microphoneMediaStream = null;
- 
+
     this.avatarEpoch = 0;
     this.syncAvatarCancelFn = null;
     this.unbindFns = [];
-    
+
     this.transform = new Float32Array(7);
     this.bindState(playersArray);
   }
+
   isBound() {
     return !!this.playersArray;
   }
+
   unbindState() {
     if (this.isBound()) {
       this.playersArray = null;
       this.playerMap = null;
     }
   }
+
   detachState() {
     throw new Error('called abstract method');
   }
+
   attachState(oldState) {
     throw new Error('called abstract method');
   }
+
   bindCommonObservers() {
     const actions = this.getActionsState();
     let lastActions = actions.toJSON();
@@ -613,39 +640,45 @@ class StateCharacter extends Character {
     actions.observe(observeActionsFn);
     this.unbindFns.push(actions.unobserve.bind(actions, observeActionsFn));
   }
+
   unbindCommonObservers() {
     for (const unbindFn of this.unbindFns) {
       unbindFn();
     }
     this.unbindFns.length = 0;
   }
+
   bindState(nextPlayersArray) {
     // latch old state
     const oldState = this.detachState();
-    
+
     // unbind
     this.unbindState();
     this.appManager.unbindState();
     this.unbindCommonObservers();
-    
+
     // note: leave the old state as is. it is the host's responsibility to garbage collect us when we disconnect.
-    
+
     // blindly add to new state
     this.playersArray = nextPlayersArray;
     this.attachState(oldState);
     this.bindCommonObservers();
   }
+
   getAvatarInstanceId() {
     return this.playerMap.get('avatar');
-  } 
-  getActionsByType(type) {
-   const actions = this.getActionsState(); 
-   const typedActions = Array.from(actions).filter(action => action.type === type);
-   return typedActions;
   }
+
+  getActionsByType(type) {
+    const actions = this.getActionsState();
+    const typedActions = Array.from(actions).filter(action => action.type === type);
+    return typedActions;
+  }
+
   getActions() {
     return this.getActionsState();
   }
+
   getActionsState() {
     let actionsArray = this.playerMap.has(actionsMapName) ? this.playerMap.get(actionsMapName, Z.Array) : null;
     if (!actionsArray) {
@@ -654,9 +687,11 @@ class StateCharacter extends Character {
     }
     return actionsArray;
   }
+
   getActionsArray() {
     return this.isBound() ? Array.from(this.getActionsState()) : [];
   }
+
   getAppsState() {
     let appsArray = this.playerMap.has(appsMapName) ? this.playerMap.get(appsMapName, Z.Array) : null;
     if (!appsArray) {
@@ -665,15 +700,18 @@ class StateCharacter extends Character {
     }
     return appsArray;
   }
+
   getAppsArray() {
     return this.isBound() ? Array.from(this.getAppsState()) : [];
   }
+
   addAction(action) {
     action = clone(action);
     action.actionId = makeId(5);
     this.getActionsState().push([action]);
     return action;
   }
+
   removeAction(type) {
     const actions = this.getActionsState();
     let i = 0;
@@ -685,9 +723,11 @@ class StateCharacter extends Character {
       i++;
     }
   }
+
   removeActionIndex(index) {
     this.getActionsState().delete(index);
   }
+
   clearActions() {
     const actionsState = this.getActionsState();
     const numActions = actionsState.length;
@@ -695,6 +735,7 @@ class StateCharacter extends Character {
       this.removeActionIndex(i);
     }
   }
+
   setControlAction(action) {
     const actions = this.getActionsState();
     for (let i = 0; i < actions.length; i++) {
@@ -707,6 +748,7 @@ class StateCharacter extends Character {
     }
     actions.push([action]);
   }
+
   new() {
     const self = this;
     this.playersArray.doc.transact(function tx() {
@@ -714,15 +756,16 @@ class StateCharacter extends Character {
       while (actions.length > 0) {
         actions.delete(actions.length - 1);
       }
-      
+
       this.playerMap.delete('avatar');
-      
+
       const apps = self.getAppsState();
       while (apps.length > 0) {
         apps.delete(apps.length - 1);
       }
     });
   }
+
   save() {
     const actions = this.getActionsState();
     const apps = this.getAppsState();
@@ -732,6 +775,7 @@ class StateCharacter extends Character {
       apps: apps.toJSON(),
     });
   }
+
   load(s) {
     const j = JSON.parse(s);
     // console.log('load', j);
@@ -741,12 +785,12 @@ class StateCharacter extends Character {
       while (actions.length > 0) {
         actions.delete(actions.length - 1);
       }
-      
+
       const avatar = self.getAvatarInstanceId();
       if (avatar) {
         this.playerMap.set('avatar', avatar);
       }
-      
+
       const apps = self.getAppsState();
       if (Array.isArray(j?.apps)) {
         for (const app of j.apps) {
@@ -755,12 +799,13 @@ class StateCharacter extends Character {
       }
     });
   }
+
   destroy() {
     this.unbindState();
     this.appManager.unbindState();
 
     this.appManager.destroy();
-  
+
     super.destroy();
   }
 }
@@ -780,19 +825,23 @@ class AvatarCharacter extends StateCharacter {
     this.rightHand = new AvatarHand();
     this.hands = [this.leftHand, this.rightHand];
   }
+
   getControlMode() {
     return this.controlMode;
   }
+
   setControlMode(mode) {
     this.controlMode = mode;
   }
+
   setSpawnPoint(position, quaternion) {
     super.setSpawnPoint(position, quaternion);
-    
+
     camera.position.copy(position);
     camera.quaternion.copy(quaternion);
     camera.updateMatrixWorld();
   }
+
   updatePhysicsStatus() {
     if (this.getControlMode() === 'controlled') {
       physicsScene.disableGeometryQueries(this.characterPhysics.characterController);
@@ -800,6 +849,7 @@ class AvatarCharacter extends StateCharacter {
       physicsScene.enableGeometryQueries(this.characterPhysics.characterController);
     }
   }
+
   async syncAvatar() {
     if (this.syncAvatarCancelFn) {
       this.syncAvatarCancelFn.cancel();
@@ -812,7 +862,7 @@ class AvatarCharacter extends StateCharacter {
     // remove last app
     if (this.avatar) {
       const oldPeerOwnerAppManager = this.appManager.getPeerOwnerAppManager(
-        this.avatar.app.instanceId
+        this.avatar.app.instanceId,
       );
       if (oldPeerOwnerAppManager) {
         // console.log('transplant last app');
@@ -823,7 +873,7 @@ class AvatarCharacter extends StateCharacter {
       }
     }
 
-    const _setNextAvatarApp = (app) => {
+    const _setNextAvatarApp = app => {
       (() => {
         const avatar = switchAvatar(this.avatar, app);
         if (!cancelFn.isLive()) return;
@@ -834,10 +884,10 @@ class AvatarCharacter extends StateCharacter {
           app,
           avatar,
         });
-        
+
         const activate = () => {
           this.dispatchEvent({
-            type: 'activate'
+            type: 'activate',
           });
         };
         app.addEventListener('activate', activate);
@@ -847,7 +897,7 @@ class AvatarCharacter extends StateCharacter {
 
         this.characterPhysics.loadCharacterController(
           this.avatar.shoulderWidth,
-          this.avatar.height
+          this.avatar.height,
         );
 
         this.updatePhysicsStatus();
@@ -883,7 +933,7 @@ class AvatarCharacter extends StateCharacter {
           } else {
             console.warn(
               'switching avatar to instanceId that does not exist in any app manager',
-              instanceId
+              instanceId,
             );
           }
         }
@@ -892,6 +942,7 @@ class AvatarCharacter extends StateCharacter {
 
     this.syncAvatarCancelFn = null;
   }
+
   destroy() {
     this.avatarFace.destroy();
     this.avatarCharacterSfx.destroy();
@@ -955,24 +1006,25 @@ class InterpolatedPlayer extends AvatarCharacter {
       hurt: new InfiniteActionInterpolant(() => this.actionBinaryInterpolants.hurt.get(), 0),
       movements: new InfiniteActionInterpolant(() => {
         const ioManager = metaversefile.useIoManager();
-        return  ioManager.keys.up || ioManager.keys.down || ioManager.keys.left || ioManager.keys.right;
+        return ioManager.keys.up || ioManager.keys.down || ioManager.keys.left || ioManager.keys.right;
       }, 0),
       movementsTransition: new BiActionInterpolant(() => {
         const ioManager = metaversefile.useIoManager();
-        return  ioManager.keys.up || ioManager.keys.down || ioManager.keys.left || ioManager.keys.right;
+        return ioManager.keys.up || ioManager.keys.down || ioManager.keys.left || ioManager.keys.right;
       }, 0, crouchMaxTime),
       sprint: new BiActionInterpolant(() => {
         const ioManager = metaversefile.useIoManager();
-        return  ioManager.keys.shift;
+        return ioManager.keys.shift;
       }, 0, crouchMaxTime),
     };
     this.actionInterpolantsArray = Object.keys(this.actionInterpolants).map(k => this.actionInterpolants[k]);
-    
+
     this.avatarBinding = {
       position: this.positionInterpolant.get(),
       quaternion: this.quaternionInterpolant.get(),
     };
   }
+
   /* update(timestamp, timeDiff) {
     if (!this.avatar) return; // avatar takes time to load, ignore until it does
 
@@ -1004,9 +1056,10 @@ class InterpolatedPlayer extends AvatarCharacter {
 class UninterpolatedPlayer extends AvatarCharacter {
   constructor(opts) {
     super(opts);
-    
-    UninterpolatedPlayer.init.apply(this, arguments)
+
+    UninterpolatedPlayer.init.apply(this, arguments);
   }
+
   static init() {
     this.actionInterpolants = {
       crouch: new BiActionInterpolant(() => this.hasAction('crouch'), 0, crouchMaxTime),
@@ -1027,15 +1080,15 @@ class UninterpolatedPlayer extends AvatarCharacter {
       emote: new BiActionInterpolant(() => this.hasAction('emote'), 0, crouchMaxTime),
       movements: new InfiniteActionInterpolant(() => {
         const ioManager = metaversefile.useIoManager();
-        return  ioManager.keys.up || ioManager.keys.down || ioManager.keys.left || ioManager.keys.right;
+        return ioManager.keys.up || ioManager.keys.down || ioManager.keys.left || ioManager.keys.right;
       }, 0),
       movementsTransition: new BiActionInterpolant(() => {
         const ioManager = metaversefile.useIoManager();
-        return  ioManager.keys.up || ioManager.keys.down || ioManager.keys.left || ioManager.keys.right;
+        return ioManager.keys.up || ioManager.keys.down || ioManager.keys.left || ioManager.keys.right;
       }, 0, crouchMaxTime),
       sprint: new BiActionInterpolant(() => {
         const ioManager = metaversefile.useIoManager();
-        return  ioManager.keys.shift;
+        return ioManager.keys.shift;
       }, 0, crouchMaxTime),
       // throw: new UniActionInterpolant(() => this.hasAction('throw'), 0, throwMaxTime),
       // chargeJump: new InfiniteActionInterpolant(() => this.hasAction('chargeJump'), 0),
@@ -1053,6 +1106,7 @@ class UninterpolatedPlayer extends AvatarCharacter {
       quaternion: this.quaternion,
     };
   }
+
   updateInterpolation(timeDiff) {
     for (const actionInterpolant of this.actionInterpolantsArray) {
       actionInterpolant.update(timeDiff);
@@ -1070,21 +1124,25 @@ class LocalPlayer extends UninterpolatedPlayer {
     }
     this.detached = opts.detached ?? false;
   }
+
   async setPlayerSpec(playerSpec) {
     const p = this.setAvatarUrl(playerSpec.avatarUrl);
-    
+
     overrides.userVoiceEndpoint.set(playerSpec.voice ?? null);
     overrides.userVoicePack.set(playerSpec.voicePack ?? null);
 
     await p;
   }
+
   getAvatarApp() {
     const instanceId = this.playerMap.get('avatar');
     return this.appManager.getAppByInstanceId(instanceId);
   }
+
   setAvatarApp(app) {
     this.#setAvatarAppFromOwnAppManager(app);
   }
+
   async setAvatarUrl(u) {
     const localAvatarEpoch = ++this.avatarEpoch;
     const avatarApp = await this.appManager.addTrackedApp(u);
@@ -1095,6 +1153,7 @@ class LocalPlayer extends UninterpolatedPlayer {
     }
     this.#setAvatarAppFromOwnAppManager(avatarApp);
   }
+
   /* importAvatarApp(app, srcAppManager) {
     srcAppManager.transplantApp(app, this.appManager);
     this.#setAvatarAppFromOwnAppManager(app);
@@ -1103,7 +1162,7 @@ class LocalPlayer extends UninterpolatedPlayer {
     const self = this;
     this.playersArray.doc.transact(function tx() {
       const oldInstanceId = self.playerMap.get('avatar');
-      if (app.instanceId){
+      if (app.instanceId) {
         self.playerMap.set('avatar', app.instanceId);
       } else {
         throw new Error('app.instanceId is invalid');
@@ -1115,6 +1174,7 @@ class LocalPlayer extends UninterpolatedPlayer {
       self.syncAvatar();
     });
   }
+
   setMicMediaStream(mediaStream) {
     if (this.microphoneMediaStream) {
       this.microphoneMediaStream.disconnect();
@@ -1130,6 +1190,7 @@ class LocalPlayer extends UninterpolatedPlayer {
       this.microphoneMediaStream = mediaStreamSource;
     }
   }
+
   detachState() {
     const oldActions = (this.playersArray ? this.getActionsState() : new Z.Array());
     const oldAvatar = this.playersArray && this.getAvatarInstanceId();
@@ -1140,13 +1201,14 @@ class LocalPlayer extends UninterpolatedPlayer {
       oldApps,
     };
   }
+
   attachState(oldState) {
     const {
       oldActions,
       oldAvatar,
       oldApps,
     } = oldState;
-    
+
     const self = this;
     this.playersArray.doc.transact(function tx() {
       self.playerMap = new Z.Map();
@@ -1156,12 +1218,12 @@ class LocalPlayer extends UninterpolatedPlayer {
       self.position.toArray(self.transform, 0);
       self.quaternion.toArray(self.transform, 3);
       self.playerMap.set('transform', self.transform);
-      
+
       const actions = self.getActionsState();
       for (const oldAction of oldActions) {
         actions.push([oldAction]);
       }
-      
+
       const apps = self.getAppsState();
       for (const oldApp of oldApps) {
         const mapApp = new Z.Map();
@@ -1171,12 +1233,12 @@ class LocalPlayer extends UninterpolatedPlayer {
         }
         apps.push([mapApp]);
       }
-      
+
       if (oldAvatar !== undefined && oldAvatar !== null && oldAvatar !== '') {
         self.playerMap.set('avatar', oldAvatar);
       }
 
-      if(self.voiceEndpoint) {
+      if (self.voiceEndpoint) {
         const voiceSpec = JSON.stringify({audioUrl: self.voiceEndpoint.audioUrl, indexUrl: self.voiceEndpoint.indexUrl, endpointUrl: self.voiceEndpoint ? self.voiceEndpoint.url : ''});
         self.playerMap.set('voiceSpec', voiceSpec);
       }
@@ -1184,6 +1246,7 @@ class LocalPlayer extends UninterpolatedPlayer {
       self.appManager.bindState(self.getAppsState());
     });
   }
+
   deletePlayerId(playerId) {
     const self = this;
     this.playersArray.doc.transact(function tx() {
@@ -1196,10 +1259,11 @@ class LocalPlayer extends UninterpolatedPlayer {
       }
     });
   }
-  grab(app, hand = 'left') {
-    let position = null, quaternion = null;
 
-    if(_getSession()) {
+  grab(app, hand = 'left') {
+    let position = null; let quaternion = null;
+
+    if (_getSession()) {
       const h = this[hand === 'left' ? 'leftHand' : 'rightHand'];
       position = h.position;
       quaternion = h.quaternion;
@@ -1218,17 +1282,18 @@ class LocalPlayer extends UninterpolatedPlayer {
       instanceId: app.instanceId,
       matrix: localMatrix.copy(app.matrixWorld)
         .premultiply(localMatrix2.compose(position, quaternion, localVector.set(1, 1, 1)).invert())
-        .toArray()
+        .toArray(),
     };
     this.addAction(grabAction);
-    
-    physicsScene.disableAppPhysics(app)
+
+    physicsScene.disableAppPhysics(app);
 
     app.dispatchEvent({
       type: 'grabupdate',
       grab: true,
     });
   }
+
   ungrab() {
     const actions = Array.from(this.getActionsState());
     let removeOffset = 0;
@@ -1237,7 +1302,7 @@ class LocalPlayer extends UninterpolatedPlayer {
       if (action.type === 'grab') {
         const app = metaversefile.getAppByInstanceId(action.instanceId);
 
-        physicsScene.enableAppPhysics(app)
+        physicsScene.enableAppPhysics(app);
 
         this.removeActionIndex(i + removeOffset);
         removeOffset -= 1;
@@ -1249,6 +1314,7 @@ class LocalPlayer extends UninterpolatedPlayer {
       }
     }
   }
+
   /* lookAt(p) {
     const cameraOffset = cameraManager.getCameraOffset();
     camera.position.add(localVector.copy(cameraOffset).applyQuaternion(camera.quaternion));
@@ -1267,7 +1333,7 @@ class LocalPlayer extends UninterpolatedPlayer {
     const self = this;
     this.playersArray.doc.transact(() => {
       if (!this.matrixWorld.equals(this.lastMatrix)) {
-        self.position.toArray(self.transform);      
+        self.position.toArray(self.transform);
         self.quaternion.toArray(self.transform, 3);
         self.playerMap.set('transform', self.transform);
         this.lastMatrix.copy(this.matrixWorld);
@@ -1276,12 +1342,14 @@ class LocalPlayer extends UninterpolatedPlayer {
 
     this.appManager.updatePhysics();
   }
+
   updatePhysics(timestamp, timeDiff) {
     if (this.avatar) {
       const timeDiffS = timeDiff / 1000;
       this.characterPhysics.update(timestamp, timeDiffS);
     }
   }
+
   updateAvatar(timestamp, timeDiff) {
     if (this.avatar) {
       const timeDiffS = timeDiff / 1000;
@@ -1301,6 +1369,7 @@ class LocalPlayer extends UninterpolatedPlayer {
       this.characterHups.update(timestamp);
     }
   }
+
   destroy() {
     super.destroy();
     this.characterPhysics.destroy();
@@ -1319,7 +1388,7 @@ class LocalPlayer extends UninterpolatedPlayer {
         localMatrix.copy(xrCamera.matrix)
           .premultiply(dolly.matrix)
           .decompose(localVector, localQuaternion, localVector2);
-          
+
         dolly.matrix
           .premultiply(localMatrix.makeTranslation(position.x - localVector.x, position.y - localVector.y, position.z - localVector.z))
           // .premultiply(localMatrix.makeRotationFromQuaternion(localQuaternion3.copy(quaternion).inverse()))
@@ -1348,7 +1417,8 @@ class RemotePlayer extends InterpolatedPlayer {
     this.lastPosition = new THREE.Vector3();
     this.controlMode = 'remote';
   }
-    // The audio worker handles hups and incoming voices
+
+  // The audio worker handles hups and incoming voices
   // This includes the microphone from the owner of this instance
   async prepareAudioWorker() {
     if (!this.audioWorkerLoaded) {
@@ -1359,11 +1429,11 @@ class RemotePlayer extends InterpolatedPlayer {
 
       this.audioWorkletNode = new AudioWorkletNode(
         audioContext,
-        'ws-output-worklet'
+        'ws-output-worklet',
       );
 
       this.audioDecoder = new WsAudioDecoder({
-        output: (data) => {
+        output: data => {
           const buffer = getAudioDataBuffer(data);
           this.audioWorkletNode.port.postMessage(buffer, [buffer.buffer]);
         },
@@ -1376,6 +1446,7 @@ class RemotePlayer extends InterpolatedPlayer {
       this.audioWorkletNode.connect(this.avatar.getAudioInput());
     }
   }
+
   // This is called by WSRTC (in world.js) when it receives new packets for this player
   processAudioData(data) {
     this.prepareAudioWorker();
@@ -1383,9 +1454,11 @@ class RemotePlayer extends InterpolatedPlayer {
       this.audioDecoder.decode(data.data);
     }
   }
+
   detachState() {
     return null;
   }
+
   attachState(oldState) {
     let index = -1;
     for (let i = 0; i < this.playersArray.length; i++) {
@@ -1402,7 +1475,7 @@ class RemotePlayer extends InterpolatedPlayer {
     }
     let lastTimestamp = performance.now();
     // let lastPosition = new THREE.Vector3();
-    const observePlayerFn = (e) => {
+    const observePlayerFn = e => {
       if (e.changes.keys.has('avatar')) {
         this.syncAvatar();
       }
@@ -1410,10 +1483,8 @@ class RemotePlayer extends InterpolatedPlayer {
       if (e.changes.keys.get('voiceSpec') || e.added?.keys?.get('voiceSpec')) {
         const voiceSpec = e.changes.keys.get('voiceSpec');
         const json = JSON.parse(voiceSpec.value);
-        if (json.endpointUrl)
-          {this.loadVoiceEndpoint(json.endpointUrl);}
-        if (json.audioUrl && json.indexUrl)
-          {this.loadVoicePack({audioUrl: json.audioUrl, indexUrl: json.indexUrl});}
+        if (json.endpointUrl) { this.loadVoiceEndpoint(json.endpointUrl); }
+        if (json.audioUrl && json.indexUrl) { this.loadVoicePack({audioUrl: json.audioUrl, indexUrl: json.indexUrl}); }
       }
 
       if (e.changes.keys.get('name')) {
@@ -1436,27 +1507,28 @@ class RemotePlayer extends InterpolatedPlayer {
           actionBinaryInterpolant.snapshot(timeDiff);
         }
 
-        if(this.avatar){
+        if (this.avatar) {
           localVector.copy(this.position);
           localVector.y -= this.avatar.height * 0.5;
           physicsScene.setCharacterControllerPosition(this.characterPhysics.characterController, localVector);
         }
         this.lastPosition.copy(this.position);
       }
-    }
+    };
     this.playerMap.observe(observePlayerFn);
     this.unbindFns.push(this.playerMap.unobserve.bind(this.playerMap, observePlayerFn));
     this.appManager.bindState(this.getAppsState());
     this.appManager.loadApps().then(() => {
-      if(!this.voicer || !this.voiceEndpoint){
-        let voiceSpec = JSON.parse(this.playerMap.get('voiceSpec'));
+      if (!this.voicer || !this.voiceEndpoint) {
+        const voiceSpec = JSON.parse(this.playerMap.get('voiceSpec'));
         this.loadVoiceEndpoint(voiceSpec.endpointUrl);
       }
       this.syncAvatar();
     });
   }
+
   update(timestamp, timeDiff) {
-    if(!this.avatar) return // console.log("no avatar"); // avatar takes time to load, ignore until it does
+    if (!this.avatar) return; // console.log("no avatar"); // avatar takes time to load, ignore until it does
 
     this.updateInterpolation(timeDiff);
 
@@ -1531,7 +1603,7 @@ class RemotePlayer extends InterpolatedPlayer {
 /* class NpcPlayer extends LocalPlayer {
   constructor(opts) {
     super(opts);
-  
+
     this.controlMode = 'npc';
   }
 } */
@@ -1541,4 +1613,3 @@ export {
   RemotePlayer,
   // NpcPlayer,
 };
-

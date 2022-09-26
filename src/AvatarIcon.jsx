@@ -1,7 +1,7 @@
-import React, { useEffect, useRef, useContext, useState } from 'react';
+import React, {useEffect, useRef, useContext, useState} from 'react';
 import classnames from 'classnames';
 
-import { AppContext } from './components/app';
+import {AppContext} from './components/app';
 import {world} from '../world.js';
 import {
   hp,
@@ -12,9 +12,9 @@ import {
 
 import styles from './AvatarIcon.module.css';
 import {PlaceholderImg} from './PlaceholderImg.jsx';
-import { AvatarIconer } from '../avatar-iconer.js';
-import cameraManager from '../camera-manager.js'
-import * as sounds from '../sounds.js'
+import {AvatarIconer} from '../avatar-iconer.js';
+import cameraManager from '../camera-manager.js';
+import * as sounds from '../sounds.js';
 
 const characterIconSize = 100;
 const pixelRatio = window.devicePixelRatio;
@@ -23,7 +23,7 @@ const CharacterIcon = () => {
   const [loaded, setLoaded] = useState(false);
   const canvasRef = useRef();
 
-  useEffect(() => {    
+  useEffect(() => {
     const canvas = canvasRef.current;
     if (canvas) {
       const avatarIconer = new AvatarIconer({
@@ -87,7 +87,7 @@ const CharacterIcon = () => {
                       <div className={styles.value}>{mp}</div>
                   </div>
                   <div className={classnames(styles.stat, styles.xp)}>
-                      <img className={styles.barImg} src={`./images/xp-bar.svg`} />
+                      <img className={styles.barImg} src={'./images/xp-bar.svg'} />
                       <div className={styles.label}>XP</div>
                       <div className={styles.value}>{xp}</div>
                       <progress className={styles.progress} value={xp} max={100} />
@@ -107,24 +107,20 @@ const CharacterIcon = () => {
   );
 };
 
-export const AvatarIcon = ({ className }) => {
-    const { state, setState } = useContext( AppContext );
+export const AvatarIcon = ({className}) => {
+  const {state, setState} = useContext(AppContext);
 
-    const handleCharacterBtnClick = () => {
+  const handleCharacterBtnClick = () => {
+    setState({openedPanel: (state.openedPanel === 'CharacterPanel' ? null : 'CharacterPanel')});
 
-        setState({ openedPanel: ( state.openedPanel === 'CharacterPanel' ? null : 'CharacterPanel' ) });
+    if (state.openedPanel === 'CharacterPanel') {
+      cameraManager.requestPointerLock();
+    }
+  };
 
-        if ( state.openedPanel === 'CharacterPanel' ) {
-
-            cameraManager.requestPointerLock();
-
-        }
-
-    };
-
-    return (
+  return (
         <div
-            className={ classnames( className, styles.avatarIcon ) }
+            className={ classnames(className, styles.avatarIcon) }
             onClick={handleCharacterBtnClick}
         >
             {/* <a href="/" className={styles.logo}>
@@ -132,5 +128,5 @@ export const AvatarIcon = ({ className }) => {
             </a> */}
             <CharacterIcon />
         </div>
-    );
+  );
 };

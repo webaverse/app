@@ -3,12 +3,12 @@ import {
   defaultPlayerBio,
   defaultObjectName,
   defaultObjectDescription,
-  
+
   makeLorePrompt,
   makeLoreStop,
   postProcessResponse,
   parseLoreResponses,
-  
+
   makeCommentPrompt,
   makeCommentStop,
   parseCommentResponse,
@@ -37,7 +37,7 @@ import {
   makeQuestPrompt,
   makeQuestStop,
   parseQuestResponse,
-} from './lore-model.js'
+} from './lore-model.js';
 
 const numGenerateTries = 5;
 const temperature = 1;
@@ -141,7 +141,7 @@ class AIScene {
             const mentionedCharacter = this.characters[mentionedCharacterIndex];
             await _pushRequestMessage(message);
             for (let i = 0; i < numGenerateTries; i++) {
-              let response = await this.generate(mentionedCharacter);
+              const response = await this.generate(mentionedCharacter);
               if (response) {
                 const a = parseLoreResponses(response);
                 if (a.length > 0) {
@@ -161,11 +161,11 @@ class AIScene {
           }
         } else { // middle of conversation
           await _pushRequestMessage(message);
-          
+
           for (let i = 0; i < numGenerateTries; i++) {
             // const nextCharacterIndex = 1 + Math.floor(Math.random() * (this.characters.length - 1)); // skip over local character
             // const nextCharacter = this.characters[nextCharacterIndex];
-            let response = await this.generate();
+            const response = await this.generate();
             const a = parseLoreResponses(response);
             if (a.length > 0) {
               for (const o of a) {
@@ -188,28 +188,35 @@ class AIScene {
       });
     });
   }
+
   addSetting(setting) {
     this.settings.push(setting);
   }
+
   removeSetting(setting) {
     this.settings.splice(this.settings.indexOf(setting), 1);
   }
+
   addCharacter(opts) {
     const character = new AICharacter(opts);
     this.characters.push(character);
     return character;
   }
+
   removeCharacter(character) {
     this.characters.splice(this.characters.indexOf(character), 1);
   }
+
   addObject(opts) {
     const object = new AIObject(opts);
     this.objects.push(object);
     return object;
   }
+
   removeObject(object) {
     this.objects.splice(this.objects.indexOf(object), 1);
   }
+
   async generate(dstCharacter = null) {
     const prompt = makeLorePrompt({
       settings: this.settings,
@@ -224,6 +231,7 @@ class AIScene {
     response = postProcessResponse(response, this.characters, dstCharacter);
     return response;
   }
+
   async generateLocationComment(name, dstCharacter = null) {
     const prompt = makeCommentPrompt({
       settings: this.settings,
@@ -236,7 +244,7 @@ class AIScene {
     // console.log('got comment', {prompt, response});
     return response;
   }
-  
+
   // XXX needs better API
   async generateSelectTargetComment(name, description) {
     const prompt = makeSelectTargetPrompt({
@@ -257,6 +265,7 @@ class AIScene {
     // console.log('got comment', {prompt, response});
     return response;
   }
+
   async generateSelectCharacterComment(name, description) {
     const prompt = makeSelectCharacterPrompt({
       name,
@@ -264,15 +273,16 @@ class AIScene {
     });
     console.log('select character prompt', {prompt});
     const stop = makeSelectCharacterStop();
-    let response = await this.generateFn(prompt, stop);
+    const response = await this.generateFn(prompt, stop);
     console.log('select character response', {prompt, response});
-    if (response?.length===0) {
+    if (response?.length === 0) {
       return this.generateSelectCharacterComment(name, description);
     }
     const response2 = parseSelectCharacterResponse(response);
     console.log('select character parsed', {response2});
     return response2;
   }
+
   async generateChatMessage(messages, nextCharacter) {
     const prompt = makeChatPrompt({
       messages,
@@ -280,7 +290,7 @@ class AIScene {
     });
     console.log('chat prompt', {prompt});
     const stop = makeChatStop();
-    let response = await this.generateFn(prompt, stop);
+    const response = await this.generateFn(prompt, stop);
     console.log('chat response', {prompt, response});
     const response2 = parseChatResponse(response);
     if (!response2) {
@@ -289,6 +299,7 @@ class AIScene {
     console.log('chat parsed', {response2});
     return response2;
   }
+
   async generateDialogueOptions(messages, nextCharacter) {
     const prompt = makeOptionsPrompt({
       messages,
@@ -296,12 +307,13 @@ class AIScene {
     });
     console.log('dialogue options prompt', {prompt});
     const stop = makeOptionsStop();
-    let response = await this.generateFn(prompt, stop);
+    const response = await this.generateFn(prompt, stop);
     console.log('dialogue options response', {prompt, response});
     const response2 = parseOptionsResponse(response);
     console.log('dialogue options parsed', {response2});
     return response2;
   }
+
   async generateCharacterIntroPrompt(name, bio) {
     const prompt = makeCharacterIntroPrompt({
       name,
@@ -309,28 +321,30 @@ class AIScene {
     });
     console.log('dialogue options prompt', {prompt});
     const stop = makeCharacterIntroStop();
-    let response = await this.generateFn(prompt, stop);
+    const response = await this.generateFn(prompt, stop);
     console.log('dialogue options response', {prompt, response});
     const response2 = parseCharacterIntroResponse(response);
     console.log('dialogue options parsed', {response2});
     return response2;
   }
+
   async checkIfQuestIsApplicable(location, conversation, user1, user2, tries = 0) {
     const prompt = makeQuestCheckerPrompt(location, conversation, user1, user2);
-    const stop = makeQuestCheckerStop()
+    const stop = makeQuestCheckerStop();
     const response = (await this.generateFn(prompt, stop))?.trim();
     if (response?.length <= 0) {
       if (tries >= 5) {
-        return 'no'
+        return 'no';
       } else {
-      return this.checkIfQuestIsApplicable(location, conversation, user1, user2, tries++);
+        return this.checkIfQuestIsApplicable(location, conversation, user1, user2, tries++);
       }
     }
-    console.log('response:', response)
+    console.log('response:', response);
     return response?.trim();
   }
+
   async generateQuest({conversation, location, user1, user2}) {
-    const prompt = makeQuestPrompt({conversation, location, user1, user2})
+    const prompt = makeQuestPrompt({conversation, location, user1, user2});
     const stop = makeQuestStop();
     const response = await this.generateFn(prompt, stop);
     const response2 = parseQuestResponse(response);
@@ -342,6 +356,7 @@ class LoreAI {
   constructor() {
     this.endpointFn = null;
   }
+
   async generate(prompt, {
     stop,
     max_tokens = 100,
@@ -350,7 +365,7 @@ class LoreAI {
     presence_penalty,
     // top_p,
   } = {}) {
-    if (prompt) {    
+    if (prompt) {
       const query = {};
       query.prompt = prompt;
       query.max_tokens = max_tokens;
@@ -366,7 +381,7 @@ class LoreAI {
       if (presence_penalty !== undefined) {
         query.presence_penalty = presence_penalty;
       }
-      
+
       query.temperature = temperature;
       query.top_p = top_p;
 
@@ -383,9 +398,10 @@ class LoreAI {
       const {text} = choices[0];
       return text;
     } else {
-      reject(new Error('prompt is required'));
+      return new Error('prompt is required');
     }
   }
+
   async endpoint(query) {
     if (this.endpointFn) {
       return await this.endpointFn(query);
@@ -397,9 +413,11 @@ class LoreAI {
       };
     }
   }
+
   setEndpoint(endpointFn) {
     this.endpointFn = endpointFn;
   }
+
   async setEndpointUrl(url) {
     if (url) {
       const endpointFn = async query => {
@@ -418,6 +436,7 @@ class LoreAI {
       this.setEndpoint(null);
     }
   }
+
   createScene(localPlayer) {
     return new AIScene({
       localPlayer,
@@ -432,6 +451,6 @@ class LoreAI {
       },
     });
   }
-};
+}
 const loreAI = new LoreAI();
 export default loreAI;

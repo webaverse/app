@@ -1,9 +1,5 @@
 export default class Emoter {
-  constructor() {
-
-  }
-
   update() {
-
+    // do nothing yet
   }
 }

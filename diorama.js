@@ -29,7 +29,7 @@ const localMatrix = new THREE.Matrix4();
 const localColor = new THREE.Color();
 
 // this function maps the speed histogram to a position, integrated up to the given timestamp
-const mapTime = (speedHistogram = new SpeedHistogram, time = 0) => {
+const mapTime = (speedHistogram = new SpeedHistogram(), time = 0) => {
   const {elements} = speedHistogram;
   const totalDistance = speedHistogram.totalDistance();
   // const totalDuration = speedHistogram.totalDuration();
@@ -53,9 +53,11 @@ class SpeedHistogram {
   constructor() {
     this.elements = [];
   }
+
   add(speed, duration) {
     this.elements.push({speed, duration});
   }
+
   totalDuration() {
     const {elements} = this;
     let totalDuration = 0;
@@ -64,6 +66,7 @@ class SpeedHistogram {
     }
     return totalDuration;
   }
+
   totalDistance() {
     const {elements} = this;
     // const totalDuration = this.totalDuration();
@@ -73,10 +76,12 @@ class SpeedHistogram {
     }
     return totalDistance;
   }
+
   fromArray(elements) {
     this.elements = elements;
     return this;
   }
+
   toArray(frameRate = 60, startTime = 0, endTime = this.totalDuration()) {
     // const {elements} = this;
     // const totalDuration = this.totalDuration();
@@ -285,29 +290,29 @@ const labelMesh = (() => {
   const g1 = fullscreenGeometry.clone()
     .applyMatrix4(
       new THREE.Matrix4()
-        .makeShear(0, 0, sk1, 0, 0, 0)
+        .makeShear(0, 0, sk1, 0, 0, 0),
     )
     .applyMatrix4(
       new THREE.Matrix4()
-        .makeScale(s1, s1 * aspectRatio1, 1)
+        .makeScale(s1, s1 * aspectRatio1, 1),
     )
     .applyMatrix4(
       new THREE.Matrix4()
-        .makeTranslation(p1.x, p1.y, p1.z)
+        .makeTranslation(p1.x, p1.y, p1.z),
     );
   _decorateGeometry(g1, new THREE.Color(0xFFFFFF), speed1);
   const g2 = fullscreenGeometry.clone()
     .applyMatrix4(
       new THREE.Matrix4()
-        .makeShear(0, 0, sk2, 0, 0, 0)
+        .makeShear(0, 0, sk2, 0, 0, 0),
     )
     .applyMatrix4(
       new THREE.Matrix4()
-        .makeScale(s2, s2 * aspectRatio2, 1)
+        .makeScale(s2, s2 * aspectRatio2, 1),
     )
     .applyMatrix4(
       new THREE.Matrix4()
-        .makeTranslation(p2.x, p2.y, p2.z)
+        .makeTranslation(p2.x, p2.y, p2.z),
     );
   _decorateGeometry(g2, new THREE.Color(0x000000), speed2);
   const geometry = BufferGeometryUtils.mergeBufferGeometries([
@@ -337,7 +342,7 @@ const labelMesh = (() => {
       },
       vertexShader: labelVertexShader,
       fragmentShader: labelFragmentShader,
-    })
+    }),
   );
   quad.frustumCulled = false;
   return quad;
@@ -350,7 +355,7 @@ const glyphMesh = new GlyphBgFxMesh();
 const dotsMesh = new DotsBgFxMesh();
 const textObject = (() => {
   const o = new THREE.Object3D();
-  
+
   const _decorateGeometry = (g, offset, z, scale) => {
     const offsets = new Float32Array(g.attributes.position.array.length);
     const scales = new Float32Array(g.attributes.position.count);
@@ -397,9 +402,9 @@ const textObject = (() => {
   return o;
 })();
 const skinnedRedMaterial = (() => {
-  let wVertex = THREE.ShaderLib["standard"].vertexShader;
-  let wFragment = THREE.ShaderLib["standard"].fragmentShader;
-  let wUniforms = THREE.UniformsUtils.clone(THREE.ShaderLib["standard"].uniforms);
+  const wVertex = THREE.ShaderLib.standard.vertexShader;
+  let wFragment = THREE.ShaderLib.standard.fragmentShader;
+  const wUniforms = THREE.UniformsUtils.clone(THREE.ShaderLib.standard.uniforms);
   wUniforms.iTime = {
     value: 0,
     needsUpdate: false,
@@ -447,7 +452,7 @@ sideScene.add(textObject);
 /* const _addPreviewLights = scene => {
   const ambientLight = new THREE.AmbientLight(0xffffff, 2);
   scene.add(ambientLight);
-  
+
   const directionalLight = new THREE.DirectionalLight(0xffffff, 2);
   directionalLight.position.set(1, 2, 3);
   directionalLight.updateMatrixWorld();
@@ -653,7 +658,7 @@ const createPlayerDiorama = ({
         for (const light of lightsManager.lights) {
           const oldParent = light.parent;
           restoreFn.push(() => {
-            if(oldParent){
+            if (oldParent) {
               oldParent.add(light);
             }
           });
@@ -706,18 +711,18 @@ const createPlayerDiorama = ({
           sideCamera.position.copy(targetPosition)
             .add(
               localVector2.set(cameraOffset.x, 0, cameraOffset.z)
-                .applyQuaternion(targetQuaternion)
+                .applyQuaternion(targetQuaternion),
             );
           sideCamera.quaternion.setFromRotationMatrix(
             localMatrix.lookAt(
               sideCamera.position,
               targetPosition,
-              localVector3.set(0, 1, 0)
-            )
+              localVector3.set(0, 1, 0),
+            ),
           );
           sideCamera.position.add(
             localVector2.set(0, cameraOffset.y, 0)
-              .applyQuaternion(targetQuaternion)
+              .applyQuaternion(targetQuaternion),
           );
           sideCamera.updateMatrixWorld();
         }
@@ -733,12 +738,12 @@ const createPlayerDiorama = ({
         if (outline) {
           renderer.render(outlineRenderScene, sideCamera);
         }
-        
+
         // set up side scene
         _addObjectsToScene(sideScene);
         const restoreRootLightsFn = _addRootLightsToScene(sideScene);
         // sideScene.add(world.lights);
-    
+
         const _renderGrass = () => {
           if (grassBackground) {
             grassMesh.update(timeOffset, timeDiff, this.width, this.height);
@@ -836,7 +841,7 @@ const createPlayerDiorama = ({
           }
         };
         _renderLabel();
-        
+
         // render side scene
         const _render = () => {
           renderer.setRenderTarget(oldRenderTarget);
@@ -862,7 +867,7 @@ const createPlayerDiorama = ({
               0,
               0,
               width,
-              height
+              height,
             );
           }
         };
@@ -899,6 +904,6 @@ const dioramaManager = {
     for (const diorama of dioramas) {
       diorama.update(timestamp, timeDiff);
     }
-  }
+  },
 };
 export default dioramaManager;

@@ -156,10 +156,9 @@ const _makeMapRenderTarget = (w, h) => new THREE.WebGLRenderTarget(w, h, {
   format: THREE.RGBAFormat,
 });
 
-
 const _makeCopyScene = () => {
   const scene = new THREE.Scene();
-  
+
   // full screen quad mesh
   const fullScreenQuadMesh = new THREE.Mesh(
     new THREE.PlaneGeometry(2, 2),
@@ -187,7 +186,7 @@ const _makeCopyScene = () => {
 };
 const _makeScene = (worldWidth, worldHeight, minZoom) => {
   const scene = new THREE.Scene();
-  
+
   // floor map mesh
   const floorMesh = new THREE.Mesh(
     new THREE.PlaneGeometry(worldWidth, worldHeight)
@@ -214,9 +213,9 @@ const _makeScene = (worldWidth, worldHeight, minZoom) => {
   scene.floorMesh = floorMesh;
 
   // map direction pointer mesh
-  const reticleSize = worldWidth/3/3 * minZoom;
+  const reticleSize = worldWidth / 3 / 3 * minZoom;
   const reticleMesh = new THREE.Mesh(
-    new THREE.CircleGeometry(reticleSize, 4, Math.PI/2/2, Math.PI/2)
+    new THREE.CircleGeometry(reticleSize, 4, Math.PI / 2 / 2, Math.PI / 2)
       .applyMatrix4(new THREE.Matrix4().makeRotationX(-Math.PI / 2)),
     new THREE.ShaderMaterial({
       uniforms: {
@@ -228,14 +227,14 @@ const _makeScene = (worldWidth, worldHeight, minZoom) => {
       vertexShader,
       fragmentShader: reticleFragmentShader,
       transparent: true,
-    })
+    }),
   );
   reticleMesh.scale.setScalar(reticleSize * cameraSafetyFactor);
   reticleMesh.frustumCulled = false;
   scene.add(reticleMesh);
   scene.reticleMesh = reticleMesh;
 
-  const compassSize = worldWidth/3 * cameraSafetyFactor;
+  const compassSize = worldWidth / 3 * cameraSafetyFactor;
   const compassMesh = new THREE.Mesh(
     compassGeometry.clone()
       .applyMatrix4(new THREE.Matrix4().makeScale(compassSize, compassSize, compassSize)),
@@ -266,12 +265,12 @@ class MiniMap {
     this.enabled = true;
 
     this.topCamera = new THREE.OrthographicCamera(
-      -this.worldWidthD3*0.5,
-      this.worldWidthD3*0.5,
-      this.worldHeightD3*0.5,
-      -this.worldHeightD3*0.5,
+      -this.worldWidthD3 * 0.5,
+      this.worldWidthD3 * 0.5,
+      this.worldHeightD3 * 0.5,
+      -this.worldHeightD3 * 0.5,
       0,
-      1000
+      1000,
     );
     this.mapRenderTarget = null;
     this.mapRenderTarget2 = null;
@@ -283,7 +282,7 @@ class MiniMap {
       cameraRadiusBase,
       -cameraRadiusBase,
       0,
-      1000
+      1000,
     );
     this.camera.setRadiusFactor = f => {
       const cameraRadius = cameraRadiusBase * f;
@@ -301,7 +300,7 @@ class MiniMap {
     this.worldEpoch = 0;
     const worldload = e => {
       this.worldEpoch++;
-    }
+    };
     universe.addEventListener('worldload', worldload);
     this.cleanup = () => {
       universe.removeEventListener('worldload', worldload);
@@ -314,9 +313,11 @@ class MiniMap {
 
     this.smoothSpeed = 0;
   }
+
   resetCanvases() {
     this.canvases.length = 0;
   }
+
   addCanvas(canvas) {
     const {width, height} = canvas;
     this.canvasWidth = Math.max(this.canvasWidth, width);
@@ -327,6 +328,7 @@ class MiniMap {
 
     this.canvases.push(canvas);
   }
+
   update(timestamp, timeDiff) {
     const localPlayer = metaversefileApi.useLocalPlayer();
 
@@ -346,7 +348,7 @@ class MiniMap {
     // push old state
     const oldRenderTarget = renderer.getRenderTarget();
     const oldViewport = renderer.getViewport(localVector4D);
-  
+
     const _render = (baseX, baseY, dx, dy) => {
       // set up top camera
       this.topCamera.position.set((baseX + dx) * this.worldWidthD3, localPlayer.position.y + cameraHeight, (baseY + dy) * this.worldHeightD3);
@@ -354,22 +356,22 @@ class MiniMap {
         localMatrix.lookAt(
           this.topCamera.position,
           localVector2.set(this.topCamera.position.x, localPlayer.position.y, this.topCamera.position.z),
-          localVector3.set(0, 0, -1)
-        )
+          localVector3.set(0, 0, -1),
+        ),
       );
       this.topCamera.updateMatrixWorld();
-      
-      renderer.setViewport((dx+1) * this.width/3, (-dy+1) * this.height/3, this.width/3, this.height/3);
+
+      renderer.setViewport((dx + 1) * this.width / 3, (-dy + 1) * this.height / 3, this.width / 3, this.height / 3);
       renderer.render(rootScene, this.topCamera);
     };
     const _copy = (srcRenderTarget, px, py, dx, dy) => {
       // set up copy scene
-      this.copyScene.fullScreenQuadMesh.material.uniforms.uUvOffset.value.set(px, -py, 1/3, 1/3);
+      this.copyScene.fullScreenQuadMesh.material.uniforms.uUvOffset.value.set(px, -py, 1 / 3, 1 / 3);
       this.copyScene.fullScreenQuadMesh.material.uniforms.uUvOffset.needsUpdate = true;
       this.copyScene.fullScreenQuadMesh.material.uniforms.uTex.value = srcRenderTarget.texture;
       this.copyScene.fullScreenQuadMesh.material.uniforms.uTex.needsUpdate = true;
 
-      renderer.setViewport((dx+1) * this.width/3, (-dy+1) * this.height/3, this.width/3, this.height/3);
+      renderer.setViewport((dx + 1) * this.width / 3, (-dy + 1) * this.height / 3, this.width / 3, this.height / 3);
       renderer.render(this.copyScene, this.topCamera);
     };
     const _swapBuffers = () => {
@@ -416,7 +418,7 @@ class MiniMap {
             this.scene.floorMesh.material.uniforms.uTex.needsUpdate = true;
             this.scene.floorMesh.position.set(baseX * this.worldWidthD3, localPlayer.position.y, baseY * this.worldHeightD3);
             this.scene.floorMesh.updateMatrixWorld();
-            
+
             // copies
             for (let dy = -1; dy <= 1; dy++) {
               for (let dx = -1; dx <= 1; dx++) {
@@ -439,13 +441,13 @@ class MiniMap {
                 if (!previousOffset) {
                   // const oldRenderTarget = renderer.getRenderTarget();
                   // const oldViewport2 = renderer.getViewport(localVector4D2);
-                  
+
                   renderer.setRenderTarget(this.mapRenderTarget2);
                   _render(baseX, baseY, dx, dy);
-                  
+
                   renderer.setRenderTarget(oldRenderTarget);
                   renderer.setViewport(oldViewport);
-                  
+
                   await waitForFrame();
                 }
               }
@@ -509,11 +511,11 @@ class MiniMap {
           localPlayer.position,
           localVector2.set(0, 0, -1)
             .applyQuaternion(camera.quaternion),
-        )
+        ),
       );
       this.camera.updateMatrixWorld();
       this.camera.setRadiusFactor(speedFactor);
-      
+
       renderer.render(this.scene, this.camera);
 
       renderer.setClearColor(oldClearColor, oldClearAlpha);
@@ -533,7 +535,7 @@ class MiniMap {
           0,
           0,
           width,
-          height
+          height,
         );
       }
     };
@@ -545,6 +547,7 @@ class MiniMap {
     renderer.setRenderTarget(oldRenderTarget);
     renderer.setViewport(oldViewport);
   }
+
   destroy() {
     for (const canvas of canvases) {
       canvas.parentNode.removeChild(canvas);
@@ -564,7 +567,7 @@ const minimapManager = {
     for (const minimap of minimaps) {
       minimap.enabled && minimap.update(timestamp, timeDiff);
     }
-  }
+  },
 };
 
 export default minimapManager;

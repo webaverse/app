@@ -18,7 +18,7 @@ const defaultNumSpritesheetFrames = 8;
 const _addPreviewLights = scene => {
   const ambientLight = new THREE.AmbientLight(0xffffff, 2);
   scene.add(ambientLight);
-  
+
   const directionalLight = new THREE.DirectionalLight(0xffffff, 2);
   directionalLight.position.set(1, 2, 3);
   directionalLight.updateMatrixWorld();
@@ -78,7 +78,7 @@ const createObjectSpriteAnimation = (app, {
   const oldViewport = renderer.getViewport(localVector4D);
   const oldClearColor = renderer.getClearColor(localColor);
   const oldClearAlpha = renderer.getClearAlpha();
-  
+
   {
     const originalParent = app.parent;
     sideScene.add(app);
@@ -95,7 +95,7 @@ const createObjectSpriteAnimation = (app, {
     for (let i = 0; i < numFrames; i++) {
       const y = Math.floor(i / numFramesPerRow);
       const x = i - y * numFramesPerRow;
-    
+
       // set up side camera
       const angle = (i / numFrames) * Math.PI * 2;
       if (physicsObjects.length > 0) {
@@ -105,7 +105,7 @@ const createObjectSpriteAnimation = (app, {
           .add(
             localVector.set(Math.cos(angle), 0, Math.sin(angle))
               .applyQuaternion(app.quaternion)
-              .multiplyScalar(2)
+              .multiplyScalar(2),
           );
         fitCameraToBoundingBox(sideCamera, physicsMesh.geometry.boundingBox, fitScale);
       } else {
@@ -113,20 +113,20 @@ const createObjectSpriteAnimation = (app, {
           .add(
             localVector.set(Math.cos(angle), 0, Math.sin(angle))
               .applyQuaternion(app.quaternion)
-              .multiplyScalar(2)
+              .multiplyScalar(2),
           );
         sideCamera.quaternion.setFromRotationMatrix(
           localMatrix.lookAt(
             sideCamera.position,
             app.position,
-            localVector2.set(0, 1, 0)
-          )
+            localVector2.set(0, 1, 0),
+          ),
         );
       }
       sideCamera.updateMatrixWorld();
-      
+
       // render side scene
-      renderer.setViewport(x*frameSize, y*frameSize, frameSize, frameSize);
+      renderer.setViewport(x * frameSize, y * frameSize, frameSize, frameSize);
       renderer.render(sideScene, sideCamera);
     }
 
@@ -162,14 +162,14 @@ const createObjectSpriteAnimation = (app, {
         size,
         {
           // imageOrientation: 'flipY',
-        }
+        },
       );
       return {
         result: imageBitmap,
         numFrames,
         frameSize,
         numFramesPerRow,
-      }
+      };
     })();
   } else {
     throw new Error('Unknown type');
@@ -198,7 +198,7 @@ const createObjectSpriteSheet = async (app, {
   const oldViewport = renderer.getViewport(localVector4D);
   const oldClearColor = renderer.getClearColor(localColor);
   const oldClearAlpha = renderer.getClearAlpha();
-  
+
   const originalParent = app.parent;
   sideScene.add(app);
   sideScene.updateMatrixWorld();
@@ -214,11 +214,11 @@ const createObjectSpriteSheet = async (app, {
   if (physicsObjects.length > 0) {
     const physicsObject = physicsObjects[0];
     const {physicsMesh} = physicsObject;
-    
+
     const size = physicsMesh.geometry.boundingBox.getSize(localVector);
     worldWidth = Math.max(size.x, size.z);
     worldHeight = size.y;
-    
+
     const center = physicsMesh.geometry.boundingBox.getCenter(localVector);
     worldOffset = center.toArray();
   } else {
@@ -233,7 +233,7 @@ const createObjectSpriteSheet = async (app, {
   for (let i = 0; i < numFrames; i++) {
     const y = Math.floor(i / numFramesPerRow);
     const x = i - y * numFramesPerRow;
-  
+
     // set up side camera
     const angle = (i / numFrames) * Math.PI * 2;
     if (physicsObjects.length > 0) {
@@ -243,7 +243,7 @@ const createObjectSpriteSheet = async (app, {
         .add(
           localVector.set(Math.cos(angle), 0, Math.sin(angle))
             .applyQuaternion(app.quaternion)
-            .multiplyScalar(2)
+            .multiplyScalar(2),
         );
       fitCameraToBoundingBox(sideCamera, physicsMesh.geometry.boundingBox, fitScale);
     } else {
@@ -251,20 +251,20 @@ const createObjectSpriteSheet = async (app, {
         .add(
           localVector.set(Math.cos(angle), 0, Math.sin(angle))
             .applyQuaternion(app.quaternion)
-            .multiplyScalar(2)
+            .multiplyScalar(2),
         );
       sideCamera.quaternion.setFromRotationMatrix(
         localMatrix.lookAt(
           sideCamera.position,
           app.position,
-          localVector2.set(0, 1, 0)
-        )
+          localVector2.set(0, 1, 0),
+        ),
       );
     }
     sideCamera.updateMatrixWorld();
-    
+
     // render side scene
-    renderer.setViewport(x*frameSize, y*frameSize, frameSize, frameSize);
+    renderer.setViewport(x * frameSize, y * frameSize, frameSize, frameSize);
     renderer.render(sideScene, sideCamera);
   }
 
@@ -285,7 +285,7 @@ const createObjectSpriteSheet = async (app, {
     size,
     {
       // imageOrientation: 'flipY',
-    }
+    },
   );
   return {
     result: imageBitmap,

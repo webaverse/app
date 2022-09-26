@@ -97,7 +97,7 @@ export default class Webaverse extends EventTarget {
     })();
     this.contentLoaded = false;
   }
-  
+
   waitForLoad() {
     return this.loadPromise;
   }
@@ -105,35 +105,43 @@ export default class Webaverse extends EventTarget {
   getRenderer() {
     return getRenderer();
   }
+
   getScene() {
     return scene;
   }
+
   getSceneHighPriority() {
     return sceneHighPriority;
   }
+
   getSceneLowPriority() {
     return sceneLowPriority;
   }
+
   getCamera() {
     return camera;
   }
-  
+
   setContentLoaded() {
     this.contentLoaded = true;
   }
+
   bindInput() {
     ioManager.bindInput();
   }
+
   bindInterface() {
     ioManager.bindInterface();
     // blockchain.bindInterface();
   }
+
   bindCanvas(c) {
     bindCanvas(c);
     game.bindDioramaCanvas();
-    
+
     postProcessing.bindCanvas();
   }
+
   async isXrSupported() {
     if (navigator.xr) {
       let ok = false;
@@ -147,6 +155,7 @@ export default class Webaverse extends EventTarget {
       return false;
     }
   }
+
   async enterXr() {
     const renderer = getRenderer();
     const session = renderer.xr.getSession();
@@ -154,10 +163,10 @@ export default class Webaverse extends EventTarget {
       let session = null;
       try {
         session = await navigator.xr.requestSession(sessionMode, sessionOpts);
-      } catch(err) {
+      } catch (err) {
         try {
           session = await navigator.xr.requestSession(sessionMode);
-        } catch(err) {
+        } catch (err) {
           console.warn(err);
         }
       }
@@ -174,7 +183,7 @@ export default class Webaverse extends EventTarget {
       await session.end();
     }
   }
-  
+
   /* injectRigInput() {
     let leftGamepadPosition, leftGamepadQuaternion, leftGamepadPointer, leftGamepadGrip, leftGamepadEnabled;
     let rightGamepadPosition, rightGamepadQuaternion, rightGamepadPointer, rightGamepadGrip, rightGamepadEnabled;
@@ -268,7 +277,7 @@ export default class Webaverse extends EventTarget {
       [rightGamepadPosition, rightGamepadQuaternion, rightGamepadPointer, rightGamepadGrip, rightGamepadEnabled],
     ]);
   } */
-  
+
   render(timestamp, timeDiff) {
     // console.log('frame 1');
 
@@ -283,18 +292,18 @@ export default class Webaverse extends EventTarget {
       data: {
         canvas: renderer.domElement,
         context: renderer.getContext(),
-      }
+      },
     }));
 
     // console.log('frame 2');
   }
-  
+
   startLoop() {
     const renderer = getRenderer();
     if (!renderer) {
       throw new Error('must bind canvas first');
     }
-    
+
     let lastTimestamp = performance.now();
     const animate = (timestamp, frame) => {
       performanceTracker.startFrame();
@@ -308,7 +317,7 @@ export default class Webaverse extends EventTarget {
         const _pre = () => {
           ioManager.update(timeDiffCapped);
           // this.injectRigInput();
-          
+
           const physicsScene = physicsManager.getScene();
           if (this.contentLoaded && physicsScene.getPhysicsEnabled()) {
             physicsScene.simulatePhysics(timeDiffCapped);
@@ -322,7 +331,7 @@ export default class Webaverse extends EventTarget {
 
           npcManager.updateAvatar(timestamp, timeDiffCapped);
           playersManager.updateRemotePlayers(timestamp, timeDiffCapped);
-          
+
           world.appManager.tick(timestamp, timeDiffCapped, frame);
 
           environmentSfxManager.update(timestamp, timeDiffCapped);
@@ -339,11 +348,11 @@ export default class Webaverse extends EventTarget {
 
           const session = renderer.xr.getSession();
           const xrCamera = session ? renderer.xr.getCamera(camera) : camera;
-          localMatrix.multiplyMatrices(xrCamera.projectionMatrix, /*localMatrix2.multiplyMatrices(*/xrCamera.matrixWorldInverse/*, physx.worldContainer.matrixWorld)*/);
+          localMatrix.multiplyMatrices(xrCamera.projectionMatrix, /* localMatrix2.multiplyMatrices( */xrCamera.matrixWorldInverse/*, physx.worldContainer.matrixWorld) */);
           localMatrix2.copy(xrCamera.matrix)
             .premultiply(camera.matrix)
             .decompose(localVector, localQuaternion, localVector2);
-          
+
           lastTimestamp = timestamp;
         };
         _pre();
@@ -370,7 +379,7 @@ export default class Webaverse extends EventTarget {
       _frame();
 
       performanceTracker.endFrame();
-    }
+    };
     renderer.setAnimationLoop(animate);
 
     _startHacks(this);
@@ -409,7 +418,7 @@ const _startHacks = webaverse => {
       const key1 = lastEmotionKey.key;
       const key2 = key;
       emotionIndex = (key1 * 10) + key2;
-      
+
       lastEmotionKey.key = -1;
       lastEmotionKey.timestamp = 0;
     } else {
@@ -567,7 +576,7 @@ const _startHacks = webaverse => {
       poseAnimationIndex++;
       poseAnimationIndex = Math.min(Math.max(poseAnimationIndex, -1), vpdAnimations.length - 1);
       _updatePose();
-    
+
       // _ensureMikuModel();
       // _updateMikuModel();
     } else if (e.which === 109) { // -

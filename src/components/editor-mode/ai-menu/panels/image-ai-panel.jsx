@@ -10,7 +10,7 @@ import * as sounds from '../../../../../sounds';
 //
 
 const size = 512;
-const defaultPrompt = `mysterious forest`;
+const defaultPrompt = 'mysterious forest';
 const defaultNoise = 0.85;
 
 //
@@ -26,87 +26,87 @@ const baseColors = Object.keys(materialColors)
 
 const presetNames = Object.keys(imageAI.generator);
 const Preset = ({
-    preset,
-    setSelectedPreset,
+  preset,
+  setSelectedPreset,
 }) => {
-    return (
+  return (
         <div
             className={styles.item}
             onClick={e => {
-                setSelectedPreset(preset);
-                sounds.playSoundName('menuBeepHigh');
+              setSelectedPreset(preset);
+              sounds.playSoundName('menuBeepHigh');
             }}
         >{preset}</div>
-    );
+  );
 };
 
 //
 
 export function ImageAiPanel() {
-    const [prompt, setPrompt] = useState('');
-    const [noise, setNoise] = useState(defaultNoise);
-    const [selectedColor, setSelectedColor] = useState(baseColors[0]);
-    const [generating, setGenerating] = useState(false);
-    const canvasRef = useRef();
+  const [prompt, setPrompt] = useState('');
+  const [noise, setNoise] = useState(defaultNoise);
+  const [selectedColor, setSelectedColor] = useState(baseColors[0]);
+  const [generating, setGenerating] = useState(false);
+  const canvasRef = useRef();
 
-    //
+  //
 
-    const _stopPropagation = e => {
-        e.stopPropagation();
-    };
+  const _stopPropagation = e => {
+    e.stopPropagation();
+  };
 
-    //
+  //
 
-    const _setPreset = preset => {
-        const gen = imageAI.generator[preset]();
+  const _setPreset = preset => {
+    const gen = imageAI.generator[preset]();
 
-        setPrompt(gen.prompt);
+    setPrompt(gen.prompt);
 
+    const canvasEl = canvasRef.current;
+    const ctx = canvasEl.getContext('2d');
+    if (gen.canvas) {
+      ctx.drawImage(gen.canvas, 0, 0, canvasEl.width, canvasEl.height);
+    } else {
+      ctx.clearRect(0, 0, canvasEl.width, canvasEl.height);
+    }
+  };
+  const _generate = async () => {
+    if (!generating) {
+      setGenerating(true);
+
+      try {
         const canvasEl = canvasRef.current;
-        const ctx = canvasEl.getContext('2d');
-        if (gen.canvas) {
-            ctx.drawImage(gen.canvas, 0, 0, canvasEl.width, canvasEl.height);
+        let img;
+        const localPrompt = prompt || defaultPrompt;
+        if (canvasHasContent(canvasEl)) {
+          img = await imageAI.img2img(canvasEl, localPrompt, {
+            noise,
+          });
         } else {
-            ctx.clearRect(0, 0, canvasEl.width, canvasEl.height);
+          img = await imageAI.txt2img(localPrompt, {
+            noise,
+          });
         }
-    };
-    const _generate = async () => {
-        if (!generating) {
-            setGenerating(true);
 
-            try {
-                const canvasEl = canvasRef.current;
-                let img;
-                const localPrompt = prompt || defaultPrompt;
-                if (canvasHasContent(canvasEl)) {
-                    img = await imageAI.img2img(canvasEl, localPrompt, {
-                        noise,
-                    });
-                } else {
-                    img = await imageAI.txt2img(localPrompt, {
-                        noise,
-                    });
-                }
-
-                const ctx = canvasEl.getContext('2d');
-                ctx.drawImage(img, 0, 0, canvasEl.width, canvasEl.height);
-            } finally {
-                setGenerating(false);
-            }
-        }
-    };
-    const _clear = () => {
-        setPrompt('');
-        setNoise(defaultNoise);
-
-        const canvasEl = canvasRef.current;
         const ctx = canvasEl.getContext('2d');
-        ctx.clearRect(0, 0, canvasEl.width, canvasEl.height);
-    };
+        ctx.drawImage(img, 0, 0, canvasEl.width, canvasEl.height);
+      } finally {
+        setGenerating(false);
+      }
+    }
+  };
+  const _clear = () => {
+    setPrompt('');
+    setNoise(defaultNoise);
 
-    //
-    
-    return (
+    const canvasEl = canvasRef.current;
+    const ctx = canvasEl.getContext('2d');
+    ctx.clearRect(0, 0, canvasEl.width, canvasEl.height);
+  };
+
+  //
+
+  return (
         <div className={classnames(styles.panel, styles.imageAiPanel)}>
             <textarea
               className={styles.textarea}
@@ -121,33 +121,33 @@ export function ImageAiPanel() {
             <div className={styles.wrap}>
                 <div className={classnames(styles.items, styles.leftPanel)}>
                     <div className={styles.item} onClick={e => {
-                        sounds.playSoundName('menuBeepHigh');
+                      sounds.playSoundName('menuBeepHigh');
                     }}>Draw</div>
                     <div className={styles.colors}>
                         {baseColors.map((color, i) => {
-                            return (
+                          return (
                                 <div
                                     className={classnames(styles.color, selectedColor === color ? styles.selected : null)}
                                     style={{
-                                        backgroundColor: `#${color}`,
+                                      backgroundColor: `#${color}`,
                                     }}
                                     onClick={e => {
-                                        setSelectedColor(color);
-                                        sounds.playSoundName('menuBeepHigh');
+                                      setSelectedColor(color);
+                                      sounds.playSoundName('menuBeepHigh');
                                     }}
                                     key={i}
                                 />
-                            );
+                          );
                         })}
                     </div>
                     <div className={styles.item} onClick={e => {
-                        sounds.playSoundName('menuBeepHigh');
+                      sounds.playSoundName('menuBeepHigh');
                     }}>Erase</div>
                     <div className={styles.item} onClick={e => {
-                        sounds.playSoundName('menuBeepHigh');
+                      sounds.playSoundName('menuBeepHigh');
                     }}>Move</div>
                     <div className={styles.item} onClick={e => {
-                        sounds.playSoundName('menuBeepHigh');
+                      sounds.playSoundName('menuBeepHigh');
                     }}>Cut</div>
                 </div>
                 <div className={classnames(styles.items, styles.rightPanel)}>
@@ -156,7 +156,7 @@ export function ImageAiPanel() {
                             preset={preset}
                             setSelectedPreset={_setPreset}
                             key={i}
-                        />
+                        />,
                     )}
                 </div>
                 <canvas width={size} height={size} className={styles.canvas} ref={canvasRef} />
@@ -183,8 +183,8 @@ export function ImageAiPanel() {
                                 step={0.01}
                                 value={noise}
                                 onChange={e => {
-                                    const newNoise = parseFloat(e.target.value);
-                                    setNoise(newNoise);
+                                  const newNoise = parseFloat(e.target.value);
+                                  setNoise(newNoise);
                                 }}
                             />
                             <span className={styles.value}>{noise}</span>
@@ -193,5 +193,5 @@ export function ImageAiPanel() {
                 </div>
             </div>
         </div>
-    );
+  );
 }

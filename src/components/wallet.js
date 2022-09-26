@@ -97,7 +97,7 @@ class Wallet {
     const parcel = await this.sign({
       ...data,
       ...{
-        action: action,
+        action,
       },
     });
 

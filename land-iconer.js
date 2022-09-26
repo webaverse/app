@@ -1,7 +1,7 @@
 import offscreenEngineManager from './offscreen-engine/offscreen-engine-manager.js';
 
 const useLandScreenshotter = (() => {
-  return async (args) => {
+  return async args => {
     const result = await offscreenEngineManager.request('getLandImage', args);
     return result;
   };

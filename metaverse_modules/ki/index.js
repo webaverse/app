@@ -27,7 +27,7 @@ export default e => {
       geometry2.setAttribute(k, geometry.attributes[k]);
     });
     geometry2.setIndex(geometry.index);
-    
+
     const positions = new Float32Array(count * 3);
     const positionsAttribute = new THREE.InstancedBufferAttribute(positions, 3);
     geometry2.setAttribute('positions', positionsAttribute);
@@ -376,7 +376,7 @@ export default e => {
       groundWind = new THREE.InstancedMesh(
         geometry,
         material,
-        count
+        count,
       );
       object.add(groundWind);
     }
@@ -386,7 +386,7 @@ export default e => {
       capsule = new THREE.InstancedMesh(
         geometry,
         material,
-        count
+        count,
       );
       object.add(capsule);
     }
@@ -396,7 +396,7 @@ export default e => {
       aura = new THREE.InstancedMesh(
         geometry,
         material,
-        count
+        count,
       );
       object.add(aura);
     }
@@ -426,7 +426,7 @@ export default e => {
   useFrame(({timestamp, timeDiff}) => {
     const localPlayer = useLocalPlayer();
     const now = timestamp;
-    const timeS = now/1000;
+    const timeS = now / 1000;
 
     groundWindParticles = groundWindParticles.filter(particle => {
       const timeDiff = timeS - particle.startTime;
@@ -466,7 +466,7 @@ export default e => {
         const startTimes = startTimesAttribute.array;
         startTimes.fill(-1);
         let startTimesIndex = 0;
-        
+
         for (const particle of groundWindParticles) {
           const index = startTimesIndex++;
           particle.position.toArray(positions, index * 3);
@@ -492,7 +492,7 @@ export default e => {
         const startTimes = startTimesAttribute.array;
         startTimes.fill(-1);
         let startTimesIndex = 0;
-        
+
         for (const particle of capsuleParticles) {
           const index = startTimesIndex++;
           particle.position.toArray(positions, index * 3);
@@ -518,7 +518,7 @@ export default e => {
         const startTimes = startTimesAttribute.array;
         startTimes.fill(-1);
         let startTimesIndex = 0;
-        
+
         for (const particle of auraParticles) {
           const index = startTimesIndex++;
           particle.position.toArray(positions, index * 3);
@@ -539,17 +539,17 @@ export default e => {
       const quaternion = new THREE.Quaternion()
         .setFromUnitVectors(
           new THREE.Vector3(0, 1, 0),
-          new THREE.Vector3(Math.random() * 2 - 1, 10, Math.random() * 2 - 1).normalize()
+          new THREE.Vector3(Math.random() * 2 - 1, 10, Math.random() * 2 - 1).normalize(),
         )
         .premultiply(
           new THREE.Quaternion()
-            .setFromAxisAngle(new THREE.Vector3(0, 1, 0), Math.random() * Math.PI * 2)
+            .setFromAxisAngle(new THREE.Vector3(0, 1, 0), Math.random() * Math.PI * 2),
         );
-      const startTime = performance.now()/1000;
+      const startTime = performance.now() / 1000;
       const particle = new Particle(
         position,
         quaternion,
-        startTime
+        startTime,
       );
       groundWindParticles.push(particle);
       // console.log('interval', groundWindParticles.length);
@@ -563,17 +563,17 @@ export default e => {
       const quaternion = new THREE.Quaternion()
         .setFromUnitVectors(
           new THREE.Vector3(0, 1, 0),
-          new THREE.Vector3(Math.random() * 2 - 1, 10, Math.random() * 2 - 1).normalize()
+          new THREE.Vector3(Math.random() * 2 - 1, 10, Math.random() * 2 - 1).normalize(),
         )
         .premultiply(
           new THREE.Quaternion()
-            .setFromAxisAngle(new THREE.Vector3(0, 1, 0), Math.random() * Math.PI * 2)
+            .setFromAxisAngle(new THREE.Vector3(0, 1, 0), Math.random() * Math.PI * 2),
         );
-      const startTime = performance.now()/1000;
+      const startTime = performance.now() / 1000;
       const particle = new Particle(
         position,
         quaternion,
-        startTime
+        startTime,
       );
       capsuleParticles.push(particle);
       // console.log('interval', groundWindParticles.length);
@@ -588,20 +588,20 @@ export default e => {
       const quaternion = new THREE.Quaternion()
         .setFromAxisAngle(
           new THREE.Vector3(0, 0, 1),
-          (Math.random() * 2 - 1) * Math.PI*0.02
+          (Math.random() * 2 - 1) * Math.PI * 0.02,
         )
         .multiply(
           new THREE.Quaternion()
             .setFromAxisAngle(
               new THREE.Vector3(0, 1, 0),
-              (Math.random() < 0.5 ? 0 : Math.PI)
-            )
+              (Math.random() < 0.5 ? 0 : Math.PI),
+            ),
         );
-      const startTime = performance.now()/1000;
+      const startTime = performance.now() / 1000;
       const particle = new Particle(
         position,
         quaternion,
-        startTime
+        startTime,
       );
       auraParticles.push(particle);
       // console.log('interval', groundWindParticles.length);
@@ -609,7 +609,7 @@ export default e => {
 
       _updateAura();
     }
-    
+
     if (localPlayer.avatar) {
       object.position.copy(localPlayer.position);
       object.position.y -= localPlayer.avatar.height;

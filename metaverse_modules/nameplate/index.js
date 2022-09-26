@@ -21,7 +21,6 @@ const getSingleModelGeoMat = model => {
 const Text = useText();
 const gltfLoader = new GLTFLoader();
 
-
 async function getTextMesh(
   text = '',
   font = './fonts/Plaza Regular.ttf',
@@ -45,7 +44,6 @@ async function getTextMesh(
 }
 
 export default () => {
-
   let nameplateMesh = null;
   let textGroup = null;
   async function createNameplateMesh() {
@@ -60,13 +58,10 @@ export default () => {
     return nameplateMesh.instanceIndex++;
   };
 
-
-
   const app = useApp();
   const camera = useCamera();
   const player = app.getComponent('player');
 
-  
   const lastPlateToCamera = new THREE.Vector3();
   let instIndex = -1;
   let plateToCameraAngle = 0;
@@ -92,9 +87,9 @@ export default () => {
     );
     textMesh.position.set(0, 0, 0.001);
     textMesh.updateMatrixWorld(true);
-    if(!textGroup){
-    textGroup = new THREE.Group();
-    app.add(textGroup);
+    if (!textGroup) {
+      textGroup = new THREE.Group();
+      app.add(textGroup);
     }
     textGroup.add(textMesh);
   })();

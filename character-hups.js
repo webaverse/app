@@ -12,7 +12,7 @@ let nextHupId = 0;
 class Hup extends EventTarget {
   constructor(type, parent) {
     super();
-    
+
     this.type = type;
     this.parent = parent;
     this.hupId = ++nextHupId;
@@ -24,21 +24,24 @@ class Hup extends EventTarget {
     this.live = false;
     this.deadTimeout = null;
   }
+
   static isHupAction(action) {
     return action.type === 'chat';
   }
+
   mergeAction(action) {
     const {characterName, message, emote} = action;
     if (characterName) {
       this.characterName = characterName;
     }
-  
+
     this.actionIds.push(action.actionId);
 
     this.clearDeadTimeout();
 
     // this.dispatchEvent(new MessageEvent('update'));
   }
+
   async updateVoicer(message, emote) {
     // this.parent.player === metaversefile.useLocalPlayer() && console.log('emit voice start');
     this.dispatchEvent(new MessageEvent('voicequeue', {
@@ -71,24 +74,28 @@ class Hup extends EventTarget {
       },
     }));
   }
+
   unmergeAction(action) {
     const index = this.actionIds.indexOf(action.actionId);
     if (index !== -1) {
       this.actionIds.splice(index, 1);
     }
   }
+
   clearDeadTimeout() {
     if (this.deadTimeout) {
       clearTimeout(this.deadTimeout);
       this.deadTimeout = null;
     }
   }
+
   startDeadTimeout() {
     this.clearDeadTimeout();
     this.deadTimeout = setTimeout(() => {
       this.dispatchEvent(new MessageEvent('deadtimeout'));
     }, deadTimeoutTime);
   }
+
   destroy() {
     this.dispatchEvent(new MessageEvent('destroy'));
   }
@@ -96,7 +103,7 @@ class Hup extends EventTarget {
 export class CharacterHups extends EventTarget {
   constructor(character) {
     super();
-    
+
     this.character = character;
 
     this.hups = [];
@@ -129,7 +136,7 @@ export class CharacterHups extends EventTarget {
 
           const index = this.hups.indexOf(newHup);
           this.hups.splice(index, 1);
-          
+
           this.dispatchEvent(new MessageEvent('hupremove', {
             data: {
               character,
@@ -158,15 +165,18 @@ export class CharacterHups extends EventTarget {
       }
     });
   }
+
   addChatHupAction(text) {
     this.character.addAction({
       type: 'chat',
       text,
     });
   }
+
   update(timestamp) {
     // nothing
   }
+
   destroy() {
     // nothing
   }

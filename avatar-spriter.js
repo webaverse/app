@@ -73,7 +73,7 @@ const globalUpdate = (timestamp, timeDiff, camera) => {
       /* if (isNaN(uTime)) {
         debugger;
       } */
-      [planeSpriteMesh.material, planeSpriteMesh.customPostMaterial].forEach((material) => {
+      [planeSpriteMesh.material, planeSpriteMesh.customPostMaterial].forEach(material => {
         if (material?.uniforms) {
           material.uniforms.uTime.value = uTime;
           material.uniforms.uTime.needsUpdate = true;
@@ -93,8 +93,8 @@ const globalUpdate = (timestamp, timeDiff, camera) => {
         localMatrix.lookAt(
           spriteAvatarMesh.getWorldPosition(localVector),
           camera.position,
-          localVector2.set(0, 1, 0)
-        )
+          localVector2.set(0, 1, 0),
+        ),
       );
       localEuler.setFromQuaternion(localQuaternion, 'YXZ');
       localEuler.x = 0;
@@ -102,7 +102,7 @@ const globalUpdate = (timestamp, timeDiff, camera) => {
       spriteAvatarMesh.quaternion.setFromEuler(localEuler);
       spriteAvatarMesh.updateMatrixWorld();
 
-      [spriteAvatarMesh.material, spriteAvatarMesh.customPostMaterial].forEach((material) => {
+      [spriteAvatarMesh.material, spriteAvatarMesh.customPostMaterial].forEach(material => {
         if (material?.uniforms) {
           material.uniforms.uTime.value = uTime;
           material.uniforms.uTime.needsUpdate = true;
@@ -120,7 +120,7 @@ const _ensureScheduleGlobalUpdate = (() => {
   return () => {
     if (!scheduled) {
       scene.add(cameraMesh);
-      world.appManager.addEventListener('frame', (e) => {
+      world.appManager.addEventListener('frame', e => {
         const {timestamp, timeDiff} = e.data;
         globalUpdate(timestamp, timeDiff, camera);
       });
@@ -551,7 +551,7 @@ class SpriteAvatarMesh extends THREE.Mesh {
    */
   setTexture(name) {
     const spriteSpecs = getSpriteSpecs();
-    const spriteSpecIndex = spriteSpecs.findIndex((spriteSpec) => spriteSpec.name === name);
+    const spriteSpecIndex = spriteSpecs.findIndex(spriteSpec => spriteSpec.name === name);
     const tex = this.texs[spriteSpecIndex];
     if (tex) {
       this.material.uniforms.uTex.value = tex;
@@ -567,6 +567,7 @@ class SpriteAvatarMesh extends THREE.Mesh {
       return false;
     }
   }
+
   #getAvatarRootPosition(avatar) {
     if (avatar) {
       // get avatar root position
@@ -578,6 +579,7 @@ class SpriteAvatarMesh extends THREE.Mesh {
     }
     return localVector;
   }
+
   update(timestamp, timeDiff, avatar, camera) {
     const rootPosition = this.#getAvatarRootPosition(avatar);
     localMatrix.copy(this.parent.matrixWorld).invert();
@@ -589,7 +591,7 @@ class SpriteAvatarMesh extends THREE.Mesh {
     this.parent.matrixWorld.decompose(
       localVector,
       localQuaternion,
-      localVector2
+      localVector2,
     );
 
     localQuaternion.invert().multiply(
@@ -598,9 +600,9 @@ class SpriteAvatarMesh extends THREE.Mesh {
           localMatrix.lookAt(
             this.getWorldPosition(localVector),
             camera.position,
-            localVector2.set(0, 1, 0)
-          )
-        )
+            localVector2.set(0, 1, 0),
+          ),
+        ),
     );
     localEuler.setFromQuaternion(localQuaternion, 'YXZ');
     localEuler.x = 0;
@@ -710,9 +712,9 @@ class SpriteAvatarMesh extends THREE.Mesh {
         (spriteSpecName === 'jump' ? 300 : 0) + timestamp - this.lastSpriteSpecTimestamp;
 
       // general uniforms
-      [this.material, this.customPostMaterial].forEach((material) => {
+      [this.material, this.customPostMaterial].forEach(material => {
         if (material?.uniforms) {
-          const spriteSpec = _spriteSpecs.find((s) => s.name === spriteSpecName);
+          const spriteSpec = _spriteSpecs.find(s => s.name === spriteSpecName);
           if (spriteSpec) {
             const {duration} = spriteSpec;
             const uTime = ((timestampDelta / 1000) % duration) / duration;
@@ -724,8 +726,8 @@ class SpriteAvatarMesh extends THREE.Mesh {
               localMatrix.lookAt(
                 this.getWorldPosition(localVector),
                 camera.position,
-                localVector2.set(0, 1, 0)
-              )
+                localVector2.set(0, 1, 0),
+              ),
             );
             localEuler.setFromQuaternion(localQuaternion, 'YXZ');
             localEuler.x = 0;
@@ -753,9 +755,9 @@ const _getPlayerSide = () => {
     localMatrix.lookAt(
       localVector.set(0, 0, 0),
       localVector2.set(0, 0, -1).applyQuaternion(localPlayer.quaternion),
-      localVector3.set(0, 1, 0)
+      localVector3.set(0, 1, 0),
     ),
-    'YXZ'
+    'YXZ',
   );
   const forwardY = localEuler.y;
 
@@ -763,9 +765,9 @@ const _getPlayerSide = () => {
     localMatrix.lookAt(
       localVector.set(0, 0, 0),
       localVector2.copy(localPlayer.characterPhysics.velocity).normalize(),
-      localVector3.set(0, 1, 0)
+      localVector3.set(0, 1, 0),
     ),
-    'YXZ'
+    'YXZ',
   );
   const velocityY = localEuler.y;
 
@@ -787,11 +789,11 @@ const planeWarpedGeometry = planeGeometry
       new THREE.Vector3(
         0,
         worldSize / 2 + ((spriteScaleFactor - 1) / 2) * worldSize - spriteFootFactor * worldSize,
-        0
+        0,
       ),
       new THREE.Quaternion(),
-      new THREE.Vector3().setScalar(spriteScaleFactor)
-    )
+      new THREE.Vector3().setScalar(spriteScaleFactor),
+    ),
   );
 const planeWarpedGeometry2 = planeGeometry
   .clone()
@@ -800,11 +802,11 @@ const planeWarpedGeometry2 = planeGeometry
       new THREE.Vector3(
         0,
         worldSize / 2 + ((spriteScaleFactor - 1) / 2) * worldSize - spriteFootFactor * worldSize,
-        0
+        0,
       ),
       new THREE.Quaternion(),
-      new THREE.Vector3().setScalar(spriteScaleFactor)
-    )
+      new THREE.Vector3().setScalar(spriteScaleFactor),
+    ),
   );
 planeWarpedGeometry2.computeBoundingSphere();
 
@@ -817,27 +819,27 @@ let _spriteSpecs = null;
 const getSpriteSpecs = () => {
   if (_spriteSpecs === null) {
     const animations = Avatar.getAnimations();
-    const walkAnimation = animations.find((a) => a.name === 'walking.fbx');
-    const walkBackwardAnimation = animations.find((a) => a.name === 'walking backwards.fbx');
-    const runAnimation = animations.find((a) => a.name === 'Fast Run.fbx');
-    const runBackwardAnimation = animations.find((a) => a.name === 'running backwards.fbx');
-    const leftStrafeRunAnimation = animations.find((a) => a.name === 'left strafe.fbx');
-    const rightStrafeRunAnimation = animations.find((a) => a.name === 'right strafe.fbx');
-    const idleAnimation = animations.find((a) => a.name === 'idle.fbx');
-    const crouchIdleAnimation = animations.find((a) => a.name === 'Crouch Idle.fbx');
-    const crouchWalkAnimation = animations.find((a) => a.name === 'Sneaking Forward.fbx');
+    const walkAnimation = animations.find(a => a.name === 'walking.fbx');
+    const walkBackwardAnimation = animations.find(a => a.name === 'walking backwards.fbx');
+    const runAnimation = animations.find(a => a.name === 'Fast Run.fbx');
+    const runBackwardAnimation = animations.find(a => a.name === 'running backwards.fbx');
+    const leftStrafeRunAnimation = animations.find(a => a.name === 'left strafe.fbx');
+    const rightStrafeRunAnimation = animations.find(a => a.name === 'right strafe.fbx');
+    const idleAnimation = animations.find(a => a.name === 'idle.fbx');
+    const crouchIdleAnimation = animations.find(a => a.name === 'Crouch Idle.fbx');
+    const crouchWalkAnimation = animations.find(a => a.name === 'Sneaking Forward.fbx');
     const crouchWalkBackwardAnimation = animations.find(
-      (a) => a.name === 'Sneaking Forward reverse.fbx'
+      a => a.name === 'Sneaking Forward reverse.fbx',
     );
-    const narutoRunAnimation = animations.find((a) => a.name === 'naruto run.fbx');
-    const jumpAnimation = animations.find((a) => a.name === 'jump.fbx');
-    const leftStrafeWalkingAnimation = animations.find((a) => a.name === 'left strafe walking.fbx');
+    const narutoRunAnimation = animations.find(a => a.name === 'naruto run.fbx');
+    const jumpAnimation = animations.find(a => a.name === 'jump.fbx');
+    const leftStrafeWalkingAnimation = animations.find(a => a.name === 'left strafe walking.fbx');
     const rightStrafeWalkingAnimation = animations.find(
-      (a) => a.name === 'right strafe walking.fbx'
+      a => a.name === 'right strafe walking.fbx',
     );
-    const crouchWalkLeftAnimation = animations.find((a) => a.name === 'Crouched Sneaking Left.fbx');
+    const crouchWalkLeftAnimation = animations.find(a => a.name === 'Crouched Sneaking Left.fbx');
     const crouchWalkRightAnimation = animations.find(
-      (a) => a.name === 'Crouched Sneaking Right.fbx'
+      a => a.name === 'Crouched Sneaking Right.fbx',
     );
 
     _spriteSpecs = [
@@ -845,7 +847,7 @@ const getSpriteSpecs = () => {
         name: 'idle',
         duration: idleAnimation.duration,
         init({angle, avatar: localRig}) {
-          let positionOffset = 0;
+          const positionOffset = 0;
           return {
             update(timestamp, timeDiffMs) {
               const euler = new THREE.Euler(0, angle, 0, 'YXZ');
@@ -853,7 +855,7 @@ const getSpriteSpecs = () => {
                 .set(0, localRig.height * cameraHeightFactor, positionOffset)
                 .add(new THREE.Vector3(0, 0, -distance).applyEuler(euler));
               camera2.lookAt(
-                new THREE.Vector3(0, localRig.height * cameraHeightFactor, positionOffset)
+                new THREE.Vector3(0, localRig.height * cameraHeightFactor, positionOffset),
               );
               camera2.updateMatrixWorld();
 
@@ -882,7 +884,7 @@ const getSpriteSpecs = () => {
                 .set(0, localRig.height * cameraHeightFactor, positionOffset)
                 .add(new THREE.Vector3(0, 0, -distance).applyEuler(euler));
               camera2.lookAt(
-                new THREE.Vector3(0, localRig.height * cameraHeightFactor, positionOffset)
+                new THREE.Vector3(0, localRig.height * cameraHeightFactor, positionOffset),
               );
               camera2.updateMatrixWorld();
 
@@ -917,7 +919,7 @@ const getSpriteSpecs = () => {
                 .set(positionOffset, localRig.height * cameraHeightFactor, 0)
                 .add(new THREE.Vector3(0, 0, -distance).applyEuler(euler));
               camera2.lookAt(
-                new THREE.Vector3(positionOffset, localRig.height * cameraHeightFactor, 0)
+                new THREE.Vector3(positionOffset, localRig.height * cameraHeightFactor, 0),
               );
               camera2.updateMatrixWorld();
 
@@ -948,7 +950,7 @@ const getSpriteSpecs = () => {
                 .set(positionOffset, localRig.height * cameraHeightFactor, 0)
                 .add(new THREE.Vector3(0, 0, -distance).applyEuler(euler));
               camera2.lookAt(
-                new THREE.Vector3(positionOffset, localRig.height * cameraHeightFactor, 0)
+                new THREE.Vector3(positionOffset, localRig.height * cameraHeightFactor, 0),
               );
               camera2.updateMatrixWorld();
 
@@ -979,7 +981,7 @@ const getSpriteSpecs = () => {
                 .set(0, localRig.height * cameraHeightFactor, positionOffset)
                 .add(new THREE.Vector3(0, 0, -distance).applyEuler(euler));
               camera2.lookAt(
-                new THREE.Vector3(0, localRig.height * cameraHeightFactor, positionOffset)
+                new THREE.Vector3(0, localRig.height * cameraHeightFactor, positionOffset),
               );
               camera2.updateMatrixWorld();
 
@@ -1010,7 +1012,7 @@ const getSpriteSpecs = () => {
                 .set(0, localRig.height * cameraHeightFactor, positionOffset)
                 .add(new THREE.Vector3(0, 0, -distance).applyEuler(euler));
               camera2.lookAt(
-                new THREE.Vector3(0, localRig.height * cameraHeightFactor, positionOffset)
+                new THREE.Vector3(0, localRig.height * cameraHeightFactor, positionOffset),
               );
               camera2.updateMatrixWorld();
 
@@ -1041,7 +1043,7 @@ const getSpriteSpecs = () => {
                 .set(positionOffset, localRig.height * cameraHeightFactor, 0)
                 .add(new THREE.Vector3(0, 0, -distance).applyEuler(euler));
               camera2.lookAt(
-                new THREE.Vector3(positionOffset, localRig.height * cameraHeightFactor, 0)
+                new THREE.Vector3(positionOffset, localRig.height * cameraHeightFactor, 0),
               );
               camera2.updateMatrixWorld();
 
@@ -1072,7 +1074,7 @@ const getSpriteSpecs = () => {
                 .set(positionOffset, localRig.height * cameraHeightFactor, 0)
                 .add(new THREE.Vector3(0, 0, -distance).applyEuler(euler));
               camera2.lookAt(
-                new THREE.Vector3(positionOffset, localRig.height * cameraHeightFactor, 0)
+                new THREE.Vector3(positionOffset, localRig.height * cameraHeightFactor, 0),
               );
               camera2.updateMatrixWorld();
 
@@ -1103,7 +1105,7 @@ const getSpriteSpecs = () => {
                 .set(0, localRig.height * cameraHeightFactor, positionOffset)
                 .add(new THREE.Vector3(0, 0, -distance).applyEuler(euler));
               camera2.lookAt(
-                new THREE.Vector3(0, localRig.height * cameraHeightFactor, positionOffset)
+                new THREE.Vector3(0, localRig.height * cameraHeightFactor, positionOffset),
               );
               camera2.updateMatrixWorld();
 
@@ -1123,7 +1125,7 @@ const getSpriteSpecs = () => {
         name: 'crouch idle',
         duration: crouchIdleAnimation.duration,
         init({angle, avatar: localRig}) {
-          let positionOffset = 0;
+          const positionOffset = 0;
           return {
             update(timestamp, timeDiffMs) {
               // positionOffset -= crouchSpeed/1000 * timeDiffMs;
@@ -1133,7 +1135,7 @@ const getSpriteSpecs = () => {
                 .set(0, localRig.height * cameraHeightFactor, positionOffset)
                 .add(new THREE.Vector3(0, 0, -distance).applyEuler(euler));
               camera2.lookAt(
-                new THREE.Vector3(0, localRig.height * cameraHeightFactor, positionOffset)
+                new THREE.Vector3(0, localRig.height * cameraHeightFactor, positionOffset),
               );
               camera2.updateMatrixWorld();
 
@@ -1167,7 +1169,7 @@ const getSpriteSpecs = () => {
                 .set(0, localRig.height * cameraHeightFactor, positionOffset)
                 .add(new THREE.Vector3(0, 0, -distance).applyEuler(euler));
               camera2.lookAt(
-                new THREE.Vector3(0, localRig.height * cameraHeightFactor, positionOffset)
+                new THREE.Vector3(0, localRig.height * cameraHeightFactor, positionOffset),
               );
               camera2.updateMatrixWorld();
 
@@ -1203,7 +1205,7 @@ const getSpriteSpecs = () => {
                 .set(positionOffset, localRig.height * cameraHeightFactor, 0)
                 .add(new THREE.Vector3(0, 0, -distance).applyEuler(euler));
               camera2.lookAt(
-                new THREE.Vector3(positionOffset, localRig.height * cameraHeightFactor, 0)
+                new THREE.Vector3(positionOffset, localRig.height * cameraHeightFactor, 0),
               );
               camera2.updateMatrixWorld();
 
@@ -1239,7 +1241,7 @@ const getSpriteSpecs = () => {
                 .set(positionOffset, localRig.height * cameraHeightFactor, 0)
                 .add(new THREE.Vector3(0, 0, -distance).applyEuler(euler));
               camera2.lookAt(
-                new THREE.Vector3(positionOffset, localRig.height * cameraHeightFactor, 0)
+                new THREE.Vector3(positionOffset, localRig.height * cameraHeightFactor, 0),
               );
               camera2.updateMatrixWorld();
 
@@ -1275,7 +1277,7 @@ const getSpriteSpecs = () => {
                 .set(0, localRig.height * cameraHeightFactor, positionOffset)
                 .add(new THREE.Vector3(0, 0, -distance).applyEuler(euler));
               camera2.lookAt(
-                new THREE.Vector3(0, localRig.height * cameraHeightFactor, positionOffset)
+                new THREE.Vector3(0, localRig.height * cameraHeightFactor, positionOffset),
               );
               camera2.updateMatrixWorld();
 
@@ -1314,7 +1316,7 @@ const getSpriteSpecs = () => {
                 .set(0, localRig.height * cameraHeightFactor, positionOffset)
                 .add(new THREE.Vector3(0, 0, -distance).applyEuler(euler));
               camera2.lookAt(
-                new THREE.Vector3(0, localRig.height * cameraHeightFactor, positionOffset)
+                new THREE.Vector3(0, localRig.height * cameraHeightFactor, positionOffset),
               );
               camera2.updateMatrixWorld();
 
@@ -1345,7 +1347,7 @@ const getSpriteSpecs = () => {
         name: 'jump',
         duration: jumpAnimation.duration,
         init({angle, avatar: localRig}) {
-          let positionOffset = 0;
+          const positionOffset = 0;
 
           let jumpTime = 0;
           // const jumpIncrementSpeed = 400;
@@ -1360,7 +1362,7 @@ const getSpriteSpecs = () => {
                 .set(0, localRig.height * cameraHeightFactor, positionOffset)
                 .add(new THREE.Vector3(0, 0, -distance).applyEuler(euler));
               camera2.lookAt(
-                new THREE.Vector3(0, localRig.height * cameraHeightFactor, positionOffset)
+                new THREE.Vector3(0, localRig.height * cameraHeightFactor, positionOffset),
               );
               camera2.updateMatrixWorld();
 
@@ -1392,7 +1394,7 @@ const getSpriteSpecs = () => {
         name: 'angry',
         duration: emoteAnimations.angry.duration,
         init({angle, avatar: localRig}) {
-          let positionOffset = 0;
+          const positionOffset = 0;
           localRig.faceposes.length = 0;
           localRig.faceposes.push({
             emotion: 'angry',
@@ -1409,7 +1411,7 @@ const getSpriteSpecs = () => {
                 .set(0, localRig.height * cameraHeightFactor, positionOffset)
                 .add(new THREE.Vector3(0, 0, -distance).applyEuler(euler));
               camera2.lookAt(
-                new THREE.Vector3(0, localRig.height * cameraHeightFactor, positionOffset)
+                new THREE.Vector3(0, localRig.height * cameraHeightFactor, positionOffset),
               );
               camera2.updateMatrixWorld();
               localRig.update(_timestamp, timeDiffMs);
@@ -1422,7 +1424,7 @@ const getSpriteSpecs = () => {
         name: 'alert',
         duration: emoteAnimations.alert.duration,
         init({angle, avatar: localRig}) {
-          let positionOffset = 0;
+          const positionOffset = 0;
           localRig.faceposes.length = 0;
           localRig.faceposes.push({
             emotion: 'surprise',
@@ -1439,7 +1441,7 @@ const getSpriteSpecs = () => {
                 .set(0, localRig.height * cameraHeightFactor, positionOffset)
                 .add(new THREE.Vector3(0, 0, -distance).applyEuler(euler));
               camera2.lookAt(
-                new THREE.Vector3(0, localRig.height * cameraHeightFactor, positionOffset)
+                new THREE.Vector3(0, localRig.height * cameraHeightFactor, positionOffset),
               );
               camera2.updateMatrixWorld();
               localRig.update(_timestamp, timeDiffMs);
@@ -1452,7 +1454,7 @@ const getSpriteSpecs = () => {
         name: 'victory',
         duration: emoteAnimations.victory.duration,
         init({angle, avatar: localRig}) {
-          let positionOffset = 0;
+          const positionOffset = 0;
           localRig.faceposes.length = 0;
           localRig.faceposes.push({
             emotion: 'joy',
@@ -1469,7 +1471,7 @@ const getSpriteSpecs = () => {
                 .set(0, localRig.height * cameraHeightFactor, positionOffset)
                 .add(new THREE.Vector3(0, 0, -distance).applyEuler(euler));
               camera2.lookAt(
-                new THREE.Vector3(0, localRig.height * cameraHeightFactor, positionOffset)
+                new THREE.Vector3(0, localRig.height * cameraHeightFactor, positionOffset),
               );
               camera2.updateMatrixWorld();
               localRig.update(_timestamp, timeDiffMs);
@@ -1482,7 +1484,7 @@ const getSpriteSpecs = () => {
         name: 'surprise',
         duration: emoteAnimations.surprise.duration,
         init({angle, avatar: localRig}) {
-          let positionOffset = 0;
+          const positionOffset = 0;
           localRig.faceposes.length = 0;
           localRig.faceposes.push({
             emotion: 'surprise',
@@ -1499,7 +1501,7 @@ const getSpriteSpecs = () => {
                 .set(0, localRig.height * cameraHeightFactor, positionOffset)
                 .add(new THREE.Vector3(0, 0, -distance).applyEuler(euler));
               camera2.lookAt(
-                new THREE.Vector3(0, localRig.height * cameraHeightFactor, positionOffset)
+                new THREE.Vector3(0, localRig.height * cameraHeightFactor, positionOffset),
               );
               camera2.updateMatrixWorld();
               localRig.update(_timestamp, timeDiffMs);
@@ -1512,7 +1514,7 @@ const getSpriteSpecs = () => {
         name: 'sad',
         duration: emoteAnimations.sad.duration,
         init({angle, avatar: localRig}) {
-          let positionOffset = 0;
+          const positionOffset = 0;
           localRig.faceposes.length = 0;
           localRig.faceposes.push({
             emotion: 'sorrow',
@@ -1529,7 +1531,7 @@ const getSpriteSpecs = () => {
                 .set(0, localRig.height * cameraHeightFactor, positionOffset)
                 .add(new THREE.Vector3(0, 0, -distance).applyEuler(euler));
               camera2.lookAt(
-                new THREE.Vector3(0, localRig.height * cameraHeightFactor, positionOffset)
+                new THREE.Vector3(0, localRig.height * cameraHeightFactor, positionOffset),
               );
               camera2.updateMatrixWorld();
               localRig.update(_timestamp, timeDiffMs);
@@ -1542,7 +1544,7 @@ const getSpriteSpecs = () => {
         name: 'headShake',
         duration: emoteAnimations.headShake.duration,
         init({angle, avatar: localRig}) {
-          let positionOffset = 0;
+          const positionOffset = 0;
           localRig.faceposes.length = 0;
           localRig.faceposes.push({
             emotion: 'sorrow',
@@ -1559,7 +1561,7 @@ const getSpriteSpecs = () => {
                 .set(0, localRig.height * cameraHeightFactor, positionOffset)
                 .add(new THREE.Vector3(0, 0, -distance).applyEuler(euler));
               camera2.lookAt(
-                new THREE.Vector3(0, localRig.height * cameraHeightFactor, positionOffset)
+                new THREE.Vector3(0, localRig.height * cameraHeightFactor, positionOffset),
               );
               camera2.updateMatrixWorld();
               localRig.update(_timestamp, timeDiffMs);
@@ -1572,7 +1574,7 @@ const getSpriteSpecs = () => {
         name: 'headNod',
         duration: emoteAnimations.headNod.duration,
         init({angle, avatar: localRig}) {
-          let positionOffset = 0;
+          const positionOffset = 0;
           localRig.faceposes.length = 0;
           localRig.faceposes.push({
             emotion: 'fun',
@@ -1589,7 +1591,7 @@ const getSpriteSpecs = () => {
                 .set(0, localRig.height * cameraHeightFactor, positionOffset)
                 .add(new THREE.Vector3(0, 0, -distance).applyEuler(euler));
               camera2.lookAt(
-                new THREE.Vector3(0, localRig.height * cameraHeightFactor, positionOffset)
+                new THREE.Vector3(0, localRig.height * cameraHeightFactor, positionOffset),
               );
               camera2.updateMatrixWorld();
               localRig.update(_timestamp, timeDiffMs);
@@ -1602,7 +1604,7 @@ const getSpriteSpecs = () => {
         name: 'embarrassed',
         duration: emoteAnimations.embarrassed.duration,
         init({angle, avatar: localRig}) {
-          let positionOffset = 0;
+          const positionOffset = 0;
           localRig.faceposes.length = 0;
           localRig.faceposes.push({
             emotion: 'sorrow',
@@ -1619,7 +1621,7 @@ const getSpriteSpecs = () => {
                 .set(0, localRig.height * cameraHeightFactor, positionOffset)
                 .add(new THREE.Vector3(0, 0, -distance).applyEuler(euler));
               camera2.lookAt(
-                new THREE.Vector3(0, localRig.height * cameraHeightFactor, positionOffset)
+                new THREE.Vector3(0, localRig.height * cameraHeightFactor, positionOffset),
               );
               camera2.updateMatrixWorld();
               localRig.update(_timestamp, timeDiffMs);
@@ -1660,11 +1662,12 @@ class PlaneSpriteDepthMaterial extends THREE.MeshNormalMaterial {
     this.uniforms = null;
     this.options2 = options2;
   }
+
   onBeforeCompile(parameters) {
     parameters.uniforms = _addPlaneSpriteMaterialUniforms(
       parameters.uniforms,
       this.options2.tex,
-      this.options2.angleIndex
+      this.options2.angleIndex,
     );
     this.uniforms = parameters.uniforms;
 
@@ -1677,7 +1680,7 @@ class PlaneSpriteDepthMaterial extends THREE.MeshNormalMaterial {
         'void main() {\n' +
         `\
       vUv = uv;
-    `
+    `,
     );
     parameters.fragmentShader = parameters.fragmentShader.replace(
       'void main() {\n',
@@ -1703,7 +1706,7 @@ class PlaneSpriteDepthMaterial extends THREE.MeshNormalMaterial {
       if (tCol.a < ${alphaTest.toFixed(8)}) {
         discard;
       }
-    `
+    `,
     );
   }
 }
@@ -1734,6 +1737,7 @@ class AvatarSpriteDepthMaterial extends THREE.MeshNormalMaterial {
     this.uniforms = null;
     this.options2 = options2;
   }
+
   onBeforeCompile(parameters) {
     parameters.uniforms = _addAvatarSpriteMaterialUniforms(parameters.uniforms, this.options2.tex);
     this.uniforms = parameters.uniforms;
@@ -1747,7 +1751,7 @@ class AvatarSpriteDepthMaterial extends THREE.MeshNormalMaterial {
         'void main() {\n' +
         `\
       vUv = uv;
-    `
+    `,
     );
     parameters.fragmentShader = parameters.fragmentShader.replace(
       'void main() {\n',
@@ -1777,13 +1781,13 @@ class AvatarSpriteDepthMaterial extends THREE.MeshNormalMaterial {
         discard;
       }
      //  gl_FragColor.a = 1.;
-    `
+    `,
     );
   }
 }
 
 const _waitForIdle = () =>
-  new Promise((resolve) => {
+  new Promise(resolve => {
     requestIdleCallback(resolve);
   });
 
@@ -1878,7 +1882,7 @@ export const renderSpriteImages = async (arrayBuffer, srcUrl) => {
     let angleIndex = 0;
     for (let angle = 0; angle < Math.PI * 2; angle += (Math.PI * 2) / numAngles) {
       const durationS = duration * 1000;
-      const _getCurrentFrame = (timestamp) => {
+      const _getCurrentFrame = timestamp => {
         const result = Math.min(Math.floor((timestamp / durationS) * numFrames), numFrames);
         // console.log('current frame', name, timestamp, result, numFrames);
         return result;
@@ -1927,7 +1931,7 @@ export const renderSpriteImages = async (arrayBuffer, srcUrl) => {
           x * texSize,
           y * texSize,
           texSize,
-          texSize
+          texSize,
         );
         if (preview) {
           tex.needsUpdate = true;
@@ -1988,8 +1992,8 @@ export const renderSpriteImages = async (arrayBuffer, srcUrl) => {
   return spriteImages;
 };
 
-export const createSpriteAvatarMeshFromTextures = (spriteImages) => {
-  const spriteTextures = spriteImages.map((img) => {
+export const createSpriteAvatarMeshFromTextures = spriteImages => {
+  const spriteTextures = spriteImages.map(img => {
     const t = new THREE.Texture(img);
     t.needsUpdate = true;
     return t;

@@ -5,7 +5,7 @@ import {
   playersMapName,
   tokensHost,
   storageHost,
-  /*accountsHost, loginEndpoint,*/ audioTimeoutTime,
+  /* accountsHost, loginEndpoint, */ audioTimeoutTime,
 } from './constants.js';
 // import { getRenderer } from './renderer.js';
 import {IdAllocator} from './id-allocator.js';
@@ -48,11 +48,11 @@ export function getRandomString() {
   return Math.random().toString(36).substring(7);
 }
 export function hex2Uint8Array(hex) {
-  return new Uint8Array(hex.match(/[\da-f]{2}/gi).map((h) => parseInt(h, 16)));
+  return new Uint8Array(hex.match(/[\da-f]{2}/gi).map(h => parseInt(h, 16)));
 }
 export function uint8Array2hex(uint8Array) {
   return Array.prototype.map
-    .call(uint8Array, (x) => ('00' + x.toString(16)).slice(-2))
+    .call(uint8Array, x => ('00' + x.toString(16)).slice(-2))
     .join('');
 }
 export function getExt(fileName) {
@@ -205,160 +205,160 @@ export class WaitQueue {
     rects,
   };
 }; */
-export function mergeMeshes(meshes, geometries, textures) {
-  const size = 512;
-  const images = textures.map((texture) => texture && texture.image);
-  const colorsImage = document.createElement('canvas');
-  colorsImage.width = size / 2;
-  colorsImage.height = 1;
-  colorsImage.rigid = true;
-  const colorsImageCtx = colorsImage.getContext('2d');
-  colorsImageCtx.fillStyle = '#FFF';
-  colorsImageCtx.fillRect(0, 0, colorsImage.width, colorsImage.height);
-  const { atlasCanvas, rects } = _makeAtlas(size, images.concat(colorsImage));
-  const colorsImageRect = rects[rects.length - 1];
-  let colorsImageColorIndex = 0;
-  const atlasCanvasCtx = atlasCanvas.getContext('2d');
+// export function mergeMeshes(meshes, geometries, textures) {
+//   const size = 512;
+//   const images = textures.map(texture => texture && texture.image);
+//   const colorsImage = document.createElement('canvas');
+//   colorsImage.width = size / 2;
+//   colorsImage.height = 1;
+//   colorsImage.rigid = true;
+//   const colorsImageCtx = colorsImage.getContext('2d');
+//   colorsImageCtx.fillStyle = '#FFF';
+//   colorsImageCtx.fillRect(0, 0, colorsImage.width, colorsImage.height);
+//   const {atlasCanvas, rects} = _makeAtlas(size, images.concat(colorsImage));
+//   const colorsImageRect = rects[rects.length - 1];
+//   let colorsImageColorIndex = 0;
+//   const atlasCanvasCtx = atlasCanvas.getContext('2d');
 
-  const geometry = new THREE.BufferGeometry();
-  {
-    let numPositions = 0;
-    let numIndices = 0;
-    for (const geometry of geometries) {
-      numPositions += geometry.attributes.position.array.length;
-      numIndices += geometry.index.array.length;
-    }
+//   const geometry = new THREE.BufferGeometry();
+//   {
+//     let numPositions = 0;
+//     let numIndices = 0;
+//     for (const geometry of geometries) {
+//       numPositions += geometry.attributes.position.array.length;
+//       numIndices += geometry.index.array.length;
+//     }
 
-    const positions = new Float32Array(numPositions);
-    const uvs = new Float32Array((numPositions / 3) * 2);
-    const colors = new Float32Array(numPositions);
-    const indices = new Uint32Array(numIndices);
-    let positionIndex = 0;
-    let uvIndex = 0;
-    let colorIndex = 0;
-    let indicesIndex = 0;
-    for (let i = 0; i < meshes.length; i++) {
-      const mesh = meshes[i];
-      const geometry = geometries[i];
-      const { material } = mesh;
-      const rect = rects[i];
+//     const positions = new Float32Array(numPositions);
+//     const uvs = new Float32Array((numPositions / 3) * 2);
+//     const colors = new Float32Array(numPositions);
+//     const indices = new Uint32Array(numIndices);
+//     let positionIndex = 0;
+//     let uvIndex = 0;
+//     let colorIndex = 0;
+//     let indicesIndex = 0;
+//     for (let i = 0; i < meshes.length; i++) {
+//       const mesh = meshes[i];
+//       const geometry = geometries[i];
+//       const {material} = mesh;
+//       const rect = rects[i];
 
-      geometry.applyMatrix4(mesh.matrixWorld);
+//       geometry.applyMatrix4(mesh.matrixWorld);
 
-      const indexOffset = positionIndex / 3;
-      if (geometry.index) {
-        for (let i = 0; i < geometry.index.array.length; i++) {
-          indices[indicesIndex++] = geometry.index.array[i] + indexOffset;
-        }
-      } else {
-        for (
-          let i = 0;
-          i < geometry.attributes.position.array.length / 3;
-          i++
-        ) {
-          indices[indicesIndex++] = i + indexOffset;
-        }
-      }
+//       const indexOffset = positionIndex / 3;
+//       if (geometry.index) {
+//         for (let i = 0; i < geometry.index.array.length; i++) {
+//           indices[indicesIndex++] = geometry.index.array[i] + indexOffset;
+//         }
+//       } else {
+//         for (
+//           let i = 0;
+//           i < geometry.attributes.position.array.length / 3;
+//           i++
+//         ) {
+//           indices[indicesIndex++] = i + indexOffset;
+//         }
+//       }
 
-      positions.set(geometry.attributes.position.array, positionIndex);
-      positionIndex += geometry.attributes.position.array.length;
-      if (geometry.attributes.uv && rect) {
-        for (let i = 0; i < geometry.attributes.uv.array.length; i += 2) {
-          uvs[uvIndex + i] =
-            rect.x / size + (geometry.attributes.uv.array[i] * rect.w) / size;
-          uvs[uvIndex + i + 1] =
-            rect.y / size +
-            (geometry.attributes.uv.array[i + 1] * rect.h) / size;
-        }
-      } else {
-        if (material.color) {
-          const color = material.color.clone();
-          if (material.emissive && material.emissiveIntensity > 0) {
-            color.lerp(material.emissive, material.emissiveIntensity);
-          }
-          atlasCanvasCtx.fillStyle = color.getStyle();
-          const uv = new THREE.Vector2(
-            colorsImageRect.x + colorsImageColorIndex,
-            colorsImageRect.y
-          );
-          atlasCanvasCtx.fillRect(uv.x, uv.y, uv.x + 1, uv.y + 1);
-          colorsImageColorIndex++;
-          uv.x += 0.5;
-          uv.y += 0.5;
+//       positions.set(geometry.attributes.position.array, positionIndex);
+//       positionIndex += geometry.attributes.position.array.length;
+//       if (geometry.attributes.uv && rect) {
+//         for (let i = 0; i < geometry.attributes.uv.array.length; i += 2) {
+//           uvs[uvIndex + i] =
+//             rect.x / size + (geometry.attributes.uv.array[i] * rect.w) / size;
+//           uvs[uvIndex + i + 1] =
+//             rect.y / size +
+//             (geometry.attributes.uv.array[i + 1] * rect.h) / size;
+//         }
+//       } else {
+//         if (material.color) {
+//           const color = material.color.clone();
+//           if (material.emissive && material.emissiveIntensity > 0) {
+//             color.lerp(material.emissive, material.emissiveIntensity);
+//           }
+//           atlasCanvasCtx.fillStyle = color.getStyle();
+//           const uv = new THREE.Vector2(
+//             colorsImageRect.x + colorsImageColorIndex,
+//             colorsImageRect.y,
+//           );
+//           atlasCanvasCtx.fillRect(uv.x, uv.y, uv.x + 1, uv.y + 1);
+//           colorsImageColorIndex++;
+//           uv.x += 0.5;
+//           uv.y += 0.5;
 
-          for (let i = 0; i < geometry.attributes.uv.array.length; i += 2) {
-            uvs[uvIndex + i] = uv.x / size;
-            uvs[uvIndex + i + 1] = uv.y / size;
-          }
-        } else if (
-          material.uniforms &&
-          material.uniforms.color1 &&
-          material.uniforms.color2
-        ) {
-          atlasCanvasCtx.fillStyle = material.uniforms.color1.value.getStyle();
-          const uv1 = new THREE.Vector2(
-            colorsImageRect.x + colorsImageColorIndex,
-            colorsImageRect.y
-          );
-          atlasCanvasCtx.fillRect(uv1.x, uv1.y, uv1.x + 1, uv1.y + 1);
-          colorsImageColorIndex++;
-          uv1.x += 0.5;
-          uv1.y += 0.5;
+//           for (let i = 0; i < geometry.attributes.uv.array.length; i += 2) {
+//             uvs[uvIndex + i] = uv.x / size;
+//             uvs[uvIndex + i + 1] = uv.y / size;
+//           }
+//         } else if (
+//           material.uniforms &&
+//           material.uniforms.color1 &&
+//           material.uniforms.color2
+//         ) {
+//           atlasCanvasCtx.fillStyle = material.uniforms.color1.value.getStyle();
+//           const uv1 = new THREE.Vector2(
+//             colorsImageRect.x + colorsImageColorIndex,
+//             colorsImageRect.y,
+//           );
+//           atlasCanvasCtx.fillRect(uv1.x, uv1.y, uv1.x + 1, uv1.y + 1);
+//           colorsImageColorIndex++;
+//           uv1.x += 0.5;
+//           uv1.y += 0.5;
 
-          atlasCanvasCtx.fillStyle = material.uniforms.color2.value.getStyle();
-          const uv2 = new THREE.Vector2(
-            colorsImageRect.x + colorsImageColorIndex,
-            colorsImageRect.y
-          );
-          atlasCanvasCtx.fillRect(uv2.x, uv2.y, uv2.x + 1, uv2.y + 1);
-          colorsImageColorIndex++;
-          uv2.x += 0.5;
-          uv2.y += 0.5;
+//           atlasCanvasCtx.fillStyle = material.uniforms.color2.value.getStyle();
+//           const uv2 = new THREE.Vector2(
+//             colorsImageRect.x + colorsImageColorIndex,
+//             colorsImageRect.y,
+//           );
+//           atlasCanvasCtx.fillRect(uv2.x, uv2.y, uv2.x + 1, uv2.y + 1);
+//           colorsImageColorIndex++;
+//           uv2.x += 0.5;
+//           uv2.y += 0.5;
 
-          for (let i = 0; i < geometry.attributes.uv.array.length; i += 2) {
-            const y = geometry.attributes.uv.array[i];
-            const uv = uv1.clone().lerp(uv2, y);
+//           for (let i = 0; i < geometry.attributes.uv.array.length; i += 2) {
+//             const y = geometry.attributes.uv.array[i];
+//             const uv = uv1.clone().lerp(uv2, y);
 
-            uvs[uvIndex + i] = uv.x / size;
-            uvs[uvIndex + i + 1] = uv.y / size;
-          }
-        } else {
-          throw new Error('failed to uv mesh colors');
-        }
-      }
-      uvIndex += (geometry.attributes.position.array.length / 3) * 2;
-      if (geometry.attributes.color) {
-        colors.set(geometry.attributes.color.array, colorIndex);
-      } else {
-        colors.fill(1, colorIndex, geometry.attributes.position.array.length);
-      }
-      colorIndex += geometry.attributes.position.array.length;
-    }
-    if (textures.some((texture) => !!texture)) {
-      colors.fill(1);
-    }
-    geometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
-    geometry.setAttribute('uv', new THREE.BufferAttribute(uvs, 2));
-    geometry.setAttribute('color', new THREE.BufferAttribute(colors, 3));
-    geometry.setIndex(new THREE.BufferAttribute(indices, 1));
-  }
-  geometry.boundingBox = new THREE.Box3().setFromBufferAttribute(
-    geometry.attributes.position
-  );
+//             uvs[uvIndex + i] = uv.x / size;
+//             uvs[uvIndex + i + 1] = uv.y / size;
+//           }
+//         } else {
+//           throw new Error('failed to uv mesh colors');
+//         }
+//       }
+//       uvIndex += (geometry.attributes.position.array.length / 3) * 2;
+//       if (geometry.attributes.color) {
+//         colors.set(geometry.attributes.color.array, colorIndex);
+//       } else {
+//         colors.fill(1, colorIndex, geometry.attributes.position.array.length);
+//       }
+//       colorIndex += geometry.attributes.position.array.length;
+//     }
+//     if (textures.some(texture => !!texture)) {
+//       colors.fill(1);
+//     }
+//     geometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
+//     geometry.setAttribute('uv', new THREE.BufferAttribute(uvs, 2));
+//     geometry.setAttribute('color', new THREE.BufferAttribute(colors, 3));
+//     geometry.setIndex(new THREE.BufferAttribute(indices, 1));
+//   }
+//   geometry.boundingBox = new THREE.Box3().setFromBufferAttribute(
+//     geometry.attributes.position,
+//   );
 
-  const texture = new THREE.Texture(atlasCanvas);
-  texture.flipY = false;
-  texture.needsUpdate = true;
-  const material = new THREE.MeshBasicMaterial({
-    map: texture,
-    side: THREE.DoubleSide,
-    vertexColors: true,
-    transparent: true,
-  });
+//   const texture = new THREE.Texture(atlasCanvas);
+//   texture.flipY = false;
+//   texture.needsUpdate = true;
+//   const material = new THREE.MeshBasicMaterial({
+//     map: texture,
+//     side: THREE.DoubleSide,
+//     vertexColors: true,
+//     transparent: true,
+//   });
 
-  const mesh = new THREE.Mesh(geometry, material);
-  return mesh;
-}
+//   const mesh = new THREE.Mesh(geometry, material);
+//   return mesh;
+// }
 
 /* let nextPhysicsId = 0;
 export function getNextPhysicsId() {
@@ -375,13 +375,13 @@ export function convertMeshToPhysicsMesh(topMesh) {
   topMesh.updateMatrixWorld();
 
   const meshes = [];
-  topMesh.traverse((o) => {
+  topMesh.traverse(o => {
     if (o.isMesh) {
       meshes.push(o);
     }
   });
-  const newGeometries = meshes.map((mesh) => {
-    const { geometry } = mesh;
+  const newGeometries = meshes.map(mesh => {
+    const {geometry} = mesh;
     const newGeometry = new THREE.BufferGeometry();
     if (mesh.isSkinnedMesh) {
       localMatrix2.identity();
@@ -391,7 +391,7 @@ export function convertMeshToPhysicsMesh(topMesh) {
 
     if (geometry.attributes.position.isInterleavedBufferAttribute) {
       const positions = new Float32Array(
-        geometry.attributes.position.count * 3
+        geometry.attributes.position.count * 3,
       );
       for (
         let i = 0, j = 0;
@@ -405,11 +405,11 @@ export function convertMeshToPhysicsMesh(topMesh) {
       }
       newGeometry.setAttribute(
         'position',
-        new THREE.BufferAttribute(positions, 3)
+        new THREE.BufferAttribute(positions, 3),
       );
     } else {
       const positions = new Float32Array(
-        geometry.attributes.position.array.length
+        geometry.attributes.position.array.length,
       );
       for (let i = 0; i < positions.length; i += 3) {
         localVector
@@ -419,7 +419,7 @@ export function convertMeshToPhysicsMesh(topMesh) {
       }
       newGeometry.setAttribute(
         'position',
-        new THREE.BufferAttribute(positions, 3)
+        new THREE.BufferAttribute(positions, 3),
       );
     }
 
@@ -447,7 +447,7 @@ export function convertMeshToPhysicsMesh(topMesh) {
     topMesh.parent.matrixWorld.decompose(
       physicsMesh.position,
       physicsMesh.quaternion,
-      physicsMesh.scale
+      physicsMesh.scale,
     );
     physicsMesh.updateMatrixWorld();
   }
@@ -477,7 +477,7 @@ export function parseCoord(s) {
 export function parseExtents(s) {
   if (s) {
     const split = s.match(
-      /^\[\[(-?[0-9\.]+),(-?[0-9\.]+),(-?[0-9\.]+)\],\[(-?[0-9\.]+),(-?[0-9\.]+),(-?[0-9\.]+)\]\]$/
+      /^\[\[(-?[0-9\.]+),(-?[0-9\.]+),(-?[0-9\.]+)\],\[(-?[0-9\.]+),(-?[0-9\.]+),(-?[0-9\.]+)\]\]$/,
     );
     let x1, y1, z1, x2, y2, z2;
     if (
@@ -491,7 +491,7 @@ export function parseExtents(s) {
     ) {
       return new THREE.Box3(
         new THREE.Vector3(x1, y1, z1),
-        new THREE.Vector3(x2, y2, z2)
+        new THREE.Vector3(x2, y2, z2),
       );
     } else {
       return null;
@@ -514,7 +514,7 @@ export async function contentIdToFile(contentId) {
   if (typeof contentId === 'number') {
     const res = await fetch(`${tokensHost}/${contentId}`);
     token = await res.json();
-    const { hash, name, ext } = token.properties;
+    const {hash, name, ext} = token.properties;
 
     const res2 = await fetch(`${storageHost}/${hash}`);
     const file = await res2.blob();
@@ -531,7 +531,7 @@ export async function contentIdToFile(contentId) {
       } else {
         console.warn(
           'blob url not appended with /filename.ext and cannot be interpreted',
-          contentId
+          contentId,
         );
         return null;
       }
@@ -572,8 +572,8 @@ export const addDefaultLights = (scene/*, { shadowMap = false } = {} */) => {
   } */
 };
 
-export const unFrustumCull = (o) => {
-  o.traverse((o) => {
+export const unFrustumCull = o => {
+  o.traverse(o => {
     if (o.isMesh) {
       o.frustumCulled = false;
     }
@@ -589,11 +589,11 @@ export const unFrustumCull = (o) => {
   });
 }; */
 
-export const capitalize = (s) => s[0].toUpperCase() + s.slice(1);
+export const capitalize = s => s[0].toUpperCase() + s.slice(1);
 
 export const epochStartTime = Date.now();
 
-export const flipGeomeryUvs = (geometry) => {
+export const flipGeomeryUvs = geometry => {
   for (let i = 0; i < geometry.attributes.uv.array.length; i += 2) {
     const j = i + 1;
     geometry.attributes.uv.array[j] = 1 - geometry.attributes.uv.array[j];
@@ -619,7 +619,7 @@ export const getCameraUiPlane = (camera, distance, plane) => {
     localVector3.set(0, 0, 1).applyQuaternion(camera.quaternion),
     localVector4
       .copy(camera.position)
-      .add(localVector5.set(0, 0, -distance).applyQuaternion(camera.quaternion))
+      .add(localVector5.set(0, 0, -distance).applyQuaternion(camera.quaternion)),
   );
   return plane;
 };
@@ -649,7 +649,7 @@ export function chunkMinForPosition(x, y, z, chunkSize) {
   localVector6.set(
     Math.floor(x / chunkSize),
     Math.floor(y / chunkSize),
-    Math.floor(z / chunkSize)
+    Math.floor(z / chunkSize),
   );
   return localVector6;
 }
@@ -673,7 +673,7 @@ export function mod(a, n) {
   return ((a % n) + n) % n;
 }
 
-export const modUv = (uv) => {
+export const modUv = uv => {
   uv.x = mod(uv.x, 1);
   uv.y = mod(uv.y, 1);
   return uv;
@@ -725,7 +725,7 @@ export function fitCameraToBoundingBox(camera, box, fitOffset = 1) {
 
   camera.position.copy(center).add(direction);
   camera.quaternion.setFromRotationMatrix(
-    localMatrix.lookAt(camera.position, center, camera.up)
+    localMatrix.lookAt(camera.position, center, camera.up),
   );
 }
 
@@ -756,7 +756,7 @@ export async function loadAudio(u) {
       _cleanup();
       accept();
     };
-    audio.onerror = (err) => {
+    audio.onerror = err => {
       _cleanup();
       reject(err);
     };
@@ -775,7 +775,7 @@ export async function loadAudioBuffer(audioContext, url) {
   const audioBuffer = await audioContext.decodeAudioData(arrayBuffer);
   return audioBuffer;
 }
-export const memoize = (fn) => {
+export const memoize = fn => {
   let loaded = false;
   let cache = null;
   return () => {
@@ -787,11 +787,11 @@ export const memoize = (fn) => {
   };
 };
 export function shuffle(array, rng = Math.random) {
-  let currentIndex = array.length,
-    randomIndex;
+  let currentIndex = array.length;
+  let randomIndex;
 
   // While there remain elements to shuffle...
-  while (currentIndex != 0) {
+  while (currentIndex !== 0) {
     // Pick a remaining element...
     randomIndex = Math.floor(rng() * currentIndex);
     currentIndex--;
@@ -806,18 +806,18 @@ export function shuffle(array, rng = Math.random) {
   return array;
 }
 export const waitForFrame = () =>
-  new Promise((accept) => {
+  new Promise(accept => {
     requestAnimationFrame(() => {
       accept();
     });
   });
 
-const doUpload = async (u, f, { onProgress = null } = {}) => {
-  var xhr = new XMLHttpRequest();
+const doUpload = async (u, f, {onProgress = null} = {}) => {
+  const xhr = new XMLHttpRequest();
   xhr.open('POST', u, true);
   // xhr.setRequestHeader('Content-Type', 'application/json');
   xhr.responseType = 'json';
-  xhr.upload.onprogress = (e) => {
+  xhr.upload.onprogress = e => {
     // const {lengthComputable, loaded, total} = e;
     // console.log();
     onProgress && onProgress(e);
@@ -842,7 +842,7 @@ const doUpload = async (u, f, { onProgress = null } = {}) => {
   const hashes = await res.json();
   return hashes; */
 };
-export const proxifyUrl = (u) => {
+export const proxifyUrl = u => {
   const match = u.match(/^([a-z0-9]+):\/\/([a-z0-9\-\.]+)(.+)$/i);
   if (match) {
     return (
@@ -867,14 +867,14 @@ export const createRelativeUrl = (u, baseUrl) => {
     return new URL(u, baseUrl).href;
   }
 };
-export const getDropUrl = (o) => {
+export const getDropUrl = o => {
   let u = null;
   if (typeof o?.start_url === 'string') {
     u = o.start_url;
     /* } else if (typeof j?.asset_contract?.address === 'string') {
     const {token_id, asset_contract} = j;
     const {address} = asset_contract;
-    
+
     if (contractNames[address]) {
       u = `/@proxy/` + encodeURI(`eth://${address}/${token_id}`);
     } else {
@@ -893,7 +893,7 @@ export const getDropUrl = (o) => {
         });
         const j2 = await res.json();
         // console.log('got metadata', j2);
-        
+
         // dcl wearables
         if (j2.id?.startsWith('urn:decentraland:')) {
           // 'urn:decentraland:ethereum:collections-v1:mch_collection:mch_enemy_upper_body'
@@ -927,7 +927,7 @@ export const getDropUrl = (o) => {
   }
   return u;
 };
-export const handleDropJsonItem = async (item) => {
+export const handleDropJsonItem = async item => {
   if (item?.kind === 'string') {
     const s = await new Promise((accept, reject) => {
       item.getAsString(accept);
@@ -943,10 +943,10 @@ export const handleDropJsonItem = async (item) => {
   }
   return null;
 };
-export const handleUpload = async (item, { onProgress = null } = {}) => {
+export const handleUpload = async (item, {onProgress = null} = {}) => {
   console.log('uploading...', item);
 
-  const _handleFileList = async (item) => {
+  const _handleFileList = async item => {
     const formData = new FormData();
 
     formData.append(
@@ -954,7 +954,7 @@ export const handleUpload = async (item, { onProgress = null } = {}) => {
       new Blob([], {
         type: 'application/x-directory',
       }),
-      ''
+      '',
     );
 
     const files = item;
@@ -963,20 +963,20 @@ export const handleUpload = async (item, { onProgress = null } = {}) => {
       formData.append(file.name, file, file.name);
     }
 
-    const hashes = await doUpload(`https://ipfs.webaverse.com/`, formData, {
+    const hashes = await doUpload('https://ipfs.webaverse.com/', formData, {
       onProgress,
     });
 
-    const rootDirectory = hashes.find((h) => h.name === '');
+    const rootDirectory = hashes.find(h => h.name === '');
     const rootDirectoryHash = rootDirectory.hash;
     return `https://ipfs.webaverse.com/ipfs/${rootDirectoryHash}/`;
   };
-  const _handleString = (item) => handleDropJsonItem(item);
-  const _handleDirectory = async (entry) => {
+  const _handleString = item => handleDropJsonItem(item);
+  const _handleDirectory = async entry => {
     const formData = new FormData();
 
     const rootEntry = entry;
-    const _recurse = async (entry) => {
+    const _recurse = async entry => {
       function getFullPath(entry) {
         return entry.fullPath.slice(rootEntry.fullPath.length);
       }
@@ -987,13 +987,13 @@ export const handleUpload = async (item, { onProgress = null } = {}) => {
         new Blob([], {
           type: 'application/x-directory',
         }),
-        fullPath
+        fullPath,
       );
 
       const reader = entry.createReader();
       async function readEntries() {
         const entries = await new Promise((accept, reject) => {
-          reader.readEntries((entries) => {
+          reader.readEntries(entries => {
             if (entries.length > 0) {
               accept(entries);
             } else {
@@ -1021,24 +1021,24 @@ export const handleUpload = async (item, { onProgress = null } = {}) => {
     };
     await _recurse(rootEntry);
 
-    const hashes = await doUpload(`https://ipfs.webaverse.com/`, formData, {
+    const hashes = await doUpload('https://ipfs.webaverse.com/', formData, {
       onProgress,
     });
 
-    const rootDirectory = hashes.find((h) => h.name === '');
+    const rootDirectory = hashes.find(h => h.name === '');
     const rootDirectoryHash = rootDirectory.hash;
     return `https://ipfs.webaverse.com/ipfs/${rootDirectoryHash}/`;
   };
-  const _handleFile = async (file) => {
-    const j = await doUpload(`https://ipfs.webaverse.com/`, file, {
+  const _handleFile = async file => {
+    const j = await doUpload('https://ipfs.webaverse.com/', file, {
       onProgress,
     });
-    const { hash } = j;
-    const { name } = file;
+    const {hash} = j;
+    const {name} = file;
 
     return `${storageHost}/${hash}/${name}`;
   };
-  const _uploadObject = async (item) => {
+  const _uploadObject = async item => {
     let u = null;
 
     if (item instanceof FileList) {
@@ -1063,7 +1063,7 @@ export const handleUpload = async (item, { onProgress = null } = {}) => {
   return u;
 };
 
-export const loadImage = (u) => new Promise((resolve, reject) => {
+export const loadImage = u => new Promise((resolve, reject) => {
   const img = new Image();
   img.onload = () => {
     resolve(img);
@@ -1137,15 +1137,14 @@ export const makeSquareImage = img => {
   const imageData = ctx.getImageData(0, 0, 1, 1);
 
   // fill the canvas with the top left color
-  ctx.fillStyle = imageData.data[4] > 0 ?
-    `rgb(${imageData.data[0]}, ${imageData.data[1]}, ${imageData.data[2]})`
-  :
-    '#fff';
+  ctx.fillStyle = imageData.data[4] > 0
+    ? `rgb(${imageData.data[0]}, ${imageData.data[1]}, ${imageData.data[2]})`
+    : '#fff';
   ctx.fillRect(0, 0, newSize, newSize);
 
   // draw the image in the center
   drawImageContain(ctx, img);
-  
+
   return canvas;
 };
 export const imageToCanvas = (img, w, h) => {
@@ -1157,7 +1156,7 @@ export const imageToCanvas = (img, w, h) => {
   return canvas;
 };
 
-export const isTransferable = (o) => {
+export const isTransferable = o => {
   const ctor = o?.constructor;
   return (
     ctor === MessagePort ||
@@ -1176,9 +1175,9 @@ export const isTransferable = (o) => {
     ctor === Float64Array
   );
 };
-export const getTransferables = (o) => {
+export const getTransferables = o => {
   const result = [];
-  const _recurse = (o) => {
+  const _recurse = o => {
     if (Array.isArray(o)) {
       for (const e of o) {
         _recurse(e);
@@ -1196,8 +1195,8 @@ export const getTransferables = (o) => {
   _recurse(o);
   return result;
 };
-export const selectVoice = (voicer) => {
-  const weightedRandom = (weights) => {
+export const selectVoice = voicer => {
+  const weightedRandom = weights => {
     let totalWeight = 0;
     for (let i = 0; i < weights.length; i++) {
       totalWeight += weights[i];
@@ -1215,13 +1214,13 @@ export const selectVoice = (voicer) => {
   };
   // the weight of each voice is proportional to the inverse of the number of times it has been used
   const maxNonce = voicer.reduce((max, voice) => Math.max(max, voice.nonce), 0);
-  const weights = voicer.map(({ nonce }) => {
+  const weights = voicer.map(({nonce}) => {
     return 1 - nonce / (maxNonce + 1);
   });
   const selectionIndex = weightedRandom(weights);
   const voiceSpec = voicer[selectionIndex];
   voiceSpec.nonce++;
-  while (voicer.every((voice) => voice.nonce > 0)) {
+  while (voicer.every(voice => voice.nonce > 0)) {
     for (const voiceSpec of voicer) {
       voiceSpec.nonce--;
     }
@@ -1244,7 +1243,7 @@ export const splitLinesToWidth = (() => {
     const ctx = canvas.getContext('2d');
     ctx.font = font;
 
-    let lines = [];
+    const lines = [];
     const words = text.split(' ');
 
     // We'll be constantly removing words from our words array to build our lines. Once we're out of words, we can stop
@@ -1281,7 +1280,7 @@ export const splitLinesToWidth = (() => {
   };
 })();
 
-export const getJsDataUrl = src => `data:application/javascript;charset=utf-8,${encodeURIComponent(src)}`
+export const getJsDataUrl = src => `data:application/javascript;charset=utf-8,${encodeURIComponent(src)}`;
 
 export const fetchArrayBuffer = async srcUrl => {
   const res = await fetch(srcUrl);

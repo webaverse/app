@@ -352,13 +352,14 @@ class LoadoutRenderer {
       1,
       -1,
       0,
-      1000
+      1000,
     );
     this.canvases = [];
     this.selected = selected;
     this.selectFactor = +selected;
     this.needsUpdate = false;
   }
+
   addCanvas(canvas) {
     const ctx = canvas.getContext('2d');
     canvas.ctx = ctx;
@@ -366,14 +367,17 @@ class LoadoutRenderer {
     this.canvases.push(canvas);
     this.needsUpdate = true;
   }
+
   removeCanvas(canvas) {
     this.canvases.splice(this.canvases.indexOf(canvas), 1);
     this.needsUpdate = true;
   }
+
   setSelected(selected) {
     this.selected = selected;
     this.needsUpdate = true;
   }
+
   setSpritesheet(spritesheet) {
     if (spritesheet) {
       const {
@@ -403,6 +407,7 @@ class LoadoutRenderer {
 
     this.needsUpdate = true;
   }
+
   update(timestamp, timeDiff) {
     const renderer = getRenderer();
     const size = renderer.getSize(localVector2D);
@@ -449,7 +454,7 @@ class LoadoutRenderer {
           const {
             width,
             height,
-            ctx
+            ctx,
           } = canvas;
           ctx.clearRect(0, 0, width, height);
           ctx.drawImage(
@@ -461,7 +466,7 @@ class LoadoutRenderer {
             0,
             0,
             width,
-            height
+            height,
           );
         }
       };

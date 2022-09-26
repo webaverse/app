@@ -29,13 +29,15 @@ class Universe extends EventTarget {
     this.currentWorld = null;
     this.sceneLoadedPromise = null;
   }
+
   getWorldsHost() {
     return window.location.protocol + '//' + window.location.hostname + ':' +
       ((window.location.port ? parseInt(window.location.port, 10) : (window.location.protocol === 'https:' ? 443 : 80)) + 1) + '/worlds/';
   }
+
   async enterWorld(worldSpec) {
     this.disconnectRoom();
-    
+
     const localPlayer = metaversefile.useLocalPlayer();
     /* localPlayer.teleportTo(new THREE.Vector3(0, 1.5, 0), camera.quaternion, {
       relation: 'float',
@@ -55,7 +57,7 @@ class Universe extends EventTarget {
       if (!room) {
         const state = new Z.Doc();
         this.connectState(state);
-        
+
         let match;
         if (src === undefined) {
           promises.push(metaversefile.createAppAsync({
@@ -81,7 +83,7 @@ class Universe extends EventTarget {
         })();
         promises.push(p);
       }
-      
+
       this.sceneLoadedPromise = Promise.all(promises)
         .then(() => {});
       await this.sceneLoadedPromise;
@@ -97,21 +99,26 @@ class Universe extends EventTarget {
 
     this.dispatchEvent(new MessageEvent('worldload'));
   }
+
   async reload() {
     await this.enterWorld(this.currentWorld);
   }
+
   async pushUrl(u) {
     history.pushState({}, '', u);
     window.dispatchEvent(new MessageEvent('pushstate'));
     await this.handleUrlUpdate();
   }
+
   async handleUrlUpdate() {
     const q = parseQuery(location.search);
     await this.enterWorld(q);
   }
+
   isSceneLoaded() {
     return !this.sceneLoadedPromise;
   }
+
   async waitForSceneLoaded() {
     if (this.sceneLoadedPromise) {
       await this.sceneLoadedPromise;

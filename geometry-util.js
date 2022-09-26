@@ -3,32 +3,32 @@ import {align, getClosestPowerOf2} from './util.js';
 export class Allocator {
   constructor(moduleInstance) {
     this.moduleInstance = moduleInstance;
-    this.offsets = []
+    this.offsets = [];
   }
 
   alloc(constructor, size) {
     if (size > 0) {
       const offset = this.moduleInstance._malloc(
-        size * constructor.BYTES_PER_ELEMENT
-      )
+        size * constructor.BYTES_PER_ELEMENT,
+      );
       const b = new constructor(
         this.moduleInstance.HEAP8.buffer,
         this.moduleInstance.HEAP8.byteOffset + offset,
-        size
-      )
-      b.offset = offset
-      this.offsets.push(offset)
-      return b
+        size,
+      );
+      b.offset = offset;
+      this.offsets.push(offset);
+      return b;
     } else {
-      return new constructor(this.moduleInstance.HEAP8.buffer, 0, 0)
+      return new constructor(this.moduleInstance.HEAP8.buffer, 0, 0);
     }
   }
 
   freeAll() {
     for (let i = 0; i < this.offsets.length; i++) {
-      this.moduleInstance._doFree(this.offsets[i])
+      this.moduleInstance._doFree(this.offsets[i]);
     }
-    this.offsets.length = 0
+    this.offsets.length = 0;
   }
 }
 
@@ -36,28 +36,28 @@ export class Allocator {
 
 export class ScratchStack {
   constructor(moduleInstance, size) {
-    this.ptr = moduleInstance._malloc(size)
+    this.ptr = moduleInstance._malloc(size);
 
     this.u8 = new Uint8Array(
       moduleInstance.HEAP8.buffer,
       this.ptr,
-      size
-    )
+      size,
+    );
     this.u32 = new Uint32Array(
       moduleInstance.HEAP8.buffer,
       this.ptr,
-      size / 4
-    )
+      size / 4,
+    );
     this.i32 = new Int32Array(
       moduleInstance.HEAP8.buffer,
       this.ptr,
-      size / 4
-    )
+      size / 4,
+    );
     this.f32 = new Float32Array(
       moduleInstance.HEAP8.buffer,
       this.ptr,
-      size / 4
-    )
+      size / 4,
+    );
   }
 }
 
@@ -69,12 +69,13 @@ export class FreeListArray {
   constructor(slotSize, parent) {
     this.slotSize = slotSize;
     this.parent = parent;
-    
+
     this.startIndex = 0;
     this.endIndex = 0;
     this.entries = new Int32Array(maxSlotEntries);
     this.allocatedEntries = 0;
   }
+
   alloc() {
     if (this.allocatedEntries < maxSlotEntries) {
       if (this.startIndex === this.endIndex) {
@@ -89,6 +90,7 @@ export class FreeListArray {
       throw new Error('out of slots to allocate');
     }
   }
+
   free(index) {
     this.entries[this.endIndex] = index;
     this.endIndex = (this.endIndex + 1) % maxSlotEntries;
@@ -104,6 +106,7 @@ export class FreeList {
     this.slots = new Map(); // Map<slotSize, FreeListArray>
     this.slotSizes = new Map(); // Map<index, slotSize>
   }
+
   allocIndex(slotSize) {
     const allocSize = 1 << slotSize;
     let newFreeStart = this.freeStart + allocSize;
@@ -116,6 +119,7 @@ export class FreeList {
       throw new Error('out of memory to allocate to slot');
     }
   }
+
   alloc(size) {
     const slotSize = getClosestPowerOf2(size);
     let freeListArray = this.slots.get(slotSize);
@@ -127,6 +131,7 @@ export class FreeList {
     this.slotSizes.set(index, slotSize);
     return index;
   }
+
   free(index) {
     const slotSize = this.slotSizes.get(index);
     if (slotSize !== undefined) {

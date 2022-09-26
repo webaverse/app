@@ -10,6 +10,7 @@ class DropManager extends EventTarget {
 
     this.claims = [];
   }
+
   createDropApp({
     start_url,
     components = [],
@@ -34,19 +35,20 @@ class DropManager extends EventTarget {
       },
     };
     components.push(dropComponent);
-    
+
     const trackedApp = metaversefile.addTrackedApp(
       start_url,
       position,
       quaternion,
       scale,
-      components
+      components,
     );
     return trackedApp;
   }
+
   addClaim(name, contentId, voucher) {
     const result = generateStats(contentId);
-    const {/*art, */stats} = result;
+    const {/* art, */stats} = result;
     const {level} = stats;
     const start_url = contentId;
     const claim = {
@@ -63,12 +65,15 @@ class DropManager extends EventTarget {
       },
     }));
   }
+
   pickupApp(app) {
     this.addClaim(app.name, app.contentId, app.getComponent('voucher'));
   }
+
   dropToken(contractAddress, tokenId, voucher) {
     // XXX engine implements this
   }
+
   claimVoucher(contractAddress, tokenId, voucher) {
     // ui handles this
     this.dispatchEvent(new MessageEvent('claimvoucher', {

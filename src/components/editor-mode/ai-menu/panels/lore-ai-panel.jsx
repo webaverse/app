@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef, useContext } from 'react';
+import React, {useState, useEffect, useRef, useContext} from 'react';
 import classnames from 'classnames';
 // import { AppContext } from '../../../app';
 
@@ -21,7 +21,7 @@ export function LoreAiPanel() {
   };
 
   //
-  
+
   return (
         <div className={classnames(styles.panel, styles.lorePanel)}>
             {/* <textarea className={styles.textarea} placeholder="insects chirp in a windy field"></textarea> */}
@@ -29,5 +29,5 @@ export function LoreAiPanel() {
                 <button className={styles.button} onClick={_generate}>Generate lore</button>
             </div>
         </div>
-    );
+  );
 }

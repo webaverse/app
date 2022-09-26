@@ -50,7 +50,7 @@ function createMisc(seed = '', count = 1) {
             return rarities[i];
           }
         }
-        return rarities[rarities.length-1];
+        return rarities[rarities.length - 1];
       })(),
       level: Math.floor(rng() * 100),
       hp: Math.floor(rng() * 0xFF),
@@ -62,7 +62,7 @@ function createMisc(seed = '', count = 1) {
       speed: Math.floor(rng() * 0xFF),
       accuracy: Math.floor(rng() * 0xFF),
       evasion: Math.floor(rng() * 0xFF),
-      luck:  Math.floor(rng() * 0xFF),
+      luck: Math.floor(rng() * 0xFF),
       details: makeRandomFloat32Array(rng, 32),
     };
     result[i] = {

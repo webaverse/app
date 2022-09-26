@@ -1,27 +1,27 @@
 import {
-	AddEquation,
-	Color,
-	// CustomBlending,
-	// DataTexture,
-	// DepthTexture,
-	DstAlphaFactor,
-	DstColorFactor,
-	FloatType,
-	LinearFilter,
-	// MathUtils,
-	// MeshNormalMaterial,
-	// NearestFilter,
-	NoBlending,
-	RGBAFormat,
-	sRGBEncoding,
-	// RepeatWrapping,
-	ShaderMaterial,
-	UniformsUtils,
-	// UnsignedShortType,
-	// Vector3,
-	WebGLRenderTarget,
-	ZeroFactor,
-	// Scene,
+  AddEquation,
+  Color,
+  // CustomBlending,
+  // DataTexture,
+  // DepthTexture,
+  DstAlphaFactor,
+  DstColorFactor,
+  FloatType,
+  LinearFilter,
+  // MathUtils,
+  // MeshNormalMaterial,
+  // NearestFilter,
+  NoBlending,
+  RGBAFormat,
+  sRGBEncoding,
+  // RepeatWrapping,
+  ShaderMaterial,
+  UniformsUtils,
+  // UnsignedShortType,
+  // Vector3,
+  WebGLRenderTarget,
+  ZeroFactor,
+  // Scene,
 } from 'three';
 import * as THREE from 'three';
 import { Pass, FullScreenQuad } from 'three/examples/jsm/postprocessing/Pass.js';
@@ -45,9 +45,9 @@ const vertexShader = `\
 
 class SwirlMaterial extends THREE.ShaderMaterial {
   constructor() {
-		const positionOffsetMax = 0.02;
+    const positionOffsetMax = 0.02;
 
-		const fragmentShader = `\
+    const fragmentShader = `\
       uniform sampler2D tDiffuse;
       uniform float uTime;
       uniform vec2 uPosition;
@@ -103,36 +103,36 @@ class SwirlMaterial extends THREE.ShaderMaterial {
 				mainImage(gl_FragColor, vUv);
 			}
 		`;
-		
-		super( {
-			// defines: Object.assign( {}, SSAOShader.defines ),
-			uniforms: {
-			  tDiffuse: {
-				  value: null,
-					needsUpdate: false,
-				},
-				uTime: {
-					value: 0,
-					needsUpdate: false,
-				},
-				uPosition: {
-					// value: new THREE.Vector2((Math.random() * 2 - 1) * 0.1, (Math.random() * 2 - 1) * 0.1),
-					value: new THREE.Vector2(positionOffsetMax, 0)
-					  .rotateAround(zeroVector, Math.random() * Math.PI * 2),
-					needsUpdate: true,
-				},
-			},
-			vertexShader,
-			fragmentShader,
-			blending: NoBlending,
-			encoding: sRGBEncoding,
-		} );
-	}
+
+    super({
+      // defines: Object.assign( {}, SSAOShader.defines ),
+      uniforms: {
+        tDiffuse: {
+          value: null,
+          needsUpdate: false,
+        },
+        uTime: {
+          value: 0,
+          needsUpdate: false,
+        },
+        uPosition: {
+          // value: new THREE.Vector2((Math.random() * 2 - 1) * 0.1, (Math.random() * 2 - 1) * 0.1),
+          value: new THREE.Vector2(positionOffsetMax, 0)
+            .rotateAround(zeroVector, Math.random() * Math.PI * 2),
+          needsUpdate: true,
+        },
+      },
+      vertexShader,
+      fragmentShader,
+      blending: NoBlending,
+      encoding: sRGBEncoding,
+    });
+  }
 }
 
 class OpenMaterial extends THREE.ShaderMaterial {
   constructor() {
-		const fragmentShader = `\
+    const fragmentShader = `\
       uniform sampler2D tDiffuse;
       uniform float uTime;
 			varying vec2 vUv;
@@ -155,258 +155,244 @@ class OpenMaterial extends THREE.ShaderMaterial {
 				mainImage(gl_FragColor, vUv);
 			}
 		`;
-		
-		super( {
-			// defines: Object.assign( {}, SSAOShader.defines ),
-			uniforms: {
-			  tDiffuse: {
-				  value: null,
-					needsUpdate: false,
-				},
-				uTime: {
-					value: 0,
-					needsUpdate: false,
-				},
-			},
-			vertexShader,
-			fragmentShader,
-			blending: NoBlending,
-			encoding: sRGBEncoding,
-		} );
-	}
+
+    super({
+      // defines: Object.assign( {}, SSAOShader.defines ),
+      uniforms: {
+        tDiffuse: {
+          value: null,
+          needsUpdate: false,
+        },
+        uTime: {
+          value: 0,
+          needsUpdate: false,
+        },
+      },
+      vertexShader,
+      fragmentShader,
+      blending: NoBlending,
+      encoding: sRGBEncoding,
+    });
+  }
 }
 
 class SwirlPass extends Pass {
+  constructor(scene, camera, width, height/*, depthPass */) {
+    super();
 
-	constructor( scene, camera, width, height/*, depthPass */ ) {
+    this.width = (width !== undefined) ? width : 512;
+    this.height = (height !== undefined) ? height : 512;
+    // this.depthPass = depthPass;
 
-		super();
+    this.clear = true;
 
-		this.width = ( width !== undefined ) ? width : 512;
-		this.height = ( height !== undefined ) ? height : 512;
-		// this.depthPass = depthPass;
+    this.originalClearColor = new Color();
 
-		this.clear = true;
+    const _makeRenderTarget = () => {
+      return new WebGLRenderTarget(this.width, this.height, {
+        minFilter: LinearFilter,
+        magFilter: LinearFilter,
+        format: RGBAFormat,
+        type: FloatType,
+        encoding: sRGBEncoding,
+      });
+    };
+    this.ssaoRenderTargets = [
+      _makeRenderTarget(), // read buffer
+      _makeRenderTarget(), // write buffer
+    ];
 
-		this.originalClearColor = new Color();
+    this.swirlMaterial = new SwirlMaterial();
+    this.openMaterial = new OpenMaterial();
 
-		const _makeRenderTarget = () => {
-      return new WebGLRenderTarget( this.width, this.height, {
-				minFilter: LinearFilter,
-				magFilter: LinearFilter,
-				format: RGBAFormat,
-				type: FloatType,
-				encoding: sRGBEncoding,
-			} );
-		};
-		this.ssaoRenderTargets = [
-			_makeRenderTarget(), // read buffer
-			_makeRenderTarget(), // write buffer
-		];
+    // this.swirlMaterial.uniforms[ 'tDiffuse' ].value = this.beautyRenderTarget.texture;
 
-		this.swirlMaterial = new SwirlMaterial();
-		this.openMaterial = new OpenMaterial();
+    // material for rendering the depth
 
-		// this.swirlMaterial.uniforms[ 'tDiffuse' ].value = this.beautyRenderTarget.texture;
+    this.copyMaterial = new ShaderMaterial({
+      uniforms: UniformsUtils.clone(CopyShader.uniforms),
+      vertexShader: CopyShader.vertexShader,
+      fragmentShader: CopyShader.fragmentShader,
+      transparent: true,
+      depthTest: false,
+      depthWrite: false,
+      blendSrc: DstColorFactor,
+      blendDst: ZeroFactor,
+      blendEquation: AddEquation,
+      blendSrcAlpha: DstAlphaFactor,
+      blendDstAlpha: ZeroFactor,
+      blendEquationAlpha: AddEquation,
+    });
 
-		// material for rendering the depth
+    this.fsQuad = new FullScreenQuad(null);
 
-		this.copyMaterial = new ShaderMaterial( {
-			uniforms: UniformsUtils.clone( CopyShader.uniforms ),
-			vertexShader: CopyShader.vertexShader,
-			fragmentShader: CopyShader.fragmentShader,
-			transparent: true,
-			depthTest: false,
-			depthWrite: false,
-			blendSrc: DstColorFactor,
-			blendDst: ZeroFactor,
-			blendEquation: AddEquation,
-			blendSrcAlpha: DstAlphaFactor,
-			blendDstAlpha: ZeroFactor,
-			blendEquationAlpha: AddEquation
-		} );
+    this.first = true;
+    this.startTime = -1;
+  }
 
-		this.fsQuad = new FullScreenQuad( null );
+  swapRenderTargets() {
+    const [a, b] = this.ssaoRenderTargets;
+    this.ssaoRenderTargets[0] = b;
+    this.ssaoRenderTargets[1] = a;
+  }
 
-		this.first = true;
-		this.startTime = -1;
+  dispose() {
+    // dispose render targets
 
-	}
+    this.beautyRenderTarget.dispose();
+    // this.normalRenderTarget.dispose();
+    this.ssaoRenderTargets[0].dispose();
+    this.ssaoRenderTargets[1].dispose();
+    // this.blurRenderTarget.dispose();
 
-	swapRenderTargets() {
-		const [a, b] = this.ssaoRenderTargets;
-		this.ssaoRenderTargets[ 0 ] = b;
-		this.ssaoRenderTargets[ 1 ] = a;
-	}
+    // dispose materials
 
-	dispose() {
+    // this.normalMaterial.dispose();
+    this.swirlMaterial.dispose();
+    this.copyMaterial.dispose();
+    // this.depthRenderMaterial.dispose();
 
-		// dispose render targets
+    // dipsose full screen quad
 
-		this.beautyRenderTarget.dispose();
-		// this.normalRenderTarget.dispose();
-		this.ssaoRenderTargets[0].dispose();
-		this.ssaoRenderTargets[1].dispose();
-		// this.blurRenderTarget.dispose();
+    this.fsQuad.dispose();
+  }
 
-		// dispose materials
+  render(renderer, writeBuffer, readBuffer, deltaTime, maskActive) {
+    // render beauty
 
-		// this.normalMaterial.dispose();
-		this.swirlMaterial.dispose();
-		this.copyMaterial.dispose();
-		// this.depthRenderMaterial.dispose();
+    // renderer.setRenderTarget( this.beautyRenderTarget );
+    // renderer.clear();
+    // renderer.render( this.scene, this.camera );
 
-		// dipsose full screen quad
-
-		this.fsQuad.dispose();
-
-	}
-
-	render( renderer, writeBuffer , readBuffer, deltaTime, maskActive  ) {
-
-		// render beauty
-
-		// renderer.setRenderTarget( this.beautyRenderTarget );
-		// renderer.clear();
-		// renderer.render( this.scene, this.camera );
-
-		const now = performance.now();
+    const now = performance.now();
     if (this.first) {
-			this.startTime = now;
-		}
-		const timeDiff = now - this.startTime;
-		const timeDiffS = timeDiff / 1000;
-		const uTime = timeDiffS;
+      this.startTime = now;
+    }
+    const timeDiff = now - this.startTime;
+    const timeDiffS = timeDiff / 1000;
+    const uTime = timeDiffS;
 
-		// render SSAO
+    // render SSAO
 
-		const openStartTime = 3;
-		if (uTime < openStartTime) {
-			this.swirlMaterial.uniforms[ 'tDiffuse' ].value = this.first ?
-				readBuffer.texture // screen
-			:
-				this.ssaoRenderTargets[0].texture; // feedback
-			this.swirlMaterial.uniforms[ 'tDiffuse' ].needsUpdate = true;
+    const openStartTime = 3;
+    if (uTime < openStartTime) {
+      this.swirlMaterial.uniforms.tDiffuse.value = this.first
+        ? readBuffer.texture // screen
+        : this.ssaoRenderTargets[0].texture; // feedback
+      this.swirlMaterial.uniforms.tDiffuse.needsUpdate = true;
 
-			this.swirlMaterial.uniforms[ 'uTime' ].value = uTime;
-			this.swirlMaterial.uniforms[ 'uTime' ].needsUpdate = true;
-			
-			this.swirlMaterial.blending = NoBlending;
-			this.renderPass( renderer, this.swirlMaterial, this.ssaoRenderTargets[1] );
-		} else {
-			this.openMaterial.uniforms[ 'tDiffuse' ].value = readBuffer.texture; // screen
-			this.openMaterial.uniforms[ 'tDiffuse' ].needsUpdate = true;
+      this.swirlMaterial.uniforms.uTime.value = uTime;
+      this.swirlMaterial.uniforms.uTime.needsUpdate = true;
 
-			this.openMaterial.uniforms[ 'uTime' ].value = uTime - openStartTime;
-			this.openMaterial.uniforms[ 'uTime' ].needsUpdate = true;
-			
-			this.openMaterial.blending = NoBlending;
-			this.renderPass( renderer, this.openMaterial, this.ssaoRenderTargets[1] );
-		}
+      this.swirlMaterial.blending = NoBlending;
+      this.renderPass(renderer, this.swirlMaterial, this.ssaoRenderTargets[1]);
+    } else {
+      this.openMaterial.uniforms.tDiffuse.value = readBuffer.texture; // screen
+      this.openMaterial.uniforms.tDiffuse.needsUpdate = true;
 
-		// render swirl
-		this.copyMaterial.uniforms[ 'tDiffuse' ].value = this.ssaoRenderTargets[1].texture;
-		this.copyMaterial.uniforms[ 'tDiffuse' ].needsUpdate = true;
-		this.copyMaterial.blending = NoBlending;
-		this.renderPass( renderer, this.copyMaterial, this.renderToScreen ? null : writeBuffer );
-	  
-		this.swapRenderTargets();
-		this.first = false;
-	}
+      this.openMaterial.uniforms.uTime.value = uTime - openStartTime;
+      this.openMaterial.uniforms.uTime.needsUpdate = true;
 
-	renderPass( renderer, passMaterial, renderTarget, clearColor, clearAlpha ) {
+      this.openMaterial.blending = NoBlending;
+      this.renderPass(renderer, this.openMaterial, this.ssaoRenderTargets[1]);
+    }
 
-		// save original state
-		renderer.getClearColor( this.originalClearColor );
-		const originalClearAlpha = renderer.getClearAlpha();
-		const originalAutoClear = renderer.autoClear;
+    // render swirl
+    this.copyMaterial.uniforms.tDiffuse.value = this.ssaoRenderTargets[1].texture;
+    this.copyMaterial.uniforms.tDiffuse.needsUpdate = true;
+    this.copyMaterial.blending = NoBlending;
+    this.renderPass(renderer, this.copyMaterial, this.renderToScreen ? null : writeBuffer);
 
-		renderer.setRenderTarget( renderTarget );
+    this.swapRenderTargets();
+    this.first = false;
+  }
 
-		// setup pass state
-		renderer.autoClear = false;
-		if ( ( clearColor !== undefined ) && ( clearColor !== null ) ) {
+  renderPass(renderer, passMaterial, renderTarget, clearColor, clearAlpha) {
+    // save original state
+    renderer.getClearColor(this.originalClearColor);
+    const originalClearAlpha = renderer.getClearAlpha();
+    const originalAutoClear = renderer.autoClear;
 
-			renderer.setClearColor( clearColor );
-			renderer.setClearAlpha( clearAlpha || 0.0 );
-			renderer.clear();
+    renderer.setRenderTarget(renderTarget);
 
-		}
+    // setup pass state
+    renderer.autoClear = false;
+    if ((clearColor !== undefined) && (clearColor !== null)) {
+      renderer.setClearColor(clearColor);
+      renderer.setClearAlpha(clearAlpha || 0.0);
+      renderer.clear();
+    }
 
-		this.fsQuad.material = passMaterial;
-		this.fsQuad.render( renderer );
+    this.fsQuad.material = passMaterial;
+    this.fsQuad.render(renderer);
 
-		// restore original state
-		renderer.autoClear = originalAutoClear;
-		renderer.setClearColor( this.originalClearColor );
-		renderer.setClearAlpha( originalClearAlpha );
+    // restore original state
+    renderer.autoClear = originalAutoClear;
+    renderer.setClearColor(this.originalClearColor);
+    renderer.setClearAlpha(originalClearAlpha);
+  }
 
-	}
+  /* renderOverride( renderer, overrideMaterial, renderTarget, clearColor, clearAlpha ) {
 
-	/* renderOverride( renderer, overrideMaterial, renderTarget, clearColor, clearAlpha ) {
+    renderer.getClearColor( this.originalClearColor );
+    const originalClearAlpha = renderer.getClearAlpha();
+    const originalAutoClear = renderer.autoClear;
 
-		renderer.getClearColor( this.originalClearColor );
-		const originalClearAlpha = renderer.getClearAlpha();
-		const originalAutoClear = renderer.autoClear;
+    renderer.setRenderTarget( renderTarget );
+    renderer.autoClear = false;
 
-		renderer.setRenderTarget( renderTarget );
-		renderer.autoClear = false;
+    clearColor = overrideMaterial.clearColor || clearColor;
+    clearAlpha = overrideMaterial.clearAlpha || clearAlpha;
 
-		clearColor = overrideMaterial.clearColor || clearColor;
-		clearAlpha = overrideMaterial.clearAlpha || clearAlpha;
+    if ( ( clearColor !== undefined ) && ( clearColor !== null ) ) {
 
-		if ( ( clearColor !== undefined ) && ( clearColor !== null ) ) {
+      renderer.setClearColor( clearColor );
+      renderer.setClearAlpha( clearAlpha || 0.0 );
+      renderer.clear();
 
-			renderer.setClearColor( clearColor );
-			renderer.setClearAlpha( clearAlpha || 0.0 );
-			renderer.clear();
-
-		}
+    }
 
     const _recurse = o => {
-			if (o.isMesh && o.customPostMaterial) {
-				oldParentCache.set(o, o.parent);
-				oldMaterialCache.set(o, o.material);
+      if (o.isMesh && o.customPostMaterial) {
+        oldParentCache.set(o, o.parent);
+        oldMaterialCache.set(o, o.material);
 
-				o.material = o.customPostMaterial;
-				this.customScene.add(o);
-			}
+        o.material = o.customPostMaterial;
+        this.customScene.add(o);
+      }
       for (const child of o.children) {
-				_recurse(child);
-			}
-		};
-		_recurse(this.scene);
-		renderer.render( this.customScene, this.camera );
-		for (const child of this.customScene.children) {
-			oldParentCache.get(child).add(child);
-			child.material = oldMaterialCache.get(child);
+        _recurse(child);
+      }
+    };
+    _recurse(this.scene);
+    renderer.render( this.customScene, this.camera );
+    for (const child of this.customScene.children) {
+      oldParentCache.get(child).add(child);
+      child.material = oldMaterialCache.get(child);
 
-			oldParentCache.delete(child);
-			oldMaterialCache.delete(child);
-		}
+      oldParentCache.delete(child);
+      oldMaterialCache.delete(child);
+    }
 
-		this.scene.overrideMaterial = overrideMaterial;
-		renderer.render( this.scene, this.camera );
-		this.scene.overrideMaterial = null;
+    this.scene.overrideMaterial = overrideMaterial;
+    renderer.render( this.scene, this.camera );
+    this.scene.overrideMaterial = null;
 
-		// restore original state
+    // restore original state
 
-		renderer.autoClear = originalAutoClear;
-		renderer.setClearColor( this.originalClearColor );
-		renderer.setClearAlpha( originalClearAlpha );
+    renderer.autoClear = originalAutoClear;
+    renderer.setClearColor( this.originalClearColor );
+    renderer.setClearAlpha( originalClearAlpha );
 
-	} */
+  } */
 
-	setSize( width, height ) {
+  setSize(width, height) {
+    this.width = width;
+    this.height = height;
 
-		this.width = width;
-		this.height = height;
-
-		this.ssaoRenderTargets[0].setSize( width, height );
-		this.ssaoRenderTargets[1].setSize( width, height );
-
-	}
-
+    this.ssaoRenderTargets[0].setSize(width, height);
+    this.ssaoRenderTargets[1].setSize(width, height);
+  }
 }
 
 export { SwirlPass };

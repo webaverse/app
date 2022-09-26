@@ -1,7 +1,7 @@
 import * as THREE from 'three';
-import { defaultChunkSize } from './constants.js';
+import {defaultChunkSize} from './constants.js';
 import dc from './dual-contouring.js';
-import { makePromise } from './util.js';
+import {makePromise} from './util.js';
 
 //
 
@@ -17,7 +17,7 @@ const localVector = new THREE.Vector3();
 
 //
 
-const _cloneTerrainMeshData = (meshData) => {
+const _cloneTerrainMeshData = meshData => {
   if (meshData) {
     const sizeRequired = meshData.positions.length * meshData.positions.constructor.BYTES_PER_ELEMENT +
       meshData.normals.length * meshData.normals.constructor.BYTES_PER_ELEMENT +
@@ -36,11 +36,11 @@ const _cloneTerrainMeshData = (meshData) => {
     const positions = new meshData.positions.constructor(arrayBuffer, index, meshData.positions.length);
     positions.set(meshData.positions);
     index += meshData.positions.length * meshData.positions.constructor.BYTES_PER_ELEMENT;
-    
+
     const normals = new meshData.normals.constructor(arrayBuffer, index, meshData.normals.length);
     normals.set(meshData.normals);
     index += meshData.normals.length * meshData.normals.constructor.BYTES_PER_ELEMENT;
-    
+
     // const biomes = new meshData.biomes.constructor(arrayBuffer, index, meshData.biomes.length);
     // biomes.set(meshData.biomes);
     // index += meshData.biomes.length * meshData.biomes.constructor.BYTES_PER_ELEMENT;
@@ -48,7 +48,7 @@ const _cloneTerrainMeshData = (meshData) => {
     const biomesWeights = new meshData.biomesWeights.constructor(arrayBuffer, index, meshData.biomesWeights.length);
     biomesWeights.set(meshData.biomesWeights);
     index += meshData.biomesWeights.length * meshData.biomesWeights.constructor.BYTES_PER_ELEMENT;
-    
+
     const biomesUvs1 = new meshData.biomesUvs1.constructor(arrayBuffer, index, meshData.biomesUvs1.length);
     biomesUvs1.set(meshData.biomesUvs1);
     index += meshData.biomesUvs1.length * meshData.biomesUvs1.constructor.BYTES_PER_ELEMENT;
@@ -68,7 +68,7 @@ const _cloneTerrainMeshData = (meshData) => {
     const aos = new meshData.aos.constructor(arrayBuffer, index, meshData.aos.length);
     aos.set(meshData.aos);
     index += meshData.aos.length * meshData.aos.constructor.BYTES_PER_ELEMENT;
-    
+
     const peeks = new meshData.peeks.constructor(arrayBuffer, index, meshData.peeks.length);
     peeks.set(meshData.peeks);
     index += meshData.peeks.length * meshData.peeks.constructor.BYTES_PER_ELEMENT;
@@ -85,13 +85,13 @@ const _cloneTerrainMeshData = (meshData) => {
       indices,
       skylights,
       aos,
-      peeks
+      peeks,
     };
   } else {
     return null;
   }
 };
-const _cloneLiquidMeshData = (meshData) => {
+const _cloneLiquidMeshData = meshData => {
   if (meshData) {
     /* return {
       arrayBuffer: new ArrayBuffer(1),
@@ -112,15 +112,15 @@ const _cloneLiquidMeshData = (meshData) => {
     const positions = new meshData.positions.constructor(arrayBuffer, index, meshData.positions.length);
     positions.set(meshData.positions);
     index += meshData.positions.length * meshData.positions.constructor.BYTES_PER_ELEMENT;
-    
+
     const normals = new meshData.normals.constructor(arrayBuffer, index, meshData.normals.length);
     normals.set(meshData.normals);
     index += meshData.normals.length * meshData.normals.constructor.BYTES_PER_ELEMENT;
-    
+
     const biomes = new meshData.biomes.constructor(arrayBuffer, index, meshData.biomes.length);
     biomes.set(meshData.biomes);
     index += meshData.biomes.length * meshData.biomes.constructor.BYTES_PER_ELEMENT;
-    
+
     const indices = new meshData.indices.constructor(arrayBuffer, index, meshData.indices.length);
     indices.set(meshData.indices);
     index += meshData.indices.length * meshData.indices.constructor.BYTES_PER_ELEMENT;
@@ -179,7 +179,7 @@ const instances = new Map();
     newTasks,
   };
 }; */
-const _cloneNode = (node) => {
+const _cloneNode = node => {
   return {
     min: node.min.slice(),
     size: node.size,
@@ -213,7 +213,7 @@ const _cloneTrackerUpdate = trackerUpdate => {
 
 let loaded = false;
 // let running = false;
-let queue = [];
+const queue = [];
 const _handleMethod = async ({method, args, instance: instanceKey, taskId}) => {
   // console.log('worker handle method', method, args);
 
@@ -233,7 +233,7 @@ const _handleMethod = async ({method, args, instance: instanceKey, taskId}) => {
       });
     }
   }; */
-  const _chunksToResult = chunks => chunks.map(({ position }) => ({ position }));
+  const _chunksToResult = chunks => chunks.map(({position}) => ({position}));
 
   switch (method) {
     case 'initialize': {
@@ -252,7 +252,7 @@ const _handleMethod = async ({method, args, instance: instanceKey, taskId}) => {
       return;
     } */
     case 'ensureInstance': {
-      const { instance: instanceKey } = args;
+      const {instance: instanceKey} = args;
       // console.log(instanceKey);
       let instance = instances.get(instanceKey);
       if (!instance) {
@@ -262,7 +262,7 @@ const _handleMethod = async ({method, args, instance: instanceKey, taskId}) => {
       return true;
     }
     case 'deleteInstance': {
-      const { instance: instanceKey } = args;
+      const {instance: instanceKey} = args;
       const instance = instances.get(instanceKey);
       if (instance) {
         dc.deleteInstance(instance);
@@ -315,10 +315,10 @@ const _handleMethod = async ({method, args, instance: instanceKey, taskId}) => {
       const {chunkPosition, lodArray} = args;
       const instance = instances.get(instanceKey);
       if (!instance) throw new Error('generateTerrainChunk : instance not found');
-      
+
       localVector.fromArray(chunkPosition)
         .multiplyScalar(chunkWorldSize);
-        
+
       const meshData = await dc.createTerrainChunkMeshAsync(instance, taskId, localVector.x, localVector.y, localVector.z, lodArray);
       const meshData2 = _cloneTerrainMeshData(meshData);
       meshData && dc.free(meshData.bufferAddress);
@@ -358,7 +358,7 @@ const _handleMethod = async ({method, args, instance: instanceKey, taskId}) => {
             position.x,
             position.y,
             position.z,
-            lod
+            lod,
           );
         }
         {
@@ -370,7 +370,7 @@ const _handleMethod = async ({method, args, instance: instanceKey, taskId}) => {
             position.x,
             position.y,
             position.z,
-            lod
+            lod,
           );
         }
 
@@ -391,7 +391,7 @@ const _handleMethod = async ({method, args, instance: instanceKey, taskId}) => {
       const {chunkPosition, lodArray} = args;
       const instance = instances.get(instanceKey);
       if (!instance) throw new Error('generateLiquidChunk : instance not found');
-      
+
       localVector.fromArray(chunkPosition)
         .multiplyScalar(chunkWorldSize);
       const meshData = await dc.createLiquidChunkMeshAsync(instance, taskId, localVector.x, localVector.y, localVector.z, lodArray);
@@ -412,11 +412,11 @@ const _handleMethod = async ({method, args, instance: instanceKey, taskId}) => {
       const {instance: instanceKey, x, z, w, h, lod, priority} = args;
       const instance = instances.get(instanceKey);
       if (!instance) throw new Error('getHeightfieldRange : instance not found');
-      
+
       const heights = await dc.getHeightfieldRangeAsync(instance, taskId, x, z, w, h, lod, priority);
 
       // console.log('got heights', heights);
-      
+
       const spec = {
         result: heights,
         transfers: [heights.buffer],
@@ -427,14 +427,14 @@ const _handleMethod = async ({method, args, instance: instanceKey, taskId}) => {
       const {instance: instanceKey, x, y, z, w, h, d, lod, priority} = args;
       const instance = instances.get(instanceKey);
       if (!instance) throw new Error('getLightRange : instance not found');
-      
+
       const {
         skylights,
         aos,
       } = await dc.getLightRangeAsync(instance, taskId, x, y, z, w, h, d, lod, priority);
-      
+
       // console.log('got lights', {skylights, aos});
-      
+
       const spec = {
         result: {
           skylights,
@@ -448,7 +448,7 @@ const _handleMethod = async ({method, args, instance: instanceKey, taskId}) => {
       const {x, z, lod, priority} = args;
       const instance = instances.get(instanceKey);
       if (!instance) throw new Error('getChunkHeightfield : instance not found');
-      
+
       const heightfield = await dc.getChunkHeightfieldAsync(instance, taskId, x, z, lod, priority);
       const spec = {
         result: heightfield,
@@ -528,7 +528,7 @@ const _handleMethod = async ({method, args, instance: instanceKey, taskId}) => {
       const {x, z, lod, priority} = args;
       const instance = instances.get(instanceKey);
       if (!instance) throw new Error('createVegetationSplat : instance not found');
-      
+
       const {
         ps,
         qs,
@@ -549,7 +549,7 @@ const _handleMethod = async ({method, args, instance: instanceKey, taskId}) => {
       const {x, z, lod, priority} = args;
       const instance = instances.get(instanceKey);
       if (!instance) throw new Error('createMobSplat : instance not found');
-      
+
       const {
         ps,
         qs,
@@ -583,7 +583,7 @@ const _handleMethod = async ({method, args, instance: instanceKey, taskId}) => {
         quaternion[3],
         scale[0],
         scale[1],
-        scale[2]
+        scale[2],
       );
       // console.log('draw cube damage chunks', chunks);
 
@@ -612,7 +612,7 @@ const _handleMethod = async ({method, args, instance: instanceKey, taskId}) => {
         quaternion[3],
         scale[0],
         scale[1],
-        scale[2]
+        scale[2],
       );
 
       if (chunks) {
@@ -634,7 +634,7 @@ const _handleMethod = async ({method, args, instance: instanceKey, taskId}) => {
         position[0],
         position[1],
         position[2],
-        radius
+        radius,
       );
 
       if (chunks) {
@@ -655,7 +655,7 @@ const _handleMethod = async ({method, args, instance: instanceKey, taskId}) => {
         position[0],
         position[1],
         position[2],
-        radius
+        radius,
       );
 
       if (chunks) {
@@ -689,36 +689,36 @@ const _handleMessage = async m => {
   const {taskId} = data;
   const p = makePromise();
   // try {
-    const spec = await _handleMethod(data);
-    p.accept(spec);
+  const spec = await _handleMethod(data);
+  p.accept(spec);
   // } catch (err) {
   //   p.reject(err);
   // }
 
   if (taskId) {
     p.then(
-      (spec) => {
-        const { result = null, transfers = [] } = spec ?? {};
+      spec => {
+        const {result = null, transfers = []} = spec ?? {};
         port.postMessage(
           {
             method: 'response',
             taskId,
             result,
           },
-          transfers
+          transfers,
         );
       },
-      (err) => {
+      err => {
         port.postMessage({
           method: 'response',
           taskId,
           error: err.message,
         });
-      }
+      },
     );
   }
 };
-self.onmessage = (e) => {
+self.onmessage = e => {
   const m = {
     data: e.data,
     port: self,

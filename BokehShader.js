@@ -4,27 +4,27 @@
  * http://artmartinsh.blogspot.com/2010/02/glsl-lens-blur-filter-with-bokeh.html
  */
 
- const BokehShader = {
+const BokehShader = {
 
-	defines: {
-		'DEPTH_PACKING': 1,
-		'PERSPECTIVE_CAMERA': 1,
-	},
+  defines: {
+    DEPTH_PACKING: 1,
+    PERSPECTIVE_CAMERA: 1,
+  },
 
-	uniforms: {
+  uniforms: {
 
-		'tColor': { value: null },
-		'tDepth': { value: null },
-		'focus': { value: 1.0 },
-		'aspect': { value: 1.0 },
-		'aperture': { value: 0.025 },
-		'maxblur': { value: 0.01 },
-		'nearClip': { value: 1.0 },
-		'farClip': { value: 1000.0 },
+    tColor: {value: null},
+    tDepth: {value: null},
+    focus: {value: 1.0},
+    aspect: {value: 1.0},
+    aperture: {value: 0.025},
+    maxblur: {value: 0.01},
+    nearClip: {value: 1.0},
+    farClip: {value: 1000.0},
 
-	},
+  },
 
-	vertexShader: /* glsl */`
+  vertexShader: /* glsl */`
 
 		varying vec2 vUv;
 
@@ -35,7 +35,7 @@
 
 		}`,
 
-	fragmentShader: /* glsl */`
+  fragmentShader: /* glsl */`
 
 		#include <common>
 
@@ -136,8 +136,8 @@
 			gl_FragColor = col / 41.0;
 			gl_FragColor.a = 1.0;
 
-		}`
+		}`,
 
 };
 
-export { BokehShader };
+export {BokehShader};

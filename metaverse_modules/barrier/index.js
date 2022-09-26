@@ -24,7 +24,7 @@ const ClippedPlane = (() => {
   const localVector3 = new THREE.Vector3();
   const localVector2D = new THREE.Vector2();
   const zeroVector = new THREE.Vector3(0, 0, 0);
-  
+
   class ClippedPlane extends THREE.Plane {
     constructor(normal, coplanarPoint, size = new THREE.Vector2(1, 1), up = new THREE.Vector3(0, 1, 0)) {
       super();
@@ -37,27 +37,28 @@ const ClippedPlane = (() => {
 
       const center = this.projectPoint(zeroVector, localVector);
       // {
-        const topLeft = center.clone()
-          .add(localVector3.copy(this.up).multiplyScalar(this.size.y / 2))
-          .sub(localVector3.copy(this.right).multiplyScalar(this.size.x / 2));
-        const bottomLeft = center.clone()
-          .sub(localVector3.copy(this.up).multiplyScalar(this.size.y / 2))
-          .sub(localVector3.copy(this.right).multiplyScalar(this.size.x / 2));
-        this.leftLine = new THREE.Line3(bottomLeft, topLeft);
+      const topLeft = center.clone()
+        .add(localVector3.copy(this.up).multiplyScalar(this.size.y / 2))
+        .sub(localVector3.copy(this.right).multiplyScalar(this.size.x / 2));
+      const bottomLeft = center.clone()
+        .sub(localVector3.copy(this.up).multiplyScalar(this.size.y / 2))
+        .sub(localVector3.copy(this.right).multiplyScalar(this.size.x / 2));
+      this.leftLine = new THREE.Line3(bottomLeft, topLeft);
       // }
       // {
-        const bottomLeft2 = center.clone()
-          .sub(localVector3.copy(this.up).multiplyScalar(this.size.y / 2))
-          .sub(localVector3.copy(this.right).multiplyScalar(this.size.x / 2));
-        const bottomRight2 = center.clone()
-          .sub(localVector3.copy(this.up).multiplyScalar(this.size.y / 2))
-          .add(localVector3.copy(this.right).multiplyScalar(this.size.x / 2));
-        this.bottomLine = new THREE.Line3(bottomLeft2, bottomRight2);
+      const bottomLeft2 = center.clone()
+        .sub(localVector3.copy(this.up).multiplyScalar(this.size.y / 2))
+        .sub(localVector3.copy(this.right).multiplyScalar(this.size.x / 2));
+      const bottomRight2 = center.clone()
+        .sub(localVector3.copy(this.up).multiplyScalar(this.size.y / 2))
+        .add(localVector3.copy(this.right).multiplyScalar(this.size.x / 2));
+      this.bottomLine = new THREE.Line3(bottomLeft2, bottomRight2);
       // }
       /* if (this.normal.x === 1 && this.leftLine.start.y === -0.5) {
         debugger;
       } */
     }
+
     getUV(point, target) {
       const x = this.leftLine.closestPointToPointParameter(point, false);
       const y = this.bottomLine.closestPointToPointParameter(point, false);
@@ -69,8 +70,9 @@ const ClippedPlane = (() => {
         return null;
       }
     }
+
     getPenetrationNormalVector(line, target) {
-      const intersection = this.intersectLine(line, localVector)
+      const intersection = this.intersectLine(line, localVector);
       if (intersection) {
         const uv = this.getUV(intersection, localVector2D);
         if (uv !== null) {
@@ -116,7 +118,7 @@ export default () => {
   // const doubleSide = app.getComponent('doubleSide') ?? false;
 
   const barrierMeshes = [];
-  let children = [];
+  const children = [];
   const physicsIds = [];
   const _render = () => {
     const bounds = app.getComponent('bounds') ?? [[0, 0, 0], [4, 4, 4]];
@@ -137,7 +139,7 @@ export default () => {
     if (exits.length > 0) {
       barrierSpecs = exits.map(exit => {
         localVector.fromArray(exit);
-        
+
         let normal;
         if (localVector.x === 0) { // XXX blocks should come with an incoming direction so this is well-defined
           normal = localVector2.set(1, 0, 0);
@@ -171,18 +173,18 @@ export default () => {
         // console.log('got normal', normal.toArray().join(','));
 
         const position = new THREE.Vector3(
-          -width/2 +
+          -width / 2 +
             (0.5 * -normal.x) +
             localVector.x +
             (normal.x === -1 ? voxelWorldSize : 0) +
-            (normal.z * voxelWorldSize/2),
-          voxelWorldSize/2 +
+            (normal.z * voxelWorldSize / 2),
+          voxelWorldSize / 2 +
             localVector.y,
-          -depth/2 +
+          -depth / 2 +
             (0.5 * -normal.z) +
             localVector.z +
             (normal.z === -1 ? voxelWorldSize : 0) +
-            (normal.x * voxelWorldSize/2),
+            (normal.x * voxelWorldSize / 2),
         ).add(chunkOffset);
 
         return {
@@ -483,42 +485,42 @@ export default () => {
         // top
         new ClippedPlane(
           new THREE.Vector3(0, 1, 0), // normal
-          new THREE.Vector3(0, h/2, 0), // coplanarPoint
+          new THREE.Vector3(0, h / 2, 0), // coplanarPoint
           new THREE.Vector2(w, d), // size
           new THREE.Vector3(0, 0, 1), // up
         ),
         // bottom
         new ClippedPlane(
           new THREE.Vector3(0, -1, 0), // normal
-          new THREE.Vector3(0, -h/2, 0), // coplanarPoint
+          new THREE.Vector3(0, -h / 2, 0), // coplanarPoint
           new THREE.Vector2(w, d), // size
           new THREE.Vector3(0, 0, 1), // up
         ),
         // left
         new ClippedPlane(
           new THREE.Vector3(-1, 0, 0), // normal
-          new THREE.Vector3(-w/2, 0, 0), // coplanarPoint
+          new THREE.Vector3(-w / 2, 0, 0), // coplanarPoint
           new THREE.Vector2(d, h), // size
           new THREE.Vector3(0, 1, 0), // up
         ),
         // right
         new ClippedPlane(
           new THREE.Vector3(1, 0, 0), // normal
-          new THREE.Vector3(w/2, 0, 0), // coplanarPoint
+          new THREE.Vector3(w / 2, 0, 0), // coplanarPoint
           new THREE.Vector2(d, h), // size
           new THREE.Vector3(0, 1, 0), // up
         ),
         // front
         new ClippedPlane(
           new THREE.Vector3(0, 0, -1), // normal
-          new THREE.Vector3(0, 0, -d/2), // coplanarPoint
+          new THREE.Vector3(0, 0, -d / 2), // coplanarPoint
           new THREE.Vector2(w, h), // size
           new THREE.Vector3(0, 1, 0), // up
         ),
         // back
         new ClippedPlane(
           new THREE.Vector3(0, 0, 1), // normal
-          new THREE.Vector3(0, 0, d/2), // coplanarPoint
+          new THREE.Vector3(0, 0, d / 2), // coplanarPoint
           new THREE.Vector2(w, h), // size
           new THREE.Vector3(0, 1, 0), // up
         ),
@@ -541,8 +543,8 @@ export default () => {
   const cooldownTime = 0;
   let lastPeerCooldownTime = -Infinity;
   useFrame(({timestamp, timeDiff}) => {
-    const timestampS = timestamp/1000;
-    const timeDiffS = timeDiff/1000;
+    const timestampS = timestamp / 1000;
+    const timeDiffS = timeDiff / 1000;
 
     const _updateAnimations = () => {
       for (const barrierMesh of barrierMeshes) {
@@ -563,7 +565,7 @@ export default () => {
             } else if (barrierMesh.animationSpec.type === 'cooldown') {
               if (!barrierMesh.boundingBox.containsPoint(localPlayer.position)) {
                 barrierMesh.animationSpec = null;
-                
+
                 const singleUse = _getSingleUse();
                 if (singleUse) {
                   app.remove(barrierMesh);
@@ -571,7 +573,7 @@ export default () => {
                 }
               }
             } else {
-              console.warn('unknown animation type', type);
+              console.warn('unknown animation type', barrierMesh.animationSpec.type);
             }
           }
         }
@@ -600,7 +602,7 @@ export default () => {
               .lerp(positionEnd, f2);
             localLine.set(lineStart, lineEnd)
               .applyMatrix4(
-                localMatrix
+                localMatrix,
               );
 
             const penetrationNormalVector = clipPlane.getPenetrationNormalVector(localLine, localVector);
@@ -651,7 +653,7 @@ export default () => {
     const _updateMaterials = () => {
       for (const barrierMesh of barrierMeshes) {
         barrierMesh.material.uniforms.iTime.value = timestampS;
-        
+
         let highlight;
         if (barrierMesh.animationSpec) {
           let f = Math.min(Math.max(
@@ -659,20 +661,20 @@ export default () => {
             0),
           1);
           f = Math.pow(f, 0.1);
-          highlight = (1-f)*barrierMesh.animationSpec.startValue + f*barrierMesh.animationSpec.endValue;
+          highlight = (1 - f) * barrierMesh.animationSpec.startValue + f * barrierMesh.animationSpec.endValue;
         } else {
           highlight = 0;
         }
         barrierMesh.material.uniforms.uHighlight.value = highlight;
         barrierMesh.material.uniforms.uHighlight.needsUpdate = true;
-    
+
         if (barrierMesh.animationSpec) {
           barrierMesh.material.uniforms.uStartTimeS.value = barrierMesh.animationSpec.startTimeS;
           barrierMesh.material.uniforms.uStartTimeS.needsUpdate = true;
-    
+
           barrierMesh.material.uniforms.uDirection.value.copy(barrierMesh.animationSpec.direction);
           barrierMesh.material.uniforms.uDirection.needsUpdate = true;
-          
+
           barrierMesh.material.uniforms.uSpeed.value = barrierMesh.animationSpec.speed;
           barrierMesh.material.uniforms.uSpeed.needsUpdate = true;
         } else {
@@ -686,7 +688,7 @@ export default () => {
           barrierMesh.material.uniforms.peerCooldown.value = Math.min(Math.max(v, 0), 1);
           barrierMesh.material.uniforms.peerCooldown.needsUpdate = true;
         }
-    
+
         barrierMesh.visible = barrierMesh.animationSpec ? barrierMesh.animationSpec.visible : true;
       }
     };
@@ -694,7 +696,7 @@ export default () => {
 
     lastPosition.copy(localPlayer.position);
   });
-  
+
   const _cleanup = () => {
     for (const child of children) {
       app.remove(child);

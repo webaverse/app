@@ -9,7 +9,7 @@ export default () => {
   const localPlayer = app.getComponent('player') || useLocalPlayer();
   const cameraManager = useCameraManager();
   const {renderer, camera} = useInternals();
-  let narutoRunTime = 0; 
+  let narutoRunTime = 0;
   let lastStopSw = 0;
 
   const nameSpec = [
@@ -23,99 +23,94 @@ export default () => {
     'trail',
     'mask',
     'voronoiNoise',
-  ]
+  ];
   const particleTexture = [];
   const _loadAllTexture = async names => {
-    for(const name of names){
-        const texture = await new Promise((accept, reject) => {
-            const {ktx2Loader} = useLoaders();
-            const u = `${baseUrl}/textures/${name}.ktx2`;
-            ktx2Loader.load(u, accept, function onProgress() {}, reject);
-        });
-        particleTexture.push(texture);
+    for (const name of names) {
+      const texture = await new Promise((accept, reject) => {
+        const {ktx2Loader} = useLoaders();
+        const u = `${baseUrl}/textures/${name}.ktx2`;
+        ktx2Loader.load(u, accept, function onProgress() {}, reject);
+      });
+      particleTexture.push(texture);
     }
   };
   _loadAllTexture(nameSpec);
-  
-  
-  
-    let currentDir = new THREE.Vector3();
-    //################################################ trace narutoRun Time ########################################
-    {
-        let localVector = new THREE.Vector3();
-        useFrame(() => {
-            localVector.set(0, 0, -1);
-            currentDir = localVector.applyQuaternion(localPlayer.quaternion);
-            currentDir.normalize();
-            if (localPlayer.hasAction('narutoRun')){
-                    narutoRunTime ++;
-                    lastStopSw = 1;
-            }
-            else{
-                narutoRunTime = 0;
-            }
-            
-        });
+
+  let currentDir = new THREE.Vector3();
+  // ################################################ trace narutoRun Time ########################################
+  {
+    const localVector = new THREE.Vector3();
+    useFrame(() => {
+      localVector.set(0, 0, -1);
+      currentDir = localVector.applyQuaternion(localPlayer.quaternion);
+      currentDir.normalize();
+      if (localPlayer.hasAction('narutoRun')) {
+        narutoRunTime++;
+        lastStopSw = 1;
+      } else {
+        narutoRunTime = 0;
+      }
+    });
+  }
+  const _getGeometry = (geometry, attributeSpecs, particleCount) => {
+    const geometry2 = new THREE.BufferGeometry();
+    ['position', 'normal', 'uv'].forEach(k => {
+      geometry2.setAttribute(k, geometry.attributes[k]);
+    });
+    geometry2.setIndex(geometry.index);
+
+    const positions = new Float32Array(particleCount * 3);
+    const positionsAttribute = new THREE.InstancedBufferAttribute(positions, 3);
+    geometry2.setAttribute('positions', positionsAttribute);
+
+    for (const attributeSpec of attributeSpecs) {
+      const {
+        name,
+        itemSize,
+      } = attributeSpec;
+      const array = new Float32Array(particleCount * itemSize);
+      geometry2.setAttribute(name, new THREE.InstancedBufferAttribute(array, itemSize));
     }
-    const _getGeometry = (geometry, attributeSpecs, particleCount) => {
-        const geometry2 = new THREE.BufferGeometry();
-        ['position', 'normal', 'uv'].forEach(k => {
-        geometry2.setAttribute(k, geometry.attributes[k]);
-        });
-        geometry2.setIndex(geometry.index);
 
-        const positions = new Float32Array(particleCount * 3);
-        const positionsAttribute = new THREE.InstancedBufferAttribute(positions, 3);
-        geometry2.setAttribute('positions', positionsAttribute);
+    return geometry2;
+  };
 
-        for(const attributeSpec of attributeSpecs){
-            const {
-                name,
-                itemSize,
-            } = attributeSpec;
-            const array = new Float32Array(particleCount * itemSize);
-            geometry2.setAttribute(name, new THREE.InstancedBufferAttribute(array, itemSize));
-        }
+  // ################################################# front wave #################################################
+  {
+    const particleCount = 2;
+    const attributeSpecs = [];
+    attributeSpecs.push({name: 'id', itemSize: 1});
+    const geometry2 = new THREE.SphereGeometry(1.4, 32, 32, 0, Math.PI * 2, 0, Math.PI / 1.4);
+    const geometry = _getGeometry(geometry2, attributeSpecs, particleCount);
+    const idAttribute = geometry.getAttribute('id');
+    idAttribute.setX(0, 0);
+    idAttribute.setX(1, 1);
+    idAttribute.needsUpdate = true;
 
-        return geometry2;
-    };
-    
-    //################################################# front wave #################################################
-    {
+    const material = new THREE.ShaderMaterial({
+      uniforms: {
+        uTime: {
+          type: 'f',
+          value: 0.0,
+        },
+        color: {
+          value: new THREE.Vector3(0.400, 0.723, 0.910),
+        },
+        strength: {
+          value: 0.01,
+        },
+        waveTexture: {
+          type: 't',
+          value: null,
+        },
+        waveTexture2: {
+          type: 't',
+          value: null,
+        },
 
-        const particleCount = 2;
-        const attributeSpecs = [];
-        attributeSpecs.push({name: 'id', itemSize: 1});
-        const geometry2 = new THREE.SphereGeometry(1.4, 32, 32, 0, Math.PI * 2, 0, Math.PI / 1.4);
-        const geometry = _getGeometry(geometry2, attributeSpecs, particleCount);
-        const idAttribute =  geometry.getAttribute('id');
-        idAttribute.setX(0, 0);
-        idAttribute.setX(1, 1);
-        idAttribute.needsUpdate = true;
-
-        const material = new THREE.ShaderMaterial({
-            uniforms: {
-              uTime: {
-                type: "f",
-                value: 0.0
-              },
-              color: {
-                value: new THREE.Vector3(0.400, 0.723, 0.910)
-              },
-              strength: {
-                value: 0.01
-              },
-              waveTexture: {
-                type: "t",
-                value: null
-              },
-              waveTexture2: {
-                type: "t",
-                value: null
-              },
-              
-            },
-            vertexShader: `\
+      },
+      vertexShader: `\
                 
               ${THREE.ShaderChunk.common}
               ${THREE.ShaderChunk.logdepthbuf_pars_vertex}
@@ -142,7 +137,7 @@ export default () => {
                   gl_Position = projectionMatrix * modelViewMatrix * vec4( pos, 1.0 ); 
                   ${THREE.ShaderChunk.logdepthbuf_vertex}
               }`,
-            fragmentShader: `\
+      fragmentShader: `\
               ${THREE.ShaderChunk.logdepthbuf_pars_fragment}
               varying vec2 vUv;
               varying float vId;
@@ -203,66 +198,61 @@ export default () => {
                   ${THREE.ShaderChunk.logdepthbuf_fragment}
               }
             `,
-            side: THREE.DoubleSide,
-            transparent: true,
-            depthWrite: false,
-            blending: THREE.AdditiveBlending,
-  
-            clipping: false,
-            fog: false,
-            lights: false,
-        });
-        const frontwave = new THREE.InstancedMesh(geometry, material, particleCount);
-        // material.onBeforeCompile = () => {
-        //     console.log('compile frontwave material')
-        // }
-        
-        const group = new THREE.Group();
-        group.add(frontwave);
-        renderer.compile(group, camera)
-        let sonicBoomInApp = false;
-        useFrame(({timestamp}) => {
-            
-        
-            if(narutoRunTime>10){
-                //console.log('sonic-boom-frontwave');
-                if(!sonicBoomInApp){
-                    //console.log('add-frontWave');
-                    app.add(group);
-                    sonicBoomInApp = true;
-                }
-                
-                group.position.copy(localPlayer.position);
-                if (localPlayer.avatar) {
-                    group.position.y -= localPlayer.avatar.height;
-                    group.position.y += 0.65;
-                }
-                group.rotation.copy(localPlayer.rotation);
-                
-                group.position.x -= 0.6 * currentDir.x;
-                group.position.z -= 0.6 * currentDir.z;
+      side: THREE.DoubleSide,
+      transparent: true,
+      depthWrite: false,
+      blending: THREE.AdditiveBlending,
 
-                group.scale.set(1, 1, 1);
-                material.uniforms.uTime.value = timestamp / 5000;
-                if(!material.uniforms.waveTexture.value)
-                    material.uniforms.waveTexture.value = particleTexture[nameSpec.indexOf('wave2')];
-                if(!material.uniforms.waveTexture2.value)
-                    material.uniforms.waveTexture2.value = particleTexture[nameSpec.indexOf('wave20')];
-            }
-            else{
-                if(sonicBoomInApp){
-                    //console.log('remove-frontWave');
-                    app.remove(group);
-                    sonicBoomInApp=false;
-                }
-                //group.scale.set(0,0,0);
-            }
-        });
-    }
-    //########################################## wind #############################################
-    {
-        const group = new THREE.Group();
-        const vertrun = `
+      clipping: false,
+      fog: false,
+      lights: false,
+    });
+    const frontwave = new THREE.InstancedMesh(geometry, material, particleCount);
+    // material.onBeforeCompile = () => {
+    //     console.log('compile frontwave material')
+    // }
+
+    const group = new THREE.Group();
+    group.add(frontwave);
+    renderer.compile(group, camera);
+    let sonicBoomInApp = false;
+    useFrame(({timestamp}) => {
+      if (narutoRunTime > 10) {
+        // console.log('sonic-boom-frontwave');
+        if (!sonicBoomInApp) {
+          // console.log('add-frontWave');
+          app.add(group);
+          sonicBoomInApp = true;
+        }
+
+        group.position.copy(localPlayer.position);
+        if (localPlayer.avatar) {
+          group.position.y -= localPlayer.avatar.height;
+          group.position.y += 0.65;
+        }
+        group.rotation.copy(localPlayer.rotation);
+
+        group.position.x -= 0.6 * currentDir.x;
+        group.position.z -= 0.6 * currentDir.z;
+
+        group.scale.set(1, 1, 1);
+        material.uniforms.uTime.value = timestamp / 5000;
+        if (!material.uniforms.waveTexture.value) { material.uniforms.waveTexture.value = particleTexture[nameSpec.indexOf('wave2')]; }
+        if (!material.uniforms.waveTexture2.value) { material.uniforms.waveTexture2.value = particleTexture[nameSpec.indexOf('wave20')]; }
+      } else {
+        if (sonicBoomInApp) {
+          // console.log('remove-frontWave');
+          app.remove(group);
+          sonicBoomInApp = false;
+        }
+        // group.scale.set(0,0,0);
+      }
+    });
+  }
+  // ########################################## wind #############################################
+  {
+    const group = new THREE.Group();
+    const vertrun = `
             ${THREE.ShaderChunk.common}
             ${THREE.ShaderChunk.logdepthbuf_pars_vertex}
             varying vec2 vUv;
@@ -274,7 +264,7 @@ export default () => {
             }
         `;
 
-        const fragrun = `
+    const fragrun = `
             ${THREE.ShaderChunk.logdepthbuf_pars_fragment}
             varying vec2 vUv;
             uniform sampler2D perlinnoise;
@@ -301,120 +291,113 @@ export default () => {
                 
             }
         `;
-        
-        
-        const geometry = new THREE.CylinderGeometry(0.5, 0.9, 5.3, 50, 50, true);
-        const windMaterial = new THREE.ShaderMaterial({
-            uniforms: {
-                perlinnoise: {
-                    type: "t",
-                    value: null
-                },
-                uTime: {
-                    type: "f",
-                    value: 0.0
-                },
-            },
-            // wireframe:true,
-            vertexShader: vertrun,
-            fragmentShader: fragrun,
-            transparent: true,
-            depthWrite: false,
-            blending: THREE.AdditiveBlending,
-            side: THREE.DoubleSide,
 
-            clipping: false,
-            fog: false,
-            lights: false,
-        });
-        const mesh = new THREE.Mesh(geometry, windMaterial);
-        mesh.setRotationFromAxisAngle(new THREE.Vector3( 1, 0, 0 ), -90 * Math.PI / 180);
-        group.add(mesh);
-            
-        // windMaterial.onBeforeCompile = () => {
-        //     console.log('compile wind material')
-        // }
-        renderer.compile(group, camera)
-        
-        let sonicBoomInApp=false;
-        useFrame(({timestamp}) => {
-            
-            if(narutoRunTime>10){
-                //console.log('sonic-boom-wind');
-                if(!sonicBoomInApp){
-                    //console.log('add-wind');
-                    app.add(group);
-                    sonicBoomInApp = true;
-                }
-                group.position.copy(localPlayer.position);
-                if (localPlayer.avatar) {
-                    group.position.y -= localPlayer.avatar.height;
-                    group.position.y += 0.65;
-                }
-                group.rotation.copy(localPlayer.rotation);
-                group.position.x -= 2.2 * currentDir.x;
-                group.position.z -= 2.2 * currentDir.z;
-                group.scale.set(1, 1, 1);
-                windMaterial.uniforms.uTime.value = timestamp / 10000;
-                if(!windMaterial.uniforms.perlinnoise.value)
-                    windMaterial.uniforms.perlinnoise.value = particleTexture[nameSpec.indexOf('wave2')];
-            }
-            else{
-                if(sonicBoomInApp){
-                    //console.log('remove-wind');
-                    app.remove(group);
-                    sonicBoomInApp=false;
-                }
-                //group.scale.set(0,0,0);
-            }
-            
-            
-            
-            //app.updateMatrixWorld();
+    const geometry = new THREE.CylinderGeometry(0.5, 0.9, 5.3, 50, 50, true);
+    const windMaterial = new THREE.ShaderMaterial({
+      uniforms: {
+        perlinnoise: {
+          type: 't',
+          value: null,
+        },
+        uTime: {
+          type: 'f',
+          value: 0.0,
+        },
+      },
+      // wireframe:true,
+      vertexShader: vertrun,
+      fragmentShader: fragrun,
+      transparent: true,
+      depthWrite: false,
+      blending: THREE.AdditiveBlending,
+      side: THREE.DoubleSide,
 
-        });
-    }
+      clipping: false,
+      fog: false,
+      lights: false,
+    });
+    const mesh = new THREE.Mesh(geometry, windMaterial);
+    mesh.setRotationFromAxisAngle(new THREE.Vector3(1, 0, 0), -90 * Math.PI / 180);
+    group.add(mesh);
 
-    //########################################## flame ##########################################
-    {
-        const particleCount = 2;
-        const attributeSpecs = [];
-        attributeSpecs.push({name: 'id', itemSize: 1});
-        attributeSpecs.push({name: 'scales', itemSize: 1});
-        const geometry2 = new THREE.CylinderGeometry(0.5, 0.1, 4.5, 50, 50, true);
-        const geometry = _getGeometry(geometry2, attributeSpecs, particleCount);
-        const idAttribute = geometry.getAttribute('id');
-        idAttribute.setX(0, 0);
-        idAttribute.setX(1, 1);
-        idAttribute.needsUpdate = true;
+    // windMaterial.onBeforeCompile = () => {
+    //     console.log('compile wind material')
+    // }
+    renderer.compile(group, camera);
 
-        const group = new THREE.Group();
-        const flameMaterial = new THREE.ShaderMaterial({
-            uniforms: {
-                perlinnoise: {
-                    type: "t",
-                    value: null
-                },
-                color: {
-                    value: new THREE.Vector3(0.120, 0.280, 1.920)
-                },
-                uTime: {
-                    type: "f",
-                    value: 0.0
-                },
-                playerRotation: {
-                    value: new THREE.Vector3(localPlayer.rotation.y, localPlayer.rotation.y, localPlayer.rotation.y)
-                },
-                strength: {
-                    type: "f",
-                    value: 0.0
-                },
-                random: {
-                    type: "f",
-                    value: 0.0
-                },
-            },
-            vertexShader: `\
+    let sonicBoomInApp = false;
+    useFrame(({timestamp}) => {
+      if (narutoRunTime > 10) {
+        // console.log('sonic-boom-wind');
+        if (!sonicBoomInApp) {
+          // console.log('add-wind');
+          app.add(group);
+          sonicBoomInApp = true;
+        }
+        group.position.copy(localPlayer.position);
+        if (localPlayer.avatar) {
+          group.position.y -= localPlayer.avatar.height;
+          group.position.y += 0.65;
+        }
+        group.rotation.copy(localPlayer.rotation);
+        group.position.x -= 2.2 * currentDir.x;
+        group.position.z -= 2.2 * currentDir.z;
+        group.scale.set(1, 1, 1);
+        windMaterial.uniforms.uTime.value = timestamp / 10000;
+        if (!windMaterial.uniforms.perlinnoise.value) { windMaterial.uniforms.perlinnoise.value = particleTexture[nameSpec.indexOf('wave2')]; }
+      } else {
+        if (sonicBoomInApp) {
+          // console.log('remove-wind');
+          app.remove(group);
+          sonicBoomInApp = false;
+        }
+        // group.scale.set(0,0,0);
+      }
+
+      // app.updateMatrixWorld();
+    });
+  }
+
+  // ########################################## flame ##########################################
+  {
+    const particleCount = 2;
+    const attributeSpecs = [];
+    attributeSpecs.push({name: 'id', itemSize: 1});
+    attributeSpecs.push({name: 'scales', itemSize: 1});
+    const geometry2 = new THREE.CylinderGeometry(0.5, 0.1, 4.5, 50, 50, true);
+    const geometry = _getGeometry(geometry2, attributeSpecs, particleCount);
+    const idAttribute = geometry.getAttribute('id');
+    idAttribute.setX(0, 0);
+    idAttribute.setX(1, 1);
+    idAttribute.needsUpdate = true;
+
+    const group = new THREE.Group();
+    const flameMaterial = new THREE.ShaderMaterial({
+      uniforms: {
+        perlinnoise: {
+          type: 't',
+          value: null,
+        },
+        color: {
+          value: new THREE.Vector3(0.120, 0.280, 1.920),
+        },
+        uTime: {
+          type: 'f',
+          value: 0.0,
+        },
+        playerRotation: {
+          value: new THREE.Vector3(localPlayer.rotation.y, localPlayer.rotation.y, localPlayer.rotation.y),
+        },
+        strength: {
+          type: 'f',
+          value: 0.0,
+        },
+        random: {
+          type: 'f',
+          value: 0.0,
+        },
+      },
+      vertexShader: `\
                 ${THREE.ShaderChunk.common}
                 ${THREE.ShaderChunk.logdepthbuf_pars_vertex}
                 attribute float id;
@@ -463,7 +446,7 @@ export default () => {
                     ${THREE.ShaderChunk.logdepthbuf_vertex}
                 }
             `,
-            fragmentShader: `\
+      fragmentShader: `\
                 ${THREE.ShaderChunk.logdepthbuf_pars_fragment}
                 varying vec2 vUv;
                 varying float vId;
@@ -521,97 +504,90 @@ export default () => {
                     ${THREE.ShaderChunk.logdepthbuf_fragment}
                 }
             `,
-            side: THREE.DoubleSide,
-            transparent: true,
-            depthWrite: false,
-            blending: THREE.AdditiveBlending,
-            
-            clipping: false,
-            fog: false,
-            lights: false,
-        });
-        const flameMesh = new THREE.InstancedMesh(geometry, flameMaterial, particleCount);
-        group.add(flameMesh);
-        // flameMaterial.onBeforeCompile = () => {
-        //     console.log('compile flame material')
-        // }
-        renderer.compile(group, camera)
-        let playerRotation = [0, 0, 0, 0, 0];
-        let sonicBoomInApp = false;
-        let lightningfreq = 0;
-        useFrame(({timestamp}) => {
-            if(narutoRunTime > 10 ){
-                if(!sonicBoomInApp){
-                    // console.log('add-flame');
-                    app.add(group);
-                    sonicBoomInApp=true;
-                }
-                group.scale.set(1, 1, 1);
-                flameMaterial.uniforms.strength.value = 1.0;
-            }
-            else{
-                if(flameMaterial.uniforms.strength.value > 0)
-                    flameMaterial.uniforms.strength.value -= 0.025;
-            }
-            if(flameMaterial.uniforms.strength.value>0){
-                group.position.copy(localPlayer.position);
-                if (localPlayer.avatar) {
-                    group.position.y -= localPlayer.avatar.height;
-                    group.position.y += 0.65;
-                }
-                group.position.x -= 2.2 * currentDir.x;
-                group.position.z -= 2.2 * currentDir.z;
-                flameMaterial.uniforms.uTime.value = timestamp / 20000;
-                if(!flameMaterial.uniforms.perlinnoise.value)
-                    flameMaterial.uniforms.perlinnoise.value = particleTexture[nameSpec.indexOf('wave9')];
-                if(Math.abs(localPlayer.rotation.x) > 0){
-                    let temp = localPlayer.rotation.y + Math.PI;
-                    for(let i = 0; i < 5; i++){
-                        let temp2 = playerRotation[i];
-                        playerRotation[i] = temp;
-                        temp = temp2;
-                    }
-                }
-                else{
-                    let temp = -localPlayer.rotation.y;
-                    for(let i = 0; i < 5; i++){
-                        let temp2 = playerRotation[i];
-                        playerRotation[i] = temp;
-                        temp = temp2;
-                    }
-                }
-                if(lightningfreq % 1 === 0){
-                    flameMaterial.uniforms.random.value = Math.random() * Math.PI;
-                }
-                lightningfreq++;
-               
-                flameMaterial.uniforms.playerRotation.value.set(playerRotation[0], 0, playerRotation[4]);
-            }
-            else{
-                if(sonicBoomInApp){
-                    // console.log('remove-flame');
-                    app.remove(group);
-                    sonicBoomInApp=false;
-                }
-            }
-            //app.updateMatrixWorld();
+      side: THREE.DoubleSide,
+      transparent: true,
+      depthWrite: false,
+      blending: THREE.AdditiveBlending,
 
-        });
+      clipping: false,
+      fog: false,
+      lights: false,
+    });
+    const flameMesh = new THREE.InstancedMesh(geometry, flameMaterial, particleCount);
+    group.add(flameMesh);
+    // flameMaterial.onBeforeCompile = () => {
+    //     console.log('compile flame material')
+    // }
+    renderer.compile(group, camera);
+    const playerRotation = [0, 0, 0, 0, 0];
+    let sonicBoomInApp = false;
+    let lightningfreq = 0;
+    useFrame(({timestamp}) => {
+      if (narutoRunTime > 10) {
+        if (!sonicBoomInApp) {
+          // console.log('add-flame');
+          app.add(group);
+          sonicBoomInApp = true;
+        }
+        group.scale.set(1, 1, 1);
+        flameMaterial.uniforms.strength.value = 1.0;
+      } else {
+        if (flameMaterial.uniforms.strength.value > 0) { flameMaterial.uniforms.strength.value -= 0.025; }
+      }
+      if (flameMaterial.uniforms.strength.value > 0) {
+        group.position.copy(localPlayer.position);
+        if (localPlayer.avatar) {
+          group.position.y -= localPlayer.avatar.height;
+          group.position.y += 0.65;
+        }
+        group.position.x -= 2.2 * currentDir.x;
+        group.position.z -= 2.2 * currentDir.z;
+        flameMaterial.uniforms.uTime.value = timestamp / 20000;
+        if (!flameMaterial.uniforms.perlinnoise.value) { flameMaterial.uniforms.perlinnoise.value = particleTexture[nameSpec.indexOf('wave9')]; }
+        if (Math.abs(localPlayer.rotation.x) > 0) {
+          let temp = localPlayer.rotation.y + Math.PI;
+          for (let i = 0; i < 5; i++) {
+            const temp2 = playerRotation[i];
+            playerRotation[i] = temp;
+            temp = temp2;
+          }
+        } else {
+          let temp = -localPlayer.rotation.y;
+          for (let i = 0; i < 5; i++) {
+            const temp2 = playerRotation[i];
+            playerRotation[i] = temp;
+            temp = temp2;
+          }
+        }
+        if (lightningfreq % 1 === 0) {
+          flameMaterial.uniforms.random.value = Math.random() * Math.PI;
+        }
+        lightningfreq++;
 
-    }
-    const trailMaterial = new THREE.ShaderMaterial({
-        uniforms: {
-            uTime: {
-                value: 0,
-            },
-            opacity: {
-                value: 0,
-            },
-            trailTexture:{ value: null},
-            maskTexture:{value: null},
-            voronoiNoiseTexture:{value: null},
-        },
-        vertexShader: `\
+        flameMaterial.uniforms.playerRotation.value.set(playerRotation[0], 0, playerRotation[4]);
+      } else {
+        if (sonicBoomInApp) {
+          // console.log('remove-flame');
+          app.remove(group);
+          sonicBoomInApp = false;
+        }
+      }
+      // app.updateMatrixWorld();
+    });
+  }
+  const trailMaterial = new THREE.ShaderMaterial({
+    uniforms: {
+      uTime: {
+        value: 0,
+      },
+      opacity: {
+        value: 0,
+      },
+      trailTexture: {value: null},
+      maskTexture: {value: null},
+      voronoiNoiseTexture: {value: null},
+    },
+    vertexShader: `\
              
             ${THREE.ShaderChunk.common}
             ${THREE.ShaderChunk.logdepthbuf_pars_vertex}
@@ -633,7 +609,7 @@ export default () => {
               ${THREE.ShaderChunk.logdepthbuf_vertex}
             }
           `,
-          fragmentShader: `\
+    fragmentShader: `\
           ${THREE.ShaderChunk.logdepthbuf_pars_fragment}
           uniform sampler2D trailTexture;
           uniform sampler2D maskTexture;
@@ -675,330 +651,309 @@ export default () => {
             ${THREE.ShaderChunk.logdepthbuf_fragment}
           }
         `,
-      side: THREE.DoubleSide,
-      transparent: true,
-      depthWrite: false,
-      blending: THREE.AdditiveBlending,
+    side: THREE.DoubleSide,
+    transparent: true,
+    depthWrite: false,
+    blending: THREE.AdditiveBlending,
 
-      clipping: false,
-      fog: false,
-      lights: false,
-    });
-    //########################################## vertical trail ######################################
-    {
-      const planeGeometry = new THREE.BufferGeometry();
-      let planeNumber = 80;
-      let position= new Float32Array(18 * planeNumber);
-      planeGeometry.setAttribute('position', new THREE.BufferAttribute(position, 3));
+    clipping: false,
+    fog: false,
+    lights: false,
+  });
+    // ########################################## vertical trail ######################################
+  {
+    const planeGeometry = new THREE.BufferGeometry();
+    const planeNumber = 80;
+    const position = new Float32Array(18 * planeNumber);
+    planeGeometry.setAttribute('position', new THREE.BufferAttribute(position, 3));
 
-      let uv = new Float32Array(12 * planeNumber);
-      let fraction = 1;
-      let ratio = 1 / planeNumber;
-      for (let i = 0; i < planeNumber; i++) {
-        uv[i * 12 + 0] = 0;
-        uv[i * 12 + 1] = fraction;
+    const uv = new Float32Array(12 * planeNumber);
+    let fraction = 1;
+    const ratio = 1 / planeNumber;
+    for (let i = 0; i < planeNumber; i++) {
+      uv[i * 12 + 0] = 0;
+      uv[i * 12 + 1] = fraction;
 
-        uv[i * 12 + 2] = 1;
-        uv[i * 12 + 3] = fraction;
+      uv[i * 12 + 2] = 1;
+      uv[i * 12 + 3] = fraction;
 
-        uv[i * 12 + 4] = 0;
-        uv[i * 12 + 5] = fraction - ratio;
+      uv[i * 12 + 4] = 0;
+      uv[i * 12 + 5] = fraction - ratio;
 
-        uv[i * 12 + 6] = 1;
-        uv[i * 12 + 7] = fraction - ratio;
+      uv[i * 12 + 6] = 1;
+      uv[i * 12 + 7] = fraction - ratio;
 
-        uv[i * 12 + 8] = 0;
-        uv[i * 12 + 9] = fraction - ratio;
+      uv[i * 12 + 8] = 0;
+      uv[i * 12 + 9] = fraction - ratio;
 
-        uv[i * 12 + 10] = 1;
-        uv[i * 12 + 11] = fraction;
+      uv[i * 12 + 10] = 1;
+      uv[i * 12 + 11] = fraction;
 
-        fraction -= ratio;
+      fraction -= ratio;
+    }
+    planeGeometry.setAttribute('uv', new THREE.BufferAttribute(uv, 2));
 
-      }
-      planeGeometry.setAttribute('uv', new THREE.BufferAttribute(uv, 2));
+    const material = trailMaterial;
 
-      const material = trailMaterial;
-    
-      let plane = new THREE.Mesh(planeGeometry,material);
-      //app.add(plane);
+    const plane = new THREE.Mesh(planeGeometry, material);
+    // app.add(plane);
     //   material.onBeforeCompile = () => {
     //         console.log('compile trail material')
     //   }
-      renderer.compile(plane, camera)
-      plane.position.y = 1;
-      plane.frustumCulled = false;
-      let temp = [];
-      let temp2 = [];
-      let sonicBoomInApp = false;
-      useFrame(({timestamp}) => {
-        
-        
-        if(narutoRunTime >= 10){
-            if(!sonicBoomInApp){
-                //console.log('add-planeTrail1');
-                app.add(plane);
-                sonicBoomInApp = true;
-            }
-            material.uniforms.opacity.value = 1;
+    renderer.compile(plane, camera);
+    plane.position.y = 1;
+    plane.frustumCulled = false;
+    const temp = [];
+    const temp2 = [];
+    let sonicBoomInApp = false;
+    useFrame(({timestamp}) => {
+      if (narutoRunTime >= 10) {
+        if (!sonicBoomInApp) {
+          // console.log('add-planeTrail1');
+          app.add(plane);
+          sonicBoomInApp = true;
         }
-        else{
-            if(material.uniforms.opacity.value > 0)
-                material.uniforms.opacity.value -= 0.02;
-        }
-        if(narutoRunTime > 0 && narutoRunTime < 10){
-            material.uniforms.opacity.value = 0;
-        }
-        if(material.uniforms.opacity.value > 0){
-            //console.log('sonic-boom-verticalPlane');
-            for(let i = 0; i < 18; i++){
-                temp[i] = position[i];
-            }
-            for (let i = 0; i < planeNumber; i++){
-                if(i === 0){
-                    position[0] = localPlayer.position.x;
-                    position[1] = localPlayer.position.y - 0.85;
-                    position[2] = localPlayer.position.z;
-                    if (localPlayer.avatar) {
-                        position[1] -= localPlayer.avatar.height;
-                        position[1] += 1.18;
-                    }
-                    position[3] = localPlayer.position.x;
-                    position[4] = localPlayer.position.y - 2.25;
-                    position[5] = localPlayer.position.z;
-                    if (localPlayer.avatar) {
-                        position[4] -= localPlayer.avatar.height;
-                        position[4] += 1.18;
-                    }
-                
-                    position[6] = temp[0];
-                    position[7] = temp[1];
-                    position[8] = temp[2];
-                
-                    position[9] = temp[3];
-                    position[10] = temp[4];
-                    position[11] = temp[5];
-                
-                    position[12] = temp[0];
-                    position[13] = temp[1];
-                    position[14] = temp[2];
-                
-                    position[15] = localPlayer.position.x;
-                    position[16] = localPlayer.position.y - 2.25;
-                    position[17] = localPlayer.position.z;
-                    if (localPlayer.avatar) {
-                        position[16] -= localPlayer.avatar.height;
-                        position[16] += 1.18;
-                    }
-                }
-                else{
-                    
-                    for(let j = 0; j < 18; j++){
-                        temp2[j] = position[i * 18 + j];
-                        position[i * 18 + j] = temp[j];
-                        temp[j] = temp2[j];
-                    }
-                    
-    
-                }
-            }
-            plane.geometry.attributes.position.needsUpdate = true;
-            
-            material.uniforms.uTime.value = timestamp / 1000;
-            if(!material.uniforms.trailTexture.value){
-                material.uniforms.trailTexture.value = particleTexture[nameSpec.indexOf('trail')];
-                material.uniforms.trailTexture.value.wrapS = material.uniforms.trailTexture.value.wrapT = THREE.RepeatWrapping;
-            }
-            if(!material.uniforms.voronoiNoiseTexture.value){
-                material.uniforms.voronoiNoiseTexture.value = particleTexture[nameSpec.indexOf('voronoiNoise')];
-                material.uniforms.voronoiNoiseTexture.value.wrapS = material.uniforms.voronoiNoiseTexture.value.wrapT = THREE.RepeatWrapping;
-            }
-            if(!material.uniforms.maskTexture.value){
-                material.uniforms.maskTexture.value = particleTexture[nameSpec.indexOf('mask')];
-            }
-                
-        }
-        else {
-            if (sonicBoomInApp) {
-                //console.log('remove-planeTrail1');
-                for (let i = 0; i < position.length; i++) {
-                    position[i * 3 + 0] = localPlayer.position.x;
-                    position[i * 3 + 1] = localPlayer.position.y;
-                    position[i * 3 + 2] = localPlayer.position.z;
-                }
-                plane.geometry.attributes.position.needsUpdate = true;
-                app.remove(plane);
-                sonicBoomInApp = false;
-            }
-        }
-        //app.updateMatrixWorld();
-      });
-    }
-    //########################################## horizontal trail ######################################
-    {
-      const planeGeometry = new THREE.BufferGeometry();
-      const planeNumber = 80;
-      let position = new Float32Array(18 * planeNumber);
-      planeGeometry.setAttribute('position', new THREE.BufferAttribute(position, 3));
-
-      let uv = new Float32Array(12 * planeNumber);
-      let fraction = 1;
-      let ratio = 1 / planeNumber;
-      for (let i = 0; i < planeNumber; i++) {
-        uv[i * 12 + 0] = 0;
-        uv[i * 12 + 1] = fraction;
-
-        uv[i * 12 + 2] = 1;
-        uv[i * 12 + 3] = fraction;
-
-        uv[i * 12 + 4] = 0;
-        uv[i * 12 + 5] = fraction - ratio;
-
-        uv[i * 12 + 6] = 1;
-        uv[i * 12 + 7] = fraction - ratio;
-
-        uv[i * 12 + 8] = 0;
-        uv[i * 12 + 9] = fraction - ratio;
-
-        uv[i * 12 + 10] = 1;
-        uv[i * 12 + 11] = fraction;
-
-        fraction -= ratio;
-
+        material.uniforms.opacity.value = 1;
+      } else {
+        if (material.uniforms.opacity.value > 0) { material.uniforms.opacity.value -= 0.02; }
       }
-      planeGeometry.setAttribute('uv', new THREE.BufferAttribute(uv, 2));
-       
-        
-        
-      const material = trailMaterial;
-    
-      let plane = new THREE.Mesh(planeGeometry,material);
-      //app.add(plane);
-      plane.position.y = 1;
-      plane.frustumCulled = false;
+      if (narutoRunTime > 0 && narutoRunTime < 10) {
+        material.uniforms.opacity.value = 0;
+      }
+      if (material.uniforms.opacity.value > 0) {
+        // console.log('sonic-boom-verticalPlane');
+        for (let i = 0; i < 18; i++) {
+          temp[i] = position[i];
+        }
+        for (let i = 0; i < planeNumber; i++) {
+          if (i === 0) {
+            position[0] = localPlayer.position.x;
+            position[1] = localPlayer.position.y - 0.85;
+            position[2] = localPlayer.position.z;
+            if (localPlayer.avatar) {
+              position[1] -= localPlayer.avatar.height;
+              position[1] += 1.18;
+            }
+            position[3] = localPlayer.position.x;
+            position[4] = localPlayer.position.y - 2.25;
+            position[5] = localPlayer.position.z;
+            if (localPlayer.avatar) {
+              position[4] -= localPlayer.avatar.height;
+              position[4] += 1.18;
+            }
 
-      const point1 = new THREE.Vector3();
-      const point2 = new THREE.Vector3();
-      const localVector2 = new THREE.Vector3();
-      let temp = [];
-      let temp2 = [];
-      let quaternion = new THREE.Quaternion();
-      quaternion.setFromAxisAngle(new THREE.Vector3(0, 1, 0), -Math.PI / 2);
-      let sonicBoomInApp=false;
-      useFrame(({timestamp}) => {
+            position[6] = temp[0];
+            position[7] = temp[1];
+            position[8] = temp[2];
 
+            position[9] = temp[3];
+            position[10] = temp[4];
+            position[11] = temp[5];
 
-        if(narutoRunTime >= 10){
-            if(!sonicBoomInApp){
-                //console.log('add-planeTrail2');
-                app.add(plane);
-                sonicBoomInApp = true;
+            position[12] = temp[0];
+            position[13] = temp[1];
+            position[14] = temp[2];
+
+            position[15] = localPlayer.position.x;
+            position[16] = localPlayer.position.y - 2.25;
+            position[17] = localPlayer.position.z;
+            if (localPlayer.avatar) {
+              position[16] -= localPlayer.avatar.height;
+              position[16] += 1.18;
             }
-            material.uniforms.opacity.value = 1;
-        }
-        else{
-            if(material.uniforms.opacity.value > 0)
-                material.uniforms.opacity.value -= 0.0255;
-        }
-        if(narutoRunTime > 0 && narutoRunTime < 10){
-            material.uniforms.opacity.value = 0;
-        }
-        if(material.uniforms.opacity.value > 0){
-            //console.log('sonic-boom-horiPlane');
-            
-            localVector2.set(currentDir.x, currentDir.y, currentDir.z).applyQuaternion(quaternion);
-    
-            point1.x = localPlayer.position.x;
-            point1.y = localPlayer.position.y;
-            point1.z = localPlayer.position.z;
-            point2.x = localPlayer.position.x;
-            point2.y = localPlayer.position.y;
-            point2.z = localPlayer.position.z;
-            
-            point1.x -= 0.9 * localVector2.x;
-            point1.z -= 0.9 * localVector2.z;
-            point2.x += 0.9 * localVector2.x;
-            point2.z += 0.9 * localVector2.z;
-            
-           
-            for(let i = 0;i < 18; i++){
-                temp[i] = position[i];
+          } else {
+            for (let j = 0; j < 18; j++) {
+              temp2[j] = position[i * 18 + j];
+              position[i * 18 + j] = temp[j];
+              temp[j] = temp2[j];
             }
-            for (let i = 0; i < planeNumber; i++){
-                if(i === 0){
-                    position[0] = point1.x;
-                    position[1] = localPlayer.position.y - 1.55;
-                    position[2] = point1.z;
-                    if (localPlayer.avatar) {
-                        position[1] -= localPlayer.avatar.height;
-                        position[1] += 1.18;
-                    }
-                    position[3] = point2.x;
-                    position[4] = localPlayer.position.y - 1.55;
-                    position[5] = point2.z;
-                    if (localPlayer.avatar) {
-                        position[4] -= localPlayer.avatar.height;
-                        position[4] += 1.18;
-                    }
-                
-                    position[6] = temp[0];
-                    position[7] = temp[1];
-                    position[8] = temp[2];
-                
-                    position[9] = temp[3];
-                    position[10] = temp[4];
-                    position[11] = temp[5];
-                
-                    position[12] = temp[0];
-                    position[13] = temp[1];
-                    position[14] = temp[2];
-                
-                    position[15] = point2.x;
-                    position[16] = localPlayer.position.y - 1.55;
-                    position[17] = point2.z;
-                    if (localPlayer.avatar) {
-                        position[16] -= localPlayer.avatar.height;
-                        position[16] += 1.18;
-                    }
-                }
-                else{
-                    for(let j = 0; j < 18; j++){
-                        temp2[j] = position[i * 18 + j];
-                        position[i * 18 + j] = temp[j];
-                        temp[j] = temp2[j];
-                    }
-                }
-            }
-            plane.geometry.attributes.position.needsUpdate = true;
-            material.uniforms.uTime.value = timestamp / 1000;
+          }
         }
-        else {
-            if (sonicBoomInApp) {
-                //console.log('remove-planeTrail2');
-                for (let i = 0; i < position.length; i++) {
-                    position[i * 3 + 0] = localPlayer.position.x;
-                    position[i * 3 + 1] = localPlayer.position.y;
-                    position[i * 3 + 2] = localPlayer.position.z;
-                }
-                plane.geometry.attributes.position.needsUpdate = true;
-                app.remove(plane);
-                sonicBoomInApp = false;
-            }
+        plane.geometry.attributes.position.needsUpdate = true;
+
+        material.uniforms.uTime.value = timestamp / 1000;
+        if (!material.uniforms.trailTexture.value) {
+          material.uniforms.trailTexture.value = particleTexture[nameSpec.indexOf('trail')];
+          material.uniforms.trailTexture.value.wrapS = material.uniforms.trailTexture.value.wrapT = THREE.RepeatWrapping;
         }
-      });
+        if (!material.uniforms.voronoiNoiseTexture.value) {
+          material.uniforms.voronoiNoiseTexture.value = particleTexture[nameSpec.indexOf('voronoiNoise')];
+          material.uniforms.voronoiNoiseTexture.value.wrapS = material.uniforms.voronoiNoiseTexture.value.wrapT = THREE.RepeatWrapping;
+        }
+        if (!material.uniforms.maskTexture.value) {
+          material.uniforms.maskTexture.value = particleTexture[nameSpec.indexOf('mask')];
+        }
+      } else {
+        if (sonicBoomInApp) {
+          // console.log('remove-planeTrail1');
+          for (let i = 0; i < position.length; i++) {
+            position[i * 3 + 0] = localPlayer.position.x;
+            position[i * 3 + 1] = localPlayer.position.y;
+            position[i * 3 + 2] = localPlayer.position.z;
+          }
+          plane.geometry.attributes.position.needsUpdate = true;
+          app.remove(plane);
+          sonicBoomInApp = false;
+        }
+      }
+      // app.updateMatrixWorld();
+    });
+  }
+  // ########################################## horizontal trail ######################################
+  {
+    const planeGeometry = new THREE.BufferGeometry();
+    const planeNumber = 80;
+    const position = new Float32Array(18 * planeNumber);
+    planeGeometry.setAttribute('position', new THREE.BufferAttribute(position, 3));
+
+    const uv = new Float32Array(12 * planeNumber);
+    let fraction = 1;
+    const ratio = 1 / planeNumber;
+    for (let i = 0; i < planeNumber; i++) {
+      uv[i * 12 + 0] = 0;
+      uv[i * 12 + 1] = fraction;
+
+      uv[i * 12 + 2] = 1;
+      uv[i * 12 + 3] = fraction;
+
+      uv[i * 12 + 4] = 0;
+      uv[i * 12 + 5] = fraction - ratio;
+
+      uv[i * 12 + 6] = 1;
+      uv[i * 12 + 7] = fraction - ratio;
+
+      uv[i * 12 + 8] = 0;
+      uv[i * 12 + 9] = fraction - ratio;
+
+      uv[i * 12 + 10] = 1;
+      uv[i * 12 + 11] = fraction;
+
+      fraction -= ratio;
     }
-    //##################################### mainBall ####################################################
-    {
-        const material = new THREE.ShaderMaterial({
-            uniforms: {
-                uTime: { value: 0 },
-                opacity: { value: 0 },
-                uSize: { value: 0 },
-                cameraBillboardQuaternion: {
-                    value: new THREE.Quaternion(),
-                }
-            },
-            vertexShader: `
+    planeGeometry.setAttribute('uv', new THREE.BufferAttribute(uv, 2));
+
+    const material = trailMaterial;
+
+    const plane = new THREE.Mesh(planeGeometry, material);
+    // app.add(plane);
+    plane.position.y = 1;
+    plane.frustumCulled = false;
+
+    const point1 = new THREE.Vector3();
+    const point2 = new THREE.Vector3();
+    const localVector2 = new THREE.Vector3();
+    const temp = [];
+    const temp2 = [];
+    const quaternion = new THREE.Quaternion();
+    quaternion.setFromAxisAngle(new THREE.Vector3(0, 1, 0), -Math.PI / 2);
+    let sonicBoomInApp = false;
+    useFrame(({timestamp}) => {
+      if (narutoRunTime >= 10) {
+        if (!sonicBoomInApp) {
+          // console.log('add-planeTrail2');
+          app.add(plane);
+          sonicBoomInApp = true;
+        }
+        material.uniforms.opacity.value = 1;
+      } else {
+        if (material.uniforms.opacity.value > 0) { material.uniforms.opacity.value -= 0.0255; }
+      }
+      if (narutoRunTime > 0 && narutoRunTime < 10) {
+        material.uniforms.opacity.value = 0;
+      }
+      if (material.uniforms.opacity.value > 0) {
+        // console.log('sonic-boom-horiPlane');
+
+        localVector2.set(currentDir.x, currentDir.y, currentDir.z).applyQuaternion(quaternion);
+
+        point1.x = localPlayer.position.x;
+        point1.y = localPlayer.position.y;
+        point1.z = localPlayer.position.z;
+        point2.x = localPlayer.position.x;
+        point2.y = localPlayer.position.y;
+        point2.z = localPlayer.position.z;
+
+        point1.x -= 0.9 * localVector2.x;
+        point1.z -= 0.9 * localVector2.z;
+        point2.x += 0.9 * localVector2.x;
+        point2.z += 0.9 * localVector2.z;
+
+        for (let i = 0; i < 18; i++) {
+          temp[i] = position[i];
+        }
+        for (let i = 0; i < planeNumber; i++) {
+          if (i === 0) {
+            position[0] = point1.x;
+            position[1] = localPlayer.position.y - 1.55;
+            position[2] = point1.z;
+            if (localPlayer.avatar) {
+              position[1] -= localPlayer.avatar.height;
+              position[1] += 1.18;
+            }
+            position[3] = point2.x;
+            position[4] = localPlayer.position.y - 1.55;
+            position[5] = point2.z;
+            if (localPlayer.avatar) {
+              position[4] -= localPlayer.avatar.height;
+              position[4] += 1.18;
+            }
+
+            position[6] = temp[0];
+            position[7] = temp[1];
+            position[8] = temp[2];
+
+            position[9] = temp[3];
+            position[10] = temp[4];
+            position[11] = temp[5];
+
+            position[12] = temp[0];
+            position[13] = temp[1];
+            position[14] = temp[2];
+
+            position[15] = point2.x;
+            position[16] = localPlayer.position.y - 1.55;
+            position[17] = point2.z;
+            if (localPlayer.avatar) {
+              position[16] -= localPlayer.avatar.height;
+              position[16] += 1.18;
+            }
+          } else {
+            for (let j = 0; j < 18; j++) {
+              temp2[j] = position[i * 18 + j];
+              position[i * 18 + j] = temp[j];
+              temp[j] = temp2[j];
+            }
+          }
+        }
+        plane.geometry.attributes.position.needsUpdate = true;
+        material.uniforms.uTime.value = timestamp / 1000;
+      } else {
+        if (sonicBoomInApp) {
+          // console.log('remove-planeTrail2');
+          for (let i = 0; i < position.length; i++) {
+            position[i * 3 + 0] = localPlayer.position.x;
+            position[i * 3 + 1] = localPlayer.position.y;
+            position[i * 3 + 2] = localPlayer.position.z;
+          }
+          plane.geometry.attributes.position.needsUpdate = true;
+          app.remove(plane);
+          sonicBoomInApp = false;
+        }
+      }
+    });
+  }
+  // ##################################### mainBall ####################################################
+  {
+    const material = new THREE.ShaderMaterial({
+      uniforms: {
+        uTime: {value: 0},
+        opacity: {value: 0},
+        uSize: {value: 0},
+        cameraBillboardQuaternion: {
+          value: new THREE.Quaternion(),
+        },
+      },
+      vertexShader: `
                 ${THREE.ShaderChunk.common}
                 ${THREE.ShaderChunk.logdepthbuf_pars_vertex}
                 uniform float uTime;
@@ -1021,7 +976,7 @@ export default () => {
                     ${THREE.ShaderChunk.logdepthbuf_vertex}
                 }
             `,
-            fragmentShader: `
+      fragmentShader: `
                 ${THREE.ShaderChunk.logdepthbuf_pars_fragment}
                 uniform float uTime;
                 uniform float opacity;
@@ -1036,112 +991,103 @@ export default () => {
                     
                 }
             `,
-            side: THREE.DoubleSide,
-            transparent: true,
-            depthWrite: false,
-            blending: THREE.AdditiveBlending,
-            alphaToCoverage: true,
+      side: THREE.DoubleSide,
+      transparent: true,
+      depthWrite: false,
+      blending: THREE.AdditiveBlending,
+      alphaToCoverage: true,
 
-            clipping: false,
-            fog: false,
-            lights: false,
-        });
-        const geometry = new THREE.PlaneGeometry( 1.55, 1.55 );
-        const mainBall = new THREE.Mesh( geometry, material );
-        // app.add(mainBall);
-        let sonicBoomInApp=false;
-        useFrame(({timestamp}) => {
-            if(narutoRunTime > 0){
-                if(!sonicBoomInApp){
-                    //console.log('add-mainBall');
-                    app.add(mainBall);
-                    sonicBoomInApp = true;
-                }
-                if(narutoRunTime === 1){
-                    mainBall.material.uniforms.uSize.value = 4.5;
-                }
-                else{
-                    if(mainBall.material.uniforms.uSize.value > 1){
-                        mainBall.material.uniforms.uSize.value /= 1.1;
-                    }
-                    else{
-                        const rand = Math.random() * 0.1;
-                        mainBall.material.uniforms.uSize.value = 1 + rand;
-                    }
-                }
-                mainBall.scale.x = 1;
-                mainBall.scale.y = 1;
-                mainBall.scale.z = 1;
-                mainBall.material.uniforms.opacity.value = 0;
-            }
-            else{
-                if(mainBall.material.uniforms.opacity.value < 1){
-                    mainBall.scale.x /= 1.03;
-                    mainBall.scale.y /= 1.03;
-                    mainBall.scale.z /= 1.03;
-                    mainBall.material.uniforms.opacity.value += 0.02;
-                    const rand = Math.random() * 0.15;
-                    mainBall.material.uniforms.uSize.value = 1 + rand;
-                }
-                
-            }
-            if(mainBall.material.uniforms.opacity.value < 1){
-                //console.log('sonic-boom-mainBall');
-                mainBall.position.copy(localPlayer.position);
-            
-                if (localPlayer.avatar) {
-                    mainBall.position.y -= localPlayer.avatar.height;
-                    mainBall.position.y += 0.65;
-                }
-                material.uniforms.cameraBillboardQuaternion.value.copy(camera.quaternion);
-                
-            }
-            else{
-                if(sonicBoomInApp){
-                    //console.log('remove-mainBall');
-                    app.remove(mainBall);
-                    sonicBoomInApp=false;
-                }
-            }
-
-            
-        });
-        
-    }
-    //##################################### electricity1 ##################################################
-    {
-        const particleCount = 2;
-        const attributeSpecs = [];
-        attributeSpecs.push({name: 'id', itemSize: 1});
-        attributeSpecs.push({name: 'scales', itemSize: 1});
-        attributeSpecs.push({name: 'textureRotation', itemSize: 1});
-        const geometry2 = new THREE.PlaneGeometry(3., 3.);
-        const geometry = _getGeometry(geometry2, attributeSpecs, particleCount);
-        const idAttribute = geometry.getAttribute('id');
-        for(let i = 0; i < particleCount; i++){
-            idAttribute.setX(i, i);
+      clipping: false,
+      fog: false,
+      lights: false,
+    });
+    const geometry = new THREE.PlaneGeometry(1.55, 1.55);
+    const mainBall = new THREE.Mesh(geometry, material);
+    // app.add(mainBall);
+    let sonicBoomInApp = false;
+    useFrame(({timestamp}) => {
+      if (narutoRunTime > 0) {
+        if (!sonicBoomInApp) {
+          // console.log('add-mainBall');
+          app.add(mainBall);
+          sonicBoomInApp = true;
         }
-        idAttribute.needsUpdate = true;
+        if (narutoRunTime === 1) {
+          mainBall.material.uniforms.uSize.value = 4.5;
+        } else {
+          if (mainBall.material.uniforms.uSize.value > 1) {
+            mainBall.material.uniforms.uSize.value /= 1.1;
+          } else {
+            const rand = Math.random() * 0.1;
+            mainBall.material.uniforms.uSize.value = 1 + rand;
+          }
+        }
+        mainBall.scale.x = 1;
+        mainBall.scale.y = 1;
+        mainBall.scale.z = 1;
+        mainBall.material.uniforms.opacity.value = 0;
+      } else {
+        if (mainBall.material.uniforms.opacity.value < 1) {
+          mainBall.scale.x /= 1.03;
+          mainBall.scale.y /= 1.03;
+          mainBall.scale.z /= 1.03;
+          mainBall.material.uniforms.opacity.value += 0.02;
+          const rand = Math.random() * 0.15;
+          mainBall.material.uniforms.uSize.value = 1 + rand;
+        }
+      }
+      if (mainBall.material.uniforms.opacity.value < 1) {
+        // console.log('sonic-boom-mainBall');
+        mainBall.position.copy(localPlayer.position);
 
-        const material = new THREE.ShaderMaterial({
-            uniforms: {
-                uTime: { value: 0 },
-                opacity: { value: 0 },
-                size: { value: 0 },
-                cameraBillboardQuaternion: {
-                    value: new THREE.Quaternion(),
-                },
-                electricityTexture1: {
-                    type: "t",
-                    value: null
-                },
-                electricityTexture2: {
-                    type: "t",
-                    value: null
-                },
+        if (localPlayer.avatar) {
+          mainBall.position.y -= localPlayer.avatar.height;
+          mainBall.position.y += 0.65;
+        }
+        material.uniforms.cameraBillboardQuaternion.value.copy(camera.quaternion);
+      } else {
+        if (sonicBoomInApp) {
+          // console.log('remove-mainBall');
+          app.remove(mainBall);
+          sonicBoomInApp = false;
+        }
+      }
+    });
+  }
+  // ##################################### electricity1 ##################################################
+  {
+    const particleCount = 2;
+    const attributeSpecs = [];
+    attributeSpecs.push({name: 'id', itemSize: 1});
+    attributeSpecs.push({name: 'scales', itemSize: 1});
+    attributeSpecs.push({name: 'textureRotation', itemSize: 1});
+    const geometry2 = new THREE.PlaneGeometry(3.0, 3.0);
+    const geometry = _getGeometry(geometry2, attributeSpecs, particleCount);
+    const idAttribute = geometry.getAttribute('id');
+    for (let i = 0; i < particleCount; i++) {
+      idAttribute.setX(i, i);
+    }
+    idAttribute.needsUpdate = true;
 
-            },
-            vertexShader: `
+    const material = new THREE.ShaderMaterial({
+      uniforms: {
+        uTime: {value: 0},
+        opacity: {value: 0},
+        size: {value: 0},
+        cameraBillboardQuaternion: {
+          value: new THREE.Quaternion(),
+        },
+        electricityTexture1: {
+          type: 't',
+          value: null,
+        },
+        electricityTexture2: {
+          type: 't',
+          value: null,
+        },
+
+      },
+      vertexShader: `
                 ${THREE.ShaderChunk.common}
                 ${THREE.ShaderChunk.logdepthbuf_pars_vertex}
                 uniform float uTime;
@@ -1175,7 +1121,7 @@ export default () => {
                     ${THREE.ShaderChunk.logdepthbuf_vertex}
                 }
             `,
-            fragmentShader: `
+      fragmentShader: `
                 ${THREE.ShaderChunk.logdepthbuf_pars_fragment}
                 uniform float uTime;
                 uniform float opacity;
@@ -1215,132 +1161,119 @@ export default () => {
                     
                 }
             `,
-            side: THREE.DoubleSide,
-            transparent: true,
-            depthWrite: false,
-            blending: THREE.AdditiveBlending,
+      side: THREE.DoubleSide,
+      transparent: true,
+      depthWrite: false,
+      blending: THREE.AdditiveBlending,
 
-            clipping: false,
-            fog: false,
-            lights: false,
-        });
-        const group = new THREE.Group();
-        const electricity = new THREE.InstancedMesh(geometry, material, particleCount);
-        group.add(electricity)
+      clipping: false,
+      fog: false,
+      lights: false,
+    });
+    const group = new THREE.Group();
+    const electricity = new THREE.InstancedMesh(geometry, material, particleCount);
+    group.add(electricity);
 
-        // material.onBeforeCompile = () => {
-        //     console.log('compile electricity material')
-        // }
-        renderer.compile(group, camera)
-       
-        let sonicBoomInApp = false;
-        useFrame(({timestamp}) => {
+    // material.onBeforeCompile = () => {
+    //     console.log('compile electricity material')
+    // }
+    renderer.compile(group, camera);
 
-            if(narutoRunTime === 0){
-                
-                if(material.uniforms.opacity.value > 0.01){
-                    material.uniforms.opacity.value /= 1.08;
-                    material.uniforms.size.value /= 1.01;
-                }
-                
-            }
-            else if(narutoRunTime === 1){
-                if(!sonicBoomInApp){
-                    //console.log('add-electricity1');
-                    app.add(group);
-                    sonicBoomInApp=true;
-                }
-                material.uniforms.opacity.value = 1;
-                material.uniforms.size.value = 4.5;
-                
-            }
-            else if(narutoRunTime > 1){
-                if(material.uniforms.size.value > 1){
-                    material.uniforms.size.value /= 1.1;
-                }
-                else{
-                    material.uniforms.size.value = 1;
-                }
-                
-            }
-            if(material.uniforms.opacity.value > 0.01){
-                // group.rotation.copy(localPlayer.rotation);
-                group.position.copy(localPlayer.position);
-                
-                group.position.x += .1 * currentDir.x;
-                group.position.z += .1 * currentDir.z;
-                
-                if (localPlayer.avatar) {
-                    group.position.y -= localPlayer.avatar.height;
-                    group.position.y += 0.65;
-                }
-                material.uniforms.uTime.value = timestamp / 1000;
-                material.uniforms.cameraBillboardQuaternion.value.copy(camera.quaternion);
-                if(!material.uniforms.electricityTexture1.value){
-                    material.uniforms.electricityTexture1.value = particleTexture[nameSpec.indexOf('electricityTexture1')];
-                }
-                if(!material.uniforms.electricityTexture2.value){
-                    material.uniforms.electricityTexture2.value = particleTexture[nameSpec.indexOf('electricityTexture2')];
-                }
-                const scalesAttribute = electricity.geometry.getAttribute('scales');
-                const textureRotationAttribute = electricity.geometry.getAttribute('textureRotation');
-                scalesAttribute.setX(0, 0.8 + Math.random() * 0.2);
-                scalesAttribute.setX(1, 0.8 + Math.random() * 0.2);
-                textureRotationAttribute.setX(0, Math.random() * 2);
-                textureRotationAttribute.setX(1, Math.random() * 2);
-                textureRotationAttribute.needsUpdate = true;
-                scalesAttribute.needsUpdate = true;
-            }
-            else{
-                if(sonicBoomInApp){
-                    //console.log('remove-electricty1');
-                    app.remove(group);
-                    sonicBoomInApp = false;
-                }
-            }
-            
-            
-            
-            //app.updateMatrixWorld();
-        
-        });
+    let sonicBoomInApp = false;
+    useFrame(({timestamp}) => {
+      if (narutoRunTime === 0) {
+        if (material.uniforms.opacity.value > 0.01) {
+          material.uniforms.opacity.value /= 1.08;
+          material.uniforms.size.value /= 1.01;
+        }
+      } else if (narutoRunTime === 1) {
+        if (!sonicBoomInApp) {
+          // console.log('add-electricity1');
+          app.add(group);
+          sonicBoomInApp = true;
+        }
+        material.uniforms.opacity.value = 1;
+        material.uniforms.size.value = 4.5;
+      } else if (narutoRunTime > 1) {
+        if (material.uniforms.size.value > 1) {
+          material.uniforms.size.value /= 1.1;
+        } else {
+          material.uniforms.size.value = 1;
+        }
+      }
+      if (material.uniforms.opacity.value > 0.01) {
+        // group.rotation.copy(localPlayer.rotation);
+        group.position.copy(localPlayer.position);
+
+        group.position.x += 0.1 * currentDir.x;
+        group.position.z += 0.1 * currentDir.z;
+
+        if (localPlayer.avatar) {
+          group.position.y -= localPlayer.avatar.height;
+          group.position.y += 0.65;
+        }
+        material.uniforms.uTime.value = timestamp / 1000;
+        material.uniforms.cameraBillboardQuaternion.value.copy(camera.quaternion);
+        if (!material.uniforms.electricityTexture1.value) {
+          material.uniforms.electricityTexture1.value = particleTexture[nameSpec.indexOf('electricityTexture1')];
+        }
+        if (!material.uniforms.electricityTexture2.value) {
+          material.uniforms.electricityTexture2.value = particleTexture[nameSpec.indexOf('electricityTexture2')];
+        }
+        const scalesAttribute = electricity.geometry.getAttribute('scales');
+        const textureRotationAttribute = electricity.geometry.getAttribute('textureRotation');
+        scalesAttribute.setX(0, 0.8 + Math.random() * 0.2);
+        scalesAttribute.setX(1, 0.8 + Math.random() * 0.2);
+        textureRotationAttribute.setX(0, Math.random() * 2);
+        textureRotationAttribute.setX(1, Math.random() * 2);
+        textureRotationAttribute.needsUpdate = true;
+        scalesAttribute.needsUpdate = true;
+      } else {
+        if (sonicBoomInApp) {
+          // console.log('remove-electricty1');
+          app.remove(group);
+          sonicBoomInApp = false;
+        }
+      }
+
+      // app.updateMatrixWorld();
+    });
+  }
+
+  // #################################### particle behind avatar ###############################
+  {
+    const particleCount = 10;
+    const info = {
+      velocity: [particleCount],
+    };
+    const acc = new THREE.Vector3(-0.000, 0.0008, 0.0018);
+    const attributeSpecs = [];
+    attributeSpecs.push({name: 'id', itemSize: 1});
+    attributeSpecs.push({name: 'scales', itemSize: 1});
+    // attributeSpecs.push({name: 'textureRotation', itemSize: 1});
+    const geometry2 = new THREE.PlaneGeometry(0.075, 0.075);
+    const geometry = _getGeometry(geometry2, attributeSpecs, particleCount);
+    const idAttribute = geometry.getAttribute('id');
+    for (let i = 0; i < particleCount; i++) {
+      idAttribute.setX(i, i);
     }
-    
-    //#################################### particle behind avatar ###############################
-    {
-        
-        const particleCount = 10;
-        let info = {
-            velocity: [particleCount]
-        }
-        let acc = new THREE.Vector3(-0.000, 0.0008, 0.0018);
-        const attributeSpecs = [];
-        attributeSpecs.push({name: 'id', itemSize: 1});
-        attributeSpecs.push({name: 'scales', itemSize: 1});
-        // attributeSpecs.push({name: 'textureRotation', itemSize: 1});
-        const geometry2 = new THREE.PlaneGeometry(0.075, 0.075);
-        const geometry = _getGeometry(geometry2, attributeSpecs, particleCount);
-        const idAttribute = geometry.getAttribute('id');
-        for(let i = 0; i < particleCount; i++){
-            idAttribute.setX(i, i);
-        }
-        idAttribute.needsUpdate = true;
+    idAttribute.needsUpdate = true;
 
-        const material = new THREE.ShaderMaterial({
-            uniforms: {
-                uTime: { value: 0 },
-                opacity: { value: 0 },
-                size: { value: 0 },
-                cameraBillboardQuaternion: {
-                    value: new THREE.Quaternion(),
-                },
-                electronicballTexture: {
-                    type: "t",
-                    value: null
-                },
+    const material = new THREE.ShaderMaterial({
+      uniforms: {
+        uTime: {value: 0},
+        opacity: {value: 0},
+        size: {value: 0},
+        cameraBillboardQuaternion: {
+          value: new THREE.Quaternion(),
+        },
+        electronicballTexture: {
+          type: 't',
+          value: null,
+        },
 
-            },
-            vertexShader: `
+      },
+      vertexShader: `
                 ${THREE.ShaderChunk.common}
                 ${THREE.ShaderChunk.logdepthbuf_pars_vertex}
                 uniform float uTime;
@@ -1375,7 +1308,7 @@ export default () => {
                     ${THREE.ShaderChunk.logdepthbuf_vertex}
                 }
             `,
-            fragmentShader: `
+      fragmentShader: `
                 ${THREE.ShaderChunk.logdepthbuf_pars_fragment}
                 uniform float uTime;
                 uniform float sphereNum;
@@ -1406,149 +1339,138 @@ export default () => {
                     
                 }
             `,
-            side: THREE.DoubleSide,
-            transparent: true,
-            depthWrite: false,
-            blending: THREE.AdditiveBlending,
+      side: THREE.DoubleSide,
+      transparent: true,
+      depthWrite: false,
+      blending: THREE.AdditiveBlending,
 
-            clipping: false,
-            fog: false,
-            lights: false,
-        });
-        const group = new THREE.Group();
-        const electricityBall = new THREE.InstancedMesh(geometry, material, particleCount);
-        group.add(electricityBall)
+      clipping: false,
+      fog: false,
+      lights: false,
+    });
+    const group = new THREE.Group();
+    const electricityBall = new THREE.InstancedMesh(geometry, material, particleCount);
+    group.add(electricityBall);
 
-        // material.onBeforeCompile = () => {
-        //     console.log('compile electricityBall material')
-        // }
-        renderer.compile(group, camera)
-        for(let i = 0; i< particleCount; i++){
-            info.velocity[i] = new THREE.Vector3();
-        }
-       
-        let sonicBoomInApp = false;
-        useFrame(({timestamp}) => {
-            if(narutoRunTime === 0){
-                material.uniforms.opacity.value /= 1.1;
-            }
-            if(narutoRunTime === 1){
-                if(!sonicBoomInApp){
-                    //console.log('add-electricityBall1');
-                    app.add(group);
-                    sonicBoomInApp=true;
-                }
-                material.uniforms.opacity.value = 1;
-                
-            }
-            else if(narutoRunTime > 1){
-                
-                
-            }
-            if(material.uniforms.opacity.value > 0.01){
-                // group.rotation.copy(localPlayer.rotation);
-                group.position.copy(localPlayer.position);
-                
-                group.position.x += .1 * currentDir.x;
-                group.position.z += .1 * currentDir.z;
-                
-                if (localPlayer.avatar) {
-                    group.position.y -= localPlayer.avatar.height;
-                    group.position.y += 0.65;
-                }
-
-                const scalesAttribute = electricityBall.geometry.getAttribute('scales');
-                const positionsAttribute = electricityBall.geometry.getAttribute('positions');
-                
-                for(let i = 0; i < particleCount; i++){
-                    if(scalesAttribute.getX(i) < 0.1){
-                        positionsAttribute.setXYZ(i, (Math.random() - 0.5) * 0.15, (Math.random() - 0.5) * 0.55, (Math.random() - 0.5) * 0.15);
-                        scalesAttribute.setX(i, 1 + Math.random());
-                        let rand = Math.random();
-                        info.velocity[i].set( (rand + 0.5) * -currentDir.x, 0, (rand + 0.5) * -currentDir.z);
-                        // info.velocity[i].divideScalar(10);
-                        break;
-                    }
-                    positionsAttribute.setXYZ(
-                        i,
-                        positionsAttribute.getX(i) + info.velocity[i].x,
-                        positionsAttribute.getY(i) + info.velocity[i].y,
-                        positionsAttribute.getZ(i) + info.velocity[i].z
-                    )
-                    scalesAttribute.setX(i, scalesAttribute.getX(i) / 1.2);
-                    
-
-                }
-                
-                scalesAttribute.needsUpdate = true;
-                positionsAttribute.needsUpdate = true;
-
-                material.uniforms.uTime.value = timestamp / 1000;
-                material.uniforms.cameraBillboardQuaternion.value.copy(camera.quaternion);
-                if(!material.uniforms.electronicballTexture.value){
-                    material.uniforms.electronicballTexture.value = particleTexture[nameSpec.indexOf('electronic-ball2')];
-                }
-            }
-            else{
-                if(sonicBoomInApp){
-                    const scalesAttribute = electricityBall.geometry.getAttribute('scales');
-                    for(let i = 0; i < particleCount; i++){
-                        scalesAttribute.setX(i, 0);
-                    }
-                    scalesAttribute.needsUpdate = true;
-                    //console.log('remove-electricty1');
-                    app.remove(group);
-                    sonicBoomInApp = false;
-                }
-            }
-            
-            
-            
-            //app.updateMatrixWorld();
-        
-        });
-
+    // material.onBeforeCompile = () => {
+    //     console.log('compile electricityBall material')
+    // }
+    renderer.compile(group, camera);
+    for (let i = 0; i < particleCount; i++) {
+      info.velocity[i] = new THREE.Vector3();
     }
-   
-    //#################################### shockwave2 ########################################
-    {
-        const localVector = new THREE.Vector3();
-        const _shake = () => {
-            if (narutoRunTime >= 1 && narutoRunTime <= 5) {
-                localVector.setFromMatrixPosition(localPlayer.matrixWorld);
-                cameraManager.addShake( localVector, 0.2, 30, 500);
-            }
-        };
-        let wave;
-        let group = new THREE.Group();
-        (async () => {
-            const u = `${baseUrl}/assets/wave3.glb`;
-            wave = await new Promise((accept, reject) => {
-                const {gltfLoader} = useLoaders();
-                gltfLoader.load(u, accept, function onprogress() {}, reject);
-                
-            });
-            wave.scene.position.y = -5000;
 
-            wave.scene.rotation.x = Math.PI/2;
-            group.add(wave.scene);
-            
-            //app.add(group);
-            
-            wave.scene.children[0].material= new THREE.ShaderMaterial({
-                uniforms: {
-                    uTime: {
-                        value: 0,
-                    },
-                    opacity: {
-                        value: 0,
-                    },
-                    avatarPos:{
-                        value: new THREE.Vector3(0, 0, 0)
-                    },
-                    iResolution: { value: new THREE.Vector3() },
-                },
-                vertexShader: `\
+    let sonicBoomInApp = false;
+    useFrame(({timestamp}) => {
+      if (narutoRunTime === 0) {
+        material.uniforms.opacity.value /= 1.1;
+      }
+      if (narutoRunTime === 1) {
+        if (!sonicBoomInApp) {
+          // console.log('add-electricityBall1');
+          app.add(group);
+          sonicBoomInApp = true;
+        }
+        material.uniforms.opacity.value = 1;
+      } else if (narutoRunTime > 1) {
+        // do nothing
+      }
+      if (material.uniforms.opacity.value > 0.01) {
+        // group.rotation.copy(localPlayer.rotation);
+        group.position.copy(localPlayer.position);
+
+        group.position.x += 0.1 * currentDir.x;
+        group.position.z += 0.1 * currentDir.z;
+
+        if (localPlayer.avatar) {
+          group.position.y -= localPlayer.avatar.height;
+          group.position.y += 0.65;
+        }
+
+        const scalesAttribute = electricityBall.geometry.getAttribute('scales');
+        const positionsAttribute = electricityBall.geometry.getAttribute('positions');
+
+        for (let i = 0; i < particleCount; i++) {
+          if (scalesAttribute.getX(i) < 0.1) {
+            positionsAttribute.setXYZ(i, (Math.random() - 0.5) * 0.15, (Math.random() - 0.5) * 0.55, (Math.random() - 0.5) * 0.15);
+            scalesAttribute.setX(i, 1 + Math.random());
+            const rand = Math.random();
+            info.velocity[i].set((rand + 0.5) * -currentDir.x, 0, (rand + 0.5) * -currentDir.z);
+            // info.velocity[i].divideScalar(10);
+            break;
+          }
+          positionsAttribute.setXYZ(
+            i,
+            positionsAttribute.getX(i) + info.velocity[i].x,
+            positionsAttribute.getY(i) + info.velocity[i].y,
+            positionsAttribute.getZ(i) + info.velocity[i].z,
+          );
+          scalesAttribute.setX(i, scalesAttribute.getX(i) / 1.2);
+        }
+
+        scalesAttribute.needsUpdate = true;
+        positionsAttribute.needsUpdate = true;
+
+        material.uniforms.uTime.value = timestamp / 1000;
+        material.uniforms.cameraBillboardQuaternion.value.copy(camera.quaternion);
+        if (!material.uniforms.electronicballTexture.value) {
+          material.uniforms.electronicballTexture.value = particleTexture[nameSpec.indexOf('electronic-ball2')];
+        }
+      } else {
+        if (sonicBoomInApp) {
+          const scalesAttribute = electricityBall.geometry.getAttribute('scales');
+          for (let i = 0; i < particleCount; i++) {
+            scalesAttribute.setX(i, 0);
+          }
+          scalesAttribute.needsUpdate = true;
+          // console.log('remove-electricty1');
+          app.remove(group);
+          sonicBoomInApp = false;
+        }
+      }
+
+      // app.updateMatrixWorld();
+    });
+  }
+
+  // #################################### shockwave2 ########################################
+  {
+    const localVector = new THREE.Vector3();
+    const _shake = () => {
+      if (narutoRunTime >= 1 && narutoRunTime <= 5) {
+        localVector.setFromMatrixPosition(localPlayer.matrixWorld);
+        cameraManager.addShake(localVector, 0.2, 30, 500);
+      }
+    };
+    let wave;
+    const group = new THREE.Group();
+    (async () => {
+      const u = `${baseUrl}/assets/wave3.glb`;
+      wave = await new Promise((accept, reject) => {
+        const {gltfLoader} = useLoaders();
+        gltfLoader.load(u, accept, function onprogress() {}, reject);
+      });
+      wave.scene.position.y = -5000;
+
+      wave.scene.rotation.x = Math.PI / 2;
+      group.add(wave.scene);
+
+      // app.add(group);
+
+      wave.scene.children[0].material = new THREE.ShaderMaterial({
+        uniforms: {
+          uTime: {
+            value: 0,
+          },
+          opacity: {
+            value: 0,
+          },
+          avatarPos: {
+            value: new THREE.Vector3(0, 0, 0),
+          },
+          iResolution: {value: new THREE.Vector3()},
+        },
+        vertexShader: `\
                     
                     ${THREE.ShaderChunk.common}
                     ${THREE.ShaderChunk.logdepthbuf_pars_vertex}
@@ -1571,7 +1493,7 @@ export default () => {
                     ${THREE.ShaderChunk.logdepthbuf_vertex}
                     }
                 `,
-                fragmentShader: `\
+        fragmentShader: `\
                     ${THREE.ShaderChunk.logdepthbuf_pars_fragment}
                     uniform float uTime;
                     uniform float opacity;
@@ -1623,99 +1545,88 @@ export default () => {
                     ${THREE.ShaderChunk.logdepthbuf_fragment}
                     }
                 `,
-                //side: THREE.DoubleSide,
-                transparent: true,
-                depthWrite: false,
-                blending: THREE.AdditiveBlending,
+        // side: THREE.DoubleSide,
+        transparent: true,
+        depthWrite: false,
+        blending: THREE.AdditiveBlending,
 
-                clipping: false,
-                fog: false,
-                lights: false,
-            });
-            // wave.scene.children[0].material.onBeforeCompile = () => {
-            //     console.log('compile shock wave material')
-            // }
-            renderer.compile(group, camera)
+        clipping: false,
+        fog: false,
+        lights: false,
+      });
+      // wave.scene.children[0].material.onBeforeCompile = () => {
+      //     console.log('compile shock wave material')
+      // }
+      renderer.compile(group, camera);
+    })();
 
-        })();
-
-        //app.updateMatrixWorld();
-        let sonicBoomInApp=false;
-        useFrame(({timestamp}) => {
-           
-            if (wave) {
-                
-                
-                
-                if (narutoRunTime > 0) {
-                    if(!sonicBoomInApp){
-                        //console.log('add-shockWave');
-                        app.add(group);
-                        sonicBoomInApp=true;
-                    }
-                    if(narutoRunTime ===1){
-                        group.position.copy(localPlayer.position);
-                        group.position.x+=4.*currentDir.x;
-                        group.position.z+=4.*currentDir.z;
-                        group.rotation.copy(localPlayer.rotation);
-                        wave.scene.position.y=0;
-                        if (localPlayer.avatar) {
-                            group.position.y -= localPlayer.avatar.height;
-                            group.position.y += 0.65;
-                        }
-                        wave.scene.scale.set(1,1,1);
-                        wave.scene.children[0].material.uniforms.opacity.value=0;
-                    }
-                    
-                    if(wave.scene.scale.x<=5){
-                        _shake();
-                        
-                    }
-                    
-                } 
-                if(wave.scene.children[0].material.uniforms.opacity.value<1){
-                    wave.scene.scale.set(wave.scene.scale.x+.15,wave.scene.scale.y+0.001,wave.scene.scale.z+.15);
-                    wave.scene.children[0].material.uniforms.opacity.value+=0.003;
-                    wave.scene.children[0].material.uniforms.uTime.value=timestamp/1000;
-                    wave.scene.children[0].material.uniforms.iResolution.value.set(window.innerWidth, window.innerHeight, 1);
-                    wave.scene.children[0].material.uniforms.avatarPos.x=localPlayer.position.x;
-                    wave.scene.children[0].material.uniforms.avatarPos.y=localPlayer.position.y;
-                    wave.scene.children[0].material.uniforms.avatarPos.z=localPlayer.position.z;
-                }
-                else{
-                    if(sonicBoomInApp && narutoRunTime===0){
-                        //console.log('remove-shockWave');
-                        app.remove(group);
-                        sonicBoomInApp=false;
-                    }
-                }
+    // app.updateMatrixWorld();
+    let sonicBoomInApp = false;
+    useFrame(({timestamp}) => {
+      if (wave) {
+        if (narutoRunTime > 0) {
+          if (!sonicBoomInApp) {
+            // console.log('add-shockWave');
+            app.add(group);
+            sonicBoomInApp = true;
+          }
+          if (narutoRunTime === 1) {
+            group.position.copy(localPlayer.position);
+            group.position.x += 4.0 * currentDir.x;
+            group.position.z += 4.0 * currentDir.z;
+            group.rotation.copy(localPlayer.rotation);
+            wave.scene.position.y = 0;
+            if (localPlayer.avatar) {
+              group.position.y -= localPlayer.avatar.height;
+              group.position.y += 0.65;
             }
-            
-            
-        });
+            wave.scene.scale.set(1, 1, 1);
+            wave.scene.children[0].material.uniforms.opacity.value = 0;
+          }
+
+          if (wave.scene.scale.x <= 5) {
+            _shake();
+          }
+        }
+        if (wave.scene.children[0].material.uniforms.opacity.value < 1) {
+          wave.scene.scale.set(wave.scene.scale.x + 0.15, wave.scene.scale.y + 0.001, wave.scene.scale.z + 0.15);
+          wave.scene.children[0].material.uniforms.opacity.value += 0.003;
+          wave.scene.children[0].material.uniforms.uTime.value = timestamp / 1000;
+          wave.scene.children[0].material.uniforms.iResolution.value.set(window.innerWidth, window.innerHeight, 1);
+          wave.scene.children[0].material.uniforms.avatarPos.x = localPlayer.position.x;
+          wave.scene.children[0].material.uniforms.avatarPos.y = localPlayer.position.y;
+          wave.scene.children[0].material.uniforms.avatarPos.z = localPlayer.position.z;
+        } else {
+          if (sonicBoomInApp && narutoRunTime === 0) {
+            // console.log('remove-shockWave');
+            app.remove(group);
+            sonicBoomInApp = false;
+          }
+        }
+      }
+    });
+  }
+  // ##################################### front dust ################################################
+  {
+    const particleCount = 12;
+    const info = {
+      velocity: [particleCount],
+      inApp: [particleCount],
+      acc: [particleCount],
+    };
+    for (let i = 0; i < particleCount; i++) {
+      info.velocity[i] = new THREE.Vector3();
+      info.acc[i] = new THREE.Vector3();
     }
-    //##################################### front dust ################################################
-    {
 
-        const particleCount = 12;
-        let info = {
-            velocity: [particleCount],
-            inApp: [particleCount],
-            acc:[particleCount]
-        }
-        for(let i = 0; i < particleCount; i++){
-            info.velocity[i] = new THREE.Vector3();
-            info.acc[i] = new THREE.Vector3();
-        }
+    const material = new THREE.ShaderMaterial({
+      uniforms: {
+        uTime: {value: 0},
+        opacity: {value: 0},
+        noiseMap: {value: null},
 
-        const material = new THREE.ShaderMaterial({
-            uniforms: {
-                uTime: { value: 0 },
-                opacity: { value: 0 },
-                noiseMap: {value: null}
-
-            },
-            vertexShader: `
+      },
+      vertexShader: `
                 ${THREE.ShaderChunk.common}
                 ${THREE.ShaderChunk.logdepthbuf_pars_vertex}
                 uniform float uTime;
@@ -1750,7 +1661,7 @@ export default () => {
                     ${THREE.ShaderChunk.logdepthbuf_vertex}
                 }
             `,
-            fragmentShader: `
+      fragmentShader: `
                 ${THREE.ShaderChunk.logdepthbuf_pars_fragment}
                 uniform float uTime;
                 uniform float opacity;
@@ -1775,132 +1686,123 @@ export default () => {
                     
                 }
             `,
-            side: THREE.DoubleSide,
-            transparent: true,
-            depthWrite: false,
-            blending: THREE.AdditiveBlending,
+      side: THREE.DoubleSide,
+      transparent: true,
+      depthWrite: false,
+      blending: THREE.AdditiveBlending,
 
-            clipping: false,
-            fog: false,
-            lights: false,
-        });
-        
-        let mesh = null;
-        let dustGeometry = null;
-        (async () => {
-            const u = `${baseUrl}/assets/smoke.glb`;
-            const dustApp = await new Promise((accept, reject) => {
-                const {gltfLoader} = useLoaders();
-                gltfLoader.load(u, accept, function onprogress() {}, reject);
-                
-            });
-            dustApp.scene.traverse(o => {
-              if (o.isMesh) {
-                dustGeometry = o.geometry;
-                const attributeSpecs = [];
-                attributeSpecs.push({name: 'broken', itemSize: 1});
-                attributeSpecs.push({name: 'opacity', itemSize: 1});
-                attributeSpecs.push({name: 'scales', itemSize: 3});
-                const geometry = _getGeometry(dustGeometry, attributeSpecs, particleCount);
-                const quaternions = new Float32Array(particleCount * 4);
-                const identityQuaternion = new THREE.Quaternion();
-                for (let i = 0; i < particleCount; i++) {
-                    identityQuaternion.toArray(quaternions, i * 4);
-                }
-                const quaternionsAttribute = new THREE.InstancedBufferAttribute(quaternions, 4);
-                geometry.setAttribute('quaternions', quaternionsAttribute);
-                mesh = new THREE.InstancedMesh(geometry, material, particleCount);
+      clipping: false,
+      fog: false,
+      lights: false,
+    });
 
-                // material.onBeforeCompile = () => {
-                //     console.log('compile dust material')
-                // }
-                renderer.compile(mesh, camera)
-              }
-            });
-            
-    
-        })();
-        
-        const euler = new THREE.Euler();
-        const quaternion = new THREE.Quaternion();
-        let sonicBoomInApp=false;
-        useFrame(({timestamp}) => {
-            let count = 0;
-            if (mesh) {
-                const positionsAttribute = mesh.geometry.getAttribute('positions');
-                const opacityAttribute = mesh.geometry.getAttribute('opacity');
-                const brokenAttribute = mesh.geometry.getAttribute('broken');
-                const scalesAttribute = mesh.geometry.getAttribute('scales');
-                const quaternionAttribute = mesh.geometry.getAttribute('quaternions');
-                if(lastStopSw === 1  && narutoRunTime===0 && localPlayer.characterPhysics.lastGrounded){
-                    if(!sonicBoomInApp){
-                        // console.log('add-dust');
-                        app.add(mesh);
-                        sonicBoomInApp = true;
-                    }
-                    for (let i = 0; i < particleCount; i++) {
-                        scalesAttribute.setXYZ(i, 0.06 + Math.random() * 0.05,  0.06 + Math.random() * 0.05,  0.06 + Math.random() * 0.05);
-                        
-                        info.velocity[i].set((0.8 + Math.random()) * currentDir.x, 0, (0.8 + Math.random()) * currentDir.z);
-                        info.acc[i].set(-currentDir.x * 0.0018, 0.0008, -currentDir.z * 0.0018);
-                        positionsAttribute.setXYZ(
-                            i, 
-                            localPlayer.position.x + 1.2 * currentDir.x + (Math.random() - 0.5) * 0.2 , 
-                            localPlayer.position.y - localPlayer.avatar.height, 
-                            localPlayer.position.z + 1.2 * currentDir.z + (Math.random() - 0.5) * 0.2
-                        );
-                        euler.set(Math.random() * Math.PI, Math.random() * Math.PI, Math.random() * Math.PI);
-                        quaternion.setFromEuler(euler);
-                        quaternionAttribute.setXYZW(i, quaternion.x, quaternion.y, quaternion.z, quaternion.w);
-                        brokenAttribute.setX(i, Math.random() - 0.6);
-                        opacityAttribute.setX(i, 1);
-                        info.velocity[i].divideScalar(20);
-                    }
-                }
-                for (let i = 0; i < particleCount; i++){
-                    if(brokenAttribute.getX(i) < 1){
-                        positionsAttribute.setXYZ(  i, 
-                                                    positionsAttribute.getX(i) + info.velocity[i].x, 
-                                                    positionsAttribute.getY(i) + info.velocity[i].y, 
-                                                    positionsAttribute.getZ(i) + info.velocity[i].z
-                        );
-                        scalesAttribute.setXYZ(i, scalesAttribute.getX(i) * 1.03, scalesAttribute.getY(i) * 1.03, scalesAttribute.getZ(i) * 1.03);
-                        brokenAttribute.setX(i, brokenAttribute.getX(i) + 0.042);
-                        opacityAttribute.setX(i, opacityAttribute.getX(i) - 0.02);
-                        info.velocity[i].add(info.acc[i]);
-                    }
-                    else{
-                        count++;
-                    }
-                }
-                scalesAttribute.needsUpdate = true;
-                positionsAttribute.needsUpdate = true;
-                opacityAttribute.needsUpdate = true;
-                brokenAttribute.needsUpdate = true;
-                quaternionAttribute.needsUpdate = true;
-                if(!material.uniforms.noiseMap.value){
-                    material.uniforms.noiseMap.value = particleTexture[nameSpec.indexOf('noise')];
-                }
-                
-    
-            }
-            if(lastStopSw === 1  && narutoRunTime === 0){
-                lastStopSw = 0;
-            }
-            if(count >= particleCount){
-                if(sonicBoomInApp){
-                    // console.log('remove dust');
-                    app.remove(mesh);
-                    sonicBoomInApp=false;
-                }
-            }
-            app.updateMatrixWorld();
-        });
+    let mesh = null;
+    let dustGeometry = null;
+    (async () => {
+      const u = `${baseUrl}/assets/smoke.glb`;
+      const dustApp = await new Promise((accept, reject) => {
+        const {gltfLoader} = useLoaders();
+        gltfLoader.load(u, accept, function onprogress() {}, reject);
+      });
+      dustApp.scene.traverse(o => {
+        if (o.isMesh) {
+          dustGeometry = o.geometry;
+          const attributeSpecs = [];
+          attributeSpecs.push({name: 'broken', itemSize: 1});
+          attributeSpecs.push({name: 'opacity', itemSize: 1});
+          attributeSpecs.push({name: 'scales', itemSize: 3});
+          const geometry = _getGeometry(dustGeometry, attributeSpecs, particleCount);
+          const quaternions = new Float32Array(particleCount * 4);
+          const identityQuaternion = new THREE.Quaternion();
+          for (let i = 0; i < particleCount; i++) {
+            identityQuaternion.toArray(quaternions, i * 4);
+          }
+          const quaternionsAttribute = new THREE.InstancedBufferAttribute(quaternions, 4);
+          geometry.setAttribute('quaternions', quaternionsAttribute);
+          mesh = new THREE.InstancedMesh(geometry, material, particleCount);
 
-    }
+          // material.onBeforeCompile = () => {
+          //     console.log('compile dust material')
+          // }
+          renderer.compile(mesh, camera);
+        }
+      });
+    })();
+
+    const euler = new THREE.Euler();
+    const quaternion = new THREE.Quaternion();
+    let sonicBoomInApp = false;
+    useFrame(({timestamp}) => {
+      let count = 0;
+      if (mesh) {
+        const positionsAttribute = mesh.geometry.getAttribute('positions');
+        const opacityAttribute = mesh.geometry.getAttribute('opacity');
+        const brokenAttribute = mesh.geometry.getAttribute('broken');
+        const scalesAttribute = mesh.geometry.getAttribute('scales');
+        const quaternionAttribute = mesh.geometry.getAttribute('quaternions');
+        if (lastStopSw === 1 && narutoRunTime === 0 && localPlayer.characterPhysics.lastGrounded) {
+          if (!sonicBoomInApp) {
+            // console.log('add-dust');
+            app.add(mesh);
+            sonicBoomInApp = true;
+          }
+          for (let i = 0; i < particleCount; i++) {
+            scalesAttribute.setXYZ(i, 0.06 + Math.random() * 0.05, 0.06 + Math.random() * 0.05, 0.06 + Math.random() * 0.05);
+
+            info.velocity[i].set((0.8 + Math.random()) * currentDir.x, 0, (0.8 + Math.random()) * currentDir.z);
+            info.acc[i].set(-currentDir.x * 0.0018, 0.0008, -currentDir.z * 0.0018);
+            positionsAttribute.setXYZ(
+              i,
+              localPlayer.position.x + 1.2 * currentDir.x + (Math.random() - 0.5) * 0.2,
+              localPlayer.position.y - localPlayer.avatar.height,
+              localPlayer.position.z + 1.2 * currentDir.z + (Math.random() - 0.5) * 0.2,
+            );
+            euler.set(Math.random() * Math.PI, Math.random() * Math.PI, Math.random() * Math.PI);
+            quaternion.setFromEuler(euler);
+            quaternionAttribute.setXYZW(i, quaternion.x, quaternion.y, quaternion.z, quaternion.w);
+            brokenAttribute.setX(i, Math.random() - 0.6);
+            opacityAttribute.setX(i, 1);
+            info.velocity[i].divideScalar(20);
+          }
+        }
+        for (let i = 0; i < particleCount; i++) {
+          if (brokenAttribute.getX(i) < 1) {
+            positionsAttribute.setXYZ(i,
+              positionsAttribute.getX(i) + info.velocity[i].x,
+              positionsAttribute.getY(i) + info.velocity[i].y,
+              positionsAttribute.getZ(i) + info.velocity[i].z,
+            );
+            scalesAttribute.setXYZ(i, scalesAttribute.getX(i) * 1.03, scalesAttribute.getY(i) * 1.03, scalesAttribute.getZ(i) * 1.03);
+            brokenAttribute.setX(i, brokenAttribute.getX(i) + 0.042);
+            opacityAttribute.setX(i, opacityAttribute.getX(i) - 0.02);
+            info.velocity[i].add(info.acc[i]);
+          } else {
+            count++;
+          }
+        }
+        scalesAttribute.needsUpdate = true;
+        positionsAttribute.needsUpdate = true;
+        opacityAttribute.needsUpdate = true;
+        brokenAttribute.needsUpdate = true;
+        quaternionAttribute.needsUpdate = true;
+        if (!material.uniforms.noiseMap.value) {
+          material.uniforms.noiseMap.value = particleTexture[nameSpec.indexOf('noise')];
+        }
+      }
+      if (lastStopSw === 1 && narutoRunTime === 0) {
+        lastStopSw = 0;
+      }
+      if (count >= particleCount) {
+        if (sonicBoomInApp) {
+          // console.log('remove dust');
+          app.remove(mesh);
+          sonicBoomInApp = false;
+        }
+      }
+      app.updateMatrixWorld();
+    });
+  }
   app.setComponent('renderPriority', 'low');
-  
+
   return app;
 };
-
-

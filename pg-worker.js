@@ -18,7 +18,7 @@ const _cloneChunkResult = chunkResult => {
   const {terrainGeometry, waterGeometry, barrierGeometry} = chunkResult;
 
   const _getTerrainGeometrySize = () => {
-    let size = terrainGeometry.positions.length * terrainGeometry.positions.constructor.BYTES_PER_ELEMENT +
+    const size = terrainGeometry.positions.length * terrainGeometry.positions.constructor.BYTES_PER_ELEMENT +
       terrainGeometry.normals.length * terrainGeometry.normals.constructor.BYTES_PER_ELEMENT +
       terrainGeometry.biomesWeights.length * terrainGeometry.biomesWeights.constructor.BYTES_PER_ELEMENT +
       terrainGeometry.biomesUvs1.length * terrainGeometry.biomesUvs1.constructor.BYTES_PER_ELEMENT +
@@ -27,14 +27,14 @@ const _cloneChunkResult = chunkResult => {
     return size;
   };
   const _getWaterGeometrySize = () => {
-    let size = waterGeometry.positions.length * waterGeometry.positions.constructor.BYTES_PER_ELEMENT +
+    const size = waterGeometry.positions.length * waterGeometry.positions.constructor.BYTES_PER_ELEMENT +
       waterGeometry.normals.length * waterGeometry.normals.constructor.BYTES_PER_ELEMENT +
       waterGeometry.factors.length * waterGeometry.factors.constructor.BYTES_PER_ELEMENT +
       waterGeometry.indices.length * waterGeometry.indices.constructor.BYTES_PER_ELEMENT;
     return size;
   };
   const _getBarrierGeometrySize = () => {
-    let size = barrierGeometry.positions.length * barrierGeometry.positions.constructor.BYTES_PER_ELEMENT +
+    const size = barrierGeometry.positions.length * barrierGeometry.positions.constructor.BYTES_PER_ELEMENT +
       barrierGeometry.normals.length * barrierGeometry.normals.constructor.BYTES_PER_ELEMENT +
       barrierGeometry.uvs.length * barrierGeometry.uvs.constructor.BYTES_PER_ELEMENT +
       barrierGeometry.positions2D.length * barrierGeometry.positions2D.constructor.BYTES_PER_ELEMENT +
@@ -48,7 +48,7 @@ const _cloneChunkResult = chunkResult => {
   const arrayBuffer = new ArrayBuffer(
     terrainGeometrySize +
     waterGeometrySize +
-    barrierGeometrySize
+    barrierGeometrySize,
   );
   let index = 0;
 
@@ -56,7 +56,7 @@ const _cloneChunkResult = chunkResult => {
     const positions = new terrainGeometry.positions.constructor(arrayBuffer, index, terrainGeometry.positions.length);
     positions.set(terrainGeometry.positions);
     index += terrainGeometry.positions.length * terrainGeometry.positions.constructor.BYTES_PER_ELEMENT;
-    
+
     const normals = new terrainGeometry.normals.constructor(arrayBuffer, index, terrainGeometry.normals.length);
     normals.set(terrainGeometry.normals);
     index += terrainGeometry.normals.length * terrainGeometry.normals.constructor.BYTES_PER_ELEMENT;
@@ -68,7 +68,7 @@ const _cloneChunkResult = chunkResult => {
     const biomesWeights = new terrainGeometry.biomesWeights.constructor(arrayBuffer, index, terrainGeometry.biomesWeights.length);
     biomesWeights.set(terrainGeometry.biomesWeights);
     index += terrainGeometry.biomesWeights.length * terrainGeometry.biomesWeights.constructor.BYTES_PER_ELEMENT;
-    
+
     const biomesUvs1 = new terrainGeometry.biomesUvs1.constructor(arrayBuffer, index, terrainGeometry.biomesUvs1.length);
     biomesUvs1.set(terrainGeometry.biomesUvs1);
     index += terrainGeometry.biomesUvs1.length * terrainGeometry.biomesUvs1.constructor.BYTES_PER_ELEMENT;
@@ -92,7 +92,7 @@ const _cloneChunkResult = chunkResult => {
     const aos = new terrainGeometry.aos.constructor(arrayBuffer, index, terrainGeometry.aos.length);
     aos.set(terrainGeometry.aos);
     index += terrainGeometry.aos.length * terrainGeometry.aos.constructor.BYTES_PER_ELEMENT;
-    
+
     const peeks = new terrainGeometry.peeks.constructor(arrayBuffer, index, terrainGeometry.peeks.length);
     peeks.set(terrainGeometry.peeks);
     index += terrainGeometry.peeks.length * terrainGeometry.peeks.constructor.BYTES_PER_ELEMENT; */
@@ -115,7 +115,7 @@ const _cloneChunkResult = chunkResult => {
     const positions = new waterGeometry.positions.constructor(arrayBuffer, index, waterGeometry.positions.length);
     positions.set(waterGeometry.positions);
     index += waterGeometry.positions.length * waterGeometry.positions.constructor.BYTES_PER_ELEMENT;
-    
+
     const normals = new waterGeometry.normals.constructor(arrayBuffer, index, waterGeometry.normals.length);
     normals.set(waterGeometry.normals);
     index += waterGeometry.normals.length * waterGeometry.normals.constructor.BYTES_PER_ELEMENT;
@@ -139,7 +139,7 @@ const _cloneChunkResult = chunkResult => {
     const positions = new barrierGeometry.positions.constructor(arrayBuffer, index, barrierGeometry.positions.length);
     positions.set(barrierGeometry.positions);
     index += barrierGeometry.positions.length * barrierGeometry.positions.constructor.BYTES_PER_ELEMENT;
-    
+
     const normals = new barrierGeometry.normals.constructor(arrayBuffer, index, barrierGeometry.normals.length);
     normals.set(barrierGeometry.normals);
     index += barrierGeometry.normals.length * barrierGeometry.normals.constructor.BYTES_PER_ELEMENT;
@@ -240,7 +240,7 @@ const _cloneTrackerUpdate = trackerUpdate => {
 };
 
 let loaded = false;
-let queue = [];
+const queue = [];
 const _handleMethod = async ({method, args, instance: instanceKey, taskId}) => {
   // const _chunksToResult = chunks => chunks.map(({ position }) => ({ position }));
 
@@ -355,7 +355,7 @@ const _handleMethod = async ({method, args, instance: instanceKey, taskId}) => {
         position.x,
         position.y,
         lod,
-        numGrassInstances
+        numGrassInstances,
       );
       const grassResult2 = _cloneInstancesResult(grassResult);
 
@@ -385,7 +385,7 @@ const _handleMethod = async ({method, args, instance: instanceKey, taskId}) => {
         position.x,
         position.y,
         lod,
-        numVegetationInstances
+        numVegetationInstances,
       );
       const vegetationResult2 = _cloneInstancesResult(vegetationResult);
 
@@ -406,7 +406,7 @@ const _handleMethod = async ({method, args, instance: instanceKey, taskId}) => {
       const {chunkPosition, lod, lodArray} = args;
       const instance = instances.get(instanceKey);
       if (!instance) throw new Error('generateLiquidChunk : instance not found');
-      
+
       const position = localVector2D.fromArray(chunkPosition)
         .multiplyScalar(chunkWorldSize);
       const meshData = await pg.createLiquidChunkMeshAsync(
@@ -455,7 +455,7 @@ const _handleMethod = async ({method, args, instance: instanceKey, taskId}) => {
       const {x, z, lod, priority} = args;
       const instance = instances.get(instanceKey);
       if (!instance) throw new Error('createVegetationSplat : instance not found');
-      
+
       const {
         ps,
         qs,
@@ -476,7 +476,7 @@ const _handleMethod = async ({method, args, instance: instanceKey, taskId}) => {
       const {x, z, lod, priority} = args;
       const instance = instances.get(instanceKey);
       if (!instance) throw new Error('createMobSplat : instance not found');
-      
+
       const {
         ps,
         qs,
@@ -616,36 +616,36 @@ const _handleMessage = async m => {
   const {taskId} = data;
   const p = makePromise();
   // try {
-    const spec = await _handleMethod(data);
-    p.accept(spec);
+  const spec = await _handleMethod(data);
+  p.accept(spec);
   // } catch (err) {
   //   p.reject(err);
   // }
 
   if (taskId) {
     p.then(
-      (spec) => {
-        const { result = null, transfers = [] } = spec ?? {};
+      spec => {
+        const {result = null, transfers = []} = spec ?? {};
         port.postMessage(
           {
             method: 'response',
             taskId,
             result,
           },
-          transfers
+          transfers,
         );
       },
-      (err) => {
+      err => {
         port.postMessage({
           method: 'response',
           taskId,
           error: err.message,
         });
-      }
+      },
     );
   }
 };
-self.onmessage = (e) => {
+self.onmessage = e => {
   const m = {
     data: e.data,
     port: self,

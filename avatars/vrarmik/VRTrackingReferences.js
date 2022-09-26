@@ -36,7 +36,7 @@ class VRTrackingReferences {
     this.leftHand.leftLittleFinger1 = this.leftHand.fingers[21];
     this.leftHand.leftLittleFinger2 = this.leftHand.fingers[22];
     this.leftHand.leftLittleFinger3 = this.leftHand.fingers[23];
-    
+
     this.rightHand = new THREE.Object3D();
     this.rightHand.pointer = 0;
     this.rightHand.grip = 0;

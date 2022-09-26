@@ -49,7 +49,7 @@ const _memoize = fn => {
     }
     return result;
   };
-}
+};
 
 const formatVertexShader = _memoize(vertexShader => `\
 ${THREE.ShaderChunk.common}

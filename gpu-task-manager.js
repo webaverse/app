@@ -5,10 +5,12 @@ class GPUTask {
 
     this.live = true;
   }
+
   run() {
     this.live = false;
     this.fn();
   }
+
   cancel() {
     if (this.live) {
       this.live = false;
@@ -21,11 +23,13 @@ class GPUTaskManager {
   constructor() {
     this.queue = [];
   }
+
   transact(fn) {
     const task = new GPUTask(fn, this);
     this.queue.push(task);
     return task;
   }
+
   update() {
     for (let i = 0; i < GPUTaskManager.numTasksPerTick; i++) {
       if (this.queue.length > 0) {
@@ -36,6 +40,7 @@ class GPUTaskManager {
       }
     }
   }
+
   removeTask(task) {
     const index = this.queue.indexOf(task);
     this.queue.splice(index, 1);

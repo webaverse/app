@@ -21,8 +21,8 @@ const localVector3 = new THREE.Vector3();
 const localQuaternion = new THREE.Quaternion();
 const localQuaternion2 = new THREE.Quaternion();
 const localEuler = new THREE.Euler();
-const localMatrix =  new THREE.Matrix4();
-const localMatrix2 =  new THREE.Matrix4();
+const localMatrix = new THREE.Matrix4();
+const localMatrix2 = new THREE.Matrix4();
 const localSphere = new THREE.Sphere();
 const localFrustum = new THREE.Frustum();
 
@@ -39,7 +39,7 @@ const avatarPlaceholderImagePromise = (async () => {
 })();
 const waitForAvatarPlaceholderImage = () => avatarPlaceholderImagePromise;
 const avatarPlaceholderTexture = new THREE.Texture();
-(async() => {
+(async () => {
   const avatarPlaceholderImage = await waitForAvatarPlaceholderImage();
   /* avatarPlaceholderImage.style.cssText = `\
     position: absolute;
@@ -200,10 +200,10 @@ const parseVrm = (arrayBuffer, srcUrl) => new Promise((accept, reject) => {
   gltfLoader.parse(arrayBuffer, srcUrl, accept, reject);
 });
 const _cloneVrm = async () => {
-  const vrm = await parseVrm(arrayBuffer, srcUrl);
+  const vrm = await parseVrm(this.arrayBuffer, this.srcUrl);
   vrm.cloneVrm = _cloneVrm;
-  vrm.arrayBuffer = arrayBuffer;
-  vrm.srcUrl = srcUrl;
+  vrm.arrayBuffer = this.arrayBuffer;
+  vrm.srcUrl = this.srcUrl;
   return vrm;
 };
 const _unfrustumCull = o => {
@@ -247,7 +247,7 @@ const _forAllMeshes = (o, fn) => {
 const _bindControl = (dstModel, srcObject) => {
   const srcModel = srcObject.scene;
 
-  const _findBoneInSrc = (srcBoneName) => {
+  const _findBoneInSrc = srcBoneName => {
     let result = null;
     const _recurse = o => {
       if (o.isBone && o.name === srcBoneName) {
@@ -264,7 +264,7 @@ const _bindControl = (dstModel, srcObject) => {
     _recurse(srcModel);
     return result;
   };
-  const _findSrcSkeletonFromBoneName = (boneName) => {
+  const _findSrcSkeletonFromBoneName = boneName => {
     let skeleton = null;
 
     const bone = _findBoneInSrc(boneName);
@@ -365,7 +365,7 @@ const _getMergedBoundingSphere = o => {
       }
       sphere.union(
         localSphere.copy(o.geometry.boundingSphere)
-          .applyMatrix4(o.matrixWorld)
+          .applyMatrix4(o.matrixWorld),
       );
     }
   });
@@ -428,6 +428,7 @@ export class AvatarRenderer /* extends EventTarget */ {
 
     this.setQuality(quality);
   }
+
   getAvatarSize() {
     const model = this.controlObject.scene;
     model.updateMatrixWorld();
@@ -436,15 +437,19 @@ export class AvatarRenderer /* extends EventTarget */ {
     const width = getAvatarWidth(modelBones);
     return {height, width};
   }
+
   createSpriteAvatarMesh(args, options) {
     return offscreenEngineManager.request('createSpriteAvatarMesh', args, options);
   }
+
   crunchAvatarModel(args, options) {
     return offscreenEngineManager.request('crunchAvatarModel', args, options);
   }
+
   optimizeAvatarModel(args, options) {
     return offscreenEngineManager.request('optimizeAvatarModel', args, options);
   }
+
   #getCurrentMesh() {
     switch (this.quality) {
       case 1: {
@@ -464,6 +469,7 @@ export class AvatarRenderer /* extends EventTarget */ {
       }
     }
   }
+
   async #ensureControlObject() {
     if (!this.controlObjectLoaded) {
       this.controlObjectLoaded = true;
@@ -481,6 +487,7 @@ export class AvatarRenderer /* extends EventTarget */ {
       }); */
     }
   }
+
   setControlled(controlled) {
     this.isControlled = controlled;
 
@@ -503,9 +510,11 @@ export class AvatarRenderer /* extends EventTarget */ {
       this.uncontrolFnMap.clear();
     }
   }
+
   #bindControlObject() {
     this.setControlled(this.isControlled);
   }
+
   async setQuality(quality) {
     // set new quality
     this.quality = quality;
@@ -540,7 +549,7 @@ export class AvatarRenderer /* extends EventTarget */ {
                     {
                       arrayBuffer: this.arrayBuffer,
                       srcUrl: this.srcUrl,
-                    }
+                    },
                   ], {
                     signal: this.abortController.signal,
                   });
@@ -729,12 +738,14 @@ export class AvatarRenderer /* extends EventTarget */ {
     const currentMesh = this.#getCurrentMesh();
     this.scene.add(currentMesh);
   }
+
   adjustQuality(delta) {
     const newQuality = Math.min(Math.max(this.quality + delta, minAvatarQuality), maxAvatarQuality);
     if (newQuality !== this.quality) {
       this.setQuality(newQuality);
     }
   }
+
   update(timestamp, timeDiff, avatar) {
     // avatar can be undefined if it's not bound
     // we apply the root transform if avatar is undefined
@@ -742,6 +753,7 @@ export class AvatarRenderer /* extends EventTarget */ {
     this.#updateAvatar(timestamp, timeDiff, avatar);
     this.#updateFrustumCull(avatar);
   }
+
   #getAvatarHeadPosition(avatar) {
     let headPosition = null;
     if (avatar) {
@@ -754,6 +766,7 @@ export class AvatarRenderer /* extends EventTarget */ {
     }
     return headPosition;
   }
+
   #getAvatarCentroid(avatar) {
     if (avatar) {
       // get the centroid of avatar
@@ -766,6 +779,7 @@ export class AvatarRenderer /* extends EventTarget */ {
     }
     return localVector;
   }
+
   #updatePlaceholder(timestamp, timeDiff, avatar) {
     const headPosition = this.#getAvatarHeadPosition(avatar);
     if (this.camera && this.placeholderMesh.parent) {
@@ -779,12 +793,12 @@ export class AvatarRenderer /* extends EventTarget */ {
       this.placeholderMesh.matrixWorld.decompose(
         localVector,
         localQuaternion,
-        localVector2
+        localVector2,
       );
       this.placeholderMesh.parent.matrixWorld.decompose(
         localVector2,
         localQuaternion,
-        localVector3
+        localVector3,
       );
 
       // placeholder orients to the mesh world position
@@ -795,9 +809,9 @@ export class AvatarRenderer /* extends EventTarget */ {
             localMatrix.lookAt(
               this.camera.position,
               localVector,
-              localVector2.set(0, 1, 0)
-            )
-          )
+              localVector2.set(0, 1, 0),
+            ),
+          ),
       );
       localEuler.setFromQuaternion(localQuaternion, 'YXZ');
       localEuler.x = 0;
@@ -808,6 +822,7 @@ export class AvatarRenderer /* extends EventTarget */ {
       this.placeholderMesh.update(timestamp);
     }
   }
+
   #updateAvatar(timestamp, timeDiff, avatar) {
     if (this.camera) {
       const currentMesh = this.#getCurrentMesh();
@@ -816,6 +831,7 @@ export class AvatarRenderer /* extends EventTarget */ {
       }
     }
   }
+
   #updateFrustumCull(avatar) {
     const centroidPosition = this.#getAvatarCentroid(avatar);
     if (this.camera) {
@@ -824,7 +840,7 @@ export class AvatarRenderer /* extends EventTarget */ {
         // XXX this can be optimized by initializing the frustum only once per frame and passing it in
         const projScreenMatrix = localMatrix2.multiplyMatrices(
           this.camera.projectionMatrix,
-          this.camera.matrixWorldInverse
+          this.camera.matrixWorldInverse,
         );
         localFrustum.setFromProjectionMatrix(projScreenMatrix);
 
@@ -843,9 +859,11 @@ export class AvatarRenderer /* extends EventTarget */ {
       this.scene.visible = true;
     }
   }
+
   waitForLoad() {
     return this.loadPromise;
   }
+
   destroy() {
     this.abortController && this.abortController.abort(abortError);
   }

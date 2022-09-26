@@ -14,6 +14,7 @@ class VoiceInput extends EventTarget {
   micEnabled() {
     return !!this.mediaStream;
   }
+
   async enableMic() {
     await WSRTC.waitForReady();
     this.mediaStream = await WSRTC.getUserMedia();
@@ -29,9 +30,10 @@ class VoiceInput extends EventTarget {
     this.dispatchEvent(new MessageEvent('micchange', {
       data: {
         enabled: true,
-      }
+      },
     }));
   }
+
   disableMic() {
     /* if (this.micEnabled()) */ {
       const wsrtc = universe.getConnection();
@@ -41,20 +43,21 @@ class VoiceInput extends EventTarget {
         WSRTC.destroyUserMedia(this.mediaStream);
       }
       this.mediaStream = null;
-      
+
       const localPlayer = metaversefile.useLocalPlayer();
       localPlayer.setMicMediaStream(null);
 
       this.dispatchEvent(new MessageEvent('micchange', {
         data: {
           enabled: false,
-        }
+        },
       }));
     }
     if (this.speechEnabled()) {
       this.disableSpeech();
     }
   }
+
   async toggleMic() {
     if (this.micEnabled()) {
       this.disableMic();
@@ -66,12 +69,14 @@ class VoiceInput extends EventTarget {
   speechEnabled() {
     return !!this.speechRecognition;
   }
+
   async enableSpeech() {
     if (!this.micEnabled()) {
       await this.enableMic();
     }
 
     let final_transcript = '';
+    // eslint-disable-next-line new-cap
     const localSpeechRecognition = new webkitSpeechRecognition();
 
     /* const names = [
@@ -120,9 +125,10 @@ class VoiceInput extends EventTarget {
     this.dispatchEvent(new MessageEvent('speechchange', {
       data: {
         enabled: true,
-      }
+      },
     }));
   }
+
   disableSpeech() {
     this.speechRecognition.stop();
     this.speechRecognition = null;
@@ -130,9 +136,10 @@ class VoiceInput extends EventTarget {
     this.dispatchEvent(new MessageEvent('speechchange', {
       data: {
         enabled: false,
-      }
+      },
     }));
   }
+
   async toggleSpeech() {
     if (this.speechEnabled()) {
       this.disableSpeech();

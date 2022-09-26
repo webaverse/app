@@ -35,7 +35,7 @@ const zeroVector = new THREE.Vector3();
 const upVector = new THREE.Vector3(0, 1, 0);
 const leftHandOffset = new THREE.Vector3(0.2, -0.2, -0.4);
 const rightHandOffset = new THREE.Vector3(-0.2, -0.2, -0.4);
-const z22Quaternion = new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 0, 1), -Math.PI/8);
+const z22Quaternion = new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 0, 1), -Math.PI / 8);
 const groundStickOffset = 0.03;
 
 const physicsScene = physicsManager.getScene();
@@ -62,6 +62,7 @@ class CharacterPhysics {
     this.lastPistolUse = false;
     this.lastPistolUseStartTime = -Infinity;
   }
+
   loadCharacterController(characterWidth, characterHeight) {
     this.characterWidth = characterWidth;
     this.characterHeight = characterHeight;
@@ -84,17 +85,19 @@ class CharacterPhysics {
       this.capsuleHeight,
       contactOffset,
       stepOffset,
-      position
+      position,
     );
   }
+
   setPosition(p) {
     localVector.copy(p);
     localVector.y -= this.characterHeight * 0.5;
     physicsScene.setCharacterControllerPosition(
       this.characterController,
-      localVector
+      localVector,
     );
   }
+
   /* apply the currently held keys to the character */
   applyWasd(velocity, timeDiff) {
     if (this.character.avatar) {
@@ -102,33 +105,36 @@ class CharacterPhysics {
       this.targetMoveDistancePerFrame.copy(this.targetVelocity).multiplyScalar(timeDiff / 1000);
     }
   }
+
   applyGravity(nowS, timeDiffS) {
     // if (this.character) {
-      const fallLoopAction = this.character.getAction('fallLoop');
-      if (fallLoopAction) {
-        if (!this.lastFallLoopAction) {
-          this.fallLoopStartTimeS = nowS;
-          this.lastGravityH = 0;
-          if (fallLoopAction.from === 'jump') {
-            const aestheticJumpBias = 1;
-            const t = flatGroundJumpAirTime / 1000 / 2 + aestheticJumpBias;
-            this.fallLoopStartTimeS -= t;
-            const previousT = t - timeDiffS;
-            this.lastGravityH = 0.5 * physicsScene.getGravity().y * previousT * previousT;
-          }
+    const fallLoopAction = this.character.getAction('fallLoop');
+    if (fallLoopAction) {
+      if (!this.lastFallLoopAction) {
+        this.fallLoopStartTimeS = nowS;
+        this.lastGravityH = 0;
+        if (fallLoopAction.from === 'jump') {
+          const aestheticJumpBias = 1;
+          const t = flatGroundJumpAirTime / 1000 / 2 + aestheticJumpBias;
+          this.fallLoopStartTimeS -= t;
+          const previousT = t - timeDiffS;
+          this.lastGravityH = 0.5 * physicsScene.getGravity().y * previousT * previousT;
         }
-        const t = nowS - this.fallLoopStartTimeS;
-        const h = 0.5 * physicsScene.getGravity().y * t * t;
-        this.wantMoveDistancePerFrame.y = h - this.lastGravityH;
-
-        this.lastGravityH = h;
       }
-      this.lastFallLoopAction = fallLoopAction;
+      const t = nowS - this.fallLoopStartTimeS;
+      const h = 0.5 * physicsScene.getGravity().y * t * t;
+      this.wantMoveDistancePerFrame.y = h - this.lastGravityH;
+
+      this.lastGravityH = h;
+    }
+    this.lastFallLoopAction = fallLoopAction;
     // }
   }
+
   updateVelocity(timeDiffS) {
     this.applyVelocityDamping(this.velocity, timeDiffS);
   }
+
   applyCharacterPhysicsDetail(velocityAvatarDirection, updateRig, now, timeDiffS) {
     if (this.character.avatar) {
       // move character controller
@@ -148,7 +154,7 @@ class CharacterPhysics {
             doubleJumpAction.startPositionY -
             this.lastCharacterControllerY;
           if (doubleJumpTime >= flatGroundJumpAirTime) {
-            this.character.setControlAction({ type: 'fallLoop', from: 'jump' });
+            this.character.setControlAction({type: 'fallLoop', from: 'jump'});
           }
         } else {
           const jumpTime = this.character.actionInterpolants.jump.get();
@@ -158,7 +164,7 @@ class CharacterPhysics {
             jumpAction.startPositionY -
             this.lastCharacterControllerY;
           if (jumpTime >= flatGroundJumpAirTime) {
-            this.character.setControlAction({ type: 'fallLoop', from: 'jump' });
+            this.character.setControlAction({type: 'fallLoop', from: 'jump'});
           }
         }
       }
@@ -181,7 +187,7 @@ class CharacterPhysics {
         localVector3,
         minDist,
         timeDiffS,
-        this.characterController.position
+        this.characterController.position,
       );
       const positionXZAfter = localVector2D2.set(this.characterController.position.x, this.characterController.position.z);
       const positionYAfter = this.characterController.position.y;
@@ -220,7 +226,7 @@ class CharacterPhysics {
           localVector3.set(0, -groundStickOffset, 0),
           minDist,
           0,
-          localVector4
+          localVector4,
         );
         const newGrounded = !!(flags & 0x1);
         if (newGrounded) {
@@ -235,7 +241,7 @@ class CharacterPhysics {
       this.characterController.matrixWorld.decompose(
         localVector,
         localQuaternion,
-        localVector2
+        localVector2,
       );
       localQuaternion.copy(this.character.quaternion);
 
@@ -250,11 +256,11 @@ class CharacterPhysics {
           const horizontalVelocity = localVector5.set(
             this.velocity.x,
             0,
-            this.velocity.z
+            this.velocity.z,
           );
           if (horizontalVelocity.lengthSq() > 0.001) {
             localQuaternion.setFromRotationMatrix(
-              localMatrix.lookAt(zeroVector, horizontalVelocity, upVector)
+              localMatrix.lookAt(zeroVector, horizontalVelocity, upVector),
             );
           }
         } else {
@@ -287,13 +293,13 @@ class CharacterPhysics {
               !this.character.hasAction('fly') &&
               !this.character.hasAction('swim')
             ) {
-              this.character.setControlAction({ type: 'fallLoop' });
+              this.character.setControlAction({type: 'fallLoop'});
               this.velocity.y = 0;
             }
           }
         }
       } else {
-        //Outdated vehicle code
+        // Outdated vehicle code
         this.velocity.y = 0;
 
         const sitAction = this.character.getAction('sit');
@@ -306,7 +312,7 @@ class CharacterPhysics {
 
         // Patch fix to fix vehicles and mounts for now
         let rideMesh = null;
-        controlledApp.traverse((o) => {
+        controlledApp.traverse(o => {
           if (rideMesh === null && o.isSkinnedMesh) {
             rideMesh = o;
           }
@@ -315,8 +321,8 @@ class CharacterPhysics {
         // NOTE: We had a problem with sending the entire bone in the message buffer, so we're just sending the bone name
         const sitPos = sitComponent.sitBone
           ? rideMesh.skeleton.bones.find(
-              (bone) => bone.name === sitComponent.sitBone
-            )
+            bone => bone.name === sitComponent.sitBone,
+          )
           : controlledApp;
         const {
           sitOffset = [0, 0, 0],
@@ -329,13 +335,13 @@ class CharacterPhysics {
           controlledApp.quaternion
             .setFromUnitVectors(
               localVector4.set(0, 0, -1),
-              localVector5.set(this.velocity.x, 0, this.velocity.z).normalize()
+              localVector5.set(this.velocity.x, 0, this.velocity.z).normalize(),
             )
             .premultiply(
               localQuaternion2.setFromAxisAngle(
                 localVector3.set(0, 1, 0),
-                Math.PI
-              )
+                Math.PI,
+              ),
             );
         }
         controlledApp.updateMatrixWorld();
@@ -349,12 +355,12 @@ class CharacterPhysics {
 
         physicsScene.setCharacterControllerPosition(
           this.characterController,
-          localVector
+          localVector,
         );
         localVector.y += this.characterHeight * 0.5;
 
         localQuaternion.premultiply(
-          localQuaternion2.setFromAxisAngle(localVector3.set(0, 1, 0), Math.PI)
+          localQuaternion2.setFromAxisAngle(localVector3.set(0, 1, 0), Math.PI),
         );
       }
       // localOffset2.set(0, 0.05, 0); // Feet offset: Or feet will be in ground, only cosmetical, works for all avatars
@@ -370,7 +376,7 @@ class CharacterPhysics {
       this.character.matrix.decompose(
         this.character.position,
         this.character.quaternion,
-        this.character.scale
+        this.character.scale,
       );
       this.character.matrixWorld.copy(this.character.matrix);
 
@@ -390,9 +396,10 @@ class CharacterPhysics {
         this.characterController.position.y;
     }
   }
+
   /* dampen the velocity to make physical sense for the current avatar state */
   applyVelocityDamping(velocity, timeDiffS) {
-    const doDamping = (factor) => {
+    const doDamping = factor => {
       this.wantMoveDistancePerFrame.x = THREE.MathUtils.damp(this.wantMoveDistancePerFrame.x, this.lastTargetMoveDistancePerFrame.x, factor, timeDiffS);
       this.wantMoveDistancePerFrame.z = THREE.MathUtils.damp(this.wantMoveDistancePerFrame.z, this.lastTargetMoveDistancePerFrame.z, factor, timeDiffS);
       this.wantMoveDistancePerFrame.y = THREE.MathUtils.damp(this.wantMoveDistancePerFrame.y, this.lastTargetMoveDistancePerFrame.y, factor, timeDiffS);
@@ -402,17 +409,16 @@ class CharacterPhysics {
       this.wantVelocity.z = THREE.MathUtils.damp(this.wantVelocity.z, this.lastTargetVelocity.z, factor, timeDiffS);
       this.wantVelocity.y = THREE.MathUtils.damp(this.wantVelocity.y, this.lastTargetVelocity.y, factor, timeDiffS);
       // this.wantVelocity.y = this.targetVelocity.y;
-    }
+    };
     if (this.character.hasAction('fly')) {
       doDamping(flyFriction);
-    } 
-    else if(this.character.hasAction('swim')){
+    } else if (this.character.hasAction('swim')) {
       doDamping(swimFriction);
-    }
-    else {
+    } else {
       doDamping(groundFriction);
     }
   }
+
   applyCharacterPhysics(now, timeDiffS) {
     // const renderer = getRenderer();
     // const session = renderer.xr.getSession();
@@ -440,6 +446,7 @@ class CharacterPhysics {
     }
     // }
   }
+
   applyCharacterActionKinematics(now, timeDiffS) {
     const renderer = getRenderer();
     const session = renderer.xr.getSession();
@@ -448,12 +455,12 @@ class CharacterPhysics {
       for (const action of this.character.getActions()) {
         if (action.type === 'wear') {
           const app = this.character.appManager.getAppByInstanceId(
-            action.instanceId
+            action.instanceId,
           );
           if (!app) {
             return null;
           }
-          for (const { key, value } of app.components) {
+          for (const {key, value} of app.components) {
             if (key === 'aim') {
               return value;
             }
@@ -469,7 +476,7 @@ class CharacterPhysics {
       const isPlayerAiming = !!aimAction && !aimAction.playerAnimation;
       const isObjectAimable = !!aimComponent;
       // const isPlayingEnvelopeIkAnimation = !!useAction && useAction.ik === 'bow';
-      
+
       const isHandEnabled =
         isSession ||
         (isPlayerAiming &&
@@ -480,8 +487,8 @@ class CharacterPhysics {
           (aimComponent?.ikHand === 'left'
             ? 1
             : aimComponent?.ikHand === 'right'
-            ? 0
-            : null);
+              ? 0
+              : null);
         const enabled = isHandEnabled && isExpectedHandIndex;
         this.character.hands[i].enabled = enabled;
       }
@@ -503,7 +510,7 @@ class CharacterPhysics {
               localVector3
                 .copy(leftHandOffset)
                 .multiplyScalar(handOffsetScale)
-                .applyQuaternion(localQuaternion)
+                .applyQuaternion(localQuaternion),
             );
           const leftGamepadQuaternion = localQuaternion;
           /* const leftGamepadPointer = 0;
@@ -520,7 +527,7 @@ class CharacterPhysics {
               localVector3
                 .copy(rightHandOffset)
                 .multiplyScalar(handOffsetScale)
-                .applyQuaternion(localQuaternion)
+                .applyQuaternion(localQuaternion),
             );
           const rightGamepadQuaternion = localQuaternion;
           /* const rightGamepadPointer = 0;
@@ -558,18 +565,18 @@ class CharacterPhysics {
               .add(
                 localVector3
                   .set(0, 1, -1)
-                  .applyQuaternion(this.character.leftHand.quaternion)
+                  .applyQuaternion(this.character.leftHand.quaternion),
               ),
             localVector3
               .set(0, 0, 1)
-              .applyQuaternion(this.character.leftHand.quaternion)
-          )
+              .applyQuaternion(this.character.leftHand.quaternion),
+          ),
         );
 
         this.character.leftHand.position.sub(
           localVector
             .set(0, 0, -fakeArmLength)
-            .applyQuaternion(this.character.leftHand.quaternion)
+            .applyQuaternion(this.character.leftHand.quaternion),
         );
 
         this.character.leftHand.quaternion.slerp(localQuaternion, v);
@@ -577,7 +584,7 @@ class CharacterPhysics {
         this.character.leftHand.position.add(
           localVector
             .set(0, 0, -fakeArmLength)
-            .applyQuaternion(this.character.leftHand.quaternion)
+            .applyQuaternion(this.character.leftHand.quaternion),
         );
 
         this.character.leftHand.updateMatrixWorld();
@@ -611,7 +618,7 @@ class CharacterPhysics {
           .add(
             localVector2
               .set(-rightHandOffset.x * 2, 0, -0.2)
-              .applyQuaternion(this.character.rightHand.quaternion)
+              .applyQuaternion(this.character.rightHand.quaternion),
           );
         const targetQuaternion = localQuaternion
           .copy(this.character.rightHand.quaternion)
@@ -631,6 +638,7 @@ class CharacterPhysics {
     };
     _updateBowIkAnimation();
   }
+
   update(now, timeDiffS) {
     const nowS = now / 1000;
     this.updateVelocity(timeDiffS);
@@ -641,11 +649,13 @@ class CharacterPhysics {
     this.lastTargetVelocity.copy(this.targetVelocity);
     this.lastTargetMoveDistancePerFrame.copy(this.targetMoveDistancePerFrame);
   }
+
   reset() {
     if (this.character.avatar) {
       this.velocity.set(0, 0, 0);
     }
   }
+
   destroy() {
     if (this.characterController) {
       physicsScene.destroyCharacterController(this.characterController);

@@ -40,24 +40,24 @@ physxLite.waitForLoad = () => {
     return new constructor(Module.HEAP8.buffer, 0, 0);
   }
 }; */
-physxLite.free = (ptr) => {
-  Module._doFree(ptr)
+physxLite.free = ptr => {
+  Module._doFree(ptr);
 };
 // physxLite.makePhysicsBase = () => Module._makePhysicsBase();
-physxLite.cookGeometryPhysics = (mesh) => {
+physxLite.cookGeometryPhysics = mesh => {
   mesh.updateMatrixWorld();
   const {geometry} = mesh;
 
-  const allocator = new Allocator(Module)
+  const allocator = new Allocator(Module);
   const positions = allocator.alloc(
     Float32Array,
-    geometry.attributes.position.count * 3
-  )
-  positions.set(geometry.attributes.position.array)
+    geometry.attributes.position.count * 3,
+  );
+  positions.set(geometry.attributes.position.array);
   const indices = geometry.index
     ? allocator.alloc(Uint32Array, geometry.index.count)
-    : null
-  indices && indices.set(geometry.index.array)
+    : null;
+  indices && indices.set(geometry.index.array);
   Module._cookGeometryPhysics(
     positions.byteOffset,
     indices ? indices.byteOffset : 0,
@@ -65,34 +65,34 @@ physxLite.cookGeometryPhysics = (mesh) => {
     indices ? indices.length : 0,
     scratchStack.u32.byteOffset,
     scratchStack.u32.byteOffset + Uint32Array.BYTES_PER_ELEMENT,
-    scratchStack.u32.byteOffset + Uint32Array.BYTES_PER_ELEMENT * 2
-  )
+    scratchStack.u32.byteOffset + Uint32Array.BYTES_PER_ELEMENT * 2,
+  );
 
   const dataPtr = scratchStack.u32[0];
   const dataLength = scratchStack.u32[1];
   const streamPtr = scratchStack.u32[2];
 
   const result = Module.HEAPU8.slice(dataPtr, dataPtr + dataLength);
-  
+
   allocator.freeAll();
   Module._deleteMemoryOutputStream(streamPtr);
 
   return result;
 };
-physxLite.cookConvexGeometryPhysics = (mesh) => {
+physxLite.cookConvexGeometryPhysics = mesh => {
   mesh.updateMatrixWorld();
   const {geometry} = mesh;
 
-  const allocator = new Allocator(Module)
+  const allocator = new Allocator(Module);
   const positions = allocator.alloc(
     Float32Array,
-    geometry.attributes.position.count * 3
-  )
-  positions.set(geometry.attributes.position.array)
+    geometry.attributes.position.count * 3,
+  );
+  positions.set(geometry.attributes.position.array);
   const indices = geometry.index
     ? allocator.alloc(Uint32Array, geometry.index.count)
-    : null
-  indices && indices.set(geometry.index.array)
+    : null;
+  indices && indices.set(geometry.index.array);
   Module._cookConvexGeometryPhysics(
     positions.byteOffset,
     indices ? indices.byteOffset : 0,
@@ -100,15 +100,15 @@ physxLite.cookConvexGeometryPhysics = (mesh) => {
     indices ? indices.length : 0,
     scratchStack.u32.byteOffset,
     scratchStack.u32.byteOffset + Uint32Array.BYTES_PER_ELEMENT,
-    scratchStack.u32.byteOffset + Uint32Array.BYTES_PER_ELEMENT * 2
-  )
+    scratchStack.u32.byteOffset + Uint32Array.BYTES_PER_ELEMENT * 2,
+  );
 
   const dataPtr = scratchStack.u32[0];
   const dataLength = scratchStack.u32[1];
   const streamPtr = scratchStack.u32[2];
 
   const result = Module.HEAPU8.slice(dataPtr, dataPtr + dataLength);
-  
+
   allocator.freeAll();
   Module._deleteMemoryOutputStream(streamPtr);
 
@@ -145,7 +145,7 @@ physxLite.meshoptSimplify = (mesh, targetRatio, targetError) => {
     target_index_count,
     target_error,
     scratchStack.u32.byteOffset,
-    scratchStack.u32.byteOffset + Uint32Array.BYTES_PER_ELEMENT
+    scratchStack.u32.byteOffset + Uint32Array.BYTES_PER_ELEMENT,
   );
 
   const dataPtr = scratchStack.u32[0];
@@ -153,7 +153,7 @@ physxLite.meshoptSimplify = (mesh, targetRatio, targetError) => {
 
   const dataOffset = dataPtr / Uint32Array.BYTES_PER_ELEMENT;
   const result = Module.HEAPU32.slice(dataOffset, dataOffset + dataLength);
-  
+
   allocator.freeAll();
   Module._doFree(dataPtr);
 
@@ -190,7 +190,7 @@ physxLite.meshoptSimplifySloppy = (mesh, targetRatio, targetError) => {
     target_index_count,
     target_error,
     scratchStack.u32.byteOffset,
-    scratchStack.u32.byteOffset + Uint32Array.BYTES_PER_ELEMENT
+    scratchStack.u32.byteOffset + Uint32Array.BYTES_PER_ELEMENT,
   );
 
   const dataPtr = scratchStack.u32[0];
@@ -198,7 +198,7 @@ physxLite.meshoptSimplifySloppy = (mesh, targetRatio, targetError) => {
 
   const dataOffset = dataPtr / Uint32Array.BYTES_PER_ELEMENT;
   const result = Module.HEAPU32.slice(dataOffset, dataOffset + dataLength);
-  
+
   allocator.freeAll();
   Module._doFree(dataPtr);
 

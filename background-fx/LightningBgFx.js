@@ -230,9 +230,10 @@ class LightningBgFxMesh extends THREE.Mesh {
     material.uniforms.iChannel1.value.wrapS = THREE.RepeatWrapping;
     material.uniforms.iChannel1.value.wrapT = THREE.RepeatWrapping;
     super(fullscreenGeometry, material);
-    
+
     this.frustumCulled = false;
   }
+
   update(timestamp, timeDiff, width, height) {
     const timestampS = timestamp / 1000;
 

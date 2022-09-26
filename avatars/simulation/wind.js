@@ -3,7 +3,7 @@ import Simplex from '../../simplex-noise.js';
 import metaversefile from 'metaversefile';
 
 const simplex = new Simplex();
-let windDirection = new THREE.Vector3();
+const windDirection = new THREE.Vector3();
 const windPosition = new THREE.Vector3();
 const windNoisePos = new THREE.Vector3();
 const localVector2 = new THREE.Vector3();
@@ -31,7 +31,7 @@ const update = (timestamp, headPosition, springBoneManager) => {
       joint.settings.gravityPower = 0;
     }
   };
-  const _handleDirectional = (wind) => {
+  const _handleDirectional = wind => {
     windDirection.set(wind.direction[0], wind.direction[1], wind.direction[2]);
     const windForce = wind.windForce !== undefined ? wind.windForce : 0;
     const noiseScale = wind.noiseScale !== undefined ? wind.noiseScale : 0;
@@ -50,7 +50,7 @@ const update = (timestamp, headPosition, springBoneManager) => {
       joint.settings.gravityPower = windNoise * windForce;
     }
   };
-  const _handleSpherical = (wind) => {
+  const _handleSpherical = wind => {
     windDirection.set(wind.direction[0], wind.direction[1], wind.direction[2]);
     const windForce = wind.windForce ?? 0;
     const noiseScale = wind.noiseScale ?? 0;
@@ -70,7 +70,7 @@ const update = (timestamp, headPosition, springBoneManager) => {
         windNoise * (windForce * (1.1 - headPosition.distanceTo(windPosition) / wind.radius));
     }
   };
-  const _handleCentral = (wind) => {
+  const _handleCentral = wind => {
     const windForce = wind.windForce ?? 0;
     const noiseScale = wind.noiseScale ?? 0;
     const windFrequency = wind.windFrequency ?? 0;
@@ -94,7 +94,7 @@ const update = (timestamp, headPosition, springBoneManager) => {
     }
   };
   if (winds && winds.length > 0) {
-    let windIndex = inWindZone();
+    const windIndex = inWindZone();
     if (windIndex !== -1) {
       if (winds[windIndex].windType === 'spherical') _handleSpherical(winds[windIndex]);
       else if (winds[windIndex].windType === 'central') _handleCentral(winds[windIndex]);

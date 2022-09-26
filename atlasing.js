@@ -21,10 +21,10 @@ export const mapWarpedUvs = (src, srcOffset, dst, dstOffset, tx, ty, tw, th, can
     modUv(localVector2D);
     localVector2D
       .multiply(
-        localVector2D2.set(tw/canvasSize, th/canvasSize)
+        localVector2D2.set(tw / canvasSize, th / canvasSize),
       )
       .add(
-        localVector2D2.set(tx/canvasSize, ty/canvasSize)
+        localVector2D2.set(tx / canvasSize, ty / canvasSize),
       );
     localVector2D.toArray(dst.array, localDstOffset);
   }
@@ -74,7 +74,7 @@ const generateTextureAtlas = textureSpecs => {
       textureSizes.forEach((textureSize, index) => {
         const {x: width, y: height} = textureSize;
         const hash = textureUuids[index];
-        
+
         let rect = rectUuidCache.get(hash);
         if (!rect) {
           rect = {
@@ -106,7 +106,7 @@ const generateTextureAtlas = textureSpecs => {
         return null;
       }
     };
-    
+
     const hasTextures = textureSizes.some(textureSize => textureSize.x > 0 || textureSize.y > 0);
     if (hasTextures) {
       let atlas;
@@ -248,7 +248,7 @@ export const createTextureAtlas = (meshes, {
     const th = h * canvasScale;
 
     mapWarpedUvs(geometry.attributes.uv, 0, geometry.attributes.uv, 0, tx, ty, tw, th, canvasSize);
-  
+
     return geometry;
   });
 

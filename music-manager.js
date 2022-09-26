@@ -21,12 +21,13 @@ class Music {
       }));
     })();
   }
+
   play({
     repeat = false,
   } = {}) {
     const audioBuffer = this.audioBuffers[this.audioBufferIndex];
     this.audioBufferIndex = (this.audioBufferIndex + 1) % this.audioBuffers.length;
-    
+
     const source = this.audioContext.createBufferSource();
     source.buffer = audioBuffer;
     source.loop = repeat;
@@ -43,6 +44,7 @@ class Music {
       gain,
     };
   }
+
   waitForLoad() {
     return this.loadPromise;
   }
@@ -101,6 +103,7 @@ class MusicManager {
       .then(() => {});
     this.currentMusic = null;
   }
+
   async fetchMusic(url, name = url) {
     const music = new Music({
       name,
@@ -109,6 +112,7 @@ class MusicManager {
     await music.waitForLoad();
     return music;
   }
+
   playCurrentMusic(newMusic, {
     repeat = false,
   } = {}) {
@@ -125,12 +129,14 @@ class MusicManager {
       }
     });
   }
+
   playCurrentMusicName(name, opts) {
     const newMusic = this.musics.find(music => music.name === name);
     if (newMusic) {
       this.playCurrentMusic(newMusic, opts);
     }
   }
+
   stopCurrentMusic() {
     if (this.currentMusic) {
       this.currentMusic.source.stop();
@@ -138,6 +144,7 @@ class MusicManager {
       this.currentMusic = null;
     }
   }
+
   waitForLoad() {
     return this.loadPromise;
   }

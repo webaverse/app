@@ -8,46 +8,46 @@ import alea from '../../../../procgen/alea.js';
 const screenshotSize = 100;
 
 export const Infobox = () => {
-    const canvasRef = useRef();
-    const [selectedApp, setSelectedApp] = useState(null);
+  const canvasRef = useRef();
+  const [selectedApp, setSelectedApp] = useState(null);
 
-    const rng = selectedApp ? alea(selectedApp.contentId) : null;
-    const level = rng ? 1 + Math.floor((rng() ** 3) * 99) : 0;
-    const dps = rng ? Math.floor((rng() ** 3) * 1000) : 0;
-    const exp = rng ? Math.floor((rng() ** 3) * 100) : 0;
+  const rng = selectedApp ? alea(selectedApp.contentId) : null;
+  const level = rng ? 1 + Math.floor((rng() ** 3) * 99) : 0;
+  const dps = rng ? Math.floor((rng() ** 3) * 1000) : 0;
+  const exp = rng ? Math.floor((rng() ** 3) * 100) : 0;
 
-    let name = selectedApp ? selectedApp.name : '';
-    if (selectedApp && !name) {
-        console.warn('app has no name', selectedApp);
-        name = 'MissingNo.';
+  let name = selectedApp ? selectedApp.name : '';
+  if (selectedApp && !name) {
+    console.warn('app has no name', selectedApp);
+    name = 'MissingNo.';
+  }
+
+  useEffect(() => {
+    if (canvasRef.current) {
+      const canvas = canvasRef.current;
+
+      const infoBoxRenderer = loadoutManager.getInfoboxRenderer();
+      infoBoxRenderer.addCanvas(canvas);
+
+      return () => {
+        infoBoxRenderer.removeCanvas(canvas);
+      };
     }
+  }, [canvasRef]);
+  useEffect(() => {
+    function selectedchange(e) {
+      const {index, app} = e.data;
+      if (index === -1 || app) {
+        setSelectedApp(app);
+      }
+    }
+    loadoutManager.addEventListener('selectedchange', selectedchange);
+    return () => {
+      loadoutManager.removeEventListener('selectedchange', selectedchange);
+    };
+  }, []);
 
-    useEffect(() => {
-        if (canvasRef.current) {
-            const canvas = canvasRef.current;
-
-            const infoBoxRenderer = loadoutManager.getInfoboxRenderer();
-            infoBoxRenderer.addCanvas(canvas);
-
-            return () => {
-                infoBoxRenderer.removeCanvas(canvas);
-            };
-        }
-    }, [canvasRef]);
-    useEffect(() => {
-        function selectedchange(e) {
-            const {index, app} = e.data;
-            if (index === -1 || app) {
-                setSelectedApp(app);
-            }
-        }
-        loadoutManager.addEventListener('selectedchange', selectedchange);
-        return () => {
-            loadoutManager.removeEventListener('selectedchange', selectedchange);
-        };
-    }, []);
-
-    return (
+  return (
         <div className={ classnames(styles.infobox, selectedApp ? styles.selected : null) } >
             <canvas width={screenshotSize} height={screenshotSize} className={ styles.screenshot } ref={canvasRef} />
             <div className={ styles.background }>
@@ -55,7 +55,9 @@ export const Infobox = () => {
               <div className={ styles['background-2'] } />
             </div>
             <div className={ styles.content }>
-                {selectedApp ? <>
+                {selectedApp
+                  ? (
+                    <React.Fragment>
                     <div className={ styles.row }>
                         <h1>{name}</h1>
                         <h2>Lv. {level}</h2>
@@ -75,7 +77,8 @@ export const Infobox = () => {
                         <div className={ styles.label }>EXP</div>
                         <progress className={ styles.progress } value={exp} max={100}></progress>
                     </div>
-                </> : null}
+                </React.Fragment>)
+                  : null}
             </div>
             <div className={ styles.hints }>
                 <div className={ styles.hint }>
@@ -92,6 +95,5 @@ export const Infobox = () => {
                 </div>
           </div>
         </div>
-    );
-
+  );
 };

@@ -18,10 +18,10 @@ function getCardFrontTexture(appUrl) {
     const imageBitmap = await cardsManager.getCardsImage(
       appUrl,
       {
-          width,
-          flipY: true,
-          // signal,
-      }
+        width,
+        flipY: true,
+        // signal,
+      },
     );
     texture.image = imageBitmap;
     texture.needsUpdate = true;
@@ -43,7 +43,7 @@ function getCardBackTexture() {
   img.onerror = err => {
     console.warn(err);
   };
-  img.src = `images/cardback-01.svg`;
+  img.src = 'images/cardback-01.svg';
 
   return texture;
 }

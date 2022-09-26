@@ -1,4 +1,4 @@
-import Module from './public/dc.module.js'
+import Module from './public/dc.module.js';
 import {Allocator} from './geometry-util.js';
 import {makePromise} from './util.js';
 import {defaultChunkSize} from './constants.js';
@@ -47,7 +47,7 @@ const _parseTrackerUpdate = bufferAddress => {
     index += Int32Array.BYTES_PER_ELEMENT * 3;
     const lod = dataView.getInt32(index, true);
     index += Int32Array.BYTES_PER_ELEMENT;
-    
+
     return {
       min,
       lod,
@@ -61,10 +61,10 @@ const _parseTrackerUpdate = bufferAddress => {
     for (let i = 0; i < numOldNodes; i++) {
       oldNodes[i] = _parseNode();
     }
-    const newNodes = Array(numNewNodes);
-    for (let i = 0; i < numNewNodes; i++) {
-      newNodes[i] = _parseNode();
-    }
+    // const newNodes = Array(numNewNodes);
+    // for (let i = 0; i < numNewNodes; i++) {
+    //   newNodes[i] = _parseNode();
+    // }
   };
   const _parseSwaps = () => {
     const numSwaps = dataView.getInt32(index, true);
@@ -88,7 +88,7 @@ const _parseTrackerUpdate = bufferAddress => {
     index += Int32Array.BYTES_PER_ELEMENT;
     const lodArray = new Int32Array(Module.HEAPU8.buffer, bufferAddress + index, 8).slice();
     index += Int32Array.BYTES_PER_ELEMENT * 8;
-    
+
     const numOldNodes = dataView.getUint32(index, true);
     index += Uint32Array.BYTES_PER_ELEMENT;
     const oldNodes = Array(numOldNodes);
@@ -143,7 +143,7 @@ w.trackerUpdateAsync = async (inst, taskId, tracker, position, priority) => {
     taskId,
     tracker,
     positionArray.byteOffset,
-    priority
+    priority,
   );
   const p = makePromise();
   cbs.set(taskId, p);
@@ -239,7 +239,7 @@ w.setClipRange = function(inst, range) {
       numPositionsTypedArray.byteOffset
     );
 
-    if (drew) {      
+    if (drew) {
       numPositions = numPositionsTypedArray[0];
       const chunks = Array(numPositions);
       for (let i = 0; i < numPositions; i++) {
@@ -348,7 +348,6 @@ const _parseTerrainVertexBuffer = (arrayBuffer, bufferAddress) => {
 w.createTerrainChunkMeshAsync = async (inst, taskId, x, z, lod) => {
   const allocator = new Allocator(Module);
 
-
   Module._createTerrainChunkMeshAsync(
     inst,
     taskId,
@@ -365,7 +364,7 @@ w.createTerrainChunkMeshAsync = async (inst, taskId, x, z, lod) => {
   if (outputBufferOffset) {
     const result = _parseTerrainVertexBuffer(
       Module.HEAP8.buffer,
-      Module.HEAP8.byteOffset + outputBufferOffset
+      Module.HEAP8.byteOffset + outputBufferOffset,
     );
     return result;
   } else {
@@ -587,23 +586,23 @@ w.createGrassSplatAsync = async (inst, taskId, x, z, lod, priority) => {
   // const count = allocator.alloc(Uint32Array, 1);
 
   // try {
-    Module._createGrassSplatAsync(
-      inst,
-      taskId,
-      x, z,
-      lod,
-      priority
-    );
+  Module._createGrassSplatAsync(
+    inst,
+    taskId,
+    x, z,
+    lod,
+    priority,
+  );
 
-    const p = makePromise();
-    cbs.set(taskId, p);
-    const result = await p;
-    const pqi = _parsePQI(result);
-    // console.log('got result 1', _parsePQI(result));
-    Module._doFree(result);
-    return pqi;
+  const p = makePromise();
+  cbs.set(taskId, p);
+  const result = await p;
+  const pqi = _parsePQI(result);
+  // console.log('got result 1', _parsePQI(result));
+  Module._doFree(result);
+  return pqi;
 
-    /* const numElements = count[0];
+  /* const numElements = count[0];
     return {
       ps: ps.slice(0, numElements * 3),
       qs: qs.slice(0, numElements * 4),
@@ -623,23 +622,23 @@ w.createVegetationSplatAsync = async (inst, taskId, x, z, lod, priority) => {
   // const count = allocator.alloc(Uint32Array, 1);
 
   // try {
-    Module._createVegetationSplatAsync(
-      inst,
-      taskId,
-      x, z,
-      lod,
-      priority
-    );
+  Module._createVegetationSplatAsync(
+    inst,
+    taskId,
+    x, z,
+    lod,
+    priority,
+  );
 
-    const p = makePromise();
-    cbs.set(taskId, p);
-    const result = await p;
+  const p = makePromise();
+  cbs.set(taskId, p);
+  const result = await p;
 
-    const pqi = _parsePQI(result);
-    // console.log('got result 2', _parsePQI(result));
-    Module._doFree(result);
-    return pqi;
-    /* const numElements = count[0];
+  const pqi = _parsePQI(result);
+  // console.log('got result 2', _parsePQI(result));
+  Module._doFree(result);
+  return pqi;
+  /* const numElements = count[0];
     return {
       ps: ps.slice(0, numElements * 3),
       qs: qs.slice(0, numElements * 4),
@@ -659,23 +658,23 @@ w.createMobSplatAsync = async (inst, taskId, x, z, lod, priority) => {
   const count = allocator.alloc(Uint32Array, 1); */
 
   // try {
-    Module._createMobSplatAsync(
-      inst,
-      taskId,
-      x, z,
-      lod,
-      priority
-    );
+  Module._createMobSplatAsync(
+    inst,
+    taskId,
+    x, z,
+    lod,
+    priority,
+  );
 
-    const p = makePromise();
-    cbs.set(taskId, p);
-    const result = await p;
-    const pqi = _parsePQI(result);
-    // console.log('got result 3', _parsePQI(result));
-    Module._doFree(result);
-    return pqi;
+  const p = makePromise();
+  cbs.set(taskId, p);
+  const result = await p;
+  const pqi = _parsePQI(result);
+  // console.log('got result 3', _parsePQI(result));
+  Module._doFree(result);
+  return pqi;
 
-    /* const numElements = count[0];
+  /* const numElements = count[0];
     return {
       ps: ps.slice(0, numElements * 3),
       qs: qs.slice(0, numElements * 4),
@@ -701,7 +700,7 @@ w.setCamera = (
   worldPosition,
   cameraPosition,
   cameraQuaternion,
-  projectionMatrix
+  projectionMatrix,
 ) => {
   const allocator = new Allocator(Module);
 
@@ -722,7 +721,7 @@ w.setCamera = (
     worldPositionArray.byteOffset,
     cameraPositionArray.byteOffset,
     cameraQuaternionArray.byteOffset,
-    projectionMatrixArray.byteOffset
+    projectionMatrixArray.byteOffset,
   );
 
   allocator.freeAll();

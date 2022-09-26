@@ -793,7 +793,7 @@ export const _applyAnimation = (avatar, now) => {
         _clearXZ(dst, isPosition);
 
         if (avatar.holdState && isArm) {
-          const holdAnimation = holdAnimations['pick_up_idle'];
+          const holdAnimation = holdAnimations.pick_up_idle;
           const src2 = holdAnimation.interpolants[k];
           const t2 = (now / 1000) % holdAnimation.duration;
           const v2 = src2.evaluate(t2);
@@ -1157,7 +1157,7 @@ export const _applyAnimation = (avatar, now) => {
 
         _handleDefault(spec);
 
-        const holdAnimation = holdAnimations['pick_up_idle'];
+        const holdAnimation = holdAnimations.pick_up_idle;
         const src2 = holdAnimation.interpolants[k];
         const t2 = (now / 1000) % holdAnimation.duration;
         const v2 = src2.evaluate(t2);
@@ -1187,8 +1187,8 @@ export const _applyAnimation = (avatar, now) => {
           isPosition, */
         } = spec;
 
-        const pickUpAnimation = pickUpAnimations['pickUpZelda'];
-        const pickUpIdleAnimation = pickUpAnimations['pickUpIdleZelda'];
+        const pickUpAnimation = pickUpAnimations.pickUpZelda;
+        const pickUpIdleAnimation = pickUpAnimations.pickUpIdleZelda;
 
         const t2 = avatar.pickUpTime / 1000;
         if (t2 < pickUpAnimation.duration) {
@@ -1231,7 +1231,7 @@ export const _applyAnimation = (avatar, now) => {
         );
 
       if (avatar.holdState && isArm) {
-        const holdAnimation = holdAnimations['pick_up_idle'];
+        const holdAnimation = holdAnimations.pick_up_idle;
         const src2 = holdAnimation.interpolants[k];
         const t2 = (now / 1000) % holdAnimation.duration;
         const v2 = src2.evaluate(t2);

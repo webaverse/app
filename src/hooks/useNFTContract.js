@@ -50,7 +50,7 @@ export default function useNFTContract(currentAccount) {
   }, [selectedChain]);
 
   async function getSigner() {
-    var provider = new ethers.providers.Web3Provider(window.ethereum);
+    const provider = new ethers.providers.Web3Provider(window.ethereum);
     return provider.getSigner(currentAccount);
   }
 
@@ -97,27 +97,27 @@ export default function useNFTContract(currentAccount) {
       }
 
       const type = 'upload';
-      let load = null;
-      // const json_hash = await handleBlobUpload(metadataFileName, JSON.stringify(metadata) )
+      const load = null;
+      const json_hash = await handleBlobUpload(metadataFileName, JSON.stringify(metadata));
       // handleBlobUpload
       // new Blob([JSON.stringify(metadata)], {type: 'text/plain'});
-    //   const json_hash = await handleBlobUpload(metadataFileName, new Blob([JSON.stringify(metadata)], {type: 'text/plain'}), {
-    //     onTotal(total) {
-    //       load = registerLoad(type, metadataFileName, 0, total);
-    //     },
-    //     onProgress(e) {
-    //       if (load) {
-    //         load.update(e.loaded, e.total);
-    //       } else {
-    //         load = registerLoad(type, metadataFileName, e.loaded, e.total);
-    //       }
-    //     },
-    //   });
-    //   if (load) {
-    //     load.end();
-    //   }
+      //   const json_hash = await handleBlobUpload(metadataFileName, new Blob([JSON.stringify(metadata)], {type: 'text/plain'}), {
+      //     onTotal(total) {
+      //       load = registerLoad(type, metadataFileName, 0, total);
+      //     },
+      //     onProgress(e) {
+      //       if (load) {
+      //         load.update(e.loaded, e.total);
+      //       } else {
+      //         load = registerLoad(type, metadataFileName, e.loaded, e.total);
+      //       }
+      //     },
+      //   });
+      //   if (load) {
+      //     load.end();
+      //   }
 
-    //   const metadatahash = json_hash.split(FILE_ADDRESS)[1].split('/')[0];
+      const metadatahash = json_hash.split(FILE_ADDRESS)[1].split('/')[0];
       const Webaversecontract = new ethers.Contract(WebaversecontractAddress, WebaverseABI, signer);
       // const NFTcontract = new ethers.Contract(NFTcontractAddress, NFTABI, signer);
       const FTcontract = new ethers.Contract(FTcontractAddress, FTABI, signer);
@@ -142,7 +142,7 @@ export default function useNFTContract(currentAccount) {
         }
       } else { // mintfee = 0 for Polygon not webaverse sidechain
         try {
-          const minttx = await Webaversecontract.mint(currentAccount, 1, currentApp.contentId,  name, '0x');
+          const minttx = await Webaversecontract.mint(currentAccount, 1, currentApp.contentId, name, '0x');
           //   callback(minttx);
           callback();
           const res = await minttx.wait();
@@ -162,142 +162,141 @@ export default function useNFTContract(currentAccount) {
     }
   }
 
-  async function mintfromVoucher(app, callback = () => {}, afterminting = f => f) { //server drop
+  async function mintfromVoucher(app, callback = () => {}, afterminting = f => f) { // server drop
     setMinting(true);
     setError('');
-    if(app.type !== "major") {  // app.type === "major"
-        try {
+    if (app.type !== 'major') { // app.type === "major"
+      try {
         const signer = await getSigner();
         const webaverseContract = new ethers.Contract(
-            WebaversecontractAddress,
-            WebaverseABI,
-            signer
+          WebaversecontractAddress,
+          WebaverseABI,
+          signer,
         );
         const FTcontract = new ethers.Contract(FTcontractAddress, FTABI, signer);
 
         const bigMintFee = await webaverseContract.mintFee();
         const mintfee = BigNumber.from(bigMintFee).toNumber();
         if (mintfee > 0) {
-            // webaverse side chain mintfee != 0
-            const FTapprovetx = await FTcontract.approve(
+          // webaverse side chain mintfee != 0
+          const FTapprovetx = await FTcontract.approve(
             WebaversecontractAddress,
-            mintfee
-            ); // mintfee = 10 default
-            const FTapproveres = await FTapprovetx.wait();
-            if (FTapproveres.transactionHash) {
-                if(app.serverDrop === true) {
-                    try {
-                    const res = await webaverseContract.claimServerDropNFT(
-                        currentAccount,
-                        app.name,
-                        app.level.toString(),
-                        "0x",
-                        app.voucher
-                    );
-                    callback(res);
-                    } catch (err) {
-                    console.warn("NFT minting to webaverse contract failed");
-                    setError("NFT Mint Failed");
-                    }
-                } else {
-                    try {
-                    const res = await webaverseContract.claim_NFT(
-                        currentAccount,
-                        "0x",
-                        app.voucher
-                    );
-                    callback(res);
-                    } catch (err) {
-                    console.warn("NFT claiming to webaverse contract failed");
-                    setError("NFT Mint Failed");
-                    }
-                }
+            mintfee,
+          ); // mintfee = 10 default
+          const FTapproveres = await FTapprovetx.wait();
+          if (FTapproveres.transactionHash) {
+            if (app.serverDrop === true) {
+              try {
+                const res = await webaverseContract.claimServerDropNFT(
+                  currentAccount,
+                  app.name,
+                  app.level.toString(),
+                  '0x',
+                  app.voucher,
+                );
+                callback(res);
+              } catch (err) {
+                console.warn('NFT minting to webaverse contract failed');
+                setError('NFT Mint Failed');
+              }
+            } else {
+              try {
+                const res = await webaverseContract.claim_NFT(
+                  currentAccount,
+                  '0x',
+                  app.voucher,
+                );
+                callback(res);
+              } catch (err) {
+                console.warn('NFT claiming to webaverse contract failed');
+                setError('NFT Mint Failed');
+              }
             }
+          }
         } else {
-            if (app.serverDrop === true) {
-                try {
-                    const claimtx = await webaverseContract.claimServerDropNFT(
-                        currentAccount,
-                        app.name,
-                        app.level.toString(),
-                        "0x",
-                        app.voucher                                 
-                    );
-                    callback();
-                    const res = await claimtx.wait();
-                    if (res.transactionHash) {
-                        // afterminting(app);
-                        afterminting();
-                    }
-                } catch (err) {
-                console.warn("NFT minting to webaverse contract failed");
-                setError("NFT Mint Failed");
-                }
-            } else {
-                try {
-                    const minttx = await webaverseContract.claim_NFT(
-                        currentAccount,
-                        "0x",
-                        app.voucher
-                    );
-                    callback();
-                    const res = await minttx.wait();
-                    if (res.transactionHash) {
-                        afterminting();
-                    }
-                } catch (err) {
-                console.warn("NFT claiming to webaverse contract failed");
-                setError("NFT Mint Failed");
-                }
+          if (app.serverDrop === true) {
+            try {
+              const claimtx = await webaverseContract.claimServerDropNFT(
+                currentAccount,
+                app.name,
+                app.level.toString(),
+                '0x',
+                app.voucher,
+              );
+              callback();
+              const res = await claimtx.wait();
+              if (res.transactionHash) {
+                // afterminting(app);
+                afterminting();
+              }
+            } catch (err) {
+              console.warn('NFT minting to webaverse contract failed');
+              setError('NFT Mint Failed');
             }
+          } else {
+            try {
+              const minttx = await webaverseContract.claim_NFT(
+                currentAccount,
+                '0x',
+                app.voucher,
+              );
+              callback();
+              const res = await minttx.wait();
+              if (res.transactionHash) {
+                afterminting();
+              }
+            } catch (err) {
+              console.warn('NFT claiming to webaverse contract failed');
+              setError('NFT Mint Failed');
+            }
+          }
         }
         setMinting(false);
-        } catch (err) {
-        console.warn("NFT minting to webaverse contract failed");
-        setError("NFT Mint Failed");
+      } catch (err) {
+        console.warn('NFT minting to webaverse contract failed');
+        setError('NFT Mint Failed');
         setMinting(false);
-        }
+      }
     }
-    if (app.type !== "minor") { // app.type === "minor"
-        try {
-            const signer = await getSigner();
-            const webaverseContract = new ethers.Contract(
-            WebaversecontractAddress,
-            WebaverseABI,
-            signer
+    if (app.type !== 'minor') { // app.type === "minor"
+      try {
+        const signer = await getSigner();
+        const webaverseContract = new ethers.Contract(
+          WebaversecontractAddress,
+          WebaverseABI,
+          signer,
+        );
+
+        if (app.serverDrop === true) {
+          try {
+            const res = await webaverseContract.claimServerDropFT(
+              currentAccount,
+              app.voucher,
             );
-
-            if (app.serverDrop === true) {
-                try {
-                    const res = await webaverseContract.claimServerDropFT(
-                    currentAccount,
-                    app.voucher
-                    );
-                    callback(res);
-                } catch (err) {
-                    console.warn("FT minting to webaverse contract failed");
-                    setError("Mint Failed");
-                }
-            } else {
-                try {
-                    const res = await webaverseContract.claim_FT(
-                    currentAccount,
-                    app.voucher
-                    );
-                    callback(res);
-                } catch (err) {
-                    console.warn("FT claiming to webaverse contract failed");
-                    setError("Mint Failed");
-                }
-            }
-            setMinting(false);
-        } catch (err) {
-            console.warn("FT minting to webaverse contract failed");
-            setError("FT Failed");
-            setMinting(false);
+            callback(res);
+          } catch (err) {
+            console.warn('FT minting to webaverse contract failed');
+            setError('Mint Failed');
+          }
+        } else {
+          try {
+            const res = await webaverseContract.claim_FT(
+              currentAccount,
+              app.voucher,
+            );
+            callback(res);
+          } catch (err) {
+            console.warn('FT claiming to webaverse contract failed');
+            setError('Mint Failed');
+          }
         }
+        setMinting(false);
+      } catch (err) {
+        console.warn('FT minting to webaverse contract failed');
+        setError('FT Failed');
+        setMinting(false);
+      }
     }
-
   }
 
   async function totalSupply() {
@@ -318,8 +317,8 @@ export default function useNFTContract(currentAccount) {
     const contract = await getContract();
     if (contract) {
     //   return await contract.uri(tokenId);
-    const tokenData = await contract.getTokenAttr(tokenId);
-    return tokenData;
+      const tokenData = await contract.getTokenAttr(tokenId);
+      return tokenData;
     } else {
       return {};
     }
@@ -335,7 +334,7 @@ export default function useNFTContract(currentAccount) {
         tokenId,
         url,
         name,
-        level
+        level,
       };
     }));
   }
@@ -353,6 +352,6 @@ export default function useNFTContract(currentAccount) {
     getTokenIdsOf,
     error,
     setError,
-    WebaversecontractAddress
+    WebaversecontractAddress,
   };
 }

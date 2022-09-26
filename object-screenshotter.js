@@ -39,7 +39,7 @@ export const screenshotObjectUrl = async ({
 const _addPreviewLights = scene => {
   const ambientLight = new THREE.AmbientLight(0xffffff, 2);
   scene.add(ambientLight);
-  
+
   const directionalLight = new THREE.DirectionalLight(0xffffff, 2);
   directionalLight.position.set(1, 2, 3);
   directionalLight.updateMatrixWorld();
@@ -104,7 +104,7 @@ export const screenshotObjectApp = async ({
         .add(
           localVector.set(0, 0, 1)
             .applyQuaternion(app.quaternion)
-            .multiplyScalar(2)
+            .multiplyScalar(2),
         );
 
       const physicsObjects = app.getPhysicsObjects();
@@ -117,12 +117,12 @@ export const screenshotObjectApp = async ({
           localMatrix.lookAt(
             sideCamera.position,
             app.position,
-            localVector2.set(0, 1, 0)
-          )
+            localVector2.set(0, 1, 0),
+          ),
         );
       }
       sideCamera.updateMatrixWorld();
-      
+
       // render side scene
       renderer.setViewport(0, 0, width, height);
       // renderer.clear();
@@ -139,7 +139,7 @@ export const screenshotObjectApp = async ({
         0,
         0,
         width,
-        height
+        height,
       );
       // writeCtx.drawImage(renderer.domElement, 0, 0);
     };

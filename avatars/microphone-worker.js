@@ -18,12 +18,12 @@ class MicrophoneWorker extends EventTarget {
       switch (e.data.method) {
         case 'volume':
         case 'buffer':
-          {
-            this.dispatchEvent(new MessageEvent(e.data.method, {
-              data: e.data.data,
-            }));
-            break;
-          }
+        {
+          this.dispatchEvent(new MessageEvent(e.data.method, {
+            data: e.data.data,
+          }));
+          break;
+        }
         default: {
           console.warn('invalid microphone worklet message', e.data);
         }
@@ -35,9 +35,11 @@ class MicrophoneWorker extends EventTarget {
     gainNode.connect(audioWorkletNode);
     audioWorkletNode.connect(options.audioContext.gain);
   }
+
   getInput() {
     return this.gainNode;
   }
+
   close() {
     if (this.audioWorkletNode) {
       this.audioWorkletNode.disconnect();

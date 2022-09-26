@@ -40,7 +40,7 @@ const _makeRenderer = (width, height) => {
   }));
   scene.add(cubeMesh); */
 
-  const camera = new THREE.PerspectiveCamera(60, width/height, 0.1, 100);
+  const camera = new THREE.PerspectiveCamera(60, width / height, 0.1, 100);
   // camera.position.copy(cameraPosition);
   // camera.lookAt(cameraTarget);
   // camera.quaternion.copy(cameraQuaternion);
@@ -354,21 +354,21 @@ const _makeRenderer = (width, height) => {
           canvas.height = height;
           const ctx = canvas.getContext('2d');
           if (img.width > img.height) { // vertical padding needed
-            const scaleFactor = img.width/width;
-            const dstWidth = img.width/scaleFactor;
-            const dstHeight = img.height/scaleFactor;
+            const scaleFactor = img.width / width;
+            const dstWidth = img.width / scaleFactor;
+            const dstHeight = img.height / scaleFactor;
 
             const pixelsToAdd = dstWidth - dstHeight;
-            const pixelsToAddD2 = pixelsToAdd/2;
+            const pixelsToAddD2 = pixelsToAdd / 2;
 
             ctx.drawImage(img, 0, pixelsToAddD2, dstWidth, dstHeight);
           } else { // horizontal padding needed
-            const scaleFactor = img.height/height;
-            const dstWidth = img.width/scaleFactor;
-            const dstHeight = img.height/scaleFactor;
+            const scaleFactor = img.height / height;
+            const dstWidth = img.width / scaleFactor;
+            const dstHeight = img.height / scaleFactor;
 
             const pixelsToAdd = dstHeight - dstWidth;
-            const pixelsToAddD2 = pixelsToAdd/2;
+            const pixelsToAddD2 = pixelsToAdd / 2;
 
             ctx.drawImage(img, pixelsToAddD2, 0, dstWidth, dstHeight);
           }
@@ -388,8 +388,8 @@ const _makeRenderer = (width, height) => {
         img.onerror = reject;
         img.src = URL.createObjectURL(blob);
       });
-      img.style.width = `${img.width/window.devicePixelRatio}px`;
-      img.style.height = `${img.height/window.devicePixelRatio}px`;
+      img.style.width = `${img.width / window.devicePixelRatio}px`;
+      img.style.height = `${img.height / window.devicePixelRatio}px`;
       screenshotResult.appendChild(img);
 
       const arrayBuffer = await blob.arrayBuffer();
@@ -429,8 +429,8 @@ const _makeRenderer = (width, height) => {
         camera.position.copy(center)
           // .add(new THREE.Vector3(0, size.y/2, 0))
           .add(
-            new THREE.Vector3(Math.cos(i + Math.PI/2), 0, Math.sin(i + Math.PI/2))
-              .multiplyScalar(Math.max(size.x/2, size.z/2) * 2.2),
+            new THREE.Vector3(Math.cos(i + Math.PI / 2), 0, Math.sin(i + Math.PI / 2))
+              .multiplyScalar(Math.max(size.x / 2, size.z / 2) * 2.2),
           );
         camera.lookAt(center);
         camera.updateMatrixWorld();
@@ -531,8 +531,8 @@ const _makeRenderer = (width, height) => {
           } */
 
           let now = 0;
-          const timeDiff = 1000/FPS;
-          while (now < idleAnimationDuration*1000) {
+          const timeDiff = 1000 / FPS;
+          while (now < idleAnimationDuration * 1000) {
             o.avatar.update(timeDiff);
 
             _lookAt(camera, boundingBox);
@@ -547,7 +547,7 @@ const _makeRenderer = (width, height) => {
             // o.position.y = Math.sin(i + Math.PI/2) * 0.05;
             o.quaternion
               .premultiply(
-                new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(1, 0, 0), Math.sin((i + Math.PI/2) * 1) * 0.005)
+                new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(1, 0, 0), Math.sin((i + Math.PI / 2) * 1) * 0.005),
               );
             /* camera.position.copy(center)
               .add(
@@ -596,8 +596,8 @@ const _makeRenderer = (width, height) => {
           video.onerror = reject;
           video.src = URL.createObjectURL(blob);
         });
-        video.style.width = `${width/window.devicePixelRatio}px`;
-        video.style.height = `${height/window.devicePixelRatio}px`;
+        video.style.width = `${width / window.devicePixelRatio}px`;
+        video.style.height = `${height / window.devicePixelRatio}px`;
         video.loop = true;
         screenshotResult.appendChild(video);
 

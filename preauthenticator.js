@@ -24,12 +24,12 @@ const o = {
   async hasAuthenticatedApi() {
     await loadPromise;
 
-    return  port.hasAuthenticatedApi.apply(port, arguments);
+    return port.hasAuthenticatedApi.apply(port, arguments);
   },
   async deleteAuthenticatedApi() {
     await loadPromise;
 
-    return  port.deleteAuthenticatedApi.apply(port, arguments);
+    return port.deleteAuthenticatedApi.apply(port, arguments);
   },
   /* waitForLoad() {
     return loadPromise;

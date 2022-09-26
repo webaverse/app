@@ -33,6 +33,7 @@ class Collision {
     this.point = new THREE.Vector3();
     this.valid = false;
   }
+
   set(app, physicsObject, physicsId, point) {
     this.app = app;
     this.physicsObject = physicsObject;
@@ -50,9 +51,11 @@ class RaycastManager extends EventTarget {
     this.collision = new Collision();
     this.lastDomHover = false;
   }
+
   getLastMouseEvent() {
     return this.lastMouseEvent;
   }
+
   setLastMouseEvent(e) {
     if (e) {
       this.lastMouseEvent.clientX = e.clientX;
@@ -64,11 +67,12 @@ class RaycastManager extends EventTarget {
       this.lastMouseEvent.inside = false;
     }
   }
+
   getMouseRaycaster = (() => {
     const localVector2D = new THREE.Vector2();
     const localVector2D2 = new THREE.Vector2();
     const localRaycaster = new THREE.Raycaster();
-  
+
     return function(e = this.lastMouseEvent) {
       const {clientX, clientY} = e;
       const renderer = getRenderer();
@@ -76,13 +80,13 @@ class RaycastManager extends EventTarget {
         renderer.getSize(localVector2D2);
         localVector2D.set(
           (clientX / localVector2D2.x) * 2 - 1,
-          -(clientY / localVector2D2.y) * 2 + 1
+          -(clientY / localVector2D2.y) * 2 + 1,
         );
         if (
           localVector2D.x >= -1 && localVector2D.x <= 1 &&
           localVector2D.y >= -1 && localVector2D.y <= 1
         ) {
-          /*const result = */localRaycaster.setFromCamera(localVector2D, camera);
+          /* const result = */localRaycaster.setFromCamera(localVector2D, camera);
           // console.log('return raycaster', result);
           return localRaycaster;
         } else {
@@ -95,7 +99,8 @@ class RaycastManager extends EventTarget {
       }
     };
   })();
-  getCenterEvent = (() =>{
+
+  getCenterEvent = (() => {
     const fakeCenterEvent = new FakeMouseEvent();
     const localVector2D2 = new THREE.Vector2();
 
@@ -111,54 +116,56 @@ class RaycastManager extends EventTarget {
       }
     };
   })();
+
   getCollision() {
     return this.collision.valid ? this.collision : null;
   }
+
   update() {
     // console.log('update');
 
     // try {
 
     const mouseEvent = cameraManager.pointerLockElement ? this.getCenterEvent() : this.lastMouseEvent;
-  
+
     let mouseHoverApp = null;
     let mouseHoverPhysicsObject = null;
     // let mouseSelectedObject = null;
     let mouseHoverPhysicsId = 0;
     // let htmlHover = false;
     let domHover = false;
-  
+
     domRenderer.onBeforeRaycast();
-    
+
     const raycaster = this.getMouseRaycaster(mouseEvent);
     let point = null;
     if (raycaster) {
       transformControls.handleMouseMove(raycaster);
-      
+
       const position = raycaster.ray.origin;
       const quaternion = localQuaternion.setFromUnitVectors(
         localVector.set(0, 0, -1),
-        raycaster.ray.direction
+        raycaster.ray.direction,
       );
-      
+
       const result = physicsScene.raycast(position, quaternion);
       if (result) {
         // console.log('raycast', result);
-        
+
         // check world apps
         const pair = world.appManager.getPairByPhysicsId(result.objectId);
         if (pair) {
           const [app, physicsObject] = pair;
           point = localVector.fromArray(result.point);
-          
+
           /* if (object.isHtml) {
             htmlHover = true;
           } else { */
-            // if (game.hoverEnabled) {
-              mouseHoverApp = app;
-              mouseHoverPhysicsObject = physicsObject;
-              mouseHoverPhysicsId = result.objectId;
-            // }
+          // if (game.hoverEnabled) {
+          mouseHoverApp = app;
+          mouseHoverPhysicsObject = physicsObject;
+          mouseHoverPhysicsId = result.objectId;
+          // }
           // }
         } else {
           // check dom renderer
@@ -170,7 +177,7 @@ class RaycastManager extends EventTarget {
           }
         }
       }
-  
+
       domRenderer.onAfterRaycast();
     } /* else {
       console.log('no result');

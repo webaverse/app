@@ -28,10 +28,11 @@ class AttributeLayout {
 
     this.count = 0;
   }
+
   makeDefault(g) {
     return new THREE.BufferAttribute(
       new this.TypedArrayConstructor(g.attributes.position.count * this.itemSize),
-      this.itemSize
+      this.itemSize,
     );
   }
 }
@@ -40,6 +41,7 @@ class MorphAttributeLayout extends AttributeLayout {
     super(name, TypedArrayConstructor, itemSize);
     this.arraySize = arraySize;
   }
+
   makeDefault(g) {
     return Array(this.arraySize).fill(super.makeDefault(g));
   }
@@ -52,24 +54,24 @@ const getObjectKeyDefault = (type, object, material) => {
     renderer.getProgramCacheKey(object, material),
   ].join(',');
 };
-export const getSkeletons = (object) => {
+export const getSkeletons = object => {
   const skeletons = [];
-  object.traverse((o) => {
+  object.traverse(o => {
     if (o.isSkeleton) {
       skeletons.push(o);
     }
   });
   return skeletons;
 };
-export const getBones = (object) => {
+export const getBones = object => {
   const bones = [];
-  object.traverse((o) => {
+  object.traverse(o => {
     if (o.isBone) {
       bones.push(o);
     }
   });
   return bones;
-}
+};
 export const getMergeableObjects = (model, getObjectKey = getObjectKeyDefault) => {
   const mergeables = new Map();
   model.traverse(o => {
@@ -80,7 +82,7 @@ export const getMergeableObjects = (model, getObjectKey = getObjectKeyDefault) =
       } else {
         type = 'mesh';
       }
-      
+
       const objectGeometry = o.geometry;
       const morphTargetDictionary = o.morphTargetDictionary;
       const morphTargetInfluences = o.morphTargetInfluences;
@@ -147,7 +149,7 @@ export const mergeGeometryTextureAtlas = (mergeable, textureSize) => {
   const textureSizes = maps.map((map, i) => {
     const emissiveMap = emissiveMaps[i];
     const normalMap = normalMaps[i];
-    
+
     const maxSize = new THREE.Vector2(0, 0);
     if (map) {
       maxSize.x = Math.max(maxSize.x, map.image.width);
@@ -193,7 +195,7 @@ export const mergeGeometryTextureAtlas = (mergeable, textureSize) => {
         return null;
       }
     };
-    
+
     const hasTextures = textureSizes.some(textureSize => textureSize.x > 0 || textureSize.y > 0);
     if (hasTextures) {
       let atlas;
@@ -309,11 +311,11 @@ export const mergeGeometryTextureAtlas = (mergeable, textureSize) => {
           layout = new AttributeLayout(
             attributeName,
             attribute.array.constructor,
-            attribute.itemSize
+            attribute.itemSize,
           );
           attributeLayouts.push(layout);
         }
-        
+
         layout.count += attribute.count * attribute.itemSize;
       }
     }
@@ -334,7 +336,7 @@ export const mergeGeometryTextureAtlas = (mergeable, textureSize) => {
             morphAttributeName,
             morphAttribute[0].array.constructor,
             morphAttribute[0].itemSize,
-            morphAttribute.length
+            morphAttribute.length,
           );
           morphAttributeLayouts.push(morphLayout);
         }
@@ -432,12 +434,12 @@ export const mergeGeometryTextureAtlas = (mergeable, textureSize) => {
 
         for (let j = 0; j < geometries.length; j++) {
           const g = geometries[j];
-          
+
           let gMorphAttribute = g.morphAttributes[morphLayout.name];
           gMorphAttribute = gMorphAttribute?.[i];
           if (gMorphAttribute) {
             morphData.set(gMorphAttribute.array, morphDataIndex);
-            
+
             morphDataIndex += gMorphAttribute.count * gMorphAttribute.itemSize;
           } else {
             const matchingAttribute = g.attributes[morphLayout.name];
@@ -504,10 +506,10 @@ export const mergeGeometryTextureAtlas = (mergeable, textureSize) => {
               modUv(localVector2D);
               localVector2D
                 .multiply(
-                  localVector2D2.set(tw/canvasSize, th/canvasSize)
+                  localVector2D2.set(tw / canvasSize, th / canvasSize),
                 )
                 .add(
-                  localVector2D2.set(tx/canvasSize, ty/canvasSize)
+                  localVector2D2.set(tx / canvasSize, ty / canvasSize),
                 );
               localVector2D.toArray(geometry.attributes.uv.array, uvIndex * 2);
             }
@@ -534,7 +536,7 @@ export const mergeGeometryTextureAtlas = (mergeable, textureSize) => {
   const _makeAtlasTextures = atlasImages => {
     const _makeAtlasTexture = atlasImage => {
       const originalTexture = originalTextures.get(atlasImage);
-      
+
       const t = new THREE.Texture(atlasImage);
       t.minFilter = originalTexture.minFilter;
       t.magFilter = originalTexture.magFilter;
@@ -545,7 +547,7 @@ export const mergeGeometryTextureAtlas = (mergeable, textureSize) => {
 
       t.flipY = false;
       t.needsUpdate = true;
-      
+
       return t;
     };
 

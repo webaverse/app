@@ -24,12 +24,14 @@ export class Generation extends EventTarget {
 
     this.result = null;
   }
+
   finish(result) {
     this.result = result;
 
     geometryaddEvent.data.result = result;
     this.dispatchEvent(geometryaddEvent);
   }
+
   cancel() {
     this.abortController.abort(abortError);
 
@@ -38,6 +40,7 @@ export class Generation extends EventTarget {
       this.dispatchEvent(geometryremoveEvent);
     }
   }
+
   getSignal() {
     return this.abortController.signal;
   }
@@ -47,16 +50,19 @@ export class GenerationTaskManager {
   constructor() {
     this.generations = new Map();
   }
+
   createGeneration(key) {
     const generation = new Generation(key);
     this.generations.set(key, generation);
     return generation;
   }
+
   deleteGeneration(key) {
     const generation = this.generations.get(key);
     generation.cancel();
     this.generations.delete(key);
   }
+
   getSignal() {
     return this.abortController.signal;
   }

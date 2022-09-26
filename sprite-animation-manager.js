@@ -11,6 +11,7 @@ class SpriteAnimationManager {
       };
     })();
   }
+
   getSpriteAnimationForApp(app) {
     let spritesheet = this.spriteAnimationCache.get(app.contentId);
     if (!spritesheet) {
@@ -19,6 +20,7 @@ class SpriteAnimationManager {
     }
     return spritesheet;
   }
+
   async getSpriteAnimationForAppUrlAsync(appUrl, opts) {
     let spritesheet = this.spriteAnimationCache.get(appUrl);
     if (!spritesheet) {

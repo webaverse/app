@@ -33,7 +33,7 @@ const update = (timestamp, timeDiff) => {
     if (timestamp < damageAnimation.endTime) {
       const animationDuration = damageAnimation.endTime - damageAnimation.startTime;
       const f = (timestamp - damageAnimation.startTime) / animationDuration;
-      damagePhysicsMesh.material.uniforms.uTime.value = 1-f;
+      damagePhysicsMesh.material.uniforms.uTime.value = 1 - f;
       damagePhysicsMesh.material.uniforms.uTime.needsUpdate = true;
       damagePhysicsMesh.updateMatrixWorld();
     } else {
@@ -63,7 +63,7 @@ const makeHitTracker = ({
 } = {}) => {
   const hitTracker = new THREE.Object3D();
   hitTracker.name = 'hitTracker';
-  
+
   let hitTime = -1;
   hitTracker.hp = totalHp;
   hitTracker.totalHp = totalHp;
@@ -112,7 +112,7 @@ const makeHitTracker = ({
 
       if (died) {
         triggerDamageAnimation(collisionId);
-        
+
         sounds.playSoundName('enemyDeath');
       }
 
@@ -164,7 +164,7 @@ const makeHitTracker = ({
       hitTracker.hp = Math.max(hitTracker.hp - damage, 0);
       if (hitTracker.hp > 0) {
         hitTime = 0;
-        
+
         /* hitTracker.dispatchEvent({
           type: 'hit',
           hp,
@@ -193,9 +193,9 @@ const makeHitTracker = ({
   hitTracker.update = timeDiff => {
     if (hitTime !== -1) {
       hitTime += timeDiff;
-      
-      const scale = (1-hitTime/hitAnimationLength) * 0.1;
-      hitTracker.position.set((-1+Math.random()*2)*scale, (-1+Math.random()*2)*scale, (-1+Math.random()*2)*scale);
+
+      const scale = (1 - hitTime / hitAnimationLength) * 0.1;
+      hitTracker.position.set((-1 + Math.random() * 2) * scale, (-1 + Math.random() * 2) * scale, (-1 + Math.random() * 2) * scale);
       hitTracker.updateMatrixWorld();
       if (hitTime > hitAnimationLength) {
         hitTime = -1;

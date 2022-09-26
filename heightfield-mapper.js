@@ -54,7 +54,7 @@ export class HeightfieldMapper /* extends EventTarget */ {
     // this.debug = debug;
 
     this.lastUpdateCoord = new THREE.Vector3(NaN, NaN, NaN);
-    
+
     this.queued = false;
     this.queuedPosition = new THREE.Vector3();
 
@@ -84,9 +84,9 @@ export class HeightfieldMapper /* extends EventTarget */ {
         .translate(0.5, 0, 0.5)
         // .scale(this.chunkSize, 1, this.chunkSize);
       const fullscreenMatrixVertexShader = `\
-        uniform float uHeightfieldSize;  
+        uniform float uHeightfieldSize;
         varying vec2 vUv;
-      
+
         void main() {
           vUv = uv;
           vUv.y = 1. - vUv.y;
@@ -105,7 +105,7 @@ export class HeightfieldMapper /* extends EventTarget */ {
           // uv.y -= 0.5 / uHeightfieldSize;
           // uv += 0.5 / uHeightfieldSize;
           float heightValue = texture2D(uHeightfieldDrawTexture, uv).r;
-          
+
           gl_FragColor.rgb = vec3(heightValue);
           gl_FragColor.a = 1.;
         }
@@ -206,14 +206,14 @@ export class HeightfieldMapper /* extends EventTarget */ {
           size - 1,
           size - 1,
           size - 1,
-          size - 1
+          size - 1,
         )
-        .translate(
-          -0.5,
-          0.5,
-          0
-        )
-        .rotateX(-Math.PI / 2);
+          .translate(
+            -0.5,
+            0.5,
+            0,
+          )
+          .rotateX(-Math.PI / 2);
 
         const fullscreenVertexShader = `\
           uniform sampler2D uHeightfield;  
@@ -262,11 +262,12 @@ export class HeightfieldMapper /* extends EventTarget */ {
       })();
     }
   }
+
   update(position) {
     if (!this.updating) {
       (async () => {
         this.updating = true;
-      
+
         const coord = localVector.copy(position);
         coord.x = Math.floor(coord.x);
         coord.y = 0;
@@ -281,7 +282,7 @@ export class HeightfieldMapper /* extends EventTarget */ {
               coord.z - this.size / 2,
               this.size,
               this.size,
-              lod
+              lod,
             );
 
             this.heightfieldTexture.image.data.set(heightfield);
@@ -293,7 +294,7 @@ export class HeightfieldMapper /* extends EventTarget */ {
         }
 
         this.updating = false;
-        
+
         if (this.queued) {
           this.queued = false;
           this.update(this.queuedPosition);
@@ -304,13 +305,14 @@ export class HeightfieldMapper /* extends EventTarget */ {
       this.queuedPosition.copy(position);
     }
   }
+
   renderHeightfieldUpdate(worldModPosition, heightfield) {
     const renderer = getRenderer();
 
     {
       // update
       this.heightfieldScene.update(worldModPosition, heightfield);
-      
+
       // push state
       const oldRenderTarget = renderer.getRenderTarget();
 
@@ -330,7 +332,7 @@ export class HeightfieldMapper /* extends EventTarget */ {
     {
       // update
       this.heightfieldScene.update(worldModPosition, this.blankChunkData);
-      
+
       // push state
       const oldRenderTarget = renderer.getRenderTarget();
 
@@ -349,7 +351,7 @@ export class HeightfieldMapper /* extends EventTarget */ {
     {
       // update
       // heightfieldFourTapScene.update();
-      
+
       // push state
       const oldRenderTarget = renderer.getRenderTarget();
 

@@ -6,7 +6,7 @@ import {generateGlyph} from './glyph-generator.js';
 import {splitLinesToWidth} from './util.js';
 import {characterSelectManager} from './characterselect-manager.js';
 
-const cardsSvgUrl = `./images/cards-01.svg`;
+const cardsSvgUrl = './images/cards-01.svg';
 
 const _loadSvg = async () => {
   const res = await fetch(cardsSvgUrl);
@@ -32,9 +32,9 @@ const _loadFonts = () => Promise.all([
   'FuturaLT-CondensedBold',
   'SanvitoPro-Regular',
 ].map(fontFamily => document.fonts.load(`16px "${fontFamily}"`)))
-.catch(err => {
-  console.warn(err);
-});
+  .catch(err => {
+    console.warn(err);
+  });
 let fontsLoadPromise = null;
 const _waitForFontsLoad = () => {
   if (fontsLoadPromise === null) {
@@ -168,14 +168,14 @@ export const generateCard = async ({
   flipY,
 } = {}) => {
   description = description || 'A great mystery.';
-  
+
   const cardSvgSource = await _waitForSvgLoad();
   await _waitForFontsLoad();
 
   const cardHeight = cardWidth / 2.5 * 3.5;
 
   const svg = document.createElement('svg');
-  svg.setAttribute('xmlns', `http://www.w3.org/2000/svg`);
+  svg.setAttribute('xmlns', 'http://www.w3.org/2000/svg');
   svg.setAttribute('width', cardWidth);
   svg.setAttribute('height', cardHeight);
   svg.innerHTML = cardSvgSource;

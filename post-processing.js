@@ -195,12 +195,12 @@ const _isDecapitated = () => (
 webaverseRenderPass.onBeforeRender = (a, b, c) => {
   // ensure lights attached
   // scene.add(world.lights);
-  
+
   // decapitate avatar if needed
   const localPlayer = metaversefileApi.useLocalPlayer();
   if (localPlayer.avatar) {
     // scene.add(localPlayer.avatar.model);
-    
+
     const decapitated = _isDecapitated();
     if (decapitated) {
       localPlayer.avatar.decapitate();
@@ -231,15 +231,17 @@ class PostProcessing extends EventTarget {
     ];
     this.defaultInternalPasses = [];
   }
+
   bindCanvas() {
     this.setPasses(this.defaultPasses, this.defaultInternalPasses);
   }
+
   makePasses(rendersettings) {
     const passes = [];
     const internalPasses = [];
 
     passes.push(webaverseRenderPass);
-    
+
     if (rendersettings) {
       const {ssao, dof, hdr, bloom, /* postPostProcessScene, */ /* swirl, */ webaWater} = rendersettings;
       let depthPass = null;
@@ -279,7 +281,7 @@ class PostProcessing extends EventTarget {
         }
       } */
     }
-    
+
     // passes.push(encodingPass);
 
     return {
@@ -287,6 +289,7 @@ class PostProcessing extends EventTarget {
       internalPasses,
     };
   }
+
   setPasses(passes, internalPasses) {
     const composer = getComposer();
 

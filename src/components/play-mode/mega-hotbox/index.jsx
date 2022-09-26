@@ -1,3 +1,3 @@
 
-import { MegaHotBox } from './MegaHotBox';
-export { MegaHotBox };
+import {MegaHotBox} from './MegaHotBox';
+export {MegaHotBox};

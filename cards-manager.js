@@ -11,10 +11,10 @@ class CardsManager {
   async getCardsImage(start_url, {width, flipY, signal} = {}) {
     const imageBitmap = await _generateObjectUrlCardRemote([
       {
-          start_url,
-          width,
-          flipY,
-      }
+        start_url,
+        width,
+        flipY,
+      },
     ], {
       signal,
     });

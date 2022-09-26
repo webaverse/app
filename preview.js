@@ -15,7 +15,7 @@ export const generatePreview = async (url, ext, type, width, height, resolve, re
   const previewHost = inappPreviewHost;
   running = true;
   // check for existing iframe
-  var iframe = document.querySelector(`iframe[src^="${previewHost}/screenshot.html"]`);
+  let iframe = document.querySelector(`iframe[src^="${previewHost}/screenshot.html"]`);
 
   // else create new iframe
   if (!iframe) {
@@ -31,7 +31,7 @@ export const generatePreview = async (url, ext, type, width, height, resolve, re
   }
 
   // create URL
-  var ssUrl = `${previewHost}/screenshot.html?url=${url}&ext=${ext}&type=${type}&width=${width}&height=${height}`;
+  const ssUrl = `${previewHost}/screenshot.html?url=${url}&ext=${ext}&type=${type}&width=${width}&height=${height}`;
 
   // set src attr for iframe
   iframe.src = ssUrl;
@@ -62,7 +62,7 @@ export const generatePreview = async (url, ext, type, width, height, resolve, re
       }
       clearTimeout(rejection);
       resolve({
-        blob: blob,
+        blob,
         url: URL.createObjectURL(blob),
       });
       running = false;
@@ -76,20 +76,20 @@ export const generatePreview = async (url, ext, type, width, height, resolve, re
 
 // URL validate function
 function isValidURL(string) {
-  var res = string.match(/(http(s)?:\/\/.)?(www\.)?[-a-zA-Z0-9@:%._\+~#=]{2,256}\.[a-z]{2,6}\b([-a-zA-Z0-9@:%_\+.~#?&//=]*)/g);
+  const res = string.match(/(http(s)?:\/\/.)?(www\.)?[-a-zA-Z0-9@:%._\+~#=]{2,256}\.[a-z]{2,6}\b([-a-zA-Z0-9@:%_\+.~#?&//=]*)/g);
   return (res !== null);
 }
 
-export const preview = async (url, ext, type, width, height, priority=10) => {
+export const preview = async (url, ext, type, width, height, priority = 10) => {
   return new Promise((resolve, reject) => {
     if (!['png', 'jpg', 'jpeg', 'vox', 'vrm', 'glb', 'webm', 'gif'].includes(ext)) {
-      return reject('Undefined Extension');
+      return reject(new Error('Undefined Extension'));
     }
     if (!running) {
       generatePreview(url, ext, type, width, height, resolve, reject);
     } else {
       queue.push({url, ext, type, width, height, resolve, reject, priority});
-      queue.sort((a, b) => a.priority - b.priority)
+      queue.sort((a, b) => a.priority - b.priority);
     }
   });
 };

@@ -12,9 +12,9 @@ import {WebaverseScene} from './webaverse-scene.js';
 // XXX enable this when the code is stable; then, we will have many more places to add missing matrix updates
 // THREE.Object3D.DefaultMatrixAutoUpdate = false;
 
-let canvas = null, context = null, renderer = null, composer = null;
+let canvas = null; let context = null; let renderer = null; let composer = null;
 
-let waitPromise = makePromise();
+const waitPromise = makePromise();
 const waitForLoad = () => waitPromise;
 
 function bindCanvas(c) {
@@ -34,7 +34,7 @@ function bindCanvas(c) {
     rendererExtensionFragDepth: true,
     // logarithmicDepthBuffer: true,
   });
-  
+
   const {
     width,
     height,
@@ -133,7 +133,7 @@ const _getCanvasDimensions = () => {
   width = window.innerWidth;
   height = window.innerHeight;
   pixelRatio = window.devicePixelRatio;
-  
+
   return {
     width,
     height,
@@ -155,23 +155,23 @@ const _setSizes = () => {
 const _setRendererSize = (width, height, pixelRatio) => {
   const renderer = getRenderer();
   // if (renderer) {
-    // pause XR since it gets in the way of resize
-    if (renderer.xr.getSession()) {
-      renderer.xr.isPresenting = false;
-    }
+  // pause XR since it gets in the way of resize
+  if (renderer.xr.getSession()) {
+    renderer.xr.isPresenting = false;
+  }
 
-    /* const {
+  /* const {
       width,
       height,
       pixelRatio,
     } = _getCanvasDimensions(); */
-    renderer.setSize(width, height);
-    renderer.setPixelRatio(pixelRatio);
+  renderer.setSize(width, height);
+  renderer.setPixelRatio(pixelRatio);
 
-    // resume XR
-    if (renderer.xr.getSession()) {
-      renderer.xr.isPresenting = true;
-    }
+  // resume XR
+  if (renderer.xr.getSession()) {
+    renderer.xr.isPresenting = true;
+  }
   // }
 };
 const _setComposerSize = (width, height, pixelRatio) => {
@@ -228,7 +228,7 @@ export {
   // orthographicCamera,
   // avatarCamera,
   // dolly,
-  /*orbitControls, renderer2,*/
+  /* orbitControls, renderer2, */
   sceneHighPriority,
   sceneLowPriority,
   sceneLowerPriority,

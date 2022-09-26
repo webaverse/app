@@ -7,15 +7,19 @@ class AudioManager {
     this.audioContext.gain.connect(this.audioContext.destination);
     this.audioContext.audioWorklet.addModule('avatars/microphone-worklet.js');
   }
+
   getAudioContext() {
-    return getAudioContext()
+    return getAudioContext();
   }
+
   setAudioContext(newAudioContext) {
     this.audioContext = newAudioContext;
   }
+
   setVolume(volume) {
     this.audioContext.gain.gain.value = volume;
   }
+
   playBuffer(audioBuffer) {
     const sourceNode = this.audioContext.createBufferSource();
     sourceNode.buffer = audioBuffer;

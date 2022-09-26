@@ -24,7 +24,7 @@ export default (app, component) => {
   const petComponent = component;
   const _makePetMixer = () => {
     let petMixer, idleAction;
-    
+
     let firstMesh = null;
     app.glb.scene.traverse(o => {
       if (firstMesh === null && o.isMesh) {
@@ -32,7 +32,7 @@ export default (app, component) => {
       }
     });
     petMixer = new THREE.AnimationMixer(firstMesh);
-    
+
     const idleAnimation = petComponent.idleAnimation ? app.glb.animations.find(a => a.name === petComponent.idleAnimation) : null;
     if (idleAnimation) {
       idleAction = petMixer.clipAction(idleAnimation);
@@ -40,7 +40,7 @@ export default (app, component) => {
     } else {
       idleAction = null;
     }
-    
+
     return {
       petMixer,
       idleAction,
@@ -62,7 +62,7 @@ export default (app, component) => {
       walkAction = null;
       runAction = null;
       rootBone = null;
-      
+
       const m = _makePetMixer();
       petMixer = m.petMixer;
       idleAction = m.idleAction;
@@ -75,7 +75,7 @@ export default (app, component) => {
       player = getPlayerByAppInstanceId(app.instanceId);
       if (app.glb) {
         const {animations} = app.glb;
-        
+
         petSpec = app.getComponent('pet');
         if (petSpec) {
           const walkAnimation = (petSpec.walkAnimation && petSpec.walkAnimation !== petSpec.idleAnimation) ? animations.find(a => a.name === petSpec.walkAnimation) : null;
@@ -95,7 +95,7 @@ export default (app, component) => {
       _unwear();
     }
   });
-  
+
   const smoothVelocity = new THREE.Vector3();
   const lastLookQuaternion = new THREE.Quaternion();
   const _getAppDistance = () => {
@@ -146,7 +146,7 @@ export default (app, component) => {
               }
             } */
             smoothVelocity.lerp(moveDelta, 0.3);
-            
+
             const walkSpeed = 0.01;
             const runSpeed = 0.03;
             const currentSpeed = smoothVelocity.length();
@@ -175,7 +175,7 @@ export default (app, component) => {
       }
     };
     _updateAnimation();
-    
+
     const _updateLook = () => {
       let nearestPlayer = useLocalPlayer();
       let nearestDistance = app.position.distanceTo(nearestPlayer.position);
@@ -208,21 +208,21 @@ export default (app, component) => {
             if (!bone.originalWorldScale) {
               bone.originalWorldScale = bone.getWorldScale(new THREE.Vector3());
             }
-            
+
             if (!bone.quaternion.equals(lastLookQuaternion)) {
               const {position} = nearestPlayer;
               localQuaternion2.setFromRotationMatrix(
                 localMatrix.lookAt(
                   position,
                   bone.getWorldPosition(localVector),
-                  localVector2.set(0, 1, 0)
-                )
+                  localVector2.set(0, 1, 0),
+                ),
               ).premultiply(localQuaternion.copy(app.quaternion).invert());
               localEuler.setFromQuaternion(localQuaternion2, 'YXZ');
-              localEuler.y = Math.min(Math.max(localEuler.y, -Math.PI*0.5), Math.PI*0.5);
+              localEuler.y = Math.min(Math.max(localEuler.y, -Math.PI * 0.5), Math.PI * 0.5);
               localQuaternion2.setFromEuler(localEuler)
                 .premultiply(app.quaternion);
-              
+
               bone.matrixWorld.decompose(localVector, localQuaternion, localVector2);
               localQuaternion.copy(localQuaternion2)
                 .multiply(localQuaternion3.copy(bone.originalQuaternion).invert())
@@ -240,14 +240,14 @@ export default (app, component) => {
     };
     _updateLook();
   });
-  
+
   useActivate(() => {
     app.wear();
   });
-  
+
   useCleanup(() => {
     _unwear();
   });
-  
+
   return app;
 };

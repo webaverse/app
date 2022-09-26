@@ -43,7 +43,7 @@ export class World {
       };
       app.addEventListener('die', die);
 
-      const migrated = (e) => {
+      const migrated = e => {
         const {appManager} = e;
         boundAppManager = appManager;
       };

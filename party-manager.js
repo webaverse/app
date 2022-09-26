@@ -8,18 +8,18 @@ import {AppManager} from './app-manager.js';
 import {world} from './world.js';
 import {playersManager} from './players-manager.js';
 import npcManager from './npc-manager.js';
-import {appsMapName} from './constants.js'
+import {appsMapName} from './constants.js';
 
 class PartyManager extends EventTarget {
   constructor() {
     super();
-    
+
     this.partyPlayers = [];
     this.removeFnMap = new WeakMap();
 
     this.appManager = new AppManager();
 
-    npcManager.addEventListener('defaultplayeradd', (e) => {
+    npcManager.addEventListener('defaultplayeradd', e => {
       const {player} = e.data;
       const app = npcManager.getAppByNpc(player);
       world.appManager.importApp(app);
@@ -28,7 +28,7 @@ class PartyManager extends EventTarget {
       this.invitePlayer(player);
     });
 
-    npcManager.addEventListener('playerinvited', (e) => {
+    npcManager.addEventListener('playerinvited', e => {
       const {player} = e.data;
       this.invitePlayer(player);
     });
@@ -115,11 +115,11 @@ class PartyManager extends EventTarget {
         newPlayer.setControlMode('npc');
       };
 
-      const removePlayer = (player) => {
+      const removePlayer = player => {
         const removeFn = this.removeFnMap.get(player);
         removeFn();
         this.removeFnMap.delete(player);
-      }
+      };
 
       const activate = () => {
         // console.log('deactivate', newPlayer.name);
@@ -140,7 +140,7 @@ class PartyManager extends EventTarget {
       }
 
       // add die listener
-      const deletePlayer = (player) => {
+      const deletePlayer = player => {
         const playerIndex = this.partyPlayers.indexOf(player);
         if (playerIndex !== -1) {
           this.partyPlayers.splice(playerIndex, 1);
@@ -223,5 +223,5 @@ class PartyManager extends EventTarget {
 
 const partyManager = new PartyManager();
 export {
-    partyManager
+  partyManager,
 };

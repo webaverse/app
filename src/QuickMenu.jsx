@@ -1,18 +1,18 @@
 import * as THREE from 'three';
-import React, { useEffect, useRef, useState } from 'react';
+import React, {useEffect, useRef, useState} from 'react';
 import classnames from 'classnames';
-import { registerIoEventHandler, unregisterIoEventHandler } from './components/general/io-handler/IoHandler';
-import { LightArrow } from './LightArrow';
+import {registerIoEventHandler, unregisterIoEventHandler} from './components/general/io-handler/IoHandler';
+import {LightArrow} from './LightArrow';
 
 import styles from './QuickMenu.module.css';
 
 import emotes from './components/general/character/emotes.json';
-import { triggerEmote } from './components/general/character/Poses';
+import {triggerEmote} from './components/general/character/Poses';
 
 import game from '../game.js';
 import cameraManager from '../camera-manager.js';
 import * as sounds from '../sounds.js';
-import { mod, loadImage, drawImageContain, imageToCanvas } from '../util.js';
+import {mod, loadImage, drawImageContain, imageToCanvas} from '../util.js';
 
 const modPi2 = angle => mod(angle, Math.PI * 2);
 
@@ -22,7 +22,7 @@ const localVector2D = new THREE.Vector2();
 
 //
 
-const chevronImgSrc = `./images/chevron2.svg`;
+const chevronImgSrc = './images/chevron2.svg';
 
 const size = 500;
 const pixelRatio = window.devicePixelRatio;
@@ -76,7 +76,7 @@ export default function QuickMenu() {
 
   useEffect(() => {
     (async () => {
-      const emoteIconImages = await Promise.all(emotes.map(async ({ icon }) => {
+      const emoteIconImages = await Promise.all(emotes.map(async ({icon}) => {
         const img = await loadImage(`./images/poses/${icon}`);
         const canvas = imageToCanvas(img, iconSize, iconSize);
         return canvas;
@@ -133,7 +133,7 @@ export default function QuickMenu() {
       registerIoEventHandler('keyup', keyup);
 
       function mousemove(e) {
-        const { movementX, movementY } = e;
+        const {movementX, movementY} = e;
 
         const [x, y] = coords;
         setCoords([
@@ -218,14 +218,14 @@ export default function QuickMenu() {
             ctx.globalAlpha = 0.3;
             ctx.translate(
               pixelSize / 2 + Math.cos(midAngle) * radiusCenterSoft,
-              pixelSize / 2 + Math.sin(midAngle) * radiusCenterSoft
+              pixelSize / 2 + Math.sin(midAngle) * radiusCenterSoft,
             );
             ctx.rotate(midAngle + Math.PI);
             ctx.translate(-chevronSize / 2, -chevronSize / 2);
             ctx.drawImage(
               chevronImage,
               0,
-              0
+              0,
             );
             ctx.restore();
           }
@@ -234,7 +234,7 @@ export default function QuickMenu() {
           ctx.drawImage(
             emoteIconImages[i],
             pixelSize / 2 + Math.cos(midAngle) * radiusCenter - iconSize / 2,
-            pixelSize / 2 + Math.sin(midAngle) * radiusCenter - iconSize / 2 - pixelSize / 30
+            pixelSize / 2 + Math.sin(midAngle) * radiusCenter - iconSize / 2 - pixelSize / 30,
           );
 
           // hard label
@@ -243,7 +243,7 @@ export default function QuickMenu() {
           ctx.fillText(
             emotes[i].name,
             pixelSize / 2 + Math.cos(midAngle) * radiusCenter,
-            pixelSize / 2 + Math.sin(midAngle) * radiusCenter + pixelSize / 20
+            pixelSize / 2 + Math.sin(midAngle) * radiusCenter + pixelSize / 20,
           );
         }
       }
@@ -294,4 +294,4 @@ export default function QuickMenu() {
       </div>
     </div>
   );
-};
+}

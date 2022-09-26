@@ -5,7 +5,7 @@ import {WebaverseShaderMaterial} from './materials.js';
 import loaders from './loaders.js';
 
 // const baseUrl = import.meta.url.replace(/(\/)[^\/\\]*$/, '$1');
-const urlPrefix = `https://webaverse.github.io/fx-textures/`;
+const urlPrefix = 'https://webaverse.github.io/fx-textures/';
 const particlesJsonUrl = `${urlPrefix}fx-files.json`;
 
 let particlesJson = null;
@@ -45,7 +45,7 @@ const _loadParticleTextureByName = async name => {
 const defaultMaxParticles = 256;
 const canvasSize = 4096;
 const frameSize = 512;
-const rowSize = Math.floor(canvasSize/frameSize);
+const rowSize = Math.floor(canvasSize / frameSize);
 // const maxNumFrames = rowSize * rowSize;
 // const maxNumTextures = 8;
 
@@ -228,7 +228,7 @@ void main() {
   #include <encodings_fragment>
 }
 `;
-const _makeMaterial = maxNumTextures => {  
+const _makeMaterial = maxNumTextures => {
   const uniforms = {
     uTime: {
       value: 0,
@@ -266,7 +266,7 @@ const _makeMaterial = maxNumTextures => {
     for (let i = 0; i < newTextures.length; i++) {
       const newTexture = newTextures[i];
       const index = i + 1;
-      
+
       const uTexUniform = material.uniforms['uTex' + index];
       /* if (!uTexUniform) {
         debugger;
@@ -286,7 +286,7 @@ const _makeMaterial = maxNumTextures => {
     }
   };
   return material;
-}
+};
 
 class Particle extends THREE.Object3D {
   constructor(index, textureIndex, startTime, endTime, loop, parent) {
@@ -299,9 +299,11 @@ class Particle extends THREE.Object3D {
     this.loop = loop;
     this.parent = parent;
   }
+
   update() {
     this.parent.needsUpdate = true;
   }
+
   destroy() {
     this.parent.removeParticle(this);
   }
@@ -330,9 +332,11 @@ class ParticleSystem extends THREE.InstancedMesh {
     this.particles = Array(maxParticles).fill(null);
     this.count = 0;
   }
+
   #getParticleTextureIndex(name) {
     return this.textures.findIndex(t => t.name === name);
   }
+
   addParticle(name, {
     offsetTime = 0,
     duration = 1000,
@@ -358,10 +362,12 @@ class ParticleSystem extends THREE.InstancedMesh {
       throw new Error('no such particle texture found: ' + JSON.stringify(name));
     }
   }
+
   removeParticle(particle) {
     this.particles[particle.index] = null;
     this.needsUpdate = true;
   }
+
   update(timestamp, timeDiff) {
     if (this.needsUpdate) {
       this.needsUpdate = false;
@@ -373,17 +379,18 @@ class ParticleSystem extends THREE.InstancedMesh {
     this.material.uniforms.uTime.needsUpdate = true;
     this.material.uniforms.cameraBillboardQuaternion.value.copy(camera.quaternion);
   }
+
   updateGeometry() {
     let index = 0;
     for (const particle of this.particles) {
       if (particle !== null) {
-        this.geometry.attributes.p.array[index*3 + 0] = particle.position.x;
-        this.geometry.attributes.p.array[index*3 + 1] = particle.position.y;
-        this.geometry.attributes.p.array[index*3 + 2] = particle.position.z;
+        this.geometry.attributes.p.array[index * 3 + 0] = particle.position.x;
+        this.geometry.attributes.p.array[index * 3 + 1] = particle.position.y;
+        this.geometry.attributes.p.array[index * 3 + 2] = particle.position.z;
 
-        this.geometry.attributes.t.array[index*3 + 0] = particle.startTime;
-        this.geometry.attributes.t.array[index*3 + 1] = particle.endTime;
-        this.geometry.attributes.t.array[index*3 + 2] = particle.loop ? 1 : 0;
+        this.geometry.attributes.t.array[index * 3 + 0] = particle.startTime;
+        this.geometry.attributes.t.array[index * 3 + 1] = particle.endTime;
+        this.geometry.attributes.t.array[index * 3 + 2] = particle.loop ? 1 : 0;
 
         this.geometry.attributes.textureIndex.array[index] = particle.textureIndex;
 
@@ -393,18 +400,20 @@ class ParticleSystem extends THREE.InstancedMesh {
 
     this.geometry.attributes.p.updateRange.count = index * 3;
     this.geometry.attributes.p.needsUpdate = true;
-    
+
     this.geometry.attributes.t.updateRange.count = index * 3;
     this.geometry.attributes.t.needsUpdate = true;
-    
+
     this.geometry.attributes.textureIndex.updateRange.count = index;
     this.geometry.attributes.textureIndex.needsUpdate = true;
-    
+
     this.count = index;
   }
+
   waitForLoad() {
     return this.loadPromise;
   }
+
   destroy() {
     // nothing
   }

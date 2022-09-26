@@ -69,7 +69,7 @@ const generateStats = (seed = '', count = 1) => {
             return rarities[i];
           }
         }
-        return rarities[rarities.length-1];
+        return rarities[rarities.length - 1];
       })(),
       level: Math.floor(rng() * 100),
       hp: Math.floor(rng() * 0xFF),
@@ -79,13 +79,13 @@ const generateStats = (seed = '', count = 1) => {
       mag: Math.floor(rng() * 0xFF),
       spr: Math.floor(rng() * 0xFF),
       dex: Math.floor(rng() * 0xFF),
-      lck:  Math.floor(rng() * 0xFF),
+      lck: Math.floor(rng() * 0xFF),
       details: makeRandom(rng, 32),
     };
-    return {
+    result.push({
       art,
       stats,
-    };
+    });
   }
   return result;
 };

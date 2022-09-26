@@ -10,7 +10,7 @@ const localArray16D = Array(16);
 
 //
 
-const workerUrl = `./pg-worker.js?import`;
+const workerUrl = './pg-worker.js?import';
 const TASK_PRIORITIES = {
   tracker: -10,
   splat: -1,
@@ -58,6 +58,7 @@ export class PGWorkerManager {
     // trigger load
     this.waitForLoad();
   }
+
   waitForLoad() {
     if (!this.loadPromise) {
       this.loadPromise = (async () => {
@@ -65,7 +66,7 @@ export class PGWorkerManager {
           type: 'module',
         });
         const cbs = new Map();
-        worker.onmessage = (e) => {
+        worker.onmessage = e => {
           const {taskId} = e.data;
           const cb = cbs.get(taskId);
           if (cb) {
@@ -76,7 +77,7 @@ export class PGWorkerManager {
             // debugger;
           }
         };
-        worker.onerror = (err) => {
+        worker.onerror = err => {
           console.log('pg worker load error', err);
         };
         worker.request = (method, args, {signal} = {}) => {
@@ -94,7 +95,7 @@ export class PGWorkerManager {
             };
             signal && signal.addEventListener('abort', onabort);
 
-            cbs.set(taskId, (data) => {
+            cbs.set(taskId, data => {
               signal && signal.removeEventListener('abort', onabort);
 
               const {error, result} = data;
@@ -132,6 +133,7 @@ export class PGWorkerManager {
     }
     return this.loadPromise;
   }
+
   setCamera(worldPosition, cameraPosition, cameraQuaternion, projectionMatrix) {
     const worldPositionArray = worldPosition.toArray(localArray3D);
     const cameraPositionArray = cameraPosition.toArray(localArray3D2);
@@ -146,9 +148,10 @@ export class PGWorkerManager {
       projectionMatrix: projectionMatrixArray,
     });
   }
+
   setClipRange(range) {
     const rangeArray = [range.min.toArray(), range.max.toArray()];
-    
+
     this.worker.request('setClipRange', {
       instance: this.instance,
       range: rangeArray,
@@ -166,6 +169,7 @@ export class PGWorkerManager {
     }, {signal});
     return result;
   }
+
   async destroyTracker(tracker, {signal} = {}) {
     const result = await this.worker.request('destroyTracker', {
       instance: this.instance,
@@ -173,6 +177,7 @@ export class PGWorkerManager {
     }, {signal});
     return result;
   }
+
   async trackerUpdate(tracker, position, {signal} = {}) {
     const result = await this.worker.request('trackerUpdate', {
       instance: this.instance,
@@ -197,6 +202,7 @@ export class PGWorkerManager {
     // signal.throwIfAborted();
     return result;
   }
+
   async generateGrass(chunkPosition, lod, numGrassInstances, {signal} = {}) {
     const result = await this.worker.request('generateGrass', {
       instance: this.instance,
@@ -207,6 +213,7 @@ export class PGWorkerManager {
     // signal.throwIfAborted();
     return result;
   }
+
   async generateVegetation(chunkPosition, lod, numVegetationInstances, {signal} = {}) {
     const result = await this.worker.request('generateVegetation', {
       instance: this.instance,

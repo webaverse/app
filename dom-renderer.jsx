@@ -1,5 +1,5 @@
 import * as THREE from 'three';
-
+import React from 'react';
 // import {sceneLowerPriority} from './renderer.js';
 import easing from './easing.js';
 import physicsManager from './physics-manager.js';
@@ -62,15 +62,16 @@ class DomItem extends THREE.Object3D {
       p,
       q,
       hs,
-      dynamic
+      dynamic,
     );
     physicsScene.disableActor(physicsObject);
     physicsScene.disableGeometryQueries(physicsObject);
     this.physicsObject = physicsObject;
   }
+
   startAnimation(enabled, startTime, endTime) {
     this.enabled = enabled;
-    
+
     const startValue = this.value;
     const endValue = enabled ? 1 : 0;
     this.animation = {
@@ -80,6 +81,7 @@ class DomItem extends THREE.Object3D {
       endValue,
     };
   }
+
   update(timestamp) {
     if (this.animation) {
       const {startTime, endTime, startValue, endValue} = this.animation;
@@ -97,17 +99,17 @@ class DomItem extends THREE.Object3D {
 
     if (this.value > 0) {
       const w = this.value;
-      const shiftOffset = (1 - w) * this.worldWidth/2;
+      const shiftOffset = (1 - w) * this.worldWidth / 2;
       this.innerNode.position.x = -shiftOffset;
       this.innerNode.scale.set(w, 1, 1);
       this.innerNode.updateMatrixWorld();
-      
+
       this.backgroundMesh.material.uniforms.opacity.value = this.value;
       this.backgroundMesh.material.uniforms.opacity.needsUpdate = true;
 
       this.punchoutMesh.material.uniforms.opacity.value = 1 - this.value;
       this.punchoutMesh.material.uniforms.opacity.needsUpdate = true;
-      
+
       this.physicsObject.position.setFromMatrixPosition(this.innerNode.matrixWorld);
       this.physicsObject.quaternion.setFromRotationMatrix(this.innerNode.matrixWorld);
       this.physicsObject.updateMatrixWorld();
@@ -118,18 +120,21 @@ class DomItem extends THREE.Object3D {
       // this.visible = false;
     }
   }
+
   onBeforeRaycast() {
     if (this.enabled) {
       physicsScene.enableActor(this.physicsObject);
       physicsScene.enableGeometryQueries(this.physicsObject);
     }
   }
+
   onAfterRaycast() {
     if (this.enabled) {
       physicsScene.disableActor(this.physicsObject);
       physicsScene.disableGeometryQueries(this.physicsObject);
     }
   }
+
   destroy() {
     physicsScene.enableActor(this.physicsObject);
     physicsScene.removeGeometry(this.physicsObject);
@@ -229,9 +234,11 @@ export class DomRenderEngine extends EventTarget {
     this.physicsObjects = [];
     this.lastHover = false;
   }
+
   static getScaleFactor(width, height) {
-    return Math.min(1/width, 1/height);
+    return Math.min(1 / width, 1 / height);
   }
+
   addDom({
     position = new THREE.Vector3(),
     quaternion = new THREE.Quaternion(),
@@ -251,6 +258,7 @@ export class DomRenderEngine extends EventTarget {
 
     return dom;
   }
+
   removeDom(dom) {
     const index = this.doms.indexOf(dom);
     if (index !== -1) {
@@ -258,13 +266,14 @@ export class DomRenderEngine extends EventTarget {
       this.physicsObjects.splice(index, 1);
     }
   }
+
   /* update() {
     const hover = this.doms.some(dom => {
       return false;
     });
     if (hover !== this.lastHover) {
       this.lastHover = hover;
-      
+
       this.dispatchEvent(new MessageEvent('hover', {
         data: {
           hover,
@@ -275,16 +284,19 @@ export class DomRenderEngine extends EventTarget {
   getPhysicsObjects() {
     return this.physicsObjects;
   }
+
   onBeforeRaycast() {
     for (const dom of this.doms) {
       dom.onBeforeRaycast();
     }
   }
+
   onAfterRaycast() {
     for (const dom of this.doms) {
       dom.onAfterRaycast();
     }
   }
+
   destroy() {
     // XXX finish this
   }

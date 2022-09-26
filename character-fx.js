@@ -4,7 +4,7 @@ this file implements avatar transformation effects/shaders.
 
 import * as THREE from 'three';
 import metaversefile from 'metaversefile';
-import { sceneLowPriority } from './renderer.js';
+import {sceneLowPriority} from './renderer.js';
 
 const localVector = new THREE.Vector3();
 const localVector2 = new THREE.Vector3();
@@ -134,14 +134,14 @@ export class AvatarCharacterFx {
         model.traverse(o => {
           // console.log(o.name, o.isMesh);
           if (o.isSkinnedMesh) {
-            const { geometry, skeleton } = o;
+            const {geometry, skeleton} = o;
             const skeletonBoneHairBooleans = skeleton.bones.map(bone => /hair/i.test(bone.name));
-            const { attributes, index: indexAttribute } = geometry;
+            const {attributes, index: indexAttribute} = geometry;
             const indices = indexAttribute.array;
-            const { skinIndex, skinWeight } = attributes;
+            const {skinIndex, skinWeight} = attributes;
             const skinIndices = skinIndex.array;
             const skinWeights = skinWeight.array;
-            const { itemSize } = skinIndex;
+            const {itemSize} = skinIndex;
             let done = false;
             for (let i = 0; i < indices.length; i++) {
               const index = indices[i];
@@ -239,7 +239,7 @@ export class AvatarCharacterFx {
       if (isPowerup && !this.kiMesh) {
         this.kiMesh = metaversefile.createApp();
         (async () => {
-          const { importModule } = metaversefile.useDefaultModules();
+          const {importModule} = metaversefile.useDefaultModules();
           const m = await importModule('ki');
           await this.kiMesh.addModule(m);
         })();
@@ -257,7 +257,7 @@ export class AvatarCharacterFx {
         this.sonicBoom = metaversefile.createApp();
         this.sonicBoom.setComponent('player', this.character);
         (async () => {
-          const { importModule } = metaversefile.useDefaultModules();
+          const {importModule} = metaversefile.useDefaultModules();
           const m = await importModule('sonicBoom');
           await this.sonicBoom.addModule(m);
         })();
@@ -270,7 +270,7 @@ export class AvatarCharacterFx {
         (async () => {
           this.nameplate = metaversefile.createApp();
           this.nameplate.setComponent('player', this.character);
-          const { importModule } = metaversefile.useDefaultModules();
+          const {importModule} = metaversefile.useDefaultModules();
           const m = await importModule('nameplate');
           await this.nameplate.addModule(m);
           sceneLowPriority.add(this.nameplate);
@@ -283,7 +283,7 @@ export class AvatarCharacterFx {
         (async () => {
           this.healEffect = metaversefile.createApp();
           this.healEffect.setComponent('player', this.character);
-          const { importModule } = metaversefile.useDefaultModules();
+          const {importModule} = metaversefile.useDefaultModules();
           const m = await importModule('healEffect');
           await this.healEffect.addModule(m);
           sceneLowPriority.add(this.healEffect);

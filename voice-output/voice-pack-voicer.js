@@ -5,7 +5,6 @@ import audioManager from '../audio-manager.js';
 import {loadAudioBuffer, makePromise, selectVoice} from '../util.js';
 import {chatTextSpeed} from '../constants.js';
 
-
 class VoicePack {
   constructor(files, audioBuffer) {
     files = files.map(({name, offset, duration}) => {
@@ -16,7 +15,7 @@ class VoicePack {
         nonce: 0,
       };
     });
-    
+
     this.audioBuffer = audioBuffer;
     this.syllableFiles = files.filter(({name}) => /\/[0-9]+\.wav$/.test(name));
     this.voiceFiles = {
@@ -27,7 +26,7 @@ class VoicePack {
         angry: files.filter(f => /angry/i.test(f.name)),
         gasp: files.filter(f => /gasp/i.test(f.name)),
         jump: files.filter(f => /jump/i.test(f.name)),
-        narutoRun: files.filter(f => /nr/i.test(f.name))
+        narutoRun: files.filter(f => /nr/i.test(f.name)),
       },
       emoteVoices: {
         alertSoft: files.filter(f => /alert/i.test(f.name)),
@@ -45,10 +44,11 @@ class VoicePack {
         surpriseSoft: files.filter(f => /surprise/i.test(f.name)),
         surprise: files.filter(f => /surprise/i.test(f.name)),
         victorySoft: files.filter(f => /victory/i.test(f.name)),
-        victory: files.filter(f => /victory/i.test(f.name))
-      }
+        victory: files.filter(f => /victory/i.test(f.name)),
+      },
     };
   }
+
   static async load({
     audioUrl,
     indexUrl,
@@ -60,12 +60,12 @@ class VoicePack {
     ] = await Promise.all([
       (async () => {
         const res = await fetch(indexUrl);
-        let j = await res.json();
+        const j = await res.json();
         return j;
       })(),
       loadAudioBuffer(audioContext, audioUrl),
     ]);
-    
+
     const voicePack = new VoicePack(files, audioBuffer);
     return voicePack;
   }
@@ -90,20 +90,24 @@ class VoicePackVoicer {
     this.audioTimeout = null;
     this.endTimeout = null;
   }
+
   clearTimeouts() {
     clearTimeout(this.audioTimeout);
     this.audioTimeout = null;
     clearTimeout(this.endTimeout);
     this.endTimeout = null;
   }
+
   resetStart() {
     this.startTime = -1;
     this.charactersSinceStart = 0;
   }
+
   preloadMessage(text) {
     // voice pack does not need loading
     return text;
   }
+
   start(text) {
     this.clearTimeouts();
 
@@ -146,6 +150,7 @@ class VoicePackVoicer {
 
     return p;
   }
+
   stop() {
     this.clearTimeouts();
   }

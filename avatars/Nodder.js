@@ -1,9 +1,5 @@
 export default class Nodder {
-  constructor() {
-
-  }
-
   update() {
-
+    // do nothing yet
   }
 }

@@ -7,7 +7,7 @@ const localVector2 = new THREE.Vector3();
 const localQuaternion = new THREE.Quaternion();
 const localMatrix = new THREE.Matrix4();
 
-const r = () => (-0.5+Math.random())*2;
+const r = () => (-0.5 + Math.random()) * 2;
 
 const _copyTransform = (dst, src) => {
   dst.position.copy(src.position);
@@ -27,7 +27,7 @@ export default () => {
 
   const meshLodderId = app.getComponent('meshLodderId');
   const physicsId = app.getComponent('physicsId');
-  
+
   const meshLodder = meshLodManager.getMeshLodder(meshLodderId);
 
   let itemDiceMesh = null;
@@ -63,7 +63,7 @@ export default () => {
       itemMesh.matrixWorld.copy(physicsObject.matrixWorld);
       itemMesh.matrix
         .premultiply(
-          localMatrix.copy(app.matrixWorld).invert()
+          localMatrix.copy(app.matrixWorld).invert(),
         )
         .decompose(itemMesh.position, itemMesh.quaternion, itemMesh.scale);
 
@@ -91,7 +91,7 @@ export default () => {
         {
           key: 'drop',
           value: {
-            velocity: new THREE.Vector3(r(), 1+Math.random(), r())
+            velocity: new THREE.Vector3(r(), 1 + Math.random(), r())
               .normalize()
               .multiplyScalar(5)
               .toArray(),
@@ -106,7 +106,7 @@ export default () => {
         localVector.setFromMatrixPosition(itemMesh.matrixWorld),
         localQuaternion.identity(),
         localVector2.set(1, 1, 1),
-        components
+        components,
       );
       promises.push(p);
     }

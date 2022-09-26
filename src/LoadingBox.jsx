@@ -1,7 +1,7 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, {useState, useEffect, useRef} from 'react';
 import classnames from 'classnames';
 import style from './LoadingBox.module.css';
-import { loadImage } from '../util.js';
+import {loadImage} from '../util.js';
 
 const loadManager = new EventTarget();
 const _updateLoadManager = () => {
@@ -126,11 +126,11 @@ const LoadingBox = () => {
     if (canvas && images && open) {
       const ctx = canvas.getContext('2d');
 
-      const { upRight, up, down } = images;
+      const {upRight, up, down} = images;
 
       const _frame = () => {
         const now = performance.now();
-        const f = (now / 1000) % 1
+        const f = (now / 1000) % 1;
 
         // const _render = f => {
         ctx.resetTransform();
@@ -141,7 +141,7 @@ const LoadingBox = () => {
             const w = canvas.width;
             const h = canvas.height * up.height / up.width;
 
-            let fx = (-0.5 + f) * h * 2.5;
+            const fx = (-0.5 + f) * h * 2.5;
 
             // ctx.filter = `hue-rotate(145deg)`;
 
@@ -161,7 +161,7 @@ const LoadingBox = () => {
 
             ctx.resetTransform();
             ctx.rotate(Math.PI / 4);
-            ctx.drawImage(up, 0, 0, up.width, up.height, -3, - fx * Math.SQRT2, up.width * Math.SQRT2, up.height * Math.SQRT2);
+            ctx.drawImage(up, 0, 0, up.width, up.height, -3, -fx * Math.SQRT2, up.width * Math.SQRT2, up.height * Math.SQRT2);
 
             ctx.resetTransform();
             ctx.drawImage(upRight, fx, -fx);

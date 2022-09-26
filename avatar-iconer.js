@@ -40,7 +40,7 @@ class AvatarIconer extends EventTarget {
       this.renderAvatarApp(e.data.app);
     };
     avatarManager.addEventListener('avatarchange', avatarchange);
-    
+
     const actionupdate = e => {
       this.updateEmotionFromActions();
     };
@@ -84,7 +84,7 @@ class AvatarIconer extends EventTarget {
     }
 
     this.lastRenderedEmotion = null;
-  
+
     if (lastEnabled !== this.enabled) {
       this.dispatchEvent(new MessageEvent('enabledchange', {
         data: {
@@ -93,10 +93,12 @@ class AvatarIconer extends EventTarget {
       }));
     }
   }
+
   addCanvas(canvas) {
     canvas.ctx = canvas.getContext('2d');
     this.canvases.push(canvas);
   }
+
   updateEmotionFromActions() {
     const emotion = (() => {
       const faceposeAction = this.player.getAction('facepose');
@@ -108,7 +110,7 @@ class AvatarIconer extends EventTarget {
       if (hurtAction) {
         return 'sorrow';
       }
-      
+
       const useAction = this.player.getAction('use');
       if (useAction) {
         if (
@@ -145,13 +147,14 @@ class AvatarIconer extends EventTarget {
     })();
     this.emotion = emotion;
   }
+
   update() {
     if (this.emotion !== this.lastRenderedEmotion) {
       const emotionIndex = allEmotions.indexOf(this.emotion);
-      
+
       if (emotionIndex !== -1) {
         const sourceCanvas = this.emotionCanvases[emotionIndex];
-        
+
         if (sourceCanvas) {
           for (const dstCanvas of this.canvases) {
             const {ctx} = dstCanvas;
@@ -165,7 +168,7 @@ class AvatarIconer extends EventTarget {
               0,
               0,
               dstCanvas.width,
-              dstCanvas.height
+              dstCanvas.height,
             );
           }
         }
@@ -174,6 +177,7 @@ class AvatarIconer extends EventTarget {
       this.lastRenderedEmotion = this.emotion;
     }
   }
+
   destroy() {
     this.cleanup();
   }

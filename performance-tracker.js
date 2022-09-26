@@ -10,13 +10,13 @@ const getExt = () => {
     ext = gl.getExtension('EXT_disjoint_timer_query_webgl2');
   }
   return ext;
-}
+};
 const performanceTrackerFnSymbol = Symbol('performanceTrackerFn');
 
 const numSnapshots = 10;
 
 class PerformanceTracker extends EventTarget {
-  constructor () {
+  constructor() {
     super();
 
     this.enabled = debug.enabled;
@@ -35,13 +35,14 @@ class PerformanceTracker extends EventTarget {
       this.enabled = e.data.enabled;
     });
   }
+
   startCpuObject(id, name) {
     if (!this.enabled) return;
 
     if (name === undefined) {
       name = id;
     }
-    
+
     if (this.prefix) {
       name = [this.prefix, name].join('/');
     }
@@ -50,7 +51,7 @@ class PerformanceTracker extends EventTarget {
       if (this.currentCpuObject) {
         this.endCpuObject();
       }
-    
+
       let currentCpuObject = this.cpuResults.get(name);
       if (!currentCpuObject) {
         const now = performance.now();
@@ -65,19 +66,21 @@ class PerformanceTracker extends EventTarget {
       this.currentCpuObject = currentCpuObject;
     }
   }
+
   endCpuObject() {
     if (!this.enabled) return;
 
     this.currentCpuObject.endTime = performance.now();
     this.currentCpuObject = null;
   }
+
   startGpuObject(id, name) {
     if (!this.enabled) return;
 
     if (name === undefined) {
       name = id;
     }
-    
+
     if (this.prefix) {
       name = [this.prefix, name].join('/');
     }
@@ -92,7 +95,7 @@ class PerformanceTracker extends EventTarget {
 
       const query = gl.createQuery();
       gl.beginQuery(ext.TIME_ELAPSED_EXT, query);
-    
+
       let currentGpuObject = this.gpuResults.get(name);
       if (!currentGpuObject) {
         currentGpuObject = {
@@ -112,6 +115,7 @@ class PerformanceTracker extends EventTarget {
       qs.push(query);
     }
   }
+
   endGpuObject() {
     if (!this.enabled) return;
 
@@ -119,21 +123,25 @@ class PerformanceTracker extends EventTarget {
     gl.endQuery(ext.TIME_ELAPSED_EXT);
     this.currentGpuObject = null;
   }
+
   startFrame() {
     if (!this.enabled) return;
 
     this.dispatchEvent(new MessageEvent('startframe'));
   }
+
   setCpuPrefix(cpuPrefix) {
     if (!this.enabled) return;
 
     this.cpuPrefix = cpuPrefix;
   }
+
   setGpuPrefix(gpuPrefix) {
     if (!this.enabled) return;
 
     this.gpuPrefix = gpuPrefix;
   }
+
   decorateApp(app) {
     const self = this;
     const _makeOnBeforeRender = fn => {
@@ -164,18 +172,19 @@ class PerformanceTracker extends EventTarget {
           o.onAfterRender = _makeOnAfterRender(o.onAfterRender);
         }
       }
-    }
+    };
     const _traverse = o => {
       _decorateObject(o);
-      
+
       for (const child of o.children) {
         if (!child.isApp) {
           _traverse(child);
         }
       }
-    }
+    };
     _traverse(app);
   }
+
   async waitForGpuResults(gpuResults) {
     const renderer = getRenderer();
     const gl = renderer.getContext();
@@ -195,7 +204,7 @@ class PerformanceTracker extends EventTarget {
 
         // sum query result
         object.time += gl.getQueryParameter(query, gl.QUERY_RESULT);
-        
+
         // cleanup
         gl.deleteQuery(query);
       }
@@ -204,6 +213,7 @@ class PerformanceTracker extends EventTarget {
       this.gpuQueries.delete(object);
     }
   }
+
   getSmoothedSnapshot() {
     const cpu = new Map();
     const gpu = new Map();
@@ -217,7 +227,7 @@ class PerformanceTracker extends EventTarget {
               name,
               time: 0,
               count: 0,
-            }
+            };
             cpu.set(name, current);
           }
           current.time += object.endTime - object.startTime;
@@ -230,7 +240,7 @@ class PerformanceTracker extends EventTarget {
               name,
               time: 0,
               count: 0,
-            }
+            };
             gpu.set(name, current);
           }
           current.time += object.time;
@@ -257,6 +267,7 @@ class PerformanceTracker extends EventTarget {
       gpuResults,
     };
   }
+
   scheduleSnapshot() {
     if (!this.enabled) return;
 
@@ -283,6 +294,7 @@ class PerformanceTracker extends EventTarget {
       }
     })();
   }
+
   endFrame() {
     if (!this.enabled) return;
 

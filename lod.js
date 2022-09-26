@@ -30,7 +30,7 @@ const localVector2D = new THREE.Vector2();
 // const tp5 = 2 ** 5;
 /* const _getHashMinLod = (min, lod) => {
   let result;
-  
+
   uint16Array[0] = min.x;
   result = uint16Array[0];
   uint16Array[0] = min.y;
@@ -141,7 +141,7 @@ const _toUint32 = value => {
 // const _getLeafNodeFromPoint = (leafNodes, p) => leafNodes.find(node => node.containsPoint(p));
 /* const constructOctreeForLeaf = (position, lod1Range, maxLod) => {
   const nodeMap = new Map();
-  
+
   const _getNode = (min, lod) => {
     const hash = _octreeNodeMinHash(min, lod);
     return nodeMap.get(hash);
@@ -409,45 +409,49 @@ const sortTasks = (tasks, worldPosition) => {
   return taskDistances.map(taskDistance => taskDistance.task);
 }; */
 
-class DataRequest {
-  constructor(node) {
-    this.node = node;
+// class DataRequest {
+//   constructor(node) {
+//     this.node = node;
 
-    this.abortController = new AbortController();
-    this.signal = this.abortController.signal;
+//     this.abortController = new AbortController();
+//     this.signal = this.abortController.signal;
 
-    this.loadPromise = makePromise();
+//     this.loadPromise = makePromise();
 
-    this.node.dataRequest = this;
+//     this.node.dataRequest = this;
 
-    this.renderData = undefined;
-    this.loadPromise.then(renderData => {
-      this.renderData = renderData;
-      this.node.load(renderData);
-    }, err => {
-      const renderData = null;
-      this.renderData = renderData;
-      this.node.load(renderData);
-    });
-  }
-  replaceNode(node) {
-    this.node = node;
-    this.node.dataRequest = this;
-  }
-  cancel() {
-    this.abortController.abort(abortError);
-  }
-  waitForLoad() {
-    return this.loadPromise;
-  }
-  waitUntil(p) {
-    p.then(result => {
-      this.loadPromise.accept(result);
-    }).catch(err => {
-      this.loadPromise.reject(err);
-    });
-  }
-}
+//     this.renderData = undefined;
+//     this.loadPromise.then(renderData => {
+//       this.renderData = renderData;
+//       this.node.load(renderData);
+//     }, err => {
+//       const renderData = null;
+//       this.renderData = renderData;
+//       this.node.load(renderData);
+//     });
+//   }
+
+//   replaceNode(node) {
+//     this.node = node;
+//     this.node.dataRequest = this;
+//   }
+
+//   cancel() {
+//     this.abortController.abort(abortError);
+//   }
+
+//   waitForLoad() {
+//     return this.loadPromise;
+//   }
+
+//   waitUntil(p) {
+//     p.then(result => {
+//       this.loadPromise.accept(result);
+//     }).catch(err => {
+//       this.loadPromise.reject(err);
+//     });
+//   }
+// }
 
 //
 
@@ -468,7 +472,7 @@ class DataRequest {
 }; */
 /* const updateChunks = (oldChunks, tasks) => {
   const newChunks = oldChunks.slice();
-  
+
   for (const task of tasks) {
     if (!isNop(task) && task.type != TrackerTaskTypes.OUTRANGE) {
       let {newNodes, oldNodes} = task;
@@ -531,7 +535,7 @@ using these results
 */
 /* export class LodChunk extends THREE.Vector3 {
   constructor(x, y, z, lod, lodArray) {
-    
+
     super(x, y, z);
     this.lod = lod;
     this.lodArray = lodArray;
@@ -574,10 +578,10 @@ export class LodChunkTracker {
     this.isUpdating = false;
     this.queued = false;
     this.queuePosition = new THREE.Vector3();
-    
+
     this.lastOctreeLeafNodes = [];
     this.liveTasks = [];
-    
+
     this.listeners = {
       postUpdate: [],
       // chunkDataRequest: [],
@@ -587,7 +591,7 @@ export class LodChunkTracker {
 
     if (debug) {
       const maxChunks = 4096;
-      
+
       /* const instancedCubeGeometry = new THREE.InstancedBufferGeometry();
       {
         const cubeGeometry = new THREE.BoxGeometry(1, 1, 1)
@@ -601,7 +605,7 @@ export class LodChunkTracker {
       const instancedPlaneGeometry = new THREE.InstancedBufferGeometry();
       {
         const planeGeometry = new THREE.PlaneGeometry(1, 1)
-          //.scale(0.9, 0.9, 0.9)
+          // .scale(0.9, 0.9, 0.9)
           .translate(0.5, -0.5, 0)
           .rotateX(-Math.PI / 2);
         for (const k in planeGeometry.attributes) {
@@ -651,7 +655,7 @@ export class LodChunkTracker {
                 .multiplyScalar(this.chunkSize),
               localQuaternion.identity(),
               localVector3.set(1, 1, 1)
-                .multiplyScalar(chunk.lod * this.chunkSize - gapSize)
+                .multiplyScalar(chunk.lod * this.chunkSize - gapSize),
             );
             localColor.setHex(_getChunkColorHex(chunk));
             debugMesh.setMatrixAt(debugMesh.count, localMatrix);
@@ -669,6 +673,7 @@ export class LodChunkTracker {
 
     this.ensureTracker();
   }
+
   #getCurrentCoord(position, target) {
     const cx = Math.floor(position.x / this.chunkSize);
     const cz = Math.floor(position.z / this.chunkSize);
@@ -679,12 +684,14 @@ export class LodChunkTracker {
   onPostUpdate(fn) {
     this.listeners.postUpdate.push(fn);
   }
+
   /* onChunkDataRequest(fn) {
     this.listeners.chunkDataRequest.push(fn);
   } */
   onChunkAdd(fn) {
     this.listeners.chunkAdd.push(fn);
   }
+
   onChunkRemove(fn) {
     /* const hash = _getHashChunk(chunk);
     let list = this.listeners.chunkRemove.get(hash);
@@ -756,12 +763,13 @@ export class LodChunkTracker {
       }
     }
   } */
-  
+
   handleChunkAdd(dataRequest) {
     for (const listener of this.listeners.chunkAdd) {
       listener(dataRequest);
     }
   }
+
   handleChunkRemove(dataRequest) {
     for (const listener of this.listeners.chunkRemove) {
       listener(dataRequest);
@@ -771,11 +779,13 @@ export class LodChunkTracker {
   async waitForLoad() {
     await Promise.all(this.liveTasks.map(task => task.waitForLoad()));
   }
+
   async ensureTracker() {
     if (!this.tracker) {
       this.tracker = await this.pgWorkerManager.createTracker(this.lods, this.lod1Range);
     }
   }
+
   async updateInternal(position) {
     await this.ensureTracker();
 
@@ -889,11 +899,12 @@ export class LodChunkTracker {
 
     this.postUpdate(chunkMin);
   }
+
   update(position) {
     // update coordinate
     if (!this.isUpdating) {
       const currentCoord = this.#getCurrentCoord(position, localVector2D);
-      
+
       if (!this.lastUpdateCoord.equals(currentCoord)) {
         (async () => {
           this.isUpdating = true;
@@ -916,13 +927,14 @@ export class LodChunkTracker {
       this.queuePosition.copy(position);
     }
   }
+
   destroy() {
     throw new Error('not implemented');
 
     /* for (const chunk of this.chunks) {
       const task = new Task(chunk);
       task.oldNodes.push(chunk);
-      
+
       this.dispatchEvent(new MessageEvent('chunkrelod', {
         data: {
           task,

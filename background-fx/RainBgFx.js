@@ -348,12 +348,13 @@ class RainBgFxMesh extends THREE.Mesh {
         }, */
       },
       vertexShader: fullscreenVertexShader,
-      fragmentShader: fragmentShader,
+      fragmentShader,
       depthWrite: false,
       depthTest: false,
     });
     super(fullscreenGeometry, material);
   }
+
   update(timestamp, timeDiff) {
     const timestampS = timestamp / 1000;
     this.material.uniforms.iTime.value = timestampS;

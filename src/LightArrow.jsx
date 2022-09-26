@@ -116,14 +116,14 @@ const _renderArrowSpritesheet = async () => {
     const endColorIndex1 = Math.floor(fEnd);
     const endColorIndex2 = Math.floor((fEnd + 1) % colors.length);
     const endColorOffset = fEnd - endColorIndex1;
-    
+
     localColor.setHex(colors[startColorIndex1]);
     localColor2.setHex(colors[startColorIndex2]);
     localColor3.setHex(colors[midColorIndex1]);
     localColor4.setHex(colors[midColorIndex2]);
     localColor5.setHex(colors[endColorIndex1]);
     localColor6.setHex(colors[endColorIndex2]);
-    
+
     const doc2 = doc.cloneNode(true);
     const stops = Array.from(doc2.querySelectorAll('stop'));
 
@@ -168,7 +168,7 @@ const _renderCanvasFromFrames = frames => {
     const frame = frames[i];
     const x = (i % numFramesPerRow) * frameSize;
     const y = Math.floor(i / numFramesPerRow) * frameSize;
-    
+
     ctx.resetTransform();
     ctx.translate(x + frameSize / 2, y + frameSize / 2);
     ctx.rotate(-Math.PI / 4);
@@ -178,9 +178,9 @@ const _renderCanvasFromFrames = frames => {
   return canvas;
 }; */
 const _downloadArrowImage = async () => {
-   const img = new Image();
-   img.crossOrigin = 'Anonymous';
-   await new Promise((accept, reject) => {
+  const img = new Image();
+  img.crossOrigin = 'Anonymous';
+  await new Promise((accept, reject) => {
     img.onload = () => {
       accept();
     };
@@ -215,7 +215,7 @@ export const LightArrow = function({
       (async () => {
         /* const renderedCanvas = await _renderArrowSpritesheet();
         if (!live) return;
-        
+
         const blob = await new Promise((accept, reject) => {
           renderedCanvas.toBlob(accept, 'image/png');
         });

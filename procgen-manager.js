@@ -28,12 +28,15 @@ class ProcGenInstance {
     // this.lightmapper = null;
     // this.heightfieldMapper = null;
   }
+
   setCamera(worldPosition, cameraPosition, cameraQuaternion, projectionMatrix) {
     this.pgWorkerManager.setCamera(worldPosition, cameraPosition, cameraQuaternion, projectionMatrix);
   }
-  setClipRange() {
+
+  setClipRange(range) {
     this.pgWorkerManager.setClipRange(range);
   }
+
   async createLodChunkTracker(opts = {}) {
     await this.pgWorkerManager.waitForLoad();
 
@@ -46,6 +49,7 @@ class ProcGenInstance {
     const tracker = new LodChunkTracker(opts2);
     return tracker;
   }
+
   async generateChunk(position, lod, lodArray, generateFlags, {signal} = {}) {
     await this.pgWorkerManager.waitForLoad();
 
@@ -53,6 +57,7 @@ class ProcGenInstance {
     const result = await this.pgWorkerManager.generateChunk(localArray2D, lod, lodArray, generateFlags, {signal});
     return result;
   }
+
   async generateVegetation(position, lod, numInstances, {signal} = {}) {
     await this.pgWorkerManager.waitForLoad();
 
@@ -60,6 +65,7 @@ class ProcGenInstance {
     const result = await this.pgWorkerManager.generateVegetation(localArray2D, lod, numInstances, {signal});
     return result;
   }
+
   async generateGrass(position, lod, numInstances, {signal} = {}) {
     await this.pgWorkerManager.waitForLoad();
 
@@ -106,6 +112,7 @@ class ProcGenManager {
     this.instances = new Map();
     this.chunkSize = chunkSize;
   }
+
   getInstance(key) {
     let instance = this.instances.get(key);
     if (!instance) {
@@ -117,6 +124,7 @@ class ProcGenManager {
     }
     return instance;
   }
+
   getNodeHash(node) {
     return (node.min.x << 16) |
       (node.min.y & 0xFFFF);

@@ -70,4 +70,4 @@ export {
   waitForLoad,
   voicePacks,
   voiceEndpoints,
-}
+};

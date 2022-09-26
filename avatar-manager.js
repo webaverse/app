@@ -32,10 +32,10 @@ class AvatarManager extends EventTarget {
     const localPlayer = playersManager.getLocalPlayer();
     this.bindPlayer(localPlayer);
   }
-  
+
   bindPlayer(player) {
     this.player = player;
-    
+
     // forward player messages on player change
     const avatarchange = e => {
       this.dispatchEvent(new MessageEvent('avatarchange', {
@@ -43,7 +43,7 @@ class AvatarManager extends EventTarget {
       }));
     };
     player.addEventListener('avatarchange', avatarchange);
-    
+
     const actionupdate = e => {
       this.dispatchEvent(new MessageEvent('actionupdate', {
         data: e,
@@ -79,6 +79,7 @@ class AvatarManager extends EventTarget {
       this.cleanup = null;
     }
   }
+
   destroy() {
     if (this.cleanup) {
       this.cleanup();
@@ -89,5 +90,5 @@ class AvatarManager extends EventTarget {
 }
 const avatarManager = new AvatarManager();
 export {
-    avatarManager
+  avatarManager,
 };

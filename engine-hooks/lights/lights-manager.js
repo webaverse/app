@@ -67,7 +67,7 @@ class LightsManager extends EventTarget {
     light.lastAppMatrixWorld = new THREE.Matrix4();
     light.plane = new THREE.Plane().setFromNormalAndCoplanarPoint(
       new THREE.Vector3(0, -1, 0),
-      localVector
+      localVector,
     );
     light.position.copy(localVector);
 

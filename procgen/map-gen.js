@@ -47,13 +47,14 @@ const sideCrossAxes = {
 export class MapBlock extends THREE.Vector3 {
   constructor(x, y) {
     super(x, y, 0);
-    
+
     this.exitTarget = false;
     this.centerTarget = false;
     this.path = false;
     this.splinePoint = false;
     this.neighbors = [];
   }
+
   static TYPE_INDICES = (() => {
     let iota = 0;
     return {
@@ -63,6 +64,7 @@ export class MapBlock extends THREE.Vector3 {
       path: ++iota,
     };
   })();
+
   static COLORS = {
     exit: '#00F',
     center: '#F00',
@@ -70,6 +72,7 @@ export class MapBlock extends THREE.Vector3 {
     path: '#666',
     default: '#000',
   };
+
   /* static INDEX_COLOR_MAP = (() => {
     let map = {};
     for (let key in MapBlock.COLORS) {
@@ -80,23 +83,26 @@ export class MapBlock extends THREE.Vector3 {
   getLocalPosition(target) {
     return target.set(this.x * voxelWorldSize, 0, this.y * voxelWorldSize);
   }
+
   getType() {
     if (this.exitTarget) {
       return 'exit';
     } else if (this.centerTarget) {
       return 'exit';
     } else if (this.splinePoint) {
-      return 'spline'
+      return 'spline';
     } else if (this.path) {
       return 'path';
     } else {
       return 'default';
     }
   }
+
   toColorString() {
     const type = this.getType();
     return MapBlock.COLORS[type] ?? MapBlock.COLORS.default;
   }
+
   toUint8() {
     const type = this.getType();
     return MapBlock.TYPE_INDICES[type];
@@ -110,9 +116,11 @@ export class MapChunk {
     this.width = width;
     this.height = height;
   }
+
   getWorldPosition(target) {
     return target.set(this.x * numBlocksPerChunk * voxelWorldSize, 0, this.y * numBlocksPerChunk * voxelWorldSize);
   }
+
   getExitBlocks() {
     return this.blocks.filter(block => block.exitTarget);
   }
@@ -121,7 +129,7 @@ export class MapChunk {
 export const createMapChunk = (seed = 'map', x = 0, y = 0) => {
   const width = numBlocksPerChunk;
   const height = numBlocksPerChunk;
-  
+
   // generate blocks
   const blocks = new Array(width * height);
 
@@ -155,7 +163,7 @@ export const createMapChunk = (seed = 'map', x = 0, y = 0) => {
 
     const block = blocks[x + y * width];
     block.exitTarget = true;
-    
+
     pathCandidates.push(block);
   }
 
@@ -181,7 +189,7 @@ export const createMapChunk = (seed = 'map', x = 0, y = 0) => {
         block1,
         block2,
         localVector.set(0, 1, 0),
-      )
+      ),
     );
 
     for (let i = 0; i < numSplinePoints; i++) {
@@ -189,14 +197,14 @@ export const createMapChunk = (seed = 'map', x = 0, y = 0) => {
 
       const point = localVector
         .copy(
-          localVector2.set(block1.x, 0, block1.y)
+          localVector2.set(block1.x, 0, block1.y),
         )
         .lerp(
           localVector3.set(block2.x, 0, block2.y),
-          v
+          v,
         );
 
-      let minDistance = Math.min(
+      const minDistance = Math.min(
         point.distanceTo(localVector2),
         point.distanceTo(localVector3),
       );
@@ -204,9 +212,9 @@ export const createMapChunk = (seed = 'map', x = 0, y = 0) => {
       localVector2.set(r() * minDistance, 0, 0);
       point.add(
         localVector2
-          .applyQuaternion(localQuaternion)
+          .applyQuaternion(localQuaternion),
       );
-    
+
       const x = Math.round(point.x);
       const y = Math.round(point.z);
       if (x >= 0 && x < width && y >= 0 && y < height) {
@@ -230,7 +238,7 @@ export const createMapChunk = (seed = 'map', x = 0, y = 0) => {
       lengthSum += lengths[i];
     }
     const curveLength = lengthSum;
-    
+
     const numPoints = Math.ceil(curveLength) * 3;
     const points = curve.getPoints(numPoints);
     for (let i = 0; i < numPoints; i++) {
@@ -267,7 +275,7 @@ export const createMapChunk = (seed = 'map', x = 0, y = 0) => {
               depth,
             };
             map.set(neighbor, neighborEntry);
-            
+
             if (neighbor.exitTarget) {
               foundExit = true;
             }

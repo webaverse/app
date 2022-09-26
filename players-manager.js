@@ -20,6 +20,7 @@ class PlayersManager extends EventTarget {
     this.unbindStateFn = null;
     this.removeListenerFn = null;
   }
+
   #addLocalPlayer() {
     const localPlayerId = makeId(5);
     const localPlayersArray = new Z.Doc().getArray(playersMapName);
@@ -32,22 +33,26 @@ class PlayersManager extends EventTarget {
 
     return localPlayer;
   }
-  getLocalPlayer () {
+
+  getLocalPlayer() {
     return this.localPlayer;
   }
+
   setLocalPlayer(newLocalPlayer) {
     const oldPlayer = this.localPlayer;
     this.localPlayer = newLocalPlayer;
     this.dispatchEvent(new MessageEvent('playerchange', {
       data: {
-        oldPlayer: oldPlayer,
+        oldPlayer,
         player: this.localPlayer,
-      }
+      },
     }));
   }
-  getRemotePlayers(){
+
+  getRemotePlayers() {
     return this.remotePlayers;
   }
+
   clearRemotePlayers() {
     const lastPlayers = this.playersArray;
     if (lastPlayers) {
@@ -63,11 +68,13 @@ class PlayersManager extends EventTarget {
       }
     }
   }
+
   getPlayersState() {
     return this.playersArray;
   }
+
   unbindState() {
-    if(this.unbindStateFn != null) {
+    if (this.unbindStateFn != null) {
       this.unbindStateFn();
     }
     if (this.removeListenerFn) {
@@ -77,11 +84,12 @@ class PlayersManager extends EventTarget {
     this.unbindStateFn = null;
     this.removeListenerFn = null;
   }
+
   bindState(nextPlayersArray) {
     this.unbindState();
 
     this.playersArray = nextPlayersArray;
-    
+
     if (this.playersArray) {
       const playerSelectedFn = e => {
         const {
@@ -93,8 +101,8 @@ class PlayersManager extends EventTarget {
       this.addEventListener('playerchange', playerSelectedFn);
       this.removeListenerFn = () => {
         this.removeEventListener('playerchange', playerSelectedFn);
-      }
-      
+      };
+
       const playersObserveFn = e => {
         const localPlayer = this.localPlayer;
         const {added, deleted, delta, keys} = e.changes;
@@ -111,17 +119,17 @@ class PlayersManager extends EventTarget {
           }
 
           const playerId = playerMap.get('playerId');
-          
+
           if (playerId !== localPlayer.playerId) {
             // console.log('add player', playerId, this.playersArray.toJSON());
-            
+
             const remotePlayer = new RemotePlayer({
               playerId,
               playersArray: this.playersArray,
             });
             this.remotePlayers.set(playerId, remotePlayer);
             this.remotePlayersByInteger.set(remotePlayer.playerIdInt, remotePlayer);
-            this.dispatchEvent(new MessageEvent('playeradded', { data: { player: remotePlayer } }));
+            this.dispatchEvent(new MessageEvent('playeradded', {data: {player: remotePlayer}}));
           }
         }
         // console.log('players observe', added, deleted);
@@ -132,12 +140,12 @@ class PlayersManager extends EventTarget {
 
           if (playerId !== localPlayer.playerId) {
             // console.log('remove player', playerId);
-            
+
             const remotePlayer = this.remotePlayers.get(playerId);
             this.remotePlayers.delete(playerId);
             this.remotePlayersByInteger.delete(remotePlayer.playerIdInt);
             remotePlayer.destroy();
-            this.dispatchEvent(new MessageEvent('playerremoved', { data: { player: remotePlayer } }));
+            this.dispatchEvent(new MessageEvent('playerremoved', {data: {player: remotePlayer}}));
           }
         }
       };
@@ -145,6 +153,7 @@ class PlayersManager extends EventTarget {
       this.unbindStateFn = this.playersArray.unobserve.bind(this.playersArray, playersObserveFn);
     }
   }
+
   updateRemotePlayers(timestamp, timeDiff) {
     for (const remotePlayer of this.remotePlayers.values()) {
       remotePlayer.update(timestamp, timeDiff);

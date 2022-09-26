@@ -2,12 +2,11 @@ import * as THREE from 'three';
 import {getRenderer, camera, scene} from './renderer.js';
 // import * as notifications from './notifications.js';
 import physicsManager from './physics-manager.js';
-import {shakeAnimationSpeed} from './constants.js';
+import {shakeAnimationSpeed, minFov, maxFov, midFov} from './constants.js';
 import Simplex from './simplex-noise.js';
 import {playersManager} from './players-manager.js';
 // import alea from './alea.js';
 // import * as sounds from './sounds.js';
-import {minFov, maxFov, midFov} from './constants.js';
 // import { updateRaycasterFromMouseEvent } from './util.js';
 import easing from './easing.js';
 
@@ -50,7 +49,7 @@ let cameraOffsetLimitZ = Infinity;
 const physicsScene = physicsManager.getScene();
 
 // let cameraOffsetZ = cameraOffset.z;
-const rayVectorZero = new THREE.Vector3(0,0,0);
+const rayVectorZero = new THREE.Vector3(0, 0, 0);
 // const rayVectorUp = new THREE.Vector3(0,1,0);
 // const rayStartPos = new THREE.Vector3(0,0,0);
 // const rayDirection = new THREE.Vector3(0,0,0);
@@ -89,8 +88,8 @@ const getSideOfY = (() => {
       localMatrix.lookAt(
         zeroVector,
         a,
-        upVector
-      )
+        upVector,
+      ),
     );
     const rightVector = localVector.set(1, 0, 0).applyQuaternion(localQuaternion);
     localPlane.setFromNormalAndCoplanarPoint(rightVector, a);
@@ -209,17 +208,19 @@ class CameraManager extends EventTarget {
       }));
     });
   }
+
   focusCamera(position) {
     camera.lookAt(position);
     camera.updateMatrixWorld();
   }
+
   async requestPointerLock() {
     // const localPointerLockEpoch = ++this.pointerLockEpoch;
     for (const options of [
       {
         unadjustedMovement: true,
       },
-      undefined
+      undefined,
     ]) {
       try {
         await new Promise((accept, reject) => {
@@ -231,7 +232,7 @@ class CameraManager extends EventTarget {
 
             const _pointerlockchange = e => {
               // if (localPointerLockEpoch === this.pointerLockEpoch) {
-                accept();
+              accept();
               // }
               _cleanup();
             };
@@ -239,7 +240,7 @@ class CameraManager extends EventTarget {
             const _pointerlockerror = err => {
               reject(err);
               _cleanup();
-              
+
               /* notifications.addNotification(`\
                 <i class="icon fa fa-mouse-pointer"></i>
                 <div class=wrap>
@@ -271,9 +272,11 @@ class CameraManager extends EventTarget {
       }
     }
   }
+
   exitPointerLock() {
     document.exitPointerLock();
   }
+
   getMode() {
     if (this.target || this.cinematicScript) {
       return 'isometric';
@@ -281,14 +284,16 @@ class CameraManager extends EventTarget {
       return cameraOffset.z > -0.5 ? 'firstperson' : 'isometric';
     }
   }
+
   getCameraOffset() {
     return cameraOffset;
   }
+
   handleMouseMove(e) {
     const {movementX, movementY} = e;
 
     camera.position.add(localVector.copy(this.getCameraOffset()).applyQuaternion(camera.quaternion));
-  
+
     camera.rotation.y -= movementX * Math.PI * 2 * 0.0005;
     camera.rotation.x -= movementY * Math.PI * 2 * 0.0005;
     camera.rotation.x = Math.min(Math.max(camera.rotation.x, -Math.PI * 0.35), Math.PI / 2);
@@ -302,11 +307,13 @@ class CameraManager extends EventTarget {
       this.targetQuaternion.copy(camera.quaternion);
     }
   }
+
   handleWheelEvent(e) {
     if (!this.target) {
       cameraOffsetTargetZ = Math.min(cameraOffset.z - e.deltaY * 0.01, 0);
     }
   }
+
   addShake(position, intensity, radius, decay) {
     const startTime = performance.now();
     const shake = new Shake(intensity, startTime, radius, decay);
@@ -314,18 +321,20 @@ class CameraManager extends EventTarget {
     this.shakes.push(shake);
     return shake;
   }
+
   flushShakes() {
     if (this.shakes.length > 0) {
       const now = performance.now();
       this.shakes = this.shakes.filter(shake => now < shake.startTime + shake.decay);
     }
   }
+
   getShakeFactor() {
     let result = 0;
     if (this.shakes.length > 0) {
       const now = performance.now();
       for (const shake of this.shakes) {
-        const distanceFactor = Math.min(Math.max((shake.radius - shake.position.distanceTo(camera.position))/shake.radius, 0), 1);
+        const distanceFactor = Math.min(Math.max((shake.radius - shake.position.distanceTo(camera.position)) / shake.radius, 0), 1);
         const timeFactor = Math.min(Math.max(1 - (now - shake.startTime) / shake.decay, 0), 1);
         // console.log('get shake factor', shake.intensity * distanceFactor * timeFactor, shake.intensity, distanceFactor, timeFactor);
         result += shake.intensity * distanceFactor * timeFactor;
@@ -333,6 +342,7 @@ class CameraManager extends EventTarget {
     }
     return result;
   }
+
   setFocus(focus) {
     if (focus !== this.focus) {
       this.focus = focus;
@@ -345,6 +355,7 @@ class CameraManager extends EventTarget {
       }));
     }
   }
+
   setDynamicTarget(target = null, target2 = null) {
     this.targetType = 'dynamic';
     this.target = target;
@@ -355,7 +366,7 @@ class CameraManager extends EventTarget {
     if (this.target) {
       const _setCameraToDynamicTarget = () => {
         this.target.matrixWorld.decompose(localVector, localQuaternion, localVector2);
-        
+
         if (this.target2) {
           this.target2.matrixWorld.decompose(localVector3, localQuaternion2, localVector4);
 
@@ -365,7 +376,7 @@ class CameraManager extends EventTarget {
               localVector,
               localVector3,
               upVector,
-            )
+            ),
           );
           const lookDirection = localVector6.set(0, 0, -1).applyQuaternion(lookQuaternion);
 
@@ -377,7 +388,7 @@ class CameraManager extends EventTarget {
             .multiplyScalar(0.5);
 
           dollyPosition.add(
-            localVector8.set(sideOfY * -0.3, 0, 0).applyQuaternion(lookQuaternion)
+            localVector8.set(sideOfY * -0.3, 0, 0).applyQuaternion(lookQuaternion),
           );
 
           const lookToDollyVector = localVector9.copy(dollyPosition).sub(localVector).normalize();
@@ -388,8 +399,8 @@ class CameraManager extends EventTarget {
             localMatrix.lookAt(
               lookToDollyVector,
               zeroVector,
-              upVector
-            )
+              upVector,
+            ),
           );
 
           if (face < 0) {
@@ -424,6 +435,7 @@ class CameraManager extends EventTarget {
       this.setCameraToNullTarget();
     }
   }
+
   setStaticTarget(target = null, target2 = null) {
     this.targetType = 'static';
     this.target = target;
@@ -463,6 +475,7 @@ class CameraManager extends EventTarget {
       this.setCameraToNullTarget();
     }
   }
+
   setCameraToNullTarget() {
     this.sourcePosition.copy(camera.position);
     this.sourceQuaternion.copy(camera.quaternion);
@@ -474,10 +487,12 @@ class CameraManager extends EventTarget {
     this.lerpStartTime = timestamp;
     this.lastTimestamp = timestamp;
   }
+
   startCinematicScript(cinematicScript) {
     this.cinematicScript = cinematicScript;
     this.cinematicScriptStartTime = performance.now();
   }
+
   updatePost(timestamp, timeDiff) {
     const renderer = getRenderer();
     const session = renderer.xr.getSession();
@@ -544,7 +559,7 @@ class CameraManager extends EventTarget {
             if (factor < 1) {
               factor = cubicBezier2(factor);
               const previousLine = this.cinematicScript[currentLineIndex - 1];
-              
+
               camera.position.copy(previousLine.position).lerp(currentLine.position, factor);
               camera.quaternion.copy(previousLine.quaternion).slerp(currentLine.quaternion, factor);
               camera.updateMatrixWorld();
@@ -606,7 +621,7 @@ class CameraManager extends EventTarget {
         if (cameraOffsetZ > -0.5) {
           cameraOffsetZ = 0;
         }
-        cameraOffset.z = cameraOffset.z * (1-lerpFactor) + cameraOffsetZ*lerpFactor;
+        cameraOffset.z = cameraOffset.z * (1 - lerpFactor) + cameraOffsetZ * lerpFactor;
       };
       _lerpCameraOffset();
 
@@ -618,14 +633,14 @@ class CameraManager extends EventTarget {
         switch (this.getMode()) {
           case 'firstperson': {
             if (localPlayer.avatar) {
-              const boneNeck = localPlayer.avatar.foundModelBones['Neck'];
-              const boneEyeL = localPlayer.avatar.foundModelBones['Eye_L'];
-              const boneEyeR = localPlayer.avatar.foundModelBones['Eye_R'];
-              const boneHead = localPlayer.avatar.foundModelBones['Head'];
+              const boneNeck = localPlayer.avatar.foundModelBones.Neck;
+              const boneEyeL = localPlayer.avatar.foundModelBones.Eye_L;
+              const boneEyeR = localPlayer.avatar.foundModelBones.Eye_R;
+              const boneHead = localPlayer.avatar.foundModelBones.Head;
 
               boneNeck.quaternion.setFromEuler(localEuler.set(Math.min(camera.rotation.x * -0.5, 0.6), 0, 0, 'XYZ'));
               boneNeck.updateMatrixWorld();
-        
+
               if (boneEyeL && boneEyeR) {
                 boneEyeL.matrixWorld.decompose(localVector2, localQuaternion, localVector4);
                 boneEyeR.matrixWorld.decompose(localVector3, localQuaternion, localVector4);
@@ -648,13 +663,13 @@ class CameraManager extends EventTarget {
             this.targetPosition.copy(localPlayer.position)
               .sub(
                 localVector2.copy(avatarCameraOffset)
-                  .applyQuaternion(this.targetQuaternion)
+                  .applyQuaternion(this.targetQuaternion),
               );
-      
+
             break;
           }
           default: {
-            throw new Error('invalid camera mode: ' + cameraMode);
+            throw new Error('invalid camera mode');
           }
         }
 
@@ -670,8 +685,8 @@ class CameraManager extends EventTarget {
           .slerp(localQuaternion.setFromEuler(localEuler), factor);
       };
       _setFreeCamera();
-    };
-      
+    }
+
     const _setCameraFov = () => {
       if (!renderer.xr.getSession()) {
         let newFov;
@@ -690,10 +705,10 @@ class CameraManager extends EventTarget {
         } else {
           const fovInTime = 3;
           const fovOutTime = 0.3;
-          
+
           const narutoRun = localPlayer.getAction('narutoRun');
           if (narutoRun) {
-            if (this.lastNonzeroDirectionVector.z < 0) {    
+            if (this.lastNonzeroDirectionVector.z < 0) {
               this.fovFactor += timeDiff / 1000 / fovInTime;
             } else {
               this.fovFactor -= timeDiff / 1000 / fovInTime;
@@ -702,7 +717,7 @@ class CameraManager extends EventTarget {
             this.fovFactor -= timeDiff / 1000 / fovOutTime;
           }
           this.fovFactor = Math.min(Math.max(this.fovFactor, 0), 1);
-          
+
           newFov = minFov + Math.pow(this.fovFactor, 0.75) * (maxFov - minFov);
         }
 
@@ -724,7 +739,7 @@ class CameraManager extends EventTarget {
       this.flushShakes();
       const shakeFactor = this.getShakeFactor();
       if (shakeFactor > 0) {
-        const baseTime = timestamp/1000 * shakeAnimationSpeed;
+        const baseTime = timestamp / 1000 * shakeAnimationSpeed;
         const timeOffset = 1000;
         const ndc = f => (-0.5 + f) * 2;
         let index = 0;
@@ -732,7 +747,7 @@ class CameraManager extends EventTarget {
         localVector.set(
           randomValue(),
           randomValue(),
-          randomValue()
+          randomValue(),
         )
           .normalize()
           .multiplyScalar(shakeFactor * randomValue());
@@ -745,6 +760,6 @@ class CameraManager extends EventTarget {
 
     this.lastTarget = this.target;
   }
-};
+}
 const cameraManager = new CameraManager();
 export default cameraManager;

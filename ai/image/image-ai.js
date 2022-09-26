@@ -3,20 +3,20 @@ import {imageAIEndpointUrl, imageCaptionAIEndpointUrl, defaultImageAICanvasSize}
 import materialColors from '../../material-colors.json';
 import ColorScheme from '../../color-scheme.js';
 
-const highlightString = `trending`;
+const highlightString = 'trending';
 // const highlightString = `art championship winner`;
 const artPlatforms = {
   character: [
-    `ArtStation`,
+    'ArtStation',
     // `Pixiv`,
     // `Fanbox`,
     // `Skeb`,
   ],
   item: [
-    `ArtStation`,
+    'ArtStation',
   ],
   render: [
-    `SketchFab`,
+    'SketchFab',
     // `Unreal Engine`,
     // `Octane`,
   ],
@@ -50,7 +50,7 @@ const createSeedImage = (
     monochrome = false,
     // blur = 0,
   } = {},
-) =>{
+) => {
   const canvas = document.createElement('canvas');
   canvas.width = w;
   canvas.height = h;
@@ -59,12 +59,12 @@ const createSeedImage = (
   ctx.fillStyle = '#fff';
   ctx.fillRect(0, 0, w, h);
   // ctx.filter = blur ? `blur(${blur}px) saturate(1.5)` : '';
-  
+
   const baseColor = color ?? baseColors[Math.floor(Math.random() * baseColors.length)];
   const scheme = new ColorScheme();
   scheme.from_hex(baseColor)
-    .scheme(monochrome ? 'mono' : 'triade')   
-    // .variation('hard');
+    .scheme(monochrome ? 'mono' : 'triade');
+  // .variation('hard');
   const colors = scheme.colors();
 
   for (let i = 0; i < n; i++) {
@@ -96,8 +96,6 @@ const createSeedImage = (
 const rng = () => (Math.random() * 2) - 1;
 
 class ImageGenerator {
-  constructor() {
-  }
   // #canvasSize = defaultImageAICanvasSize;
   #debug = false;
   // setCanvasSize(size) {
@@ -106,6 +104,7 @@ class ImageGenerator {
   setDebug(debug) {
     this.#debug = debug;
   }
+
   #makeUnseededMethod({
     promptFn,
   }) {
@@ -119,10 +118,10 @@ class ImageGenerator {
       return {
         prompt,
         async generate() {
-          let img2 = await imageAI.txt2img(prompt);
+          const img2 = await imageAI.txt2img(prompt);
           if (self.#debug) {
             document.body.appendChild(img2);
-            img2.style.cssText = `position: absolute; top: 0; right: 0; z-index: 100;`;
+            img2.style.cssText = 'position: absolute; top: 0; right: 0; z-index: 100;';
           }
           return img2;
         },
@@ -131,6 +130,7 @@ class ImageGenerator {
     pregenerate.defaultPrompt = promptFn();
     return pregenerate;
   }
+
   #makeSeededMethod({
     seedArgs: [
       w,
@@ -165,12 +165,12 @@ class ImageGenerator {
         async generate() {
           if (self.#debug) {
             document.body.appendChild(canvas);
-            canvas.style.cssText = `position: absolute; top: 0; left: 0; z-index: 100;`;
+            canvas.style.cssText = 'position: absolute; top: 0; left: 0; z-index: 100;';
           }
-          let img2 = await imageAI.img2img(canvas, prompt);
+          const img2 = await imageAI.img2img(canvas, prompt);
           if (self.#debug) {
             document.body.appendChild(img2);
-            img2.style.cssText = `position: absolute; top: 0; right: 0; z-index: 100;`;
+            img2.style.cssText = 'position: absolute; top: 0; right: 0; z-index: 100;';
           }
           return img2;
         },
@@ -179,18 +179,21 @@ class ImageGenerator {
     pregenerate.defaultPrompt = promptFn();
     return pregenerate;
   }
+
   character = this.#makeSeededMethod({
     seedArgs: [512, 512, 64, 128, 1, 256],
     promptFn() {
       return `anime style video game character concept, full body, ${highlightString} on ${artPlatformsStrings.character}`;
     },
-  })
+  });
+
   backpack = this.#makeSeededMethod({
     seedArgs: [512, 512, 64, 128, 1, 256],
     promptFn(name = 'backpack') {
       return `video game item concept render, ${highlightString} on ${artPlatformsStrings.item}, ${name}`;
     },
-  })
+  });
+
   sword = this.#makeSeededMethod({
     seedArgs: [512, 512, 32, 128, 1, 256, {
       // monochrome: true,
@@ -198,53 +201,61 @@ class ImageGenerator {
     promptFn(name = 'huge sword') {
       return `video game item concept render, ${highlightString} on ${artPlatformsStrings.item}, ${name}`;
     },
-  })
+  });
+
   rifle = this.#makeSeededMethod({
     seedArgs: [512, 512, 128, 64, 1, 256],
     promptFn(name = 'rifle') {
       return `video game item concept art render, ${highlightString} on ${artPlatformsStrings.item}, ${name}`;
     },
-  })
+  });
+
   pistol = this.#makeSeededMethod({
     seedArgs: [512, 512, 64, 64, 1, 256],
     promptFn(name = 'pistol') {
       return `video game item concept art render, ${highlightString} on ${artPlatformsStrings.item}, ${name}`;
     },
-  })
+  });
+
   potion = this.#makeSeededMethod({
     seedArgs: [512, 512, 64, 64, 1, 256],
     promptFn(name = 'potion') {
       return `video game item concept art render, ${highlightString} on ${artPlatformsStrings.item}, ${name}`;
     },
-  })
+  });
+
   chestArmor = this.#makeSeededMethod({
     seedArgs: [512, 512, 64, 128, 1, 256],
     promptFn(name = 'chest armor') {
       return `video game item concept art, ${highlightString} on ${artPlatformsStrings.item}, ${name}`;
     },
-  })
+  });
+
   legArmor = this.#makeSeededMethod({
     seedArgs: [512, 512, 64, 128, 1, 256],
     promptFn(name = 'leg armor') {
       return `video game item concept art, ${highlightString} on ${artPlatformsStrings.item}, ${name}`;
     },
-  })
+  });
+
   helmet = this.#makeSeededMethod({
     seedArgs: [512, 512, 64, 64, 1, 256],
     promptFn(name = 'helmet') {
       return `video game item concept art, ${highlightString} on ${artPlatformsStrings.item}, ${name}`;
     },
-  })
+  });
+
   location = this.#makeUnseededMethod({
     promptFn(name = 'magical jungle') {
       return `anime style video game location concept art, screenshot, without text, ${highlightString} on ${artPlatformsStrings.item}, ${name}`;
     },
-  })
+  });
+
   map = this.#makeUnseededMethod({
     promptFn(name = 'sakura forest') {
       return `anime style map page side render, without text, ${highlightString} on ${artPlatformsStrings.item}, ${name}`;
     },
-  })
+  });
 }
 
 class ImageAI {
@@ -282,6 +293,7 @@ class ImageAI {
     const img = await loadImage(url);
     return img;
   }
+
   async img2img(image, prompt, {
     n,
     width,
@@ -322,6 +334,7 @@ class ImageAI {
     const resultImg = await blob2img(resultBlob);
     return resultImg;
   }
+
   async img2txt(image, {
     transferType = 'image/jpeg',
   } = {}) {
@@ -352,6 +365,7 @@ class ImageAI {
     const text = await res.text();
     return text;
   }
+
   generator = new ImageGenerator();
 }
 const imageAI = new ImageAI();

@@ -8,12 +8,15 @@ export class ScalarInterpolant {
     this.minValue = minValue;
     this.maxValue = maxValue;
   }
+
   get() {
     return this.value;
   }
+
   getNormalized() {
     return this.value / (this.maxValue - this.minValue);
   }
+
   getInverse() {
     return this.maxValue - this.value;
   }
@@ -21,9 +24,6 @@ export class ScalarInterpolant {
 
 // bidirectional linear; goes forward and backward
 export class BiActionInterpolant extends ScalarInterpolant {
-  constructor(fn, minValue, maxValue) {
-    super(fn, minValue, maxValue);
-  }
   update(timeDiff) {
     this.value += (this.fn() ? 1 : -1) * timeDiff;
     this.value = Math.min(Math.max(this.value, this.minValue), this.maxValue);
@@ -32,9 +32,6 @@ export class BiActionInterpolant extends ScalarInterpolant {
 
 // unidirectional linear; goes forward and snaps back
 export class UniActionInterpolant extends ScalarInterpolant {
-  constructor(fn, minValue, maxValue) {
-    super(fn, minValue, maxValue);
-  }
   update(timeDiff) {
     if (this.fn()) {
       this.value += timeDiff;
@@ -50,6 +47,7 @@ export class InfiniteActionInterpolant extends ScalarInterpolant {
   constructor(fn, minValue) {
     super(fn, minValue, Infinity);
   }
+
   update(timeDiff) {
     if (this.fn()) {
       this.value += timeDiff;
@@ -79,7 +77,7 @@ export class SnapshotInterpolant {
     this.numFrames = numFrames;
     this.readFn = readFn;
     this.seekFn = seekFn;
-    
+
     this.readTime = 0;
     // this.writeTime = 0;
 
@@ -88,9 +86,10 @@ export class SnapshotInterpolant {
 
     this.value = constructor();
   }
+
   update(timeDiff) {
     this.readTime += timeDiff;
-    
+
     let minEndTime = Infinity;
     let maxEndTime = -Infinity;
     for (let i = 0; i < this.numFrames; i++) {
@@ -116,6 +115,7 @@ export class SnapshotInterpolant {
       this.seekTo(effectiveReadTime);
     }
   }
+
   seekTo(t) {
     for (let i = -(this.numFrames - 1); i < 0; i++) {
       const index = this.snapshotWriteIndex + i;
@@ -136,19 +136,21 @@ export class SnapshotInterpolant {
     }
     console.warn('could not seek to time', t, JSON.parse(JSON.stringify(this.snapshots)));
   }
+
   snapshot(timeDiff) {
     const value = this.fn();
     // console.log('got value', value.join(','), timeDiff);
     const writeSnapshot = this.snapshots[this.snapshotWriteIndex];
-    
+
     const lastWriteSnapshot = this.snapshots[mod(this.snapshotWriteIndex - 1, this.numFrames)];
     const startTime = lastWriteSnapshot.endTime;
-    
+
     writeSnapshot.startValue = this.readFn(writeSnapshot.startValue, value);
     writeSnapshot.endTime = startTime + timeDiff;
-    
+
     this.snapshotWriteIndex = mod(this.snapshotWriteIndex + 1, this.numFrames);
   }
+
   get() {
     return this.value;
   }

@@ -1,339 +1,323 @@
 import {
-	AddEquation,
-	Color,
-	CustomBlending,
-	DataTexture,
-	DepthTexture,
-	DstAlphaFactor,
-	DstColorFactor,
-	FloatType,
-	LinearFilter,
-	MathUtils,
-	MeshNormalMaterial,
-	NearestFilter,
-	NoBlending,
-	RGBAFormat,
-	sRGBEncoding,
-	RepeatWrapping,
-	ShaderMaterial,
-	UniformsUtils,
-	UnsignedShortType,
-	Vector3,
-	WebGLRenderTarget,
-	ZeroFactor,
-	Scene,
+  AddEquation,
+  Color,
+  CustomBlending,
+  DataTexture,
+  DepthTexture,
+  DstAlphaFactor,
+  DstColorFactor,
+  FloatType,
+  LinearFilter,
+  MathUtils,
+  MeshNormalMaterial,
+  NearestFilter,
+  NoBlending,
+  RGBAFormat,
+  sRGBEncoding,
+  RepeatWrapping,
+  ShaderMaterial,
+  UniformsUtils,
+  UnsignedShortType,
+  Vector3,
+  WebGLRenderTarget,
+  ZeroFactor,
+  Scene,
 } from 'three';
-import { Pass, FullScreenQuad } from 'three/examples/jsm/postprocessing/Pass.js';
-import { SimplexNoise } from 'three/examples/jsm/math/SimplexNoise.js';
-import { SSAOShader, SSAOBlurShader, SSAODepthShader } from './SSAOShader.js';
-import { CopyShader } from 'three/examples/jsm/shaders/CopyShader.js';
+import {Pass, FullScreenQuad} from 'three/examples/jsm/postprocessing/Pass.js';
+import {SimplexNoise} from 'three/examples/jsm/math/SimplexNoise.js';
+import {SSAOShader, SSAOBlurShader, SSAODepthShader} from './SSAOShader.js';
+import {CopyShader} from 'three/examples/jsm/shaders/CopyShader.js';
 
 // const oldParentCache = new WeakMap();
 // const oldMaterialCache = new WeakMap();
 
 class SSAOPass extends Pass {
+  constructor(scene, camera, width, height, depthPass) {
+    super();
 
-	constructor( scene, camera, width, height, depthPass ) {
+    this.isSSAOPass = true;
 
-		super();
+    this.width = (width !== undefined) ? width : 512;
+    this.height = (height !== undefined) ? height : 512;
+    this.depthPass = depthPass;
 
-		this.isSSAOPass = true;
+    this.clear = true;
 
-		this.width = ( width !== undefined ) ? width : 512;
-		this.height = ( height !== undefined ) ? height : 512;
-		this.depthPass = depthPass;
+    this.camera = camera;
+    this.scene = scene;
+    this.customScene = new Scene();
+    this.customScene.matrixWorldAutoUpdate = false;
 
-		this.clear = true;
+    this.kernelRadius = 8;
+    this.kernelSize = 32;
+    this.kernel = [];
+    this.noiseTexture = null;
+    this.output = 0;
 
-		this.camera = camera;
-		this.scene = scene;
-		this.customScene = new Scene();
-		this.customScene.matrixWorldAutoUpdate = false;
+    // debug hack
+    window.addEventListener('keydown', e => {
+      if (e.which === 36) { // numpad 7
+        const keys = Object.keys(SSAOPass.OUTPUT);
+        this.output = (this.output + 1) % keys.length;
+        console.log(keys[this.output]);
+      }
+    });
 
-		this.kernelRadius = 8;
-		this.kernelSize = 32;
-		this.kernel = [];
-		this.noiseTexture = null;
-		this.output = 0;
+    this.minDistance = 0.005;
+    this.maxDistance = 0.1;
 
-		// debug hack
-		window.addEventListener('keydown', e => {
-			if (e.which === 36) { // numpad 7
-				const keys = Object.keys(SSAOPass.OUTPUT);
-				this.output = (this.output + 1) % keys.length;
-				console.log(keys[this.output]);
-			}
-		});
+    this._visibilityCache = new Map();
 
+    //
 
-		this.minDistance = 0.005;
-		this.maxDistance = 0.1;
+    this.generateSampleKernel();
+    this.generateRandomKernelRotations();
 
-		this._visibilityCache = new Map();
+    // beauty render target
 
-		//
+    // const depthTexture = new DepthTexture();
+    // depthTexture.type = UnsignedShortType;
 
-		this.generateSampleKernel();
-		this.generateRandomKernelRotations();
+    this.beautyRenderTarget = new WebGLRenderTarget(this.width, this.height, {
+      minFilter: LinearFilter,
+      magFilter: LinearFilter,
+      // format: RGBAFormat,
+      encoding: sRGBEncoding,
+    });
+    this.beautyRenderTarget.name = 'SSAO.beauty';
 
-		// beauty render target
+    // normal render target with depth buffer
 
-		// const depthTexture = new DepthTexture();
-		// depthTexture.type = UnsignedShortType;
-
-		this.beautyRenderTarget = new WebGLRenderTarget(this.width, this.height, {
-			minFilter: LinearFilter,
-			magFilter: LinearFilter,
-			// format: RGBAFormat,
-			encoding: sRGBEncoding,
-		});
-		this.beautyRenderTarget.name = 'SSAO.beauty';
-
-		// normal render target with depth buffer
-
-		/* this.normalRenderTarget = new WebGLRenderTarget( this.width, this.height, {
+    /* this.normalRenderTarget = new WebGLRenderTarget( this.width, this.height, {
 			minFilter: NearestFilter,
 			magFilter: NearestFilter,
 			format: RGBAFormat,
 			depthTexture: depthTexture
 		} ); */
 
-		// ssao render target
+    // ssao render target
 
-		this.ssaoRenderTarget = new WebGLRenderTarget(
-			this.width,
-			this.height,
-			{
-				minFilter: LinearFilter,
-				magFilter: LinearFilter,
-				// format: RGBAFormat,
-			}
-		);
-		this.ssaoRenderTarget.name = 'SSAO.ssao';
+    this.ssaoRenderTarget = new WebGLRenderTarget(
+      this.width,
+      this.height,
+      {
+        minFilter: LinearFilter,
+        magFilter: LinearFilter,
+        // format: RGBAFormat,
+      },
+    );
+    this.ssaoRenderTarget.name = 'SSAO.ssao';
 
-		this.blurRenderTarget = this.ssaoRenderTarget.clone();
-		this.blurRenderTarget.name = 'SSAO.blur';
+    this.blurRenderTarget = this.ssaoRenderTarget.clone();
+    this.blurRenderTarget.name = 'SSAO.blur';
 
-		// ssao material
+    // ssao material
 
-		if ( SSAOShader === undefined ) {
+    if (SSAOShader === undefined) {
+      console.error('THREE.SSAOPass: The pass relies on SSAOShader.');
+    }
 
-			console.error( 'THREE.SSAOPass: The pass relies on SSAOShader.' );
+    this.ssaoMaterial = new ShaderMaterial({
+      defines: Object.assign({}, SSAOShader.defines),
+      uniforms: UniformsUtils.clone(SSAOShader.uniforms),
+      vertexShader: SSAOShader.vertexShader,
+      fragmentShader: SSAOShader.fragmentShader,
+      blending: NoBlending,
+    });
 
-		}
+    this.ssaoMaterial.uniforms.tDiffuse.value = this.beautyRenderTarget.texture;
+    this.ssaoMaterial.uniforms.tNormal.value = this.depthPass.normalRenderTarget.texture;
+    this.ssaoMaterial.uniforms.tDepth.value = this.depthPass.normalRenderTarget.depthTexture;
+    this.ssaoMaterial.uniforms.tNoise.value = this.noiseTexture;
+    this.ssaoMaterial.uniforms.kernel.value = this.kernel;
+    this.ssaoMaterial.uniforms.cameraNear.value = this.camera.near;
+    this.ssaoMaterial.uniforms.cameraFar.value = this.camera.far;
+    this.ssaoMaterial.uniforms.resolution.value.set(this.width, this.height);
+    this.ssaoMaterial.uniforms.cameraProjectionMatrix.value.copy(this.camera.projectionMatrix);
+    this.ssaoMaterial.uniforms.cameraInverseProjectionMatrix.value.copy(this.camera.projectionMatrixInverse);
 
-		this.ssaoMaterial = new ShaderMaterial( {
-			defines: Object.assign( {}, SSAOShader.defines ),
-			uniforms: UniformsUtils.clone( SSAOShader.uniforms ),
-			vertexShader: SSAOShader.vertexShader,
-			fragmentShader: SSAOShader.fragmentShader,
-			blending: NoBlending,
-		} );
+    // normal material
 
-		this.ssaoMaterial.uniforms[ 'tDiffuse' ].value = this.beautyRenderTarget.texture;
-		this.ssaoMaterial.uniforms[ 'tNormal' ].value = this.depthPass.normalRenderTarget.texture;
-		this.ssaoMaterial.uniforms[ 'tDepth' ].value = this.depthPass.normalRenderTarget.depthTexture;
-		this.ssaoMaterial.uniforms[ 'tNoise' ].value = this.noiseTexture;
-		this.ssaoMaterial.uniforms[ 'kernel' ].value = this.kernel;
-		this.ssaoMaterial.uniforms[ 'cameraNear' ].value = this.camera.near;
-		this.ssaoMaterial.uniforms[ 'cameraFar' ].value = this.camera.far;
-		this.ssaoMaterial.uniforms[ 'resolution' ].value.set( this.width, this.height );
-		this.ssaoMaterial.uniforms[ 'cameraProjectionMatrix' ].value.copy( this.camera.projectionMatrix );
-		this.ssaoMaterial.uniforms[ 'cameraInverseProjectionMatrix' ].value.copy( this.camera.projectionMatrixInverse );
+    this.normalMaterial = new MeshNormalMaterial();
+    this.normalMaterial.blending = NoBlending;
 
-		// normal material
+    // blur material
 
-		this.normalMaterial = new MeshNormalMaterial();
-		this.normalMaterial.blending = NoBlending;
+    this.blurMaterial = new ShaderMaterial({
+      defines: Object.assign({}, SSAOBlurShader.defines),
+      uniforms: UniformsUtils.clone(SSAOBlurShader.uniforms),
+      vertexShader: SSAOBlurShader.vertexShader,
+      fragmentShader: SSAOBlurShader.fragmentShader,
+    });
+    this.blurMaterial.uniforms.tDiffuse.value = this.ssaoRenderTarget.texture;
+    this.blurMaterial.uniforms.resolution.value.set(this.width, this.height);
 
-		// blur material
+    // material for rendering the depth
 
-		this.blurMaterial = new ShaderMaterial( {
-			defines: Object.assign( {}, SSAOBlurShader.defines ),
-			uniforms: UniformsUtils.clone( SSAOBlurShader.uniforms ),
-			vertexShader: SSAOBlurShader.vertexShader,
-			fragmentShader: SSAOBlurShader.fragmentShader
-		} );
-		this.blurMaterial.uniforms[ 'tDiffuse' ].value = this.ssaoRenderTarget.texture;
-		this.blurMaterial.uniforms[ 'resolution' ].value.set( this.width, this.height );
+    this.depthRenderMaterial = new ShaderMaterial({
+      defines: Object.assign({}, SSAODepthShader.defines),
+      uniforms: UniformsUtils.clone(SSAODepthShader.uniforms),
+      vertexShader: SSAODepthShader.vertexShader,
+      fragmentShader: SSAODepthShader.fragmentShader,
+      blending: NoBlending,
+    });
+    this.depthRenderMaterial.uniforms.tDepth.value = this.depthPass.normalRenderTarget.depthTexture;
+    this.depthRenderMaterial.uniforms.cameraNear.value = this.camera.near;
+    this.depthRenderMaterial.uniforms.cameraFar.value = this.camera.far;
 
-		// material for rendering the depth
+    // material for rendering the content of a render target
 
-		this.depthRenderMaterial = new ShaderMaterial( {
-			defines: Object.assign( {}, SSAODepthShader.defines ),
-			uniforms: UniformsUtils.clone( SSAODepthShader.uniforms ),
-			vertexShader: SSAODepthShader.vertexShader,
-			fragmentShader: SSAODepthShader.fragmentShader,
-			blending: NoBlending
-		} );
-		this.depthRenderMaterial.uniforms[ 'tDepth' ].value = this.depthPass.normalRenderTarget.depthTexture;
-		this.depthRenderMaterial.uniforms[ 'cameraNear' ].value = this.camera.near;
-		this.depthRenderMaterial.uniforms[ 'cameraFar' ].value = this.camera.far;
+    this.copyMaterial = new ShaderMaterial({
+      uniforms: UniformsUtils.clone(CopyShader.uniforms),
+      vertexShader: CopyShader.vertexShader,
+      fragmentShader: CopyShader.fragmentShader,
+      transparent: true,
+      depthTest: false,
+      depthWrite: false,
+      blendSrc: DstColorFactor,
+      blendDst: ZeroFactor,
+      blendEquation: AddEquation,
+      blendSrcAlpha: DstAlphaFactor,
+      blendDstAlpha: ZeroFactor,
+      blendEquationAlpha: AddEquation,
+    });
 
-		// material for rendering the content of a render target
+    this.fsQuad = new FullScreenQuad(null);
 
-		this.copyMaterial = new ShaderMaterial( {
-			uniforms: UniformsUtils.clone( CopyShader.uniforms ),
-			vertexShader: CopyShader.vertexShader,
-			fragmentShader: CopyShader.fragmentShader,
-			transparent: true,
-			depthTest: false,
-			depthWrite: false,
-			blendSrc: DstColorFactor,
-			blendDst: ZeroFactor,
-			blendEquation: AddEquation,
-			blendSrcAlpha: DstAlphaFactor,
-			blendDstAlpha: ZeroFactor,
-			blendEquationAlpha: AddEquation,
-		} );
+    this.originalClearColor = new Color();
+  }
 
-		this.fsQuad = new FullScreenQuad( null );
+  dispose() {
+    // dispose render targets
 
-		this.originalClearColor = new Color();
+    this.beautyRenderTarget.dispose();
+    // this.normalRenderTarget.dispose();
+    this.ssaoRenderTarget.dispose();
+    this.blurRenderTarget.dispose();
 
-	}
+    // dispose materials
 
-	dispose() {
+    this.normalMaterial.dispose();
+    this.blurMaterial.dispose();
+    this.copyMaterial.dispose();
+    this.depthRenderMaterial.dispose();
 
-		// dispose render targets
+    // dipsose full screen quad
 
-		this.beautyRenderTarget.dispose();
-		// this.normalRenderTarget.dispose();
-		this.ssaoRenderTarget.dispose();
-		this.blurRenderTarget.dispose();
+    this.fsQuad.dispose();
+  }
 
-		// dispose materials
+  render(renderer, writeBuffer /*, readBuffer, deltaTime, maskActive */) {
+    // render beauty
 
-		this.normalMaterial.dispose();
-		this.blurMaterial.dispose();
-		this.copyMaterial.dispose();
-		this.depthRenderMaterial.dispose();
+    renderer.setRenderTarget(this.beautyRenderTarget);
+    renderer.clear();
+    renderer.render(this.scene, this.camera);
 
-		// dipsose full screen quad
+    // render normals and depth (honor only meshes, points and lines do not contribute to SSAO)
 
-		this.fsQuad.dispose();
-
-	}
-
-	render( renderer, writeBuffer /*, readBuffer, deltaTime, maskActive */ ) {
-
-		// render beauty
-
-		renderer.setRenderTarget( this.beautyRenderTarget );
-		renderer.clear();
-		renderer.render( this.scene, this.camera );
-
-		// render normals and depth (honor only meshes, points and lines do not contribute to SSAO)
-
-		/* this.overrideVisibility();
+    /* this.overrideVisibility();
 		this.renderOverride( renderer, this.normalMaterial, this.normalRenderTarget, 0x7777ff, 1.0 );
 		this.restoreVisibility(); */
 
-		// render SSAO
+    // render SSAO
 
-		this.ssaoMaterial.uniforms[ 'kernelRadius' ].value = this.kernelRadius;
-		this.ssaoMaterial.uniforms[ 'minDistance' ].value = this.minDistance;
-		this.ssaoMaterial.uniforms[ 'maxDistance' ].value = this.maxDistance;
-		this.renderPass( renderer, this.ssaoMaterial, this.ssaoRenderTarget );
+    this.ssaoMaterial.uniforms.kernelRadius.value = this.kernelRadius;
+    this.ssaoMaterial.uniforms.minDistance.value = this.minDistance;
+    this.ssaoMaterial.uniforms.maxDistance.value = this.maxDistance;
+    this.renderPass(renderer, this.ssaoMaterial, this.ssaoRenderTarget);
 
-		// render blur
+    // render blur
 
-		this.renderPass( renderer, this.blurMaterial, this.blurRenderTarget );
+    this.renderPass(renderer, this.blurMaterial, this.blurRenderTarget);
 
-		// output result to screen
+    // output result to screen
 
-		switch ( this.output ) {
+    switch (this.output) {
+      case SSAOPass.OUTPUT.SSAO:
 
-			case SSAOPass.OUTPUT.SSAO:
+        this.copyMaterial.uniforms.tDiffuse.value = this.ssaoRenderTarget.texture;
+        this.copyMaterial.blending = NoBlending;
+        this.renderPass(renderer, this.copyMaterial, this.renderToScreen ? null : writeBuffer);
 
-				this.copyMaterial.uniforms[ 'tDiffuse' ].value = this.ssaoRenderTarget.texture;
-				this.copyMaterial.blending = NoBlending;
-				this.renderPass( renderer, this.copyMaterial, this.renderToScreen ? null : writeBuffer );
+        break;
 
-				break;
+      case SSAOPass.OUTPUT.Blur:
 
-			case SSAOPass.OUTPUT.Blur:
+        this.copyMaterial.uniforms.tDiffuse.value = this.blurRenderTarget.texture;
+        this.copyMaterial.blending = NoBlending;
+        this.renderPass(renderer, this.copyMaterial, this.renderToScreen ? null : writeBuffer);
 
-				this.copyMaterial.uniforms[ 'tDiffuse' ].value = this.blurRenderTarget.texture;
-				this.copyMaterial.blending = NoBlending;
-				this.renderPass( renderer, this.copyMaterial, this.renderToScreen ? null : writeBuffer );
+        break;
 
-				break;
+      case SSAOPass.OUTPUT.Beauty:
 
-			case SSAOPass.OUTPUT.Beauty:
+        this.copyMaterial.uniforms.tDiffuse.value = this.beautyRenderTarget.texture;
+        this.copyMaterial.blending = NoBlending;
+        this.renderPass(renderer, this.copyMaterial, this.renderToScreen ? null : writeBuffer);
 
-				this.copyMaterial.uniforms[ 'tDiffuse' ].value = this.beautyRenderTarget.texture;
-				this.copyMaterial.blending = NoBlending;
-				this.renderPass( renderer, this.copyMaterial, this.renderToScreen ? null : writeBuffer );
+        break;
 
-				break;
+      case SSAOPass.OUTPUT.Depth:
 
-			case SSAOPass.OUTPUT.Depth:
+        this.renderPass(renderer, this.depthRenderMaterial, this.renderToScreen ? null : writeBuffer);
+        // this.copyMaterial.uniforms[ 'tDiffuse' ].value = this.depthPass.normalRenderTarget.depthTexture;
+        // this.copyMaterial.blending = NoBlending;
+        // this.renderPass( renderer, this.copyMaterial, this.renderToScreen ? null : writeBuffer );
 
-				this.renderPass( renderer, this.depthRenderMaterial, this.renderToScreen ? null : writeBuffer );
-				// this.copyMaterial.uniforms[ 'tDiffuse' ].value = this.depthPass.normalRenderTarget.depthTexture;
-				// this.copyMaterial.blending = NoBlending;
-				// this.renderPass( renderer, this.copyMaterial, this.renderToScreen ? null : writeBuffer );
+        break;
 
-				break;
+      case SSAOPass.OUTPUT.Normal:
 
-			case SSAOPass.OUTPUT.Normal:
+        this.copyMaterial.uniforms.tDiffuse.value = this.depthPass.normalRenderTarget.texture;
+        this.copyMaterial.blending = NoBlending;
+        this.renderPass(renderer, this.copyMaterial, this.renderToScreen ? null : writeBuffer);
 
-				this.copyMaterial.uniforms[ 'tDiffuse' ].value = this.depthPass.normalRenderTarget.texture;
-				this.copyMaterial.blending = NoBlending;
-				this.renderPass( renderer, this.copyMaterial, this.renderToScreen ? null : writeBuffer );
+        break;
 
-				break;
+      case SSAOPass.OUTPUT.Default:
 
-			case SSAOPass.OUTPUT.Default:
+        this.copyMaterial.uniforms.tDiffuse.value = this.beautyRenderTarget.texture;
+        this.copyMaterial.blending = NoBlending;
+        this.renderPass(renderer, this.copyMaterial, this.renderToScreen ? null : writeBuffer);
 
-				this.copyMaterial.uniforms[ 'tDiffuse' ].value = this.beautyRenderTarget.texture;
-				this.copyMaterial.blending = NoBlending;
-				this.renderPass( renderer, this.copyMaterial, this.renderToScreen ? null : writeBuffer );
+        this.copyMaterial.uniforms.tDiffuse.value = this.blurRenderTarget.texture;
+        this.copyMaterial.blending = CustomBlending;
+        this.renderPass(renderer, this.copyMaterial, this.renderToScreen ? null : writeBuffer);
 
-				this.copyMaterial.uniforms[ 'tDiffuse' ].value = this.blurRenderTarget.texture;
-				this.copyMaterial.blending = CustomBlending;
-				this.renderPass( renderer, this.copyMaterial, this.renderToScreen ? null : writeBuffer );
+        break;
 
-				break;
+      default:
+        console.warn('THREE.SSAOPass: Unknown output type.');
+    }
+  }
 
-			default:
-				console.warn( 'THREE.SSAOPass: Unknown output type.' );
+  renderPass(renderer, passMaterial, renderTarget, clearColor, clearAlpha) {
+    // save original state
+    renderer.getClearColor(this.originalClearColor);
+    const originalClearAlpha = renderer.getClearAlpha();
+    const originalAutoClear = renderer.autoClear;
 
-		}
+    renderer.setRenderTarget(renderTarget);
 
-	}
+    // setup pass state
+    renderer.autoClear = false;
+    if ((clearColor !== undefined) && (clearColor !== null)) {
+      renderer.setClearColor(clearColor);
+      renderer.setClearAlpha(clearAlpha || 0.0);
+      renderer.clear();
+    }
 
-	renderPass( renderer, passMaterial, renderTarget, clearColor, clearAlpha ) {
+    this.fsQuad.material = passMaterial;
+    this.fsQuad.render(renderer);
 
-		// save original state
-		renderer.getClearColor( this.originalClearColor );
-		const originalClearAlpha = renderer.getClearAlpha();
-		const originalAutoClear = renderer.autoClear;
+    // restore original state
+    renderer.autoClear = originalAutoClear;
+    renderer.setClearColor(this.originalClearColor);
+    renderer.setClearAlpha(originalClearAlpha);
+  }
 
-		renderer.setRenderTarget( renderTarget );
-
-		// setup pass state
-		renderer.autoClear = false;
-		if ( ( clearColor !== undefined ) && ( clearColor !== null ) ) {
-
-			renderer.setClearColor( clearColor );
-			renderer.setClearAlpha( clearAlpha || 0.0 );
-			renderer.clear();
-
-		}
-
-		this.fsQuad.material = passMaterial;
-		this.fsQuad.render( renderer );
-
-		// restore original state
-		renderer.autoClear = originalAutoClear;
-		renderer.setClearColor( this.originalClearColor );
-		renderer.setClearAlpha( originalClearAlpha );
-
-	}
-
-	/* renderOverride( renderer, overrideMaterial, renderTarget, clearColor, clearAlpha ) {
+  /* renderOverride( renderer, overrideMaterial, renderTarget, clearColor, clearAlpha ) {
 
 		renderer.getClearColor( this.originalClearColor );
 		const originalClearAlpha = renderer.getClearAlpha();
@@ -387,88 +371,76 @@ class SSAOPass extends Pass {
 
 	} */
 
-	setSize( width, height ) {
+  setSize(width, height) {
+    this.width = width;
+    this.height = height;
 
-		this.width = width;
-		this.height = height;
+    this.beautyRenderTarget.setSize(width, height);
+    this.ssaoRenderTarget.setSize(width, height);
+    // this.normalRenderTarget.setSize( width, height );
+    this.blurRenderTarget.setSize(width, height);
 
-		this.beautyRenderTarget.setSize( width, height );
-		this.ssaoRenderTarget.setSize( width, height );
-		// this.normalRenderTarget.setSize( width, height );
-		this.blurRenderTarget.setSize( width, height );
+    this.ssaoMaterial.uniforms.resolution.value.set(width, height);
+    this.ssaoMaterial.uniforms.cameraProjectionMatrix.value.copy(this.camera.projectionMatrix);
+    this.ssaoMaterial.uniforms.cameraInverseProjectionMatrix.value.copy(this.camera.projectionMatrixInverse);
 
-		this.ssaoMaterial.uniforms[ 'resolution' ].value.set( width, height );
-		this.ssaoMaterial.uniforms[ 'cameraProjectionMatrix' ].value.copy( this.camera.projectionMatrix );
-		this.ssaoMaterial.uniforms[ 'cameraInverseProjectionMatrix' ].value.copy( this.camera.projectionMatrixInverse );
+    this.blurMaterial.uniforms.resolution.value.set(width, height);
+  }
 
-		this.blurMaterial.uniforms[ 'resolution' ].value.set( width, height );
+  generateSampleKernel() {
+    const kernelSize = this.kernelSize;
+    const kernel = this.kernel;
 
-	}
+    for (let i = 0; i < kernelSize; i++) {
+      const sample = new Vector3();
+      sample.x = (Math.random() * 2) - 1;
+      sample.y = (Math.random() * 2) - 1;
+      sample.z = Math.random();
 
-	generateSampleKernel() {
+      sample.normalize();
 
-		const kernelSize = this.kernelSize;
-		const kernel = this.kernel;
+      let scale = i / kernelSize;
+      scale = MathUtils.lerp(0.1, 1, scale * scale);
+      sample.multiplyScalar(scale);
 
-		for ( let i = 0; i < kernelSize; i ++ ) {
+      kernel.push(sample);
+    }
+  }
 
-			const sample = new Vector3();
-			sample.x = ( Math.random() * 2 ) - 1;
-			sample.y = ( Math.random() * 2 ) - 1;
-			sample.z = Math.random();
+  generateRandomKernelRotations() {
+    const width = 4; const height = 4;
 
-			sample.normalize();
+    if (SimplexNoise === undefined) {
+      console.error('THREE.SSAOPass: The pass relies on SimplexNoise.');
+    }
 
-			let scale = i / kernelSize;
-			scale = MathUtils.lerp( 0.1, 1, scale * scale );
-			sample.multiplyScalar( scale );
+    const simplex = new SimplexNoise();
 
-			kernel.push( sample );
+    const size = width * height;
+    const data = new Float32Array(size * 4);
 
-		}
+    for (let i = 0; i < size; i++) {
+      const stride = i * 4;
 
-	}
+      const x = (Math.random() * 2) - 1;
+      const y = (Math.random() * 2) - 1;
+      const z = 0;
 
-	generateRandomKernelRotations() {
+      const noise = simplex.noise3d(x, y, z);
 
-		const width = 4, height = 4;
+      data[stride] = noise;
+      data[stride + 1] = noise;
+      data[stride + 2] = noise;
+      data[stride + 3] = 1;
+    }
 
-		if ( SimplexNoise === undefined ) {
+    this.noiseTexture = new DataTexture(data, width, height, RGBAFormat, FloatType);
+    this.noiseTexture.wrapS = RepeatWrapping;
+    this.noiseTexture.wrapT = RepeatWrapping;
+    this.noiseTexture.needsUpdate = true;
+  }
 
-			console.error( 'THREE.SSAOPass: The pass relies on SimplexNoise.' );
-
-		}
-
-		const simplex = new SimplexNoise();
-
-		const size = width * height;
-		const data = new Float32Array( size * 4 );
-
-		for ( let i = 0; i < size; i ++ ) {
-
-			const stride = i * 4;
-
-			const x = ( Math.random() * 2 ) - 1;
-			const y = ( Math.random() * 2 ) - 1;
-			const z = 0;
-
-			const noise = simplex.noise3d( x, y, z );
-
-			data[ stride ] = noise;
-			data[ stride + 1 ] = noise;
-			data[ stride + 2 ] = noise;
-			data[ stride + 3 ] = 1;
-
-		}
-
-		this.noiseTexture = new DataTexture( data, width, height, RGBAFormat, FloatType );
-		this.noiseTexture.wrapS = RepeatWrapping;
-		this.noiseTexture.wrapT = RepeatWrapping;
-		this.noiseTexture.needsUpdate = true;
-
-	}
-
-	/* overrideVisibility() {
+  /* overrideVisibility() {
 
 		const scene = this.scene;
 		const cache = this._visibilityCache;
@@ -499,16 +471,15 @@ class SSAOPass extends Pass {
 		cache.clear();
 
 	} */
-
 }
 
 SSAOPass.OUTPUT = {
-	'Default': 0,
-	'SSAO': 1,
-	'Blur': 2,
-	'Beauty': 3,
-	'Depth': 4,
-	'Normal': 5
+  Default: 0,
+  SSAO: 1,
+  Blur: 2,
+  Beauty: 3,
+  Depth: 4,
+  Normal: 5,
 };
 
-export { SSAOPass };
+export {SSAOPass};

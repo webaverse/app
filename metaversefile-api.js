@@ -93,10 +93,12 @@ class App extends THREE.Object3D {
       performanceTracker.removeEventListener('startframe', startframe);
     });
   }
+
   getComponent(key) {
     const component = this.components.find(component => component.key === key);
     return component ? component.value : null;
   }
+
   #setComponentInternal(key, value) {
     let component = this.components.find(component => component.key === key);
     if (!component) {
@@ -111,6 +113,7 @@ class App extends THREE.Object3D {
       value,
     });
   }
+
   setComponent(key, value = true) {
     this.#setComponentInternal(key, value);
     this.dispatchEvent({
@@ -118,6 +121,7 @@ class App extends THREE.Object3D {
       keys: [key],
     });
   }
+
   setComponents(o) {
     const keys = Object.keys(o);
     for (const k of keys) {
@@ -129,9 +133,11 @@ class App extends THREE.Object3D {
       keys,
     });
   }
+
   hasComponent(key) {
     return this.components.some(component => component.key === key);
   }
+
   removeComponent(key) {
     const index = this.components.findIndex(component => component.key === key);
     if (index !== -1) {
@@ -143,51 +149,65 @@ class App extends THREE.Object3D {
       });
     }
   }
+
   get contentId() {
     const contentIdComponent = this.getComponent('contentId');
     return (contentIdComponent !== null) ? contentIdComponent : '';
   }
+
   set contentId(contentId) {
     this.setComponent('contentId', contentId + '');
   }
+
   get instanceId() {
     const instanceIdComponent = this.getComponent('instanceId');
     return (instanceIdComponent !== null) ? instanceIdComponent : '';
   }
+
   set instanceId(instanceId) {
     this.setComponent('instanceId', instanceId + '');
   }
+
   get paused() {
     return this.getComponent('paused') === true;
   }
+
   set paused(paused) {
     this.setComponent('paused', !!paused);
   }
+
   addModule(m) {
     throw new Error('method not bound');
   }
+
   updateModulesHash() {
     this.modulesHash = murmurhash3(this.modules.map(m => m.contentId).join(','));
   }
+
   getPhysicsObjects() {
     return this.physicsObjects;
   }
+
   addPhysicsObject(object) {
     this.physicsObjects.push(object);
   }
+
   removePhysicsObject(object) {
     const removeIndex = this.physicsObjects.indexOf(object);
     if (removeIndex !== -1) {
       this.physicsObjects.splice(removeIndex);
     }
   }
+
   setPhysicsObject(object) {
     this.physicsObjects.length = 0;
     this.physicsObjects.push(object);
   }
+
   hit(damage, opts) {
     this.hitTracker && this.hitTracker.hit(damage, opts);
   }
+
   getRenderSettings() {
     if (this.hasSubApps) {
       return renderSettingsManager.findRenderSettings(this);
@@ -195,6 +215,7 @@ class App extends THREE.Object3D {
       return null;
     }
   }
+
   activate({
     physicsId = -1,
   } = {}) {
@@ -203,20 +224,24 @@ class App extends THREE.Object3D {
       physicsId,
     });
   }
+
   wear() {
     const localPlayer = playersManager.getLocalPlayer();
     localPlayer.wear(this);
   }
+
   unwear() {
     const localPlayer = playersManager.getLocalPlayer();
     localPlayer.unwear(this);
   }
+
   use() {
     this.dispatchEvent({
       type: 'use',
       use: true,
     });
   }
+
   destroy() {
     this.dispatchEvent({
       type: 'destroy',
@@ -254,12 +279,12 @@ world.loreAIScene = loreAIScene;
 class ErrorBoundary extends React.Component {
   constructor(props) {
     super(props);
-    this.state = { hasError: false };
+    this.state = {hasError: false};
   }
 
   static getDerivedStateFromError(error) {
     // Update state so the next render will show the fallback UI.
-    return { hasError: true };
+    return {hasError: true};
   }
 
   componentDidCatch(error, errorInfo) {
@@ -272,7 +297,7 @@ class ErrorBoundary extends React.Component {
     if (this.state.hasError) {
       return null;
     }
-    return this.props.children; 
+    return this.props.children;
   }
 }
 function createPointerEvents(store) {
@@ -297,29 +322,29 @@ function createPointerEvents(store) {
   return {
     connected: false,
     handlers: (Object.keys(names).reduce(
-      (acc, key) => ({ ...acc, [key]: handlePointer(key) }),
+      (acc, key) => ({...acc, [key]: handlePointer(key)}),
       {},
     )),
-    connect: (target) => {
-      const { set, events } = store.getState()
-      events.disconnect?.()
-      set((state) => ({ events: { ...state.events, connected: target } }))
+    connect: target => {
+      const {set, events} = store.getState();
+      events.disconnect?.();
+      set(state => ({events: {...state.events, connected: target}}));
       Object.entries(events?.handlers ?? []).forEach(([name, event]) =>
-        target.addEventListener(names[name], event, { passive: true }),
-      )
+        target.addEventListener(names[name], event, {passive: true}),
+      );
     },
     disconnect: () => {
-      const { set, events } = store.getState()
+      const {set, events} = store.getState();
       if (events.connected) {
         Object.entries(events.handlers ?? []).forEach(([name, event]) => {
           if (events && events.connected instanceof HTMLElement) {
-            events.connected.removeEventListener(names[name], event)
+            events.connected.removeEventListener(names[name], event);
           }
-        })
-        set((state) => ({ events: { ...state.events, connected: false } }))
+        });
+        set(state => ({events: {...state.events, connected: false}}));
       }
     },
-  }
+  };
 }
 
 const _loadImageTexture = src => {
@@ -388,7 +413,7 @@ metaversefile.setApi({
     try {
       const m = await import(s);
       return m;
-    } catch(err) {
+    } catch (err) {
       console.warn('error loading', JSON.stringify(s), err.stack);
       return null;
     }
@@ -523,12 +548,12 @@ metaversefile.setApi({
         cleanup();
       };
       app.addEventListener('destroy', destroy);
-      
+
       const cleanup = () => {
         world.appManager.removeEventListener('frame', frame);
         app.removeEventListener('destroy', destroy);
       };
-      
+
       return {
         cleanup,
       };
@@ -575,7 +600,7 @@ metaversefile.setApi({
     return playersManager.getLocalPlayer();
   },
   useRemotePlayer(playerId) {
-    let player = playersManager.getRemotePlayers().get(playerId);
+    const player = playersManager.getRemotePlayers().get(playerId);
     /* if (!player) {
       player = new RemotePlayer();
     } */
@@ -644,7 +669,7 @@ metaversefile.setApi({
         // physicsObject.position.copy(app.position);
         // physicsObject.quaternion.copy(app.quaternion);
         // physicsObject.scale.copy(app.scale);
-        
+
         // const {physicsMesh} = physicsObject;
         // physicsMesh.position.copy(position);
         // physicsMesh.quaternion.copy(quaternion);
@@ -668,14 +693,14 @@ metaversefile.setApi({
         //   .decompose(localVector, localQuaternion, localVector2);
         // position = localVector;
         // quaternion = localQuaternion;
-        //size = localVector2;
-        
+        // size = localVector2;
+
         const physicsObject = addCapsuleGeometry.call(this, position, quaternion, radius, halfHeight, physicsMaterial, dynamic, flags);
         // physicsObject.position.copy(app.position);
         // physicsObject.quaternion.copy(app.quaternion);
         // physicsObject.scale.copy(app.scale);
         // physicsObject.updateMatrixWorld();
-        
+
         // const {physicsMesh} = physicsObject;
         // physicsMesh.position.copy(basePosition);
         // physicsMesh.quaternion.copy(baseQuaternion);
@@ -686,16 +711,16 @@ metaversefile.setApi({
 
         // const localPlayer = metaversefile.useLocalPlayer();
 
-        /*if(localPlayer.avatar) {
+        /* if(localPlayer.avatar) {
           if(localPlayer.avatar.height) {
             console.log(localPlayer.avatar.height);
           }
-        }*/
-        
+        } */
+
         app.physicsObjects.push(physicsObject);
 
         // physicsManager.pushUpdate(app, physicsObject);
-        //physicsManager.setTransform(physicsObject);
+        // physicsManager.setTransform(physicsObject);
         return physicsObject;
       })(physicsScene.addCapsuleGeometry);
       /* physics.addSphereGeometry = (addSphereGeometry => function(position, quaternion, radius, physicsMaterial, ccdEnabled) {
@@ -710,45 +735,45 @@ metaversefile.setApi({
         // position = localVector;
         // quaternion = localQuaternion;
         //size = localVector2;
-        
+
         const physicsObject = addSphereGeometry.call(this, position, quaternion, radius, physicsMaterial, ccdEnabled);
         //physicsObject.position.copy(app.position);
         //physicsObject.quaternion.copy(app.quaternion);
         //physicsObject.scale.copy(app.scale);
-        
+
         const {physicsMesh} = physicsObject;
         physicsMesh.position.copy(basePosition);
         physicsMesh.quaternion.copy(baseQuaternion);
         //physicsMesh.scale.copy(baseScale);
         // app.add(physicsObject);
         physicsObject.updateMatrixWorld();
-        
+
         app.physicsObjects.push(physicsObject);
         // physicsManager.pushUpdate(app, physicsObject);
         return physicsObject;
       })(physics.addSphereGeometry); */
       physicsScene.addGeometry = (addGeometry => function(mesh) {
         /* const oldParent = mesh.parent;
-        
+
         const parentMesh = new THREE.Object3D();
         parentMesh.position.copy(app.position);
         parentMesh.quaternion.copy(app.quaternion);
         parentMesh.scale.copy(app.scale);
         parentMesh.add(mesh);
         parentMesh.updateMatrixWorld(); */
-        
+
         const physicsObject = addGeometry.call(this, mesh);
         /* physicsObject.position.copy(app.position);
         physicsObject.quaternion.copy(app.quaternion);
         physicsObject.scale.copy(app.scale);
         physicsObject.updateMatrixWorld(); */
         // window.physicsObject = physicsObject;
-        
+
         /* if (oldParent) {
           oldParent.add(mesh);
           mesh.updateMatrixWorld();
         } */
-        
+
         // app.add(physicsObject);
         app.physicsObjects.push(physicsObject);
         return physicsObject;
@@ -785,14 +810,14 @@ metaversefile.setApi({
       })(physicsScene.addHeightFieldGeometry);
       physicsScene.removeGeometry = (removeGeometry => function(physicsObject) {
         removeGeometry.apply(this, arguments);
-        
+
         const index = app.physicsObjects.indexOf(physicsObject);
         if (index !== -1) {
           app.remove(physicsObject);
           app.physicsObjects.splice(index);
         }
       })(physicsScene.removeGeometry);
-      
+
       return physicsScene;
     } else {
       throw new Error('usePhysics cannot be called outside of render()');
@@ -958,7 +983,7 @@ metaversefile.setApi({
         content = JSON.stringify(content);
       }
       const dataUrlPrefix = 'data:' + type + ',';
-      return '/@proxy/' + dataUrlPrefix + encodeURIComponent(content).replace(/\%/g, '%25')//.replace(/\\//g, '%2F');
+      return '/@proxy/' + dataUrlPrefix + encodeURIComponent(content).replace(/\%/g, '%25');// .replace(/\\//g, '%2F');
     }
     function getObjectUrl(start_url, type, content) {
       if (start_url) {
@@ -1012,7 +1037,7 @@ metaversefile.setApi({
     return [app, promise];
   },
   createModule: (() => {
-    const dataUrlPrefix = `data:application/javascript;charset=utf-8,`;
+    const dataUrlPrefix = 'data:application/javascript;charset=utf-8,';
     const jsPrefix = `\
 import * as THREE from 'three';
 import metaversefile from 'metaversefile';
@@ -1042,7 +1067,7 @@ export default () => {
   },
   getPlayerByAppInstanceId(instanceId) {
     const localPlayer = playersManager.getLocalPlayer();
-    let result = localPlayer.appManager.getAppByInstanceId(instanceId);
+    const result = localPlayer.appManager.getAppByInstanceId(instanceId);
     if (result) {
       return localPlayer;
     } else {
@@ -1065,7 +1090,7 @@ export default () => {
   getAppByInstanceId(instanceId) {
     // local
     const localPlayer = playersManager.getLocalPlayer();
-    let result = world.appManager.getAppByInstanceId(instanceId) || localPlayer.appManager.getAppByInstanceId(instanceId);
+    const result = world.appManager.getAppByInstanceId(instanceId) || localPlayer.appManager.getAppByInstanceId(instanceId);
     if (result) {
       return result;
     }
@@ -1201,8 +1226,8 @@ export default () => {
   useInternals() {
     if (!iframeContainer) {
       iframeContainer = document.getElementById('iframe-container');
-      
-      iframeContainer.getFov = () => camera.projectionMatrix.elements[ 5 ] * (window.innerHeight / 2);
+
+      iframeContainer.getFov = () => camera.projectionMatrix.elements[5] * (window.innerHeight / 2);
       iframeContainer.updateSize = function updateSize() {
         const fov = iframeContainer.getFov();
         iframeContainer.style.cssText = `
@@ -1336,7 +1361,7 @@ export default () => {
           console.warn('module default export is not a function', m);
           return null;
         }
-      } catch(err) {
+      } catch (err) {
         console.warn(err);
         return null;
       } finally {
@@ -1351,7 +1376,7 @@ export default () => {
 
     const _bindDefaultComponents = app => {
       // console.log('bind default components', app); // XXX
-      
+
       currentAppRender = app;
 
       // component handlers
@@ -1390,7 +1415,7 @@ export default () => {
         app.add(o);
         o.updateMatrixWorld();
       }
-      
+
       app.addEventListener('destroy', () => {
         if (o !== app) {
           app.remove(o);
@@ -1398,7 +1423,7 @@ export default () => {
       });
 
       _bindDefaultComponents(app);
-      
+
       return app;
     } else if (React.isValidElement(renderSpec)) {
       const o = new THREE.Object3D();
@@ -1406,24 +1431,24 @@ export default () => {
       // o.getPhysicsIds = () => app.physicsIds;
       o.destroy = () => {
         app.destroy();
-        
+
         (async () => {
           const roots = ReactThreeFiber._roots;
           const root = roots.get(rootDiv);
-          const fiber = root?.fiber
+          const fiber = root?.fiber;
           if (fiber) {
-            const state = root?.store.getState()
-            if (state) state.internal.active = false
+            const state = root?.store.getState();
+            if (state) state.internal.active = false;
             await new Promise((accept, reject) => {
               ReactThreeFiber.reconciler.updateContainer(null, fiber, null, () => {
                 if (state) {
                   // setTimeout(() => {
-                    state.events.disconnect?.()
-                    // state.gl?.renderLists?.dispose?.()
-                    // state.gl?.forceContextLoss?.()
-                    ReactThreeFiber.dispose(state)
-                    roots.delete(canvas)
-                    // if (callback) callback(canvas)
+                  state.events.disconnect?.();
+                  // state.gl?.renderLists?.dispose?.()
+                  // state.gl?.forceContextLoss?.()
+                  ReactThreeFiber.dispose(state);
+                  roots.delete(canvas);
+                  // if (callback) callback(canvas)
                   // }, 500)
                 }
                 accept();
@@ -1433,7 +1458,7 @@ export default () => {
         })();
       };
       app.add(o);
-      
+
       const renderer = getRenderer();
       const sizeVector = renderer.getSize(localVector2D);
       const rootDiv = document.createElement('div');
@@ -1450,7 +1475,7 @@ export default () => {
         renderer2.setPixelRatio = () => {
           // nothing
         };
-        
+
         ReactThreeFiber.render(
           React.createElement(ErrorBoundary, {}, [
             React.createElement(fn, {
@@ -1482,26 +1507,26 @@ export default () => {
               }
             },
             frameloop: 'demand',
-          }
+          },
         );
       });
       app.addEventListener('destroy', async () => {
         const roots = ReactThreeFiber._roots;
         const root = roots.get(rootDiv);
-        const fiber = root?.fiber
+        const fiber = root?.fiber;
         if (fiber) {
-          const state = root?.store.getState()
-          if (state) state.internal.active = false
+          const state = root?.store.getState();
+          if (state) state.internal.active = false;
           await new Promise((accept, reject) => {
             ReactThreeFiber.reconciler.updateContainer(null, fiber, null, () => {
               if (state) {
                 // setTimeout(() => {
-                  state.events.disconnect?.()
-                  // state.gl?.renderLists?.dispose?.()
-                  // state.gl?.forceContextLoss?.()
-                  ReactThreeFiber.dispose(state)
-                  roots.delete(canvas)
-                  // if (callback) callback(canvas)
+                state.events.disconnect?.();
+                // state.gl?.renderLists?.dispose?.()
+                // state.gl?.forceContextLoss?.()
+                ReactThreeFiber.dispose(state);
+                roots.delete(canvas);
+                // if (callback) callback(canvas)
                 // }, 500)
               }
               accept();
@@ -1511,7 +1536,7 @@ export default () => {
       });
 
       _bindDefaultComponents(app);
-      
+
       return app;
     } else if (renderSpec === false || renderSpec === null || renderSpec === undefined) {
       app.destroy();

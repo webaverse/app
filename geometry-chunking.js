@@ -16,14 +16,17 @@ export class ChunkBinding {
     this.freeListEntry = freeListEntry;
     this.allocator = allocator;
   }
+
   getTexture(name) {
     return this.allocator.getTexture(name);
   }
+
   getTextureOffset(name) {
     const texture = this.getTexture(name);
     const {itemSize} = texture;
     return this.freeListEntry * this.allocator.maxInstancesPerDrawCall * itemSize;
   }
+
   /* getInstanceCount() {
     return this.allocator.getInstanceCount(this);
   }
@@ -48,8 +51,8 @@ export class ChunkBinding {
 
     let minX = pixelIndex % texture.image.width;
     let minY = Math.floor(pixelIndex / texture.image.width);
-    let maxX = (pixelIndex + itemCount) % texture.image.width;
-    let maxY = Math.floor((pixelIndex + itemCount) / texture.image.width);
+    const maxX = (pixelIndex + itemCount) % texture.image.width;
+    const maxY = Math.floor((pixelIndex + itemCount) / texture.image.width);
 
     // top
     if (minX !== 0) {
@@ -62,7 +65,7 @@ export class ChunkBinding {
       const size = (w * h) * texture.itemSize;
       const data = texture.image.data.subarray(
         start,
-        start + size
+        start + size,
       );
 
       const srcTexture = localDataTexture;
@@ -76,7 +79,7 @@ export class ChunkBinding {
         position,
         srcTexture,
         texture,
-        0
+        0,
       );
 
       srcTexture.image.data = null;
@@ -84,7 +87,7 @@ export class ChunkBinding {
       minX = 0;
       minY++;
 
-      pixelIndex += w * h; 
+      pixelIndex += w * h;
       itemCount -= w * h;
     }
 
@@ -99,7 +102,7 @@ export class ChunkBinding {
       const size = (w * h) * texture.itemSize;
       const data = texture.image.data.subarray(
         start,
-        start + size
+        start + size,
       );
 
       const srcTexture = localDataTexture;
@@ -135,7 +138,7 @@ export class ChunkBinding {
       const size = (w * h) * texture.itemSize;
       const data = texture.image.data.subarray(
         start,
-        start + size
+        start + size,
       );
 
       const srcTexture = localDataTexture;
@@ -167,14 +170,14 @@ export class ChunkedGeometryAllocator {
     this.maxDrawCalls = maxDrawCalls;
     this.boundingType = boundingType;
     this.instanceBoundingType = instanceBoundingType;
-    
+
     this.drawStarts = new Int32Array(maxDrawCalls);
     this.drawCounts = new Int32Array(maxDrawCalls);
     this.drawInstanceCounts = new Int32Array(maxDrawCalls);
-    
+
     const boundingSize = getBoundingSize(boundingType);
     this.boundingData = new Float32Array(maxDrawCalls * boundingSize);
- 
+
     this.testBoundingFn = (() => {
       if (this.boundingType === 'sphere') {
         return (i, frustum) => {
@@ -236,7 +239,7 @@ export class ChunkedGeometryAllocator {
         if (!instanced) {
           itemCount = maxSlotsPerGeometry * numGeometries;
         } */
-        let itemCount = maxDrawCalls * maxInstancesPerDrawCall;
+        const itemCount = maxDrawCalls * maxInstancesPerDrawCall;
         /* if (isNaN(itemCount)) {
           debugger;
         } */
@@ -307,6 +310,7 @@ export class ChunkedGeometryAllocator {
       this.freeList = new FreeList(maxDrawCalls);
     }
   }
+
   allocChunk(instanceCount, boundingObject) {
     const freeListEntry = this.freeList.alloc(1);
     const drawCall = new ChunkBinding(freeListEntry, this);
@@ -330,15 +334,16 @@ export class ChunkedGeometryAllocator {
     this.drawCounts[freeListEntry] = count;
     this.drawInstanceCounts[freeListEntry] = instanceCount;
     if (this.boundingType === 'sphere') {
-      boundingObject.center.toArray(this.boundingData, freeListEntry  * 4);
+      boundingObject.center.toArray(this.boundingData, freeListEntry * 4);
       this.boundingData[freeListEntry * 4 + 3] = boundingObject.radius;
     } else if (this.boundingType === 'box') {
       boundingObject.min.toArray(this.boundingData, freeListEntry * 6);
       boundingObject.max.toArray(this.boundingData, freeListEntry * 6 + 3);
     }
-    
+
     return drawCall;
   }
+
   freeChunk(chunk) {
     const {freeListEntry} = chunk;
 
@@ -361,6 +366,7 @@ export class ChunkedGeometryAllocator {
 
     this.freeList.free(freeListEntry);
   }
+
   /* getInstanceCount(drawCall) {
     return this.drawInstanceCounts[drawCall.freeListEntry];
   }
@@ -376,6 +382,7 @@ export class ChunkedGeometryAllocator {
   getTexture(name) {
     return this.textures[name];
   }
+
   getDrawSpec(camera, multiDrawStarts, multiDrawCounts, multiDrawInstanceCounts) {
     multiDrawStarts.length = this.drawStarts.length;
     multiDrawCounts.length = this.drawCounts.length;
@@ -403,11 +410,12 @@ export class ChunkedGeometryAllocator {
 export class ChunkedBatchedMesh extends THREE.InstancedMesh {
   constructor(geometry, material, allocator) {
     super(geometry, material);
-    
+
     this.isBatchedMesh = true;
     this.allocator = allocator;
   }
-	getDrawSpec(camera, multiDrawStarts, multiDrawCounts, multiDrawInstanceCounts) {
+
+  getDrawSpec(camera, multiDrawStarts, multiDrawCounts, multiDrawInstanceCounts) {
     this.allocator.getDrawSpec(camera, multiDrawStarts, multiDrawCounts, multiDrawInstanceCounts);
   }
 }

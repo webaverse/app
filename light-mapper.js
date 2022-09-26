@@ -41,7 +41,7 @@ const _writeTex3dWithin = (() => {
     const renderer = getRenderer();
 
     _copyArray3dWithin(dstTex.image.data, dstSize, dstPosition, sourceBox);
-    
+
     const w = sourceBox.max.x - sourceBox.min.x + 1;
     const h = sourceBox.max.y - sourceBox.min.y + 1;
     const d = sourceBox.max.z - sourceBox.min.z + 1;
@@ -63,7 +63,7 @@ const _copyArray3d = (dstArray, dstSize, dstPosition, srcArray, sourceBox) => {
   const sw = sourceBox.max.x - sourceBox.min.x + 1;
   const sh = sourceBox.max.y - sourceBox.min.y + 1;
   const sd = sourceBox.max.z - sourceBox.min.z + 1;
-  
+
   for (let z = 0; z < sd; z++) {
     const sz = z + sourceBox.min.z;
     const dz = dstPosition.z + z;
@@ -253,11 +253,12 @@ export class LightMapper /* extends EventTarget */ {
         });
         const debugMesh = new THREE.InstancedMesh(instancedCubeGeometry, debugMaterial, maxInstances);
         debugMesh.frustumCulled = false;
-        
+
         return debugMesh;
       })();
     }
   }
+
   /* drawChunk(chunk, {
     skylights,
     aos,
@@ -293,7 +294,7 @@ export class LightMapper /* extends EventTarget */ {
     if (!this.updating) {
       (async () => {
         this.updating = true;
-      
+
         const coord = localVector.copy(position);
         coord.x = Math.floor(coord.x);
         coord.y = Math.floor(coord.y);
@@ -305,7 +306,7 @@ export class LightMapper /* extends EventTarget */ {
             const coordOffset = localVector2.set(
               coord.x - Math.floor(this.size.x / 2),
               coord.y - Math.floor(this.size.y / 2),
-              coord.z - Math.floor(this.size.z / 2)
+              coord.z - Math.floor(this.size.z / 2),
             );
             const lod = 1;
             const {
@@ -318,7 +319,7 @@ export class LightMapper /* extends EventTarget */ {
               this.size.x,
               this.size.y,
               this.size.z,
-              lod
+              lod,
             );
 
             this.skylightTex.image.data.set(skylights);
@@ -348,7 +349,7 @@ export class LightMapper /* extends EventTarget */ {
         }
 
         this.updating = false;
-        
+
         if (this.queued) {
           this.queued = false;
           this.update(this.queuedPosition);

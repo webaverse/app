@@ -116,15 +116,15 @@ export const createMapChunkMesh = (x, y, data) => {
     .applyMatrix4(
       new THREE.Matrix4()
         .makeRotationFromQuaternion(
-          new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(1, 0, 0), -Math.PI / 2)
-        )
+          new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(1, 0, 0), -Math.PI / 2),
+        ),
     );
   const dataTexture = new THREE.DataTexture(
     data,
     numBlocksPerChunk,
     numBlocksPerChunk,
     THREE.RedFormat,
-    THREE.UnsignedByteType
+    THREE.UnsignedByteType,
   );
   dataTexture.flipY = true;
   dataTexture.needsUpdate = true;
@@ -156,14 +156,14 @@ export const createMapChunkMesh = (x, y, data) => {
     },
     // transparent: true,
     // opacity: 0.5,
-    // side: THREE.DoubleSide, 
+    // side: THREE.DoubleSide,
   });
 
   /* const m = new THREE.MeshPhongMaterial({
     color: 0xff0000,
   }); */
   const mesh = new THREE.Mesh(planeGeometry, material);
-  
+
   mesh.hovered = false;
   let lastHoveredTime = -Infinity;
   let lastUnhoveredTime = -Infinity;
@@ -182,7 +182,7 @@ export const createMapChunkMesh = (x, y, data) => {
       const t = timestamp - (mesh.hovered ? lastUnhoveredTime : lastHoveredTime);
       const tS = t / 1000;
       const v = cubicBezier(tS);
-      mesh.material.uniforms.uHover.value = mesh.hovered ? v : 1-v;
+      mesh.material.uniforms.uHover.value = mesh.hovered ? v : 1 - v;
       mesh.material.uniforms.uHover.needsUpdate = true;
 
       mesh.material.uniforms.uSelect.value = mesh.selected ? 1 : 0;
@@ -196,6 +196,6 @@ export const createMapChunkMesh = (x, y, data) => {
     }
   };
   mesh.frustumCulled = false;
-  
+
   return mesh;
 };

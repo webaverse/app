@@ -7,7 +7,6 @@ export async function createSpriteAvatarMesh({
   arrayBuffer,
   srcUrl,
 }) {
-
   const textureCanvases = await avatarSpriter.renderSpriteImages(arrayBuffer, srcUrl);
   const textureImages = await Promise.all(textureCanvases.map(canvas => {
     return createImageBitmap(canvas, {

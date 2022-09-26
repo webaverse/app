@@ -1,14 +1,14 @@
-import React, { useState, useEffect, useContext } from 'react';
+import React, {useState, useEffect, useContext} from 'react';
 import classnames from 'classnames';
 
 // import * as ceramicApi from '../ceramic.js';
 // import { discordClientId } from '../constants';
-import { parseQuery } from '../util.js';
+import {parseQuery} from '../util.js';
 // import Modal from './components/modal';
 // import WebaWallet from './components/wallet';
 
 // import blockchainManager from '../blockchain-manager.js';
-import { AppContext } from './components/app';
+import {AppContext} from './components/app';
 
 import styles from './User.module.css';
 
@@ -18,9 +18,9 @@ import Chains from './components/web3/chains';
 //
 
 const UserPopover = ({
-    open = false,
+  open = false,
 }) => {
-    return (
+  return (
         <div className={classnames(styles.userPopover, open ? styles.open : null)}>
             <div className={styles.section}>
                 <div className={styles.header}>Loadout</div>
@@ -35,24 +35,23 @@ const UserPopover = ({
                 <div className={styles.content}></div>
             </div>
         </div>
-    );
+  );
 };
 
-export const User = ({ className, setLoginFrom }) => {
+export const User = ({className, setLoginFrom}) => {
+  const {state, setState, account, chain} = useContext(AppContext);
+  const [ensName, setEnsName] = useState('');
+  const [avatarUrl, setAvatarUrl] = useState('');
+  const [loggingIn, setLoggingIn] = useState(false);
+  // const [ loginError, setLoginError ] = useState(null);
+  // const [ autoLoginRequestMade, setAutoLoginRequestMade ] = useState(false);
+  const {isConnected, currentAddress, connectWallet, disconnectWallet, errorMessage, wrongChain, getAccounts, getAccountDetails} = account;
+  const {selectedChain} = chain;
+  const [address, setAddress] = useState('');
 
-    const { state, setState, account, chain } = useContext( AppContext );
-    const [ensName, setEnsName] = useState('');
-    const [avatarUrl, setAvatarUrl] = useState('');
-    const [ loggingIn, setLoggingIn ] = useState(false);
-    // const [ loginError, setLoginError ] = useState(null);
-    // const [ autoLoginRequestMade, setAutoLoginRequestMade ] = useState(false);
-    const { isConnected, currentAddress, connectWallet, disconnectWallet, errorMessage, wrongChain, getAccounts, getAccountDetails } = account;
-    const { selectedChain } = chain;
-    const [address, setAddress] = useState('');
+  //
 
-    //
-
-    /* const showModal = ( event ) => {
+  /* const showModal = ( event ) => {
 
         event.preventDefault();
         // setShow( ! show );
@@ -61,100 +60,84 @@ export const User = ({ className, setLoginFrom }) => {
 
     }; */
 
-    const toggleUserPopover = e => {
+  const toggleUserPopover = e => {
+    setState({openedPanel: !popoverOpen ? 'UserPopover' : null});
+  };
 
-        setState({ openedPanel: !popoverOpen ? 'UserPopover' : null });
+  const handleCancelBtnClick = () => {
+    setState({openedPanel: null});
 
-    };
+    sounds.playSoundName('menuBack');
+  };
 
-    const handleCancelBtnClick = () => {
-
-        setState({ openedPanel: null });
-
-        sounds.playSoundName('menuBack');
-
-    };
-
-    const resolveAvatar = url => {
-        const match = url.match(/^ipfs:\/\/(.+)/);
-        if (match) {
-            return `https://cloudflare-ipfs.com/ipfs/${match[1]}`;
-        } else {
-            return url;
-        }
-    };
-
-    async function handleAddress(address) {
-        const {name, avatar} = await getAccountDetails(address);
-
-        setEnsName(name || '');
-        setAvatarUrl(avatar ? resolveAvatar(avatar) : '');
-        setAddress(address || '');
-
+  const resolveAvatar = url => {
+    const match = url.match(/^ipfs:\/\/(.+)/);
+    if (match) {
+      return `https://cloudflare-ipfs.com/ipfs/${match[1]}`;
+    } else {
+      return url;
     }
+  };
 
-    const shortAddress = address => {
-        if (address.length > 12) {
-            return address.slice(0, 7) + `...` + address.slice(-6);
-        } else {
-            return address;
-        }
-    };
+  async function handleAddress(address) {
+    const {name, avatar} = await getAccountDetails(address);
 
-    useEffect(() => {
-        if (currentAddress) {
-            handleAddress(currentAddress);
-        }
-    }, [currentAddress, selectedChain])
-    
-    const metaMaskLogin = async ( event ) => {
+    setEnsName(name || '');
+    setAvatarUrl(avatar ? resolveAvatar(avatar) : '');
+    setAddress(address || '');
+  }
 
-        event.preventDefault();
-        event.stopPropagation();
+  const shortAddress = address => {
+    if (address.length > 12) {
+      return address.slice(0, 7) + '...' + address.slice(-6);
+    } else {
+      return address;
+    }
+  };
 
-        /* if ( address ) {
+  useEffect(() => {
+    if (currentAddress) {
+      handleAddress(currentAddress);
+    }
+  }, [currentAddress, selectedChain]);
+
+  const metaMaskLogin = async event => {
+    event.preventDefault();
+    event.stopPropagation();
+
+    /* if ( address ) {
 
             setState({ openedPanel: ( state.openedPanel === 'UserPanel' ? null : 'UserPanel' ) });
 
         } else { */
 
-            if ( ! loggingIn ) {
+    if (!loggingIn) {
+      setLoggingIn(true);
 
-                setLoggingIn( true );
+      try {
+        const address = await connectWallet();
 
-                try {
+        setLoginFrom('metamask');
+        // setShow(false);
+        // setLoginFrom('metamask');
+      } catch (err) {
+        console.warn(err);
+      } finally {
+        setState({openedPanel: null});
 
-                    const address = await connectWallet();
-                    
-                    setLoginFrom('metamask');
-                    // setShow(false);
-                    // setLoginFrom('metamask');
+        setLoggingIn(false);
+      }
+    }
 
-                } catch (err) {
+    // }
+  };
 
-                    console.warn(err);
+  useEffect(() => {
+    const {error, code, id, play, realmId} = parseQuery(window.location.search);
 
-                } finally {
+    //
 
-                    setState({ openedPanel: null });
-
-                    setLoggingIn(false);
-
-                }
-
-            }
-
-        // }
-
-    };
-
-    useEffect( () => {
-
-        const { error, code, id, play, realmId } = parseQuery( window.location.search );
-
-        //
-
-        /* const discordAutoLogin = async () => {
+    /* const discordAutoLogin = async () => {
 
             const { address, error } = await WebaWallet.loginDiscord( code, id );
 
@@ -176,7 +159,7 @@ export const User = ({ className, setLoginFrom }) => {
 
         }; */
 
-        /* const metamaskAutoLogin = async () => {
+    /* const metamaskAutoLogin = async () => {
 
             const address = await getAccounts();
 
@@ -194,9 +177,9 @@ export const User = ({ className, setLoginFrom }) => {
 
         }; */
 
-        //
+    //
 
-        /* if ( ! autoLoginRequestMade ) {
+    /* if ( ! autoLoginRequestMade ) {
 
             setAutoLoginRequestMade( true );
 
@@ -229,54 +212,46 @@ export const User = ({ className, setLoginFrom }) => {
             }
 
         } */
+  }, [currentAddress]);
 
-    }, [ currentAddress ] );
+  //
 
-    //
+  const _triggerClickSound = () => {
+    sounds.playSoundName('menuClick');
+  };
 
-    const _triggerClickSound = () => {
+  //
 
-        sounds.playSoundName('menuClick');
+  const loginOpen = state.openedPanel === 'LoginPanel';
+  const popoverOpen = state.openedPanel === 'UserPopover';
+  const loggedIn = isConnected;
 
-    };
-    
-    //
+  //
 
-    const loginOpen = state.openedPanel === 'LoginPanel';
-    const popoverOpen = state.openedPanel === 'UserPopover';
-    const loggedIn = isConnected;
-
-    //
-
-    return (
+  return (
         <div
             className={classnames(
-                styles.user,
-                loginOpen ? styles.open : null,
-                loggedIn ? styles.loggedIn : null,
-                loggingIn ? styles.loggingIn : null,
-                className
+              styles.user,
+              loginOpen ? styles.open : null,
+              loggedIn ? styles.loggedIn : null,
+              loggingIn ? styles.loggingIn : null,
+              className,
             )}
         >
             {!loggedIn &&
                 <div className={ styles.keyWrap } onClick={e => {
-                    e.preventDefault();
-                    e.stopPropagation();
+                  e.preventDefault();
+                  e.stopPropagation();
 
-                        if ( !loginOpen ) {
+                  if (!loginOpen) {
+                    setState({openedPanel: 'LoginPanel'});
+                  } else {
+                    setState({openedPanel: null});
+                  }
 
-                            setState({ openedPanel: 'LoginPanel' });
-
-                        } else {
-                            setState({ openedPanel: null });
-                        }
-
-                        sounds.playSoundName('menuNext');
-
+                  sounds.playSoundName('menuNext');
                 }} onMouseEnter={e => {
-                    
-                    _triggerClickSound();
-                
+                  _triggerClickSound();
                 }}>
                     <div className={styles.key}>
                         <div className={styles.bow}>
@@ -297,18 +272,20 @@ export const User = ({ className, setLoginFrom }) => {
                     <Chains />
                     <div
                         className={classnames(
-                            styles.userBar,
-                            popoverOpen ? styles.open : null,
+                          styles.userBar,
+                          popoverOpen ? styles.open : null,
                         )}
                         onClick={toggleUserPopover}
                     >
-                        {avatarUrl ? (
+                        {avatarUrl
+                          ? (
                             <div
                                 className={styles.avatarUrl}
                             >
                                 <img className={styles.img} src={avatarUrl} crossOrigin='Anonymous' />
                             </div>
-                        ) : null}
+                            )
+                          : null}
                         <div className={styles.nameWrap}>
                             <div
                                 className={styles.address}
@@ -317,17 +294,17 @@ export const User = ({ className, setLoginFrom }) => {
                     </div>
                     <div className={styles.logoutBtn}
                         onClick={e => {
-                            e.preventDefault();
-                            e.stopPropagation();
-                            disconnectWallet();
+                          e.preventDefault();
+                          e.stopPropagation();
+                          disconnectWallet();
                         }}
                     >Logout</div>
                     <UserPopover open={popoverOpen} />
                 </div>
             }
             <div className={ classnames(
-                styles.userLoginMethodsModal,
-                loginOpen ? styles.opened : null,
+              styles.userLoginMethodsModal,
+              loginOpen ? styles.opened : null,
             ) } >
                 <div className={ styles.title } >
                     <span>Log in</span>
@@ -353,7 +330,7 @@ export const User = ({ className, setLoginFrom }) => {
 
             {/* <Modal onClose={ showModal } show={loginOpen && !loggingIn}>
                 <div className={styles.login_options}>
-                
+
                     <div className={styles.loginDiv}>
                         <div className={styles.loginBtn} onClick={ metaMaskLogin }>
                             <div className={styles.loginBtnText}>
@@ -373,6 +350,5 @@ export const User = ({ className, setLoginFrom }) => {
                 </div>
             </Modal> */}
         </div>
-    );
-
+  );
 };

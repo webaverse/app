@@ -1,6 +1,6 @@
 import {
-	Matrix4,
-	Vector2
+  Matrix4,
+  Vector2,
 } from 'three';
 
 /**
@@ -12,30 +12,30 @@ import {
 
 const SSAOShader = {
 
-	defines: {
-		'PERSPECTIVE_CAMERA': 1,
-		'KERNEL_SIZE': 32
-	},
+  defines: {
+    PERSPECTIVE_CAMERA: 1,
+    KERNEL_SIZE: 32,
+  },
 
-	uniforms: {
+  uniforms: {
 
-		'tDiffuse': { value: null },
-		'tNormal': { value: null },
-		'tDepth': { value: null },
-		'tNoise': { value: null },
-		'kernel': { value: null },
-		'cameraNear': { value: null },
-		'cameraFar': { value: null },
-		'resolution': { value: new Vector2() },
-		'cameraProjectionMatrix': { value: new Matrix4() },
-		'cameraInverseProjectionMatrix': { value: new Matrix4() },
-		'kernelRadius': { value: 8 },
-		'minDistance': { value: 0.005 },
-		'maxDistance': { value: 0.05 },
+    tDiffuse: {value: null},
+    tNormal: {value: null},
+    tDepth: {value: null},
+    tNoise: {value: null},
+    kernel: {value: null},
+    cameraNear: {value: null},
+    cameraFar: {value: null},
+    resolution: {value: new Vector2()},
+    cameraProjectionMatrix: {value: new Matrix4()},
+    cameraInverseProjectionMatrix: {value: new Matrix4()},
+    kernelRadius: {value: 8},
+    minDistance: {value: 0.005},
+    maxDistance: {value: 0.05},
 
-	},
+  },
 
-	vertexShader: /* glsl */`
+  vertexShader: /* glsl */`
 
 		varying vec2 vUv;
 
@@ -47,7 +47,7 @@ const SSAOShader = {
 
 		}`,
 
-	fragmentShader: /* glsl */`
+  fragmentShader: /* glsl */`
 
 		uniform sampler2D tDiffuse;
 		uniform sampler2D tNormal;
@@ -170,25 +170,25 @@ const SSAOShader = {
 
 			gl_FragColor = vec4( vec3( 1.0 - occlusion ), 1.0 );
 
-		}`
+		}`,
 
 };
 
 const SSAODepthShader = {
 
-	defines: {
-		'PERSPECTIVE_CAMERA': 1
-	},
+  defines: {
+    PERSPECTIVE_CAMERA: 1,
+  },
 
-	uniforms: {
+  uniforms: {
 
-		'tDepth': { value: null },
-		'cameraNear': { value: null },
-		'cameraFar': { value: null },
+    tDepth: {value: null},
+    cameraNear: {value: null},
+    cameraFar: {value: null},
 
-	},
+  },
 
-	vertexShader:
+  vertexShader:
 
 		`varying vec2 vUv;
 
@@ -199,7 +199,7 @@ const SSAODepthShader = {
 
 		}`,
 
-	fragmentShader:
+  fragmentShader:
 
 		`uniform sampler2D tDepth;
 
@@ -235,20 +235,20 @@ const SSAODepthShader = {
 			depth = 1. - depth;
 			gl_FragColor = vec4( depth, 0., 0., 1. );
 
-		}`
+		}`,
 
 };
 
 const SSAOBlurShader = {
 
-	uniforms: {
+  uniforms: {
 
-		'tDiffuse': { value: null },
-		'resolution': { value: new Vector2() }
+    tDiffuse: {value: null},
+    resolution: {value: new Vector2()},
 
-	},
+  },
 
-	vertexShader:
+  vertexShader:
 
 		`varying vec2 vUv;
 
@@ -259,7 +259,7 @@ const SSAOBlurShader = {
 
 		}`,
 
-	fragmentShader:
+  fragmentShader:
 
 		`uniform sampler2D tDiffuse;
 
@@ -285,8 +285,8 @@ const SSAOBlurShader = {
 
 			gl_FragColor = vec4( vec3( result / ( 5.0 * 5.0 ) ), 1.0 );
 
-		}`
+		}`,
 
 };
 
-export { SSAOShader, SSAODepthShader, SSAOBlurShader };
+export {SSAOShader, SSAODepthShader, SSAOBlurShader};

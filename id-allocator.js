@@ -8,6 +8,7 @@ export class IdAllocator {
     }
     this.stackIndex = 0;
   }
+
   alloc() {
     if (this.stackIndex < this.stack.length) {
       const index = this.stack[this.stackIndex];
@@ -17,6 +18,7 @@ export class IdAllocator {
       return -1;
     }
   }
+
   free(index) {
     this.stackIndex--;
     this.stack[this.stackIndex] = index;

@@ -44,10 +44,11 @@ export default e => {
 
       this.timeout = null;
       this.particles = [];
-      
-      const now = performance.now()
+
+      const now = performance.now();
       this.lastRoundTimestamp = now;
     }
+
     update(timestamp) {
       const timeSinceLastRound = timestamp - this.lastRoundTimestamp;
       const roundTime = 3000;
@@ -61,7 +62,7 @@ export default e => {
       if (this.particles.length === 0) {
         const localPlayer = useLocalPlayer();
         // const timeDiff = timestamp - this.lastParticleTimestamp;
-        
+
         const rng = alea('lol');
         const r = n => -n + rng() * n * 2;
         for (let i = 0; i < numParticles; i++) {
@@ -89,7 +90,7 @@ export default e => {
       maxParticles: numParticles,
     });
     await particleSystem.waitForLoad();
-    
+
     scene.add(particleSystem);
     particleSystem.updateMatrixWorld();
 
@@ -99,6 +100,6 @@ export default e => {
   useFrame(({timestamp, timeDiff}) => {
     particlePlayer && particlePlayer.update(timestamp);
   });
-  
+
   return app;
 };

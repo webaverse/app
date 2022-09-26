@@ -149,7 +149,7 @@ export const generateGlyph = seed => {
       0,
       0,
       glyphSize,
-      glyphSize
+      glyphSize,
     );
 
     // pop old state

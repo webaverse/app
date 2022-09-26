@@ -1,35 +1,31 @@
 import {minAvatarQuality, maxAvatarQuality} from './constants.js';
 import localStorageManager from './localStorage-manager.js';
 const DefaultSettings = {
-  resolution:         'HIGH',
-  antialias:          'NONE',
-  viewRange:          'HIGH',
-  shadowQuality:      'HIGH',
+  resolution: 'HIGH',
+  antialias: 'NONE',
+  viewRange: 'HIGH',
+  shadowQuality: 'HIGH',
   postprocessing: {
-    enabled:        'ON',
-    depthOfField:   'ON',
-    hdr:            'ON',
-    bloom:          'ON'
+    enabled: 'ON',
+    depthOfField: 'ON',
+    hdr: 'ON',
+    bloom: 'ON',
   },
   character: {
-    details:        'HIGH',
-    hairPhysics:    'ON'
-  }
+    details: 'HIGH',
+    hairPhysics: 'ON',
+  },
 };
 
 class SettingsManager extends EventTarget {
-  constructor() {
-    super();
-  }
-
   getSettings() {
-    const settingsString = localStorageManager.getItem( 'GfxSettings' );
+    const settingsString = localStorageManager.getItem('GfxSettings');
     let settings;
 
     try {
-        settings = JSON.parse( settingsString );
-    } catch ( err ) {
-        settings = DefaultSettings;
+      settings = JSON.parse(settingsString);
+    } catch (err) {
+      settings = DefaultSettings;
     }
 
     settings = settings ?? DefaultSettings;
@@ -79,11 +75,11 @@ class SettingsManager extends EventTarget {
   }
 
   saveSettings(settings) {
-    localStorageManager.setItem( 'GfxSettings', JSON.stringify( settings ) );
+    localStorageManager.setItem('GfxSettings', JSON.stringify(settings));
     this.dispatchEvent(new MessageEvent('change', {
       data: {
-        settings: settings
-      }
+        settings,
+      },
     }));
   }
 }

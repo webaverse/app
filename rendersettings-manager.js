@@ -12,23 +12,25 @@ class RenderSettings {
     this.passes = passes;
     this.internalPasses = internalPasses;
   }
+
   #makeBackground(background) {
     if (background) {
-      let {color} = background;
+      const {color} = background;
       if (Array.isArray(color) && color.length === 3 && color.every(n => typeof n === 'number')) {
-        return new THREE.Color(color[0]/255, color[1]/255, color[2]/255);
+        return new THREE.Color(color[0] / 255, color[1] / 255, color[2] / 255);
       }
     }
     return null;
   }
+
   #makeFog(fog) {
     if (fog) {
       if (fog.fogType === 'linear') {
         const {args = []} = fog;
-        return new THREE.Fog(new THREE.Color(args[0][0]/255, args[0][1]/255, args[0][2]/255).getHex(), args[1], args[2]);
+        return new THREE.Fog(new THREE.Color(args[0][0] / 255, args[0][1] / 255, args[0][2] / 255).getHex(), args[1], args[2]);
       } else if (fog.fogType === 'exp') {
         const {args = []} = fog;
-        return new THREE.FogExp2(new THREE.Color(args[0][0]/255, args[0][1]/255, args[0][2]/255).getHex(), args[1]);
+        return new THREE.FogExp2(new THREE.Color(args[0][0] / 255, args[0][1] / 255, args[0][2] / 255).getHex(), args[1]);
       } else {
         console.warn('unknown rendersettings fog type:', fog.fogType);
         return null;
@@ -44,15 +46,19 @@ class RenderSettingsManager {
     this.fog = new THREE.FogExp2(0x000000, 0);
     this.extraPasses = [];
   }
+
   addExtraPass(pass) {
     this.extraPasses.push(pass);
   }
+
   removeExtraPass(pass) {
     this.extraPasses.splice(this.extraPasses.indexOf(pass), 1);
   }
+
   makeRenderSettings(json) {
     return new RenderSettings(json);
   }
+
   // traverse the scene to find render settings from a rendersettings app
   findRenderSettings(scene) {
     const _recurse = o => {
@@ -76,6 +82,7 @@ class RenderSettingsManager {
     }
     return null;
   }
+
   applyRenderSettingsToScene(renderSettings, scene) {
     const oldBackground = scene.background;
     const oldFog = scene.fog;
@@ -100,10 +107,11 @@ class RenderSettingsManager {
       scene.fog = oldFog;
     };
   }
+
   push(srcScene, dstScene = srcScene, {
     postProcessing = null,
   } = {}) {
-    let renderSettings = this.findRenderSettings(srcScene);
+    const renderSettings = this.findRenderSettings(srcScene);
     const renderSettingsCleanup = this.applyRenderSettingsToScene(renderSettings, dstScene);
 
     if (postProcessing) {

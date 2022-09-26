@@ -20,7 +20,7 @@ const localColor = new THREE.Color();
 const _addPreviewLights = scene => {
   const ambientLight = new THREE.AmbientLight(0xffffff, 3);
   scene.add(ambientLight);
-  
+
   const directionalLight = new THREE.DirectionalLight(0xffffff, 3);
   directionalLight.position.set(1, 2, 3);
   directionalLight.updateMatrixWorld();
@@ -75,7 +75,7 @@ export const screenshotLandApp = async ({
       // rangeSize.y = 0;
       sideCamera.position.copy(lookPoint)
         .add(
-          localVector3.set(zoomFactor * rangeSize.x, 0, zoomFactor * rangeSize.z)
+          localVector3.set(zoomFactor * rangeSize.x, 0, zoomFactor * rangeSize.z),
         );
       // lookPoint.y = xzSize;
       sideCamera.lookAt(lookPoint);
@@ -83,7 +83,7 @@ export const screenshotLandApp = async ({
       sideCamera.position.y = xzSize * 3 / 4;
       // fitCameraToBoundingBox(sideCamera, range, 1.2);
       sideCamera.updateMatrixWorld();
-      
+
       // render side scene
       renderer.setViewport(0, 0, width, height);
       // renderer.clear();
@@ -100,7 +100,7 @@ export const screenshotLandApp = async ({
         0,
         0,
         width,
-        height
+        height,
       );
       // writeCtx.drawImage(renderer.domElement, 0, 0);
     };

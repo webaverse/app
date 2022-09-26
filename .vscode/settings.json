@@ -17,6 +17,7 @@
   "prettier.prettierPath": "./node_modules/prettier",
   "search.exclude": {
     "**/node_modules": true,
-    "yarn.lock": true
+    "yarn.lock": true,
+    "package-lock.json": true
   }
 }

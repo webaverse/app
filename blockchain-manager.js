@@ -12,9 +12,11 @@ class BlockchainManager {
       // projectSecret: infuraProjectSecret
     });
   }
+
   async getEnsName(address) {
     return await this.provider.lookupAddress(address);
   }
+
   async getAvatarUrl(ensName) {
     const resolver = await this.provider.getResolver(ensName);
     const avatar = await resolver.getAvatar();

@@ -19,7 +19,7 @@ const upVector = new THREE.Vector3(0, 1, 0);
 
 /* const _makeLights = () => {
   const ambientLight = new THREE.AmbientLight(0xFFFFFF, 1);
-  
+
   const directionalLight = new THREE.DirectionalLight(0xFFFFFF, 3);
   directionalLight.position.set(-1, 0, -1);
   directionalLight.updateMatrixWorld();
@@ -38,14 +38,14 @@ export const screenshotAvatarUrl = async ({
   emotion,
 }) => {
   const arrayBuffer = await fetchArrayBuffer(start_url);
-  
+
   const avatarRenderer = new AvatarRenderer({
     arrayBuffer,
     srcUrl: start_url,
     quality: maxAvatarQuality,
   });
   await avatarRenderer.waitForLoad();
-  
+
   const avatar = createAvatarForScreenshot(avatarRenderer);
 
   const result = await screenshotAvatar({
@@ -73,7 +73,7 @@ export const createAvatarForScreenshot = avatarRenderer => {
   avatar.inputs.hmd.quaternion.setFromAxisAngle(new THREE.Vector3(0, 1, 0), Math.PI);
   avatar.inputs.hmd.updateMatrixWorld();
   return avatar;
-}
+};
 
 export const screenshotAvatar = async ({
   avatar,
@@ -87,7 +87,7 @@ export const screenshotAvatar = async ({
   player.quaternion.identity();
   player.scale.set(1, 1, 1);
   player.updateMatrixWorld();
-  
+
   let now = 0;
   const timeDiff = 1000/FPS;
 
@@ -113,7 +113,7 @@ export const screenshotAvatar = async ({
   // update avatar
   const _updateAvatar = () => {
     // set emotion
-    avatar.faceposes.length = 0;  
+    avatar.faceposes.length = 0;
     if (emotion) {
       avatar.faceposes.push({
         emotion,
@@ -150,14 +150,14 @@ export const screenshotAvatar = async ({
     avatar.modelBones.Head.matrixWorld
       .decompose(camera2.position, camera2.quaternion, camera2.scale);
     const targetPosition = localVector.copy(camera2.position);
-    targetPosition.y += cameraOffset.y
+    targetPosition.y += cameraOffset.y;
     camera2.position.add(cameraOffset);
     camera2.quaternion.setFromRotationMatrix(
       localMatrix.lookAt(
         camera2.position,
         targetPosition,
         upVector,
-      )
+      ),
     );
 
     const rendererSize = renderer.getSize(localVector2D);
@@ -167,8 +167,8 @@ export const screenshotAvatar = async ({
       // push old renderer state
       const oldViewport = renderer.getViewport(localVector4D);
       const oldClearAlpha = renderer.getClearAlpha();
-      
-      renderer.setViewport(0, 0, width/pixelRatio, height/pixelRatio);
+
+      renderer.setViewport(0, 0, width / pixelRatio, height / pixelRatio);
       renderer.setClearAlpha(0);
       renderer.clear();
       renderer.render(scene2, camera2);
@@ -184,7 +184,7 @@ export const screenshotAvatar = async ({
         0,
         0,
         width,
-        height
+        height,
       );
 
       // pop old renderer state

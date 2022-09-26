@@ -51,12 +51,12 @@ class ShaderToyPass {
       uniforms['iChannel' + channel] = {
         value: buffer,
       };
-      if (!uniforms['iChannelResolution']) {
-        uniforms['iChannelResolution'] = {
+      if (!uniforms.iChannelResolution) {
+        uniforms.iChannelResolution = {
           value: [],
         };
       }
-      uniforms['iChannelResolution'].value[channel] = new THREE.Vector3(buffer.image.width, buffer.image.height, 1);
+      uniforms.iChannelResolution.value[channel] = new THREE.Vector3(buffer.image.width, buffer.image.height, 1);
     }
     this.mesh = new THREE.Mesh(
       copyScenePlaneGeometry,
@@ -93,24 +93,25 @@ class ShaderToyPass {
             mainImage(fragColor, fragCoord);
             fragColor.a = 1.;
             fragColor = sRGBToLinear(fragColor);
-            // ${this.type === 'image' ? `fragColor.a = 1.;` : ''};
+            // ${this.type === 'image' ? 'fragColor.a = 1.;' : ''};
             // fragColor = vec4(vUv, 0.0, 1.0);
           }
         `,
         depthWrite: false,
         depthTest: false,
-      })
+      }),
     );
     this.scene = new THREE.Scene();
     this.scene.matrixWorldAutoUpdate = false;
     this.scene.add(this.mesh);
-    
+
     this._copyBuffer = _makeRenderTarget(renderTarget.width, renderTarget.height);
   }
+
   update() {
     this.mesh.material.uniforms.iTime.value = this.parent.getITime();
     this.mesh.material.uniforms.iFrame.value = this.parent.getIFrame();
-    
+
     const renderer = getRenderer();
     {
       const [{buffer} = {}] = this.os;
@@ -130,13 +131,13 @@ class ShaderToyPass {
           renderer.clear();
           renderer.render(this.scene, copySceneCamera);
         }
-        
+
         renderer.setRenderTarget(oldRenderTarget);
       }
     }
 
     if (this.type === 'buffer') {
-      
+      // do nothing
     } else if (this.type === 'image') {
       const oldRenderTarget = renderer.getRenderTarget();
 
@@ -224,7 +225,7 @@ class ShadertoyRenderer {
           };
           is.push(i);
         }
-        
+
         const os = [];
         for (const output of outputs) {
           const {id, channel} = output;
@@ -238,7 +239,7 @@ class ShadertoyRenderer {
           };
           os.push(o);
         }
-        
+
         return {
           is,
           os,
@@ -252,11 +253,11 @@ class ShadertoyRenderer {
       _addDebugRenderTargetMesh(this.buffers[id]);
     }
     _addDebugRenderTargetMesh(this.renderTarget); */
-    
+
     const _initRenderPasses = async () => {
       // wait for images to load
       await Promise.all(promises);
-      
+
       for (let i = 0; i < shader.renderpass.length; i++) {
         const {type, code} = shader.renderpass[i];
         const {is, os} = renderPassIos[i];
@@ -271,7 +272,7 @@ class ShadertoyRenderer {
       }
     };
     _initRenderPasses();
-    
+
     this.mesh = _makeRenderTargetMesh(this.renderTarget, worldSize, worldSize);
 
     this.loaded = false;
@@ -280,18 +281,23 @@ class ShadertoyRenderer {
         this.loaded = true;
       });
   }
+
   setCurrentTime(currentTime) {
     this.currentTime = currentTime;
   }
+
   getITime() {
     return this.currentTime;
   }
+
   getIFrame() {
     return this.frame;
-  } 
+  }
+
   waitForLoad() {
     return this.loadPromise;
   }
+
   update(timeDiff) {
     this.currentTime += timeDiff;
     this.frame++;
@@ -324,7 +330,7 @@ class ShadertoyLoader {
       {
         size,
         worldSize,
-      }
+      },
     );
     await shadertoyRenderer.waitForLoad();
     return shadertoyRenderer;

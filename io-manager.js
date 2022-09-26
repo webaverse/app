@@ -14,7 +14,7 @@ import voiceInput from './voice-input/voice-input.js';
 // import * as universe from './universe.js';
 // import {toggle as inventoryToggle} from './inventory.js';
 import {isInIframe, getVelocityDampingFactor} from './util.js';
-import {getRenderer, /*renderer2,*/ scene, camera, getContainerElement} from './renderer.js';
+import {getRenderer, /* renderer2, */ scene, camera, getContainerElement} from './renderer.js';
 import physicsManager from './physics-manager.js';
 /* import {menuActions} from './mithril-ui/store/actions.js';
 import {menuState} from './mithril-ui/store/state.js'; */
@@ -166,7 +166,7 @@ const _updateIo = timeDiff => {
               .decompose(camera.position, camera.quaternion, camera.scale);
             ioManager.currentWalked = true;
           }
-          
+
           ioManager.currentWeaponGrabs[1] = buttons[1] > 0.5;
         } else if (handedness === 'right') {
           const _applyRotation = r => {
@@ -208,7 +208,7 @@ const _updateIo = timeDiff => {
         ioManager.lastAxes[index][1] = axes[1];
         ioManager.lastAxes[index][2] = axes[2];
         ioManager.lastAxes[index][3] = axes[3];
-        
+
         ioManager.lastButtons[index][0] = buttons[0];
         ioManager.lastButtons[index][1] = buttons[1];
         ioManager.lastButtons[index][2] = buttons[2];
@@ -218,9 +218,9 @@ const _updateIo = timeDiff => {
     }
   } else {
     keysDirection.set(0, 0, 0);
-    
+
     const localPlayer = metaversefile.useLocalPlayer();
-    
+
     _updateHorizontal(keysDirection);
     if (keysDirection.equals(zeroVector)) {
       if (localPlayer.hasAction('narutoRun')) {
@@ -229,15 +229,13 @@ const _updateIo = timeDiff => {
     } else {
       cameraManager.lastNonzeroDirectionVector.copy(keysDirection);
     }
-    
-    if (localPlayer.hasAction('swim')){
-      if(ioManager.keys.shift && keysDirection.length() > 0){
+
+    if (localPlayer.hasAction('swim')) {
+      if (ioManager.keys.shift && keysDirection.length() > 0) {
         localPlayer.getAction('swim').animationType = 'freestyle';
-      }
-      else if(!ioManager.keys.shift && keysDirection.length() > 0){
+      } else if (!ioManager.keys.shift && keysDirection.length() > 0) {
         localPlayer.getAction('swim').animationType = 'breaststroke';
-      }
-      else{
+      } else {
         localPlayer.getAction('swim').animationType = 'null';
       }
     }
@@ -249,7 +247,7 @@ const _updateIo = timeDiff => {
       cameraEuler.x = 0;
       cameraEuler.z = 0;
       keysDirection.applyEuler(cameraEuler);
-      
+
       if (ioManager.keys.ctrl && !ioManager.lastCtrlKey && game.isGrounded()) {
         game.toggleCrouch();
       }
@@ -383,7 +381,7 @@ ioManager.keydown = e => {
             game.menuVertical(1);
           } else {
             // if (!game.dragging) {
-              // _setTransformMode('scale');
+            // _setTransformMode('scale');
             // }
           }
         }
@@ -445,22 +443,22 @@ ioManager.keydown = e => {
         } else if (game.canBuild()) {
           game.setBuildMode('floor');
         } else { */
-          game.menuDelete();
+        game.menuDelete();
         // }
       }
       break;
     }
     case 67: { // C
       // if (!e.ctrlKey) {
-        /* if (game.canStartBuild()) {
+      /* if (game.canStartBuild()) {
           game.startBuild('stair');
         } else if (game.canBuild()) {
           game.setBuildMode('stair');
         } else */if (game.canPush()) {
-          ioManager.keys.backward = true;
-        } else {
-          ioManager.keys.ctrl = true;
-        }
+        ioManager.keys.backward = true;
+      } else {
+        ioManager.keys.ctrl = true;
+      }
       // }
       break;
     }
@@ -482,23 +480,23 @@ ioManager.keydown = e => {
     }
     case 86: { // V
       // if (!_inputFocused()) {
-        e.preventDefault();
-        e.stopPropagation();
-        game.menuVDown(e);
+      e.preventDefault();
+      e.stopPropagation();
+      game.menuVDown(e);
       // }
       break;
     }
     case 66: { // B
       // if (!_inputFocused()) {
-        e.preventDefault();
-        e.stopPropagation();
-        game.menuBDown(e);
+      e.preventDefault();
+      e.stopPropagation();
+      game.menuBDown(e);
       // }
       break;
     }
     case 69: { // E
       // if (cameraManager.pointerLockElement) {
-      
+
       const now = performance.now();
       const timeDiff = now - lastKeysDownTime.keyE;
       if (timeDiff < doubleTapTime) {
@@ -543,7 +541,7 @@ ioManager.keydown = e => {
         }
       } else {
         // if (!game.dragging) {
-          // _setTransformMode('rotate');
+        // _setTransformMode('rotate');
         // }
       }
       break;
@@ -555,11 +553,11 @@ ioManager.keydown = e => {
     case 32: { // space
       ioManager.keys.space = true;
       // if (controlsManager.isPossessed()) {
-        if (!game.isJumping()) {
-          game.jump('jump');
-        } else if (!game.isDoubleJumping()) {
-          game.doubleJump();
-        }
+      if (!game.isJumping()) {
+        game.jump('jump');
+      } else if (!game.isDoubleJumping()) {
+        game.doubleJump();
+      }
       // }
       break;
     }
@@ -675,14 +673,14 @@ ioManager.keyup = e => {
     }
     case 70: { // F
       // if (cameraManager.pointerLockElement) {
-        ioManager.keys.forward = false;
+      ioManager.keys.forward = false;
       // }
       break;
     }
     case 67: { // C
       // if (cameraManager.pointerLockElement) {
-        ioManager.keys.backward = false;
-        ioManager.keys.ctrl = false;
+      ioManager.keys.backward = false;
+      ioManager.keys.ctrl = false;
       // }
       break;
     }
@@ -696,24 +694,24 @@ ioManager.keyup = e => {
     } */
     case 86: { // V
       // if (!_inputFocused()) {
-        e.preventDefault();
-        e.stopPropagation();
-        game.menuVUp();
+      e.preventDefault();
+      e.stopPropagation();
+      game.menuVUp();
       // }
       break;
     }
     case 66: { // B
       // if (!_inputFocused()) {
-        e.preventDefault();
-        e.stopPropagation();
-        game.menuBUp();
+      e.preventDefault();
+      e.stopPropagation();
+      game.menuBUp();
       // }
       break;
     }
     case 16: { // shift
       ioManager.keys.shift = false;
       ioManager.keys.doubleTap = false;
-      
+
       game.menuUnDoubleTap();
       break;
     }
@@ -728,7 +726,7 @@ ioManager.keyup = e => {
     }
     case 27: {
       // if (game.getMouseSelectedObject()) {
-        game.setMouseSelectedObject(null);
+      game.setMouseSelectedObject(null);
       // }
     }
   }
@@ -737,15 +735,15 @@ ioManager.mousemove = e => {
   /* if (game.weaponWheel) {
     game.updateWeaponWheel(e);
   } else { */
-    if (cameraManager.pointerLockElement) {
-      cameraManager.handleMouseMove(e);
-    } else {
-      if (game.dragging) {
-        game.menuDrag(e);
-        game.menuDragRight(e);
-      }
+  if (cameraManager.pointerLockElement) {
+    cameraManager.handleMouseMove(e);
+  } else {
+    if (game.dragging) {
+      game.menuDrag(e);
+      game.menuDragRight(e);
     }
-    raycastManager.setLastMouseEvent(e);
+  }
+  raycastManager.setLastMouseEvent(e);
   // }
 };
 ioManager.mouseleave = e => {
@@ -757,11 +755,11 @@ ioManager.click = e => {
     game.menuClick(e);
   } else {
     // game.setContextMenu(false);
-    
+
     if (!game.hoverEnabled) {
       cameraManager.requestPointerLock();
     }
-    
+
     /* if (controlsManager.isPossessed()) {
       cameraManager.requestPointerLock();
     } else {
@@ -819,22 +817,22 @@ ioManager.mousedown = e => {
 ioManager.mouseup = e => {
   const changedButtons = lastMouseButtons ^ e.buttons;
   // if (mouseDown) {
-    if (cameraManager.pointerLockElement) {
-      if ((changedButtons & 1) && !(e.buttons & 1)) { // left
-        game.menuMouseUp();
-      }
-      if ((changedButtons & 2) && !(e.buttons & 2)) { // right
-        game.menuUnaim();
-      }
-    } else {
-      if ((changedButtons & 2) && !(e.buttons & 2)) { // right
-        game.menuDragupRight();
-      }
+  if (cameraManager.pointerLockElement) {
+    if ((changedButtons & 1) && !(e.buttons & 1)) { // left
+      game.menuMouseUp();
     }
-    if ((changedButtons & 4) && !(e.buttons & 4)) { // middle
-      game.menuMiddleUp();
+    if ((changedButtons & 2) && !(e.buttons & 2)) { // right
+      game.menuUnaim();
     }
-    // mouseDown = false;
+  } else {
+    if ((changedButtons & 2) && !(e.buttons & 2)) { // right
+      game.menuDragupRight();
+    }
+  }
+  if ((changedButtons & 4) && !(e.buttons & 4)) { // middle
+    game.menuMiddleUp();
+  }
+  // mouseDown = false;
   // }
   lastMouseButtons = e.buttons;
   raycastManager.setLastMouseEvent(e);

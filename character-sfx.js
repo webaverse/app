@@ -22,11 +22,10 @@ import {
 
 const localVector = new THREE.Vector3();
 
-const freestyleDuration = 1466.6666666666666 / 2;
+const freestyleDuration = 1466.666666666666 / 2;
 const freestyleOffset = 900 / 2;
-const breaststrokeDuration = 1066.6666666666666;
+const breaststrokeDuration = 1066.666666666666;
 const breaststrokeOffset = 433.3333333333333;
-
 
 // HACK: this is used to dynamically control the step offset for a particular animation
 // it is useful during development to adjust sync between animations and sound
@@ -41,7 +40,7 @@ const walkingBackwardOffset = 0.18;
 const runningBackwardOffset = 0.06;
 const strafeWalkingOffset = 0.24;
 const offsets = {
-  'Sneaking Forward.fbx': sneakingOffset, 
+  'Sneaking Forward.fbx': sneakingOffset,
   'walking.fbx': walkingOffset,
   'walking backwards.fbx': walkingBackwardOffset,
   'Fast Run.fbx': 0,
@@ -76,9 +75,9 @@ export class AvatarCharacterSfx {
     this.narutoRunFinishTime = 0;
     this.narutoRunTrailSoundStartTime = 0;
     this.narutoRunTurnSoundStartTime = 0;
-    
-    this.currentQ=new THREE.Quaternion();
-    this.preQ=new THREE.Quaternion();
+
+    this.currentQ = new THREE.Quaternion();
+    this.preQ = new THREE.Quaternion();
     this.arr = [0, 0, 0, 0];
 
     this.startRunningTime = 0;
@@ -105,14 +104,15 @@ export class AvatarCharacterSfx {
 
     this.lastDoubleJump = false;
   }
+
   update(timestamp, timeDiffS) {
     /* if (!this.character.avatar) {
       return;
     } */
-    
-    const timeSeconds = timestamp/1000;
+
+    const timeSeconds = timestamp / 1000;
     const currentSpeed = localVector.set(this.character.avatar.velocity.x, 0, this.character.avatar.velocity.z).length();
-    
+
     const idleWalkFactor = Math.min(Math.max((currentSpeed - idleSpeed) / (walkSpeed - idleSpeed), 0), 1);
     const walkRunFactor = Math.min(Math.max((currentSpeed - walkSpeed) / (runSpeed - walkSpeed), 0), 1);
     const crouchFactor = Math.min(Math.max(1 - (this.character.avatar.crouchTime / crouchMaxTime), 0), 1);
@@ -132,14 +132,14 @@ export class AvatarCharacterSfx {
       if (this.character.avatar.jumpState && !this.lastJumpState) {
         sounds.playSoundName('jump');
 
-        // play jump grunt 
-        if(this.character.hasAction('jump') && this.character.getAction('jump').trigger === 'jump'){
-          this.playGrunt('jump'); 
+        // play jump grunt
+        if (this.character.hasAction('jump') && this.character.getAction('jump').trigger === 'jump') {
+          this.playGrunt('jump');
         }
-      } /*else if (this.lastJumpState && !this.character.avatar.jumpState) {
+      } /* else if (this.lastJumpState && !this.character.avatar.jumpState) {
         sounds.playSoundName('land');
-      }*/
-      if(this.character.avatar.landState && !this.lastLandState){
+      } */
+      if (this.character.avatar.landState && !this.lastLandState) {
         sounds.playSoundName('land');
       }
       this.lastLandState = this.character.avatar.landState;
@@ -157,14 +157,12 @@ export class AvatarCharacterSfx {
           if (isNarutoRun) {
             return 'naruto run.fbx';
           } else {
-            const animationAngles = isCrouching ?
-              Avatar.getClosest2AnimationAngles('crouch', this.character.avatar.getAngle())
-            :
-              (isRunning ?
-                Avatar.getClosest2AnimationAngles('run', this.character.avatar.getAngle())
-              :
-                Avatar.getClosest2AnimationAngles('walk', this.character.avatar.getAngle())
-              );
+            const animationAngles = isCrouching
+              ? Avatar.getClosest2AnimationAngles('crouch', this.character.avatar.getAngle())
+              : (isRunning
+                  ? Avatar.getClosest2AnimationAngles('run', this.character.avatar.getAngle())
+                  : Avatar.getClosest2AnimationAngles('walk', this.character.avatar.getAngle())
+                );
             return animationAngles[0].name;
           }
         })();
@@ -196,11 +194,11 @@ export class AvatarCharacterSfx {
 
         const startIndex = _getStepIndex(this.lastWalkTime);
         const endIndex = _getStepIndex(timeSeconds);
-        for (let i = startIndex;; i++) {
+        for (let i = startIndex; ; i++) {
           i = i % leftStepIndices.length;
           if (i !== endIndex) {
-            if (leftStepIndices[i] && !this.lastStepped[0] && !this.character.avatar.narutoRunState && timeSeconds-this.narutoRunFinishTime>0.5) {
-              const candidateAudios = localSoundFiles//.filter(a => a.paused);
+            if (leftStepIndices[i] && !this.lastStepped[0] && !this.character.avatar.narutoRunState && timeSeconds - this.narutoRunFinishTime > 0.5) {
+              const candidateAudios = localSoundFiles;// .filter(a => a.paused);
               if (candidateAudios.length > 0) {
                 /* for (const a of candidateAudios) {
                   !a.paused && a.pause();
@@ -212,8 +210,8 @@ export class AvatarCharacterSfx {
             }
             this.lastStepped[0] = leftStepIndices[i];
 
-            if (rightStepIndices[i] && !this.lastStepped[1] && !this.character.avatar.narutoRunState && timeSeconds-this.narutoRunFinishTime>0.5) {
-              const candidateAudios = localSoundFiles// .filter(a => a.paused);
+            if (rightStepIndices[i] && !this.lastStepped[1] && !this.character.avatar.narutoRunState && timeSeconds - this.narutoRunFinishTime > 0.5) {
+              const candidateAudios = localSoundFiles;// .filter(a => a.paused);
               if (candidateAudios.length > 0) {
                 /* for (const a of candidateAudios) {
                   !a.paused && a.pause();
@@ -231,86 +229,74 @@ export class AvatarCharacterSfx {
 
         this.lastWalkTime = timeSeconds;
       }
-      
     };
 
     if (!this.character.hasAction('sit')) {
       _handleStep();
     }
     const _handleSwim = () => {
-      if(this.character.hasAction('swim')){
-          // const candidateAudios = soundFiles.water;
-          // console.log(candidateAudios);
-          if(this.character.getAction('swim').animationType === 'breaststroke'){
-              if(this.setSwimmingHand && this.character.actionInterpolants.movements.get() % breaststrokeDuration <= breaststrokeOffset){
-                  this.setSwimmingHand = false;
-                  this.currentSwimmingHand = null;
-              }
-              else if(!this.setSwimmingHand && this.character.actionInterpolants.movements.get() % breaststrokeDuration > breaststrokeOffset){
-                  let regex = new RegExp('^water/swim[0-9]*.wav$');
-                  const candidateAudios = soundFiles.water.filter(f => regex.test(f.name));
-                  const audioSpec = candidateAudios[Math.floor(Math.random() * candidateAudios.length)];
-                  if(this.character.getAction('swim').onSurface)
-                    sounds.playSound(audioSpec);
+      if (this.character.hasAction('swim')) {
+        // const candidateAudios = soundFiles.water;
+        // console.log(candidateAudios);
+        if (this.character.getAction('swim').animationType === 'breaststroke') {
+          if (this.setSwimmingHand && this.character.actionInterpolants.movements.get() % breaststrokeDuration <= breaststrokeOffset) {
+            this.setSwimmingHand = false;
+            this.currentSwimmingHand = null;
+          } else if (!this.setSwimmingHand && this.character.actionInterpolants.movements.get() % breaststrokeDuration > breaststrokeOffset) {
+            const regex = new RegExp('^water/swim[0-9]*.wav$');
+            const candidateAudios = soundFiles.water.filter(f => regex.test(f.name));
+            const audioSpec = candidateAudios[Math.floor(Math.random() * candidateAudios.length)];
+            if (this.character.getAction('swim').onSurface) { sounds.playSound(audioSpec); }
 
-                  this.setSwimmingHand = true;
-                  this.currentSwimmingHand = 'right';
-              }
-
+            this.setSwimmingHand = true;
+            this.currentSwimmingHand = 'right';
           }
-          else if(this.character.getAction('swim').animationType === 'freestyle'){
-              let regex = new RegExp('^water/swim_fast[0-9]*.wav$');
-              const candidateAudios = soundFiles.water.filter(f => regex.test(f.name));
-              const audioSpec = candidateAudios[Math.floor(Math.random() * candidateAudios.length)];
+        } else if (this.character.getAction('swim').animationType === 'freestyle') {
+          const regex = new RegExp('^water/swim_fast[0-9]*.wav$');
+          const candidateAudios = soundFiles.water.filter(f => regex.test(f.name));
+          const audioSpec = candidateAudios[Math.floor(Math.random() * candidateAudios.length)];
 
-              if(this.setSwimmingHand && this.character.actionInterpolants.movements.get() % freestyleDuration <= freestyleOffset){
-                  // console.log('left hand')
-                  if(this.character.getAction('swim').onSurface)
-                    sounds.playSound(audioSpec);
-                  this.currentSwimmingHand = 'left';
-                  this.setSwimmingHand = false;
-              }
-              else if(!this.setSwimmingHand && this.character.actionInterpolants.movements.get() % freestyleDuration > freestyleOffset){
-                  // console.log('right hand')
-                  if(this.character.getAction('swim').onSurface)
-                    sounds.playSound(audioSpec);
-                  this.currentSwimmingHand = 'right';
-                  this.setSwimmingHand = true;
-              }
-          }  
+          if (this.setSwimmingHand && this.character.actionInterpolants.movements.get() % freestyleDuration <= freestyleOffset) {
+            // console.log('left hand')
+            if (this.character.getAction('swim').onSurface) { sounds.playSound(audioSpec); }
+            this.currentSwimmingHand = 'left';
+            this.setSwimmingHand = false;
+          } else if (!this.setSwimmingHand && this.character.actionInterpolants.movements.get() % freestyleDuration > freestyleOffset) {
+            // console.log('right hand')
+            if (this.character.getAction('swim').onSurface) { sounds.playSound(audioSpec); }
+            this.currentSwimmingHand = 'right';
+            this.setSwimmingHand = true;
+          }
+        }
       }
-    }
+    };
     _handleSwim();
 
     const _handleNarutoRun = () => {
       this.currentQ.copy(this.character.quaternion);
-     
-      let temp=this.currentQ.angleTo(this.preQ);
-      for(let i=0;i<4;i++){
-          let temp2=this.arr[i];
-          this.arr[i]=temp;
-          temp=temp2;
+
+      let temp = this.currentQ.angleTo(this.preQ);
+      for (let i = 0; i < 4; i++) {
+        const temp2 = this.arr[i];
+        this.arr[i] = temp;
+        temp = temp2;
       }
-      
-      if(this.character.avatar.narutoRunState){
-        if(this.narutoRunStartTime===0){
-          this.narutoRunStartTime=timeSeconds; 
+
+      if (this.character.avatar.narutoRunState) {
+        if (this.narutoRunStartTime === 0) {
+          this.narutoRunStartTime = timeSeconds;
           sounds.playSound(soundFiles.sonicBoom[0]);
           this.playGrunt('narutoRun');
-        }
-        else {
-          if(this.arr.reduce((a,b)=>a+b) >= Math.PI/3){
-
-            this.arr.fill(0)
-            if(timeSeconds - this.narutoRunTurnSoundStartTime>soundFiles.sonicBoom[3].duration-0.9 || this.narutoRunTurnSoundStartTime==0){
+        } else {
+          if (this.arr.reduce((a, b) => a + b) >= Math.PI / 3) {
+            this.arr.fill(0);
+            if (timeSeconds - this.narutoRunTurnSoundStartTime > soundFiles.sonicBoom[3].duration - 0.9 || this.narutoRunTurnSoundStartTime === 0) {
               sounds.playSound(soundFiles.sonicBoom[3]);
               this.narutoRunTurnSoundStartTime = timeSeconds;
             }
-              
           }
-         
-          if(timeSeconds - this.narutoRunTrailSoundStartTime>soundFiles.sonicBoom[2].duration-0.2 || this.narutoRunTrailSoundStartTime==0){
-            
+
+          if (timeSeconds - this.narutoRunTrailSoundStartTime > soundFiles.sonicBoom[2].duration - 0.2 || this.narutoRunTrailSoundStartTime === 0) {
             const localSound = sounds.playSound(soundFiles.sonicBoom[2]);
             this.oldNarutoRunSound = localSound;
             localSound.addEventListener('ended', () => {
@@ -324,47 +310,44 @@ export class AvatarCharacterSfx {
         }
 
         // if naruto run play more than 2 sec, set willGasp
-        if(timeSeconds - this.narutoRunStartTime > 2){
+        if (timeSeconds - this.narutoRunStartTime > 2) {
           this.willGasp = true;
         }
-
       }
-      if(!this.character.avatar.narutoRunState && this.narutoRunStartTime!=0 ){
-        this.narutoRunStartTime=0;
-        this.narutoRunFinishTime=timeSeconds;
-        this.narutoRunTrailSoundStartTime=0;
-        this.narutoRunTurnSoundStartTime=0;
+      if (!this.character.avatar.narutoRunState && this.narutoRunStartTime !== 0) {
+        this.narutoRunStartTime = 0;
+        this.narutoRunFinishTime = timeSeconds;
+        this.narutoRunTrailSoundStartTime = 0;
+        this.narutoRunTurnSoundStartTime = 0;
         sounds.playSound(soundFiles.sonicBoom[1]);
         if (this.oldNarutoRunSound) {
           !this.oldNarutoRunSound.paused && this.oldNarutoRunSound.stop();
           this.oldNarutoRunSound = null;
         }
       }
-      this.preQ.x=this.currentQ.x;
-      this.preQ.y=this.currentQ.y;
-      this.preQ.z=this.currentQ.z;
-      this.preQ.w=this.currentQ.w;
+      this.preQ.x = this.currentQ.x;
+      this.preQ.y = this.currentQ.y;
+      this.preQ.z = this.currentQ.z;
+      this.preQ.w = this.currentQ.w;
     };
     _handleNarutoRun();
 
     const _handleGasp = () => {
       const isRunning = currentSpeed > 0.5;
-      if(isRunning){
-        if(this.startRunningTime === 0)
-          this.startRunningTime = timeSeconds;
-      }
-      else{
-        if(this.startRunningTime !== 0 && this.willGasp && !this.character.avatar.narutoRunState){
+      if (isRunning) {
+        if (this.startRunningTime === 0) { this.startRunningTime = timeSeconds; }
+      } else {
+        if (this.startRunningTime !== 0 && this.willGasp && !this.character.avatar.narutoRunState) {
           this.playGrunt('gasp');
         }
         this.willGasp = false;
         this.startRunningTime = 0;
       }
-      
-      if(timeSeconds - this.startRunningTime > 5 && this.startRunningTime !== 0){
+
+      if (timeSeconds - this.startRunningTime > 5 && this.startRunningTime !== 0) {
         this.willGasp = true;
       }
-    }
+    };
     _handleGasp();
 
     const _handleFood = () => {
@@ -418,7 +401,7 @@ export class AvatarCharacterSfx {
     _handleFood();
 
     const _handleEmote = () => {
-      if(this.character.avatar.emoteAnimation && this.lastEmote !== this.character.avatar.emoteAnimation){
+      if (this.character.avatar.emoteAnimation && this.lastEmote !== this.character.avatar.emoteAnimation) {
         this.playEmote(this.character.avatar.emoteAnimation);
       }
       this.lastEmote = this.character.avatar.emoteAnimation;
@@ -448,19 +431,20 @@ export class AvatarCharacterSfx {
     };
     _handleUse();
   }
+
   playGrunt(type) {
     if (this.character.voicePack) { // ensure voice pack loaded
       const voiceFiles = this.character.voicePack.voiceFiles.actionVoices[type];
-      
+
       // if (index === undefined) {
-        let voice = selectVoice(voiceFiles);
-        const duration = voice.duration;
-        const offset = voice.offset;
+      const voice = selectVoice(voiceFiles);
+      const duration = voice.duration;
+      const offset = voice.offset;
       /* } else {
         duration = voiceFiles[index].duration;
         offset = voiceFiles[index].offset;
       } */
-      
+
       const audioContext = audioManager.getAudioContext();
       const audioBufferSourceNode = audioContext.createBufferSource();
       audioBufferSourceNode.buffer = this.character.voicePack.audioBuffer;
@@ -472,12 +456,12 @@ export class AvatarCharacterSfx {
       audioBufferSourceNode.connect(this.character.avatar.getAudioInput());
 
       // if the oldGrunt are still playing
-      if(this.oldGrunt){
+      if (this.oldGrunt) {
         this.oldGrunt.stop();
         this.oldGrunt = null;
       }
       this.character.avatar.enableAudioWorkerSetVolume = true;
-      this.oldGrunt=audioBufferSourceNode;
+      this.oldGrunt = audioBufferSourceNode;
       // clean the oldGrunt if voice end
       audioBufferSourceNode.addEventListener('ended', () => {
         if (this.oldGrunt === audioBufferSourceNode) {
@@ -489,19 +473,20 @@ export class AvatarCharacterSfx {
       audioBufferSourceNode.start(0, offset, duration);
     }
   }
-  playEmote(type, index){
+
+  playEmote(type, index) {
     if (this.character.voicePack) { // ensure voice pack loaded
       const voiceFiles = this.character.voicePack.voiceFiles.emoteVoices[type];
-      
+
       // if (index === undefined) {
-        let voice = selectVoice(voiceFiles);
-        const duration = voice.duration;
-        const offset = voice.offset;
+      const voice = selectVoice(voiceFiles);
+      const duration = voice.duration;
+      const offset = voice.offset;
       /* } else {
         duration = voiceFiles[index].duration;
         offset = voiceFiles[index].offset;
       } */
-      
+
       const audioContext = audioManager.getAudioContext();
       const audioBufferSourceNode = audioContext.createBufferSource();
       audioBufferSourceNode.buffer = this.character.voicePack.audioBuffer;
@@ -513,12 +498,12 @@ export class AvatarCharacterSfx {
       audioBufferSourceNode.connect(this.character.avatar.getAudioInput());
 
       // if the oldGrunt are still playing
-      if(this.oldGrunt){
+      if (this.oldGrunt) {
         this.oldGrunt.stop();
         this.oldGrunt = null;
       }
       this.character.avatar.enableAudioWorkerSetVolume = true;
-      this.oldGrunt=audioBufferSourceNode;
+      this.oldGrunt = audioBufferSourceNode;
       // clean the oldGrunt if voice end
       audioBufferSourceNode.addEventListener('ended', () => {
         if (this.oldGrunt === audioBufferSourceNode) {
@@ -530,6 +515,7 @@ export class AvatarCharacterSfx {
       audioBufferSourceNode.start(0, offset, duration);
     }
   }
+
   destroy() {
     this.cleanup();
   }

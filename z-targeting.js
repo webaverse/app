@@ -35,8 +35,8 @@ const getPyramidConvexGeometry = (() => {
         thetaStart,
         thetaLength, */
       );
-      geometry.rotateX(-Math.PI/2);
-      geometry.rotateZ(Math.PI/4);
+      geometry.rotateX(-Math.PI / 2);
+      geometry.rotateZ(Math.PI / 4);
       geometry.scale(2, 2.75, 1);
 
       /* redMesh = new THREE.Mesh(geometry, new THREE.MeshBasicMaterial({color: 0xff0000}));
@@ -54,6 +54,7 @@ class QueryResults {
   constructor() {
     this.results = [];
   }
+
   snapshot(object) {
     const {position, quaternion} = object;
     const direction = new THREE.Vector3(0, 0, -1)
@@ -88,7 +89,7 @@ class QueryResults {
         physicsId: reticle.objectId,
         type,
         zoom,
-      }
+      };
     });
     if (object === camera) {
       reticles = reticles.filter(reticle => {
@@ -126,12 +127,13 @@ class ZTargeting extends THREE.Object3D {
 
     this.loadPromise = null;
   }
+
   waitForLoad() {
     if (!this.loadPromise) {
       this.loadPromise = (async () => {
         const {importModule} = metaverseModules;
         const m = await importModule('targetReticle');
-        
+
         const targetReticleApp = metaversefile.createApp();
         await targetReticleApp.addModule(m);
         scene.add(targetReticleApp);
@@ -140,6 +142,7 @@ class ZTargeting extends THREE.Object3D {
     }
     return this.loadPromise;
   }
+
   setQueryResult(timestamp) {
     let reticles;
     const localPlayer = playersManager.getLocalPlayer();
@@ -168,21 +171,23 @@ class ZTargeting extends THREE.Object3D {
         this.focusTargetReticle = null;
       }
     }
-    
+
     const targetReticleMesh = this.targetReticleApp.children[0];
     targetReticleMesh.setReticles(reticles);
   }
+
   update(timestamp) {
     this.setQueryResult(timestamp);
   }
+
   handleDown(object = camera) {
     if (!cameraManager.focus) {
       this.queryResults.snapshot(object);
 
       if (this.queryResults.results.length > 0) {
         this.focusTargetReticle = this.queryResults.results[0];
-        sounds.playSoundName(this.focusTargetReticle.type == 'enemy' ? 'zTargetEnemy' : 'zTargetObject');
-      
+        sounds.playSoundName(this.focusTargetReticle.type === 'enemy' ? 'zTargetEnemy' : 'zTargetObject');
+
         const naviSoundNames = [
           'naviHey',
           'naviWatchout',
@@ -202,6 +207,7 @@ class ZTargeting extends THREE.Object3D {
       cameraManager.setStaticTarget(localPlayer.avatar.modelBones.Head, remoteApp);
     }
   }
+
   handleUp() {
     if (cameraManager.focus) {
       cameraManager.setFocus(false);
@@ -212,13 +218,14 @@ class ZTargeting extends THREE.Object3D {
       }
     }
   }
+
   toggle() {
     if (cameraManager.focus) {
       this.handleUp();
     } else {
       const localPlayer = playersManager.getLocalPlayer();
       this.handleDown(localPlayer);
-      
+
       if (this.queryResults.results.length === 0) {
         setTimeout(() => {
           this.handleUp();

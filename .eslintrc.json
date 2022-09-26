@@ -54,6 +54,7 @@
     "no-case-declarations": ["off"],
     "no-cond-assign": ["off"],
     "no-useless-escape": ["off"],
+    "react/no-unescaped-entities": ["off"],
     "space-before-function-paren": [
       "warn",
       {
