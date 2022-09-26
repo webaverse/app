@@ -12,6 +12,9 @@ import {minFov, maxFov, midFov} from './constants.js';
 import easing from './easing.js';
 import { clamp } from 'three/src/math/MathUtils.js';
 import { PathFinder } from './npc-utils.js';
+import metaversefile from 'metaversefile';
+import gameManager from './game.js';
+import loadoutManager from './loadout-manager.js';
 
 const cubicBezier = easing(0, 1, 0, 1);
 const cubicBezier2 = easing(0.5, 0, 0.5, 1);
@@ -182,12 +185,33 @@ class Scene2D {
     this.maxAimDistance = 3;
     this.zoomFactor = 1;
     this.moveTarget = null;
+    this.attackTarget = null;
+    this.debugCircle = null;
 
     this.debugMesh = null;
+    this.attackMesh = null;
 
-    this.pathFinder = new PathFinder({debugRender: true});
+    this.pathFinder = new PathFinder({debugRender: false});
     this.path = null;
     this.pathIndex = 0;
+
+    /// dirty combat test
+    this.lastAttackTime = 0;
+
+    if(this.perspective === "isometric") {
+      const geometry = new THREE.CircleGeometry(0.5, 32/4);
+      const material = new THREE.MeshBasicMaterial( { color: 0x0099e6, wireframe: true } );
+      this.debugCircle = new THREE.Mesh( geometry, material );
+      this.debugCircle.rotation.x = -Math.PI / 2;
+      scene.add( this.debugCircle );
+
+      const geometry2 = new THREE.CircleGeometry(0.5, 32/4);
+      const material2 = new THREE.MeshBasicMaterial( { color: 0xff0000, wireframe: true } );
+      this.attackMesh = new THREE.Mesh( geometry2, material2 );
+      this.attackMesh.rotation.x = -Math.PI / 2;
+      scene.add( this.attackMesh );
+      this.attackMesh.visible = false;
+    }
 
     // document.addEventListener('click', (e) => {
     //   if(e.button === 0) { // left click
@@ -252,15 +276,27 @@ class Scene2D {
 
     raycaster.set( vector, dir );
 
-    const intersects = raycaster.intersectObjects( scene.children );
+    
 
-    if(intersects.length > 0) {
-      let result = intersects[0];
-      console.log(result, "raycast result");
-      const flatSurface = new THREE.Vector3(0,1,0);
-      const point = intersects[0].point;
-      return point;
+    let ray = physicsScene.raycast(vector, camera.quaternion);
+
+    if(ray) {
+      //const targetApp = metaversefile.getAppByPhysicsId(ray.objectId);
+      //console.log(targetApp, "ray target app");
+      //console.log(vector, new THREE.Vector3().fromArray(ray.point));
+      return ray;
     }
+    //console.log(ray, "yes le ray")
+
+    //const intersects = raycaster.intersectObjects( scene.children, true );
+
+    // if(intersects.length > 0) {
+    //   let result = intersects[0];
+    //   //console.log(result, "raycast result");
+    //   const flatSurface = new THREE.Vector3(0,1,0);
+    //   const point = result.point;
+    //   return point;
+    // }
   }
   getCursorQuaternionFromOrigin(origin) {
     let cursorPos = this.getCursorPosition();
@@ -279,14 +315,47 @@ class Scene2D {
     playersManager.getLocalPlayer().getWorldDirection(viewDir);
     return viewDir.x > 0 ? "left" : "right";
   }
+  checkIsDestinationValid(pos) {
+    const localPlayer = playersManager.getLocalPlayer();
+    if(localPlayer.position.distanceTo(pos) < 15) {
+      let a = new THREE.Vector3(0,localPlayer.position.y,0).distanceTo(new THREE.Vector3(0,pos.y,0));
+      if(a < 6) {
+        return true;
+      }
+      else {
+        return false;
+      }
+
+    }
+    else {
+      return false;
+    }
+  }
   handleCursorClick() {
-    let cursorWorldPos = this.castFromCursor();
-    if(cursorWorldPos) {
-      //cursorWorldPos.y = 1;
-      console.log(cursorWorldPos);
-      this.moveTarget = cursorWorldPos;
-      this.path = null;
-      this.pathIndex = 0;
+    let target = this.castFromCursor();
+    if(target) {
+      const targetApp = metaversefile.getAppByPhysicsId(target.objectId);
+      const targetPoint = new THREE.Vector3().fromArray(target.point);
+      let isValid = this.checkIsDestinationValid(targetPoint);
+      if(isValid) {
+        this.moveTarget = targetPoint.add(new THREE.Vector3(0,0.1,0));
+        if(targetApp.name === "dummy") {
+          console.log("hittable target");
+          this.attackTarget = targetApp;
+          this.moveTarget = targetApp.position;
+          //this.moveTarget = new THREE.Vector3(targetApp.position.x, targetApp.position.y+0.1, targetApp.position.z);
+        }
+        else {
+          this.attackTarget = null;
+        }
+        this.path = null;
+        this.pathIndex = 0;
+      }
+      else {
+        this.moveTarget = null;
+        this.path = null;
+        this.pathIndex = null;
+      }
     }
     else {
       console.log("invalid target")
@@ -294,30 +363,42 @@ class Scene2D {
   }
   traversePath(path, t) {
     const localPlayer = playersManager.getLocalPlayer();
-    console.log(this.pathIndex);
-    let target = path[this.pathIndex].position;
-    let dist = localPlayer.position.distanceTo(target);
+    //console.log(this.pathIndex);
+    //let target = path[this.pathIndex].position;
+    let target = this.moveTarget;
+    let dist = new THREE.Vector3(localPlayer.position.x, 0, localPlayer.position.z).distanceTo(new  THREE.Vector3(target.x, 0, target.z));
     let dir = new THREE.Vector3().subVectors(target, localPlayer.position);
 
-    if(dist > 1) {
+    if(dist > 0.25) {
+      let walkSpeed = 0.075;
+      let runFactor = 2;
+      
+      let speed;
+
+      dist < 2 ? speed = walkSpeed : speed = walkSpeed;
+      
       localPlayer.characterPhysics.applyWasd(
         dir.normalize()
-          .multiplyScalar(0.15 * t)
+          .multiplyScalar(speed * t)
       );
       this.debugMesh.visible = true;
-      this.debugMesh.position.copy(path[path.length-1].position);
+      this.debugMesh.position.copy(this.moveTarget);
       this.debugMesh.updateMatrixWorld();
     }
     else {
-      if(this.pathIndex < path.length-1) {
-        this.pathIndex++;
-      }
-      else {
-        this.debugMesh.visible = false;
-        this.moveTarget = null;
-        this.path = null;
-        this.pathIndex = 0;
-      }
+      this.debugMesh.visible = false;
+      this.moveTarget = null;
+      this.path = null;
+      this.pathIndex = 0;
+      // if(this.pathIndex < path.length-1) {
+      //   this.pathIndex++;
+      // }
+      // else {
+      //   this.debugMesh.visible = false;
+      //   this.moveTarget = null;
+      //   this.path = null;
+      //   this.pathIndex = 0;
+      // }
     }
   }
   moveToTarget(target, t) {
@@ -344,21 +425,69 @@ class Scene2D {
     }
 
   }
-  update(timeDiff) {
+  update(timestamp, timeDiff) {
     const localPlayer = playersManager.getLocalPlayer();
 
     if(!this.debugMesh) {
-      let geom = new THREE.BoxGeometry(1,1,1);
-      let material = new THREE.MeshBasicMaterial({color: 0x00ff00});
-      this.debugMesh = new THREE.Mesh(geom, material);
+      const geometry = new THREE.CircleGeometry(0.5, 32/4);
+      const material = new THREE.MeshBasicMaterial( { color: 0x1ff03e, wireframe: true } );
+      this.debugMesh = new THREE.Mesh( geometry, material );
+      this.debugMesh.rotation.x = -Math.PI / 2;
       scene.add(this.debugMesh);
       this.debugMesh.visible = false;
     }
+
+    if(this.attackTarget && localPlayer.avatar) {
+      this.attackMesh.position.copy(this.attackTarget.position.clone().add(new THREE.Vector3(0, 0.1, 0)));
+      this.attackMesh.updateMatrixWorld();
+      this.attackMesh.visible = true;
+
+      const wearApp = loadoutManager.getSelectedApp();
+      if(!wearApp) {
+        gameManager.selectLoadout(0);
+      }
+
+      if(wearApp) {
+        if((timestamp - this.lastAttackTime) > 1000) {
+          const localPlayer = playersManager.getLocalPlayer();
+          const useAction = localPlayer.getAction('use');
+          if (useAction) {
+            //gameManager.selectLoadout(0);
+            const app = metaversefile.getAppByInstanceId(useAction.instanceId);
+            app.dispatchEvent({
+              type: 'use',
+              use: false,
+            });
+            localPlayer.removeAction('use');
+          }
+          else {
+            //gameManager.selectLoadout(0);
+            gameManager.attackHack();
+            this.lastAttackTime = timestamp;
+          }
+          //console.log("attack!", this.lastAttackTime);
+        }
+      }
+    }
+    else {
+      const wearApp = loadoutManager.getSelectedApp();
+      if(wearApp) {
+        gameManager.selectLoadout(0);
+      }
+      this.attackMesh.visible = false;
+    }
+
+    if(localPlayer.avatar && this.debugCircle) {
+      this.debugCircle.position.copy(new THREE.Vector3(localPlayer.position.x, (localPlayer.position.y-localPlayer.avatar.height)+0.05, localPlayer.position.z));
+      this.debugCircle.rotation.z = localPlayer.rotation.y;
+      //this.debugCircle.rotateZ(0.1);
+      this.debugCircle.updateMatrixWorld();
+    } 
     
     if(this.moveTarget && localPlayer) {
       if(!this.path) {
         this.path = this.getPath(localPlayer.position, this.moveTarget);
-        console.log(this.path);
+        //(this.path, "path");
       }
       else {
         this.traversePath(this.path, timeDiff)
@@ -846,7 +975,7 @@ class CameraManager extends EventTarget {
     const localPlayer = playersManager.getLocalPlayer();
 
     if(this.scene2D) {
-      this.scene2D.update(timeDiff);
+      this.scene2D.update(timestamp, timeDiff);
     }
 
     if (this.target) {
@@ -1060,7 +1189,11 @@ class CameraManager extends EventTarget {
             break;
           }
           case 'isometric': {
-            this.targetPosition.copy(localPlayer.position);
+            camera.rotation.order = 'YXZ';
+            camera.rotation.y = - Math.PI / 4;
+            camera.rotation.x = Math.atan( - 1 / Math.sqrt( 2 ) );
+
+            this.targetPosition.copy(localPlayer.position).add(new THREE.Vector3(0,0,50).applyQuaternion(camera.quaternion));
             break;
           }
           default: {

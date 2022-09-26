@@ -1150,6 +1150,9 @@ class GameManager extends EventTarget {
   menuClick(e) {
     _click(e);
   }
+  attackHack() {
+    _startUse();
+  }
   menuMouseDown() {
     _mousedown();
   }

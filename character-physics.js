@@ -76,6 +76,8 @@ class CharacterPhysics {
       stepOffset,
       position
     );
+    //physicsScene.setLinearLockFlags(this.characterController.physicsId, true, true, true);
+    //console.log(this.characterController, "character controller")
   }
   setPosition(p) {
     localVector.copy(p);

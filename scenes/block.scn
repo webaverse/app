@@ -74,6 +74,10 @@
       "start_url": "https://webaverse.github.io/pistol/"
     },
     {
+      "position": [5, 1, 20],
+      "start_url": "/Assets/ball"
+    },
+    {
       "position": [
         0,
         -5,
