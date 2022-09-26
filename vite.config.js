@@ -18,11 +18,27 @@ const distDirectory = 'dist';
 const baseDirectory = 'assets';
 const relativeDistAssets = `./${distDirectory}/${baseDirectory}`;
 let appBuiltOnce = false;
+const dontIncludeFiles = [
+  'build/three.js',
+  'build/three.min.js',
+  'examples/js',
+  'examples/fonts',
+  'LICENSE',
+  'package.json',
+  'README.md',
+  'src',
+];
 
 const entryPoints = [
   {
     path: './avatars/**/*.js',
     exclude: ['./avatars/avatars.js'],
+    replaceExpression: '.',
+    glob: true,
+  },
+  {
+    path: './*worker.js',
+    exclude: [],
     replaceExpression: '.',
     glob: true,
   },
@@ -65,6 +81,9 @@ const build = () => {
 
     if (packageJSON.files) {
       for (const file of packageJSON.files) {
+        if (dontIncludeFiles.includes(file)) {
+          continue;
+        }
         const fp = path.join(base, _path, file);
         let isFile;
         try {
@@ -281,12 +300,10 @@ const build = () => {
   };
 };
 
-/** Use totum if not production */
-plugins = process.env.NODE_ENV !== 'production'
-  ? plugins.concat([metaversefilePlugin()])
-  : plugins.concat([
-    build(),
-  ]);
+/** Use metaversefile if not production */
+plugins = process.env.NODE_ENV !== 'production' ? plugins.concat([metaversefilePlugin()]) : plugins.concat([
+  build(),
+]);
 
 /** Vite config for production */
 const viteConfigProduction = {
@@ -294,15 +311,13 @@ const viteConfigProduction = {
     polyfillModulePreload: false,
     format: 'es',
     target: 'esnext',
-    ...(process.argv.find(a => a === '--watch')
-      ? {
-          watch: {
-            clearScreen: true,
-            include: '**/**',
-            exclude: 'node_modules/**',
-          },
-        }
-      : {}),
+    ...(process.argv.find(a => a === '--watch') ? {
+      watch: {
+        clearScreen: true,
+        include: '**/**',
+        exclude: 'node_modules/**',
+      },
+    } : {}),
     manifest: true,
     minify: false,
     rollupOptions: {

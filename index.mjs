@@ -1,4 +1,4 @@
-/* eslint-disable node/no-deprecated-api */
+/* eslint-disable n/no-deprecated-api */
 /* eslint-disable camelcase */
 /* eslint-disable promise/param-names */
 import http from 'http';
@@ -7,10 +7,14 @@ import url from 'url';
 import path from 'path';
 import fs from 'fs';
 import express from 'express';
-import { createServer } from 'vite';
+import {createServer} from 'vite';
 import wsrtc from 'wsrtc/wsrtc-server.mjs';
-import metaversefile from 'metaversefile/plugins/rollup.js';
+import metaversefilePlugin from 'metaversefile/plugins/rollup.js';
 import glob from 'glob';
+import Babel from '@babel/core';
+
+const SERVER_ADDR = '0.0.0.0';
+const SERVER_NAME = 'local.webaverse.com';
 
 Error.stackTraceLimit = 300;
 const cwd = process.cwd();
@@ -18,7 +22,7 @@ const cwd = process.cwd();
 const isProduction = process.argv[2] === '-p';
 process.env.MODULE_URL = process.env.MODULE_URL || 'https://local.webaverse.com/';
 process.env.NODE_ENV = isProduction ? 'production' : process.env.NODE_ENV;
-const totum = metaversefile();
+const metaversefile = metaversefilePlugin();
 
 const _isMediaType = p => /\.(?:png|jpe?g|gif|svg|glb|mp3|wav|webm|mp4|mov)$/.test(p);
 
@@ -46,22 +50,35 @@ function makeId(length) {
 
 async function dynamicImporter(o, req, res, next) {
   try {
-    const loadUrl = o.pathname.slice(o.pathname.lastIndexOf('/@import'), o.pathname.length).replace('/@import', '');
+    const loadUrl = decodeURI(o.pathname.slice(o.pathname.lastIndexOf('/@import'), o.pathname.length).replace('/@import', ''));
     const fullUrl = req.protocol + '://' + req.get('host') + loadUrl;
     const reqURL = new URL(fullUrl);
 
     /** Check intiator */
     if (req.headers['sec-fetch-dest'] === 'script') {
-      let id = await totum.resolveId(loadUrl, reqURL.href);
+      let id = await metaversefile.resolveId(loadUrl, reqURL.href);
       if (!id) {
+        console.error('\nFailed to load', loadUrl, reqURL.href);
+        console.log('\n------------------------------------------------------------------');
         res.status(500);
         return res.end('Failed to load');
       }
 
       id = id.replace('/@proxy/', '');
-      const { code, map } = await totum.load(id);
-      res.writeHead(200, { 'Content-Type': 'application/javascript' });
-      res.end(code);
+      const {code} = await metaversefile.load(id);
+      if (process.env.NODE_ENV === 'production') {
+        const src = Babel.transform(code, {
+          plugins: [
+            ['babel-plugin-custom-import-path-transform',
+              {
+                caller: id,
+                transformImportPath: './moduleRewrite.js',
+              }],
+          ],
+        });
+        res.writeHead(200, {'Content-Type': 'application/javascript'});
+        res.end(src.code);
+      }
     } else {
       req.originalUrl = loadUrl;
       return /^\/(?:@proxy)\//.test(req.originalUrl) ? proxyReq(loadUrl, res) : res.redirect(req.originalUrl);
@@ -90,7 +107,7 @@ function proxyReq(u, res) {
   proxyReq.end();
 }
 
-const _proxyUrl = (req, res, u) => {
+/* const _proxyUrl = (req, res, u) => {
   const proxyReq = /https/.test(u) ? https.request(u) : http.request(u);
   proxyReq.on('response', proxyRes => {
     for (const header in proxyRes.headers) {
@@ -105,7 +122,7 @@ const _proxyUrl = (req, res, u) => {
     res.end();
   });
   proxyReq.end();
-};
+}; */
 
 (async () => {
   const app = express();
@@ -149,8 +166,9 @@ const _proxyUrl = (req, res, u) => {
       req.originalUrl = req.originalUrl.replace(/^\/(login)/, '/');
       return res.redirect(req.originalUrl);
     } else {
-      isProduction && /^\/@import/.test(o.pathname)
-        ? dynamicImporter(o, req, res, next) : next();
+      isProduction && (/^\/@import/.test(o.pathname))
+        ? dynamicImporter(o, req, res, next)
+        : next();
     }
   });
 
@@ -178,7 +196,7 @@ const _proxyUrl = (req, res, u) => {
     /** Setup static assets */
     if (isProduction) {
       app.use(express.static('dist'));
-      app.use(express.static('dist/assets'));
+      // app.use(express.static('dist/assets'));
 
       app.use('*', (req, res) => {
         const o = url.parse(req.originalUrl, true);
@@ -188,7 +206,24 @@ const _proxyUrl = (req, res, u) => {
         glob(`dist/**/${fileName}`, (err, files) => {
           const _404 = err || files.length === 0;
           if (files.length > 0) {
-            return res.sendFile(path.resolve('.', files[0]));
+            const file = path.resolve('.', files[0]);
+            // console.log(file);
+            if (file.endsWith('worker.js')) {
+              const code = fs.readFileSync(file).toString();
+              if (process.env.NODE_ENV === 'production') {
+                const src = Babel.transform(code, {
+                  plugins: [
+                    ['babel-plugin-custom-import-path-transform',
+                      {
+                        transformImportPath: './moduleRewrite.js',
+                      }],
+                  ],
+                });
+                res.writeHead(200, {'Content-Type': 'application/javascript'});
+                return res.end(src.code);
+              }
+            }
+            return res.sendFile(file);
           } else if (_404) {
             res.status(404).end();
           }
@@ -200,12 +235,12 @@ const _proxyUrl = (req, res, u) => {
   }
 
   await new Promise((accept, reject) => {
-    httpServer.listen(port, '0.0.0.0', () => {
+    httpServer.listen(port, SERVER_ADDR, () => {
       accept();
     });
     httpServer.on('error', reject);
   });
-  console.log(`  > Local: http${isHttps ? 's' : ''}://localhost:${port}/`);
+  console.log(`  > Local: http${isHttps ? 's' : ''}://${SERVER_NAME}:${port}/`);
 
   const wsServer = (() => {
     if (isHttps) {
@@ -215,16 +250,18 @@ const _proxyUrl = (req, res, u) => {
     }
   })();
   const initialRoomState = (() => {
-    const s = fs.readFileSync(`./${isProduction ? 'dist/' : ''}scenes/gunroom.scn`, 'utf8');
+    const s = fs.readFileSync('scenes/prototype.scn', 'utf8');
     const j = JSON.parse(s);
-    const { objects } = j;
+    const {objects} = j;
 
     const appsMapName = 'apps';
     const result = {
       [appsMapName]: [],
     };
     for (const object of objects) {
-      let { start_url, type, content, position = [0, 0, 0], quaternion = [0, 0, 0, 1], scale = [1, 1, 1] } = object;
+      let {start_url, type, content, position = [0, 0, 0], quaternion = [0, 0, 0, 1], scale = [1, 1, 1]} = object;
+
+      const transform = Float32Array.from([...position, ...quaternion, ...scale]);
       const instanceId = makeId(5);
       if (!start_url && type && content) {
         start_url = `data:${type},${encodeURI(JSON.stringify(content))}`;
@@ -232,27 +269,23 @@ const _proxyUrl = (req, res, u) => {
       const appObject = {
         instanceId,
         contentId: start_url,
-        position,
-        quaternion,
-        scale,
+        transform,
         components: JSON.stringify([]),
       };
       result[appsMapName].push(appObject);
     }
     return result;
   })();
-  const initialRoomNames = [
-    'Erithor',
-  ];
+  const initialRoomNames = [];
   wsrtc.bindServer(wsServer, {
     initialRoomState,
     initialRoomNames,
   });
   await new Promise((accept, reject) => {
-    wsServer.listen(wsPort, '0.0.0.0', () => {
+    wsServer.listen(wsPort, SERVER_ADDR, () => {
       accept();
     });
     wsServer.on('error', reject);
   });
-  console.log(`  > World: ws${isHttps ? 's' : ''}://localhost:${wsPort}/`);
+  console.log(`  > World: ws${isHttps ? 's' : ''}://${SERVER_NAME}:${wsPort}/`);
 })();

@@ -6,6 +6,8 @@
   "scripts": {
     "start": "npm run prod",
     "dev": "node index.mjs",
+    "start-prod": "npm run build && NODE_ENV=production node index.mjs -p",
+    "dev-prod": "NODE_ENV=production node index.mjs -p",
     "prod": "sudo $(which node) index.mjs -p",
     "build": "rimraf dist && OUTPUT_EXPORTS=true vite build",
     "serve": "vite preview",
@@ -22,6 +24,7 @@
     "@pixiv/three-vrm-springbone": "./packages/three-vrm-springbone",
     "@react-three/fiber": "^8.3.1",
     "@shaderfrog/glsl-parser": "^0.2.2",
+    "babel-plugin-custom-import-path-transform": "^1.0.3",
     "classnames": "^2.3.1",
     "encoding-japanese": "^2.0.0",
     "ethers": "^5.6.9",
@@ -57,7 +60,12 @@
     "last 1 chrome version"
   ],
   "devDependencies": {
+    "@babel/preset-react": "^7.14.5",
     "@vitejs/plugin-react-refresh": "^1.3.6",
+    "babel": "^6.23.0",
+    "babel-core": "^6.26.3",
+    "concurrently": "^7.0.0",
+    "esbuild": "^0.14.23",
     "eslint": "^8.22.0",
     "eslint-config-semistandard": "^17.0.0",
     "eslint-config-standard": "^17.0.0",
@@ -67,6 +75,7 @@
     "eslint-plugin-promise": "^6.0.0",
     "eslint-plugin-react": "^7.30.1",
     "eslint-plugin-standard": "^4.1.0",
+    "rimraf": "^3.0.2",
     "vite": "^3.0.8"
   }
 }
