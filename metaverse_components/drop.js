@@ -46,7 +46,7 @@ export default app => {
       const appUrl = app.getComponent('appUrl');
       const voucher = app.getComponent('voucher');
       if (appName && appUrl && voucher) {
-        dropManager.addClaim(appName, appUrl, voucher);
+        dropManager.addClaim(appName, dropComponent.type, dropComponent.serverDrop, appUrl, voucher);
       } else {
         dropManager.pickupApp(app);
       }
