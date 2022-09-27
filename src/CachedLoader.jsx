@@ -26,10 +26,6 @@ export class CachedLoader extends EventTarget {
       let promise = this.promiseCache.get(url);
       if (!promise) {
         promise = this.loadFn(url, value, {signal})
-          .catch(err => {
-            // console.warn(err);
-            return null;
-          })
           .then(result => {
             signal.removeEventListener('abort', abort);
             return result;
