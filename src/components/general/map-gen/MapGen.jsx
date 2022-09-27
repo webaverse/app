@@ -73,7 +73,6 @@ const seed = 'lol';
 const physicsInstance = 'map';
 const physicsScene = physicsManager.getScene(physicsInstance);
 
-(physicsInstance);
 const voxelPixelSize = 16;
 
 //
@@ -299,49 +298,7 @@ export const MapGen = () => {
 
     _updateTerrainApp();
   };
-  const updateCamera = () => {
-    debugger;
-    const renderer = getRenderer();
-    // const pixelRatio = renderer.getPixelRatio();
 
-    setPosition(position);
-    setQuaternion(quaternion);
-    // camera.scale.setScalar(pixelRatio * scale);
-    // camera.updateMatrixWorld();
-
-    /* camera.left = -(width / voxelPixelSize) / 2;
-    camera.right = (width / voxelPixelSize) / 2;
-    camera.top = (height / voxelPixelSize) / 2;
-    camera.bottom = -(height / voxelPixelSize) / 2;
-    camera.near = 0;
-    camera.far = 10 * 1000;
-    camera.updateProjectionMatrix(); */
-  };
-  /* const getChunksInRange = () => {
-    const chunks = [];
-    const bottomLeft = localVectorX.set(-1, 1, 0)
-      .unproject(camera)
-    const topRight = localVectorX2.set(1, -1, 0)
-      .unproject(camera);
-
-    for (let y = bottomLeft.z; y < topRight.z; y += chunkWorldSize) {
-      for (let x = bottomLeft.x; x < topRight.x; x += chunkWorldSize) {
-        const ix = Math.round(x / chunkWorldSize);
-        const iy = Math.round(y / chunkWorldSize);
-
-        const key = `${ix}:${iy}`;
-        let chunk = chunkCache.get(key);
-        if (!chunk) {
-          chunk = _makeChunkMesh(ix, iy);
-          mapScene.add(chunk);
-          chunkCache.set(key, chunk);
-        }
-        chunks.push(chunk);
-      }
-    }
-
-    return chunks;
-  }; */
   const setRaycasterFromEvent = (raycaster, e) => {
     const width = window.innerWidth;
     const height = window.innerHeight;
@@ -352,39 +309,6 @@ export const MapGen = () => {
       -(e.clientY / height) * 2 + 1,
     );
     raycaster.setFromCamera(mouse, camera);
-  };
-  const selectObject = () => {
-    const now = performance.now();
-    const timeDiff = now - lastSelectTime;
-    const newSelectedObject = (selectedObject === hoveredObject && timeDiff > 200) ? null : hoveredObject;
-
-    let selectedChunk = null;
-    for (const chunk of chunks) {
-      const selected = chunk === newSelectedObject;
-      chunk.setSelected(selected);
-      if (selected) {
-        selectedChunk = chunk;
-      }
-    }
-
-    setSelectedObject(newSelectedObject);
-    setSelectedChunk(selectedChunk);
-    setLastSelectTime(now);
-
-    if (newSelectedObject) {
-      (async () => {
-        const localPlayer = useLocalPlayer();
-        const aiScene = useLoreAIScene();
-        const comment = await aiScene.generateLocationComment(selectedChunk.name);
-        const message = `${selectedChunk.name}. ${comment}`;
-        const preloadedMessage = localPlayer.voicer.preloadMessage(message);
-        await chatManager.waitForVoiceTurn(() => {
-          setText(message);
-          return localPlayer.voicer.start(preloadedMessage);
-        });
-        setText('');
-      })();
-    }
   };
 
   const _addHacks = () => {
@@ -1147,15 +1071,6 @@ export const MapGen = () => {
   function goClick(e) {
     e.preventDefault();
     e.stopPropagation();
-
-    console.log('click go');
-    return; // XXX
-    if (selectedChunk) {
-      const webaUrl = `weba://${selectedChunk.x},${selectedChunk.y}`;
-      universe.pushUrl(`/?src=${encodeURIComponent(webaUrl)}`);
-
-      setOpen(false);
-    }
   }
 
   //
