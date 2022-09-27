@@ -2,9 +2,7 @@
 import classnames from 'classnames';
 import metaversefile from 'metaversefile';
 import React, {forwardRef, Fragment, useContext, useEffect, useState} from 'react';
-import {LocalPlayer} from '../../../../character-controller.js';
 import {chatManager} from '../../../../chat-manager.js';
-import musicManager from '../../../../music-manager.js';
 import npcManager from '../../../../npc-manager.js';
 import * as sounds from '../../../../sounds.js';
 import {getVoiceEndpointUrl, VoiceEndpointVoicer} from '../../../../voice-output/voice-endpoint-voicer.js';
@@ -16,8 +14,6 @@ import {AppContext} from '../../app';
 import styles from './character-select.module.css';
 
 //
-
-import {getMainnetAddress} from '../../../../blockchain.js';
 import {
   cryptoavatarsCharactersUtil, tokensCharactersUtil, upstreetCharactersUtil,
 } from '../../../../utils';
@@ -103,8 +99,6 @@ export const CharacterSelect = () => {
   const {state, setState} = useContext(AppContext);
   const [highlightCharacter, setHighlightCharacter] = useState(null);
   const [selectCharacter, setSelectCharacter] = useState(null);
-  const [highlightPack, setHighlightPack] = useState(null);
-  const [selectPack, setSelectPack] = useState(null);
   const [lastTargetCharacter, setLastTargetCharacter] = useState(null);
   const [npcPlayer, setNpcPlayer] = useState(null);
   const [abortFn, setAbortFn] = useState(null);
@@ -124,17 +118,7 @@ export const CharacterSelect = () => {
       return npcManager.getNpcByApp(app);
     },
   }));
-  const [themeSongLoader, setThemeSongLoader] = useState(() => new CachedLoader({
-    loadFn: async (url, targetCharacter, {signal = null} = {}) => {
-      let live = true;
-      signal.addEventListener('abort', () => {
-        live = false;
-      });
-      themeSong = await LocalPlayer.fetchThemeSong(targetCharacter.themeSongUrl);
-      if (!live) return;
-      return themeSong;
-    },
-  }));
+
   const [characterIntroLoader, setCharacterIntroLoader] = useState(() => new CachedLoader({
     loadFn: async (url, targetCharacter, {signal = null} = {}) => {
       // get ai text
@@ -145,7 +129,6 @@ export const CharacterSelect = () => {
       const loreAIScene = metaversefile.useLoreAIScene();
       const [
         characterIntro,
-        _voices,
       ] = await Promise.all([
         loreAIScene.generateCharacterIntroPrompt(targetCharacter.name, targetCharacter.bio),
         voices.waitForLoad(),
@@ -169,8 +152,6 @@ export const CharacterSelect = () => {
       };
     },
   }));
-  const [charactersMap, setCharactersMap] = useState({});
-  const [refsMap, setRefsMap] = useState(new Map());
   // const [ messageAudioCache, setMessageAudioCache ] = useState(new Map());
   // const [ selectAudioCache, setSelectAudioCache ] = useState(new Map());
   const [text, setText] = useState('');
@@ -179,15 +160,12 @@ export const CharacterSelect = () => {
   const [upstreatCharacters, setUpstreatCharacters] = useState([]);
   const [tokensCharacters, setTokesCharacters] = useState([]);
 
-  const [npcPlayerCache, setNpcPlayerCache] = useState(new Map());
-
   const [caPagination, setCaPagination] = useState({});
   const [caItemsPerPage, setCaItemsPerPage] = useState(5);
   const [caCollection, setCaCollection] = useState();
   const [caOwnership, setCaOwnership] = useState(null);
   const [caFilters, setCaFilters] = useState({});
   const [caUrl, setCaUrl] = useState(undefined);
-  const [scaleViewValue, setScaleViewValue] = useState(1);
 
   const targetCharacter = selectCharacter || highlightCharacter;
 
@@ -214,48 +192,6 @@ export const CharacterSelect = () => {
           signal,
         });
         return npcPlayer;
-      })();
-      const loadThemeSongPromise = (async () => {
-        const themeSong = await themeSongLoader.loadItem(avatarUrl, targetCharacter, {
-          signal,
-        });
-        if (!live) return;
-        if (themeSong) {
-          musicManager.playCurrentMusic(themeSong);
-        }
-      })();
-      const loadCharacterIntroPromise = (async () => {
-        const result = await characterIntroLoader.loadItem(avatarUrl, targetCharacter, {
-          signal,
-        });
-        if (result) {
-          const npcPlayer = await loadNpcPromise;
-          if (!live) return;
-
-          const {
-            characterIntro,
-            preloadedMessage,
-          } = result;
-          const {message} = characterIntro;
-          setText(message);
-
-          await chatManager.waitForVoiceTurn(() => {
-            if (live) {
-              const abort = () => {
-                npcPlayer.voicer.stop();
-              };
-              signal.addEventListener('abort', abort);
-              const endPromise = npcPlayer.voicer.start(preloadedMessage);
-              return endPromise.then(() => {
-                signal.removeEventListener('abort', abort);
-              });
-            }
-          });
-        } else {
-          console.warn('no character intro');
-
-          setText('');
-        }
       })();
 
       loadNpcPromise.then(npcPlayer => {
@@ -313,7 +249,6 @@ export const CharacterSelect = () => {
       (async () => {
         const localPlayer = metaversefile.useLocalPlayer();
         const [
-          _setPlayerSpec,
           result,
         ] = await Promise.all([
           localPlayer.setPlayerSpec(character),
@@ -369,21 +304,6 @@ export const CharacterSelect = () => {
       }
     });
   }, [caUrl, caCollection, caOwnership, caItemsPerPage]);
-
-  const caAvatarsFilter = async event => {
-    if (event.target.value === 'all') {
-      setCaOwnership(null);
-      return;
-    }
-
-    if (event.target.value === 'owned') {
-      const userAddress = await getMainnetAddress();
-      if (userAddress) setCaOwnership(userAddress.toLowerCase());
-      return;
-    }
-
-    setCaOwnership('free');
-  };
 
   /** ------------------------------------------------------------------------------- */
 

@@ -6,7 +6,7 @@
 	url = https://github.com/webaverse-studios/zjs
 [submodule "packages/metaversefile"]
 	path = packages/metaversefile
-	url = https://github.com/webaverse-studios/totum
+	url = https://github.com/webaverse-studios/metaversefile
 [submodule "packages/three"]
 	path = packages/three
 	url = https://github.com/webaverse-studios/three

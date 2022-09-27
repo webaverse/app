@@ -20,7 +20,12 @@ export default function useWeb3Account(currentChain = DEFAULT_CHAIN) {
 
   useEffect(() => {
     async function checkForAccounts() {
-      const provider = getProvider();
+      const {ethereum} = window;
+      if (!ethereum) {
+        setErrorMessage(p => [...p, 'Make sure you have metamask!']);
+        return;
+      }
+      const provider = new ethers.providers.Web3Provider(window.ethereum);
       const connectedAccounts = await provider.listAccounts();
       if (connectedAccounts.length > 0) {
         const accounts = await requestAccounts();
@@ -53,6 +58,7 @@ export default function useWeb3Account(currentChain = DEFAULT_CHAIN) {
 
       if (!ethereum) {
         setErrorMessage(p => [...p, 'Make sure you have metamask!']);
+        alert('Make sure you have metamask!'); // TODO: notification using errorMessage
         return;
       }
 
@@ -81,7 +87,7 @@ export default function useWeb3Account(currentChain = DEFAULT_CHAIN) {
   };
 
   const getAccountDetails = async address => {
-    const provider = getProvider();
+    const provider = new ethers.getDefaultProvider("mainnet");
     const check = ethers.utils.getAddress(address);
 
     try {

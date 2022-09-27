@@ -30,7 +30,7 @@ export const mapWarpedUvs = (src, srcOffset, dst, dstOffset, tx, ty, tw, th, can
   }
 };
 
-const generateTextureAtlas = textureSpecs => {
+export const generateTextureAtlas = textureSpecs => {
   const textureNames = Object.keys(textureSpecs);
   const firstTextureArray = textureSpecs[textureNames[0]];
 

@@ -98,7 +98,6 @@ const _bindPort = port => {
           break;
         }
         default: {
-          console.warn(`Unknown method: ${method}`); '';
           break;
         }
       }

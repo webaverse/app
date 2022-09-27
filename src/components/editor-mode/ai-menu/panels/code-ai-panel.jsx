@@ -1,8 +1,10 @@
 import React, {useState, useEffect, useRef, useContext} from 'react';
 import classnames from 'classnames';
+import metaversefile from 'metaversefile';
 import {AppContext} from '../../../app';
 
 import {registerIoEventHandler, unregisterIoEventHandler} from '../../../general/io-handler';
+import {generateStream} from '../../../../../ai/code/code-ai';
 
 import styles from './code-ai-panel.module.css';
 
@@ -35,7 +37,7 @@ export function CodeAiPanel() {
 
       try {
         const input = inputTextarea.current.value;
-        newAi = codeAi.generateStream(input);
+        newAi = generateStream(input);
         setAi(newAi);
         setPage('output');
         setOutput('');
@@ -91,9 +93,9 @@ export function CodeAiPanel() {
                 window.document.activeElement !== outputTextarea.current &&
                 state.openedPanel === 'AiPanel'
       ) {
-        if (panel === 'input') {
+        if (page === 'input') {
           _compile();
-        } else if (panel === 'output') {
+        } else if (page === 'output') {
           _run();
         }
         return false;
