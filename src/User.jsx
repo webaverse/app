@@ -115,7 +115,7 @@ export const User = ({className, setLoginFrom}) => {
       setLoggingIn(true);
 
       try {
-        const address = await connectWallet();
+        await connectWallet();
 
         setLoginFrom('metamask');
         // setShow(false);
