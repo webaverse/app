@@ -241,11 +241,8 @@ export default e => {
       const diff = aPriority - bPriority;
       if (diff !== 0) {
         return diff;
-      } else {
-        const aIndex = initObjects.findIndex(o => o.name === a.name);
-        const bIndex = initObjects.findIndex(o => o.name === b.name);
-        return aIndex - bIndex;
       }
+      return 0;
     });
   };
   _sortApps();
