@@ -1,9 +1,9 @@
-const {lanuchBrowser, enterScene, closeBrowser, printLog, totalTimeout, getCurrentPage} = require('../utils/utils');
+const {launchBrowser, enterScene, closeBrowser, printLog, totalTimeout, getCurrentPage} = require('../utils/utils');
 
 describe('should wear and use weapon', () => {
 
     beforeAll(async () => {
-		await lanuchBrowser();
+		await launchBrowser();
 		//Todo: define custom functions here
 		// await page.evaluate(async () => {
 		// 	window.todo = () => {} 

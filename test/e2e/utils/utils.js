@@ -28,7 +28,7 @@ const getDimensions = () => {
 	}
 }
 
-const lanuchBrowser = async () => {
+const launchBrowser = async () => {
 	jest.setTimeout(totalTimeout)
   	printLog("start launch browser")
 	if (!browser) {
@@ -140,7 +140,7 @@ const defineFunctions = async () => {
 module.exports = {
 	totalTimeout,
 	getCurrentPage,
-	lanuchBrowser,
+	launchBrowser,
 	closeBrowser,
 	enterScene,
 	printLog

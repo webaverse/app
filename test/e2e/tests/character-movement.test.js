@@ -1,8 +1,8 @@
-const {lanuchBrowser, enterScene, closeBrowser, printLog, totalTimeout, getCurrentPage} = require('../utils/utils');
+const {launchBrowser, enterScene, closeBrowser, printLog, totalTimeout, getCurrentPage} = require('../utils/utils');
 
 describe('should character movement', () => {
 	beforeAll(async () => {
-		await lanuchBrowser();
+		await launchBrowser();
 		//Todo: define custom functions here
 		// await page.evaluate(async () => {
 		// 	window.todo = () => {} 
@@ -93,20 +93,12 @@ describe('should character movement', () => {
 		expect(isPlayerRun).toBeTruthy();
 	}, totalTimeout)
 
-
 	test('should character movement: naruto run', async () => {
 		printLog("should character movement: naruto run")
 		const page = getCurrentPage()
 		await page.keyboard.down("ShiftLeft")
 		await page.waitForTimeout(100)
-		let repeat = 0
-		const timer = setInterval(() => {
-			page.keyboard.press("KeyW")
-			repeat++
-			if (repeat > 10) {
-				clearInterval(timer)
-			}
-		}, 100)
+		await page.keyboard.type('wwwwwwwwww');
 		await page.waitForTimeout(3000)
 
 		const isNarutoRun =  await page.evaluate(async () => {
@@ -218,6 +210,21 @@ describe('should character movement', () => {
 		await page.keyboard.press("KeyF")
 		await page.waitForTimeout(1000)
 		expect(isFly).toBeTruthy();
+	}, totalTimeout)
+
+	test('should character movement: dance', async () => {
+		printLog("should character movement: dance")
+		const page = getCurrentPage()
+		await page.keyboard.down("KeyV")
+		await page.waitForTimeout(2000)
+		const isDance =  await page.evaluate(async () => {
+			const avatar = globalWebaverse.playersManager.localPlayer.avatar
+			const danceFactor = avatar.danceFactor
+			return danceFactor > 0
+		})
+		await page.keyboard.up("KeyV")
+		await page.waitForTimeout(1000)
+		expect(isDance).toBeTruthy();
 	}, totalTimeout)
 	
 }, totalTimeout)

@@ -1,9 +1,9 @@
-const {lanuchBrowser, enterScene, closeBrowser, printLog, totalTimeout, getCurrentPage} = require('../utils/utils');
+const {launchBrowser, enterScene, closeBrowser, printLog, totalTimeout, getCurrentPage} = require('../utils/utils');
 
-describe('should profile ui view works', () => {
+describe('should all ui element on the profile view works', () => {
 
   beforeAll(async () => {
-		await lanuchBrowser();
+		await launchBrowser();
 		//Todo: define custom functions here
 		// await page.evaluate(async () => {
 		// 	window.todo = () => {} 
@@ -15,7 +15,7 @@ describe('should profile ui view works', () => {
 		await closeBrowser()
 	}, totalTimeout)
 
-	test('should change character on profile view works', async () => {
+	test('should change character on profile view', async () => {
 		printLog("should profile ui view works")
 			//Todo: example
 			//https://www.tabnine.com/code/javascript/functions/puppeteer/Page/click
@@ -48,6 +48,7 @@ describe('should profile ui view works', () => {
 				y
 			}
 		})
+
 		await page.mouse.move(mousePos.x, mousePos.y)
 		await page.waitForTimeout(500)
 		await page.mouse.click(mousePos.x, mousePos.y)
@@ -63,5 +64,9 @@ describe('should profile ui view works', () => {
 		}, currentAvatarInfo)
 		await page.waitForTimeout(500)
 		expect(isAvatarChanged).toBeTruthy();
-		}, totalTimeout)
+	}, totalTimeout)
+
+	test('should scene switch works', async () => {
+		printLog("should profile ui view works")
+	}, totalTimeout)
 })
