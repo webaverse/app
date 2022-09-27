@@ -92,7 +92,6 @@ const playSoundName = name => {
     playSound(sound);
     return true;
   } else {
-    debugger;
     return false;
   }
 };

@@ -386,8 +386,8 @@ class Mob {
 
                 mesh.matrixWorld.compose(meshPosition, meshQuaternion, meshScale);
                 mesh.matrix.copy(mesh.matrixWorld);
-                if (app.parent) {
-                  mesh.matrix.premultiply(localMatrix.copy(app.parent.matrixWorld).invert());
+                if (this.app.parent) {
+                  mesh.matrix.premultiply(localMatrix.copy(this.app.parent.matrixWorld).invert());
                 }
                 mesh.matrix.decompose(mesh.position, mesh.quaternion, mesh.scale);
               }
@@ -461,6 +461,7 @@ class Mob {
 }
 
 class MobInstance {
+  // eslint-disable-next-line no-useless-constructor
   constructor() {
   }
 }
@@ -756,14 +757,14 @@ mat4 getBoneMatrix( const in float base1, const in float base2, const in float r
 int boneTextureIndex = gl_DrawID * ${maxBonesPerInstance};
 int instanceIndex = gl_DrawID * ${maxInstancesPerDrawCall} + gl_InstanceID;
 #ifdef USE_SKINNING
-  
+
   const float timeOffsetWidth = ${attributeTextures.timeOffset.image.width.toFixed(8)};
   const float timeOffsetHeight = ${attributeTextures.timeOffset.image.height.toFixed(8)};
   float timeOffsetX = mod(float(instanceIndex), timeOffsetWidth);
   float timeOffsetY = floor(float(instanceIndex) / timeOffsetWidth);
   vec2 timeOffsetpUv = (vec2(timeOffsetX, timeOffsetY) + 0.5) / vec2(timeOffsetWidth, timeOffsetHeight);
   float timeOffset = texture2D(timeOffsetTexture, timeOffsetpUv).x;
-  
+
   float time1 = float(floor(uTime));
   float time2 = float(ceil(uTime));
   float timeRatio = (uTime - time1) / (time2 - time1);
@@ -824,7 +825,7 @@ int instanceIndex = gl_DrawID * ${maxInstancesPerDrawCall} + gl_InstanceID;
 uniform sampler2D pTexture;
 uniform sampler2D qTexture;
 
-vec3 rotate_vertex_position(vec3 position, vec4 q) { 
+vec3 rotate_vertex_position(vec3 position, vec4 q) {
   return position + 2.0 * cross(q.xyz, cross(q.xyz, position) + q.w * position);
 }
         `);
@@ -928,7 +929,7 @@ gl_Position = projectionMatrix * mvPosition;
       const rootBone2 = _findBone(glb2Scene);
       const skeleton2 = mesh2.skeleton;
       if (skeleton2.bones.length > maxBonesPerInstance) {
-        throw new Error('too many bones in base mesh skeleton: ' + bones.length);
+        throw new Error('too many bones in base mesh skeleton: ' + skeleton2.bones.length);
       }
 
       this.getDrawCall(i);

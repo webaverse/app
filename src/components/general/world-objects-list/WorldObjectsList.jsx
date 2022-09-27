@@ -421,7 +421,7 @@ export const WorldObjectsList = () => {
                 <ComponentEditor />
               </div>
               {
-                (APP_TYPES.indexOf(selectedApp.appType) !== -1) ? (
+                APP_TYPES.indexOf(selectedApp.appType) !== -1 && (
                   // <Spritesheet
                   //     className={ styles.objectPreview }
                   //     startUrl={ selectedApp?.start_url }
@@ -438,7 +438,6 @@ export const WorldObjectsList = () => {
                     app={selectedApp}
                   />
                 )
-                  : ''
               }
             </React.Fragment>
               )

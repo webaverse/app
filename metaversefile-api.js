@@ -282,11 +282,6 @@ class ErrorBoundary extends React.Component {
     this.state = {hasError: false};
   }
 
-  static getDerivedStateFromError(error) {
-    // Update state so the next render will show the fallback UI.
-    return {hasError: true};
-  }
-
   componentDidCatch(error, errorInfo) {
     // You can also log the error to an error reporting service
     // logErrorToMyService(error, errorInfo);
@@ -1447,7 +1442,7 @@ export default () => {
                   // state.gl?.renderLists?.dispose?.()
                   // state.gl?.forceContextLoss?.()
                   ReactThreeFiber.dispose(state);
-                  roots.delete(canvas);
+                  // roots.delete(canvas);
                   // if (callback) callback(canvas)
                   // }, 500)
                 }
@@ -1478,7 +1473,7 @@ export default () => {
 
         ReactThreeFiber.render(
           React.createElement(ErrorBoundary, {}, [
-            React.createElement(fn, {
+            React.createElement({
               // app: appContextObject,
               key: 0,
             }),
@@ -1525,7 +1520,7 @@ export default () => {
                 // state.gl?.renderLists?.dispose?.()
                 // state.gl?.forceContextLoss?.()
                 ReactThreeFiber.dispose(state);
-                roots.delete(canvas);
+                // roots.delete(canvas);
                 // if (callback) callback(canvas)
                 // }, 500)
               }

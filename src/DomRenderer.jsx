@@ -26,8 +26,8 @@ const _getFov = () => camera.projectionMatrix.elements[5] * (window.innerHeight 
 
 function epsilon(value) {
   return value;
-  // return Math.abs(value) < 1e-10 ? 0 : value;
 }
+
 function getObjectCSSMatrix(matrix, cameraCSSMatrix) {
   const elements = matrix.elements;
   const matrix3d = 'matrix3d(' +
