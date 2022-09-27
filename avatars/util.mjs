@@ -524,7 +524,7 @@ export const decorateAnimation = animation => {
   animation.isBowDraw = /bow draw/i.test(animation.name);
   animation.isBowIdle = /bow idle/i.test(animation.name);
   animation.isBowLoose = /bow loose/i.test(animation.name);
-  animation.isDancing = /Boxing/i.test(animation.name);
+  animation.isDancing = /throw/i.test(animation.name);
   animation.isPowerUp = /powerup/i.test(animation.name);
   animation.isAlert = /alert/i.test(animation.name);
   animation.isAlertSoft = /alert_soft/i.test(animation.name);
@@ -568,6 +568,7 @@ export const decorateAnimation = animation => {
   // animation.isSwordSideSlash = /sword_side_slash/i.test(animation.name);
   // animation.isSwordTopDownSlash = /sword_topdown_slash/i.test(animation.name);
   animation.isHurt = /pain/.test(animation.name);
+  animation.isMelee = /throw/.test(animation.name);
 
   animation.interpolants = {};
   animation.tracks.forEach(track => {

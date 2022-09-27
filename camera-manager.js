@@ -173,7 +173,7 @@ const blueMesh = (() => {
 scene.add(blueMesh); */
 
 class Scene2D {
-  constructor(perspective, cameraMode, scrollDirection) {
+  constructor(perspective, cameraMode, scrollDirection, controls) {
 
     this.modeIs2D = true;
     this.perspective = perspective;
@@ -188,6 +188,8 @@ class Scene2D {
     this.attackTarget = null;
     this.debugCircle = null;
 
+    this.interactTarget = null;
+
     this.debugMesh = null;
     this.attackMesh = null;
 
@@ -198,7 +200,10 @@ class Scene2D {
     /// dirty combat test
     this.lastAttackTime = 0;
 
-    if(this.perspective === "isometric") {
+    //Controls
+    this.controlMode = controls;
+
+    if(this.controlMode === 'click') {
       const geometry = new THREE.CircleGeometry(0.5, 32/4);
       const material = new THREE.MeshBasicMaterial( { color: 0x0099e6, wireframe: true } );
       this.debugCircle = new THREE.Mesh( geometry, material );
@@ -335,15 +340,14 @@ class Scene2D {
     let target = this.castFromCursor();
     if(target) {
       const targetApp = metaversefile.getAppByPhysicsId(target.objectId);
+      console.log(targetApp);
       const targetPoint = new THREE.Vector3().fromArray(target.point);
       let isValid = this.checkIsDestinationValid(targetPoint);
       if(isValid) {
         this.moveTarget = targetPoint.add(new THREE.Vector3(0,0.1,0));
-        if(targetApp.name === "dummy") {
-          console.log("hittable target");
+        if(targetApp.appType === "npc") {
           this.attackTarget = targetApp;
-          this.moveTarget = targetApp.position;
-          //this.moveTarget = new THREE.Vector3(targetApp.position.x, targetApp.position.y+0.1, targetApp.position.z);
+          this.moveTarget = targetApp.npcPlayer.position.clone().sub(new THREE.Vector3(0,targetApp.npcPlayer.avatar.height,0));
         }
         else {
           this.attackTarget = null;
@@ -401,6 +405,60 @@ class Scene2D {
       // }
     }
   }
+  moveAndInteractTarget(targetObj, t) {
+    const localPlayer = playersManager.getLocalPlayer();
+    const target = targetObj.position;
+    let origin = new THREE.Vector3(localPlayer.position.x, 1, localPlayer.position.z);
+    let dist = origin.distanceTo(target);
+    let dir = new THREE.Vector3();
+    dir.subVectors(target, origin);
+    this.debugMesh.visible = false;
+
+    if(dist > 1) {
+      localPlayer.characterPhysics.applyWasd(
+        dir.normalize()
+          .multiplyScalar(0.1 * t)
+      );
+      //this.debugMesh.visible = true;
+      //this.debugMesh.position.copy(target);
+      //this.debugMesh.updateMatrixWorld();
+    }
+    else {
+      this.interactTarget.activate();
+      this.moveTarget = null;
+      this.path = null;
+      console.log("we arrived");
+      this.debugMesh.visible = false;
+
+      gameManager.menuActivateDown();
+      setTimeout(() => {
+        gameManager.menuActivateUp();
+      }, 1000);
+    }
+  }
+  moveAndAttackTarget(target, t) {
+    const localPlayer = playersManager.getLocalPlayer();
+    let origin = new THREE.Vector3(localPlayer.position.x, 1, localPlayer.position.z);
+    let dist = origin.distanceTo(target);
+    let dir = new THREE.Vector3();
+    dir.subVectors(target, origin);
+
+    if(dist > 0.1) {
+      localPlayer.characterPhysics.applyWasd(
+        dir.normalize()
+          .multiplyScalar(0.1 * t)
+      );
+      //this.debugMesh.visible = true;
+      //this.debugMesh.position.copy(target);
+      //this.debugMesh.updateMatrixWorld();
+    }
+    else {
+      this.moveTarget = null;
+      this.path = null;
+      console.log("we arrived");
+      this.debugMesh.visible = false;
+    }
+  }
   moveToTarget(target, t) {
     const localPlayer = playersManager.getLocalPlayer();
     let origin = new THREE.Vector3(localPlayer.position.x, 1, localPlayer.position.z);
@@ -438,9 +496,10 @@ class Scene2D {
     }
 
     if(this.attackTarget && localPlayer.avatar) {
-      this.attackMesh.position.copy(this.attackTarget.position.clone().add(new THREE.Vector3(0, 0.1, 0)));
-      this.attackMesh.updateMatrixWorld();
-      this.attackMesh.visible = true;
+      this.debugMesh.material.color = new THREE.Color(0xff0000);
+      this.debugMesh.position.copy(this.attackTarget.npcPlayer.position.clone().sub(new THREE.Vector3(0, this.attackTarget.npcPlayer.avatar.height, 0)));
+      this.debugMesh.updateMatrixWorld();
+      // this.debugMesh.visible = true;
 
       const wearApp = loadoutManager.getSelectedApp();
       if(!wearApp) {
@@ -474,6 +533,7 @@ class Scene2D {
       if(wearApp) {
         gameManager.selectLoadout(0);
       }
+      this.debugMesh.material.color = new THREE.Color(0x1ff03e);
       this.attackMesh.visible = false;
     }
 
@@ -490,7 +550,15 @@ class Scene2D {
         //(this.path, "path");
       }
       else {
-        this.traversePath(this.path, timeDiff)
+        if(this.attackTarget) {
+          this.moveAndAttackTarget(this.attackTarget.npcPlayer.position, timeDiff);
+        }
+        if(this.interactTarget) {
+          //this.moveAndInteractTarget(this.interactTarget, timeDiff);
+        }
+        else {
+          this.traversePath(this.path, timeDiff);
+        }
       }
     }
   }
@@ -547,12 +615,12 @@ class CameraManager extends EventTarget {
   getViewFactor() {
     return this.viewFactor;
   }
-  enable2D(perspective = "side-scroll", mode = "follow", viewSize, scrollDirection = "both") {
+  enable2D(perspective = "side-scroll", mode = "follow", viewSize, scrollDirection = "both", controls = "default") {
     this.targetQuaternion = new THREE.Quaternion();
     this.targetPosition = new THREE.Vector3();
     this.viewFactor = viewSize;
 
-    this.scene2D = new Scene2D(perspective, mode, scrollDirection);
+    this.scene2D = new Scene2D(perspective, mode, scrollDirection, controls);
     setCameraType("orthographic", viewSize, perspective);
   }
   disable2D() {

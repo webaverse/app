@@ -974,6 +974,9 @@ class Avatar {
     // this.aimDirection = new THREE.Vector3();
     this.hurtTime = NaN;
     this.hurtAnimation = null;
+    
+    this.meleeTime = 0;
+    this.meleeAnimation = null;
 
     // internal state
     this.movementsTime = 0;

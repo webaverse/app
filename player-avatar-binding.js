@@ -113,6 +113,8 @@ export function applyPlayerActionsToAvatar(player, rig) {
   const fallLoopAction = player.getAction('fallLoop');
   // const fallLoopAnimation = fallLoopAction ? fallLoopAction.animation : '';
   const hurtAction = player.getAction('hurt');
+  const meleeAction = player.getAction('melee');
+  const meleeAnimation = meleeAction ? meleeAction.animation : '';
   // const swordSideSlash = player.getAction('swordSideSlash');
   // const swordSideSlashAnimation = swordSideSlash ? swordSideSlash.animation : '';
   // const swordTopDownSlash = player.getAction('swordTopDownSlash');
@@ -226,6 +228,9 @@ export function applyPlayerActionsToAvatar(player, rig) {
   rig.movementsTime = player.actionInterpolants.movements.get();
   rig.movementsTransitionTime = player.actionInterpolants.movementsTransition.get();
   rig.sprintTime = player.actionInterpolants.sprint.get();
+
+  rig.meleeAnimation = (meleeAction?.animation) || '';
+  rig.meleeTime = player.actionInterpolants.melee.get();
 }
 // returns whether headTarget were applied
 export function applyPlayerHeadTargetToAvatar(player, rig) {

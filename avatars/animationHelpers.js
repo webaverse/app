@@ -81,11 +81,13 @@ let narutoRunAnimations;
 // let swordTopDownSlash;
 let hurtAnimations;
 let holdAnimations;
+let meleeAnimations;
 
 const defaultSitAnimation = 'chair';
 // const defaultUseAnimation = 'combo';
 const defaultDanceAnimation = 'dansu';
 const defaultEmoteAnimation = 'angry';
+const defaultMeleeAnimation = 'throw';
 // const defaultThrowAnimation = 'throw';
 // const defaultCrouchAnimation = 'crouch';
 // const defaultActivateAnimation = 'activate';
@@ -396,6 +398,9 @@ export const loadPromise = (async () => {
   };
   holdAnimations = {
     pick_up_idle: animations.index['pick_up_idle.fbx'],
+  };
+  meleeAnimations = {
+    throw: animations.index['throw.fbx'],
   };
   {
     const down10QuaternionArray = new Quaternion()
@@ -1045,7 +1050,8 @@ export const _applyAnimation = (avatar, now) => {
             .add(localVector2.fromArray(v2));
         }
       };
-    } else if (avatar.aimAnimation) {
+    } 
+    else if (avatar.meleeAnimation) {
       return spec => {
         const {
           animationTrackName: k,
@@ -1054,12 +1060,12 @@ export const _applyAnimation = (avatar, now) => {
           isPosition,
         } = spec;
 
-        const aimAnimation = (avatar.aimAnimation && aimAnimations[avatar.aimAnimation]);
+        const meleeAnimation = (avatar.meleeAnimation && meleeAnimations[avatar.meleeAnimation]);
         _handleDefault(spec);
-        const t2 = (avatar.aimTime / aimMaxTime) % aimAnimation.duration;
+        const t2 = (avatar.meleeTime / aimMaxTime) % meleeAnimation.duration;
         if (!isPosition) {
-          if (aimAnimation) {
-            const src2 = aimAnimation.interpolants[k];
+          if (meleeAnimation) {
+            const src2 = meleeAnimation.interpolants[k];
             const v2 = src2.evaluate(t2);
 
             const idleAnimation = _getIdleAnimation('walk');
@@ -1072,7 +1078,7 @@ export const _applyAnimation = (avatar, now) => {
               .premultiply(localQuaternion2.fromArray(v2));
           }
         } else {
-          const src2 = aimAnimation.interpolants[k];
+          const src2 = meleeAnimation.interpolants[k];
           const v2 = src2.evaluate(t2);
 
           const idleAnimation = _getIdleAnimation('walk');

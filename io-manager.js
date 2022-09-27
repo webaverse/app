@@ -811,7 +811,11 @@ ioManager.click = e => {
   raycastManager.setLastMouseEvent(e);
 };
 ioManager.dblclick = e => {
+  if(cameraManager.scene2D) {
+    //cameraManager.scene2D.handleCursorClick();
+  }
   // nothing
+  //console.log(e, "double click")
 };
 // let mouseDown = false;
 let lastMouseButtons = 0;
@@ -821,7 +825,7 @@ ioManager.mousedown = e => {
     if ((changedButtons & 1) && (e.buttons & 1)) { // left
       game.menuMouseDown();
       if(cameraManager.scene2D) {
-        cameraManager.scene2D.handleCursorClick();
+        // cameraManager.scene2D.handleCursorClick();
       }
     }
     if ((changedButtons & 2) && (e.buttons & 2)) { // right

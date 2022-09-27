@@ -109,6 +109,8 @@ class NpcManager extends EventTarget {
     const animations = Avatar.getAnimations();
     const hurtAnimation = animations.find(a => a.isHurt);
     const hurtAnimationDuration = hurtAnimation.duration;
+    const meleeAnimation = animations.find(a => a.isMelee);
+    const meleeAnimationDuration = meleeAnimation.duration;
 
     app.getPhysicsObjects = () => npcPlayer ? [npcPlayer.characterPhysics.characterController] : [];
     app.getLoreSpec = () => {
@@ -122,27 +124,30 @@ class NpcManager extends EventTarget {
 
     // events
     let targetSpec = null;
-    targetSpec = {
-      type: 'follow',
-      object: localPlayer,
-    };
+    // targetSpec = {
+    //   type: 'follow',
+    //   object: localPlayer,
+    // };
     if (mode === 'attached') {
       const _listenEvents = () => {
         const hittrackeradd = e => {
-          app.hitTracker.addEventListener('hit', e => {
-            console.log("got hit", app)
-            if (!npcPlayer.hasAction('hurt')) {
-              const newAction = {
-                type: 'hurt',
-                animation: 'pain_back',
-              };
-              npcPlayer.addAction(newAction);
+          // app.addEventListener('hit', e => {
+          //   targetSpec = {
+          //     type: 'follow',
+          //     object: localPlayer,
+          //   };
+          //   if (!npcPlayer.hasAction('hurt')) {
+          //     const newAction = {
+          //       type: 'hurt',
+          //       animation: 'pain_back',
+          //     };
+          //     npcPlayer.addAction(newAction);
               
-              setTimeout(() => {
-                npcPlayer.removeAction('hurt');
-              }, hurtAnimationDuration * 1000);
-            }
-          });
+          //     setTimeout(() => {
+          //       npcPlayer.removeAction('hurt');
+          //     }, hurtAnimationDuration * 1000);
+          //   }
+          // });
         };
         app.addEventListener('hittrackeradded', hittrackeradd);
 
@@ -158,6 +163,20 @@ class NpcManager extends EventTarget {
         };
         app.addEventListener('activate', activate);
 
+        // const attack = () => {
+        //   if((timestamp - lastJumpTime) > Math.random() * 250000) {
+        //     lastJumpTime = timestamp;
+        //     if (!npcPlayer.hasAction('melee') && !npcPlayer.hasAction('fly') && !npcPlayer.hasAction('fallLoop') && !npcPlayer.hasAction('swim')) {
+        //       const newJumpAction = {
+        //         type: 'melee',
+        //         animation:'throw'
+        //         // time: 0,
+        //       };
+        //       npcPlayer.setControlAction(newJumpAction);
+        //     }
+        //   }
+        // }
+
         const slowdownFactor = 0.4;
         const walkSpeed = 0.075 * slowdownFactor;
         const runSpeed = walkSpeed * (Math.random() * 10);
@@ -167,31 +186,65 @@ class NpcManager extends EventTarget {
           if (npcPlayer && physicsScene.getPhysicsEnabled()) {
             const {timestamp, timeDiff} = e.data;
 
-            if((timestamp - lastJumpTime) > Math.random() * 250000) {
-              lastJumpTime = timestamp;
-              if (!npcPlayer.hasAction('jump') && !npcPlayer.hasAction('fly') && !npcPlayer.hasAction('fallLoop') && !npcPlayer.hasAction('swim')) {
-                const newJumpAction = {
-                  type: 'jump',
-                  trigger:'jump',
-                  startPositionY: npcPlayer.characterPhysics.characterController.position.y,
-                  // time: 0,
+            // if((timestamp - lastJumpTime) > Math.random() * 250000) {
+            //   lastJumpTime = timestamp;
+            //   if (!npcPlayer.hasAction('jump') && !npcPlayer.hasAction('fly') && !npcPlayer.hasAction('fallLoop') && !npcPlayer.hasAction('swim')) {
+            //     const newJumpAction = {
+            //       type: 'jump',
+            //       trigger:'jump',
+            //       startPositionY: npcPlayer.characterPhysics.characterController.position.y,
+            //       // time: 0,
+            //     };
+            //     npcPlayer.setControlAction(newJumpAction);
+            //   }
+            // }
+
+            // const newAction = {
+            //   type: 'dance',
+            //   animation: 'dansu',
+            // };
+            // localPlayer.addAction(newAction);
+
+            if(localPlayer) {
+              const dist = npcPlayer.position.distanceTo(localPlayer.position)
+              if(dist < 5 && !targetSpec) {
+                targetSpec = {
+                  type: 'follow',
+                  object: localPlayer,
                 };
-                npcPlayer.setControlAction(newJumpAction);
               }
             }
             
             if (targetSpec) {
               const target = targetSpec.object;
+              const v1 = new THREE.Vector3().copy(npcPlayer.position).sub(localVector.setFromMatrixPosition(target.matrixWorld));
               const v = localVector.setFromMatrixPosition(target.matrixWorld)
                 .sub(npcPlayer.position);
               v.y = 0;
+              //v.negate();
               const distance = v.length();
               if (targetSpec.type === 'moveto' && distance < 2) {
                 targetSpec = null;
               } else {
+                if(distance < 2) {
+                  if((timestamp - lastJumpTime) > Math.random() * 250000) {
+                    lastJumpTime = timestamp;
+                    if (!npcPlayer.hasAction('melee') && !npcPlayer.hasAction('fly') && !npcPlayer.hasAction('fallLoop') && !npcPlayer.hasAction('swim')) {
+                      const newJumpAction = {
+                        type: 'melee',
+                        animation:'throw'
+                        // time: 0,
+                      };
+                      npcPlayer.setControlAction(newJumpAction);
+                      setTimeout(() => {
+                        npcPlayer.removeAction('melee');
+                      }, meleeAnimationDuration * 1000);
+                    }
+                  }
+                }
                 const speed = Math.min(Math.max(walkSpeed + ((distance - 1.5) * speedDistanceRate), 0), runSpeed);
                 v.normalize()
-                  .multiplyScalar(speed * timeDiff);
+                  .multiplyScalar(0.035 * timeDiff);
                 npcPlayer.characterPhysics.applyWasd(v);
               }
             }

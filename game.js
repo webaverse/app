@@ -425,6 +425,22 @@ const _startUse = () => {
       }
     }
   }
+  else {
+    // const localPlayer = playersManager.getLocalPlayer();
+    // const animations = Avatar.getAnimations();
+    // const meleeAnimation = animations.find(a => a.isMelee);
+    // const meleeAnimationDuration = meleeAnimation.duration;
+    // if(!localPlayer.hasAction('melee')) {
+    //   const newMeleeAction = {
+    //     type: 'melee',
+    //     animation:'throw'
+    //   };
+    //   localPlayer.setControlAction(newMeleeAction);
+    //   setTimeout(() => {
+    //     localPlayer.removeAction('melee');
+    //   }, meleeAnimationDuration * 1000);
+    // }
+  }
 };
 const _endUse = () => {
   const localPlayer = playersManager.getLocalPlayer();

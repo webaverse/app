@@ -76,7 +76,7 @@ class CharacterPhysics {
       stepOffset,
       position
     );
-    //physicsScene.setLinearLockFlags(this.characterController.physicsId, true, true, true);
+    //physicsScene.setLinearLockFlags(this.characterController.physicsId, false, false, false); // Doesn't work
     //console.log(this.characterController, "character controller")
   }
   setPosition(p) {

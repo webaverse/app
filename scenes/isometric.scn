@@ -8,10 +8,18 @@
       }
     },
     {
+      "type": "application/scene2D",
+      "content": {
+        "perspective": "isometric",
+        "controls": "click",
+        "viewSize": 22
+      }
+    },
+    {
       "type": "application/light",
       "content": {
         "lightType": "directional",
-        "args": [[49, 8, 64], 2],
+        "args": [[252, 231, 172], 2],
         "position": [1, 2, 3],
         "shadow": [50, 4096, 0.1, 1000, 0, 0.2]
       }
@@ -32,7 +40,7 @@
     },
     {
       "position": [
-        -13 , -2.4, 8.17
+       -13 , -2.4, 8.17
       ],
       "quaternion": [
         0,
@@ -40,11 +48,50 @@
         0,
         1
       ],
-      "physics": false,
-      "start_url": "https://webaverse.github.io/dummy/",
-      "dynamic": true
+      "type": "application/npc",
+      "content": {
+        "name": "Scillia",
+        "avatarUrl": "/avatars/skelly.vrm",
+        "voice": "Sweetie Belle",
+        "bio": "Her nickname is Scilly or SLY. 13/F drop hunter. She is an adventurer, swordfighter and fan of potions. She is exceptionally skilled and can go Super Saiyan."
+      }
     },
-    
+    {
+      "position": [
+       -8 , -2.4, 8.17
+      ],
+      "quaternion": [
+        0,
+        0,
+        0,
+        1
+      ],
+      "type": "application/npc",
+      "content": {
+        "name": "Scillia",
+        "avatarUrl": "/avatars/skelly.vrm",
+        "voice": "Sweetie Belle",
+        "bio": "Her nickname is Scilly or SLY. 13/F drop hunter. She is an adventurer, swordfighter and fan of potions. She is exceptionally skilled and can go Super Saiyan."
+      }
+    },
+    {
+      "position": [
+       -5.44 , -2.4, -2.51
+      ],
+      "quaternion": [
+        0,
+        0,
+        0,
+        1
+      ],
+      "type": "application/npc",
+      "content": {
+        "name": "Scillia",
+        "avatarUrl": "/avatars/skelly.vrm",
+        "voice": "Sweetie Belle",
+        "bio": "Her nickname is Scilly or SLY. 13/F drop hunter. She is an adventurer, swordfighter and fan of potions. She is exceptionally skilled and can go Super Saiyan."
+      }
+    },
     {
       "position": [
         0,
@@ -64,7 +111,7 @@
       "content": {
         "fog": {
           "fogType": "exp",
-          "args": [[49, 8, 64], 0.01]
+          "args": [[252, 231, 172], 0.005]
         }
       }
     },
