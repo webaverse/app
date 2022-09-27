@@ -2,6 +2,7 @@
 /* eslint-disable no-unused-expressions */
 import {defineConfig} from 'vite';
 import metaversefilePlugin from 'metaversefile/plugins/rollup.js';
+import { NodeGlobalsPolyfillPlugin } from '@esbuild-plugins/node-globals-polyfill';
 import path from 'path';
 import fs from 'fs';
 import {transform} from 'esbuild';
@@ -340,6 +341,36 @@ const viteConfigProduction = {
 const defaultConfig = {
   plugins,
   logLevel: 'info',
+  define: {
+    'process.env.ANCHOR_BROWSER': true
+  },
+  optimizeDeps: {
+    entries: [
+      'src/*.js',
+      'src/*.jsx',
+      'avatars/*.js',
+      'avatars/vrarmik/*.js',
+      'src/components/*.js',
+      'src/components/*.jsx',
+      'src/tabs/*.jsx',
+      '*.js',
+    ],
+    esbuildOptions: {
+      // Node.js global to browser globalThis
+      define: {
+        global: 'globalThis'
+      },
+      // Enable esbuild polyfill plugins
+      plugins: [
+        NodeGlobalsPolyfillPlugin({
+          buffer: true
+        })
+      ]
+    }
+  },
+  build: {
+    target: ['esnext']
+  },
   server: {
     fs: {
       strict: true,

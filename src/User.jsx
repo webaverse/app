@@ -13,7 +13,7 @@ import {AppContext} from './components/app';
 import styles from './User.module.css';
 
 import * as sounds from '../sounds.js';
-import Chains from './components/web3/chains';
+import {EVMChains, SolanaChain} from './components/web3/chains';
 
 //
 
@@ -45,7 +45,8 @@ export const User = ({className, setLoginFrom}) => {
   const [loggingIn, setLoggingIn] = useState(false);
   // const [ loginError, setLoginError ] = useState(null);
   // const [ autoLoginRequestMade, setAutoLoginRequestMade ] = useState(false);
-  const {isConnected, currentAddress, connectWallet, disconnectWallet, errorMessage, wrongChain, getAccounts, getAccountDetails} = account;
+  const { isConnected, currentAddress, connectWallet, disconnectWallet, errorMessage, wrongChain, getAccounts, getAccountDetails,
+    getPhantomProvider, connectPhantomWallet, disconnectPhantomWallet, walletType, setWalletType } = account;
   const {selectedChain} = chain;
   const [address, setAddress] = useState('');
 
@@ -115,9 +116,10 @@ export const User = ({className, setLoginFrom}) => {
       setLoggingIn(true);
 
       try {
-        await connectWallet();
+        const address = await connectWallet();
 
         setLoginFrom('metamask');
+        setWalletType('metamask');
         // setShow(false);
         // setLoginFrom('metamask');
       } catch (err) {
@@ -131,6 +133,39 @@ export const User = ({className, setLoginFrom}) => {
 
     // }
   };
+
+  const phangomLogin = async ( event ) => {
+
+    event.preventDefault();
+    event.stopPropagation();
+
+    if ( ! loggingIn ) {
+
+        setLoggingIn( true );
+
+        try {
+
+            const phantomAddress = await connectPhantomWallet();
+            setLoginFrom('phantom');
+            setWalletType('phantom');
+            // setShow(false);
+            // setLoginFrom('metamask');
+
+        } catch (err) {
+
+            console.warn(err);
+
+        } finally {
+
+            setState({ openedPanel: null });
+
+            setLoggingIn(false);
+
+        }
+
+    }
+
+};
 
   useEffect(() => {
     const {error, code, id, play, realmId} = parseQuery(window.location.search);
@@ -269,7 +304,10 @@ export const User = ({className, setLoginFrom}) => {
                 <div
                     className={styles.userWrap}
                 >
-                    <Chains />
+                    {
+                        walletType == 'metamask' ? <EVMChains /> :
+                        walletType == 'phantom' ? <SolanaChain /> : null
+                    }
                     <div
                         className={classnames(
                           styles.userBar,
@@ -289,7 +327,7 @@ export const User = ({className, setLoginFrom}) => {
                         <div className={styles.nameWrap}>
                             <div
                                 className={styles.address}
-                            >{ensName || shortAddress(address) || ''} <img className={styles.verifiedIcon} src="./images/verified.svg" /></div>
+                            >{ensName || shortAddress(currentAddress) || ''} <img className={styles.verifiedIcon} src="./images/verified.svg" /></div>
                         </div>
                     </div>
                     <div className={styles.logoutBtn}
@@ -297,6 +335,7 @@ export const User = ({className, setLoginFrom}) => {
                           e.preventDefault();
                           e.stopPropagation();
                           disconnectWallet();
+                          disconnectPhantomWallet();
                         }}
                     >Logout</div>
                     <UserPopover open={popoverOpen} />
@@ -313,6 +352,10 @@ export const User = ({className, setLoginFrom}) => {
                 <div className={ styles.methodBtn } onClick={ metaMaskLogin } onMouseEnter={ _triggerClickSound } >
                     <img src="images/metamask.png" alt="metamask" width="28px" />
                     <span className={ styles.methodBtnText } >MetaMask</span>
+                </div>
+                <div className={ styles.methodBtn } onClick={ phangomLogin } onMouseEnter={ _triggerClickSound } >
+                    <img src="images/phantom.svg" alt="phantom" width="28px" />
+                    <span className={ styles.methodBtnText } >Phantom</span>
                 </div>
                 {/* <a
                     href={ `https://discord.com/api/oauth2/authorize?client_id=${ discordClientId }&redirect_uri=${ window.location.origin }%2Flogin&response_type=code&scope=identify` }

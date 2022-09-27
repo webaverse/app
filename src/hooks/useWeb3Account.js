@@ -1,12 +1,12 @@
-import {useState, useEffect} from 'react';
-import {CHAINS, DEFAULT_CHAIN, WEB3_EVENTS} from './web3-constants';
+import { useState, useEffect } from 'react';
+import { CHAINS, DEFAULT_CHAIN, WEB3_EVENTS } from './web3-constants';
 
 import {
   connectToNetwork,
   addRPCToWallet,
   requestAccounts,
 } from './rpcHelpers';
-import {ethers} from 'ethers';
+import { ethers } from 'ethers';
 
 const ACCOUNT_DATA = {
   EMAIL: 'email',
@@ -16,6 +16,8 @@ const ACCOUNT_DATA = {
 export default function useWeb3Account(currentChain = DEFAULT_CHAIN) {
   const [accounts, setAccounts] = useState([]);
   const [currentAddress, setCurrentAddress] = useState('');
+  const [walletType, setWalletType] = useState('metamask');          // metamask or phantom
+  const [currentPhantomAddress, setCurrentPhantomAddress] = useState('');
   const [errorMessage, setErrorMessage] = useState([]);
 
   useEffect(() => {
@@ -37,7 +39,7 @@ export default function useWeb3Account(currentChain = DEFAULT_CHAIN) {
   }, [currentChain]);
 
   const getProvider = () => {
-    const {ethereum} = window;
+    const { ethereum } = window;
     if (!ethereum) {
       setErrorMessage(p => [...p, 'Make sure you have metamask!']);
       return;
@@ -54,7 +56,7 @@ export default function useWeb3Account(currentChain = DEFAULT_CHAIN) {
 
   const connectWallet = async () => {
     try {
-      const {ethereum} = window;
+      const { ethereum } = window;
 
       if (!ethereum) {
         setErrorMessage(p => [...p, 'Make sure you have metamask!']);
@@ -105,12 +107,57 @@ export default function useWeb3Account(currentChain = DEFAULT_CHAIN) {
         }),
       );
 
-      return {...accountDetails, name};
+      return { ...accountDetails, name };
     } catch (err) {
       console.warn(err.stack);
       return {};
     }
   };
+
+  const getPhantomProvider = () => {
+    if ('phantom' in window) {
+      const provider = window.phantom?.solana;
+      if (provider?.isPhantom) {
+        return provider;
+      }
+    }
+    setErrorMessage(p => [...p, 'Make sure you have phantom wallet!']);
+    return null;
+  };
+
+  const connectPhantomWallet = async () => {
+    const provider = getPhantomProvider(); // see "Detecting the Provider"
+    if (!provider) {
+      alert('Make sure you have phantom wallet!'); // TODO: notification using errorMessage
+      return;
+    }
+
+    try {
+      const resp = await provider.connect();
+      // setCurrentPhantomAddress(resp.publicKey.toString());
+      setCurrentAddress(resp.publicKey.toString());
+      setErrorMessage([]);
+      return resp.publicKey.toString();
+    } catch (err) {
+      console.log(err)
+      // { code: 4001, message: 'User rejected the request.' }
+    }
+  }
+
+  const disconnectPhantomWallet = async () => {
+    try {
+      const provider = getPhantomProvider();
+      provider.on("disconnect", () => {
+        setCurrentAddress(null);
+      });
+      return null;
+
+    } catch (error) {
+      console.log(error);
+    }
+  }
+
+
 
   useEffect(() => {
     const accountChanged = e => {
@@ -142,5 +189,10 @@ export default function useWeb3Account(currentChain = DEFAULT_CHAIN) {
     getAccountDetails,
     getProvider,
     isConnected,
+    getPhantomProvider,
+    connectPhantomWallet,
+    disconnectPhantomWallet,
+    walletType,
+    setWalletType
   };
 }
