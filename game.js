@@ -48,6 +48,7 @@ const localRay = new THREE.Ray();
 
 const physicsScene = physicsManager.getScene();
 let isMouseUp = false;
+const hand = 'right';
 
 // const zeroVector = new THREE.Vector3(0, 0, 0);
 // const oneVector = new THREE.Vector3(1, 1, 1);
@@ -263,9 +264,9 @@ const _makeTargetMesh = (() => {
   const targetFsh = `
     uniform float uHighlight;
     uniform float uTime;
-    
+
     const vec3 c = vec3(${new THREE.Color(0x29b6f6).toArray().join(', ')});
-    
+
     void main() {
       float f = max(1.0 - sign(uTime) * pow(abs(uTime), 0.5), 0.1);
       gl_FragColor = vec4(vec3(c * f * uHighlight), 1.0);
@@ -341,44 +342,6 @@ let mouseDomEquipmentHoverPhysicsId = 0;
 
 // let selectedLoadoutIndex = -1;
 
-const _use = () => {
-  if (gameManager.getMenu() === 3) {
-    const itemSpec = itemSpecs3[selectedItemIndex];
-    let {start_url, filename, content} = itemSpec;
-
-    if (start_url) {
-      // start_url = new URL(start_url, srcUrl).href;
-      // filename = start_url;
-    } else if (filename && content) {
-      const blob = new Blob([content], {
-        type: 'application/octet-stream',
-      });
-      start_url = URL.createObjectURL(blob);
-      start_url += '/' + filename;
-    }
-    world.appManager.addTrackedApp(start_url, null, deployMesh.position, deployMesh.quaternion, deployMesh.scale);
-
-    gameManager.setMenu(0);
-    cameraManager.requestPointerLock();
-  } else if (highlightedObject /* && !editedObject */) {
-    _grab(highlightedObject);
-    highlightedObject = null;
-
-    gameManager.setMenu(0);
-    cameraManager.requestPointerLock();
-  } else if (gameManager.getMenu() === 1) {
-    const itemSpec = itemSpecs1[selectedItemIndex];
-    itemSpec.cb();
-  } else if (gameManager.getMenu() === 2) {
-    const inventory = loginManager.getInventory();
-    const itemSpec = inventory[selectedItemIndex];
-
-    world.appManager.addTrackedApp(itemSpec.id, null, deployMesh.position, deployMesh.quaternion, deployMesh.scale);
-
-    gameManager.setMenu(0);
-    cameraManager.requestPointerLock();
-  }
-};
 const _delete = () => {
   const grabbedObject = _getGrabbedObject(0);
   if (grabbedObject) {
@@ -1141,21 +1104,12 @@ class GameManager extends EventTarget {
 
   setMenu(newOpen) {
     this.menuOpen = newOpen;
-    if (newOpen) {
-      _selectItem(0);
-    }
   }
 
   menuVertical(offset) {
-    if (this.menuOpen) {
-      _selectItemDelta(offset);
-    }
   }
 
   menuHorizontal(offset) {
-    if (this.menuOpen) {
-      _selectTabDelta(offset);
-    }
   }
 
   setContextMenu(contextMenu) {
@@ -1171,7 +1125,6 @@ class GameManager extends EventTarget {
   }
 
   menuUse() {
-    _use();
   }
 
   menuDelete() {
@@ -1282,24 +1235,11 @@ class GameManager extends EventTarget {
     // this.draggingRight = false;
   }
 
-  menuKey(c) {
-    menuMesh.key(c);
-  }
-
-  menuSelectAll() {
-    menuMesh.selectAll();
-  }
-
   menuPaste(s) {
-    menuMesh.paste(s);
   }
 
   inputFocused() {
     return !!document.activeElement && ['INPUT', 'TEXTAREA'].includes(document.activeElement.nodeName);
-  }
-
-  canGrab() {
-    return !!highlightedObject;
   }
 
   canRotate() {
@@ -1494,11 +1434,6 @@ class GameManager extends EventTarget {
   isSwimming() {
     const localPlayer = playersManager.getLocalPlayer();
     return localPlayer.hasAction('swim');
-  }
-
-  isFlying() {
-    const localPlayer = playersManager.getLocalPlayer();
-    return localPlayer.hasAction('fly');
   }
 
   toggleCrouch() {
@@ -1761,10 +1696,6 @@ class GameManager extends EventTarget {
 
   getUsableObject() {
     return gameManager.usableObject;
-  }
-
-  getDragRightSpec() {
-    return dragRightSpec;
   }
 
   menuActivateDown() {
