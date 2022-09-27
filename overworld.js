@@ -39,8 +39,6 @@ class OverworldApp {
     lodMesh.updateMatrixWorld();
 
     for (const skyboxMesh of skyboxMeshes) {
-      skyboxMesh.position.copy(previewPosition);
-      skyboxMesh.quaternion.copy(previewQuaternion);
       overworldObject.add(skyboxMesh);
       skyboxMesh.updateMatrixWorld();
     }
