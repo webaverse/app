@@ -69,6 +69,12 @@ describe('should all ui element on the profile view works', () => {
 	
 			await page.mouse.move(mousePos.x, mousePos.y)
 			await page.waitForTimeout(500)
+			//await preview canvas
+			await page.evaluate(async () => {
+				return await window.waitForUntil(() => {
+					return document.querySelector('._megaHup_1nfvo_1._open_1nfvo_31 > canvas')
+				}, 180000)
+			})
 			await page.mouse.click(mousePos.x, mousePos.y)
 			await page.waitForTimeout(500)
 	
