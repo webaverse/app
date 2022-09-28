@@ -35,11 +35,11 @@ export const CHAIN_TYPE = {
 };
 
 export const CHAINS = {
-//   LOCALHOST: {
-//     name: 'Localhost',
-//     chainId: '0x539',
-//     brandColor: '#5BE2A7',
-//   },
+  //   LOCALHOST: {
+  //     name: 'Localhost',
+  //     chainId: '0x539',
+  //     brandColor: '#5BE2A7',
+  //   },
   /* WEBAVERSE: {
     chainName: 'Webaverse Side Chain',
     name: 'Webaverse',
@@ -120,7 +120,8 @@ export const CHAINS = {
     symbol: 'MATIC',
     rpcUrls: [
       // 'https://rpc-mumbai.matic.today/',
-      'https://matic-mumbai.chainstacklabs.com'],
+      'https://matic-mumbai.chainstacklabs.com',
+    ],
     decimals: 18,
     contract_name: 'testnetpolygon',
     previewLink: 'https://polygonscan.com/address/',

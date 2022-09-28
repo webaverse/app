@@ -36,11 +36,23 @@ class WebaverseRenderPass extends Pass {
     // render
     if (this.internalDepthPass) {
       this.internalDepthPass.renderToScreen = false;
-      this.internalDepthPass.render(renderer, renderTarget, readBuffer, deltaTime, maskActive);
+      this.internalDepthPass.render(
+        renderer,
+        renderTarget,
+        readBuffer,
+        deltaTime,
+        maskActive,
+      );
     }
     if (this.internalRenderPass) {
       this.internalRenderPass.renderToScreen = this.renderToScreen;
-      this.internalRenderPass.render(renderer, renderTarget, readBuffer, deltaTime, maskActive);
+      this.internalRenderPass.render(
+        renderer,
+        renderTarget,
+        readBuffer,
+        deltaTime,
+        maskActive,
+      );
     } else {
       renderer.setRenderTarget(this.renderToScreen ? null : renderTarget);
       renderer.clear();
@@ -50,6 +62,4 @@ class WebaverseRenderPass extends Pass {
     this.onAfterRender && this.onAfterRender();
   }
 }
-export {
-  WebaverseRenderPass,
-};
+export {WebaverseRenderPass};

@@ -5,8 +5,18 @@ class DoubleSidedPlaneGeometry extends THREE.BufferGeometry {
   constructor(width, height, widthSegments, heightSegments) {
     super();
 
-    const g1 = new THREE.PlaneGeometry(width, height, widthSegments, heightSegments);
-    const g2 = new THREE.PlaneGeometry(width, height, widthSegments, heightSegments);
+    const g1 = new THREE.PlaneGeometry(
+      width,
+      height,
+      widthSegments,
+      heightSegments,
+    );
+    const g2 = new THREE.PlaneGeometry(
+      width,
+      height,
+      widthSegments,
+      heightSegments,
+    );
     g2.rotateY(Math.PI);
     // flip the uvs in the second geometry so that the texture is mirrored
     for (let i = 0; i < g2.attributes.uv.array.length; i += 2) {
@@ -26,6 +36,4 @@ class DoubleSidedPlaneGeometry extends THREE.BufferGeometry {
   }
 }
 
-export {
-  DoubleSidedPlaneGeometry,
-};
+export {DoubleSidedPlaneGeometry};

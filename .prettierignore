@@ -1,0 +1,29 @@
+**/.git
+**/.svn
+**/.hg
+**/node_modules
+
+packages
+dist
+build
+public
+bip39.js
+hdkey.js
+web3.min.js
+ethereumjs-tx.js
+simplex-noise.js
+gif.js
+gif.worker.js
+gifuct-js.js
+avatars/skeleton.js
+
+# Ignore all yml files:
+*.yml
+# Ignore all md files:
+*.md
+# Ignore all css files:
+*.html
+# Ignore all css files:
+*.css
+# Ignore all json files:
+*.json

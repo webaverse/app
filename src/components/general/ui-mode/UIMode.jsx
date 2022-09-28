@@ -1,4 +1,3 @@
-
 import React, {useContext, cloneElement, Children} from 'react';
 import classNames from 'classnames';
 
@@ -16,11 +15,14 @@ export const UIMode = ({hideDirection = 'left', children}) => {
 
   //
 
-  return (
-    Children.map(children, child =>
-      cloneElement(child, {
-        className: classNames(child.props.className, styles.uiBlock, modeClassName, styles[hideDirection + 'HideDirection']),
-      }),
-    )
+  return Children.map(children, child =>
+    cloneElement(child, {
+      className: classNames(
+        child.props.className,
+        styles.uiBlock,
+        modeClassName,
+        styles[hideDirection + 'HideDirection'],
+      ),
+    }),
   );
 };

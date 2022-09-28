@@ -1,4 +1,3 @@
-
 import React, {useState, useEffect, useContext, useRef} from 'react';
 import classnames from 'classnames';
 
@@ -21,7 +20,14 @@ sceneNames.forEach(name => {
 
 //
 
-export const SceneMenu = ({className, multiplayerConnected, selectedScene, setSelectedScene, selectedRoom, setSelectedRoom}) => {
+export const SceneMenu = ({
+  className,
+  multiplayerConnected,
+  selectedScene,
+  setSelectedScene,
+  selectedRoom,
+  setSelectedRoom,
+}) => {
   const {state, setState} = useContext(AppContext);
   const sceneNameInputRef = useRef(null);
   const [rooms, setRooms] = useState([]);
@@ -51,7 +57,10 @@ export const SceneMenu = ({className, multiplayerConnected, selectedScene, setSe
   };
 
   const handleSceneMenuOpen = value => {
-    value = (typeof value === 'boolean' ? value : (state.openedPanel === 'SceneMenuPanel'));
+    value =
+      typeof value === 'boolean'
+        ? value
+        : state.openedPanel === 'SceneMenuPanel';
     setState({openedPanel: value ? null : 'SceneMenuPanel'});
   };
 
@@ -65,7 +74,10 @@ export const SceneMenu = ({className, multiplayerConnected, selectedScene, setSe
   };
 
   const handleRoomMenuOpen = value => {
-    value = (typeof value === 'boolean' ? value : (state.openedPanel === 'RoomMenuPanel'));
+    value =
+      typeof value === 'boolean'
+        ? value
+        : state.openedPanel === 'RoomMenuPanel';
 
     if (!multiplayerConnected) {
       setState({openedPanel: value ? null : 'RoomMenuPanel'});
@@ -89,7 +101,7 @@ export const SceneMenu = ({className, multiplayerConnected, selectedScene, setSe
       refreshRooms();
       setSelectedRoom(roomName);
       universe.pushUrl(
-            `/?src=${encodeURIComponent(sceneName)}&room=${roomName}`,
+        `/?src=${encodeURIComponent(sceneName)}&room=${roomName}`,
       );
     } else {
       const text = await res.text();
@@ -101,7 +113,9 @@ export const SceneMenu = ({className, multiplayerConnected, selectedScene, setSe
     setState({openedPanel: null});
 
     if (!universe.isConnected()) {
-      universe.pushUrl(`/?src=${encodeURIComponent(selectedScene)}&room=${room.name}`);
+      universe.pushUrl(
+        `/?src=${encodeURIComponent(selectedScene)}&room=${room.name}`,
+      );
 
       /* const isConnected = world.isConnected();
             setMultiplayerConnected(isConnected);
@@ -115,7 +129,9 @@ export const SceneMenu = ({className, multiplayerConnected, selectedScene, setSe
   const handleDeleteRoomBtnClick = async (room, event) => {
     event.stopPropagation();
 
-    const res = await fetch(universe.getWorldsHost() + room.name, {method: 'DELETE'});
+    const res = await fetch(universe.getWorldsHost() + room.name, {
+      method: 'DELETE',
+    });
 
     if (res.ok) {
       refreshRooms();
@@ -126,14 +142,19 @@ export const SceneMenu = ({className, multiplayerConnected, selectedScene, setSe
   };
 
   const handleSceneInputKeyDown = event => {
-    const newList = (event.target.value ? origSceneList.filter(sceneName => (sceneName.indexOf(event.target.value) !== -1)) : origSceneList);
+    const newList = event.target.value
+      ? origSceneList.filter(
+          sceneName => sceneName.indexOf(event.target.value) !== -1,
+        )
+      : origSceneList;
     setScenesList(newList);
     setSceneInputName(event.target.value);
   };
 
   const handleSceneMenuKeyUp = event => {
     switch (event.which) {
-      case 27: { // escape
+      case 27: {
+        // escape
         event.preventDefault();
         event.stopPropagation();
         setState({openedPanel: null});
@@ -141,7 +162,8 @@ export const SceneMenu = ({className, multiplayerConnected, selectedScene, setSe
         break;
       }
 
-      case 13: { // enter
+      case 13: {
+        // enter
         event.preventDefault();
         event.stopPropagation();
         universe.pushUrl(`/?src=${encodeURIComponent(sceneInputName)}`);
@@ -195,75 +217,135 @@ export const SceneMenu = ({className, multiplayerConnected, selectedScene, setSe
   //
 
   return (
-        <div className={ classnames(className, styles.location) } onClick={ stopPropagation } >
-            <div className={ styles.row }>
-                <div className={ styles.buttonWrap } onClick={ handleSceneMenuOpen.bind(this, null) } >
-                    <button className={ classnames(styles.button, styles.primary, state.openedPanel === 'SceneMenuPanel' ? null : styles.disabled) } >
-                        <img src="images/webarrow.svg" />
-                    </button>
-                </div>
-                <div className={ styles.inputWrap } >
-                    <input type="text" className={ styles.input } ref={ sceneNameInputRef } value={ multiplayerConnected ? selectedRoom : sceneInputName } onKeyUp={ handleSceneMenuKeyUp } onFocus={ handleSceneMenuOpen.bind(this, false) } disabled={ multiplayerConnected } onChange={ handleSceneInputKeyDown } placeholder="Goto..." />
-                    <img src="images/webpencil.svg" className={ classnames(styles.background, styles.green) } />
-                </div>
-                <div className={ styles.buttonWrap } onClick={ handleRoomMenuOpen.bind(this, null) } >
-                    <div className={ classnames(styles.button, (state.openedPanel === 'RoomsMenuPanel' || multiplayerConnected) ? null : styles.disabled) } >
-                        <img src="images/wifi.svg" />
-                    </div>
-                </div>
-                <div className={styles.buttonWrap } onClick={ handleMicBtnClick } >
-                    <div className={ classnames(styles.button, micEnabled ? null : styles.disabled) } >
-                        <img src="images/microphone.svg" className={ classnames(micEnabled ? null : styles.hidden) } />
-                        <img src="images/microphone-slash.svg" className={ classnames(micEnabled ? styles.hidden : null) } />
-                    </div>
-                </div>
-                <div className={styles.buttonWrap } onClick={ handleSpeakBtnClick } >
-                    <div className={ classnames(styles.button, speechEnabled ? null : styles.disabled) } >
-                        <img src="images/speak.svg" />
-                    </div>
-                </div>
-            </div>
-
-            {
-                state.openedPanel === 'SceneMenuPanel'
-                  ? (
-                    <div className={ styles.rooms }>
-                    {
-                        scenesList.map((sceneName, i) => (
-                            <div className={ styles.room } onMouseDown={ e => { handleSceneSelect(e, sceneName); } } key={ i } >
-                                <img className={ styles.image } src="images/world.jpg" />
-                                <div className={ styles.name } >{ sceneName }</div>
-                            </div>
-                        ))
-                    }
-                    </div>
-                    )
-                  : null
-            }
-
-            {
-                state.openedPanel === 'RoomMenuPanel'
-                  ? (
-                    <div className={ styles.rooms } >
-                        <div className={ styles.create } >
-                            <button className={ styles.button } onClick={ handleRoomCreateBtnClick }>Create room</button>
-                        </div>
-                        {
-                            rooms.map((room, i) => (
-                                <div className={ styles.room } onClick={ e => { handleRoomSelect(room); } } key={ i } >
-                                    <img className={ styles.image } src="images/world.jpg" />
-                                    <div className={ styles.name } >{ room.name }</div>
-                                    <div className={ styles.delete } >
-                                        <button className={ classnames(styles.button, styles.warning) } onClick={ handleDeleteRoomBtnClick.bind(this, room) } >Delete</button>
-                                    </div>
-                                </div>
-                            ))
-                        }
-                    </div>
-                    )
-                  : null
-            }
-
+    <div
+      className={classnames(className, styles.location)}
+      onClick={stopPropagation}
+    >
+      <div className={styles.row}>
+        <div
+          className={styles.buttonWrap}
+          onClick={handleSceneMenuOpen.bind(this, null)}
+        >
+          <button
+            className={classnames(
+              styles.button,
+              styles.primary,
+              state.openedPanel === 'SceneMenuPanel' ? null : styles.disabled,
+            )}
+          >
+            <img src="images/webarrow.svg" />
+          </button>
         </div>
+        <div className={styles.inputWrap}>
+          <input
+            type="text"
+            className={styles.input}
+            ref={sceneNameInputRef}
+            value={multiplayerConnected ? selectedRoom : sceneInputName}
+            onKeyUp={handleSceneMenuKeyUp}
+            onFocus={handleSceneMenuOpen.bind(this, false)}
+            disabled={multiplayerConnected}
+            onChange={handleSceneInputKeyDown}
+            placeholder="Goto..."
+          />
+          <img
+            src="images/webpencil.svg"
+            className={classnames(styles.background, styles.green)}
+          />
+        </div>
+        <div
+          className={styles.buttonWrap}
+          onClick={handleRoomMenuOpen.bind(this, null)}
+        >
+          <div
+            className={classnames(
+              styles.button,
+              state.openedPanel === 'RoomsMenuPanel' || multiplayerConnected
+                ? null
+                : styles.disabled,
+            )}
+          >
+            <img src="images/wifi.svg" />
+          </div>
+        </div>
+        <div className={styles.buttonWrap} onClick={handleMicBtnClick}>
+          <div
+            className={classnames(
+              styles.button,
+              micEnabled ? null : styles.disabled,
+            )}
+          >
+            <img
+              src="images/microphone.svg"
+              className={classnames(micEnabled ? null : styles.hidden)}
+            />
+            <img
+              src="images/microphone-slash.svg"
+              className={classnames(micEnabled ? styles.hidden : null)}
+            />
+          </div>
+        </div>
+        <div className={styles.buttonWrap} onClick={handleSpeakBtnClick}>
+          <div
+            className={classnames(
+              styles.button,
+              speechEnabled ? null : styles.disabled,
+            )}
+          >
+            <img src="images/speak.svg" />
+          </div>
+        </div>
+      </div>
+
+      {state.openedPanel === 'SceneMenuPanel' ? (
+        <div className={styles.rooms}>
+          {scenesList.map((sceneName, i) => (
+            <div
+              className={styles.room}
+              onMouseDown={e => {
+                handleSceneSelect(e, sceneName);
+              }}
+              key={i}
+            >
+              <img className={styles.image} src="images/world.jpg" />
+              <div className={styles.name}>{sceneName}</div>
+            </div>
+          ))}
+        </div>
+      ) : null}
+
+      {state.openedPanel === 'RoomMenuPanel' ? (
+        <div className={styles.rooms}>
+          <div className={styles.create}>
+            <button
+              className={styles.button}
+              onClick={handleRoomCreateBtnClick}
+            >
+              Create room
+            </button>
+          </div>
+          {rooms.map((room, i) => (
+            <div
+              className={styles.room}
+              onClick={e => {
+                handleRoomSelect(room);
+              }}
+              key={i}
+            >
+              <img className={styles.image} src="images/world.jpg" />
+              <div className={styles.name}>{room.name}</div>
+              <div className={styles.delete}>
+                <button
+                  className={classnames(styles.button, styles.warning)}
+                  onClick={handleDeleteRoomBtnClick.bind(this, room)}
+                >
+                  Delete
+                </button>
+              </div>
+            </div>
+          ))}
+        </div>
+      ) : null}
+    </div>
   );
 };

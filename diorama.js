@@ -101,11 +101,13 @@ class SpeedHistogram {
     return positions;
   }
 }
-const histogram = new SpeedHistogram().fromArray([
-  {speed: 10, duration: 100},
-  {speed: 0.05, duration: 2000},
-  {speed: 10, duration: 100},
-]).toArray(60);
+const histogram = new SpeedHistogram()
+  .fromArray([
+    {speed: 10, duration: 100},
+    {speed: 0.05, duration: 2000},
+    {speed: 10, duration: 100},
+  ])
+  .toArray(60);
 const labelAnimationRate = 3;
 const labelVertexShader = `\
   uniform float iTime;
@@ -113,7 +115,9 @@ const labelVertexShader = `\
   varying vec2 tex_coords;
   varying vec3 vColor;
 
-  float frames[${histogram.length}] = float[${histogram.length}](${histogram.map(v => v.toFixed(8)).join(', ')});
+  float frames[${histogram.length}] = float[${histogram.length}](${histogram
+  .map(v => v.toFixed(8))
+  .join(', ')});
   float mapTime(float t) {
     t /= ${labelAnimationRate.toFixed(8)};
     t = mod(t, 1.);
@@ -203,7 +207,9 @@ const textVertexShader = `\
   varying vec2 tex_coords;
   // varying vec3 vColor;
 
-  float frames[${histogram.length}] = float[${histogram.length}](${histogram.map(v => v.toFixed(8)).join(', ')});
+  float frames[${histogram.length}] = float[${histogram.length}](${histogram
+  .map(v => v.toFixed(8))
+  .join(', ')});
   float mapTime(float t) {
     t /= ${labelAnimationRate.toFixed(8)};
     t = mod(t, 1.);
@@ -287,38 +293,19 @@ const labelMesh = (() => {
     }
     g.setAttribute('color', new THREE.BufferAttribute(colors, 3));
   };
-  const g1 = fullscreenGeometry.clone()
-    .applyMatrix4(
-      new THREE.Matrix4()
-        .makeShear(0, 0, sk1, 0, 0, 0),
-    )
-    .applyMatrix4(
-      new THREE.Matrix4()
-        .makeScale(s1, s1 * aspectRatio1, 1),
-    )
-    .applyMatrix4(
-      new THREE.Matrix4()
-        .makeTranslation(p1.x, p1.y, p1.z),
-    );
-  _decorateGeometry(g1, new THREE.Color(0xFFFFFF), speed1);
-  const g2 = fullscreenGeometry.clone()
-    .applyMatrix4(
-      new THREE.Matrix4()
-        .makeShear(0, 0, sk2, 0, 0, 0),
-    )
-    .applyMatrix4(
-      new THREE.Matrix4()
-        .makeScale(s2, s2 * aspectRatio2, 1),
-    )
-    .applyMatrix4(
-      new THREE.Matrix4()
-        .makeTranslation(p2.x, p2.y, p2.z),
-    );
+  const g1 = fullscreenGeometry
+    .clone()
+    .applyMatrix4(new THREE.Matrix4().makeShear(0, 0, sk1, 0, 0, 0))
+    .applyMatrix4(new THREE.Matrix4().makeScale(s1, s1 * aspectRatio1, 1))
+    .applyMatrix4(new THREE.Matrix4().makeTranslation(p1.x, p1.y, p1.z));
+  _decorateGeometry(g1, new THREE.Color(0xffffff), speed1);
+  const g2 = fullscreenGeometry
+    .clone()
+    .applyMatrix4(new THREE.Matrix4().makeShear(0, 0, sk2, 0, 0, 0))
+    .applyMatrix4(new THREE.Matrix4().makeScale(s2, s2 * aspectRatio2, 1))
+    .applyMatrix4(new THREE.Matrix4().makeTranslation(p2.x, p2.y, p2.z));
   _decorateGeometry(g2, new THREE.Color(0x000000), speed2);
-  const geometry = BufferGeometryUtils.mergeBufferGeometries([
-    g2,
-    g1,
-  ]);
+  const geometry = BufferGeometryUtils.mergeBufferGeometries([g2, g1]);
   const quad = new THREE.Mesh(
     geometry,
     new THREE.ShaderMaterial({
@@ -380,7 +367,7 @@ const textObject = (() => {
       0.05,
       'center',
       'middle',
-      0xFFFFFF,
+      0xffffff,
     );
     _decorateGeometry(nameMesh.geometry, p1, speed1, s1 * aspectRatio1);
     o.add(nameMesh);
@@ -394,7 +381,7 @@ const textObject = (() => {
       0.02,
       'center',
       'middle',
-      0xFFFFFF,
+      0xffffff,
     );
     _decorateGeometry(labelMesh.geometry, p2, speed2, s2 * aspectRatio2);
     o.add(labelMesh);
@@ -404,7 +391,9 @@ const textObject = (() => {
 const skinnedRedMaterial = (() => {
   const wVertex = THREE.ShaderLib.standard.vertexShader;
   let wFragment = THREE.ShaderLib.standard.fragmentShader;
-  const wUniforms = THREE.UniformsUtils.clone(THREE.ShaderLib.standard.uniforms);
+  const wUniforms = THREE.UniformsUtils.clone(
+    THREE.ShaderLib.standard.uniforms,
+  );
   wUniforms.iTime = {
     value: 0,
     needsUpdate: false,
@@ -466,10 +455,7 @@ const autoLights = (() => {
   directionalLight.position.set(1, 2, 3);
   directionalLight.updateMatrixWorld();
 
-  return [
-    ambientLight,
-    directionalLight,
-  ];
+  return [ambientLight, directionalLight];
 })();
 /* let sideSceneCompiled = false;
 const _ensureSideSceneCompiled = () => {
@@ -480,11 +466,12 @@ const _ensureSideSceneCompiled = () => {
   }
 }; */
 
-const _makeOutlineRenderTarget = (w, h) => new THREE.WebGLRenderTarget(w, h, {
-  minFilter: THREE.LinearFilter,
-  magFilter: THREE.LinearFilter,
-  format: THREE.RGBAFormat,
-});
+const _makeOutlineRenderTarget = (w, h) =>
+  new THREE.WebGLRenderTarget(w, h, {
+    minFilter: THREE.LinearFilter,
+    magFilter: THREE.LinearFilter,
+    format: THREE.RGBAFormat,
+  });
 const createPlayerDiorama = ({
   objects = [],
   target = new THREE.Object3D(),
@@ -635,8 +622,15 @@ const createPlayerDiorama = ({
         return;
       }
 
-      if (!outlineRenderTarget || (outlineRenderTarget.width !== this.width * pixelRatio) || (outlineRenderTarget.height !== this.height * pixelRatio)) {
-        outlineRenderTarget = _makeOutlineRenderTarget(this.width * pixelRatio, this.height * pixelRatio);
+      if (
+        !outlineRenderTarget ||
+        outlineRenderTarget.width !== this.width * pixelRatio ||
+        outlineRenderTarget.height !== this.height * pixelRatio
+      ) {
+        outlineRenderTarget = _makeOutlineRenderTarget(
+          this.width * pixelRatio,
+          this.height * pixelRatio,
+        );
       }
 
       const _addObjectsToScene = scene => {
@@ -704,13 +698,19 @@ const createPlayerDiorama = ({
       const _render = () => {
         if (autoCamera) {
           // set up side camera
-          target.matrixWorld.decompose(localVector, localQuaternion, localVector2);
+          target.matrixWorld.decompose(
+            localVector,
+            localQuaternion,
+            localVector2,
+          );
           const targetPosition = localVector;
           const targetQuaternion = localQuaternion;
 
-          sideCamera.position.copy(targetPosition)
+          sideCamera.position
+            .copy(targetPosition)
             .add(
-              localVector2.set(cameraOffset.x, 0, cameraOffset.z)
+              localVector2
+                .set(cameraOffset.x, 0, cameraOffset.z)
                 .applyQuaternion(targetQuaternion),
             );
           sideCamera.quaternion.setFromRotationMatrix(
@@ -721,7 +721,8 @@ const createPlayerDiorama = ({
             ),
           );
           sideCamera.position.add(
-            localVector2.set(0, cameraOffset.y, 0)
+            localVector2
+              .set(0, cameraOffset.y, 0)
               .applyQuaternion(targetQuaternion),
           );
           sideCamera.updateMatrixWorld();
@@ -818,7 +819,13 @@ const createPlayerDiorama = ({
         _renderDots();
         const _renderOutline = () => {
           if (outline) {
-            outlineMesh.update(timeOffset, timeDiff, this.width, this.height, outlineRenderTarget.texture);
+            outlineMesh.update(
+              timeOffset,
+              timeDiff,
+              this.width,
+              this.height,
+              outlineRenderTarget.texture,
+            );
             outlineMesh.visible = true;
           } else {
             outlineMesh.visible = false;
@@ -831,7 +838,8 @@ const createPlayerDiorama = ({
             labelMesh.material.uniforms.iTime.needsUpdate = true;
             labelMesh.visible = true;
             for (const child of textObject.children) {
-              child.material.uniforms.uTroikaOutlineOpacity.value = timeOffset / 1000;
+              child.material.uniforms.uTroikaOutlineOpacity.value =
+                timeOffset / 1000;
               child.material.uniforms.uTroikaOutlineOpacity.needsUpdate = true;
             }
             textObject.visible = true;

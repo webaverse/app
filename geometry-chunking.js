@@ -24,7 +24,9 @@ export class ChunkBinding {
   getTextureOffset(name) {
     const texture = this.getTexture(name);
     const {itemSize} = texture;
-    return this.freeListEntry * this.allocator.maxInstancesPerDrawCall * itemSize;
+    return (
+      this.freeListEntry * this.allocator.maxInstancesPerDrawCall * itemSize
+    );
   }
 
   /* getInstanceCount() {
@@ -62,11 +64,8 @@ export class ChunkBinding {
       const h = 1;
       const position = localVector2D.set(x, y);
       const start = (x + y * texture.image.width) * texture.itemSize;
-      const size = (w * h) * texture.itemSize;
-      const data = texture.image.data.subarray(
-        start,
-        start + size,
-      );
+      const size = w * h * texture.itemSize;
+      const data = texture.image.data.subarray(start, start + size);
 
       const srcTexture = localDataTexture;
       srcTexture.image.data = data;
@@ -75,12 +74,7 @@ export class ChunkBinding {
       srcTexture.format = texture.format;
       srcTexture.type = texture.type;
 
-      renderer.copyTextureToTexture(
-        position,
-        srcTexture,
-        texture,
-        0,
-      );
+      renderer.copyTextureToTexture(position, srcTexture, texture, 0);
 
       srcTexture.image.data = null;
 
@@ -99,11 +93,8 @@ export class ChunkBinding {
       const h = maxY - minY;
       const position = localVector2D.set(x, y);
       const start = (x + y * texture.image.width) * texture.itemSize;
-      const size = (w * h) * texture.itemSize;
-      const data = texture.image.data.subarray(
-        start,
-        start + size,
-      );
+      const size = w * h * texture.itemSize;
+      const data = texture.image.data.subarray(start, start + size);
 
       const srcTexture = localDataTexture;
       srcTexture.image.data = data;
@@ -112,11 +103,7 @@ export class ChunkBinding {
       srcTexture.format = texture.format;
       srcTexture.type = texture.type;
 
-      renderer.copyTextureToTexture(
-        position,
-        srcTexture,
-        texture,
-      );
+      renderer.copyTextureToTexture(position, srcTexture, texture);
 
       srcTexture.image.data = null;
 
@@ -135,11 +122,8 @@ export class ChunkBinding {
       const h = 1;
       const position = localVector2D.set(x, y);
       const start = (x + y * texture.image.width) * texture.itemSize;
-      const size = (w * h) * texture.itemSize;
-      const data = texture.image.data.subarray(
-        start,
-        start + size,
-      );
+      const size = w * h * texture.itemSize;
+      const data = texture.image.data.subarray(start, start + size);
 
       const srcTexture = localDataTexture;
       srcTexture.image.data = data;
@@ -148,11 +132,7 @@ export class ChunkBinding {
       srcTexture.format = texture.format;
       srcTexture.type = texture.type;
 
-      renderer.copyTextureToTexture(
-        position,
-        srcTexture,
-        texture,
-      );
+      renderer.copyTextureToTexture(position, srcTexture, texture);
 
       srcTexture.image.data = null;
     }
@@ -160,12 +140,16 @@ export class ChunkBinding {
 }
 
 export class ChunkedGeometryAllocator {
-  constructor(geometry, instanceTextureSpecs, {
-    maxInstancesPerDrawCall,
-    maxDrawCalls,
-    boundingType = null,
-    instanceBoundingType = null,
-  }) {
+  constructor(
+    geometry,
+    instanceTextureSpecs,
+    {
+      maxInstancesPerDrawCall,
+      maxDrawCalls,
+      boundingType = null,
+      instanceBoundingType = null,
+    },
+  ) {
     this.maxInstancesPerDrawCall = maxInstancesPerDrawCall;
     this.maxDrawCalls = maxDrawCalls;
     this.boundingType = boundingType;
@@ -249,7 +233,13 @@ export class ChunkedGeometryAllocator {
         } else {
           itemSize = 4;
         }
-        const textureSizePx = Math.min(Math.max(Math.pow(2, Math.ceil(Math.log2(Math.sqrt(neededItems4)))), 16), 2048);
+        const textureSizePx = Math.min(
+          Math.max(
+            Math.pow(2, Math.ceil(Math.log2(Math.sqrt(neededItems4)))),
+            16,
+          ),
+          2048,
+        );
         const itemSizeSnap = itemSize > 4 ? 4 : itemSize;
 
         /* const format = (() => {
@@ -285,7 +275,13 @@ export class ChunkedGeometryAllocator {
         })();
 
         const data = new Type(textureSizePx * textureSizePx * itemSizeSnap);
-        const texture = new THREE.DataTexture(data, textureSizePx, textureSizePx, format, type);
+        const texture = new THREE.DataTexture(
+          data,
+          textureSizePx,
+          textureSizePx,
+          format,
+          type,
+        );
         texture.name = name;
         texture.minFilter = THREE.NearestFilter;
         texture.magFilter = THREE.NearestFilter;
@@ -330,7 +326,8 @@ export class ChunkedGeometryAllocator {
       },
     } = this.geometry;
 
-    this.drawStarts[freeListEntry] = start * this.geometry.index.array.BYTES_PER_ELEMENT;
+    this.drawStarts[freeListEntry] =
+      start * this.geometry.index.array.BYTES_PER_ELEMENT;
     this.drawCounts[freeListEntry] = count;
     this.drawInstanceCounts[freeListEntry] = instanceCount;
     if (this.boundingType === 'sphere') {
@@ -383,13 +380,21 @@ export class ChunkedGeometryAllocator {
     return this.textures[name];
   }
 
-  getDrawSpec(camera, multiDrawStarts, multiDrawCounts, multiDrawInstanceCounts) {
+  getDrawSpec(
+    camera,
+    multiDrawStarts,
+    multiDrawCounts,
+    multiDrawInstanceCounts,
+  ) {
     multiDrawStarts.length = this.drawStarts.length;
     multiDrawCounts.length = this.drawCounts.length;
     multiDrawInstanceCounts.length = this.drawInstanceCounts.length;
 
     if (this.testBoundingFn) {
-      const projScreenMatrix = localMatrix.multiplyMatrices(camera.projectionMatrix, camera.matrixWorldInverse);
+      const projScreenMatrix = localMatrix.multiplyMatrices(
+        camera.projectionMatrix,
+        camera.matrixWorldInverse,
+      );
       localFrustum.setFromProjectionMatrix(projScreenMatrix);
     }
 
@@ -415,7 +420,17 @@ export class ChunkedBatchedMesh extends THREE.InstancedMesh {
     this.allocator = allocator;
   }
 
-  getDrawSpec(camera, multiDrawStarts, multiDrawCounts, multiDrawInstanceCounts) {
-    this.allocator.getDrawSpec(camera, multiDrawStarts, multiDrawCounts, multiDrawInstanceCounts);
+  getDrawSpec(
+    camera,
+    multiDrawStarts,
+    multiDrawCounts,
+    multiDrawInstanceCounts,
+  ) {
+    this.allocator.getDrawSpec(
+      camera,
+      multiDrawStarts,
+      multiDrawCounts,
+      multiDrawInstanceCounts,
+    );
   }
 }

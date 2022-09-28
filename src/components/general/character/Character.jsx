@@ -84,24 +84,20 @@ const statSpecs = [
 
 //
 
-const Stat = ({
-  statSpec,
-}) => {
+const Stat = ({statSpec}) => {
   return (
-        <div className={styles.stat}>
-            <img className={styles.icon} src={statSpec.imgSrc} />
-            <div className={styles.wrap}>
-                <div className={styles.row}>
-                    <div className={styles.statName}>{statSpec.name}</div>
-                    <div className={styles.statValue}>{statSpec.value}</div>
-                </div>
-                {statSpec.progress
-                  ? (
-                    <progress className={styles.progress} value={statSpec.progress} />
-                    )
-                  : null}
-            </div>
+    <div className={styles.stat}>
+      <img className={styles.icon} src={statSpec.imgSrc} />
+      <div className={styles.wrap}>
+        <div className={styles.row}>
+          <div className={styles.statName}>{statSpec.name}</div>
+          <div className={styles.statValue}>{statSpec.value}</div>
         </div>
+        {statSpec.progress ? (
+          <progress className={styles.progress} value={statSpec.progress} />
+        ) : null}
+      </div>
+    </div>
   );
 };
 
@@ -165,12 +161,18 @@ export const Character = ({game, /* wearActions, */ dioramaCanvasRef}) => {
     game.playerDiorama.toggleShader();
 
     const soundFiles = sounds.getSoundFiles();
-    const audioSpec = soundFiles.menuNext[Math.floor(Math.random() * soundFiles.menuNext.length)];
+    const audioSpec =
+      soundFiles.menuNext[
+        Math.floor(Math.random() * soundFiles.menuNext.length)
+      ];
     sounds.playSound(audioSpec);
   }
 
   function onCharacterSelectClick(e) {
-    setState({openedPanel: (state.openedPanel === 'CharacterSelect' ? null : 'CharacterSelect')});
+    setState({
+      openedPanel:
+        state.openedPanel === 'CharacterSelect' ? null : 'CharacterSelect',
+    });
 
     /* if ( state.openedPanel === 'CharacterSelect' ) {
 
@@ -188,52 +190,59 @@ export const Character = ({game, /* wearActions, */ dioramaCanvasRef}) => {
   //
 
   return (
-        <div
-            className={ classnames(styles.characterWrapper, open ? styles.opened : null) }
-            onDrop={onDrop}
-        >
-            <div className={ styles.characterPanel } >
-                <Poses
-                    parentOpened={open}
-                />
+    <div
+      className={classnames(
+        styles.characterWrapper,
+        open ? styles.opened : null,
+      )}
+      onDrop={onDrop}
+    >
+      <div className={styles.characterPanel}>
+        <Poses parentOpened={open} />
 
-                <Emotions
-                    parentOpened={open}
-                />
+        <Emotions parentOpened={open} />
 
-                <canvas className={ styles.avatar } ref={ dioramaCanvasRef } width={ sideSize } height={ sideSize } onClick={ onCanvasClick } />
+        <canvas
+          className={styles.avatar}
+          ref={dioramaCanvasRef}
+          width={sideSize}
+          height={sideSize}
+          onClick={onCanvasClick}
+        />
 
-                <div className={styles['panel-body']}>
-                    <div className={styles['panel-header']}>
-                        <div className={styles.row}>
-                            <div className={classnames(styles['panel-section'], styles.name)}>
-                                <h1>{defaultPlayerName}</h1>
-                            </div>
-                            <div className={classnames(styles['panel-section'], styles.level)}>
-                                <h2>Lv. {6}</h2>
-                                <progress className={styles.progress} value={20} max={100} />
-                            </div>
-                        </div>
-                    </div>
-                    <div className={classnames(styles.stats, styles.main)}>
-                        {mainStatSpecs.map((statSpec, i) => {
-                          return <Stat statSpec={statSpec} key={i} />;
-                        })}
-                    </div>
-                    <div className={classnames(styles.stats, styles.sub)}>
-                        {statSpecs.map((statSpec, i) => {
-                          return <Stat statSpec={statSpec} key={i} />;
-                        })}
-                    </div>
-                </div>
-
-                <BigButton
-                  highlight={characterSelectOpen}
-                  onClick={onCharacterSelectClick}
-                >Character Select</BigButton>
-
+        <div className={styles['panel-body']}>
+          <div className={styles['panel-header']}>
+            <div className={styles.row}>
+              <div className={classnames(styles['panel-section'], styles.name)}>
+                <h1>{defaultPlayerName}</h1>
+              </div>
+              <div
+                className={classnames(styles['panel-section'], styles.level)}
+              >
+                <h2>Lv. {6}</h2>
+                <progress className={styles.progress} value={20} max={100} />
+              </div>
             </div>
-
+          </div>
+          <div className={classnames(styles.stats, styles.main)}>
+            {mainStatSpecs.map((statSpec, i) => {
+              return <Stat statSpec={statSpec} key={i} />;
+            })}
+          </div>
+          <div className={classnames(styles.stats, styles.sub)}>
+            {statSpecs.map((statSpec, i) => {
+              return <Stat statSpec={statSpec} key={i} />;
+            })}
+          </div>
         </div>
+
+        <BigButton
+          highlight={characterSelectOpen}
+          onClick={onCharacterSelectClick}
+        >
+          Character Select
+        </BigButton>
+      </div>
+    </div>
   );
 };

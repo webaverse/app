@@ -57,50 +57,60 @@ export async function addRPCToWallet({
   iconUrls = [''],
 }) {
   const {ethereum} = window;
-  const rpc = await ethereum.request({
-    method: RPC_METHODS.ADD_CHAIN,
-    params: [{
-      chainId,
-      chainName,
-      nativeCurrency,
-      rpcUrls,
-      blockExplorerUrls,
-      iconUrls,
-    }],
-  }).catch(error => {
-    console.warn('cant add RPC to wallet', error);
-  });
+  const rpc = await ethereum
+    .request({
+      method: RPC_METHODS.ADD_CHAIN,
+      params: [
+        {
+          chainId,
+          chainName,
+          nativeCurrency,
+          rpcUrls,
+          blockExplorerUrls,
+          iconUrls,
+        },
+      ],
+    })
+    .catch(error => {
+      console.warn('cant add RPC to wallet', error);
+    });
 
   return rpc;
 }
 
 export async function getConnectedAccounts() {
   const {ethereum} = window;
-  const accounts = await ethereum.request({
-    method: RPC_METHODS.ACCOUNTS,
-  }).catch(error => {
-    console.warn('cant get connected accounts', error);
-  });
+  const accounts = await ethereum
+    .request({
+      method: RPC_METHODS.ACCOUNTS,
+    })
+    .catch(error => {
+      console.warn('cant get connected accounts', error);
+    });
   return accounts;
 }
 
 export async function requestAccounts() {
   const {ethereum} = window;
-  const accounts = await ethereum.request({
-    method: RPC_METHODS.REQUEST_ACCOUNTS,
-  }).catch(error => {
-    console.warn('cant request accounts', error);
-  });
+  const accounts = await ethereum
+    .request({
+      method: RPC_METHODS.REQUEST_ACCOUNTS,
+    })
+    .catch(error => {
+      console.warn('cant request accounts', error);
+    });
   return accounts;
 }
 
 export async function getChainId() {
   const {ethereum} = window;
-  const chainId = await ethereum.request({
-    method: RPC_METHODS.CHAIN_ID,
-  }).catch(error => {
-    console.warn('cant get chain id', error);
-  });
+  const chainId = await ethereum
+    .request({
+      method: RPC_METHODS.CHAIN_ID,
+    })
+    .catch(error => {
+      console.warn('cant get chain id', error);
+    });
   return chainId;
 }
 
@@ -117,16 +127,11 @@ export async function switchChain(chainId) {
       params: [{chainId}],
     });
   } catch (switchError) {
-    if (switchError.code === 4902) { // no such chain
+    if (switchError.code === 4902) {
+      // no such chain
       const chain = getChain(chainId);
-      const {
-        rpcUrls,
-        chainName,
-        blockExplorerUrls,
-        name,
-        symbol,
-        decimals,
-      } = chain;
+      const {rpcUrls, chainName, blockExplorerUrls, name, symbol, decimals} =
+        chain;
       await addRPCToWallet({
         chainId,
         rpcUrls,

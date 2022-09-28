@@ -11,10 +11,7 @@ export default class Modal extends React.Component {
     const open = this.props.show;
 
     return (
-      <div className={classnames(
-        styles.modal,
-        open ? styles.open : null,
-      )}>
+      <div className={classnames(styles.modal, open ? styles.open : null)}>
         {this.props.children}
       </div>
     );

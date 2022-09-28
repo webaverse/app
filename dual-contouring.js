@@ -43,7 +43,11 @@ const _parseTrackerUpdate = bufferAddress => {
   index += Int32Array.BYTES_PER_ELEMENT;
 
   const _parseNode = () => {
-    const min = new Int32Array(Module.HEAPU8.buffer, bufferAddress + index, 3).slice();
+    const min = new Int32Array(
+      Module.HEAPU8.buffer,
+      bufferAddress + index,
+      3,
+    ).slice();
     index += Int32Array.BYTES_PER_ELEMENT * 3;
     const lod = dataView.getInt32(index, true);
     index += Int32Array.BYTES_PER_ELEMENT;
@@ -211,11 +215,13 @@ w.eraseCubeDamage = function() {
   return cubeDamage(Module._eraseCubeDamage.bind(Module)).apply(this, arguments);
 }; */
 
-w.setClipRange = function(inst, range) {
+w.setClipRange = function (inst, range) {
   Module._setClipRange(
     inst,
-    range[0][0], range[0][1],
-    range[1][0], range[1][1],
+    range[0][0],
+    range[0][1],
+    range[1][0],
+    range[1][1],
   );
 };
 
@@ -273,49 +279,81 @@ const _parseTerrainVertexBuffer = (arrayBuffer, bufferAddress) => {
   // positions
   const numPositions = dataView.getUint32(index, true);
   index += Uint32Array.BYTES_PER_ELEMENT;
-  const positions = new Float32Array(arrayBuffer, bufferAddress + index, numPositions * 3);
+  const positions = new Float32Array(
+    arrayBuffer,
+    bufferAddress + index,
+    numPositions * 3,
+  );
   index += Float32Array.BYTES_PER_ELEMENT * numPositions * 3;
 
   // normals
   const numNormals = dataView.getUint32(index, true);
   index += Uint32Array.BYTES_PER_ELEMENT;
-  const normals = new Float32Array(arrayBuffer, bufferAddress + index, numNormals * 3);
+  const normals = new Float32Array(
+    arrayBuffer,
+    bufferAddress + index,
+    numNormals * 3,
+  );
   index += Float32Array.BYTES_PER_ELEMENT * numNormals * 3;
 
   // biomes
   const numBiomes = dataView.getUint32(index, true);
   index += Uint32Array.BYTES_PER_ELEMENT;
-  const biomes = new Int32Array(arrayBuffer, bufferAddress + index, numBiomes * 4);
+  const biomes = new Int32Array(
+    arrayBuffer,
+    bufferAddress + index,
+    numBiomes * 4,
+  );
   index += Int32Array.BYTES_PER_ELEMENT * numBiomes * 4;
 
   // biomes weights
   const numBiomesWeights = dataView.getUint32(index, true);
   index += Uint32Array.BYTES_PER_ELEMENT;
-  const biomesWeights = new Float32Array(arrayBuffer, bufferAddress + index, numBiomesWeights * 4);
+  const biomesWeights = new Float32Array(
+    arrayBuffer,
+    bufferAddress + index,
+    numBiomesWeights * 4,
+  );
   index += Float32Array.BYTES_PER_ELEMENT * numBiomesWeights * 4;
 
   // biomes uvs 1
   const numBiomesUvs1 = dataView.getUint32(index, true);
   index += Uint32Array.BYTES_PER_ELEMENT;
-  const biomesUvs1 = new Float32Array(arrayBuffer, bufferAddress + index, numBiomesUvs1 * 4);
+  const biomesUvs1 = new Float32Array(
+    arrayBuffer,
+    bufferAddress + index,
+    numBiomesUvs1 * 4,
+  );
   index += Float32Array.BYTES_PER_ELEMENT * numBiomesUvs1 * 4;
 
   // biomes uvs 2
   const numBiomesUvs2 = dataView.getUint32(index, true);
   index += Uint32Array.BYTES_PER_ELEMENT;
-  const biomesUvs2 = new Float32Array(arrayBuffer, bufferAddress + index, numBiomesUvs2 * 4);
+  const biomesUvs2 = new Float32Array(
+    arrayBuffer,
+    bufferAddress + index,
+    numBiomesUvs2 * 4,
+  );
   index += Float32Array.BYTES_PER_ELEMENT * numBiomesUvs2 * 4;
 
   // indices
   const numIndices = dataView.getUint32(index, true);
   index += Uint32Array.BYTES_PER_ELEMENT;
-  const indices = new Uint32Array(arrayBuffer, bufferAddress + index, numIndices);
+  const indices = new Uint32Array(
+    arrayBuffer,
+    bufferAddress + index,
+    numIndices,
+  );
   index += Uint32Array.BYTES_PER_ELEMENT * numIndices;
 
   // skylights
   const numSkylights = dataView.getUint32(index, true);
   index += Uint32Array.BYTES_PER_ELEMENT;
-  const skylights = new Uint8Array(arrayBuffer, bufferAddress + index, numSkylights);
+  const skylights = new Uint8Array(
+    arrayBuffer,
+    bufferAddress + index,
+    numSkylights,
+  );
   index += Uint8Array.BYTES_PER_ELEMENT * numSkylights;
   index = align4(index);
 
@@ -348,12 +386,7 @@ const _parseTerrainVertexBuffer = (arrayBuffer, bufferAddress) => {
 w.createTerrainChunkMeshAsync = async (inst, taskId, x, z, lod) => {
   const allocator = new Allocator(Module);
 
-  Module._createTerrainChunkMeshAsync(
-    inst,
-    taskId,
-    x, z,
-    lod,
-  );
+  Module._createTerrainChunkMeshAsync(inst, taskId, x, z, lod);
   const p = makePromise();
   cbs.set(taskId, p);
 
@@ -559,15 +592,27 @@ function _parsePQI(addr) {
   let index = 0;
   const psSize = dataView.getUint32(index, true);
   index += Uint32Array.BYTES_PER_ELEMENT;
-  const ps = new Float32Array(dataView.buffer, dataView.byteOffset + index, psSize).slice();
+  const ps = new Float32Array(
+    dataView.buffer,
+    dataView.byteOffset + index,
+    psSize,
+  ).slice();
   index += psSize * Float32Array.BYTES_PER_ELEMENT;
   const qsSize = dataView.getUint32(index, true);
   index += Uint32Array.BYTES_PER_ELEMENT;
-  const qs = new Float32Array(dataView.buffer, dataView.byteOffset + index, qsSize).slice();
+  const qs = new Float32Array(
+    dataView.buffer,
+    dataView.byteOffset + index,
+    qsSize,
+  ).slice();
   index += qsSize * Float32Array.BYTES_PER_ELEMENT;
   const instancesSize = dataView.getUint32(index, true);
   index += Uint32Array.BYTES_PER_ELEMENT;
-  const instances = new Float32Array(dataView.buffer, dataView.byteOffset + index, instancesSize).slice();
+  const instances = new Float32Array(
+    dataView.buffer,
+    dataView.byteOffset + index,
+    instancesSize,
+  ).slice();
   index += instancesSize * Float32Array.BYTES_PER_ELEMENT;
 
   return {
@@ -586,13 +631,7 @@ w.createGrassSplatAsync = async (inst, taskId, x, z, lod, priority) => {
   // const count = allocator.alloc(Uint32Array, 1);
 
   // try {
-  Module._createGrassSplatAsync(
-    inst,
-    taskId,
-    x, z,
-    lod,
-    priority,
-  );
+  Module._createGrassSplatAsync(inst, taskId, x, z, lod, priority);
 
   const p = makePromise();
   cbs.set(taskId, p);
@@ -622,13 +661,7 @@ w.createVegetationSplatAsync = async (inst, taskId, x, z, lod, priority) => {
   // const count = allocator.alloc(Uint32Array, 1);
 
   // try {
-  Module._createVegetationSplatAsync(
-    inst,
-    taskId,
-    x, z,
-    lod,
-    priority,
-  );
+  Module._createVegetationSplatAsync(inst, taskId, x, z, lod, priority);
 
   const p = makePromise();
   cbs.set(taskId, p);
@@ -658,13 +691,7 @@ w.createMobSplatAsync = async (inst, taskId, x, z, lod, priority) => {
   const count = allocator.alloc(Uint32Array, 1); */
 
   // try {
-  Module._createMobSplatAsync(
-    inst,
-    taskId,
-    x, z,
-    lod,
-    priority,
-  );
+  Module._createMobSplatAsync(inst, taskId, x, z, lod, priority);
 
   const p = makePromise();
   cbs.set(taskId, p);

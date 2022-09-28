@@ -8,9 +8,4 @@ const FTABI = FT.abi;
 const WebaverseABI = Webaverse.abi;
 const VoucherABI = Voucher.abi;
 
-export {
-  NFTABI,
-  FTABI,
-  WebaverseABI,
-  VoucherABI,
-};
+export {NFTABI, FTABI, WebaverseABI, VoucherABI};

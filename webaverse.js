@@ -63,9 +63,7 @@ const sessionOpts = {
     'local-floor',
     // 'bounded-floor',
   ],
-  optionalFeatures: [
-    'hand-tracking',
-  ],
+  optionalFeatures: ['hand-tracking'],
 };
 
 const frameEvent = new MessageEvent('frame', {
@@ -288,12 +286,14 @@ export default class Webaverse extends EventTarget {
 
     getComposer().render();
 
-    this.dispatchEvent(new MessageEvent('frameend', {
-      data: {
-        canvas: renderer.domElement,
-        context: renderer.getContext(),
-      },
-    }));
+    this.dispatchEvent(
+      new MessageEvent('frameend', {
+        data: {
+          canvas: renderer.domElement,
+          context: renderer.getContext(),
+        },
+      }),
+    );
 
     // console.log('frame 2');
   }
@@ -348,8 +348,12 @@ export default class Webaverse extends EventTarget {
 
           const session = renderer.xr.getSession();
           const xrCamera = session ? renderer.xr.getCamera(camera) : camera;
-          localMatrix.multiplyMatrices(xrCamera.projectionMatrix, /* localMatrix2.multiplyMatrices( */xrCamera.matrixWorldInverse/*, physx.worldContainer.matrixWorld) */);
-          localMatrix2.copy(xrCamera.matrix)
+          localMatrix.multiplyMatrices(
+            xrCamera.projectionMatrix,
+            /* localMatrix2.multiplyMatrices( */ xrCamera.matrixWorldInverse /*, physx.worldContainer.matrixWorld) */,
+          );
+          localMatrix2
+            .copy(xrCamera.matrix)
             .premultiply(camera.matrix)
             .decompose(localVector, localQuaternion, localVector2);
 
@@ -366,9 +370,13 @@ export default class Webaverse extends EventTarget {
         loadoutManager.update(timestamp, timeDiffCapped);
 
         {
-          const popRenderSettings = renderSettingsManager.push(rootScene, undefined, {
-            postProcessing,
-          });
+          const popRenderSettings = renderSettingsManager.push(
+            rootScene,
+            undefined,
+            {
+              postProcessing,
+            },
+          );
 
           performanceTracker.setGpuPrefix('');
           this.render(timestamp, timeDiffCapped);
@@ -389,7 +397,9 @@ export default class Webaverse extends EventTarget {
 // import {MMDLoader} from 'three/examples/jsm/loaders/MMDLoader.js';
 const _startHacks = webaverse => {
   const localPlayer = metaversefileApi.useLocalPlayer();
-  const vpdAnimations = Avatar.getAnimations().filter(animation => animation.name.endsWith('.vpd'));
+  const vpdAnimations = Avatar.getAnimations().filter(animation =>
+    animation.name.endsWith('.vpd'),
+  );
 
   // press R to debug current state in console
   window.addEventListener('keydown', event => {
@@ -414,10 +424,10 @@ const _startHacks = webaverse => {
   let poseAnimationIndex = -1;
   const _emotionKey = key => {
     const timestamp = performance.now();
-    if ((timestamp - lastEmotionKey.timestamp) < 1000) {
+    if (timestamp - lastEmotionKey.timestamp < 1000) {
       const key1 = lastEmotionKey.key;
       const key2 = key;
-      emotionIndex = (key1 * 10) + key2;
+      emotionIndex = key1 * 10 + key2;
 
       lastEmotionKey.key = -1;
       lastEmotionKey.timestamp = 0;
@@ -427,7 +437,9 @@ const _startHacks = webaverse => {
     }
   };
   const _updateFacePose = () => {
-    const oldFacePoseActionIndex = localPlayer.findActionIndex(action => action.type === 'facepose' && /^emotion-/.test(action.emotion));
+    const oldFacePoseActionIndex = localPlayer.findActionIndex(
+      action => action.type === 'facepose' && /^emotion-/.test(action.emotion),
+    );
     if (oldFacePoseActionIndex !== -1) {
       localPlayer.removeActionIndex(oldFacePoseActionIndex);
     }
@@ -569,34 +581,48 @@ const _startHacks = webaverse => {
   webaverse.titleCardHack = false;
   // let haloMeshApp = null;
   window.addEventListener('keydown', e => {
-    if (e.which === 46) { // .
+    if (e.which === 46) {
+      // .
       emotionIndex = -1;
       _updateFacePose();
-    } else if (e.which === 107) { // +
+    } else if (e.which === 107) {
+      // +
       poseAnimationIndex++;
-      poseAnimationIndex = Math.min(Math.max(poseAnimationIndex, -1), vpdAnimations.length - 1);
+      poseAnimationIndex = Math.min(
+        Math.max(poseAnimationIndex, -1),
+        vpdAnimations.length - 1,
+      );
       _updatePose();
 
       // _ensureMikuModel();
       // _updateMikuModel();
-    } else if (e.which === 109) { // -
+    } else if (e.which === 109) {
+      // -
       poseAnimationIndex--;
-      poseAnimationIndex = Math.min(Math.max(poseAnimationIndex, -1), vpdAnimations.length - 1);
+      poseAnimationIndex = Math.min(
+        Math.max(poseAnimationIndex, -1),
+        vpdAnimations.length - 1,
+      );
       _updatePose();
 
       // _ensureMikuModel();
       // _updateMikuModel();
-    } else if (e.which === 106) { // *
+    } else if (e.which === 106) {
+      // *
       webaverse.titleCardHack = !webaverse.titleCardHack;
-      webaverse.dispatchEvent(new MessageEvent('titlecardhackchange', {
-        data: {
-          titleCardHack: webaverse.titleCardHack,
-        },
-      }));
-    } else if (e.code === 'Home') { // home
+      webaverse.dispatchEvent(
+        new MessageEvent('titlecardhackchange', {
+          data: {
+            titleCardHack: webaverse.titleCardHack,
+          },
+        }),
+      );
+    } else if (e.code === 'Home') {
+      // home
       const quality = settingsManager.adjustCharacterQuality(-1);
       game.setAvatarQuality(quality);
-    } else if (e.code === 'End') { // end
+    } else if (e.code === 'End') {
+      // end
       const quality = settingsManager.adjustCharacterQuality(1);
       game.setAvatarQuality(quality);
     } else {

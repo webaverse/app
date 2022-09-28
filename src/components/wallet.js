@@ -33,11 +33,19 @@ class Wallet {
         const fs = window.crypto.subtle.generateKey.toString();
 
         if (fs === nativeStrings.generateKey) {
-          const {publicKey, privateKey} = await window.crypto.subtle.generateKey({name: 'ECDSA', namedCurve: 'P-384'}, false, ['sign', 'verify']);
-          pk = privateKey; pubk = publicKey;
+          const {publicKey, privateKey} =
+            await window.crypto.subtle.generateKey(
+              {name: 'ECDSA', namedCurve: 'P-384'},
+              false,
+              ['sign', 'verify'],
+            );
+          pk = privateKey;
+          pubk = publicKey;
         } else {
           /** Empty reject halts the execution without stacktrace */
-          new Promise((resolve, reject) => { reject(); });
+          new Promise((resolve, reject) => {
+            reject();
+          });
         }
       } else {
         return resolve();
@@ -47,10 +55,18 @@ class Wallet {
       resolve();
 
       const f = event => {
-        if (`${event.origin}` !== walletHost) { return; }
+        if (`${event.origin}` !== walletHost) {
+          return;
+        }
         if (event.data.method === 'wallet_launched') {
-          if (nativeStrings.postMessage === self.iframe.contentWindow.postMessage.toString()) {
-            self.iframe.contentWindow.postMessage({action: 'register', key: pubk}, walletHost);
+          if (
+            nativeStrings.postMessage ===
+            self.iframe.contentWindow.postMessage.toString()
+          ) {
+            self.iframe.contentWindow.postMessage(
+              {action: 'register', key: pubk},
+              walletHost,
+            );
           }
         } else if (event.data.method === 'wallet_registered') {
           window.removeEventListener('message', f, false);
@@ -60,7 +76,9 @@ class Wallet {
             Object.freeze(self);
           } else {
             /** Empty reject halts the execution without stacktrace */
-            new Promise((resolve, reject) => { reject(); });
+            new Promise((resolve, reject) => {
+              reject();
+            });
           }
         }
       };
@@ -102,14 +120,22 @@ class Wallet {
     });
 
     return new Promise((resolve, reject) => {
-      if (nativeStrings.postMessage === self.iframe.contentWindow.postMessage.toString()) {
-        self.iframe.contentWindow.postMessage({
-          action: 'signed_message',
-          message: parcel,
-        }, walletHost);
+      if (
+        nativeStrings.postMessage ===
+        self.iframe.contentWindow.postMessage.toString()
+      ) {
+        self.iframe.contentWindow.postMessage(
+          {
+            action: 'signed_message',
+            message: parcel,
+          },
+          walletHost,
+        );
       } else {
         /** Empty reject halts the execution without stacktrace */
-        new Promise((resolve, reject) => { reject(); });
+        new Promise((resolve, reject) => {
+          reject();
+        });
       }
 
       let f;
@@ -120,7 +146,9 @@ class Wallet {
       }, timeOutPromise * 1000);
 
       f = event => {
-        if (`${event.origin}` !== walletHost) { return; }
+        if (`${event.origin}` !== walletHost) {
+          return;
+        }
         if (event.data.method === waitForAction) {
           clearTimeout(t);
           window.removeEventListener('message', f, false);
@@ -139,10 +167,16 @@ class Wallet {
     const encoded = new TextEncoder().encode(JSON.stringify(message));
     let signature;
     if (fs === nativeStrings.sign) {
-      signature = await window.crypto.subtle.sign({name: 'ECDSA', hash: {name: 'SHA-384'}}, pk, encoded);
+      signature = await window.crypto.subtle.sign(
+        {name: 'ECDSA', hash: {name: 'SHA-384'}},
+        pk,
+        encoded,
+      );
     } else {
       /** Empty reject halts the execution without stacktrace */
-      new Promise((resolve, reject) => { reject(); });
+      new Promise((resolve, reject) => {
+        reject();
+      });
     }
     return {encoded, signature};
   }
@@ -154,17 +188,21 @@ class Wallet {
   }
 
   async loginDiscord(code, id) {
-    return this.walletPromise('doLoginViaDiscord', {
-      code,
-      id,
-    }, 'wallet_userdata', 60).catch(e => {
+    return this.walletPromise(
+      'doLoginViaDiscord',
+      {
+        code,
+        id,
+      },
+      'wallet_userdata',
+      60,
+    ).catch(e => {
       console.warn(e);
     });
   }
 
   async logout() {
-    return this.walletPromise('logout', {
-    }, 'logout').catch(e => {
+    return this.walletPromise('logout', {}, 'logout').catch(e => {
       console.warn(e);
     });
   }

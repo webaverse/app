@@ -68,7 +68,7 @@ const _makeLights = () => {
   // directionalLight.position.set(1, 1.5, -2);
   // directionalLight.updateMatrixWorld();
 
-  const directionalLight = new THREE.DirectionalLight(0xFFFFFF, 5);
+  const directionalLight = new THREE.DirectionalLight(0xffffff, 5);
   directionalLight.position.set(1, 1.5, -2);
   directionalLight.updateMatrixWorld();
 
@@ -83,13 +83,7 @@ const _makeLights = () => {
   ];
 };
 
-export const genPic = async ({
-  url,
-  width,
-  height,
-  canvas,
-  video,
-}) => {
+export const genPic = async ({url, width, height, canvas, video}) => {
   await Avatar.waitForLoad();
 
   /* console.log('gen pic', {
@@ -134,7 +128,10 @@ export const genPic = async ({
     player.avatar.setHandEnabled(1, false);
     player.avatar.setBottomEnabled(false);
     player.avatar.inputs.hmd.position.y = player.avatar.height;
-    player.avatar.inputs.hmd.quaternion.setFromAxisAngle(new THREE.Vector3(0, 1, 0), Math.PI);
+    player.avatar.inputs.hmd.quaternion.setFromAxisAngle(
+      new THREE.Vector3(0, 1, 0),
+      Math.PI,
+    );
     player.avatar.inputs.hmd.updateMatrixWorld();
     player.addAction({
       type: 'facepose',
@@ -142,11 +139,20 @@ export const genPic = async ({
     });
   };
   const _updateTarget = (timestamp, timeDiff) => {
-    target.matrixWorld.copy(player.avatar.modelBones.Head.matrixWorld)
+    target.matrixWorld
+      .copy(player.avatar.modelBones.Head.matrixWorld)
       .decompose(target.position, target.quaternion, target.scale);
-    target.position.set(player.position.x, target.position.y, player.position.z);
+    target.position.set(
+      player.position.x,
+      target.position.y,
+      player.position.z,
+    );
     target.quaternion.copy(player.quaternion);
-    target.matrixWorld.compose(target.position, target.quaternion, target.scale);
+    target.matrixWorld.compose(
+      target.position,
+      target.quaternion,
+      target.scale,
+    );
   };
   const _animate = (timestamp, timeDiff) => {
     // console.log('got position', player.position.y);
@@ -167,9 +173,7 @@ export const genPic = async ({
 
   // rendering
   const localLights = _makeLights();
-  const objects = localLights.concat([
-    player.avatar.model,
-  ]);
+  const objects = localLights.concat([player.avatar.model]);
   // console.log('got model bones', player.avatar.modelBones);
   // debugger;
   const target = new THREE.Object3D();
@@ -184,7 +188,7 @@ export const genPic = async ({
     // glyphBackground: true,
   });
   diorama.addCanvas(canvas);
-  diorama.setClearColor(0xFFFFFF, 1);
+  diorama.setClearColor(0xffffff, 1);
 
   const videoWriter = new WebMWriter({
     quality: 1,
@@ -240,7 +244,7 @@ export const genPic = async ({
             update(timestamp, timeDiff) {
               const timeDiffMs = timeDiff / 1000;
               const angle = -Math.PI / 2;
-              positionOffset -= narutoRunSpeed / 1000 * timeDiffMs;
+              positionOffset -= (narutoRunSpeed / 1000) * timeDiffMs;
 
               /* const euler = new THREE.Euler(0, angle, 0, 'YXZ');
               camera.position.set(0, avatar.height*cameraHeightFactor, positionOffset)
@@ -249,8 +253,14 @@ export const genPic = async ({
               camera.updateMatrixWorld(); */
 
               diorama.setCameraOffset(
-                localVector.set(0, 0, 2)
-                  .applyQuaternion(localQuaternion.setFromAxisAngle(localVector2.set(0, 1, 0), -angle)),
+                localVector
+                  .set(0, 0, 2)
+                  .applyQuaternion(
+                    localQuaternion.setFromAxisAngle(
+                      localVector2.set(0, 1, 0),
+                      -angle,
+                    ),
+                  ),
               );
               // player.avatar.modelBones.Root.updateMatrixWorld();
 
@@ -290,14 +300,18 @@ export const genPic = async ({
     writeCtx.drawImage(canvas, 0, 0);
 
     const p = new Promise((resolve, reject) => {
-      writeCanvas.toBlob(blob => {
-        const reader = new FileReader();
-        reader.readAsDataURL(blob);
-        reader.onloadend = function() {
-          const dataUrl = reader.result;
-          resolve(dataUrl);
-        };
-      }, 'image/webp', videoQuality);
+      writeCanvas.toBlob(
+        blob => {
+          const reader = new FileReader();
+          reader.readAsDataURL(blob);
+          reader.onloadend = function () {
+            const dataUrl = reader.result;
+            resolve(dataUrl);
+          };
+        },
+        'image/webp',
+        videoQuality,
+      );
     });
     framePromises.push(p);
   };
@@ -323,7 +337,7 @@ export const genPic = async ({
         _pushFrame();
         now += timeDiff;
 
-        if ((index % framesPerFrame) === framesPerFrame - 1) {
+        if (index % framesPerFrame === framesPerFrame - 1) {
           await new Promise((accept, reject) => {
             requestAnimationFrame(() => {
               accept();

@@ -3,7 +3,18 @@ import * as THREE from 'three';
 // import easing from './easing.js';
 import metaversefile from 'metaversefile';
 // import {chunkWorldSize} from '../../procgen/map-gen';
-const {useApp, useLocalPlayer, useProcGen, useGeometries, useCamera, useMaterials, useFrame, useActivate, usePhysics, useCleanup} = metaversefile;
+const {
+  useApp,
+  useLocalPlayer,
+  useProcGen,
+  useGeometries,
+  useCamera,
+  useMaterials,
+  useFrame,
+  useActivate,
+  usePhysics,
+  useCleanup,
+} = metaversefile;
 
 // const baseUrl = import.meta.url.replace(/(\/)[^\/\\]*$/, '$1');
 
@@ -26,30 +37,41 @@ const ClippedPlane = (() => {
   const zeroVector = new THREE.Vector3(0, 0, 0);
 
   class ClippedPlane extends THREE.Plane {
-    constructor(normal, coplanarPoint, size = new THREE.Vector2(1, 1), up = new THREE.Vector3(0, 1, 0)) {
+    constructor(
+      normal,
+      coplanarPoint,
+      size = new THREE.Vector2(1, 1),
+      up = new THREE.Vector3(0, 1, 0),
+    ) {
       super();
       this.setFromNormalAndCoplanarPoint(normal, coplanarPoint);
 
       this.coplanarPoint = coplanarPoint;
       this.size = size;
       this.up = up;
-      this.right = new THREE.Vector3().crossVectors(this.normal, this.up).normalize();
+      this.right = new THREE.Vector3()
+        .crossVectors(this.normal, this.up)
+        .normalize();
 
       const center = this.projectPoint(zeroVector, localVector);
       // {
-      const topLeft = center.clone()
+      const topLeft = center
+        .clone()
         .add(localVector3.copy(this.up).multiplyScalar(this.size.y / 2))
         .sub(localVector3.copy(this.right).multiplyScalar(this.size.x / 2));
-      const bottomLeft = center.clone()
+      const bottomLeft = center
+        .clone()
         .sub(localVector3.copy(this.up).multiplyScalar(this.size.y / 2))
         .sub(localVector3.copy(this.right).multiplyScalar(this.size.x / 2));
       this.leftLine = new THREE.Line3(bottomLeft, topLeft);
       // }
       // {
-      const bottomLeft2 = center.clone()
+      const bottomLeft2 = center
+        .clone()
         .sub(localVector3.copy(this.up).multiplyScalar(this.size.y / 2))
         .sub(localVector3.copy(this.right).multiplyScalar(this.size.x / 2));
-      const bottomRight2 = center.clone()
+      const bottomRight2 = center
+        .clone()
         .sub(localVector3.copy(this.up).multiplyScalar(this.size.y / 2))
         .add(localVector3.copy(this.right).multiplyScalar(this.size.x / 2));
       this.bottomLine = new THREE.Line3(bottomLeft2, bottomRight2);
@@ -76,11 +98,9 @@ const ClippedPlane = (() => {
       if (intersection) {
         const uv = this.getUV(intersection, localVector2D);
         if (uv !== null) {
-          const direction = localVector.copy(line.end)
-            .sub(line.start);
+          const direction = localVector.copy(line.end).sub(line.start);
           if (direction.dot(this.normal) < 0) {
-            return target.copy(this.normal)
-              .multiplyScalar(-1);
+            return target.copy(this.normal).multiplyScalar(-1);
           } else {
             return null;
           }
@@ -105,10 +125,7 @@ export default () => {
   const app = useApp();
   const camera = useCamera();
   const physics = usePhysics();
-  const {
-    voxelWorldSize,
-    chunkWorldSize,
-  } = useProcGen();
+  const {voxelWorldSize, chunkWorldSize} = useProcGen();
   // const {CapsuleGeometry} = useGeometries();
   const {WebaverseShaderMaterial} = useMaterials();
 
@@ -121,7 +138,10 @@ export default () => {
   const children = [];
   const physicsIds = [];
   const _render = () => {
-    const bounds = app.getComponent('bounds') ?? [[0, 0, 0], [4, 4, 4]];
+    const bounds = app.getComponent('bounds') ?? [
+      [0, 0, 0],
+      [4, 4, 4],
+    ];
     const [min, max] = bounds;
     const [minX, minY, minZ] = min;
     const [maxX, maxY, maxZ] = max;
@@ -131,7 +151,11 @@ export default () => {
 
     const delta = app.getComponent('delta') ?? [0, 0];
     const [dx, dy] = delta;
-    const chunkOffset = new THREE.Vector3(dx * chunkWorldSize, 0, dy * chunkWorldSize);
+    const chunkOffset = new THREE.Vector3(
+      dx * chunkWorldSize,
+      0,
+      dy * chunkWorldSize,
+    );
 
     const exits = app.getComponent('exits') ?? [];
 
@@ -141,17 +165,18 @@ export default () => {
         localVector.fromArray(exit);
 
         let normal;
-        if (localVector.x === 0) { // XXX blocks should come with an incoming direction so this is well-defined
+        if (localVector.x === 0) {
+          // XXX blocks should come with an incoming direction so this is well-defined
           normal = localVector2.set(1, 0, 0);
-        } else if (localVector.x === (width - voxelWorldSize)) {
+        } else if (localVector.x === width - voxelWorldSize) {
           normal = localVector2.set(-1, 0, 0);
         } else if (localVector.z === 0) {
           normal = localVector2.set(0, 0, 1);
-        } else if (localVector.z === (depth - voxelWorldSize)) {
+        } else if (localVector.z === depth - voxelWorldSize) {
           normal = localVector2.set(0, 0, -1);
         } else if (localVector.y === 0) {
           normal = localVector2.set(0, 1, 0);
-        } else if (localVector.y === (height - voxelWorldSize)) {
+        } else if (localVector.y === height - voxelWorldSize) {
           normal = localVector2.set(0, -1, 0);
         } else {
           console.warn('invalid exit position', exit, width, height, depth);
@@ -174,17 +199,16 @@ export default () => {
 
         const position = new THREE.Vector3(
           -width / 2 +
-            (0.5 * -normal.x) +
+            0.5 * -normal.x +
             localVector.x +
             (normal.x === -1 ? voxelWorldSize : 0) +
-            (normal.z * voxelWorldSize / 2),
-          voxelWorldSize / 2 +
-            localVector.y,
+            (normal.z * voxelWorldSize) / 2,
+          voxelWorldSize / 2 + localVector.y,
           -depth / 2 +
-            (0.5 * -normal.z) +
+            0.5 * -normal.z +
             localVector.z +
             (normal.z === -1 ? voxelWorldSize : 0) +
-            (normal.x * voxelWorldSize / 2),
+            (normal.x * voxelWorldSize) / 2,
         ).add(chunkOffset);
 
         return {
@@ -196,7 +220,11 @@ export default () => {
     } else {
       barrierSpecs = [
         {
-          position: new THREE.Vector3(maxX + minX, maxY + minY, maxZ + minZ).multiplyScalar(0.5),
+          position: new THREE.Vector3(
+            maxX + minX,
+            maxY + minY,
+            maxZ + minZ,
+          ).multiplyScalar(0.5),
           normal: new THREE.Vector3(0, 0, 1),
           size: new THREE.Vector3(width, height, depth),
         },
@@ -205,19 +233,21 @@ export default () => {
     }
 
     for (const barrierSpec of barrierSpecs) {
-      const {
-        position,
-        normal,
-        size,
-      } = barrierSpec;
+      const {position, normal, size} = barrierSpec;
       const w = size.x;
       const h = size.y;
       const d = size.z;
 
       const barrierGeometry = new THREE.BoxGeometry(1, 1, 1);
       for (let i = 0; i < barrierGeometry.attributes.position.count; i++) {
-        const position = localVector.fromArray(barrierGeometry.attributes.position.array, i * 3);
-        const normal = localVector2.fromArray(barrierGeometry.attributes.normal.array, i * 3);
+        const position = localVector.fromArray(
+          barrierGeometry.attributes.position.array,
+          i * 3,
+        );
+        const normal = localVector2.fromArray(
+          barrierGeometry.attributes.normal.array,
+          i * 3,
+        );
         if (normal.y !== 0) {
           localVector2D.set(position.x * size.x, position.z * size.z);
         } else if (normal.x !== 0) {
@@ -339,10 +369,18 @@ export default () => {
           varying float darkening;
           varying float dimming;
 
-          /* const vec3 lineColor1 = vec3(${new THREE.Color(0x29b6f6).toArray().join(', ')});
-          const vec3 lineColor2 = vec3(${new THREE.Color(0x0288d1).toArray().join(', ')});
-          const vec3 lineColor3 = vec3(${new THREE.Color(0xec407a).toArray().join(', ')});
-          const vec3 lineColor4 = vec3(${new THREE.Color(0xc2185b).toArray().join(', ')}); */
+          /* const vec3 lineColor1 = vec3(${new THREE.Color(0x29b6f6)
+            .toArray()
+            .join(', ')});
+          const vec3 lineColor2 = vec3(${new THREE.Color(0x0288d1)
+            .toArray()
+            .join(', ')});
+          const vec3 lineColor3 = vec3(${new THREE.Color(0xec407a)
+            .toArray()
+            .join(', ')});
+          const vec3 lineColor4 = vec3(${new THREE.Color(0xc2185b)
+            .toArray()
+            .join(', ')}); */
 
           /*
 
@@ -454,7 +492,9 @@ export default () => {
               fragColor.a *= dimming;
 
               float d = gl_FragCoord.z/gl_FragCoord.w;
-              // d = perspectiveDepthToViewZ(d, ${camera.near.toFixed(8)}, ${camera.far.toFixed(8)});
+              // d = perspectiveDepthToViewZ(d, ${camera.near.toFixed(
+                8,
+              )}, ${camera.far.toFixed(8)});
               fragColor.a *= min(max(5. - pow(d, 0.5), 0.), 1.);
           
               fragColor.a *= peerCooldown;
@@ -563,7 +603,9 @@ export default () => {
                 speed: 0,
               };
             } else if (barrierMesh.animationSpec.type === 'cooldown') {
-              if (!barrierMesh.boundingBox.containsPoint(localPlayer.position)) {
+              if (
+                !barrierMesh.boundingBox.containsPoint(localPlayer.position)
+              ) {
                 barrierMesh.animationSpec = null;
 
                 const singleUse = _getSingleUse();
@@ -573,7 +615,10 @@ export default () => {
                 }
               }
             } else {
-              console.warn('unknown animation type', barrierMesh.animationSpec.type);
+              console.warn(
+                'unknown animation type',
+                barrierMesh.animationSpec.type,
+              );
             }
           }
         }
@@ -584,7 +629,8 @@ export default () => {
       const localChildren = children.slice();
 
       for (const barrierMesh of localChildren) {
-        localMatrix.compose(barrierMesh.position, barrierMesh.quaternion, oneVector)
+        localMatrix
+          .compose(barrierMesh.position, barrierMesh.quaternion, oneVector)
           .invert();
 
         for (const clipPlane of barrierMesh.clipPlanes) {
@@ -595,21 +641,22 @@ export default () => {
           let broke = false;
           for (let d = 0; d <= totalDistance; d += 1) {
             const f1 = totalDistance > 0 ? Math.min(d / totalDistance, 1) : 1;
-            const lineStart = localVector.copy(positionStart)
+            const lineStart = localVector
+              .copy(positionStart)
               .lerp(positionEnd, f1);
             const f2 = Math.min((d + 1) / totalDistance, 1);
-            const lineEnd = localVector2.copy(positionStart)
+            const lineEnd = localVector2
+              .copy(positionStart)
               .lerp(positionEnd, f2);
-            localLine.set(lineStart, lineEnd)
-              .applyMatrix4(
-                localMatrix,
-              );
+            localLine.set(lineStart, lineEnd).applyMatrix4(localMatrix);
 
-            const penetrationNormalVector = clipPlane.getPenetrationNormalVector(localLine, localVector);
+            const penetrationNormalVector =
+              clipPlane.getPenetrationNormalVector(localLine, localVector);
             if (penetrationNormalVector !== null) {
               if (!barrierMesh.animationSpec) {
                 const direction = penetrationNormalVector.clone();
-                const speed = localLine.start.distanceTo(localLine.end) / timeDiffS;
+                const speed =
+                  localLine.start.distanceTo(localLine.end) / timeDiffS;
                 barrierMesh.animationSpec = {
                   type: 'trigger',
                   startValue: 0,
@@ -637,7 +684,10 @@ export default () => {
 
                 broke = true;
                 break;
-              } else if (barrierMesh.animationSpec && barrierMesh.animationSpec.type === 'cooldown') {
+              } else if (
+                barrierMesh.animationSpec &&
+                barrierMesh.animationSpec.type === 'cooldown'
+              ) {
                 barrierMesh.animationSpec.startTime = timestamp;
                 barrierMesh.animationSpec.endTime = timestamp + cooldownTime;
               }
@@ -656,12 +706,19 @@ export default () => {
 
         let highlight;
         if (barrierMesh.animationSpec) {
-          let f = Math.min(Math.max(
-            (timestamp - barrierMesh.animationSpec.startTime) / (barrierMesh.animationSpec.endTime - barrierMesh.animationSpec.startTime),
-            0),
-          1);
+          let f = Math.min(
+            Math.max(
+              (timestamp - barrierMesh.animationSpec.startTime) /
+                (barrierMesh.animationSpec.endTime -
+                  barrierMesh.animationSpec.startTime),
+              0,
+            ),
+            1,
+          );
           f = Math.pow(f, 0.1);
-          highlight = (1 - f) * barrierMesh.animationSpec.startValue + f * barrierMesh.animationSpec.endValue;
+          highlight =
+            (1 - f) * barrierMesh.animationSpec.startValue +
+            f * barrierMesh.animationSpec.endValue;
         } else {
           highlight = 0;
         }
@@ -669,13 +726,17 @@ export default () => {
         barrierMesh.material.uniforms.uHighlight.needsUpdate = true;
 
         if (barrierMesh.animationSpec) {
-          barrierMesh.material.uniforms.uStartTimeS.value = barrierMesh.animationSpec.startTimeS;
+          barrierMesh.material.uniforms.uStartTimeS.value =
+            barrierMesh.animationSpec.startTimeS;
           barrierMesh.material.uniforms.uStartTimeS.needsUpdate = true;
 
-          barrierMesh.material.uniforms.uDirection.value.copy(barrierMesh.animationSpec.direction);
+          barrierMesh.material.uniforms.uDirection.value.copy(
+            barrierMesh.animationSpec.direction,
+          );
           barrierMesh.material.uniforms.uDirection.needsUpdate = true;
 
-          barrierMesh.material.uniforms.uSpeed.value = barrierMesh.animationSpec.speed;
+          barrierMesh.material.uniforms.uSpeed.value =
+            barrierMesh.animationSpec.speed;
           barrierMesh.material.uniforms.uSpeed.needsUpdate = true;
         } else {
           barrierMesh.material.uniforms.uSpeed.value = 0;
@@ -685,11 +746,16 @@ export default () => {
           const now = performance.now();
           const timeDiff = now - lastPeerCooldownTime;
           const v = Math.pow(timeDiff / 1000 / 2, 10);
-          barrierMesh.material.uniforms.peerCooldown.value = Math.min(Math.max(v, 0), 1);
+          barrierMesh.material.uniforms.peerCooldown.value = Math.min(
+            Math.max(v, 0),
+            1,
+          );
           barrierMesh.material.uniforms.peerCooldown.needsUpdate = true;
         }
 
-        barrierMesh.visible = barrierMesh.animationSpec ? barrierMesh.animationSpec.visible : true;
+        barrierMesh.visible = barrierMesh.animationSpec
+          ? barrierMesh.animationSpec.visible
+          : true;
       }
     };
     _updateMaterials();

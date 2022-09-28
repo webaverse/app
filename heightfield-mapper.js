@@ -25,28 +25,25 @@ const localVector = new THREE.Vector3();
 
 //
 
-const _makeHeightfieldRenderTarget = (w, h) => new THREE.WebGLRenderTarget(w, h, {
-  minFilter: THREE.LinearFilter,
-  magFilter: THREE.LinearFilter,
-  // minFilter: THREE.NearestFilter,
-  // magFilter: THREE.NearestFilter,
-  format: THREE.RedFormat,
-  type: THREE.FloatType,
-  // wrapS: THREE.RepeatWrapping,
-  // wrapT: THREE.RepeatWrapping,
-  wrapS: THREE.ClampToEdgeWrapping,
-  wrapT: THREE.ClampToEdgeWrapping,
-  stencilBuffer: false,
-  anisotropy: maxAnisotropy,
-  // flipY: false,
-});
+const _makeHeightfieldRenderTarget = (w, h) =>
+  new THREE.WebGLRenderTarget(w, h, {
+    minFilter: THREE.LinearFilter,
+    magFilter: THREE.LinearFilter,
+    // minFilter: THREE.NearestFilter,
+    // magFilter: THREE.NearestFilter,
+    format: THREE.RedFormat,
+    type: THREE.FloatType,
+    // wrapS: THREE.RepeatWrapping,
+    // wrapT: THREE.RepeatWrapping,
+    wrapS: THREE.ClampToEdgeWrapping,
+    wrapT: THREE.ClampToEdgeWrapping,
+    stencilBuffer: false,
+    anisotropy: maxAnisotropy,
+    // flipY: false,
+  });
 
 export class HeightfieldMapper /* extends EventTarget */ {
-  constructor({
-    procGenInstance,
-    size,
-    debug = false,
-  }) {
+  constructor({procGenInstance, size, debug = false}) {
     // super();
 
     this.procGenInstance = procGenInstance;
@@ -59,7 +56,10 @@ export class HeightfieldMapper /* extends EventTarget */ {
     this.queuedPosition = new THREE.Vector3();
 
     this.heightfieldRenderTarget = _makeHeightfieldRenderTarget(size, size);
-    this.heightfieldFourTapRenderTarget = _makeHeightfieldRenderTarget(size, size);
+    this.heightfieldFourTapRenderTarget = _makeHeightfieldRenderTarget(
+      size,
+      size,
+    );
     this.heightfieldTexture = new THREE.DataTexture(
       new Float32Array(size * size),
       size,
@@ -208,11 +208,7 @@ export class HeightfieldMapper /* extends EventTarget */ {
           size - 1,
           size - 1,
         )
-          .translate(
-            -0.5,
-            0.5,
-            0,
-          )
+          .translate(-0.5, 0.5, 0)
           .rotateX(-Math.PI / 2);
 
         const fullscreenVertexShader = `\
@@ -277,13 +273,14 @@ export class HeightfieldMapper /* extends EventTarget */ {
 
           if (this.debugMesh) {
             const lod = 1;
-            const heightfield = await this.procGenInstance.dcWorkerManager.getHeightfieldRange(
-              coord.x - this.size / 2,
-              coord.z - this.size / 2,
-              this.size,
-              this.size,
-              lod,
-            );
+            const heightfield =
+              await this.procGenInstance.dcWorkerManager.getHeightfieldRange(
+                coord.x - this.size / 2,
+                coord.z - this.size / 2,
+                this.size,
+                this.size,
+                lod,
+              );
 
             this.heightfieldTexture.image.data.set(heightfield);
             this.heightfieldTexture.needsUpdate = true;

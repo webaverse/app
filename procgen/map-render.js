@@ -43,13 +43,29 @@ const planeFragmentShader = `\
     vec3 c;
     float r = texture2D(map, vUv).r;
     if (isInRange(r, ${(MapBlock.TYPE_INDICES.exit / 255).toFixed(8)})) {
-      c = vec3(${new THREE.Color(MapBlock.COLORS.exit).toArray().map(n => n.toFixed(8)).join(', ')});
-    } else if (isInRange(r, ${(MapBlock.TYPE_INDICES.center / 255).toFixed(8)})) {
-      c = vec3(${new THREE.Color(MapBlock.COLORS.center).toArray().map(n => n.toFixed(8)).join(', ')});
-    } else if (isInRange(r, ${(MapBlock.TYPE_INDICES.spline / 255).toFixed(8)})) {
-      c = vec3(${new THREE.Color(MapBlock.COLORS.spline).toArray().map(n => n.toFixed(8)).join(', ')});
+      c = vec3(${new THREE.Color(MapBlock.COLORS.exit)
+        .toArray()
+        .map(n => n.toFixed(8))
+        .join(', ')});
+    } else if (isInRange(r, ${(MapBlock.TYPE_INDICES.center / 255).toFixed(
+      8,
+    )})) {
+      c = vec3(${new THREE.Color(MapBlock.COLORS.center)
+        .toArray()
+        .map(n => n.toFixed(8))
+        .join(', ')});
+    } else if (isInRange(r, ${(MapBlock.TYPE_INDICES.spline / 255).toFixed(
+      8,
+    )})) {
+      c = vec3(${new THREE.Color(MapBlock.COLORS.spline)
+        .toArray()
+        .map(n => n.toFixed(8))
+        .join(', ')});
     } else if (isInRange(r, ${(MapBlock.TYPE_INDICES.path / 255).toFixed(8)})) {
-      c = vec3(${new THREE.Color(MapBlock.COLORS.path).toArray().map(n => n.toFixed(8)).join(', ')});
+      c = vec3(${new THREE.Color(MapBlock.COLORS.path)
+        .toArray()
+        .map(n => n.toFixed(8))
+        .join(', ')});
     }
     gl_FragColor.rgb = c;
 
@@ -60,7 +76,10 @@ const planeFragmentShader = `\
       voxelUv.x <= limit || voxelUv.x >= (1. - limit) ||
       voxelUv.y <= limit || voxelUv.y >= (1. - limit)
     ) {
-      gl_FragColor.rgb = vec3(${new THREE.Color(0x111111).toArray().map(n => n.toFixed(8)).join(', ')});
+      gl_FragColor.rgb = vec3(${new THREE.Color(0x111111)
+        .toArray()
+        .map(n => n.toFixed(8))
+        .join(', ')});
     }
 
     // chunk border
@@ -72,7 +91,10 @@ const planeFragmentShader = `\
       if (uSelect > 0. && mod(iTime * 0.01, 2.) < 1.) {
         gl_FragColor.rgb = vec3(1.);
       } else {
-        gl_FragColor.rgb = vec3(${new THREE.Color(0x181818).toArray().map(n => n.toFixed(8)).join(', ')});
+        gl_FragColor.rgb = vec3(${new THREE.Color(0x181818)
+          .toArray()
+          .map(n => n.toFixed(8))
+          .join(', ')});
       }
     }
 
@@ -112,13 +134,17 @@ const planeFragmentShader = `\
   }
 `;
 export const createMapChunkMesh = (x, y, data) => {
-  const planeGeometry = new THREE.PlaneGeometry(chunkWorldSize, chunkWorldSize)
-    .applyMatrix4(
-      new THREE.Matrix4()
-        .makeRotationFromQuaternion(
-          new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(1, 0, 0), -Math.PI / 2),
-        ),
-    );
+  const planeGeometry = new THREE.PlaneGeometry(
+    chunkWorldSize,
+    chunkWorldSize,
+  ).applyMatrix4(
+    new THREE.Matrix4().makeRotationFromQuaternion(
+      new THREE.Quaternion().setFromAxisAngle(
+        new THREE.Vector3(1, 0, 0),
+        -Math.PI / 2,
+      ),
+    ),
+  );
   const dataTexture = new THREE.DataTexture(
     data,
     numBlocksPerChunk,
@@ -179,7 +205,8 @@ export const createMapChunkMesh = (x, y, data) => {
       mesh.material.uniforms.iTime.value = timestamp;
       mesh.material.uniforms.iTime.needsUpdate = true;
 
-      const t = timestamp - (mesh.hovered ? lastUnhoveredTime : lastHoveredTime);
+      const t =
+        timestamp - (mesh.hovered ? lastUnhoveredTime : lastHoveredTime);
       const tS = t / 1000;
       const v = cubicBezier(tS);
       mesh.material.uniforms.uHover.value = mesh.hovered ? v : 1 - v;

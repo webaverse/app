@@ -32,7 +32,11 @@ const _parseTrackerUpdate = bufferAddress => {
   let index = 0;
 
   const _parseNode = () => {
-    const min = new Int32Array(Module.HEAPU8.buffer, bufferAddress + index, 2).slice();
+    const min = new Int32Array(
+      Module.HEAPU8.buffer,
+      bufferAddress + index,
+      2,
+    ).slice();
     index += Int32Array.BYTES_PER_ELEMENT * 2;
 
     const lod = dataView.getInt32(index, true);
@@ -101,7 +105,11 @@ const _parseTrackerUpdate = bufferAddress => {
     };
   }; */
   const _parseChunkMin = () => {
-    const min = new Int32Array(Module.HEAPU8.buffer, bufferAddress + index, 2).slice();
+    const min = new Int32Array(
+      Module.HEAPU8.buffer,
+      bufferAddress + index,
+      2,
+    ).slice();
     index += 2 * Int32Array.BYTES_PER_ELEMENT;
     return min;
   };
@@ -204,11 +212,13 @@ w.eraseCubeDamage = function() {
   return cubeDamage(Module._eraseCubeDamage.bind(Module)).apply(this, arguments);
 }; */
 
-w.setClipRange = function(inst, range) {
+w.setClipRange = function (inst, range) {
   Module._setClipRange(
     inst,
-    range[0][0], range[0][1],
-    range[1][0], range[1][1],
+    range[0][0],
+    range[0][1],
+    range[1][0],
+    range[1][1],
   );
 };
 
@@ -271,37 +281,61 @@ const _parseChunkResult = (arrayBuffer, bufferAddress) => {
     // positions
     const numPositions = dataView2.getUint32(index2, true);
     index2 += Uint32Array.BYTES_PER_ELEMENT;
-    const positions = new Float32Array(arrayBuffer, bufferAddress + index2, numPositions * 3);
+    const positions = new Float32Array(
+      arrayBuffer,
+      bufferAddress + index2,
+      numPositions * 3,
+    );
     index2 += Float32Array.BYTES_PER_ELEMENT * numPositions * 3;
 
     // normals
     const numNormals = dataView2.getUint32(index2, true);
     index2 += Uint32Array.BYTES_PER_ELEMENT;
-    const normals = new Float32Array(arrayBuffer, bufferAddress + index2, numNormals * 3);
+    const normals = new Float32Array(
+      arrayBuffer,
+      bufferAddress + index2,
+      numNormals * 3,
+    );
     index2 += Float32Array.BYTES_PER_ELEMENT * numNormals * 3;
 
     // biomes
     const numBiomes = dataView2.getUint32(index2, true);
     index2 += Uint32Array.BYTES_PER_ELEMENT;
-    const biomes = new Int32Array(arrayBuffer, bufferAddress + index2, numBiomes * 4);
+    const biomes = new Int32Array(
+      arrayBuffer,
+      bufferAddress + index2,
+      numBiomes * 4,
+    );
     index2 += Int32Array.BYTES_PER_ELEMENT * numBiomes * 4;
 
     // biomes weights
     const numBiomesWeights = dataView2.getUint32(index2, true);
     index2 += Uint32Array.BYTES_PER_ELEMENT;
-    const biomesWeights = new Float32Array(arrayBuffer, bufferAddress + index2, numBiomesWeights * 4);
+    const biomesWeights = new Float32Array(
+      arrayBuffer,
+      bufferAddress + index2,
+      numBiomesWeights * 4,
+    );
     index2 += Float32Array.BYTES_PER_ELEMENT * numBiomesWeights * 4;
 
     // biomes uvs 1
     const numBiomesUvs1 = dataView2.getUint32(index2, true);
     index2 += Uint32Array.BYTES_PER_ELEMENT;
-    const biomesUvs1 = new Float32Array(arrayBuffer, bufferAddress + index2, numBiomesUvs1 * 4);
+    const biomesUvs1 = new Float32Array(
+      arrayBuffer,
+      bufferAddress + index2,
+      numBiomesUvs1 * 4,
+    );
     index2 += Float32Array.BYTES_PER_ELEMENT * numBiomesUvs1 * 4;
 
     // biomes uvs 2
     const numBiomesUvs2 = dataView2.getUint32(index2, true);
     index2 += Uint32Array.BYTES_PER_ELEMENT;
-    const biomesUvs2 = new Float32Array(arrayBuffer, bufferAddress + index2, numBiomesUvs2 * 4);
+    const biomesUvs2 = new Float32Array(
+      arrayBuffer,
+      bufferAddress + index2,
+      numBiomesUvs2 * 4,
+    );
     index2 += Float32Array.BYTES_PER_ELEMENT * numBiomesUvs2 * 4;
 
     // seeds
@@ -313,7 +347,11 @@ const _parseChunkResult = (arrayBuffer, bufferAddress) => {
     // indices
     const numIndices = dataView2.getUint32(index2, true);
     index2 += Uint32Array.BYTES_PER_ELEMENT;
-    const indices = new Uint32Array(arrayBuffer, bufferAddress + index2, numIndices);
+    const indices = new Uint32Array(
+      arrayBuffer,
+      bufferAddress + index2,
+      numIndices,
+    );
     index2 += Uint32Array.BYTES_PER_ELEMENT * numIndices;
 
     // skylights
@@ -360,25 +398,41 @@ const _parseChunkResult = (arrayBuffer, bufferAddress) => {
     // positions
     const numPositions = dataView2.getUint32(index2, true);
     index2 += Uint32Array.BYTES_PER_ELEMENT;
-    const positions = new Float32Array(arrayBuffer, bufferAddress + index2, numPositions * 3);
+    const positions = new Float32Array(
+      arrayBuffer,
+      bufferAddress + index2,
+      numPositions * 3,
+    );
     index2 += Float32Array.BYTES_PER_ELEMENT * numPositions * 3;
 
     // normals
     const numNormals = dataView2.getUint32(index2, true);
     index2 += Uint32Array.BYTES_PER_ELEMENT;
-    const normals = new Float32Array(arrayBuffer, bufferAddress + index2, numNormals * 3);
+    const normals = new Float32Array(
+      arrayBuffer,
+      bufferAddress + index2,
+      numNormals * 3,
+    );
     index2 += Float32Array.BYTES_PER_ELEMENT * numNormals * 3;
 
     // factors
     const numFactors = dataView2.getUint32(index2, true);
     index2 += Uint32Array.BYTES_PER_ELEMENT;
-    const factors = new Float32Array(arrayBuffer, bufferAddress + index2, numFactors);
+    const factors = new Float32Array(
+      arrayBuffer,
+      bufferAddress + index2,
+      numFactors,
+    );
     index2 += Int32Array.BYTES_PER_ELEMENT * numFactors;
 
     // indices
     const numIndices = dataView2.getUint32(index2, true);
     index2 += Uint32Array.BYTES_PER_ELEMENT;
-    const indices = new Uint32Array(arrayBuffer, bufferAddress + index2, numIndices);
+    const indices = new Uint32Array(
+      arrayBuffer,
+      bufferAddress + index2,
+      numIndices,
+    );
     index2 += Uint32Array.BYTES_PER_ELEMENT * numIndices;
 
     return {
@@ -399,31 +453,51 @@ const _parseChunkResult = (arrayBuffer, bufferAddress) => {
     // positions
     const numPositions = dataView2.getUint32(index2, true);
     index2 += Uint32Array.BYTES_PER_ELEMENT;
-    const positions = new Float32Array(arrayBuffer, bufferAddress + index2, numPositions * 3);
+    const positions = new Float32Array(
+      arrayBuffer,
+      bufferAddress + index2,
+      numPositions * 3,
+    );
     index2 += Float32Array.BYTES_PER_ELEMENT * numPositions * 3;
 
     // normals
     const numNormals = dataView2.getUint32(index2, true);
     index2 += Uint32Array.BYTES_PER_ELEMENT;
-    const normals = new Float32Array(arrayBuffer, bufferAddress + index2, numNormals * 3);
+    const normals = new Float32Array(
+      arrayBuffer,
+      bufferAddress + index2,
+      numNormals * 3,
+    );
     index2 += Float32Array.BYTES_PER_ELEMENT * numNormals * 3;
 
     // uvs
     const numUvs = dataView2.getUint32(index2, true);
     index2 += Uint32Array.BYTES_PER_ELEMENT;
-    const uvs = new Float32Array(arrayBuffer, bufferAddress + index2, numUvs * 2);
+    const uvs = new Float32Array(
+      arrayBuffer,
+      bufferAddress + index2,
+      numUvs * 2,
+    );
     index2 += Float32Array.BYTES_PER_ELEMENT * numUvs * 2;
 
     // positions2D
     const numPositions2D = dataView2.getUint32(index2, true);
     index2 += Uint32Array.BYTES_PER_ELEMENT;
-    const positions2D = new Int32Array(arrayBuffer, bufferAddress + index2, numPositions2D * 2);
+    const positions2D = new Int32Array(
+      arrayBuffer,
+      bufferAddress + index2,
+      numPositions2D * 2,
+    );
     index2 += Int32Array.BYTES_PER_ELEMENT * numPositions2D * 2;
 
     // indices
     const numIndices = dataView2.getUint32(index2, true);
     index2 += Uint32Array.BYTES_PER_ELEMENT;
-    const indices = new Uint32Array(arrayBuffer, bufferAddress + index2, numIndices);
+    const indices = new Uint32Array(
+      arrayBuffer,
+      bufferAddress + index2,
+      numIndices,
+    );
     index2 += Uint32Array.BYTES_PER_ELEMENT * numIndices;
 
     return {
@@ -446,7 +520,15 @@ const _parseChunkResult = (arrayBuffer, bufferAddress) => {
     barrierGeometry,
   };
 };
-w.createChunkMeshAsync = async (inst, taskId, x, z, lod, lodArray, generateFlagsInt) => {
+w.createChunkMeshAsync = async (
+  inst,
+  taskId,
+  x,
+  z,
+  lod,
+  lodArray,
+  generateFlagsInt,
+) => {
   const allocator = new Allocator(Module);
 
   const lodArray2 = allocator.alloc(Int32Array, 2);
@@ -455,7 +537,8 @@ w.createChunkMeshAsync = async (inst, taskId, x, z, lod, lodArray, generateFlags
   Module._createChunkMeshAsync(
     inst,
     taskId,
-    x, z,
+    x,
+    z,
     lod,
     lodArray2.byteOffset,
     generateFlagsInt,
@@ -477,14 +560,15 @@ w.createChunkMeshAsync = async (inst, taskId, x, z, lod, lodArray, generateFlags
     return null;
   }
 };
-w.createChunkGrassAsync = async (inst, taskId, x, z, lod, numGrassInstances) => {
-  Module._createChunkGrassAsync(
-    inst,
-    taskId,
-    x, z,
-    lod,
-    numGrassInstances,
-  );
+w.createChunkGrassAsync = async (
+  inst,
+  taskId,
+  x,
+  z,
+  lod,
+  numGrassInstances,
+) => {
+  Module._createChunkGrassAsync(inst, taskId, x, z, lod, numGrassInstances);
 
   const p = makePromise();
   cbs.set(taskId, p);
@@ -501,11 +585,19 @@ w.createChunkGrassAsync = async (inst, taskId, x, z, lod, numGrassInstances) => 
     return null;
   }
 };
-w.createChunkVegetationAsync = async (inst, taskId, x, z, lod, numVegetationInstances) => {
+w.createChunkVegetationAsync = async (
+  inst,
+  taskId,
+  x,
+  z,
+  lod,
+  numVegetationInstances,
+) => {
   Module._createChunkVegetationAsync(
     inst,
     taskId,
-    x, z,
+    x,
+    z,
     lod,
     numVegetationInstances,
   );
@@ -684,12 +776,20 @@ function _parseInstances(arrayBuffer, bufferAddress) {
 
     const psSize = dataView.getUint32(index, true);
     index += Uint32Array.BYTES_PER_ELEMENT;
-    const ps = new Float32Array(dataView.buffer, dataView.byteOffset + index, psSize);
+    const ps = new Float32Array(
+      dataView.buffer,
+      dataView.byteOffset + index,
+      psSize,
+    );
     index += psSize * Float32Array.BYTES_PER_ELEMENT;
 
     const qsSize = dataView.getUint32(index, true);
     index += Uint32Array.BYTES_PER_ELEMENT;
-    const qs = new Float32Array(dataView.buffer, dataView.byteOffset + index, qsSize);
+    const qs = new Float32Array(
+      dataView.buffer,
+      dataView.byteOffset + index,
+      qsSize,
+    );
     index += qsSize * Float32Array.BYTES_PER_ELEMENT;
 
     instances[i] = {

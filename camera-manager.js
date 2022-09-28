@@ -85,13 +85,11 @@ const getSideOfY = (() => {
 
   function getSideOfY(a, b) {
     localQuaternion.setFromRotationMatrix(
-      localMatrix.lookAt(
-        zeroVector,
-        a,
-        upVector,
-      ),
+      localMatrix.lookAt(zeroVector, a, upVector),
     );
-    const rightVector = localVector.set(1, 0, 0).applyQuaternion(localQuaternion);
+    const rightVector = localVector
+      .set(1, 0, 0)
+      .applyQuaternion(localQuaternion);
     localPlane.setFromNormalAndCoplanarPoint(rightVector, a);
     const distance = localPlane.distanceToPoint(b, localVector2);
     return distance >= 0 ? 1 : -1;
@@ -196,16 +194,21 @@ class CameraManager extends EventTarget {
     document.addEventListener('pointerlockchange', e => {
       let pointerLockElement = document.pointerLockElement;
       const renderer = getRenderer();
-      if (pointerLockElement !== null && pointerLockElement !== renderer.domElement) {
+      if (
+        pointerLockElement !== null &&
+        pointerLockElement !== renderer.domElement
+      ) {
         pointerLockElement = null;
       }
 
       this.pointerLockElement = pointerLockElement;
-      this.dispatchEvent(new MessageEvent('pointerlockchange', {
-        data: {
-          pointerLockElement,
-        },
-      }));
+      this.dispatchEvent(
+        new MessageEvent('pointerlockchange', {
+          data: {
+            pointerLockElement,
+          },
+        }),
+      );
     });
   }
 
@@ -256,10 +259,17 @@ class CameraManager extends EventTarget {
             };
             document.addEventListener('pointerlockerror', _pointerlockerror);
             const _cleanup = () => {
-              document.removeEventListener('pointerlockchange', _pointerlockchange);
-              document.removeEventListener('pointerlockerror', _pointerlockerror);
+              document.removeEventListener(
+                'pointerlockchange',
+                _pointerlockchange,
+              );
+              document.removeEventListener(
+                'pointerlockerror',
+                _pointerlockerror,
+              );
             };
-            renderer.domElement.requestPointerLock(options)
+            renderer.domElement
+              .requestPointerLock(options)
               .catch(_pointerlockerror);
           } else {
             accept();
@@ -292,14 +302,25 @@ class CameraManager extends EventTarget {
   handleMouseMove(e) {
     const {movementX, movementY} = e;
 
-    camera.position.add(localVector.copy(this.getCameraOffset()).applyQuaternion(camera.quaternion));
+    camera.position.add(
+      localVector
+        .copy(this.getCameraOffset())
+        .applyQuaternion(camera.quaternion),
+    );
 
     camera.rotation.y -= movementX * Math.PI * 2 * 0.0005;
     camera.rotation.x -= movementY * Math.PI * 2 * 0.0005;
-    camera.rotation.x = Math.min(Math.max(camera.rotation.x, -Math.PI * 0.35), Math.PI / 2);
+    camera.rotation.x = Math.min(
+      Math.max(camera.rotation.x, -Math.PI * 0.35),
+      Math.PI / 2,
+    );
     camera.quaternion.setFromEuler(camera.rotation);
 
-    camera.position.sub(localVector.copy(this.getCameraOffset()).applyQuaternion(camera.quaternion));
+    camera.position.sub(
+      localVector
+        .copy(this.getCameraOffset())
+        .applyQuaternion(camera.quaternion),
+    );
 
     camera.updateMatrixWorld();
 
@@ -325,7 +346,9 @@ class CameraManager extends EventTarget {
   flushShakes() {
     if (this.shakes.length > 0) {
       const now = performance.now();
-      this.shakes = this.shakes.filter(shake => now < shake.startTime + shake.decay);
+      this.shakes = this.shakes.filter(
+        shake => now < shake.startTime + shake.decay,
+      );
     }
   }
 
@@ -334,8 +357,18 @@ class CameraManager extends EventTarget {
     if (this.shakes.length > 0) {
       const now = performance.now();
       for (const shake of this.shakes) {
-        const distanceFactor = Math.min(Math.max((shake.radius - shake.position.distanceTo(camera.position)) / shake.radius, 0), 1);
-        const timeFactor = Math.min(Math.max(1 - (now - shake.startTime) / shake.decay, 0), 1);
+        const distanceFactor = Math.min(
+          Math.max(
+            (shake.radius - shake.position.distanceTo(camera.position)) /
+              shake.radius,
+            0,
+          ),
+          1,
+        );
+        const timeFactor = Math.min(
+          Math.max(1 - (now - shake.startTime) / shake.decay, 0),
+          1,
+        );
         // console.log('get shake factor', shake.intensity * distanceFactor * timeFactor, shake.intensity, distanceFactor, timeFactor);
         result += shake.intensity * distanceFactor * timeFactor;
       }
@@ -348,11 +381,13 @@ class CameraManager extends EventTarget {
       this.focus = focus;
       // this.lastFocusChangeTime = performance.now();
 
-      this.dispatchEvent(new MessageEvent('focuschange', {
-        data: {
-          focus,
-        },
-      }));
+      this.dispatchEvent(
+        new MessageEvent('focuschange', {
+          data: {
+            focus,
+          },
+        }),
+      );
     }
   }
 
@@ -365,55 +400,88 @@ class CameraManager extends EventTarget {
 
     if (this.target) {
       const _setCameraToDynamicTarget = () => {
-        this.target.matrixWorld.decompose(localVector, localQuaternion, localVector2);
+        this.target.matrixWorld.decompose(
+          localVector,
+          localQuaternion,
+          localVector2,
+        );
 
         if (this.target2) {
-          this.target2.matrixWorld.decompose(localVector3, localQuaternion2, localVector4);
-
-          const faceDirection = localVector5.set(0, 0, 1).applyQuaternion(localQuaternion);
-          const lookQuaternion = localQuaternion3.setFromRotationMatrix(
-            localMatrix.lookAt(
-              localVector,
-              localVector3,
-              upVector,
-            ),
+          this.target2.matrixWorld.decompose(
+            localVector3,
+            localQuaternion2,
+            localVector4,
           );
-          const lookDirection = localVector6.set(0, 0, -1).applyQuaternion(lookQuaternion);
+
+          const faceDirection = localVector5
+            .set(0, 0, 1)
+            .applyQuaternion(localQuaternion);
+          const lookQuaternion = localQuaternion3.setFromRotationMatrix(
+            localMatrix.lookAt(localVector, localVector3, upVector),
+          );
+          const lookDirection = localVector6
+            .set(0, 0, -1)
+            .applyQuaternion(lookQuaternion);
 
           const sideOfY = getSideOfY(faceDirection, lookDirection);
           const face = faceDirection.dot(lookDirection) >= 0 ? 1 : -1;
 
-          const dollyPosition = localVector7.copy(localVector)
+          const dollyPosition = localVector7
+            .copy(localVector)
             .add(localVector3)
             .multiplyScalar(0.5);
 
           dollyPosition.add(
-            localVector8.set(sideOfY * -0.3, 0, 0).applyQuaternion(lookQuaternion),
+            localVector8
+              .set(sideOfY * -0.3, 0, 0)
+              .applyQuaternion(lookQuaternion),
           );
 
-          const lookToDollyVector = localVector9.copy(dollyPosition).sub(localVector).normalize();
+          const lookToDollyVector = localVector9
+            .copy(dollyPosition)
+            .sub(localVector)
+            .normalize();
 
-          this.targetPosition.copy(localVector)
-            .add(lookToDollyVector);
+          this.targetPosition.copy(localVector).add(lookToDollyVector);
           this.targetQuaternion.setFromRotationMatrix(
-            localMatrix.lookAt(
-              lookToDollyVector,
-              zeroVector,
-              upVector,
-            ),
+            localMatrix.lookAt(lookToDollyVector, zeroVector, upVector),
           );
 
           if (face < 0) {
-            this.targetPosition.add(localVector10.set(0, 0, -0.8).applyQuaternion(this.targetQuaternion));
-            this.targetQuaternion.multiply(localQuaternion4.setFromAxisAngle(upVector, Math.PI));
-            this.targetPosition.add(localVector10.set(0, 0, 0.8).applyQuaternion(this.targetQuaternion));
+            this.targetPosition.add(
+              localVector10
+                .set(0, 0, -0.8)
+                .applyQuaternion(this.targetQuaternion),
+            );
+            this.targetQuaternion.multiply(
+              localQuaternion4.setFromAxisAngle(upVector, Math.PI),
+            );
+            this.targetPosition.add(
+              localVector10
+                .set(0, 0, 0.8)
+                .applyQuaternion(this.targetQuaternion),
+            );
           } else if (!this.lastTarget) {
-            this.targetPosition.add(localVector10.set(0, 0, -cameraOffsetDefault).applyQuaternion(this.targetQuaternion));
-            this.targetQuaternion.multiply(localQuaternion4.setFromAxisAngle(upVector, sideOfY * -Math.PI * 0.87));
-            this.targetPosition.add(localVector10.set(0, 0, cameraOffsetDefault).applyQuaternion(this.targetQuaternion));
+            this.targetPosition.add(
+              localVector10
+                .set(0, 0, -cameraOffsetDefault)
+                .applyQuaternion(this.targetQuaternion),
+            );
+            this.targetQuaternion.multiply(
+              localQuaternion4.setFromAxisAngle(
+                upVector,
+                sideOfY * -Math.PI * 0.87,
+              ),
+            );
+            this.targetPosition.add(
+              localVector10
+                .set(0, 0, cameraOffsetDefault)
+                .applyQuaternion(this.targetQuaternion),
+            );
           }
         } else {
-          this.targetPosition.copy(localVector)
+          this.targetPosition
+            .copy(localVector)
             .add(localVector2.set(0, 0, 1).applyQuaternion(localQuaternion));
           this.targetQuaternion.copy(localQuaternion);
         }
@@ -451,8 +519,13 @@ class CameraManager extends EventTarget {
         cameraOffset.z = cameraOffsetTargetZ;
 
         const localPlayer = playersManager.getLocalPlayer();
-        const targetPosition = localVector.copy(localPlayer.position)
-          .add(localVector2.set(0, 0, -cameraOffsetTargetZ).applyQuaternion(localPlayer.quaternion));
+        const targetPosition = localVector
+          .copy(localPlayer.position)
+          .add(
+            localVector2
+              .set(0, 0, -cameraOffsetTargetZ)
+              .applyQuaternion(localPlayer.quaternion),
+          );
         const targetQuaternion = localPlayer.quaternion;
         // camera.position.lerp(targetPosition, 0.2);
         // camera.quaternion.slerp(targetQuaternion, 0.2);
@@ -501,17 +574,34 @@ class CameraManager extends EventTarget {
     if (this.target) {
       const _setLerpDelta = (position, quaternion) => {
         const lerpTime = 2000;
-        const lastTimeFactor = Math.min(Math.max(cubicBezier((this.lastTimestamp - this.lerpStartTime) / lerpTime), 0), 1);
-        const currentTimeFactor = Math.min(Math.max(cubicBezier((timestamp - this.lerpStartTime) / lerpTime), 0), 1);
+        const lastTimeFactor = Math.min(
+          Math.max(
+            cubicBezier((this.lastTimestamp - this.lerpStartTime) / lerpTime),
+            0,
+          ),
+          1,
+        );
+        const currentTimeFactor = Math.min(
+          Math.max(cubicBezier((timestamp - this.lerpStartTime) / lerpTime), 0),
+          1,
+        );
         if (lastTimeFactor !== currentTimeFactor) {
           {
-            const lastLerp = localVector.copy(this.sourcePosition).lerp(this.targetPosition, lastTimeFactor);
-            const currentLerp = localVector2.copy(this.sourcePosition).lerp(this.targetPosition, currentTimeFactor);
+            const lastLerp = localVector
+              .copy(this.sourcePosition)
+              .lerp(this.targetPosition, lastTimeFactor);
+            const currentLerp = localVector2
+              .copy(this.sourcePosition)
+              .lerp(this.targetPosition, currentTimeFactor);
             position.add(currentLerp).sub(lastLerp);
           }
           {
-            const lastLerp = localQuaternion.copy(this.sourceQuaternion).slerp(this.targetQuaternion, lastTimeFactor);
-            const currentLerp = localQuaternion2.copy(this.sourceQuaternion).slerp(this.targetQuaternion, currentTimeFactor);
+            const lastLerp = localQuaternion
+              .copy(this.sourceQuaternion)
+              .slerp(this.targetQuaternion, lastTimeFactor);
+            const currentLerp = localQuaternion2
+              .copy(this.sourceQuaternion)
+              .slerp(this.targetQuaternion, currentTimeFactor);
             quaternion.premultiply(lastLerp.invert()).premultiply(currentLerp);
           }
         }
@@ -555,13 +645,20 @@ class CameraManager extends EventTarget {
             break;
           }
           case 'move': {
-            let factor = Math.min(Math.max((timeDiff - currentDuration) / currentLine.duration, 0), 1);
+            let factor = Math.min(
+              Math.max((timeDiff - currentDuration) / currentLine.duration, 0),
+              1,
+            );
             if (factor < 1) {
               factor = cubicBezier2(factor);
               const previousLine = this.cinematicScript[currentLineIndex - 1];
 
-              camera.position.copy(previousLine.position).lerp(currentLine.position, factor);
-              camera.quaternion.copy(previousLine.quaternion).slerp(currentLine.quaternion, factor);
+              camera.position
+                .copy(previousLine.position)
+                .lerp(currentLine.position, factor);
+              camera.quaternion
+                .copy(previousLine.quaternion)
+                .slerp(currentLine.quaternion, factor);
               camera.updateMatrixWorld();
 
               // console.log('previous line', previousLine, camera.position.toArray().join(','), camera.quaternion.toArray().join(','), factor);
@@ -583,7 +680,8 @@ class CameraManager extends EventTarget {
       }
     } else {
       const _bumpCamera = () => {
-        const direction = localVector.set(0, 0, 1)
+        const direction = localVector
+          .set(0, 0, 1)
           .applyQuaternion(camera.quaternion);
         const backOffset = 1;
         // const cameraBackThickness = 0.5;
@@ -599,7 +697,8 @@ class CameraManager extends EventTarget {
           const maxHits = 1;
 
           const result = physicsScene.sweepBox(
-            localVector3.copy(localPlayer.position)
+            localVector3
+              .copy(localPlayer.position)
               .add(localVector4.copy(direction).multiplyScalar(backOffset)),
             camera.quaternion,
             halfExtents,
@@ -621,14 +720,18 @@ class CameraManager extends EventTarget {
         if (cameraOffsetZ > -0.5) {
           cameraOffsetZ = 0;
         }
-        cameraOffset.z = cameraOffset.z * (1 - lerpFactor) + cameraOffsetZ * lerpFactor;
+        cameraOffset.z =
+          cameraOffset.z * (1 - lerpFactor) + cameraOffsetZ * lerpFactor;
       };
       _lerpCameraOffset();
 
       const _setFreeCamera = () => {
-        const avatarCameraOffset = session ? rayVectorZero : this.getCameraOffset();
+        const avatarCameraOffset = session
+          ? rayVectorZero
+          : this.getCameraOffset();
         const avatarHeight = localPlayer.avatar ? localPlayer.avatar.height : 0;
-        const crouchOffset = avatarHeight * (1 - localPlayer.getCrouchFactor()) * 0.5;
+        const crouchOffset =
+          avatarHeight * (1 - localPlayer.getCrouchFactor()) * 0.5;
 
         switch (this.getMode()) {
           case 'firstperson': {
@@ -638,31 +741,61 @@ class CameraManager extends EventTarget {
               const boneEyeR = localPlayer.avatar.foundModelBones.Eye_R;
               const boneHead = localPlayer.avatar.foundModelBones.Head;
 
-              boneNeck.quaternion.setFromEuler(localEuler.set(Math.min(camera.rotation.x * -0.5, 0.6), 0, 0, 'XYZ'));
+              boneNeck.quaternion.setFromEuler(
+                localEuler.set(
+                  Math.min(camera.rotation.x * -0.5, 0.6),
+                  0,
+                  0,
+                  'XYZ',
+                ),
+              );
               boneNeck.updateMatrixWorld();
 
               if (boneEyeL && boneEyeR) {
-                boneEyeL.matrixWorld.decompose(localVector2, localQuaternion, localVector4);
-                boneEyeR.matrixWorld.decompose(localVector3, localQuaternion, localVector4);
-                localVector4.copy(localVector2.add(localVector3).multiplyScalar(0.5));
+                boneEyeL.matrixWorld.decompose(
+                  localVector2,
+                  localQuaternion,
+                  localVector4,
+                );
+                boneEyeR.matrixWorld.decompose(
+                  localVector3,
+                  localQuaternion,
+                  localVector4,
+                );
+                localVector4.copy(
+                  localVector2.add(localVector3).multiplyScalar(0.5),
+                );
               } else {
-                boneHead.matrixWorld.decompose(localVector2, localQuaternion, localVector4);
-                localVector2.add(localVector3.set(0, 0, 0.1).applyQuaternion(localQuaternion));
+                boneHead.matrixWorld.decompose(
+                  localVector2,
+                  localQuaternion,
+                  localVector4,
+                );
+                localVector2.add(
+                  localVector3.set(0, 0, 0.1).applyQuaternion(localQuaternion),
+                );
                 localVector4.copy(localVector2);
               }
             } else {
               localVector4.copy(localPlayer.position);
             }
 
-            this.targetPosition.copy(localVector4)
-              .sub(localVector2.copy(avatarCameraOffset).applyQuaternion(this.targetQuaternion));
+            this.targetPosition
+              .copy(localVector4)
+              .sub(
+                localVector2
+                  .copy(avatarCameraOffset)
+                  .applyQuaternion(this.targetQuaternion),
+              );
 
             break;
           }
           case 'isometric': {
-            this.targetPosition.copy(localPlayer.position)
+            this.targetPosition
+              .copy(localPlayer.position)
               .sub(
-                localVector2.copy(avatarCameraOffset)
+                localVector2
+                  .copy(avatarCameraOffset)
                   .applyQuaternion(this.targetQuaternion),
               );
 
@@ -673,15 +806,20 @@ class CameraManager extends EventTarget {
           }
         }
 
-        const factor = Math.min((timestamp - this.lerpStartTime) / maxFocusTime, 1);
+        const factor = Math.min(
+          (timestamp - this.lerpStartTime) / maxFocusTime,
+          1,
+        );
 
         this.targetPosition.y -= crouchOffset;
-        camera.position.copy(this.sourcePosition)
+        camera.position
+          .copy(this.sourcePosition)
           .lerp(this.targetPosition, factor);
 
         localEuler.setFromQuaternion(this.targetQuaternion, 'YXZ');
         localEuler.z = 0;
-        camera.quaternion.copy(this.sourceQuaternion)
+        camera.quaternion
+          .copy(this.sourceQuaternion)
           .slerp(localQuaternion.setFromEuler(localEuler), factor);
       };
       _setFreeCamera();
@@ -691,7 +829,10 @@ class CameraManager extends EventTarget {
       if (!renderer.xr.getSession()) {
         let newFov;
 
-        const focusTime = Math.min((timestamp - this.lerpStartTime) / maxFocusTime, 1);
+        const focusTime = Math.min(
+          (timestamp - this.lerpStartTime) / maxFocusTime,
+          1,
+        );
         if (focusTime < 1) {
           this.fovFactor = 0;
 
@@ -725,11 +866,13 @@ class CameraManager extends EventTarget {
           camera.fov = newFov;
           camera.updateProjectionMatrix();
 
-          this.dispatchEvent(new MessageEvent('fovchange', {
-            data: {
-              fov: newFov,
-            },
-          }));
+          this.dispatchEvent(
+            new MessageEvent('fovchange', {
+              data: {
+                fov: newFov,
+              },
+            }),
+          );
         }
       }
     };
@@ -739,16 +882,14 @@ class CameraManager extends EventTarget {
       this.flushShakes();
       const shakeFactor = this.getShakeFactor();
       if (shakeFactor > 0) {
-        const baseTime = timestamp / 1000 * shakeAnimationSpeed;
+        const baseTime = (timestamp / 1000) * shakeAnimationSpeed;
         const timeOffset = 1000;
         const ndc = f => (-0.5 + f) * 2;
         let index = 0;
-        const randomValue = () => ndc(shakeNoise.noise1D(baseTime + timeOffset * index++));
-        localVector.set(
-          randomValue(),
-          randomValue(),
-          randomValue(),
-        )
+        const randomValue = () =>
+          ndc(shakeNoise.noise1D(baseTime + timeOffset * index++));
+        localVector
+          .set(randomValue(), randomValue(), randomValue())
           .normalize()
           .multiplyScalar(shakeFactor * randomValue());
         camera.position.add(localVector);

@@ -12,10 +12,7 @@ class AvatarManager extends EventTarget {
     this.cleanup = null;
 
     const playerSelectedFn = e => {
-      const {
-        oldPlayer,
-        player,
-      } = e.data;
+      const {oldPlayer, player} = e.data;
 
       if (oldPlayer) {
         this.unbindPlayer(oldPlayer);
@@ -38,26 +35,34 @@ class AvatarManager extends EventTarget {
 
     // forward player messages on player change
     const avatarchange = e => {
-      this.dispatchEvent(new MessageEvent('avatarchange', {
-        data: e,
-      }));
+      this.dispatchEvent(
+        new MessageEvent('avatarchange', {
+          data: e,
+        }),
+      );
     };
     player.addEventListener('avatarchange', avatarchange);
 
     const actionupdate = e => {
-      this.dispatchEvent(new MessageEvent('actionupdate', {
-        data: e,
-      }));
+      this.dispatchEvent(
+        new MessageEvent('actionupdate', {
+          data: e,
+        }),
+      );
     };
     const actionadd = e => {
-      this.dispatchEvent(new MessageEvent('actionadd', {
-        data: e,
-      }));
+      this.dispatchEvent(
+        new MessageEvent('actionadd', {
+          data: e,
+        }),
+      );
     };
     const actionremove = e => {
-      this.dispatchEvent(new MessageEvent('actionremove', {
-        data: e,
-      }));
+      this.dispatchEvent(
+        new MessageEvent('actionremove', {
+          data: e,
+        }),
+      );
     };
     player.addEventListener('actionadd', actionupdate);
     player.addEventListener('actionadd', actionadd);
@@ -89,6 +94,4 @@ class AvatarManager extends EventTarget {
   }
 }
 const avatarManager = new AvatarManager();
-export {
-  avatarManager,
-};
+export {avatarManager};

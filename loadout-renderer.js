@@ -141,16 +141,28 @@ const fullscreenFragmentShader = `\
     vec3 highlightColor = baseColor;
     if (isBorder) {
       if (uSelected > 0.) {
-        vec3 color3 = vec3(${new THREE.Color(0x59C173).toArray().map(n => n.toFixed(8)).join(', ')});
-        vec3 color4 = vec3(${new THREE.Color(0x5D26C1).toArray().map(n => n.toFixed(8)).join(', ')});
+        vec3 color3 = vec3(${new THREE.Color(0x59c173)
+          .toArray()
+          .map(n => n.toFixed(8))
+          .join(', ')});
+        vec3 color4 = vec3(${new THREE.Color(0x5d26c1)
+          .toArray()
+          .map(n => n.toFixed(8))
+          .join(', ')});
         vec3 colorMix2 = mix(color3, color4, vUv.y);
         
         highlightColor = colorMix2 * 0.5;
         // highlightColor.gb = vUv * 0.5;
       }
     } else {
-      vec3 color1 = vec3(${new THREE.Color(0x00F260).toArray().map(n => n.toFixed(8)).join(', ')});
-      vec3 color2 = vec3(${new THREE.Color(0x0575E6).toArray().map(n => n.toFixed(8)).join(', ')});
+      vec3 color1 = vec3(${new THREE.Color(0x00f260)
+        .toArray()
+        .map(n => n.toFixed(8))
+        .join(', ')});
+      vec3 color2 = vec3(${new THREE.Color(0x0575e6)
+        .toArray()
+        .map(n => n.toFixed(8))
+        .join(', ')});
       vec3 colorMix = mix(color1, color2, vUv.y);
 
       float extraIntensity = min(max(0.5 + fbm(uTime * 0.001 * 3., 3, 0.7), 0.), 1.) * 0.5;
@@ -241,8 +253,14 @@ const fullscreenFragmentShader = `\
       if (sum > 0.) {
         vec3 colorMix3 = mix(vec3(0.7), vec3(1.), vUv.y);
 
-        vec3 color3 = vec3(${new THREE.Color(0x59C173).toArray().map(n => n.toFixed(8)).join(', ')});
-        vec3 color4 = vec3(${new THREE.Color(0x5D26C1).toArray().map(n => n.toFixed(8)).join(', ')});
+        vec3 color3 = vec3(${new THREE.Color(0x59c173)
+          .toArray()
+          .map(n => n.toFixed(8))
+          .join(', ')});
+        vec3 color4 = vec3(${new THREE.Color(0x5d26c1)
+          .toArray()
+          .map(n => n.toFixed(8))
+          .join(', ')});
         vec3 colorMix2 = mix(color3, color4, vUv.y);
 
         vec3 outlineColor = mix(colorMix3, colorMix2, uSelectFactor);
@@ -346,14 +364,7 @@ class LoadoutRenderer {
     this.height = height;
 
     this.scene = _makeLoadoutRendererScene();
-    this.camera = new THREE.OrthographicCamera(
-      -1,
-      1,
-      1,
-      -1,
-      0,
-      1000,
-    );
+    this.camera = new THREE.OrthographicCamera(-1, 1, 1, -1, 0, 1000);
     this.canvases = [];
     this.selected = selected;
     this.selectFactor = +selected;
@@ -390,9 +401,11 @@ class LoadoutRenderer {
       this.scene.fullScreenQuadMesh.material.uniforms.uTex.needsUpdate = true;
       this.scene.fullScreenQuadMesh.material.uniforms.uTexEnabled.value = 1;
       this.scene.fullScreenQuadMesh.material.uniforms.uTexEnabled.needsUpdate = true;
-      this.scene.fullScreenQuadMesh.material.uniforms.numFrames.value = numFrames;
+      this.scene.fullScreenQuadMesh.material.uniforms.numFrames.value =
+        numFrames;
       this.scene.fullScreenQuadMesh.material.uniforms.numFrames.needsUpdate = true;
-      this.scene.fullScreenQuadMesh.material.uniforms.numFramesPerRow.value = numFramesPerRow;
+      this.scene.fullScreenQuadMesh.material.uniforms.numFramesPerRow.value =
+        numFramesPerRow;
       this.scene.fullScreenQuadMesh.material.uniforms.numFramesPerRow.needsUpdate = true;
     } else {
       /* this.scene.fullScreenQuadMesh.material.uniforms.uTex.value = null;
@@ -429,13 +442,18 @@ class LoadoutRenderer {
         const oldViewport = renderer.getViewport(localVector4D);
 
         {
-          const smoothedSelectFactor = this.selected ? cubicBezier(this.selectFactor) : 1 - cubicBezier(1 - this.selectFactor);
+          const smoothedSelectFactor = this.selected
+            ? cubicBezier(this.selectFactor)
+            : 1 - cubicBezier(1 - this.selectFactor);
 
-          this.scene.fullScreenQuadMesh.material.uniforms.uSelected.value = +this.selected;
+          this.scene.fullScreenQuadMesh.material.uniforms.uSelected.value =
+            +this.selected;
           this.scene.fullScreenQuadMesh.material.uniforms.uSelected.needsUpdate = true;
-          this.scene.fullScreenQuadMesh.material.uniforms.uSelectFactor.value = smoothedSelectFactor;
+          this.scene.fullScreenQuadMesh.material.uniforms.uSelectFactor.value =
+            smoothedSelectFactor;
           this.scene.fullScreenQuadMesh.material.uniforms.uSelectFactor.needsUpdate = true;
-          this.scene.fullScreenQuadMesh.material.uniforms.uTime.value = timestamp;
+          this.scene.fullScreenQuadMesh.material.uniforms.uTime.value =
+            timestamp;
           this.scene.fullScreenQuadMesh.material.uniforms.uTime.needsUpdate = true;
 
           renderer.setViewport(0, 0, this.width, this.height);
@@ -451,11 +469,7 @@ class LoadoutRenderer {
 
       const _copyToCanvases = () => {
         for (const canvas of this.canvases) {
-          const {
-            width,
-            height,
-            ctx,
-          } = canvas;
+          const {width, height, ctx} = canvas;
           ctx.clearRect(0, 0, width, height);
           ctx.drawImage(
             renderer.domElement,
@@ -472,11 +486,10 @@ class LoadoutRenderer {
       };
       _copyToCanvases();
 
-      this.needsUpdate = this.selected || this.selectFactor !== lastSelectFactor;
+      this.needsUpdate =
+        this.selected || this.selectFactor !== lastSelectFactor;
     }
   }
 }
 
-export {
-  LoadoutRenderer,
-};
+export {LoadoutRenderer};

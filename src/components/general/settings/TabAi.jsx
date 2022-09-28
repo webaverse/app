@@ -1,4 +1,3 @@
-
 import React, {useEffect, useState} from 'react';
 import classNames from 'classnames';
 
@@ -47,7 +46,9 @@ export const TabAi = ({active}) => {
   useEffect(() => {
     let live = true;
     (async () => {
-      const hasApiKey = await preauthenticator.hasAuthenticatedApi(authenticatedApiName);
+      const hasApiKey = await preauthenticator.hasAuthenticatedApi(
+        authenticatedApiName,
+      );
       // console.log('has api key', hasApiKey);
       if (!live) return;
       setApiKeyEnabled(hasApiKey);
@@ -61,15 +62,22 @@ export const TabAi = ({active}) => {
 
   const _getApiUrl = apiType => {
     switch (apiType) {
-      case 'NONE': return null;
-      case 'AI21': return 'https://ai.webaverse.com/ai21/v1/engines/j1-large/completions';
-      case 'GOOSEAI': return 'https://ai.webaverse.com/gooseai/v1/engines/gpt-neo-20b/completions';
-      case 'OPENAI': return 'https://api.openai.com/v1/engines/text-davinci-002/completions';
-      case 'CONVAI': return 'https://api.convai.com/webaverse';
-      default: return null;
+      case 'NONE':
+        return null;
+      case 'AI21':
+        return 'https://ai.webaverse.com/ai21/v1/engines/j1-large/completions';
+      case 'GOOSEAI':
+        return 'https://ai.webaverse.com/gooseai/v1/engines/gpt-neo-20b/completions';
+      case 'OPENAI':
+        return 'https://api.openai.com/v1/engines/text-davinci-002/completions';
+      case 'CONVAI':
+        return 'https://api.convai.com/webaverse';
+      default:
+        return null;
     }
   };
-  const _apiTypeNeedsApiKey = apiType => apiType === 'OPENAI' || apiType === 'CONVAI';
+  const _apiTypeNeedsApiKey = apiType =>
+    apiType === 'OPENAI' || apiType === 'CONVAI';
 
   function updateLoreEndpoint(apiType) {
     const url = _getApiUrl(apiType);
@@ -77,7 +85,11 @@ export const TabAi = ({active}) => {
       // console.log('lore ai set endpoint', {authenticatedApiName, url});
       loreAI.setEndpoint(async query => {
         // console.log('call lore ai endpoint', {authenticatedApiName, url, query});
-        return await preauthenticator.callAuthenticatedApi(authenticatedApiName, url, query);
+        return await preauthenticator.callAuthenticatedApi(
+          authenticatedApiName,
+          url,
+          query,
+        );
       });
     } else {
       loreAI.setEndpointUrl(url);
@@ -98,7 +110,11 @@ export const TabAi = ({active}) => {
         const origin = new URL(url).origin;
 
         (async () => {
-          await preauthenticator.setAuthenticatedApi(authenticatedApiName, origin, `Bearer ${apiKey}`);
+          await preauthenticator.setAuthenticatedApi(
+            authenticatedApiName,
+            origin,
+            `Bearer ${apiKey}`,
+          );
           setApiKeyEnabled(true);
         })().catch(err => {
           console.warn(err);
@@ -150,7 +166,9 @@ export const TabAi = ({active}) => {
 
     setChangesNotSaved(false);
 
-    setTimeout(() => { setAppyingChanges(false); }, 1000);
+    setTimeout(() => {
+      setAppyingChanges(false);
+    }, 1000);
   }
 
   function handleApplySettingsBtnClick(event) {
@@ -194,44 +212,69 @@ export const TabAi = ({active}) => {
   //
 
   return (
-        <div className={ classNames(styles.apiKeysTab, styles.tabContent, active ? styles.active : null) }>
-            <div className={ styles.blockTitle }>MODEL</div>
-            <div className={ styles.row }>
-                <div className={ styles.paramName }>Provider</div>
-                <Switch className={ styles.switch } value={ apiType } setValue={ setApiType } values={ ApiTypes } />
-                {_apiTypeNeedsApiKey(apiType)
-                  ? <input
-                        type="text"
-                        className={ classNames(styles.input, apiKeyEnabled ? styles.enabled : null) }
-                        value={ apiKey ?? '' }
-                        onChange={e => setApiKey(e.target.value) }
-                        placeholder={`API Key${apiKeyEnabled ? ' (set)' : ''}`}
-                    />
-                  : null}
-                <div className={ styles.clearfix } />
-            </div>
+    <div
+      className={classNames(
+        styles.apiKeysTab,
+        styles.tabContent,
+        active ? styles.active : null,
+      )}
+    >
+      <div className={styles.blockTitle}>MODEL</div>
+      <div className={styles.row}>
+        <div className={styles.paramName}>Provider</div>
+        <Switch
+          className={styles.switch}
+          value={apiType}
+          setValue={setApiType}
+          values={ApiTypes}
+        />
+        {_apiTypeNeedsApiKey(apiType) ? (
+          <input
+            type="text"
+            className={classNames(
+              styles.input,
+              apiKeyEnabled ? styles.enabled : null,
+            )}
+            value={apiKey ?? ''}
+            onChange={e => setApiKey(e.target.value)}
+            placeholder={`API Key${apiKeyEnabled ? ' (set)' : ''}`}
+          />
+        ) : null}
+        <div className={styles.clearfix} />
+      </div>
 
-            {debugEnabled
-              ? (<>
-                <div className={ styles.blockTitle }>Test</div>
-                <div className={ styles.row }>
+      {debugEnabled ? (
+        <>
+          <div className={styles.blockTitle}>Test</div>
+          <div className={styles.row}>
+            <textarea
+              className={styles.textarea}
+              value={testText}
+              onChange={e => {
+                setTestText(e.target.value);
+              }}
+            ></textarea>
+            <div className={styles.clearfix} />
+            <input
+              type="button"
+              className={styles.button}
+              value={testRunning ? 'Working...' : 'Submit'}
+              disabled={testRunning}
+              onClick={testAi}
+            />
+          </div>
+        </>
+      ) : null}
 
-                    <textarea
-                        className={ styles.textarea }
-                        value={testText}
-                        onChange={e => {
-                          setTestText(e.target.value);
-                        }}
-                    ></textarea>
-                    <div className={ styles.clearfix } />
-                    <input type="button" className={ styles.button } value={ testRunning ? 'Working...' : 'Submit' } disabled={testRunning} onClick={testAi} />
-                </div>
-            </>)
-              : null}
-
-            <div className={ classNames(styles.applyBtn, changesNotSaved ? styles.active : null) } onClick={ handleApplySettingsBtnClick } >
-                { appyingChanges ? 'APPLYING' : 'APPLY' }
-            </div>
-        </div>
+      <div
+        className={classNames(
+          styles.applyBtn,
+          changesNotSaved ? styles.active : null,
+        )}
+        onClick={handleApplySettingsBtnClick}
+      >
+        {appyingChanges ? 'APPLYING' : 'APPLY'}
+      </div>
+    </div>
   );
 };

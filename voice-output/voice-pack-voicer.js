@@ -49,15 +49,9 @@ class VoicePack {
     };
   }
 
-  static async load({
-    audioUrl,
-    indexUrl,
-  }) {
+  static async load({audioUrl, indexUrl}) {
     const audioContext = audioManager.getAudioContext();
-    const [
-      files,
-      audioBuffer,
-    ] = await Promise.all([
+    const [files, audioBuffer] = await Promise.all([
       (async () => {
         const res = await fetch(indexUrl);
         const j = await res.json();
@@ -156,7 +150,4 @@ class VoicePackVoicer {
   }
 }
 
-export {
-  VoicePack,
-  VoicePackVoicer,
-};
+export {VoicePack, VoicePackVoicer};

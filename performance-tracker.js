@@ -145,7 +145,7 @@ class PerformanceTracker extends EventTarget {
   decorateApp(app) {
     const self = this;
     const _makeOnBeforeRender = fn => {
-      const resultFn = function() {
+      const resultFn = function () {
         self.startGpuObject(app.modulesHash, app.name);
         fn && fn.apply(this, arguments);
       };
@@ -153,7 +153,7 @@ class PerformanceTracker extends EventTarget {
       return resultFn;
     };
     const _makeOnAfterRender = fn => {
-      const resultFn = function() {
+      const resultFn = function () {
         if (self.currentGpuObject?.id === app.modulesHash) {
           self.endGpuObject();
         }
@@ -194,7 +194,10 @@ class PerformanceTracker extends EventTarget {
       for (const query of qs) {
         // wait for query result
         for (;;) {
-          const available = gl.getQueryParameter(query, gl.QUERY_RESULT_AVAILABLE);
+          const available = gl.getQueryParameter(
+            query,
+            gl.QUERY_RESULT_AVAILABLE,
+          );
           if (available) {
             break;
           } else {
@@ -255,13 +258,16 @@ class PerformanceTracker extends EventTarget {
           name: o.name,
           time: o.time / o.count,
         };
-      }).sort((a, b) => b.time - a.time);
-    const gpuResults = Array.from(gpu.values()).map(o => {
-      return {
-        name: o.name,
-        time: o.time / o.count,
-      };
-    }).sort((a, b) => b.time - a.time);
+      })
+      .sort((a, b) => b.time - a.time);
+    const gpuResults = Array.from(gpu.values())
+      .map(o => {
+        return {
+          name: o.name,
+          time: o.time / o.count,
+        };
+      })
+      .sort((a, b) => b.time - a.time);
     return {
       cpuResults,
       gpuResults,
@@ -284,12 +290,14 @@ class PerformanceTracker extends EventTarget {
       this.snapshotIndex = (this.snapshotIndex + 1) % numSnapshots;
 
       const now = performance.now();
-      if ((now - this.lastSnapshotTime) > 1000) {
+      if (now - this.lastSnapshotTime > 1000) {
         // console.log('get smoothed snapshot');
         const snapshot = this.getSmoothedSnapshot();
-        this.dispatchEvent(new MessageEvent('snapshot', {
-          data: snapshot,
-        }));
+        this.dispatchEvent(
+          new MessageEvent('snapshot', {
+            data: snapshot,
+          }),
+        );
         this.lastSnapshotTime = now;
       }
     })();

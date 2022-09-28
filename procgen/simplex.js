@@ -28,7 +28,7 @@ Better rank ordering method by Stefan Gustavson in 2012.
  */
 // const exports = {};
 // const module = {exports};
-const Simplex = (function() {
+const Simplex = (function () {
   'use strict';
 
   var F2 = 0.5 * (Math.sqrt(3.0) - 1.0);
@@ -42,8 +42,7 @@ const Simplex = (function() {
     var random;
     if (typeof randomOrSeed == 'function') {
       random = randomOrSeed;
-    }
-    else if (randomOrSeed) {
+    } else if (randomOrSeed) {
       random = alea(randomOrSeed);
     } else {
       random = Math.random;
@@ -55,33 +54,26 @@ const Simplex = (function() {
       this.perm[i] = this.p[i & 255];
       this.permMod12[i] = this.perm[i] % 12;
     }
-
   }
   SimplexNoise.prototype = {
-    grad3: new Float32Array([1, 1, 0,
-      -1, 1, 0,
-      1, -1, 0,
+    grad3: new Float32Array([
+      1, 1, 0, -1, 1, 0, 1, -1, 0,
 
-      -1, -1, 0,
-      1, 0, 1,
-      -1, 0, 1,
+      -1, -1, 0, 1, 0, 1, -1, 0, 1,
 
-      1, 0, -1,
-      -1, 0, -1,
-      0, 1, 1,
+      1, 0, -1, -1, 0, -1, 0, 1, 1,
 
-      0, -1, 1,
-      0, 1, -1,
-      0, -1, -1]),
-    grad4: new Float32Array([0, 1, 1, 1, 0, 1, 1, -1, 0, 1, -1, 1, 0, 1, -1, -1,
-      0, -1, 1, 1, 0, -1, 1, -1, 0, -1, -1, 1, 0, -1, -1, -1,
-      1, 0, 1, 1, 1, 0, 1, -1, 1, 0, -1, 1, 1, 0, -1, -1,
-      -1, 0, 1, 1, -1, 0, 1, -1, -1, 0, -1, 1, -1, 0, -1, -1,
-      1, 1, 0, 1, 1, 1, 0, -1, 1, -1, 0, 1, 1, -1, 0, -1,
-      -1, 1, 0, 1, -1, 1, 0, -1, -1, -1, 0, 1, -1, -1, 0, -1,
-      1, 1, 1, 0, 1, 1, -1, 0, 1, -1, 1, 0, 1, -1, -1, 0,
-      -1, 1, 1, 0, -1, 1, -1, 0, -1, -1, 1, 0, -1, -1, -1, 0]),
-    noise2D: function(xin, yin) {
+      0, -1, 1, 0, 1, -1, 0, -1, -1,
+    ]),
+    grad4: new Float32Array([
+      0, 1, 1, 1, 0, 1, 1, -1, 0, 1, -1, 1, 0, 1, -1, -1, 0, -1, 1, 1, 0, -1, 1,
+      -1, 0, -1, -1, 1, 0, -1, -1, -1, 1, 0, 1, 1, 1, 0, 1, -1, 1, 0, -1, 1, 1,
+      0, -1, -1, -1, 0, 1, 1, -1, 0, 1, -1, -1, 0, -1, 1, -1, 0, -1, -1, 1, 1,
+      0, 1, 1, 1, 0, -1, 1, -1, 0, 1, 1, -1, 0, -1, -1, 1, 0, 1, -1, 1, 0, -1,
+      -1, -1, 0, 1, -1, -1, 0, -1, 1, 1, 1, 0, 1, 1, -1, 0, 1, -1, 1, 0, 1, -1,
+      -1, 0, -1, 1, 1, 0, -1, 1, -1, 0, -1, -1, 1, 0, -1, -1, -1, 0,
+    ]),
+    noise2D: function (xin, yin) {
       var permMod12 = this.permMod12;
       var perm = this.perm;
       var grad3 = this.grad3;
@@ -142,7 +134,7 @@ const Simplex = (function() {
       return 70.0 * (n0 + n1 + n2);
     },
     // 3D simplex noise
-    noise3D: function(xin, yin, zin) {
+    noise3D: function (xin, yin, zin) {
       var permMod12 = this.permMod12;
       var perm = this.perm;
       var grad3 = this.grad3;
@@ -188,8 +180,8 @@ const Simplex = (function() {
           j2 = 0;
           k2 = 1;
         } // Z X Y order
-      }
-      else { // x0<y0
+      } else {
+        // x0<y0
         if (y0 < z0) {
           i1 = 0;
           j1 = 0;
@@ -238,35 +230,47 @@ const Simplex = (function() {
       else {
         var gi0 = permMod12[ii + perm[jj + perm[kk]]] * 3;
         t0 *= t0;
-        n0 = t0 * t0 * (grad3[gi0] * x0 + grad3[gi0 + 1] * y0 + grad3[gi0 + 2] * z0);
+        n0 =
+          t0 *
+          t0 *
+          (grad3[gi0] * x0 + grad3[gi0 + 1] * y0 + grad3[gi0 + 2] * z0);
       }
       var t1 = 0.6 - x1 * x1 - y1 * y1 - z1 * z1;
       if (t1 < 0) n1 = 0.0;
       else {
         var gi1 = permMod12[ii + i1 + perm[jj + j1 + perm[kk + k1]]] * 3;
         t1 *= t1;
-        n1 = t1 * t1 * (grad3[gi1] * x1 + grad3[gi1 + 1] * y1 + grad3[gi1 + 2] * z1);
+        n1 =
+          t1 *
+          t1 *
+          (grad3[gi1] * x1 + grad3[gi1 + 1] * y1 + grad3[gi1 + 2] * z1);
       }
       var t2 = 0.6 - x2 * x2 - y2 * y2 - z2 * z2;
       if (t2 < 0) n2 = 0.0;
       else {
         var gi2 = permMod12[ii + i2 + perm[jj + j2 + perm[kk + k2]]] * 3;
         t2 *= t2;
-        n2 = t2 * t2 * (grad3[gi2] * x2 + grad3[gi2 + 1] * y2 + grad3[gi2 + 2] * z2);
+        n2 =
+          t2 *
+          t2 *
+          (grad3[gi2] * x2 + grad3[gi2 + 1] * y2 + grad3[gi2 + 2] * z2);
       }
       var t3 = 0.6 - x3 * x3 - y3 * y3 - z3 * z3;
       if (t3 < 0) n3 = 0.0;
       else {
         var gi3 = permMod12[ii + 1 + perm[jj + 1 + perm[kk + 1]]] * 3;
         t3 *= t3;
-        n3 = t3 * t3 * (grad3[gi3] * x3 + grad3[gi3 + 1] * y3 + grad3[gi3 + 2] * z3);
+        n3 =
+          t3 *
+          t3 *
+          (grad3[gi3] * x3 + grad3[gi3 + 1] * y3 + grad3[gi3 + 2] * z3);
       }
       // Add contributions from each corner to get the final noise value.
       // The result is scaled to stay just inside [-1,1]
       return 32.0 * (n0 + n1 + n2 + n3);
     },
     // 4D simplex noise, better simplex rank ordering method 2012-03-09
-    noise4D: function(x, y, z, w) {
+    noise4D: function (x, y, z, w) {
       var perm = this.perm;
       var grad4 = this.grad4;
 
@@ -357,39 +361,76 @@ const Simplex = (function() {
       else {
         var gi0 = (perm[ii + perm[jj + perm[kk + perm[ll]]]] % 32) * 4;
         t0 *= t0;
-        n0 = t0 * t0 * (grad4[gi0] * x0 + grad4[gi0 + 1] * y0 + grad4[gi0 + 2] * z0 + grad4[gi0 + 3] * w0);
+        n0 =
+          t0 *
+          t0 *
+          (grad4[gi0] * x0 +
+            grad4[gi0 + 1] * y0 +
+            grad4[gi0 + 2] * z0 +
+            grad4[gi0 + 3] * w0);
       }
       var t1 = 0.6 - x1 * x1 - y1 * y1 - z1 * z1 - w1 * w1;
       if (t1 < 0) n1 = 0.0;
       else {
-        var gi1 = (perm[ii + i1 + perm[jj + j1 + perm[kk + k1 + perm[ll + l1]]]] % 32) * 4;
+        var gi1 =
+          (perm[ii + i1 + perm[jj + j1 + perm[kk + k1 + perm[ll + l1]]]] % 32) *
+          4;
         t1 *= t1;
-        n1 = t1 * t1 * (grad4[gi1] * x1 + grad4[gi1 + 1] * y1 + grad4[gi1 + 2] * z1 + grad4[gi1 + 3] * w1);
+        n1 =
+          t1 *
+          t1 *
+          (grad4[gi1] * x1 +
+            grad4[gi1 + 1] * y1 +
+            grad4[gi1 + 2] * z1 +
+            grad4[gi1 + 3] * w1);
       }
       var t2 = 0.6 - x2 * x2 - y2 * y2 - z2 * z2 - w2 * w2;
       if (t2 < 0) n2 = 0.0;
       else {
-        var gi2 = (perm[ii + i2 + perm[jj + j2 + perm[kk + k2 + perm[ll + l2]]]] % 32) * 4;
+        var gi2 =
+          (perm[ii + i2 + perm[jj + j2 + perm[kk + k2 + perm[ll + l2]]]] % 32) *
+          4;
         t2 *= t2;
-        n2 = t2 * t2 * (grad4[gi2] * x2 + grad4[gi2 + 1] * y2 + grad4[gi2 + 2] * z2 + grad4[gi2 + 3] * w2);
+        n2 =
+          t2 *
+          t2 *
+          (grad4[gi2] * x2 +
+            grad4[gi2 + 1] * y2 +
+            grad4[gi2 + 2] * z2 +
+            grad4[gi2 + 3] * w2);
       }
       var t3 = 0.6 - x3 * x3 - y3 * y3 - z3 * z3 - w3 * w3;
       if (t3 < 0) n3 = 0.0;
       else {
-        var gi3 = (perm[ii + i3 + perm[jj + j3 + perm[kk + k3 + perm[ll + l3]]]] % 32) * 4;
+        var gi3 =
+          (perm[ii + i3 + perm[jj + j3 + perm[kk + k3 + perm[ll + l3]]]] % 32) *
+          4;
         t3 *= t3;
-        n3 = t3 * t3 * (grad4[gi3] * x3 + grad4[gi3 + 1] * y3 + grad4[gi3 + 2] * z3 + grad4[gi3 + 3] * w3);
+        n3 =
+          t3 *
+          t3 *
+          (grad4[gi3] * x3 +
+            grad4[gi3 + 1] * y3 +
+            grad4[gi3 + 2] * z3 +
+            grad4[gi3 + 3] * w3);
       }
       var t4 = 0.6 - x4 * x4 - y4 * y4 - z4 * z4 - w4 * w4;
       if (t4 < 0) n4 = 0.0;
       else {
-        var gi4 = (perm[ii + 1 + perm[jj + 1 + perm[kk + 1 + perm[ll + 1]]]] % 32) * 4;
+        var gi4 =
+          (perm[ii + 1 + perm[jj + 1 + perm[kk + 1 + perm[ll + 1]]]] % 32) * 4;
         t4 *= t4;
-        n4 = t4 * t4 * (grad4[gi4] * x4 + grad4[gi4 + 1] * y4 + grad4[gi4 + 2] * z4 + grad4[gi4 + 3] * w4);
+        n4 =
+          t4 *
+          t4 *
+          (grad4[gi4] * x4 +
+            grad4[gi4 + 1] * y4 +
+            grad4[gi4 + 2] * z4 +
+            grad4[gi4 + 3] * w4);
       }
       // Sum up and scale the result to cover the range [-1,1]
       return 27.0 * (n0 + n1 + n2 + n3 + n4);
-    }
+    },
   };
 
   function buildPermutationTable(random) {
@@ -439,16 +480,16 @@ const Simplex = (function() {
       }
     }
     mash = null;
-    return function() {
+    return function () {
       var t = 2091639 * s0 + c * 2.3283064365386963e-10; // 2^-32
       s0 = s1;
       s1 = s2;
-      return s2 = t - (c = t | 0);
+      return (s2 = t - (c = t | 0));
     };
   }
   function masher() {
     var n = 0xefc8249d;
-    return function(data) {
+    return function (data) {
       data = data.toString();
       for (var i = 0; i < data.length; i++) {
         n += data.charCodeAt(i);
@@ -489,14 +530,11 @@ class MultiSimplex {
     let result = 0;
     for (let i = 0; i < this.simplexes.length; i++) {
       const simplex = this.simplexes[i];
-      result += simplex.noise2D(x * (2**i), z * (2**i));
+      result += simplex.noise2D(x * 2 ** i, z * 2 ** i);
     }
     // result /= this.simplexes.length;
     return result;
   }
 }
 
-export {
-  Simplex,
-  MultiSimplex,
-};
+export {Simplex, MultiSimplex};

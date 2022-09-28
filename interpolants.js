@@ -102,10 +102,11 @@ export class SnapshotInterpolant {
       }
     }
 
-    if (maxEndTime > 0) { // if we had at least one snapshot
+    if (maxEndTime > 0) {
+      // if we had at least one snapshot
       if (
-        (this.readTime - this.timeDelay) < minEndTime ||
-        (this.readTime - this.timeDelay) > maxEndTime
+        this.readTime - this.timeDelay < minEndTime ||
+        this.readTime - this.timeDelay > maxEndTime
       ) {
         this.readTime = maxEndTime;
       }
@@ -125,7 +126,10 @@ export class SnapshotInterpolant {
         const startTime = prevSnapshot.endTime;
         if (t >= startTime) {
           const duration = snapshot.endTime - startTime;
-          const f = (duration > 0 && duration < Infinity) ? ((t - startTime) / duration) : 0;
+          const f =
+            duration > 0 && duration < Infinity
+              ? (t - startTime) / duration
+              : 0;
           const {startValue} = snapshot;
           const nextSnapshot = this.snapshots[mod(index + 1, this.numFrames)];
           const {startValue: endValue} = nextSnapshot;
@@ -134,7 +138,11 @@ export class SnapshotInterpolant {
         }
       }
     }
-    console.warn('could not seek to time', t, JSON.parse(JSON.stringify(this.snapshots)));
+    console.warn(
+      'could not seek to time',
+      t,
+      JSON.parse(JSON.stringify(this.snapshots)),
+    );
   }
 
   snapshot(timeDiff) {
@@ -142,7 +150,8 @@ export class SnapshotInterpolant {
     // console.log('got value', value.join(','), timeDiff);
     const writeSnapshot = this.snapshots[this.snapshotWriteIndex];
 
-    const lastWriteSnapshot = this.snapshots[mod(this.snapshotWriteIndex - 1, this.numFrames)];
+    const lastWriteSnapshot =
+      this.snapshots[mod(this.snapshotWriteIndex - 1, this.numFrames)];
     const startTime = lastWriteSnapshot.endTime;
 
     writeSnapshot.startValue = this.readFn(writeSnapshot.startValue, value);
@@ -158,13 +167,20 @@ export class SnapshotInterpolant {
 
 export class BinaryInterpolant extends SnapshotInterpolant {
   constructor(fn, timeDelay, numFrames) {
-    super(fn, timeDelay, numFrames, () => false, (target, value) => {
-      // console.log('read value', value);
-      return value;
-    }, (target, src, dst, f) => {
-      // console.log('seek', target, src, dst, f);
-      return src;
-    });
+    super(
+      fn,
+      timeDelay,
+      numFrames,
+      () => false,
+      (target, value) => {
+        // console.log('read value', value);
+        return value;
+      },
+      (target, src, dst, f) => {
+        // console.log('seek', target, src, dst, f);
+        return src;
+      },
+    );
   }
   /* snapshot(timeDiff) {
     debugger;
@@ -173,25 +189,39 @@ export class BinaryInterpolant extends SnapshotInterpolant {
 
 export class PositionInterpolant extends SnapshotInterpolant {
   constructor(fn, timeDelay, numFrames) {
-    super(fn, timeDelay, numFrames, () => new THREE.Vector3(), (target, value) => {
-      target.fromArray(value);
-      if (isNaN(target.x) || isNaN(target.y) || isNaN(target.z)) {
-        throw new Error('target is NaN');
-      }
-      return target;
-    }, (target, src, dst, f) => {
-      target.copy(src).lerp(dst, f);
-      // console.log('position lerp', target.toArray(), f);
-      if (isNaN(target.x) || isNaN(target.y) || isNaN(target.z)) {
-        throw new Error('target is NaN');
-      }
-      return target;
-    });
+    super(
+      fn,
+      timeDelay,
+      numFrames,
+      () => new THREE.Vector3(),
+      (target, value) => {
+        target.fromArray(value);
+        if (isNaN(target.x) || isNaN(target.y) || isNaN(target.z)) {
+          throw new Error('target is NaN');
+        }
+        return target;
+      },
+      (target, src, dst, f) => {
+        target.copy(src).lerp(dst, f);
+        // console.log('position lerp', target.toArray(), f);
+        if (isNaN(target.x) || isNaN(target.y) || isNaN(target.z)) {
+          throw new Error('target is NaN');
+        }
+        return target;
+      },
+    );
   }
 }
 
 export class QuaternionInterpolant extends SnapshotInterpolant {
   constructor(fn, timeDelay, numFrames) {
-    super(fn, timeDelay, numFrames, () => new THREE.Quaternion(), (target, value) => target.fromArray(value), (target, src, dst, f) => target.copy(src).slerp(dst, f));
+    super(
+      fn,
+      timeDelay,
+      numFrames,
+      () => new THREE.Quaternion(),
+      (target, value) => target.fromArray(value),
+      (target, src, dst, f) => target.copy(src).slerp(dst, f),
+    );
   }
 }

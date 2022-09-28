@@ -31,7 +31,8 @@ let damageAnimation = null;
 const update = (timestamp, timeDiff) => {
   if (damageAnimation) {
     if (timestamp < damageAnimation.endTime) {
-      const animationDuration = damageAnimation.endTime - damageAnimation.startTime;
+      const animationDuration =
+        damageAnimation.endTime - damageAnimation.startTime;
       const f = (timestamp - damageAnimation.startTime) / animationDuration;
       damagePhysicsMesh.material.uniforms.uTime.value = 1 - f;
       damagePhysicsMesh.material.uniforms.uTime.needsUpdate = true;
@@ -45,12 +46,18 @@ const update = (timestamp, timeDiff) => {
 
 const triggerDamageAnimation = collisionId => {
   const timestamp = performance.now();
-  const physicsObject = metaversefileApi.getPhysicsObjectByPhysicsId(collisionId);
+  const physicsObject =
+    metaversefileApi.getPhysicsObjectByPhysicsId(collisionId);
   const {physicsMesh} = physicsObject;
   damagePhysicsMesh.geometry = physicsMesh.geometry;
   damagePhysicsMesh.matrix.copy(physicsMesh.matrixWorld);
-  damagePhysicsMesh.matrixWorld.copy(physicsMesh.matrixWorld)
-    .decompose(damagePhysicsMesh.position, damagePhysicsMesh.quaternion, damagePhysicsMesh.scale);
+  damagePhysicsMesh.matrixWorld
+    .copy(physicsMesh.matrixWorld)
+    .decompose(
+      damagePhysicsMesh.position,
+      damagePhysicsMesh.quaternion,
+      damagePhysicsMesh.scale,
+    );
   damagePhysicsMesh.updateMatrixWorld();
   damageAnimation = {
     startTime: timestamp,
@@ -58,9 +65,7 @@ const triggerDamageAnimation = collisionId => {
   };
 };
 
-const makeHitTracker = ({
-  totalHp = 100,
-} = {}) => {
+const makeHitTracker = ({totalHp = 100} = {}) => {
   const hitTracker = new THREE.Object3D();
   hitTracker.name = 'hitTracker';
 
@@ -195,7 +200,11 @@ const makeHitTracker = ({
       hitTime += timeDiff;
 
       const scale = (1 - hitTime / hitAnimationLength) * 0.1;
-      hitTracker.position.set((-1 + Math.random() * 2) * scale, (-1 + Math.random() * 2) * scale, (-1 + Math.random() * 2) * scale);
+      hitTracker.position.set(
+        (-1 + Math.random() * 2) * scale,
+        (-1 + Math.random() * 2) * scale,
+        (-1 + Math.random() * 2) * scale,
+      );
       hitTracker.updateMatrixWorld();
       if (hitTime > hitAnimationLength) {
         hitTime = -1;

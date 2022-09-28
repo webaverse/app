@@ -144,7 +144,12 @@ export class LightMapper /* extends EventTarget */ {
     this.queuedPosition = new THREE.Vector3();
 
     const skylightData = new Uint8Array(size.x * size.y * size.z);
-    const skylightTex = new THREE.DataTexture3D(skylightData, size.x, size.y, size.z);
+    const skylightTex = new THREE.DataTexture3D(
+      skylightData,
+      size.x,
+      size.y,
+      size.z,
+    );
     skylightTex.format = THREE.RedFormat;
     skylightTex.type = THREE.UnsignedByteType;
     skylightTex.minFilter = THREE.LinearFilter;
@@ -201,7 +206,10 @@ export class LightMapper /* extends EventTarget */ {
             varying vec3 vNormal;
             varying vec3 vUv;
             
-            const vec3 size = vec3(${size.toArray().map(n => n.toFixed(8)).join(',')});
+            const vec3 size = vec3(${size
+              .toArray()
+              .map(n => n.toFixed(8))
+              .join(',')});
             
             void main() {
               float instance = float(gl_InstanceID);
@@ -251,7 +259,11 @@ export class LightMapper /* extends EventTarget */ {
           transparent: true,
           // opacity: 0.1,
         });
-        const debugMesh = new THREE.InstancedMesh(instancedCubeGeometry, debugMaterial, maxInstances);
+        const debugMesh = new THREE.InstancedMesh(
+          instancedCubeGeometry,
+          debugMaterial,
+          maxInstances,
+        );
         debugMesh.frustumCulled = false;
 
         return debugMesh;
@@ -309,18 +321,16 @@ export class LightMapper /* extends EventTarget */ {
               coord.z - Math.floor(this.size.z / 2),
             );
             const lod = 1;
-            const {
-              skylights,
-              aos,
-            } = await this.procGenInstance.dcWorkerManager.getLightRange(
-              coordOffset.x,
-              coordOffset.y,
-              coordOffset.z,
-              this.size.x,
-              this.size.y,
-              this.size.z,
-              lod,
-            );
+            const {skylights, aos} =
+              await this.procGenInstance.dcWorkerManager.getLightRange(
+                coordOffset.x,
+                coordOffset.y,
+                coordOffset.z,
+                this.size.x,
+                this.size.y,
+                this.size.z,
+                lod,
+              );
 
             this.skylightTex.image.data.set(skylights);
             this.skylightTex.needsUpdate = true;

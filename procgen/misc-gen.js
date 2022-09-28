@@ -17,12 +17,13 @@ function makeRandomFloat32Array(rng, n) {
   }
   return raw;
 }
-const makeColors = rng => colorScheme
-  .from_hue(rng() * 360)
-  .scheme('triade')
-  .variation('default')
-  .colors()
-  .map(c => '#' + c);
+const makeColors = rng =>
+  colorScheme
+    .from_hue(rng() * 360)
+    .scheme('triade')
+    .variation('default')
+    .colors()
+    .map(c => '#' + c);
 
 function createMisc(seed = '', count = 1) {
   const result = Array(count);
@@ -53,16 +54,16 @@ function createMisc(seed = '', count = 1) {
         return rarities[rarities.length - 1];
       })(),
       level: Math.floor(rng() * 100),
-      hp: Math.floor(rng() * 0xFF),
-      mp: Math.floor(rng() * 0xFF),
-      attack: Math.floor(rng() * 0xFF),
-      defense: Math.floor(rng() * 0xFF),
-      magic: Math.floor(rng() * 0xFF),
-      magicDefense: Math.floor(rng() * 0xFF),
-      speed: Math.floor(rng() * 0xFF),
-      accuracy: Math.floor(rng() * 0xFF),
-      evasion: Math.floor(rng() * 0xFF),
-      luck: Math.floor(rng() * 0xFF),
+      hp: Math.floor(rng() * 0xff),
+      mp: Math.floor(rng() * 0xff),
+      attack: Math.floor(rng() * 0xff),
+      defense: Math.floor(rng() * 0xff),
+      magic: Math.floor(rng() * 0xff),
+      magicDefense: Math.floor(rng() * 0xff),
+      speed: Math.floor(rng() * 0xff),
+      accuracy: Math.floor(rng() * 0xff),
+      evasion: Math.floor(rng() * 0xff),
+      luck: Math.floor(rng() * 0xff),
       details: makeRandomFloat32Array(rng, 32),
     };
     result[i] = {
@@ -72,7 +73,4 @@ function createMisc(seed = '', count = 1) {
   }
   return result;
 }
-export {
-  makeRng,
-  createMisc,
-};
+export {makeRng, createMisc};

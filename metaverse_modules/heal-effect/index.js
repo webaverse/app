@@ -30,10 +30,16 @@ export default () => {
       geometry2.setIndex(geometry.index);
 
       const positions = new Float32Array(flashParticleCount * 3);
-      const positionsAttribute = new THREE.InstancedBufferAttribute(positions, 3);
+      const positionsAttribute = new THREE.InstancedBufferAttribute(
+        positions,
+        3,
+      );
       geometry2.setAttribute('positions', positionsAttribute);
 
-      const swAttribute = new THREE.InstancedBufferAttribute(new Float32Array(flashParticleCount), 1);
+      const swAttribute = new THREE.InstancedBufferAttribute(
+        new Float32Array(flashParticleCount),
+        1,
+      );
       swAttribute.setUsage(THREE.DynamicDrawUsage);
       geometry2.setAttribute('sw', swAttribute);
 
@@ -51,14 +57,25 @@ export default () => {
     const group = new THREE.Group();
     {
       const positions = new Float32Array(pixelParticleCount * 3);
-      for (let i = 0; i < pixelParticleCount * 3; i++) { positions[i] = 0; }
-      pixelGeometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
+      for (let i = 0; i < pixelParticleCount * 3; i++) {
+        positions[i] = 0;
+      }
+      pixelGeometry.setAttribute(
+        'position',
+        new THREE.BufferAttribute(positions, 3),
+      );
 
       const opacity = new Float32Array(pixelParticleCount * 1);
-      pixelGeometry.setAttribute('opacity', new THREE.BufferAttribute(opacity, 1));
+      pixelGeometry.setAttribute(
+        'opacity',
+        new THREE.BufferAttribute(opacity, 1),
+      );
 
       const scales = new Float32Array(pixelParticleCount * 1);
-      pixelGeometry.setAttribute('scales', new THREE.BufferAttribute(scales, 1));
+      pixelGeometry.setAttribute(
+        'scales',
+        new THREE.BufferAttribute(scales, 1),
+      );
     }
     // ##################################################### flash material #####################################################
     const flashMaterial = new WebaverseShaderMaterial({
@@ -150,9 +167,8 @@ export default () => {
       clipping: false,
       fog: false,
       lights: false,
-
     });
-      // ##################################################### pixel material #####################################################
+    // ##################################################### pixel material #####################################################
     const pixelMaterial = new WebaverseShaderMaterial({
       vertexShader: `\
            
@@ -209,9 +225,8 @@ export default () => {
       clipping: false,
       fog: false,
       lights: false,
-
     });
-      // ######################################################## initial instanced mesh #################################################################
+    // ######################################################## initial instanced mesh #################################################################
     let flashMesh = null;
     const addInstancedMesh = () => {
       const geometry2 = new THREE.PlaneGeometry(0.5, 0.5);
@@ -251,7 +266,10 @@ export default () => {
                 if (o.material[0].constructor.name === 'MToonMaterial') {
                   healMaterial.push(o.material[0].uniforms.rimColor.value);
                 } else {
-                  if (o.material[0].emissive !== null && o.material[0].emissive !== undefined) {
+                  if (
+                    o.material[0].emissive !== null &&
+                    o.material[0].emissive !== undefined
+                  ) {
                     healMaterial.push(o.material[0].emissive);
                   }
                 }
@@ -281,14 +299,26 @@ export default () => {
             dir.y = camera.position.y - player.position.y;
             dir.z = camera.position.z - player.position.z;
             dir.normalize();
-            if (player.avatar) { positionsAttribute.setXYZ(i, player.position.x + dir.x, player.position.y + dir.y - player.avatar.height / 9, player.position.z + dir.z); }
+            if (player.avatar) {
+              positionsAttribute.setXYZ(
+                i,
+                player.position.x + dir.x,
+                player.position.y + dir.y - player.avatar.height / 9,
+                player.position.z + dir.z,
+              );
+            }
             scalesAttribute.setX(i, 0.1);
             swAttribute.setX(i, 1);
           }
           for (let i = 0; i < pixelParticleCount; i++) {
             pixelScaleAttribute.setX(i, 0.5 + 0.5 * Math.random());
             pixelOpacityAttribute.setX(i, 1);
-            pixelPositionAttribute.setXYZ(i, (Math.random() - 0.5) * 0.5, -0.5 + (Math.random()) * -1.5, (Math.random() - 0.5) * 0.5);
+            pixelPositionAttribute.setXYZ(
+              i,
+              (Math.random() - 0.5) * 0.5,
+              -0.5 + Math.random() * -1.5,
+              (Math.random() - 0.5) * 0.5,
+            );
           }
           for (let i = 0; i < healMaterial.length; i++) {
             // healMaterial[i].emissiveMap= null;
@@ -304,7 +334,14 @@ export default () => {
           dir.y = camera.position.y - player.position.y;
           dir.z = camera.position.z - player.position.z;
           dir.normalize();
-          if (player.avatar) { positionsAttribute.setXYZ(i, player.position.x + dir.x, player.position.y + dir.y - player.avatar.height / 9, player.position.z + dir.z); }
+          if (player.avatar) {
+            positionsAttribute.setXYZ(
+              i,
+              player.position.x + dir.x,
+              player.position.y + dir.y - player.avatar.height / 9,
+              player.position.z + dir.z,
+            );
+          }
           switch (idAttribute.getX(i)) {
             case 0: {
               if (circlePlay) {
@@ -328,22 +365,34 @@ export default () => {
             }
             case 1: {
               if (scalesAttribute.getX(i) < 5) {
-                if (swAttribute.getX(i) >= 1) { scalesAttribute.setX(i, scalesAttribute.getX(i) + 0.9); } else {
-                  if (scalesAttribute.getX(i) > 0) { scalesAttribute.setX(i, scalesAttribute.getX(i) - 0.8); } else {
+                if (swAttribute.getX(i) >= 1) {
+                  scalesAttribute.setX(i, scalesAttribute.getX(i) + 0.9);
+                } else {
+                  if (scalesAttribute.getX(i) > 0) {
+                    scalesAttribute.setX(i, scalesAttribute.getX(i) - 0.8);
+                  } else {
                     scalesAttribute.setX(i, 0);
                   }
                 }
               } else {
                 swAttribute.setX(i, 0.95);
                 scalesAttribute.setX(i, 4.9);
-                if (!circlePlay) { circlePlay = true; }
+                if (!circlePlay) {
+                  circlePlay = true;
+                }
               }
               break;
             }
             case 2: {
               if (scalesAttribute.getX(i) < 4) {
-                if (swAttribute.getX(i) >= 1) { scalesAttribute.setX(i, scalesAttribute.getX(i) + 0.9); } else {
-                  if (scalesAttribute.getX(i) > 0) { scalesAttribute.setX(i, scalesAttribute.getX(i) - 0.8); } else { scalesAttribute.setX(i, 0); }
+                if (swAttribute.getX(i) >= 1) {
+                  scalesAttribute.setX(i, scalesAttribute.getX(i) + 0.9);
+                } else {
+                  if (scalesAttribute.getX(i) > 0) {
+                    scalesAttribute.setX(i, scalesAttribute.getX(i) - 0.8);
+                  } else {
+                    scalesAttribute.setX(i, 0);
+                  }
                 }
               } else {
                 swAttribute.setX(i, 0.95);
@@ -358,7 +407,9 @@ export default () => {
         positionsAttribute.needsUpdate = true;
         swAttribute.needsUpdate = true;
         scalesAttribute.needsUpdate = true;
-        flashMesh.material.uniforms.cameraBillboardQuaternion.value.copy(camera.quaternion);
+        flashMesh.material.uniforms.cameraBillboardQuaternion.value.copy(
+          camera.quaternion,
+        );
         flashMesh.material.uniforms.avatarPos.x = player.position.x;
         flashMesh.material.uniforms.avatarPos.y = player.position.y;
         flashMesh.material.uniforms.avatarPos.z = player.position.z;
@@ -367,9 +418,17 @@ export default () => {
         for (let i = 0; i < pixelParticleCount; i++) {
           if (pixelOpacityAttribute.getX(i) > 0) {
             pixelScaleAttribute.setX(i, pixelScaleAttribute.getX(i) - 0.01);
-            pixelOpacityAttribute.setX(i, pixelOpacityAttribute.getX(i) - (0.01 + Math.random() * 0.03));
-            pixelPositionAttribute.setY(i, pixelPositionAttribute.getY(i) + 0.02);
-          } else { pixelOpacityAttribute.setX(i, 0); }
+            pixelOpacityAttribute.setX(
+              i,
+              pixelOpacityAttribute.getX(i) - (0.01 + Math.random() * 0.03),
+            );
+            pixelPositionAttribute.setY(
+              i,
+              pixelPositionAttribute.getY(i) + 0.02,
+            );
+          } else {
+            pixelOpacityAttribute.setX(i, 0);
+          }
         }
         pixelOpacityAttribute.needsUpdate = true;
         pixelPositionAttribute.needsUpdate = true;

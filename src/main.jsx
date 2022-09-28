@@ -11,28 +11,22 @@ import {AccountProvider} from './hooks/web3AccountProvider';
 const WebWorkerSupport = !navigator.userAgent.match(/(Firefox|MSIE)/);
 const Providers = ({children}) => {
   return (
-        <AccountProvider>
-            <ChainProvider>
-                {children}
-            </ChainProvider>
-        </AccountProvider>
+    <AccountProvider>
+      <ChainProvider>{children}</ChainProvider>
+    </AccountProvider>
   );
 };
 
 const root = ReactDOM.createRoot(document.getElementById('root'));
 
 root.render(
-    <React.StrictMode>
-        {
-            WebWorkerSupport
-              ? (
-                <Providers>
-                    <App />
-                </Providers>
-                )
-              : (
-                <ErrorPage errors={['WebWorker modules']} />
-                )
-        }
-    </React.StrictMode>,
+  <React.StrictMode>
+    {WebWorkerSupport ? (
+      <Providers>
+        <App />
+      </Providers>
+    ) : (
+      <ErrorPage errors={['WebWorker modules']} />
+    )}
+  </React.StrictMode>,
 );

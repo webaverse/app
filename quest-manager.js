@@ -57,11 +57,13 @@ class QuestManager extends EventTarget {
   addQuest(questApp) {
     const quest = new Quest(questApp);
     this.quests.push(quest);
-    this.dispatchEvent(new MessageEvent('questadd', {
-      data: {
-        quest,
-      },
-    }));
+    this.dispatchEvent(
+      new MessageEvent('questadd', {
+        data: {
+          quest,
+        },
+      }),
+    );
     return quest;
   }
 
@@ -71,11 +73,13 @@ class QuestManager extends EventTarget {
       this.quests.splice(index, 1);
       quest.destroy();
 
-      this.dispatchEvent(new MessageEvent('questremove', {
-        data: {
-          quest,
-        },
-      }));
+      this.dispatchEvent(
+        new MessageEvent('questremove', {
+          data: {
+            quest,
+          },
+        }),
+      );
     }
   }
 

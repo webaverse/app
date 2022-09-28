@@ -10,6 +10,4 @@ class WebaverseScene extends THREE.Scene {
     this.fog = new THREE.FogExp2(0x000000, 0);
   }
 }
-export {
-  WebaverseScene,
-};
+export {WebaverseScene};

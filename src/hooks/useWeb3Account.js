@@ -1,11 +1,7 @@
 import {useState, useEffect} from 'react';
 import {CHAINS, DEFAULT_CHAIN, WEB3_EVENTS} from './web3-constants';
 
-import {
-  connectToNetwork,
-  addRPCToWallet,
-  requestAccounts,
-} from './rpcHelpers';
+import {connectToNetwork, addRPCToWallet, requestAccounts} from './rpcHelpers';
 import {ethers} from 'ethers';
 
 const ACCOUNT_DATA = {
@@ -87,7 +83,7 @@ export default function useWeb3Account(currentChain = DEFAULT_CHAIN) {
   };
 
   const getAccountDetails = async address => {
-    const provider = new ethers.getDefaultProvider("mainnet");
+    const provider = new ethers.getDefaultProvider('mainnet');
     const check = ethers.utils.getAddress(address);
 
     try {
@@ -123,7 +119,10 @@ export default function useWeb3Account(currentChain = DEFAULT_CHAIN) {
 
     return () => {
       if (window.ethereum) {
-        window.ethereum.removeListener(WEB3_EVENTS.ACCOUNTS_CHANGE, accountChanged);
+        window.ethereum.removeListener(
+          WEB3_EVENTS.ACCOUNTS_CHANGE,
+          accountChanged,
+        );
       }
     };
   }, [currentAddress]);

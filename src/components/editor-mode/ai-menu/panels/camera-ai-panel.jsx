@@ -15,10 +15,12 @@ export function CameraAiPanel() {
   //
 
   return (
-          <div className={styles.panel}>
-              <div className={styles.buttons}>
-                  <button className={styles.button} onClick={_capture}>Capture image</button>
-              </div>
-          </div>
+    <div className={styles.panel}>
+      <div className={styles.buttons}>
+        <button className={styles.button} onClick={_capture}>
+          Capture image
+        </button>
+      </div>
+    </div>
   );
 }

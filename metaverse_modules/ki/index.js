@@ -1,6 +1,13 @@
 import * as THREE from 'three';
 import metaversefile from 'metaversefile';
-const {useApp, useInternals, useFrame, useLocalPlayer, useLoaders, useMaterials} = metaversefile;
+const {
+  useApp,
+  useInternals,
+  useFrame,
+  useLocalPlayer,
+  useLoaders,
+  useMaterials,
+} = metaversefile;
 
 const baseUrl = import.meta.url.replace(/(\/)[^\/\/]*$/, '$1');
 
@@ -10,7 +17,7 @@ const localEuler = new THREE.Euler(0, 0, 0, 'YXZ');
 
 const identityQuaternion = new THREE.Quaternion();
 
-const color1 = new THREE.Color(0x59C173);
+const color1 = new THREE.Color(0x59c173);
 const color2 = new THREE.Color(0xa17fe0);
 
 export default e => {
@@ -35,10 +42,16 @@ export default e => {
     for (let i = 0; i < count; i++) {
       identityQuaternion.toArray(quaternions, i * 4);
     }
-    const quaternionsAttribute = new THREE.InstancedBufferAttribute(quaternions, 4);
+    const quaternionsAttribute = new THREE.InstancedBufferAttribute(
+      quaternions,
+      4,
+    );
     geometry2.setAttribute('quaternions', quaternionsAttribute);
     const startTimes = new Float32Array(count);
-    const startTimesAttribute = new THREE.InstancedBufferAttribute(startTimes, 1);
+    const startTimesAttribute = new THREE.InstancedBufferAttribute(
+      startTimes,
+      1,
+    );
     geometry2.setAttribute('startTimes', startTimesAttribute);
 
     return geometry2;
@@ -137,7 +150,9 @@ export default e => {
             vec2 sampleUv = uv;
             vec4 c = texture2D(uTex, sampleUv);
             c.rgb *= mix(color1, color2, 1.-vUv.y);
-            c *= min(max(1.-pow(timeDiff*${(animationSpeed * 1).toFixed(8)}, 2.), 0.), 1.);
+            c *= min(max(1.-pow(timeDiff*${(animationSpeed * 1).toFixed(
+              8,
+            )}, 2.), 0.), 1.);
             if (vUv.y < .3) {
               c *= vUv.y/.3;
             }
@@ -230,7 +245,9 @@ export default e => {
             vec2 sampleUv = uv;
             vec4 c = texture2D(uTex, sampleUv);
             c.rgb *= mix(color1, color2, sampleUv.y);
-            c *= min(max(1.-pow(timeDiff*${(animationSpeed * 1).toFixed(8)}, 2.), 0.), 1.);
+            c *= min(max(1.-pow(timeDiff*${(animationSpeed * 1).toFixed(
+              8,
+            )}, 2.), 0.), 1.);
             if (vUv.y < .3) {
               c *= pow(vUv.y/.3, 0.5);
             }
@@ -327,7 +344,9 @@ export default e => {
             vec2 sampleUv = uv;
             vec4 c = texture2D(uTex, sampleUv);
             c.rgb *= mix(color1, color2, sampleUv.y);
-            c *= min(max(1.-pow(timeDiff*${(animationSpeed * 1).toFixed(8)}, 2.), 0.), 1.);
+            c *= min(max(1.-pow(timeDiff*${(animationSpeed * 1).toFixed(
+              8,
+            )}, 2.), 0.), 1.);
             c = pow4(c, 6.) * 2.;
             gl_FragColor = c;
 
@@ -351,56 +370,46 @@ export default e => {
   let groundWind = null;
   let capsule = null;
   let aura = null;
-  e.waitUntil((async () => {
-    kiGlbApp = await metaversefile.createAppAsync({
-      start_url: baseUrl + 'ki.glb',
-    });
+  e.waitUntil(
+    (async () => {
+      kiGlbApp = await metaversefile.createAppAsync({
+        start_url: baseUrl + 'ki.glb',
+      });
 
-    kiGlbApp.traverse(o => {
-      if (o.isMesh) {
-        if (o.name === 'GroundWind') {
-          groundWind = o;
+      kiGlbApp.traverse(o => {
+        if (o.isMesh) {
+          if (o.name === 'GroundWind') {
+            groundWind = o;
+          }
+          if (o.name === 'Capsule') {
+            capsule = o;
+          }
+          if (o.name === 'Aura') {
+            aura = o;
+          }
         }
-        if (o.name === 'Capsule') {
-          capsule = o;
-        }
-        if (o.name === 'Aura') {
-          aura = o;
-        }
+      });
+
+      {
+        const geometry = _getKiWindGeometry(groundWind.geometry);
+        const material = _getKiGroundWindMaterial(groundWind.material);
+        groundWind = new THREE.InstancedMesh(geometry, material, count);
+        object.add(groundWind);
       }
-    });
-
-    {
-      const geometry = _getKiWindGeometry(groundWind.geometry);
-      const material = _getKiGroundWindMaterial(groundWind.material);
-      groundWind = new THREE.InstancedMesh(
-        geometry,
-        material,
-        count,
-      );
-      object.add(groundWind);
-    }
-    {
-      const geometry = _getKiWindGeometry(capsule.geometry);
-      const material = _getKiCapsuleMaterial(capsule.material);
-      capsule = new THREE.InstancedMesh(
-        geometry,
-        material,
-        count,
-      );
-      object.add(capsule);
-    }
-    {
-      const geometry = _getKiWindGeometry(aura.geometry);
-      const material = _getKiAuraMaterial(aura.material);
-      aura = new THREE.InstancedMesh(
-        geometry,
-        material,
-        count,
-      );
-      object.add(aura);
-    }
-  })());
+      {
+        const geometry = _getKiWindGeometry(capsule.geometry);
+        const material = _getKiCapsuleMaterial(capsule.material);
+        capsule = new THREE.InstancedMesh(geometry, material, count);
+        object.add(capsule);
+      }
+      {
+        const geometry = _getKiWindGeometry(aura.geometry);
+        const material = _getKiAuraMaterial(aura.material);
+        aura = new THREE.InstancedMesh(geometry, material, count);
+        object.add(aura);
+      }
+    })(),
+  );
 
   /* const silkMesh = new THREE.Mesh(new THREE.BoxGeometry(0.1, 0.05, 0.1, 10, 10, 10), new THREE.MeshNormalMaterial());
   const defaultScale = new THREE.Vector3(1, 0.3, 1).multiplyScalar(0.5);
@@ -456,10 +465,12 @@ export default e => {
 
     const _updateGroundWind = () => {
       if (groundWind) {
-        const positionsAttribute = groundWind.geometry.getAttribute('positions');
+        const positionsAttribute =
+          groundWind.geometry.getAttribute('positions');
         const positions = positionsAttribute.array;
 
-        const quaternionsAttribute = groundWind.geometry.getAttribute('quaternions');
+        const quaternionsAttribute =
+          groundWind.geometry.getAttribute('quaternions');
         const quaternions = quaternionsAttribute.array;
 
         const startTimesAttribute = groundWind.geometry.attributes.startTimes;
@@ -485,7 +496,8 @@ export default e => {
         const positionsAttribute = capsule.geometry.getAttribute('positions');
         const positions = positionsAttribute.array;
 
-        const quaternionsAttribute = capsule.geometry.getAttribute('quaternions');
+        const quaternionsAttribute =
+          capsule.geometry.getAttribute('quaternions');
         const quaternions = quaternionsAttribute.array;
 
         const startTimesAttribute = capsule.geometry.attributes.startTimes;
@@ -534,23 +546,28 @@ export default e => {
     };
 
     if (now >= nextGroundWindParticleTime) {
-      const position = new THREE.Vector3(Math.random() * 2 - 1, Math.random() * 2 - 1, Math.random() * 2 - 1)
-        .multiplyScalar(0.05);
+      const position = new THREE.Vector3(
+        Math.random() * 2 - 1,
+        Math.random() * 2 - 1,
+        Math.random() * 2 - 1,
+      ).multiplyScalar(0.05);
       const quaternion = new THREE.Quaternion()
         .setFromUnitVectors(
           new THREE.Vector3(0, 1, 0),
-          new THREE.Vector3(Math.random() * 2 - 1, 10, Math.random() * 2 - 1).normalize(),
+          new THREE.Vector3(
+            Math.random() * 2 - 1,
+            10,
+            Math.random() * 2 - 1,
+          ).normalize(),
         )
         .premultiply(
-          new THREE.Quaternion()
-            .setFromAxisAngle(new THREE.Vector3(0, 1, 0), Math.random() * Math.PI * 2),
+          new THREE.Quaternion().setFromAxisAngle(
+            new THREE.Vector3(0, 1, 0),
+            Math.random() * Math.PI * 2,
+          ),
         );
       const startTime = performance.now() / 1000;
-      const particle = new Particle(
-        position,
-        quaternion,
-        startTime,
-      );
+      const particle = new Particle(position, quaternion, startTime);
       groundWindParticles.push(particle);
       // console.log('interval', groundWindParticles.length);
       nextGroundWindParticleTime = now + 30 + Math.random() * 100;
@@ -558,23 +575,28 @@ export default e => {
       _updateGroundWind();
     }
     if (now >= nextCapsuleParticleTime) {
-      const position = new THREE.Vector3(Math.random() * 2 - 1, Math.random() * 2 - 1, Math.random() * 2 - 1)
-        .multiplyScalar(0.05);
+      const position = new THREE.Vector3(
+        Math.random() * 2 - 1,
+        Math.random() * 2 - 1,
+        Math.random() * 2 - 1,
+      ).multiplyScalar(0.05);
       const quaternion = new THREE.Quaternion()
         .setFromUnitVectors(
           new THREE.Vector3(0, 1, 0),
-          new THREE.Vector3(Math.random() * 2 - 1, 10, Math.random() * 2 - 1).normalize(),
+          new THREE.Vector3(
+            Math.random() * 2 - 1,
+            10,
+            Math.random() * 2 - 1,
+          ).normalize(),
         )
         .premultiply(
-          new THREE.Quaternion()
-            .setFromAxisAngle(new THREE.Vector3(0, 1, 0), Math.random() * Math.PI * 2),
+          new THREE.Quaternion().setFromAxisAngle(
+            new THREE.Vector3(0, 1, 0),
+            Math.random() * Math.PI * 2,
+          ),
         );
       const startTime = performance.now() / 1000;
-      const particle = new Particle(
-        position,
-        quaternion,
-        startTime,
-      );
+      const particle = new Particle(position, quaternion, startTime);
       capsuleParticles.push(particle);
       // console.log('interval', groundWindParticles.length);
       nextCapsuleParticleTime = now + 120 + Math.random() * 50;
@@ -591,18 +613,13 @@ export default e => {
           (Math.random() * 2 - 1) * Math.PI * 0.02,
         )
         .multiply(
-          new THREE.Quaternion()
-            .setFromAxisAngle(
-              new THREE.Vector3(0, 1, 0),
-              (Math.random() < 0.5 ? 0 : Math.PI),
-            ),
+          new THREE.Quaternion().setFromAxisAngle(
+            new THREE.Vector3(0, 1, 0),
+            Math.random() < 0.5 ? 0 : Math.PI,
+          ),
         );
       const startTime = performance.now() / 1000;
-      const particle = new Particle(
-        position,
-        quaternion,
-        startTime,
-      );
+      const particle = new Particle(position, quaternion, startTime);
       auraParticles.push(particle);
       // console.log('interval', groundWindParticles.length);
       nextAuraParticleTime = now + 100 + Math.random() * 50;

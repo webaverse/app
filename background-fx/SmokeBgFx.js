@@ -1,8 +1,5 @@
 import * as THREE from 'three';
-import {
-  fullscreenGeometry,
-  fullscreenVertexShader,
-} from './common.js';
+import {fullscreenGeometry, fullscreenVertexShader} from './common.js';
 import {getRenderer} from '../renderer.js';
 
 export const smokeFragmentShader = `\
@@ -126,7 +123,12 @@ class SmokeBgFxMesh extends THREE.Mesh {
       index += Uint16Array.BYTES_PER_ELEMENT;
 
       const data = new Uint8Array(arrayBuffer, 20);
-      const noise3DTexture = new THREE.Data3DTexture(data, width, height, depth);
+      const noise3DTexture = new THREE.Data3DTexture(
+        data,
+        width,
+        height,
+        depth,
+      );
       noise3DTexture.minFilter = THREE.LinearFilter;
       noise3DTexture.magFilter = THREE.LinearFilter;
       noise3DTexture.wrapS = THREE.RepeatWrapping;
@@ -181,6 +183,4 @@ class SmokeBgFxMesh extends THREE.Mesh {
   }
 }
 
-export {
-  SmokeBgFxMesh,
-};
+export {SmokeBgFxMesh};

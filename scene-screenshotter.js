@@ -47,10 +47,14 @@ export function screenshotScene(scene, camera, width, height, ctx) {
   ctx.clearRect(0, 0, width, height);
   ctx.drawImage(
     renderer.domElement,
-    0, renderer.domElement.height - height * pixelRatio,
-    width * pixelRatio, height * pixelRatio,
-    0, 0,
-    width, height,
+    0,
+    renderer.domElement.height - height * pixelRatio,
+    width * pixelRatio,
+    height * pixelRatio,
+    0,
+    0,
+    width,
+    height,
   );
   // }
 

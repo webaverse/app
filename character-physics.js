@@ -7,7 +7,14 @@ import * as THREE from 'three';
 import physicsManager from './physics-manager.js';
 // import ioManager from './io-manager.js';
 import {getVelocityDampingFactor, applyVelocity} from './util.js';
-import {groundFriction, flyFriction, airFriction, swimFriction, flatGroundJumpAirTime, jumpHeight} from './constants.js';
+import {
+  groundFriction,
+  flyFriction,
+  airFriction,
+  swimFriction,
+  flatGroundJumpAirTime,
+  jumpHeight,
+} from './constants.js';
 import {getRenderer, camera} from './renderer.js';
 // import physx from './physx.js';
 import metaversefileApi from 'metaversefile';
@@ -35,7 +42,10 @@ const zeroVector = new THREE.Vector3();
 const upVector = new THREE.Vector3(0, 1, 0);
 const leftHandOffset = new THREE.Vector3(0.2, -0.2, -0.4);
 const rightHandOffset = new THREE.Vector3(-0.2, -0.2, -0.4);
-const z22Quaternion = new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 0, 1), -Math.PI / 8);
+const z22Quaternion = new THREE.Quaternion().setFromAxisAngle(
+  new THREE.Vector3(0, 0, 1),
+  -Math.PI / 8,
+);
 const groundStickOffset = 0.03;
 
 const physicsScene = physicsManager.getScene();
@@ -102,7 +112,9 @@ class CharacterPhysics {
   applyWasd(velocity, timeDiff) {
     if (this.character.avatar) {
       this.targetVelocity.copy(velocity);
-      this.targetMoveDistancePerFrame.copy(this.targetVelocity).multiplyScalar(timeDiff / 1000);
+      this.targetMoveDistancePerFrame
+        .copy(this.targetVelocity)
+        .multiplyScalar(timeDiff / 1000);
     }
   }
 
@@ -118,7 +130,8 @@ class CharacterPhysics {
           const t = flatGroundJumpAirTime / 1000 / 2 + aestheticJumpBias;
           this.fallLoopStartTimeS -= t;
           const previousT = t - timeDiffS;
-          this.lastGravityH = 0.5 * physicsScene.getGravity().y * previousT * previousT;
+          this.lastGravityH =
+            0.5 * physicsScene.getGravity().y * previousT * previousT;
         }
       }
       const t = nowS - this.fallLoopStartTimeS;
@@ -135,7 +148,12 @@ class CharacterPhysics {
     this.applyVelocityDamping(this.velocity, timeDiffS);
   }
 
-  applyCharacterPhysicsDetail(velocityAvatarDirection, updateRig, now, timeDiffS) {
+  applyCharacterPhysicsDetail(
+    velocityAvatarDirection,
+    updateRig,
+    now,
+    timeDiffS,
+  ) {
     if (this.character.avatar) {
       // move character controller
       const minDist = 0;
@@ -180,7 +198,10 @@ class CharacterPhysics {
         }
       }
 
-      const positionXZBefore = localVector2D.set(this.characterController.position.x, this.characterController.position.z);
+      const positionXZBefore = localVector2D.set(
+        this.characterController.position.x,
+        this.characterController.position.z,
+      );
       const positionYBefore = this.characterController.position.y;
       const flags = physicsScene.moveCharacterController(
         this.characterController,
@@ -189,22 +210,34 @@ class CharacterPhysics {
         timeDiffS,
         this.characterController.position,
       );
-      const positionXZAfter = localVector2D2.set(this.characterController.position.x, this.characterController.position.z);
+      const positionXZAfter = localVector2D2.set(
+        this.characterController.position.x,
+        this.characterController.position.z,
+      );
       const positionYAfter = this.characterController.position.y;
-      const wantMoveDistancePerFrameXZ = localVector2D3.set(this.wantMoveDistancePerFrame.x, this.wantMoveDistancePerFrame.z);
+      const wantMoveDistancePerFrameXZ = localVector2D3.set(
+        this.wantMoveDistancePerFrame.x,
+        this.wantMoveDistancePerFrame.z,
+      );
       const wantMoveDistancePerFrameY = this.wantMoveDistancePerFrame.y;
-      const wantMoveDistancePerFrameXZLength = wantMoveDistancePerFrameXZ.length();
+      const wantMoveDistancePerFrameXZLength =
+        wantMoveDistancePerFrameXZ.length();
       const wantMoveDistancePerFrameYLength = wantMoveDistancePerFrameY;
       this.velocity.copy(this.wantVelocity);
-      if (wantMoveDistancePerFrameXZLength > 0) { // prevent divide 0, and reduce calculations.
-        const movedRatioXZ = (positionXZAfter.sub(positionXZBefore).length()) / wantMoveDistancePerFrameXZLength;
+      if (wantMoveDistancePerFrameXZLength > 0) {
+        // prevent divide 0, and reduce calculations.
+        const movedRatioXZ =
+          positionXZAfter.sub(positionXZBefore).length() /
+          wantMoveDistancePerFrameXZLength;
         if (movedRatioXZ < 1) {
           this.velocity.x *= movedRatioXZ;
           this.velocity.z *= movedRatioXZ;
         }
       }
-      if (wantMoveDistancePerFrameYLength > 0) { // prevent divide 0, and reduce calculations.
-        const movedRatioY = (positionYAfter - positionYBefore) / wantMoveDistancePerFrameYLength;
+      if (wantMoveDistancePerFrameYLength > 0) {
+        // prevent divide 0, and reduce calculations.
+        const movedRatioY =
+          (positionYAfter - positionYBefore) / wantMoveDistancePerFrameYLength;
         if (movedRatioY < 1) {
           this.velocity.y *= movedRatioY;
         }
@@ -321,8 +354,8 @@ class CharacterPhysics {
         // NOTE: We had a problem with sending the entire bone in the message buffer, so we're just sending the bone name
         const sitPos = sitComponent.sitBone
           ? rideMesh.skeleton.bones.find(
-            bone => bone.name === sitComponent.sitBone,
-          )
+              bone => bone.name === sitComponent.sitBone,
+            )
           : controlledApp;
         const {
           sitOffset = [0, 0, 0],
@@ -392,22 +425,51 @@ class CharacterPhysics {
       } */
 
       this.lastGrounded = grounded;
-      this.lastCharacterControllerY =
-        this.characterController.position.y;
+      this.lastCharacterControllerY = this.characterController.position.y;
     }
   }
 
   /* dampen the velocity to make physical sense for the current avatar state */
   applyVelocityDamping(velocity, timeDiffS) {
     const doDamping = factor => {
-      this.wantMoveDistancePerFrame.x = THREE.MathUtils.damp(this.wantMoveDistancePerFrame.x, this.lastTargetMoveDistancePerFrame.x, factor, timeDiffS);
-      this.wantMoveDistancePerFrame.z = THREE.MathUtils.damp(this.wantMoveDistancePerFrame.z, this.lastTargetMoveDistancePerFrame.z, factor, timeDiffS);
-      this.wantMoveDistancePerFrame.y = THREE.MathUtils.damp(this.wantMoveDistancePerFrame.y, this.lastTargetMoveDistancePerFrame.y, factor, timeDiffS);
+      this.wantMoveDistancePerFrame.x = THREE.MathUtils.damp(
+        this.wantMoveDistancePerFrame.x,
+        this.lastTargetMoveDistancePerFrame.x,
+        factor,
+        timeDiffS,
+      );
+      this.wantMoveDistancePerFrame.z = THREE.MathUtils.damp(
+        this.wantMoveDistancePerFrame.z,
+        this.lastTargetMoveDistancePerFrame.z,
+        factor,
+        timeDiffS,
+      );
+      this.wantMoveDistancePerFrame.y = THREE.MathUtils.damp(
+        this.wantMoveDistancePerFrame.y,
+        this.lastTargetMoveDistancePerFrame.y,
+        factor,
+        timeDiffS,
+      );
       // this.wantMoveDistancePerFrame.y = this.targetMoveDistancePerFrame.y;
 
-      this.wantVelocity.x = THREE.MathUtils.damp(this.wantVelocity.x, this.lastTargetVelocity.x, factor, timeDiffS);
-      this.wantVelocity.z = THREE.MathUtils.damp(this.wantVelocity.z, this.lastTargetVelocity.z, factor, timeDiffS);
-      this.wantVelocity.y = THREE.MathUtils.damp(this.wantVelocity.y, this.lastTargetVelocity.y, factor, timeDiffS);
+      this.wantVelocity.x = THREE.MathUtils.damp(
+        this.wantVelocity.x,
+        this.lastTargetVelocity.x,
+        factor,
+        timeDiffS,
+      );
+      this.wantVelocity.z = THREE.MathUtils.damp(
+        this.wantVelocity.z,
+        this.lastTargetVelocity.z,
+        factor,
+        timeDiffS,
+      );
+      this.wantVelocity.y = THREE.MathUtils.damp(
+        this.wantVelocity.y,
+        this.lastTargetVelocity.y,
+        factor,
+        timeDiffS,
+      );
       // this.wantVelocity.y = this.targetVelocity.y;
     };
     if (this.character.hasAction('fly')) {
@@ -438,7 +500,8 @@ class CharacterPhysics {
     } else { */
     if (
       this.character.hasAction('firstperson') ||
-      (this.character.hasAction('aim') && !this.character.hasAction('narutoRun'))
+      (this.character.hasAction('aim') &&
+        !this.character.hasAction('narutoRun'))
     ) {
       this.applyCharacterPhysicsDetail(false, true, now, timeDiffS);
     } else {
@@ -487,8 +550,8 @@ class CharacterPhysics {
           (aimComponent?.ikHand === 'left'
             ? 1
             : aimComponent?.ikHand === 'right'
-              ? 0
-              : null);
+            ? 0
+            : null);
         const enabled = isHandEnabled && isExpectedHandIndex;
         this.character.hands[i].enabled = enabled;
       }
@@ -664,6 +727,4 @@ class CharacterPhysics {
   }
 }
 
-export {
-  CharacterPhysics,
-};
+export {CharacterPhysics};

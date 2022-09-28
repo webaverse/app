@@ -190,7 +190,7 @@ const _downloadArrowImage = async () => {
   return img;
 };
 
-export const LightArrow = function({
+export const LightArrow = function ({
   className,
   visible = false,
   enabled = true,
@@ -229,7 +229,17 @@ export const LightArrow = function({
           // const frame = frames[index];
           const x = (index % numFramesPerRow) * frameSize;
           const y = Math.floor(index / numFramesPerRow) * frameSize;
-          ctx.drawImage(renderedCanvas, x, y, frameSize, frameSize, 0, 0, frameSize, frameSize);
+          ctx.drawImage(
+            renderedCanvas,
+            x,
+            y,
+            frameSize,
+            frameSize,
+            0,
+            0,
+            frameSize,
+            frameSize,
+          );
           index = (index + 1) % numFrames;
         };
         interval = setInterval(_recurse, timeDiff);

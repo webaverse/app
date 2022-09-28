@@ -1,16 +1,22 @@
 import * as THREE from 'three';
 import {scene, camera, getRenderer} from './renderer.js';
-import {copyScenePlaneGeometry, copySceneVertexShader, copyScene, copySceneCamera} from './shaders.js';
+import {
+  copyScenePlaneGeometry,
+  copySceneVertexShader,
+  copyScene,
+  copySceneCamera,
+} from './shaders.js';
 
 /* const size = 1024;
 const worldSize = 2;
 const hackShaderName = 'anime radial'; */
 
-const _makeRenderTarget = (width, height) => new THREE.WebGLRenderTarget(width, height, {
-  // format: THREE.RGBAFormat,
-  // type: THREE.FloatType,
-  // encoding: THREE.sRGBEncoding,
-});
+const _makeRenderTarget = (width, height) =>
+  new THREE.WebGLRenderTarget(width, height, {
+    // format: THREE.RGBAFormat,
+    // type: THREE.FloatType,
+    // encoding: THREE.sRGBEncoding,
+  });
 class ShaderToyPass {
   constructor({type, is, code, os, renderTarget}, parent) {
     this.type = type;
@@ -22,7 +28,10 @@ class ShaderToyPass {
 
     const uniforms = {
       modelViewMatrix: {
-        value: new THREE.Matrix4().multiplyMatrices(copySceneCamera.matrixWorldInverse, copySceneCamera.matrixWorld),
+        value: new THREE.Matrix4().multiplyMatrices(
+          copySceneCamera.matrixWorldInverse,
+          copySceneCamera.matrixWorld,
+        ),
       },
       projectionMatrix: {
         value: copySceneCamera.projectionMatrix,
@@ -56,7 +65,11 @@ class ShaderToyPass {
           value: [],
         };
       }
-      uniforms.iChannelResolution.value[channel] = new THREE.Vector3(buffer.image.width, buffer.image.height, 1);
+      uniforms.iChannelResolution.value[channel] = new THREE.Vector3(
+        buffer.image.width,
+        buffer.image.height,
+        1,
+      );
     }
     this.mesh = new THREE.Mesh(
       copyScenePlaneGeometry,
@@ -105,7 +118,10 @@ class ShaderToyPass {
     this.scene.matrixWorldAutoUpdate = false;
     this.scene.add(this.mesh);
 
-    this._copyBuffer = _makeRenderTarget(renderTarget.width, renderTarget.height);
+    this._copyBuffer = _makeRenderTarget(
+      renderTarget.width,
+      renderTarget.height,
+    );
   }
 
   update() {
@@ -261,13 +277,16 @@ class ShadertoyRenderer {
       for (let i = 0; i < shader.renderpass.length; i++) {
         const {type, code} = shader.renderpass[i];
         const {is, os} = renderPassIos[i];
-        const renderPass = new ShaderToyPass({
-          type,
-          is,
-          code,
-          os,
-          renderTarget: this.renderTarget,
-        }, this);
+        const renderPass = new ShaderToyPass(
+          {
+            type,
+            is,
+            code,
+            os,
+            renderTarget: this.renderTarget,
+          },
+          this,
+        );
         this.renderPasses.push(renderPass);
       }
     };
@@ -276,10 +295,9 @@ class ShadertoyRenderer {
     this.mesh = _makeRenderTargetMesh(this.renderTarget, worldSize, worldSize);
 
     this.loaded = false;
-    this.loadPromise = Promise.all(promises)
-      .then(() => {
-        this.loaded = true;
-      });
+    this.loadPromise = Promise.all(promises).then(() => {
+      this.loaded = true;
+    });
   }
 
   setCurrentTime(currentTime) {
@@ -325,19 +343,13 @@ class ShadertoyLoader {
     const res = await fetch(u);
     const shader = await res.json();
 
-    const shadertoyRenderer = new ShadertoyRenderer(
-      shader,
-      {
-        size,
-        worldSize,
-      },
-    );
+    const shadertoyRenderer = new ShadertoyRenderer(shader, {
+      size,
+      worldSize,
+    });
     await shadertoyRenderer.waitForLoad();
     return shadertoyRenderer;
   }
 }
 
-export {
-  ShadertoyRenderer,
-  ShadertoyLoader,
-};
+export {ShadertoyRenderer, ShadertoyLoader};

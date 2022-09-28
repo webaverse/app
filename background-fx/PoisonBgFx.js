@@ -1,8 +1,5 @@
 import * as THREE from 'three';
-import {
-  fullscreenGeometry,
-  fullscreenVertexShader,
-} from './common.js';
+import {fullscreenGeometry, fullscreenVertexShader} from './common.js';
 import {getRenderer} from '../renderer.js';
 
 export const poisonFragmentShader = `\
@@ -540,6 +537,4 @@ class PoisonBgFxMesh extends THREE.Mesh {
   }
 }
 
-export {
-  PoisonBgFxMesh,
-};
+export {PoisonBgFxMesh};

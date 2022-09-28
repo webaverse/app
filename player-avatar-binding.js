@@ -4,9 +4,7 @@ set the avatar state from the character state */
 import * as THREE from 'three';
 import Avatar from './avatars/avatars.js';
 // import {unFrustumCull, enableShadows} from './util.js';
-import {
-  getEyePosition,
-} from './avatars/util.mjs';
+import {getEyePosition} from './avatars/util.mjs';
 // import {playersManager} from './players-manager.js';
 
 const appSymbol = 'app'; // Symbol('app');
@@ -38,15 +36,13 @@ export function applyCharacterModesToAvatar(character, session, rig) {
     rig.setHandEnabled(i, character.hands[i].enabled);
   }
   rig.setTopEnabled(
-    (!!session && (rig.inputs.leftGamepad.enabled || rig.inputs.rightGamepad.enabled)),
+    !!session &&
+      (rig.inputs.leftGamepad.enabled || rig.inputs.rightGamepad.enabled),
   );
   rig.setBottomEnabled(
-    (
-      rig.getTopEnabled() /* ||
+    rig.getTopEnabled() /* ||
       rig.getHandEnabled(0) ||
-      rig.getHandEnabled(1) */
-    ) &&
-    rig.velocity.length() < 0.001,
+      rig.getHandEnabled(1) */ && rig.velocity.length() < 0.001,
   );
 }
 /* const _getPlayerByAppInstanceId = instanceId => {
@@ -150,7 +146,8 @@ export function applyCharacterActionsToAvatar(character, rig) {
     rig.useAnimationIndex = useAction?.index;
     rig.useTime = character.actionInterpolants.use.get();
     rig.unuseTime = character.actionInterpolants.unuse.get();
-    if (rig.unuseTime === 0) { // this means use is active
+    if (rig.unuseTime === 0) {
+      // this means use is active
       if (useAction?.animationEnvelope) {
         rig.unuseAnimation = rig.useAnimationEnvelope[2]; // the last animation in the triplet is the unuse animation
       } else {
@@ -166,19 +163,30 @@ export function applyCharacterActionsToAvatar(character, rig) {
   };
   _handlePickUp();
 
-  rig.enableAudioWorkerSetVolume = character.avatarFace.enableAudioWorkerSetVolume;
-  rig.vowels[1] = character.avatarFace.enableAudioWorkerSetVolume ? 0 : rig.vowels[1];
-  rig.vowels[2] = character.avatarFace.enableAudioWorkerSetVolume ? 0 : rig.vowels[2];
-  rig.vowels[3] = character.avatarFace.enableAudioWorkerSetVolume ? 0 : rig.vowels[3];
-  rig.vowels[4] = character.avatarFace.enableAudioWorkerSetVolume ? 0 : rig.vowels[4];
+  rig.enableAudioWorkerSetVolume =
+    character.avatarFace.enableAudioWorkerSetVolume;
+  rig.vowels[1] = character.avatarFace.enableAudioWorkerSetVolume
+    ? 0
+    : rig.vowels[1];
+  rig.vowels[2] = character.avatarFace.enableAudioWorkerSetVolume
+    ? 0
+    : rig.vowels[2];
+  rig.vowels[3] = character.avatarFace.enableAudioWorkerSetVolume
+    ? 0
+    : rig.vowels[3];
+  rig.vowels[4] = character.avatarFace.enableAudioWorkerSetVolume
+    ? 0
+    : rig.vowels[4];
 
   rig.narutoRunState = !!narutoRunAction && !crouchAction;
   rig.narutoRunTime = character.actionInterpolants.narutoRun.get();
   rig.aimState = !!aimAction;
   rig.aimTime = character.actionInterpolants.aim.get();
-  rig.aimRightTransitionTime = character.actionInterpolants.aimRightTransition.get();
-  rig.aimLeftTransitionTime = character.actionInterpolants.aimLeftTransition.get();
-  rig.aimAnimation = (aimAction?.characterAnimation) || '';
+  rig.aimRightTransitionTime =
+    character.actionInterpolants.aimRightTransition.get();
+  rig.aimLeftTransitionTime =
+    character.actionInterpolants.aimLeftTransition.get();
+  rig.aimAnimation = aimAction?.characterAnimation || '';
   // rig.aimDirection.set(0, 0, -1);
   // aimAction && rig.aimDirection.applyQuaternion(rig.inputs.hmd.quaternion);
   rig.sitState = !!sitAction;
@@ -204,7 +212,8 @@ export function applyCharacterActionsToAvatar(character, rig) {
   // rig.standChargeAnimation = standChargeAnimation;
   // rig.standChargeState = !!standCharge;
   rig.fallLoopTime = character.actionInterpolants.fallLoop.get();
-  rig.fallLoopFactor = character.actionInterpolants.fallLoopTransition.getNormalized();
+  rig.fallLoopFactor =
+    character.actionInterpolants.fallLoopTransition.getNormalized();
   rig.fallLoopFrom = fallLoopAction ? fallLoopAction.from : '';
   // rig.fallLoopAnimation = fallLoopAnimation;
   rig.fallLoopState = !!fallLoopAction;
@@ -215,10 +224,11 @@ export function applyCharacterActionsToAvatar(character, rig) {
   // rig.swordTopDownSlashTime = character.actionInterpolants.swordTopDownSlash.get();
   // rig.swordTopDownSlashAnimation = swordTopDownSlashAnimation;
   // rig.swordTopDownSlashState = !!swordTopDownSlash;
-  rig.hurtAnimation = (hurtAction?.animation) || '';
+  rig.hurtAnimation = hurtAction?.animation || '';
   rig.hurtTime = character.actionInterpolants.hurt.get();
   rig.movementsTime = character.actionInterpolants.movements.get();
-  rig.movementsTransitionTime = character.actionInterpolants.movementsTransition.get();
+  rig.movementsTransitionTime =
+    character.actionInterpolants.movementsTransition.get();
   rig.sprintTime = character.actionInterpolants.sprint.get();
 }
 // returns whether headTarget were applied
@@ -254,14 +264,19 @@ export function applyMirrorsToAvatar(character, rig, mirrors) {
   })[0];
   if (closestMirror) {
     // console.log('character bind mirror', closestMirror);
-    const mirrorPosition = localVector2.setFromMatrixPosition(closestMirror.matrixWorld);
+    const mirrorPosition = localVector2.setFromMatrixPosition(
+      closestMirror.matrixWorld,
+    );
 
     if (mirrorPosition.distanceTo(character.position) < maxMirrorDistanace) {
       const eyePosition = getEyePosition(rig.modelBones);
       localPlane
         .setFromNormalAndCoplanarPoint(
-          localVector.set(0, 0, 1)
-            .applyQuaternion(localQuaternion.setFromRotationMatrix(closestMirror.matrixWorld)),
+          localVector
+            .set(0, 0, 1)
+            .applyQuaternion(
+              localQuaternion.setFromRotationMatrix(closestMirror.matrixWorld),
+            ),
           mirrorPosition,
         )
         .projectPoint(eyePosition, rig.eyeballTarget);
@@ -270,7 +285,9 @@ export function applyMirrorsToAvatar(character, rig, mirrors) {
   }
 }
 export function applyFacePoseToAvatar(character, rig) {
-  const facePoseActions = character.getActionsArray().filter(a => a.type === 'facepose');
+  const facePoseActions = character
+    .getActionsArray()
+    .filter(a => a.type === 'facepose');
   if (facePoseActions.length > 0) {
     character.avatar.faceposes = facePoseActions;
   } else {
@@ -290,7 +307,8 @@ export function applyCharacterToAvatar(character, session, rig, mirrors) {
   applyCharacterModesToAvatar(character, session, rig);
   applyCharacterActionsToAvatar(character, rig);
   applyCharacterHeadTargetToAvatar(character, rig);
-  applyCharacterEyesToAvatar(character, rig) || applyMirrorsToAvatar(character, rig, mirrors);
+  applyCharacterEyesToAvatar(character, rig) ||
+    applyMirrorsToAvatar(character, rig, mirrors);
 
   applyFacePoseToAvatar(character, rig);
   applyCharacterPoseToAvatar(character, rig);

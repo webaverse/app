@@ -17,24 +17,22 @@ import Chains from './components/web3/chains';
 
 //
 
-const UserPopover = ({
-  open = false,
-}) => {
+const UserPopover = ({open = false}) => {
   return (
-        <div className={classnames(styles.userPopover, open ? styles.open : null)}>
-            <div className={styles.section}>
-                <div className={styles.header}>Loadout</div>
-                <div className={styles.content}></div>
-            </div>
-            <div className={styles.section}>
-                <div className={styles.header}>Homespace</div>
-                <div className={styles.content}></div>
-            </div>
-            <div className={styles.section}>
-                <div className={styles.header}>Rewards</div>
-                <div className={styles.content}></div>
-            </div>
-        </div>
+    <div className={classnames(styles.userPopover, open ? styles.open : null)}>
+      <div className={styles.section}>
+        <div className={styles.header}>Loadout</div>
+        <div className={styles.content}></div>
+      </div>
+      <div className={styles.section}>
+        <div className={styles.header}>Homespace</div>
+        <div className={styles.content}></div>
+      </div>
+      <div className={styles.section}>
+        <div className={styles.header}>Rewards</div>
+        <div className={styles.content}></div>
+      </div>
+    </div>
   );
 };
 
@@ -45,7 +43,16 @@ export const User = ({className, setLoginFrom}) => {
   const [loggingIn, setLoggingIn] = useState(false);
   // const [ loginError, setLoginError ] = useState(null);
   // const [ autoLoginRequestMade, setAutoLoginRequestMade ] = useState(false);
-  const {isConnected, currentAddress, connectWallet, disconnectWallet, errorMessage, wrongChain, getAccounts, getAccountDetails} = account;
+  const {
+    isConnected,
+    currentAddress,
+    connectWallet,
+    disconnectWallet,
+    errorMessage,
+    wrongChain,
+    getAccounts,
+    getAccountDetails,
+  } = account;
   const {selectedChain} = chain;
   const [address, setAddress] = useState('');
 
@@ -229,92 +236,107 @@ export const User = ({className, setLoginFrom}) => {
   //
 
   return (
+    <div
+      className={classnames(
+        styles.user,
+        loginOpen ? styles.open : null,
+        loggedIn ? styles.loggedIn : null,
+        loggingIn ? styles.loggingIn : null,
+        className,
+      )}
+    >
+      {!loggedIn && (
         <div
-            className={classnames(
-              styles.user,
-              loginOpen ? styles.open : null,
-              loggedIn ? styles.loggedIn : null,
-              loggingIn ? styles.loggingIn : null,
-              className,
-            )}
+          className={styles.keyWrap}
+          onClick={e => {
+            e.preventDefault();
+            e.stopPropagation();
+
+            if (!loginOpen) {
+              setState({openedPanel: 'LoginPanel'});
+            } else {
+              setState({openedPanel: null});
+            }
+
+            sounds.playSoundName('menuNext');
+          }}
+          onMouseEnter={e => {
+            _triggerClickSound();
+          }}
         >
-            {!loggedIn &&
-                <div className={ styles.keyWrap } onClick={e => {
-                  e.preventDefault();
-                  e.stopPropagation();
-
-                  if (!loginOpen) {
-                    setState({openedPanel: 'LoginPanel'});
-                  } else {
-                    setState({openedPanel: null});
-                  }
-
-                  sounds.playSoundName('menuNext');
-                }} onMouseEnter={e => {
-                  _triggerClickSound();
-                }}>
-                    <div className={styles.key}>
-                        <div className={styles.bow}>
-                            <img className={styles.icon} src="./images/log-in.svg" />
-                        </div>
-                        <div className={styles.blade}>
-                            <div className={styles.background} />
-                            <div className={styles.text}>ログイン Log in</div>
-                        </div>
-                    </div>
-                </div>
-            }
-            <div className={styles.loggingInPlaceholder}>Logging in</div>
-            {loggedIn &&
-                <div
-                    className={styles.userWrap}
-                >
-                    <Chains />
-                    <div
-                        className={classnames(
-                          styles.userBar,
-                          popoverOpen ? styles.open : null,
-                        )}
-                        onClick={toggleUserPopover}
-                    >
-                        {avatarUrl
-                          ? (
-                            <div
-                                className={styles.avatarUrl}
-                            >
-                                <img className={styles.img} src={avatarUrl} crossOrigin='Anonymous' />
-                            </div>
-                            )
-                          : null}
-                        <div className={styles.nameWrap}>
-                            <div
-                                className={styles.address}
-                            >{ensName || shortAddress(address) || ''} <img className={styles.verifiedIcon} src="./images/verified.svg" /></div>
-                        </div>
-                    </div>
-                    <div className={styles.logoutBtn}
-                        onClick={e => {
-                          e.preventDefault();
-                          e.stopPropagation();
-                          disconnectWallet();
-                        }}
-                    >Logout</div>
-                    <UserPopover open={popoverOpen} />
-                </div>
-            }
-            <div className={ classnames(
-              styles.userLoginMethodsModal,
-              loginOpen ? styles.opened : null,
-            ) } >
-                <div className={ styles.title } >
-                    <span>Log in</span>
-                    {/* <div className={ styles.background } /> */}
-                </div>
-                <div className={ styles.methodBtn } onClick={ metaMaskLogin } onMouseEnter={ _triggerClickSound } >
-                    <img src="images/metamask.png" alt="metamask" width="28px" />
-                    <span className={ styles.methodBtnText } >MetaMask</span>
-                </div>
-                {/* <a
+          <div className={styles.key}>
+            <div className={styles.bow}>
+              <img className={styles.icon} src="./images/log-in.svg" />
+            </div>
+            <div className={styles.blade}>
+              <div className={styles.background} />
+              <div className={styles.text}>ログイン Log in</div>
+            </div>
+          </div>
+        </div>
+      )}
+      <div className={styles.loggingInPlaceholder}>Logging in</div>
+      {loggedIn && (
+        <div className={styles.userWrap}>
+          <Chains />
+          <div
+            className={classnames(
+              styles.userBar,
+              popoverOpen ? styles.open : null,
+            )}
+            onClick={toggleUserPopover}
+          >
+            {avatarUrl ? (
+              <div className={styles.avatarUrl}>
+                <img
+                  className={styles.img}
+                  src={avatarUrl}
+                  crossOrigin="Anonymous"
+                />
+              </div>
+            ) : null}
+            <div className={styles.nameWrap}>
+              <div className={styles.address}>
+                {ensName || shortAddress(address) || ''}{' '}
+                <img
+                  className={styles.verifiedIcon}
+                  src="./images/verified.svg"
+                />
+              </div>
+            </div>
+          </div>
+          <div
+            className={styles.logoutBtn}
+            onClick={e => {
+              e.preventDefault();
+              e.stopPropagation();
+              disconnectWallet();
+            }}
+          >
+            Logout
+          </div>
+          <UserPopover open={popoverOpen} />
+        </div>
+      )}
+      <div
+        className={classnames(
+          styles.userLoginMethodsModal,
+          loginOpen ? styles.opened : null,
+        )}
+      >
+        <div className={styles.title}>
+          <span>Log in</span>
+          {/* <div className={ styles.background } /> */}
+        </div>
+        <div
+          className={styles.methodBtn}
+          onClick={metaMaskLogin}
+          onMouseEnter={_triggerClickSound}
+        >
+          <img src="images/metamask.png" alt="metamask" width="28px" />
+          <span className={styles.methodBtnText}>MetaMask</span>
+        </div>
+        {/* <a
                     href={ `https://discord.com/api/oauth2/authorize?client_id=${ discordClientId }&redirect_uri=${ window.location.origin }%2Flogin&response_type=code&scope=identify` }
                     onMouseEnter={ _triggerClickSound }
                 >
@@ -323,12 +345,16 @@ export const User = ({className, setLoginFrom}) => {
                         <span className={ styles.methodBtnText } >Discord</span>
                     </div>
                 </a> */}
-                <div className={ styles.methodBtn } onClick={ handleCancelBtnClick } onMouseEnter={ _triggerClickSound } >
-                    <span className={ styles.methodBtnText } >Cancel</span>
-                </div>
-            </div>
+        <div
+          className={styles.methodBtn}
+          onClick={handleCancelBtnClick}
+          onMouseEnter={_triggerClickSound}
+        >
+          <span className={styles.methodBtnText}>Cancel</span>
+        </div>
+      </div>
 
-            {/* <Modal onClose={ showModal } show={loginOpen && !loggingIn}>
+      {/* <Modal onClose={ showModal } show={loginOpen && !loggingIn}>
                 <div className={styles.login_options}>
 
                     <div className={styles.loginDiv}>
@@ -349,6 +375,6 @@ export const User = ({className, setLoginFrom}) => {
                     </div>
                 </div>
             </Modal> */}
-        </div>
+    </div>
   );
 };

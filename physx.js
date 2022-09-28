@@ -583,9 +583,7 @@ const physxWorker = (() => {
     return newUpdates;
   };
   w.setTriggerPhysics = (physics, id) => {
-    return Module._setTriggerPhysics(
-      physics, id,
-    );
+    return Module._setTriggerPhysics(physics, id);
   };
   w.getTriggerEventsPhysics = physics => {
     const triggerCount = Module._getTriggerEventsPhysics(
@@ -908,52 +906,22 @@ const physxWorker = (() => {
     const allocator = new Allocator(Module);
 
     // inputs
-    const originBuf = allocator.alloc(
-      Float32Array,
-      3,
-    );
+    const originBuf = allocator.alloc(Float32Array, 3);
     origin.toArray(originBuf);
-    const quaternionBuf = allocator.alloc(
-      Float32Array,
-      4,
-    );
+    const quaternionBuf = allocator.alloc(Float32Array, 4);
     quaternion.toArray(quaternionBuf);
-    const halfExtentsBuf = allocator.alloc(
-      Float32Array,
-      3,
-    );
+    const halfExtentsBuf = allocator.alloc(Float32Array, 3);
     halfExtents.toArray(halfExtentsBuf);
-    const directionBuf = allocator.alloc(
-      Float32Array,
-      3,
-    );
+    const directionBuf = allocator.alloc(Float32Array, 3);
     direction.toArray(directionBuf);
 
     // outputs
-    const numHitsBuf = allocator.alloc(
-      Uint32Array,
-      1,
-    );
-    const positionBuf = allocator.alloc(
-      Float32Array,
-      maxHits * 3,
-    );
-    const normalBuf = allocator.alloc(
-      Float32Array,
-      maxHits * 3,
-    );
-    const distanceBuf = allocator.alloc(
-      Float32Array,
-      maxHits * 1,
-    );
-    const objectIdBuf = allocator.alloc(
-      Uint32Array,
-      maxHits * 1,
-    );
-    const faceIndexBuf = allocator.alloc(
-      Uint32Array,
-      maxHits * 1,
-    );
+    const numHitsBuf = allocator.alloc(Uint32Array, 1);
+    const positionBuf = allocator.alloc(Float32Array, maxHits * 3);
+    const normalBuf = allocator.alloc(Float32Array, maxHits * 3);
+    const distanceBuf = allocator.alloc(Float32Array, maxHits * 1);
+    const objectIdBuf = allocator.alloc(Uint32Array, maxHits * 1);
+    const faceIndexBuf = allocator.alloc(Uint32Array, maxHits * 1);
 
     Module._sweepBox(
       physics,
@@ -1000,47 +968,20 @@ const physxWorker = (() => {
     const allocator = new Allocator(Module);
 
     // inputs
-    const originBuf = allocator.alloc(
-      Float32Array,
-      3,
-    );
+    const originBuf = allocator.alloc(Float32Array, 3);
     origin.toArray(originBuf);
-    const quaternionBuf = allocator.alloc(
-      Float32Array,
-      4,
-    );
+    const quaternionBuf = allocator.alloc(Float32Array, 4);
     quaternion.toArray(quaternionBuf);
-    const directionBuf = allocator.alloc(
-      Float32Array,
-      3,
-    );
+    const directionBuf = allocator.alloc(Float32Array, 3);
     direction.toArray(directionBuf);
 
     // outputs
-    const numHitsBuf = allocator.alloc(
-      Uint32Array,
-      1,
-    );
-    const positionBuf = allocator.alloc(
-      Float32Array,
-      maxHits * 3,
-    );
-    const normalBuf = allocator.alloc(
-      Float32Array,
-      maxHits * 3,
-    );
-    const distanceBuf = allocator.alloc(
-      Float32Array,
-      maxHits * 1,
-    );
-    const objectIdBuf = allocator.alloc(
-      Uint32Array,
-      maxHits * 1,
-    );
-    const faceIndexBuf = allocator.alloc(
-      Uint32Array,
-      maxHits * 1,
-    );
+    const numHitsBuf = allocator.alloc(Uint32Array, 1);
+    const positionBuf = allocator.alloc(Float32Array, maxHits * 3);
+    const normalBuf = allocator.alloc(Float32Array, maxHits * 3);
+    const distanceBuf = allocator.alloc(Float32Array, maxHits * 1);
+    const objectIdBuf = allocator.alloc(Uint32Array, maxHits * 1);
+    const faceIndexBuf = allocator.alloc(Uint32Array, maxHits * 1);
 
     Module._sweepConvexShape(
       physics,
@@ -1631,7 +1572,16 @@ const physxWorker = (() => {
     allocator.freeAll();
   };
 
-  w.addConvexShapePhysics = (physics, shape, position, quaternion, scale, dynamic, external, id) => {
+  w.addConvexShapePhysics = (
+    physics,
+    shape,
+    position,
+    quaternion,
+    scale,
+    dynamic,
+    external,
+    id,
+  ) => {
     const positionBuffer = scratchStack.f32.subarray(3, 6);
     position.toArray(positionBuffer);
     const quaternionBuffer = scratchStack.f32.subarray(6, 10);
@@ -1684,7 +1634,18 @@ const physxWorker = (() => {
     return shapeAddress;
   };
 
-  w.addHeightFieldGeometryPhysics = (physics, numRows, numColumns, heights, heightScale, rowScale, columnScale, dynamic, external, id) => {
+  w.addHeightFieldGeometryPhysics = (
+    physics,
+    numRows,
+    numColumns,
+    heights,
+    heightScale,
+    rowScale,
+    columnScale,
+    dynamic,
+    external,
+    id,
+  ) => {
     // numRows, numColumns and heights must be int.
 
     const numVerts = numRows * numColumns;
@@ -1767,11 +1728,7 @@ const physxWorker = (() => {
     const allocator = new Allocator(Module);
     const boundsBuffer = allocator.alloc(Float32Array, 6);
 
-    const ok = Module._getBoundsPhysics(
-      physics,
-      id,
-      boundsBuffer.byteOffset,
-    );
+    const ok = Module._getBoundsPhysics(physics, id, boundsBuffer.byteOffset);
 
     if (ok) {
       box.min.fromArray(boundsBuffer, 0);
@@ -1857,7 +1814,13 @@ const physxWorker = (() => {
 
     autoWake = autoWake ?? false;
 
-    Module._addForceAtPosPhysics(physics, id, vel.byteOffset, pos.byteOffset, autoWake);
+    Module._addForceAtPosPhysics(
+      physics,
+      id,
+      vel.byteOffset,
+      pos.byteOffset,
+      autoWake,
+    );
     allocator.freeAll();
   };
   w.addLocalForceAtPosPhysics = (physics, id, velocity, position, autoWake) => {
@@ -1869,10 +1832,22 @@ const physxWorker = (() => {
 
     autoWake = autoWake ?? false;
 
-    Module._addLocalForceAtPosPhysics(physics, id, vel.byteOffset, pos.byteOffset, autoWake);
+    Module._addLocalForceAtPosPhysics(
+      physics,
+      id,
+      vel.byteOffset,
+      pos.byteOffset,
+      autoWake,
+    );
     allocator.freeAll();
   };
-  w.addLocalForceAtLocalPosPhysics = (physics, id, velocity, position, autoWake) => {
+  w.addLocalForceAtLocalPosPhysics = (
+    physics,
+    id,
+    velocity,
+    position,
+    autoWake,
+  ) => {
     const allocator = new Allocator(Module);
     const vel = allocator.alloc(Float32Array, 3);
     velocity.toArray(vel);
@@ -1881,7 +1856,13 @@ const physxWorker = (() => {
 
     autoWake = autoWake ?? false;
 
-    Module._addLocalForceAtLocalPosPhysics(physics, id, vel.byteOffset, pos.byteOffset, autoWake);
+    Module._addLocalForceAtLocalPosPhysics(
+      physics,
+      id,
+      vel.byteOffset,
+      pos.byteOffset,
+      autoWake,
+    );
     allocator.freeAll();
   };
   w.addForceAtLocalPosPhysics = (physics, id, velocity, position, autoWake) => {
@@ -1893,7 +1874,13 @@ const physxWorker = (() => {
 
     autoWake = autoWake ?? false;
 
-    Module._addForceAtLocalPosPhysics(physics, id, vel.byteOffset, pos.byteOffset, autoWake);
+    Module._addForceAtLocalPosPhysics(
+      physics,
+      id,
+      vel.byteOffset,
+      pos.byteOffset,
+      autoWake,
+    );
     allocator.freeAll();
   };
   w.addForcePhysics = (physics, id, velocity, autoWake) => {
@@ -1933,27 +1920,14 @@ const physxWorker = (() => {
 
     autoWake = autoWake ?? false;
 
-    Module._setAngularVelocityPhysics(
-      physics,
-      id,
-      vel.byteOffset,
-      autoWake,
-    );
+    Module._setAngularVelocityPhysics(physics, id, vel.byteOffset, autoWake);
     allocator.freeAll();
   };
-  w.setGeometryScale = (
-    physics,
-    id,
-    scale,
-  ) => {
+  w.setGeometryScale = (physics, id, scale) => {
     const allocator = new Allocator(Module);
     const s = allocator.alloc(Float32Array, 3);
     scale.toArray(s);
-    Module._setGeometryScalePhysics(
-      physics,
-      id,
-      s.byteOffset,
-    );
+    Module._setGeometryScalePhysics(physics, id, s.byteOffset);
     allocator.freeAll();
   };
   w.setTransformPhysics = (
@@ -2083,13 +2057,7 @@ const physxWorker = (() => {
     );
     allocator.freeAll();
   };
-  w.addPlaneGeometryPhysics = (
-    physics,
-    position,
-    quaternion,
-    id,
-    dynamic,
-  ) => {
+  w.addPlaneGeometryPhysics = (physics, position, quaternion, id, dynamic) => {
     const allocator = new Allocator(Module);
     const p = allocator.alloc(Float32Array, 3);
     const q = allocator.alloc(Float32Array, 4);
@@ -2157,26 +2125,22 @@ const physxWorker = (() => {
 
     const zeroMaterial = w.getZeroMaterial(physics);
 
-    const characterController =
-      Module._createCharacterControllerPhysics(
-        physics,
-        radius,
-        height,
-        contactOffset,
-        stepOffset,
-        p.byteOffset,
-        zeroMaterial,
-        id,
-      );
+    const characterController = Module._createCharacterControllerPhysics(
+      physics,
+      radius,
+      height,
+      contactOffset,
+      stepOffset,
+      p.byteOffset,
+      zeroMaterial,
+      id,
+    );
     allocator.freeAll();
 
     return characterController;
   };
   w.destroyCharacterControllerPhysics = (physics, characterController) => {
-    Module._destroyCharacterControllerPhysics(
-      physics,
-      characterController,
-    );
+    Module._destroyCharacterControllerPhysics(physics, characterController);
   };
   w.moveCharacterControllerPhysics = (
     physics,
@@ -2256,10 +2220,7 @@ const physxWorker = (() => {
 
     const positionCount = Module.HEAP32[head];
     const faceCount = Module.HEAP32[head + 1];
-    const positions = Module.HEAPF32.slice(
-      head + 2,
-      head + 2 + positionCount,
-    );
+    const positions = Module.HEAPF32.slice(head + 2, head + 2 + positionCount);
     const faces = Module.HEAPU32.slice(
       head + 2 + positionCount,
       head + 2 + positionCount + faceCount,

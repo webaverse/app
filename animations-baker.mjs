@@ -8,7 +8,11 @@ import {FBXLoader} from 'three/examples/jsm/loaders/FBXLoader.js';
 import {MMDLoader} from 'three/examples/jsm/loaders/MMDLoader.js';
 import {CharsetEncoder} from 'three/examples/jsm/libs/mmdparser.module.js';
 
-import {getAvatarHeight, getModelBones, modelBoneToAnimationBone} from './avatars/util.mjs';
+import {
+  getAvatarHeight,
+  getModelBones,
+  modelBoneToAnimationBone,
+} from './avatars/util.mjs';
 import {zbencode, zbdecode} from 'zjs/encoding.mjs';
 
 class ProgressEvent {
@@ -51,7 +55,7 @@ globalThis.ProgressEvent = ProgressEvent;
   // const charsetEncoder = new CharsetEncoder();
   const _makeFakeBone = name => {
     return {
-    // name,
+      // name,
       translation: [0, 0, 0],
       quaternion: [0, 0, 0, 1],
     };
@@ -61,7 +65,7 @@ globalThis.ProgressEvent = ProgressEvent;
       return o.bones.find(b => b.name === name) ?? _makeFakeBone();
     };
     const mmdModelBones = {
-    // Root: _getBone('センター'), // deliberately excluded
+      // Root: _getBone('センター'), // deliberately excluded
 
       Hips: _getBone('下半身'),
       Spine: _makeFakeBone(), // not present in mmd
@@ -212,10 +216,15 @@ globalThis.ProgressEvent = ProgressEvent;
       let o;
       const u = uriPath + 'animations/' + idleAnimationName;
       o = await new Promise((accept, reject) => {
-        fbxLoader.load(u, o => {
-          o.scene = o;
-          accept(o);
-        }, function progress() { }, reject);
+        fbxLoader.load(
+          u,
+          o => {
+            o.scene = o;
+            accept(o);
+          },
+          function progress() {},
+          reject,
+        );
       });
       // console.log('got height', height);
       // const animation = o.animations[0];
@@ -228,10 +237,15 @@ globalThis.ProgressEvent = ProgressEvent;
       console.log('processing', name);
       let o;
       o = await new Promise((accept, reject) => {
-        fbxLoader.load(u, o => {
-          o.scene = o;
-          accept(o);
-        }, function progress() { }, reject);
+        fbxLoader.load(
+          u,
+          o => {
+            o.scene = o;
+            accept(o);
+          },
+          function progress() {},
+          reject,
+        );
       });
       // console.log('got height', height);
       const animation = o.animations[0];
@@ -247,7 +261,8 @@ globalThis.ProgressEvent = ProgressEvent;
           for (let i = 0; i < numValues; i++) {
             const index = i;
             for (let j = 0; j < valueSize; j++) {
-              values2[index * valueSize + j] = track.values[index * valueSize + j] / height;
+              values2[index * valueSize + j] =
+                track.values[index * valueSize + j] / height;
             }
           }
           track.values = values2;
@@ -261,7 +276,8 @@ globalThis.ProgressEvent = ProgressEvent;
       for (const track of animation.tracks) {
         const times2 = new track.times.constructor(track.times.length);
         for (let i = 0; i < track.times.length; i++) {
-          times2[i] = animation.duration - track.times[track.times.length - 1 - i];
+          times2[i] =
+            animation.duration - track.times[track.times.length - 1 - i];
         }
         track.times = times2;
 
@@ -272,7 +288,8 @@ globalThis.ProgressEvent = ProgressEvent;
           const aIndex = i;
           const bIndex = numValues - 1 - i;
           for (let j = 0; j < valueSize; j++) {
-            values2[aIndex * valueSize + j] = track.values[bIndex * valueSize + j];
+            values2[aIndex * valueSize + j] =
+              track.values[bIndex * valueSize + j];
           }
         }
         track.values = values2;
@@ -335,19 +352,29 @@ globalThis.ProgressEvent = ProgressEvent;
         if (/\.position$/.test(track.name)) {
           const boneName = track.name.replace(/\.position$/, '');
           // const bone = bones.find(b => b.name === boneName);
-          const boneInterpolant = new THREE.LinearInterpolant(track.times, track.values, track.getValueSize());
+          const boneInterpolant = new THREE.LinearInterpolant(
+            track.times,
+            track.values,
+            track.getValueSize(),
+          );
           bonePositionInterpolants[boneName] = boneInterpolant;
         } else if (/\.quaternion$/.test(track.name)) {
           const boneName = track.name.replace(/\.quaternion$/, '');
           // const bone = bones.find(b => b.name === boneName);
-          const boneInterpolant = new THREE.QuaternionLinearInterpolant(track.times, track.values, track.getValueSize());
+          const boneInterpolant = new THREE.QuaternionLinearInterpolant(
+            track.times,
+            track.values,
+            track.getValueSize(),
+          );
           boneQuaternionInterpolants[boneName] = boneInterpolant;
         } else if (/\.scale$/.test(track.name)) {
           if (allOnesEpsilon(track.values)) {
             const index = tracks.indexOf(track);
             tracksToRemove.push(index);
           } else {
-            throw new Error(`This track has invalid values.  All scale transforms must be set to 1. Aborting.\n Animation: ${animation.name}, Track: ${track.name}, values: \n ${track.values}`);
+            throw new Error(
+              `This track has invalid values.  All scale transforms must be set to 1. Aborting.\n Animation: ${animation.name}, Track: ${track.name}, values: \n ${track.values}`,
+            );
           }
         } else {
           console.warn('unknown track name', animation.name, track);
@@ -383,9 +410,15 @@ globalThis.ProgressEvent = ProgressEvent;
         rootBone.updateMatrixWorld(true);
 
         const fbxScale = 100;
-        const rootY = new THREE.Vector3().setFromMatrixPosition(rootBone.matrixWorld).divideScalar(fbxScale).y;
-        const leftFootY = new THREE.Vector3().setFromMatrixPosition(leftFootBone.matrixWorld).divideScalar(fbxScale).y;
-        const rightFootY = new THREE.Vector3().setFromMatrixPosition(rightFootBone.matrixWorld).divideScalar(fbxScale).y;
+        const rootY = new THREE.Vector3()
+          .setFromMatrixPosition(rootBone.matrixWorld)
+          .divideScalar(fbxScale).y;
+        const leftFootY = new THREE.Vector3()
+          .setFromMatrixPosition(leftFootBone.matrixWorld)
+          .divideScalar(fbxScale).y;
+        const rightFootY = new THREE.Vector3()
+          .setFromMatrixPosition(rightFootBone.matrixWorld)
+          .divideScalar(fbxScale).y;
 
         const leftFootYDelta = leftFootY - rootY;
         const rightFootYDelta = rightFootY - rootY;
@@ -419,14 +452,26 @@ globalThis.ProgressEvent = ProgressEvent;
       let numRight = 0;
       const _isFootYStepping = (y, stepYLimit) => y <= stepYLimit;
       for (let i = 0; i < leftFootYDeltas.length; i++) {
-        const lastLeftFootStepping = _isFootYStepping(leftFootYDeltas[i === 0 ? (leftFootYDeltas.length - 1) : (i - 1)], leftYLimit);
-        const leftFootStepping = _isFootYStepping(leftFootYDeltas[i], leftYLimit);
+        const lastLeftFootStepping = _isFootYStepping(
+          leftFootYDeltas[i === 0 ? leftFootYDeltas.length - 1 : i - 1],
+          leftYLimit,
+        );
+        const leftFootStepping = _isFootYStepping(
+          leftFootYDeltas[i],
+          leftYLimit,
+        );
         const newLeftStep = leftFootStepping && !lastLeftFootStepping;
         leftStepIndices[i] = newLeftStep ? 1 : 0;
         numLeft += +newLeftStep;
 
-        const lastRightFootStepping = _isFootYStepping(rightFootYDeltas[i === 0 ? (rightFootYDeltas.length - 1) : (i - 1)], leftYLimit);
-        const rightFootStepping = _isFootYStepping(rightFootYDeltas[i], leftYLimit);
+        const lastRightFootStepping = _isFootYStepping(
+          rightFootYDeltas[i === 0 ? rightFootYDeltas.length - 1 : i - 1],
+          leftYLimit,
+        );
+        const rightFootStepping = _isFootYStepping(
+          rightFootYDeltas[i],
+          leftYLimit,
+        );
         const newRightStep = rightFootStepping && !lastRightFootStepping;
         rightStepIndices[i] = newRightStep ? 1 : 0;
         numRight += +newRightStep;
@@ -531,7 +576,8 @@ globalThis.ProgressEvent = ProgressEvent;
     // console.log('got animations', animations);
 
     // format
-    const animationsJson = animations.map(a => a.toJSON())
+    const animationsJson = animations
+      .map(a => a.toJSON())
       .concat(mmdAnimationsJson);
     for (const animation of animationsJson) {
       for (const track of animation.tracks) {
@@ -562,10 +608,17 @@ globalThis.ProgressEvent = ProgressEvent;
     app.use(express.static('public'));
     app.listen(9999);
     const animationFileNames = fs.readdirSync('public/animations');
-    const fbxFileNames = animationFileNames.filter(name => /\.fbx$/.test(name)).map(name => 'animations/' + name);
+    const fbxFileNames = animationFileNames
+      .filter(name => /\.fbx$/.test(name))
+      .map(name => 'animations/' + name);
     const vpdFileNames = findFilesWithExtension('public', 'poses', 'vpd');
     const animationsResultFileName = 'public/animations/animations.z';
-    await baker('http://localhost:9999/', fbxFileNames, vpdFileNames, animationsResultFileName).catch(e => {
+    await baker(
+      'http://localhost:9999/',
+      fbxFileNames,
+      vpdFileNames,
+      animationsResultFileName,
+    ).catch(e => {
       console.warn('bake error', e);
     });
     process.exit();

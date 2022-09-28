@@ -12,7 +12,7 @@ Redistribution and use in source and binary forms, with or without modification,
 THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 /////////////////////////////////////////////////////////////////////////////////////////////////// */
 function aleaPRNG() {
-  return (function(args) {
+  return (function (args) {
     'use strict';
 
     const version = 'aleaPRNG 1.1.0';
@@ -23,9 +23,7 @@ function aleaPRNG() {
     let c;
     const uinta = new Uint32Array(3);
     let initialArgs;
-    let mashver = ''
-        ;
-
+    let mashver = '';
     /* private: initializes generator with specified seed */
     function _initState(_internalSeed) {
       let mash = Mash();
@@ -39,13 +37,19 @@ function aleaPRNG() {
 
       for (let i = 0; i < _internalSeed.length; i++) {
         s0 -= mash(_internalSeed[i]);
-        if (s0 < 0) { s0 += 1; }
+        if (s0 < 0) {
+          s0 += 1;
+        }
 
         s1 -= mash(_internalSeed[i]);
-        if (s1 < 0) { s1 += 1; }
+        if (s1 < 0) {
+          s1 += 1;
+        }
 
         s2 -= mash(_internalSeed[i]);
-        if (s2 < 0) { s2 += 1; }
+        if (s2 < 0) {
+          s2 += 1;
+        }
       }
 
       mashver = mash.version;
@@ -57,7 +61,7 @@ function aleaPRNG() {
     function Mash() {
       let n = 4022871197; // 0xefc8249d
 
-      const mash = function(data) {
+      const mash = function (data) {
         data = data.toString();
 
         // cache the length
@@ -88,7 +92,7 @@ function aleaPRNG() {
     /* public: return a 32-bit fraction in the range [0, 1]
         This is the main function returned when aleaPRNG is instantiated
         */
-    const random = function() {
+    const random = function () {
       const t = 2091639 * s0 + c * 2.3283064365386963e-10; // 2^-32
 
       s0 = s1;
@@ -98,27 +102,29 @@ function aleaPRNG() {
     };
 
     /* public: return a 53-bit fraction in the range [0, 1] */
-    random.fract53 = function() {
-      return random() + (random() * 0x200000 | 0) * 1.1102230246251565e-16; // 2^-53
+    random.fract53 = function () {
+      return random() + ((random() * 0x200000) | 0) * 1.1102230246251565e-16; // 2^-53
     };
 
     /* public: return an unsigned integer in the range [0, 2^32] */
-    random.int32 = function() {
+    random.int32 = function () {
       return random() * 0x100000000; // 2^32
     };
 
     /* public: advance the generator the specified amount of cycles */
-    random.cycle = function(_run) {
+    random.cycle = function (_run) {
       _run = typeof _run === 'undefined' ? 1 : +_run;
-      if (_run < 1) { _run = 1; }
-      for (let i = 0; i < _run; i++) { random(); }
+      if (_run < 1) {
+        _run = 1;
+      }
+      for (let i = 0; i < _run; i++) {
+        random();
+      }
     };
 
     /* public: return inclusive range */
-    random.range = function() {
-      let loBound,
-        hiBound
-            ;
+    random.range = function () {
+      let loBound, hiBound;
 
       if (arguments.length === 1) {
         loBound = 0;
@@ -144,22 +150,22 @@ function aleaPRNG() {
     };
 
     /* public: initialize generator with the seed values used upon instantiation */
-    random.restart = function() {
+    random.restart = function () {
       _initState(initialArgs);
     };
 
     /* public: seeding function */
-    random.seed = function() {
+    random.seed = function () {
       _initState(Array.prototype.slice.call(arguments));
     };
 
     /* public: show the version of the RNG */
-    random.version = function() {
+    random.version = function () {
       return version;
     };
 
     /* public: show the version of the RNG and the Mash string hasher */
-    random.versions = function() {
+    random.versions = function () {
       return version + ', ' + mashver;
     };
 

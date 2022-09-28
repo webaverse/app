@@ -1,4 +1,3 @@
-
 import React from 'react';
 
 import {Minimap} from './minimap';
@@ -15,15 +14,15 @@ export const PlayMode = () => {
   //
 
   return (
-        <div className={ styles.playMode }>
-            <UIMode hideDirection='left'>
-                <Minimap />
-            </UIMode>
-            <UIMode hideDirection='bottom'>
-                <Hotbar />
-            </UIMode>
-            <Infobox />
-            <Chat />
-        </div>
+    <div className={styles.playMode}>
+      <UIMode hideDirection="left">
+        <Minimap />
+      </UIMode>
+      <UIMode hideDirection="bottom">
+        <Hotbar />
+      </UIMode>
+      <Infobox />
+      <Chat />
+    </div>
   );
 };

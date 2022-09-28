@@ -38,7 +38,9 @@ export const triggerEmote = (emoteName, player = null) => {
   const emoteAnimation = emoteAnimations[emoteHardName];
   const emoteAnimationDuration = emoteAnimation.duration;
   emoteTimeout = setTimeout(() => {
-    const actionIndex = player.findActionIndex(action => action.type === 'emote' && action.animation === emoteHardName);
+    const actionIndex = player.findActionIndex(
+      action => action.type === 'emote' && action.animation === emoteHardName,
+    );
     player.removeActionIndex(actionIndex);
 
     setFacePoseValue(emotion, 0);
@@ -49,9 +51,7 @@ export const triggerEmote = (emoteName, player = null) => {
 
 //
 
-export const Poses = ({
-  parentOpened,
-}) => {
+export const Poses = ({parentOpened}) => {
   const [posesOpen, setPosesOpen] = useState(false);
   const posesRef = useRef();
 
@@ -60,33 +60,29 @@ export const Poses = ({
   };
 
   return (
-        <div
-            className={classnames(
-              styles.poses,
-              parentOpened ? styles.parentOpened : null,
-              posesOpen ? styles.open : null,
-            )}
-            onMouseEnter={e => {
-              setPosesOpen(true);
-            }}
-            onMouseLeave={e => {
-              setPosesOpen(false);
-            }}
-            ref={posesRef}
-        >
-            {emotes.map((emote, emoteIndex) => {
-              const {name, icon} = emote;
-              return (
-                    <div
-                        className={styles.pose}
-                        onClick={poseClick(name)}
-                        key={name}
-                    >
-                        <img src={`images/poses/${icon}`} className={styles.poseIcon} />
-                        <div className={styles.poseName}>{name}</div>
-                    </div>
-              );
-            })}
-        </div>
+    <div
+      className={classnames(
+        styles.poses,
+        parentOpened ? styles.parentOpened : null,
+        posesOpen ? styles.open : null,
+      )}
+      onMouseEnter={e => {
+        setPosesOpen(true);
+      }}
+      onMouseLeave={e => {
+        setPosesOpen(false);
+      }}
+      ref={posesRef}
+    >
+      {emotes.map((emote, emoteIndex) => {
+        const {name, icon} = emote;
+        return (
+          <div className={styles.pose} onClick={poseClick(name)} key={name}>
+            <img src={`images/poses/${icon}`} className={styles.poseIcon} />
+            <div className={styles.poseName}>{name}</div>
+          </div>
+        );
+      })}
+    </div>
   );
 };

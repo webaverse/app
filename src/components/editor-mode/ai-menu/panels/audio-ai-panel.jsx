@@ -41,28 +41,32 @@ export function AudioAiPanel() {
   //
 
   return (
-        <div className={classnames(styles.panel, styles.audioAiPanel)}>
-            <textarea
-                className={styles.textarea}
-                value={prompt}
-                onChange={e => {
-                  setPrompt(e.target.value);
-                }}
-                placeholder={defaultPrompt}
-            ></textarea>
-            {
-                audioBlobUrl
-                  ? (
-                    <audio className={styles.audio} src={audioBlobUrl} controls loop />
-                    )
-                  : (
-                    <div className={styles.audioPlaceholder} />
-                    )
-            }
-            <div className={styles.buttons}>
-                <button className={styles.button} onClick={_generate} disabled={generating}>Generate sound</button>
-                <button className={styles.button} onClick={_clear}>clear</button>
-            </div>
-        </div>
+    <div className={classnames(styles.panel, styles.audioAiPanel)}>
+      <textarea
+        className={styles.textarea}
+        value={prompt}
+        onChange={e => {
+          setPrompt(e.target.value);
+        }}
+        placeholder={defaultPrompt}
+      ></textarea>
+      {audioBlobUrl ? (
+        <audio className={styles.audio} src={audioBlobUrl} controls loop />
+      ) : (
+        <div className={styles.audioPlaceholder} />
+      )}
+      <div className={styles.buttons}>
+        <button
+          className={styles.button}
+          onClick={_generate}
+          disabled={generating}
+        >
+          Generate sound
+        </button>
+        <button className={styles.button} onClick={_clear}>
+          clear
+        </button>
+      </div>
+    </div>
   );
 }

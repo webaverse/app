@@ -8,16 +8,19 @@ export const getSkinnedMeshes = object => {
       skinnedMeshes.push(o);
     }
   });
-  skinnedMeshes.sort((a, b) => b.skeleton.bones.length - a.skeleton.bones.length);
+  skinnedMeshes.sort(
+    (a, b) => b.skeleton.bones.length - a.skeleton.bones.length,
+  );
   return skinnedMeshes;
 };
 export const getSkeleton = object => {
   let skeleton = null;
-  
+
   // regular skeleton
   if (!skeleton) {
     const skinnedMeshes = getSkinnedMeshes(object);
-    const skeletonSkinnedMesh = skinnedMeshes.find(o => o.skeleton.bones[0].parent) || null;
+    const skeletonSkinnedMesh =
+      skinnedMeshes.find(o => o.skeleton.bones[0].parent) || null;
     skeleton = skeletonSkinnedMesh && skeletonSkinnedMesh.skeleton;
   }
   // failed to find skeleton so assume the whole scene is a skeleton
@@ -35,18 +38,18 @@ export const getSkeleton = object => {
 export const getEyePosition = (() => {
   const localVector = new THREE.Vector3();
   // const localVector2 = new THREE.Vector3();
-  return function(modelBones) {
+  return function (modelBones) {
     // const vrmExtension = object?.parser?.json?.extensions?.VRM;
     return localVector.setFromMatrixPosition(modelBones.Head.matrixWorld);
-      // .add(localVector2.set(0, 0.06, 0));
-  }
+    // .add(localVector2.set(0, 0.06, 0));
+  };
 })();
 export const getAvatarHeight = (() => {
   const localVector = new THREE.Vector3();
   const localBox = new THREE.Box3();
-  return function(modelBones) {
+  return function (modelBones) {
     const avatarHeight = getEyePosition(modelBones).sub(
-      localVector.setFromMatrixPosition(modelBones.Root.matrixWorld)
+      localVector.setFromMatrixPosition(modelBones.Root.matrixWorld),
     ).y;
     const headBoundingBox = localBox.setFromObject(modelBones.Head);
     let headHeight = headBoundingBox.max.y - headBoundingBox.min.y;
@@ -59,7 +62,7 @@ export const getAvatarWidth = (() => {
   const localVector2 = new THREE.Vector3();
   return function (modelBones) {
     return modelBones.Left_arm.getWorldPosition(localVector1).distanceTo(
-      modelBones.Right_arm.getWorldPosition(localVector2)
+      modelBones.Right_arm.getWorldPosition(localVector2),
     );
   };
 })();
@@ -142,20 +145,26 @@ export const getModelBones = object => {
         }
         return null;
       }
-    }
+    };
     return _recurse(bone);
   };
-  const _findHips = skeleton => skeleton.bones.find(bone => /hip/i.test(bone.name));
-  const _findChest = skeleton => skeleton.bones.find(bone => /chest|spine1/i.test(bone.name));
+  const _findHips = skeleton =>
+    skeleton.bones.find(bone => /hip/i.test(bone.name));
+  const _findChest = skeleton =>
+    skeleton.bones.find(bone => /chest|spine1/i.test(bone.name));
   const _findHead = tailBones => {
-    const headBones = tailBones.map(tailBone => {
-      const headBone = _findFurthestParentBone(tailBone, bone => /head/i.test(bone.name));
-      if (headBone) {
-        return headBone;
-      } else {
-        return null;
-      }
-    }).filter(bone => bone);
+    const headBones = tailBones
+      .map(tailBone => {
+        const headBone = _findFurthestParentBone(tailBone, bone =>
+          /head/i.test(bone.name),
+        );
+        if (headBone) {
+          return headBone;
+        } else {
+          return null;
+        }
+      })
+      .filter(bone => bone);
     const headBone = headBones.length > 0 ? headBones[0] : null;
     if (headBone) {
       return headBone;
@@ -165,24 +174,35 @@ export const getModelBones = object => {
   };
   const _findEye = (tailBones, left) => {
     const regexp = left ? /l/i : /r/i;
-    const eyeBones = tailBones.map(tailBone => {
-      const eyeBone = _findClosestParentBone(tailBone, bone => bone.isBone && /eye/i.test(bone.name) && regexp.test(bone.name.replace(/eye/gi, '')));
-      if (eyeBone) {
-        return eyeBone;
-      } else {
-        return null;
-      }
-    }).filter(spec => spec).sort((a, b) => {
-      const aName = a.name.replace(/shoulder/gi, '');
-      const aLeftBalance = _countCharacters(aName, /l/i) - _countCharacters(aName, /r/i);
-      const bName = b.name.replace(/shoulder/gi, '');
-      const bLeftBalance = _countCharacters(bName, /l/i) - _countCharacters(bName, /r/i);
-      if (!left) {
-        return aLeftBalance - bLeftBalance;
-      } else {
-        return bLeftBalance - aLeftBalance;
-      }
-    });
+    const eyeBones = tailBones
+      .map(tailBone => {
+        const eyeBone = _findClosestParentBone(
+          tailBone,
+          bone =>
+            bone.isBone &&
+            /eye/i.test(bone.name) &&
+            regexp.test(bone.name.replace(/eye/gi, '')),
+        );
+        if (eyeBone) {
+          return eyeBone;
+        } else {
+          return null;
+        }
+      })
+      .filter(spec => spec)
+      .sort((a, b) => {
+        const aName = a.name.replace(/shoulder/gi, '');
+        const aLeftBalance =
+          _countCharacters(aName, /l/i) - _countCharacters(aName, /r/i);
+        const bName = b.name.replace(/shoulder/gi, '');
+        const bLeftBalance =
+          _countCharacters(bName, /l/i) - _countCharacters(bName, /r/i);
+        if (!left) {
+          return aLeftBalance - bLeftBalance;
+        } else {
+          return bLeftBalance - aLeftBalance;
+        }
+      });
     const eyeBone = eyeBones.length > 0 ? eyeBones[0] : null;
     if (eyeBone) {
       return eyeBone;
@@ -200,57 +220,19 @@ export const getModelBones = object => {
   };
   const _findShoulder = (tailBones, left) => {
     const regexp = left ? /l/i : /r/i;
-    const shoulderBones = tailBones.map(tailBone => {
-      const shoulderBone = _findClosestParentBone(tailBone, bone => /shoulder/i.test(bone.name) && regexp.test(bone.name.replace(/shoulder/gi, '')));
-      if (shoulderBone) {
-        const distance = _distanceToParentBone(tailBone, shoulderBone);
-        if (distance >= 3) {
-          return {
-            bone: shoulderBone,
-            distance,
-          };
-        } else {
-          return null;
-        }
-      } else {
-        return null;
-      }
-    }).filter(spec => spec).sort((a, b) => {
-      const diff = b.distance - a.distance;
-      if (diff !== 0) {
-        return diff;
-      } else {
-        const aName = a.bone.name.replace(/shoulder/gi, '');
-        const aLeftBalance = _countCharacters(aName, /l/i) - _countCharacters(aName, /r/i);
-        const bName = b.bone.name.replace(/shoulder/gi, '');
-        const bLeftBalance = _countCharacters(bName, /l/i) - _countCharacters(bName, /r/i);
-        if (!left) {
-          return aLeftBalance - bLeftBalance;
-        } else {
-          return bLeftBalance - aLeftBalance;
-        }
-      }
-    });
-    const shoulderBone = shoulderBones.length > 0 ? shoulderBones[0].bone : null;
-    if (shoulderBone) {
-      return shoulderBone;
-    } else {
-      return null;
-    }
-  };
-  const _findHand = shoulderBone => _findClosestChildBone(shoulderBone, bone => /hand|wrist/i.test(bone.name));
-  const _findFinger = (handBone, r) => _findClosestChildBone(handBone, bone => r.test(bone.name));
-  const _findFoot = (tailBones, left) => {
-    const regexp = left ? /l/i : /r/i;
-    const legBones = tailBones.map(tailBone => {
-      const footBone = _findFurthestParentBone(tailBone, bone => /foot|ankle|leg(?:l|r)4|UpperLegNeck/i.test(bone.name) && regexp.test(bone.name.replace(/foot|ankle|leg(l|r)4|UpperLegNeck/gi, '$1')));
-      if (footBone) {
-        const legBone = _findFurthestParentBone(footBone, bone => /leg|thigh|legl2|LowerLeg/i.test(bone.name) && regexp.test(bone.name.replace(/leg|thigh|leg(?:l|r)2|LowerLeg/gi, '')));
-        if (legBone) {
-          const distance = _distanceToParentBone(footBone, legBone);
-          if (distance >= 2) {
+    const shoulderBones = tailBones
+      .map(tailBone => {
+        const shoulderBone = _findClosestParentBone(
+          tailBone,
+          bone =>
+            /shoulder/i.test(bone.name) &&
+            regexp.test(bone.name.replace(/shoulder/gi, '')),
+        );
+        if (shoulderBone) {
+          const distance = _distanceToParentBone(tailBone, shoulderBone);
+          if (distance >= 3) {
             return {
-              footBone,
+              bone: shoulderBone,
               distance,
             };
           } else {
@@ -259,25 +241,95 @@ export const getModelBones = object => {
         } else {
           return null;
         }
-      } else {
-        return null;
-      }
-    }).filter(spec => spec).sort((a, b) => {
-      const diff = b.distance - a.distance;
-      if (diff !== 0) {
-        return diff;
-      } else {
-        const aName = a.footBone.name.replace(/foot|ankle/gi, '');
-        const aLeftBalance = _countCharacters(aName, /l/i) - _countCharacters(aName, /r/i);
-        const bName = b.footBone.name.replace(/foot|ankle/gi, '');
-        const bLeftBalance = _countCharacters(bName, /l/i) - _countCharacters(bName, /r/i);
-        if (!left) {
-          return aLeftBalance - bLeftBalance;
+      })
+      .filter(spec => spec)
+      .sort((a, b) => {
+        const diff = b.distance - a.distance;
+        if (diff !== 0) {
+          return diff;
         } else {
-          return bLeftBalance - aLeftBalance;
+          const aName = a.bone.name.replace(/shoulder/gi, '');
+          const aLeftBalance =
+            _countCharacters(aName, /l/i) - _countCharacters(aName, /r/i);
+          const bName = b.bone.name.replace(/shoulder/gi, '');
+          const bLeftBalance =
+            _countCharacters(bName, /l/i) - _countCharacters(bName, /r/i);
+          if (!left) {
+            return aLeftBalance - bLeftBalance;
+          } else {
+            return bLeftBalance - aLeftBalance;
+          }
         }
-      }
-    });
+      });
+    const shoulderBone =
+      shoulderBones.length > 0 ? shoulderBones[0].bone : null;
+    if (shoulderBone) {
+      return shoulderBone;
+    } else {
+      return null;
+    }
+  };
+  const _findHand = shoulderBone =>
+    _findClosestChildBone(shoulderBone, bone => /hand|wrist/i.test(bone.name));
+  const _findFinger = (handBone, r) =>
+    _findClosestChildBone(handBone, bone => r.test(bone.name));
+  const _findFoot = (tailBones, left) => {
+    const regexp = left ? /l/i : /r/i;
+    const legBones = tailBones
+      .map(tailBone => {
+        const footBone = _findFurthestParentBone(
+          tailBone,
+          bone =>
+            /foot|ankle|leg(?:l|r)4|UpperLegNeck/i.test(bone.name) &&
+            regexp.test(
+              bone.name.replace(/foot|ankle|leg(l|r)4|UpperLegNeck/gi, '$1'),
+            ),
+        );
+        if (footBone) {
+          const legBone = _findFurthestParentBone(
+            footBone,
+            bone =>
+              /leg|thigh|legl2|LowerLeg/i.test(bone.name) &&
+              regexp.test(
+                bone.name.replace(/leg|thigh|leg(?:l|r)2|LowerLeg/gi, ''),
+              ),
+          );
+          if (legBone) {
+            const distance = _distanceToParentBone(footBone, legBone);
+            if (distance >= 2) {
+              return {
+                footBone,
+                distance,
+              };
+            } else {
+              return null;
+            }
+          } else {
+            return null;
+          }
+        } else {
+          return null;
+        }
+      })
+      .filter(spec => spec)
+      .sort((a, b) => {
+        const diff = b.distance - a.distance;
+        if (diff !== 0) {
+          return diff;
+        } else {
+          const aName = a.footBone.name.replace(/foot|ankle/gi, '');
+          const aLeftBalance =
+            _countCharacters(aName, /l/i) - _countCharacters(aName, /r/i);
+          const bName = b.footBone.name.replace(/foot|ankle/gi, '');
+          const bLeftBalance =
+            _countCharacters(bName, /l/i) - _countCharacters(bName, /r/i);
+          if (!left) {
+            return aLeftBalance - bLeftBalance;
+          } else {
+            return bLeftBalance - aLeftBalance;
+          }
+        }
+      });
     const footBone = legBones.length > 0 ? legBones[0].footBone : null;
     if (footBone) {
       return footBone;
@@ -295,7 +347,7 @@ export const getModelBones = object => {
     }
     return o.parent;
   };
-  
+
   // first, try to get the mapping from the VRM metadata
   const boneMap = makeBoneMap(object);
   let Eye_L = boneMap.leftEye;
@@ -342,7 +394,7 @@ export const getModelBones = object => {
   let Right_ringFinger1 = boneMap.rightRingProximal;
   let Right_littleFinger3 = boneMap.rightLittleDistal;
   let Right_littleFinger2 = boneMap.rightLittleIntermediate;
-  let Right_littleFinger1 = boneMap.rightLittleProximal
+  let Right_littleFinger1 = boneMap.rightLittleProximal;
   let Right_elbow = boneMap.rightLowerArm;
   let Right_arm = boneMap.rightUpperArm;
   let Left_ankle = boneMap.leftFoot;
@@ -359,7 +411,7 @@ export const getModelBones = object => {
   if (!Root) {
     const skeleton = getSkeleton(object);
     const tailBones = getTailBones(object);
-    
+
     Eye_L = _findEye(tailBones, true);
     Eye_R = _findEye(tailBones, false);
     Head = _findHead(tailBones);
@@ -371,41 +423,95 @@ export const getModelBones = object => {
     Spine = _findSpine(Chest, Hips);
     Left_shoulder = _findShoulder(tailBones, true);
     Left_wrist = _findHand(Left_shoulder);
-    Left_thumb2 = _getOptional(_findFinger(Left_wrist, /thumb3_end|thumb2_|handthumb3|thumb_distal|thumb02l|l_thumb3|thumb002l/i));
+    Left_thumb2 = _getOptional(
+      _findFinger(
+        Left_wrist,
+        /thumb3_end|thumb2_|handthumb3|thumb_distal|thumb02l|l_thumb3|thumb002l/i,
+      ),
+    );
     Left_thumb1 = _ensureParent(Left_thumb2);
     Left_thumb0 = _ensureParent(Left_thumb1, Left_wrist);
-    Left_indexFinger3 = _getOptional(_findFinger(Left_wrist, /index(?:finger)?3|index_distal|index02l|indexfinger3_l|index002l/i));
+    Left_indexFinger3 = _getOptional(
+      _findFinger(
+        Left_wrist,
+        /index(?:finger)?3|index_distal|index02l|indexfinger3_l|index002l/i,
+      ),
+    );
     Left_indexFinger2 = _ensureParent(Left_indexFinger3);
     Left_indexFinger1 = _ensureParent(Left_indexFinger2, Left_wrist);
-    Left_middleFinger3 = _getOptional(_findFinger(Left_wrist, /middle(?:finger)?3|middle_distal|middle02l|middlefinger3_l|middle002l/i));
+    Left_middleFinger3 = _getOptional(
+      _findFinger(
+        Left_wrist,
+        /middle(?:finger)?3|middle_distal|middle02l|middlefinger3_l|middle002l/i,
+      ),
+    );
     Left_middleFinger2 = _ensureParent(Left_middleFinger3);
     Left_middleFinger1 = _ensureParent(Left_middleFinger2, Left_wrist);
-    Left_ringFinger3 = _getOptional(_findFinger(Left_wrist, /ring(?:finger)?3|ring_distal|ring02l|ringfinger3_l|ring002l/i));
+    Left_ringFinger3 = _getOptional(
+      _findFinger(
+        Left_wrist,
+        /ring(?:finger)?3|ring_distal|ring02l|ringfinger3_l|ring002l/i,
+      ),
+    );
     Left_ringFinger2 = _ensureParent(Left_ringFinger3);
     Left_ringFinger1 = _ensureParent(Left_ringFinger2, Left_wrist);
-    Left_littleFinger3 = _getOptional(_findFinger(Left_wrist, /little(?:finger)?3|pinky3|little_distal|little02l|lifflefinger3_l|little002l/i));
+    Left_littleFinger3 = _getOptional(
+      _findFinger(
+        Left_wrist,
+        /little(?:finger)?3|pinky3|little_distal|little02l|lifflefinger3_l|little002l/i,
+      ),
+    );
     Left_littleFinger2 = _ensureParent(Left_littleFinger3);
     Left_littleFinger1 = _ensureParent(Left_littleFinger2, Left_wrist);
-    Left_elbow = /^lower_arm(?:l|r)2$/i.test(Left_wrist.parent.name) ? Left_wrist.parent.parent : Left_wrist.parent;
+    Left_elbow = /^lower_arm(?:l|r)2$/i.test(Left_wrist.parent.name)
+      ? Left_wrist.parent.parent
+      : Left_wrist.parent;
     Left_arm = Left_elbow.parent;
     Right_shoulder = _findShoulder(tailBones, false);
     Right_wrist = _findHand(Right_shoulder);
-    Right_thumb2 = _getOptional(_findFinger(Right_wrist, /thumb3_end|thumb2_|handthumb3|thumb_distal|thumb02r|r_thumb3|thumb002r/i));
+    Right_thumb2 = _getOptional(
+      _findFinger(
+        Right_wrist,
+        /thumb3_end|thumb2_|handthumb3|thumb_distal|thumb02r|r_thumb3|thumb002r/i,
+      ),
+    );
     Right_thumb1 = _ensureParent(Right_thumb2);
     Right_thumb0 = _ensureParent(Right_thumb1, Right_wrist);
-    Right_indexFinger3 = _getOptional(_findFinger(Right_wrist, /index(?:finger)?3|index_distal|index02r|indexfinger3_r|index002r/i));
+    Right_indexFinger3 = _getOptional(
+      _findFinger(
+        Right_wrist,
+        /index(?:finger)?3|index_distal|index02r|indexfinger3_r|index002r/i,
+      ),
+    );
     Right_indexFinger2 = _ensureParent(Right_indexFinger3);
     Right_indexFinger1 = _ensureParent(Right_indexFinger2, Right_wrist);
-    Right_middleFinger3 = _getOptional(_findFinger(Right_wrist, /middle(?:finger)?3|middle_distal|middle02r|middlefinger3_r|middle002r/i));
+    Right_middleFinger3 = _getOptional(
+      _findFinger(
+        Right_wrist,
+        /middle(?:finger)?3|middle_distal|middle02r|middlefinger3_r|middle002r/i,
+      ),
+    );
     Right_middleFinger2 = _ensureParent(Right_middleFinger3);
     Right_middleFinger1 = _ensureParent(Right_middleFinger2, Right_wrist);
-    Right_ringFinger3 = _getOptional(_findFinger(Right_wrist, /ring(?:finger)?3|ring_distal|ring02r|ringfinger3_r|ring002r/i));
+    Right_ringFinger3 = _getOptional(
+      _findFinger(
+        Right_wrist,
+        /ring(?:finger)?3|ring_distal|ring02r|ringfinger3_r|ring002r/i,
+      ),
+    );
     Right_ringFinger2 = _ensureParent(Right_ringFinger3);
     Right_ringFinger1 = _ensureParent(Right_ringFinger2, Right_wrist);
-    Right_littleFinger3 = _getOptional(_findFinger(Right_wrist, /little(?:finger)?3|pinky3|little_distal|little02r|lifflefinger3_r|little002r/i));
+    Right_littleFinger3 = _getOptional(
+      _findFinger(
+        Right_wrist,
+        /little(?:finger)?3|pinky3|little_distal|little02r|lifflefinger3_r|little002r/i,
+      ),
+    );
     Right_littleFinger2 = _ensureParent(Right_littleFinger3);
     Right_littleFinger1 = _ensureParent(Right_littleFinger2, Right_wrist);
-    Right_elbow = /^lower_arm(?:l|r)2$/i.test(Right_wrist.parent.name) ? Right_wrist.parent.parent : Right_wrist.parent;
+    Right_elbow = /^lower_arm(?:l|r)2$/i.test(Right_wrist.parent.name)
+      ? Right_wrist.parent.parent
+      : Right_wrist.parent;
     Right_arm = Right_elbow.parent;
     Left_ankle = _findFoot(tailBones, true);
     Left_knee = Left_ankle.parent;
@@ -526,11 +632,11 @@ export const decorateAnimation = animation => {
   animation.isJump = /^jump/i.test(animation.name);
   animation.isDoubleJump = /^jump_double/i.test(animation.name);
   animation.isSitting = /sitting/i.test(animation.name);
-  animation.isFloat  = /treading/i.test(animation.name);
-  animation.isPistol  = /pistol aiming/i.test(animation.name);
-  animation.isRifle  = /rifle aiming/i.test(animation.name);
-  animation.isSlash  = /slash/i.test(animation.name);
-  animation.isCombo  = /combo/i.test(animation.name);
+  animation.isFloat = /treading/i.test(animation.name);
+  animation.isPistol = /pistol aiming/i.test(animation.name);
+  animation.isRifle = /rifle aiming/i.test(animation.name);
+  animation.isSlash = /slash/i.test(animation.name);
+  animation.isCombo = /combo/i.test(animation.name);
   animation.isMagic = /magic/i.test(animation.name);
   animation.isSkateboarding = /skateboarding/i.test(animation.name);
   animation.isThrow = /throw/i.test(animation.name);
@@ -559,10 +665,15 @@ export const decorateAnimation = animation => {
   animation.isDrinking = /drinking/i.test(animation.name);
   animation.isCrouch = /crouch|sneak/i.test(animation.name);
   animation.isForward = /forward/i.test(animation.name);
-  animation.isBackward = /backwards/i.test(animation.name) || /sneaking forward reverse/i.test(animation.name);
+  animation.isBackward =
+    /backwards/i.test(animation.name) ||
+    /sneaking forward reverse/i.test(animation.name);
   animation.isLeft = /left/i.test(animation.name);
   animation.isRight = /right/i.test(animation.name);
-  animation.isRunning = /fast run|running|left strafe(?: reverse)?\.|right strafe(?: reverse)?\./i.test(animation.name);
+  animation.isRunning =
+    /fast run|running|left strafe(?: reverse)?\.|right strafe(?: reverse)?\./i.test(
+      animation.name,
+    );
   animation.isActivate = /object/i.test(animation.name);
   animation.isNarutoRun = /naruto run/i.test(animation.name);
   animation.isPickUp = /pick_up/i.test(animation.name);
@@ -593,58 +704,58 @@ export const decorateAnimation = animation => {
 
 // retargeting
 export const animationBoneToModelBone = {
-  'mixamorigHips': 'Hips',
-  'mixamorigSpine': 'Spine',
-  'mixamorigSpine1': 'Chest',
-  'mixamorigSpine2': 'UpperChest',
-  'mixamorigNeck': 'Neck',
-  'mixamorigHead': 'Head',
-  'mixamorigLeftShoulder': 'Left_shoulder',
-  'mixamorigLeftArm': 'Left_arm',
-  'mixamorigLeftForeArm': 'Left_elbow',
-  'mixamorigLeftHand': 'Left_wrist',
-  'mixamorigLeftHandMiddle1': 'Left_middleFinger1',
-  'mixamorigLeftHandMiddle2': 'Left_middleFinger2',
-  'mixamorigLeftHandMiddle3': 'Left_middleFinger3',
-  'mixamorigLeftHandThumb1': 'Left_thumb0',
-  'mixamorigLeftHandThumb2': 'Left_thumb1',
-  'mixamorigLeftHandThumb3': 'Left_thumb2',
-  'mixamorigLeftHandIndex1': 'Left_indexFinger1',
-  'mixamorigLeftHandIndex2': 'Left_indexFinger2',
-  'mixamorigLeftHandIndex3': 'Left_indexFinger3',
-  'mixamorigLeftHandRing1': 'Left_ringFinger1',
-  'mixamorigLeftHandRing2': 'Left_ringFinger2',
-  'mixamorigLeftHandRing3': 'Left_ringFinger3',
-  'mixamorigLeftHandPinky1': 'Left_littleFinger1',
-  'mixamorigLeftHandPinky2': 'Left_littleFinger2',
-  'mixamorigLeftHandPinky3': 'Left_littleFinger3',
-  'mixamorigRightShoulder': 'Right_shoulder',
-  'mixamorigRightArm': 'Right_arm',
-  'mixamorigRightForeArm': 'Right_elbow',
-  'mixamorigRightHand': 'Right_wrist',
-  'mixamorigRightHandMiddle1': 'Right_middleFinger1',
-  'mixamorigRightHandMiddle2': 'Right_middleFinger2',
-  'mixamorigRightHandMiddle3': 'Right_middleFinger3',
-  'mixamorigRightHandThumb1': 'Right_thumb0',
-  'mixamorigRightHandThumb2': 'Right_thumb1',
-  'mixamorigRightHandThumb3': 'Right_thumb2',
-  'mixamorigRightHandIndex1': 'Right_indexFinger1',
-  'mixamorigRightHandIndex2': 'Right_indexFinger2',
-  'mixamorigRightHandIndex3': 'Right_indexFinger3',
-  'mixamorigRightHandRing1': 'Right_ringFinger1',
-  'mixamorigRightHandRing2': 'Right_ringFinger2',
-  'mixamorigRightHandRing3': 'Right_ringFinger3',
-  'mixamorigRightHandPinky1': 'Right_littleFinger1',
-  'mixamorigRightHandPinky2': 'Right_littleFinger2',
-  'mixamorigRightHandPinky3': 'Right_littleFinger3',
-  'mixamorigRightUpLeg': 'Right_leg',
-  'mixamorigRightLeg': 'Right_knee',
-  'mixamorigRightFoot': 'Right_ankle',
-  'mixamorigRightToeBase': 'Right_toe',
-  'mixamorigLeftUpLeg': 'Left_leg',
-  'mixamorigLeftLeg': 'Left_knee',
-  'mixamorigLeftFoot': 'Left_ankle',
-  'mixamorigLeftToeBase': 'Left_toe',
+  mixamorigHips: 'Hips',
+  mixamorigSpine: 'Spine',
+  mixamorigSpine1: 'Chest',
+  mixamorigSpine2: 'UpperChest',
+  mixamorigNeck: 'Neck',
+  mixamorigHead: 'Head',
+  mixamorigLeftShoulder: 'Left_shoulder',
+  mixamorigLeftArm: 'Left_arm',
+  mixamorigLeftForeArm: 'Left_elbow',
+  mixamorigLeftHand: 'Left_wrist',
+  mixamorigLeftHandMiddle1: 'Left_middleFinger1',
+  mixamorigLeftHandMiddle2: 'Left_middleFinger2',
+  mixamorigLeftHandMiddle3: 'Left_middleFinger3',
+  mixamorigLeftHandThumb1: 'Left_thumb0',
+  mixamorigLeftHandThumb2: 'Left_thumb1',
+  mixamorigLeftHandThumb3: 'Left_thumb2',
+  mixamorigLeftHandIndex1: 'Left_indexFinger1',
+  mixamorigLeftHandIndex2: 'Left_indexFinger2',
+  mixamorigLeftHandIndex3: 'Left_indexFinger3',
+  mixamorigLeftHandRing1: 'Left_ringFinger1',
+  mixamorigLeftHandRing2: 'Left_ringFinger2',
+  mixamorigLeftHandRing3: 'Left_ringFinger3',
+  mixamorigLeftHandPinky1: 'Left_littleFinger1',
+  mixamorigLeftHandPinky2: 'Left_littleFinger2',
+  mixamorigLeftHandPinky3: 'Left_littleFinger3',
+  mixamorigRightShoulder: 'Right_shoulder',
+  mixamorigRightArm: 'Right_arm',
+  mixamorigRightForeArm: 'Right_elbow',
+  mixamorigRightHand: 'Right_wrist',
+  mixamorigRightHandMiddle1: 'Right_middleFinger1',
+  mixamorigRightHandMiddle2: 'Right_middleFinger2',
+  mixamorigRightHandMiddle3: 'Right_middleFinger3',
+  mixamorigRightHandThumb1: 'Right_thumb0',
+  mixamorigRightHandThumb2: 'Right_thumb1',
+  mixamorigRightHandThumb3: 'Right_thumb2',
+  mixamorigRightHandIndex1: 'Right_indexFinger1',
+  mixamorigRightHandIndex2: 'Right_indexFinger2',
+  mixamorigRightHandIndex3: 'Right_indexFinger3',
+  mixamorigRightHandRing1: 'Right_ringFinger1',
+  mixamorigRightHandRing2: 'Right_ringFinger2',
+  mixamorigRightHandRing3: 'Right_ringFinger3',
+  mixamorigRightHandPinky1: 'Right_littleFinger1',
+  mixamorigRightHandPinky2: 'Right_littleFinger2',
+  mixamorigRightHandPinky3: 'Right_littleFinger3',
+  mixamorigRightUpLeg: 'Right_leg',
+  mixamorigRightLeg: 'Right_knee',
+  mixamorigRightFoot: 'Right_ankle',
+  mixamorigRightToeBase: 'Right_toe',
+  mixamorigLeftUpLeg: 'Left_leg',
+  mixamorigLeftLeg: 'Left_knee',
+  mixamorigLeftFoot: 'Left_ankle',
+  mixamorigLeftToeBase: 'Left_toe',
 };
 export const modelBoneToAnimationBone = (() => {
   const result = {};

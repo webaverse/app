@@ -1,6 +1,13 @@
 import React, {useCallback, useEffect, useState} from 'react';
 import {switchChain} from './rpcHelpers';
-import {DEFAULT_CHAIN, CHAINS, CONTRACTS, WEB3_EVENTS, CHAIN_ID_MAP, isLocal} from './web3-constants';
+import {
+  DEFAULT_CHAIN,
+  CHAINS,
+  CONTRACTS,
+  WEB3_EVENTS,
+  CHAIN_ID_MAP,
+  isLocal,
+} from './web3-constants';
 
 export function isChainSupported(chain) {
   return CONTRACTS[chain.contract_name] !== undefined || isLocal;
@@ -40,16 +47,19 @@ export default function useChain(network = DEFAULT_CHAIN) {
     };
   }, []);
 
-  const selectChain = useCallback(async chain => {
-    if (isChainSupported(chain)) {
-      try {
-        await switchChain(chain.chainId);
-        setSelectedChain({...chain});
-      } catch (err) {
-        console.warn(err);
+  const selectChain = useCallback(
+    async chain => {
+      if (isChainSupported(chain)) {
+        try {
+          await switchChain(chain.chainId);
+          setSelectedChain({...chain});
+        } catch (err) {
+          console.warn(err);
+        }
       }
-    }
-  }, [selectedChain]);
+    },
+    [selectedChain],
+  );
 
   return {
     isChainSupported,

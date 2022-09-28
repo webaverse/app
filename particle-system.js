@@ -61,12 +61,20 @@ const _makePlaneGeometry = () => {
 const planeGeometry = _makePlaneGeometry();
 
 const _makeGeometry = (size, maxParticles) => {
-  const geometry = planeGeometry.clone()
-    .scale(size, size, 1);
-  geometry.setAttribute('p', new THREE.InstancedBufferAttribute(new Float32Array(maxParticles * 3), 3));
+  const geometry = planeGeometry.clone().scale(size, size, 1);
+  geometry.setAttribute(
+    'p',
+    new THREE.InstancedBufferAttribute(new Float32Array(maxParticles * 3), 3),
+  );
   // geometry.setAttribute('q', new THREE.InstancedBufferAttribute(new Float32Array(maxParticles * 4), 4));
-  geometry.setAttribute('t', new THREE.InstancedBufferAttribute(new Float32Array(maxParticles * 3), 3));
-  geometry.setAttribute('textureIndex', new THREE.InstancedBufferAttribute(new Int32Array(maxParticles), 1));
+  geometry.setAttribute(
+    't',
+    new THREE.InstancedBufferAttribute(new Float32Array(maxParticles * 3), 3),
+  );
+  geometry.setAttribute(
+    'textureIndex',
+    new THREE.InstancedBufferAttribute(new Int32Array(maxParticles), 1),
+  );
   return geometry;
 };
 
@@ -174,10 +182,18 @@ varying vec2 vUv;
 varying float vTimeDiff;
 flat in int vTextureIndex;
 
-// const vec3 lineColor1 = vec3(${new THREE.Color(0x29b6f6).toArray().join(', ')});
-// const vec3 lineColor2 = vec3(${new THREE.Color(0x0288d1).toArray().join(', ')});
-// const vec3 lineColor3 = vec3(${new THREE.Color(0xec407a).toArray().join(', ')});
-// const vec3 lineColor4 = vec3(${new THREE.Color(0xc2185b).toArray().join(', ')});
+// const vec3 lineColor1 = vec3(${new THREE.Color(0x29b6f6)
+  .toArray()
+  .join(', ')});
+// const vec3 lineColor2 = vec3(${new THREE.Color(0x0288d1)
+  .toArray()
+  .join(', ')});
+// const vec3 lineColor3 = vec3(${new THREE.Color(0xec407a)
+  .toArray()
+  .join(', ')});
+// const vec3 lineColor4 = vec3(${new THREE.Color(0xc2185b)
+  .toArray()
+  .join(', ')});
 
 vec2 getUv(float numFrames) {
   const float rowSize = ${rowSize.toFixed(8)};
@@ -309,11 +325,7 @@ class Particle extends THREE.Object3D {
   }
 }
 class ParticleSystem extends THREE.InstancedMesh {
-  constructor({
-    particleNames,
-    size = 1,
-    maxParticles = defaultMaxParticles,
-  }) {
+  constructor({particleNames, size = 1, maxParticles = defaultMaxParticles}) {
     const geometry = _makeGeometry(size, maxParticles);
     const material = _makeMaterial(particleNames.length);
     super(geometry, material, maxParticles);
@@ -323,9 +335,11 @@ class ParticleSystem extends THREE.InstancedMesh {
     this.needsUpdate = false;
 
     this.textures = [];
-    this.loadPromise = Promise.all(particleNames.map(async particleName => {
-      return await _loadParticleTextureByName(particleName);
-    })).then(newTextures => {
+    this.loadPromise = Promise.all(
+      particleNames.map(async particleName => {
+        return await _loadParticleTextureByName(particleName);
+      }),
+    ).then(newTextures => {
       this.textures = newTextures;
       this.material.setTextures(newTextures);
     });
@@ -337,11 +351,7 @@ class ParticleSystem extends THREE.InstancedMesh {
     return this.textures.findIndex(t => t.name === name);
   }
 
-  addParticle(name, {
-    offsetTime = 0,
-    duration = 1000,
-    loop = false,
-  } = {}) {
+  addParticle(name, {offsetTime = 0, duration = 1000, loop = false} = {}) {
     const textureIndex = name ? this.#getParticleTextureIndex(name) : -1;
     if (textureIndex !== -1) {
       const startTime = performance.now() + offsetTime;
@@ -350,7 +360,14 @@ class ParticleSystem extends THREE.InstancedMesh {
       for (let i = 0; i < this.particles.length; i++) {
         let particle = this.particles[i];
         if (particle === null) {
-          particle = new Particle(i, textureIndex, startTime, endTime, loop, this);
+          particle = new Particle(
+            i,
+            textureIndex,
+            startTime,
+            endTime,
+            loop,
+            this,
+          );
           this.particles[i] = particle;
           this.needsUpdate = true;
           return particle;
@@ -359,7 +376,9 @@ class ParticleSystem extends THREE.InstancedMesh {
       console.warn('particles overflow');
       return null;
     } else {
-      throw new Error('no such particle texture found: ' + JSON.stringify(name));
+      throw new Error(
+        'no such particle texture found: ' + JSON.stringify(name),
+      );
     }
   }
 
@@ -377,7 +396,9 @@ class ParticleSystem extends THREE.InstancedMesh {
 
     this.material.uniforms.uTime.value = timestamp;
     this.material.uniforms.uTime.needsUpdate = true;
-    this.material.uniforms.cameraBillboardQuaternion.value.copy(camera.quaternion);
+    this.material.uniforms.cameraBillboardQuaternion.value.copy(
+      camera.quaternion,
+    );
   }
 
   updateGeometry() {
@@ -392,7 +413,8 @@ class ParticleSystem extends THREE.InstancedMesh {
         this.geometry.attributes.t.array[index * 3 + 1] = particle.endTime;
         this.geometry.attributes.t.array[index * 3 + 2] = particle.loop ? 1 : 0;
 
-        this.geometry.attributes.textureIndex.array[index] = particle.textureIndex;
+        this.geometry.attributes.textureIndex.array[index] =
+          particle.textureIndex;
 
         index++;
       }
@@ -420,11 +442,7 @@ class ParticleSystem extends THREE.InstancedMesh {
 }
 
 const particleSystems = [];
-const createParticleSystem = ({
-  particleNames,
-  size,
-  maxParticles,
-}) => {
+const createParticleSystem = ({particleNames, size, maxParticles}) => {
   const particleSystem = new ParticleSystem({
     particleNames,
     size,

@@ -3,7 +3,10 @@ import classnames from 'classnames';
 import metaversefile from 'metaversefile';
 import {AppContext} from '../../../app';
 
-import {registerIoEventHandler, unregisterIoEventHandler} from '../../../general/io-handler';
+import {
+  registerIoEventHandler,
+  unregisterIoEventHandler,
+} from '../../../general/io-handler';
 import {generateStream} from '../../../../../ai/code/code-ai';
 
 import styles from './code-ai-panel.module.css';
@@ -75,10 +78,8 @@ export function CodeAiPanel() {
     const dataUri = metaversefile.createModule(output);
 
     (async () => {
-
       // XXX unlock this
       // await metaversefile.load(dataUri);
-
     })();
 
     setState({openedPanel: null});
@@ -90,8 +91,8 @@ export function CodeAiPanel() {
     const handleKeyUp = event => {
       if (
         event.which === 13 && // enter
-                window.document.activeElement !== outputTextarea.current &&
-                state.openedPanel === 'AiPanel'
+        window.document.activeElement !== outputTextarea.current &&
+        state.openedPanel === 'AiPanel'
       ) {
         if (page === 'input') {
           _compile();
@@ -132,45 +133,78 @@ export function CodeAiPanel() {
   //
 
   return (
-        <div className={classnames(styles.panel, styles.codeAiPanel)}>
-            <div className={styles.textarea}>
-            <textarea className={styles.textarea} value={input} autoComplete="off" autoCorrect="off" autoCapitalize="off" spellCheck="false" onFocus={e => {
-              if (page !== 'input') {
-                setPage('input');
-                const oldAi = ai;
-                if (oldAi) {
-                  oldAi.destroy();
-                  setAi(null);
-                }
-                setCompiling(false);
+    <div className={classnames(styles.panel, styles.codeAiPanel)}>
+      <div className={styles.textarea}>
+        <textarea
+          className={styles.textarea}
+          value={input}
+          autoComplete="off"
+          autoCorrect="off"
+          autoCapitalize="off"
+          spellCheck="false"
+          onFocus={e => {
+            if (page !== 'input') {
+              setPage('input');
+              const oldAi = ai;
+              if (oldAi) {
+                oldAi.destroy();
+                setAi(null);
               }
-            }} onChange={e => { console.log(e.target.value); setInput(e.target.value); }} placeholder="Teleport me to the nearest object" ref={inputTextarea} />
-            {
-                (() => {
-                  switch (page) {
-                    case 'input': {
-                      return (
-                                <>
-                                    <div className={styles.buttons}>
-                                        <button className={styles.button + ' ' + (compiling ? styles.disabled : '')} onClick={_compile}>Generate code</button>
-                                    </div>
-                                </>
-                      );
-                    }
-                    case 'output': {
-                      return (
-                                <>
-                                    <textarea className={styles.output} value={output} autoComplete="off" autoCorrect="off" autoCapitalize="off" spellCheck="false" onChange={e => { setOutput(e.target.value); }} placeholder="" ref={outputTextarea} />
-                                    <div className={styles.buttons}>
-                                        <button className={styles.button} onClick={_run}>Run code</button>
-                                    </div>
-                                </>
-                      );
-                    }
-                  }
-                })()
+              setCompiling(false);
             }
-            </div>
-        </div>
+          }}
+          onChange={e => {
+            console.log(e.target.value);
+            setInput(e.target.value);
+          }}
+          placeholder="Teleport me to the nearest object"
+          ref={inputTextarea}
+        />
+        {(() => {
+          switch (page) {
+            case 'input': {
+              return (
+                <>
+                  <div className={styles.buttons}>
+                    <button
+                      className={
+                        styles.button + ' ' + (compiling ? styles.disabled : '')
+                      }
+                      onClick={_compile}
+                    >
+                      Generate code
+                    </button>
+                  </div>
+                </>
+              );
+            }
+            case 'output': {
+              return (
+                <>
+                  <textarea
+                    className={styles.output}
+                    value={output}
+                    autoComplete="off"
+                    autoCorrect="off"
+                    autoCapitalize="off"
+                    spellCheck="false"
+                    onChange={e => {
+                      setOutput(e.target.value);
+                    }}
+                    placeholder=""
+                    ref={outputTextarea}
+                  />
+                  <div className={styles.buttons}>
+                    <button className={styles.button} onClick={_run}>
+                      Run code
+                    </button>
+                  </div>
+                </>
+              );
+            }
+          }
+        })()}
+      </div>
+    </div>
   );
 }

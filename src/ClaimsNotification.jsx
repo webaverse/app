@@ -55,6 +55,4 @@ const ClaimsNotification = () => {
     </div>
   );
 };
-export {
-  ClaimsNotification,
-};
+export {ClaimsNotification};

@@ -1,4 +1,3 @@
-
 import React, {useContext, useEffect, useState} from 'react';
 import classNames from 'classnames';
 
@@ -37,7 +36,8 @@ export const Settings = () => {
 
   useEffect(() => {
     const handleKeyUp = event => {
-      if (state.openedPanel === 'SettingsPanel' && event.which === 27) { // esc key
+      if (state.openedPanel === 'SettingsPanel' && event.which === 27) {
+        // esc key
         setState({openedPanel: null});
       }
     };
@@ -52,34 +52,82 @@ export const Settings = () => {
   //
 
   return (
+    <div
+      className={classNames(
+        styles.settings,
+        state.openedPanel === 'SettingsPanel' ? styles.open : null,
+      )}
+      onClick={stopPropagation}
+    >
+      <div className={styles.closeBtn} onClick={handleCloseBtnClick}>
+        X
+      </div>
 
-        <div className={ classNames(styles.settings, state.openedPanel === 'SettingsPanel' ? styles.open : null) } onClick={ stopPropagation } >
+      <div className={styles.wrapper}>
+        <div className={styles.title}>SETTINGS</div>
 
-            <div className={ styles.closeBtn } onClick={ handleCloseBtnClick } >X</div>
-
-            <div className={ styles.wrapper } >
-                <div className={ styles.title } >SETTINGS</div>
-
-                <div className={ styles.tabs } >
-                    <div className={ classNames(styles.tab, activeTab === 'general' ? styles.active : null) } onClick={ handleTabClick } data-tab-name='general' >GENERAL</div>
-                    <div className={ classNames(styles.tab, activeTab === 'controls' ? styles.active : null) } onClick={ handleTabClick } data-tab-name='controls' >CONTROLS</div>
-                    <div className={ classNames(styles.tab, activeTab === 'audio' ? styles.active : null) } onClick={ handleTabClick } data-tab-name='audio' >AUDIO</div>
-                    <div className={ classNames(styles.tab, activeTab === 'graphics' ? styles.active : null) } onClick={ handleTabClick } data-tab-name='graphics' >GRAPHICS</div>
-                    <div className={ classNames(styles.tab, activeTab === 'ai' ? styles.active : null) } onClick={ handleTabClick } data-tab-name='ai' >AI</div>
-                    <div className={ styles.clearfix } />
-                </div>
-
-                <div className={ styles.tabContentWrapper }>
-                    <TabGeneral active={ activeTab === 'general' } />
-                    <TabControls active={ activeTab === 'controls' } />
-                    <TabAudio active={ activeTab === 'audio' } />
-                    <TabGraphics active={ activeTab === 'graphics' } />
-                    <TabAi active={ activeTab === 'ai' } />
-                </div>
-
-            </div>
-
+        <div className={styles.tabs}>
+          <div
+            className={classNames(
+              styles.tab,
+              activeTab === 'general' ? styles.active : null,
+            )}
+            onClick={handleTabClick}
+            data-tab-name="general"
+          >
+            GENERAL
+          </div>
+          <div
+            className={classNames(
+              styles.tab,
+              activeTab === 'controls' ? styles.active : null,
+            )}
+            onClick={handleTabClick}
+            data-tab-name="controls"
+          >
+            CONTROLS
+          </div>
+          <div
+            className={classNames(
+              styles.tab,
+              activeTab === 'audio' ? styles.active : null,
+            )}
+            onClick={handleTabClick}
+            data-tab-name="audio"
+          >
+            AUDIO
+          </div>
+          <div
+            className={classNames(
+              styles.tab,
+              activeTab === 'graphics' ? styles.active : null,
+            )}
+            onClick={handleTabClick}
+            data-tab-name="graphics"
+          >
+            GRAPHICS
+          </div>
+          <div
+            className={classNames(
+              styles.tab,
+              activeTab === 'ai' ? styles.active : null,
+            )}
+            onClick={handleTabClick}
+            data-tab-name="ai"
+          >
+            AI
+          </div>
+          <div className={styles.clearfix} />
         </div>
 
+        <div className={styles.tabContentWrapper}>
+          <TabGeneral active={activeTab === 'general'} />
+          <TabControls active={activeTab === 'controls'} />
+          <TabAudio active={activeTab === 'audio'} />
+          <TabGraphics active={activeTab === 'graphics'} />
+          <TabAi active={activeTab === 'ai'} />
+        </div>
+      </div>
+    </div>
   );
 };
