@@ -180,6 +180,7 @@ class Scene2D {
     this.cameraMode = cameraMode;
     this.scrollDirection = scrollDirection;
     this.cursorPosition = new THREE.Vector2(0, 0);
+    this.cursorOffset = new THREE.Vector2(-30, -30);
     this.lastCursorPosition = null;
     this.cursorSensitivity = 0.75;
     this.maxAimDistance = 3;
@@ -199,9 +200,15 @@ class Scene2D {
 
     /// dirty combat test
     this.lastAttackTime = 0;
+    this.firstAttackTime = null;
+    this.inAttackRange = false;
 
     //Controls
     this.controlMode = controls;
+
+    //debug
+
+    this.healthMesh = null;
 
     if(this.controlMode === 'click') {
       const geometry = new THREE.CircleGeometry(0.5, 32/4);
@@ -231,6 +238,88 @@ class Scene2D {
     //     scene.add( cube );
     //   }
     // });
+  }
+  createHealthMesh(width = 0.8, height = 0.1) {
+
+    let uniforms = {
+      width: { value: width },
+      height: { value: height },
+      hp: {value: 0.5}
+    }
+
+    const vertexShader = () => {
+      return `
+          varying vec2 vUv;
+          varying float rara;
+          uniform float width;
+          uniform float height;
+          
+          varying vec4 v_foo;
+  
+          void main() {
+              vUv = uv; 
+  
+              vec4 modelViewPosition = modelViewMatrix * vec4(position, 1.0);
+              gl_Position = projectionMatrix * modelViewPosition;
+
+              if(gl_Position.x > 0.5) {
+                rara = 0.5;
+              }
+              else {
+                rara = 0.;
+              }
+
+              v_foo = gl_Position;
+
+          }
+      `;
+    }
+  
+    const fragmentShader = () => {
+        return `
+            uniform sampler2D texture1; 
+            //uniform sampler2D texture2; 
+            varying vec2 vUv;
+            varying float rara;
+            uniform float width;
+            uniform float height;
+            
+            uniform float hp;
+
+            varying vec4 v_foo;
+    
+            void main() {
+                vec3 colorRed = vec3(230.0, 71.0, 60.0) / 255.0;
+                vec3 colorWhite = vec3(222.0, 222.0, 222.0) / 255.0;
+
+                if(vUv.x < hp) {
+                  gl_FragColor = vec4(colorRed, 1);
+                }
+                else {
+                  gl_FragColor = vec4(colorWhite, 1);
+                }
+
+                
+                
+                //gl_FragColor = vec4(color, 1);
+
+                //if(gl_FragColor
+            }
+        `;
+      }
+
+      let material =  new THREE.ShaderMaterial({
+        uniforms: uniforms,
+        fragmentShader: fragmentShader(),
+        vertexShader: vertexShader(),
+      })
+
+      let material2 = new THREE.MeshBasicMaterial({color: 0xff0000});
+
+      let geom = new THREE.PlaneGeometry(.8,.1);
+      this.healthMesh = new THREE.Mesh(geom, material);
+      scene.add(this.healthMesh);
+      //return mesh;
   }
   getPath(vec1, vec2) {
     return this.pathFinder.getPath(vec1, vec2);
@@ -438,12 +527,15 @@ class Scene2D {
   }
   moveAndAttackTarget(target, t) {
     const localPlayer = playersManager.getLocalPlayer();
-    let origin = new THREE.Vector3(localPlayer.position.x, 1, localPlayer.position.z);
+    let origin = new THREE.Vector3(localPlayer.position.x, localPlayer.position.y, localPlayer.position.z);
     let dist = origin.distanceTo(target);
     let dir = new THREE.Vector3();
     dir.subVectors(target, origin);
 
-    if(dist > 0.1) {
+    console.log(dist);
+
+    if(dist > 1) {
+      this.inAttackRange = false;
       localPlayer.characterPhysics.applyWasd(
         dir.normalize()
           .multiplyScalar(0.1 * t)
@@ -453,10 +545,11 @@ class Scene2D {
       //this.debugMesh.updateMatrixWorld();
     }
     else {
-      this.moveTarget = null;
-      this.path = null;
-      console.log("we arrived");
-      this.debugMesh.visible = false;
+      this.inAttackRange = true;
+      // this.moveTarget = null;
+      // this.path = null;
+      // console.log("we arrived");
+      // this.debugMesh.visible = false;
     }
   }
   moveToTarget(target, t) {
@@ -486,6 +579,23 @@ class Scene2D {
   update(timestamp, timeDiff) {
     const localPlayer = playersManager.getLocalPlayer();
 
+    // if(!this.healthMesh) {
+    //   this.createHealthMesh();
+    //   console.log("created healthMesh")
+    // }
+
+    // if(this.healthMesh) {
+    //   if(localPlayer) {
+    //     console.log("upadting healthmesh", this.healthMesh);
+    //     this.healthMesh.position.copy(localPlayer.position).add(new THREE.Vector3(0,0.5,0));
+    //     this.healthMesh.lookAt(camera.position);
+    //     this.healthMesh.updateMatrixWorld();
+
+    //     this.healthMesh.material.uniforms.hp.value = new THREE.Vector3().copy(localPlayer.position).normalize().x;
+    //     this.healthMesh.material.uniformsNeedUpdate = true;
+    //   }
+    // }
+
     if(!this.debugMesh) {
       const geometry = new THREE.CircleGeometry(0.5, 32/4);
       const material = new THREE.MeshBasicMaterial( { color: 0x1ff03e, wireframe: true } );
@@ -495,7 +605,17 @@ class Scene2D {
       this.debugMesh.visible = false;
     }
 
-    if(this.attackTarget && localPlayer.avatar) {
+    if(this.attackTarget) {
+      if(this.attackTarget.hitTracker.hp <= 0) {
+        console.log("dismiss attackTager!!!!!!!!!!!!!!!!");
+        this.attackTarget = null;
+        this.moveTarget = null;
+        this.debugMesh.visible = false;
+        this.lastAttackTime = 0;
+      }
+    }
+
+    if(this.attackTarget && localPlayer.avatar && this.inAttackRange) {
       this.debugMesh.material.color = new THREE.Color(0xff0000);
       this.debugMesh.position.copy(this.attackTarget.npcPlayer.position.clone().sub(new THREE.Vector3(0, this.attackTarget.npcPlayer.avatar.height, 0)));
       this.debugMesh.updateMatrixWorld();
@@ -507,6 +627,11 @@ class Scene2D {
       }
 
       if(wearApp) {
+        if(!this.firstAttackTime) {
+          gameManager.attackHack();
+          this.firstAttackTime = timestamp;
+          this.lastAttackTime = timestamp;
+        }
         if((timestamp - this.lastAttackTime) > 1000) {
           const localPlayer = playersManager.getLocalPlayer();
           const useAction = localPlayer.getAction('use');
@@ -535,6 +660,8 @@ class Scene2D {
       }
       this.debugMesh.material.color = new THREE.Color(0x1ff03e);
       this.attackMesh.visible = false;
+      this.lastAttackTime = timestamp;
+      this.firstAttackTime = null;
     }
 
     if(localPlayer.avatar && this.debugCircle) {
@@ -551,9 +678,10 @@ class Scene2D {
       }
       else {
         if(this.attackTarget) {
+          //console.log("still yea", this.attackTarget)
           this.moveAndAttackTarget(this.attackTarget.npcPlayer.position, timeDiff);
         }
-        if(this.interactTarget) {
+        else if(this.interactTarget) {
           //this.moveAndInteractTarget(this.interactTarget, timeDiff);
         }
         else {

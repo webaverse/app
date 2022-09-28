@@ -158,6 +158,7 @@ const makeHitTracker = ({
         //hitTracker.hp = 10;
         //currentApp.npcPlayer.characterPhysics.setPosition(new THREE.Vector3(0,1,0));
         currentApp.dispatchEvent(dieEvent);
+        //hitTracker.heal();
       }
     }
     return result;
@@ -184,6 +185,37 @@ const makeHitTracker = ({
         return {
           hit: true,
           died: true,
+        };
+      }
+    } else {
+      return {
+        hit: false,
+        died: false,
+      };
+    }
+  };
+
+  hitTracker.heal = damage => {
+    if (hitTime === -1) {
+      hitTracker.hp = hitTracker.totalHp;
+      if (hitTracker.hp > 0) {
+        hitTime = 0;
+        
+        /* hitTracker.dispatchEvent({
+          type: 'hit',
+          hp,
+          totalHp,
+          position: cylinderMesh.startPosition.clone(),
+          quaternion: cylinderMesh.quaternion.clone(),
+        }); */
+        return {
+          hit: false,
+          died: false,
+        };
+      } else {
+        return {
+          hit: false,
+          died: false,
         };
       }
     } else {

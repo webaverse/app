@@ -825,7 +825,7 @@ ioManager.mousedown = e => {
     if ((changedButtons & 1) && (e.buttons & 1)) { // left
       game.menuMouseDown();
       if(cameraManager.scene2D) {
-        // cameraManager.scene2D.handleCursorClick();
+        cameraManager.scene2D.handleCursorClick();
       }
     }
     if ((changedButtons & 2) && (e.buttons & 2)) { // right

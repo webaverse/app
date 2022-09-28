@@ -87,6 +87,23 @@ class CharacterPhysics {
       localVector
     );
   }
+  respawn() {
+    localVector.copy(this.characterController.position);
+
+    localVector.add(new THREE.Vector3(Math.random() * 10, 0, Math.random() * 10));
+
+    localVector.y = this.characterHeight * 0.5;
+    physicsScene.setCharacterControllerPosition(
+      this.characterController,
+      localVector
+    );
+
+    console.log(this.characterController);
+
+    // setTimeout(() => {
+    //   appObj.hitTracker.heal();
+    // }, 1000);
+  }
   /* apply the currently held keys to the character */
   applyWasd(keysDirection) {
     if (this.character.avatar) {

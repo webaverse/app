@@ -1,3 +1,4 @@
+import * as THREE from 'three';
 import hpManager from './hp-manager.js';
 import {AppManager} from './app-manager.js';
 import {scene, sceneHighPriority, sceneLowPriority, sceneLowerPriority, sceneLowestPriority} from './renderer.js';
@@ -39,6 +40,14 @@ export class World {
 
       const die = () => {
         this.appManager.removeTrackedApp(app.instanceId);
+        // if(app.appType === "npc") {
+        //   //console.log(app, "oh nyo i died");
+        //   app.npcPlayer.characterPhysics.respawn(app);
+        //   //app.hitTracker.heal();
+        // }
+        // else {
+        //   this.appManager.removeTrackedApp(app.instanceId);
+        // }
       };
       app.addEventListener('die', die);
     });
