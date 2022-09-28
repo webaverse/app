@@ -2,8 +2,8 @@ const puppeteer = require('puppeteer');
 const { Url } = require('url');
 
 const totalTimeout = 600 * 1000
-const width = 800;
-const height = 400;
+const width = 2400;
+const height = 1200;
 let browser
 let page
 
