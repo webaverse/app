@@ -391,6 +391,14 @@ const _startHacks = webaverse => {
   const localPlayer = metaversefileApi.useLocalPlayer();
   const vpdAnimations = Avatar.getAnimations().filter(animation => animation.name.endsWith('.vpd'));
 
+   window.globalWebaverse = {
+    metaversefileApi,
+    playersManager,
+    physicsManager,
+    universe,
+    webaverse
+  }
+
   // press R to debug current state in console
   window.addEventListener('keydown', event => {
     if (event.key === '}') {

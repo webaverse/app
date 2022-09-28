@@ -1,5 +1,4 @@
 [
-  "prototype.scn",
   "street.scn",
   "treehouse.scn",
   "shadows.scn",
@@ -10,6 +9,7 @@
   "classroom.scn",
   "block.scn",
   "canyon.scn",
+  "prototype.scn",
   "silk-fountains.scn",
   "clockrealm.scn",
   "moon.scn",
@@ -38,5 +38,7 @@
   "wind-sample.scn",
   "snow-city.scn",
   "traffic.scn",
-  "asteroids-game.scn"
+  "asteroids-game.scn",
+  "test-e2e-empty.scn",
+  "test-e2e-weapon.scn"
 ]

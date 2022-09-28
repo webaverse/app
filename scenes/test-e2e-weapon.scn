@@ -1,0 +1,57 @@
+{
+  "objects": [
+    {
+      "type": "application/light",
+      "content": {
+        "lightType": "ambient",
+        "args": [[255, 255, 255], 2]
+      }
+    },
+    {
+      "type": "application/light",
+      "content": {
+        "lightType": "directional",
+        "args": [[255, 255, 255], 2],
+        "position": [1, 2, 3]
+      }
+    },
+    {
+      "type": "application/wind",
+      "content": {
+        "windType": "directional",
+        "direction": [-1, 0, 0],
+        "windForce": 0.5,
+        "noiseScale": 1,
+        "windFrequency": 1
+      }
+    },
+    {
+      "position": [
+        0,
+        0,
+        0
+      ],
+      "start_url": "../webaverse_modules/street/"
+    },
+    {
+      "position": [0, 0.5, 0.5],
+      "start_url": "../webaverse_modules/sword/"
+    },
+    {
+      "position": [2, 0.5, 0.5],
+      "start_url": "/webaverse_modules/silsword/"
+    },
+    {
+      "position": [4, 0.5, 0.5],
+      "start_url": "../webaverse_modules/pistol/"
+    },
+    {
+      "position": [6, 0.5, 0.5],
+      "start_url": "../webaverse_modules/machine-gun/"
+    },
+    {
+      "position": [8, 0.5, 0.5],
+      "start_url": "../webaverse_modules/uzi/"
+    }
+  ]
+}
