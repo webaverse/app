@@ -7,7 +7,7 @@ const height = 400;
 let browser
 let page
 
-const isdebug = true
+const isdebug = false
 
 const printLog = (text, error) => {
 	if (isdebug) {
