@@ -7,15 +7,36 @@ const keyRadius = 0.045;
 const keyInnerFactor = 0.8;
 const keyGeometry = new THREE.PlaneGeometry(keySize, keySize);
 function makeShape(shape, x, y, width, height, radius) {
-  shape.absarc(x - width / 2, y + height / 2, radius, Math.PI, Math.PI / 2, true);
+  shape.absarc(
+    x - width / 2,
+    y + height / 2,
+    radius,
+    Math.PI,
+    Math.PI / 2,
+    true,
+  );
   shape.absarc(x + width / 2, y + height / 2, radius, Math.PI / 2, 0, true);
   shape.absarc(x + width / 2, y - height / 2, radius, 0, -Math.PI / 2, true);
-  shape.absarc(x - width / 2, y - height / 2, radius, -Math.PI / 2, -Math.PI, true);
+  shape.absarc(
+    x - width / 2,
+    y - height / 2,
+    radius,
+    -Math.PI / 2,
+    -Math.PI,
+    true,
+  );
   return shape;
 }
 function createBoxWithRoundedEdges(width, height, radius, innerFactor) {
   const shape = makeShape(new THREE.Shape(), 0, 0, width, height, radius);
-  const hole = makeShape(new THREE.Path(), 0, 0, width * innerFactor, height * innerFactor, radius);
+  const hole = makeShape(
+    new THREE.Path(),
+    0,
+    0,
+    width * innerFactor,
+    height * innerFactor,
+    radius,
+  );
   shape.holes.push(hole);
 
   const geometry = new THREE.ShapeGeometry(shape);
@@ -42,7 +63,7 @@ const eKeyMaterial = (() => {
   })();
   const material = new THREE.MeshBasicMaterial({
     map: texture,
-    color: 0xFFFFFF,
+    color: 0xffffff,
     depthTest: false,
     transparent: true,
     alphaTest: 0.5,
@@ -50,7 +71,12 @@ const eKeyMaterial = (() => {
   });
   return material;
 })();
-const keyCircleGeometry = createBoxWithRoundedEdges(keySize - keyRadius * 2, keySize - keyRadius * 2, keyRadius, keyInnerFactor);
+const keyCircleGeometry = createBoxWithRoundedEdges(
+  keySize - keyRadius * 2,
+  keySize - keyRadius * 2,
+  keyRadius,
+  keyInnerFactor,
+);
 const keyCircleMaterial = new THREE.ShaderMaterial({
   uniforms: {
     uColor: {

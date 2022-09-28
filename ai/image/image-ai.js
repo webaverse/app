@@ -1,5 +1,15 @@
-import {loadImage, makeSquareImage, blob2img, img2canvas, canvas2blob} from '../../util.js';
-import {imageAIEndpointUrl, imageCaptionAIEndpointUrl, defaultImageAICanvasSize} from '../../constants.js';
+import {
+  loadImage,
+  makeSquareImage,
+  blob2img,
+  img2canvas,
+  canvas2blob,
+} from '../../util.js';
+import {
+  imageAIEndpointUrl,
+  imageCaptionAIEndpointUrl,
+  defaultImageAICanvasSize,
+} from '../../constants.js';
 import materialColors from '../../material-colors.json';
 import ColorScheme from '../../color-scheme.js';
 
@@ -12,9 +22,7 @@ const artPlatforms = {
     // `Fanbox`,
     // `Skeb`,
   ],
-  item: [
-    'ArtStation',
-  ],
+  item: ['ArtStation'],
   render: [
     'SketchFab',
     // `Unreal Engine`,
@@ -28,7 +36,9 @@ for (const k in artPlatforms) {
 
 //
 
-const baseColors = Object.keys(materialColors).map(k => materialColors[k][400].slice(1));
+const baseColors = Object.keys(materialColors).map(k =>
+  materialColors[k][400].slice(1),
+);
 /* const baseColors = Object.keys(materialColors).map(k => {
   const v = materialColors[k];
   return Object.keys(v).map(k2 => {
@@ -60,10 +70,10 @@ const createSeedImage = (
   ctx.fillRect(0, 0, w, h);
   // ctx.filter = blur ? `blur(${blur}px) saturate(1.5)` : '';
 
-  const baseColor = color ?? baseColors[Math.floor(Math.random() * baseColors.length)];
+  const baseColor =
+    color ?? baseColors[Math.floor(Math.random() * baseColors.length)];
   const scheme = new ColorScheme();
-  scheme.from_hex(baseColor)
-    .scheme(monochrome ? 'mono' : 'triade');
+  scheme.from_hex(baseColor).scheme(monochrome ? 'mono' : 'triade');
   // .variation('hard');
   const colors = scheme.colors();
 
@@ -93,7 +103,7 @@ const createSeedImage = (
 
   return canvas;
 };
-const rng = () => (Math.random() * 2) - 1;
+const rng = () => Math.random() * 2 - 1;
 
 class ImageGenerator {
   // #canvasSize = defaultImageAICanvasSize;
@@ -105,14 +115,10 @@ class ImageGenerator {
     this.#debug = debug;
   }
 
-  #makeUnseededMethod({
-    promptFn,
-  }) {
+  #makeUnseededMethod({promptFn}) {
     const self = this;
 
-    function pregenerate(
-      name,
-    ) {
+    function pregenerate(name) {
       const prompt = promptFn(name);
 
       return {
@@ -121,7 +127,8 @@ class ImageGenerator {
           const img2 = await imageAI.txt2img(prompt);
           if (self.#debug) {
             document.body.appendChild(img2);
-            img2.style.cssText = 'position: absolute; top: 0; right: 0; z-index: 100;';
+            img2.style.cssText =
+              'position: absolute; top: 0; right: 0; z-index: 100;';
           }
           return img2;
         },
@@ -131,32 +138,11 @@ class ImageGenerator {
     return pregenerate;
   }
 
-  #makeSeededMethod({
-    seedArgs: [
-      w,
-      h,
-      rw,
-      rh,
-      p,
-      n,
-      seedOptions,
-    ],
-    promptFn,
-  }) {
+  #makeSeededMethod({seedArgs: [w, h, rw, rh, p, n, seedOptions], promptFn}) {
     const self = this;
 
-    function pregenerate(
-      name,
-    ) {
-      const canvas = createSeedImage(
-        w,
-        h,
-        rw,
-        rh,
-        p,
-        n,
-        seedOptions,
-      );
+    function pregenerate(name) {
+      const canvas = createSeedImage(w, h, rw, rh, p, n, seedOptions);
       const prompt = promptFn(name);
 
       return {
@@ -165,12 +151,14 @@ class ImageGenerator {
         async generate() {
           if (self.#debug) {
             document.body.appendChild(canvas);
-            canvas.style.cssText = 'position: absolute; top: 0; left: 0; z-index: 100;';
+            canvas.style.cssText =
+              'position: absolute; top: 0; left: 0; z-index: 100;';
           }
           const img2 = await imageAI.img2img(canvas, prompt);
           if (self.#debug) {
             document.body.appendChild(img2);
-            img2.style.cssText = 'position: absolute; top: 0; right: 0; z-index: 100;';
+            img2.style.cssText =
+              'position: absolute; top: 0; right: 0; z-index: 100;';
           }
           return img2;
         },
@@ -195,9 +183,17 @@ class ImageGenerator {
   });
 
   sword = this.#makeSeededMethod({
-    seedArgs: [512, 512, 32, 128, 1, 256, {
-      // monochrome: true,
-    }],
+    seedArgs: [
+      512,
+      512,
+      32,
+      128,
+      1,
+      256,
+      {
+        // monochrome: true,
+      },
+    ],
     promptFn(name = 'huge sword') {
       return `video game item concept render, ${highlightString} on ${artPlatformsStrings.item}, ${name}`;
     },
@@ -259,14 +255,7 @@ class ImageGenerator {
 }
 
 class ImageAI {
-  async txt2img(prompt, {
-    n,
-    width,
-    height,
-    noise,
-    clear,
-    color,
-  } = {}) {
+  async txt2img(prompt, {n, width, height, noise, clear, color} = {}) {
     const url = new URL(imageAIEndpointUrl);
     if (!clear) {
       url.pathname = '/image';
@@ -294,13 +283,11 @@ class ImageAI {
     return img;
   }
 
-  async img2img(image, prompt, {
-    n,
-    width,
-    height,
-    noise,
-    transferType = 'image/jpeg',
-  } = {}) {
+  async img2img(
+    image,
+    prompt,
+    {n, width, height, noise, transferType = 'image/jpeg'} = {},
+  ) {
     if (typeof image === 'string') {
       image = await loadImage(image);
     }
@@ -335,9 +322,7 @@ class ImageAI {
     return resultImg;
   }
 
-  async img2txt(image, {
-    transferType = 'image/jpeg',
-  } = {}) {
+  async img2txt(image, {transferType = 'image/jpeg'} = {}) {
     const blob = await (async () => {
       if (typeof image === 'string') {
         const res = await fetch(image);

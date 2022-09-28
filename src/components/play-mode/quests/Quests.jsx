@@ -22,31 +22,25 @@ const frameSize = size / numFramesPerRow;
 const frameLoopTime = 2000;
 const frameTime = frameLoopTime / numFrames;
 
-export const Drop = ({
-  drop,
-  enabled,
-}) => {
+export const Drop = ({drop, enabled}) => {
   const {name, quantity, start_url} = drop;
 
   return (
-        <div className={ styles.drop }>
-            <Spritesheet
-                className={styles.canvas}
-                startUrl={start_url}
-                enabled={enabled}
-                size={size}
-                numFrames={numFrames}
-            />
+    <div className={styles.drop}>
+      <Spritesheet
+        className={styles.canvas}
+        startUrl={start_url}
+        enabled={enabled}
+        size={size}
+        numFrames={numFrames}
+      />
 
-            <div className={ styles.quantity }>{quantity}</div>
-            <div className={ styles.name }>{name}</div>
-        </div>
+      <div className={styles.quantity}>{quantity}</div>
+      <div className={styles.name}>{name}</div>
+    </div>
   );
 };
-export const Quest = ({
-  quest,
-  enabled,
-}) => {
+export const Quest = ({quest, enabled}) => {
   const canvasRef = useRef();
 
   const {name, description} = quest;
@@ -86,7 +80,13 @@ export const Quest = ({
                         const quaternion = new THREE.Quaternion()
                           .setFromAxisAngle(new THREE.Vector3(1, 0, 0), -Math.PI / 4); */
             // console.log('screenshot scene 1');
-            screenshotScene(scene, quest.camera, screenshotWidth, screenshotHeight, ctx);
+            screenshotScene(
+              scene,
+              quest.camera,
+              screenshotWidth,
+              screenshotHeight,
+              ctx,
+            );
             // console.log('screenshot scene 2', imageBitmap, live);
             // if (!live) return;
 
@@ -110,38 +110,32 @@ export const Quest = ({
   }, [canvasRef]);
 
   return (
-        <div className={ styles.quest } >
-            <div className={ styles.background } />
-            <canvas
-              className={ styles.screenshot }
-              width={ screenshotWidth }
-              height={ screenshotHeight }
-              ref={ canvasRef }
-            />
-            <div className={ styles.content }>
-                <h1 className={ styles.heading }>{name}</h1>
-                <div className={ styles.description }>{description}</div>
-                <div className={ styles.drops }>
-                    {quest.completeActions.map((completeAction, i) => {
-                      const {key, value} = completeAction;
-                      switch (key) {
-                        case 'drop': {
-                          return (
-                                    <Drop
-                                        drop={value}
-                                        enabled={enabled}
-                                        key={i}
-                                    />
-                          );
-                        }
-                        default: {
-                          return null;
-                        }
-                      }
-                    })}
-                </div>
-            </div>
+    <div className={styles.quest}>
+      <div className={styles.background} />
+      <canvas
+        className={styles.screenshot}
+        width={screenshotWidth}
+        height={screenshotHeight}
+        ref={canvasRef}
+      />
+      <div className={styles.content}>
+        <h1 className={styles.heading}>{name}</h1>
+        <div className={styles.description}>{description}</div>
+        <div className={styles.drops}>
+          {quest.completeActions.map((completeAction, i) => {
+            const {key, value} = completeAction;
+            switch (key) {
+              case 'drop': {
+                return <Drop drop={value} enabled={enabled} key={i} />;
+              }
+              default: {
+                return null;
+              }
+            }
+          })}
         </div>
+      </div>
+    </div>
   );
 };
 export const Quests = () => {
@@ -171,16 +165,10 @@ export const Quests = () => {
   }, [quests]);
 
   return (
-        <div className={styles.quests}>
-            {quests.map((quest, i) => {
-              return (
-                    <Quest
-                        quest={quest}
-                        enabled={enabled}
-                        key={i}
-                    />
-              );
-            })}
-        </div>
+    <div className={styles.quests}>
+      {quests.map((quest, i) => {
+        return <Quest quest={quest} enabled={enabled} key={i} />;
+      })}
+    </div>
   );
 };

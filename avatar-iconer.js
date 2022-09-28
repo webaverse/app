@@ -9,10 +9,7 @@ import {playersManager} from './players-manager';
 const allEmotions = [''].concat(emotions);
 
 class AvatarIconer extends EventTarget {
-  constructor({
-    width = 150,
-    height = 150,
-  } = {}) {
+  constructor({width = 150, height = 150} = {}) {
     super();
 
     this.player = playersManager.getLocalPlayer();
@@ -28,9 +25,7 @@ class AvatarIconer extends EventTarget {
     this.canvases = [];
 
     const playerSelectedFn = e => {
-      const {
-        player,
-      } = e.data;
+      const {player} = e.data;
 
       this.bindPlayer(player);
     };
@@ -53,8 +48,11 @@ class AvatarIconer extends EventTarget {
     };
 
     this.getEmotionCanvases = (() => {
-      return async function(args) {
-        const result = await offscreenEngineManager.request('getEmotionCanvases', args);
+      return async function (args) {
+        const result = await offscreenEngineManager.request(
+          'getEmotionCanvases',
+          args,
+        );
         return result;
       };
     })();
@@ -75,7 +73,11 @@ class AvatarIconer extends EventTarget {
     if (srcAvatarApp) {
       const start_url = srcAvatarApp.contentId;
 
-      this.emotionCanvases = await this.getEmotionCanvases([start_url, this.width, this.height]);
+      this.emotionCanvases = await this.getEmotionCanvases([
+        start_url,
+        this.width,
+        this.height,
+      ]);
 
       this.enabled = true;
     } else {
@@ -86,11 +88,13 @@ class AvatarIconer extends EventTarget {
     this.lastRenderedEmotion = null;
 
     if (lastEnabled !== this.enabled) {
-      this.dispatchEvent(new MessageEvent('enabledchange', {
-        data: {
-          enabled: this.enabled,
-        },
-      }));
+      this.dispatchEvent(
+        new MessageEvent('enabledchange', {
+          data: {
+            enabled: this.enabled,
+          },
+        }),
+      );
     }
   }
 
@@ -113,10 +117,7 @@ class AvatarIconer extends EventTarget {
 
       const useAction = this.player.getAction('use');
       if (useAction) {
-        if (
-          useAction.animation === 'eat' ||
-          useAction.animation === 'drink'
-        ) {
+        if (useAction.animation === 'eat' || useAction.animation === 'drink') {
           return 'joy';
         }
         if (
@@ -182,6 +183,4 @@ class AvatarIconer extends EventTarget {
     this.cleanup();
   }
 }
-export {
-  AvatarIconer,
-};
+export {AvatarIconer};

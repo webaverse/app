@@ -11,6 +11,4 @@ const componentTemplates = {
   drop,
   // mob,
 };
-export {
-  componentTemplates,
-};
+export {componentTemplates};

@@ -1,5 +1,9 @@
 import * as THREE from 'three';
-import {getMergeableObjects, getBones, mergeGeometryTextureAtlas} from './avatar-optimizer.js';
+import {
+  getMergeableObjects,
+  getBones,
+  mergeGeometryTextureAtlas,
+} from './avatar-optimizer.js';
 import exporters from './exporters.js';
 
 const defaultTextureSize = 4096;
@@ -8,11 +12,7 @@ const localVector = new THREE.Vector3();
 const localQuaternion = new THREE.Quaternion();
 const localVector2 = new THREE.Vector3();
 
-const textureTypes = [
-  'map',
-  'emissiveMap',
-  'normalMap',
-];
+const textureTypes = ['map', 'emissiveMap', 'normalMap'];
 const getObjectKey = () => '';
 
 export const crunchAvatarModel = async (model, options = {}) => {
@@ -83,7 +83,9 @@ export const crunchAvatarModel = async (model, options = {}) => {
 
     return mesh;
   };
-  const mergedMeshes = mergeables.map((mergeable, i) => _mergeMesh(mergeable, i));
+  const mergedMeshes = mergeables.map((mergeable, i) =>
+    _mergeMesh(mergeable, i),
+  );
 
   // construct a new scene with the merged meshes
   const scene = new THREE.Scene();
@@ -114,7 +116,8 @@ export const crunchAvatarModel = async (model, options = {}) => {
       scene,
       function onCompleted(arrayBuffer) {
         accept(arrayBuffer);
-      }, function onError(error) {
+      },
+      function onError(error) {
         reject(error);
       },
       {

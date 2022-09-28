@@ -1,5 +1,5 @@
 {
-  "extends": ["semistandard", "eslint:recommended", "plugin:react/recommended"],
+  "extends": ["semistandard", "eslint:recommended", "plugin:react/recommended", "prettier"],
   "parserOptions": {
     "ecmaVersion": "latest",
     "sourceType": "module"
@@ -45,8 +45,6 @@
     "no-prototype-builtins": "off",
     "react/display-name": "off",
     "no-lone-blocks": "off",
-    "semi": ["error", "always"],
-    "quotes": ["error", "single"],
     "eol-last": ["error", "always"],
     "no-unused-vars": ["warn"],
     "comma-dangle": ["warn", "always-multiline"],

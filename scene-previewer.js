@@ -88,7 +88,13 @@ const fragmentShader = `\
 `;
 
 const _makeSkyboxMesh = () => {
-  const skyboxGeometry = new THREE.SphereGeometry(worldSize, 64, 32, 0, Math.PI);
+  const skyboxGeometry = new THREE.SphereGeometry(
+    worldSize,
+    64,
+    32,
+    0,
+    Math.PI,
+  );
   const skyboxMaterial = new WebaverseShaderMaterial({
     uniforms: {
       envMap: {
@@ -112,8 +118,7 @@ const _makeSkyboxMesh = () => {
     const scale = localVector2;
     skyboxMesh.matrixWorld.decompose(position, quaternion, scale);
 
-    const normal = localVector3.set(0, 0, -1)
-      .applyQuaternion(quaternion);
+    const normal = localVector3.set(0, 0, -1).applyQuaternion(quaternion);
     localPlane.setFromNormalAndCoplanarPoint(normal, position);
 
     _planeToVector4(localPlane, skyboxMesh.material.uniforms.plane.value);
@@ -142,14 +147,11 @@ class ScenePreviewer extends THREE.Object3D {
     this.previewContainer = previewContainer;
     this.previewScene.add(previewContainer);
 
-    const cubeRenderTarget = new THREE.WebGLCubeRenderTarget(
-      resolution,
-      {
-        generateMipmaps: true,
-        minFilter: THREE.LinearMipmapLinearFilter,
-        // magFilter: THREE.LinearMipmapLinearFilter,
-      },
-    );
+    const cubeRenderTarget = new THREE.WebGLCubeRenderTarget(resolution, {
+      generateMipmaps: true,
+      minFilter: THREE.LinearMipmapLinearFilter,
+      // magFilter: THREE.LinearMipmapLinearFilter,
+    });
     cubeRenderTarget.texture.mapping = THREE.CubeRefractionMapping;
     this.cubeRenderTarget = cubeRenderTarget;
     const cubeCamera = new THREE.CubeCamera(near, camera.far, cubeRenderTarget);
@@ -170,7 +172,9 @@ class ScenePreviewer extends THREE.Object3D {
       this.detachScene();
     } */
 
-    const popPreviewContainerTransform = !this.focused ? this.#pushPreviewContainerTransform() : null;
+    const popPreviewContainerTransform = !this.focused
+      ? this.#pushPreviewContainerTransform()
+      : null;
     this.scene = await metaversefile.createAppAsync({
       start_url: sceneUrl,
       components: {
@@ -241,17 +245,11 @@ class ScenePreviewer extends THREE.Object3D {
     const result = [];
     for (const normal of normals) {
       const skyboxMesh = _makeSkyboxMesh();
-      skyboxMesh.position.copy(this.position)
-        .add(
-          localVector.copy(normal)
-            .multiplyScalar(size),
-        );
+      skyboxMesh.position
+        .copy(this.position)
+        .add(localVector.copy(normal).multiplyScalar(size));
       skyboxMesh.quaternion.setFromRotationMatrix(
-        localMatrix.lookAt(
-          normal,
-          zeroVector,
-          upVector,
-        ),
+        localMatrix.lookAt(normal, zeroVector, upVector),
       );
       skyboxMesh.updateMatrixWorld();
     }
@@ -290,8 +288,12 @@ class ScenePreviewer extends THREE.Object3D {
       const renderer = getRenderer();
 
       // push old state
-      const popPreviewContainerTransform = this.#pushPreviewContainerTransform();
-      const popRenderSettings = renderSettingsManager.push(this.scene, this.previewScene);
+      const popPreviewContainerTransform =
+        this.#pushPreviewContainerTransform();
+      const popRenderSettings = renderSettingsManager.push(
+        this.scene,
+        this.previewScene,
+      );
 
       for (const skyboxMesh of this.skyboxMeshes) {
         this.cubeCamera.position.setFromMatrixPosition(skyboxMesh.matrixWorld);
@@ -313,7 +315,8 @@ class ScenePreviewer extends THREE.Object3D {
       const oldPreviewContainerParent = this.previewContainer.parent;
 
       this.previewScene.add(this.previewContainer);
-      const popPreviewContainerTransform = this.#pushPreviewContainerTransform();
+      const popPreviewContainerTransform =
+        this.#pushPreviewContainerTransform();
       const lodMesh = snapshotMapChunk(
         this.previewScene,
         this.position,
@@ -341,6 +344,4 @@ class ScenePreviewer extends THREE.Object3D {
     this.rendered = true;
   }
 }
-export {
-  ScenePreviewer,
-};
+export {ScenePreviewer};

@@ -21,13 +21,7 @@ const types = [
   'ghost',
   'dragon',
 ];
-const rarities = [
-  'common',
-  'uncommon',
-  'rare',
-  'epic',
-  'legendary',
-];
+const rarities = ['common', 'uncommon', 'rare', 'epic', 'legendary'];
 const rarityFactors = [80, 18, 1.8, 0.18, 0.02].map(n => n / 100);
 
 function makeRandom(rng, n) {
@@ -37,12 +31,13 @@ function makeRandom(rng, n) {
   }
   return raw;
 }
-const makeColors = rng => colorScheme
-  .from_hue(rng() * 360)
-  .scheme('triade')
-  .variation('default')
-  .colors()
-  .map(c => '#' + c);
+const makeColors = rng =>
+  colorScheme
+    .from_hue(rng() * 360)
+    .scheme('triade')
+    .variation('default')
+    .colors()
+    .map(c => '#' + c);
 const generateStats = (seed = '', count = 1) => {
   const result = Array(count);
   const rng = alea(seed);
@@ -72,14 +67,14 @@ const generateStats = (seed = '', count = 1) => {
         return rarities[rarities.length - 1];
       })(),
       level: Math.floor(rng() * 100),
-      hp: Math.floor(rng() * 0xFF),
-      mp: Math.floor(rng() * 0xFF),
-      atk: Math.floor(rng() * 0xFF),
-      def: Math.floor(rng() * 0xFF),
-      mag: Math.floor(rng() * 0xFF),
-      spr: Math.floor(rng() * 0xFF),
-      dex: Math.floor(rng() * 0xFF),
-      lck: Math.floor(rng() * 0xFF),
+      hp: Math.floor(rng() * 0xff),
+      mp: Math.floor(rng() * 0xff),
+      atk: Math.floor(rng() * 0xff),
+      def: Math.floor(rng() * 0xff),
+      mag: Math.floor(rng() * 0xff),
+      spr: Math.floor(rng() * 0xff),
+      dex: Math.floor(rng() * 0xff),
+      lck: Math.floor(rng() * 0xff),
       details: makeRandom(rng, 32),
     };
     result.push({
@@ -90,7 +85,4 @@ const generateStats = (seed = '', count = 1) => {
   return result;
 };
 export default generateStats;
-export {
-  types,
-  rarities,
-};
+export {types, rarities};

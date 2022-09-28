@@ -1,7 +1,11 @@
 import {bindCanvas} from '../renderer.js';
 
 import {getEmotionCanvases} from './fns/avatar-iconer-fn.js';
-import {createSpriteAvatarMesh, crunchAvatarModel, optimizeAvatarModel} from './fns/avatar-renderer-fns.js';
+import {
+  createSpriteAvatarMesh,
+  crunchAvatarModel,
+  optimizeAvatarModel,
+} from './fns/avatar-renderer-fns.js';
 import {generateObjectUrlCardRemote} from './fns/cards-manager-fn.js';
 import {getLandImage} from './fns/land-iconer-fn.js';
 import {createAppUrlSpriteSheet} from './fns/spriting-fn.js';
@@ -28,7 +32,8 @@ window.addEventListener('message', e => {
 
 const isTransferable = o => {
   const ctor = o?.constructor;
-  return ctor === MessagePort ||
+  return (
+    ctor === MessagePort ||
     ctor === ImageBitmap ||
     ctor === ImageData ||
     // ctor === AudioData ||
@@ -41,7 +46,8 @@ const isTransferable = o => {
     ctor === Uint32Array ||
     ctor === Int32Array ||
     ctor === Float32Array ||
-    ctor === Float64Array;
+    ctor === Float64Array
+  );
 };
 const getTransferables = o => {
   const result = [];
@@ -68,12 +74,15 @@ const _bindPort = port => {
   port.addEventListener('message', async e => {
     const {method, id} = e.data;
     const respond = (error = null, result = null, transfers = []) => {
-      port.postMessage({
-        method: 'response',
-        id,
-        error,
-        result,
-      }, transfers);
+      port.postMessage(
+        {
+          method: 'response',
+          id,
+          error,
+          result,
+        },
+        transfers,
+      );
     };
     if (method) {
       switch (method) {
@@ -88,7 +97,7 @@ const _bindPort = port => {
               result = await fn.apply(null, args);
               transfers = getTransferables(result);
             } catch (err) {
-              error = err?.stack ?? (err + '');
+              error = err?.stack ?? err + '';
             } finally {
               respond(error, result, transfers);
             }

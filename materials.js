@@ -10,13 +10,16 @@ const appendMain = (shaderText, postfixLine) => {
   const ast = parser.parse(shaderText);
   const {program} = ast;
   // console.log('got program', program);
-  const mainProgram = program.find(p => p.type === 'function' && p.prototype.header.name.identifier === 'main');
+  const mainProgram = program.find(
+    p => p.type === 'function' && p.prototype.header.name.identifier === 'main',
+  );
   if (mainProgram) {
-    const {body: {statements}} = mainProgram;
+    const {
+      body: {statements},
+    } = mainProgram;
     statements.push(...replaceStatmentAst.program);
   }
-  const s = generate(ast)
-    .replace(replaceStatementText, postfixLine + '\n');
+  const s = generate(ast).replace(replaceStatementText, postfixLine + '\n');
   // console.log('got o', ast, s);
   return s;
 };
@@ -51,18 +54,22 @@ const _memoize = fn => {
   };
 };
 
-const formatVertexShader = _memoize(vertexShader => `\
+const formatVertexShader = _memoize(
+  vertexShader => `\
 ${THREE.ShaderChunk.common}
 ${THREE.ShaderChunk.logdepthbuf_pars_vertex}
     
 ${appendMain(vertexShader, THREE.ShaderChunk.logdepthbuf_vertex)}
-`);
+`,
+);
 
-const formatFragmentShader = _memoize(fragmentShader => `\
+const formatFragmentShader = _memoize(
+  fragmentShader => `\
 ${THREE.ShaderChunk.logdepthbuf_pars_fragment}
     
 ${appendMain(fragmentShader, THREE.ShaderChunk.logdepthbuf_fragment)}
-`);
+`,
+);
 
 class WebaverseShaderMaterial extends THREE.ShaderMaterial {
   constructor(opts = {}) {
@@ -86,7 +93,10 @@ class WebaverseRawShaderMaterial extends THREE.RawShaderMaterial {
         break;
       }
     }
-    if (firstNonPrecisionLine !== -1 && !lines.some(l => l.trim().startsWith('#define USE_LOGDEPTHBUF'))) {
+    if (
+      firstNonPrecisionLine !== -1 &&
+      !lines.some(l => l.trim().startsWith('#define USE_LOGDEPTHBUF'))
+    ) {
       lines.splice(firstNonPrecisionLine, 0, '#define USE_LOGDEPTHBUF');
       opts.vertexShader = lines.join('\n');
     }
@@ -95,7 +105,4 @@ class WebaverseRawShaderMaterial extends THREE.RawShaderMaterial {
     super(opts);
   }
 }
-export {
-  WebaverseShaderMaterial,
-  WebaverseRawShaderMaterial,
-};
+export {WebaverseShaderMaterial, WebaverseRawShaderMaterial};

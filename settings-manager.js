@@ -35,10 +35,16 @@ class SettingsManager extends EventTarget {
 
   adjustCharacterQuality(delta) {
     const settings = this.getSettings();
-    const quality = this.convertCharacterQualityToValue(settings.character.details);
-    const newQuality = Math.min(Math.max(quality + delta, minAvatarQuality), maxAvatarQuality);
+    const quality = this.convertCharacterQualityToValue(
+      settings.character.details,
+    );
+    const newQuality = Math.min(
+      Math.max(quality + delta, minAvatarQuality),
+      maxAvatarQuality,
+    );
     if (newQuality !== quality) {
-      settings.character.details = this.convertCharacterQualityToSetting(newQuality);
+      settings.character.details =
+        this.convertCharacterQualityToSetting(newQuality);
       this.saveSettings(settings);
     }
     return newQuality;
@@ -76,11 +82,13 @@ class SettingsManager extends EventTarget {
 
   saveSettings(settings) {
     localStorageManager.setItem('GfxSettings', JSON.stringify(settings));
-    this.dispatchEvent(new MessageEvent('change', {
-      data: {
-        settings,
-      },
-    }));
+    this.dispatchEvent(
+      new MessageEvent('change', {
+        data: {
+          settings,
+        },
+      }),
+    );
   }
 }
 

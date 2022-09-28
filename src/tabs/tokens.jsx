@@ -25,7 +25,10 @@ export const Tokens = ({userOpen, loginFrom, hacks, address}) => {
 
       (async () => {
         if (loginFrom === 'metamask') {
-          const res = await fetch(`https://api.opensea.io/api/v1/assets?owner=${address}&limit=${50}`, {headers: {'X-API-KEY': '6a7ceb45f3c44c84be65779ad2907046'}});
+          const res = await fetch(
+            `https://api.opensea.io/api/v1/assets?owner=${address}&limit=${50}`,
+            {headers: {'X-API-KEY': '6a7ceb45f3c44c84be65779ad2907046'}},
+          );
           const j = await res.json();
           const {assets} = j;
           setNfts(assets);
@@ -52,13 +55,14 @@ export const Tokens = ({userOpen, loginFrom, hacks, address}) => {
           nftPreviews[nft.image_preview_url] = 'images/object.jpg';
 
           if (loginFrom === 'metamask') {
-            fetch(nft.image_preview_url).then(response => response.blob()).then(imageBlob => {
-              const imageObjectURL = URL.createObjectURL(imageBlob);
-              nftPreviews[nft.image_preview_url] = imageObjectURL;
-              setNftPreviews(nftPreviews);
-            });
+            fetch(nft.image_preview_url)
+              .then(response => response.blob())
+              .then(imageBlob => {
+                const imageObjectURL = URL.createObjectURL(imageBlob);
+                nftPreviews[nft.image_preview_url] = imageObjectURL;
+                setNftPreviews(nftPreviews);
+              });
           } else if (loginFrom === 'discord') {
-
             /** Will be switched after Previews-Merge */
             // preview(nft.image_preview_url, nft.ext, 'png', 100, 100).then(res => {
             //   const imageObjectURL = URL.createObjectURL(res.blob);
@@ -76,32 +80,48 @@ export const Tokens = ({userOpen, loginFrom, hacks, address}) => {
   //
 
   return (
-        <section className={classnames(styles.sidebar, state.openedPanel === 'UserPanel' ? styles.open : null)}
-            onClick={e => {
-              e.preventDefault();
-              e.stopPropagation();
-            }}
-        >
-                {(nfts || []).map((nft, i) => {
-                  const {id, asset_contract, hash, name, description} = nft;
-                  // const image_preview_url = hacks.getNftImage(nft);
-                  /* if (!image_preview_url) {
+    <section
+      className={classnames(
+        styles.sidebar,
+        state.openedPanel === 'UserPanel' ? styles.open : null,
+      )}
+      onClick={e => {
+        e.preventDefault();
+        e.stopPropagation();
+      }}
+    >
+      {(nfts || []).map((nft, i) => {
+        const {id, asset_contract, hash, name, description} = nft;
+        // const image_preview_url = hacks.getNftImage(nft);
+        /* if (!image_preview_url) {
                                 console.log('got nft', {nft, hacks, image_preview_url});
                                 debugger;
                             } */
-                  // "https://storage.opensea.io/files/099f7815733ba38b897f892a750e11dc.svg"
-                  // console.log(nft);
-                  return <div className={styles.nft} onDragStart={e => {
-                    e.dataTransfer.setData('application/json', JSON.stringify(nft));
-                  }} draggable key={i}>
-                    <img src={nftPreviews[nft.image_preview_url] || 'images/object.jpg'} className={styles.preview} />
-                    <div className={styles.wrap}>
-                        <div className={styles.name}>{name}</div>
-                        <div className={styles.description}>{description}</div>
-                        <div className={styles.tokenid}>{asset_contract ? asset_contract.address : hash} / {id}</div>
-                    </div>
-                    </div>;
-                })}
-        </section>
+        // "https://storage.opensea.io/files/099f7815733ba38b897f892a750e11dc.svg"
+        // console.log(nft);
+        return (
+          <div
+            className={styles.nft}
+            onDragStart={e => {
+              e.dataTransfer.setData('application/json', JSON.stringify(nft));
+            }}
+            draggable
+            key={i}
+          >
+            <img
+              src={nftPreviews[nft.image_preview_url] || 'images/object.jpg'}
+              className={styles.preview}
+            />
+            <div className={styles.wrap}>
+              <div className={styles.name}>{name}</div>
+              <div className={styles.description}>{description}</div>
+              <div className={styles.tokenid}>
+                {asset_contract ? asset_contract.address : hash} / {id}
+              </div>
+            </div>
+          </div>
+        );
+      })}
+    </section>
   );
 };

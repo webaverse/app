@@ -17,7 +17,13 @@ const physicsScene = physicsManager.getScene();
 //
 
 class FakeMouseEvent {
-  constructor(clientX = 0, clientY = 0, deltaX = 0, deltaY = 0, inside = false) {
+  constructor(
+    clientX = 0,
+    clientY = 0,
+    deltaX = 0,
+    deltaY = 0,
+    inside = false,
+  ) {
     this.clientX = clientX;
     this.clientY = clientY;
     this.deltaX = deltaX;
@@ -73,7 +79,7 @@ class RaycastManager extends EventTarget {
     const localVector2D2 = new THREE.Vector2();
     const localRaycaster = new THREE.Raycaster();
 
-    return function(e = this.lastMouseEvent) {
+    return function (e = this.lastMouseEvent) {
       const {clientX, clientY} = e;
       const renderer = getRenderer();
       if (renderer) {
@@ -83,10 +89,15 @@ class RaycastManager extends EventTarget {
           -(clientY / localVector2D2.y) * 2 + 1,
         );
         if (
-          localVector2D.x >= -1 && localVector2D.x <= 1 &&
-          localVector2D.y >= -1 && localVector2D.y <= 1
+          localVector2D.x >= -1 &&
+          localVector2D.x <= 1 &&
+          localVector2D.y >= -1 &&
+          localVector2D.y <= 1
         ) {
-          /* const result = */localRaycaster.setFromCamera(localVector2D, camera);
+          /* const result = */ localRaycaster.setFromCamera(
+            localVector2D,
+            camera,
+          );
           // console.log('return raycaster', result);
           return localRaycaster;
         } else {
@@ -104,7 +115,7 @@ class RaycastManager extends EventTarget {
     const fakeCenterEvent = new FakeMouseEvent();
     const localVector2D2 = new THREE.Vector2();
 
-    return function() {
+    return function () {
       const renderer = getRenderer();
       if (renderer) {
         const size = renderer.getSize(localVector2D2);
@@ -126,7 +137,9 @@ class RaycastManager extends EventTarget {
 
     // try {
 
-    const mouseEvent = cameraManager.pointerLockElement ? this.getCenterEvent() : this.lastMouseEvent;
+    const mouseEvent = cameraManager.pointerLockElement
+      ? this.getCenterEvent()
+      : this.lastMouseEvent;
 
     let mouseHoverApp = null;
     let mouseHoverPhysicsObject = null;
@@ -169,7 +182,9 @@ class RaycastManager extends EventTarget {
           // }
         } else {
           // check dom renderer
-          const object = domRenderer.getPhysicsObjects().find(o => o.physicsId === result.objectId);
+          const object = domRenderer
+            .getPhysicsObjects()
+            .find(o => o.physicsId === result.objectId);
           if (object) {
             // console.log('got dom renderer object hit', object);
             // XXX
@@ -182,7 +197,12 @@ class RaycastManager extends EventTarget {
     } /* else {
       console.log('no result');
     } */
-    this.collision.set(mouseHoverApp, mouseHoverPhysicsObject, mouseHoverPhysicsId, point);
+    this.collision.set(
+      mouseHoverApp,
+      mouseHoverPhysicsObject,
+      mouseHoverPhysicsId,
+      point,
+    );
     /* const renderer = getRenderer();
     if (htmlHover) {
       renderer.domElement.classList.add('hover');
@@ -194,11 +214,13 @@ class RaycastManager extends EventTarget {
     //   debugger;
     // }
     if (domHover !== this.lastDomHover) {
-      this.dispatchEvent(new MessageEvent('domhoverchange', {
-        data: {
-          domHover,
-        },
-      }));
+      this.dispatchEvent(
+        new MessageEvent('domhoverchange', {
+          data: {
+            domHover,
+          },
+        }),
+      );
       this.lastDomHover = domHover;
     }
   }

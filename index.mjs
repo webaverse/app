@@ -20,11 +20,13 @@ Error.stackTraceLimit = 300;
 const cwd = process.cwd();
 
 const isProduction = process.argv[2] === '-p';
-process.env.MODULE_URL = process.env.MODULE_URL || 'https://local.webaverse.com/';
+process.env.MODULE_URL =
+  process.env.MODULE_URL || 'https://local.webaverse.com/';
 process.env.NODE_ENV = isProduction ? 'production' : process.env.NODE_ENV;
 const metaversefile = metaversefilePlugin();
 
-const _isMediaType = p => /\.(?:png|jpe?g|gif|svg|glb|mp3|wav|webm|mp4|mov)$/.test(p);
+const _isMediaType = p =>
+  /\.(?:png|jpe?g|gif|svg|glb|mp3|wav|webm|mp4|mov)$/.test(p);
 
 const _tryReadFile = p => {
   try {
@@ -35,13 +37,18 @@ const _tryReadFile = p => {
   }
 };
 const certs = {
-  key: _tryReadFile('./certs/privkey.pem') || _tryReadFile('./certs-local/privkey.pem'),
-  cert: _tryReadFile('./certs/fullchain.pem') || _tryReadFile('./certs-local/fullchain.pem'),
+  key:
+    _tryReadFile('./certs/privkey.pem') ||
+    _tryReadFile('./certs-local/privkey.pem'),
+  cert:
+    _tryReadFile('./certs/fullchain.pem') ||
+    _tryReadFile('./certs-local/fullchain.pem'),
 };
 
 function makeId(length) {
   let result = '';
-  const characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+  const characters =
+    'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
   for (let i = 0; i < length; i++) {
     result += characters.charAt(Math.floor(Math.random() * characters.length));
   }
@@ -50,7 +57,11 @@ function makeId(length) {
 
 async function dynamicImporter(o, req, res, next) {
   try {
-    const loadUrl = decodeURI(o.pathname.slice(o.pathname.lastIndexOf('/@import'), o.pathname.length).replace('/@import', ''));
+    const loadUrl = decodeURI(
+      o.pathname
+        .slice(o.pathname.lastIndexOf('/@import'), o.pathname.length)
+        .replace('/@import', ''),
+    );
     const fullUrl = req.protocol + '://' + req.get('host') + loadUrl;
     const reqURL = new URL(fullUrl);
 
@@ -59,7 +70,9 @@ async function dynamicImporter(o, req, res, next) {
       let id = await metaversefile.resolveId(loadUrl, reqURL.href);
       if (!id) {
         console.error('\nFailed to load', loadUrl, reqURL.href);
-        console.log('\n------------------------------------------------------------------');
+        console.log(
+          '\n------------------------------------------------------------------',
+        );
         res.status(500);
         return res.end('Failed to load');
       }
@@ -69,11 +82,13 @@ async function dynamicImporter(o, req, res, next) {
       if (process.env.NODE_ENV === 'production') {
         const src = Babel.transform(code, {
           plugins: [
-            ['babel-plugin-custom-import-path-transform',
+            [
+              'babel-plugin-custom-import-path-transform',
               {
                 caller: id,
                 transformImportPath: './moduleRewrite.js',
-              }],
+              },
+            ],
           ],
         });
         res.writeHead(200, {'Content-Type': 'application/javascript'});
@@ -81,7 +96,9 @@ async function dynamicImporter(o, req, res, next) {
       }
     } else {
       req.originalUrl = loadUrl;
-      return /^\/(?:@proxy)\//.test(req.originalUrl) ? proxyReq(loadUrl, res) : res.redirect(req.originalUrl);
+      return /^\/(?:@proxy)\//.test(req.originalUrl)
+        ? proxyReq(loadUrl, res)
+        : res.redirect(req.originalUrl);
     }
   } catch (e) {
     console.log(e);
@@ -136,7 +153,10 @@ function proxyReq(u, res) {
     /** Replace any double / caused due to both proxy & import */
     o.pathname = o.pathname.replace(/(?<!(http:|https:))\/\//g, '/');
 
-    if (/^\/(?:@proxy|public)\//.test(o.pathname) && o.query.import === undefined) {
+    if (
+      /^\/(?:@proxy|public)\//.test(o.pathname) &&
+      o.query.import === undefined
+    ) {
       const u = o.pathname
         .replace(/^\/@proxy\//, '')
         .replace(/^\/public/, '')
@@ -166,17 +186,18 @@ function proxyReq(u, res) {
       req.originalUrl = req.originalUrl.replace(/^\/(login)/, '/');
       return res.redirect(req.originalUrl);
     } else {
-      isProduction && (/^\/@import/.test(o.pathname))
+      isProduction && /^\/@import/.test(o.pathname)
         ? dynamicImporter(o, req, res, next)
         : next();
     }
   });
 
-  const isHttps = !process.env.HTTP_ONLY && (!!certs.key && !!certs.cert);
+  const isHttps = !process.env.HTTP_ONLY && !!certs.key && !!certs.cert;
   const port = parseInt(process.env.PORT, 10) || (isProduction ? 443 : 3000);
   const wsPort = port + 1;
 
-  const _makeHttpServer = () => isHttps ? https.createServer(certs, app) : http.createServer(app);
+  const _makeHttpServer = () =>
+    isHttps ? https.createServer(certs, app) : http.createServer(app);
   const httpServer = _makeHttpServer();
 
   if (!isProduction) {
@@ -213,10 +234,12 @@ function proxyReq(u, res) {
               if (process.env.NODE_ENV === 'production') {
                 const src = Babel.transform(code, {
                   plugins: [
-                    ['babel-plugin-custom-import-path-transform',
+                    [
+                      'babel-plugin-custom-import-path-transform',
                       {
                         transformImportPath: './moduleRewrite.js',
-                      }],
+                      },
+                    ],
                   ],
                 });
                 res.writeHead(200, {'Content-Type': 'application/javascript'});
@@ -259,9 +282,20 @@ function proxyReq(u, res) {
       [appsMapName]: [],
     };
     for (const object of objects) {
-      let {start_url, type, content, position = [0, 0, 0], quaternion = [0, 0, 0, 1], scale = [1, 1, 1]} = object;
+      let {
+        start_url,
+        type,
+        content,
+        position = [0, 0, 0],
+        quaternion = [0, 0, 0, 1],
+        scale = [1, 1, 1],
+      } = object;
 
-      const transform = Float32Array.from([...position, ...quaternion, ...scale]);
+      const transform = Float32Array.from([
+        ...position,
+        ...quaternion,
+        ...scale,
+      ]);
       const instanceId = makeId(5);
       if (!start_url && type && content) {
         start_url = `data:${type},${encodeURI(JSON.stringify(content))}`;

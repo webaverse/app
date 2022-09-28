@@ -1,7 +1,7 @@
-import React, { useState, useEffect } from 'react';
+import React, {useState, useEffect} from 'react';
 import * as THREE from 'three';
 import classnames from 'classnames';
-import { getRenderer } from '../renderer.js';
+import {getRenderer} from '../renderer.js';
 import metaversefile from 'metaversefile';
 import performanceTracker from '../performance-tracker.js';
 import style from './Stats.module.css';
@@ -57,7 +57,11 @@ export const Stats = () => {
 
         // Update every frame
         setPosition(localPlayer.position.toArray().map(n => n.toFixed(2)));
-        setVelocity(localPlayer.characterPhysics.velocity.toArray().map(n => n.toFixed(2)));
+        setVelocity(
+          localPlayer.characterPhysics.velocity
+            .toArray()
+            .map(n => n.toFixed(2)),
+        );
         setSpeed(localPlayer.characterPhysics.velocity.length().toFixed(2));
 
         localVector.copy(localPlayer.characterPhysics.velocity);
@@ -87,13 +91,15 @@ export const Stats = () => {
   }, [enabled]);
 
   return (
-    <div className={classnames(style.statsContainer, enabled ? style.open : null)}>
+    <div
+      className={classnames(style.statsContainer, enabled ? style.open : null)}
+    >
       <div className={style.stats}>
         <h3>CPU</h3>
         {cpuResults.map(result => (
           <div className={style.line} key={result.name}>
             <div className={style.label}>{result.name}</div>
-            <div className={style.value}>{(result.time).toFixed(2) + 'ms'}</div>
+            <div className={style.value}>{result.time.toFixed(2) + 'ms'}</div>
           </div>
         ))}
       </div>
@@ -102,7 +108,9 @@ export const Stats = () => {
         {gpuResults.map(result => (
           <div className={style.line} key={result.name}>
             <div className={style.label}>{result.name}</div>
-            <div className={style.value}>{(result.time / 1e6).toFixed(2) + 'ms'}</div>
+            <div className={style.value}>
+              {(result.time / 1e6).toFixed(2) + 'ms'}
+            </div>
           </div>
         ))}
       </div>

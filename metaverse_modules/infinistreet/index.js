@@ -1,7 +1,18 @@
 import * as THREE from 'three';
 import {MToonMaterial} from '@pixiv/three-vrm-materials-mtoon';
 import metaversefile from 'metaversefile';
-const {useApp, useFrame, useActivate, useGeometries, useLoaders, usePhysics, useProcGen, addTrackedApp, useDefaultModules, useCleanup} = metaversefile;
+const {
+  useApp,
+  useFrame,
+  useActivate,
+  useGeometries,
+  useLoaders,
+  usePhysics,
+  useProcGen,
+  addTrackedApp,
+  useDefaultModules,
+  useCleanup,
+} = metaversefile;
 
 // const baseUrl = import.meta.url.replace(/(\/)[^\/\\]*$/, '$1');
 
@@ -11,13 +22,14 @@ const localVector = new THREE.Vector3();
 const _makeBlueSphere = () => {
   const geometry = new THREE.SphereGeometry(0.2, 32, 32);
 
-  const c = new THREE.Color(0x2048e0)
-    .offsetHSL(0, 0.3, 0);
+  const c = new THREE.Color(0x2048e0).offsetHSL(0, 0.3, 0);
   const params = {
     // cutoff: 0.1,
 
     color: new THREE.Vector4().fromArray(c.toArray().concat([1])),
-    shadeColor: new THREE.Vector4().fromArray(new THREE.Color(0xFFFFFF).toArray().concat([1])),
+    shadeColor: new THREE.Vector4().fromArray(
+      new THREE.Color(0xffffff).toArray().concat([1]),
+    ),
     // emissionColor: new THREE.Vector4().fromArray(new THREE.Color(0x2048e0).toArray().concat([1])),
     shadeToony: 1,
     shadeShift: 0,
@@ -27,11 +39,15 @@ const _makeBlueSphere = () => {
     rimLightingMix: 1,
     rimFresnelPower: 2,
     rimLift: -0.1,
-    rimColor: new THREE.Vector4().fromArray(new THREE.Color(0xFFFFFF).toArray().concat([1])),
+    rimColor: new THREE.Vector4().fromArray(
+      new THREE.Color(0xffffff).toArray().concat([1]),
+    ),
 
     // outlineWidth: 0.5,
     // outlineScaledMaxDistance: 0.5,
-    outlineColor: new THREE.Vector4().fromArray(new THREE.Color(0x000000).toArray().concat([1])),
+    outlineColor: new THREE.Vector4().fromArray(
+      new THREE.Color(0x000000).toArray().concat([1]),
+    ),
     // outlineLightingMix: 0.5,
   };
   const material = new MToonMaterial(params);
@@ -91,10 +107,7 @@ export default () => {
       direction.y += r() * stepRange;
       direction.z += r() * stepRange;
       direction.normalize();
-      point.add(
-        localVector.copy(direction)
-          .multiplyScalar(segmentLength),
-      );
+      point.add(localVector.copy(direction).multiplyScalar(segmentLength));
       /* splinePoints[i] = new THREE.Vector3(
         rng() * range,
         rng() * range,
@@ -148,7 +161,11 @@ export default () => {
       4, // radialSegments
       false, // closed
     ).applyMatrix4(
-      new THREE.Matrix4().makeTranslation(dx * chunkWorldSize, 0, dy * chunkWorldSize),
+      new THREE.Matrix4().makeTranslation(
+        dx * chunkWorldSize,
+        0,
+        dy * chunkWorldSize,
+      ),
     );
 
     // geometry.computeFaceNormals();
@@ -170,7 +187,8 @@ export default () => {
     physicsIds.push(physicsId);
 
     const blueSphere = _makeBlueSphere();
-    blueSphere.position.set(0, 1, -1)
+    blueSphere.position
+      .set(0, 1, -1)
       .add(localVector.set(dx * chunkWorldSize, 0, dy * chunkWorldSize));
     app.add(blueSphere);
     blueSphere.updateMatrixWorld();

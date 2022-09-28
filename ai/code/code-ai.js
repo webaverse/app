@@ -13,9 +13,11 @@ const generateStream = prompt => {
       if (!fullS) {
         fullS = '// nope';
       }
-      result.dispatchEvent(new MessageEvent('update', {
-        data: fullS,
-      }));
+      result.dispatchEvent(
+        new MessageEvent('update', {
+          data: fullS,
+        }),
+      );
     } else {
       es.close();
       result.dispatchEvent(new MessageEvent('done'));
@@ -28,6 +30,4 @@ const generateStream = prompt => {
   return result;
 };
 
-export {
-  generateStream,
-};
+export {generateStream};

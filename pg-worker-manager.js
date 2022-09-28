@@ -43,11 +43,7 @@ const _generateFlagsToInt = generateFlags => {
 //
 
 export class PGWorkerManager {
-  constructor({
-    chunkSize,
-    seed,
-    instance,
-  } = {}) {
+  constructor({chunkSize, seed, instance} = {}) {
     this.chunkSize = chunkSize;
     this.seed = seed;
     this.instance = instance;
@@ -162,65 +158,100 @@ export class PGWorkerManager {
     /* if (!lod1Range) {
       debugger;
     } */
-    const result = await this.worker.request('createTracker', {
-      instance: this.instance,
-      lod,
-      lod1Range,
-    }, {signal});
+    const result = await this.worker.request(
+      'createTracker',
+      {
+        instance: this.instance,
+        lod,
+        lod1Range,
+      },
+      {signal},
+    );
     return result;
   }
 
   async destroyTracker(tracker, {signal} = {}) {
-    const result = await this.worker.request('destroyTracker', {
-      instance: this.instance,
-      tracker,
-    }, {signal});
+    const result = await this.worker.request(
+      'destroyTracker',
+      {
+        instance: this.instance,
+        tracker,
+      },
+      {signal},
+    );
     return result;
   }
 
   async trackerUpdate(tracker, position, {signal} = {}) {
-    const result = await this.worker.request('trackerUpdate', {
-      instance: this.instance,
-      tracker,
-      position: position.toArray(),
-      priority: TASK_PRIORITIES.tracker,
-    }, {signal});
+    const result = await this.worker.request(
+      'trackerUpdate',
+      {
+        instance: this.instance,
+        tracker,
+        position: position.toArray(),
+        priority: TASK_PRIORITIES.tracker,
+      },
+      {signal},
+    );
     return result;
   }
 
   //
 
-  async generateChunk(chunkPosition, lod, lodArray, generateFlags, {signal} = {}) {
+  async generateChunk(
+    chunkPosition,
+    lod,
+    lodArray,
+    generateFlags,
+    {signal} = {},
+  ) {
     const generateFlagsInt = _generateFlagsToInt(generateFlags);
-    const result = await this.worker.request('generateChunk', {
-      instance: this.instance,
-      chunkPosition,
-      lod,
-      lodArray,
-      generateFlagsInt,
-    }, {signal});
+    const result = await this.worker.request(
+      'generateChunk',
+      {
+        instance: this.instance,
+        chunkPosition,
+        lod,
+        lodArray,
+        generateFlagsInt,
+      },
+      {signal},
+    );
     // signal.throwIfAborted();
     return result;
   }
 
   async generateGrass(chunkPosition, lod, numGrassInstances, {signal} = {}) {
-    const result = await this.worker.request('generateGrass', {
-      instance: this.instance,
-      chunkPosition,
-      lod,
-      numGrassInstances,
-    }, {signal});
+    const result = await this.worker.request(
+      'generateGrass',
+      {
+        instance: this.instance,
+        chunkPosition,
+        lod,
+        numGrassInstances,
+      },
+      {signal},
+    );
     // signal.throwIfAborted();
     return result;
   }
 
-  async generateVegetation(chunkPosition, lod, numVegetationInstances, {signal} = {}) {
-    const result = await this.worker.request('generateVegetation', {
-      instance: this.instance,
-      chunkPosition,
-      lod,
-      numVegetationInstances,
-    }, {signal});
+  async generateVegetation(
+    chunkPosition,
+    lod,
+    numVegetationInstances,
+    {signal} = {},
+  ) {
+    const result = await this.worker.request(
+      'generateVegetation',
+      {
+        instance: this.instance,
+        chunkPosition,
+        lod,
+        numVegetationInstances,
+      },
+      {signal},
+    );
     // signal.throwIfAborted();
     return result;
   }

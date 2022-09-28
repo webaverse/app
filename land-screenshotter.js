@@ -37,7 +37,7 @@ export const screenshotLandApp = async ({
   range,
   width = 300,
   height = 300,
-  clearColor = 0xFFFFFF,
+  clearColor = 0xffffff,
   clearAlpha = 0,
 } = {}) => {
   const renderer = getRenderer();
@@ -67,20 +67,26 @@ export const screenshotLandApp = async ({
     // render
     const _render = () => {
       const rangeSize = range.getSize(localVector);
-      const lookPoint = localVector2.copy(range.min)
+      const lookPoint = localVector2
+        .copy(range.min)
         .add(range.max)
         .divideScalar(2);
       const xzSize = Math.max(rangeSize.x, rangeSize.z);
       lookPoint.y = xzSize;
       // rangeSize.y = 0;
-      sideCamera.position.copy(lookPoint)
+      sideCamera.position
+        .copy(lookPoint)
         .add(
-          localVector3.set(zoomFactor * rangeSize.x, 0, zoomFactor * rangeSize.z),
+          localVector3.set(
+            zoomFactor * rangeSize.x,
+            0,
+            zoomFactor * rangeSize.z,
+          ),
         );
       // lookPoint.y = xzSize;
       sideCamera.lookAt(lookPoint);
       // sideCamera.position.y -= xzSize / 4;
-      sideCamera.position.y = xzSize * 3 / 4;
+      sideCamera.position.y = (xzSize * 3) / 4;
       // fitCameraToBoundingBox(sideCamera, range, 1.2);
       sideCamera.updateMatrixWorld();
 

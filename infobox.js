@@ -240,14 +240,7 @@ class InfoboxRenderer {
     this.height = height;
 
     this.scene = _makeInfoboxRendererScene();
-    this.camera = new THREE.OrthographicCamera(
-      -1,
-      1,
-      1,
-      -1,
-      0,
-      1000,
-    );
+    this.camera = new THREE.OrthographicCamera(-1, 1, 1, -1, 0, 1000);
     this.canvases = [];
     this.selected = selected;
     this.selectFactor = +selected;
@@ -279,9 +272,11 @@ class InfoboxRenderer {
       this.scene.fullScreenQuadMesh.material.uniforms.uTex.needsUpdate = true;
       this.scene.fullScreenQuadMesh.material.uniforms.uTexEnabled.value = 1;
       this.scene.fullScreenQuadMesh.material.uniforms.uTexEnabled.needsUpdate = true;
-      this.scene.fullScreenQuadMesh.material.uniforms.numFrames.value = numFrames;
+      this.scene.fullScreenQuadMesh.material.uniforms.numFrames.value =
+        numFrames;
       this.scene.fullScreenQuadMesh.material.uniforms.numFrames.needsUpdate = true;
-      this.scene.fullScreenQuadMesh.material.uniforms.numFramesPerRow.value = numFramesPerRow;
+      this.scene.fullScreenQuadMesh.material.uniforms.numFramesPerRow.value =
+        numFramesPerRow;
       this.scene.fullScreenQuadMesh.material.uniforms.numFramesPerRow.needsUpdate = true;
     } else {
       /* this.scene.fullScreenQuadMesh.material.uniforms.uTex.value = null;
@@ -328,11 +323,7 @@ class InfoboxRenderer {
 
     const _copyToCanvases = () => {
       for (const canvas of this.canvases) {
-        const {
-          width,
-          height,
-          ctx,
-        } = canvas;
+        const {width, height, ctx} = canvas;
         ctx.clearRect(0, 0, width, height);
         ctx.drawImage(
           renderer.domElement,
@@ -351,6 +342,4 @@ class InfoboxRenderer {
   }
 }
 
-export {
-  InfoboxRenderer,
-};
+export {InfoboxRenderer};

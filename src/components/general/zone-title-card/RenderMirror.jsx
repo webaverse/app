@@ -1,4 +1,3 @@
-
 import React, {useState, useEffect, useRef} from 'react';
 // import classnames from 'classnames';
 
@@ -6,11 +5,7 @@ import styles from './zone-title-card.module.css';
 
 //
 
-export const RenderMirror = ({
-  app,
-  width,
-  enabled,
-}) => {
+export const RenderMirror = ({app, width, enabled}) => {
   const aspectRatio = 16 / 9;
   const height = Math.floor(width / aspectRatio);
 
@@ -23,7 +18,17 @@ export const RenderMirror = ({
 
       async function frameend(e) {
         const {canvas: mainCanvas} = e.data;
-        ctx.drawImage(mainCanvas, 0, 0, mainCanvas.width, mainCanvas.height, 0, 0, canvas.width, canvas.height);
+        ctx.drawImage(
+          mainCanvas,
+          0,
+          0,
+          mainCanvas.width,
+          mainCanvas.height,
+          0,
+          0,
+          canvas.width,
+          canvas.height,
+        );
         // const imageBitmap = await createImageBitmap(mainCanvas, 0, 0, canvas.width, canvas.height);
         // ctx.transferFromImageBitmap(imageBitmap);
       }
@@ -35,6 +40,11 @@ export const RenderMirror = ({
   }, [canvasRef, width, enabled]);
 
   return (
-      <canvas className={styles.renderMirror} width={width} height={height} ref={canvasRef} />
+    <canvas
+      className={styles.renderMirror}
+      width={width}
+      height={height}
+      ref={canvasRef}
+    />
   );
 };

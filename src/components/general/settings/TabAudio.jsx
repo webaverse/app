@@ -1,4 +1,3 @@
-
 import React, {useEffect, useState} from 'react';
 import classNames from 'classnames';
 // import game from '../../../../game';
@@ -95,7 +94,9 @@ export const TabAudio = ({active}) => {
 
     // set voice endpoint
 
-    overrides.overrideVoiceEndpoint.set(voiceEndpoint !== 'None' ? voiceEndpoint : null);
+    overrides.overrideVoiceEndpoint.set(
+      voiceEndpoint !== 'None' ? voiceEndpoint : null,
+    );
 
     //
 
@@ -126,7 +127,14 @@ export const TabAudio = ({active}) => {
   //
 
   useEffect(() => {
-    if (generalVolume && musicVolume && voiceVolume && effectsVolume && voicePack && voiceEndpoint) {
+    if (
+      generalVolume &&
+      musicVolume &&
+      voiceVolume &&
+      effectsVolume &&
+      voicePack &&
+      voiceEndpoint
+    ) {
       if (settingsLoaded) {
         setChangesNotSaved(true);
       } else {
@@ -134,14 +142,18 @@ export const TabAudio = ({active}) => {
         applySettings();
       }
     }
-  }, [generalVolume, musicVolume, voiceVolume, effectsVolume, voicePack, voiceEndpoint]);
+  }, [
+    generalVolume,
+    musicVolume,
+    voiceVolume,
+    effectsVolume,
+    voicePack,
+    voiceEndpoint,
+  ]);
 
   useEffect(() => {
     (async () => {
-      await Promise.all([
-        loadVoicePack(),
-        loadVoiceEndpoint(),
-      ]);
+      await Promise.all([loadVoicePack(), loadVoiceEndpoint()]);
       loadSettings();
     })();
   }, []);
@@ -149,54 +161,94 @@ export const TabAudio = ({active}) => {
   //
 
   return (
-        <div className={ classNames(styles.audioTab, styles.tabContent, active ? styles.active : null) }>
-            <div className={ styles.row }>
-                <div className={ styles.paramName }>General volume</div>
-                <Slider className={ styles.slider } value={ generalVolume } setValue={ setGeneralVolume } />
-                <div className={ styles.clearfix } />
-            </div>
-            <div className={ styles.row }>
-                <div className={ styles.paramName }>Music volume</div>
-                <Slider className={ styles.slider } value={ musicVolume } setValue={ setMusicVolume } />
-                <div className={ styles.clearfix } />
-            </div>
-            <div className={ styles.row }>
-                <div className={ styles.paramName }>Voice volume</div>
-                <Slider className={ styles.slider } value={ voiceVolume } setValue={ setVoiceVolume } />
-                <div className={ styles.clearfix } />
-            </div>
-            <div className={ styles.row }>
-                <div className={ styles.paramName }>Effects volume</div>
-                <Slider className={ styles.slider } value={ effectsVolume } setValue={ setEffectsVolume } />
-                <div className={ styles.clearfix } />
-            </div>
-            <div className={ styles.row } >
-                <div className={ styles.paramName }>Voice pack</div>
-                <select className={ styles.select } value={ voicePack } onChange={ e => { setVoicePack(e.target.value); } } >
-                    {
-                        voicePacks.map((voicePack, i) => {
-                          return (
-                                <option value={ voicePack.name } key={ i }>{ voicePack.name }</option>
-                          );
-                        })
-                    }
-                </select>
-            </div>
-            <div className={ styles.row } >
-                <div className={ styles.paramName }>Voice endpoint</div>
-                <select className={ styles.select } value={ voiceEndpoint } onChange={ e => { setVoiceEndpoint(e.target.value); } } >
-                    {
-                        voiceEndpoints.map((voiceEndpoint, i) => {
-                          return (
-                                <option value={ voiceEndpoint.name } key={ i }>{ voiceEndpoint.name }</option>
-                          );
-                        })
-                    }
-                </select>
-            </div>
-            <div className={ classNames(styles.applyBtn, changesNotSaved ? styles.active : null) } onClick={ handleApplySettingsBtnClick } >
-                { appyingChanges ? 'APPLYING' : 'APPLY' }
-            </div>
-        </div>
+    <div
+      className={classNames(
+        styles.audioTab,
+        styles.tabContent,
+        active ? styles.active : null,
+      )}
+    >
+      <div className={styles.row}>
+        <div className={styles.paramName}>General volume</div>
+        <Slider
+          className={styles.slider}
+          value={generalVolume}
+          setValue={setGeneralVolume}
+        />
+        <div className={styles.clearfix} />
+      </div>
+      <div className={styles.row}>
+        <div className={styles.paramName}>Music volume</div>
+        <Slider
+          className={styles.slider}
+          value={musicVolume}
+          setValue={setMusicVolume}
+        />
+        <div className={styles.clearfix} />
+      </div>
+      <div className={styles.row}>
+        <div className={styles.paramName}>Voice volume</div>
+        <Slider
+          className={styles.slider}
+          value={voiceVolume}
+          setValue={setVoiceVolume}
+        />
+        <div className={styles.clearfix} />
+      </div>
+      <div className={styles.row}>
+        <div className={styles.paramName}>Effects volume</div>
+        <Slider
+          className={styles.slider}
+          value={effectsVolume}
+          setValue={setEffectsVolume}
+        />
+        <div className={styles.clearfix} />
+      </div>
+      <div className={styles.row}>
+        <div className={styles.paramName}>Voice pack</div>
+        <select
+          className={styles.select}
+          value={voicePack}
+          onChange={e => {
+            setVoicePack(e.target.value);
+          }}
+        >
+          {voicePacks.map((voicePack, i) => {
+            return (
+              <option value={voicePack.name} key={i}>
+                {voicePack.name}
+              </option>
+            );
+          })}
+        </select>
+      </div>
+      <div className={styles.row}>
+        <div className={styles.paramName}>Voice endpoint</div>
+        <select
+          className={styles.select}
+          value={voiceEndpoint}
+          onChange={e => {
+            setVoiceEndpoint(e.target.value);
+          }}
+        >
+          {voiceEndpoints.map((voiceEndpoint, i) => {
+            return (
+              <option value={voiceEndpoint.name} key={i}>
+                {voiceEndpoint.name}
+              </option>
+            );
+          })}
+        </select>
+      </div>
+      <div
+        className={classNames(
+          styles.applyBtn,
+          changesNotSaved ? styles.active : null,
+        )}
+        onClick={handleApplySettingsBtnClick}
+      >
+        {appyingChanges ? 'APPLYING' : 'APPLY'}
+      </div>
+    </div>
   );
 };

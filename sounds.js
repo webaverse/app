@@ -69,7 +69,10 @@ const soundFiles = {
 let soundFileAudioBuffer;
 const loadPromise = (async () => {
   const audioContext = audioManager.getAudioContext();
-  soundFileAudioBuffer = await loadAudioBuffer(audioContext, '/sounds/sounds.mp3');
+  soundFileAudioBuffer = await loadAudioBuffer(
+    audioContext,
+    '/sounds/sounds.mp3',
+  );
 })();
 const waitForLoad = () => loadPromise;
 

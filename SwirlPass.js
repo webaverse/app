@@ -24,12 +24,12 @@ import {
   // Scene,
 } from 'three';
 import * as THREE from 'three';
-import { Pass, FullScreenQuad } from 'three/examples/jsm/postprocessing/Pass.js';
+import {Pass, FullScreenQuad} from 'three/examples/jsm/postprocessing/Pass.js';
 // import { SimplexNoise } from 'three/examples/jsm/math/SimplexNoise.js';
 // import { SSAOShader } from 'three/examples/jsm/shaders/SSAOShader.js';
 // import { SSAOBlurShader } from 'three/examples/jsm/shaders/SSAOShader.js';
 // import { SSAODepthShader } from 'three/examples/jsm/shaders/SSAOShader.js';
-import { CopyShader } from 'three/examples/jsm/shaders/CopyShader.js';
+import {CopyShader} from 'three/examples/jsm/shaders/CopyShader.js';
 
 // const oldParentCache = new WeakMap();
 // const oldMaterialCache = new WeakMap();
@@ -117,8 +117,10 @@ class SwirlMaterial extends THREE.ShaderMaterial {
         },
         uPosition: {
           // value: new THREE.Vector2((Math.random() * 2 - 1) * 0.1, (Math.random() * 2 - 1) * 0.1),
-          value: new THREE.Vector2(positionOffsetMax, 0)
-            .rotateAround(zeroVector, Math.random() * Math.PI * 2),
+          value: new THREE.Vector2(positionOffsetMax, 0).rotateAround(
+            zeroVector,
+            Math.random() * Math.PI * 2,
+          ),
           needsUpdate: true,
         },
       },
@@ -177,11 +179,11 @@ class OpenMaterial extends THREE.ShaderMaterial {
 }
 
 class SwirlPass extends Pass {
-  constructor(scene, camera, width, height/*, depthPass */) {
+  constructor(scene, camera, width, height /*, depthPass */) {
     super();
 
-    this.width = (width !== undefined) ? width : 512;
-    this.height = (height !== undefined) ? height : 512;
+    this.width = width !== undefined ? width : 512;
+    this.height = height !== undefined ? height : 512;
     // this.depthPass = depthPass;
 
     this.clear = true;
@@ -298,10 +300,15 @@ class SwirlPass extends Pass {
     }
 
     // render swirl
-    this.copyMaterial.uniforms.tDiffuse.value = this.ssaoRenderTargets[1].texture;
+    this.copyMaterial.uniforms.tDiffuse.value =
+      this.ssaoRenderTargets[1].texture;
     this.copyMaterial.uniforms.tDiffuse.needsUpdate = true;
     this.copyMaterial.blending = NoBlending;
-    this.renderPass(renderer, this.copyMaterial, this.renderToScreen ? null : writeBuffer);
+    this.renderPass(
+      renderer,
+      this.copyMaterial,
+      this.renderToScreen ? null : writeBuffer,
+    );
 
     this.swapRenderTargets();
     this.first = false;
@@ -317,7 +324,7 @@ class SwirlPass extends Pass {
 
     // setup pass state
     renderer.autoClear = false;
-    if ((clearColor !== undefined) && (clearColor !== null)) {
+    if (clearColor !== undefined && clearColor !== null) {
       renderer.setClearColor(clearColor);
       renderer.setClearAlpha(clearAlpha || 0.0);
       renderer.clear();
@@ -395,4 +402,4 @@ class SwirlPass extends Pass {
   }
 }
 
-export { SwirlPass };
+export {SwirlPass};

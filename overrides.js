@@ -11,11 +11,13 @@ class Override extends EventTarget {
   set(value) {
     if (value !== this.value) {
       this.value = value;
-      this.dispatchEvent(new MessageEvent('change', {
-        data: {
-          value,
-        },
-      }));
+      this.dispatchEvent(
+        new MessageEvent('change', {
+          data: {
+            value,
+          },
+        }),
+      );
     }
   }
 }

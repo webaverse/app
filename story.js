@@ -34,10 +34,16 @@ const upVector = new THREE.Vector3(0, 1, 0);
 
 function makeSwirlPass() {
   const renderer = getRenderer();
-  const size = renderer.getSize(localVector2D)
+  const size = renderer
+    .getSize(localVector2D)
     .multiplyScalar(renderer.getPixelRatio());
   const resolution = size;
-  const swirlPass = new SwirlPass(rootScene, camera, resolution.x, resolution.y);
+  const swirlPass = new SwirlPass(
+    rootScene,
+    camera,
+    resolution.x,
+    resolution.y,
+  );
   return swirlPass;
 }
 let swirlPass = null;
@@ -108,17 +114,22 @@ class Conversation extends EventTarget {
     };
     this.messages.push(message);
 
-    this.dispatchEvent(new MessageEvent('message', {
-      data: {
-        message,
-      },
-    }));
+    this.dispatchEvent(
+      new MessageEvent('message', {
+        data: {
+          message,
+        },
+      }),
+    );
 
     (async () => {
       await _playerSay(this.localPlayer, text);
     })();
 
-    cameraManager.setDynamicTarget(this.localPlayer.avatar.modelBones.Head, this.remotePlayer?.avatar.modelBones.Head);
+    cameraManager.setDynamicTarget(
+      this.localPlayer.avatar.modelBones.Head,
+      this.remotePlayer?.avatar.modelBones.Head,
+    );
   }
 
   addRemotePlayerMessage(text, emote, type = 'chat') {
@@ -131,17 +142,22 @@ class Conversation extends EventTarget {
     };
     this.messages.push(message);
 
-    this.dispatchEvent(new MessageEvent('message', {
-      data: {
-        message,
-      },
-    }));
+    this.dispatchEvent(
+      new MessageEvent('message', {
+        data: {
+          message,
+        },
+      }),
+    );
 
     (async () => {
       await _playerSay(this.remotePlayer, text);
     })();
 
-    cameraManager.setDynamicTarget(this.remotePlayer.avatar.modelBones.Head, this.localPlayer.avatar.modelBones.Head);
+    cameraManager.setDynamicTarget(
+      this.remotePlayer.avatar.modelBones.Head,
+      this.localPlayer.avatar.modelBones.Head,
+    );
 
     if (emote !== 'none' && validEmotionMapping[emote] !== undefined) {
       triggerEmote(validEmotionMapping[emote], this.remotePlayer);
@@ -160,7 +176,9 @@ class Conversation extends EventTarget {
         this.dispatchEvent(new MessageEvent('progressend'));
       }
     } else {
-      console.warn('ignoring conversation progress() because it was already in progress');
+      console.warn(
+        'ignoring conversation progress() because it was already in progress',
+      );
     }
   }
 
@@ -177,9 +195,16 @@ class Conversation extends EventTarget {
         value: comment,
         emote,
         done,
-      } = await aiScene.generateChatMessage(this.messages, this.remotePlayer.name);
+      } = await aiScene.generateChatMessage(
+        this.messages,
+        this.remotePlayer.name,
+      );
 
-      if (!this.messages.some(m => m.text === comment && m.player === this.remotePlayer)) {
+      if (
+        !this.messages.some(
+          m => m.text === comment && m.player === this.remotePlayer,
+        )
+      ) {
         this.addRemotePlayerMessage(comment, emote);
         done && this.finish();
       } else {
@@ -197,12 +222,16 @@ class Conversation extends EventTarget {
 
     this.wrapProgress(async () => {
       const aiScene = metaversefile.useLoreAIScene();
-      const {
-        value: comment,
-        done,
-      } = await aiScene.generateChatMessage(this.messages, this.localPlayer.name);
+      const {value: comment, done} = await aiScene.generateChatMessage(
+        this.messages,
+        this.localPlayer.name,
+      );
 
-      if (!this.messages.some(m => m.text === comment && m.player === this.localPlayer)) {
+      if (
+        !this.messages.some(
+          m => m.text === comment && m.player === this.localPlayer,
+        )
+      ) {
         this.addLocalPlayerMessage(comment);
         done && this.finish();
       } else {
@@ -220,10 +249,10 @@ class Conversation extends EventTarget {
 
     this.wrapProgress(async () => {
       const aiScene = metaversefile.useLoreAIScene();
-      const {
-        value: options,
-        done,
-      } = await aiScene.generateDialogueOptions(this.messages, this.localPlayer.name);
+      const {value: options, done} = await aiScene.generateDialogueOptions(
+        this.messages,
+        this.localPlayer.name,
+      );
 
       if (!done) {
         this.#setOptions(options);
@@ -251,7 +280,10 @@ class Conversation extends EventTarget {
       this.addLocalPlayerMessage(option.message, 'option');
     }
 
-    if (option.emote !== 'none' && validEmotionMapping[option.emote] !== undefined) {
+    if (
+      option.emote !== 'none' &&
+      validEmotionMapping[option.emote] !== undefined
+    ) {
       triggerEmote(validEmotionMapping[option.emote], this.localPlayer);
     }
 
@@ -284,7 +316,10 @@ class Conversation extends EventTarget {
       const _handleLocalTurn = () => {
         // console.log('check last message 1', lastMessage, lastMessage?.type === 'chat', lastMessage?.player === this.localPlayer);
 
-        if (lastMessage?.type === 'chat' && lastMessage?.player === this.localPlayer) {
+        if (
+          lastMessage?.type === 'chat' &&
+          lastMessage?.player === this.localPlayer
+        ) {
           // 50% chance of showing options
           if (Math.random() < 0.5) {
             this.progressSelfOptions();
@@ -305,7 +340,10 @@ class Conversation extends EventTarget {
       const _handleOtherTurn = () => {
         // console.log('check last message 2', lastMessage, lastMessage?.type === 'chat', lastMessage?.player === this.remotePlayer);
 
-        if (lastMessage?.type === 'chat' && lastMessage?.player === this.remotePlayer) {
+        if (
+          lastMessage?.type === 'chat' &&
+          lastMessage?.player === this.remotePlayer
+        ) {
           // 70% chance of showing options
           if (Math.random() < 0.7) {
             this.progressSelfOptions();
@@ -319,7 +357,8 @@ class Conversation extends EventTarget {
               this.progress();
             }
           }
-        } else { // it is the remote character's turn
+        } else {
+          // it is the remote character's turn
           this.progressChat();
         }
       };
@@ -343,7 +382,10 @@ class Conversation extends EventTarget {
   getConversation() {
     let conv = '';
     for (const msg of this.messages) {
-      if ((msg.type !== 'chat' && msg.type !== 'option') || msg.text?.length <= 0) {
+      if (
+        (msg.type !== 'chat' && msg.type !== 'option') ||
+        msg.text?.length <= 0
+      ) {
         continue;
       }
 
@@ -355,8 +397,13 @@ class Conversation extends EventTarget {
 
   getLocation() {
     const aiScene = metaversefile.useLoreAIScene();
-    const _location = aiScene.settings[Math.floor(Math.random() * aiScene.settings.length)];
-    return _location && _location !== undefined ? (typeof _location === 'object' ? _location.name : _location) : 'Tree House';
+    const _location =
+      aiScene.settings[Math.floor(Math.random() * aiScene.settings.length)];
+    return _location && _location !== undefined
+      ? typeof _location === 'object'
+        ? _location.name
+        : _location
+      : 'Tree House';
   }
 
   async finish() {
@@ -367,9 +414,12 @@ class Conversation extends EventTarget {
       const location = this.getLocation();
       const user1 = this.messages.length >= 1 ? this.messages[0].name : 'Annon';
       const user2 = this.messages.length >= 2 ? this.messages[1].name : 'Ann';
-      const _checker = (await aiScene.checkIfQuestIsApplicable(location, conv, user1, user2))?.toLowerCase();
+      const _checker = (
+        await aiScene.checkIfQuestIsApplicable(location, conv, user1, user2)
+      )?.toLowerCase();
       let checker = _checker.trim() === 'yes';
-      if (!checker) { // Give a 5% chance of being a quest
+      if (!checker) {
+        // Give a 5% chance of being a quest
         checker = Math.random() < 0.05;
       }
       this.givesQuest = checker;
@@ -379,12 +429,24 @@ class Conversation extends EventTarget {
       if (this.givesQuest) {
         const aiScene = metaversefile.useLoreAIScene();
         const conv = this.getConversation();
-        const user1 = this.messages.length >= 1 ? this.messages[0].name : 'Annon';
+        const user1 =
+          this.messages.length >= 1 ? this.messages[0].name : 'Annon';
         const user2 = this.messages.length >= 2 ? this.messages[1].name : 'Ann';
         const location = this.getLocation();
-        const quest = await aiScene.generateQuest({conversation: conv, location, user1, user2});
-        this.addRemotePlayerMessage('Quest: ' + quest.quest + '\n' + quest.reward, 'headNode');
-        this.#setOptions([{message: 'Accept', emote: 'headNode'}, {message: 'Decline', emote: 'headNode'}]);
+        const quest = await aiScene.generateQuest({
+          conversation: conv,
+          location,
+          user1,
+          user2,
+        });
+        this.addRemotePlayerMessage(
+          'Quest: ' + quest.quest + '\n' + quest.reward,
+          'headNode',
+        );
+        this.#setOptions([
+          {message: 'Accept', emote: 'headNode'},
+          {message: 'Decline', emote: 'headNode'},
+        ]);
         this.#setHoverIndex(0);
         return;
       }
@@ -401,21 +463,25 @@ class Conversation extends EventTarget {
   #setOptions(options) {
     this.options = options;
 
-    this.dispatchEvent(new MessageEvent('options', {
-      data: {
-        options,
-      },
-    }));
+    this.dispatchEvent(
+      new MessageEvent('options', {
+        data: {
+          options,
+        },
+      }),
+    );
   }
 
   #setOption(option) {
     this.option = option;
 
-    this.dispatchEvent(new MessageEvent('option', {
-      data: {
-        option: this.option,
-      },
-    }));
+    this.dispatchEvent(
+      new MessageEvent('option', {
+        data: {
+          option: this.option,
+        },
+      }),
+    );
   }
 
   #getHoverIndexAbsolute() {
@@ -426,11 +492,13 @@ class Conversation extends EventTarget {
   #setHoverIndex(hoverIndex) {
     this.hoverIndex = hoverIndex;
 
-    this.dispatchEvent(new MessageEvent('hoverindex', {
-      data: {
-        hoverIndex: this.hoverIndex,
-      },
-    }));
+    this.dispatchEvent(
+      new MessageEvent('hoverindex', {
+        data: {
+          hoverIndex: this.hoverIndex,
+        },
+      }),
+    );
   }
 
   handleWheel(e) {
@@ -453,10 +521,7 @@ class Conversation extends EventTarget {
 
 //
 
-const fieldMusicNames = [
-  'dungeon',
-  'homespace',
-];
+const fieldMusicNames = ['dungeon', 'homespace'];
 
 //
 
@@ -464,12 +529,14 @@ let currentFieldMusic = null;
 let currentFieldMusicIndex = 0;
 export const handleStoryKeyControls = async e => {
   switch (e.which) {
-    case 48: { // 0
+    case 48: {
+      // 0
       await musicManager.waitForLoad();
       _stopSwirl() || _startSwirl();
       return false;
     }
-    case 57: { // 9
+    case 57: {
+      // 9
       await musicManager.waitForLoad();
       _stopSwirl();
       if (currentFieldMusic) {
@@ -477,14 +544,16 @@ export const handleStoryKeyControls = async e => {
         currentFieldMusic = null;
       } else {
         const fieldMusicName = fieldMusicNames[currentFieldMusicIndex];
-        currentFieldMusicIndex = (currentFieldMusicIndex + 1) % fieldMusicNames.length;
+        currentFieldMusicIndex =
+          (currentFieldMusicIndex + 1) % fieldMusicNames.length;
         currentFieldMusic = musicManager.playCurrentMusic(fieldMusicName, {
           repeat: true,
         });
       }
       return false;
     }
-    case 189: { // -
+    case 189: {
+      // -
       await musicManager.waitForLoad();
       _stopSwirl();
       musicManager.playCurrentMusic('victory', {
@@ -492,7 +561,8 @@ export const handleStoryKeyControls = async e => {
       });
       return false;
     }
-    case 187: { // =
+    case 187: {
+      // =
       await musicManager.waitForLoad();
 
       _stopSwirl();
@@ -523,16 +593,22 @@ story.handleWheel = e => {
 const _startConversation = (comment, remotePlayer, done) => {
   const localPlayer = playersManager.getLocalPlayer();
   currentConversation = new Conversation(localPlayer, remotePlayer);
-  currentConversation.addEventListener('close', () => {
-    currentConversation = null;
+  currentConversation.addEventListener(
+    'close',
+    () => {
+      currentConversation = null;
 
-    cameraManager.setDynamicTarget(null);
-  }, {once: true});
-  story.dispatchEvent(new MessageEvent('conversationstart', {
-    data: {
-      conversation: currentConversation,
+      cameraManager.setDynamicTarget(null);
     },
-  }));
+    {once: true},
+  );
+  story.dispatchEvent(
+    new MessageEvent('conversationstart', {
+      data: {
+        conversation: currentConversation,
+      },
+    }),
+  );
   currentConversation.addLocalPlayerMessage(comment);
   done && currentConversation.finish();
   return currentConversation;
@@ -544,8 +620,14 @@ story.startLocalPlayerComment = comment => {
 story.listenHack = () => {
   window.document.addEventListener('click', async e => {
     if (cameraManager.pointerLockElement) {
-      if (e.button === 0 && (cameraManager.focus && zTargeting.focusTargetReticle)) {
-        const app = metaversefile.getAppByPhysicsId(zTargeting.focusTargetReticle.physicsId);
+      if (
+        e.button === 0 &&
+        cameraManager.focus &&
+        zTargeting.focusTargetReticle
+      ) {
+        const app = metaversefile.getAppByPhysicsId(
+          zTargeting.focusTargetReticle.physicsId,
+        );
 
         if (app) {
           const {appType} = app;
@@ -564,10 +646,11 @@ story.listenHack = () => {
               const remotePlayer = npcManager.getNpcByApp(app);
 
               if (remotePlayer) {
-                const {
-                  value: comment,
-                  done,
-                } = await aiScene.generateSelectCharacterComment(name, description);
+                const {value: comment, done} =
+                  await aiScene.generateSelectCharacterComment(
+                    name,
+                    description,
+                  );
 
                 console.log('starting conversation');
                 _startConversation(comment, remotePlayer, done);
@@ -576,7 +659,10 @@ story.listenHack = () => {
               }
             } else {
               const {name, description} = app;
-              const comment = await aiScene.generateSelectTargetComment(name, description);
+              const comment = await aiScene.generateSelectTargetComment(
+                name,
+                description,
+              );
               const fakePlayer = {
                 avatar: {
                   modelBones: {
@@ -588,7 +674,10 @@ story.listenHack = () => {
             }
           })();
         } else {
-          console.warn('could not find app for physics id', zTargeting.focusTargetReticle.physicsId);
+          console.warn(
+            'could not find app for physics id',
+            zTargeting.focusTargetReticle.physicsId,
+          );
         }
       } else if (e.button === 0 && currentConversation) {
         if (!currentConversation.progressing) {
@@ -614,39 +703,52 @@ story.startCinematicIntro = () => {
 
   const range = 30;
   const localPlayer = playersManager.getLocalPlayer();
-  const center = localPlayer.position.clone()
+  const center = localPlayer.position
+    .clone()
     .add(
-      new THREE.Vector3(0, range / 4, 0)
-        .applyQuaternion(localPlayer.quaternion),
+      new THREE.Vector3(0, range / 4, 0).applyQuaternion(
+        localPlayer.quaternion,
+      ),
     );
-  const centerToPlayerDirection = localPlayer.position.clone()
+  const centerToPlayerDirection = localPlayer.position
+    .clone()
     .sub(center)
     .normalize();
 
-  const startPosition = new THREE.Vector3((rng() < 0.5 ? 1 : -1) * range, range / 2, -range)
+  const startPosition = new THREE.Vector3(
+    (rng() < 0.5 ? 1 : -1) * range,
+    range / 2,
+    -range,
+  )
     .applyQuaternion(localPlayer.quaternion)
     .add(r3(5, new THREE.Vector3()));
   const baseQuaternion = new THREE.Quaternion().setFromRotationMatrix(
-    new THREE.Matrix4().lookAt(
-      startPosition,
-      center,
-      upVector,
-    ),
+    new THREE.Matrix4().lookAt(startPosition, center, upVector),
   );
-  const startQuaternion = baseQuaternion.clone().multiply(
-    new THREE.Quaternion().setFromEuler(
-      new THREE.Euler(-rp(Math.PI * 0.2), r(Math.PI * 0.2), r(Math.PI * 0.01), 'YXZ'),
-    ),
-  );
-  const endPosition = center.clone()
+  const startQuaternion = baseQuaternion
+    .clone()
+    .multiply(
+      new THREE.Quaternion().setFromEuler(
+        new THREE.Euler(
+          -rp(Math.PI * 0.2),
+          r(Math.PI * 0.2),
+          r(Math.PI * 0.01),
+          'YXZ',
+        ),
+      ),
+    );
+  const endPosition = center
+    .clone()
     .add(
-      centerToPlayerDirection.clone()
+      centerToPlayerDirection
+        .clone()
         .multiply(new THREE.Vector3(r(3), r(3), rp(3))),
     );
   const endEuler = new THREE.Euler().setFromQuaternion(baseQuaternion, 'YXZ');
   endEuler.x = 0;
   endEuler.z = 0;
-  const endQuaternion = new THREE.Quaternion().setFromEuler(endEuler)
+  const endQuaternion = new THREE.Quaternion()
+    .setFromEuler(endEuler)
     .multiply(
       new THREE.Quaternion().setFromEuler(
         new THREE.Euler(-rp(Math.PI * 0.2), r(Math.PI * 0.2), 0, 'YXZ'),
@@ -654,13 +756,22 @@ story.startCinematicIntro = () => {
     );
 
   const sp2x = r(1);
-  const startPosition2 = localPlayer.position.clone()
-    .add(new THREE.Vector3(sp2x, r(1) - 0.5, 1).applyQuaternion(localPlayer.quaternion));
-  const startQuaternion2 = localPlayer.quaternion.clone();
-  const endPosition2 = startPosition2.clone()
+  const startPosition2 = localPlayer.position
+    .clone()
     .add(
-      new THREE.Vector3((sp2x < 0 ? 1 : -1) * (1 + rp(2)), 0, 0)
-        .applyQuaternion(localPlayer.quaternion),
+      new THREE.Vector3(sp2x, r(1) - 0.5, 1).applyQuaternion(
+        localPlayer.quaternion,
+      ),
+    );
+  const startQuaternion2 = localPlayer.quaternion.clone();
+  const endPosition2 = startPosition2
+    .clone()
+    .add(
+      new THREE.Vector3(
+        (sp2x < 0 ? 1 : -1) * (1 + rp(2)),
+        0,
+        0,
+      ).applyQuaternion(localPlayer.quaternion),
     );
   const endQuaternion2 = startQuaternion2.clone();
 

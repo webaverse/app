@@ -1,4 +1,3 @@
-
 import React, {useState, useEffect, useContext} from 'react';
 import classnames from 'classnames';
 
@@ -113,17 +112,32 @@ export const Inspector = () => {
   //
 
   return (
-        <div className={ classnames(styles.inspector, bindPosition ? styles.open : null) } style={ bindPosition
+    <div
+      className={classnames(
+        styles.inspector,
+        bindPosition ? styles.open : null,
+      )}
+      style={
+        bindPosition
           ? {
-              transform: `translateX(${bindPosition.x * 100}vw) translateY(${bindPosition.y * 100}vh)`,
+              transform: `translateX(${bindPosition.x * 100}vw) translateY(${
+                bindPosition.y * 100
+              }vh)`,
             }
-          : null}>
-            <img src="/images/popup.svg" style={bindPosition
-              ? {
-                  transform: `scale(${bindPosition.z})`,
-                  transformOrigin: '0 100%',
-                }
-              : null} />
-        </div>
+          : null
+      }
+    >
+      <img
+        src="/images/popup.svg"
+        style={
+          bindPosition
+            ? {
+                transform: `scale(${bindPosition.z})`,
+                transformOrigin: '0 100%',
+              }
+            : null
+        }
+      />
+    </div>
   );
 };

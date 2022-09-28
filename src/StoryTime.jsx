@@ -2,7 +2,10 @@
 import React, {useState, useEffect} from 'react';
 import * as sounds from '../sounds.js';
 import storyManager from '../story.js';
-import {registerIoEventHandler, unregisterIoEventHandler} from './components/general/io-handler';
+import {
+  registerIoEventHandler,
+  unregisterIoEventHandler,
+} from './components/general/io-handler';
 import {MegaChatBox} from './components/play-mode/mega-chat-box';
 
 import styles from './StoryTime.module.css';
@@ -81,7 +84,8 @@ export const StoryTime = () => {
   useEffect(() => {
     if (message) {
       const handleKeyDown = event => {
-        if (event.which === 13) { // enter
+        if (event.which === 13) {
+          // enter
           _continue();
 
           return false;

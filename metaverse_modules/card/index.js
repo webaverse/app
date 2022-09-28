@@ -2,12 +2,13 @@ import * as THREE from 'three';
 import * as BufferGeometryUtils from 'three/examples/jsm/utils/BufferGeometryUtils.js';
 // import easing from './easing.js';
 import metaversefile from 'metaversefile';
-const {useApp, useFrame, useLocalPlayer, useMaterials, useCardsManager} = metaversefile;
+const {useApp, useFrame, useLocalPlayer, useMaterials, useCardsManager} =
+  metaversefile;
 
 const dropItemSize = 0.2;
 
 const cardWorldWidth = 0.063 * 3;
-const cardWorldHeight = cardWorldWidth / 2.5 * 3.5;
+const cardWorldHeight = (cardWorldWidth / 2.5) * 3.5;
 const width = 520;
 
 function getCardFrontTexture(appUrl) {
@@ -15,14 +16,11 @@ function getCardFrontTexture(appUrl) {
 
   const texture = new THREE.Texture();
   (async () => {
-    const imageBitmap = await cardsManager.getCardsImage(
-      appUrl,
-      {
-        width,
-        flipY: true,
-        // signal,
-      },
-    );
+    const imageBitmap = await cardsManager.getCardsImage(appUrl, {
+      width,
+      flipY: true,
+      // signal,
+    });
     texture.image = imageBitmap;
     texture.needsUpdate = true;
 
@@ -47,9 +45,7 @@ function getCardBackTexture() {
 
   return texture;
 }
-const _makeCardMesh = ({
-  appUrl,
-}) => {
+const _makeCardMesh = ({appUrl}) => {
   const {WebaverseShaderMaterial} = useMaterials();
 
   // let w = 520;

@@ -13,10 +13,7 @@ import styles from './MegaHup.module.css';
 // const {useLocalPlayer} = metaversefile;
 // import {chatTextSpeed} from '../constants.js';
 
-const MegaHup = function({
-  open = false,
-  npcPlayer = null,
-}) {
+const MegaHup = function ({open = false, npcPlayer = null}) {
   const [height, setHeight] = useState(window.innerHeight);
   const [width, setWidth] = useState(window.innerWidth);
 
@@ -41,9 +38,7 @@ const MegaHup = function({
       {
         diorama = dioramaManager.createPlayerDiorama({
           target: npcPlayer,
-          objects: [
-            npcPlayer.avatar.avatarRenderer.scene,
-          ],
+          objects: [npcPlayer.avatar.avatarRenderer.scene],
           cameraOffset: new THREE.Vector3(-0.8, 0, -0.4),
           // label: true,
           // outline: true,
@@ -83,19 +78,15 @@ const MegaHup = function({
   return (
     <div className={classnames(styles.megaHup, open ? styles.open : null)}>
       {/* <RpgText className={styles.text} styles={styles} text={text} textSpeed={chatTextSpeed} /> */}
-      {npcPlayer
-        ? (
+      {npcPlayer ? (
         <canvas
           className={styles.canvas}
           width={width}
           height={height}
           ref={canvasRef}
         />
-          )
-        : null}
+      ) : null}
     </div>
   );
 };
-export {
-  MegaHup,
-};
+export {MegaHup};

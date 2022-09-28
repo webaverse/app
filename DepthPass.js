@@ -78,7 +78,13 @@ class DepthPass extends Pass {
     this.normalRenderTarget.depthTexture.image.height = height;
   }
 
-  renderOverride(renderer, overrideMaterial, renderTarget, clearColor, clearAlpha) {
+  renderOverride(
+    renderer,
+    overrideMaterial,
+    renderTarget,
+    clearColor,
+    clearAlpha,
+  ) {
     renderer.getClearColor(this.originalClearColor);
     const originalClearAlpha = renderer.getClearAlpha();
     const originalAutoClear = renderer.autoClear;
@@ -89,7 +95,7 @@ class DepthPass extends Pass {
     clearColor = overrideMaterial.clearColor || clearColor;
     clearAlpha = overrideMaterial.clearAlpha || clearAlpha;
 
-    if ((clearColor !== undefined) && (clearColor !== null)) {
+    if (clearColor !== undefined && clearColor !== null) {
       renderer.setClearColor(clearColor);
       renderer.setClearAlpha(clearAlpha || 0.0);
       renderer.clear();
@@ -160,7 +166,13 @@ class DepthPass extends Pass {
     // render normals and depth (honor only meshes, points and lines do not contribute to SSAO)
 
     // this.overrideVisibility();
-    this.renderOverride(renderer, this.normalMaterial, this.normalRenderTarget, 0xffffff, 1.0);
+    this.renderOverride(
+      renderer,
+      this.normalMaterial,
+      this.normalRenderTarget,
+      0xffffff,
+      1.0,
+    );
     // this.restoreVisibility();
   }
 

@@ -26,7 +26,10 @@ class GIFLoader {
         delete cbs[id];
         cb(error, result);
       } else {
-        console.warn('gif worker protocol violation: could not find callback: ', {id, keys: Object.keys(cbs)});
+        console.warn(
+          'gif worker protocol violation: could not find callback: ',
+          {id, keys: Object.keys(cbs)},
+        );
       }
     });
     this.worker = worker;
@@ -45,13 +48,16 @@ class GIFLoader {
       }
     };
     cbs[id] = cb;
-    this.worker.postMessage({
-      method: 'createGif',
-      id,
-      args: {
-        url,
+    this.worker.postMessage(
+      {
+        method: 'createGif',
+        id,
+        args: {
+          url,
+        },
       },
-    }, []);
+      [],
+    );
     return await p;
   }
 
@@ -68,13 +74,16 @@ class GIFLoader {
       }
     };
     cbs[id] = cb;
-    this.worker.postMessage({
-      method: 'renderFrame',
-      id,
-      args: {
-        gifId,
+    this.worker.postMessage(
+      {
+        method: 'renderFrame',
+        id,
+        args: {
+          gifId,
+        },
       },
-    }, []);
+      [],
+    );
     return await p;
   }
 
@@ -91,13 +100,16 @@ class GIFLoader {
       }
     };
     cbs[id] = cb;
-    this.worker.postMessage({
-      method: 'renderFrames',
-      id,
-      args: {
-        gifId,
+    this.worker.postMessage(
+      {
+        method: 'renderFrames',
+        id,
+        args: {
+          gifId,
+        },
       },
-    }, []);
+      [],
+    );
     return await p;
   }
 
@@ -114,13 +126,16 @@ class GIFLoader {
       }
     };
     cbs[id] = cb;
-    this.worker.postMessage({
-      method: 'destroyGif',
-      id,
-      args: {
-        gifId,
+    this.worker.postMessage(
+      {
+        method: 'destroyGif',
+        id,
+        args: {
+          gifId,
+        },
       },
-    }, []);
+      [],
+    );
     return await p;
   }
 
@@ -129,6 +144,4 @@ class GIFLoader {
     this.worker = null;
   }
 }
-export {
-  GIFLoader,
-};
+export {GIFLoader};

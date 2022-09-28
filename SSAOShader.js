@@ -1,7 +1,4 @@
-import {
-  Matrix4,
-  Vector2,
-} from 'three';
+import {Matrix4, Vector2} from 'three';
 
 /**
  * References:
@@ -11,14 +8,12 @@ import {
  */
 
 const SSAOShader = {
-
   defines: {
     PERSPECTIVE_CAMERA: 1,
     KERNEL_SIZE: 32,
   },
 
   uniforms: {
-
     tDiffuse: {value: null},
     tNormal: {value: null},
     tDepth: {value: null},
@@ -32,10 +27,9 @@ const SSAOShader = {
     kernelRadius: {value: 8},
     minDistance: {value: 0.005},
     maxDistance: {value: 0.05},
-
   },
 
-  vertexShader: /* glsl */`
+  vertexShader: /* glsl */ `
 
 		varying vec2 vUv;
 
@@ -47,7 +41,7 @@ const SSAOShader = {
 
 		}`,
 
-  fragmentShader: /* glsl */`
+  fragmentShader: /* glsl */ `
 
 		uniform sampler2D tDiffuse;
 		uniform sampler2D tNormal;
@@ -171,26 +165,20 @@ const SSAOShader = {
 			gl_FragColor = vec4( vec3( 1.0 - occlusion ), 1.0 );
 
 		}`,
-
 };
 
 const SSAODepthShader = {
-
   defines: {
     PERSPECTIVE_CAMERA: 1,
   },
 
   uniforms: {
-
     tDepth: {value: null},
     cameraNear: {value: null},
     cameraFar: {value: null},
-
   },
 
-  vertexShader:
-
-		`varying vec2 vUv;
+  vertexShader: `varying vec2 vUv;
 
 		void main() {
 
@@ -199,9 +187,7 @@ const SSAODepthShader = {
 
 		}`,
 
-  fragmentShader:
-
-		`uniform sampler2D tDepth;
+  fragmentShader: `uniform sampler2D tDepth;
 
 		uniform float cameraNear;
 		uniform float cameraFar;
@@ -236,21 +222,15 @@ const SSAODepthShader = {
 			gl_FragColor = vec4( depth, 0., 0., 1. );
 
 		}`,
-
 };
 
 const SSAOBlurShader = {
-
   uniforms: {
-
     tDiffuse: {value: null},
     resolution: {value: new Vector2()},
-
   },
 
-  vertexShader:
-
-		`varying vec2 vUv;
+  vertexShader: `varying vec2 vUv;
 
 		void main() {
 
@@ -259,9 +239,7 @@ const SSAOBlurShader = {
 
 		}`,
 
-  fragmentShader:
-
-		`uniform sampler2D tDiffuse;
+  fragmentShader: `uniform sampler2D tDiffuse;
 
 		uniform vec2 resolution;
 
@@ -286,7 +264,6 @@ const SSAOBlurShader = {
 			gl_FragColor = vec4( vec3( result / ( 5.0 * 5.0 ) ), 1.0 );
 
 		}`,
-
 };
 
 export {SSAOShader, SSAODepthShader, SSAOBlurShader};

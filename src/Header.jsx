@@ -11,7 +11,10 @@ import {Character} from './components/general/character';
 import {CharacterSelect} from './components/general/character-select';
 import {Equipment} from './components/general/equipment';
 // import { Tokens } from './tabs/tokens';
-import {registerIoEventHandler, unregisterIoEventHandler} from './components/general/io-handler';
+import {
+  registerIoEventHandler,
+  unregisterIoEventHandler,
+} from './components/general/io-handler';
 import {AppContext} from './components/app';
 import {AvatarIcon} from './AvatarIcon';
 import {StoryTime} from './StoryTime';
@@ -25,7 +28,8 @@ import {UIMode} from './components/general/ui-mode/index.jsx';
 export default function Header() {
   const {state, setState, selectedApp} = useContext(AppContext);
   const localPlayer = metaversefile.useLocalPlayer();
-  const _getWearActions = () => localPlayer.getActionsArray().filter(action => action.type === 'wear');
+  const _getWearActions = () =>
+    localPlayer.getActionsArray().filter(action => action.type === 'wear');
 
   const dioramaCanvasRef = useRef();
   const panelsRef = useRef();
@@ -51,9 +55,17 @@ export default function Header() {
       const wearActions = _getWearActions();
       setWearActions(wearActions);
 
-      const mouseDomEquipmentHoverObject = game.getMouseDomEquipmentHoverObject();
+      const mouseDomEquipmentHoverObject =
+        game.getMouseDomEquipmentHoverObject();
 
-      if (mouseDomEquipmentHoverObject && !wearActions.some(action => action.type === 'wear' && action.instanceId === mouseDomEquipmentHoverObject.instanceId)) {
+      if (
+        mouseDomEquipmentHoverObject &&
+        !wearActions.some(
+          action =>
+            action.type === 'wear' &&
+            action.instanceId === mouseDomEquipmentHoverObject.instanceId,
+        )
+      ) {
         game.setMouseDomEquipmentHoverObject(null);
       }
     });
@@ -107,8 +119,12 @@ export default function Header() {
   useEffect(() => {
     const handleNonInputKey = event => {
       switch (event.which) {
-        case 191: { // /
-          if (!state.openedPanel === 'MagicPanel' && !ioManager.inputFocused()) {
+        case 191: {
+          // /
+          if (
+            !state.openedPanel === 'MagicPanel' &&
+            !ioManager.inputFocused()
+          ) {
             setState({openedPanel: 'MagicPanel'});
           }
 
@@ -121,11 +137,20 @@ export default function Header() {
 
     const handleAnytimeKey = event => {
       switch (event.which) {
-        case 9: { // tab
+        case 9: {
+          // tab
           if (!event.repeat) {
-            setState({openedPanel: (state.openedPanel === 'CharacterPanel' ? null : 'CharacterPanel')});
+            setState({
+              openedPanel:
+                state.openedPanel === 'CharacterPanel'
+                  ? null
+                  : 'CharacterPanel',
+            });
 
-            if (state.openedPanel === 'CharacterPanel' && !cameraManager.pointerLockElement) {
+            if (
+              state.openedPanel === 'CharacterPanel' &&
+              !cameraManager.pointerLockElement
+            ) {
               cameraManager.requestPointerLock();
             }
           }
@@ -137,7 +162,9 @@ export default function Header() {
 
     const keydown = event => {
       let handled = false;
-      const inputFocused = document.activeElement && ['INPUT', 'TEXTAREA'].includes(document.activeElement.nodeName);
+      const inputFocused =
+        document.activeElement &&
+        ['INPUT', 'TEXTAREA'].includes(document.activeElement.nodeName);
 
       if (!inputFocused) {
         handled = handleNonInputKey(event);
@@ -180,7 +207,7 @@ export default function Header() {
 
   // tmp code [will be remove in next PRs]
 
-  const claimsOpen = (state.openedPanel === 'ClaimsPanel' ? 'claims' : false);
+  const claimsOpen = state.openedPanel === 'ClaimsPanel' ? 'claims' : false;
 
   const toggleClaimsOpen = () => {
     if (claimsOpen) {
@@ -193,42 +220,37 @@ export default function Header() {
   //
 
   return (
-        <div className={styles.container} onClick={ stopPropagation } >
-            <CharacterHups
-              localPlayer={localPlayer}
-              npcs={npcs}
-            />
-            <StoryTime />
-            {/* <div className={styles.inner}> */}
-                <UIMode hideDirection='left' >
-                    <AvatarIcon />
-                </UIMode>
-                <UIMode hideDirection='right' >
-                    <User
-                        address={address}
-                        setAddress={setAddress}
-                        setLoginFrom={setLoginFrom}
-                    />
-                </UIMode>
-                <div className={styles.tabs}>
-                    <Character
-                        panelsRef={panelsRef}
-                        wearActions={wearActions}
-                        dioramaCanvasRef={dioramaCanvasRef}
-                        game={game}
-                    />
-                    <CharacterSelect
-
-                    />
-                    <Equipment />
-                    {/* <Claims
+    <div className={styles.container} onClick={stopPropagation}>
+      <CharacterHups localPlayer={localPlayer} npcs={npcs} />
+      <StoryTime />
+      {/* <div className={styles.inner}> */}
+      <UIMode hideDirection="left">
+        <AvatarIcon />
+      </UIMode>
+      <UIMode hideDirection="right">
+        <User
+          address={address}
+          setAddress={setAddress}
+          setLoginFrom={setLoginFrom}
+        />
+      </UIMode>
+      <div className={styles.tabs}>
+        <Character
+          panelsRef={panelsRef}
+          wearActions={wearActions}
+          dioramaCanvasRef={dioramaCanvasRef}
+          game={game}
+        />
+        <CharacterSelect />
+        <Equipment />
+        {/* <Claims
                         open={ claimsOpen }
                         toggleOpen={ toggleClaimsOpen }
                         claims={claims}
                         panelsRef={panelsRef}
                     /> */}
-                </div>
-                {/* <div className={styles.panels}>
+      </div>
+      {/* <div className={styles.panels}>
                     <Tokens
                         nfts={nfts}
                         hacks={hacks}
@@ -237,7 +259,7 @@ export default function Header() {
                         loginFrom={loginFrom}
                     />
                 </div> */}
-            {/* </div> */}
-        </div>
+      {/* </div> */}
+    </div>
   );
 }

@@ -15,35 +15,62 @@ export class AvatarCharacterFace {
     }
     // #################################### manually set mouth movement ##########################################
     const _handleMouthMovementAttack = () => {
-      this.character.avatar.volume = ((timestamp / 1000 - this.mouthMovementStartTime) / this.mouthMovementAttackTime) / 12;
-      if (timestamp / 1000 - this.mouthMovementStartTime >= this.mouthMovementAttackTime) {
+      this.character.avatar.volume =
+        (timestamp / 1000 - this.mouthMovementStartTime) /
+        this.mouthMovementAttackTime /
+        12;
+      if (
+        timestamp / 1000 - this.mouthMovementStartTime >=
+        this.mouthMovementAttackTime
+      ) {
         this.mouthMovementState = 'decay';
         this.mouthMovementStartTime = timestamp / 1000;
       }
     };
     const _handleMouthMovementDecay = () => {
-      this.character.avatar.volume = (1 - ((timestamp / 1000 - this.mouthMovementStartTime) / this.mouthMovementDecayTime) * 0.8) / 12;
-      if (timestamp / 1000 - this.mouthMovementStartTime >= this.mouthMovementDecayTime) {
+      this.character.avatar.volume =
+        (1 -
+          ((timestamp / 1000 - this.mouthMovementStartTime) /
+            this.mouthMovementDecayTime) *
+            0.8) /
+        12;
+      if (
+        timestamp / 1000 - this.mouthMovementStartTime >=
+        this.mouthMovementDecayTime
+      ) {
         this.mouthMovementState = 'sustain';
         this.mouthMovementStartTime = timestamp / 1000;
       }
     };
     const _handleMouthMovementSustain = () => {
-      if (timestamp / 1000 - this.mouthMovementStartTime >= this.mouthMovementSustainTime) {
+      if (
+        timestamp / 1000 - this.mouthMovementStartTime >=
+        this.mouthMovementSustainTime
+      ) {
         this.mouthMovementState = 'release';
         this.mouthMovementStartTime = timestamp / 1000;
       }
     };
     const _handleMouthMovementRelease = () => {
-      this.character.avatar.volume = (0.2 - ((timestamp / 1000 - this.mouthMovementStartTime) / this.mouthMovementReleaseTime) * 0.2) / 12;
-      if (timestamp / 1000 - this.mouthMovementStartTime >= this.mouthMovementReleaseTime) {
+      this.character.avatar.volume =
+        (0.2 -
+          ((timestamp / 1000 - this.mouthMovementStartTime) /
+            this.mouthMovementReleaseTime) *
+            0.2) /
+        12;
+      if (
+        timestamp / 1000 - this.mouthMovementStartTime >=
+        this.mouthMovementReleaseTime
+      ) {
         this.mouthMovementState = null;
         this.enableAudioWorkerSetVolume = false;
         this.mouthMovementStartTime = -1;
       }
     };
     const _handleMouthMovementInit = () => {
-      this.mouthMovementState = !this.enableAudioWorkerSetVolume ? 'attack' : null;
+      this.mouthMovementState = !this.enableAudioWorkerSetVolume
+        ? 'attack'
+        : null;
       this.mouthMovementStartTime = timestamp / 1000;
     };
     switch (this.mouthMovementState) {

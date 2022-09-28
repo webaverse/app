@@ -33,10 +33,7 @@ class LoadoutManager extends EventTarget {
     this.ensureRenderers();
 
     const playerSelectedFn = e => {
-      const {
-        oldPlayer,
-        player,
-      } = e.data;
+      const {oldPlayer, player} = e.data;
 
       if (oldPlayer) {
         this.unbindPlayer(oldPlayer);
@@ -47,9 +44,7 @@ class LoadoutManager extends EventTarget {
     playersManager.addEventListener('playerchange', playerSelectedFn);
 
     const playerRemovedFn = e => {
-      const {
-        player,
-      } = e.data;
+      const {player} = e.data;
       // delete loadout apps when player is destroyed
       this.appsPerPlayer.delete(player);
       this.selectedIndexPerPlayer.delete(player);
@@ -78,12 +73,14 @@ class LoadoutManager extends EventTarget {
     }
 
     const index = this.selectedIndex;
-    this.dispatchEvent(new MessageEvent('selectedchange', {
-      data: {
-        index,
-        app: this.apps[index],
-      },
-    }));
+    this.dispatchEvent(
+      new MessageEvent('selectedchange', {
+        data: {
+          index,
+          app: this.apps[index],
+        },
+      }),
+    );
   }
 
   bindPlayer(player) {
@@ -190,12 +187,14 @@ class LoadoutManager extends EventTarget {
       this.infoBoxRenderer.setSpritesheet(spritesheet);
     }
 
-    this.dispatchEvent(new MessageEvent('selectedchange', {
-      data: {
-        index,
-        app: this.apps[index],
-      },
-    }));
+    this.dispatchEvent(
+      new MessageEvent('selectedchange', {
+        data: {
+          index,
+          app: this.apps[index],
+        },
+      }),
+    );
   }
 
   /* getNextFreeIndex() {

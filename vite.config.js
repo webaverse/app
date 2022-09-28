@@ -50,18 +50,23 @@ const build = () => {
   const _entryPoints = [];
   const base = path.resolve('.', 'node_modules');
   const exportPaths = {};
-  let toCopy = [
-
-  ];
+  let toCopy = [];
 
   const resolveEntryOfModule = _path => {
     console.log(_path);
-    const packageJSON = JSON.parse(fs.readFileSync(path.resolve(base, _path, 'package.json')).toString());
-    const moduleEntryFile = packageJSON.module || packageJSON.main || 'index.js';
-    const entryPoint = `./${path.normalize(`node_modules/${_path}/${moduleEntryFile}`)}`;
+    const packageJSON = JSON.parse(
+      fs.readFileSync(path.resolve(base, _path, 'package.json')).toString(),
+    );
+    const moduleEntryFile =
+      packageJSON.module || packageJSON.main || 'index.js';
+    const entryPoint = `./${path.normalize(
+      `node_modules/${_path}/${moduleEntryFile}`,
+    )}`;
     const hasBin = (() => {
       if (packageJSON.bin) {
-        return `./${path.normalize(`node_modules/${_path}/${packageJSON.bin}`)}`;
+        return `./${path.normalize(
+          `node_modules/${_path}/${packageJSON.bin}`,
+        )}`;
       }
       return undefined;
     })();
@@ -88,7 +93,10 @@ const build = () => {
         let isFile;
         try {
           isFile = fs.statSync(fp).isFile();
-          if (isFile && !esbuildLoaders.includes(path.parse(fp).ext.replace('.', ''))) {
+          if (
+            isFile &&
+            !esbuildLoaders.includes(path.parse(fp).ext.replace('.', ''))
+          ) {
             console.log('---- Skipping file ', fp);
             continue;
           }
@@ -105,26 +113,22 @@ const build = () => {
           });
           console.log('---- Resolved file at', file);
         } else {
-          entryPoints.push(
-            {
-              path: `./node_modules/${_path}/${file}/**/*.*`,
-              replaceExpression: './node_modules',
-              exclude: [entryPoint, hasBin],
-              glob: true,
-            },
-          );
+          entryPoints.push({
+            path: `./node_modules/${_path}/${file}/**/*.*`,
+            replaceExpression: './node_modules',
+            exclude: [entryPoint, hasBin],
+            glob: true,
+          });
           console.log('---- Resolved folder at', file);
         }
       }
     } else {
-      toCopy.push(
-        {
-          path: `./node_modules/${_path}/**/*.*`,
-          replaceExpression: './node_modules',
-          exclude: [entryPoint, hasBin],
-          glob: true,
-        },
-      );
+      toCopy.push({
+        path: `./node_modules/${_path}/**/*.*`,
+        replaceExpression: './node_modules',
+        exclude: [entryPoint, hasBin],
+        glob: true,
+      });
     }
   };
 
@@ -143,9 +147,13 @@ const build = () => {
         const files = await resolveGlob(toc.path);
         for (const file of files) {
           console.log(`** Copying ${file}`);
-          copySync(file, file.replace(toc.replaceExpression, relativeDistAssets), {
-            overwrite: false,
-          });
+          copySync(
+            file,
+            file.replace(toc.replaceExpression, relativeDistAssets),
+            {
+              overwrite: false,
+            },
+          );
         }
       }
     }
@@ -158,21 +166,30 @@ const build = () => {
 
   const createESMTree = async esmIncludes => {
     const filesToCopy = [];
-    const allFiles = [...(await resolveGlob('./!(deadcode|node_modules|test|packages|dist|metaverse_modules|public)/**/*.js')).map(file => {
-      return path.resolve(process.cwd(), file);
-    }), ...(await resolveGlob('./!(deadcode|node_modules|test|packages|dist|metaverse_modules|public)**.js')).map(file => {
-      return path.resolve(process.cwd(), file);
-    })];
+    const allFiles = [
+      ...(
+        await resolveGlob(
+          './!(deadcode|node_modules|test|packages|dist|metaverse_modules|public)/**/*.js',
+        )
+      ).map(file => {
+        return path.resolve(process.cwd(), file);
+      }),
+      ...(
+        await resolveGlob(
+          './!(deadcode|node_modules|test|packages|dist|metaverse_modules|public)**.js',
+        )
+      ).map(file => {
+        return path.resolve(process.cwd(), file);
+      }),
+    ];
 
     for (const file of allFiles) {
       if (!esmIncludes.has(file)) {
-        filesToCopy.push(
-          {
-            path: `.${file.replace(process.cwd(), '')}`,
-            replaceExpression: '.',
-            glob: true,
-          },
-        );
+        filesToCopy.push({
+          path: `.${file.replace(process.cwd(), '')}`,
+          replaceExpression: '.',
+          glob: true,
+        });
       }
     }
 
@@ -205,8 +222,13 @@ const build = () => {
             const files = await resolveGlob(iterator.path);
             for (const file of files) {
               const parseFile = path.parse(file);
-              if (!iterator.exclude.includes(file) && esbuildLoaders.includes(parseFile.ext.replace('.', ''))) {
-                const replacedPath = `${path.normalize(file.replace(iterator.replaceExpression, baseDirectory))}`;
+              if (
+                !iterator.exclude.includes(file) &&
+                esbuildLoaders.includes(parseFile.ext.replace('.', ''))
+              ) {
+                const replacedPath = `${path.normalize(
+                  file.replace(iterator.replaceExpression, baseDirectory),
+                )}`;
                 exportPaths[file.replace('./node_modules/', '')] = replacedPath;
                 const entry = this.emitFile({
                   type: 'chunk',
@@ -220,7 +242,10 @@ const build = () => {
             let _name = iterator.name;
             iterator.path = `./${path.normalize(iterator.path)}`;
             if (iterator.replaceExpression) {
-              _name = iterator.path.replace(iterator.replaceExpression, baseDirectory);
+              _name = iterator.path.replace(
+                iterator.replaceExpression,
+                baseDirectory,
+              );
             }
             // console.log('Emitting', iterator);
             const entry = this.emitFile({
@@ -237,8 +262,7 @@ const build = () => {
       /** testing exports */
 
       if (!appBuiltOnce) {
-        const exports = {
-        };
+        const exports = {};
 
         /** Refers to set of files included in the build */
         const esmTree = new Set();
@@ -267,22 +291,31 @@ const build = () => {
         }
 
         if (process.env.OUTPUT_EXPORTS) {
-          fs.writeFileSync('dist/dependencies.json', JSON.stringify(exports, null, 4));
-          fs.writeFileSync('dist/actualBundle.json', JSON.stringify(bundle, null, 4));
+          fs.writeFileSync(
+            'dist/dependencies.json',
+            JSON.stringify(exports, null, 4),
+          );
+          fs.writeFileSync(
+            'dist/actualBundle.json',
+            JSON.stringify(bundle, null, 4),
+          );
         }
 
         /** ESM tree will help the application find the file
-       * which are missed by the application in first phase of build
-       * it may restart the build and push all files listed in
-       * .esmcache/files.json to entry points. This is important for
-       * workers and non - worker files that might have missed due to
-       * first phase of build
-       *  */
+         * which are missed by the application in first phase of build
+         * it may restart the build and push all files listed in
+         * .esmcache/files.json to entry points. This is important for
+         * workers and non - worker files that might have missed due to
+         * first phase of build
+         *  */
         await createESMTree(esmTree);
 
         await copyfn();
 
-        fs.writeFileSync('dist/exports.json', JSON.stringify(exportPaths, null, 4));
+        fs.writeFileSync(
+          'dist/exports.json',
+          JSON.stringify(exportPaths, null, 4),
+        );
         appBuiltOnce = true;
         return null;
       }
@@ -301,9 +334,10 @@ const build = () => {
 };
 
 /** Use metaversefile if not production */
-plugins = process.env.NODE_ENV !== 'production' ? plugins.concat([metaversefilePlugin()]) : plugins.concat([
-  build(),
-]);
+plugins =
+  process.env.NODE_ENV !== 'production'
+    ? plugins.concat([metaversefilePlugin()])
+    : plugins.concat([build()]);
 
 /** Vite config for production */
 const viteConfigProduction = {
@@ -311,13 +345,15 @@ const viteConfigProduction = {
     polyfillModulePreload: false,
     format: 'es',
     target: 'esnext',
-    ...(process.argv.find(a => a === '--watch') ? {
-      watch: {
-        clearScreen: true,
-        include: '**/**',
-        exclude: 'node_modules/**',
-      },
-    } : {}),
+    ...(process.argv.find(a => a === '--watch')
+      ? {
+          watch: {
+            clearScreen: true,
+            include: '**/**',
+            exclude: 'node_modules/**',
+          },
+        }
+      : {}),
     manifest: true,
     minify: false,
     rollupOptions: {
@@ -349,7 +385,7 @@ const defaultConfig = {
 
 const config = {
   ...defaultConfig,
-  ...process.env.NODE_ENV === 'production' ? viteConfigProduction : {},
+  ...(process.env.NODE_ENV === 'production' ? viteConfigProduction : {}),
 };
 
 console.log('Using Node Env', process.env.NODE_ENV);

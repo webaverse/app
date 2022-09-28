@@ -3,16 +3,18 @@ import Web3 from '../../web3.min.js';
 
 export async function getVoucherFromServer(metadataurl) {
   const tokenId = 0;
-  const expiry = Math.round(new Date().getTime() / 1000) + 1000;// timestamp
+  const expiry = Math.round(new Date().getTime() / 1000) + 1000; // timestamp
   const nonce = ethers.BigNumber.from(ethers.utils.randomBytes(4)).toNumber();
   const balance = 1;
 
-  const response = await fetch('http://localhost:8081/getServerDropVoucher', { // https://{voucherSeverip}:8081/getServerDropVoucher
+  const response = await fetch('http://localhost:8081/getServerDropVoucher', {
+    // https://{voucherSeverip}:8081/getServerDropVoucher
     method: 'POST',
     headers: {
       Accept: 'application/json',
       'Content-Type': 'application/json',
-      'x-api-key': 'dXNlcm5hbWU6MTIzNDU2Nzg5MDEyMzQ1Njc4OTAxMjM0NTY3ODkwMTIzNDU2Nzg5MA',
+      'x-api-key':
+        'dXNlcm5hbWU6MTIzNDU2Nzg5MDEyMzQ1Njc4OTAxMjM0NTY3ODkwMTIzNDU2Nzg5MA',
     },
     body: JSON.stringify({
       signData: {tokenId, metadataurl, balance, nonce, expiry},
@@ -22,7 +24,11 @@ export async function getVoucherFromServer(metadataurl) {
   return voucher;
 }
 
-export async function getVoucherFromUser(tokenId, signer, WebaversecontractAddress) {
+export async function getVoucherFromUser(
+  tokenId,
+  signer,
+  WebaversecontractAddress,
+) {
   const metadataurl = 'https://ipfs.webaverse.com/'; // temp url - not used
   const expiry = Math.round(new Date().getTime() / 1000) + 50; // timestamp
   const nonce = ethers.BigNumber.from(ethers.utils.randomBytes(4)).toNumber();
@@ -42,7 +48,11 @@ export async function getVoucherFromUser(tokenId, signer, WebaversecontractAddre
 
     // Defining the message signing data content.
     message: {
-      tokenId, metadataurl, balance, nonce, expiry,
+      tokenId,
+      metadataurl,
+      balance,
+      nonce,
+      expiry,
     },
     // Refers to the keys of the *types* object below.
     primaryType: 'NFTVoucher',
@@ -74,15 +84,22 @@ export async function getVoucherFromUser(tokenId, signer, WebaversecontractAddre
         method,
         params,
         from: signer,
-      }, (err, {result}) => {
+      },
+      (err, {result}) => {
         if (err != null) {
           reject(new Error(err));
         } else {
           const voucher = {
-            tokenId, metadataurl, balance, nonce, expiry, signature: result,
+            tokenId,
+            metadataurl,
+            balance,
+            nonce,
+            expiry,
+            signature: result,
           };
           accept({voucher, expiry});
         }
-      });
+      },
+    );
   });
 }

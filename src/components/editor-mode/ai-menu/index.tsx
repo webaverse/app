@@ -1,3 +1,2 @@
-
-import { AiMenu } from './AiMenu';
-export { AiMenu };
+import {AiMenu} from './AiMenu';
+export {AiMenu};

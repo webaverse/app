@@ -1,7 +1,7 @@
 const _lut = [];
 
 for (let i = 0; i < 256; i++) {
-  _lut[i] = (i < 16 ? '0' : '') + (i).toString(16);
+  _lut[i] = (i < 16 ? '0' : '') + i.toString(16);
 }
 
 let _seed = 1234567;
@@ -11,14 +11,31 @@ const RAD2DEG = 180 / Math.PI;
 
 // http://stackoverflow.com/questions/105034/how-to-create-a-guid-uuid-in-javascript/21963136#21963136
 function generateUUID() {
-  const d0 = Math.random() * 0xffffffff | 0;
-  const d1 = Math.random() * 0xffffffff | 0;
-  const d2 = Math.random() * 0xffffffff | 0;
-  const d3 = Math.random() * 0xffffffff | 0;
-  const uuid = _lut[d0 & 0xff] + _lut[d0 >> 8 & 0xff] + _lut[d0 >> 16 & 0xff] + _lut[d0 >> 24 & 0xff] + '-' +
-    _lut[d1 & 0xff] + _lut[d1 >> 8 & 0xff] + '-' + _lut[d1 >> 16 & 0x0f | 0x40] + _lut[d1 >> 24 & 0xff] + '-' +
-    _lut[d2 & 0x3f | 0x80] + _lut[d2 >> 8 & 0xff] + '-' + _lut[d2 >> 16 & 0xff] + _lut[d2 >> 24 & 0xff] +
-    _lut[d3 & 0xff] + _lut[d3 >> 8 & 0xff] + _lut[d3 >> 16 & 0xff] + _lut[d3 >> 24 & 0xff];
+  const d0 = (Math.random() * 0xffffffff) | 0;
+  const d1 = (Math.random() * 0xffffffff) | 0;
+  const d2 = (Math.random() * 0xffffffff) | 0;
+  const d3 = (Math.random() * 0xffffffff) | 0;
+  const uuid =
+    _lut[d0 & 0xff] +
+    _lut[(d0 >> 8) & 0xff] +
+    _lut[(d0 >> 16) & 0xff] +
+    _lut[(d0 >> 24) & 0xff] +
+    '-' +
+    _lut[d1 & 0xff] +
+    _lut[(d1 >> 8) & 0xff] +
+    '-' +
+    _lut[((d1 >> 16) & 0x0f) | 0x40] +
+    _lut[(d1 >> 24) & 0xff] +
+    '-' +
+    _lut[(d2 & 0x3f) | 0x80] +
+    _lut[(d2 >> 8) & 0xff] +
+    '-' +
+    _lut[(d2 >> 16) & 0xff] +
+    _lut[(d2 >> 24) & 0xff] +
+    _lut[d3 & 0xff] +
+    _lut[(d3 >> 8) & 0xff] +
+    _lut[(d3 >> 16) & 0xff] +
+    _lut[(d3 >> 24) & 0xff];
 
   // .toUpperCase() here flattens concatenated strings to save heap memory space.
   return uuid.toUpperCase();
@@ -36,7 +53,7 @@ function euclideanModulo(n, m) {
 
 // Linear mapping from range <a1, a2> to range <b1, b2>
 function mapLinear(x, a1, a2, b1, b2) {
-  return b1 + (x - a1) * (b2 - b1) / (a2 - a1);
+  return b1 + ((x - a1) * (b2 - b1)) / (a2 - a1);
 }
 
 // https://www.gamedev.net/tutorials/programming/general-and-gameplay-programming/inverse-lerp-a-super-useful-yet-often-overlooked-function-r5230/
@@ -103,7 +120,7 @@ function seededRandom(s) {
 
   // Park-Miller algorithm
 
-  _seed = _seed * 16807 % 2147483647;
+  _seed = (_seed * 16807) % 2147483647;
 
   return (_seed - 1) / 2147483646;
 }
@@ -176,7 +193,10 @@ function setQuaternionFromProperEuler(q, a, b, c, order) {
       break;
 
     default:
-      console.warn('THREE.MathUtils: .setQuaternionFromProperEuler() encountered an unknown order: ' + order);
+      console.warn(
+        'THREE.MathUtils: .setQuaternionFromProperEuler() encountered an unknown order: ' +
+          order,
+      );
   }
 }
 

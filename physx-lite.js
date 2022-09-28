@@ -126,7 +126,10 @@ physxLite.meshoptSimplify = (mesh, targetRatio, targetError) => {
   const {geometry} = mesh;
 
   const allocator = new Allocator(Module);
-  const positions = allocator.alloc(Float32Array, geometry.attributes.position.count * 3);
+  const positions = allocator.alloc(
+    Float32Array,
+    geometry.attributes.position.count * 3,
+  );
   positions.set(geometry.attributes.position.array);
   // const uvs = allocator.alloc(Float32Array, geometry.attributes.uv.count * 2);
   // uvs.set(geometry.attributes.uv.array);
@@ -171,7 +174,10 @@ physxLite.meshoptSimplifySloppy = (mesh, targetRatio, targetError) => {
   const {geometry} = mesh;
 
   const allocator = new Allocator(Module);
-  const positions = allocator.alloc(Float32Array, geometry.attributes.position.count * 3);
+  const positions = allocator.alloc(
+    Float32Array,
+    geometry.attributes.position.count * 3,
+  );
   positions.set(geometry.attributes.position.array);
   // const uvs = allocator.alloc(Float32Array, geometry.attributes.uv.count * 2);
   // uvs.set(geometry.attributes.uv.array);

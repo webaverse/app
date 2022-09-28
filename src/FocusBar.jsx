@@ -28,6 +28,4 @@ const FocusBar = () => {
     </div>
   );
 };
-export {
-  FocusBar,
-};
+export {FocusBar};

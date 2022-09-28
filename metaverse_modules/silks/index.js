@@ -29,15 +29,17 @@ const _updatePoints = (player, pointSets) => {
   // const rightPartPosition = player.position.clone()
   //   .add(new THREE.Vector3(playerCenterRadius, 0, 0).applyQuaternion(player.quaternion));
   // const partPositions = [leftPartPosition, rightPartPosition];
-  for (let pointSetIndex = 0; pointSetIndex < pointSets.length; pointSetIndex++) {
+  for (
+    let pointSetIndex = 0;
+    pointSetIndex < pointSets.length;
+    pointSetIndex++
+  ) {
     const points = pointSets[pointSetIndex];
     const {offset} = points;
 
-    const partPosition = player.position.clone()
-      .add(
-        offset.clone()
-          .applyQuaternion(player.quaternion),
-      );
+    const partPosition = player.position
+      .clone()
+      .add(offset.clone().applyQuaternion(player.quaternion));
     const lastPartPosition = lastPartPositions[pointSetIndex];
     const quaternion = new THREE.Quaternion().setFromRotationMatrix(
       new THREE.Matrix4().lookAt(lastPartPosition, partPosition, upVector),
@@ -50,10 +52,19 @@ const _updatePoints = (player, pointSets) => {
       const point = points[i];
       const nextPoint = points[i - 1];
       const pointQuaternion = new THREE.Quaternion().setFromRotationMatrix(
-        new THREE.Matrix4().lookAt(point.position, nextPoint.position, upVector),
+        new THREE.Matrix4().lookAt(
+          point.position,
+          nextPoint.position,
+          upVector,
+        ),
       );
-      point.position.copy(nextPoint.position)
-        .add(new THREE.Vector3(0, 0, segmentLength).applyQuaternion(pointQuaternion));
+      point.position
+        .copy(nextPoint.position)
+        .add(
+          new THREE.Vector3(0, 0, segmentLength).applyQuaternion(
+            pointQuaternion,
+          ),
+        );
       point.quaternion.copy(pointQuaternion);
     }
 
@@ -61,18 +72,33 @@ const _updatePoints = (player, pointSets) => {
   }
 };
 const _setPoints = (geometry, pointSets) => {
-  for (let pointSetIndex = 0; pointSetIndex < pointSets.length; pointSetIndex++) {
+  for (
+    let pointSetIndex = 0;
+    pointSetIndex < pointSets.length;
+    pointSetIndex++
+  ) {
     const points = pointSets[pointSetIndex];
     const partVertexOffset = pointSetIndex * verticesPerPart;
 
-    for (let heightSegment = 0; heightSegment < points.length; heightSegment++) {
-      const {
-        position,
-        quaternion,
-      } = points[heightSegment];
+    for (
+      let heightSegment = 0;
+      heightSegment < points.length;
+      heightSegment++
+    ) {
+      const {position, quaternion} = points[heightSegment];
       for (let j = 0; j < verticesPerHeightSegment; j++) {
-        position.toArray(geometry.attributes.p.array, heightSegment * verticesPerHeightSegment * 3 + j * 3 + partVertexOffset * 3);
-        quaternion.toArray(geometry.attributes.q.array, heightSegment * verticesPerHeightSegment * 4 + j * 4 + partVertexOffset * 4);
+        position.toArray(
+          geometry.attributes.p.array,
+          heightSegment * verticesPerHeightSegment * 3 +
+            j * 3 +
+            partVertexOffset * 3,
+        );
+        quaternion.toArray(
+          geometry.attributes.q.array,
+          heightSegment * verticesPerHeightSegment * 4 +
+            j * 4 +
+            partVertexOffset * 4,
+        );
       }
     }
     geometry.attributes.p.needsUpdate = true;
@@ -95,11 +121,17 @@ function createSilksGeometry() {
   ); */
   geometry.setAttribute(
     'p',
-    new THREE.BufferAttribute(new Float32Array(geometry.attributes.position.count * 3), 3),
+    new THREE.BufferAttribute(
+      new Float32Array(geometry.attributes.position.count * 3),
+      3,
+    ),
   );
   geometry.setAttribute(
     'q',
-    new THREE.BufferAttribute(new Float32Array(geometry.attributes.position.count * 4), 4),
+    new THREE.BufferAttribute(
+      new Float32Array(geometry.attributes.position.count * 4),
+      4,
+    ),
   );
   return geometry;
 }
@@ -124,7 +156,10 @@ const _makeSilksMesh = () => {
   // _incrementUvs(geometry2, new THREE.Vector2(0, 1));
   // _setOffsets(geometry1, -1);
   // _setOffsets(geometry2, 1);
-  const geometry = BufferGeometryUtils.mergeBufferGeometries([geometry1, geometry2]);
+  const geometry = BufferGeometryUtils.mergeBufferGeometries([
+    geometry1,
+    geometry2,
+  ]);
   // _setOffsets(geometry, 1);
 
   const material = new WebaverseShaderMaterial({

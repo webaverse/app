@@ -129,6 +129,4 @@ class RadialBgFxMesh extends THREE.Mesh {
   }
 }
 
-export {
-  RadialBgFxMesh,
-};
+export {RadialBgFxMesh};

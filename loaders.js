@@ -47,7 +47,8 @@ class MozLightMapExtension {
       const material = results[0];
       const lightMap = results[1];
       material.lightMap = lightMap;
-      material.lightMapIntensity = extensionDef.intensity !== undefined ? extensionDef.intensity : 1;
+      material.lightMapIntensity =
+        extensionDef.intensity !== undefined ? extensionDef.intensity : 1;
       return material;
     });
   }
@@ -60,13 +61,14 @@ const _dracoLoader = memoize(() => {
 });
 const _ktx2Loader = memoize(() => {
   const ktx2Loader = new KTX2Loader();
-  ktx2Loader.load = (_load => function load() {
-    if (!this.workerConfig) {
-      const renderer = getRenderer();
-      this.detectSupport(renderer);
-    }
-    return _load.apply(this, arguments);
-  })(ktx2Loader.load);
+  ktx2Loader.load = (_load =>
+    function load() {
+      if (!this.workerConfig) {
+        const renderer = getRenderer();
+        this.detectSupport(renderer);
+      }
+      return _load.apply(this, arguments);
+    })(ktx2Loader.load);
   ktx2Loader.setTranscoderPath('/three/basis/');
   return ktx2Loader;
 });
@@ -94,9 +96,12 @@ const _gltfLoader = memoize(() => {
 });
 const _shadertoyLoader = memoize(() => new ShadertoyLoader());
 const _gifLoader = memoize(() => new GIFLoader());
-const _voxLoader = memoize(() => new VOXLoader({
-  scale: 0.01,
-}));
+const _voxLoader = memoize(
+  () =>
+    new VOXLoader({
+      scale: 0.01,
+    }),
+);
 
 const loaders = {
   get dracoLoader() {

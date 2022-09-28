@@ -17,6 +17,14 @@ export const createLandIcon = async ({
   height,
 } = {}) => {
   const getLandImage = useLandScreenshotter();
-  const imageBitmap = await getLandImage([seed, renderPosition, lods, minLodRange, clipRange, width, height]);
+  const imageBitmap = await getLandImage([
+    seed,
+    renderPosition,
+    lods,
+    minLodRange,
+    clipRange,
+    width,
+    height,
+  ]);
   return imageBitmap;
 };

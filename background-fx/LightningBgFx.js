@@ -213,7 +213,7 @@ class LightningBgFxMesh extends THREE.Mesh {
           needsUpdate: true,
         },
         uColor2: {
-          value: new THREE.Color(0xFFFFFF),
+          value: new THREE.Color(0xffffff),
           needsUpdate: true,
         },
       },
@@ -253,6 +253,4 @@ class LightningBgFxMesh extends THREE.Mesh {
   }
 }
 
-export {
-  LightningBgFxMesh,
-};
+export {LightningBgFxMesh};

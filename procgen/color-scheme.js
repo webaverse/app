@@ -1,29 +1,31 @@
-const ColorScheme = (function() {
+const ColorScheme = function () {
   var ColorScheme,
     slice = [].slice;
 
-  ColorScheme = (function() {
+  ColorScheme = (function () {
     var clone, l, len, ref, typeIsArray, word;
 
-    typeIsArray = Array.isArray || function(value) {
-      return {}.toString.call(value) === '[object Array]';
-    };
+    typeIsArray =
+      Array.isArray ||
+      function (value) {
+        return {}.toString.call(value) === '[object Array]';
+      };
 
     ColorScheme.SCHEMES = {};
 
-    ref = "mono monochromatic contrast triade tetrade analogic".split(/\s+/);
+    ref = 'mono monochromatic contrast triade tetrade analogic'.split(/\s+/);
     for (l = 0, len = ref.length; l < len; l++) {
       word = ref[l];
       ColorScheme.SCHEMES[word] = true;
     }
 
     ColorScheme.PRESETS = {
-      "default": [-1, -1, 1, -0.7, 0.25, 1, 0.5, 1],
+      default: [-1, -1, 1, -0.7, 0.25, 1, 0.5, 1],
       pastel: [0.5, -0.9, 0.5, 0.5, 0.1, 0.9, 0.75, 0.75],
       soft: [0.3, -0.8, 0.3, 0.5, 0.1, 0.9, 0.5, 0.75],
       light: [0.25, 1, 0.5, 0.75, 0.1, 1, 0.5, 1],
       hard: [1, -1, 1, -0.6, 0.1, 1, 0.6, 1],
-      pale: [0.1, -0.85, 0.1, 0.5, 0.1, 1, 0.1, 0.75]
+      pale: [0.1, -0.85, 0.1, 0.5, 0.1, 1, 0.1, 0.75],
     };
 
     ColorScheme.COLOR_WHEEL = {
@@ -50,7 +52,7 @@ const ColorScheme = (function() {
       300: [102, 0, 153, 60],
       315: [153, 0, 153, 60],
       330: [204, 0, 153, 80],
-      345: [229, 0, 102, 90]
+      345: [229, 0, 102, 90],
     };
 
     function ColorScheme() {
@@ -65,7 +67,6 @@ const ColorScheme = (function() {
       this._web_safe = false;
       this._add_complement = false;
     }
-
 
     /*
     
@@ -84,23 +85,23 @@ const ColorScheme = (function() {
     URL is listed in "Description"
      */
 
-    ColorScheme.prototype.colors = function() {
+    ColorScheme.prototype.colors = function () {
       var dispatch, h, i, j, m, n, output, ref1, used_colors;
       used_colors = 1;
       h = this.col[0].get_hue();
       dispatch = {
-        mono: (function(_this) {
-          return function() {};
+        mono: (function (_this) {
+          return function () {};
         })(this),
-        contrast: (function(_this) {
-          return function() {
+        contrast: (function (_this) {
+          return function () {
             used_colors = 2;
             _this.col[1].set_hue(h);
             return _this.col[1].rotate(180);
           };
         })(this),
-        triade: (function(_this) {
-          return function() {
+        triade: (function (_this) {
+          return function () {
             var dif;
             used_colors = 3;
             dif = 60 * _this._distance;
@@ -110,8 +111,8 @@ const ColorScheme = (function() {
             return _this.col[2].rotate(180 + dif);
           };
         })(this),
-        tetrade: (function(_this) {
-          return function() {
+        tetrade: (function (_this) {
+          return function () {
             var dif;
             used_colors = 4;
             dif = 90 * _this._distance;
@@ -123,8 +124,8 @@ const ColorScheme = (function() {
             return _this.col[3].rotate(dif);
           };
         })(this),
-        analogic: (function(_this) {
-          return function() {
+        analogic: (function (_this) {
+          return function () {
             var dif;
             used_colors = _this._add_complement ? 4 : 3;
             dif = 60 * _this._distance;
@@ -135,23 +136,26 @@ const ColorScheme = (function() {
             _this.col[3].set_hue(h);
             return _this.col[3].rotate(180);
           };
-        })(this)
+        })(this),
       };
       dispatch['monochromatic'] = dispatch['mono'];
       if (dispatch[this._scheme] != null) {
         dispatch[this._scheme]();
       } else {
-        throw "Unknown color scheme name: " + this._scheme;
+        throw 'Unknown color scheme name: ' + this._scheme;
       }
       output = [];
-      for (i = m = 0, ref1 = used_colors - 1; 0 <= ref1 ? m <= ref1 : m >= ref1; i = 0 <= ref1 ? ++m : --m) {
+      for (
+        i = m = 0, ref1 = used_colors - 1;
+        0 <= ref1 ? m <= ref1 : m >= ref1;
+        i = 0 <= ref1 ? ++m : --m
+      ) {
         for (j = n = 0; n <= 3; j = ++n) {
           output[i * 4 + j] = this.col[i].get_hex(this._web_safe, j);
         }
       }
       return output;
     };
-
 
     /*
     
@@ -177,7 +181,7 @@ const ColorScheme = (function() {
         second_background = (scheme.colorset())[1][1]
      */
 
-    ColorScheme.prototype.colorset = function() {
+    ColorScheme.prototype.colorset = function () {
       var flat_colors, grouped_colors;
       flat_colors = clone(this.colors());
       grouped_colors = [];
@@ -186,7 +190,6 @@ const ColorScheme = (function() {
       }
       return grouped_colors;
     };
-
 
     /*
     
@@ -198,21 +201,21 @@ const ColorScheme = (function() {
     The default base hue is 0, or bright red.
      */
 
-    ColorScheme.prototype.from_hue = function(h) {
+    ColorScheme.prototype.from_hue = function (h) {
       if (h == null) {
-        throw "from_hue needs an argument";
+        throw 'from_hue needs an argument';
       }
       this.col[0].set_hue(h);
       return this;
     };
 
-    ColorScheme.prototype.rgb2ryb = function() {
+    ColorScheme.prototype.rgb2ryb = function () {
       var blue, green, iN, maxgreen, maxyellow, red, rgb, white, yellow;
       rgb = 1 <= arguments.length ? slice.call(arguments, 0) : [];
-      if ((rgb[0] != null) && typeIsArray(rgb[0])) {
+      if (rgb[0] != null && typeIsArray(rgb[0])) {
         rgb = rgb[0];
       }
-      red = rgb[0], green = rgb[1], blue = rgb[2];
+      (red = rgb[0]), (green = rgb[1]), (blue = rgb[2]);
       white = Math.min(red, green, blue);
       red -= white;
       green -= white;
@@ -240,13 +243,13 @@ const ColorScheme = (function() {
       return [Math.floor(red), Math.floor(yellow), Math.floor(blue)];
     };
 
-    ColorScheme.prototype.rgb2hsv = function() {
+    ColorScheme.prototype.rgb2hsv = function () {
       var b, d, g, h, max, min, r, rgb, s, v;
       rgb = 1 <= arguments.length ? slice.call(arguments, 0) : [];
-      if ((rgb[0] != null) && typeIsArray(rgb[0])) {
+      if (rgb[0] != null && typeIsArray(rgb[0])) {
         rgb = rgb[0];
       }
-      r = rgb[0], g = rgb[1], b = rgb[2];
+      (r = rgb[0]), (g = rgb[1]), (b = rgb[2]);
       r /= 255;
       g /= 255;
       b /= 255;
@@ -260,19 +263,20 @@ const ColorScheme = (function() {
       } else {
         return [0, 0, v];
       }
-      h = (r === max ? (g - b) / d : (g === max ? 2 + (b - r) / d : 4 + (r - g) / d));
+      h =
+        r === max ? (g - b) / d : g === max ? 2 + (b - r) / d : 4 + (r - g) / d;
       h *= 60;
       h %= 360;
       return [h, s, v];
     };
 
-    ColorScheme.prototype.rgbToHsv = function() {
+    ColorScheme.prototype.rgbToHsv = function () {
       var b, d, g, h, max, min, r, rgb, s, v;
       rgb = 1 <= arguments.length ? slice.call(arguments, 0) : [];
-      if ((rgb[0] != null) && typeIsArray(rgb[0])) {
+      if (rgb[0] != null && typeIsArray(rgb[0])) {
         rgb = rgb[0];
       }
-      r = rgb[0], g = rgb[1], b = rgb[2];
+      (r = rgb[0]), (g = rgb[1]), (b = rgb[2]);
       r /= 255;
       g /= 255;
       b /= 255;
@@ -301,7 +305,6 @@ const ColorScheme = (function() {
       return [h, s, v];
     };
 
-
     /*
     
     from_hex( color )
@@ -312,16 +315,16 @@ const ColorScheme = (function() {
     The default base color is the equivalent of #ff0000, or bright red.
      */
 
-    ColorScheme.prototype.from_hex = function(hex) {
+    ColorScheme.prototype.from_hex = function (hex) {
       var b, g, h, h0, h1, h2, hsv, i1, i2, num, r, ref1, ref2, rgbcap, s, v;
       if (hex == null) {
-        throw "from_hex needs an argument";
+        throw 'from_hex needs an argument';
       }
       if (!/^([0-9A-F]{2}){3}$/im.test(hex)) {
-        throw "from_hex(" + hex + ") - argument must be in the form of RRGGBB";
+        throw 'from_hex(' + hex + ') - argument must be in the form of RRGGBB';
       }
       rgbcap = /(..)(..)(..)/.exec(hex).slice(1, 4);
-      ref1 = (function() {
+      (ref1 = (function () {
         var len1, m, results;
         results = [];
         for (m = 0, len1 = rgbcap.length; m < len1; m++) {
@@ -329,8 +332,14 @@ const ColorScheme = (function() {
           results.push(parseInt(num, 16));
         }
         return results;
-      })(), r = ref1[0], g = ref1[1], b = ref1[2];
-      ref2 = this.rgb2ryb([r, g, b]), r = ref2[0], g = ref2[1], b = ref2[2];
+      })()),
+        (r = ref1[0]),
+        (g = ref1[1]),
+        (b = ref1[2]);
+      (ref2 = this.rgb2ryb([r, g, b])),
+        (r = ref2[0]),
+        (g = ref2[1]),
+        (b = ref2[2]);
       hsv = this.rgbToHsv(r, g, b);
       h0 = hsv[0];
       h1 = 0;
@@ -348,7 +357,6 @@ const ColorScheme = (function() {
       return this;
     };
 
-
     /*
     
     add_complement( BOOLEAN )
@@ -359,14 +367,13 @@ const ColorScheme = (function() {
     This only works with the analogic color scheme. The default is false.
      */
 
-    ColorScheme.prototype.add_complement = function(b) {
+    ColorScheme.prototype.add_complement = function (b) {
       if (b == null) {
-        throw "add_complement needs an argument";
+        throw 'add_complement needs an argument';
       }
       this._add_complement = b;
       return this;
     };
-
 
     /*
     
@@ -378,14 +385,13 @@ const ColorScheme = (function() {
     The default is false.
      */
 
-    ColorScheme.prototype.web_safe = function(b) {
+    ColorScheme.prototype.web_safe = function (b) {
       if (b == null) {
-        throw "web_safe needs an argument";
+        throw 'web_safe needs an argument';
       }
       this._web_safe = b;
       return this;
     };
-
 
     /*
     
@@ -397,20 +403,19 @@ const ColorScheme = (function() {
     The default is 0.5.
      */
 
-    ColorScheme.prototype.distance = function(d) {
+    ColorScheme.prototype.distance = function (d) {
       if (d == null) {
-        throw "distance needs an argument";
+        throw 'distance needs an argument';
       }
       if (d < 0) {
-        throw "distance(" + d + ") - argument must be >= 0";
+        throw 'distance(' + d + ') - argument must be >= 0';
       }
       if (d > 1) {
-        throw "distance(" + d + ") - argument must be <= 1";
+        throw 'distance(' + d + ') - argument must be <= 1';
       }
       this._distance = d;
       return this;
     };
-
 
     /*
     
@@ -420,7 +425,7 @@ const ColorScheme = (function() {
     is "mono"
      */
 
-    ColorScheme.prototype.scheme = function(name) {
+    ColorScheme.prototype.scheme = function (name) {
       if (name == null) {
         return this._scheme;
       } else {
@@ -432,7 +437,6 @@ const ColorScheme = (function() {
       }
     };
 
-
     /*
     
     variation( name )
@@ -440,9 +444,9 @@ const ColorScheme = (function() {
     'name' must be a valid color variation name. See "Color Variations"
      */
 
-    ColorScheme.prototype.variation = function(v) {
+    ColorScheme.prototype.variation = function (v) {
       if (v == null) {
-        throw "variation needs an argument";
+        throw 'variation needs an argument';
       }
       if (ColorScheme.PRESETS[v] == null) {
         throw "'$v' isn't a valid variation name";
@@ -451,7 +455,7 @@ const ColorScheme = (function() {
       return this;
     };
 
-    ColorScheme.prototype._set_variant_preset = function(p) {
+    ColorScheme.prototype._set_variant_preset = function (p) {
       var i, m, results;
       results = [];
       for (i = m = 0; m <= 3; i = ++m) {
@@ -460,9 +464,9 @@ const ColorScheme = (function() {
       return results;
     };
 
-    clone = function(obj) {
+    clone = function (obj) {
       var flags, key, newInstance;
-      if ((obj == null) || typeof obj !== 'object') {
+      if (obj == null || typeof obj !== 'object') {
         return obj;
       }
       if (obj instanceof Date) {
@@ -491,7 +495,7 @@ const ColorScheme = (function() {
       return newInstance;
     };
 
-    ColorScheme.mutablecolor = (function() {
+    ColorScheme.mutablecolor = (function () {
       mutablecolor.prototype.hue = 0;
 
       mutablecolor.prototype.saturation = [];
@@ -508,7 +512,7 @@ const ColorScheme = (function() {
 
       function mutablecolor(hue) {
         if (hue == null) {
-          throw "No hue specified";
+          throw 'No hue specified';
         }
         this.saturation = [];
         this.value = [];
@@ -521,17 +525,26 @@ const ColorScheme = (function() {
         this.set_variant_preset(ColorScheme.PRESETS['default']);
       }
 
-      mutablecolor.prototype.get_hue = function() {
+      mutablecolor.prototype.get_hue = function () {
         return this.hue;
       };
 
-      mutablecolor.prototype.set_hue = function(h) {
-        var avrg, color, colorset1, colorset2, d, derivative1, derivative2, en, i, k;
-        avrg = function(a, b, k) {
+      mutablecolor.prototype.set_hue = function (h) {
+        var avrg,
+          color,
+          colorset1,
+          colorset2,
+          d,
+          derivative1,
+          derivative2,
+          en,
+          i,
+          k;
+        avrg = function (a, b, k) {
           return a + Math.round((b - a) * k);
         };
         this.hue = Math.round(h % 360);
-        d = this.hue % 15 + (this.hue - Math.floor(this.hue));
+        d = (this.hue % 15) + (this.hue - Math.floor(this.hue));
         k = d / 15;
         derivative1 = this.hue - Math.floor(d);
         derivative2 = (derivative1 + 15) % 360;
@@ -547,23 +560,23 @@ const ColorScheme = (function() {
           red: 0,
           green: 1,
           blue: 2,
-          value: 3
+          value: 3,
         };
         for (color in en) {
           i = en[color];
-          this["base_" + color] = avrg(colorset1[i], colorset2[i], k);
+          this['base_' + color] = avrg(colorset1[i], colorset2[i], k);
         }
         this.base_saturation = avrg(100, 100, k) / 100;
-        return this.base_value /= 100;
+        return (this.base_value /= 100);
       };
 
-      mutablecolor.prototype.rotate = function(angle) {
+      mutablecolor.prototype.rotate = function (angle) {
         var newhue;
         newhue = (this.hue + angle) % 360;
         return this.set_hue(newhue);
       };
 
-      mutablecolor.prototype.get_saturation = function(variation) {
+      mutablecolor.prototype.get_saturation = function (variation) {
         var s, x;
         x = this.saturation[variation];
         s = x < 0 ? -x * this.base_saturation : x;
@@ -576,7 +589,7 @@ const ColorScheme = (function() {
         return s;
       };
 
-      mutablecolor.prototype.get_value = function(variation) {
+      mutablecolor.prototype.get_value = function (variation) {
         var v, x;
         x = this.value[variation];
         v = x < 0 ? -x * this.base_value : x;
@@ -589,12 +602,12 @@ const ColorScheme = (function() {
         return v;
       };
 
-      mutablecolor.prototype.set_variant = function(variation, s, v) {
+      mutablecolor.prototype.set_variant = function (variation, s, v) {
         this.saturation[variation] = s;
-        return this.value[variation] = v;
+        return (this.value[variation] = v);
       };
 
-      mutablecolor.prototype.set_variant_preset = function(p) {
+      mutablecolor.prototype.set_variant_preset = function (p) {
         var i, m, results;
         results = [];
         for (i = m = 0; m <= 3; i = ++m) {
@@ -603,40 +616,66 @@ const ColorScheme = (function() {
         return results;
       };
 
-      mutablecolor.prototype.get_hex = function(web_safe, variation) {
-        var c, color, formatted, i, k, len1, len2, m, max, min, n, ref1, rgb, rgbVal, s, str, v;
-        max = Math.max.apply(Math, (function() {
-          var len1, m, ref1, results;
-          ref1 = ['red', 'green', 'blue'];
-          results = [];
-          for (m = 0, len1 = ref1.length; m < len1; m++) {
-            color = ref1[m];
-            results.push(this["base_" + color]);
-          }
-          return results;
-        }).call(this));
-        min = Math.min.apply(Math, (function() {
-          var len1, m, ref1, results;
-          ref1 = ['red', 'green', 'blue'];
-          results = [];
-          for (m = 0, len1 = ref1.length; m < len1; m++) {
-            color = ref1[m];
-            results.push(this["base_" + color]);
-          }
-          return results;
-        }).call(this));
+      mutablecolor.prototype.get_hex = function (web_safe, variation) {
+        var c,
+          color,
+          formatted,
+          i,
+          k,
+          len1,
+          len2,
+          m,
+          max,
+          min,
+          n,
+          ref1,
+          rgb,
+          rgbVal,
+          s,
+          str,
+          v;
+        max = Math.max.apply(
+          Math,
+          function () {
+            var len1, m, ref1, results;
+            ref1 = ['red', 'green', 'blue'];
+            results = [];
+            for (m = 0, len1 = ref1.length; m < len1; m++) {
+              color = ref1[m];
+              results.push(this['base_' + color]);
+            }
+            return results;
+          }.call(this),
+        );
+        min = Math.min.apply(
+          Math,
+          function () {
+            var len1, m, ref1, results;
+            ref1 = ['red', 'green', 'blue'];
+            results = [];
+            for (m = 0, len1 = ref1.length; m < len1; m++) {
+              color = ref1[m];
+              results.push(this['base_' + color]);
+            }
+            return results;
+          }.call(this),
+        );
         v = (variation < 0 ? this.base_value : this.get_value(variation)) * 255;
-        s = variation < 0 ? this.base_saturation : this.get_saturation(variation);
+        s =
+          variation < 0 ? this.base_saturation : this.get_saturation(variation);
         k = max > 0 ? v / max : 0;
         rgb = [];
         ref1 = ['red', 'green', 'blue'];
         for (m = 0, len1 = ref1.length; m < len1; m++) {
           color = ref1[m];
-          rgbVal = Math.min.apply(Math, [255, Math.round(v - (v - this["base_" + color] * k) * s)]);
+          rgbVal = Math.min.apply(Math, [
+            255,
+            Math.round(v - (v - this['base_' + color] * k) * s),
+          ]);
           rgb.push(rgbVal);
         }
         if (web_safe) {
-          rgb = (function() {
+          rgb = (function () {
             var len2, n, results;
             results = [];
             for (n = 0, len2 = rgb.length; n < len2; n++) {
@@ -646,12 +685,12 @@ const ColorScheme = (function() {
             return results;
           })();
         }
-        formatted = "";
+        formatted = '';
         for (n = 0, len2 = rgb.length; n < len2; n++) {
           i = rgb[n];
           str = i.toString(16);
           if (str.length < 2) {
-            str = "0" + str;
+            str = '0' + str;
           }
           formatted += str;
         }
@@ -659,11 +698,9 @@ const ColorScheme = (function() {
       };
 
       return mutablecolor;
-
     })();
 
     return ColorScheme;
-
   })();
 
   /* if ((typeof module !== "undefined" && module !== null) && (module.exports != null)) {
@@ -677,10 +714,9 @@ const ColorScheme = (function() {
       window.ColorScheme = ColorScheme;
     }
   } */
-  
-  return ColorScheme;
 
-}).call(this);
+  return ColorScheme;
+}.call(this);
 
 const colorScheme = new ColorScheme();
 export default colorScheme;

@@ -55,15 +55,13 @@ class DomItem extends THREE.Object3D {
 
     const p = position;
     const q = quaternion;
-    const hs = new THREE.Vector3(punchoutMesh.worldWidth, punchoutMesh.worldHeight, 0.01)
-      .multiplyScalar(0.5);
+    const hs = new THREE.Vector3(
+      punchoutMesh.worldWidth,
+      punchoutMesh.worldHeight,
+      0.01,
+    ).multiplyScalar(0.5);
     const dynamic = false;
-    const physicsObject = physicsScene.addBoxGeometry(
-      p,
-      q,
-      hs,
-      dynamic,
-    );
+    const physicsObject = physicsScene.addBoxGeometry(p, q, hs, dynamic);
     physicsScene.disableActor(physicsObject);
     physicsScene.disableGeometryQueries(physicsObject);
     this.physicsObject = physicsObject;
@@ -85,7 +83,10 @@ class DomItem extends THREE.Object3D {
   update(timestamp) {
     if (this.animation) {
       const {startTime, endTime, startValue, endValue} = this.animation;
-      let factor = Math.min(Math.max((timestamp - startTime) / (endTime - startTime), 0), 1);
+      let factor = Math.min(
+        Math.max((timestamp - startTime) / (endTime - startTime), 0),
+        1,
+      );
       factor = cubicBezier(factor);
       if (factor < 1) {
         this.value = startValue + (endValue - startValue) * factor;
@@ -99,7 +100,7 @@ class DomItem extends THREE.Object3D {
 
     if (this.value > 0) {
       const w = this.value;
-      const shiftOffset = (1 - w) * this.worldWidth / 2;
+      const shiftOffset = ((1 - w) * this.worldWidth) / 2;
       this.innerNode.position.x = -shiftOffset;
       this.innerNode.scale.set(w, 1, 1);
       this.innerNode.updateMatrixWorld();
@@ -110,8 +111,12 @@ class DomItem extends THREE.Object3D {
       this.punchoutMesh.material.uniforms.opacity.value = 1 - this.value;
       this.punchoutMesh.material.uniforms.opacity.needsUpdate = true;
 
-      this.physicsObject.position.setFromMatrixPosition(this.innerNode.matrixWorld);
-      this.physicsObject.quaternion.setFromRotationMatrix(this.innerNode.matrixWorld);
+      this.physicsObject.position.setFromMatrixPosition(
+        this.innerNode.matrixWorld,
+      );
+      this.physicsObject.quaternion.setFromRotationMatrix(
+        this.innerNode.matrixWorld,
+      );
       this.physicsObject.updateMatrixWorld();
       physicsScene.setTransform(this.physicsObject);
 
@@ -142,10 +147,7 @@ class DomItem extends THREE.Object3D {
 }
 
 class BackgroundMesh extends THREE.Mesh {
-  constructor({
-    width,
-    height,
-  }) {
+  constructor({width, height}) {
     const scaleFactor = DomRenderEngine.getScaleFactor(width, height);
     const worldWidth = width * scaleFactor;
     const worldHeight = height * scaleFactor;
@@ -182,10 +184,7 @@ class BackgroundMesh extends THREE.Mesh {
 }
 
 class PunchoutMesh extends THREE.Mesh {
-  constructor({
-    width,
-    height,
-  }) {
+  constructor({width, height}) {
     const scaleFactor = DomRenderEngine.getScaleFactor(width, height);
     const worldWidth = width * scaleFactor;
     const worldHeight = height * scaleFactor;
@@ -246,9 +245,17 @@ export class DomRenderEngine extends EventTarget {
     width = 600,
     height = 400,
     worldWidth = 1,
-    render = () => (<div />),
+    render = () => <div />,
   }) {
-    const dom = new DomItem(position, quaternion, scale, width, height, worldWidth, render);
+    const dom = new DomItem(
+      position,
+      quaternion,
+      scale,
+      width,
+      height,
+      worldWidth,
+      render,
+    );
     this.doms.push(dom);
     this.physicsObjects.push(dom.physicsObject);
 

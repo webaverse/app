@@ -14,15 +14,15 @@ const fakeMaterial = new THREE.MeshBasicMaterial({
 let loaded = false;
 let running = false;
 const queue = [];
-const _handleMethod = ({
-  method,
-  args,
-}) => {
+const _handleMethod = ({method, args}) => {
   switch (method) {
     case 'cookGeometry': {
       const {positions, indices} = args;
       const geometry = new THREE.BufferGeometry();
-      geometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
+      geometry.setAttribute(
+        'position',
+        new THREE.BufferAttribute(positions, 3),
+      );
       geometry.setIndex(new THREE.BufferAttribute(indices, 1));
       const mesh = new THREE.Mesh(geometry, fakeMaterial);
       const result = physxLite.cookGeometryPhysics(mesh);
@@ -34,7 +34,10 @@ const _handleMethod = ({
     case 'cookConvexGeometry': {
       const {positions, indices} = args;
       const geometry = new THREE.BufferGeometry();
-      geometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
+      geometry.setAttribute(
+        'position',
+        new THREE.BufferAttribute(positions, 3),
+      );
       geometry.setIndex(new THREE.BufferAttribute(indices, 1));
       const mesh = new THREE.Mesh(geometry, fakeMaterial);
       const result = physxLite.cookConvexGeometryPhysics(mesh);
@@ -46,7 +49,10 @@ const _handleMethod = ({
     case 'meshoptSimplify': {
       const {positions, /* uvs, */ indices, targetRatio, targetError} = args;
       const geometry = new THREE.BufferGeometry();
-      geometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
+      geometry.setAttribute(
+        'position',
+        new THREE.BufferAttribute(positions, 3),
+      );
       // geometry.setAttribute('uv', new THREE.BufferAttribute(uvs, 2));
       geometry.setIndex(new THREE.BufferAttribute(indices, 1));
       const mesh = new THREE.Mesh(geometry, fakeMaterial);
@@ -59,11 +65,18 @@ const _handleMethod = ({
     case 'meshoptSimplifySloppy': {
       const {positions, /* uvs, */ indices, targetRatio, targetError} = args;
       const geometry = new THREE.BufferGeometry();
-      geometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
+      geometry.setAttribute(
+        'position',
+        new THREE.BufferAttribute(positions, 3),
+      );
       // geometry.setAttribute('uv', new THREE.BufferAttribute(uvs, 2));
       geometry.setIndex(new THREE.BufferAttribute(indices, 1));
       const mesh = new THREE.Mesh(geometry, fakeMaterial);
-      const result = physxLite.meshoptSimplifySloppy(mesh, targetRatio, targetError);
+      const result = physxLite.meshoptSimplifySloppy(
+        mesh,
+        targetRatio,
+        targetError,
+      );
       return {
         result,
         transfers: [result.buffer],
@@ -76,10 +89,7 @@ const _handleMethod = ({
 };
 const _handleMessage = async e => {
   if (loaded && !running) {
-    const {
-      data,
-      port,
-    } = e;
+    const {data, port} = e;
 
     {
       running = true;
@@ -94,19 +104,25 @@ const _handleMessage = async e => {
       }
 
       if (requestId) {
-        p.then(spec => {
-          const {result = null, transfers = []} = spec ?? {};
-          port.postMessage({
-            method: 'response',
-            requestId,
-            result,
-          }, transfers);
-        }, err => {
-          port.postMessage({
-            requestId,
-            error: err.message,
-          });
-        });
+        p.then(
+          spec => {
+            const {result = null, transfers = []} = spec ?? {};
+            port.postMessage(
+              {
+                method: 'response',
+                requestId,
+                result,
+              },
+              transfers,
+            );
+          },
+          err => {
+            port.postMessage({
+              requestId,
+              error: err.message,
+            });
+          },
+        );
       }
 
       running = false;

@@ -33,7 +33,12 @@ export default class TransformGizmo extends Object3D {
     }
 
     const gltf = await new Promise((accept, reject) => {
-      gltfLoader.load(transformGizmoUrl, accept, function onprogress() {}, reject);
+      gltfLoader.load(
+        transformGizmoUrl,
+        accept,
+        function onprogress() {},
+        reject,
+      );
     });
 
     gizmoGltf = gltf;
@@ -47,7 +52,9 @@ export default class TransformGizmo extends Object3D {
     this.name = 'TransformGizmo';
 
     if (!gizmoGltf) {
-      throw new Error('TransformGizmo must be loaded before it can be used. Await TransformGizmo.load()');
+      throw new Error(
+        'TransformGizmo must be loaded before it can be used. Await TransformGizmo.load()',
+      );
     }
 
     this.model = cloneObject3D(gizmoGltf.scene);
@@ -58,37 +65,43 @@ export default class TransformGizmo extends Object3D {
     this.raycasterResults = [];
 
     this.translateControls = this.model.getObjectByName('TranslateControls');
-    this.translateXAxis = this.translateControls.getObjectByName('TranslateXAxis');
+    this.translateXAxis =
+      this.translateControls.getObjectByName('TranslateXAxis');
     this.translateXAxis.axisInfo = {
       axis: TransformAxis.X,
       planeNormal: new Vector3(0, 1, 0),
       selectionColorTarget: this.translateXAxis.material,
     };
-    this.translateYAxis = this.translateControls.getObjectByName('TranslateYAxis');
+    this.translateYAxis =
+      this.translateControls.getObjectByName('TranslateYAxis');
     this.translateYAxis.axisInfo = {
       axis: TransformAxis.Y,
       planeNormal: new Vector3(0, 0, 1),
       selectionColorTarget: this.translateYAxis.material,
     };
-    this.translateZAxis = this.translateControls.getObjectByName('TranslateZAxis');
+    this.translateZAxis =
+      this.translateControls.getObjectByName('TranslateZAxis');
     this.translateZAxis.axisInfo = {
       axis: TransformAxis.Z,
       planeNormal: new Vector3(0, 1, 0),
       selectionColorTarget: this.translateZAxis.material,
     };
-    this.translateXYPlane = this.translateControls.getObjectByName('TranslateXYPlane');
+    this.translateXYPlane =
+      this.translateControls.getObjectByName('TranslateXYPlane');
     this.translateXYPlane.axisInfo = {
       axis: TransformAxis.XY,
       planeNormal: new Vector3(0, 0, 1),
       selectionColorTarget: this.translateXYPlane.material,
     };
-    this.translateYZPlane = this.translateControls.getObjectByName('TranslateYZPlane');
+    this.translateYZPlane =
+      this.translateControls.getObjectByName('TranslateYZPlane');
     this.translateYZPlane.axisInfo = {
       axis: TransformAxis.YZ,
       planeNormal: new Vector3(1, 0, 0),
       selectionColorTarget: this.translateYZPlane.material,
     };
-    this.translateXZPlane = this.translateControls.getObjectByName('TranslateXZPlane');
+    this.translateXZPlane =
+      this.translateControls.getObjectByName('TranslateXZPlane');
     this.translateXZPlane.axisInfo = {
       axis: TransformAxis.XZ,
       planeNormal: new Vector3(0, 1, 0),
@@ -98,7 +111,8 @@ export default class TransformGizmo extends Object3D {
     this.rotateControls = this.model.getObjectByName('RotateControls');
     this.rotateXAxis = this.rotateControls.getObjectByName('RotateXAxis');
     const rotateXAxisDisk = this.rotateXAxis.getObjectByName('RotateXAxisDisk');
-    const rotateXAxisStart = this.rotateXAxis.getObjectByName('RotateXAxisStart');
+    const rotateXAxisStart =
+      this.rotateXAxis.getObjectByName('RotateXAxisStart');
     const rotateXAxisEnd = this.rotateXAxis.getObjectByName('RotateXAxisEnd');
     const localRotateXAxisStart = rotateXAxisStart.clone();
     rotateXAxisDisk.axisInfo = {
@@ -112,7 +126,8 @@ export default class TransformGizmo extends Object3D {
     };
     this.rotateYAxis = this.rotateControls.getObjectByName('RotateYAxis');
     const rotateYAxisDisk = this.rotateYAxis.getObjectByName('RotateYAxisDisk');
-    const rotateYAxisStart = this.rotateYAxis.getObjectByName('RotateYAxisStart');
+    const rotateYAxisStart =
+      this.rotateYAxis.getObjectByName('RotateYAxisStart');
     const rotateYAxisEnd = this.rotateYAxis.getObjectByName('RotateYAxisEnd');
     const localRotateYAxisStart = rotateYAxisStart.clone();
     rotateYAxisDisk.axisInfo = {
@@ -126,7 +141,8 @@ export default class TransformGizmo extends Object3D {
     };
     this.rotateZAxis = this.rotateControls.getObjectByName('RotateZAxis');
     const rotateZAxisDisk = this.rotateZAxis.getObjectByName('RotateZAxisDisk');
-    const rotateZAxisStart = this.rotateZAxis.getObjectByName('RotateZAxisStart');
+    const rotateZAxisStart =
+      this.rotateZAxis.getObjectByName('RotateZAxisStart');
     const rotateZAxisEnd = this.rotateZAxis.getObjectByName('RotateZAxisEnd');
     const localRotateZAxisStart = rotateZAxisStart.clone();
     rotateZAxisDisk.axisInfo = {
@@ -176,7 +192,8 @@ export default class TransformGizmo extends Object3D {
       planeNormal: new Vector3(0, 1, 0),
       selectionColorTarget: this.scaleXZPlane.material,
     };
-    this.scaleUniformHandle = this.scaleControls.getObjectByName('ScaleUniformHandle');
+    this.scaleUniformHandle =
+      this.scaleControls.getObjectByName('ScaleUniformHandle');
     this.scaleUniformHandle.axisInfo = {
       axis: TransformAxis.XYZ,
       planeNormal: new Vector3(0, 1, 0),
@@ -251,7 +268,9 @@ export default class TransformGizmo extends Object3D {
     this.raycasterResults.length = 0;
     raycaster.intersectObject(this.activeControls, true, this.raycasterResults);
 
-    const axisResult = this.raycasterResults.find(result => result.object.axisInfo !== undefined);
+    const axisResult = this.raycasterResults.find(
+      result => result.object.axisInfo !== undefined,
+    );
 
     if (!axisResult) {
       return undefined;
@@ -287,7 +306,9 @@ export default class TransformGizmo extends Object3D {
     this.raycasterResults.length = 0;
     raycaster.intersectObject(this.activeControls, true, this.raycasterResults);
 
-    const axisResult = this.raycasterResults.find(result => result.object.axisInfo !== undefined);
+    const axisResult = this.raycasterResults.find(
+      result => result.object.axisInfo !== undefined,
+    );
 
     if (!axisResult) {
       return undefined;

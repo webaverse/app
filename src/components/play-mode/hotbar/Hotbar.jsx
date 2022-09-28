@@ -6,7 +6,10 @@ import {HotBox} from '../hotbox/HotBox.jsx';
 
 import game from '../../../../game.js';
 import loadoutManager from '../../../../loadout-manager.js';
-import {registerIoEventHandler, unregisterIoEventHandler} from '../../general/io-handler/IoHandler.jsx';
+import {
+  registerIoEventHandler,
+  unregisterIoEventHandler,
+} from '../../general/io-handler/IoHandler.jsx';
 import {hotbarSize, numLoadoutSlots} from '../../../../constants.js';
 
 export const Hotbar = ({className}) => {
@@ -18,11 +21,13 @@ export const Hotbar = ({className}) => {
       const keydown = e => {
         if (!e.ctrlKey) {
           switch (e.which) {
-            case 82: { // R
+            case 82: {
+              // R
               game.dropSelectedApp();
               return false;
             }
-            case 46: { // delete
+            case 46: {
+              // delete
               game.deleteSelectedApp();
               return false;
             }
@@ -59,32 +64,32 @@ export const Hotbar = ({className}) => {
   };
 
   return (
-        <div
-            className={ classnames(className, styles.hotbar, open ? styles.open : null) }
-            onClick={onTopClick}
-        >
+    <div
+      className={classnames(
+        className,
+        styles.hotbar,
+        open ? styles.open : null,
+      )}
+      onClick={onTopClick}
+    >
+      {(() => {
+        const items = Array(numLoadoutSlots);
 
-            {
-                (() => {
-                  const items = Array(numLoadoutSlots);
+        for (let i = 0; i < numLoadoutSlots; i++) {
+          items[i] = (
+            <HotBox
+              size={hotbarSize}
+              onDragOver={onDragOver(i)}
+              onDrop={onDrop(i)}
+              onClick={onBottomClick(i)}
+              index={i}
+              key={i}
+            />
+          );
+        }
 
-                  for (let i = 0; i < numLoadoutSlots; i++) {
-                    items[i] = (
-                            <HotBox
-                              size={hotbarSize}
-                              onDragOver={onDragOver(i)}
-                              onDrop={onDrop(i)}
-                              onClick={onBottomClick(i)}
-                              index={i}
-                              key={i}
-                            />
-                    );
-                  }
-
-                  return items;
-                })()
-            }
-
-        </div>
+        return items;
+      })()}
+    </div>
   );
 };

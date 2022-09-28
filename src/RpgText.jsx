@@ -30,5 +30,11 @@ export const RpgText = ({
     }
   }, [text, progressText, lastText]);
 
-  return <div className={classnames(className, text.length > 0 ? styles.open : null)}>{progressText}</div>;
+  return (
+    <div
+      className={classnames(className, text.length > 0 ? styles.open : null)}
+    >
+      {progressText}
+    </div>
+  );
 };

@@ -13,7 +13,10 @@ export const Claims = ({claims, open, toggleOpen, panelsRef}) => {
       className="skew"
       label={
         <div className={styles.label}>
-          <img src="images/webpencil.svg" className={classnames(styles.background, styles.blue)} />
+          <img
+            src="images/webpencil.svg"
+            className={classnames(styles.background, styles.blue)}
+          />
           <span className={styles.text}>品 Claims ({claims.length})</span>
         </div>
       }
@@ -25,9 +28,7 @@ export const Claims = ({claims, open, toggleOpen, panelsRef}) => {
           </div>
         </div>
       }
-      before={
-        <div className={styles.slide} />
-      }
+      before={<div className={styles.slide} />}
       open={open}
       toggleOpen={toggleOpen}
       panelsRef={panelsRef}

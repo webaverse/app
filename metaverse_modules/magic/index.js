@@ -81,7 +81,9 @@ void main() {
   float distance = distance1 * (1.0 - factor) + distance2 * factor;
   p.xz *= distance / distance1;
   
-  float distanceFactor = (distance - ${(minRadius).toFixed(8)}) / ${(maxRadius - minRadius).toFixed(8)};
+  float distanceFactor = (distance - ${minRadius.toFixed(8)}) / ${(
+  maxRadius - minRadius
+).toFixed(8)};
   vDistance = sin(distanceFactor * PI);
   p.y *= vDistance;
 

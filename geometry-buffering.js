@@ -18,7 +18,9 @@ export class GeometryPositionIndexBinding {
   }
 
   getAttributeOffset(name = 'position') {
-    return this.positionFreeListEntry / 3 * this.geometry.attributes[name].itemSize;
+    return (
+      (this.positionFreeListEntry / 3) * this.geometry.attributes[name].itemSize
+    );
   }
 
   getIndexOffset() {
@@ -27,13 +29,7 @@ export class GeometryPositionIndexBinding {
 }
 
 export class GeometryAllocator {
-  constructor(
-    attributeSpecs,
-    {
-      bufferSize,
-      boundingType = null,
-    },
-  ) {
+  constructor(attributeSpecs, {bufferSize, boundingType = null}) {
     {
       this.geometry = new THREE.BufferGeometry();
       for (const attributeSpec of attributeSpecs) {
@@ -78,11 +74,7 @@ export class GeometryAllocator {
     this.numDraws = 0;
   }
 
-  alloc(
-    numPositions,
-    numIndices,
-    boundingObject,
-  ) {
+  alloc(numPositions, numIndices, boundingObject) {
     const positionFreeListEntry = this.positionFreeList.alloc(numPositions);
     const indexFreeListEntry = this.indexFreeList.alloc(numIndices);
     const geometryBinding = new GeometryPositionIndexBinding(
@@ -150,7 +142,7 @@ export class GeometryAllocator {
     this.indexFreeList.free(geometryBinding.indexFreeListEntry);
   }
 
-  getDrawSpec(camera, drawStarts, drawCounts/*, distanceArray */) {
+  getDrawSpec(camera, drawStarts, drawCounts /*, distanceArray */) {
     drawStarts.length = 0;
     drawCounts.length = 0;
     // distanceArray.length = 0;
@@ -185,6 +177,10 @@ export class BufferedMesh extends THREE.Mesh {
   }
 
   getDrawSpec(camera, drawStarts, drawCounts) {
-    this.allocator.getDrawSpec(camera, drawStarts, drawCounts/*, this.distanceArray */);
+    this.allocator.getDrawSpec(
+      camera,
+      drawStarts,
+      drawCounts /*, this.distanceArray */,
+    );
   }
 }

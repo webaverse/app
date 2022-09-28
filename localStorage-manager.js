@@ -7,13 +7,21 @@
 
 let _storage = {};
 
-const setItem = (key, value) => { _storage[key] = String(value); };
+const setItem = (key, value) => {
+  _storage[key] = String(value);
+};
 
-const getItem = key => (Object.prototype.hasOwnProperty.call(_storage, key)) ? _storage[key] : null;
+const getItem = key =>
+  Object.prototype.hasOwnProperty.call(_storage, key) ? _storage[key] : null;
 
-const removeItem = key => Object.prototype.hasOwnProperty.call(_storage, key) ? delete _storage[key] && undefined : undefined;
+const removeItem = key =>
+  Object.prototype.hasOwnProperty.call(_storage, key)
+    ? delete _storage[key] && undefined
+    : undefined;
 
-const clear = () => { _storage = {}; };
+const clear = () => {
+  _storage = {};
+};
 
 const _isSupported = () => {
   try {

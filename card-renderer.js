@@ -21,18 +21,20 @@ const _waitForSvgLoad = () => {
   return svgLoadPromise;
 };
 
-const _loadFonts = () => Promise.all([
-  'FuturaLT-Condensed',
-  'GillSans-CondensedBold',
-  'FuturaStd-Heavy',
-  'PlazaITC-Normal',
-  'MS-Gothic',
-  'GillSans',
-  'GillSans-ExtraBoldDisplay',
-  'FuturaLT-CondensedBold',
-  'SanvitoPro-Regular',
-].map(fontFamily => document.fonts.load(`16px "${fontFamily}"`)))
-  .catch(err => {
+const _loadFonts = () =>
+  Promise.all(
+    [
+      'FuturaLT-Condensed',
+      'GillSans-CondensedBold',
+      'FuturaStd-Heavy',
+      'PlazaITC-Normal',
+      'MS-Gothic',
+      'GillSans',
+      'GillSans-ExtraBoldDisplay',
+      'FuturaLT-CondensedBold',
+      'SanvitoPro-Regular',
+    ].map(fontFamily => document.fonts.load(`16px "${fontFamily}"`)),
+  ).catch(err => {
     console.warn(err);
   });
 let fontsLoadPromise = null;
@@ -43,19 +45,21 @@ const _waitForFontsLoad = () => {
   return fontsLoadPromise;
 };
 
-const _getCanvasBlob = canvas => new Promise((resolve, reject) => {
-  canvas.toBlob(blob => {
-    resolve(blob);
+const _getCanvasBlob = canvas =>
+  new Promise((resolve, reject) => {
+    canvas.toBlob(blob => {
+      resolve(blob);
+    });
   });
-});
-const _getBlobDataUrl = async blob => new Promise((resolve, reject) => {
-  const fileReader = new FileReader();
-  fileReader.onload = () => {
-    resolve(fileReader.result);
-  };
-  fileReader.onerror = reject;
-  fileReader.readAsDataURL(blob);
-});
+const _getBlobDataUrl = async blob =>
+  new Promise((resolve, reject) => {
+    const fileReader = new FileReader();
+    fileReader.onload = () => {
+      resolve(fileReader.result);
+    };
+    fileReader.onerror = reject;
+    fileReader.readAsDataURL(blob);
+  });
 const _getCanvasDataUrl = async canvas => {
   const blob = await _getCanvasBlob(canvas);
   const url = await _getBlobDataUrl(blob);
@@ -101,21 +105,13 @@ export const generateObjectCard = async ({
   flipY = false,
 }) => {
   const stats = generateStats(app.contentId);
-  const {
-    name,
-    description,
-    contentId,
-    appType,
-  } = app;
+  const {name, description, contentId, appType} = app;
   const url = contentId;
   const type = appType;
 
-  const defaultCharacterSpec = await characterSelectManager.getDefaultSpecAsync();
-  const [
-    objectImage,
-    minterAvatarPreview,
-    glyphImage,
-  ] = await Promise.all([
+  const defaultCharacterSpec =
+    await characterSelectManager.getDefaultSpecAsync();
+  const [objectImage, minterAvatarPreview, glyphImage] = await Promise.all([
     (async () => {
       let objectImage = await screenshotObjectApp({
         app,
@@ -172,7 +168,7 @@ export const generateCard = async ({
   const cardSvgSource = await _waitForSvgLoad();
   await _waitForFontsLoad();
 
-  const cardHeight = cardWidth / 2.5 * 3.5;
+  const cardHeight = (cardWidth / 2.5) * 3.5;
 
   const svg = document.createElement('svg');
   svg.setAttribute('xmlns', 'http://www.w3.org/2000/svg');
@@ -209,20 +205,12 @@ export const generateCard = async ({
     }
 
     // stat values
-    [
-      'level',
-      'hp',
-      'mp',
-      'atk',
-      'def',
-      'mag',
-      'spr',
-      'dex',
-      'lck',
-    ].forEach(statName => {
-      const statEl = el.querySelector('#' + statName + '-value');
-      statEl.innerHTML = escape(spec.stats[statName] + '');
-    });
+    ['level', 'hp', 'mp', 'atk', 'def', 'mag', 'spr', 'dex', 'lck'].forEach(
+      statName => {
+        const statEl = el.querySelector('#' + statName + '-value');
+        statEl.innerHTML = escape(spec.stats[statName] + '');
+      },
+    );
 
     // main image
     {

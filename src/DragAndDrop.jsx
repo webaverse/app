@@ -4,7 +4,10 @@ import classnames from 'classnames';
 import style from './DragAndDrop.module.css';
 import {world} from '../world.js';
 import {getRandomString, handleUpload} from '../util.js';
-import {registerIoEventHandler, unregisterIoEventHandler} from './components/general/io-handler/IoHandler.jsx';
+import {
+  registerIoEventHandler,
+  unregisterIoEventHandler,
+} from './components/general/io-handler/IoHandler.jsx';
 import {registerLoad} from './LoadingBox.jsx';
 import {ObjectPreview} from './ObjectPreview.jsx';
 import game from '../game.js';
@@ -13,25 +16,24 @@ import cameraManager from '../camera-manager.js';
 import metaversefile from 'metaversefile';
 import {AppContext} from './components/app';
 
-const _upload = () => new Promise((accept, reject) => {
-  const input = document.createElement('input');
-  input.type = 'file';
-  // input.setAttribute('webkitdirectory', '');
-  // input.setAttribute('directory', '');
-  input.setAttribute('multiple', '');
-  input.click();
-  input.addEventListener('change', async e => {
-    // const name = 'Loading';
-    // const description = e.target.files ? e.target.files[0].name : `${e.target.files.length} files`;
-    // const load = registerLoad(name, description, 0);
-    const o = await uploadCreateApp(e.target.files);
-    // load.end();
+const _upload = () =>
+  new Promise((accept, reject) => {
+    const input = document.createElement('input');
+    input.type = 'file';
+    // input.setAttribute('webkitdirectory', '');
+    // input.setAttribute('directory', '');
+    input.setAttribute('multiple', '');
+    input.click();
+    input.addEventListener('change', async e => {
+      // const name = 'Loading';
+      // const description = e.target.files ? e.target.files[0].name : `${e.target.files.length} files`;
+      // const load = registerLoad(name, description, 0);
+      const o = await uploadCreateApp(e.target.files);
+      // load.end();
+    });
   });
-});
 const _isJsonItem = item => item?.kind === 'string';
-const uploadCreateApp = async (item, {
-  drop = false,
-}) => {
+const uploadCreateApp = async (item, {drop = false}) => {
   let u;
   {
     let load = null;
@@ -94,7 +96,8 @@ const DragAndDrop = () => {
       if (game.inputFocused()) return true;
 
       switch (e.which) {
-        case 79: { // O
+        case 79: {
+          // O
           (async () => {
             const app = await _upload();
             setQueue(queue.concat([app]));
@@ -102,7 +105,8 @@ const DragAndDrop = () => {
 
           return false;
         }
-        case 27: { // esc
+        case 27: {
+          // esc
           setCurrentApp(null);
 
           return false;
@@ -148,20 +152,22 @@ const DragAndDrop = () => {
         const quaternion = camera.quaternion.clone(); */
 
         const items = Array.from(e.dataTransfer.items);
-        await Promise.all(items.map(async item => {
-          const drop = _isJsonItem(item);
-          const app = await uploadCreateApp(item, {
-            drop,
-          });
-          if (app) {
-            if (drop) {
-              world.appManager.importApp(app);
-              setState({openedPanel: null});
-            } else {
-              setQueue(queue.concat([app]));
+        await Promise.all(
+          items.map(async item => {
+            const drop = _isJsonItem(item);
+            const app = await uploadCreateApp(item, {
+              drop,
+            });
+            if (app) {
+              if (drop) {
+                world.appManager.importApp(app);
+                setState({openedPanel: null});
+              } else {
+                setQueue(queue.concat([app]));
+              }
             }
-          }
-        }));
+          }),
+        );
 
         /* let arrowLoader = metaverseUi.makeArrowLoader();
         arrowLoader.position.copy(position);
@@ -202,7 +208,8 @@ const DragAndDrop = () => {
   };
   const _importApp = app => {
     const localPlayer = metaversefile.useLocalPlayer();
-    const position = localPlayer.position.clone()
+    const position = localPlayer.position
+      .clone()
       .add(new THREE.Vector3(0, 0, -2).applyQuaternion(localPlayer.quaternion));
     const quaternion = localPlayer.quaternion;
 
@@ -250,7 +257,10 @@ const DragAndDrop = () => {
 
   return (
     <div className={style.dragAndDrop}>
-      <div className={classnames(style.currentApp, currentApp ? style.open : null)} onClick={_currentAppClick}>
+      <div
+        className={classnames(style.currentApp, currentApp ? style.open : null)}
+        onClick={_currentAppClick}
+      >
         <h1 className={style.heading}>Upload object</h1>
         <div className={style.body}>
           <ObjectPreview object={currentApp} className={style.canvas} />
@@ -281,7 +291,10 @@ const DragAndDrop = () => {
             </div>
           </div>
           <div className={style.buttons}>
-            <div className={classnames(style.button, style.small)} onClick={_cancel}>
+            <div
+              className={classnames(style.button, style.small)}
+              onClick={_cancel}
+            >
               <span>Cancel</span>
               <sub>back to game</sub>
             </div>
@@ -291,6 +304,4 @@ const DragAndDrop = () => {
     </div>
   );
 };
-export {
-  DragAndDrop,
-};
+export {DragAndDrop};

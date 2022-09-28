@@ -664,7 +664,9 @@ const damageFragmentShader = `\
   }
 
   void main() {
-    vec3 diffuseColor2 = vec3(${new THREE.Color(0xef5350).toArray().join(', ')});
+    vec3 diffuseColor2 = vec3(${new THREE.Color(0xef5350)
+      .toArray()
+      .join(', ')});
     float normalRepeat = 1.0;
 
     vec3 blending = getTriPlanarBlend(vNormal);
@@ -1029,7 +1031,9 @@ const portalMaterial = new THREE.ShaderMaterial({
     }
 
     void main() {
-      // vec3 diffuseColor2 = vec3(${new THREE.Color(0xffa726).toArray().join(', ')});
+      // vec3 diffuseColor2 = vec3(${new THREE.Color(0xffa726)
+        .toArray()
+        .join(', ')});
       float normalRepeat = 1.0;
 
       vec3 blending = getTriPlanarBlend(vNormal);
@@ -1379,8 +1383,10 @@ const arrowGeometry = (() => {
     bevelOffset: 0,
     bevelSegments: 1,
   };
-  const geometry = new THREE.ExtrudeGeometry(shape, extrudeSettings)
-    .applyMatrix4(new THREE.Matrix4().makeTranslation(0, 0.5, -0.1 / 2));
+  const geometry = new THREE.ExtrudeGeometry(
+    shape,
+    extrudeSettings,
+  ).applyMatrix4(new THREE.Matrix4().makeTranslation(0, 0.5, -0.1 / 2));
   return geometry;
 })();
 const arrowVsh = `

@@ -62,7 +62,7 @@ export const screenshotObjectApp = async ({
   app,
   width = 300,
   height = 300,
-  clearColor = 0xFFFFFF,
+  clearColor = 0xffffff,
   clearAlpha = 1,
 } = {}) => {
   // const {devicePixelRatio: pixelRatio} = window;
@@ -100,9 +100,11 @@ export const screenshotObjectApp = async ({
     // render
     const _render = () => {
       // const angle = (i / numFrames) * Math.PI * 2;
-      sideCamera.position.copy(app.position)
+      sideCamera.position
+        .copy(app.position)
         .add(
-          localVector.set(0, 0, 1)
+          localVector
+            .set(0, 0, 1)
             .applyQuaternion(app.quaternion)
             .multiplyScalar(2),
         );
@@ -111,7 +113,11 @@ export const screenshotObjectApp = async ({
       if (physicsObjects.length > 0) {
         const physicsObject = physicsObjects[0];
         const {physicsMesh} = physicsObject;
-        fitCameraToBoundingBox(sideCamera, physicsMesh.geometry.boundingBox, 1.2);
+        fitCameraToBoundingBox(
+          sideCamera,
+          physicsMesh.geometry.boundingBox,
+          1.2,
+        );
       } else {
         sideCamera.quaternion.setFromRotationMatrix(
           localMatrix.lookAt(

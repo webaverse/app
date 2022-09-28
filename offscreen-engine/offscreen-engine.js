@@ -40,10 +40,14 @@ class OffscreenEngineProxy {
 
         await iframeLoadPromise;
 
-        iframe.contentWindow.postMessage({
-          method: 'initializeEngine',
-          port: port2,
-        }, '*', [port2]);
+        iframe.contentWindow.postMessage(
+          {
+            method: 'initializeEngine',
+            port: port2,
+          },
+          '*',
+          [port2],
+        );
 
         return port1;
       })();
@@ -54,9 +58,7 @@ class OffscreenEngineProxy {
     return port;
   }
 
-  async request(funcName, args = [], {
-    signal = null,
-  } = {}) {
+  async request(funcName, args = [], {signal = null} = {}) {
     await this.waitForLoad();
 
     const id = getRandomString();
@@ -128,6 +130,4 @@ class OffscreenEngineProxy {
   }
 }
 
-export {
-  OffscreenEngineProxy,
-};
+export {OffscreenEngineProxy};

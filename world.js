@@ -1,6 +1,12 @@
 import hpManager from './hp-manager.js';
 import {AppManager} from './app-manager.js';
-import {scene, sceneHighPriority, sceneLowPriority, sceneLowerPriority, sceneLowestPriority} from './renderer.js';
+import {
+  scene,
+  sceneHighPriority,
+  sceneLowPriority,
+  sceneLowerPriority,
+  sceneLowestPriority,
+} from './renderer.js';
 
 const _getBindSceneForRenderPriority = renderPriority => {
   switch (renderPriority) {
@@ -30,7 +36,9 @@ export class World {
     // This handles adding apps to the world scene
     this.appManager.addEventListener('appadd', e => {
       const app = e.data;
-      const bindScene = _getBindSceneForRenderPriority(app.getComponent('renderPriority'));
+      const bindScene = _getBindSceneForRenderPriority(
+        app.getComponent('renderPriority'),
+      );
       bindScene.add(app);
 
       const hitTracker = hpManager.makeHitTracker();

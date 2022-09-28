@@ -1,4 +1,3 @@
-
 import React, {useEffect, useState, useRef} from 'react';
 import classnames from 'classnames';
 
@@ -7,18 +6,14 @@ import {avatarManager} from '../../../../avatar-manager.js';
 
 import styles from './emotions.module.css';
 
-export const emotions = [
-  'joy',
-  'sorrow',
-  'angry',
-  'fun',
-  'surprise',
-];
+export const emotions = ['joy', 'sorrow', 'angry', 'fun', 'surprise'];
 
 export const setFacePoseValue = (emotion, value) => {
   const localPlayer = metaversefile.useLocalPlayer();
 
-  const facePoseActionIndex = localPlayer.findActionIndex(a => a.type === 'facepose' && a.emotion === emotion);
+  const facePoseActionIndex = localPlayer.findActionIndex(
+    a => a.type === 'facepose' && a.emotion === emotion,
+  );
   if (facePoseActionIndex !== -1) {
     localPlayer.removeActionIndex(facePoseActionIndex);
   }
@@ -33,9 +28,7 @@ export const setFacePoseValue = (emotion, value) => {
   }
 };
 
-export const Emotions = ({
-  parentOpened,
-}) => {
+export const Emotions = ({parentOpened}) => {
   const [emotionsOpen, setEmotionsOpen] = useState(false);
   const emotionStates = emotions.map(emotion => {
     const [value, setValue] = useState(0);
@@ -56,7 +49,7 @@ export const Emotions = ({
       const emotionsEl = emotionsRef.current;
 
       if (document.pointerLockElement === emotionsEl) {
-        const {/* movementX, */movementY} = e;
+        const {/* movementX, */ movementY} = e;
 
         if (dragEmotionIndex !== -1) {
           const emotion = emotions[dragEmotionIndex];
@@ -114,53 +107,59 @@ export const Emotions = ({
   }, []);
 
   return (
-        <div
+    <div
+      className={classnames(
+        styles.emotions,
+        parentOpened ? styles.parentOpened : null,
+        emotionsOpen ? styles.open : null,
+      )}
+      onMouseEnter={e => {
+        setEmotionsOpen(true);
+      }}
+      onMouseLeave={e => {
+        setEmotionsOpen(false);
+      }}
+      onMouseUp={e => {
+        document.exitPointerLock();
+        setDragEmotionIndex(-1);
+      }}
+      ref={emotionsRef}
+    >
+      {emotions.map((emotion, emotionIndex) => {
+        return (
+          <div
             className={classnames(
-              styles.emotions,
-              parentOpened ? styles.parentOpened : null,
-              emotionsOpen ? styles.open : null,
+              styles.emotion,
+              emotionStates[emotionIndex].value > 0 ? styles.nonzero : null,
+              emotionStates[emotionIndex].value === 1 ? styles.full : null,
             )}
-            onMouseEnter={e => {
-              setEmotionsOpen(true);
-            }}
-            onMouseLeave={e => {
-              setEmotionsOpen(false);
-            }}
-            onMouseUp={e => {
-              document.exitPointerLock();
-              setDragEmotionIndex(-1);
-            }}
-            ref={emotionsRef}
-        >
-            {emotions.map((emotion, emotionIndex) => {
-              return (
-                    <div
-                        className={classnames(
-                          styles.emotion,
-                          emotionStates[emotionIndex].value > 0 ? styles.nonzero : null,
-                          emotionStates[emotionIndex].value === 1 ? styles.full : null,
-                        )}
-                        onMouseDown={e => {
-                          e.preventDefault();
-                          e.stopPropagation();
+            onMouseDown={e => {
+              e.preventDefault();
+              e.stopPropagation();
 
-                          (async () => {
-                            const emotionsEl = emotionsRef.current;
-                            await emotionsEl.requestPointerLock();
-                          })();
+              (async () => {
+                const emotionsEl = emotionsRef.current;
+                await emotionsEl.requestPointerLock();
+              })();
 
-                          setDragEmotionIndex(emotionIndex);
-                        }}
-                        key={emotion}
-                    >
-                        <div className={styles.emotionIconPlaceholder} />
-                        <div className={styles.emotionNamePlaceholder} />
-                        <progress className={classnames(styles.emotionProgress)} value={emotionStates[emotionIndex].value} />
-                        <img src={`images/emotions/${emotion}.svg`} className={styles.emotionIcon} />
-                        <div className={styles.emotionName}>{emotion}</div>
-                    </div>
-              );
-            })}
-        </div>
+              setDragEmotionIndex(emotionIndex);
+            }}
+            key={emotion}
+          >
+            <div className={styles.emotionIconPlaceholder} />
+            <div className={styles.emotionNamePlaceholder} />
+            <progress
+              className={classnames(styles.emotionProgress)}
+              value={emotionStates[emotionIndex].value}
+            />
+            <img
+              src={`images/emotions/${emotion}.svg`}
+              className={styles.emotionIcon}
+            />
+            <div className={styles.emotionName}>{emotion}</div>
+          </div>
+        );
+      })}
+    </div>
   );
 };

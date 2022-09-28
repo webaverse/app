@@ -73,12 +73,14 @@ const globalUpdate = (timestamp, timeDiff, camera) => {
       /* if (isNaN(uTime)) {
         debugger;
       } */
-      [planeSpriteMesh.material, planeSpriteMesh.customPostMaterial].forEach(material => {
-        if (material?.uniforms) {
-          material.uniforms.uTime.value = uTime;
-          material.uniforms.uTime.needsUpdate = true;
-        }
-      });
+      [planeSpriteMesh.material, planeSpriteMesh.customPostMaterial].forEach(
+        material => {
+          if (material?.uniforms) {
+            material.uniforms.uTime.value = uTime;
+            material.uniforms.uTime.needsUpdate = true;
+          }
+        },
+      );
     }
 
     for (const spriteAvatarMesh of spriteAvatarMeshes) {
@@ -102,16 +104,19 @@ const globalUpdate = (timestamp, timeDiff, camera) => {
       spriteAvatarMesh.quaternion.setFromEuler(localEuler);
       spriteAvatarMesh.updateMatrixWorld();
 
-      [spriteAvatarMesh.material, spriteAvatarMesh.customPostMaterial].forEach(material => {
-        if (material?.uniforms) {
-          material.uniforms.uTime.value = uTime;
-          material.uniforms.uTime.needsUpdate = true;
+      [spriteAvatarMesh.material, spriteAvatarMesh.customPostMaterial].forEach(
+        material => {
+          if (material?.uniforms) {
+            material.uniforms.uTime.value = uTime;
+            material.uniforms.uTime.needsUpdate = true;
 
-          material.uniforms.uY.value =
-            mod(localEuler.y + (Math.PI * 2) / numAngles / 2, Math.PI * 2) / (Math.PI * 2);
-          material.uniforms.uY.needsUpdate = true;
-        }
-      });
+            material.uniforms.uY.value =
+              mod(localEuler.y + (Math.PI * 2) / numAngles / 2, Math.PI * 2) /
+              (Math.PI * 2);
+            material.uniforms.uY.needsUpdate = true;
+          }
+        },
+      );
     }
   }
 };
@@ -551,7 +556,9 @@ class SpriteAvatarMesh extends THREE.Mesh {
    */
   setTexture(name) {
     const spriteSpecs = getSpriteSpecs();
-    const spriteSpecIndex = spriteSpecs.findIndex(spriteSpec => spriteSpec.name === name);
+    const spriteSpecIndex = spriteSpecs.findIndex(
+      spriteSpec => spriteSpec.name === name,
+    );
     const tex = this.texs[spriteSpecIndex];
     if (tex) {
       this.material.uniforms.uTex.value = tex;
@@ -594,16 +601,17 @@ class SpriteAvatarMesh extends THREE.Mesh {
       localVector2,
     );
 
-    localQuaternion.invert().multiply(
-      localQuaternion2
-        .setFromRotationMatrix(
+    localQuaternion
+      .invert()
+      .multiply(
+        localQuaternion2.setFromRotationMatrix(
           localMatrix.lookAt(
             this.getWorldPosition(localVector),
             camera.position,
             localVector2.set(0, 1, 0),
           ),
         ),
-    );
+      );
     localEuler.setFromQuaternion(localQuaternion, 'YXZ');
     localEuler.x = 0;
     localEuler.z = 0;
@@ -616,7 +624,9 @@ class SpriteAvatarMesh extends THREE.Mesh {
       // select the texture
       const spriteSpecName = (() => {
         const playerSide = _getPlayerSide();
-        const currentSpeed = localVector.set(avatar.velocity.x, 0, avatar.velocity.z).length();
+        const currentSpeed = localVector
+          .set(avatar.velocity.x, 0, avatar.velocity.z)
+          .length();
 
         if (avatar.emoteAnimation !== '') {
           return avatar.emoteAnimation;
@@ -654,7 +664,9 @@ class SpriteAvatarMesh extends THREE.Mesh {
             }
           }
         } else {
-          const currentSpeed = localVector.set(avatar.velocity.x, 0, avatar.velocity.z).length();
+          const currentSpeed = localVector
+            .set(avatar.velocity.x, 0, avatar.velocity.z)
+            .length();
           const idleSpeedDistance = currentSpeed;
           const walkSpeedDistance = Math.abs(walkSpeed - currentSpeed);
           const runSpeedDistance = Math.abs(runSpeed - currentSpeed);
@@ -709,7 +721,9 @@ class SpriteAvatarMesh extends THREE.Mesh {
         this.lastSpriteSpecTimestamp = timestamp;
       }
       const timestampDelta =
-        (spriteSpecName === 'jump' ? 300 : 0) + timestamp - this.lastSpriteSpecTimestamp;
+        (spriteSpecName === 'jump' ? 300 : 0) +
+        timestamp -
+        this.lastSpriteSpecTimestamp;
 
       // general uniforms
       [this.material, this.customPostMaterial].forEach(material => {
@@ -738,7 +752,10 @@ class SpriteAvatarMesh extends THREE.Mesh {
             localEuler2.z = 0;
 
             material.uniforms.uY.value =
-              mod(localEuler.y - localEuler2.y + (Math.PI * 2) / numAngles / 2, Math.PI * 2) /
+              mod(
+                localEuler.y - localEuler2.y + (Math.PI * 2) / numAngles / 2,
+                Math.PI * 2,
+              ) /
               (Math.PI * 2);
             material.uniforms.uY.needsUpdate = true;
           }
@@ -788,7 +805,9 @@ const planeWarpedGeometry = planeGeometry
     new THREE.Matrix4().compose(
       new THREE.Vector3(
         0,
-        worldSize / 2 + ((spriteScaleFactor - 1) / 2) * worldSize - spriteFootFactor * worldSize,
+        worldSize / 2 +
+          ((spriteScaleFactor - 1) / 2) * worldSize -
+          spriteFootFactor * worldSize,
         0,
       ),
       new THREE.Quaternion(),
@@ -801,7 +820,9 @@ const planeWarpedGeometry2 = planeGeometry
     new THREE.Matrix4().compose(
       new THREE.Vector3(
         0,
-        worldSize / 2 + ((spriteScaleFactor - 1) / 2) * worldSize - spriteFootFactor * worldSize,
+        worldSize / 2 +
+          ((spriteScaleFactor - 1) / 2) * worldSize -
+          spriteFootFactor * worldSize,
         0,
       ),
       new THREE.Quaternion(),
@@ -820,24 +841,42 @@ const getSpriteSpecs = () => {
   if (_spriteSpecs === null) {
     const animations = Avatar.getAnimations();
     const walkAnimation = animations.find(a => a.name === 'walking.fbx');
-    const walkBackwardAnimation = animations.find(a => a.name === 'walking backwards.fbx');
+    const walkBackwardAnimation = animations.find(
+      a => a.name === 'walking backwards.fbx',
+    );
     const runAnimation = animations.find(a => a.name === 'Fast Run.fbx');
-    const runBackwardAnimation = animations.find(a => a.name === 'running backwards.fbx');
-    const leftStrafeRunAnimation = animations.find(a => a.name === 'left strafe.fbx');
-    const rightStrafeRunAnimation = animations.find(a => a.name === 'right strafe.fbx');
+    const runBackwardAnimation = animations.find(
+      a => a.name === 'running backwards.fbx',
+    );
+    const leftStrafeRunAnimation = animations.find(
+      a => a.name === 'left strafe.fbx',
+    );
+    const rightStrafeRunAnimation = animations.find(
+      a => a.name === 'right strafe.fbx',
+    );
     const idleAnimation = animations.find(a => a.name === 'idle.fbx');
-    const crouchIdleAnimation = animations.find(a => a.name === 'Crouch Idle.fbx');
-    const crouchWalkAnimation = animations.find(a => a.name === 'Sneaking Forward.fbx');
+    const crouchIdleAnimation = animations.find(
+      a => a.name === 'Crouch Idle.fbx',
+    );
+    const crouchWalkAnimation = animations.find(
+      a => a.name === 'Sneaking Forward.fbx',
+    );
     const crouchWalkBackwardAnimation = animations.find(
       a => a.name === 'Sneaking Forward reverse.fbx',
     );
-    const narutoRunAnimation = animations.find(a => a.name === 'naruto run.fbx');
+    const narutoRunAnimation = animations.find(
+      a => a.name === 'naruto run.fbx',
+    );
     const jumpAnimation = animations.find(a => a.name === 'jump.fbx');
-    const leftStrafeWalkingAnimation = animations.find(a => a.name === 'left strafe walking.fbx');
+    const leftStrafeWalkingAnimation = animations.find(
+      a => a.name === 'left strafe walking.fbx',
+    );
     const rightStrafeWalkingAnimation = animations.find(
       a => a.name === 'right strafe walking.fbx',
     );
-    const crouchWalkLeftAnimation = animations.find(a => a.name === 'Crouched Sneaking Left.fbx');
+    const crouchWalkLeftAnimation = animations.find(
+      a => a.name === 'Crouched Sneaking Left.fbx',
+    );
     const crouchWalkRightAnimation = animations.find(
       a => a.name === 'Crouched Sneaking Right.fbx',
     );
@@ -855,14 +894,24 @@ const getSpriteSpecs = () => {
                 .set(0, localRig.height * cameraHeightFactor, positionOffset)
                 .add(new THREE.Vector3(0, 0, -distance).applyEuler(euler));
               camera2.lookAt(
-                new THREE.Vector3(0, localRig.height * cameraHeightFactor, positionOffset),
+                new THREE.Vector3(
+                  0,
+                  localRig.height * cameraHeightFactor,
+                  positionOffset,
+                ),
               );
               camera2.updateMatrixWorld();
 
-              localRig.inputs.hmd.position.set(0, localRig.height, positionOffset);
+              localRig.inputs.hmd.position.set(
+                0,
+                localRig.height,
+                positionOffset,
+              );
               localRig.inputs.hmd.updateMatrixWorld();
 
-              localRig.velocity.set(0, 0, 0).divideScalar(Math.max(timeDiffMs / 1000, 0.001));
+              localRig.velocity
+                .set(0, 0, 0)
+                .divideScalar(Math.max(timeDiffMs / 1000, 0.001));
 
               localRig.update(timestamp, timeDiffMs);
             },
@@ -884,13 +933,21 @@ const getSpriteSpecs = () => {
                 .set(0, localRig.height * cameraHeightFactor, positionOffset)
                 .add(new THREE.Vector3(0, 0, -distance).applyEuler(euler));
               camera2.lookAt(
-                new THREE.Vector3(0, localRig.height * cameraHeightFactor, positionOffset),
+                new THREE.Vector3(
+                  0,
+                  localRig.height * cameraHeightFactor,
+                  positionOffset,
+                ),
               );
               camera2.updateMatrixWorld();
 
               // console.log('update walk position offset', positionOffset, camera2.position.toArray().join(','));
 
-              localRig.inputs.hmd.position.set(0, localRig.height, positionOffset);
+              localRig.inputs.hmd.position.set(
+                0,
+                localRig.height,
+                positionOffset,
+              );
               localRig.inputs.hmd.updateMatrixWorld();
 
               localRig.velocity
@@ -919,11 +976,19 @@ const getSpriteSpecs = () => {
                 .set(positionOffset, localRig.height * cameraHeightFactor, 0)
                 .add(new THREE.Vector3(0, 0, -distance).applyEuler(euler));
               camera2.lookAt(
-                new THREE.Vector3(positionOffset, localRig.height * cameraHeightFactor, 0),
+                new THREE.Vector3(
+                  positionOffset,
+                  localRig.height * cameraHeightFactor,
+                  0,
+                ),
               );
               camera2.updateMatrixWorld();
 
-              localRig.inputs.hmd.position.set(positionOffset, localRig.height, 0);
+              localRig.inputs.hmd.position.set(
+                positionOffset,
+                localRig.height,
+                0,
+              );
               localRig.inputs.hmd.updateMatrixWorld();
 
               localRig.velocity
@@ -950,11 +1015,19 @@ const getSpriteSpecs = () => {
                 .set(positionOffset, localRig.height * cameraHeightFactor, 0)
                 .add(new THREE.Vector3(0, 0, -distance).applyEuler(euler));
               camera2.lookAt(
-                new THREE.Vector3(positionOffset, localRig.height * cameraHeightFactor, 0),
+                new THREE.Vector3(
+                  positionOffset,
+                  localRig.height * cameraHeightFactor,
+                  0,
+                ),
               );
               camera2.updateMatrixWorld();
 
-              localRig.inputs.hmd.position.set(positionOffset, localRig.height, 0);
+              localRig.inputs.hmd.position.set(
+                positionOffset,
+                localRig.height,
+                0,
+              );
               localRig.inputs.hmd.updateMatrixWorld();
 
               localRig.velocity
@@ -981,11 +1054,19 @@ const getSpriteSpecs = () => {
                 .set(0, localRig.height * cameraHeightFactor, positionOffset)
                 .add(new THREE.Vector3(0, 0, -distance).applyEuler(euler));
               camera2.lookAt(
-                new THREE.Vector3(0, localRig.height * cameraHeightFactor, positionOffset),
+                new THREE.Vector3(
+                  0,
+                  localRig.height * cameraHeightFactor,
+                  positionOffset,
+                ),
               );
               camera2.updateMatrixWorld();
 
-              localRig.inputs.hmd.position.set(0, localRig.height, positionOffset);
+              localRig.inputs.hmd.position.set(
+                0,
+                localRig.height,
+                positionOffset,
+              );
               localRig.inputs.hmd.updateMatrixWorld();
 
               localRig.velocity
@@ -1012,11 +1093,19 @@ const getSpriteSpecs = () => {
                 .set(0, localRig.height * cameraHeightFactor, positionOffset)
                 .add(new THREE.Vector3(0, 0, -distance).applyEuler(euler));
               camera2.lookAt(
-                new THREE.Vector3(0, localRig.height * cameraHeightFactor, positionOffset),
+                new THREE.Vector3(
+                  0,
+                  localRig.height * cameraHeightFactor,
+                  positionOffset,
+                ),
               );
               camera2.updateMatrixWorld();
 
-              localRig.inputs.hmd.position.set(0, localRig.height, positionOffset);
+              localRig.inputs.hmd.position.set(
+                0,
+                localRig.height,
+                positionOffset,
+              );
               localRig.inputs.hmd.updateMatrixWorld();
 
               localRig.velocity
@@ -1043,11 +1132,19 @@ const getSpriteSpecs = () => {
                 .set(positionOffset, localRig.height * cameraHeightFactor, 0)
                 .add(new THREE.Vector3(0, 0, -distance).applyEuler(euler));
               camera2.lookAt(
-                new THREE.Vector3(positionOffset, localRig.height * cameraHeightFactor, 0),
+                new THREE.Vector3(
+                  positionOffset,
+                  localRig.height * cameraHeightFactor,
+                  0,
+                ),
               );
               camera2.updateMatrixWorld();
 
-              localRig.inputs.hmd.position.set(positionOffset, localRig.height, 0);
+              localRig.inputs.hmd.position.set(
+                positionOffset,
+                localRig.height,
+                0,
+              );
               localRig.inputs.hmd.updateMatrixWorld();
 
               localRig.velocity
@@ -1074,11 +1171,19 @@ const getSpriteSpecs = () => {
                 .set(positionOffset, localRig.height * cameraHeightFactor, 0)
                 .add(new THREE.Vector3(0, 0, -distance).applyEuler(euler));
               camera2.lookAt(
-                new THREE.Vector3(positionOffset, localRig.height * cameraHeightFactor, 0),
+                new THREE.Vector3(
+                  positionOffset,
+                  localRig.height * cameraHeightFactor,
+                  0,
+                ),
               );
               camera2.updateMatrixWorld();
 
-              localRig.inputs.hmd.position.set(positionOffset, localRig.height, 0);
+              localRig.inputs.hmd.position.set(
+                positionOffset,
+                localRig.height,
+                0,
+              );
               localRig.inputs.hmd.updateMatrixWorld();
 
               localRig.velocity
@@ -1105,11 +1210,19 @@ const getSpriteSpecs = () => {
                 .set(0, localRig.height * cameraHeightFactor, positionOffset)
                 .add(new THREE.Vector3(0, 0, -distance).applyEuler(euler));
               camera2.lookAt(
-                new THREE.Vector3(0, localRig.height * cameraHeightFactor, positionOffset),
+                new THREE.Vector3(
+                  0,
+                  localRig.height * cameraHeightFactor,
+                  positionOffset,
+                ),
               );
               camera2.updateMatrixWorld();
 
-              localRig.inputs.hmd.position.set(0, localRig.height, positionOffset);
+              localRig.inputs.hmd.position.set(
+                0,
+                localRig.height,
+                positionOffset,
+              );
               localRig.inputs.hmd.updateMatrixWorld();
 
               localRig.velocity
@@ -1135,14 +1248,24 @@ const getSpriteSpecs = () => {
                 .set(0, localRig.height * cameraHeightFactor, positionOffset)
                 .add(new THREE.Vector3(0, 0, -distance).applyEuler(euler));
               camera2.lookAt(
-                new THREE.Vector3(0, localRig.height * cameraHeightFactor, positionOffset),
+                new THREE.Vector3(
+                  0,
+                  localRig.height * cameraHeightFactor,
+                  positionOffset,
+                ),
               );
               camera2.updateMatrixWorld();
 
-              localRig.inputs.hmd.position.set(0, localRig.height, positionOffset);
+              localRig.inputs.hmd.position.set(
+                0,
+                localRig.height,
+                positionOffset,
+              );
               localRig.inputs.hmd.updateMatrixWorld();
 
-              localRig.velocity.set(0, 0, 0).divideScalar(Math.max(timeDiffMs / 1000, 0.001));
+              localRig.velocity
+                .set(0, 0, 0)
+                .divideScalar(Math.max(timeDiffMs / 1000, 0.001));
 
               localRig.crouchTime = 0;
 
@@ -1169,11 +1292,19 @@ const getSpriteSpecs = () => {
                 .set(0, localRig.height * cameraHeightFactor, positionOffset)
                 .add(new THREE.Vector3(0, 0, -distance).applyEuler(euler));
               camera2.lookAt(
-                new THREE.Vector3(0, localRig.height * cameraHeightFactor, positionOffset),
+                new THREE.Vector3(
+                  0,
+                  localRig.height * cameraHeightFactor,
+                  positionOffset,
+                ),
               );
               camera2.updateMatrixWorld();
 
-              localRig.inputs.hmd.position.set(0, localRig.height, positionOffset);
+              localRig.inputs.hmd.position.set(
+                0,
+                localRig.height,
+                positionOffset,
+              );
               localRig.inputs.hmd.updateMatrixWorld();
 
               localRig.velocity
@@ -1205,11 +1336,19 @@ const getSpriteSpecs = () => {
                 .set(positionOffset, localRig.height * cameraHeightFactor, 0)
                 .add(new THREE.Vector3(0, 0, -distance).applyEuler(euler));
               camera2.lookAt(
-                new THREE.Vector3(positionOffset, localRig.height * cameraHeightFactor, 0),
+                new THREE.Vector3(
+                  positionOffset,
+                  localRig.height * cameraHeightFactor,
+                  0,
+                ),
               );
               camera2.updateMatrixWorld();
 
-              localRig.inputs.hmd.position.set(positionOffset, localRig.height, 0);
+              localRig.inputs.hmd.position.set(
+                positionOffset,
+                localRig.height,
+                0,
+              );
               localRig.inputs.hmd.updateMatrixWorld();
 
               localRig.velocity
@@ -1241,11 +1380,19 @@ const getSpriteSpecs = () => {
                 .set(positionOffset, localRig.height * cameraHeightFactor, 0)
                 .add(new THREE.Vector3(0, 0, -distance).applyEuler(euler));
               camera2.lookAt(
-                new THREE.Vector3(positionOffset, localRig.height * cameraHeightFactor, 0),
+                new THREE.Vector3(
+                  positionOffset,
+                  localRig.height * cameraHeightFactor,
+                  0,
+                ),
               );
               camera2.updateMatrixWorld();
 
-              localRig.inputs.hmd.position.set(positionOffset, localRig.height, 0);
+              localRig.inputs.hmd.position.set(
+                positionOffset,
+                localRig.height,
+                0,
+              );
               localRig.inputs.hmd.updateMatrixWorld();
 
               localRig.velocity
@@ -1277,11 +1424,19 @@ const getSpriteSpecs = () => {
                 .set(0, localRig.height * cameraHeightFactor, positionOffset)
                 .add(new THREE.Vector3(0, 0, -distance).applyEuler(euler));
               camera2.lookAt(
-                new THREE.Vector3(0, localRig.height * cameraHeightFactor, positionOffset),
+                new THREE.Vector3(
+                  0,
+                  localRig.height * cameraHeightFactor,
+                  positionOffset,
+                ),
               );
               camera2.updateMatrixWorld();
 
-              localRig.inputs.hmd.position.set(0, localRig.height, positionOffset);
+              localRig.inputs.hmd.position.set(
+                0,
+                localRig.height,
+                positionOffset,
+              );
               localRig.inputs.hmd.updateMatrixWorld();
 
               localRig.velocity
@@ -1308,7 +1463,8 @@ const getSpriteSpecs = () => {
 
           return {
             update(timestamp, timeDiffMs) {
-              const moveDistancePerFrame = (-narutoRunSpeed / 1000) * timeDiffMs * 10;
+              const moveDistancePerFrame =
+                (-narutoRunSpeed / 1000) * timeDiffMs * 10;
               positionOffset += moveDistancePerFrame;
 
               const euler = new THREE.Euler(0, angle, 0, 'YXZ');
@@ -1316,11 +1472,19 @@ const getSpriteSpecs = () => {
                 .set(0, localRig.height * cameraHeightFactor, positionOffset)
                 .add(new THREE.Vector3(0, 0, -distance).applyEuler(euler));
               camera2.lookAt(
-                new THREE.Vector3(0, localRig.height * cameraHeightFactor, positionOffset),
+                new THREE.Vector3(
+                  0,
+                  localRig.height * cameraHeightFactor,
+                  positionOffset,
+                ),
               );
               camera2.updateMatrixWorld();
 
-              localRig.inputs.hmd.position.set(0, localRig.height, positionOffset);
+              localRig.inputs.hmd.position.set(
+                0,
+                localRig.height,
+                positionOffset,
+              );
               localRig.inputs.hmd.updateMatrixWorld();
 
               localRig.velocity
@@ -1362,14 +1526,24 @@ const getSpriteSpecs = () => {
                 .set(0, localRig.height * cameraHeightFactor, positionOffset)
                 .add(new THREE.Vector3(0, 0, -distance).applyEuler(euler));
               camera2.lookAt(
-                new THREE.Vector3(0, localRig.height * cameraHeightFactor, positionOffset),
+                new THREE.Vector3(
+                  0,
+                  localRig.height * cameraHeightFactor,
+                  positionOffset,
+                ),
               );
               camera2.updateMatrixWorld();
 
-              localRig.inputs.hmd.position.set(0, localRig.height, positionOffset);
+              localRig.inputs.hmd.position.set(
+                0,
+                localRig.height,
+                positionOffset,
+              );
               localRig.inputs.hmd.updateMatrixWorld();
 
-              localRig.velocity.set(0, 0, 0).divideScalar(Math.max(timeDiffMs / 1000, 0.001));
+              localRig.velocity
+                .set(0, 0, 0)
+                .divideScalar(Math.max(timeDiffMs / 1000, 0.001));
 
               localRig.jumpState = true;
               localRig.jumpTime = jumpTime;
@@ -1411,7 +1585,11 @@ const getSpriteSpecs = () => {
                 .set(0, localRig.height * cameraHeightFactor, positionOffset)
                 .add(new THREE.Vector3(0, 0, -distance).applyEuler(euler));
               camera2.lookAt(
-                new THREE.Vector3(0, localRig.height * cameraHeightFactor, positionOffset),
+                new THREE.Vector3(
+                  0,
+                  localRig.height * cameraHeightFactor,
+                  positionOffset,
+                ),
               );
               camera2.updateMatrixWorld();
               localRig.update(_timestamp, timeDiffMs);
@@ -1441,7 +1619,11 @@ const getSpriteSpecs = () => {
                 .set(0, localRig.height * cameraHeightFactor, positionOffset)
                 .add(new THREE.Vector3(0, 0, -distance).applyEuler(euler));
               camera2.lookAt(
-                new THREE.Vector3(0, localRig.height * cameraHeightFactor, positionOffset),
+                new THREE.Vector3(
+                  0,
+                  localRig.height * cameraHeightFactor,
+                  positionOffset,
+                ),
               );
               camera2.updateMatrixWorld();
               localRig.update(_timestamp, timeDiffMs);
@@ -1471,7 +1653,11 @@ const getSpriteSpecs = () => {
                 .set(0, localRig.height * cameraHeightFactor, positionOffset)
                 .add(new THREE.Vector3(0, 0, -distance).applyEuler(euler));
               camera2.lookAt(
-                new THREE.Vector3(0, localRig.height * cameraHeightFactor, positionOffset),
+                new THREE.Vector3(
+                  0,
+                  localRig.height * cameraHeightFactor,
+                  positionOffset,
+                ),
               );
               camera2.updateMatrixWorld();
               localRig.update(_timestamp, timeDiffMs);
@@ -1501,7 +1687,11 @@ const getSpriteSpecs = () => {
                 .set(0, localRig.height * cameraHeightFactor, positionOffset)
                 .add(new THREE.Vector3(0, 0, -distance).applyEuler(euler));
               camera2.lookAt(
-                new THREE.Vector3(0, localRig.height * cameraHeightFactor, positionOffset),
+                new THREE.Vector3(
+                  0,
+                  localRig.height * cameraHeightFactor,
+                  positionOffset,
+                ),
               );
               camera2.updateMatrixWorld();
               localRig.update(_timestamp, timeDiffMs);
@@ -1531,7 +1721,11 @@ const getSpriteSpecs = () => {
                 .set(0, localRig.height * cameraHeightFactor, positionOffset)
                 .add(new THREE.Vector3(0, 0, -distance).applyEuler(euler));
               camera2.lookAt(
-                new THREE.Vector3(0, localRig.height * cameraHeightFactor, positionOffset),
+                new THREE.Vector3(
+                  0,
+                  localRig.height * cameraHeightFactor,
+                  positionOffset,
+                ),
               );
               camera2.updateMatrixWorld();
               localRig.update(_timestamp, timeDiffMs);
@@ -1561,7 +1755,11 @@ const getSpriteSpecs = () => {
                 .set(0, localRig.height * cameraHeightFactor, positionOffset)
                 .add(new THREE.Vector3(0, 0, -distance).applyEuler(euler));
               camera2.lookAt(
-                new THREE.Vector3(0, localRig.height * cameraHeightFactor, positionOffset),
+                new THREE.Vector3(
+                  0,
+                  localRig.height * cameraHeightFactor,
+                  positionOffset,
+                ),
               );
               camera2.updateMatrixWorld();
               localRig.update(_timestamp, timeDiffMs);
@@ -1591,7 +1789,11 @@ const getSpriteSpecs = () => {
                 .set(0, localRig.height * cameraHeightFactor, positionOffset)
                 .add(new THREE.Vector3(0, 0, -distance).applyEuler(euler));
               camera2.lookAt(
-                new THREE.Vector3(0, localRig.height * cameraHeightFactor, positionOffset),
+                new THREE.Vector3(
+                  0,
+                  localRig.height * cameraHeightFactor,
+                  positionOffset,
+                ),
               );
               camera2.updateMatrixWorld();
               localRig.update(_timestamp, timeDiffMs);
@@ -1621,7 +1823,11 @@ const getSpriteSpecs = () => {
                 .set(0, localRig.height * cameraHeightFactor, positionOffset)
                 .add(new THREE.Vector3(0, 0, -distance).applyEuler(euler));
               camera2.lookAt(
-                new THREE.Vector3(0, localRig.height * cameraHeightFactor, positionOffset),
+                new THREE.Vector3(
+                  0,
+                  localRig.height * cameraHeightFactor,
+                  positionOffset,
+                ),
               );
               camera2.updateMatrixWorld();
               localRig.update(_timestamp, timeDiffMs);
@@ -1739,7 +1945,10 @@ class AvatarSpriteDepthMaterial extends THREE.MeshNormalMaterial {
   }
 
   onBeforeCompile(parameters) {
-    parameters.uniforms = _addAvatarSpriteMaterialUniforms(parameters.uniforms, this.options2.tex);
+    parameters.uniforms = _addAvatarSpriteMaterialUniforms(
+      parameters.uniforms,
+      this.options2.tex,
+    );
     this.uniforms = parameters.uniforms;
 
     parameters.vertexShader = parameters.vertexShader.replace(
@@ -1880,10 +2089,17 @@ export const renderSpriteImages = async (arrayBuffer, srcUrl) => {
 
     // console.log('compute time diff', timeDiff);
     let angleIndex = 0;
-    for (let angle = 0; angle < Math.PI * 2; angle += (Math.PI * 2) / numAngles) {
+    for (
+      let angle = 0;
+      angle < Math.PI * 2;
+      angle += (Math.PI * 2) / numAngles
+    ) {
       const durationS = duration * 1000;
       const _getCurrentFrame = timestamp => {
-        const result = Math.min(Math.floor((timestamp / durationS) * numFrames), numFrames);
+        const result = Math.min(
+          Math.floor((timestamp / durationS) * numFrames),
+          numFrames,
+        );
         // console.log('current frame', name, timestamp, result, numFrames);
         return result;
       };
@@ -1959,7 +2175,11 @@ export const renderSpriteImages = async (arrayBuffer, srcUrl) => {
         const planeSpriteMesh = new SpriteAnimationPlaneMesh(tex, {
           angleIndex: startAngleIndex,
         });
-        planeSpriteMesh.position.set(-canvasIndex * worldSize, 2, -canvasIndex2 * worldSize);
+        planeSpriteMesh.position.set(
+          -canvasIndex * worldSize,
+          2,
+          -canvasIndex2 * worldSize,
+        );
         planeSpriteMesh.spriteSpec = spriteSpec;
         scene.add(planeSpriteMesh);
         planeSpriteMesh.updateMatrixWorld();
@@ -1976,7 +2196,11 @@ export const renderSpriteImages = async (arrayBuffer, srcUrl) => {
 
     if (preview) {
       const spriteAvatarMesh = new SpriteAnimation360Mesh(tex);
-      spriteAvatarMesh.position.set(-canvasIndex * worldSize, 0, -canvasIndex2 * worldSize);
+      spriteAvatarMesh.position.set(
+        -canvasIndex * worldSize,
+        0,
+        -canvasIndex2 * worldSize,
+      );
       spriteAvatarMesh.spriteSpec = spriteSpec;
       scene.add(spriteAvatarMesh);
       spriteAvatarMesh.updateMatrixWorld();

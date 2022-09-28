@@ -30,6 +30,4 @@ const Helpers = {
   },
 };
 
-export {
-  Helpers,
-};
+export {Helpers};

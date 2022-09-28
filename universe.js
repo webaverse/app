@@ -8,7 +8,12 @@ import metaversefile from 'metaversefile';
 import WSRTC from 'wsrtc/wsrtc.js';
 import * as Z from 'zjs';
 
-import {appsMapName, partyMapName, initialPosY, playersMapName} from './constants.js';
+import {
+  appsMapName,
+  partyMapName,
+  initialPosY,
+  playersMapName,
+} from './constants.js';
 import {loadOverworld} from './overworld.js';
 import {partyManager} from './party-manager.js';
 import physicsManager from './physics-manager.js';
@@ -31,8 +36,19 @@ class Universe extends EventTarget {
   }
 
   getWorldsHost() {
-    return window.location.protocol + '//' + window.location.hostname + ':' +
-      ((window.location.port ? parseInt(window.location.port, 10) : (window.location.protocol === 'https:' ? 443 : 80)) + 1) + '/worlds/';
+    return (
+      window.location.protocol +
+      '//' +
+      window.location.hostname +
+      ':' +
+      ((window.location.port
+        ? parseInt(window.location.port, 10)
+        : window.location.protocol === 'https:'
+        ? 443
+        : 80) +
+        1) +
+      '/worlds/'
+    );
   }
 
   async enterWorld(worldSpec) {
@@ -60,12 +76,16 @@ class Universe extends EventTarget {
 
         let match;
         if (src === undefined) {
-          promises.push(metaversefile.createAppAsync({
-            start_url: './scenes/' + sceneNames[0],
-          }));
+          promises.push(
+            metaversefile.createAppAsync({
+              start_url: './scenes/' + sceneNames[0],
+            }),
+          );
         } else if (src === '') {
           // nothing
-        } else if (match = src.match(/^weba:\/\/(-?[0-9\.]+),(-?[0-9\.]+)(?:\/|$)/i)) {
+        } else if (
+          (match = src.match(/^weba:\/\/(-?[0-9\.]+),(-?[0-9\.]+)(?:\/|$)/i))
+        ) {
           const [, x, y] = match;
           const [x1, y1] = [parseFloat(x), parseFloat(y)];
           const p = loadOverworld(x1, y1);
@@ -84,8 +104,7 @@ class Universe extends EventTarget {
         promises.push(p);
       }
 
-      this.sceneLoadedPromise = Promise.all(promises)
-        .then(() => {});
+      this.sceneLoadedPromise = Promise.all(promises).then(() => {});
       await this.sceneLoadedPromise;
       this.sceneLoadedPromise = null;
     };
@@ -127,17 +146,25 @@ class Universe extends EventTarget {
         // nothing
       } else {
         await new Promise((accept, reject) => {
-          this.addEventListener('worldload', e => {
-            accept();
-          }, {once: true});
+          this.addEventListener(
+            'worldload',
+            e => {
+              accept();
+            },
+            {once: true},
+          );
         });
       }
     }
   }
 
-  isConnected() { return !!this.wsrtc; }
+  isConnected() {
+    return !!this.wsrtc;
+  }
 
-  getConnection() { return this.wsrtc; }
+  getConnection() {
+    return this.wsrtc;
+  }
 
   // called by enterWorld() in universe.js
   // This is called in single player mode instead of connectRoom
@@ -201,7 +228,9 @@ class Universe extends EventTarget {
         localPlayer.bindState(state.getArray(playersMapName));
 
         this.wsrtc.addEventListener('audio', e => {
-          const player = playersManager.remotePlayersByInteger.get(e.data.playerId);
+          const player = playersManager.remotePlayersByInteger.get(
+            e.data.playerId,
+          );
           player.processAudioData(e.data);
         });
       };
