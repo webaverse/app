@@ -1,2 +1,3 @@
-import {HotBox} from './HotBox';
-export {HotBox};
+
+import { HotBox } from './HotBox';
+export { HotBox };

@@ -292,9 +292,6 @@ export const App = () => {
           ref={canvasRef}
         />
         <Crosshair />
-        <UIMode hideDirection="right">
-          <ActionMenu setUIMode={setUIMode} />
-        </UIMode>
         <Settings />
         <ClaimsNotification />
         <WorldObjectsList
