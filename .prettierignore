@@ -21,7 +21,7 @@ avatars/skeleton.js
 *.yml
 # Ignore all md files:
 *.md
-# Ignore all css files:
+# Ignore all html files:
 *.html
 # Ignore all css files:
 *.css
