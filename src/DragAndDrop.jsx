@@ -1,5 +1,5 @@
 import * as THREE from 'three';
-import React, {useState, useEffect, useContext} from 'react';
+import React, {useState, useEffect, useContext, useRef} from 'react';
 import classnames from 'classnames';
 import style from './DragAndDrop.module.css';
 import {world} from '../world.js';
@@ -22,6 +22,7 @@ import { ChainContext } from './hooks/chainProvider';
 import ioManager from '../io-manager.js';
 import dropManager from '../drop-manager';
 import { getVoucherFromUser } from './hooks/voucherHelpers'
+// import {GenericLoadingMessage, LoadingIndicator, registerLoad} from './LoadingBox.jsx';
 
 const APP_3D_TYPES = ['glb', 'gltf', 'vrm'];
 const timeCount = 6000;
@@ -97,7 +98,7 @@ const uploadCreateApp = async (item, {drop = false}) => {
 };
 
 const DragAndDrop = () => {
-  const {state, setState} = useContext(AppContext);
+  const {state, setState, account, chain} = useContext(AppContext);
   const [queue, setQueue] = useState([]);
   const [currentApp, setCurrentApp] = useState(null);
   const {mintNFT, minting, error, setError, WebaversecontractAddress} = useNFTContract(account.currentAddress);
@@ -344,9 +345,9 @@ const DragAndDrop = () => {
 
   return (
     <div className={style.dragAndDrop}>
-      <GenericLoadingMessage open={minting} name={'Minting'} detail={'Creating NFT...'}></GenericLoadingMessage>
+      {/* <GenericLoadingMessage open={minting} name={'Minting'} detail={'Creating NFT...'}></GenericLoadingMessage>
       <GenericLoadingMessage open={mintComplete} name={'Minting Complete'} detail={'Press [Tab] to use your inventory.'}></GenericLoadingMessage>
-      <GenericLoadingMessage open={error} name={'Error'} detail={error}></GenericLoadingMessage>
+      <GenericLoadingMessage open={error} name={'Error'} detail={error}></GenericLoadingMessage> */}
       <div
         className={classnames(style.currentApp, currentApp ? style.open : null)}
         onClick={_currentAppClick}
