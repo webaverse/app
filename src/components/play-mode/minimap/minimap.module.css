@@ -1,15 +1,52 @@
-
 .locationMenu {
     position: absolute;
-    bottom: 0px;
-    left: 0px;
-    width: 200px;
-    height: 200px;
+    bottom: 20px;
+    left: 20px;
+    width: 128px;
+    height: 115px;
 }
 
-.map {
-    margin-left: 20px;
-    margin-bottom: 20px;
-    width: 180px;
-    height: 180px;
+.mapWrap {
+    width: 160px;
+    height: 140px;
+    overflow: hidden;
+    position: relative;
+    -webkit-mask-image: url("/assets/backgrounds/map-mask.svg");
+    mask-image: url("/assets/backgrounds/map-mask.svg");
+    -webkit-mask-size: 80%;
+    mask-size: 80%;
+    -webkit-mask-repeat: no-repeat;
+    mask-repeat: no-repeat;
+}
+
+.locationMenu .mapBg {
+    width: 138px;
+    height: 140px;
+    position: absolute;
+    top: -15px;
+    left: -5px;
+    z-index: 0;
+    background-image: url("/assets/backgrounds/map-background.svg");
+    background-position: center;
+    background-size: 100%;
+    background-repeat: no-repeat;
+}
+
+.mapWrap .map {
+    margin-left: -54px;
+    margin-top: -50px;
+    width: 240px;
+    height: 240px;
+}
+
+.locationMenu .controls {
+    top: -34px;
+    left: 4px;
+    text-align: center;
+    position: absolute;
+    width: 100%;
+}
+
+.locationMenu .controls .button {
+    margin: 0 2px;
 }

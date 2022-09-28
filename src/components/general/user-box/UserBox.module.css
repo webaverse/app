@@ -1,0 +1,212 @@
+.userBoxWrap {
+  height: 34px;
+  background-color: #0d1a22;
+  min-width: 40px;
+  position: fixed;
+  top: 18px;
+  right: 40px;
+  z-index: 2;
+}
+
+.userBoxWrap .leftCorner {
+  position: absolute;
+  left: -14px;
+  height: 34px;
+  width: 40px;
+  transform: skewX(-18deg);
+  background-color: #0d1a22;
+}
+
+.userBoxWrap .rightCorner {
+  position: absolute;
+  right: -14px;
+  height: 34px;
+  width: 40px;
+  transform: skewX(-18deg);
+  background-color: #0d1a22;
+}
+
+.userBoxWrap .profileImage {
+  border: 2px solid #000000;
+}
+
+.userBoxWrap .image {
+  border: 2px solid #FFFFFF;
+  width: 48px;
+  height: 48px;
+  background-color: #0d1a22;
+}
+.userBoxWrap .image img {
+  width: 100%;
+}
+
+.userBoxWrap ul {
+  display: block;
+  margin: -4px 0 0 0;
+  padding: 0;
+  position: relative;
+  z-index: 2;
+}
+
+.userBoxWrap ul:after {
+  display: block;
+  content: " ";
+  clear: both;
+}
+
+.userBoxWrap ul li {
+  display: block;
+  margin: 0 8px 0 0;
+  padding: 0;
+  float: left;
+}
+
+.userBoxWrap .loggedOutText {
+  text-transform: uppercase;
+  font-family: "TTSC-Bold";
+  margin-top: 9px;
+  color: #C7DCD0;
+  text-align: center;
+  font-size: 10px;
+  width: 90px;
+  margin-left: -10px;
+}
+
+.userBoxWrap .loginButton {
+  position: absolute;
+  top: 0;
+  right: -20px;
+}
+
+.userBoxWrap .loggedInText {
+  text-transform: uppercase;
+  font-family: "TTSC-Bold";
+  margin-top: 0px;
+  color: #C7DCD0;
+  text-align: center;
+  font-size: 10px;
+  width: 90px;
+  margin-left: -8px;
+}
+
+.userBoxWrap .chainName {
+  background-color: #C900C5;
+  border: 2px solid #000000;
+  padding: 2px 6px;
+  text-align: left;
+  width: 80px;
+  margin-left: 4px;
+  margin-bottom: 2px;
+  color: #efefef;
+}
+
+.userBoxWrap .walletAddress {
+  margin-left: -2px;
+}
+
+.userBoxWrap .chainTitle {
+  text-transform: uppercase;
+  font-family: "TTSC-Bold";
+  margin-top: 10px;
+  color: #C7DCD0;
+  text-align: center;
+  font-size: 10px;
+  width: 90px;
+  margin-left: -8px;
+}
+
+.userLoginMethodsModal {
+  position: fixed;
+  top: calc(50vh - 130px);
+  left: calc(50vw - 300px / 2);
+  padding: 10px;
+  background-image: url("/assets/backgrounds/popup-bg.svg");
+  background-size: 100% 100%;
+  background-repeat: no-repeat;
+  transition: transform 1s cubic-bezier(0, 1, 0, 1);
+  width: 260px;
+  height: 260px;
+  transform: scale(1.2, 1.2);
+  transform-origin: 50% 50%;
+  pointer-events: all;
+  visibility: hidden;
+  text-align: center;
+}
+
+.userLoginMethodsModal .methodButton {
+  width: 84%;
+  text-align: left;
+}
+
+.userLoginMethodsModal .methodButton > span {
+  margin-right: 56px !important;
+}
+
+.userLoginMethodsModal.opened {
+  transform: none;
+  visibility: visible;
+}
+
+.userLoginMethodsModal .title {
+  display: table;
+  margin-left: auto;
+  margin-right: auto;
+  color: #fff;
+  background-image: url("/assets/backgrounds/popup-title-bg.svg");
+  background-size: 100% 100%;
+  background-repeat: no-repeat;
+  font-size: 20px;
+  padding: 10px 50px;
+  margin-top: -10px;
+  margin-bottom: 16px;
+}
+
+.userLoginMethodsModal .methodBtn {
+  display: flex;
+  margin: auto;
+  margin-top: 5px;
+  cursor: pointer;
+  background-color: #FFF;
+  width: 240px;
+  border: 2px solid #000;
+  font-family: 'PlazaRegular';
+  color: #000;
+  transition: background-color 1s cubic-bezier(0, 1, 0, 1);
+}
+
+.userLoginMethodsModal .methodBtn:hover {
+  background: #fff;
+  transition: background-color 0.3s cubic-bezier(0, 1, 0, 1);
+}
+
+.userLoginMethodsModal a {
+  text-decoration: none;
+}
+
+.userLoginMethodsModal .methodBtn img {
+  width: 28px;
+  height: 28px;
+  margin: 10px 10px 10px 16px;
+}
+
+.userLoginMethodsModal .methodBtn .methodBtnText {
+  display: flex;
+  flex: 1;
+  color: #000;
+  font-family: "TTSC-Bold";
+  font-size: 18px;
+  letter-spacing: 1px;
+  text-decoration: none;
+  line-height: 45px;
+  justify-content: left;
+  padding-left: 24px;
+  align-items: left;
+}
+
+.userLoginMethodsModal .methodBtn img + .methodBtnText {
+  margin-right: calc(28px + 10px * 2);
+}
+
+.userLoginMethodsModal .methodBtn:hover .methodBtnText {
+  color: #000;
+}

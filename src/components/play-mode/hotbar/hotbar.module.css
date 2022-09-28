@@ -1,12 +1,23 @@
 .hotbar {
-    position: fixed;
+    position: absolute;
     display: flex;
-    margin-left: 460px;
-    bottom: 10px;
+    bottom: 18px;
     cursor: pointer;
+    justify-content: center;
+    align-items: center;
     transform: none;
     transition: transform 0.5s cubic-bezier(0, 1, 0, 1);
+    left: 50%;
+    -webkit-transform: translateX(-50%);
+    transform: translateX(-50%);
+    background-image: url("/assets/backgrounds/claims-bar-background.svg");
+    background-position: center;
+    background-size: 100%;
+    background-repeat: no-repeat;
+    width: 700px;
+    height: 32px;
 }
+
 .hotbar.open {
     transform: translateY(calc(-100vh + 160px));
 }

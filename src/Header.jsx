@@ -16,12 +16,12 @@ import {
   unregisterIoEventHandler,
 } from './components/general/io-handler';
 import {AppContext} from './components/app';
-import {AvatarIcon} from './AvatarIcon';
 import {StoryTime} from './StoryTime';
-import {User} from './User';
 
 import styles from './Header.module.css';
 import {UIMode} from './components/general/ui-mode/index.jsx';
+import {AvatarBox} from './components/general/avatar-box/AvatarBox.jsx';
+import {UserBox} from './components/general/user-box/UserBox.jsx';
 
 //
 
@@ -225,10 +225,10 @@ export default function Header() {
       <StoryTime />
       {/* <div className={styles.inner}> */}
       <UIMode hideDirection="left">
-        <AvatarIcon />
+        <AvatarBox />
       </UIMode>
       <UIMode hideDirection="right">
-        <User
+        <UserBox
           address={address}
           setAddress={setAddress}
           setLoginFrom={setLoginFrom}

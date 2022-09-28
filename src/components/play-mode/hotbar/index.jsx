@@ -1,2 +1,3 @@
-import {Hotbar} from './Hotbar';
-export {Hotbar};
+
+import { Hotbar } from './Hotbar';
+export { Hotbar };
