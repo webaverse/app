@@ -945,6 +945,14 @@ export const handleDropJsonItem = async item => {
   }
   return null;
 };
+export const handleBlobUpload = async (name, blob, progress) => {
+  const formData = new FormData();
+  formData.append(name, blob, name);
+  const hashes = await doUpload(ipfsFileURL, formData, progress);
+
+  const rootDirectoryHash = hashes.length > 0 ? hashes[0].hash : null;
+  return `${ipfsFolderURL}/${rootDirectoryHash}/`;
+};
 export const handleUpload = async (item, {onProgress = null} = {}) => {
   console.log('uploading...', item);
 
