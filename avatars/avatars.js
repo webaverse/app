@@ -65,7 +65,9 @@ const localVector2 = new THREE.Vector3();
 const localVector3 = new THREE.Vector3();
 // const localVector4 = new THREE.Vector3();
 // const localVector5 = new THREE.Vector3();
-// const localVector6 = new THREE.Vector3();     
+// const localVector6 = new THREE.Vector3(); 
+
+const localBBox = new THREE.Box3();
 
 
 const localQuaternion = new THREE.Quaternion();
@@ -638,6 +640,28 @@ class Avatar {
       leftToe: _getOffset(modelBones.Left_toe),
       rightToe: _getOffset(modelBones.Right_toe),
     });
+
+    
+    let avatarHighestPos = 0;
+    let tempMesh = null;
+    this.model.traverse(o => {
+      if (o.isMesh) {
+        if (!o.geometry.boundingBox) {
+          const position = o.geometry.attributes.position;
+          localBBox.setFromBufferAttribute( position );
+          avatarHighestPos = (localBBox.max.y > avatarHighestPos) ? localBBox.max.y : avatarHighestPos;
+        }
+        else {
+          avatarHighestPos = (o.geometry.boundingBox.max.y > avatarHighestPos) ? o.geometry.boundingBox.max.y : avatarHighestPos;
+        }
+        if (o.isSkinnedMesh) {
+          tempMesh = o;
+        }
+      }
+    });
+    avatarHighestPos += tempMesh.position.y;
+    this.avatarHighestPos = avatarHighestPos;
+    this.avatarNeckPosition = new THREE.Vector3().setFromMatrixPosition(modelBones.Head.savedMatrixWorld);
 
     // height is defined as eyes to root
     this.height = getHeight(object);
