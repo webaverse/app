@@ -1,14 +1,13 @@
 import {ethers} from 'ethers';
 import Web3 from '../../web3.min.js';
 
-export async function getVoucherFromServer(metadataurl) {
+export async function getVoucherFromServer(contentURL) {
   const tokenId = 0;
   const expiry = Math.round(new Date().getTime() / 1000) + 1000; // timestamp
   const nonce = ethers.BigNumber.from(ethers.utils.randomBytes(4)).toNumber();
   const balance = 1;
 
-  const response = await fetch('http://localhost:8081/getServerDropVoucher', {
-    // https://{voucherSeverip}:8081/getServerDropVoucher
+  const response = await fetch('https://voucher.webaverse.com/getServerDropVoucher', { // https://{voucherSeverip}/getServerDropVoucher
     method: 'POST',
     headers: {
       Accept: 'application/json',
@@ -17,19 +16,15 @@ export async function getVoucherFromServer(metadataurl) {
         'dXNlcm5hbWU6MTIzNDU2Nzg5MDEyMzQ1Njc4OTAxMjM0NTY3ODkwMTIzNDU2Nzg5MA',
     },
     body: JSON.stringify({
-      signData: {tokenId, metadataurl, balance, nonce, expiry},
+      signData: {tokenId, contentURL, balance, nonce, expiry},
     }),
   });
   const voucher = await response.json();
   return voucher;
 }
 
-export async function getVoucherFromUser(
-  tokenId,
-  signer,
-  WebaversecontractAddress,
-) {
-  const metadataurl = 'https://ipfs.webaverse.com/'; // temp url - not used
+export async function getVoucherFromUser(tokenId, signer, WebaversecontractAddress) {
+  const contentURL = 'https://ipfs.webaverse.com/'; // temp url - not used
   const expiry = Math.round(new Date().getTime() / 1000) + 50; // timestamp
   const nonce = ethers.BigNumber.from(ethers.utils.randomBytes(4)).toNumber();
   const balance = 1;
@@ -48,11 +43,7 @@ export async function getVoucherFromUser(
 
     // Defining the message signing data content.
     message: {
-      tokenId,
-      metadataurl,
-      balance,
-      nonce,
-      expiry,
+      tokenId, contentURL, balance, nonce, expiry,
     },
     // Refers to the keys of the *types* object below.
     primaryType: 'NFTVoucher',
@@ -67,7 +58,7 @@ export async function getVoucherFromUser(
       // PrimaryType
       NFTVoucher: [
         {name: 'tokenId', type: 'uint256'},
-        {name: 'metadataurl', type: 'string'},
+        {name: 'contentURL', type: 'string'},
         {name: 'balance', type: 'uint256'},
         {name: 'nonce', type: 'uint256'},
         {name: 'expiry', type: 'uint256'},
