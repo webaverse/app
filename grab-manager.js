@@ -152,6 +152,7 @@ const _click = (e) => {
   if (grabManager.getGrabbedObject(0)) {
     const localPlayer = playersManager.getLocalPlayer();
     localPlayer.ungrab();
+    grabManager.hideUi();
   } else {
     if (highlightedPhysicsObject) {
       grabManager.grab(highlightedPhysicsObject);
@@ -200,12 +201,21 @@ class Grabmanager extends EventTarget {
         const localPlayer = playersManager.getLocalPlayer();
         localPlayer.ungrab();
       }
+      this.showUi();
+    } else {
+      this.hideUi();
     }
   }
   setHighlightPhysicsMesh(mesh) {
     this.highlightPhysicsMesh = mesh;
     this.highlightPhysicsMesh.visible = false;
     sceneLowPriority.add(this.highlightPhysicsMesh);
+  }
+  showUi() {
+    this.dispatchEvent(new MessageEvent('showui'));
+  }
+  hideUi() {
+    this.dispatchEvent(new MessageEvent('hideui'));
   }
   menuClick(e) {
     _click(e);
