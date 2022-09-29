@@ -1,30 +1,32 @@
 import * as THREE from 'three';
 import metaversefile from 'metaversefile';
-const { useApp, useFrame } = metaversefile;
+const {useApp, useFrame} = metaversefile;
 
 const size = 0.5;
 const scale = 0.3;
-const q90 = new THREE.Quaternion()
-  .setFromUnitVectors(
-    new THREE.Vector3(0, 0, 1),
-    new THREE.Vector3(0, 1, 0),
-  );
+const q90 = new THREE.Quaternion().setFromUnitVectors(
+  new THREE.Vector3(0, 0, 1),
+  new THREE.Vector3(0, 1, 0),
+);
 
 const localVector = new THREE.Vector3();
 const localVector2 = new THREE.Vector3();
 const localVector3 = new THREE.Vector3();
 const localMatrix = new THREE.Matrix4();
 
-const arrowGeometry = new THREE.PlaneGeometry(size, size)
-  .applyMatrix4(
-    new THREE.Matrix4()
-      .makeRotationFromQuaternion(
-        new THREE.Quaternion()
-          .setFromAxisAngle(new THREE.Vector3(0, 0, 1), Math.PI),
-      ),
-  );
+const arrowGeometry = new THREE.PlaneGeometry(size, size).applyMatrix4(
+  new THREE.Matrix4().makeRotationFromQuaternion(
+    new THREE.Quaternion().setFromAxisAngle(
+      new THREE.Vector3(0, 0, 1),
+      Math.PI,
+    ),
+  ),
+);
 const arrowMaterial = (() => {
-  const u = `${import.meta.url.replace(/(\/)[^\/]*$/, '$1')}_Down Tap Note 16x16.png`;
+  const u = `${import.meta.url.replace(
+    /(\/)[^\/]*$/,
+    '$1',
+  )}_Down Tap Note 16x16.png`;
   (async () => {
     const img = await new Promise((accept, reject) => {
       const img = new Image();
@@ -183,12 +185,12 @@ export default () => {
 
   const tailMesh = (() => {
     const width = 0.47;
-    const height = width * 1245 / 576;
+    const height = (width * 1245) / 576;
     const geometry = new THREE.BufferGeometry();
     const positions = new Float32Array(2 * 3 * 64);
     const positionsAttribute = new THREE.BufferAttribute(positions, 3);
     geometry.setAttribute('position', positionsAttribute);
-    const uvs = new Float32Array(positions.length / 3 * 2);
+    const uvs = new Float32Array((positions.length / 3) * 2);
     const uvsAttribute = new THREE.BufferAttribute(uvs, 2);
     geometry.setAttribute('uv', uvsAttribute);
     const indices = new Uint16Array(positions.length / 3);
@@ -256,17 +258,21 @@ export default () => {
         let uvIndex = 0;
         let indexIndex = 0;
         for (let i = points.length - 1; i >= 0; i--) {
-          const { position, quaternion, index } = points[i];
-          localVector.copy(position)
+          const {position, quaternion, index} = points[i];
+          localVector
+            .copy(position)
             .add(
-              localVector2.set(-width * scale / 2, 0, 0)
+              localVector2
+                .set((-width * scale) / 2, 0, 0)
                 .applyQuaternion(quaternion),
             )
             .toArray(positions, positionIndex);
           positionIndex += 3;
-          localVector.copy(position)
+          localVector
+            .copy(position)
             .add(
-              localVector2.set(width * scale / 2, 0, 0)
+              localVector2
+                .set((width * scale) / 2, 0, 0)
                 .applyQuaternion(quaternion),
             )
             .toArray(positions, positionIndex);
@@ -307,21 +313,22 @@ export default () => {
   const da = 0;
   const di = 0.2;
   const lastPosition = new THREE.Vector3(0, 0, 1);
-  useFrame(({ timestamp }) => {
+  useFrame(({timestamp}) => {
     mesh.position.set(
       r * Math.cos(azimuth) * Math.sin(inclination),
       r * Math.sin(azimuth) * Math.sin(inclination),
       r * Math.cos(inclination),
     );
 
-    mesh.quaternion.setFromRotationMatrix(
-      localMatrix.lookAt(
-        lastPosition,
-        mesh.position,
-        localVector3.copy(mesh.position)
-          .multiplyScalar(-1),
-      ),
-    ).multiply(q90);
+    mesh.quaternion
+      .setFromRotationMatrix(
+        localMatrix.lookAt(
+          lastPosition,
+          mesh.position,
+          localVector3.copy(mesh.position).multiplyScalar(-1),
+        ),
+      )
+      .multiply(q90);
     lastPosition.copy(mesh.position);
     azimuth += da;
     azimuth %= Math.PI * 2;

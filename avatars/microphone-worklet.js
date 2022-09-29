@@ -45,7 +45,7 @@ class VolumeProcessor extends AudioWorkletProcessor {
       }
 
       if (++this.tick >= this.numTicks) {
-        const value = this.sampleSum > 0 ? (this.sampleSum / this.numSamples) : 0;
+        const value = this.sampleSum > 0 ? this.sampleSum / this.numSamples : 0;
         this.port.postMessage({
           method: 'volume',
           data: value,
@@ -59,7 +59,8 @@ class VolumeProcessor extends AudioWorkletProcessor {
     this.emitVolume && _emitVolume();
 
     // merge the channels
-    const sampleLength = (inputs && inputs[0] && inputs[0][0] && inputs[0][0].length) ?? 0;
+    const sampleLength =
+      (inputs && inputs[0] && inputs[0][0] && inputs[0][0].length) ?? 0;
     if (sampleLength > 0) {
       const _mergeOutput = () => {
         const mergedChannels = Array(2);
@@ -84,8 +85,13 @@ class VolumeProcessor extends AudioWorkletProcessor {
           this.queueLength -= channels[0].length;
           for (let i = 0; i < outputs.length; i++) {
             const output = outputs[i];
-            for (let channelIndex = 0; channelIndex < output.length; channelIndex++) {
-              output[channelIndex] && output[channelIndex].set(mergedChannels[channelIndex]);
+            for (
+              let channelIndex = 0;
+              channelIndex < output.length;
+              channelIndex++
+            ) {
+              output[channelIndex] &&
+                output[channelIndex].set(mergedChannels[channelIndex]);
             }
           }
         }
@@ -101,10 +107,13 @@ class VolumeProcessor extends AudioWorkletProcessor {
             }
           }
         }
-        this.port.postMessage({
-          method: 'buffer',
-          data: mergedSamples,
-        }, [mergedSamples.buffer]);
+        this.port.postMessage(
+          {
+            method: 'buffer',
+            data: mergedSamples,
+          },
+          [mergedSamples.buffer],
+        );
       };
       this.emitBuffer && _emitBuffer();
     }

@@ -1,4 +1,3 @@
-
 import React, {useContext, useEffect, useState} from 'react';
 import classnames from 'classnames';
 
@@ -10,7 +9,10 @@ import cameraManager from '../../../../camera-manager.js';
 import {NumberInput} from '../number-input';
 import {AppContext} from '../../app';
 import {ObjectScreenshot} from '../object-screenshot';
-import {registerIoEventHandler, unregisterIoEventHandler} from '../../general/io-handler';
+import {
+  registerIoEventHandler,
+  unregisterIoEventHandler,
+} from '../../general/io-handler';
 import {ComponentEditor} from './ComponentEditor.jsx';
 
 import styles from './world-objects-list.module.css';
@@ -201,7 +203,8 @@ export const WorldObjectsList = () => {
       }
 
       switch (event.which) {
-        case 90: { // Z
+        case 90: {
+          // Z
           if (state.openedPanel === 'WorldPanel') {
             if (!cameraManager.pointerLockElement) {
               cameraManager.requestPointerLock();
@@ -286,163 +289,271 @@ export const WorldObjectsList = () => {
   //
 
   return (
-    <div className={classnames(styles.worldObjectListWrapper, state.openedPanel === 'WorldPanel' ? styles.opened : null)} onClick={stopPropagation} onMouseMove={stopPropagation} >
-      <div className={classnames(styles.panel, (!selectedApp && state.openedPanel === 'WorldPanel') ? styles.opened : null)} >
-        <div className={styles.header} >
-          World Tokens ({apps.length})
-        </div>
+    <div
+      className={classnames(
+        styles.worldObjectListWrapper,
+        state.openedPanel === 'WorldPanel' ? styles.opened : null,
+      )}
+      onClick={stopPropagation}
+      onMouseMove={stopPropagation}
+    >
+      <div
+        className={classnames(
+          styles.panel,
+          !selectedApp && state.openedPanel === 'WorldPanel'
+            ? styles.opened
+            : null,
+        )}
+      >
+        <div className={styles.header}>World Tokens ({apps.length})</div>
         {
-          <div className={styles.objects} >
-            {
-              sortedApps.map((app, i) => (
-                <div className={classnames(styles.object, app === selectedApp ? styles.selected : null)} key={i} onClick={handleItemClick.bind(null, app)} onMouseEnter={handleItemMouseEnter.bind(null, app)} onMouseLeave={handleItemMouseLeave.bind(null, app)} >
-                  <img src="images/webpencil.svg" className={classnames(styles.backgroundInner, styles.lime)} />
-                  {
-                    (APP_TYPES.indexOf(app.appType) !== -1)
-                      ? (
-                        <ObjectScreenshot
-                          className={styles.img}
-                          width={80}
-                          height={80}
-                          app={app}
-                        />
-                        )
-                      : (
-                        <img src={`./images/ui/${appTypeIcons[app.appType] ?? 'gears'}-icon.svg`} className={styles.defaultPlaceHolder} />
-                        )
-                  }
-                  <div className={styles.wrap} >
-                    <div className={styles.name} >{app.name}</div>
-                    <div className={styles.type}>{app.appType}</div>
-                  </div>
+          <div className={styles.objects}>
+            {sortedApps.map((app, i) => (
+              <div
+                className={classnames(
+                  styles.object,
+                  app === selectedApp ? styles.selected : null,
+                )}
+                key={i}
+                onClick={handleItemClick.bind(null, app)}
+                onMouseEnter={handleItemMouseEnter.bind(null, app)}
+                onMouseLeave={handleItemMouseLeave.bind(null, app)}
+              >
+                <img
+                  src="images/webpencil.svg"
+                  className={classnames(styles.backgroundInner, styles.lime)}
+                />
+                {APP_TYPES.indexOf(app.appType) !== -1 ? (
+                  <ObjectScreenshot
+                    className={styles.img}
+                    width={80}
+                    height={80}
+                    app={app}
+                  />
+                ) : (
+                  <img
+                    src={`./images/ui/${
+                      appTypeIcons[app.appType] ?? 'gears'
+                    }-icon.svg`}
+                    className={styles.defaultPlaceHolder}
+                  />
+                )}
+                <div className={styles.wrap}>
+                  <div className={styles.name}>{app.name}</div>
+                  <div className={styles.type}>{app.appType}</div>
                 </div>
-              ))
-            }
+              </div>
+            ))}
           </div>
         }
       </div>
-      <div className={classnames(styles.objectProperties, styles.panel, selectedApp ? styles.opened : null)} >
-        {
-          selectedApp
-            ? (
-            <React.Fragment>
-              <div className={styles.header} >
-                <div className={classnames(styles.button, styles.back)} onClick={handleBackBtn} >
-                  <img src="images/webchevron.svg" className={styles.img} />
-                </div>
-                <div className={styles.title} >{selectedApp ? selectedApp.name : null} </div>
+      <div
+        className={classnames(
+          styles.objectProperties,
+          styles.panel,
+          selectedApp ? styles.opened : null,
+        )}
+      >
+        {selectedApp ? (
+          <React.Fragment>
+            <div className={styles.header}>
+              <div
+                className={classnames(styles.button, styles.back)}
+                onClick={handleBackBtn}
+              >
+                <img src="images/webchevron.svg" className={styles.img} />
               </div>
-              <div className={styles.settingsBlock} >
-                <div className={styles.subheader} >Position</div>
-                <div className={classnames(styles.inputs, styles.pos)} >
-                  <NumberInput title="X" initalValue={px} onChange={handleAppTransformChange.bind(null, 'px')} step={1} />
-                  <NumberInput title="Y" initalValue={py} onChange={handleAppTransformChange.bind(null, 'py')} step={1} />
-                  <NumberInput title="Z" initalValue={pz} onChange={handleAppTransformChange.bind(null, 'pz')} step={1} />
-                </div>
-                <div className={styles.subheader} >Rotation</div>
-                <div className={styles.selectWrapper} >
-                  <div className={styles.selectWrapperTitle} >Rotation type</div>
-                  <select value={rotationMode} onChange={handleSetRotationMode} >
-                    <option value="euler">Euler</option>
-                    <option value="quaternion">Quaternion</option>
-                  </select>
-                </div>
-                {
-                  rotationMode === 'euler'
-                    ? (
-                      <div className={classnames(styles.inputs)} >
-                        <div className={styles.selectWrapper} >
-                          <div className={styles.selectWrapperTitle} >Euler order</div>
-                          <select value={rotationEulerOrder} onChange={handleSetRotationEulerOrder} className={styles.rotationEulerOrderSelect} >
-                            <option value="YXZ">YXZ</option>
-                            <option value="XYZ">XYZ</option>
-                            <option value="YZX">YZX</option>
-                            <option value="ZXY">ZXY</option>
-                            <option value="XZY">XZY</option>
-                            <option value="ZYX">ZYX</option>
-                          </select>
-                        </div>
-                        {
-                          (rotationEulerOrder[0] === 'X')
-                            ? (
-                              <NumberInput title="X" initalValue={rex} onChange={handleAppTransformChange.bind(null, 'rex')} step={Math.PI / 2} />
-                              )
-                            : (rotationEulerOrder[0] === 'Y')
-                                ? (
-                                <NumberInput title="Y" initalValue={rey} onChange={handleAppTransformChange.bind(null, 'rey')} step={Math.PI / 2} />
-                                  )
-                                : (
-                                <NumberInput title="Z" initalValue={rez} onChange={handleAppTransformChange.bind(null, 'rez')} step={Math.PI / 2} />
-                                  )
-                        }
-                        {
-                          (rotationEulerOrder[1] === 'X')
-                            ? (
-                              <NumberInput title="X" initalValue={rex} onChange={handleAppTransformChange.bind(null, 'rex')} step={Math.PI / 2} />
-                              )
-                            : (rotationEulerOrder[1] === 'Y')
-                                ? (
-                                <NumberInput title="Y" initalValue={rey} onChange={handleAppTransformChange.bind(null, 'rey')} step={Math.PI / 2} />
-                                  )
-                                : (
-                                <NumberInput title="Z" initalValue={rez} onChange={handleAppTransformChange.bind(null, 'rez')} step={Math.PI / 2} />
-                                  )
-                        }
-                        {
-                          (rotationEulerOrder[2] === 'X')
-                            ? (
-                              <NumberInput title="X" initalValue={rex} onChange={handleAppTransformChange.bind(null, 'rex')} step={Math.PI / 2} />
-                              )
-                            : (rotationEulerOrder[2] === 'Y')
-                                ? (
-                                <NumberInput title="Y" initalValue={rey} onChange={handleAppTransformChange.bind(null, 'rey')} step={Math.PI / 2} />
-                                  )
-                                : (
-                                <NumberInput title="Z" initalValue={rez} onChange={handleAppTransformChange.bind(null, 'rez')} step={Math.PI / 2} />
-                                  )
-                        }
-                      </div>
-                      )
-                    : (
-                      <div className={classnames(styles.inputs)} >
-                        <NumberInput title="X" initalValue={rqx} onChange={handleAppTransformChange.bind(null, 'rqx')} step={0.02} />
-                        <NumberInput title="Y" initalValue={rqy} onChange={handleAppTransformChange.bind(null, 'rqy')} step={0.02} />
-                        <NumberInput title="Z" initalValue={rqz} onChange={handleAppTransformChange.bind(null, 'rqz')} step={0.02} />
-                        <NumberInput title="W" initalValue={rqw} onChange={handleAppTransformChange.bind(null, 'rqw')} step={0.02} />
-                      </div>
-                      )
-                }
-                <div className={styles.subheader} >Scale</div>
-                <div className={classnames(styles.inputs, styles.scale)} >
-                  <NumberInput title="X" zeroValue={false} initalValue={sx} onChange={handleAppTransformChange.bind(null, 'sx')} step={0.1} />
-                  <NumberInput title="Y" zeroValue={false} initalValue={sy} onChange={handleAppTransformChange.bind(null, 'sy')} step={0.1} />
-                  <NumberInput title="Z" zeroValue={false} initalValue={sz} onChange={handleAppTransformChange.bind(null, 'sz')} step={0.1} />
-                </div>
-                <ComponentEditor />
+              <div className={styles.title}>
+                {selectedApp ? selectedApp.name : null}{' '}
               </div>
-              {
-                APP_TYPES.indexOf(selectedApp.appType) !== -1 && (
-                  // <Spritesheet
-                  //     className={ styles.objectPreview }
-                  //     startUrl={ selectedApp?.start_url }
-                  //     enabled={ true }
-                  //     size={ 2048 }
-                  //     numFrames={ 128 }
-                  //     animated={ true }
-                  //     background={ '#000' }
-                  // />
-                  <ObjectScreenshot
-                    className={styles.objectPreview}
-                    width={350}
-                    height={350}
-                    app={selectedApp}
+            </div>
+            <div className={styles.settingsBlock}>
+              <div className={styles.subheader}>Position</div>
+              <div className={classnames(styles.inputs, styles.pos)}>
+                <NumberInput
+                  title="X"
+                  initalValue={px}
+                  onChange={handleAppTransformChange.bind(null, 'px')}
+                  step={1}
+                />
+                <NumberInput
+                  title="Y"
+                  initalValue={py}
+                  onChange={handleAppTransformChange.bind(null, 'py')}
+                  step={1}
+                />
+                <NumberInput
+                  title="Z"
+                  initalValue={pz}
+                  onChange={handleAppTransformChange.bind(null, 'pz')}
+                  step={1}
+                />
+              </div>
+              <div className={styles.subheader}>Rotation</div>
+              <div className={styles.selectWrapper}>
+                <div className={styles.selectWrapperTitle}>Rotation type</div>
+                <select value={rotationMode} onChange={handleSetRotationMode}>
+                  <option value="euler">Euler</option>
+                  <option value="quaternion">Quaternion</option>
+                </select>
+              </div>
+              {rotationMode === 'euler' ? (
+                <div className={classnames(styles.inputs)}>
+                  <div className={styles.selectWrapper}>
+                    <div className={styles.selectWrapperTitle}>Euler order</div>
+                    <select
+                      value={rotationEulerOrder}
+                      onChange={handleSetRotationEulerOrder}
+                      className={styles.rotationEulerOrderSelect}
+                    >
+                      <option value="YXZ">YXZ</option>
+                      <option value="XYZ">XYZ</option>
+                      <option value="YZX">YZX</option>
+                      <option value="ZXY">ZXY</option>
+                      <option value="XZY">XZY</option>
+                      <option value="ZYX">ZYX</option>
+                    </select>
+                  </div>
+                  {rotationEulerOrder[0] === 'X' ? (
+                    <NumberInput
+                      title="X"
+                      initalValue={rex}
+                      onChange={handleAppTransformChange.bind(null, 'rex')}
+                      step={Math.PI / 2}
+                    />
+                  ) : rotationEulerOrder[0] === 'Y' ? (
+                    <NumberInput
+                      title="Y"
+                      initalValue={rey}
+                      onChange={handleAppTransformChange.bind(null, 'rey')}
+                      step={Math.PI / 2}
+                    />
+                  ) : (
+                    <NumberInput
+                      title="Z"
+                      initalValue={rez}
+                      onChange={handleAppTransformChange.bind(null, 'rez')}
+                      step={Math.PI / 2}
+                    />
+                  )}
+                  {rotationEulerOrder[1] === 'X' ? (
+                    <NumberInput
+                      title="X"
+                      initalValue={rex}
+                      onChange={handleAppTransformChange.bind(null, 'rex')}
+                      step={Math.PI / 2}
+                    />
+                  ) : rotationEulerOrder[1] === 'Y' ? (
+                    <NumberInput
+                      title="Y"
+                      initalValue={rey}
+                      onChange={handleAppTransformChange.bind(null, 'rey')}
+                      step={Math.PI / 2}
+                    />
+                  ) : (
+                    <NumberInput
+                      title="Z"
+                      initalValue={rez}
+                      onChange={handleAppTransformChange.bind(null, 'rez')}
+                      step={Math.PI / 2}
+                    />
+                  )}
+                  {rotationEulerOrder[2] === 'X' ? (
+                    <NumberInput
+                      title="X"
+                      initalValue={rex}
+                      onChange={handleAppTransformChange.bind(null, 'rex')}
+                      step={Math.PI / 2}
+                    />
+                  ) : rotationEulerOrder[2] === 'Y' ? (
+                    <NumberInput
+                      title="Y"
+                      initalValue={rey}
+                      onChange={handleAppTransformChange.bind(null, 'rey')}
+                      step={Math.PI / 2}
+                    />
+                  ) : (
+                    <NumberInput
+                      title="Z"
+                      initalValue={rez}
+                      onChange={handleAppTransformChange.bind(null, 'rez')}
+                      step={Math.PI / 2}
+                    />
+                  )}
+                </div>
+              ) : (
+                <div className={classnames(styles.inputs)}>
+                  <NumberInput
+                    title="X"
+                    initalValue={rqx}
+                    onChange={handleAppTransformChange.bind(null, 'rqx')}
+                    step={0.02}
                   />
-                )
-              }
-            </React.Fragment>
-              )
-            : null
-        }
+                  <NumberInput
+                    title="Y"
+                    initalValue={rqy}
+                    onChange={handleAppTransformChange.bind(null, 'rqy')}
+                    step={0.02}
+                  />
+                  <NumberInput
+                    title="Z"
+                    initalValue={rqz}
+                    onChange={handleAppTransformChange.bind(null, 'rqz')}
+                    step={0.02}
+                  />
+                  <NumberInput
+                    title="W"
+                    initalValue={rqw}
+                    onChange={handleAppTransformChange.bind(null, 'rqw')}
+                    step={0.02}
+                  />
+                </div>
+              )}
+              <div className={styles.subheader}>Scale</div>
+              <div className={classnames(styles.inputs, styles.scale)}>
+                <NumberInput
+                  title="X"
+                  zeroValue={false}
+                  initalValue={sx}
+                  onChange={handleAppTransformChange.bind(null, 'sx')}
+                  step={0.1}
+                />
+                <NumberInput
+                  title="Y"
+                  zeroValue={false}
+                  initalValue={sy}
+                  onChange={handleAppTransformChange.bind(null, 'sy')}
+                  step={0.1}
+                />
+                <NumberInput
+                  title="Z"
+                  zeroValue={false}
+                  initalValue={sz}
+                  onChange={handleAppTransformChange.bind(null, 'sz')}
+                  step={0.1}
+                />
+              </div>
+              <ComponentEditor />
+            </div>
+            {APP_TYPES.indexOf(selectedApp.appType) !== -1 && (
+              // <Spritesheet
+              //     className={ styles.objectPreview }
+              //     startUrl={ selectedApp?.start_url }
+              //     enabled={ true }
+              //     size={ 2048 }
+              //     numFrames={ 128 }
+              //     animated={ true }
+              //     background={ '#000' }
+              // />
+              <ObjectScreenshot
+                className={styles.objectPreview}
+                width={350}
+                height={350}
+                app={selectedApp}
+              />
+            )}
+          </React.Fragment>
+        ) : null}
       </div>
     </div>
   );

@@ -9,11 +9,13 @@ class Debug extends EventTarget {
       enabled = !this.enabled;
     }
     this.enabled = enabled;
-    this.dispatchEvent(new MessageEvent('enabledchange', {
-      data: {
-        enabled,
-      },
-    }));
+    this.dispatchEvent(
+      new MessageEvent('enabledchange', {
+        data: {
+          enabled,
+        },
+      }),
+    );
   }
 }
 const debug = new Debug();

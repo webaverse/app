@@ -12,7 +12,10 @@ import {WebaverseScene} from './webaverse-scene.js';
 // XXX enable this when the code is stable; then, we will have many more places to add missing matrix updates
 // THREE.Object3D.DefaultMatrixAutoUpdate = false;
 
-let canvas = null; let context = null; let renderer = null; let composer = null;
+let canvas = null;
+let context = null;
+let renderer = null;
+let composer = null;
 
 const waitPromise = makePromise();
 const waitForLoad = () => waitPromise;
@@ -20,12 +23,14 @@ const waitForLoad = () => waitPromise;
 function bindCanvas(c) {
   // initialize renderer
   canvas = c;
-  context = canvas && canvas.getContext('webgl2', {
-    antialias: true,
-    alpha: true,
-    // preserveDrawingBuffer: false,
-    xrCompatible: true,
-  });
+  context =
+    canvas &&
+    canvas.getContext('webgl2', {
+      antialias: true,
+      alpha: true,
+      // preserveDrawingBuffer: false,
+      xrCompatible: true,
+    });
   renderer = new THREE.WebGLRenderer({
     canvas,
     context,
@@ -35,11 +40,7 @@ function bindCanvas(c) {
     // logarithmicDepthBuffer: true,
   });
 
-  const {
-    width,
-    height,
-    pixelRatio,
-  } = _getCanvasDimensions();
+  const {width, height, pixelRatio} = _getCanvasDimensions();
   renderer.setSize(width, height);
   renderer.setPixelRatio(pixelRatio);
 
@@ -52,12 +53,16 @@ function bindCanvas(c) {
   renderer.xr.enabled = true;
 
   // initialize post-processing
-  const renderTarget = new THREE.WebGLRenderTarget(width * pixelRatio, height * pixelRatio, {
-    minFilter: THREE.LinearFilter,
-    magFilter: THREE.LinearFilter,
-    // format: THREE.RGBAFormat,
-    encoding: THREE.sRGBEncoding,
-  });
+  const renderTarget = new THREE.WebGLRenderTarget(
+    width * pixelRatio,
+    height * pixelRatio,
+    {
+      minFilter: THREE.LinearFilter,
+      magFilter: THREE.LinearFilter,
+      // format: THREE.RGBAFormat,
+      encoding: THREE.sRGBEncoding,
+    },
+  );
   renderTarget.name = 'effectComposerRenderTarget';
   renderTarget.samples = context.MAX_SAMPLES; // XXX make this based on the antialiasing settings
   renderTarget.texture.generateMipmaps = false;
@@ -142,11 +147,7 @@ const _getCanvasDimensions = () => {
 };
 
 const _setSizes = () => {
-  const {
-    width,
-    height,
-    pixelRatio,
-  } = _getCanvasDimensions();
+  const {width, height, pixelRatio} = _getCanvasDimensions();
   _setRendererSize(width, height, pixelRatio);
   _setComposerSize(width, height, pixelRatio);
   _setCameraSize(width, height, pixelRatio);

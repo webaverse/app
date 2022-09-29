@@ -362,6 +362,4 @@ class RainBgFxMesh extends THREE.Mesh {
   }
 }
 
-export {
-  RainBgFxMesh,
-};
+export {RainBgFxMesh};

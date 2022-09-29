@@ -34,10 +34,10 @@ class BokehPass extends Pass {
     this.camera = camera;
     this.depthPass = depthPass;
 
-    const focus = (params.focus !== undefined) ? params.focus : 1.0;
-    const aspect = (params.aspect !== undefined) ? params.aspect : camera.aspect;
-    const aperture = (params.aperture !== undefined) ? params.aperture : 0.025;
-    const maxblur = (params.maxblur !== undefined) ? params.maxblur : 1.0;
+    const focus = params.focus !== undefined ? params.focus : 1.0;
+    const aspect = params.aspect !== undefined ? params.aspect : camera.aspect;
+    const aperture = params.aperture !== undefined ? params.aperture : 0.025;
+    const maxblur = params.maxblur !== undefined ? params.maxblur : 1.0;
 
     // render targets
 
@@ -83,7 +83,7 @@ class BokehPass extends Pass {
     this._oldClearColor = new Color();
   }
 
-  render(renderer, writeBuffer, readBuffer/*, deltaTime, maskActive */) {
+  render(renderer, writeBuffer, readBuffer /*, deltaTime, maskActive */) {
     renderer.getClearColor(this._oldClearColor);
     const oldClearAlpha = renderer.getClearAlpha();
     const oldAutoClear = renderer.autoClear;

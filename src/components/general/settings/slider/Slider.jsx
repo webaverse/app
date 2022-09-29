@@ -1,4 +1,3 @@
-
 import classNames from 'classnames';
 import React, {useState} from 'react';
 
@@ -20,14 +19,21 @@ export const Slider = ({className, value, setValue, max = 100, min = 0}) => {
   //
 
   return (
-        <div className={ classNames(styles.slider, className) }>
-            <div className={ styles.minus } onClick={ handleMinusBtnClick }>-</div>
-            <div className={ styles.progressWrapper }>
-                <div className={ styles.progressFill } style={{width: `${100 * value / max}%`}}></div>
-            </div>
-            <div className={ styles.value }>{ value }</div>
-            <div className={ styles.plus } onClick={ handlePlusBtnClick }>+</div>
-            <div className={ styles.clearfix }/>
-        </div>
+    <div className={classNames(styles.slider, className)}>
+      <div className={styles.minus} onClick={handleMinusBtnClick}>
+        -
+      </div>
+      <div className={styles.progressWrapper}>
+        <div
+          className={styles.progressFill}
+          style={{width: `${(100 * value) / max}%`}}
+        ></div>
+      </div>
+      <div className={styles.value}>{value}</div>
+      <div className={styles.plus} onClick={handlePlusBtnClick}>
+        +
+      </div>
+      <div className={styles.clearfix} />
+    </div>
   );
 };

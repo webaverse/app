@@ -306,7 +306,7 @@ class GrassBgFxMesh extends THREE.Mesh {
           needsUpdate: true,
         },
         uColor2: {
-          value: new THREE.Color(0xFFFFFF),
+          value: new THREE.Color(0xffffff),
           needsUpdate: true,
         },
         /* outline_threshold: {
@@ -341,6 +341,4 @@ class GrassBgFxMesh extends THREE.Mesh {
   }
 }
 
-export {
-  GrassBgFxMesh,
-};
+export {GrassBgFxMesh};

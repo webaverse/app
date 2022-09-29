@@ -449,7 +449,9 @@ export const parseBanterResponse = resp => {
       // split name by spaces and get the last one
       const name = splitMessage[0].trim().split(' ').pop();
       const message = splitMessage[1].trim();
-      if (name && messages) { messages.push({name, message, done: message.includes('*END*')}); }
+      if (name && messages) {
+        messages.push({name, message, done: message.includes('*END*')});
+      }
 
       // check for *END*
       if (message.includes('*END*')) {
@@ -654,7 +656,9 @@ export const parseCutsceneResponse = resp => {
       // split name by spaces and get the last one
       const name = splitMessage[0].trim().split(' ').pop();
       const message = splitMessage[1].trim();
-      if (name && messages) { messages.push({name, message, done: message.includes('*END*')}); }
+      if (name && messages) {
+        messages.push({name, message, done: message.includes('*END*')});
+      }
 
       // check for *END*
       if (message.includes('*END*')) {
@@ -1350,10 +1354,7 @@ export async function generateMobComment({name, description}, generateFn) {
   return {comment: parsed, prompt};
 }
 
-export async function generateLocationComment(
-  {name, description},
-  generateFn,
-) {
+export async function generateLocationComment({name, description}, generateFn) {
   const input = {name, description, type: 'Location'};
   const prompt = makeCommentPrompt(input);
   const res = await generateFn(prompt, makeCommentStop());
@@ -1503,10 +1504,7 @@ export const parseSelectCharacterResponse = response => {
   };
 };
 
-export async function generateSelectCharacter(
-  {name, description},
-  generateFn,
-) {
+export async function generateSelectCharacter({name, description}, generateFn) {
   const input = {name, description};
   return parseSelectCharacterResponse(
     await generateFn(
@@ -1783,10 +1781,7 @@ export const parseCharacterIntroResponse = response => {
   };
 };
 
-export async function generateCharacterIntro(
-  {name, description},
-  generateFn,
-) {
+export async function generateCharacterIntro({name, description}, generateFn) {
   const input = {name, description};
   return (
     parseCharacterIntroResponse(
@@ -2286,7 +2281,9 @@ export async function generateLoreFile(
         if (loreResp[j].length > 300) validResponse = false;
 
         // if it isn't an action but doesn't include a ':' indicating chat, it's not valid
-        if (!loreResp[j].includes('/action') && !loreResp[j].split(':')[1]) { validResponse = false; }
+        if (!loreResp[j].includes('/action') && !loreResp[j].split(':')[1]) {
+          validResponse = false;
+        }
 
         // if it's an empty response, invalidate it
         if (loreResp[j] === '') validResponse = false;
@@ -2296,7 +2293,9 @@ export async function generateLoreFile(
         }
 
         // if the first character is a '/' but the word after is not action, it's not valid
-        if (loreResp[j].startsWith('/') && !loreResp[j].includes('/action')) { validResponse = false; }
+        if (loreResp[j].startsWith('/') && !loreResp[j].includes('/action')) {
+          validResponse = false;
+        }
 
         if (validResponse) {
           console.log('***adding response "', loreResp[j], '" to prompt');

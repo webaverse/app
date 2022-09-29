@@ -27,7 +27,8 @@ export const RainFx = ({
     renderer.setPixelRatio(window.devicePixelRatio);
   };
   const _updateAspectRatio = () => {
-    rainBgFxMesh.material.uniforms.aspectRatio.value = window.innerWidth / window.innerHeight;
+    rainBgFxMesh.material.uniforms.aspectRatio.value =
+      window.innerWidth / window.innerHeight;
     rainBgFxMesh.material.uniforms.aspectRatio.needsUpdate = true;
   };
   _updateAspectRatio();
@@ -73,7 +74,5 @@ export const RainFx = ({
     }
   }, [canvasRef, enabled]);
 
-  return (
-        <canvas className={styles.rainFx} ref={canvasRef} />
-  );
+  return <canvas className={styles.rainFx} ref={canvasRef} />;
 };

@@ -7,7 +7,12 @@ import metaversefile from 'metaversefile';
 import {registerIoEventHandler, unregisterIoEventHandler} from '../io-handler';
 import {MiniHup} from '../../../MiniHup.jsx';
 // import {RpgText} from '../../../RpgText.jsx';
-import {getRenderer, rootScene, scene, sceneLowPriority} from '../../../../renderer.js';
+import {
+  getRenderer,
+  rootScene,
+  scene,
+  sceneLowPriority,
+} from '../../../../renderer.js';
 import game from '../../../../game.js';
 import {world} from '../../../../world.js';
 import universe from '../../../../universe.js';
@@ -130,15 +135,12 @@ const _makeChunkMesh = (x, y) => {
   let textMesh;
   {
     textMesh = new Text();
-    const materials = [
-      _makeTextMaterial(false),
-      _makeTextMaterial(true),
-    ];
+    const materials = [_makeTextMaterial(false), _makeTextMaterial(true)];
     textMesh.material = materials[+false];
     textMesh.text = name;
     textMesh.font = './fonts/Plaza Regular.ttf';
     textMesh.fontSize = 8;
-    textMesh.color = 0xFFFFFF;
+    textMesh.color = 0xffffff;
     textMesh.anchorX = 'left';
     textMesh.anchorY = 'bottom';
     textMesh.letterSpacing = 0.1;
@@ -164,7 +166,10 @@ const _makeChunkMesh = (x, y) => {
       1,
       chunkWorldSize / 2 - textOffset,
     );
-    textMesh.quaternion.setFromAxisAngle(new THREE.Vector3(1, 0, 0), -Math.PI / 2);
+    textMesh.quaternion.setFromAxisAngle(
+      new THREE.Vector3(1, 0, 0),
+      -Math.PI / 2,
+    );
     mesh.add(textMesh);
     textMesh.updateWorldMatrix();
     let highlight = false;
@@ -178,12 +183,14 @@ const _makeChunkMesh = (x, y) => {
 
   let labelMesh;
   {
-    const labelGeometry = new THREE.PlaneGeometry(1, 1)
-      .applyMatrix4(
-        new THREE.Matrix4().makeRotationFromQuaternion(
-          new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(1, 0, 0), -Math.PI / 2),
+    const labelGeometry = new THREE.PlaneGeometry(1, 1).applyMatrix4(
+      new THREE.Matrix4().makeRotationFromQuaternion(
+        new THREE.Quaternion().setFromAxisAngle(
+          new THREE.Vector3(1, 0, 0),
+          -Math.PI / 2,
         ),
-      );
+      ),
+    );
     const labelMaterial = new THREE.MeshBasicMaterial({
       color: 0x000000,
     });
@@ -193,15 +200,17 @@ const _makeChunkMesh = (x, y) => {
     labelMesh.updateMatrixWorld();
   }
 
-  mesh.setHovered = (setHovered => function() {
-    setHovered.apply(this, arguments);
-    textMesh.setHighlight(mesh.hovered || mesh.selected);
-  })(mesh.setHovered);
-  mesh.setSelected = (setSelected => function() {
-    setSelected.apply(this, arguments);
-    textMesh.setHighlight(mesh.hovered || mesh.selected);
-    labelMesh.visible = mesh.selected;
-  })(mesh.setSelected);
+  mesh.setHovered = (setHovered =>
+    function () {
+      setHovered.apply(this, arguments);
+      textMesh.setHighlight(mesh.hovered || mesh.selected);
+    })(mesh.setHovered);
+  mesh.setSelected = (setSelected =>
+    function () {
+      setSelected.apply(this, arguments);
+      textMesh.setHighlight(mesh.hovered || mesh.selected);
+      labelMesh.visible = mesh.selected;
+    })(mesh.setSelected);
 
   return mesh;
 };
@@ -217,7 +226,12 @@ export const MapGen = () => {
   const [mouseState, setMouseState] = useState(null);
   const [mapScene, setMapScene] = useState(() => new THREE.Scene());
   const [camera, setCamera] = useState(() => {
-    const camera = new THREE.PerspectiveCamera(45, width / height, 0.1, 10 * 1000);
+    const camera = new THREE.PerspectiveCamera(
+      45,
+      width / height,
+      0.1,
+      10 * 1000,
+    );
     camera.position.y = 100;
     camera.quaternion.copy(downQuaternion);
     camera.updateMatrixWorld();
@@ -276,7 +290,8 @@ export const MapGen = () => {
   };
 
   const getRenderPosition = () => {
-    return camera.position.clone()
+    return camera.position
+      .clone()
       .add(new THREE.Vector3(0, 0, -16).applyQuaternion(camera.quaternion))
       .toArray();
   };
@@ -318,11 +333,17 @@ export const MapGen = () => {
         if (game.inputFocused()) return true;
 
         switch (event.which) {
-          case 74: { // J
+          case 74: {
+            // J
             if (!firedropMeshApp) {
               const localPlayer = useLocalPlayer();
-              const position = localPlayer.position.clone()
-                .add(new THREE.Vector3(0, 0, -3).applyQuaternion(localPlayer.quaternion));
+              const position = localPlayer.position
+                .clone()
+                .add(
+                  new THREE.Vector3(0, 0, -3).applyQuaternion(
+                    localPlayer.quaternion,
+                  ),
+                );
 
               const firedropMeshApp = metaversefile.createApp({
                 position,
@@ -345,7 +366,8 @@ export const MapGen = () => {
             return false;
           }
 
-          case 75: { // K
+          case 75: {
+            // K
             if (!haloMeshApp) {
               const haloMeshApp = metaversefile.createApp();
               (async () => {
@@ -366,7 +388,8 @@ export const MapGen = () => {
             return false;
           }
 
-          case 76: { // L
+          case 76: {
+            // L
             if (!silksMeshApp) {
               const silksMeshApp = metaversefile.createApp();
               (async () => {
@@ -387,7 +410,8 @@ export const MapGen = () => {
             return false;
           }
 
-          case 80: { // P
+          case 80: {
+            // P
             if (!cometMeshApp) {
               const cometMeshApp = metaversefile.createApp();
               (async () => {
@@ -397,8 +421,13 @@ export const MapGen = () => {
               })();
               scene.add(cometMeshApp);
               const localPlayer = useLocalPlayer();
-              cometMeshApp.position.copy(localPlayer.position)
-                .add(new THREE.Vector3(0, 3, -3).applyQuaternion(localPlayer.quaternion));
+              cometMeshApp.position
+                .copy(localPlayer.position)
+                .add(
+                  new THREE.Vector3(0, 3, -3).applyQuaternion(
+                    localPlayer.quaternion,
+                  ),
+                );
               localEuler.setFromQuaternion(localPlayer.quaternion, 'YXZ');
               localEuler.x = 0;
               localEuler.z = 0;
@@ -416,7 +445,8 @@ export const MapGen = () => {
             return false;
           }
 
-          case 186: { // ;
+          case 186: {
+            // ;
             if (!flareMeshApp) {
               const flareMeshApp = metaversefile.createApp();
               (async () => {
@@ -436,7 +466,8 @@ export const MapGen = () => {
 
             return false;
           }
-          case 222: { // '
+          case 222: {
+            // '
             (async () => {
               const chunkWorldSize = new THREE.Vector3(64, 64, 64);
               const chunkWorldResolution = new THREE.Vector2(2048, 2048);
@@ -456,7 +487,8 @@ export const MapGen = () => {
             return false;
           }
 
-          case 188: { // ,
+          case 188: {
+            // ,
             if (!magicMeshApp) {
               const magicMeshApp = metaversefile.createApp();
               (async () => {
@@ -477,7 +509,8 @@ export const MapGen = () => {
             return false;
           }
 
-          case 190: { // .
+          case 190: {
+            // .
             if (!limitMeshApp) {
               const limitMeshApp = metaversefile.createApp();
               (async () => {
@@ -498,7 +531,8 @@ export const MapGen = () => {
             return false;
           }
 
-          case 77: { // M
+          case 77: {
+            // M
             if (state.openedPanel === 'MapGenPanel') {
               setState({openedPanel: null});
 
@@ -516,7 +550,8 @@ export const MapGen = () => {
             return false;
           }
 
-          case 219: { // [
+          case 219: {
+            // [
             story.startCinematicIntro();
 
             return false;
@@ -531,7 +566,16 @@ export const MapGen = () => {
       return () => {
         unregisterIoEventHandler('keyup', handleKeyUp);
       };
-    }, [state.openedPanel, firedropMeshApp, haloMeshApp, silksMeshApp, cometMeshApp, flareMeshApp, magicMeshApp, limitMeshApp]);
+    }, [
+      state.openedPanel,
+      firedropMeshApp,
+      haloMeshApp,
+      silksMeshApp,
+      cometMeshApp,
+      flareMeshApp,
+      magicMeshApp,
+      limitMeshApp,
+    ]);
   };
   _addHacks();
 
@@ -562,8 +606,13 @@ export const MapGen = () => {
         ) {
           const {forwardTarget} = mouseState;
 
-          const backDirection = new THREE.Vector3(0, 0, 1).applyQuaternion(camera.quaternion);
-          localPlane.setFromNormalAndCoplanarPoint(backDirection, forwardTarget);
+          const backDirection = new THREE.Vector3(0, 0, 1).applyQuaternion(
+            camera.quaternion,
+          );
+          localPlane.setFromNormalAndCoplanarPoint(
+            backDirection,
+            forwardTarget,
+          );
 
           const oldEvent = {
             clientX: mouseState.x,
@@ -571,22 +620,30 @@ export const MapGen = () => {
           };
           setRaycasterFromEvent(localRaycaster, oldEvent);
 
-          const startIntersectionPoint = localRaycaster.ray.intersectPlane(localPlane, localVector);
+          const startIntersectionPoint = localRaycaster.ray.intersectPlane(
+            localPlane,
+            localVector,
+          );
 
           setRaycasterFromEvent(localRaycaster, e);
-          const endIntersectionPoint = localRaycaster.ray.intersectPlane(localPlane, localVector2);
+          const endIntersectionPoint = localRaycaster.ray.intersectPlane(
+            localPlane,
+            localVector2,
+          );
 
           if (startIntersectionPoint && endIntersectionPoint) {
-            const intersectionDelta = endIntersectionPoint.clone().sub(startIntersectionPoint);
-            const p = camera.position.clone()
-              .sub(intersectionDelta);
+            const intersectionDelta = endIntersectionPoint
+              .clone()
+              .sub(startIntersectionPoint);
+            const p = camera.position.clone().sub(intersectionDelta);
             setPosition(p);
           }
 
           /* const p = position.clone()
             .add(new THREE.Vector3(-dx, dy, 0).applyQuaternion(quaternion));
           setPosition(p); */
-        } else if (mouseState.buttons & 4) { // middle click
+        } else if (mouseState.buttons & 4) {
+          // middle click
           // setRaycasterFromEvent(localRaycaster, e);
 
           // const dx = e.movementX;
@@ -606,12 +663,11 @@ export const MapGen = () => {
 
           const d = startPosition.distanceTo(forwardTarget);
 
-          const p = forwardTarget.clone()
-            .add(
-              new THREE.Vector3(0, 0, d)
-                .applyQuaternion(localQuaternion),
-            );
-          const q = localQuaternion.clone(); /* new THREE.Quaternion().setFromRotationMatrix(
+          const p = forwardTarget
+            .clone()
+            .add(new THREE.Vector3(0, 0, d).applyQuaternion(localQuaternion));
+          const q =
+            localQuaternion.clone(); /* new THREE.Quaternion().setFromRotationMatrix(
               localMatrix.lookAt(
                 p,
                 forwardTarget,
@@ -621,7 +677,8 @@ export const MapGen = () => {
 
           setPosition(p);
           setQuaternion(q);
-        } else if (mouseState.buttons & 2) { // right click
+        } else if (mouseState.buttons & 2) {
+          // right click
           /* const p = position.clone();
           const q = quaternion.clone();
 
@@ -650,13 +707,21 @@ export const MapGen = () => {
         if (terrainApp) {
           setRaycasterFromEvent(localRaycaster, e);
 
-          localQuaternion.setFromUnitVectors(forwardDirection, localRaycaster.ray.direction);
-          const raycastResult = physicsScene.raycast(localRaycaster.ray.origin, localQuaternion);
+          localQuaternion.setFromUnitVectors(
+            forwardDirection,
+            localRaycaster.ray.direction,
+          );
+          const raycastResult = physicsScene.raycast(
+            localRaycaster.ray.origin,
+            localQuaternion,
+          );
           if (raycastResult) {
             // window.raycastResult = raycastResult;
             const physicsId = raycastResult.objectId;
             const physicsObjects = terrainApp.getPhysicsObjects();
-            physicsObject = physicsObjects.find(physicsObject => physicsObject.physicsId === physicsId);
+            physicsObject = physicsObjects.find(
+              physicsObject => physicsObject.physicsId === physicsId,
+            );
             if (physicsObject) {
               hoveredPoint = new THREE.Vector3().fromArray(raycastResult.point);
             }
@@ -704,12 +769,20 @@ export const MapGen = () => {
         const timestamp = performance.now();
 
         hoveredPhysicsMesh.geometry = physicsMesh.geometry;
-        hoveredPhysicsMesh.matrixWorld.copy(physicsMesh.matrixWorld)
-          .decompose(hoveredPhysicsMesh.position, hoveredPhysicsMesh.quaternion, hoveredPhysicsMesh.scale);
+        hoveredPhysicsMesh.matrixWorld
+          .copy(physicsMesh.matrixWorld)
+          .decompose(
+            hoveredPhysicsMesh.position,
+            hoveredPhysicsMesh.quaternion,
+            hoveredPhysicsMesh.scale,
+          );
 
-        hoveredPhysicsMesh.material.uniforms.uTime.value = (timestamp % 1500) / 1500;
+        hoveredPhysicsMesh.material.uniforms.uTime.value =
+          (timestamp % 1500) / 1500;
         hoveredPhysicsMesh.material.uniforms.uTime.needsUpdate = true;
-        hoveredPhysicsMesh.material.uniforms.uColor.value.setHex(buildMaterial.uniforms.uColor.value.getHex());
+        hoveredPhysicsMesh.material.uniforms.uColor.value.setHex(
+          buildMaterial.uniforms.uColor.value.getHex(),
+        );
         hoveredPhysicsMesh.material.uniforms.uColor.needsUpdate = true;
         hoveredPhysicsMesh.visible = true;
         hoveredPhysicsMesh.updateMatrixWorld();
@@ -726,10 +799,16 @@ export const MapGen = () => {
         const timestamp = performance.now();
 
         selectedPhysicsMesh.geometry = physicsMesh.geometry;
-        selectedPhysicsMesh.matrixWorld.copy(physicsMesh.matrixWorld)
-          .decompose(selectedPhysicsMesh.position, selectedPhysicsMesh.quaternion, selectedPhysicsMesh.scale);
+        selectedPhysicsMesh.matrixWorld
+          .copy(physicsMesh.matrixWorld)
+          .decompose(
+            selectedPhysicsMesh.position,
+            selectedPhysicsMesh.quaternion,
+            selectedPhysicsMesh.scale,
+          );
 
-        selectedPhysicsMesh.material.uniforms.uTime.value = (timestamp % 1500) / 1500;
+        selectedPhysicsMesh.material.uniforms.uTime.value =
+          (timestamp % 1500) / 1500;
         selectedPhysicsMesh.material.uniforms.uTime.needsUpdate = true;
         selectedPhysicsMesh.material.uniforms.uColor.value.setHex(0x66bb6a);
         selectedPhysicsMesh.material.uniforms.uColor.needsUpdate = true;
@@ -752,10 +831,12 @@ export const MapGen = () => {
           /* const target = localRaycaster.ray.origin.clone()
             .add(localRaycaster.ray.direction.clone().multiplyScalar(3)); */
 
-          const backDirection = localRaycaster.ray.direction.clone()
+          const backDirection = localRaycaster.ray.direction
+            .clone()
             .multiplyScalar(-1);
           // console.log('got back direction', backDirection.toArray().join(','));
-          const p = camera.position.clone()
+          const p = camera.position
+            .clone()
             .add(backDirection.clone().multiplyScalar(e.deltaY * 0.1));
           setPosition(p);
 
@@ -820,22 +901,17 @@ export const MapGen = () => {
           const center = boundingBox.getCenter(new THREE.Vector3());
           const offset = camera.position.clone().sub(center);
 
-          const endPosition = center.clone()
-            .add(
-              offset.clone()
-                .normalize()
-                .multiplyScalar(16 * 2),
-            );
+          const endPosition = center.clone().add(
+            offset
+              .clone()
+              .normalize()
+              .multiplyScalar(16 * 2),
+          );
           /* .add(
             new THREE.Vector3(0, 16/2, 0)
           ); */
           const endQuaternion = new THREE.Quaternion().setFromRotationMatrix(
-            new THREE.Matrix4()
-              .lookAt(
-                camera.position,
-                center,
-                upVector,
-              ),
+            new THREE.Matrix4().lookAt(camera.position, center, upVector),
           );
 
           const now = performance.now();
@@ -862,10 +938,15 @@ export const MapGen = () => {
     function mouseUp(e) {
       if (state.openedPanel === 'MapGenPanel') {
         if (mouseState && !mouseState.moved) {
-          const chunk = terrainApp?.getChunkForPhysicsObject(hoveredPhysicsObject);
+          const chunk =
+            terrainApp?.getChunkForPhysicsObject(hoveredPhysicsObject);
           if (chunk) {
             // console.log('got chunk', chunk, hoveredPhysicsObject);
-            setSelectedPhysicsObject(selectedPhysicsObject !== hoveredPhysicsObject ? hoveredPhysicsObject : null);
+            setSelectedPhysicsObject(
+              selectedPhysicsObject !== hoveredPhysicsObject
+                ? hoveredPhysicsObject
+                : null,
+            );
           } else {
             // console.log('did not get chunk', hoveredPhysicsObject);
             setSelectedPhysicsObject(null);
@@ -885,7 +966,13 @@ export const MapGen = () => {
       unregisterIoEventHandler('dblclick', dblclick);
       unregisterIoEventHandler('mouseup', mouseUp);
     };
-  }, [state.openedPanel, terrainApp, mouseState, /* hoveredObject, */ hoveredPhysicsObject, selectedPhysicsObject]);
+  }, [
+    state.openedPanel,
+    terrainApp,
+    mouseState,
+    /* hoveredObject, */ hoveredPhysicsObject,
+    selectedPhysicsObject,
+  ]);
 
   // initialize terrain
   useEffect(() => {
@@ -954,14 +1041,14 @@ export const MapGen = () => {
   useEffect(() => {
     if (state.openedPanel === 'MapGenPanel') {
       // updateCamera();
-
       // const newChunks = getChunksInRange();
       // setChunks(newChunks);
     }
   }, [
     canvasRef,
     state.openedPanel,
-    width, height,
+    width,
+    height,
     // position.x, position.y, position.z,
     // quaternion.x, quaternion.y, quaternion.z, quaternion.w,
     // scale,
@@ -978,14 +1065,16 @@ export const MapGen = () => {
       function update() {
         if (animation) {
           const now = performance.now();
-          const factor = (now - animation.startTime) / (animation.endTime - animation.startTime);
+          const factor =
+            (now - animation.startTime) /
+            (animation.endTime - animation.startTime);
 
           setPosition(
-            animation.startPosition.clone()
-              .lerp(animation.endPosition, factor),
+            animation.startPosition.clone().lerp(animation.endPosition, factor),
           );
           setQuaternion(
-            animation.startQuaternion.clone()
+            animation.startQuaternion
+              .clone()
               .slerp(animation.endQuaternion, factor),
           );
           // camera.updateMatrixWorld();
@@ -1037,19 +1126,42 @@ export const MapGen = () => {
     const forwardTarget = (() => {
       if (hoveredPoint) {
         const distance = camera.position.distanceTo(hoveredPoint);
-        return camera.position.clone()
-          .add(new THREE.Vector3(0, 0, -distance).applyQuaternion(camera.quaternion));
+        return camera.position
+          .clone()
+          .add(
+            new THREE.Vector3(0, 0, -distance).applyQuaternion(
+              camera.quaternion,
+            ),
+          );
       } else {
-        localPlane.setFromNormalAndCoplanarPoint(upVector, localVector.set(0, renderY, 0));
+        localPlane.setFromNormalAndCoplanarPoint(
+          upVector,
+          localVector.set(0, renderY, 0),
+        );
         setRaycasterFromEvent(localRaycaster, e);
-        const startIntersectionPoint = localRaycaster.ray.intersectPlane(localPlane, localVector);
-        const distance = startIntersectionPoint ? camera.position.distanceTo(startIntersectionPoint) : Infinity;
+        const startIntersectionPoint = localRaycaster.ray.intersectPlane(
+          localPlane,
+          localVector,
+        );
+        const distance = startIntersectionPoint
+          ? camera.position.distanceTo(startIntersectionPoint)
+          : Infinity;
         if (distance < maxDistance) {
-          return camera.position.clone()
-            .add(new THREE.Vector3(0, 0, -distance).applyQuaternion(camera.quaternion));
+          return camera.position
+            .clone()
+            .add(
+              new THREE.Vector3(0, 0, -distance).applyQuaternion(
+                camera.quaternion,
+              ),
+            );
         } else {
-          return camera.position.clone()
-            .add(new THREE.Vector3(0, 0, -maxDistance).applyQuaternion(camera.quaternion));
+          return camera.position
+            .clone()
+            .add(
+              new THREE.Vector3(0, 0, -maxDistance).applyQuaternion(
+                camera.quaternion,
+              ),
+            );
         }
       }
     })();
@@ -1075,19 +1187,21 @@ export const MapGen = () => {
 
   //
 
-  return open
-    ? (
+  return open ? (
     <div className={styles.mapGen} onClick={stopPropagation}>
-      <div className={classnames(styles.sidebar, selectedObject ? styles.open : null)}>
+      <div
+        className={classnames(
+          styles.sidebar,
+          selectedObject ? styles.open : null,
+        )}
+      >
         <h1>{selectedObjectName}</h1>
         <hr />
-        {selectedChunk
-          ? (
+        {selectedChunk ? (
           <div className={styles.description}>
             Location: {selectedChunk.x}:{selectedChunk.y}
           </div>
-            )
-          : null}
+        ) : null}
         <div className={styles.buttons}>
           <button className={styles.button} onClick={goClick}>
             Go
@@ -1103,6 +1217,5 @@ export const MapGen = () => {
       />
       <MiniHup text={text} />
     </div>
-      )
-    : null;
+  ) : null;
 };

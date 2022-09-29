@@ -1,6 +1,13 @@
 import * as THREE from 'three';
 import metaversefile from 'metaversefile';
-const {useApp, useScene, useParticleSystem, useProcGen, useLocalPlayer, useFrame} = metaversefile;
+const {
+  useApp,
+  useScene,
+  useParticleSystem,
+  useProcGen,
+  useLocalPlayer,
+  useFrame,
+} = metaversefile;
 
 // const baseUrl = import.meta.url.replace(/(\/)[^\/\\]*$/, '$1');
 
@@ -66,13 +73,15 @@ export default e => {
         const rng = alea('lol');
         const r = n => -n + rng() * n * 2;
         for (let i = 0; i < numParticles; i++) {
-          const particleName = particleNames[Math.floor(rng() * particleNames.length)];
+          const particleName =
+            particleNames[Math.floor(rng() * particleNames.length)];
           const duration = 2000;
           const particle = this.particleSystem.addParticle(particleName, {
             duration,
             // loop: false,
           });
-          particle.position.copy(localPlayer.position)
+          particle.position
+            .copy(localPlayer.position)
             .add(localVector.set(r(1), r(1), r(1)));
           this.particles.push(particle);
         }
@@ -84,7 +93,7 @@ export default e => {
 
   let particleSystem = null;
   let particlePlayer = null;
-  ((async () => {
+  (async () => {
     particleSystem = particleSystemManager.createParticleSystem({
       particleNames,
       maxParticles: numParticles,
@@ -95,7 +104,7 @@ export default e => {
     particleSystem.updateMatrixWorld();
 
     particlePlayer = new ParticlePlayer(particleSystem);
-  })());
+  })();
 
   useFrame(({timestamp, timeDiff}) => {
     particlePlayer && particlePlayer.update(timestamp);

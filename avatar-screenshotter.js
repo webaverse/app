@@ -70,7 +70,10 @@ export const createAvatarForScreenshot = avatarRenderer => {
   avatar.setHandEnabled(1, false);
   avatar.setBottomEnabled(false);
   avatar.inputs.hmd.position.y = avatar.height;
-  avatar.inputs.hmd.quaternion.setFromAxisAngle(new THREE.Vector3(0, 1, 0), Math.PI);
+  avatar.inputs.hmd.quaternion.setFromAxisAngle(
+    new THREE.Vector3(0, 1, 0),
+    Math.PI,
+  );
   avatar.inputs.hmd.updateMatrixWorld();
   return avatar;
 };
@@ -147,17 +150,16 @@ export const screenshotAvatar = async ({
     // set up camera
     const cameraOffset = new THREE.Vector3(0, 0.05, 0.35);
 
-    avatar.modelBones.Head.matrixWorld
-      .decompose(camera2.position, camera2.quaternion, camera2.scale);
+    avatar.modelBones.Head.matrixWorld.decompose(
+      camera2.position,
+      camera2.quaternion,
+      camera2.scale,
+    );
     const targetPosition = localVector.copy(camera2.position);
     targetPosition.y += cameraOffset.y;
     camera2.position.add(cameraOffset);
     camera2.quaternion.setFromRotationMatrix(
-      localMatrix.lookAt(
-        camera2.position,
-        targetPosition,
-        upVector,
-      ),
+      localMatrix.lookAt(camera2.position, targetPosition, upVector),
     );
 
     const rendererSize = renderer.getSize(localVector2D);

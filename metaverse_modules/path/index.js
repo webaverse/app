@@ -1,7 +1,15 @@
 import * as THREE from 'three';
 // import Simplex from './simplex-noise.js';
 import metaversefile from 'metaversefile';
-const {useApp, useFrame, useLocalPlayer, usePhysics, useGeometries, useProcGen, waitForSceneLoaded} = metaversefile;
+const {
+  useApp,
+  useFrame,
+  useLocalPlayer,
+  usePhysics,
+  useGeometries,
+  useProcGen,
+  waitForSceneLoaded,
+} = metaversefile;
 
 // const localVector = new THREE.Vector3();
 // const simplex = new Simplex('lol');
@@ -24,9 +32,7 @@ export default () => {
   // const endPoint = new THREE.Vector3().fromArray(line[1]);
   const startPoint = localPlayer.position.clone();
   const endPoint = new THREE.Vector3().setFromMatrixPosition(app.matrixWorld);
-  const direction = endPoint.clone()
-    .sub(startPoint)
-    .normalize();
+  const direction = endPoint.clone().sub(startPoint).normalize();
   const distance = startPoint.distanceTo(endPoint);
   const segmentLength = 0.5;
   const maxNumPoints = Math.round(distance / segmentLength);
@@ -39,8 +45,9 @@ export default () => {
 
     const splinePoints = Array(numPoints);
     for (let i = 0; i <= numPoints; i++) {
-      const position = startPoint.clone()
-        .add(direction.clone().multiplyScalar(i * distance / maxNumPoints));
+      const position = startPoint
+        .clone()
+        .add(direction.clone().multiplyScalar((i * distance) / maxNumPoints));
       position.x += r() * stepRange;
       // point.y += r() * stepRange;
       position.y += 100;
@@ -55,9 +62,7 @@ export default () => {
       );
       const p = position.clone();
       if (result) {
-        const {
-          point,
-        } = result;
+        const {point} = result;
 
         p.fromArray(point);
         p.y += 0.05;
@@ -90,7 +95,9 @@ export default () => {
 
     const pathMesh = _makePathMesh();
     app.add(pathMesh);
-    pathMesh.matrix.copy(app.matrixWorld).invert()
+    pathMesh.matrix
+      .copy(app.matrixWorld)
+      .invert()
       .decompose(pathMesh.position, pathMesh.quaternion, pathMesh.scale);
     pathMesh.updateMatrixWorld();
   })();

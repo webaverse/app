@@ -1,4 +1,3 @@
-
 import classNames from 'classnames';
 import React, {useState} from 'react';
 
@@ -58,6 +57,15 @@ export const KeyInput = ({value, setValue, className}) => {
   //
 
   return (
-        <div className={ classNames(className, styles.keyInput, active ? styles.active : null) } onClick={ handleClick }>{ value }</div>
+    <div
+      className={classNames(
+        className,
+        styles.keyInput,
+        active ? styles.active : null,
+      )}
+      onClick={handleClick}
+    >
+      {value}
+    </div>
   );
 };

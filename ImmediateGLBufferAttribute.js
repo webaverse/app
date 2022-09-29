@@ -43,12 +43,20 @@ export class ImmediateGLBufferAttribute extends THREE.GLBufferAttribute {
     const buffer = gl.createBuffer();
     {
       const target = ImmediateGLBufferAttribute.getTarget(isIndex);
-      const oldBinding = gl.getParameter(ImmediateGLBufferAttribute.getTargetBinding(isIndex));
+      const oldBinding = gl.getParameter(
+        ImmediateGLBufferAttribute.getTargetBinding(isIndex),
+      );
       gl.bindBuffer(target, buffer);
       gl.bufferData(target, array.byteLength, gl.DYNAMIC_DRAW);
       gl.bindBuffer(target, oldBinding);
     }
-    super(buffer, glType, itemSize, Type.BYTES_PER_ELEMENT, array.length / itemSize);
+    super(
+      buffer,
+      glType,
+      itemSize,
+      Type.BYTES_PER_ELEMENT,
+      array.length / itemSize,
+    );
 
     this.array = array;
     this.isIndex = isIndex;
@@ -59,7 +67,9 @@ export class ImmediateGLBufferAttribute extends THREE.GLBufferAttribute {
   }
 
   static getTarget(isIndex) {
-    return isIndex ? WebGLRenderingContext.ELEMENT_ARRAY_BUFFER : WebGLRenderingContext.ARRAY_BUFFER;
+    return isIndex
+      ? WebGLRenderingContext.ELEMENT_ARRAY_BUFFER
+      : WebGLRenderingContext.ARRAY_BUFFER;
   }
 
   getTarget() {
@@ -67,7 +77,9 @@ export class ImmediateGLBufferAttribute extends THREE.GLBufferAttribute {
   }
 
   static getTargetBinding(isIndex) {
-    return isIndex ? WebGLRenderingContext.ELEMENT_ARRAY_BUFFER_BINDING : WebGLRenderingContext.ARRAY_BUFFER_BINDING;
+    return isIndex
+      ? WebGLRenderingContext.ELEMENT_ARRAY_BUFFER_BINDING
+      : WebGLRenderingContext.ARRAY_BUFFER_BINDING;
   }
 
   getTargetBinding() {
@@ -79,13 +91,20 @@ export class ImmediateGLBufferAttribute extends THREE.GLBufferAttribute {
     const renderer = getRenderer();
     const gl = renderer.getContext();
 
-    const arrayBufferBinding = gl.getParameter(WebGLRenderingContext.ARRAY_BUFFER_BINDING);
-    const elementArrayBufferBinding = gl.getParameter(WebGLRenderingContext.ELEMENT_ARRAY_BUFFER_BINDING);
+    const arrayBufferBinding = gl.getParameter(
+      WebGLRenderingContext.ARRAY_BUFFER_BINDING,
+    );
+    const elementArrayBufferBinding = gl.getParameter(
+      WebGLRenderingContext.ELEMENT_ARRAY_BUFFER_BINDING,
+    );
     this.pushed = true;
 
     const popUpdate = () => {
       gl.bindBuffer(WebGLRenderingContext.ARRAY_BUFFER, arrayBufferBinding);
-      gl.bindBuffer(WebGLRenderingContext.ELEMENT_ARRAY_BUFFER, elementArrayBufferBinding);
+      gl.bindBuffer(
+        WebGLRenderingContext.ELEMENT_ARRAY_BUFFER,
+        elementArrayBufferBinding,
+      );
       this.pushed = false;
     };
     return popUpdate;

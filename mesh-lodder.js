@@ -49,49 +49,76 @@ const _diceGeometry = g => {
     );
 
     const positions0 = res.outPositions.slice(0, res.numOutPositions[0]);
-    const positions1 = res.outPositions.slice(res.numOutPositions[0], res.numOutPositions[0] + res.numOutPositions[1]);
+    const positions1 = res.outPositions.slice(
+      res.numOutPositions[0],
+      res.numOutPositions[0] + res.numOutPositions[1],
+    );
 
     const normals0 = res.outNormals.slice(0, res.numOutNormals[0]);
-    const normals1 = res.outNormals.slice(res.numOutNormals[0], res.numOutNormals[0] + res.numOutNormals[1]);
+    const normals1 = res.outNormals.slice(
+      res.numOutNormals[0],
+      res.numOutNormals[0] + res.numOutNormals[1],
+    );
 
     const uvs0 = res.outUvs.slice(0, res.numOutUvs[0]);
-    const uvs1 = res.outUvs.slice(res.numOutUvs[0], res.numOutUvs[0] + res.numOutUvs[1]);
+    const uvs1 = res.outUvs.slice(
+      res.numOutUvs[0],
+      res.numOutUvs[0] + res.numOutUvs[1],
+    );
 
     const geometry0 = new THREE.BufferGeometry();
-    geometry0.setAttribute('position', new THREE.Float32BufferAttribute(positions0, 3));
-    geometry0.setAttribute('normal', new THREE.Float32BufferAttribute(normals0, 3));
+    geometry0.setAttribute(
+      'position',
+      new THREE.Float32BufferAttribute(positions0, 3),
+    );
+    geometry0.setAttribute(
+      'normal',
+      new THREE.Float32BufferAttribute(normals0, 3),
+    );
     geometry0.setAttribute('uv', new THREE.Float32BufferAttribute(uvs0, 2));
-    geometry0.setAttribute('uv2', new THREE.Float32BufferAttribute(uvs0.slice(), 2));
+    geometry0.setAttribute(
+      'uv2',
+      new THREE.Float32BufferAttribute(uvs0.slice(), 2),
+    );
 
     const geometry1 = new THREE.BufferGeometry();
-    geometry1.setAttribute('position', new THREE.Float32BufferAttribute(positions1, 3));
-    geometry1.setAttribute('normal', new THREE.Float32BufferAttribute(normals1, 3));
+    geometry1.setAttribute(
+      'position',
+      new THREE.Float32BufferAttribute(positions1, 3),
+    );
+    geometry1.setAttribute(
+      'normal',
+      new THREE.Float32BufferAttribute(normals1, 3),
+    );
     geometry1.setAttribute('uv', new THREE.Float32BufferAttribute(uvs1, 2));
-    geometry1.setAttribute('uv2', new THREE.Float32BufferAttribute(uvs1.slice(), 2));
+    geometry1.setAttribute(
+      'uv2',
+      new THREE.Float32BufferAttribute(uvs1.slice(), 2),
+    );
 
     return [geometry0, geometry1];
   };
 
-  const geometries2Parts = getCutGeometries(geometryToBeCut, new THREE.Plane(
-    new THREE.Vector3(1, 0, 0).normalize(),
-    0,
-  ));
+  const geometries2Parts = getCutGeometries(
+    geometryToBeCut,
+    new THREE.Plane(new THREE.Vector3(1, 0, 0).normalize(), 0),
+  );
 
   const geometries4Parts = [];
   geometries2Parts.forEach(geometryToBeCut => {
-    const geometries = getCutGeometries(geometryToBeCut, new THREE.Plane(
-      new THREE.Vector3(0, 1, 0).normalize(),
-      0,
-    ));
+    const geometries = getCutGeometries(
+      geometryToBeCut,
+      new THREE.Plane(new THREE.Vector3(0, 1, 0).normalize(), 0),
+    );
     geometries4Parts.push(...geometries);
   });
 
   const geometries8Parts = [];
   geometries4Parts.forEach(geometryToBeCut => {
-    const geometries = getCutGeometries(geometryToBeCut, new THREE.Plane(
-      new THREE.Vector3(0, 0, 1).normalize(),
-      0,
-    ));
+    const geometries = getCutGeometries(
+      geometryToBeCut,
+      new THREE.Plane(new THREE.Vector3(0, 0, 1).normalize(), 0),
+    );
     geometries8Parts.push(...geometries);
   });
 
@@ -114,41 +141,111 @@ const _eraseVertices = (geometry, positionStart, positionCount) => {
   popUpdate();
 };
 
-const _getMatrixWorld = (rootMesh, contentMesh, target, positionX, positionZ, rotationY) => {
-  return _getMatrix(contentMesh, target, positionX, positionZ, rotationY)
-    .premultiply(rootMesh.matrixWorld);
+const _getMatrixWorld = (
+  rootMesh,
+  contentMesh,
+  target,
+  positionX,
+  positionZ,
+  rotationY,
+) => {
+  return _getMatrix(
+    contentMesh,
+    target,
+    positionX,
+    positionZ,
+    rotationY,
+  ).premultiply(rootMesh.matrixWorld);
 };
 const _getMatrix = (contentMesh, target, positionX, positionZ, rotationY) => {
   localVector.set(positionX, 0, positionZ);
   localQuaternion.setFromAxisAngle(upVector, rotationY);
 
-  return target.copy(contentMesh.matrixWorld)
-    .premultiply(localMatrix3.compose(localVector, localQuaternion, localVector2.set(1, 1, 1)));
+  return target
+    .copy(contentMesh.matrixWorld)
+    .premultiply(
+      localMatrix3.compose(
+        localVector,
+        localQuaternion,
+        localVector2.set(1, 1, 1),
+      ),
+    );
 };
 
 const _mapGeometryUvs = (g, geometry, tx, ty, tw, th, canvasSize) => {
-  mapWarpedUvs(g.attributes.uv, 0, geometry.attributes.uv, 0, tx, ty, tw, th, canvasSize);
-  mapWarpedUvs(g.attributes.uv2, 0, geometry.attributes.uv2, 0, tx, ty, tw, th, canvasSize);
+  mapWarpedUvs(
+    g.attributes.uv,
+    0,
+    geometry.attributes.uv,
+    0,
+    tx,
+    ty,
+    tw,
+    th,
+    canvasSize,
+  );
+  mapWarpedUvs(
+    g.attributes.uv2,
+    0,
+    geometry.attributes.uv2,
+    0,
+    tx,
+    ty,
+    tw,
+    th,
+    canvasSize,
+  );
 };
-const _makeItemMesh = (rootMesh, contentMesh, geometry, material, positionX, positionZ, rotationY) => {
+const _makeItemMesh = (
+  rootMesh,
+  contentMesh,
+  geometry,
+  material,
+  positionX,
+  positionZ,
+  rotationY,
+) => {
   const cloned = new THREE.Mesh(geometry, material);
-  _getMatrixWorld(rootMesh, contentMesh, cloned.matrixWorld, positionX, positionZ, rotationY);
-  cloned.matrix.copy(cloned.matrixWorld)
+  _getMatrixWorld(
+    rootMesh,
+    contentMesh,
+    cloned.matrixWorld,
+    positionX,
+    positionZ,
+    rotationY,
+  );
+  cloned.matrix
+    .copy(cloned.matrixWorld)
     .decompose(cloned.position, cloned.quaternion, cloned.scale);
   cloned.frustumCulled = false;
   return cloned;
 };
 
-const _mapOffsettedPositions = (g, geometry, dstOffset, positionX, positionZ, rotationY, contentMesh) => {
+const _mapOffsettedPositions = (
+  g,
+  geometry,
+  dstOffset,
+  positionX,
+  positionZ,
+  rotationY,
+  contentMesh,
+) => {
   const count = g.attributes.position.count;
 
-  const matrix = _getMatrix(contentMesh, localMatrix, positionX, positionZ, rotationY);
+  const matrix = _getMatrix(
+    contentMesh,
+    localMatrix,
+    positionX,
+    positionZ,
+    rotationY,
+  );
 
   for (let i = 0; i < count; i++) {
     const srcIndex = i;
     const localDstOffset = dstOffset + i * 3;
 
-    localVector.fromArray(g.attributes.position.array, srcIndex * 3)
+    localVector
+      .fromArray(g.attributes.position.array, srcIndex * 3)
       .applyMatrix4(matrix)
       .toArray(geometry.attributes.position.array, localDstOffset);
   }
@@ -168,30 +265,33 @@ class LodChunkGenerator {
 
     // members
     this.physicsObjects = [];
-    this.allocator = new GeometryAllocator([
+    this.allocator = new GeometryAllocator(
+      [
+        {
+          name: 'position',
+          Type: Float32Array,
+          itemSize: 3,
+        },
+        {
+          name: 'normal',
+          Type: Float32Array,
+          itemSize: 3,
+        },
+        {
+          name: 'uv',
+          Type: Float32Array,
+          itemSize: 2,
+        },
+        {
+          name: 'uv2',
+          Type: Float32Array,
+          itemSize: 2,
+        },
+      ],
       {
-        name: 'position',
-        Type: Float32Array,
-        itemSize: 3,
+        bufferSize,
       },
-      {
-        name: 'normal',
-        Type: Float32Array,
-        itemSize: 3,
-      },
-      {
-        name: 'uv',
-        Type: Float32Array,
-        itemSize: 2,
-      },
-      {
-        name: 'uv2',
-        Type: Float32Array,
-        itemSize: 2,
-      },
-    ], {
-      bufferSize,
-    });
+    );
     this.itemContentMeshes = Array(maxNumItems).fill(null);
     this.itemPositions = new Float32Array(maxNumItems * 3);
     this.itemQuaternions = new Float32Array(maxNumItems * 4);
@@ -250,14 +350,28 @@ class LodChunkGenerator {
   }
 
   #addPhysicsShape(shapeAddress, contentMesh, positionX, positionZ, rotationY) {
-    const matrixWorld = _getMatrixWorld(this.mesh, contentMesh, localMatrix, positionX, positionZ, rotationY);
+    const matrixWorld = _getMatrixWorld(
+      this.mesh,
+      contentMesh,
+      localMatrix,
+      positionX,
+      positionZ,
+      rotationY,
+    );
     matrixWorld.decompose(localVector, localQuaternion, localVector2);
     const position = localVector;
     const quaternion = localQuaternion;
     const scale = localVector2;
     const dynamic = false;
     const external = true;
-    const physicsObject = physicsManager.addConvexShape(shapeAddress, position, quaternion, scale, dynamic, external);
+    const physicsObject = physicsManager.addConvexShape(
+      shapeAddress,
+      position,
+      quaternion,
+      scale,
+      dynamic,
+      external,
+    );
 
     this.physicsObjects.push(physicsObject);
 
@@ -283,7 +397,15 @@ class LodChunkGenerator {
     let geometry = g.clone();
     _mapGeometryUvs(g, geometry, tx, ty, tw, th, canvasSize);
     geometry = _diceGeometry(geometry);
-    const itemMesh = _makeItemMesh(this.mesh, contentMesh, geometry, this.parent.material, positionX, positionZ, rotationY);
+    const itemMesh = _makeItemMesh(
+      this.mesh,
+      contentMesh,
+      geometry,
+      this.parent.material,
+      positionX,
+      positionZ,
+      rotationY,
+    );
     return itemMesh;
   }
 
@@ -305,7 +427,15 @@ class LodChunkGenerator {
     const g = contentMesh.geometry;
     const geometry = g.clone();
     _mapGeometryUvs(g, geometry, tx, ty, tw, th, canvasSize);
-    const itemMesh = _makeItemMesh(this.mesh, contentMesh, geometry, this.parent.material, positionX, positionZ, rotationY);
+    const itemMesh = _makeItemMesh(
+      this.mesh,
+      contentMesh,
+      geometry,
+      this.parent.material,
+      positionX,
+      positionZ,
+      rotationY,
+    );
     return itemMesh;
   }
 
@@ -317,28 +447,56 @@ class LodChunkGenerator {
     const contentMesh = this.itemContentMeshes[itemId];
     const shapeAddress = this.itemShapeAddresses[itemId];
 
-    _getMatrixWorld(this.mesh, contentMesh, localMatrix, positionX, positionZ, rotationY)
-      .decompose(localVector, localQuaternion, localVector2);
+    _getMatrixWorld(
+      this.mesh,
+      contentMesh,
+      localMatrix,
+      positionX,
+      positionZ,
+      rotationY,
+    ).decompose(localVector, localQuaternion, localVector2);
     const position = localVector;
     const quaternion = localQuaternion;
     const scale = localVector2;
     const dynamic = true;
     const external = true;
-    const physicsObject = physicsManager.addConvexShape(shapeAddress, position, quaternion, scale, dynamic, external);
+    const physicsObject = physicsManager.addConvexShape(
+      shapeAddress,
+      position,
+      quaternion,
+      scale,
+      dynamic,
+      external,
+    );
     return physicsObject;
   }
 
-  #addItemToRegistry(contentName, contentMesh, physicsId, positionOffset, positionCount, positionX, positionZ, rotationY, tx, ty, tw, th) {
+  #addItemToRegistry(
+    contentName,
+    contentMesh,
+    physicsId,
+    positionOffset,
+    positionCount,
+    positionX,
+    positionZ,
+    rotationY,
+    tx,
+    ty,
+    tw,
+    th,
+  ) {
     this.itemContentMeshes[physicsId] = contentMesh;
-    localVector.set(positionX, 0, positionZ)
+    localVector
+      .set(positionX, 0, positionZ)
       .toArray(this.itemPositions, physicsId * 3);
-    localQuaternion.setFromAxisAngle(upVector, rotationY)
+    localQuaternion
+      .setFromAxisAngle(upVector, rotationY)
       .toArray(this.itemQuaternions, physicsId * 4);
     this.itemPositionOffsets[physicsId] = positionOffset;
     this.itemPositionCounts[physicsId] = positionCount;
-    localVector4D.set(tx, ty, tw, th)
-      .toArray(this.itemRects, physicsId * 4);
-    this.itemShapeAddresses[physicsId] = this.parent.shapeAddresses[contentName];
+    localVector4D.set(tx, ty, tw, th).toArray(this.itemRects, physicsId * 4);
+    this.itemShapeAddresses[physicsId] =
+      this.parent.shapeAddresses[contentName];
 
     this.itemPositionsXZY[physicsId * 3] = positionX;
     this.itemPositionsXZY[physicsId * 3 + 1] = positionZ;
@@ -353,9 +511,12 @@ class LodChunkGenerator {
       const totalNumIndices = [];
 
       const contentIndexNames = this.#getContentIndexNames();
-      const numObjects = minObjectsPerChunk + Math.floor(rng() * (maxObjectPerChunk - minObjectsPerChunk));
+      const numObjects =
+        minObjectsPerChunk +
+        Math.floor(rng() * (maxObjectPerChunk - minObjectsPerChunk));
       for (let i = 0; i < numObjects; i++) {
-        const contentName = contentIndexNames[Math.floor(rng() * contentIndexNames.length)];
+        const contentName =
+          contentIndexNames[Math.floor(rng() * contentIndexNames.length)];
         const meshes = this.#getContent(contentName);
 
         const totalPositionsArray = [];
@@ -363,7 +524,10 @@ class LodChunkGenerator {
         for (let lod = 0; lod < meshes.length; lod++) {
           const mesh = meshes[lod];
           if (mesh) {
-            totalPositionsArray.push(mesh.geometry.attributes.position.count * mesh.geometry.attributes.position.itemSize);
+            totalPositionsArray.push(
+              mesh.geometry.attributes.position.count *
+                mesh.geometry.attributes.position.itemSize,
+            );
             totalIndicesArray.push(mesh.geometry.index.count);
           } else {
             totalPositionsArray.push(0);
@@ -384,7 +548,12 @@ class LodChunkGenerator {
         totalNumIndices,
       };
     };
-    const _renderContentsRenderList = (contentMeshes, contentNames, geometry, geometryBinding) => {
+    const _renderContentsRenderList = (
+      contentMeshes,
+      contentNames,
+      geometry,
+      geometryBinding,
+    ) => {
       const physicsObjects = [];
 
       const popUpdate = ImmediateGLBufferAttribute.pushUpdate();
@@ -412,35 +581,105 @@ class LodChunkGenerator {
 
           // render geometry
           {
-            _mapOffsettedPositions(g, geometry, positionOffset, positionX, positionZ, rotationY, contentMesh);
-            geometry.attributes.normal.array.set(g.attributes.normal.array, positionOffset);
-            mapWarpedUvs(g.attributes.uv, 0, geometry.attributes.uv, uvOffset, tx, ty, tw, th, canvasSize);
-            mapWarpedUvs(g.attributes.uv2, 0, geometry.attributes.uv2, uvOffset, tx, ty, tw, th, canvasSize);
+            _mapOffsettedPositions(
+              g,
+              geometry,
+              positionOffset,
+              positionX,
+              positionZ,
+              rotationY,
+              contentMesh,
+            );
+            geometry.attributes.normal.array.set(
+              g.attributes.normal.array,
+              positionOffset,
+            );
+            mapWarpedUvs(
+              g.attributes.uv,
+              0,
+              geometry.attributes.uv,
+              uvOffset,
+              tx,
+              ty,
+              tw,
+              th,
+              canvasSize,
+            );
+            mapWarpedUvs(
+              g.attributes.uv2,
+              0,
+              geometry.attributes.uv2,
+              uvOffset,
+              tx,
+              ty,
+              tw,
+              th,
+              canvasSize,
+            );
             _mapOffsettedIndices(g, geometry, indexOffset, positionOffset);
-            geometry.setAttribute('direction', new THREE.BufferAttribute(new Float32Array(g.attributes.position.array.length), 3));
+            geometry.setAttribute(
+              'direction',
+              new THREE.BufferAttribute(
+                new Float32Array(g.attributes.position.array.length),
+                3,
+              ),
+            );
           }
 
           // upload geometry
           {
-            geometry.attributes.position.update(positionOffset, g.attributes.position.count * g.attributes.position.itemSize);
-            geometry.attributes.normal.update(positionOffset, g.attributes.normal.count * g.attributes.normal.itemSize);
-            geometry.attributes.uv.update(uvOffset, g.attributes.uv.count * g.attributes.uv.itemSize);
-            geometry.attributes.uv2.update(uvOffset, g.attributes.uv2.count * g.attributes.uv.itemSize);
+            geometry.attributes.position.update(
+              positionOffset,
+              g.attributes.position.count * g.attributes.position.itemSize,
+            );
+            geometry.attributes.normal.update(
+              positionOffset,
+              g.attributes.normal.count * g.attributes.normal.itemSize,
+            );
+            geometry.attributes.uv.update(
+              uvOffset,
+              g.attributes.uv.count * g.attributes.uv.itemSize,
+            );
+            geometry.attributes.uv2.update(
+              uvOffset,
+              g.attributes.uv2.count * g.attributes.uv.itemSize,
+            );
             geometry.index.update(indexOffset, g.index.count);
           }
 
           {
             // physics
             const shapeAddress = this.#getShapeAddress(contentName);
-            const physicsObject = this.#addPhysicsShape(shapeAddress, contentMesh, positionX, positionZ, rotationY);
+            const physicsObject = this.#addPhysicsShape(
+              shapeAddress,
+              contentMesh,
+              positionX,
+              positionZ,
+              rotationY,
+            );
             physicsObjects.push(physicsObject);
 
             // tracking
-            const positionCount = g.attributes.position.count * g.attributes.position.itemSize;
-            this.#addItemToRegistry(contentName, contentMesh, physicsObject.physicsId, positionOffset, positionCount, positionX, positionZ, rotationY, tx, ty, tw, th);
+            const positionCount =
+              g.attributes.position.count * g.attributes.position.itemSize;
+            this.#addItemToRegistry(
+              contentName,
+              contentMesh,
+              physicsObject.physicsId,
+              positionOffset,
+              positionCount,
+              positionX,
+              positionZ,
+              rotationY,
+              tx,
+              ty,
+              tw,
+              th,
+            );
           }
 
-          positionOffset += g.attributes.position.count * g.attributes.position.itemSize;
+          positionOffset +=
+            g.attributes.position.count * g.attributes.position.itemSize;
           uvOffset += g.attributes.uv.count * g.attributes.uv.itemSize;
           indexOffset += g.index.count;
         }
@@ -457,23 +696,29 @@ class LodChunkGenerator {
     const canvasScale = canvasSize / atlas.width;
 
     const rng = alea(chunk.name);
-    const {
-      contentNames,
-      contents,
-      totalNumPositions,
-      totalNumIndices,
-    } = _collectContentsRenderList();
+    const {contentNames, contents, totalNumPositions, totalNumIndices} =
+      _collectContentsRenderList();
     const contentsLod0 = contents.map(meshes => meshes[0]);
-    const totalNumPositionsLod0 = totalNumPositions.reduce((a, b) => a + b[0], 0);
+    const totalNumPositionsLod0 = totalNumPositions.reduce(
+      (a, b) => a + b[0],
+      0,
+    );
     const totalNumIndicesLod0 = totalNumIndices.reduce((a, b) => a + b[0], 0);
-    const geometryBinding = this.allocator.alloc(totalNumPositionsLod0, totalNumIndicesLod0);
-    const {
-      physicsObjects,
-    } = _renderContentsRenderList(contentsLod0, contentNames, this.allocator.geometry, geometryBinding);
+    const geometryBinding = this.allocator.alloc(
+      totalNumPositionsLod0,
+      totalNumIndicesLod0,
+    );
+    const {physicsObjects} = _renderContentsRenderList(
+      contentsLod0,
+      contentNames,
+      this.allocator.geometry,
+      geometryBinding,
+    );
 
     chunk.binding = geometryBinding;
     chunk.physicsObjects = physicsObjects;
-    this.allocator.geometry.groups = this.allocator.indexFreeList.getGeometryGroups(); // XXX memory for this can be optimized
+    this.allocator.geometry.groups =
+      this.allocator.indexFreeList.getGeometryGroups(); // XXX memory for this can be optimized
     this.mesh.visible = true;
   }
 
@@ -484,7 +729,9 @@ class LodChunkGenerator {
     for (const physicsObject of chunk.physicsObjects) {
       physicsManager.removeGeometry(physicsObject);
 
-      const index = this.physicsObjects.findIndex(po => po.physicsId === physicsObject.physicsId);
+      const index = this.physicsObjects.findIndex(
+        po => po.physicsId === physicsObject.physicsId,
+      );
       this.physicsObjects.splice(index, 1);
     }
     chunk.physicsObjects.length = 0;
@@ -506,14 +753,20 @@ class MeshLodManager {
       alphaTest: 0.1,
       transparent: true,
       onBeforeCompile: shader => {
-        shader.vertexShader.replace('#include <common>\n', `\
+        shader.vertexShader.replace(
+          '#include <common>\n',
+          `\
           #include <common>
           attribute vec3 direction;
-        `);
-        shader.vertexShader.replace('#include <begin_vertex>\n', `\
+        `,
+        );
+        shader.vertexShader.replace(
+          '#include <begin_vertex>\n',
+          `\
           #include <begin_vertex>
           transformed += direction;
-        `);
+        `,
+        );
         return shader;
       },
     });
@@ -533,10 +786,7 @@ class MeshLodManager {
   }
 
   registerLodMesh(name, shapeSpec) {
-    const {
-      type = 'object',
-      lods = [],
-    } = shapeSpec;
+    const {type = 'object', lods = []} = shapeSpec;
 
     this.contentIndex[name] = lods;
 
@@ -561,60 +811,63 @@ class MeshLodManager {
       const meshes = this.contentIndex[name];
 
       for (const mesh of meshes) {
-        mesh && mesh.traverse(o => {
-          if (o.isMesh && o.geometry.type === 'BufferGeometry') {
-            const objectGeometry = o.geometry;
-            // const morphTargetDictionary = o.morphTargetDictionary;
-            // const morphTargetInfluences = o.morphTargetInfluences;
-            const objectMaterials = Array.isArray(o.material) ? o.material : [o.material];
-            for (const objectMaterial of objectMaterials) {
-              const {
-                map = null,
-                emissiveMap = null,
-                normalMap = null,
-                roughnessMap = null,
-                metalnessMap = null,
-                // shadeTexture = null,
-              } = objectMaterial;
-              // const skeleton = o.skeleton ?? null;
+        mesh &&
+          mesh.traverse(o => {
+            if (o.isMesh && o.geometry.type === 'BufferGeometry') {
+              const objectGeometry = o.geometry;
+              // const morphTargetDictionary = o.morphTargetDictionary;
+              // const morphTargetInfluences = o.morphTargetInfluences;
+              const objectMaterials = Array.isArray(o.material)
+                ? o.material
+                : [o.material];
+              for (const objectMaterial of objectMaterials) {
+                const {
+                  map = null,
+                  emissiveMap = null,
+                  normalMap = null,
+                  roughnessMap = null,
+                  metalnessMap = null,
+                  // shadeTexture = null,
+                } = objectMaterial;
+                // const skeleton = o.skeleton ?? null;
 
-              const key = getObjectKey(o, objectMaterial);
+                const key = getObjectKey(o, objectMaterial);
 
-              let m = mergeables.get(key);
-              if (!m) {
-                m = {
-                  material: objectMaterial,
-                  meshes: [],
-                  geometries: [],
-                  materials: [],
-                  maps: [],
-                  emissiveMaps: [],
-                  normalMaps: [],
-                  roughnessMaps: [],
-                  metalnessMaps: [],
-                  // shadeTextures: [],
-                  // skeletons: [],
-                  // morphTargetDictionaryArray: [],
-                  // morphTargetInfluencesArray: [],
-                };
-                mergeables.set(key, m);
+                let m = mergeables.get(key);
+                if (!m) {
+                  m = {
+                    material: objectMaterial,
+                    meshes: [],
+                    geometries: [],
+                    materials: [],
+                    maps: [],
+                    emissiveMaps: [],
+                    normalMaps: [],
+                    roughnessMaps: [],
+                    metalnessMaps: [],
+                    // shadeTextures: [],
+                    // skeletons: [],
+                    // morphTargetDictionaryArray: [],
+                    // morphTargetInfluencesArray: [],
+                  };
+                  mergeables.set(key, m);
+                }
+
+                m.meshes.push(o);
+                m.geometries.push(objectGeometry);
+                m.materials.push(objectMaterial);
+                m.maps.push(map);
+                m.emissiveMaps.push(emissiveMap);
+                m.normalMaps.push(normalMap);
+                m.roughnessMaps.push(roughnessMap);
+                m.metalnessMaps.push(metalnessMap);
+                // m.shadeTextures.push(shadeTexture);
+                // m.skeletons.push(skeleton);
+                // m.morphTargetDictionaryArray.push(morphTargetDictionary);
+                // m.morphTargetInfluencesArray.push(morphTargetInfluences);
               }
-
-              m.meshes.push(o);
-              m.geometries.push(objectGeometry);
-              m.materials.push(objectMaterial);
-              m.maps.push(map);
-              m.emissiveMaps.push(emissiveMap);
-              m.normalMaps.push(normalMap);
-              m.roughnessMaps.push(roughnessMap);
-              m.metalnessMaps.push(metalnessMap);
-              // m.shadeTextures.push(shadeTexture);
-              // m.skeletons.push(skeleton);
-              // m.morphTargetDictionaryArray.push(morphTargetDictionary);
-              // m.morphTargetInfluencesArray.push(morphTargetInfluences);
             }
-          }
-        });
+          });
       }
     }
 
@@ -646,11 +899,8 @@ class MeshLodManager {
       roughnessMap: roughnessMaps,
       metalnessMap: metalnessMaps,
     };
-    const {
-      atlas,
-      atlasImages,
-      atlasTextures,
-    } = generateTextureAtlas(textureSpecs);
+    const {atlas, atlasImages, atlasTextures} =
+      generateTextureAtlas(textureSpecs);
 
     this.atlas = atlas;
 
@@ -677,7 +927,10 @@ class MeshLodManager {
     return this.generator.getItemIdByPhysicsId(physicsId);
   } */
   getItemTransformByItemId() {
-    return this.generator.getItemTransformByItemId.apply(this.generator, arguments);
+    return this.generator.getItemTransformByItemId.apply(
+      this.generator,
+      arguments,
+    );
   }
 
   cloneItemDiceMesh() {

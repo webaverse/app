@@ -15,9 +15,7 @@ const pixelRatio = window.devicePixelRatio;
 
 // const chatDioramas = new WeakMap();
 
-const MiniHup = function({
-  text = '',
-}) {
+const MiniHup = function ({text = ''}) {
   // const {hup, index, hups, setHups} = props;
 
   const canvasRef = useRef();
@@ -118,7 +116,12 @@ const MiniHup = function({
 
   return (
     <div className={styles.miniHup}>
-      <RpgText className={styles.text} styles={styles} text={text} textSpeed={chatTextSpeed} />
+      <RpgText
+        className={styles.text}
+        styles={styles}
+        text={text}
+        textSpeed={chatTextSpeed}
+      />
       <canvas
         className={styles.canvas}
         width={defaultHupSize * pixelRatio}
@@ -128,6 +131,4 @@ const MiniHup = function({
     </div>
   );
 };
-export {
-  MiniHup,
-};
+export {MiniHup};

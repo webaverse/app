@@ -23,24 +23,15 @@ const localQuaternion = new THREE.Quaternion();
 const targetTypeColors = [
   {
     name: 'object',
-    colors: [
-      new THREE.Color(0x42a5f5),
-      new THREE.Color(0x1976d2),
-    ],
+    colors: [new THREE.Color(0x42a5f5), new THREE.Color(0x1976d2)],
   },
   {
     name: 'enemy',
-    colors: [
-      new THREE.Color(0xffca28),
-      new THREE.Color(0xffa000),
-    ],
+    colors: [new THREE.Color(0xffca28), new THREE.Color(0xffa000)],
   },
   {
     name: 'friend',
-    colors: [
-      new THREE.Color(0x66bb6a),
-      new THREE.Color(0x388e3c),
-    ],
+    colors: [new THREE.Color(0x66bb6a), new THREE.Color(0x388e3c)],
   },
 ];
 const triangleHalfSize = 0.08;
@@ -68,7 +59,10 @@ function createTargetReticleGeometry() {
 
   const _setQuaternions = g => {
     const quaternions = new Float32Array(g.attributes.position.count * 4);
-    baseGeometry.setAttribute('quaternion', new THREE.BufferAttribute(quaternions, 4));
+    baseGeometry.setAttribute(
+      'quaternion',
+      new THREE.BufferAttribute(quaternions, 4),
+    );
   };
   _setQuaternions(baseGeometry);
 
@@ -89,10 +83,12 @@ function createTargetReticleGeometry() {
     const uvs = g.attributes.uv.array;
     for (let i = 0; i < g.attributes.position.count; i++) {
       localVector.fromArray(positions, i * 3);
-      localVector2D.set(
-        (localVector.x + triangleHalfSize) / triangleSize,
-        localVector.y / triangleHalfSize,
-      ).toArray(uvs, i * 2);
+      localVector2D
+        .set(
+          (localVector.x + triangleHalfSize) / triangleSize,
+          localVector.y / triangleHalfSize,
+        )
+        .toArray(uvs, i * 2);
     }
     return g;
   };
@@ -110,26 +106,24 @@ function createTargetReticleGeometry() {
 
   const geometries = [
     _setNormal2s(
-      baseGeometry.clone()
-        .rotateZ(0)
-        .translate(0, innerRadius, 0),
+      baseGeometry.clone().rotateZ(0).translate(0, innerRadius, 0),
       new THREE.Vector2(0, 1),
     ),
     _setNormal2s(
-      baseGeometry.clone()
+      baseGeometry
+        .clone()
         .rotateZ(Math.PI / 2)
         .translate(-innerRadius, 0, 0),
       new THREE.Vector2(-1, 0),
     ),
     _setNormal2s(
-      baseGeometry.clone()
-        .rotateZ(Math.PI)
-        .translate(0, -innerRadius, 0),
+      baseGeometry.clone().rotateZ(Math.PI).translate(0, -innerRadius, 0),
       new THREE.Vector2(0, -1),
     ),
     _setNormal2s(
-      baseGeometry.clone()
-        .rotateZ(Math.PI * 3 / 2)
+      baseGeometry
+        .clone()
+        .rotateZ((Math.PI * 3) / 2)
         .translate(innerRadius, 0, 0),
       new THREE.Vector2(1, 0),
     ),
@@ -170,7 +164,7 @@ const _makeTargetReticleMesh = () => {
         needsUpdate: true,
       },
       uColor2: {
-        value: new THREE.Color(0xFFFFFF),
+        value: new THREE.Color(0xffffff),
         needsUpdate: true,
       },
       uZoom: {
@@ -390,8 +384,14 @@ const _makeTargetReticleMesh = () => {
       const zoom = reticle.zoom;
 
       for (let j = 0; j < geometry.drawStride; j++) {
-        position.toArray(geometry.attributes.offset.array, (i * geometry.drawStride * 3) + (j * 3));
-        quaternion.toArray(geometry.attributes.quaternion.array, (i * geometry.drawStride * 3) + (j * 4));
+        position.toArray(
+          geometry.attributes.offset.array,
+          i * geometry.drawStride * 3 + j * 3,
+        );
+        quaternion.toArray(
+          geometry.attributes.quaternion.array,
+          i * geometry.drawStride * 3 + j * 4,
+        );
         geometry.attributes.type.array[i * geometry.drawStride + j] = typeIndex;
         geometry.attributes.zoom.array[i * geometry.drawStride + j] = zoom;
       }

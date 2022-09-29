@@ -1,7 +1,16 @@
 import * as THREE from 'three';
 import * as BufferGeometryUtils from 'three/examples/jsm/utils/BufferGeometryUtils.js';
 import metaversefile from 'metaversefile';
-const {useApp, useFrame, useCleanup, useMaterials, useSound, useLocalPlayer, useDropManager, useDefaultModules} = metaversefile;
+const {
+  useApp,
+  useFrame,
+  useCleanup,
+  useMaterials,
+  useSound,
+  useLocalPlayer,
+  useDropManager,
+  useDefaultModules,
+} = metaversefile;
 
 const baseUrl = import.meta.url.replace(/(\/)[^\/\\]*$/, '$1');
 
@@ -146,10 +155,7 @@ function createExplosionGeometry(front) {
     true, // openEnded
   ).translate(0, haloRadius / 2, 0);
 
-  const geometries = [
-    cylinderGeometry,
-    sphereGeometry,
-  ];
+  const geometries = [cylinderGeometry, sphereGeometry];
 
   if (!front) {
     geometries.reverse();
@@ -177,9 +183,13 @@ void main() {
 
   if (instance >= 0.) {
     float factor = mod(uTime, 1.);
-    float distance1 = ${minRadius.toFixed(8)} + instance * ${(minRadius).toFixed(8)};;
+    float distance1 = ${minRadius.toFixed(8)} + instance * ${minRadius.toFixed(
+  8,
+)};;
     float distance2 = distance1 + ${minRadius.toFixed(8)};
-    float distance = distance1 * (1.0 - factor) + distance2 * factor - ${(minRadius).toFixed(8)};
+    float distance = distance1 * (1.0 - factor) + distance2 * factor - ${minRadius.toFixed(
+      8,
+    )};
     p.xz *= distance / distance1;
     
     float distanceFactor = (distance) / ${(maxRadius - minRadius).toFixed(8)};
@@ -357,7 +367,10 @@ const _makeCometMesh = () => {
   object.add(frontMesh);
   const backMesh = new THREE.Mesh(backGeometry, backMaterial);
   object.add(backMesh);
-  const explosionFrontMesh = new THREE.Mesh(explosionFrontGeometry, frontMaterial);
+  const explosionFrontMesh = new THREE.Mesh(
+    explosionFrontGeometry,
+    frontMaterial,
+  );
   object.add(explosionFrontMesh);
   const explosionBackMesh = new THREE.Mesh(explosionBackGeometry, backMaterial);
   object.add(explosionBackMesh);
@@ -386,7 +399,9 @@ const _makeCometMesh = () => {
 
     // check for collision
     if (isNaN(explosionStartTime)) {
-      const worldPosition = localVector.setFromMatrixPosition(object.matrixWorld);
+      const worldPosition = localVector.setFromMatrixPosition(
+        object.matrixWorld,
+      );
       if (worldPosition.y >= 0) {
         // nothing
       } else {
@@ -425,7 +440,9 @@ const _makeCometMesh = () => {
       const maxTime = 400;
       const f = (timestamp / maxTime) % maxTime;
       const timeSinceLastExplosion2 = (timestamp - explosionStartTime) / 1000;
-      const opacityFactor = isNaN(explosionStartTime) ? 1 : Math.min(Math.max(1 - timeSinceLastExplosion2, 0), 1);
+      const opacityFactor = isNaN(explosionStartTime)
+        ? 1
+        : Math.min(Math.max(1 - timeSinceLastExplosion2, 0), 1);
 
       frontMaterial.uniforms.uTime.value = f;
       frontMaterial.uniforms.uTime.needsUpdate = true;
@@ -480,8 +497,7 @@ export default () => {
             value: 'fakeVoucher',
           },
         ],
-        position: worldPosition.clone()
-          .add(new THREE.Vector3(0, 0.5, 0)),
+        position: worldPosition.clone().add(new THREE.Vector3(0, 0.5, 0)),
         // quaternion: app.quaternion,
         // scale: app.scale
         velocity: new THREE.Vector3(0, 3, 0),

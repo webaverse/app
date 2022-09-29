@@ -59,14 +59,18 @@ export default (app, component) => {
           if (wearSpec.skinnedMesh) {
             let skinnedMesh = null;
             app.glb.scene.traverse(o => {
-              if (skinnedMesh === null && o.isSkinnedMesh && o.name === wearSpec.skinnedMesh) {
+              if (
+                skinnedMesh === null &&
+                o.isSkinnedMesh &&
+                o.name === wearSpec.skinnedMesh
+              ) {
                 skinnedMesh = o;
               }
             });
             if (skinnedMesh && player.avatar) {
               app.position.set(0, 0, 0);
               app.quaternion.identity(); // .setFromAxisAngle(new THREE.Vector3(0, 1, 0), Math.PI);
-              app.scale.copy(initialScale);// .multiplyScalar(wearableScale);
+              app.scale.copy(initialScale); // .multiplyScalar(wearableScale);
               app.updateMatrix();
               app.matrixWorld.copy(app.matrix);
 
@@ -133,7 +137,9 @@ export default (app, component) => {
                 const humanBones = [];
                 for (const k in boneNodeMapping) {
                   const boneName = boneNodeMapping[k];
-                  const boneNodeIndex = nodes.findIndex(node => node.name === boneName);
+                  const boneNodeIndex = nodes.findIndex(
+                    node => node.name === boneName,
+                  );
                   if (boneNodeIndex !== -1) {
                     const boneSpec = {
                       bone: k,
@@ -142,7 +148,13 @@ export default (app, component) => {
                     };
                     humanBones.push(boneSpec);
                   } else {
-                    console.log('failed to find bone', boneNodeMapping, k, nodes, boneNodeIndex);
+                    console.log(
+                      'failed to find bone',
+                      boneNodeMapping,
+                      k,
+                      nodes,
+                      boneNodeIndex,
+                    );
                   }
                 }
                 if (!app.glb.parser.json.extensions) {
@@ -214,7 +226,9 @@ export default (app, component) => {
 
   const _copyBoneAttachment = spec => {
     const {boneAttachment = 'hips', position, quaternion, scale} = spec;
-    const boneAttachments = Array.isArray(boneAttachment) ? boneAttachment : [boneAttachment];
+    const boneAttachments = Array.isArray(boneAttachment)
+      ? boneAttachment
+      : [boneAttachment];
 
     // lerp app's transform to average position/quaternion/scale of boneAttachments.
     let count = 0;
@@ -223,12 +237,14 @@ export default (app, component) => {
       const bone = player.avatar.foundModelBones[boneName];
       if (bone) {
         if (count === 0) {
-          bone.matrixWorld
-            .decompose(app.position, app.quaternion, app.scale);
+          bone.matrixWorld.decompose(app.position, app.quaternion, app.scale);
           count++;
         } else {
-          bone.matrixWorld
-            .decompose(localVector, localQuaternion, localVector2);
+          bone.matrixWorld.decompose(
+            localVector,
+            localQuaternion,
+            localVector2,
+          );
           const t = 1 / (count + 1);
           app.position.lerp(localVector, t);
           app.quaternion.slerp(localQuaternion, t);
@@ -242,7 +258,9 @@ export default (app, component) => {
 
     if (quaternion === 'upVectorHipsToPosition') {
       const hipsPostion = localVector;
-      hipsPostion.setFromMatrixPosition(player.avatar.foundModelBones.Hips.matrixWorld);
+      hipsPostion.setFromMatrixPosition(
+        player.avatar.foundModelBones.Hips.matrixWorld,
+      );
 
       localEuler.order = 'YXZ';
       localEuler.setFromQuaternion(player.quaternion);
@@ -251,12 +269,17 @@ export default (app, component) => {
       const playerQuaternion = localQuaternion2.setFromEuler(localEuler);
 
       const eyeVector = identityVector;
-      const upVector = localVector3.copy(app.position).sub(hipsPostion).normalize();
+      const upVector = localVector3
+        .copy(app.position)
+        .sub(hipsPostion)
+        .normalize();
       const targetVector = localVector4.set(0, 0, -1);
-      targetVector.applyQuaternion(localQuaternion.setFromUnitVectors(
-        localVector.set(0, 1, 0),
-        localVector2.copy(upVector).normalize(),
-      ));
+      targetVector.applyQuaternion(
+        localQuaternion.setFromUnitVectors(
+          localVector.set(0, 1, 0),
+          localVector2.copy(upVector).normalize(),
+        ),
+      );
 
       localMatrix.lookAt(eyeVector, targetVector, upVector);
       app.quaternion.setFromRotationMatrix(localMatrix);
@@ -264,7 +287,9 @@ export default (app, component) => {
     }
 
     if (Array.isArray(position)) {
-      app.position.add(localVector.fromArray(position).applyQuaternion(app.quaternion));
+      app.position.add(
+        localVector.fromArray(position).applyQuaternion(app.quaternion),
+      );
     }
     if (Array.isArray(quaternion)) {
       app.quaternion.multiply(localQuaternion.fromArray(quaternion));
@@ -280,13 +305,18 @@ export default (app, component) => {
 
       // animations
       if (app.glb) {
-        const appAimAction = Array.from(player.getActionsState())
-          .find(action => action.type === 'aim' && action.instanceId === instanceId);
+        const appAimAction = Array.from(player.getActionsState()).find(
+          action => action.type === 'aim' && action.instanceId === instanceId,
+        );
         const {animations} = app.glb;
 
-        const appAnimation = appAimAction?.appAnimation ? animations.find(a => a.name === appAimAction.appAnimation) : null;
+        const appAnimation = appAimAction?.appAnimation
+          ? animations.find(a => a.name === appAimAction.appAnimation)
+          : null;
         if (appAnimation && !appAimAnimationMixers) {
-          const clip = animations.find(a => a.name === appAimAction.appAnimation);
+          const clip = animations.find(
+            a => a.name === appAimAction.appAnimation,
+          );
           if (clip) {
             appAimAnimationMixers = [];
             app.glb.scene.traverse(o => {
@@ -318,18 +348,25 @@ export default (app, component) => {
       }
       // bone bindings
       {
-        const appUseAction = Array.from(player.getActionsState())
-          .find(action => action.type === 'use' && action.instanceId === instanceId);
+        const appUseAction = Array.from(player.getActionsState()).find(
+          action => action.type === 'use' && action.instanceId === instanceId,
+        );
         if (appUseAction?.boneAttachment && wearSpec.boneAttachment) {
           _copyBoneAttachment(appUseAction);
         } else {
-          const appAimAction = Array.from(player.getActionsState())
-            .find(action => action.type === 'aim' && action.instanceId === instanceId);
+          const appAimAction = Array.from(player.getActionsState()).find(
+            action => action.type === 'aim' && action.instanceId === instanceId,
+          );
           if (appAimAction?.boneAttachment && wearSpec.boneAttachment) {
             _copyBoneAttachment(appAimAction);
           } else {
             if (modelBones) {
-              Avatar.applyModelBoneOutputs(player.avatar, modelBones, player.avatar.modelBoneOutputs, player.avatar.getBottomEnabled());
+              Avatar.applyModelBoneOutputs(
+                player.avatar,
+                modelBones,
+                player.avatar.modelBoneOutputs,
+                player.avatar.getBottomEnabled(),
+              );
               modelBones.Root.updateMatrixWorld();
             } else if (wearSpec.boneAttachment) {
               _copyBoneAttachment(wearSpec);

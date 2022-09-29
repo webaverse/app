@@ -51,16 +51,20 @@ class AudioRecognizer extends EventTarget {
         // This is a case when the recognizer has a new result
         if (e.data.hasOwnProperty('result')) {
           // console.log('got result', e.data.result);
-          this.dispatchEvent(new MessageEvent('result', {
-            data: e.data.result,
-          }));
+          this.dispatchEvent(
+            new MessageEvent('result', {
+              data: e.data.result,
+            }),
+          );
         }
         // This is the case when we have an error
-        if (e.data.hasOwnProperty('status') && (e.data.status === 'error')) {
+        if (e.data.hasOwnProperty('status') && e.data.status === 'error') {
           // updateStatus("Error in " + e.data.command + " with code " + e.data.code);
-          this.dispatchEvent(new MessageEvent('error', {
-            data: e.data,
-          }));
+          this.dispatchEvent(
+            new MessageEvent('error', {
+              data: e.data,
+            }),
+          );
         }
       };
 
@@ -91,12 +95,13 @@ class AudioRecognizer extends EventTarget {
           ],
         },
       });
-      await this.postRecognizerJob(
-        {
-          command: 'initialize',
-          data: [['-allphone', 'en-us-phone.lm.bin'], ['-logfn', '/dev/null']],
-        },
-      );
+      await this.postRecognizerJob({
+        command: 'initialize',
+        data: [
+          ['-allphone', 'en-us-phone.lm.bin'],
+          ['-logfn', '/dev/null'],
+        ],
+      });
 
       this.worker.postMessage({
         command: 'start',
@@ -126,10 +131,13 @@ class AudioRecognizer extends EventTarget {
 
   send(result) {
     if (this.loaded) {
-      this.worker.postMessage({
-        command: 'process',
-        data: result,
-      }, [result.buffer]);
+      this.worker.postMessage(
+        {
+          command: 'process',
+          data: result,
+        },
+        [result.buffer],
+      );
     }
   }
 
@@ -142,6 +150,4 @@ class AudioRecognizer extends EventTarget {
   }
 }
 
-export {
-  AudioRecognizer,
-};
+export {AudioRecognizer};

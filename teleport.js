@@ -32,7 +32,10 @@ const makeLineMesh = () => {
   const targetFsh = `
     uniform float uTime;
     void main() {
-      gl_FragColor = vec4(${new THREE.Color(0x4fc3f7).toArray().map(n => n.toFixed(8)).join(', ')}, 1.0);
+      gl_FragColor = vec4(${new THREE.Color(0x4fc3f7)
+        .toArray()
+        .map(n => n.toFixed(8))
+        .join(', ')}, 1.0);
     }
   `;
   const material = new THREE.ShaderMaterial({
@@ -78,7 +81,13 @@ const makeTeleportMesh = (lineMesh, index) => {
   teleportMesh.frustumCulled = false;
   teleportMesh.lineMesh = lineMesh;
 
-  teleportMesh.update = (position, quaternion, visible, raycast, onTeleport) => {
+  teleportMesh.update = (
+    position,
+    quaternion,
+    visible,
+    raycast,
+    onTeleport,
+  ) => {
     const wasVisible = teleportMesh.visible;
     teleportMesh.visible = false;
     lineMesh.visible = false;
@@ -87,7 +96,14 @@ const makeTeleportMesh = (lineMesh, index) => {
       localVector.copy(position);
       const renderer = getRenderer();
       if (renderer.xr.getSession()) {
-        localQuaternion.copy(quaternion).multiply(localQuaternion2.setFromAxisAngle(localVector2.set(1, 0, 0), Math.PI * 0.25));
+        localQuaternion
+          .copy(quaternion)
+          .multiply(
+            localQuaternion2.setFromAxisAngle(
+              localVector2.set(1, 0, 0),
+              Math.PI * 0.25,
+            ),
+          );
       } else {
         localQuaternion.copy(quaternion);
       }
@@ -95,22 +111,40 @@ const makeTeleportMesh = (lineMesh, index) => {
 
       let i;
       const maxSteps = 50;
-      for (i = 0; i < maxSteps; i++, localVector.add(localVector2), localEuler.x = Math.max(localEuler.x - Math.PI * 0.01, -Math.PI / 2)) {
+      for (
+        i = 0;
+        i < maxSteps;
+        i++,
+          localVector.add(localVector2),
+          localEuler.x = Math.max(localEuler.x - Math.PI * 0.01, -Math.PI / 2)
+      ) {
         localQuaternion.setFromEuler(localEuler);
 
         const positionsArray = lineMesh.geometry.attributes.position.array;
-        const positions = new Float32Array(positionsArray.buffer, positionsArray.byteOffset + i * 72 * Float32Array.BYTES_PER_ELEMENT, 72);
+        const positions = new Float32Array(
+          positionsArray.buffer,
+          positionsArray.byteOffset + i * 72 * Float32Array.BYTES_PER_ELEMENT,
+          72,
+        );
         const positionsSrcArray = lineMeshGeometry.attributes.position.array;
-        localMatrix.compose(localVector, localQuaternion, localVector2.set(0.01, 0.01, 0.1));
+        localMatrix.compose(
+          localVector,
+          localQuaternion,
+          localVector2.set(0.01, 0.01, 0.1),
+        );
         for (let i = 0; i < positions.length; i += 3) {
-          localVector3.fromArray(positionsSrcArray, i)
+          localVector3
+            .fromArray(positionsSrcArray, i)
             .applyMatrix4(localMatrix)
             .toArray(positions, i);
         }
         lineMesh.geometry.attributes.position.needsUpdate = true;
 
         const result = raycast(localVector, localQuaternion);
-        if (result && localVector2.fromArray(result.point).distanceTo(localVector) <= 1) {
+        if (
+          result &&
+          localVector2.fromArray(result.point).distanceTo(localVector) <= 1
+        ) {
           teleportMesh.position.copy(localVector2);
           localEuler2.setFromQuaternion(localQuaternion, 'YXZ');
           localEuler2.x = 0;
@@ -119,7 +153,10 @@ const makeTeleportMesh = (lineMesh, index) => {
           teleportMesh.visible = true;
           break;
         } else {
-          localVector2.set(0, 0, -1).applyQuaternion(localQuaternion).multiplyScalar(0.2);
+          localVector2
+            .set(0, 0, -1)
+            .applyQuaternion(localQuaternion)
+            .multiplyScalar(0.2);
         }
       }
       if (i < maxSteps) {
@@ -136,21 +173,15 @@ const makeTeleportMesh = (lineMesh, index) => {
   return teleportMesh;
 };
 
-const lineMeshes = [
-  makeLineMesh(),
-  makeLineMesh(),
-];
+const lineMeshes = [makeLineMesh(), makeLineMesh()];
 lineMeshes.forEach(lineMesh => {
   scene.add(lineMesh);
 });
-const teleportMeshes = lineMeshes.map((lineMesh, i) => makeTeleportMesh(lineMesh, i));
+const teleportMeshes = lineMeshes.map((lineMesh, i) =>
+  makeTeleportMesh(lineMesh, i),
+);
 teleportMeshes.forEach(teleportMesh => {
   scene.add(teleportMesh);
 });
 
-export {
-  makeLineMesh,
-  makeTeleportMesh,
-  lineMeshes,
-  teleportMeshes,
-};
+export {makeLineMesh, makeTeleportMesh, lineMeshes, teleportMeshes};

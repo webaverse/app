@@ -17,7 +17,16 @@ scene.add(overworldObject);
 
 class OverworldApp {
   constructor(chunk) {
-    let {name, start_url, position, quaternion, scale, size, focus, chunkPriority} = chunk;
+    let {
+      name,
+      start_url,
+      position,
+      quaternion,
+      scale,
+      size,
+      focus,
+      chunkPriority,
+    } = chunk;
     size = new THREE.Vector3().fromArray(size);
 
     this.name = name;
@@ -52,8 +61,7 @@ class OverworldApp {
 
     this.setFocus = previewer.setFocus.bind(previewer);
 
-    this.loadPromise = previewer.loadScene(start_url)
-      .then(() => {});
+    this.loadPromise = previewer.loadScene(start_url).then(() => {});
   }
 
   waitForLoad() {
@@ -210,10 +218,7 @@ const loadOverworld = async () => {
 
   _setChunkFocusFromPosition(localPlayer.position);
   const currentChunks = _getChunksInRange(localPlayer.position, range);
-  const {
-    chunkApps,
-    chunkAppPromises,
-  } = _reifyChunks(currentChunks);
+  const {chunkApps, chunkAppPromises} = _reifyChunks(currentChunks);
   let lastChunkApp = _findChunkAppByPosition(localPlayer.position);
 
   //
@@ -241,10 +246,7 @@ const loadOverworld = async () => {
       if (!currentChunks.includes(newChunk)) {
         currentChunks.push(newChunk);
 
-        const [
-          chunkApp,
-          chunkAppPromise,
-        ] = _reifyChunk(newChunk);
+        const [chunkApp, chunkAppPromise] = _reifyChunk(newChunk);
         chunkApps.push(chunkApp);
         chunkAppPromises.push(chunkAppPromise);
         _sortApps();
@@ -263,6 +265,4 @@ const loadOverworld = async () => {
 
   await Promise.all(chunkAppPromises);
 };
-export {
-  loadOverworld,
-};
+export {loadOverworld};

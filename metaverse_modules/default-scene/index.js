@@ -1,7 +1,16 @@
 import * as THREE from 'three';
 // import * as BufferGeometryUtils from 'three/examples/jsm/utils/BufferGeometryUtils.js';
 import metaversefile from 'metaversefile';
-const {useApp, useLocalPlayer, useProcGen, useFrame, useActivate, useLoaders, usePhysics, useCleanup} = metaversefile;
+const {
+  useApp,
+  useLocalPlayer,
+  useProcGen,
+  useFrame,
+  useActivate,
+  useLoaders,
+  usePhysics,
+  useCleanup,
+} = metaversefile;
 
 // const baseUrl = import.meta.url.replace(/(\/)[^\/\\]*$/, '$1');
 
@@ -101,9 +110,15 @@ export default e => {
     const delta = [dx, dy];
     const bounds = [
       [dx * worldWidth - worldWidth / 2, 0, dy * worldHeight - worldHeight / 2],
-      [dx * worldWidth + worldWidth / 2, 16, dy * worldHeight + worldHeight / 2],
+      [
+        dx * worldWidth + worldWidth / 2,
+        16,
+        dy * worldHeight + worldHeight / 2,
+      ],
     ];
-    const exits = exitBlocks.map(b => b.getLocalPosition(localVector).toArray());
+    const exits = exitBlocks.map(b =>
+      b.getLocalPosition(localVector).toArray(),
+    );
     const components = {
       coords,
       delta,
@@ -114,61 +129,64 @@ export default e => {
     return components;
   };
 
-  e.waitUntil((async () => {
-    // console.log('generate', exits);
+  e.waitUntil(
+    (async () => {
+      // console.log('generate', exits);
 
-    const components = makeComponents(x, y);
-    await Promise.all(
-      defaultApps.map(async a => {
-        const {type, content} = a;
-        const dataUrl = `data:${type},${JSON.stringify(content)}`;
-        const subApp = await metaversefile.createApp({
-          start_url: dataUrl,
-          // components,
-        });
-        app.add(subApp);
-        subApps.push(subApp);
-      })
-        .concat([
-          (async () => {
-            const filter = await metaversefile.createApp({
-              start_url: './metaverse_modules/filter/',
-              components,
+      const components = makeComponents(x, y);
+      await Promise.all(
+        defaultApps
+          .map(async a => {
+            const {type, content} = a;
+            const dataUrl = `data:${type},${JSON.stringify(content)}`;
+            const subApp = await metaversefile.createApp({
+              start_url: dataUrl,
+              // components,
             });
-            app.add(filter);
-            subApps.push(filter);
-          })(),
-          (async () => {
-            const barrier = await metaversefile.createApp({
-              start_url: './metaverse_modules/barrier/',
-              components,
-            });
-            app.add(barrier);
-            subApps.push(barrier);
+            app.add(subApp);
+            subApps.push(subApp);
+          })
+          .concat([
+            (async () => {
+              const filter = await metaversefile.createApp({
+                start_url: './metaverse_modules/filter/',
+                components,
+              });
+              app.add(filter);
+              subApps.push(filter);
+            })(),
+            (async () => {
+              const barrier = await metaversefile.createApp({
+                start_url: './metaverse_modules/barrier/',
+                components,
+              });
+              app.add(barrier);
+              subApps.push(barrier);
 
-            barrier.addEventListener('collision', e => {
-              const {direction} = e;
-              x += direction.x;
-              y += direction.z;
-              const components = makeComponents(x, y);
-              // console.log('new components', components);
+              barrier.addEventListener('collision', e => {
+                const {direction} = e;
+                x += direction.x;
+                y += direction.z;
+                const components = makeComponents(x, y);
+                // console.log('new components', components);
 
-              for (const subApp of subApps) {
-                subApp.setComponents(components);
-              }
-            });
-          })(),
-          (async () => {
-            const infinistreet = await metaversefile.createApp({
-              start_url: './metaverse_modules/infinistreet/',
-              components,
-            });
-            app.add(infinistreet);
-            subApps.push(infinistreet);
-          })(),
-        ]),
-    );
-  })());
+                for (const subApp of subApps) {
+                  subApp.setComponents(components);
+                }
+              });
+            })(),
+            (async () => {
+              const infinistreet = await metaversefile.createApp({
+                start_url: './metaverse_modules/infinistreet/',
+                components,
+              });
+              app.add(infinistreet);
+              subApps.push(infinistreet);
+            })(),
+          ]),
+      );
+    })(),
+  );
 
   return app;
 };

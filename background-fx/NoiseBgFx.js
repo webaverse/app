@@ -1,8 +1,5 @@
 import * as THREE from 'three';
-import {
-  fullscreenGeometry,
-  fullscreenVertexShader,
-} from './common.js';
+import {fullscreenGeometry, fullscreenVertexShader} from './common.js';
 import {getRenderer} from '../renderer.js';
 
 export const noiseFragmentShader = `\
@@ -186,6 +183,4 @@ class NoiseBgFxMesh extends THREE.Mesh {
   }
 }
 
-export {
-  NoiseBgFxMesh,
-};
+export {NoiseBgFxMesh};

@@ -3,7 +3,13 @@ import * as THREE from 'three';
 // import easing from './easing.js';
 import metaversefile from 'metaversefile';
 // import {getCaretAtPoint} from 'troika-three-text';
-const {useApp, useInternals, useMaterials, useFrame, /* usePhysics, */ useText} = metaversefile;
+const {
+  useApp,
+  useInternals,
+  useMaterials,
+  useFrame,
+  /* usePhysics, */ useText,
+} = metaversefile;
 
 const localVector4D = new THREE.Vector4();
 
@@ -11,7 +17,7 @@ let multiText = null;
 
 export default e => {
   const app = useApp();
-  const {/* renderer, */scene/*, camera */} = useInternals();
+  const {/* renderer, */ scene /*, camera */} = useInternals();
   // const physics = usePhysics();
   const {WebaverseShaderMaterial} = useMaterials();
   const Text = useText();
@@ -102,8 +108,14 @@ export default e => {
         varying vec2 vUv;
         varying vec3 vColor;
     
-        vec3 color1 = vec3(${new THREE.Color(0xffca28).toArray().map(n => n.toFixed(8)).join(', ')});
-        vec3 color2 = vec3(${new THREE.Color(0xff6f00).toArray().map(n => n.toFixed(8)).join(', ')});
+        vec3 color1 = vec3(${new THREE.Color(0xffca28)
+          .toArray()
+          .map(n => n.toFixed(8))
+          .join(', ')});
+        vec3 color2 = vec3(${new THREE.Color(0xff6f00)
+          .toArray()
+          .map(n => n.toFixed(8))
+          .join(', ')});
     
         void main() {
           vec3 c = (color1*(1. - vUv.y) + color2*vUv.y);
@@ -153,20 +165,33 @@ export default e => {
       });
 
       // character indices
-      const characterIndices = new Float32Array(textMesh.geometry.attributes.aTroikaGlyphIndex.array.length);
+      const characterIndices = new Float32Array(
+        textMesh.geometry.attributes.aTroikaGlyphIndex.array.length,
+      );
       for (let i = 0; i < characterIndices.length; i++) {
         // const index = i < characterIndices.length/2 ? i : i - characterIndices.length/2;
         characterIndices[i] = i;
       }
-      const characterIndexAttribute = new THREE.InstancedBufferAttribute(characterIndices, 1, false);
+      const characterIndexAttribute = new THREE.InstancedBufferAttribute(
+        characterIndices,
+        1,
+        false,
+      );
       textMesh.geometry.setAttribute('characterIndex', characterIndexAttribute);
 
       let minXPoint = Infinity;
       let maxXPoint = -Infinity;
       let minYPoint = Infinity;
       let maxYPoint = -Infinity;
-      for (let i = 0; i < textMesh.geometry.attributes.aTroikaGlyphBounds.count; i++) {
-        const boundingBox = localVector4D.fromArray(textMesh.geometry.attributes.aTroikaGlyphBounds.array, i * 4);
+      for (
+        let i = 0;
+        i < textMesh.geometry.attributes.aTroikaGlyphBounds.count;
+        i++
+      ) {
+        const boundingBox = localVector4D.fromArray(
+          textMesh.geometry.attributes.aTroikaGlyphBounds.array,
+          i * 4,
+        );
         minXPoint = Math.min(boundingBox.x, minXPoint);
         maxXPoint = Math.max(boundingBox.z, maxXPoint);
         minYPoint = Math.min(boundingBox.y, minYPoint);
@@ -179,9 +204,21 @@ export default e => {
       textMesh.material.uniforms.uCharacters.value = text.length;
       textMesh.material.uniforms.uCharacters.needsUpdate = true;
 
-      for (let i = 0; i < textMesh.geometry.attributes.aTroikaGlyphBounds.count * 0.5; i++) {
-        localVector4D.fromArray(textMesh.geometry.attributes.aTroikaGlyphBounds.array, i * 4)
-          .toArray(textMesh.geometry.attributes.aTroikaGlyphBounds.array, textMesh.geometry.attributes.aTroikaGlyphBounds.array.length * 0.5 + i * 4);
+      for (
+        let i = 0;
+        i < textMesh.geometry.attributes.aTroikaGlyphBounds.count * 0.5;
+        i++
+      ) {
+        localVector4D
+          .fromArray(
+            textMesh.geometry.attributes.aTroikaGlyphBounds.array,
+            i * 4,
+          )
+          .toArray(
+            textMesh.geometry.attributes.aTroikaGlyphBounds.array,
+            textMesh.geometry.attributes.aTroikaGlyphBounds.array.length * 0.5 +
+              i * 4,
+          );
       }
 
       textMesh.position.set(-width * 0.5, height * 0.5, 0);
@@ -225,7 +262,8 @@ export default e => {
 
       if (textMeshSpec) {
         for (const textMesh of textMeshSpec.textMeshes) {
-          textMesh.material.uniforms.uTime.value = (timestamp - textMeshSpec.startTime) / 1000;
+          textMesh.material.uniforms.uTime.value =
+            (timestamp - textMeshSpec.startTime) / 1000;
         }
       }
     };

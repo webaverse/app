@@ -1,17 +1,17 @@
 import * as THREE from 'three';
 
 /**
-* Takes in a rootBone and recursively traverses the bone heirarchy,
-* setting each bone's +Z axis to face it's child bones. The IK system follows this
-* convention, so this step is necessary to update the bindings of a skinned mesh.
-*
-* Must rebind the model to it's skeleton after this function.
-*
-* @param {THREE.Bone} rootBone
-* @param {Object} context - options and buffer for stateful bone calculations
-*                 context.exclude: [ boneNames to exclude ]
-*                 context.preRotations: { boneName: THREE.Quaternion, ... }
-*/
+ * Takes in a rootBone and recursively traverses the bone heirarchy,
+ * setting each bone's +Z axis to face it's child bones. The IK system follows this
+ * convention, so this step is necessary to update the bindings of a skinned mesh.
+ *
+ * Must rebind the model to it's skeleton after this function.
+ *
+ * @param {THREE.Bone} rootBone
+ * @param {Object} context - options and buffer for stateful bone calculations
+ *                 context.exclude: [ boneNames to exclude ]
+ *                 context.preRotations: { boneName: THREE.Quaternion, ... }
+ */
 
 function fixSkeletonZForward(rootBone, context) {
   context = context || {};
@@ -32,14 +32,14 @@ const RESETQUAT = new THREE.Quaternion();
 const Y_AXIS = new THREE.Vector3(0, 1, 0);
 
 /**
-* Takes in a rootBone and recursively traverses the bone heirarchy,
-* setting each bone's +Z axis to face it's child bones. The IK system follows this
-* convention, so this step is necessary to update the bindings of a skinned mesh.
-*
-* Must rebind the model to it's skeleton after this function.
-*
-* @param {THREE.BONE} rootBone
-*/
+ * Takes in a rootBone and recursively traverses the bone heirarchy,
+ * setting each bone's +Z axis to face it's child bones. The IK system follows this
+ * convention, so this step is necessary to update the bindings of a skinned mesh.
+ *
+ * Must rebind the model to it's skeleton after this function.
+ *
+ * @param {THREE.BONE} rootBone
+ */
 
 function precalculateZForwards(rootBone, context) {
   context = context || rootBone;
@@ -56,7 +56,12 @@ function setZForward(rootBone, context) {
     context = context || {};
     precalculateZForwards(rootBone, context);
   }
-  updateTransformations(rootBone, context.worldPos, context.averagedDirs, context.preRotations);
+  updateTransformations(
+    rootBone,
+    context.worldPos,
+    context.averagedDirs,
+    context.preRotations,
+  );
   return context;
 }
 
@@ -69,7 +74,7 @@ function calculateAverages(parentBone, worldPos, averagedDirs) {
     averagedDir.add(childBonePosWorld);
   });
 
-  averagedDir.multiplyScalar(1 / (childBones.length));
+  averagedDir.multiplyScalar(1 / childBones.length);
   averagedDirs[parentBone.id] = averagedDir;
 
   childBones.forEach(childBone => {
@@ -77,7 +82,12 @@ function calculateAverages(parentBone, worldPos, averagedDirs) {
   });
 }
 
-function updateTransformations(parentBone, worldPos, averagedDirs, preRotations) {
+function updateTransformations(
+  parentBone,
+  worldPos,
+  averagedDirs,
+  preRotations,
+) {
   const averagedDir = averagedDirs[parentBone.id];
   if (averagedDir) {
     // set quaternion
@@ -139,9 +149,15 @@ function setQuaternionFromDirection(direction, up, target) {
   x.normalize();
   y.crossVectors(z, x);
 
-  el[0] = x.x; el[4] = y.x; el[8] = z.x;
-  el[1] = x.y; el[5] = y.y; el[9] = z.y;
-  el[2] = x.z; el[6] = y.z; el[10] = z.z;
+  el[0] = x.x;
+  el[4] = y.x;
+  el[8] = z.x;
+  el[1] = x.y;
+  el[5] = y.y;
+  el[9] = z.y;
+  el[2] = x.z;
+  el[6] = y.z;
+  el[10] = z.z;
 
   return target.setFromRotationMatrix(m);
 }
@@ -166,6 +182,4 @@ function _localToWorldDirection(direction, parent) {
   return direction;
 }
 
-export {
-  fixSkeletonZForward, setQuaternionFromDirection,
-};
+export {fixSkeletonZForward, setQuaternionFromDirection};

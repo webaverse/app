@@ -5,8 +5,11 @@ class SpriteAnimationManager {
   constructor() {
     this.spriteAnimationCache = new Map();
     this.getSpriteAnimationForAppUrlInternal = (() => {
-      return async function(args) {
-        const result = await offscreenEngineManager.request('getSpriteAnimationForAppUrlInternal', args);
+      return async function (args) {
+        const result = await offscreenEngineManager.request(
+          'getSpriteAnimationForAppUrlInternal',
+          args,
+        );
         return result;
       };
     })();
@@ -24,7 +27,10 @@ class SpriteAnimationManager {
   async getSpriteAnimationForAppUrlAsync(appUrl, opts) {
     let spritesheet = this.spriteAnimationCache.get(appUrl);
     if (!spritesheet) {
-      spritesheet = await this.getSpriteAnimationForAppUrlInternal([appUrl, opts]);
+      spritesheet = await this.getSpriteAnimationForAppUrlInternal([
+        appUrl,
+        opts,
+      ]);
       this.spriteAnimationCache.set(appUrl, spritesheet);
     }
     return spritesheet;

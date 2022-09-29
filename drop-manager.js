@@ -63,7 +63,6 @@ class DropManager extends EventTarget {
     // const result = generateStats(contentId);
     // const {/* art, */stats} = result;
     // const {level} = stats;
-    const level = 1;
     const start_url = contentId;
     const claim = {
       name,
@@ -75,11 +74,13 @@ class DropManager extends EventTarget {
     };
     this.claims.push(claim);
 
-    this.dispatchEvent(new MessageEvent('claimschange', {
-      data: {
-        claims: this.claims,
-      },
-    }));
+    this.dispatchEvent(
+      new MessageEvent('claimschange', {
+        data: {
+          claims: this.claims,
+        },
+      }),
+    );
   }
 
   removeClaim(claimedDrop) {
@@ -101,13 +102,15 @@ class DropManager extends EventTarget {
 
   claimVoucher(contractAddress, tokenId, voucher) {
     // ui handles this
-    this.dispatchEvent(new MessageEvent('claimvoucher', {
-      data: {
-        contractAddress,
-        tokenId,
-        voucher,
-      },
-    }));
+    this.dispatchEvent(
+      new MessageEvent('claimvoucher', {
+        data: {
+          contractAddress,
+          tokenId,
+          voucher,
+        },
+      }),
+    );
   }
 }
 const dropManager = new DropManager();

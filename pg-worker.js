@@ -18,27 +18,45 @@ const _cloneChunkResult = chunkResult => {
   const {terrainGeometry, waterGeometry, barrierGeometry} = chunkResult;
 
   const _getTerrainGeometrySize = () => {
-    const size = terrainGeometry.positions.length * terrainGeometry.positions.constructor.BYTES_PER_ELEMENT +
-      terrainGeometry.normals.length * terrainGeometry.normals.constructor.BYTES_PER_ELEMENT +
-      terrainGeometry.biomesWeights.length * terrainGeometry.biomesWeights.constructor.BYTES_PER_ELEMENT +
-      terrainGeometry.biomesUvs1.length * terrainGeometry.biomesUvs1.constructor.BYTES_PER_ELEMENT +
-      terrainGeometry.biomesUvs2.length * terrainGeometry.biomesUvs2.constructor.BYTES_PER_ELEMENT +
-      terrainGeometry.indices.length * terrainGeometry.indices.constructor.BYTES_PER_ELEMENT;
+    const size =
+      terrainGeometry.positions.length *
+        terrainGeometry.positions.constructor.BYTES_PER_ELEMENT +
+      terrainGeometry.normals.length *
+        terrainGeometry.normals.constructor.BYTES_PER_ELEMENT +
+      terrainGeometry.biomesWeights.length *
+        terrainGeometry.biomesWeights.constructor.BYTES_PER_ELEMENT +
+      terrainGeometry.biomesUvs1.length *
+        terrainGeometry.biomesUvs1.constructor.BYTES_PER_ELEMENT +
+      terrainGeometry.biomesUvs2.length *
+        terrainGeometry.biomesUvs2.constructor.BYTES_PER_ELEMENT +
+      terrainGeometry.indices.length *
+        terrainGeometry.indices.constructor.BYTES_PER_ELEMENT;
     return size;
   };
   const _getWaterGeometrySize = () => {
-    const size = waterGeometry.positions.length * waterGeometry.positions.constructor.BYTES_PER_ELEMENT +
-      waterGeometry.normals.length * waterGeometry.normals.constructor.BYTES_PER_ELEMENT +
-      waterGeometry.factors.length * waterGeometry.factors.constructor.BYTES_PER_ELEMENT +
-      waterGeometry.indices.length * waterGeometry.indices.constructor.BYTES_PER_ELEMENT;
+    const size =
+      waterGeometry.positions.length *
+        waterGeometry.positions.constructor.BYTES_PER_ELEMENT +
+      waterGeometry.normals.length *
+        waterGeometry.normals.constructor.BYTES_PER_ELEMENT +
+      waterGeometry.factors.length *
+        waterGeometry.factors.constructor.BYTES_PER_ELEMENT +
+      waterGeometry.indices.length *
+        waterGeometry.indices.constructor.BYTES_PER_ELEMENT;
     return size;
   };
   const _getBarrierGeometrySize = () => {
-    const size = barrierGeometry.positions.length * barrierGeometry.positions.constructor.BYTES_PER_ELEMENT +
-      barrierGeometry.normals.length * barrierGeometry.normals.constructor.BYTES_PER_ELEMENT +
-      barrierGeometry.uvs.length * barrierGeometry.uvs.constructor.BYTES_PER_ELEMENT +
-      barrierGeometry.positions2D.length * barrierGeometry.positions2D.constructor.BYTES_PER_ELEMENT +
-      barrierGeometry.indices.length * barrierGeometry.indices.constructor.BYTES_PER_ELEMENT;
+    const size =
+      barrierGeometry.positions.length *
+        barrierGeometry.positions.constructor.BYTES_PER_ELEMENT +
+      barrierGeometry.normals.length *
+        barrierGeometry.normals.constructor.BYTES_PER_ELEMENT +
+      barrierGeometry.uvs.length *
+        barrierGeometry.uvs.constructor.BYTES_PER_ELEMENT +
+      barrierGeometry.positions2D.length *
+        barrierGeometry.positions2D.constructor.BYTES_PER_ELEMENT +
+      barrierGeometry.indices.length *
+        barrierGeometry.indices.constructor.BYTES_PER_ELEMENT;
     return size;
   };
 
@@ -46,44 +64,84 @@ const _cloneChunkResult = chunkResult => {
   const waterGeometrySize = _getWaterGeometrySize();
   const barrierGeometrySize = _getBarrierGeometrySize();
   const arrayBuffer = new ArrayBuffer(
-    terrainGeometrySize +
-    waterGeometrySize +
-    barrierGeometrySize,
+    terrainGeometrySize + waterGeometrySize + barrierGeometrySize,
   );
   let index = 0;
 
   const _cloneTerrainGeometry = () => {
-    const positions = new terrainGeometry.positions.constructor(arrayBuffer, index, terrainGeometry.positions.length);
+    const positions = new terrainGeometry.positions.constructor(
+      arrayBuffer,
+      index,
+      terrainGeometry.positions.length,
+    );
     positions.set(terrainGeometry.positions);
-    index += terrainGeometry.positions.length * terrainGeometry.positions.constructor.BYTES_PER_ELEMENT;
+    index +=
+      terrainGeometry.positions.length *
+      terrainGeometry.positions.constructor.BYTES_PER_ELEMENT;
 
-    const normals = new terrainGeometry.normals.constructor(arrayBuffer, index, terrainGeometry.normals.length);
+    const normals = new terrainGeometry.normals.constructor(
+      arrayBuffer,
+      index,
+      terrainGeometry.normals.length,
+    );
     normals.set(terrainGeometry.normals);
-    index += terrainGeometry.normals.length * terrainGeometry.normals.constructor.BYTES_PER_ELEMENT;
+    index +=
+      terrainGeometry.normals.length *
+      terrainGeometry.normals.constructor.BYTES_PER_ELEMENT;
 
-    const biomes = new terrainGeometry.biomes.constructor(arrayBuffer, index, terrainGeometry.biomes.length);
+    const biomes = new terrainGeometry.biomes.constructor(
+      arrayBuffer,
+      index,
+      terrainGeometry.biomes.length,
+    );
     biomes.set(terrainGeometry.biomes);
-    index += terrainGeometry.biomes.length * terrainGeometry.biomes.constructor.BYTES_PER_ELEMENT;
+    index +=
+      terrainGeometry.biomes.length *
+      terrainGeometry.biomes.constructor.BYTES_PER_ELEMENT;
 
-    const biomesWeights = new terrainGeometry.biomesWeights.constructor(arrayBuffer, index, terrainGeometry.biomesWeights.length);
+    const biomesWeights = new terrainGeometry.biomesWeights.constructor(
+      arrayBuffer,
+      index,
+      terrainGeometry.biomesWeights.length,
+    );
     biomesWeights.set(terrainGeometry.biomesWeights);
-    index += terrainGeometry.biomesWeights.length * terrainGeometry.biomesWeights.constructor.BYTES_PER_ELEMENT;
+    index +=
+      terrainGeometry.biomesWeights.length *
+      terrainGeometry.biomesWeights.constructor.BYTES_PER_ELEMENT;
 
-    const biomesUvs1 = new terrainGeometry.biomesUvs1.constructor(arrayBuffer, index, terrainGeometry.biomesUvs1.length);
+    const biomesUvs1 = new terrainGeometry.biomesUvs1.constructor(
+      arrayBuffer,
+      index,
+      terrainGeometry.biomesUvs1.length,
+    );
     biomesUvs1.set(terrainGeometry.biomesUvs1);
-    index += terrainGeometry.biomesUvs1.length * terrainGeometry.biomesUvs1.constructor.BYTES_PER_ELEMENT;
+    index +=
+      terrainGeometry.biomesUvs1.length *
+      terrainGeometry.biomesUvs1.constructor.BYTES_PER_ELEMENT;
 
-    const biomesUvs2 = new terrainGeometry.biomesUvs2.constructor(arrayBuffer, index, terrainGeometry.biomesUvs2.length);
+    const biomesUvs2 = new terrainGeometry.biomesUvs2.constructor(
+      arrayBuffer,
+      index,
+      terrainGeometry.biomesUvs2.length,
+    );
     biomesUvs2.set(terrainGeometry.biomesUvs2);
-    index += terrainGeometry.biomesUvs2.length * terrainGeometry.biomesUvs2.constructor.BYTES_PER_ELEMENT;
+    index +=
+      terrainGeometry.biomesUvs2.length *
+      terrainGeometry.biomesUvs2.constructor.BYTES_PER_ELEMENT;
 
     // const seeds = new terrainGeometry.seeds.constructor(arrayBuffer, index, terrainGeometry.seeds.length);
     // seeds.set(terrainGeometry.seeds);
     // index += terrainGeometry.seeds.length * terrainGeometry.seeds.constructor.BYTES_PER_ELEMENT;
 
-    const indices = new terrainGeometry.indices.constructor(arrayBuffer, index, terrainGeometry.indices.length);
+    const indices = new terrainGeometry.indices.constructor(
+      arrayBuffer,
+      index,
+      terrainGeometry.indices.length,
+    );
     indices.set(terrainGeometry.indices);
-    index += terrainGeometry.indices.length * terrainGeometry.indices.constructor.BYTES_PER_ELEMENT;
+    index +=
+      terrainGeometry.indices.length *
+      terrainGeometry.indices.constructor.BYTES_PER_ELEMENT;
 
     /* const skylights = new terrainGeometry.skylights.constructor(arrayBuffer, index, terrainGeometry.skylights.length);
     skylights.set(terrainGeometry.skylights);
@@ -112,21 +170,45 @@ const _cloneChunkResult = chunkResult => {
     };
   };
   const _cloneWaterGeometry = () => {
-    const positions = new waterGeometry.positions.constructor(arrayBuffer, index, waterGeometry.positions.length);
+    const positions = new waterGeometry.positions.constructor(
+      arrayBuffer,
+      index,
+      waterGeometry.positions.length,
+    );
     positions.set(waterGeometry.positions);
-    index += waterGeometry.positions.length * waterGeometry.positions.constructor.BYTES_PER_ELEMENT;
+    index +=
+      waterGeometry.positions.length *
+      waterGeometry.positions.constructor.BYTES_PER_ELEMENT;
 
-    const normals = new waterGeometry.normals.constructor(arrayBuffer, index, waterGeometry.normals.length);
+    const normals = new waterGeometry.normals.constructor(
+      arrayBuffer,
+      index,
+      waterGeometry.normals.length,
+    );
     normals.set(waterGeometry.normals);
-    index += waterGeometry.normals.length * waterGeometry.normals.constructor.BYTES_PER_ELEMENT;
+    index +=
+      waterGeometry.normals.length *
+      waterGeometry.normals.constructor.BYTES_PER_ELEMENT;
 
-    const factors = new waterGeometry.factors.constructor(arrayBuffer, index, waterGeometry.factors.length);
+    const factors = new waterGeometry.factors.constructor(
+      arrayBuffer,
+      index,
+      waterGeometry.factors.length,
+    );
     factors.set(waterGeometry.factors);
-    index += waterGeometry.factors.length * waterGeometry.factors.constructor.BYTES_PER_ELEMENT;
+    index +=
+      waterGeometry.factors.length *
+      waterGeometry.factors.constructor.BYTES_PER_ELEMENT;
 
-    const indices = new waterGeometry.indices.constructor(arrayBuffer, index, waterGeometry.indices.length);
+    const indices = new waterGeometry.indices.constructor(
+      arrayBuffer,
+      index,
+      waterGeometry.indices.length,
+    );
     indices.set(waterGeometry.indices);
-    index += waterGeometry.indices.length * waterGeometry.indices.constructor.BYTES_PER_ELEMENT;
+    index +=
+      waterGeometry.indices.length *
+      waterGeometry.indices.constructor.BYTES_PER_ELEMENT;
 
     return {
       positions,
@@ -136,25 +218,55 @@ const _cloneChunkResult = chunkResult => {
     };
   };
   const _cloneBarrierGeometry = () => {
-    const positions = new barrierGeometry.positions.constructor(arrayBuffer, index, barrierGeometry.positions.length);
+    const positions = new barrierGeometry.positions.constructor(
+      arrayBuffer,
+      index,
+      barrierGeometry.positions.length,
+    );
     positions.set(barrierGeometry.positions);
-    index += barrierGeometry.positions.length * barrierGeometry.positions.constructor.BYTES_PER_ELEMENT;
+    index +=
+      barrierGeometry.positions.length *
+      barrierGeometry.positions.constructor.BYTES_PER_ELEMENT;
 
-    const normals = new barrierGeometry.normals.constructor(arrayBuffer, index, barrierGeometry.normals.length);
+    const normals = new barrierGeometry.normals.constructor(
+      arrayBuffer,
+      index,
+      barrierGeometry.normals.length,
+    );
     normals.set(barrierGeometry.normals);
-    index += barrierGeometry.normals.length * barrierGeometry.normals.constructor.BYTES_PER_ELEMENT;
+    index +=
+      barrierGeometry.normals.length *
+      barrierGeometry.normals.constructor.BYTES_PER_ELEMENT;
 
-    const uvs = new barrierGeometry.uvs.constructor(arrayBuffer, index, barrierGeometry.uvs.length);
+    const uvs = new barrierGeometry.uvs.constructor(
+      arrayBuffer,
+      index,
+      barrierGeometry.uvs.length,
+    );
     uvs.set(barrierGeometry.uvs);
-    index += barrierGeometry.uvs.length * barrierGeometry.uvs.constructor.BYTES_PER_ELEMENT;
+    index +=
+      barrierGeometry.uvs.length *
+      barrierGeometry.uvs.constructor.BYTES_PER_ELEMENT;
 
-    const positions2D = new barrierGeometry.positions2D.constructor(arrayBuffer, index, barrierGeometry.positions2D.length);
+    const positions2D = new barrierGeometry.positions2D.constructor(
+      arrayBuffer,
+      index,
+      barrierGeometry.positions2D.length,
+    );
     positions2D.set(barrierGeometry.positions2D);
-    index += barrierGeometry.positions2D.length * barrierGeometry.positions2D.constructor.BYTES_PER_ELEMENT;
+    index +=
+      barrierGeometry.positions2D.length *
+      barrierGeometry.positions2D.constructor.BYTES_PER_ELEMENT;
 
-    const indices = new barrierGeometry.indices.constructor(arrayBuffer, index, barrierGeometry.indices.length);
+    const indices = new barrierGeometry.indices.constructor(
+      arrayBuffer,
+      index,
+      barrierGeometry.indices.length,
+    );
     indices.set(barrierGeometry.indices);
-    index += barrierGeometry.indices.length * barrierGeometry.indices.constructor.BYTES_PER_ELEMENT;
+    index +=
+      barrierGeometry.indices.length *
+      barrierGeometry.indices.constructor.BYTES_PER_ELEMENT;
 
     return {
       positions,
@@ -271,9 +383,21 @@ const _handleMethod = async ({method, args, instance: instanceKey, taskId}) => {
       }
     }
     case 'setCamera': {
-      const {instance: instanceKey, worldPosition, cameraPosition, cameraQuaternion, projectionMatrix} = args;
+      const {
+        instance: instanceKey,
+        worldPosition,
+        cameraPosition,
+        cameraQuaternion,
+        projectionMatrix,
+      } = args;
       const instance = instances.get(instanceKey);
-      pg.setCamera(instance, worldPosition, cameraPosition, cameraQuaternion, projectionMatrix);
+      pg.setCamera(
+        instance,
+        worldPosition,
+        cameraPosition,
+        cameraQuaternion,
+        projectionMatrix,
+      );
       return true;
     }
     case 'setClipRange': {
@@ -301,7 +425,13 @@ const _handleMethod = async ({method, args, instance: instanceKey, taskId}) => {
     case 'trackerUpdate': {
       const {instance: instanceKey, tracker, position, priority} = args;
       const instance = instances.get(instanceKey);
-      const trackerUpdate = await pg.trackerUpdateAsync(instance, taskId, tracker, position, priority);
+      const trackerUpdate = await pg.trackerUpdateAsync(
+        instance,
+        taskId,
+        tracker,
+        position,
+        priority,
+      );
       const trackerUpdate2 = _cloneTrackerUpdate(trackerUpdate);
       const spec = {
         result: trackerUpdate2,
@@ -314,7 +444,8 @@ const _handleMethod = async ({method, args, instance: instanceKey, taskId}) => {
       const instance = instances.get(instanceKey);
       if (!instance) throw new Error('generateChunk : instance not found');
 
-      const position = localVector2D.fromArray(chunkPosition)
+      const position = localVector2D
+        .fromArray(chunkPosition)
         .multiplyScalar(chunkWorldSize);
       const chunkResult = await pg.createChunkMeshAsync(
         instance,
@@ -337,9 +468,7 @@ const _handleMethod = async ({method, args, instance: instanceKey, taskId}) => {
 
       return {
         result: chunkResult2,
-        transfers: [
-          chunkResult2.arrayBuffer,
-        ],
+        transfers: [chunkResult2.arrayBuffer],
       };
     }
     case 'generateGrass': {
@@ -347,7 +476,8 @@ const _handleMethod = async ({method, args, instance: instanceKey, taskId}) => {
       const instance = instances.get(instanceKey);
       if (!instance) throw new Error('generateGrass : instance not found');
 
-      const position = localVector2D.fromArray(chunkPosition)
+      const position = localVector2D
+        .fromArray(chunkPosition)
         .multiplyScalar(chunkWorldSize);
       const grassResult = await pg.createChunkGrassAsync(
         instance,
@@ -366,9 +496,7 @@ const _handleMethod = async ({method, args, instance: instanceKey, taskId}) => {
 
       const spec = {
         result: grassResult2,
-        transfers: [
-          grassResult2.arrayBuffer,
-        ],
+        transfers: [grassResult2.arrayBuffer],
       };
       return spec;
     }
@@ -377,7 +505,8 @@ const _handleMethod = async ({method, args, instance: instanceKey, taskId}) => {
       const instance = instances.get(instanceKey);
       if (!instance) throw new Error('generateVegetation : instance not found');
 
-      const position = localVector2D.fromArray(chunkPosition)
+      const position = localVector2D
+        .fromArray(chunkPosition)
         .multiplyScalar(chunkWorldSize);
       const vegetationResult = await pg.createChunkVegetationAsync(
         instance,
@@ -396,9 +525,7 @@ const _handleMethod = async ({method, args, instance: instanceKey, taskId}) => {
 
       const spec = {
         result: vegetationResult2,
-        transfers: [
-          vegetationResult2.arrayBuffer,
-        ],
+        transfers: [vegetationResult2.arrayBuffer],
       };
       return spec;
     }

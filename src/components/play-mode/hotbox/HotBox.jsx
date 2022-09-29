@@ -11,39 +11,39 @@ export const HotBox = ({
   onClick,
   onDoubleClick,
 }) => {
-  const canvasRef = useRef();
-  const [selected, setSelected] = useState(false);
+    const canvasRef = useRef();
+    const [selected, setSelected] = useState(false);
+    
+    useEffect(() => {
+      if (canvasRef.current) {
+        const canvas = canvasRef.current;
 
-  useEffect(() => {
-    if (canvasRef.current) {
-      const canvas = canvasRef.current;
+        const hotbarRenderer = loadoutManager.getHotbarRenderer(index);
+        hotbarRenderer.addCanvas(canvas);
 
-      const hotbarRenderer = loadoutManager.getHotbarRenderer(index);
-      hotbarRenderer.addCanvas(canvas);
+        return () => {
+          hotbarRenderer.removeCanvas(canvas);
+        };
+      }
+    }, [canvasRef]);
+    useEffect(() => {
+      function selectedchange(e) {
+        const {index, app} = e.data;
+        if (index === -1 || app) {
+          setSelected(index === index);
+        }
+      }
+
+      loadoutManager.addEventListener('selectedchange', selectedchange);
 
       return () => {
-        hotbarRenderer.removeCanvas(canvas);
+        loadoutManager.removeEventListener('selectedchange', selectedchange);
       };
-    }
-  }, [canvasRef]);
-  useEffect(() => {
-    function selectedchange(e) {
-      const {index, app} = e.data;
-      if (index === -1 || app) {
-        setSelected(true);
-      }
-    }
+    }, []);
+    
+    const pixelRatio = window.devicePixelRatio;
 
-    loadoutManager.addEventListener('selectedchange', selectedchange);
-
-    return () => {
-      loadoutManager.removeEventListener('selectedchange', selectedchange);
-    };
-  }, []);
-
-  const pixelRatio = window.devicePixelRatio;
-
-  return (
+    return (
       <div
         className={ classnames(styles.hotBox, selected ? styles.selected : null) }
         onDragOver={onDragOver}
@@ -56,12 +56,13 @@ export const HotBox = ({
           <div className={ styles.background } />
           <div className={ styles.text }>{ index + 1 }</div>
         </div>
+        {/*
         <canvas
           className={ styles.hotbox }
           width={size * pixelRatio}
           height={size * pixelRatio}
           ref={canvasRef}
-        />
+    />*/}
       </div>
-  );
+    );
 };

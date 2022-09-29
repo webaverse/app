@@ -1,8 +1,6 @@
 import * as THREE from 'three';
 // import alea from './alea.js';
-import {
-  makeRng,
-} from './misc-gen.js';
+import {makeRng} from './misc-gen.js';
 import placeNames from './placeNames.js';
 import {shuffle} from '../util.js';
 
@@ -19,12 +17,7 @@ export const chunkWorldSize = numBlocksPerChunk * voxelWorldSize;
 export const chunkScreenSize = numBlocksPerChunk * voxelPixelSize;
 export {placeNames};
 
-const sides = [
-  'left',
-  'right',
-  'up',
-  'down',
-];
+const sides = ['left', 'right', 'up', 'down'];
 /* const sideDeltas = {
   left: [-1, 0],
   right: [1, 0],
@@ -118,7 +111,11 @@ export class MapChunk {
   }
 
   getWorldPosition(target) {
-    return target.set(this.x * numBlocksPerChunk * voxelWorldSize, 0, this.y * numBlocksPerChunk * voxelWorldSize);
+    return target.set(
+      this.x * numBlocksPerChunk * voxelWorldSize,
+      0,
+      this.y * numBlocksPerChunk * voxelWorldSize,
+    );
   }
 
   getExitBlocks() {
@@ -185,24 +182,15 @@ export const createMapChunk = (seed = 'map', x = 0, y = 0) => {
     const splinePoints = Array(numSplinePoints);
 
     localQuaternion.setFromRotationMatrix(
-      localMatrix.lookAt(
-        block1,
-        block2,
-        localVector.set(0, 1, 0),
-      ),
+      localMatrix.lookAt(block1, block2, localVector.set(0, 1, 0)),
     );
 
     for (let i = 0; i < numSplinePoints; i++) {
       const v = i / (numSplinePoints - 1);
 
       const point = localVector
-        .copy(
-          localVector2.set(block1.x, 0, block1.y),
-        )
-        .lerp(
-          localVector3.set(block2.x, 0, block2.y),
-          v,
-        );
+        .copy(localVector2.set(block1.x, 0, block1.y))
+        .lerp(localVector3.set(block2.x, 0, block2.y), v);
 
       const minDistance = Math.min(
         point.distanceTo(localVector2),
@@ -210,10 +198,7 @@ export const createMapChunk = (seed = 'map', x = 0, y = 0) => {
       );
 
       localVector2.set(r() * minDistance, 0, 0);
-      point.add(
-        localVector2
-          .applyQuaternion(localQuaternion),
-      );
+      point.add(localVector2.applyQuaternion(localQuaternion));
 
       const x = Math.round(point.x);
       const y = Math.round(point.z);
@@ -257,58 +242,70 @@ export const createMapChunk = (seed = 'map', x = 0, y = 0) => {
   };
 
   const _getUnconnectedExitTargetSpecs = () => {
-    return pathCandidates.map(block => {
-      const map = new Map();
-      const startEntry = {
-        block,
-        depth: 0,
-      };
-      map.set(block, startEntry);
-      let foundExit = false;
-      let deepestEntry = startEntry;
-
-      const _recurse = (block, depth = 0) => {
-        for (const neighbor of block.neighbors) {
-          if (!map.has(neighbor)) {
-            const neighborEntry = {
-              block: neighbor,
-              depth,
-            };
-            map.set(neighbor, neighborEntry);
-
-            if (neighbor.exitTarget) {
-              foundExit = true;
-            }
-            if (depth > deepestEntry.depth) {
-              deepestEntry = map.get(neighbor);
-            }
-            _recurse(neighbor, depth + 1);
-          }
-        }
-      };
-      _recurse(block);
-
-      if (!foundExit) {
-        return {
-          map,
-          startEntry,
-          deepestEntry,
+    return pathCandidates
+      .map(block => {
+        const map = new Map();
+        const startEntry = {
+          block,
+          depth: 0,
         };
-      } else {
-        return null;
-      }
-    }).filter(m => m !== null);
+        map.set(block, startEntry);
+        let foundExit = false;
+        let deepestEntry = startEntry;
+
+        const _recurse = (block, depth = 0) => {
+          for (const neighbor of block.neighbors) {
+            if (!map.has(neighbor)) {
+              const neighborEntry = {
+                block: neighbor,
+                depth,
+              };
+              map.set(neighbor, neighborEntry);
+
+              if (neighbor.exitTarget) {
+                foundExit = true;
+              }
+              if (depth > deepestEntry.depth) {
+                deepestEntry = map.get(neighbor);
+              }
+              _recurse(neighbor, depth + 1);
+            }
+          }
+        };
+        _recurse(block);
+
+        if (!foundExit) {
+          return {
+            map,
+            startEntry,
+            deepestEntry,
+          };
+        } else {
+          return null;
+        }
+      })
+      .filter(m => m !== null);
   };
   let unconnectedExitTargetCandidates;
-  while ((unconnectedExitTargetCandidates = _getUnconnectedExitTargetSpecs()).length > 0) {
-    const exitTargetCandidateIndex = Math.floor(rng() * unconnectedExitTargetCandidates.length);
-    const {map, startEntry, deepestEntry} = unconnectedExitTargetCandidates[exitTargetCandidateIndex];
+  while (
+    (unconnectedExitTargetCandidates = _getUnconnectedExitTargetSpecs())
+      .length > 0
+  ) {
+    const exitTargetCandidateIndex = Math.floor(
+      rng() * unconnectedExitTargetCandidates.length,
+    );
+    const {map, startEntry, deepestEntry} =
+      unconnectedExitTargetCandidates[exitTargetCandidateIndex];
 
-    const unseenPathCandidates = pathCandidates.filter(pathCandidate => {
-      return !map.has(pathCandidate);
-    }).sort((a, b) => {
-      return a.distanceTo(deepestEntry.block) - b.distanceTo(deepestEntry.block);
-    });
+    const unseenPathCandidates = pathCandidates
+      .filter(pathCandidate => {
+        return !map.has(pathCandidate);
+      })
+      .sort((a, b) => {
+        return (
+          a.distanceTo(deepestEntry.block) - b.distanceTo(deepestEntry.block)
+        );
+      });
     _connectBlocks(deepestEntry.block, unseenPathCandidates[0]);
   }
 

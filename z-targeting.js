@@ -57,8 +57,7 @@ class QueryResults {
 
   snapshot(object) {
     const {position, quaternion} = object;
-    const direction = new THREE.Vector3(0, 0, -1)
-      .applyQuaternion(quaternion);
+    const direction = new THREE.Vector3(0, 0, -1).applyQuaternion(quaternion);
     const sweepDistance = 100;
     const maxHits = 64;
 
@@ -93,18 +92,19 @@ class QueryResults {
     });
     if (object === camera) {
       reticles = reticles.filter(reticle => {
-        localVector.copy(reticle.position)
-          .project(camera);
-        return ( // check inside camera frustum
-          localVector.x >= -1 && localVector.x <= 1 &&
-          localVector.y >= -1 && localVector.y <= 1 &&
+        localVector.copy(reticle.position).project(camera);
+        return (
+          // check inside camera frustum
+          localVector.x >= -1 &&
+          localVector.x <= 1 &&
+          localVector.y >= -1 &&
+          localVector.y <= 1 &&
           localVector.z > 0
         );
       });
     }
     const reticleSpecs = reticles.map(reticle => {
-      localVector.copy(reticle.position)
-        .project(camera);
+      localVector.copy(reticle.position).project(camera);
       return {
         reticle,
         lengthSq: localVector.lengthSq(),
@@ -158,9 +158,7 @@ class ZTargeting extends THREE.Object3D {
 
       const f = timeDiff / focusTime;
       if (cameraManager.focus || f < 3) {
-        reticles = [
-          this.focusTargetReticle,
-        ];
+        reticles = [this.focusTargetReticle];
 
         let f2 = Math.min(Math.max(f, 0), 1);
         if (cameraManager.focus) {
@@ -186,7 +184,11 @@ class ZTargeting extends THREE.Object3D {
 
       if (this.queryResults.results.length > 0) {
         this.focusTargetReticle = this.queryResults.results[0];
-        sounds.playSoundName(this.focusTargetReticle.type === 'enemy' ? 'zTargetEnemy' : 'zTargetObject');
+        sounds.playSoundName(
+          this.focusTargetReticle.type === 'enemy'
+            ? 'zTargetEnemy'
+            : 'zTargetObject',
+        );
 
         const naviSoundNames = [
           'naviHey',
@@ -195,16 +197,22 @@ class ZTargeting extends THREE.Object3D {
           'naviItem',
           'naviDanger',
         ];
-        const naviSoundName = naviSoundNames[Math.floor(Math.random() * naviSoundNames.length)];
+        const naviSoundName =
+          naviSoundNames[Math.floor(Math.random() * naviSoundNames.length)];
         sounds.playSoundName(naviSoundName);
       } else {
         sounds.playSoundName('zTargetCenter');
       }
 
       cameraManager.setFocus(true);
-      const remoteApp = this.focusTargetReticle ? metaversefile.getAppByPhysicsId(this.focusTargetReticle.physicsId) : null;
+      const remoteApp = this.focusTargetReticle
+        ? metaversefile.getAppByPhysicsId(this.focusTargetReticle.physicsId)
+        : null;
       const localPlayer = playersManager.getLocalPlayer();
-      cameraManager.setStaticTarget(localPlayer.avatar.modelBones.Head, remoteApp);
+      cameraManager.setStaticTarget(
+        localPlayer.avatar.modelBones.Head,
+        remoteApp,
+      );
     }
   }
 

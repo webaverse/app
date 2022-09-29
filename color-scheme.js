@@ -6,9 +6,11 @@ const slice = [].slice;
 ColorScheme = (function () {
   let clone, l, len, ref, typeIsArray, word;
 
-  typeIsArray = Array.isArray || function (value) {
-    return {}.toString.call(value) === '[object Array]';
-  };
+  typeIsArray =
+    Array.isArray ||
+    function (value) {
+      return {}.toString.call(value) === '[object Array]';
+    };
 
   ColorScheme.SCHEMES = {};
 
@@ -90,7 +92,7 @@ ColorScheme = (function () {
     h = this.col[0].get_hue();
     dispatch = {
       mono: (function (_this) {
-        return function () { };
+        return function () {};
       })(this),
       contrast: (function (_this) {
         return function () {
@@ -144,7 +146,11 @@ ColorScheme = (function () {
       throw 'Unknown color scheme name: ' + this._scheme;
     }
     output = [];
-    for (i = m = 0, ref1 = used_colors - 1; ref1 >= 0 ? m <= ref1 : m >= ref1; i = ref1 >= 0 ? ++m : --m) {
+    for (
+      i = m = 0, ref1 = used_colors - 1;
+      ref1 >= 0 ? m <= ref1 : m >= ref1;
+      i = ref1 >= 0 ? ++m : --m
+    ) {
       for (j = n = 0; n <= 3; j = ++n) {
         output[i * 4 + j] = this.col[i].get_hex(this._web_safe, j);
       }
@@ -207,10 +213,10 @@ ColorScheme = (function () {
   ColorScheme.prototype.rgb2ryb = function () {
     let blue, green, iN, maxgreen, maxyellow, red, rgb, white, yellow;
     rgb = arguments.length >= 1 ? slice.call(arguments, 0) : [];
-    if ((rgb[0] != null) && typeIsArray(rgb[0])) {
+    if (rgb[0] != null && typeIsArray(rgb[0])) {
       rgb = rgb[0];
     }
-    red = rgb[0], green = rgb[1], blue = rgb[2];
+    (red = rgb[0]), (green = rgb[1]), (blue = rgb[2]);
     white = Math.min(red, green, blue);
     red -= white;
     green -= white;
@@ -241,10 +247,10 @@ ColorScheme = (function () {
   ColorScheme.prototype.rgb2hsv = function () {
     let b, d, g, h, max, min, r, rgb, s, v;
     rgb = arguments.length >= 1 ? slice.call(arguments, 0) : [];
-    if ((rgb[0] != null) && typeIsArray(rgb[0])) {
+    if (rgb[0] != null && typeIsArray(rgb[0])) {
       rgb = rgb[0];
     }
-    r = rgb[0], g = rgb[1], b = rgb[2];
+    (r = rgb[0]), (g = rgb[1]), (b = rgb[2]);
     r /= 255;
     g /= 255;
     b /= 255;
@@ -258,7 +264,7 @@ ColorScheme = (function () {
     } else {
       return [0, 0, v];
     }
-    h = (r === max ? (g - b) / d : (g === max ? 2 + (b - r) / d : 4 + (r - g) / d));
+    h = r === max ? (g - b) / d : g === max ? 2 + (b - r) / d : 4 + (r - g) / d;
     h *= 60;
     h %= 360;
     return [h, s, v];
@@ -267,10 +273,10 @@ ColorScheme = (function () {
   ColorScheme.prototype.rgbToHsv = function () {
     let b, d, g, h, max, min, r, rgb, s, v;
     rgb = arguments.length >= 1 ? slice.call(arguments, 0) : [];
-    if ((rgb[0] != null) && typeIsArray(rgb[0])) {
+    if (rgb[0] != null && typeIsArray(rgb[0])) {
       rgb = rgb[0];
     }
-    r = rgb[0], g = rgb[1], b = rgb[2];
+    (r = rgb[0]), (g = rgb[1]), (b = rgb[2]);
     r /= 255;
     g /= 255;
     b /= 255;
@@ -318,7 +324,7 @@ ColorScheme = (function () {
       throw 'from_hex(' + hex + ') - argument must be in the form of RRGGBB';
     }
     rgbcap = /(..)(..)(..)/.exec(hex).slice(1, 4);
-    ref1 = (function () {
+    (ref1 = (function () {
       let len1, m, results;
       results = [];
       for (m = 0, len1 = rgbcap.length; m < len1; m++) {
@@ -326,8 +332,14 @@ ColorScheme = (function () {
         results.push(parseInt(num, 16));
       }
       return results;
-    })(), r = ref1[0], g = ref1[1], b = ref1[2];
-    ref2 = this.rgb2ryb([r, g, b]), r = ref2[0], g = ref2[1], b = ref2[2];
+    })()),
+      (r = ref1[0]),
+      (g = ref1[1]),
+      (b = ref1[2]);
+    (ref2 = this.rgb2ryb([r, g, b])),
+      (r = ref2[0]),
+      (g = ref2[1]),
+      (b = ref2[2]);
     hsv = this.rgbToHsv(r, g, b);
     h0 = hsv[0];
     h1 = 0;
@@ -454,7 +466,7 @@ ColorScheme = (function () {
 
   clone = function (obj) {
     let flags, key, newInstance;
-    if ((obj == null) || typeof obj !== 'object') {
+    if (obj == null || typeof obj !== 'object') {
       return obj;
     }
     if (obj instanceof Date) {
@@ -518,12 +530,21 @@ ColorScheme = (function () {
     };
 
     mutablecolor.prototype.set_hue = function (h) {
-      let avrg, color, colorset1, colorset2, d, derivative1, derivative2, en, i, k;
+      let avrg,
+        color,
+        colorset1,
+        colorset2,
+        d,
+        derivative1,
+        derivative2,
+        en,
+        i,
+        k;
       avrg = function (a, b, k) {
         return a + Math.round((b - a) * k);
       };
       this.hue = Math.round(h % 360);
-      d = this.hue % 15 + (this.hue - Math.floor(this.hue));
+      d = (this.hue % 15) + (this.hue - Math.floor(this.hue));
       k = d / 15;
       derivative1 = this.hue - Math.floor(d);
       derivative2 = (derivative1 + 15) % 360;
@@ -546,7 +567,7 @@ ColorScheme = (function () {
         this['base_' + color] = avrg(colorset1[i], colorset2[i], k);
       }
       this.base_saturation = avrg(100, 100, k) / 100;
-      return this.base_value /= 100;
+      return (this.base_value /= 100);
     };
 
     mutablecolor.prototype.rotate = function (angle) {
@@ -583,7 +604,7 @@ ColorScheme = (function () {
 
     mutablecolor.prototype.set_variant = function (variation, s, v) {
       this.saturation[variation] = s;
-      return this.value[variation] = v;
+      return (this.value[variation] = v);
     };
 
     mutablecolor.prototype.set_variant_preset = function (p) {
@@ -596,27 +617,49 @@ ColorScheme = (function () {
     };
 
     mutablecolor.prototype.get_hex = function (web_safe, variation) {
-      let c, color, formatted, i, k, len1, len2, m, max, min, n, ref1, rgb, rgbVal, s, str, v;
-      max = Math.max.apply(Math, (function () {
-        let len1, m, ref1, results;
-        ref1 = ['red', 'green', 'blue'];
-        results = [];
-        for (m = 0, len1 = ref1.length; m < len1; m++) {
-          color = ref1[m];
-          results.push(this['base_' + color]);
-        }
-        return results;
-      }.call(this)));
-      min = Math.min.apply(Math, (function () {
-        let len1, m, ref1, results;
-        ref1 = ['red', 'green', 'blue'];
-        results = [];
-        for (m = 0, len1 = ref1.length; m < len1; m++) {
-          color = ref1[m];
-          results.push(this['base_' + color]);
-        }
-        return results;
-      }.call(this)));
+      let c,
+        color,
+        formatted,
+        i,
+        k,
+        len1,
+        len2,
+        m,
+        max,
+        min,
+        n,
+        ref1,
+        rgb,
+        rgbVal,
+        s,
+        str,
+        v;
+      max = Math.max.apply(
+        Math,
+        function () {
+          let len1, m, ref1, results;
+          ref1 = ['red', 'green', 'blue'];
+          results = [];
+          for (m = 0, len1 = ref1.length; m < len1; m++) {
+            color = ref1[m];
+            results.push(this['base_' + color]);
+          }
+          return results;
+        }.call(this),
+      );
+      min = Math.min.apply(
+        Math,
+        function () {
+          let len1, m, ref1, results;
+          ref1 = ['red', 'green', 'blue'];
+          results = [];
+          for (m = 0, len1 = ref1.length; m < len1; m++) {
+            color = ref1[m];
+            results.push(this['base_' + color]);
+          }
+          return results;
+        }.call(this),
+      );
       v = (variation < 0 ? this.base_value : this.get_value(variation)) * 255;
       s = variation < 0 ? this.base_saturation : this.get_saturation(variation);
       k = max > 0 ? v / max : 0;
@@ -624,7 +667,10 @@ ColorScheme = (function () {
       ref1 = ['red', 'green', 'blue'];
       for (m = 0, len1 = ref1.length; m < len1; m++) {
         color = ref1[m];
-        rgbVal = Math.min.apply(Math, [255, Math.round(v - (v - this['base_' + color] * k) * s)]);
+        rgbVal = Math.min.apply(Math, [
+          255,
+          Math.round(v - (v - this['base_' + color] * k) * s),
+        ]);
         rgb.push(rgbVal);
       }
       if (web_safe) {

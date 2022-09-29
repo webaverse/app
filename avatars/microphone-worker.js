@@ -5,23 +5,29 @@ class MicrophoneWorker extends EventTarget {
     const gainNode = new GainNode(options.audioContext);
     this.gainNode = gainNode;
 
-    const audioWorkletNode = new AudioWorkletNode(options.audioContext, 'volume-processor');
-    audioWorkletNode.port.postMessage(JSON.stringify({
-      method: 'options',
-      args: {
-        muted: options.muted,
-        emitVolume: options.emitVolume,
-        emitBuffer: options.emitBuffer,
-      },
-    }));
+    const audioWorkletNode = new AudioWorkletNode(
+      options.audioContext,
+      'volume-processor',
+    );
+    audioWorkletNode.port.postMessage(
+      JSON.stringify({
+        method: 'options',
+        args: {
+          muted: options.muted,
+          emitVolume: options.emitVolume,
+          emitBuffer: options.emitBuffer,
+        },
+      }),
+    );
     audioWorkletNode.port.onmessage = e => {
       switch (e.data.method) {
         case 'volume':
-        case 'buffer':
-        {
-          this.dispatchEvent(new MessageEvent(e.data.method, {
-            data: e.data.data,
-          }));
+        case 'buffer': {
+          this.dispatchEvent(
+            new MessageEvent(e.data.method, {
+              data: e.data.data,
+            }),
+          );
           break;
         }
         default: {

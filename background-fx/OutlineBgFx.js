@@ -88,7 +88,7 @@ class OutlineBgFxMesh extends THREE.Mesh {
           needsUpdate: true,
         },
         uColor2: {
-          value: new THREE.Color(0xFFFFFF),
+          value: new THREE.Color(0xffffff),
           needsUpdate: true,
         },
         outline_threshold: {
@@ -122,6 +122,4 @@ class OutlineBgFxMesh extends THREE.Mesh {
   }
 }
 
-export {
-  OutlineBgFxMesh,
-};
+export {OutlineBgFxMesh};

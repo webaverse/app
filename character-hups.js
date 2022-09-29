@@ -44,12 +44,15 @@ class Hup extends EventTarget {
 
   async updateVoicer(message, emote) {
     // this.parent.player === metaversefile.useLocalPlayer() && console.log('emit voice start');
-    this.dispatchEvent(new MessageEvent('voicequeue', {
-      data: {
-        message,
-      },
-    }));
-    const preloadedMessage = this.parent.character.voicer.preloadMessage(message);
+    this.dispatchEvent(
+      new MessageEvent('voicequeue', {
+        data: {
+          message,
+        },
+      }),
+    );
+    const preloadedMessage =
+      this.parent.character.voicer.preloadMessage(message);
     await chatManager.waitForVoiceTurn(() => {
       if (message) {
         if (this.fullText.length > 0) {
@@ -59,20 +62,24 @@ class Hup extends EventTarget {
       }
       this.emote = emote ?? null;
 
-      this.dispatchEvent(new MessageEvent('voicestart', {
-        data: {
-          message,
-          fullText: this.fullText,
-        },
-      }));
+      this.dispatchEvent(
+        new MessageEvent('voicestart', {
+          data: {
+            message,
+            fullText: this.fullText,
+          },
+        }),
+      );
       return this.parent.character.voicer.start(preloadedMessage);
     });
     // this.parent.player === metaversefile.useLocalPlayer() && console.log('emit voice end');
-    this.dispatchEvent(new MessageEvent('voiceend', {
-      data: {
-        fullText: this.fullText,
-      },
-    }));
+    this.dispatchEvent(
+      new MessageEvent('voiceend', {
+        data: {
+          fullText: this.fullText,
+        },
+      }),
+    );
   }
 
   unmergeAction(action) {
@@ -137,20 +144,24 @@ export class CharacterHups extends EventTarget {
           const index = this.hups.indexOf(newHup);
           this.hups.splice(index, 1);
 
-          this.dispatchEvent(new MessageEvent('hupremove', {
+          this.dispatchEvent(
+            new MessageEvent('hupremove', {
+              data: {
+                character,
+                hup: newHup,
+              },
+            }),
+          );
+        });
+        this.hups.push(newHup);
+        this.dispatchEvent(
+          new MessageEvent('hupadd', {
             data: {
               character,
               hup: newHup,
             },
-          }));
-        });
-        this.hups.push(newHup);
-        this.dispatchEvent(new MessageEvent('hupadd', {
-          data: {
-            character,
-            hup: newHup,
-          },
-        }));
+          }),
+        );
         newHup.updateVoicer(action.message, action.emote);
       }
     });

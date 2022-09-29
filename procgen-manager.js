@@ -13,12 +13,13 @@ const localArray2D = Array(2);
 //
 
 class ProcGenInstance {
-  constructor(instance, {
-    chunkSize,
-  }) {
+  constructor(instance, {chunkSize}) {
     this.chunkSize = chunkSize;
 
-    const seed = typeof instance === 'string' ? murmurhash3(instance) : Math.floor(Math.random() * 0xFFFFFF);
+    const seed =
+      typeof instance === 'string'
+        ? murmurhash3(instance)
+        : Math.floor(Math.random() * 0xffffff);
     this.pgWorkerManager = new PGWorkerManager({
       chunkSize,
       seed,
@@ -30,7 +31,12 @@ class ProcGenInstance {
   }
 
   setCamera(worldPosition, cameraPosition, cameraQuaternion, projectionMatrix) {
-    this.pgWorkerManager.setCamera(worldPosition, cameraPosition, cameraQuaternion, projectionMatrix);
+    this.pgWorkerManager.setCamera(
+      worldPosition,
+      cameraPosition,
+      cameraQuaternion,
+      projectionMatrix,
+    );
   }
 
   setClipRange(range) {
@@ -54,7 +60,13 @@ class ProcGenInstance {
     await this.pgWorkerManager.waitForLoad();
 
     position.toArray(localArray2D);
-    const result = await this.pgWorkerManager.generateChunk(localArray2D, lod, lodArray, generateFlags, {signal});
+    const result = await this.pgWorkerManager.generateChunk(
+      localArray2D,
+      lod,
+      lodArray,
+      generateFlags,
+      {signal},
+    );
     return result;
   }
 
@@ -62,7 +74,12 @@ class ProcGenInstance {
     await this.pgWorkerManager.waitForLoad();
 
     position.toArray(localArray2D);
-    const result = await this.pgWorkerManager.generateVegetation(localArray2D, lod, numInstances, {signal});
+    const result = await this.pgWorkerManager.generateVegetation(
+      localArray2D,
+      lod,
+      numInstances,
+      {signal},
+    );
     return result;
   }
 
@@ -70,7 +87,12 @@ class ProcGenInstance {
     await this.pgWorkerManager.waitForLoad();
 
     position.toArray(localArray2D);
-    const result = await this.pgWorkerManager.generateGrass(localArray2D, lod, numInstances, {signal});
+    const result = await this.pgWorkerManager.generateGrass(
+      localArray2D,
+      lod,
+      numInstances,
+      {signal},
+    );
     return result;
   }
   /* async getLightMapper({
@@ -106,9 +128,7 @@ class ProcGenInstance {
 }
 
 class ProcGenManager {
-  constructor({
-    chunkSize = defaultChunkSize,
-  } = {}) {
+  constructor({chunkSize = defaultChunkSize} = {}) {
     this.instances = new Map();
     this.chunkSize = chunkSize;
   }
@@ -126,8 +146,7 @@ class ProcGenManager {
   }
 
   getNodeHash(node) {
-    return (node.min.x << 16) |
-      (node.min.y & 0xFFFF);
+    return (node.min.x << 16) | (node.min.y & 0xffff);
   }
 }
 const procGenManager = new ProcGenManager();

@@ -27,7 +27,10 @@ export default class Blinker {
         return 0;
       }
       case 'closing': {
-        const f = Math.min(Math.max((now - this.lastTimestamp) / this.waitTime, 0), 1);
+        const f = Math.min(
+          Math.max((now - this.lastTimestamp) / this.waitTime, 0),
+          1,
+        );
         if (f < 1) {
           return f;
         } else {
@@ -38,7 +41,10 @@ export default class Blinker {
         }
       }
       case 'opening': {
-        const f = Math.min(Math.max((now - this.lastTimestamp) / this.waitTime, 0), 1);
+        const f = Math.min(
+          Math.max((now - this.lastTimestamp) / this.waitTime, 0),
+          1,
+        );
         if (f < 1) {
           return 1 - f;
         } else {

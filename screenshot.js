@@ -1,6 +1,11 @@
 import * as THREE from 'three';
 import metaversefileApi from './metaversefile-api.js';
-import {getExt, makePromise, parseQuery, fitCameraToBoundingBox} from './util.js';
+import {
+  getExt,
+  makePromise,
+  parseQuery,
+  fitCameraToBoundingBox,
+} from './util.js';
 import Avatar from './avatars/avatars.js';
 // import * as icons from './icons.js';
 import GIF from './gif.js';
@@ -54,10 +59,10 @@ const _makeRenderer = (width, height) => {
 
   /* const ambientLight = new THREE.AmbientLight(0xFFFFFF, 0.1);
   scene.add(ambientLight); */
-  const directionalLight = new THREE.DirectionalLight(0xFFFFFF, 1);
+  const directionalLight = new THREE.DirectionalLight(0xffffff, 1);
   directionalLight.position.set(2, 2, -2);
   scene.add(directionalLight);
-  const directionalLight2 = new THREE.DirectionalLight(0xFFFFFF, 1);
+  const directionalLight2 = new THREE.DirectionalLight(0xffffff, 1);
   directionalLight2.position.set(-2, 2, 2);
   scene.add(directionalLight2);
 
@@ -252,7 +257,9 @@ const _makeRenderer = (width, height) => {
   // toggleElements(false);
   const screenshotResult = document.getElementById('screenshot-result');
 
-  let {url, type, width, height, dst} = parseQuery(decodeURIComponent(window.location.search));
+  let {url, type, width, height, dst} = parseQuery(
+    decodeURIComponent(window.location.search),
+  );
   width = parseInt(width, 10);
   if (isNaN(width)) {
     width = defaultWidth;
@@ -291,7 +298,10 @@ const _makeRenderer = (width, height) => {
       o.avatar.setHandEnabled(1, false);
       o.avatar.setBottomEnabled(false);
       o.avatar.inputs.hmd.position.y = o.avatar.height;
-      o.avatar.inputs.hmd.quaternion.setFromAxisAngle(new THREE.Vector3(0, 1, 0), Math.PI);
+      o.avatar.inputs.hmd.quaternion.setFromAxisAngle(
+        new THREE.Vector3(0, 1, 0),
+        Math.PI,
+      );
       o.avatar.inputs.hmd.updateMatrixWorld();
       o.avatar.update(1000);
     }
@@ -332,7 +342,7 @@ const _makeRenderer = (width, height) => {
             renderer.compile(scene, camera);
 
             if (type === 'jpg' || type === 'jpeg') {
-              renderer.setClearColor(0xFFFFFF, 1);
+              renderer.setClearColor(0xffffff, 1);
             }
             renderer.render(scene, camera);
             return renderer.domElement;
@@ -353,7 +363,8 @@ const _makeRenderer = (width, height) => {
           canvas.width = width;
           canvas.height = height;
           const ctx = canvas.getContext('2d');
-          if (img.width > img.height) { // vertical padding needed
+          if (img.width > img.height) {
+            // vertical padding needed
             const scaleFactor = img.width / width;
             const dstWidth = img.width / scaleFactor;
             const dstHeight = img.height / scaleFactor;
@@ -362,7 +373,8 @@ const _makeRenderer = (width, height) => {
             const pixelsToAddD2 = pixelsToAdd / 2;
 
             ctx.drawImage(img, 0, pixelsToAddD2, dstWidth, dstHeight);
-          } else { // horizontal padding needed
+          } else {
+            // horizontal padding needed
             const scaleFactor = img.height / height;
             const dstWidth = img.width / scaleFactor;
             const dstHeight = img.height / scaleFactor;
@@ -406,10 +418,14 @@ const _makeRenderer = (width, height) => {
         }).then(res => res.blob());
       }
 
-      window.parent.postMessage({
-        method: 'result',
-        result: arrayBuffer,
-      }, '*', [arrayBuffer]);
+      window.parent.postMessage(
+        {
+          method: 'result',
+          result: arrayBuffer,
+        },
+        '*',
+        [arrayBuffer],
+      );
     } else if (type === 'gif' && appType !== 'gif') {
       const {renderer, scene, camera} = _makeRenderer(width, height);
 
@@ -419,18 +435,22 @@ const _makeRenderer = (width, height) => {
       const center = boundingBox.getCenter(new THREE.Vector3());
       const size = boundingBox.getSize(new THREE.Vector3());
 
-      renderer.setClearColor(0xFFFFFF, 1);
+      renderer.setClearColor(0xffffff, 1);
 
       const gif = new GIF({
         workers: 4,
         quality: 10,
       });
       for (let i = 0; i < Math.PI * 2; i += Math.PI * 0.05) {
-        camera.position.copy(center)
+        camera.position
+          .copy(center)
           // .add(new THREE.Vector3(0, size.y/2, 0))
           .add(
-            new THREE.Vector3(Math.cos(i + Math.PI / 2), 0, Math.sin(i + Math.PI / 2))
-              .multiplyScalar(Math.max(size.x / 2, size.z / 2) * 2.2),
+            new THREE.Vector3(
+              Math.cos(i + Math.PI / 2),
+              0,
+              Math.sin(i + Math.PI / 2),
+            ).multiplyScalar(Math.max(size.x / 2, size.z / 2) * 2.2),
           );
         camera.lookAt(center);
         camera.updateMatrixWorld();
@@ -479,10 +499,14 @@ const _makeRenderer = (width, height) => {
         }).then(res => res.blob());
       }
 
-      window.parent.postMessage({
-        method: 'result',
-        result: arrayBuffer,
-      }, '*', [arrayBuffer]);
+      window.parent.postMessage(
+        {
+          method: 'result',
+          result: arrayBuffer,
+        },
+        '*',
+        [arrayBuffer],
+      );
     } else if (type === 'webm') {
       const {renderer, scene, camera} = _makeRenderer(width, height);
 
@@ -505,7 +529,7 @@ const _makeRenderer = (width, height) => {
         _initializeAnimation();
         _lookAt(camera, boundingBox);
 
-        renderer.setClearColor(0xFFFFFF, 1);
+        renderer.setClearColor(0xffffff, 1);
 
         const writeCanvas = document.createElement('canvas');
         writeCanvas.width = width;
@@ -545,10 +569,12 @@ const _makeRenderer = (width, height) => {
         } else if (isImage && isVideo) {
           for (let i = 0; i < Math.PI * 2; i += Math.PI * 0.02) {
             // o.position.y = Math.sin(i + Math.PI/2) * 0.05;
-            o.quaternion
-              .premultiply(
-                new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(1, 0, 0), Math.sin((i + Math.PI / 2) * 1) * 0.005),
-              );
+            o.quaternion.premultiply(
+              new THREE.Quaternion().setFromAxisAngle(
+                new THREE.Vector3(1, 0, 0),
+                Math.sin((i + Math.PI / 2) * 1) * 0.005,
+              ),
+            );
             /* camera.position.copy(center)
               .add(
                 new THREE.Vector3(
@@ -567,8 +593,7 @@ const _makeRenderer = (width, height) => {
         } else {
           for (let i = 0; i < Math.PI * 2; i += Math.PI * 0.02) {
             // o.position.copy(center).multiplyScalar(-1);
-            o.quaternion
-              .setFromAxisAngle(new THREE.Vector3(0, 1, 0), i);
+            o.quaternion.setFromAxisAngle(new THREE.Vector3(0, 1, 0), i);
 
             /* camera.position.copy(center)
               .add(
@@ -613,10 +638,14 @@ const _makeRenderer = (width, height) => {
           }).then(res => res.blob());
         }
 
-        window.parent.postMessage({
-          method: 'result',
-          result: arrayBuffer,
-        }, '*', [arrayBuffer]);
+        window.parent.postMessage(
+          {
+            method: 'result',
+            result: arrayBuffer,
+          },
+          '*',
+          [arrayBuffer],
+        );
       } else {
         throw new Error('cannot capture video of type: ' + appType);
       }
@@ -644,10 +673,14 @@ const _makeRenderer = (width, height) => {
         }).then(res => res.blob());
       }
 
-      window.parent.postMessage({
-        method: 'result',
-        result: arrayBuffer,
-      }, '*', [arrayBuffer]);
+      window.parent.postMessage(
+        {
+          method: 'result',
+          result: arrayBuffer,
+        },
+        '*',
+        [arrayBuffer],
+      );
     } else {
       throw new Error('unknown output format: ' + type + ' ' + appType);
     }
@@ -668,9 +701,12 @@ const _makeRenderer = (width, height) => {
       }).then(res => res.blob());
     }
 
-    window.parent.postMessage({
-      method: 'error',
-      error: err.stack,
-    }, '*');
+    window.parent.postMessage(
+      {
+        method: 'error',
+        error: err.stack,
+      },
+      '*',
+    );
   }
 })();

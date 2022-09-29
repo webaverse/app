@@ -1,6 +1,4 @@
-import {
-  Color,
-} from 'three';
+import {Color} from 'three';
 import {Pass} from 'three/examples/jsm/postprocessing/Pass.js';
 
 class RenderPass extends Pass {
@@ -13,7 +11,7 @@ class RenderPass extends Pass {
     this.overrideMaterial = overrideMaterial;
 
     this.clearColor = clearColor;
-    this.clearAlpha = (clearAlpha !== undefined) ? clearAlpha : 0;
+    this.clearAlpha = clearAlpha !== undefined ? clearAlpha : 0;
 
     this.clear = false;
     this.clearDepth = true;
@@ -47,7 +45,12 @@ class RenderPass extends Pass {
     renderer.setRenderTarget(this.renderToScreen ? null : readBuffer);
 
     // TODO: Avoid using autoClear properties, see https://github.com/mrdoob/three.js/pull/15571#issuecomment-465669600
-    if (this.clear) renderer.clear(renderer.autoClearColor, renderer.autoClearDepth, renderer.autoClearStencil);
+    if (this.clear)
+      renderer.clear(
+        renderer.autoClearColor,
+        renderer.autoClearDepth,
+        renderer.autoClearStencil,
+      );
     renderer.render(this.scene, this.camera);
 
     if (this.clearColor) {

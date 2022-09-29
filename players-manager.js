@@ -41,12 +41,14 @@ class PlayersManager extends EventTarget {
   setLocalPlayer(newLocalPlayer) {
     const oldPlayer = this.localPlayer;
     this.localPlayer = newLocalPlayer;
-    this.dispatchEvent(new MessageEvent('playerchange', {
-      data: {
-        oldPlayer,
-        player: this.localPlayer,
-      },
-    }));
+    this.dispatchEvent(
+      new MessageEvent('playerchange', {
+        data: {
+          oldPlayer,
+          player: this.localPlayer,
+        },
+      }),
+    );
   }
 
   getRemotePlayers() {
@@ -92,9 +94,7 @@ class PlayersManager extends EventTarget {
 
     if (this.playersArray) {
       const playerSelectedFn = e => {
-        const {
-          player,
-        } = e.data;
+        const {player} = e.data;
         player.bindState(this.playersArray);
       };
 
@@ -128,14 +128,20 @@ class PlayersManager extends EventTarget {
               playersArray: this.playersArray,
             });
             this.remotePlayers.set(playerId, remotePlayer);
-            this.remotePlayersByInteger.set(remotePlayer.playerIdInt, remotePlayer);
-            this.dispatchEvent(new MessageEvent('playeradded', {data: {player: remotePlayer}}));
+            this.remotePlayersByInteger.set(
+              remotePlayer.playerIdInt,
+              remotePlayer,
+            );
+            this.dispatchEvent(
+              new MessageEvent('playeradded', {data: {player: remotePlayer}}),
+            );
           }
         }
         // console.log('players observe', added, deleted);
         for (const item of deleted.values()) {
           // console.log('player remove 1', item);
-          const playerId = item.content.type._map.get('playerId').content.arr[0]; // needed to get the old data
+          const playerId =
+            item.content.type._map.get('playerId').content.arr[0]; // needed to get the old data
           // console.log('player remove 2', playerId, localPlayer.playerId);
 
           if (playerId !== localPlayer.playerId) {
@@ -145,12 +151,17 @@ class PlayersManager extends EventTarget {
             this.remotePlayers.delete(playerId);
             this.remotePlayersByInteger.delete(remotePlayer.playerIdInt);
             remotePlayer.destroy();
-            this.dispatchEvent(new MessageEvent('playerremoved', {data: {player: remotePlayer}}));
+            this.dispatchEvent(
+              new MessageEvent('playerremoved', {data: {player: remotePlayer}}),
+            );
           }
         }
       };
       this.playersArray.observe(playersObserveFn);
-      this.unbindStateFn = this.playersArray.unobserve.bind(this.playersArray, playersObserveFn);
+      this.unbindStateFn = this.playersArray.unobserve.bind(
+        this.playersArray,
+        playersObserveFn,
+      );
     }
   }
 
@@ -162,6 +173,4 @@ class PlayersManager extends EventTarget {
 }
 const playersManager = new PlayersManager();
 
-export {
-  playersManager,
-};
+export {playersManager};

@@ -5,122 +5,127 @@
 // SKIP & LIMIT supported for pagination on URL params
 
 export const cryptoavatarsCharactersUtil = {
-    getCryptoAvatars,
-    getCryptoAvatarsFilters
+  getCryptoAvatars,
+  getCryptoAvatarsFilters,
 };
 
 const defaultCollectionAddress = '0xc1def47cf1e15ee8c2a92f4e0e968372880d18d1';
 
 async function loadCryptoAvatarsCharacters(
-    url = undefined,
-    ownership = undefined,
-    collectionAddress = defaultCollectionAddress,
-    itemsPerPage = 5,
+  url = undefined,
+  ownership = undefined,
+  collectionAddress = defaultCollectionAddress,
+  itemsPerPage = 5,
 ) {
-    const apiUrl = !url
-        ? 'https://api.cryptoavatars.io/v1/nfts/avatars/list?skip=0&limit=' + itemsPerPage
-        : url;
-        
-    var filter = {
-        collectionAddress,
-        owner: ownership,
-    };
+  const apiUrl = !url
+    ? 'https://api.cryptoavatars.io/v1/nfts/avatars/list?skip=0&limit=' +
+      itemsPerPage
+    : url;
 
-    if (ownership && ownership === 'free') {
-        filter.owner = undefined;
-        filter.license = 'CC0';
+  var filter = {
+    collectionAddress,
+    owner: ownership,
+  };
+
+  if (ownership && ownership === 'free') {
+    filter.owner = undefined;
+    filter.license = 'CC0';
+  }
+
+  var options = {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      accept: 'application/json',
+      'API-KEY': '$2b$10$Yaenvbe2pRfadxqZT0vOHet50SX6NEbdSQ5lrqV.M7on2hRKkCC/6',
+    },
+    body: JSON.stringify(filter),
+  };
+
+  try {
+    console.log('res launching', filter, options);
+    const res = await fetch(apiUrl, options);
+
+    if (!res.ok) {
+      console.error(
+        'Bad response from CA avatars list endpoint',
+        res.statusText,
+      );
+      return;
     }
 
-    var options = {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json',
-            accept: 'application/json',
-            'API-KEY': '$2b$10$Yaenvbe2pRfadxqZT0vOHet50SX6NEbdSQ5lrqV.M7on2hRKkCC/6',
-        },
-        body: JSON.stringify(filter),
+    const caResponse = await res.json();
+    const avatarsWebaverseFormat = caResponse.nfts.map(avatar => {
+      const avatarClass = avatar.metadata.tags
+        ? avatar.metadata.tags[0]
+        : avatar.metadata.attributes[0].value;
+
+      return {
+        name: avatar.metadata.name,
+        canBeUsed: !!(
+          (avatar.metadata.licenses &&
+            avatar.metadata.licenses.license === 'CC0') ||
+          avatar.owner === ownership
+        ),
+        previewUrl: avatar.metadata.image,
+        avatarUrl: avatar.metadata.asset,
+        voice: 'Maud Pie',
+        class: avatarClass,
+        bio: avatar.metadata.description.slice(0, 8) + '...',
+      };
+    });
+
+    //console.log('CAResponse', caResponse);
+
+    return {
+      avatars: avatarsWebaverseFormat,
+      pagination: {
+        currentPage: caResponse.currentPage,
+        totalPages: caResponse.totalPages,
+        totalNfts: caResponse.totalNfts,
+        next: caResponse.next,
+        prev: caResponse.prev,
+      },
     };
-
-    try {
-        console.log('res launching', filter, options);
-        const res = await fetch(apiUrl, options);
-
-        if (!res.ok) {
-            console.error('Bad response from CA avatars list endpoint', res.statusText);
-            return;
-        }
-
-        const caResponse = await res.json();
-        const avatarsWebaverseFormat = caResponse.nfts.map(avatar => {
-            const avatarClass = avatar.metadata.tags
-                ? avatar.metadata.tags[0]
-                : avatar.metadata.attributes[0].value;
-
-            return {
-                name: avatar.metadata.name,
-                canBeUsed: !!((avatar.metadata.licenses && avatar.metadata.licenses.license === 'CC0') || avatar.owner === ownership),
-                previewUrl: avatar.metadata.image,
-                avatarUrl: avatar.metadata.asset,
-                voice: 'Maud Pie',
-                class: avatarClass,
-                bio: avatar.metadata.description.slice(0, 8) + '...',
-            };
-        });
-
-        //console.log('CAResponse', caResponse);
-
-        return {
-            avatars: avatarsWebaverseFormat,
-            pagination: {
-                currentPage: caResponse.currentPage,
-                totalPages: caResponse.totalPages,
-                totalNfts: caResponse.totalNfts,
-                next: caResponse.next,
-                prev: caResponse.prev,
-            },
-        };
-    } catch (err) {
-        console.error('Error fetching data form CryptoAvatars', err);
-    }
+  } catch (err) {
+    console.error('Error fetching data form CryptoAvatars', err);
+  }
 }
 
 async function getCryptoAvatars(
-    url = undefined,
+  url = undefined,
+  ownership,
+  collection,
+  itemsPerPage,
+) {
+  const caResponse = await loadCryptoAvatarsCharacters(
+    url,
     ownership,
     collection,
-    itemsPerPage
-  ) {
-        const caResponse = await loadCryptoAvatarsCharacters(
-        url,
-        ownership,
-        collection,
-        itemsPerPage
-    );
-    return caResponse;
-  };
+    itemsPerPage,
+  );
+  return caResponse;
+}
 
-  const cryptoAvatarsFilters = {
-    collections: [
-        {
-            name: 'CryptoAvatars ETH',
-            address: '0xc1def47cf1e15ee8c2a92f4e0e968372880d18d1'
-            
-        },
-        {
-            name: 'CryptoAvatars POLYGON',
-            address: '0xd047666daea0b7275e8d4f51fcff755aa05c3f0a'
-            
-        },
-        {
-            name: 'The User Collection',
-            address: '0x28ccbe824455a3b188c155b434e4e628babb6ffa'
-            
-        }
-    ],
+const cryptoAvatarsFilters = {
+  collections: [
+    {
+      name: 'CryptoAvatars ETH',
+      address: '0xc1def47cf1e15ee8c2a92f4e0e968372880d18d1',
+    },
+    {
+      name: 'CryptoAvatars POLYGON',
+      address: '0xd047666daea0b7275e8d4f51fcff755aa05c3f0a',
+    },
+    {
+      name: 'The User Collection',
+      address: '0x28ccbe824455a3b188c155b434e4e628babb6ffa',
+    },
+  ],
 };
 
 async function getCryptoAvatarsFilters() {
-    return await cryptoAvatarsFilters;
+  return await cryptoAvatarsFilters;
 }
 
 /*

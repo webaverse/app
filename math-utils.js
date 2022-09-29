@@ -1,5 +1,3 @@
 import easing from './easing.js';
 
-export {
-  easing,
-};
+export {easing};

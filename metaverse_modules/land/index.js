@@ -1,6 +1,13 @@
 import * as THREE from 'three';
 import metaversefile from 'metaversefile';
-const {useApp, useLocalPlayer, useCamera, useProcGenManager, useFrame, useCleanup} = metaversefile;
+const {
+  useApp,
+  useLocalPlayer,
+  useCamera,
+  useProcGenManager,
+  useFrame,
+  useCleanup,
+} = metaversefile;
 
 const localVector = new THREE.Vector3();
 const localVector2 = new THREE.Vector3();
@@ -129,28 +136,30 @@ export default e => {
 
   const subApps = [];
   const loadPromise = (async () => {
-    await Promise.all(landApps.map(async spec => {
-      const {start_url, components} = spec;
-      const components2 = (components ?? []).concat(passComponents);
+    await Promise.all(
+      landApps.map(async spec => {
+        const {start_url, components} = spec;
+        const components2 = (components ?? []).concat(passComponents);
 
-      const keys = [];
-      const componentsupdate = e => {
-        keys.push(...e.keys);
-      };
-      app.addEventListener('componentsupdate', componentsupdate);
+        const keys = [];
+        const componentsupdate = e => {
+          keys.push(...e.keys);
+        };
+        app.addEventListener('componentsupdate', componentsupdate);
 
-      const subApp = await metaversefile.createAppAsync({
-        start_url,
-        parent: app,
-        components: components2,
-      });
-      subApps.push(subApp);
+        const subApp = await metaversefile.createAppAsync({
+          start_url,
+          parent: app,
+          components: components2,
+        });
+        subApps.push(subApp);
 
-      app.removeEventListener('componentsupdate', componentsupdate);
-      for (const key of keys) {
-        subApp.setComponent(key, app.getComponent(key));
-      }
-    }));
+        app.removeEventListener('componentsupdate', componentsupdate);
+        for (const key of keys) {
+          subApp.setComponent(key, app.getComponent(key));
+        }
+      }),
+    );
   })();
   if (wait) {
     e.waitUntil(loadPromise);

@@ -30,20 +30,23 @@ sideScene.matrixWorldAutoUpdate = false;
 _addPreviewLights(sideScene);
 const sideCamera = new THREE.PerspectiveCamera();
 
-const _makeSpritesheetRenderTarget = (w, h) => new THREE.WebGLRenderTarget(w, h, {
-  minFilter: THREE.LinearFilter,
-  magFilter: THREE.LinearFilter,
-  format: THREE.RGBAFormat,
-  wrapS: THREE.ClampToEdgeWrapping,
-  wrapT: THREE.ClampToEdgeWrapping,
-});
-const createObjectSpriteAnimation = (app, {
-  // canvas,
-  size = defaultSize,
-  numFrames = defaultNumAnimationFrames,
-} = {}, {
-  type = 'texture',
-} = {}) => {
+const _makeSpritesheetRenderTarget = (w, h) =>
+  new THREE.WebGLRenderTarget(w, h, {
+    minFilter: THREE.LinearFilter,
+    magFilter: THREE.LinearFilter,
+    format: THREE.RGBAFormat,
+    wrapS: THREE.ClampToEdgeWrapping,
+    wrapT: THREE.ClampToEdgeWrapping,
+  });
+const createObjectSpriteAnimation = (
+  app,
+  {
+    // canvas,
+    size = defaultSize,
+    numFrames = defaultNumAnimationFrames,
+  } = {},
+  {type = 'texture'} = {},
+) => {
   // const {devicePixelRatio: pixelRatio} = window;
 
   // console.log('create object sprite', app, size, numFrames);
@@ -59,11 +62,17 @@ const createObjectSpriteAnimation = (app, {
   // create render target
   let renderTarget;
   if (type === 'texture') {
-    renderTarget = _makeSpritesheetRenderTarget(size * pixelRatio, size * pixelRatio);
+    renderTarget = _makeSpritesheetRenderTarget(
+      size * pixelRatio,
+      size * pixelRatio,
+    );
   } else if (type === 'imageBitmap') {
     const requiredWidth = frameSize * numFramesPerRow * pixelRatio;
     const requiredHeight = frameSize * numFramesPerRow * pixelRatio;
-    if (requiredWidth > renderer.domElement.width || requiredHeight > renderer.domElement.height) {
+    if (
+      requiredWidth > renderer.domElement.width ||
+      requiredHeight > renderer.domElement.height
+    ) {
       // console.log('resize to', requiredWidth / pixelRatio, requiredHeight / pixelRatio, pixelRatio);
       renderer.setSize(requiredWidth / pixelRatio, requiredHeight / pixelRatio);
       renderer.setPixelRatio(pixelRatio);
@@ -101,17 +110,25 @@ const createObjectSpriteAnimation = (app, {
       if (physicsObjects.length > 0) {
         const physicsObject = physicsObjects[0];
         const {physicsMesh} = physicsObject;
-        sideCamera.position.copy(physicsMesh.geometry.boundingBox.getCenter(localVector3))
+        sideCamera.position
+          .copy(physicsMesh.geometry.boundingBox.getCenter(localVector3))
           .add(
-            localVector.set(Math.cos(angle), 0, Math.sin(angle))
+            localVector
+              .set(Math.cos(angle), 0, Math.sin(angle))
               .applyQuaternion(app.quaternion)
               .multiplyScalar(2),
           );
-        fitCameraToBoundingBox(sideCamera, physicsMesh.geometry.boundingBox, fitScale);
+        fitCameraToBoundingBox(
+          sideCamera,
+          physicsMesh.geometry.boundingBox,
+          fitScale,
+        );
       } else {
-        sideCamera.position.copy(app.position)
+        sideCamera.position
+          .copy(app.position)
           .add(
-            localVector.set(Math.cos(angle), 0, Math.sin(angle))
+            localVector
+              .set(Math.cos(angle), 0, Math.sin(angle))
               .applyQuaternion(app.quaternion)
               .multiplyScalar(2),
           );
@@ -175,10 +192,10 @@ const createObjectSpriteAnimation = (app, {
     throw new Error('Unknown type');
   }
 };
-const createObjectSpriteSheet = async (app, {
-  size = defaultSize,
-  numFrames = defaultNumSpritesheetFrames,
-} = {}) => {
+const createObjectSpriteSheet = async (
+  app,
+  {size = defaultSize, numFrames = defaultNumSpritesheetFrames} = {},
+) => {
   const renderer = getRenderer();
   const pixelRatio = renderer.getPixelRatio();
 
@@ -189,7 +206,10 @@ const createObjectSpriteSheet = async (app, {
   // create render target
   const requiredWidth = frameSize * numFramesPerRow * pixelRatio;
   const requiredHeight = frameSize * numFramesPerRow * pixelRatio;
-  if (requiredWidth > renderer.domElement.width || requiredHeight > renderer.domElement.height) {
+  if (
+    requiredWidth > renderer.domElement.width ||
+    requiredHeight > renderer.domElement.height
+  ) {
     renderer.setSize(requiredWidth / pixelRatio, requiredHeight / pixelRatio);
     renderer.setPixelRatio(pixelRatio);
   }
@@ -239,17 +259,25 @@ const createObjectSpriteSheet = async (app, {
     if (physicsObjects.length > 0) {
       const physicsObject = physicsObjects[0];
       const {physicsMesh} = physicsObject;
-      sideCamera.position.copy(physicsMesh.geometry.boundingBox.getCenter(localVector3))
+      sideCamera.position
+        .copy(physicsMesh.geometry.boundingBox.getCenter(localVector3))
         .add(
-          localVector.set(Math.cos(angle), 0, Math.sin(angle))
+          localVector
+            .set(Math.cos(angle), 0, Math.sin(angle))
             .applyQuaternion(app.quaternion)
             .multiplyScalar(2),
         );
-      fitCameraToBoundingBox(sideCamera, physicsMesh.geometry.boundingBox, fitScale);
+      fitCameraToBoundingBox(
+        sideCamera,
+        physicsMesh.geometry.boundingBox,
+        fitScale,
+      );
     } else {
-      sideCamera.position.copy(app.position)
+      sideCamera.position
+        .copy(app.position)
         .add(
-          localVector.set(Math.cos(angle), 0, Math.sin(angle))
+          localVector
+            .set(Math.cos(angle), 0, Math.sin(angle))
             .applyQuaternion(app.quaternion)
             .multiplyScalar(2),
         );
@@ -298,7 +326,4 @@ const createObjectSpriteSheet = async (app, {
   };
 };
 
-export {
-  createObjectSpriteAnimation,
-  createObjectSpriteSheet,
-};
+export {createObjectSpriteAnimation, createObjectSpriteSheet};

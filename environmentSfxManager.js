@@ -45,9 +45,14 @@ class EnvironmentSfxManager {
 
         if (timeSeconds - this.startPlayBaseTime > this.baseDuration) {
           const baseSoundRegex = new RegExp(`^biomes/${this.biome}_base.wav$`);
-          const baseSoundcandidate = soundFiles.biomes.filter(f => baseSoundRegex.test(f.name));
+          const baseSoundcandidate = soundFiles.biomes.filter(f =>
+            baseSoundRegex.test(f.name),
+          );
 
-          const audioSpec = baseSoundcandidate[Math.floor(Math.random() * baseSoundcandidate.length)];
+          const audioSpec =
+            baseSoundcandidate[
+              Math.floor(Math.random() * baseSoundcandidate.length)
+            ];
           this.startPlayBaseTime = timeSeconds;
           this.baseDuration = audioSpec.duration;
 
@@ -61,10 +66,17 @@ class EnvironmentSfxManager {
         }
 
         if (timeSeconds - this.startPlayRandomTime > this.randomDuration) {
-          const randomSoundRegex = new RegExp(`^biomes/${this.biome}_random[0-9]*.wav$`);
-          const randomSoundcandidate = soundFiles.biomes.filter(f => randomSoundRegex.test(f.name));
+          const randomSoundRegex = new RegExp(
+            `^biomes/${this.biome}_random[0-9]*.wav$`,
+          );
+          const randomSoundcandidate = soundFiles.biomes.filter(f =>
+            randomSoundRegex.test(f.name),
+          );
 
-          const audioSpec = randomSoundcandidate[Math.floor(Math.random() * randomSoundcandidate.length)];
+          const audioSpec =
+            randomSoundcandidate[
+              Math.floor(Math.random() * randomSoundcandidate.length)
+            ];
           this.startPlayRandomTime = timeSeconds;
           this.randomDuration = audioSpec.duration;
           const localSound = sounds.playSound(audioSpec);
@@ -85,6 +97,4 @@ class EnvironmentSfxManager {
 
 const environmentSfxManager = new EnvironmentSfxManager();
 
-export {
-  environmentSfxManager,
-};
+export {environmentSfxManager};

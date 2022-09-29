@@ -27,11 +27,13 @@ class VoiceInput extends EventTarget {
       wsrtc.enableMic(this.mediaStream);
     }
 
-    this.dispatchEvent(new MessageEvent('micchange', {
-      data: {
-        enabled: true,
-      },
-    }));
+    this.dispatchEvent(
+      new MessageEvent('micchange', {
+        data: {
+          enabled: true,
+        },
+      }),
+    );
   }
 
   disableMic() {
@@ -47,11 +49,13 @@ class VoiceInput extends EventTarget {
       const localPlayer = metaversefile.useLocalPlayer();
       localPlayer.setMicMediaStream(null);
 
-      this.dispatchEvent(new MessageEvent('micchange', {
-        data: {
-          enabled: false,
-        },
-      }));
+      this.dispatchEvent(
+        new MessageEvent('micchange', {
+          data: {
+            enabled: false,
+          },
+        }),
+      );
     }
     if (this.speechEnabled()) {
       this.disableSpeech();
@@ -122,22 +126,26 @@ class VoiceInput extends EventTarget {
 
     this.speechRecognition = localSpeechRecognition;
 
-    this.dispatchEvent(new MessageEvent('speechchange', {
-      data: {
-        enabled: true,
-      },
-    }));
+    this.dispatchEvent(
+      new MessageEvent('speechchange', {
+        data: {
+          enabled: true,
+        },
+      }),
+    );
   }
 
   disableSpeech() {
     this.speechRecognition.stop();
     this.speechRecognition = null;
 
-    this.dispatchEvent(new MessageEvent('speechchange', {
-      data: {
-        enabled: false,
-      },
-    }));
+    this.dispatchEvent(
+      new MessageEvent('speechchange', {
+        data: {
+          enabled: false,
+        },
+      }),
+    );
   }
 
   async toggleSpeech() {

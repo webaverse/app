@@ -1,9 +1,20 @@
-import { BufferGeometry, Vector2, Vector3, Float32BufferAttribute } from 'three';
+import {BufferGeometry, Vector2, Vector3, Float32BufferAttribute} from 'three';
 import * as BufferGeometryUtils from 'three/examples/jsm/utils/BufferGeometryUtils.js';
 import * as Curves from 'three/src/extras/curves/Curves.js';
 
 class StreetLineGeometry extends BufferGeometry {
-  constructor(path = new Curves.QuadraticBezierCurve3(new Vector3(-1, -1, 0), new Vector3(-1, 1, 0), new Vector3(1, 1, 0)), tubularSegments = 64, radiusX = 1, radiusY = 1, radialSegments = 2, closed = false) {
+  constructor(
+    path = new Curves.QuadraticBezierCurve3(
+      new Vector3(-1, -1, 0),
+      new Vector3(-1, 1, 0),
+      new Vector3(1, 1, 0),
+    ),
+    tubularSegments = 64,
+    radiusX = 1,
+    radiusY = 1,
+    radialSegments = 2,
+    closed = false,
+  ) {
     super();
     this.type = 'StreetLineGeometry';
 
@@ -61,7 +72,7 @@ class StreetLineGeometry extends BufferGeometry {
       //
       // if the geometry is closed, duplicate the first row of vertices and normals (uvs will differ)
 
-      generateSegment((closed === false) ? tubularSegments : 0);
+      generateSegment(closed === false ? tubularSegments : 0);
 
       // uvs are generated in a separate function.
       // this makes it easy compute correct values for closed geometries
@@ -106,9 +117,9 @@ class StreetLineGeometry extends BufferGeometry {
 
         // normal
 
-        normal.x = (cos * N.x + sin * B.x);
-        normal.y = (cos * N.y + sin * B.y);
-        normal.z = (cos * N.z + sin * B.z);
+        normal.x = cos * N.x + sin * B.x;
+        normal.y = cos * N.y + sin * B.y;
+        normal.z = cos * N.z + sin * B.z;
         normal.normalize();
 
         normals.push(N.x, N.y, N.z);
@@ -128,10 +139,10 @@ class StreetLineGeometry extends BufferGeometry {
         // for ( let i = 1; i <= radialSegments; i ++ ) {
         const i = 1;
 
-        const a = (radialSegments) * (j - 1) + (i - 1);
-        const b = (radialSegments) * j + (i - 1);
-        const c = (radialSegments) * j + i;
-        const d = (radialSegments) * (j - 1) + i;
+        const a = radialSegments * (j - 1) + (i - 1);
+        const b = radialSegments * j + (i - 1);
+        const c = radialSegments * j + i;
+        const d = radialSegments * (j - 1) + i;
 
         // faces
 
@@ -205,7 +216,18 @@ class StreetLineGeometry extends BufferGeometry {
 }
 
 class StreetFlatGeometry extends BufferGeometry {
-  constructor(path = new Curves.QuadraticBezierCurve3(new Vector3(-1, -1, 0), new Vector3(-1, 1, 0), new Vector3(1, 1, 0)), tubularSegments = 64, radiusX = 1, radiusY = 1, radialSegments = 8, closed = false) {
+  constructor(
+    path = new Curves.QuadraticBezierCurve3(
+      new Vector3(-1, -1, 0),
+      new Vector3(-1, 1, 0),
+      new Vector3(1, 1, 0),
+    ),
+    tubularSegments = 64,
+    radiusX = 1,
+    radiusY = 1,
+    radialSegments = 8,
+    closed = false,
+  ) {
     super();
     this.type = 'StreetFlatGeometry';
 
@@ -263,7 +285,7 @@ class StreetFlatGeometry extends BufferGeometry {
       //
       // if the geometry is closed, duplicate the first row of vertices and normals (uvs will differ)
 
-      generateSegment((closed === false) ? tubularSegments : 0);
+      generateSegment(closed === false ? tubularSegments : 0);
 
       // uvs are generated in a separate function.
       // this makes it easy compute correct values for closed geometries
@@ -314,7 +336,7 @@ class StreetFlatGeometry extends BufferGeometry {
         // }
       } */
       for (let j = 0; j <= radialSegments; j++) {
-        let v = j / radialSegments * Math.PI * 2;
+        let v = (j / radialSegments) * Math.PI * 2;
         v -= Math.PI / 4;
 
         const sin = Math.sin(v);
@@ -322,9 +344,9 @@ class StreetFlatGeometry extends BufferGeometry {
 
         // normal
 
-        normal.x = (cos * N.x + sin * B.x);
-        normal.y = (cos * N.y + sin * B.y);
-        normal.z = (cos * N.z + sin * B.z);
+        normal.x = cos * N.x + sin * B.x;
+        normal.y = cos * N.y + sin * B.y;
+        normal.z = cos * N.z + sin * B.z;
         normal.normalize();
 
         normals.push(normal.x, normal.y, normal.z);
@@ -369,10 +391,7 @@ class StreetFlatGeometry extends BufferGeometry {
     function generateEnds() {
       // const offset = vertices.length / 3 / 2;
 
-      const ts = [
-        1,
-        tubularSegments + 1,
-      ];
+      const ts = [1, tubularSegments + 1];
 
       for (const j of ts) {
         const a = (radialSegments + 1) * (j - 1) + 0;
@@ -416,7 +435,18 @@ class StreetFlatGeometry extends BufferGeometry {
 }
 
 class StreetOctagonGeometry extends BufferGeometry {
-  constructor(path = new Curves.QuadraticBezierCurve3(new Vector3(-1, -1, 0), new Vector3(-1, 1, 0), new Vector3(1, 1, 0)), tubularSegments = 64, radiusX = 1, radiusY = 1, radialSegments = 8, closed = false) {
+  constructor(
+    path = new Curves.QuadraticBezierCurve3(
+      new Vector3(-1, -1, 0),
+      new Vector3(-1, 1, 0),
+      new Vector3(1, 1, 0),
+    ),
+    tubularSegments = 64,
+    radiusX = 1,
+    radiusY = 1,
+    radialSegments = 8,
+    closed = false,
+  ) {
     super();
     this.type = 'StreetOctagonGeometry';
 
@@ -468,12 +498,15 @@ class StreetOctagonGeometry extends BufferGeometry {
       for (let i = 0; i < tubularSegments; i++) {
         generateSegment(i, radiusX);
       }
-      generateSegment((closed === false) ? tubularSegments : 0, radiusX);
+      generateSegment(closed === false ? tubularSegments : 0, radiusX);
 
       for (let i = 0; i < tubularSegments; i++) {
         generateSegment(i, radiusX - radiusY);
       }
-      generateSegment((closed === false) ? tubularSegments : 0, radiusX - radiusY);
+      generateSegment(
+        closed === false ? tubularSegments : 0,
+        radiusX - radiusY,
+      );
 
       // if the geometry is not closed, generate the last row of vertices and normals
       // at the regular position on the given path
@@ -504,7 +537,7 @@ class StreetOctagonGeometry extends BufferGeometry {
       const B = T.clone().cross(N).normalize();
 
       for (let j = 0; j <= radialSegments; j++) {
-        let v = j / radialSegments * Math.PI * 2;
+        let v = (j / radialSegments) * Math.PI * 2;
         v -= Math.PI / 4;
 
         const sin = Math.sin(v);
@@ -512,9 +545,9 @@ class StreetOctagonGeometry extends BufferGeometry {
 
         // normal
 
-        normal.x = (cos * N.x + sin * B.x);
-        normal.y = (cos * N.y + sin * B.y);
-        normal.z = (cos * N.z + sin * B.z);
+        normal.x = cos * N.x + sin * B.x;
+        normal.y = cos * N.y + sin * B.y;
+        normal.z = cos * N.z + sin * B.z;
         normal.normalize();
 
         normals.push(normal.x, normal.y, normal.z);
@@ -584,10 +617,7 @@ class StreetOctagonGeometry extends BufferGeometry {
     function generateEnds() {
       const offset = vertices.length / 3 / 2;
 
-      const ts = [
-        1,
-        tubularSegments + 1,
-      ];
+      const ts = [1, tubularSegments + 1];
 
       for (const j of ts) {
         for (let i = 1; i <= radialSegments; i++) {
@@ -633,7 +663,18 @@ class StreetOctagonGeometry extends BufferGeometry {
 }
 
 class StreetHalfpipeGeometry extends BufferGeometry {
-  constructor(path = new Curves.QuadraticBezierCurve3(new Vector3(-1, -1, 0), new Vector3(-1, 1, 0), new Vector3(1, 1, 0)), tubularSegments = 64, radiusX = 1, radiusY = 1, radialSegments = 8, closed = false) {
+  constructor(
+    path = new Curves.QuadraticBezierCurve3(
+      new Vector3(-1, -1, 0),
+      new Vector3(-1, 1, 0),
+      new Vector3(1, 1, 0),
+    ),
+    tubularSegments = 64,
+    radiusX = 1,
+    radiusY = 1,
+    radialSegments = 8,
+    closed = false,
+  ) {
     super();
     this.type = 'StreetHalfpipeGeometry';
 
@@ -685,12 +726,15 @@ class StreetHalfpipeGeometry extends BufferGeometry {
       for (let i = 0; i < tubularSegments; i++) {
         generateSegment(i, radiusX);
       }
-      generateSegment((closed === false) ? tubularSegments : 0, radiusX);
+      generateSegment(closed === false ? tubularSegments : 0, radiusX);
 
       for (let i = 0; i < tubularSegments; i++) {
         generateSegment(i, radiusX - radiusY);
       }
-      generateSegment((closed === false) ? tubularSegments : 0, radiusX - radiusY);
+      generateSegment(
+        closed === false ? tubularSegments : 0,
+        radiusX - radiusY,
+      );
 
       // if the geometry is not closed, generate the last row of vertices and normals
       // at the regular position on the given path
@@ -721,7 +765,7 @@ class StreetHalfpipeGeometry extends BufferGeometry {
       const B = T.clone().cross(N).normalize();
 
       for (let j = 0; j <= radialSegments; j++) {
-        let v = j / radialSegments * Math.PI;
+        let v = (j / radialSegments) * Math.PI;
         v -= Math.PI / 2;
 
         const sin = Math.sin(v);
@@ -729,9 +773,9 @@ class StreetHalfpipeGeometry extends BufferGeometry {
 
         // normal
 
-        normal.x = (cos * N.x + sin * B.x);
-        normal.y = (cos * N.y + sin * B.y);
-        normal.z = (cos * N.z + sin * B.z);
+        normal.x = cos * N.x + sin * B.x;
+        normal.y = cos * N.y + sin * B.y;
+        normal.z = cos * N.z + sin * B.z;
         normal.normalize();
 
         normals.push(normal.x, normal.y, normal.z);
@@ -803,10 +847,7 @@ class StreetHalfpipeGeometry extends BufferGeometry {
       {
         const offset = vertices.length / 3 / 2;
 
-        const ts = [
-          1,
-          tubularSegments + 1,
-        ];
+        const ts = [1, tubularSegments + 1];
 
         for (const j of ts) {
           for (let i = 1; i <= radialSegments; i++) {
@@ -832,10 +873,7 @@ class StreetHalfpipeGeometry extends BufferGeometry {
       {
         const offset = vertices.length / 3 / 2;
 
-        const rs = [
-          1,
-          radialSegments + 1,
-        ];
+        const rs = [1, radialSegments + 1];
 
         for (let j = 1; j <= tubularSegments; j++) {
           for (const i of rs) {
@@ -896,7 +934,14 @@ class StreetGeometry extends BufferGeometry {
 
     // const radiusX2 = radiusX * octagonRadiusFactor;
     const geometries = [
-      new StreetFlatGeometry(path, tubularSegments, radiusX, radiusY, 4, closed),
+      new StreetFlatGeometry(
+        path,
+        tubularSegments,
+        radiusX,
+        radiusY,
+        4,
+        closed,
+      ),
       // new StreetOctagonGeometry( path, tubularSegments, radiusX2, radiusY, 8, closed ),
       // new StreetHalfpipeGeometry( path, tubularSegments, radiusX2, radiusY, 4, closed ),
     ];

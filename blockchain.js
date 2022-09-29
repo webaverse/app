@@ -3,7 +3,12 @@ import bip39 from './bip39.js';
 import hdkeySpec from './hdkey.js';
 import ethereumJsTx from './ethereumjs-tx.js';
 import {makePromise} from './util.js';
-import {chainName, web3MainnetSidechainEndpoint, web3TestnetSidechainEndpoint, polygonVigilKey} from './constants.js';
+import {
+  chainName,
+  web3MainnetSidechainEndpoint,
+  web3TestnetSidechainEndpoint,
+  polygonVigilKey,
+} from './constants.js';
 import addresses from 'https://contracts.webaverse.com/config/addresses.js';
 import abis from 'https://contracts.webaverse.com/config/abi.js';
 const hdkey = hdkeySpec.default;
@@ -39,11 +44,23 @@ export const Networks = {
 const injectedWeb3 = new Web3(window.ethereum);
 const web3 = {
   mainnet: injectedWeb3,
-  mainnetsidechain: new Web3(new Web3.providers.HttpProvider(web3MainnetSidechainEndpoint)),
+  mainnetsidechain: new Web3(
+    new Web3.providers.HttpProvider(web3MainnetSidechainEndpoint),
+  ),
   testnet: injectedWeb3,
-  testnetsidechain: new Web3(new Web3.providers.HttpProvider(web3TestnetSidechainEndpoint)),
-  polygon: new Web3(new Web3.providers.HttpProvider(`https://rpc-mainnet.maticvigil.com/v1/${polygonVigilKey}`)),
-  testnetpolygon: new Web3(new Web3.providers.HttpProvider(`https://rpc-mumbai.maticvigil.com/v1/${polygonVigilKey}`)),
+  testnetsidechain: new Web3(
+    new Web3.providers.HttpProvider(web3TestnetSidechainEndpoint),
+  ),
+  polygon: new Web3(
+    new Web3.providers.HttpProvider(
+      `https://rpc-mainnet.maticvigil.com/v1/${polygonVigilKey}`,
+    ),
+  ),
+  testnetpolygon: new Web3(
+    new Web3.providers.HttpProvider(
+      `https://rpc-mumbai.maticvigil.com/v1/${polygonVigilKey}`,
+    ),
+  ),
 };
 let common = null;
 let addressFront;
@@ -89,14 +106,26 @@ const contracts = {};
 Object.keys(Networks).forEach(network => {
   // console.log("*** Network is", network);
   contracts[network] = {
-    Account: new web3[network].eth.Contract(abis.Account, addresses[network].Account),
+    Account: new web3[network].eth.Contract(
+      abis.Account,
+      addresses[network].Account,
+    ),
     FT: new web3[network].eth.Contract(abis.FT, addresses[network].FT),
-    FTProxy: new web3[network].eth.Contract(abis.FTProxy, addresses[network].FTProxy),
+    FTProxy: new web3[network].eth.Contract(
+      abis.FTProxy,
+      addresses[network].FTProxy,
+    ),
     NFT: new web3[network].eth.Contract(abis.NFT, addresses[network].NFT),
-    NFTProxy: new web3[network].eth.Contract(abis.NFTProxy, addresses[network].NFTProxy),
+    NFTProxy: new web3[network].eth.Contract(
+      abis.NFTProxy,
+      addresses[network].NFTProxy,
+    ),
     Trade: new web3[network].eth.Contract(abis.Trade, addresses[network].Trade),
     LAND: new web3[network].eth.Contract(abis.LAND, addresses[network].LAND),
-    LANDProxy: new web3[network].eth.Contract(abis.LANDProxy, addresses[network].LANDProxy),
+    LANDProxy: new web3[network].eth.Contract(
+      abis.LANDProxy,
+      addresses[network].LANDProxy,
+    ),
   };
 });
 
@@ -133,39 +162,59 @@ const transactionQueue = {
     }
   },
 };
-const runSidechainTransaction = mnemonic => async (contractName, method, ...args) => {
-  const wallet = hdkey.fromMasterSeed(bip39.mnemonicToSeedSync(mnemonic)).derivePath('m/44\'/60\'/0\'/0/0').getWallet();
-  const address = wallet.getAddressString();
-  const privateKey = wallet.getPrivateKeyString();
-  const privateKeyBytes = Uint8Array.from(web3.mainnetsidechain.utils.hexToBytes(privateKey));
+const runSidechainTransaction =
+  mnemonic =>
+  async (contractName, method, ...args) => {
+    const wallet = hdkey
+      .fromMasterSeed(bip39.mnemonicToSeedSync(mnemonic))
+      .derivePath("m/44'/60'/0'/0/0")
+      .getWallet();
+    const address = wallet.getAddressString();
+    const privateKey = wallet.getPrivateKeyString();
+    const privateKeyBytes = Uint8Array.from(
+      web3.mainnetsidechain.utils.hexToBytes(privateKey),
+    );
 
-  const txData = contracts.mainnetsidechain[contractName].methods[method](...args);
-  const data = txData.encodeABI();
-  const gas = await txData.estimateGas({
-    from: address,
-  });
-  let gasPrice = await web3.mainnetsidechain.eth.getGasPrice();
-  gasPrice = parseInt(gasPrice, 10);
+    const txData = contracts.mainnetsidechain[contractName].methods[method](
+      ...args,
+    );
+    const data = txData.encodeABI();
+    const gas = await txData.estimateGas({
+      from: address,
+    });
+    let gasPrice = await web3.mainnetsidechain.eth.getGasPrice();
+    gasPrice = parseInt(gasPrice, 10);
 
-  await transactionQueue.lock();
-  const nonce = await web3.mainnetsidechain.eth.getTransactionCount(address);
-  const tx = Transaction.fromTxData({
-    to: contracts.mainnetsidechain[contractName]._address,
-    nonce: '0x' + new web3.mainnetsidechain.utils.BN(nonce).toString(16),
-    gas: '0x' + new web3.mainnetsidechain.utils.BN(gas).toString(16),
-    gasPrice: '0x' + new web3.mainnetsidechain.utils.BN(gasPrice).toString(16),
-    gasLimit: '0x' + new web3.mainnetsidechain.utils.BN(8000000).toString(16),
-    data,
-  }, {
-    common,
-  }).sign(privateKeyBytes);
-  const rawTx = '0x' + tx.serialize().toString('hex');
-  // console.log('signed tx', tx, rawTx);
-  const receipt = await web3.mainnetsidechain.eth.sendSignedTransaction(rawTx);
-  transactionQueue.unlock();
-  return receipt;
-};
-const getTransactionSignature = async (chainName, contractName, transactionHash) => {
+    await transactionQueue.lock();
+    const nonce = await web3.mainnetsidechain.eth.getTransactionCount(address);
+    const tx = Transaction.fromTxData(
+      {
+        to: contracts.mainnetsidechain[contractName]._address,
+        nonce: '0x' + new web3.mainnetsidechain.utils.BN(nonce).toString(16),
+        gas: '0x' + new web3.mainnetsidechain.utils.BN(gas).toString(16),
+        gasPrice:
+          '0x' + new web3.mainnetsidechain.utils.BN(gasPrice).toString(16),
+        gasLimit:
+          '0x' + new web3.mainnetsidechain.utils.BN(8000000).toString(16),
+        data,
+      },
+      {
+        common,
+      },
+    ).sign(privateKeyBytes);
+    const rawTx = '0x' + tx.serialize().toString('hex');
+    // console.log('signed tx', tx, rawTx);
+    const receipt = await web3.mainnetsidechain.eth.sendSignedTransaction(
+      rawTx,
+    );
+    transactionQueue.unlock();
+    return receipt;
+  };
+const getTransactionSignature = async (
+  chainName,
+  contractName,
+  transactionHash,
+) => {
   const u = `https://sign.exokit.org/${chainName}/${contractName}/${transactionHash}`;
   for (let i = 0; i < 10; i++) {
     const signature = await fetch(u).then(res => res.json());
@@ -193,11 +242,13 @@ const runMainnetTransaction = async (contractName, method, ...args) => {
   }
 };
 
-const _getWalletFromMnemonic = mnemonic => hdkey.fromMasterSeed(bip39.mnemonicToSeedSync(mnemonic))
-  .derivePath('m/44\'/60\'/0\'/0/0')
-  .getWallet();
-const getAddressFromMnemonic = mnemonic => _getWalletFromMnemonic(mnemonic)
-  .getAddressString();
+const _getWalletFromMnemonic = mnemonic =>
+  hdkey
+    .fromMasterSeed(bip39.mnemonicToSeedSync(mnemonic))
+    .derivePath("m/44'/60'/0'/0/0")
+    .getWallet();
+const getAddressFromMnemonic = mnemonic =>
+  _getWalletFromMnemonic(mnemonic).getAddressString();
 
 const networkNameEl = document.getElementById('network-name');
 const bindInterface = () => {

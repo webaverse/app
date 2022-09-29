@@ -303,9 +303,14 @@ const equalsNodeLod = (a, b) => {
   return equalsNode(a, b) && a.lodArray.every((lod, i) => lod === b.lodArray[i]);
 }; */
 const containsPoint = (a, p) => {
-  return p.x >= a.min.x && p.x < a.min.x + a.lod &&
-    p.y >= a.min.y && p.y < a.min.y + a.lod &&
-    p.z >= a.min.z && p.z < a.min.z + a.lod;
+  return (
+    p.x >= a.min.x &&
+    p.x < a.min.x + a.lod &&
+    p.y >= a.min.y &&
+    p.y < a.min.y + a.lod &&
+    p.z >= a.min.z &&
+    p.z < a.min.z + a.lod
+  );
 };
 /* const containsNode = (a, node) => {
   return containsPoint(a, node.min);
@@ -615,12 +620,16 @@ export class LodChunkTracker {
       }
 
       const whiteMaterial = new THREE.MeshBasicMaterial({
-        color: 0xFFFFFF,
+        color: 0xffffff,
         // wireframe: true,
         side: THREE.DoubleSide,
       });
 
-      const debugMesh = new THREE.InstancedMesh(instancedPlaneGeometry, whiteMaterial, maxChunks);
+      const debugMesh = new THREE.InstancedMesh(
+        instancedPlaneGeometry,
+        whiteMaterial,
+        maxChunks,
+      );
       debugMesh.count = 0;
       debugMesh.frustumCulled = false;
       this.debugMesh = debugMesh;
@@ -636,11 +645,11 @@ export class LodChunkTracker {
         const _getChunkColorHex = chunk => {
           const {lod} = chunk;
           if (lod === 1) {
-            return 0xFF0000;
+            return 0xff0000;
           } else if (lod === 2) {
-            return 0x00FF00;
+            return 0x00ff00;
           } else if (lod === 4) {
-            return 0x0000FF;
+            return 0x0000ff;
           } else {
             return 0x0;
           }
@@ -651,10 +660,12 @@ export class LodChunkTracker {
             const chunk = this.displayChunks[i];
             const gapSize = 1;
             localMatrix.compose(
-              localVector.set(chunk.min.x, 0, chunk.min.y)
+              localVector
+                .set(chunk.min.x, 0, chunk.min.y)
                 .multiplyScalar(this.chunkSize),
               localQuaternion.identity(),
-              localVector3.set(1, 1, 1)
+              localVector3
+                .set(1, 1, 1)
                 .multiplyScalar(chunk.lod * this.chunkSize - gapSize),
             );
             localColor.setHex(_getChunkColorHex(chunk));
@@ -663,7 +674,8 @@ export class LodChunkTracker {
             debugMesh.count++;
           }
           debugMesh.instanceMatrix.needsUpdate = true;
-          debugMesh.instanceColor && (debugMesh.instanceColor.needsUpdate = true);
+          debugMesh.instanceColor &&
+            (debugMesh.instanceColor.needsUpdate = true);
 
           // console.log('new debug mesh', debugMesh.count, this.displayChunks, debugMesh);
         };
@@ -782,14 +794,20 @@ export class LodChunkTracker {
 
   async ensureTracker() {
     if (!this.tracker) {
-      this.tracker = await this.pgWorkerManager.createTracker(this.lods, this.lod1Range);
+      this.tracker = await this.pgWorkerManager.createTracker(
+        this.lods,
+        this.lod1Range,
+      );
     }
   }
 
   async updateInternal(position) {
     await this.ensureTracker();
 
-    const trackerUpdateSpec = await this.pgWorkerManager.trackerUpdate(this.tracker, position);
+    const trackerUpdateSpec = await this.pgWorkerManager.trackerUpdate(
+      this.tracker,
+      position,
+    );
     let {
       leafNodes,
       newDataRequests,
@@ -800,11 +818,7 @@ export class LodChunkTracker {
 
     const _reifyNode = nodeSpec => {
       const {min, lod, lodArray} = nodeSpec;
-      return new OctreeNode(
-        new THREE.Vector2().fromArray(min),
-        lod,
-        lodArray,
-      );
+      return new OctreeNode(new THREE.Vector2().fromArray(min), lod, lodArray);
     };
     leafNodes = leafNodes.map(_reifyNode);
     newDataRequests = newDataRequests.map(_reifyNode);

@@ -135,7 +135,9 @@ export class AvatarCharacterFx {
           // console.log(o.name, o.isMesh);
           if (o.isSkinnedMesh) {
             const {geometry, skeleton} = o;
-            const skeletonBoneHairBooleans = skeleton.bones.map(bone => /hair/i.test(bone.name));
+            const skeletonBoneHairBooleans = skeleton.bones.map(bone =>
+              /hair/i.test(bone.name),
+            );
             const {attributes, index: indexAttribute} = geometry;
             const indices = indexAttribute.array;
             const {skinIndex, skinWeight} = attributes;
