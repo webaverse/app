@@ -62,7 +62,7 @@ const localEuler = new THREE.Euler();
 const localMatrix = new THREE.Matrix4();
 const localMatrix2 = new THREE.Matrix4();
 const localMatrix3 = new THREE.Matrix4();
-// const localBox = new THREE.Box3();
+const localBox = new THREE.Box3();
 const localRay = new THREE.Ray();
 
 //
