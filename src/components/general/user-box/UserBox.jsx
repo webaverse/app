@@ -59,7 +59,7 @@ export const UserBox = ({ className, address, setAddress, setLoginFrom }) => {
     const _setAddress = async (address) => {
         const {name, avatar} = await getAccountDetails(address);
 
-        setEnsName(shortAddress(name) || '');
+        setEnsName(name ? shortAddress(name) : '');
         setAvatarUrl(avatar ? resolveAvatar(avatar) : '');
         setAddress(shortAddress(address) || '');
     };
@@ -167,7 +167,7 @@ export const UserBox = ({ className, address, setAddress, setLoginFrom }) => {
     //
 
     const open = state.openedPanel === "LoginPanel";
-    const loggedIn = !!address;
+    const loggedIn = isConnected;
 
     //
 
@@ -298,7 +298,7 @@ export const UserBox = ({ className, address, setAddress, setLoginFrom }) => {
                             <div className={styles.loggedInText}>
                                 <div className={styles.chainName}>Polygon</div>
                                 <div className={styles.walletAddress}>
-                                    {ensName || address || "0x5d...26e2d"}
+                                    {ensName || address }
                                 </div>
                             </div>
                             <CustomButton
@@ -311,7 +311,6 @@ export const UserBox = ({ className, address, setAddress, setLoginFrom }) => {
                                     e.preventDefault();
                                     e.stopPropagation();
                                     disconnectWallet();
-                                    _setAddress(null);
                                 }}
                                 onMouseEnter={(e) => {
                                     _triggerClickSound();
