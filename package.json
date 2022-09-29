@@ -11,7 +11,7 @@
     "serve": "vite preview",
     "setup:test": "cd test && npm i",
     "test": "cd test && npm run test",
-    "test-e2e": "cd test/e2e/ && npm run start",
+    "test-e2e": "cd test/e2e/ && npm run start && exit 0",
     "start-pm2": "pm2-runtime index.mjs -p --secret $PM2_SECRET_KEY --public $PM2_PUBLIC_KEY --no-auto-exit --instances 1 --restart-delay 60000"
   },
   "dependencies": {

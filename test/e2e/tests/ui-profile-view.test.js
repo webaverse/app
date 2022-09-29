@@ -35,7 +35,7 @@ describe('should all ui element on the profile view works', () => {
 			return nodeLists.length
 		})
 
-		let count = 0
+		let characterChangedCount = 0
 
 		for (let index = 0; index < characterLength; index++) {
 
@@ -84,11 +84,11 @@ describe('should all ui element on the profile view works', () => {
 					return appId != currentAvatarId
 				}, 180000)
 			}, currentAvatarId)
-			if (isAvatarChanged) count++
+			if (isAvatarChanged) characterChangedCount++
 			await page.waitForTimeout(500)
 		}
 		
-		expect(count == characterLength).toBeTruthy();
+		expect(characterChangedCount == characterLength).toBeTruthy();
 	}, totalTimeout)
 
 	test('should scene switch works', async () => {

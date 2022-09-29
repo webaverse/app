@@ -23,18 +23,21 @@ const output = (child) => {
 const runDev = childProcess.spawn('npm', ['run', 'server'],{ shell: process.platform === 'win32' })
 runDev.on('exit', (exitCode) => {
   console.log(`dev exited with exit code`, exitCode)
+	runDev.kill(exitCode)
 })
 output(runDev)
 
 const runE2E = childProcess.spawn('npm', ['run', 'test-e2e'],{ shell: process.platform === 'win32' })
 runE2E.on('exit', (exitCode) => {
   console.log(`e2e test exited with exit code`, exitCode)
+  runDev.kill(exitCode)
+	runE2E.kill(exitCode)
 })
 output(runE2E)
 
-process.on('exit', (exitCode) => {
-	console.log(`'ese exited with exit code`, exitCode)
-	killports()
-	if (!runDev.killed) runDev.kill(exitCode)
-	if (!runE2E.killed) runE2E.kill(exitCode)
-})
+// process.on('exit', (exitCode) => {
+// 	console.log(`'ese exited with exit code`, exitCode)
+// 	killports()
+// 	runDev.kill(exitCode)
+// 	runE2E.kill(exitCode)
+// })

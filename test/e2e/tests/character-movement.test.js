@@ -16,7 +16,7 @@ describe('should character movement', () => {
 
 	test('should character loaded', async () => {
 		printLog("should character loaded")
-		const isPlayerAvatar =  await getCurrentPage().evaluate(async () => {
+		const avatarFlag =  await getCurrentPage().evaluate(async () => {
 			const localPlayer = globalWebaverse.playersManager.localPlayer
 			const isPlayerAvatarApp = !!localPlayer.getAvatarApp()
 			const isBound = localPlayer.isBound()
@@ -27,12 +27,27 @@ describe('should character movement', () => {
 			const isCharacterHitter = localPlayer.characterHitter && !!localPlayer.characterHitter.player
 			const isCharacterBehavior = localPlayer.characterBehavior && !!localPlayer.characterBehavior.player
 			const isCharacterPhysic = localPlayer.characterPhysics && localPlayer.characterPhysics.characterHeight > 0 && localPlayer.characterPhysics.lastGrounded
-			const isFlag = isPlayerAvatarApp && isBound && isLocalPlayer
-											&& isCharacterSfx && isCharacterHups && isCharacterFx
-											&& isCharacterHitter && isCharacterBehavior && isCharacterPhysic
-			return isFlag
+			return {
+				isPlayerAvatarApp,
+				isBound,
+				isLocalPlayer,
+				isCharacterSfx,
+				isCharacterHups,
+				isCharacterFx,
+				isCharacterHitter,
+				isCharacterBehavior,
+				isCharacterPhysic,
+			}
 		})
-		expect(isPlayerAvatar).toBeTruthy();
+		expect(avatarFlag.isPlayerAvatarApp).toBeTruthy();
+		expect(avatarFlag.isBound).toBeTruthy();
+		expect(avatarFlag.isLocalPlayer).toBeTruthy();
+		expect(avatarFlag.isCharacterSfx).toBeTruthy();
+		expect(avatarFlag.isCharacterHups).toBeTruthy();
+		expect(avatarFlag.isCharacterFx).toBeTruthy();
+		expect(avatarFlag.isCharacterHitter).toBeTruthy();
+		expect(avatarFlag.isCharacterBehavior).toBeTruthy();
+		expect(avatarFlag.isCharacterPhysic).toBeTruthy();
 	}, totalTimeout)
 
 	test('should character movement: walk', async () => {
@@ -45,12 +60,11 @@ describe('should character movement', () => {
 		const key = keys[Math.floor(Math.random() * keys.length)];
 		await page.keyboard.down(key)
 		await page.waitForTimeout(1000)
-		const isPlayerWalk =  await page.evaluate(async ({firstPosition, key}) => {
+		const playerMove =  await page.evaluate(async ({firstPosition, key}) => {
 			const avatar = globalWebaverse.playersManager.localPlayer.avatar
 			const currentSpeed = avatar.velocity.length()
 			const idleWalkFactor = avatar.idleWalkFactor
 			const currentPosition = avatar.lastPosition
-			console.log(firstPosition, currentPosition)
 			let isCorrectMove = true
 			if (key == "KeyW") {
 				if (currentPosition.x <= firstPosition.x) isRightMove = false
@@ -61,11 +75,19 @@ describe('should character movement', () => {
 			} else if (key == "KeyD") {
 				if (currentPosition.z <= firstPosition.z) isRightMove = false
 			}
-			return currentSpeed > 0 && idleWalkFactor > 0.5 && currentPosition != firstPosition && isCorrectMove
+			return {
+				currentSpeed,
+				idleWalkFactor,
+				currentPosition,
+				isCorrectMove
+			}
 		}, {firstPosition, key})
 		await page.keyboard.up(key)
 		await page.waitForTimeout(1000)
-		expect(isPlayerWalk).toBeTruthy();
+		expect(playerMove.currentSpeed).toBeGreaterThan(0);
+		expect(playerMove.idleWalkFactor).toBeGreaterThan(0.5);
+		expect(playerMove.currentPosition).not.toBe(firstPosition);
+		expect(playerMove.isCorrectMove).toBeTruthy();
 	}, totalTimeout)
 
 	test('should character movement: run', async () => {
@@ -80,17 +102,23 @@ describe('should character movement', () => {
 		await page.waitForTimeout(100)
 		await page.keyboard.down(key)
 		await page.waitForTimeout(1000)
-		const isPlayerRun =  await page.evaluate(async (lastPosition) => {
+		const playerRun =  await page.evaluate(async () => {
 			const avatar = globalWebaverse.playersManager.localPlayer.avatar
 			const currentSpeed = avatar.velocity.length()
 			const walkRunFactor = avatar.walkRunFactor
 			const currentPosition = avatar.lastPosition
-			return currentSpeed > 0.5 && walkRunFactor > 0.5 && currentPosition != lastPosition
-		}, lastPosition)
+			return {
+				currentSpeed,
+				walkRunFactor,
+				currentPosition
+			}
+		})
 		await page.keyboard.up(key)
 		await page.keyboard.up("ShiftRight")
 		await page.waitForTimeout(1000)
-		expect(isPlayerRun).toBeTruthy();
+		expect(playerRun.currentSpeed).toBeGreaterThan(0.5);
+		expect(playerRun.walkRunFactor).toBeGreaterThan(0.5);
+		expect(playerMove.currentPosition).not.toBe(lastPosition);
 	}, totalTimeout)
 
 	test('should character movement: naruto run', async () => {
@@ -101,15 +129,19 @@ describe('should character movement', () => {
 		await page.keyboard.type('wwwwwwwwww');
 		await page.waitForTimeout(3000)
 
-		const isNarutoRun =  await page.evaluate(async () => {
+		const narutoRun =  await page.evaluate(async () => {
 			const avatar = globalWebaverse.playersManager.localPlayer.avatar
 			const narutoRunTime = avatar.narutoRunTime
 			const narutoRunState = avatar.narutoRunState
-			return narutoRunTime > 0 && narutoRunState
+			return {
+				narutoRunTime,
+				narutoRunState
+			}
 		})
 		await page.keyboard.up("ShiftLeft")
 		await page.waitForTimeout(5000)
-		expect(isNarutoRun).toBeTruthy();
+		expect(narutoRun.narutoRunTime).toBeGreaterThan(0.5);
+		expect(narutoRun.narutoRunState).toBeTruthy();
 	}, totalTimeout)
 
 	test('should character movement: jump', async () => {
@@ -177,21 +209,27 @@ describe('should character movement', () => {
 		await page.keyboard.up("KeyC")
 		await page.waitForTimeout(100)
 		await page.keyboard.down("KeyW")
-		await page.waitForTimeout(1000)
-		const isCrouch =  await page.evaluate(async (lastPosition) => {
+		await page.waitForTimeout(2000)
+		const playerCrouch =  await page.evaluate(async () => {
 			const avatar = globalWebaverse.playersManager.localPlayer.avatar
 			const currentSpeed = avatar.velocity.length()
 			const crouchFactor = avatar.crouchFactor
 			const currentPosition = avatar.lastPosition
-			return currentSpeed > 0 && crouchFactor !== 0 && currentPosition != lastPosition
-		}, lastPosition)
+			return {
+				currentSpeed,
+				crouchFactor,
+				currentPosition
+			}
+		})
 		await page.keyboard.up("KeyW")
 		await page.keyboard.down("ControlLeft")
 		await page.keyboard.down("KeyC")
 		await page.waitForTimeout(100)
 		await page.keyboard.up("ControlLeft")
 		await page.keyboard.up("KeyC")
-		expect(isCrouch).toBeTruthy();
+		expect(playerCrouch.currentSpeed).toBeGreaterThan(0);
+		expect(playerCrouch.crouchFactor).toBeGreaterThan(0);
+		expect(playerCrouch.currentPosition).not.toBe(lastPosition);
 	}, totalTimeout)
 
 	test('should character movement: fly', async () => {
@@ -200,16 +238,20 @@ describe('should character movement', () => {
 		await page.keyboard.press("KeyF")
 		await page.keyboard.down("KeyW")
 		await page.waitForTimeout(1000)
-		const isFly =  await page.evaluate(async () => {
+		const playerFly =  await page.evaluate(async () => {
 			const avatar = globalWebaverse.playersManager.localPlayer.avatar
 			const flyState = avatar.flyState
 			const flyTime = avatar.flyTime
-			return flyTime > 0 && flyState
+			return {
+				flyTime,
+				flyState
+			}
 		})
 		await page.keyboard.up("KeyW")
 		await page.keyboard.press("KeyF")
 		await page.waitForTimeout(1000)
-		expect(isFly).toBeTruthy();
+		expect(playerFly.flyTime).toBeGreaterThan(0);
+		expect(playerFly.flyState).toBeTruthy();
 	}, totalTimeout)
 
 	test('should character movement: dance', async () => {
@@ -217,14 +259,16 @@ describe('should character movement', () => {
 		const page = getCurrentPage()
 		await page.keyboard.down("KeyV")
 		await page.waitForTimeout(2000)
-		const isDance =  await page.evaluate(async () => {
+		const playerDance =  await page.evaluate(async () => {
 			const avatar = globalWebaverse.playersManager.localPlayer.avatar
 			const danceFactor = avatar.danceFactor
-			return danceFactor > 0
+			return {
+				danceFactor
+			}
 		})
 		await page.keyboard.up("KeyV")
 		await page.waitForTimeout(1000)
-		expect(isDance).toBeTruthy();
+		expect(playerDance.danceFactor).toBeTruthy();
 	}, totalTimeout)
 	
 }, totalTimeout)
