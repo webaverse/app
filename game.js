@@ -139,7 +139,6 @@ function updateGrabbedObject(
       geometry.computeBoundingBox();
       localBox.union(geometry.boundingBox);
     }
-    transformIndicators.bb = localBox;
     physicalOffset = getPhysicalPosition(localBox);
   }
 
