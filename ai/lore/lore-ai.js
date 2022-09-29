@@ -243,6 +243,9 @@ class AIScene {
     let response = await this.generateFn(prompt, stop);
     console.log('select target response', {prompt, response});
     response = parseSelectTargetResponse(response);
+    if (!response?.value) {
+      return this.generateSelectTargetComment(name, description);
+    }
     // console.log('got comment', {prompt, response});
     return response;
   }
@@ -255,6 +258,9 @@ class AIScene {
     const stop = makeSelectCharacterStop();
     let response = await this.generateFn(prompt, stop);
     console.log('select character response', {prompt, response});
+    if (!response) {
+      return this.generateSelectCharacterComment(name, description);
+    }
     const response2 = parseSelectCharacterResponse(response);
     console.log('select character parsed', {response2});
     return response2;
@@ -269,6 +275,9 @@ class AIScene {
     let response = await this.generateFn(prompt, stop);
     console.log('chat response', {prompt, response});
     const response2 = parseChatResponse(response);
+    if (!response2) {
+      return this.generateChatMessage(messages, nextCharacter);
+    }
     console.log('chat parsed', {response2});
     return response2;
   }
@@ -386,9 +395,9 @@ class LoreAI {
       generateFn: (prompt, stop) => {
         return this.generate(prompt, {
           stop,
-          temperature: 1,
-          presence_penalty: 2,
-          frequency_penalty: 2,
+          temperature: 0.85,
+          presence_penalty: 0.1,
+          frequency_penalty: 0.1,
           // top_p,
         });
       },
