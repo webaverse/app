@@ -149,12 +149,12 @@ const labelFragmentShader = `\
   varying vec2 tex_coords;
   varying vec3 vColor;
 
-  vec2 rotateCCW(vec2 pos, float angle) { 
+  vec2 rotateCCW(vec2 pos, float angle) {
     float ca = cos(angle),  sa = sin(angle);
-    return pos * mat2(ca, sa, -sa, ca);  
+    return pos * mat2(ca, sa, -sa, ca);
   }
 
-  vec2 rotateCCW(vec2 pos, vec2 around, float angle) { 
+  vec2 rotateCCW(vec2 pos, vec2 around, float angle) {
     pos -= around;
     pos = rotateCCW(pos, angle);
     pos += around;
@@ -164,7 +164,7 @@ const labelFragmentShader = `\
   // return 1 if v inside the box, return 0 otherwise
   bool insideAABB(vec2 v, vec2 bottomLeft, vec2 topRight) {
       vec2 s = step(bottomLeft, v) - step(topRight, v);
-      return s.x * s.y > 0.;   
+      return s.x * s.y > 0.;
   }
 
   bool isPointInTriangle(vec2 point, vec2 a, vec2 b, vec2 c) {
@@ -703,6 +703,8 @@ const createPlayerDiorama = ({
             localQuaternion,
             localVector2,
           );
+          target.updateMatrixWorld();
+
           const targetPosition = localVector;
           const targetQuaternion = localQuaternion;
 
