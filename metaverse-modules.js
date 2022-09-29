@@ -28,6 +28,7 @@ const moduleUrls = {
   flare: './metaverse_modules/flare/',
   firedrop: './metaverse_modules/firedrop/',
   meshLodItem: './metaverse_modules/mesh-lod-item/',
+  transformIndicators: './metaverse_modules/transform-indicators',
 };
 const importModule = async moduleName => {
   const moduleUrl = moduleUrls[moduleName];
