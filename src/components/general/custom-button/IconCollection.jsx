@@ -40,6 +40,10 @@ export const IconCollection = [
         file: "/assets/icons/metamask.svg"
     },
     {
+        name: 'phantom',
+        file: "/assets/icons/phantom.svg"
+    },
+    {
         name: 'close',
         file: "/assets/icons/close.svg"
     },
