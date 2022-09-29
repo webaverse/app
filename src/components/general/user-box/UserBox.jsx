@@ -14,13 +14,13 @@ import styles from "./UserBox.module.css";
 
 import * as sounds from "../../../../sounds.js";
 import CustomButton from "../custom-button";
-
+import Chains from '../../web3/chains';
 //
 
 import cameraManager from "../../../../camera-manager.js";
 
 export const UserBox = ({ className, address, setAddress, setLoginFrom }) => {
-    const { state, setState } = useContext(AppContext);
+    const { state, setState, account, chain } = useContext(AppContext);
     const [ensName, setEnsName] = useState("");
     const [avatarUrl, setAvatarUrl] = useState("");
     const [loggingIn, setLoggingIn] = useState(false);
@@ -38,6 +38,9 @@ export const UserBox = ({ className, address, setAddress, setLoginFrom }) => {
 
     }; */
 
+    const { isConnected, currentAddress, connectWallet, disconnectWallet, errorMessage, wrongChain, getAccounts, getAccountDetails } = account;
+    const { selectedChain } = chain;
+
     const openUserPanel = (e) => {
         setState({ openedPanel: "UserPanel" });
     };
@@ -48,119 +51,112 @@ export const UserBox = ({ className, address, setAddress, setLoginFrom }) => {
         sounds.playSoundName("menuBack");
     };
 
+    useEffect(()=>{
+        if(!currentAddress) return;
+        _setAddress(currentAddress);
+    }, [currentAddress, selectedChain])
+
     const _setAddress = async (address) => {
-        if (address) {
-            // let live = true;
-            // (async () => {
-            const ensName = await blockchainManager.getEnsName(address);
-            // if (!live) return;
-            setEnsName(ensName);
+        const {name, avatar} = await getAccountDetails(address);
 
-            if (ensName) {
-                const avatarUrl = await blockchainManager.getAvatarUrl(ensName);
-                // if (!live) return;
-                setAvatarUrl(avatarUrl);
-            }
-            // })();
+        setEnsName(shortAddress(name) || '');
+        setAvatarUrl(avatar ? resolveAvatar(avatar) : '');
+        setAddress(shortAddress(address) || '');
+    };
 
-            /* return () => {
-                live = false;
-            }; */
-
-            // console.log('render name', {address, ensName, avatarUrl});
+    const shortAddress = address => {
+        if (address.length > 12) {
+            return address.slice(0, 6) + `...` + address.slice(-5);
+        } else {
+            return address;
         }
+    };
 
-        setAddress(address);
+    const resolveAvatar = url => {
+        const match = url.match(/^ipfs:\/\/(.+)/);
+        if (match) {
+            return `https://cloudflare-ipfs.com/ipfs/${match[1]}`;
+        } else {
+            return url;
+        }
     };
 
     const metaMaskLogin = async (event) => {
         event.preventDefault();
         event.stopPropagation();
 
-        /* if ( address ) {
-
-            setState({ openedPanel: ( state.openedPanel === 'UserPanel' ? null : 'UserPanel' ) });
-
-        } else { */
-
         if (!loggingIn) {
             setLoggingIn(true);
 
             try {
-                const { address, profile } = await ceramicApi.login();
-                await _setAddress(address);
-                setLoginFrom("metamask");
-                // setShow(false);
-                // setLoginFrom('metamask');
+                await connectWallet();
+                setLoginFrom('metamask');
             } catch (err) {
                 console.warn(err);
             } finally {
                 setState({ openedPanel: null });
-
                 setLoggingIn(false);
             }
         }
-
-        // }
     };
 
-    useEffect(() => {
-        const { error, code, id, play, realmId } = parseQuery(
-            window.location.search
-        );
+    // useEffect(() => {
+    //     const { error, code, id, play, realmId } = parseQuery(
+    //         window.location.search
+    //     );
 
-        //
+    //     //
 
-        const discordAutoLogin = async () => {
-            const { address, error } = await WebaWallet.loginDiscord(code, id);
+    //     const discordAutoLogin = async () => {
+    //         const { address, error } = await WebaWallet.loginDiscord(code, id);
 
-            if (address) {
-                await _setAddress(address);
-                // setAddress( address );
-                setLoginFrom("discord");
-                // setShow( false );
-            } else if (error) {
-                setLoginError(String(error).toLocaleUpperCase());
-            }
+    //         if (address) {
+    //             await _setAddress(address);
+    //             // setAddress( address );
+    //             setLoginFrom("discord");
+    //             // setShow( false );
+    //         } else if (error) {
+    //             setLoginError(String(error).toLocaleUpperCase());
+    //         }
 
-            window.history.pushState({}, "", window.location.origin);
-            setLoggingIn(false);
-        };
+    //         window.history.pushState({}, "", window.location.origin);
+    //         setLoggingIn(false);
+    //     };
 
-        const metamaskAutoLogin = async () => {
-            const { address } = await WebaWallet.autoLogin();
+    //     const metamaskAutoLogin = async () => {
+    //         const { address } = await WebaWallet.autoLogin();
 
-            if (address) {
-                await _setAddress(address);
-                setLoginFrom("metamask");
-                // setShow( false );
-            } else if (error) {
-                setLoginError(String(error).toLocaleUpperCase());
-            }
-        };
+    //         if (address) {
+    //             await _setAddress(address);
+    //             setLoginFrom("metamask");
+    //             // setShow( false );
+    //         } else if (error) {
+    //             setLoginError(String(error).toLocaleUpperCase());
+    //         }
+    //     };
 
-        //
+    //     //
 
-        if (!autoLoginRequestMade) {
-            setAutoLoginRequestMade(true);
+    //     if (!autoLoginRequestMade) {
+    //         setAutoLoginRequestMade(true);
 
-            if (code) {
-                setLoggingIn(true);
+    //         if (code) {
+    //             setLoggingIn(true);
 
-                if (WebaWallet.launched) {
-                    discordAutoLogin();
-                } else {
-                    WebaWallet.waitForLaunch().then(discordAutoLogin);
-                }
-            } else {
-                if (WebaWallet.launched) {
-                    metamaskAutoLogin();
-                } else {
-                    WebaWallet.waitForLaunch().then(metamaskAutoLogin);
-                }
-            }
-        }
-    }, [address]);
+    //             if (WebaWallet.launched) {
+    //                 discordAutoLogin();
+    //             } else {
+    //                 WebaWallet.waitForLaunch().then(discordAutoLogin);
+    //             }
+    //         } else {
+    //             if (WebaWallet.launched) {
+    //                 metamaskAutoLogin();
+    //             } else {
+    //                 WebaWallet.waitForLaunch().then(metamaskAutoLogin);
+    //             }
+    //         }
+    //     }
+    // }, [address]);
 
     //
 
@@ -293,6 +289,7 @@ export const UserBox = ({ className, address, setAddress, setLoginFrom }) => {
                                                 ? avatarUrl
                                                 : "/assets/backgrounds/profile-no-image.png"
                                         }
+                                        crossOrigin='Anonymous'
                                     />
                                 </div>
                             </div>
@@ -313,7 +310,7 @@ export const UserBox = ({ className, address, setAddress, setLoginFrom }) => {
                                 onClick={(e) => {
                                     e.preventDefault();
                                     e.stopPropagation();
-                                    WebaWallet.logout();
+                                    disconnectWallet();
                                     _setAddress(null);
                                 }}
                                 onMouseEnter={(e) => {
