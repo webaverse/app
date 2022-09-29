@@ -29,6 +29,7 @@ import transformControls from './transform-controls.js';
 import storyManager from './story.js';
 // import domRenderer from './dom-renderer.jsx';
 import raycastManager from './raycast-manager.js';
+import grabManager from './grab-manager.js';
 
 // const localVector = new THREE.Vector3();
 // const localVector2 = new THREE.Vector3();
@@ -465,7 +466,7 @@ ioManager.keydown = e => {
       // F
       e.preventDefault();
       e.stopPropagation();
-      if (game.canPush()) {
+      if (grabManager.canPush()) {
         ioManager.keys.forward = true;
       } else {
         /* if (game.canJumpOff()) {
@@ -494,6 +495,7 @@ ioManager.keydown = e => {
           game.setBuildMode('floor');
         } else { */
         game.menuDelete();
+        grabManager.menuDelete();
         // }
       }
       break;
@@ -505,7 +507,7 @@ ioManager.keydown = e => {
           game.startBuild('stair');
         } else if (game.canBuild()) {
           game.setBuildMode('stair');
-        } else */ if (game.canPush()) {
+        } else */ if (grabManager.canPush()) {
         ioManager.keys.backward = true;
       } else {
         ioManager.keys.ctrl = true;
@@ -559,8 +561,8 @@ ioManager.keydown = e => {
       } else {
         game.menuMiddleUp();
 
-        if (game.canRotate()) {
-          game.menuRotate(-1);
+        if (grabManager.canRotate()) {
+          grabManager.menuRotate(-1);
         } else {
           game.menuActivateDown();
         }
@@ -593,8 +595,8 @@ ioManager.keydown = e => {
     case 82: {
       // R
       if (cameraManager.pointerLockElement) {
-        if (game.canRotate()) {
-          game.menuRotate(1);
+        if (grabManager.canRotate()) {
+          grabManager.menuRotate(1);
         } else {
           game.dropSelectedApp();
         }
@@ -671,7 +673,7 @@ ioManager.keydown = e => {
     }
     case 192: {
       // tilde
-      game.toggleEditMode();
+      grabManager.toggleEditMode();
       break;
     }
   }
@@ -834,7 +836,7 @@ ioManager.mouseleave = e => {
 };
 ioManager.click = e => {
   if (cameraManager.pointerLockElement) {
-    game.menuClick(e);
+    grabManager.menuClick(e);
   } else {
     // game.setContextMenu(false);
 
