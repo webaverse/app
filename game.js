@@ -160,9 +160,13 @@ function updateGrabbedObject(
     localVector4.fromArray(point);
   }
 
+  // Did the ray collide with any other object than the grabbed object? Need this check because on the first frame
+  // it collides with the grabbed object although physical actors are being disabled. This caused teleport issue.
+  const collNonGrabbedObj = !!collision && !o.physicsObjects.some(obj => obj.physicsId === collision.objectId);
+
   // if collision point is closer to the player than the grab offset and collisionDown point
   // is below collision point then place the object at collision point
-  if (!!downCollision && localVector.distanceTo(localVector6) < offset && localVector4.y < localVector6.y) {
+  if (collNonGrabbedObj && !!downCollision && localVector.distanceTo(localVector6) < offset && localVector4.y < localVector6.y) {
     localVector5.copy(localVector6).sub(physicalOffset);
   }
 
