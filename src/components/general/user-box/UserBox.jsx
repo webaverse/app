@@ -38,7 +38,8 @@ export const UserBox = ({ className, address, setAddress, setLoginFrom }) => {
 
     }; */
 
-    const { isConnected, currentAddress, connectWallet, disconnectWallet, errorMessage, wrongChain, getAccounts, getAccountDetails } = account;
+    const { isConnected, currentAddress, connectWallet, disconnectWallet, errorMessage, wrongChain, getAccounts, getAccountDetails,
+        getPhantomProvider, connectPhantomWallet, disconnectPhantomWallet, walletType, setWalletType } = account;
     const { selectedChain } = chain;
 
     const openUserPanel = (e) => {
@@ -57,10 +58,12 @@ export const UserBox = ({ className, address, setAddress, setLoginFrom }) => {
     }, [currentAddress, selectedChain])
 
     const _setAddress = async (address) => {
-        const {name, avatar} = await getAccountDetails(address);
+        if(walletType == 'metamask') {
+            const {name, avatar} = await getAccountDetails(address);
+            setEnsName(name ? shortAddress(name) : '');
+            setAvatarUrl(avatar ? resolveAvatar(avatar) : '');
+        }
 
-        setEnsName(name ? shortAddress(name) : '');
-        setAvatarUrl(avatar ? resolveAvatar(avatar) : '');
         setAddress(shortAddress(address) || '');
     };
 
@@ -91,6 +94,27 @@ export const UserBox = ({ className, address, setAddress, setLoginFrom }) => {
             try {
                 await connectWallet();
                 setLoginFrom('metamask');
+                setWalletType('metamask');
+            } catch (err) {
+                console.warn(err);
+            } finally {
+                setState({ openedPanel: null });
+                setLoggingIn(false);
+            }
+        }
+    };
+
+    const phangomLogin = async ( event ) => {
+        event.preventDefault();
+        event.stopPropagation();
+
+        if ( ! loggingIn ) {
+            setLoggingIn( true );
+
+            try {
+                const phantomAddress = await connectPhantomWallet();
+                setLoginFrom('phantom');
+                setWalletType('phantom');
             } catch (err) {
                 console.warn(err);
             } finally {
@@ -296,7 +320,12 @@ export const UserBox = ({ className, address, setAddress, setLoginFrom }) => {
                         </li>
                         <li>
                             <div className={styles.loggedInText}>
-                                <div className={styles.chainName}>Polygon</div>
+                                <div className={styles.chainName}>
+                                {
+                                    walletType == 'metamask' ? 'Polygon' :
+                                    walletType == 'phantom' ? 'Solana': null
+                                }
+                                </div>
                                 <div className={styles.walletAddress}>
                                     {ensName || address }
                                 </div>
@@ -311,6 +340,7 @@ export const UserBox = ({ className, address, setAddress, setLoginFrom }) => {
                                     e.preventDefault();
                                     e.stopPropagation();
                                     disconnectWallet();
+                                    disconnectPhantomWallet();
                                 }}
                                 onMouseEnter={(e) => {
                                     _triggerClickSound();
@@ -338,6 +368,15 @@ export const UserBox = ({ className, address, setAddress, setLoginFrom }) => {
                     size={18}
                     className={styles.methodButton}
                     onClick={metaMaskLogin}
+                    onMouseEnter={_triggerClickSound}
+                />
+                <CustomButton
+                    theme="light"
+                    icon="phantom"
+                    text="Phantom"
+                    size={18}
+                    className={styles.methodButton}
+                    onClick={phangomLogin}
                     onMouseEnter={_triggerClickSound}
                 />
                 <CustomButton
