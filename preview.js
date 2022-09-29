@@ -11,11 +11,21 @@ const next = () => {
   generatePreview(url, ext, type, width, height, resolve, reject);
 };
 
-export const generatePreview = async (url, ext, type, width, height, resolve, reject) => {
+export const generatePreview = async (
+  url,
+  ext,
+  type,
+  width,
+  height,
+  resolve,
+  reject,
+) => {
   const previewHost = inappPreviewHost;
   running = true;
   // check for existing iframe
-  let iframe = document.querySelector(`iframe[src^="${previewHost}/screenshot.html"]`);
+  let iframe = document.querySelector(
+    `iframe[src^="${previewHost}/screenshot.html"]`,
+  );
 
   // else create new iframe
   if (!iframe) {
@@ -76,13 +86,17 @@ export const generatePreview = async (url, ext, type, width, height, resolve, re
 
 // URL validate function
 function isValidURL(string) {
-  const res = string.match(/(http(s)?:\/\/.)?(www\.)?[-a-zA-Z0-9@:%._\+~#=]{2,256}\.[a-z]{2,6}\b([-a-zA-Z0-9@:%_\+.~#?&//=]*)/g);
-  return (res !== null);
+  const res = string.match(
+    /(http(s)?:\/\/.)?(www\.)?[-a-zA-Z0-9@:%._\+~#=]{2,256}\.[a-z]{2,6}\b([-a-zA-Z0-9@:%_\+.~#?&//=]*)/g,
+  );
+  return res !== null;
 }
 
 export const preview = async (url, ext, type, width, height, priority = 10) => {
   return new Promise((resolve, reject) => {
-    if (!['png', 'jpg', 'jpeg', 'vox', 'vrm', 'glb', 'webm', 'gif'].includes(ext)) {
+    if (
+      !['png', 'jpg', 'jpeg', 'vox', 'vrm', 'glb', 'webm', 'gif'].includes(ext)
+    ) {
       return reject(new Error('Undefined Extension'));
     }
     if (!running) {

@@ -1,7 +1,10 @@
 import * as THREE from 'three';
 import React, {useEffect, useRef, useState} from 'react';
 import classnames from 'classnames';
-import {registerIoEventHandler, unregisterIoEventHandler} from './components/general/io-handler/IoHandler';
+import {
+  registerIoEventHandler,
+  unregisterIoEventHandler,
+} from './components/general/io-handler/IoHandler';
 import {LightArrow} from './LightArrow';
 
 import styles from './QuickMenu.module.css';
@@ -29,13 +32,10 @@ const pixelRatio = window.devicePixelRatio;
 const pixelSize = size * pixelRatio;
 
 const numSlices = emotes.length;
-const sliceSize = Math.PI * 2 / numSlices;
+const sliceSize = (Math.PI * 2) / numSlices;
 const interval = Math.PI * 0.01;
 
-const centerCoords = [
-  size / 2 - 15,
-  size / 2 - 15,
-];
+const centerCoords = [size / 2 - 15, size / 2 - 15];
 
 const outerRadius = pixelSize / 2;
 const innerRadius = pixelSize / 4;
@@ -76,11 +76,13 @@ export default function QuickMenu() {
 
   useEffect(() => {
     (async () => {
-      const emoteIconImages = await Promise.all(emotes.map(async ({icon}) => {
-        const img = await loadImage(`./images/poses/${icon}`);
-        const canvas = imageToCanvas(img, iconSize, iconSize);
-        return canvas;
-      }));
+      const emoteIconImages = await Promise.all(
+        emotes.map(async ({icon}) => {
+          const img = await loadImage(`./images/poses/${icon}`);
+          const canvas = imageToCanvas(img, iconSize, iconSize);
+          return canvas;
+        }),
+      );
       setEmoteIconImages(emoteIconImages);
     })();
   }, []);
@@ -98,7 +100,8 @@ export default function QuickMenu() {
         if (game.inputFocused()) return true;
 
         if (!e.repeat) {
-          if (e.keyCode === 81 && !e.ctrlKey) { // Q
+          if (e.keyCode === 81 && !e.ctrlKey) {
+            // Q
             cameraManager.requestPointerLock();
 
             setOpen(true);
@@ -118,7 +121,8 @@ export default function QuickMenu() {
       };
     } else {
       function keyup(e) {
-        if (e.keyCode === 81) { // Q
+        if (e.keyCode === 81) {
+          // Q
           if (open) {
             /* const emote = _getSelectedEmote();
             emote && triggerEmote(emote); */
@@ -136,10 +140,7 @@ export default function QuickMenu() {
         const {movementX, movementY} = e;
 
         const [x, y] = coords;
-        setCoords([
-          x + movementX,
-          y + movementY,
-        ]);
+        setCoords([x + movementX, y + movementY]);
 
         return false;
       }
@@ -197,16 +198,44 @@ export default function QuickMenu() {
           const selected = i === selectedSlice && selectedDepth === 0;
           ctx.fillStyle = selected ? '#4fc3f7' : '#111';
           ctx.beginPath();
-          ctx.arc(pixelSize / 2, pixelSize / 2, outerRadiusSoft, startAngle, endAngle, false);
-          ctx.arc(pixelSize / 2, pixelSize / 2, innerRadiusSoft, endAngle, startAngle, true);
+          ctx.arc(
+            pixelSize / 2,
+            pixelSize / 2,
+            outerRadiusSoft,
+            startAngle,
+            endAngle,
+            false,
+          );
+          ctx.arc(
+            pixelSize / 2,
+            pixelSize / 2,
+            innerRadiusSoft,
+            endAngle,
+            startAngle,
+            true,
+          );
           ctx.fill();
         }
         {
           const selected = i === selectedSlice && selectedDepth === 1;
           ctx.fillStyle = selected ? '#4fc3f7' : '#111';
           ctx.beginPath();
-          ctx.arc(pixelSize / 2, pixelSize / 2, outerRadius, startAngle, endAngle, false);
-          ctx.arc(pixelSize / 2, pixelSize / 2, innerRadius, endAngle, startAngle, true);
+          ctx.arc(
+            pixelSize / 2,
+            pixelSize / 2,
+            outerRadius,
+            startAngle,
+            endAngle,
+            false,
+          );
+          ctx.arc(
+            pixelSize / 2,
+            pixelSize / 2,
+            innerRadius,
+            endAngle,
+            startAngle,
+            true,
+          );
           ctx.fill();
         }
         {
@@ -222,11 +251,7 @@ export default function QuickMenu() {
             );
             ctx.rotate(midAngle + Math.PI);
             ctx.translate(-chevronSize / 2, -chevronSize / 2);
-            ctx.drawImage(
-              chevronImage,
-              0,
-              0,
-            );
+            ctx.drawImage(chevronImage, 0, 0);
             ctx.restore();
           }
 
@@ -234,11 +259,14 @@ export default function QuickMenu() {
           ctx.drawImage(
             emoteIconImages[i],
             pixelSize / 2 + Math.cos(midAngle) * radiusCenter - iconSize / 2,
-            pixelSize / 2 + Math.sin(midAngle) * radiusCenter - iconSize / 2 - pixelSize / 30,
+            pixelSize / 2 +
+              Math.sin(midAngle) * radiusCenter -
+              iconSize / 2 -
+              pixelSize / 30,
           );
 
           // hard label
-          ctx.font = (pixelSize / 30) + 'px Muli';
+          ctx.font = pixelSize / 30 + 'px Muli';
           ctx.fillStyle = '#FFF';
           ctx.fillText(
             emotes[i].name,
@@ -251,7 +279,13 @@ export default function QuickMenu() {
   };
   useEffect(() => {
     _render();
-  }, [canvasRef.current, selectedSlice, selectedDepth, emoteIconImages, chevronImage]);
+  }, [
+    canvasRef.current,
+    selectedSlice,
+    selectedDepth,
+    emoteIconImages,
+    chevronImage,
+  ]);
 
   useEffect(() => {
     localVector2D.fromArray(coords);
@@ -274,11 +308,8 @@ export default function QuickMenu() {
   //
 
   return (
-    <div className={classnames(
-      styles.quickMenu,
-      open ? styles.open : null,
-    )}>
-      <div className={styles.container} >
+    <div className={classnames(styles.quickMenu, open ? styles.open : null)}>
+      <div className={styles.container}>
         <canvas
           className={styles.canvas}
           width={pixelSize}

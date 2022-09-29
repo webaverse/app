@@ -10,7 +10,14 @@ const localEuler = new THREE.Euler();
 const localMatrix = new THREE.Matrix4();
 
 export default (app, component) => {
-  const {useFrame, useCleanup, useLocalPlayer, useRemotePlayers, getPlayerByAppInstanceId, useActivate} = metaversefile;
+  const {
+    useFrame,
+    useCleanup,
+    useLocalPlayer,
+    useRemotePlayers,
+    getPlayerByAppInstanceId,
+    useActivate,
+  } = metaversefile;
 
   let petSpec = null;
   let petMixer = null;
@@ -33,7 +40,9 @@ export default (app, component) => {
     });
     petMixer = new THREE.AnimationMixer(firstMesh);
 
-    const idleAnimation = petComponent.idleAnimation ? app.glb.animations.find(a => a.name === petComponent.idleAnimation) : null;
+    const idleAnimation = petComponent.idleAnimation
+      ? app.glb.animations.find(a => a.name === petComponent.idleAnimation)
+      : null;
     if (idleAnimation) {
       idleAction = petMixer.clipAction(idleAnimation);
       idleAction.play();
@@ -78,12 +87,20 @@ export default (app, component) => {
 
         petSpec = app.getComponent('pet');
         if (petSpec) {
-          const walkAnimation = (petSpec.walkAnimation && petSpec.walkAnimation !== petSpec.idleAnimation) ? animations.find(a => a.name === petSpec.walkAnimation) : null;
+          const walkAnimation =
+            petSpec.walkAnimation &&
+            petSpec.walkAnimation !== petSpec.idleAnimation
+              ? animations.find(a => a.name === petSpec.walkAnimation)
+              : null;
           if (walkAnimation) {
             walkAction = petMixer.clipAction(walkAnimation);
             walkAction.play();
           }
-          const runAnimation = (petSpec.runAnimation && petSpec.runAnimation !== petSpec.idleAnimation) ? animations.find(a => a.name === petSpec.runAnimation) : null;
+          const runAnimation =
+            petSpec.runAnimation &&
+            petSpec.runAnimation !== petSpec.idleAnimation
+              ? animations.find(a => a.name === petSpec.runAnimation)
+              : null;
           if (runAnimation) {
             runAction = petMixer.clipAction(runAnimation);
             runAction.play();
@@ -105,7 +122,7 @@ export default (app, component) => {
     return distance;
   };
   const minDistance = 1;
-  const _isFar = distance => (distance - minDistance) > 0.01;
+  const _isFar = distance => distance - minDistance > 0.01;
   useFrame(({timestamp, timeDiff}) => {
     // components
     const _updateAnimation = () => {
@@ -115,25 +132,31 @@ export default (app, component) => {
           rootBone.quaternion.copy(rootBone.originalQuaternion);
           rootBone.updateMatrixWorld();
         }
-        if (petMixer) { // animated pet
-          if (petSpec) { // activated pet
+        if (petMixer) {
+          // animated pet
+          if (petSpec) {
+            // activated pet
             const speed = 0.0014;
 
             const distance = _getAppDistance();
             const moveDelta = localVector;
             moveDelta.setScalar(0);
-            if (_isFar(distance)) { // handle rounding errors
+            if (_isFar(distance)) {
+              // handle rounding errors
               const position = player.position.clone();
               position.y = 0;
-              const direction = position.clone()
-                .sub(app.position)
-                .normalize();
+              const direction = position.clone().sub(app.position).normalize();
               const maxMoveDistance = distance - minDistance;
               const moveDistance = Math.min(speed * timeDiff, maxMoveDistance);
-              moveDelta.copy(direction)
-                .multiplyScalar(moveDistance);
+              moveDelta.copy(direction).multiplyScalar(moveDistance);
               app.position.add(moveDelta);
-              app.quaternion.slerp(localQuaternion.setFromUnitVectors(localVector2.set(0, 0, 1), direction), 0.1);
+              app.quaternion.slerp(
+                localQuaternion.setFromUnitVectors(
+                  localVector2.set(0, 0, 1),
+                  direction,
+                ),
+                0.1,
+              );
               app.updateMatrixWorld();
             } /* else {
               // console.log('check', head === drop, component.attractedTo === 'fruit', typeof component.eatSpeed === 'number');
@@ -154,7 +177,13 @@ export default (app, component) => {
               walkAction.weight = Math.min(currentSpeed / walkSpeed, 1);
             }
             if (runAction) {
-              runAction.weight = Math.min(Math.max((currentSpeed - walkSpeed) / (runSpeed - walkSpeed), 0), 1);
+              runAction.weight = Math.min(
+                Math.max(
+                  (currentSpeed - walkSpeed) / (runSpeed - walkSpeed),
+                  0,
+                ),
+                1,
+              );
             }
             if (idleAction) {
               if (walkAction || runAction) {
@@ -163,7 +192,8 @@ export default (app, component) => {
                 idleAction.weight = 1;
               }
             }
-          } else { // unactivated pet
+          } else {
+            // unactivated pet
             if (idleAction) {
               idleAction.weight = 1;
             }
@@ -199,7 +229,9 @@ export default (app, component) => {
           }
         });
         if (skinnedMesh) {
-          const bone = skinnedMesh.skeleton.bones.find(bone => bone.name === lookComponent.rootBone);
+          const bone = skinnedMesh.skeleton.bones.find(
+            bone => bone.name === lookComponent.rootBone,
+          );
           if (bone) {
             rootBone = bone;
             if (!bone.originalQuaternion) {
@@ -211,24 +243,42 @@ export default (app, component) => {
 
             if (!bone.quaternion.equals(lastLookQuaternion)) {
               const {position} = nearestPlayer;
-              localQuaternion2.setFromRotationMatrix(
-                localMatrix.lookAt(
-                  position,
-                  bone.getWorldPosition(localVector),
-                  localVector2.set(0, 1, 0),
-                ),
-              ).premultiply(localQuaternion.copy(app.quaternion).invert());
+              localQuaternion2
+                .setFromRotationMatrix(
+                  localMatrix.lookAt(
+                    position,
+                    bone.getWorldPosition(localVector),
+                    localVector2.set(0, 1, 0),
+                  ),
+                )
+                .premultiply(localQuaternion.copy(app.quaternion).invert());
               localEuler.setFromQuaternion(localQuaternion2, 'YXZ');
-              localEuler.y = Math.min(Math.max(localEuler.y, -Math.PI * 0.5), Math.PI * 0.5);
-              localQuaternion2.setFromEuler(localEuler)
+              localEuler.y = Math.min(
+                Math.max(localEuler.y, -Math.PI * 0.5),
+                Math.PI * 0.5,
+              );
+              localQuaternion2
+                .setFromEuler(localEuler)
                 .premultiply(app.quaternion);
 
-              bone.matrixWorld.decompose(localVector, localQuaternion, localVector2);
-              localQuaternion.copy(localQuaternion2)
-                .multiply(localQuaternion3.copy(bone.originalQuaternion).invert())
+              bone.matrixWorld.decompose(
+                localVector,
+                localQuaternion,
+                localVector2,
+              );
+              localQuaternion
+                .copy(localQuaternion2)
+                .multiply(
+                  localQuaternion3.copy(bone.originalQuaternion).invert(),
+                )
                 .normalize();
-              bone.matrixWorld.compose(localVector, localQuaternion, bone.originalWorldScale);
-              bone.matrix.copy(bone.matrixWorld)
+              bone.matrixWorld.compose(
+                localVector,
+                localQuaternion,
+                bone.originalWorldScale,
+              );
+              bone.matrix
+                .copy(bone.matrixWorld)
                 .premultiply(localMatrix.copy(bone.parent.matrixWorld).invert())
                 .decompose(bone.position, bone.quaternion, bone.scale);
               bone.updateMatrixWorld();

@@ -11,19 +11,40 @@ const menuHeight = cardHeight * cardsBufferFactor * 4;
 const menuRadius = 0.025;
 
 function mod(a, n) {
-  return (a % n + n) % n;
+  return ((a % n) + n) % n;
 }
 
 function makeShape(shape, x, y, width, height, radius) {
-  shape.absarc(x - width / 2, y + height / 2, radius, Math.PI, Math.PI / 2, true);
+  shape.absarc(
+    x - width / 2,
+    y + height / 2,
+    radius,
+    Math.PI,
+    Math.PI / 2,
+    true,
+  );
   shape.absarc(x + width / 2, y + height / 2, radius, Math.PI / 2, 0, true);
   shape.absarc(x + width / 2, y - height / 2, radius, 0, -Math.PI / 2, true);
-  shape.absarc(x - width / 2, y - height / 2, radius, -Math.PI / 2, -Math.PI, true);
+  shape.absarc(
+    x - width / 2,
+    y - height / 2,
+    radius,
+    -Math.PI / 2,
+    -Math.PI,
+    true,
+  );
   return shape;
 }
 function createBoxWithRoundedEdges(width, height, radius, innerFactor) {
   const shape = makeShape(new THREE.Shape(), 0, 0, width, height, radius);
-  const hole = makeShape(new THREE.Path(), 0, 0, width * innerFactor, height * innerFactor, radius);
+  const hole = makeShape(
+    new THREE.Path(),
+    0,
+    0,
+    width * innerFactor,
+    height * innerFactor,
+    radius,
+  );
   shape.holes.push(hole);
 
   const geometry = new THREE.ShapeGeometry(shape);

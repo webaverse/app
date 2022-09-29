@@ -77,9 +77,13 @@ void main() {
   vec3 p = position;
   float factor = mod(uTime, 1.);
   // float distance1 = length(p.xz);
-  float distance1 = ${minRadius.toFixed(8)} + instance * ${(minRadius).toFixed(8)};;
+  float distance1 = ${minRadius.toFixed(8)} + instance * ${minRadius.toFixed(
+  8,
+)};;
   float distance2 = distance1 + ${minRadius.toFixed(8)};
-  float distance = distance1 * (1.0 - factor) + distance2 * factor - ${(minRadius).toFixed(8)};
+  float distance = distance1 * (1.0 - factor) + distance2 * factor - ${minRadius.toFixed(
+    8,
+  )};
   p.xz *= distance / distance1;
   
   float distanceFactor = (distance) / ${(maxRadius - minRadius).toFixed(8)};

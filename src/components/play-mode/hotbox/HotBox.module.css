@@ -3,6 +3,11 @@
     position: relative;
     display: flex;
     flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    margin: auto 3px;
+    height: 83px;
+    top: -44px;
 }
 
 .hotBox .box {
@@ -10,6 +15,10 @@
     width: 60px;
     height: 60px;
     margin-right: 2px;
+    background-image: url("/assets/backgrounds/token-item-background.svg");
+    background-position: center;
+    background-size: 100%;
+    background-repeat: no-repeat;
     /* background: radial-gradient( #222, #000 );
     border: 2px solid #000; */
     /* transition: all cubic-bezier( 0, 1, 0, 1 ) 0.3s; */
@@ -18,18 +27,16 @@
 .hotBox .label {
     position: relative;
     display: flex;
-    margin: 5px auto;
+    margin: 2px auto;
     justify-content: center;
     align-items: center;
     width: 20px;
     height: 20px;
-    background-color: #666;
-    border-radius: 3px;
-    color: #FFFFFF80;
+    background-color: #000;
+    color: #FFF;
     user-select: none;
 }
 .hotBox:not(.selected) .label {
-    opacity: 0.3;
 }
 .hotBox .background {
     position: absolute;

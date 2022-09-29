@@ -6,9 +6,9 @@ const ChainContext = createContext();
 
 function ChainProvider({children}) {
   const account = useChain(DEFAULT_CHAIN);
-  return <ChainContext.Provider value={account}>
-    {children}
-  </ChainContext.Provider>;
+  return (
+    <ChainContext.Provider value={account}>{children}</ChainContext.Provider>
+  );
 }
 
 export {ChainContext, ChainProvider};

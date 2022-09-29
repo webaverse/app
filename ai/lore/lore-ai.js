@@ -3,32 +3,25 @@ import {
   defaultPlayerBio,
   defaultObjectName,
   defaultObjectDescription,
-
   makeLorePrompt,
   makeLoreStop,
   postProcessResponse,
   parseLoreResponses,
-
   makeCommentPrompt,
   makeCommentStop,
   parseCommentResponse,
-
   makeSelectTargetPrompt,
   makeSelectTargetStop,
   parseSelectTargetResponse,
-
   makeSelectCharacterPrompt,
   makeSelectCharacterStop,
   parseSelectCharacterResponse,
-
   makeChatPrompt,
   makeChatStop,
   parseChatResponse,
-
   makeOptionsPrompt,
   makeOptionsStop,
   parseOptionsResponse,
-
   makeCharacterIntroPrompt,
   makeCharacterIntroStop,
   parseCharacterIntroResponse,
@@ -44,10 +37,7 @@ const temperature = 1;
 const top_p = 1;
 
 class AICharacter extends EventTarget {
-  constructor({
-    name = defaultPlayerName,
-    bio = defaultPlayerBio,
-  } = {}) {
+  constructor({name = defaultPlayerName, bio = defaultPlayerBio} = {}) {
     super();
 
     this.name = name;
@@ -66,24 +56,20 @@ class AIObject extends EventTarget {
   }
 }
 class AIScene {
-  constructor({
-    localPlayer,
-    generateFn,
-  }) {
+  constructor({localPlayer, generateFn}) {
     this.settings = [];
     this.objects = [];
     this.localCharacter = new AICharacter(localPlayer.name, localPlayer.bio);
-    this.characters = [
-      this.localCharacter,
-    ];
+    this.characters = [this.localCharacter];
     this.messages = [];
     this.generateFn = generateFn;
 
-    const _waitForFrame = () => new Promise(resolve => {
-      requestAnimationFrame(() => {
-        resolve();
+    const _waitForFrame = () =>
+      new Promise(resolve => {
+        requestAnimationFrame(() => {
+          resolve();
+        });
       });
-    });
     const _pushRequestMessage = async message => {
       const emote = 'none';
       const action = 'none';
@@ -116,15 +102,17 @@ class AIScene {
       while (this.messages.length > 8) {
         this.messages.shift();
       }
-      character.dispatchEvent(new MessageEvent('say', {
-        data: {
-          message,
-          emote,
-          action,
-          object,
-          target,
-        },
-      }));
+      character.dispatchEvent(
+        new MessageEvent('say', {
+          data: {
+            message,
+            emote,
+            action,
+            object,
+            target,
+          },
+        }),
+      );
       await _waitForFrame();
     };
     localPlayer.characterHups.addEventListener('hupadd', e => {
@@ -133,9 +121,13 @@ class AIScene {
         const {message} = e.data;
         const messageLowerCase = message.toLowerCase();
 
-        if (this.messages.length === 0) { // start of conversation
+        if (this.messages.length === 0) {
+          // start of conversation
           const mentionedCharacterIndex = this.characters.findIndex(c => {
-            return c !== this.localCharacter && messageLowerCase.includes(c.name.toLowerCase());
+            return (
+              c !== this.localCharacter &&
+              messageLowerCase.includes(c.name.toLowerCase())
+            );
           });
           if (mentionedCharacterIndex !== -1) {
             const mentionedCharacter = this.characters[mentionedCharacterIndex];
@@ -147,8 +139,14 @@ class AIScene {
                 if (a.length > 0) {
                   for (const o of a) {
                     const {name, message} = o;
-                    const character = this.characters.find(c => c.name === name);
-                    if (message && character && character !== this.localCharacter) {
+                    const character = this.characters.find(
+                      c => c.name === name,
+                    );
+                    if (
+                      message &&
+                      character &&
+                      character !== this.localCharacter
+                    ) {
                       await _pushResponseMessage(o);
                     } else {
                       break;
@@ -159,7 +157,8 @@ class AIScene {
               }
             }
           }
-        } else { // middle of conversation
+        } else {
+          // middle of conversation
           await _pushRequestMessage(message);
 
           for (let i = 0; i < numGenerateTries; i++) {
@@ -169,10 +168,7 @@ class AIScene {
             const a = parseLoreResponses(response);
             if (a.length > 0) {
               for (const o of a) {
-                const {
-                  name,
-                  message,
-                } = o;
+                const {name, message} = o;
                 const character = this.characters.find(c => c.name === name);
                 // console.log('character name', this.characters.map(c => c.name), characterNameLowerCase, !!character);
                 if (message && character && character !== this.localCharacter) {
@@ -328,7 +324,13 @@ class AIScene {
     return response2;
   }
 
-  async checkIfQuestIsApplicable(location, conversation, user1, user2, tries = 0) {
+  async checkIfQuestIsApplicable(
+    location,
+    conversation,
+    user1,
+    user2,
+    tries = 0,
+  ) {
     const prompt = makeQuestCheckerPrompt(location, conversation, user1, user2);
     const stop = makeQuestCheckerStop();
     const response = (await this.generateFn(prompt, stop))?.trim();
@@ -336,7 +338,13 @@ class AIScene {
       if (tries >= 5) {
         return 'no';
       } else {
-        return this.checkIfQuestIsApplicable(location, conversation, user1, user2, tries++);
+        return this.checkIfQuestIsApplicable(
+          location,
+          conversation,
+          user1,
+          user2,
+          tries++,
+        );
       }
     }
     console.log('response:', response);
@@ -357,14 +365,17 @@ class LoreAI {
     this.endpointFn = null;
   }
 
-  async generate(prompt, {
-    stop,
-    max_tokens = 100,
-    temperature,
-    frequency_penalty,
-    presence_penalty,
-    // top_p,
-  } = {}) {
+  async generate(
+    prompt,
+    {
+      stop,
+      max_tokens = 100,
+      temperature,
+      frequency_penalty,
+      presence_penalty,
+      // top_p,
+    } = {},
+  ) {
     if (prompt) {
       const query = {};
       query.prompt = prompt;
@@ -407,9 +418,11 @@ class LoreAI {
       return await this.endpointFn(query);
     } else {
       return {
-        choices: [{
-          text: '',
-        }],
+        choices: [
+          {
+            text: '',
+          },
+        ],
       };
     }
   }

@@ -1,4 +1,3 @@
-
 import React, {useState, useEffect} from 'react';
 import classNames from 'classnames';
 
@@ -89,7 +88,9 @@ export const TabControls = ({active}) => {
 
     saveSettings();
     setChangesNotSaved(false);
-    setTimeout(() => { setAppyingChanges(false); }, 1000);
+    setTimeout(() => {
+      setAppyingChanges(false);
+    }, 1000);
   }
 
   function handleApplySettingsBtnClick() {
@@ -100,7 +101,18 @@ export const TabControls = ({active}) => {
   //
 
   useEffect(() => {
-    if (moveForward && moveLeft && moveRight && moveBack && jump && run && narutoRun && action && chat && inventory) {
+    if (
+      moveForward &&
+      moveLeft &&
+      moveRight &&
+      moveBack &&
+      jump &&
+      run &&
+      narutoRun &&
+      action &&
+      chat &&
+      inventory
+    ) {
       if (settingsLoaded) {
         setChangesNotSaved(true);
       } else {
@@ -108,7 +120,18 @@ export const TabControls = ({active}) => {
         applySettings();
       }
     }
-  }, [moveForward, moveLeft, moveRight, moveBack, jump, run, narutoRun, action, chat, inventory]);
+  }, [
+    moveForward,
+    moveLeft,
+    moveRight,
+    moveBack,
+    jump,
+    run,
+    narutoRun,
+    action,
+    chat,
+    inventory,
+  ]);
 
   useEffect(() => {
     loadSettings();
@@ -117,61 +140,101 @@ export const TabControls = ({active}) => {
   //
 
   return (
-        <div className={ classNames(styles.controlsTab, styles.tabContent, active ? styles.active : null) }>
-            <div className={ styles.row }>
-                <div className={ styles.paramName }>Move forward</div>
-                <KeyInput className={ styles.keyInput } value={ moveForward } setValue={ setMoveForward } />
-                <div className={ styles.clearfix } />
-            </div>
-            <div className={ styles.row }>
-                <div className={ styles.paramName }>Move left</div>
-                <KeyInput className={ styles.keyInput } value={ moveLeft } setValue={ setMoveLeft } />
-                <div className={ styles.clearfix } />
-            </div>
-            <div className={ styles.row }>
-                <div className={ styles.paramName }>Move right</div>
-                <KeyInput className={ styles.keyInput } value={ moveRight } setValue={ setMoveRight } />
-                <div className={ styles.clearfix } />
-            </div>
-            <div className={ styles.row }>
-                <div className={ styles.paramName }>Move back</div>
-                <KeyInput className={ styles.keyInput } value={ moveBack } setValue={ setMoveBack } />
-                <div className={ styles.clearfix } />
-            </div>
-            <div className={ styles.row }>
-                <div className={ styles.paramName }>Jump</div>
-                <KeyInput className={ styles.keyInput } value={ jump } setValue={ setJump } />
-                <div className={ styles.clearfix } />
-            </div>
-            <div className={ styles.row }>
-                <div className={ styles.paramName }>Run</div>
-                <KeyInput className={ styles.keyInput } value={ run } setValue={ setRun } />
-                <div className={ styles.clearfix } />
-            </div>
-            <div className={ styles.row }>
-                <div className={ styles.paramName }>Naruto run</div>
-                <KeyInput className={ styles.keyInput } value={ narutoRun } setValue={ setNarutoRun } />
-                <div className={ styles.clearfix } />
-            </div>
-            <div className={ styles.row }>
-                <div className={ styles.paramName }>Action</div>
-                <KeyInput className={ styles.keyInput } value={ action } setValue={ setAction } />
-                <div className={ styles.clearfix } />
-            </div>
-            <div className={ styles.row }>
-                <div className={ styles.paramName }>Chat</div>
-                <KeyInput className={ styles.keyInput } value={ chat } setValue={ setChat } />
-                <div className={ styles.clearfix } />
-            </div>
-            <div className={ styles.row }>
-                <div className={ styles.paramName }>Inventory</div>
-                <KeyInput className={ styles.keyInput } value={ inventory } setValue={ setInventory } />
-                <div className={ styles.clearfix } />
-            </div>
+    <div
+      className={classNames(
+        styles.controlsTab,
+        styles.tabContent,
+        active ? styles.active : null,
+      )}
+    >
+      <div className={styles.row}>
+        <div className={styles.paramName}>Move forward</div>
+        <KeyInput
+          className={styles.keyInput}
+          value={moveForward}
+          setValue={setMoveForward}
+        />
+        <div className={styles.clearfix} />
+      </div>
+      <div className={styles.row}>
+        <div className={styles.paramName}>Move left</div>
+        <KeyInput
+          className={styles.keyInput}
+          value={moveLeft}
+          setValue={setMoveLeft}
+        />
+        <div className={styles.clearfix} />
+      </div>
+      <div className={styles.row}>
+        <div className={styles.paramName}>Move right</div>
+        <KeyInput
+          className={styles.keyInput}
+          value={moveRight}
+          setValue={setMoveRight}
+        />
+        <div className={styles.clearfix} />
+      </div>
+      <div className={styles.row}>
+        <div className={styles.paramName}>Move back</div>
+        <KeyInput
+          className={styles.keyInput}
+          value={moveBack}
+          setValue={setMoveBack}
+        />
+        <div className={styles.clearfix} />
+      </div>
+      <div className={styles.row}>
+        <div className={styles.paramName}>Jump</div>
+        <KeyInput className={styles.keyInput} value={jump} setValue={setJump} />
+        <div className={styles.clearfix} />
+      </div>
+      <div className={styles.row}>
+        <div className={styles.paramName}>Run</div>
+        <KeyInput className={styles.keyInput} value={run} setValue={setRun} />
+        <div className={styles.clearfix} />
+      </div>
+      <div className={styles.row}>
+        <div className={styles.paramName}>Naruto run</div>
+        <KeyInput
+          className={styles.keyInput}
+          value={narutoRun}
+          setValue={setNarutoRun}
+        />
+        <div className={styles.clearfix} />
+      </div>
+      <div className={styles.row}>
+        <div className={styles.paramName}>Action</div>
+        <KeyInput
+          className={styles.keyInput}
+          value={action}
+          setValue={setAction}
+        />
+        <div className={styles.clearfix} />
+      </div>
+      <div className={styles.row}>
+        <div className={styles.paramName}>Chat</div>
+        <KeyInput className={styles.keyInput} value={chat} setValue={setChat} />
+        <div className={styles.clearfix} />
+      </div>
+      <div className={styles.row}>
+        <div className={styles.paramName}>Inventory</div>
+        <KeyInput
+          className={styles.keyInput}
+          value={inventory}
+          setValue={setInventory}
+        />
+        <div className={styles.clearfix} />
+      </div>
 
-            <div className={ classNames(styles.applyBtn, changesNotSaved ? styles.active : null) } onClick={ handleApplySettingsBtnClick } >
-                { appyingChanges ? 'APPLYING' : 'APPLY' }
-            </div>
-        </div>
+      <div
+        className={classNames(
+          styles.applyBtn,
+          changesNotSaved ? styles.active : null,
+        )}
+        onClick={handleApplySettingsBtnClick}
+      >
+        {appyingChanges ? 'APPLYING' : 'APPLY'}
+      </div>
+    </div>
   );
 };

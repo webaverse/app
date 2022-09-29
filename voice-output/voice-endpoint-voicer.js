@@ -15,7 +15,10 @@ class PreloadMessage {
     this.text = text;
 
     this.isPreloadMessage = true;
-    this.loadPromise = VoiceEndpointVoicer.loadAudioBuffer(this.voiceEndpointUrl, this.text);
+    this.loadPromise = VoiceEndpointVoicer.loadAudioBuffer(
+      this.voiceEndpointUrl,
+      this.text,
+    );
   }
 
   waitForLoad() {
@@ -39,7 +42,10 @@ class VoiceEndpointVoicer {
   }
 
   preloadMessage(text) {
-    return VoiceEndpointVoicer.preloadMessage(this.voiceEndpoint.url.toString(), text);
+    return VoiceEndpointVoicer.preloadMessage(
+      this.voiceEndpoint.url.toString(),
+      text,
+    );
   }
 
   static async loadAudioBuffer(voiceEndpointUrl, text) {
@@ -47,9 +53,11 @@ class VoiceEndpointVoicer {
     try {
       const u = new URL(voiceEndpointUrl);
       u.searchParams.set('s', text);
-      const res = await fetch(u, /*, {
+      const res = await fetch(
+        u /*, {
         mode: 'cors',
-      } */);
+      } */,
+      );
       const arrayBuffer = await res.arrayBuffer();
 
       const audioContext = audioManager.getAudioContext();
@@ -97,7 +105,9 @@ class VoiceEndpointVoicer {
       };
 
       (async () => {
-        const audioBuffer = await (text.isPreloadMessage ? text.waitForLoad() : this.loadAudioBuffer(text));
+        const audioBuffer = await (text.isPreloadMessage
+          ? text.waitForLoad()
+          : this.loadAudioBuffer(text));
         if (!live) {
           console.log('bail on audio buffer');
           return;
@@ -147,7 +157,8 @@ class VoiceEndpointVoicer {
     this.running = false;
   }
 }
-const getVoiceEndpointUrl = voiceId => `${voiceEndpointBaseUrl}?voice=${encodeURIComponent(voiceId)}`;
+const getVoiceEndpointUrl = voiceId =>
+  `${voiceEndpointBaseUrl}?voice=${encodeURIComponent(voiceId)}`;
 
 export {
   VoiceEndpoint,

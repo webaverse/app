@@ -9,7 +9,10 @@ import {alea} from './procgen/procgen.js';
 import {createRelativeUrl} from './util.js';
 import dropManager from './drop-manager.js';
 import loaders from './loaders.js';
-import {InstancedBatchedMesh, InstancedGeometryAllocator} from './geometry-batching.js';
+import {
+  InstancedBatchedMesh,
+  InstancedGeometryAllocator,
+} from './geometry-batching.js';
 import {createTextureAtlas} from './atlasing.js';
 
 const localVector = new THREE.Vector3();
@@ -82,20 +85,14 @@ const _findBone = o => {
   return bone;
 };
 
-function makeCharacterController(app, {
-  radius,
-  height,
-  physicsOffset,
-}) {
+function makeCharacterController(app, {radius, height, physicsOffset}) {
   const innerHeight = height - radius * 2;
   const contactOffset = 0.1 * height;
   const stepOffset = 0.1 * height;
 
-  const characterPosition = localVector.setFromMatrixPosition(app.matrixWorld)
-    .add(
-      localVector3.copy(physicsOffset)
-        .applyQuaternion(localQuaternion),
-    );
+  const characterPosition = localVector
+    .setFromMatrixPosition(app.matrixWorld)
+    .add(localVector3.copy(physicsOffset).applyQuaternion(localQuaternion));
 
   const characterController = physicsManager.createCharacterController(
     radius - contactOffset,
@@ -155,7 +152,9 @@ class Mob {
       const physicsOffset = new THREE.Vector3().fromArray(physicsPosition);
       // const physicsRotation = new THREE.Quaternion().fromArray(physicsQuaternion);
       // const modelOffset = new THREE.Vector3().fromArray(modelPosition);
-      const modelPrerotation = new THREE.Quaternion().fromArray(modelQuaternion);
+      const modelPrerotation = new THREE.Quaternion().fromArray(
+        modelQuaternion,
+      );
 
       const subApp = await metaversefile.createAppAsync({
         start_url: mobUrl,
@@ -190,8 +189,7 @@ class Mob {
         for (let i = 0; i < numDrops; i++) {
           dropManager.createDropApp({
             start_url: silkStartUrl,
-            position: subApp.position.clone()
-              .add(new THREE.Vector3(0, 0.7, 0)),
+            position: subApp.position.clone().add(new THREE.Vector3(0, 0.7, 0)),
             quaternion: subApp.quaternion,
             scale: subApp.scale,
           });
@@ -211,7 +209,11 @@ class Mob {
 
       const mesh = subApp;
       const animations = subApp.glb.animations;
-      let {idleAnimation = ['idle'], aggroDistance, walkSpeed = 1} = mobComponent;
+      let {
+        idleAnimation = ['idle'],
+        aggroDistance,
+        walkSpeed = 1,
+      } = mobComponent;
       if (idleAnimation) {
         if (!Array.isArray(idleAnimation)) {
           idleAnimation = [idleAnimation];
@@ -232,25 +234,31 @@ class Mob {
         localVector2,
         localMatrix,
       ) => {
-        const {
-          position,
-          quaternion,
-        } = spec;
+        const {position, quaternion} = spec;
 
         localVector.fromArray(position);
         localQuaternion.fromArray(quaternion);
         localVector2.set(1, 1, 1);
-        localMatrix.compose(localVector, localQuaternion, localVector2)
+        localMatrix
+          .compose(localVector, localQuaternion, localVector2)
           .premultiply(mesh.matrixWorld)
           .decompose(localVector, localQuaternion, localVector2);
       };
       const extraPhysicsObjects = extraPhysics.map(spec => {
-        const {
+        const {radius, halfHeight} = spec;
+        _getPhysicsExtraPositionQuaternion(
+          spec,
+          localVector,
+          localQuaternion,
+          localVector2,
+          localMatrix,
+        );
+        const physicsObject = physicsManager.addCapsuleGeometry(
+          localVector,
+          localQuaternion,
           radius,
           halfHeight,
-        } = spec;
-        _getPhysicsExtraPositionQuaternion(spec, localVector, localQuaternion, localVector2, localMatrix);
-        const physicsObject = physicsManager.addCapsuleGeometry(localVector, localQuaternion, radius, halfHeight);
+        );
         physicsObject.spec = spec;
         return physicsObject;
       });
@@ -274,10 +282,14 @@ class Mob {
       }
 
       // initialize animation
-      const idleAnimationClips = idleAnimation.map(name => animations.find(a => a.name === name)).filter(a => !!a);
+      const idleAnimationClips = idleAnimation
+        .map(name => animations.find(a => a.name === name))
+        .filter(a => !!a);
       if (idleAnimationClips.length > 0) {
         const mixer = new THREE.AnimationMixer(mesh);
-        const idleActions = idleAnimationClips.map(idleAnimationClip => mixer.clipAction(idleAnimationClip));
+        const idleActions = idleAnimationClips.map(idleAnimationClip =>
+          mixer.clipAction(idleAnimationClip),
+        );
         for (const idleAction of idleActions) {
           idleAction.play();
         }
@@ -296,27 +308,49 @@ class Mob {
         const timeDiffS = timeDiff / 1000;
 
         if (animation) {
-          mesh.position.add(localVector.copy(animation.velocity).multiplyScalar(timeDiff / 1000));
-          animation.velocity.add(localVector.copy(physicsManager.getGravity()).multiplyScalar(timeDiff / 1000));
+          mesh.position.add(
+            localVector
+              .copy(animation.velocity)
+              .multiplyScalar(timeDiff / 1000),
+          );
+          animation.velocity.add(
+            localVector
+              .copy(physicsManager.getGravity())
+              .multiplyScalar(timeDiff / 1000),
+          );
           if (mesh.position.y < 0) {
             animation = null;
           }
 
-          physicsManager.setCharacterControllerPosition(characterController, mesh.position);
+          physicsManager.setCharacterControllerPosition(
+            characterController,
+            mesh.position,
+          );
 
           mesh.updateMatrixWorld();
 
           // _updatePhysics();
         } else {
           // decompose world transform
-          mesh.matrixWorld.decompose(localVector2, localQuaternion, localVector3);
+          mesh.matrixWorld.decompose(
+            localVector2,
+            localQuaternion,
+            localVector3,
+          );
           const meshPosition = localVector2;
           const meshQuaternion = localQuaternion;
           const meshScale = localVector3;
 
           const meshPositionY0 = localVector4.copy(meshPosition);
-          const characterPositionY0 = localVector5.copy(localPlayer.position)
-            .add(localVector6.set(0, localPlayer.avatar ? -localPlayer.avatar.height : 0, 0));
+          const characterPositionY0 = localVector5
+            .copy(localPlayer.position)
+            .add(
+              localVector6.set(
+                0,
+                localPlayer.avatar ? -localPlayer.avatar.height : 0,
+                0,
+              ),
+            );
           const distance = meshPositionY0.distanceTo(characterPositionY0);
 
           _zeroY(meshPositionY0);
@@ -325,11 +359,16 @@ class Mob {
           const _handleAggroMovement = () => {
             if (distance < aggroDistance) {
               if (distance > minDistance) {
-                const movementDirection = _zeroY(characterPositionY0.sub(meshPositionY0))
-                  .normalize();
+                const movementDirection = _zeroY(
+                  characterPositionY0.sub(meshPositionY0),
+                ).normalize();
                 const maxMoveDistance = distance - minDistance;
-                const moveDistance = Math.min(walkSpeed * timeDiff * 1000, maxMoveDistance);
-                const moveDelta = localVector6.copy(movementDirection)
+                const moveDistance = Math.min(
+                  walkSpeed * timeDiff * 1000,
+                  maxMoveDistance,
+                );
+                const moveDelta = localVector6
+                  .copy(movementDirection)
                   .multiplyScalar(moveDistance)
                   .add(localVector7.copy(velocity).multiplyScalar(timeDiffS));
                 const minDist = 0;
@@ -358,25 +397,27 @@ class Mob {
                 const grounded = !!(flags & 0x1);
                 if (!grounded) {
                   velocity.add(
-                    localVector.copy(physicsManager.getGravity())
+                    localVector
+                      .copy(physicsManager.getGravity())
                       .multiplyScalar(timeDiffS),
                   );
                 } else {
                   velocity.set(0, 0, 0);
                 }
 
-                meshPosition.copy(characterController.position)
+                meshPosition
+                  .copy(characterController.position)
                   .sub(physicsOffset);
 
                 const targetQuaternion = localQuaternion2
                   .setFromRotationMatrix(
-                    localMatrix
-                      .lookAt(
-                        meshPosition,
-                        localPlayer.position,
-                        upVector,
-                      ),
-                  ).premultiply(modelPrerotation);
+                    localMatrix.lookAt(
+                      meshPosition,
+                      localPlayer.position,
+                      upVector,
+                    ),
+                  )
+                  .premultiply(modelPrerotation);
                 localEuler.setFromQuaternion(targetQuaternion, 'YXZ');
                 localEuler.x = 0;
                 localEuler.y += Math.PI;
@@ -384,12 +425,22 @@ class Mob {
                 localQuaternion2.setFromEuler(localEuler);
                 meshQuaternion.slerp(targetQuaternion, 0.1);
 
-                mesh.matrixWorld.compose(meshPosition, meshQuaternion, meshScale);
+                mesh.matrixWorld.compose(
+                  meshPosition,
+                  meshQuaternion,
+                  meshScale,
+                );
                 mesh.matrix.copy(mesh.matrixWorld);
                 if (this.app.parent) {
-                  mesh.matrix.premultiply(localMatrix.copy(this.app.parent.matrixWorld).invert());
+                  mesh.matrix.premultiply(
+                    localMatrix.copy(this.app.parent.matrixWorld).invert(),
+                  );
                 }
-                mesh.matrix.decompose(mesh.position, mesh.quaternion, mesh.scale);
+                mesh.matrix.decompose(
+                  mesh.position,
+                  mesh.quaternion,
+                  mesh.scale,
+                );
               }
             }
           };
@@ -410,7 +461,13 @@ class Mob {
             for (const extraPhysicsObject of extraPhysicsObjects) {
               const {spec} = extraPhysicsObject;
 
-              _getPhysicsExtraPositionQuaternion(spec, localVector, localQuaternion, localVector2, localMatrix);
+              _getPhysicsExtraPositionQuaternion(
+                spec,
+                localVector,
+                localQuaternion,
+                localVector2,
+                localMatrix,
+              );
 
               extraPhysicsObject.position.copy(localVector);
               extraPhysicsObject.quaternion.copy(localQuaternion);
@@ -429,7 +486,9 @@ class Mob {
         const quaternion = new THREE.Quaternion().setFromEuler(euler);
         const hitSpeed = 1;
         animation = {
-          velocity: new THREE.Vector3(0, 6, -5).applyQuaternion(quaternion).multiplyScalar(hitSpeed),
+          velocity: new THREE.Vector3(0, 6, -5)
+            .applyQuaternion(quaternion)
+            .multiplyScalar(hitSpeed),
         };
       };
       subApp.addEventListener('hit', hit);
@@ -462,8 +521,7 @@ class Mob {
 
 class MobInstance {
   // eslint-disable-next-line no-useless-constructor
-  constructor() {
-  }
+  constructor() {}
 }
 
 class InstancedSkeleton extends THREE.Skeleton {
@@ -486,7 +544,8 @@ class InstancedSkeleton extends THREE.Skeleton {
     const drawCall = this.parent.drawCalls[drawCallIndex];
 
     // frame -> geometry (skeleton) -> bone -> matrix
-    const dstOffset = frameIndex * numGeometries * maxBonesPerInstance * 8 +
+    const dstOffset =
+      frameIndex * numGeometries * maxBonesPerInstance * 8 +
       drawCall.freeListEntry * maxBonesPerInstance * 8;
 
     const bones = skeleton.bones;
@@ -512,7 +571,8 @@ class InstancedSkeleton extends THREE.Skeleton {
         localMatrix.elements[12],
         localMatrix.elements[13],
         localMatrix.elements[14],
-        scale.x);
+        scale.x,
+      );
 
       pos.toArray(boneMatrices, dstOffset + i * 8);
       rotation.toArray(boneMatrices, dstOffset + i * 8 + 4);
@@ -521,14 +581,8 @@ class InstancedSkeleton extends THREE.Skeleton {
 }
 
 class MobBatchedMesh extends InstancedBatchedMesh {
-  constructor({
-    procGenInstance,
-    mobData,
-  }) {
-    const {
-      glbs,
-      skinnedMeshes: meshes,
-    } = mobData;
+  constructor({procGenInstance, mobData}) {
+    const {glbs, skinnedMeshes: meshes} = mobData;
     const {
       // atlas,
       // atlasImages,
@@ -550,40 +604,48 @@ class MobBatchedMesh extends InstancedBatchedMesh {
       const clip = animations[0];
 
       const frameCount = Math.floor(clip.duration * bakeFps);
-      const frameCounts = new Float32Array(geometry.attributes.position.count)
-        .fill(frameCount);
-      geometry.setAttribute('frameCount', new THREE.BufferAttribute(frameCounts, 1));
+      const frameCounts = new Float32Array(
+        geometry.attributes.position.count,
+      ).fill(frameCount);
+      geometry.setAttribute(
+        'frameCount',
+        new THREE.BufferAttribute(frameCounts, 1),
+      );
     }
 
     // allocator
 
-    const allocator = new InstancedGeometryAllocator(geometries, [
+    const allocator = new InstancedGeometryAllocator(
+      geometries,
+      [
+        {
+          name: 'p',
+          Type: Float32Array,
+          itemSize: 3,
+        },
+        {
+          name: 'q',
+          Type: Float32Array,
+          itemSize: 4,
+        },
+        {
+          name: 'timeOffset',
+          Type: Float32Array,
+          itemSize: 1,
+        },
+        {
+          name: 'boneTexture',
+          Type: Float32Array,
+          itemSize: maxBonesPerInstance * 8,
+          instanced: false,
+        },
+      ],
       {
-        name: 'p',
-        Type: Float32Array,
-        itemSize: 3,
+        maxInstancesPerDrawCall,
+        maxDrawCallsPerGeometry,
+        maxSlotsPerGeometry: maxAnimationFrameLength,
       },
-      {
-        name: 'q',
-        Type: Float32Array,
-        itemSize: 4,
-      },
-      {
-        name: 'timeOffset',
-        Type: Float32Array,
-        itemSize: 1,
-      },
-      {
-        name: 'boneTexture',
-        Type: Float32Array,
-        itemSize: maxBonesPerInstance * 8,
-        instanced: false,
-      },
-    ], {
-      maxInstancesPerDrawCall,
-      maxDrawCallsPerGeometry,
-      maxSlotsPerGeometry: maxAnimationFrameLength,
-    });
+    );
     const {geometry, textures: attributeTextures} = allocator;
     for (const k in attributeTextures) {
       const texture = attributeTextures[k];
@@ -629,7 +691,9 @@ class MobBatchedMesh extends InstancedBatchedMesh {
       window.shader = shader;
       window.vertexShader = shader.vertexShader;
 
-      shader.vertexShader = shader.vertexShader.replace('#include <skinning_pars_vertex>', `\
+      shader.vertexShader = shader.vertexShader.replace(
+        '#include <skinning_pars_vertex>',
+        `\
 #ifdef USE_SKINNING
 mat4 quat2mat( vec4 q ) {
   mat4 m;
@@ -699,9 +763,12 @@ vec4 q_slerp(vec4 a, vec4 b, float t) {
 }
 #endif
 #include <skinning_pars_vertex>
-`);
+`,
+      );
 
-      shader.vertexShader = shader.vertexShader.replace('#include <skinning_pars_vertex>', `\
+      shader.vertexShader = shader.vertexShader.replace(
+        '#include <skinning_pars_vertex>',
+        `\
 // #undef USE_SKINNING
 
 #ifdef USE_SKINNING
@@ -752,14 +819,21 @@ mat4 getBoneMatrix( const in float base1, const in float base2, const in float r
   return boneMat;
 }
 #endif
-        `);
-      shader.vertexShader = shader.vertexShader.replace('#include <skinbase_vertex>', `\
+        `,
+      );
+      shader.vertexShader = shader.vertexShader.replace(
+        '#include <skinbase_vertex>',
+        `\
 int boneTextureIndex = gl_DrawID * ${maxBonesPerInstance};
 int instanceIndex = gl_DrawID * ${maxInstancesPerDrawCall} + gl_InstanceID;
 #ifdef USE_SKINNING
 
-  const float timeOffsetWidth = ${attributeTextures.timeOffset.image.width.toFixed(8)};
-  const float timeOffsetHeight = ${attributeTextures.timeOffset.image.height.toFixed(8)};
+  const float timeOffsetWidth = ${attributeTextures.timeOffset.image.width.toFixed(
+    8,
+  )};
+  const float timeOffsetHeight = ${attributeTextures.timeOffset.image.height.toFixed(
+    8,
+  )};
   float timeOffsetX = mod(float(instanceIndex), timeOffsetWidth);
   float timeOffsetY = floor(float(instanceIndex) / timeOffsetWidth);
   vec2 timeOffsetpUv = (vec2(timeOffsetX, timeOffsetY) + 0.5) / vec2(timeOffsetWidth, timeOffsetHeight);
@@ -788,8 +862,11 @@ int instanceIndex = gl_DrawID * ${maxInstancesPerDrawCall} + gl_InstanceID;
   mat4 boneMatZ = mat4(1.);
   mat4 boneMatW = mat4(1.); */
 #endif
-        `);
-      shader.vertexShader = shader.vertexShader.replace('#include <skinnormal_vertex>', `\
+        `,
+      );
+      shader.vertexShader = shader.vertexShader.replace(
+        '#include <skinnormal_vertex>',
+        `\
 #ifdef USE_SKINNING
   mat4 skinMatrix = mat4( 0.0 );
   skinMatrix += skinWeight.x * boneMatX;
@@ -802,8 +879,11 @@ int instanceIndex = gl_DrawID * ${maxInstancesPerDrawCall} + gl_InstanceID;
     objectTangent = vec4( skinMatrix * vec4( objectTangent, 0.0 ) ).xyz;
   #endif
 #endif
-        `);
-      shader.vertexShader = shader.vertexShader.replace('#include <skinning_vertex>', `\
+        `,
+      );
+      shader.vertexShader = shader.vertexShader.replace(
+        '#include <skinning_vertex>',
+        `\
 #ifdef USE_SKINNING
   vec4 skinVertex = bindMatrix * vec4( transformed, 1.0 );
   vec4 skinned = vec4( 0.0 );
@@ -813,11 +893,14 @@ int instanceIndex = gl_DrawID * ${maxInstancesPerDrawCall} + gl_InstanceID;
   skinned += boneMatW * skinVertex * skinWeight.w;
   transformed = ( bindMatrixInverse * skinned ).xyz;
 #endif
-        `);
+        `,
+      );
 
       // vertex shader
 
-      shader.vertexShader = shader.vertexShader.replace('#include <uv_pars_vertex>', `\
+      shader.vertexShader = shader.vertexShader.replace(
+        '#include <uv_pars_vertex>',
+        `\
 #undef USE_INSTANCING
 
 #include <uv_pars_vertex>
@@ -828,8 +911,11 @@ uniform sampler2D qTexture;
 vec3 rotate_vertex_position(vec3 position, vec4 q) {
   return position + 2.0 * cross(q.xyz, cross(q.xyz, position) + q.w * position);
 }
-        `);
-      shader.vertexShader = shader.vertexShader.replace('#include <project_vertex>', `\
+        `,
+      );
+      shader.vertexShader = shader.vertexShader.replace(
+        '#include <project_vertex>',
+        `\
 const float width = ${attributeTextures.p.image.width.toFixed(8)};
 const float height = ${attributeTextures.p.image.height.toFixed(8)};
 float x = mod(float(instanceIndex), width);
@@ -850,7 +936,8 @@ vec4 mvPosition = vec4( transformed, 1.0 );
 #endif
 mvPosition = modelViewMatrix * mvPosition;
 gl_Position = projectionMatrix * mvPosition;
-        `);
+        `,
+      );
       /* shader.vertexShader = shader.vertexShader.replace(`#include <worldpos_vertex>`, `\
 #if defined( USE_ENVMAP ) || defined( DISTANCE ) || defined ( USE_SHADOWMAP )
 	vec4 worldPosition = vec4( transformed, 1.0 );
@@ -863,12 +950,15 @@ gl_Position = projectionMatrix * mvPosition;
 
       // fragment shader
 
-      shader.fragmentShader = shader.fragmentShader.replace('#include <uv_pars_fragment>', `\
+      shader.fragmentShader = shader.fragmentShader.replace(
+        '#include <uv_pars_fragment>',
+        `\
 #undef USE_INSTANCING
 #if ( defined( USE_UV ) && ! defined( UVS_VERTEX_ONLY ) )
 	varying vec2 vUv;
 #endif
-        `);
+        `,
+      );
     };
 
     // mesh
@@ -929,7 +1019,9 @@ gl_Position = projectionMatrix * mvPosition;
       const rootBone2 = _findBone(glb2Scene);
       const skeleton2 = mesh2.skeleton;
       if (skeleton2.bones.length > maxBonesPerInstance) {
-        throw new Error('too many bones in base mesh skeleton: ' + skeleton2.bones.length);
+        throw new Error(
+          'too many bones in base mesh skeleton: ' + skeleton2.bones.length,
+        );
       }
 
       this.getDrawCall(i);
@@ -1017,9 +1109,14 @@ gl_Position = projectionMatrix * mvPosition;
 
         // time offset
 
-        timeOffsetTexture.image.data[timeOffsetOffset + instanceIndex] = Math.random();
+        timeOffsetTexture.image.data[timeOffsetOffset + instanceIndex] =
+          Math.random();
 
-        drawCall.updateTexture('timeOffset', timeOffsetOffset + instanceIndex, 1);
+        drawCall.updateTexture(
+          'timeOffset',
+          timeOffsetOffset + instanceIndex,
+          1,
+        );
 
         const instance = new MobInstance();
         drawCall.instances.push(instance);
@@ -1053,23 +1150,36 @@ gl_Position = projectionMatrix * mvPosition;
 
           // delete by replacing current instance with last instance
 
-          pTexture.image.data[pOffset + instanceIndex * 3] = pTexture.image.data[pOffset + lastInstanceIndex * 3];
-          pTexture.image.data[pOffset + instanceIndex * 3 + 1] = pTexture.image.data[pOffset + lastInstanceIndex * 3 + 1];
-          pTexture.image.data[pOffset + instanceIndex * 3 + 2] = pTexture.image.data[pOffset + lastInstanceIndex * 3 + 2];
+          pTexture.image.data[pOffset + instanceIndex * 3] =
+            pTexture.image.data[pOffset + lastInstanceIndex * 3];
+          pTexture.image.data[pOffset + instanceIndex * 3 + 1] =
+            pTexture.image.data[pOffset + lastInstanceIndex * 3 + 1];
+          pTexture.image.data[pOffset + instanceIndex * 3 + 2] =
+            pTexture.image.data[pOffset + lastInstanceIndex * 3 + 2];
 
-          qTexture.image.data[qOffset + instanceIndex * 4] = qTexture.image.data[qOffset + lastInstanceIndex * 4];
-          qTexture.image.data[qOffset + instanceIndex * 4 + 1] = qTexture.image.data[qOffset + lastInstanceIndex * 4 + 1];
-          qTexture.image.data[qOffset + instanceIndex * 4 + 2] = qTexture.image.data[qOffset + lastInstanceIndex * 4 + 2];
-          qTexture.image.data[qOffset + instanceIndex * 4 + 3] = qTexture.image.data[qOffset + lastInstanceIndex * 4 + 3];
+          qTexture.image.data[qOffset + instanceIndex * 4] =
+            qTexture.image.data[qOffset + lastInstanceIndex * 4];
+          qTexture.image.data[qOffset + instanceIndex * 4 + 1] =
+            qTexture.image.data[qOffset + lastInstanceIndex * 4 + 1];
+          qTexture.image.data[qOffset + instanceIndex * 4 + 2] =
+            qTexture.image.data[qOffset + lastInstanceIndex * 4 + 2];
+          qTexture.image.data[qOffset + instanceIndex * 4 + 3] =
+            qTexture.image.data[qOffset + lastInstanceIndex * 4 + 3];
 
-          timeOffsetTexture.image.data[timeOffsetOffset + instanceIndex] = timeOffsetTexture.image.data[timeOffsetOffset + lastInstanceIndex];
+          timeOffsetTexture.image.data[timeOffsetOffset + instanceIndex] =
+            timeOffsetTexture.image.data[timeOffsetOffset + lastInstanceIndex];
 
           drawCall.updateTexture('p', pOffset + instanceIndex * 3, 3);
           drawCall.updateTexture('q', qOffset + instanceIndex * 4, 4);
-          drawCall.updateTexture('timeOffset', timeOffsetOffset + instanceIndex, 1);
+          drawCall.updateTexture(
+            'timeOffset',
+            timeOffsetOffset + instanceIndex,
+            1,
+          );
 
           // mob instance
-          drawCall.instances[instanceIndex] = drawCall.instances[lastInstanceIndex];
+          drawCall.instances[instanceIndex] =
+            drawCall.instances[lastInstanceIndex];
           drawCall.instances.length--;
         } else {
           drawCall.instances.length = 0;
@@ -1087,7 +1197,12 @@ gl_Position = projectionMatrix * mvPosition;
         const geometryIndex = Math.floor(geometryNoise * this.meshes.length);
 
         const drawCall = this.getDrawCall(geometryIndex);
-        const mobInstance = _renderMobGeometry(drawCall, mobData.ps, mobData.qs, i);
+        const mobInstance = _renderMobGeometry(
+          drawCall,
+          mobData.ps,
+          mobData.qs,
+          i,
+        );
         mobInstances.push(mobInstance);
       }
 
@@ -1115,37 +1230,42 @@ gl_Position = projectionMatrix * mvPosition;
   update(timestamp, timeDiff) {
     const shader = this.material.userData.shader;
     if (shader) {
-      const frameIndex = timestamp * bakeFps / 1000;
+      const frameIndex = (timestamp * bakeFps) / 1000;
       shader.uniforms.uTime.value = frameIndex;
     }
   }
 }
 
 class MobsCompiledData {
-  constructor({
-    appUrls = [],
-  } = {}) {
+  constructor({appUrls = []} = {}) {
     this.glbs = null;
     this.skinnedMeshes = null;
 
     this.loadPromise = (async () => {
       // lod mob modules
-      const glbs = await Promise.all(appUrls.map(async u => {
-        const m = await metaversefile.import(u);
+      const glbs = await Promise.all(
+        appUrls.map(async u => {
+          const m = await metaversefile.import(u);
 
-        // load glb
-        const glb = await (async () => {
-          const mobJsonUrl = m.srcUrl;
-          const res = await fetch(mobJsonUrl);
-          const j = await res.json();
+          // load glb
+          const glb = await (async () => {
+            const mobJsonUrl = m.srcUrl;
+            const res = await fetch(mobJsonUrl);
+            const j = await res.json();
 
-          return await new Promise((accept, reject) => {
-            const mobUrl = createRelativeUrl(j.mobUrl, mobJsonUrl);
-            loaders.gltfLoader.load(mobUrl, accept, function onProgress() {}, reject);
-          });
-        })();
-        return glb;
-      }));
+            return await new Promise((accept, reject) => {
+              const mobUrl = createRelativeUrl(j.mobUrl, mobJsonUrl);
+              loaders.gltfLoader.load(
+                mobUrl,
+                accept,
+                function onProgress() {},
+                reject,
+              );
+            });
+          })();
+          return glb;
+        }),
+      );
       const skinnedMeshSpecs = glbs.map(glb => {
         const mesh = _findMesh(glb.scene);
 
@@ -1167,10 +1287,7 @@ class MobsCompiledData {
 }
 
 class MobGenerator {
-  constructor({
-    procGenInstance,
-    mobData,
-  }) {
+  constructor({procGenInstance, mobData}) {
     // this.procGenInstance = procGenInstance;
     // this.mobData = mobData;
 
@@ -1206,10 +1323,7 @@ class MobGenerator {
 }
 
 class Mobber {
-  constructor({
-    procGenInstance,
-    mobData,
-  }) {
+  constructor({procGenInstance, mobData}) {
     this.procGenInstance = procGenInstance;
     this.mobData = mobData;
 
@@ -1295,10 +1409,7 @@ class MobManager {
     this.mobs = [];
   }
 
-  createMobber({
-    procGenInstance,
-    mobData,
-  }) {
+  createMobber({procGenInstance, mobData}) {
     const mobber = new Mobber({
       procGenInstance,
       mobData,

@@ -60,8 +60,10 @@ export default e => {
       chunkPriority: -1,
     },
   ];
-  const _getChunkComponent = (chunk, key) => chunk.components.find(component => component.key === key);
-  const _getChunkComponentValue = (chunk, key) => _getChunkComponent(chunk, key)?.value;
+  const _getChunkComponent = (chunk, key) =>
+    chunk.components.find(component => component.key === key);
+  const _getChunkComponentValue = (chunk, key) =>
+    _getChunkComponent(chunk, key)?.value;
   const _setChunksLinearPositions = chunks => {
     if (chunks.length > 0) {
       const firstSize = _getChunkComponentValue(chunks[0], 'size');
@@ -137,7 +139,9 @@ export default e => {
   const _findChunkAppByPosition = position => {
     for (const chunkApp of chunkApps) {
       const chunkAppPosition = chunkApp.position;
-      const chunkAppSize = localVector.fromArray(_getChunkComponentValue(chunkApp, 'size'));
+      const chunkAppSize = localVector.fromArray(
+        _getChunkComponentValue(chunkApp, 'size'),
+      );
       if (
         position.x >= chunkAppPosition.x - chunkAppSize.x / 2 &&
         position.x <= chunkAppPosition.x + chunkAppSize.x / 2 &&
@@ -160,7 +164,9 @@ export default e => {
     const result = [];
     for (const chunkApp of chunkApps) {
       const chunkAppPosition = chunkApp.position;
-      const chunkAppSize = localVector.fromArray(_getChunkComponentValue(chunkApp, 'size'));
+      const chunkAppSize = localVector.fromArray(
+        _getChunkComponentValue(chunkApp, 'size'),
+      );
       if (
         position.x >= chunkAppPosition.x - chunkAppSize.x / 2 + range &&
         position.x <= chunkAppPosition.x + chunkAppSize.x / 2 - range &&
@@ -176,7 +182,15 @@ export default e => {
   //
 
   const _reifyChunk = chunk => {
-    const {name, start_url, components, position, quaternion, scale, chunkPriority} = chunk;
+    const {
+      name,
+      start_url,
+      components,
+      position,
+      quaternion,
+      scale,
+      chunkPriority,
+    } = chunk;
     const [chunkApp, chunkAppPromise] = metaversefile.createAppPair({
       start_url,
       position,
@@ -194,10 +208,7 @@ export default e => {
   const _reifyChunks = chunks => {
     const chunkAppPromises = Array(chunks.length).fill(null);
     const chunkApps = chunks.map((chunk, i) => {
-      const {
-        chunkApp,
-        chunkAppPromise,
-      } = _reifyChunk(chunk);
+      const {chunkApp, chunkAppPromise} = _reifyChunk(chunk);
       chunkAppPromises[i] = chunkAppPromise;
       return chunkApp;
     });
@@ -219,10 +230,7 @@ export default e => {
 
   _setChunkFocusFromPosition(localPlayer.position);
   const chunksInRange = _getChunksInRange(localPlayer.position, range);
-  const {
-    chunkApps,
-    chunkAppPromises,
-  } = _reifyChunks(chunksInRange);
+  const {chunkApps, chunkAppPromises} = _reifyChunks(chunksInRange);
   let lastChunkApp = _findChunkAppByPosition(localPlayer.position);
 
   for (const chunkApp of chunkApps) {
@@ -247,10 +255,9 @@ export default e => {
   };
   _sortApps();
   e.waitUntil(
-    Promise.all(chunkAppPromises)
-      .then(() => {
-        console.log('all chunk apps loaded');
-      }),
+    Promise.all(chunkAppPromises).then(() => {
+      console.log('all chunk apps loaded');
+    }),
   );
 
   useFrame(() => {

@@ -1,7 +1,5 @@
 import * as THREE from 'three';
-import {
-  getEyePosition,
-} from './util.mjs';
+import {getEyePosition} from './util.mjs';
 
 const localVector = new THREE.Vector3();
 const localVector2 = new THREE.Vector3();
@@ -25,13 +23,22 @@ export default class Looker {
     const _getEndTargetRandom = target => {
       const root = this.avatar.modelBoneOutputs.Root;
       const eyePosition = getEyePosition(this.avatar.modelBones);
-      return target.copy(eyePosition)
+      return target
+        .copy(eyePosition)
         .add(
-          localVector.set(0, 0, 1.5 + 3 * Math.random())
-            .applyQuaternion(localQuaternion.setFromRotationMatrix(root.matrixWorld)),
+          localVector
+            .set(0, 0, 1.5 + 3 * Math.random())
+            .applyQuaternion(
+              localQuaternion.setFromRotationMatrix(root.matrixWorld),
+            ),
         )
         .add(
-          localVector.set(-0.5 + Math.random(), (-0.5 + Math.random()) * 0.3, -0.5 + Math.random())
+          localVector
+            .set(
+              -0.5 + Math.random(),
+              (-0.5 + Math.random()) * 0.3,
+              -0.5 + Math.random(),
+            )
             .normalize(),
           // .multiplyScalar(1)
         );
@@ -39,10 +46,14 @@ export default class Looker {
     const _getEndTargetForward = target => {
       const root = this.avatar.modelBoneOutputs.Root;
       const eyePosition = getEyePosition(this.avatar.modelBones);
-      return target.copy(eyePosition)
+      return target
+        .copy(eyePosition)
         .add(
-          localVector.set(0, 0, 2)
-            .applyQuaternion(localQuaternion.setFromRotationMatrix(root.matrixWorld)),
+          localVector
+            .set(0, 0, 2)
+            .applyQuaternion(
+              localQuaternion.setFromRotationMatrix(root.matrixWorld),
+            ),
         );
     };
     const _startMove = () => {
@@ -68,13 +79,13 @@ export default class Looker {
     const _isPointTooClose = () => {
       const root = this.avatar.modelBoneOutputs.Root;
       // const head = this.avatar.modelBoneOutputs['Head'];
-      localVector.set(0, 0, 1)
-        .applyQuaternion(localQuaternion.setFromRotationMatrix(root.matrixWorld));
+      localVector
+        .set(0, 0, 1)
+        .applyQuaternion(
+          localQuaternion.setFromRotationMatrix(root.matrixWorld),
+        );
       localVector2.setFromMatrixPosition(root.matrixWorld);
-      localPlane.setFromNormalAndCoplanarPoint(
-        localVector,
-        localVector2,
-      );
+      localPlane.setFromNormalAndCoplanarPoint(localVector, localVector2);
       const distance = localPlane.distanceToPoint(this.endTarget);
       return distance < 1;
     };
@@ -110,7 +121,8 @@ export default class Looker {
           const timeDiff = now - this.lastTimestamp;
           const f = Math.min(Math.max(timeDiff / this.waitTime, 0), 1);
           // console.log('got time diff', timeDiff, this.waitTime, f);
-          const target = this._target.copy(this.startTarget)
+          const target = this._target
+            .copy(this.startTarget)
             .lerp(this.endTarget, f);
           // _setTarget(target);
 
@@ -121,7 +133,10 @@ export default class Looker {
           return target;
         }
         case 'waiting': {
-          const f = Math.min(Math.max((now - this.lastTimestamp) / this.waitTime, 0), 1);
+          const f = Math.min(
+            Math.max((now - this.lastTimestamp) / this.waitTime, 0),
+            1,
+          );
           if (f >= 1) {
             _startMove();
             return this.startTarget;

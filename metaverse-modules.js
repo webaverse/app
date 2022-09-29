@@ -34,7 +34,4 @@ const importModule = async moduleName => {
   const m = await metaversefile.import(moduleUrl);
   return m;
 };
-export {
-  moduleUrls,
-  importModule,
-};
+export {moduleUrls, importModule};

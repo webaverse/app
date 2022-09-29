@@ -1,7 +1,10 @@
 import * as THREE from 'three';
 import {alea} from './procgen/procgen.js';
 import {getRenderer} from './renderer.js';
-import {fullscreenGeometry, fullscreenVertexShader} from './background-fx/common.js';
+import {
+  fullscreenGeometry,
+  fullscreenVertexShader,
+} from './background-fx/common.js';
 
 const localVector2D = new THREE.Vector2();
 const localVector4D = new THREE.Vector4();

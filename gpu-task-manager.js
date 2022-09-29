@@ -47,7 +47,4 @@ class GPUTaskManager {
   }
 }
 
-export {
-  GPUTask,
-  GPUTaskManager,
-};
+export {GPUTask, GPUTaskManager};

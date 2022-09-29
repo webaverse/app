@@ -1,0 +1,140 @@
+.iconButtonWrap {
+    display: inline-block;
+    position: relative;
+    z-index: 1;
+    cursor: pointer;
+}
+
+.iconButtonWrap .buttonBackground {
+    height: 100%;
+    width: auto !important;
+}
+
+.iconButtonWrap .buttonBackground .buttonBackgroundColor {
+    fill: #EAF4EF;
+}
+.iconButtonWrap .buttonBackground .innerBackgroundColor {
+    fill: #EAF4EF;
+}
+
+.iconButtonWrap.dark .buttonBackground .buttonBackgroundColor {
+    fill: #EAF4EF;
+}
+
+.iconButtonWrap.dark .buttonBackground .innerBackgroundColor {
+    fill: #000000;
+}
+
+.iconButtonWrap .iconWrap {
+    display: block;
+    position: absolute;
+    left: 0;
+    top: 0;
+    z-index: 1;
+    height: 100%;
+    width: 100%;
+}
+
+.iconButtonWrap .icon {
+    top: 50%;
+    left: 50%;
+    -ms-transform: translateX(-50%) translateY(-50%);
+    -webkit-transform: translateX(-50%) translateY(-50%);
+    transform: translateX(-50%) translateY(-50%);
+    position: absolute;
+    height: 46% !important;
+    max-width: 46%;
+}
+
+.iconButtonWrap .icon * {
+    fill: #000000;
+}
+
+.iconButtonWrap.dark .icon * {
+    fill: #FFFFFF;
+}
+
+.iconButtonWrap:hover .buttonBackgroundColor {
+    fill: #FFC000 !important;
+    stroke: #000000 !important;
+}
+
+.iconButtonWrap:hover .innerBackgroundColor {
+    fill: #FFC000 !important;
+}
+
+.iconButtonWrap:hover .icon * {
+    fill: #EAF4EF !important;
+}
+
+.iconButtonWrap:active .buttonBackgroundColor {
+    fill: #FFC000 !important;
+}
+
+.iconButtonWrap:active .innerBackgroundColor {
+    fill: #000000 !important;
+}
+
+.iconButtonWrap:active .icon * {
+    fill: #FFC000;
+}
+
+.buttonWrap {
+    border: 4px solid #000000;
+    background: #000000;
+    padding: 0;
+    margin: 0;
+    display: inline-block;
+    cursor: pointer;
+}
+
+.buttonWrap .buttonIconWrap {
+    vertical-align: middle;
+    size: inherit;
+    margin-right: 18px;
+    position: relative;
+    display: inline-block;
+}
+
+.buttonWrap .buttonIconWrap svg {
+    width: auto;
+    height: 120%;
+    top: 50%;
+    left: 50%;
+    -ms-transform: translateX(-50%) translateY(-50%);
+    -webkit-transform: translateX(-50%) translateY(-50%);
+    transform: translateX(-50%) translateY(-50%);
+    position: absolute;
+}
+
+.buttonWrap .innerWrap {
+    border: 2px solid #FFFFFF;
+    font-family: "TTSC-Bold";
+    background: #FFFFFF;
+    color: #000000;
+    padding: 8px 14px !important;
+}
+
+.buttonWrap:hover .innerWrap {
+    border: 2px solid #FFC000;
+    font-family: "TTSC-Bold";
+    background: #FFC000;
+    color: #EFEFEF;
+    padding: 8px 14px !important;
+}
+
+.buttonWrap:hover .innerWrap * {
+    fill: #EFEFEF !important;
+}
+
+.buttonWrap:active .innerWrap {
+    border: 2px solid #FFC000;
+    font-family: "TTSC-Bold";
+    background: #000000;
+    color: #FFC000;
+    padding: 8px 14px !important;
+}
+
+.buttonWrap:active .innerWrap * {
+    fill: #FFC000 !important;
+}

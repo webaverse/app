@@ -1,6 +1,15 @@
 import * as THREE from 'three';
 import metaversefile from 'metaversefile';
-const {useApp, useFrame, usePhysics, useWear, useMeshLodder, useCleanup, useDefaultModules, addTrackedApp} = metaversefile;
+const {
+  useApp,
+  useFrame,
+  usePhysics,
+  useWear,
+  useMeshLodder,
+  useCleanup,
+  useDefaultModules,
+  addTrackedApp,
+} = metaversefile;
 
 const localVector = new THREE.Vector3();
 const localVector2 = new THREE.Vector3();
@@ -62,9 +71,7 @@ export default () => {
       itemMesh.matrix.copy(physicsObject.matrix);
       itemMesh.matrixWorld.copy(physicsObject.matrixWorld);
       itemMesh.matrix
-        .premultiply(
-          localMatrix.copy(app.matrixWorld).invert(),
-        )
+        .premultiply(localMatrix.copy(app.matrixWorld).invert())
         .decompose(itemMesh.position, itemMesh.quaternion, itemMesh.scale);
 
       _copyTransform(itemDiceMesh, itemMesh);
@@ -95,8 +102,7 @@ export default () => {
               .normalize()
               .multiplyScalar(5)
               .toArray(),
-            angularVelocity: new THREE.Vector3(0, 0.001, 0)
-              .toArray(),
+            angularVelocity: new THREE.Vector3(0, 0.001, 0).toArray(),
           },
         },
       ];

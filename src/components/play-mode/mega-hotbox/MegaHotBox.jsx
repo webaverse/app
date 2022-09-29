@@ -84,7 +84,10 @@ const Card = ({
           imageBitmap ? null : styles.loading,
         )}
       >
-        <PlaceholderImg className={styles.placeholderImg} src='./images/arc-white.svg' />
+        <PlaceholderImg
+          className={styles.placeholderImg}
+          src="./images/arc-white.svg"
+        />
       </div>
       <ImageBitmapCanvas
         imageBitmap={imageBitmap}
@@ -138,34 +141,35 @@ export const MegaHotBox = ({
   }, []);
 
   return (
-      <div className={ classnames(styles.megaHotBox, open ? styles.open : null) } >
-        <div className={ styles.box } />
+    <div className={classnames(styles.megaHotBox, open ? styles.open : null)}>
+      <div className={styles.box} />
 
-        <Card
-          imageBitmap={imageBitmap}
-          backImageBitmap={backImageBitmap}
-        />
+      <Card imageBitmap={imageBitmap} backImageBitmap={backImageBitmap} />
 
-        <div className={ styles.label }>
-          <div className={ styles.background } />
-          <div className={ styles.name }>{name}</div>
-          <div className={ styles.description }>{description}</div>
-        </div>
-        <div className={ styles.buttons }>
-          <BigButton
-            highlight={false}
-            onClick={e => {
-              onActivate && onActivate(e);
-              onClose && onClose(e);
-            }}
-          >Equip</BigButton>
-          <BigButton
-            highlight={false}
-            onClick={e => {
-              onClose && onClose(e);
-            }}
-          >Close</BigButton>
-        </div>
+      <div className={styles.label}>
+        <div className={styles.background} />
+        <div className={styles.name}>{name}</div>
+        <div className={styles.description}>{description}</div>
       </div>
+      <div className={styles.buttons}>
+        <BigButton
+          highlight={false}
+          onClick={e => {
+            onActivate && onActivate(e);
+            onClose && onClose(e);
+          }}
+        >
+          Equip
+        </BigButton>
+        <BigButton
+          highlight={false}
+          onClick={e => {
+            onClose && onClose(e);
+          }}
+        >
+          Close
+        </BigButton>
+      </div>
+    </div>
   );
 };

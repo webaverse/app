@@ -27,10 +27,14 @@ export const Spritesheet = ({
       let live = true;
       (async () => {
         // console.log('got spritesheet 1', {startUrl, frameSize, numFramesPerRow, size, numFrames});
-        const spritesheet = await spriteAnimationManager.getSpriteAnimationForAppUrlAsync(startUrl, {
-          size,
-          numFrames,
-        });
+        const spritesheet =
+          await spriteAnimationManager.getSpriteAnimationForAppUrlAsync(
+            startUrl,
+            {
+              size,
+              numFrames,
+            },
+          );
 
         /* {
                     const imageBitmap = spritesheet.result;
@@ -72,11 +76,24 @@ export const Spritesheet = ({
       let frameIndex = 0;
       const _recurse = () => {
         const x = (frameIndex % numFramesPerRow) * frameSize;
-        const y = size - frameSize - Math.floor(frameIndex / numFramesPerRow) * frameSize;
+        const y =
+          size -
+          frameSize -
+          Math.floor(frameIndex / numFramesPerRow) * frameSize;
         frameIndex = (frameIndex + 1) % numFrames;
 
         ctx.clearRect(0, 0, canvas.width, canvas.height);
-        ctx.drawImage(imageBitmap, x, y, frameSize, frameSize, 0, 0, canvas.width, canvas.height);
+        ctx.drawImage(
+          imageBitmap,
+          x,
+          y,
+          frameSize,
+          frameSize,
+          0,
+          0,
+          canvas.width,
+          canvas.height,
+        );
       };
       const interval = setInterval(_recurse, frameTime);
       return () => {
@@ -86,11 +103,11 @@ export const Spritesheet = ({
   }, [canvasRef, spritesheet, enabled]);
 
   return (
-        <canvas
-            className={classnames(className, styles.canvas)}
-            width={frameSize}
-            height={frameSize}
-            ref={canvasRef}
-        />
+    <canvas
+      className={classnames(className, styles.canvas)}
+      width={frameSize}
+      height={frameSize}
+      ref={canvasRef}
+    />
   );
 };

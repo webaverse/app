@@ -1,9 +1,7 @@
 import {useEffect, useState, useContext} from 'react';
 import {ethers, BigNumber} from 'ethers';
 
-import {
-  CONTRACTS,
-} from './web3-constants.js';
+import {CONTRACTS} from './web3-constants.js';
 import {FTABI, NFTABI, WebaverseABI} from '../abis/contract.jsx';
 import {ChainContext} from './chainProvider.jsx';
 import {handleBlobUpload} from '../../util.js';
@@ -24,7 +22,8 @@ const FILE_ADDRESS = 'https://ipfs.webaverse.com/ipfs/';
 
 export default function useNFTContract(currentAccount) {
   const {selectedChain} = useContext(ChainContext);
-  const [WebaversecontractAddress, setWebaversecontractAddress] = useState(null);
+  const [WebaversecontractAddress, setWebaversecontractAddress] =
+    useState(null);
   const [NFTcontractAddress, setNFTcontractAddress] = useState(null);
   const [FTcontractAddress, setFTcontractAddress] = useState(null);
 
@@ -35,7 +34,8 @@ export default function useNFTContract(currentAccount) {
   useEffect(() => {
     try {
       if (CONTRACTS[selectedChain.contract_name]) {
-        const WebaversecontractAddress = CONTRACTS[selectedChain.contract_name].Webaverse;
+        const WebaversecontractAddress =
+          CONTRACTS[selectedChain.contract_name].Webaverse;
         const NFTcontractAddress = CONTRACTS[selectedChain.contract_name].NFT;
         const FTcontractAddress = CONTRACTS[selectedChain.contract_name].FT;
         setWebaversecontractAddress(WebaversecontractAddress);
@@ -54,13 +54,25 @@ export default function useNFTContract(currentAccount) {
     return provider.getSigner(currentAccount);
   }
 
-  const getContract = async () => { // NFTcontract
-    const simpleRpcProvider = new ethers.providers.StaticJsonRpcProvider(selectedChain.rpcUrls[0]);
-    const contract = new ethers.Contract(NFTcontractAddress, NFTABI, simpleRpcProvider);
+  const getContract = async () => {
+    // NFTcontract
+    const simpleRpcProvider = new ethers.providers.StaticJsonRpcProvider(
+      selectedChain.rpcUrls[0],
+    );
+    const contract = new ethers.Contract(
+      NFTcontractAddress,
+      NFTABI,
+      simpleRpcProvider,
+    );
     return contract;
   };
 
-  async function mintNFT(currentApp, previewImage, callback = () => {}, afterminting = () => {}) {
+  async function mintNFT(
+    currentApp,
+    previewImage,
+    callback = () => {},
+    afterminting = () => {},
+  ) {
     setMinting(true);
     setError('');
     try {
@@ -75,7 +87,8 @@ export default function useNFTContract(currentAccount) {
 
       const metadataFileName = `${name}-metadata.json`;
       let metadata;
-      if (previewImage) { // 3D object
+      if (previewImage) {
+        // 3D object
         imageURI = previewImage;
         avatarURI = currentApp.contentId;
 
@@ -85,7 +98,8 @@ export default function useNFTContract(currentAccount) {
         //   image: imageURI,
         //   animation_url: avatarURI,
         // };
-      } else { // image object
+      } else {
+        // image object
         imageURI = currentApp.contentId;
         avatarURI = '';
 
@@ -98,7 +112,10 @@ export default function useNFTContract(currentAccount) {
 
       const type = 'upload';
       const load = null;
-      const json_hash = await handleBlobUpload(metadataFileName, JSON.stringify(metadata));
+      const json_hash = await handleBlobUpload(
+        metadataFileName,
+        JSON.stringify(metadata),
+      );
       // handleBlobUpload
       // new Blob([JSON.stringify(metadata)], {type: 'text/plain'});
       //   const json_hash = await handleBlobUpload(metadataFileName, new Blob([JSON.stringify(metadata)], {type: 'text/plain'}), {
@@ -118,19 +135,32 @@ export default function useNFTContract(currentAccount) {
       //   }
 
       const metadatahash = json_hash.split(FILE_ADDRESS)[1].split('/')[0];
-      const Webaversecontract = new ethers.Contract(WebaversecontractAddress, WebaverseABI, signer);
+      const Webaversecontract = new ethers.Contract(
+        WebaversecontractAddress,
+        WebaverseABI,
+        signer,
+      );
       // const NFTcontract = new ethers.Contract(NFTcontractAddress, NFTABI, signer);
       const FTcontract = new ethers.Contract(FTcontractAddress, FTABI, signer);
 
       const Bigmintfee = await Webaversecontract.mintFee();
       const mintfee = BigNumber.from(Bigmintfee).toNumber();
 
-      if (mintfee > 0) { // webaverse side chain mintfee != 0
-        const FTapprovetx = await FTcontract.approve(NFTcontractAddress, mintfee); // mintfee = 10 default
+      if (mintfee > 0) {
+        // webaverse side chain mintfee != 0
+        const FTapprovetx = await FTcontract.approve(
+          NFTcontractAddress,
+          mintfee,
+        ); // mintfee = 10 default
         const FTapproveres = await FTapprovetx.wait();
         if (FTapproveres.transactionHash) {
           try {
-            const minttx = await Webaversecontract.mint(currentAccount, 1, metadatahash, '0x');
+            const minttx = await Webaversecontract.mint(
+              currentAccount,
+              1,
+              metadatahash,
+              '0x',
+            );
             const res = await minttx.wait();
             if (res.transactionHash) {
               callback();
@@ -140,9 +170,16 @@ export default function useNFTContract(currentAccount) {
             setError('Mint Failed');
           }
         }
-      } else { // mintfee = 0 for Polygon not webaverse sidechain
+      } else {
+        // mintfee = 0 for Polygon not webaverse sidechain
         try {
-          const minttx = await Webaversecontract.mint(currentAccount, 1, currentApp.contentId, name, '0x');
+          const minttx = await Webaversecontract.mint(
+            currentAccount,
+            1,
+            currentApp.contentId,
+            name,
+            '0x',
+          );
           //   callback(minttx);
           callback();
           const res = await minttx.wait();
@@ -162,10 +199,16 @@ export default function useNFTContract(currentAccount) {
     }
   }
 
-  async function mintfromVoucher(app, callback = () => {}, afterminting = f => f) { // server drop
+  async function mintfromVoucher(
+    app,
+    callback = () => {},
+    afterminting = f => f,
+  ) {
+    // server drop
     setMinting(true);
     setError('');
-    if (app.type !== 'major') { // app.type === "major"
+    if (app.type !== 'major') {
+      // app.type === "major"
       try {
         const signer = await getSigner();
         const webaverseContract = new ethers.Contract(
@@ -173,7 +216,11 @@ export default function useNFTContract(currentAccount) {
           WebaverseABI,
           signer,
         );
-        const FTcontract = new ethers.Contract(FTcontractAddress, FTABI, signer);
+        const FTcontract = new ethers.Contract(
+          FTcontractAddress,
+          FTABI,
+          signer,
+        );
 
         const bigMintFee = await webaverseContract.mintFee();
         const mintfee = BigNumber.from(bigMintFee).toNumber();
@@ -258,7 +305,8 @@ export default function useNFTContract(currentAccount) {
         setMinting(false);
       }
     }
-    if (app.type !== 'minor') { // app.type === "minor"
+    if (app.type !== 'minor') {
+      // app.type === "minor"
       try {
         const signer = await getSigner();
         const webaverseContract = new ethers.Contract(
@@ -309,14 +357,16 @@ export default function useNFTContract(currentAccount) {
     const contract = await getContract();
     const tokenData = await contract.getTokenIdsByOwner(currentAccount);
     const tokenCount = BigNumber.from(tokenData[1]).toNumber();
-    const tokenIds = [...Array(tokenCount)].map((_, index) => BigNumber.from(tokenData[0][index]).toNumber());
+    const tokenIds = [...Array(tokenCount)].map((_, index) =>
+      BigNumber.from(tokenData[0][index]).toNumber(),
+    );
     return tokenIds;
   }
 
   async function getToken(tokenId) {
     const contract = await getContract();
     if (contract) {
-    //   return await contract.uri(tokenId);
+      //   return await contract.uri(tokenId);
       const tokenData = await contract.getTokenAttr(tokenId);
       return tokenData;
     } else {
@@ -326,17 +376,19 @@ export default function useNFTContract(currentAccount) {
 
   async function getTokens() {
     const tokenIdsOf = await getTokenIdsOf();
-    return await Promise.all(tokenIdsOf.map(async tokenId => {
-      const token = await getToken(tokenId);
-      const [url, name, level] = token;
+    return await Promise.all(
+      tokenIdsOf.map(async tokenId => {
+        const token = await getToken(tokenId);
+        const [url, name, level] = token;
 
-      return {
-        tokenId,
-        url,
-        name,
-        level,
-      };
-    }));
+        return {
+          tokenId,
+          url,
+          name,
+          level,
+        };
+      }),
+    );
   }
 
   return {

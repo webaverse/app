@@ -38,21 +38,9 @@ export class ScratchStack {
   constructor(moduleInstance, size) {
     this.ptr = moduleInstance._malloc(size);
 
-    this.u8 = new Uint8Array(
-      moduleInstance.HEAP8.buffer,
-      this.ptr,
-      size,
-    );
-    this.u32 = new Uint32Array(
-      moduleInstance.HEAP8.buffer,
-      this.ptr,
-      size / 4,
-    );
-    this.i32 = new Int32Array(
-      moduleInstance.HEAP8.buffer,
-      this.ptr,
-      size / 4,
-    );
+    this.u8 = new Uint8Array(moduleInstance.HEAP8.buffer, this.ptr, size);
+    this.u32 = new Uint32Array(moduleInstance.HEAP8.buffer, this.ptr, size / 4);
+    this.i32 = new Int32Array(moduleInstance.HEAP8.buffer, this.ptr, size / 4);
     this.f32 = new Float32Array(
       moduleInstance.HEAP8.buffer,
       this.ptr,

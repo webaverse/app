@@ -63,7 +63,8 @@ const transformControls = {
     binding = o;
   }, */
   handleMouseDown(raycaster) {
-    this.transformAxis = this.transformGizmo?.selectAxisWithRaycaster(raycaster);
+    this.transformAxis =
+      this.transformGizmo?.selectAxisWithRaycaster(raycaster);
     if (this.transformAxis) {
       console.log('yes transform axis');
 
@@ -72,7 +73,10 @@ const transformControls = {
         .copy(axisInfo.planeNormal)
         .applyQuaternion(this.transformGizmo.quaternion)
         .normalize();
-      this.transformPlane.setFromNormalAndCoplanarPoint(this.planeNormal, this.transformGizmo.position);
+      this.transformPlane.setFromNormalAndCoplanarPoint(
+        this.planeNormal,
+        this.transformGizmo.position,
+      );
       this.dragging = true;
 
       this.startMatrix.copy(this.transformGizmo.matrix);
@@ -107,10 +111,10 @@ const transformControls = {
           localVector3,
         );
         const startPosition = localVector2;
-        const diffVector = localVector3.copy(endPosition)
-          .sub(startPosition);
+        const diffVector = localVector3.copy(endPosition).sub(startPosition);
 
-        this.transformGizmo.matrix.copy(this.startMatrix)
+        this.transformGizmo.matrix
+          .copy(this.startMatrix)
           .premultiply(
             localMatrix.compose(
               diffVector,

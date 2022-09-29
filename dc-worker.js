@@ -19,59 +19,114 @@ const localVector = new THREE.Vector3();
 
 const _cloneTerrainMeshData = meshData => {
   if (meshData) {
-    const sizeRequired = meshData.positions.length * meshData.positions.constructor.BYTES_PER_ELEMENT +
+    const sizeRequired =
+      meshData.positions.length *
+        meshData.positions.constructor.BYTES_PER_ELEMENT +
       meshData.normals.length * meshData.normals.constructor.BYTES_PER_ELEMENT +
       // meshData.biomes.length * meshData.biomes.constructor.BYTES_PER_ELEMENT +
-      meshData.biomesWeights.length * meshData.biomesWeights.constructor.BYTES_PER_ELEMENT +
-      meshData.biomesUvs1.length * meshData.biomesUvs1.constructor.BYTES_PER_ELEMENT +
-      meshData.biomesUvs2.length * meshData.biomesUvs2.constructor.BYTES_PER_ELEMENT +
+      meshData.biomesWeights.length *
+        meshData.biomesWeights.constructor.BYTES_PER_ELEMENT +
+      meshData.biomesUvs1.length *
+        meshData.biomesUvs1.constructor.BYTES_PER_ELEMENT +
+      meshData.biomesUvs2.length *
+        meshData.biomesUvs2.constructor.BYTES_PER_ELEMENT +
       meshData.indices.length * meshData.indices.constructor.BYTES_PER_ELEMENT +
-      meshData.skylights.length * meshData.skylights.constructor.BYTES_PER_ELEMENT +
+      meshData.skylights.length *
+        meshData.skylights.constructor.BYTES_PER_ELEMENT +
       meshData.aos.length * meshData.aos.constructor.BYTES_PER_ELEMENT +
       meshData.peeks.length * meshData.peeks.constructor.BYTES_PER_ELEMENT;
 
     const arrayBuffer = new ArrayBuffer(sizeRequired);
     let index = 0;
 
-    const positions = new meshData.positions.constructor(arrayBuffer, index, meshData.positions.length);
+    const positions = new meshData.positions.constructor(
+      arrayBuffer,
+      index,
+      meshData.positions.length,
+    );
     positions.set(meshData.positions);
-    index += meshData.positions.length * meshData.positions.constructor.BYTES_PER_ELEMENT;
+    index +=
+      meshData.positions.length *
+      meshData.positions.constructor.BYTES_PER_ELEMENT;
 
-    const normals = new meshData.normals.constructor(arrayBuffer, index, meshData.normals.length);
+    const normals = new meshData.normals.constructor(
+      arrayBuffer,
+      index,
+      meshData.normals.length,
+    );
     normals.set(meshData.normals);
-    index += meshData.normals.length * meshData.normals.constructor.BYTES_PER_ELEMENT;
+    index +=
+      meshData.normals.length * meshData.normals.constructor.BYTES_PER_ELEMENT;
 
     // const biomes = new meshData.biomes.constructor(arrayBuffer, index, meshData.biomes.length);
     // biomes.set(meshData.biomes);
     // index += meshData.biomes.length * meshData.biomes.constructor.BYTES_PER_ELEMENT;
 
-    const biomesWeights = new meshData.biomesWeights.constructor(arrayBuffer, index, meshData.biomesWeights.length);
+    const biomesWeights = new meshData.biomesWeights.constructor(
+      arrayBuffer,
+      index,
+      meshData.biomesWeights.length,
+    );
     biomesWeights.set(meshData.biomesWeights);
-    index += meshData.biomesWeights.length * meshData.biomesWeights.constructor.BYTES_PER_ELEMENT;
+    index +=
+      meshData.biomesWeights.length *
+      meshData.biomesWeights.constructor.BYTES_PER_ELEMENT;
 
-    const biomesUvs1 = new meshData.biomesUvs1.constructor(arrayBuffer, index, meshData.biomesUvs1.length);
+    const biomesUvs1 = new meshData.biomesUvs1.constructor(
+      arrayBuffer,
+      index,
+      meshData.biomesUvs1.length,
+    );
     biomesUvs1.set(meshData.biomesUvs1);
-    index += meshData.biomesUvs1.length * meshData.biomesUvs1.constructor.BYTES_PER_ELEMENT;
+    index +=
+      meshData.biomesUvs1.length *
+      meshData.biomesUvs1.constructor.BYTES_PER_ELEMENT;
 
-    const biomesUvs2 = new meshData.biomesUvs2.constructor(arrayBuffer, index, meshData.biomesUvs2.length);
+    const biomesUvs2 = new meshData.biomesUvs2.constructor(
+      arrayBuffer,
+      index,
+      meshData.biomesUvs2.length,
+    );
     biomesUvs2.set(meshData.biomesUvs2);
-    index += meshData.biomesUvs2.length * meshData.biomesUvs2.constructor.BYTES_PER_ELEMENT;
+    index +=
+      meshData.biomesUvs2.length *
+      meshData.biomesUvs2.constructor.BYTES_PER_ELEMENT;
 
-    const indices = new meshData.indices.constructor(arrayBuffer, index, meshData.indices.length);
+    const indices = new meshData.indices.constructor(
+      arrayBuffer,
+      index,
+      meshData.indices.length,
+    );
     indices.set(meshData.indices);
-    index += meshData.indices.length * meshData.indices.constructor.BYTES_PER_ELEMENT;
+    index +=
+      meshData.indices.length * meshData.indices.constructor.BYTES_PER_ELEMENT;
 
-    const skylights = new meshData.skylights.constructor(arrayBuffer, index, meshData.skylights.length);
+    const skylights = new meshData.skylights.constructor(
+      arrayBuffer,
+      index,
+      meshData.skylights.length,
+    );
     skylights.set(meshData.skylights);
-    index += meshData.skylights.length * meshData.skylights.constructor.BYTES_PER_ELEMENT;
+    index +=
+      meshData.skylights.length *
+      meshData.skylights.constructor.BYTES_PER_ELEMENT;
 
-    const aos = new meshData.aos.constructor(arrayBuffer, index, meshData.aos.length);
+    const aos = new meshData.aos.constructor(
+      arrayBuffer,
+      index,
+      meshData.aos.length,
+    );
     aos.set(meshData.aos);
     index += meshData.aos.length * meshData.aos.constructor.BYTES_PER_ELEMENT;
 
-    const peeks = new meshData.peeks.constructor(arrayBuffer, index, meshData.peeks.length);
+    const peeks = new meshData.peeks.constructor(
+      arrayBuffer,
+      index,
+      meshData.peeks.length,
+    );
     peeks.set(meshData.peeks);
-    index += meshData.peeks.length * meshData.peeks.constructor.BYTES_PER_ELEMENT;
+    index +=
+      meshData.peeks.length * meshData.peeks.constructor.BYTES_PER_ELEMENT;
 
     return {
       // bufferAddress: arrayBuffer.byteOffset,
@@ -102,28 +157,51 @@ const _cloneLiquidMeshData = meshData => {
       indices: meshData.indices.slice(),
     }; */
 
-    const sizeRequired = meshData.positions.length * meshData.positions.constructor.BYTES_PER_ELEMENT +
+    const sizeRequired =
+      meshData.positions.length *
+        meshData.positions.constructor.BYTES_PER_ELEMENT +
       meshData.normals.length * meshData.normals.constructor.BYTES_PER_ELEMENT +
       meshData.biomes.length * meshData.biomes.constructor.BYTES_PER_ELEMENT +
       meshData.indices.length * meshData.indices.constructor.BYTES_PER_ELEMENT;
     const arrayBuffer = new ArrayBuffer(sizeRequired);
     let index = 0;
 
-    const positions = new meshData.positions.constructor(arrayBuffer, index, meshData.positions.length);
+    const positions = new meshData.positions.constructor(
+      arrayBuffer,
+      index,
+      meshData.positions.length,
+    );
     positions.set(meshData.positions);
-    index += meshData.positions.length * meshData.positions.constructor.BYTES_PER_ELEMENT;
+    index +=
+      meshData.positions.length *
+      meshData.positions.constructor.BYTES_PER_ELEMENT;
 
-    const normals = new meshData.normals.constructor(arrayBuffer, index, meshData.normals.length);
+    const normals = new meshData.normals.constructor(
+      arrayBuffer,
+      index,
+      meshData.normals.length,
+    );
     normals.set(meshData.normals);
-    index += meshData.normals.length * meshData.normals.constructor.BYTES_PER_ELEMENT;
+    index +=
+      meshData.normals.length * meshData.normals.constructor.BYTES_PER_ELEMENT;
 
-    const biomes = new meshData.biomes.constructor(arrayBuffer, index, meshData.biomes.length);
+    const biomes = new meshData.biomes.constructor(
+      arrayBuffer,
+      index,
+      meshData.biomes.length,
+    );
     biomes.set(meshData.biomes);
-    index += meshData.biomes.length * meshData.biomes.constructor.BYTES_PER_ELEMENT;
+    index +=
+      meshData.biomes.length * meshData.biomes.constructor.BYTES_PER_ELEMENT;
 
-    const indices = new meshData.indices.constructor(arrayBuffer, index, meshData.indices.length);
+    const indices = new meshData.indices.constructor(
+      arrayBuffer,
+      index,
+      meshData.indices.length,
+    );
     indices.set(meshData.indices);
-    index += meshData.indices.length * meshData.indices.constructor.BYTES_PER_ELEMENT;
+    index +=
+      meshData.indices.length * meshData.indices.constructor.BYTES_PER_ELEMENT;
 
     return {
       // bufferAddress: arrayBuffer.byteOffset,
@@ -273,9 +351,21 @@ const _handleMethod = async ({method, args, instance: instanceKey, taskId}) => {
       }
     }
     case 'setCamera': {
-      const {instance: instanceKey, worldPosition, cameraPosition, cameraQuaternion, projectionMatrix} = args;
+      const {
+        instance: instanceKey,
+        worldPosition,
+        cameraPosition,
+        cameraQuaternion,
+        projectionMatrix,
+      } = args;
       const instance = instances.get(instanceKey);
-      dc.setCamera(instance, worldPosition, cameraPosition, cameraQuaternion, projectionMatrix);
+      dc.setCamera(
+        instance,
+        worldPosition,
+        cameraPosition,
+        cameraQuaternion,
+        projectionMatrix,
+      );
       return true;
     }
     case 'setClipRange': {
@@ -303,7 +393,13 @@ const _handleMethod = async ({method, args, instance: instanceKey, taskId}) => {
     case 'trackerUpdate': {
       const {instance: instanceKey, tracker, position, priority} = args;
       const instance = instances.get(instanceKey);
-      const trackerUpdate = await dc.trackerUpdateAsync(instance, taskId, tracker, position, priority);
+      const trackerUpdate = await dc.trackerUpdateAsync(
+        instance,
+        taskId,
+        tracker,
+        position,
+        priority,
+      );
       const trackerUpdate2 = _cloneTrackerUpdate(trackerUpdate);
       const spec = {
         result: trackerUpdate2,
@@ -314,12 +410,19 @@ const _handleMethod = async ({method, args, instance: instanceKey, taskId}) => {
     case 'generateTerrainChunk': {
       const {chunkPosition, lodArray} = args;
       const instance = instances.get(instanceKey);
-      if (!instance) throw new Error('generateTerrainChunk : instance not found');
+      if (!instance)
+        throw new Error('generateTerrainChunk : instance not found');
 
-      localVector.fromArray(chunkPosition)
-        .multiplyScalar(chunkWorldSize);
+      localVector.fromArray(chunkPosition).multiplyScalar(chunkWorldSize);
 
-      const meshData = await dc.createTerrainChunkMeshAsync(instance, taskId, localVector.x, localVector.y, localVector.z, lodArray);
+      const meshData = await dc.createTerrainChunkMeshAsync(
+        instance,
+        taskId,
+        localVector.x,
+        localVector.y,
+        localVector.z,
+        lodArray,
+      );
       const meshData2 = _cloneTerrainMeshData(meshData);
       meshData && dc.free(meshData.bufferAddress);
 
@@ -336,12 +439,21 @@ const _handleMethod = async ({method, args, instance: instanceKey, taskId}) => {
     case 'generateTerrainChunkRenderable': {
       const {chunkPosition, lodArray} = args;
       const instance = instances.get(instanceKey);
-      if (!instance) throw new Error('generateTerrainChunkRenderable : instance not found');
+      if (!instance)
+        throw new Error('generateTerrainChunkRenderable : instance not found');
 
-      const position = new THREE.Vector3().fromArray(chunkPosition)
+      const position = new THREE.Vector3()
+        .fromArray(chunkPosition)
         .multiplyScalar(chunkWorldSize);
       // console.log('got position', position.toArray().join(','));
-      const meshData = await dc.createTerrainChunkMeshAsync(instance, taskId, position.x, position.y, position.z, lodArray);
+      const meshData = await dc.createTerrainChunkMeshAsync(
+        instance,
+        taskId,
+        position.x,
+        position.y,
+        position.z,
+        lodArray,
+      );
       // console.log('got mesh data result 1', meshData);
       const meshData2 = _cloneTerrainMeshData(meshData);
       // console.log('got mesh data result 2', meshData2);
@@ -350,7 +462,7 @@ const _handleMethod = async ({method, args, instance: instanceKey, taskId}) => {
       if (meshData2) {
         const lod = lodArray[0];
         {
-          const taskId = Math.floor(Math.random() * 0xFFFFFF);
+          const taskId = Math.floor(Math.random() * 0xffffff);
           // console.log('skylight task id', taskId);
           meshData2.skylights = await dc.getChunkSkylightAsync(
             instance,
@@ -362,7 +474,7 @@ const _handleMethod = async ({method, args, instance: instanceKey, taskId}) => {
           );
         }
         {
-          const taskId = Math.floor(Math.random() * 0xFFFFFF);
+          const taskId = Math.floor(Math.random() * 0xffffff);
           // console.log('ao task id', taskId);
           meshData2.aos = await dc.getChunkAoAsync(
             instance,
@@ -390,11 +502,18 @@ const _handleMethod = async ({method, args, instance: instanceKey, taskId}) => {
     case 'generateLiquidChunk': {
       const {chunkPosition, lodArray} = args;
       const instance = instances.get(instanceKey);
-      if (!instance) throw new Error('generateLiquidChunk : instance not found');
+      if (!instance)
+        throw new Error('generateLiquidChunk : instance not found');
 
-      localVector.fromArray(chunkPosition)
-        .multiplyScalar(chunkWorldSize);
-      const meshData = await dc.createLiquidChunkMeshAsync(instance, taskId, localVector.x, localVector.y, localVector.z, lodArray);
+      localVector.fromArray(chunkPosition).multiplyScalar(chunkWorldSize);
+      const meshData = await dc.createLiquidChunkMeshAsync(
+        instance,
+        taskId,
+        localVector.x,
+        localVector.y,
+        localVector.z,
+        lodArray,
+      );
       const meshData2 = _cloneLiquidMeshData(meshData);
       meshData && dc.free(meshData.bufferAddress);
 
@@ -411,9 +530,19 @@ const _handleMethod = async ({method, args, instance: instanceKey, taskId}) => {
     case 'getHeightfieldRange': {
       const {instance: instanceKey, x, z, w, h, lod, priority} = args;
       const instance = instances.get(instanceKey);
-      if (!instance) throw new Error('getHeightfieldRange : instance not found');
+      if (!instance)
+        throw new Error('getHeightfieldRange : instance not found');
 
-      const heights = await dc.getHeightfieldRangeAsync(instance, taskId, x, z, w, h, lod, priority);
+      const heights = await dc.getHeightfieldRangeAsync(
+        instance,
+        taskId,
+        x,
+        z,
+        w,
+        h,
+        lod,
+        priority,
+      );
 
       // console.log('got heights', heights);
 
@@ -428,10 +557,18 @@ const _handleMethod = async ({method, args, instance: instanceKey, taskId}) => {
       const instance = instances.get(instanceKey);
       if (!instance) throw new Error('getLightRange : instance not found');
 
-      const {
-        skylights,
-        aos,
-      } = await dc.getLightRangeAsync(instance, taskId, x, y, z, w, h, d, lod, priority);
+      const {skylights, aos} = await dc.getLightRangeAsync(
+        instance,
+        taskId,
+        x,
+        y,
+        z,
+        w,
+        h,
+        d,
+        lod,
+        priority,
+      );
 
       // console.log('got lights', {skylights, aos});
 
@@ -447,9 +584,17 @@ const _handleMethod = async ({method, args, instance: instanceKey, taskId}) => {
     case 'getChunkHeightfield': {
       const {x, z, lod, priority} = args;
       const instance = instances.get(instanceKey);
-      if (!instance) throw new Error('getChunkHeightfield : instance not found');
+      if (!instance)
+        throw new Error('getChunkHeightfield : instance not found');
 
-      const heightfield = await dc.getChunkHeightfieldAsync(instance, taskId, x, z, lod, priority);
+      const heightfield = await dc.getChunkHeightfieldAsync(
+        instance,
+        taskId,
+        x,
+        z,
+        lod,
+        priority,
+      );
       const spec = {
         result: heightfield,
         transfers: [heightfield.buffer],
@@ -527,13 +672,21 @@ const _handleMethod = async ({method, args, instance: instanceKey, taskId}) => {
     case 'createVegetationSplat': {
       const {x, z, lod, priority} = args;
       const instance = instances.get(instanceKey);
-      if (!instance) throw new Error('createVegetationSplat : instance not found');
+      if (!instance)
+        throw new Error('createVegetationSplat : instance not found');
 
       const {
         ps,
         qs,
         instances: instancesResult,
-      } = await dc.createVegetationSplatAsync(instance, taskId, x, z, lod, priority);
+      } = await dc.createVegetationSplatAsync(
+        instance,
+        taskId,
+        x,
+        z,
+        lod,
+        priority,
+      );
 
       const spec = {
         result: {

@@ -152,20 +152,41 @@ const _snap = v => {
 };
 const _getEtherIndex = worldDepthResolutionP3 => p =>
   p.x +
-    (worldDepthResolutionP3.x * p.z) +
-    (worldDepthResolutionP3.x * worldDepthResolutionP3.x * p.y);
-const _makeGeometry = (position, quaternion, worldSize, worldDepthResolution, depthFloatImageData, ethers) => {
-  const worldDepthResolutionP2 = worldDepthResolution.clone().add(new THREE.Vector2(2, 2));
-  const worldDepthResolutionP3 = worldDepthResolution.clone().add(new THREE.Vector2(3, 3));
-  const worldDepthVoxelSize = new THREE.Vector2(worldSize.x, worldSize.y).divide(worldDepthResolution);
+  worldDepthResolutionP3.x * p.z +
+  worldDepthResolutionP3.x * worldDepthResolutionP3.x * p.y;
+const _makeGeometry = (
+  position,
+  quaternion,
+  worldSize,
+  worldDepthResolution,
+  depthFloatImageData,
+  ethers,
+) => {
+  const worldDepthResolutionP2 = worldDepthResolution
+    .clone()
+    .add(new THREE.Vector2(2, 2));
+  const worldDepthResolutionP3 = worldDepthResolution
+    .clone()
+    .add(new THREE.Vector2(3, 3));
+  const worldDepthVoxelSize = new THREE.Vector2(
+    worldSize.x,
+    worldSize.y,
+  ).divide(worldDepthResolution);
   const cameraFar = worldSize.z + worldDepthVoxelSize.x * 2;
 
   // const cubePositions = [];
 
-  const forwardDirection = _snap(new THREE.Vector3(0, 0, 1).applyQuaternion(quaternion));
-  const upDirection = _snap(new THREE.Vector3(0, 1, 0).applyQuaternion(quaternion));
-  const rightDirection = _snap(new THREE.Vector3(1, 0, 0).applyQuaternion(quaternion));
-  const baseWorldPosition = position.clone()
+  const forwardDirection = _snap(
+    new THREE.Vector3(0, 0, 1).applyQuaternion(quaternion),
+  );
+  const upDirection = _snap(
+    new THREE.Vector3(0, 1, 0).applyQuaternion(quaternion),
+  );
+  const rightDirection = _snap(
+    new THREE.Vector3(1, 0, 0).applyQuaternion(quaternion),
+  );
+  const baseWorldPosition = position
+    .clone()
     .add(
       new THREE.Vector3(
         -worldSize.x / 2,
@@ -179,8 +200,12 @@ const _makeGeometry = (position, quaternion, worldSize, worldDepthResolution, de
   const _etherIndex = _getEtherIndex(worldDepthResolutionP3);
   const _setEther = (p, v) => {
     if (
-      _isWhole(p.x) && _isWhole(p.y) && _isWhole(p.z) &&
-      _isGez(p.x) && _isGez(p.y) && _isGez(p.z)
+      _isWhole(p.x) &&
+      _isWhole(p.y) &&
+      _isWhole(p.z) &&
+      _isGez(p.x) &&
+      _isGez(p.y) &&
+      _isGez(p.z)
     ) {
       const index = _etherIndex(p);
       if (index >= 0 && index < ethers.length) {
@@ -216,27 +241,34 @@ const _makeGeometry = (position, quaternion, worldSize, worldDepthResolution, de
         const y2 = -y;
         const z2 = (1 + z / cameraFar) * worldDepthResolutionP2.x;
         const voxelLocationPlane = _snap(
-          localVector.set(0, 0, 0)
+          localVector
+            .set(0, 0, 0)
             .add(rightDirection.clone().multiplyScalar(x2))
             .add(upDirection.clone().multiplyScalar(y2)),
         );
 
         for (let dz = worldDepthResolutionP3.x - 1; dz >= 0; dz--) {
-          if (dz > z2) { // empty
-            const voxelLocationTarget = localVector2.copy(voxelLocationPlane)
+          if (dz > z2) {
+            // empty
+            const voxelLocationTarget = localVector2
+              .copy(voxelLocationPlane)
               .add(forwardDirection.clone().multiplyScalar(dz));
             _setEther(voxelLocationTarget, 1);
           } else {
             const lastDz = dz + 1;
             if (lastDz >= 0) {
               const factor = lastDz - z2;
-              if (factor <= 0.5) { // first half of the cube; adjust from
-                const voxelLocationTargetLast = localVector2.copy(voxelLocationPlane)
+              if (factor <= 0.5) {
+                // first half of the cube; adjust from
+                const voxelLocationTargetLast = localVector2
+                  .copy(voxelLocationPlane)
                   .add(forwardDirection.clone().multiplyScalar(lastDz));
                 _setEther(voxelLocationTargetLast, factor / 0.5);
-              } else { // second half of the cube; adjust to
+              } else {
+                // second half of the cube; adjust to
                 const factor2 = 1 - factor;
-                const voxelLocationTarget = localVector2.copy(voxelLocationPlane)
+                const voxelLocationTarget = localVector2
+                  .copy(voxelLocationPlane)
                   .add(forwardDirection.clone().multiplyScalar(dz));
                 _setEther(voxelLocationTarget, -factor2 / 0.5);
               }
@@ -308,7 +340,11 @@ const _makeGeometry = (position, quaternion, worldSize, worldDepthResolution, de
   };
   _initializeSides();
 
-  const dims = [worldDepthResolutionP3.x, worldDepthResolutionP3.x, worldDepthResolutionP3.x];
+  const dims = [
+    worldDepthResolutionP3.x,
+    worldDepthResolutionP3.x,
+    worldDepthResolutionP3.x,
+  ];
   const shift = [0, 0, 0];
   const scale = new THREE.Vector3().setScalar(worldDepthVoxelSize.x).toArray();
   const mc = physicsManager.marchingCubes(dims, ethers, shift, scale);
@@ -318,12 +354,12 @@ const _makeGeometry = (position, quaternion, worldSize, worldDepthResolution, de
   geometry2.setIndex(new THREE.BufferAttribute(faces, 1));
   geometry2.computeVertexNormals();
 
-  return [geometry2/*, cubePositions */];
+  return [geometry2 /*, cubePositions */];
 };
 // const normalMaterial = new THREE.MeshNormalMaterial();
 const baseMaterial = new THREE.MeshBasicMaterial({
   map: null,
-  color: 0xFFFFFF,
+  color: 0xffffff,
   fog: false,
 });
 const triplanarVertexShader = `\
@@ -376,8 +412,13 @@ export function snapshotMapChunk(
   worldResolution,
   worldDepthResolution,
 ) {
-  const worldDepthResolutionP3 = worldDepthResolution.clone().add(new THREE.Vector2(3, 3));
-  const worldDepthVoxelSize = new THREE.Vector2(worldSize.x, worldSize.y).divide(worldDepthResolution);
+  const worldDepthResolutionP3 = worldDepthResolution
+    .clone()
+    .add(new THREE.Vector2(3, 3));
+  const worldDepthVoxelSize = new THREE.Vector2(
+    worldSize.x,
+    worldSize.y,
+  ).divide(worldDepthResolution);
   const localPlayer = playersManager.getLocalPlayer();
 
   const _makeMesh = (position, quaternion, ethers) => {
@@ -409,11 +450,9 @@ export function snapshotMapChunk(
       cameraNear,
       cameraFar,
     );
-    camera.position.copy(position)
-      .add(
-        localVector.set(0, 0, cameraFar / 2)
-          .applyQuaternion(quaternion),
-      );
+    camera.position
+      .copy(position)
+      .add(localVector.set(0, 0, cameraFar / 2).applyQuaternion(quaternion));
     camera.quaternion.copy(quaternion);
     camera.updateMatrixWorld();
 
@@ -439,7 +478,12 @@ export function snapshotMapChunk(
 
         return () => {
           // renderer state
-          renderer.setViewport(oldViewport.x, oldViewport.y, oldViewport.z, oldViewport.w);
+          renderer.setViewport(
+            oldViewport.x,
+            oldViewport.y,
+            oldViewport.z,
+            oldViewport.w,
+          );
           renderer.setRenderTarget(oldRenderTarget);
           scene.overrideMaterial = oldOverrideMaterial;
           // scene.fog = oldFog;
@@ -457,7 +501,11 @@ export function snapshotMapChunk(
       const popState = _pushState();
 
       // render
-      const _renderOverrideMaterial = (renderTarget, overrideMaterial, wrp1) => {
+      const _renderOverrideMaterial = (
+        renderTarget,
+        overrideMaterial,
+        wrp1,
+      ) => {
         renderer.setViewport(0, 0, wrp1.x, wrp1.y);
         renderer.setRenderTarget(renderTarget);
         renderer.clear();
@@ -479,17 +527,34 @@ export function snapshotMapChunk(
           width: wrp1.x,
           height: wrp1.y,
         };
-        renderer.readRenderTargetPixels(renderTarget, 0, 0, wrp1.x, wrp1.y, imageData.data);
+        renderer.readRenderTargetPixels(
+          renderTarget,
+          0,
+          0,
+          wrp1.x,
+          wrp1.y,
+          imageData.data,
+        );
         return imageData;
       };
       // color
-      colorImageData = _renderOverrideMaterial(colorRenderTarget, null, worldResolution);
+      colorImageData = _renderOverrideMaterial(
+        colorRenderTarget,
+        null,
+        worldResolution,
+      );
       // depth
       depthMaterial.uniforms.cameraNear.value = cameraNear;
       depthMaterial.uniforms.cameraNear.needsUpdate = true;
       depthMaterial.uniforms.cameraFar.value = cameraFar;
       depthMaterial.uniforms.cameraFar.needsUpdate = true;
-      depthFloatImageData = floatImageData(_renderOverrideMaterial(depthRenderTarget, depthMaterial, worldDepthResolutionP3));
+      depthFloatImageData = floatImageData(
+        _renderOverrideMaterial(
+          depthRenderTarget,
+          depthMaterial,
+          worldDepthResolutionP3,
+        ),
+      );
       for (let i = 0; i < depthFloatImageData.length; i++) {
         if (depthFloatImageData[i] === cameraNear) {
           depthFloatImageData[i] = -cameraFar;
@@ -530,10 +595,13 @@ export function snapshotMapChunk(
     material2.freeze(triplanarMaterial.programCacheKey.bind(triplanarMaterial));
     material2.uniforms.uColor.value = colorTex;
     material2.uniforms.uColor.needsUpdate = true;
-    material2.uniforms.uSize.value.setScalar(worldSize.x + worldDepthVoxelSize.x * 2);
+    material2.uniforms.uSize.value.setScalar(
+      worldSize.x + worldDepthVoxelSize.x * 2,
+    );
     material2.uniforms.uSize.needsUpdate = true;
     const mesh2 = new THREE.Mesh(geometry2, material2);
-    const baseWorldPosition = position.clone()
+    const baseWorldPosition = position
+      .clone()
       .add(
         new THREE.Vector3(
           -worldSize.x / 2 - worldDepthVoxelSize.x,
@@ -561,17 +629,24 @@ export function snapshotMapChunk(
   };
 
   if (
-    worldSize.x !== worldSize.y || worldSize.x !== worldSize.z ||
+    worldSize.x !== worldSize.y ||
+    worldSize.x !== worldSize.z ||
     worldDepthResolution.x !== worldDepthResolution.y
   ) {
     throw new Error('non-cube dimensions not supported');
   }
-  const ethers = new Float32Array(worldDepthResolutionP3.x * worldDepthResolutionP3.x * worldDepthResolutionP3.x)
-    .fill(-1);
+  const ethers = new Float32Array(
+    worldDepthResolutionP3.x *
+      worldDepthResolutionP3.x *
+      worldDepthResolutionP3.x,
+  ).fill(-1);
 
   const topMesh = _makeMesh(
     position,
-    new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(1, 0, 0), -Math.PI / 2),
+    new THREE.Quaternion().setFromAxisAngle(
+      new THREE.Vector3(1, 0, 0),
+      -Math.PI / 2,
+    ),
     ethers,
   );
   /* const bottomMesh = _makeMesh(

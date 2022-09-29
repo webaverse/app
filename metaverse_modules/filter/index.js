@@ -1,7 +1,17 @@
 import * as THREE from 'three';
 import * as BufferGeometryUtils from 'three/examples/jsm/utils/BufferGeometryUtils.js';
 import metaversefile from 'metaversefile';
-const {useApp, useFrame, usePhysics, useProcGen, addTrackedApp, useDefaultModules, useCleanup, createMapChunk, createMapChunkMesh} = metaversefile;
+const {
+  useApp,
+  useFrame,
+  usePhysics,
+  useProcGen,
+  addTrackedApp,
+  useDefaultModules,
+  useCleanup,
+  createMapChunk,
+  createMapChunkMesh,
+} = metaversefile;
 
 // const baseUrl = import.meta.url.replace(/(\/)[^\/\\]*$/, '$1');
 
@@ -56,8 +66,7 @@ function addPositionUvs(geometry) {
       throw new Error('bad normal');
     }
 
-    localVector2D.set(x, y)
-      .toArray(uvs, j);
+    localVector2D.set(x, y).toArray(uvs, j);
   }
 
   return geometry;
@@ -119,8 +128,12 @@ const funGridMaterial = new THREE.ShaderMaterial({
     varying vec3 vPosition;
     varying vec2 vUv;
 
-    const vec3 lineColor1 = vec3(${new THREE.Color(0x66bb6a).toArray().join(', ')});
-    const vec3 lineColor2 = vec3(${new THREE.Color(0x9575cd).toArray().join(', ')});
+    const vec3 lineColor1 = vec3(${new THREE.Color(0x66bb6a)
+      .toArray()
+      .join(', ')});
+    const vec3 lineColor2 = vec3(${new THREE.Color(0x9575cd)
+      .toArray()
+      .join(', ')});
 
     ${THREE.ShaderChunk.logdepthbuf_pars_fragment}
 
@@ -191,12 +204,8 @@ export default () => {
   const app = useApp();
   const physics = usePhysics();
   const procGen = useProcGen();
-  const {
-    voxelWorldSize,
-    chunkWorldSize,
-    createMapChunk,
-    createMapChunkMesh,
-  } = procGen;
+  const {voxelWorldSize, chunkWorldSize, createMapChunk, createMapChunkMesh} =
+    procGen;
 
   app.name = 'filter';
 
@@ -244,67 +253,70 @@ export default () => {
     {
       const geometries = wallNormals.map(wallNormal => {
         let g = null;
-        const localNormalExitSpecs = exits.map(exit => {
-          const size = new THREE.Vector2(voxelWorldSize, voxelWorldSize);
+        const localNormalExitSpecs = exits
+          .map(exit => {
+            const size = new THREE.Vector2(voxelWorldSize, voxelWorldSize);
 
-          localVector.fromArray(exit);
-          let normal;
-          if (localVector.x === 0) { // XXX blocks should come with an incoming direction so this is well-defined
-            normal = localVector2.set(1, 0, 0);
-          } else if (localVector.x === (width - voxelWorldSize)) {
-            normal = localVector2.set(-1, 0, 0);
-          } else if (localVector.z === 0) {
-            normal = localVector2.set(0, 0, 1);
-          } else if (localVector.z === (depth - voxelWorldSize)) {
-            normal = localVector2.set(0, 0, -1);
-          } else if (localVector.y === 0) {
-            normal = localVector2.set(0, 1, 0);
-          } else if (localVector.y === (height - voxelWorldSize)) {
-            normal = localVector2.set(0, -1, 0);
-          } else {
-            console.warn('invalid exit position', exit, width, height, depth);
-            throw new Error('invalid exit position');
-          }
+            localVector.fromArray(exit);
+            let normal;
+            if (localVector.x === 0) {
+              // XXX blocks should come with an incoming direction so this is well-defined
+              normal = localVector2.set(1, 0, 0);
+            } else if (localVector.x === width - voxelWorldSize) {
+              normal = localVector2.set(-1, 0, 0);
+            } else if (localVector.z === 0) {
+              normal = localVector2.set(0, 0, 1);
+            } else if (localVector.z === depth - voxelWorldSize) {
+              normal = localVector2.set(0, 0, -1);
+            } else if (localVector.y === 0) {
+              normal = localVector2.set(0, 1, 0);
+            } else if (localVector.y === height - voxelWorldSize) {
+              normal = localVector2.set(0, -1, 0);
+            } else {
+              console.warn('invalid exit position', exit, width, height, depth);
+              throw new Error('invalid exit position');
+            }
 
-          if (normal.equals(wallNormal)) {
-            const position = new THREE.Vector3(
-              -width / 2 +
-                (0.5 * -normal.x) +
-                localVector.x +
-                (normal.x === -1 ? voxelWorldSize : 0) +
-                (normal.z * voxelWorldSize / 2),
-              voxelWorldSize / 2 +
-                localVector.y,
-              -depth / 2 +
-                (0.5 * -normal.z) +
-                localVector.z +
-                (normal.z === -1 ? voxelWorldSize : 0) +
-                (normal.x * voxelWorldSize / 2),
-            );
+            if (normal.equals(wallNormal)) {
+              const position = new THREE.Vector3(
+                -width / 2 +
+                  0.5 * -normal.x +
+                  localVector.x +
+                  (normal.x === -1 ? voxelWorldSize : 0) +
+                  (normal.z * voxelWorldSize) / 2,
+                voxelWorldSize / 2 + localVector.y,
+                -depth / 2 +
+                  0.5 * -normal.z +
+                  localVector.z +
+                  (normal.z === -1 ? voxelWorldSize : 0) +
+                  (normal.x * voxelWorldSize) / 2,
+              );
 
-            const faceQuaternion = new THREE.Quaternion()
-              .setFromRotationMatrix(
-                new THREE.Matrix4().lookAt(
-                  zeroVector,
-                  normal.clone().multiplyScalar(-1),
-                  upVector,
-                ),
-              ).invert();
-            position.applyQuaternion(faceQuaternion);
+              const faceQuaternion = new THREE.Quaternion()
+                .setFromRotationMatrix(
+                  new THREE.Matrix4().lookAt(
+                    zeroVector,
+                    normal.clone().multiplyScalar(-1),
+                    upVector,
+                  ),
+                )
+                .invert();
+              position.applyQuaternion(faceQuaternion);
 
-            /* if (normal.x === 1) {
+              /* if (normal.x === 1) {
               console.log('filter exit', normal.toArray().join(', '), localVector.toArray().join(', '), position.toArray().join(', '));
             } */
 
-            return {
-              position,
-              normal: normal.clone(),
-              size,
-            };
-          } else {
-            return null;
-          }
-        }).filter(exit => exit !== null);
+              return {
+                position,
+                normal: normal.clone(),
+                size,
+              };
+            } else {
+              return null;
+            }
+          })
+          .filter(exit => exit !== null);
         if (localNormalExitSpecs.length > 0) {
           const scale = _getScaleFromNormal(wallNormal, localVector);
           const outerWidth = scale.x;
@@ -329,35 +341,27 @@ export default () => {
             wallShape.lineTo(-outerWidth / 2, -outerHeight / 2);
           }
 
-          const offset = localVector.multiplyVectors(dims, wallNormal.clone().multiplyScalar(-1))
+          const offset = localVector
+            .multiplyVectors(dims, wallNormal.clone().multiplyScalar(-1))
             .divideScalar(2);
           const quaternion = localQuaternion.setFromRotationMatrix(
-            localMatrix.lookAt(
-              wallNormal,
-              zeroVector,
-              upVector,
-            ),
+            localMatrix.lookAt(wallNormal, zeroVector, upVector),
           );
 
-          g = new THREE.ShapeGeometry(wallShape)
-            .applyMatrix4(
-              localMatrix.compose(offset, quaternion, oneVector),
-            );
+          g = new THREE.ShapeGeometry(wallShape).applyMatrix4(
+            localMatrix.compose(offset, quaternion, oneVector),
+          );
         } else {
-          const offset = localVector.multiplyVectors(dims, wallNormal.clone().multiplyScalar(-1))
+          const offset = localVector
+            .multiplyVectors(dims, wallNormal.clone().multiplyScalar(-1))
             .divideScalar(2);
           const quaternion = localQuaternion.setFromRotationMatrix(
-            localMatrix.lookAt(
-              wallNormal,
-              zeroVector,
-              upVector,
-            ),
+            localMatrix.lookAt(wallNormal, zeroVector, upVector),
           );
           const scale = _getScaleFromNormal(wallNormal, localVector2);
-          g = new THREE.PlaneGeometry(1, 1, 1)
-            .applyMatrix4(
-              localMatrix.compose(offset, quaternion, scale),
-            );
+          g = new THREE.PlaneGeometry(1, 1, 1).applyMatrix4(
+            localMatrix.compose(offset, quaternion, scale),
+          );
         }
         return quantizeGeometry(g, voxelWorldSize);
       });

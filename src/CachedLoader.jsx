@@ -1,7 +1,5 @@
 export class CachedLoader extends EventTarget {
-  constructor({
-    loadFn,
-  }) {
+  constructor({loadFn}) {
     super();
 
     this.loadFn = loadFn;
@@ -12,11 +10,13 @@ export class CachedLoader extends EventTarget {
 
   #setLoading(loading) {
     this.loading = loading;
-    this.dispatchEvent(new MessageEvent('loadingchange', {
-      data: {
-        loading,
-      },
-    }));
+    this.dispatchEvent(
+      new MessageEvent('loadingchange', {
+        data: {
+          loading,
+        },
+      }),
+    );
   }
 
   async loadItem(url, value, {signal = null} = {}) {
@@ -25,11 +25,10 @@ export class CachedLoader extends EventTarget {
     try {
       let promise = this.promiseCache.get(url);
       if (!promise) {
-        promise = this.loadFn(url, value, {signal})
-          .then(result => {
-            signal.removeEventListener('abort', abort);
-            return result;
-          });
+        promise = this.loadFn(url, value, {signal}).then(result => {
+          signal.removeEventListener('abort', abort);
+          return result;
+        });
         this.promiseCache.set(url, promise);
         const abort = () => {
           this.promiseCache.delete(url);

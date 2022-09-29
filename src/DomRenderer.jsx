@@ -20,9 +20,14 @@ const localMatrix = new THREE.Matrix4();
 const localMatrix2 = new THREE.Matrix4();
 const localMatrix3 = new THREE.Matrix4();
 
-const scaleMatrix = new THREE.Matrix4().makeScale(1 + scaleEpsilon, 1 + scaleEpsilon, 1 + scaleEpsilon);
+const scaleMatrix = new THREE.Matrix4().makeScale(
+  1 + scaleEpsilon,
+  1 + scaleEpsilon,
+  1 + scaleEpsilon,
+);
 
-const _getFov = () => camera.projectionMatrix.elements[5] * (window.innerHeight / 2);
+const _getFov = () =>
+  camera.projectionMatrix.elements[5] * (window.innerHeight / 2);
 
 function epsilon(value) {
   return value;
@@ -30,24 +35,40 @@ function epsilon(value) {
 
 function getObjectCSSMatrix(matrix, cameraCSSMatrix) {
   const elements = matrix.elements;
-  const matrix3d = 'matrix3d(' +
-    epsilon(elements[0]) + ',' +
-    epsilon(elements[1]) + ',' +
-    epsilon(elements[2]) + ',' +
-    epsilon(elements[3]) + ',' +
-    epsilon(-elements[4]) + ',' +
-    epsilon(-elements[5]) + ',' +
-    epsilon(-elements[6]) + ',' +
-    epsilon(-elements[7]) + ',' +
-    epsilon(elements[8]) + ',' +
-    epsilon(elements[9]) + ',' +
-    epsilon(elements[10]) + ',' +
-    epsilon(elements[11]) + ',' +
-    epsilon(elements[12]) + ',' +
-    epsilon(elements[13]) + ',' +
-    epsilon(elements[14]) + ',' +
+  const matrix3d =
+    'matrix3d(' +
+    epsilon(elements[0]) +
+    ',' +
+    epsilon(elements[1]) +
+    ',' +
+    epsilon(elements[2]) +
+    ',' +
+    epsilon(elements[3]) +
+    ',' +
+    epsilon(-elements[4]) +
+    ',' +
+    epsilon(-elements[5]) +
+    ',' +
+    epsilon(-elements[6]) +
+    ',' +
+    epsilon(-elements[7]) +
+    ',' +
+    epsilon(elements[8]) +
+    ',' +
+    epsilon(elements[9]) +
+    ',' +
+    epsilon(elements[10]) +
+    ',' +
+    epsilon(elements[11]) +
+    ',' +
+    epsilon(elements[12]) +
+    ',' +
+    epsilon(elements[13]) +
+    ',' +
+    epsilon(elements[14]) +
+    ',' +
     epsilon(elements[15]) +
-  ')';
+    ')';
 
   /* if ( isIE ) {
 
@@ -62,32 +83,44 @@ function getObjectCSSMatrix(matrix, cameraCSSMatrix) {
 }
 function getCameraCSSMatrix(matrix) {
   const {elements} = matrix;
-  return 'matrix3d(' +
-    epsilon(elements[0]) + ',' +
-    epsilon(-elements[1]) + ',' +
-    epsilon(elements[2]) + ',' +
-    epsilon(elements[3]) + ',' +
-    epsilon(elements[4]) + ',' +
-    epsilon(-elements[5]) + ',' +
-    epsilon(elements[6]) + ',' +
-    epsilon(elements[7]) + ',' +
-    epsilon(elements[8]) + ',' +
-    epsilon(-elements[9]) + ',' +
-    epsilon(elements[10]) + ',' +
-    epsilon(elements[11]) + ',' +
-    epsilon(elements[12]) + ',' +
-    epsilon(-elements[13]) + ',' +
-    epsilon(elements[14]) + ',' +
+  return (
+    'matrix3d(' +
+    epsilon(elements[0]) +
+    ',' +
+    epsilon(-elements[1]) +
+    ',' +
+    epsilon(elements[2]) +
+    ',' +
+    epsilon(elements[3]) +
+    ',' +
+    epsilon(elements[4]) +
+    ',' +
+    epsilon(-elements[5]) +
+    ',' +
+    epsilon(elements[6]) +
+    ',' +
+    epsilon(elements[7]) +
+    ',' +
+    epsilon(elements[8]) +
+    ',' +
+    epsilon(-elements[9]) +
+    ',' +
+    epsilon(elements[10]) +
+    ',' +
+    epsilon(elements[11]) +
+    ',' +
+    epsilon(elements[12]) +
+    ',' +
+    epsilon(-elements[13]) +
+    ',' +
+    epsilon(elements[14]) +
+    ',' +
     epsilon(elements[15]) +
-  ')';
+    ')'
+  );
 }
 
-const DomRendererChild = ({
-  dom,
-  innerWidth,
-  innerHeight,
-  range = 5,
-}) => {
+const DomRendererChild = ({dom, innerWidth, innerHeight, range = 5}) => {
   const {width, height} = dom;
   const scaleFactor = DomRenderEngine.getScaleFactor(width, height);
   const [visible, setVisible] = useState(false);
@@ -105,26 +138,33 @@ const DomRendererChild = ({
           const now = timestamp;
 
           dom.floatNode.position.set(0, 0, 0);
-          dom.floatNode.position.y += Math.sin((now % floatTime) / floatTime * 2 * Math.PI) * floatFactor;
-          dom.floatNode.position.y += Math.cos(((now / 2) % floatTime) / floatTime * 2 * Math.PI) * floatFactor / 2;
-          dom.floatNode.position.y += Math.sin(((now / 4) % floatTime) / floatTime * 2 * Math.PI) * floatFactor / 4;
+          dom.floatNode.position.y +=
+            Math.sin(((now % floatTime) / floatTime) * 2 * Math.PI) *
+            floatFactor;
+          dom.floatNode.position.y +=
+            (Math.cos((((now / 2) % floatTime) / floatTime) * 2 * Math.PI) *
+              floatFactor) /
+            2;
+          dom.floatNode.position.y +=
+            (Math.sin((((now / 4) % floatTime) / floatTime) * 2 * Math.PI) *
+              floatFactor) /
+            4;
           dom.floatNode.updateMatrixWorld();
         };
         _animateMenuFloat();
 
-        const floatNodeMatrixWorld = localMatrix3
-          .multiplyMatrices(dom.floatNode.matrixWorld, scaleMatrix);
+        const floatNodeMatrixWorld = localMatrix3.multiplyMatrices(
+          dom.floatNode.matrixWorld,
+          scaleMatrix,
+        );
 
         const _updateCameraContainerMatrix = () => {
           const fov = _getFov();
           const cameraCSSMatrix = getCameraCSSMatrix(
-            localMatrix.copy(camera.matrixWorldInverse)
-              .premultiply(
-                localMatrix2.makeTranslation(0, 0, fov),
-              )
-              .multiply(
-                floatNodeMatrixWorld,
-              ),
+            localMatrix
+              .copy(camera.matrixWorldInverse)
+              .premultiply(localMatrix2.makeTranslation(0, 0, fov))
+              .multiply(floatNodeMatrixWorld),
           );
           iframeContainer2.style.transform = cameraCSSMatrix;
         };
@@ -202,7 +242,12 @@ const DomRendererChild = ({
           border: '0',
           overflow: 'hidden',
 
-          transform: 'translate(' + (innerWidth / 2 - width / 2) + 'px,' + (innerHeight / 2 - height / 2) + 'px) ' +
+          transform:
+            'translate(' +
+            (innerWidth / 2 - width / 2) +
+            'px,' +
+            (innerHeight / 2 - height / 2) +
+            'px) ' +
             getObjectCSSMatrix(
               localMatrix.compose(
                 localVector.set(0, 0, 0),
@@ -237,19 +282,21 @@ const DomRendererChildren = ({
     };
   }, [epoch]);
 
-  return <>
-    {domRenderEngine.doms.map((dom, i) => {
-      return (
-        <DomRendererChild
-          dom={dom}
-          innerWidth={innerWidth}
-          innerHeight={innerHeight}
-          fov={fov}
-          key={i}
-        />
-      );
-    })}
-  </>;
+  return (
+    <>
+      {domRenderEngine.doms.map((dom, i) => {
+        return (
+          <DomRendererChild
+            dom={dom}
+            innerWidth={innerWidth}
+            innerHeight={innerHeight}
+            fov={fov}
+            key={i}
+          />
+        );
+      })}
+    </>
+  );
 };
 
 const DomRenderer = props => {
@@ -301,6 +348,4 @@ const DomRenderer = props => {
     </div>
   );
 };
-export {
-  DomRenderer,
-};
+export {DomRenderer};

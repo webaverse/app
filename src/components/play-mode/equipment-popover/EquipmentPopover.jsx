@@ -5,12 +5,15 @@ import {PlaceholderImg} from '../../../PlaceholderImg.jsx';
 
 const width = 400;
 
-export const EquipmentPopover = ({
-  open = true,
-}) => {
+export const EquipmentPopover = ({open = true}) => {
   return (
-    <div className={ classnames(styles.equipmentPopover, open ? styles.open : null) } >
-      <PlaceholderImg className={styles.placeholderImg} src='./images/arc-white.svg' />
+    <div
+      className={classnames(styles.equipmentPopover, open ? styles.open : null)}
+    >
+      <PlaceholderImg
+        className={styles.placeholderImg}
+        src="./images/arc-white.svg"
+      />
     </div>
   );
 };

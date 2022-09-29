@@ -17,7 +17,7 @@ const pixelRatio = window.devicePixelRatio;
 
 const chatDioramas = new WeakMap();
 
-const CharacterHup = function(props) {
+const CharacterHup = function (props) {
   const {hup, index, hups, setHups} = props;
 
   const canvasRef = useRef();
@@ -41,9 +41,7 @@ const CharacterHup = function(props) {
       } else {
         diorama = dioramaManager.createPlayerDiorama({
           target: character,
-          objects: [
-            character.avatar.avatarRenderer.scene,
-          ],
+          objects: [character.avatar.avatarRenderer.scene],
           grassBackground: true,
         });
         diorama.addCanvas(canvas);
@@ -115,7 +113,10 @@ const CharacterHup = function(props) {
 
   return (
     <div
-      className={classnames(styles['character-hup'], localOpen ? styles.open : null)}
+      className={classnames(
+        styles['character-hup'],
+        localOpen ? styles.open : null,
+      )}
       style={{
         top: `${index * defaultHupSize}px`,
       }}
@@ -141,16 +142,17 @@ const CharacterHup = function(props) {
           </div>
         </div> */}
       </div>
-      <RpgText className={styles.message} styles={styles} textSpeed={chatTextSpeed} text={fullText}></RpgText>
+      <RpgText
+        className={styles.message}
+        styles={styles}
+        textSpeed={chatTextSpeed}
+        text={fullText}
+      ></RpgText>
     </div>
   );
 };
 
-export default function CharacterHups({
-  localPlayer,
-  npcs,
-  remotePlayers,
-}) {
+export default function CharacterHups({localPlayer, npcs, remotePlayers}) {
   const [hups, setHups] = useState([]);
 
   useEffect(() => {

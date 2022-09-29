@@ -11,7 +11,17 @@ const localVector2D2 = new THREE.Vector2();
 // const localQuaternion = new THREE.Quaternion();
 // const localMatrix = new THREE.Matrix4();
 
-export const mapWarpedUvs = (src, srcOffset, dst, dstOffset, tx, ty, tw, th, canvasSize) => {
+export const mapWarpedUvs = (
+  src,
+  srcOffset,
+  dst,
+  dstOffset,
+  tx,
+  ty,
+  tw,
+  th,
+  canvasSize,
+) => {
   const count = src.count;
   for (let i = 0; i < count; i++) {
     const srcIndex = srcOffset + i * 2;
@@ -20,12 +30,8 @@ export const mapWarpedUvs = (src, srcOffset, dst, dstOffset, tx, ty, tw, th, can
     localVector2D.fromArray(src.array, srcIndex);
     modUv(localVector2D);
     localVector2D
-      .multiply(
-        localVector2D2.set(tw / canvasSize, th / canvasSize),
-      )
-      .add(
-        localVector2D2.set(tx / canvasSize, ty / canvasSize),
-      );
+      .multiply(localVector2D2.set(tw / canvasSize, th / canvasSize))
+      .add(localVector2D2.set(tx / canvasSize, ty / canvasSize));
     localVector2D.toArray(dst.array, localDstOffset);
   }
 };
@@ -107,7 +113,9 @@ export const generateTextureAtlas = textureSpecs => {
       }
     };
 
-    const hasTextures = textureSizes.some(textureSize => textureSize.x > 0 || textureSize.y > 0);
+    const hasTextures = textureSizes.some(
+      textureSize => textureSize.x > 0 || textureSize.y > 0,
+    );
     if (hasTextures) {
       let atlas;
       let atlasSize = startTextureAtlasSize;
@@ -123,7 +131,8 @@ export const generateTextureAtlas = textureSpecs => {
 
   // draw atlas images
   const _drawAtlasImages = atlas => {
-    const _getTexturesKey = textures => textures.map(t => t ? t.uuid : '').join(',');
+    const _getTexturesKey = textures =>
+      textures.map(t => (t ? t.uuid : '')).join(',');
     const _drawAtlasImage = (textureName, textures) => {
       if (atlas && textures.some(t => t !== null)) {
         const canvasSize = Math.min(atlas.width, maxTextureAtlasSize);
@@ -141,7 +150,13 @@ export const generateTextureAtlas = textureSpecs => {
         const ctx = canvas.getContext('2d');
         atlas.bins.forEach(bin => {
           bin.rects.forEach(rect => {
-            const {x, y, width: w, height: h, data: {index}} = rect;
+            const {
+              x,
+              y,
+              width: w,
+              height: h,
+              data: {index},
+            } = rect;
             const texture = textures[index];
             if (texture) {
               const image = texture.image;
@@ -151,7 +166,17 @@ export const generateTextureAtlas = textureSpecs => {
               const ty = y * canvasScale;
               const tw = w * canvasScale;
               const th = h * canvasScale;
-              ctx.drawImage(image, 0, 0, image.width, image.height, tx, ty, tw, th);
+              ctx.drawImage(
+                image,
+                0,
+                0,
+                image.width,
+                image.height,
+                tx,
+                ty,
+                tw,
+                th,
+              );
             }
           });
         });
@@ -171,7 +196,8 @@ export const generateTextureAtlas = textureSpecs => {
       // const textureName2 = textureName.replace(/s$/, '');
 
       let atlasImage = atlasImagesMap.get(key);
-      if (atlasImage === undefined) { // cache miss
+      if (atlasImage === undefined) {
+        // cache miss
         atlasImage = _drawAtlasImage(textureName, textures);
         if (atlasImage !== null) {
           atlasImage.key = key;
@@ -213,18 +239,15 @@ const textureInitializers = {
     _colorCanvas(canvas, 'rgb(0, 0, 0)');
   }, */
 };
-export const createTextureAtlas = (meshes, {
-  textures = ['map'],
-  attributes = ['position', 'normal', 'uv'],
-} = {}) => {
+export const createTextureAtlas = (
+  meshes,
+  {textures = ['map'], attributes = ['position', 'normal', 'uv']} = {},
+) => {
   const textureSpecs = {};
   for (const textureName of textures) {
     textureSpecs[textureName] = meshes.map(mesh => mesh.material[textureName]);
   }
-  const {
-    atlas,
-    atlasImages,
-  } = generateTextureAtlas(textureSpecs);
+  const {atlas, atlasImages} = generateTextureAtlas(textureSpecs);
 
   const canvasSize = Math.min(atlas.width, maxTextureAtlasSize);
   const canvasScale = canvasSize / atlas.width;
@@ -247,7 +270,17 @@ export const createTextureAtlas = (meshes, {
     const tw = w * canvasScale;
     const th = h * canvasScale;
 
-    mapWarpedUvs(geometry.attributes.uv, 0, geometry.attributes.uv, 0, tx, ty, tw, th, canvasSize);
+    mapWarpedUvs(
+      geometry.attributes.uv,
+      0,
+      geometry.attributes.uv,
+      0,
+      tx,
+      ty,
+      tw,
+      th,
+      canvasSize,
+    );
 
     return geometry;
   });
@@ -271,7 +304,9 @@ export const createTextureAtlas = (meshes, {
   // material.alphaToCoverage = true;
 
   // mesh
-  const meshes2 = geometries.map(geometry => new THREE.Mesh(geometry, material));
+  const meshes2 = geometries.map(
+    geometry => new THREE.Mesh(geometry, material),
+  );
 
   return {
     atlas,

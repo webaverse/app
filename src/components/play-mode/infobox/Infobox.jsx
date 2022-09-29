@@ -12,9 +12,9 @@ export const Infobox = () => {
   const [selectedApp, setSelectedApp] = useState(null);
 
   const rng = selectedApp ? alea(selectedApp.contentId) : null;
-  const level = rng ? 1 + Math.floor((rng() ** 3) * 99) : 0;
-  const dps = rng ? Math.floor((rng() ** 3) * 1000) : 0;
-  const exp = rng ? Math.floor((rng() ** 3) * 100) : 0;
+  const level = rng ? 1 + Math.floor(rng() ** 3 * 99) : 0;
+  const dps = rng ? Math.floor(rng() ** 3 * 1000) : 0;
+  const exp = rng ? Math.floor(rng() ** 3 * 100) : 0;
 
   let name = selectedApp ? selectedApp.name : '';
   if (selectedApp && !name) {
@@ -48,52 +48,65 @@ export const Infobox = () => {
   }, []);
 
   return (
-        <div className={ classnames(styles.infobox, selectedApp ? styles.selected : null) } >
-            <canvas width={screenshotSize} height={screenshotSize} className={ styles.screenshot } ref={canvasRef} />
-            <div className={ styles.background }>
-              <div className={ styles['background-1'] } />
-              <div className={ styles['background-2'] } />
+    <div
+      className={classnames(
+        styles.infobox,
+        selectedApp ? styles.selected : null,
+      )}
+    >
+      <canvas
+        width={screenshotSize}
+        height={screenshotSize}
+        className={styles.screenshot}
+        ref={canvasRef}
+      />
+      <div className={styles.background}>
+        <div className={styles['background-1']} />
+        <div className={styles['background-2']} />
+      </div>
+      <div className={styles.content}>
+        {selectedApp ? (
+          <React.Fragment>
+            <div className={styles.row}>
+              <h1>{name}</h1>
+              <h2>Lv. {level}</h2>
             </div>
-            <div className={ styles.content }>
-                {selectedApp
-                  ? (
-                    <React.Fragment>
-                    <div className={ styles.row }>
-                        <h1>{name}</h1>
-                        <h2>Lv. {level}</h2>
-                    </div>
-                    {/* <div className={ styles.row }>
+            {/* <div className={ styles.row }>
                         <div className={ styles.pill }>
                             Weapon
                         </div>
                     </div> */}
-                    <div className={ styles.row }>
-                        <div className={ styles.stat }>
-                            <div className={ styles.label }>DPS</div>
-                            <div className={ styles.value }>{dps}</div>
-                        </div>
-                    </div>
-                    <div className={ classnames(styles.row, styles.exp) }>
-                        <div className={ styles.label }>EXP</div>
-                        <progress className={ styles.progress } value={exp} max={100}></progress>
-                    </div>
-                </React.Fragment>)
-                  : null}
+            <div className={styles.row}>
+              <div className={styles.stat}>
+                <div className={styles.label}>DPS</div>
+                <div className={styles.value}>{dps}</div>
+              </div>
             </div>
-            <div className={ styles.hints }>
-                <div className={ styles.hint }>
-                    <div className={ styles.key }>LMB</div>
-                    <div className={ styles.label }>Use</div>
-                </div>
-                <div className={ styles.hint }>
-                    <div className={ styles.key }>Q</div>
-                    <div className={ styles.label }>Lore</div>
-                </div>
-                <div className={ styles.hint }>
-                    <div className={ styles.key }>R</div>
-                    <div className={ styles.label }>Drop</div>
-                </div>
-          </div>
+            <div className={classnames(styles.row, styles.exp)}>
+              <div className={styles.label}>EXP</div>
+              <progress
+                className={styles.progress}
+                value={exp}
+                max={100}
+              ></progress>
+            </div>
+          </React.Fragment>
+        ) : null}
+      </div>
+      <div className={styles.hints}>
+        <div className={styles.hint}>
+          <div className={styles.key}>LMB</div>
+          <div className={styles.label}>Use</div>
         </div>
+        <div className={styles.hint}>
+          <div className={styles.key}>Q</div>
+          <div className={styles.label}>Lore</div>
+        </div>
+        <div className={styles.hint}>
+          <div className={styles.key}>R</div>
+          <div className={styles.label}>Drop</div>
+        </div>
+      </div>
+    </div>
   );
 };

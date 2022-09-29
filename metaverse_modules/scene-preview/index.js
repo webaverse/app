@@ -17,7 +17,9 @@ export default e => {
   const sizeArray = app.getComponent('size') ?? [100, 100, 100];
   const size = new THREE.Vector3().fromArray(sizeArray);
   const enterNormalsArray = app.getComponent('enterNormals') ?? [];
-  const enterNormals = enterNormalsArray.map(a => new THREE.Vector3().fromArray(a));
+  const enterNormals = enterNormalsArray.map(a =>
+    new THREE.Vector3().fromArray(a),
+  );
 
   const previewer = new ScenePreviewer({
     size,
@@ -45,9 +47,11 @@ export default e => {
   app.previewer = previewer;
   app.hasSubApps = true;
 
-  e.waitUntil((async () => {
-    await previewer.loadScene(sceneUrl);
-  })());
+  e.waitUntil(
+    (async () => {
+      await previewer.loadScene(sceneUrl);
+    })(),
+  );
 
   // app.setComponent('renderPriority', 'low');
 

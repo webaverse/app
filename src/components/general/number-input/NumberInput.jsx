@@ -1,11 +1,17 @@
-
 import React, {useEffect, useState} from 'react';
 
 import styles from './number-input.module.css';
 
 //
 
-export const NumberInput = ({title = '', initalValue = 0, zeroValue = true, maxPrecision = 3, step = 0.1, onChange = null}) => {
+export const NumberInput = ({
+  title = '',
+  initalValue = 0,
+  zeroValue = true,
+  maxPrecision = 3,
+  step = 0.1,
+  onChange = null,
+}) => {
   const [value, setValue] = useState(initalValue);
   const [finalValue, setFinalValue] = useState(initalValue);
 
@@ -92,11 +98,17 @@ export const NumberInput = ({title = '', initalValue = 0, zeroValue = true, maxP
   //
 
   return (
-        <div className={ styles.inputWrapper } >
-            <div className={ styles.inputTitle } >{ title }</div>
-            <div className={ styles.arrowLeft } onClick={ handleDecreaseBtnClick } />
-            <div className={ styles.arrowRight } onClick={ handleIncreaseBtnClick } />
-            <input className={ styles.input } value={ value } onKeyUp={ handleInputKeyUp } onChange={ handleInputOnChange } onBlur={ handleInputBlur } />
-        </div>
+    <div className={styles.inputWrapper}>
+      <div className={styles.inputTitle}>{title}</div>
+      <div className={styles.arrowLeft} onClick={handleDecreaseBtnClick} />
+      <div className={styles.arrowRight} onClick={handleIncreaseBtnClick} />
+      <input
+        className={styles.input}
+        value={value}
+        onKeyUp={handleInputKeyUp}
+        onChange={handleInputOnChange}
+        onBlur={handleInputBlur}
+      />
+    </div>
   );
 };

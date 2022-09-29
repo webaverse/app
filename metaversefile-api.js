@@ -9,7 +9,16 @@ import {Text} from 'troika-three-text';
 import React from 'react';
 import * as ReactThreeFiber from '@react-three/fiber';
 import metaversefile from 'metaversefile';
-import {getRenderer, scene, sceneHighPriority, sceneLowPriority, sceneLowerPriority, sceneLowestPriority, rootScene, camera} from './renderer.js';
+import {
+  getRenderer,
+  scene,
+  sceneHighPriority,
+  sceneLowPriority,
+  sceneLowerPriority,
+  sceneLowestPriority,
+  rootScene,
+  camera,
+} from './renderer.js';
 import cameraManager from './camera-manager.js';
 import physicsManager from './physics-manager.js';
 import Avatar from './avatars/avatars.js';
@@ -152,7 +161,7 @@ class App extends THREE.Object3D {
 
   get contentId() {
     const contentIdComponent = this.getComponent('contentId');
-    return (contentIdComponent !== null) ? contentIdComponent : '';
+    return contentIdComponent !== null ? contentIdComponent : '';
   }
 
   set contentId(contentId) {
@@ -161,7 +170,7 @@ class App extends THREE.Object3D {
 
   get instanceId() {
     const instanceIdComponent = this.getComponent('instanceId');
-    return (instanceIdComponent !== null) ? instanceIdComponent : '';
+    return instanceIdComponent !== null ? instanceIdComponent : '';
   }
 
   set instanceId(instanceId) {
@@ -181,7 +190,9 @@ class App extends THREE.Object3D {
   }
 
   updateModulesHash() {
-    this.modulesHash = murmurhash3(this.modules.map(m => m.contentId).join(','));
+    this.modulesHash = murmurhash3(
+      this.modules.map(m => m.contentId).join(','),
+    );
   }
 
   getPhysicsObjects() {
@@ -216,9 +227,7 @@ class App extends THREE.Object3D {
     }
   }
 
-  activate({
-    physicsId = -1,
-  } = {}) {
+  activate({physicsId = -1} = {}) {
     this.dispatchEvent({
       type: 'activate',
       physicsId,
@@ -316,10 +325,10 @@ function createPointerEvents(store) {
 
   return {
     connected: false,
-    handlers: (Object.keys(names).reduce(
+    handlers: Object.keys(names).reduce(
       (acc, key) => ({...acc, [key]: handlePointer(key)}),
       {},
-    )),
+    ),
     connect: target => {
       const {set, events} = store.getState();
       events.disconnect?.();
@@ -631,8 +640,7 @@ metaversefile.setApi({
   usePhysics(instance = null) {
     const app = currentAppRender;
     if (app) {
-      const physicsScene = physicsManager.getScene(instance)
-        .clone();
+      const physicsScene = physicsManager.getScene(instance).clone();
       /* const physics = {};
       for (const k in physicsManager) {
         physics[k] = physicsManager[k];
@@ -642,13 +650,20 @@ metaversefile.setApi({
       const localQuaternion = new THREE.Quaternion();
       const localMatrix = new THREE.Matrix4(); */
       // const localMatrix2 = new THREE.Matrix4();
-      physicsScene.addPlaneGeometry = (addPlaneGeometry => function(position, quaternion, dynamic) {
-        const physicsObject = addPlaneGeometry.call(this, position, quaternion, dynamic);
-        app.physicsObjects.push(physicsObject);
-        return physicsObject;
-      })(physicsScene.addPlaneGeometry);
-      physicsScene.addBoxGeometry = (addBoxGeometry => function(position, quaternion, size, dynamic) {
-        /* const basePosition = position;
+      physicsScene.addPlaneGeometry = (addPlaneGeometry =>
+        function (position, quaternion, dynamic) {
+          const physicsObject = addPlaneGeometry.call(
+            this,
+            position,
+            quaternion,
+            dynamic,
+          );
+          app.physicsObjects.push(physicsObject);
+          return physicsObject;
+        })(physicsScene.addPlaneGeometry);
+      physicsScene.addBoxGeometry = (addBoxGeometry =>
+        function (position, quaternion, size, dynamic) {
+          /* const basePosition = position;
         const baseQuaternion = quaternion;
         const baseScale = size;
         app.updateMatrixWorld();
@@ -660,64 +675,88 @@ metaversefile.setApi({
         quaternion = localQuaternion;
         size = localVector2; */
 
-        const physicsObject = addBoxGeometry.call(this, position, quaternion, size, dynamic);
-        // physicsObject.position.copy(app.position);
-        // physicsObject.quaternion.copy(app.quaternion);
-        // physicsObject.scale.copy(app.scale);
+          const physicsObject = addBoxGeometry.call(
+            this,
+            position,
+            quaternion,
+            size,
+            dynamic,
+          );
+          // physicsObject.position.copy(app.position);
+          // physicsObject.quaternion.copy(app.quaternion);
+          // physicsObject.scale.copy(app.scale);
 
-        // const {physicsMesh} = physicsObject;
-        // physicsMesh.position.copy(position);
-        // physicsMesh.quaternion.copy(quaternion);
-        // physicsMesh.scale.copy(size);
-        // app.add(physicsObject);
-        // physicsObject.updateMatrixWorld();
+          // const {physicsMesh} = physicsObject;
+          // physicsMesh.position.copy(position);
+          // physicsMesh.quaternion.copy(quaternion);
+          // physicsMesh.scale.copy(size);
+          // app.add(physicsObject);
+          // physicsObject.updateMatrixWorld();
 
-        app.physicsObjects.push(physicsObject);
+          app.physicsObjects.push(physicsObject);
 
-        return physicsObject;
-      })(physicsScene.addBoxGeometry);
-      physicsScene.addCapsuleGeometry = (addCapsuleGeometry => function(position, quaternion, radius, halfHeight, physicsMaterial, dynamic, flags) {
-        // const basePosition = position;
-        // const baseQuaternion = quaternion;
-        // const baseScale = new THREE.Vector3(radius, halfHeight*2, radius)
+          return physicsObject;
+        })(physicsScene.addBoxGeometry);
+      physicsScene.addCapsuleGeometry = (addCapsuleGeometry =>
+        function (
+          position,
+          quaternion,
+          radius,
+          halfHeight,
+          physicsMaterial,
+          dynamic,
+          flags,
+        ) {
+          // const basePosition = position;
+          // const baseQuaternion = quaternion;
+          // const baseScale = new THREE.Vector3(radius, halfHeight*2, radius)
 
-        // app.updateMatrixWorld();
-        // localMatrix
-        //   .compose(position, quaternion, new THREE.Vector3(radius, halfHeight*2, radius))
-        //   .premultiply(app.matrixWorld)
-        //   .decompose(localVector, localQuaternion, localVector2);
-        // position = localVector;
-        // quaternion = localQuaternion;
-        // size = localVector2;
+          // app.updateMatrixWorld();
+          // localMatrix
+          //   .compose(position, quaternion, new THREE.Vector3(radius, halfHeight*2, radius))
+          //   .premultiply(app.matrixWorld)
+          //   .decompose(localVector, localQuaternion, localVector2);
+          // position = localVector;
+          // quaternion = localQuaternion;
+          // size = localVector2;
 
-        const physicsObject = addCapsuleGeometry.call(this, position, quaternion, radius, halfHeight, physicsMaterial, dynamic, flags);
-        // physicsObject.position.copy(app.position);
-        // physicsObject.quaternion.copy(app.quaternion);
-        // physicsObject.scale.copy(app.scale);
-        // physicsObject.updateMatrixWorld();
+          const physicsObject = addCapsuleGeometry.call(
+            this,
+            position,
+            quaternion,
+            radius,
+            halfHeight,
+            physicsMaterial,
+            dynamic,
+            flags,
+          );
+          // physicsObject.position.copy(app.position);
+          // physicsObject.quaternion.copy(app.quaternion);
+          // physicsObject.scale.copy(app.scale);
+          // physicsObject.updateMatrixWorld();
 
-        // const {physicsMesh} = physicsObject;
-        // physicsMesh.position.copy(basePosition);
-        // physicsMesh.quaternion.copy(baseQuaternion);
+          // const {physicsMesh} = physicsObject;
+          // physicsMesh.position.copy(basePosition);
+          // physicsMesh.quaternion.copy(baseQuaternion);
 
-        // physicsMesh.scale.copy(baseScale);
-        // app.add(physicsObject);
-        // physicsObject.updateMatrixWorld();
+          // physicsMesh.scale.copy(baseScale);
+          // app.add(physicsObject);
+          // physicsObject.updateMatrixWorld();
 
-        // const localPlayer = metaversefile.useLocalPlayer();
+          // const localPlayer = metaversefile.useLocalPlayer();
 
-        /* if(localPlayer.avatar) {
+          /* if(localPlayer.avatar) {
           if(localPlayer.avatar.height) {
             console.log(localPlayer.avatar.height);
           }
         } */
 
-        app.physicsObjects.push(physicsObject);
+          app.physicsObjects.push(physicsObject);
 
-        // physicsManager.pushUpdate(app, physicsObject);
-        // physicsManager.setTransform(physicsObject);
-        return physicsObject;
-      })(physicsScene.addCapsuleGeometry);
+          // physicsManager.pushUpdate(app, physicsObject);
+          // physicsManager.setTransform(physicsObject);
+          return physicsObject;
+        })(physicsScene.addCapsuleGeometry);
       /* physics.addSphereGeometry = (addSphereGeometry => function(position, quaternion, radius, physicsMaterial, ccdEnabled) {
         const basePosition = position;
         const baseQuaternion = quaternion;
@@ -747,8 +786,9 @@ metaversefile.setApi({
         // physicsManager.pushUpdate(app, physicsObject);
         return physicsObject;
       })(physics.addSphereGeometry); */
-      physicsScene.addGeometry = (addGeometry => function(mesh) {
-        /* const oldParent = mesh.parent;
+      physicsScene.addGeometry = (addGeometry =>
+        function (mesh) {
+          /* const oldParent = mesh.parent;
 
         const parentMesh = new THREE.Object3D();
         parentMesh.position.copy(app.position);
@@ -757,61 +797,67 @@ metaversefile.setApi({
         parentMesh.add(mesh);
         parentMesh.updateMatrixWorld(); */
 
-        const physicsObject = addGeometry.call(this, mesh);
-        /* physicsObject.position.copy(app.position);
+          const physicsObject = addGeometry.call(this, mesh);
+          /* physicsObject.position.copy(app.position);
         physicsObject.quaternion.copy(app.quaternion);
         physicsObject.scale.copy(app.scale);
         physicsObject.updateMatrixWorld(); */
-        // window.physicsObject = physicsObject;
+          // window.physicsObject = physicsObject;
 
-        /* if (oldParent) {
+          /* if (oldParent) {
           oldParent.add(mesh);
           mesh.updateMatrixWorld();
         } */
 
-        // app.add(physicsObject);
-        app.physicsObjects.push(physicsObject);
-        return physicsObject;
-      })(physicsScene.addGeometry);
-      physicsScene.addCookedGeometry = (addCookedGeometry => function(buffer, position, quaternion, scale) {
-        const physicsObject = addCookedGeometry.apply(this, arguments);
-        // app.add(physicsObject);
-        app.physicsObjects.push(physicsObject);
-        return physicsObject;
-      })(physicsScene.addCookedGeometry);
-      physicsScene.addConvexGeometry = (addConvexGeometry => function(mesh) {
-        const physicsObject = addConvexGeometry.apply(this, arguments);
-        // app.add(physicsObject);
-        app.physicsObjects.push(physicsObject);
-        return physicsObject;
-      })(physicsScene.addConvexGeometry);
-      physicsScene.addConvexShape = (addConvexShape => function(mesh) {
-        const physicsObject = addConvexShape.apply(this, arguments);
-        // app.add(physicsObject);
-        app.physicsObjects.push(physicsObject);
-        return physicsObject;
-      })(physicsScene.addConvexShape);
-      physicsScene.addCookedConvexGeometry = (addCookedConvexGeometry => function(buffer, position, quaternion, scale) {
-        const physicsObject = addCookedConvexGeometry.apply(this, arguments);
-        // app.add(physicsObject);
-        app.physicsObjects.push(physicsObject);
-        return physicsObject;
-      })(physicsScene.addCookedConvexGeometry);
-      physicsScene.addHeightFieldGeometry = (addHeightFieldGeometry => function(mesh) {
-        const physicsObject = addHeightFieldGeometry.apply(this, arguments);
-        // app.add(physicsObject);
-        app.physicsObjects.push(physicsObject);
-        return physicsObject;
-      })(physicsScene.addHeightFieldGeometry);
-      physicsScene.removeGeometry = (removeGeometry => function(physicsObject) {
-        removeGeometry.apply(this, arguments);
+          // app.add(physicsObject);
+          app.physicsObjects.push(physicsObject);
+          return physicsObject;
+        })(physicsScene.addGeometry);
+      physicsScene.addCookedGeometry = (addCookedGeometry =>
+        function (buffer, position, quaternion, scale) {
+          const physicsObject = addCookedGeometry.apply(this, arguments);
+          // app.add(physicsObject);
+          app.physicsObjects.push(physicsObject);
+          return physicsObject;
+        })(physicsScene.addCookedGeometry);
+      physicsScene.addConvexGeometry = (addConvexGeometry =>
+        function (mesh) {
+          const physicsObject = addConvexGeometry.apply(this, arguments);
+          // app.add(physicsObject);
+          app.physicsObjects.push(physicsObject);
+          return physicsObject;
+        })(physicsScene.addConvexGeometry);
+      physicsScene.addConvexShape = (addConvexShape =>
+        function (mesh) {
+          const physicsObject = addConvexShape.apply(this, arguments);
+          // app.add(physicsObject);
+          app.physicsObjects.push(physicsObject);
+          return physicsObject;
+        })(physicsScene.addConvexShape);
+      physicsScene.addCookedConvexGeometry = (addCookedConvexGeometry =>
+        function (buffer, position, quaternion, scale) {
+          const physicsObject = addCookedConvexGeometry.apply(this, arguments);
+          // app.add(physicsObject);
+          app.physicsObjects.push(physicsObject);
+          return physicsObject;
+        })(physicsScene.addCookedConvexGeometry);
+      physicsScene.addHeightFieldGeometry = (addHeightFieldGeometry =>
+        function (mesh) {
+          const physicsObject = addHeightFieldGeometry.apply(this, arguments);
+          // app.add(physicsObject);
+          app.physicsObjects.push(physicsObject);
+          return physicsObject;
+        })(physicsScene.addHeightFieldGeometry);
+      physicsScene.removeGeometry = (removeGeometry =>
+        function (physicsObject) {
+          removeGeometry.apply(this, arguments);
 
-        const index = app.physicsObjects.indexOf(physicsObject);
-        if (index !== -1) {
-          app.remove(physicsObject);
-          app.physicsObjects.splice(index);
-        }
-      })(physicsScene.removeGeometry);
+          const index = app.physicsObjects.indexOf(physicsObject);
+          if (index !== -1) {
+            app.remove(physicsObject);
+            app.physicsObjects.splice(index);
+          }
+        })(physicsScene.removeGeometry);
 
       return physicsScene;
     } else {
@@ -900,18 +946,21 @@ metaversefile.setApi({
   getNextInstanceId() {
     return getRandomString();
   },
-  createAppInternal({
-    start_url = '',
-    type = '',
-    content = '',
-    module = null,
-    components = [],
-    position = null,
-    quaternion = null,
-    scale = null,
-    parent = null,
-    in_front = false,
-  } = {}, {onWaitPromise = null} = {}) {
+  createAppInternal(
+    {
+      start_url = '',
+      type = '',
+      content = '',
+      module = null,
+      components = [],
+      position = null,
+      quaternion = null,
+      scale = null,
+      parent = null,
+      in_front = false,
+    } = {},
+    {onWaitPromise = null} = {},
+  ) {
     const app = new App();
 
     // transform
@@ -940,7 +989,11 @@ metaversefile.setApi({
       }
       if (in_front) {
         const localPlayer = playersManager.getLocalPlayer();
-        app.position.copy(localPlayer.position).add(new THREE.Vector3(0, 0, -1).applyQuaternion(localPlayer.quaternion));
+        app.position
+          .copy(localPlayer.position)
+          .add(
+            new THREE.Vector3(0, 0, -1).applyQuaternion(localPlayer.quaternion),
+          );
         app.quaternion.copy(localPlayer.quaternion);
         app.scale.setScalar(1);
         matrixNeedsUpdate = true;
@@ -978,7 +1031,11 @@ metaversefile.setApi({
         content = JSON.stringify(content);
       }
       const dataUrlPrefix = 'data:' + type + ',';
-      return '/@proxy/' + dataUrlPrefix + encodeURIComponent(content).replace(/\%/g, '%25');// .replace(/\\//g, '%2F');
+      return (
+        '/@proxy/' +
+        dataUrlPrefix +
+        encodeURIComponent(content).replace(/\%/g, '%25')
+      ); // .replace(/\\//g, '%2F');
     }
     function getObjectUrl(start_url, type, content) {
       if (start_url) {
@@ -1043,7 +1100,9 @@ export default () => {
 `;
     const jsSuffix = '\n};';
     return s => {
-      const result = dataUrlPrefix + encodeURIComponent(jsPrefix + s.replace(/\%/g, '%25') + jsSuffix);
+      const result =
+        dataUrlPrefix +
+        encodeURIComponent(jsPrefix + s.replace(/\%/g, '%25') + jsSuffix);
       console.log('got', {dataUrlPrefix, jsPrefix, s, jsSuffix, result});
       return result;
     };
@@ -1067,7 +1126,8 @@ export default () => {
       return localPlayer;
     } else {
       for (const remotePlayer in playersManager.getRemotePlayers()) {
-        const remoteApp = remotePlayer.appManager.getAppByInstanceId(instanceId);
+        const remoteApp =
+          remotePlayer.appManager.getAppByInstanceId(instanceId);
         if (remoteApp) {
           return remotePlayer;
         }
@@ -1085,7 +1145,9 @@ export default () => {
   getAppByInstanceId(instanceId) {
     // local
     const localPlayer = playersManager.getLocalPlayer();
-    const result = world.appManager.getAppByInstanceId(instanceId) || localPlayer.appManager.getAppByInstanceId(instanceId);
+    const result =
+      world.appManager.getAppByInstanceId(instanceId) ||
+      localPlayer.appManager.getAppByInstanceId(instanceId);
     if (result) {
       return result;
     }
@@ -1160,7 +1222,8 @@ export default () => {
 
     // remote player
     for (const remotePlayer in playersManager.getRemotePlayers()) {
-      const remotePhysicsObject = remotePlayer.appManager.getPhysicsObjectByPhysicsId(physicsId);
+      const remotePhysicsObject =
+        remotePlayer.appManager.getPhysicsObjectByPhysicsId(physicsId);
       if (remotePhysicsObject) {
         return remotePhysicsObject;
       }
@@ -1222,7 +1285,8 @@ export default () => {
     if (!iframeContainer) {
       iframeContainer = document.getElementById('iframe-container');
 
-      iframeContainer.getFov = () => camera.projectionMatrix.elements[5] * (window.innerHeight / 2);
+      iframeContainer.getFov = () =>
+        camera.projectionMatrix.elements[5] * (window.innerHeight / 2);
       iframeContainer.updateSize = function updateSize() {
         const fov = iframeContainer.getFov();
         iframeContainer.style.cssText = `
@@ -1325,7 +1389,8 @@ export default () => {
     // even when adding a module from inside of another module's initialization
     await Promise.resolve();
 
-    app.name = m.name ?? (m.contentId ? m.contentId.match(/([^\/\.]*)$/)[1] : '');
+    app.name =
+      m.name ?? (m.contentId ? m.contentId.match(/([^\/\.]*)$/)[1] : '');
     app.description = m.description ?? '';
     app.appType = m.type ?? '';
     app.contentId = m.contentId ?? '';
@@ -1435,19 +1500,24 @@ export default () => {
             const state = root?.store.getState();
             if (state) state.internal.active = false;
             await new Promise((accept, reject) => {
-              ReactThreeFiber.reconciler.updateContainer(null, fiber, null, () => {
-                if (state) {
-                  // setTimeout(() => {
-                  state.events.disconnect?.();
-                  // state.gl?.renderLists?.dispose?.()
-                  // state.gl?.forceContextLoss?.()
-                  ReactThreeFiber.dispose(state);
-                  // roots.delete(canvas);
-                  // if (callback) callback(canvas)
-                  // }, 500)
-                }
-                accept();
-              });
+              ReactThreeFiber.reconciler.updateContainer(
+                null,
+                fiber,
+                null,
+                () => {
+                  if (state) {
+                    // setTimeout(() => {
+                    state.events.disconnect?.();
+                    // state.gl?.renderLists?.dispose?.()
+                    // state.gl?.forceContextLoss?.()
+                    ReactThreeFiber.dispose(state);
+                    // roots.delete(canvas);
+                    // if (callback) callback(canvas)
+                    // }, 500)
+                  }
+                  accept();
+                },
+              );
             });
           }
         })();
@@ -1513,19 +1583,24 @@ export default () => {
           const state = root?.store.getState();
           if (state) state.internal.active = false;
           await new Promise((accept, reject) => {
-            ReactThreeFiber.reconciler.updateContainer(null, fiber, null, () => {
-              if (state) {
-                // setTimeout(() => {
-                state.events.disconnect?.();
-                // state.gl?.renderLists?.dispose?.()
-                // state.gl?.forceContextLoss?.()
-                ReactThreeFiber.dispose(state);
-                // roots.delete(canvas);
-                // if (callback) callback(canvas)
-                // }, 500)
-              }
-              accept();
-            });
+            ReactThreeFiber.reconciler.updateContainer(
+              null,
+              fiber,
+              null,
+              () => {
+                if (state) {
+                  // setTimeout(() => {
+                  state.events.disconnect?.();
+                  // state.gl?.renderLists?.dispose?.()
+                  // state.gl?.forceContextLoss?.()
+                  ReactThreeFiber.dispose(state);
+                  // roots.delete(canvas);
+                  // if (callback) callback(canvas)
+                  // }, 500)
+                }
+                accept();
+              },
+            );
           });
         }
       });
@@ -1533,7 +1608,11 @@ export default () => {
       _bindDefaultComponents(app);
 
       return app;
-    } else if (renderSpec === false || renderSpec === null || renderSpec === undefined) {
+    } else if (
+      renderSpec === false ||
+      renderSpec === null ||
+      renderSpec === undefined
+    ) {
       app.destroy();
       return null;
     } else if (renderSpec === true) {
@@ -1546,7 +1625,7 @@ export default () => {
     }
   },
 });
-App.prototype.addModule = function(m) {
+App.prototype.addModule = function (m) {
   return metaversefile.addModule(this, m);
 };
 

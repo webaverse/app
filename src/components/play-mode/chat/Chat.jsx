@@ -1,11 +1,13 @@
-
 import React, {useState, useEffect, useRef, useContext} from 'react';
 import classnames from 'classnames';
 import {checkText} from 'smile2emoji';
 
 import game from '../../../../game';
 import {chatManager} from '../../../../chat-manager.js';
-import {registerIoEventHandler, unregisterIoEventHandler} from '../../general/io-handler';
+import {
+  registerIoEventHandler,
+  unregisterIoEventHandler,
+} from '../../general/io-handler';
 import {AppContext} from '../../app';
 
 import storyManager from '../../../../story.js';
@@ -37,11 +39,10 @@ function ChatInput() {
         return true;
       } else {
         switch (event.which) {
-          case 13: { // enter
+          case 13: {
+            // enter
             if (storyManager.getConversation()) {
-
               // nothing; handled in StoryTime
-
             } else if (state.openedPanel !== 'ChatPanel') {
               setState({openedPanel: 'ChatPanel'});
             } else {
@@ -66,7 +67,8 @@ function ChatInput() {
 
     const handleAnytimeKey = event => {
       switch (event.which) {
-        case 186: { // semicolon
+        case 186: {
+          // semicolon
           if (event.shiftKey) {
             if (state.openedPanel !== 'ChatPanel') {
               setValue(':');
@@ -115,16 +117,22 @@ function ChatInput() {
   //
 
   return (
-        <div className={ classnames(styles.chat, state.openedPanel === 'ChatPanel' ? styles.open : null) } onClick={ stopPropagation } >
-            <img src="images/webpencil.svg" className={ styles.background } />
-            <input
-                type="text"
-                className={ styles.input }
-                value={ value }
-                onChange={ handleMessageChange }
-                ref={ inputRef }
-            />
-        </div>
+    <div
+      className={classnames(
+        styles.chat,
+        state.openedPanel === 'ChatPanel' ? styles.open : null,
+      )}
+      onClick={stopPropagation}
+    >
+      <img src="images/webpencil.svg" className={styles.background} />
+      <input
+        type="text"
+        className={styles.input}
+        value={value}
+        onChange={handleMessageChange}
+        ref={inputRef}
+      />
+    </div>
   );
 }
 
@@ -234,9 +242,9 @@ function ChatInput() {
 
 export const Chat = () => {
   return (
-        <>
-            <ChatInput />
-            {/* <ChatMessages /> */}
-        </>
+    <>
+      <ChatInput />
+      {/* <ChatMessages /> */}
+    </>
   );
 };

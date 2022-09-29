@@ -1,11 +1,19 @@
-
 import classnames from 'classnames';
 import metaversefile from 'metaversefile';
-import React, {forwardRef, Fragment, useContext, useEffect, useState} from 'react';
+import React, {
+  forwardRef,
+  Fragment,
+  useContext,
+  useEffect,
+  useState,
+} from 'react';
 import {chatManager} from '../../../../chat-manager.js';
 import npcManager from '../../../../npc-manager.js';
 import * as sounds from '../../../../sounds.js';
-import {getVoiceEndpointUrl, VoiceEndpointVoicer} from '../../../../voice-output/voice-endpoint-voicer.js';
+import {
+  getVoiceEndpointUrl,
+  VoiceEndpointVoicer,
+} from '../../../../voice-output/voice-endpoint-voicer.js';
 import * as voices from '../../../../voices.js';
 import {CachedLoader} from '../../../CachedLoader.jsx';
 import {LightArrow} from '../../../LightArrow.jsx';
@@ -15,7 +23,9 @@ import styles from './character-select.module.css';
 
 //
 import {
-  cryptoavatarsCharactersUtil, tokensCharactersUtil, upstreetCharactersUtil,
+  cryptoavatarsCharactersUtil,
+  tokensCharactersUtil,
+  upstreetCharactersUtil,
 } from '../../../../utils';
 
 function typeContentToUrl(type, content) {
@@ -23,7 +33,11 @@ function typeContentToUrl(type, content) {
     content = JSON.stringify(content);
   }
   const dataUrlPrefix = 'data:' + type + ',';
-  return '/@proxy/' + dataUrlPrefix + encodeURIComponent(content).replace(/\%/g, '%25');// .replace(/\\//g, '%2F');
+  return (
+    '/@proxy/' +
+    dataUrlPrefix +
+    encodeURIComponent(content).replace(/\%/g, '%25')
+  ); // .replace(/\\//g, '%2F');
 }
 
 //
@@ -41,58 +55,62 @@ for (let i = 0; i < userTokenCharacters.length; i++) {
 }
 const chevronImgSrc = './images/chevron.svg';
 
-const Character = forwardRef(({
-  character,
-  highlight,
-  animate,
-  disabled,
-  targetCharacter,
-  onMouseMove,
-  onClick,
-}, ref) => {
-  return (
-        <li
-            className={classnames(
-              styles.item,
-              highlight ? styles.highlight : null,
-              animate ? styles.animate : null,
-              disabled ? styles.disabled : null,
-              character.name,
-            )}
-            onMouseMove={e => {
-              if (!disabled) {
-                onMouseMove(e);
-              }
-            }}
-            onClick={e => {
-              if (!disabled) {
-                onClick(e);
-              }
-            }}
-            ref={ref}
-        >
-            {character && character.previewUrl
-              ? (
-                <img
-                    crossOrigin="anonymous"
-                    className={styles.img}
-                    src={character.previewUrl}
-                />
-                )
-              : null}
-            {character && character.canBeUsed === false
-              ? (
-                <img className={styles.disabled} src=" ./images/disabled.svg" />
-                )
-              : null}
-            <div className={styles.wrap}>
-                <div className={styles.name}>{(character && character.name) || ''}</div>
-                <div className={styles.description}>{(character && character.class) || ''}</div>
-            </div>
-            <LightArrow visible={targetCharacter === character} />
-        </li>
-  );
-},
+const Character = forwardRef(
+  (
+    {
+      character,
+      highlight,
+      animate,
+      disabled,
+      targetCharacter,
+      onMouseMove,
+      onClick,
+    },
+    ref,
+  ) => {
+    return (
+      <li
+        className={classnames(
+          styles.item,
+          highlight ? styles.highlight : null,
+          animate ? styles.animate : null,
+          disabled ? styles.disabled : null,
+          character.name,
+        )}
+        onMouseMove={e => {
+          if (!disabled) {
+            onMouseMove(e);
+          }
+        }}
+        onClick={e => {
+          if (!disabled) {
+            onClick(e);
+          }
+        }}
+        ref={ref}
+      >
+        {character && character.previewUrl ? (
+          <img
+            crossOrigin="anonymous"
+            className={styles.img}
+            src={character.previewUrl}
+          />
+        ) : null}
+        {character && character.canBeUsed === false ? (
+          <img className={styles.disabled} src=" ./images/disabled.svg" />
+        ) : null}
+        <div className={styles.wrap}>
+          <div className={styles.name}>
+            {(character && character.name) || ''}
+          </div>
+          <div className={styles.description}>
+            {(character && character.class) || ''}
+          </div>
+        </div>
+        <LightArrow visible={targetCharacter === character} />
+      </li>
+    );
+  },
 );
 
 export const CharacterSelect = () => {
@@ -103,55 +121,70 @@ export const CharacterSelect = () => {
   const [npcPlayer, setNpcPlayer] = useState(null);
   const [abortFn, setAbortFn] = useState(null);
   const [enabled, setEnabled] = useState(false);
-  const [npcLoader, setNpcLoader] = useState(() => new CachedLoader({
-    loadFn: async (url, targetCharacter, {signal = null} = {}) => {
-      let live = true;
-      signal.addEventListener('abort', () => {
-        live = false;
-      });
+  const [npcLoader, setNpcLoader] = useState(
+    () =>
+      new CachedLoader({
+        loadFn: async (url, targetCharacter, {signal = null} = {}) => {
+          let live = true;
+          signal.addEventListener('abort', () => {
+            live = false;
+          });
 
-      const detachedCharacter = JSON.parse(JSON.stringify(targetCharacter));
-      detachedCharacter.detached = true;
-      const app = await metaversefile.createAppAsync({
-        start_url: typeContentToUrl('application/npc', detachedCharacter),
-      });
-      return npcManager.getNpcByApp(app);
-    },
-  }));
+          const detachedCharacter = JSON.parse(JSON.stringify(targetCharacter));
+          detachedCharacter.detached = true;
+          const app = await metaversefile.createAppAsync({
+            start_url: typeContentToUrl('application/npc', detachedCharacter),
+          });
+          return npcManager.getNpcByApp(app);
+        },
+      }),
+  );
 
-  const [characterIntroLoader, setCharacterIntroLoader] = useState(() => new CachedLoader({
-    loadFn: async (url, targetCharacter, {signal = null} = {}) => {
-      // get ai text
-      let live = true;
-      signal.addEventListener('abort', () => {
-        live = false;
-      });
-      const loreAIScene = metaversefile.useLoreAIScene();
-      const [
-        characterIntro,
-      ] = await Promise.all([
-        loreAIScene.generateCharacterIntroPrompt(targetCharacter.name, targetCharacter.bio),
-        voices.waitForLoad(),
-      ]);
-      if (!live) return;
+  const [characterIntroLoader, setCharacterIntroLoader] = useState(
+    () =>
+      new CachedLoader({
+        loadFn: async (url, targetCharacter, {signal = null} = {}) => {
+          // get ai text
+          let live = true;
+          signal.addEventListener('abort', () => {
+            live = false;
+          });
+          const loreAIScene = metaversefile.useLoreAIScene();
+          const [characterIntro] = await Promise.all([
+            loreAIScene.generateCharacterIntroPrompt(
+              targetCharacter.name,
+              targetCharacter.bio,
+            ),
+            voices.waitForLoad(),
+          ]);
+          if (!live) return;
 
-      // preload audio
-      const voiceEndpoint = voices.voiceEndpoints.find(voiceEndpoint => voiceEndpoint.name === targetCharacter.voice);
-      if (!voiceEndpoint) {
-        throw new Error('no such voice endpoint: ' + targetCharacter.voice);
-      }
-      const voiceEndpointUrl = getVoiceEndpointUrl(voiceEndpoint.drive_id);
-      const preloadedMessage = VoiceEndpointVoicer.preloadMessage(voiceEndpointUrl, characterIntro.message);
-      const preloadedOnSelectMessage = VoiceEndpointVoicer.preloadMessage(voiceEndpointUrl, characterIntro.onselect);
+          // preload audio
+          const voiceEndpoint = voices.voiceEndpoints.find(
+            voiceEndpoint => voiceEndpoint.name === targetCharacter.voice,
+          );
+          if (!voiceEndpoint) {
+            throw new Error('no such voice endpoint: ' + targetCharacter.voice);
+          }
+          const voiceEndpointUrl = getVoiceEndpointUrl(voiceEndpoint.drive_id);
+          const preloadedMessage = VoiceEndpointVoicer.preloadMessage(
+            voiceEndpointUrl,
+            characterIntro.message,
+          );
+          const preloadedOnSelectMessage = VoiceEndpointVoicer.preloadMessage(
+            voiceEndpointUrl,
+            characterIntro.onselect,
+          );
 
-      // return result
-      return {
-        characterIntro,
-        preloadedMessage,
-        preloadedOnSelectMessage,
-      };
-    },
-  }));
+          // return result
+          return {
+            characterIntro,
+            preloadedMessage,
+            preloadedOnSelectMessage,
+          };
+        },
+      }),
+  );
   // const [ messageAudioCache, setMessageAudioCache ] = useState(new Map());
   // const [ selectAudioCache, setSelectAudioCache ] = useState(new Map());
   const [text, setText] = useState('');
@@ -248,9 +281,7 @@ export const CharacterSelect = () => {
 
       (async () => {
         const localPlayer = metaversefile.useLocalPlayer();
-        const [
-          result,
-        ] = await Promise.all([
+        const [result] = await Promise.all([
           localPlayer.setPlayerSpec(character),
           characterIntroLoader.loadItem(character.avatarUrl, character, {
             // signal,
@@ -291,12 +322,14 @@ export const CharacterSelect = () => {
   // GET CRYPTOAVATARS CHARACTERS
   useEffect(() => {
     // GET CHARACTERS
-    cryptoavatarsCharactersUtil.getCryptoAvatars(caUrl, caOwnership, caCollection, caItemsPerPage).then(res => {
-      if (res) {
-        setCaPagination(res?.pagination);
-        setCryptoAvatars(res?.avatars);
-      }
-    });
+    cryptoavatarsCharactersUtil
+      .getCryptoAvatars(caUrl, caOwnership, caCollection, caItemsPerPage)
+      .then(res => {
+        if (res) {
+          setCaPagination(res?.pagination);
+          setCryptoAvatars(res?.avatars);
+        }
+      });
     // GET FILTERS
     cryptoavatarsCharactersUtil.getCryptoAvatarsFilters().then(res => {
       if (res) {
@@ -308,155 +341,162 @@ export const CharacterSelect = () => {
   /** ------------------------------------------------------------------------------- */
 
   return (
-        <div className={styles.characterSelect}>
-            <div className={classnames(styles.menuBackground, opened ? styles.open : null)}>
-                <MegaHup
-                    open={opened}
-                    npcPlayer={opened ? npcPlayer : null}
-                />
-                <div className={styles.heading}>
-                    <div onClick={() => setState({openedPanel: 'CharacterPanel'})} className={styles.closeMenu}>
-                        <h1>Close <img src={chevronImgSrc} /></h1>
-                    </div>
-                    <h1>Character select</h1>
-                </div>
-                <div className={classnames(styles.menu, opened ? styles.open : null)}>
-                    <div className={styles.section}>
-                        <div className={styles.subheading}>
-                            <h2>Tokens</h2>
-                        </div>
-                        <ul className={styles.list}>
-                            {tokensCharacters && tokensCharacters.length > 0
-                              ? (
-                                  tokensCharacters.map((character, i) => {
-                                    return (
-                                        <Character
-                                            character={character}
-                                            highlight={character === targetCharacter}
-                                            targetCharacter={targetCharacter}
-                                            animate={selectCharacter === character}
-                                            disabled={!character.name || (!!selectCharacter && selectCharacter !== character)}
-                                            onMouseMove={onMouseMove(character)}
-                                            onClick={onClick(character)}
-                                            key={i}
-                                        />
-                                    );
-                                  })
-                                )
-                              : (
-                                <Fragment>No characters found.</Fragment>
-                                )}
-                        </ul>
-                    </div>
-                    <div className={styles.section}>
-                        <div className={styles.subheading}>
-                            <h2>From Upstreet</h2>
-                        </div>
-                        <ul className={styles.list}>
-                            {upstreatCharacters && upstreatCharacters.length > 0
-                              ? (
-                                  upstreatCharacters.map((character, i) => {
-                                    return (
-                                        <Character
-                                            character={character}
-                                            highlight={character === targetCharacter}
-                                            targetCharacter={targetCharacter}
-                                            animate={selectCharacter === character}
-                                            disabled={!character.name || (!!selectCharacter && selectCharacter !== character)}
-                                            onMouseMove={onMouseMove(character)}
-                                            onClick={onClick(character)}
-                                            key={i}
-                                        />
-                                    );
-                                  })
-                                )
-                              : (
-                                <Fragment>No characters found.</Fragment>
-                                )}
-                        </ul>
-                    </div>
-                    <div className={styles.section}>
-                        <div className={styles.subheading}>
-                            <h2>CryptoAvatars</h2>
-                            <div className={styles.cryptoavatars}>
-                                <Fragment>Collection:</Fragment>
-                                <div className={styles.select}>
-                                    <select onChange={e => setCaCollection(e.target.value)}>
-                                        {caFilters?.collections && caFilters.collections.map((collection, i) => {
-                                          return (
-                                                <option key={i} value={collection?.address}>
-                                                    {collection?.name}
-                                                </option>
-                                          );
-                                        },
-                                        )}
-                                    </select>
-                                </div>
-                                <Fragment>Ownership:</Fragment>
-                                <div className={styles.select}>
-                                    <select onChange={e => setCaItemsPerPage(e.target.value)}>
-                                        <option value="all">ALL</option>
-                                        <option value="owned">Owned</option>
-                                        <option value="opensource">Free use</option>
-                                    </select>
-                                </div>
-                                <Fragment>Avatars per page:</Fragment>
-                                <div className={styles.select}>
-                                    <select onChange={e => setCaItemsPerPage(e.target.value)}>
-                                        <option value="5">5</option>
-                                        <option value="10">10</option>
-                                        <option value="20">25</option>
-                                    </select>
-                                </div>
-                                <div>
-                                    <Fragment>Pages </Fragment>
-                                    {caPagination.prev && (
-                                        <button
-                                            className={styles.button}
-                                            onClick={e => setCaUrl(caPagination.prev)}
-                                        >
-                                            {'<'}
-                                        </button>
-                                    )}
-                                    <Fragment>
-                                        {caPagination.currentPage || 0} / {caPagination.totalPages}
-                                    </Fragment>
-                                    {caPagination.next && (
-                                        <button
-                                            className={styles.button}
-                                            onClick={e => setCaUrl(caPagination.next)}
-                                        >
-                                            {'>'}
-                                        </button>
-                                    )}
-                                </div>
-                            </div>
-                        </div>
-                        <ul className={styles.list}>
-                            {cryptoAvatars && cryptoAvatars.length > 0
-                              ? (
-                                  cryptoAvatars.map((character, i) => {
-                                    return (
-                                        <Character
-                                            character={character}
-                                            highlight={character === targetCharacter}
-                                            targetCharacter={targetCharacter}
-                                            animate={selectCharacter === character}
-                                            disabled={false}
-                                            onMouseMove={onMouseMove(character)}
-                                            onClick={onClick(character)}
-                                            key={i}
-                                        />
-                                    );
-                                  })
-                                )
-                              : (
-                                <Fragment>No characters found.</Fragment>
-                                )}
-                        </ul>
-                    </div>
-                </div>
-            </div>
+    <div className={styles.characterSelect}>
+      <div
+        className={classnames(
+          styles.menuBackground,
+          opened ? styles.open : null,
+        )}
+      >
+        <MegaHup open={opened} npcPlayer={opened ? npcPlayer : null} />
+        <div className={styles.heading}>
+          <div
+            onClick={() => setState({openedPanel: 'CharacterPanel'})}
+            className={styles.closeMenu}
+          >
+            <h1>
+              Close <img src={chevronImgSrc} />
+            </h1>
+          </div>
+          <h1>Character select</h1>
         </div>
+        <div className={classnames(styles.menu, opened ? styles.open : null)}>
+          <div className={styles.section}>
+            <div className={styles.subheading}>
+              <h2>Tokens</h2>
+            </div>
+            <ul className={styles.list}>
+              {tokensCharacters && tokensCharacters.length > 0 ? (
+                tokensCharacters.map((character, i) => {
+                  return (
+                    <Character
+                      character={character}
+                      highlight={character === targetCharacter}
+                      targetCharacter={targetCharacter}
+                      animate={selectCharacter === character}
+                      disabled={
+                        !character.name ||
+                        (!!selectCharacter && selectCharacter !== character)
+                      }
+                      onMouseMove={onMouseMove(character)}
+                      onClick={onClick(character)}
+                      key={i}
+                    />
+                  );
+                })
+              ) : (
+                <Fragment>No characters found.</Fragment>
+              )}
+            </ul>
+          </div>
+          <div className={styles.section}>
+            <div className={styles.subheading}>
+              <h2>From Upstreet</h2>
+            </div>
+            <ul className={styles.list}>
+              {upstreatCharacters && upstreatCharacters.length > 0 ? (
+                upstreatCharacters.map((character, i) => {
+                  return (
+                    <Character
+                      character={character}
+                      highlight={character === targetCharacter}
+                      targetCharacter={targetCharacter}
+                      animate={selectCharacter === character}
+                      disabled={
+                        !character.name ||
+                        (!!selectCharacter && selectCharacter !== character)
+                      }
+                      onMouseMove={onMouseMove(character)}
+                      onClick={onClick(character)}
+                      key={i}
+                    />
+                  );
+                })
+              ) : (
+                <Fragment>No characters found.</Fragment>
+              )}
+            </ul>
+          </div>
+          <div className={styles.section}>
+            <div className={styles.subheading}>
+              <h2>CryptoAvatars</h2>
+              <div className={styles.cryptoavatars}>
+                <Fragment>Collection:</Fragment>
+                <div className={styles.select}>
+                  <select onChange={e => setCaCollection(e.target.value)}>
+                    {caFilters?.collections &&
+                      caFilters.collections.map((collection, i) => {
+                        return (
+                          <option key={i} value={collection?.address}>
+                            {collection?.name}
+                          </option>
+                        );
+                      })}
+                  </select>
+                </div>
+                <Fragment>Ownership:</Fragment>
+                <div className={styles.select}>
+                  <select onChange={e => setCaItemsPerPage(e.target.value)}>
+                    <option value="all">ALL</option>
+                    <option value="owned">Owned</option>
+                    <option value="opensource">Free use</option>
+                  </select>
+                </div>
+                <Fragment>Avatars per page:</Fragment>
+                <div className={styles.select}>
+                  <select onChange={e => setCaItemsPerPage(e.target.value)}>
+                    <option value="5">5</option>
+                    <option value="10">10</option>
+                    <option value="20">25</option>
+                  </select>
+                </div>
+                <div>
+                  <Fragment>Pages </Fragment>
+                  {caPagination.prev && (
+                    <button
+                      className={styles.button}
+                      onClick={e => setCaUrl(caPagination.prev)}
+                    >
+                      {'<'}
+                    </button>
+                  )}
+                  <Fragment>
+                    {caPagination.currentPage || 0} / {caPagination.totalPages}
+                  </Fragment>
+                  {caPagination.next && (
+                    <button
+                      className={styles.button}
+                      onClick={e => setCaUrl(caPagination.next)}
+                    >
+                      {'>'}
+                    </button>
+                  )}
+                </div>
+              </div>
+            </div>
+            <ul className={styles.list}>
+              {cryptoAvatars && cryptoAvatars.length > 0 ? (
+                cryptoAvatars.map((character, i) => {
+                  return (
+                    <Character
+                      character={character}
+                      highlight={character === targetCharacter}
+                      targetCharacter={targetCharacter}
+                      animate={selectCharacter === character}
+                      disabled={false}
+                      onMouseMove={onMouseMove(character)}
+                      onClick={onClick(character)}
+                      key={i}
+                    />
+                  );
+                })
+              ) : (
+                <Fragment>No characters found.</Fragment>
+              )}
+            </ul>
+          </div>
+        </div>
+      </div>
+    </div>
   );
 };

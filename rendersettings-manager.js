@@ -16,7 +16,11 @@ class RenderSettings {
   #makeBackground(background) {
     if (background) {
       const {color} = background;
-      if (Array.isArray(color) && color.length === 3 && color.every(n => typeof n === 'number')) {
+      if (
+        Array.isArray(color) &&
+        color.length === 3 &&
+        color.every(n => typeof n === 'number')
+      ) {
         return new THREE.Color(color[0] / 255, color[1] / 255, color[2] / 255);
       }
     }
@@ -27,10 +31,25 @@ class RenderSettings {
     if (fog) {
       if (fog.fogType === 'linear') {
         const {args = []} = fog;
-        return new THREE.Fog(new THREE.Color(args[0][0] / 255, args[0][1] / 255, args[0][2] / 255).getHex(), args[1], args[2]);
+        return new THREE.Fog(
+          new THREE.Color(
+            args[0][0] / 255,
+            args[0][1] / 255,
+            args[0][2] / 255,
+          ).getHex(),
+          args[1],
+          args[2],
+        );
       } else if (fog.fogType === 'exp') {
         const {args = []} = fog;
-        return new THREE.FogExp2(new THREE.Color(args[0][0] / 255, args[0][1] / 255, args[0][2] / 255).getHex(), args[1]);
+        return new THREE.FogExp2(
+          new THREE.Color(
+            args[0][0] / 255,
+            args[0][1] / 255,
+            args[0][2] / 255,
+          ).getHex(),
+          args[1],
+        );
       } else {
         console.warn('unknown rendersettings fog type:', fog.fogType);
         return null;
@@ -87,10 +106,7 @@ class RenderSettingsManager {
     const oldBackground = scene.background;
     const oldFog = scene.fog;
 
-    const {
-      background = null,
-      fog = null,
-    } = (renderSettings ?? {});
+    const {background = null, fog = null} = renderSettings ?? {};
     scene.background = background;
     scene.fog = this.fog;
 
@@ -108,17 +124,18 @@ class RenderSettingsManager {
     };
   }
 
-  push(srcScene, dstScene = srcScene, {
-    postProcessing = null,
-  } = {}) {
+  push(srcScene, dstScene = srcScene, {postProcessing = null} = {}) {
     const renderSettings = this.findRenderSettings(srcScene);
-    const renderSettingsCleanup = this.applyRenderSettingsToScene(renderSettings, dstScene);
+    const renderSettingsCleanup = this.applyRenderSettingsToScene(
+      renderSettings,
+      dstScene,
+    );
 
     if (postProcessing) {
       let {
         passes = postProcessing.defaultPasses,
         internalPasses = postProcessing.defaultInternalPasses,
-      } = (renderSettings ?? {});
+      } = renderSettings ?? {};
       if (this.extraPasses.length > 0) {
         passes = passes.slice();
         passes.push(...this.extraPasses);
@@ -128,7 +145,11 @@ class RenderSettingsManager {
 
     return () => {
       renderSettingsCleanup();
-      postProcessing && postProcessing.setPasses(postProcessing.defaultPasses, postProcessing.defaultInternalPasses);
+      postProcessing &&
+        postProcessing.setPasses(
+          postProcessing.defaultPasses,
+          postProcessing.defaultInternalPasses,
+        );
     };
   }
 }

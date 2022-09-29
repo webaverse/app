@@ -11,10 +11,7 @@ const canvasHeight = 400;
 
 const localBox = new THREE.Box3();
 
-const ObjectPreview = ({
-  object = null,
-  className = null,
-}) => {
+const ObjectPreview = ({object = null, className = null}) => {
   const canvasRef = useRef();
 
   useEffect(() => {
@@ -43,11 +40,7 @@ const ObjectPreview = ({
         const {camera} = diorama;
         const _initCamera = () => {
           camera.position.set(0, 0, -1);
-          fitCameraToBoundingBox(
-            camera,
-            localBox.setFromObject(object),
-            1.2,
-          );
+          fitCameraToBoundingBox(camera, localBox.setFromObject(object), 1.2);
           camera.updateMatrixWorld();
 
           camera.aspect = canvasWidth / canvasHeight;
@@ -79,9 +72,12 @@ const ObjectPreview = ({
   }, [canvasRef, object]);
 
   return (
-    <canvas className={classnames(className, style.objectPreview)} width={canvasWidth} height={canvasHeight} ref={canvasRef} />
+    <canvas
+      className={classnames(className, style.objectPreview)}
+      width={canvasWidth}
+      height={canvasHeight}
+      ref={canvasRef}
+    />
   );
 };
-export {
-  ObjectPreview,
-};
+export {ObjectPreview};

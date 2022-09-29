@@ -3,19 +3,19 @@ import metaversefileApi from 'metaversefile';
 
 const _getEmotion = text => {
   let match;
-  if (match = text.match(/(😃|😊|😁|😄|😆|(?:^|\s)lol(?:$|\s))/)) {
+  if ((match = text.match(/(😃|😊|😁|😄|😆|(?:^|\s)lol(?:$|\s))/))) {
     match.emotion = 'joy';
     return match;
-  } else if (match = text.match(/(😉|😜|😂|😍|😎|😏|😇|❤️|💗|💕|💞|💖|👽)/)) {
+  } else if ((match = text.match(/(😉|😜|😂|😍|😎|😏|😇|❤️|💗|💕|💞|💖|👽)/))) {
     match.emotion = 'fun';
     return match;
-  } else if (match = text.match(/(😞|😖|😒|😱|😨|😰|😫)/)) {
+  } else if ((match = text.match(/(😞|😖|😒|😱|😨|😰|😫)/))) {
     match.emotion = 'sorrow';
     return match;
-  } else if (match = text.match(/(😠|😡|👿|💥|💢)/)) {
+  } else if ((match = text.match(/(😠|😡|👿|💥|💢)/))) {
     match.emotion = 'angry';
     return match;
-  } else if (match = text.match(/(😐|😲|😶)/)) {
+  } else if ((match = text.match(/(😐|😲|😶)/))) {
     match.emotion = 'neutral';
     return match;
   } else {
@@ -49,19 +49,23 @@ class ChatManager extends EventTarget {
     _addFacePose();
     const _removeFacePose = () => {
       if (emotion) {
-        const facePoseActionIndex = player.findActionIndex(action => action.type === 'facepose' && action.value === value);
+        const facePoseActionIndex = player.findActionIndex(
+          action => action.type === 'facepose' && action.value === value,
+        );
         if (facePoseActionIndex !== -1) {
           player.removeActionIndex(facePoseActionIndex);
         }
       }
     };
 
-    this.dispatchEvent(new MessageEvent('messageadd', {
-      data: {
-        player,
-        message: m,
-      },
-    }));
+    this.dispatchEvent(
+      new MessageEvent('messageadd', {
+        data: {
+          player,
+          message: m,
+        },
+      }),
+    );
 
     const localTimeout = setTimeout(() => {
       this.removePlayerMessage(player, m);
@@ -92,19 +96,23 @@ class ChatManager extends EventTarget {
   removePlayerMessage(player, m) {
     m.cleanup();
 
-    const actionIndex = player.findActionIndex(action => action.chatId === m.chatId);
+    const actionIndex = player.findActionIndex(
+      action => action.chatId === m.chatId,
+    );
     if (actionIndex !== -1) {
       player.removeActionIndex(actionIndex);
     } else {
       console.warn('remove unknown message action 2', m);
     }
 
-    this.dispatchEvent(new MessageEvent('messageremove', {
-      data: {
-        player,
-        message: m,
-      },
-    }));
+    this.dispatchEvent(
+      new MessageEvent('messageremove', {
+        data: {
+          player,
+          message: m,
+        },
+      }),
+    );
   }
 
   removeMessage(m) {
@@ -147,6 +155,4 @@ class ChatManager extends EventTarget {
 }
 const chatManager = new ChatManager();
 
-export {
-  chatManager,
-};
+export {chatManager};

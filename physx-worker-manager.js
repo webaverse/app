@@ -10,9 +10,7 @@ import {makeId} from './util.js';
 const defaultNumPhysicsWorkers = 2;
 
 class PhysicsWorkerManager {
-  constructor({
-    numWorkers = defaultNumPhysicsWorkers,
-  } = {}) {
+  constructor({numWorkers = defaultNumPhysicsWorkers} = {}) {
     this.numWorkers = numWorkers;
 
     this.workers = [];

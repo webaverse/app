@@ -34,23 +34,14 @@ export class CharacterHitter {
     this.lastHitTime = -Infinity;
   }
 
-  attemptHit({
-    type,
-    args,
-    timestamp = performance.now(),
-  }) {
+  attemptHit({type, args, timestamp = performance.now()}) {
     hitAttemptEventData.type = type;
     hitAttemptEventData.args = args;
     hitManager.dispatchEvent(hitAttemptEvent);
 
     switch (type) {
       case 'sword': {
-        const {
-          hitRadius,
-          hitHalfHeight,
-          position,
-          quaternion,
-        } = args;
+        const {hitRadius, hitHalfHeight, position, quaternion} = args;
         const collision = physicsScene.getCollisionObject(
           hitRadius,
           hitHalfHeight,
@@ -65,15 +56,22 @@ export class CharacterHitter {
             const timeDiff = timestamp - this.lastHitTime;
             if (timeDiff > 1000) {
               const useAction = this.character.getAction('use');
-              const damage = typeof useAction.damage === 'number' ? useAction.damage : 10;
-              const hitDirection = app.position.clone()
+              const damage =
+                typeof useAction.damage === 'number' ? useAction.damage : 10;
+              const hitDirection = app.position
+                .clone()
                 .sub(this.character.position);
               hitDirection.y = 0;
               hitDirection.normalize();
 
               const damageMeshOffsetDistance = 1.5;
-              const hitPosition = localVector.copy(this.character.position)
-                .add(localVector2.set(0, 0, -damageMeshOffsetDistance).applyQuaternion(this.character.quaternion))
+              const hitPosition = localVector
+                .copy(this.character.position)
+                .add(
+                  localVector2
+                    .set(0, 0, -damageMeshOffsetDistance)
+                    .applyQuaternion(this.character.quaternion),
+                )
                 .clone();
               localEuler.setFromQuaternion(camera.quaternion, 'YXZ');
               localEuler.x = 0;
@@ -108,15 +106,17 @@ export class CharacterHitter {
               const damage = 2;
 
               const hitPosition = new THREE.Vector3().fromArray(result.point);
-              const hitQuaternion = new THREE.Quaternion().setFromRotationMatrix(
-                localMatrix.lookAt(
-                  this.character.position,
-                  hitPosition,
-                  localVector.set(0, 1, 0),
-                ),
-              );
+              const hitQuaternion =
+                new THREE.Quaternion().setFromRotationMatrix(
+                  localMatrix.lookAt(
+                    this.character.position,
+                    hitPosition,
+                    localVector.set(0, 1, 0),
+                  ),
+                );
 
-              const hitDirection = targetApp.position.clone()
+              const hitDirection = targetApp.position
+                .clone()
                 .sub(this.character.position);
               // hitDirection.y = 0;
               hitDirection.normalize();
@@ -168,13 +168,7 @@ export class CharacterHitter {
       value: 1,
     });
 
-    const gruntTypes = [
-      'hurt',
-      'scream',
-      'attack',
-      'angry',
-      'gasp',
-    ];
+    const gruntTypes = ['hurt', 'scream', 'attack', 'angry', 'gasp'];
     const gruntType = gruntTypes[Math.floor(Math.random() * gruntTypes.length)];
     // console.log('play grunt', emotion, gruntType);
     this.character.characterSfx.playGrunt(gruntType);

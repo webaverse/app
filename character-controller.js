@@ -39,13 +39,20 @@ import {AvatarCharacterSfx} from './character-sfx.js';
 import {AvatarCharacterFace} from './character-face.js';
 import {AvatarCharacterFx} from './character-fx.js';
 import {VoicePack, VoicePackVoicer} from './voice-output/voice-pack-voicer.js';
-import {VoiceEndpoint, VoiceEndpointVoicer} from './voice-output/voice-endpoint-voicer.js';
-import {BinaryInterpolant, BiActionInterpolant, UniActionInterpolant, InfiniteActionInterpolant, PositionInterpolant, QuaternionInterpolant} from './interpolants.js';
-import {applyCharacterToAvatar, switchAvatar} from './player-avatar-binding.js';
 import {
-  defaultPlayerName,
-  defaultPlayerBio,
-} from './ai/lore/lore-model.js';
+  VoiceEndpoint,
+  VoiceEndpointVoicer,
+} from './voice-output/voice-endpoint-voicer.js';
+import {
+  BinaryInterpolant,
+  BiActionInterpolant,
+  UniActionInterpolant,
+  InfiniteActionInterpolant,
+  PositionInterpolant,
+  QuaternionInterpolant,
+} from './interpolants.js';
+import {applyCharacterToAvatar, switchAvatar} from './player-avatar-binding.js';
+import {defaultPlayerName, defaultPlayerBio} from './ai/lore/lore-model.js';
 // import * as sounds from './sounds.js';
 import musicManager from './music-manager.js';
 import {makeId, clone} from './util.js';
@@ -262,7 +269,11 @@ class Character extends THREE.Object3D {
   async setVoicePack({audioUrl, indexUrl}) {
     const self = this;
     // this.playersArray.doc.transact(function tx() {
-    const voiceSpec = JSON.stringify({audioUrl, indexUrl, endpointUrl: self.voiceEndpoint ? self.voiceEndpoint.url : ''});
+    const voiceSpec = JSON.stringify({
+      audioUrl,
+      indexUrl,
+      endpointUrl: self.voiceEndpoint ? self.voiceEndpoint.url : '',
+    });
     self.playerMap.set('voiceSpec', voiceSpec);
     // });
     await this.loadVoicePack({audioUrl, indexUrl});
@@ -284,10 +295,18 @@ class Character extends THREE.Object3D {
       let oldVoiceSpec = self.playerMap.get('voiceSpec');
       if (oldVoiceSpec) {
         oldVoiceSpec = JSON.parse(oldVoiceSpec);
-        const voiceSpec = JSON.stringify({audioUrl: oldVoiceSpec.audioUrl, indexUrl: oldVoiceSpec.indexUrl, endpointUrl: url});
+        const voiceSpec = JSON.stringify({
+          audioUrl: oldVoiceSpec.audioUrl,
+          indexUrl: oldVoiceSpec.indexUrl,
+          endpointUrl: url,
+        });
         self.playerMap.set('voiceSpec', voiceSpec);
       } else {
-        const voiceSpec = JSON.stringify({audioUrl: self.voicePack?.audioUrl, indexUrl: self.voicePack?.indexUrl, endpointUrl: url});
+        const voiceSpec = JSON.stringify({
+          audioUrl: self.voicePack?.audioUrl,
+          indexUrl: self.voicePack?.indexUrl,
+          endpointUrl: url,
+        });
         self.playerMap.set('voiceSpec', voiceSpec);
       }
     });
@@ -343,9 +362,7 @@ class Character extends THREE.Object3D {
     return factor; */
   }
 
-  wear(app, {
-    loadoutIndex = -1,
-  } = {}) {
+  wear(app, {loadoutIndex = -1} = {}) {
     const _getNextLoadoutIndex = () => {
       let loadoutIndex = -1;
       const usedIndexes = Array(8).fill(false);
@@ -378,7 +395,9 @@ class Character extends THREE.Object3D {
           }
         }
         if (oldLoadoutAction) {
-          const app = this.appManager.getAppByInstanceId(oldLoadoutAction.instanceId);
+          const app = this.appManager.getAppByInstanceId(
+            oldLoadoutAction.instanceId,
+          );
           this.unwear(app, {
             destroy: true,
           });
@@ -440,11 +459,10 @@ class Character extends THREE.Object3D {
     }
   }
 
-  unwear(app, {
-    destroy = false,
-    dropStartPosition = null,
-    dropDirection = null,
-  } = {}) {
+  unwear(
+    app,
+    {destroy = false, dropStartPosition = null, dropDirection = null} = {},
+  ) {
     const wearActionIndex = this.findActionIndex(({type, instanceId}) => {
       return type === 'wear' && instanceId === app.instanceId;
     });
@@ -463,7 +481,13 @@ class Character extends THREE.Object3D {
             physicsObject.updateMatrixWorld();
 
             physicsScene.setTransform(physicsObject, true);
-            physicsScene.setVelocity(physicsObject, localVector.copy(dropDirection).multiplyScalar(5)/* .add(this.characterPhysics.velocity) */, true);
+            physicsScene.setVelocity(
+              physicsObject,
+              localVector
+                .copy(dropDirection)
+                .multiplyScalar(5) /* .add(this.characterPhysics.velocity) */,
+              true,
+            );
             physicsScene.setAngularVelocity(physicsObject, zeroVector, true);
 
             app.position.copy(physicsObject.position);
@@ -476,7 +500,9 @@ class Character extends THREE.Object3D {
             app.quaternion.setFromRotationMatrix(
               localMatrix.lookAt(
                 localVector.set(0, 0, 0),
-                localVector2.set(dropDirection.x, 0, dropDirection.z).normalize(),
+                localVector2
+                  .set(dropDirection.x, 0, dropDirection.z)
+                  .normalize(),
                 upVector,
               ),
             );
@@ -486,8 +512,13 @@ class Character extends THREE.Object3D {
           app.lastMatrix.copy(app.matrixWorld);
         } else {
           const avatarHeight = this.avatar ? this.avatar.height : 0;
-          app.position.copy(this.position)
-            .add(localVector.set(0, -avatarHeight + 0.5, -0.5).applyQuaternion(this.quaternion));
+          app.position
+            .copy(this.position)
+            .add(
+              localVector
+                .set(0, -avatarHeight + 0.5, -0.5)
+                .applyQuaternion(this.quaternion),
+            );
           app.quaternion.identity();
           app.scale.set(1, 1, 1);
           app.updateMatrixWorld();
@@ -543,7 +574,8 @@ class Character extends THREE.Object3D {
     }
   }
 
-  setTarget(target) { // set both head and eyeball target;
+  setTarget(target) {
+    // set both head and eyeball target;
     if (target) {
       this.headTarget.copy(target);
       this.headTargetInverted = true;
@@ -617,7 +649,11 @@ class StateCharacter extends Character {
     const observeActionsFn = () => {
       const nextActions = Array.from(this.getActionsState());
       for (const nextAction of nextActions) {
-        if (!lastActions.some(lastAction => lastAction.actionId === nextAction.actionId)) {
+        if (
+          !lastActions.some(
+            lastAction => lastAction.actionId === nextAction.actionId,
+          )
+        ) {
           this.dispatchEvent({
             type: 'actionadd',
             action: nextAction,
@@ -626,7 +662,11 @@ class StateCharacter extends Character {
         }
       }
       for (const lastAction of lastActions) {
-        if (!nextActions.some(nextAction => nextAction.actionId === lastAction.actionId)) {
+        if (
+          !nextActions.some(
+            nextAction => nextAction.actionId === lastAction.actionId,
+          )
+        ) {
           this.dispatchEvent({
             type: 'actionremove',
             action: lastAction,
@@ -671,7 +711,9 @@ class StateCharacter extends Character {
 
   getActionsByType(type) {
     const actions = this.getActionsState();
-    const typedActions = Array.from(actions).filter(action => action.type === type);
+    const typedActions = Array.from(actions).filter(
+      action => action.type === type,
+    );
     return typedActions;
   }
 
@@ -680,7 +722,9 @@ class StateCharacter extends Character {
   }
 
   getActionsState() {
-    let actionsArray = this.playerMap.has(actionsMapName) ? this.playerMap.get(actionsMapName, Z.Array) : null;
+    let actionsArray = this.playerMap.has(actionsMapName)
+      ? this.playerMap.get(actionsMapName, Z.Array)
+      : null;
     if (!actionsArray) {
       actionsArray = new Z.Array();
       this.playerMap.set(actionsMapName, actionsArray);
@@ -693,7 +737,9 @@ class StateCharacter extends Character {
   }
 
   getAppsState() {
-    let appsArray = this.playerMap.has(appsMapName) ? this.playerMap.get(appsMapName, Z.Array) : null;
+    let appsArray = this.playerMap.has(appsMapName)
+      ? this.playerMap.get(appsMapName, Z.Array)
+      : null;
     if (!appsArray) {
       appsArray = new Z.Array();
       this.playerMap.set(appsMapName, appsArray);
@@ -844,9 +890,13 @@ class AvatarCharacter extends StateCharacter {
 
   updatePhysicsStatus() {
     if (this.getControlMode() === 'controlled') {
-      physicsScene.disableGeometryQueries(this.characterPhysics.characterController);
+      physicsScene.disableGeometryQueries(
+        this.characterPhysics.characterController,
+      );
     } else {
-      physicsScene.enableGeometryQueries(this.characterPhysics.characterController);
+      physicsScene.enableGeometryQueries(
+        this.characterPhysics.characterController,
+      );
     }
   }
 
@@ -955,69 +1005,214 @@ class AvatarCharacter extends StateCharacter {
 class InterpolatedPlayer extends AvatarCharacter {
   constructor(opts) {
     super(opts);
-    this.positionInterpolant = new PositionInterpolant(() => this.getPosition(), avatarInterpolationTimeDelay, avatarInterpolationNumFrames);
-    this.quaternionInterpolant = new QuaternionInterpolant(() => this.getQuaternion(), avatarInterpolationTimeDelay, avatarInterpolationNumFrames);
+    this.positionInterpolant = new PositionInterpolant(
+      () => this.getPosition(),
+      avatarInterpolationTimeDelay,
+      avatarInterpolationNumFrames,
+    );
+    this.quaternionInterpolant = new QuaternionInterpolant(
+      () => this.getQuaternion(),
+      avatarInterpolationTimeDelay,
+      avatarInterpolationNumFrames,
+    );
     this.actionBinaryInterpolants = {
-      crouch: new BinaryInterpolant(() => this.hasAction('crouch'), avatarInterpolationTimeDelay, avatarInterpolationNumFrames),
-      activate: new BinaryInterpolant(() => this.hasAction('activate'), avatarInterpolationTimeDelay, avatarInterpolationNumFrames),
-      use: new BinaryInterpolant(() => this.hasAction('use'), avatarInterpolationTimeDelay, avatarInterpolationNumFrames),
-      pickUp: new BinaryInterpolant(() => this.hasAction('pickUp'), avatarInterpolationTimeDelay, avatarInterpolationNumFrames),
-      aim: new BinaryInterpolant(() => this.hasAction('aim'), avatarInterpolationTimeDelay, avatarInterpolationNumFrames),
-      narutoRun: new BinaryInterpolant(() => this.hasAction('narutoRun'), avatarInterpolationTimeDelay, avatarInterpolationNumFrames),
-      fly: new BinaryInterpolant(() => this.hasAction('fly'), avatarInterpolationTimeDelay, avatarInterpolationNumFrames),
-      jump: new BinaryInterpolant(() => this.hasAction('jump'), avatarInterpolationTimeDelay, avatarInterpolationNumFrames),
-      doubleJump: new BinaryInterpolant(() => this.hasAction('doubleJump'), avatarInterpolationTimeDelay, avatarInterpolationNumFrames),
-      land: new BinaryInterpolant(() => this.hasAction('land'), avatarInterpolationTimeDelay, avatarInterpolationNumFrames),
-      dance: new BinaryInterpolant(() => this.hasAction('dance'), avatarInterpolationTimeDelay, avatarInterpolationNumFrames),
-      emote: new BinaryInterpolant(() => this.hasAction('emote'), avatarInterpolationTimeDelay, avatarInterpolationNumFrames),
+      crouch: new BinaryInterpolant(
+        () => this.hasAction('crouch'),
+        avatarInterpolationTimeDelay,
+        avatarInterpolationNumFrames,
+      ),
+      activate: new BinaryInterpolant(
+        () => this.hasAction('activate'),
+        avatarInterpolationTimeDelay,
+        avatarInterpolationNumFrames,
+      ),
+      use: new BinaryInterpolant(
+        () => this.hasAction('use'),
+        avatarInterpolationTimeDelay,
+        avatarInterpolationNumFrames,
+      ),
+      pickUp: new BinaryInterpolant(
+        () => this.hasAction('pickUp'),
+        avatarInterpolationTimeDelay,
+        avatarInterpolationNumFrames,
+      ),
+      aim: new BinaryInterpolant(
+        () => this.hasAction('aim'),
+        avatarInterpolationTimeDelay,
+        avatarInterpolationNumFrames,
+      ),
+      narutoRun: new BinaryInterpolant(
+        () => this.hasAction('narutoRun'),
+        avatarInterpolationTimeDelay,
+        avatarInterpolationNumFrames,
+      ),
+      fly: new BinaryInterpolant(
+        () => this.hasAction('fly'),
+        avatarInterpolationTimeDelay,
+        avatarInterpolationNumFrames,
+      ),
+      jump: new BinaryInterpolant(
+        () => this.hasAction('jump'),
+        avatarInterpolationTimeDelay,
+        avatarInterpolationNumFrames,
+      ),
+      doubleJump: new BinaryInterpolant(
+        () => this.hasAction('doubleJump'),
+        avatarInterpolationTimeDelay,
+        avatarInterpolationNumFrames,
+      ),
+      land: new BinaryInterpolant(
+        () => this.hasAction('land'),
+        avatarInterpolationTimeDelay,
+        avatarInterpolationNumFrames,
+      ),
+      dance: new BinaryInterpolant(
+        () => this.hasAction('dance'),
+        avatarInterpolationTimeDelay,
+        avatarInterpolationNumFrames,
+      ),
+      emote: new BinaryInterpolant(
+        () => this.hasAction('emote'),
+        avatarInterpolationTimeDelay,
+        avatarInterpolationNumFrames,
+      ),
       // throw: new BinaryInterpolant(() => this.hasAction('throw'), avatarInterpolationTimeDelay, avatarInterpolationNumFrames),
       // chargeJump: new BinaryInterpolant(() => this.hasAction('chargeJump'), avatarInterpolationTimeDelay, avatarInterpolationNumFrames),
       // standCharge: new BinaryInterpolant(() => this.hasAction('standCharge'), avatarInterpolationTimeDelay, avatarInterpolationNumFrames),
-      fallLoop: new BinaryInterpolant(() => this.hasAction('fallLoop'), avatarInterpolationTimeDelay, avatarInterpolationNumFrames),
+      fallLoop: new BinaryInterpolant(
+        () => this.hasAction('fallLoop'),
+        avatarInterpolationTimeDelay,
+        avatarInterpolationNumFrames,
+      ),
       // swordSideSlash: new BinaryInterpolant(() => this.hasAction('swordSideSlash'), avatarInterpolationTimeDelay, avatarInterpolationNumFrames),
       // swordTopDownSlash: new BinaryInterpolant(() => this.hasAction('swordTopDownSlash'), avatarInterpolationTimeDelay, avatarInterpolationNumFrames),
-      hurt: new BinaryInterpolant(() => this.hasAction('hurt'), avatarInterpolationTimeDelay, avatarInterpolationNumFrames),
+      hurt: new BinaryInterpolant(
+        () => this.hasAction('hurt'),
+        avatarInterpolationTimeDelay,
+        avatarInterpolationNumFrames,
+      ),
     };
-    this.actionBinaryInterpolantsArray = Object.keys(this.actionBinaryInterpolants).map(k => this.actionBinaryInterpolants[k]);
+    this.actionBinaryInterpolantsArray = Object.keys(
+      this.actionBinaryInterpolants,
+    ).map(k => this.actionBinaryInterpolants[k]);
     this.actionInterpolants = {
-      crouch: new BiActionInterpolant(() => this.actionBinaryInterpolants.crouch.get(), 0, crouchMaxTime),
-      activate: new UniActionInterpolant(() => this.actionBinaryInterpolants.activate.get(), 0, activateMaxTime),
-      use: new InfiniteActionInterpolant(() => this.actionBinaryInterpolants.use.get(), 0),
-      pickUp: new InfiniteActionInterpolant(() => this.actionBinaryInterpolants.pickUp.get(), 0),
-      unuse: new InfiniteActionInterpolant(() => !this.actionBinaryInterpolants.use.get(), 0),
-      aim: new InfiniteActionInterpolant(() => this.actionBinaryInterpolants.aim.get(), 0),
-      aimRightTransition: new BiActionInterpolant(() => this.hasAction('aim') && this.hands[0].enabled, 0, aimTransitionMaxTime),
-      aimLeftTransition: new BiActionInterpolant(() => this.hasAction('aim') && this.hands[1].enabled, 0, aimTransitionMaxTime),
-      narutoRun: new InfiniteActionInterpolant(() => this.actionBinaryInterpolants.narutoRun.get(), 0),
-      fly: new InfiniteActionInterpolant(() => this.actionBinaryInterpolants.fly.get(), 0),
-      jump: new InfiniteActionInterpolant(() => this.actionBinaryInterpolants.jump.get(), 0),
-      doubleJump: new InfiniteActionInterpolant(() => this.actionBinaryInterpolants.doubleJump.get(), 0),
-      land: new InfiniteActionInterpolant(() => this.actionBinaryInterpolants.land.get(), 0),
-      fallLoop: new InfiniteActionInterpolant(() => this.hasAction('fallLoop'), 0),
-      fallLoopTransition: new BiActionInterpolant(() => this.actionBinaryInterpolants.fallLoop.get(), 0, 300),
-      dance: new InfiniteActionInterpolant(() => this.actionBinaryInterpolants.dance.get(), 0),
-      emote: new InfiniteActionInterpolant(() => this.actionBinaryInterpolants.emote.get(), 0),
+      crouch: new BiActionInterpolant(
+        () => this.actionBinaryInterpolants.crouch.get(),
+        0,
+        crouchMaxTime,
+      ),
+      activate: new UniActionInterpolant(
+        () => this.actionBinaryInterpolants.activate.get(),
+        0,
+        activateMaxTime,
+      ),
+      use: new InfiniteActionInterpolant(
+        () => this.actionBinaryInterpolants.use.get(),
+        0,
+      ),
+      pickUp: new InfiniteActionInterpolant(
+        () => this.actionBinaryInterpolants.pickUp.get(),
+        0,
+      ),
+      unuse: new InfiniteActionInterpolant(
+        () => !this.actionBinaryInterpolants.use.get(),
+        0,
+      ),
+      aim: new InfiniteActionInterpolant(
+        () => this.actionBinaryInterpolants.aim.get(),
+        0,
+      ),
+      aimRightTransition: new BiActionInterpolant(
+        () => this.hasAction('aim') && this.hands[0].enabled,
+        0,
+        aimTransitionMaxTime,
+      ),
+      aimLeftTransition: new BiActionInterpolant(
+        () => this.hasAction('aim') && this.hands[1].enabled,
+        0,
+        aimTransitionMaxTime,
+      ),
+      narutoRun: new InfiniteActionInterpolant(
+        () => this.actionBinaryInterpolants.narutoRun.get(),
+        0,
+      ),
+      fly: new InfiniteActionInterpolant(
+        () => this.actionBinaryInterpolants.fly.get(),
+        0,
+      ),
+      jump: new InfiniteActionInterpolant(
+        () => this.actionBinaryInterpolants.jump.get(),
+        0,
+      ),
+      doubleJump: new InfiniteActionInterpolant(
+        () => this.actionBinaryInterpolants.doubleJump.get(),
+        0,
+      ),
+      land: new InfiniteActionInterpolant(
+        () => this.actionBinaryInterpolants.land.get(),
+        0,
+      ),
+      fallLoop: new InfiniteActionInterpolant(
+        () => this.hasAction('fallLoop'),
+        0,
+      ),
+      fallLoopTransition: new BiActionInterpolant(
+        () => this.actionBinaryInterpolants.fallLoop.get(),
+        0,
+        300,
+      ),
+      dance: new InfiniteActionInterpolant(
+        () => this.actionBinaryInterpolants.dance.get(),
+        0,
+      ),
+      emote: new InfiniteActionInterpolant(
+        () => this.actionBinaryInterpolants.emote.get(),
+        0,
+      ),
       // throw: new UniActionInterpolant(() => this.actionBinaryInterpolants.throw.get(), 0, throwMaxTime),
       // chargeJump: new InfiniteActionInterpolant(() => this.actionBinaryInterpolants.chargeJump.get(), 0),
       // standCharge: new InfiniteActionInterpolant(() => this.actionBinaryInterpolants.standCharge.get(), 0),
       // fallLoop: new InfiniteActionInterpolant(() => this.actionBinaryInterpolants.fallLoop.get(), 0),
       // swordSideSlash: new InfiniteActionInterpolant(() => this.actionBinaryInterpolants.swordSideSlash.get(), 0),
       // swordTopDownSlash: new InfiniteActionInterpolant(() => this.actionBinaryInterpolants.swordTopDownSlash.get(), 0),
-      hurt: new InfiniteActionInterpolant(() => this.actionBinaryInterpolants.hurt.get(), 0),
+      hurt: new InfiniteActionInterpolant(
+        () => this.actionBinaryInterpolants.hurt.get(),
+        0,
+      ),
       movements: new InfiniteActionInterpolant(() => {
         const ioManager = metaversefile.useIoManager();
-        return ioManager.keys.up || ioManager.keys.down || ioManager.keys.left || ioManager.keys.right;
+        return (
+          ioManager.keys.up ||
+          ioManager.keys.down ||
+          ioManager.keys.left ||
+          ioManager.keys.right
+        );
       }, 0),
-      movementsTransition: new BiActionInterpolant(() => {
-        const ioManager = metaversefile.useIoManager();
-        return ioManager.keys.up || ioManager.keys.down || ioManager.keys.left || ioManager.keys.right;
-      }, 0, crouchMaxTime),
-      sprint: new BiActionInterpolant(() => {
-        const ioManager = metaversefile.useIoManager();
-        return ioManager.keys.shift;
-      }, 0, crouchMaxTime),
+      movementsTransition: new BiActionInterpolant(
+        () => {
+          const ioManager = metaversefile.useIoManager();
+          return (
+            ioManager.keys.up ||
+            ioManager.keys.down ||
+            ioManager.keys.left ||
+            ioManager.keys.right
+          );
+        },
+        0,
+        crouchMaxTime,
+      ),
+      sprint: new BiActionInterpolant(
+        () => {
+          const ioManager = metaversefile.useIoManager();
+          return ioManager.keys.shift;
+        },
+        0,
+        crouchMaxTime,
+      ),
     };
-    this.actionInterpolantsArray = Object.keys(this.actionInterpolants).map(k => this.actionInterpolants[k]);
+    this.actionInterpolantsArray = Object.keys(this.actionInterpolants).map(
+      k => this.actionInterpolants[k],
+    );
 
     this.avatarBinding = {
       position: this.positionInterpolant.get(),
@@ -1062,44 +1257,107 @@ class UninterpolatedPlayer extends AvatarCharacter {
 
   static init() {
     this.actionInterpolants = {
-      crouch: new BiActionInterpolant(() => this.hasAction('crouch'), 0, crouchMaxTime),
-      activate: new UniActionInterpolant(() => this.hasAction('activate'), 0, activateMaxTime),
+      crouch: new BiActionInterpolant(
+        () => this.hasAction('crouch'),
+        0,
+        crouchMaxTime,
+      ),
+      activate: new UniActionInterpolant(
+        () => this.hasAction('activate'),
+        0,
+        activateMaxTime,
+      ),
       use: new InfiniteActionInterpolant(() => this.hasAction('use'), 0),
       pickUp: new InfiniteActionInterpolant(() => this.hasAction('pickUp'), 0),
       unuse: new InfiniteActionInterpolant(() => !this.hasAction('use'), 0),
       aim: new InfiniteActionInterpolant(() => this.hasAction('aim'), 0),
-      aimRightTransition: new BiActionInterpolant(() => this.hasAction('aim') && this.hands[0].enabled, 0, aimTransitionMaxTime),
-      aimLeftTransition: new BiActionInterpolant(() => this.hasAction('aim') && this.hands[1].enabled, 0, aimTransitionMaxTime),
-      narutoRun: new InfiniteActionInterpolant(() => this.hasAction('narutoRun'), 0),
+      aimRightTransition: new BiActionInterpolant(
+        () => this.hasAction('aim') && this.hands[0].enabled,
+        0,
+        aimTransitionMaxTime,
+      ),
+      aimLeftTransition: new BiActionInterpolant(
+        () => this.hasAction('aim') && this.hands[1].enabled,
+        0,
+        aimTransitionMaxTime,
+      ),
+      narutoRun: new InfiniteActionInterpolant(
+        () => this.hasAction('narutoRun'),
+        0,
+      ),
       fly: new InfiniteActionInterpolant(() => this.hasAction('fly'), 0),
       swim: new InfiniteActionInterpolant(() => this.hasAction('swim'), 0),
       jump: new InfiniteActionInterpolant(() => this.hasAction('jump'), 0),
-      doubleJump: new InfiniteActionInterpolant(() => this.hasAction('doubleJump'), 0),
-      land: new InfiniteActionInterpolant(() => !this.hasAction('jump') && !this.hasAction('fallLoop') && !this.hasAction('fly'), 0),
-      dance: new BiActionInterpolant(() => this.hasAction('dance'), 0, crouchMaxTime),
-      emote: new BiActionInterpolant(() => this.hasAction('emote'), 0, crouchMaxTime),
+      doubleJump: new InfiniteActionInterpolant(
+        () => this.hasAction('doubleJump'),
+        0,
+      ),
+      land: new InfiniteActionInterpolant(
+        () =>
+          !this.hasAction('jump') &&
+          !this.hasAction('fallLoop') &&
+          !this.hasAction('fly'),
+        0,
+      ),
+      dance: new BiActionInterpolant(
+        () => this.hasAction('dance'),
+        0,
+        crouchMaxTime,
+      ),
+      emote: new BiActionInterpolant(
+        () => this.hasAction('emote'),
+        0,
+        crouchMaxTime,
+      ),
       movements: new InfiniteActionInterpolant(() => {
         const ioManager = metaversefile.useIoManager();
-        return ioManager.keys.up || ioManager.keys.down || ioManager.keys.left || ioManager.keys.right;
+        return (
+          ioManager.keys.up ||
+          ioManager.keys.down ||
+          ioManager.keys.left ||
+          ioManager.keys.right
+        );
       }, 0),
-      movementsTransition: new BiActionInterpolant(() => {
-        const ioManager = metaversefile.useIoManager();
-        return ioManager.keys.up || ioManager.keys.down || ioManager.keys.left || ioManager.keys.right;
-      }, 0, crouchMaxTime),
-      sprint: new BiActionInterpolant(() => {
-        const ioManager = metaversefile.useIoManager();
-        return ioManager.keys.shift;
-      }, 0, crouchMaxTime),
+      movementsTransition: new BiActionInterpolant(
+        () => {
+          const ioManager = metaversefile.useIoManager();
+          return (
+            ioManager.keys.up ||
+            ioManager.keys.down ||
+            ioManager.keys.left ||
+            ioManager.keys.right
+          );
+        },
+        0,
+        crouchMaxTime,
+      ),
+      sprint: new BiActionInterpolant(
+        () => {
+          const ioManager = metaversefile.useIoManager();
+          return ioManager.keys.shift;
+        },
+        0,
+        crouchMaxTime,
+      ),
       // throw: new UniActionInterpolant(() => this.hasAction('throw'), 0, throwMaxTime),
       // chargeJump: new InfiniteActionInterpolant(() => this.hasAction('chargeJump'), 0),
       // standCharge: new InfiniteActionInterpolant(() => this.hasAction('standCharge'), 0),
-      fallLoop: new InfiniteActionInterpolant(() => this.hasAction('fallLoop'), 0),
-      fallLoopTransition: new BiActionInterpolant(() => this.hasAction('fallLoop'), 0, 300),
+      fallLoop: new InfiniteActionInterpolant(
+        () => this.hasAction('fallLoop'),
+        0,
+      ),
+      fallLoopTransition: new BiActionInterpolant(
+        () => this.hasAction('fallLoop'),
+        0,
+        300,
+      ),
       // swordSideSlash: new InfiniteActionInterpolant(() => this.hasAction('swordSideSlash'), 0),
       // swordTopDownSlash: new InfiniteActionInterpolant(() => this.hasAction('swordTopDownSlash'), 0),
       hurt: new InfiniteActionInterpolant(() => this.hasAction('hurt'), 0),
     };
-    this.actionInterpolantsArray = Object.keys(this.actionInterpolants).map(k => this.actionInterpolants[k]);
+    this.actionInterpolantsArray = Object.keys(this.actionInterpolants).map(
+      k => this.actionInterpolants[k],
+    );
 
     this.avatarBinding = {
       position: this.position,
@@ -1183,7 +1441,8 @@ class LocalPlayer extends UninterpolatedPlayer {
     if (mediaStream) {
       this.avatar.setMicrophoneEnabled(true, this);
       const audioContext = audioManager.getAudioContext();
-      const mediaStreamSource = audioContext.createMediaStreamSource(mediaStream);
+      const mediaStreamSource =
+        audioContext.createMediaStreamSource(mediaStream);
 
       mediaStreamSource.connect(this.avatar.getMicrophoneInput(true));
 
@@ -1192,9 +1451,13 @@ class LocalPlayer extends UninterpolatedPlayer {
   }
 
   detachState() {
-    const oldActions = (this.playersArray ? this.getActionsState() : new Z.Array());
+    const oldActions = this.playersArray
+      ? this.getActionsState()
+      : new Z.Array();
     const oldAvatar = this.playersArray && this.getAvatarInstanceId();
-    const oldApps = (this.playersArray ? this.getAppsState() : new Z.Array()).toJSON();
+    const oldApps = (
+      this.playersArray ? this.getAppsState() : new Z.Array()
+    ).toJSON();
     return {
       oldActions,
       oldAvatar,
@@ -1203,11 +1466,7 @@ class LocalPlayer extends UninterpolatedPlayer {
   }
 
   attachState(oldState) {
-    const {
-      oldActions,
-      oldAvatar,
-      oldApps,
-    } = oldState;
+    const {oldActions, oldAvatar, oldApps} = oldState;
 
     const self = this;
     this.playersArray.doc.transact(function tx() {
@@ -1239,7 +1498,11 @@ class LocalPlayer extends UninterpolatedPlayer {
       }
 
       if (self.voiceEndpoint) {
-        const voiceSpec = JSON.stringify({audioUrl: self.voiceEndpoint.audioUrl, indexUrl: self.voiceEndpoint.indexUrl, endpointUrl: self.voiceEndpoint ? self.voiceEndpoint.url : ''});
+        const voiceSpec = JSON.stringify({
+          audioUrl: self.voiceEndpoint.audioUrl,
+          indexUrl: self.voiceEndpoint.indexUrl,
+          endpointUrl: self.voiceEndpoint ? self.voiceEndpoint.url : '',
+        });
         self.playerMap.set('voiceSpec', voiceSpec);
       }
       self.playersArray.push([self.playerMap]);
@@ -1261,7 +1524,8 @@ class LocalPlayer extends UninterpolatedPlayer {
   }
 
   grab(app, hand = 'left') {
-    let position = null; let quaternion = null;
+    let position = null;
+    let quaternion = null;
 
     if (_getSession()) {
       const h = this[hand === 'left' ? 'leftHand' : 'rightHand'];
@@ -1280,8 +1544,13 @@ class LocalPlayer extends UninterpolatedPlayer {
       type: 'grab',
       hand,
       instanceId: app.instanceId,
-      matrix: localMatrix.copy(app.matrixWorld)
-        .premultiply(localMatrix2.compose(position, quaternion, localVector.set(1, 1, 1)).invert())
+      matrix: localMatrix
+        .copy(app.matrixWorld)
+        .premultiply(
+          localMatrix2
+            .compose(position, quaternion, localVector.set(1, 1, 1))
+            .invert(),
+        )
         .toArray(),
     };
     this.addAction(grabAction);
@@ -1471,7 +1740,10 @@ class RemotePlayer extends InterpolatedPlayer {
     if (index !== -1) {
       this.playerMap = this.playersArray.get(index, Z.Map);
     } else {
-      throw new Error('binding to nonexistent player object', this.playersArray.toJSON());
+      throw new Error(
+        'binding to nonexistent player object',
+        this.playersArray.toJSON(),
+      );
     }
     let lastTimestamp = performance.now();
     // let lastPosition = new THREE.Vector3();
@@ -1483,8 +1755,15 @@ class RemotePlayer extends InterpolatedPlayer {
       if (e.changes.keys.get('voiceSpec') || e.added?.keys?.get('voiceSpec')) {
         const voiceSpec = e.changes.keys.get('voiceSpec');
         const json = JSON.parse(voiceSpec.value);
-        if (json.endpointUrl) { this.loadVoiceEndpoint(json.endpointUrl); }
-        if (json.audioUrl && json.indexUrl) { this.loadVoicePack({audioUrl: json.audioUrl, indexUrl: json.indexUrl}); }
+        if (json.endpointUrl) {
+          this.loadVoiceEndpoint(json.endpointUrl);
+        }
+        if (json.audioUrl && json.indexUrl) {
+          this.loadVoicePack({
+            audioUrl: json.audioUrl,
+            indexUrl: json.indexUrl,
+          });
+        }
       }
 
       if (e.changes.keys.get('name')) {
@@ -1503,20 +1782,26 @@ class RemotePlayer extends InterpolatedPlayer {
         this.positionInterpolant.snapshot(timeDiff);
         this.quaternionInterpolant.snapshot(timeDiff);
 
-        for (const actionBinaryInterpolant of this.actionBinaryInterpolantsArray) {
+        for (const actionBinaryInterpolant of this
+          .actionBinaryInterpolantsArray) {
           actionBinaryInterpolant.snapshot(timeDiff);
         }
 
         if (this.avatar) {
           localVector.copy(this.position);
           localVector.y -= this.avatar.height * 0.5;
-          physicsScene.setCharacterControllerPosition(this.characterPhysics.characterController, localVector);
+          physicsScene.setCharacterControllerPosition(
+            this.characterPhysics.characterController,
+            localVector,
+          );
         }
         this.lastPosition.copy(this.position);
       }
     };
     this.playerMap.observe(observePlayerFn);
-    this.unbindFns.push(this.playerMap.unobserve.bind(this.playerMap, observePlayerFn));
+    this.unbindFns.push(
+      this.playerMap.unobserve.bind(this.playerMap, observePlayerFn),
+    );
     this.appManager.bindState(this.getAppsState());
     this.appManager.loadApps().then(() => {
       if (!this.voicer || !this.voiceEndpoint) {

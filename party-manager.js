@@ -96,7 +96,8 @@ class PartyManager extends EventTarget {
 
   // add new player to party
   invitePlayer(newPlayer) {
-    if (this.partyPlayers.length < 3) { // 3 max members
+    if (this.partyPlayers.length < 3) {
+      // 3 max members
       // console.log('invitePlayer', newPlayer, this);
       this.partyPlayers.push(newPlayer);
       this.updateMemberTargets();
@@ -222,6 +223,4 @@ class PartyManager extends EventTarget {
 }
 
 const partyManager = new PartyManager();
-export {
-  partyManager,
-};
+export {partyManager};

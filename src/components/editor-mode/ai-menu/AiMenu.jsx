@@ -1,6 +1,9 @@
 import React, {useState, useContext, useEffect} from 'react';
 import classnames from 'classnames';
-import {registerIoEventHandler, unregisterIoEventHandler} from '../../general/io-handler';
+import {
+  registerIoEventHandler,
+  unregisterIoEventHandler,
+} from '../../general/io-handler';
 import {AppContext} from '../../app';
 
 import {ImageAiPanel} from './panels/image-ai-panel.jsx';
@@ -71,7 +74,8 @@ export function AiMenu() {
       if (game.inputFocused()) {
         return true;
       } else {
-        if (event.which === 191) { // /
+        if (event.which === 191) {
+          // /
           const newOpened = state.openedPanel !== 'AiPanel';
           const newOpenedPanel = newOpened ? 'AiPanel' : null;
           setState({
@@ -86,7 +90,8 @@ export function AiMenu() {
           }
 
           return false;
-        } else if (event.which === 37) { // left
+        } else if (event.which === 37) {
+          // left
           let panelIndex = panels.indexOf(selectedPanel);
           panelIndex--;
           if (panelIndex < 0) {
@@ -96,7 +101,8 @@ export function AiMenu() {
           sounds.playSoundName('menuBeepLow');
 
           return false;
-        } else if (event.which === 39) { // right
+        } else if (event.which === 39) {
+          // right
           let panelIndex = panels.indexOf(selectedPanel);
           panelIndex++;
           if (panelIndex >= panels.length) {
@@ -132,33 +138,39 @@ export function AiMenu() {
   //
 
   return (
-        <div
-            className={classnames(styles.AiMenu, state.openedPanel === 'AiPanel' ? styles.open : '')}
-            onClick={stopPropagation}
-        >
-            <div className={styles.container}>
-                <div className={styles.panelButtons}>
-                    {panels.map((panel, i) => {
-                      return (
-                            <div
-                                className={classnames(styles.panelButton, panel === selectedPanel ? styles.selected : null)}
-                                onClick={() => {
-                                  setSelectedPanel(panel);
-                                  sounds.playSoundName('menuBeepLow');
-                                }}
-                                key={i}
-                            >
-                                <div className={styles.block}>
-                                    <div className={styles.inner}>
-                                        <img src={panel.iconUrl} className={styles.icon} />
-                                    </div>
-                                </div>
-                            </div>
-                      );
-                    })}
+    <div
+      className={classnames(
+        styles.AiMenu,
+        state.openedPanel === 'AiPanel' ? styles.open : '',
+      )}
+      onClick={stopPropagation}
+    >
+      <div className={styles.container}>
+        <div className={styles.panelButtons}>
+          {panels.map((panel, i) => {
+            return (
+              <div
+                className={classnames(
+                  styles.panelButton,
+                  panel === selectedPanel ? styles.selected : null,
+                )}
+                onClick={() => {
+                  setSelectedPanel(panel);
+                  sounds.playSoundName('menuBeepLow');
+                }}
+                key={i}
+              >
+                <div className={styles.block}>
+                  <div className={styles.inner}>
+                    <img src={panel.iconUrl} className={styles.icon} />
+                  </div>
                 </div>
-                <selectedPanel.component />
-            </div>
+              </div>
+            );
+          })}
         </div>
+        <selectedPanel.component />
+      </div>
+    </div>
   );
 }

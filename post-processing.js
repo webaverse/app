@@ -43,14 +43,12 @@ import metaversefileApi from 'metaversefile';
 const localVector2D = new THREE.Vector2();
 const localVector2D2 = new THREE.Vector2();
 
-const regularScenes = [
-  sceneHighPriority,
-  scene,
-];
+const regularScenes = [sceneHighPriority, scene];
 
 function makeDepthPass({ssao, hdr}) {
   const renderer = getRenderer();
-  const size = renderer.getSize(localVector2D)
+  const size = renderer
+    .getSize(localVector2D)
     .multiplyScalar(renderer.getPixelRatio());
 
   const depthPass = new DepthPass(regularScenes, camera, {
@@ -64,17 +62,22 @@ function makeDepthPass({ssao, hdr}) {
   // depthPass.enabled = hqDefault;
   return depthPass;
 }
-function makeSsaoRenderPass({
-  kernelSize = 8,
-  kernelRadius = 16,
-  minDistance = 0.005,
-  maxDistance = 0.1,
-}, depthPass) {
+function makeSsaoRenderPass(
+  {kernelSize = 8, kernelRadius = 16, minDistance = 0.005, maxDistance = 0.1},
+  depthPass,
+) {
   const renderer = getRenderer();
-  const size = renderer.getSize(localVector2D)
+  const size = renderer
+    .getSize(localVector2D)
     .multiplyScalar(renderer.getPixelRatio());
 
-  const ssaoRenderPass = new SSAOPass(rootScene, camera, size.x, size.y, depthPass);
+  const ssaoRenderPass = new SSAOPass(
+    rootScene,
+    camera,
+    size.x,
+    size.y,
+    depthPass,
+  );
   ssaoRenderPass.kernelSize = kernelSize;
   ssaoRenderPass.kernelRadius = kernelRadius;
   ssaoRenderPass.minDistance = minDistance;
@@ -82,22 +85,27 @@ function makeSsaoRenderPass({
   // ssaoRenderPass.output = SSAOPass.OUTPUT.SSAO;
   return ssaoRenderPass;
 }
-function makeDofPass({
-  focus = 3.0,
-  aperture = 0.00002,
-  maxblur = 0.005,
-}, depthPass) {
+function makeDofPass(
+  {focus = 3.0, aperture = 0.00002, maxblur = 0.005},
+  depthPass,
+) {
   const renderer = getRenderer();
-  const size = renderer.getSize(localVector2D)
+  const size = renderer
+    .getSize(localVector2D)
     .multiplyScalar(renderer.getPixelRatio());
 
-  const bokehPass = new BokehPass(rootScene, camera, {
-    focus,
-    aperture,
-    maxblur,
-    width: size.x,
-    height: size.y,
-  }, depthPass);
+  const bokehPass = new BokehPass(
+    rootScene,
+    camera,
+    {
+      focus,
+      aperture,
+      maxblur,
+      width: size.x,
+      height: size.y,
+    },
+    depthPass,
+  );
   bokehPass.needsSwap = true;
   // bokehPass.enabled = hqDefault;
   return bokehPass;
@@ -110,7 +118,10 @@ function makeHdrPass({
   minLuminance = 0,
   middleGrey = 3,
 }) {
-  const adaptToneMappingPass = new AdaptiveToneMappingPass(adaptive, resolution);
+  const adaptToneMappingPass = new AdaptiveToneMappingPass(
+    adaptive,
+    resolution,
+  );
   // adaptToneMappingPass.needsSwap = true;
   adaptToneMappingPass.setAdaptionRate(adaptionRate);
   adaptToneMappingPass.setMaxLuminance(maxLuminance);
@@ -121,17 +132,19 @@ function makeHdrPass({
   // adaptToneMappingPass.copyUniforms["opacity"].value = 0.5;
   return adaptToneMappingPass;
 }
-function makeBloomPass({
-  strength = 0.2,
-  radius = 0.5,
-  threshold = 0.8,
-}) {
+function makeBloomPass({strength = 0.2, radius = 0.5, threshold = 0.8}) {
   const renderer = getRenderer();
-  const size = renderer.getSize(localVector2D)
+  const size = renderer
+    .getSize(localVector2D)
     .multiplyScalar(renderer.getPixelRatio());
   const resolution = size;
 
-  const unrealBloomPass = new UnrealBloomPass(resolution, strength, radius, threshold);
+  const unrealBloomPass = new UnrealBloomPass(
+    resolution,
+    strength,
+    radius,
+    threshold,
+  );
   // unrealBloomPass.threshold = params.bloomThreshold;
   // unrealBloomPass.strength = params.bloomStrength;
   // unrealBloomPass.radius = params.bloomRadius;
@@ -188,10 +201,10 @@ function makeBloomPass({
 } */
 
 const webaverseRenderPass = new WebaverseRenderPass();
-const _isDecapitated = () => (
-  (/^(?:camera|firstperson)$/.test(cameraManager.getMode()) && !cameraManager.target) ||
-  !!getRenderer().xr.getSession()
-);
+const _isDecapitated = () =>
+  (/^(?:camera|firstperson)$/.test(cameraManager.getMode()) &&
+    !cameraManager.target) ||
+  !!getRenderer().xr.getSession();
 webaverseRenderPass.onBeforeRender = (a, b, c) => {
   // ensure lights attached
   // scene.add(world.lights);
@@ -243,7 +256,13 @@ class PostProcessing extends EventTarget {
     passes.push(webaverseRenderPass);
 
     if (rendersettings) {
-      const {ssao, dof, hdr, bloom, /* postPostProcessScene, */ /* swirl, */ webaWater} = rendersettings;
+      const {
+        ssao,
+        dof,
+        hdr,
+        bloom,
+        /* postPostProcessScene, */ /* swirl, */ webaWater,
+      } = rendersettings;
       let depthPass = null;
       if (ssao || dof) {
         depthPass = makeDepthPass({ssao, dof});
@@ -300,12 +319,13 @@ class PostProcessing extends EventTarget {
         (() => {
           let localW = 0;
           let localH = 0;
-          pass.setSize = (setSize => function(newW, newH) {
-            localW = newW;
-            localH = newH;
-            return setSize.call(this, newW, newH);
-          })(pass.setSize);
-          pass.getSize = function(target) {
+          pass.setSize = (setSize =>
+            function (newW, newH) {
+              localW = newW;
+              localH = newH;
+              return setSize.call(this, newW, newH);
+            })(pass.setSize);
+          pass.getSize = function (target) {
             return target.set(localW, localH);
           };
         })();
@@ -325,8 +345,10 @@ class PostProcessing extends EventTarget {
     }
 
     composer.passes = passes;
-    webaverseRenderPass.internalRenderPass = internalPasses.find(pass => pass.isSSAOPass) ?? null;
-    webaverseRenderPass.internalDepthPass = internalPasses.find(pass => pass.isDepthPass) ?? null;
+    webaverseRenderPass.internalRenderPass =
+      internalPasses.find(pass => pass.isSSAOPass) ?? null;
+    webaverseRenderPass.internalDepthPass =
+      internalPasses.find(pass => pass.isDepthPass) ?? null;
 
     // this.dispatchEvent(new MessageEvent('update'));
   }

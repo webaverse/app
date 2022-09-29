@@ -550,7 +550,7 @@ export async function contentIdToFile(contentId) {
   }
 }
 
-export const addDefaultLights = (scene/*, { shadowMap = false } = {} */) => {
+export const addDefaultLights = (scene /*, { shadowMap = false } = {} */) => {
   const ambientLight = new THREE.AmbientLight(0xffffff, 1);
   scene.add(ambientLight);
   scene.ambientLight = ambientLight;
@@ -619,7 +619,9 @@ export const getCameraUiPlane = (camera, distance, plane) => {
     localVector3.set(0, 0, 1).applyQuaternion(camera.quaternion),
     localVector4
       .copy(camera.position)
-      .add(localVector5.set(0, 0, -distance).applyQuaternion(camera.quaternion)),
+      .add(
+        localVector5.set(0, 0, -distance).applyQuaternion(camera.quaternion),
+      ),
   );
   return plane;
 };
@@ -1063,15 +1065,16 @@ export const handleUpload = async (item, {onProgress = null} = {}) => {
   return u;
 };
 
-export const loadImage = u => new Promise((resolve, reject) => {
-  const img = new Image();
-  img.onload = () => {
-    resolve(img);
-  };
-  img.onerror = reject;
-  img.crossOrigin = 'Anonymous';
-  img.src = u;
-});
+export const loadImage = u =>
+  new Promise((resolve, reject) => {
+    const img = new Image();
+    img.onload = () => {
+      resolve(img);
+    };
+    img.onerror = reject;
+    img.crossOrigin = 'Anonymous';
+    img.src = u;
+  });
 export const blob2img = async blob => {
   const url = URL.createObjectURL(blob);
   try {
@@ -1089,9 +1092,10 @@ export const img2canvas = img => {
   ctx.drawImage(img, 0, 0);
   return canvas;
 };
-export const canvas2blob = async (canvas, type, quality) => new Promise((resolve, reject) => {
-  canvas.toBlob(resolve, type, quality);
-});
+export const canvas2blob = async (canvas, type, quality) =>
+  new Promise((resolve, reject) => {
+    canvas.toBlob(resolve, type, quality);
+  });
 export const drawImageContain = (ctx, img) => {
   const imgWidth = img.width;
   const imgHeight = img.height;
@@ -1137,9 +1141,10 @@ export const makeSquareImage = img => {
   const imageData = ctx.getImageData(0, 0, 1, 1);
 
   // fill the canvas with the top left color
-  ctx.fillStyle = imageData.data[4] > 0
-    ? `rgb(${imageData.data[0]}, ${imageData.data[1]}, ${imageData.data[2]})`
-    : '#fff';
+  ctx.fillStyle =
+    imageData.data[4] > 0
+      ? `rgb(${imageData.data[0]}, ${imageData.data[1]}, ${imageData.data[2]})`
+      : '#fff';
   ctx.fillRect(0, 0, newSize, newSize);
 
   // draw the image in the center
@@ -1280,7 +1285,8 @@ export const splitLinesToWidth = (() => {
   };
 })();
 
-export const getJsDataUrl = src => `data:application/javascript;charset=utf-8,${encodeURIComponent(src)}`;
+export const getJsDataUrl = src =>
+  `data:application/javascript;charset=utf-8,${encodeURIComponent(src)}`;
 
 export const fetchArrayBuffer = async srcUrl => {
   const res = await fetch(srcUrl);
@@ -1302,8 +1308,11 @@ export const getClosestPowerOf2 = size => Math.ceil(Math.log2(size));
 
 export const getBoundingSize = boundingType => {
   switch (boundingType) {
-    case 'sphere': return 4;
-    case 'box': return 6;
-    default: return 0;
+    case 'sphere':
+      return 4;
+    case 'box':
+      return 6;
+    default:
+      return 0;
   }
 };

@@ -1,5 +1,10 @@
-
-import React, {useState, useEffect, useRef, useContext, createContext} from 'react';
+import React, {
+  useState,
+  useEffect,
+  useRef,
+  useContext,
+  createContext,
+} from 'react';
 import classnames from 'classnames';
 
 import game from '../../../game';
@@ -14,7 +19,11 @@ import {ActionMenu} from '../general/action-menu';
 import {Crosshair} from '../general/crosshair';
 import {Settings} from '../general/settings';
 import {WorldObjectsList} from '../general/world-objects-list';
-import {IoHandler, registerIoEventHandler, unregisterIoEventHandler} from '../general/io-handler';
+import {
+  IoHandler,
+  registerIoEventHandler,
+  unregisterIoEventHandler,
+} from '../general/io-handler';
 import {ZoneTitleCard} from '../general/zone-title-card';
 import {Quests} from '../play-mode/quests';
 import {MapGen} from '../general/map-gen/MapGen.jsx';
@@ -45,7 +54,9 @@ import loadoutManager from '../../../loadout-manager';
 
 let isStarted = false;
 const _startApp = async (weba, canvas) => {
-  if (isStarted) { return; }
+  if (isStarted) {
+    return;
+  }
   isStarted = true;
   console.log('app started');
   weba.setContentLoaded();
@@ -139,7 +150,11 @@ export const App = () => {
   };
 
   useEffect(() => {
-    if (state.openedPanel && state.openedPanel !== 'ChatPanel' && cameraManager.pointerLockElement) {
+    if (
+      state.openedPanel &&
+      state.openedPanel !== 'ChatPanel' &&
+      cameraManager.pointerLockElement
+    ) {
       cameraManager.exitPointerLock();
     }
 
@@ -248,45 +263,59 @@ export const App = () => {
   };
 
   return (
-        <div
-            className={styles.App}
-            id="app"
-            onDragStart={onDragStart}
-            onDragEnd={onDragEnd}
-            onDragOver={onDragOver}
-        >
-            <AppContext.Provider value={{state, setState, app, setSelectedApp, selectedApp, uiMode, account, chain}}>
-                <Header setSelectedApp={setSelectedApp} selectedApp={selectedApp} />
-                <DomRenderer />
-                <canvas className={classnames(styles.canvas, domHover ? styles.domHover : null)} ref={canvasRef} />
-                <Crosshair />
-                <UIMode hideDirection='right'>
-                    <ActionMenu setUIMode={setUIMode} />
-                </UIMode>
-                <Settings />
-                <ClaimsNotification />
-                <WorldObjectsList
-                    setSelectedApp={setSelectedApp}
-                    selectedApp={selectedApp}
-                />
-                <PlayMode />
-                <EditorMode
-                    selectedScene={selectedScene}
-                    setSelectedScene={setSelectedScene}
-                    selectedRoom={selectedRoom}
-                    setSelectedRoom={setSelectedRoom}
-                />
-                <IoHandler />
-                <QuickMenu />
-                <ZoneTitleCard />
-                <MapGen />
-                <Quests />
-                <LoadingBox />
-                <FocusBar />
-                <DragAndDrop />
-                <BuildVersion />
-                <Stats app={app} />
-            </AppContext.Provider>
-        </div>
+    <div
+      className={styles.App}
+      id="app"
+      onDragStart={onDragStart}
+      onDragEnd={onDragEnd}
+      onDragOver={onDragOver}
+    >
+      <AppContext.Provider
+        value={{
+          state,
+          setState,
+          app,
+          setSelectedApp,
+          selectedApp,
+          uiMode,
+          account,
+          chain,
+        }}
+      >
+        <Header setSelectedApp={setSelectedApp} selectedApp={selectedApp} />
+        <DomRenderer />
+        <canvas
+          className={classnames(
+            styles.canvas,
+            domHover ? styles.domHover : null,
+          )}
+          ref={canvasRef}
+        />
+        <Crosshair />
+        <Settings />
+        <ClaimsNotification />
+        <WorldObjectsList
+          setSelectedApp={setSelectedApp}
+          selectedApp={selectedApp}
+        />
+        <PlayMode />
+        <EditorMode
+          selectedScene={selectedScene}
+          setSelectedScene={setSelectedScene}
+          selectedRoom={selectedRoom}
+          setSelectedRoom={setSelectedRoom}
+        />
+        <IoHandler />
+        <QuickMenu />
+        <ZoneTitleCard />
+        <MapGen />
+        <Quests />
+        <LoadingBox />
+        <FocusBar />
+        <DragAndDrop />
+        <BuildVersion />
+        <Stats app={app} />
+      </AppContext.Provider>
+    </div>
   );
 };

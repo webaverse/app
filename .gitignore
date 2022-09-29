@@ -6,3 +6,4 @@ rtfx
 dist
 config.json
 .esmcache
+.DS_Store
