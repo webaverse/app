@@ -39,6 +39,7 @@ const ClaimsNotification = () => {
 
     setState({
       openedPanel: 'CharacterPanel',
+      openedTab: 'Inventory',
     });
   };
 
