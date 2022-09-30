@@ -1,13 +1,13 @@
 /* eslint-disable n/no-deprecated-api */
-/* eslint-disable camelcase */
-/* eslint-disable promise/param-names */
+
+
 import http from 'http';
 import https from 'https';
 import url from 'url';
 import path from 'path';
 import fs from 'fs';
 import express from 'express';
-import {createServer} from 'vite';
+import { createServer } from 'vite';
 import wsrtc from 'wsrtc/wsrtc-server.mjs';
 import metaversefilePlugin from 'metaversefile/plugins/rollup.js';
 import glob from 'glob';
@@ -78,7 +78,7 @@ async function dynamicImporter(o, req, res, next) {
       }
 
       id = id.replace('/@proxy/', '');
-      const {code} = await metaversefile.load(id);
+      const { code } = await metaversefile.load(id);
       if (process.env.NODE_ENV === 'production') {
         const src = Babel.transform(code, {
           plugins: [
@@ -91,7 +91,7 @@ async function dynamicImporter(o, req, res, next) {
             ],
           ],
         });
-        res.writeHead(200, {'Content-Type': 'application/javascript'});
+        res.writeHead(200, { 'Content-Type': 'application/javascript' });
         res.end(src.code);
       }
     } else {
@@ -193,7 +193,7 @@ function proxyReq(u, res) {
   });
 
   const isHttps = !process.env.HTTP_ONLY && !!certs.key && !!certs.cert;
-  const port = parseInt(process.env.PORT, 10) || (isProduction ? 443 : 3000);
+  const port = parseInt(process.env.PORT, 10) || (isProduction ? 443 : 443);
   const wsPort = port + 1;
 
   const _makeHttpServer = () =>
@@ -213,48 +213,50 @@ function proxyReq(u, res) {
       },
     });
     app.use(viteServer.middlewares);
+    app.use(express.static('public'));
+    app.use(express.static('./'));
   } else if (isProduction) {
     /** Setup static assets */
-    if (isProduction) {
-      app.use(express.static('dist'));
-      // app.use(express.static('dist/assets'));
+    app.use(express.static('./'));
+    app.use(express.static('public'));
+    app.use(express.static('dist'));
+    // app.use(express.static('dist/assets'));
 
-      app.use('*', (req, res) => {
-        const o = url.parse(req.originalUrl, true);
+    app.use('*', (req, res) => {
+      const o = url.parse(req.originalUrl, true);
 
-        const fileName = path.parse(o.pathname).base;
+      const fileName = path.parse(o.pathname).base;
 
-        glob(`dist/**/${fileName}`, (err, files) => {
-          const _404 = err || files.length === 0;
-          if (files.length > 0) {
-            const file = path.resolve('.', files[0]);
-            // console.log(file);
-            if (file.endsWith('worker.js')) {
-              const code = fs.readFileSync(file).toString();
-              if (process.env.NODE_ENV === 'production') {
-                const src = Babel.transform(code, {
-                  plugins: [
-                    [
-                      'babel-plugin-custom-import-path-transform',
-                      {
-                        transformImportPath: './moduleRewrite.js',
-                      },
-                    ],
+      glob(`dist/**/${fileName}`, (err, files) => {
+        const _404 = err || files.length === 0;
+        if (files.length > 0) {
+          const file = path.resolve('.', files[0]);
+          // console.log(file);
+          if (file.endsWith('worker.js')) {
+            const code = fs.readFileSync(file).toString();
+            if (process.env.NODE_ENV === 'production') {
+              const src = Babel.transform(code, {
+                plugins: [
+                  [
+                    'babel-plugin-custom-import-path-transform',
+                    {
+                      transformImportPath: './moduleRewrite.js',
+                    },
                   ],
-                });
-                res.writeHead(200, {'Content-Type': 'application/javascript'});
-                return res.end(src.code);
-              }
+                ],
+              });
+              res.writeHead(200, { 'Content-Type': 'application/javascript' });
+              return res.end(src.code);
             }
-            return res.sendFile(file);
-          } else if (_404) {
-            res.status(404).end();
           }
-        });
+          return res.sendFile(file);
+        } else if (_404) {
+          res.status(404).end();
+        }
       });
+    });
 
-      app.enable('view cache');
-    }
+    app.enable('view cache');
   }
 
   await new Promise((accept, reject) => {
@@ -264,7 +266,6 @@ function proxyReq(u, res) {
     httpServer.on('error', reject);
   });
   console.log(`  > Local: http${isHttps ? 's' : ''}://${SERVER_NAME}:${port}/`);
-
   const wsServer = (() => {
     if (isHttps) {
       return https.createServer(certs);
@@ -275,7 +276,7 @@ function proxyReq(u, res) {
   const initialRoomState = (() => {
     const s = fs.readFileSync('scenes/prototype.scn', 'utf8');
     const j = JSON.parse(s);
-    const {objects} = j;
+    const { objects } = j;
 
     const appsMapName = 'apps';
     const result = {

@@ -6,12 +6,12 @@ you can have as many app managers as you want.
 import * as THREE from 'three';
 import * as Z from 'zjs';
 
-import {makePromise, getRandomString, jsonParse} from './util.js';
+import { makePromise, getRandomString, jsonParse } from './util.js';
 import physicsManager from './physics-manager.js';
 import metaversefile from 'metaversefile';
 import * as metaverseModules from './metaverse-modules.js';
 
-import {appsMapName} from './constants.js';
+import { appsMapName } from './constants.js';
 
 const localVector = new THREE.Vector3();
 const localVector2 = new THREE.Vector3();
@@ -32,7 +32,7 @@ const physicsScene = physicsManager.getScene();
 
 const appManagers = [];
 class AppManager extends EventTarget {
-  constructor({appsArray = new Z.Doc().getArray(appsMapName)} = {}) {
+  constructor({ appsArray = new Z.Doc().getArray(appsMapName) } = {}) {
     super();
 
     this.appsArray = null;
@@ -91,7 +91,7 @@ class AppManager extends EventTarget {
 
     if (nextAppsArray) {
       const observe = e => {
-        const {added, deleted} = e.changes;
+        const { added, deleted } = e.changes;
 
         for (const item of added.values()) {
           let appMap = item.content.type;
@@ -202,7 +202,7 @@ class AppManager extends EventTarget {
 
   async importTrackedApp(trackedApp) {
     const trackedAppBinding = trackedApp.toJSON();
-    const {instanceId, contentId, transform, components} = trackedAppBinding;
+    const { instanceId, contentId, transform, components } = trackedAppBinding;
 
     const p = makePromise();
     p.instanceId = instanceId;
@@ -258,7 +258,7 @@ class AppManager extends EventTarget {
         // set components
         app.instanceId = instanceId;
         app.setComponent('physics', true);
-        for (const {key, value} of components) {
+        for (const { key, value } of components) {
           app.setComponent(key, value);
         }
       }
@@ -269,7 +269,7 @@ class AppManager extends EventTarget {
         const mesh = await app.addModule(m);
         if (!live) return _bailout(app);
         if (!mesh) {
-          console.warn('failed to load object', {contentId});
+          console.warn('failed to load object', { contentId });
         }
 
         this.addApp(app);
@@ -320,11 +320,11 @@ class AppManager extends EventTarget {
 
   bindEvents() {
     this.addEventListener('trackedappadd', async e => {
-      const {trackedApp} = e.data;
+      const { trackedApp } = e.data;
       this.importTrackedApp(trackedApp);
     });
     this.addEventListener('trackedappremove', async e => {
-      const {instanceId, app} = e.data;
+      const { instanceId, app } = e.data;
 
       this.unbindTrackedApp(instanceId);
       if (app) {
@@ -333,14 +333,14 @@ class AppManager extends EventTarget {
       }
     });
     this.addEventListener('trackedappimport', async e => {
-      const {instanceId, app} = e.data;
+      const { instanceId, app } = e.data;
 
       /* if (!this.apps.includes(app)) {
         this.apps.push(app);
       } */
     });
     this.addEventListener('trackedappexport', async e => {
-      const {instanceId, app, sourceAppManager, destinationAppManager} = e.data;
+      const { instanceId, app, sourceAppManager, destinationAppManager } = e.data;
       // console.log('handle migrate', sourceAppManager === this, destinationAppManager === this);
       if (sourceAppManager === this) {
         const index = this.apps.indexOf(app);
@@ -563,8 +563,8 @@ class AppManager extends EventTarget {
     });
     app.contentId = 'error-placeholder';
     (async () => {
-      await metaverseModules.waitForLoad();
-      const {modules} = metaversefile.useDefaultModules();
+      // await metaverseModules.waitForLoad();
+      const { modules } = metaversefile.useDefaultModules();
       const m = modules.errorPlaceholder;
       await app.addModule(m);
     })();
@@ -575,7 +575,7 @@ class AppManager extends EventTarget {
     this.stateBlindMode = stateBlindMode;
   } */
   transplantApp(app, dstAppManager) {
-    const {instanceId} = app;
+    const { instanceId } = app;
     const srcAppManager = this;
 
     // srcAppManager.setBlindStateMode(true);
@@ -589,9 +589,9 @@ class AppManager extends EventTarget {
       srcAppManager.appsArray.doc === dstAppManager.appsArray.doc
         ? innerFn => srcAppManager.appsArray.doc.transact(innerFn)
         : innerFn =>
-            dstAppManager.appsArray.doc.transact(() => {
-              srcAppManager.appsArray.doc.transact(innerFn);
-            });
+          dstAppManager.appsArray.doc.transact(() => {
+            srcAppManager.appsArray.doc.transact(innerFn);
+          });
     wrapTxFn(() => {
       const srcTrackedApp = srcAppManager.getTrackedApp(instanceId);
       /* if (!srcTrackedApp) {
@@ -757,7 +757,7 @@ class AppManager extends EventTarget {
       objects.push(object);
     }
 
-    return {objects};
+    return { objects };
   }
 
   destroy() {
@@ -777,4 +777,4 @@ class AppManager extends EventTarget {
     }
   }
 }
-export {AppManager};
+export { AppManager };

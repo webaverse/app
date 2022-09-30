@@ -1,5 +1,5 @@
 import * as THREE from 'three';
-import {scene, camera} from './renderer.js';
+import { scene, camera } from './renderer.js';
 import physics from './physics-manager.js';
 // import physx from './physx.js';
 import Avatar from './avatars/avatars.js';
@@ -34,14 +34,14 @@ export class CharacterHitter {
     this.lastHitTime = -Infinity;
   }
 
-  attemptHit({type, args, timestamp = performance.now()}) {
+  attemptHit({ type, args, timestamp = performance.now() }) {
     hitAttemptEventData.type = type;
     hitAttemptEventData.args = args;
     hitManager.dispatchEvent(hitAttemptEvent);
 
     switch (type) {
       case 'sword': {
-        const {hitRadius, hitHalfHeight, position, quaternion} = args;
+        const { hitRadius, hitHalfHeight, position, quaternion } = args;
         const collision = physicsScene.getCollisionObject(
           hitRadius,
           hitHalfHeight,
@@ -176,8 +176,8 @@ export class CharacterHitter {
     {
       const damageMeshApp = metaversefile.createApp();
       (async () => {
-        await metaverseModules.waitForLoad();
-        const {modules} = metaversefile.useDefaultModules();
+        // await metaverseModules.waitForLoad();
+        const { modules } = metaversefile.useDefaultModules();
         const m = modules.damageMesh;
         await damageMeshApp.addModule(m);
       })();

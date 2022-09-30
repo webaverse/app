@@ -42,7 +42,7 @@ export const UserBox = ({ className, address, setAddress, setLoginFrom }) => {
         getPhantomProvider, connectPhantomWallet, disconnectPhantomWallet, walletType, setWalletType } = account;
     const { selectedChain } = chain;
 
-    const openUserPanel = (e) => {
+    const openUserPanel = e => {
         setState({ openedPanel: "UserPanel" });
     };
 
@@ -52,14 +52,14 @@ export const UserBox = ({ className, address, setAddress, setLoginFrom }) => {
         sounds.playSoundName("menuBack");
     };
 
-    useEffect(()=>{
-        if(!currentAddress) return;
+    useEffect(() => {
+        if (!currentAddress) return;
         _setAddress(currentAddress);
     }, [currentAddress, selectedChain])
 
-    const _setAddress = async (address) => {
-        if(walletType == 'metamask') {
-            const {name, avatar} = await getAccountDetails(address);
+    const _setAddress = async address => {
+        if (walletType == 'metamask') {
+            const { name, avatar } = await getAccountDetails(address);
             setEnsName(name ? shortAddress(name) : '');
             setAvatarUrl(avatar ? resolveAvatar(avatar) : '');
         }
@@ -84,7 +84,7 @@ export const UserBox = ({ className, address, setAddress, setLoginFrom }) => {
         }
     };
 
-    const metaMaskLogin = async (event) => {
+    const metaMaskLogin = async event => {
         event.preventDefault();
         event.stopPropagation();
 
@@ -104,12 +104,12 @@ export const UserBox = ({ className, address, setAddress, setLoginFrom }) => {
         }
     };
 
-    const phangomLogin = async ( event ) => {
+    const phangomLogin = async event => {
         event.preventDefault();
         event.stopPropagation();
 
-        if ( ! loggingIn ) {
-            setLoggingIn( true );
+        if (!loggingIn) {
+            setLoggingIn(true);
 
             try {
                 const phantomAddress = await connectPhantomWallet();
@@ -283,7 +283,7 @@ export const UserBox = ({ className, address, setAddress, setLoginFrom }) => {
                                 icon="login"
                                 size={28}
                                 className={styles.loginButton}
-                                onClick={(e) => {
+                                onClick={e => {
                                     e.preventDefault();
                                     e.stopPropagation();
 
@@ -295,7 +295,7 @@ export const UserBox = ({ className, address, setAddress, setLoginFrom }) => {
 
                                     sounds.playSoundName("menuNext");
                                 }}
-                                onMouseEnter={(e) => {
+                                onMouseEnter={e => {
                                     _triggerClickSound();
                                 }}
                             />
@@ -309,9 +309,7 @@ export const UserBox = ({ className, address, setAddress, setLoginFrom }) => {
                                 <div className={styles.image}>
                                     <img
                                         src={
-                                            avatarUrl
-                                                ? avatarUrl
-                                                : "/assets/backgrounds/profile-no-image.png"
+                                            avatarUrl || "/assets/backgrounds/profile-no-image.png"
                                         }
                                         crossOrigin='Anonymous'
                                     />
@@ -321,13 +319,13 @@ export const UserBox = ({ className, address, setAddress, setLoginFrom }) => {
                         <li>
                             <div className={styles.loggedInText}>
                                 <div className={styles.chainName}>
-                                {
-                                    walletType == 'metamask' ? 'Polygon' :
-                                    walletType == 'phantom' ? 'Solana': null
-                                }
+                                    {
+                                        walletType == 'metamask' ? 'Polygon' :
+                                            walletType == 'phantom' ? 'Solana' : null
+                                    }
                                 </div>
                                 <div className={styles.walletAddress}>
-                                    {ensName || address }
+                                    {ensName || address}
                                 </div>
                             </div>
                             <CustomButton
@@ -336,13 +334,13 @@ export const UserBox = ({ className, address, setAddress, setLoginFrom }) => {
                                 icon="logout"
                                 size={28}
                                 className={styles.loginButton}
-                                onClick={(e) => {
+                                onClick={e => {
                                     e.preventDefault();
                                     e.stopPropagation();
                                     disconnectWallet();
                                     disconnectPhantomWallet();
                                 }}
-                                onMouseEnter={(e) => {
+                                onMouseEnter={e => {
                                     _triggerClickSound();
                                 }}
                             />
@@ -354,7 +352,7 @@ export const UserBox = ({ className, address, setAddress, setLoginFrom }) => {
             <div
                 className={classnames(
                     styles.userLoginMethodsModal,
-                    open ? styles.opened : null
+                    open ? styles.opened : null,
                 )}
             >
                 <div className={styles.title}>
@@ -379,7 +377,7 @@ export const UserBox = ({ className, address, setAddress, setLoginFrom }) => {
                     onClick={phangomLogin}
                     onMouseEnter={_triggerClickSound}
                 />
-                <CustomButton
+                {/* <CustomButton
                     theme="light"
                     icon="discord"
                     text="Discord"
@@ -388,7 +386,7 @@ export const UserBox = ({ className, address, setAddress, setLoginFrom }) => {
                     className={styles.methodButton}
                     onClick={metaMaskLogin}
                     onMouseEnter={_triggerClickSound}
-                />
+                /> */}
                 <CustomButton
                     theme="light"
                     icon="close"

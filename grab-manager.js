@@ -39,7 +39,7 @@ const getPhysicalPosition = box => {
   return localVector7.set(
     (box.min.x + box.max.x) / 2,
     box.min.y,
-    (box.min.z + box.max.z) / 2
+    (box.min.z + box.max.z) / 2,
   );
 }
 
@@ -47,7 +47,7 @@ const _updateGrabbedObject = (
   o,
   grabMatrix,
   offsetMatrix,
-  { collisionEnabled, handSnapEnabled, gridSnap }
+  { collisionEnabled, handSnapEnabled, gridSnap },
 ) => {
   // grabMatrix represents localPlayer (= pivot point)
   grabMatrix.decompose(localVector, localQuaternion, localVector2);
@@ -68,9 +68,9 @@ const _updateGrabbedObject = (
 
   // Compute physical local bounding box and it's position offset from app.position.
   // THREE.Box3.getCenter() has a console error, so I calculate manually.
-  if(physicsObjects) {
+  if (physicsObjects) {
     localBox.makeEmpty();
-    for(const physicsObject of physicsObjects) {
+    for (const physicsObject of physicsObjects) {
       const geometry = physicsObject.physicsMesh.geometry;
       geometry.computeBoundingBox();
       localBox.union(geometry.boundingBox);
@@ -86,13 +86,13 @@ const _updateGrabbedObject = (
   localQuaternion2.setFromAxisAngle(localVector2.set(1, 0, 0), -Math.PI * 0.5);
   const downCollision = collisionEnabled && physicsScene.raycast(localVector5, localQuaternion2);
 
-  if (!!collision) {
-    const {point} = collision;
+  if (collision) {
+    const { point } = collision;
     localVector6.fromArray(point);
   }
 
-  if (!!downCollision) {
-    const {point} = downCollision;
+  if (downCollision) {
+    const { point } = downCollision;
     localVector4.fromArray(point);
   }
 
@@ -151,7 +151,7 @@ const _delete = () => {
   }
 };
 
-const _click = (e) => {
+const _click = e => {
   if (grabManager.getGrabbedObject(0)) {
     const localPlayer = playersManager.getLocalPlayer();
     localPlayer.ungrab();
@@ -167,9 +167,9 @@ const _click = (e) => {
 const _createTransformIndicators = () => {
   transformIndicators = metaversefileApi.createApp();
   (async () => {
-    await metaverseModules.waitForLoad();
-    const {modules} = metaversefileApi.useDefaultModules();
-    const m = modules['transformIndicators'];
+    await metaversefileApi.waitForSceneLoaded();
+    const { modules } = metaversefileApi.useDefaultModules();
+    const m = modules.transformIndicators;
     await transformIndicators.addModule(m);
   })();
   transformIndicators.targetApp = null;
@@ -181,8 +181,9 @@ class Grabmanager extends EventTarget {
     super();
     this.gridSnap = 0;
     this.editMode = false;
-    _createTransformIndicators();
+    // _createTransformIndicators();
   }
+
   grab(object) {
     const localPlayer = playersManager.getLocalPlayer();
     localPlayer.grab(object);
@@ -190,14 +191,16 @@ class Grabmanager extends EventTarget {
     this.gridSnap = 0;
     this.editMode = false;
   }
+
   getGrabAction(i) {
     const targetHand = i === 0 ? 'left' : 'right';
     const localPlayer = playersManager.getLocalPlayer();
     const grabAction = localPlayer.findAction(
-      (action) => action.type === 'grab' && action.hand === targetHand
+      action => action.type === 'grab' && action.hand === targetHand,
     );
     return grabAction;
   }
+
   getGrabbedObject(i) {
     const grabAction = this.getGrabAction(i);
     const grabbedObjectInstanceId = grabAction?.instanceId;
@@ -206,6 +209,7 @@ class Grabmanager extends EventTarget {
       : null;
     return result;
   }
+
   async toggleEditMode() {
     this.editMode = !this.editMode;
     if (this.editMode) {
@@ -224,23 +228,29 @@ class Grabmanager extends EventTarget {
       this.hideUi();
     }
   }
+
   setHighlightPhysicsMesh(mesh) {
     this.highlightPhysicsMesh = mesh;
     this.highlightPhysicsMesh.visible = false;
     sceneLowPriority.add(this.highlightPhysicsMesh);
   }
+
   showUi() {
     this.dispatchEvent(new MessageEvent('showui'));
   }
+
   hideUi() {
     this.dispatchEvent(new MessageEvent('hideui'));
   }
+
   menuClick(e) {
     _click(e);
   }
+
   menuDelete() {
     _delete();
   }
+
   menuGridSnap() {
     if (this.gridSnap === 0) {
       this.gridSnap = 32;
@@ -252,9 +262,10 @@ class Grabmanager extends EventTarget {
     this.dispatchEvent(
       new MessageEvent('setgridsnap', {
         data: { gridSnap: this.gridSnap },
-      })
+      }),
     );
   }
+
   getGridSnap() {
     if (this.gridSnap === 0) {
       return 0;
@@ -262,20 +273,24 @@ class Grabmanager extends EventTarget {
       return 4 / this.gridSnap;
     }
   }
+
   canRotate() {
     return !!this.getGrabbedObject(0);
   }
+
   menuRotate(direction) {
     const object = this.getGrabbedObject(0);
     object.savedRotation.y -= direction * rotationSnap;
   }
+
   canPush() {
     return !!this.getGrabbedObject(0);
   }
+
   menuPush(direction) {
     const localPlayer = playersManager.getLocalPlayer();
     const grabAction = localPlayer.findAction(
-      (action) => action.type === 'grab' && action.hand === 'left'
+      action => action.type === 'grab' && action.hand === 'left',
     );
     if (grabAction) {
       const matrix = localMatrix.fromArray(grabAction.matrix);
@@ -294,15 +309,15 @@ class Grabmanager extends EventTarget {
     const localPlayer = playersManager.getLocalPlayer();
 
     const _updateGrab = () => {
-      const _isWear = (o) =>
+      const _isWear = o =>
         localPlayer.findAction(
-          (action) => action.type === 'wear' && action.instanceId === o.instanceId);
+          action => action.type === 'wear' && action.instanceId === o.instanceId);
 
       for (let i = 0; i < 2; i++) {
         const grabAction = this.getGrabAction(i);
         const grabbedObject = this.getGrabbedObject(i);
         if (grabbedObject && !_isWear(grabbedObject)) {
-          let position = null, quaternion = null;
+          let position = null; let quaternion = null;
           if (renderer.xr.getSession()) {
             const h = localPlayer[hand === 'left' ? 'leftHand' : 'rightHand'];
             position = h.position;
@@ -322,7 +337,7 @@ class Grabmanager extends EventTarget {
               collisionEnabled: true,
               handSnapEnabled: true,
               gridSnap: this.getGridSnap(),
-            }
+            },
           );
         }
       }
@@ -374,13 +389,13 @@ class Grabmanager extends EventTarget {
             .decompose(
               this.highlightPhysicsMesh.position,
               this.highlightPhysicsMesh.quaternion,
-              this.highlightPhysicsMesh.scale
+              this.highlightPhysicsMesh.scale,
             );
 
-            this.highlightPhysicsMesh.material.uniforms.uTime.value = (timestamp % 1500) / 1500;
-            this.highlightPhysicsMesh.material.uniforms.uTime.needsUpdate = true;
-            this.highlightPhysicsMesh.material.uniforms.uColor.value.setHex(
-            buildMaterial.uniforms.uColor.value.getHex()
+          this.highlightPhysicsMesh.material.uniforms.uTime.value = (timestamp % 1500) / 1500;
+          this.highlightPhysicsMesh.material.uniforms.uTime.needsUpdate = true;
+          this.highlightPhysicsMesh.material.uniforms.uColor.value.setHex(
+            buildMaterial.uniforms.uColor.value.getHex(),
           );
           this.highlightPhysicsMesh.material.uniforms.uColor.needsUpdate = true;
           this.highlightPhysicsMesh.visible = true;
