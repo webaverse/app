@@ -107,6 +107,8 @@ export function applyCharacterActionsToAvatar(character, rig) {
   // const swordSideSlashAnimation = swordSideSlash ? swordSideSlash.animation : '';
   // const swordTopDownSlash = character.getAction('swordTopDownSlash');
   // const swordTopDownSlashAnimation = swordTopDownSlash ? swordTopDownSlash.animation : '';
+  const cellphoneDrawAction = player.getAction('cellphoneDraw');
+  const cellphoneUndrawAction = player.getAction('cellphoneUndraw');
 
   rig.jumpState = !!jumpAction;
   rig.jumpTime = character.actionInterpolants.jump.get();
@@ -120,6 +122,10 @@ export function applyCharacterActionsToAvatar(character, rig) {
   rig.activateTime = character.actionInterpolants.activate.get();
   rig.swimState = !!swimAction;
   rig.swimTime = swimAction ? character.actionInterpolants.swim.get() : -1;
+  rig.cellphoneDrawState = !!cellphoneDrawAction;
+  rig.cellphoneDrawTime = cellphoneDrawAction ? player.actionInterpolants.cellphoneDraw.get() : 0;
+  rig.cellphoneUndrawState = !!cellphoneUndrawAction;
+  rig.cellphoneUndrawTime = cellphoneUndrawAction ? player.actionInterpolants.cellphoneUndraw.get() : 0;
 
   const _handleUse = () => {
     if (useAction?.animation) {

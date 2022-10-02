@@ -156,6 +156,7 @@ const _click = e => {
     const localPlayer = playersManager.getLocalPlayer();
     localPlayer.ungrab();
     transformIndicators.targetApp = null;
+    grabManager.undrawPhone();
     grabManager.hideUi();
   } else {
     if (highlightedPhysicsObject) {
@@ -224,8 +225,10 @@ class Grabmanager extends EventTarget {
         localPlayer.ungrab();
       }
       this.showUi();
+      this.drawPhone();
     } else {
       this.hideUi();
+      this.undrawPhone();
     }
   }
 
@@ -242,7 +245,19 @@ class Grabmanager extends EventTarget {
   hideUi() {
     this.dispatchEvent(new MessageEvent('hideui'));
   }
-
+  drawPhone() {
+    const localPlayer = playersManager.getLocalPlayer();
+    localPlayer.addAction({
+      type: 'cellphoneDraw'
+    });
+  }
+  undrawPhone() {
+    const localPlayer = playersManager.getLocalPlayer();
+    localPlayer.removeAction('cellphoneDraw');
+    localPlayer.addAction({
+      type: 'cellphoneUndraw'
+    });
+  }
   menuClick(e) {
     _click(e);
   }
@@ -404,6 +419,13 @@ class Grabmanager extends EventTarget {
       }
     };
     _updatePhysicsHighlight();
+
+    const _handleCellphoneUndraw = () => {
+      if(localPlayer.avatar?.cellphoneUndrawTime >= 1000) {
+        localPlayer.removeAction('cellphoneUndraw');
+      }
+    };
+    _handleCellphoneUndraw();
   }
 }
 
