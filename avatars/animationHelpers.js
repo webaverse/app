@@ -75,6 +75,8 @@ let narutoRunAnimations;
 // let swordTopDownSlash;
 let hurtAnimations;
 let holdAnimations;
+let cellphoneDrawAnimation;
+let cellphoneUndrawAnimation;
 
 const defaultSitAnimation = 'chair';
 // const defaultUseAnimation = 'combo';
@@ -351,6 +353,8 @@ export const loadPromise = (async () => {
   floatAnimation = animations.find(a => a.isFloat);
   // rifleAnimation = animations.find(a => a.isRifle);
   // hitAnimation = animations.find(a => a.isHit);
+  cellphoneDrawAnimation = animations.find(a => a.isCellphoneDraw);
+  cellphoneUndrawAnimation = animations.find(a => a.isCellphoneUndraw);
   aimAnimations = {
     swordSideIdle: animations.index['sword_idle_side.fbx'],
     swordSideIdleStatic: animations.index['sword_idle_side_static.fbx'],
@@ -832,6 +836,71 @@ export const _applyAnimation = (avatar, now) => {
     _getHorizontalBlend(k, lerpFn, isPosition, dst);
   };
   const _getApplyFn = () => {
+    if (avatar.cellphoneDrawState) {
+      return spec => {
+        const {
+          animationTrackName: k,
+          dst,
+          isPosition,
+          boneName,
+        } = spec;
+
+        _handleDefault(spec);
+        const t2 = avatar.cellphoneDrawTime / 1000;
+        if (!isPosition) {
+          if (cellphoneDrawAnimation) {
+            const src2 = cellphoneDrawAnimation.interpolants[k];
+            const v2 = src2.evaluate(t2);
+
+            const idleAnimation = _getIdleAnimation('walk');
+            const t3 = 0;
+            const src3 = idleAnimation.interpolants[k];
+            const v3 = src3.evaluate(t3);
+
+            // if(!(
+
+            //   boneName === 'Right_shoulder'
+            // )) {
+
+            // }
+            dst.premultiply(localQuaternion2.fromArray(v3).invert());
+            dst.premultiply(localQuaternion2.fromArray(v2));
+          }
+        }
+      };
+    } else if(avatar.cellphoneUndrawState) {
+      return spec => {
+        const {
+          animationTrackName: k,
+          dst,
+          isPosition,
+          boneName,
+        } = spec;
+
+        _handleDefault(spec);
+        const t2 = avatar.cellphoneUndrawTime / 1000;
+        if (!isPosition) {
+          if (cellphoneUndrawAnimation) {
+            const src2 = cellphoneUndrawAnimation.interpolants[k];
+            const v2 = src2.evaluate(t2);
+
+            const idleAnimation = _getIdleAnimation('walk');
+            const t3 = 0;
+            const src3 = idleAnimation.interpolants[k];
+            const v3 = src3.evaluate(t3);
+
+            // if(!(
+            //   boneName === 'Right_arm' ||
+            //   boneName === 'Right_shoulder'
+            // )) {
+
+            // }
+            dst.premultiply(localQuaternion2.fromArray(v3).invert());
+            dst.premultiply(localQuaternion2.fromArray(v2));
+          }
+        }
+      };
+    }
     if (avatar.doubleJumpState) {
       return spec => {
         const {animationTrackName: k, dst, isPosition} = spec;

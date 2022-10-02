@@ -1354,6 +1354,8 @@ class UninterpolatedPlayer extends AvatarCharacter {
       // swordSideSlash: new InfiniteActionInterpolant(() => this.hasAction('swordSideSlash'), 0),
       // swordTopDownSlash: new InfiniteActionInterpolant(() => this.hasAction('swordTopDownSlash'), 0),
       hurt: new InfiniteActionInterpolant(() => this.hasAction('hurt'), 0),
+      cellphoneDraw: new BiActionInterpolant(() => this.hasAction('cellphoneDraw'), 0, 1000),
+      cellphoneUndraw: new BiActionInterpolant(() => this.hasAction('cellphoneUndraw'), 0, 1000),
     };
     this.actionInterpolantsArray = Object.keys(this.actionInterpolants).map(
       k => this.actionInterpolants[k],

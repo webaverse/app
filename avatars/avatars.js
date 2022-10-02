@@ -973,6 +973,13 @@ class Avatar {
     this.hurtTime = NaN;
     this.hurtAnimation = null;
 
+    this.cellphoneDrawFactor = NaN;
+    this.cellphoneDrawTime = NaN;
+    this.cellphoneDrawState = false;
+    this.cellphoneUndrawFactor = NaN;
+    this.cellphoneUndrawTime = NaN;
+    this.cellphoneUndrawState = false;
+
     // internal state
     this.movementsTime = 0;
     this.movementsTransitionTime = NaN;
@@ -1752,6 +1759,8 @@ class Avatar {
       Math.max(this.sprintTime / crouchMaxTime, 0),
       1,
     );
+    this.cellphoneDrawFactor = Math.min(Math.max(this.cellphoneDrawTime / crouchMaxTime, 0), 1);
+    this.cellphoneUndrawFactor = Math.min(Math.max(this.cellphoneUndrawTime / crouchMaxTime, 0), 1);
 
     const _overwritePose = poseName => {
       const poseAnimation = animations.index[poseName];
