@@ -1,5 +1,5 @@
 
-import React, { useState, useEffect, useRef, createContext } from 'react';
+import React, { useState, useEffect, useRef, createContext, useContext } from 'react';
 import classnames from 'classnames';
 
 import { defaultPlayerSpec } from '../../../constants';
@@ -38,6 +38,9 @@ import {handleStoryKeyControls} from '../../../story';
 import styles from './App.module.css';
 import '../../fonts.css';
 import raycastManager from '../../../raycast-manager';
+
+import { AccountContext } from '../../hooks/web3AccountProvider';
+import { ChainContext } from '../../hooks/chainProvider';
 
 //
 
@@ -139,6 +142,8 @@ export const App = () => {
     const [ selectedScene, setSelectedScene ] = useState( _getCurrentSceneSrc() );
     const [ selectedRoom, setSelectedRoom ] = useState( _getCurrentRoom() );
     const [ apps, setApps ] = useState( world.appManager.getApps().slice() );
+    const account = useContext(AccountContext);
+    const chain = useContext(ChainContext);
 
     //
 
@@ -326,7 +331,7 @@ export const App = () => {
             onDragEnd={onDragEnd}
             onDragOver={onDragOver}
         >
-            <AppContext.Provider value={{ state, setState, app, setSelectedApp, selectedApp, uiMode }}>
+            <AppContext.Provider value={{ state, setState, app, setSelectedApp, selectedApp, uiMode, account, chain }}>
                 <Header setSelectedApp={ setSelectedApp } selectedApp={ selectedApp } />
                 <DomRenderer />
                 <Canvas app={app} />

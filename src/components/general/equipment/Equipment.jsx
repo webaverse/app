@@ -10,10 +10,11 @@ import game from '../../../../game.js';
 import { transparentPngUrl } from '../../../../constants.js';
 import * as sounds from '../../../../sounds.js';
 import { mod } from '../../../../util.js';
+import useNFTContract from '../../../hooks/useNFTContract';
+import { ChainContext } from '../../../hooks/chainProvider';
 import dropManager from '../../../../drop-manager';
 import cardsManager from '../../../../cards-manager.js';
-
-//
+import { isChainSupported } from '../../../hooks/useChain';
 
 const size = 2048;
 const numFrames = 128;
@@ -119,7 +120,7 @@ const ObjectItem = ({
             />
 
             <div className={styles.row}>
-                <div className={styles.name}>{object?.name}</div>
+                <div className={styles.name}>{ object ? (object.name.length > 10) ? object.name.slice(0, 10) + ".." : object.name : ""}</div>
                 <div className={styles.level}>Lv. {object?.level}</div>
             </div>
 
@@ -271,7 +272,8 @@ const EquipmentItems = ({
                         <h2>{name}</h2>
                     </div>
                     <ul className={styles.list}>
-                        {tokens.map((object, i) =>
+                        { 
+                        tokens.map((object, i) => 
                             <ItemClass
                                 object={object}
                                 enabled={open}
@@ -295,12 +297,16 @@ const EquipmentItems = ({
 };
 
 export const Equipment = () => {
-    const { state, setState } = useContext( AppContext );
+    const { state, account } = useContext( AppContext );
     const [ hoverObject, setHoverObject ] = useState(null);
     const [ selectObject, setSelectObject ] = useState(null);
-    // const [ spritesheet, setSpritesheet ] = useState(null);
+    const [ inventoryObject, setInventoryObject ] = useState([]);
     const [ faceIndex, setFaceIndex ] = useState(1);
+    const { selectedChain, supportedChain } = useContext(ChainContext)
+    const { getTokens, mintfromVoucher } = useNFTContract(account.currentAddress);
     const [ claims, setClaims ] = useState([]);
+    const [ nfts, setNfts ] = useState(null);
+
     const [ cachedLoader, setCachedLoader ] = useState(() => new CachedLoader({
         async loadFn(url, value, {signal}) {            
             const {start_url} = value;
@@ -318,8 +324,56 @@ export const Equipment = () => {
     const [ imageBitmap, setImageBitmap ] = useState(null);
 
     const selectedMenuIndex = mod(faceIndex, 4);
-
+    
     const open = state.openedPanel === 'CharacterPanel';
+
+    useEffect(() => {
+        if (account && account.currentAddress) {
+          async function queryOpensea() {
+            fetch(
+              `https://api.opensea.io/api/v1/assets?owner=${account.currentAddress}&limit=${50}`,
+            //   `https://api.opensea.io/api/v1/assets?owner=${account.currentAddress}&limit=${50}&asset_contract_address=${}`,
+             // { headers: { "X-API-KEY": "6a7ceb45f3c44c84be65779ad2907046" } }
+            // WARNING: without opensea api key this API is rate-limited
+             ).then((res) => res.json())
+              .then(({ assets }) => { console.log('returned assets', assets); setNfts(assets); })
+              .catch(() => console.warn('could not connect to opensea. the api key may have expired'));
+          }
+          queryOpensea();
+        } else {
+            console.log('could not query opensea')
+        }
+    }, [account]);
+
+    useEffect(() => {
+        if(open && nfts) {
+            if (!supportedChain) {
+                console.log("unsupported chain!");
+                setInventoryObject(nfts);
+                return;
+            }
+
+            async function setupInventory() {
+                const tokens = await getTokens();
+                const inventoryItems = tokens.map((token, id) => {
+                    return {
+                        name: token.name ?? "",
+                        start_url: token.url ?? (token.animation_url !== "" ? token.animation_url : token.collection.banner_image_url),
+                        level: token.level ?? 1,
+                        type:  "major", // "major", "minor" - TODO: create a part for minors in the inventory
+                        claimed: true
+                    };
+                });
+                setInventoryObject(inventoryItems);
+            }
+
+            setupInventory().catch((error)=> {
+                console.warn('unable to retrieve inventory')
+                setInventoryObject([]);
+            });
+        }
+
+    }, [open, state.openedPanel, selectedChain, nfts, claims]);
 
     const onMouseEnter = object => () => {
         setHoverObject(object);
@@ -363,10 +417,18 @@ export const Equipment = () => {
     
         sounds.playSoundName('menuNext');
     };
+
+    const mintClaim = async (e) => {
+        await mintfromVoucher(e, () => {
+        }, () => {
+            dropManager.removeClaim(e);
+        });
+    }
     const selectClassName = styles[`select-${selectedMenuIndex}`];
 
     useEffect(() => {
         const claimschange = e => {
+
             const {claims} = e.data;
             setClaims(claims.slice());
         };
@@ -374,7 +436,7 @@ export const Equipment = () => {
         return () => {
             dropManager.removeEventListener('claimschange', claimschange);
         };
-    }, [claims]);
+    }, []);
 
     useEffect(() => {
         if (cachedLoader) {
@@ -438,6 +500,10 @@ export const Equipment = () => {
                                 name: 'Inventory',
                                 tokens: claims,
                             },
+                            {
+                                name: 'Claimed',
+                                tokens: inventoryObject,
+                          },
                         ]}
                         open={faceIndex === 0}
                         hoverObject={hoverObject}
@@ -449,7 +515,7 @@ export const Equipment = () => {
                         onDoubleClick={onDoubleClick}
                         menuLeft={menuLeft}
                         menuRight={menuRight}
-                        highlights={true}
+                        highlights={false}
                         ItemClass={ObjectItem}
                     />
                     <EquipmentItems
@@ -557,10 +623,16 @@ export const Equipment = () => {
             <MegaHotBox
                 open={!!selectObject}
                 loading={loading}
+                selectedMenuIndex={selectedMenuIndex}
                 name={selectObject ? selectObject.name : null}
+                selectObject={selectObject ? selectObject : null}
                 description={selectObject ? selectObject.description : null}
                 imageBitmap={imageBitmap}
                 onActivate={onDoubleClick(selectObject)}
+                mintEnabled={isChainSupported(selectedChain) && account.currentAddress}
+                onMint={() => {
+                    mintClaim(selectObject);
+                }}
                 onClose={e => {
                     setSelectObject(null);
                 }}

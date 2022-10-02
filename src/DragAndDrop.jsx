@@ -1,17 +1,24 @@
 import * as THREE from 'three';
-import React, {useState, useEffect, useContext} from 'react';
+import React, {useState, useEffect, useContext, useRef} from 'react';
 import classnames from 'classnames';
 import style from './DragAndDrop.module.css';
 import {world} from '../world.js';
-import {getRandomString, handleUpload} from '../util.js';
+import {getRandomString, handleUpload, handleBlobUpload, getObjectJson} from '../util.js';
 import {registerIoEventHandler, unregisterIoEventHandler} from './components/general/io-handler/IoHandler.jsx';
-import {registerLoad} from './LoadingBox.jsx';
+import {GenericLoadingMessage, LoadingIndicator, registerLoad} from './LoadingBox.jsx';
 import {ObjectPreview} from './ObjectPreview.jsx';
 import game from '../game.js';
 import {getRenderer} from '../renderer.js';
 import cameraManager from '../camera-manager.js';
 import metaversefile from 'metaversefile';
 import { AppContext } from './components/app';
+import useNFTContract from './hooks/useNFTContract';
+import NFTDetailsForm from './components/web3/NFTDetailsForm';
+import { isChainSupported } from './hooks/useChain';
+import { ChainContext } from './hooks/chainProvider';
+
+const APP_3D_TYPES = ['glb', 'gltf', 'vrm'];
+const timeCount = 6000;
 
 const _upload = () => new Promise((accept, reject) => {
   const input = document.createElement('input');
@@ -85,9 +92,17 @@ const uploadCreateApp = async (item, {
 };
 
 const DragAndDrop = () => {
-  const { state, setState, } = useContext( AppContext )
+  const {state, setState, account, chain} = useContext(AppContext);
   const [queue, setQueue] = useState([]);
   const [currentApp, setCurrentApp] = useState(null);
+  const {mintNFT, minting, error, setError} = useNFTContract(account.currentAddress);
+  const [mintComplete, setMintComplete] = useState(false);
+  const [pendingTx, setPendingTx] = useState(false);
+  const [previewImage, setPreviewImage] = useState(null);
+  const [nftName, setNFTName] = useState(null);
+  const [nftDetails, setNFTDetails] = useState(null);
+  const {selectedChain} = useContext(ChainContext);
+  const canvasRef = useRef(null);
 
   useEffect(() => {
     function keydown(e) {
@@ -153,8 +168,12 @@ const DragAndDrop = () => {
           const app = await uploadCreateApp(item, {
             drop,
           });
+          const j = getObjectJson();
           if (app) {
-            if (drop) {
+            if (j && j.claimed) {
+              world.appManager.importClaimedApp(app, j);
+              setState({ openedPanel: null });
+            } else if (drop) {
               world.appManager.importApp(app);
               setState({ openedPanel: null });
             } else {
@@ -162,13 +181,13 @@ const DragAndDrop = () => {
             }
           }
         }));
-      
+
         /* let arrowLoader = metaverseUi.makeArrowLoader();
         arrowLoader.position.copy(position);
         arrowLoader.quaternion.copy(quaternion);
         scene.add(arrowLoader);
         arrowLoader.updateMatrixWorld();
-      
+
         if (arrowLoader) {
           scene.remove(arrowLoader);
           arrowLoader.destroy();
@@ -182,10 +201,9 @@ const DragAndDrop = () => {
     };
   }, []);
 
-  useEffect(() => {
+  useEffect(async () => {
     if (queue.length > 0 && !currentApp) {
       const app = queue[0];
-      // console.log('set app', app);
       setCurrentApp(app);
       setQueue(queue.slice(1));
       setState({ openedPanel: null });
@@ -232,11 +250,21 @@ const DragAndDrop = () => {
       setCurrentApp(null);
     }
   };
-  const _mint = e => {
+  const _mint = async e => {
     e.preventDefault();
     e.stopPropagation();
-
-    console.log('mint', currentApp);
+    if (currentApp) {
+      const app = currentApp;
+      await mintNFT(app, previewImage, () => {
+        setPreviewImage(null);
+        setCurrentApp(null);
+        setPendingTx(true)
+      }, () => {
+        setMintComplete(true);
+        setPendingTx(false)
+      });
+    }
+    setCurrentApp(null);
   };
   const _cancel = e => {
     e.preventDefault();
@@ -248,16 +276,100 @@ const DragAndDrop = () => {
   const name = currentApp ? currentApp.name : '';
   const appType = currentApp ? currentApp.appType : '';
 
+  useEffect(() => {
+    if (mintComplete) {
+      setTimeout(() => {
+        setMintComplete(false);
+      }, timeCount);
+    }
+  }, [mintComplete]);
+
+  useEffect(() => {
+    if (error) {
+      let timer = setTimeout(() => {
+        setError('');
+      }, timeCount);
+      return () => {
+        clearTimeout(timer);
+      }
+    }
+  }, [error]);
+
+  async function createPreview() {
+    const filename = `${name}-preview.png`;
+    const type = 'upload';
+    canvasRef.current.toBlob(async function (blob) {
+      let load = null;
+      const previewURL = await handleBlobUpload(filename, blob, {
+        onTotal(total) {
+          load = registerLoad(type, filename, 0, total);
+        },
+        onProgress(e) {
+          if (load) {
+            load.update(e.loaded, e.total);
+          } else {
+            load = registerLoad(type, filename, e.loaded, e.total);
+          }
+        },
+      });
+
+      if (load) {
+        load.end();
+      }
+      setPreviewImage(previewURL);
+    });
+  }
+
+  useEffect(() => {
+    if (!currentApp) return;
+
+    if (APP_3D_TYPES.includes(currentApp.appType)) {
+      let timer = setTimeout(() => {
+        createPreview();
+      }, timeCount/2);
+      return () => {
+        clearTimeout(timer)
+      }
+    }
+  }, [currentApp]);
+
   return (
     <div className={style.dragAndDrop}>
+      <GenericLoadingMessage open={minting} name={'Minting'} detail={'Creating NFT...'}></GenericLoadingMessage>
+      <GenericLoadingMessage open={mintComplete} name={'Minting Complete'} detail={'Press [Tab] to use your inventory.'}></GenericLoadingMessage>
+      <GenericLoadingMessage open={error} name={'Error'} detail={error}></GenericLoadingMessage>
       <div className={classnames(style.currentApp, currentApp ? style.open : null)} onClick={_currentAppClick}>
         <h1 className={style.heading}>Upload object</h1>
         <div className={style.body}>
-          <ObjectPreview object={currentApp} className={style.canvas} />
+          <div style={{position: 'relative'}}>
+            {currentApp && APP_3D_TYPES.includes(currentApp.appType) && <button style={{
+              border: '2px',
+              borderColor: 'white',
+              background: 'black',
+              color: 'white',
+              position: 'absolute',
+              left: '0px',
+              bottom: '0px',
+              width: 'calc(100% - 20px)',
+              padding: '10px',
+              cursor: 'pointer',
+            }} onClick={createPreview}>Create New Thumbnail</button>}
+            <ObjectPreview
+              ref={canvasRef}
+              object={currentApp}
+              className={style.canvas}
+              width={512}
+              height={512}
+            />
+          </div>
           <div className={style.wrap}>
             <div className={style.row}>
-              <div className={style.label}>Name: </div>
-              <div className={style.value}>{name}</div>
+              <NFTDetailsForm initialName={name} previewImage={previewImage} onChange={({name, details}) => {
+                if (currentApp) {
+                  currentApp.name = name;
+                  currentApp.description = details;
+                }
+              }} />
             </div>
             <div className={style.row}>
               <div className={style.label}>Type: </div>
@@ -275,9 +387,9 @@ const DragAndDrop = () => {
               <span>Equip</span>
               <sub>to self</sub>
             </div>
-            <div className={style.button} disabled onClick={_mint}>
+            <div className={style.button} disabled={!isChainSupported(selectedChain) || !account.currentAddress || pendingTx} onClick={_mint}>
               <span>Mint</span>
-              <sub>on chain</sub>
+              <sub>on {selectedChain.name}</sub>
             </div>
           </div>
           <div className={style.buttons}>

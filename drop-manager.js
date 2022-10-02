@@ -1,6 +1,10 @@
 import * as THREE from 'three';
 import metaversefile from 'metaversefile';
 import generateStats from './procgen/stats.js';
+import { getVoucherFromServer } from './src/hooks/voucherHelpers'
+// import { uploadMetadata } from './util.js';
+// import {registerLoad} from './src/LoadingBox.jsx';
+// const FILE_ADDRESS = 'https://ipfs.webaverse.com/ipfs/';
 
 const r = () => -1 + Math.random() * 2;
 
@@ -10,10 +14,10 @@ class DropManager extends EventTarget {
 
     this.claims = [];
   }
-  createDropApp({
+  async createDropApp({
     start_url,
     components = [],
-    type = 'minor', // 'minor', 'major', 'key'
+    type = 'major', // 'minor', 'major', 'key'
     position,
     quaternion,
     scale,
@@ -23,17 +27,27 @@ class DropManager extends EventTarget {
     angularVelocity = new THREE.Vector3(0, 0.001, 0),
     voucher = 'fakeVoucher', // XXX should really throw if no voucher
   }) {
+    let serverDrop = false;
+    if(voucher == 'fakeVoucher') {
+        voucher = await getVoucherFromServer(components[1].value); //current components[0] => name. components[1] => url
+        serverDrop = true;
+    }
     // const r = () => (-0.5+Math.random())*2;
     const dropComponent = {
       key: 'drop',
       value: {
         type,
+        serverDrop,
         voucher,
         velocity: velocity.toArray(),
         angularVelocity: angularVelocity.toArray(),
       },
     };
     components.push(dropComponent);
+    components = [...components, {
+        key: 'voucher',
+        value: voucher
+    }]
     
     const trackedApp = metaversefile.addTrackedApp(
       start_url,
@@ -44,16 +58,19 @@ class DropManager extends EventTarget {
     );
     return trackedApp;
   }
-  addClaim(name, contentId, voucher) {
+  addClaim(name, type, serverDrop, contentId, voucher) {
     const result = generateStats(contentId);
     const {/*art, */stats} = result;
     const {level} = stats;
     const start_url = contentId;
     const claim = {
       name,
+      type,
+      serverDrop,
       start_url,
       level,
       voucher,
+      pickupTime: Date.now()
     };
     this.claims.push(claim);
 
@@ -63,8 +80,17 @@ class DropManager extends EventTarget {
       },
     }));
   }
+  removeClaim(claimedDrop) {
+    const restClaims = this.claims.filter((each) => JSON.stringify(each) !== JSON.stringify(claimedDrop))
+    this.claims = restClaims
+    this.dispatchEvent(new MessageEvent('claimschange', {
+      data: {
+        claims: this.claims,
+      },
+    }));
+  }
   pickupApp(app) {
-    this.addClaim(app.name, app.contentId, app.getComponent('voucher'));
+    this.addClaim(app.name, app.type, app.getComponent('drop').serverDrop, app.contentId, app.getComponent('voucher'));
   }
   dropToken(contractAddress, tokenId, voucher) {
     // XXX engine implements this
