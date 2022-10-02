@@ -22,7 +22,6 @@ const ClaimsNotification = () => {
 
   useEffect(() => {
     const claimschange = e => {
-      console.log('set num claims', e.data.claims.length);
       setNumClaims(e.data.claims.length);
     };
     dropManager.addEventListener('claimschange', claimschange);

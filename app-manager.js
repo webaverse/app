@@ -12,6 +12,7 @@ import metaversefile from 'metaversefile';
 import * as metaverseModules from './metaverse-modules.js';
 import {jsonParse} from './util.js';
 import {worldMapName} from './constants.js';
+import {playersManager} from './players-manager.js';
 
 const localVector = new THREE.Vector3();
 const localVector2 = new THREE.Vector3();
@@ -599,6 +600,72 @@ class AppManager extends EventTarget {
 
       self.addApp(app);
       self.bindTrackedApp(dstTrackedApp, app);
+    });
+  }
+  importAddedUserVoucherApp(app, json) {
+    const dropManager = metaversefile.useDropManager();
+    const localPlayer = playersManager.getLocalPlayer();
+    localVector.set(0, 0, -1);
+    const velocity = localVector.applyQuaternion( localPlayer.quaternion)
+    .normalize()
+    .multiplyScalar(2.5);
+    dropManager.createDropApp({
+      tokenId: json.tokenId,
+      type: json.type,
+      start_url: json.start_url,
+      components: [
+        {
+          key: 'appName',
+          value: json.name
+        },
+        {
+          key: 'appUrl',
+          value: json.start_url,
+        },
+        {
+          key: 'voucher',
+          value: json.voucher, // fakeVoucher is for ServerDrop, claimVoucher is for UserClaim
+        },
+      ],
+      voucher: "hadVoucher",
+      position: app.position.clone()
+        .add(new THREE.Vector3(0, 0.7, 0)),
+      quaternion: app.quaternion,
+      scale: app.scale,
+      velocity: velocity
+    });
+  }
+  importHadVoucherApp(app, json) {
+    const dropManager = metaversefile.useDropManager();
+    const localPlayer = playersManager.getLocalPlayer();
+    localVector.set(0, 0, -1);
+    const velocity = localVector.applyQuaternion( localPlayer.quaternion)
+    .normalize()
+    .multiplyScalar(2.5);
+    dropManager.createDropApp({
+      tokenId: json.tokenId,
+      type: json.type,
+      start_url: json.start_url,
+      components: [
+        {
+          key: 'appName',
+          value: json.name
+        },
+        {
+          key: 'appUrl',
+          value: json.start_url,
+        },
+        {
+          key: 'voucher',
+          value: json.voucher, // fakeVoucher is for ServerDrop, claimVoucher is for UserClaim
+        },
+      ],
+      voucher: "hadVoucher",
+      position: app.position.clone()
+        .add(new THREE.Vector3(0, 0.7, 0)),
+      quaternion: app.quaternion,
+      scale: app.scale,
+      velocity: velocity
     });
   }
   hasApp(app) {

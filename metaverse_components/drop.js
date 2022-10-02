@@ -11,15 +11,11 @@ const localVector = new THREE.Vector3();
 const localVector2 = new THREE.Vector3();
 const localEuler = new THREE.Euler();
 
-//
-
 const physicsScene = physicsManager.getScene();
 const cubicBezier = easing(0, 1, 0, 1);
 const cubicBezier2 = easing(0, 1, 1, 1);
 const rarityColorsArray = Object.keys(rarityColors).map(k => rarityColors[k][0]);
 const gracePickupTime = 1000;
-
-//
 
 export default app => {
   const dropComponent = app.getComponent('drop');
@@ -44,8 +40,9 @@ export default app => {
       const appName = app.getComponent('appName');
       const appUrl = app.getComponent('appUrl');
       const voucher = app.getComponent('voucher');
+
       if (appName && appUrl && voucher) {
-        dropManager.addClaim(appName, appUrl, voucher);
+        dropManager.addClaim(appName, dropComponent.type, dropComponent.serverDrop,  appUrl, voucher);
       } else {
         dropManager.pickupApp(app);
       }

@@ -564,10 +564,10 @@ ioManager.keydown = e => {
       // }
       break;
     }
-    /* case 17: { // ctrl
+    case 17: { // ctrl
       ioManager.keys.ctrl = true;
       break;
-    } */
+    }
     case 81: { // Q
       if (e.ctrlKey) {
         if (cameraManager.pointerLockElement) {
