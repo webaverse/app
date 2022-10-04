@@ -8,7 +8,6 @@ import {
   registerIoEventHandler,
   unregisterIoEventHandler,
 } from './components/general/io-handler/IoHandler.jsx';
-import {registerLoad} from './LoadingBox.jsx';
 import {ObjectPreview} from './ObjectPreview.jsx';
 import game from '../game.js';
 import {getRenderer} from '../renderer.js';
@@ -20,10 +19,10 @@ import useSolanaNFTContract from './hooks/useSolanaNFTContract';
 import NFTDetailsForm from './components/web3/NFTDetailsForm';
 import { isChainSupported } from './hooks/useChain';
 import { ChainContext } from './hooks/chainProvider';
-import ioManager from '../io-manager.js';
-import dropManager from '../drop-manager';
-import { getVoucherFromUser } from './hooks/voucherHelpers'
-// import {GenericLoadingMessage, LoadingIndicator, registerLoad} from './LoadingBox.jsx';
+// import ioManager from '../io-manager.js';
+// import dropManager from '../drop-manager';
+// import { getVoucherFromUser } from './hooks/voucherHelpers'
+import {GenericLoadingMessage, LoadingIndicator, registerLoad} from './LoadingBox.jsx';
 
 const APP_3D_TYPES = ['glb', 'gltf', 'vrm'];
 const timeCount = 6000;
@@ -361,9 +360,9 @@ const DragAndDrop = () => {
 
   return (
     <div className={style.dragAndDrop}>
-      {/* <GenericLoadingMessage open={minting} name={'Minting'} detail={'Creating NFT...'}></GenericLoadingMessage>
+      <GenericLoadingMessage open={minting} name={'Minting'} detail={'Creating NFT...'}></GenericLoadingMessage>
       <GenericLoadingMessage open={mintComplete} name={'Minting Complete'} detail={'Press [Tab] to use your inventory.'}></GenericLoadingMessage>
-      <GenericLoadingMessage open={error} name={'Error'} detail={error}></GenericLoadingMessage> */}
+      <GenericLoadingMessage open={error} name={'Error'} detail={error}></GenericLoadingMessage>
       <div
         className={classnames(style.currentApp, currentApp ? style.open : null)}
         onClick={_currentAppClick}

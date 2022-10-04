@@ -82,7 +82,6 @@ export default function useNFTContract(currentAccount) {
       const signer = await getSigner();
       const name = currentApp.name;
       const ext = currentApp.appType;
-      //   const hash = currentApp.contentId.split(FILE_ADDRESS)[1].split('/')[0];
       const description = currentApp.description;
 
       const metadataFileName = `${name}-metadata.json`;
@@ -92,49 +91,44 @@ export default function useNFTContract(currentAccount) {
         imageURI = previewImage;
         avatarURI = currentApp.contentId;
 
-        // metadata = {
-        //   name,
-        //   description,
-        //   image: imageURI,
-        //   animation_url: avatarURI,
-        // };
+        metadata = {
+          name,
+          description,
+          image: imageURI,
+          animation_url: avatarURI,
+        };
       } else {
         // image object
         imageURI = currentApp.contentId;
         avatarURI = '';
 
-        // metadata = {
-        //   name,
-        //   description,
-        //   image: imageURI,
-        // };
+        metadata = {
+          name,
+          description,
+          image: imageURI,
+        };
       }
 
       const type = 'upload';
-      const load = null;
-      const json_hash = await handleBlobUpload(
-        metadataFileName,
-        JSON.stringify(metadata),
-      );
-      // handleBlobUpload
-      // new Blob([JSON.stringify(metadata)], {type: 'text/plain'});
-      //   const json_hash = await handleBlobUpload(metadataFileName, new Blob([JSON.stringify(metadata)], {type: 'text/plain'}), {
-      //     onTotal(total) {
-      //       load = registerLoad(type, metadataFileName, 0, total);
-      //     },
-      //     onProgress(e) {
-      //       if (load) {
-      //         load.update(e.loaded, e.total);
-      //       } else {
-      //         load = registerLoad(type, metadataFileName, e.loaded, e.total);
-      //       }
-      //     },
-      //   });
-      //   if (load) {
-      //     load.end();
-      //   }
+      let load = null;
 
-      const metadatahash = json_hash.split(FILE_ADDRESS)[1].split('/')[0];
+      const json_hash = await handleBlobUpload(metadataFileName, new Blob([JSON.stringify(metadata)], {type: 'text/plain'}), {
+            onTotal(total) {
+                load = registerLoad(type, metadataFileName, 0, total);
+            },
+            onProgress(e) {
+                if (load) {
+                    load.update(e.loaded, e.total);
+                } else {
+                    load = registerLoad(type, metadataFileName, e.loaded, e.total);
+                }
+            },
+        });
+        if (load) {
+            load.end();
+        }
+
+      const ipfsHash = json_hash.split(FILE_ADDRESS)[1].split('/')[0];
       const Webaversecontract = new ethers.Contract(
         WebaversecontractAddress,
         WebaverseABI,
@@ -158,7 +152,7 @@ export default function useNFTContract(currentAccount) {
             const minttx = await Webaversecontract.mint(
               currentAccount,
               1,
-              metadatahash,
+              ipfsHash,
               '0x',
             );
             const res = await minttx.wait();
@@ -176,8 +170,8 @@ export default function useNFTContract(currentAccount) {
           const minttx = await Webaversecontract.mint(
             currentAccount,
             1,
-            currentApp.contentId,
-            name,
+            ipfsHash,
+            // currentApp.contentId,
             '0x',
           );
           //   callback(minttx);
