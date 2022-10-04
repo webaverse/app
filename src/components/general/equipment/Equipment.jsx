@@ -436,26 +436,26 @@ export const Equipment = () => {
     }
   }, [open, selectObject]);
 
-  useEffect(() => {
-        if (account && account.currentAddress) {
-          async function queryOpensea() {
-            const POLYGON_API_KEY = 'bN2G8nP-vDFAnRXksfpd7I7g5f9c0GqD'
-            const walletAddress = "0xB565D3A7Bcf568f231726585e0b84f9E2a3722dB"
-            const collectionAddress = "0xF8c73621f7E50f399eB24C7D7858f919f9deFa86"
-            const baseURL = `https://polygon-mainnet.g.alchemy.com/v2/${POLYGON_API_KEY}/getNFTs/`
-            const nftList = await fetch(`${baseURL}?owner=${walletAddress}&contractAddresses%5B%5D=${collectionAddress}`,
-            {
-                method: 'get',
-                redirect: 'follow'
-            }).then(response => response.json())
-            console.log("NFT list", nftList)
-          }
-          queryOpensea();
-        } else {
-            console.log('could not query NFT collections')
-        }
+//   useEffect(() => {
+//         if (account && account.currentAddress) {
+//           async function queryOpensea() {
+//             const POLYGON_API_KEY = 'bN2G8nP-vDFAnRXksfpd7I7g5f9c0GqD'
+//             const walletAddress = "0xB565D3A7Bcf568f231726585e0b84f9E2a3722dB"
+//             const collectionAddress = "0xF8c73621f7E50f399eB24C7D7858f919f9deFa86"
+//             const baseURL = `https://polygon-mainnet.g.alchemy.com/v2/${POLYGON_API_KEY}/getNFTs/`
+//             const nftList = await fetch(`${baseURL}?owner=${walletAddress}&contractAddresses%5B%5D=${collectionAddress}`,
+//             {
+//                 method: 'get',
+//                 redirect: 'follow'
+//             }).then(response => response.json())
+//             console.log("NFT list", nftList)
+//           }
+//           queryOpensea();
+//         } else {
+//             console.log('could not query NFT collections')
+//         }
 
-  }, [open, selectedChain, account])
+//   }, [open, selectedChain, account])
 
   useEffect(() => {
     setSelectObject(null);
