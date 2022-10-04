@@ -1,5 +1,3 @@
-/* eslint-disable no-constant-condition */
-/* eslint-disable no-unused-expressions */
 import {defineConfig} from 'vite';
 import metaversefilePlugin from 'metaversefile/plugins/rollup.js';
 import path from 'path';
@@ -388,7 +386,9 @@ const config = {
   ...(process.env.NODE_ENV === 'production' ? viteConfigProduction : {}),
 };
 
+console.log('Using Port', process.env.PORT);
 console.log('Using Node Env', process.env.NODE_ENV);
+console.log('Using Output Exports', process.env.OUTPUT_EXPORTS);
 console.log('Using Config', config);
 console.log('Using Entry Points', entryPoints);
 
