@@ -2,16 +2,12 @@ import {defineConfig} from 'vite';
 import metaversefilePlugin from 'metaversefile/plugins/rollup.js';
 import path from 'path';
 import fs from 'fs';
-import {transform} from 'esbuild';
 import glob from 'glob';
 import {dependencies} from './package.json';
 import {copySync} from 'fs-extra';
 
 const esbuildLoaders = ['js', 'jsx', 'mjs', 'cjs'];
-let plugins = [
-  // reactRefresh()
-];
-
+let plugins = [];
 const distDirectory = 'dist';
 const baseDirectory = 'assets';
 const relativeDistAssets = `./${distDirectory}/${baseDirectory}`;
@@ -41,8 +37,6 @@ const entryPoints = [
     glob: true,
   },
 ];
-
-// entryPoints = [];
 
 const build = () => {
   const _entryPoints = [];
@@ -333,9 +327,9 @@ const build = () => {
 
 /** Use metaversefile if not production */
 plugins =
-  process.env.NODE_ENV !== 'production'
-    ? plugins.concat([metaversefilePlugin()])
-    : plugins.concat([build()]);
+  process.env.NODE_ENV === 'production'
+    ? plugins.concat([build()])
+    : plugins.concat([metaversefilePlugin()]);
 
 /** Vite config for production */
 const viteConfigProduction = {
