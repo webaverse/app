@@ -21,6 +21,8 @@ const localVector6 = new THREE.Vector3();
 // const localQuaternion3 = new THREE.Quaternion();
 const localMatrix = new THREE.Matrix4();
 const localMatrix2 = new THREE.Matrix4();
+const ipfsFileURL = 'https://ipfs.webaverse.com/';
+const ipfsFolderURL = 'https://ipfs.webaverse.com/ipfs';
 
 export function jsonParse(s, d = null) {
   try {
@@ -935,6 +937,7 @@ export const handleDropJsonItem = async item => {
       item.getAsString(accept);
     });
     const j = jsonParse(s);
+    setObjectJson(j)
     if (j) {
       const u = getDropUrl(j);
       return u;
@@ -945,10 +948,10 @@ export const handleDropJsonItem = async item => {
   }
   return null;
 };
-export const handleBlobUpload = async (name, blob, progress) => {
+export const handleBlobUpload = async (name, blob, {onProgress = null} = {}) => {
   const formData = new FormData();
   formData.append(name, blob, name);
-  const hashes = await doUpload(ipfsFileURL, formData, progress);
+  const hashes = await doUpload(ipfsFileURL, formData, {onProgress});
 
   const rootDirectoryHash = hashes.length > 0 ? hashes[0].hash : null;
   return `${ipfsFolderURL}/${rootDirectoryHash}/`;
@@ -973,13 +976,13 @@ export const handleUpload = async (item, {onProgress = null} = {}) => {
       formData.append(file.name, file, file.name);
     }
 
-    const hashes = await doUpload('https://ipfs.webaverse.com/', formData, {
+    const hashes = await doUpload(ipfsFileURL, formData, {
       onProgress,
     });
 
     const rootDirectory = hashes.find(h => h.name === '');
     const rootDirectoryHash = rootDirectory.hash;
-    return `https://ipfs.webaverse.com/ipfs/${rootDirectoryHash}/`;
+    return `${ipfsFolderURL}/${rootDirectoryHash}/`;
   };
   const _handleString = item => handleDropJsonItem(item);
   const _handleDirectory = async entry => {
@@ -1031,16 +1034,16 @@ export const handleUpload = async (item, {onProgress = null} = {}) => {
     };
     await _recurse(rootEntry);
 
-    const hashes = await doUpload('https://ipfs.webaverse.com/', formData, {
+    const hashes = await doUpload(ipfsFileURL, formData, {
       onProgress,
     });
 
     const rootDirectory = hashes.find(h => h.name === '');
     const rootDirectoryHash = rootDirectory.hash;
-    return `https://ipfs.webaverse.com/ipfs/${rootDirectoryHash}/`;
+    return `${ipfsFileURL}/${rootDirectoryHash}/`;
   };
   const _handleFile = async file => {
-    const j = await doUpload('https://ipfs.webaverse.com/', file, {
+    const j = await doUpload(ipfsFileURL, file, {
       onProgress,
     });
     const {hash} = j;

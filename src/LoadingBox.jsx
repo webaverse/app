@@ -231,4 +231,26 @@ const LoadingBox = () => {
     </div>
   );
 };
-export {LoadingBox};
+
+function LoadingIndicator({ open, children }) {
+  return <div className={classnames(style.loadingBox, open ? style.open : null)}>
+    { children }
+  </div>
+}
+
+function GenericLoadingMessage({open, children, name, detail}) {
+  return <LoadingIndicator open={open}>
+    <div className={style.wrap}>
+      <div className={style.name}>{name}</div>
+      <div className={style.detail}>{detail}</div>
+      {children}
+      <progress className={style.progress} value={0} max={1} />
+    </div>
+  </LoadingIndicator>
+}
+
+export {
+  GenericLoadingMessage,
+  LoadingIndicator,
+  LoadingBox,
+};
