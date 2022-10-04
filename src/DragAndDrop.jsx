@@ -16,6 +16,7 @@ import cameraManager from '../camera-manager.js';
 import metaversefile from 'metaversefile';
 import {AppContext} from './components/app';
 import useNFTContract from './hooks/useNFTContract';
+import useSolanaNFTContract from './hooks/useSolanaNFTContract';
 import NFTDetailsForm from './components/web3/NFTDetailsForm';
 import { isChainSupported } from './hooks/useChain';
 import { ChainContext } from './hooks/chainProvider';
@@ -102,6 +103,7 @@ const DragAndDrop = () => {
   const [queue, setQueue] = useState([]);
   const [currentApp, setCurrentApp] = useState(null);
   const {mintNFT, minting, error, setError, WebaversecontractAddress} = useNFTContract(account.currentAddress);
+  const { mintSolanaNFT, getNftsForOwner } = useSolanaNFTContract(account.currentAddress);
   const [mintComplete, setMintComplete] = useState(false);
   const [pendingTx, setPendingTx] = useState(false);
   const [previewImage, setPreviewImage] = useState(null);
@@ -262,14 +264,28 @@ const DragAndDrop = () => {
 
     if (currentApp) {
       const app = currentApp;
-      await mintNFT(app, previewImage, () => {
-        setPreviewImage(null);
-        setCurrentApp(null);
-        setPendingTx(true)
-      }, () => {
-        setMintComplete(true);
-        setPendingTx(false)
-      });
+
+      if(account.walletType == "metamask") {
+        await mintNFT(app, previewImage, () => {
+          setPreviewImage(null);
+          setCurrentApp(null);
+          setPendingTx(true)
+        }, () => {
+          setMintComplete(true);
+          setPendingTx(false)
+        });
+      }
+
+      if(account.walletType == "phantom") {
+        await mintSolanaNFT(app, previewImage, () => {
+          setPreviewImage(null);
+          setCurrentApp(null);
+          setPendingTx(true)
+        }, () => {
+          setMintComplete(true);
+          setPendingTx(false)
+        });
+      }
     }
     setCurrentApp(null);
   };
@@ -402,7 +418,7 @@ const DragAndDrop = () => {
             </div>
             <div className={style.button} disabled={!isChainSupported(selectedChain) || !account.currentAddress || pendingTx} onClick={_mint}>
               <span>Mint</span>
-              <sub>on {selectedChain.name}</sub>
+              <sub>on {account.walletType == "phantom" ? "Solana" : selectedChain.name}</sub>
             </div>
           </div>
           <div className={style.buttons}>

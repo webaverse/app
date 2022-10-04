@@ -1,13 +1,14 @@
 /* eslint-disable no-constant-condition */
 /* eslint-disable no-unused-expressions */
-import {defineConfig} from 'vite';
+import { defineConfig } from 'vite';
 import metaversefilePlugin from 'metaversefile/plugins/rollup.js';
+import { NodeGlobalsPolyfillPlugin } from '@esbuild-plugins/node-globals-polyfill';
 import path from 'path';
 import fs from 'fs';
-import {transform} from 'esbuild';
+import { transform } from 'esbuild';
 import glob from 'glob';
-import {dependencies} from './package.json';
-import {copySync} from 'fs-extra';
+import { dependencies } from './package.json';
+import { copySync } from 'fs-extra';
 
 const esbuildLoaders = ['js', 'jsx', 'mjs', 'cjs'];
 let plugins = [
@@ -205,7 +206,7 @@ const build = () => {
   return {
     name: 'build-provider',
     post: true,
-    renderDynamicImport({moduleId}) {
+    renderDynamicImport({ moduleId }) {
       if (moduleId.includes('metaversefile')) {
         return {
           left: 'import(`/@import/${',
@@ -326,7 +327,7 @@ const build = () => {
       }
       return null;
     },
-    resolveImportMeta(property, {moduleId}) {
+    resolveImportMeta(property, { moduleId }) {
       /** Send force null to avoid import.meta transformation */
       return null;
     },
@@ -347,12 +348,12 @@ const viteConfigProduction = {
     target: 'esnext',
     ...(process.argv.find(a => a === '--watch')
       ? {
-          watch: {
-            clearScreen: true,
-            include: '**/**',
-            exclude: 'node_modules/**',
-          },
-        }
+        watch: {
+          clearScreen: true,
+          include: '**/**',
+          exclude: 'node_modules/**',
+        },
+      }
       : {}),
     manifest: true,
     minify: false,
@@ -376,6 +377,36 @@ const viteConfigProduction = {
 const defaultConfig = {
   plugins,
   logLevel: 'info',
+  define: {
+    'process.env.ANCHOR_BROWSER': true
+  },
+  optimizeDeps: {
+    entries: [
+      'src/*.js',
+      'src/*.jsx',
+      'avatars/*.js',
+      'avatars/vrarmik/*.js',
+      'src/components/*.js',
+      'src/components/*.jsx',
+      'src/tabs/*.jsx',
+      '*.js',
+    ],
+    esbuildOptions: {
+      // Node.js global to browser globalThis
+      define: {
+        global: 'globalThis'
+      },
+      // Enable esbuild polyfill plugins
+      plugins: [
+        NodeGlobalsPolyfillPlugin({
+          buffer: true
+        })
+      ]
+    }
+  },
+  build: {
+    target: ['esnext']
+  },
   server: {
     fs: {
       strict: true,

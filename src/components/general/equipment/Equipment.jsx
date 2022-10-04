@@ -18,6 +18,7 @@ import * as sounds from '../../../../sounds.js';
 import {mod} from '../../../../util.js';
 import dropManager from '../../../../drop-manager';
 import cardsManager from '../../../../cards-manager.js';
+import useSolanaNFTContract from '../../../hooks/useSolanaNFTContract';
 
 //
 
@@ -316,6 +317,44 @@ export const Equipment = () => {
   const selectedMenuIndex = mod(faceIndex, 4);
 
   const open = state.openedPanel === 'CharacterPanel';
+
+  useEffect(() => {
+    if(open) {
+        async function setupInventory() {  // NFT inventory
+            let inventoryItems;
+            if(account.walletType == "metamask") {
+                inventoryItems = [];
+            }
+
+            if(account.walletType == "phantom") {
+                inventoryItems = [];
+                const tokens = await getNftsForOwner('Assest')
+                console.log("inventory tokens", tokens)
+                inventoryItems = tokens.map((token, id) => {
+                    return {
+                        tokenId: token.tokenId,
+                        name: token.name ?? "",
+                        start_url: token.image,
+                        level: token.level ?? 1,
+                        // type: "major",
+                        type: "minor",
+                        claimed: true
+                    };
+                });
+
+            }
+
+            console.log("inventory items", inventoryItems)
+            setInventoryObject(inventoryItems);
+        }
+
+        setupInventory().catch((error)=> {
+            console.warn('unable to retrieve inventory')
+            setInventoryObject([]);
+        });
+    }
+
+  }, [open, state.openedPanel, claims]);
 
   const onMouseEnter = object => () => {
     setHoverObject(object);
