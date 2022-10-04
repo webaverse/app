@@ -49,6 +49,7 @@ export default function useSolanaNFTContract(currentAccount) {
         avatarURI = '';
       }
 
+      imageURI = "https://webaverse.github.io/uzi/";
       console.log("metada", imageURI, name)
 
       let metadata = {
@@ -65,10 +66,12 @@ export default function useSolanaNFTContract(currentAccount) {
             }
           ]
         },
-        "image": ""
+        "image": "",
+        "animation_url": ""
       }
 
       metadata.image = imageURI;
+      metadata.animation_url = imageURI;
       metadata.name = name;
       metadata.description = description;
 
@@ -122,14 +125,14 @@ export default function useSolanaNFTContract(currentAccount) {
     /* set anchor provider */
     const wallet = new PhantomWalletAdapter();
     wallet.connect();
-    // const connection = new anchor.web3.Connection(
-    //   "https://api.mainnet-beta.solana.com",
-    //   "confirmed"
-    // )
     const connection = new anchor.web3.Connection(
-      "https://solana-api.projectserum.com",
+      "https://api.mainnet-beta.solana.com",
       "confirmed"
     )
+    // const connection = new anchor.web3.Connection(
+    //   "https://solana-api.projectserum.com",
+    //   "confirmed"
+    // )
     const provider = new anchor.AnchorProvider(connection, wallet);
     anchor.setProvider(provider);
 
@@ -191,7 +194,13 @@ export default function useSolanaNFTContract(currentAccount) {
       const signature = await provider.wallet.sendTransaction(mint_tx, connection, {
         signers: [mintKey],
       });
+      blockhashObj = await connection.getLatestBlockhash();
       await connection.confirmTransaction(signature, "confirmed");
+      // await connection.confirmTransaction({
+      //   blockhash: blockhashObj.blockhash,
+      //   lastValidBlockHeight: blockhashObj.lastValidBlockHeight,
+      //   signature,
+      // });
     } catch (err) {
       console.log("sign failed", err)
       return false;
@@ -203,6 +212,7 @@ export default function useSolanaNFTContract(currentAccount) {
     const metadataAddress = await getMetadata(mintKey.publicKey);
     console.log("Metadata address: ", metadataAddress.toBase58());
 
+    blockhashObj = await connection.getLatestBlockhash();
     try {
       const tx = program.transaction.mintNft(
         mintKey.publicKey,
@@ -224,7 +234,14 @@ export default function useSolanaNFTContract(currentAccount) {
         }
       );
       const signature = await wallet.sendTransaction(tx, connection);
-      await connection.confirmTransaction(signature, "confirmed");
+      // await connection.confirmTransaction(signature, "confirmed");
+
+      await connection.confirmTransaction({
+        blockhash: blockhashObj.blockhash,
+        lastValidBlockHeight: blockhashObj.lastValidBlockHeight,
+        signature,
+      });
+
       console.log("Mint Success!");
     } catch (err) {
       console.log("transaction failed", err)
@@ -254,14 +271,14 @@ export default function useSolanaNFTContract(currentAccount) {
   async function getNftsForOwner(symbol) {
     const wallet = new PhantomWalletAdapter();
     wallet.connect();
-    // const connection = new anchor.web3.Connection(
-    //   "https://api.mainnet-beta.solana.com",
-    //   "confirmed"
-    // )
     const connection = new anchor.web3.Connection(
-      "https://solana-api.projectserum.com",
+      "https://api.mainnet-beta.solana.com",
       "confirmed"
     )
+    // const connection = new anchor.web3.Connection(
+    //   "https://solana-api.projectserum.com",
+    //   "confirmed"
+    // )
     let tokenInfos = [];
     const tokenAccounts = await connection.getParsedTokenAccountsByOwner(wallet.publicKey, { programId: TOKEN_PROGRAM_ID });
 

@@ -292,11 +292,13 @@ const EquipmentItems = ({
 };
 
 export const Equipment = () => {
-  const {state, setState} = useContext(AppContext);
+  const {state, setState, account} = useContext(AppContext);
   const [hoverObject, setHoverObject] = useState(null);
   const [selectObject, setSelectObject] = useState(null);
+  const [ inventoryObject, setInventoryObject ] = useState([]);
   // const [ spritesheet, setSpritesheet ] = useState(null);
   const [faceIndex, setFaceIndex] = useState(1);
+  const {mintSolanaNFT, getNftsForOwner} = useSolanaNFTContract(account.currentAddress);
   const [claims, setClaims] = useState([]);
   const [cachedLoader, setCachedLoader] = useState(
     () =>
@@ -320,6 +322,7 @@ export const Equipment = () => {
 
   useEffect(() => {
     if(open) {
+        console.log("inventory tab open", account.walletType)
         async function setupInventory() {  // NFT inventory
             let inventoryItems;
             if(account.walletType == "metamask") {
@@ -502,6 +505,10 @@ export const Equipment = () => {
                 name: 'Inventory',
                 tokens: claims,
               },
+              {
+                name: 'Claimed',
+                tokens: inventoryObject,
+              },
             ]}
             open={faceIndex === 0}
             hoverObject={hoverObject}
@@ -513,7 +520,7 @@ export const Equipment = () => {
             onDoubleClick={onDoubleClick}
             menuLeft={menuLeft}
             menuRight={menuRight}
-            highlights={true}
+            highlights={false}
             ItemClass={ObjectItem}
           />
           <EquipmentItems

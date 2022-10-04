@@ -8,7 +8,7 @@ import {
   /* accountsHost, loginEndpoint, */ audioTimeoutTime,
 } from './constants.js';
 // import { getRenderer } from './renderer.js';
-import {IdAllocator} from './id-allocator.js';
+import { IdAllocator } from './id-allocator.js';
 
 const localVector = new THREE.Vector3();
 const localVector2 = new THREE.Vector3();
@@ -21,6 +21,9 @@ const localVector6 = new THREE.Vector3();
 // const localQuaternion3 = new THREE.Quaternion();
 const localMatrix = new THREE.Matrix4();
 const localMatrix2 = new THREE.Matrix4();
+const ipfsFileURL = 'https://ipfs.webaverse.com/';
+const ipfsFolderURL = 'https://ipfs.webaverse.com/ipfs';
+let objectJson = null;
 
 export function jsonParse(s, d = null) {
   try {
@@ -87,15 +90,15 @@ export function snapPosition(o, positionSnap) {
   if (positionSnap > 0) {
     o.position.x =
       Math.round((o.position.x + positionSnap / 2) / positionSnap) *
-        positionSnap -
+      positionSnap -
       positionSnap / 2;
     o.position.y =
       Math.round((o.position.y + positionSnap / 2) / positionSnap) *
-        positionSnap -
+      positionSnap -
       positionSnap / 2;
     o.position.z =
       Math.round((o.position.z + positionSnap / 2) / positionSnap) *
-        positionSnap -
+      positionSnap -
       positionSnap / 2;
   }
 }
@@ -381,7 +384,7 @@ export function convertMeshToPhysicsMesh(topMesh) {
     }
   });
   const newGeometries = meshes.map(mesh => {
-    const {geometry} = mesh;
+    const { geometry } = mesh;
     const newGeometry = new THREE.BufferGeometry();
     if (mesh.isSkinnedMesh) {
       localMatrix2.identity();
@@ -514,7 +517,7 @@ export async function contentIdToFile(contentId) {
   if (typeof contentId === 'number') {
     const res = await fetch(`${tokensHost}/${contentId}`);
     token = await res.json();
-    const {hash, name, ext} = token.properties;
+    const { hash, name, ext } = token.properties;
 
     const res2 = await fetch(`${storageHost}/${hash}`);
     const file = await res2.blob();
@@ -609,7 +612,7 @@ export const updateRaycasterFromMouseEvent = (() => {
       1;
     mouse.y =
       -((e.clientY / renderer.domElement.height) * renderer.getPixelRatio()) *
-        2 +
+      2 +
       1;
     raycaster.setFromCamera(mouse, camera);
   };
@@ -814,7 +817,7 @@ export const waitForFrame = () =>
     });
   });
 
-const doUpload = async (u, f, {onProgress = null} = {}) => {
+const doUpload = async (u, f, { onProgress = null } = {}) => {
   const xhr = new XMLHttpRequest();
   xhr.open('POST', u, true);
   // xhr.setRequestHeader('Content-Type', 'application/json');
@@ -953,7 +956,7 @@ export const handleBlobUpload = async (name, blob, progress) => {
   const rootDirectoryHash = hashes.length > 0 ? hashes[0].hash : null;
   return `${ipfsFolderURL}/${rootDirectoryHash}/`;
 };
-export const handleUpload = async (item, {onProgress = null} = {}) => {
+export const handleUpload = async (item, { onProgress = null } = {}) => {
   console.log('uploading...', item);
 
   const _handleFileList = async item => {
@@ -1043,8 +1046,8 @@ export const handleUpload = async (item, {onProgress = null} = {}) => {
     const j = await doUpload('https://ipfs.webaverse.com/', file, {
       onProgress,
     });
-    const {hash} = j;
-    const {name} = file;
+    const { hash } = j;
+    const { name } = file;
 
     return `${storageHost}/${hash}/${name}`;
   };
@@ -1227,7 +1230,7 @@ export const selectVoice = voicer => {
   };
   // the weight of each voice is proportional to the inverse of the number of times it has been used
   const maxNonce = voicer.reduce((max, voice) => Math.max(max, voice.nonce), 0);
-  const weights = voicer.map(({nonce}) => {
+  const weights = voicer.map(({ nonce }) => {
     return 1 - nonce / (maxNonce + 1);
   });
   const selectionIndex = weightedRandom(weights);
