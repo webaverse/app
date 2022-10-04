@@ -23,7 +23,6 @@ const localMatrix = new THREE.Matrix4();
 const localMatrix2 = new THREE.Matrix4();
 const ipfsFileURL = 'https://ipfs.webaverse.com/';
 const ipfsFolderURL = 'https://ipfs.webaverse.com/ipfs';
-let objectJson = null;
 
 export function jsonParse(s, d = null) {
   try {

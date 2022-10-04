@@ -292,13 +292,14 @@ const EquipmentItems = ({
 };
 
 export const Equipment = () => {
-  const {state, setState, account} = useContext(AppContext);
+  const {state, account} = useContext(AppContext);
   const [hoverObject, setHoverObject] = useState(null);
   const [selectObject, setSelectObject] = useState(null);
   const [ inventoryObject, setInventoryObject ] = useState([]);
   // const [ spritesheet, setSpritesheet ] = useState(null);
   const [faceIndex, setFaceIndex] = useState(1);
   const {mintSolanaNFT, getNftsForOwner} = useSolanaNFTContract(account.currentAddress);
+  const { selectedChain, supportedChain } = useContext(ChainContext)
   const [claims, setClaims] = useState([]);
   const [cachedLoader, setCachedLoader] = useState(
     () =>
