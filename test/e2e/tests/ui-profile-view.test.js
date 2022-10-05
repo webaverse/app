@@ -90,8 +90,4 @@ describe('should all ui element on the profile view works', () => {
 		
 		expect(characterChangedCount == characterLength).toBeTruthy();
 	}, totalTimeout)
-
-	test('should scene switch works', async () => {
-		printLog("should profile ui view works")
-	}, totalTimeout)
 })

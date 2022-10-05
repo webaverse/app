@@ -385,7 +385,8 @@ const _startHacks = webaverse => {
     playersManager,
     physicsManager,
     universe,
-    webaverse
+    webaverse,
+    world
   }
 
   // press R to debug current state in console
