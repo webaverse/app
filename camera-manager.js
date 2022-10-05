@@ -15,6 +15,7 @@ import { PathFinder } from './npc-utils.js';
 import metaversefile from 'metaversefile';
 import gameManager from './game.js';
 import loadoutManager from './loadout-manager.js';
+import scene2DManager from './2d-manager.js';
 
 const cubicBezier = easing(0, 1, 0, 1);
 const cubicBezier2 = easing(0.5, 0, 0.5, 1);
@@ -172,526 +173,6 @@ const blueMesh = (() => {
 })();
 scene.add(blueMesh); */
 
-class Scene2D {
-  constructor(perspective, cameraMode, scrollDirection, controls) {
-
-    this.modeIs2D = true;
-    this.perspective = perspective;
-    this.cameraMode = cameraMode;
-    this.scrollDirection = scrollDirection;
-    this.cursorPosition = new THREE.Vector2(0, 0);
-    this.cursorOffset = new THREE.Vector2(-30, -30);
-    this.lastCursorPosition = null;
-    this.cursorSensitivity = 0.75;
-    this.maxAimDistance = 3;
-    this.zoomFactor = 1;
-    this.moveTarget = null;
-    this.attackTarget = null;
-    this.debugCircle = null;
-
-    this.interactTarget = null;
-
-    this.debugMesh = null;
-    this.attackMesh = null;
-
-    this.pathFinder = new PathFinder({debugRender: false});
-    this.path = null;
-    this.pathIndex = 0;
-
-    /// dirty combat test
-    this.lastAttackTime = 0;
-    this.firstAttackTime = null;
-    this.inAttackRange = false;
-
-    //Controls
-    this.controlMode = controls;
-
-    //debug
-
-    this.healthMesh = null;
-
-    if(this.controlMode === 'click') {
-      const geometry = new THREE.CircleGeometry(0.5, 32/4);
-      const material = new THREE.MeshBasicMaterial( { color: 0x0099e6, wireframe: true } );
-      this.debugCircle = new THREE.Mesh( geometry, material );
-      this.debugCircle.rotation.x = -Math.PI / 2;
-      scene.add( this.debugCircle );
-
-      const geometry2 = new THREE.CircleGeometry(0.5, 32/4);
-      const material2 = new THREE.MeshBasicMaterial( { color: 0xff0000, wireframe: true } );
-      this.attackMesh = new THREE.Mesh( geometry2, material2 );
-      this.attackMesh.rotation.x = -Math.PI / 2;
-      scene.add( this.attackMesh );
-      this.attackMesh.visible = false;
-    }
-
-    // document.addEventListener('click', (e) => {
-    //   if(e.button === 0) { // left click
-    //     const geometry = new THREE.BoxGeometry( 1, 1, 1 );
-    //     let randomColor = new THREE.Color(0xffffff * Math.random())
-    //     const material = new THREE.MeshBasicMaterial( {color: randomColor} );
-    //     const cube = new THREE.Mesh( geometry, material );
-        
-    //     cube.position.copy(this.getCursorPosition());
-    //     cube.updateMatrixWorld();
-    //     physicsScene.addBoxGeometry(cube.position, cube.quaternion, new THREE.Vector3(0.5, 0.5, 0.5), false);
-    //     scene.add( cube );
-    //   }
-    // });
-  }
-  createHealthMesh(width = 0.8, height = 0.1) {
-
-    let uniforms = {
-      width: { value: width },
-      height: { value: height },
-      hp: {value: 0.5}
-    }
-
-    const vertexShader = () => {
-      return `
-          varying vec2 vUv;
-          varying float rara;
-          uniform float width;
-          uniform float height;
-          
-          varying vec4 v_foo;
-  
-          void main() {
-              vUv = uv; 
-  
-              vec4 modelViewPosition = modelViewMatrix * vec4(position, 1.0);
-              gl_Position = projectionMatrix * modelViewPosition;
-
-              if(gl_Position.x > 0.5) {
-                rara = 0.5;
-              }
-              else {
-                rara = 0.;
-              }
-
-              v_foo = gl_Position;
-
-          }
-      `;
-    }
-  
-    const fragmentShader = () => {
-        return `
-            uniform sampler2D texture1; 
-            //uniform sampler2D texture2; 
-            varying vec2 vUv;
-            varying float rara;
-            uniform float width;
-            uniform float height;
-            
-            uniform float hp;
-
-            varying vec4 v_foo;
-    
-            void main() {
-                vec3 colorRed = vec3(230.0, 71.0, 60.0) / 255.0;
-                vec3 colorWhite = vec3(222.0, 222.0, 222.0) / 255.0;
-
-                if(vUv.x < hp) {
-                  gl_FragColor = vec4(colorRed, 1);
-                }
-                else {
-                  gl_FragColor = vec4(colorWhite, 1);
-                }
-
-                
-                
-                //gl_FragColor = vec4(color, 1);
-
-                //if(gl_FragColor
-            }
-        `;
-      }
-
-      let material =  new THREE.ShaderMaterial({
-        uniforms: uniforms,
-        fragmentShader: fragmentShader(),
-        vertexShader: vertexShader(),
-      })
-
-      let material2 = new THREE.MeshBasicMaterial({color: 0xff0000});
-
-      let geom = new THREE.PlaneGeometry(.8,.1);
-      this.healthMesh = new THREE.Mesh(geom, material);
-      scene.add(this.healthMesh);
-      //return mesh;
-  }
-  getPath(vec1, vec2) {
-    return this.pathFinder.getPath(vec1, vec2);
-  }
-  getCursorPosition() {
-    let vector = new THREE.Vector3();
-    vector.set(
-        (this.cursorPosition.x / window.innerWidth) * 2 - 1,
-        - (this.cursorPosition.y / window.innerHeight) * 2 + 1,
-        0
-    );
-    vector.unproject(camera);
-    return new THREE.Vector3(vector.x, vector.y, 0);
-  }
-  getScreenCursorPosition() {
-    let vector = new THREE.Vector3();
-    vector.set(
-        (this.cursorPosition.x / window.innerWidth) * 2 - 1,
-        - (this.cursorPosition.y / window.innerHeight) * 2 + 1,
-        0
-    );
-    return new THREE.Vector2(vector.x, vector.y);
-  }
-  castFromCursor() {
-    let pos = this.getScreenCursorPosition();
-    //let worldPos = this.getCursorPosition();
-    const raycaster = new THREE.Raycaster();
-    raycaster.linePrecision = 0.1;
-    const pointer = new THREE.Vector2();
-
-    pointer.x = pos.x;
-    pointer.y = pos.y;
-
-    //raycaster.setFromCamera( pointer, camera );
-
-    ////
-
-    let vector = new THREE.Vector3();
-    let dir = new THREE.Vector3();
-
-    vector.set( ( this.cursorPosition.x / window.innerWidth ) * 2 - 1, - ( this.cursorPosition.y / window.innerHeight ) * 2 + 1, - 1 ); // z = - 1 important!
-
-    vector.unproject( camera );
-
-    dir.set( 0, 0, - 1 ).transformDirection( camera.matrixWorld );
-
-    ////
-
-    raycaster.set( vector, dir );
-
-    
-
-    let ray = physicsScene.raycast(vector, camera.quaternion);
-
-    if(ray) {
-      //const targetApp = metaversefile.getAppByPhysicsId(ray.objectId);
-      //console.log(targetApp, "ray target app");
-      //console.log(vector, new THREE.Vector3().fromArray(ray.point));
-      return ray;
-    }
-    //console.log(ray, "yes le ray")
-
-    //const intersects = raycaster.intersectObjects( scene.children, true );
-
-    // if(intersects.length > 0) {
-    //   let result = intersects[0];
-    //   //console.log(result, "raycast result");
-    //   const flatSurface = new THREE.Vector3(0,1,0);
-    //   const point = result.point;
-    //   return point;
-    // }
-  }
-  getCursorQuaternionFromOrigin(origin) {
-    let cursorPos = this.getCursorPosition();
-    let tempObj = new THREE.Object3D;
-
-    tempObj.position.copy(origin);
-    tempObj.lookAt(new THREE.Vector3(cursorPos.x, cursorPos.y, cursorPos.z));
-
-    tempObj.rotation.x = -tempObj.rotation.x;
-    tempObj.rotation.y = -tempObj.rotation.y;
-
-    return tempObj.quaternion;
-  }
-  getViewDirection() {
-    let viewDir = new THREE.Vector3();
-    playersManager.getLocalPlayer().getWorldDirection(viewDir);
-    return viewDir.x > 0 ? "left" : "right";
-  }
-  checkIsDestinationValid(pos) {
-    const localPlayer = playersManager.getLocalPlayer();
-    if(localPlayer.position.distanceTo(pos) < 15) {
-      let a = new THREE.Vector3(0,localPlayer.position.y,0).distanceTo(new THREE.Vector3(0,pos.y,0));
-      if(a < 6) {
-        return true;
-      }
-      else {
-        return false;
-      }
-
-    }
-    else {
-      return false;
-    }
-  }
-  handleCursorClick() {
-    let target = this.castFromCursor();
-    if(target) {
-      const targetApp = metaversefile.getAppByPhysicsId(target.objectId);
-      console.log(targetApp);
-      const targetPoint = new THREE.Vector3().fromArray(target.point);
-      let isValid = this.checkIsDestinationValid(targetPoint);
-      if(isValid) {
-        this.moveTarget = targetPoint.add(new THREE.Vector3(0,0.1,0));
-        if(targetApp.appType === "npc") {
-          this.attackTarget = targetApp;
-          this.moveTarget = targetApp.npcPlayer.position.clone().sub(new THREE.Vector3(0,targetApp.npcPlayer.avatar.height,0));
-        }
-        else {
-          this.attackTarget = null;
-        }
-        this.path = null;
-        this.pathIndex = 0;
-      }
-      else {
-        this.moveTarget = null;
-        this.path = null;
-        this.pathIndex = null;
-      }
-    }
-    else {
-      console.log("invalid target")
-    }
-  }
-  traversePath(path, t) {
-    const localPlayer = playersManager.getLocalPlayer();
-    //console.log(this.pathIndex);
-    //let target = path[this.pathIndex].position;
-    let target = this.moveTarget;
-    let dist = new THREE.Vector3(localPlayer.position.x, 0, localPlayer.position.z).distanceTo(new  THREE.Vector3(target.x, 0, target.z));
-    let dir = new THREE.Vector3().subVectors(target, localPlayer.position);
-
-    if(dist > 0.25) {
-      let walkSpeed = 0.075;
-      let runFactor = 2;
-      
-      let speed;
-
-      dist < 2 ? speed = walkSpeed : speed = walkSpeed;
-      
-      localPlayer.characterPhysics.applyWasd(
-        dir.normalize()
-          .multiplyScalar(speed * t)
-      );
-      this.debugMesh.visible = true;
-      this.debugMesh.position.copy(this.moveTarget);
-      this.debugMesh.updateMatrixWorld();
-    }
-    else {
-      this.debugMesh.visible = false;
-      this.moveTarget = null;
-      this.path = null;
-      this.pathIndex = 0;
-      // if(this.pathIndex < path.length-1) {
-      //   this.pathIndex++;
-      // }
-      // else {
-      //   this.debugMesh.visible = false;
-      //   this.moveTarget = null;
-      //   this.path = null;
-      //   this.pathIndex = 0;
-      // }
-    }
-  }
-  moveAndInteractTarget(targetObj, t) {
-    const localPlayer = playersManager.getLocalPlayer();
-    const target = targetObj.position;
-    let origin = new THREE.Vector3(localPlayer.position.x, 1, localPlayer.position.z);
-    let dist = origin.distanceTo(target);
-    let dir = new THREE.Vector3();
-    dir.subVectors(target, origin);
-    this.debugMesh.visible = false;
-
-    if(dist > 1) {
-      localPlayer.characterPhysics.applyWasd(
-        dir.normalize()
-          .multiplyScalar(0.1 * t)
-      );
-      //this.debugMesh.visible = true;
-      //this.debugMesh.position.copy(target);
-      //this.debugMesh.updateMatrixWorld();
-    }
-    else {
-      this.interactTarget.activate();
-      this.moveTarget = null;
-      this.path = null;
-      console.log("we arrived");
-      this.debugMesh.visible = false;
-
-      gameManager.menuActivateDown();
-      setTimeout(() => {
-        gameManager.menuActivateUp();
-      }, 1000);
-    }
-  }
-  moveAndAttackTarget(target, t) {
-    const localPlayer = playersManager.getLocalPlayer();
-    let origin = new THREE.Vector3(localPlayer.position.x, localPlayer.position.y, localPlayer.position.z);
-    let dist = origin.distanceTo(target);
-    let dir = new THREE.Vector3();
-    dir.subVectors(target, origin);
-
-    console.log(dist);
-
-    if(dist > 1) {
-      this.inAttackRange = false;
-      localPlayer.characterPhysics.applyWasd(
-        dir.normalize()
-          .multiplyScalar(0.1 * t)
-      );
-      //this.debugMesh.visible = true;
-      //this.debugMesh.position.copy(target);
-      //this.debugMesh.updateMatrixWorld();
-    }
-    else {
-      this.inAttackRange = true;
-      // this.moveTarget = null;
-      // this.path = null;
-      // console.log("we arrived");
-      // this.debugMesh.visible = false;
-    }
-  }
-  moveToTarget(target, t) {
-    const localPlayer = playersManager.getLocalPlayer();
-    let origin = new THREE.Vector3(localPlayer.position.x, 1, localPlayer.position.z);
-    let dist = origin.distanceTo(target);
-    let dir = new THREE.Vector3();
-    dir.subVectors(target, origin);
-
-    if(dist > 0.1) {
-      localPlayer.characterPhysics.applyWasd(
-        dir.normalize()
-          .multiplyScalar(0.1 * t)
-      );
-      this.debugMesh.visible = true;
-      this.debugMesh.position.copy(target);
-      this.debugMesh.updateMatrixWorld();
-    }
-    else {
-      this.moveTarget = null;
-      this.path = null;
-      console.log("we arrived");
-      this.debugMesh.visible = false;
-    }
-
-  }
-  update(timestamp, timeDiff) {
-    const localPlayer = playersManager.getLocalPlayer();
-
-    // if(!this.healthMesh) {
-    //   this.createHealthMesh();
-    //   console.log("created healthMesh")
-    // }
-
-    // if(this.healthMesh) {
-    //   if(localPlayer) {
-    //     console.log("upadting healthmesh", this.healthMesh);
-    //     this.healthMesh.position.copy(localPlayer.position).add(new THREE.Vector3(0,0.5,0));
-    //     this.healthMesh.lookAt(camera.position);
-    //     this.healthMesh.updateMatrixWorld();
-
-    //     this.healthMesh.material.uniforms.hp.value = new THREE.Vector3().copy(localPlayer.position).normalize().x;
-    //     this.healthMesh.material.uniformsNeedUpdate = true;
-    //   }
-    // }
-
-    if(!this.debugMesh) {
-      const geometry = new THREE.CircleGeometry(0.5, 32/4);
-      const material = new THREE.MeshBasicMaterial( { color: 0x1ff03e, wireframe: true } );
-      this.debugMesh = new THREE.Mesh( geometry, material );
-      this.debugMesh.rotation.x = -Math.PI / 2;
-      scene.add(this.debugMesh);
-      this.debugMesh.visible = false;
-    }
-
-    if(this.attackTarget) {
-      if(this.attackTarget.hitTracker.hp <= 0) {
-        console.log("dismiss attackTager!!!!!!!!!!!!!!!!");
-        this.attackTarget = null;
-        this.moveTarget = null;
-        this.debugMesh.visible = false;
-        this.lastAttackTime = 0;
-      }
-    }
-
-    if(this.attackTarget && localPlayer.avatar && this.inAttackRange) {
-      this.debugMesh.material.color = new THREE.Color(0xff0000);
-      this.debugMesh.position.copy(this.attackTarget.npcPlayer.position.clone().sub(new THREE.Vector3(0, this.attackTarget.npcPlayer.avatar.height, 0)));
-      this.debugMesh.updateMatrixWorld();
-      // this.debugMesh.visible = true;
-
-      const wearApp = loadoutManager.getSelectedApp();
-      if(!wearApp) {
-        gameManager.selectLoadout(0);
-      }
-
-      if(wearApp) {
-        if(!this.firstAttackTime) {
-          gameManager.attackHack();
-          this.firstAttackTime = timestamp;
-          this.lastAttackTime = timestamp;
-        }
-        if((timestamp - this.lastAttackTime) > 1000) {
-          const localPlayer = playersManager.getLocalPlayer();
-          const useAction = localPlayer.getAction('use');
-          if (useAction) {
-            //gameManager.selectLoadout(0);
-            const app = metaversefile.getAppByInstanceId(useAction.instanceId);
-            app.dispatchEvent({
-              type: 'use',
-              use: false,
-            });
-            localPlayer.removeAction('use');
-          }
-          else {
-            //gameManager.selectLoadout(0);
-            gameManager.attackHack();
-            this.lastAttackTime = timestamp;
-          }
-          //console.log("attack!", this.lastAttackTime);
-        }
-      }
-    }
-    else {
-      const wearApp = loadoutManager.getSelectedApp();
-      if(wearApp) {
-        gameManager.selectLoadout(0);
-      }
-      this.debugMesh.material.color = new THREE.Color(0x1ff03e);
-      this.attackMesh.visible = false;
-      this.lastAttackTime = timestamp;
-      this.firstAttackTime = null;
-    }
-
-    if(localPlayer.avatar && this.debugCircle) {
-      this.debugCircle.position.copy(new THREE.Vector3(localPlayer.position.x, (localPlayer.position.y-localPlayer.avatar.height)+0.05, localPlayer.position.z));
-      this.debugCircle.rotation.z = localPlayer.rotation.y;
-      //this.debugCircle.rotateZ(0.1);
-      this.debugCircle.updateMatrixWorld();
-    } 
-    
-    if(this.moveTarget && localPlayer) {
-      if(!this.path) {
-        this.path = this.getPath(localPlayer.position, this.moveTarget);
-        //(this.path, "path");
-      }
-      else {
-        if(this.attackTarget) {
-          //console.log("still yea", this.attackTarget)
-          this.moveAndAttackTarget(this.attackTarget.npcPlayer.position, timeDiff);
-        }
-        else if(this.interactTarget) {
-          //this.moveAndInteractTarget(this.interactTarget, timeDiff);
-        }
-        else {
-          this.traversePath(this.path, timeDiff);
-        }
-      }
-    }
-  }
-}
-
 class CameraManager extends EventTarget {
   constructor() {
     super();
@@ -718,7 +199,6 @@ class CameraManager extends EventTarget {
     this.lastTimestamp = 0;
     this.cinematicScript = null;
     this.cinematicScriptStartTime = -1;
-    this.scene2D = null;
     this.viewFactor = 0;
 
     document.addEventListener('pointerlockchange', e => {
@@ -742,18 +222,6 @@ class CameraManager extends EventTarget {
   }
   getViewFactor() {
     return this.viewFactor;
-  }
-  enable2D(perspective = "side-scroll", mode = "follow", viewSize, scrollDirection = "both", controls = "default") {
-    this.targetQuaternion = new THREE.Quaternion();
-    this.targetPosition = new THREE.Vector3();
-    this.viewFactor = viewSize;
-
-    this.scene2D = new Scene2D(perspective, mode, scrollDirection, controls);
-    setCameraType("orthographic", viewSize, perspective);
-  }
-  disable2D() {
-    this.scene2D = null;
-    setCameraType("perspective");
   }
   async requestPointerLock() {
     // const localPointerLockEpoch = ++this.pointerLockEpoch;
@@ -816,8 +284,8 @@ class CameraManager extends EventTarget {
     if (this.target || this.cinematicScript) {
       return 'thirdperson';
     } 
-    else if(this.scene2D) {
-      return this.scene2D.perspective;
+    else if(scene2DManager.enabled) {
+      return scene2DManager.perspective;
     } 
     else {
       return cameraOffset.z > -0.5 ? 'firstperson' : 'thirdperson';
@@ -839,159 +307,24 @@ class CameraManager extends EventTarget {
   handleMouseMove(e) {
     const {movementX, movementY} = e;
 
-    if(this.scene2D) {
-      switch (this.scene2D.perspective) {
-        case 'side-scroll': {
-          const cursorPosition = this.scene2D.cursorPosition;
-          let lastCursorPosition = this.scene2D.lastCursorPosition;
-          const size = getRenderer().getSize(localVector);
-          const sensitivity = this.scene2D.cursorSensitivity;
-          const crosshairEl = document.getElementById('crosshair');
-          const maxAimDistance = this.scene2D.maxAimDistance;
+    camera.position.add(localVector.copy(this.getCameraOffset()).applyQuaternion(camera.quaternion));
 
-          
-          let clampedX = THREE.MathUtils.clamp(cursorPosition.x, 0, size.x);
-          let clampedY = THREE.MathUtils.clamp(cursorPosition.y, 0, size.y);
-          clampedX += movementX * sensitivity;
-          clampedY += movementY * sensitivity;
+    camera.rotation.y -= movementX * Math.PI * 2 * 0.0005;
+    camera.rotation.x -= movementY * Math.PI * 2 * 0.0005;
+    camera.rotation.x = Math.min(Math.max(camera.rotation.x, -Math.PI * 0.35), Math.PI / 2);
+    camera.quaternion.setFromEuler(camera.rotation);
 
-          cursorPosition.set(clampedX, clampedY);
+    camera.position.sub(localVector.copy(this.getCameraOffset()).applyQuaternion(camera.quaternion));
 
-          crosshairEl.style.left = clampedX + 'px';
-          crosshairEl.style.top = clampedY + 'px';
+    camera.updateMatrixWorld();
 
-          break;
-        }
-        case 'isometric': {
-          const cursorPosition = this.scene2D.cursorPosition;
-          let lastCursorPosition = this.scene2D.lastCursorPosition;
-          const size = getRenderer().getSize(localVector);
-          const sensitivity = this.scene2D.cursorSensitivity;
-          const crosshairEl = document.getElementById('crosshair');
-          const maxAimDistance = this.scene2D.maxAimDistance;
-
-          
-          let clampedX = THREE.MathUtils.clamp(cursorPosition.x, 0, size.x);
-          let clampedY = THREE.MathUtils.clamp(cursorPosition.y, 0, size.y);
-          clampedX += movementX * sensitivity;
-          clampedY += movementY * sensitivity;
-
-          cursorPosition.set(clampedX, clampedY);
-
-          crosshairEl.style.left = clampedX + 'px';
-          crosshairEl.style.top = clampedY + 'px';
-
-          break;
-        }
-      
-        default:
-          break;
-      }
-    }
-
-    // if(this.scene2D && this.scene2D.perspective === "side-scroll") {
-    //   const cursorPosition = this.scene2D.cursorPosition;
-    //   let lastCursorPosition = this.scene2D.lastCursorPosition;
-    //   const size = getRenderer().getSize(localVector);
-    //   const sensitivity = this.scene2D.cursorSensitivity;
-    //   const crosshairEl = document.getElementById('crosshair');
-    //   const maxAimDistance = this.scene2D.maxAimDistance;
-
-      
-    //   let clampedX = THREE.MathUtils.clamp(cursorPosition.x, 0, size.x);
-    //   let clampedY = THREE.MathUtils.clamp(cursorPosition.y, 0, size.y);
-    //   clampedX += movementX * sensitivity;
-    //   clampedY += movementY * sensitivity;
-
-    //   cursorPosition.set(clampedX, clampedY);
-    //   //const distance = this.getCursorDistanceToPoint(cursorPosition, playersManager.getLocalPlayer().position);
-    //   // if(!this.scene2D.lastCursorPosition) {
-    //   //   var width = window.innerWidth, height = window.innerHeight;
-    //   //   var widthHalf = width / 2, heightHalf = height / 2;
-
-    //   //   var pos = playersManager.getLocalPlayer().position.clone();
-    //   //   pos.project(camera);
-    //   //   pos.x = ( pos.x * widthHalf ) + widthHalf;
-    //   //   pos.y = - ( pos.y * heightHalf ) + heightHalf;
-
-    //   //   crosshairEl.style.left = pos.x + 'px';
-    //   //   crosshairEl.style.top = pos.y + 'px';
-        
-    //   //   this.scene2D.lastCursorPosition = new THREE.Vector2(pos.x, pos.y);
-        
-    //   //   console.log("still here", this.scene2D.lastCursorPosition);
-    //   // }
-    //   // if(distance < maxAimDistance) {
-    //   //   this.scene2D.lastCursorPosition.set(clampedX, clampedY);
-    //   //   crosshairEl.style.left = clampedX + 'px';
-    //   //   crosshairEl.style.top = clampedY + 'px';
-    //   // }
-    //   // else {
-    //   //   crosshairEl.style.left = this.scene2D.lastCursorPosition.x + 'px';
-    //   //   crosshairEl.style.top = this.scene2D.lastCursorPosition.y + 'px';
-    //   // }
-
-    //   if(!this.scene2D.lastCursorPosition) {
-    //     var width = window.innerWidth, height = window.innerHeight;
-    //     var widthHalf = width / 2, heightHalf = height / 2;
-
-    //     var pos = playersManager.getLocalPlayer().position.clone();
-    //     pos.project(camera);
-    //     pos.x = ( pos.x * widthHalf ) + widthHalf;
-    //     pos.y = - ( pos.y * heightHalf ) + heightHalf;
-
-    //     crosshairEl.style.left = pos.x + 'px';
-    //     crosshairEl.style.top = pos.y + 'px';
-        
-    //     this.scene2D.lastCursorPosition = new THREE.Vector2(pos.x, pos.y);
-    //     cursorPosition.set(pos.x, pos.y);
-    //   }
-
-    //   crosshairEl.style.left = clampedX + 'px';
-    //   crosshairEl.style.top = clampedY + 'px';
-    //   //console.log(this.scene2D.getCursorPosition());
-    // }
-    else {
-      camera.position.add(localVector.copy(this.getCameraOffset()).applyQuaternion(camera.quaternion));
-  
-      camera.rotation.y -= movementX * Math.PI * 2 * 0.0005;
-      camera.rotation.x -= movementY * Math.PI * 2 * 0.0005;
-      camera.rotation.x = Math.min(Math.max(camera.rotation.x, -Math.PI * 0.35), Math.PI / 2);
-      camera.quaternion.setFromEuler(camera.rotation);
-
-      camera.position.sub(localVector.copy(this.getCameraOffset()).applyQuaternion(camera.quaternion));
-
-      camera.updateMatrixWorld();
-
-      if (!this.target) {
-        this.targetQuaternion.copy(camera.quaternion);
-      }
+    if (!this.target) {
+      this.targetQuaternion.copy(camera.quaternion);
     }
   }
   handleWheelEvent(e) {
-    if (!this.target && !this.scene2D) {
+    if (!this.target) {
       cameraOffsetTargetZ = Math.min(cameraOffset.z - e.deltaY * 0.01, 0);
-    }
-    if(this.scene2D && camera.isOrthographicCamera) {
-      switch (this.scene2D.perspective) {
-        case 'isometric': {
-          this.scene2D.zoomFactor = THREE.MathUtils.clamp(this.scene2D.zoomFactor += e.deltaY * 0.01, 1, 1.5);
-          camera.zoom = this.scene2D.zoomFactor;
-          camera.updateProjectionMatrix();
-          break;
-        }
-        case 'side-scroll': {
-          // nothing yet
-          break;
-        }
-        case 'top-down': {
-          // nothing yet
-          break;
-        }        
-        default: {
-          break;
-        }
-      }
     }
   }
   addShake(position, intensity, radius, decay) {
@@ -1169,10 +502,6 @@ class CameraManager extends EventTarget {
     const renderer = getRenderer();
     const session = renderer.xr.getSession();
     const localPlayer = playersManager.getLocalPlayer();
-
-    if(this.scene2D) {
-      this.scene2D.update(timestamp, timeDiff);
-    }
 
     if (this.target) {
       const _setLerpDelta = (position, quaternion) => {
@@ -1363,13 +692,13 @@ class CameraManager extends EventTarget {
             break;
           }
           case 'side-scroll': {
-            if(this.scene2D && this.scene2D.cameraMode === "fixed") {
-              if(this.scene2D.scrollDirection === "horizontal") {
+            if(scene2DManager.cameraMode === "fixed") {
+              if(scene2DManager.scrollDirection === "horizontal") {
                 let offset = new THREE.Vector3(localPlayer.position.x, localPlayer.position.y, 0).sub(new THREE.Vector3(camera.position.x, localPlayer.position.y, 0));
                 this.targetPosition.copy(new THREE.Vector3(localPlayer.position.x, localPlayer.position.y, 0)).add(new THREE.Vector3(offset.x, offset.y, 0));
                 break;
               } 
-              else if (this.scene2D.scrollDirection === "vertical") {
+              else if (scene2DManager.scrollDirection === "vertical") {
                 let offset = new THREE.Vector3(localPlayer.position.x, localPlayer.position.y, 0).sub(new THREE.Vector3(camera.position.x, localPlayer.position.y, 0));
                 this.targetPosition.copy(new THREE.Vector3(0,localPlayer.position.y, 0)).add(new THREE.Vector3(0, offset.y, 0));
                 break;
@@ -1406,12 +735,12 @@ class CameraManager extends EventTarget {
         localEuler.setFromQuaternion(this.targetQuaternion, 'YXZ');
         localEuler.z = 0;
 
-        if(!this.scene2D) {
+        if(!scene2DManager.enabled) {
           camera.quaternion.copy(this.sourceQuaternion)
             .slerp(localQuaternion.setFromEuler(localEuler), factor);
         }
         else {
-          switch (this.scene2D.perspective) {
+          switch (scene2DManager.perspective) {
             case 'isometric': {
               camera.rotation.order = 'YXZ';
               camera.rotation.y = - Math.PI / 4;
@@ -1431,8 +760,8 @@ class CameraManager extends EventTarget {
           }
         }      
       };
-      if(this.scene2D) {
-        if(this.scene2D.cameraMode === "follow" || _isOutOfView()) {
+      if(scene2DManager.enabled) {
+        if(scene2DManager.cameraMode === "follow" || _isOutOfView()) {
           _setFreeCamera();
         }
       } else {

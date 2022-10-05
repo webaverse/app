@@ -1032,7 +1032,7 @@ const _gameUpdate = (timestamp, timeDiff) => {
       //console.log((raycastManager.lastMouseEvent.clientX/window.width-0.5) + 'px');
 
       //console.log(raycastManager.lastMouseEvent.clientX, raycastManager.lastMouseEvent.clientY);
-    // crosshairEl.style.visibility = visible ? null : 'hidden';
+     crosshairEl.style.visibility = visible ? null : 'hidden';
   }
 
   const _updateUse = () => {

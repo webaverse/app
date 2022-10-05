@@ -5,6 +5,7 @@ import * as THREE from 'three';
 import cameraManager from './camera-manager.js';
 // import {getPlayerCrouchFactor} from './character-controller.js';
 import physicsManager from './physics-manager.js';
+import scene2DManager from './2d-manager.js';
 // import ioManager from './io-manager.js';
 import {getVelocityDampingFactor, applyVelocity} from './util.js';
 import {groundFriction, flyFriction, airFriction, swimFriction, flatGroundJumpAirTime, jumpHeight} from './constants.js';
@@ -228,8 +229,8 @@ class CharacterPhysics {
           }
         } else {
           //// 2D edit
-          if(cameraManager.scene2D) {
-            localQuaternion.copy(cameraManager.scene2D.getCursorQuaternionFromOrigin(this.character.position));
+          if(scene2DManager.enabled) {
+            localQuaternion.copy(scene2DManager.getCursorQuaternionFromOrigin(this.character.position));
           }
           else {
             localQuaternion.copy(camera.quaternion);
@@ -476,33 +477,33 @@ class CharacterPhysics {
             );
           let leftGamepadQuaternion = localQuaternion;
 
-          let tempObj1 = new THREE.Object3D;
-          tempObj1.position
-            .copy(localVector)
-            .add(
-              new THREE.Vector3()
-                .copy(leftHandOffset)
-                .multiplyScalar(handOffsetScale)
-            );
+          // let tempObj1 = new THREE.Object3D;
+          // tempObj1.position
+          //   .copy(localVector)
+          //   .add(
+          //     new THREE.Vector3()
+          //       .copy(leftHandOffset)
+          //       .multiplyScalar(handOffsetScale)
+          //   );
           
-          let tempVec2 = new THREE.Vector3();
-          tempVec2
-            .copy(camera.position)
-            .add(new THREE.Vector3(0,0,-5000).applyQuaternion(camera.quaternion)
-          );
+          // let tempVec2 = new THREE.Vector3();
+          // tempVec2
+          //   .copy(camera.position)
+          //   .add(new THREE.Vector3(0,0,-5000).applyQuaternion(camera.quaternion)
+          // );
 
-          tempObj1.lookAt(tempVec2);
+          // tempObj1.lookAt(tempVec2);
 
-          leftGamepadQuaternion = tempObj1.quaternion;
+          // leftGamepadQuaternion = tempObj1.quaternion;
 
 
-          if(cameraManager.scene2D) {
-            let cursorPos = cameraManager.scene2D.getCursorPosition();
+          if(scene2DManager.enabled) {
+            let cursorPos = scene2DManager.getCursorPosition();
             let tempVec = new THREE.Vector3();
 
             let handOffset = leftHandOffset.clone();
 
-            if(cameraManager.scene2D.getViewDirection() === "left") {
+            if(scene2DManager.getViewDirection() === "left") {
               handOffset = handOffset.negate();
             }
             
@@ -514,7 +515,7 @@ class CharacterPhysics {
                 .multiplyScalar(handOffsetScale)
             );
 
-            leftGamepadQuaternion = cameraManager.scene2D.getCursorQuaternionFromOrigin(tempVec);
+            leftGamepadQuaternion = scene2DManager.getCursorQuaternionFromOrigin(tempVec);
           }
           
           /* const leftGamepadPointer = 0;
@@ -534,13 +535,13 @@ class CharacterPhysics {
                 .applyQuaternion(localQuaternion)
             );
             let rightGamepadQuaternion = localQuaternion;
-            if(cameraManager.scene2D) {
-              let cursorPos = cameraManager.scene2D.getCursorPosition();
+            if(scene2DManager.enabled) {
+              let cursorPos = scene2DManager.getCursorPosition();
               let tempVec = new THREE.Vector3();
   
               let handOffset = rightHandOffset.clone();
   
-              if(cameraManager.scene2D.getViewDirection() === "left") {
+              if(scene2DManager.getViewDirection() === "left") {
                 handOffset = handOffset.negate();
               }
               
@@ -552,7 +553,7 @@ class CharacterPhysics {
                   .multiplyScalar(handOffsetScale)
               );
   
-              rightGamepadQuaternion = cameraManager.scene2D.getCursorQuaternionFromOrigin(tempVec);
+              rightGamepadQuaternion = scene2DManager.getCursorQuaternionFromOrigin(tempVec);
             }
           /* const rightGamepadPointer = 0;
           const rightGamepadGrip = 0;

@@ -47,6 +47,7 @@ import story from './story.js';
 import zTargeting from './z-targeting.js';
 import raycastManager from './raycast-manager.js';
 import universe from './universe.js';
+import scene2DManager from './2d-manager.js';
 
 const localVector = new THREE.Vector3();
 const localVector2 = new THREE.Vector3();
@@ -330,6 +331,7 @@ export default class Webaverse extends EventTarget {
           particleSystemManager.update(timestamp, timeDiffCapped);
 
           cameraManager.updatePost(timestamp, timeDiffCapped);
+          scene2DManager.update(timestamp, timeDiffCapped)
           ioManager.updatePost();
 
           game.pushAppUpdates();

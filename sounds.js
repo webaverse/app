@@ -14,7 +14,7 @@ const soundFiles = {
   combat: _getSoundFiles(/^combat\//),
   gulp: _getSoundFiles(/^food\/gulp/),
   enemyDeath: _getSoundFiles(/ff7_enemy_death/),
-  enemyCut: _getSoundFiles(/ff7_cut/),
+  enemyCut: _getSoundFiles(/Attack_Enemy_Impact_1/),
   // menuOpen: _getSoundFiles(/PauseMenu_Open/),
   // menuOpen: _getSoundFiles(/ff8_save/),
   menuOpen: _getSoundFiles(/ff7_save/),

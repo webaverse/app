@@ -180,99 +180,99 @@ class NpcManager extends EventTarget {
         //   }
         // }
 
-        const createHealthMesh = (width = 0.8, height = 0.1) => {
+        // const createHealthMesh = (width = 0.8, height = 0.1) => {
 
-          let uniforms = {
-            hp: {value: 0},
-            time: {value: 1}
-          }
+        //   let uniforms = {
+        //     hp: {value: 0},
+        //     time: {value: 1}
+        //   }
       
-          const vertexShader = () => {
-            return `
-                varying vec2 vUv;
-                varying float rara;
-                uniform float width;
-                uniform float height;
-                uniform float time;
+        //   const vertexShader = () => {
+        //     return `
+        //         varying vec2 vUv;
+        //         varying float rara;
+        //         uniform float width;
+        //         uniform float height;
+        //         uniform float time;
                 
-                varying vec4 v_foo;
+        //         varying vec4 v_foo;
         
-                void main() {
-                    vUv = uv; 
+        //         void main() {
+        //             vUv = uv; 
         
-                    vec4 modelViewPosition = modelViewMatrix * vec4(position, 1.0);
-                    gl_Position = projectionMatrix * modelViewPosition;
+        //             vec4 modelViewPosition = modelViewMatrix * vec4(position, 1.0);
+        //             gl_Position = projectionMatrix * modelViewPosition;
       
-                    if(gl_Position.x > 0.5) {
-                      rara = 0.5;
-                    }
-                    else {
-                      rara = 0.;
-                    }
+        //             if(gl_Position.x > 0.5) {
+        //               rara = 0.5;
+        //             }
+        //             else {
+        //               rara = 0.;
+        //             }
       
-                    v_foo = gl_Position;
+        //             v_foo = gl_Position;
       
-                }
-            `;
-          }
+        //         }
+        //     `;
+        //   }
         
-          const fragmentShader = () => {
-              return `
-                  uniform sampler2D texture1; 
-                  //uniform sampler2D texture2; 
-                  varying vec2 vUv;
-                  varying float rara;
-                  uniform float width;
-                  uniform float height;
-                  uniform float time;
+        //   const fragmentShader = () => {
+        //       return `
+        //           uniform sampler2D texture1; 
+        //           //uniform sampler2D texture2; 
+        //           varying vec2 vUv;
+        //           varying float rara;
+        //           uniform float width;
+        //           uniform float height;
+        //           uniform float time;
                   
-                  uniform float hp;
+        //           uniform float hp;
       
-                  varying vec4 v_foo;
+        //           varying vec4 v_foo;
           
-                  void main() {
-                      vec3 colorRed = vec3(247., 0., 0.) / 255.0;
-                      vec3 colorWhite = vec3(222.0, 222.0, 222.0) / 0.0;
+        //           void main() {
+        //               vec3 colorRed = vec3(247., 0., 0.) / 255.0;
+        //               vec3 colorWhite = vec3(222.0, 222.0, 222.0) / 0.0;
 
-                      float pulse = sin(time) + 1.;
-                      //float letters = 1. - letter(uUv.x / 3. * clamp(1, 1., 2.), 1.) * pulse;
+        //               float pulse = sin(time) + 1.;
+        //               //float letters = 1. - letter(uUv.x / 3. * clamp(1, 1., 2.), 1.) * pulse;
 
-                      float cut = step(0.01, vUv.x);
-                      //vec4 finalColor = vec4(colorRed.rgb, 1);
-                      //vec3 finalColor = vec3(1. - uv.r) * letters;
-                      //finalColor += vec4(1. - letters) * vec4(1. - cut) * vec4(colorRed.rgb, 1);
+        //               float cut = step(0.01, vUv.x);
+        //               //vec4 finalColor = vec4(colorRed.rgb, 1);
+        //               //vec3 finalColor = vec3(1. - uv.r) * letters;
+        //               //finalColor += vec4(1. - letters) * vec4(1. - cut) * vec4(colorRed.rgb, 1);
       
-                      if(vUv.x < hp) {
-                        //colorRed.r *= pulse;
-                        gl_FragColor = vec4(colorRed, 1);
-                      }
-                      else {
-                        gl_FragColor = vec4(colorWhite, 1);
-                      }
+        //               if(vUv.x < hp) {
+        //                 //colorRed.r *= pulse;
+        //                 gl_FragColor = vec4(colorRed, 1);
+        //               }
+        //               else {
+        //                 gl_FragColor = vec4(colorWhite, 1);
+        //               }
       
                       
                       
-                      //gl_FragColor = vec4(color, 1);
+        //               //gl_FragColor = vec4(color, 1);
       
-                      //if(gl_FragColor
-                  }
-              `;
-            }
+        //               //if(gl_FragColor
+        //           }
+        //       `;
+        //     }
       
-            let material =  new THREE.ShaderMaterial({
-              uniforms: uniforms,
-              fragmentShader: fragmentShader(),
-              vertexShader: vertexShader(),
-              side: THREE.DoubleSide
-            })
+        //     let material =  new THREE.ShaderMaterial({
+        //       uniforms: uniforms,
+        //       fragmentShader: fragmentShader(),
+        //       vertexShader: vertexShader(),
+        //       side: THREE.DoubleSide
+        //     })
       
-            //let material2 = new THREE.MeshBasicMaterial({color: 0xff0000});
+        //     //let material2 = new THREE.MeshBasicMaterial({color: 0xff0000});
       
-            let geom = new THREE.PlaneGeometry(.8,.1);
-            healthMesh = new THREE.Mesh(geom, material);
-            npcPlayer.npcApp.add(healthMesh);
-            //return mesh;
-        }
+        //     let geom = new THREE.PlaneGeometry(.8,.1);
+        //     healthMesh = new THREE.Mesh(geom, material);
+        //     npcPlayer.npcApp.add(healthMesh);
+        //     //return mesh;
+        // }
 
         const slowdownFactor = 0.4;
         const walkSpeed = 0.075 * slowdownFactor;
@@ -302,31 +302,31 @@ class NpcManager extends EventTarget {
             // };
             // localPlayer.addAction(newAction);
 
-            if(!healthMesh) {
-              createHealthMesh();
-              //console.log("creating health mesh");
-            }
-            else {
-              let baseHealth = 30;
-              let health = npcPlayer.npcApp.hitTracker.hp / baseHealth;
-              healthMesh.position.copy(npcPlayer.position).add(new THREE.Vector3(0,0.5,0));
+            // if(!healthMesh) {
+            //   //createHealthMesh();
+            //   //console.log("creating health mesh");
+            // }
+            // else {
+            //   let baseHealth = 30;
+            //   let health = npcPlayer.npcApp.hitTracker.hp / baseHealth;
+            //   healthMesh.position.copy(npcPlayer.position).add(new THREE.Vector3(0,0.5,0));
 
-              //healthMesh.rotation.order = 'YXZ';
-              //healthMesh.rotation.y = - Math.PI / 4;
-              //healthMesh.rotation.x = Math.atan( - 1 / Math.sqrt( 2 ) );
+            //   //healthMesh.rotation.order = 'YXZ';
+            //   //healthMesh.rotation.y = - Math.PI / 4;
+            //   //healthMesh.rotation.x = Math.atan( - 1 / Math.sqrt( 2 ) );
 
-              healthMesh.rotation.copy(camera.rotation);
-              //healthMesh.lookAt(camera.position);
-              healthMesh.updateMatrixWorld();
+            //   healthMesh.rotation.copy(camera.rotation);
+            //   //healthMesh.lookAt(camera.position);
+            //   healthMesh.updateMatrixWorld();
 
-              //console.log(healthMesh);
+            //   //console.log(healthMesh);
 
-              healthMesh.material.uniforms.hp.value = health;
-              healthMesh.material.uniforms.time.value = timestamp/1000;
-              healthMesh.material.uniformsNeedUpdate = true;
-              //console.log(npcPlayer.npcApp.hitTracker.hp, "npcplayer");
-              //console.log('updating healthmesh', healthMesh);
-            }
+            //   healthMesh.material.uniforms.hp.value = health;
+            //   healthMesh.material.uniforms.time.value = timestamp/1000;
+            //   healthMesh.material.uniformsNeedUpdate = true;
+            //   //console.log(npcPlayer.npcApp.hitTracker.hp, "npcplayer");
+            //   //console.log('updating healthmesh', healthMesh);
+            // }
 
             if(localPlayer) {
               const dist = npcPlayer.position.distanceTo(localPlayer.position)

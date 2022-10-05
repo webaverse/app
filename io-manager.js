@@ -24,6 +24,7 @@ import transformControls from './transform-controls.js';
 import storyManager from './story.js';
 // import domRenderer from './dom-renderer.jsx';
 import raycastManager from './raycast-manager.js';
+import scene2DManager from './2d-manager.js';
 
 // const localVector = new THREE.Vector3();
 // const localVector2 = new THREE.Vector3();
@@ -107,11 +108,11 @@ const _updateHorizontal = direction => {
   if (ioManager.keys.down) {
     direction.z += 1;
   }
-  if(cameraManager.scene2D) {
-    switch (cameraManager.scene2D.perspective) {
+  if(scene2DManager.enabled) {
+    switch (scene2DManager.perspective) {
       case 'isometric': {
         //direction.set(direction.z, 0, -direction.x).applyQuaternion(camera.quaternion);
-        direction.set(0,0,0);
+        //direction.set(0,0,0);
         //direction.y = 0;
         break
       }    
@@ -268,9 +269,9 @@ const _updateIo = timeDiff => {
       ioManager.lastCtrlKey = ioManager.keys.ctrl;
     }
     if (keysDirection.length() > 0 && physicsScene.getPhysicsEnabled() && movementEnabled) {
-      if(cameraManager.scene2D) {
+      if(scene2DManager.enabled) {
         // restricts movement, it would be better to do an axis lock in physx but that doesn't work right now.
-        switch (cameraManager.scene2D.perspective) {
+        switch (scene2DManager.perspective) {
           case 'side-scroll':
             keysDirection.z = 0;
             break;
@@ -650,7 +651,12 @@ ioManager.wheel = e => {
     if (physicsScene.getPhysicsEnabled()) {
       const renderer = getRenderer();
       if (renderer && (e.target === renderer.domElement || e.target.id === 'app')) {
-        cameraManager.handleWheelEvent(e);
+        if(scene2DManager.enabled) {
+          scene2DManager.handleWheelEvent(e);
+        }
+        else {
+          cameraManager.handleWheelEvent(e);
+        }
       }
     }
   }
@@ -769,7 +775,12 @@ ioManager.mousemove = e => {
   } else { */
 
     if (cameraManager.pointerLockElement) {
-      cameraManager.handleMouseMove(e);
+      if(scene2DManager.enabled) {
+        scene2DManager.handleMouseMove(e);
+      }
+      else {
+        cameraManager.handleMouseMove(e);
+      }
     } else {
       if (game.dragging) {
         game.menuDrag(e);
@@ -811,7 +822,7 @@ ioManager.click = e => {
   raycastManager.setLastMouseEvent(e);
 };
 ioManager.dblclick = e => {
-  if(cameraManager.scene2D) {
+  if(scene2DManager.enabled) {
     //cameraManager.scene2D.handleCursorClick();
   }
   // nothing
@@ -824,8 +835,8 @@ ioManager.mousedown = e => {
   if (cameraManager.pointerLockElement) {
     if ((changedButtons & 1) && (e.buttons & 1)) { // left
       game.menuMouseDown();
-      if(cameraManager.scene2D) {
-        cameraManager.scene2D.handleCursorClick();
+      if(scene2DManager.enabled) {
+        scene2DManager.handleClick();
       }
     }
     if ((changedButtons & 2) && (e.buttons & 2)) { // right

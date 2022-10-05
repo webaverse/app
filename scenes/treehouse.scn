@@ -4,33 +4,28 @@
       "type": "application/light",
       "content": {
         "lightType": "ambient",
-        "args": [[255, 255, 255], 2]
+        "args": [[28, 49, 117], 0.2]
       }
     },
     {
       "type": "application/light",
       "content": {
         "lightType": "directional",
-        "args": [[255, 255, 255], 2],
-        "position": [1, 2, 3]
+        "args": [[28, 49, 117], 2],
+        "position": [1, 2, 3],
+        "shadow": [50, 4096, 0.1, 1000, 0, 0.2]
       }
     },
     {
       "type": "application/rendersettings",
       "content": {
-        "fog": {
-          "fogType": "exp",
-          "args": [[255, 255, 255], 0.01]
+        "background": {
+          "color": [0,0,0]
         },
         "ssao": {
           "kernelRadius": 16,
           "minDistance": 0.005,
           "maxDistance": 0.1
-        },
-        "dof": {
-          "focus": 2.0,
-          "aperture": 0.0001,
-          "maxblur": 0.005
         },
         "hdr": {
           "adaptive": true,
@@ -62,14 +57,6 @@
         0
       ],
       "start_url": "https://webaverse.github.io/street/index.js"
-    },
-    {
-      "position": [
-        0,
-        0,
-        0
-      ],
-      "start_url": "https://webaverse.github.io/skybox-anime/"
     },
     {
       "position": [
