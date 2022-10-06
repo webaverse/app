@@ -405,13 +405,14 @@ const _startHacks = webaverse => {
     animation.name.endsWith('.vpd'),
   );
 
-   window.globalWebaverse = {
+  window.globalWebaverse = {
     metaversefileApi,
     playersManager,
     physicsManager,
     universe,
-    webaverse
-  }
+    webaverse,
+    world,
+  };
 
   // press R to debug current state in console
   window.addEventListener('keydown', event => {
