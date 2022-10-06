@@ -1315,7 +1315,9 @@ class UninterpolatedPlayer extends AvatarCharacter {
           ioManager.keys.up ||
           ioManager.keys.down ||
           ioManager.keys.left ||
-          ioManager.keys.right
+          ioManager.keys.right ||
+          ioManager.keys.space ||
+          ioManager.keys.ctrl
         );
       }, 0),
       movementsTransition: new BiActionInterpolant(
@@ -1325,7 +1327,9 @@ class UninterpolatedPlayer extends AvatarCharacter {
             ioManager.keys.up ||
             ioManager.keys.down ||
             ioManager.keys.left ||
-            ioManager.keys.right
+            ioManager.keys.right ||
+            ioManager.keys.space ||
+            ioManager.keys.ctrl
           );
         },
         0,
@@ -1356,6 +1360,17 @@ class UninterpolatedPlayer extends AvatarCharacter {
       hurt: new InfiniteActionInterpolant(() => this.hasAction('hurt'), 0),
       cellphoneDraw: new BiActionInterpolant(() => this.hasAction('cellphoneDraw'), 0, 1000),
       cellphoneUndraw: new BiActionInterpolant(() => this.hasAction('cellphoneUndraw'), 0, 1000),
+      swimUp: new BiActionInterpolant(() => {
+        const ioManager = metaversefile.useIoManager();
+        return  ioManager.keys.space;
+      }, 0, defaultActionTransitionTime),
+      swimDown: new BiActionInterpolant(() => {
+        const ioManager = metaversefile.useIoManager();
+        return  ioManager.keys.ctrl;
+      }, 0, defaultActionTransitionTime),
+      surface: new BiActionInterpolant(() => {
+        return  !this.avatar.swimmingOnSurfaceState;
+      }, 0, defaultActionTransitionTime),
     };
     this.actionInterpolantsArray = Object.keys(this.actionInterpolants).map(
       k => this.actionInterpolants[k],
