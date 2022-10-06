@@ -30,6 +30,7 @@ import storyManager from './story.js';
 // import domRenderer from './dom-renderer.jsx';
 import raycastManager from './raycast-manager.js';
 import grabManager from './grab-manager.js';
+import scene2DManager from './2d-manager.js';
 
 // const localVector = new THREE.Vector3();
 // const localVector2 = new THREE.Vector3();
@@ -304,6 +305,21 @@ const _updateIo = timeDiff => {
       ioManager.lastCtrlKey = ioManager.keys.ctrl;
     }
     if (physicsScene.getPhysicsEnabled() && movementEnabled) {
+      if(scene2DManager.enabled) {
+        // restricts movement, it would be better to do an axis lock in physx but that doesn't work right now.
+        switch (scene2DManager.perspective) {
+          case 'side-scroll':
+            keysDirection.z = 0;
+            break;
+          case 'isometric':
+            // nothing
+            break;
+          case 'top-down':
+            //nothing
+          default:
+            break;
+        }
+      }
       const speed = game.getSpeed();
       const velocity = keysDirection.normalize().multiplyScalar(speed);
       localPlayer.characterPhysics.applyWasd(velocity, timeDiff);
@@ -698,7 +714,12 @@ ioManager.wheel = e => {
         renderer &&
         (e.target === renderer.domElement || e.target.id === 'app')
       ) {
-        cameraManager.handleWheelEvent(e);
+        if(scene2DManager.enabled) {
+          scene2DManager.handleWheelEvent(e);
+        }
+        else {
+          cameraManager.handleWheelEvent(e);
+        }
       }
     }
   }
@@ -827,7 +848,12 @@ ioManager.mousemove = e => {
     game.updateWeaponWheel(e);
   } else { */
   if (cameraManager.pointerLockElement) {
-    cameraManager.handleMouseMove(e);
+    if(scene2DManager.enabled) {
+      scene2DManager.handleMouseMove(e);
+    }
+    else {
+      cameraManager.handleMouseMove(e);
+    }
   } else {
     if (game.dragging) {
       game.menuDrag(e);
@@ -879,6 +905,9 @@ ioManager.mousedown = e => {
     if (changedButtons & 1 && e.buttons & 1) {
       // left
       game.menuMouseDown();
+      if (scene2DManager.enabled) {
+        scene2DManager.handleClick();
+      }
     }
     if (changedButtons & 2 && e.buttons & 2) {
       // right
