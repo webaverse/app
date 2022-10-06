@@ -167,7 +167,7 @@ class Scene2DManager {
         switch (this.perspective) {
             case 'side-scroll': {
             const cursorPosition = this.cursorPosition;
-            let lastCursorPosition = scene2thisDManager.lastCursorPosition;
+            let lastCursorPosition = this.lastCursorPosition;
             const size = getRenderer().getSize(localVector);
             const sensitivity = this.cursorSensitivity;
             const crosshairEl = document.getElementById('crosshair');

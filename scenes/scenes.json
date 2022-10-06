@@ -41,5 +41,6 @@
   "zesty.scn",
   "asteroids-game.scn",
   "test-e2e-empty.scn",
-  "test-e2e-weapon.scn"
+  "test-e2e-weapon.scn",
+  "side-scroll.scn"
 ]
