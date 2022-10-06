@@ -13,7 +13,7 @@
     "serve": "vite preview",
     "setup:test": "cd test && npm i",
     "test": "cd test && npm run test",
-    "test-e2e": "cd test/e2e/ && npm run start",
+    "test-e2e": "cd test/e2e/ && npm run start && exit 0",
     "lint": "eslint --fix --quiet --ext .js,.jsx .",
     "prettier": "prettier --write .",
     "start-pm2": "pm2-runtime index.mjs -p --secret $PM2_SECRET_KEY --public $PM2_PUBLIC_KEY --no-auto-exit --instances 1 --restart-delay 60000"
@@ -42,6 +42,7 @@
     "smile2emoji": "^3.1.1",
     "stats.js": "^0.17.0",
     "three": "./packages/three",
+    "url": "^0.11.0",
     "troika-three-text": "^0.46.4",
     "webm-writer": "^1.0.0",
     "wsrtc": "./packages/wsrtc",
