@@ -40,6 +40,7 @@ import {ClaimsNotification} from '../../ClaimsNotification.jsx';
 import {DomRenderer} from '../../DomRenderer.jsx';
 import {BuildVersion} from '../general/build-version/BuildVersion.jsx';
 import {handleStoryKeyControls} from '../../../story';
+import {GrabKeyIndicators} from '../../GrabKeyIndicators';
 
 import styles from './App.module.css';
 import '../../fonts.css';
@@ -103,7 +104,7 @@ const useWebaverseApp = (() => {
 })();
 
 export const App = () => {
-  const [state, setState] = useState({openedPanel: null});
+  const [state, setState] = useState({openedPanel: null, openedTab: null});
   const [uiMode, setUIMode] = useState('normal');
 
   const canvasRef = useRef(null);
@@ -313,6 +314,7 @@ export const App = () => {
         <LoadingBox />
         <FocusBar />
         <DragAndDrop />
+        <GrabKeyIndicators />
         <BuildVersion />
         <Stats app={app} />
       </AppContext.Provider>

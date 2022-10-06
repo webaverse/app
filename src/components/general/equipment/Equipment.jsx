@@ -16,8 +16,10 @@ import game from '../../../../game.js';
 import {transparentPngUrl} from '../../../../constants.js';
 import * as sounds from '../../../../sounds.js';
 import {mod} from '../../../../util.js';
+import { ChainContext } from '../../../hooks/chainProvider';
 import dropManager from '../../../../drop-manager';
 import cardsManager from '../../../../cards-manager.js';
+import useSolanaNFTContract from '../../../hooks/useSolanaNFTContract';
 
 //
 
@@ -291,12 +293,15 @@ const EquipmentItems = ({
 };
 
 export const Equipment = () => {
-  const {state, setState} = useContext(AppContext);
+  const {state, account} = useContext(AppContext);
   const [hoverObject, setHoverObject] = useState(null);
   const [selectObject, setSelectObject] = useState(null);
+  const [ inventoryObject, setInventoryObject ] = useState([]);
   // const [ spritesheet, setSpritesheet ] = useState(null);
   const [faceIndex, setFaceIndex] = useState(1);
+  const { selectedChain, supportedChain } = useContext(ChainContext)
   const [claims, setClaims] = useState([]);
+  const {mintSolanaNFT, getNftsForOwner} = useSolanaNFTContract(account.currentAddress);
   const [cachedLoader, setCachedLoader] = useState(
     () =>
       new CachedLoader({
@@ -316,6 +321,45 @@ export const Equipment = () => {
   const selectedMenuIndex = mod(faceIndex, 4);
 
   const open = state.openedPanel === 'CharacterPanel';
+
+  useEffect(() => {
+    if(open) {
+        console.log("inventory tab open", account.walletType)
+        async function setupInventory() {  // NFT inventory
+            let inventoryItems;
+            if(account.walletType == "metamask") {
+                inventoryItems = [];
+            }
+
+            if(account.walletType == "phantom") {
+                inventoryItems = [];
+                const tokens = await getNftsForOwner('Assest')
+                console.log("inventory tokens", tokens)
+                inventoryItems = tokens.map((token, id) => {
+                    return {
+                        tokenId: token.tokenId,
+                        name: token.name ?? "",
+                        start_url: token.image,
+                        level: token.level ?? 1,
+                        // type: "major",
+                        type: "minor",
+                        claimed: true
+                    };
+                });
+
+            }
+
+            console.log("inventory items", inventoryItems)
+            setInventoryObject(inventoryItems);
+        }
+
+        setupInventory().catch((error)=> {
+            console.warn('unable to retrieve inventory')
+            setInventoryObject([]);
+        });
+    }
+
+  }, [open, state.openedPanel, claims]);
 
   const onMouseEnter = object => () => {
     setHoverObject(object);
@@ -406,12 +450,54 @@ export const Equipment = () => {
           abortController.abort();
         };
       }
+
+      if (state.openedTab) {
+        let selectedTab;
+        switch (state.openedTab) {
+          case 'Inventory':
+            selectedTab = 0;
+            break;
+          case 'Account':
+            selectedTab = 1;
+            break;
+          case 'Land':
+            selectedTab = 2;
+            break;
+          default:
+            selectedTab = 1;
+            break;
+        }
+        const delta = selectedTab - selectedMenuIndex;
+        setFaceIndex(faceIndex + delta);
+        sounds.playSoundName('menuNext');
+      }
     } else {
       if (selectObject) {
         setSelectObject(null);
       }
     }
   }, [open, selectObject]);
+
+//   useEffect(() => {
+//         if (account && account.currentAddress) {
+//           async function queryOpensea() {
+//             const POLYGON_API_KEY = 'bN2G8nP-vDFAnRXksfpd7I7g5f9c0GqD'
+//             const walletAddress = "0xB565D3A7Bcf568f231726585e0b84f9E2a3722dB"
+//             const collectionAddress = "0xF8c73621f7E50f399eB24C7D7858f919f9deFa86"
+//             const baseURL = `https://polygon-mainnet.g.alchemy.com/v2/${POLYGON_API_KEY}/getNFTs/`
+//             const nftList = await fetch(`${baseURL}?owner=${walletAddress}&contractAddresses%5B%5D=${collectionAddress}`,
+//             {
+//                 method: 'get',
+//                 redirect: 'follow'
+//             }).then(response => response.json())
+//             console.log("NFT list", nftList)
+//           }
+//           queryOpensea();
+//         } else {
+//             console.log('could not query NFT collections')
+//         }
+
+//   }, [open, selectedChain, account])
 
   useEffect(() => {
     setSelectObject(null);
@@ -442,6 +528,10 @@ export const Equipment = () => {
                 name: 'Inventory',
                 tokens: claims,
               },
+              {
+                name: 'Claimed',
+                tokens: inventoryObject,
+              },
             ]}
             open={faceIndex === 0}
             hoverObject={hoverObject}
@@ -453,7 +543,7 @@ export const Equipment = () => {
             onDoubleClick={onDoubleClick}
             menuLeft={menuLeft}
             menuRight={menuRight}
-            highlights={true}
+            highlights={false}
             ItemClass={ObjectItem}
           />
           <EquipmentItems

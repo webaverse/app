@@ -4,7 +4,7 @@ set the avatar state from the character state */
 import * as THREE from 'three';
 import Avatar from './avatars/avatars.js';
 // import {unFrustumCull, enableShadows} from './util.js';
-import {getEyePosition} from './avatars/util.mjs';
+import { getEyePosition } from './avatars/util.mjs';
 // import {playersManager} from './players-manager.js';
 
 const appSymbol = 'app'; // Symbol('app');
@@ -37,7 +37,7 @@ export function applyCharacterModesToAvatar(character, session, rig) {
   }
   rig.setTopEnabled(
     !!session &&
-      (rig.inputs.leftGamepad.enabled || rig.inputs.rightGamepad.enabled),
+    (rig.inputs.leftGamepad.enabled || rig.inputs.rightGamepad.enabled),
   );
   rig.setBottomEnabled(
     rig.getTopEnabled() /* ||
@@ -83,6 +83,7 @@ export function applyCharacterActionsToAvatar(character, rig) {
   const landAction = character.getAction('land');
   const flyAction = character.getAction('fly');
   const swimAction = character.getAction('swim');
+  const swimmingOnSurface = swimAction?.onSurface;
   const useAction = character.getAction('use');
   const pickUpAction = character.getAction('pickUp');
   const narutoRunAction = character.getAction('narutoRun');
@@ -107,6 +108,8 @@ export function applyCharacterActionsToAvatar(character, rig) {
   // const swordSideSlashAnimation = swordSideSlash ? swordSideSlash.animation : '';
   // const swordTopDownSlash = character.getAction('swordTopDownSlash');
   // const swordTopDownSlashAnimation = swordTopDownSlash ? swordTopDownSlash.animation : '';
+  const cellphoneDrawAction = character.getAction('cellphoneDraw');
+  const cellphoneUndrawAction = character.getAction('cellphoneUndraw');
 
   rig.jumpState = !!jumpAction;
   rig.jumpTime = character.actionInterpolants.jump.get();
@@ -120,6 +123,15 @@ export function applyCharacterActionsToAvatar(character, rig) {
   rig.activateTime = character.actionInterpolants.activate.get();
   rig.swimState = !!swimAction;
   rig.swimTime = swimAction ? character.actionInterpolants.swim.get() : -1;
+  rig.cellphoneDrawState = !!cellphoneDrawAction;
+  rig.cellphoneDrawTime = cellphoneDrawAction ? player.actionInterpolants.cellphoneDraw.get() : 0;
+  rig.cellphoneUndrawState = !!cellphoneUndrawAction;
+  rig.cellphoneUndrawTime = cellphoneUndrawAction ? player.actionInterpolants.cellphoneUndraw.get() : 0;
+  rig.swimUpTime = player.actionInterpolants.swimUp.get();
+  rig.swimDownTime = player.actionInterpolants.swimDown.get();
+  rig.horizontalMovementsTransitionTime = player.actionInterpolants.horizontalMovementsTransition.get();
+  rig.swimmingOnSurfaceState = !!swimmingOnSurface;
+  rig.swimmingOnSurfaceTime = player.actionInterpolants.surface.get();
 
   const _handleUse = () => {
     if (useAction?.animation) {

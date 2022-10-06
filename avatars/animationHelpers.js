@@ -27,7 +27,7 @@ import {
 } from '../util.js';
 
 import {
-  crouchMaxTime,
+  defaultActionTransitionTime,
   // useMaxTime,
   aimMaxTime,
   // avatarInterpolationFrameRate,
@@ -75,6 +75,8 @@ let narutoRunAnimations;
 // let swordTopDownSlash;
 let hurtAnimations;
 let holdAnimations;
+let cellphoneDrawAnimation;
+let cellphoneUndrawAnimation;
 
 const defaultSitAnimation = 'chair';
 // const defaultUseAnimation = 'combo';
@@ -351,6 +353,8 @@ export const loadPromise = (async () => {
   floatAnimation = animations.find(a => a.isFloat);
   // rifleAnimation = animations.find(a => a.isRifle);
   // hitAnimation = animations.find(a => a.isHit);
+  cellphoneDrawAnimation = animations.find(a => a.isCellphoneDraw);
+  cellphoneUndrawAnimation = animations.find(a => a.isCellphoneUndraw);
   aimAnimations = {
     swordSideIdle: animations.index['sword_idle_side.fbx'],
     swordSideIdleStatic: animations.index['sword_idle_side_static.fbx'],
@@ -832,6 +836,71 @@ export const _applyAnimation = (avatar, now) => {
     _getHorizontalBlend(k, lerpFn, isPosition, dst);
   };
   const _getApplyFn = () => {
+    if (avatar.cellphoneDrawState) {
+      return spec => {
+        const {
+          animationTrackName: k,
+          dst,
+          isPosition,
+          boneName,
+        } = spec;
+
+        _handleDefault(spec);
+        const t2 = avatar.cellphoneDrawTime / 1000;
+        if (!isPosition) {
+          if (cellphoneDrawAnimation) {
+            const src2 = cellphoneDrawAnimation.interpolants[k];
+            const v2 = src2.evaluate(t2);
+
+            const idleAnimation = _getIdleAnimation('walk');
+            const t3 = 0;
+            const src3 = idleAnimation.interpolants[k];
+            const v3 = src3.evaluate(t3);
+
+            // if(!(
+
+            //   boneName === 'Right_shoulder'
+            // )) {
+
+            // }
+            dst.premultiply(localQuaternion2.fromArray(v3).invert());
+            dst.premultiply(localQuaternion2.fromArray(v2));
+          }
+        }
+      };
+    } else if(avatar.cellphoneUndrawState) {
+      return spec => {
+        const {
+          animationTrackName: k,
+          dst,
+          isPosition,
+          boneName,
+        } = spec;
+
+        _handleDefault(spec);
+        const t2 = avatar.cellphoneUndrawTime / 1000;
+        if (!isPosition) {
+          if (cellphoneUndrawAnimation) {
+            const src2 = cellphoneUndrawAnimation.interpolants[k];
+            const v2 = src2.evaluate(t2);
+
+            const idleAnimation = _getIdleAnimation('walk');
+            const t3 = 0;
+            const src3 = idleAnimation.interpolants[k];
+            const v3 = src3.evaluate(t3);
+
+            // if(!(
+            //   boneName === 'Right_arm' ||
+            //   boneName === 'Right_shoulder'
+            // )) {
+
+            // }
+            dst.premultiply(localQuaternion2.fromArray(v3).invert());
+            dst.premultiply(localQuaternion2.fromArray(v2));
+          }
+        }
+      };
+    }
     if (avatar.doubleJumpState) {
       return spec => {
         const {animationTrackName: k, dst, isPosition} = spec;
@@ -930,7 +999,7 @@ export const _applyAnimation = (avatar, now) => {
         const t2 = (now / 1000) % danceAnimation.duration;
         const v2 = src2.evaluate(t2);
 
-        const danceFactorS = avatar.danceFactor / crouchMaxTime;
+        const danceFactorS = avatar.danceFactor / defaultActionTransitionTime;
         const f = Math.min(Math.max(danceFactorS, 0), 1);
         lerpFn.call(dst, localQuaternion.fromArray(v2), f);
 
@@ -958,7 +1027,7 @@ export const _applyAnimation = (avatar, now) => {
         const t2 = Math.min(emoteTime / 1000, emoteAnimation.duration);
         const v2 = src2.evaluate(t2);
 
-        const emoteFactorS = avatar.emoteFactor / crouchMaxTime;
+        const emoteFactorS = avatar.emoteFactor / defaultActionTransitionTime;
         let f = Math.min(Math.max(emoteFactorS, 0), 1);
 
         if (
@@ -1401,16 +1470,11 @@ export const _applyAnimation = (avatar, now) => {
   };
 
   const _blendSwim = spec => {
-    const {animationTrackName: k, dst, isPosition, isFirstBone} = spec;
+    const {animationTrackName: k, dst, isPosition, boneName} = spec;
 
     if (avatar.swimState) {
       const swimTimeS = avatar.swimTime / 1000;
       const movementsTimeS = avatar.movementsTime / 1000;
-      // if (isFirstBone) {
-      //   // const swimSpeed = 1 + idleWalkFactor + walkRunFactor;
-      //   // avatar.swimAnimTime += timeDiffS * swimSpeed;
-      //   // avatar.swimAnimTime = avatar.movementsTime / 1000 * swimSpeed;
-      // }
 
       const src2 = floatAnimation.interpolants[k];
       const v2 = src2.evaluate(swimTimeS % floatAnimation.duration);
@@ -1432,29 +1496,38 @@ export const _applyAnimation = (avatar, now) => {
         localQuaternion2.fromArray(v2);
         localQuaternion3.fromArray(v3);
         localQuaternion4.fromArray(v4);
-        // // can't use idleWalkFactor & walkRunFactor here, otherwise "Impulsive breaststroke swim animation" will turn into "freestyle animation" when speed is fast,
-        // // and will turn into "floating" a little when speed is slow.
-        // localQuaternion3.slerp(localQuaternion4, walkRunFactor);
-        // localQuaternion2.slerp(localQuaternion3, idleWalkFactor);
-        localQuaternion3.slerp(localQuaternion4, avatar.sprintFactor);
-        localQuaternion2.slerp(
-          localQuaternion3,
-          avatar.movementsTransitionFactor,
-        );
+        localQuaternion5.set(0,0,0,1);
+        localQuaternion6.set(1,0,0,0);
+
+        if(!avatar.swimmingOnSurfaceState || (avatar.swimmingOnSurfaceState && avatar.horizontalMovementsTransitionFactor > 0)) {
+          localQuaternion3.slerp(localQuaternion4, avatar.sprintFactor);
+          localQuaternion2.slerp(localQuaternion3, avatar.movementsTransitionFactor);
+        }
+
+        if(boneName === 'Hips') {
+          if(avatar.swimUpFactor > 0 && avatar.horizontalMovementsTransitionFactor === 0) {
+            localQuaternion2.slerp(localQuaternion5, avatar.swimUpFactor * avatar.surfaceFactor);
+          } else if(avatar.swimDownFactor > 0 && avatar.horizontalMovementsTransitionFactor === 0) {
+            localQuaternion2.slerp(localQuaternion6, avatar.swimDownFactor);
+          } else {
+            const fU = avatar.swimUpFactor / (avatar.swimUpFactor + avatar.horizontalMovementsTransitionFactor) * avatar.surfaceFactor || 0;
+            const fD = avatar.swimDownFactor / (avatar.swimDownFactor + avatar.horizontalMovementsTransitionFactor) * avatar.surfaceFactor || 0;
+            localQuaternion2.slerp(localQuaternion5, fU);
+            localQuaternion2.slerp(localQuaternion6, fD);
+          }
+        }
         dst.slerp(localQuaternion2, f);
       } else {
-        const liftSwims = 0.05; // lift swims height, prevent head sink in water
         localVector2.fromArray(v2);
-        localVector3.fromArray(v3);
-        // localVector3.y += 0.21; // align Swimming.fbx's height to freestyle.fbx
-        localVector3.y += 0.03; // align Swimming.fbx's height to freestyle.fbx
-        localVector3.y += liftSwims;
-        localVector4.fromArray(v4);
-        localVector4.y += liftSwims;
-        // localVector3.lerp(localVector4, walkRunFactor);
-        // localVector2.lerp(localVector3, idleWalkFactor);
-        localVector3.lerp(localVector4, avatar.sprintFactor);
-        localVector2.lerp(localVector3, avatar.movementsTransitionFactor);
+        if(!avatar.swimmingOnSurfaceState || (avatar.swimmingOnSurfaceState && avatar.horizontalMovementsTransitionFactor > 0)) {
+          const liftSwims = 0.035 * avatar.height; // lift swims height, prevent head sink in water
+          localVector3.fromArray(v3);
+          localVector3.y += liftSwims;
+          localVector4.fromArray(v4);
+          localVector4.y += liftSwims;
+          localVector3.lerp(localVector4, avatar.sprintFactor);
+          localVector2.lerp(localVector3, avatar.movementsTransitionFactor);
+        }
         dst.lerp(localVector2, f);
       }
     }

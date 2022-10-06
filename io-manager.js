@@ -29,6 +29,8 @@ import transformControls from './transform-controls.js';
 import storyManager from './story.js';
 // import domRenderer from './dom-renderer.jsx';
 import raycastManager from './raycast-manager.js';
+import grabManager from './grab-manager.js';
+import scene2DManager from './2d-manager.js';
 
 // const localVector = new THREE.Vector3();
 // const localVector2 = new THREE.Vector3();
@@ -281,8 +283,15 @@ const _updateIo = timeDiff => {
         localPlayer.getAction('swim').animationType = 'null';
       }
     }
-    if (localPlayer.hasAction('fly') || localPlayer.hasAction('swim')) {
-      keysDirection.applyQuaternion(camera.quaternion);
+    const swimAction = localPlayer.getAction('swim')
+    if (localPlayer.hasAction('fly') || swimAction) {
+      if(swimAction .onSurface) {
+        const camEuler = camera.rotation.clone();
+        camEuler.x = 0;
+        keysDirection.applyEuler(camEuler);
+      } else {
+        keysDirection.applyQuaternion(camera.quaternion);
+      }
       _updateVertical(keysDirection);
     } else {
       const cameraEuler = camera.rotation.clone();
@@ -296,6 +305,21 @@ const _updateIo = timeDiff => {
       ioManager.lastCtrlKey = ioManager.keys.ctrl;
     }
     if (physicsScene.getPhysicsEnabled() && movementEnabled) {
+      if(scene2DManager.enabled) {
+        // restricts movement, it would be better to do an axis lock in physx but that doesn't work right now.
+        switch (scene2DManager.perspective) {
+          case 'side-scroll':
+            keysDirection.z = 0;
+            break;
+          case 'isometric':
+            // nothing
+            break;
+          case 'top-down':
+            //nothing
+          default:
+            break;
+        }
+      }
       const speed = game.getSpeed();
       const velocity = keysDirection.normalize().multiplyScalar(speed);
       localPlayer.characterPhysics.applyWasd(velocity, timeDiff);
@@ -465,7 +489,7 @@ ioManager.keydown = e => {
       // F
       e.preventDefault();
       e.stopPropagation();
-      if (game.canPush()) {
+      if (grabManager.canPush()) {
         ioManager.keys.forward = true;
       } else {
         /* if (game.canJumpOff()) {
@@ -494,6 +518,7 @@ ioManager.keydown = e => {
           game.setBuildMode('floor');
         } else { */
         game.menuDelete();
+        grabManager.menuDelete();
         // }
       }
       break;
@@ -505,7 +530,7 @@ ioManager.keydown = e => {
           game.startBuild('stair');
         } else if (game.canBuild()) {
           game.setBuildMode('stair');
-        } else */ if (game.canPush()) {
+        } else */ if (grabManager.canPush()) {
         ioManager.keys.backward = true;
       } else {
         ioManager.keys.ctrl = true;
@@ -559,8 +584,8 @@ ioManager.keydown = e => {
       } else {
         game.menuMiddleUp();
 
-        if (game.canRotate()) {
-          game.menuRotate(-1);
+        if (grabManager.canRotate()) {
+          grabManager.menuRotate(-1);
         } else {
           game.menuActivateDown();
         }
@@ -593,8 +618,8 @@ ioManager.keydown = e => {
     case 82: {
       // R
       if (cameraManager.pointerLockElement) {
-        if (game.canRotate()) {
-          game.menuRotate(1);
+        if (grabManager.canRotate()) {
+          grabManager.menuRotate(1);
         } else {
           game.dropSelectedApp();
         }
@@ -671,7 +696,7 @@ ioManager.keydown = e => {
     }
     case 192: {
       // tilde
-      game.toggleEditMode();
+      grabManager.toggleEditMode();
       break;
     }
   }
@@ -689,7 +714,12 @@ ioManager.wheel = e => {
         renderer &&
         (e.target === renderer.domElement || e.target.id === 'app')
       ) {
-        cameraManager.handleWheelEvent(e);
+        if(scene2DManager.enabled) {
+          scene2DManager.handleWheelEvent(e);
+        }
+        else {
+          cameraManager.handleWheelEvent(e);
+        }
       }
     }
   }
@@ -818,7 +848,12 @@ ioManager.mousemove = e => {
     game.updateWeaponWheel(e);
   } else { */
   if (cameraManager.pointerLockElement) {
-    cameraManager.handleMouseMove(e);
+    if(scene2DManager.enabled) {
+      scene2DManager.handleMouseMove(e);
+    }
+    else {
+      cameraManager.handleMouseMove(e);
+    }
   } else {
     if (game.dragging) {
       game.menuDrag(e);
@@ -834,7 +869,7 @@ ioManager.mouseleave = e => {
 };
 ioManager.click = e => {
   if (cameraManager.pointerLockElement) {
-    game.menuClick(e);
+    grabManager.menuClick(e);
   } else {
     // game.setContextMenu(false);
 
@@ -870,6 +905,9 @@ ioManager.mousedown = e => {
     if (changedButtons & 1 && e.buttons & 1) {
       // left
       game.menuMouseDown();
+      if (scene2DManager.enabled) {
+        scene2DManager.handleClick();
+      }
     }
     if (changedButtons & 2 && e.buttons & 2) {
       // right

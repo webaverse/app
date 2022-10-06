@@ -4,11 +4,11 @@ import styles from "./CustomButton.module.css";
 import classnames from "classnames";
 
 async function getSVG(iconName) {
-    const icon = IconCollection.find((item) => item.name === iconName);
+    const icon = IconCollection.find(item => item.name === iconName);
     console.log("ICON: ", icon);
     return await fetch(icon.file)
-        .then((res) => res.text())
-        .then((res) => {
+        .then(res => res.text())
+        .then(res => {
             const parser = new DOMParser();
             const svgDom = parser.parseFromString(res, "image/svg+xml");
             return svgDom.firstElementChild;
@@ -21,7 +21,7 @@ export default function CustomButton(props) {
 
     useEffect(() => {
         if (icon) {
-            getSVG(icon).then((res) => {
+            getSVG(icon).then(res => {
                 svgRef.current.innerHTML = "";
                 if (res) {
                     res.classList.add(styles.icon);
@@ -37,7 +37,7 @@ export default function CustomButton(props) {
                 className={classnames(
                     className,
                     styles.iconButtonWrap,
-                    theme && theme === "dark" ? styles.dark : styles.light
+                    theme && theme === "dark" ? styles.dark : styles.light,
                 )}
                 style={{ height: size }}
                 onClick={onClick}
@@ -55,7 +55,7 @@ export default function CustomButton(props) {
                         className={styles.buttonBackgroundColor}
                         fill="#D9D9D9"
                         stroke="#050B0E"
-                        stroke-width="4"
+                        strokeWidth="4"
                     />
                     <path
                         d="M9 9H62L58.2676 58H9V9Z"
@@ -72,7 +72,7 @@ export default function CustomButton(props) {
                 className={classnames(
                     className,
                     styles.iconButtonWrap,
-                    theme && theme === "dark" ? styles.dark : styles.light
+                    theme && theme === "dark" ? styles.dark : styles.light,
                 )}
                 style={{ height: size }}
                 onClick={onClick}
@@ -91,7 +91,7 @@ export default function CustomButton(props) {
                         fill="#efefef"
                         className={styles.buttonBackgroundColor}
                         stroke="black"
-                        stroke-width="4"
+                        strokeWidth="4"
                     />
                     <path
                         d="M8.77795 7.28503H61.7957L59.8437 54.7911H11.367L8.77795 7.28503Z"
@@ -108,7 +108,7 @@ export default function CustomButton(props) {
                 className={classnames(
                     className,
                     styles.buttonWrap,
-                    theme && theme === "dark" ? styles.dark : styles.light
+                    theme && theme === "dark" ? styles.dark : styles.light,
                 )}
                 onClick={onClick}
                 onMouseEnter={onMouseEnter}
@@ -118,7 +118,7 @@ export default function CustomButton(props) {
                     style={{ fontSize: size }}
                 >
                     {icon && (
-                        <span ref={svgRef} className={styles.buttonIconWrap} style={{height: size, width: size}}></span>
+                        <span ref={svgRef} className={styles.buttonIconWrap} style={{ height: size, width: size }}></span>
                     )}
                     {text && text}
                 </div>

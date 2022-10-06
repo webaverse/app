@@ -26,7 +26,8 @@ import {UserBox} from './components/general/user-box/UserBox.jsx';
 //
 
 export default function Header() {
-  const {state, setState, selectedApp} = useContext(AppContext);
+  const {state, setState, selectedApp, account} = useContext(AppContext);
+  const {currentAddress} = account;
   const localPlayer = metaversefile.useLocalPlayer();
   const _getWearActions = () =>
     localPlayer.getActionsArray().filter(action => action.type === 'wear');

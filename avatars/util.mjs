@@ -693,6 +693,8 @@ export const decorateAnimation = animation => {
   // animation.isSwordSideSlash = /sword_side_slash/i.test(animation.name);
   // animation.isSwordTopDownSlash = /sword_topdown_slash/i.test(animation.name);
   animation.isHurt = /pain/.test(animation.name);
+  animation.isCellphoneDraw = /cellphone_draw/.test(animation.name);
+  animation.isCellphoneUndraw = /cellphone_undraw/.test(animation.name);
 
   animation.interpolants = {};
   animation.tracks.forEach(track => {
@@ -770,7 +772,7 @@ export const modelBoneToAnimationBone = (() => {
     if (match) {
       const animationBoneName = match[1];
       const property = match[2];
-      
+
       const {values} = track;
       const modelBoneName = animationBoneToModelBone[animationBoneName];
       const modelBone = modelBones[modelBoneName];
@@ -805,14 +807,14 @@ const _setSkeletonWorld = (() => {
     for (const k in srcModelBones) {
       srcBoneToModelNameMap.set(srcModelBones[k], k);
     }
-    
+
     const _recurse = (srcModelBone, dstModelBone) => {
       if (srcModelBone !== srcModelBones.Root) {
         srcModelBone.matrixWorld.decompose(localVector, localQuaternion, localVector2);
         dstModelBone.matrixWorld.decompose(localVector3, localQuaternion2, localVector4);
-        
+
         localQuaternion.premultiply(downRotation);
-        
+
         dstModelBone.matrixWorld.compose(
           srcModelBone === srcModelBones.Hips ? srcModelBone.position : localVector3,
           localQuaternion,
@@ -823,7 +825,7 @@ const _setSkeletonWorld = (() => {
           .decompose(dstModelBone.position, dstModelBone.quaternion, dstModelBone.scale);
         dstModelBone.updateMatrixWorld();
       }
-      
+
       for (let i = 0; i < srcModelBone.children.length; i++) {
         const srcChild = srcModelBone.children[i];
         const modelBoneName = srcBoneToModelNameMap.get(srcChild);
@@ -844,7 +846,7 @@ const _setAnimationFrameToSkeleton = (animation, frame, modelBones) => {
     if (match) {
       const animationBoneName = match[1];
       const property = match[2];
-      
+
       const {values} = track;
       const modelBoneName = animationBoneToModelBone[animationBoneName];
       const modelBone = modelBones[modelBoneName];
@@ -866,24 +868,24 @@ const _setAnimationFrameToSkeleton = (animation, frame, modelBones) => {
 export const retargetAnimation = (srcAnimation, srcBaseModel, dstBaseModel) => {
   const srcModelBones = getModelBones(srcBaseModel);
   const dstModelBones = getModelBones(dstBaseModel);
-  
+
   // console.log('retarget', srcAnimation, srcModelBones, dstModelBones); // XXX
-  
+
   const dstAnimation = srcAnimation.clone();
-  
+
   const numFrames = srcAnimation.interpolants['mixamorigHead.quaternion'].sampleValues.length / 4;
   for (let frame = 0; frame < numFrames; frame++) {
     const srcModelBones2 = cloneModelBones(srcModelBones);
     const dstModelBones2 = cloneModelBones(dstModelBones);
     srcModelBones2.Root.updateMatrixWorld();
     dstModelBones2.Root.updateMatrixWorld();
-    
+
     _setSkeletonToAnimationFrame(srcModelBones2, srcAnimation, frame);
     _setSkeletonWorld(dstModelBones2, srcModelBones2);
     _setAnimationFrameToSkeleton(dstAnimation, frame, dstModelBones2);
   }
-  
+
   decorateAnimation(dstAnimation);
-  
+
   return dstAnimation;
 }; */

@@ -14,13 +14,13 @@ import styles from "./UserBox.module.css";
 
 import * as sounds from "../../../../sounds.js";
 import CustomButton from "../custom-button";
-
+import Chains from '../../web3/chains';
 //
 
 import cameraManager from "../../../../camera-manager.js";
 
 export const UserBox = ({ className, address, setAddress, setLoginFrom }) => {
-    const { state, setState } = useContext(AppContext);
+    const { state, setState, account, chain } = useContext(AppContext);
     const [ensName, setEnsName] = useState("");
     const [avatarUrl, setAvatarUrl] = useState("");
     const [loggingIn, setLoggingIn] = useState(false);
@@ -38,7 +38,11 @@ export const UserBox = ({ className, address, setAddress, setLoginFrom }) => {
 
     }; */
 
-    const openUserPanel = (e) => {
+    const { isConnected, currentAddress, connectWallet, disconnectWallet, errorMessage, wrongChain, getAccounts, getAccountDetails,
+        getPhantomProvider, connectPhantomWallet, disconnectPhantomWallet, walletType, setWalletType } = account;
+    const { selectedChain } = chain;
+
+    const openUserPanel = e => {
         setState({ openedPanel: "UserPanel" });
     };
 
@@ -48,119 +52,135 @@ export const UserBox = ({ className, address, setAddress, setLoginFrom }) => {
         sounds.playSoundName("menuBack");
     };
 
-    const _setAddress = async (address) => {
-        if (address) {
-            // let live = true;
-            // (async () => {
-            const ensName = await blockchainManager.getEnsName(address);
-            // if (!live) return;
-            setEnsName(ensName);
+    useEffect(() => {
+        if (!currentAddress) return;
+        _setAddress(currentAddress);
+    }, [currentAddress, selectedChain])
 
-            if (ensName) {
-                const avatarUrl = await blockchainManager.getAvatarUrl(ensName);
-                // if (!live) return;
-                setAvatarUrl(avatarUrl);
-            }
-            // })();
-
-            /* return () => {
-                live = false;
-            }; */
-
-            // console.log('render name', {address, ensName, avatarUrl});
+    const _setAddress = async address => {
+        if (walletType == 'metamask') {
+            const { name, avatar } = await getAccountDetails(address);
+            setEnsName(name ? shortAddress(name) : '');
+            setAvatarUrl(avatar ? resolveAvatar(avatar) : '');
         }
 
-        setAddress(address);
+        setAddress(shortAddress(address) || '');
     };
 
-    const metaMaskLogin = async (event) => {
+    const shortAddress = address => {
+        if (address.length > 12) {
+            return address.slice(0, 6) + `...` + address.slice(-5);
+        } else {
+            return address;
+        }
+    };
+
+    const resolveAvatar = url => {
+        const match = url.match(/^ipfs:\/\/(.+)/);
+        if (match) {
+            return `https://cloudflare-ipfs.com/ipfs/${match[1]}`;
+        } else {
+            return url;
+        }
+    };
+
+    const metaMaskLogin = async event => {
         event.preventDefault();
         event.stopPropagation();
-
-        /* if ( address ) {
-
-            setState({ openedPanel: ( state.openedPanel === 'UserPanel' ? null : 'UserPanel' ) });
-
-        } else { */
 
         if (!loggingIn) {
             setLoggingIn(true);
 
             try {
-                const { address, profile } = await ceramicApi.login();
-                await _setAddress(address);
-                setLoginFrom("metamask");
-                // setShow(false);
-                // setLoginFrom('metamask');
+                await connectWallet();
+                setLoginFrom('metamask');
+                setWalletType('metamask');
             } catch (err) {
                 console.warn(err);
             } finally {
                 setState({ openedPanel: null });
-
                 setLoggingIn(false);
             }
         }
-
-        // }
     };
 
-    useEffect(() => {
-        const { error, code, id, play, realmId } = parseQuery(
-            window.location.search
-        );
+    const phangomLogin = async event => {
+        event.preventDefault();
+        event.stopPropagation();
 
-        //
+        if (!loggingIn) {
+            setLoggingIn(true);
 
-        const discordAutoLogin = async () => {
-            const { address, error } = await WebaWallet.loginDiscord(code, id);
-
-            if (address) {
-                await _setAddress(address);
-                // setAddress( address );
-                setLoginFrom("discord");
-                // setShow( false );
-            } else if (error) {
-                setLoginError(String(error).toLocaleUpperCase());
-            }
-
-            window.history.pushState({}, "", window.location.origin);
-            setLoggingIn(false);
-        };
-
-        const metamaskAutoLogin = async () => {
-            const { address } = await WebaWallet.autoLogin();
-
-            if (address) {
-                await _setAddress(address);
-                setLoginFrom("metamask");
-                // setShow( false );
-            } else if (error) {
-                setLoginError(String(error).toLocaleUpperCase());
-            }
-        };
-
-        //
-
-        if (!autoLoginRequestMade) {
-            setAutoLoginRequestMade(true);
-
-            if (code) {
-                setLoggingIn(true);
-
-                if (WebaWallet.launched) {
-                    discordAutoLogin();
-                } else {
-                    WebaWallet.waitForLaunch().then(discordAutoLogin);
-                }
-            } else {
-                if (WebaWallet.launched) {
-                    metamaskAutoLogin();
-                } else {
-                    WebaWallet.waitForLaunch().then(metamaskAutoLogin);
-                }
+            try {
+                const phantomAddress = await connectPhantomWallet();
+                setLoginFrom('phantom');
+                setWalletType('phantom');
+            } catch (err) {
+                console.warn(err);
+            } finally {
+                setState({ openedPanel: null });
+                setLoggingIn(false);
             }
         }
-    }, [address]);
+    };
+
+    // useEffect(() => {
+    //     const { error, code, id, play, realmId } = parseQuery(
+    //         window.location.search
+    //     );
+
+    //     //
+
+    //     const discordAutoLogin = async () => {
+    //         const { address, error } = await WebaWallet.loginDiscord(code, id);
+
+    //         if (address) {
+    //             await _setAddress(address);
+    //             // setAddress( address );
+    //             setLoginFrom("discord");
+    //             // setShow( false );
+    //         } else if (error) {
+    //             setLoginError(String(error).toLocaleUpperCase());
+    //         }
+
+    //         window.history.pushState({}, "", window.location.origin);
+    //         setLoggingIn(false);
+    //     };
+
+    //     const metamaskAutoLogin = async () => {
+    //         const { address } = await WebaWallet.autoLogin();
+
+    //         if (address) {
+    //             await _setAddress(address);
+    //             setLoginFrom("metamask");
+    //             // setShow( false );
+    //         } else if (error) {
+    //             setLoginError(String(error).toLocaleUpperCase());
+    //         }
+    //     };
+
+    //     //
+
+    //     if (!autoLoginRequestMade) {
+    //         setAutoLoginRequestMade(true);
+
+    //         if (code) {
+    //             setLoggingIn(true);
+
+    //             if (WebaWallet.launched) {
+    //                 discordAutoLogin();
+    //             } else {
+    //                 WebaWallet.waitForLaunch().then(discordAutoLogin);
+    //             }
+    //         } else {
+    //             if (WebaWallet.launched) {
+    //                 metamaskAutoLogin();
+    //             } else {
+    //                 WebaWallet.waitForLaunch().then(metamaskAutoLogin);
+    //             }
+    //         }
+    //     }
+    // }, [address]);
 
     //
 
@@ -171,7 +191,7 @@ export const UserBox = ({ className, address, setAddress, setLoginFrom }) => {
     //
 
     const open = state.openedPanel === "LoginPanel";
-    const loggedIn = !!address;
+    const loggedIn = isConnected;
 
     //
 
@@ -263,7 +283,7 @@ export const UserBox = ({ className, address, setAddress, setLoginFrom }) => {
                                 icon="login"
                                 size={28}
                                 className={styles.loginButton}
-                                onClick={(e) => {
+                                onClick={e => {
                                     e.preventDefault();
                                     e.stopPropagation();
 
@@ -275,7 +295,7 @@ export const UserBox = ({ className, address, setAddress, setLoginFrom }) => {
 
                                     sounds.playSoundName("menuNext");
                                 }}
-                                onMouseEnter={(e) => {
+                                onMouseEnter={e => {
                                     _triggerClickSound();
                                 }}
                             />
@@ -289,19 +309,23 @@ export const UserBox = ({ className, address, setAddress, setLoginFrom }) => {
                                 <div className={styles.image}>
                                     <img
                                         src={
-                                            avatarUrl
-                                                ? avatarUrl
-                                                : "/assets/backgrounds/profile-no-image.png"
+                                            avatarUrl || "/assets/backgrounds/profile-no-image.png"
                                         }
+                                        crossOrigin='Anonymous'
                                     />
                                 </div>
                             </div>
                         </li>
                         <li>
                             <div className={styles.loggedInText}>
-                                <div className={styles.chainName}>Polygon</div>
+                                <div className={styles.chainName}>
+                                    {
+                                        walletType == 'metamask' ? 'Polygon' :
+                                            walletType == 'phantom' ? 'Solana' : null
+                                    }
+                                </div>
                                 <div className={styles.walletAddress}>
-                                    {ensName || address || "0x5d...26e2d"}
+                                    {ensName || address}
                                 </div>
                             </div>
                             <CustomButton
@@ -310,13 +334,13 @@ export const UserBox = ({ className, address, setAddress, setLoginFrom }) => {
                                 icon="logout"
                                 size={28}
                                 className={styles.loginButton}
-                                onClick={(e) => {
+                                onClick={e => {
                                     e.preventDefault();
                                     e.stopPropagation();
-                                    WebaWallet.logout();
-                                    _setAddress(null);
+                                    disconnectWallet();
+                                    disconnectPhantomWallet();
                                 }}
-                                onMouseEnter={(e) => {
+                                onMouseEnter={e => {
                                     _triggerClickSound();
                                 }}
                             />
@@ -328,7 +352,7 @@ export const UserBox = ({ className, address, setAddress, setLoginFrom }) => {
             <div
                 className={classnames(
                     styles.userLoginMethodsModal,
-                    open ? styles.opened : null
+                    open ? styles.opened : null,
                 )}
             >
                 <div className={styles.title}>
@@ -346,6 +370,15 @@ export const UserBox = ({ className, address, setAddress, setLoginFrom }) => {
                 />
                 <CustomButton
                     theme="light"
+                    icon="phantom"
+                    text="Phantom"
+                    size={18}
+                    className={styles.methodButton}
+                    onClick={phangomLogin}
+                    onMouseEnter={_triggerClickSound}
+                />
+                {/* <CustomButton
+                    theme="light"
                     icon="discord"
                     text="Discord"
                     url={`https://discord.com/api/oauth2/authorize?client_id=${discordClientId}&redirect_uri=${window.location.origin}%2Flogin&response_type=code&scope=identify`}
@@ -353,7 +386,7 @@ export const UserBox = ({ className, address, setAddress, setLoginFrom }) => {
                     className={styles.methodButton}
                     onClick={metaMaskLogin}
                     onMouseEnter={_triggerClickSound}
-                />
+                /> */}
                 <CustomButton
                     theme="light"
                     icon="close"
