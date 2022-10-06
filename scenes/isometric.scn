@@ -1,0 +1,46 @@
+{
+  "objects": [
+    {
+      "type": "application/light",
+      "content": {
+        "lightType": "ambient",
+        "args": [[255, 255, 255], 2]
+      }
+    },
+    {
+      "type": "application/light",
+      "content": {
+        "lightType": "directional",
+        "args": [[252, 231, 172], 2],
+        "position": [1, 2, 3],
+        "shadow": [50, 4096, 0.1, 1000, 0, 0.2]
+      }
+    },
+    {
+      "type": "application/rendersettings",
+      "content": {
+        "background": {
+          "color": [156, 245, 255]
+        }
+      }
+    },
+    {
+    "type": "application/scene2D",
+    "content": {
+        "perspective": "isometric",
+        "cameraMode": "follow",
+        "viewSize": 22
+      }
+    },
+    {
+      "position": [
+        0,
+        0,
+        0
+      ],
+      "physics": true,
+      "start_url": "https://webaverse.github.io/highlands/",
+      "dynamic": false
+    }
+  ]
+}
