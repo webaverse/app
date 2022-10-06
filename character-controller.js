@@ -19,7 +19,7 @@ import {
   actionsMapName,
   appsMapName,
   playersMapName,
-  crouchMaxTime,
+  defaultActionTransitionTime,
   activateMaxTime,
   // useMaxTime,
   aimTransitionMaxTime,
@@ -1099,7 +1099,7 @@ class InterpolatedPlayer extends AvatarCharacter {
       crouch: new BiActionInterpolant(
         () => this.actionBinaryInterpolants.crouch.get(),
         0,
-        crouchMaxTime,
+        defaultActionTransitionTime,
       ),
       activate: new UniActionInterpolant(
         () => this.actionBinaryInterpolants.activate.get(),
@@ -1199,7 +1199,7 @@ class InterpolatedPlayer extends AvatarCharacter {
           );
         },
         0,
-        crouchMaxTime,
+        defaultActionTransitionTime,
       ),
       sprint: new BiActionInterpolant(
         () => {
@@ -1207,7 +1207,7 @@ class InterpolatedPlayer extends AvatarCharacter {
           return ioManager.keys.shift;
         },
         0,
-        crouchMaxTime,
+        defaultActionTransitionTime,
       ),
     };
     this.actionInterpolantsArray = Object.keys(this.actionInterpolants).map(
@@ -1260,7 +1260,7 @@ class UninterpolatedPlayer extends AvatarCharacter {
       crouch: new BiActionInterpolant(
         () => this.hasAction('crouch'),
         0,
-        crouchMaxTime,
+        defaultActionTransitionTime,
       ),
       activate: new UniActionInterpolant(
         () => this.hasAction('activate'),
@@ -1302,12 +1302,12 @@ class UninterpolatedPlayer extends AvatarCharacter {
       dance: new BiActionInterpolant(
         () => this.hasAction('dance'),
         0,
-        crouchMaxTime,
+        defaultActionTransitionTime,
       ),
       emote: new BiActionInterpolant(
         () => this.hasAction('emote'),
         0,
-        crouchMaxTime,
+        defaultActionTransitionTime,
       ),
       movements: new InfiniteActionInterpolant(() => {
         const ioManager = metaversefile.useIoManager();
@@ -1329,7 +1329,7 @@ class UninterpolatedPlayer extends AvatarCharacter {
           );
         },
         0,
-        crouchMaxTime,
+        defaultActionTransitionTime,
       ),
       sprint: new BiActionInterpolant(
         () => {
@@ -1337,7 +1337,7 @@ class UninterpolatedPlayer extends AvatarCharacter {
           return ioManager.keys.shift;
         },
         0,
-        crouchMaxTime,
+        defaultActionTransitionTime,
       ),
       // throw: new UniActionInterpolant(() => this.hasAction('throw'), 0, throwMaxTime),
       // chargeJump: new InfiniteActionInterpolant(() => this.hasAction('chargeJump'), 0),
