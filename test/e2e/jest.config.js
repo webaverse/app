@@ -10,7 +10,7 @@ module.exports = {
   testMatch: [
     "./**.test.js"
   ],
-  verbose: true,
+  verbose: false,
   notifyMode: "always",
   maxWorkers: "50%",
   maxConcurrency: 1,

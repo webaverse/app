@@ -3,7 +3,7 @@
   "scripts": {
     "start": "node ./launch.js",
     "server": "cd ../../ && npm run dev",
-    "test-e2e": "jest -i"
+    "test-e2e": "jest -i --colors"
   },
   "dependencies": {
     "child_process": "^1.0.2",
