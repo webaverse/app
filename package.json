@@ -11,7 +11,7 @@
     "build": "rimraf dist && cross-env OUTPUT_EXPORTS=true vite build",
     "setup:test": "cd test && npm i",
     "test": "cd test && npm run test",
-    "test-e2e": "cd test/e2e/ && npm run start",
+    "test-e2e": "cd test/e2e/ && npm run start && exit 0",
     "start-pm2": "pm2-runtime index.mjs -p --secret $PM2_SECRET_KEY --public $PM2_PUBLIC_KEY --no-auto-exit --instances 1 --restart-delay 60000",
     "lint": "eslint --fix --quiet --ext .js,.jsx .",
     "prettier": "prettier --write ."
@@ -47,6 +47,7 @@
     "three-mesh-bvh": "^0.5.16",
     "three-subdivide": "^1.1.0",
     "troika-three-text": "^0.46.4",
+    "url": "^0.11.0",
     "webm-writer": "^1.0.0",
     "wsrtc": "./packages/wsrtc",
     "xhr2": "^0.2.1",

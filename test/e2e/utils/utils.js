@@ -2,8 +2,10 @@ const puppeteer = require('puppeteer');
 const { Url } = require('url');
 
 const totalTimeout = 600 * 1000
-const width = 800;
-const height = 400;
+// const width = 800;
+// const height = 400;
+const width = 2400;
+const height = 1200;
 let browser
 let page
 
@@ -51,9 +53,9 @@ const launchBrowser = async () => {
 	}
 	page = ( await browser.pages() )[ 0 ];
 	await page.setViewport( { width, height } );
-	page.on("pageerror", async (err) => {
-		printLog("==error==", err)
-	});
+	// page.on("pageerror", async (err) => {
+	// 	printLog("==error==", err)
+	// });
 	// page.on('console', (msg) => printLog('PAGE LOG:', msg.text()));
 }
 
