@@ -83,6 +83,7 @@ export function applyCharacterActionsToAvatar(character, rig) {
   const landAction = character.getAction('land');
   const flyAction = character.getAction('fly');
   const swimAction = character.getAction('swim');
+  const swimmingOnSurface = swimAction?.onSurface;
   const useAction = character.getAction('use');
   const pickUpAction = character.getAction('pickUp');
   const narutoRunAction = character.getAction('narutoRun');
@@ -123,9 +124,14 @@ export function applyCharacterActionsToAvatar(character, rig) {
   rig.swimState = !!swimAction;
   rig.swimTime = swimAction ? character.actionInterpolants.swim.get() : -1;
   rig.cellphoneDrawState = !!cellphoneDrawAction;
-  rig.cellphoneDrawTime = cellphoneDrawAction ? player.actionInterpolants.cellphoneDraw.get() : 0;
+  rig.cellphoneDrawTime = cellphoneDrawAction ? character.actionInterpolants.cellphoneDraw.get() : 0;
   rig.cellphoneUndrawState = !!cellphoneUndrawAction;
-  rig.cellphoneUndrawTime = cellphoneUndrawAction ? player.actionInterpolants.cellphoneUndraw.get() : 0;
+  rig.cellphoneUndrawTime = cellphoneUndrawAction ? character.actionInterpolants.cellphoneUndraw.get() : 0;
+  rig.swimUpTime = character.actionInterpolants.swimUp.get();
+  rig.swimDownTime = character.actionInterpolants.swimDown.get();
+  rig.horizontalMovementsTransitionTime = character.actionInterpolants.horizontalMovementsTransition.get();
+  rig.swimmingOnSurfaceState = !!swimmingOnSurface;
+  rig.swimmingOnSurfaceTime = character.actionInterpolants.surface.get();
 
   const _handleUse = () => {
     if (useAction?.animation) {
