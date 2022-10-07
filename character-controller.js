@@ -1335,6 +1335,19 @@ class UninterpolatedPlayer extends AvatarCharacter {
         0,
         defaultActionTransitionTime,
       ),
+      horizontalMovementsTransition: new BiActionInterpolant(
+        () => {
+          const ioManager = metaversefile.useIoManager();
+          return  (
+            ioManager.keys.up ||
+            ioManager.keys.down ||
+            ioManager.keys.left ||
+            ioManager.keys.right
+          );
+        },
+        0,
+        defaultActionTransitionTime,
+      ),
       sprint: new BiActionInterpolant(
         () => {
           const ioManager = metaversefile.useIoManager();
