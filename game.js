@@ -1038,7 +1038,7 @@ const _gameUpdate = (timestamp, timeDiff) => {
   if (crosshairEl) {
     const visible =
       !!cameraManager.pointerLockElement &&
-      (['camera', 'firstperson'].includes(
+      (['camera', 'firstperson', 'thirdperson'].includes(
         cameraManager.getMode(),
       ) ||
         localPlayer.hasAction('aim')) &&
