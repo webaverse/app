@@ -51,7 +51,6 @@ import universe from './universe.js';
 import npcManager from './npc-manager.js';
 import settingsManager from './settings-manager.js';
 import grabManager from './grab-manager.js';
-import scene2DManager from './2d-manager.js';
 
 const localVector = new THREE.Vector3();
 const localVector2 = new THREE.Vector3();
@@ -344,7 +343,6 @@ export default class Webaverse extends EventTarget {
           particleSystemManager.update(timestamp, timeDiffCapped);
 
           cameraManager.updatePost(timestamp, timeDiffCapped);
-          scene2DManager.update(timestamp, timeDiffCapped);
           ioManager.updatePost();
 
           game.pushAppUpdates();

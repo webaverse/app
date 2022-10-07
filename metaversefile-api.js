@@ -75,7 +75,6 @@ import * as generationTaskManager from './generation-task-manager.js';
 import ioManager from './io-manager.js';
 import {lightsManager} from './engine-hooks/lights/lights-manager.js';
 import {skyManager} from './engine-hooks/environment/skybox/sky-manager.js';
-import scene2DManager from './2d-manager.js';
 
 const localVector2D = new THREE.Vector2();
 
@@ -873,9 +872,6 @@ metaversefile.setApi({
   },
   useProcGen() {
     return procgen;
-  },
-  useScene2DManager() {
-    return scene2DManager;
   },
   useCameraManager() {
     return cameraManager;
