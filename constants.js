@@ -121,7 +121,7 @@ export const flySpeed = walkSpeed * 5;
 
 export const narutoRunTimeFactor = 2;
 
-export const defaultActionTransitionTime = 200;
+export const crouchMaxTime = 200;
 export const activateMaxTime = 750;
 export const useMaxTime = 750;
 export const aimMaxTime = 1000;

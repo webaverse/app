@@ -12,7 +12,7 @@ import {fixSkeletonZForward} from './vrarmik/SkeletonUtils.js';
 // import Simplex from '../simplex-noise.js';
 import {
   aimTransitionMaxTime,
-  defaultActionTransitionTime,
+  crouchMaxTime,
   idleSpeed,
   runSpeed,
   walkSpeed,
@@ -950,7 +950,7 @@ class Avatar {
     this.aimLeftFactorReverse = 1;
     // this.throwState = null;
     // this.throwTime = 0;
-    this.crouchTime = defaultActionTransitionTime;
+    this.crouchTime = crouchMaxTime;
     this.sitTarget = new THREE.Object3D();
     this.fakeSpeechValue = 0;
     this.fakeSpeechSmoothed = 0;
@@ -1743,7 +1743,7 @@ class Avatar {
       1,
     );
     this.crouchFactor = Math.min(
-      Math.max(1 - this.crouchTime / defaultActionTransitionTime, 0),
+      Math.max(1 - this.crouchTime / crouchMaxTime, 0),
       1,
     );
     // console.log('current speed', currentSpeed, idleWalkFactor, walkRunFactor);
@@ -1752,18 +1752,15 @@ class Avatar {
     this.aimLeftFactor = this.aimLeftTransitionTime / aimTransitionMaxTime;
     this.aimLeftFactorReverse = 1 - this.aimLeftFactor;
     this.movementsTransitionFactor = Math.min(
-      Math.max(this.movementsTransitionTime / defaultActionTransitionTime, 0),
+      Math.max(this.movementsTransitionTime / crouchMaxTime, 0),
       1,
     );
     this.sprintFactor = Math.min(
-      Math.max(this.sprintTime / defaultActionTransitionTime, 0),
+      Math.max(this.sprintTime / crouchMaxTime, 0),
       1,
     );
-    this.cellphoneDrawFactor = Math.min(Math.max(this.cellphoneDrawTime / defaultActionTransitionTime, 0), 1);
-    this.cellphoneUndrawFactor = Math.min(Math.max(this.cellphoneUndrawTime / defaultActionTransitionTime, 0), 1);
-    this.swimUpFactor = Math.min(Math.max(this.swimUpTime / defaultActionTransitionTime, 0), 1);
-    this.swimDownFactor = Math.min(Math.max(this.swimDownTime / defaultActionTransitionTime, 0), 1);
-    this.surfaceFactor = Math.min(Math.max(this.swimmingOnSurfaceTime / defaultActionTransitionTime, 0), 1);
+    this.cellphoneDrawFactor = Math.min(Math.max(this.cellphoneDrawTime / crouchMaxTime, 0), 1);
+    this.cellphoneUndrawFactor = Math.min(Math.max(this.cellphoneUndrawTime / crouchMaxTime, 0), 1);
 
     const _overwritePose = poseName => {
       const poseAnimation = animations.index[poseName];

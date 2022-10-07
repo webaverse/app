@@ -283,15 +283,8 @@ const _updateIo = timeDiff => {
         localPlayer.getAction('swim').animationType = 'null';
       }
     }
-    const swimAction = localPlayer.getAction('swim')
-    if (localPlayer.hasAction('fly') || swimAction) {
-      if(swimAction .onSurface) {
-        const camEuler = camera.rotation.clone();
-        camEuler.x = 0;
-        keysDirection.applyEuler(camEuler);
-      } else {
-        keysDirection.applyQuaternion(camera.quaternion);
-      }
+    if (localPlayer.hasAction('fly') || localPlayer.hasAction('swim')) {
+      keysDirection.applyQuaternion(camera.quaternion);
       _updateVertical(keysDirection);
     } else {
       const cameraEuler = camera.rotation.clone();
