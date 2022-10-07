@@ -581,7 +581,7 @@ class CharacterPhysics {
                 .multiplyScalar(handOffsetScale)
                 .applyQuaternion(localQuaternion),
             );
-          let leftGamepadQuaternion = localQuaternion;
+          const leftGamepadQuaternion = localQuaternion;
           if (scene2DManager.enabled) {
             let cursorPos = scene2DManager.getCursorPosition();
             let tempVec = new THREE.Vector3();
@@ -618,7 +618,7 @@ class CharacterPhysics {
                 .multiplyScalar(handOffsetScale)
                 .applyQuaternion(localQuaternion),
             );
-          let rightGamepadQuaternion = localQuaternion;
+          const rightGamepadQuaternion = localQuaternion;
           if(scene2DManager.enabled) {
             let cursorPos = scene2DManager.getCursorPosition();
             let tempVec = new THREE.Vector3();
