@@ -14,7 +14,6 @@ import {BokehPass} from './BokehPass.js';
 import {SSAOPass} from './SSAOPass.js';
 // import {RenderPass} from './RenderPass.js';
 import {DepthPass} from './DepthPass.js';
-import { PixelShader } from 'three/examples/jsm/shaders/PixelShader.js';
 // import {SwirlPass} from './SwirlPass.js';
 import {
   getRenderer,
@@ -153,19 +152,6 @@ function makeBloomPass({strength = 0.2, radius = 0.5, threshold = 0.8}) {
   // unrealBloomPass.enabled = hqDefault;
   return unrealBloomPass;
 }
-function makePixelPass({pixelSize = 2}) {
-  // const renderer = getRenderer();
-  // const size = renderer.getSize(localVector2D)
-  //   .multiplyScalar(renderer.getPixelRatio());
-  // const resolution = size;
-
-  const pixelPass = new ShaderPass( PixelShader );
-	pixelPass.uniforms[ 'resolution' ].value = new THREE.Vector2( window.innerWidth, window.innerHeight );
-	pixelPass.uniforms[ 'resolution' ].value.multiplyScalar( window.devicePixelRatio );
-  pixelPass.uniforms[ 'pixelSize' ].value = pixelSize;
-
-  return pixelPass;
-}
 /* function makeWebaWaterPass(webaWater) {
   const renderer = getRenderer();
   const webaWaterPass = new WebaWaterPass( {
@@ -276,7 +262,6 @@ class PostProcessing extends EventTarget {
         hdr,
         bloom,
         /* postPostProcessScene, */ /* swirl, */ webaWater,
-        pixel
       } = rendersettings;
       let depthPass = null;
       if (ssao || dof) {
@@ -302,10 +287,6 @@ class PostProcessing extends EventTarget {
       if (bloom) {
         const bloomPass = makeBloomPass(bloom);
         passes.push(bloomPass);
-      }
-      if (pixel) {
-        const pixelPass = makePixelPass(pixel);
-        passes.push(pixelPass);
       }
       /* if (postPostProcessScene) {
         const {postPerspectiveScene, postOrthographicScene} = postPostProcessScene;

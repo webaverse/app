@@ -9,7 +9,6 @@ import {playersManager} from './players-manager.js';
 // import * as sounds from './sounds.js';
 // import { updateRaycasterFromMouseEvent } from './util.js';
 import easing from './easing.js';
-import scene2DManager from './2d-manager.js';
 
 const cubicBezier = easing(0, 1, 0, 1);
 const cubicBezier2 = easing(0.5, 0, 0.5, 1);
@@ -218,10 +217,6 @@ class CameraManager extends EventTarget {
     camera.updateMatrixWorld();
   }
 
-  getViewFactor() {
-    return scene2DManager.enabled ? scene2DManager.viewSize : 0;
-  }
-
   async requestPointerLock() {
     // const localPointerLockEpoch = ++this.pointerLockEpoch;
     for (const options of [
@@ -294,13 +289,9 @@ class CameraManager extends EventTarget {
 
   getMode() {
     if (this.target || this.cinematicScript) {
-      return 'thirdperson';
-    }
-    else if (scene2DManager.enabled) {
-      return scene2DManager.perspective;
-    }
-    else {
-      return cameraOffset.z > -0.5 ? 'firstperson' : 'thirdperson';
+      return 'isometric';
+    } else {
+      return cameraOffset.z > -0.5 ? 'firstperson' : 'isometric';
     }
   }
 
@@ -734,16 +725,6 @@ class CameraManager extends EventTarget {
       };
       _lerpCameraOffset();
 
-      const _isOutOfView = () => {
-        const frustum = new THREE.Frustum()
-        const matrix = new THREE.Matrix4().multiplyMatrices(camera.projectionMatrix, camera.matrixWorldInverse)
-        frustum.setFromProjectionMatrix(matrix)
-        if (!frustum.containsPoint(localPlayer.position)) {
-            return true;
-        }
-        return false;
-      }
-
       const _setFreeCamera = () => {
         const avatarCameraOffset = session
           ? rayVectorZero
@@ -809,7 +790,7 @@ class CameraManager extends EventTarget {
 
             break;
           }
-          case 'thirdperson': {
+          case 'isometric': {
             this.targetPosition
               .copy(localPlayer.position)
               .sub(
@@ -818,36 +799,6 @@ class CameraManager extends EventTarget {
                   .applyQuaternion(this.targetQuaternion),
               );
 
-            break;
-          }
-          case 'side-scroll': {
-            if(scene2DManager.cameraMode === "fixed") {
-              if(scene2DManager.scrollDirection === "horizontal") {
-                let offset = new THREE.Vector3(localPlayer.position.x, localPlayer.position.y, 0).sub(new THREE.Vector3(camera.position.x, localPlayer.position.y, 0));
-                this.targetPosition.copy(new THREE.Vector3(localPlayer.position.x, localPlayer.position.y, 0)).add(new THREE.Vector3(offset.x, offset.y, 0));
-                break;
-              }
-              else if (scene2DManager.scrollDirection === "vertical") {
-                let offset = new THREE.Vector3(localPlayer.position.x, localPlayer.position.y, 0).sub(new THREE.Vector3(camera.position.x, localPlayer.position.y, 0));
-                this.targetPosition.copy(new THREE.Vector3(0,localPlayer.position.y, 0)).add(new THREE.Vector3(0, offset.y, 0));
-                break;
-              }
-            }
-
-            this.targetPosition.copy(localPlayer.position)
-              .sub(
-                localVector2.copy(avatarCameraOffset)
-                  .applyQuaternion(this.targetQuaternion)
-              );
-
-            break;
-          }
-          case 'isometric': {
-            camera.rotation.order = 'YXZ';
-            camera.rotation.y = - Math.PI / 4;
-            camera.rotation.x = Math.atan( - 1 / Math.sqrt( 2 ) );
-
-            this.targetPosition.copy(localPlayer.position).add(new THREE.Vector3(0,0,50).applyQuaternion(camera.quaternion));
             break;
           }
           default: {
@@ -867,40 +818,11 @@ class CameraManager extends EventTarget {
 
         localEuler.setFromQuaternion(this.targetQuaternion, 'YXZ');
         localEuler.z = 0;
-
-        if(!scene2DManager.enabled) {
-          camera.quaternion
-            .copy(this.sourceQuaternion)
-            .slerp(localQuaternion.setFromEuler(localEuler), factor);
-        }
-        else {
-          switch (scene2DManager.perspective) {
-            case 'isometric': {
-              camera.rotation.order = 'YXZ';
-              camera.rotation.y = - Math.PI / 4;
-              camera.rotation.x = Math.atan( - 1 / Math.sqrt( 2 ) );
-              break;
-            }
-            case 'side-scroll': {
-              camera.quaternion.copy(this.sourceQuaternion)
-                .slerp(localQuaternion.setFromEuler(localEuler), factor);
-              break;
-            }
-            default: {
-              camera.quaternion.copy(this.sourceQuaternion)
-                .slerp(localQuaternion.setFromEuler(localEuler), factor);
-              break;
-            }
-          }
-        }
+        camera.quaternion
+          .copy(this.sourceQuaternion)
+          .slerp(localQuaternion.setFromEuler(localEuler), factor);
       };
-      if(scene2DManager.enabled) {
-        if(scene2DManager.cameraMode === "follow" || _isOutOfView()) {
-          _setFreeCamera();
-        }
-      } else {
-        _setFreeCamera();
-      }
+      _setFreeCamera();
     }
 
     const _setCameraFov = () => {

@@ -8,7 +8,6 @@ import {EffectComposer} from 'three/examples/jsm/postprocessing/EffectComposer.j
 import {makePromise} from './util.js';
 import {minFov} from './constants.js';
 import {WebaverseScene} from './webaverse-scene.js';
-import cameraManager from './camera-manager.js';
 
 // XXX enable this when the code is stable; then, we will have many more places to add missing matrix updates
 // THREE.Object3D.DefaultMatrixAutoUpdate = false;
@@ -89,29 +88,6 @@ function getComposer() {
   return composer;
 }
 
-function setCameraType (perspective, vSize = 15, mode = 'side-scroll') {
-
-  camera.position.set(0, 1.6, 0);
-
-  dolly.position.set(epsilon, epsilon, epsilon);
-  dolly.updateMatrixWorld();
-
-  if(perspective == "orthographic") {
-    let canvasWidth = window.innerWidth;
-    let canvasHeight = window.innerHeight;
-    let aspectRatio =  canvasWidth/canvasHeight;
-    let viewSize = vSize;
-
-    camera = new THREE.OrthographicCamera(-aspectRatio*viewSize/2, aspectRatio*viewSize/2, viewSize/2, -viewSize/2, 0.1, 100);
-    camera.position.set(0, 0, 100);
-    camera.name = 'orthographicCamera';
-  }
-  else {
-    camera = oldCamera;
-    _setSizes();
-  }
-}
-
 const scene = new THREE.Scene();
 scene.name = 'scene';
 const sceneHighPriority = new THREE.Scene();
@@ -138,12 +114,10 @@ rootScene.add(sceneLowestPriority);
 // const orthographicScene = new THREE.Scene();
 // const avatarScene = new THREE.Scene();
 
-let camera = new THREE.PerspectiveCamera(minFov, 1, 0.1, 10000);
+const camera = new THREE.PerspectiveCamera(minFov, 1, 0.1, 10000);
 camera.position.set(0, 1.6, 0);
 camera.rotation.order = 'YXZ';
 camera.name = 'sceneCamera';
-
-const oldCamera = camera.clone();
 /* const avatarCamera = camera.clone();
 avatarCamera.near = 0.2;
 avatarCamera.updateProjectionMatrix(); */
@@ -211,10 +185,6 @@ const _setComposerSize = (width, height, pixelRatio) => {
 const _setCameraSize = (width, height, pixelRatio) => {
   const aspect = width / height;
   camera.aspect = aspect;
-  if(camera.isOrthographicCamera) {
-    camera.left = cameraManager.getViewFactor() * aspect / -2;
-    camera.right = cameraManager.getViewFactor() * aspect / 2;
-  }
   camera.updateProjectionMatrix();
 };
 
@@ -250,7 +220,6 @@ export {
   getRenderer,
   getContainerElement,
   getComposer,
-  setCameraType,
   scene,
   rootScene,
   // postSceneOrthographic,
