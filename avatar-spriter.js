@@ -13,7 +13,7 @@ import {
   runSpeed,
   crouchSpeed,
   narutoRunSpeed,
-  crouchMaxTime,
+  defaultActionTransitionTime,
 } from './constants.js';
 import {emoteAnimations} from './avatars/animationHelpers.js';
 
@@ -1272,7 +1272,7 @@ const getSpriteSpecs = () => {
               localRig.update(timestamp, timeDiffMs);
             },
             cleanup() {
-              localRig.crouchTime = crouchMaxTime;
+              localRig.crouchTime = defaultActionTransitionTime;
             },
           };
         },
@@ -1316,7 +1316,7 @@ const getSpriteSpecs = () => {
               localRig.update(timestamp, timeDiffMs);
             },
             cleanup() {
-              localRig.crouchTime = crouchMaxTime;
+              localRig.crouchTime = defaultActionTransitionTime;
             },
           };
         },
@@ -1360,7 +1360,7 @@ const getSpriteSpecs = () => {
               localRig.update(timestamp, timeDiffMs);
             },
             cleanup() {
-              localRig.crouchTime = crouchMaxTime;
+              localRig.crouchTime = defaultActionTransitionTime;
             },
           };
         },
@@ -1404,7 +1404,7 @@ const getSpriteSpecs = () => {
               localRig.update(timestamp, timeDiffMs);
             },
             cleanup() {
-              localRig.crouchTime = crouchMaxTime;
+              localRig.crouchTime = defaultActionTransitionTime;
             },
           };
         },
@@ -1448,7 +1448,7 @@ const getSpriteSpecs = () => {
               localRig.update(timestamp, timeDiffMs);
             },
             cleanup() {
-              localRig.crouchTime = crouchMaxTime;
+              localRig.crouchTime = defaultActionTransitionTime;
             },
           };
         },
@@ -1575,7 +1575,7 @@ const getSpriteSpecs = () => {
             value: 1,
           });
           localRig.emoteAnimation = 'angry';
-          localRig.emoteFactor = crouchMaxTime;
+          localRig.emoteFactor = defaultActionTransitionTime;
           localRig.update(0, 0);
           let _timestamp = 0;
           return {
@@ -1609,7 +1609,7 @@ const getSpriteSpecs = () => {
             value: 1,
           });
           localRig.emoteAnimation = 'alert';
-          localRig.emoteFactor = crouchMaxTime;
+          localRig.emoteFactor = defaultActionTransitionTime;
           localRig.update(0, 0);
           let _timestamp = 0;
           return {
@@ -1643,7 +1643,7 @@ const getSpriteSpecs = () => {
             value: 1,
           });
           localRig.emoteAnimation = 'victory';
-          localRig.emoteFactor = crouchMaxTime;
+          localRig.emoteFactor = defaultActionTransitionTime;
           localRig.update(0, 0);
           let _timestamp = 0;
           return {
@@ -1677,7 +1677,7 @@ const getSpriteSpecs = () => {
             value: 1,
           });
           localRig.emoteAnimation = 'surprise';
-          localRig.emoteFactor = crouchMaxTime;
+          localRig.emoteFactor = defaultActionTransitionTime;
           localRig.update(0, 0);
           let _timestamp = 0;
           return {
@@ -1711,7 +1711,7 @@ const getSpriteSpecs = () => {
             value: 1,
           });
           localRig.emoteAnimation = 'sad';
-          localRig.emoteFactor = crouchMaxTime;
+          localRig.emoteFactor = defaultActionTransitionTime;
           localRig.update(0, 0);
           let _timestamp = 0;
           return {
@@ -1745,7 +1745,7 @@ const getSpriteSpecs = () => {
             value: 1,
           });
           localRig.emoteAnimation = 'headShake';
-          localRig.emoteFactor = crouchMaxTime;
+          localRig.emoteFactor = defaultActionTransitionTime;
           localRig.update(0, 0);
           let _timestamp = 0;
           return {
@@ -1779,7 +1779,7 @@ const getSpriteSpecs = () => {
             value: 1,
           });
           localRig.emoteAnimation = 'headNod';
-          localRig.emoteFactor = crouchMaxTime;
+          localRig.emoteFactor = defaultActionTransitionTime;
           localRig.update(0, 0);
           let _timestamp = 0;
           return {
@@ -1813,7 +1813,7 @@ const getSpriteSpecs = () => {
             value: 1,
           });
           localRig.emoteAnimation = 'embarrassed';
-          localRig.emoteFactor = crouchMaxTime;
+          localRig.emoteFactor = defaultActionTransitionTime;
           localRig.update(0, 0);
           let _timestamp = 0;
           return {
