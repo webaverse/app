@@ -77,10 +77,10 @@ const generateStats = (seed = '', count = 1) => {
       lck: Math.floor(rng() * 0xff),
       details: makeRandom(rng, 32),
     };
-    result.push({
+    return {
       art,
       stats,
-    });
+    };
   }
   return result;
 };
