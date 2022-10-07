@@ -19,7 +19,7 @@ import {
   actionsMapName,
   appsMapName,
   playersMapName,
-  crouchMaxTime,
+  defaultActionTransitionTime,
   activateMaxTime,
   // useMaxTime,
   aimTransitionMaxTime,
@@ -1099,7 +1099,7 @@ class InterpolatedPlayer extends AvatarCharacter {
       crouch: new BiActionInterpolant(
         () => this.actionBinaryInterpolants.crouch.get(),
         0,
-        crouchMaxTime,
+        defaultActionTransitionTime,
       ),
       activate: new UniActionInterpolant(
         () => this.actionBinaryInterpolants.activate.get(),
@@ -1199,7 +1199,7 @@ class InterpolatedPlayer extends AvatarCharacter {
           );
         },
         0,
-        crouchMaxTime,
+        defaultActionTransitionTime,
       ),
       sprint: new BiActionInterpolant(
         () => {
@@ -1207,7 +1207,7 @@ class InterpolatedPlayer extends AvatarCharacter {
           return ioManager.keys.shift;
         },
         0,
-        crouchMaxTime,
+        defaultActionTransitionTime,
       ),
     };
     this.actionInterpolantsArray = Object.keys(this.actionInterpolants).map(
@@ -1260,7 +1260,7 @@ class UninterpolatedPlayer extends AvatarCharacter {
       crouch: new BiActionInterpolant(
         () => this.hasAction('crouch'),
         0,
-        crouchMaxTime,
+        defaultActionTransitionTime,
       ),
       activate: new UniActionInterpolant(
         () => this.hasAction('activate'),
@@ -1302,12 +1302,12 @@ class UninterpolatedPlayer extends AvatarCharacter {
       dance: new BiActionInterpolant(
         () => this.hasAction('dance'),
         0,
-        crouchMaxTime,
+        defaultActionTransitionTime,
       ),
       emote: new BiActionInterpolant(
         () => this.hasAction('emote'),
         0,
-        crouchMaxTime,
+        defaultActionTransitionTime,
       ),
       movements: new InfiniteActionInterpolant(() => {
         const ioManager = metaversefile.useIoManager();
@@ -1315,7 +1315,9 @@ class UninterpolatedPlayer extends AvatarCharacter {
           ioManager.keys.up ||
           ioManager.keys.down ||
           ioManager.keys.left ||
-          ioManager.keys.right
+          ioManager.keys.right ||
+          ioManager.keys.space ||
+          ioManager.keys.ctrl
         );
       }, 0),
       movementsTransition: new BiActionInterpolant(
@@ -1325,11 +1327,26 @@ class UninterpolatedPlayer extends AvatarCharacter {
             ioManager.keys.up ||
             ioManager.keys.down ||
             ioManager.keys.left ||
+            ioManager.keys.right ||
+            ioManager.keys.space ||
+            ioManager.keys.ctrl
+          );
+        },
+        0,
+        defaultActionTransitionTime,
+      ),
+      horizontalMovementsTransition: new BiActionInterpolant(
+        () => {
+          const ioManager = metaversefile.useIoManager();
+          return  (
+            ioManager.keys.up ||
+            ioManager.keys.down ||
+            ioManager.keys.left ||
             ioManager.keys.right
           );
         },
         0,
-        crouchMaxTime,
+        defaultActionTransitionTime,
       ),
       sprint: new BiActionInterpolant(
         () => {
@@ -1337,7 +1354,7 @@ class UninterpolatedPlayer extends AvatarCharacter {
           return ioManager.keys.shift;
         },
         0,
-        crouchMaxTime,
+        defaultActionTransitionTime,
       ),
       // throw: new UniActionInterpolant(() => this.hasAction('throw'), 0, throwMaxTime),
       // chargeJump: new InfiniteActionInterpolant(() => this.hasAction('chargeJump'), 0),
@@ -1356,6 +1373,17 @@ class UninterpolatedPlayer extends AvatarCharacter {
       hurt: new InfiniteActionInterpolant(() => this.hasAction('hurt'), 0),
       cellphoneDraw: new BiActionInterpolant(() => this.hasAction('cellphoneDraw'), 0, 1000),
       cellphoneUndraw: new BiActionInterpolant(() => this.hasAction('cellphoneUndraw'), 0, 1000),
+      swimUp: new BiActionInterpolant(() => {
+        const ioManager = metaversefile.useIoManager();
+        return  ioManager.keys.space;
+      }, 0, defaultActionTransitionTime),
+      swimDown: new BiActionInterpolant(() => {
+        const ioManager = metaversefile.useIoManager();
+        return  ioManager.keys.ctrl;
+      }, 0, defaultActionTransitionTime),
+      surface: new BiActionInterpolant(() => {
+        return  !this.avatar.swimmingOnSurfaceState;
+      }, 0, defaultActionTransitionTime),
     };
     this.actionInterpolantsArray = Object.keys(this.actionInterpolants).map(
       k => this.actionInterpolants[k],
