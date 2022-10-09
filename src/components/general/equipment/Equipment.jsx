@@ -16,7 +16,7 @@ import game from '../../../../game.js';
 import {transparentPngUrl} from '../../../../constants.js';
 import * as sounds from '../../../../sounds.js';
 import {mod} from '../../../../util.js';
-import { ChainContext } from '../../../hooks/chainProvider';
+import {ChainContext} from '../../../hooks/chainProvider';
 import dropManager from '../../../../drop-manager';
 import cardsManager from '../../../../cards-manager.js';
 import useSolanaNFTContract from '../../../hooks/useSolanaNFTContract';
@@ -296,12 +296,14 @@ export const Equipment = () => {
   const {state, account} = useContext(AppContext);
   const [hoverObject, setHoverObject] = useState(null);
   const [selectObject, setSelectObject] = useState(null);
-  const [ inventoryObject, setInventoryObject ] = useState([]);
+  const [inventoryObject, setInventoryObject] = useState([]);
   // const [ spritesheet, setSpritesheet ] = useState(null);
   const [faceIndex, setFaceIndex] = useState(1);
-  const { selectedChain, supportedChain } = useContext(ChainContext)
+  const {selectedChain, supportedChain} = useContext(ChainContext);
   const [claims, setClaims] = useState([]);
-  const {mintSolanaNFT, getNftsForOwner} = useSolanaNFTContract(account.currentAddress);
+  const {mintSolanaNFT, getNftsForOwner} = useSolanaNFTContract(
+    account.currentAddress,
+  );
   const [cachedLoader, setCachedLoader] = useState(
     () =>
       new CachedLoader({
@@ -323,42 +325,45 @@ export const Equipment = () => {
   const open = state.openedPanel === 'CharacterPanel';
 
   useEffect(() => {
-    if(open) {
-        console.log("inventory tab open", account.walletType)
-        async function setupInventory() {  // NFT inventory
-            let inventoryItems;
-            if(account.walletType == "metamask") {
-                inventoryItems = [];
-            }
-
-            if(account.walletType == "phantom") {
-                inventoryItems = [];
-                const tokens = await getNftsForOwner('Assest')
-                console.log("inventory tokens", tokens)
-                inventoryItems = tokens.map((token, id) => {
-                    return {
-                        tokenId: token.tokenId,
-                        name: token.name ?? "",
-                        start_url: token.image,
-                        level: token.level ?? 1,
-                        // type: "major",
-                        type: "minor",
-                        claimed: true
-                    };
-                });
-
-            }
-
-            console.log("inventory items", inventoryItems)
-            setInventoryObject(inventoryItems);
+    if (open) {
+      console.log('inventory tab open', account.walletType);
+      async function setupInventory() {
+        // NFT inventory
+        let inventoryItems;
+        if (account.walletType === 'metamask') {
+          inventoryItems = [];
         }
 
-        setupInventory().catch((error)=> {
-            console.warn('unable to retrieve inventory')
-            setInventoryObject([]);
-        });
-    }
+        if (account.walletType === 'phantom') {
+          inventoryItems = [];
+          const tokens = await getNftsForOwner('Assest');
+          console.log('inventory tokens', tokens);
+          inventoryItems = tokens.map((token, id) => {
+            return {
+              tokenId: token.tokenId,
+              name: token.name ?? '',
+              start_url: token.image,
+              level: token.level ?? 1,
+              // type: "major",
+              type: 'minor',
+              claimed: true,
+            };
+          });
+        }
 
+        console.log('inventory items', inventoryItems);
+        setInventoryObject(inventoryItems);
+      }
+
+      try {
+        setupInventory();
+      } catch (e) {
+        console.warn('unable to retrieve inventory');
+        setInventoryObject([]);
+      } finally {
+        console.log('We do cleanup here');
+      }
+    }
   }, [open, state.openedPanel, claims]);
 
   const onMouseEnter = object => () => {
@@ -478,26 +483,26 @@ export const Equipment = () => {
     }
   }, [open, selectObject]);
 
-//   useEffect(() => {
-//         if (account && account.currentAddress) {
-//           async function queryOpensea() {
-//             const POLYGON_API_KEY = 'bN2G8nP-vDFAnRXksfpd7I7g5f9c0GqD'
-//             const walletAddress = "0xB565D3A7Bcf568f231726585e0b84f9E2a3722dB"
-//             const collectionAddress = "0xF8c73621f7E50f399eB24C7D7858f919f9deFa86"
-//             const baseURL = `https://polygon-mainnet.g.alchemy.com/v2/${POLYGON_API_KEY}/getNFTs/`
-//             const nftList = await fetch(`${baseURL}?owner=${walletAddress}&contractAddresses%5B%5D=${collectionAddress}`,
-//             {
-//                 method: 'get',
-//                 redirect: 'follow'
-//             }).then(response => response.json())
-//             console.log("NFT list", nftList)
-//           }
-//           queryOpensea();
-//         } else {
-//             console.log('could not query NFT collections')
-//         }
+  //   useEffect(() => {
+  //         if (account && account.currentAddress) {
+  //           async function queryOpensea() {
+  //             const POLYGON_API_KEY = 'bN2G8nP-vDFAnRXksfpd7I7g5f9c0GqD'
+  //             const walletAddress = "0xB565D3A7Bcf568f231726585e0b84f9E2a3722dB"
+  //             const collectionAddress = "0xF8c73621f7E50f399eB24C7D7858f919f9deFa86"
+  //             const baseURL = `https://polygon-mainnet.g.alchemy.com/v2/${POLYGON_API_KEY}/getNFTs/`
+  //             const nftList = await fetch(`${baseURL}?owner=${walletAddress}&contractAddresses%5B%5D=${collectionAddress}`,
+  //             {
+  //                 method: 'get',
+  //                 redirect: 'follow'
+  //             }).then(response => response.json())
+  //             console.log("NFT list", nftList)
+  //           }
+  //           queryOpensea();
+  //         } else {
+  //             console.log('could not query NFT collections')
+  //         }
 
-//   }, [open, selectedChain, account])
+  //   }, [open, selectedChain, account])
 
   useEffect(() => {
     setSelectObject(null);
