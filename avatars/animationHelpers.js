@@ -838,12 +838,7 @@ export const _applyAnimation = (avatar, now) => {
   const _getApplyFn = () => {
     if (avatar.cellphoneDrawState) {
       return spec => {
-        const {
-          animationTrackName: k,
-          dst,
-          isPosition,
-          boneName,
-        } = spec;
+        const {animationTrackName: k, dst, isPosition, boneName} = spec;
 
         _handleDefault(spec);
         const t2 = avatar.cellphoneDrawTime / 1000;
@@ -868,14 +863,9 @@ export const _applyAnimation = (avatar, now) => {
           }
         }
       };
-    } else if(avatar.cellphoneUndrawState) {
+    } else if (avatar.cellphoneUndrawState) {
       return spec => {
-        const {
-          animationTrackName: k,
-          dst,
-          isPosition,
-          boneName,
-        } = spec;
+        const {animationTrackName: k, dst, isPosition, boneName} = spec;
 
         _handleDefault(spec);
         const t2 = avatar.cellphoneUndrawTime / 1000;
@@ -1496,22 +1486,46 @@ export const _applyAnimation = (avatar, now) => {
         localQuaternion2.fromArray(v2);
         localQuaternion3.fromArray(v3);
         localQuaternion4.fromArray(v4);
-        localQuaternion5.set(0,0,0,1);
-        localQuaternion6.set(1,0,0,0);
+        localQuaternion5.set(0, 0, 0, 1);
+        localQuaternion6.set(1, 0, 0, 0);
 
-        if(!avatar.swimmingOnSurfaceState || (avatar.swimmingOnSurfaceState && avatar.horizontalMovementsTransitionFactor > 0)) {
+        if (
+          !avatar.swimmingOnSurfaceState ||
+          (avatar.swimmingOnSurfaceState &&
+            avatar.horizontalMovementsTransitionFactor > 0)
+        ) {
           localQuaternion3.slerp(localQuaternion4, avatar.sprintFactor);
-          localQuaternion2.slerp(localQuaternion3, avatar.movementsTransitionFactor);
+          localQuaternion2.slerp(
+            localQuaternion3,
+            avatar.movementsTransitionFactor,
+          );
         }
 
-        if(boneName === 'Hips') {
-          if(avatar.swimUpFactor > 0 && avatar.horizontalMovementsTransitionFactor === 0) {
-            localQuaternion2.slerp(localQuaternion5, avatar.swimUpFactor * avatar.surfaceFactor);
-          } else if(avatar.swimDownFactor > 0 && avatar.horizontalMovementsTransitionFactor === 0) {
+        if (boneName === 'Hips') {
+          if (
+            avatar.swimUpFactor > 0 &&
+            avatar.horizontalMovementsTransitionFactor === 0
+          ) {
+            localQuaternion2.slerp(
+              localQuaternion5,
+              avatar.swimUpFactor * avatar.surfaceFactor,
+            );
+          } else if (
+            avatar.swimDownFactor > 0 &&
+            avatar.horizontalMovementsTransitionFactor === 0
+          ) {
             localQuaternion2.slerp(localQuaternion6, avatar.swimDownFactor);
           } else {
-            const fU = avatar.swimUpFactor / (avatar.swimUpFactor + avatar.horizontalMovementsTransitionFactor) * avatar.surfaceFactor || 0;
-            const fD = avatar.swimDownFactor / (avatar.swimDownFactor + avatar.horizontalMovementsTransitionFactor) * avatar.surfaceFactor || 0;
+            const fU =
+              (avatar.swimUpFactor /
+                (avatar.swimUpFactor +
+                  avatar.horizontalMovementsTransitionFactor)) *
+                avatar.surfaceFactor || 0;
+            const fD =
+              (avatar.swimDownFactor /
+                (avatar.swimDownFactor +
+                  avatar.horizontalMovementsTransitionFactor)) *
+                avatar.surfaceFactor || 0;
             localQuaternion2.slerp(localQuaternion5, fU);
             localQuaternion2.slerp(localQuaternion6, fD);
           }
@@ -1519,7 +1533,11 @@ export const _applyAnimation = (avatar, now) => {
         dst.slerp(localQuaternion2, f);
       } else {
         localVector2.fromArray(v2);
-        if(!avatar.swimmingOnSurfaceState || (avatar.swimmingOnSurfaceState && avatar.horizontalMovementsTransitionFactor > 0)) {
+        if (
+          !avatar.swimmingOnSurfaceState ||
+          (avatar.swimmingOnSurfaceState &&
+            avatar.horizontalMovementsTransitionFactor > 0)
+        ) {
           const liftSwims = 0.035 * avatar.height; // lift swims height, prevent head sink in water
           localVector3.fromArray(v3);
           localVector3.y += liftSwims;

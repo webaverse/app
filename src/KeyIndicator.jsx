@@ -6,16 +6,21 @@ export const KeyIndicator = props => {
     <div className={styles.container}>
       <div className={styles.bg}>
         {props.indicator ? (
-            <span className={styles.indicator}>
-              {props.indicator}
-            </span>
+          <span className={styles.indicator}>{props.indicator}</span>
         ) : null}
         {props.indicatorSvg ? (
-            <img className={styles.indicatorsvg} src={props.indicatorSvg} />
+          <img className={styles.indicatorsvg} src={props.indicatorSvg} />
         ) : null}
       </div>
       <div className={styles.label}>
-        <span>{props.label}{props.gridSnapEnabled > 0 ? props.gridSnapEnabled : (props.gridSnapEnabled === 0 ? 'Off' : null)}</span>
+        <span>
+          {props.label}
+          {props.gridSnapEnabled > 0
+            ? props.gridSnapEnabled
+            : props.gridSnapEnabled === 0
+            ? 'Off'
+            : null}
+        </span>
       </div>
     </div>
   );

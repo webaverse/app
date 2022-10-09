@@ -82,7 +82,7 @@ class DomItem extends THREE.Object3D {
 
   update(timestamp) {
     if (this.animation) {
-      const { startTime, endTime, startValue, endValue } = this.animation;
+      const {startTime, endTime, startValue, endValue} = this.animation;
       let factor = Math.min(
         Math.max((timestamp - startTime) / (endTime - startTime), 0),
         1,
@@ -147,7 +147,7 @@ class DomItem extends THREE.Object3D {
 }
 
 class BackgroundMesh extends THREE.Mesh {
-  constructor({ width, height }) {
+  constructor({width, height}) {
     const scaleFactor = DomRenderEngine.getScaleFactor(width, height);
     const worldWidth = width * scaleFactor;
     const worldHeight = height * scaleFactor;
@@ -184,7 +184,7 @@ class BackgroundMesh extends THREE.Mesh {
 }
 
 class PunchoutMesh extends THREE.Mesh {
-  constructor({ width, height }) {
+  constructor({width, height}) {
     const scaleFactor = DomRenderEngine.getScaleFactor(width, height);
     const worldWidth = width * scaleFactor;
     const worldHeight = height * scaleFactor;

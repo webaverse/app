@@ -4,7 +4,7 @@ set the avatar state from the character state */
 import * as THREE from 'three';
 import Avatar from './avatars/avatars.js';
 // import {unFrustumCull, enableShadows} from './util.js';
-import { getEyePosition } from './avatars/util.mjs';
+import {getEyePosition} from './avatars/util.mjs';
 // import {playersManager} from './players-manager.js';
 
 const appSymbol = 'app'; // Symbol('app');
@@ -37,7 +37,7 @@ export function applyCharacterModesToAvatar(character, session, rig) {
   }
   rig.setTopEnabled(
     !!session &&
-    (rig.inputs.leftGamepad.enabled || rig.inputs.rightGamepad.enabled),
+      (rig.inputs.leftGamepad.enabled || rig.inputs.rightGamepad.enabled),
   );
   rig.setBottomEnabled(
     rig.getTopEnabled() /* ||
@@ -124,12 +124,17 @@ export function applyCharacterActionsToAvatar(character, rig) {
   rig.swimState = !!swimAction;
   rig.swimTime = swimAction ? character.actionInterpolants.swim.get() : -1;
   rig.cellphoneDrawState = !!cellphoneDrawAction;
-  rig.cellphoneDrawTime = cellphoneDrawAction ? character.actionInterpolants.cellphoneDraw.get() : 0;
+  rig.cellphoneDrawTime = cellphoneDrawAction
+    ? character.actionInterpolants.cellphoneDraw.get()
+    : 0;
   rig.cellphoneUndrawState = !!cellphoneUndrawAction;
-  rig.cellphoneUndrawTime = cellphoneUndrawAction ? character.actionInterpolants.cellphoneUndraw.get() : 0;
+  rig.cellphoneUndrawTime = cellphoneUndrawAction
+    ? character.actionInterpolants.cellphoneUndraw.get()
+    : 0;
   rig.swimUpTime = character.actionInterpolants.swimUp.get();
   rig.swimDownTime = character.actionInterpolants.swimDown.get();
-  rig.horizontalMovementsTransitionTime = character.actionInterpolants.horizontalMovementsTransition.get();
+  rig.horizontalMovementsTransitionTime =
+    character.actionInterpolants.horizontalMovementsTransition.get();
   rig.swimmingOnSurfaceState = !!swimmingOnSurface;
   rig.swimmingOnSurfaceTime = character.actionInterpolants.surface.get();
 

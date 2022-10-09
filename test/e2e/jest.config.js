@@ -6,12 +6,10 @@
 // )
 
 module.exports = {
-  preset: "jest-puppeteer",
-  testMatch: [
-    "./**.test.js"
-  ],
+  preset: 'jest-puppeteer',
+  testMatch: ['./**.test.js'],
   verbose: false,
-  notifyMode: "always",
-  maxWorkers: "50%",
+  notifyMode: 'always',
+  maxWorkers: '50%',
   maxConcurrency: 1,
 };

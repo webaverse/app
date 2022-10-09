@@ -112,21 +112,25 @@ export default function useNFTContract(currentAccount) {
       const type = 'upload';
       let load = null;
 
-      const json_hash = await handleBlobUpload(metadataFileName, new Blob([JSON.stringify(metadata)], {type: 'text/plain'}), {
-            onTotal(total) {
-                load = registerLoad(type, metadataFileName, 0, total);
-            },
-            onProgress(e) {
-                if (load) {
-                    load.update(e.loaded, e.total);
-                } else {
-                    load = registerLoad(type, metadataFileName, e.loaded, e.total);
-                }
-            },
-        });
-        if (load) {
-            load.end();
-        }
+      const json_hash = await handleBlobUpload(
+        metadataFileName,
+        new Blob([JSON.stringify(metadata)], {type: 'text/plain'}),
+        {
+          onTotal(total) {
+            load = registerLoad(type, metadataFileName, 0, total);
+          },
+          onProgress(e) {
+            if (load) {
+              load.update(e.loaded, e.total);
+            } else {
+              load = registerLoad(type, metadataFileName, e.loaded, e.total);
+            }
+          },
+        },
+      );
+      if (load) {
+        load.end();
+      }
 
       const ipfsHash = json_hash.split(FILE_ADDRESS)[1].split('/')[0];
       const Webaversecontract = new ethers.Contract(

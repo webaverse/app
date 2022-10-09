@@ -1,6 +1,6 @@
 module.exports = {
-	launch: {
-		headless: true,
-		devtools: true
-	}
-}
+  launch: {
+    headless: true,
+    devtools: true,
+  },
+};

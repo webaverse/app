@@ -282,9 +282,9 @@ const _updateIo = timeDiff => {
         localPlayer.getAction('swim').animationType = 'null';
       }
     }
-    const swimAction = localPlayer.getAction('swim')
+    const swimAction = localPlayer.getAction('swim');
     if (localPlayer.hasAction('fly') || swimAction) {
-      if(swimAction .onSurface) {
+      if (swimAction.onSurface) {
         const camEuler = camera.rotation.clone();
         camEuler.x = 0;
         keysDirection.applyEuler(camEuler);

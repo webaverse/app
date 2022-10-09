@@ -16,7 +16,7 @@ async function loadCryptoAvatarsCharacters(
   ownership = undefined,
   collectionAddress = defaultCollectionAddress,
   itemsPerPage = 5,
-  walletAddress
+  walletAddress,
 ) {
   const apiUrl = !url
     ? 'https://api.cryptoavatars.io/v1/nfts/avatars/list?skip=0&limit=' +
@@ -62,7 +62,7 @@ async function loadCryptoAvatarsCharacters(
     }
 
     const caResponse = await res.json();
-    console.log("caRespnose", caResponse)
+    console.log('caRespnose', caResponse);
     const avatarsWebaverseFormat = caResponse.nfts.map(avatar => {
       const avatarClass = avatar.metadata.tags
         ? avatar.metadata.tags[0]
@@ -105,14 +105,14 @@ async function getCryptoAvatars(
   ownership,
   collection,
   itemsPerPage,
-  walletAddress
+  walletAddress,
 ) {
   const caResponse = await loadCryptoAvatarsCharacters(
     url,
     ownership,
     collection,
     itemsPerPage,
-    walletAddress
+    walletAddress,
   );
   return caResponse;
 }
