@@ -1,3 +1,2 @@
-
-import { Minimap } from './Minimap';
-export { Minimap };
+import {Minimap} from './Minimap';
+export {Minimap};

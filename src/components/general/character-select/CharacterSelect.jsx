@@ -196,7 +196,7 @@ export const CharacterSelect = () => {
   const [caPagination, setCaPagination] = useState({});
   const [caItemsPerPage, setCaItemsPerPage] = useState(5);
   const [caCollection, setCaCollection] = useState();
-  const [caOwnership, setCaOwnership] = useState("opensource");
+  const [caOwnership, setCaOwnership] = useState('opensource');
   const [caFilters, setCaFilters] = useState({});
   const [caUrl, setCaUrl] = useState(undefined);
 
@@ -302,12 +302,12 @@ export const CharacterSelect = () => {
     }
   };
   const validateOwnership = e => {
-    if(e === "owned" && !account.currentAddress) {
-        alert("Make sure wallet connection");
+    if (e === 'owned' && !account.currentAddress) {
+      alert('Make sure wallet connection');
     } else {
-        setCaOwnership(e);
+      setCaOwnership(e);
     }
-  }
+  };
 
   useEffect(() => {
     // GET TOKENS CHARACTERS
@@ -330,7 +330,13 @@ export const CharacterSelect = () => {
   useEffect(() => {
     // GET CHARACTERS
     cryptoavatarsCharactersUtil
-      .getCryptoAvatars(caUrl, caOwnership, caCollection, caItemsPerPage, account.currentAddress)
+      .getCryptoAvatars(
+        caUrl,
+        caOwnership,
+        caCollection,
+        caItemsPerPage,
+        account.currentAddress,
+      )
       .then(res => {
         if (res) {
           setCaPagination(res?.pagination);
@@ -443,7 +449,10 @@ export const CharacterSelect = () => {
                 </div>
                 <Fragment>Ownership:</Fragment>
                 <div className={styles.select}>
-                  <select onChange={e => validateOwnership(e.target.value)} value={caOwnership}>
+                  <select
+                    onChange={e => validateOwnership(e.target.value)}
+                    value={caOwnership}
+                  >
                     <option value="all">ALL</option>
                     <option value="owned">Owned</option>
                     <option value="opensource">Free use</option>

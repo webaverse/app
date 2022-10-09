@@ -128,7 +128,10 @@ export class AvatarCharacterSfx {
       1,
     );
     const crouchFactor = Math.min(
-      Math.max(1 - this.character.avatar.crouchTime / defaultActionTransitionTime, 0),
+      Math.max(
+        1 - this.character.avatar.crouchTime / defaultActionTransitionTime,
+        0,
+      ),
       1,
     );
 

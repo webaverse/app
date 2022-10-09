@@ -1338,7 +1338,7 @@ class UninterpolatedPlayer extends AvatarCharacter {
       horizontalMovementsTransition: new BiActionInterpolant(
         () => {
           const ioManager = metaversefile.useIoManager();
-          return  (
+          return (
             ioManager.keys.up ||
             ioManager.keys.down ||
             ioManager.keys.left ||
@@ -1371,19 +1371,39 @@ class UninterpolatedPlayer extends AvatarCharacter {
       // swordSideSlash: new InfiniteActionInterpolant(() => this.hasAction('swordSideSlash'), 0),
       // swordTopDownSlash: new InfiniteActionInterpolant(() => this.hasAction('swordTopDownSlash'), 0),
       hurt: new InfiniteActionInterpolant(() => this.hasAction('hurt'), 0),
-      cellphoneDraw: new BiActionInterpolant(() => this.hasAction('cellphoneDraw'), 0, 1000),
-      cellphoneUndraw: new BiActionInterpolant(() => this.hasAction('cellphoneUndraw'), 0, 1000),
-      swimUp: new BiActionInterpolant(() => {
-        const ioManager = metaversefile.useIoManager();
-        return  ioManager.keys.space;
-      }, 0, defaultActionTransitionTime),
-      swimDown: new BiActionInterpolant(() => {
-        const ioManager = metaversefile.useIoManager();
-        return  ioManager.keys.ctrl;
-      }, 0, defaultActionTransitionTime),
-      surface: new BiActionInterpolant(() => {
-        return  !this.avatar.swimmingOnSurfaceState;
-      }, 0, defaultActionTransitionTime),
+      cellphoneDraw: new BiActionInterpolant(
+        () => this.hasAction('cellphoneDraw'),
+        0,
+        1000,
+      ),
+      cellphoneUndraw: new BiActionInterpolant(
+        () => this.hasAction('cellphoneUndraw'),
+        0,
+        1000,
+      ),
+      swimUp: new BiActionInterpolant(
+        () => {
+          const ioManager = metaversefile.useIoManager();
+          return ioManager.keys.space;
+        },
+        0,
+        defaultActionTransitionTime,
+      ),
+      swimDown: new BiActionInterpolant(
+        () => {
+          const ioManager = metaversefile.useIoManager();
+          return ioManager.keys.ctrl;
+        },
+        0,
+        defaultActionTransitionTime,
+      ),
+      surface: new BiActionInterpolant(
+        () => {
+          return !this.avatar.swimmingOnSurfaceState;
+        },
+        0,
+        defaultActionTransitionTime,
+      ),
     };
     this.actionInterpolantsArray = Object.keys(this.actionInterpolants).map(
       k => this.actionInterpolants[k],

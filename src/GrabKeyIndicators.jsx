@@ -1,7 +1,7 @@
-import React, { useEffect, useState, useRef, useContext } from 'react';
+import React, {useEffect, useState, useRef, useContext} from 'react';
 import styles from './GrabKeyIndicators.module.css';
 import grabManager from '../grab-manager.js';
-import { KeyIndicator } from './KeyIndicator';
+import {KeyIndicator} from './KeyIndicator';
 
 export const GrabKeyIndicators = () => {
   const [isEditMode, setIsEditMode] = useState(false);
@@ -24,9 +24,22 @@ export const GrabKeyIndicators = () => {
     <div>
       {isEditMode ? (
         <ul className={styles.indicatorlist}>
-          <li><KeyIndicator indicatorSvg="./images/ui/lmb.svg" label="Take or place object"></KeyIndicator></li>
-          <li><KeyIndicator indicator="X" label="Remove object"></KeyIndicator></li>
-          <li><KeyIndicator indicator="V" label="Grid Snapping: " gridSnapEnabled={gridSnapEnabled}></KeyIndicator></li>
+          <li>
+            <KeyIndicator
+              indicatorSvg="./images/ui/lmb.svg"
+              label="Take or place object"
+            ></KeyIndicator>
+          </li>
+          <li>
+            <KeyIndicator indicator="X" label="Remove object"></KeyIndicator>
+          </li>
+          <li>
+            <KeyIndicator
+              indicator="V"
+              label="Grid Snapping: "
+              gridSnapEnabled={gridSnapEnabled}
+            ></KeyIndicator>
+          </li>
         </ul>
       ) : null}
     </div>

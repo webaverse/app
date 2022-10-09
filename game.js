@@ -19,12 +19,7 @@ import {
   hoverEquipmentMaterial,
 } from './shaders.js';
 import {getRenderer, sceneLowPriority, camera} from './renderer.js';
-import {
-  downloadFile,
-  getDropUrl,
-  handleDropJsonItem,
-  makeId,
-} from './util.js';
+import {downloadFile, getDropUrl, handleDropJsonItem, makeId} from './util.js';
 import {
   throwReleaseTime,
   throwAnimationDuration,

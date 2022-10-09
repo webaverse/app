@@ -17,16 +17,37 @@ const keyInnerFactor = 0.8;
 const keyGeometry = new THREE.PlaneBufferGeometry(keySize, keySize);
 
 function makeShape(shape, x, y, width, height, radius) {
-  shape.absarc( x - width/2, y + height/2, radius, Math.PI, Math.PI / 2, true );
-  shape.absarc( x + width/2, y + height/2, radius, Math.PI / 2, 0, true );
-  shape.absarc( x + width/2, y - height/2, radius, 0, -Math.PI / 2, true );
-  shape.absarc( x - width/2, y - height/2, radius, -Math.PI / 2, -Math.PI, true );
+  shape.absarc(
+    x - width / 2,
+    y + height / 2,
+    radius,
+    Math.PI,
+    Math.PI / 2,
+    true,
+  );
+  shape.absarc(x + width / 2, y + height / 2, radius, Math.PI / 2, 0, true);
+  shape.absarc(x + width / 2, y - height / 2, radius, 0, -Math.PI / 2, true);
+  shape.absarc(
+    x - width / 2,
+    y - height / 2,
+    radius,
+    -Math.PI / 2,
+    -Math.PI,
+    true,
+  );
   return shape;
 }
 
-function createBoxWithRoundedEdges( width, height, radius, innerFactor) {
+function createBoxWithRoundedEdges(width, height, radius, innerFactor) {
   const shape = makeShape(new THREE.Shape(), 0, 0, width, height, radius);
-  const hole = makeShape(new THREE.Path(), 0, 0, width * innerFactor, height * innerFactor, radius);
+  const hole = makeShape(
+    new THREE.Path(),
+    0,
+    0,
+    width * innerFactor,
+    height * innerFactor,
+    radius,
+  );
   shape.holes.push(hole);
 
   const geometry = new THREE.ShapeGeometry(shape);
@@ -54,7 +75,7 @@ const makeKeyMaterial = textureFile => {
   })();
   const material = new THREE.MeshBasicMaterial({
     map: texture,
-    color: 0xFFFFFF,
+    color: 0xffffff,
     depthTest: false,
     transparent: true,
     alphaTest: 0.5,
@@ -68,7 +89,12 @@ const rKeyMaterial = makeKeyMaterial('/transform-indicators/r-key.png');
 const fKeyMaterial = makeKeyMaterial('/transform-indicators/f-key.png');
 const cKeyMaterial = makeKeyMaterial('/transform-indicators/c-key.png');
 
-const keyCircleGeometry = createBoxWithRoundedEdges(keySize - keyRadius*2, keySize - keyRadius*2, keyRadius, keyInnerFactor);
+const keyCircleGeometry = createBoxWithRoundedEdges(
+  keySize - keyRadius * 2,
+  keySize - keyRadius * 2,
+  keyRadius,
+  keyInnerFactor,
+);
 const keyCircleMaterial = new THREE.ShaderMaterial({
   uniforms: {
     uColor: {
@@ -122,7 +148,7 @@ const keyCircleMaterial = new THREE.ShaderMaterial({
 });
 
 const createRotationArrowMesh = () => {
-  const arrowMaterial = makeKeyMaterial('/transform-indicators/arrow.png')
+  const arrowMaterial = makeKeyMaterial('/transform-indicators/arrow.png');
   const arrowGeometry = new THREE.CylinderBufferGeometry(1, 1, 1, 32, 1, true);
   const arrowMesh = new THREE.Mesh(arrowGeometry, arrowMaterial);
   return arrowMesh;
@@ -137,7 +163,7 @@ const createPushArrowMesh = () => {
 
 export default () => {
   const app = useApp();
-  
+
   const makeKeyMesh = keyMaterial => {
     const geometry = keyGeometry;
     const material = keyMaterial;
@@ -157,7 +183,7 @@ export default () => {
   const eKeyMesh = makeKeyMesh(eKeyMaterial);
   eKeyMesh.position.copy(eKeyPosition);
   app.add(eKeyMesh);
-  
+
   const eKeyCircleMesh = makeKeyCircleMesh();
 
   eKeyCircleMesh.position.copy(eKeyPosition);
@@ -166,31 +192,29 @@ export default () => {
   const rKeyMesh = makeKeyMesh(rKeyMaterial);
   rKeyMesh.position.copy(rKeyPosition);
   app.add(rKeyMesh);
-  
+
   const rKeyCircleMesh = makeKeyCircleMesh();
-  
+
   rKeyCircleMesh.position.copy(rKeyPosition);
   app.add(rKeyCircleMesh);
 
-
-  const pKeys = new THREE.Group()
+  const pKeys = new THREE.Group();
 
   const fKeyMesh = makeKeyMesh(fKeyMaterial);
   fKeyMesh.position.copy(fKeyPosition);
   pKeys.add(fKeyMesh);
-  
+
   const fKeyCircleMesh = makeKeyCircleMesh();
-  
+
   fKeyCircleMesh.position.copy(fKeyPosition);
   pKeys.add(fKeyCircleMesh);
 
-  
   const cKeyMesh = makeKeyMesh(cKeyMaterial);
   cKeyMesh.position.copy(cKeyPosition);
   pKeys.add(cKeyMesh);
-  
+
   const cKeyCircleMesh = makeKeyCircleMesh();
-  
+
   cKeyCircleMesh.position.copy(cKeyPosition);
   pKeys.add(cKeyCircleMesh);
 
@@ -215,46 +239,46 @@ export default () => {
 
   const pArrows = new THREE.Group();
   pArrows.add(pushArrowMesh, pullArrowMesh);
-  pArrows.rotateX(-Math.PI/2.5);
+  pArrows.rotateX(-Math.PI / 2.5);
 
   app.add(pArrows);
 
   // ########################################################## for testing ####################################################################
-  window.addEventListener("keydown", e => {
+  window.addEventListener('keydown', e => {
     if (e.key === 'e') {
       const f = 0.5;
-      eKeyMesh.scale.setScalar(1 - f*0.3);
-      eKeyCircleMesh.scale.setScalar(1 - f*0.2);
+      eKeyMesh.scale.setScalar(1 - f * 0.3);
+      eKeyCircleMesh.scale.setScalar(1 - f * 0.2);
       eKeyCircleMesh.material.uniforms.uColor.value.set(0x42a5f5);
       eKeyCircleMesh.material.uniforms.uTime.needsUpdate = true;
       app.updateMatrixWorld();
     }
     if (e.key === 'r') {
       const f = 0.5;
-      rKeyMesh.scale.setScalar(1 - f*0.3);
-      rKeyCircleMesh.scale.setScalar(1 - f*0.2);
+      rKeyMesh.scale.setScalar(1 - f * 0.3);
+      rKeyCircleMesh.scale.setScalar(1 - f * 0.2);
       rKeyCircleMesh.material.uniforms.uColor.value.set(0x42a5f5);
       rKeyCircleMesh.material.uniforms.uTime.needsUpdate = true;
       app.updateMatrixWorld();
     }
     if (e.key === 'f') {
       const f = 0.5;
-      fKeyMesh.scale.setScalar(1 - f*0.3);
-      fKeyCircleMesh.scale.setScalar(1 - f*0.2);
+      fKeyMesh.scale.setScalar(1 - f * 0.3);
+      fKeyCircleMesh.scale.setScalar(1 - f * 0.2);
       fKeyCircleMesh.material.uniforms.uColor.value.set(0x42a5f5);
       fKeyCircleMesh.material.uniforms.uTime.needsUpdate = true;
       app.updateMatrixWorld();
     }
     if (e.key === 'c') {
       const f = 0.5;
-      cKeyMesh.scale.setScalar(1 - f*0.3);
-      cKeyCircleMesh.scale.setScalar(1 - f*0.2);
+      cKeyMesh.scale.setScalar(1 - f * 0.3);
+      cKeyCircleMesh.scale.setScalar(1 - f * 0.2);
       cKeyCircleMesh.material.uniforms.uColor.value.set(0x42a5f5);
       cKeyCircleMesh.material.uniforms.uTime.needsUpdate = true;
       app.updateMatrixWorld();
     }
   });
-  window.addEventListener("keyup", e => {
+  window.addEventListener('keyup', e => {
     if (e.key === 'e') {
       eKeyMesh.scale.setScalar(1);
       eKeyCircleMesh.scale.setScalar(1);
@@ -287,24 +311,33 @@ export default () => {
   // ##########################################################################################################################################
 
   useFrame(({timestamp, timeDiff}) => {
-    if(app.targetApp && app.bb) {
+    if (app.targetApp && app.bb) {
       const timestampS = timestamp / 1000;
       const localPlayer = useLocalPlayer();
       const tPos = app.targetApp.position;
-      app.position.copy(localVector.set(tPos.x, tPos.y + app.bb.max.y * 1.1, tPos.z));
-      pArrows.position.set(Math.max(app.bb.max.x, app.bb.max.z), -(app.bb.min.y + app.bb.max.y) / 3, 0);
-      pushArrowMesh.position.setY(pushArrowMesh.position.y + Math.sin(timestampS*10) * 0.005);
-      pullArrowMesh.position.setY(pullArrowMesh.position.y - Math.sin(timestampS*10) * 0.005);
+      app.position.copy(
+        localVector.set(tPos.x, tPos.y + app.bb.max.y * 1.1, tPos.z),
+      );
+      pArrows.position.set(
+        Math.max(app.bb.max.x, app.bb.max.z),
+        -(app.bb.min.y + app.bb.max.y) / 3,
+        0,
+      );
+      pushArrowMesh.position.setY(
+        pushArrowMesh.position.y + Math.sin(timestampS * 10) * 0.005,
+      );
+      pullArrowMesh.position.setY(
+        pullArrowMesh.position.y - Math.sin(timestampS * 10) * 0.005,
+      );
       pKeys.position.copy(pArrows.position).setX(pArrows.position.x + 0.5);
       app.lookAt(localPlayer.position);
       app.visible = true;
       rotationArrowMesh.rotateY(timeDiff / 200);
       app.updateMatrixWorld();
-    } else if(!app.targetApp && app.visible) {
+    } else if (!app.targetApp && app.visible) {
       app.visible = false;
     }
   });
-
 
   return app;
 };

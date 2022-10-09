@@ -1759,11 +1759,26 @@ class Avatar {
       Math.max(this.sprintTime / defaultActionTransitionTime, 0),
       1,
     );
-    this.cellphoneDrawFactor = Math.min(Math.max(this.cellphoneDrawTime / defaultActionTransitionTime, 0), 1);
-    this.cellphoneUndrawFactor = Math.min(Math.max(this.cellphoneUndrawTime / defaultActionTransitionTime, 0), 1);
-    this.swimUpFactor = Math.min(Math.max(this.swimUpTime / defaultActionTransitionTime, 0), 1);
-    this.swimDownFactor = Math.min(Math.max(this.swimDownTime / defaultActionTransitionTime, 0), 1);
-    this.surfaceFactor = Math.min(Math.max(this.swimmingOnSurfaceTime / defaultActionTransitionTime, 0), 1);
+    this.cellphoneDrawFactor = Math.min(
+      Math.max(this.cellphoneDrawTime / defaultActionTransitionTime, 0),
+      1,
+    );
+    this.cellphoneUndrawFactor = Math.min(
+      Math.max(this.cellphoneUndrawTime / defaultActionTransitionTime, 0),
+      1,
+    );
+    this.swimUpFactor = Math.min(
+      Math.max(this.swimUpTime / defaultActionTransitionTime, 0),
+      1,
+    );
+    this.swimDownFactor = Math.min(
+      Math.max(this.swimDownTime / defaultActionTransitionTime, 0),
+      1,
+    );
+    this.surfaceFactor = Math.min(
+      Math.max(this.swimmingOnSurfaceTime / defaultActionTransitionTime, 0),
+      1,
+    );
 
     const _overwritePose = poseName => {
       const poseAnimation = animations.index[poseName];

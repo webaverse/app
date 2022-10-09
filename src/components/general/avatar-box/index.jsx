@@ -1,2 +1,2 @@
-import { AvatarBox } from './AvatarBox';
-export { AvatarBox };
+import {AvatarBox} from './AvatarBox';
+export {AvatarBox};
