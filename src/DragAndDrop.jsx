@@ -3,7 +3,7 @@ import React, {useState, useEffect, useContext, useRef} from 'react';
 import classnames from 'classnames';
 import style from './DragAndDrop.module.css';
 import {world} from '../world.js';
-import {getRandomString, handleUpload} from '../util.js';
+import {getRandomString, handleBlobUpload, handleUpload} from '../util.js';
 import {
   registerIoEventHandler,
   unregisterIoEventHandler,
@@ -17,12 +17,16 @@ import {AppContext} from './components/app';
 import useNFTContract from './hooks/useNFTContract';
 import useSolanaNFTContract from './hooks/useSolanaNFTContract';
 import NFTDetailsForm from './components/web3/NFTDetailsForm';
-import { isChainSupported } from './hooks/useChain';
-import { ChainContext } from './hooks/chainProvider';
+import {isChainSupported} from './hooks/useChain';
+import {ChainContext} from './hooks/chainProvider';
 // import ioManager from '../io-manager.js';
 // import dropManager from '../drop-manager';
 // import { getVoucherFromUser } from './hooks/voucherHelpers'
-import {GenericLoadingMessage, LoadingIndicator, registerLoad} from './LoadingBox.jsx';
+import {
+  GenericLoadingMessage,
+  LoadingIndicator,
+  registerLoad,
+} from './LoadingBox.jsx';
 
 const APP_3D_TYPES = ['glb', 'gltf', 'vrm'];
 const timeCount = 6000;
@@ -101,8 +105,11 @@ const DragAndDrop = () => {
   const {state, setState, account, chain} = useContext(AppContext);
   const [queue, setQueue] = useState([]);
   const [currentApp, setCurrentApp] = useState(null);
-  const {mintNFT, minting, error, setError, WebaversecontractAddress} = useNFTContract(account.currentAddress);
-  const { mintSolanaNFT, getNftsForOwner } = useSolanaNFTContract(account.currentAddress);
+  const {mintNFT, minting, error, setError, WebaversecontractAddress} =
+    useNFTContract(account.currentAddress);
+  const {mintSolanaNFT, getNftsForOwner} = useSolanaNFTContract(
+    account.currentAddress,
+  );
   const [mintComplete, setMintComplete] = useState(false);
   const [pendingTx, setPendingTx] = useState(false);
   const [previewImage, setPreviewImage] = useState(null);
@@ -264,26 +271,36 @@ const DragAndDrop = () => {
     if (currentApp) {
       const app = currentApp;
 
-      if(account.walletType == "metamask") {
-        await mintNFT(app, previewImage, () => {
-          setPreviewImage(null);
-          setCurrentApp(null);
-          setPendingTx(true)
-        }, () => {
-          setMintComplete(true);
-          setPendingTx(false)
-        });
+      if (account.walletType === 'metamask') {
+        await mintNFT(
+          app,
+          previewImage,
+          () => {
+            setPreviewImage(null);
+            setCurrentApp(null);
+            setPendingTx(true);
+          },
+          () => {
+            setMintComplete(true);
+            setPendingTx(false);
+          },
+        );
       }
 
-      if(account.walletType == "phantom") {
-        await mintSolanaNFT(app, previewImage, () => {
-          setPreviewImage(null);
-          setCurrentApp(null);
-          setPendingTx(true)
-        }, () => {
-          setMintComplete(true);
-          setPendingTx(false)
-        });
+      if (account.walletType === 'phantom') {
+        await mintSolanaNFT(
+          app,
+          previewImage,
+          () => {
+            setPreviewImage(null);
+            setCurrentApp(null);
+            setPendingTx(true);
+          },
+          () => {
+            setMintComplete(true);
+            setPendingTx(false);
+          },
+        );
       }
     }
     setCurrentApp(null);
@@ -300,23 +317,23 @@ const DragAndDrop = () => {
 
   useEffect(() => {
     if (mintComplete) {
-      let timer = setTimeout(() => {
+      const timer = setTimeout(() => {
         setMintComplete(false);
       }, timeCount);
       return () => {
         clearTimeout(timer);
-      }
+      };
     }
   }, [mintComplete]);
 
   useEffect(() => {
     if (error) {
-      let timer = setTimeout(() => {
+      const timer = setTimeout(() => {
         setError('');
       }, timeCount);
       return () => {
         clearTimeout(timer);
-      }
+      };
     }
   }, [error]);
 
@@ -349,20 +366,32 @@ const DragAndDrop = () => {
     if (!currentApp) return;
 
     if (APP_3D_TYPES.includes(currentApp.appType)) {
-      let timer = setTimeout(() => {
+      const timer = setTimeout(() => {
         createPreview();
-      }, timeCount/2);
+      }, timeCount / 2);
       return () => {
-        clearTimeout(timer)
-      }
+        clearTimeout(timer);
+      };
     }
   }, [currentApp]);
 
   return (
     <div className={style.dragAndDrop}>
-      <GenericLoadingMessage open={minting} name={'Minting'} detail={'Creating NFT...'}></GenericLoadingMessage>
-      <GenericLoadingMessage open={mintComplete} name={'Minting Complete'} detail={'Press [Tab] to use your inventory.'}></GenericLoadingMessage>
-      <GenericLoadingMessage open={error} name={'Error'} detail={error}></GenericLoadingMessage>
+      <GenericLoadingMessage
+        open={minting}
+        name={'Minting'}
+        detail={'Creating NFT...'}
+      ></GenericLoadingMessage>
+      <GenericLoadingMessage
+        open={mintComplete}
+        name={'Minting Complete'}
+        detail={'Press [Tab] to use your inventory.'}
+      ></GenericLoadingMessage>
+      <GenericLoadingMessage
+        open={error}
+        name={'Error'}
+        detail={error}
+      ></GenericLoadingMessage>
       <div
         className={classnames(style.currentApp, currentApp ? style.open : null)}
         onClick={_currentAppClick}
@@ -370,18 +399,25 @@ const DragAndDrop = () => {
         <h1 className={style.heading}>Upload object</h1>
         <div className={style.body}>
           <div style={{position: 'relative'}}>
-            {currentApp && APP_3D_TYPES.includes(currentApp.appType) && <button style={{
-              border: '2px',
-              borderColor: 'white',
-              background: 'black',
-              color: 'white',
-              position: 'absolute',
-              left: '0px',
-              bottom: '0px',
-              width: 'calc(100% - 20px)',
-              padding: '10px',
-              cursor: 'pointer',
-            }} onClick={createPreview}>Create New Thumbnail</button>}
+            {currentApp && APP_3D_TYPES.includes(currentApp.appType) && (
+              <button
+                style={{
+                  border: '2px',
+                  borderColor: 'white',
+                  background: 'black',
+                  color: 'white',
+                  position: 'absolute',
+                  left: '0px',
+                  bottom: '0px',
+                  width: 'calc(100% - 20px)',
+                  padding: '10px',
+                  cursor: 'pointer',
+                }}
+                onClick={createPreview}
+              >
+                Create New Thumbnail
+              </button>
+            )}
             <ObjectPreview
               ref={canvasRef}
               object={currentApp}
@@ -392,12 +428,16 @@ const DragAndDrop = () => {
           </div>
           <div className={style.wrap}>
             <div className={style.row}>
-              <NFTDetailsForm initialName={name} previewImage={previewImage} onChange={({name, details}) => {
-                if (currentApp) {
-                  currentApp.name = name;
-                  currentApp.description = details;
-                }
-              }} />
+              <NFTDetailsForm
+                initialName={name}
+                previewImage={previewImage}
+                onChange={({name, details}) => {
+                  if (currentApp) {
+                    currentApp.name = name;
+                    currentApp.description = details;
+                  }
+                }}
+              />
             </div>
             <div className={style.row}>
               <div className={style.label}>Type: </div>
@@ -415,9 +455,22 @@ const DragAndDrop = () => {
               <span>Equip</span>
               <sub>to self</sub>
             </div>
-            <div className={style.button} disabled={!isChainSupported(selectedChain) || !account.currentAddress || pendingTx} onClick={_mint}>
+            <div
+              className={style.button}
+              disabled={
+                !isChainSupported(selectedChain) ||
+                !account.currentAddress ||
+                pendingTx
+              }
+              onClick={_mint}
+            >
               <span>Mint</span>
-              <sub>on {account.walletType == "phantom" ? "Solana" : selectedChain.name}</sub>
+              <sub>
+                on{' '}
+                {account.walletType === 'phantom'
+                  ? 'Solana'
+                  : selectedChain.name}
+              </sub>
             </div>
           </div>
           <div className={style.buttons}>

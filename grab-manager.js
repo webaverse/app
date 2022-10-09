@@ -1,16 +1,16 @@
 import * as THREE from 'three';
 import ioManager from './io-manager.js';
-import { playersManager } from './players-manager.js';
+import {playersManager} from './players-manager.js';
 import physicsManager from './physics-manager.js';
 import metaversefileApi from './metaversefile-api.js';
 import * as metaverseModules from './metaverse-modules.js';
-import { maxGrabDistance } from './constants.js';
-import { getRenderer, sceneLowPriority, camera } from './renderer.js';
+import {maxGrabDistance} from './constants.js';
+import {getRenderer, sceneLowPriority, camera} from './renderer.js';
 import cameraManager from './camera-manager.js';
 import gameManager from './game.js';
-import { world } from './world.js';
-import { snapPosition } from './util.js';
-import { buildMaterial } from './shaders.js';
+import {world} from './world.js';
+import {snapPosition} from './util.js';
+import {buildMaterial} from './shaders.js';
 
 const physicsScene = physicsManager.getScene();
 
@@ -41,13 +41,13 @@ const getPhysicalPosition = box => {
     box.min.y,
     (box.min.z + box.max.z) / 2,
   );
-}
+};
 
 const _updateGrabbedObject = (
   o,
   grabMatrix,
   offsetMatrix,
-  { collisionEnabled, handSnapEnabled, gridSnap },
+  {collisionEnabled, handSnapEnabled, gridSnap},
 ) => {
   // grabMatrix represents localPlayer (= pivot point)
   grabMatrix.decompose(localVector, localQuaternion, localVector2);
@@ -80,34 +80,46 @@ const _updateGrabbedObject = (
   }
 
   // raycast from localPlayer in direction of camera angle
-  const collision = collisionEnabled && physicsScene.raycast(localVector, localQuaternion);
+  const collision =
+    collisionEnabled && physicsScene.raycast(localVector, localQuaternion);
 
   // raycast from grabbed object down perpendicularly
   localQuaternion2.setFromAxisAngle(localVector2.set(1, 0, 0), -Math.PI * 0.5);
-  const downCollision = collisionEnabled && physicsScene.raycast(localVector5, localQuaternion2);
+  const downCollision =
+    collisionEnabled && physicsScene.raycast(localVector5, localQuaternion2);
 
   if (collision) {
-    const { point } = collision;
+    const {point} = collision;
     localVector6.fromArray(point);
   }
 
   if (downCollision) {
-    const { point } = downCollision;
+    const {point} = downCollision;
     localVector4.fromArray(point);
   }
 
   // Did the ray collide with any other object than the grabbed object? Need this check because on the first frame
   // it collides with the grabbed object although physical actors are being disabled. This caused teleport issue.
-  const collNonGrabbedObj = !!collision && !o.physicsObjects.some(obj => obj.physicsId === collision.objectId);
+  const collNonGrabbedObj =
+    !!collision &&
+    !o.physicsObjects.some(obj => obj.physicsId === collision.objectId);
 
   // if collision point is closer to the player than the grab offset and collisionDown point
   // is below collision point then place the object at collision point
-  if (collNonGrabbedObj && !!downCollision && localVector.distanceTo(localVector6) < offset && localVector4.y < localVector6.y) {
+  if (
+    collNonGrabbedObj &&
+    !!downCollision &&
+    localVector.distanceTo(localVector6) < offset &&
+    localVector4.y < localVector6.y
+  ) {
     localVector5.copy(localVector6).sub(physicalOffset);
   }
 
   // if grabbed object would go below another object then place object at downCollision point
-  if (!!downCollision && localVector8.copy(localVector5).add(physicalOffset).y < localVector4.y) {
+  if (
+    !!downCollision &&
+    localVector8.copy(localVector5).add(physicalOffset).y < localVector4.y
+  ) {
     localVector5.setY(localVector4.sub(physicalOffset).y);
   }
 
@@ -144,9 +156,9 @@ const _delete = () => {
     highlightedPhysicsObject = null;
   } else if (mouseSelectedObject) {
     world.appManager.removeTrackedApp(mouseSelectedObject.instanceId);
-    if (mouseHoverObject === mouseSelectedObject) {
-      gameManager.setMouseHoverObject(null);
-    }
+    // if (mouseHoverObject === mouseSelectedObject) {
+    //   gameManager.setMouseHoverObject(null);
+    // }
     gameManager.setMouseSelectedObject(null);
   }
 };
@@ -169,13 +181,13 @@ const _createTransformIndicators = () => {
   transformIndicators = metaversefileApi.createApp();
   (async () => {
     await metaversefileApi.waitForSceneLoaded();
-    const { modules } = metaversefileApi.useDefaultModules();
+    const {modules} = metaversefileApi.useDefaultModules();
     const m = modules.transformIndicators;
     await transformIndicators.addModule(m);
   })();
   transformIndicators.targetApp = null;
   sceneLowPriority.add(transformIndicators);
-}
+};
 
 class Grabmanager extends EventTarget {
   constructor() {
@@ -245,19 +257,22 @@ class Grabmanager extends EventTarget {
   hideUi() {
     this.dispatchEvent(new MessageEvent('hideui'));
   }
+
   drawPhone() {
     const localPlayer = playersManager.getLocalPlayer();
     localPlayer.addAction({
-      type: 'cellphoneDraw'
+      type: 'cellphoneDraw',
     });
   }
+
   undrawPhone() {
     const localPlayer = playersManager.getLocalPlayer();
     localPlayer.removeAction('cellphoneDraw');
     localPlayer.addAction({
-      type: 'cellphoneUndraw'
+      type: 'cellphoneUndraw',
     });
   }
+
   menuClick(e) {
     _click(e);
   }
@@ -276,7 +291,7 @@ class Grabmanager extends EventTarget {
     }
     this.dispatchEvent(
       new MessageEvent('setgridsnap', {
-        data: { gridSnap: this.gridSnap },
+        data: {gridSnap: this.gridSnap},
       }),
     );
   }
@@ -326,17 +341,20 @@ class Grabmanager extends EventTarget {
     const _updateGrab = () => {
       const _isWear = o =>
         localPlayer.findAction(
-          action => action.type === 'wear' && action.instanceId === o.instanceId);
+          action =>
+            action.type === 'wear' && action.instanceId === o.instanceId,
+        );
 
       for (let i = 0; i < 2; i++) {
         const grabAction = this.getGrabAction(i);
         const grabbedObject = this.getGrabbedObject(i);
         if (grabbedObject && !_isWear(grabbedObject)) {
-          let position = null; let quaternion = null;
+          let position = null;
+          let quaternion = null;
           if (renderer.xr.getSession()) {
-            const h = localPlayer[hand === 'left' ? 'leftHand' : 'rightHand'];
-            position = h.position;
-            quaternion = h.quaternion;
+            // const h = localPlayer[hand === 'left' ? 'leftHand' : 'rightHand'];
+            // position = h.position;
+            // quaternion = h.quaternion;
           } else {
             position = localVector2.copy(localPlayer.position);
             quaternion = camera.quaternion;
@@ -374,13 +392,14 @@ class Grabmanager extends EventTarget {
       highlightedPhysicsObject = null;
 
       if (this.editMode) {
-        const { position, quaternion } = renderer.xr.getSession()
+        const {position, quaternion} = renderer.xr.getSession()
           ? localPlayer.leftHand
           : localPlayer;
         const collision = physicsScene.raycast(position, quaternion);
         if (collision) {
           const physicsId = collision.objectId;
-          highlightedPhysicsObject = metaversefileApi.getAppByPhysicsId(physicsId);
+          highlightedPhysicsObject =
+            metaversefileApi.getAppByPhysicsId(physicsId);
           highlightedPhysicsId = physicsId;
         }
       }
@@ -395,9 +414,10 @@ class Grabmanager extends EventTarget {
 
         highlightedPhysicsObject.updateMatrixWorld();
 
-        const physicsObject = metaversefileApi.getPhysicsObjectByPhysicsId(physicsId);
+        const physicsObject =
+          metaversefileApi.getPhysicsObjectByPhysicsId(physicsId);
         if (physicsObject) {
-          const { physicsMesh } = physicsObject;
+          const {physicsMesh} = physicsObject;
           this.highlightPhysicsMesh.geometry = physicsMesh.geometry;
           this.highlightPhysicsMesh.matrixWorld
             .copy(physicsMesh.matrixWorld)
@@ -407,7 +427,8 @@ class Grabmanager extends EventTarget {
               this.highlightPhysicsMesh.scale,
             );
 
-          this.highlightPhysicsMesh.material.uniforms.uTime.value = (timestamp % 1500) / 1500;
+          this.highlightPhysicsMesh.material.uniforms.uTime.value =
+            (timestamp % 1500) / 1500;
           this.highlightPhysicsMesh.material.uniforms.uTime.needsUpdate = true;
           this.highlightPhysicsMesh.material.uniforms.uColor.value.setHex(
             buildMaterial.uniforms.uColor.value.getHex(),
@@ -421,7 +442,7 @@ class Grabmanager extends EventTarget {
     _updatePhysicsHighlight();
 
     const _handleCellphoneUndraw = () => {
-      if(localPlayer.avatar?.cellphoneUndrawTime >= 1000) {
+      if (localPlayer.avatar?.cellphoneUndrawTime >= 1000) {
         localPlayer.removeAction('cellphoneUndraw');
       }
     };

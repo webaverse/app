@@ -1,7 +1,7 @@
 import * as THREE from 'three';
 import metaversefile from 'metaversefile';
 import generateStats from './procgen/stats.js';
-import { getVoucherFromServer } from './src/hooks/voucherHelpers'
+import {getVoucherFromServer} from './src/hooks/voucherHelpers';
 
 const r = () => -1 + Math.random() * 2;
 
@@ -27,15 +27,18 @@ class DropManager extends EventTarget {
   }) {
     // const r = () => (-0.5+Math.random())*2;
     let serverDrop = false;
-    if (voucher == 'fakeVoucher') {
-        voucher = await getVoucherFromServer(start_url);
-        serverDrop = true;
-        components = [...components, {
-            key: 'voucher',
-            value: voucher
-        }]
-    } else if (voucher == 'hadVoucher') {
-        serverDrop = false;
+    if (voucher === 'fakeVoucher') {
+      voucher = await getVoucherFromServer(start_url);
+      serverDrop = true;
+      components = [
+        ...components,
+        {
+          key: 'voucher',
+          value: voucher,
+        },
+      ];
+    } else if (voucher === 'hadVoucher') {
+      serverDrop = false;
     }
     const dropComponent = {
       key: 'drop',
@@ -69,7 +72,7 @@ class DropManager extends EventTarget {
       type,
       serverDrop,
       start_url,
-      level,
+      // level,
       voucher,
     };
     this.claims.push(claim);
@@ -84,12 +87,16 @@ class DropManager extends EventTarget {
   }
 
   removeClaim(claimedDrop) {
-    const newClaims = this.claims.filter((each) => JSON.stringify(each) !== JSON.stringify(claimedDrop))
-    this.dispatchEvent(new MessageEvent('claimschange', {
-      data: {
-        claims: newClaims,
-      },
-    }));
+    const newClaims = this.claims.filter(
+      each => JSON.stringify(each) !== JSON.stringify(claimedDrop),
+    );
+    this.dispatchEvent(
+      new MessageEvent('claimschange', {
+        data: {
+          claims: newClaims,
+        },
+      }),
+    );
   }
 
   pickupApp(app) {
