@@ -17,6 +17,7 @@
     "build/*",
     "coverage/*",
     "public/*",
+    "test/*",
     "*.d.ts",
     "bip39.js",
     "hdkey.js",
