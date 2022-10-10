@@ -135,7 +135,7 @@ export const CharacterSelect = () => {
           const app = await metaversefile.createAppAsync({
             start_url: typeContentToUrl('application/npc', detachedCharacter),
           });
-          return npcManager.getNpcByApp(app);
+          return npcManager.getDetachedNpcByApp(app);
         },
       }),
   );
