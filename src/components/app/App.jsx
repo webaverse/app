@@ -106,6 +106,7 @@ const useWebaverseApp = (() => {
 export const App = () => {
   const [state, setState] = useState({openedPanel: null, openedTab: null});
   const [uiMode, setUIMode] = useState('normal');
+  const [ avatarLoaded, setAvatarLoaded ] = useState( false );
 
   const canvasRef = useRef(null);
   const app = useWebaverseApp();
@@ -279,6 +280,8 @@ export const App = () => {
           setSelectedApp,
           selectedApp,
           uiMode,
+          avatarLoaded,
+          setAvatarLoaded,
           account,
           chain,
         }}

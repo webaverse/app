@@ -1,5 +1,5 @@
-import React, {useEffect} from 'react';
-
+import React, {useEffect, useState} from 'react';
+import metaversefile from 'metaversefile';
 import ioManager from '../../../../io-manager.js';
 
 //
@@ -40,60 +40,73 @@ function unregisterIoEventHandler(type, fn) {
 //
 
 function IoHandler() {
-  useEffect(() => {
-    const cleanups = types.map(type => {
-      const fn = event => {
-        let broke = false;
+    const [ playerLoaded, setPlayerLoaded ] = useState( false );
 
-        // type
+    const localPlayer = metaversefile.useLocalPlayer();
 
-        for (let i = 0; i < ioEventHandlers[type].length; i++) {
-          const result = ioEventHandlers[type][i](event);
-
-          if (result === false) {
-            broke = true;
-            break;
-          }
+    (async () => {
+        const playerLoaded = await localPlayer.waitForLoad();
+        if ( playerLoaded ) {
+            setPlayerLoaded(true);
         }
+    })();
 
-        // all
+  useEffect(() => {
+    if(playerLoaded) {
+        const cleanups = types.map(type => {
+        const fn = event => {
+            let broke = false;
 
-        if (!broke) {
-          const type = '';
+            // type
 
-          for (let i = 0; i < ioEventHandlers[type].length; i++) {
+            for (let i = 0; i < ioEventHandlers[type].length; i++) {
             const result = ioEventHandlers[type][i](event);
 
             if (result === false) {
-              broke = true;
-              break;
+                broke = true;
+                break;
             }
-          }
+            }
+
+            // all
+
+            if (!broke) {
+            const type = '';
+
+            for (let i = 0; i < ioEventHandlers[type].length; i++) {
+                const result = ioEventHandlers[type][i](event);
+
+                if (result === false) {
+                broke = true;
+                break;
+                }
+            }
+            }
+
+            // default
+
+            if (!broke) {
+            ioManager[type](event);
+            } else if (event.cancelable) {
+            event.stopPropagation();
+            event.preventDefault();
+            }
+        };
+
+        window.addEventListener(type, fn, {passive: type === 'wheel'});
+
+        return () => {
+            window.removeEventListener(type, fn);
+        };
+        });
+
+        return () => {
+        for (const fn of cleanups) {
+            fn();
         }
-
-        // default
-
-        if (!broke) {
-          ioManager[type](event);
-        } else if (event.cancelable) {
-          event.stopPropagation();
-          event.preventDefault();
-        }
-      };
-
-      window.addEventListener(type, fn, {passive: type === 'wheel'});
-
-      return () => {
-        window.removeEventListener(type, fn);
-      };
-    });
-
-    return () => {
-      for (const fn of cleanups) {
-        fn();
-      }
-    };
-  }, []);
+        };
+    }
+  }, [playerLoaded]);
 
   //
 

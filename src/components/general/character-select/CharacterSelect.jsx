@@ -20,6 +20,7 @@ import {LightArrow} from '../../../LightArrow.jsx';
 import {MegaHup} from '../../../MegaHup.jsx';
 import {AppContext} from '../../app';
 import styles from './character-select.module.css';
+import { PlaceholderImg } from '../../../PlaceholderImg';
 
 //
 import {
@@ -114,7 +115,7 @@ const Character = forwardRef(
 );
 
 export const CharacterSelect = () => {
-  const {state, setState, account} = useContext(AppContext);
+  const {state, setState, account, setAvatarLoaded} = useContext(AppContext);
   const [highlightCharacter, setHighlightCharacter] = useState(null);
   const [selectCharacter, setSelectCharacter] = useState(null);
   const [lastTargetCharacter, setLastTargetCharacter] = useState(null);
@@ -277,6 +278,7 @@ export const CharacterSelect = () => {
 
       setTimeout(() => {
         setState({openedPanel: null});
+        setAvatarLoaded(false);
       }, 1000);
 
       (async () => {
@@ -361,6 +363,12 @@ export const CharacterSelect = () => {
           opened ? styles.open : null,
         )}
       >
+        { targetCharacter && !npcPlayer && (
+            <PlaceholderImg
+                className={styles.placeholderImg}
+                src="./images/arc-white.svg"
+            />
+        )}
         <MegaHup open={opened} npcPlayer={opened ? npcPlayer : null} />
         <div className={styles.heading}>
           <div
