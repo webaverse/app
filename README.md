@@ -50,7 +50,7 @@ User documentation is <a href="https://webaverse.notion.site/User-Docs-3a36b223e
 </p>
 
 ## Minimum Requirements
-- Node.js 16 or greater ([nvm](https://github.com/nvm-sh/nvm) is recommended)
+- Node.js 18 or greater ([nvm](https://github.com/nvm-sh/nvm) is recommended)
 - 10 GB Disk Space
 - 8 GB RAM
 - 4 Core CPU / vCPUs
