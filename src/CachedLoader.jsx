@@ -25,15 +25,20 @@ export class CachedLoader extends EventTarget {
     try {
       let promise = this.promiseCache.get(url);
       if (!promise) {
-        promise = this.loadFn(url, value, {signal}).then(result => {
-          signal.removeEventListener('abort', abort);
-          return result;
-        });
+        promise = this.loadFn(url, value, {signal})
+          .catch(() => {
+            this.promiseCache.delete(url);
+            return null;
+          })
+          .then(result => {
+            signal?.removeEventListener('abort', abort);
+            return result;
+          });
         this.promiseCache.set(url, promise);
         const abort = () => {
           this.promiseCache.delete(url);
         };
-        signal.addEventListener('abort', abort);
+        signal?.addEventListener('abort', abort);
       }
 
       const result = await promise;
