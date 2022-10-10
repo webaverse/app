@@ -30,7 +30,7 @@ import {
   makeQuestPrompt,
   makeQuestStop,
   parseQuestResponse,
-} from './lore-model.js';
+} from '@webaverse/lore-engine/lore-model';
 
 const numGenerateTries = 5;
 const temperature = 1;
