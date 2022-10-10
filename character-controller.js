@@ -1463,6 +1463,7 @@ class LocalPlayer extends UninterpolatedPlayer {
     }
     this.#setAvatarAppFromOwnAppManager(avatarApp);
   }
+
   /* importAvatarApp(app, srcAppManager) {
     srcAppManager.transplantApp(app, this.appManager);
     this.#setAvatarAppFromOwnAppManager(app);

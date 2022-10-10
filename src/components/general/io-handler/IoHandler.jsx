@@ -1,4 +1,5 @@
-import React, {useEffect, useState} from 'react';
+import React, {useEffect} from 'react';
+
 import ioManager from '../../../../io-manager.js';
 
 //
@@ -41,56 +42,56 @@ function unregisterIoEventHandler(type, fn) {
 function IoHandler() {
   useEffect(() => {
     const cleanups = types.map(type => {
-    const fn = event => {
+      const fn = event => {
         let broke = false;
 
         // type
 
         for (let i = 0; i < ioEventHandlers[type].length; i++) {
-        const result = ioEventHandlers[type][i](event);
+          const result = ioEventHandlers[type][i](event);
 
-        if (result === false) {
+          if (result === false) {
             broke = true;
             break;
-        }
+          }
         }
 
         // all
 
         if (!broke) {
-        const type = '';
+          const type = '';
 
-        for (let i = 0; i < ioEventHandlers[type].length; i++) {
+          for (let i = 0; i < ioEventHandlers[type].length; i++) {
             const result = ioEventHandlers[type][i](event);
 
             if (result === false) {
-            broke = true;
-            break;
+              broke = true;
+              break;
             }
-        }
+          }
         }
 
         // default
 
         if (!broke) {
-        ioManager[type](event);
+          ioManager[type](event);
         } else if (event.cancelable) {
-        event.stopPropagation();
-        event.preventDefault();
+          event.stopPropagation();
+          event.preventDefault();
         }
-    };
+      };
 
-    window.addEventListener(type, fn, {passive: type === 'wheel'});
+      window.addEventListener(type, fn, {passive: type === 'wheel'});
 
-    return () => {
+      return () => {
         window.removeEventListener(type, fn);
-    };
+      };
     });
 
     return () => {
-        for (const fn of cleanups) {
+      for (const fn of cleanups) {
         fn();
-    }
+      }
     };
   }, []);
 
