@@ -4,7 +4,6 @@ import * as THREE from 'three';
 import {world} from './world.js';
 import {damageMaterial} from './shaders.js';
 import {scene} from './renderer.js';
-import * as metaverseModules from './metaverse-modules.js';
 import * as sounds from './sounds.js';
 import metaversefileApi from 'metaversefile';
 
