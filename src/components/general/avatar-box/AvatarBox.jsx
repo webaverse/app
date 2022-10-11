@@ -16,7 +16,7 @@ const characterIconSize = 100;
 const pixelRatio = window.devicePixelRatio;
 
 const CharacterBox = () => {
-  const [loaded, setLoaded] = useState(false);
+  const {avatarLoaded, setAvatarLoaded} = useContext(AppContext);
   const [userData, setUserData] = useState({
     name: 'Anon',
     level: level,
@@ -55,26 +55,21 @@ const CharacterBox = () => {
       const frame = () => {
         if (avatarIconer.enabled) {
           avatarIconer.update();
+          setAvatarLoaded(true);
         }
       };
       world.appManager.addEventListener('frame', frame);
 
-      const enabledchange = e => {
-        setLoaded(e.data.enabled);
-      };
-      avatarIconer.addEventListener('enabledchange', enabledchange);
-
       return () => {
         avatarIconer.destroy();
         world.appManager.removeEventListener('frame', frame);
-        avatarIconer.removeEventListener('enabledchange', enabledchange);
       };
     }
-  }, [canvasRef]);
+  }, [canvasRef, avatarLoaded]);
 
   return (
     <div
-      className={classnames(styles.avatarBox, loaded ? styles.loaded : null)}
+      className={classnames(styles.avatarBox, avatarLoaded ? styles.loaded : null)}
       onMouseEnter={e => {
         sounds.playSoundName('menuClick');
       }}
