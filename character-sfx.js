@@ -4,7 +4,7 @@ import * as sounds from './sounds.js';
 import audioManager from './audio-manager.js';
 
 import {
-  defaultActionTransitionTime,
+  crouchMaxTime,
   eatFrameIndices,
   drinkFrameIndices,
   useFrameIndices,
@@ -128,10 +128,7 @@ export class AvatarCharacterSfx {
       1,
     );
     const crouchFactor = Math.min(
-      Math.max(
-        1 - this.character.avatar.crouchTime / defaultActionTransitionTime,
-        0,
-      ),
+      Math.max(1 - this.character.avatar.crouchTime / crouchMaxTime, 0),
       1,
     );
 

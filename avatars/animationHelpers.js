@@ -27,7 +27,7 @@ import {
 } from '../util.js';
 
 import {
-  defaultActionTransitionTime,
+  crouchMaxTime,
   // useMaxTime,
   aimMaxTime,
   // avatarInterpolationFrameRate,
@@ -989,7 +989,7 @@ export const _applyAnimation = (avatar, now) => {
         const t2 = (now / 1000) % danceAnimation.duration;
         const v2 = src2.evaluate(t2);
 
-        const danceFactorS = avatar.danceFactor / defaultActionTransitionTime;
+        const danceFactorS = avatar.danceFactor / crouchMaxTime;
         const f = Math.min(Math.max(danceFactorS, 0), 1);
         lerpFn.call(dst, localQuaternion.fromArray(v2), f);
 
@@ -1017,7 +1017,7 @@ export const _applyAnimation = (avatar, now) => {
         const t2 = Math.min(emoteTime / 1000, emoteAnimation.duration);
         const v2 = src2.evaluate(t2);
 
-        const emoteFactorS = avatar.emoteFactor / defaultActionTransitionTime;
+        const emoteFactorS = avatar.emoteFactor / crouchMaxTime;
         let f = Math.min(Math.max(emoteFactorS, 0), 1);
 
         if (
