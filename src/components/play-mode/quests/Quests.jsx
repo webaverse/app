@@ -1,26 +1,22 @@
 // import * as THREE from 'three';
 import React, {useState, useRef, useEffect} from 'react';
-// import classnames from 'classnames';
 import styles from './quests.module.css';
 import {scene} from '../../../../renderer.js';
 import {screenshotScene} from '../../../../scene-screenshotter.js';
 import questManager from '../../../../quest-manager.js';
 import {Spritesheet} from '../../general/spritesheet';
 import metaversefile from 'metaversefile';
-import * as metaverseModules from '../../../../metaverse-modules.js';
-// import spritesheetManager from '../../../../spritesheet-manager.js';
-// import alea from '../../../../procgen/alea.js';
 
 const screenshotWidth = 150;
 const screenshotHeight = 100;
 
 const size = 2048;
 const numFrames = 128;
-const numFramesPow2 = Math.pow(2, Math.ceil(Math.log2(numFrames)));
-const numFramesPerRow = Math.ceil(Math.sqrt(numFramesPow2));
-const frameSize = size / numFramesPerRow;
-const frameLoopTime = 2000;
-const frameTime = frameLoopTime / numFrames;
+// const numFramesPow2 = Math.pow(2, Math.ceil(Math.log2(numFrames)));
+// const numFramesPerRow = Math.ceil(Math.sqrt(numFramesPow2));
+// const frameSize = size / numFramesPerRow;
+// const frameLoopTime = 2000;
+// const frameTime = frameLoopTime / numFrames;
 
 export const Drop = ({drop, enabled}) => {
   const {name, quantity, start_url} = drop;

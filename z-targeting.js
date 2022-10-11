@@ -1,6 +1,6 @@
 import * as THREE from 'three';
 import metaversefile from './metaversefile-api.js';
-import * as metaverseModules from './metaverse-modules.js';
+import * as coreModules from './core-modules.js';
 import {scene, camera} from './renderer.js';
 import * as sounds from './sounds.js';
 import cameraManager from './camera-manager.js';
@@ -131,7 +131,7 @@ class ZTargeting extends THREE.Object3D {
   waitForLoad() {
     if (!this.loadPromise) {
       this.loadPromise = (async () => {
-        const {importModule} = metaverseModules;
+        const {importModule} = coreModules;
         const m = await importModule('targetReticle');
 
         const targetReticleApp = metaversefile.createApp();

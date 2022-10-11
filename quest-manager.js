@@ -1,7 +1,3 @@
-// import {scene} from './renderer.js';
-// import * as metaverseModules from './metaverse-modules.js';
-// import metaversefile from 'metaversefile';
-
 class Quest {
   constructor(app) {
     // this.app = app;
