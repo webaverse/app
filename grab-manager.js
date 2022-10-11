@@ -3,7 +3,7 @@ import ioManager from './io-manager.js';
 import {playersManager} from './players-manager.js';
 import physicsManager from './physics-manager.js';
 import metaversefileApi from './metaversefile-api.js';
-import * as metaverseModules from './metaverse-modules.js';
+import * as coreModules from './core-modules.js';
 import {maxGrabDistance} from './constants.js';
 import {getRenderer, sceneLowPriority, camera} from './renderer.js';
 import cameraManager from './camera-manager.js';
