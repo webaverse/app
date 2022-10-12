@@ -5,6 +5,7 @@ metaversfile can load many file types, including javascript.
 */
 
 import * as THREE from 'three';
+import * as BufferGeometryUtils from 'three/examples/jsm/utils/BufferGeometryUtils.js';
 import {Text} from 'troika-three-text';
 import React from 'react';
 import * as ReactThreeFiber from '@react-three/fiber';
@@ -1178,6 +1179,9 @@ export default () => {
   },
   useGeometries() {
     return geometries;
+  },
+  useGeometryUtils() {
+    return BufferGeometryUtils;
   },
   useInstancing() {
     return instancing;
