@@ -292,7 +292,7 @@ const {CharsetEncoder} = require('three/examples/js/libs/mmdparser.js');
     }
 
     const walkAnimationNames = [
-      'walking.fbx',
+      'zombie_run.fbx',
       'left strafe walking.fbx',
       'right strafe walking.fbx',
       'walking backwards.fbx',

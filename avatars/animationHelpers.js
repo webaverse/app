@@ -101,7 +101,7 @@ const animationsAngleArrays = {
     {name: 'left strafe walking.fbx', angle: Math.PI / 2},
     {name: 'right strafe walking.fbx', angle: -Math.PI / 2},
 
-    {name: 'walking.fbx', angle: 0},
+    {name: 'zombie_run.fbx', angle: 0},
     {name: 'walking backwards.fbx', angle: Math.PI},
 
     // {name: 'left strafe walking reverse.fbx', angle: Math.PI*3/4},
@@ -245,7 +245,7 @@ export const loadPromise = (async () => {
   }
 
   const walkingAnimations = [
-    'walking.fbx',
+    'zombie_run.fbx',
     'left strafe walking.fbx',
     'right strafe walking.fbx',
   ].map(name => animations.index[name]);

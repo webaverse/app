@@ -11,100 +11,86 @@
       "type": "application/light",
       "content": {
         "lightType": "directional",
-        "args": [[255, 255, 255], 5],
-        "position": [1, 100, 3]
+        "args": [[23, 6, 0], 1.5],
+        "position": [1, 2, 3],
+        "shadow": [150, 5120, 0.1, 10000, -0.0001]
       }
     },
     {
       "type": "application/rendersettings",
       "content": {
-        "hdr": {
-          "adaptive": true,
-          "resolution": 256,
-          "adaptionRate": 100,
-          "maxLuminance": 10,
-          "minLuminance": 0,
-          "middleGrey": 3
+        "background": {
+          "color": [15, 4, 1]
         },
-         "bloom": {
-          "strength": 0.5,
-          "radius": 0.001,
-          "threshold": 1.5
+        "fog": {
+          "fogType": "exp",
+          "args": [[15, 4, 1], 0.025]
+        },
+        "bloom": {
+          "strength": 0.4,
+          "radius": 0.5,
+          "threshold": 0.2
         }
       }
     },
     {
-      "position": [
-        -125,
-        5.15,
-        -359
-      ],
-      "quaternion": [
-        0,
-        0,
-        0,
-        1
-      ],
-      "type": "application/npc",
+      "type": "application/light",
       "content": {
-        "name": "Scillia",
-        "avatarUrl": "/avatars/scillia_drophunter_v15_vian.vrm",
-        "voice": "Sweetie Belle",
-        "bio": "Her nickname is Scilly or SLY. 13/F drop hunter. She is an adventurer, swordfighter and fan of potions. She is exceptionally skilled and can go Super Saiyan."
+        "lightType": "point",
+        "args": [[252, 160, 68], 4, 2],
+        "position": [-1, 0.5, 27]
       }
     },
     {
-      "position": [
-        0,
-        0,
-        0
-      ],
-      "start_url": "https://loryhoof.github.io/sky/"
-    },
-    {
-      "position": [
-       -13 , 0, 8.17
-      ],
-      "quaternion": [
-        0,
-        0,
-        0,
-        1
-      ],
-      "type": "application/npc",
+      "type": "application/light",
       "content": {
-        "name": "Scillia",
-        "avatarUrl": "/avatars/skelly.vrm",
-        "voice": "Sweetie Belle",
-        "bio": "Her nickname is Scilly or SLY. 13/F drop hunter. She is an adventurer, swordfighter and fan of potions. She is exceptionally skilled and can go Super Saiyan."
+        "lightType": "point",
+        "args": [[113, 245, 126], 4, 5],
+        "position": [-9.3, 0.5, 2.25]
       }
     },
     {
-      "position": [-119, 1.15, -359],
-      "start_url": "https://webaverse.github.io/rocket-launcher/"
+      "position": [-4.21, 1, -1.49 ],
+      "start_url": "https://webaverse.github.io/light-flicker/"
     },
     {
       "position": [
-        -130, 1.15, -359
-      ],
-      "start_url": "https://webaverse.github.io/ball/"
-    },
-    {
-      "position": [
-        0,
-        -5,
-        0
-      ],
-      "start_url": "https://loryhoof.github.io/ocean/"
-    },
-    {
-      "position": [
-        0,
         -2,
+        3,
+        3
+      ],
+      "quaternion": [
+        0,
+        1,
+        0,
+        0
+      ],
+      "type": "application/npc",
+      "content": {
+        "name": "Zombie",
+        "avatarUrl": "/avatars/zombie-fixed.vrm",
+        "voice": "Shining Armor",
+        "bio": "Zombie, eat brain"
+      }
+    },
+    {
+      "position": [
+        0,
+        0,
         0
       ],
       "physics": true,
-      "start_url": "/grid.glb",
+      "start_url": "/port.glb",
+      "dynamic": false
+    },
+    {
+      "position": [
+        3,
+        1,
+        0
+      ],
+      "physics": true,
+      "start_url": "https://webaverse.github.io/sawed-off/",
       "dynamic": false
     }
   ]

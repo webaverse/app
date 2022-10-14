@@ -1,0 +1,52 @@
+{
+  "objects": [
+    {
+      "type": "application/light",
+      "content": {
+        "lightType": "ambient",
+        "args": [[255, 255, 255], 2]
+      }
+    },
+    {
+      "type": "application/light",
+      "content": {
+        "lightType": "directional",
+        "args": [[255, 255, 255], 2],
+        "position": [1, 2, 3]
+      }
+    },
+    {
+      "type": "application/scene2D",
+      "content": {
+        "perspective": "side-scroll",
+        "scrollDirection": "horizontal",
+        "cameraMode": "fixed",
+        "viewSize": 20
+      }
+    },
+{
+      "position": [
+        0,
+        -1,
+        0
+      ],
+      "start_url": "https://loryhoof.github.io/particles/"
+    },
+    {
+      "position": [
+        0,
+        0,
+        5
+      ],
+      "start_url": "https://webaverse.github.io/skybox/"
+    },
+    {
+      "position": [
+        0,
+        0,
+        0
+      ],
+      "start_url": "/demoScn3.glb"
+    }
+  ]
+}

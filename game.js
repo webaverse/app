@@ -1010,7 +1010,7 @@ const _gameUpdate = (timestamp, timeDiff) => {
   if (crosshairEl) {
     //console.log("hey")
     const visible = !!cameraManager.pointerLockElement &&
-      (['camera', 'firstperson', 'thirdperson'].includes(cameraManager.getMode()) || localPlayer.hasAction('aim')) &&
+      (['camera', 'firstperson', 'isometric'].includes(cameraManager.getMode()) || localPlayer.hasAction('aim')) &&
       !_getGrabbedObject(0);
 
       //const size = renderer.getSize(localVector);

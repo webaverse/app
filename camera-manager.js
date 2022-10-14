@@ -694,22 +694,30 @@ class CameraManager extends EventTarget {
           case 'side-scroll': {
             if(scene2DManager.cameraMode === "fixed") {
               if(scene2DManager.scrollDirection === "horizontal") {
-                let offset = new THREE.Vector3(localPlayer.position.x, localPlayer.position.y, 0).sub(new THREE.Vector3(camera.position.x, localPlayer.position.y, 0));
-                this.targetPosition.copy(new THREE.Vector3(localPlayer.position.x, localPlayer.position.y, 0)).add(new THREE.Vector3(offset.x, offset.y, 0));
+                //let offset = new THREE.Vector3(localPlayer.position.x, localPlayer.position.y, 0).sub(new THREE.Vector3(0, localPlayer.position.y, 0));
+                this.targetPosition.copy(new THREE.Vector3(localPlayer.position.x, camera.position.y, 10)).sub(new THREE.Vector3(camera.position.x, 0, 0));
                 break;
               } 
               else if (scene2DManager.scrollDirection === "vertical") {
                 let offset = new THREE.Vector3(localPlayer.position.x, localPlayer.position.y, 0).sub(new THREE.Vector3(camera.position.x, localPlayer.position.y, 0));
-                this.targetPosition.copy(new THREE.Vector3(0,localPlayer.position.y, 0)).add(new THREE.Vector3(0, offset.y, 0));
+                this.targetPosition.copy(new THREE.Vector3(0,localPlayer.position.y, 0)).add(new THREE.Vector3(0, offset.y, 10));
                 break;
-              } 
+              }
+              else if (scene2DManager.scrollDirection === "none") {
+                //let offset = new THREE.Vector3(localPlayer.position.x, localPlayer.position.y, 0).sub(new THREE.Vector3(camera.position.x, localPlayer.position.y, 0));
+                this.targetPosition.copy(new THREE.Vector3(0,0,0)).add(new THREE.Vector3(0,0,10));
+                break;
+              }
             }
+            else {
+              this.targetPosition.copy(localPlayer.position).add(new THREE.Vector3(0,0,50).applyQuaternion(camera.quaternion));
+            }  
             
-            this.targetPosition.copy(localPlayer.position)
-              .sub(
-                localVector2.copy(avatarCameraOffset)
-                  .applyQuaternion(this.targetQuaternion)
-              );
+            // this.targetPosition.copy(localPlayer.position)
+            //   .sub(
+            //     localVector2.copy(avatarCameraOffset)
+            //       .applyQuaternion(this.targetQuaternion)
+            //   );
       
             break;
           }
@@ -761,6 +769,7 @@ class CameraManager extends EventTarget {
         }      
       };
       if(scene2DManager.enabled) {
+        console.log(_isOutOfView());
         if(scene2DManager.cameraMode === "follow" || _isOutOfView()) {
           _setFreeCamera();
         }
