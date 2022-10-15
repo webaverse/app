@@ -43,7 +43,7 @@ const runningBackwardOffset = 0.06;
 const strafeWalkingOffset = 0.24;
 const offsets = {
   'Sneaking Forward.fbx': sneakingOffset, 
-  'zombie_run.fbx': walkingOffset,
+  'walking.fbx': walkingOffset,
   'walking backwards.fbx': walkingBackwardOffset,
   'Fast Run.fbx': 0,
   'left strafe walking.fbx': strafeWalkingOffset,

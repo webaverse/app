@@ -19,7 +19,7 @@
       "type": "application/scene2D",
       "content": {
         "perspective": "side-scroll",
-        "scrollDirection": "horizontal",
+        "scrollDirection": "none",
         "cameraMode": "fixed",
         "viewSize": 20
       }

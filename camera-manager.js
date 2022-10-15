@@ -769,7 +769,7 @@ class CameraManager extends EventTarget {
         }      
       };
       if(scene2DManager.enabled) {
-        console.log(_isOutOfView());
+        //console.log(_isOutOfView());
         if(scene2DManager.cameraMode === "follow" || _isOutOfView()) {
           _setFreeCamera();
         }
