@@ -2129,41 +2129,41 @@ class Avatar {
     }
   }
   decapitate() {
-    if (!this.decapitated) {
-      this.modelBones.Head.traverse(o => {
-        if (o.savedPosition) { // three-vrm adds vrmColliderSphere which will not be saved
-          o.savedPosition.copy(o.position);
-          o.savedMatrixWorld.copy(o.matrixWorld);
-          o.position.set(NaN, NaN, NaN);
-          o.matrixWorld.set(NaN, NaN, NaN, NaN, NaN, NaN, NaN, NaN, NaN, NaN, NaN, NaN, NaN, NaN, NaN, NaN);
-        }
-      });
+    // if (!this.decapitated) {
+    //   this.modelBones.Head.traverse(o => {
+    //     if (o.savedPosition) { // three-vrm adds vrmColliderSphere which will not be saved
+    //       o.savedPosition.copy(o.position);
+    //       o.savedMatrixWorld.copy(o.matrixWorld);
+    //       o.position.set(NaN, NaN, NaN);
+    //       o.matrixWorld.set(NaN, NaN, NaN, NaN, NaN, NaN, NaN, NaN, NaN, NaN, NaN, NaN, NaN, NaN, NaN, NaN);
+    //     }
+    //   });
 
-      console.log(this.modelBones.Head, "bones");
-      this.modelBones.Head.visible = false;
-      /* if (this.debugMeshes) {
-        [this.debugMeshes.attributes.eyes, this.debugMeshes.attributes.head].forEach(attribute => {
-          attribute.visible = false;
-        });
-      } */
-      this.decapitated = true;
-    }
+    //   console.log(this.modelBones.Head, "bones");
+    //   this.modelBones.Head.visible = false;
+    //   /* if (this.debugMeshes) {
+    //     [this.debugMeshes.attributes.eyes, this.debugMeshes.attributes.head].forEach(attribute => {
+    //       attribute.visible = false;
+    //     });
+    //   } */
+    //   this.decapitated = true;
+    // }
   }
   undecapitate() {
-    if (this.decapitated) {
-      this.modelBones.Head.traverse(o => {
-        if (o.savedPosition) {
-          o.position.copy(o.savedPosition);
-          o.matrixWorld.copy(o.savedMatrixWorld);
-        }
-      });
-      /* if (this.debugMeshes) {
-        [this.debugMeshes.attributes.eyes, this.debugMeshes.attributes.head].forEach(attribute => {
-          attribute.visible = true;
-        });
-      } */
-      this.decapitated = false;
-    }
+    // if (this.decapitated) {
+    //   this.modelBones.Head.traverse(o => {
+    //     if (o.savedPosition) {
+    //       o.position.copy(o.savedPosition);
+    //       o.matrixWorld.copy(o.savedMatrixWorld);
+    //     }
+    //   });
+    //   /* if (this.debugMeshes) {
+    //     [this.debugMeshes.attributes.eyes, this.debugMeshes.attributes.head].forEach(attribute => {
+    //       attribute.visible = true;
+    //     });
+    //   } */
+    //   this.decapitated = false;
+    // }
   }
 
   setFloorHeight(floorHeight) {

@@ -136,6 +136,37 @@ class NpcManager extends EventTarget {
     //   object: localPlayer,
     // };
     if (mode === 'attached') {
+      const _updateDamageState = (npcPlayer) => {
+        const health = npcPlayer.npcApp.hitTracker.hp;
+
+        if(health <= 99 && health >= 98) {
+          npcPlayer.avatar.shoulderTransforms.rightArm.hand.position.set(NaN, NaN, NaN);
+        }
+        else if (health <= 98 && health >= 97) {
+          npcPlayer.avatar.shoulderTransforms.leftArm.hand.position.set(NaN, NaN, NaN);
+        }
+        else if (health <= 97 && health >= 96) {
+          npcPlayer.avatar.shoulderTransforms.rightArm.lowerArm.position.set(NaN, NaN, NaN);
+          const newAction = {
+              type: 'dance',
+              animation: 'dansu'
+          };
+          npcPlayer.addAction(newAction);
+        }
+        else if (health <= 96 && health >= 95) {
+          npcPlayer.avatar.shoulderTransforms.leftArm.lowerArm.position.set(NaN, NaN, NaN);
+        }
+        else if (health <= 95 && health >= 94) {
+          npcPlayer.avatar.shoulderTransforms.head.position.set(NaN, NaN, NaN);
+        }
+    
+        //console.log("Health:", health);
+    
+        //npcPlayer.avatar.shoulderTransforms.head.position.set(NaN, NaN, NaN);
+        //npcPlayer.avatar.shoulderTransforms.rightArm.hand.position.set(NaN, NaN, NaN);
+        
+      }
+
       const _listenEvents = () => {
         const hittrackeradd = e => {
           app.addEventListener('hit', e => {
@@ -148,9 +179,23 @@ class NpcManager extends EventTarget {
                 type: 'hurt',
                 animation: 'pain_back',
               };
+
+              //console.log(npcPlayer.avatar.shoulderTransforms.head.position);
+              //npcPlayer.avatar.shoulderTransforms.head.position.set(NaN, NaN, NaN);
+              //npcPlayer.avatar.shoulderTransforms.rightArm.hand.position.set(NaN, NaN, NaN);
+
+              //rightShoulderAnchor
+              //npcPlayer.avatar.shoulderTransforms.leftArm.position.set(NaN, NaN, NaN);
+
+              // npcPlayer.avatar.shoulderTransforms.leftArm.traverse(o => { 
+              //   o.position.set(NaN, NaN, NaN);
+              // });
+              
               npcPlayer.addAction(newAction);
 
-              console.log(npcPlayer, "npc player got hit");
+              _updateDamageState(npcPlayer);
+
+              //console.log(npcPlayer, "npc player got hit");
 
               //sounds.playSound(soundFiles.combat[soundIndex]);
               //sounds.playSoundName("shotgun");

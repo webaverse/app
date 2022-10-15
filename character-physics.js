@@ -9,7 +9,7 @@ import scene2DManager from './2d-manager.js';
 // import ioManager from './io-manager.js';
 import {getVelocityDampingFactor, applyVelocity} from './util.js';
 import {groundFriction, flyFriction, airFriction, swimFriction, flatGroundJumpAirTime, jumpHeight} from './constants.js';
-import {getRenderer, camera} from './renderer.js';
+import {getRenderer, camera, scene} from './renderer.js';
 // import physx from './physx.js';
 import metaversefileApi from 'metaversefile';
 
@@ -56,6 +56,13 @@ class CharacterPhysics {
 
     this.lastPistolUse = false;
     this.lastPistolUseStartTime = -Infinity;
+
+    // Experimental
+
+    this.limbsCut = false;
+    this.headObj = null;
+    
+    //
   }
   loadCharacterController(characterWidth, characterHeight) {
     this.characterWidth = characterWidth;
@@ -463,6 +470,75 @@ class CharacterPhysics {
     };
     _updateHandsEnabled();
 
+    const _decap = () => {
+
+      //console.log("we decapped");
+      
+
+
+
+      if(!this.headObj) {
+        const geometry = new THREE.BoxGeometry( 0.1, 0.1, 0.1 );
+        const material = new THREE.MeshBasicMaterial( {color: 0x00ff00} );
+        this.headObj = new THREE.Mesh( geometry, material );
+        scene.add(this.headObj);
+        this.headObj.position.copy(this.character.position).add(new THREE.Vector3(0,1,0));
+        this.headObj.physicsObj = physicsScene.addBoxGeometry(this.headObj.position, this.headObj.quaternion, new THREE.Vector3(this.headObj.scale.x/2, this.headObj.scale.y/2, this.headObj.scale.z/2), true);
+        
+
+        //this.headObj = this.character.avatar.shoulderTransforms.head;
+        //scene.add(this.headObj);
+      }
+      else {
+        this.character.avatar.shoulderTransforms.head.position.set(NaN, NaN, NaN);
+        //this.headObj.position.copy(this.character.position).add(new THREE.Vector3(0,1,0));
+        //this.headObj.updateMatrixWorld();
+        //this.headObj.updateMatrixWorld();
+        this.headObj.position.copy(this.headObj.physicsObj.position);
+        this.headObj.quaternion.copy(this.headObj.physicsObj.quaternion);
+        this.headObj.updateMatrixWorld();
+      }
+
+      //console.log(this.character.avatar.skinnedMeshes);
+
+      //cube.position.set(NaN, NaN, NaN)
+
+      //console.log(this.character.avatar.shoulderTransforms);
+
+      //this.character.avatar.shoulderTransforms.head.position.copy(cube.position);
+
+      // this.character.avatar.modelBones.Head.traverse(o => {
+      //   if (this.character) {
+      //     //console.log("ya got saved pos", this.character.avatar.modelBones.Head);
+      //     //o.savedPosition.copy(o.position);
+      //     //o.savedMatrixWorld.copy(o.matrixWorld);
+      //     o.position.copy(cube.position);
+      //     o.matrixWorld.copy(cube.matrixWorld);
+
+      //     o.savedPosition.copy(o.position);
+      //     o.savedMatrixWorld.copy(o.matrixWorld);
+
+      //     o.updateMatrixWorld();
+      //     //o.position.set(NaN, NaN, NaN);
+      //     //o.matrixWorld.set(NaN, NaN, NaN, NaN, NaN, NaN, NaN, NaN, NaN, NaN, NaN, NaN, NaN, NaN, NaN, NaN);
+      //   }
+      // });
+      //this.character.avatar.skeleton.update();
+
+      //this.limbsCut = true;
+
+    }
+
+    const _updateLimbs = () => {
+
+      if(this.character.avatar && !this.limbsCut) {
+        //console.log(this.character.avatar.foundModelBones.Head);
+        //_decap();
+      }
+
+    };
+    _updateLimbs();
+
     const _updateFakeHands = () => {
       if (!session) {
         localMatrix
@@ -489,38 +565,38 @@ class CharacterPhysics {
 
           //console.log(leftHandPos);
 
-          let result = physicsScene.raycast(camera.position, camera.quaternion);
+          // let result = physicsScene.raycast(camera.position, camera.quaternion);
 
-          let point = new THREE.Vector3();
+          // let point = new THREE.Vector3();
 
-          if(result) {
-            if(result.point) {
-              point.fromArray(result.point);
-              //console.log(point, "the point we hitting");
-            }  
-          }
+          // if(result) {
+          //   if(result.point) {
+          //     point.fromArray(result.point);
+          //     //console.log(point, "the point we hitting");
+          //   }  
+          // }
           
-          //////
-          let tempObj1 = new THREE.Object3D;
-          // tempObj1.position
-          //   .copy(localVector2)
-          //   .add(
-          //     new THREE.Vector3()
-          //       .copy(leftHandPos)
-          //       .multiplyScalar(handOffsetScale)
+          // //////
+          // let tempObj1 = new THREE.Object3D;
+          // // tempObj1.position
+          // //   .copy(localVector2)
+          // //   .add(
+          // //     new THREE.Vector3()
+          // //       .copy(leftHandPos)
+          // //       .multiplyScalar(handOffsetScale)
+          // //   );
+
+          // tempObj1.position.copy(leftGamepadPosition);
+          
+          // let tempVec2 = new THREE.Vector3();
+          // tempVec2
+          //   .copy(camera.position)
+          //   .applyQuaternion(camera.quaternion
           //   );
 
-          tempObj1.position.copy(leftGamepadPosition);
-          
-          let tempVec2 = new THREE.Vector3();
-          tempVec2
-            .copy(camera.position)
-            .applyQuaternion(camera.quaternion
-            );
+          // tempObj1.lookAt(point);
 
-            this.character.leftHand.lookAt(point);
-
-          leftGamepadQuaternion = tempObj1.quaternion;
+          // leftGamepadQuaternion = tempObj1.quaternion;
           /////
 
 
@@ -550,7 +626,7 @@ class CharacterPhysics {
           const leftGamepadEnabled = false; */
 
           this.character.leftHand.position.copy(leftGamepadPosition);
-          //this.character.leftHand.quaternion.copy(leftGamepadQuaternion);
+          this.character.leftHand.quaternion.copy(leftGamepadQuaternion);
         }
         if (this.character.hands[1].enabled) {
           const rightGamepadPosition = localVector2

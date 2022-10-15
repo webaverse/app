@@ -24,7 +24,7 @@
         },
         "fog": {
           "fogType": "exp",
-          "args": [[15, 4, 1], 0.025]
+          "args": [[15, 4, 1], 0.1]
         },
         "bloom": {
           "strength": 0.4,

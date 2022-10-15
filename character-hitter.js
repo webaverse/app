@@ -64,7 +64,8 @@ export class CharacterHitter {
             const timeDiff = timestamp - this.lastHitTime;
             if (timeDiff > 1000) {
               const useAction = this.player.getAction('use');
-              const damage = typeof useAction.damage === 'number' ? useAction.damage : 10;
+              //const damage = typeof useAction.damage === 'number' ? useAction.damage : 25;
+              const damage = 25;
               const hitDirection = app.position.clone()
                 .sub(this.player.position);
               hitDirection.y = 0;
@@ -104,7 +105,7 @@ export class CharacterHitter {
           const _performHit = () => {
             const targetApp = metaversefile.getAppByPhysicsId(result.objectId);
             if (targetApp) {
-              const damage = 2;
+              const damage = 25;
 
               const hitPosition = new THREE.Vector3().fromArray(result.point);
               const hitQuaternion = new THREE.Quaternion().setFromRotationMatrix(

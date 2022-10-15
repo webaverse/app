@@ -11,7 +11,7 @@
       "type": "application/light",
       "content": {
         "lightType": "directional",
-        "args": [[23, 6, 0], 1.5],
+        "args": [[255, 255, 255], 5],
         "position": [1, 2, 3],
         "shadow": [150, 5120, 0.1, 10000, -0.0001]
       }
@@ -22,8 +22,16 @@
         0,
         0
       ],
+      "start_url": "https://webaverse.github.io/atmospheric-sky/"
+    },
+    {
+      "position": [
+        0,
+        0,
+        0
+      ],
       "physics": true,
-      "start_url": "/green_environment_dream.glb",
+      "start_url": "https://webaverse.github.io/block/grid.glb",
       "dynamic": false
     }
   ]
