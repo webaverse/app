@@ -1,0 +1,17 @@
+C:\Program Files (x86)\sox-14-4-2\sox.exe:      SoX v14.4.2
+C:\Program Files (x86)\sox-14-4-2\sox.exe INFO formats: detected file format type `wav'
+
+Input File     : 'sounds.wav'
+Channels       : 2
+Sample Rate    : 48000
+Precision      : 16-bit
+Duration       : 00:04:25.96 = 12765859 samples ~ 19946.7 CDDA sectors
+File Size      : 51.1M
+Bit Rate       : 1.54M
+Sample Encoding: 16-bit Signed Integer PCM
+Endian Type    : little
+Reverse Nibbles: no
+Reverse Bits   : no
+
+C:\Program Files (x86)\sox-14-4-2\sox.exe FAIL util: Unable to load LAME encoder library (libmp3lame).
+C:\Program Files (x86)\sox-14-4-2\sox.exe FAIL formats: can't open output file `sounds.mp3': 

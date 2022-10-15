@@ -10,6 +10,7 @@ import {makeId, createRelativeUrl} from './util.js';
 import { triggerEmote } from './src/components/general/character/Poses.jsx';
 import validEmotionMapping from "./validEmotionMapping.json";
 import {scene, camera} from './renderer.js';
+import * as sounds from './sounds.js';
 
 const localVector = new THREE.Vector3();
 
@@ -113,6 +114,9 @@ class NpcManager extends EventTarget {
     const meleeAnimation = animations.find(a => a.isMelee);
     const meleeAnimationDuration = meleeAnimation.duration;
 
+    const soundFiles = sounds.getSoundFiles();
+    const soundIndex=soundFiles.combat.map(sound => sound.name).indexOf('combat/shotgun_single6.wav');
+
     let healthMesh = null;
 
     app.getPhysicsObjects = () => npcPlayer ? [npcPlayer.characterPhysics.characterController] : [];
@@ -134,23 +138,42 @@ class NpcManager extends EventTarget {
     if (mode === 'attached') {
       const _listenEvents = () => {
         const hittrackeradd = e => {
-          // app.addEventListener('hit', e => {
-          //   targetSpec = {
-          //     type: 'follow',
-          //     object: localPlayer,
-          //   };
-          //   if (!npcPlayer.hasAction('hurt')) {
-          //     const newAction = {
-          //       type: 'hurt',
-          //       animation: 'pain_back',
-          //     };
-          //     npcPlayer.addAction(newAction);
+          app.addEventListener('hit', e => {
+            targetSpec = {
+              type: 'follow',
+              object: localPlayer,
+            };
+            if (!npcPlayer.hasAction('hurt')) {
+              const newAction = {
+                type: 'hurt',
+                animation: 'pain_back',
+              };
+              npcPlayer.addAction(newAction);
+
+              console.log(npcPlayer, "npc player got hit");
+
+              //sounds.playSound(soundFiles.combat[soundIndex]);
+              //sounds.playSoundName("shotgun");
+
+              // //npcPlayer.avatar.decapitate();
+              // npcPlayer.avatar.skeleton.update();
+
+              // npcPlayer.avatar.foundModelBones.Head.traverse(o => {
+              //   if (o.savedPosition) { // three-vrm adds vrmColliderSphere which will not be saved
+              //     o.savedPosition.copy(o.position);
+              //     o.savedMatrixWorld.copy(o.matrixWorld);
+              //     o.position.set(NaN, NaN, NaN);
+              //     o.matrixWorld.set(NaN, NaN, NaN, NaN, NaN, NaN, NaN, NaN, NaN, NaN, NaN, NaN, NaN, NaN, NaN, NaN);
+              //   }
+              // });
+
+              //npcPlayer.avatar.skeleton.update();
               
-          //     setTimeout(() => {
-          //       npcPlayer.removeAction('hurt');
-          //     }, hurtAnimationDuration * 1000);
-          //   }
-          // });
+              setTimeout(() => {
+                npcPlayer.removeAction('hurt');
+              }, hurtAnimationDuration * 1000);
+            }
+          });
         };
         app.addEventListener('hittrackeradded', hittrackeradd);
 

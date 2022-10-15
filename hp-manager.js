@@ -133,7 +133,7 @@ const makeHitTracker = ({
         scene.add(damageMeshApp);
       }
 
-      sounds.playSoundName('enemyCut');
+      //sounds.playSoundName('enemyCut');
 
       const hitEvent = {
         type: 'hit',

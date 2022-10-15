@@ -2138,6 +2138,9 @@ class Avatar {
           o.matrixWorld.set(NaN, NaN, NaN, NaN, NaN, NaN, NaN, NaN, NaN, NaN, NaN, NaN, NaN, NaN, NaN, NaN);
         }
       });
+
+      console.log(this.modelBones.Head, "bones");
+      this.modelBones.Head.visible = false;
       /* if (this.debugMeshes) {
         [this.debugMeshes.attributes.eyes, this.debugMeshes.attributes.head].forEach(attribute => {
           attribute.visible = false;

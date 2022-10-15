@@ -36,6 +36,11 @@ const rightHandOffset = new THREE.Vector3(-0.2, -0.2, -0.4);
 const z22Quaternion = new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 0, 1), -Math.PI/8);
 const groundStickOffset = 0.03;
 
+// const sadas = new THREE.BoxGeometry( 1, 1, 1 );
+// const da = new THREE.MeshBasicMaterial( {color: 0x00ff00} );
+// const debugMesh = new THREE.Mesh( sadas, da );
+// scene.add( debugMesh );
+
 const physicsScene = physicsManager.getScene();
 
 const CHARACTER_CONTROLLER_HEIGHT_FACTOR = 1.6;
@@ -466,6 +471,7 @@ class CharacterPhysics {
 
         const avatarHeight = this.character.avatar ? this.characterHeight : 0;
         const handOffsetScale = this.character.avatar ? avatarHeight / 1.5 : 1;
+        let leftHandPos = this.character.avatar.foundModelBones.Left_wrist.position;
         if (this.character.hands[0].enabled) {
           let leftGamepadPosition = localVector2
             .copy(localVector)
@@ -477,24 +483,45 @@ class CharacterPhysics {
             );
           let leftGamepadQuaternion = localQuaternion;
 
-          // let tempObj1 = new THREE.Object3D;
+          //console.log(this.character);
+
+          
+
+          //console.log(leftHandPos);
+
+          let result = physicsScene.raycast(camera.position, camera.quaternion);
+
+          let point = new THREE.Vector3();
+
+          if(result) {
+            if(result.point) {
+              point.fromArray(result.point);
+              //console.log(point, "the point we hitting");
+            }  
+          }
+          
+          //////
+          let tempObj1 = new THREE.Object3D;
           // tempObj1.position
-          //   .copy(localVector)
+          //   .copy(localVector2)
           //   .add(
           //     new THREE.Vector3()
-          //       .copy(leftHandOffset)
+          //       .copy(leftHandPos)
           //       .multiplyScalar(handOffsetScale)
           //   );
+
+          tempObj1.position.copy(leftGamepadPosition);
           
-          // let tempVec2 = new THREE.Vector3();
-          // tempVec2
-          //   .copy(camera.position)
-          //   .add(new THREE.Vector3(0,0,-5000).applyQuaternion(camera.quaternion)
-          // );
+          let tempVec2 = new THREE.Vector3();
+          tempVec2
+            .copy(camera.position)
+            .applyQuaternion(camera.quaternion
+            );
 
-          // tempObj1.lookAt(tempVec2);
+            this.character.leftHand.lookAt(point);
 
-          // leftGamepadQuaternion = tempObj1.quaternion;
+          leftGamepadQuaternion = tempObj1.quaternion;
+          /////
 
 
           if(scene2DManager.enabled) {
@@ -523,7 +550,7 @@ class CharacterPhysics {
           const leftGamepadEnabled = false; */
 
           this.character.leftHand.position.copy(leftGamepadPosition);
-          this.character.leftHand.quaternion.copy(leftGamepadQuaternion);
+          //this.character.leftHand.quaternion.copy(leftGamepadQuaternion);
         }
         if (this.character.hands[1].enabled) {
           const rightGamepadPosition = localVector2

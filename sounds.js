@@ -55,6 +55,10 @@ const soundFiles = {
   refill: _getSoundFiles(/OOT_MagicRefill/),
   explosion: _getSoundFiles(/OOT_Bomb_Blow/),
 
+  shotgun: _getSoundFiles(/^combat\/shotgun_single/),
+  pistol: _getSoundFiles(/^combat\/pistol_single/),
+  smg: _getSoundFiles(/^combat\/smg_single/),
+
   water: _getSoundFiles(/^water\//),
 };
 
