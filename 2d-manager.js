@@ -7,6 +7,8 @@ import { PointerControls } from './scene2D-utils.js';
 
 const localVector = new THREE.Vector3();
 
+const physicsScene = physicsManager.getScene();
+
 class Scene2DManager {
     constructor() {
 
@@ -222,12 +224,17 @@ class Scene2DManager {
         this.viewSize = viewSize;
         //this.controlMode = controls;
         this.enabled = true;
+        this.enablePointerControls();
         setCameraType("orthographic", viewSize, perspective);
     }
     reset() {
         this.enabled = false;
-        this.pointerControls = null;
+        //this.pointerControls = null;
+        this.disablePointerControls();
         setCameraType("perspective");
+    }
+    getPointerControls() {
+      return this.pointerControls;
     }
     enablePointerControls() {
       this.pointerControls = new PointerControls();
@@ -288,9 +295,10 @@ class Scene2DManager {
       return viewDir.x > 0 ? "left" : "right";
     }
     handleClick() {
-        if(this.pointerControls) {
-            this.pointerControls.handleCursorClick();
-        }
+      if(this.pointerControls) {
+        //console.log("ya we got pointerControls", this.pointerControls)
+        this.pointerControls.handleCursorClick();
+      }
     }
     update(timestamp, timeDiff) {
       const localPlayer = playersManager.getLocalPlayer();

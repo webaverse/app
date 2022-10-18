@@ -4,6 +4,9 @@ import physicsManager from './physics-manager.js';
 import {playersManager} from './players-manager.js';
 import { PathFinder } from './npc-utils.js';
 import metaversefile from 'metaversefile';
+import scene2DManager from './2d-manager.js';
+
+const physicsScene = physicsManager.getScene();
 
 // class HealthMesh {
 //   constructor() {
@@ -133,11 +136,14 @@ class PointerControls {
       this.lastAttackTime = 0;
       this.firstAttackTime = null;
       this.inAttackRange = false;
+
+      this.lastFocusTarget = null;
     }
     resetFocus() {
       this.moveTarget = null;
       this.attackTarget = null;
       this.inAttackRange = false;
+      this.lastFocusTarget = null;
     }
     checkIsDestinationValid(pos) {
       const localPlayer = playersManager.getLocalPlayer();
@@ -156,12 +162,13 @@ class PointerControls {
       }
     }
     castFromCursor() {
+      //console.log('casting from cursor')
       let vector = new THREE.Vector3();
-      let dir = new THREE.Vector3();
-      vector.set( ( this.cursorPosition.x / window.innerWidth ) * 2 - 1, - ( this.cursorPosition.y / window.innerHeight ) * 2 + 1, - 1 );
+      //let dir = new THREE.Vector3();
+      vector.set( ( scene2DManager.cursorPosition.x / window.innerWidth ) * 2 - 1, - ( scene2DManager.cursorPosition.y / window.innerHeight ) * 2 + 1, - 1 );
       vector.unproject( camera );
-      dir.set( 0, 0, - 1 ).transformDirection( camera.matrixWorld );
-      raycaster.set( vector, dir );
+      //dir.set( 0, 0, - 1 ).transformDirection( camera.matrixWorld );
+      //raycaster.set( vector, dir );
       let ray = physicsScene.raycast(vector, camera.quaternion);
   
       if(ray) {
@@ -170,9 +177,20 @@ class PointerControls {
     }
     handleCursorClick() {
       let target = this.castFromCursor();
+      //console.log(target, "yaw e got target");
       if(target) {
+        console.log(target, "target")
         const targetApp = metaversefile.getAppByPhysicsId(target.objectId);
-        console.log(targetApp);
+        //this.lastFocusTarget = targetApp;
+
+        if(targetApp) {
+          const focusedEvent = {
+            type: 'focused',
+          };
+          targetApp.dispatchEvent(focusedEvent);
+        }
+
+        console.log(targetApp, "our target App");
         const targetPoint = new THREE.Vector3().fromArray(target.point);
         let isValid = this.checkIsDestinationValid(targetPoint);
         if(isValid) {
@@ -279,7 +297,8 @@ class PointerControls {
       const localPlayer = playersManager.getLocalPlayer();
   
       if(this.moveTarget && localPlayer) {
-        this.moveToPoint(this.moveTarget, timeDiff);
+        this.resetFocus();
+        //this.moveToPoint(this.moveTarget, timeDiff);
       }
   
     }

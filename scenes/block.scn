@@ -11,67 +11,26 @@
       "type": "application/light",
       "content": {
         "lightType": "directional",
-        "args": [[23, 6, 0], 1.5],
+        "args": [[255, 255, 255], 5],
         "position": [1, 2, 3],
-        "shadow": [150, 5120, 0.1, 10000, -0.0001]
+        "shadow": [50, 4096, 0.1, 1000, 0, 0.2]
       }
-    },
-    {
-      "type": "application/rendersettings",
-      "content": {
-        "background": {
-          "color": [15, 4, 1]
-        },
-        "fog": {
-          "fogType": "exp",
-          "args": [[15, 4, 1], 0.025]
-        },
-        "bloom": {
-          "strength": 0.4,
-          "radius": 0.5,
-          "threshold": 0.2
-        }
-      }
-    },
-    {
-      "type": "application/light",
-      "content": {
-        "lightType": "point",
-        "args": [[252, 160, 68], 4, 2],
-        "position": [-1, 0.5, 27]
-      }
-    },
-    {
-      "type": "application/light",
-      "content": {
-        "lightType": "point",
-        "args": [[113, 245, 126], 4, 5],
-        "position": [-9.3, 0.5, 2.25]
-      }
-    },
-    {
-      "position": [-4.21, 1, -1.49 ],
-      "start_url": "https://webaverse.github.io/light-flicker/"
     },
     {
       "position": [
-        -2,
-        3,
-        3
-      ],
-      "quaternion": [
         0,
-        1,
         0,
         0
       ],
-      "type": "application/npc",
-      "content": {
-        "name": "Zombie",
-        "avatarUrl": "/avatars/zombie-fixed.vrm",
-        "voice": "Shining Armor",
-        "bio": "Zombie, eat brain"
-      }
+      "start_url": "https://webaverse.github.io/atmospheric-sky/"
+    },
+    {
+      "position": [
+        0,
+        0.5,
+        0
+      ],
+      "start_url": "https://webaverse.github.io/demon-dog/"
     },
     {
       "position": [
@@ -80,17 +39,7 @@
         0
       ],
       "physics": true,
-      "start_url": "/port.glb",
-      "dynamic": false
-    },
-    {
-      "position": [
-        3,
-        1,
-        0
-      ],
-      "physics": true,
-      "start_url": "https://webaverse.github.io/sawed-off/",
+      "start_url": "https://webaverse.github.io/block/grid.glb",
       "dynamic": false
     }
   ]

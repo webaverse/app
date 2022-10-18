@@ -21,32 +21,15 @@
         "perspective": "side-scroll",
         "scrollDirection": "none",
         "cameraMode": "fixed",
-        "viewSize": 20
+        "viewSize": 19
       }
     },
-{
-      "position": [
-        0,
-        -1,
-        0
-      ],
-      "start_url": "https://loryhoof.github.io/particles/"
+    {
+      "start_url": "../metaverse_modules/raid-party/"
     },
     {
-      "position": [
-        0,
-        0,
-        5
-      ],
-      "start_url": "https://webaverse.github.io/skybox/"
-    },
-    {
-      "position": [
-        0,
-        0,
-        0
-      ],
-      "start_url": "/demoScn3.glb"
+      "start_url": "https://webaverse.github.io/demon-dog/",
+      "position": [-3, -6.58, 0]
     }
   ]
 }
