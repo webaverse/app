@@ -20,6 +20,9 @@
       "content": {
           "pixel": {
             "pixelSize": 2
+          },
+          "background": {
+            "color": [80, 230, 227]
           }
       }
     },
@@ -27,17 +30,12 @@
       "type": "application/scene2D",
       "content": {
         "perspective": "side-scroll",
-        "scrollDirection": "none",
-        "cameraMode": "fixed",
-        "viewSize": 19
+        "cameraMode": "follow",
+        "viewSize": 25
       }
     },
     {
-      "start_url": "../metaverse_modules/raid-party/"
-    },
-    {
-      "start_url": "https://webaverse.github.io/demon-dog/",
-      "position": [-3, -8, 0]
+      "start_url": "../metaverse_modules/2d-procgen/"
     }
   ]
 }

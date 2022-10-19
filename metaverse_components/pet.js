@@ -17,6 +17,9 @@ export default (app, component) => {
   let idleAction = null;
   let walkAction = null;
   let runAction = null;
+  let jumpAction = null;
+  let hitAction = null;
+  let attackAction = null;
   let rootBone = null;
 
   let player = null;
@@ -84,23 +87,54 @@ export default (app, component) => {
             runAction = petMixer.clipAction(runAnimation);
             runAction.play();
           }
+          const jumpAnimation = (petSpec.jumpAnimation && petSpec.jumpAnimation !== petSpec.idleAnimation) ? animations.find(a => a.name === petSpec.jumpAnimation) : null;
+          if (jumpAnimation) {
+            jumpAction = petMixer.clipAction(jumpAnimation);
+            //jumpAction.play();
+            jumpAction.loop = THREE.LoopOnce;
+            //jumpAction.weight = 0;
+          }
+          const hitAnimation = (petSpec.hitAnimation && petSpec.hitAnimation !== petSpec.idleAnimation) ? animations.find(a => a.name === petSpec.hitAnimation) : null;
+          if (hitAnimation) {
+            //console.log("ya we got a hit animation");
+            hitAction = petMixer.clipAction(hitAnimation);
+            hitAction.play();
+            hitAction.weight = 0;
+          }
+          const attackAnimation = (petSpec.attackAnimation && petSpec.attackAnimation !== petSpec.idleAnimation) ? animations.find(a => a.name === petSpec.attackAnimation) : null;
+          if (attackAnimation) {
+            //console.log("ya we got a hit animation");
+            attackAction = petMixer.clipAction(attackAnimation);
+            attackAction.loop = THREE.LoopOnce;
+            //attackAction.play();
+            //attackAction.weight = 0;
+          }
         }
       }
     } else {
       _unwear();
     }
   });
+  app.addEventListener('hit', e => {
+      if(hitAction) {
+        hitAction.weight = 1;
+        setTimeout(() => {
+          hitAction.weight = 0;
+        }, hitAction._clip.duration, 1000);
+      }
+  });
   
   const smoothVelocity = new THREE.Vector3();
   const lastLookQuaternion = new THREE.Quaternion();
   const _getAppDistance = () => {
     const position = localVector.copy(player.position);
-    position.y = 0;
+    position.y = app.position.y;
     const distance = app.position.distanceTo(position);
     return distance;
   };
   const minDistance = 1;
   const _isFar = distance => (distance - minDistance) > 0.01;
+  const _shouldRun = distance => (distance - 5) > 0.01;
   useFrame(({timestamp, timeDiff}) => {
     // components
     const _updateAnimation = () => {
@@ -112,18 +146,28 @@ export default (app, component) => {
         }
         if (petMixer) { // animated pet
           if (petSpec) { // activated pet
-            const speed = 0.0014;
+            let speed = 0.0014;
+
+            const fastSpeed = speed * 3;
+
+            
+
 
             const distance = _getAppDistance();
+            //console.log(distance);
             const moveDelta = localVector;
             moveDelta.setScalar(0);
             if (_isFar(distance)) { // handle rounding errors
               const position = player.position.clone();
-              position.y = 0;
+              position.y = app.position.y;
               const direction = position.clone()
                 .sub(app.position)
                 .normalize();
               const maxMoveDistance = distance - minDistance;
+              let speedFactor = Math.min(distance, 6);
+              speed = 0.0014 * speedFactor;
+
+            
               const moveDistance = Math.min(speed * timeDiff, maxMoveDistance);
               moveDelta.copy(direction)
                 .multiplyScalar(moveDistance);
@@ -143,21 +187,91 @@ export default (app, component) => {
             smoothVelocity.lerp(moveDelta, 0.3);
             
             const walkSpeed = 0.01;
-            const runSpeed = 0.03;
+            const runSpeed = 0.06;
             const currentSpeed = smoothVelocity.length();
-            if (walkAction) {
-              walkAction.weight = Math.min(currentSpeed / walkSpeed, 1);
-            }
-            if (runAction) {
-              runAction.weight = Math.min(Math.max((currentSpeed - walkSpeed) / (runSpeed - walkSpeed), 0), 1);
-            }
-            if (idleAction) {
-              if (walkAction || runAction) {
-                idleAction.weight = 1 - Math.min(currentSpeed / walkSpeed, 1);
-              } else {
-                idleAction.weight = 1;
+
+            let randomDecorate = (Math.random() > 0.99);
+            let anims = [attackAction, jumpAction]
+            let randomAnimation = Math.floor(Math.random() * anims.length);
+
+            let factor = 0.1;
+
+            if(currentSpeed < walkSpeed) {
+              if(walkAction.weight > 0) {
+                walkAction.weight -= factor;
               }
+              if(runAction.weight > 0) {
+                runAction.weight -= factor;
+              }
+
+              if(jumpAction.weight > 0) {
+                //jumpAction.weight -= factor;
+              }
+
+              idleAction.weight = 1 - Math.min(currentSpeed / walkSpeed, 1);
+
+              if(randomDecorate) {
+                if(anims[randomAnimation] && !anims[randomAnimation].isRunning()) {
+                  anims[randomAnimation].reset();
+                  anims[randomAnimation].play();
+                }
+              }
+
             }
+            else if (currentSpeed < runSpeed) {
+              if(runAction.weight > 0) {
+                runAction.weight -= factor;
+              }
+              if(idleAction.weight > 0) {
+                idleAction.weight -= factor;
+              }
+
+              if(walkAction.weight < 1) {
+                walkAction.weight += factor;
+              }
+
+              if(jumpAction.weight > 0) {
+                //jumpAction.weight -= factor;
+              }
+
+              //walkAction.weight = Math.min(currentSpeed / walkSpeed, 1);
+              // walk
+            }
+            else {
+              if(walkAction.weight > 0) {
+                walkAction.weight -= factor;
+              }
+              if(idleAction.weight > 0){
+                idleAction.weight -= factor;
+              }
+
+              if(runAction.weight < 1) {
+                runAction.weight += factor;
+              }
+
+              if(jumpAction.weight < 1) {
+                //jumpAction.weight += factor;
+              }
+
+              //runAction.weight = Math.min(Math.max((currentSpeed - walkSpeed) / (runSpeed - walkSpeed), 0), 1);
+              // run
+            }
+
+            // if (walkAction) {
+            //   walkAction.weight = Math.min(currentSpeed / walkSpeed, 1);
+            //   runAction.weight = 1 - walkAction.weight;
+            // }
+            // if (runAction) {
+            //   runAction.weight = Math.min(Math.max((currentSpeed - walkSpeed) / (runSpeed - walkSpeed), 0), 1);
+            //   walkAction.weight = 1 - runAction.weight;
+            // }
+            // if (idleAction) {
+            //   if (walkAction || runAction) {
+            //     idleAction.weight = 1 - Math.min(currentSpeed / walkSpeed, 1);
+            //   } else {
+            //     idleAction.weight = 1;
+            //   }
+            // }
           } else { // unactivated pet
             if (idleAction) {
               idleAction.weight = 1;

@@ -26,6 +26,7 @@ import raycastManager from './raycast-manager.js';
 import zTargeting from './z-targeting.js';
 import Avatar from './avatars/avatars.js';
 import {makeId} from './util.js'
+import scene2DManager from './2d-manager.js';
 
 const localVector = new THREE.Vector3();
 const localVector2 = new THREE.Vector3();
@@ -1213,7 +1214,12 @@ class GameManager extends EventTarget {
     }
   }
   menuMiddleDown() {
-    zTargeting.handleDown();
+    if(scene2DManager.enabled) {
+      // do nothing
+    }
+    else {
+      zTargeting.handleDown();
+    }
 
     // zTargetCenter
     // zTargetObject
@@ -1236,7 +1242,12 @@ class GameManager extends EventTarget {
     } */
   }
   menuMiddleUp() {
-    zTargeting.handleUp();
+    if(scene2DManager.enabled) {
+      // do nothing
+    }
+    else {
+      zTargeting.handleUp();
+    }
 
     // this.dragging = false;
     
@@ -1247,7 +1258,12 @@ class GameManager extends EventTarget {
     })); */
   }
   menuMiddleToggle() {
-    zTargeting.toggle();
+    if(scene2DManager.enabled) {
+      // do nothing
+    }
+    else {
+      zTargeting.toggle();
+    }
   }
   menuDragdownRight(e) {
     // this.draggingRight = true;

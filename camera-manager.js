@@ -221,7 +221,12 @@ class CameraManager extends EventTarget {
     camera.updateMatrixWorld();
   }
   getViewFactor() {
-    return this.viewFactor;
+    if(scene2DManager.enabled) {
+      return scene2DManager.viewSize;
+    }
+    else {
+      return this.viewFactor;
+    }
   }
   async requestPointerLock() {
     // const localPointerLockEpoch = ++this.pointerLockEpoch;
