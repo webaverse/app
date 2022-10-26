@@ -688,18 +688,22 @@ class CameraManager extends EventTarget {
             break;
           }
           case 'top-down': {
-            this.targetPosition.copy(localPlayer.position)
-              .sub(
-                localVector2.copy(avatarCameraOffset)
-                  .applyQuaternion(this.targetQuaternion)
-              );
-      
+            camera.position.copy(localPlayer.position)
+              .add(localVector.set(0, 10, 0));
+            camera.quaternion.setFromRotationMatrix(
+              localMatrix.lookAt(
+                camera.position,
+                localPlayer.position,
+                localVector2.set(0, 0, -1)
+                  .applyQuaternion(camera.quaternion),
+              )
+            );
+            this.targetPosition.copy(localPlayer.position).add(new THREE.Vector3(0,0,10).applyQuaternion(camera.quaternion));
             break;
           }
           case 'side-scroll': {
             if(scene2DManager.cameraMode === "fixed") {
               if(scene2DManager.scrollDirection === "horizontal") {
-                //let offset = new THREE.Vector3(localPlayer.position.x, localPlayer.position.y, 0).sub(new THREE.Vector3(0, localPlayer.position.y, 0));
                 this.targetPosition.copy(new THREE.Vector3(localPlayer.position.x, camera.position.y, 10)).sub(new THREE.Vector3(camera.position.x, 0, 0));
                 break;
               } 
@@ -709,21 +713,13 @@ class CameraManager extends EventTarget {
                 break;
               }
               else if (scene2DManager.scrollDirection === "none") {
-                //let offset = new THREE.Vector3(localPlayer.position.x, localPlayer.position.y, 0).sub(new THREE.Vector3(camera.position.x, localPlayer.position.y, 0));
                 this.targetPosition.copy(new THREE.Vector3(0,0,0)).add(new THREE.Vector3(0,0,10));
                 break;
               }
             }
             else {
-              this.targetPosition.copy(localPlayer.position).add(new THREE.Vector3(0,0,50).applyQuaternion(camera.quaternion));
-            }  
-            
-            // this.targetPosition.copy(localPlayer.position)
-            //   .sub(
-            //     localVector2.copy(avatarCameraOffset)
-            //       .applyQuaternion(this.targetQuaternion)
-            //   );
-      
+              this.targetPosition.copy(localPlayer.position).add(new THREE.Vector3(0,0,10).applyQuaternion(camera.quaternion));
+            }      
             break;
           }
           case 'isometric': {
@@ -763,6 +759,10 @@ class CameraManager extends EventTarget {
             case 'side-scroll': {
               camera.quaternion.copy(this.sourceQuaternion)
                 .slerp(localQuaternion.setFromEuler(localEuler), factor);
+              break;
+            }
+            case 'top-down': {
+
               break;
             }          
             default: {

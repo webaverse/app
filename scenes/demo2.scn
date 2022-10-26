@@ -1,0 +1,64 @@
+{
+  "objects": [
+    {
+      "type": "application/light",
+      "content": {
+        "lightType": "ambient",
+        "args": [[255, 255, 255], 2]
+      }
+    },
+    {
+      "type": "application/light",
+      "content": {
+        "lightType": "directional",
+        "args": [[255, 255, 255], 2],
+        "position": [1, 2, 3]
+      }
+    },
+    { 
+    "type": "application/rendersettings",
+      "content": {
+          "pixel": {
+            "pixelSize": 2
+          }
+      }
+    },
+    {
+      "type": "application/scene2D",
+      "content": {
+        "perspective": "side-scroll",
+        "scrollDirection": "none",
+        "cameraMode": "fixed",
+        "viewSize": 19
+      }
+    },
+    {
+      "start_url": "../metaverse_modules/raid-party/"
+    },
+    {
+      "position": [
+        5,
+        -6,
+        0
+      ],
+      "quaternion": [
+        0,
+        1,
+        0,
+        0
+      ],
+      "type": "application/npc",
+      "content": {
+        "name": "Drake",
+        "avatarUrl": "/avatars/drake_hacker_v3_vian.vrm",
+        "voice": "Shining Armor",
+        "bio": "His nickname is DRK. 15/M hacker. Loves guns. Likes plotting new hacks. He has the best equipment and is always ready for a fight.",
+        "wear": [{"start_url": "https://webaverse.github.io/silsword/"}]
+      }
+    },
+    {
+      "start_url": "/ground2d.glb",
+      "position": [0, 0, 0]
+    }
+  ]
+}

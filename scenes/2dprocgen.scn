@@ -31,7 +31,7 @@
       "content": {
         "perspective": "side-scroll",
         "cameraMode": "follow",
-        "viewSize": 25
+        "viewSize": 50
       }
     },
     {

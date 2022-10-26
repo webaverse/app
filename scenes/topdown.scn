@@ -4,7 +4,7 @@
       "type": "application/light",
       "content": {
         "lightType": "ambient",
-        "args": [[255, 255, 255], 2]
+        "args": [[255, 255, 255], 10]
       }
     },
     {
@@ -18,22 +18,14 @@
     {
       "type": "application/scene2D",
       "content": {
-        "perspective": "side-scroll",
+        "perspective": "top-down",
         "scrollDirection": "none",
         "cameraMode": "follow",
-        "viewSize": 19
+        "viewSize": 14
       }
     },
     {
-      "start_url": "https://webaverse.github.io/parallax/",
-      "position": [0, 0, 0]
-    },
-    {
-      "start_url": "/ground2d.glb",
-      "position": [0, 0, 0]
-    },
-    {
-      "start_url": "https://loryhoof.github.io/rain/",
+      "start_url": "/Assets/tilegen/",
       "position": [0, 0, 0]
     },
     {
