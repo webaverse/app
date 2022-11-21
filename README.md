@@ -45,7 +45,7 @@ Everything you need to get started with building in the Webaverse is contained i
 
 <h1 align="center">Documentation</h1>
 <p align="center">
-Developer documentation is <a href="https://docs.webaverse.com/docs/index">here</a><br />
+Developer documentation is <a href="https://docs.webaverse.com">here</a><br />
 User documentation is <a href="https://webaverse.notion.site/User-Docs-3a36b223e39b4f94b3d1f6921a4c297a">here</a>
 </p>
 
